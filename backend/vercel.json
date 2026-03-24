@@ -1,0 +1,19 @@
+{
+	"version": 2,
+	"framework": null,
+	"outputDirectory": "public",
+	"installCommand": "npx pnpm install",
+	"buildCommand": "npx tsup && sh scripts/vercel-clean-after-build.sh",
+	"rewrites": [
+		{
+			"source": "/(.*)",
+			"destination": "/api/index"
+		}
+	],
+	"functions": {
+		"api/index.js": {
+			"memory": 1024,
+			"maxDuration": 60
+		}
+	}
+}

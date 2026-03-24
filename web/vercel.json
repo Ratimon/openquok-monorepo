@@ -1,0 +1,6 @@
+{
+	"version": 2,
+	"framework": "sveltekit",
+	"installCommand": "npm install",
+	"buildCommand": "npx vite build"
+}

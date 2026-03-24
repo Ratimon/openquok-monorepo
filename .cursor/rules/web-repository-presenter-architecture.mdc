@@ -1,0 +1,249 @@
+---
+description: Web app repository/presenter architecture — separate framework from logic, test view models not DOM
+globs: ["web/src/lib/**/*.ts", "web/src/lib/**/*.svelte", "web/src/routes/**/*.svelte"]
+alwaysApply: false
+---
+
+# Repository / presenter architecture (web)
+
+We use a **concept-first, layered architecture** so logic lives outside the framework and we can test **view models (presenter state) instead of the DOM**.
+
+## Four layers (responsibility)
+
+1. **Framework (Svelte)** — Components (`.svelte`). Visualization/UI controls only. Split into:
+   - **Parent component** (e.g. route, layout, or page): holds data and owns the **page presenter** (area singleton, e.g. `AdminBlogTopicsManagerPagePresenter`). Derives view model and status from it, owns feature state when needed, defines handlers that call **page presenter** methods, and passes **view model data and callbacks** (and bindable state when needed) to children. No repository/gateway calls from the route. **Does not** import feature-module singleton modal presenters unless you intentionally colocate all handlers on the route (prefer callbacks into the page presenter only).
+   - **Child component**: receives VM and callbacks (and optionally bindable props) from the parent. Renders the view model and invokes the passed-in callbacks. **Does not** import the **page presenter** (including area singletons from `$lib/area-admin`, `$lib/area-public`, `$lib/area-protected`, etc.) or the **repository**. **Exception (reusable mutation UI):** a child may import **singleton presenters** exported from the feature module’s `index.ts` (e.g. `$lib/blog`: `upsertBlogTopicModalPresenter`, `deleteBlogTopicVerificationPresenter`) when they are thin wrappers that only call the repository and expose `ActionVerificationModal`-compatible `execute`. The **authoritative list VM** still lives on the **page presenter**; after a successful mutation, the child calls parent props such as `onTopicCreated(vm)` / `onTopicUpdated(vm)` / `onTopicDeleted(topic)` so the page presenter applies **in-memory** list updates (no refetch). See **Shared feature presenters (reusable modals)** below.
+2. **User interface** — Presenters (`*.presenter.svelte.ts`). UI-specific view models + UI actions. Call repositories. No framework APIs (no `goto`, no `$app/*`, no DOM/clipboard).
+3. **Business logic** — Repositories (`*.repository.svelte.ts` preferred). Own domain state as **Programmer Models** (PM). Call gateways for I/O. Never expose raw DTOs to the UI.
+4. **Infrastructure & IO** — Gateways (e.g. `HttpGateway`). Talk to API/storage/push. Use **DTOs at the boundary**.
+
+Components must **not** contain business logic or direct **gateway** calls. **Repository** calls belong in repositories; **child** components must not import repositories. **Preferred:** only the **parent** imports the **page presenter** and children use callbacks. **Allowed exception:** children import **feature `index.ts` singleton presenters** for shared upsert/delete modals (see **Shared feature presenters**).
+
+## File roles and naming
+
+| Layer        | File type / pattern              | Role |
+|-------------|-----------------------------------|------|
+| Gateways    | `$lib/core/*.ts`                 | HTTP, storage; work with DTOs. |
+| Repositories| `*.repository.svelte.ts`         | Domain/business state in Programmer Models + gateway calls + mapping from DTO → PM. |
+| Presenters  | `*.presenter.svelte.ts`          | UI spec: status, messages, actions; call repository. |
+| Models      | `*.model.svelte.ts` (if stateful) | Shared reactive state (e.g. auth status). |
+| Components  | `*.svelte` (routes, `$lib/ui`)   | **Parent** (route/layout/section): owns **page** presenter and feature state; derives VM; passes VM + callbacks (+ bindable props) to children. **Child** (`$lib/ui/...`): receives VM + callbacks; **does not** import **page** presenter singletons from any **`$lib/area-*`** index or repository; may import **feature singleton** modal presenters from `$lib/<feature>/index.ts` when following **Shared feature presenters**. |
+
+Reference implementations: `web/src/lib/user-auth/` (e.g. `Authentication.repository.svelte.ts`, `Signin.presenter.svelte.ts`, `Signup.presenter.svelte.ts`). See also `web/src/lib/account/EditorAccountSettings.presenter.svelte.ts`, `web/src/lib/feedback/` (layout-owned presenter + FeedbackPopoverForm as props-only child), and `web/src/lib/user-auth`.
+
+## Parent / child component wiring
+
+- **Parent component** (e.g. route `+layout.svelte`, `+page.svelte`, or a section container) is the **single place that imports the area / page presenter** (e.g. `adminBlogTopicsManagerPagePresenter`). It:
+  - Owns feature state (e.g. `$state('')` for form text, `$state(false)` for popover open) when that state must be reset or coordinated with the presenter (e.g. close popover and call `presenter.reset()`).
+  - Derives view model and loading/status from the presenter (e.g. `$derived(presenter.status === FeedbackStatus.SUBMITTING)`).
+  - Defines handlers that call presenter methods (e.g. `handleFeedbackSubmit(description)` calling `feedbackPresenter.createFeedback(...)`). For list/admin pages that use **Toast wiring**, the presenter owns toast state and the route shows toasts in an `$effect` (see **Toast wiring (presenter ⇄ route)**); do not call `toast.*` in the handler for those flows.
+  - Uses `$effect` when needed to react to state (e.g. when `!feedbackOpen` call `presenter.reset()`).
+  - Passes **view model data and callbacks as props** to child components. For two-way state (e.g. form field, popover open), passes **bindable props** (e.g. `bind:feedbackDescription`, `bind:feedbackOpen`) so the parent remains the source of truth. No presenter reference is passed.
+- **Child components** (e.g. `EditorAccountSettings.svelte`, `FeedbackPopoverForm.svelte`, `BlogComments.svelte`) must **not** import the **page / area** presenter (`$lib/area-admin`, `$lib/area-public`, `$lib/area-protected`, …). They:
+  - Declare a `Props` type with view model fields (e.g. `profileVm`, `workspacesVm`, `isSubmitting`, `successMessage`) and loading flags, plus **callback props** (e.g. `onSubmit`, `onCreateWorkspace`, `onSwitchWorkspace`, `submitBlogComment`). For parent-owned state, use **bindable props** (e.g. `description = $bindable('')`, `open = $bindable(false)`).
+  - Receive all data and actions via `$props()`. They render the view model and invoke the passed-in callbacks (e.g. `onSubmit(description)`).
+  - May keep local UI state (e.g. local dialog open) when it does not need to be reset by the parent. For feature state that the parent must own (e.g. popover open, form text), receive it as bindable props from the parent.
+- This keeps components **readable** (explicit props, no hidden **page** presenter dependency), **testable** (child can be tested with mock props), and aligned with the rule: **Route → page presenter**; children use VM + callbacks, and may use **feature singleton** presenters only under **Shared feature presenters (reusable modals)**.
+
+**Example (feedback flow):** `(protected)/+layout.svelte` owns `feedbackPresenter`, state (`feedbackDescription`, `feedbackOpen`), and `handleFeedbackSubmit`; passes them (including bindables) through `SidebarProtected` → `HeaderProtected` → `FeedbackPopoverForm.svelte`. The form component has no presenter import; it only receives props and calls `onSubmit(description)`.
+
+### Shared feature presenters (reusable modals)
+
+Use this pattern when a **list page** needs shared upsert/delete UI used from both a table and an empty state, and you want the same repository-backed `execute` wiring as `ActionVerificationModal`.
+
+- **Feature module `index.ts`** (e.g. `web/src/lib/blog/index.ts`):
+  - Export **singletons**: `upsertBlogTopicModalPresenter` (`UpsertBlogTopicModalPresenter` → calls `blogRepository`), `deleteBlogTopicVerificationPresenter` (`ActionVerificationModalPresenter` wrapping `blogRepository.deleteBlogTopic`).
+- **Page presenter** (e.g. `AdminBlogTopicsManagerPagePresenter` in `$lib/area-admin`):
+  - Owns `allTopicsToManageVm` and `loadAllTopics`.
+  - Exposes **in-memory list mutations only** (no direct HTTP in these methods): `addBlogTopic(vm)`, `updateBlogTopic(vm)`, `removeBlogTopic(topicId)`. Call them from the **route** via handlers passed as props to children **after** the modal path has already received `resultPm.success` from the repository.
+- **Route** (`topics/+page.svelte`):
+  - Imports **only** `adminBlogTopicsManagerPagePresenter` from `$lib/area-admin`.
+  - Handlers: `handleTopicCreated` → `addBlogTopic`, `handleTopicUpdated` → `updateBlogTopic`, `handleTopicDeleted` → `removeBlogTopic`.
+- **Child** (`BlogTopicUpsertModal.svelte`, `BlogTopicsTable.svelte`):
+  - May import `upsertBlogTopicModalPresenter` / `deleteBlogTopicVerificationPresenter` from `$lib/blog`.
+  - After successful upsert, build a VM with a pure helper (e.g. `buildBlogTopicViewModelFromUpsert` in `$lib/blog/utils`) and invoke `onTopicCreated` / `onTopicUpdated`.
+  - Delete: `ActionVerificationModal` + `deleteBlogTopicVerificationPresenter.execute`; `onSuccess` calls `onTopicDeleted` so the page presenter removes the row.
+
+**Naming / PM rule:** variables holding repository mutation results remain `*Pm` or `resultPm`-style success objects (e.g. `BlogUpsertProgrammerModel` from the repository layer). Presenter-owned list entries are `*Vm`.
+
+**Toast note:** For **pattern A** mutations, use **Toast wiring (presenter ⇄ route)** below. **Blog topics** (pattern **B**) may show upsert toasts inside the modal after success/failure; delete still flows through `ActionVerificationModal`’s toast behavior.
+
+## Presenter conventions
+
+- **Status enum** — Expose an enum for async state (e.g. `UNKNOWN`, `UPDATING`, `UPDATED`). Use `$state(StatusEnum.UNKNOWN)` so the UI and tests can react without refetching.
+- **Toast state** — Set `showToastMessage = true` and `toastMessage = …` after async operations (success or failure). The route shows the toast in an `$effect` and clears the flag. The presenter does **not** call `toast` directly. Full steps: **Toast wiring (presenter ⇄ route)**.
+- **In-memory view model updates** — After a successful mutation, update the presenter’s view model in memory (e.g. `setProfileFullName(fullName)`) instead of calling load/refetch again, to avoid redundant API calls. **Update the VM only on success**: call the repository first, then apply VM changes only when `resultPm.success`; do not perform optimistic updates with revert on failure. **List pages (blog topics):** repository runs inside the **modal / verification** presenter; the **page presenter** applies `addBlogTopic` / `updateBlogTopic` / `removeBlogTopic` only in success callbacks—still **success-first**, not optimistic-before-network.
+- **Private VM-update methods: `_*` convention** — When a presenter encapsulates in-memory VM updates in a helper (e.g. applying a role add/remove to the list VM), name that method with a leading underscore so it is clearly internal and not part of the public API. Examples: `_applyUserRoleAdd`, `_applyUserRoleRemove`, `_applyRolePermissionAdd`, `_applyRolePermissionRemove`. Only public methods (e.g. `assignRoleToUser`, `removeRoleFromUser`) should be called from the route or tests; the `_*` helpers are used only inside the presenter.
+- **Async action pattern** — In mutation methods: set `status = UPDATING`, call the repository, then set `status`, `showToastMessage`, and `toastMessage` from the result; on success update view model in memory. Return the result (e.g. `{ success, message }`) so callers can close modals or handle errors.
+
+## Toast wiring (presenter ⇄ route)
+
+Use this for **pattern A** pages where the **page presenter** performs repository mutations and the **route** should show `svelte-hot-french-toast` notifications **without** importing toast in the presenter and **without** calling `toast.*` in route handlers.
+
+### Presenter
+
+- Own **`showToastMessage = $state(false)`** and **`toastMessage = $state('')`** (same fields as `AdminFeedbackManagerPagePresenter`).
+- In each async mutation (e.g. `handleFeedbackToggle`, `handleApproveComment`): `const resultPm = await this.*Repository....`.
+  - **On success:** update the list VM in memory if needed, then `this.showToastMessage = true` and `this.toastMessage = resultPm.message || '<success default>'`.
+  - **On failure:** `this.showToastMessage = true` and `this.toastMessage = resultPm.message || 'Failed to …'` (prefer messages containing **`Failed`** or **`Error`** so the route’s `$effect` can route to `toast.error`; if the API returns generic text, default copy should still include `Failed` when appropriate).
+- **Never** import or call `toast` in the presenter.
+
+### Route (`+page.svelte`)
+
+- **`$derived`** from the page presenter: `showToastMessage`, `toastMessage` (mirror `feedback-manager`).
+- A single **`$effect`** that runs when `showToastMessage` is true:
+  - Read `toastMessage`.
+  - If the message indicates failure (e.g. `msg.includes('Error') || msg.includes('Failed')`), call `toast.error(msg)`; otherwise `toast.success(msg || 'Updated')`.
+  - Then set **`presenter.showToastMessage = false`** (clear the flag so the effect does not re-fire).
+- **Handlers** passed to children only **`await presenter.handleXxx(...)`** — no `toast.success` / `toast.error` in the handler body.
+
+### References
+
+- `web/src/lib/area-admin/AdminFeedbackManagerPage.presenter.svelte.ts` + `web/src/routes/(protected)/secret-admin/feedback-manager/+page.svelte`
+- `web/src/lib/area-admin/AdminBlogCommentsManagerPage.presenter.svelte.ts` + `web/src/routes/(protected)/secret-admin/blog-manager/comments/+page.svelte`
+
+### Public blog post by slug — `BlogComments` and `BlogLikeButton`
+
+When the **page presenter** is `PublicBlogBySlugPagePresenter` (`$lib/area-public`) and the UI is split as **route → `BlogPost.svelte` → `BlogComments.svelte` / `BlogLikeButton.svelte`**:
+
+- **Presenter** sets mutation toast state (no `toast` import): for comments — `showCommentSubmitToast`, `commentSubmitToastMessage`, `commentSubmitToastIsError`, `submittingComment`; for likes — `showLikeSubmitToast`, `likeSubmitToastMessage`, `likeSubmitToastIsError`, `submittingLike`; for shares — `showShareSubmitToast`, `shareSubmitToastMessage`, `shareSubmitToastIsError`, `submittingShare`. Exposes **`submitBlogComment`**, **`trackBlogLike`**, **`trackBlogShare`**, and **`trackBlogView`** (calls `blogRepository`). **`trackBlogView`** is silent (no toast flags).
+- **Route** `(public)/blog/[slug]/+page.svelte` imports **`publicBlogBySlugPagePresenter`** and `toast`; uses **separate `$effect` blocks** (with a `browser` guard if needed) for comment / like / share toasts when the corresponding `show*SubmitToast` flag is true, then clears that flag. Derives **`submittingComment`** / **`submittingLike`** / **`submittingShare`** and passes the matching callbacks and flags through **`BlogPost`** into the children; passes **`trackBlogView`** for the view pixel.
+- **`BlogComments.svelte`**, **`BlogLikeButton.svelte`**, **`BlogShare.svelte`**, and **`BlogViewPixel.svelte`** have **no** area-presenter import: they only receive **props** (callbacks + loading flags where needed) and invoke the callbacks. **`BlogLikeButton`** may use **`$lib/ui/tooltip`**; **`BlogShare`** may use **`$lib/ui/dropdown-menu`** — UI primitives only.
+
+## Mutation flow (page presenter)
+
+**The route never calls the repository or gateway directly.** Mutations are implemented in presenters, not in `+page.svelte`.
+
+### A — Page presenter owns repository + VM (classic)
+
+- **Presenter** (e.g. `AdminFeedbackManagerPagePresenter`, `AdminPermissionManagerPagePresenter`, `AdminRoleManagerPagePresenter`):
+  - Injects the **repository** in the constructor and calls it inside async **mutation** methods (e.g. `assignPermissionToRole`, `removePermissionFromRole`, `handleFeedbackToggle`, `assignRoleToUser`, `removeRoleFromUser`).
+  - **Blog admin list pages** may inject **both** a stateless **`GetBlogPresenter`** and **`BlogRepository`**: use **`getBlogPresenter.loadAdminCommentsVm` / `loadAdminActivitiesVm` / `loadAdminPosts`** (or similar) for **initial list loads** (PM→VM mapping stays inside `GetBlogPresenter`); use **`blogRepository`** only for **mutations** still owned by the page presenter (e.g. `approveBlogComment`). **`AdminBlogActivitiesManagerPagePresenter`** only needs **`GetBlogPresenter`** if the page has no repository mutations.
+  - **Update view model only on success**: call the repository first; if `resultPm.success`, then update the presenter’s VM in memory and set success toast; if failure, only set error toast. Do **not** perform optimistic VM updates with revert on failure.
+  - Does **not** import or call `toast`; only sets `showToastMessage` and `toastMessage`.
+- **Route** (`+page.svelte`):
+  - Imports **only the page presenter** from the area index (e.g. `$lib/area-admin`). Does **not** import the repository or the gateway.
+  - For toast UX, follow **Toast wiring (presenter ⇄ route)** above: `$derived` + `$effect` + clear `presenter.showToastMessage`; handlers do not call `toast.*` directly.
+  - Defines handlers that **only call presenter methods** (e.g. `handleRolePermissionAdded` → `adminPermissionManagerPagePresenter.assignPermissionToRole(role, permission)`).
+
+**Reference implementations:** `AdminFeedbackManagerPage.presenter.svelte.ts`, `AdminPermissionManagerPage.presenter.svelte.ts`, `AdminRoleManagerPage.presenter.svelte.ts`; routes `(protected)/secret-admin/feedback-manager/+page.svelte`, `permission-manager/+page.svelte`, `role-manager/+page.svelte`. Blog: `AdminBlogPostsManagerPagePresenter` (`loadAllPosts` → `getBlogPresenter.loadAdminPosts`); `AdminBlogCommentsManagerPagePresenter` (load via `getBlogPresenter.loadAdminCommentsVm`, approve via `blogRepository`); `AdminBlogActivitiesManagerPagePresenter` (load via `getBlogPresenter.loadAdminActivitiesVm` only).
+
+### B — Split: feature modal presenters + page presenter list VM (blog topics)
+
+- **HTTP mutations** live in **feature** presenters wired in `$lib/<feature>/index.ts` (`UpsertBlogTopicModalPresenter`, `ActionVerificationModalPresenter` + `blogRepository`).
+- **Page presenter** (`AdminBlogTopicsManagerPagePresenter`) **does not** call `upsertBlogTopic` / `deleteBlogTopic` on the repository; it only owns **`loadAllTopics`** and **in-memory** `addBlogTopic(vm)`, `updateBlogTopic(vm)`, `removeBlogTopic(id)`.
+- **Route** imports **only** `adminBlogTopicsManagerPagePresenter` from `$lib/area-admin` and passes **`onTopicCreated` / `onTopicUpdated` / `onTopicDeleted`** into child components.
+- **Children** call feature singleton presenters, then invoke those callbacks with a built `*Vm` (e.g. via `buildBlogTopicViewModelFromUpsert` in `$lib/blog/utils`).
+
+**Reference:** `AdminBlogTopicsManagerPage.presenter.svelte.ts`, `UpsertBlogTopicModal.presenter.svelte.ts`, `web/src/lib/blog/index.ts`, `(protected)/secret-admin/blog-manager/topics/+page.svelte`, `BlogTopicsTable.svelte`, `BlogTopicUpsertModal.svelte`.
+
+## Data flow
+
+- **DTOs** — Infrastructure boundary only (gateway <-> API). Typed response shapes (e.g. `SigninResponseDto`).
+- **Programmer Models (PM)** — Business/domain representation owned by repositories (repository state).
+- **View models (VM)** — What the view needs: presenter `status`, `toastMessage`, `showToastMessage`, etc. Components read these and call presenter methods.
+
+Flow: **Component → Page presenter → Repository → Gateway**, with **list/read** paths often **Page presenter → `Get*Presenter` → Repository → Gateway** so PM→VM mapping stays in the stateless `Get*` layer. No **gateway** or **repository** imports from the **route**. **Child** components do not import the **repository**; they may use **feature singleton presenters** that encapsulate repository calls (pattern **B** above). (For config, endpoints, and gateway response destructuring in repositories, see **web-lib-conventions**.)
+
+## Naming conventions (required)
+
+### Data suffixes
+
+- **DTO**: `*Dto`, `*ResponseDto` — API boundary only (gateways/repositories internal parsing). Not used for presenter `$state` or child component list props (see **List reads: DTO vs PM vs Vm**).
+- **Programmer Model**: `*ProgrammerModel` — repository-owned business data; repository list methods return `*ProgrammerModel[]`, not DTO arrays.
+- **View Model**: `*ViewModel` or **`*Vm`** — presenter-owned UI data and table/list row shapes passed to components.
+
+### Variable naming
+
+- **Repository return values must be named `*Pm`** (in presenters, repositories, or any code that calls a repository).
+  - When calling a repository and storing the result, use a variable name ending in `Pm` (e.g. `resultPm`, `createdPm`, `listPm`, `profilePm`).
+  - Example: `const createdPm = await settingsRepository.createOrganization(...)`
+  - Example: `const profilePm = await profileRepository.getProfile()`
+  - Example: `const resultPm = await settingsRepository.inviteTeamMember(...)` (mutation results are still PM)
+  - Example: `const resultPm = await settingsRepository.acceptPendingInvite(inviteId)`
+- **Presenter-to-component values must be named `*Vm`**
+  - Example: `this.workspacesVm = ...`
+  - Example: `return { success: true, message } as SomeResultVm` (when returning view data)
+- **Private methods that perform in-memory VM updates must be named `_*`** (e.g. `_applyUserRoleAdd`, `_applyRolePermissionRemove`). See **Presenter conventions** → “Private VM-update methods”.
+
+### Return types
+
+- **Repositories return PM (including mutation results)**, not ad-hoc objects.
+  - Define explicit PM result types like:
+    - `UpdateProfileProgrammerModel { success: boolean; message: string }`
+    - `CreateWorkspaceProgrammerModel { success: boolean; message: string; ... }` (as needed)
+
+### List reads: DTO vs PM vs Vm (required)
+
+- **Inside the repository only:** HTTP/gateway responses use **`*Dto`** / **`*ResponseDto`** on the wire (e.g. `AdminBlogCommentDto` in `GetAdminBlogCommentsResponseDto`). Parse and **map DTO → `*ProgrammerModel`** before returning. **Public repository methods must not return raw API DTO arrays** to presenters or UI.
+- **Naming the result of a repository list call** (inside the repository or `GetBlogPresenter` right after `await blogRepository.get…`): use **`listPm`** (or another `*Pm` name), e.g. `const listPm = await this.blogRepository.getAdminBlogComments(…)` then `listPm.map(…)` inside `GetBlogPresenter`.
+- **Page presenters:** typed list state must use **`*Vm`** with a consistent **`…ToManageVm`** name for admin lists (e.g. `commentsToManageVm`, `activitiesToManageVm`, `allPostsToManageVm`, `allTopicsToManageVm`), **never** `*Dto`. After loading, map **PM → VM** in the stateless **`GetBlogPresenter`** (e.g. `loadAdminCommentsVm`, `loadAdminActivitiesVm` — same pattern as `loadAdminPosts`), then assign the returned VM array to presenter state; **do not** embed `…PmToVm` helpers in area page presenters. The variable holding the **already-mapped** array may use a natural name (`comments`, `activities`, `posts`) — it is **`Vm` data**, not `*Pm`.
+- **Routes and `$lib/ui` children** that display those lists: import and use **`*Vm`** types only for props and helpers (e.g. `getPostHref(comment: AdminBlogCommentVm)`).
+- **Reference:** `Blog.repository.svelte.ts` (DTO → PM), `GetBlog.presenter.svelte.ts` (`loadAdminCommentsVm` / `loadAdminActivitiesVm` / `loadAdminPosts`), `AdminBlogCommentsManagerPage.presenter.svelte.ts`, `AdminBlogActivitiesManagerPage.presenter.svelte.ts`, `BlogCommentsTable.svelte`, `BlogActivitiesTable.svelte`.
+
+## Presenter split: `Get*` vs stateful feature presenters
+
+- **`Get*.presenter.svelte.ts` is stateless**
+  - No `$state(...)` fields
+  - Follows the **GetProfilePresenter pattern**:
+    - Constructor takes required repository dependencies (e.g. `constructor(private repo: XRepository) {}`)
+    - Methods **call the repository internally** and return **`*Vm`** (or objects containing `*Vm`) such as:
+      - `loadXxxVm(): Promise<XxxViewModel | null>`
+      - `loadXxxVms(): Promise<XxxViewModel[]>`
+      - `getXxxData(): Promise<{ ...Vm, ... }>`
+    - May include pure mapping helpers `toXxxVm(pm)` used by the above methods
+  - **Wiring**: `Get*Presenter` instances should be created in the feature/module `index.ts` and injected into **page presenters** that need mapped reads (e.g. blog admin: `AdminBlogPostsManagerPagePresenter`, `AdminBlogCommentsManagerPagePresenter`, `AdminBlogActivitiesManagerPagePresenter` with `GetBlogPresenter`). Routes should not import or instantiate `Get*Presenter` directly.
+  - **Return ViewModels from `Get*` presenters**: `Get*Presenter` methods should map repository Programmer Models (`*ProgrammerModel`) into UI ViewModels (`*Vm`) and must not expose Programmer Models to components.
+ - **Return ViewModels in all `Get*` presenter helpers**: every public `Get*Presenter` method (and any exported helper) must return a `*Vm` (or an object containing `*Vm`), never a `*ProgrammerModel`/DTO.
+  - **Avoid `*Stateless` in `Get*` presenters**: Since `Get*` presenters are already stateless by design, method names like `loadXxxStateless` should be reserved for page presenters where it clarifies SSR safety.
+- **Page presenter stateless helpers**: Even when a page presenter owns `$state(...)` fields (because the page can be stateful on the client), any method intentionally suffixed `*Stateless` (e.g. `loadXxxStateless`) must not mutate those `$state` fields. It should only compute and return `*Vm` objects so SSR `load()` functions can remain side-effect free.
+- **Stateful presenters** (feature entrypoints like `WorkspaceSettings.presenter`, `Editor*.presenter`)
+  - Own `$state(...)` for status/toast/view models
+  - Call repositories and/or call into `Get*` presenters for mapping / read flows
+
+## Page presenter pattern
+
+Use a **page presenter** for a **route-level page** so the route has a **single presenter entrypoint** and does not import multiple feature presenters or repositories from different modules.
+
+- **When to use**
+  - A full page (e.g. `(protected)/account/settings`, `(protected)/account/notifications`, `(protected)/editor/feedback-manager`) that either:
+    - Coordinates **multiple feature presenters** (e.g. account + workspace settings), or
+    - Is the **single place** that uses a feature presenter and you want the route to depend only on the area lib.
+- **Where it lives**
+  - **Area-specific lib**: `$lib/area-protected/*Page.presenter.svelte.ts`, `$lib/area-admin/*Page.presenter.svelte.ts`, etc.
+  - Naming: file `ProtectedSettingsPage.presenter.svelte.ts`, class `ProtectedSettingsPagePresenter` (or `AdminFeedbackManagerPagePresenter`).
+- **Responsibility**
+  - **Thin coordinator**: Constructor takes one or more feature presenters (and any extra deps like `AuthenticationRepository`). Exposes them via getters (e.g. `get accountPresenter()`) and/or delegates methods (e.g. `loadProfile()`, `handleUpdateFullName()` that calls account presenter then syncs auth store). The **route** imports only the page presenter from the area’s `index.ts` and derives VM from `presenter.accountPresenter.*`, `presenter.workspacePresenter.*`, etc.
+  - **Or stateful page**: Holds `$state` and calls repositories/Get* presenters directly when the page is the only consumer (e.g. `AdminFeedbackManagerPagePresenter`).
+- **Wiring**
+  - Instantiate the page presenter in the **area’s `index.ts`** (e.g. `$lib/area-protected/index.ts`) with the required feature presenters and repositories. Export the **singleton** (e.g. `protectedSettingsPagePresenter`) and re-export any status enums the route needs (e.g. `UpdateProfileStatus`, `WorkspaceSettingsStatus`).
+- **Route usage**
+  - The **route** (`+page.svelte`) imports **only** from the area (e.g. `$lib/area-protected`). It does **not** import from `$lib/account`, `$lib/settings`, or other feature modules. It derives view model and status from the page presenter (or its exposed feature presenters), uses `$effect` for section-based or URL-based loading, and defines handlers that call the page presenter.
+
+**Examples:** `ProtectedSettingsPagePresenter` (delegates to `EditorAccountSettingsPresenter` and `WorkspaceSettingsPresenter`; route uses `protectedSettingsPagePresenter` only), `AdminFeedbackManagerPagePresenter` (owns VM and calls GetFeedbackPresenter + repository), `AdminBlogTopicsManagerPagePresenter` (owns list VM + in-memory add/update/remove; HTTP via `$lib/blog` singleton presenters from child UI), `ProtectedNotificationsOverviewPagePresenter` (coordinates notification repository + GetNotificationPresenter).
+
+## Testing
+
+- **Do not** test the DOM or component rendering for business behavior.
+- **Do** test presenters (and repositories) with **stubs and spies**: mock the gateway (e.g. `gateway.post = vi.fn().mockResolvedValue(...)`), instantiate repository and presenter, call presenter methods, then assert on **presenter state** (e.g. `presenter.status`, `presenter.toastMessage`, `presenter.showToastMessage`) and repository state (e.g. `authenticationRepository.currentUser`).
+- Example: `web/src/lib/user-auth/Authentication.test.ts` — tests `SignupPresenter` with a stubbed gateway and asserts `presenter.showToastMessage`, `presenter.toastMessage`, `presenter.status`, `authenticationRepository.currentUser`, and `authStatusModel.status` after `presenter.signup(...)`. Stubs live in `web/src/tests/utils/` (e.g. `GetSuccessfulSignupStub`, `GetFailedSignupStub`).
+
+## Rules
+
+- Put new features in a **repository** (PM + business state) and a **presenter** (VM + UI actions). Wire them in an `index.ts` and inject only into the **parent** component (e.g. layout or page).
+- For **route-level pages**, use a **page presenter** in the appropriate area lib (`$lib/area-protected`, `$lib/area-admin`, etc.). The route imports only the page presenter (and any re-exported enums) from the area’s index; the page presenter delegates to feature presenters or owns page-specific state.
+- Keep **components** thin: **parent** holds data and **page** presenter, derives VM, passes VM + callbacks (and bindable state when needed) to children; **child** receives VM + callbacks, no business rules, no **repository/gateway**, and no **page** presenter import.
+- **Parent/child wiring**: The **route** (or layout/section parent) imports the **page** presenter from the area index and owns feature state when needed. **Child** components under `$lib/ui` do not import **`$lib/area-*`** page presenter singletons; they may import **feature singleton** presenters from `$lib/<feature>/index.ts` only for **Shared feature presenters (reusable modals)**.
+- Write **unit tests** for presenters (and repositories) using gateway stubs; assert on view model and repository state, not DOM.
+
+## `+page.svelte` Edit Checklist (required)
+
+When changing any `web/src/routes/**/+page.svelte`, ensure:
+
+- The route imports **only the relevant page presenter** from the appropriate area index (for example `$lib/area-admin` or `$lib/area-public`) and does **not** import repositories/gateways directly.
+- The route owns any feature-level UI state needed by the page via `$state(...)` (for example open/close state), and derives view state via `$derived(...)`.
+- All async mutations are triggered without **route** → repository/gateway: either **page presenter** methods (pattern **A**) or **child** → feature singleton presenter → repository (pattern **B**), with the **route** only passing callbacks that call **page presenter** in-memory VM methods.
+- Toasts (pattern **A**): follow **Toast wiring (presenter ⇄ route)** — page presenter sets `showToastMessage` + `toastMessage`; route uses **`$derived`** + **`$effect`** to call `toast.error` / `toast.success` and clear the flag; handlers do not call `toast.*`. **Exception (pattern B):** upsert may toast inside the modal after `resultPm`; delete uses `ActionVerificationModal`’s existing toast flow.
+- The route passes **VM data + callbacks** to children. Children do not import the **page** presenter or **repository**; they may import **feature `index.ts`** singleton presenters only for pattern **B**.
+
+

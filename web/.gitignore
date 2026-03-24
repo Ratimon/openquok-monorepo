@@ -1,0 +1,40 @@
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+# testing
+
+/coverage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+# Dotenv files
+.env*.local
+!.env.development.example
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# dependencies
+/node_modules
+.yarn/install-state.gz
+
+# cursorrules
+.cursorrules
+
+# local env files
+.env*.local
+
+# Env files created by scripts for working locally
+.env
+.env.local
+
+# Cursor
+.cursor

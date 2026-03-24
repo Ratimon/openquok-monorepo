@@ -1,0 +1,3 @@
+# Backend-only deployment: ignore sibling apps
+web
+web/**

@@ -1,0 +1,33 @@
+:root {
+  --sans-serif: system-ui, sans-serif;
+  --monospace: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+
+  --text-color: #333333;
+
+  --gray-1: #f9fafb;
+  --gray-2: #eff1f3;
+  --gray-3: #d8dbe2;
+  --gray-4: #818998;
+  --gray-5: #575c66;
+  --gray-6: #2c374b;
+
+  --size-1: 0.25rem;
+  --size-2: 0.5rem;
+  --size-3: 0.75rem;
+  --size-4: 1rem;
+  --size-8: 2rem;
+  --size-64: 16rem;
+
+  --text-small: 0.875rem;
+  --shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes flip {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@theme {
+  --animate-flip: flip 6s infinite steps(2, end);
+}

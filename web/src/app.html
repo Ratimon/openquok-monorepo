@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en" data-theme="aqua" class="h-full bg-base-100">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!-- <link rel="icon" href="/pwa/favicon.svg" type="image/svg+xml" />
+		<link rel="icon" href="/pwa/favicon.ico" type="image/x-icon" sizes="any" /> -->
+		%sveltekit.head%
+	</head>
+	<!-- Use "tap" not "hover": root +layout.ts runs checkAuth on client; hover-preload fires that for every hovered internal link → spurious POST /auth/refresh. Tap-only prefetch avoids that. -->
+	<body data-sveltekit-preload-data="tap">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

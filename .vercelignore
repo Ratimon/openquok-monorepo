@@ -1,0 +1,31 @@
+# Ignore files not needed for Vercel build/upload (when Root Directory is backend or web).
+# See: https://vercel.com/docs/build-step#ignoring-files
+
+.env
+.env.*
+!.env*.example
+
+node_modules
+
+.git
+
+**/coverage
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+**/*.unit.test.ts
+**/*.integration.test.ts
+**/*.e2e.test.ts
+**/tests/
+**/__tests__/
+
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+.cursor
+
+*.log
+
+backend/supabase/

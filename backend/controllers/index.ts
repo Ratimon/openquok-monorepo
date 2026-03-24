@@ -1,0 +1,21 @@
+import { AuthController } from "./AuthController";
+import { UserController } from "./UserController";
+import { CompanyController } from "./CompanyController";
+import { SettingsController } from "./SettingsController";
+import { RbacController } from "./RbacController";
+import { FeedbackController } from "./FeedbackController";
+import { BlogController } from "./BlogController";
+import { ImageController } from "./ImageController";
+import { ConfigController } from "./ConfigController";
+import { authenticationService, emailService, userService, companyService, marketingService, oauthService, organizationService, rbacService, feedbackService, blogService, configService } from "../services/index";
+import { userRepository, storageRepository } from "../repositories/index";
+
+export const authController = new AuthController(authenticationService, userRepository, emailService, oauthService, organizationService);
+export const userController = new UserController(userService, authenticationService, emailService);
+export const companyController = new CompanyController(companyService, marketingService);
+export const settingsController = new SettingsController(organizationService);
+export const rbacController = new RbacController(rbacService, userRepository);
+export const feedbackController = new FeedbackController(feedbackService);
+export const blogController = new BlogController(blogService);
+export const imageController = new ImageController(storageRepository);
+export const configController = new ConfigController(configService);

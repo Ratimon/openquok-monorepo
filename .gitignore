@@ -1,0 +1,27 @@
+# Dependencies
+/node_modules
+.pnpm-store
+
+# Generated files
+/backend/static/routes-manifest.json
+
+# Dotenv / env (never commit secrets; keep example files)
+.env
+.env.*
+!.env*.example
+
+# SST build output
+.build
+.sst
+
+# Vercel (local link/output)
+.vercel
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

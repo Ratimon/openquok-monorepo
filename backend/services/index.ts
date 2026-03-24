@@ -1,0 +1,78 @@
+import { supabaseServiceClientConnection, cacheServiceConnection, cacheInvalidationServiceConnection } from "../connections/index";
+import { refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository } from "../repositories/index";
+import { AuthenticationService } from "./AuthenticationService";
+import { UserService } from "./UserService";
+import { EmailService } from "./EmailService";
+import { CompanyService } from "./CompanyService";
+import { MarketingService } from "./MarketingService";
+import { OAuthService } from "./OAuthService";
+import { OrganizationService } from "./OrganizationService";
+import { RbacService } from "./RbacService";
+import { FeedbackService } from "./FeedbackService";
+import { BlogService } from "./BlogService";
+import { ConfigService } from "./ConfigService";
+
+import { config } from "../config/GlobalConfig";
+
+export const userService = new UserService(
+    userRepository,
+    cacheServiceConnection,
+    rbacRepository,
+    cacheInvalidationServiceConnection
+);
+export const emailService = new EmailService({
+    isEnabled: (config.email as { enabled?: boolean } | undefined)?.enabled ?? false,
+});
+export const authenticationService = new AuthenticationService(
+    supabaseServiceClientConnection,
+    refreshTokenRepository,
+    userRepository,
+    userService
+);
+export const organizationService = new OrganizationService(
+    organizationRepository,
+    userRepository,
+    emailService,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
+);
+export const oauthService = new OAuthService(
+    supabaseServiceClientConnection,
+    userRepository,
+    userService,
+    organizationService
+);
+export const companyService = new CompanyService(configRepository, cacheServiceConnection);
+export const marketingService = new MarketingService(configRepository, cacheServiceConnection);
+export const rbacService = new RbacService(
+    rbacRepository,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
+);
+export const feedbackService = new FeedbackService(
+    feedbackRepository,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
+);
+export const blogService = new BlogService(
+    blogRepository,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection,
+    configRepository
+);
+export const configService = new ConfigService(
+    configRepository,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
+);
+export { AuthenticationService } from "./AuthenticationService";
+export { UserService } from "./UserService";
+export { EmailService } from "./EmailService";
+export { OAuthService } from "./OAuthService";
+export { CompanyService } from "./CompanyService";
+export { MarketingService } from "./MarketingService";
+export { OrganizationService } from "./OrganizationService";
+export { RbacService } from "./RbacService";
+export { FeedbackService } from "./FeedbackService";
+export { BlogService } from "./BlogService";
+export { ConfigService } from "./ConfigService";

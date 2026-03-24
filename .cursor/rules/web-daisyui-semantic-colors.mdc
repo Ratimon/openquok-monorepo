@@ -1,0 +1,60 @@
+---
+description: Use DaisyUI semantic color classes instead of hardcoded or dark: variants
+globs: ["web/**/*.svelte", "web/**/*.css", "web/**/*.postcss"]
+alwaysApply: false
+---
+
+# DaisyUI semantic color classes
+
+Use **DaisyUI semantic color utilities** for backgrounds, text, and borders so the UI respects the active theme (e.g. aqua, light). Do **not** use Tailwind’s `dark:*` variants or fixed color names (e.g. `bg-neutral-800`, `text-zinc-400`).
+
+## Semantic classes to use
+
+| Purpose | Use | Avoid |
+|--------|-----|--------|
+| Page / card background | `bg-base-100` | `bg-white`, `bg-neutral-900`, `dark:bg-*` |
+| Elevated / secondary surface | `bg-base-200` | `bg-neutral-100`, `dark:bg-neutral-800` |
+| Borders, dividers | `border-base-300` | `border-neutral-200`, `dark:border-neutral-700` |
+| Primary text | `text-base-content` | `text-black`, `text-white`, `dark:text-*` |
+| Muted text | `text-base-content/70`, `text-base-content/50` | `text-muted-foreground`, `text-neutral-500`, `dark:text-neutral-400` |
+| Hover background | `hover:bg-base-200`, `hover:bg-base-content/10` | `hover:bg-neutral-100`, `dark:hover:bg-neutral-800` |
+| Primary brand (buttons, links) | `bg-primary`, `text-primary`, `text-primary-content` | Hardcoded brand colors |
+| Semantic roles | `bg-info`, `text-success`, `bg-error`, etc. | Only for alerts/status, not layout |
+
+## Examples
+
+```html
+<!-- ✅ GOOD: theme follows data-theme -->
+<header class="bg-base-100 border-b border-base-300">
+  <a class="text-base-content hover:bg-base-200">Link</a>
+</header>
+
+<!-- ❌ BAD: hardcoded and dark: variant -->
+<header class="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700">
+  <a class="text-neutral-700 dark:text-neutral-200">Link</a>
+</header>
+```
+
+## Shadcn-style / copied UI components (e.g. dialog, dropdown)
+
+When adding or editing components copied from shadcn-svelte or similar registries, **replace their color tokens** with DaisyUI semantic classes so the component respects the project theme. Use this mapping:
+
+| Shadcn / registry class | Use instead (DaisyUI) |
+|-------------------------|------------------------|
+| `text-muted-foreground` | `text-base-content/70` |
+| `text-foreground` | `text-base-content` |
+| `bg-background` | `bg-base-100` |
+| `ring-offset-background` | `ring-offset-base-100` |
+| `focus:ring-ring` | `focus:ring-primary` |
+| `text-primary-foreground` | `text-primary-content` |
+| `text-secondary-foreground` | `text-secondary-content` |
+| `bg-destructive` / `text-destructive-foreground` | `bg-error` / `text-error-content` |
+| `bg-black/50` (overlays) | `bg-base-content/50` |
+| generic `border` (cards/panels) | `border border-base-300` |
+
+Apply this to **all** new or edited files under `web/src/lib/ui/` so you don’t leave shadcn-style tokens in place.
+
+## Reference
+
+- [DaisyUI Colors](https://daisyui.com/docs/colors/) — semantic names and opacity
+- [DaisyUI Themes](https://daisyui.com/docs/themes/) — theme switching via `data-theme` on `<html>`

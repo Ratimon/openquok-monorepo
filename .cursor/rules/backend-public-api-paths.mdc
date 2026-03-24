@@ -1,0 +1,37 @@
+---
+description: When adding API routes that allow anonymous access, add the path to publicPaths in core middleware; route-level auth still applies per method
+globs: ["backend/middlewares/core.ts", "backend/routes/**/*.ts"]
+alwaysApply: false
+---
+
+# Backend: public API paths and global auth
+
+Global auth in `backend/middlewares/core.ts` runs for every request under the API prefix (`/api/v1`) **unless** the path is in `publicPaths`. Route-level middlewares (e.g. `requireFullAuthWithRoles`, `requireEditor`) run **after** the request reaches the router.
+
+## Rule: new public routes
+
+When you add a **route that must be callable without authentication** (e.g. anonymous feedback submit, public form):
+
+1. **Add the path prefix to `publicPaths`** in `backend/middlewares/core.ts`.
+   - Use the path **after** the API prefix (e.g. `/feedback`, not `/api/v1/feedback`).
+   - Matching is `routePath === p || routePath.startsWith(p + "/")`, so `/feedback` covers `/feedback` and `/feedback/...`.
+
+2. **Keep route-level auth on methods that must be protected.**  
+   For the same path prefix, some methods can be public and others protected:
+   - **Public:** do not attach auth middleware (e.g. `POST /feedback` for anonymous submit).
+   - **Protected:** attach `authWithRoles` (or `requireFullAuth`) and any role/permission middleware (e.g. `GET /feedback`, `PATCH /feedback/:id` with `requireEditor`).
+
+## Example (feedback)
+
+- **core.ts:** `publicPaths = ["/auth", "/company", "/feedback"]`  
+  → All requests to `/api/v1/feedback` and `/api/v1/feedback/*` skip global auth.
+
+- **FeedbackRoute.ts:**
+  - `POST "/"` — no auth middleware → anonymous can submit (201).
+  - `GET "/"` — `authWithRoles`, `requireEditor` → 401 if no token, 403 if not editor/admin/super_admin.
+  - `PATCH "/:feedbackId"` — same as GET → only editor+ can mark handled.
+
+## Do not
+
+- Put a path in `publicPaths` and then forget to protect sensitive methods with route-level auth.
+- Use `publicPaths` for paths that must **always** require auth; leave them out so global auth applies.

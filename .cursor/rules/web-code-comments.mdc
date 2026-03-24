@@ -1,0 +1,12 @@
+---
+description: Code comment rules — avoid cross-repo references
+globs: ["**/*.{ts,tsx,js,jsx,svelte,md,mdc,py,go,rs,java,kt,cs,sql,sh,yaml,yml}"]
+alwaysApply: false
+---
+
+# Code comments
+
+- Do **not** include comments that reference other repositories/codebases as the reason for an approach
+  - Avoid: “copied from …”, “similar to …”
+  - Prefer: document intent/constraints in project terms, or omit the comment if it adds no local value.
+

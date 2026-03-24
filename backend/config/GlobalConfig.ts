@@ -1,0 +1,158 @@
+import dotenv from "dotenv";
+import { getEnv, getEnvNumber, getEnvBoolean } from "./envHelper";
+import { logger } from "../utils/Logger";
+
+const ENV = process.env.NODE_ENV ?? "development";
+dotenv.config({ path: `.env.${ENV}.local` });
+dotenv.config(); // .env
+
+export type ConfigObject = { [key: string]: unknown };
+
+export const config: ConfigObject = {
+
+    /** Sender identity for transactional email (Resend/SES). */
+    basic: {
+        siteName: getEnv("SITE_NAME", "Content OS"),
+        senderEmailAddress: getEnv("SENDER_EMAIL_ADDRESS", "noreply@example.com"),
+    },
+
+    server: {
+        nodeEnv: getEnv("NODE_ENV", "development"),
+        frontendDomainUrl: getEnv("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
+        backendDomainUrl: getEnv("BACKEND_DOMAIN_URL", "http://localhost:3000"),
+        port: getEnvNumber("PORT", 3000),
+    },
+
+    api: {
+        prefix: getEnv("API_PREFIX", "/api/v1"),
+    },
+
+    cors: {
+        allowedOrigins: (() => {
+            const frontendUrl = getEnv("FRONTEND_DOMAIN_URL", "http://localhost:5173");
+            const origins: string[] = [frontendUrl];
+            const extra = getEnv("ALLOWED_FRONTEND_ORIGINS", "");
+            if (extra) origins.push(...extra.split(",").map((o) => o.trim()).filter(Boolean));
+            origins.push("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000");
+            return [...new Set(origins)];
+        })(),
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"],
+        credentials: true,
+        maxAge: 86400,
+    },
+
+    auth: {
+    /** When true, registration is disabled (unless DISABLE_REGISTRATION is not set). */
+        disableRegistration: getEnvBoolean("DISABLE_REGISTRATION", false),
+        /** When true, allow cookie in header for dev (NOT_SECURED). */
+        notSecured: getEnvBoolean("NOT_SECURED", false),
+        /** Secret for signing organization invite tokens. Required for invite-by-email. */
+        inviteTokenSecret: getEnv("INVITE_TOKEN_SECRET", getEnv("JWT_SECRET", "")),
+    },
+
+    /**
+     * OAuth providers (Google, GitHub, Generic OIDC).
+     *
+     * - Providers are **enabled only when required env vars are set** (see `connections/oauth/providers/index.ts`).
+     * - Google redirect URI to set in Google Cloud Console:
+     *   `${BACKEND_DOMAIN_URL}${API_PREFIX}/auth/oauth/google/callback`
+     * - Start login endpoint (frontend calls this, then redirects the browser to returned URL):
+     *   `GET ${API_PREFIX}/auth/oauth/google`
+     */
+    oauth: {
+        google: {
+            clientId: getEnv("OAUTH_GOOGLE_CLIENT_ID", ""),
+            clientSecret: getEnv("OAUTH_GOOGLE_CLIENT_SECRET", ""),
+        },
+        github: {
+            clientId: getEnv("OAUTH_GITHUB_CLIENT_ID", ""),
+            clientSecret: getEnv("OAUTH_GITHUB_CLIENT_SECRET", ""),
+        },
+        generic: {
+            authUrl: getEnv("OAUTH_GENERIC_AUTH_URL", ""),
+            tokenUrl: getEnv("OAUTH_GENERIC_TOKEN_URL", ""),
+            userInfoUrl: getEnv("OAUTH_GENERIC_USERINFO_URL", ""),
+            clientId: getEnv("OAUTH_GENERIC_CLIENT_ID", ""),
+            clientSecret: getEnv("OAUTH_GENERIC_CLIENT_SECRET", ""),
+            scope: getEnv("OAUTH_GENERIC_SCOPE", "openid profile email"),
+        },
+    },
+
+    /** Email (verification, welcome). When enabled, verification emails are sent. */
+    email: {
+        enabled: getEnvBoolean("EMAIL_ENABLED", false),
+        /** When true, use local SES mock (e.g. aws-ses-v2-local) for email. */
+        isEmailServerOffline: getEnvBoolean("IS_EMAIL_SERVER_OFFLINE", false),
+        // fromName: getEnv("EMAIL_FROM_NAME", "Content OS"),
+        // fromAddress: getEnv("EMAIL_FROM_ADDRESS", "noreply@example.com"),
+    },
+
+    supabase: {
+        supabaseUrl: getEnv("PUBLIC_SUPABASE_URL", ""),
+        supabaseAnonKey: getEnv("PUBLIC_SUPABASE_ANON_KEY", ""),
+        supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY", ""),
+    },
+
+
+    /** AWS (SES) for local/dev email. */
+    aws: {
+        accessKeyId: getEnv("AWS_ACCESS_KEY_ID", ""),
+        secretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", ""),
+    },
+
+    /** Resend (production) email. */
+    resend: {
+        secretKey: getEnv("RESEND_SECRET_KEY", ""),
+    },
+
+    /** Sentry error monitoring. When SENTRY_DSN is set and enabled, errors are reported to Sentry. */
+    sentry: {
+        dsn: getEnv("SENTRY_DSN", ""),
+        enabled: getEnvBoolean("SENTRY_ENABLED", true),
+    },
+
+    /** Cache (memory or redis). Used by CompanyService / MarketingService for module_configs. */
+    cache: {
+        provider: getEnv("CACHE_PROVIDER", "memory"),
+        defaultTTL: getEnvNumber("CACHE_DEFAULT_TTL", 300),
+        logHits: getEnvBoolean("CACHE_LOG_HITS", true),
+        logMisses: getEnvBoolean("CACHE_LOG_MISSES", true),
+        checkPeriod: getEnvNumber("CACHE_CHECK_PERIOD", 60),
+        useClones: getEnvBoolean("CACHE_USE_CLONES", false),
+        enabled: getEnv("CACHE_ENABLED", "true") !== "false",
+        enablePatterns: getEnv("CACHE_ENABLE_PATTERNS", "true") !== "false",
+        redis: {
+            host: getEnv("REDIS_HOST", "localhost"),
+            port: getEnvNumber("REDIS_PORT", 6379),
+            password: getEnv("REDIS_PASSWORD", ""),
+            db: getEnvNumber("REDIS_DB", 0),
+            prefix: getEnv("REDIS_PREFIX", "app:cache:"),
+            maxReconnectAttempts: getEnvNumber("REDIS_MAX_RECONNECT_ATTEMPTS", 10),
+            enableOfflineQueue: getEnv("REDIS_ENABLE_OFFLINE_QUEUE", "true") !== "false",
+            useScan: getEnv("REDIS_USE_SCAN", "true") !== "false",
+        },
+    },
+
+    /** Rate limiting. When enabled, applies global and auth-specific limits. */
+    rateLimit: {
+        enabled: getEnv("RATE_LIMIT_ENABLED", "true") !== "false",
+        global: {
+            windowMs: getEnvNumber("RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
+            max: getEnvNumber("RATE_LIMIT_MAX", 30), // 30 requests per hour
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many requests from this IP, please try again later",
+        },
+        auth: {
+            windowMs: getEnvNumber("AUTH_RATE_LIMIT_WINDOW_MS", 900000),
+            max: getEnvNumber("AUTH_RATE_LIMIT_MAX", 50),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many authentication attempts, please try again later",
+        },
+    },
+};
+
+const server = config.server as { nodeEnv?: string };
+logger.info({ msg: "[Config] Loaded", env: server?.nodeEnv });

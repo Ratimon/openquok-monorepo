@@ -1,0 +1,11 @@
+
+# Sign up (Test if local email dev server work)
+POST http://localhost:3000/api/v1/auth/sign-up HTTP/1.1
+content-type: application/json
+Authorization: Bearer OGafjutE2QGd81z3BJ2Lpuu2suzaa6L3d5h8OTEUZ6S0GXdXMJqV0P
+
+{
+  "email": "TestEmail@gmail.com", // must be registered in AEWS 's SES
+  "password": "TestPassword123!",
+  "fullName": "Test User"
+}

@@ -1,0 +1,93 @@
+---
+description: Backend API layer flow — routes → controller/data/errors/utils → service → repository; add e2e tests per feature
+globs: ["backend/**/*.ts"]
+alwaysApply: false
+---
+
+# Backend API layers (routes → controller → service → repository)
+
+New API features follow this flow. Implement each layer in order and wire in index files.
+
+## 1. Routes (`backend/routes/`)
+
+- One router per domain (e.g. `UserRoute.ts`, `AuthRoute.ts`).
+- For **public (unauthenticated) routes**, add the path to `publicPaths` in `backend/middlewares/core.ts` (see **backend-public-api-paths**).
+- Compose: **auth middleware** (if protected), **validate\* middleware** (from `data/schemas`), **controller method**.
+- Mount router in `routes/index.ts` under the API prefix (e.g. `apiRouter.use("/users", userRouter)`).
+
+```ts
+// UserRoute.ts
+const auth = requireFullAuth(supabaseServiceClientConnection);
+userRouter.get("/me", auth, userController.getProfile);
+userRouter.put("/me/password", auth, validateUpdatePasswordMeRequest, userController.updatePasswordMe);
+```
+
+## 2. Data layer (`backend/data/`)
+
+- **schemas/** — Zod schemas + `validateRequest(...)` middleware + **handler type** for controller typing.
+  - Export the single middleware used by the route (e.g. `validateUpdatePasswordUserRequest`) and `export type validateXxxRequestHandler = typeof validateXxxRequest`.
+  - Controller methods that have validation use that type: `updatePassword: validateUpdatePasswordUserRequestHandler = async (req, res, next) => { ... }`.
+- **types/** — Shared API/domain types (e.g. `UserProfileResponse`). Optional.
+
+## 3. Errors (`backend/errors/`)
+
+- Domain errors that need a specific HTTP status: extend **AppError** (e.g. `UserError` → `UserNotFoundError`, `UserAuthorizationError`). ErrorController handles all `AppError` by `statusCode`; no per-error branches.
+- Auth/validation/infra: use existing **AuthError**, **ValidationError**, **InfraError** as appropriate.
+
+## 4. Utils (`backend/utils/`)
+
+- **dtos/** — API response shapes and mappers only (e.g. `UserDTO`, `toUserDTO(row)` or `XxxDTOMapper.toDTOCollection(rows)`). Map from **repository row types** to API shape. Row types are defined in **repositories** (e.g. `UserRow`, `FeedbackRow`, `OrganizationRow`); DTO files import them for mapper parameter types. **Mapping is invoked in the controller**, not in the service.
+- **valueObjects/** — Domain value objects (e.g. `UserId`) when you need validation/reuse. Optional.
+
+## 5. Controller (`backend/controllers/`)
+
+- Receives **Request, Response, NextFunction**. Cast to **AuthenticatedRequest** when using `req.user`.
+- Call **service** (and optionally other services, e.g. AuthenticationService). Do not call repositories directly.
+- **Map to DTOs in the controller** just before sending the response (e.g. pass service result into a DTO mapper, then `res.json({ data: dtos })`). Do not expect services to return API DTOs; services return repository/row or domain types.
+- **Create/update responses** — Use a consistent envelope: `{ success: true, data: { id: result.id }, message: "X created/updated successfully" }`. Return **201** for create and **200** for update. The service still returns full domain data; the controller exposes only `id` in `data` for create/update. Reference: `BlogController` (createBlogPost, updateBlogPost, createBlogTopic, updateBlogTopic), `ListingController` (createListing, updateListing).
+- On validation/authorization/not-found: **`return next(new XxxError(...))`**. On unexpected errors: **`next(error)`** in catch. Do not throw in async handlers.
+- Instantiate in `controllers/index.ts` with injected services; export the controller instance.
+
+## 6. Service (`backend/services/`)
+
+- Holds business logic; depends on **repositories** (and config). No Express types.
+- Methods return **repository/row types or domain types**, not API DTOs. The controller is responsible for mapping these to DTOs just before `res.json(...)`.
+- Instantiate in `services/index.ts` with injected repositories; export instances.
+
+### Cache (when the domain benefits from caching)
+
+See **backend-service-cache** for full conventions (key naming like `LIST_BYUSERID` / `BY_ID`, explicit invalidation of read keys, CacheInvalidationService usage).
+
+- **Dependency**: Inject **CacheService** and optional **CacheInvalidationService** from `connections`. Both optional so tests can omit them.
+- **Key design**: Domain-scoped **`CACHE_KEYS`** and **TTL constant**. Name keys so scope is clear (e.g. `ORG_LIST_BYUSERID`, `BLOG_BYID`).
+- **Read path**: **`cache.getOrSet(cacheKey, factory, ttl)`**; when `cache` is undefined, call repository directly.
+- **Write path**: After create/update/delete, call a **private invalidation helper**. Invalidate the **exact keys used for reads** (e.g. by-id key used in getById) via `invalidateKey`; use `invalidatePattern` for list/aggregate where needed. Prefer **CacheInvalidationService** for invalidation. Do not let invalidation errors fail the request.
+
+Reference: `UserService`, `BlogService`, `OrganizationService`, `FeedbackService`, `RbacService`; rule: **backend-service-cache**.
+
+## 7. Repository (`backend/repositories/`)
+
+- Talks to DB (e.g. Supabase). **Defines and exports row types** (e.g. `UserRow`, `FeedbackRow`, `OrganizationRow`, `UserOrganizationRow`) that match DB/query shapes. No DTOs; controllers and **utils/dtos** mappers use these row types (DTO files import row types from the repository for mapper signatures).
+- Methods return `{ data, error }` or throw **InfraError**/ **DatabaseError**.
+- Instantiate in `repositories/index.ts`; export instances and row types.
+
+## 8. E2E tests (`backend/tests/e2e/`)
+
+- One file per domain (e.g. `user.e2e.test.ts`). Use **supertest(app)**, **config** for API prefix/paths, **UserTestHelper** and stubs (e.g. `generateRandomVerificationToken`) for auth-dependent flows.
+- Name **describe** and **it** by feature/scenario, not by endpoint (see **backend-e2e-integration-test-naming**).
+- Cover: success path, 401 (no/invalid token), 403 (wrong user), 400 (validation), and any domain-specific cases.
+- Clean up users in `afterEach`/`afterAll` via helper.
+
+## Checklist for a new API feature
+
+1. **Routes** — Add route(s); mount in `routes/index.ts`.
+2. **Data** — Add/use schema + `validateXxxRequest` + `validateXxxRequestHandler` type.
+3. **Errors** — Use AppError subclasses (or Auth/Validation/Infra) and pass to `next(...)`.
+4. **Utils** — DTO + mapper if response shape is new; value object if needed.
+5. **Controller** — Handler(s) calling service(s); typed with schema handler type where validation runs.
+6. **Service** — Method(s) calling repository; return row/domain types (no DTO mapping). Add cache (CACHE_KEYS, getOrSet, invalidation after mutations) when the domain benefits.
+7. **Repository** — Method(s) for DB access; **define and export row types** (e.g. `XxxRow`). No row types in DTO files.
+8. **Wire** — Controllers/index, services/index, repositories/index.
+9. **E2E** — Add or extend `tests/e2e/<domain>.e2e.test.ts`. Use feature/scenario naming (see **backend-e2e-integration-test-naming**). If you added a new table, update test helpers for cleanup (see **backend-test-helpers-new-tables**).
+
+Reference implementation: user API (`UserRoute`, `UserController`, `UserService`, `UserRepository`, `userSchemas`, `UserDTO`, `UserError`, `user.e2e.test.ts`). For “DTO in controller” pattern: FeedbackController (maps service rows to DTO just before `res.json`); FeedbackService (returns repository row shape).

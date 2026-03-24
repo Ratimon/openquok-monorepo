@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@import "./styles/vars.css";
+@import "./styles/fonts.css";
+
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+@plugin "daisyui" {
+  themes: aqua --default, light;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: var(--color-base-100);
+  }
+}

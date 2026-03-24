@@ -1,0 +1,16 @@
+/node_modules
+/dist
+
+# Vercel sourcemap output from tsup bundle
+/api/index.js.map
+
+# Dotenv files
+.env*.local
+!.env.development.example
+
+# testing
+coverage
+
+# typegen temp (db:local:typegen / db:linked:typegen)
+types/table-types.ts.tmp
+.vercel

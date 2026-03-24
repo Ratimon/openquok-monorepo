@@ -1,0 +1,106 @@
+---
+description: Cache usage in backend service layer — CacheService, CacheInvalidationService, keys, getOrSet, invalidation
+globs: ["backend/services/**/*.ts"]
+alwaysApply: false
+---
+
+# Cache in service layer
+
+Use **CacheService** and **CacheInvalidationService** (from `../connections/cache`) to cache reads and invalidate on mutations. Both are optional constructor args so tests or callers can omit them.
+
+## Dependencies
+
+- Inject **CacheService** for reads (`getOrSet`) and optional direct `del`/`delPattern`.
+- Inject **CacheInvalidationService** for mutation-driven invalidation (preferred over calling `cache.del` directly so invalidation is centralized and consistent).
+
+```ts
+constructor(
+    private readonly someRepository: SomeRepository,
+    private readonly cache?: CacheService,
+    private readonly cacheInvalidator?: CacheInvalidationService
+) {}
+```
+
+## Key design
+
+- Define a **domain-scoped `CACHE_KEYS`** object and a **TTL constant** in the service.
+- Use consistent prefixes and patterns so invalidation can target keys or patterns.
+- **Name keys so the scope is clear**: use suffixes like `BYUSERID`, `BY_ID`, `LIST_ALL` (e.g. `org:list:byUserId`, `blog:byBlogId`, `feedback:list:all`). This makes it obvious what each key is for and keeps naming consistent across services (e.g. `LIST_BYUSERID` / `listing:list:byUserId` style).
+
+```ts
+const CACHE_KEYS = {
+    FEEDBACK: "feedback",
+    FEEDBACK_LIST_ALL: "feedback:list:all",
+    ORG_LIST_BYUSERID: "org:list:byUserId",
+    ORG_BY_IDS: "org:byIds",
+    BLOG_BYID: "blog:byBlogId",
+};
+const FEEDBACK_CACHE_TTL_SEC = 300;
+```
+
+## Read path
+
+Use **`cache.getOrSet(cacheKey, factory, ttl)`** for data that can be cached. When `cache` is optional, call the repository when cache is undefined.
+
+```ts
+async getAllFeedbacks(): Promise<FeedbackRow[]> {
+    const cacheKey = CACHE_KEYS.FEEDBACK_LIST_ALL;
+    const factory = async () => await this.feedbackRepository.findAll();
+    if (this.cache) {
+        return this.cache.getOrSet(cacheKey, factory, FEEDBACK_CACHE_TTL_SEC);
+    }
+    return factory();
+}
+```
+
+## Write / mutation path
+
+After any **create/update/delete** that affects cached data, call a **private invalidation helper**. Invalidation must not fail the request: log errors and do not throw.
+
+- **Invalidate the same keys used for reads.** For any key used in a get* method (e.g. `getBlogPostById` uses `blog:byBlogId:${id}`), ensure the invalidation helper explicitly invalidates that key on mutation (e.g. `invalidateKey(\`${CACHE_KEYS.BLOG_BYID}:${blogId}\`)`). This keeps read and invalidate in sync and survives changes to `CacheInvalidationService.invalidateEntity` conventions.
+- Invalidate **specific keys** and any **cross-referenced keys** (e.g. profile by id and by email).
+- Invalidate **list/aggregate** caches with `cacheInvalidator.invalidateKey(key)` or `invalidatePattern(pattern)`.
+- You can still use `invalidateEntity(entityType, entityId)` and `invalidatePattern(...)` for broader cleanup; prefer also calling `invalidateKey` with the exact read key for by-id and list keys.
+
+### Invalidation helper signature (readability)
+
+Use a **single `params` object** with named properties when the helper depends on one or more identifiers. This keeps call sites and signatures consistent and self-documenting.
+
+- **With identifiers:** `params: { postId: string }`, `params: { authUserId: string; userEmail?: string | null }`, `params: { authUserId?: string; organizationId?: string }`.
+- **No identifiers (fixed keys only):** no parameters is fine (e.g. topic-related or list-all invalidators).
+
+```ts
+// With identifiers — single params object
+private async _invalidateUserRelatedCaches(params: {
+    authUserId: string;
+    userEmail?: string | null;
+}): Promise<void> {
+    const { authUserId, userEmail } = params;
+    // ...
+}
+
+private async _invalidatePostCacheForComment(params: { postId: string }): Promise<void> {
+    const { postId } = params;
+    // ...
+}
+
+// No identifiers — no params
+private async _invalidateFeedbackRelatedCaches(): Promise<void> {
+    if (!this.cacheInvalidator) return;
+    try {
+        await this.cacheInvalidator.invalidateKey(CACHE_KEYS.FEEDBACK_LIST_ALL);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.FEEDBACK}:list:*`);
+    } catch (error) {
+        logger.error({ msg: "Error invalidating feedback related caches", error: String(error) });
+    }
+}
+```
+
+## Wiring
+
+In **`services/index.ts`**, pass `cacheServiceConnection` and `cacheInvalidationServiceConnection` from `../connections` when instantiating services that use cache.
+
+## Reference implementations
+
+- `UserService`, `FeedbackService`, `MarketingService`, `OrganizationService`, `RbacService`, `CompanyService`, `BlogService`.
+- For by-id + list invalidation pattern: `BlogService` (BLOG_BYID + explicit invalidateKey), `OrganizationService` (ORG_LIST_BYUSERID, ORG_BY_IDS + explicit keys and pattern).

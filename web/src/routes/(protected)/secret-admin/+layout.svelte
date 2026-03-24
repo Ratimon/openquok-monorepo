@@ -1,0 +1,40 @@
+<script lang="ts">
+	import type { Snippet } from 'svelte';
+	import type { LayoutData } from './$types';
+	import type { SidebarLinkItem } from '$lib/ui/sidebar-expandable/types';
+	import { url } from '$lib/utils/path';
+	import {
+		getRootPathSecretAdminArea,
+		getRootPathSecretAdminFeedbackManager,
+		getRootPathSecretAdminRoleManager,
+		getRootPathSecretAdminPermissionManager,
+		getRootPathSecretAdminBlogManager,
+		getRootPathSecretAdminConfigManager,
+	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
+	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
+	import { icons } from '$data/icon';
+	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
+
+	type Props = {
+		children: Snippet;
+		data: LayoutData;
+	};
+
+	let { children, data }: Props = $props();
+	const currentUser = $derived((data as App.LayoutData)?.currentUser ?? null);
+	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'Content OS');
+
+	const secretAdminLinks: SidebarLinkItem[] = [
+		{ label: 'Admin Dashboard', href: url(getRootPathSecretAdminArea()), iconName: icons.Gauge.name },
+		{ label: 'Feedback manager', href: url(getRootPathSecretAdminFeedbackManager()), iconName: icons.MessageCircle.name },
+		{ label: 'Role manager', href: url(getRootPathSecretAdminRoleManager()), iconName: icons.UserCheck.name },
+		{ label: 'Permission manager', href: url(getRootPathSecretAdminPermissionManager()), iconName: icons.User2.name },
+		{ label: 'Blog Manager', href: url(getRootPathSecretAdminBlogManager()), iconName: icons.FileText.name },
+		{ label: 'Config manager', href: url(getRootPathSecretAdminConfigManager()), iconName: icons.Cog.name },
+		{ label: 'Exit admin area', href: url(getRootPathAccount()), iconName: icons.LogOut.name }
+	];
+</script>
+
+<AdminLayout {currentUser} companyName={companyNameVm} mainLinks={secretAdminLinks}>
+	{@render children?.()}
+</AdminLayout>

@@ -1,0 +1,79 @@
+---
+description: Test suite patterns — RBAC/user setup, Faker for test data (unit/integration/e2e), and data cleanup
+globs: ["backend/supabase/db/**/*.sql", "backend/tests/helpers/**/*.ts", "backend/tests/integration/**/*.ts", "backend/tests/e2e/**/*.ts", "backend/**/*.unit.test.ts"]
+alwaysApply: false
+---
+
+# Backend test suites
+
+## 1. Mocking roles (RBAC) in integration tests
+
+Use the **Listing-style** pattern so super admin, editor, and other roles are set before tests run:
+
+- **Create users** with `UserTestHelper.createVerifiedUserWithAuthAndDatabase(userData, options)`:
+  - `userData`: `{ id: uuidv4(), email: '…@test.com', password, fullName }`.
+  - `options`: `{ isSuperAdmin?: boolean; isEmailVerified?: boolean }`.
+  - **Super admin**: pass `{ isSuperAdmin: true, isEmailVerified: true }`. Only one user per suite should have `isSuperAdmin: true`.
+  - **Editor / normal user**: pass `{ isEmailVerified: true }` only (helper sets `is_super_admin: false` explicitly).
+- **App roles** (editor, admin): assign via the API after user creation, e.g. `POST /users/:publicId/roles/editor` with the super admin token. Do not only set DB flags; use the same API path the app uses.
+- **Sign in** each user via `POST /auth/sign-in` and store the access token for `Authorization: Bearer <token>` in test requests.
+- Run this setup in `beforeEach` so each test gets fresh users (and track all via `trackUser` so cleanup can remove them), or in `beforeAll` if the suite does not mutate shared users.
+
+Reference: `backend/tests/integration/BlogRbac.integration.test.ts` (super admin + editor + normal user, role assignment, then `afterAll` cleanup).
+
+## 2. How we clean data
+
+Cleanup lives in **UserTestHelper** (`backend/tests/helpers/userTestHelper.ts`). Respect FK order: delete child rows before parents (or rely on CASCADE where the schema defines it).
+
+- **cleanAllStoredUsers()** — Cleans users tracked in `createdUserIds` (auth ids). Resolves to `public.users.id` list, then:
+  1. Delete **blog_posts** for those user ids.
+  2. Delete **organizations** (via user_organizations).
+  3. Delete **organization_invites** by resolved emails.
+  4. Delete auth users and **public.users** for each tracked auth id.
+  5. Clear `createdUserIds`.
+- **cleanTestUsersByEmailPattern()** — Cleans by email pattern (`@test.com`, `@example.com`):
+  1. Delete **organization_invites** by pattern.
+  2. Get user ids from **public.users** by pattern.
+  3. Delete **blog_posts** for those ids, then **organizations** for those ids.
+  4. Delete auth users and **public.users** rows; then sweep **auth.users** for any remaining matching emails.
+- **cleanAll()** — Runs `cleanAllStoredUsers()` then `cleanTestUsersByEmailPattern()`. Use in suite **afterAll** when you want one full cleanup at the end (e.g. auth e2e).
+
+**When to use which:** Use `cleanAllStoredUsers()` in **afterAll** (not afterEach) for RBAC/integration suites that create users in beforeEach and track them — Jest runs afterAll even when tests fail, so data is cleared once. Use `cleanAll()` in **afterAll** for e2e suites that also want pattern-based cleanup. Use **afterEach** + `cleanAllStoredUsers()` only when each test must start with a completely clean DB.
+
+## 3. Clearing data for new tables
+
+When you add a **new table** (e.g. in `backend/supabase/db/**/103_*_tables.sql` or similar), tests that reset or clean data must account for that table so test runs start from a clean state and do not leave rows that affect later tests.
+
+- **Update the relevant test helper** (e.g. `backend/tests/helpers/userTestHelper.ts`) so that its cleanup paths also clear the new table where appropriate:
+  - If cleanup is **by user/org** (e.g. "delete everything for these users"): add logic to delete rows in the new table that belong to those users or to orgs being removed (respect FKs and order: delete child rows before or with parent, or rely on CASCADE).
+  - If cleanup is **by pattern** (e.g. "delete all test users by email pattern"): add a step to delete from the new table using the same pattern or the same list of identifiers (e.g. emails, org ids) before or after the existing cleanup.
+- **Preserve cleanup order**: respect foreign keys (e.g. delete `organization_invites` before or when deleting related `organizations`/users, or rely on CASCADE if the schema supports it). If the new table references others, prefer deleting from the new table explicitly in the helper so behavior is clear and CASCADE is not relied on for test cleanup unless intended.
+- **Keep helpers in sync with schema**: any table that can be written by tests or by app code under test should be considered for cleanup so that "clean" really means no leftover data from the new table.
+
+**Rule of thumb:** After adding a new table, search for cleanup/teardown logic in `backend/tests/helpers` (and any shared test setup that touches the DB) and add clearing of the new table's data in the same places where related entities (users, orgs, etc.) are already being cleared.
+
+## 4. Using Faker for test data (unit, integration, e2e)
+
+Use **@faker-js/faker** across unit, integration, and e2e tests so test data is varied and not tied to magic strings. Prefer Faker over hardcoded values for payloads, mock entities, IDs, and request bodies.
+
+- **Import**: `import { faker } from "@faker-js/faker";`
+- **IDs**: Use `faker.string.uuid()` for `id`, `user_id`, `topic_id`, and other UUIDs so tests don’t rely on fixed values.
+- **Text**: Use `faker.lorem.sentence()`, `faker.lorem.paragraph()`, `faker.lorem.paragraphs()` for title, description, content; use `faker.person.fullName()`, `faker.internet.email()` when you need names or emails (e.g. in integration/e2e user creation or API payloads).
+- **Dates**: Use `faker.date.past().toISOString()`, `faker.date.recent()`, etc. for `created_at`, `updated_at`, `published_at`.
+- **Slugs / derived values**: If the code under test derives values (e.g. slug from title), derive the expected value in the test too — e.g. `const slugFromTitle = stringToSlug(title)` — and use that in both the mock and assertions so tests stay valid for any Faker-generated title.
+- **Shared test data**: Define Faker-backed constants at the top of the describe/file (e.g. `topicId`, `postId`, `title`, `slugFromTitle`) and reuse them in payloads and mocks so IDs and slugs stay consistent within the suite.
+- **When to keep hardcoded values**: Keep a fixed value only when the test explicitly asserts on an invalid or edge-case input (e.g. `"not-a-uuid"` for a ValidationError). In integration/e2e, stable values (e.g. `@test.com` for cleanup patterns) may still be used where the cleanup or setup relies on them.
+
+Reference: `backend/services/BlogService.unit.test.ts` (Faker for payloads, mock post, IDs, dates, and slug derivation).
+
+## 5. Prefer API routes over direct DB in integration tests
+
+When an operation is exposed by an HTTP route, **use supertest to call that route** instead of direct Supabase/client DB access. This keeps tests aligned with real app behavior (auth, validation, cache invalidation, etc.).
+
+- **Mutations:** If the app has a route for the action (e.g. `PATCH /comments/:id/approve`, `PUT /posts/:id`), call it via `supertest(app).patch(...).set("Authorization", "Bearer " + token)` (or the appropriate method) rather than `adminSupabase.from("table").update(...)`.
+- **Reads:** When you need data that the API returns (e.g. post `slug`, `isAdminApproved`), use the corresponding GET route with an authenticated token and read from the response body (e.g. `getRes.body.data.slug`) instead of `adminSupabase.from("blog_posts").select("slug").eq("id", postId).single()`.
+- **When direct DB is still appropriate:** Use the service-role client (e.g. `adminSupabase`) for test helpers that track or clean data (e.g. `BlogTestHelper`), for teardown that has no API (e.g. deleting by pattern, resetting flags), or when the operation under test has no HTTP endpoint.
+
+**Rule of thumb:** Before using `adminSupabase.from(...).update/insert/select` in an integration test, check whether the app already exposes that behavior via a route; if so, use supertest to hit the route and assert on the response.
+
+Reference: `backend/tests/integration/BlogRbac.integration.test.ts` (comment approve via PATCH, post state/slug via GET `/posts/:id`, no direct blog_comments/blog_posts mutation or read where a route exists).

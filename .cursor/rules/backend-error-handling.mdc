@@ -1,0 +1,39 @@
+---
+description: Express/backend error handling — pass errors to the global error handler via next(error)
+globs: ["backend/controllers/**/*.ts"]
+---
+
+# Backend error handling
+
+In Express request handlers (controllers, route handlers), pass errors to the global error handler by calling **`next(error)`**. Do not throw; in Express 4 async handlers, thrown errors are not caught and the request will hang.
+
+## Pattern
+
+In async handlers, use a single top-level `try/catch` and pass the error to `next` in the catch:
+
+```ts
+public someHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // ... handler logic ...
+        res.status(200).json({ ... });
+    } catch (error) {
+        next(error);
+    }
+};
+```
+
+## Rules
+
+- **Catch variable**: use `error` (not `e` or `err`) for consistency.
+- **In catch**: call `next(error)` so the global error handler runs. Do not throw.
+- **Pre-cleanup**: if the handler must do something before the error propagates (e.g. clear a cookie), do that in the catch block before `next(error)`.
+- Rely on the **ErrorController** to log and send the response; controllers should not duplicate that logic.
+
+## Example with cleanup
+
+```ts
+} catch (error) {
+    if (req.cookies?.refreshToken) res.clearCookie("refreshToken");
+    next(error);
+}
+```

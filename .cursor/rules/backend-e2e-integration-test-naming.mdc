@@ -1,0 +1,31 @@
+---
+description: E2E and integration tests must be feature-, user-, or scenario-driven; avoid endpoint-style describe/it names
+globs: ["backend/tests/e2e/**/*.ts", "backend/tests/integration/**/*.ts"]
+alwaysApply: false
+---
+
+# E2E and integration test naming: feature / user / scenario driven
+
+Write **describe** blocks and **it** titles from a **feature**, **user**, or **scenario** perspective. Do **not** name them after HTTP methods and paths or raw response codes.
+
+## Describe blocks
+
+- **Avoid**: `describe("GET /users/me")`, `describe("PUT /users/me/password")`, `describe("GET /feedback")`
+- **Prefer**: `describe("Viewing own profile (current user)")`, `describe("Changing password")`, `describe("Submitting feedback and managing it with roles")`
+
+Group by **what the user is doing** or **what scenario** is being tested, not by route.
+
+## It (test case) titles
+
+- **Avoid**: "returns 200 and profile when authenticated", "returns 401 when no Authorization header", "GET /feedback without auth returns 401"
+- **Prefer**: "authenticated user can fetch their profile with email and fullName", "unauthenticated request is rejected", "unauthenticated user cannot list feedback"
+
+Phrase as **user actions and outcomes** or **scenario outcomes**, not "returns status X and ..." or "GET /path returns 401".
+
+## Examples (aligned with this repo)
+
+- **Auth flows**: "User Signup Flow", "User Login Flow", "Token Refresh Flow", "Email verification after signup", "Resend verification email"
+- **Test titles**: "user can confirm email with valid token and then sign in", "unverified user can request a new verification email", "callback redirects to auth-error when code is missing"
+- **Integration**: "anonymous can submit feedback; after super admin assigns admin role, admin can list and mark it handled", "unauthenticated user cannot list feedback"
+
+When adding or refactoring E2E tests under `backend/tests/e2e/` or integration tests under `backend/tests/integration/`, follow this naming style so specs read as user/scenario stories rather than API endpoint lists.

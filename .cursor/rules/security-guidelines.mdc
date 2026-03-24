@@ -1,0 +1,44 @@
+---
+description: Security — no service client in client code, no SUPABASE_SERVICE_ROLE_KEY on client, RLS, correct Supabase client per context, rate limit config, SSR state rules (no authenticationRepository in server load, ssr = false for protected routes)
+globs: ["web/**/*", "backend/**/*.ts"]
+alwaysApply: false
+---
+
+# Security Guidelines
+
+Follow these rules in both backend and web code.
+
+## 1. Supabase clients
+
+- **NEVER** use the service client in client-side code (browser / SvelteKit client).
+- **NEVER** expose the `SUPABASE_SERVICE_ROLE_KEY` to the client (env vars, bundles, or API responses).
+- Use RLS policies for data access control.
+- Always use the appropriate client for the context:
+  - **Browser Client:** Public data only
+  - **RLS Client:** Authenticated user data
+  - **Service Client:** Admin operations (backend only)
+
+## 2. Rate limiting
+
+- Configure rate limit at [backend/middlewares/rateLimit.ts](../../backend/middlewares/rateLimit.ts) and [backend/config/GlobalConfig.ts](../../backend/config/GlobalConfig.ts).
+
+## 3. SSR state management (SvelteKit)
+
+- **NEVER** import or use `authenticationRepository` in any `+page.server.ts` or `+layout.server.ts` files.
+- **NEVER** mutate shared state (singletons with mutable state) in server load functions.
+- **ALWAYS** set `export const ssr = false;` for protected routes (user-specific data).
+- **ONLY** enable SSR (`export const ssr = true;`) for public routes that don't use shared mutable state.
+- If you need auth info in SSR routes, use cookies/request context instead of shared state:
+
+```typescript
+// ✅ SAFE: Use cookies for server-side auth
+export const ssr = true;
+export async function load({ cookies }) {
+    const accessToken = cookies.get('access_token');
+    // Use token to fetch user data per-request
+}
+
+// ❌ UNSAFE: Never do this in server code
+import { authenticationRepository } from '$lib/user-auth/index';
+await authenticationRepository.checkAuth(); // Shared state - security risk!
+```

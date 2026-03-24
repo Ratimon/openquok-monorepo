@@ -1,0 +1,27 @@
+import { supabaseServiceClientConnection } from "../connections/index";
+import { RefreshTokenRepository } from "./RefreshTokenRepository";
+import { UserRepository } from "./UserRepository";
+import { ConfigRepository } from "./ConfigRepository";
+import { OrganizationRepository } from "./OrganizationRepository";
+import { RbacRepository } from "./RbacRepository";
+import { FeedbackRepository } from "./FeedbackRepository";
+import { BlogRepository } from "./BlogRepository";
+import { StorageRepository } from "./StorageRepository";
+
+export const refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
+export const userRepository = new UserRepository(supabaseServiceClientConnection);
+export const configRepository = new ConfigRepository(supabaseServiceClientConnection);
+export const organizationRepository = new OrganizationRepository(supabaseServiceClientConnection);
+export const rbacRepository = new RbacRepository(supabaseServiceClientConnection);
+export const feedbackRepository = new FeedbackRepository(supabaseServiceClientConnection);
+export const blogRepository = new BlogRepository(supabaseServiceClientConnection);
+export const storageRepository = new StorageRepository(supabaseServiceClientConnection);
+
+export { RefreshTokenRepository } from "./RefreshTokenRepository";
+export { UserRepository } from "./UserRepository";
+export { ConfigRepository } from "./ConfigRepository";
+export { OrganizationRepository } from "./OrganizationRepository";
+export { RbacRepository } from "./RbacRepository";
+export { FeedbackRepository } from "./FeedbackRepository";
+export { BlogRepository } from "./BlogRepository";
+export { StorageRepository } from "./StorageRepository";

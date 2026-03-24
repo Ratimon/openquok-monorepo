@@ -1,0 +1,413 @@
+---
+description: Web lib conventions — $lib imports, config/endpoint style, backend calls via repository (not gateway), route path helpers, form validation (Zod in domain *.types.ts + toast), SvelteKit page `data` destructuring
+globs: web/**/*
+alwaysApply: false
+---
+
+# Web: Lib Conventions
+
+Conventions for code under `web/src/lib/`. Apply both when writing new lib code and when editing existing modules. Section **5** (Zod schema placement) and section **6** (`data` on pages) also apply to SvelteKit `+page.svelte` / `+layout.svelte` under `web/src/routes/` (and related `+page.server.ts` load validation).
+
+---
+
+## 1. Use $lib Paths for Imports
+
+Import from `$lib` using the **alias path**, not relative paths (`./` or `../`) when the target is under `src/lib`.
+
+- **Use**: `$lib/...` for any import whose target is under `web/src/lib/`.
+- **Avoid**: Relative paths like `./file.svelte`, `../other.ts`, `./index.js` when those files are inside `src/lib`.
+- **SvelteKit store import**: Prefer `import { page } from "$app/state";` and **avoid** `import { page } from "$app/stores";`.
+- **Type-only imports**: Prefer `import type { ... }` when you only use types/interfaces and no runtime value is referenced, and still import them via `$lib/...` (never via `./` or `../`).
+
+**Examples**
+
+```svelte
+<!-- ✅ GOOD -->
+import DialogPortal from "$lib/ui/dialog/dialog-portal.svelte";
+import { cn, type WithoutChildrenOrChild } from "$lib/ui/helpers/common";
+import * as Dialog from "$lib/ui/dialog/index.js";
+
+<!-- ❌ BAD -->
+import DialogPortal from "./dialog-portal.svelte";
+import { cn } from "../helpers/common";
+import * as Dialog from "./index.js";
+```
+
+External packages are unchanged: use package names (e.g. `"bits-ui"`, `"svelte"`).
+
+---
+
+## 2. Config Style for Endpoints and Settings
+
+Keep API endpoints and related settings in a **single config object** defined in the module’s **index** file. Repositories (or other consumers) receive this config in their constructor and use it instead of hardcoded URLs or constants.
+
+### Pattern
+
+1. **Config type**: Define the config interface in the repository (or the type’s main consumer), e.g. `AuthConfig`, `AccountConfig`, with an `endpoints` object and any other keys (e.g. `storageKeys`).
+2. **Config values**: Define the actual config object in the module’s `index.ts` (e.g. `$lib/user-auth/index.ts`, `$lib/account/index.ts`) and pass it into the repository constructor.
+3. **Usage**: The repository uses `this.config.endpoints.*` (or equivalent) for all requests; no URL constants inside the repository file.
+
+### Examples
+
+**index.ts** — config lives here:
+
+```ts
+import type { AccountConfig } from '$lib/account/Profile.repository';
+import { ProfileRepository } from '$lib/account/Profile.repository';
+
+const accountConfig: AccountConfig = {
+	endpoints: {
+		me: '/api/v1/users/me',
+		mePassword: '/api/v1/users/me/password',
+		meRequestChangePassword: '/api/v1/users/me/request-change-password'
+	}
+};
+
+export const profileRepository = new ProfileRepository(httpGateway, accountConfig);
+```
+
+**Repository** — accepts config, no hardcoded URLs:
+
+```ts
+export interface AccountConfig {
+	endpoints: {
+		me: string;
+		mePassword: string;
+		meRequestChangePassword: string;
+	};
+}
+
+export class ProfileRepository {
+	constructor(
+		private readonly httpGateway: HttpGateway,
+		private readonly config: AccountConfig
+	) {}
+
+	async getProfile() {
+		const { data: getProfileDto, ok } =
+			await this.httpGateway.get<GetProfileResponseDto>(this.config.endpoints.me, undefined, { withCredentials: true });
+
+		if (ok && getProfileDto?.data) {
+			// ...
+		}
+	}
+}
+```
+
+### Benefits
+
+- Single place to change base paths or endpoints per module.
+- Consistent style across lib modules (e.g. `user-auth`, `account`).
+- Easier testing and overrides by passing a different config.
+
+### Scope
+
+Applies to files under `web/` when adding or refactoring lib modules that call APIs or use similar settings.
+
+---
+
+## Module Structure Conventions (constants vs utils)
+
+Applies to feature/module code under `web/src/lib/<module>/...`, excluding the shared folders:
+- `web/src/lib/ui/**`
+- `web/src/lib/utils/**`
+
+## Constants layer (`constants/`)
+
+- Put stable identifiers and module-wide config schemas in `constants/`.
+- Prefer `constants/config.ts` for module config schemas (e.g. `CONFIG_SCHEMA_*`) and shared constants used for defaults/SEO/UI copy.
+- Keep `constants/` declarative (no DOM usage, no heavy transformation logic).
+
+## Utils layer (`utils/`)
+
+- Move helper functions out of `constants/` into `utils/`.
+- Keep `utils/` focused:
+  - prefer one exported helper per file
+  - keep responsibilities small and pure (no component state, no DOM unless guarded)
+- If a util touches DOM or `document`, guard SSR:
+  - `if (typeof document === 'undefined') return ...`
+
+## Import guidance
+
+- Repositories/presenters/importers should use:
+  - `$lib/<module>/constants/config` for module config/schema defaults
+  - `$lib/<module>/utils` (barrel) or `$lib/<module>/utils/<helper>` for helper functions
+
+---
+
+## 3. Backend / API Calls: Use Repository (Not Gateway) in Routes and Components
+
+Do not call `httpGateway` (or any HTTP client) directly from routes, layouts, or components. Backend paths and API calls belong in the **repository**; the repository uses the module config and `httpGateway` internally. UI flows should call a **presenter** or **repository** exposed from the module’s index, not the gateway.
+
+- **Use**: Repository methods for all backend requests (e.g. `settingsRepository.validateInviteToken(token)`, `profileRepository.getProfile()`). Pages and components should **prefer the presenter** when the module exposes one (see **web-repository-presenter-architecture**: Component → Presenter → Repository → Gateway); call the repository only when there is no presenter for that flow.
+- **Mutations**: For any flow that mutates data (e.g. assign/remove permission, toggle feedback, update profile), the **route must not import or call the repository**. The page presenter owns the repository call and toast state (`showToastMessage`, `toastMessage`); the route only calls presenter methods and shows toast via `$effect` from presenter state. See **web-repository-presenter-architecture** → “Mutation flow (page presenter)”.
+- **Avoid**: Importing `httpGateway` (or `HttpMethod`, `ApiError`) in `+page.svelte`, `+layout.svelte`, or other UI components to perform API calls. Avoid hardcoded API paths (e.g. `'/api/v1/settings/join'`) in routes or components.
+
+### Pattern
+
+1. **Config**: Define API endpoints in the module’s config (see §2) in the **index** file.
+2. **Repository**: The repository receives `httpGateway` and config in its constructor and implements methods that call `this.httpGateway.get(...)` / `this.httpGateway.request(...)` using `this.config.endpoints.*`.
+3. **Presenter** (when needed): Encapsulates UI state and flow, calls repository methods, maps results to view models. Exposed from the module index (e.g. `workspaceSettingsPresenter`).
+4. **Routes / components**: Import and use the **presenter** or **repository** from `$lib/<module>/index`; never import or use `httpGateway` for backend requests.
+
+### Naming convention (DTO responses)
+
+When destructuring `httpGateway.get(...)` / `httpGateway.request(...)` results in repositories:
+
+- Use a **single destructuring statement** (no intermediate `res` variable): `const { data: xxxDto, ok } = await this.httpGateway.get<XxxResponseDto>(...)`.
+- Name the `data` payload with a **`*Dto` suffix** (e.g. `getAllRolePermissionsDto`, `validateInviteDto`) so call sites are self-documenting.
+- **Do not add an explicit type annotation** on the destructuring in **`.svelte.ts`** files (e.g. avoid `}: { data: X | undefined; ok: boolean } =`). The `.svelte.ts` parser can treat `}: { ... } =` as invalid and report "Unexpected token. A constructor, method, accessor, or property was expected." Rely on the generic type parameter instead: `await this.httpGateway.get<XxxResponseDto>(...)`.
+- In plain **`.ts`** files you may add an explicit type for clarity if desired; keep it consistent with the generic.
+- Always guard before using the payload: `if (ok && xxxDto?.data)` (or `xxxDto?.success`, etc. as appropriate).
+
+```ts
+// ✅ GOOD — destructure with *Dto name; type from generic (works in .svelte.ts and .ts)
+const { data: getAllRolePermissionsDto, ok } =
+  await this.httpGateway.get<GetAllRolePermissionsResponseDto>(this.config.endpoints.getAllRolePermissions);
+
+if (ok && getAllRolePermissionsDto?.data?.permissions) {
+  return getAllRolePermissionsDto.data.permissions;
+}
+```
+
+```ts
+// ✅ GOOD — same pattern for post/request
+const { data: createFeedbackDto, ok } =
+  await this.httpGateway.post<CreateFeedbackResponseDto>(this.config.endpoints.createFeedback, payload, opts);
+
+if (ok && createFeedbackDto?.success && createFeedbackDto.data) {
+  return { success: true, message: createFeedbackDto.message };
+}
+```
+
+```ts
+// ❌ BAD — intermediate res variable; avoid
+const res = await this.httpGateway.get<X>(...);
+if (res.ok && res.data) { ... }
+```
+
+```ts
+// ❌ AVOID in .svelte.ts — explicit destructuring type can trigger parser error
+const { data: dto, ok }: { data: X | undefined; ok: boolean } = await this.httpGateway.get<X>(...);
+```
+
+### Examples
+
+```ts
+// ✅ GOOD — page uses presenter; presenter uses repository; repository uses config + httpGateway
+// +page.svelte
+import { workspaceSettingsPresenter } from '$lib/settings/index';
+
+onMount(() => {
+  workspaceSettingsPresenter.validateInviteToken(urlToken);
+});
+// ...
+await workspaceSettingsPresenter.joinByToken(token);
+```
+
+```ts
+// ✅ GOOD — repository owns HTTP and config; destructure with *Dto, type from generic
+// Settings.repository.svelte.ts (or .ts)
+const { data: validateInviteDto, ok } =
+  await this.httpGateway.get<ValidateInviteResponseDto>(
+    this.config.endpoints.validateInvite,
+    { token },
+    { withCredentials: true }
+  );
+
+if (ok && validateInviteDto?.data) {
+  // ...
+}
+```
+
+```ts
+// ❌ BAD — component calling gateway directly with hardcoded path
+import { httpGateway, ApiError } from '$lib/core/index';
+import { HttpMethod } from '$lib/core/HttpGateway';
+
+const JOIN_PATH = '/api/v1/settings/join';
+const { ok, data } = await httpGateway.request({ method: HttpMethod.POST, url: JOIN_PATH, data: { token }, ... });
+```
+
+### Benefits
+
+- Single place for backend paths (config) and request/response handling (repository).
+- Consistent layering: UI → presenter → repository → gateway; no gateway in UI.
+- Easier testing and refactors; new endpoints are added in config + repository, not scattered in components.
+
+---
+
+## 4. Route Paths: Use Central Helpers and `absoluteUrl` / `route`
+
+Do not hardcode route path strings (e.g. `'/confirm-change-password'`, `'/account'`) in layouts or pages. Use the same pattern as account and auth:
+
+- **Path segments**: Get the segment from the appropriate lib helper (e.g. `getRootPathAccount()` in `$lib/area-protected/getRootPathProtectedArea`, `getRootPathConfirmChangePassword()` in `$lib/user-auth/constants/getRootpathUserAuth`).
+- **Full URLs for navigation**: Use `absoluteUrl(segment)` from `$lib/utils/path` so the path respects base and origin.
+- **Path for comparison** (e.g. with `url.pathname`): Use `route(segment)` from `$lib/utils/path` to get a normalized path with a leading slash.
+
+### Pattern
+
+1. **Define the segment** in the right constants file: `getRootpathUserAuth.ts` for (auth) routes, `getRootPathProtectedArea.ts` for protected/account routes. Return the segment without leading slash (e.g. `'confirm-change-password'`, `'account'`).
+2. **In layouts/routes**: Import the getter and `absoluteUrl` / `route` from `$lib/utils/path`. Use `absoluteUrl(getRootPathX())` for `goto(...)` and `route(getRootPathX())` when comparing to `url.pathname`.
+
+### Example
+
+```ts
+// ✅ GOOD — path from helper + route() for comparison, absoluteUrl() for redirect
+import { getRootPathConfirmChangePassword } from '$lib/user-auth/constants/getRootpathUserAuth';
+import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
+import { absoluteUrl, route } from '$lib/utils/path';
+
+const confirmChangePasswordPath = route(getRootPathConfirmChangePassword());
+const isConfirmChangePassword = url.pathname === confirmChangePasswordPath;
+// ...
+const accountUrl = absoluteUrl(getRootPathAccount());
+goto(accountUrl, { replaceState: true });
+```
+
+```ts
+// ❌ BAD — hardcoded path strings
+const CONFIRM_CHANGE_PASSWORD_PATH = '/confirm-change-password';
+if (url.pathname === CONFIRM_CHANGE_PASSWORD_PATH) { ... }
+goto('/account', { replaceState: true });
+```
+
+### Benefits
+
+- Single place to change route segments (e.g. if you rename a route).
+- Consistent with base path and future routing changes.
+- Same pattern across auth, protected, and other areas.
+
+---
+
+## 5. Form Validation: Use Zod + Toast for Parsing Errors
+
+For form validation and parsing errors in routes (e.g. sign-in, change password), use **Zod** for schemas and **svelte-hot-french-toast** for user-facing error messages. Do not rely on manual checks and inline error state when the same can be expressed with a schema and toast.
+
+- **Use**: `schema.safeParse(...)` and on failure call `toast.error(error.issues.map((i) => i.message).join(' '))`.
+- **Avoid**: Manual validation (e.g. `if (value.length < 8)`) and dedicated inline error state (e.g. `let passwordError = $state('')`) when a schema + toast gives a consistent UX.
+
+### Where Zod schemas live
+
+- **Define schemas in the owning domain**, not in `+page.svelte`, `+layout.svelte`, or ad hoc UI files. Use a `*.types.ts` file next to that module under `web/src/lib/<domain>/` (same pattern as `web/src/lib/blog/blog.types.ts`: exported `*FormSchema`, `z.infer` types where useful).
+- **Only `*.types.ts` (and schema-builder helpers in the same domain)** should contain `import { z } from 'zod'` for these form/API validation schemas. Pages and components **import the exported schema** from `$lib/<domain>/...` or the module’s `index.ts` barrel.
+- **Examples**: `web/src/lib/user-auth/user-auth.types.ts` (sign-in, sign-up, reset password fields), `web/src/lib/account/account.types.ts` (change password, profile name), `web/src/lib/settings/settings.types.ts` (workspace / invite forms), `web/src/lib/feedback/feedback.types.ts`, `web/src/lib/blog/blog.types.ts`. Dynamic object shapes (e.g. module config forms) may use a named builder such as `buildModuleConfigFormSchema` in `web/src/lib/config/config.types.ts`.
+- **Avoid**: `import { z } from 'zod'` in `web/src/routes/**/+page.svelte` (or `+page.server.ts`) solely to define a form or query-param schema—move the schema to the domain `*.types.ts` and import it.
+
+### Pattern
+
+1. **Add or extend** the domain `*.types.ts` with exported schemas (e.g. `signinFormSchema`, `accountChangePasswordFormSchema`) and optional `z.infer<typeof …>` aliases.
+2. **In the route or component**, import those schemas from `$lib/<domain>/…` (or the module index). Do not redefine the same rules locally.
+3. **On submit** (or TanStack Form `validators`): Call `schema.safeParse(input)` or use the shared schema with the form library. If `!result.success`, show `toast.error(result.error.issues.map((i) => i.message).join(' '))` and return.
+4. **Use parsed data** from `result.data` for the actual submit (e.g. API call).
+
+### Example (domain types file)
+
+```ts
+// web/src/lib/user-auth/user-auth.types.ts
+import { z } from 'zod';
+
+export const signinFormSchema = z.object({
+	email: z.string().email('Please enter a valid email.').trim(),
+	password: z.string().min(8, 'Password must be at least 8 characters.').max(72).trim()
+});
+```
+
+### Example (single-field / sign-in style — in `+page.svelte`)
+
+```ts
+import toast from 'svelte-hot-french-toast';
+import { signinFormSchema } from '$lib/user-auth';
+
+async function onSubmit() {
+	const emailResult = signinFormSchema.shape.email.safeParse(email);
+	const passwordResult = signinFormSchema.shape.password.safeParse(password);
+	if (!emailResult.success) {
+		toast.error(emailResult.error.issues.map((i) => i.message).join(' '));
+		return;
+	}
+	if (!passwordResult.success) {
+		toast.error(passwordResult.error.issues.map((i) => i.message).join(' '));
+		return;
+	}
+	// ... submit with emailResult.data, passwordResult.data
+}
+```
+
+### Example (multi-field with refine / change password)
+
+```ts
+// In account.types.ts — export accountChangePasswordFormSchema (z.object(...).refine(...))
+
+// In +page.svelte
+import toast from 'svelte-hot-french-toast';
+import { accountChangePasswordFormSchema } from '$lib/account';
+
+async function onSubmit(e: Event) {
+	e.preventDefault();
+	const result = accountChangePasswordFormSchema.safeParse({ newPassword, confirmPassword });
+	if (!result.success) {
+		toast.error(result.error.issues.map((i) => i.message).join(' '));
+		return;
+	}
+	// ... submit with result.data.newPassword
+}
+```
+
+### Benefits
+
+- Consistent validation and error UX across auth and account forms (sign-in, sign-up, change password).
+- Single source of truth for rules and messages; easier to change messages or add rules.
+- Reusable schemas, no duplication between routes and shared UI, and clear ownership per domain module.
+
+---
+
+## 6. SvelteKit pages / layouts: expose load `data` fields without `data.` everywhere
+
+In `+page.svelte` and `+layout.svelte`, avoid repeating `data.posts`, `data.heroTitle`, etc. across the template and derived logic. **Do not** use nested destructuring on `$props()` — Svelte 5 rejects patterns like `let { data: { posts } } = $props()` (`props_invalid_pattern`).
+
+### Pattern
+
+1. **Props type**: `type Props = { data: PageData };` with `PageData` (or `LayoutData`) from `./$types` — do not intersect `PageData` again on `Props` (e.g. avoid `{ data: PageData } & PageData`).
+2. **Top-level props only**: `let { data }: Props = $props();`
+3. **Per-field reactivity**: For each load field the file uses, add `let fieldName = $derived(data.fieldName);` (or rename: `let listPage = $derived(data.page);` when `page` from `$app/state` would clash). Use `fieldName` in markup and further `$derived` values (e.g. `let firstPost = $derived(posts[0]);`, not `data.posts[0]`).
+
+### Example
+
+```svelte
+<script lang="ts">
+	import type { PageData } from './$types';
+	import { page } from '$app/state';
+
+	type Props = { data: PageData };
+
+	let { data }: Props = $props();
+
+	let posts = $derived(data.posts);
+	let count = $derived(data.count);
+	let itemsPerPage = $derived(data.itemsPerPage);
+	let listPage = $derived(data.page);
+	let topicId = $derived(data.topicId);
+	let topics = $derived(data.topics);
+	let heroTitle = $derived(data.heroTitle);
+	let heroDescription = $derived(data.heroDescription);
+
+	let totalPages = $derived(Math.max(1, Math.ceil(count / Math.max(itemsPerPage, 1))));
+	let firstPost = $derived(posts[0]);
+	let restPosts = $derived(posts.slice(1));
+</script>
+
+<!-- Use heroTitle, topics, posts.length, listPage, … — not data.* -->
+```
+
+### Avoid
+
+- Nested destructuring inside `$props()` (`data: { posts, ... }`).
+- Sprinkling `data.*` through the template when the page already depends on those fields explicitly.
+- Duplicating `PageData` on the props type (`Props` should only declare `{ data: PageData }`).
+
+### Benefits
+
+- Shorter, clearer markup; less noise than `data.` on every reference.
+- Stays valid Svelte 5 and keeps load output reactive when `data` updates.
+- Clash-prone keys get one `$derived` alias (e.g. `listPage` vs `page` from `$app/state`).

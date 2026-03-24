@@ -1,0 +1,34 @@
+---
+description: SvelteKit universal +page.ts load — parent auth, browser vs server branches, explicit client return, role flags
+globs: web/**/+page.ts
+alwaysApply: false
+---
+
+# Universal `+page.ts` load (merge parent auth + server data)
+
+Use this pattern for `web/**/+page.ts` when the route has a `+page.server.ts` and must expose **accurate client-side auth** from the root layout (`currentUser`, `isLoggedIn`) while keeping SSR data from the server load. Reference: `web/src/routes/(public)/blog/+page.ts`, `web/src/routes/(public)/blog/[slug]/+page.ts`.
+
+## Structure
+
+1. **`await parent()` first** — Read layout chain data before branching.
+2. **Rename from parent** — `const { isLoggedIn: accurateIsLoggedIn, currentUser } = parentData;`
+3. **Role helpers** (for UI / authorization checks): derive `roles`, `isSuperAdmin`, `isAdmin`, `isEditor` from `currentUser` the same way in both branches (e.g. `currentUser && 'roles' in currentUser ? currentUser.roles : []`, then `roles?.includes('admin')`, etc.).
+4. **Client branch** — `if (browser && data) { ... }`:
+   - Cast `data` to an object that lists **every field** returned by `+page.server.ts` for this route (plus merged layout fields if the page relies on them). Prefer concrete types from `$lib/...` for view models and arrays so `+page.svelte` and `svelte-check` do not see `unknown`.
+   - Return an **explicit object**: server fields from the cast + `isLoggedIn: accurateIsLoggedIn`, `currentUser`, `isSuperAdmin`, `isAdmin`, `isEditor`. Do not rely on `...data` alone on the client if you need a stable, documented merge.
+5. **Server / fallback branch** — `return { ...data, isLoggedIn: accurateIsLoggedIn, currentUser, isSuperAdmin, isAdmin, isEditor };`
+
+## Imports and typing
+
+- `import { browser } from '$app/environment';`
+- `import type { PageLoad } from './$types';` — `export const load: PageLoad = async ({ parent, data }) => { ... }`
+- When the server returns SEO/meta: `import type { MetaTagsProps } from 'svelte-meta-tags'` and type `pageMetaTags` accordingly.
+
+## Avoid
+
+- Only merging on the client (`if (browser)`) without a clear server branch that overlays parent auth — both branches should follow the pattern above.
+- Using `unknown` for fields that `+page.svelte` indexes or passes to typed props (e.g. `posts`, `topics`) — import the proper VM types from the owning `$lib` module.
+
+## Relation to layouts
+
+Root `+layout.ts` may set client-only auth; this universal load **reconciles** that with `+page.server.ts` output. Keep server-only secrets and cookie logic in `+page.server.ts` / `+layout.server.ts`, not in `+page.ts`.
