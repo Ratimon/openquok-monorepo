@@ -4,6 +4,12 @@ import type { AuthStatus } from '$lib/user-auth/AuthStatus.model.svelte';
 import type { Link } from '$lib/ui/nav-bars/Link';
 
 declare global {
+	interface Window {
+		dataLayer: IArguments[];
+		/* eslint-disable @typescript-eslint/no-explicit-any */
+		gtag?: (...args: any[]) => void;
+	}
+
 	namespace App {
 
 		interface LayoutData {

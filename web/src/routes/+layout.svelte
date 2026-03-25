@@ -7,6 +7,7 @@
 	import '../app.postcss';
 	import { page } from '$app/state';
 	import CookieConsentBanner from '$lib/ui/cookie/CookieConsentBanner.svelte';
+	import GoogleAnalytics from '$lib/analytics/GoogleAnalytics.svelte';
 
 	type Props = {
 		data: PageData & App.LayoutData;
@@ -14,6 +15,8 @@
 	};
 
 	let { data, children }: Props = $props();
+
+	let MEASUREMENT_ID = import.meta.env.VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID;
 
 	let authStatus = $derived((data as App.LayoutData)?.authStatus ?? AuthStatus.UNAUTHENTICATED);
 	let metaTags = $derived(
@@ -24,6 +27,7 @@
 	);
 </script>
 
+<GoogleAnalytics {MEASUREMENT_ID} />
 <MetaTags {...metaTags} />
 <svelte:head>
 	<link rel="icon" href="/pwa/favicon.svg" type="image/svg+xml" />

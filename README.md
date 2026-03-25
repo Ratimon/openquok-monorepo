@@ -26,7 +26,6 @@
 ## To Do - Specifix
 
 - Add open graph image
-- GoogleAnalytics
 - landing page
 - limit how many workspaces can be created for different plans
 
