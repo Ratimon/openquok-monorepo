@@ -20,7 +20,7 @@
 	let footerNavigationLinks = $derived(data?.footerNavigationLinks ?? page.data?.footerNavigationLinks ?? {});
 
 	let companyNameVm = $derived(
-		data?.companyNameVm ?? page.data?.companyNameVm ?? publicLayoutPagePresenter.companyNameVm ?? 'Content OS'
+		data?.companyNameVm ?? page.data?.companyNameVm ?? publicLayoutPagePresenter.companyNameVm ?? 'Openquok'
 	);
 	let companyYearVm = $derived(
 		data?.companyYearVm ?? page.data?.companyYearVm ?? publicLayoutPagePresenter.companyYearVm ?? new Date().getFullYear().toString()

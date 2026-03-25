@@ -9,7 +9,7 @@
 	let { data }: Props = $props();
 
 	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? (page.data as App.LayoutData)?.currentUser ?? null);
-	let companyNameVm = $derived((page.data as App.LayoutData)?.companyNameVm ?? (data as App.LayoutData)?.companyNameVm ?? 'Content OS');
+	let companyNameVm = $derived((page.data as App.LayoutData)?.companyNameVm ?? (data as App.LayoutData)?.companyNameVm ?? 'Openquok');
 </script>
 
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">

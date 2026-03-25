@@ -24,7 +24,7 @@
 		(data as App.LayoutData)?.companyNameVm ??
 			(page.data as App.LayoutData)?.companyNameVm ??
 			publicLayoutPagePresenter.companyNameVm ??
-			'Content OS'
+			'Openquok'
 	);
 	let companyYearVm = $derived(
 		(data as App.LayoutData)?.companyYearVm ??

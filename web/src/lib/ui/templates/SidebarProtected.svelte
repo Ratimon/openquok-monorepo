@@ -30,7 +30,7 @@
 
 	let {
 		children,
-		companyName = 'Content OS',
+		companyName = 'Openquok',
 		showEditorAreaButton = false,
 		editorAreaHref = '/editor/feedback-manager',
 		showAdminAreaButton = false,

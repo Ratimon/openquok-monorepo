@@ -1,7 +1,7 @@
 {
-  "appName": "Content OS",
-  "appTitle": "Content OS",
-  "appDescription": "Content OS web application",
+  "appName": "Openquok",
+  "appTitle": "Openquok",
+  "appDescription": "An agentic Social Scheduler Tool",
   "themeColor": "#34A7D6",
 	"appleStatusBarStyle": "black-translucent",
   "icon": "static/icon.svg",

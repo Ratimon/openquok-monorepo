@@ -1053,7 +1053,7 @@ USING (
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 -- Runs after user-management/301 so public.is_super_admin(uuid) exists.
--- content-os: public.users.id is PK; users.auth_id = auth.uid() for current user.
+-- openquok: public.users.id is PK; users.auth_id = auth.uid() for current user.
 
 
 
@@ -1997,8 +1997,8 @@ ON CONFLICT (role, permission) DO NOTHING;
 
 INSERT INTO public.module_configs (module_name, config) VALUES
 ('company_information', '{
-  "NAME": "Content OS",
-  "LEGAL_NAME": "Content OS",
+  "NAME": "Openquok",
+  "LEGAL_NAME": "Openquok",
   "VAT_ID": "",
   "COMPANY_ADDRESS": "",
   "URL": "https://example.com",
@@ -2014,7 +2014,7 @@ INSERT INTO public.module_configs (module_name, config) VALUES
 
 INSERT INTO public.module_configs (module_name, config) VALUES
 ('marketing_information', '{
-  "META_TITLE": "Content OS",
+  "META_TITLE": "Openquok",
   "META_DESCRIPTION": "A content platform.",
   "META_KEYWORDS": "content, platform",
   "SOCIAL_LINKS_X": "",

@@ -2,6 +2,21 @@ import dotenv from "dotenv";
 import { getEnv, getEnvNumber, getEnvBoolean } from "./envHelper";
 import { logger } from "../utils/Logger";
 
+const normalizeOrigin = (origin: string): string => origin.trim().replace(/\/+$/, "");
+
+const deriveWwwVariants = (origin: string): string[] => {
+    try {
+        const url = new URL(origin);
+        if (url.hostname.startsWith("www.")) {
+            const apex = url.hostname.replace(/^www\./, "");
+            return [`${url.protocol}//${apex}`];
+        }
+        return [`${url.protocol}//www.${url.hostname}`];
+    } catch {
+        return [];
+    }
+};
+
 const ENV = process.env.NODE_ENV ?? "development";
 dotenv.config({ path: `.env.${ENV}.local` });
 dotenv.config(); // .env
@@ -12,7 +27,7 @@ export const config: ConfigObject = {
 
     /** Sender identity for transactional email (Resend/SES). */
     basic: {
-        siteName: getEnv("SITE_NAME", "Content OS"),
+        siteName: getEnv("SITE_NAME", "Openquok"),
         senderEmailAddress: getEnv("SENDER_EMAIL_ADDRESS", "noreply@example.com"),
     },
 
@@ -29,12 +44,16 @@ export const config: ConfigObject = {
 
     cors: {
         allowedOrigins: (() => {
-            const frontendUrl = getEnv("FRONTEND_DOMAIN_URL", "http://localhost:5173");
-            const origins: string[] = [frontendUrl];
+            const frontendUrl = normalizeOrigin(getEnv("FRONTEND_DOMAIN_URL", "http://localhost:5173"));
+            const origins: string[] = [frontendUrl, ...deriveWwwVariants(frontendUrl)];
             const extra = getEnv("ALLOWED_FRONTEND_ORIGINS", "");
-            if (extra) origins.push(...extra.split(",").map((o) => o.trim()).filter(Boolean));
+            if (extra) {
+                for (const origin of extra.split(",").map((o) => normalizeOrigin(o)).filter(Boolean)) {
+                    origins.push(origin, ...deriveWwwVariants(origin));
+                }
+            }
             origins.push("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000");
-            return [...new Set(origins)];
+            return [...new Set(origins.map(normalizeOrigin))];
         })(),
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"],
@@ -84,7 +103,7 @@ export const config: ConfigObject = {
         enabled: getEnvBoolean("EMAIL_ENABLED", false),
         /** When true, use local SES mock (e.g. aws-ses-v2-local) for email. */
         isEmailServerOffline: getEnvBoolean("IS_EMAIL_SERVER_OFFLINE", false),
-        // fromName: getEnv("EMAIL_FROM_NAME", "Content OS"),
+        // fromName: getEnv("EMAIL_FROM_NAME", "Openquok"),
         // fromAddress: getEnv("EMAIL_FROM_ADDRESS", "noreply@example.com"),
     },
 

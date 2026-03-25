@@ -82,7 +82,7 @@ export class UserTestHelper {
     /**
      * Create a verified test user with Supabase Auth and public.users record (Listing-style).
      * Trigger creates public.users with id = auth.id; we then set is_super_admin / is_email_verified.
-     * @returns userData plus publicId (same as id in content-os trigger).
+     * @returns userData plus publicId (same as id in openquok trigger).
      */
     async createVerifiedUserWithAuthAndDatabase(
         userData: {

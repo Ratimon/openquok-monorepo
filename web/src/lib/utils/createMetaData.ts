@@ -20,11 +20,11 @@ export type MetaDataImage = {
 	height: number;
 };
 
-const DEFAULT_ORIGIN = 'https://content-os.com';
-const DEFAULT_NAME = 'Content OS';
-const DEFAULT_META_TITLE = 'Content OS';
-const DEFAULT_META_DESCRIPTION = 'Content OS web application';
-const DEFAULT_META_KEYWORDS = 'content, cms, content os';
+const DEFAULT_ORIGIN = 'https://openquok.com';
+const DEFAULT_NAME = 'Openquok';
+const DEFAULT_META_TITLE = 'Openquok';
+const DEFAULT_META_DESCRIPTION = 'Openquok web application';
+const DEFAULT_META_KEYWORDS = 'openquok, cms, content platform';
 
 /**
  * Creates metadata for a web page. If no custom values are provided, uses company/marketing config or defaults.

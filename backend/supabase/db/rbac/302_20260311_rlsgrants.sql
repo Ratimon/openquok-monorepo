@@ -4,7 +4,7 @@
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 -- Runs after user-management/301 so public.is_super_admin(uuid) exists.
--- content-os: public.users.id is PK; users.auth_id = auth.uid() for current user.
+-- openquok: public.users.id is PK; users.auth_id = auth.uid() for current user.
 
 BEGIN;
 

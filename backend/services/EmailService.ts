@@ -102,7 +102,7 @@ export class EmailService {
         try {
             await this.transporter.sendMail({
                 from: {
-                    name: basicConfig?.siteName ?? "Content OS",
+                    name: basicConfig?.siteName ?? "Openquok",
                     address: basicConfig?.senderEmailAddress ?? "noreply@example.com",
                 },
                 to,

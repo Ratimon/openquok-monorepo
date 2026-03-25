@@ -70,7 +70,7 @@
 >
 	<div class="container mx-auto px-4 py-12">
 		<h1 class="text-3xl font-bold text-primary">
-			Welcome to Content OS</h1>
+			Welcome to Openquok</h1>
 		<p class="mt-4 text-lg text-base-content/80">
 			This is the public area. You can replace this with your landing page or home content.
 		</p>

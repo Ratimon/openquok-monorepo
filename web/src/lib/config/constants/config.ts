@@ -4,9 +4,9 @@ import { route } from '$lib/utils/path';
 
 const publicBlogPath = route(getRootPathPublicBlog());
 
-const appName = 'Content OS';
-const appTitle = 'Content OS';
-const appDescription = 'Content OS web application';
+const appName = 'Openquok';
+const appTitle = 'Openquok';
+const appDescription = 'Openquok web application';
 
 function getApiBaseUrl(): string {
 	if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
@@ -38,7 +38,7 @@ export const CONFIG_SCHEMA_COMPANY: ModuleConfigSchema = {
 	URL: {
 		description: 'Primary website URL.',
 		type: 'string',
-		default: 'https://content-os.com',
+		default: 'https://openquok.com',
 		inputType: 'input'
 	},
 	FOUNDING_YEAR: {

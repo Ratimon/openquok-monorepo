@@ -1,4 +1,4 @@
-<h1>Content OS monorepo</h1>
+<h1>OpenQuok monorepo</h1>
 
 - [What is it for](#what-is-it-for)
 - [Architecture](#architecture)
@@ -16,7 +16,6 @@
 
 - Finish Creating Google OAuth Credentials (configure oauth in production)
 - Permission Abstraction /Billing service and integration test
-- GoogleAnalytics
 - check new data loaded whenever the route changes
 - Vs comparison/ company/sitemap pages in Footer
 - Cookie Consent not show (scroll)
@@ -27,6 +26,7 @@
 ## To Do - Specifix
 
 - Add open graph image
+- GoogleAnalytics
 - landing page
 - limit how many workspaces can be created for different plans
 
@@ -83,8 +83,8 @@ pnpm install
 
 3. Set up environment variabless
 
-- [backend](https://github.com/Ratimon/saas-template-monorepo?tab=readme-ov-file#1-environment-variables-setup-for-backend)
-- [web](https://github.com/Ratimon/saas-template-monorepo?tab=readme-ov-file#1-environment-variables-setup-for-web)
+- [backend](https://github.com/Ratimon/openquok-monorepo?tab=readme-ov-file#backend-setup)
+- [web](https://github.com/Ratimon/openquok-monorepo?tab=readme-ov-file#frontend-setup)
 
 ### For Backend Local Development
 
@@ -235,7 +235,7 @@ API_PREFIX=/api/v1
 ```toml
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
-project_id = "content-os"
+project_id = "openquok"
 ```
 
 - **Migration aggregation** — Combine SQL from `backend/supabase/db/` into `backend/supabase/migrations/`:
@@ -262,9 +262,17 @@ project_id = "content-os"
 
 ```sh
 cd backend
+supabase start
+```
+
+Then, you could fill the env variables in [.env.development.local](./backend/.env.development.local)
+
+>[!NOTE]
+> If there is another supabase instance running, you need to stop it first
+
+```sh
 supabase stop
 supabase db reset
-supabase start
 ```
 
 If `supabase db reset` fails with **"error running container: exit 1"**:
@@ -377,26 +385,19 @@ AWS_SECRET_ACCESS_KEY=local
 - Open the browser at **http://localhost:8005/** to view emails sent by the API.
 
 - For production with **Resend**:
-  1. **Domain Verification**: You must verify the **root domain** (e.g., `domain.com`) in Resend to send emails from any address on that domain (e.g., `support@domain.com`).
-     - ⚠️ **Important**: Verifying only a subdomain (e.g., `support.domain.com`) does NOT allow you to send from `support@domain.com`. You need to verify the root domain.
-     - Go to [Resend Domains](https://resend.com/domains) and add/verify your root domain
-     - Follow Resend's DNS setup instructions to add the required DNS records (SPF, DKIM, DMARC)
-  2. Set the sender email address in your environment file:
+
+1. **Domain Verification**: You must verify the **root domain** (e.g., `domain.com`) in Resend to send emails from any address on that domain (e.g., `support@domain.com`).
+  - ⚠️ **Important**: Verifying only a subdomain (e.g., `support.domain.com`) does NOT allow you to send from `support@domain.com`. You need to verify the root domain.
+  - Go to [Resend Domains](https://resend.com/domains) and add/verify your root domain
+  - Follow Resend's DNS setup instructions to add the required DNS records (SPF, DKIM, DMARC)
+
+2. Set the sender email address in your environment file:
 
 ```bash
 SENDER_EMAIL_ADDRESS=support@domain.com
 ```
 
-  3. Make sure your `RESEND_SECRET_KEY` is set in your environment variables.
-
-- For production with **AWS SES** (alternative):
-  - Register and verify sender's email from AWS's dashboard. Then, setting up `MAIL FROM` address that indicates where the message originated. Put it in env file:
-
-  ```bash
-  SENDER_EMAIL_ADDRESS=support@domain.com
-  ```
-
-- Don't forget to set up **SPF** or **DKIM**. More detail at [AWS's doc](https://docs.aws.amazon.com/ses/latest/dg/mail-from.html) or (bigmailer's blog)[https://docs.bigmailer.io/docs/dkim-and-spf]
+3. Make sure your `RESEND_SECRET_KEY` is set in your environment variables.
 
 
 ## Frontend Setup
@@ -471,9 +472,24 @@ Deploy the **backend** (Express) and **web** (SvelteKit) to [Vercel](https://ver
 ### Backend on Vercel
 
 1. Create a **new Vercel project** and connect this repository.
+
 2. Set **Root Directory** to `backend`.
+
 3. The build uses [`backend/vercel.json`](backend/vercel.json): `tsup` bundles [`backend/handler/index.ts`](backend/handler/index.ts) to `api/index.js`, and all traffic is rewritten to that serverless function (same Express app as local, via [`createApp`](backend/app.ts); `listen()` is skipped when `VERCEL` is set). Do **not** run that `buildCommand` on your local `backend/` folder: the post-build script deletes source files; it is only safe on Vercel’s ephemeral build machine (or a throwaway clone).
-4. Set **Environment Variables** in the Vercel project to match production (same names as `backend/.env.production.local`): `NODE_ENV`, `API_SECRET_KEY`, Supabase keys, `REDIS_*`, `FRONTEND_DOMAIN_URL`, `BACKEND_DOMAIN_URL`, Stripe, OAuth, Sentry, email, etc.
+
+4. Set **Environment Variables** in the Vercel project to match production (same names as `backend/.env.production.local`): `NODE_ENV`, Supabase keys, `REDIS_*`, `FRONTEND_DOMAIN_URL`, `BACKEND_DOMAIN_URL`, Stripe, OAuth, Sentry, email, etc.
+
+>[!WARNING]
+> DONT forget to enable `sentitive` options
+
+>[!IMPORTANT]
+> CORS origin matching is exact. In production:
+> - Set `FRONTEND_DOMAIN_URL` **without trailing slash** (use `https://www.openquok.com`, not `https://www.openquok.com/`).
+> - Include both apex and `www` in `ALLOWED_FRONTEND_ORIGINS` (example: `https://openquok.com,https://www.openquok.com`).
+> - Keep web `VITE_API_BASE_URL` pointing to the same backend origin used by `BACKEND_DOMAIN_URL`.
+>
+> If these do not match, browser preflight for auth endpoints (such as `/api/v1/auth/refresh`) can fail with a CORS error.
+
 5. Deploy from the dashboard (push to the production branch) or from the repo root:
 
 | Command | Description |
@@ -486,10 +502,10 @@ After deploy, set `BACKEND_DOMAIN_URL` to your backend URL (for example `https:/
 This is an example of the question the terminal will ask:
 
 ```sh
-? Set up and deploy “~/Projects/solo/content-os-monorepo/backend”? yes
+? Set up and deploy “~/Projects/solo/openquok-monorepo/backend”? yes
 ? Which scope should contain your project? ratimon's projects
 ? Link to existing project? no
-? What’s your project’s name? content-os-backend
+? What’s your project’s name? openquok-backend
 ? In which directory is your code located? ./
 Local settings detected in vercel.json:
 - Build Command: npx tsup && sh scripts/vercel-clean-after-build.sh

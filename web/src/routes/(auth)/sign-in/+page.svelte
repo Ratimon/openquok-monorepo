@@ -64,7 +64,7 @@
 		return accountPath;
 	}
 
-	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'Content OS');
+	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'Openquok');
 	let status = $derived(signinPresenter.status);
 	let isSigningIn = $derived(status === SigninStatus.SUBMITTING);
 	let showPassword = $state(false);

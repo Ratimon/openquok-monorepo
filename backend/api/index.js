@@ -123,7 +123,7 @@ var init_GlobalConfig = __esm({
     config = {
       /** Sender identity for transactional email (Resend/SES). */
       basic: {
-        siteName: getEnv("SITE_NAME", "Content OS"),
+        siteName: getEnv("SITE_NAME", "Openquok"),
         senderEmailAddress: getEnv("SENDER_EMAIL_ADDRESS", "noreply@example.com")
       },
       server: {
@@ -189,7 +189,7 @@ var init_GlobalConfig = __esm({
         enabled: getEnvBoolean("EMAIL_ENABLED", false),
         /** When true, use local SES mock (e.g. aws-ses-v2-local) for email. */
         isEmailServerOffline: getEnvBoolean("IS_EMAIL_SERVER_OFFLINE", false)
-        // fromName: getEnv("EMAIL_FROM_NAME", "Content OS"),
+        // fromName: getEnv("EMAIL_FROM_NAME", "Openquok"),
         // fromAddress: getEnv("EMAIL_FROM_ADDRESS", "noreply@example.com"),
       },
       supabase: {
@@ -5440,7 +5440,7 @@ var EmailService = class {
     try {
       await this.transporter.sendMail({
         from: {
-          name: basicConfig?.siteName ?? "Content OS",
+          name: basicConfig?.siteName ?? "Openquok",
           address: basicConfig?.senderEmailAddress ?? "noreply@example.com"
         },
         to,
@@ -6858,7 +6858,7 @@ async function generateBlogRSSFeed(posts) {
     language: "en",
     favicon: `${URL2.replace(/\/$/, "")}/favicon.ico`,
     copyright: `All rights reserved ${(/* @__PURE__ */ new Date()).getFullYear()}, ${NAME}`,
-    generator: "Content OS Blog System",
+    generator: "Openquok Blog System",
     feedLinks: {
       rss2: `${blogURL}/rss.xml`,
       json: `${blogURL}/feed.json`,

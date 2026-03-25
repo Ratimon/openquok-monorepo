@@ -12,8 +12,8 @@ BEGIN;
 
 INSERT INTO public.module_configs (module_name, config) VALUES
 ('company_information', '{
-  "NAME": "Content OS",
-  "LEGAL_NAME": "Content OS",
+  "NAME": "Openquok",
+  "LEGAL_NAME": "Openquok",
   "VAT_ID": "",
   "COMPANY_ADDRESS": "",
   "URL": "https://example.com",
@@ -29,7 +29,7 @@ INSERT INTO public.module_configs (module_name, config) VALUES
 
 INSERT INTO public.module_configs (module_name, config) VALUES
 ('marketing_information', '{
-  "META_TITLE": "Content OS",
+  "META_TITLE": "Openquok",
   "META_DESCRIPTION": "A content platform.",
   "META_KEYWORDS": "content, platform",
   "SOCIAL_LINKS_X": "",
