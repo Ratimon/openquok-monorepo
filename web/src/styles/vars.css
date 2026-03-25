@@ -1,6 +1,8 @@
 :root {
-  --sans-serif: system-ui, sans-serif;
-  --monospace: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  /* superfuse-wizard / DaisyUI cyberpunk primary stack */
+  --sans-serif: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  --monospace: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
 
   --text-color: #333333;
 
@@ -29,5 +31,7 @@
 }
 
 @theme {
+  /* default (cyberpunk theme fontFamily) */
+  --font-sans: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   --animate-flip: flip 6s infinite steps(2, end);
 }

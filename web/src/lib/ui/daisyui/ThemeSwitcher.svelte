@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	const THEMES = ['aqua', 'light'] as const;
+	const THEMES = ['forest', 'light'] as const;
 	const STORAGE_KEY = 'theme';
 
 	type Props = {
@@ -50,7 +50,7 @@
 	id="theme-switcher"
 	type="button"
 	onclick={handleClick}
-	aria-label="Switch theme (aqua, light)"
+	aria-label="Switch theme (forest, light)"
 	class={buttonClass}
 >
 	<!-- moon -->
@@ -75,13 +75,13 @@
 </button>
 
 <style>
-	/* aqua and light: show moon, hide sun (toggle to switch to the other) */
+	/* forest and light: show moon, hide sun (toggle to switch to the other) */
 	:global(html[data-theme='light']) #theme-switcher > svg:last-of-type,
-	:global(html[data-theme='aqua']) #theme-switcher > svg:last-of-type {
+	:global(html[data-theme='forest']) #theme-switcher > svg:last-of-type {
 		display: none;
 	}
 	:global(html[data-theme='light']) #theme-switcher > svg:first-of-type,
-	:global(html[data-theme='aqua']) #theme-switcher > svg:first-of-type {
+	:global(html[data-theme='forest']) #theme-switcher > svg:first-of-type {
 		display: inline-block;
 	}
 </style>

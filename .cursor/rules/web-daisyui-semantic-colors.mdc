@@ -6,7 +6,7 @@ alwaysApply: false
 
 # DaisyUI semantic color classes
 
-Use **DaisyUI semantic color utilities** for backgrounds, text, and borders so the UI respects the active theme (e.g. aqua, light). Do **not** use Tailwind’s `dark:*` variants or fixed color names (e.g. `bg-neutral-800`, `text-zinc-400`).
+Use **DaisyUI semantic color utilities** for backgrounds, text, and borders so the UI respects the active theme (e.g. forest, light). Do **not** use Tailwind’s `dark:*` variants or fixed color names (e.g. `bg-neutral-800`, `text-zinc-400`).
 
 ## Semantic classes to use
 
