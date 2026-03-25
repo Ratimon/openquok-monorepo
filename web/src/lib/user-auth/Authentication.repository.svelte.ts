@@ -251,7 +251,7 @@ export class AuthenticationRepository {
 					id: user.id ?? null,
 					email: user.email,
 					fullName: user.fullName ?? user.email,
-					username: user.username ?? user.fullName ?? user.email,
+					username: user.username ?? user.email,
 					isEmailVerified: user.isEmailVerified,
 					roles: user.roles ?? [],
 					isSuperAdmin: user.isSuperAdmin
@@ -299,7 +299,7 @@ export class AuthenticationRepository {
 						id: user.id ?? null,
 						email: user.email,
 						fullName: user.fullName ?? user.email,
-						username: user.username ?? user.fullName ?? user.email,
+						username: user.username ?? user.email,
 						isEmailVerified: user.isEmailVerified,
 						roles: user.roles
 					};
@@ -440,7 +440,7 @@ export class AuthenticationRepository {
 					id: user.id ?? null,
 					email: user.email,
 					fullName: user.fullName ?? user.email,
-					username: user.username ?? user.fullName ?? user.email,
+					username: user.username ?? user.email,
 					isEmailVerified: user.isEmailVerified,
 					roles: user.roles
 				};
@@ -501,6 +501,7 @@ export class AuthenticationRepository {
 				id: string;
 				email: string | null;
 				fullName: string | null;
+				username?: string | null;
 				isEmailVerified?: boolean;
 				roles?: string[];
 				isSuperAdmin?: boolean;
@@ -518,7 +519,7 @@ export class AuthenticationRepository {
 			id: d.id ?? null,
 			email: d.email ?? '',
 			fullName: d.fullName ?? d.email ?? '',
-			username: d.fullName ?? d.email ?? undefined,
+			username: d.username ?? d.email ?? undefined,
 			isEmailVerified: d.isEmailVerified,
 			roles: d.roles ?? [],
 			isSuperAdmin: d.isSuperAdmin ?? false

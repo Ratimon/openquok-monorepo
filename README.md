@@ -19,7 +19,6 @@
 - check new data loaded whenever the route changes
 - Vs comparison/ company/sitemap pages in Footer
 - Cookie Consent not show (scroll)
-- seed
 - doc subdomain
 - check rate limit again
 

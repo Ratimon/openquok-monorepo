@@ -5,6 +5,11 @@ export interface UserDTO {
     id: string;
     email: string | null;
     fullName: string | null;
+    /**
+     * Human-facing identifier used by the frontend as "username".
+     * We currently treat this as the user's email (no dedicated username field in DB yet).
+     */
+    username: string | null;
     isEmailVerified: boolean;
     /** Storage path in avatars bucket, or null. */
     avatarUrl: string | null;
@@ -49,6 +54,7 @@ export function toUserDTO(row: UserRowLike | null): UserDTO | null {
         id: row.id,
         email: row.email ?? null,
         fullName: row.full_name ?? null,
+        username: row.email ?? null,
         isEmailVerified: row.is_email_verified === true,
         avatarUrl,
         websiteUrl,

@@ -64,7 +64,11 @@
 				Secret admin
 			</Button>
 		{/if}
-		<Button variant="ghost" size="sm" class="hidden sm:inline-flex" href="/docs">Docs</Button>
+		
+		<Button variant="ghost" size="sm" class="hidden sm:inline-flex" href="/docs">
+			Docs
+		</Button>
+
 		<FloatingDockDesktop items={dockItems} class="mx-0" childrenFirst>
 			{#snippet customSlots({ mouseX, containerX })}
 				<DockCustomSlot {mouseX} {containerX} title="Theme">
