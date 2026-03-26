@@ -20,6 +20,7 @@ const deriveWwwVariants = (origin: string): string[] => {
 const ENV = process.env.NODE_ENV ?? "development";
 dotenv.config({ path: `.env.${ENV}.local` });
 dotenv.config(); // .env
+const isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
 
 export type ConfigObject = { [key: string]: unknown };
 
@@ -52,8 +53,19 @@ export const config: ConfigObject = {
                     origins.push(origin, ...deriveWwwVariants(origin));
                 }
             }
-            origins.push("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000");
-            return [...new Set(origins.map(normalizeOrigin))];
+            if (!isProductionEnv) {
+                origins.push(
+                    "http://localhost:5173",
+                    "http://localhost:3000",
+                    "http://127.0.0.1:5173",
+                    "http://127.0.0.1:3000"
+                );
+            }
+            const unique = [...new Set(origins.map(normalizeOrigin))];
+            if (isProductionEnv && unique.some((origin) => origin.includes("*"))) {
+                throw new Error("CORS wildcard origins are not allowed in production");
+            }
+            return unique;
         })(),
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"],

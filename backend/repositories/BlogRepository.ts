@@ -43,6 +43,36 @@ const TABLE_NAME_BLOG_POSTS = "blog_posts";
 const TABLE_NAME_BLOG_TOPICS = "blog_topics";
 const TABLE_NAME_BLOG_COMMENTS = "blog_comments";
 const TABLE_NAME_BLOG_ACTIVITIES = "blog_activities";
+const ALLOWED_PUBLISHED_POST_SORT_KEYS = new Set([
+    "published_at",
+    "created_at",
+    "updated_at",
+    "title",
+    "view_count",
+    "like_count",
+]);
+const ALLOWED_ADMIN_POST_SORT_KEYS = new Set([
+    "created_at",
+    "updated_at",
+    "published_at",
+    "title",
+    "view_count",
+    "like_count",
+    "is_admin_approved",
+    "is_user_published",
+]);
+const ALLOWED_ADMIN_COMMENT_SORT_KEYS = new Set(["created_at", "updated_at", "is_approved"]);
+const ALLOWED_ADMIN_ACTIVITY_SORT_KEYS = new Set(["created_at", "activity_type"]);
+
+function resolveOrderKey(
+    candidate: string | null | undefined,
+    fallback: string,
+    allowlist: Set<string>
+): string {
+    const key = candidate?.toString().trim();
+    if (!key) return fallback;
+    return allowlist.has(key) ? key : fallback;
+}
 
 /** Select for blog topic list: id, name, slug, description, parent_id, and nested parent topic. */
 const SELECT_BLOG_TOPIC = `
@@ -157,7 +187,7 @@ export class BlogRepository {
             query = query.eq("user_id", authorId);
         }
 
-        const orderKey = (sortByKey?.toString() || "published_at") as string;
+        const orderKey = resolveOrderKey(sortByKey ?? undefined, "published_at", ALLOWED_PUBLISHED_POST_SORT_KEYS);
         query = query.order(orderKey, { ascending: sortByOrder ?? false });
 
         if (range) {
@@ -208,7 +238,7 @@ export class BlogRepository {
             query = query.textSearch("fts", searchTerm.replace(/\s+/g, "+"));
         }
 
-        const orderKey = (sortByKey?.toString() || "created_at") as string;
+        const orderKey = resolveOrderKey(sortByKey ?? undefined, "created_at", ALLOWED_ADMIN_POST_SORT_KEYS);
         query = query.order(orderKey, { ascending: sortByOrder ?? false });
 
         if (range) {
@@ -752,7 +782,7 @@ export class BlogRepository {
             query = query.ilike("content", `%${searchTerm}%`);
         }
 
-        const orderKey = (sortByKey?.toString() || "created_at") as string;
+        const orderKey = resolveOrderKey(sortByKey ?? undefined, "created_at", ALLOWED_ADMIN_COMMENT_SORT_KEYS);
         query = query.order(orderKey, { ascending: sortByOrder ?? false });
 
         if (range) {
@@ -1009,7 +1039,7 @@ export class BlogRepository {
             query = query.eq("activity_type", activity_type);
         }
 
-        const orderKey = (sortByKey?.toString() || "created_at") as string;
+        const orderKey = resolveOrderKey(sortByKey ?? undefined, "created_at", ALLOWED_ADMIN_ACTIVITY_SORT_KEYS);
         query = query.order(orderKey, { ascending: sortByOrder ?? false });
 
         if (range) {

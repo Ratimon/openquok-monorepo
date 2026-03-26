@@ -30,6 +30,15 @@ const checkConfigIsValid = () => {
         logger.error({ msg: "[Config] Critical config is invalid", missingKeys, config: Object.keys(config) });
         throw new Error(`Critical config missing: ${missingKeys.join(", ")}`);
     }
+    const nodeEnv = (config.server as { nodeEnv?: string }).nodeEnv;
+    const allowedOrigins = (config.cors as { allowedOrigins?: string[] | string }).allowedOrigins;
+    if (nodeEnv === "production") {
+        const origins = Array.isArray(allowedOrigins) ? allowedOrigins : [String(allowedOrigins ?? "")];
+        const hasWildcard = origins.some((origin) => origin.includes("*"));
+        if (hasWildcard) {
+            throw new Error("CORS wildcard origins are not allowed in production");
+        }
+    }
     logger.info({ msg: "[Config] Configuration validation passed" });
 };
 
