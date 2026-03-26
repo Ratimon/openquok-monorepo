@@ -1,8 +1,31 @@
+<script lang="ts" module>
+	export const THEME_STORAGE_KEY = 'theme';
+	export const THEME_USER_SET_KEY = 'theme_user_set';
+
+	/**
+	 * Ensures a default theme is applied unless the user explicitly chose one.
+	 * Intended to be called onMount from layouts (client-only).
+	 */
+	export function ensureDefaultTheme(defaultTheme: 'forest' | 'light' = 'forest') {
+		if (typeof document === 'undefined') return;
+		try {
+			const userSet = localStorage.getItem(THEME_USER_SET_KEY) === 'true';
+			if (!userSet) {
+				document.documentElement.setAttribute('data-theme', defaultTheme);
+				localStorage.setItem(THEME_STORAGE_KEY, defaultTheme);
+			}
+		} catch {
+			document.documentElement.setAttribute('data-theme', defaultTheme);
+		}
+	}
+</script>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 
 	const THEMES = ['forest', 'light'] as const;
-	const STORAGE_KEY = 'theme';
+	const STORAGE_KEY = THEME_STORAGE_KEY;
+	const USER_SET_KEY = THEME_USER_SET_KEY;
 
 	type Props = {
 		/** 'dock' = compact for use inside floating dock (same icon size as other dock items) */
@@ -34,7 +57,9 @@
 	onMount(() => {
 		try {
 			const stored = localStorage.getItem(STORAGE_KEY);
-			if (stored && THEMES.includes(stored as (typeof THEMES)[number])) {
+			const userSet = localStorage.getItem(USER_SET_KEY) === 'true';
+			// Only auto-apply stored theme if the user explicitly chose it before.
+			if (userSet && stored && THEMES.includes(stored as (typeof THEMES)[number])) {
 				applyTheme(stored);
 			}
 		} catch {}
@@ -42,6 +67,9 @@
 
 	function handleClick() {
 		const current = document.documentElement.getAttribute('data-theme') ?? THEMES[0];
+		try {
+			localStorage.setItem(USER_SET_KEY, 'true');
+		} catch {}
 		applyTheme(getNextTheme(current));
 	}
 </script>
@@ -75,13 +103,19 @@
 </button>
 
 <style>
-	/* forest and light: show moon, hide sun (toggle to switch to the other) */
-	:global(html[data-theme='light']) #theme-switcher > svg:last-of-type,
-	:global(html[data-theme='forest']) #theme-switcher > svg:last-of-type {
+	/* Show icon for the *next* theme:
+	   - forest (current) => show sun (switch to light)
+	   - light (current) => show moon (switch to forest) */
+	:global(html[data-theme='forest']) #theme-switcher > svg:first-of-type {
 		display: none;
 	}
-	:global(html[data-theme='light']) #theme-switcher > svg:first-of-type,
-	:global(html[data-theme='forest']) #theme-switcher > svg:first-of-type {
+	:global(html[data-theme='forest']) #theme-switcher > svg:last-of-type {
 		display: inline-block;
+	}
+	:global(html[data-theme='light']) #theme-switcher > svg:first-of-type {
+		display: inline-block;
+	}
+	:global(html[data-theme='light']) #theme-switcher > svg:last-of-type {
+		display: none;
 	}
 </style>

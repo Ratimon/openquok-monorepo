@@ -3,6 +3,7 @@
 	import type { SidebarLinkItem } from '$lib/ui/sidebar-expandable/types';
 	import type { DockItem } from '$lib/ui/floating-dock/types';
 
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { invalidateAll } from '$app/navigation';
 	import toast from 'svelte-hot-french-toast';
@@ -17,6 +18,7 @@
 	import { absoluteUrl } from '$lib/utils/path';
 
 	import SidebarProtected from '$lib/ui/templates/SidebarProtected.svelte';
+	import { ensureDefaultTheme } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
 
 	type Props = {
 		children: Snippet;
@@ -51,6 +53,10 @@
 	let feedbackSuccessMessage = $derived(feedbackPresenter.toastMessage);
 	let feedbackShowToastMessage = $derived(feedbackPresenter.showToastMessage);
 	let feedbackToastMessage = $derived(feedbackPresenter.toastMessage);
+
+	onMount(() => {
+		ensureDefaultTheme('forest');
+	});
 
 	$effect(() => {
 		if (!feedbackOpen) feedbackPresenter.reset();

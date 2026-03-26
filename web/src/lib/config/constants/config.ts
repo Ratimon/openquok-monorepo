@@ -137,6 +137,30 @@ export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 	}
 };
 
+// Landing page (public home) content defaults
+export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
+	HERO_TITLE: {
+		description: 'The primary headline displayed in the hero section of your landing page',
+		type: 'string',
+		default: 'Automate your social scheduler — in minutes not hours',
+		inputType: 'input',
+		maxInputLength: 80
+	},
+	HERO_SLOGAN: {
+		description: 'The secondary text or tagline shown below the hero title',
+		type: 'string',
+		default: 'Turn OpenClaw into autonomous social media manager with control built in',
+		inputType: 'textarea',
+		maxInputLength: 200
+	},
+	ACTIVE_TOP_BANNER: {
+		description: 'Enable or disable the top banner display on the landing page',
+		type: 'boolean',
+		default: false,
+		inputType: 'switch'
+	}
+};
+
 export type NavOptions = 'tab' | 'scroll' | 'menu';
 
 export interface DropdownLink {
