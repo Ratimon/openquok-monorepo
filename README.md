@@ -21,9 +21,8 @@
 - Cookie Consent not show (scroll)
 - doc subdomain
 - check rate limit again
-- OpenQuoke | OpenQuoke
 
-## To Do - Specifix
+## To Do - Specific
 
 - Add open graph image
 - landing page

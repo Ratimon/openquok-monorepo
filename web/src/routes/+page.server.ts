@@ -17,8 +17,11 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 	const navbarMobileLinks: Link[] = [...PUBLIC_NAVBAR_LINKS];
 	const footerNavigationLinks = { ...PUBLIC_FOOTER_LINKS };
 
-	// SEO: landing page meta (SSR-safe, derived in root layout)
-	const pageMetaTags = baseMetaTags satisfies MetaTagsProps;
+	// "Openquok"
+	const pageMetaTags = {
+		...baseMetaTags,
+		titleTemplate: '%s'
+	} satisfies MetaTagsProps;
 
 	// ✅ SAFE: Load landing page config using SSR
 	let landingPageConfigVm: { [key: string]: string } = {};
