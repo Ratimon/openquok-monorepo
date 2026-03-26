@@ -17,6 +17,46 @@ const supabaseConfig = config.supabase as {
     supabaseServiceRoleKey?: string;
 };
 
+const serverConfig = config.server as {
+    nodeEnv?: string;
+    frontendDomainUrl?: string;
+    backendDomainUrl?: string;
+};
+
+/**
+ * Keep in sync with AuthController's SameSite decision logic.
+ * If frontend/backend are cross-site (e.g. openquok.com -> *.vercel.app), we must use SameSite=None.
+ */
+function getSiteKey(hostname: string): string {
+    const h = hostname.toLowerCase();
+    const parts = h.split(".").filter(Boolean);
+    if (parts.length <= 1) return h;
+    const threeLabelPublicSuffixes = new Set([
+        "vercel.app",
+        "netlify.app",
+        "onrender.com",
+        "fly.dev",
+        "pages.dev",
+        "web.app",
+        "firebaseapp.com",
+        "github.io",
+    ]);
+    const last2 = parts.slice(-2).join(".");
+    if (threeLabelPublicSuffixes.has(last2) && parts.length >= 3) return parts.slice(-3).join(".");
+    return last2;
+}
+
+function getSameSiteValue(): "lax" | "none" {
+    if (serverConfig.nodeEnv !== "production") return "lax";
+    try {
+        const frontUrl = new URL(serverConfig.frontendDomainUrl ?? "");
+        const backUrl = new URL(serverConfig.backendDomainUrl ?? "");
+        return getSiteKey(frontUrl.hostname) === getSiteKey(backUrl.hostname) ? "lax" : "none";
+    } catch {
+        return "none";
+    }
+}
+
 export const supabase = createClient<Database>(
     supabaseConfig.supabaseUrl,
     supabaseConfig.supabaseAnonKey
@@ -84,8 +124,22 @@ export const createSupabaseRLSClient = ({ req, res }: { req: Request; res: Respo
         },
         setAll(cookiesToSet) {
             if (res.headersSent) return;
+            const isProduction = serverConfig.nodeEnv === "production";
+            const sameSite = getSameSiteValue();
             cookiesToSet.forEach(({ name, value, options }) => {
-                res.appendHeader("Set-Cookie", serializeCookieHeader(name, value, options ?? {}));
+                // SECURITY: Always enforce safe cookie defaults for Supabase session cookies.
+                // These cookies can carry refresh tokens, so they must not be readable by JS.
+                const mergedOptions = {
+                    path: "/",
+                    httpOnly: true,
+                    secure: isProduction,
+                    sameSite,
+                    ...(options ?? {}),
+                    // Never allow downstream options to weaken these in production.
+                    ...(isProduction ? { httpOnly: true, secure: true, sameSite } : {}),
+                };
+
+                res.appendHeader("Set-Cookie", serializeCookieHeader(name, value, mergedOptions));
             });
         },
     };

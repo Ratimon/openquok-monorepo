@@ -185,20 +185,24 @@ CREATE TRIGGER update_post_view_count
 -- Update Like Count
 -- ---------------------------
 CREATE OR REPLACE FUNCTION public.update_blog_post_like_count()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
-  IF (TG_OP = 'INSERT' AND NEW.activity_type = 'like') THEN
-    UPDATE public.blog_posts
-    SET like_count = like_count + 1
-    WHERE id = NEW.post_id;
-  ELSIF (TG_OP = 'DELETE' AND OLD.activity_type = 'like') THEN
-    UPDATE public.blog_posts
-    SET like_count = GREATEST(like_count - 1, 0)
-    WHERE id = OLD.post_id;
-  END IF;
-  RETURN NEW;
+    IF (TG_OP = 'INSERT' AND NEW.activity_type = 'like') THEN
+        UPDATE public.blog_posts
+        SET like_count = like_count + 1
+        WHERE id = NEW.post_id;
+    ELSIF (TG_OP = 'DELETE' AND OLD.activity_type = 'like') THEN
+        UPDATE public.blog_posts
+        SET like_count = GREATEST(like_count - 1, 0)
+        WHERE id = OLD.post_id;
+    END IF;
+    RETURN COALESCE(NEW, OLD);
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS update_blog_post_like_count_trigger ON public.blog_activities;
 CREATE TRIGGER update_blog_post_like_count_trigger

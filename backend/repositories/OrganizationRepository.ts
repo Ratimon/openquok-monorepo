@@ -51,21 +51,20 @@ export type OrgRole = WorkspaceMembershipRole;
 export class OrganizationRepository {
     constructor(private readonly supabase: SupabaseClient) {}
 
-    /** Find public.users.id by auth_id (Supabase auth user id). */
+    /** Find public.users.id by auth_id (Supabase auth user id).
+     *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
     async findUserIdByAuthId(authId: string): Promise<{ userId: string | null; error: unknown }> {
-        const { data, error } = await this.supabase
-            .from("users")
-            .select("id")
-            .eq("auth_id", authId)
-            .single();
-        if (error && error.code !== "PGRST116") {
+        const { data, error } = await this.supabase.rpc("internal_find_user_id_by_auth_id" as never, {
+            p_auth_id: authId,
+        } as never);
+        if (error) {
             throw new DatabaseError("Failed to resolve user by auth id", {
                 cause: error as unknown as Error,
                 operation: "findUserIdByAuthId",
                 resource: { type: "table", name: "users" },
             });
         }
-        return { userId: (data as { id: string } | null)?.id ?? null, error };
+        return { userId: (data as string) ?? null, error: null };
     }
 
     /** List organizations the user belongs to (non-disabled memberships). */

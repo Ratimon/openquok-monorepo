@@ -545,7 +545,6 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.is_super_admin(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.is_super_admin(UUID) TO anon;
 COMMENT ON FUNCTION public.is_super_admin(UUID) IS 'Check if a user is a super admin (bypasses RLS to avoid recursion)';
 
 -- ---------------------------
@@ -1131,12 +1130,17 @@ CREATE POLICY "Super admins can manage role permissions"
 -- Enable Row-Level Security on the module_configs table
 ALTER TABLE public.module_configs ENABLE ROW LEVEL SECURITY;
 
--- Allow all authenticated users to read (SELECT) configs
--- If you want *everyone* including non-authenticated to read, remove auth checks.
+-- Public SELECT: values are site copy (landing_page, marketing_information, company_information, blog, user_auth toggles, etc.).
+-- Treat as public CMS data — do not store API keys or secrets in config JSON.
+-- (Web app reads most modules via Express + service role; open RLS helps direct Supabase/anon clients.)
+DROP POLICY IF EXISTS "Allow all to read module configs" ON public.module_configs;
 CREATE POLICY "Allow all to read module configs"
 ON public.module_configs
 FOR SELECT
 USING (true);
+
+GRANT SELECT ON TABLE public.module_configs TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.module_configs TO service_role;
 
 -- Allow only super admins to INSERT new configs
 DROP POLICY IF EXISTS "Allow admins to insert module configs" ON public.module_configs;
@@ -1371,6 +1375,7 @@ CREATE POLICY "Users can view their own activities" ON public.blog_activities
         )
     );
 
+-- Inserts are performed by the backend (service role, RLS bypass) for anonymous likes/views.
 DROP POLICY IF EXISTS "System can insert activities" ON public.blog_activities;
 CREATE POLICY "System can insert activities" ON public.blog_activities
     FOR INSERT TO authenticated WITH CHECK (true);
@@ -1412,7 +1417,8 @@ CREATE POLICY "Allow authenticated users to update their blog images"
         AND auth.uid() = owner
     );
 
-CREATE POLICY "Allow authenticated users to upload blog images" 
+DROP POLICY IF EXISTS "Allow authenticated users to upload blog images" ON storage.objects;
+CREATE POLICY "Allow authenticated users to upload blog images"
     ON storage.objects
     AS PERMISSIVE
     FOR INSERT
@@ -1420,6 +1426,7 @@ CREATE POLICY "Allow authenticated users to upload blog images"
     WITH CHECK (
         bucket_id = 'blog_images'::text
         AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
     );
 
 CREATE POLICY "Allow read access to blog images"
@@ -1493,7 +1500,7 @@ BEGIN
     ORDER BY
         post_count DESC;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Function to get all active blog topics (topics that have published posts)
 CREATE OR REPLACE FUNCTION public.get_active_blog_topics()
@@ -1513,7 +1520,7 @@ BEGIN
         bt.slug,
         bt.description,
         bt.parent_id,
-        COUNT(bp.id) OVER (PARTITION BY bt.id) as post_count
+        COUNT(bp.id) OVER (PARTITION BY bt.id) AS post_count
     FROM
         public.blog_topics bt
         INNER JOIN public.blog_posts bp ON bt.id = bp.topic_id
@@ -1523,7 +1530,7 @@ BEGIN
     ORDER BY
         post_count DESC;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 
 -- Module: user-management, File: 400_20260227_functions.sql
@@ -1536,8 +1543,188 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 -- ---------------------------
--- (No module-specific functions; handle_new_user lives in user-auth)
+-- (handle_new_user lives in user-auth)
 -- ---------------------------
+
+-- ---------------------------
+-- Internal helpers (SECURITY DEFINER): bypass RLS for server-side operations
+-- that the backend performs via PostgREST service client.
+-- ---------------------------
+
+CREATE OR REPLACE FUNCTION public.internal_upsert_user_from_auth(
+    p_id UUID,
+    p_auth_id UUID,
+    p_email TEXT,
+    p_full_name TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    INSERT INTO public.users (id, auth_id, email, full_name, updated_at)
+    VALUES (p_id, p_auth_id, p_email, p_full_name, NOW())
+    ON CONFLICT (id) DO UPDATE SET
+        auth_id = EXCLUDED.auth_id,
+        email = EXCLUDED.email,
+        full_name = EXCLUDED.full_name,
+        updated_at = NOW();
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.internal_upsert_user_from_auth(UUID, UUID, TEXT, TEXT) TO service_role;
+COMMENT ON FUNCTION public.internal_upsert_user_from_auth IS 'Server-side upsert into public.users (bypasses RLS)';
+
+CREATE OR REPLACE FUNCTION public.internal_set_verification_token(
+    p_user_id UUID,
+    p_token TEXT DEFAULT NULL,
+    p_expires TIMESTAMPTZ DEFAULT NULL
+)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    affected INTEGER;
+BEGIN
+    UPDATE public.users
+    SET email_verification_token = p_token,
+        email_verification_token_expires = p_expires,
+        updated_at = NOW()
+    WHERE id = p_user_id;
+
+    GET DIAGNOSTICS affected = ROW_COUNT;
+    RETURN affected;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.internal_set_verification_token(UUID, TEXT, TIMESTAMPTZ) TO service_role;
+COMMENT ON FUNCTION public.internal_set_verification_token IS 'Server-side update of email verification token (bypasses RLS)';
+
+CREATE OR REPLACE FUNCTION public.internal_find_user_by_token_hash(p_hashed_token TEXT)
+RETURNS TABLE(
+    id UUID,
+    auth_id UUID,
+    email TEXT,
+    full_name TEXT,
+    is_email_verified BOOLEAN,
+    email_verification_token TEXT,
+    email_verification_token_expires TIMESTAMPTZ,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT u.id, u.auth_id, u.email, u.full_name, u.is_email_verified,
+           u.email_verification_token, u.email_verification_token_expires,
+           u.created_at, u.updated_at
+    FROM public.users u
+    WHERE u.email_verification_token = p_hashed_token
+      AND u.email_verification_token_expires > NOW();
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.internal_find_user_by_token_hash(TEXT) TO service_role;
+COMMENT ON FUNCTION public.internal_find_user_by_token_hash IS 'Find user by hashed verification token (bypasses RLS)';
+
+CREATE OR REPLACE FUNCTION public.internal_update_email_verification(
+    p_user_id UUID,
+    p_is_verified BOOLEAN
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    UPDATE public.users
+    SET is_email_verified = p_is_verified,
+        updated_at = NOW()
+    WHERE id = p_user_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.internal_update_email_verification(UUID, BOOLEAN) TO service_role;
+COMMENT ON FUNCTION public.internal_update_email_verification IS 'Mark user email as verified/unverified (bypasses RLS)';
+
+CREATE OR REPLACE FUNCTION public.internal_find_user_id_by_auth_id(p_auth_id UUID)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_user_id UUID;
+BEGIN
+    SELECT u.id INTO v_user_id
+    FROM public.users u
+    WHERE u.auth_id = p_auth_id
+    LIMIT 1;
+    RETURN v_user_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.internal_find_user_id_by_auth_id(UUID) TO service_role;
+COMMENT ON FUNCTION public.internal_find_user_id_by_auth_id IS 'Resolve auth.uid() to public.users.id (bypasses RLS)';
+
+CREATE OR REPLACE FUNCTION public.internal_find_full_user_by_email(p_email TEXT)
+RETURNS TABLE(
+    id UUID,
+    auth_id UUID,
+    email TEXT,
+    full_name TEXT,
+    is_email_verified BOOLEAN,
+    email_verification_token TEXT,
+    email_verification_token_expires TIMESTAMPTZ,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT u.id, u.auth_id, u.email, u.full_name, u.is_email_verified,
+           u.email_verification_token, u.email_verification_token_expires,
+           u.created_at, u.updated_at
+    FROM public.users u
+    WHERE u.email = LOWER(TRIM(p_email))
+    LIMIT 1;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.internal_find_full_user_by_email(TEXT) TO service_role;
+COMMENT ON FUNCTION public.internal_find_full_user_by_email IS 'Find user by email with all core columns (bypasses RLS)';
+
+CREATE OR REPLACE FUNCTION public.internal_create_refresh_token(
+    p_id UUID,
+    p_user_id UUID,
+    p_token TEXT,
+    p_expires_at TIMESTAMPTZ,
+    p_ip_address TEXT DEFAULT NULL,
+    p_user_agent TEXT DEFAULT NULL
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    INSERT INTO public.refresh_tokens (id, user_id, token, created_at, expires_at, revoked, ip_address, user_agent)
+    VALUES (p_id, p_user_id, p_token, NOW(), p_expires_at, false, p_ip_address, p_user_agent);
+    RETURN p_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.internal_create_refresh_token(UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) TO service_role;
+COMMENT ON FUNCTION public.internal_create_refresh_token IS 'Insert refresh token row (bypasses RLS)';
 
 -- ---------------------------
 -- END OF FILE
@@ -1592,11 +1779,34 @@ CREATE TRIGGER on_auth_user_created
 -- MODULE SCOPE: Functions
 -- ---------------------------
 -- user_id in user_roles is public.users.id. auth.uid() is Supabase auth user id.
+-- JWT callers: assign/remove must pass their own public.users.id; get/has_role scoped to self unless admin.
+-- Service role (auth.uid() null): assign/remove still validated via actor UUID arg (backend).
 
 -- Function to get all permissions for a user (by public.users.id)
 CREATE OR REPLACE FUNCTION public.get_user_permissions(user_uuid UUID)
 RETURNS TABLE (permission public.app_permission) AS $$
+DECLARE
+    caller_auth UUID := auth.uid();
+    caller_internal UUID;
 BEGIN
+    IF caller_auth IS NOT NULL THEN
+        caller_internal := (SELECT u.id FROM public.users u WHERE u.auth_id = caller_auth LIMIT 1);
+        IF user_uuid IS DISTINCT FROM caller_internal THEN
+            IF caller_internal IS NULL
+                OR NOT (
+                    public.is_super_admin(caller_auth)
+                    OR EXISTS (
+                        SELECT 1
+                        FROM public.user_roles ur
+                        WHERE ur.user_id = caller_internal AND ur.role = 'admin'
+                    )
+                )
+            THEN
+                RAISE EXCEPTION 'Not allowed to query permissions for another user';
+            END IF;
+        END IF;
+    END IF;
+
     RETURN QUERY
     SELECT DISTINCT rp.permission
     FROM public.user_roles ur
@@ -1605,12 +1815,33 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
-COMMENT ON FUNCTION public.get_user_permissions(UUID) IS 'Returns all permissions for a given user (public.users.id) based on their roles';
+COMMENT ON FUNCTION public.get_user_permissions(UUID) IS 'Returns permissions for public.users.id. JWT callers may only query self unless admin/super_admin.';
 
 -- Function to check if user has a specific role (by public.users.id)
 CREATE OR REPLACE FUNCTION public.has_role(user_uuid UUID, check_role public.app_role)
 RETURNS BOOLEAN AS $$
+DECLARE
+    caller_auth UUID := auth.uid();
+    caller_internal UUID;
 BEGIN
+    IF caller_auth IS NOT NULL THEN
+        caller_internal := (SELECT u.id FROM public.users u WHERE u.auth_id = caller_auth LIMIT 1);
+        IF user_uuid IS DISTINCT FROM caller_internal THEN
+            IF caller_internal IS NULL
+                OR NOT (
+                    public.is_super_admin(caller_auth)
+                    OR EXISTS (
+                        SELECT 1
+                        FROM public.user_roles ur
+                        WHERE ur.user_id = caller_internal AND ur.role = 'admin'
+                    )
+                )
+            THEN
+                RAISE EXCEPTION 'Not allowed to query roles for another user';
+            END IF;
+        END IF;
+    END IF;
+
     RETURN EXISTS(
         SELECT 1 FROM public.user_roles
         WHERE user_id = user_uuid AND role = check_role
@@ -1618,7 +1849,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
-COMMENT ON FUNCTION public.has_role(UUID, public.app_role) IS 'Check if a user (public.users.id) has a specific role';
+COMMENT ON FUNCTION public.has_role(UUID, public.app_role) IS 'Check role for public.users.id. JWT callers may only query self unless admin/super_admin.';
 
 -- Function to assign a role to a user. assigned_by_user_id is public.users.id.
 CREATE OR REPLACE FUNCTION public.assign_user_role(
@@ -1629,14 +1860,26 @@ CREATE OR REPLACE FUNCTION public.assign_user_role(
 RETURNS UUID AS $$
 DECLARE
     new_role_id UUID;
+    caller_auth UUID := auth.uid();
+    actor_id UUID;
 BEGIN
+    IF caller_auth IS NOT NULL THEN
+        actor_id := (SELECT u.id FROM public.users u WHERE u.auth_id = caller_auth LIMIT 1);
+        IF actor_id IS NULL OR assigned_by_user_id IS DISTINCT FROM actor_id THEN
+            RAISE EXCEPTION 'assigned_by_user_id must match the authenticated user';
+        END IF;
+    END IF;
+
     IF NOT EXISTS (
         SELECT 1 FROM public.users u
         WHERE u.id = assigned_by_user_id
-        AND (u.is_super_admin = true OR EXISTS(
-            SELECT 1 FROM public.user_roles ur
-            WHERE ur.user_id = assigned_by_user_id AND ur.role = 'admin'
-        ))
+        AND (
+            u.is_super_admin = true
+            OR EXISTS(
+                SELECT 1 FROM public.user_roles ur
+                WHERE ur.user_id = assigned_by_user_id AND ur.role = 'admin'
+            )
+        )
     ) THEN
         RAISE EXCEPTION 'Only admins can assign roles';
     END IF;
@@ -1650,7 +1893,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
-COMMENT ON FUNCTION public.assign_user_role(UUID, public.app_role, UUID) IS 'Assigns a role to a user. Caller must be super admin or have admin role.';
+COMMENT ON FUNCTION public.assign_user_role(UUID, public.app_role, UUID) IS 'Assigns a role. JWT callers must pass their own public.users.id as assigned_by_user_id; must be admin/super_admin.';
 
 -- Function to remove a role from a user
 CREATE OR REPLACE FUNCTION public.remove_user_role(
@@ -1659,14 +1902,27 @@ CREATE OR REPLACE FUNCTION public.remove_user_role(
     removed_by_user_id UUID
 )
 RETURNS BOOLEAN AS $$
+DECLARE
+    caller_auth UUID := auth.uid();
+    actor_id UUID;
 BEGIN
+    IF caller_auth IS NOT NULL THEN
+        actor_id := (SELECT u.id FROM public.users u WHERE u.auth_id = caller_auth LIMIT 1);
+        IF actor_id IS NULL OR removed_by_user_id IS DISTINCT FROM actor_id THEN
+            RAISE EXCEPTION 'removed_by_user_id must match the authenticated user';
+        END IF;
+    END IF;
+
     IF NOT EXISTS (
         SELECT 1 FROM public.users u
         WHERE u.id = removed_by_user_id
-        AND (u.is_super_admin = true OR EXISTS(
-            SELECT 1 FROM public.user_roles ur
-            WHERE ur.user_id = removed_by_user_id AND ur.role = 'admin'
-        ))
+        AND (
+            u.is_super_admin = true
+            OR EXISTS(
+                SELECT 1 FROM public.user_roles ur
+                WHERE ur.user_id = removed_by_user_id AND ur.role = 'admin'
+            )
+        )
     ) THEN
         RAISE EXCEPTION 'Only admins can remove roles';
     END IF;
@@ -1678,7 +1934,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
-COMMENT ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) IS 'Removes a role from a user. Caller must be super admin or have admin role.';
+COMMENT ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) IS 'Removes a role. JWT callers must pass their own public.users.id as removed_by_user_id; must be admin/super_admin.';
 
 -- Grant execute to authenticated (must run after functions exist)
 GRANT EXECUTE ON FUNCTION public.get_user_permissions(UUID) TO authenticated;
@@ -1879,20 +2135,24 @@ CREATE TRIGGER update_post_view_count
 -- Update Like Count
 -- ---------------------------
 CREATE OR REPLACE FUNCTION public.update_blog_post_like_count()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
-  IF (TG_OP = 'INSERT' AND NEW.activity_type = 'like') THEN
-    UPDATE public.blog_posts
-    SET like_count = like_count + 1
-    WHERE id = NEW.post_id;
-  ELSIF (TG_OP = 'DELETE' AND OLD.activity_type = 'like') THEN
-    UPDATE public.blog_posts
-    SET like_count = GREATEST(like_count - 1, 0)
-    WHERE id = OLD.post_id;
-  END IF;
-  RETURN NEW;
+    IF (TG_OP = 'INSERT' AND NEW.activity_type = 'like') THEN
+        UPDATE public.blog_posts
+        SET like_count = like_count + 1
+        WHERE id = NEW.post_id;
+    ELSIF (TG_OP = 'DELETE' AND OLD.activity_type = 'like') THEN
+        UPDATE public.blog_posts
+        SET like_count = GREATEST(like_count - 1, 0)
+        WHERE id = OLD.post_id;
+    END IF;
+    RETURN COALESCE(NEW, OLD);
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS update_blog_post_like_count_trigger ON public.blog_activities;
 CREATE TRIGGER update_blog_post_like_count_trigger

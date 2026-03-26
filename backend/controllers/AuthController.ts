@@ -41,6 +41,47 @@ export class AuthController {
     private organizationService: OrganizationService;
 
     /**
+     * Best-effort "site" key for SameSite decisions (eTLD+1-ish).
+     *
+     * Why this exists:
+     * - Browsers decide SameSite based on "site" (scheme + registrable domain / eTLD+1)
+     * - A naïve "last two labels" approach breaks on multi-tenant public suffixes like:
+     *   - foo.vercel.app vs bar.vercel.app (NOT same-site; "vercel.app" is a public suffix)
+     *   - foo.netlify.app vs bar.netlify.app
+     *   In those cases, choosing SameSite='lax' prevents the refresh cookie from being sent on XHR/fetch,
+     *   so refresh fails in production after the 1-hour access token expiry.
+     *
+     * We can't rely on a PSL parser here without adding deps, so we use a small allowlist.
+     * If in doubt, we intentionally fall back to treating domains as different → SameSite='none'.
+     */
+    private getSiteKey(hostname: string): string {
+        const h = hostname.toLowerCase();
+        const parts = h.split(".").filter(Boolean);
+        if (parts.length <= 1) return h;
+
+        // Known multi-tenant public suffixes where registrable domain is 3 labels.
+        // (e.g. <project>.vercel.app). Add more here if you deploy on other platforms.
+        const threeLabelPublicSuffixes = new Set([
+            "vercel.app",
+            "netlify.app",
+            "onrender.com",
+            "fly.dev",
+            "pages.dev",
+            "web.app",
+            "firebaseapp.com",
+            "github.io",
+        ]);
+
+        const last2 = parts.slice(-2).join(".");
+        if (threeLabelPublicSuffixes.has(last2) && parts.length >= 3) {
+            return parts.slice(-3).join(".");
+        }
+
+        // Default heuristic: last 2 labels (works for typical apex domains like example.com).
+        return last2;
+    }
+
+    /**
      * Get appropriate sameSite value for refresh token cookie.
      * - 'lax' for development or when frontend/backend are on same registrable domain
      * - 'none' when frontend/backend are on different domains (requires secure: true)
@@ -50,10 +91,11 @@ export class AuthController {
         try {
             const frontUrl = new URL(serverConfig.frontendDomainUrl ?? "");
             const backUrl = new URL(serverConfig.backendDomainUrl ?? "");
-            const frontDomain = frontUrl.hostname.split(".").slice(-2).join(".");
-            const backDomain = backUrl.hostname.split(".").slice(-2).join(".");
-            return frontDomain === backDomain ? "lax" : "none";
+            const frontSite = this.getSiteKey(frontUrl.hostname);
+            const backSite = this.getSiteKey(backUrl.hostname);
+            return frontSite === backSite ? "lax" : "none";
         } catch {
+            // If URL parsing fails in production, prefer 'none' so refresh continues to work cross-origin.
             return "none";
         }
     }
@@ -67,6 +109,26 @@ export class AuthController {
             maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
             path: "/",
         });
+    }
+
+    /**
+     * Mitigate CSRF for endpoints that rely on the refreshToken cookie (SameSite=None in cross-site deployments).
+     *
+     * CORS alone is NOT sufficient against CSRF because the request can still be sent by the browser;
+     * the attacker just can't read the response. So for cookie-auth endpoints with side effects
+     * (refresh rotates tokens, signout revokes tokens), we enforce an Origin allowlist check.
+     */
+    private assertCookieAuthOriginAllowed(req: Request): void {
+        // Non-browser clients may omit Origin; allow those (they won't have cookies anyway).
+        const origin = req.headers.origin;
+        if (!origin) return;
+
+        const corsConfig = config.cors as { allowedOrigins?: string[] | string };
+        const allowed = corsConfig.allowedOrigins;
+        if (allowed === "*" || (Array.isArray(allowed) && allowed.includes("*"))) return;
+        if (Array.isArray(allowed) && allowed.includes(origin)) return;
+
+        throw new AuthError(`Origin ${origin} not allowed`, 403);
     }
 
     constructor(
@@ -122,14 +184,17 @@ export class AuthController {
                 this.setRefreshTokenCookie(res, session.refresh_token);
             }
 
-            // Ensure public.users row exists (covers envs where DB trigger is not present, e.g. some test Supabase)
+            // Ensure public.users row exists (covers envs where DB trigger is not present, e.g. some test Supabase).
             if (newUser?.id && email) {
-                await this.userRepository.upsertUserFromAuth({
+                const { error: upsertError } = await this.userRepository.upsertUserFromAuth({
                     id: newUser.id,
                     authId: newUser.id,
-                    email: newUser.email ?? email,
+                    email,
                     fullName: fullName ?? email,
                 });
+                if (upsertError) {
+                    logger.warn({ msg: "upsertUserFromAuth failed", userId: newUser.id, error: upsertError });
+                }
             }
 
             // Create default organization for new user (createOrgAndUser-style); keep multi-org create/update/delete in settings
@@ -142,36 +207,50 @@ export class AuthController {
                 }
             }
 
-            if (newUser?.id && newUser?.email) {
+            if (newUser?.id) {
+                // Always generate + persist verification token so API endpoints (`verify-signup`, `check-signup-verification`,
+                // `request-verify-signup`) work consistently in all environments (including tests).
+                // Only sending the email depends on EMAIL_ENABLED.
+                const token = this.emailService.generateVerificationToken();
+                const hashedToken = this.emailService.hashToken(token);
+                const expiresAt = new Date();
+                expiresAt.setHours(expiresAt.getHours() + 24);
                 try {
-                    const token = this.emailService.generateVerificationToken();
-                    const hashedToken = this.emailService.hashToken(token);
-                    const expiresAt = new Date();
-                    expiresAt.setHours(expiresAt.getHours() + 24);
-                    const { updateError } = await this.userRepository.updateVerificationTokenByEmail(
-                        newUser.email ?? email,
+                    const { updateError, rowsAffected } = await this.userRepository.updateVerificationToken(
+                        newUser.id,
                         hashedToken,
                         expiresAt
                     );
-                    if (!updateError && this.emailService.isEnabled) {
-                        await this.emailService.send(
-                            new VerifyEmailTemplate(
-                                serverConfig.backendDomainUrl ?? "",
-                                fullName ?? "User",
-                                email,
-                                token
-                            ),
-                            email
-                        );
-                        logger.info({ msg: "Verification email sent after signup", email });
-                    } else if (updateError) {
-                        logger.warn({ msg: "Failed to store verification token", email });
+                    if (updateError) {
+                        logger.warn({ msg: "Failed to store verification token", userId: newUser.id, email, error: updateError });
+                    } else if (rowsAffected === 0) {
+                        logger.warn({ msg: "Verification token update matched 0 rows", userId: newUser.id, email });
                     }
-                } catch (emailErr) {
+                    if (!updateError && rowsAffected > 0 && this.emailService.isEnabled) {
+                        try {
+                            await this.emailService.send(
+                                new VerifyEmailTemplate(
+                                    serverConfig.backendDomainUrl ?? "",
+                                    fullName ?? "User",
+                                    email,
+                                    token
+                                ),
+                                email
+                            );
+                            logger.info({ msg: "Verification email sent after signup", email });
+                        } catch (sendErr) {
+                            logger.warn({
+                                msg: "Failed to send verification email after signup",
+                                email,
+                                error: sendErr instanceof Error ? sendErr.message : String(sendErr),
+                            });
+                        }
+                    }
+                } catch (persistErr) {
                     logger.warn({
-                        msg: "Failed to send verification email after signup",
+                        msg: "Failed to persist verification token after signup",
                         email,
-                        error: emailErr instanceof Error ? emailErr.message : String(emailErr),
+                        error: persistErr instanceof Error ? persistErr.message : String(persistErr),
                     });
                 }
             }
@@ -184,12 +263,17 @@ export class AuthController {
             );
 
             logger.info({ msg: "User signup successful", email });
+            const isUsingCookie = Boolean(session?.refresh_token && (req.cookies?.refreshToken !== undefined || serverConfig.nodeEnv === "production"));
             res.status(201).json({
                 success: true,
                 data: {
                     user: userDto,
                     session: session
-                        ? { accessToken: session.access_token, refreshToken: session.refresh_token }
+                        ? {
+                              accessToken: session.access_token,
+                              // If we set httpOnly cookie, don't also leak refresh token to JS.
+                              refreshToken: isUsingCookie ? undefined : session.refresh_token,
+                          }
                         : undefined,
                 },
                 message: "Sign up successful!!",
@@ -239,12 +323,14 @@ export class AuthController {
             );
 
             logger.info({ msg: "User authenticated successfully", email });
+            const isUsingCookie = serverConfig.nodeEnv === "production";
             res.status(200).json({
                 success: true,
                 data: {
                     user: userDto,
                     accessToken: session.access_token,
-                    refreshToken,
+                    // If we set httpOnly cookie, don't also leak refresh token to JS.
+                    refreshToken: isUsingCookie ? undefined : refreshToken,
                 },
                 message: "Sign in successful",
             });
@@ -255,6 +341,9 @@ export class AuthController {
 
     public signOut = async (req: Request, res: Response, next: NextFunction) => {
         try {
+            if (req.cookies?.refreshToken) {
+                this.assertCookieAuthOriginAllowed(req);
+            }
             const refreshToken = req.cookies?.refreshToken ?? req.body?.refreshToken;
             if (refreshToken) {
                 try {
@@ -274,10 +363,16 @@ export class AuthController {
 
     public refreshToken: validateRefreshTokenRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const refreshToken = req.cookies?.refreshToken ?? req.body?.refreshToken;
-            if (!refreshToken) {
-                throw new TokenError("Missing refresh token");
+            const cookieRefreshToken = req.cookies?.refreshToken;
+            // In production we rely on the httpOnly refresh cookie; dev/test may send it in the body.
+            const refreshToken = cookieRefreshToken ?? req.body?.refreshToken;
+
+            // If we're relying on cookie auth, enforce Origin allowlist.
+            if (cookieRefreshToken) {
+                this.assertCookieAuthOriginAllowed(req);
             }
+
+            if (!refreshToken) throw new TokenError("Missing refresh token");
 
             const clientInfo = {
                 ipAddress: req.ip ?? req.socket?.remoteAddress,
@@ -285,7 +380,8 @@ export class AuthController {
             };
             const data = await this.authenticationService.refreshToken(refreshToken, clientInfo);
 
-            if (req.cookies?.refreshToken) {
+            // Refresh tokens rotate (single-use). Always update our httpOnly refreshToken cookie after a successful refresh in production.
+            if (serverConfig.nodeEnv === "production" || cookieRefreshToken) {
                 this.setRefreshTokenCookie(res, data.session.refresh_token);
             }
 
@@ -294,14 +390,27 @@ export class AuthController {
                 success: true,
                 data: {
                     accessToken: data.session.access_token,
-                    refreshToken: req.cookies?.refreshToken ? undefined : data.session.refresh_token,
+                    refreshToken: cookieRefreshToken ? undefined : data.session.refresh_token,
                     expiresIn: 3600,
                     tokenType: "Bearer",
                 },
                 message: "Token refreshed successfully",
             });
         } catch (error) {
+            // Clear custom refresh cookie on any refresh failure to avoid being stuck with a spent/invalid token.
             if (req.cookies?.refreshToken) res.clearCookie("refreshToken");
+
+            // Normalize Supabase refresh token failures to 401 (Supabase sometimes reports them as 400).
+            const message =
+                error instanceof Error ? error.message : typeof error === "string" ? error : "";
+            if (message.includes("Invalid Refresh Token") || message.includes("Refresh Token Not Found")) {
+                res.status(401).json({
+                    success: false,
+                    message: "Session expired or invalid. Please sign in again.",
+                    error: { type: "Unauthorized", message },
+                });
+                return;
+            }
             // Invalid/missing/revoked/expired refresh token → 401 so client treats as unauthenticated; do not send to Sentry
             if (error instanceof DatabaseEntityNotFoundError || error instanceof ValidationError) {
                 logger.debug({ msg: "Refresh token invalid or not found", reason: (error as Error).message });

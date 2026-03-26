@@ -126,30 +126,54 @@ export class AuthenticationService {
             throw new AuthValidationError("Refresh token is required");
         }
 
-        await this.refreshTokenRepository.validateToken(refreshToken);
+        // DB token table can occasionally be out-of-sync (e.g. token store failed at sign-in, transient DB error).
+        // We treat DB validation as best-effort, then rely on Supabase as the source of truth for token validity.
+        let dbTokenValidated = true;
+        try {
+            await this.refreshTokenRepository.validateToken(refreshToken);
+        } catch (error) {
+            dbTokenValidated = false;
+            logger.warn({
+                msg: "Refresh token not found/invalid in DB; attempting Supabase refresh fallback",
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
 
         const { data, error } = await this.supabaseServiceClient.auth.refreshSession({
             refresh_token: refreshToken,
         });
 
-        // refreshSession() caches the user session in memory on the client,
-        // which would cause all subsequent queries to run as "authenticated"
-        // instead of "service_role". Clear it immediately.
-        await this.supabaseServiceClient.auth.signOut({ scope: "local" });
+        // NOTE:
+        // Do NOT call auth.signOut() here. On server-side Supabase clients it can still trigger a network sign-out,
+        // which may invalidate/rotate tokens unexpectedly and break subsequent refreshes.
+        // We rely on `persistSession: false` + `autoRefreshToken: false` on our server clients instead.
 
         if (error) {
             logger.error({ msg: "Refresh token rejected by Supabase", errorMessage: error.message });
-            await this.refreshTokenRepository.revokeToken(refreshToken);
-            throw new AuthError(`Failed to refresh session: ${error.message}`, error.status ?? 401, { cause: error as Error });
+            if (dbTokenValidated) {
+                await this.refreshTokenRepository.revokeToken(refreshToken);
+            }
+            // Normalize refresh-token rejections to 401 so the client treats it as logged out.
+            throw new AuthError(`Failed to refresh session: ${error.message}`, 401, { cause: error as Error });
         }
 
         const newToken = data.session?.refresh_token;
         if (newToken && data.user?.id) {
-            await this.rotateRefreshToken(refreshToken, newToken, {
-                userId: data.user.id,
-                ipAddress: options.ipAddress,
-                userAgent: options.userAgent,
-            });
+            if (dbTokenValidated) {
+                await this.rotateRefreshToken(refreshToken, newToken, {
+                    userId: data.user.id,
+                    ipAddress: options.ipAddress,
+                    userAgent: options.userAgent,
+                });
+            } else {
+                // Re-sync DB state after fallback success.
+                await this.refreshTokenRepository.createToken({
+                    userId: data.user.id,
+                    token: newToken,
+                    ipAddress: options.ipAddress ?? null,
+                    userAgent: options.userAgent ?? null,
+                });
+            }
         }
 
         return {

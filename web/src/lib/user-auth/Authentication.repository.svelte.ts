@@ -2,9 +2,9 @@ import type { HttpGateway } from '$lib/core/HttpGateway';
 import type { AuthStatusModel } from '$lib/user-auth/AuthStatus.model.svelte';
 import { ApiError } from '$lib/core/HttpGateway';
 import { AuthStatus } from '$lib/user-auth/AuthStatus.model.svelte';
+import { dev } from '$app/environment';
 
 const TOKEN_KEY = 'auth_token';
-const REFRESH_KEY = 'auth_refresh_token';
 const USER_KEY = 'auth_user';
 // Prevent redundant refresh attempts immediately after a successful signout.
 // `invalidateAll()` triggers multiple layout loads, and the scheduled refresh timer may also fire.
@@ -119,7 +119,6 @@ export interface AuthConfig {
 	storageKeys: {
 		token: string;
 		user: string;
-		refreshToken: string;
 	};
 }
 
@@ -140,7 +139,6 @@ function defaultAuthConfig(): AuthConfig {
 		storageKeys: {
 			token: TOKEN_KEY,
 			user: USER_KEY,
-			refreshToken: REFRESH_KEY
 		}
 	};
 }
@@ -149,6 +147,7 @@ export class AuthenticationRepository {
 	private httpGateway: HttpGateway;
 	private config: AuthConfig;
 	private refreshTimer: ReturnType<typeof setTimeout> | null = null;
+	private inMemoryToken: { value: string; expiration: number } | null = null;
 
 	public currentUser: BasicUserAuthProgrammerModel | null = $state(null);
 	public currentAuthStatus: AuthStatusModel;
@@ -257,7 +256,6 @@ export class AuthenticationRepository {
 					isSuperAdmin: user.isSuperAdmin
 				};
 				this.storeToken(accessToken);
-				if (refreshToken) this.storeRefreshToken(refreshToken);
 				this.storeUser(userModel);
 				this.currentUser = userModel;
 				this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
@@ -304,7 +302,6 @@ export class AuthenticationRepository {
 						roles: user.roles
 					};
 					this.storeToken(session.accessToken);
-					if (session.refreshToken) this.storeRefreshToken(session.refreshToken);
 					this.storeUser(userModel);
 					this.currentUser = userModel;
 				}
@@ -445,7 +442,6 @@ export class AuthenticationRepository {
 					roles: user.roles
 				};
 				this.storeToken(accessToken);
-				if (refreshToken) this.storeRefreshToken(refreshToken);
 				this.storeUser(userModel);
 				this.currentUser = userModel;
 				this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
@@ -475,10 +471,9 @@ export class AuthenticationRepository {
 		if (!this.config.endpoints.refresh) throw new Error('Refresh not configured');
 		// If we're attempting a refresh again, clear any previous "refresh failed" suppression window.
 		this.clearRefreshFailureSuppression();
-		const refreshToken = this.getRefreshToken();
 		const response = await this.httpGateway.post<RefreshTokenResponseDto>(
 			this.config.endpoints.refresh,
-			refreshToken ? { refreshToken } : {},
+			{},
 			{ withCredentials: true, skipInterceptors: true, ...(loadFetch && { fetch: loadFetch }) }
 		);
 		const { data: refreshTokenDto, ok } = response;
@@ -486,7 +481,6 @@ export class AuthenticationRepository {
 		const { accessToken, expiresIn } = refreshTokenDto.data;
 		const expiresAt = Date.now() + (expiresIn ?? 3600) * 1000;
 		this.storeToken(accessToken, expiresAt);
-		if (refreshTokenDto.data.refreshToken) this.storeRefreshToken(refreshTokenDto.data.refreshToken);
 		this.setupTokenRefresh();
 		return accessToken;
 	}
@@ -545,7 +539,10 @@ export class AuthenticationRepository {
 
 	public getToken(): string | null {
 		if (typeof window === 'undefined') return null;
+		if (this.inMemoryToken?.value) return this.inMemoryToken.value;
 		try {
+			// Production: access token is memory-only (not persisted in localStorage).
+			if (!dev) return null;
 			const raw = localStorage.getItem(this.config.storageKeys.token);
 			if (!raw) return null;
 			const parsed = JSON.parse(raw) as { value?: unknown };
@@ -570,20 +567,13 @@ export class AuthenticationRepository {
 	private storeToken(token: string, expiresAt?: number): void {
 		if (typeof window === 'undefined') return;
 		const expiration = expiresAt ?? Date.now() + TOKEN_EXPIRATION_MS;
-		localStorage.setItem(
-			this.config.storageKeys.token,
-			JSON.stringify({ value: token, expiration })
-		);
-	}
-
-	private storeRefreshToken(token: string): void {
-		if (typeof window === 'undefined') return;
-		localStorage.setItem(this.config.storageKeys.refreshToken, token);
-	}
-
-	private getRefreshToken(): string | null {
-		if (typeof window === 'undefined') return null;
-		return localStorage.getItem(this.config.storageKeys.refreshToken);
+		this.inMemoryToken = { value: token, expiration };
+		if (dev) {
+			localStorage.setItem(
+				this.config.storageKeys.token,
+				JSON.stringify({ value: token, expiration })
+			);
+		}
 	}
 
 	private storeUser(user: BasicUserAuthProgrammerModel): void {
@@ -612,8 +602,8 @@ export class AuthenticationRepository {
 
 	private clearTokens(): void {
 		if (typeof window === 'undefined') return;
+		this.inMemoryToken = null;
 		localStorage.removeItem(this.config.storageKeys.token);
-		localStorage.removeItem(this.config.storageKeys.refreshToken);
 	}
 
 	private clearUser(): void {
@@ -707,10 +697,15 @@ export class AuthenticationRepository {
 			this.refreshTimer = null;
 		}
 		try {
-			const raw = localStorage.getItem(this.config.storageKeys.token);
-			if (!raw) return;
-			const parsed = JSON.parse(raw) as { expiration?: number };
-			const expiresAt = parsed?.expiration ?? Date.now() + TOKEN_EXPIRATION_MS;
+			const expiresAt = this.inMemoryToken?.expiration
+				? this.inMemoryToken.expiration
+				: (() => {
+						if (!dev) return Date.now() + TOKEN_EXPIRATION_MS;
+						const raw = localStorage.getItem(this.config.storageKeys.token);
+						if (!raw) return Date.now() + TOKEN_EXPIRATION_MS;
+						const parsed = JSON.parse(raw) as { expiration?: number };
+						return parsed?.expiration ?? Date.now() + TOKEN_EXPIRATION_MS;
+					})();
 			const refreshBefore = 5 * 60 * 1000; // 5 min
 			const delay = Math.max(0, expiresAt - refreshBefore - Date.now());
 			this.refreshTimer = setTimeout(() => {

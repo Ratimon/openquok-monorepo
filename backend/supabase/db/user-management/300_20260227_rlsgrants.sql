@@ -28,7 +28,6 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.is_super_admin(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.is_super_admin(UUID) TO anon;
 COMMENT ON FUNCTION public.is_super_admin(UUID) IS 'Check if a user is a super admin (bypasses RLS to avoid recursion)';
 
 -- ---------------------------

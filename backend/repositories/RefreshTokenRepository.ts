@@ -17,6 +17,8 @@ const TABLE_NAME = "refresh_tokens";
 export class RefreshTokenRepository {
     constructor(private readonly supabase: SupabaseClient) {}
 
+    /** Create a new refresh token.
+     *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
     async createToken({
         userId,
         token = null,
@@ -32,30 +34,23 @@ export class RefreshTokenRepository {
     }) {
         this._validateId(userId, "userId");
         const tokenValue = token ?? this._generateToken();
+        const id = uuidv4();
         const expiresAt = new Date();
         expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
 
-        const tokenData = {
-            id: uuidv4(),
-            user_id: userId,
-            token: tokenValue,
-            created_at: new Date().toISOString(),
-            expires_at: expiresAt.toISOString(),
-            revoked: false,
-            ip_address: ipAddress,
-            user_agent: userAgent,
-        };
-
         logger.debug({ msg: "Creating refresh token", userId });
 
-        const { data, error } = await this.supabase
-            .from(TABLE_NAME)
-            .insert(tokenData)
-            .select()
-            .single();
+        const { error } = await this.supabase.rpc("internal_create_refresh_token" as never, {
+            p_id: id,
+            p_user_id: userId,
+            p_token: tokenValue,
+            p_expires_at: expiresAt.toISOString(),
+            p_ip_address: ipAddress,
+            p_user_agent: userAgent,
+        } as never);
 
         if (error) {
-            throw new DatabaseError(`Failed to create refresh token: ${error.message}`, {
+            throw new DatabaseError(`Failed to create refresh token: ${(error as { message?: string }).message ?? error}`, {
                 cause: error as unknown as Error,
                 operation: "createToken",
                 resource: { type: "table", name: TABLE_NAME },
@@ -63,11 +58,11 @@ export class RefreshTokenRepository {
         }
 
         return {
-            id: data.id,
-            userId: data.user_id,
-            token: data.token,
-            createdAt: data.created_at,
-            expiresAt: data.expires_at,
+            id,
+            userId,
+            token: tokenValue,
+            createdAt: new Date().toISOString(),
+            expiresAt: expiresAt.toISOString(),
         };
     }
 

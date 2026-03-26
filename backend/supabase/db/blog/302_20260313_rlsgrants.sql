@@ -141,6 +141,7 @@ CREATE POLICY "Users can view their own activities" ON public.blog_activities
         )
     );
 
+-- Inserts are performed by the backend (service role, RLS bypass) for anonymous likes/views.
 DROP POLICY IF EXISTS "System can insert activities" ON public.blog_activities;
 CREATE POLICY "System can insert activities" ON public.blog_activities
     FOR INSERT TO authenticated WITH CHECK (true);
@@ -182,7 +183,8 @@ CREATE POLICY "Allow authenticated users to update their blog images"
         AND auth.uid() = owner
     );
 
-CREATE POLICY "Allow authenticated users to upload blog images" 
+DROP POLICY IF EXISTS "Allow authenticated users to upload blog images" ON storage.objects;
+CREATE POLICY "Allow authenticated users to upload blog images"
     ON storage.objects
     AS PERMISSIVE
     FOR INSERT
@@ -190,6 +192,7 @@ CREATE POLICY "Allow authenticated users to upload blog images"
     WITH CHECK (
         bucket_id = 'blog_images'::text
         AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
     );
 
 CREATE POLICY "Allow read access to blog images"
@@ -263,7 +266,7 @@ BEGIN
     ORDER BY
         post_count DESC;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Function to get all active blog topics (topics that have published posts)
 CREATE OR REPLACE FUNCTION public.get_active_blog_topics()
@@ -283,7 +286,7 @@ BEGIN
         bt.slug,
         bt.description,
         bt.parent_id,
-        COUNT(bp.id) OVER (PARTITION BY bt.id) as post_count
+        COUNT(bp.id) OVER (PARTITION BY bt.id) AS post_count
     FROM
         public.blog_topics bt
         INNER JOIN public.blog_posts bp ON bt.id = bp.topic_id
@@ -293,7 +296,7 @@ BEGIN
     ORDER BY
         post_count DESC;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 COMMIT;
 

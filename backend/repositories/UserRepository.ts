@@ -105,39 +105,38 @@ export class UserRepository {
         return { updateError: insertError };
     }
 
-    /** Resolve auth user id (Supabase auth.uid()) to public.users.id. */
+    /** Resolve auth user id (Supabase auth.uid()) to public.users.id.
+     *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
     async findUserIdByAuthId(authId: string): Promise<{ userId: string | null; error: unknown }> {
-        const { data, error } = await this.supabase
-            .from(TABLE_NAME)
-            .select("id")
-            .eq("auth_id", authId)
-            .single();
-        if (error && error.code !== "PGRST116") {
+        const { data, error } = await this.supabase.rpc("internal_find_user_id_by_auth_id" as never, {
+            p_auth_id: authId,
+        } as never);
+        if (error) {
             throw new DatabaseError("Failed to resolve user by auth id", {
                 cause: error as unknown as Error,
                 operation: "findUserIdByAuthId",
                 resource: { type: "table", name: TABLE_NAME },
             });
         }
-        return { userId: (data as { id: string } | null)?.id ?? null, error };
+        return { userId: (data as string) ?? null, error: null };
     }
 
+    /** Find user by email with all core columns.
+     *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
     async findFullUserByEmail(email: string): Promise<{ userData: UserRow | null }> {
-        const normalizedEmail = email.trim().toLowerCase();
-        const { data: userData, error } = await this.supabase
-            .from(TABLE_NAME)
-            .select(CORE_USER_SELECT)
-            .eq("email", normalizedEmail)
-            .single();
+        const { data, error } = await this.supabase.rpc("internal_find_full_user_by_email" as never, {
+            p_email: email,
+        } as never);
 
-        if (error && error.code !== "PGRST116") {
+        if (error) {
             throw new DatabaseError("Database error during email lookup", {
                 cause: error as unknown as Error,
                 operation: "findByEmail",
                 resource: { type: "table", name: TABLE_NAME },
             });
         }
-        return { userData: userData as UserRow | null };
+        const rows = data as UserRow[] | null;
+        return { userData: rows && rows.length > 0 ? rows[0] : null };
     }
 
     /**
@@ -175,44 +174,39 @@ export class UserRepository {
         return data?.is_email_verified === true;
     }
 
+    /** Mark user email as verified/unverified.
+     *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
     async updateEmailVerification(userId: string, isEmailVerified: boolean): Promise<{ updateError: unknown }> {
-        const { error: updateError } = await this.supabase
-            .from(TABLE_NAME)
-            .update({
-                is_email_verified: isEmailVerified,
-                updated_at: new Date().toISOString(),
-            })
-            .eq("id", userId);
+        const { error: updateError } = await this.supabase.rpc("internal_update_email_verification" as never, {
+            p_user_id: userId,
+            p_is_verified: isEmailVerified,
+        } as never);
         return { updateError };
     }
 
-    /** Find users by hashed verification token (non-expired). */
+    /** Find users by hashed verification token (non-expired).
+     *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
     async findUserByTokenHash(hashedToken: string): Promise<{ userData: UserRow[]; userError: unknown }> {
-        const expiresNow = new Date().toISOString();
-        const { data: userData, error: userError } = await this.supabase
-            .from(TABLE_NAME)
-            .select(CORE_USER_SELECT)
-            .eq("email_verification_token", hashedToken)
-            .gt("email_verification_token_expires", expiresNow);
+        const { data, error: userError } = await this.supabase.rpc("internal_find_user_by_token_hash" as never, {
+            p_hashed_token: hashedToken,
+        } as never);
 
-        return { userData: (userData ?? []) as UserRow[], userError };
+        return { userData: (data ?? []) as UserRow[], userError };
     }
 
-    /** Set or clear email verification token for a user (by user id). */
+    /** Set or clear email verification token for a user (by user id).
+     *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
     async updateVerificationToken(
         userId: string,
         hashedToken: string | null,
         expiresAt: Date | null
-    ): Promise<{ updateError: unknown }> {
-        const { error: updateError } = await this.supabase
-            .from(TABLE_NAME)
-            .update({
-                email_verification_token: hashedToken,
-                email_verification_token_expires: expiresAt?.toISOString() ?? null,
-                updated_at: new Date().toISOString(),
-            })
-            .eq("id", userId);
-        return { updateError };
+    ): Promise<{ updateError: unknown; rowsAffected: number }> {
+        const { data, error: updateError } = await this.supabase.rpc("internal_set_verification_token" as never, {
+            p_user_id: userId,
+            p_token: hashedToken,
+            p_expires: expiresAt?.toISOString() ?? null,
+        } as never);
+        return { updateError, rowsAffected: typeof data === "number" ? data : 0 };
     }
 
     /** Set verification token for a user by email (e.g. after signup). */
@@ -235,7 +229,7 @@ export class UserRepository {
 
     /**
      * Ensure a row exists in public.users for the given auth user (e.g. when DB trigger is not present).
-     * Inserts or updates by id so verification token can be stored later.
+     * Uses a SECURITY DEFINER RPC function to bypass RLS.
      */
     async upsertUserFromAuth(params: {
         id: string;
@@ -243,16 +237,12 @@ export class UserRepository {
         email: string | null;
         fullName: string;
     }): Promise<{ error: unknown }> {
-        const { error } = await this.supabase.from(TABLE_NAME).upsert(
-            {
-                id: params.id,
-                auth_id: params.authId,
-                email: params.email,
-                full_name: params.fullName,
-                updated_at: new Date().toISOString(),
-            },
-            { onConflict: "id" }
-        );
+        const { error } = await this.supabase.rpc("internal_upsert_user_from_auth" as never, {
+            p_id: params.id,
+            p_auth_id: params.authId,
+            p_email: params.email,
+            p_full_name: params.fullName,
+        } as never);
         return { error };
     }
 
