@@ -31,11 +31,11 @@
 		...rest
 	}: ButtonGlitchBrightnessProps = $props();
 
-	// Extract data-sveltekit-preload-data from rest if present, but preload prop takes precedence
-	const {
-		'data-sveltekit-preload-data': _,
-		...anchorRest
-	} = rest as any;
+	// Strip data-sveltekit-preload-data so `preload` controls the attribute; recompute when `rest` updates
+	const anchorRest = $derived.by(() => {
+		const { 'data-sveltekit-preload-data': _, ...r } = rest as Record<string, unknown>;
+		return r;
+	});
 
 	function handleAnchorClick(event: MouseEvent) {
 		if (!href) return;

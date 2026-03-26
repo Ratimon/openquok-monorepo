@@ -2,6 +2,9 @@
 	import Background from '$lib/ui/layouts/Background.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import OrbitingCircles from '$lib/ui/animation/OrbitingCircles.svelte';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import { icons } from '$data/icon';
 
 	type Props = {
 		heroTitle?: string;
@@ -59,10 +62,80 @@
 <Background color="bg-base-100">
 	<section class="relative isolate w-full overflow-hidden">
 		<div
-			class="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-72 w-[min(72rem,95vw)] rounded-full bg-gradient-to-b from-primary/20 via-secondary/10 to-transparent blur-3xl"
+			class="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-visible py-6 sm:py-10"
+			aria-hidden="true"
+		>
+			<!-- Square box ≥ outer diameter (2×160) + largest orbiting icon; non-square or overflow-hidden clipped paths and icons -->
+			<div
+				class="relative flex aspect-square w-[min(28rem,92vw)] max-w-full shrink-0 items-center justify-center overflow-visible"
+			>
+				<!-- Inner orbits -->
+				<OrbitingCircles
+					class="h-[30px] w-[30px] border-none bg-transparent"
+					duration={20}
+					radius={80}
+				>
+					<AbstractIcon
+						name={icons.ChatGPT.name}
+						width="30"
+						height="30"
+						class="shrink-0"
+						focusable="false"
+					/>
+				</OrbitingCircles>
+				<OrbitingCircles
+					class="h-[30px] w-[30px] border-none bg-transparent"
+					duration={20}
+					radius={80}
+					delay={-10}
+				>
+					<AbstractIcon
+						name={icons.OpenClaw.name}
+						width="30"
+						height="30"
+						class="shrink-0"
+						focusable="false"
+					/>
+				</OrbitingCircles>
+
+				<!-- Outer orbits (reverse) -->
+				<OrbitingCircles
+					class="h-[45px] w-[45px] border-none bg-transparent"
+					radius={160}
+					duration={20}
+					reverse
+				>
+					<AbstractIcon
+						name={icons.InstagramGlyph.name}
+						width="45"
+						height="45"
+						class="shrink-0"
+						focusable="false"
+					/>
+				</OrbitingCircles>
+				<OrbitingCircles
+					class="h-[45px] w-[45px] border-none bg-transparent"
+					radius={160}
+					duration={20}
+					delay={-10}
+					reverse
+				>
+					<AbstractIcon
+						name={icons.TikTok.name}
+						width="45"
+						height="45"
+						class="shrink-0"
+						focusable="false"
+					/>
+				</OrbitingCircles>
+			</div>
+		</div>
+
+		<div
+			class="pointer-events-none absolute inset-x-0 -top-24 z-[1] mx-auto h-72 w-[min(72rem,95vw)] rounded-full bg-gradient-to-b from-primary/20 via-secondary/10 to-transparent blur-3xl"
 		></div>
 
-		<div class="container mx-auto px-4 py-16 sm:py-20">
+		<div class="relative z-10 container mx-auto px-4 py-16 sm:py-20">
 			<div class="mx-auto max-w-3xl text-center">
 				<h1 class="text-balance text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
 					{#if titleParts.length > 0}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { IconName } from '$data/icon';
 	import { icons } from '$data/icon';
 
 	type Props = {
@@ -19,28 +20,28 @@
 		stroke = 'currentColor'
 	}: Props = $props();
 
-	const iconsInArray = Object.values(icons).map(({ name: n, box, svg }) => ({
-		name: n,
-		...(box !== undefined && { box }),
-		svg
-	}));
-
-	let iconsDisplayed = $derived(iconsInArray.find((icon) => icon.name === name));
+	let meta = $derived(icons[name as IconName]);
+	let viewBox = $derived(
+		meta ? `0 0 ${meta.box} ${meta.boxHeight ?? meta.box}` : '0 0 24 24'
+	);
+	let isFill = $derived(meta?.fill === true);
 </script>
 
-{#if iconsDisplayed}
+{#if meta}
 	<svg
 		class={className}
-		fill="none"
-		stroke-width="2"
-		stroke-linecap="round"
-		stroke-linejoin="round"
+		xmlns="http://www.w3.org/2000/svg"
+		fill={isFill ? 'currentColor' : 'none'}
+		stroke={isFill ? 'none' : stroke}
+		stroke-width={isFill ? undefined : '2'}
+		stroke-linecap={isFill ? undefined : 'round'}
+		stroke-linejoin={isFill ? undefined : 'round'}
+		preserveAspectRatio={isFill ? 'xMidYMid meet' : undefined}
 		{focusable}
 		{width}
 		{height}
-		viewBox="0 0 {iconsDisplayed.box} {iconsDisplayed.box}"
-		stroke={stroke}
+		viewBox={viewBox}
 	>
-		{@html iconsDisplayed.svg}
+		{@html meta.svg}
 	</svg>
 {/if}
