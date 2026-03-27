@@ -27,6 +27,8 @@
 - Add open graph image
 - landing page
 - limit how many workspaces can be created for different plans
+- complehensive doc 
+- revenue share affiliate
 
 
 ## What Is It For

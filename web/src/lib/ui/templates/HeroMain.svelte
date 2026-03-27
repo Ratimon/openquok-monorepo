@@ -1,5 +1,6 @@
 <script lang="ts">
-	import Background from '$lib/ui/layouts/Background.svelte';
+	import Background from '$lib/ui/background/Background.svelte';
+	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import OrbitingCircles from '$lib/ui/animation/OrbitingCircles.svelte';
@@ -58,8 +59,8 @@
 		return classes[index % classes.length];
 	};
 </script>
-
-<Background color="bg-base-100">
+<!-- <Background color="bg-base-100"> -->
+<AuroraBackground>
 	<section class="relative isolate w-full overflow-hidden">
 		<div
 			class="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-visible py-6 sm:py-10"
@@ -131,10 +132,6 @@
 			</div>
 		</div>
 
-		<div
-			class="pointer-events-none absolute inset-x-0 -top-24 z-[1] mx-auto h-72 w-[min(72rem,95vw)] rounded-full bg-gradient-to-b from-primary/20 via-secondary/10 to-transparent blur-3xl"
-		></div>
-
 		<div class="relative z-10 container mx-auto px-4 py-16 sm:py-20">
 			<div class="mx-auto max-w-3xl text-center">
 				<h1 class="text-balance text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
@@ -180,5 +177,6 @@
 			</div>
 		</div>
 	</section>
-</Background>
 
+</AuroraBackground>
+<!-- </Background> -->

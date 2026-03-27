@@ -11,7 +11,7 @@
 	import { icons } from '$data/icon';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Background from '$lib/ui/layouts/Background.svelte';
+	import Background from '$lib/ui/background/Background.svelte';
 	import PublicNavbar from '$lib/ui/nav-bars/PublicNavbar.svelte';
 	import PageLink from '$lib/ui/nav-bars/PageLink.svelte';
 
