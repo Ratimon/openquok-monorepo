@@ -24,4 +24,7 @@
     ctaTextPrimary="Get Started"
     ctaHrefPrimary="#"
     ctaTextSecondary="Learn More"
-    ctaHrefSecondary="#" />
+    ctaHrefSecondary="#"
+    githubOwner="Ratimon"
+    githubRepo="openquok-monorepo"
+/>

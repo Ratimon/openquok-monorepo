@@ -97,6 +97,7 @@ export type IconName =
     | "SkipForwardIcon"
     | "Smile"
     | "SquarePlus"
+    | "Star"
     | "Tag"
     | "Target"
     | "Tags"
@@ -674,6 +675,12 @@ export const icons: Record<IconName, IconEntry> = {
         name: "SquarePlus",
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-plus-icon lucide-square-plus"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>`
+    },
+    Star: {
+        name: "Star",
+        box: 24,
+        fill: true,
+        svg: `<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>`
     },
     Tag: {
         name: "Tag",

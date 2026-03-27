@@ -1,11 +1,12 @@
 <script lang="ts">
-	import Background from '$lib/ui/background/Background.svelte';
+	import { icons } from '$data/icon';
+
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import OrbitingCircles from '$lib/ui/animation/OrbitingCircles.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { icons } from '$data/icon';
+	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
 
 	type Props = {
 		heroTitle?: string;
@@ -14,6 +15,8 @@
 		ctaHrefPrimary?: string;
 		ctaTextSecondary?: string;
 		ctaHrefSecondary?: string;
+		githubOwner?: string;
+		githubRepo?: string;
 	};
 
 	let {
@@ -22,7 +25,9 @@
 		ctaTextPrimary = 'Try it for free',
 		ctaHrefPrimary = '#',
 		ctaTextSecondary = undefined,
-		ctaHrefSecondary = '#'
+		ctaHrefSecondary = '#',
+		githubOwner = '',
+		githubRepo = ''
 	}: Props = $props();
 
 	// Split title by commas/newlines and trim each part.
@@ -59,14 +64,12 @@
 		return classes[index % classes.length];
 	};
 </script>
-<!-- <Background color="bg-base-100"> -->
 <AuroraBackground>
 	<section class="relative isolate w-full overflow-hidden">
 		<div
 			class="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-visible py-6 sm:py-10"
 			aria-hidden="true"
 		>
-			<!-- Square box ≥ outer diameter (2×160) + largest orbiting icon; non-square or overflow-hidden clipped paths and icons -->
 			<div
 				class="relative flex aspect-square w-[min(28rem,92vw)] max-w-full shrink-0 items-center justify-center overflow-visible"
 			>
@@ -133,8 +136,13 @@
 		</div>
 
 		<div class="relative z-10 container mx-auto px-4 py-16 sm:py-20">
-			<div class="mx-auto max-w-3xl text-center">
-				<h1 class="text-balance text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+		<div class="mx-auto max-w-3xl text-center">
+			{#if githubOwner && githubRepo}
+				<div class="mb-6 flex justify-center">
+					<Stargazers owner={githubOwner} name={githubRepo} />
+				</div>
+			{/if}
+			<h1 class="text-balance text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
 					{#if titleParts.length > 0}
 						{#each titleParts as part, index (part)}
 							<span class="{getTitlePartClass(part, index)} mr-3">
@@ -177,6 +185,4 @@
 			</div>
 		</div>
 	</section>
-
 </AuroraBackground>
-<!-- </Background> -->

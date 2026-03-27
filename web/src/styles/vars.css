@@ -3,6 +3,17 @@
   --sans-serif: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;
   --monospace: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+
+
+  /* Aurora background tokens */
+  --white: #fff;
+  --black: #000;
+  --transparent: transparent;
+  --blue-500: #3b82f6;
+  --indigo-300: #a5b4fc;
+  --blue-300: #93c5fd;
+  --violet-200: #ddd6fe;
+  --blue-400: #60a5fa;
 }
 
 @keyframes flip {
@@ -20,8 +31,18 @@
   }
 }
 
+@keyframes aurora {
+  from {
+    background-position: 50% 50%, 50% 50%;
+  }
+  to {
+    background-position: 350% 50%, 350% 50%;
+  }
+}
+
 @theme {
   /* default (cyberpunk theme fontFamily) */
   --font-sans: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   --animate-flip: flip 6s infinite steps(2, end);
+  --animate-aurora: aurora 60s linear infinite;
 }
