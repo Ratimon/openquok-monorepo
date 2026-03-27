@@ -28,6 +28,7 @@
     "test:integration:config": "cross-env NODE_ENV=development jest tests/integration/Config.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:feedback-rbac": "cross-env NODE_ENV=development jest tests/integration/FeedbackRbac.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:blog-rbac": "cross-env NODE_ENV=development jest tests/integration/BlogRbac.integration.test.ts --runInBand --verbose --no-coverage",
+    "test:integration:third-parties": "cross-env NODE_ENV=development jest tests/integration/ThirdParties.integration.test.ts --runInBand --verbose --no-coverage",
     "lint": "eslint .",
     "db:aggregate-migrations-all": "node scripts/aggregate_migrations_all.mjs",
     "db:aggregate-migrations-single": "node scripts/aggregate_migrations_single.mjs",

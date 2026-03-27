@@ -168,12 +168,31 @@ PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-### 1.2 `Redis`
+### 1.2 Redis Cache
 
-- Create an account at [redis](https://cloud.redis.io/) and then add an database
+By default the backend uses an **in-memory** cache (`CACHE_PROVIDER=memory`).
+To use Redis instead (recommended for production or multi-instance deployments), follow the steps below.
+
+#### 1. Create a Redis database
+
+1. Sign up at [Redis Cloud](https://cloud.redis.io/) and create a free database.
+2. Once the database is ready, go to the **Configuration** tab of your database to find the connection details.
+
+#### 2. Get your connection details
+
+| Detail | Where to find it |
+|---|---|
+| **Host** | Public endpoint, the hostname portion (e.g. `redis-*****18904.*.ap-southeast-1-1.ec2.cloud.redislabs.com`) |
+| **Port** | Public endpoint, the port number after `:` (e.g. `18903`) |
+| **Password** | Database **Security** section (the "Default user password") |
+
+#### 3. Update your env file
+
+Open `backend/.env.development.local` (or whichever env file you use) and set:
 
 ```sh
-# Cache:Redis
+# Switch the cache provider from memory to redis
+CACHE_PROVIDER=redis
 
 # retrieve REDIS_HOST from Public endpoint : `redis-*****18904.*.ap-southeast-1-1.ec2.cloud.redislabs.com`
 REDIS_HOST=
@@ -187,6 +206,19 @@ REDIS_MAX_RECONNECT_ATTEMPTS=10
 REDIS_ENABLE_OFFLINE_QUEUE=true
 REDIS_USE_SCAN=true
 ```
+
+#### 4. Verify the connection
+
+Start the backend and look for this log line:
+
+```
+[Cache] Redis connection established  host=redis-12345... port=18903 db=0
+```
+
+If you see `[Cache] Failed to connect to Redis` instead, double-check the host, port, and password.
+
+> **Note:** Redis Cloud free-tier databases are deleted after 30 days of inactivity.
+> As long as the backend is running with `CACHE_PROVIDER=redis`, the regular cache operations will keep the database active.
 
 ### 1.3 Sentry (optional)
 
