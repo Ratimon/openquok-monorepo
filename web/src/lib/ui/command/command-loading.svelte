@@ -1,0 +1,19 @@
+<script lang="ts">
+	import { Command as CommandPrimitive } from "bits-ui";
+	import { cn } from "$lib/ui/helpers/common";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: CommandPrimitive.LoadingProps = $props();
+</script>
+
+<CommandPrimitive.Loading
+	bind:ref
+	class={cn("py-6 text-center text-sm text-base-content/60", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</CommandPrimitive.Loading>
