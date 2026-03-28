@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { FeedbackPopoverViewModel } from '$lib/feedback';
 	import { feedbackDescriptionSchema } from '$lib/feedback/feedback.types';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import * as Popover from '$lib/ui/popover';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

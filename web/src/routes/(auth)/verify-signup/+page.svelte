@@ -3,7 +3,7 @@
 	import { SignupStatus } from '$lib/user-auth/Signup.presenter.svelte';
 	import { onMount } from 'svelte';
 	import { goto, invalidateAll } from '$app/navigation';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { verifyEmailPresenter, signupPresenter } from '$lib/user-auth/index';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { url } from '$lib/utils/path';

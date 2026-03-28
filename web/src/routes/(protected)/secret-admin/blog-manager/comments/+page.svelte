@@ -2,7 +2,7 @@
 	import type { AdminBlogCommentVm } from '$lib/blog/blog.types';
 
 	import { onMount } from 'svelte';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 
 	import { adminBlogCommentsManagerPagePresenter } from '$lib/area-admin';
 	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';

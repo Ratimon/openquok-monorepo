@@ -6,7 +6,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import { cn } from '$lib/ui/helpers/common';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 
 	type Props = {
 		editor: TiptapEditor;

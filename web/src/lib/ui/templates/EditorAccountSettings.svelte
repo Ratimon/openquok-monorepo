@@ -8,7 +8,7 @@
 	} from '$lib/account/account.types';
 	import { avatarDeletePresenter, avatarUploadPresenter } from '$lib/core/index';
 	import { createForm } from '@tanstack/svelte-form';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Field from '$lib/ui/field';
 	import * as Avatar from '$lib/ui/components/avatar';

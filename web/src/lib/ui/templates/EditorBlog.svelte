@@ -4,7 +4,7 @@
 
 	import { blogPostFormSchema } from '$lib/blog/blog.types';
 	import { createForm } from '@tanstack/svelte-form';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import * as Field from '$lib/ui/field';
 	import { ContentEditor } from '$lib/ui/editor';
 	import { Textarea } from '$lib/ui/textarea';

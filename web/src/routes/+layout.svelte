@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import type { PageData } from './$types';
 	import { AuthStatus } from '$lib/user-auth/AuthStatus.model.svelte';
-	import { Toaster } from 'svelte-hot-french-toast';
+	import { Toaster } from '$lib/ui/sonner';
 	import { MetaTags, deepMerge } from 'svelte-meta-tags';
 	import '../app.postcss';
 	import { page } from '$app/state';

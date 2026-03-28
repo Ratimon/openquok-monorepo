@@ -3,7 +3,7 @@
 	import type { AvatarUploadViewModel } from '$lib/core/AvatarUpload.presenter.svelte';
 	import { FileUploadStatus } from '$lib/core/UploadImage.presenter.svelte';
 
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { cn } from '$lib/ui/helpers/common';
 
 	import Button from '$lib/ui/buttons/Button.svelte';

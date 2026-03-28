@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { createForm } from '@tanstack/svelte-form';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { signinFormSchema, signinPresenter, signupPresenter } from '$lib/user-auth/index';
 	import { getRootPathSignup, getRootPathForgotPassword } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';

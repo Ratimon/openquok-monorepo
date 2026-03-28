@@ -1,5 +1,5 @@
 <script lang="ts">
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 
 	import { BLOG_IMAGES_BUCKET } from '$lib/blog/constants/config';
 	import Button from '$lib/ui/buttons/Button.svelte';

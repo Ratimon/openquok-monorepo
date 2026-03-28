@@ -78,7 +78,7 @@ Use this pattern when a **list page** needs shared upsert/delete UI used from bo
 
 ## Toast wiring (presenter ⇄ route)
 
-Use this for **pattern A** pages where the **page presenter** performs repository mutations and the **route** should show `svelte-hot-french-toast` notifications **without** importing toast in the presenter and **without** calling `toast.*` in route handlers.
+Use this for **pattern A** pages where the **page presenter** performs repository mutations and the **route** should show `$lib/ui/sonner` (`toast`) notifications **without** importing toast in the presenter and **without** calling `toast.*` in route handlers.
 
 ### Presenter
 

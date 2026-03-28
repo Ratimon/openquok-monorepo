@@ -9,7 +9,7 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 
 	import { publicBlogBySlugPagePresenter } from '$lib/area-public/index';
 	import { url } from '$lib/utils/path';

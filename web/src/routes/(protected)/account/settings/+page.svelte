@@ -2,7 +2,7 @@
 	import type { SettingsSidebarContext } from '$lib/ui/sidebar-main/types';
 
 	import { getContext } from 'svelte';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { SETTINGS_SIDEBAR_KEY } from '$lib/ui/templates/sidebar-secondary-context';
 	import SidebarSecondary from '$lib/ui/templates/SidebarSecondary.svelte';
 	import {

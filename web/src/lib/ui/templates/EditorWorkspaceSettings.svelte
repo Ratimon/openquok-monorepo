@@ -7,7 +7,7 @@
 		type WorkspaceCardViewModel
 	} from '$lib/settings';
 	import { createForm } from '@tanstack/svelte-form';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Field from '$lib/ui/field';
 	import { icons } from '$data/icon';

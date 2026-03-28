@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { AppRole } from '$lib/area-admin';
 	import { onMount } from 'svelte';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { adminRoleManagerPagePresenter } from '$lib/area-admin';
 	import RoleOverviewTable from '$lib/ui/components/user/RoleOverviewTable.svelte';
 

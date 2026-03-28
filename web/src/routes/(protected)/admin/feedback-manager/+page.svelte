@@ -2,7 +2,7 @@
 	import type { FeedbackViewModel } from '$lib/feedback';
 
 	import { onMount } from 'svelte';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { adminFeedbackManagerPagePresenter } from '$lib/area-admin';
 	import FeedbackTable from '$lib/ui/components/feedback/FeedbackTable.svelte';
 

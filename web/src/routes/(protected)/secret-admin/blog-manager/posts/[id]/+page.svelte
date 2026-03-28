@@ -7,7 +7,7 @@
 	import { getRootPathSecretAdminBlogManager } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { url } from '$lib/utils/path';
 
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { adminBlogEditorPagePresenter } from '$lib/area-admin';
 	import { createSortedTopicChoices } from '$lib/blog';
 	import EditorBlog from '$lib/ui/templates/EditorBlog.svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { createForm } from '@tanstack/svelte-form';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import {
 		accountChangePasswordFormSchema,
 		editorAccountSettingsPresenter,

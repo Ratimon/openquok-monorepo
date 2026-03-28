@@ -2,7 +2,7 @@
 	import type { Link } from '$lib/ui/nav-bars/Link';
 	import { page } from '$app/state';
 	import { invalidateAll } from '$app/navigation';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { signoutPresenter } from '$lib/user-auth/index';
 	import { SignoutStatus } from '$lib/user-auth/Signout.presenter.svelte';
 	import { getRootPathSignin, getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';

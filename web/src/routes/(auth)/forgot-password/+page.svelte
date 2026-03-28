@@ -2,7 +2,7 @@
 	import { ResetPasswordStatus } from '$lib/user-auth/ResetPassword.presenter.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import {
 		resetPasswordCodeSchema,
 		resetPasswordEmailSchema,

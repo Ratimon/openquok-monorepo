@@ -12,7 +12,7 @@
 	} from '$lib/blog/utils';
 	import { imageRepository } from '$lib/core/index';
 	import { cn } from '$lib/ui/helpers/common';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 
 	import ContentEditorMenu from '$lib/ui/editor/ContentEditorMenu.svelte';
 	import { ContentEditorBlogImage } from '$lib/ui/editor/extensions/contentEditorBlogImage';

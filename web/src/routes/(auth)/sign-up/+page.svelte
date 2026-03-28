@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { SignupStatus } from '$lib/user-auth/Signup.presenter.svelte';
 	import { createForm } from '@tanstack/svelte-form';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { signupFormSchema, signupPresenter } from '$lib/user-auth/index';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';

@@ -5,7 +5,7 @@
     import type { LocalImage } from "$lib/core/constants/types";
 
     import { onMount, onDestroy } from 'svelte';
-    import toast from 'svelte-hot-french-toast';
+    import { toast } from '$lib/ui/sonner';
     import { cn } from '$lib/ui/helpers/common';
     import { icons } from "$data/icon";
 

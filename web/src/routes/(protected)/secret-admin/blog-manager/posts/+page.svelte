@@ -3,7 +3,7 @@
 
 	// core
 	import { onMount } from 'svelte';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 
 	// adminBlogPostsManagerPagePresenters
 	import { adminBlogPostsManagerPagePresenter } from '$lib/area-admin';

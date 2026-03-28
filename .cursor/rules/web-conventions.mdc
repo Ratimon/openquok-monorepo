@@ -282,7 +282,7 @@ goto('/account', { replaceState: true });
 
 ## 5. Form Validation: Use Zod + Toast for Parsing Errors
 
-For form validation and parsing errors in routes (e.g. sign-in, change password), use **Zod** for schemas and **svelte-hot-french-toast** for user-facing error messages. Do not rely on manual checks and inline error state when the same can be expressed with a schema and toast.
+For form validation and parsing errors in routes (e.g. sign-in, change password), use **Zod** for schemas and **`toast` from `$lib/ui/sonner`** (svelte-sonner) for user-facing error messages. Do not rely on manual checks and inline error state when the same can be expressed with a schema and toast.
 
 - **Use**: `schema.safeParse(...)` and on failure call `toast.error(error.issues.map((i) => i.message).join(' '))`.
 - **Avoid**: Manual validation (e.g. `if (value.length < 8)`) and dedicated inline error state (e.g. `let passwordError = $state('')`) when a schema + toast gives a consistent UX.
@@ -316,7 +316,7 @@ export const signinFormSchema = z.object({
 ### Example (single-field / sign-in style — in `+page.svelte`)
 
 ```ts
-import toast from 'svelte-hot-french-toast';
+import { toast } from '$lib/ui/sonner';
 import { signinFormSchema } from '$lib/user-auth';
 
 async function onSubmit() {
@@ -340,7 +340,7 @@ async function onSubmit() {
 // In account.types.ts — export accountChangePasswordFormSchema (z.object(...).refine(...))
 
 // In +page.svelte
-import toast from 'svelte-hot-french-toast';
+import { toast } from '$lib/ui/sonner';
 import { accountChangePasswordFormSchema } from '$lib/account';
 
 async function onSubmit(e: Event) {

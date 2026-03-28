@@ -2,7 +2,7 @@
 	import { FeedbackStatus } from '$lib/feedback/Feedback.presenter.svelte';
 	import type { CreateFeedbackProgrammerModel } from '$lib/feedback/Feedback.repository.svelte';
 
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { z } from 'zod';
 
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';

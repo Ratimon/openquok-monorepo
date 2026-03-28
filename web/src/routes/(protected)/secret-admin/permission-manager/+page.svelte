@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { AppRole, AppPermission } from '$lib/area-admin';
 	import { onMount } from 'svelte';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { adminPermissionManagerPagePresenter } from '$lib/area-admin';
 	import PermissionOverviewTable from '$lib/ui/components/user/PermissionOverviewTable.svelte';
 

@@ -2,7 +2,7 @@
 	import type { IconName } from '$data/icon';
 	import { ActionVerificationModalStatus } from '$lib/core/ActionVerificationModal.presenter.svelte';
 
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icon';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

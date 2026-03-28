@@ -6,7 +6,7 @@
 	import { createSortedTopicChoices } from '$lib/blog/utils/parentPathCreator';
 
 	import { icons } from '$data/icon';
-	import toast from 'svelte-hot-french-toast';
+	import { toast } from '$lib/ui/sonner';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
