@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Component } from 'svelte';
 	import type { DocMeta } from '$lib/docs/types';
-	import { toc } from '$lib/docs/toc-state.svelte';
-	import { docsConfig } from '$lib/docs/config';
+	import { toc } from '$lib/docs/utils/toc-state.svelte';
+	import { docsConfig } from '$lib/docs/constants';
 	import { icons } from '$data/icon';
 
 	import DocsMobileToc from '$lib/ui/components/docs/DocsMobileToc.svelte';
@@ -10,7 +10,7 @@
 	import DocsCopyUrl from '$lib/ui/components/docs/nav/DocsCopyUrl.svelte';
 	import DocsPageFeedback from '$lib/ui/components/docs/nav/DocsPageFeedback.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { calculateReadingTime } from '$lib/docs/reading-time';
+	import { calculateReadingTime } from '$lib/docs/utils/reading-time';
 
 	let {
 		meta,

@@ -1,10 +1,19 @@
+import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
+
 export async function GET({ url }: { url: URL }) {
-	const siteUrl =
-		process.env.VITE_PUBLIC_SITE_URL || process.env.SITE_URL || `${url.protocol}//${url.host}`;
+	const siteUrl = resolvePublicSiteUrl(url);
 
 	const sitemapURL = new URL('/sitemap.xml', siteUrl).toString();
 
-	const robotsTxt = ['User-agent: *', 'Disallow:', `Sitemap: ${sitemapURL}`].join('\n');
+	const robotsTxt = [
+		'User-agent: *',
+		'Disallow:',
+		`Sitemap: ${sitemapURL}`,
+		'',
+		'# Documentation (LLM overview): /llms.txt',
+		'# Full documentation text: /llms-full.txt',
+		'# Documentation RSS: /rss.xml'
+	].join('\n');
 
 	return new Response(robotsTxt, {
 		headers: {

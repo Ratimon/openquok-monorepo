@@ -1,4 +1,4 @@
-import { docsConfig } from '$lib/docs/config';
+import { docsConfig } from '$lib/docs/constants';
 import type { DocFile, DocMeta, DocPage } from '$lib/docs/types';
 
 const contentModules = import.meta.glob<DocFile>('/src/content/docs/**/*.{md,svx}', {
@@ -91,4 +91,18 @@ export function getDocsByDirectory(directory: string, locale?: string): DocPage[
 	return getAllDocs(locale).filter(
 		(doc) => doc.slug.startsWith(directory + '/') || doc.slug === directory
 	);
+}
+
+/** All published doc pages per locale (for sitemaps, RSS, llms.txt). */
+export function eachLocaleDocPages(): {
+	locale: string;
+	localeLabel: string;
+	pages: DocPage[];
+}[] {
+	const locales = docsConfig.i18n?.locales ?? [{ code: 'en', label: 'English' }];
+	return locales.map((l) => ({
+		locale: l.code,
+		localeLabel: l.label,
+		pages: getAllDocs(l.code)
+	}));
 }

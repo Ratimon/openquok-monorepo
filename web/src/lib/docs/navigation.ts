@@ -1,6 +1,6 @@
 import type { NavItem } from '$lib/docs/types';
 
-import { docsConfig } from '$lib/docs/config';
+import { docsConfig } from '$lib/docs/constants';
 import { getAllDocs, getDocsByDirectory } from '$lib/docs/content';
 
 export function generateNavigation(locale?: string): NavItem[] {

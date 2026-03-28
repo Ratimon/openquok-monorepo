@@ -9,7 +9,7 @@
 	import * as Collapsible from '$lib/ui/collapsible/index.js';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/ui/sidebar-main/index.js';
-	import { docsConfig } from '$lib/docs/config';
+	import { docsConfig } from '$lib/docs/constants';
 	import { sidebarMenuButtonVariants } from '$lib/ui/sidebar-main/sidebar-menu-button-variants';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SocialLinks, { type SocialLink } from '$lib/ui/components/docs/nav/DocsSocialLinks.svelte';

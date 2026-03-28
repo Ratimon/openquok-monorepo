@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { docsConfig } from '$lib/docs/config';
+	import { docsConfig } from '$lib/docs/constants';
 
 	let {
 		title,

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { docsConfig } from '$lib/docs/config';
+	import { docsConfig } from '$lib/docs/constants';
 	import { icons } from '$data/icon';
 
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';

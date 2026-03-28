@@ -1,0 +1,1 @@
+export { docsConfig } from './config';

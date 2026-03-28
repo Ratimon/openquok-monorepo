@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { NavItem } from '$lib/docs/types';
 
-	import { docsConfig } from '$lib/docs/config';
+	import { docsConfig } from '$lib/docs/constants';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	let { prev, next }: { prev?: NavItem; next?: NavItem } = $props();
