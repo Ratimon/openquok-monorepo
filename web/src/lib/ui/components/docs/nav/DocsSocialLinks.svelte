@@ -10,6 +10,7 @@
 		instagram: icons.Instagram.name,
 		linkedin: icons.Link.name,
 		youtube: icons.YouTube.name,
+		// to do: add discord, slack, twitch, mastodon, rss, mail, email, website icons
 		discord: icons.MessageCircle.name,
 		slack: icons.MessageCircle.name,
 		twitch: icons.Megaphone.name,
@@ -31,6 +32,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { cn } from '$lib/ui/helpers/common';
+	import * as Tooltip from '$lib/ui/tooltip';
 
 	/** Match docs header controls (ThemeSwitcher, DocsLocaleSwitcher): base-200 hover, not ghost accent. */
 	const headerIconHitClass = cn(
@@ -43,17 +45,27 @@
 
 {#each links as link}
 	{@const iconName = iconMap[link.platform.toLowerCase()]}
+	{@const tip = link.label ?? link.platform.replace(/^\w/, (c) => c.toUpperCase())}
 	{#if iconName}
-		<Button
-			variant="ghost"
-			size="icon"
-			class={headerIconHitClass}
-			href={link.url}
-			target="_blank"
-			rel="noopener noreferrer"
-			aria-label={link.label ?? link.platform}
-		>
-			<AbstractIcon name={iconName} class="size-4" width="16" height="16" />
-		</Button>
+		<Tooltip.Root>
+			<Tooltip.Trigger>
+				{#snippet child({ props: triggerProps })}
+					<span {...triggerProps} class="inline-flex">
+						<Button
+							variant="ghost"
+							size="icon"
+							class={headerIconHitClass}
+							href={link.url}
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label={link.label ?? link.platform}
+						>
+							<AbstractIcon name={iconName} class="size-4" width="16" height="16" />
+						</Button>
+					</span>
+				{/snippet}
+			</Tooltip.Trigger>
+			<Tooltip.Content side="bottom" sideOffset={6}>{tip}</Tooltip.Content>
+		</Tooltip.Root>
 	{/if}
 {/each}

@@ -17,14 +17,11 @@
 		landingPageConfigVm.HERO_SLOGAN || String(CONFIG_SCHEMA_LANDING_PAGE.HERO_SLOGAN.default)
 	);
 </script>
-
 <HeroMain
     {heroTitle}
     {heroSlogan}
-    ctaTextPrimary="Get Started"
+    ctaTextPrimary="Get Started For Free"
     ctaHrefPrimary="#"
-    ctaTextSecondary="Learn More"
-    ctaHrefSecondary="#"
     githubOwner="Ratimon"
     githubRepo="openquok-monorepo"
 />

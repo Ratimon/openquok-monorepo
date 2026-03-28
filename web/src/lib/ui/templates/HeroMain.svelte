@@ -2,7 +2,6 @@
 	import { icons } from '$data/icon';
 
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import OrbitingCircles from '$lib/ui/animation/OrbitingCircles.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -13,8 +12,6 @@
 		heroSlogan?: string;
 		ctaTextPrimary?: string;
 		ctaHrefPrimary?: string;
-		ctaTextSecondary?: string;
-		ctaHrefSecondary?: string;
 		githubOwner?: string;
 		githubRepo?: string;
 	};
@@ -24,8 +21,6 @@
 		heroSlogan = '',
 		ctaTextPrimary = 'Try it for free',
 		ctaHrefPrimary = '#',
-		ctaTextSecondary = undefined,
-		ctaHrefSecondary = '#',
 		githubOwner = '',
 		githubRepo = ''
 	}: Props = $props();
@@ -160,7 +155,7 @@
 					{heroSlogan}
 				</p>
 
-				<div class="mt-10 flex items-center justify-center gap-4">
+				<div class="mt-10 flex items-center justify-center">
 					<ButtonGlitchBrightness
 						class="my-2 w-2/3 text-sm sm:text-base lg:text-lg justify-center rounded-full px-10"
 						variant="primary"
@@ -170,17 +165,6 @@
 					>
 						{ctaTextPrimary}
 					</ButtonGlitchBrightness>
-					{#if ctaTextSecondary}
-						<Button
-							variant="ghost"
-							size="xl"
-							class="rounded-full px-10"
-							href={ctaHrefSecondary}
-							preload="off"
-						>
-							{ctaTextSecondary} →
-						</Button>
-					{/if}
 				</div>
 			</div>
 		</div>

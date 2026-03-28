@@ -6,6 +6,8 @@
 	import { page } from '$app/state';
 	import { icons } from '$data/icon';
 
+	import { cn } from '$lib/ui/helpers/common';
+
 	import * as Collapsible from '$lib/ui/collapsible/index.js';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/ui/sidebar-main/index.js';
@@ -14,7 +16,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SocialLinks, { type SocialLink } from '$lib/ui/components/docs/nav/DocsSocialLinks.svelte';
 	import DocsSearchCommand from '$lib/ui/components/docs/search/DocsSearchCommand.svelte';
-	import { cn } from '$lib/ui/helpers/common';
+	import * as Tooltip from '$lib/ui/tooltip';
 
 	let {
 		navigation = [],
@@ -152,7 +154,9 @@
 			<DocsSearchCommand {navigation} />
 		</div>
 		<div class="flex flex-wrap items-center gap-0.5">
-			<SocialLinks links={socialLinks} />
+			<Tooltip.Provider delayDuration={200}>
+				<SocialLinks links={socialLinks} />
+			</Tooltip.Provider>
 		</div>
 	</Sidebar.Footer>
 </Sidebar.Root>

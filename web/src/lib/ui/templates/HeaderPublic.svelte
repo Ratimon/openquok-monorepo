@@ -11,6 +11,7 @@
 	import { icons } from '$data/icon';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import Background from '$lib/ui/background/Background.svelte';
 	import PublicNavbar from '$lib/ui/nav-bars/PublicNavbar.svelte';
 	import PageLink from '$lib/ui/nav-bars/PageLink.svelte';
@@ -71,10 +72,9 @@
 		}
 	}
 
-	let navbarAuthLinks: Link[] = $derived.by(() => {
+	let signInHref = $derived.by(() => {
 		const pathname = page.url.pathname || '/';
 		const search = page.url.search || '';
-		// Build a single redirect target (no nested redirectURL) to avoid chains like ...?redirectURL=%2Fsign-in%3FredirectURL%3D...
 		let redirectTarget: string;
 		if (pathname === signInPath || pathname === signUpPath) {
 			const params = new URLSearchParams(search);
@@ -82,7 +82,6 @@
 			if (existing) {
 				try {
 					const decoded = decodeURIComponent(existing);
-					// If the existing redirect itself contains redirectURL, break the chain by sending home
 					redirectTarget = decoded.includes('redirectURL=') ? '/' : decoded;
 				} catch {
 					redirectTarget = '/';
@@ -97,21 +96,22 @@
 			redirectTarget = pathname + (qs ? `?${qs}` : '');
 		}
 		if (!redirectTarget.startsWith('/')) redirectTarget = '/' + redirectTarget;
-		const signInHref =
-			pathname !== signInPath
-				? `${signInPath}?redirectURL=${encodeURIComponent(redirectTarget)}`
-				: signInPath;
-		return [
-			{ pathname: signInHref, title: 'Login', navType: 'tab', preload: 'off' },
-			{ pathname: signUpPath, title: 'Signup', navType: 'tab', preload: 'off' }
-		];
+		return pathname !== signInPath
+			? `${signInPath}?redirectURL=${encodeURIComponent(redirectTarget)}`
+			: signInPath;
 	});
+
+	const authPillClass =
+		'inline-flex min-h-11 items-center justify-center gap-1 rounded-full px-5 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-base-100';
 </script>
 
 <Background color={className}>
 	<header class="relative z-50">
-		<nav class="flex items-center justify-between gap-4 lg:gap-6 px-4 py-4 mx-4" aria-label="Global">
-			<div class="flex lg:flex shrink-0">
+		<nav
+			class="relative z-50 flex items-center gap-4 px-4 py-4 mx-4 lg:gap-6"
+			aria-label="Global"
+		>
+			<div class="relative z-10 flex shrink-0">
 				<a
 					class="flex items-center gap-2 shrink-0"
 					href="/"
@@ -130,16 +130,23 @@
 				</a>
 			</div>
 
-			<div class="hidden lg:flex lg:justify-center lg:gap-8 lg:items-center">
-				<PublicNavbar
-					pages={navbarDesktopLinks}
-					tabClass="tab tab-lg tab-lifted flex-1 text-lg font-bold"
-					whenSelected="account-link"
-					whenUnselected="account-link"
-				/>
+			<!-- Center: public nav tabs only (docs, blog, …) -->
+			<div
+				class="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block"
+			>
+				<div class="pointer-events-auto flex justify-center">
+					<PublicNavbar
+						pages={navbarDesktopLinks}
+						tabClass="tab tab-lg tab-lifted flex-1 text-lg font-bold"
+						whenSelected="account-link"
+						whenUnselected="account-link"
+					/>
+				</div>
+			</div>
 
+			<div class="relative z-10 ml-auto flex items-center gap-2">
 				{#if isLoggedIn}
-					<div class="flex items-center gap-2">
+					<div class="hidden items-center gap-2 lg:flex">
 						<PageLink
 							href={accountPath}
 							useGoto
@@ -161,37 +168,44 @@
 						</button>
 					</div>
 				{:else}
-					<PublicNavbar
-						pages={navbarAuthLinks}
-						class="text-primary-content flex-nowrap"
-						tabClass="tab tab-lg tab-lifted flex-1 text-lg font-bold whitespace-nowrap"
-						whenSelected="tab-active font-white !bg-primary hover:text-white"
-						whenUnselected="hover:text-base-content/70"
-					/>
+					<div class="hidden items-center gap-3 lg:flex">
+						<a
+							href={signInHref}
+							data-sveltekit-preload-data="off"
+							class="{authPillClass} auth-navbar-login border border-base-content/35 bg-transparent text-base-content hover:border-accent hover:text-accent"
+						>
+							Log in
+						</a>
+						<a
+							href={signUpPath}
+							data-sveltekit-preload-data="off"
+							class="{authPillClass} bg-primary text-primary-content hover:bg-primary/90"
+						>
+							Start for $0
+							<AbstractIcon name={icons.ChevronRight.name} class="size-4 shrink-0" width="16" height="16" />
+						</a>
+					</div>
 				{/if}
-			</div>
 
-			<!-- Right spacer (for theme toggle etc.) -->
-			<div class="items-center lg:flex lg:justify-end lg:flex-nowrap hidden lg:block lg:w-24">
-				<!-- Optional: ThemeSwitcher or other right-side actions -->
-			</div>
-
-			<!-- Burger button (mobile): native popover toggle so open works without relying on our click handler -->
-			<div class="flex lg:hidden ml-4 relative z-[100]">
-				<button
-					type="button"
-					popovertarget="header-mobile-menu"
-					popovertargetaction="toggle"
-					class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-base-content touch-manipulation cursor-pointer min-w-[44px] min-h-[44px]"
-					aria-label={isOpen ? 'Close main menu' : 'Open main menu'}
-					aria-expanded={isOpen}
-				>
-					{#if isOpen}
-						<AbstractIcon name={icons.X2.name} width="24" height="24" focusable="false" />
-					{:else}
-						<AbstractIcon name={icons.MenuLine.name} width="24" height="24" focusable="false" />
-					{/if}
-				</button>
+				<!-- Burger (mobile) -->
+				<div class="relative z-[100] flex lg:hidden">
+					<Button
+						variant="ghost"
+						size="icon"
+						preload="off"
+						popovertarget="header-mobile-menu"
+						popovertargetaction="toggle"
+						class="-m-2.5 min-h-[44px] min-w-[44px] touch-manipulation p-2.5 text-base-content"
+						aria-label={isOpen ? 'Close main menu' : 'Open main menu'}
+						aria-expanded={isOpen}
+					>
+						{#if isOpen}
+							<AbstractIcon name={icons.X2.name} width="24" height="24" focusable="false" />
+						{:else}
+							<AbstractIcon name={icons.MenuLine.name} width="24" height="24" focusable="false" />
+						{/if}
+					</Button>
+				</div>
 			</div>
 		</nav>
 
@@ -268,13 +282,30 @@
 							</button>
 						</div>
 					{:else}
-						<PublicNavbar
-							pages={navbarAuthLinks}
-							class="flex flex-col gap-y-4 items-center text-primary-content"
-							tabClass="tab tab-lg tab-lifted flex-1 text-lg font-bold"
-							whenSelected="tab-active font-white !bg-primary hover:text-white"
-							whenUnselected="hover:text-base-content/70"
-						/>
+						<div class="flex w-full max-w-sm flex-col gap-3 self-center px-2">
+							<a
+								href={signInHref}
+								data-sveltekit-preload-data="off"
+								onclick={() => setClose()}
+								class="{authPillClass} auth-navbar-login w-full border border-base-content/35 bg-transparent text-center text-base-content hover:border-accent hover:text-accent"
+							>
+								Log in
+							</a>
+							<a
+								href={signUpPath}
+								data-sveltekit-preload-data="off"
+								onclick={() => setClose()}
+								class="{authPillClass} w-full justify-center bg-primary text-primary-content hover:bg-primary/90"
+							>
+								Start for $0
+								<AbstractIcon
+									name={icons.ChevronRight.name}
+									class="size-4 shrink-0"
+									width="16"
+									height="16"
+								/>
+							</a>
+						</div>
 					{/if}
 				</div>
 			</div>

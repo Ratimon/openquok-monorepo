@@ -16,7 +16,6 @@
 
 	const socialLinks = $derived.by(() => {
 		const out: { platform: string; url: string; label?: string }[] = [];
-		out.push({ platform: 'rss', url: '/rss.xml', label: 'Documentation RSS' });
 		if (docsSite.social.github) {
 			out.push({ platform: 'github', url: docsSite.social.github, label: 'GitHub' });
 		}

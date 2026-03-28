@@ -71,8 +71,22 @@
 
 		<FloatingDockDesktop items={dockItems} class="mx-0" childrenFirst>
 			{#snippet customSlots({ mouseX, containerX })}
-				<DockCustomSlot {mouseX} {containerX} title="Theme">
-					<ThemeSwitcher variant="dock" />
+				<DockCustomSlot {mouseX} {containerX} title="">
+					<Tooltip.Root>
+						<Tooltip.Trigger>
+							{#snippet child({ props: triggerProps })}
+								<span
+									{...triggerProps}
+									class="relative flex h-full w-full items-center justify-center"
+								>
+									<ThemeSwitcher variant="dock" />
+								</span>
+							{/snippet}
+						</Tooltip.Trigger>
+						<Tooltip.Content side="top" sideOffset={8}>
+							Switch theme
+						</Tooltip.Content>
+					</Tooltip.Root>
 				</DockCustomSlot>
 				<DockCustomSlot {mouseX} {containerX} title="">
 					<Tooltip.Root>
