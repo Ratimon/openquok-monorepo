@@ -21,7 +21,7 @@
 - Cookie Consent not show (scroll)
 - doc subdomain
 - check rate limit again
-- check redis
+- RSS xml
 
 ## To Do - Specific
 

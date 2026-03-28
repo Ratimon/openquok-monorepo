@@ -21,6 +21,7 @@
 		"lint": "eslint ."
 	},
 	"dependencies": {
+		"@shikijs/transformers": "^4.0.2",
 		"@tanstack/svelte-form": "^1.28.4",
 		"@tiptap/core": "^3.20.4",
 		"@tiptap/extension-image": "^3.20.4",
@@ -30,6 +31,8 @@
 		"@tiptap/starter-kit": "^3.20.4",
 		"bits-ui": "^2.16.3",
 		"clsx": "^2.1.1",
+		"mdsvex": "^0.12.7",
+		"shiki": "^4.0.2",
 		"svelte-meta-tags": "^4.5.0",
 		"svelte-motion": "^0.12.2",
 		"svelte-sonner": "^1.1.0",

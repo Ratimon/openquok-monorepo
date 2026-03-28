@@ -28,7 +28,10 @@
 		data-slot="sidebar"
 		data-sidebar={variant}
 		data-collapsible={collapsible}
-		class={cn("flex h-full w-[--sidebar-width] flex-col bg-base-200 text-base-content", className)}
+		class={cn(
+			"flex h-full w-[var(--sidebar-width)] shrink-0 flex-col bg-base-200 text-base-content",
+			className
+		)}
 		{...restProps}
 	>
 		{@render children?.()}
@@ -56,15 +59,58 @@
 		</div>
 	{/if}
 {:else}
+	<!-- Desktop: gap + fixed panel; open state collapses off-canvas or icon width (matches shadcn-style sidebar) -->
 	<div
 		bind:this={ref}
 		data-slot="sidebar"
 		data-sidebar={variant}
-		data-collapsible={collapsible}
+		class={cn(
+			"text-base-content group peer hidden self-stretch md:block",
+			className
+		)}
 		data-state={sidebar.state}
-		class={cn("flex h-full flex-col bg-base-200 text-base-content", className)}
+		data-collapsible={sidebar.state === "collapsed" ? collapsible : ""}
+		data-variant={variant}
+		data-side={side}
 		{...restProps}
 	>
-		{@render children?.()}
+		<div
+			data-slot="sidebar-gap"
+			class={cn(
+				"relative w-[var(--sidebar-width)] bg-transparent transition-[width] duration-200 ease-linear",
+				"group-data-[collapsible=offcanvas]:w-0",
+				"group-data-[side=right]:rotate-180",
+				variant === "floating" || variant === "inset"
+					? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]"
+					: "group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]"
+			)}
+		></div>
+		<div
+			data-slot="sidebar-container"
+			class={cn(
+				"fixed inset-y-0 z-10 hidden h-svh w-[var(--sidebar-width)] transition-[left,right,width] duration-200 ease-linear md:flex",
+				side === "left"
+					? "start-0 group-data-[collapsible=offcanvas]:start-[calc(var(--sidebar-width)*-1)]"
+					: "end-0 group-data-[collapsible=offcanvas]:end-[calc(var(--sidebar-width)*-1)]",
+				variant === "floating" || variant === "inset"
+					? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem+2px)]"
+					: cn(
+							"group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]",
+							"group-data-[side=left]:border-e group-data-[side=left]:border-base-300",
+							"group-data-[side=right]:border-s group-data-[side=right]:border-base-300"
+						)
+			)}
+		>
+			<div
+				data-sidebar="sidebar"
+				data-slot="sidebar-inner"
+				class={cn(
+					"flex size-full flex-col bg-base-200 text-base-content",
+					"group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-base-300"
+				)}
+			>
+				{@render children?.()}
+			</div>
+		</div>
 	</div>
 {/if}

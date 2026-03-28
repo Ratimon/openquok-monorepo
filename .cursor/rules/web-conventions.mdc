@@ -19,6 +19,19 @@ Import from `$lib` using the **alias path**, not relative paths (`./` or `../`) 
 - **SvelteKit store import**: Prefer `import { page } from "$app/state";` and **avoid** `import { page } from "$app/stores";`.
 - **Type-only imports**: Prefer `import type { ... }` when you only use types/interfaces and no runtime value is referenced, and still import them via `$lib/...` (never via `./` or `../`).
 
+### Import order (Svelte `<script>` and `.ts`)
+
+Use **blank lines between groups** so imports stay easy to scan.
+
+1. **Type-only imports** (`import type …`) first, in this order:
+   - External packages (e.g. `"svelte"`, other npm types).
+   - `$lib/...` **except** paths under `$lib/ui/` (domain types such as `$lib/docs/types`, `$lib/account/...`).
+   - `$lib/ui/...` type-only imports if any.
+2. **Runtime imports** from **non-UI** code: `$app/*`, `$lib/...` **outside** `$lib/ui/` (e.g. `$lib/docs`, `$lib/utils`), `$data/...`, then other packages.
+3. **Runtime imports** from **`$lib/ui/...`** last (helpers, primitives, feature components).
+
+Do not interleave `import type` from `$lib/ui` ahead of value imports from the same file’s domain `$lib` module; keep the type block at the top and split domain vs UI as above.
+
 **Examples**
 
 ```svelte
@@ -34,6 +47,15 @@ import * as Dialog from "./index.js";
 ```
 
 External packages are unchanged: use package names (e.g. `"bits-ui"`, `"svelte"`).
+
+---
+
+## 1a. Icons: `$data/icon` registry and `AbstractIcon`
+
+- **Registry**: Icon metadata lives in `web/src/data/icon.ts`. Import `icons` and `IconName` from `$data/icon` where needed.
+- **Static usage**: Prefer `<AbstractIcon name={icons.SomeIcon.name} ... />` over string literals such as `name="Github"` so icon keys stay tied to the registry and refactors stay safe.
+- **Dynamic usage** (e.g. social platforms, CMS-driven keys): Define a map whose values are `icons.*.name` (typed as `IconName`), then pass the resolved name: `<AbstractIcon name={resolvedIconName} ... />`. Avoid hardcoded `IconName` strings in the map; use `icons.Github.name`, `icons.X.name`, etc.
+- **Components**: Use `AbstractIcon` from `$lib/ui/icons/AbstractIcon.svelte` for Lucide-style icons backed by the registry.
 
 ---
 

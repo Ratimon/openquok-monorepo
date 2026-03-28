@@ -27,3 +27,52 @@
     background-color: var(--color-base-100);
   }
 }
+
+/* Docs: Shiki dual theme — forest uses dark code tokens, light uses default */
+html[data-theme='forest'] .shiki,
+html[data-theme='forest'] .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+html[data-theme='forest'] .shiki {
+  border-color: color-mix(in oklab, var(--color-base-content) 25%, transparent);
+}
+
+.shiki {
+  padding: 1rem;
+  border-radius: var(--radius-box, 0.5rem);
+  border: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent);
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.shiki .highlighted {
+  display: inline-block;
+  width: calc(100% + 2rem);
+  margin: 0 -1rem;
+  padding: 0 1rem;
+  background-color: color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+.code-block-titled {
+  border-radius: var(--radius-box, 0.5rem);
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.code-block-titled .shiki {
+  border-radius: 0;
+  margin: 0;
+}
+
+.code-block-title {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: ui-monospace, monospace;
+  background-color: color-mix(in oklab, var(--color-base-content) 6%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+}

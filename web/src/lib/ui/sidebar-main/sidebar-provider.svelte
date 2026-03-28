@@ -40,7 +40,7 @@
 	bind:this={ref}
 	data-slot="sidebar-provider"
 	data-sidebar="provider"
-	class={cn("relative flex w-full flex-1 flex-col", className)}
+	class={cn("relative flex min-h-svh w-full flex-1 flex-row", className)}
 	style="--sidebar-width: {SIDEBAR_WIDTH}; --sidebar-width-icon: {SIDEBAR_WIDTH_ICON}; {typeof style === 'string' ? style : ''}"
 	{...restProps}
 >
