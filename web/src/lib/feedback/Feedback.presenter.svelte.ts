@@ -48,6 +48,18 @@ export class FeedbackPresenter {
 		}
 	}
 
+	/** Logged-in docs helpful vote; description satisfies API min length. */
+	public async submitDocsPageHelpfulVote(
+		helpful: boolean,
+		pageUrl: string,
+		pageTitle: string
+	): Promise<CreateFeedbackProgrammerModel | null> {
+		const vote = helpful ? 'yes' : 'no';
+		const title = pageTitle.trim() || '(untitled)';
+		const description = `Documentation page helpful: ${vote}. Page: ${title}`;
+		return this.createFeedback('feedback', pageUrl, description, '');
+	}
+
 	public reset() {
 		this.status = FeedbackStatus.UNKNOWN;
 		this.showToastMessage = false;

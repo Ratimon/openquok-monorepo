@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { icons } from '$data/icon';
+	
 	import { cookieConsentStore } from '$lib/core/cookieConsent.store';
-	import CookieConsentButtonDeny from './CookieConsentButtonDeny.svelte';
-	import CookieConsentButtonAccept from './CookieConsentButtonAccept.svelte';
+	import CookieConsentButtonDeny from '$lib/ui/cookie/CookieConsentButtonDeny.svelte';
+	import CookieConsentButtonAccept from '$lib/ui/cookie/CookieConsentButtonAccept.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import PageLink from '$lib/ui/nav-bars/PageLink.svelte';
 
@@ -40,7 +42,7 @@
 		class="fixed left-6 bottom-6 shadow-lg shadow-neutral-500 z-50 max-w-96 bg-base-100 p-4 rounded-md"
 	>
 		<h2 class="text-lg font-semibold inline-flex items-center leading-6 py-2 text-base-content">
-			Heads up! <AbstractIcon name="Cookie" width="24" height="24" class="mx-2" />
+			Heads up! <AbstractIcon name={icons.Cookie.name} width="24" height="24" class="mx-2" />
 		</h2>
 		<p class="text-base-content">
 			We use cookies to enhance the functionality of this website in order to give you the best

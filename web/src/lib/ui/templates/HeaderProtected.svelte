@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { DockItem } from '$lib/ui/floating-dock/types';
+	
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import * as Tooltip from '$lib/ui/tooltip';
 	import FloatingDockDesktop from '$lib/ui/floating-dock/FloatingDockDesktop.svelte';
 	import DockCustomSlot from '$lib/ui/floating-dock/DockCustomSlot.svelte';
 	import ThemeSwitcher from '$lib/ui/daisyui/ThemeSwitcher.svelte';
-	import * as Tooltip from '$lib/ui/tooltip';
 	import FeedbackPopoverForm from '$lib/ui/components/feedback/FeedbackPopoverForm.svelte';
 
 	type Props = {

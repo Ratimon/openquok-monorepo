@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { feedbackController } from "../controllers/index";
-import { requireFullAuthWithRoles, requireSupport } from "../middlewares/authenticateUser";
+import {
+    requireFullAuthWithRoles,
+    requireSupport,
+    optionalAuthWithRoles,
+} from "../middlewares/authenticateUser";
 import { supabaseServiceClientConnection } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
 import { validateRequest } from "../middlewares/validateRequest";
@@ -13,9 +17,15 @@ const authWithRoles = requireFullAuthWithRoles(
     userRepository,
     rbacRepository
 );
+const optionalAuth = optionalAuthWithRoles(
+    supabaseServiceClientConnection,
+    userRepository,
+    rbacRepository
+);
 
 feedbackRouter.post(
     "/",
+    optionalAuth,
     validateRequest({ body: feedbackSchema }),
     feedbackController.createFeedback
 );

@@ -1,8 +1,10 @@
 <script lang="ts">
+	import type { NavItem } from '$lib/docs/types';
+
 	import { goto } from '$app/navigation';
+	import { icons } from '$data/icon';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Command from '$lib/ui/command/index.js';
-	import type { NavItem } from '$lib/docs/types';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	interface PagefindResult {
@@ -103,7 +105,7 @@
 		void loadPagefind();
 	}}
 >
-	<AbstractIcon name="Search" class="mr-2 size-4" width="16" height="16" />
+	<AbstractIcon name={icons.Search.name} class="mr-2 size-4" width="16" height="16" />
 	<span class="inline-flex">Search docs…</span>
 	<kbd
 		class="bg-base-200 text-base-content/70 pointer-events-none ml-auto hidden h-5 select-none items-center gap-1 rounded border border-base-300 px-1.5 font-mono text-[10px] font-medium sm:flex"
@@ -129,7 +131,7 @@
 			<Command.Group heading="Results">
 				{#each searchResults as result (result.url)}
 					<Command.Item onSelect={() => navigate(result.url)}>
-						<AbstractIcon name="FileText" class="shrink-0" width="16" height="16" />
+						<AbstractIcon name={icons.FileText.name} class="shrink-0" width="16" height="16" />
 						<div class="flex min-w-0 flex-col gap-0.5 overflow-hidden">
 							<span class="truncate">{result.meta.title}</span>
 							{#if result.excerpt}
@@ -147,7 +149,7 @@
 					{#each section.items ?? [] as item (item.title)}
 						{#if item.href}
 							<Command.Item onSelect={() => navigate(item.href ?? '')}>
-								<AbstractIcon name="FileText" width="16" height="16" />
+								<AbstractIcon name={icons.FileText.name} width="16" height="16" />
 								<span>{item.title}</span>
 							</Command.Item>
 						{/if}

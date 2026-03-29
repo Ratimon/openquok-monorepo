@@ -27,6 +27,8 @@ function orderedSectionKeys(grouped: Map<string, DocPage[]>): string[] {
 	return keys;
 }
 
+export const prerender = true;
+
 export const GET: RequestHandler = async ({ url }) => {
 	const siteUrl = resolvePublicSiteUrl(url);
 	const siteTitle = docsConfig.site.title;
@@ -76,4 +78,3 @@ export const GET: RequestHandler = async ({ url }) => {
 	});
 };
 
-export const prerender = true;

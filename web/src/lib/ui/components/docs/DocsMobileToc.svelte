@@ -2,6 +2,8 @@
 	import { toc } from '$lib/docs/utils/toc-state.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
+	import { icons } from '$data/icon';
+
 	let open = $state(false);
 
 	function handleClick(id: string) {
@@ -21,10 +23,10 @@
 			onclick={() => (open = !open)}
 			class="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium"
 		>
-			<AbstractIcon name="List" class="size-4" width="16" height="16" />
+			<AbstractIcon name={icons.List.name} class="size-4" width="16" height="16" />
 			<span>On this page</span>
 			<AbstractIcon
-				name="ChevronDown"
+				name={icons.ChevronDown.name}
 				class="ml-auto size-4 transition-transform {open ? 'rotate-180' : ''}"
 				width="16"
 				height="16"

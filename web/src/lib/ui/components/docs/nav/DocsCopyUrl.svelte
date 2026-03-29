@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
+
+	import { icons } from '$data/icon';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
@@ -18,8 +20,8 @@
 
 <Button variant="ghost" size="icon" onclick={copyUrl} aria-label="Copy page URL">
 	{#if copied}
-		<AbstractIcon name="Check" class="size-4" width="16" height="16" />
+		<AbstractIcon name={icons.Check.name} class="size-4" width="16" height="16" />
 	{:else}
-		<AbstractIcon name="Link" class="size-4" width="16" height="16" />
+		<AbstractIcon name={icons.Link.name} class="size-4" width="16" height="16" />
 	{/if}
 </Button>

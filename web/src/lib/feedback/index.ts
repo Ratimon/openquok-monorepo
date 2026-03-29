@@ -17,9 +17,17 @@ const feedbackRepository = new FeedbackRepository(httpGateway, feedbackConfig);
 const feedbackPresenter = new FeedbackPresenter(feedbackRepository);
 /** Public pages (e.g. About) — separate instance so state does not leak from layout feedback. */
 const generalFeedbackPresenter = new FeedbackPresenter(feedbackRepository);
+/** Docs page thumbs — isolated from About / layout feedback presenters. */
+const docsPageFeedbackPresenter = new FeedbackPresenter(feedbackRepository);
 const getFeedbackPresenter = new GetFeedbackPresenter(feedbackRepository);
 
-export { feedbackRepository, feedbackPresenter, generalFeedbackPresenter, getFeedbackPresenter };
+export {
+	feedbackRepository,
+	feedbackPresenter,
+	generalFeedbackPresenter,
+	docsPageFeedbackPresenter,
+	getFeedbackPresenter
+};
 export { FeedbackStatus } from '$lib/feedback/Feedback.presenter.svelte';
 export type {
 	CreateFeedbackProgrammerModel,

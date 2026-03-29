@@ -3,9 +3,10 @@
 	import { feedbackDescriptionSchema } from '$lib/feedback/feedback.types';
 	import { toast } from '$lib/ui/sonner';
 	import * as Popover from '$lib/ui/popover';
+	import { icons } from '$data/icon';
+
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { icons } from '$data/icon';
 
 	type Props = Omit<FeedbackPopoverViewModel, 'description' | 'open'> & {
 		description: string;

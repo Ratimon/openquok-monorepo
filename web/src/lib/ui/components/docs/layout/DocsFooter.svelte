@@ -2,6 +2,8 @@
 	import type { NavItem } from '$lib/docs/types';
 
 	import { docsConfig } from '$lib/docs/constants';
+	import { icons } from '$data/icon';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	let { prev, next }: { prev?: NavItem; next?: NavItem } = $props();
@@ -24,7 +26,7 @@
 					href={prev.href}
 					class="text-base-content/70 hover:text-base-content inline-flex items-center gap-1 text-sm transition-colors"
 				>
-					<AbstractIcon name="ChevronLeft" class="size-4" width="16" height="16" />
+					<AbstractIcon name={icons.ChevronLeft.name} class="size-4" width="16" height="16" />
 					<span class="hidden sm:inline">{prev.title}</span>
 					<span class="sm:hidden">Previous</span>
 				</a>
@@ -42,7 +44,7 @@
 				>
 					<span class="hidden sm:inline">{next.title}</span>
 					<span class="sm:hidden">Next</span>
-					<AbstractIcon name="ChevronRight" class="size-4" width="16" height="16" />
+					<AbstractIcon name={icons.ChevronRight.name} class="size-4" width="16" height="16" />
 				</a>
 			{/if}
 		</div>

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { FeedbackStatus } from '$lib/feedback/Feedback.presenter.svelte';
 	import type { CreateFeedbackProgrammerModel } from '$lib/feedback/Feedback.repository.svelte';
+	import { FeedbackStatus } from '$lib/feedback/Feedback.presenter.svelte';
 
 	import { toast } from '$lib/ui/sonner';
 	import { z } from 'zod';
 
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, url as appPath } from '$lib/utils/path';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import {
@@ -25,6 +25,9 @@
 	const signinUrl = absoluteUrl(rootPathSignin);
 
 	type Props = {
+		open?: boolean;
+		/** When false, no floating (or inline) trigger; control `open` from the parent. */
+		showTriggerButton?: boolean;
 		status: FeedbackStatus;
 		feedbackType: 'propose' | 'report' | 'feedback';
 		/** If true, trigger button is fixed bottom-right. */
@@ -36,6 +39,8 @@
 		feedbackDescription: string;
 		ModalSuccessMessage: string;
 		url: string;
+		/** Path (+ query + hash) after sign-in; sent as `redirectURL` (same as protected layout / header). */
+		signinReturnPath?: string;
 		handleCreateFeedback: (
 			feedbackType: 'propose' | 'report' | 'feedback',
 			url: string,
@@ -46,6 +51,8 @@
 	};
 
 	let {
+		open = $bindable(false),
+		showTriggerButton = true,
 		status,
 		feedbackType,
 		fixed = true,
@@ -55,13 +62,18 @@
 		feedbackDescription,
 		ModalSuccessMessage,
 		url,
+		signinReturnPath,
 		handleCreateFeedback,
 		handleReset
 	}: Props = $props();
-
-	let dialogOpen = $state(false);
 	let description = $state('');
 	let email = $state('');
+
+	let signinHref = $derived(
+		signinReturnPath
+			? `${appPath(rootPathSignin)}?redirectURL=${encodeURIComponent(signinReturnPath)}`
+			: signinUrl
+	);
 
 	let isSubmitting = $derived(status === FeedbackStatus.SUBMITTING);
 	let isSuccess = $derived(status === FeedbackStatus.SUCCESS);
@@ -78,15 +90,16 @@
 		.min(3, { message: 'be at least 3 characters long.' });
 
 	function closeAndReset() {
-		dialogOpen = false;
+		open = false;
 	}
 
-	function onDialogOpenChange(open: boolean) {
-		if (!open) {
+	function onDialogOpenChange(next: boolean) {
+		if (!next) {
 			description = '';
 			email = '';
 			handleReset();
 		}
+		open = next;
 	}
 
 	async function handleSubmit(e: Event) {
@@ -130,19 +143,21 @@
 	}
 </script>
 
-<Dialog bind:open={dialogOpen} onOpenChange={onDialogOpenChange}>
-	<Button
-		variant="secondary"
-		type="button"
-		class={fixed ? 'rounded-md fixed bottom-5 right-5 z-50' : 'rounded-md w-full'}
-		onclick={() => (dialogOpen = true)}
-	>
-		<span class="flex items-center gap-2">
-			<AbstractIcon name={icons.MessageCircle.name} width="20" height="20" focusable="false" />
-			<span>{feedbackTitle}</span>
-		</span>
-		<span class="sr-only">Feedback</span>
-	</Button>
+<Dialog bind:open onOpenChange={onDialogOpenChange}>
+	{#if showTriggerButton}
+		<Button
+			variant="secondary"
+			type="button"
+			class={fixed ? 'rounded-md fixed bottom-5 right-5 z-50' : 'rounded-md w-full'}
+			onclick={() => (open = true)}
+		>
+			<span class="flex items-center gap-2">
+				<AbstractIcon name={icons.MessageCircle.name} width="20" height="20" focusable="false" />
+				<span>{feedbackTitle}</span>
+			</span>
+			<span class="sr-only">Feedback</span>
+		</Button>
+	{/if}
 
 	<DialogContent class="sm:max-w-[425px]">
 		<DialogHeader>
@@ -197,26 +212,27 @@
 
 				<div class="mt-2 flex gap-2">
 					{#if !isLoggedIn}
-						<Button variant="outline" size="lg" href={signinUrl} class="flex-1">
+						<Button variant="primary" size="lg" href={signinHref} class="w-full">
 							Sign in
 						</Button>
+					{:else}
+						<Button
+							variant="primary"
+							type="submit"
+							size="lg"
+							disabled={isSubmitting}
+							class="w-full"
+						>
+							{#if isSubmitting}
+								<span class="flex items-center gap-2">
+									<span>Submitting...</span>
+									<span class="loading loading-spinner loading-sm"></span>
+								</span>
+							{:else}
+								Submit
+							{/if}
+						</Button>
 					{/if}
-					<Button
-						variant="primary"
-						type="submit"
-						size="lg"
-						disabled={isSubmitting || !isLoggedIn}
-						class={isLoggedIn ? 'w-full' : 'flex-1'}
-					>
-						{#if isSubmitting}
-							<span class="flex items-center gap-2">
-								<span>Submitting...</span>
-								<span class="loading loading-spinner loading-sm"></span>
-							</span>
-						{:else}
-							Submit
-						{/if}
-					</Button>
 				</div>
 			</form>
 		{:else}

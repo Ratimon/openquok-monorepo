@@ -169,7 +169,7 @@
 				{/if}
 			</div>
 			<div class="flex items-center gap-1">
-				<DocsPageFeedback />
+				<DocsPageFeedback pageTitle={meta.title} />
 				<DocsCopyUrl />
 				<DocsBackToTop />
 			</div>

@@ -11,7 +11,19 @@ export class FeedbackController {
     createFeedback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const body = req.body as FeedbackSchemaType;
-            const id = await this.feedbackService.createFeedback(body);
+            const auth = req as AuthenticatedRequest;
+            const fromBody = body.email?.trim();
+            const emailFromAuth = auth.user?.email?.trim();
+            const payload: FeedbackSchemaType = {
+                ...body,
+                email:
+                    fromBody && fromBody.length > 0
+                        ? fromBody
+                        : emailFromAuth && emailFromAuth.length > 0
+                          ? emailFromAuth
+                          : undefined,
+            };
+            const id = await this.feedbackService.createFeedback(payload);
             res.status(201).json({
                 success: true,
                 data: { id },

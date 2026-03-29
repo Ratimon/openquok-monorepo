@@ -14,6 +14,8 @@ export interface AuthenticatedRequest extends Request {
         id: string;
         /** Public users.id; set when roles are loaded. */
         publicId?: string;
+        /** From JWT / auth.getUser(); use when body omits email (e.g. feedback). */
+        email?: string;
         roles?: AppRole[];
         permissions?: AppPermission[];
         isSuperAdmin?: boolean;
@@ -64,7 +66,10 @@ export function requireFullAuth(supabase: SupabaseClient) {
                 throw new TokenError("Invalid token: no user data returned");
             }
 
-            (req as AuthenticatedRequest).user = { id: data.user.id };
+            (req as AuthenticatedRequest).user = {
+                id: data.user.id,
+                email: data.user.email ?? undefined,
+            };
             next();
         } catch (err) {
             next(err);
@@ -116,6 +121,7 @@ export function requireFullAuthWithRoles(
             (req as AuthenticatedRequest).user = {
                 id: authId,
                 publicId,
+                email: data.user.email ?? undefined,
                 roles: rolesResult.roles,
                 permissions: permissionsResult.permissions,
                 isSuperAdmin,
@@ -178,6 +184,7 @@ export function optionalAuthWithRoles(
             (req as AuthenticatedRequest).user = {
                 id: authId,
                 publicId,
+                email: data.user.email ?? undefined,
                 roles: rolesResult.roles,
                 permissions: permissionsResult.permissions,
                 isSuperAdmin,

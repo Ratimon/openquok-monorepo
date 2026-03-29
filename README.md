@@ -19,16 +19,14 @@
 - check new data loaded whenever the route changes
 - Vs comparison/ company/sitemap pages in Footer
 - Cookie Consent not show (scroll)
-- doc subdomain
 - check rate limit again
-- RSS xml
+- Audit SSR for docs page
 
 ## To Do - Specific
 
 - Add open graph image
 - landing page
 - limit how many workspaces can be created for different plans
-- complehensive doc 
 - revenue share affiliate
 
 
