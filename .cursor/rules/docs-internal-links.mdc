@@ -13,6 +13,7 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
 - Use the **`ExternalLink`** component from `$lib/ui/components/docs/mdx/index.js` (re-exported in the docs MDX index) for **third-party** URLs (Vercel, Supabase docs, npm, etc.) so `rel` / `target` / security defaults stay consistent.
 - **Pattern**: `<ExternalLink href="https://...">Label</ExternalLink>`. Optional props: `trusted`, `follow`, `ariaLabel` — see `web/src/lib/ui/components/ExternalLink.svelte`.
 - **Do not** rely on raw Markdown `[text](https://...)` **inside** custom MDX components (e.g. `<Callout>`): those children are often **not** parsed as Markdown; use `<ExternalLink>` or plain `<a href="...">` with the same security expectations.
+- For external URLs in **plain prose** (including **“References”** sections), prefer **`ExternalLink`** over raw `<a href="...">` so outbound attributes stay consistent.
 
 ## Links to files in this repository
 
@@ -94,7 +95,7 @@ Clone the template repository and install dependencies.
 
 ### Configure your site
 
-Edit `src/lib/docs/config.ts` with your site details.
+Edit `web/src/data/docs.ts` and `web/src/lib/docs/constants/config.ts` with your site details.
 
 </Steps>
 ```
@@ -109,3 +110,4 @@ Edit `src/lib/docs/config.ts` with your site details.
 ## Front matter
 
 - Keep `title`, `description`, `order`, and `lastUpdated` on index and substantive pages when the rest of the docs do.
+- For SEO, include **“OpenQuok”** and a short product keyword such as **“social scheduler”** in the `description` where it fits naturally (especially on top-level section pages and major guides). Avoid keyword stuffing — keep it readable.

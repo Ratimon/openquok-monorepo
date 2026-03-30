@@ -1,6 +1,6 @@
 ---
 title: Configuration - Backend
-description: Environment variables and configuration for the backend and Supabase workspace.
+description: OpenQuok backend configuration — env vars, Supabase, and services for the social scheduler.
 order: 0
 lastUpdated: 2026-03-30
 ---

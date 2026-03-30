@@ -12,9 +12,11 @@
 
 	let siteTitle = docsConfig.site.title;
 	let fullTitle = $derived(title === siteTitle ? title : `${title} — ${siteTitle}`);
-	let url = $derived(
-		docsConfig.site.url ? `${docsConfig.site.url}${page.url.pathname}` : page.url.href
-	);
+	// Prerender-safe: avoid `page.url.search` / `page.url.href` (querystrings are not stable at build time).
+	let url = $derived.by(() => {
+		const baseUrl = docsConfig.site.url ?? '';
+		return baseUrl ? `${baseUrl}${page.url.pathname}` : page.url.pathname;
+	});
 
 	let breadcrumbItems = $derived.by(() => {
 		const parts = page.url.pathname.split('/').filter(Boolean);

@@ -8,6 +8,7 @@
     "preinstall": "npx only-allow pnpm",
     "---------------------- DEV WORKFLOW ----------------------": "",
     "web:dev": "pnpm --filter ./web dev",
+    "web:build": "pnpm --filter ./web build",
     "web:dev:clean": "pnpm --filter ./web dev:clean",
     "backend:dev": "pnpm --filter ./backend dev",
     "backend:lint": "pnpm --filter ./backend lint",

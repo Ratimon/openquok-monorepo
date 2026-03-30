@@ -1,6 +1,6 @@
 ---
 title: Vercel
-description: Deploy the backend and web apps to Vercel — projects, env vars, CLI, and domains.
+description: Deploy OpenQuok Application to Vercel — backend/web projects, env vars, CLI, and domains.
 order: 1
 lastUpdated: 2026-03-30
 ---

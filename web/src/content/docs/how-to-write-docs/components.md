@@ -110,7 +110,7 @@ OpenGraph, Twitter cards, JSON-LD structured data, and auto-generated sitemap.
 Use link cards for navigation:
 
 <CardGrid>
-<LinkCard title="Installation" description="Get started with the template" href="/docs/getting-started/installation" />
+<LinkCard title="Installation" description="Set up your environment and deploy OpenQuok" href="/docs/Installation" />
 <LinkCard title="Configuration" description="Customize your docs site" href="/docs/how-to-write-docs/configuration" />
 </CardGrid>
 

@@ -1,7 +1,7 @@
 ---
 title: Security guidelines
 description: Service key rules, RLS guidance, rate limiting, and SSR state-management safety.
-order: 2
+order: 1
 lastUpdated: 2026-03-30
 ---
 

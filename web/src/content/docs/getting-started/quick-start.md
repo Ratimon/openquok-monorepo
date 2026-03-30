@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-description: How to install the project, its dependencies, configure env, and run backend or web locally.
+description: OpenQuok quick start — install dependencies, configure env, and run the social scheduler locally.
 order: 2
 lastUpdated: 2026-03-30
 ---

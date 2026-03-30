@@ -16,10 +16,9 @@
 	let authDialogOpen = $state(false);
 
 	let isLoggedIn = $derived(page.data.isLoggedIn ?? false);
-	let pageUrl = $derived(page.url.href);
-	let signinReturnPath = $derived(
-		page.url.pathname + page.url.search + page.url.hash
-	);
+	// Prerender-safe: avoid querystrings/hashes for docs URLs.
+	let pageUrl = $derived(page.url.pathname);
+	let signinReturnPath = $derived(page.url.pathname);
 	let status = $derived(docsPageFeedbackPresenter.status);
 	let toastMessage = $derived(docsPageFeedbackPresenter.toastMessage);
 	let isSubmitting = $derived(status === FeedbackStatus.SUBMITTING);

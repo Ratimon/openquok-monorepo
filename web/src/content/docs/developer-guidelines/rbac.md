@@ -1,7 +1,7 @@
 ---
 title: RBAC (roles & permissions)
 description: App-level roles/permissions and the recommended backend integration patterns.
-order: 1
+order: 2
 lastUpdated: 2026-03-30
 ---
 

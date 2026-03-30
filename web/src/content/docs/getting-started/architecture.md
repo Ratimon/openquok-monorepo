@@ -1,6 +1,6 @@
 ---
 title: Project Architecture
-description: Understanding the project layout and key files.
+description: OpenQuok architecture — project layout and key files for the social scheduler.
 order: 1
 ---
 
@@ -13,6 +13,19 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 The repository is a **pnpm monorepo**: the root holds the workspace manifest, shared tooling, and top-level packages. **Data and files go through Supabase** (Postgres for relational data, **Supabase Storage** for objects when the product needs them).
 
 The customer-facing **SvelteKit** app lives in **`web/`**. It serves the marketing site, authenticated product UI, and the **`/docs`** documentation area. The docs runtime (content loading, navigation, search) lives under `web/src/lib/docs/`.
+
+## Tech stack
+
+- Supabase DB & Auth
+- Express.js
+- Svelte 5
+- Tailwind CSS
+- DaisyUI
+- Redis
+- Stripe
+- Resend
+- Sentry
+- Vercel
 
 Repository layout at the root:
 
