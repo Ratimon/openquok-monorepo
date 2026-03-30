@@ -5,7 +5,7 @@
 ### Links
 
 - [Website](https://www.openquok.com)
-- [Documentation](https://www.openquok.com/docs)
+- [Developer's Documentations](https://www.openquok.com/docs)
 - [Getting started](https://www.openquok.com/docs/getting-started)
 - [Architecture](https://www.openquok.com/docs/getting-started/architecture)
 - [Installation](https://www.openquok.com/docs/installation)

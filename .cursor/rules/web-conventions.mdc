@@ -1,12 +1,12 @@
 ---
-description: Web lib conventions — $lib imports, config/endpoint style, backend calls via repository (not gateway), route path helpers, form validation (Zod in domain *.types.ts + toast), SvelteKit page `data` destructuring
+description: Web lib conventions — $lib imports, icons, external links (ExternalLink + programmatic new tabs), config/endpoint style, backend calls via repository (not gateway), route path helpers, form validation (Zod in domain *.types.ts + toast), SvelteKit page `data` destructuring
 globs: web/**/*
 alwaysApply: false
 ---
 
 # Web: Lib Conventions
 
-Conventions for code under `web/src/lib/`. Apply both when writing new lib code and when editing existing modules. Section **5** (Zod schema placement) and section **6** (`data` on pages) also apply to SvelteKit `+page.svelte` / `+layout.svelte` under `web/src/routes/` (and related `+page.server.ts` load validation).
+Conventions for code under `web/src/lib/`. Apply both when writing new lib code and when editing existing modules. Section **5** (Zod schema placement) and section **6** (`data` on pages) also apply to SvelteKit `+page.svelte` / `+layout.svelte` under `web/src/routes/` (and related `+page.server.ts` load validation). Section **1b** documents external link behavior for UI (`ExternalLink` and programmatic new tabs).
 
 ---
 
@@ -56,6 +56,40 @@ External packages are unchanged: use package names (e.g. `"bits-ui"`, `"svelte"`
 - **Static usage**: Prefer `<AbstractIcon name={icons.SomeIcon.name} ... />` over string literals such as `name="Github"` so icon keys stay tied to the registry and refactors stay safe.
 - **Dynamic usage** (e.g. social platforms, CMS-driven keys): Define a map whose values are `icons.*.name` (typed as `IconName`), then pass the resolved name: `<AbstractIcon name={resolvedIconName} ... />`. Avoid hardcoded `IconName` strings in the map; use `icons.Github.name`, `icons.X.name`, etc.
 - **Components**: Use `AbstractIcon` from `$lib/ui/icons/AbstractIcon.svelte` for Lucide-style icons backed by the registry.
+
+---
+
+## 1b. External links: `ExternalLink` vs programmatic new tabs
+
+Use **`$lib/ui/components/ExternalLink.svelte`** for external URLs that are rendered as **real `<a href>`** links in the DOM (SEO-visible, crawlable, correct `rel`).
+
+### `ExternalLink` (declarative)
+
+- **`target="_blank"`** is always set.
+- **`rel`** is derived from **`trusted`** and **`follow`** (defaults: `trusted = false`, `follow = false`):
+  - If **`!trusted`**: add **`noopener`** and **`noreferrer`** (do not hand the opener to the target; strip referrer where appropriate).
+  - If **`!follow`**: add **`nofollow`** (do not pass link equity to the target for SEO).
+- **Defaults** (`trusted=false`, `follow=false`) → `rel="noopener noreferrer nofollow"`.
+- Override **`trusted`** / **`follow`** only when the product explicitly wants a different security or SEO posture for that destination.
+
+### Programmatic opens (buttons, menus, `onclick`)
+
+**`window.open(url, '_blank', …)` does not set `rel`.** The third argument is **window features** (size, position), not link semantics; **`nofollow` has no equivalent** there.
+
+When opening a third-party URL from a **button** or **menu item** (no `<a>` in markup), align with `ExternalLink` defaults by using a **temporary anchor** and `.click()`:
+
+1. Create `<a href="…">`, set **`target="_blank"`**, set **`rel`** explicitly, append to `document.body`, call **`click()`**, then remove the node.
+2. **Third-party** (e.g. ChatGPT, Claude): **`rel="noopener noreferrer nofollow"`** — same as `ExternalLink` with default props.
+3. **Same-origin** new tab (e.g. our own docs raw Markdown URL): **`rel="noopener noreferrer"`** — omit **`nofollow`** for normal internal resources.
+
+Guard **`document`** when the helper could run during SSR (`if (typeof document === 'undefined') return`).
+
+**Reference implementation:** `$lib/ui/components/docs/DocsCopyButton.svelte` (`openInNewTab`, `openMarkdownTab`, `openExternal`).
+
+### Benefits
+
+- One consistent story for security (`noopener` / `noreferrer`) and default external SEO policy (`nofollow`).
+- Avoids mistakenly treating `window.open`’s third argument as if it were `rel`.
 
 ---
 

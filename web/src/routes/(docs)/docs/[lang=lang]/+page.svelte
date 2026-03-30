@@ -23,7 +23,7 @@
 <DocsSeoHead title={meta.title} description={meta.description} />
 
 {#if doc}
-	<DocsDocRenderer meta={doc.meta} component={doc.component} {slug} {rawContent} />
+	<DocsDocRenderer meta={doc.meta} component={doc.component} {slug} {rawContent} locale={locale} />
 {/if}
 <DocsFooter {prev} {next} />
 <DocsKeyboardNav {prev} {next} />

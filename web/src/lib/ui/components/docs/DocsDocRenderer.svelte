@@ -1,12 +1,14 @@
 <script lang="ts">
 	import type { Component } from 'svelte';
 	import type { DocMeta } from '$lib/docs/types';
+
 	import { toc } from '$lib/docs/utils/toc-state.svelte';
 	import { docsConfig } from '$lib/docs/constants';
 	import { icons } from '$data/icon';
 
 	import DocsMobileToc from '$lib/ui/components/docs/DocsMobileToc.svelte';
 	import DocsBackToTop from '$lib/ui/components/docs/nav/DocsBackToTop.svelte';
+	import DocsCopyButton from '$lib/ui/components/docs/DocsCopyButton.svelte';
 	import DocsCopyUrl from '$lib/ui/components/docs/nav/DocsCopyUrl.svelte';
 	import DocsPageFeedback from '$lib/ui/components/docs/nav/DocsPageFeedback.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -16,12 +18,14 @@
 		meta,
 		component: Content,
 		slug = '',
-		rawContent = ''
+		rawContent = '',
+		locale
 	}: {
 		meta: DocMeta;
 		component: Component;
 		slug?: string;
 		rawContent?: string;
+		locale?: string;
 	} = $props();
 
 	let readingTime = $derived(rawContent ? calculateReadingTime(rawContent) : '');
@@ -122,9 +126,18 @@
 
 <article id="doc-content" class="doc-content mx-auto w-full max-w-4xl" data-pagefind-body>
 	<header class="mb-8">
-		<h1 class="text-base-content text-3xl font-bold tracking-tight">{meta.title}</h1>
+		<div class="mb-2 flex flex-col gap-4 sm:mb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+			<h1 class="text-base-content min-w-0 flex-1 text-3xl font-bold tracking-tight">
+				{meta.title}
+			</h1>
+			<div class="shrink-0 self-start sm:pt-0.5">
+				<DocsCopyButton {rawContent} {slug} {locale} />
+			</div>
+		</div>
 		{#if meta.description}
-			<p class="text-base-content/70 mt-2 text-lg">{meta.description}</p>
+			<p class="text-base-content/70 mt-2 text-lg">
+				{meta.description}
+			</p>
 		{/if}
 		{#if readingTime}
 			<div class="text-base-content/60 mt-3 flex items-center gap-1.5 text-sm">

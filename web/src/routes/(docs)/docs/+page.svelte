@@ -20,7 +20,6 @@
 </script>
 
 <DocsSeoHead title={meta.title} description={meta.description} />
-
 {#if doc}
 	<DocsDocRenderer meta={doc.meta} component={doc.component} {slug} {rawContent} />
 {/if}
