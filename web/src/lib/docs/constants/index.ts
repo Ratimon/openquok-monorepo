@@ -1,1 +1,1 @@
-export { docsConfig } from './config';
+export { docsConfig } from '$lib/docs/constants/config';

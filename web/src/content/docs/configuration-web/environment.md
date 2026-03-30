@@ -1,0 +1,62 @@
+---
+title: Environment variables
+description: VITE_* values for API base URL, Supabase, Stripe, and analytics.
+order: 1
+lastUpdated: 2026-03-30
+---
+
+<script>
+import { Badge, Callout, CardGrid, ExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+</script>
+
+## Overview
+
+At runtime, the web app uses Vite environment variables (the `VITE_*` set).
+
+When you change a value in your `.env` files, restart the web dev server or rebuild so Vite can load the new values.
+
+## Steps
+
+<Steps>
+
+### Copy the development env template
+
+Copy <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="envFile" /></ExternalLink> to <Badge text="web/.env.development.local" variant="envFile" />.
+
+### Set required variables
+
+Set:
+
+- <Badge text="VITE_API_BASE_URL" variant="envWeb" />
+- <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />
+- <Badge text="VITE_PUBLIC_SUPABASE_URL" variant="envWeb" />
+- <Badge text="VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY" variant="envWeb" />
+- <Badge text="VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID" variant="envWeb" />
+
+And choose the Stripe price IDs for your plans:
+
+- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_LITE_PLAN" variant="envWeb" />
+- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_BASIC_PLAN" variant="envWeb" />
+- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_STARTER_PACK" variant="envWeb" />
+- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_GROWTH_PACK" variant="envWeb" />
+- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_PROFESSIONAL_PACK" variant="envWeb" />
+- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_1_YEAR_PACK" variant="envWeb" />
+- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_LIFETIME_PACK" variant="envWeb" />
+
+### Set production env values
+
+For deployment, ensure <Badge text="web/.env.production.local" variant="envFile" /> (or equivalent secret injection) contains the same key names with production values.
+
+</Steps>
+
+<Callout type="note" title="Tip: keep secrets in env files">
+Do not hard-code secrets in the source code. Use the `.env` files listed above and commit only the template/example files.
+</Callout>
+
+## Related configuration
+
+<CardGrid>
+<LinkCard title="PWA configuration" description="Edit web-config.json for app name and icon metadata" href="/docs/configuration-web/pwa" />
+<LinkCard title="Configuration - Web" description="Back to the web configuration hub" href="/docs/configuration-web" />
+</CardGrid>
+

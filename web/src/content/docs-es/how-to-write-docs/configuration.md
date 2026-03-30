@@ -25,8 +25,8 @@ export const docsConfig: DocsConfig = {
       autogenerate: { directory: 'getting-started' }
     },
     {
-      label: 'Guías',
-      autogenerate: { directory: 'guides' }
+      label: 'How to write docs',
+      autogenerate: { directory: 'how-to-write-docs' }
     }
   ],
   toc: {

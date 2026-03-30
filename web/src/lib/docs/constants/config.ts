@@ -1,5 +1,5 @@
-import { docsI18n, docsSidebar, docsSite } from '$data/docs';
 import type { DocsConfig } from '$lib/docs/types';
+import { docsI18n, docsSidebar, docsSite } from '$data/docs';
 
 export const docsConfig: DocsConfig = {
 	site: docsSite,

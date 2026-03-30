@@ -58,7 +58,9 @@
 								<AbstractIcon name={icons.LayoutTemplate.name} class="size-4" width="16" height="16" />
 							</div>
 							<div class="flex flex-col gap-0.5 leading-none">
-								<span class="font-semibold">{docsConfig.site.title}</span>
+								<span class="font-semibold">
+									{docsConfig.site.title}
+								</span>
 								<span>{docsConfig.versions?.current}</span>
 							</div>
 							<AbstractIcon name={icons.ChevronsUpDown.name} class="ms-auto" width="16" height="16" />

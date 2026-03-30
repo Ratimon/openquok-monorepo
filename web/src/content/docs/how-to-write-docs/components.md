@@ -74,7 +74,7 @@ Clone the template repository and install dependencies.
 
 ### Configure your site
 
-Edit `src/lib/docs/config.ts` with your site details.
+Edit <code>web/src/data/docs.ts</code> (site title, description, sidebar sections) and <code>web/src/lib/docs/constants/config.ts</code> (assembled docs config such as TOC settings).
 
 ### Write your content
 
@@ -111,12 +111,24 @@ Use link cards for navigation:
 
 <CardGrid>
 <LinkCard title="Installation" description="Get started with the template" href="/docs/getting-started/installation" />
-<LinkCard title="Configuration" description="Customize your docs site" href="/docs/guides/configuration" />
+<LinkCard title="Configuration" description="Customize your docs site" href="/docs/how-to-write-docs/configuration" />
 </CardGrid>
 
 ## Badges
 
-Use badges to indicate status: <Badge text="New" variant="new" /> <Badge text="Experimental" variant="experimental" /> <Badge text="Deprecated" variant="deprecated" /> <Badge text="v1.0.0" />
+Use **`Badge`** from `$lib/ui/components/docs/mdx/index.js` for short labels in prose.
+
+**Release / status:** <Badge text="New" variant="new" /> <Badge text="Experimental" variant="experimental" /> <Badge text="Deprecated" variant="deprecated" /> <Badge text="v1.0.0" />
+
+**Docs semantics** (pick variants so readers can scan by color — see `web/src/content/docs/Installation/vercel.md`):
+
+- **Backend env** (no `VITE_` prefix): <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />
+- **Web / Vite env**: <Badge text="VITE_API_BASE_URL" variant="envWeb" />
+- **CORS / origins**: <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envCors" />
+- **Runtime / platform**: <Badge text="VERCEL" variant="envRuntime" />
+- **Env files**: <Badge text="backend/.env.development.local" variant="envFile" />
+- **Repo paths & routes** (often nested in ExternalLink to GitHub): <Badge text="backend/vercel.json" variant="path" />
+- **URL examples** (prefer / avoid): <Badge text="https://example.com" variant="new" /> vs <Badge text="https://example.com/" variant="deprecated" />
 
 ## File Tree
 
@@ -130,7 +142,7 @@ Display directory structures:
       - index.md
       - getting-started/
         - installation.md
-      - guides/
+      - how-to-write-docs/
         - configuration.md
   - lib/
     - components/

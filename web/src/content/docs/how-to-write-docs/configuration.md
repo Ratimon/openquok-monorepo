@@ -6,11 +6,12 @@ order: 1
 
 ## Site Configuration
 
-Edit `src/lib/docs/config.ts` to customize your site:
+Edit the docs config in:
+
+- <code>web/src/data/docs.ts</code> — site metadata (title/description/social), sidebar sections, i18n
+- <code>web/src/lib/docs/constants/config.ts</code> — assembled <code>docsConfig</code> (TOC defaults, optional version selector)
 
 ```typescript
-import type { DocsConfig } from './types.js';
-
 export const docsConfig: DocsConfig = {
   site: {
     title: 'My Docs',
@@ -25,8 +26,8 @@ export const docsConfig: DocsConfig = {
       autogenerate: { directory: 'getting-started' }
     },
     {
-      label: 'Guides',
-      autogenerate: { directory: 'guides' }
+      label: 'How to write docs',
+      autogenerate: { directory: 'how-to-write-docs' }
     }
   ],
   toc: {

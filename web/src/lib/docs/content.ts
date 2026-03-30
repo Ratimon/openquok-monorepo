@@ -50,7 +50,44 @@ function buildDocs(modules: Record<string, DocFile>, prefix: string, hrefPrefix:
 		});
 	}
 
-	return docs.sort((a, b) => (a.meta.order ?? 999) - (b.meta.order ?? 999));
+	return orderDocsBySidebar(docs);
+}
+
+/**
+ * Order pages for prev/next and flat listings: sidebar section order first,
+ * then `meta.order` within each section. (Global `order` alone interleaves
+ * unrelated sections, e.g. getting-started and how-to-write-docs both using 1.)
+ */
+function orderDocsBySidebar(docs: DocPage[]): DocPage[] {
+	const used = new Set<string>();
+	const ordered: DocPage[] = [];
+
+	const push = (d: DocPage) => {
+		if (!used.has(d.slug)) {
+			ordered.push(d);
+			used.add(d.slug);
+		}
+	};
+
+	const root = docs.find((d) => d.slug === '');
+	if (root) push(root);
+
+	for (const section of docsConfig.sidebar) {
+		if (!section.autogenerate) continue;
+		const dir = section.autogenerate.directory;
+		const inSection = docs
+			.filter((d) => d.slug === dir || d.slug.startsWith(`${dir}/`))
+			.sort(
+				(a, b) =>
+					(a.meta.order ?? 999) - (b.meta.order ?? 999) || a.slug.localeCompare(b.slug)
+			);
+		for (const d of inSection) push(d);
+	}
+
+	for (const d of docs) {
+		if (!used.has(d.slug)) push(d);
+	}
+	return ordered;
 }
 
 export function getAllDocs(locale?: string): DocPage[] {

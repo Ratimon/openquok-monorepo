@@ -23,7 +23,7 @@
 	}: Props = $props();
 
 	const tabs = getTabsContext();
-	const selected = $derived((tabs.getValue() ?? "") === value);
+	const selected = $derived((tabs.tabState.current ?? "") === value);
 </script>
 
 {#if selected || forceMount}
@@ -32,7 +32,7 @@
 		role="tabpanel"
 		aria-labelledby={`${value}-tab`}
 		id={`${value}-panel`}
-		class={cn("tab-content pt-4", !selected && "hidden", className)}
+		class={cn("block w-full pt-4", !selected && "hidden", className)}
 		{...restProps}
 	>
 		{@render children?.()}

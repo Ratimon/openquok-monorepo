@@ -1,0 +1,111 @@
+---
+description: Authoring docs under web/src/content/docs — ExternalLink, GitHub file links, Badge env/path semantics, Callouts, env-var HTML fallback, Steps, CLI bash blocks, CardGrid/LinkCard
+globs: web/src/content/docs/**/*
+alwaysApply: false
+---
+
+# Docs (MD / MDX) authoring
+
+Applies to Markdown and MDsvex files under `web/src/content/docs/`.
+
+## External links
+
+- Use the **`ExternalLink`** component from `$lib/ui/components/docs/mdx/index.js` (re-exported in the docs MDX index) for **third-party** URLs (Vercel, Supabase docs, npm, etc.) so `rel` / `target` / security defaults stay consistent.
+- **Pattern**: `<ExternalLink href="https://...">Label</ExternalLink>`. Optional props: `trusted`, `follow`, `ariaLabel` — see `web/src/lib/ui/components/ExternalLink.svelte`.
+- **Do not** rely on raw Markdown `[text](https://...)` **inside** custom MDX components (e.g. `<Callout>`): those children are often **not** parsed as Markdown; use `<ExternalLink>` or plain `<a href="...">` with the same security expectations.
+
+## Links to files in this repository
+
+- Prefer **stable GitHub URLs** to the **default branch** (`main`):  
+  `https://github.com/Ratimon/openquok-monorepo/blob/main/<path>`  
+  Wrap with `<ExternalLink href="...">` when the link leaves the docs site (GitHub is external).
+- **Short labels** can use `<code>path/to/file</code>` inside the link, or **`Badge`** with **`variant="path"`** for scan-friendly chips:  
+  `<ExternalLink href="https://github.com/.../blob/main/backend/vercel.json"><Badge text="backend/vercel.json" variant="path" /></ExternalLink>`.
+- Keep `docsSite.social.github` in `web/src/data/docs.ts` aligned with the org/repo used in URLs.
+
+## Badges for env vars, paths, and examples (`Badge`)
+
+- Import **`Badge`** from `$lib/ui/components/docs/mdx/index.js` (see `DocsBadge.svelte` for the full variant map).
+- Prefer **`<Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />`** (and related variants) over inline **`<code>`** for **environment variable names** in docs: the label is a **string prop**, so underscores and `*` do not trigger MDsveX emphasis bugs, and color coding helps readers distinguish **backend** vs **web (Vite)** vs **CORS** vs **runtime** vars.
+- **Semantic variants** (use consistently on a page):
+  - **`envBackend`** — backend package env (typically no `VITE_` prefix): blue.
+  - **`envWeb`** — web / `VITE_*` env: purple.
+  - **`envCors`** — origins / CORS-related names: warning.
+  - **`envRuntime`** — platform flags such as `VERCEL`, `NODE_ENV`: gray.
+  - **`envFile`** — `.env` files and example env templates: pink.
+  - **`path`** — repo-relative paths, route paths, folder names: outline (use inside **`ExternalLink`** for GitHub file links when you want a chip instead of `<code>`).
+- **Examples**: **`new`** (green) vs **`deprecated`** (red) for **preferred vs discouraged URL shapes** (e.g. with vs without a trailing slash). **`experimental`** (yellow) works well for **npm package names** (e.g. `@sveltejs/adapter-vercel`) when linked to upstream docs.
+- **`default`** — generic keys (e.g. `buildCommand`, `installCommand`) when they are not env vars.
+
+## Underscores and `*` in environment variable names (MDsveX)
+
+- Inline Markdown **backticks** around names like `` `NODE_ENV` `` or `` `BACKEND_DOMAIN_URL` `` can be parsed as **emphasis** (`_…_` / `*…*`), which breaks the Svelte compile (`element_invalid_closing_tag`).
+- **Prefer `Badge`** with the **`text`** prop for env-style identifiers (see **Badges** above). If you cannot use `Badge`, use **HTML**: `<code>NODE&#95;ENV</code>`, `<code>BACKEND&#95;DOMAIN&#95;URL</code>`, or `&#42;` for a literal `*` (e.g. <code>REDIS&#95;&#42;</code> for “REDIS_*”).
+- Inside **`<Callout>`**, use **`Badge`** or the same HTML `<code>` pattern when Markdown is not parsed.
+
+## Callouts vs GitHub alerts
+
+- Do **not** paste GitHub `> [!WARNING]` / `> [!IMPORTANT]` blocks into MDX; they are not rendered as UI components here.
+- Use **`<Callout type="note|tip|warning|danger" title="Optional">`** with **HTML** for lists/links inside the callout when Markdown is not parsed. Prefer **`<a href="...">`** for in-callout links (see `DocsCallout`).
+
+## Next steps and related pages (`LinkCard` / `CardGrid`)
+
+- For **“Next steps”** (or similar) sections with **multiple in-site destinations**, prefer **`CardGrid`** + **`LinkCard`** from `$lib/ui/components/docs/mdx/index.js` over a Markdown bullet list of `[label](/docs/...)` links. This matches pages such as **quick-start**, **development-environment**, and **Installation/vercel**.
+- **Pattern** (add the components to the page `<script>` import):
+
+```html
+<script>
+import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+</script>
+
+## Next steps
+
+<CardGrid>
+<LinkCard title="Backend configuration" description="…" href="/docs/configuration-backend" />
+<LinkCard title="Web configuration" description="…" href="/docs/configuration-web" />
+</CardGrid>
+```
+
+- **`href`** values use the site’s docs path prefix only: **`/docs/<slug>`** (e.g. `/docs/configuration-backend`, `/docs/getting-started/quick-start`). Slugs follow `web/src/content/docs/**` paths (`Installation/...` → `/docs/Installation/...` with the same casing as on disk).
+- Reuse **titles and descriptions** that already appear on other pages (e.g. quick-start’s configuration cards) so the UX stays consistent.
+
+### Main section index pages: “Related Section(s)”
+
+- For **top-level section index pages** (the `index.md` at a section root such as `getting-started/`, `Installation/`, `configuration-backend/`, `configuration-web/`), add a bottom section named **`## Related Section(s)`**.
+- Use **`CardGrid`** + **`LinkCard`** to point readers to the **next** or **related** top-level areas (for example linking `Getting Started` → `/docs/Installation`, config hubs → `/docs/Installation` and `/docs/developer-guidelines`).
+- **Do not** add this block to **subpages** inside a section unless they truly need cross-section navigation; prefer small “Related configuration” blocks only when helpful.
+
+## Numbered procedures (`Steps`)
+
+- For **ordered multi-step instructions** (deploy guides, setup flows), prefer **`Steps`** from `$lib/ui/components/docs/mdx/index.js` over Markdown `1.` / `2.` lists so the UI shows **circled step numbers** and consistent vertical rhythm.
+- **Pattern**: wrap the section in `<Steps>…</Steps>`. Each step is **`###` or `####`** (Markdown heading) plus body content (paragraphs, tables, `<Callout>`, etc.). Do **not** put numbers in the heading text — the component numbers steps automatically.
+- **Example** (see `web/src/content/docs/how-to-write-docs/components.md` and `web/src/content/docs/Installation/vercel.md`):
+
+```html
+<script>
+import { Steps } from '$lib/ui/components/docs/mdx/index.js';
+</script>
+
+<Steps>
+
+### Create a new project
+
+Clone the template repository and install dependencies.
+
+### Configure your site
+
+Edit `src/lib/docs/config.ts` with your site details.
+
+</Steps>
+```
+
+- **Long or sensitive notes** inside a step (e.g. “do not run this build locally”) can sit in **`<Callout type="warning">`** (or `danger` / `note` as appropriate) **immediately under** that step’s `###` heading, before the next step heading. Use **plain text** in the `title` attribute (no HTML tags inside `title="..."`).
+
+## CLI commands in prose
+
+- Do **not** document runnable commands only in a **Markdown table** (`| Command | Description |`). Use the same pattern as **`web/src/content/docs/Installation/development-environment.md`** (Deployment section): a **bold lead-in** with an em dash and short explanation, then a **`bash`** fenced block with the command.
+- Example (see **`web/src/content/docs/Installation/vercel.md`**): write `**Deploy backend to Vercel (preview)** — invokes the Vercel CLI with backend/ as the working directory.`, a blank line, then a fenced **`bash`** block containing `pnpm vercel:deploy:backend` (no table of command vs description).
+
+## Front matter
+
+- Keep `title`, `description`, `order`, and `lastUpdated` on index and substantive pages when the rest of the docs do.

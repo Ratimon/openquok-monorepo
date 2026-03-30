@@ -12,7 +12,6 @@
 		href: string;
 	} = $props();
 </script>
-
 <a {href} class="not-prose no-underline">
 	<Card
 		class="border-base-300 hover:border-primary/30 hover:bg-base-200/40 group transition-colors"

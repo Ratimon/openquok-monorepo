@@ -3,8 +3,8 @@ import type { IconName } from '$data/icon';
 import { icons } from '$data/icon';
 
 export const docsSite = {
-	title: 'Documentation',
-	description: 'Product documentation.',
+	title: 'OpenQuok Documentation',
+	description: 'Developer Reference',
 	url: '',
 	social: {
 		github: 'https://github.com/Ratimon/openquok-monorepo',
@@ -35,8 +35,28 @@ export const docsSidebar: DocsSidebarSection[] = [
 		autogenerate: { directory: 'getting-started' }
 	},
 	{
-		label: 'Guides',
+		label: 'Installation',
+		icon: icons.Terminal.name,
+		autogenerate: { directory: 'Installation' }
+	},
+	{
+		label: 'Backend Setup',
+		icon: icons.Settings.name,
+		autogenerate: { directory: 'configuration-backend' }
+	},
+	{
+		label: 'Frontend Setup',
+		icon: icons.Settings.name,
+		autogenerate: { directory: 'configuration-web' }
+	},
+	{
+		label: 'Developer Guidelines',
+		icon: icons.Code.name,
+		autogenerate: { directory: 'developer-guidelines' }
+	},
+	{
+		label: 'How to write docs',
 		icon: icons.BookOpen.name,
-		autogenerate: { directory: 'guides' }
-	}
+		autogenerate: { directory: 'how-to-write-docs' }
+	},
 ];

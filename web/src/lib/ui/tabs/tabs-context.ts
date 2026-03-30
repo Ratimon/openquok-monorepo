@@ -3,6 +3,8 @@ import { getContext, setContext } from "svelte";
 export type TabsOrientation = "horizontal" | "vertical";
 
 export type TabsContextValue = {
+	/** Reactive selection; read `tabState.current` in $derived (plain getters are not reactive across context). */
+	tabState: { current: string | undefined };
 	getValue: () => string | undefined;
 	setValue: (next: string) => void;
 	orientation: TabsOrientation;

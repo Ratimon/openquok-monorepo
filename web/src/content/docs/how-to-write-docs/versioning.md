@@ -12,7 +12,7 @@ This is **not** a Docusaurus-style versioning system that maintains multiple con
 
 ## Enabling the Version Selector
 
-Add the `versions` config to `src/lib/docs/config.ts`:
+Add the optional `versions` config to <code>web/src/lib/docs/constants/config.ts</code> (it is read by the docs sidebar header):
 
 ```typescript
 export const docsConfig: DocsConfig = {

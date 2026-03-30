@@ -20,9 +20,9 @@ src/content/docs/
 ├── getting-started/
 │   ├── installation.md         # /docs/getting-started/installation
 │   └── project-structure.md    # /docs/getting-started/project-structure
-└── guides/
-    ├── configuration.md        # /docs/guides/configuration
-    └── writing-content.md      # /docs/guides/writing-content
+└── how-to-write-docs/
+    ├── configuration.md        # /docs/es/how-to-write-docs/configuration
+    └── writing-content.md      # /docs/es/how-to-write-docs/writing-content
 ```
 
 ### `src/lib/docs/`

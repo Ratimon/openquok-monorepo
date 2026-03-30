@@ -20,12 +20,13 @@
 		disabled,
 		class: className,
 		"data-slot": dataSlot = "tabs-trigger",
+		children,
 		...restProps
 	}: Props = $props();
 
 	const tabs = getTabsContext();
 
-	const selected = $derived((tabs.getValue() ?? "") === value);
+	const selected = $derived((tabs.tabState.current ?? "") === value);
 
 	$effect(() => {
 		const el = ref;
@@ -86,5 +87,7 @@
 	onclick={onClick}
 	onkeydown={onKeyDown}
 	{...restProps}
-></button>
+>
+	{@render children?.()}
+</button>
 

@@ -1,6 +1,6 @@
 import { docsConfig } from '$lib/docs/constants';
 
-/** Sidebar directory segment: `guides` for `guides/foo`; empty for index or single-segment slugs. */
+/** Sidebar directory segment: e.g. `how-to-write-docs` for `how-to-write-docs/foo`; empty for index or single-segment slugs. */
 export function docSectionKey(slug: string): string {
 	const parts = slug.split('/');
 	return parts.length > 1 ? parts[0]! : '';

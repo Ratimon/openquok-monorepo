@@ -8,6 +8,8 @@
 		orientation?: TabsOrientation;
 		class?: string;
 		"data-slot"?: string;
+		/** When true, do not call setContext — use when a parent (e.g. DocsTabs) owns tab context for panels outside this root. */
+		skipContext?: boolean;
 	}>;
 
 	let {
@@ -16,17 +18,34 @@
 		orientation = "horizontal",
 		class: className,
 		"data-slot": dataSlot = "tabs",
+		skipContext = false,
 		children
 	}: Props = $props();
+
+	/** Uncontrolled selection; ensures triggers/panels re-render when `value` is not bound from a parent. */
+	let localSelected = $state<string | undefined>(undefined);
 
 	const triggerOrder = $state<string[]>([]);
 	const triggerEls = new Map<string, Set<HTMLElement>>();
 
+	$effect(() => {
+		if (value !== undefined) {
+			localSelected = value;
+		}
+	});
+
 	function getValue() {
-		return value ?? defaultValue;
+		return value !== undefined ? value : (localSelected ?? defaultValue);
 	}
 
+	const tabState = $state<{ current: string | undefined }>({ current: undefined });
+
+	$effect(() => {
+		tabState.current = getValue();
+	});
+
 	function setValue(next: string) {
+		localSelected = next;
 		value = next;
 	}
 
@@ -67,18 +86,23 @@
 		focusTriggerByValue(edge === "start" ? triggerOrder[0]! : triggerOrder[triggerOrder.length - 1]!);
 	}
 
-	setTabsContext({
-		getValue,
-		setValue,
-		get orientation() {
-			return orientation;
-		},
-		registerTrigger,
-		unregisterTrigger,
-		focusTriggerByValue,
-		focusNextFrom,
-		focusEdge
-	});
+	// skipContext is fixed per instance (e.g. DocsTabs always passes true); conditional setContext is intentional.
+	// svelte-ignore state_referenced_locally
+	if (!skipContext) {
+		setTabsContext({
+			tabState,
+			getValue,
+			setValue,
+			get orientation() {
+				return orientation;
+			},
+			registerTrigger,
+			unregisterTrigger,
+			focusTriggerByValue,
+			focusNextFrom,
+			focusEdge
+		});
+	}
 </script>
 
 <div data-slot={dataSlot} class={cn("w-full", className)}>

@@ -139,19 +139,20 @@ export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 	}
 };
 
+
 // Landing page (public home) content defaults
 export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	HERO_TITLE: {
 		description: 'The primary headline displayed in the hero section of your landing page',
 		type: 'string',
-		default: 'Automate your social scheduler — in minutes not hours',
+		default: 'AI scales the content creation pipeline. You control the output.',
 		inputType: 'input',
 		maxInputLength: 80
 	},
 	HERO_SLOGAN: {
 		description: 'The secondary text or tagline shown below the hero title',
 		type: 'string',
-		default: 'Turn OpenClaw into autonomous social media manager with control built in',
+		default: 'Connect Openclaw once — Approve weeks of social content in minutes, not hours.',
 		inputType: 'textarea',
 		maxInputLength: 200
 	},

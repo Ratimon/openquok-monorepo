@@ -25,32 +25,49 @@
 		githubRepo = ''
 	}: Props = $props();
 
-	// Split title by commas/newlines and trim each part.
-	// Also, if the copy contains "not hours"/"not hrs" without a comma, auto-split it
-	// so the highlight pill can apply.
-	const titleParts = $derived.by(() => {
-		const hasExplicitSplit = heroTitle.includes(',') || heroTitle.includes('\n');
-		const normalized = heroTitle.replace(
-			/\s+(not\s+(?:hours|hrs|hr)\b)/i,
-			(match, phrase) => (hasExplicitSplit ? ` ${phrase}` : `, ${phrase}`)
-		);
-		return normalized
-			.split(/,|\n/g)
-			.map((part) => part.trim())
-			.filter((part) => part.length > 0);
-	});
+	const HIGHLIGHT_PILL_CLASS =
+		'bg-white text-black px-3 py-1 rounded-md -rotate-1 inline-block';
 
-	const normalizePart = (part: string) => part.toLowerCase().replace(/\s+/g, ' ').trim();
-	const isHighlightPart = (part: string) => {
-		const p = normalizePart(part);
-		return p === 'not hours' || p === 'not hrs' || p === 'not hr';
-	};
+	type TextSegment = { text: string; highlight: boolean };
 
-	// High-contrast gradients for forest/dark-green background
-	const getTitlePartClass = (part: string, index: number): string => {
-		if (isHighlightPart(part)) {
-			return 'bg-white text-black px-3 py-1 rounded-md -rotate-1 inline-block';
+	function parseTitleForControlHighlight(text: string): TextSegment[] {
+		if (!text) return [];
+		const parts = text.split(/(\bcontrol\b)/gi);
+		const out: TextSegment[] = [];
+		for (const p of parts) {
+			if (p === '') continue;
+			out.push({ text: p, highlight: /^control$/i.test(p) });
 		}
+		return out;
+	}
+
+	function parseSloganForNotHoursHighlight(text: string): TextSegment[] {
+		if (!text) return [];
+		const parts = text.split(/(\bnot\s+(?:hours|hrs|hr)\b)/i);
+		const out: TextSegment[] = [];
+		for (const p of parts) {
+			if (p === '') continue;
+			out.push({
+				text: p,
+				highlight: /^\s*not\s+(?:hours|hrs|hr)\s*$/i.test(p)
+			});
+		}
+		return out;
+	}
+
+	const titleSegments = $derived(parseTitleForControlHighlight(heroTitle));
+	const sloganSegments = $derived(parseSloganForNotHoursHighlight(heroSlogan));
+
+	function gradientIndexBeforeTitleSegment(index: number): number {
+		let n = 0;
+		for (let j = 0; j < index; j++) {
+			if (!titleSegments[j].highlight) n++;
+		}
+		return n;
+	}
+
+	// High-contrast gradients for forest/dark-green background (non-highlight title spans only)
+	const getTitleGradientClass = (index: number): string => {
 		const classes = [
 			'bg-gradient-to-r from-emerald-300 via-lime-300 to-amber-300 bg-clip-text text-transparent',
 			'bg-gradient-to-r from-fuchsia-300 via-rose-300 to-orange-300 bg-clip-text text-transparent',
@@ -138,11 +155,17 @@
 				</div>
 			{/if}
 			<h1 class="text-balance text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-					{#if titleParts.length > 0}
-						{#each titleParts as part, index (part)}
-							<span class="{getTitlePartClass(part, index)} mr-3">
-								{part}
-							</span>
+					{#if titleSegments.length > 0}
+						{#each titleSegments as seg, index (index)}
+							{#if seg.highlight}
+								<span class="{HIGHLIGHT_PILL_CLASS} mr-3">{seg.text}</span>
+							{:else}
+								<span
+									class="{getTitleGradientClass(gradientIndexBeforeTitleSegment(index))} mr-3"
+								>
+									{seg.text}
+								</span>
+							{/if}
 						{/each}
 					{:else}
 						<span class="bg-gradient-to-r from-base-content via-base-content/80 to-base-content/70 bg-clip-text text-transparent">
@@ -152,7 +175,17 @@
 				</h1>
 
 				<p class="mt-6 text-pretty text-base font-medium leading-relaxed text-base-content/70 sm:text-lg">
-					{heroSlogan}
+					{#if sloganSegments.length > 0}
+						{#each sloganSegments as seg (seg.text + String(seg.highlight))}
+							{#if seg.highlight}
+								<span class={HIGHLIGHT_PILL_CLASS}>{seg.text}</span>
+							{:else}
+								{seg.text}
+							{/if}
+						{/each}
+					{:else}
+						{heroSlogan}
+					{/if}
 				</p>
 
 				<div class="mt-10 flex items-center justify-center">

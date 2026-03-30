@@ -12,7 +12,7 @@ Crea un nuevo archivo `.md` en `src/content/docs/` para agregar una página. La 
 |------------------|-----|
 | `docs/index.md` | `/docs` |
 | `docs/getting-started/installation.md` | `/docs/getting-started/installation` |
-| `docs/guides/configuration.md` | `/docs/guides/configuration` |
+| `docs/how-to-write-docs/configuration.md` | `/docs/es/how-to-write-docs/configuration` |
 
 ## Características de Markdown
 
