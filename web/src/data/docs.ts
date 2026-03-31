@@ -50,6 +50,11 @@ export const docsSidebar: DocsSidebarSection[] = [
 		autogenerate: { directory: 'configuration-web' }
 	},
 	{
+		label: 'Admin Roles',
+		icon: icons.ShieldCheck.name,
+		autogenerate: { directory: 'admin' }
+	},
+	{
 		label: 'Developer Guidelines',
 		icon: icons.Code.name,
 		autogenerate: { directory: 'developer-guidelines' }
