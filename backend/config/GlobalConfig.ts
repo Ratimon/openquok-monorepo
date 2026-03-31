@@ -82,34 +82,6 @@ export const config: ConfigObject = {
         inviteTokenSecret: getEnv("INVITE_TOKEN_SECRET", getEnv("JWT_SECRET", "")),
     },
 
-    /**
-     * OAuth providers (Google, GitHub, Generic OIDC).
-     *
-     * - Providers are **enabled only when required env vars are set** (see `connections/oauth/providers/index.ts`).
-     * - Google redirect URI to set in Google Cloud Console:
-     *   `${BACKEND_DOMAIN_URL}${API_PREFIX}/auth/oauth/google/callback`
-     * - Start login endpoint (frontend calls this, then redirects the browser to returned URL):
-     *   `GET ${API_PREFIX}/auth/oauth/google`
-     */
-    oauth: {
-        google: {
-            clientId: getEnv("OAUTH_GOOGLE_CLIENT_ID", ""),
-            clientSecret: getEnv("OAUTH_GOOGLE_CLIENT_SECRET", ""),
-        },
-        github: {
-            clientId: getEnv("OAUTH_GITHUB_CLIENT_ID", ""),
-            clientSecret: getEnv("OAUTH_GITHUB_CLIENT_SECRET", ""),
-        },
-        generic: {
-            authUrl: getEnv("OAUTH_GENERIC_AUTH_URL", ""),
-            tokenUrl: getEnv("OAUTH_GENERIC_TOKEN_URL", ""),
-            userInfoUrl: getEnv("OAUTH_GENERIC_USERINFO_URL", ""),
-            clientId: getEnv("OAUTH_GENERIC_CLIENT_ID", ""),
-            clientSecret: getEnv("OAUTH_GENERIC_CLIENT_SECRET", ""),
-            scope: getEnv("OAUTH_GENERIC_SCOPE", "openid profile email"),
-        },
-    },
-
     /** Email (verification, welcome). When enabled, verification emails are sent. */
     email: {
         enabled: getEnvBoolean("EMAIL_ENABLED", false),

@@ -5,7 +5,6 @@ import { UserService } from "./UserService";
 import { EmailService } from "./EmailService";
 import { CompanyService } from "./CompanyService";
 import { MarketingService } from "./MarketingService";
-import { OAuthService } from "./OAuthService";
 import { OrganizationService } from "./OrganizationService";
 import { RbacService } from "./RbacService";
 import { FeedbackService } from "./FeedbackService";
@@ -36,12 +35,6 @@ export const organizationService = new OrganizationService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
-export const oauthService = new OAuthService(
-    supabaseServiceClientConnection,
-    userRepository,
-    userService,
-    organizationService
-);
 export const companyService = new CompanyService(configRepository, cacheServiceConnection);
 export const marketingService = new MarketingService(configRepository, cacheServiceConnection);
 export const rbacService = new RbacService(
@@ -68,7 +61,6 @@ export const configService = new ConfigService(
 export { AuthenticationService } from "./AuthenticationService";
 export { UserService } from "./UserService";
 export { EmailService } from "./EmailService";
-export { OAuthService } from "./OAuthService";
 export { CompanyService } from "./CompanyService";
 export { MarketingService } from "./MarketingService";
 export { OrganizationService } from "./OrganizationService";

@@ -10,13 +10,6 @@ authRouter.post("/sign-in", authSchemas.validateSignInRequest, authController.si
 authRouter.post("/sign-out", authController.signOut);
 authRouter.post("/refresh", authSchemas.validateRefreshTokenRequest, authController.refreshToken);
 
-// OAuth: list configured providers
-authRouter.get("/oauth/providers", authController.getOAuthProviders);
-// OAuth: get redirect URL for a provider (frontend uses this to redirect user)
-authRouter.get("/oauth/:provider", authController.getOAuthRedirectUrl);
-// OAuth: callback from provider (redirect_uri) – exchange code, redirect to magic link
-authRouter.get("/oauth/:provider/callback", authController.getOAuthCallback);
-
 // Signup verification endpoints
 authRouter.get(
     "/request-verify-signup",

@@ -2,7 +2,6 @@ import type { Request, Response, NextFunction } from "express";
 import type { AuthenticationService } from "../services/AuthenticationService";
 import type { UserRepository } from "../repositories/UserRepository";
 import type { EmailService } from "../services/EmailService";
-import type { OAuthService } from "../services/OAuthService";
 import type { OrganizationService } from "../services/OrganizationService";
 
 import type {
@@ -37,7 +36,6 @@ export class AuthController {
     private userRepository: UserRepository;
     private authenticationService: AuthenticationService;
     private emailService: EmailService;
-    private oauthService: OAuthService;
     private organizationService: OrganizationService;
 
     /**
@@ -135,13 +133,11 @@ export class AuthController {
         authenticationService: AuthenticationService,
         userRepository: UserRepository,
         emailService: EmailService,
-        oauthService: OAuthService,
         organizationService: OrganizationService
     ) {
         this.authenticationService = authenticationService;
         this.userRepository = userRepository;
         this.emailService = emailService;
-        this.oauthService = oauthService;
         this.organizationService = organizationService;
     }
 
@@ -684,66 +680,6 @@ export class AuthController {
             res.status(200).json({ success: true, message: "Email successfully verified" });
         } catch (error) {
             next(error);
-        }
-    };
-
-    /**
-     * GET /oauth/providers – return list of configured OAuth provider names for the frontend.
-     */
-    public getOAuthProviders = async (_req: Request, res: Response, next: NextFunction) => {
-        try {
-            const { getConfiguredOAuthProviders } = await import("../connections/oauth/providers");
-            const providers = getConfiguredOAuthProviders();
-            res.status(200).json({ success: true, data: { providers } });
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    /**
-     * GET /oauth/:provider – return redirect URL for the given OAuth provider (sign-in/sign-up).
-     */
-    public getOAuthRedirectUrl = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const provider = req.params.provider?.toLowerCase() as "google" | "github" | "generic";
-            if (!provider || !["google", "github", "generic"].includes(provider)) {
-                res.status(400).json({ success: false, message: "Invalid or missing provider" });
-                return;
-            }
-            const url = this.oauthService.getRedirectUrl(provider, req.query.state as string | undefined);
-            res.status(200).json({ success: true, data: { url } });
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    /**
-     * GET /oauth/:provider/callback – OAuth callback: exchange code, find/create user, redirect to magic link.
-     */
-    public getOAuthCallback = async (req: Request, res: Response, next: NextFunction) => {
-        const frontendUrl = (config.server as { frontendDomainUrl?: string }).frontendDomainUrl ?? "";
-        const authErrorUrl = (msg: string) =>
-            `${frontendUrl}/auth-error?message=${encodeURIComponent(msg)}`;
-        try {
-            const provider = req.params.provider?.toLowerCase() as "google" | "github" | "generic";
-            const code = (req.query.code as string)?.trim();
-            if (!provider || !["google", "github", "generic"].includes(provider)) {
-                res.redirect(authErrorUrl("Invalid provider"));
-                return;
-            }
-            if (!code) {
-                res.redirect(authErrorUrl("Missing code"));
-                return;
-            }
-            const { redirectTo } = await this.oauthService.handleCallback(provider, code);
-            res.redirect(redirectTo);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "OAuth failed";
-            const statusCode = error && typeof (error as { statusCode?: number }).statusCode === "number"
-                ? (error as { statusCode: number }).statusCode
-                : 500;
-            if (res.headersSent) return next(error);
-            res.redirect(authErrorUrl(`${message} (${statusCode})`));
         }
     };
 }
