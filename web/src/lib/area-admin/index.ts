@@ -3,6 +3,7 @@ import { getUserPresenter } from '$lib/user-management';
 import { AdminFeedbackManagerPagePresenter } from '$lib/area-admin/AdminFeedbackManagerPage.presenter.svelte';
 import { AdminPermissionManagerPagePresenter } from '$lib/area-admin/AdminPermissionManagerPage.presenter.svelte';
 import { AdminRoleManagerPagePresenter } from '$lib/area-admin/AdminRoleManagerPage.presenter.svelte';
+import { AdminEmailManagerPagePresenter } from '$lib/area-admin/AdminEmailManagerPage.presenter.svelte';
 import { AdminBlogEditorPagePresenter } from '$lib/area-admin/AdminBlogEditorPage.presenter.svelte';
 import { AdminBlogPostsManagerPagePresenter } from '$lib/area-admin/AdminBlogPostsManagerPage.presenter.svelte';
 import { AdminBlogTopicsManagerPagePresenter } from '$lib/area-admin/AdminBlogTopicsManagerPage.presenter.svelte';
@@ -10,6 +11,7 @@ import { AdminBlogActivitiesManagerPagePresenter } from '$lib/area-admin/AdminBl
 import { AdminBlogCommentsManagerPagePresenter } from '$lib/area-admin/AdminBlogCommentsManagerPage.presenter.svelte';
 import { getRolePresenter, rbacRepository } from '$lib/rbac';
 import { blogRepository, getBlogPresenter } from '$lib/blog';
+import { emailRepository, getEmailPresenter } from '$lib/email';
 import { imageRepository } from '$lib/core/index';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { ModuleConfigRendererPresenter } from '$lib/config/ModuleConfigRenderer.presenter.svelte';
@@ -48,6 +50,8 @@ const adminRoleManagerPagePresenter = new AdminRoleManagerPagePresenter(
 	rbacRepository
 );
 
+const adminEmailManagerPagePresenter = new AdminEmailManagerPagePresenter(getEmailPresenter, emailRepository);
+
 const companyInformationFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'company_information');
 const blogInformationFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'blog');
 
@@ -55,6 +59,7 @@ export {
 	adminFeedbackManagerPagePresenter,
 	adminPermissionManagerPagePresenter,
 	adminRoleManagerPagePresenter,
+	adminEmailManagerPagePresenter,
 	adminBlogEditorPagePresenter,
 	adminBlogNewPostPagePresenter,
 	adminBlogPostsManagerPagePresenter,

@@ -1,4 +1,45 @@
 ---
+description: Web app repository/presenter architecture — short contract
+globs: ["web/src/lib/**/*.ts", "web/src/lib/**/*.svelte", "web/src/routes/**/*.svelte"]
+alwaysApply: false
+---
+
+# Web repository / presenter architecture (short)
+
+## Layering (non‑negotiable)
+
+- **Route / component (`.svelte`)**: UI only.
+  - **Never** call `httpGateway` or a repository directly.
+  - Route imports **only** a page presenter from an area index (e.g. `$lib/area-admin`).
+- **Page presenter (`$lib/area-*/...Page.presenter.svelte.ts`)**: owns page state (`$state`), orchestrates reads/mutations, sets toast flags.
+- **Repository (`*.repository.svelte.ts`)**: does I/O (via `HttpGateway`), maps **DTO → PM**, returns **PM**.
+- **Get presenter (`Get*.presenter.svelte.ts`)**: stateless read-mapper, maps **PM → VM**, returns **VM**.
+
+## Type placement (default)
+
+- **DTOs (wire shapes)**: define/export in the **repository file** that consumes them.
+- **PM (`*ProgrammerModel`)**: define/export in the **repository file**.
+- **VM (`*Vm` / `*ViewModel`)**: define/export in the **Get presenter file**.
+- **Feature `*.types.ts`**: reserved for **Zod schemas / UI form types** and other UI-shared types (not repository-only DTO/PM/VM).
+
+## Naming (quick rules)
+
+- **Repository results**: variables end with `*Pm` (`listPm`, `resultPm`).
+- **Presenter state / props**: variables end with `*Vm`.
+- **DTO interfaces**: `*Dto` / `*ResponseDto`.
+
+## Toast wiring (pattern A)
+
+- Presenter sets `showToastMessage` + `toastMessage`.
+- Route reacts in one `$effect` and then clears the flag (`presenter.showToastMessage = false`).
+
+## `+page.svelte` checklist
+
+- Imports **only** a page presenter from an area index.
+- No repository/gateway imports in the route.
+- Mutations: route calls presenter methods only.
+
+---
 description: Web app repository/presenter architecture — separate framework from logic, test view models not DOM
 globs: ["web/src/lib/**/*.ts", "web/src/lib/**/*.svelte", "web/src/routes/**/*.svelte"]
 alwaysApply: false
@@ -17,6 +58,18 @@ We use a **concept-first, layered architecture** so logic lives outside the fram
 3. **Business logic** — Repositories (`*.repository.svelte.ts` preferred). Own domain state as **Programmer Models** (PM). Call gateways for I/O. Never expose raw DTOs to the UI.
 4. **Infrastructure & IO** — Gateways (e.g. `HttpGateway`). Talk to API/storage/push. Use **DTOs at the boundary**.
 
+## Rule of thumb (enforced)
+
+- **Repositories return Programmer Models (PM) only**: repository public methods must not return UI-facing **View Models (VM)**.
+  - ✅ Repository: DTO → PM mapping, return `*ProgrammerModel` / `*Pm` results
+  - ❌ Repository: returning `*Vm` types (camelCase UI shape) or anything named `*ViewModel` / `*Vm`
+- **`Get*Presenter` is the VM boundary**: create a stateless `GetX.presenter.svelte.ts` to map **PM → VM** for read/list flows (example: `GetFeedbackPresenter`).
+- **Where types live (default)**:
+  - **`*ProgrammerModel` interfaces** — define and export next to the **`*.repository.svelte.ts`** class (same file), not in a shared `*.types.ts` unless the PM is reused across multiple repositories.
+  - **`*Vm` / `*ViewModel` interfaces** for `Get*` output — define and export next to the **`Get*.presenter.svelte.ts`** class (same file).
+  - **DTOs (API wire shapes)** — define and export next to the **repository** in `*.repository.svelte.ts` by default (same file). Prefer this over a shared `*.types.ts` when the DTOs are only used by that repository.
+  - **`*.types.ts` in a feature module** — reserve for **Zod schemas / UI form types** and other *non-repository* shared types. Avoid putting repository-only DTOs there.
+
 Components must **not** contain business logic or direct **gateway** calls. **Repository** calls belong in repositories; **child** components must not import repositories. **Preferred:** only the **parent** imports the **page presenter** and children use callbacks. **Allowed exception:** children import **feature `index.ts` singleton presenters** for shared upsert/delete modals (see **Shared feature presenters**).
 
 ## File roles and naming
@@ -24,8 +77,8 @@ Components must **not** contain business logic or direct **gateway** calls. **Re
 | Layer        | File type / pattern              | Role |
 |-------------|-----------------------------------|------|
 | Gateways    | `$lib/core/*.ts`                 | HTTP, storage; work with DTOs. |
-| Repositories| `*.repository.svelte.ts`         | Domain/business state in Programmer Models + gateway calls + mapping from DTO → PM. |
-| Presenters  | `*.presenter.svelte.ts`          | UI spec: status, messages, actions; call repository. |
+| Repositories| `*.repository.svelte.ts`         | Domain/business state in Programmer Models + gateway calls + mapping from DTO → PM. Export `*ProgrammerModel` from the **same file** as the repository class. |
+| Presenters  | `*.presenter.svelte.ts`          | UI spec: status, messages, actions; call repository. Stateless **`Get*.presenter.svelte.ts`**: PM→VM mapping; export `*Vm` from the **same file** as `Get*Presenter`. |
 | Models      | `*.model.svelte.ts` (if stateful) | Shared reactive state (e.g. auth status). |
 | Components  | `*.svelte` (routes, `$lib/ui`)   | **Parent** (route/layout/section): owns **page** presenter and feature state; derives VM; passes VM + callbacks (+ bindable props) to children. **Child** (`$lib/ui/...`): receives VM + callbacks; **does not** import **page** presenter singletons from any **`$lib/area-*`** index or repository; may import **feature singleton** modal presenters from `$lib/<feature>/index.ts` when following **Shared feature presenters**. |
 

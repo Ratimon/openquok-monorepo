@@ -7,6 +7,7 @@ import { FeedbackController } from "./FeedbackController";
 import { BlogController } from "./BlogController";
 import { ImageController } from "./ImageController";
 import { ConfigController } from "./ConfigController";
+import { EmailController } from "./EmailController";
 import { authenticationService, emailService, userService, companyService, marketingService, oauthService, organizationService, rbacService, feedbackService, blogService, configService } from "../services/index";
 import { userRepository, storageRepository } from "../repositories/index";
 
@@ -19,3 +20,4 @@ export const feedbackController = new FeedbackController(feedbackService);
 export const blogController = new BlogController(blogService);
 export const imageController = new ImageController(storageRepository);
 export const configController = new ConfigController(configService);
+export const emailController = new EmailController(emailService);

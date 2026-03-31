@@ -73,7 +73,7 @@ export const CONFIG_SCHEMA_COMPANY: ModuleConfigSchema = {
 	SUPPORT_EMAIL: {
 		description: 'Support contact email (used by legal pages).',
 		type: 'string',
-		default: 'support@example.com',
+		default: 'support@openquok.com',
 		inputType: 'input',
 		maxInputLength: 160
 	},

@@ -2,7 +2,7 @@
 title: Configuration - Web
 description: Environment variables and configuration for the SvelteKit app in web/.
 order: 0
-lastUpdated: 2026-03-30
+lastUpdated: 2026-03-31
 ---
 
 <script>
@@ -40,6 +40,7 @@ Edit <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/
 
 <CardGrid>
 <LinkCard title="Environment variables" description="VITE_* values for API/Supabase/Stripe/analytics" href="/docs/configuration-web/environment" />
+<LinkCard title="Config defaults (CONFIG_SCHEMA_*)" description="How the web app derives defaults from Vite env and fallbacks" href="/docs/configuration-web/config-defaults" />
 <LinkCard title="PWA configuration" description="Edit web-config.json for app name and icon metadata" href="/docs/configuration-web/pwa" />
 </CardGrid>
 

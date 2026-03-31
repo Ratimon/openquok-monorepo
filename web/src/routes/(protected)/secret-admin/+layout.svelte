@@ -10,6 +10,7 @@
 		getRootPathSecretAdminPermissionManager,
 		getRootPathSecretAdminBlogManager,
 		getRootPathSecretAdminConfigManager,
+		getRootPathSecretAdminEmailManager,
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { icons } from '$data/icon';
@@ -29,6 +30,7 @@
 		{ label: 'Feedback manager', href: url(getRootPathSecretAdminFeedbackManager()), iconName: icons.MessageCircle.name },
 		{ label: 'Role manager', href: url(getRootPathSecretAdminRoleManager()), iconName: icons.UserCheck.name },
 		{ label: 'Permission manager', href: url(getRootPathSecretAdminPermissionManager()), iconName: icons.User2.name },
+		{ label: 'Email manager', href: url(getRootPathSecretAdminEmailManager()), iconName: icons.Mail.name },
 		{ label: 'Blog Manager', href: url(getRootPathSecretAdminBlogManager()), iconName: icons.FileText.name },
 		{ label: 'Config manager', href: url(getRootPathSecretAdminConfigManager()), iconName: icons.Cog.name },
 		{ label: 'Exit admin area', href: url(getRootPathAccount()), iconName: icons.LogOut.name }

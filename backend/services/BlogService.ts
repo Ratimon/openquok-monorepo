@@ -31,7 +31,6 @@ import {
     type BlogPostLike,
 } from "../utils/dtos/BlogDTO";
 import { stringToSlug } from "../utils/slug";
-import { isValidUUID } from "../utils/helper";
 import { ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 import { BlogPostId } from "../utils/valueObjects/BlogPostId";

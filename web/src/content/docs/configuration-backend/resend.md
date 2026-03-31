@@ -2,7 +2,7 @@
 title: Email (Resend / local)
 description: Supabase email confirmations, local inbox for dev, and Resend production setup.
 order: 6
-lastUpdated: 2026-03-30
+lastUpdated: 2026-03-31
 ---
 
 <script>
@@ -60,9 +60,28 @@ Verify the **root domain** (not only a subdomain) in <ExternalLink href="https:/
 ### Set sender address and API key
 
 ```bash
-SENDER_EMAIL_ADDRESS=support@domain.com
+SENDER_EMAIL_ADDRESS=support@yourdomain.com
 RESEND_SECRET_KEY=
 ```
+
+### Implement DMARC (recommended for Gmail to not be marked as spam)
+
+Resend domain verification ensures SPF and DKIM are in place, but DMARC is configured via your DNS provider.
+Follow the Resend guide: <ExternalLink href="https://resend.com/docs/dashboard/domains/dmarc">Implementing DMARC</ExternalLink>.
+
+If you use AWS Route 53:
+
+- Go to **Route 53** → **Hosted zones** → select your domain (e.g. `openquok.com`)
+- Create a record:
+  - **Name**: `_dmarc`
+  - **Type**: `TXT`
+  - **Value**:
+
+```txt
+"v=DMARC1; p=none; rua=mailto:dmarcreports@yourdomain.com;"
+```
+
+Start with `p=none` (monitoring) and move to `p=quarantine` once you confirm your mail is passing DMARC.
 
 </Steps>
 

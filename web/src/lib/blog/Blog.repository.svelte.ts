@@ -1,16 +1,126 @@
 import { HttpGateway, HttpMethod } from '$lib/core/HttpGateway';
 import type {
-	ActiveBlogTopicDto,
-	AdminBlogActivityDto,
-	AdminBlogCommentDto,
-	BlogPostCommentDto,
-	BlogPostDto,
-	BlogTopicDto,
 	BlogPostFormSchemaType,
 	BlogTopicFormSchemaType,
-	PublishedBlogAuthorDto
 } from '$lib/blog/blog.types';
 import { CONFIG_SCHEMA_BLOG } from '$lib/blog/constants/config';
+
+/** API response shape for a single blog post (camelCase from backend BlogDTOMapper). */
+export interface BlogPostDto {
+	id: string;
+	userId: string;
+	title: string;
+	description: string | null;
+	slug: string;
+	isSponsored: boolean;
+	isFeatured: boolean;
+	isAdminApproved: boolean;
+	isUserPublished: boolean;
+	heroImageFilename: string | null;
+	readingTimeMinutes: number | null;
+	createdAt: string;
+	publishedAt: string | null;
+	topicId: string;
+	content: string | null;
+	viewCount: number | null;
+	likeCount: number | null;
+	updatedAt: string | null;
+	topic: { id: string; name: string; slug: string } | null;
+	author: {
+		id: string;
+		fullName: string | null;
+		username: string | null;
+		avatarUrl: string | null;
+		website: string | null;
+		tagLine: string | null;
+	} | null;
+}
+
+/** API response shape for a blog topic (from GET /topics). */
+export interface BlogTopicDto {
+	id: string;
+	name: string;
+	slug: string;
+	description?: string | null;
+	parent_id?: string | null;
+	parent?: { id: string; name: string; slug: string } | null;
+}
+
+/** Published authors list item (GET /authors; camelCase). */
+export interface PublishedBlogAuthorDto {
+	id: string;
+	fullName: string | null;
+	username: string | null;
+	avatarUrl: string | null;
+	website: string | null;
+	tagLine: string | null;
+	postCount: number;
+}
+
+/** Active topics with post counts (from GET /topics/active; camelCase). */
+export interface ActiveBlogTopicDto {
+	id: string;
+	name: string;
+	slug: string;
+	description: string | null;
+	parentId: string | null;
+	postCount: number;
+}
+
+/**
+ * Wire/API shape for GET /posts/:postId/comments (BlogCommentDTO).
+ * Map to `BlogPostCommentProgrammerModel` in `BlogRepository` — do not use in UI layers.
+ */
+export interface BlogPostCommentDto {
+	id: string;
+	content: string;
+	isApproved: boolean;
+	createdAt: string;
+	updatedAt: string | null;
+	parentId: string | null;
+	userId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
+}
+
+/** Admin blog comment row (GET /admin/comments); aligned with backend AdminBlogCommentDTO. */
+export interface AdminBlogCommentDto {
+	id: string;
+	content: string;
+	isApproved: boolean;
+	createdAt: string;
+	updatedAt: string | null;
+	parentId: string | null;
+	userId: string;
+	postId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
+	blogPost: { id: string; title: string; slug: string } | null;
+}
+
+/** Allowed activity types for blog_activities (aligned with backend). */
+export type BlogActivityTypeDto = 'view' | 'like' | 'share' | 'comment';
+
+/** Admin blog activity row — API wire shape (GET /admin/activities); aligned with backend AdminBlogActivityDTO. */
+export interface AdminBlogActivityDto {
+	id: string;
+	activityType: BlogActivityTypeDto | string;
+	createdAt: string;
+	userId: string | null;
+	postId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
+	blogPost: { id: string; title: string; slug: string } | null;
+}
 
 export interface BlogConfig {
 	endpoints: {

@@ -198,3 +198,20 @@ const adminBlogActivitiesRules = combineParsers(
 export function createAdminBlogActivitiesParser(): RequestHandler {
     return createQueryParser<ParsedAdminBlogActivitiesQuery>(adminBlogActivitiesRules);
 }
+
+/** Resend list received emails query (limit, after, before) — see AdminRoute GET /emails/receiving. */
+export interface ParsedListReceivedEmailsQuery extends Record<string, unknown> {
+    limit?: number;
+    after?: string | null;
+    before?: string | null;
+}
+
+const listReceivedEmailsRules = {
+    limit: QueryParsers.number,
+    after: QueryParsers.string,
+    before: QueryParsers.string,
+};
+
+export function createListReceivedEmailsParser(): RequestHandler {
+    return createQueryParser<ParsedListReceivedEmailsQuery>(listReceivedEmailsRules);
+}

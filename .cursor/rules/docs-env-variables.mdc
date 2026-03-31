@@ -1,0 +1,35 @@
+---
+description: When adding or changing env vars — update .env*.example templates and web docs (configuration-web / configuration-backend); Badge variants; bump lastUpdated
+globs: ["backend/.env*.example", "web/.env*.example", "backend/config/GlobalConfig.ts", "web/src/lib/config/constants/config.ts"]
+alwaysApply: false
+---
+
+# Documentation updates for new environment variables
+
+Apply whenever you **add, rename, or remove** an environment variable used by the **web** or **backend**, or when you wire a new var into `GlobalConfig` / `config.ts`.
+
+## 1. Always update the checked-in templates
+
+- **Backend**: add the variable (and a one-line comment if the file uses section comments) to `backend/.env.development.example`.
+- **Web (Vite)**: add `VITE_*` variables to `web/.env.development.example` (only client/build-time vars belong here; use the `VITE_` prefix per Vite rules).
+
+Do not ship a new env key in code without documenting it in the matching example file.
+
+## 2. Update the docs site (not only README)
+
+- **Web (`VITE_*`)**: extend `web/src/content/docs/configuration-web/environment.md` — list new keys with `<Badge text="..." variant="envWeb" />`, and add a short note if the var drives UI defaults (e.g. support email).
+- **Web config defaults**: if `web/src/lib/config/constants/config.ts` reads a new `VITE_*` for a schema default, also update `web/src/content/docs/configuration-web/config-defaults.md` (env → fallback sentence).
+- **Backend**: add or extend the relevant page under `web/src/content/docs/configuration-backend/` — often `configuration-backend/index.md` for broadly used vars, or a **feature guide** (e.g. `resend.md`, `redis.md`, `supabase.md`) when the var is domain-specific.
+
+## 3. Housekeeping on touched doc pages
+
+- Bump **`lastUpdated`** in front matter on every substantive doc file you edit.
+- Follow **docs-internal-links** for `Badge` variants: **`envBackend`** vs **`envWeb`**, and `ExternalLink` for GitHub links to example files.
+
+## 4. Quick checklist
+
+- [ ] `backend/.env.development.example` (if backend reads it)
+- [ ] `web/.env.development.example` (if web/Vite reads it)
+- [ ] `configuration-web/environment.md` and/or `config-defaults.md` (web)
+- [ ] `configuration-backend/...` page (backend)
+- [ ] `lastUpdated` on edited docs

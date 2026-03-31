@@ -2,7 +2,7 @@
 title: Environment variables
 description: VITE_* values for API base URL, Supabase, Stripe, and analytics.
 order: 1
-lastUpdated: 2026-03-30
+lastUpdated: 2026-03-31
 ---
 
 <script>
