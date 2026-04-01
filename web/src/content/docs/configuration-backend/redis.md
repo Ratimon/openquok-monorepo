@@ -1,6 +1,6 @@
 ---
 title: Redis cache
-description: Switch CACHE_PROVIDER to Redis and configure REDIS_* variables.
+description: Switch CACHE_PROVIDER to Redis and configure REDIS_* variables for Openquok.
 order: 2
 lastUpdated: 2026-04-01
 ---

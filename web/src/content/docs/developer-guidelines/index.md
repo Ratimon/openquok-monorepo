@@ -1,6 +1,6 @@
 ---
 title: Overview - Developer Guidelines
-description: OpenQuok developer guidelines — security, RBAC, SSR safety, and theming conventions.
+description: OpenQuok's developer guidelines — security, RBAC, SSR safety, and theming conventions.
 order: 0
 lastUpdated: 2026-03-30
 ---

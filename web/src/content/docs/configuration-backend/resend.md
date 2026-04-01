@@ -1,6 +1,6 @@
 ---
-title: Email (Resend / local)
-description: Supabase email confirmations, local inbox for dev, and Resend production setup.
+title: Email Provider Setup - Resend
+description: Supabase email confirmations, local development email server, and Resend production setup for Openquok.
 order: 6
 lastUpdated: 2026-03-31
 ---

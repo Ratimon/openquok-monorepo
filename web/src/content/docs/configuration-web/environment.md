@@ -1,6 +1,6 @@
 ---
 title: Environment variables
-description: VITE_* values for API base URL, Supabase, Stripe, and analytics.
+description: Configure VITE's values for API base URL, Supabase, Stripe, and analytics for Openquok.
 order: 1
 lastUpdated: 2026-04-01
 ---

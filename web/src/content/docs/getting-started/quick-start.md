@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-description: OpenQuok quick start — install dependencies, configure env, and run the social scheduler locally.
+description: Openquok's quick start — install dependencies, configure env, and run the social scheduler locally.
 order: 2
 lastUpdated: 2026-03-30
 ---

@@ -1,6 +1,6 @@
 ---
 title: Overview - Installation
-description: Set up your environment and deploy OpenQuok.
+description: Set up your environment and deploy Openquok.
 order: 0
 lastUpdated: 2026-03-31
 ---

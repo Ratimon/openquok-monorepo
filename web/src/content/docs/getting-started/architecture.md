@@ -1,6 +1,6 @@
 ---
 title: Project Architecture
-description: OpenQuok architecture — project layout and key files for the social scheduler.
+description: OpenQuok's architecture — project layout and key files for the social scheduler.
 order: 1
 ---
 

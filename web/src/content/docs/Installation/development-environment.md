@@ -1,6 +1,6 @@
 ---
 title: Development environment
-description: Run the backend and web apps locally, execute tests, database scripts, and deployment commands.
+description: Run Openquok's backend and web apps locally, execute tests, database scripts, and deployment commands.
 order: 0
 lastUpdated: 2026-03-30
 ---

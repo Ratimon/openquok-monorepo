@@ -1,6 +1,6 @@
 ---
 title: Overview - Getting Started
-description: Start here — OpenQuok project layout and a quick guide for starters.
+description: Start here — Openquok's project layout and a quick guide for starters.
 order: 0
 ---
 

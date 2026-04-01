@@ -1,6 +1,6 @@
 ---
 title: Configuration - Web
-description: Environment variables and configuration for the SvelteKit app in web/.
+description: Environment variables and configuration for the Openquok's SvelteKit app in web/.
 order: 0
 lastUpdated: 2026-03-31
 ---

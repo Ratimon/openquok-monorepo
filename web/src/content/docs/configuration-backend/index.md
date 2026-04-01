@@ -1,6 +1,6 @@
 ---
 title: Configuration - Backend
-description: OpenQuok backend configuration — env vars, Supabase, and services for the social scheduler.
+description: Backend configuration — env vars, Supabase, and services Openquok.
 order: 0
 lastUpdated: 2026-03-30
 ---

@@ -1,6 +1,6 @@
 ---
 title: Supabase
-description: Create a Supabase project, configure dashboard settings, and wire the backend env keys.
+description: Create a Supabase project, configure dashboard settings, and wire the backend env keys for Openquok.
 order: 1
 lastUpdated: 2026-03-30
 ---

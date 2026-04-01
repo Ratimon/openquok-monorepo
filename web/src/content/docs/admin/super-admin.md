@@ -1,6 +1,6 @@
 ---
 title: Super admin (first operator)
-description: After deployment — sign up, verify email, then set is_super_admin in Supabase for your user.
+description: After deployment — sign up, verify email, then set super admin access in Supabase.
 order: 1
 lastUpdated: 2026-03-31
 ---
