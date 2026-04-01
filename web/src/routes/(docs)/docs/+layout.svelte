@@ -6,7 +6,7 @@
 	import DocsSidebarRight from '$lib/ui/components/docs/layout/DocsSidebarRight.svelte';
 	import * as Sidebar from '$lib/ui/sidebar-main/index.js';
 	import { ensureDefaultTheme } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
-	import { docsSite } from '$data/docs';
+	import { docsSite } from '$lib/docs/constants/config';
 
 	type Props = { data: LayoutData; children: import('svelte').Snippet };
 

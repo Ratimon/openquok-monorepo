@@ -147,7 +147,7 @@ The sections below describe structure **inside `web/`** (paths are relative to t
 
 ### `src/content/docs/`
 
-This is where in-app documentation markdown lives. Each `.md` file becomes a page; URLs follow the folder path. Sidebar sections are declared in **`src/data/docs.ts`** (`autogenerate.directory` must match these folder names).
+This is where in-app documentation markdown lives. Each `.md` file becomes a page; URLs follow the folder path. Sidebar sections are declared in **`$lib/docs/constants/config.ts`** (`autogenerate.directory` must match these folder names).
 
 ```
 src/content/docs/
@@ -170,7 +170,7 @@ src/content/docs/
 
 The documentation engine:
 
-- **`constants/config.ts`** — Assembles `docsConfig` (imports site title, sidebar, and i18n from `src/data/docs.ts`)
+- **`constants/config.ts`** — Defines docs site metadata, sidebar, i18n, and assembles `docsConfig`
 - **`content.ts`** — Content loader that discovers and parses markdown files
 - **`navigation.ts`** — Generates sidebar navigation from the file structure
 - **`types.ts`** — TypeScript types for docs, navigation, and config
@@ -207,7 +207,7 @@ Paths below are relative to each package root (`backend/` or `web/`).
 | `svelte.config.js` | SvelteKit + MDSvex configuration |
 | `vite.config.ts` | Vite + Tailwind CSS setup |
 | `package.json` | Scripts and dependencies for the SvelteKit app |
-| `src/data/docs.ts` | Docs site title, sidebar sections, social links, locales |
+| `$lib/docs/constants/config.ts` | Docs site title, sidebar sections, social links, locales |
 | `src/lib/docs/constants/config.ts` | Assembled `docsConfig` consumed by the docs runtime |
 
 ## Next Steps

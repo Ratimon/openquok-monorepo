@@ -74,7 +74,7 @@ Clone the template repository and install dependencies.
 
 ### Configure your site
 
-Edit <code>web/src/data/docs.ts</code> (site title, description, sidebar sections) and <code>web/src/lib/docs/constants/config.ts</code> (assembled docs config such as TOC settings).
+Edit <code>web/src/lib/docs/constants/config.ts</code> (site title, description, sidebar sections, i18n, and assembled docs config such as TOC settings).
 
 ### Write your content
 

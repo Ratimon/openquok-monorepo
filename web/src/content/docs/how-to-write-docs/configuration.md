@@ -8,7 +8,7 @@ order: 1
 
 Edit the docs config in:
 
-- <code>web/src/data/docs.ts</code> — site metadata (title/description/social), sidebar sections, i18n
+- <code>web/src/lib/docs/constants/config.ts</code> — site metadata (title/description/social), sidebar sections, i18n
 - <code>web/src/lib/docs/constants/config.ts</code> — assembled <code>docsConfig</code> (TOC defaults, optional version selector)
 
 ```typescript
