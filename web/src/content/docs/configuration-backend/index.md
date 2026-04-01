@@ -46,6 +46,7 @@ Configure Redis (recommended for production), Sentry (optional), Google OAuth (o
 <LinkCard title="Supabase" description="Project setup, keys, dashboard settings, and local vs cloud notes" href="/docs/configuration-backend/supabase" />
 <LinkCard title="Redis cache" description="Switch cache provider to Redis and configure REDIS_* variables" href="/docs/configuration-backend/redis" />
 <LinkCard title="Sentry" description="Enable error monitoring with SENTRY_DSN" href="/docs/configuration-backend/sentry" />
+<LinkCard title="Rate limiting" description="Configure global/auth/OAuth rate limiting for backend APIs" href="/docs/configuration-backend/rate-limiting" />
 <LinkCard title="Google OAuth" description="Supabase Auth, Google Cloud, and backend callback URLs" href="/docs/configuration-backend/google-oauth" />
 <LinkCard title="Database & migrations" description="Supabase CLI, migrations, cron extension, and type generation" href="/docs/configuration-backend/database" />
 <LinkCard title="Email (Resend / local)" description="Supabase email confirmations, local inbox, and Resend production setup" href="/docs/configuration-backend/resend" />

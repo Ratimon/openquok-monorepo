@@ -18,7 +18,7 @@ import { Badge, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js'
    - **Browser Client:** Public data only
    - **RLS Client:** Authenticated user data
    - **Service Client:** Admin operations
-5. Configure rate limiting in <Badge text="backend/middlewares/rateLimit.ts" variant="path" /> and <Badge text="backend/config/GlobalConfig.ts" variant="path" />.
+5. Configure rate limiting in <Badge text="backend/middlewares/rateLimit.ts" variant="path" /> and <Badge text="backend/config/GlobalConfig.ts" variant="path" /> (docs: <Badge text="/docs/configuration-backend/rate-limiting" variant="path" />).
 
 ## SSR state management security
 

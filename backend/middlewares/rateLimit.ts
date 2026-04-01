@@ -77,6 +77,21 @@ export const globalLimiter = createRateLimiter({
 
 export const authLimiter = createRateLimiter({
     ...(config.rateLimit as { auth?: RateLimitConfig }).auth,
+    skip: (req: Request) => {
+        if (shouldSkipRateLimit()) return true;
+        // OAuth endpoints have their own stricter limiter to reduce abuse of external auth flows.
+        // Avoid double-counting by skipping them here.
+        return req.path.startsWith("/oauth/");
+    },
+} as RateLimitConfig);
+
+export const oauthLimiter = createRateLimiter({
+    // Stricter defaults for OAuth routes (start + callback). Can be overridden by config.rateLimit.oauth.
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...(config.rateLimit as { oauth?: RateLimitConfig }).oauth,
     skip: shouldSkipRateLimit,
 } as RateLimitConfig);
 
@@ -96,6 +111,14 @@ export const applyRateLimiting = (app: Express): void => {
         msg: "Applied global rate limiting to all API routes",
         windowMs: globalConfig?.windowMs,
         max: globalConfig?.max,
+    });
+
+    const oauthConfig = (config.rateLimit as { oauth?: RateLimitConfig }).oauth;
+    app.use(`${apiPrefix}/auth/oauth`, oauthLimiter);
+    logger.info({
+        msg: "Applied OAuth rate limiting",
+        windowMs: oauthConfig?.windowMs ?? 5 * 60 * 1000,
+        max: oauthConfig?.max ?? 20,
     });
 
     app.use(`${apiPrefix}/auth`, authLimiter);

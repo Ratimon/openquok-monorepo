@@ -154,6 +154,13 @@ export const config: ConfigObject = {
             legacyHeaders: false,
             message: "Too many authentication attempts, please try again later",
         },
+        oauth: {
+            windowMs: getEnvNumber("OAUTH_RATE_LIMIT_WINDOW_MS", 300000), // 5 minutes
+            max: getEnvNumber("OAUTH_RATE_LIMIT_MAX", 20),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many OAuth requests, please try again later",
+        },
     },
 };
 
