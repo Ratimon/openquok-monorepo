@@ -2,19 +2,19 @@
 title: Vercel
 description: Deploy OpenQuok Application to Vercel — backend/web projects, env vars, CLI, and domains.
 order: 1
-lastUpdated: 2026-03-30
+lastUpdated: 2026-04-01
 ---
 
 <script>
-import { Badge, Callout, ExternalLink, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, DocsExternalLink, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-Deploy the **backend** (Express) and **web** (SvelteKit) to <ExternalLink href="https://vercel.com">Vercel</ExternalLink>.
+Deploy the **backend** (Express) and **web** (SvelteKit) to <DocsExternalLink href="https://vercel.com">Vercel</DocsExternalLink>.
 
 ## Prerequisites
 
-- <ExternalLink href="https://vercel.com/signup">Vercel account</ExternalLink>
-- <ExternalLink href="https://vercel.com/docs/cli">Vercel CLI</ExternalLink> (optional — `npx vercel` is enough)
+- <DocsExternalLink href="https://vercel.com/signup">Vercel account</DocsExternalLink>
+- <DocsExternalLink href="https://vercel.com/docs/cli">Vercel CLI</DocsExternalLink> (optional — `npx vercel` is enough)
 
 ## Backend on Vercel
 
@@ -29,7 +29,7 @@ and connect this repository.
 ### Configure the build
 
 <Callout type="warning" title="Do not run the Vercel build on your local backend folder">
-<p>The build uses <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/vercel.json"><Badge text="backend/vercel.json" variant="path" /></ExternalLink>: <code>tsup</code> bundles <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/handler/index.ts"><Badge text="backend/handler/index.ts" variant="path" /></ExternalLink> to <Badge text="api/index.js" variant="path" />, and all traffic is rewritten to that serverless function (same Express app as local, via <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/app.ts"><code>createApp</code></ExternalLink> in <Badge text="backend/app.ts" variant="path" />; <code>listen()</code> is skipped when <Badge text="VERCEL" variant="envRuntime" /> is set).</p>
+<p>The build uses <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/vercel.json"><Badge text="backend/vercel.json" variant="path" /></DocsExternalLink>: <code>tsup</code> bundles <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/handler/index.ts"><Badge text="backend/handler/index.ts" variant="path" /></DocsExternalLink> to <Badge text="api/index.js" variant="path" />, and all traffic is rewritten to that serverless function (same Express app as local, via <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/app.ts"><code>createApp</code></DocsExternalLink> in <Badge text="backend/app.ts" variant="path" />; <code>listen()</code> is skipped when <Badge text="VERCEL" variant="envRuntime" /> is set).</p>
 <p class="mt-2">Do <strong>not</strong> run that <Badge text="buildCommand" variant="default" /> on your local <Badge text="backend/" variant="path" /> folder: the post-build script deletes source files; it is only safe on Vercel’s ephemeral build machine (or a throwaway clone).</p>
 </Callout>
 
@@ -99,19 +99,9 @@ and connect the same repository.
 ### Set Root Directory to <Badge text="web" variant="path" />
 
 
-### Include monorepo files in the build
-
-Enable **Include source files outside of the Root Directory in the Build Step** (Project → Settings → General → Root Directory) so the monorepo lockfile and workspace install work.
-
-### SvelteKit adapter and config
-
-<ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/svelte.config.js"><Badge text="web/svelte.config.js" variant="path" /></ExternalLink> uses <ExternalLink href="https://svelte.dev/docs/kit/adapter-vercel"><Badge text="@sveltejs/adapter-vercel" variant="experimental" /></ExternalLink> when <Badge text="VERCEL" variant="envRuntime" /> is set (Vercel sets this during build); otherwise it uses <Badge text="adapter-auto" variant="default" /> for local development.
-
-Optional overrides are in <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/vercel.json"><Badge text="web/vercel.json" variant="path" /></ExternalLink> (<Badge text="installCommand" variant="default" /> runs <code>pnpm install</code> from the repository root; <Badge text="buildCommand" variant="default" /> runs <code>pnpm run build</code>).
-
 ### Set environment variables
 
-Set **Environment Variables** to match production (same as <Badge text="web/.env.production" variant="path" />): <Badge text="VITE_API_BASE_URL" variant="envWeb" /> (your deployed backend), <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />, <Badge text="VITE_PUBLIC_SUPABASE_*" variant="envWeb" /> (prefix), Stripe and analytics keys as needed.
+Set **Environment Variables** to match production (same keys as <Badge text="web/.env.production.local" variant="envFile" />): <Badge text="VITE_API_BASE_URL" variant="envWeb" /> (your deployed backend), <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />, <Badge text="VITE_PUBLIC_SUPABASE_*" variant="envWeb" /> (prefix), Stripe and analytics keys as needed.
 
 ### Deploy
 

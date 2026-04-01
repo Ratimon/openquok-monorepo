@@ -6,12 +6,12 @@ lastUpdated: 2026-03-30
 ---
 
 <script>
-import { Badge, ExternalLink, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, DocsExternalLink, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
-Sentry is optional. To enable error monitoring, set <Badge text="SENTRY_DSN" variant="envBackend" /> in your env (get the DSN from <ExternalLink href="https://sentry.io">sentry.io</ExternalLink> → Project Settings → SDK Setup → Client Keys). If unset, Sentry stays disabled.
+Sentry is optional. To enable error monitoring, set <Badge text="SENTRY_DSN" variant="envBackend" /> in your env (get the DSN from <DocsExternalLink href="https://sentry.io">sentry.io</DocsExternalLink> → Project Settings → SDK Setup → Client Keys). If unset, Sentry stays disabled.
 
 ## Steps
 
@@ -19,7 +19,7 @@ Sentry is optional. To enable error monitoring, set <Badge text="SENTRY_DSN" var
 
 ### Create a Sentry project and copy the DSN
 
-Create a project at <ExternalLink href="https://sentry.io">sentry.io</ExternalLink> and copy the DSN for the backend.
+Create a project at <DocsExternalLink href="https://sentry.io">sentry.io</DocsExternalLink> and copy the DSN for the backend.
 
 ### Set environment variables
 

@@ -10,6 +10,10 @@ authRouter.post("/sign-in", authSchemas.validateSignInRequest, authController.si
 authRouter.post("/sign-out", authController.signOut);
 authRouter.post("/refresh", authSchemas.validateRefreshTokenRequest, authController.refreshToken);
 
+// OAuth (Google)
+authRouter.get("/oauth/google", authController.startGoogleOAuth);
+authRouter.get("/oauth/google/callback", authController.googleOAuthCallback);
+
 // Signup verification endpoints
 authRouter.get(
     "/request-verify-signup",

@@ -6,14 +6,14 @@ lastUpdated: 2026-03-31
 ---
 
 <script>
-import { Badge, Callout, CardGrid, ExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
 The web app centralizes its default configuration in:
 
-<ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/config/constants/config.ts"><Badge text="web/src/lib/config/constants/config.ts" variant="path" /></ExternalLink>
+<DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/config/constants/config.ts"><Badge text="web/src/lib/config/constants/config.ts" variant="path" /></DocsExternalLink>
 
 This file exports schema objects like:
 
@@ -30,7 +30,7 @@ Some defaults are resolved from Vite env first, then fall back to a safe constan
 
 Examples:
 
-- **API base URL** — <Badge text="VITE_API_BASE_URL" variant="envWeb" /> → fallback `http://localhost:3000`
+- **API base URL** — <Badge text="VITE_API_BASE_URL" variant="envWeb" /> → fallback <Badge text="http://localhost:3000" variant="new" />
 
 <Callout type="note" title="Vite env changes require restart/rebuild">
 When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web dev server or rebuild so Vite picks them up.
@@ -72,7 +72,7 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
 
 ### Navigation and footer constants
 
-`config.ts` also exports navigation/footer link constants (for example `PUBLIC_NAVBAR_LINKS` and `PUBLIC_FOOTER_LINKS`). These are not env-driven; they’re static defaults used by the public layout.
+<code>config.ts</code> also exports navigation/footer link constants (for example <Badge text="PUBLIC_NAVBAR_LINKS" variant="default" /> and <Badge text="PUBLIC_FOOTER_LINKS" variant="default" />). These are not env-driven; they’re static defaults used by the public layout.
 
 <Callout type="tip" title="Defaults vs stored config">
 If your backend provides stored company/marketing configuration, pages typically prefer the stored values and fall back to these schema defaults when a field is missing.

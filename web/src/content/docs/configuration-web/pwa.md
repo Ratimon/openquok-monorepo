@@ -6,12 +6,12 @@ lastUpdated: 2026-03-30
 ---
 
 <script>
-import { Badge, CardGrid, ExternalLink, LinkCard, Steps, Callout } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, CardGrid, DocsExternalLink, LinkCard, Steps, Callout } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
-The PWA metadata is configured in <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/web-config.json"><Badge text="web/src/web-config.json" variant="path" /></ExternalLink>.
+The PWA metadata is configured in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/web-config.json"><Badge text="web/src/web-config.json" variant="path" /></DocsExternalLink>.
 
 ## Steps
 

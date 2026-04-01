@@ -2,16 +2,16 @@
 title: Redis cache
 description: Switch CACHE_PROVIDER to Redis and configure REDIS_* variables.
 order: 2
-lastUpdated: 2026-03-30
+lastUpdated: 2026-04-01
 ---
 
 <script>
-import { Badge, Callout, ExternalLink, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
-By default the backend uses an **in-memory** cache (<Badge text="CACHE_PROVIDER=memory" variant="envBackend" />). For production (or multi-instance deployments), configure **Redis** and set <Badge text="CACHE_PROVIDER" variant="envBackend" /> to <Badge text="redis" variant="default" />.
+By default the backend uses an **in-memory** cache (<Badge text="CACHE_PROVIDER=memory" variant="envBackend" />). For production (or multi-instance deployments), configure **Redis** and set <Badge text="CACHE_PROVIDER=redis" variant="envBackend" />.
 
 ## Steps
 
@@ -19,7 +19,7 @@ By default the backend uses an **in-memory** cache (<Badge text="CACHE_PROVIDER=
 
 ### Create a Redis database
 
-If you don’t have Redis already, you can create one via <ExternalLink href="https://cloud.redis.io/">Redis Cloud</ExternalLink> (or your preferred provider).
+If you don’t have Redis already, you can create one via <DocsExternalLink href="https://cloud.redis.io/">Redis Cloud</DocsExternalLink> (or your preferred provider).
 
 Once the database is ready, open your provider’s configuration/settings page and collect:
 
@@ -31,7 +31,7 @@ Once the database is ready, open your provider’s configuration/settings page a
 
 ### Set the backend env variables
 
-Edit <Badge text="backend/.env.development.local" variant="envFile" /> (or your production env) and set:
+Edit <Badge text="backend/.env.development.local" variant="envFile" /> (or your production env). Add or update:
 
 ```bash
 CACHE_PROVIDER=redis
@@ -49,5 +49,5 @@ Start the backend and look for a Redis “connected” log line. If you see conn
 </Steps>
 
 <Callout type="tip" title="Tip">
-You can keep <Badge text="CACHE_PROVIDER" variant="envBackend" /> as <Badge text="memory" variant="default" /> for local dev if you don’t want Redis running.
+You can keep <Badge text="CACHE_PROVIDER=memory" variant="envBackend" /> for local dev if you don’t want Redis running.
 </Callout>

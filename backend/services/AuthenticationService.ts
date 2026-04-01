@@ -21,6 +21,7 @@ import { UserNotFoundError } from "../errors/UserError";
 import { ValidationError, DatabaseEntityNotFoundError } from "../errors/InfraError";
 import { normalizeEmail } from "../utils/helper";
 import { logger } from "../utils/Logger";
+import { config } from "../config/GlobalConfig";
 
 export type AuthenticatedRequest = Request & { user?: { id: string } };
 
@@ -114,6 +115,60 @@ export class AuthenticationService {
     async signOut(context: { req: Request; res: Response }): Promise<void> {
         const supabaseRLSClient = this.createRLSClient(context);
         await supabaseRLSClient.auth.signOut();
+    }
+
+    private buildBackendOAuthCallbackUrl(provider: "google", next?: string): string {
+        const serverConfig = config.server as { backendDomainUrl?: string };
+        const apiConfig = config.api as { prefix?: string };
+        const backendOrigin = serverConfig.backendDomainUrl ?? "http://localhost:3000";
+        const apiPrefix = apiConfig.prefix ?? "/api/v1";
+
+        const normalizedNext = (() => {
+            if (!next) return "/";
+            // prevent open redirects; only allow a local path
+            if (next.startsWith("/")) return next;
+            return "/";
+        })();
+
+        const url = new URL(`${backendOrigin}${apiPrefix}/auth/oauth/${provider}/callback`);
+        url.searchParams.set("next", normalizedNext);
+        return url.toString();
+    }
+
+    async getOAuthSignInUrl(
+        provider: "google",
+        context: { req: Request; res: Response },
+        options: { next?: string } = {}
+    ): Promise<string> {
+        const supabaseRLSClient = this.createRLSClient(context);
+        const redirectTo = this.buildBackendOAuthCallbackUrl(provider, options.next);
+        const { data, error } = await supabaseRLSClient.auth.signInWithOAuth({
+            provider,
+            options: { redirectTo },
+        });
+        if (error || !data?.url) {
+            throw new AuthError(`Failed to start OAuth sign-in: ${error?.message ?? "Unknown error"}`, 500, {
+                cause: error as Error,
+            });
+        }
+        return data.url;
+    }
+
+    async exchangeOAuthCodeForSession(
+        context: { req: Request; res: Response },
+        code: string
+    ): Promise<{ session: { access_token: string; refresh_token: string }; user: { id: string } }> {
+        const supabaseRLSClient = this.createRLSClient(context);
+        const { data, error } = await supabaseRLSClient.auth.exchangeCodeForSession(code);
+        if (error || !data?.session || !data.user?.id) {
+            throw new AuthError(`Failed to exchange OAuth code: ${error?.message ?? "Unknown error"}`, 401, {
+                cause: error as Error,
+            });
+        }
+        return {
+            session: data.session as { access_token: string; refresh_token: string },
+            user: { id: data.user.id },
+        };
     }
 
     async refreshToken(

@@ -4,6 +4,10 @@ description: How to add a version selector to your documentation site.
 order: 4
 ---
 
+<script>
+import { Badge } from '$lib/ui/components/docs/mdx/index.js';
+</script>
+
 ## Overview
 
 The template includes an optional version selector dropdown that appears in the sidebar header. It links between different deployments of your docs — one site per version.
@@ -35,7 +39,7 @@ Once added, a dropdown will appear in the sidebar header showing the current ver
 - **`current`** — The version label displayed in the sidebar header
 - **`versions`** — Array of version entries, each with a `label` and `href`
 - **Internal links** (like `/docs`) navigate within the same site
-- **External links** (like `https://v1.your-site.com/docs`) open in a new tab
+- **External links** (like <Badge text="https://v1.your-site.com/docs" variant="new" />) open in a new tab
 
 ## Recommended Workflow
 

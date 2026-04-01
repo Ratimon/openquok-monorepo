@@ -6,7 +6,7 @@ lastUpdated: 2026-03-31
 ---
 
 <script>
-import { Callout, CardGrid, ExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## When to do this
@@ -21,7 +21,7 @@ Complete **backend and frontend configuration** and confirm a **successful deplo
 
 ### Open the app
 
-Open your **frontend** in the browser — for example **http://localhost:5173** (default Vite dev), **http://localhost:3000** if your setup serves the web app there, or your **production** site URL.
+Open your **frontend** in the browser — for example <Badge text="http://localhost:5173" variant="new" /> (default Vite dev), <Badge text="http://localhost:3000" variant="new" /> if your setup serves the web app there, or your **production** site URL.
 
 ### Sign up and verify your email
 
@@ -31,7 +31,7 @@ In the navbar, choose **Sign up** and complete registration with your email and 
 
 The admin entry points may appear in the UI, but **super-admin routes** require <code>is_super_admin</code> on your user.
 
-Open the <ExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</ExternalLink> → your project → **Table Editor** → the **`users`** table (or the table where your app stores `public.users`). Find the row for your account and set **`is_super_admin`** from **FALSE** to **TRUE**, then save.
+Open the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> → your project → <Badge text="Table Editor" variant="path" /> → the <Badge text="users" variant="default" /> table (or the table where your app stores <Badge text="public.users" variant="path" />). Find the row for your account and set <Badge text="is_super_admin" variant="envBackend" /> from <Badge text="FALSE" variant="deprecated" /> to <Badge text="TRUE" variant="new" />, then save.
 
 After that, sign out and sign in again if the app caches roles, or refresh the session as your app expects.
 

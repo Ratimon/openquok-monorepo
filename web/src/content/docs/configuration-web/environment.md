@@ -2,18 +2,18 @@
 title: Environment variables
 description: VITE_* values for API base URL, Supabase, Stripe, and analytics.
 order: 1
-lastUpdated: 2026-03-31
+lastUpdated: 2026-04-01
 ---
 
 <script>
-import { Badge, Callout, CardGrid, ExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
-At runtime, the web app uses Vite environment variables (the `VITE_*` set).
+At runtime, the web app uses Vite environment variables in the <Badge text="VITE_*" variant="envWeb" /> family (public keys exposed to the browser).
 
-When you change a value in your `.env` files, restart the web dev server or rebuild so Vite can load the new values.
+When you change values in <Badge text="web/.env.development.local" variant="envFile" /> or <Badge text="web/.env.production.local" variant="envFile" />, restart the web dev server or rebuild so Vite can load the new values.
 
 ## Steps
 
@@ -21,27 +21,31 @@ When you change a value in your `.env` files, restart the web dev server or rebu
 
 ### Copy the development env template
 
-Copy <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="envFile" /></ExternalLink> to <Badge text="web/.env.development.local" variant="envFile" />.
+Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="envFile" /></DocsExternalLink> to <Badge text="web/.env.development.local" variant="envFile" />.
 
 ### Set required variables
 
-Set:
+Set these in <Badge text="web/.env.development.local" variant="envFile" /> (values from your backend, Supabase, Stripe, and analytics setup):
 
-- <Badge text="VITE_API_BASE_URL" variant="envWeb" />
-- <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />
-- <Badge text="VITE_PUBLIC_SUPABASE_URL" variant="envWeb" />
-- <Badge text="VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY" variant="envWeb" />
-- <Badge text="VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID" variant="envWeb" />
+```bash
+VITE_API_BASE_URL=
+VITE_FRONTEND_DOMAIN_URL=
+VITE_PUBLIC_SUPABASE_URL=
+VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID=
+```
 
-And choose the Stripe price IDs for your plans:
+Stripe price IDs for your plans:
 
-- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_LITE_PLAN" variant="envWeb" />
-- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_BASIC_PLAN" variant="envWeb" />
-- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_STARTER_PACK" variant="envWeb" />
-- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_GROWTH_PACK" variant="envWeb" />
-- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_PROFESSIONAL_PACK" variant="envWeb" />
-- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_1_YEAR_PACK" variant="envWeb" />
-- <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_LIFETIME_PACK" variant="envWeb" />
+```bash
+VITE_PUBLIC_STRIPE_PRICE_ID_LITE_PLAN=
+VITE_PUBLIC_STRIPE_PRICE_ID_BASIC_PLAN=
+VITE_PUBLIC_STRIPE_PRICE_ID_STARTER_PACK=
+VITE_PUBLIC_STRIPE_PRICE_ID_GROWTH_PACK=
+VITE_PUBLIC_STRIPE_PRICE_ID_PROFESSIONAL_PACK=
+VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_1_YEAR_PACK=
+VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_LIFETIME_PACK=
+```
 
 ### Set production env values
 
@@ -50,7 +54,7 @@ For deployment, ensure <Badge text="web/.env.production.local" variant="envFile"
 </Steps>
 
 <Callout type="note" title="Tip: keep secrets in env files">
-Do not hard-code secrets in the source code. Use the `.env` files listed above and commit only the template/example files.
+Do not hard-code secrets in the source code. Use <Badge text="web/.env.development.local" variant="envFile" /> (and production equivalents) for secrets; commit only templates such as <Badge text="web/.env.development.example" variant="envFile" />.
 </Callout>
 
 ## Related configuration

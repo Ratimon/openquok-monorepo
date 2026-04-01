@@ -9,3 +9,4 @@ export { default as Badge } from '$lib/ui/components/docs/mdx/DocsBadge.svelte';
 export { default as FileTree } from '$lib/ui/components/docs/mdx/DocsFileTree.svelte';
 export { default as CodeGroup } from '$lib/ui/components/docs/mdx/DocsCodeGroup.svelte';
 export { default as ExternalLink } from '$lib/ui/components/ExternalLink.svelte';
+export { default as DocsExternalLink } from '$lib/ui/components/docs/mdx/DocsExternalLink.svelte';

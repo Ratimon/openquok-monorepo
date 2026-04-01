@@ -11,7 +11,7 @@ Apply whenever you **add, rename, or remove** an environment variable used by th
 ## 1. Always update the checked-in templates
 
 - **Backend**: add the variable (and a one-line comment if the file uses section comments) to `backend/.env.development.example`.
-- **Web (Vite)**: add `VITE_*` variables to `web/.env.development.example` (only client/build-time vars belong here; use the `VITE_` prefix per Vite rules).
+- **Web (Vite)**: add variables in the `VITE_*` family to `web/.env.development.example` (only client/build-time vars belong here; use the `VITE_` prefix per Vite rules).
 
 Do not ship a new env key in code without documenting it in the matching example file.
 
@@ -24,7 +24,7 @@ Do not ship a new env key in code without documenting it in the matching example
 ## 3. Housekeeping on touched doc pages
 
 - Bump **`lastUpdated`** in front matter on every substantive doc file you edit.
-- Follow **docs-internal-links** for `Badge` variants: **`envBackend`** vs **`envWeb`**, and `ExternalLink` for GitHub links to example files.
+- Follow **docs-internal-links** for `Badge` variants: **`envBackend`** vs **`envWeb`** vs **`envFile`** (for paths like `web/.env.development.local`), **`DocsExternalLink`** for GitHub links to example files, and **`Badge text="VITE_*"`** / **`Badge text="VITE_"`** in prose instead of backticks (avoids MDsveX emphasis issues and matches reader scans).
 
 ## 4. Quick checklist
 

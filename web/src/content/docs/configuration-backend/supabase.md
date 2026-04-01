@@ -6,7 +6,7 @@ lastUpdated: 2026-03-30
 ---
 
 <script>
-import { Badge, CardGrid, Callout, ExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, CardGrid, Callout, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -22,11 +22,11 @@ Supabase configuration for this project is split between:
 
 ### Create a Supabase project
 
-Create a project in the <ExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</ExternalLink> and keep your database password.
+Create a project in the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> and keep your database password.
 
 ### Collect API keys
 
-From the project settings, collect the Supabase URL + keys and set them in your backend env file (start from <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></ExternalLink>).
+From the project settings, collect the Supabase URL + keys and set them in your backend env file (start from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></DocsExternalLink>).
 
 Common variables include:
 

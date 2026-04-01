@@ -6,7 +6,7 @@ lastUpdated: 2026-03-30
 ---
 
 <script>
-import { Badge, Callout, CardGrid, ExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -74,8 +74,8 @@ Hardcoded colors and `dark:*` variants bypass DaisyUI themes and create inconsis
 
 ## References
 
-- <ExternalLink href="https://daisyui.com/docs/colors/">DaisyUI Colors</ExternalLink>
-- <ExternalLink href="https://daisyui.com/docs/themes/">DaisyUI Themes</ExternalLink>
+- <DocsExternalLink href="https://daisyui.com/docs/colors/">DaisyUI Colors</DocsExternalLink>
+- <DocsExternalLink href="https://daisyui.com/docs/themes/">DaisyUI Themes</DocsExternalLink>
 
 ## Related Section(s)
 

@@ -6,7 +6,7 @@ lastUpdated: 2026-03-30
 ---
 
 <script>
-import { Badge, CardGrid, Callout, ExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, CardGrid, Callout, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -19,7 +19,7 @@ Database workflow is managed through the Supabase CLI + the migrations under <Ba
 
 ### Install and configure Supabase CLI
 
-Set your project id in <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/supabase/config.toml"><Badge text="backend/supabase/config.toml" variant="path" /></ExternalLink>.
+Set your project id in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/supabase/config.toml"><Badge text="backend/supabase/config.toml" variant="path" /></DocsExternalLink>.
 
 ### Start local Supabase
 

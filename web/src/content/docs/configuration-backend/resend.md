@@ -6,14 +6,14 @@ lastUpdated: 2026-03-31
 ---
 
 <script>
-import { Badge, CardGrid, Callout, ExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, CardGrid, Callout, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
 Email flows involve both:
 
-- Supabase **Auth** configuration in the <ExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</ExternalLink>
+- Supabase **Auth** configuration in the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink>
 - Backend environment variables that enable sending and pick a provider
 
 ## Steps (local)
@@ -55,7 +55,7 @@ Open the local inbox UI at <Badge text="http://localhost:8005" variant="new" />.
 
 ### Verify your domain in Resend
 
-Verify the **root domain** (not only a subdomain) in <ExternalLink href="https://resend.com/domains">Resend Domains</ExternalLink>.
+Verify the **root domain** (not only a subdomain) in <DocsExternalLink href="https://resend.com/domains">Resend Domains</DocsExternalLink>.
 
 ### Set sender address and API key
 
@@ -67,7 +67,7 @@ RESEND_SECRET_KEY=
 ### Implement DMARC (recommended for Gmail to not be marked as spam)
 
 Resend domain verification ensures SPF and DKIM are in place, but DMARC is configured via your DNS provider.
-Follow the Resend guide: <ExternalLink href="https://resend.com/docs/dashboard/domains/dmarc">Implementing DMARC</ExternalLink>.
+Follow the Resend guide: <DocsExternalLink href="https://resend.com/docs/dashboard/domains/dmarc">Implementing DMARC</DocsExternalLink>.
 
 If you use AWS Route 53:
 

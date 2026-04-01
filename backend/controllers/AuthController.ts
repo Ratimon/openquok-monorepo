@@ -141,6 +141,75 @@ export class AuthController {
         this.organizationService = organizationService;
     }
 
+    /**
+     * Start Google OAuth (Supabase PKCE).
+     * Redirects the browser to Google via Supabase, with callback back to this backend.
+     */
+    public startGoogleOAuth = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const nextPath = typeof req.query.next === "string" ? req.query.next : undefined;
+            const url = await this.authenticationService.getOAuthSignInUrl("google", { req, res }, { next: nextPath });
+            res.redirect(url);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
+     * Google OAuth callback.
+     * Exchanges `code` for a Supabase session (sets Supabase cookies) and also sets our refreshToken cookie
+     * + stores the refresh token in DB (best-effort) for parity with password sign-in flows.
+     */
+    public googleOAuthCallback = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const code = typeof req.query.code === "string" ? req.query.code : undefined;
+            const nextPath = typeof req.query.next === "string" ? req.query.next : "/";
+
+            const frontendUrl = serverConfig.frontendDomainUrl ?? "";
+            const safeNext = nextPath.startsWith("/") ? nextPath : "/";
+            const authErrorUrl = `${frontendUrl}/auth-error?message=${encodeURIComponent("Google sign-in failed. Please try again.")}`;
+
+            if (!code) {
+                res.redirect(authErrorUrl);
+                return;
+            }
+
+            const { session, user } = await this.authenticationService.exchangeOAuthCodeForSession({ req, res }, code);
+
+            const clientInfo = {
+                ipAddress: req.ip ?? req.socket?.remoteAddress,
+                userAgent: req.headers["user-agent"],
+            };
+            try {
+                await this.authenticationService.generateRefreshToken({
+                    userId: user.id,
+                    token: session.refresh_token,
+                    ipAddress: clientInfo.ipAddress,
+                    userAgent: clientInfo.userAgent,
+                });
+            } catch (err) {
+                logger.warn({
+                    msg: "Failed to store refresh token (oauth)",
+                    userId: user.id,
+                    error: (err as Error).message,
+                });
+            }
+
+            this.setRefreshTokenCookie(res, session.refresh_token);
+
+            res.redirect(`${frontendUrl}${safeNext}`);
+        } catch (error) {
+            const frontendUrl = serverConfig.frontendDomainUrl ?? "";
+            const message =
+                error instanceof AuthError
+                    ? (error as Error).message
+                    : error instanceof Error
+                      ? error.message
+                      : "Google sign-in failed. Please try again.";
+            res.redirect(`${frontendUrl}/auth-error?message=${encodeURIComponent(message)}`);
+        }
+    };
+
     public signUp: validateSignUpRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email: rawEmail, password, fullName } = req.body;

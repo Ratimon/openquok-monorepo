@@ -5,7 +5,7 @@ order: 3
 ---
 
 <script>
-import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTree } from '$lib/ui/components/docs/mdx/index.js';
+import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTree, DocsExternalLink } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Callouts
@@ -114,6 +114,14 @@ Use link cards for navigation:
 <LinkCard title="Configuration" description="Customize your docs site" href="/docs/how-to-write-docs/configuration" />
 </CardGrid>
 
+## External links
+
+Use **`DocsExternalLink`** (not raw `<ExternalLink>`) for outbound URLs in docs so links use **`text-primary`**, underline, and **`not-prose`**—they stay readable inside prose.
+
+<DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink>
+
+Optional props match the base anchor: `trusted`, `follow`, `ariaLabel`, `class`.
+
 ## Badges
 
 Use **`Badge`** from `$lib/ui/components/docs/mdx/index.js` for short labels in prose.
@@ -122,13 +130,13 @@ Use **`Badge`** from `$lib/ui/components/docs/mdx/index.js` for short labels in 
 
 **Docs semantics** (pick variants so readers can scan by color — see `web/src/content/docs/Installation/vercel.md`):
 
-- **Backend env** (no `VITE_` prefix): <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />
+- **Backend env** (no <Badge text="VITE_" variant="envWeb" /> prefix): <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />
 - **Web / Vite env**: <Badge text="VITE_API_BASE_URL" variant="envWeb" />
 - **CORS / origins**: <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envCors" />
 - **Runtime / platform**: <Badge text="VERCEL" variant="envRuntime" />
 - **Env files**: <Badge text="backend/.env.development.local" variant="envFile" />
-- **Repo paths & routes** (often nested in ExternalLink to GitHub): <Badge text="backend/vercel.json" variant="path" />
-- **URL examples** (prefer / avoid): <Badge text="https://example.com" variant="new" /> vs <Badge text="https://example.com/" variant="deprecated" />
+- **Repo paths & routes** (often nested in DocsExternalLink to GitHub): <Badge text="backend/vercel.json" variant="path" />
+- **URL examples** (prefer / avoid): <Badge text="https://example.com" variant="new" /> vs <Badge text="https://example.com/" variant="deprecated" />; use the same **new** variant for local dev bases such as <Badge text="http://localhost:5173" variant="new" /> or <Badge text="http://localhost:3000" variant="new" />
 
 ## File Tree
 

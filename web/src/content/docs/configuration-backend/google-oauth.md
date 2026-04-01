@@ -1,46 +1,108 @@
 ---
 title: Google OAuth
-description: Configure Google login (redirect URIs) and set OAUTH_GOOGLE_* variables.
+description: Configure Google login with Supabase Auth (redirect URIs, dashboard settings) for the OpenQuok social scheduler.
 order: 4
-lastUpdated: 2026-03-30
+lastUpdated: 2026-04-01
 ---
 
 <script>
-import { Badge, Callout, ExternalLink, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
 Google OAuth is optional. When configured, the backend provides endpoints that start the login flow and handle the callback.
 
+## Prerequisites
+
+- OAuth client credentials from <DocsExternalLink href="https://console.cloud.google.com/">Google Cloud Console</DocsExternalLink>: a <Badge text="Client ID" variant="default" /> and <Badge text="Client Secret" variant="default" />
+- A Supabase project where you can enable Auth providers
+
 ## Steps
 
 <Steps>
 
-### Create OAuth credentials in Google Cloud
+### Activate Google as an Auth provider in Supabase (2 min)
 
-In the Google Cloud console, create OAuth client credentials (Web application).
+1. Open <DocsExternalLink href="https://supabase.com/dashboard/project/_/auth/providers">Supabase → Authentication → Providers</DocsExternalLink>.
+2. Find <Badge text="Google" variant="default" /> in the list and click <Badge text="Enable" variant="new" />.
+3. Leave the provider dialog open—you will paste the Client ID and Client Secret in a later step.
 
-### Configure the redirect URI
+### Create Google OAuth credentials (5 min)
 
-The callback endpoint is:
+1. In another tab, open the <DocsExternalLink href="https://console.cloud.google.com/">Google Cloud Console</DocsExternalLink>.
+2. Create a new project or select an existing one.
+3. Go to <Badge text="APIs & Services" variant="default" /> → <Badge text="Credentials" variant="default" />.
+4. Configure the <Badge text="OAuth consent screen" variant="default" />. Set user type to <Badge text="External" variant="experimental" />.
+5. Click <Badge text="Create Credentials" variant="default" />, then choose <Badge text="OAuth client ID" variant="default" />.
+6. Choose application type <Badge text="Web application" variant="path" />.
+7. Under <Badge text="Authorized JavaScript origins" variant="default" />, add your app’s origins as required by Google.
+8. Under <Badge text="Authorized redirect URIs" variant="default" />, add the Supabase callback (copy the exact value from the Supabase Google provider dialog). It looks like:
+
+```txt
+https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
+```
+
+9. Copy the <Badge text="Client ID" variant="default" /> and <Badge text="Client Secret" variant="default" /> into the Supabase Google provider dialog and click <Badge text="Save" variant="new" />.
+10. For production, set <Badge text="Site URL" variant="path" /> correctly in <DocsExternalLink href="https://supabase.com/dashboard/project/_/auth/url-configuration">Supabase → Authentication → URL Configuration</DocsExternalLink>.
+
+### Configure Supabase redirects back to the backend (2–3 min)
+
+After Google redirects to Supabase and Supabase finishes the exchange, Supabase must be allowed to redirect to your backend callback.
+
+In <DocsExternalLink href="https://supabase.com/dashboard/project/_/auth/url-configuration">Supabase → Authentication → URL Configuration</DocsExternalLink>:
+
+- Set <Badge text="Site URL" variant="path" /> to your frontend (users open this in the browser):
+
+  - Local development:
+
+```txt
+http://localhost:5173
+```
+
+  - Production:
+
+```txt
+https://YOUR_FRONTEND_DOMAIN
+```
+
+- Under <Badge text="Redirect URLs" variant="path" />, add the full OAuth callback URL for your backend (origin + API prefix + path). Supabase matches the origin and path; query parameters on the redirect are allowed. Use the same origin as <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> and the same prefix as <Badge text="API_PREFIX" variant="envBackend" /> (default <Badge text="/api/v1" variant="path" />). Callback path:
 
 <Badge text="/api/v1/auth/oauth/google/callback" variant="path" />
 
-If you use <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> and <Badge text="API_PREFIX" variant="envBackend" /> to construct the redirect, make sure your Google “Authorized redirect URI” matches the final URL shape.
+  - Local development:
+
+```txt
+http://localhost:3000/api/v1/auth/oauth/google/callback
+```
+
+  - Production:
+
+```txt
+https://YOUR_BACKEND_DOMAIN/api/v1/auth/oauth/google/callback
+```
+
+Summary:
+
+- Frontend (Supabase <Badge text="Site URL" variant="path" />): local <Badge text="http://localhost:5173" variant="new" />, production <Badge text="https://YOUR_FRONTEND_DOMAIN" variant="new" />
+- Backend (OAuth callback in <Badge text="Redirect URLs" variant="path" />): local <Badge text="http://localhost:3000/api/v1/auth/oauth/google/callback" variant="new" />, production <Badge text="https://YOUR_BACKEND_DOMAIN/api/v1/auth/oauth/google/callback" variant="new" />
 
 ### Set environment variables
 
-```bash
-OAUTH_GOOGLE_CLIENT_ID=
-OAUTH_GOOGLE_CLIENT_SECRET=
-BACKEND_DOMAIN_URL=http://localhost:3000
-API_PREFIX=/api/v1
-```
+You do not put Google client secrets in the backend env file—configure them in the Supabase dashboard.
+
+The backend still needs:
+
+- <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> (example: <Badge text="http://localhost:3000" variant="new" />)
+- <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (example: <Badge text="http://localhost:5173" variant="new" />)
+
+### Branding the consent screen (optional)
+
+The first time you test, Google may show that users are signing in to your Supabase project domain. You can adjust branding in Google Cloud; see <DocsExternalLink href="https://github.com/orgs/supabase/discussions/2532">Supabase: branding the Google OAuth consent screen</DocsExternalLink>.
 
 ### Restart the backend
 
-Restart the backend process so the new values are loaded.
+Restart the backend process so environment changes are loaded.
 
 </Steps>
 

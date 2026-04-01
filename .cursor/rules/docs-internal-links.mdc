@@ -1,5 +1,5 @@
 ---
-description: Authoring docs under web/src/content/docs — ExternalLink, GitHub file links, Badge env/path semantics, Callouts, env-var HTML fallback, Steps, CLI bash blocks, CardGrid/LinkCard
+description: Authoring docs under web/src/content/docs — DocsExternalLink (styled outbound links), GitHub file links, Badge env/path/UI semantics, Callouts, env-var HTML fallback, Steps, CLI bash blocks, CardGrid/LinkCard
 globs: web/src/content/docs/**/*
 alwaysApply: false
 ---
@@ -8,20 +8,21 @@ alwaysApply: false
 
 Applies to Markdown and MDsvex files under `web/src/content/docs/`.
 
-## External links
+## External links (docs pages)
 
-- Use the **`ExternalLink`** component from `$lib/ui/components/docs/mdx/index.js` (re-exported in the docs MDX index) for **third-party** URLs (Vercel, Supabase docs, npm, etc.) so `rel` / `target` / security defaults stay consistent.
-- **Pattern**: `<ExternalLink href="https://...">Label</ExternalLink>`. Optional props: `trusted`, `follow`, `ariaLabel` — see `web/src/lib/ui/components/ExternalLink.svelte`.
-- **Do not** rely on raw Markdown `[text](https://...)` **inside** custom MDX components (e.g. `<Callout>`): those children are often **not** parsed as Markdown; use `<ExternalLink>` or plain `<a href="...">` with the same security expectations.
-- For external URLs in **plain prose** (including **“References”** sections), prefer **`ExternalLink`** over raw `<a href="...">` so outbound attributes stay consistent.
+- **In `web/src/content/docs/**`**, use **`DocsExternalLink`** from `$lib/ui/components/docs/mdx/index.js` for **third-party** URLs (Vercel, Supabase, GitHub, npm docs, etc.). It wraps `ExternalLink` with **`not-prose`** and **`text-primary`** + underline so links stay readable inside docs prose (avoids low-contrast inherited `prose-a` styles).
+- **Pattern**: `<DocsExternalLink href="https://...">Label</DocsExternalLink>`. Optional props match the base component: `trusted`, `follow`, `ariaLabel`, or `class` to extend styles — see `web/src/lib/ui/components/ExternalLink.svelte` and `web/src/lib/ui/components/docs/mdx/DocsExternalLink.svelte`.
+- **`ExternalLink`** remains the low-level primitive (used inside `DocsExternalLink`). Do not use raw `<ExternalLink>` in new docs content unless you have a rare case that must not use docs styling.
+- **Do not** rely on raw Markdown `[text](https://...)` **inside** custom MDX components (e.g. `<Callout>`): those children are often **not** parsed as Markdown; use **`DocsExternalLink`** or plain `<a href="...">` with the same security expectations (`rel` / `target` where appropriate).
+- For external URLs in **plain prose** (including **“References”** sections), prefer **`DocsExternalLink`** over raw `<a href="...">` so outbound attributes and contrast stay consistent.
 
 ## Links to files in this repository
 
 - Prefer **stable GitHub URLs** to the **default branch** (`main`):  
   `https://github.com/Ratimon/openquok-monorepo/blob/main/<path>`  
-  Wrap with `<ExternalLink href="...">` when the link leaves the docs site (GitHub is external).
+  Wrap with `<DocsExternalLink href="...">` when the link leaves the docs site (GitHub is external).
 - **Short labels** can use `<code>path/to/file</code>` inside the link, or **`Badge`** with **`variant="path"`** for scan-friendly chips:  
-  `<ExternalLink href="https://github.com/.../blob/main/backend/vercel.json"><Badge text="backend/vercel.json" variant="path" /></ExternalLink>`.
+  `<DocsExternalLink href="https://github.com/.../blob/main/backend/vercel.json"><Badge text="backend/vercel.json" variant="path" /></DocsExternalLink>`.
 - Keep `docsSite.social.github` in `web/src/data/docs.ts` aligned with the org/repo used in URLs.
 
 ## Badges for env vars, paths, and examples (`Badge`)
@@ -30,13 +31,14 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
 - Prefer **`<Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />`** (and related variants) over inline **`<code>`** for **environment variable names** in docs: the label is a **string prop**, so underscores and `*` do not trigger MDsveX emphasis bugs, and color coding helps readers distinguish **backend** vs **web (Vite)** vs **CORS** vs **runtime** vars.
 - **Semantic variants** (use consistently on a page):
   - **`envBackend`** — backend package env (typically no `VITE_` prefix): blue.
-  - **`envWeb`** — web / `VITE_*` env: purple.
+  - **`envWeb`** — web / `VITE_*` env: purple. In prose, prefer **`<Badge text="VITE_*" variant="envWeb" />`** (or a specific key) instead of backticks around `VITE_*` / `VITE_` so the label stays visible and MDsveX does not treat `_` as emphasis.
   - **`envCors`** — origins / CORS-related names: warning.
   - **`envRuntime`** — platform flags such as `VERCEL`, `NODE_ENV`: gray.
-  - **`envFile`** — `.env` files and example env templates: pink.
+  - **`envFile`** — `.env` files and example env templates (e.g. `web/.env.development.local`, `backend/.env.development.example`): pink.
   - **`path`** — repo-relative paths, route paths, folder names: outline (use inside **`ExternalLink`** for GitHub file links when you want a chip instead of `<code>`).
 - **Examples**: **`new`** (green) vs **`deprecated`** (red) for **preferred vs discouraged URL shapes** (e.g. with vs without a trailing slash). **`experimental`** (yellow) works well for **npm package names** (e.g. `@sveltejs/adapter-vercel`) when linked to upstream docs.
 - **`default`** — generic keys (e.g. `buildCommand`, `installCommand`) when they are not env vars.
+- **UI labels** (dashboard buttons, provider names, wizard steps): prefer **`Badge`** with **`default`**, **`new`** (positive actions like Save / Enable), **`path`** (navigation crumbs or literal paths), or **`experimental`** (third-party package names per above)—keeps emphasis visible without fragile `**bold**` in MDX.
 
 ## Underscores and `*` in environment variable names (MDsveX)
 
@@ -75,6 +77,14 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 - For **top-level section index pages** (the `index.md` at a section root such as `getting-started/`, `Installation/`, `configuration-backend/`, `configuration-web/`), add a bottom section named **`## Related Section(s)`**.
 - Use **`CardGrid`** + **`LinkCard`** to point readers to the **next** or **related** top-level areas (for example linking `Getting Started` → `/docs/Installation`, config hubs → `/docs/Installation` and `/docs/developer-guidelines`).
 - **Do not** add this block to **subpages** inside a section unless they truly need cross-section navigation; prefer small “Related configuration” blocks only when helpful.
+
+## Inline components and “missing words” (MDsveX)
+
+- **Adjacent custom components** (`<DocsExternalLink/>`, `<Badge/>`, etc.) on one line can cause **plain text between them to disappear** in the rendered page. Fix by:
+  - Wrapping the sentence in an explicit **`<p>...</p>`**, and
+  - Inserting explicit spaces with **`{' '}`** between text and components (or between two components), **or**
+  - Moving the content to a **bullet list** / **Callout** with fewer inline chips.
+- Prefer **`<code>…</code>`** for short literals (JSON keys, package names in prose, shell snippets) when **badges would make the sentence hard to scan**; reserve **`Badge`** for env vars, paths you link to GitHub, and semantic chips (`new` / `deprecated` / `envWeb`, etc.).
 
 ## Numbered procedures (`Steps`)
 

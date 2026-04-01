@@ -6,14 +6,14 @@ lastUpdated: 2026-03-30
 ---
 
 <script>
-import { Badge, CardGrid, ExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
-The **backend** reads its runtime settings from **environment variables**, and you also configure your **Supabase** project in the <ExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</ExternalLink> (database, authentication, API keys, and related project settings). **Any change** to environment variables requires **restarting** the backend process so the new values are loaded.
+The **backend** reads its runtime settings from **environment variables**, and you also configure your **Supabase** project in the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> (database, authentication, API keys, and related project settings). **Any change** to environment variables requires **restarting** the backend process so the new values are loaded.
 
-An example file with the most commonly used settings is checked in at <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></ExternalLink>. Copy it to <Badge text="backend/.env.development.local" variant="envFile" /> under <Badge text="backend/" variant="path" /> (the example header explains load order and how it relates to <Badge text="backend/.env" variant="path" />). Use that local file for secrets and overrides you do not commit.
+An example file with the most commonly used settings is checked in at <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></DocsExternalLink>. Copy it to <Badge text="backend/.env.development.local" variant="envFile" /> under <Badge text="backend/" variant="path" /> (the example header explains load order and how it relates to <Badge text="backend/.env" variant="path" />). Use that local file for secrets and overrides you do not commit.
 
 For **production**, follow the same naming convention: maintain <Badge text="backend/.env.production.local" variant="envFile" /> (or inject the same keys from your host’s secret store). In local development, keep <Badge text="NODE_ENV" variant="envRuntime" /> set to **development**; for deployment, use **production**.
 
@@ -28,7 +28,7 @@ FRONTEND_DOMAIN_URL=http://localhost:5173
 
 ### Start with the example env file
 
-Copy <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></ExternalLink> to <Badge text="backend/.env.development.local" variant="envFile" /> and fill in values. Restart the backend after changes.
+Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></DocsExternalLink> to <Badge text="backend/.env.development.local" variant="envFile" /> and fill in values. Restart the backend after changes.
 
 ### Configure Supabase in the dashboard
 
@@ -46,7 +46,7 @@ Configure Redis (recommended for production), Sentry (optional), Google OAuth (o
 <LinkCard title="Supabase" description="Project setup, keys, dashboard settings, and local vs cloud notes" href="/docs/configuration-backend/supabase" />
 <LinkCard title="Redis cache" description="Switch cache provider to Redis and configure REDIS_* variables" href="/docs/configuration-backend/redis" />
 <LinkCard title="Sentry" description="Enable error monitoring with SENTRY_DSN" href="/docs/configuration-backend/sentry" />
-<LinkCard title="Google OAuth" description="Configure Google login redirect URIs and OAUTH_GOOGLE_* variables" href="/docs/configuration-backend/google-oauth" />
+<LinkCard title="Google OAuth" description="Supabase Auth, Google Cloud, and backend callback URLs" href="/docs/configuration-backend/google-oauth" />
 <LinkCard title="Database & migrations" description="Supabase CLI, migrations, cron extension, and type generation" href="/docs/configuration-backend/database" />
 <LinkCard title="Email (Resend / local)" description="Supabase email confirmations, local inbox, and Resend production setup" href="/docs/configuration-backend/resend" />
 </CardGrid>

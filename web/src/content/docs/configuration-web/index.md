@@ -6,7 +6,7 @@ lastUpdated: 2026-03-31
 ---
 
 <script>
-import { Badge, CardGrid, ExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -14,7 +14,7 @@ import { Badge, CardGrid, ExternalLink, LinkCard, Steps } from '$lib/ui/componen
 The **web** (Vite + SvelteKit) is configured from:
 
 - <Badge text="web/.env.*" variant="envFile" /> environment files (Vite reads these at build/dev time)
-- <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/web-config.json"><Badge text="web/src/web-config.json" variant="path" /></ExternalLink> for PWA metadata
+- <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/web-config.json"><Badge text="web/src/web-config.json" variant="path" /></DocsExternalLink> for PWA metadata
 
 Any change to environment values requires restarting your dev server or rebuilding the web app so Vite can pick up the new settings.
 
@@ -24,7 +24,7 @@ Any change to environment values requires restarting your dev server or rebuildi
 
 ### Configure your web env files
 
-Copy <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="envFile" /></ExternalLink> to <Badge text="web/.env.development.local" variant="envFile" /> and fill in values (see the Environment variables guide below).
+Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="envFile" /></DocsExternalLink> to <Badge text="web/.env.development.local" variant="envFile" /> and fill in values (see the Environment variables guide below).
 
 ### Set production env values
 
@@ -32,7 +32,7 @@ Maintain <Badge text="web/.env.production.local" variant="envFile" /> and set ma
 
 ### Update PWA settings
 
-Edit <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/web-config.json"><Badge text="web/src/web-config.json" variant="path" /></ExternalLink> to customize PWA metadata (name/title/description/theme, and icon references).
+Edit <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/web-config.json"><Badge text="web/src/web-config.json" variant="path" /></DocsExternalLink> to customize PWA metadata (name/title/description/theme, and icon references).
 
 </Steps>
 
@@ -44,7 +44,7 @@ Edit <ExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/
 <LinkCard title="PWA configuration" description="Edit web-config.json for app name and icon metadata" href="/docs/configuration-web/pwa" />
 </CardGrid>
 
-For the full checklist, see the repository <ExternalLink href="https://github.com/Ratimon/openquok-monorepo#frontend-setup">README</ExternalLink> (**Frontend Setup**).
+For the full checklist, see the repository <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo#frontend-setup">README</DocsExternalLink> (**Frontend Setup**).
 
 ## Related Section(s)
 
