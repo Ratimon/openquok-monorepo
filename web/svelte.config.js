@@ -51,6 +51,11 @@ const config = {
 		],
 	kit: {
 		adapter,
+		prerender: {
+			// Docs i18n markdown routes can overlap (e.g. `/docs/es/markdown` matches both `[lang=lang]` and `[...slug]`).
+			// Prefer continuing the build while keeping visibility in logs.
+			handleEntryGeneratorMismatch: 'warn'
+		},
 		alias: {
 			'web-config': './src/web-config.json',
 			'$data': './src/data',

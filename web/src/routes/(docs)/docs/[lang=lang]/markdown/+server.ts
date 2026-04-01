@@ -4,13 +4,8 @@ import { error } from '@sveltejs/kit';
 
 import type { RequestHandler } from './$types';
 
-export const prerender = true;
-
-export function entries() {
-	const locales = docsConfig.i18n?.locales ?? [];
-	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
-	return locales.filter((l) => l.code !== defaultLocale).map((l) => ({ lang: l.code }));
-}
+// Do not prerender localized raw-markdown endpoints; they are runtime resources.
+export const prerender = false;
 
 export const GET: RequestHandler = ({ params }) => {
 	const raw = getRawContent('', params.lang);

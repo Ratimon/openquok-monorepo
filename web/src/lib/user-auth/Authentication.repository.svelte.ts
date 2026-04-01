@@ -6,6 +6,7 @@ import { dev } from '$app/environment';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
+const REFRESH_TOKEN_KEY = 'auth_refresh_token';
 // Prevent redundant refresh attempts immediately after a successful signout.
 // `invalidateAll()` triggers multiple layout loads, and the scheduled refresh timer may also fire.
 const SIGNOUT_REFRESH_SUPPRESSION_KEY = 'auth_signout_refresh_suppressed_until';
@@ -119,6 +120,7 @@ export interface AuthConfig {
 	storageKeys: {
 		token: string;
 		user: string;
+		refreshToken: string;
 	};
 }
 
@@ -139,6 +141,7 @@ function defaultAuthConfig(): AuthConfig {
 		storageKeys: {
 			token: TOKEN_KEY,
 			user: USER_KEY,
+			refreshToken: REFRESH_TOKEN_KEY
 		}
 	};
 }
@@ -214,8 +217,19 @@ export class AuthenticationRepository {
 				setUnauthenticated();
 				return;
 			}
-			const stored = this.getStoredUser();
-			this.currentUser = stored ?? this.currentUser;
+			// After a successful refresh (OAuth redirect, returning users, etc), ensure we populate currentUser.
+			// Otherwise isAuthenticated() may remain false and protected routes will redirect.
+			try {
+				if (this.config.endpoints.me) {
+					await this.fetchCurrentUser(loadFetch);
+				}
+			} catch {
+				// Fallback to stored user when /me fails; still mark as authenticated so app can retry.
+				const stored = this.getStoredUser();
+				this.currentUser = stored ?? this.currentUser;
+				this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
+			}
+			// If fetchCurrentUser succeeded it already set AUTHENTICATED; keep it consistent.
 			this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
 			this.setupTokenRefresh();
 			return;
@@ -230,6 +244,21 @@ export class AuthenticationRepository {
 		this.currentUser = stored;
 		this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
 		this.setupTokenRefresh();
+	}
+
+	/**
+	 * Called before redirecting the browser to an OAuth provider.
+	 * OAuth callback relies on `POST /auth/refresh` to mint an access token, so we must not suppress refresh.
+	 */
+	public prepareForOAuthRedirect(): void {
+		if (typeof window === 'undefined') return;
+		this.clearSignoutRefreshSuppression();
+		this.clearRefreshFailureSuppression();
+		// Avoid any pending timer trying to refresh mid-navigation.
+		if (this.refreshTimer !== null) {
+			clearTimeout(this.refreshTimer);
+			this.refreshTimer = null;
+		}
 	}
 
 	public async signin(credentials: SigninCredentials): Promise<AuthProgrammerModel> {
@@ -604,6 +633,7 @@ export class AuthenticationRepository {
 		if (typeof window === 'undefined') return;
 		this.inMemoryToken = null;
 		localStorage.removeItem(this.config.storageKeys.token);
+		localStorage.removeItem(this.config.storageKeys.refreshToken);
 	}
 
 	private clearUser(): void {

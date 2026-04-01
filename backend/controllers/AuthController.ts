@@ -100,12 +100,32 @@ export class AuthController {
 
     private setRefreshTokenCookie(res: Response, refreshToken: string): void {
         const isProduction = serverConfig.nodeEnv === "production";
+        const domain = (() => {
+            if (!isProduction) return undefined;
+            try {
+                const backUrl = new URL(serverConfig.backendDomainUrl ?? "");
+                const hostname = backUrl.hostname;
+                // Don't set domain for IPs/localhost (invalid/pointless).
+                if (hostname === "localhost") return undefined;
+                if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) return undefined;
+
+                // If backend is a subdomain (e.g. api.example.com), set cookie domain to registrable site
+                // (example.com) so requests to other subdomains or the apex can include the refresh cookie.
+                const site = this.getSiteKey(hostname);
+                if (hostname !== site && hostname.endsWith(`.${site}`)) return site;
+                return undefined;
+            } catch {
+                return undefined;
+            }
+        })();
+
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: isProduction,
             sameSite: this.getSameSiteValue(),
             maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
             path: "/",
+            ...(domain ? { domain } : {}),
         });
     }
 
@@ -148,6 +168,16 @@ export class AuthController {
     public startGoogleOAuth = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const nextPath = typeof req.query.next === "string" ? req.query.next : undefined;
+            // Store intended post-login path on the backend origin so Supabase redirect_to stays stable.
+            // This avoids Supabase falling back to Site URL when query params cause allow-list mismatches.
+            const safeNext = nextPath && nextPath.startsWith("/") ? nextPath : "/account";
+            res.cookie("oauthNext", safeNext, {
+                httpOnly: true,
+                secure: serverConfig.nodeEnv === "production",
+                sameSite: this.getSameSiteValue(),
+                maxAge: 10 * 60 * 1000, // 10 minutes
+                path: "/",
+            });
             const url = await this.authenticationService.getOAuthSignInUrl("google", { req, res }, { next: nextPath });
             res.redirect(url);
         } catch (error) {
@@ -163,7 +193,9 @@ export class AuthController {
     public googleOAuthCallback = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const code = typeof req.query.code === "string" ? req.query.code : undefined;
-            const nextPath = typeof req.query.next === "string" ? req.query.next : "/";
+            const nextFromQuery = typeof req.query.next === "string" ? req.query.next : undefined;
+            const nextFromCookie = typeof req.cookies?.oauthNext === "string" ? req.cookies.oauthNext : undefined;
+            const nextPath = nextFromQuery ?? nextFromCookie ?? "/account";
 
             const frontendUrl = serverConfig.frontendDomainUrl ?? "";
             const safeNext = nextPath.startsWith("/") ? nextPath : "/";
@@ -195,7 +227,20 @@ export class AuthController {
                 });
             }
 
+            // Google (and other OAuth) accounts have email_confirmed_at in auth; public.users defaulted to false from the old trigger.
+            const { updateError: oauthVerifyErr } = await this.userRepository.updateEmailVerification(user.id, true);
+            if (oauthVerifyErr) {
+                logger.warn({
+                    msg: "Failed to mark OAuth user email verified in public.users",
+                    userId: user.id,
+                    error: oauthVerifyErr,
+                });
+            }
+
             this.setRefreshTokenCookie(res, session.refresh_token);
+
+            // Clear oauthNext so it doesn't affect future logins.
+            res.clearCookie("oauthNext", { path: "/" });
 
             res.redirect(`${frontendUrl}${safeNext}`);
         } catch (error) {

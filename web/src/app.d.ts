@@ -17,6 +17,9 @@ declare global {
 			pageMetaTags?: BaseMetaTags;
 			authStatus?: AuthStatus | string;
 			isLoggedIn?: boolean;
+			/** Set when `/?code=...` must be forwarded to the backend OAuth callback (show interstitial first). */
+			oauthCodeRedirectPending?: boolean;
+			oauthCodeRedirectUrl?: string;
 			/** Authenticated user; matches backend AuthUserDTO / BasicUserAuthProgrammerModel */
 			currentUser?: import('$lib/user-auth/Authentication.repository.svelte').BasicUserAuthProgrammerModel | null;
 			companyNameVm?: string | null;

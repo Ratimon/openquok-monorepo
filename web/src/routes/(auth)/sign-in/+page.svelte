@@ -21,6 +21,7 @@
 		CardContent,
 		CardFooter
 	} from '$lib/ui/card';
+	import SignInWithGoogleButton from '$lib/ui/components/social-login/SignInWithGoogleButton.svelte';
 
 	const signupPath = getRootPathSignup();
 	const signupUrl = absoluteUrl(`/${signupPath}`);
@@ -65,6 +66,7 @@
 	}
 
 	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'Openquok');
+	let googleOAuthNext = $derived(getRedirectURL());
 	let status = $derived(signinPresenter.status);
 	let isSigningIn = $derived(status === SigninStatus.SUBMITTING);
 	let showPassword = $state(false);
@@ -304,6 +306,15 @@
 							</form.Subscribe>
 						</CardFooter>
 					</form>
+					<div class="relative py-1">
+						<div class="absolute inset-0 flex items-center" aria-hidden="true">
+							<span class="w-full border-t border-base-content/20"></span>
+						</div>
+						<div class="relative flex justify-center text-xs font-medium uppercase tracking-wide">
+							<span class="bg-base-100 px-2 text-base-content/60">Or continue with</span>
+						</div>
+					</div>
+					<SignInWithGoogleButton next={googleOAuthNext} />
 				</CardContent>
 			</Card>
 

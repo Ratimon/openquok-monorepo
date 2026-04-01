@@ -50,6 +50,8 @@ export {
 	type SignupFormSchemaType
 } from '$lib/user-auth/user-auth.types';
 
+export { OAUTH_GOOGLE_PATH, getGoogleOAuthStartUrl } from '$lib/user-auth/constants/googleOAuth';
+
 export { authStatusModel, authenticationRepository, signinPresenter, signupPresenter, signoutPresenter, verifyEmailPresenter, resetPasswordPresenter };
 export { AuthStatus } from '$lib/user-auth/AuthStatus.model.svelte';
 export { ResetPasswordStatus } from '$lib/user-auth/ResetPassword.presenter.svelte';

@@ -117,22 +117,12 @@ export class AuthenticationService {
         await supabaseRLSClient.auth.signOut();
     }
 
-    private buildBackendOAuthCallbackUrl(provider: "google", next?: string): string {
+    private buildBackendOAuthCallbackUrl(provider: "google"): string {
         const serverConfig = config.server as { backendDomainUrl?: string };
         const apiConfig = config.api as { prefix?: string };
         const backendOrigin = serverConfig.backendDomainUrl ?? "http://localhost:3000";
         const apiPrefix = apiConfig.prefix ?? "/api/v1";
-
-        const normalizedNext = (() => {
-            if (!next) return "/";
-            // prevent open redirects; only allow a local path
-            if (next.startsWith("/")) return next;
-            return "/";
-        })();
-
-        const url = new URL(`${backendOrigin}${apiPrefix}/auth/oauth/${provider}/callback`);
-        url.searchParams.set("next", normalizedNext);
-        return url.toString();
+        return new URL(`${backendOrigin}${apiPrefix}/auth/oauth/${provider}/callback`).toString();
     }
 
     async getOAuthSignInUrl(
@@ -141,7 +131,9 @@ export class AuthenticationService {
         options: { next?: string } = {}
     ): Promise<string> {
         const supabaseRLSClient = this.createRLSClient(context);
-        const redirectTo = this.buildBackendOAuthCallbackUrl(provider, options.next);
+        // Keep redirectTo stable (no query params) so Supabase allow-list matching is reliable.
+        // We pass the intended `next` via a short-lived backend cookie instead.
+        const redirectTo = this.buildBackendOAuthCallbackUrl(provider);
         const { data, error } = await supabaseRLSClient.auth.signInWithOAuth({
             provider,
             options: { redirectTo },

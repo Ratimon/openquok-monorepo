@@ -8,7 +8,16 @@ export const prerender = true;
 
 export function entries() {
 	const docs = getAllDocs();
-	return docs.filter((d) => d.slug).map((d) => ({ slug: d.slug }));
+	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
+	const localeCodes = new Set(
+		(docsConfig.i18n?.locales ?? [])
+			.map((l) => l.code)
+			.filter((code) => code && code !== defaultLocale)
+	);
+
+	return docs
+		.filter((d) => d.slug && !localeCodes.has(d.slug))
+		.map((d) => ({ slug: d.slug }));
 }
 
 export const GET: RequestHandler = ({ params }) => {

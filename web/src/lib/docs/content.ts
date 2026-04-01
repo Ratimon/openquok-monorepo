@@ -114,7 +114,8 @@ export function getDoc(slug: string, locale?: string): DocPage | undefined {
 
 /** Normalize glob keys so suffix matching works across platforms / Vite key shapes. */
 function normalizeGlobKey(p: string): string {
-	return p.replace(/\\/g, '/');
+	// Vite glob keys can include query strings (e.g. `?raw`). We only care about the file path.
+	return p.replace(/\\/g, '/').split('?')[0] ?? '';
 }
 
 /**
@@ -148,23 +149,25 @@ function findRawByPathSuffix(
 	locale: string | undefined
 ): string {
 	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
-	const dir =
-		locale && locale !== defaultLocale ? `content/docs-${locale}` : 'content/docs';
+	const dir = locale && locale !== defaultLocale ? `docs-${locale}` : 'docs';
 
-	const needles: string[] = slug
-		? [
-				`/${dir}/${slug}.md`,
-				`/${dir}/${slug}.svx`,
-				`/${dir}/${slug}/index.md`,
-				`/${dir}/${slug}/index.svx`
-			]
-		: [`/${dir}/index.md`, `/${dir}/index.svx`];
+	const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	const dirRe = escapeRegExp(dir);
+	const slugRe = escapeRegExp(slug);
+	const matcher = slug
+		? new RegExp(
+				// Matches:
+				// - .../docs-<locale>/<slug>.md
+				// - .../docs-<locale>/<slug>.svx
+				// - .../docs-<locale>/<slug>/index.md
+				// - .../docs-<locale>/<slug>/index.svx
+				`(?:^|/)${dirRe}/${slugRe}(?:\\.(?:md|svx)|/(?:index\\.(?:md|svx)))$`
+			)
+		: new RegExp(`(?:^|/)${dirRe}/index\\.(?:md|svx)$`);
 
 	for (const [path, raw] of Object.entries(modules)) {
 		const n = normalizeGlobKey(path);
-		for (const needle of needles) {
-			if (n.endsWith(needle)) return raw;
-		}
+		if (matcher.test(n)) return raw;
 	}
 	return '';
 }

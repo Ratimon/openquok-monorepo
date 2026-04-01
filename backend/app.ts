@@ -190,9 +190,8 @@ if (!process.env.VERCEL) {
             if (process.env.JEST_WORKER_ID) {
                 return;
             }
-            // Create HTTP server and raise header size limit to avoid 431 (Node default can be 8–16KB)
-            const server = http.createServer(configuredApp);
-            (server as http.Server & { maxHeaderSize: number }).maxHeaderSize = 32 * 1024; // 32KB
+            // Incoming Cookie headers (Supabase sb-* + refreshToken) can exceed Node's default maxHeaderSize (~16KB) → 431.
+            const server = http.createServer({ maxHeaderSize: 64 * 1024 }, configuredApp);
             server.listen(port, () => {
                 logger.info({ msg: "[server] Server is running", port });
             });

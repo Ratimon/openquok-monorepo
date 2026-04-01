@@ -5,7 +5,7 @@
 	import { signupFormSchema, signupPresenter } from '$lib/user-auth/index';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, url } from '$lib/utils/path';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -18,10 +18,11 @@
 		CardContent,
 		CardFooter
 	} from '$lib/ui/card';
+	import SignInWithGoogleButton from '$lib/ui/components/social-login/SignInWithGoogleButton.svelte';
 
 	const signinPath = getRootPathSignin();
 	const signinUrl = absoluteUrl(`/${signinPath}`);
-	const accountPath = getRootPathAccount();
+	const googleOAuthNext = url(getRootPathAccount());
 
 	let status = $derived(signupPresenter.status);
 	let isSubmitting = $derived(status === SignupStatus.SUBMITTING);
@@ -119,7 +120,7 @@
 				<CardHeader>
 					<CardTitle>
 						<h1 class="text-xl font-semibold leading-none tracking-tight">
-							Create an account</h1>
+							Create Your Account</h1>
 					</CardTitle>
 					<CardDescription>Sign up to continue.</CardDescription>
 				</CardHeader>
@@ -216,13 +217,22 @@
 												<AbstractIcon name={icons.LoaderCircle.name} width="24" height="24" focusable="false" />
 											</span>
 										{:else}
-											Sign up
+											Create Account
 										{/if}
 									</Button>
 								{/snippet}
 							</form.Subscribe>
 						</CardFooter>
 					</form>
+					<div class="relative py-1">
+						<div class="absolute inset-0 flex items-center" aria-hidden="true">
+							<span class="w-full border-t border-base-content/20"></span>
+						</div>
+						<div class="relative flex justify-center text-xs font-medium uppercase tracking-wide">
+							<span class="bg-base-100 px-2 text-base-content/60">Or sign up with</span>
+						</div>
+					</div>
+					<SignInWithGoogleButton next={googleOAuthNext} />
 				</CardContent>
 			</Card>
 			<p class="text-center text-sm text-base-content/80">
