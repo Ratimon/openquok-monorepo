@@ -8,7 +8,22 @@ import { BlogController } from "./BlogController";
 import { ImageController } from "./ImageController";
 import { ConfigController } from "./ConfigController";
 import { EmailController } from "./EmailController";
-import { authenticationService, emailService, userService, companyService, marketingService, organizationService, rbacService, feedbackService, blogService, configService } from "../services/index";
+import { IntegrationController } from "./IntegrationController";
+import { PublicIntegrationController } from "./PublicIntegrationController";
+import {
+    authenticationService,
+    emailService,
+    userService,
+    companyService,
+    marketingService,
+    organizationService,
+    rbacService,
+    feedbackService,
+    blogService,
+    configService,
+    integrationConnectionService,
+    integrationManager,
+} from "../services/index";
 import { userRepository, storageRepository } from "../repositories/index";
 
 export const authController = new AuthController(authenticationService, userRepository, emailService, organizationService);
@@ -21,3 +36,5 @@ export const blogController = new BlogController(blogService);
 export const imageController = new ImageController(storageRepository);
 export const configController = new ConfigController(configService);
 export const emailController = new EmailController(emailService);
+export const integrationController = new IntegrationController(integrationConnectionService, integrationManager);
+export const publicIntegrationController = new PublicIntegrationController(integrationConnectionService);

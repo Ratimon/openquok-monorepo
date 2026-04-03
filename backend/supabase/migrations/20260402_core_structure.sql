@@ -385,6 +385,57 @@ COMMENT ON TABLE public.role_permissions IS 'Maps app roles to their permissions
 -- ---------------------------
 
 
+-- Module: integration, File: 106_20260402_tables.sql
+-- ---------------------------
+-- MODULE NAME: integration
+-- MODULE DATE: 20260402
+-- MODULE SCOPE: Tables
+-- ---------------------------
+-- Connected channels per organization: id, internal_id, organization_id, name, picture,
+-- provider_identifier, type, token, disabled, token_expiration, refresh_token, profile,
+-- deleted_at, created_at, updated_at, in_between_steps, refresh_needed, posting_times,
+-- custom_instance_details, customer_id, root_internal_id, additional_settings.
+-- Optional relations (plugs, posts, webhooks, customer) are not modeled here yet — columns reserved where noted.
+
+
+
+CREATE TABLE IF NOT EXISTS public.integrations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    internal_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    picture TEXT,
+    provider_identifier TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'social',
+    token TEXT NOT NULL,
+    disabled BOOLEAN NOT NULL DEFAULT FALSE,
+    token_expiration TIMESTAMPTZ,
+    refresh_token TEXT,
+    profile TEXT,
+    deleted_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    in_between_steps BOOLEAN NOT NULL DEFAULT FALSE,
+    refresh_needed BOOLEAN NOT NULL DEFAULT FALSE,
+    posting_times TEXT NOT NULL DEFAULT '[{"time":120},{"time":400},{"time":700}]',
+    custom_instance_details TEXT,
+    customer_id UUID,
+    root_internal_id TEXT,
+    additional_settings TEXT NOT NULL DEFAULT '[]',
+    CONSTRAINT uq_integrations_organization_internal UNIQUE (organization_id, internal_id)
+);
+
+COMMENT ON TABLE public.integrations IS 'Connected social/article channels per workspace; access tokens via service role from API';
+COMMENT ON COLUMN public.integrations.type IS 'social | article (and other provider groupings)';
+COMMENT ON COLUMN public.integrations.profile IS 'Display handle or profile line for the connected account';
+COMMENT ON COLUMN public.integrations.customer_id IS 'Optional FK to Customer when that module exists';
+COMMENT ON COLUMN public.integrations.root_internal_id IS 'Normalized id for cross-org trial checks';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: user-management, File: 200_20260227_indexes.sql
 -- ---------------------------
 -- MODULE NAME: User Management
@@ -512,6 +563,33 @@ CREATE INDEX IF NOT EXISTS idx_blog_activities_post_id ON public.blog_activities
 CREATE INDEX IF NOT EXISTS idx_blog_activities_user_id ON public.blog_activities(user_id);
 CREATE INDEX IF NOT EXISTS idx_blog_activities_type ON public.blog_activities(activity_type);
 CREATE INDEX IF NOT EXISTS idx_blog_activities_created_at ON public.blog_activities(created_at);
+
+
+-- Module: integration, File: 206_20260402_indexes.sql
+-- ---------------------------
+-- MODULE NAME: integration
+-- MODULE DATE: 20260402
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+-- Indexes for common filters: organization, provider, lifecycle timestamps, flags.
+
+
+
+CREATE INDEX IF NOT EXISTS idx_integrations_organization_id ON public.integrations(organization_id);
+CREATE INDEX IF NOT EXISTS idx_integrations_provider_identifier ON public.integrations(provider_identifier);
+CREATE INDEX IF NOT EXISTS idx_integrations_root_internal_id ON public.integrations(root_internal_id);
+CREATE INDEX IF NOT EXISTS idx_integrations_updated_at ON public.integrations(updated_at);
+CREATE INDEX IF NOT EXISTS idx_integrations_created_at ON public.integrations(created_at);
+CREATE INDEX IF NOT EXISTS idx_integrations_deleted_at ON public.integrations(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_integrations_customer_id ON public.integrations(customer_id)
+    WHERE customer_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_integrations_in_between_steps ON public.integrations(in_between_steps);
+CREATE INDEX IF NOT EXISTS idx_integrations_refresh_needed ON public.integrations(refresh_needed);
+CREATE INDEX IF NOT EXISTS idx_integrations_disabled ON public.integrations(disabled);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
 
 -- Module: user-management, File: 300_20260227_rlsgrants.sql
@@ -1533,6 +1611,99 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 
+-- Module: integration, File: 306_20260402_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: integration
+-- MODULE DATE: 20260402
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- API uses service_role; RLS limits direct authenticated access to tokens.
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.integrations TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.integrations TO service_role;
+
+ALTER TABLE public.integrations ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Members can view integrations" ON public.integrations;
+CREATE POLICY "Members can view integrations"
+ON public.integrations
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = integrations.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert integrations" ON public.integrations;
+CREATE POLICY "Members can insert integrations"
+ON public.integrations
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = integrations.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update integrations" ON public.integrations;
+CREATE POLICY "Members can update integrations"
+ON public.integrations
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = integrations.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = integrations.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete integrations" ON public.integrations;
+CREATE POLICY "Members can delete integrations"
+ON public.integrations
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = integrations.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: user-management, File: 400_20260227_functions.sql
 -- ---------------------------
 -- MODULE NAME: User Management
@@ -2158,6 +2329,120 @@ CREATE TRIGGER update_blog_post_like_count_trigger
   AFTER INSERT OR DELETE ON public.blog_activities
   FOR EACH ROW
   EXECUTE FUNCTION public.update_blog_post_like_count();
+
+
+-- Module: integration, File: 406_20260402_functions.sql
+-- ---------------------------
+-- MODULE NAME: integration
+-- MODULE DATE: 20260402
+-- MODULE SCOPE: functions
+-- ---------------------------
+-- Prefix 406: integration module functions band (106 tables, 206 indexes, 306 rlsgrants).
+-- Server-side integration reads/updates that bypass RLS (service_role only).
+-- Used by the API service client so programmatic and session flows behave consistently.
+
+
+
+CREATE OR REPLACE FUNCTION public.internal_list_integrations_by_org(p_organization_id uuid)
+RETURNS TABLE (
+    id uuid,
+    organization_id uuid,
+    internal_id text,
+    name text,
+    picture text,
+    provider_identifier text,
+    type text,
+    disabled boolean,
+    in_between_steps boolean,
+    refresh_needed boolean,
+    posting_times text,
+    additional_settings text,
+    profile text,
+    created_at timestamptz,
+    updated_at timestamptz
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+    SELECT
+        i.id,
+        i.organization_id,
+        i.internal_id,
+        i.name,
+        i.picture,
+        i.provider_identifier,
+        i.type,
+        i.disabled,
+        i.in_between_steps,
+        i.refresh_needed,
+        i.posting_times,
+        i.additional_settings,
+        i.profile,
+        i.created_at,
+        i.updated_at
+    FROM public.integrations i
+    WHERE i.organization_id = p_organization_id
+      AND i.deleted_at IS NULL
+    ORDER BY i.created_at ASC;
+$$;
+
+REVOKE ALL ON FUNCTION public.internal_list_integrations_by_org(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.internal_list_integrations_by_org(uuid) TO service_role;
+COMMENT ON FUNCTION public.internal_list_integrations_by_org(uuid) IS
+    'List integrations for an organization (bypasses RLS); service_role only';
+
+CREATE OR REPLACE FUNCTION public.internal_get_integration_by_org_and_id(
+    p_organization_id uuid,
+    p_integration_id uuid
+)
+RETURNS SETOF public.integrations
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+    SELECT i.*
+    FROM public.integrations i
+    WHERE i.organization_id = p_organization_id
+      AND i.id = p_integration_id
+      AND i.deleted_at IS NULL
+    LIMIT 1;
+$$;
+
+REVOKE ALL ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) TO service_role;
+COMMENT ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) IS
+    'Fetch one integration by organization and id (bypasses RLS); service_role only';
+
+CREATE OR REPLACE FUNCTION public.internal_soft_delete_integration(
+    p_organization_id uuid,
+    p_integration_id uuid,
+    p_new_internal_id text
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    UPDATE public.integrations
+    SET
+        internal_id = left(p_new_internal_id, 512),
+        deleted_at = now(),
+        updated_at = now()
+    WHERE organization_id = p_organization_id
+      AND id = p_integration_id
+      AND deleted_at IS NULL;
+    RETURN FOUND;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) TO service_role;
+COMMENT ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) IS
+    'Soft-delete an integration row (bypasses RLS); service_role only';
 
 
 -- Module: user-management, File: 500_20260227_seed.sql

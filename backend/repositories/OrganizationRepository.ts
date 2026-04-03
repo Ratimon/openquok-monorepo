@@ -307,6 +307,24 @@ export class OrganizationRepository {
         return { error };
     }
 
+    /** Resolve organization by programmatic API key (Authorization header value). */
+    async findOrganizationByApiKey(apiKey: string): Promise<OrganizationRow | null> {
+        const { data, error } = await this.supabase
+            .from(ORGS_TABLE)
+            .select(ORG_SELECT)
+            .eq("api_key", apiKey)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Failed to resolve organization by API key", {
+                cause: error as unknown as Error,
+                operation: "findOrganizationByApiKey",
+                resource: { type: "table", name: ORGS_TABLE },
+            });
+        }
+        return (data as OrganizationRow) ?? null;
+    }
+
     /** Generate and set a new api_key for the organization. */
     async rotateApiKey(organizationId: string): Promise<{
         organization: OrganizationRow | null;

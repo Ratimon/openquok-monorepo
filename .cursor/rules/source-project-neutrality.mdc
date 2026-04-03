@@ -1,0 +1,19 @@
+---
+description: Do not name external codebases when porting into this repo
+alwaysApply: true
+---
+
+# Source-project neutrality in the codebase
+
+When implementing behavior that was informed by or ported from another product, library, or external codebase, **do not name that source** in repository content.
+
+Applies to:
+
+- SQL (`COMMENT ON`, migration headers, inline notes)
+- Code comments and docstrings
+- User-facing strings and public docs in-repo
+- Cursor rules and other `.cursor` guidance
+
+Describe intent, schema, and behavior in **neutral, first-party** terms (what this project does and why). If attribution or comparison is needed, keep it outside the repo (e.g. internal notes, PR discussion).
+
+The assistant should follow this when adding or editing files.

@@ -141,26 +141,14 @@ export function errorHandler(
     } else {
         logger.warn({ msg: "Sentry did not capture event (filtered or SDK not inited)" });
     }
-    // Sentry.flush(2000)
-    //     .then(() => {
-    //         res.status(status >= 400 && status < 600 ? status : 500).json({
-    //             success: false,
-    //             message: status >= 500 ? "Internal server error" : message,
-    //             error: {
-    //                 type: err instanceof Error ? err.name : "InternalServerError",
-    //                 message: status >= 500 ? "An unexpected error occurred" : message,
-    //             },
-    //         });
-    //     })
-    //     .catch((flushErr: unknown) => {
-    //         logger.error({ msg: "Sentry flush failed", error: flushErr });
-    //         res.status(status >= 400 && status < 600 ? status : 500).json({
-    //             success: false,
-    //             message: status >= 500 ? "Internal server error" : message,
-    //             error: {
-    //                 type: err instanceof Error ? err.name : "InternalServerError",
-    //                 message: status >= 500 ? "An unexpected error occurred" : message,
-    //             },
-    //         });
-    //     });
+
+    const httpStatus = status >= 400 && status < 600 ? status : 500;
+    res.status(httpStatus).json({
+        success: false,
+        message: httpStatus >= 500 ? "Internal server error" : message,
+        error: {
+            type: err instanceof Error ? err.name : "InternalServerError",
+            message: httpStatus >= 500 ? "An unexpected error occurred" : message,
+        },
+    });
 }

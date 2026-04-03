@@ -39,9 +39,17 @@ Performance feeds back into your pipeline — so next week’s content gets bett
 <CardGrid>
 <LinkCard title="Getting Started" description="Overview of the stack, architecture, and where to go first" href="/docs/getting-started/" />
 
-<LinkCard title="Installation" description="Install dependencies, run and deploy the Openquok" href="/docs/getting-started/quick-start" />
+<LinkCard title="Installation" description="Local development, Vercel deploy, and environment setup" href="/docs/Installation/" />
 
-<LinkCard title="Developer guidelines" description="Conventions for the monorepo, layering, and day-to-day development" href="/docs/developer-guidelines/" />
+<LinkCard title="Backend Setup" description="Env vars, Supabase, Redis, Sentry, rate limits, and email" href="/docs/configuration-backend/" />
 
-<LinkCard title="How to write documentation" description="Configure the docs site, and cotribute to Openquok Documentatiob" href="/docs/how-to-write-docs/" />
+<LinkCard title="Frontend Setup" description="Vite env, PWA, and defaults for the web app" href="/docs/configuration-web/" />
+
+<LinkCard title="Admin Roles" description="Super admin access and role-based permissions" href="/docs/admin/" />
+
+<LinkCard title="Social integrations" description="Meta Threads OAuth, env vars, redirect URIs, and Meta dashboard" href="/docs/social-integration/" />
+
+<LinkCard title="Developer Guidelines" description="Conventions for the monorepo, layering, and day-to-day development" href="/docs/developer-guidelines/" />
+
+<LinkCard title="How to write docs" description="Configure the docs site and contribute to Openquok documentation" href="/docs/how-to-write-docs/" />
 </CardGrid>

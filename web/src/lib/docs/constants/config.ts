@@ -57,6 +57,11 @@ export const docsSidebar: DocsSidebarSection[] = [
 		autogenerate: { directory: 'admin' }
 	},
 	{
+		label: 'Social integrations',
+		icon: icons.Share2.name,
+		autogenerate: { directory: 'social-integration' }
+	},
+	{
 		label: 'Developer Guidelines',
 		icon: icons.Code.name,
 		autogenerate: { directory: 'developer-guidelines' }

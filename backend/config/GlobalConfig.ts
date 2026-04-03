@@ -162,6 +162,26 @@ export const config: ConfigObject = {
             message: "Too many OAuth requests, please try again later",
         },
     },
+
+    /**
+     * Temporal (optional). When `address` is empty, the API skips workflow client creation.
+     * See https://docs.temporal.io/develop/typescript/set-up-your-local-typescript
+     */
+    temporal: {
+        address: getEnv("TEMPORAL_ADDRESS", ""),
+        namespace: getEnv("TEMPORAL_NAMESPACE", "default"),
+        taskQueue: getEnv("TEMPORAL_TASK_QUEUE", "main"),
+    },
+
+    /** Social integration OAuth (per-provider secrets). */
+    integrations: {
+        threads: {
+            appId: getEnv("THREADS_APP_ID", ""),
+            appSecret: getEnv("THREADS_APP_SECRET", ""),
+        },
+    },
+
+
 };
 
 const server = config.server as { nodeEnv?: string };

@@ -10,8 +10,19 @@ import { rbacRouter } from "./RbacRoute.js";
 import { feedbackRouter } from "./FeedbackRoute.js";
 import { blogRouter } from "./BlogRoute.js";
 import { imageRouter } from "./ImageRoute.js";
+import { sessionIntegrationsRouter } from "./integrations/sessionRoutes.js";
+import { publicIntegrationRouter } from "./publicApi/integrationRoutes.js";
 import { logger } from "../utils/Logger";
 
+/**
+ * API route mounting and auth surfaces (under `config.api.prefix`, default `/api/v1`):
+ *
+ * 1. **No user JWT** — paths listed in `middlewares/core.ts` `shouldSkipApiAuth` (e.g. auth, company,
+ *    blog read paths, GET `/integrations` catalog only).
+ * 2. **User JWT** — most of `/integrations/*` (see `routes/integrations/sessionRoutes.ts`), `/settings`, etc.
+ * 3. **Organization API key** — `{prefix}/public/*` (e.g. `/api/v1/public/*`); `core.ts` lists `/public` in `publicPaths`
+ *    so JWT is skipped; each route uses `requireOrganizationApiKey` (`routes/publicApi/integrationRoutes.ts`).
+ */
 export async function mountAllRoutes(app: Express, config: ConfigObject): Promise<boolean> {
     const api = config.api as { prefix?: string } | undefined;
     const prefix = api?.prefix ?? "/api/v1";
@@ -26,6 +37,8 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     apiRouter.use("/feedback", feedbackRouter);
     apiRouter.use("/blog-system", blogRouter);
     apiRouter.use("/image", imageRouter);
+    apiRouter.use("/integrations", sessionIntegrationsRouter);
+    apiRouter.use("/public", publicIntegrationRouter);
     app.use(prefix, apiRouter);
 
     logger.info({
@@ -40,6 +53,8 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
         feedback: `${prefix}/feedback`,
         blog: `${prefix}/blog-system`,
         image: `${prefix}/image`,
+        integrationsSession: `${prefix}/integrations`,
+        integrationsProgrammatic: `${prefix}/public`,
     });
     return true;
 }

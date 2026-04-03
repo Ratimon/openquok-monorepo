@@ -6,3 +6,4 @@ export const cacheServiceConnection = cacheService;
 export const cacheInvalidationServiceConnection = cacheInvalidationService;
 export { Sentry } from "./sentry/index";
 export { cacheService, cacheInvalidationService } from "./cache";
+export { getTemporalClient } from "./temporal";

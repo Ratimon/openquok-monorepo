@@ -1,0 +1,419 @@
+import type CacheService from "../connections/cache/CacheService";
+import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
+import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { IntegrationRow } from "../repositories/IntegrationRepository";
+import type { RefreshIntegrationService } from "./RefreshIntegrationService";
+import type { AuthTokenDetails, ClientInformation } from "../integrations/social.integrations.interface";
+import type { IntegrationTimeDto } from "../data/schemas/integrationTimeSchemas";
+import type { IntegrationService } from "./IntegrationService";
+
+import { IntegrationManager } from "../integrations/integrationManager";
+
+import { UserNotFoundError } from "../errors/UserError";
+import { OrganizationNotFoundError } from "../errors/OrganizationError";
+import { AppError } from "../errors/AppError";
+import { logger } from "../utils/Logger";
+
+/** Domain-scoped cache key builders for short-lived OAuth state (`login:`, `organization:`, `refresh:`, etc.). */
+const CACHE_KEYS = {
+    oauth: {
+        login: (state: string) => `login:${state}`,
+        organization: (state: string) => `organization:${state}`,
+        refresh: (state: string) => `refresh:${state}`,
+        onboarding: (state: string) => `onboarding:${state}`,
+        external: (state: string) => `external:${state}`,
+    },
+} as const;
+
+const OAUTH_STATE_TTL_SEC = 3600;
+
+function rootInternalId(internalId: string): string | null {
+    const parts = internalId.split("_");
+    return parts.length > 1 ? (parts.pop() ?? null) : internalId;
+}
+
+function postingTimesForTimezone(timezone?: number): string {
+    if (timezone == null || Number.isNaN(timezone)) {
+        return JSON.stringify([{ time: 120 }, { time: 400 }, { time: 700 }]);
+    }
+    return JSON.stringify([{ time: 560 - timezone }, { time: 850 - timezone }, { time: 1140 - timezone }]);
+}
+
+/**
+ * OAuth, session membership checks, and list shaping via {@link IntegrationManager}.
+ * Table reads/writes go through {@link IntegrationService}.
+ * OAuth URL / callback flows require {@link cache}; key removal uses {@link cacheInvalidator} when set (same metrics as other services).
+ */
+export class IntegrationConnectionService {
+    constructor(
+        private readonly integrations: IntegrationService,
+        private readonly organizationRepository: OrganizationRepository,
+        private readonly manager: IntegrationManager,
+        private readonly refreshIntegrationService: RefreshIntegrationService,
+        private readonly cache?: CacheService,
+        private readonly cacheInvalidator?: CacheInvalidationService
+    ) {}
+
+    private requireCache(): CacheService {
+        if (!this.cache) {
+            throw new AppError("Cache is required for OAuth integration flows", 503);
+        }
+        return this.cache;
+    }
+
+    /** Remove a transient OAuth key; prefers invalidator so deletion is counted like other domains. */
+    private async invalidateOAuthCacheKey(key: string): Promise<void> {
+        if (this.cacheInvalidator) {
+            await this.cacheInvalidator.invalidateKey(key);
+        } else if (this.cache) {
+            await this.cache.del(key);
+        }
+    }
+
+    private async resolveUserId(authUserId: string): Promise<string> {
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+        if (!userId) throw new UserNotFoundError(authUserId);
+        return userId;
+    }
+
+    async assertOrganizationMember(authUserId: string, organizationId: string): Promise<void> {
+        const userId = await this.resolveUserId(authUserId);
+        const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
+        if (!membership || membership.disabled) {
+            throw new OrganizationNotFoundError(organizationId);
+        }
+    }
+
+    async getIntegrationList(authUserId: string, organizationId: string) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const rows = await this.integrations.listByOrganization(organizationId);
+        const integrations = await Promise.all(rows.map((row) => this.mapListRow(row)));
+        return { integrations };
+    }
+
+    private async mapListRow(p: IntegrationRow) {
+        const findIntegration = this.manager.getSocialIntegration(p.provider_identifier);
+        const editor = findIntegration?.editor ?? "normal";
+        let customFields: unknown;
+        if (findIntegration?.customFields && typeof findIntegration.customFields === "function") {
+            customFields = await findIntegration.customFields();
+        }
+        return {
+            name: p.name,
+            id: p.id,
+            internalId: p.internal_id,
+            disabled: p.disabled,
+            editor,
+            picture: p.picture || "/no-picture.jpg",
+            identifier: p.provider_identifier,
+            inBetweenSteps: p.in_between_steps,
+            refreshNeeded: p.refresh_needed,
+            isCustomFields: !!findIntegration?.customFields,
+            ...(customFields !== undefined ? { customFields } : {}),
+            display: p.profile,
+            type: p.type,
+            time: JSON.parse(p.posting_times || "[]"),
+            changeProfilePicture: false,
+            changeNickName: false,
+            customer: null,
+            additionalSettings: p.additional_settings || "[]",
+        };
+    }
+
+    private async buildOAuthAuthorizationUrl(
+        organizationId: string,
+        integration: string,
+        opts: { refresh?: string; externalUrl?: string; onboarding?: string },
+        externalUrlMessage: "session" | "public"
+    ): Promise<{ url: string }> {
+        if (!this.manager.getAllowedSocialsIntegrations().includes(integration)) {
+            throw new AppError("Integration not allowed", 400);
+        }
+
+        const integrationProvider = this.manager.getSocialIntegration(integration);
+        if (!integrationProvider) {
+            throw new AppError("Integration not found", 404);
+        }
+
+        if (integrationProvider.externalUrl && !opts.externalUrl) {
+            const msg =
+                externalUrlMessage === "public"
+                    ? "This integration requires an external URL and is not supported via the public API"
+                    : "Missing external url";
+            throw new AppError(msg, 400);
+        }
+
+        let clientInformation: ClientInformation | undefined;
+        if (integrationProvider.externalUrl && opts.externalUrl) {
+            clientInformation = {
+                ...(await integrationProvider.externalUrl(opts.externalUrl)),
+                instanceUrl: opts.externalUrl,
+            };
+        }
+
+        const { codeVerifier, state, url } = await integrationProvider.generateAuthUrl(clientInformation);
+
+        const cache = this.requireCache();
+        if (opts.refresh) {
+            await cache.set(CACHE_KEYS.oauth.refresh(state), opts.refresh, OAUTH_STATE_TTL_SEC);
+        }
+        if (opts.onboarding === "true") {
+            await cache.set(CACHE_KEYS.oauth.onboarding(state), "true", OAUTH_STATE_TTL_SEC);
+        }
+
+        await cache.set(CACHE_KEYS.oauth.organization(state), organizationId, OAUTH_STATE_TTL_SEC);
+        await cache.set(CACHE_KEYS.oauth.login(state), codeVerifier, OAUTH_STATE_TTL_SEC);
+        if (clientInformation) {
+            await cache.set(CACHE_KEYS.oauth.external(state), JSON.stringify(clientInformation), OAUTH_STATE_TTL_SEC);
+        }
+
+        return { url };
+    }
+
+    async getIntegrationUrl(
+        authUserId: string,
+        organizationId: string,
+        integration: string,
+        opts: { refresh?: string; externalUrl?: string; onboarding?: string }
+    ): Promise<{ url: string } | { err: boolean }> {
+        await this.assertOrganizationMember(authUserId, organizationId);
+
+        try {
+            return await this.buildOAuthAuthorizationUrl(organizationId, integration, opts, "session");
+        } catch (err) {
+            if (err instanceof AppError) throw err;
+            return { err: true };
+        }
+    }
+
+    async publicListIntegrations(organizationId: string) {
+        const rows = await this.integrations.listByOrganization(organizationId);
+        return rows.map((p) => ({
+            id: p.id,
+            name: p.name,
+            identifier: p.provider_identifier,
+            picture: p.picture || "/no-picture.jpg",
+            disabled: p.disabled,
+            profile: p.profile,
+            customer: null as { id: string; name: string } | null,
+        }));
+    }
+
+    async getIntegrationUrlPublicApi(
+        organizationId: string,
+        integration: string,
+        opts: { refresh?: string; externalUrl?: string; onboarding?: string }
+    ): Promise<{ url: string }> {
+        try {
+            return await this.buildOAuthAuthorizationUrl(organizationId, integration, opts, "public");
+        } catch (err) {
+            if (err instanceof AppError) throw err;
+            throw new AppError("Failed to generate auth URL", 500);
+        }
+    }
+
+    async publicDeleteChannel(organizationId: string, integrationId: string): Promise<void> {
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) {
+            throw new AppError("Integration not found", 404);
+        }
+        const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
+        if (!deleted) {
+            throw new AppError("Integration not found", 404);
+        }
+    }
+
+    async connectSocialMedia(
+        authUserId: string,
+        integration: string,
+        body: { state: string; code: string; timezone: string; refresh?: string }
+    ) {
+        if (!this.manager.getAllowedSocialsIntegrations().includes(integration)) {
+            throw new AppError("Integration not allowed", 400);
+        }
+
+        const integrationProvider = this.manager.getSocialIntegration(integration);
+        if (!integrationProvider) {
+            throw new AppError("Integration not found", 404);
+        }
+
+        const cache = this.requireCache();
+
+        const getCodeVerifier = integrationProvider.customFields
+            ? "none"
+            : ((await cache.get(CACHE_KEYS.oauth.login(body.state))) as string | null);
+        if (!getCodeVerifier && !integrationProvider.customFields) {
+            throw new AppError("Invalid state", 400);
+        }
+
+        if (!integrationProvider.customFields) {
+            await this.invalidateOAuthCacheKey(CACHE_KEYS.oauth.login(body.state));
+        }
+
+        const organizationId = (await cache.get(CACHE_KEYS.oauth.organization(body.state))) as string | null;
+        if (!organizationId || typeof organizationId !== "string") {
+            throw new AppError("Organization not found", 400);
+        }
+
+        await this.assertOrganizationMember(authUserId, organizationId);
+        await this.invalidateOAuthCacheKey(CACHE_KEYS.oauth.organization(body.state));
+
+        const detailsRaw = await cache.get(CACHE_KEYS.oauth.external(body.state));
+        if (detailsRaw) {
+            await this.invalidateOAuthCacheKey(CACHE_KEYS.oauth.external(body.state));
+        }
+
+        const refreshState = (await cache.get(CACHE_KEYS.oauth.refresh(body.state))) as string | null;
+        if (refreshState) await this.invalidateOAuthCacheKey(CACHE_KEYS.oauth.refresh(body.state));
+
+        const onboarding = (await cache.get(CACHE_KEYS.oauth.onboarding(body.state))) as string | null;
+        if (onboarding) await this.invalidateOAuthCacheKey(CACHE_KEYS.oauth.onboarding(body.state));
+
+        let clientInformation: ClientInformation | undefined;
+        if (detailsRaw && typeof detailsRaw === "string") {
+            clientInformation = JSON.parse(detailsRaw) as ClientInformation;
+        }
+
+        const authResult = await this.safeAuthenticate(integrationProvider, body, getCodeVerifier ?? "none", clientInformation);
+
+        if ("error" in authResult && !("accessToken" in authResult)) {
+            throw new AppError((authResult as { error: string }).error, 400, { errorCode: "INTEGRATION_OAUTH_ERROR" });
+        }
+
+        const { accessToken, expiresIn, refreshToken, id, name, picture, username, additionalSettings } =
+            authResult as AuthTokenDetails;
+
+        if (!id) {
+            throw new AppError("Invalid API key", 400);
+        }
+
+        if (refreshState && String(id) !== String(refreshState)) {
+            throw new AppError("Please refresh the channel that needs to be refreshed", 400);
+        }
+
+        let validName = name;
+        if (!validName) {
+            if (username) {
+                validName = username.split(".")[0] ?? username;
+            } else {
+                validName = `Channel_${String(id).slice(0, 8)}`;
+            }
+        }
+
+        const tz = Number.parseInt(body.timezone, 10);
+        const postingTimes = postingTimesForTimezone(Number.isNaN(tz) ? undefined : tz);
+
+        const row = await this.integrations.upsertIntegration({
+            organizationId,
+            internalId: String(id),
+            name: validName.trim(),
+            picture: picture || null,
+            providerIdentifier: integration,
+            integrationType: "social",
+            token: accessToken,
+            refreshToken: refreshToken ?? "",
+            expiresInSeconds: expiresIn,
+            profile: username || null,
+            inBetweenSteps: integrationProvider.isBetweenSteps ?? false,
+            additionalSettingsJson: additionalSettings?.length
+                ? JSON.stringify(additionalSettings)
+                : "[]",
+            customInstanceDetails: undefined,
+            postingTimesJson: postingTimes,
+            rootInternalId: rootInternalId(String(id)),
+        });
+
+        void this.refreshIntegrationService
+            .startRefreshWorkflow(organizationId, row.id, integrationProvider)
+            .catch((err) => {
+                logger.debug({
+                    msg: "startRefreshWorkflow failed",
+                    error: err instanceof Error ? err.message : String(err),
+                });
+            });
+
+        return {
+            id: row.id,
+            organizationId: row.organization_id,
+            internalId: row.internal_id,
+            name: row.name,
+            picture: row.picture,
+            providerIdentifier: row.provider_identifier,
+            type: row.type,
+            disabled: row.disabled,
+            inBetweenSteps: row.in_between_steps,
+            refreshNeeded: row.refresh_needed,
+            onboarding: onboarding === "true",
+            pages: [] as unknown[],
+        };
+    }
+
+    private async safeAuthenticate(
+        integrationProvider: {
+            authenticate: (
+                p: { code: string; codeVerifier: string; refresh?: string },
+                c?: ClientInformation
+            ) => Promise<AuthTokenDetails | string>;
+        },
+        body: { code: string; refresh?: string },
+        codeVerifier: string,
+        clientInformation?: ClientInformation
+    ): Promise<AuthTokenDetails | { error: string }> {
+        try {
+            const auth = await integrationProvider.authenticate(
+                {
+                    code: body.code,
+                    codeVerifier,
+                    refresh: body.refresh,
+                },
+                clientInformation
+            );
+
+            if (typeof auth === "string") {
+                return { error: auth };
+            }
+
+            if (auth.error) {
+                return { error: auth.error };
+            }
+
+            return auth;
+        } catch {
+            return { error: "Authentication failed" };
+        }
+    }
+
+    async setTimes(
+        authUserId: string,
+        organizationId: string,
+        integrationId: string,
+        body: IntegrationTimeDto
+    ): Promise<void> {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) throw new AppError("Integration not found", 404);
+        await this.integrations.setPostingTimes(organizationId, integrationId, JSON.stringify(body.time));
+    }
+
+    async disableChannel(authUserId: string, organizationId: string, integrationId: string): Promise<void> {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) throw new AppError("Integration not found", 404);
+        await this.integrations.disableChannel(organizationId, integrationId);
+    }
+
+    async enableChannel(authUserId: string, organizationId: string, integrationId: string): Promise<void> {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) throw new AppError("Integration not found", 404);
+        await this.integrations.enableChannel(organizationId, integrationId);
+    }
+
+    async deleteChannel(authUserId: string, organizationId: string, integrationId: string): Promise<void> {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) throw new AppError("Integration not found", 404);
+        const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
+        if (!deleted) throw new AppError("Integration not found", 404);
+    }
+}

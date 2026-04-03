@@ -1,5 +1,14 @@
 import { supabaseServiceClientConnection, cacheServiceConnection, cacheInvalidationServiceConnection } from "../connections/index";
-import { refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository } from "../repositories/index";
+import {
+    refreshTokenRepository,
+    userRepository,
+    configRepository,
+    organizationRepository,
+    rbacRepository,
+    feedbackRepository,
+    blogRepository,
+    integrationRepository,
+} from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
 import { EmailService } from "./EmailService";
@@ -10,8 +19,16 @@ import { RbacService } from "./RbacService";
 import { FeedbackService } from "./FeedbackService";
 import { BlogService } from "./BlogService";
 import { ConfigService } from "./ConfigService";
+import { IntegrationManager } from "../integrations/integrationManager";
+import { RefreshIntegrationService } from "./RefreshIntegrationService";
+import { IntegrationService } from "./IntegrationService";
+import { IntegrationConnectionService } from "./IntegrationConnectionService";
 
 import { config } from "../config/GlobalConfig";
+
+export const integrationManager = new IntegrationManager();
+
+export const refreshIntegrationService = new RefreshIntegrationService(integrationRepository, integrationManager);
 
 export const userService = new UserService(
     userRepository,
@@ -58,6 +75,19 @@ export const configService = new ConfigService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
+export const integrationService = new IntegrationService(
+    integrationRepository,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
+);
+export const integrationConnectionService = new IntegrationConnectionService(
+    integrationService,
+    organizationRepository,
+    integrationManager,
+    refreshIntegrationService,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
+);
 export { AuthenticationService } from "./AuthenticationService";
 export { UserService } from "./UserService";
 export { EmailService } from "./EmailService";
@@ -68,3 +98,6 @@ export { RbacService } from "./RbacService";
 export { FeedbackService } from "./FeedbackService";
 export { BlogService } from "./BlogService";
 export { ConfigService } from "./ConfigService";
+export { IntegrationService } from "./IntegrationService";
+export { IntegrationConnectionService } from "./IntegrationConnectionService";
+export { RefreshIntegrationService } from "./RefreshIntegrationService";

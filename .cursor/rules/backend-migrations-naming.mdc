@@ -7,7 +7,7 @@ alwaysApply: true
 
 - **Pattern**: `<modulePrefix>_<YYYYMMDD>_<scope>.sql` (e.g. `101_20260311_tables.sql`).
 - **Date**: Use the real calendar date of creation (year must be current for new files; avoid reusing past years like 2024 or 2025 for new migrations).
-- **Location**: Apply this pattern for all files under `backend/supabase/db/**` (modules such as user-auth, user-management, organization, rbac, feedback, config, blog, etc.).
+- **Location**: Apply this pattern for all files under `backend/supabase/db/**` (modules such as user-auth, user-management, organization, integration, rbac, feedback, config, blog, etc.).
 - **Scopes**:
   - `tables`, `indexes`, `rlsgrants`, `functions`, `seed`, `cron`.
 - **Renames**:
@@ -16,7 +16,7 @@ alwaysApply: true
   - Aggregator sorts by numeric prefix, then by module order (see `MODULE_ORDER` in `scripts/aggregate_migrations_all.mjs`). Base/dependency modules run first within the same prefix.
   - **user-management** uses 100, 200, 300, 400, 500 so `public.users` and `public.is_super_admin()` exist before other modules.
   - Modules that depend on `is_super_admin` or `user_roles` use **302** for RLS (so they run after user-management 300). Use a **higher prefix** for any migration that depends on another module; prefer this over inlining logic that duplicates a function.
-  - When adding a new module, add it to `MODULE_ORDER` in the aggregation script so order is deterministic.
+  - When adding a new module, add it to `MODULE_ORDER` in the aggregation script so order is deterministic (e.g. **integration** runs after **organization** because `integrations.organization_id` references `organizations`).
 
 The assistant should follow and enforce this pattern whenever adding or renaming Supabase migration files.
 
