@@ -7,7 +7,7 @@ let clientPromise: Promise<Client | null> | null = null;
 /**
  * Lazy Temporal client (see https://docs.temporal.io/develop/typescript/set-up-your-local-typescript).
  * Docker-backed local or private deploy: `infra/temporal` (TEMPORAL_ADDRESS, e.g. localhost:7233).
- * Returns null when `config.temporal.address` is empty so the API runs without a worker.
+ * Returns null when `config.temporal.address` is empty (no Temporal server connection).
  */
 export async function getTemporalClient(): Promise<Client | null> {
     const temporal = config.temporal as { address: string; namespace: string };

@@ -1,0 +1,10 @@
+# Optional Railway build configuration if you deploy the Openquok *backend* from this monorepo.
+# Copy to `railway.toml` in the service root Railway uses, or merge into your dashboard config.
+#
+# This does NOT run Temporal. Run Temporal via Temporal Cloud, a separate Railway/docker
+# deployment based on infra/temporal/docker-compose.yaml, or another private host—then set
+# TEMPORAL_ADDRESS on the backend to that cluster's frontend.
+
+[phases.setup]
+nixPkgs = ["nodejs", "python3"]
+aptPkgs = ["build-essential", "libudev-dev"]

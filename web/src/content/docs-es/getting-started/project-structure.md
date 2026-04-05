@@ -14,7 +14,7 @@ La plantilla sigue las convenciones de SvelteKit con un motor de documentación 
 
 Aquí es donde vive tu documentación. Cada archivo `.md` se convierte en una página. La estructura de directorios determina la navegación del sidebar.
 
-```
+```text
 src/content/docs/
 ├── index.md                    # /docs
 ├── getting-started/

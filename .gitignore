@@ -10,12 +10,21 @@
 .env.*
 !.env*.example
 
+# Full-stack Compose secrets (copy from infra/api.full-stack.env.example)
+infra/api.full-stack.env
+
+# Railway canvas import with real secrets (copy from infra/docker-compose.railway.example.yaml)
+infra/docker-compose.railway.yaml
+
 # SST build output
 .build
 .sst
 
 # Vercel (local link/output)
 .vercel
+
+# Railway CLI local project link (do not commit)
+.railway
 
 # OS
 .DS_Store

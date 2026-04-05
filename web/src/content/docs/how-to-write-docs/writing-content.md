@@ -24,6 +24,8 @@ All standard Markdown syntax is supported — headings, lists, links, images, ta
 
 Fenced code blocks get syntax highlighting via Shiki:
 
+**Shell commands** (`pnpm`, `docker`, `git`, etc.): use **` ```bash `** so commands match the rest of the docs site (see **Installation** guides). Use **` ```text `** for directory trees or CLI transcripts, not **` ```bash `**.
+
 ```javascript
 function greet(name) {
   return `Hello, ${name}!`;

@@ -29,7 +29,7 @@ The customer-facing **SvelteKit** app lives in **`web/`**. It serves the marketi
 
 Repository layout at the root:
 
-```
+```text
 .
 ├── LICENSE
 ├── README.md
@@ -87,7 +87,7 @@ Root-level config files for this package are listed under **Configuration Files*
 
 The SvelteKit app root:
 
-```
+```text
 web/
 ├── package.json
 ├── web-config.json
@@ -149,7 +149,7 @@ The sections below describe structure **inside `web/`** (paths are relative to t
 
 This is where in-app documentation markdown lives. Each `.md` file becomes a page; URLs follow the folder path. Sidebar sections are declared in **`$lib/docs/constants/config.ts`** (`autogenerate.directory` must match these folder names).
 
-```
+```text
 src/content/docs/
 ├── index.md                    # /docs
 ├── developer-guidelines/

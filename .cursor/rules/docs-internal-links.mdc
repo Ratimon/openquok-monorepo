@@ -1,5 +1,5 @@
 ---
-description: Authoring docs under web/src/content/docs — DocsExternalLink (styled outbound links), GitHub file links, Badge env/path/UI semantics, Callouts, env-var HTML fallback, Steps, CLI bash blocks, CardGrid/LinkCard
+description: Authoring docs under web/src/content/docs — DocsExternalLink, Badges, Callouts, Steps, fenced code (bash for shell commands), CardGrid/LinkCard
 globs: web/src/content/docs/**/*
 alwaysApply: false
 ---
@@ -112,9 +112,18 @@ Edit `web/src/data/docs.ts` and `web/src/lib/docs/constants/config.ts` with your
 
 - **Long or sensitive notes** inside a step (e.g. “do not run this build locally”) can sit in **`<Callout type="warning">`** (or `danger` / `note` as appropriate) **immediately under** that step’s `###` heading, before the next step heading. Use **plain text** in the `title` attribute (no HTML tags inside `title="..."`).
 
+## Fenced code blocks: shell commands vs everything else
+
+- **Terminal / shell commands** (anything the reader would paste into a shell: `pnpm`, `npm`, `yarn`, `docker`, `railway`, `vercel`, `git`, `cp`, `npx`, multi-line with `\`, etc.): always use a **` ```bash `** fenced block—not a bare **` ``` `**, not **` ```sh `** (standardize on **`bash`** for consistency and Shiki highlighting).
+- **`.env` / env-style key=value examples** in docs: use **` ```bash `** (same as elsewhere in this repo) so assignment lines highlight consistently.
+- **Interactive CLI transcripts** (questions, `?` prompts, pasted tool output): use **` ```text `** (see **`web/src/content/docs/Installation/vercel.md`** example prompts).
+- **Directory trees and ASCII layout** (not executable commands): use **` ```text `**, not **` ```bash `** and not a bare **` ``` `**.
+- **URLs, redirect URIs, or label-only examples** where shell highlighting is wrong: **` ```txt `** or **` ```text `** as fits.
+- **Other languages** (`typescript`, `svelte`, `json`, `yaml`, `html`, …): keep the correct language tag.
+
 ## CLI commands in prose
 
-- Do **not** document runnable commands only in a **Markdown table** (`| Command | Description |`). Use the same pattern as **`web/src/content/docs/Installation/development-environment.md`** (Deployment section): a **bold lead-in** with an em dash and short explanation, then a **`bash`** fenced block with the command.
+- Do **not** document runnable commands only in a **Markdown table** (`| Command | Description |`). Use the same pattern as **`web/src/content/docs/Installation/development-environment.md`** (Deployment section): a **bold lead-in** with an em dash and short explanation, then a **` ```bash `** fenced block with the command.
 - Example (see **`web/src/content/docs/Installation/vercel.md`**): write `**Deploy backend to Vercel (preview)** — invokes the Vercel CLI with backend/ as the working directory.`, a blank line, then a fenced **`bash`** block containing `pnpm vercel:deploy:backend` (no table of command vs description).
 
 ## Front matter

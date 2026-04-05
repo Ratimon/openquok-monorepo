@@ -40,7 +40,7 @@
 	<DocsSidebarLeft {navigation} {socialLinks} />
 	<Sidebar.Inset class="min-w-0 flex-1 overflow-x-hidden">
 		<DocsHeader {socialLinks} />
-		<div class="flex min-h-0 flex-1 flex-col gap-4 p-4">
+		<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4 p-4">
 			{@render children()}
 		</div>
 	</Sidebar.Inset>

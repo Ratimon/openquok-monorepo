@@ -2,7 +2,7 @@
 title: Quick Start
 description: Openquok's quick start — install dependencies, configure env, and run the social scheduler locally.
 order: 2
-lastUpdated: 2026-03-30
+lastUpdated: 2026-04-02
 ---
 
 <script>
@@ -39,7 +39,7 @@ pnpm install
 
 ## Development environment
 
-Commands for running **`backend/`** and **`web/`**, tests, database scripts, and deployment live on the **Development environment** page so this quick start stays focused on first-time setup.
+Commands for running **`backend/`** and **`web/`**, the optional **Temporal worker**, tests, database scripts, and deployment live on the **Development environment** page so this quick start stays focused on first-time setup.
 
 <CardGrid>
 <LinkCard title="Development environment" description="Local dev servers, tests, DB tasks, and deployment commands" href="/docs/Installation/development-environment" />

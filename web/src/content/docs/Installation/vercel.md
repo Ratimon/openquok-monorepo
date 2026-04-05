@@ -1,8 +1,8 @@
 ---
 title: Vercel
 description: Deploy Openquok's Application to Vercel — backend/web projects, env vars, CLI, and domains.
-order: 1
-lastUpdated: 2026-04-01
+order: 2
+lastUpdated: 2026-04-02
 ---
 
 <script>
@@ -10,6 +10,10 @@ import { Badge, Callout, DocsExternalLink, CardGrid, LinkCard, Steps } from '$li
 </script>
 
 Deploy the **backend** (Express) and **web** (SvelteKit) to <DocsExternalLink href="https://vercel.com">Vercel</DocsExternalLink>.
+
+<Callout type="note" title="Temporal is not on Vercel">
+<p>For the <strong>full production checklist</strong> (backend on Railway or Vercel, web, CORS, workers), start at <a href="/docs/Installation/production-deployment">Production deployment</a>. If the API is on Vercel, it does not run Docker Compose or Temporal—set <Badge text="TEMPORAL_ADDRESS" variant="envBackend" /> to <DocsExternalLink href="https://temporal.io/cloud">Temporal Cloud</DocsExternalLink> or another host. See <a href="/docs/Installation/docker">Docker &amp; Compose</a> for local infra and container images.</p>
+</Callout>
 
 ## Prerequisites
 
@@ -129,6 +133,8 @@ Add each domain in the Vercel project (**Settings → Domains**), create the DNS
 ## Next steps
 
 <CardGrid>
+<LinkCard title="Production deployment" description="Backend (Railway or Vercel), web, Temporal connectivity" href="/docs/Installation/production-deployment" />
+<LinkCard title="Docker & Compose" description="Local Temporal, Redis, and API images" href="/docs/Installation/docker" />
 <LinkCard title="Backend configuration" description="Environment variables and Supabase setup for the backend package" href="/docs/configuration-backend" />
 <LinkCard title="Web configuration" description="Environment variables and Vite/SvelteKit settings for the web app" href="/docs/configuration-web" />
 </CardGrid>

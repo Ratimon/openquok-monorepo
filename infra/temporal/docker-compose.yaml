@@ -8,7 +8,11 @@ services:
   temporal-elasticsearch:
     container_name: openquok-temporal-elasticsearch
     image: elasticsearch:7.17.27
+    # Official image defaults to root for entrypoint; TAKE_FILE_OWNERSHIP triggers chown of
+    # data/logs to UID 1000 before dropping privileges (required when CMD is eswrapper).
+    user: "0:0"
     environment:
+      - TAKE_FILE_OWNERSHIP=true
       - cluster.routing.allocation.disk.threshold_enabled=true
       - cluster.routing.allocation.disk.watermark.low=512mb
       - cluster.routing.allocation.disk.watermark.high=256mb
@@ -35,12 +39,14 @@ services:
     environment:
       POSTGRES_PASSWORD: temporal
       POSTGRES_USER: temporal
+      # Subdir avoids initdb failure when the volume root has lost+found (e.g. Railway block volumes).
+      PGDATA: /var/lib/postgresql/pgdata
     networks:
       - temporal
     expose:
       - "5432"
     volumes:
-      - temporal-postgresql-data:/var/lib/postgresql/data
+      - temporal-postgresql-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U temporal"]
       interval: 5s
@@ -69,7 +75,9 @@ services:
     networks:
       - temporal
     ports:
-      - "${TEMPORAL_GRPC_PORT:-7233}:7233"
+      # Default bind 127.0.0.1 so gRPC is not reachable from other machines on the LAN.
+      # Set TEMPORAL_BIND_HOST=0.0.0.0 if you need LAN access or a platform requires it.
+      - "${TEMPORAL_BIND_HOST:-127.0.0.1}:${TEMPORAL_GRPC_PORT:-7233}:7233"
     volumes:
       - ./dynamicconfig:/etc/temporal/config/dynamicconfig:ro
 
@@ -99,7 +107,7 @@ services:
     depends_on:
       - temporal
     ports:
-      - "${TEMPORAL_UI_PORT:-8080}:8080"
+      - "${TEMPORAL_BIND_HOST:-127.0.0.1}:${TEMPORAL_UI_PORT:-8080}:8080"
 
 volumes:
   temporal-elasticsearch-data:

@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch app.ts",
     "dev:local-email": "aws-ses-v2-local",
+    "worker:dev": "cross-env NODE_ENV=development tsx watch temporal/worker.ts",
+    "worker:start": "node dist/temporal/worker.js",
     "build": "npx tsc --project ./tsconfig.build.json && npx tsc-alias -p ./tsconfig.build.json --resolve-full-paths --resolve-full-extension .js && mkdir -p dist/connections/sentry && cp connections/sentry/index.js dist/connections/sentry/index.js",
     "build:js": "pnpm exec tsup",
     "build:vercel": "tsup && sh scripts/vercel-clean-after-build.sh",
@@ -47,6 +49,8 @@
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.45.0",
     "@temporalio/client": "^1.15.0",
+    "@temporalio/worker": "^1.15.0",
+    "@temporalio/workflow": "^1.15.0",
     "@types/multer": "^2.1.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",

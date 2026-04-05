@@ -2,7 +2,7 @@
 title: Development environment
 description: Run Openquok's backend and web apps locally, execute tests, database scripts, and deployment commands.
 order: 0
-lastUpdated: 2026-03-30
+lastUpdated: 2026-04-02
 ---
 
 <script>
@@ -32,6 +32,8 @@ See <a href="/docs/configuration-backend/database">Database & migrations</a> for
 ```bash
 pnpm backend:dev
 ```
+
+**Temporal worker** (optional) — run in another terminal when Temporal is running and <code>TEMPORAL_ADDRESS</code> is set: <code>pnpm backend:worker:dev</code>. See **Docker (optional: Temporal and Redis)** below for Compose, <code>pnpm backend:worker:start</code>, and deployment notes.
 
 **Tests** — Jest unit, integration, and e2e suites for the backend package.
 
@@ -74,6 +76,8 @@ cd backend
 ```bash
 pnpm dev
 ```
+
+**Temporal worker** (optional): <code>pnpm worker:dev</code> — same conditions as <code>pnpm backend:worker:dev</code> from the root; details under **Docker (optional: Temporal and Redis)** below.
 
 **Tests** — Jest unit, integration, and e2e suites.
 
@@ -164,9 +168,47 @@ pnpm preview
 </TabItem>
 </Tabs>
 
+### Docker (optional: Temporal and Redis)
+
+For **Temporal** workflows and optional **Redis** cache without installing those servers on the host, use Compose from the repository root. This does **not** replace `pnpm backend:dev` / `pnpm web:dev`; it only starts supporting services.
+
+**Bring up Temporal + Redis** — merges `infra/temporal/docker-compose.yaml` with `infra/docker-compose.dev.yaml`.
+
+```bash
+pnpm infra:dev:up
+```
+
+**Temporal only** (no Redis container):
+
+```bash
+pnpm infra:temporal:up
+```
+
+**Stop** the stack:
+
+```bash
+pnpm infra:dev:down
+```
+
+Set <code>TEMPORAL_ADDRESS=localhost:7233</code> for a host-run API. For Redis, set <code>CACHE_PROVIDER=redis</code> and <code>REDIS_HOST=localhost</code> when using the default port. See <a href="/docs/Installation/docker">Docker & Compose</a> for Compose details and security notes. For **production** (backend, web, Temporal), follow <a href="/docs/Installation/production-deployment">Production deployment</a>.
+
+**Temporal worker** — workflows are executed by a separate worker process (not the API). With Temporal up and <code>TEMPORAL_ADDRESS</code> set, start the worker in **another terminal** from the repository root:
+
+```bash
+pnpm backend:worker:dev
+```
+
+After a production build of the backend package, you can run the compiled worker:
+
+```bash
+pnpm backend:worker:start
+```
+
+Equivalent commands from <code>backend/</code>: <code>pnpm worker:dev</code> and <code>pnpm worker:start</code>. See <a href="/docs/Installation/temporal-workers-railway">Temporal workers</a> for deployment notes.
+
 ### Deployment
 
-These commands are run from the **repository root** (they are defined in the root `package.json` and delegate into `backend/` or `web/`).
+For a **full production sequence** (backend env, web env, CORS, Temporal), use <a href="/docs/Installation/production-deployment">Production deployment</a>. The commands below are quick references from the **repository root** (see root <code>package.json</code>).
 
 **Backend JS bundle** — runs `tsup` in `backend/` to produce the bundled API output used for deploys.
 
@@ -189,6 +231,7 @@ pnpm vercel:deploy:web
 ## Next Steps
 
 <CardGrid>
+<LinkCard title="Production deployment" description="Backend, web, Temporal for production" href="/docs/Installation/production-deployment" />
 <LinkCard title="Project architecture" description="Monorepo layout, key directories, and how the stack fits together" href="/docs/getting-started/architecture" />
-<LinkCard title="Vercel" description="Vercel-focused deployment notes for this project" href="/docs/Installation/vercel" />
+<LinkCard title="Vercel" description="Vercel CLI and project settings detail" href="/docs/Installation/vercel" />
 </CardGrid>

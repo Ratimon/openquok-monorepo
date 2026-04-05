@@ -42,6 +42,8 @@
 	function enhanceContent(container: HTMLElement) {
 		const headings = container.querySelectorAll<HTMLElement>('h2, h3, h4, h5, h6');
 		for (const heading of headings) {
+			// Alert / Callout titles use <h5> (AlertTitle); do not add TOC anchor "#" to those.
+			if (heading.closest('[role="alert"]')) continue;
 			if (!heading.id) {
 				heading.id =
 					heading.textContent
@@ -124,7 +126,11 @@
 	});
 </script>
 
-<article id="doc-content" class="doc-content mx-auto w-full max-w-4xl" data-pagefind-body>
+<article
+	id="doc-content"
+	class="doc-content mx-auto min-w-0 w-full max-w-4xl"
+	data-pagefind-body
+>
 	<header class="mb-8">
 		<div class="mb-2 flex flex-col gap-4 sm:mb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
 			<h1 class="text-base-content min-w-0 flex-1 text-3xl font-bold tracking-tight">
@@ -149,7 +155,10 @@
 
 	<DocsMobileToc />
 
-	<div class="prose prose-neutral max-w-none dark:prose-invert" bind:this={contentEl}>
+	<div
+		class="prose prose-neutral max-w-none min-w-0 break-words dark:prose-invert [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+		bind:this={contentEl}
+	>
 		<Content />
 	</div>
 

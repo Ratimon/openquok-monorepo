@@ -2,5 +2,5 @@ limit.maxIDLength:
   - value: 255
     constraints: {}
 system.forceSearchAttributesCacheRefreshOnRead:
-  - value: true
+  - value: true # Dev setup only. Do not enable in production.
     constraints: {}

@@ -2,7 +2,6 @@ import { IntegrationManager } from "../integrations/integrationManager";
 import type { IntegrationRepository, IntegrationRow } from "../repositories/IntegrationRepository";
 import type { AuthTokenDetails, SocialProvider } from "../integrations/social.integrations.interface";
 import { getTemporalClient } from "../connections/temporal";
-import { config } from "../config/GlobalConfig";
 import { logger } from "../utils/Logger";
 
 /** Token refresh orchestration and Temporal workflow start for scheduled refresh. */
@@ -54,13 +53,12 @@ export class RefreshIntegrationService {
             return false;
         }
 
-        const taskQueue = (config.temporal as { taskQueue: string }).taskQueue;
-
         try {
             await client.workflow.start("refreshTokenWorkflow", {
-                taskQueue,
+                taskQueue: "main",
                 workflowId: `refresh_${integrationId}`,
                 args: [{ integrationId, organizationId }],
+                workflowIdConflictPolicy: "TERMINATE_EXISTING",
             });
             return true;
         } catch (err) {

@@ -170,7 +170,6 @@ export const config: ConfigObject = {
     temporal: {
         address: getEnv("TEMPORAL_ADDRESS", ""),
         namespace: getEnv("TEMPORAL_NAMESPACE", "default"),
-        taskQueue: getEnv("TEMPORAL_TASK_QUEUE", "main"),
     },
 
     /** Social integration OAuth (per-provider secrets). */
