@@ -1,9 +1,17 @@
-import { createFlow, FlowRuntime, type NodeContext } from "flowcraft";
+import { createFlow, FlowRuntime, type NodeContext, type NodeRegistry, type WorkflowBlueprint } from "flowcraft";
 import type { AuthTokenDetails } from "../../integrations/social.integrations.interface";
 import type { IntegrationRepository, IntegrationRow } from "../../repositories/IntegrationRepository";
+import { config } from "../../config/GlobalConfig";
 import { logger } from "../../utils/Logger";
+import { enqueueRefreshTokenDistributedRun } from "../bullmq/enqueueRefreshTokenDistributedRun";
 import { getIntegrationByIdActivity, refreshIntegrationTokenActivity } from "../activities/integrationRefreshActivities";
 import { sleepChunked } from "../sleepChunked";
+
+/** Matches `createFlow("refresh-token")` id; used as BullMQ `blueprintId`. */
+export const REFRESH_TOKEN_BLUEPRINT_ID = "refresh-token";
+
+/** Bump when the refresh-token graph changes so distributed workers reject mismatched runs. */
+export const REFRESH_TOKEN_BLUEPRINT_VERSION = "1.0.0";
 
 export type RefreshTokenOrchestrationDeps = {
     integrationRepository: Pick<IntegrationRepository, "getById">;
@@ -131,6 +139,21 @@ export function createRefreshTokenFlowBuilder() {
         .edge("refreshCycle", "finished", { action: "break" });
 }
 
+/** Blueprint + version metadata for BullMQ / distributed execution. */
+export function buildRefreshTokenBlueprintDistributed(): WorkflowBlueprint {
+    const blueprint = createRefreshTokenFlowBuilder().toBlueprint();
+    blueprint.metadata = {
+        ...blueprint.metadata,
+        version: REFRESH_TOKEN_BLUEPRINT_VERSION,
+    };
+    return blueprint;
+}
+
+/** User node implementations for the worker registry (function nodes use stable `fn_*` keys from the builder). */
+export function getRefreshTokenNodeRegistry(): NodeRegistry {
+    return Object.fromEntries(createRefreshTokenFlowBuilder().getFunctionRegistry());
+}
+
 /**
  * Runs the in-process refresh supervisor until the integration no longer qualifies or refresh fails.
  * Not durable across API restarts (unlike an external workflow engine); call sites should fire-and-forget.
@@ -140,6 +163,29 @@ export async function runRefreshTokenOrchestration(
     deps: RefreshTokenOrchestrationDeps,
     options?: { signal?: AbortSignal }
 ): Promise<boolean> {
+    const bullmqSection = config.bullmq as {
+        integrationRefresh?: { transport?: string };
+        queueName?: string;
+    };
+    const refreshOrch = bullmqSection.integrationRefresh;
+
+    if (refreshOrch?.transport === "bullmq") {
+        try {
+            const { enqueued } = await enqueueRefreshTokenDistributedRun(input, {
+                queueName: bullmqSection.queueName,
+            });
+            return enqueued;
+        } catch (err) {
+            logger.warn({
+                msg: "[Orchestrator] Failed to enqueue distributed refresh-token workflow",
+                error: err instanceof Error ? err.message : String(err),
+                integrationId: input.integrationId,
+                organizationId: input.organizationId,
+            });
+            return false;
+        }
+    }
+
     const runtime = new FlowRuntime<RefreshTokenFlowContext, RefreshTokenOrchestrationDeps>({
         dependencies: deps,
     });

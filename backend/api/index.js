@@ -5,17 +5,19 @@ var supabaseJs = require('@supabase/supabase-js');
 var ssr = require('@supabase/ssr');
 var redis = require('redis');
 var Sentry = require('@sentry/node');
+var IORedis = require('ioredis');
 var http = require('http');
 var express2 = require('express');
 var path2 = require('path');
 var helmet = require('helmet');
 var cors = require('cors');
 var uuid = require('uuid');
-var crypto = require('crypto');
+var crypto$1 = require('crypto');
 var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
 var dayjs2 = require('dayjs');
 var flowcraft = require('flowcraft');
+var bullmq = require('bullmq');
 var https = require('https');
 var zod = require('zod');
 var fs = require('fs');
@@ -45,6 +47,7 @@ function _interopNamespace(e) {
 
 var dotenv__default = /*#__PURE__*/_interopDefault(dotenv);
 var Sentry__namespace = /*#__PURE__*/_interopNamespace(Sentry);
+var IORedis__default = /*#__PURE__*/_interopDefault(IORedis);
 var http__default = /*#__PURE__*/_interopDefault(http);
 var express2__default = /*#__PURE__*/_interopDefault(express2);
 var path2__default = /*#__PURE__*/_interopDefault(path2);
@@ -228,10 +231,34 @@ var init_GlobalConfig = __esm({
           port: getEnvNumber("REDIS_PORT", 6379),
           password: getEnv("REDIS_PASSWORD", ""),
           db: getEnvNumber("REDIS_DB", 0),
+          /** Logical Redis DB for BullMQ / Flowcraft queues (defaults to REDIS_DB). */
+          bullmqDb: getEnvNumber("REDIS_BULLMQ_DB", getEnvNumber("REDIS_DB", 0)),
           prefix: getEnv("REDIS_PREFIX", "app:cache:"),
           maxReconnectAttempts: getEnvNumber("REDIS_MAX_RECONNECT_ATTEMPTS", 10),
           enableOfflineQueue: getEnv("REDIS_ENABLE_OFFLINE_QUEUE", "true") !== "false",
           useScan: getEnv("REDIS_USE_SCAN", "true") !== "false"
+        }
+      },
+      /**
+       * BullMQ + integration token refresh orchestration (Flowcraft).
+       * Queue connection uses `cache.redis` / `REDIS_*` and optional `REDIS_BULLMQ_DB`.
+       */
+      bullmq: {
+        queueName: getEnv("INTEGRATION_REFRESH_BULLMQ_QUEUE", "integration-refresh"),
+        /**
+         * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).
+         */
+        integrationRefresh: {
+          enabled: (() => {
+            const underJest = getEnv("JEST_WORKER_ID", "") !== "";
+            const defaultEnabled = !underJest;
+            return getEnvBoolean("ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR", defaultEnabled);
+          })(),
+          /**
+           * in_process: FlowRuntime in the API process (default).
+           * bullmq: enqueue runs; run `pnpm worker:integration-refresh-bullmq`; uses `queueName` and Redis settings above.
+           */
+          transport: getEnv("INTEGRATION_REFRESH_TRANSPORT", "in_process")
         }
       },
       /** Rate limiting. When enabled, applies global and auth-specific limits. */
@@ -267,17 +294,6 @@ var init_GlobalConfig = __esm({
         threads: {
           appId: getEnv("THREADS_APP_ID", ""),
           appSecret: getEnv("THREADS_APP_SECRET", "")
-        },
-        /**
-         * In-process Flowcraft loop that sleeps until access-token expiry then refreshes.
-         * Default: on in normal runs, off when Jest sets JEST_WORKER_ID (set ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR=true to run under tests).
-         */
-        integrationRefreshOrchestrator: {
-          enabled: (() => {
-            const underJest = getEnv("JEST_WORKER_ID", "") !== "";
-            const defaultEnabled = !underJest;
-            return getEnvBoolean("ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR", defaultEnabled);
-          })()
         }
       }
     };
@@ -969,6 +985,27 @@ if (dsn && sentryEnabled && !Sentry__namespace.isInitialized()) {
   console.log("[Sentry] Initialized in app context (DSN configured, SENTRY_ENABLED=true)");
 } else if (dsn && !sentryEnabled) {
   console.log("[Sentry] DSN present but SENTRY_ENABLED=false; events will not be sent.");
+}
+
+// connections/bullmq/createQueueIoredis.ts
+init_GlobalConfig();
+function queueRedisOptionsFromConfig() {
+  const redis = config.cache;
+  const r = redis.redis;
+  const host = r?.host ?? "127.0.0.1";
+  const port = r?.port ?? 6379;
+  const password = r?.password;
+  const db = r?.bullmqDb ?? r?.db ?? 0;
+  return {
+    host,
+    port,
+    password: password || void 0,
+    db,
+    maxRetriesPerRequest: null
+  };
+}
+function createQueueIoredisClient() {
+  return new IORedis__default.default(queueRedisOptionsFromConfig());
 }
 
 // connections/index.ts
@@ -3312,7 +3349,7 @@ var RefreshTokenRepository = class {
     };
   }
   _generateToken() {
-    return crypto.randomBytes(40).toString("hex");
+    return crypto$1.randomBytes(40).toString("hex");
   }
   _validateId(id, paramName = "id") {
     if (!id) throw new MissingUserIdError("Missing userId");
@@ -3803,8 +3840,8 @@ var OrganizationRepository = class {
   }
   /** Generate and set a new api_key for the organization. */
   async rotateApiKey(organizationId) {
-    const crypto = await import('crypto');
-    const newKey = `co_${crypto.randomBytes(24).toString("hex")}`;
+    const crypto2 = await import('crypto');
+    const newKey = `co_${crypto2.randomBytes(24).toString("hex")}`;
     const { data, error } = await this.supabase.from(ORGS_TABLE).update({ api_key: newKey, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", organizationId).select(ORG_SELECT).single();
     return { organization: data, error };
   }
@@ -5604,10 +5641,10 @@ var EmailService = class {
     }
   }
   generateVerificationToken() {
-    return crypto.randomBytes(32).toString("hex");
+    return crypto$1.randomBytes(32).toString("hex");
   }
   hashToken(token) {
-    return crypto.createHash("sha256").update(token).digest("hex");
+    return crypto$1.createHash("sha256").update(token).digest("hex");
   }
   /** True when `RESEND_SECRET_KEY` is set (used for Resend REST API, e.g. receiving). */
   get isResendApiConfigured() {
@@ -5766,11 +5803,11 @@ function signInviteToken(payload, secret) {
     throw new Error("Invite token secret is not configured (set INVITE_TOKEN_SECRET or JWT_SECRET)");
   }
   const expiresAt = new Date(Date.now() + TTL_MS).toISOString();
-  const id = crypto.randomBytes(6).toString("hex");
+  const id = crypto$1.randomBytes(6).toString("hex");
   const full = { ...payload, expiresAt, id };
   const raw = JSON.stringify(full);
   const payloadB64 = base64UrlEncode(Buffer.from(raw, "utf8"));
-  const sig = crypto.createHmac(ALG, secret).update(payloadB64).digest();
+  const sig = crypto$1.createHmac(ALG, secret).update(payloadB64).digest();
   return `${payloadB64}${SEP}${base64UrlEncode(sig)}`;
 }
 function verifyInviteToken(token, secret) {
@@ -5780,9 +5817,9 @@ function verifyInviteToken(token, secret) {
   const payloadB64 = token.slice(0, idx);
   const sigB64 = token.slice(idx + 1);
   try {
-    const expectedSig = crypto.createHmac(ALG, secret).update(payloadB64).digest();
+    const expectedSig = crypto$1.createHmac(ALG, secret).update(payloadB64).digest();
     const actualSig = base64UrlDecode(sigB64);
-    if (actualSig.length !== expectedSig.length || !crypto.timingSafeEqual(actualSig, expectedSig)) {
+    if (actualSig.length !== expectedSig.length || !crypto$1.timingSafeEqual(actualSig, expectedSig)) {
       return null;
     }
     const raw = base64UrlDecode(payloadB64).toString("utf8");
@@ -7025,7 +7062,63 @@ var IntegrationManager = class {
 init_GlobalConfig();
 
 // orchestrator/flows/refreshTokenWorkflow.ts
+init_GlobalConfig();
 init_Logger();
+
+// orchestrator/bullmq/enqueueRefreshTokenDistributedRun.ts
+init_GlobalConfig();
+init_Logger();
+
+// orchestrator/bullmq/seedDistributedWorkflowContext.ts
+var WORKFLOW_STATE_KEY_PREFIX = "workflow:state:";
+async function seedRefreshTokenWorkflowContext(redis, runId, fields) {
+  const key = `${WORKFLOW_STATE_KEY_PREFIX}${runId}`;
+  const flat = {
+    integrationId: JSON.stringify(fields.integrationId),
+    organizationId: JSON.stringify(fields.organizationId),
+    loopShouldContinue: JSON.stringify(fields.loopShouldContinue),
+    blueprintVersion: JSON.stringify(fields.blueprintVersion)
+  };
+  await redis.hset(key, flat);
+}
+
+// orchestrator/bullmq/enqueueRefreshTokenDistributedRun.ts
+async function enqueueRefreshTokenDistributedRun(input, options) {
+  const redis = createQueueIoredisClient();
+  const bullmqConfig = config.bullmq;
+  const queueName = options?.queueName ?? bullmqConfig?.queueName ?? "integration-refresh";
+  const blueprint = buildRefreshTokenBlueprintDistributed();
+  const version = blueprint.metadata?.version;
+  if (typeof version !== "string" || !version) {
+    throw new Error("refresh-token blueprint metadata.version is required for distributed runs");
+  }
+  const analysis = flowcraft.analyzeBlueprint(blueprint);
+  const runId = crypto.randomUUID();
+  await seedRefreshTokenWorkflowContext(redis, runId, {
+    integrationId: input.integrationId,
+    organizationId: input.organizationId,
+    loopShouldContinue: true,
+    blueprintVersion: version
+  });
+  const queue = new bullmq.Queue(queueName, { connection: redis });
+  try {
+    const startJobs = analysis.startNodeIds.map((nodeId) => ({
+      name: "executeNode",
+      data: { runId, blueprintId: REFRESH_TOKEN_BLUEPRINT_ID, nodeId }
+    }));
+    await queue.addBulk(startJobs);
+    logger.info({
+      msg: "[Orchestrator] Enqueued distributed refresh-token workflow",
+      runId,
+      queueName,
+      startNodes: analysis.startNodeIds
+    });
+    return { runId, enqueued: true };
+  } finally {
+    await queue.close();
+    await redis.quit();
+  }
+}
 
 // orchestrator/activities/integrationRefreshActivities.ts
 init_Logger();
@@ -7125,6 +7218,8 @@ async function refreshIntegrationTokenActivity(runRefresh, row, signal) {
 }
 
 // orchestrator/flows/refreshTokenWorkflow.ts
+var REFRESH_TOKEN_BLUEPRINT_ID = "refresh-token";
+var REFRESH_TOKEN_BLUEPRINT_VERSION = "1.0.0";
 function integrationShouldExit(row) {
   if (!row) {
     return true;
@@ -7213,7 +7308,33 @@ function createRefreshTokenFlowBuilder() {
     condition: "loopShouldContinue"
   }).edge("begin", "refreshCycle").edge("refreshCycle", "finished", { action: "break" });
 }
+function buildRefreshTokenBlueprintDistributed() {
+  const blueprint = createRefreshTokenFlowBuilder().toBlueprint();
+  blueprint.metadata = {
+    ...blueprint.metadata,
+    version: REFRESH_TOKEN_BLUEPRINT_VERSION
+  };
+  return blueprint;
+}
 async function runRefreshTokenOrchestration(input, deps, options) {
+  const bullmqSection = config.bullmq;
+  const refreshOrch = bullmqSection.integrationRefresh;
+  if (refreshOrch?.transport === "bullmq") {
+    try {
+      const { enqueued } = await enqueueRefreshTokenDistributedRun(input, {
+        queueName: bullmqSection.queueName
+      });
+      return enqueued;
+    } catch (err) {
+      logger.warn({
+        msg: "[Orchestrator] Failed to enqueue distributed refresh-token workflow",
+        error: err instanceof Error ? err.message : String(err),
+        integrationId: input.integrationId,
+        organizationId: input.organizationId
+      });
+      return false;
+    }
+  }
   const runtime = new flowcraft.FlowRuntime({
     dependencies: deps
   });
@@ -7279,7 +7400,7 @@ var RefreshIntegrationService = class {
     if (!integration.refreshCron) {
       return false;
     }
-    const orchestrator = config.integrations.integrationRefreshOrchestrator;
+    const orchestrator = config.bullmq.integrationRefresh;
     if (!orchestrator?.enabled) {
       return false;
     }

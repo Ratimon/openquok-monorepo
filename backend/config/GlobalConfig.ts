@@ -130,10 +130,35 @@ export const config: ConfigObject = {
             port: getEnvNumber("REDIS_PORT", 6379),
             password: getEnv("REDIS_PASSWORD", ""),
             db: getEnvNumber("REDIS_DB", 0),
+            /** Logical Redis DB for BullMQ / Flowcraft queues (defaults to REDIS_DB). */
+            bullmqDb: getEnvNumber("REDIS_BULLMQ_DB", getEnvNumber("REDIS_DB", 0)),
             prefix: getEnv("REDIS_PREFIX", "app:cache:"),
             maxReconnectAttempts: getEnvNumber("REDIS_MAX_RECONNECT_ATTEMPTS", 10),
             enableOfflineQueue: getEnv("REDIS_ENABLE_OFFLINE_QUEUE", "true") !== "false",
             useScan: getEnv("REDIS_USE_SCAN", "true") !== "false",
+        },
+    },
+
+    /**
+     * BullMQ + integration token refresh orchestration (Flowcraft).
+     * Queue connection uses `cache.redis` / `REDIS_*` and optional `REDIS_BULLMQ_DB`.
+     */
+    bullmq: {
+        queueName: getEnv("INTEGRATION_REFRESH_BULLMQ_QUEUE", "integration-refresh"),
+        /**
+         * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).
+         */
+        integrationRefresh: {
+            enabled: (() => {
+                const underJest = getEnv("JEST_WORKER_ID", "") !== "";
+                const defaultEnabled = !underJest;
+                return getEnvBoolean("ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR", defaultEnabled);
+            })(),
+            /**
+             * in_process: FlowRuntime in the API process (default).
+             * bullmq: enqueue runs; run `pnpm worker:integration-refresh-bullmq`; uses `queueName` and Redis settings above.
+             */
+            transport: getEnv("INTEGRATION_REFRESH_TRANSPORT", "in_process"),
         },
     },
 
@@ -168,17 +193,6 @@ export const config: ConfigObject = {
         threads: {
             appId: getEnv("THREADS_APP_ID", ""),
             appSecret: getEnv("THREADS_APP_SECRET", ""),
-        },
-        /**
-         * In-process Flowcraft loop that sleeps until access-token expiry then refreshes.
-         * Default: on in normal runs, off when Jest sets JEST_WORKER_ID (set ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR=true to run under tests).
-         */
-        integrationRefreshOrchestrator: {
-            enabled: (() => {
-                const underJest = getEnv("JEST_WORKER_ID", "") !== "";
-                const defaultEnabled = !underJest;
-                return getEnvBoolean("ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR", defaultEnabled);
-            })(),
         },
     },
 

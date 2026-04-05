@@ -8,7 +8,9 @@ export default {
         "\\.js$": ["babel-jest", { configFile: "./babel.config.jest.cjs" }],
         "\\.mjs$": ["babel-jest", { configFile: "./babel.config.jest.cjs" }],
     },
-    transformIgnorePatterns: ["/node_modules/(?!feed|xml-js|flowcraft)/"],
+    transformIgnorePatterns: [
+        "/node_modules/(?!feed|xml-js|flowcraft|@flowcraft/bullmq-adapter|bullmq|ioredis|msgpackr)/",
+    ],
     moduleNameMapper: {
         "^(\\./sentry/index)(\\.js)?$": "<rootDir>/tests/__mocks__/sentry.js",
         "^\\.\\./middlewares/rateLimit$": "<rootDir>/tests/__mocks__/middlewares/rateLimit.js",
@@ -16,6 +18,7 @@ export default {
         // ESM-only package: point resolver at real entry so babel-jest can transform it
         "^feed$": "<rootDir>/node_modules/feed/lib/feed.js",
         "^flowcraft$": "<rootDir>/node_modules/flowcraft/dist/index.mjs",
+        "^@flowcraft/bullmq-adapter$": "<rootDir>/node_modules/@flowcraft/bullmq-adapter/dist/index.mjs",
     },
     moduleFileExtensions: ["ts", "js", "json", "node"],
     setupFiles: ["<rootDir>/jest.env-setup.cjs"],

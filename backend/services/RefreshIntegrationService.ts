@@ -49,11 +49,7 @@ export class RefreshIntegrationService {
             return false;
         }
 
-        const orchestrator = (
-            config.integrations as {
-                integrationRefreshOrchestrator?: { enabled?: boolean };
-            }
-        ).integrationRefreshOrchestrator;
+        const orchestrator = (config.bullmq as { integrationRefresh?: { enabled?: boolean } }).integrationRefresh;
         if (!orchestrator?.enabled) {
             return false;
         }
