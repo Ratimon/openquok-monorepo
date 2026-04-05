@@ -163,20 +163,22 @@ export const config: ConfigObject = {
         },
     },
 
-    /**
-     * Temporal (optional). When `address` is empty, the API skips workflow client creation.
-     * See https://docs.temporal.io/develop/typescript/set-up-your-local-typescript
-     */
-    temporal: {
-        address: getEnv("TEMPORAL_ADDRESS", ""),
-        namespace: getEnv("TEMPORAL_NAMESPACE", "default"),
-    },
-
     /** Social integration OAuth (per-provider secrets). */
     integrations: {
         threads: {
             appId: getEnv("THREADS_APP_ID", ""),
             appSecret: getEnv("THREADS_APP_SECRET", ""),
+        },
+        /**
+         * In-process Flowcraft loop that sleeps until access-token expiry then refreshes.
+         * Default: on in normal runs, off when Jest sets JEST_WORKER_ID (set ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR=true to run under tests).
+         */
+        integrationRefreshOrchestrator: {
+            enabled: (() => {
+                const underJest = getEnv("JEST_WORKER_ID", "") !== "";
+                const defaultEnabled = !underJest;
+                return getEnvBoolean("ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR", defaultEnabled);
+            })(),
         },
     },
 

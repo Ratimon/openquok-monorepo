@@ -39,7 +39,7 @@ pnpm install
 
 ## Development environment
 
-Commands for running **`backend/`** and **`web/`**, the optional **Temporal worker**, tests, database scripts, and deployment live on the **Development environment** page so this quick start stays focused on first-time setup.
+Commands for running **`backend/`** and **`web/`**, tests, database scripts, and deployment live on the **Development environment** page so this quick start stays focused on first-time setup.
 
 <CardGrid>
 <LinkCard title="Development environment" description="Local dev servers, tests, DB tasks, and deployment commands" href="/docs/Installation/development-environment" />

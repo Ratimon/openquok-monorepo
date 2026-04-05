@@ -10,12 +10,12 @@ var express2 = require('express');
 var path2 = require('path');
 var helmet = require('helmet');
 var cors = require('cors');
-var feed = require('feed');
 var uuid = require('uuid');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
-var dayjs = require('dayjs');
+var dayjs2 = require('dayjs');
+var flowcraft = require('flowcraft');
 var https = require('https');
 var zod = require('zod');
 var fs = require('fs');
@@ -51,7 +51,7 @@ var path2__default = /*#__PURE__*/_interopDefault(path2);
 var helmet__default = /*#__PURE__*/_interopDefault(helmet);
 var cors__default = /*#__PURE__*/_interopDefault(cors);
 var nodemailer__default = /*#__PURE__*/_interopDefault(nodemailer);
-var dayjs__default = /*#__PURE__*/_interopDefault(dayjs);
+var dayjs2__default = /*#__PURE__*/_interopDefault(dayjs2);
 var https__default = /*#__PURE__*/_interopDefault(https);
 var fs__default = /*#__PURE__*/_interopDefault(fs);
 var multer__default = /*#__PURE__*/_interopDefault(multer);
@@ -112,14 +112,28 @@ var GlobalConfig_exports = {};
 __export(GlobalConfig_exports, {
   config: () => config
 });
-var ENV, config, server;
+var normalizeOrigin, deriveWwwVariants, ENV, isProductionEnv, config, server;
 var init_GlobalConfig = __esm({
   "config/GlobalConfig.ts"() {
     init_envHelper();
     init_Logger();
+    normalizeOrigin = (origin) => origin.trim().replace(/\/+$/, "");
+    deriveWwwVariants = (origin) => {
+      try {
+        const url = new URL(origin);
+        if (url.hostname.startsWith("www.")) {
+          const apex = url.hostname.replace(/^www\./, "");
+          return [`${url.protocol}//${apex}`];
+        }
+        return [`${url.protocol}//www.${url.hostname}`];
+      } catch {
+        return [];
+      }
+    };
     ENV = process.env.NODE_ENV ?? "development";
     dotenv__default.default.config({ path: `.env.${ENV}.local` });
     dotenv__default.default.config();
+    isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
     config = {
       /** Sender identity for transactional email (Resend/SES). */
       basic: {
@@ -137,12 +151,27 @@ var init_GlobalConfig = __esm({
       },
       cors: {
         allowedOrigins: (() => {
-          const frontendUrl = getEnv("FRONTEND_DOMAIN_URL", "http://localhost:5173");
-          const origins = [frontendUrl];
+          const frontendUrl = normalizeOrigin(getEnv("FRONTEND_DOMAIN_URL", "http://localhost:5173"));
+          const origins = [frontendUrl, ...deriveWwwVariants(frontendUrl)];
           const extra = getEnv("ALLOWED_FRONTEND_ORIGINS", "");
-          if (extra) origins.push(...extra.split(",").map((o) => o.trim()).filter(Boolean));
-          origins.push("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000");
-          return [...new Set(origins)];
+          if (extra) {
+            for (const origin of extra.split(",").map((o) => normalizeOrigin(o)).filter(Boolean)) {
+              origins.push(origin, ...deriveWwwVariants(origin));
+            }
+          }
+          if (!isProductionEnv) {
+            origins.push(
+              "http://localhost:5173",
+              "http://localhost:3000",
+              "http://127.0.0.1:5173",
+              "http://127.0.0.1:3000"
+            );
+          }
+          const unique = [...new Set(origins.map(normalizeOrigin))];
+          if (isProductionEnv && unique.some((origin) => origin.includes("*"))) {
+            throw new Error("CORS wildcard origins are not allowed in production");
+          }
+          return unique;
         })(),
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"],
@@ -156,33 +185,6 @@ var init_GlobalConfig = __esm({
         notSecured: getEnvBoolean("NOT_SECURED", false),
         /** Secret for signing organization invite tokens. Required for invite-by-email. */
         inviteTokenSecret: getEnv("INVITE_TOKEN_SECRET", getEnv("JWT_SECRET", ""))
-      },
-      /**
-       * OAuth providers (Google, GitHub, Generic OIDC).
-       *
-       * - Providers are **enabled only when required env vars are set** (see `connections/oauth/providers/index.ts`).
-       * - Google redirect URI to set in Google Cloud Console:
-       *   `${BACKEND_DOMAIN_URL}${API_PREFIX}/auth/oauth/google/callback`
-       * - Start login endpoint (frontend calls this, then redirects the browser to returned URL):
-       *   `GET ${API_PREFIX}/auth/oauth/google`
-       */
-      oauth: {
-        google: {
-          clientId: getEnv("OAUTH_GOOGLE_CLIENT_ID", ""),
-          clientSecret: getEnv("OAUTH_GOOGLE_CLIENT_SECRET", "")
-        },
-        github: {
-          clientId: getEnv("OAUTH_GITHUB_CLIENT_ID", ""),
-          clientSecret: getEnv("OAUTH_GITHUB_CLIENT_SECRET", "")
-        },
-        generic: {
-          authUrl: getEnv("OAUTH_GENERIC_AUTH_URL", ""),
-          tokenUrl: getEnv("OAUTH_GENERIC_TOKEN_URL", ""),
-          userInfoUrl: getEnv("OAUTH_GENERIC_USERINFO_URL", ""),
-          clientId: getEnv("OAUTH_GENERIC_CLIENT_ID", ""),
-          clientSecret: getEnv("OAUTH_GENERIC_CLIENT_SECRET", ""),
-          scope: getEnv("OAUTH_GENERIC_SCOPE", "openid profile email")
-        }
       },
       /** Email (verification, welcome). When enabled, verification emails are sent. */
       email: {
@@ -250,6 +252,32 @@ var init_GlobalConfig = __esm({
           standardHeaders: true,
           legacyHeaders: false,
           message: "Too many authentication attempts, please try again later"
+        },
+        oauth: {
+          windowMs: getEnvNumber("OAUTH_RATE_LIMIT_WINDOW_MS", 3e5),
+          // 5 minutes
+          max: getEnvNumber("OAUTH_RATE_LIMIT_MAX", 20),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many OAuth requests, please try again later"
+        }
+      },
+      /** Social integration OAuth (per-provider secrets). */
+      integrations: {
+        threads: {
+          appId: getEnv("THREADS_APP_ID", ""),
+          appSecret: getEnv("THREADS_APP_SECRET", "")
+        },
+        /**
+         * In-process Flowcraft loop that sleeps until access-token expiry then refreshes.
+         * Default: on in normal runs, off when Jest sets JEST_WORKER_ID (set ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR=true to run under tests).
+         */
+        integrationRefreshOrchestrator: {
+          enabled: (() => {
+            const underJest = getEnv("JEST_WORKER_ID", "") !== "";
+            const defaultEnabled = !underJest;
+            return getEnvBoolean("ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR", defaultEnabled);
+          })()
         }
       }
     };
@@ -258,323 +286,39 @@ var init_GlobalConfig = __esm({
   }
 });
 
-// connections/oauth/providers/GoogleProvider.ts
-var GOOGLE_AUTH_URL, GOOGLE_TOKEN_URL, GOOGLE_USERINFO_URL, GoogleProvider;
-var init_GoogleProvider = __esm({
-  "connections/oauth/providers/GoogleProvider.ts"() {
-    GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
-    GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
-    GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
-    GoogleProvider = class {
-      name = "google";
-      clientId;
-      clientSecret;
-      baseRedirectPath;
-      constructor(clientId, clientSecret, backendOrigin2, authRoutePrefix) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.baseRedirectPath = `${backendOrigin2}${authRoutePrefix}/oauth/google/callback`;
-      }
-      getRedirectUrl(state) {
-        const params = new URLSearchParams({
-          client_id: this.clientId,
-          redirect_uri: this.baseRedirectPath,
-          response_type: "code",
-          scope: [
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/userinfo.profile"
-          ].join(" "),
-          access_type: "offline",
-          prompt: "consent"
-        });
-        if (state) params.set("state", state);
-        return `${GOOGLE_AUTH_URL}?${params.toString()}`;
-      }
-      async exchangeCodeForProfile(code) {
-        const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            code,
-            client_id: this.clientId,
-            client_secret: this.clientSecret,
-            redirect_uri: this.baseRedirectPath,
-            grant_type: "authorization_code"
-          })
-        });
-        if (!tokenRes.ok) {
-          const text = await tokenRes.text();
-          throw new Error(`Google token exchange failed: ${text}`);
-        }
-        const tokenData = await tokenRes.json();
-        const accessToken = tokenData.access_token;
-        if (!accessToken) throw new Error("Google did not return an access token");
-        const userRes = await fetch(GOOGLE_USERINFO_URL, {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        if (!userRes.ok) {
-          const text = await userRes.text();
-          throw new Error(`Google userinfo failed: ${text}`);
-        }
-        const user = await userRes.json();
-        const id = user.id ?? user.email;
-        if (!id || !user.email) throw new Error("Google userinfo missing id or email");
-        return {
-          id,
-          email: user.email,
-          fullName: user.name ?? user.email
-        };
-      }
-    };
-  }
-});
-
-// connections/oauth/providers/GitHubProvider.ts
-var GITHUB_AUTH_URL, GITHUB_TOKEN_URL, GITHUB_USER_URL, GITHUB_EMAILS_URL, GitHubProvider;
-var init_GitHubProvider = __esm({
-  "connections/oauth/providers/GitHubProvider.ts"() {
-    GITHUB_AUTH_URL = "https://github.com/login/oauth/authorize";
-    GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
-    GITHUB_USER_URL = "https://api.github.com/user";
-    GITHUB_EMAILS_URL = "https://api.github.com/user/emails";
-    GitHubProvider = class {
-      name = "github";
-      clientId;
-      clientSecret;
-      baseRedirectPath;
-      constructor(clientId, clientSecret, backendOrigin2, authRoutePrefix) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.baseRedirectPath = `${backendOrigin2}${authRoutePrefix}/oauth/github/callback`;
-      }
-      getRedirectUrl(state) {
-        const params = new URLSearchParams({
-          client_id: this.clientId,
-          redirect_uri: this.baseRedirectPath,
-          scope: "user:email read:user"
-        });
-        if (state) params.set("state", state);
-        return `${GITHUB_AUTH_URL}?${params.toString()}`;
-      }
-      async exchangeCodeForProfile(code) {
-        const tokenRes = await fetch(GITHUB_TOKEN_URL, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/x-www-form-urlencoded"
-          },
-          body: new URLSearchParams({
-            code,
-            client_id: this.clientId,
-            client_secret: this.clientSecret,
-            redirect_uri: this.baseRedirectPath
-          })
-        });
-        if (!tokenRes.ok) {
-          const text = await tokenRes.text();
-          throw new Error(`GitHub token exchange failed: ${text}`);
-        }
-        const tokenData = await tokenRes.json();
-        const accessToken = tokenData.access_token;
-        if (!accessToken) throw new Error("GitHub did not return an access token");
-        const userRes = await fetch(GITHUB_USER_URL, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github.v3+json"
-          }
-        });
-        if (!userRes.ok) {
-          const text = await userRes.text();
-          throw new Error(`GitHub user fetch failed: ${text}`);
-        }
-        const user = await userRes.json();
-        const id = String(user.id ?? user.login ?? "");
-        let email = user.email;
-        if (!email) {
-          const emailsRes = await fetch(GITHUB_EMAILS_URL, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              Accept: "application/vnd.github.v3+json"
-            }
-          });
-          if (emailsRes.ok) {
-            const emails = await emailsRes.json();
-            const primary = emails.find((e) => e.primary) ?? emails[0];
-            email = primary?.email;
-          }
-        }
-        if (!id || !email) throw new Error("GitHub profile missing id or email");
-        return {
-          id,
-          email,
-          fullName: user.name ?? user.login ?? email
-        };
-      }
-    };
-  }
-});
-
-// connections/oauth/providers/GenericOidcProvider.ts
-var GenericOidcProvider;
-var init_GenericOidcProvider = __esm({
-  "connections/oauth/providers/GenericOidcProvider.ts"() {
-    GenericOidcProvider = class {
-      name = "generic";
-      authUrl;
-      tokenUrl;
-      userInfoUrl;
-      clientId;
-      clientSecret;
-      baseRedirectPath;
-      /** Scopes to request (default openid profile email). */
-      scope;
-      constructor(env, backendOrigin2, authRoutePrefix, scope = "openid profile email") {
-        this.authUrl = env.authUrl;
-        this.tokenUrl = env.tokenUrl;
-        this.userInfoUrl = env.userInfoUrl;
-        this.clientId = env.clientId;
-        this.clientSecret = env.clientSecret;
-        this.scope = scope;
-        this.baseRedirectPath = `${backendOrigin2}${authRoutePrefix}/oauth/generic/callback`;
-      }
-      getRedirectUrl(state) {
-        const params = new URLSearchParams({
-          client_id: this.clientId,
-          redirect_uri: this.baseRedirectPath,
-          response_type: "code",
-          scope: this.scope
-        });
-        if (state) params.set("state", state);
-        return `${this.authUrl}?${params.toString()}`;
-      }
-      async exchangeCodeForProfile(code) {
-        const tokenRes = await fetch(this.tokenUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Accept: "application/json"
-          },
-          body: new URLSearchParams({
-            grant_type: "authorization_code",
-            client_id: this.clientId,
-            client_secret: this.clientSecret,
-            code,
-            redirect_uri: this.baseRedirectPath
-          })
-        });
-        if (!tokenRes.ok) {
-          const text = await tokenRes.text();
-          throw new Error(`OIDC token exchange failed: ${text}`);
-        }
-        const tokenData = await tokenRes.json();
-        const accessToken = tokenData.access_token;
-        if (!accessToken) throw new Error("OIDC did not return an access token");
-        const userRes = await fetch(this.userInfoUrl, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: "application/json"
-          }
-        });
-        if (!userRes.ok) {
-          const text = await userRes.text();
-          throw new Error(`OIDC userinfo failed: ${text}`);
-        }
-        const user = await userRes.json();
-        const id = user.sub ?? user.id;
-        const email = user.email ?? user.preferred_username;
-        const fullName = user.name ?? user.preferred_username;
-        if (!id || !email) throw new Error("OIDC userinfo missing sub/id or email");
-        return {
-          id,
-          email,
-          fullName: fullName || email
-        };
-      }
-    };
-  }
-});
-
-// connections/oauth/providers/index.ts
-var providers_exports = {};
-__export(providers_exports, {
-  GenericOidcProvider: () => GenericOidcProvider,
-  GitHubProvider: () => GitHubProvider,
-  GoogleProvider: () => GoogleProvider,
-  getConfiguredOAuthProviders: () => getConfiguredOAuthProviders,
-  getOAuthProvider: () => getOAuthProvider
-});
-function buildGoogle() {
-  const c = authConfig?.google;
-  if (!c?.clientId || !c?.clientSecret) return null;
-  return new GoogleProvider(c.clientId, c.clientSecret, backendOrigin, authPrefix);
-}
-function buildGitHub() {
-  const c = authConfig?.github;
-  if (!c?.clientId || !c?.clientSecret) return null;
-  return new GitHubProvider(c.clientId, c.clientSecret, backendOrigin, authPrefix);
-}
-function buildGeneric() {
-  const c = authConfig?.generic;
-  if (!c?.authUrl || !c?.tokenUrl || !c?.userInfoUrl || !c?.clientId || !c?.clientSecret)
-    return null;
-  return new GenericOidcProvider(
-    {
-      authUrl: c.authUrl,
-      tokenUrl: c.tokenUrl,
-      userInfoUrl: c.userInfoUrl,
-      clientId: c.clientId,
-      clientSecret: c.clientSecret
-    },
-    backendOrigin,
-    authPrefix,
-    c.scope ?? "openid profile email"
-  );
-}
-function getOAuthProvider(name) {
-  const normalized = name.toLowerCase();
-  if (!Object.prototype.hasOwnProperty.call(providerBuilders, normalized)) {
-    throw new Error(`Unknown OAuth provider: ${name}`);
-  }
-  const provider = providerBuilders[normalized]();
-  if (!provider) {
-    throw new Error(`OAuth provider "${name}" is not configured (missing env/config)`);
-  }
-  return provider;
-}
-function getConfiguredOAuthProviders() {
-  const list = [];
-  for (const key of Object.keys(providerBuilders)) {
-    if (providerBuilders[key]()) list.push(key);
-  }
-  return list;
-}
-var serverConfig, apiConfig, authConfig, backendOrigin, authPrefix, providerBuilders;
-var init_providers = __esm({
-  "connections/oauth/providers/index.ts"() {
-    init_GoogleProvider();
-    init_GitHubProvider();
-    init_GenericOidcProvider();
-    init_GlobalConfig();
-    init_GoogleProvider();
-    init_GitHubProvider();
-    init_GenericOidcProvider();
-    serverConfig = config.server;
-    apiConfig = config.api;
-    authConfig = config.oauth;
-    backendOrigin = serverConfig?.backendDomainUrl ?? "http://localhost:3000";
-    authPrefix = `${apiConfig?.prefix ?? "/api/v1"}/auth`;
-    providerBuilders = {
-      google: buildGoogle,
-      github: buildGitHub,
-      generic: buildGeneric
-    };
-  }
-});
-
 // connections/supabase.ts
 init_GlobalConfig();
 init_Logger();
 var supabaseConfig = config.supabase;
+var serverConfig = config.server;
+function getSiteKey(hostname) {
+  const h = hostname.toLowerCase();
+  const parts = h.split(".").filter(Boolean);
+  if (parts.length <= 1) return h;
+  const threeLabelPublicSuffixes = /* @__PURE__ */ new Set([
+    "vercel.app",
+    "netlify.app",
+    "onrender.com",
+    "fly.dev",
+    "pages.dev",
+    "web.app",
+    "firebaseapp.com",
+    "github.io"
+  ]);
+  const last2 = parts.slice(-2).join(".");
+  if (threeLabelPublicSuffixes.has(last2) && parts.length >= 3) return parts.slice(-3).join(".");
+  return last2;
+}
+function getSameSiteValue() {
+  if (serverConfig.nodeEnv !== "production") return "lax";
+  try {
+    const frontUrl = new URL(serverConfig.frontendDomainUrl ?? "");
+    const backUrl = new URL(serverConfig.backendDomainUrl ?? "");
+    return getSiteKey(frontUrl.hostname) === getSiteKey(backUrl.hostname) ? "lax" : "none";
+  } catch {
+    return "none";
+  }
+}
 supabaseJs.createClient(
   supabaseConfig.supabaseUrl,
   supabaseConfig.supabaseAnonKey
@@ -622,8 +366,19 @@ var createSupabaseRLSClient = ({ req, res }) => {
     },
     setAll(cookiesToSet) {
       if (res.headersSent) return;
+      const isProduction = serverConfig.nodeEnv === "production";
+      const sameSite = getSameSiteValue();
       cookiesToSet.forEach(({ name, value, options: options2 }) => {
-        res.appendHeader("Set-Cookie", ssr.serializeCookieHeader(name, value, options2 ?? {}));
+        const mergedOptions = {
+          path: "/",
+          httpOnly: true,
+          secure: isProduction,
+          sameSite,
+          ...options2 ?? {},
+          // Never allow downstream options to weaken these in production.
+          ...isProduction ? { httpOnly: true, secure: true, sameSite } : {}
+        };
+        res.appendHeader("Set-Cookie", ssr.serializeCookieHeader(name, value, mergedOptions));
       });
     }
   };
@@ -1575,8 +1330,41 @@ var AuthController = class {
   userRepository;
   authenticationService;
   emailService;
-  oauthService;
   organizationService;
+  /**
+   * Best-effort "site" key for SameSite decisions (eTLD+1-ish).
+   *
+   * Why this exists:
+   * - Browsers decide SameSite based on "site" (scheme + registrable domain / eTLD+1)
+   * - A naïve "last two labels" approach breaks on multi-tenant public suffixes like:
+   *   - foo.vercel.app vs bar.vercel.app (NOT same-site; "vercel.app" is a public suffix)
+   *   - foo.netlify.app vs bar.netlify.app
+   *   In those cases, choosing SameSite='lax' prevents the refresh cookie from being sent on XHR/fetch,
+   *   so refresh fails in production after the 1-hour access token expiry.
+   *
+   * We can't rely on a PSL parser here without adding deps, so we use a small allowlist.
+   * If in doubt, we intentionally fall back to treating domains as different → SameSite='none'.
+   */
+  getSiteKey(hostname) {
+    const h = hostname.toLowerCase();
+    const parts = h.split(".").filter(Boolean);
+    if (parts.length <= 1) return h;
+    const threeLabelPublicSuffixes = /* @__PURE__ */ new Set([
+      "vercel.app",
+      "netlify.app",
+      "onrender.com",
+      "fly.dev",
+      "pages.dev",
+      "web.app",
+      "firebaseapp.com",
+      "github.io"
+    ]);
+    const last2 = parts.slice(-2).join(".");
+    if (threeLabelPublicSuffixes.has(last2) && parts.length >= 3) {
+      return parts.slice(-3).join(".");
+    }
+    return last2;
+  }
   /**
    * Get appropriate sameSite value for refresh token cookie.
    * - 'lax' for development or when frontend/backend are on same registrable domain
@@ -1587,31 +1375,137 @@ var AuthController = class {
     try {
       const frontUrl = new URL(serverConfig2.frontendDomainUrl ?? "");
       const backUrl = new URL(serverConfig2.backendDomainUrl ?? "");
-      const frontDomain = frontUrl.hostname.split(".").slice(-2).join(".");
-      const backDomain = backUrl.hostname.split(".").slice(-2).join(".");
-      return frontDomain === backDomain ? "lax" : "none";
+      const frontSite = this.getSiteKey(frontUrl.hostname);
+      const backSite = this.getSiteKey(backUrl.hostname);
+      return frontSite === backSite ? "lax" : "none";
     } catch {
       return "none";
     }
   }
   setRefreshTokenCookie(res, refreshToken) {
     const isProduction = serverConfig2.nodeEnv === "production";
+    const domain = (() => {
+      if (!isProduction) return void 0;
+      try {
+        const backUrl = new URL(serverConfig2.backendDomainUrl ?? "");
+        const hostname = backUrl.hostname;
+        if (hostname === "localhost") return void 0;
+        if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) return void 0;
+        const site = this.getSiteKey(hostname);
+        if (hostname !== site && hostname.endsWith(`.${site}`)) return site;
+        return void 0;
+      } catch {
+        return void 0;
+      }
+    })();
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: this.getSameSiteValue(),
       maxAge: 7 * 24 * 60 * 60 * 1e3,
       //7 days
-      path: "/"
+      path: "/",
+      ...domain ? { domain } : {}
     });
   }
-  constructor(authenticationService2, userRepository2, emailService2, oauthService2, organizationService2) {
+  /**
+   * Mitigate CSRF for endpoints that rely on the refreshToken cookie (SameSite=None in cross-site deployments).
+   *
+   * CORS alone is NOT sufficient against CSRF because the request can still be sent by the browser;
+   * the attacker just can't read the response. So for cookie-auth endpoints with side effects
+   * (refresh rotates tokens, signout revokes tokens), we enforce an Origin allowlist check.
+   */
+  assertCookieAuthOriginAllowed(req) {
+    const origin = req.headers.origin;
+    if (!origin) return;
+    const corsConfig = config.cors;
+    const allowed = corsConfig.allowedOrigins;
+    if (allowed === "*" || Array.isArray(allowed) && allowed.includes("*")) return;
+    if (Array.isArray(allowed) && allowed.includes(origin)) return;
+    throw new AuthError(`Origin ${origin} not allowed`, 403);
+  }
+  constructor(authenticationService2, userRepository2, emailService2, organizationService2) {
     this.authenticationService = authenticationService2;
     this.userRepository = userRepository2;
     this.emailService = emailService2;
-    this.oauthService = oauthService2;
     this.organizationService = organizationService2;
   }
+  /**
+   * Start Google OAuth (Supabase PKCE).
+   * Redirects the browser to Google via Supabase, with callback back to this backend.
+   */
+  startGoogleOAuth = async (req, res, next) => {
+    try {
+      const nextPath = typeof req.query.next === "string" ? req.query.next : void 0;
+      const safeNext = nextPath && nextPath.startsWith("/") ? nextPath : "/account";
+      res.cookie("oauthNext", safeNext, {
+        httpOnly: true,
+        secure: serverConfig2.nodeEnv === "production",
+        sameSite: this.getSameSiteValue(),
+        maxAge: 10 * 60 * 1e3,
+        // 10 minutes
+        path: "/"
+      });
+      const url = await this.authenticationService.getOAuthSignInUrl("google", { req, res }, { next: nextPath });
+      res.redirect(url);
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * Google OAuth callback.
+   * Exchanges `code` for a Supabase session (sets Supabase cookies) and also sets our refreshToken cookie
+   * + stores the refresh token in DB (best-effort) for parity with password sign-in flows.
+   */
+  googleOAuthCallback = async (req, res, next) => {
+    try {
+      const code = typeof req.query.code === "string" ? req.query.code : void 0;
+      const nextFromQuery = typeof req.query.next === "string" ? req.query.next : void 0;
+      const nextFromCookie = typeof req.cookies?.oauthNext === "string" ? req.cookies.oauthNext : void 0;
+      const nextPath = nextFromQuery ?? nextFromCookie ?? "/account";
+      const frontendUrl = serverConfig2.frontendDomainUrl ?? "";
+      const safeNext = nextPath.startsWith("/") ? nextPath : "/";
+      const authErrorUrl = `${frontendUrl}/auth-error?message=${encodeURIComponent("Google sign-in failed. Please try again.")}`;
+      if (!code) {
+        res.redirect(authErrorUrl);
+        return;
+      }
+      const { session, user } = await this.authenticationService.exchangeOAuthCodeForSession({ req, res }, code);
+      const clientInfo = {
+        ipAddress: req.ip ?? req.socket?.remoteAddress,
+        userAgent: req.headers["user-agent"]
+      };
+      try {
+        await this.authenticationService.generateRefreshToken({
+          userId: user.id,
+          token: session.refresh_token,
+          ipAddress: clientInfo.ipAddress,
+          userAgent: clientInfo.userAgent
+        });
+      } catch (err) {
+        logger.warn({
+          msg: "Failed to store refresh token (oauth)",
+          userId: user.id,
+          error: err.message
+        });
+      }
+      const { updateError: oauthVerifyErr } = await this.userRepository.updateEmailVerification(user.id, true);
+      if (oauthVerifyErr) {
+        logger.warn({
+          msg: "Failed to mark OAuth user email verified in public.users",
+          userId: user.id,
+          error: oauthVerifyErr
+        });
+      }
+      this.setRefreshTokenCookie(res, session.refresh_token);
+      res.clearCookie("oauthNext", { path: "/" });
+      res.redirect(`${frontendUrl}${safeNext}`);
+    } catch (error) {
+      const frontendUrl = serverConfig2.frontendDomainUrl ?? "";
+      const message = error instanceof AuthError ? error.message : error instanceof Error ? error.message : "Google sign-in failed. Please try again.";
+      res.redirect(`${frontendUrl}/auth-error?message=${encodeURIComponent(message)}`);
+    }
+  };
   signUp = async (req, res, next) => {
     try {
       const { email: rawEmail, password, fullName } = req.body;
@@ -1648,12 +1542,15 @@ var AuthController = class {
         this.setRefreshTokenCookie(res, session.refresh_token);
       }
       if (newUser?.id && email) {
-        await this.userRepository.upsertUserFromAuth({
+        const { error: upsertError } = await this.userRepository.upsertUserFromAuth({
           id: newUser.id,
           authId: newUser.id,
-          email: newUser.email ?? email,
+          email,
           fullName: fullName ?? email
         });
+        if (upsertError) {
+          logger.warn({ msg: "upsertUserFromAuth failed", userId: newUser.id, error: upsertError });
+        }
       }
       if (newUser?.id) {
         const defaultOrg = await this.organizationService.createDefaultOrganizationForNewUser(newUser.id, {
@@ -1663,36 +1560,47 @@ var AuthController = class {
           logger.warn({ msg: "Default organization creation failed at signup", userId: newUser.id });
         }
       }
-      if (newUser?.id && newUser?.email) {
+      if (newUser?.id) {
+        const token = this.emailService.generateVerificationToken();
+        const hashedToken = this.emailService.hashToken(token);
+        const expiresAt = /* @__PURE__ */ new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
         try {
-          const token = this.emailService.generateVerificationToken();
-          const hashedToken = this.emailService.hashToken(token);
-          const expiresAt = /* @__PURE__ */ new Date();
-          expiresAt.setHours(expiresAt.getHours() + 24);
-          const { updateError } = await this.userRepository.updateVerificationTokenByEmail(
-            newUser.email ?? email,
+          const { updateError, rowsAffected } = await this.userRepository.updateVerificationToken(
+            newUser.id,
             hashedToken,
             expiresAt
           );
-          if (!updateError && this.emailService.isEnabled) {
-            await this.emailService.send(
-              new VerifyEmailTemplate(
-                serverConfig2.backendDomainUrl ?? "",
-                fullName ?? "User",
-                email,
-                token
-              ),
-              email
-            );
-            logger.info({ msg: "Verification email sent after signup", email });
-          } else if (updateError) {
-            logger.warn({ msg: "Failed to store verification token", email });
+          if (updateError) {
+            logger.warn({ msg: "Failed to store verification token", userId: newUser.id, email, error: updateError });
+          } else if (rowsAffected === 0) {
+            logger.warn({ msg: "Verification token update matched 0 rows", userId: newUser.id, email });
           }
-        } catch (emailErr) {
+          if (!updateError && rowsAffected > 0 && this.emailService.isEnabled) {
+            try {
+              await this.emailService.send(
+                new VerifyEmailTemplate(
+                  serverConfig2.backendDomainUrl ?? "",
+                  fullName ?? "User",
+                  email,
+                  token
+                ),
+                email
+              );
+              logger.info({ msg: "Verification email sent after signup", email });
+            } catch (sendErr) {
+              logger.warn({
+                msg: "Failed to send verification email after signup",
+                email,
+                error: sendErr instanceof Error ? sendErr.message : String(sendErr)
+              });
+            }
+          }
+        } catch (persistErr) {
           logger.warn({
-            msg: "Failed to send verification email after signup",
+            msg: "Failed to persist verification token after signup",
             email,
-            error: emailErr instanceof Error ? emailErr.message : String(emailErr)
+            error: persistErr instanceof Error ? persistErr.message : String(persistErr)
           });
         }
       }
@@ -1703,11 +1611,16 @@ var AuthController = class {
         { roles: [] }
       );
       logger.info({ msg: "User signup successful", email });
+      const isUsingCookie = Boolean(session?.refresh_token && (req.cookies?.refreshToken !== void 0 || serverConfig2.nodeEnv === "production"));
       res.status(201).json({
         success: true,
         data: {
           user: userDto,
-          session: session ? { accessToken: session.access_token, refreshToken: session.refresh_token } : void 0
+          session: session ? {
+            accessToken: session.access_token,
+            // If we set httpOnly cookie, don't also leak refresh token to JS.
+            refreshToken: isUsingCookie ? void 0 : session.refresh_token
+          } : void 0
         },
         message: "Sign up successful!!"
       });
@@ -1751,12 +1664,14 @@ var AuthController = class {
         { roles: [] }
       );
       logger.info({ msg: "User authenticated successfully", email });
+      const isUsingCookie = serverConfig2.nodeEnv === "production";
       res.status(200).json({
         success: true,
         data: {
           user: userDto,
           accessToken: session.access_token,
-          refreshToken
+          // If we set httpOnly cookie, don't also leak refresh token to JS.
+          refreshToken: isUsingCookie ? void 0 : refreshToken
         },
         message: "Sign in successful"
       });
@@ -1766,6 +1681,9 @@ var AuthController = class {
   };
   signOut = async (req, res, next) => {
     try {
+      if (req.cookies?.refreshToken) {
+        this.assertCookieAuthOriginAllowed(req);
+      }
       const refreshToken = req.cookies?.refreshToken ?? req.body?.refreshToken;
       if (refreshToken) {
         try {
@@ -1784,16 +1702,18 @@ var AuthController = class {
   };
   refreshToken = async (req, res, next) => {
     try {
-      const refreshToken = req.cookies?.refreshToken ?? req.body?.refreshToken;
-      if (!refreshToken) {
-        throw new TokenError("Missing refresh token");
+      const cookieRefreshToken = req.cookies?.refreshToken;
+      const refreshToken = cookieRefreshToken ?? req.body?.refreshToken;
+      if (cookieRefreshToken) {
+        this.assertCookieAuthOriginAllowed(req);
       }
+      if (!refreshToken) throw new TokenError("Missing refresh token");
       const clientInfo = {
         ipAddress: req.ip ?? req.socket?.remoteAddress,
         userAgent: req.headers["user-agent"]
       };
       const data = await this.authenticationService.refreshToken(refreshToken, clientInfo);
-      if (req.cookies?.refreshToken) {
+      if (serverConfig2.nodeEnv === "production" || cookieRefreshToken) {
         this.setRefreshTokenCookie(res, data.session.refresh_token);
       }
       logger.info({ msg: "Token refreshed successfully" });
@@ -1801,7 +1721,7 @@ var AuthController = class {
         success: true,
         data: {
           accessToken: data.session.access_token,
-          refreshToken: req.cookies?.refreshToken ? void 0 : data.session.refresh_token,
+          refreshToken: cookieRefreshToken ? void 0 : data.session.refresh_token,
           expiresIn: 3600,
           tokenType: "Bearer"
         },
@@ -1809,6 +1729,15 @@ var AuthController = class {
       });
     } catch (error) {
       if (req.cookies?.refreshToken) res.clearCookie("refreshToken");
+      const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+      if (message.includes("Invalid Refresh Token") || message.includes("Refresh Token Not Found")) {
+        res.status(401).json({
+          success: false,
+          message: "Session expired or invalid. Please sign in again.",
+          error: { type: "Unauthorized", message }
+        });
+        return;
+      }
       if (error instanceof DatabaseEntityNotFoundError || error instanceof ValidationError) {
         logger.debug({ msg: "Refresh token invalid or not found", reason: error.message });
         res.status(401).json({
@@ -2059,64 +1988,10 @@ var AuthController = class {
       next(error);
     }
   };
-  /**
-   * GET /oauth/providers – return list of configured OAuth provider names for the frontend.
-   */
-  getOAuthProviders = async (_req, res, next) => {
-    try {
-      const { getConfiguredOAuthProviders: getConfiguredOAuthProviders2 } = await Promise.resolve().then(() => (init_providers(), providers_exports));
-      const providers = getConfiguredOAuthProviders2();
-      res.status(200).json({ success: true, data: { providers } });
-    } catch (error) {
-      next(error);
-    }
-  };
-  /**
-   * GET /oauth/:provider – return redirect URL for the given OAuth provider (sign-in/sign-up).
-   */
-  getOAuthRedirectUrl = async (req, res, next) => {
-    try {
-      const provider = req.params.provider?.toLowerCase();
-      if (!provider || !["google", "github", "generic"].includes(provider)) {
-        res.status(400).json({ success: false, message: "Invalid or missing provider" });
-        return;
-      }
-      const url = this.oauthService.getRedirectUrl(provider, req.query.state);
-      res.status(200).json({ success: true, data: { url } });
-    } catch (error) {
-      next(error);
-    }
-  };
-  /**
-   * GET /oauth/:provider/callback – OAuth callback: exchange code, find/create user, redirect to magic link.
-   */
-  getOAuthCallback = async (req, res, next) => {
-    const frontendUrl = config.server.frontendDomainUrl ?? "";
-    const authErrorUrl = (msg) => `${frontendUrl}/auth-error?message=${encodeURIComponent(msg)}`;
-    try {
-      const provider = req.params.provider?.toLowerCase();
-      const code = req.query.code?.trim();
-      if (!provider || !["google", "github", "generic"].includes(provider)) {
-        res.redirect(authErrorUrl("Invalid provider"));
-        return;
-      }
-      if (!code) {
-        res.redirect(authErrorUrl("Missing code"));
-        return;
-      }
-      const { redirectTo } = await this.oauthService.handleCallback(provider, code);
-      res.redirect(redirectTo);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "OAuth failed";
-      const statusCode = error && typeof error.statusCode === "number" ? error.statusCode : 500;
-      if (res.headersSent) return next(error);
-      res.redirect(authErrorUrl(`${message} (${statusCode})`));
-    }
-  };
 };
 
 // errors/AppError.ts
-var AppError = class _AppError extends Error {
+var AppError = class extends Error {
   statusCode;
   isOperational = true;
   metadata;
@@ -2130,7 +2005,7 @@ var AppError = class _AppError extends Error {
     if (options.errorCode) {
       this.metadata.errorCode = options.errorCode;
     }
-    Object.setPrototypeOf(this, _AppError.prototype);
+    Object.setPrototypeOf(this, new.target.prototype);
     Error.captureStackTrace?.(this, this.constructor);
   }
 };
@@ -2246,6 +2121,7 @@ function toUserDTO(row) {
     id: row.id,
     email: row.email ?? null,
     fullName: row.full_name ?? null,
+    username: row.email ?? null,
     isEmailVerified: row.is_email_verified === true,
     avatarUrl,
     websiteUrl
@@ -3072,7 +2948,14 @@ var FeedbackController = class {
   createFeedback = async (req, res, next) => {
     try {
       const body = req.body;
-      const id = await this.feedbackService.createFeedback(body);
+      const auth3 = req;
+      const fromBody = body.email?.trim();
+      const emailFromAuth = auth3.user?.email?.trim();
+      const payload = {
+        ...body,
+        email: fromBody && fromBody.length > 0 ? fromBody : emailFromAuth && emailFromAuth.length > 0 ? emailFromAuth : void 0
+      };
+      const id = await this.feedbackService.createFeedback(payload);
       res.status(201).json({
         success: true,
         data: { id },
@@ -3321,6 +3204,8 @@ var RefreshTokenRepository = class {
   constructor(supabase2) {
     this.supabase = supabase2;
   }
+  /** Create a new refresh token.
+   *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
   async createToken({
     userId,
     token = null,
@@ -3330,33 +3215,31 @@ var RefreshTokenRepository = class {
   }) {
     this._validateId(userId, "userId");
     const tokenValue = token ?? this._generateToken();
+    const id = uuid.v4();
     const expiresAt = /* @__PURE__ */ new Date();
     expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
-    const tokenData = {
-      id: uuid.v4(),
-      user_id: userId,
-      token: tokenValue,
-      created_at: (/* @__PURE__ */ new Date()).toISOString(),
-      expires_at: expiresAt.toISOString(),
-      revoked: false,
-      ip_address: ipAddress,
-      user_agent: userAgent
-    };
     logger.debug({ msg: "Creating refresh token", userId });
-    const { data, error } = await this.supabase.from(TABLE_NAME).insert(tokenData).select().single();
+    const { error } = await this.supabase.rpc("internal_create_refresh_token", {
+      p_id: id,
+      p_user_id: userId,
+      p_token: tokenValue,
+      p_expires_at: expiresAt.toISOString(),
+      p_ip_address: ipAddress,
+      p_user_agent: userAgent
+    });
     if (error) {
-      throw new DatabaseError(`Failed to create refresh token: ${error.message}`, {
+      throw new DatabaseError(`Failed to create refresh token: ${error.message ?? error}`, {
         cause: error,
         operation: "createToken",
         resource: { type: "table", name: TABLE_NAME }
       });
     }
     return {
-      id: data.id,
-      userId: data.user_id,
-      token: data.token,
-      createdAt: data.created_at,
-      expiresAt: data.expires_at
+      id,
+      userId,
+      token: tokenValue,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      expiresAt: expiresAt.toISOString()
     };
   }
   async validateToken(token) {
@@ -3485,29 +3368,36 @@ var UserRepository = class {
     });
     return { updateError: insertError };
   }
-  /** Resolve auth user id (Supabase auth.uid()) to public.users.id. */
+  /** Resolve auth user id (Supabase auth.uid()) to public.users.id.
+   *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
   async findUserIdByAuthId(authId) {
-    const { data, error } = await this.supabase.from(TABLE_NAME2).select("id").eq("auth_id", authId).single();
-    if (error && error.code !== "PGRST116") {
+    const { data, error } = await this.supabase.rpc("internal_find_user_id_by_auth_id", {
+      p_auth_id: authId
+    });
+    if (error) {
       throw new DatabaseError("Failed to resolve user by auth id", {
         cause: error,
         operation: "findUserIdByAuthId",
         resource: { type: "table", name: TABLE_NAME2 }
       });
     }
-    return { userId: data?.id ?? null, error };
+    return { userId: data ?? null, error: null };
   }
+  /** Find user by email with all core columns.
+   *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
   async findFullUserByEmail(email) {
-    const normalizedEmail = email.trim().toLowerCase();
-    const { data: userData, error } = await this.supabase.from(TABLE_NAME2).select(CORE_USER_SELECT).eq("email", normalizedEmail).single();
-    if (error && error.code !== "PGRST116") {
+    const { data, error } = await this.supabase.rpc("internal_find_full_user_by_email", {
+      p_email: email
+    });
+    if (error) {
       throw new DatabaseError("Database error during email lookup", {
         cause: error,
         operation: "findByEmail",
         resource: { type: "table", name: TABLE_NAME2 }
       });
     }
-    return { userData };
+    const rows = data;
+    return { userData: rows && rows.length > 0 ? rows[0] : null };
   }
   /**
    * Find all users for admin list (id, email, created_at, is_super_admin).
@@ -3533,27 +3423,32 @@ var UserRepository = class {
     }
     return data?.is_email_verified === true;
   }
+  /** Mark user email as verified/unverified.
+   *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
   async updateEmailVerification(userId, isEmailVerified) {
-    const { error: updateError } = await this.supabase.from(TABLE_NAME2).update({
-      is_email_verified: isEmailVerified,
-      updated_at: (/* @__PURE__ */ new Date()).toISOString()
-    }).eq("id", userId);
+    const { error: updateError } = await this.supabase.rpc("internal_update_email_verification", {
+      p_user_id: userId,
+      p_is_verified: isEmailVerified
+    });
     return { updateError };
   }
-  /** Find users by hashed verification token (non-expired). */
+  /** Find users by hashed verification token (non-expired).
+   *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
   async findUserByTokenHash(hashedToken) {
-    const expiresNow = (/* @__PURE__ */ new Date()).toISOString();
-    const { data: userData, error: userError } = await this.supabase.from(TABLE_NAME2).select(CORE_USER_SELECT).eq("email_verification_token", hashedToken).gt("email_verification_token_expires", expiresNow);
-    return { userData: userData ?? [], userError };
+    const { data, error: userError } = await this.supabase.rpc("internal_find_user_by_token_hash", {
+      p_hashed_token: hashedToken
+    });
+    return { userData: data ?? [], userError };
   }
-  /** Set or clear email verification token for a user (by user id). */
+  /** Set or clear email verification token for a user (by user id).
+   *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
   async updateVerificationToken(userId, hashedToken, expiresAt) {
-    const { error: updateError } = await this.supabase.from(TABLE_NAME2).update({
-      email_verification_token: hashedToken,
-      email_verification_token_expires: expiresAt?.toISOString() ?? null,
-      updated_at: (/* @__PURE__ */ new Date()).toISOString()
-    }).eq("id", userId);
-    return { updateError };
+    const { data, error: updateError } = await this.supabase.rpc("internal_set_verification_token", {
+      p_user_id: userId,
+      p_token: hashedToken,
+      p_expires: expiresAt?.toISOString() ?? null
+    });
+    return { updateError, rowsAffected: typeof data === "number" ? data : 0 };
   }
   /** Set verification token for a user by email (e.g. after signup). */
   async updateVerificationTokenByEmail(email, hashedToken, expiresAt) {
@@ -3567,19 +3462,15 @@ var UserRepository = class {
   }
   /**
    * Ensure a row exists in public.users for the given auth user (e.g. when DB trigger is not present).
-   * Inserts or updates by id so verification token can be stored later.
+   * Uses a SECURITY DEFINER RPC function to bypass RLS.
    */
   async upsertUserFromAuth(params) {
-    const { error } = await this.supabase.from(TABLE_NAME2).upsert(
-      {
-        id: params.id,
-        auth_id: params.authId,
-        email: params.email,
-        full_name: params.fullName,
-        updated_at: (/* @__PURE__ */ new Date()).toISOString()
-      },
-      { onConflict: "id" }
-    );
+    const { error } = await this.supabase.rpc("internal_upsert_user_from_auth", {
+      p_id: params.id,
+      p_auth_id: params.authId,
+      p_email: params.email,
+      p_full_name: params.fullName
+    });
     return { error };
   }
   /** Update full_name for the user with the given auth_id. */
@@ -3741,17 +3632,20 @@ var OrganizationRepository = class {
   constructor(supabase2) {
     this.supabase = supabase2;
   }
-  /** Find public.users.id by auth_id (Supabase auth user id). */
+  /** Find public.users.id by auth_id (Supabase auth user id).
+   *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
   async findUserIdByAuthId(authId) {
-    const { data, error } = await this.supabase.from("users").select("id").eq("auth_id", authId).single();
-    if (error && error.code !== "PGRST116") {
+    const { data, error } = await this.supabase.rpc("internal_find_user_id_by_auth_id", {
+      p_auth_id: authId
+    });
+    if (error) {
       throw new DatabaseError("Failed to resolve user by auth id", {
         cause: error,
         operation: "findUserIdByAuthId",
         resource: { type: "table", name: "users" }
       });
     }
-    return { userId: data?.id ?? null, error };
+    return { userId: data ?? null, error: null };
   }
   /** List organizations the user belongs to (non-disabled memberships). */
   async findOrganizationsByUserId(userId) {
@@ -3894,6 +3788,18 @@ var OrganizationRepository = class {
   async deleteOrganization(organizationId) {
     const { error } = await this.supabase.from(ORGS_TABLE).delete().eq("id", organizationId);
     return { error };
+  }
+  /** Resolve organization by programmatic API key (Authorization header value). */
+  async findOrganizationByApiKey(apiKey) {
+    const { data, error } = await this.supabase.from(ORGS_TABLE).select(ORG_SELECT).eq("api_key", apiKey).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to resolve organization by API key", {
+        cause: error,
+        operation: "findOrganizationByApiKey",
+        resource: { type: "table", name: ORGS_TABLE }
+      });
+    }
+    return data ?? null;
   }
   /** Generate and set a new api_key for the organization. */
   async rotateApiKey(organizationId) {
@@ -4188,6 +4094,31 @@ var TABLE_NAME_BLOG_POSTS = "blog_posts";
 var TABLE_NAME_BLOG_TOPICS = "blog_topics";
 var TABLE_NAME_BLOG_COMMENTS = "blog_comments";
 var TABLE_NAME_BLOG_ACTIVITIES = "blog_activities";
+var ALLOWED_PUBLISHED_POST_SORT_KEYS = /* @__PURE__ */ new Set([
+  "published_at",
+  "created_at",
+  "updated_at",
+  "title",
+  "view_count",
+  "like_count"
+]);
+var ALLOWED_ADMIN_POST_SORT_KEYS = /* @__PURE__ */ new Set([
+  "created_at",
+  "updated_at",
+  "published_at",
+  "title",
+  "view_count",
+  "like_count",
+  "is_admin_approved",
+  "is_user_published"
+]);
+var ALLOWED_ADMIN_COMMENT_SORT_KEYS = /* @__PURE__ */ new Set(["created_at", "updated_at", "is_approved"]);
+var ALLOWED_ADMIN_ACTIVITY_SORT_KEYS = /* @__PURE__ */ new Set(["created_at", "activity_type"]);
+function resolveOrderKey(candidate, fallback, allowlist) {
+  const key = candidate?.toString().trim();
+  if (!key) return fallback;
+  return allowlist.has(key) ? key : fallback;
+}
 var SELECT_BLOG_TOPIC = `
   id,
   name,
@@ -4284,7 +4215,7 @@ var BlogRepository = class {
     if (authorId) {
       query = query.eq("user_id", authorId);
     }
-    const orderKey = sortByKey?.toString() || "published_at";
+    const orderKey = resolveOrderKey(sortByKey ?? void 0, "published_at", ALLOWED_PUBLISHED_POST_SORT_KEYS);
     query = query.order(orderKey, { ascending: sortByOrder ?? false });
     if (range) {
       query = query.range(range.start, range.end);
@@ -4323,7 +4254,7 @@ var BlogRepository = class {
     if (searchTerm) {
       query = query.textSearch("fts", searchTerm.replace(/\s+/g, "+"));
     }
-    const orderKey = sortByKey?.toString() || "created_at";
+    const orderKey = resolveOrderKey(sortByKey ?? void 0, "created_at", ALLOWED_ADMIN_POST_SORT_KEYS);
     query = query.order(orderKey, { ascending: sortByOrder ?? false });
     if (range) {
       query = query.range(range.start, range.end);
@@ -4725,7 +4656,7 @@ var BlogRepository = class {
     if (searchTerm) {
       query = query.ilike("content", `%${searchTerm}%`);
     }
-    const orderKey = sortByKey?.toString() || "created_at";
+    const orderKey = resolveOrderKey(sortByKey ?? void 0, "created_at", ALLOWED_ADMIN_COMMENT_SORT_KEYS);
     query = query.order(orderKey, { ascending: sortByOrder ?? false });
     if (range) {
       query = query.range(range.start, range.end);
@@ -4915,7 +4846,7 @@ var BlogRepository = class {
     if (activity_type) {
       query = query.eq("activity_type", activity_type);
     }
-    const orderKey = sortByKey?.toString() || "created_at";
+    const orderKey = resolveOrderKey(sortByKey ?? void 0, "created_at", ALLOWED_ADMIN_ACTIVITY_SORT_KEYS);
     query = query.order(orderKey, { ascending: sortByOrder ?? false });
     if (range) {
       query = query.range(range.start, range.end);
@@ -5015,6 +4946,132 @@ var StorageRepository = class {
   }
 };
 
+// repositories/IntegrationRepository.ts
+var TABLE2 = "integrations";
+var IntegrationRepository = class {
+  constructor(supabase2) {
+    this.supabase = supabase2;
+  }
+  async listByOrganization(organizationId) {
+    const { data, error } = await this.supabase.rpc("internal_list_integrations_by_org", {
+      p_organization_id: organizationId
+    });
+    if (error) {
+      throw new DatabaseError("Failed to list integrations", {
+        cause: error,
+        operation: "rpc:internal_list_integrations_by_org",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+    return data ?? [];
+  }
+  async getById(organizationId, id) {
+    const { data, error } = await this.supabase.rpc("internal_get_integration_by_org_and_id", {
+      p_organization_id: organizationId,
+      p_integration_id: id
+    });
+    if (error) {
+      throw new DatabaseError("Failed to load integration", {
+        cause: error,
+        operation: "rpc:internal_get_integration_by_org_and_id",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+    const rows = data ?? [];
+    return rows[0] ?? null;
+  }
+  async upsertIntegration(params) {
+    const tokenExpiration = params.expiresInSeconds != null && params.expiresInSeconds > 0 ? new Date(Date.now() + params.expiresInSeconds * 1e3).toISOString() : null;
+    const row = {
+      organization_id: params.organizationId,
+      internal_id: params.internalId,
+      name: params.name,
+      picture: params.picture ?? null,
+      provider_identifier: params.providerIdentifier,
+      type: params.integrationType,
+      token: params.token,
+      refresh_token: params.refreshToken || null,
+      token_expiration: tokenExpiration,
+      profile: params.profile ?? null,
+      in_between_steps: params.inBetweenSteps,
+      refresh_needed: false,
+      deleted_at: null,
+      posting_times: params.postingTimesJson,
+      custom_instance_details: params.customInstanceDetails ?? null,
+      additional_settings: params.additionalSettingsJson,
+      root_internal_id: params.rootInternalId,
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    const { data, error } = await this.supabase.from(TABLE2).upsert(row, { onConflict: "organization_id,internal_id" }).select("*").single();
+    if (error || !data) {
+      throw new DatabaseError("Failed to upsert integration", {
+        cause: error ?? new Error("no row"),
+        operation: "upsert",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+    return data;
+  }
+  async disableChannel(organizationId, id) {
+    const { error } = await this.supabase.from(TABLE2).update({ disabled: true, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", id);
+    if (error) {
+      throw new DatabaseError("Failed to disable integration", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+  }
+  async enableChannel(organizationId, id) {
+    const { error } = await this.supabase.from(TABLE2).update({ disabled: false, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", id);
+    if (error) {
+      throw new DatabaseError("Failed to enable integration", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+  }
+  async setPostingTimes(organizationId, integrationId, postingTimesJson) {
+    const { error } = await this.supabase.from(TABLE2).update({ posting_times: postingTimesJson, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null);
+    if (error) {
+      throw new DatabaseError("Failed to update posting times", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+  }
+  async setRefreshNeeded(organizationId, integrationId, needed) {
+    const { error } = await this.supabase.from(TABLE2).update({ refresh_needed: needed, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId);
+    if (error) {
+      throw new DatabaseError("Failed to update refresh_needed", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+  }
+  /** @returns whether a row was updated */
+  async softDeleteChannel(organizationId, id, internalId) {
+    const suffix = `${Date.now().toString(36)}`;
+    const newInternal = `deleted_${internalId}_${suffix}`.slice(0, 512);
+    const { data, error } = await this.supabase.rpc("internal_soft_delete_integration", {
+      p_organization_id: organizationId,
+      p_integration_id: id,
+      p_new_internal_id: newInternal
+    });
+    if (error) {
+      throw new DatabaseError("Failed to delete integration", {
+        cause: error,
+        operation: "rpc:internal_soft_delete_integration",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+    return data === true;
+  }
+};
+
 // repositories/index.ts
 var refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
 var userRepository = new UserRepository(supabaseServiceClientConnection);
@@ -5024,9 +5081,11 @@ var rbacRepository = new RbacRepository(supabaseServiceClientConnection);
 var feedbackRepository = new FeedbackRepository(supabaseServiceClientConnection);
 var blogRepository = new BlogRepository(supabaseServiceClientConnection);
 var storageRepository = new StorageRepository(supabaseServiceClientConnection);
+var integrationRepository = new IntegrationRepository(supabaseServiceClientConnection);
 
 // services/AuthenticationService.ts
 init_Logger();
+init_GlobalConfig();
 var AuthenticationService = class {
   constructor(supabaseServiceClient, refreshTokenRepository2, userRepository2, userService2) {
     this.supabaseServiceClient = supabaseServiceClient;
@@ -5088,28 +5147,81 @@ var AuthenticationService = class {
     const supabaseRLSClient = this.createRLSClient(context);
     await supabaseRLSClient.auth.signOut();
   }
+  buildBackendOAuthCallbackUrl(provider) {
+    const serverConfig5 = config.server;
+    const apiConfig = config.api;
+    const backendOrigin = serverConfig5.backendDomainUrl ?? "http://localhost:3000";
+    const apiPrefix = apiConfig.prefix ?? "/api/v1";
+    return new URL(`${backendOrigin}${apiPrefix}/auth/oauth/${provider}/callback`).toString();
+  }
+  async getOAuthSignInUrl(provider, context, options = {}) {
+    const supabaseRLSClient = this.createRLSClient(context);
+    const redirectTo = this.buildBackendOAuthCallbackUrl(provider);
+    const { data, error } = await supabaseRLSClient.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo }
+    });
+    if (error || !data?.url) {
+      throw new AuthError(`Failed to start OAuth sign-in: ${error?.message ?? "Unknown error"}`, 500, {
+        cause: error
+      });
+    }
+    return data.url;
+  }
+  async exchangeOAuthCodeForSession(context, code) {
+    const supabaseRLSClient = this.createRLSClient(context);
+    const { data, error } = await supabaseRLSClient.auth.exchangeCodeForSession(code);
+    if (error || !data?.session || !data.user?.id) {
+      throw new AuthError(`Failed to exchange OAuth code: ${error?.message ?? "Unknown error"}`, 401, {
+        cause: error
+      });
+    }
+    return {
+      session: data.session,
+      user: { id: data.user.id }
+    };
+  }
   async refreshToken(refreshToken, options = {}) {
     logger.debug({ msg: "Refreshing access token" });
     if (!refreshToken) {
       throw new AuthValidationError("Refresh token is required");
     }
-    await this.refreshTokenRepository.validateToken(refreshToken);
+    let dbTokenValidated = true;
+    try {
+      await this.refreshTokenRepository.validateToken(refreshToken);
+    } catch (error2) {
+      dbTokenValidated = false;
+      logger.warn({
+        msg: "Refresh token not found/invalid in DB; attempting Supabase refresh fallback",
+        error: error2 instanceof Error ? error2.message : String(error2)
+      });
+    }
     const { data, error } = await this.supabaseServiceClient.auth.refreshSession({
       refresh_token: refreshToken
     });
-    await this.supabaseServiceClient.auth.signOut({ scope: "local" });
     if (error) {
       logger.error({ msg: "Refresh token rejected by Supabase", errorMessage: error.message });
-      await this.refreshTokenRepository.revokeToken(refreshToken);
-      throw new AuthError(`Failed to refresh session: ${error.message}`, error.status ?? 401, { cause: error });
+      if (dbTokenValidated) {
+        await this.refreshTokenRepository.revokeToken(refreshToken);
+      }
+      throw new AuthError(`Failed to refresh session: ${error.message}`, 401, { cause: error });
     }
     const newToken = data.session?.refresh_token;
     if (newToken && data.user?.id) {
-      await this.rotateRefreshToken(refreshToken, newToken, {
-        userId: data.user.id,
-        ipAddress: options.ipAddress,
-        userAgent: options.userAgent
-      });
+      if (dbTokenValidated) {
+        await this.rotateRefreshToken(refreshToken, newToken, {
+          userId: data.user.id,
+          ipAddress: options.ipAddress,
+          userAgent: options.userAgent
+        });
+      } else {
+        await this.refreshTokenRepository.createToken({
+          userId: data.user.id,
+          token: newToken,
+          ipAddress: options.ipAddress ?? null,
+          userAgent: options.userAgent ?? null
+        });
+      }
     }
     return {
       session: data.session,
@@ -5241,8 +5353,8 @@ var UserService = class {
   }
   /** Returns "true" if signup is allowed, or "false". */
   async isUserSignUpAllowed() {
-    const authConfig3 = config.auth;
-    if (authConfig3?.disableRegistration === true) {
+    const authConfig = config.auth;
+    if (authConfig?.disableRegistration === true) {
       return "false";
     }
     return "true";
@@ -5361,6 +5473,8 @@ var UserService = class {
 // services/EmailService.ts
 init_GlobalConfig();
 init_Logger();
+var RESEND_API_BASE = "https://api.resend.com";
+var RESEND_USER_AGENT = "openquok-backend/1.0";
 var emailConfig = config.email;
 var serverConfig4 = config.server;
 var basicConfig = config.basic;
@@ -5373,54 +5487,59 @@ var EmailService = class {
     this.isEnabled = options?.isEnabled ?? emailConfig?.enabled ?? false;
     if (!this.isEnabled) return;
     const isProduction = serverConfig4?.nodeEnv === "production";
+    const createResendSmtpTransport = () => nodemailer__default.default.createTransport({
+      host: "smtp.resend.com",
+      secure: true,
+      port: 465,
+      auth: {
+        user: "resend",
+        pass: resendConfig?.secretKey ?? ""
+      }
+    });
     if (isProduction) {
       if (resendConfig?.secretKey) {
-        this.transporter = nodemailer__default.default.createTransport({
-          host: "smtp.resend.com",
-          secure: true,
-          port: 465,
-          auth: {
-            user: "resend",
-            pass: resendConfig.secretKey
-          }
-        });
+        this.transporter = createResendSmtpTransport();
       } else {
         logger.warn({ msg: "Email enabled but RESEND_SECRET_KEY not set; emails will not be sent." });
       }
     } else {
-      const useLocalSes = serverConfig4?.isEmailServerOffline === true || awsConfig?.accessKeyId === "local" && awsConfig?.secretAccessKey === "local";
-      let sesOptions = {
-        region: "ap-southeast-1",
-        apiVersion: "2019-09-27",
-        credentials: {
-          accessKeyId: awsConfig?.accessKeyId ?? "",
-          secretAccessKey: awsConfig?.secretAccessKey ?? ""
-        }
-      };
-      if (useLocalSes) {
-        sesOptions = {
-          region: "aws-ses-v2-local",
+      if (resendConfig?.secretKey) {
+        this.transporter = createResendSmtpTransport();
+      } else {
+        const useLocalSes = serverConfig4?.isEmailServerOffline === true || awsConfig?.accessKeyId === "local" && awsConfig?.secretAccessKey === "local";
+        let sesOptions = {
+          region: "ap-southeast-1",
           apiVersion: "2019-09-27",
-          endpoint: "http://127.0.0.1:8005",
           credentials: {
-            accessKeyId: awsConfig?.accessKeyId ?? "local",
-            secretAccessKey: awsConfig?.secretAccessKey ?? "local"
+            accessKeyId: awsConfig?.accessKeyId ?? "",
+            secretAccessKey: awsConfig?.secretAccessKey ?? ""
           }
         };
-        logger.info({ msg: "[Email] Using local SES mock", endpoint: "http://127.0.0.1:8005" });
-      }
-      if (awsConfig?.accessKeyId && awsConfig?.secretAccessKey) {
-        const sesClient = new clientSesv2.SESv2Client(sesOptions);
-        this.transporter = nodemailer__default.default.createTransport({
-          SES: {
-            sesClient,
-            SendEmailCommand: clientSesv2.SendEmailCommand
-          }
-        });
-      } else {
-        logger.warn({
-          msg: "Email enabled but AWS credentials not set; emails will not be sent."
-        });
+        if (useLocalSes) {
+          sesOptions = {
+            region: "aws-ses-v2-local",
+            apiVersion: "2019-09-27",
+            endpoint: "http://127.0.0.1:8005",
+            credentials: {
+              accessKeyId: awsConfig?.accessKeyId ?? "local",
+              secretAccessKey: awsConfig?.secretAccessKey ?? "local"
+            }
+          };
+          logger.info({ msg: "[Email] Using local SES mock", endpoint: "http://127.0.0.1:8005" });
+        }
+        if (awsConfig?.accessKeyId && awsConfig?.secretAccessKey) {
+          const sesClient = new clientSesv2.SESv2Client(sesOptions);
+          this.transporter = nodemailer__default.default.createTransport({
+            SES: {
+              sesClient,
+              SendEmailCommand: clientSesv2.SendEmailCommand
+            }
+          });
+        } else {
+          logger.warn({
+            msg: "Email enabled but neither AWS credentials nor RESEND_SECRET_KEY are set; emails will not be sent."
+          });
+        }
       }
     }
   }
@@ -5452,11 +5571,107 @@ var EmailService = class {
       throw err;
     }
   }
+  /**
+   * Send a plain (non-template) email using the same transport path as transactional templates.
+   * This keeps sender identity + transport consistent for deliverability.
+   */
+  async sendPlain(options) {
+    if (!this.isEnabled) {
+      throw new AppError("Email is disabled", 503);
+    }
+    if (!this.transporter) {
+      throw new AppError("Email transport is not configured", 503);
+    }
+    if (!options.text && !options.html) {
+      throw new AppError("Provide at least one of text or html", 400);
+    }
+    try {
+      await this.transporter.sendMail({
+        from: {
+          name: basicConfig?.siteName ?? "Openquok",
+          address: basicConfig?.senderEmailAddress ?? "noreply@example.com"
+        },
+        to: options.to,
+        subject: options.subject,
+        ...options.text ? { text: options.text } : {},
+        ...options.html ? { html: options.html } : {},
+        ...options.replyTo ? { replyTo: options.replyTo } : {},
+        ...options.headers ? { headers: options.headers } : {}
+      });
+    } catch (err) {
+      logger.error({ msg: "Email send failed", to: options.to, err });
+      throw err;
+    }
+  }
   generateVerificationToken() {
     return crypto.randomBytes(32).toString("hex");
   }
   hashToken(token) {
     return crypto.createHash("sha256").update(token).digest("hex");
+  }
+  /** True when `RESEND_SECRET_KEY` is set (used for Resend REST API, e.g. receiving). */
+  get isResendApiConfigured() {
+    return Boolean(resendConfig?.secretKey);
+  }
+  /**
+   * List received emails via Resend API ([pagination](https://resend.com/docs/api-reference/pagination)).
+   * Omit `limit` to return all items in one response when the endpoint allows it.
+   */
+  async listReceivedEmails(params) {
+    const apiKey = resendConfig?.secretKey;
+    if (!apiKey) {
+      throw new AppError("Resend API key is not configured", 503);
+    }
+    const searchParams = new URLSearchParams();
+    if (params.limit !== void 0) searchParams.set("limit", String(params.limit));
+    if (params.after) searchParams.set("after", params.after);
+    if (params.before) searchParams.set("before", params.before);
+    const query = searchParams.toString();
+    const url = `${RESEND_API_BASE}/emails/receiving${query ? `?${query}` : ""}`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "User-Agent": RESEND_USER_AGENT
+      }
+    });
+    return this.parseResendJson(res);
+  }
+  /** Fetch one received email by id ([Retrieve Received Email](https://resend.com/docs/api-reference/emails/retrieve-received-email)). */
+  async getReceivedEmail(id) {
+    const apiKey = resendConfig?.secretKey;
+    if (!apiKey) {
+      throw new AppError("Resend API key is not configured", 503);
+    }
+    const url = `${RESEND_API_BASE}/emails/receiving/${encodeURIComponent(id)}`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "User-Agent": RESEND_USER_AGENT
+      }
+    });
+    return this.parseResendJson(res);
+  }
+  async parseResendJson(res) {
+    const text = await res.text();
+    let body;
+    try {
+      body = text ? JSON.parse(text) : {};
+    } catch {
+      throw new AppError("Invalid response from Resend API", res.status || 502, {
+        cause: new Error(`Non-JSON body (status ${res.status})`)
+      });
+    }
+    if (!res.ok) {
+      const errBody = body;
+      const message = typeof errBody.message === "string" ? errBody.message : `Resend API error (${res.status})`;
+      const status = typeof errBody.statusCode === "number" && errBody.statusCode >= 400 && errBody.statusCode < 600 ? errBody.statusCode : res.status >= 400 ? res.status : 502;
+      throw new AppError(message, status, {
+        metadata: errBody.name ? { resendErrorName: errBody.name } : {}
+      });
+    }
+    return body;
   }
 };
 
@@ -5535,150 +5750,6 @@ var MarketingService = class _MarketingService {
       return this.cache.getOrSet(cacheKey, factory, MARKETING_CACHE_TTL_SEC);
     }
     return factory();
-  }
-};
-
-// services/OAuthService.ts
-init_providers();
-init_GlobalConfig();
-init_Logger();
-var serverConfig5 = config.server;
-var authConfig2 = config.auth;
-var OAuthService = class {
-  constructor(supabaseAdmin, userRepository2, userService2, organizationService2) {
-    this.supabaseAdmin = supabaseAdmin;
-    this.userRepository = userRepository2;
-    this.userService = userService2;
-    this.organizationService = organizationService2;
-  }
-  /**
-   * Return the redirect URL for the given provider (for sign-in/sign-up).
-   */
-  getRedirectUrl(provider, state) {
-    const p = getOAuthProvider(provider);
-    return p.getRedirectUrl(state);
-  }
-  /**
-   * Exchange code for profile, then find or create user and return a magic link URL
-   * so the client can complete the session. Redirect the user to that URL.
-   */
-  async handleCallback(provider, code) {
-    const p = getOAuthProvider(provider);
-    const profile = await p.exchangeCodeForProfile(code);
-    const existingByProvider = await this.userRepository.findUserByProvider(
-      provider,
-      profile.id
-    );
-    if (existingByProvider.userData) {
-      const magic2 = await this.generateMagicLinkForAuthId(
-        existingByProvider.userData.auth_id,
-        existingByProvider.userData.email
-      );
-      return { redirectTo: magic2 };
-    }
-    const existingByEmail = await this.userRepository.findFullUserByEmail(profile.email);
-    if (existingByEmail.userData) {
-      await this.userRepository.updateUserProvider(
-        existingByEmail.userData.id,
-        provider,
-        profile.id
-      ).catch(() => {
-      });
-      const magic2 = await this.generateMagicLinkForAuthId(
-        existingByEmail.userData.auth_id,
-        existingByEmail.userData.email
-      );
-      return { redirectTo: magic2 };
-    }
-    const allowSignups = await this.userService.isUserSignUpAllowed();
-    if (!allowSignups || allowSignups !== "true") {
-      throw new AuthError("Registration is disabled", 403);
-    }
-    if (authConfig2?.disableRegistration) {
-      throw new AuthError("Registration is disabled", 403);
-    }
-    const { data: createData, error: createError } = await this.supabaseAdmin.auth.admin.createUser({
-      email: profile.email,
-      email_confirm: true,
-      user_metadata: {
-        full_name: profile.fullName ?? profile.email,
-        provider,
-        provider_id: profile.id
-      }
-    });
-    if (createError) {
-      if (createError.message?.includes("already") || createError.code === "user_already_exists") {
-        const byEmail = await this.userRepository.findFullUserByEmail(profile.email);
-        if (byEmail.userData?.auth_id) {
-          const magic2 = await this.generateMagicLinkForAuthId(
-            byEmail.userData.auth_id,
-            profile.email
-          );
-          return { redirectTo: magic2 };
-        }
-      }
-      logger.error({
-        msg: "OAuth: Supabase createUser failed",
-        provider,
-        email: profile.email,
-        error: createError.message
-      });
-      throw new AuthError(`Could not create account: ${createError.message}`, 400);
-    }
-    const authUserId = createData.user?.id;
-    if (!authUserId) {
-      throw new AuthError("Could not create account", 500);
-    }
-    const { error: upsertError } = await this.userRepository.upsertUserFromOAuth({
-      id: authUserId,
-      authId: authUserId,
-      email: profile.email,
-      fullName: profile.fullName ?? profile.email,
-      provider,
-      providerId: profile.id
-    });
-    if (upsertError) {
-      logger.error({
-        msg: "OAuth: upsertUserFromOAuth failed",
-        authUserId,
-        error: String(upsertError)
-      });
-      throw new AuthError("Failed to create user record", 500);
-    }
-    const defaultOrg = await this.organizationService.createDefaultOrganizationForNewUser(authUserId, {
-      name: profile.fullName ?? "My Organization"
-    });
-    if (!defaultOrg) {
-      logger.warn({ msg: "OAuth: default organization creation failed for new user", authUserId });
-    }
-    const magic = await this.generateMagicLinkForAuthId(authUserId, profile.email);
-    return { redirectTo: magic };
-  }
-  async generateMagicLinkForAuthId(authId, email) {
-    const frontendUrl = (serverConfig5?.frontendDomainUrl ?? "").replace(/\/$/, "");
-    const redirectTo = `${frontendUrl}/auth/callback`;
-    const { data, error } = await this.supabaseAdmin.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-      options: {
-        redirectTo
-      }
-    });
-    if (error || !data?.properties) {
-      logger.error({
-        msg: "OAuth: generateLink failed",
-        email,
-        error: error?.message ?? "no properties"
-      });
-      throw new AuthError("Could not complete sign-in", 500);
-    }
-    const props = data.properties;
-    if (props.action_link) return props.action_link;
-    const supabaseUrl = config.supabase.supabaseUrl?.replace(
-      /\/$/,
-      ""
-    );
-    return `${supabaseUrl}/auth/v1/verify?token=${props.hashed_token}&type=magiclink&redirect_to=${encodeURIComponent(redirectTo)}`;
   }
 };
 var ALG = "sha256";
@@ -5826,7 +5897,7 @@ var OrganizationService = class {
     );
     const frontendUrl = config.server?.frontendDomainUrl ?? "";
     const inviteUrl = `${frontendUrl}/join-org?token=${encodeURIComponent(token)}`;
-    const expiresAt = dayjs__default.default().add(1, "hour").toISOString();
+    const expiresAt = dayjs2__default.default().add(1, "hour").toISOString();
     if (params.sendEmail && this.emailService?.isEnabled) {
       try {
         await this.emailService.send(
@@ -6785,8 +6856,873 @@ var ConfigService = class {
   }
 };
 
+// integrations/providers/threadsProvider.ts
+init_GlobalConfig();
+
+// utils/make.is.ts
+var makeId = (length) => {
+  let text = "";
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < length; i += 1) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+};
+
+// integrations/providers/threadsProvider.ts
+function frontendOrigin() {
+  const url = config.server?.frontendDomainUrl ?? "http://localhost:5173";
+  return url.indexOf("https") === -1 ? `https://redirectmeto.com/${url}` : url;
+}
+function threadsRedirectUri() {
+  return `${frontendOrigin()}/integrations/social/threads`;
+}
+function threadsOAuth() {
+  return config.integrations.threads;
+}
+var ThreadsProvider = class {
+  identifier = "threads";
+  name = "Threads";
+  editor = "normal";
+  isBetweenSteps = false;
+  refreshCron = true;
+  scopes = [
+    "threads_basic",
+    "threads_content_publish",
+    "threads_manage_replies",
+    "threads_manage_insights"
+  ];
+  maxLength(_additionalSettings) {
+    return 500;
+  }
+  async post(_id, _accessToken, _postDetails, _integration) {
+    throw new Error("Threads posting is not implemented");
+  }
+  async refreshToken(refresh_token) {
+    const { appId } = threadsOAuth();
+    if (!appId) throw new Error("THREADS_APP_ID is not configured");
+    const tokenRes = await fetch(
+      `https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=${encodeURIComponent(refresh_token)}`
+    );
+    const { access_token } = await tokenRes.json();
+    if (!access_token) throw new Error("Threads token refresh failed");
+    const { id, name, username, picture } = await this.fetchUserInfo(access_token);
+    return {
+      id,
+      name,
+      accessToken: access_token,
+      refreshToken: access_token,
+      expiresIn: dayjs2__default.default().add(58, "days").unix() - dayjs2__default.default().unix(),
+      picture: picture || "",
+      username: username || ""
+    };
+  }
+  async generateAuthUrl() {
+    const { appId } = threadsOAuth();
+    if (!appId) throw new Error("THREADS_APP_ID is not configured");
+    const state = makeId(6);
+    const codeVerifier = makeId(10);
+    const url = `https://www.threads.net/oauth/authorize?client_id=${appId}&redirect_uri=${encodeURIComponent(threadsRedirectUri())}&state=${state}&scope=${encodeURIComponent(this.scopes.join(","))}`;
+    return { url, codeVerifier, state };
+  }
+  async authenticate(params) {
+    const { appId, appSecret: secret } = threadsOAuth();
+    if (!appId || !secret) return "Threads OAuth is not configured";
+    const step1 = await fetch(
+      `https://graph.threads.net/oauth/access_token?client_id=${appId}&redirect_uri=${encodeURIComponent(threadsRedirectUri())}&grant_type=authorization_code&client_secret=${secret}&code=${encodeURIComponent(params.code)}`
+    );
+    const getAccessToken = await step1.json();
+    if (!getAccessToken.access_token) {
+      return getAccessToken.error?.message ?? "Threads token exchange failed";
+    }
+    const step2 = await fetch(
+      `https://graph.threads.net/access_token?grant_type=th_exchange_token&client_secret=${secret}&access_token=${encodeURIComponent(getAccessToken.access_token)}`
+    );
+    const longLived = await step2.json();
+    if (!longLived.access_token) return "Threads long-lived token exchange failed";
+    const { id, name, username, picture } = await this.fetchUserInfo(longLived.access_token);
+    return {
+      id,
+      name,
+      accessToken: longLived.access_token,
+      refreshToken: longLived.access_token,
+      expiresIn: dayjs2__default.default().add(58, "days").unix() - dayjs2__default.default().unix(),
+      picture: picture || "",
+      username: username || ""
+    };
+  }
+  async fetchUserInfo(accessToken) {
+    const res = await fetch(
+      `https://graph.threads.net/v1.0/me?fields=id,username,threads_profile_picture_url&access_token=${encodeURIComponent(accessToken)}`
+    );
+    const body = await res.json();
+    const id = body.id ?? "";
+    const username = body.username ?? "";
+    return {
+      id,
+      name: username,
+      picture: body.threads_profile_picture_url || "",
+      username
+    };
+  }
+};
+
+// integrations/integrationManager.ts
+var socialIntegrationList = [new ThreadsProvider()];
+var IntegrationManager = class {
+  getAllIntegrations() {
+    return {
+      social: socialIntegrationList.map((p) => ({
+        name: p.name,
+        identifier: p.identifier,
+        toolTip: p.toolTip,
+        editor: p.editor ?? "normal",
+        isExternal: !!p.externalUrl,
+        isWeb3: !!p.isWeb3,
+        isChromeExtension: !!p.isChromeExtension,
+        ...p.extensionCookies ? { extensionCookies: p.extensionCookies } : {}
+      })),
+      article: []
+    };
+  }
+  getAllowedSocialsIntegrations() {
+    return socialIntegrationList.map((p) => p.identifier);
+  }
+  getSocialIntegration(identifier) {
+    return socialIntegrationList.find((p) => p.identifier === identifier);
+  }
+  async enrichCatalogEntry(provider) {
+    const base = {
+      name: provider.name,
+      identifier: provider.identifier,
+      toolTip: provider.toolTip,
+      editor: provider.editor ?? "normal",
+      isExternal: !!provider.externalUrl,
+      isWeb3: !!provider.isWeb3,
+      isChromeExtension: !!provider.isChromeExtension,
+      ...provider.extensionCookies ? { extensionCookies: provider.extensionCookies } : {}
+    };
+    if (provider.customFields && typeof provider.customFields === "function") {
+      return { ...base, customFields: await provider.customFields() };
+    }
+    return base;
+  }
+  async getAllIntegrationsWithCustomFields() {
+    return {
+      social: await Promise.all(socialIntegrationList.map((p) => this.enrichCatalogEntry(p))),
+      article: []
+    };
+  }
+  getInternalPlugs(_identifier) {
+    return { plugs: [] };
+  }
+  getAllPlugs() {
+    return [];
+  }
+};
+
+// services/RefreshIntegrationService.ts
+init_GlobalConfig();
+
+// orchestrator/flows/refreshTokenWorkflow.ts
+init_Logger();
+
+// orchestrator/activities/integrationRefreshActivities.ts
+init_Logger();
+
+// orchestrator/sleepChunked.ts
+var MAX_TIMER_MS = 2147483647;
+async function sleepChunked(totalMs, signal) {
+  let remaining = totalMs;
+  while (remaining > 0) {
+    signal?.throwIfAborted();
+    const step = Math.min(remaining, MAX_TIMER_MS);
+    await new Promise((resolve) => {
+      setTimeout(resolve, step);
+    });
+    remaining -= step;
+  }
+}
+
+// orchestrator/activities/integrationRefreshActivities.ts
+var integrationRefreshActivityPolicy = {
+  startToCloseTimeoutMs: 10 * 60 * 1e3,
+  maxAttempts: 3,
+  initialRetryIntervalMs: 2 * 60 * 1e3,
+  retryBackoffCoefficient: 1
+};
+function withTimeout(promise, ms, signal) {
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal?.reason ?? new Error("Aborted"));
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      reject(new Error(`Activity timed out after ${ms}ms`));
+    }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", onAbort);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", onAbort);
+        reject(err);
+      }
+    );
+  });
+}
+async function runWithRetries(label, runAttempt, logContext, signal) {
+  const p = integrationRefreshActivityPolicy;
+  let lastError;
+  for (let attempt = 1; attempt <= p.maxAttempts; attempt++) {
+    try {
+      return await withTimeout(runAttempt(), p.startToCloseTimeoutMs, signal);
+    } catch (err) {
+      lastError = err;
+      if (attempt >= p.maxAttempts) {
+        logger.warn({
+          msg: `[Orchestrator] ${label} failed after all attempts`,
+          ...logContext,
+          attempts: p.maxAttempts,
+          error: err instanceof Error ? err.message : String(err)
+        });
+        throw err;
+      }
+      const delayMs = Math.round(
+        p.initialRetryIntervalMs * Math.pow(p.retryBackoffCoefficient, attempt - 1)
+      );
+      logger.info({
+        msg: `[Orchestrator] ${label} will retry`,
+        ...logContext,
+        attempt,
+        nextRetryInMs: delayMs
+      });
+      await sleepChunked(delayMs, signal);
+    }
+  }
+  throw lastError;
+}
+async function getIntegrationByIdActivity(repository, organizationId, integrationId, signal) {
+  return runWithRetries(
+    "getIntegrationById",
+    () => repository.getById(organizationId, integrationId),
+    { organizationId, integrationId },
+    signal
+  );
+}
+async function refreshIntegrationTokenActivity(runRefresh, row, signal) {
+  return runWithRetries(
+    "refreshToken",
+    () => runRefresh(row),
+    { organizationId: row.organization_id, integrationId: row.id },
+    signal
+  );
+}
+
+// orchestrator/flows/refreshTokenWorkflow.ts
+function integrationShouldExit(row) {
+  if (!row) {
+    return true;
+  }
+  if (row.deleted_at) {
+    return true;
+  }
+  if (row.in_between_steps) {
+    return true;
+  }
+  if (row.refresh_needed) {
+    return true;
+  }
+  return false;
+}
+async function refreshTokenTickNode({
+  context,
+  dependencies,
+  signal
+}) {
+  const { integrationRepository: integrationRepository2, runRefresh } = dependencies;
+  const organizationId = await context.get("organizationId");
+  const integrationId = await context.get("integrationId");
+  let row;
+  try {
+    row = await getIntegrationByIdActivity(integrationRepository2, organizationId, integrationId, signal);
+  } catch {
+    await context.set("loopShouldContinue", false);
+    return { output: { ok: false } };
+  }
+  if (integrationShouldExit(row)) {
+    await context.set("loopShouldContinue", false);
+    return { output: { ok: false } };
+  }
+  const active = row;
+  if (!active.token_expiration) {
+    await context.set("loopShouldContinue", false);
+    return { output: { ok: false } };
+  }
+  const endDate = new Date(active.token_expiration);
+  const ms = Math.max(0, endDate.getTime() - Date.now());
+  if (ms === 0) {
+    await context.set("loopShouldContinue", false);
+    return { output: { ok: false } };
+  }
+  await sleepChunked(ms, signal);
+  try {
+    row = await getIntegrationByIdActivity(integrationRepository2, organizationId, integrationId, signal);
+  } catch {
+    await context.set("loopShouldContinue", false);
+    return { output: { ok: false } };
+  }
+  if (integrationShouldExit(row)) {
+    await context.set("loopShouldContinue", false);
+    return { output: { ok: false } };
+  }
+  let refreshed;
+  try {
+    refreshed = await refreshIntegrationTokenActivity(runRefresh, row, signal);
+  } catch {
+    await context.set("loopShouldContinue", false);
+    return { output: { ok: false } };
+  }
+  if (!refreshed) {
+    await context.set("loopShouldContinue", false);
+    return { output: { ok: false } };
+  }
+  await context.set("loopShouldContinue", true);
+  logger.debug({
+    msg: "[Orchestrator] refresh-token tick completed",
+    integrationId,
+    organizationId
+  });
+  return { output: { ok: true } };
+}
+async function beginNode() {
+  return { output: {} };
+}
+async function finishedNode() {
+  return { output: { done: true } };
+}
+function createRefreshTokenFlowBuilder() {
+  return flowcraft.createFlow("refresh-token").node("begin", beginNode).node("tick", refreshTokenTickNode).node("finished", finishedNode).loop("refreshCycle", {
+    startNodeId: "tick",
+    endNodeId: "tick",
+    condition: "loopShouldContinue"
+  }).edge("begin", "refreshCycle").edge("refreshCycle", "finished", { action: "break" });
+}
+async function runRefreshTokenOrchestration(input, deps, options) {
+  const runtime = new flowcraft.FlowRuntime({
+    dependencies: deps
+  });
+  const flow = createRefreshTokenFlowBuilder();
+  try {
+    const result = await flow.run(
+      runtime,
+      {
+        integrationId: input.integrationId,
+        organizationId: input.organizationId,
+        loopShouldContinue: true
+      },
+      { signal: options?.signal }
+    );
+    return result.status === "completed";
+  } catch (err) {
+    logger.warn({
+      msg: "[Orchestrator] refresh-token flow threw",
+      error: err instanceof Error ? err.message : String(err),
+      integrationId: input.integrationId,
+      organizationId: input.organizationId
+    });
+    return false;
+  }
+}
+
+// services/RefreshIntegrationService.ts
+init_Logger();
+var RefreshIntegrationService = class {
+  constructor(integrationRepository2, integrationManager2) {
+    this.integrationRepository = integrationRepository2;
+    this.integrationManager = integrationManager2;
+  }
+  async refresh(integration) {
+    const socialProvider = this.integrationManager.getSocialIntegration(integration.provider_identifier);
+    if (!socialProvider) {
+      return false;
+    }
+    const refresh = await this.refreshProcess(integration, socialProvider);
+    if (!refresh) {
+      return false;
+    }
+    await this.integrationRepository.upsertIntegration({
+      organizationId: integration.organization_id,
+      internalId: integration.internal_id,
+      name: integration.name,
+      picture: integration.picture,
+      providerIdentifier: integration.provider_identifier,
+      integrationType: integration.type === "article" ? "article" : "social",
+      token: refresh.accessToken,
+      refreshToken: refresh.refreshToken ?? "",
+      expiresInSeconds: refresh.expiresIn,
+      profile: integration.profile,
+      inBetweenSteps: integration.in_between_steps,
+      additionalSettingsJson: integration.additional_settings,
+      customInstanceDetails: integration.custom_instance_details,
+      postingTimesJson: integration.posting_times,
+      rootInternalId: integration.root_internal_id
+    });
+    return refresh;
+  }
+  async startRefreshWorkflow(organizationId, integrationId, integration) {
+    if (!integration.refreshCron) {
+      return false;
+    }
+    const orchestrator = config.integrations.integrationRefreshOrchestrator;
+    if (!orchestrator?.enabled) {
+      return false;
+    }
+    return runRefreshTokenOrchestration(
+      { integrationId, organizationId },
+      {
+        integrationRepository: this.integrationRepository,
+        runRefresh: (row) => this.refresh(row)
+      }
+    );
+  }
+  async refreshProcess(integration, socialProvider) {
+    const rt = integration.refresh_token;
+    if (!rt || !socialProvider.refreshToken) {
+      await this.markRefreshFailed(integration);
+      return false;
+    }
+    const refresh = await socialProvider.refreshToken(rt).catch(() => false);
+    if (!refresh || !refresh.accessToken) {
+      await this.markRefreshFailed(integration);
+      return false;
+    }
+    if (!socialProvider.reConnect || !integration.root_internal_id || integration.root_internal_id === integration.internal_id) {
+      return refresh;
+    }
+    const reConnect = await socialProvider.reConnect(
+      integration.root_internal_id,
+      integration.internal_id,
+      refresh.accessToken
+    );
+    return {
+      ...refresh,
+      ...reConnect
+    };
+  }
+  async markRefreshFailed(integration) {
+    await this.integrationRepository.setRefreshNeeded(integration.organization_id, integration.id, true);
+    logger.warn({
+      msg: "Integration token refresh failed; refresh_needed set",
+      integrationId: integration.id,
+      organizationId: integration.organization_id,
+      provider: integration.provider_identifier
+    });
+  }
+};
+
+// services/IntegrationService.ts
+init_Logger();
+var CACHE_KEYS9 = {
+  /**
+   * Per-org, per-provider domain cache (e.g. analytics payloads: `integration:${orgId}:${integration}:${date}`).
+   * Full key via {@link buildIntegrationDomainCacheKey}; invalidate e.g. pattern `integration:${orgId}:*` when needed.
+   */
+  INTEGRATION_DOMAIN: "integration"
+};
+function buildIntegrationDomainCacheKey(organizationId, integrationIdentifier, segment) {
+  return `${CACHE_KEYS9.INTEGRATION_DOMAIN}:${organizationId}:${integrationIdentifier}:${segment}`;
+}
+var ANALYTICS_CACHE_TTL_SEC = !process.env.NODE_ENV || process.env.NODE_ENV === "development" ? 1 : 3600;
+var IntegrationService = class {
+  constructor(integrationRepository2, cache, cacheInvalidator) {
+    this.integrationRepository = integrationRepository2;
+    this.cache = cache;
+    this.cacheInvalidator = cacheInvalidator;
+  }
+  listByOrganization(organizationId) {
+    return this.integrationRepository.listByOrganization(organizationId);
+  }
+  getById(organizationId, id) {
+    return this.integrationRepository.getById(organizationId, id);
+  }
+  async upsertIntegration(params) {
+    const result = await this.integrationRepository.upsertIntegration(params);
+    await this.invalidateIntegrationDomainCacheForProvider(params.organizationId, params.providerIdentifier);
+    return result;
+  }
+  async setPostingTimes(organizationId, integrationId, json2) {
+    await this.integrationRepository.setPostingTimes(organizationId, integrationId, json2);
+    await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+  }
+  async disableChannel(organizationId, integrationId) {
+    await this.integrationRepository.disableChannel(organizationId, integrationId);
+    await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+  }
+  async enableChannel(organizationId, integrationId) {
+    await this.integrationRepository.enableChannel(organizationId, integrationId);
+    await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+  }
+  async softDeleteChannel(organizationId, integrationId, internalId) {
+    await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+    return this.integrationRepository.softDeleteChannel(organizationId, integrationId, internalId);
+  }
+  /**
+   * Invalidate `integration:${orgId}:${providerIdentifier}:*` (e.g. cached analytics per segment).
+   */
+  async invalidateIntegrationDomainCacheForProvider(organizationId, providerIdentifier) {
+    if (!this.cacheInvalidator) return;
+    await this.cacheInvalidator.invalidatePattern(
+      `${CACHE_KEYS9.INTEGRATION_DOMAIN}:${organizationId}:${providerIdentifier}:*`
+    );
+    logger.debug({
+      msg: "Invalidated integration domain cache",
+      organizationId,
+      providerIdentifier
+    });
+  }
+  /** Load row to resolve `provider_identifier`, then invalidate domain cache for that provider. */
+  async invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId) {
+    if (!this.cacheInvalidator) return;
+    const row = await this.integrationRepository.getById(organizationId, integrationId);
+    if (!row) return;
+    await this.invalidateIntegrationDomainCacheForProvider(organizationId, row.provider_identifier);
+  }
+  /**
+   * Read cached analytics (or similar) payload for an integration on a date segment.
+   */
+  async getCachedIntegrationPayload(organizationId, integrationIdentifier, segment) {
+    if (!this.cache) return null;
+    const key = buildIntegrationDomainCacheKey(organizationId, integrationIdentifier, segment);
+    const raw = await this.cache.get(key);
+    if (raw == null) return null;
+    if (Array.isArray(raw)) return raw;
+    return null;
+  }
+  /**
+   * Store integration-scoped cache (e.g. analytics rows); TTL is shorter in development than in production.
+   */
+  async setCachedIntegrationPayload(organizationId, integrationIdentifier, segment, data, ttlSec = ANALYTICS_CACHE_TTL_SEC) {
+    if (!this.cache) return;
+    const key = buildIntegrationDomainCacheKey(organizationId, integrationIdentifier, segment);
+    await this.cache.set(key, data, ttlSec);
+  }
+};
+
+// services/IntegrationConnectionService.ts
+init_Logger();
+var CACHE_KEYS10 = {
+  oauth: {
+    login: (state) => `login:${state}`,
+    organization: (state) => `organization:${state}`,
+    refresh: (state) => `refresh:${state}`,
+    onboarding: (state) => `onboarding:${state}`,
+    external: (state) => `external:${state}`
+  }
+};
+var OAUTH_STATE_TTL_SEC = 3600;
+function rootInternalId(internalId) {
+  const parts = internalId.split("_");
+  return parts.length > 1 ? parts.pop() ?? null : internalId;
+}
+function postingTimesForTimezone(timezone) {
+  if (timezone == null || Number.isNaN(timezone)) {
+    return JSON.stringify([{ time: 120 }, { time: 400 }, { time: 700 }]);
+  }
+  return JSON.stringify([{ time: 560 - timezone }, { time: 850 - timezone }, { time: 1140 - timezone }]);
+}
+var IntegrationConnectionService = class {
+  constructor(integrations, organizationRepository2, manager, refreshIntegrationService2, cache, cacheInvalidator) {
+    this.integrations = integrations;
+    this.organizationRepository = organizationRepository2;
+    this.manager = manager;
+    this.refreshIntegrationService = refreshIntegrationService2;
+    this.cache = cache;
+    this.cacheInvalidator = cacheInvalidator;
+  }
+  requireCache() {
+    if (!this.cache) {
+      throw new AppError("Cache is required for OAuth integration flows", 503);
+    }
+    return this.cache;
+  }
+  /** Remove a transient OAuth key; prefers invalidator so deletion is counted like other domains. */
+  async invalidateOAuthCacheKey(key) {
+    if (this.cacheInvalidator) {
+      await this.cacheInvalidator.invalidateKey(key);
+    } else if (this.cache) {
+      await this.cache.del(key);
+    }
+  }
+  async resolveUserId(authUserId) {
+    const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+    if (!userId) throw new UserNotFoundError(authUserId);
+    return userId;
+  }
+  async assertOrganizationMember(authUserId, organizationId) {
+    const userId = await this.resolveUserId(authUserId);
+    const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
+    if (!membership || membership.disabled) {
+      throw new OrganizationNotFoundError(organizationId);
+    }
+  }
+  async getIntegrationList(authUserId, organizationId) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const rows = await this.integrations.listByOrganization(organizationId);
+    const integrations = await Promise.all(rows.map((row) => this.mapListRow(row)));
+    return { integrations };
+  }
+  async mapListRow(p) {
+    const findIntegration = this.manager.getSocialIntegration(p.provider_identifier);
+    const editor = findIntegration?.editor ?? "normal";
+    let customFields;
+    if (findIntegration?.customFields && typeof findIntegration.customFields === "function") {
+      customFields = await findIntegration.customFields();
+    }
+    return {
+      name: p.name,
+      id: p.id,
+      internalId: p.internal_id,
+      disabled: p.disabled,
+      editor,
+      picture: p.picture || "/no-picture.jpg",
+      identifier: p.provider_identifier,
+      inBetweenSteps: p.in_between_steps,
+      refreshNeeded: p.refresh_needed,
+      isCustomFields: !!findIntegration?.customFields,
+      ...customFields !== void 0 ? { customFields } : {},
+      display: p.profile,
+      type: p.type,
+      time: JSON.parse(p.posting_times || "[]"),
+      changeProfilePicture: false,
+      changeNickName: false,
+      customer: null,
+      additionalSettings: p.additional_settings || "[]"
+    };
+  }
+  async buildOAuthAuthorizationUrl(organizationId, integration, opts, externalUrlMessage) {
+    if (!this.manager.getAllowedSocialsIntegrations().includes(integration)) {
+      throw new AppError("Integration not allowed", 400);
+    }
+    const integrationProvider = this.manager.getSocialIntegration(integration);
+    if (!integrationProvider) {
+      throw new AppError("Integration not found", 404);
+    }
+    if (integrationProvider.externalUrl && !opts.externalUrl) {
+      const msg = externalUrlMessage === "public" ? "This integration requires an external URL and is not supported via the public API" : "Missing external url";
+      throw new AppError(msg, 400);
+    }
+    let clientInformation;
+    if (integrationProvider.externalUrl && opts.externalUrl) {
+      clientInformation = {
+        ...await integrationProvider.externalUrl(opts.externalUrl),
+        instanceUrl: opts.externalUrl
+      };
+    }
+    const { codeVerifier, state, url } = await integrationProvider.generateAuthUrl(clientInformation);
+    const cache = this.requireCache();
+    if (opts.refresh) {
+      await cache.set(CACHE_KEYS10.oauth.refresh(state), opts.refresh, OAUTH_STATE_TTL_SEC);
+    }
+    if (opts.onboarding === "true") {
+      await cache.set(CACHE_KEYS10.oauth.onboarding(state), "true", OAUTH_STATE_TTL_SEC);
+    }
+    await cache.set(CACHE_KEYS10.oauth.organization(state), organizationId, OAUTH_STATE_TTL_SEC);
+    await cache.set(CACHE_KEYS10.oauth.login(state), codeVerifier, OAUTH_STATE_TTL_SEC);
+    if (clientInformation) {
+      await cache.set(CACHE_KEYS10.oauth.external(state), JSON.stringify(clientInformation), OAUTH_STATE_TTL_SEC);
+    }
+    return { url };
+  }
+  async getIntegrationUrl(authUserId, organizationId, integration, opts) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    try {
+      return await this.buildOAuthAuthorizationUrl(organizationId, integration, opts, "session");
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      return { err: true };
+    }
+  }
+  async publicListIntegrations(organizationId) {
+    const rows = await this.integrations.listByOrganization(organizationId);
+    return rows.map((p) => ({
+      id: p.id,
+      name: p.name,
+      identifier: p.provider_identifier,
+      picture: p.picture || "/no-picture.jpg",
+      disabled: p.disabled,
+      profile: p.profile,
+      customer: null
+    }));
+  }
+  async getIntegrationUrlPublicApi(organizationId, integration, opts) {
+    try {
+      return await this.buildOAuthAuthorizationUrl(organizationId, integration, opts, "public");
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      throw new AppError("Failed to generate auth URL", 500);
+    }
+  }
+  async publicDeleteChannel(organizationId, integrationId) {
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row) {
+      throw new AppError("Integration not found", 404);
+    }
+    const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
+    if (!deleted) {
+      throw new AppError("Integration not found", 404);
+    }
+  }
+  async connectSocialMedia(authUserId, integration, body) {
+    if (!this.manager.getAllowedSocialsIntegrations().includes(integration)) {
+      throw new AppError("Integration not allowed", 400);
+    }
+    const integrationProvider = this.manager.getSocialIntegration(integration);
+    if (!integrationProvider) {
+      throw new AppError("Integration not found", 404);
+    }
+    const cache = this.requireCache();
+    const getCodeVerifier = integrationProvider.customFields ? "none" : await cache.get(CACHE_KEYS10.oauth.login(body.state));
+    if (!getCodeVerifier && !integrationProvider.customFields) {
+      throw new AppError("Invalid state", 400);
+    }
+    if (!integrationProvider.customFields) {
+      await this.invalidateOAuthCacheKey(CACHE_KEYS10.oauth.login(body.state));
+    }
+    const organizationId = await cache.get(CACHE_KEYS10.oauth.organization(body.state));
+    if (!organizationId || typeof organizationId !== "string") {
+      throw new AppError("Organization not found", 400);
+    }
+    await this.assertOrganizationMember(authUserId, organizationId);
+    await this.invalidateOAuthCacheKey(CACHE_KEYS10.oauth.organization(body.state));
+    const detailsRaw = await cache.get(CACHE_KEYS10.oauth.external(body.state));
+    if (detailsRaw) {
+      await this.invalidateOAuthCacheKey(CACHE_KEYS10.oauth.external(body.state));
+    }
+    const refreshState = await cache.get(CACHE_KEYS10.oauth.refresh(body.state));
+    if (refreshState) await this.invalidateOAuthCacheKey(CACHE_KEYS10.oauth.refresh(body.state));
+    const onboarding = await cache.get(CACHE_KEYS10.oauth.onboarding(body.state));
+    if (onboarding) await this.invalidateOAuthCacheKey(CACHE_KEYS10.oauth.onboarding(body.state));
+    let clientInformation;
+    if (detailsRaw && typeof detailsRaw === "string") {
+      clientInformation = JSON.parse(detailsRaw);
+    }
+    const authResult = await this.safeAuthenticate(integrationProvider, body, getCodeVerifier ?? "none", clientInformation);
+    if ("error" in authResult && !("accessToken" in authResult)) {
+      throw new AppError(authResult.error, 400, { errorCode: "INTEGRATION_OAUTH_ERROR" });
+    }
+    const { accessToken, expiresIn, refreshToken, id, name, picture, username, additionalSettings } = authResult;
+    if (!id) {
+      throw new AppError("Invalid API key", 400);
+    }
+    if (refreshState && String(id) !== String(refreshState)) {
+      throw new AppError("Please refresh the channel that needs to be refreshed", 400);
+    }
+    let validName = name;
+    if (!validName) {
+      if (username) {
+        validName = username.split(".")[0] ?? username;
+      } else {
+        validName = `Channel_${String(id).slice(0, 8)}`;
+      }
+    }
+    const tz = Number.parseInt(body.timezone, 10);
+    const postingTimes = postingTimesForTimezone(Number.isNaN(tz) ? void 0 : tz);
+    const row = await this.integrations.upsertIntegration({
+      organizationId,
+      internalId: String(id),
+      name: validName.trim(),
+      picture: picture || null,
+      providerIdentifier: integration,
+      integrationType: "social",
+      token: accessToken,
+      refreshToken: refreshToken ?? "",
+      expiresInSeconds: expiresIn,
+      profile: username || null,
+      inBetweenSteps: integrationProvider.isBetweenSteps ?? false,
+      additionalSettingsJson: additionalSettings?.length ? JSON.stringify(additionalSettings) : "[]",
+      customInstanceDetails: void 0,
+      postingTimesJson: postingTimes,
+      rootInternalId: rootInternalId(String(id))
+    });
+    void this.refreshIntegrationService.startRefreshWorkflow(organizationId, row.id, integrationProvider).catch((err) => {
+      logger.debug({
+        msg: "startRefreshWorkflow failed",
+        error: err instanceof Error ? err.message : String(err)
+      });
+    });
+    return {
+      id: row.id,
+      organizationId: row.organization_id,
+      internalId: row.internal_id,
+      name: row.name,
+      picture: row.picture,
+      providerIdentifier: row.provider_identifier,
+      type: row.type,
+      disabled: row.disabled,
+      inBetweenSteps: row.in_between_steps,
+      refreshNeeded: row.refresh_needed,
+      onboarding: onboarding === "true",
+      pages: []
+    };
+  }
+  async safeAuthenticate(integrationProvider, body, codeVerifier, clientInformation) {
+    try {
+      const auth3 = await integrationProvider.authenticate(
+        {
+          code: body.code,
+          codeVerifier,
+          refresh: body.refresh
+        },
+        clientInformation
+      );
+      if (typeof auth3 === "string") {
+        return { error: auth3 };
+      }
+      if (auth3.error) {
+        return { error: auth3.error };
+      }
+      return auth3;
+    } catch {
+      return { error: "Authentication failed" };
+    }
+  }
+  async setTimes(authUserId, organizationId, integrationId, body) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row) throw new AppError("Integration not found", 404);
+    await this.integrations.setPostingTimes(organizationId, integrationId, JSON.stringify(body.time));
+  }
+  async disableChannel(authUserId, organizationId, integrationId) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row) throw new AppError("Integration not found", 404);
+    await this.integrations.disableChannel(organizationId, integrationId);
+  }
+  async enableChannel(authUserId, organizationId, integrationId) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row) throw new AppError("Integration not found", 404);
+    await this.integrations.enableChannel(organizationId, integrationId);
+  }
+  async deleteChannel(authUserId, organizationId, integrationId) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row) throw new AppError("Integration not found", 404);
+    const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
+    if (!deleted) throw new AppError("Integration not found", 404);
+  }
+};
+
 // services/index.ts
 init_GlobalConfig();
+var integrationManager = new IntegrationManager();
+var refreshIntegrationService = new RefreshIntegrationService(integrationRepository, integrationManager);
 var userService = new UserService(
   userRepository,
   cacheServiceConnection,
@@ -6808,12 +7744,6 @@ var organizationService = new OrganizationService(
   emailService,
   cacheServiceConnection,
   cacheInvalidationServiceConnection
-);
-var oauthService = new OAuthService(
-  supabaseServiceClientConnection,
-  userRepository,
-  userService,
-  organizationService
 );
 var companyService = new CompanyService(configRepository, cacheServiceConnection);
 var marketingService = new MarketingService(configRepository, cacheServiceConnection);
@@ -6838,9 +7768,23 @@ var configService = new ConfigService(
   cacheServiceConnection,
   cacheInvalidationServiceConnection
 );
+var integrationService = new IntegrationService(
+  integrationRepository,
+  cacheServiceConnection,
+  cacheInvalidationServiceConnection
+);
+var integrationConnectionService = new IntegrationConnectionService(
+  integrationService,
+  organizationRepository,
+  integrationManager,
+  refreshIntegrationService,
+  cacheServiceConnection,
+  cacheInvalidationServiceConnection
+);
 
 // utils/generateBlogRSSFeed.ts
 async function generateBlogRSSFeed(posts) {
+  const { Feed } = await import('feed');
   const companyInfo = await companyService.getCompanyInformationByProperties(["URL", "NAME"]);
   const marketingInfo = await marketingService.getMarketingInformationByProperties([
     "META_DESCRIPTION"
@@ -6850,7 +7794,7 @@ async function generateBlogRSSFeed(posts) {
   const META_DESCRIPTION = marketingInfo.META_DESCRIPTION || `Latest blog posts from ${NAME}`;
   const URLtoIMAGES = `${process.env.PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog_images/`;
   const blogURL = `${URL2.replace(/\/$/, "")}/blog`;
-  const feed$1 = new feed.Feed({
+  const feed = new Feed({
     title: `${NAME} Blog`,
     description: META_DESCRIPTION,
     id: blogURL,
@@ -6868,7 +7812,7 @@ async function generateBlogRSSFeed(posts) {
   posts.forEach((post) => {
     const author = Array.isArray(post.author) ? post.author[0] : post.author;
     const postUrl = `${blogURL}/${post.slug}`;
-    feed$1.addItem({
+    feed.addItem({
       title: post.title,
       id: postUrl,
       link: postUrl,
@@ -6885,9 +7829,9 @@ async function generateBlogRSSFeed(posts) {
     });
   });
   return {
-    rss2: feed$1.rss2(),
-    atom: feed$1.atom1(),
-    json: feed$1.json1()
+    rss2: feed.rss2(),
+    atom: feed.atom1(),
+    json: feed.json1()
   };
 }
 
@@ -7533,8 +8477,277 @@ var ConfigController = class {
   };
 };
 
+// controllers/EmailController.ts
+var EmailController = class {
+  constructor(emailService2) {
+    this.emailService = emailService2;
+  }
+  /**
+   * Expects req.parsedQuery (ParsedListReceivedEmailsQuery) from createListReceivedEmailsParser middleware.
+   */
+  listReceivedEmails = async (req, res, next) => {
+    try {
+      if (!this.emailService.isResendApiConfigured) {
+        res.status(503).json({
+          success: false,
+          message: "Resend API key is not configured"
+        });
+        return;
+      }
+      const parsedQuery = req.parsedQuery;
+      const opts = parsedQuery ?? {};
+      const data = await this.emailService.listReceivedEmails({
+        limit: opts.limit,
+        after: opts.after ?? void 0,
+        before: opts.before ?? void 0
+      });
+      res.status(200).json({
+        success: true,
+        data,
+        message: "Received emails listed successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  getReceivedEmail = async (req, res, next) => {
+    try {
+      if (!this.emailService.isResendApiConfigured) {
+        res.status(503).json({
+          success: false,
+          message: "Resend API key is not configured"
+        });
+        return;
+      }
+      const { id } = req.params;
+      const data = await this.emailService.getReceivedEmail(id);
+      res.status(200).json({
+        success: true,
+        data,
+        message: "Received email fetched successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  sendEmail = async (req, res, next) => {
+    try {
+      if (!this.emailService.isResendApiConfigured) {
+        res.status(503).json({
+          success: false,
+          message: "Resend API key is not configured"
+        });
+        return;
+      }
+      if (!this.emailService.isEnabled) {
+        res.status(503).json({
+          success: false,
+          message: "Email sending is disabled (set EMAIL_ENABLED=true)"
+        });
+        return;
+      }
+      const body = req.body;
+      await this.emailService.sendPlain({
+        to: body.to,
+        subject: body.subject,
+        text: body.text,
+        html: body.html,
+        replyTo: body.reply_to,
+        headers: body.in_reply_to ? { "In-Reply-To": body.in_reply_to, References: body.in_reply_to } : void 0
+      });
+      res.status(200).json({
+        success: true,
+        data: { id: "sent" },
+        message: "Email sent successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// controllers/IntegrationController.ts
+var IntegrationController = class {
+  constructor(integrationConnectionService2, integrationManager2) {
+    this.integrationConnectionService = integrationConnectionService2;
+    this.integrationManager = integrationManager2;
+  }
+  /** GET /integrations — public catalog (provider metadata only). */
+  getAllIntegrations = async (_req, res, next) => {
+    try {
+      const data = await this.integrationManager.getAllIntegrationsWithCustomFields();
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /integrations/list?organizationId= */
+  getIntegrationList = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const data = await this.integrationConnectionService.getIntegrationList(authUserId, organizationId);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /integrations/social/:integration?organizationId=&refresh=&onboarding=&externalUrl= */
+  getIntegrationUrl = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const { integration } = req.params;
+      const q = req.query;
+      const result = await this.integrationConnectionService.getIntegrationUrl(authUserId, organizationId, integration, {
+        refresh: q.refresh,
+        externalUrl: q.externalUrl,
+        onboarding: q.onboarding
+      });
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /integrations/social-connect/:integration */
+  connectSocialMedia = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const { integration } = req.params;
+      const body = req.body;
+      const data = await this.integrationConnectionService.connectSocialMedia(authUserId, integration, body);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /integrations/:id/time?organizationId= */
+  setTime = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const integrationId = req.params.id;
+      await this.integrationConnectionService.setTimes(authUserId, organizationId, integrationId, req.body);
+      res.status(200).json({ success: true, data: { ok: true } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /integrations/disable */
+  disable = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const { organizationId, id } = req.body;
+      await this.integrationConnectionService.disableChannel(authUserId, organizationId, id);
+      res.status(200).json({ success: true, data: { ok: true } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /integrations/enable */
+  enable = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const { organizationId, id } = req.body;
+      await this.integrationConnectionService.enableChannel(authUserId, organizationId, id);
+      res.status(200).json({ success: true, data: { ok: true } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** DELETE /integrations — body { organizationId, id } */
+  deleteChannel = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const { organizationId, id } = req.body;
+      await this.integrationConnectionService.deleteChannel(authUserId, organizationId, id);
+      res.status(200).json({ success: true, data: { ok: true } });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// controllers/PublicIntegrationController.ts
+var PublicIntegrationController = class {
+  constructor(integrationConnectionService2) {
+    this.integrationConnectionService = integrationConnectionService2;
+  }
+  /** GET /public/is-connected (under API prefix, e.g. /api/v1/public/is-connected) */
+  isConnected = async (_req, res, next) => {
+    try {
+      res.status(200).json({ connected: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /public/integrations */
+  listIntegrations = async (req, res, next) => {
+    try {
+      const organizationId = req.organization.id;
+      const data = await this.integrationConnectionService.publicListIntegrations(organizationId);
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /public/social/:integration — OAuth URL (same responsibility as reference `getIntegrationUrl`). */
+  getIntegrationUrl = async (req, res, next) => {
+    try {
+      const organizationId = req.organization.id;
+      const { integration } = req.params;
+      const q = req.query;
+      const data = await this.integrationConnectionService.getIntegrationUrlPublicApi(organizationId, integration, {
+        refresh: q.refresh
+      });
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** DELETE /public/integrations/:id */
+  deleteChannel = async (req, res, next) => {
+    try {
+      const organizationId = req.organization.id;
+      const { id } = req.params;
+      await this.integrationConnectionService.publicDeleteChannel(organizationId, id);
+      res.status(200).json({ id });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
 // controllers/index.ts
-var authController = new AuthController(authenticationService, userRepository, emailService, oauthService, organizationService);
+var authController = new AuthController(authenticationService, userRepository, emailService, organizationService);
 var userController = new UserController(userService, authenticationService, emailService);
 var companyController = new CompanyController(companyService, marketingService);
 var settingsController = new SettingsController(organizationService);
@@ -7543,6 +8756,9 @@ var feedbackController = new FeedbackController(feedbackService);
 var blogController = new BlogController(blogService);
 var imageController = new ImageController(storageRepository);
 var configController = new ConfigController(configService);
+var emailController = new EmailController(emailService);
+var integrationController = new IntegrationController(integrationConnectionService, integrationManager);
+var publicIntegrationController = new PublicIntegrationController(integrationConnectionService);
 
 // errors/RequestError.ts
 var RequestError = class extends Error {
@@ -7651,9 +8867,8 @@ authRouter.post("/sign-up", authSchemas_default.validateSignUpRequest, authContr
 authRouter.post("/sign-in", authSchemas_default.validateSignInRequest, authController.signIn);
 authRouter.post("/sign-out", authController.signOut);
 authRouter.post("/refresh", authSchemas_default.validateRefreshTokenRequest, authController.refreshToken);
-authRouter.get("/oauth/providers", authController.getOAuthProviders);
-authRouter.get("/oauth/:provider", authController.getOAuthRedirectUrl);
-authRouter.get("/oauth/:provider/callback", authController.getOAuthCallback);
+authRouter.get("/oauth/google", authController.startGoogleOAuth);
+authRouter.get("/oauth/google/callback", authController.googleOAuthCallback);
 authRouter.get(
   "/request-verify-signup",
   authSchemas_default.validateTokenAndEmailRequest,
@@ -7738,7 +8953,10 @@ function requireFullAuth(supabase2) {
       if (!data?.user) {
         throw new TokenError("Invalid token: no user data returned");
       }
-      req.user = { id: data.user.id };
+      req.user = {
+        id: data.user.id,
+        email: data.user.email ?? void 0
+      };
       next();
     } catch (err) {
       next(err);
@@ -7777,6 +8995,7 @@ function requireFullAuthWithRoles(supabase2, userRepository2, rbacRepository2) {
       req.user = {
         id: authId,
         publicId,
+        email: data.user.email ?? void 0,
         roles: rolesResult.roles,
         permissions: permissionsResult.permissions,
         isSuperAdmin
@@ -7824,6 +9043,7 @@ function optionalAuthWithRoles(supabase2, userRepository2, rbacRepository2) {
       req.user = {
         id: authId,
         publicId,
+        email: data.user.email ?? void 0,
         roles: rolesResult.roles,
         permissions: permissionsResult.permissions,
         isSuperAdmin
@@ -7932,6 +9152,138 @@ userRouter.delete(
   requireManageRoles,
   rbacController.removeRole
 );
+
+// middlewares/queryParsers.ts
+var QueryParsers = {
+  string: (value) => {
+    if (!value) return null;
+    if (typeof value === "string") return value;
+    if (Array.isArray(value)) return value[0] ?? null;
+    return null;
+  },
+  number: (value) => {
+    if (!value) return void 0;
+    const str = Array.isArray(value) ? value[0] : value;
+    if (typeof str !== "string") return void 0;
+    const parsed = Number.parseInt(str, 10);
+    return Number.isNaN(parsed) ? void 0 : parsed;
+  },
+  boolean: (value) => {
+    if (!value) return null;
+    const str = Array.isArray(value) ? value[0] : value;
+    if (typeof str !== "string") return null;
+    return str.toLowerCase() === "true";
+  },
+  json: (value) => {
+    if (!value) return null;
+    const str = Array.isArray(value) ? value[0] : value;
+    if (typeof str !== "string") return null;
+    try {
+      return JSON.parse(str);
+    } catch {
+      return null;
+    }
+  }
+};
+var stringArray = (value) => {
+  if (!value) return null;
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [value];
+    } catch {
+      if (value.includes(",")) {
+        return value.split(",").map((item) => item.trim()).filter((item) => item.length > 0);
+      }
+      return [value];
+    }
+  }
+  return null;
+};
+function createQueryParser(rules) {
+  return (req, _res, next) => {
+    try {
+      const parsedQuery = {};
+      for (const [key, parser] of Object.entries(rules)) {
+        parsedQuery[key] = parser(
+          req.query[key]
+        );
+      }
+      req.parsedQuery = parsedQuery;
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+function createConfigPropertiesParser() {
+  return createQueryParser({
+    properties: stringArray
+  });
+}
+function createCombinedConfigPropertiesParser() {
+  return createQueryParser({
+    companyProperties: stringArray,
+    marketingProperties: stringArray
+  });
+}
+var combineParsers = (...parserSets) => parserSets.reduce((combined, parsers) => ({ ...combined, ...parsers }), {});
+var CommonQueryParsers = {
+  pagination: { limit: QueryParsers.number, skipId: QueryParsers.string },
+  skip: { skip: QueryParsers.number },
+  search: { searchTerm: QueryParsers.string },
+  blogFiltering: { topicId: QueryParsers.string, authorId: QueryParsers.string },
+  sorting: { sortByKey: QueryParsers.string, sortByOrder: QueryParsers.boolean },
+  range: { range: QueryParsers.json }
+};
+var publishedBlogPostsRules = combineParsers(
+  CommonQueryParsers.pagination,
+  CommonQueryParsers.skip,
+  CommonQueryParsers.search,
+  CommonQueryParsers.blogFiltering,
+  CommonQueryParsers.sorting,
+  CommonQueryParsers.range
+);
+function createPublishedBlogPostsParser() {
+  return createQueryParser(publishedBlogPostsRules);
+}
+var adminBlogPostsRules = combineParsers(
+  CommonQueryParsers.pagination,
+  CommonQueryParsers.search,
+  CommonQueryParsers.blogFiltering,
+  CommonQueryParsers.sorting,
+  CommonQueryParsers.range
+);
+function createAdminBlogPostsParser() {
+  return createQueryParser(adminBlogPostsRules);
+}
+var adminBlogCommentsRules = combineParsers(
+  CommonQueryParsers.pagination,
+  CommonQueryParsers.search,
+  CommonQueryParsers.sorting,
+  CommonQueryParsers.range
+);
+function createAdminBlogCommentsParser() {
+  return createQueryParser(adminBlogCommentsRules);
+}
+var adminBlogActivitiesRules = combineParsers(
+  CommonQueryParsers.pagination,
+  CommonQueryParsers.sorting,
+  CommonQueryParsers.range,
+  { post_id: QueryParsers.string, activity_type: QueryParsers.string }
+);
+function createAdminBlogActivitiesParser() {
+  return createQueryParser(adminBlogActivitiesRules);
+}
+var listReceivedEmailsRules = {
+  limit: QueryParsers.number,
+  after: QueryParsers.string,
+  before: QueryParsers.string
+};
+function createListReceivedEmailsParser() {
+  return createQueryParser(listReceivedEmailsRules);
+}
 var getModuleConfigQuerySchema = zod.z.object({
   moduleName: zod.z.string().min(1)
 });
@@ -7950,9 +9302,57 @@ var configSchemas = {
   validateUpdateModuleConfigRequest
 };
 var configSchemas_default = configSchemas;
+var listReceivedEmailsQuerySchema = zod.z.object({
+  limit: zod.z.coerce.number().int().min(1).max(100).optional(),
+  after: zod.z.string().min(1).optional(),
+  before: zod.z.string().min(1).optional()
+}).refine((data) => !(data.after && data.before), {
+  message: "Cannot use both after and before",
+  path: ["after"]
+});
+var getReceivedEmailParamsSchema = zod.z.object({
+  id: zod.z.string().uuid()
+});
+var recipientList = zod.z.array(zod.z.string().min(1)).max(50);
+var singleOrRecipientList = zod.z.union([zod.z.string().min(1), recipientList]);
+var sendEmailBodySchema = zod.z.object({
+  /**
+   * Sender identity. For admin emails, the backend may override this with SITE_NAME + SENDER_EMAIL_ADDRESS
+   * to keep a consistent sending reputation.
+   */
+  from: zod.z.string().min(1).optional(),
+  to: singleOrRecipientList,
+  subject: zod.z.string().min(1),
+  text: zod.z.string().optional(),
+  html: zod.z.string().optional(),
+  cc: singleOrRecipientList.optional(),
+  bcc: singleOrRecipientList.optional(),
+  reply_to: singleOrRecipientList.optional(),
+  /** `Message-ID` value for threading (sets `In-Reply-To` and `References` headers). */
+  in_reply_to: zod.z.string().min(1).optional()
+}).refine((data) => data.text !== void 0 || data.html !== void 0, {
+  message: "Provide at least one of text or html",
+  path: ["text"]
+});
+var validateListReceivedEmailsQuery = validateRequest({
+  query: listReceivedEmailsQuerySchema
+});
+var validateGetReceivedEmailParams = validateRequest({
+  params: getReceivedEmailParamsSchema
+});
+var validateSendEmailBody = validateRequest({
+  body: sendEmailBodySchema
+});
+var emailSchemas = {
+  validateListReceivedEmailsQuery,
+  validateGetReceivedEmailParams,
+  validateSendEmailBody
+};
+var emailSchemas_default = emailSchemas;
 
 // routes/AdminRoute.ts
 var adminRouter = express2.Router();
+var parseListReceivedEmailsQuery = createListReceivedEmailsParser();
 var authWithRoles2 = requireFullAuthWithRoles(
   supabaseServiceClientConnection,
   userRepository,
@@ -7972,6 +9372,28 @@ adminRouter.put(
   requireSuperAdmin,
   configSchemas_default.validateUpdateModuleConfigRequest,
   configController.updateModuleConfig
+);
+adminRouter.post(
+  "/emails/send",
+  authWithRoles2,
+  requireSuperAdmin,
+  emailSchemas_default.validateSendEmailBody,
+  emailController.sendEmail
+);
+adminRouter.get(
+  "/emails/receiving",
+  authWithRoles2,
+  requireSuperAdmin,
+  emailSchemas_default.validateListReceivedEmailsQuery,
+  parseListReceivedEmailsQuery,
+  emailController.listReceivedEmails
+);
+adminRouter.get(
+  "/emails/receiving/:id",
+  authWithRoles2,
+  requireSuperAdmin,
+  emailSchemas_default.validateGetReceivedEmailParams,
+  emailController.getReceivedEmail
 );
 
 // middlewares/generateSitemap.ts
@@ -8219,130 +9641,6 @@ function generateSitemapMiddleware(options) {
   };
 }
 
-// middlewares/queryParsers.ts
-var QueryParsers = {
-  string: (value) => {
-    if (!value) return null;
-    if (typeof value === "string") return value;
-    if (Array.isArray(value)) return value[0] ?? null;
-    return null;
-  },
-  number: (value) => {
-    if (!value) return void 0;
-    const str = Array.isArray(value) ? value[0] : value;
-    if (typeof str !== "string") return void 0;
-    const parsed = Number.parseInt(str, 10);
-    return Number.isNaN(parsed) ? void 0 : parsed;
-  },
-  boolean: (value) => {
-    if (!value) return null;
-    const str = Array.isArray(value) ? value[0] : value;
-    if (typeof str !== "string") return null;
-    return str.toLowerCase() === "true";
-  },
-  json: (value) => {
-    if (!value) return null;
-    const str = Array.isArray(value) ? value[0] : value;
-    if (typeof str !== "string") return null;
-    try {
-      return JSON.parse(str);
-    } catch {
-      return null;
-    }
-  }
-};
-var stringArray = (value) => {
-  if (!value) return null;
-  if (Array.isArray(value)) return value;
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-      return Array.isArray(parsed) ? parsed : [value];
-    } catch {
-      if (value.includes(",")) {
-        return value.split(",").map((item) => item.trim()).filter((item) => item.length > 0);
-      }
-      return [value];
-    }
-  }
-  return null;
-};
-function createQueryParser(rules) {
-  return (req, _res, next) => {
-    try {
-      const parsedQuery = {};
-      for (const [key, parser] of Object.entries(rules)) {
-        parsedQuery[key] = parser(
-          req.query[key]
-        );
-      }
-      req.parsedQuery = parsedQuery;
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
-}
-function createConfigPropertiesParser() {
-  return createQueryParser({
-    properties: stringArray
-  });
-}
-function createCombinedConfigPropertiesParser() {
-  return createQueryParser({
-    companyProperties: stringArray,
-    marketingProperties: stringArray
-  });
-}
-var combineParsers = (...parserSets) => parserSets.reduce((combined, parsers) => ({ ...combined, ...parsers }), {});
-var CommonQueryParsers = {
-  pagination: { limit: QueryParsers.number, skipId: QueryParsers.string },
-  skip: { skip: QueryParsers.number },
-  search: { searchTerm: QueryParsers.string },
-  blogFiltering: { topicId: QueryParsers.string, authorId: QueryParsers.string },
-  sorting: { sortByKey: QueryParsers.string, sortByOrder: QueryParsers.boolean },
-  range: { range: QueryParsers.json }
-};
-var publishedBlogPostsRules = combineParsers(
-  CommonQueryParsers.pagination,
-  CommonQueryParsers.skip,
-  CommonQueryParsers.search,
-  CommonQueryParsers.blogFiltering,
-  CommonQueryParsers.sorting,
-  CommonQueryParsers.range
-);
-function createPublishedBlogPostsParser() {
-  return createQueryParser(publishedBlogPostsRules);
-}
-var adminBlogPostsRules = combineParsers(
-  CommonQueryParsers.pagination,
-  CommonQueryParsers.search,
-  CommonQueryParsers.blogFiltering,
-  CommonQueryParsers.sorting,
-  CommonQueryParsers.range
-);
-function createAdminBlogPostsParser() {
-  return createQueryParser(adminBlogPostsRules);
-}
-var adminBlogCommentsRules = combineParsers(
-  CommonQueryParsers.pagination,
-  CommonQueryParsers.search,
-  CommonQueryParsers.sorting,
-  CommonQueryParsers.range
-);
-function createAdminBlogCommentsParser() {
-  return createQueryParser(adminBlogCommentsRules);
-}
-var adminBlogActivitiesRules = combineParsers(
-  CommonQueryParsers.pagination,
-  CommonQueryParsers.sorting,
-  CommonQueryParsers.range,
-  { post_id: QueryParsers.string, activity_type: QueryParsers.string }
-);
-function createAdminBlogActivitiesParser() {
-  return createQueryParser(adminBlogActivitiesRules);
-}
-
 // routes/CompanyRoute.ts
 var companyRouter = express2.Router();
 companyRouter.get(
@@ -8496,8 +9794,14 @@ var authWithRoles4 = requireFullAuthWithRoles(
   userRepository,
   rbacRepository
 );
+var optionalAuth = optionalAuthWithRoles(
+  supabaseServiceClientConnection,
+  userRepository,
+  rbacRepository
+);
 feedbackRouter.post(
   "/",
+  optionalAuth,
   validateRequest({ body: feedbackSchema }),
   feedbackController.createFeedback
 );
@@ -8639,7 +9943,7 @@ var authWithRoles5 = requireFullAuthWithRoles(
   userRepository,
   rbacRepository
 );
-var optionalAuth = optionalAuthWithRoles(
+var optionalAuth2 = optionalAuthWithRoles(
   supabaseServiceClientConnection,
   userRepository,
   rbacRepository
@@ -8660,7 +9964,7 @@ blogRouter.get(
 );
 blogRouter.put(
   "/posts/:postId/activity",
-  optionalAuth,
+  optionalAuth2,
   validateRequest({ params: blogPostActivityParamSchema, body: blogTrackActivitySchema }),
   blogController.trackBlogActivity
 );
@@ -8803,6 +10107,109 @@ imageRouter.post(
 );
 imageRouter.delete("/delete", authWithRoles6, requireEditor, imageController.delete);
 imageRouter.get("/proxy", authWithRoles6, requireEditor, imageController.proxyImage);
+var integrationOrganizationQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var validateIntegrationOrganizationQuery = validateRequest({
+  query: integrationOrganizationQuerySchema
+});
+var socialConnectBodySchema = zod.z.object({
+  state: zod.z.string().min(1, "state is required"),
+  code: zod.z.string().min(1, "code is required"),
+  timezone: zod.z.string().min(1, "timezone is required"),
+  refresh: zod.z.string().uuid().optional()
+});
+var validateSocialConnectBody = validateRequest({
+  body: socialConnectBodySchema
+});
+var integrationOrgAndIdBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  id: zod.z.string().uuid("Invalid integration id")
+});
+var validateIntegrationOrgAndIdBody = validateRequest({
+  body: integrationOrgAndIdBodySchema
+});
+var integrationTimeBodySchema = zod.z.object({
+  time: zod.z.array(zod.z.object({ time: zod.z.number() })).min(1)
+});
+var integrationTimeParamsSchema = zod.z.object({ id: zod.z.string().uuid("Invalid integration id") });
+var integrationTimeQuerySchema = zod.z.object({ organizationId: zod.z.string().uuid("Invalid organization id") });
+var validateIntegrationTimeRequest = validateRequest({
+  params: integrationTimeParamsSchema,
+  query: integrationTimeQuerySchema,
+  body: integrationTimeBodySchema
+});
+
+// routes/integrations/sessionRoutes.ts
+var sessionIntegrationsRouter = express2.Router();
+var auth2 = requireFullAuth(supabaseServiceClientConnection);
+sessionIntegrationsRouter.get("/", integrationController.getAllIntegrations);
+sessionIntegrationsRouter.use(auth2);
+sessionIntegrationsRouter.get("/list", validateIntegrationOrganizationQuery, integrationController.getIntegrationList);
+sessionIntegrationsRouter.post(
+  "/:id/time",
+  validateIntegrationTimeRequest,
+  integrationController.setTime
+);
+sessionIntegrationsRouter.get(
+  "/social/:integration",
+  validateIntegrationOrganizationQuery,
+  integrationController.getIntegrationUrl
+);
+sessionIntegrationsRouter.post(
+  "/social-connect/:integration",
+  validateSocialConnectBody,
+  integrationController.connectSocialMedia
+);
+sessionIntegrationsRouter.post("/disable", validateIntegrationOrgAndIdBody, integrationController.disable);
+sessionIntegrationsRouter.post("/enable", validateIntegrationOrgAndIdBody, integrationController.enable);
+sessionIntegrationsRouter.delete("/", validateIntegrationOrgAndIdBody, integrationController.deleteChannel);
+
+// middlewares/organizationApiKey.ts
+function requireOrganizationApiKey(repository) {
+  return async (req, res, next) => {
+    const raw = req.headers.authorization ?? req.headers.Authorization;
+    if (!raw?.trim()) {
+      res.status(401).json({ msg: "No API key provided" });
+      return;
+    }
+    const key = raw.startsWith("Bearer ") ? raw.slice(7).trim() : raw.trim();
+    if (!key) {
+      res.status(401).json({ msg: "No API key provided" });
+      return;
+    }
+    try {
+      const org = await repository.findOrganizationByApiKey(key);
+      if (!org) {
+        res.status(401).json({ msg: "Invalid API key" });
+        return;
+      }
+      req.organization = org;
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+var publicSocialOAuthQuerySchema = zod.z.object({
+  refresh: zod.z.string().uuid().optional()
+});
+var validatePublicSocialOAuthQuery = validateRequest({
+  query: publicSocialOAuthQuerySchema
+});
+
+// routes/publicApi/integrationRoutes.ts
+var publicIntegrationRouter = express2.Router();
+var apiKeyAuth = requireOrganizationApiKey(organizationRepository);
+publicIntegrationRouter.get("/is-connected", apiKeyAuth, publicIntegrationController.isConnected);
+publicIntegrationRouter.get("/integrations", apiKeyAuth, publicIntegrationController.listIntegrations);
+publicIntegrationRouter.get(
+  "/social/:integration",
+  apiKeyAuth,
+  validatePublicSocialOAuthQuery,
+  publicIntegrationController.getIntegrationUrl
+);
+publicIntegrationRouter.delete("/integrations/:id", apiKeyAuth, publicIntegrationController.deleteChannel);
 
 // routes/index.ts
 init_Logger();
@@ -8819,6 +10226,8 @@ async function mountAllRoutes(app2, config2) {
   apiRouter.use("/feedback", feedbackRouter);
   apiRouter.use("/blog-system", blogRouter);
   apiRouter.use("/image", imageRouter);
+  apiRouter.use("/integrations", sessionIntegrationsRouter);
+  apiRouter.use("/public", publicIntegrationRouter);
   app2.use(prefix, apiRouter);
   logger.info({
     msg: "[Routes] Mounted",
@@ -8831,7 +10240,9 @@ async function mountAllRoutes(app2, config2) {
     roles: `${prefix}/roles`,
     feedback: `${prefix}/feedback`,
     blog: `${prefix}/blog-system`,
-    image: `${prefix}/image`
+    image: `${prefix}/image`,
+    integrationsSession: `${prefix}/integrations`,
+    integrationsProgrammatic: `${prefix}/public`
   });
   return true;
 }
@@ -8955,6 +10366,15 @@ function errorHandler(err, _req, res, _next) {
   } else {
     logger.warn({ msg: "Sentry did not capture event (filtered or SDK not inited)" });
   }
+  const httpStatus = status >= 400 && status < 600 ? status : 500;
+  res.status(httpStatus).json({
+    success: false,
+    message: httpStatus >= 500 ? "Internal server error" : message,
+    error: {
+      type: err instanceof Error ? err.name : "InternalServerError",
+      message: httpStatus >= 500 ? "An unexpected error occurred" : message
+    }
+  });
 }
 
 // middlewares/rateLimit.ts
@@ -9010,6 +10430,19 @@ var globalLimiter = createRateLimiter({
 });
 var authLimiter = createRateLimiter({
   ...config.rateLimit.auth,
+  skip: (req) => {
+    if (shouldSkipRateLimit()) return true;
+    return req.path.startsWith("/oauth/");
+  }
+});
+var oauthLimiter = createRateLimiter({
+  // Stricter defaults for OAuth routes (start + callback). Can be overridden by config.rateLimit.oauth.
+  windowMs: 5 * 60 * 1e3,
+  // 5 minutes
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  ...config.rateLimit.oauth,
   skip: shouldSkipRateLimit
 });
 var applyRateLimiting = (app2) => {
@@ -9020,23 +10453,57 @@ var applyRateLimiting = (app2) => {
   }
   const apiPrefix = config.api?.prefix ?? "/api/v1";
   const globalConfig = config.rateLimit.global;
-  const authConfig3 = config.rateLimit.auth;
+  const authConfig = config.rateLimit.auth;
   app2.use(apiPrefix, globalLimiter);
   logger.info({
     msg: "Applied global rate limiting to all API routes",
     windowMs: globalConfig?.windowMs,
     max: globalConfig?.max
   });
+  const oauthConfig = config.rateLimit.oauth;
+  app2.use(`${apiPrefix}/auth/oauth`, oauthLimiter);
+  logger.info({
+    msg: "Applied OAuth rate limiting",
+    windowMs: oauthConfig?.windowMs ?? 5 * 60 * 1e3,
+    max: oauthConfig?.max ?? 20
+  });
   app2.use(`${apiPrefix}/auth`, authLimiter);
   logger.info({
     msg: "Applied authentication rate limiting",
-    windowMs: authConfig3?.windowMs,
-    max: authConfig3?.max
+    windowMs: authConfig?.windowMs,
+    max: authConfig?.max
   });
 };
 
 // middlewares/core.ts
 init_Logger();
+var BLOG_POSTS_PREFIX = "/blog-system/posts/";
+var BLOG_POST_ACTIVITY_PATH = /^\/blog-system\/posts\/[^/]+\/activity$/;
+function shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact) {
+  if (publicPathsExact.some((p) => routePath === p)) {
+    return true;
+  }
+  if (publicPaths.some((p) => routePath === p || routePath.startsWith(`${p}/`))) {
+    return true;
+  }
+  if (req.method === "GET" && routePath.startsWith(BLOG_POSTS_PREFIX) && routePath.length > BLOG_POSTS_PREFIX.length) {
+    return true;
+  }
+  if (req.method === "PUT" && BLOG_POST_ACTIVITY_PATH.test(routePath)) {
+    return true;
+  }
+  if (req.method === "GET" && routePath === "/image/download") {
+    const dbName = typeof req.query.databaseName === "string" ? req.query.databaseName : "";
+    const imageUrlParam = typeof req.query.imageUrl === "string" ? req.query.imageUrl : "";
+    if (dbName === DATABASE_NAMES.BLOG_IMAGES && imageUrlParam.length > 0) {
+      return true;
+    }
+  }
+  if (req.method === "GET" && routePath === "/integrations") {
+    return true;
+  }
+  return false;
+}
 function configureCoreMiddleware(app2, config2, supabase2) {
   logger.info({ msg: "[Setup] Configuring core middleware..." });
   applyRateLimiting(app2);
@@ -9061,8 +10528,9 @@ function configureCoreMiddleware(app2, config2, supabase2) {
       throw new Error("Supabase client not provided for auth middleware");
     }
     const authMiddleware = requireFullAuth(supabase2);
-    const apiPrefix = config2.api?.prefix ?? "/api/v1";
-    const publicPaths = ["/auth", "/company", "/feedback"];
+    const rawPrefix = config2.api?.prefix ?? "/api/v1";
+    const apiPrefix = rawPrefix.replace(/\/+$/, "") || "/";
+    const publicPaths = ["/auth", "/company", "/feedback", "/public"];
     const publicPathsExact = [
       "/blog-system/posts",
       "/blog-system/rss",
@@ -9075,15 +10543,16 @@ function configureCoreMiddleware(app2, config2, supabase2) {
       const pathName = req.path;
       if (bypassPaths.some((p) => pathName.startsWith(p))) return next();
       if (pathName.startsWith(apiPrefix)) {
-        const routePath = pathName.slice(apiPrefix.length) || "/";
-        const isPublicExact = publicPathsExact.some((p) => routePath === p);
-        const isPublicBlogPostBySlug = req.method === "GET" && routePath.startsWith("/blog-system/posts/") && routePath.length > "/blog-system/posts/".length;
-        const isPublicTrackActivity = req.method === "PUT" && /^\/blog-system\/posts\/[^/]+\/activity$/.test(routePath);
-        const dbName = typeof req.query.databaseName === "string" ? req.query.databaseName : "";
-        const imageUrlParam = typeof req.query.imageUrl === "string" ? req.query.imageUrl : "";
-        const isPublicBlogImageDownload = req.method === "GET" && routePath === "/image/download" && dbName === DATABASE_NAMES.BLOG_IMAGES && imageUrlParam.length > 0;
-        const isPublic = isPublicExact || isPublicBlogPostBySlug || isPublicTrackActivity || isPublicBlogImageDownload || publicPaths.some((p) => routePath === p || routePath.startsWith(p + "/"));
-        if (isPublic) return next();
+        let routePath = pathName.slice(apiPrefix.length) || "/";
+        if (routePath.length > 1 && routePath.endsWith("/")) {
+          routePath = routePath.slice(0, -1);
+        }
+        if (!routePath.startsWith("/")) {
+          routePath = `/${routePath}`;
+        }
+        if (shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact)) {
+          return next();
+        }
         return authMiddleware(req, res, next);
       }
       next();
@@ -9112,6 +10581,15 @@ var checkConfigIsValid = () => {
   if (missingKeys.length > 0) {
     logger.error({ msg: "[Config] Critical config is invalid", missingKeys, config: Object.keys(config) });
     throw new Error(`Critical config missing: ${missingKeys.join(", ")}`);
+  }
+  const nodeEnv = config.server.nodeEnv;
+  const allowedOrigins = config.cors.allowedOrigins;
+  if (nodeEnv === "production") {
+    const origins = Array.isArray(allowedOrigins) ? allowedOrigins : [String(allowedOrigins ?? "")];
+    const hasWildcard = origins.some((origin) => origin.includes("*"));
+    if (hasWildcard) {
+      throw new Error("CORS wildcard origins are not allowed in production");
+    }
   }
   logger.info({ msg: "[Config] Configuration validation passed" });
 };
@@ -9227,8 +10705,7 @@ if (!process.env.VERCEL) {
     if (process.env.JEST_WORKER_ID) {
       return;
     }
-    const server2 = http__default.default.createServer(configuredApp);
-    server2.maxHeaderSize = 32 * 1024;
+    const server2 = http__default.default.createServer({ maxHeaderSize: 64 * 1024 }, configuredApp);
     server2.listen(port, () => {
       logger.info({ msg: "[server] Server is running", port });
     });

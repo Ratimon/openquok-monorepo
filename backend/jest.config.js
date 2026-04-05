@@ -6,14 +6,16 @@ export default {
     transform: {
         "^.+\\.ts$": ["ts-jest", { diagnostics: { ignoreCodes: [151002] } }],
         "\\.js$": ["babel-jest", { configFile: "./babel.config.jest.cjs" }],
+        "\\.mjs$": ["babel-jest", { configFile: "./babel.config.jest.cjs" }],
     },
-    transformIgnorePatterns: ["/node_modules/(?!feed|xml-js)/"],
+    transformIgnorePatterns: ["/node_modules/(?!feed|xml-js|flowcraft)/"],
     moduleNameMapper: {
         "^(\\./sentry/index)(\\.js)?$": "<rootDir>/tests/__mocks__/sentry.js",
         "^\\.\\./middlewares/rateLimit$": "<rootDir>/tests/__mocks__/middlewares/rateLimit.js",
         "^(\\.{1,2}/.*)\\.js$": "$1",
         // ESM-only package: point resolver at real entry so babel-jest can transform it
         "^feed$": "<rootDir>/node_modules/feed/lib/feed.js",
+        "^flowcraft$": "<rootDir>/node_modules/flowcraft/dist/index.mjs",
     },
     moduleFileExtensions: ["ts", "js", "json", "node"],
     setupFiles: ["<rootDir>/jest.env-setup.cjs"],

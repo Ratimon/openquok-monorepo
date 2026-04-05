@@ -33,8 +33,6 @@ See <a href="/docs/configuration-backend/database">Database & migrations</a> for
 pnpm backend:dev
 ```
 
-**Temporal worker** (optional) — run in another terminal when Temporal is running and <code>TEMPORAL_ADDRESS</code> is set: <code>pnpm backend:worker:dev</code>. See **Docker (optional: Temporal and Redis)** below for Compose, <code>pnpm backend:worker:start</code>, and deployment notes.
-
 **Tests** — Jest unit, integration, and e2e suites for the backend package.
 
 ```bash
@@ -76,8 +74,6 @@ cd backend
 ```bash
 pnpm dev
 ```
-
-**Temporal worker** (optional): <code>pnpm worker:dev</code> — same conditions as <code>pnpm backend:worker:dev</code> from the root; details under **Docker (optional: Temporal and Redis)** below.
 
 **Tests** — Jest unit, integration, and e2e suites.
 
@@ -168,47 +164,15 @@ pnpm preview
 </TabItem>
 </Tabs>
 
-### Docker (optional: Temporal and Redis)
+### Optional Redis (cache)
 
-For **Temporal** workflows and optional **Redis** cache without installing those servers on the host, use Compose from the repository root. This does **not** replace `pnpm backend:dev` / `pnpm web:dev`; it only starts supporting services.
+If you use <code>CACHE_PROVIDER=redis</code>, run Redis locally or use a managed instance and set <code>REDIS_HOST</code>, <code>REDIS_PORT</code>, and password fields to match. See <Badge text="infra/README.md" variant="path" /> for a short note.
 
-**Bring up Temporal + Redis** — merges `infra/temporal/docker-compose.yaml` with `infra/docker-compose.dev.yaml`.
-
-```bash
-pnpm infra:dev:up
-```
-
-**Temporal only** (no Redis container):
-
-```bash
-pnpm infra:temporal:up
-```
-
-**Stop** the stack:
-
-```bash
-pnpm infra:dev:down
-```
-
-Set <code>TEMPORAL_ADDRESS=localhost:7233</code> for a host-run API. For Redis, set <code>CACHE_PROVIDER=redis</code> and <code>REDIS_HOST=localhost</code> when using the default port. See <a href="/docs/Installation/docker">Docker & Compose</a> for Compose details and security notes. For **production** (backend, web, Temporal), follow <a href="/docs/Installation/production-deployment">Production deployment</a>.
-
-**Temporal worker** — workflows are executed by a separate worker process (not the API). With Temporal up and <code>TEMPORAL_ADDRESS</code> set, start the worker in **another terminal** from the repository root:
-
-```bash
-pnpm backend:worker:dev
-```
-
-After a production build of the backend package, you can run the compiled worker:
-
-```bash
-pnpm backend:worker:start
-```
-
-Equivalent commands from <code>backend/</code>: <code>pnpm worker:dev</code> and <code>pnpm worker:start</code>. See <a href="/docs/Installation/temporal-workers-railway">Temporal workers</a> for deployment notes.
+**Workflow-style jobs** (e.g. integration refresh orchestration) run **in the API process** via Flowcraft (<Badge text="backend/flowcraft/" variant="path" />); there is no separate worker script in this repo.
 
 ### Deployment
 
-For a **full production sequence** (backend env, web env, CORS, Temporal), use <a href="/docs/Installation/production-deployment">Production deployment</a>. The commands below are quick references from the **repository root** (see root <code>package.json</code>).
+For a **full production sequence** (backend env, web env, CORS), use <a href="/docs/Installation/production-deployment">Production deployment</a>. The commands below are quick references from the **repository root** (see root <code>package.json</code>).
 
 **Backend JS bundle** — runs `tsup` in `backend/` to produce the bundled API output used for deploys.
 
@@ -231,7 +195,7 @@ pnpm vercel:deploy:web
 ## Next Steps
 
 <CardGrid>
-<LinkCard title="Production deployment" description="Backend, web, Temporal for production" href="/docs/Installation/production-deployment" />
+<LinkCard title="Production deployment" description="Backend and web on Vercel, env and optional Redis" href="/docs/Installation/production-deployment" />
 <LinkCard title="Project architecture" description="Monorepo layout, key directories, and how the stack fits together" href="/docs/getting-started/architecture" />
 <LinkCard title="Vercel" description="Vercel CLI and project settings detail" href="/docs/Installation/vercel" />
 </CardGrid>

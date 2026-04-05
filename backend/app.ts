@@ -1,13 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
 import type { RequestHandler } from "express";
 import type { ConfigObject } from "./config/GlobalConfig";
+import type { Express } from "express";
 
 // Ensure Sentry is initialized before any other application modules
 import { Sentry } from "./connections/index";
 
 import http from "http";
 import express, { json } from "express";
-import type { Express } from "express";
 import path from "path";
 import helmet from "helmet";
 import cors from "cors";

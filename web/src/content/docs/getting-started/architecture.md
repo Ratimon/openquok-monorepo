@@ -2,6 +2,7 @@
 title: Project Architecture
 description: OpenQuok's architecture — project layout and key files for the social scheduler.
 order: 1
+lastUpdated: 2026-04-05
 ---
 
 <script>
@@ -62,6 +63,7 @@ backend/
 ├── emails
 ├── errors
 ├── middlewares
+├── orchestrator
 ├── repositories
 ├── routes
 ├── scripts
@@ -74,6 +76,7 @@ backend/
 
 - **`api/`** and **`handler/`** — HTTP entrypoints shaped for **Vercel** (serverless-style functions and the handler surface that connects routing to your app). Use them as the deployment shell; keep business rules in **services** and data access in **repositories**.
 - **`services/`** — Domain orchestration and use-cases; this layer is also where **caching** belongs when you need to reuse or shorten expensive work across requests (in-memory, keyed stores, or upstream cache semantics—depending on what you wire in).
+- **`orchestrator/`** — In-process **Flowcraft** workflows for work that spans waits and repeated steps (for example, the integration **token refresh supervisor** started after OAuth). Blueprints live under `orchestrator/flows/`; activity-style timeouts and retries live under `orchestrator/activities/`. Configuration and limits are described in [Orchestrator workflows](/docs/developer-guidelines/orchestrator-workflows).
 - **`supabase/`** — Database source of truth: modular SQL under `db/` (tables, RLS, functions, seeds), migrations, and config targeting **Supabase Postgres**.
 - **`repositories/`**, **`controllers/`**, **`routes/`** — Persistence adapters, request/response handling, and route tables; prefer Supabase clients and SQL in migrations over ad hoc SQL in the web app.
 - **`middlewares/`**, **`errors/`**, **`connections/`**, **`config/`**, **`types/`**, **`utils/`**, **`data/`** — Cross-cutting behavior, Supabase/client wiring, shared types, helpers, and supporting data fixtures or reference payloads.
@@ -213,5 +216,6 @@ Paths below are relative to each package root (`backend/` or `web/`).
 ## Next Steps
 
 <CardGrid>
-<LinkCard title="Quick Start" description="Get started with OpenQuak Installation" href="/docs/getting-started/quick-start" />
+<LinkCard title="Quick Start" description="Get started with OpenQuok installation" href="/docs/getting-started/quick-start" />
+<LinkCard title="Orchestrator workflows" description="Refresh supervisor, Flowcraft layout, and env toggles" href="/docs/developer-guidelines/orchestrator-workflows" />
 </CardGrid>

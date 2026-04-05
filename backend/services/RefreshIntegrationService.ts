@@ -1,10 +1,11 @@
+import { config } from "../config/GlobalConfig";
 import { IntegrationManager } from "../integrations/integrationManager";
 import type { IntegrationRepository, IntegrationRow } from "../repositories/IntegrationRepository";
 import type { AuthTokenDetails, SocialProvider } from "../integrations/social.integrations.interface";
-import { getTemporalClient } from "../connections/temporal";
+import { runRefreshTokenOrchestration } from "../orchestrator";
 import { logger } from "../utils/Logger";
 
-/** Token refresh orchestration and Temporal workflow start for scheduled refresh. */
+/** Token refresh orchestration; long-running refresh timing runs as an in-process Flowcraft loop under `backend/orchestrator`. */
 export class RefreshIntegrationService {
     constructor(
         private readonly integrationRepository: IntegrationRepository,
@@ -48,26 +49,22 @@ export class RefreshIntegrationService {
             return false;
         }
 
-        const client = await getTemporalClient();
-        if (!client) {
+        const orchestrator = (
+            config.integrations as {
+                integrationRefreshOrchestrator?: { enabled?: boolean };
+            }
+        ).integrationRefreshOrchestrator;
+        if (!orchestrator?.enabled) {
             return false;
         }
 
-        try {
-            await client.workflow.start("refreshTokenWorkflow", {
-                taskQueue: "main",
-                workflowId: `refresh_${integrationId}`,
-                args: [{ integrationId, organizationId }],
-                workflowIdConflictPolicy: "TERMINATE_EXISTING",
-            });
-            return true;
-        } catch (err) {
-            logger.warn({
-                msg: "[Temporal] startRefreshWorkflow failed",
-                error: err instanceof Error ? err.message : String(err),
-            });
-            return false;
-        }
+        return runRefreshTokenOrchestration(
+            { integrationId, organizationId },
+            {
+                integrationRepository: this.integrationRepository,
+                runRefresh: (row: IntegrationRow) => this.refresh(row),
+            }
+        );
     }
 
     private async refreshProcess(
