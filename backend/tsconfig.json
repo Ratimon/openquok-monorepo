@@ -12,7 +12,11 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "allowJs": true
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "flowcraft/testing": ["./node_modules/flowcraft/dist/testing/index.d.mts"]
+    }
   },
   "include": ["**/*.ts", "**/*.d.ts", "connections/sentry/*"],
   "exclude": ["node_modules", "dist"]

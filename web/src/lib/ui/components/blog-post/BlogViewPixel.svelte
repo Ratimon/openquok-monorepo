@@ -1,8 +1,8 @@
 <script lang="ts">
+	import type { BlogUpsertProgrammerModel } from '$lib/blog/index';
+
 	import { dev } from '$app/environment';
 	import { onMount } from 'svelte';
-
-	import type { BlogUpsertProgrammerModel } from '$lib/blog/index';
 
 	type Props = {
 		postId: string;

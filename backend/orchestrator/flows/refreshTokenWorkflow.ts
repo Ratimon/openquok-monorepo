@@ -1,4 +1,11 @@
-import { createFlow, FlowRuntime, type NodeContext, type NodeRegistry, type WorkflowBlueprint } from "flowcraft";
+import {
+    createFlow,
+    FlowRuntime,
+    type IEventBus,
+    type NodeContext,
+    type NodeRegistry,
+    type WorkflowBlueprint,
+} from "flowcraft";
 import type { AuthTokenDetails } from "../../integrations/social.integrations.interface";
 import type { IntegrationRepository, IntegrationRow } from "../../repositories/IntegrationRepository";
 import { config } from "../../config/GlobalConfig";
@@ -161,7 +168,7 @@ export function getRefreshTokenNodeRegistry(): NodeRegistry {
 export async function runRefreshTokenOrchestration(
     input: { integrationId: string; organizationId: string },
     deps: RefreshTokenOrchestrationDeps,
-    options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal; eventBus?: IEventBus }
 ): Promise<boolean> {
     const bullmqSection = config.bullmq as {
         integrationRefresh?: { transport?: string };
@@ -188,6 +195,7 @@ export async function runRefreshTokenOrchestration(
 
     const runtime = new FlowRuntime<RefreshTokenFlowContext, RefreshTokenOrchestrationDeps>({
         dependencies: deps,
+        ...(options?.eventBus !== undefined ? { eventBus: options.eventBus } : {}),
     });
     const flow = createRefreshTokenFlowBuilder();
     try {

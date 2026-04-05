@@ -13,7 +13,7 @@ import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs
 
 By default the backend uses an **in-memory** cache (<Badge text="CACHE_PROVIDER=memory" variant="envBackend" />). For production (or multi-instance deployments), configure **Redis** and set <Badge text="CACHE_PROVIDER=redis" variant="envBackend" />.
 
-The same <Badge text="REDIS_HOST" variant="envBackend" /> / <Badge text="REDIS_PORT" variant="envBackend" /> / <Badge text="REDIS_PASSWORD" variant="envBackend" /> values are also used for **BullMQ** when you run the integration refresh worker in distributed mode (<Badge text="INTEGRATION_REFRESH_TRANSPORT=bullmq" variant="envBackend" />). That path uses the <DocsExternalLink href="https://flowcraft.js.org/guide/distributed-execution">Flowcraft distributed execution</DocsExternalLink> model with the <DocsExternalLink href="https://flowcraft.js.org/guide/adapters/bullmq">BullMQ adapter</DocsExternalLink> and a dedicated <DocsExternalLink href="https://bullmq.io/">BullMQ</DocsExternalLink> client (<code>ioredis</code>), not the <code>redis</code> package used by <code>RedisCacheProvider</code>. Optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" /> selects the logical Redis database for queues (defaults to <Badge text="REDIS_DB" variant="envBackend" />).
+The same <Badge text="REDIS_HOST" variant="envBackend" /> / <Badge text="REDIS_PORT" variant="envBackend" /> / <Badge text="REDIS_PASSWORD" variant="envBackend" /> values are also used for **BullMQ** when integration refresh runs in distributed mode (<code>transport: bullmq</code> in <code>backend/config/orchestratorFlows.ts</code>). That path uses the <DocsExternalLink href="https://flowcraft.js.org/guide/distributed-execution">Flowcraft distributed execution</DocsExternalLink> model with the <DocsExternalLink href="https://flowcraft.js.org/guide/adapters/bullmq">BullMQ adapter</DocsExternalLink> and a dedicated <DocsExternalLink href="https://bullmq.io/">BullMQ</DocsExternalLink> client (<code>ioredis</code>), not the <code>redis</code> package used by <code>RedisCacheProvider</code>. Optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" /> selects the logical Redis database for queues (defaults to <Badge text="REDIS_DB" variant="envBackend" />).
 
 ## Steps
 
@@ -33,18 +33,40 @@ Once the database is ready, open your provider’s configuration/settings page a
 
 ### Set the backend env variables
 
-Edit <Badge text="backend/.env.development.local" variant="envFile" /> (or your production env). Add or update:
+Edit <Badge text="backend/.env.development.local" variant="envFile" /> (or your production env). A typical Redis-backed setup looks like this (use your provider’s host, port, and password — do not commit real secrets):
 
 ```bash
-CACHE_PROVIDER=redis
-REDIS_HOST=
-REDIS_PORT=
+# -----------------------------------------------------------------------------
+# Cache (memory or redis; used for module_configs etc.)
+# -----------------------------------------------------------------------------
+CACHE_PROVIDER=memory
+CACHE_DEFAULT_TTL=300
+CACHE_LOG_HITS=true
+CACHE_LOG_MISSES=true
+CACHE_CHECK_PERIOD=60
+CACHE_USE_CLONES=false
+CACHE_ENABLED=true
+CACHE_ENABLE_PATTERNS=true
+
+# Redis (when CACHE_PROVIDER=redis). Point at your local or managed Redis host.
+# These placeholder lines target localhost:6379 with no password — they will FAIL integration checks
+# (e.g. pnpm test:integration:bullmq-redis) unless you run Redis locally (e.g. Docker). Copy real host/port/password
+# from your provider into .env.development.local; managed Redis often needs REDIS_TLS=true as well.
+REDIS_HOST=localhost
+REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_DB=0
-# Optional: separate logical DB for BullMQ / Flowcraft (defaults to REDIS_DB)
-# REDIS_BULLMQ_DB=0
 REDIS_PREFIX=app:cache:
+REDIS_MAX_RECONNECT_ATTEMPTS=10
+REDIS_ENABLE_OFFLINE_QUEUE=true
+REDIS_USE_SCAN=true
+# Optional: logical Redis DB for BullMQ / Flowcraft queues (defaults to REDIS_DB).
+REDIS_BULLMQ_DB=0
 ```
+
+For Redis-backed cache, set <Badge text="CACHE_PROVIDER=redis" variant="envBackend" /> and replace the placeholder <Badge text="REDIS_HOST" variant="envBackend" /> / <Badge text="REDIS_PORT" variant="envBackend" /> / <Badge text="REDIS_PASSWORD" variant="envBackend" /> with your provider values. Managed hosts often need <Badge text="REDIS_TLS=true" variant="envBackend" /> (and only in local dev, if required, <Badge text="REDIS_TLS_REJECT_UNAUTHORIZED=false" variant="envBackend" />).
+
+Integration token refresh in **BullMQ** mode uses the same <Badge text="REDIS_*" variant="envBackend" /> connection. Set <code>orchestratorFlows.integrationRefresh.transport</code> to <code>bullmq</code> in <code>backend/config/orchestratorFlows.ts</code> (<code>enabled</code>, queue name, and transport are documented there). See <a href="/docs/developer-guidelines/orchestrator-workflows/">Backend orchestrator workflows</a>.
 
 ### Verify the connection
 
@@ -59,7 +81,7 @@ cd backend
 pnpm test:integration:bullmq-redis
 ```
 
-Then run the worker (after setting <Badge text="INTEGRATION_REFRESH_TRANSPORT=bullmq" variant="envBackend" /> on the API):
+Then run the worker (after setting <code>transport: bullmq</code> for integration refresh in <code>backend/config/orchestratorFlows.ts</code> and redeploying the API):
 
 ```bash
 cd backend

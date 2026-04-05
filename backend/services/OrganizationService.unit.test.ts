@@ -2,6 +2,7 @@ import { OrganizationService } from "./OrganizationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { UserRepository } from "../repositories/UserRepository";
 import { signInviteToken, verifyInviteToken } from "../utils/inviteToken";
+import { logger } from "../utils/Logger";
 import { faker } from "@faker-js/faker";
 
 jest.mock("../config/GlobalConfig", () => ({
@@ -93,9 +94,15 @@ describe("OrganizationService", () => {
     let userRepo: jest.Mocked<UserRepository>;
 
     beforeEach(() => {
+        jest.spyOn(logger, "warn").mockImplementation(() => {});
+        jest.spyOn(logger, "error").mockImplementation(() => {});
         orgRepo = createMockOrgRepo();
         userRepo = createMockUserRepo();
         (orgRepo.findUserIdByAuthId as jest.Mock).mockResolvedValue({ userId, error: null });
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     describe("listMyOrganizations", () => {

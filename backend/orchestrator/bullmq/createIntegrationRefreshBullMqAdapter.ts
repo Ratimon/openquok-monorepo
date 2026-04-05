@@ -21,8 +21,7 @@ export function createIntegrationRefreshBullMqAdapter(deps: RefreshTokenOrchestr
     const redis = createQueueIoredisClient();
     const coordinationStore = new RedisCoordinationStore(redis);
     const blueprint = buildRefreshTokenBlueprintDistributed();
-    const bullmqConfig = config.bullmq as { queueName?: string } | undefined;
-    const queueName = bullmqConfig?.queueName ?? "integration-refresh";
+    const { queueName } = config.bullmq as { queueName: string };
 
     const adapter = new BullMQAdapter({
         connection: redis,

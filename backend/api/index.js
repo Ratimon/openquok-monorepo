@@ -110,6 +110,22 @@ var init_Logger = __esm({
   }
 });
 
+// config/orchestratorFlows.ts
+var orchestratorFlows;
+var init_orchestratorFlows = __esm({
+  "config/orchestratorFlows.ts"() {
+    orchestratorFlows = {
+      /** OAuth-connected integrations with refreshCron: supervisor after OAuth completes. */
+      integrationRefresh: {
+        /** Passed through to `config.bullmq.integrationRefresh.enabled` when not under Jest. */
+        enabled: true,
+        queueName: "integration-refresh",
+        transport: "in_process"
+      }
+    };
+  }
+});
+
 // config/GlobalConfig.ts
 var GlobalConfig_exports = {};
 __export(GlobalConfig_exports, {
@@ -120,6 +136,7 @@ var init_GlobalConfig = __esm({
   "config/GlobalConfig.ts"() {
     init_envHelper();
     init_Logger();
+    init_orchestratorFlows();
     normalizeOrigin = (origin) => origin.trim().replace(/\/+$/, "");
     deriveWwwVariants = (origin) => {
       try {
@@ -244,21 +261,17 @@ var init_GlobalConfig = __esm({
        * Queue connection uses `cache.redis` / `REDIS_*` and optional `REDIS_BULLMQ_DB`.
        */
       bullmq: {
-        queueName: getEnv("INTEGRATION_REFRESH_BULLMQ_QUEUE", "integration-refresh"),
+        queueName: orchestratorFlows.integrationRefresh.queueName,
         /**
          * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).
+         * Enabled state from `config/orchestratorFlows.ts`; forced off under Jest (`JEST_WORKER_ID`) so tests do not sleep.
          */
         integrationRefresh: {
           enabled: (() => {
             const underJest = getEnv("JEST_WORKER_ID", "") !== "";
-            const defaultEnabled = !underJest;
-            return getEnvBoolean("ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR", defaultEnabled);
+            return underJest ? false : orchestratorFlows.integrationRefresh.enabled;
           })(),
-          /**
-           * in_process: FlowRuntime in the API process (default).
-           * bullmq: enqueue runs; run `pnpm worker:integration-refresh-bullmq`; uses `queueName` and Redis settings above.
-           */
-          transport: getEnv("INTEGRATION_REFRESH_TRANSPORT", "in_process")
+          transport: orchestratorFlows.integrationRefresh.transport
         }
       },
       /** Rate limiting. When enabled, applies global and auth-specific limits. */
@@ -7085,8 +7098,8 @@ async function seedRefreshTokenWorkflowContext(redis, runId, fields) {
 // orchestrator/bullmq/enqueueRefreshTokenDistributedRun.ts
 async function enqueueRefreshTokenDistributedRun(input, options) {
   const redis = createQueueIoredisClient();
-  const bullmqConfig = config.bullmq;
-  const queueName = options?.queueName ?? bullmqConfig?.queueName ?? "integration-refresh";
+  const { queueName: configuredQueueName } = config.bullmq;
+  const queueName = options?.queueName ?? configuredQueueName;
   const blueprint = buildRefreshTokenBlueprintDistributed();
   const version = blueprint.metadata?.version;
   if (typeof version !== "string" || !version) {
@@ -7336,7 +7349,8 @@ async function runRefreshTokenOrchestration(input, deps, options) {
     }
   }
   const runtime = new flowcraft.FlowRuntime({
-    dependencies: deps
+    dependencies: deps,
+    ...{}
   });
   const flow = createRefreshTokenFlowBuilder();
   try {

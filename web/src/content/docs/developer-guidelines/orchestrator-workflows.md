@@ -2,7 +2,7 @@
 title: Backend orchestrator workflows
 description: How OpenQuok uses Flowcraft for long-running in-process integration refresh timing.
 order: 3
-lastUpdated: 2026-04-06
+lastUpdated: 2026-04-05
 ---
 
 <script>
@@ -18,6 +18,7 @@ Social integrations that expose <code>refreshCron</code> need a **supervisor** t
 - Blueprint and tick logic: <code>backend/orchestrator/flows/refreshTokenWorkflow.ts</code>
 - Activity-style steps (timeout + retries on failure): <code>backend/orchestrator/activities/integrationRefreshActivities.ts</code>
 - Barrel exports: <code>backend/orchestrator/index.ts</code>
+- Per-flow transport and BullMQ queue names: <code>backend/config/orchestratorFlows.ts</code> (add new flows there instead of new env vars)
 - OAuth completion starts the supervisor from <code>RefreshIntegrationService.startRefreshWorkflow</code> (fire-and-forget).
 
 ## Activity-style resilience
@@ -40,26 +41,27 @@ The graph uses Flowcraft’s <DocsExternalLink href="https://flowcraft.js.org/gu
 
 The default **in-process** transport **does not survive API restarts**: if the API redeploys during a sleep, the supervisor for that integration is gone until the next OAuth connect or manual trigger.
 
-With <code>INTEGRATION_REFRESH_TRANSPORT=bullmq</code>, run state and the job queue live in **Redis**, and you run <code>pnpm worker:integration-refresh-bullmq</code> alongside the API. That improves durability across API deploys, but each <code>tick</code> still performs a long in-node sleep while a worker job is active (see Flowcraft pause/sleep guidance). Tune BullMQ concurrency and monitor queue depth accordingly.
+With <code>transport: bullmq</code> for integration refresh in <code>backend/config/orchestratorFlows.ts</code>, run state and the job queue live in **Redis**, and you run <code>pnpm worker:integration-refresh-bullmq</code> alongside the API. That improves durability across API deploys, but each <code>tick</code> still performs a long in-node sleep while a worker job is active (see Flowcraft pause/sleep guidance). Tune BullMQ concurrency and monitor queue depth accordingly.
 
 Managed Redis (for example <DocsExternalLink href="https://redis.io/">Redis</DocsExternalLink> Cloud) works the same as for cache: set <code>REDIS_*</code> and optionally <code>REDIS_BULLMQ_DB</code>; see <a href="/docs/configuration-backend/redis/">Redis cache</a>.
 
 ## Configuration
 
-Controlled in <code>GlobalConfig.ts</code>: <code>config.bullmq.integrationRefresh</code> (enable flag + transport) and <code>config.bullmq.queueName</code> (queue name when transport is <code>bullmq</code>).
+- **Transport, queue name, and enable**: <code>backend/config/orchestratorFlows.ts</code> (<code>integrationRefresh.enabled</code>, transport, queue). <code>GlobalConfig.ts</code> copies <code>enabled</code> into <code>config.bullmq.integrationRefresh.enabled</code> except under Jest, where it is always <code>false</code>. Add future flows as sibling entries instead of per-flow keys in <code>backend/.env.development.example</code>.
+- **Jest**: <code>JEST_WORKER_ID</code> forces the supervisor off regardless of <code>integrationRefresh.enabled</code>. To test the supervisor, mock <code>config</code> or reload modules with different <code>orchestratorFlows</code> settings.
+- **Elsewhere**: toggle <code>integrationRefresh.enabled</code> in code for the deployment profile you want (or split config by environment in that file).
 
-- **Jest**: disabled by default (presence of <code>JEST_WORKER_ID</code>) so tests do not block on a long sleep. Set <code>ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR=true</code> to run the supervisor in a test.
-- **Elsewhere**: unset uses the default above; set <code>ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR=false</code> to turn it off, or <code>true</code> to force it on.
-- **Transport**: <code>INTEGRATION_REFRESH_TRANSPORT=in_process</code> (default) or <code>bullmq</code>. For BullMQ, set <code>INTEGRATION_REFRESH_BULLMQ_QUEUE</code> to override <code>config.bullmq.queueName</code>, configure Redis, and run the worker script from <code>backend/package.json</code>.
+## Testing
 
-See commented keys in <code>backend/.env.development.example</code>.
+- **Unit**: <code>backend/orchestrator/flows/refreshTokenWorkflow.unit.test.ts</code> drives <code>runRefreshTokenOrchestration</code> with mocked activities and chunked sleep so cases finish fast. It also demonstrates <DocsExternalLink href="https://flowcraft.js.org/guide/testing">Flowcraft testing utilities</DocsExternalLink>: <code>InMemoryEventLogger</code> (pass <code>eventBus</code> into the runner), <code>runWithTrace</code>, and <code>createStepper</code> from <code>flowcraft/testing</code>. For replay/CLI-style inspection against persisted events, see <DocsExternalLink href="https://flowcraft.js.org/guide/time-travel">time-travel debugging</DocsExternalLink> and the <DocsExternalLink href="https://flowcraft.js.org/guide/cli">CLI tool</DocsExternalLink>—those need a persistent event store, not just unit mocks.
+- **Conventions**: Repository guidance for workflow tests (Jest + <code>flowcraft/testing</code>, Faker, when to mock <code>config</code> vs call the runner directly) lives in the backend test-suites Cursor rule (<code>.cursor/rules/backend-test-suites.mdc</code>, section on orchestrator workflows).
 
 ## BullMQ reconciliation (Flowcraft adapter)
 
 The <DocsExternalLink href="https://flowcraft.js.org/guide/adapters/bullmq#reconciliation">BullMQ adapter guide</DocsExternalLink> describes <code>createBullMQReconciler</code>: it scans Redis keys that hold workflow state, treats runs idle longer than a threshold as **stalled**, and **re-enqueues** the appropriate next jobs so a worker can continue. That is aimed at production reliability when jobs or workers disappear between steps.
 
 <Callout type="note" title="Applicability here">
-<strong>Relevant</strong> when you use <code>INTEGRATION_REFRESH_TRANSPORT=bullmq</code>: it is the documented way to recover runs that got stuck in Redis without an active BullMQ job. OpenQuok does <strong>not</strong> ship a cron or process that calls the reconciler yet; adding one (same Redis + adapter instance shape as the worker) would be a follow-up if you need that guarantee in production.
+<strong>Relevant</strong> when integration refresh uses <code>transport: bullmq</code> in <code>orchestratorFlows.ts</code>: it is the documented way to recover runs that got stuck in Redis without an active BullMQ job. OpenQuok does <strong>not</strong> ship a cron or process that calls the reconciler yet; adding one (same Redis + adapter instance shape as the worker) would be a follow-up if you need that guarantee in production.
 </Callout>
 
 The refresh-token blueprint is a tight loop with long in-node sleeps; reconciliation mainly helps when state exists in Redis but **no worker is driving the next <code>executeNode</code> job**—not when a single job is still running for hours on one worker.

@@ -1,10 +1,21 @@
 /// <reference types="jest" />
+/**
+ * Flowcraft workflow tests. This file uses first-party testing helpers from `flowcraft/testing`:
+ * - [Unit & integration testing](https://flowcraft.js.org/guide/testing) — `InMemoryEventLogger`, `runWithTrace`
+ * - [Interactive debugging (stepper)](https://flowcraft.js.org/guide/debugging) — `createStepper`
+ *
+ * Time-travel replay and the `flowcraft inspect` CLI need a persistent event store; see
+ * [Time-travel debugging](https://flowcraft.js.org/guide/time-travel) and the
+ * [CLI tool](https://flowcraft.js.org/guide/cli) when wiring `PersistentEventBusAdapter` for integration-style runs.
+ */
 import { faker } from "@faker-js/faker";
+import { FlowRuntime } from "flowcraft";
+import { createStepper, InMemoryEventLogger, runWithTrace } from "flowcraft/testing";
 import type { AuthTokenDetails } from "../../integrations/social.integrations.interface";
 import type { IntegrationRow } from "../../repositories/IntegrationRepository";
 import { logger } from "../../utils/Logger";
 import { getIntegrationByIdActivity, refreshIntegrationTokenActivity } from "../activities/integrationRefreshActivities";
-import { runRefreshTokenOrchestration } from "./refreshTokenWorkflow";
+import { createRefreshTokenFlowBuilder, runRefreshTokenOrchestration } from "./refreshTokenWorkflow";
 
 jest.mock("../activities/integrationRefreshActivities", () => ({
     getIntegrationByIdActivity: jest.fn(),
@@ -172,5 +183,68 @@ describe("refreshTokenWorkflow / runRefreshTokenOrchestration", () => {
         const ok = await runRefreshTokenOrchestration({ integrationId, organizationId: orgId }, { integrationRepository: { getById }, runRefresh });
         expect(ok).toBe(true);
         expect(runRefresh).not.toHaveBeenCalled();
+    });
+});
+
+describe("refreshTokenWorkflow / Flowcraft testing utilities", () => {
+    const getById = jest.fn<Promise<IntegrationRow | null>, [string, string]>();
+    const runRefresh = jest.fn<Promise<false | AuthTokenDetails>, [IntegrationRow]>();
+
+    const deps = { integrationRepository: { getById }, runRefresh };
+
+    const initialState = () => ({
+        integrationId,
+        organizationId: orgId,
+        loopShouldContinue: true,
+    });
+
+    beforeEach(() => {
+        getById.mockReset();
+        runRefresh.mockReset();
+        jest.mocked(getIntegrationByIdActivity).mockImplementation(async (repo, organizationIdArg, integrationIdArg) =>
+            repo.getById(organizationIdArg, integrationIdArg)
+        );
+        jest.mocked(refreshIntegrationTokenActivity).mockImplementation(async (fn, row) => fn(row));
+    });
+
+    it("InMemoryEventLogger records workflow:start and workflow:finish (flight recorder)", async () => {
+        const eventLogger = new InMemoryEventLogger();
+        getById.mockResolvedValue(null);
+
+        await runRefreshTokenOrchestration({ integrationId, organizationId: orgId }, deps, { eventBus: eventLogger });
+
+        expect(eventLogger.find("workflow:start")).toBeDefined();
+        expect(eventLogger.find("workflow:finish")).toBeDefined();
+        expect(eventLogger.filter("node:start").length).toBeGreaterThan(0);
+    });
+
+    it("runWithTrace completes when the integration row is missing", async () => {
+        getById.mockResolvedValue(null);
+        const flow = createRefreshTokenFlowBuilder();
+        const runtime = new FlowRuntime({ dependencies: deps });
+
+        const result = await runWithTrace(runtime, flow.toBlueprint(), initialState(), {
+            functionRegistry: flow.getFunctionRegistry(),
+        });
+
+        expect(result.status).toBe("completed");
+    });
+
+    it("createStepper walks the graph until completion for a missing row", async () => {
+        getById.mockResolvedValue(null);
+        const flow = createRefreshTokenFlowBuilder();
+        const runtime = new FlowRuntime({ dependencies: deps });
+
+        const stepper = await createStepper(runtime, flow.toBlueprint(), flow.getFunctionRegistry(), initialState());
+
+        let last = null as Awaited<ReturnType<typeof stepper.next>>;
+        let guard = 0;
+        while (!stepper.isDone() && guard < 25) {
+            last = await stepper.next();
+            guard++;
+        }
+
+        expect(stepper.isDone()).toBe(true);
+        expect(last?.status).toBe("completed");
     });
 });

@@ -1,11 +1,14 @@
 import CacheInvalidationService from "./CacheInvalidationService";
 import type CacheService from "./CacheService";
+import { logger } from "../../utils/Logger";
 
 describe("CacheInvalidationService", () => {
     let cacheService: jest.Mocked<Pick<CacheService, "del" | "delPattern">>;
     let cacheInvalidationService: CacheInvalidationService;
 
     beforeEach(() => {
+        jest.spyOn(logger, "error").mockImplementation(() => {});
+        jest.spyOn(logger, "warn").mockImplementation(() => {});
         cacheService = {
             del: jest.fn().mockResolvedValue(true),
             delPattern: jest.fn().mockResolvedValue(true),
@@ -14,7 +17,7 @@ describe("CacheInvalidationService", () => {
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     describe("initialization", () => {

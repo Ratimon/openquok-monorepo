@@ -1,10 +1,22 @@
 ---
-description: Test suite patterns — RBAC/user setup, Faker for test data (unit/integration/e2e), and data cleanup
-globs: ["backend/supabase/db/**/*.sql", "backend/tests/helpers/**/*.ts", "backend/tests/integration/**/*.ts", "backend/tests/e2e/**/*.ts", "backend/**/*.unit.test.ts"]
+description: Test suite patterns — RBAC/user setup, Faker, Flowcraft workflow unit tests, data cleanup
+globs: ["backend/supabase/db/**/*.sql", "backend/tests/helpers/**/*.ts", "backend/tests/integration/**/*.ts", "backend/tests/e2e/**/*.ts", "backend/**/*.unit.test.ts", "backend/orchestrator/**/*.ts"]
 alwaysApply: false
 ---
 
 # Backend test suites
+
+## 0. Logger noise under Jest
+
+`utils/Logger.ts` suppresses **info** and **debug** (including `trace`) when `NODE_ENV` is `test` (set in `jest.env-setup.cjs`) or `JEST_WORKER_ID` is set, so Jest runs stay readable. **error** and **warn** still print. The check runs on each log call so hoisted imports cannot miss it.
+
+To print verbose logs while debugging a suite: `BACKEND_TEST_VERBOSE_LOGS=true pnpm exec jest path/to.test.ts`.
+
+### Expected `logger.warn` / `logger.error` in unit tests
+
+Suites that **intentionally** trigger failure paths (mocked `reject`, invalid inputs, etc.) will execute real `logger.warn` / `logger.error` in production code. That is correct behavior; passing tests mean the service handled the failure as designed.
+
+To avoid Jest printing those lines as if something were wrong, **stub the logger in that test file** (e.g. `beforeEach`: `jest.spyOn(logger, "warn").mockImplementation(() => {});` and the same for `error` where needed; `afterEach`: `jest.restoreAllMocks()`). Keep asserting on **return values, metrics, and repository calls**—not on console output.
 
 ## 1. Mocking roles (RBAC) in integration tests
 
@@ -77,3 +89,18 @@ When an operation is exposed by an HTTP route, **use supertest to call that rout
 **Rule of thumb:** Before using `adminSupabase.from(...).update/insert/select` in an integration test, check whether the app already exposes that behavior via a route; if so, use supertest to hit the route and assert on the response.
 
 Reference: `backend/tests/integration/BlogRbac.integration.test.ts` (comment approve via PATCH, post state/slug via GET `/posts/:id`, no direct blog_comments/blog_posts mutation or read where a route exists).
+
+## 6. Flowcraft orchestrator workflows (unit)
+
+Long-running supervisors under `backend/orchestrator/flows/` are tested with **Jest** by calling the exported runner (e.g. `runRefreshTokenOrchestration`) and **mocking** slow or external pieces—same spirit as other unit suites: no real Redis, no real sleep for hours.
+
+- **Entry point**: Prefer testing `runRefreshTokenOrchestration` (or the next flow’s public runner) so transport branching (`in_process` vs `bullmq`) and `FlowRuntime` wiring stay covered. Mock `../activities/…` and `../sleepChunked` (or equivalent) so ticks complete quickly.
+- **Faker**: Use `@faker-js/faker` for `organizationId` / `integrationId` and mock integration rows (see §4).
+- **Optional event bus**: `runRefreshTokenOrchestration(..., { eventBus })` accepts an `IEventBus` from `flowcraft`. In tests, pass `new InMemoryEventLogger()` from `flowcraft/testing` and assert on `workflow:start`, `workflow:finish`, `node:start`, etc.
+- **Framework helpers** (`flowcraft/testing`): `runWithTrace(runtime, blueprint, initialState, { functionRegistry })` for end-to-end graph runs with traces on failure; `createStepper(runtime, blueprint, functionRegistry, initialState)` to step the graph and assert intermediate status. Use the same `createRefreshTokenFlowBuilder()` (or sibling) as production for blueprint + `getFunctionRegistry()`.
+- **Jest resolution**: `flowcraft/testing` is mapped in `backend/jest.config.js` (`^flowcraft/testing$` → `node_modules/flowcraft/dist/testing/index.mjs`) alongside `flowcraft` → `dist/index.mjs`. Keep these in sync if the package layout changes.
+- **Service vs graph**: `RefreshIntegrationService.startRefreshWorkflow` is gated by `config.bullmq.integrationRefresh.enabled` (off under Jest via `JEST_WORKER_ID`). Tests that only exercise the **blueprint** should call `runRefreshTokenOrchestration` directly; tests for “OAuth starts the supervisor” mock `config` or the service as needed.
+
+**Distributed (BullMQ) path**: Cover enqueue/worker behavior with focused tests (e.g. Redis connectivity, adapter smoke) rather than duplicating the full loop in every suite; keep queue names aligned with `backend/config/orchestratorFlows.ts`.
+
+Reference: `backend/orchestrator/flows/refreshTokenWorkflow.unit.test.ts` (mocked activities + sleep, `InMemoryEventLogger`, `runWithTrace`, `createStepper`).

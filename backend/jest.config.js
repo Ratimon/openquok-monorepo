@@ -18,6 +18,7 @@ export default {
         // ESM-only package: point resolver at real entry so babel-jest can transform it
         "^feed$": "<rootDir>/node_modules/feed/lib/feed.js",
         "^flowcraft$": "<rootDir>/node_modules/flowcraft/dist/index.mjs",
+        "^flowcraft/testing$": "<rootDir>/node_modules/flowcraft/dist/testing/index.mjs",
         "^@flowcraft/bullmq-adapter$": "<rootDir>/node_modules/@flowcraft/bullmq-adapter/dist/index.mjs",
     },
     moduleFileExtensions: ["ts", "js", "json", "node"],

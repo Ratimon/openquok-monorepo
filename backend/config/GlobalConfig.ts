@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { getEnv, getEnvNumber, getEnvBoolean } from "./envHelper";
 import { logger } from "../utils/Logger";
+import { orchestratorFlows } from "./orchestratorFlows";
 
 const normalizeOrigin = (origin: string): string => origin.trim().replace(/\/+$/, "");
 
@@ -144,21 +145,17 @@ export const config: ConfigObject = {
      * Queue connection uses `cache.redis` / `REDIS_*` and optional `REDIS_BULLMQ_DB`.
      */
     bullmq: {
-        queueName: getEnv("INTEGRATION_REFRESH_BULLMQ_QUEUE", "integration-refresh"),
+        queueName: orchestratorFlows.integrationRefresh.queueName,
         /**
          * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).
+         * Enabled state from `config/orchestratorFlows.ts`; forced off under Jest (`JEST_WORKER_ID`) so tests do not sleep.
          */
         integrationRefresh: {
             enabled: (() => {
                 const underJest = getEnv("JEST_WORKER_ID", "") !== "";
-                const defaultEnabled = !underJest;
-                return getEnvBoolean("ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR", defaultEnabled);
+                return underJest ? false : orchestratorFlows.integrationRefresh.enabled;
             })(),
-            /**
-             * in_process: FlowRuntime in the API process (default).
-             * bullmq: enqueue runs; run `pnpm worker:integration-refresh-bullmq`; uses `queueName` and Redis settings above.
-             */
-            transport: getEnv("INTEGRATION_REFRESH_TRANSPORT", "in_process"),
+            transport: orchestratorFlows.integrationRefresh.transport,
         },
     },
 
