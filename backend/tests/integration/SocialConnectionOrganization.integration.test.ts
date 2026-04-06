@@ -29,7 +29,7 @@ const itIfThreadsOAuth = threadsOAuthConfigured ? it : it.skip;
  * not from the user session. Contrasts with `/integrations` session routes (JWT + org in query/body).
  *
  * Depends on DB RPCs `internal_list_integrations_by_org`, `internal_get_integration_by_org_and_id`,
- * and `internal_soft_delete_integration` (see `supabase/db/integration/406_20260402_functions.sql`).
+ * and `internal_soft_delete_integration` (see `supabase/db/integration/401_20260402_functions.sql`).
  * Apply migrations to the test project before running this suite.
  */
 describe("Social connection (organization programmatic API)", () => {

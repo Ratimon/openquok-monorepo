@@ -13,10 +13,10 @@ alwaysApply: true
 - **Renames**:
   - When renaming existing migration files, keep the numeric prefix but update the date segment and the `MODULE DATE` comment to match the new filename.
 - **Ordering**:
-  - Aggregator sorts by numeric prefix, then by module order (see `MODULE_ORDER` in `scripts/aggregate_migrations_all.mjs`). Base/dependency modules run first within the same prefix.
-  - **user-management** uses 100, 200, 300, 400, 500 so `public.users` and `public.is_super_admin()` exist before other modules.
-  - Modules that depend on `is_super_admin` or `user_roles` use **302** for RLS (so they run after user-management 300). Use a **higher prefix** for any migration that depends on another module; prefer this over inlining logic that duplicates a function.
-  - When adding a new module, add it to `MODULE_ORDER` in the aggregation script so order is deterministic (e.g. **integration** runs after **organization** because `integrations.organization_id` references `organizations`).
+  - Aggregator sorts by **scope tier** (`floor(prefix / 100)`: 1xx tables, 2xx indexes, …), then by `MODULE_ORDER` in `scripts/aggregate_migrations_all.mjs`, then by numeric prefix for stable ties. Within a tier, use small per-folder prefixes; cross-module sequence comes from `MODULE_ORDER`.
+  - **user-management** uses 100, 200, 300, 400, 500 so `public.users` and `public.is_super_admin()` run first within each tier.
+  - Modules that depend on `is_super_admin` or `user_roles` still use **302** (or a higher second digit in the same tier) when you need RLS to run after peer modules in that tier; prefer `MODULE_ORDER` and tier boundaries over ad-hoc prefix jumps when possible.
+  - When adding a new module, add it to `MODULE_ORDER` in the aggregation script so order is deterministic (e.g. **integration** after **organization** when `integrations.organization_id` references `organizations`).
 
 The assistant should follow and enforce this pattern whenever adding or renaming Supabase migration files.
 

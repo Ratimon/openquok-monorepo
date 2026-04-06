@@ -95,7 +95,8 @@ const aggregateMigrations = async () => {
       return
     }
 
-    // Module order within same prefix: base/dependencies first so e.g. is_super_admin exists before RLS that use it
+    // When two files share the same numeric prefix (e.g. multiple modules use 101_* for tables),
+    // sort by this list so dependencies run first (user-management → auth → org → integration, etc.).
     const MODULE_ORDER = {
       "user-management": 0,
       "user-auth": 1,
@@ -108,13 +109,25 @@ const aggregateMigrations = async () => {
     }
     const moduleOrder = (name) => (MODULE_ORDER[name] ?? 99)
 
-    // Sort by numeric prefix, then by module order so dependencies run first
+    const numericPrefix = (fileName) => {
+      const n = Number.parseInt(fileName.split("_")[0], 10)
+      return Number.isFinite(n) ? n : 0
+    }
+
+    // Sort by scope band (100s: tables, 200s: indexes, …), then module dependency order.
+    // Within a band, filenames can repeat the same small prefix per folder (e.g. 101_*) without
+    // forcing cross-module numeric ordering; MODULE_ORDER supplies the real sequence.
+    const scopeTier = (fileName) => Math.floor(numericPrefix(fileName) / 100)
+
     migrationFiles.sort((a, b) => {
-      const aPrefix = a.fileName.split("_")[0]
-      const bPrefix = b.fileName.split("_")[0]
-      const prefixCmp = aPrefix.localeCompare(bPrefix, undefined, { numeric: true })
+      const tierA = scopeTier(a.fileName)
+      const tierB = scopeTier(b.fileName)
+      if (tierA !== tierB) return tierA - tierB
+      const modCmp = moduleOrder(a.moduleName) - moduleOrder(b.moduleName)
+      if (modCmp !== 0) return modCmp
+      const prefixCmp = numericPrefix(a.fileName) - numericPrefix(b.fileName)
       if (prefixCmp !== 0) return prefixCmp
-      return moduleOrder(a.moduleName) - moduleOrder(b.moduleName)
+      return a.fileName.localeCompare(b.fileName)
     })
 
     for (const migration of migrationFiles) {
