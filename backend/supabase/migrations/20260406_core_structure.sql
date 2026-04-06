@@ -2082,6 +2082,168 @@ WHERE u.auth_id = a.id
   AND COALESCE(u.is_email_verified, false) = false;
 
 
+-- Module: organization, File: 401_20260406_functions.sql
+-- ---------------------------
+-- MODULE NAME: organization
+-- MODULE DATE: 20260406
+-- MODULE SCOPE: Functions
+-- ---------------------------
+-- Membership helpers for RLS: inline EXISTS subqueries on user_organizations
+-- from policies on the same table (or nested checks) caused infinite recursion (42P17).
+-- These SECURITY DEFINER functions read membership with owner privileges so RLS does not
+-- re-enter the same policy.
+
+
+
+CREATE OR REPLACE FUNCTION public.is_active_member_of_org(p_organization_id uuid, p_auth_id uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.user_organizations uo
+    JOIN public.users u ON u.id = uo.user_id
+    WHERE uo.organization_id = p_organization_id
+      AND u.auth_id = p_auth_id
+      AND uo.disabled = FALSE
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_active_admin_or_superadmin_of_org(p_organization_id uuid, p_auth_id uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.user_organizations uo
+    JOIN public.users u ON u.id = uo.user_id
+    WHERE uo.organization_id = p_organization_id
+      AND u.auth_id = p_auth_id
+      AND uo.disabled = FALSE
+      AND uo.role IN ('admin', 'superadmin')
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_active_superadmin_of_org(p_organization_id uuid, p_auth_id uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.user_organizations uo
+    JOIN public.users u ON u.id = uo.user_id
+    WHERE uo.organization_id = p_organization_id
+      AND u.auth_id = p_auth_id
+      AND uo.disabled = FALSE
+      AND uo.role = 'superadmin'
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_active_member_of_org(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_active_member_of_org(uuid, uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.is_active_admin_or_superadmin_of_org(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_active_admin_or_superadmin_of_org(uuid, uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.is_active_superadmin_of_org(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_active_superadmin_of_org(uuid, uuid) TO service_role;
+
+COMMENT ON FUNCTION public.is_active_member_of_org(uuid, uuid) IS 'RLS helper: non-disabled membership in organization (bypasses RLS inside).';
+COMMENT ON FUNCTION public.is_active_admin_or_superadmin_of_org(uuid, uuid) IS 'RLS helper: admin or superadmin membership (bypasses RLS inside).';
+COMMENT ON FUNCTION public.is_active_superadmin_of_org(uuid, uuid) IS 'RLS helper: superadmin membership (bypasses RLS inside).';
+
+-- ---------------------------
+-- RLS: organizations (replace policies to use helpers)
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Members can view organization" ON public.organizations;
+CREATE POLICY "Members can view organization"
+ON public.organizations
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (public.is_active_member_of_org(organizations.id, auth.uid()));
+
+DROP POLICY IF EXISTS "Admins can update organization" ON public.organizations;
+CREATE POLICY "Admins can update organization"
+ON public.organizations
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (public.is_active_admin_or_superadmin_of_org(organizations.id, auth.uid()))
+WITH CHECK (public.is_active_admin_or_superadmin_of_org(organizations.id, auth.uid()));
+
+DROP POLICY IF EXISTS "Superadmin can delete organization" ON public.organizations;
+CREATE POLICY "Superadmin can delete organization"
+ON public.organizations
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (public.is_active_superadmin_of_org(organizations.id, auth.uid()));
+
+-- ---------------------------
+-- RLS: user_organizations (replace policies to use helpers)
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Members can view user_organizations" ON public.user_organizations;
+CREATE POLICY "Members can view user_organizations"
+ON public.user_organizations
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (public.is_active_member_of_org(user_organizations.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Admins can add team member" ON public.user_organizations;
+CREATE POLICY "Admins can add team member"
+ON public.user_organizations
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (public.is_active_admin_or_superadmin_of_org(user_organizations.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Admins can update membership" ON public.user_organizations;
+CREATE POLICY "Admins can update membership"
+ON public.user_organizations
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (public.is_active_admin_or_superadmin_of_org(user_organizations.organization_id, auth.uid()))
+WITH CHECK (public.is_active_admin_or_superadmin_of_org(user_organizations.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Admins or self can delete membership" ON public.user_organizations;
+CREATE POLICY "Admins or self can delete membership"
+ON public.user_organizations
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.users u
+        WHERE u.id = user_organizations.user_id AND u.auth_id = auth.uid()
+    )
+    OR public.is_active_admin_or_superadmin_of_org(user_organizations.organization_id, auth.uid())
+);
+
+-- ---------------------------
+-- RLS: organization_invites (admin insert uses helper)
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Admins can create invite" ON public.organization_invites;
+CREATE POLICY "Admins can create invite"
+ON public.organization_invites
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (public.is_active_admin_or_superadmin_of_org(organization_invites.organization_id, auth.uid()));
+
+
 -- Module: integration, File: 401_20260402_functions.sql
 -- ---------------------------
 -- MODULE NAME: integration
@@ -2194,6 +2356,51 @@ REVOKE ALL ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text)
 GRANT EXECUTE ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) TO service_role;
 COMMENT ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) IS
     'Soft-delete an integration row (bypasses RLS); service_role only';
+
+
+-- Module: integration, File: 402_20260406_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: integration
+-- MODULE DATE: 20260406
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- Replace membership checks with public.is_active_member_of_org (see organization 401)
+-- to avoid RLS recursion when policies scan user_organizations.
+
+
+
+DROP POLICY IF EXISTS "Members can view integrations" ON public.integrations;
+CREATE POLICY "Members can view integrations"
+ON public.integrations
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (public.is_active_member_of_org(integrations.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Members can insert integrations" ON public.integrations;
+CREATE POLICY "Members can insert integrations"
+ON public.integrations
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (public.is_active_member_of_org(integrations.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Members can update integrations" ON public.integrations;
+CREATE POLICY "Members can update integrations"
+ON public.integrations
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (public.is_active_member_of_org(integrations.organization_id, auth.uid()))
+WITH CHECK (public.is_active_member_of_org(integrations.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Members can delete integrations" ON public.integrations;
+CREATE POLICY "Members can delete integrations"
+ON public.integrations
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (public.is_active_member_of_org(integrations.organization_id, auth.uid()));
 
 
 -- Module: rbac, File: 401_20260311_functions.sql
@@ -2583,6 +2790,51 @@ CREATE TRIGGER update_blog_post_like_count_trigger
   AFTER INSERT OR DELETE ON public.blog_activities
   FOR EACH ROW
   EXECUTE FUNCTION public.update_blog_post_like_count();
+
+
+-- Module: notification, File: 402_20260406_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: notification
+-- MODULE DATE: 20260406
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- Replace membership checks with public.is_active_member_of_org (see organization 401)
+-- to avoid RLS recursion when policies scan user_organizations.
+
+
+
+DROP POLICY IF EXISTS "Members can view notifications" ON public.notifications;
+CREATE POLICY "Members can view notifications"
+ON public.notifications
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (public.is_active_member_of_org(notifications.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Members can insert notifications" ON public.notifications;
+CREATE POLICY "Members can insert notifications"
+ON public.notifications
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (public.is_active_member_of_org(notifications.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Members can update notifications" ON public.notifications;
+CREATE POLICY "Members can update notifications"
+ON public.notifications
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (public.is_active_member_of_org(notifications.organization_id, auth.uid()))
+WITH CHECK (public.is_active_member_of_org(notifications.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Members can delete notifications" ON public.notifications;
+CREATE POLICY "Members can delete notifications"
+ON public.notifications
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (public.is_active_member_of_org(notifications.organization_id, auth.uid()));
 
 
 -- Module: user-management, File: 500_20260227_seed.sql

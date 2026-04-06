@@ -2,7 +2,12 @@
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
 	import type { SidebarLinkItem } from '$lib/ui/sidebar-expandable/types';
+
+	import { browser } from '$app/environment';
+	import { afterNavigate } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { url } from '$lib/utils/path';
+	import { protectedLayoutPagePresenter } from '$lib/area-protected';
 	import {
 		getRootPathSecretAdminArea,
 		getRootPathSecretAdminFeedbackManager,
@@ -35,8 +40,32 @@
 		{ label: 'Config manager', href: url(getRootPathSecretAdminConfigManager()), iconName: icons.Cog.name },
 		{ label: 'Exit admin area', href: url(getRootPathAccount()), iconName: icons.LogOut.name }
 	];
+
+	const notificationsDockPreview = $derived({
+		items: protectedLayoutPagePresenter.notificationPreviewVm,
+		loading: protectedLayoutPagePresenter.notificationPreviewLoading,
+		emptyMessage: protectedLayoutPagePresenter.notificationPreviewEmptyMessage,
+		onOpen: () => {
+			void protectedLayoutPagePresenter.loadNotificationPreview();
+		}
+	});
+
+	function refreshDockBadge() {
+		if (!browser) return;
+		void protectedLayoutPagePresenter.refreshEditorDockNotifications();
+	}
+
+	onMount(refreshDockBadge);
+
+	afterNavigate(refreshDockBadge);
 </script>
 
-<AdminLayout {currentUser} companyName={companyNameVm} mainLinks={secretAdminLinks}>
+<AdminLayout
+	{currentUser}
+	companyName={companyNameVm}
+	mainLinks={secretAdminLinks}
+	notificationsDockPreview={notificationsDockPreview}
+	editorDockNotificationBadge={protectedLayoutPagePresenter.editorDockNotificationUnreadCount}
+>
 	{@render children?.()}
 </AdminLayout>

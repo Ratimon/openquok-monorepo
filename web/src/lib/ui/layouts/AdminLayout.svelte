@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { SidebarLinkItem } from '$lib/ui/sidebar-expandable/types';
-	import type { DockItem } from '$lib/ui/floating-dock/types';
+	import type { DockItem, DockNotificationsPreview } from '$lib/ui/floating-dock/types';
 
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
@@ -25,9 +25,26 @@
 		currentUser?: App.LayoutData['currentUser'] | null;
 		companyName?: string | null;
 		mainLinks: SidebarLinkItem[];
+		/** Editor dock: notifications link when not using `notificationsDockPreview` (omit for a no-op bell). */
+		editorDockNotificationHref?: string;
+		/** Editor dock: unread count badge on the notifications icon */
+		editorDockNotificationBadge?: number;
+		/** Editor dock: e.g. blog topics (defaults to `#`). */
+		editorDockNewTemplateHref?: string;
+		/** Editor header dock: bell opens this preview panel instead of navigating. */
+		notificationsDockPreview?: DockNotificationsPreview;
 	};
 
-	let { children, currentUser: currentUserProp = null, companyName = null, mainLinks }: Props = $props();
+	let {
+		children,
+		currentUser: currentUserProp = null,
+		companyName = null,
+		mainLinks,
+		editorDockNotificationHref = '#',
+		editorDockNotificationBadge = 0,
+		editorDockNewTemplateHref = '#',
+		notificationsDockPreview
+	}: Props = $props();
 
 	// Prefer layout data; fall back to auth repository so header buttons update immediately after sign-in (no refresh needed)
 	let currentUser = $derived(currentUserProp ?? authenticationRepository.currentUser ?? null);
@@ -83,8 +100,30 @@
 	}
 
 	const dockItems: DockItem[] = $derived([
-		{ title: 'Notifications', href: '#', iconName: icons.Bell.name, ariaLabel: 'Notifications' },
-		{ title: 'New Template', href: '#', iconName: icons.LayoutTemplate.name, ariaLabel: 'New Template' },
+		notificationsDockPreview
+			? {
+					title: 'Notifications',
+					iconName: icons.Bell.name,
+					ariaLabel: 'Notifications',
+					notificationsPopover: true,
+					notificationsPreview: notificationsDockPreview,
+					...(editorDockNotificationBadge > 0 ? { badge: editorDockNotificationBadge } : {})
+				}
+			: {
+					title: 'Notifications',
+					...(editorDockNotificationHref != null && editorDockNotificationHref !== ''
+						? { href: editorDockNotificationHref }
+						: { onclick: () => {} }),
+					iconName: icons.Bell.name,
+					ariaLabel: 'Notifications',
+					...(editorDockNotificationBadge > 0 ? { badge: editorDockNotificationBadge } : {})
+				},
+		{
+			title: 'New Template',
+			href: editorDockNewTemplateHref,
+			iconName: icons.LayoutTemplate.name,
+			ariaLabel: 'New Template'
+		},
 		{
 			title: 'Account',
 			iconName: icons.Account.name,

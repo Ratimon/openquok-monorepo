@@ -3,6 +3,7 @@
 
 	import { fly } from 'svelte/transition';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import FloatingDockNotificationMobile from '$lib/ui/floating-dock/FloatingDockNotificationMobile.svelte';
 	import { icons } from '$data/icon';
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -99,12 +100,14 @@
 								{/each}
 							</div>
 						{/if}
+					{:else if item.notificationsPopover && item.notificationsPreview}
+						<FloatingDockNotificationMobile {item} />
 					{:else if item.href != null}
 						<a
 							href={item.href}
 							title={item.title}
 							aria-label={item.ariaLabel ?? item.title}
-							class="flex h-10 w-10 items-center justify-center rounded-full bg-base-200"
+							class="relative flex h-10 w-10 items-center justify-center rounded-full bg-base-200"
 						>
 							<AbstractIcon
 								name={item.iconName}
@@ -113,6 +116,14 @@
 								class="size-full text-base-content/70"
 								focusable="false"
 							/>
+							{#if item.badge != null && item.badge > 0}
+								<span
+									class="pointer-events-none absolute -right-1 -top-1 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold leading-none text-primary-content"
+									aria-hidden="true"
+								>
+									{item.badge > 99 ? '99+' : String(item.badge)}
+								</span>
+							{/if}
 						</a>
 					{:else}
 						<button

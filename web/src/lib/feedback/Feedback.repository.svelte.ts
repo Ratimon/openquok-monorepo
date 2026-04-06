@@ -76,23 +76,22 @@ export class FeedbackRepository {
 		fetch?: typeof globalThis.fetch
 	): Promise<CreateFeedbackProgrammerModel> {
 		try {
-			const { data, ok }: { data: CreateFeedbackResponseDto; ok: boolean } =
-				await this.httpGateway.post<CreateFeedbackResponseDto>(
-					this.config.endpoints.createFeedback,
-					payload,
-					{ withCredentials: true, fetch }
-				);
+			const { data: createFeedbackDto, ok } = await this.httpGateway.post<CreateFeedbackResponseDto>(
+				this.config.endpoints.createFeedback,
+				payload,
+				{ withCredentials: true, fetch }
+			);
 
-			if (ok && data.success && data.data) {
+			if (ok && createFeedbackDto?.success && createFeedbackDto.data) {
 				return {
 					success: true,
-					message: data.message
+					message: createFeedbackDto.message
 				};
 			}
 
 			return {
 				success: false,
-				message: data.message || 'Failed to submit feedback'
+				message: createFeedbackDto?.message ?? 'Failed to submit feedback'
 			};
 		} catch (error) {
 			if (error instanceof ApiError) {
@@ -120,11 +119,14 @@ export class FeedbackRepository {
 	}
 
 	public async getAllFeedbacks(fetch?: typeof globalThis.fetch): Promise<FeedbackProgrammerModel[]> {
-		const { data: getAllFeedbacksDto, ok }: { data: GetAllFeedbacksResponseDto; ok: boolean } =
-			await this.httpGateway.get<GetAllFeedbacksResponseDto>(this.config.endpoints.getAllFeedbacks, undefined, {
+		const { data: getAllFeedbacksDto, ok } = await this.httpGateway.get<GetAllFeedbacksResponseDto>(
+			this.config.endpoints.getAllFeedbacks,
+			undefined,
+			{
 				withCredentials: true,
 				fetch
-			});
+			}
+		);
 
 		if (ok && getAllFeedbacksDto?.success && Array.isArray(getAllFeedbacksDto.data)) {
 			return getAllFeedbacksDto.data;
@@ -138,14 +140,13 @@ export class FeedbackRepository {
 		fetch?: typeof globalThis.fetch
 	): Promise<FeedbackManagerProgrammerModel> {
 		try {
-			const { data: handleFeedbackDto, ok }: { data: HandleFeedbackResponseDto; ok: boolean } =
-				await this.httpGateway.request<HandleFeedbackResponseDto>({
-					method: HttpMethod.PATCH,
-					url: this.config.endpoints.handleFeedback(feedbackId),
-					data: { is_handled: isHandled },
-					withCredentials: true,
-					fetch
-				});
+			const { data: handleFeedbackDto, ok } = await this.httpGateway.request<HandleFeedbackResponseDto>({
+				method: HttpMethod.PATCH,
+				url: this.config.endpoints.handleFeedback(feedbackId),
+				data: { is_handled: isHandled },
+				withCredentials: true,
+				fetch
+			});
 
 			if (ok && handleFeedbackDto?.success) {
 				return { success: true, message: handleFeedbackDto.message };

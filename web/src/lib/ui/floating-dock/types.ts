@@ -1,4 +1,16 @@
 import type { IconName } from '$data/icon';
+import type { NotificationItemVm } from '$lib/notifications/GetNotification.presenter.svelte';
+
+/** Data for the header dock bell: preview list + loader (no route navigation). */
+export interface DockNotificationsPreview {
+	items: NotificationItemVm[];
+	loading: boolean;
+	emptyMessage: string | null;
+	onOpen: () => void | Promise<void>;
+	/** Optional footer link under the list */
+	footerHref?: string;
+	footerLabel?: string;
+}
 
 /** Compatible with store-like subscription + get (used by dock for mouse position; no svelte-motion to avoid NaN keyframes) */
 export interface DockPositionStore {
@@ -19,6 +31,8 @@ export interface DockDropdownItem {
 export interface DockItem {
 	title: string;
 	href?: string;
+	/** Optional small numeric badge (e.g. unread count); shown when greater than zero */
+	badge?: number;
 	iconName: IconName;
 	/** If set without href, renders as button with onclick */
 	onclick?: () => void;
@@ -27,4 +41,7 @@ export interface DockItem {
 	sublinks?: DockDropdownItem[];
 	/** Optional text shown above sublinks when dropdown is open (e.g. current user name) */
 	dropdownHeader?: string;
+	/** Header dock: bell opens a notifications panel instead of navigating */
+	notificationsPopover?: boolean;
+	notificationsPreview?: DockNotificationsPreview;
 }

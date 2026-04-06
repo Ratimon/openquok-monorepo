@@ -1,6 +1,8 @@
 export { getRootPathAccount } from './getRootPathProtectedArea';
 import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus } from './ProtectedSettingsPage.presenter.svelte';
+import { ProtectedLayoutPagePresenter } from './ProtectedLayoutPage.presenter.svelte';
 import { editorAccountSettingsPresenter } from '$lib/account';
+import { getNotificationPresenter, notificationRepository } from '$lib/notifications';
 import { workspaceSettingsPresenter } from '$lib/settings';
 import { authenticationRepository } from '$lib/user-auth/index';
 
@@ -10,4 +12,17 @@ const protectedSettingsPagePresenter = new ProtectedSettingsPagePresenter(
 	authenticationRepository
 );
 
-export { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus, protectedSettingsPagePresenter };
+const protectedLayoutPagePresenter = new ProtectedLayoutPagePresenter(
+	notificationRepository,
+	workspaceSettingsPresenter,
+	getNotificationPresenter
+);
+
+export {
+	ProtectedSettingsPagePresenter,
+	UpdateProfileStatus,
+	WorkspaceSettingsStatus,
+	protectedSettingsPagePresenter,
+	ProtectedLayoutPagePresenter,
+	protectedLayoutPagePresenter
+};

@@ -9,6 +9,8 @@
 	} from '$lib/ui/floating-dock/constants';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import NotificationDropdownPanel from '$lib/ui/components/notifications/NotificationDropdownPanel.svelte';
+	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import { cn } from '$lib/ui/helpers/common';
 	import { fade } from 'svelte/transition';
 
@@ -24,6 +26,7 @@
 	let ref = $state<HTMLDivElement | undefined>(undefined);
 	let triggerRef = $state<HTMLDivElement | undefined>(undefined);
 	let dropdownOpen = $state(false);
+	let notificationMenuOpen = $state(false);
 	let panelPosition = $state<{ top: number; left: number } | null>(null);
 
 	// Compute pill width in JS only — no svelte-motion useTransform for width (avoids NaN keyframe warnings)
@@ -65,6 +68,13 @@
 
 	const iconClass = 'shrink-0 text-base-content/70 group-hover:text-base-content transition-colors';
 	const hasSublinks = $derived(Array.isArray(item.sublinks) && item.sublinks.length > 0);
+	const notificationsPreview = $derived(item.notificationsPreview);
+
+	function handleNotificationMenuOpenChange(open: boolean) {
+		if (open && item.notificationsPreview) {
+			void item.notificationsPreview.onOpen();
+		}
+	}
 
 	function updatePanelPosition() {
 		const el = triggerRef;
@@ -84,7 +94,53 @@
 	}
 </script>
 
-{#if hasSublinks}
+{#if item.notificationsPopover && notificationsPreview}
+	<DropdownMenu.Root bind:open={notificationMenuOpen} onOpenChange={handleNotificationMenuOpenChange}>
+		<DropdownMenu.Trigger
+			title={item.title}
+			aria-label={item.ariaLabel ?? item.title}
+			class="group flex items-end justify-center rounded-full bg-transparent outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 overflow-visible"
+		>
+			<div
+				bind:this={ref}
+				class="relative flex aspect-square items-center justify-center overflow-visible rounded-full bg-base-200 hover:bg-base-300"
+				style={pillStyle}
+			>
+				<div class="flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
+					<AbstractIcon
+						name={item.iconName}
+						width={iconSize}
+						height={iconSize}
+						class={iconClass}
+						focusable="false"
+					/>
+				</div>
+				{#if item.badge != null && item.badge > 0}
+					<span
+						class="pointer-events-none absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-content"
+						aria-hidden="true"
+					>
+						{item.badge > 99 ? '99+' : String(item.badge)}
+					</span>
+				{/if}
+			</div>
+		</DropdownMenu.Trigger>
+		<DropdownMenu.Content
+			class="flex max-h-[min(70vh,24rem)] w-[min(100vw-2rem,22rem)] flex-col gap-0 overflow-hidden p-0"
+			align="center"
+			side="top"
+			sideOffset={8}
+		>
+			<NotificationDropdownPanel
+				previewItems={notificationsPreview.items}
+				previewLoading={notificationsPreview.loading}
+				previewEmptyMessage={notificationsPreview.emptyMessage}
+				footerHref={notificationsPreview.footerHref}
+				footerLabel={notificationsPreview.footerLabel}
+			/>
+		</DropdownMenu.Content>
+	</DropdownMenu.Root>
+{:else if hasSublinks}
 	<div
 		bind:this={triggerRef}
 		class="group flex items-end justify-center rounded-full bg-transparent focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-base-200 overflow-visible relative"
@@ -182,7 +238,7 @@
 	>
 		<div
 			bind:this={ref}
-			class="flex aspect-square items-center justify-center rounded-full bg-base-200 hover:bg-base-300 overflow-visible"
+			class="relative flex aspect-square items-center justify-center overflow-visible rounded-full bg-base-200 hover:bg-base-300"
 			style={pillStyle}
 		>
 			<div class="flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
@@ -194,6 +250,14 @@
 					focusable="false"
 				/>
 			</div>
+			{#if item.badge != null && item.badge > 0}
+				<span
+					class="pointer-events-none absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-content"
+					aria-hidden="true"
+				>
+					{item.badge > 99 ? '99+' : String(item.badge)}
+				</span>
+			{/if}
 		</div>
 	</a>
 {:else}
@@ -206,7 +270,7 @@
 	>
 		<div
 			bind:this={ref}
-			class="flex aspect-square items-center justify-center rounded-full bg-base-200 hover:bg-base-300 overflow-visible"
+			class="relative flex aspect-square items-center justify-center overflow-visible rounded-full bg-base-200 hover:bg-base-300"
 			style={pillStyle}
 		>
 			<div class="flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
@@ -218,6 +282,14 @@
 					focusable="false"
 				/>
 			</div>
+			{#if item.badge != null && item.badge > 0}
+				<span
+					class="pointer-events-none absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-content"
+					aria-hidden="true"
+				>
+					{item.badge > 99 ? '99+' : String(item.badge)}
+				</span>
+			{/if}
 		</div>
 	</button>
 {/if}

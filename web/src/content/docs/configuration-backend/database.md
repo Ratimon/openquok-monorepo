@@ -2,7 +2,7 @@
 title: Database & migrations
 description: Supabase CLI, migrations, pg_cron notes, and type generation for Openquok.
 order: 5
-lastUpdated: 2026-03-30
+lastUpdated: 2026-04-06
 ---
 
 <script>
@@ -26,6 +26,12 @@ Set your project id in <DocsExternalLink href="https://github.com/Ratimon/openqu
 ```bash
 cd backend
 supabase start
+```
+
+After the stack is up, print connection variables in shell-friendly form:
+
+```sh
+supabase status -o env
 ```
 
 ### Reset DB to current migrations

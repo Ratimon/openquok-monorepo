@@ -39,6 +39,7 @@ export class NotificationRepository {
             .from(TABLE)
             .select("id", { count: "exact", head: true })
             .eq("organization_id", organizationId)
+            .is("deleted_at", null)
             .gt("created_at", sinceIso);
 
         if (error) {

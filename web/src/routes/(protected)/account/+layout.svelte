@@ -4,10 +4,14 @@
 	import type { SidebarLinkItem } from '$lib/ui/sidebar-expandable/types';
 	import type { SettingsNavItem } from '$lib/ui/sidebar-main/types';
 
+	import { browser } from '$app/environment';
+	import { afterNavigate } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { setContext } from 'svelte';
 	import { icons } from '$data/icon';
 	import { SETTINGS_SIDEBAR_KEY } from '$lib/ui/templates/sidebar-secondary-context';
+	import { protectedLayoutPagePresenter } from '$lib/area-protected';
 	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
 
 	type AppSettingsSectionId =
@@ -61,9 +65,33 @@
 		});
 	}
 	setSettingsSidebarContext();
+
+	const notificationsDockPreview = $derived({
+		items: protectedLayoutPagePresenter.notificationPreviewVm,
+		loading: protectedLayoutPagePresenter.notificationPreviewLoading,
+		emptyMessage: protectedLayoutPagePresenter.notificationPreviewEmptyMessage,
+		onOpen: () => {
+			void protectedLayoutPagePresenter.loadNotificationPreview();
+		}
+	});
+
+	function refreshDockBadge() {
+		if (!browser) return;
+		void protectedLayoutPagePresenter.refreshEditorDockNotifications();
+	}
+
+	onMount(refreshDockBadge);
+
+	afterNavigate(refreshDockBadge);
 </script>
 
-<AdminLayout {currentUser} companyName={companyNameVm} mainLinks={mainLinks}>
+<AdminLayout
+	{currentUser}
+	companyName={companyNameVm}
+	mainLinks={mainLinks}
+	notificationsDockPreview={notificationsDockPreview}
+	editorDockNotificationBadge={protectedLayoutPagePresenter.editorDockNotificationUnreadCount}
+>
 	{@render children?.()}
 </AdminLayout>
 

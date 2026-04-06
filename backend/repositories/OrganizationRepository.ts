@@ -173,8 +173,16 @@ export class OrganizationRepository {
             .select(USER_ORG_SELECT)
             .eq("user_id", userId)
             .eq("organization_id", organizationId)
-            .single();
-        return { membership: data as UserOrganizationRow | null, error };
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Failed to load membership", {
+                cause: error as unknown as Error,
+                operation: "findMembership",
+                resource: { type: "table", name: USER_ORGS_TABLE },
+            });
+        }
+        return { membership: data as UserOrganizationRow | null, error: null };
     }
 
     /** Create organization and optionally add first member. */

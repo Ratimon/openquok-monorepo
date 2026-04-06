@@ -215,6 +215,7 @@ When destructuring `httpGateway.get(...)` / `httpGateway.request(...)` results i
 - **Do not add an explicit type annotation** on the destructuring in **`.svelte.ts`** files (e.g. avoid `}: { data: X | undefined; ok: boolean } =`). The `.svelte.ts` parser can treat `}: { ... } =` as invalid and report "Unexpected token. A constructor, method, accessor, or property was expected." Rely on the generic type parameter instead: `await this.httpGateway.get<XxxResponseDto>(...)`.
 - In plain **`.ts`** files you may add an explicit type for clarity if desired; keep it consistent with the generic.
 - Always guard before using the payload: `if (ok && xxxDto?.data)` (or `xxxDto?.success`, etc. as appropriate).
+- **Name `data` by endpoint/response**, not `data`: e.g. `mainPageCountDto` and `paginatedDto` in `web/src/lib/notifications/Notification.repository.svelte.ts`, `upsertDto` (via `ModuleConfigRepository.updateConfig`) in `web/src/lib/config/Config.repository.svelte.ts`.
 
 ```ts
 // ✅ GOOD — destructure with *Dto name; type from generic (works in .svelte.ts and .ts)

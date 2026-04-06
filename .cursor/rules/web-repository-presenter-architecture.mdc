@@ -196,7 +196,7 @@ When the **page presenter** is `PublicBlogBySlugPagePresenter` (`$lib/area-publi
 - **Programmer Models (PM)** — Business/domain representation owned by repositories (repository state).
 - **View models (VM)** — What the view needs: presenter `status`, `toastMessage`, `showToastMessage`, etc. Components read these and call presenter methods.
 
-Flow: **Component → Page presenter → Repository → Gateway**, with **list/read** paths often **Page presenter → `Get*Presenter` → Repository → Gateway** so PM→VM mapping stays in the stateless `Get*` layer. No **gateway** or **repository** imports from the **route**. **Child** components do not import the **repository**; they may use **feature singleton presenters** that encapsulate repository calls (pattern **B** above). (For config, endpoints, and gateway response destructuring in repositories, see **web-lib-conventions**.)
+Flow: **Component → Page presenter → Repository → Gateway**, with **list/read** paths often **Page presenter → `Get*Presenter` → Repository → Gateway** so PM→VM mapping stays in the stateless `Get*` layer. No **gateway** or **repository** imports from the **route**. **Child** components do not import the **repository**; they may use **feature singleton presenters** that encapsulate repository calls (pattern **B** above). (For config, endpoints, and gateway response destructuring in repositories — `const { data: xxxDto, ok } = await this.httpGateway...` — see **web-conventions** §3.)
 
 ## Naming conventions (required)
 

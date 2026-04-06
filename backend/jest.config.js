@@ -27,5 +27,4 @@ export default {
     clearMocks: true,
     collectCoverage: false,
     testPathIgnorePatterns: ["/node_modules/"],
-    forceExit: true,
 };

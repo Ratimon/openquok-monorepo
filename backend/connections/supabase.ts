@@ -72,7 +72,9 @@ export const createSupabaseBrowserClient = () => {
 export function createSupabaseServiceClient(): SupabaseClient<Database> {
     try {
         const supabaseUrl = supabaseConfig.supabaseUrl;
-        let supabaseKey = supabaseConfig.supabaseServiceRoleKey ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const fromConfig = supabaseConfig.supabaseServiceRoleKey?.trim() ?? "";
+        const fromEnv = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "";
+        let supabaseKey = fromConfig || fromEnv;
 
         if (!supabaseKey) {
             if ((config.server as { nodeEnv?: string }).nodeEnv === "production") {
@@ -80,8 +82,23 @@ export function createSupabaseServiceClient(): SupabaseClient<Database> {
                     "SUPABASE_SERVICE_ROLE_KEY (or config.supabase.supabaseServiceRoleKey) is required in production"
                 );
             }
-            supabaseKey = supabaseConfig.supabaseAnonKey;
-            logger.warn({ msg: "Using anon key for Supabase (bypasses RLS)." });
+            const isJest = process.env.JEST_WORKER_ID !== undefined;
+            // jest.env-setup sets NODE_ENV=test; unit scripts may use NODE_ENV=development but Jest always sets JEST_WORKER_ID.
+            if (isJest || process.env.NODE_ENV === "test") {
+                supabaseKey = supabaseConfig.supabaseAnonKey;
+                logger.warn({
+                    msg: "Using anon key for Supabase under Jest or NODE_ENV=test (set SUPABASE_SERVICE_ROLE_KEY for integration tests against a real DB).",
+                });
+            } else if (process.env.NODE_ENV === "development") {
+                throw new Error(
+                    "SUPABASE_SERVICE_ROLE_KEY is required for the API process. The anon key cannot access server-side tables (for example notifications and memberships)."
+                );
+            } else {
+                supabaseKey = supabaseConfig.supabaseAnonKey;
+                logger.warn({
+                    msg: "Using anon key for Supabase service client: many repository queries will fail. Set SUPABASE_SERVICE_ROLE_KEY.",
+                });
+            }
         }
 
         if (!supabaseUrl) {

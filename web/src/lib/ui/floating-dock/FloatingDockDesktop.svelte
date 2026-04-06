@@ -70,18 +70,24 @@
 			<DockSeparator />
 		{/if}
 		{#each items as item, i (item.title)}
-			<Tooltip.Root>
-				<Tooltip.Trigger>
-					{#snippet child({ props: triggerProps })}
-						<span {...triggerProps} class="flex items-end justify-center rounded-full bg-transparent overflow-visible">
-							<IconContainer {mouseX} {containerX} {item} />
-						</span>
-					{/snippet}
-				</Tooltip.Trigger>
-				<Tooltip.Content side="top" sideOffset={8}>
-					{item.title}
-				</Tooltip.Content>
-			</Tooltip.Root>
+			{#if item.notificationsPopover}
+				<span class="flex items-end justify-center rounded-full bg-transparent overflow-visible">
+					<IconContainer {mouseX} {containerX} {item} />
+				</span>
+			{:else}
+				<Tooltip.Root>
+					<Tooltip.Trigger>
+						{#snippet child({ props: triggerProps })}
+							<span {...triggerProps} class="flex items-end justify-center rounded-full bg-transparent overflow-visible">
+								<IconContainer {mouseX} {containerX} {item} />
+							</span>
+						{/snippet}
+					</Tooltip.Trigger>
+					<Tooltip.Content side="top" sideOffset={8}>
+						{item.title}
+					</Tooltip.Content>
+				</Tooltip.Root>
+			{/if}
 			{#if showSeparatorAfterItem.has(i)}
 				<DockSeparator />
 			{/if}

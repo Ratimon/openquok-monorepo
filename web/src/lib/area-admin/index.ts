@@ -15,7 +15,6 @@ import { emailRepository, getEmailPresenter } from '$lib/email';
 import { imageRepository } from '$lib/core/index';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { ModuleConfigRendererPresenter } from '$lib/config/ModuleConfigRenderer.presenter.svelte';
-
 const adminFeedbackManagerPagePresenter = new AdminFeedbackManagerPagePresenter(
 	getFeedbackPresenter,
 	feedbackRepository

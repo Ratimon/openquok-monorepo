@@ -112,7 +112,7 @@
 					</span>
 				</a>
 				<div class="mt-6 flex flex-col gap-1">
-					{#each mainLinks as link}
+					{#each mainLinks as link (link.href + link.label)}
 						<SidebarLink
 							link={{ label: link.label, href: link.href, iconName: link.iconName }}
 							active={isActive(link.href)}
