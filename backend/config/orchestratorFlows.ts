@@ -15,6 +15,13 @@
  *   to `config.bullmq.integrationRefresh.enabled`). Under Jest (`JEST_WORKER_ID` set), the supervisor is
  *   always off so tests do not block on long sleeps. To exercise the supervisor in a test, mock `config` or
  *   adjust this file for that suite (e.g. with `jest.resetModules()`).
+ *
+ * ## Notification email (`notificationEmail`)
+ *
+ * - **Transport**: `notificationEmail.transport` is `in_process` (send from the API process) or `bullmq`.
+ *   For `bullmq`, run `pnpm worker:notification-email-bullmq` and set `transport` to `bullmq` here.
+ * - **Digest**: when `NotificationService.inAppNotification` is called with `digest: true`, entries are
+ *   stored in Redis and the worker flushes them on `notificationEmail.digestFlushIntervalMs`.
  */
 export type OrchestrationTransport = "in_process" | "bullmq";
 
@@ -25,5 +32,20 @@ export const orchestratorFlows = {
         enabled: true,
         queueName: "integration-refresh",
         transport: "in_process" as OrchestrationTransport,
+    },
+    /**
+     * Org notification emails: immediate sends enqueue `sendPlain` jobs; digest appends to Redis and the
+     * notification-email worker flushes on a fixed interval.
+     */
+    notificationEmail: {
+        queueName: "notification-email",
+        transport: "in_process" as OrchestrationTransport,
+        /** How often the worker drains digest Redis lists (ms). */
+        digestFlushIntervalMs: 300_000,
+        /**
+         * Minimum milliseconds between successful send-plain acquisitions (all BullMQ workers).
+         * Uses Redis; set to `0` to disable. Aligns with queue-style spacing for outbound mail.
+         */
+        sendPlainMinIntervalMs: 700,
     },
 } as const;

@@ -438,4 +438,58 @@ export class OrganizationRepository {
             .eq("organization_id", organizationId);
         return { error };
     }
+
+    /** Active members with email and per-user notification email preferences. */
+    async listMembersForNotificationEmails(organizationId: string): Promise<
+        Array<{
+            userId: string;
+            email: string | null;
+            sendSuccessEmails: boolean;
+            sendFailureEmails: boolean;
+        }>
+    > {
+        const { data: uoList, error: uoError } = await this.supabase
+            .from(USER_ORGS_TABLE)
+            .select("user_id")
+            .eq("organization_id", organizationId)
+            .eq("disabled", false);
+
+        if (uoError) {
+            throw new DatabaseError("Failed to list members for notifications", {
+                cause: uoError as unknown as Error,
+                operation: "listMembersForNotificationEmails",
+                resource: { type: "table", name: USER_ORGS_TABLE },
+            });
+        }
+
+        const userIds = [...new Set((uoList ?? []).map((r: { user_id: string }) => r.user_id))];
+        if (userIds.length === 0) return [];
+
+        const { data: userList, error: userError } = await this.supabase
+            .from("users")
+            .select("id, email, send_success_emails, send_failure_emails")
+            .in("id", userIds);
+
+        if (userError) {
+            throw new DatabaseError("Failed to load users for notification emails", {
+                cause: userError as unknown as Error,
+                operation: "listMembersForNotificationEmails",
+                resource: { type: "table", name: "users" },
+            });
+        }
+
+        return (userList ?? []).map(
+            (u: {
+                id: string;
+                email: string | null;
+                send_success_emails: boolean | null;
+                send_failure_emails: boolean | null;
+            }) => ({
+                userId: u.id,
+                email: u.email,
+                sendSuccessEmails: u.send_success_emails !== false,
+                sendFailureEmails: u.send_failure_emails !== false,
+            })
+        );
+    }
 }

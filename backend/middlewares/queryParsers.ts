@@ -215,3 +215,35 @@ const listReceivedEmailsRules = {
 export function createListReceivedEmailsParser(): RequestHandler {
     return createQueryParser<ParsedListReceivedEmailsQuery>(listReceivedEmailsRules);
 }
+
+/** Notifications list/count query (`organizationId`). Expect Zod validation on the route before this runs. */
+export interface ParsedNotificationOrganizationQuery extends Record<string, unknown> {
+    organizationId: string | null;
+}
+
+export function createNotificationOrganizationQueryParser(): RequestHandler {
+    return createQueryParser<ParsedNotificationOrganizationQuery>({
+        organizationId: QueryParsers.string,
+    });
+}
+
+const notificationPageParser = (value: string | string[] | undefined): number => {
+    const n = QueryParsers.number(value);
+    if (n === undefined || n < 0) {
+        return 0;
+    }
+    return n;
+};
+
+/** Notifications paginated query (`organizationId`, `page` default 0). Expect Zod validation on the route before this runs. */
+export interface ParsedNotificationPaginatedQuery extends Record<string, unknown> {
+    organizationId: string | null;
+    page: number;
+}
+
+export function createNotificationPaginatedQueryParser(): RequestHandler {
+    return createQueryParser<ParsedNotificationPaginatedQuery>({
+        organizationId: QueryParsers.string,
+        page: notificationPageParser,
+    });
+}

@@ -157,6 +157,12 @@ export const config: ConfigObject = {
             })(),
             transport: orchestratorFlows.integrationRefresh.transport,
         },
+        notificationEmail: {
+            queueName: orchestratorFlows.notificationEmail.queueName,
+            transport: orchestratorFlows.notificationEmail.transport,
+            digestFlushIntervalMs: orchestratorFlows.notificationEmail.digestFlushIntervalMs,
+            sendPlainMinIntervalMs: orchestratorFlows.notificationEmail.sendPlainMinIntervalMs,
+        },
     },
 
     /** Rate limiting. When enabled, applies global and auth-specific limits. */

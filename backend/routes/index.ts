@@ -12,6 +12,7 @@ import { blogRouter } from "./BlogRoute.js";
 import { imageRouter } from "./ImageRoute.js";
 import { sessionIntegrationsRouter } from "./integrations/sessionRoutes.js";
 import { publicIntegrationRouter } from "./publicApi/integrationRoutes.js";
+import { notificationRouter } from "./NotificationRoute.js";
 import { logger } from "../utils/Logger";
 
 /**
@@ -39,6 +40,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     apiRouter.use("/image", imageRouter);
     apiRouter.use("/integrations", sessionIntegrationsRouter);
     apiRouter.use("/public", publicIntegrationRouter);
+    apiRouter.use("/notifications", notificationRouter);
     app.use(prefix, apiRouter);
 
     logger.info({
@@ -55,6 +57,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
         image: `${prefix}/image`,
         integrationsSession: `${prefix}/integrations`,
         integrationsProgrammatic: `${prefix}/public`,
+        notifications: `${prefix}/notifications`,
     });
     return true;
 }

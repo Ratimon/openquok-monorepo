@@ -8,6 +8,7 @@ import {
     feedbackRepository,
     blogRepository,
     integrationRepository,
+    notificationRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -23,6 +24,8 @@ import { IntegrationManager } from "../integrations/integrationManager";
 import { RefreshIntegrationService } from "./RefreshIntegrationService";
 import { IntegrationService } from "./IntegrationService";
 import { IntegrationConnectionService } from "./IntegrationConnectionService";
+import { NotificationService } from "./NotificationService";
+import { TransactionalNotificationEmailService } from "./TransactionalNotificationEmailService";
 
 import { config } from "../config/GlobalConfig";
 
@@ -88,6 +91,16 @@ export const integrationConnectionService = new IntegrationConnectionService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
+export const transactionalNotificationEmailService = new TransactionalNotificationEmailService(
+    organizationRepository
+);
+export const notificationService = new NotificationService(
+    notificationRepository,
+    userRepository,
+    organizationRepository,
+    emailService,
+    transactionalNotificationEmailService
+);
 export { AuthenticationService } from "./AuthenticationService";
 export { UserService } from "./UserService";
 export { EmailService } from "./EmailService";
@@ -101,3 +114,5 @@ export { ConfigService } from "./ConfigService";
 export { IntegrationService } from "./IntegrationService";
 export { IntegrationConnectionService } from "./IntegrationConnectionService";
 export { RefreshIntegrationService } from "./RefreshIntegrationService";
+export { NotificationService } from "./NotificationService";
+export { TransactionalNotificationEmailService, type SendPlainJobPayload } from "./TransactionalNotificationEmailService";

@@ -436,6 +436,43 @@ CREATE TABLE IF NOT EXISTS public.blog_activities (
 -- ---------------------------
 
 
+-- Module: notification, File: 101_20260406_tables.sql
+-- ---------------------------
+-- MODULE NAME: notification
+-- MODULE DATE: 20260406
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+
+
+CREATE TABLE IF NOT EXISTS public.notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    link TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    deleted_at TIMESTAMPTZ
+);
+
+COMMENT ON TABLE public.notifications IS 'In-app notifications scoped to an organization';
+COMMENT ON COLUMN public.notifications.content IS 'Short message body shown in the app';
+COMMENT ON COLUMN public.notifications.link IS 'Optional deep link or URL related to the notification';
+
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL;
+
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS send_success_emails BOOLEAN DEFAULT TRUE NOT NULL;
+
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS send_failure_emails BOOLEAN DEFAULT TRUE NOT NULL;
+
+COMMENT ON COLUMN public.users.last_read_notifications IS 'Cursor for unread in-app notification count (per user)';
+COMMENT ON COLUMN public.users.send_success_emails IS 'When false, org notification emails typed as success are skipped for this user';
+COMMENT ON COLUMN public.users.send_failure_emails IS 'When false, org notification emails typed as failure are skipped for this user';
+
+
 -- Module: user-management, File: 200_20260227_indexes.sql
 -- ---------------------------
 -- MODULE NAME: User Management
@@ -590,6 +627,21 @@ CREATE INDEX IF NOT EXISTS idx_blog_activities_post_id ON public.blog_activities
 CREATE INDEX IF NOT EXISTS idx_blog_activities_user_id ON public.blog_activities(user_id);
 CREATE INDEX IF NOT EXISTS idx_blog_activities_type ON public.blog_activities(activity_type);
 CREATE INDEX IF NOT EXISTS idx_blog_activities_created_at ON public.blog_activities(created_at);
+
+
+-- Module: notification, File: 201_20260406_indexes.sql
+-- ---------------------------
+-- MODULE NAME: notification
+-- MODULE DATE: 20260406
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+
+
+CREATE INDEX IF NOT EXISTS idx_notifications_organization_id ON public.notifications(organization_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_deleted_at ON public.notifications(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_users_last_read_notifications ON public.users(last_read_notifications);
 
 
 -- Module: user-management, File: 300_20260227_rlsgrants.sql
@@ -1702,6 +1754,94 @@ BEGIN
         post_count DESC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+
+-- Module: notification, File: 301_20260406_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: notification
+-- MODULE DATE: 20260406
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO service_role;
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Members can view notifications" ON public.notifications;
+CREATE POLICY "Members can view notifications"
+ON public.notifications
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = notifications.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert notifications" ON public.notifications;
+CREATE POLICY "Members can insert notifications"
+ON public.notifications
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = notifications.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update notifications" ON public.notifications;
+CREATE POLICY "Members can update notifications"
+ON public.notifications
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = notifications.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = notifications.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete notifications" ON public.notifications;
+CREATE POLICY "Members can delete notifications"
+ON public.notifications
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = notifications.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
 
 
 -- Module: user-management, File: 400_20260227_functions.sql

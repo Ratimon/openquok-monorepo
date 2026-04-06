@@ -319,4 +319,43 @@ export class UserRepository {
         return { error };
     }
 
+    /** Last-read cursor for in-app notification badges (public.users.id). */
+    async getLastReadNotifications(userId: string): Promise<{ lastReadNotifications: string } | null> {
+        const { data, error } = await this.supabase
+            .from(TABLE_NAME)
+            .select("last_read_notifications")
+            .eq("id", userId)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Failed to load notification read cursor", {
+                cause: error as unknown as Error,
+                operation: "getLastReadNotifications",
+                resource: { type: "table", name: TABLE_NAME },
+            });
+        }
+        if (!data?.last_read_notifications) return null;
+        return { lastReadNotifications: data.last_read_notifications as string };
+    }
+
+    /**
+     * Advance last_read_notifications to now; returns the previous value for listing deltas.
+     */
+    async advanceLastReadNotifications(userId: string): Promise<{ previousLastRead: string | null }> {
+        const prior = await this.getLastReadNotifications(userId);
+        const now = new Date().toISOString();
+        const { error } = await this.supabase
+            .from(TABLE_NAME)
+            .update({ last_read_notifications: now, updated_at: now })
+            .eq("id", userId);
+        if (error) {
+            throw new DatabaseError("Failed to update notification read cursor", {
+                cause: error as unknown as Error,
+                operation: "advanceLastReadNotifications",
+                resource: { type: "table", name: TABLE_NAME },
+            });
+        }
+        return { previousLastRead: prior?.lastReadNotifications ?? null };
+    }
+
 }

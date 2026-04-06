@@ -10,6 +10,7 @@ import { ConfigController } from "./ConfigController";
 import { EmailController } from "./EmailController";
 import { IntegrationController } from "./IntegrationController";
 import { PublicIntegrationController } from "./PublicIntegrationController";
+import { NotificationController } from "./NotificationController";
 import {
     authenticationService,
     emailService,
@@ -23,6 +24,7 @@ import {
     configService,
     integrationConnectionService,
     integrationManager,
+    notificationService,
 } from "../services/index";
 import { userRepository, storageRepository } from "../repositories/index";
 
@@ -38,3 +40,4 @@ export const configController = new ConfigController(configService);
 export const emailController = new EmailController(emailService);
 export const integrationController = new IntegrationController(integrationConnectionService, integrationManager);
 export const publicIntegrationController = new PublicIntegrationController(integrationConnectionService);
+export const notificationController = new NotificationController(notificationService);
