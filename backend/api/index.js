@@ -7078,11 +7078,11 @@ init_GlobalConfig();
 init_GlobalConfig();
 init_Logger();
 
-// orchestrator/bullmq/enqueueRefreshTokenDistributedRun.ts
+// orchestrator/adapters/flowcraft-bullmq/enqueueRefreshTokenDistributedRun.ts
 init_GlobalConfig();
 init_Logger();
 
-// orchestrator/bullmq/seedDistributedWorkflowContext.ts
+// orchestrator/adapters/flowcraft-bullmq/seedDistributedWorkflowContext.ts
 var WORKFLOW_STATE_KEY_PREFIX = "workflow:state:";
 async function seedRefreshTokenWorkflowContext(redis, runId, fields) {
   const key = `${WORKFLOW_STATE_KEY_PREFIX}${runId}`;
@@ -7095,7 +7095,7 @@ async function seedRefreshTokenWorkflowContext(redis, runId, fields) {
   await redis.hset(key, flat);
 }
 
-// orchestrator/bullmq/enqueueRefreshTokenDistributedRun.ts
+// orchestrator/adapters/flowcraft-bullmq/enqueueRefreshTokenDistributedRun.ts
 async function enqueueRefreshTokenDistributedRun(input, options) {
   const redis = createQueueIoredisClient();
   const { queueName: configuredQueueName } = config.bullmq;
@@ -7329,7 +7329,7 @@ function buildRefreshTokenBlueprintDistributed() {
   };
   return blueprint;
 }
-async function runRefreshTokenOrchestration(input, deps, options) {
+async function runRefreshTokenOrchestration(input, workflowDependencies, options) {
   const bullmqSection = config.bullmq;
   const refreshOrch = bullmqSection.integrationRefresh;
   if (refreshOrch?.transport === "bullmq") {
@@ -7349,7 +7349,7 @@ async function runRefreshTokenOrchestration(input, deps, options) {
     }
   }
   const runtime = new flowcraft.FlowRuntime({
-    dependencies: deps,
+    dependencies: workflowDependencies,
     ...{}
   });
   const flow = createRefreshTokenFlowBuilder();

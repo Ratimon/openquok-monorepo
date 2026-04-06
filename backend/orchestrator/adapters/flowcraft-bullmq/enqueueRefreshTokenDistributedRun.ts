@@ -1,12 +1,10 @@
 import { Queue } from "bullmq";
 import { analyzeBlueprint } from "flowcraft";
-import { config } from "../../config/GlobalConfig";
-import { createQueueIoredisClient } from "../../connections/bullmq/createQueueIoredis";
-import { logger } from "../../utils/Logger";
-import {
-    buildRefreshTokenBlueprintDistributed,
-    REFRESH_TOKEN_BLUEPRINT_ID,
-} from "../flows/refreshTokenWorkflow";
+import { config } from "../../../config/GlobalConfig";
+import { createQueueIoredisClient } from "../../../connections/bullmq/createQueueIoredis";
+import { logger } from "../../../utils/Logger";
+import { buildRefreshTokenBlueprintDistributed } from "../../blueprints/refreshTokenBlueprint";
+import { REFRESH_TOKEN_BLUEPRINT_ID } from "../../blueprints/refreshTokenTypes";
 import { seedRefreshTokenWorkflowContext } from "./seedDistributedWorkflowContext";
 
 /**
