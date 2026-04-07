@@ -16,9 +16,11 @@
     "allowJs": true,
     "baseUrl": ".",
     "paths": {
-      "flowcraft/testing": ["./node_modules/flowcraft/dist/testing/index.d.mts"]
+      "flowcraft": ["./node_modules/flowcraft/dist/index.d.mts"],
+      "flowcraft/testing": ["./node_modules/flowcraft/dist/testing/index.d.mts"],
+      "openquok-orchestrator": ["./types/openquok-orchestrator.d.ts"]
     }
   },
-  "include": ["**/*.ts", "**/*.d.ts", "connections/sentry/*"],
+  "include": ["**/*.ts", "**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

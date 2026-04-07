@@ -2,7 +2,7 @@
 title: Project Architecture
 description: OpenQuok's architecture — project layout and key files for the social scheduler.
 order: 1
-lastUpdated: 2026-04-06
+lastUpdated: 2026-04-07
 ---
 
 <script>
@@ -45,7 +45,7 @@ Repository layout at the root:
 
 - **`backend/`** — Supabase project assets (migrations, RLS, modules) and the Express API that talks to **Supabase** (database + auth patterns, and **Storage** where applicable).
 - **`common/`** — Shared workspace package (`openquok-common`): types and small utilities imported by **backend** and **orchestrator** (for example notification email types).
-- **`orchestrator/`** — Workspace package (`openquok-orchestrator`): Flowcraft blueprints, BullMQ adapters, **long-running worker** entrypoints, and enqueue helpers used from the API when distributed transport is enabled. See [Orchestrator workflows](/docs/developer-guidelines/orchestrator-workflows).
+- **`orchestrator/`** — Workspace package (`openquok-orchestrator`): Flowcraft blueprints, BullMQ adapters, **long-running worker** entrypoints, and enqueue helpers used from the API when distributed transport is enabled. See [Orchestrator workflows](/docs/developer-guidelines/orchestrator-workflows), [Orchestrator workers](/docs/configuration-worker), and [Railway (workers)](/docs/Installation/railway).
 - **`scripts/`** — Monorepo automation (build, codegen, migration aggregation, etc.).
 - **`web/`** — SvelteKit frontend; public static files live under `web/static/`.
 

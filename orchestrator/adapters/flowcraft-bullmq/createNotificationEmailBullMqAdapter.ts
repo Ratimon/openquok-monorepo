@@ -6,12 +6,12 @@ import {
     buildNotificationDigestFlushBlueprintDistributed,
     buildNotificationSendPlainBlueprintDistributed,
     getNotificationEmailNodeRegistry,
-} from "../../blueprints/notificationEmailBlueprint";
+} from "../../blueprints/notificationEmailBlueprint.js";
 import {
     NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID,
     NOTIFICATION_SEND_PLAIN_BLUEPRINT_ID,
     type NotificationEmailWorkflowDependencies,
-} from "../../blueprints/notificationEmailFlowTypes";
+} from "../../blueprints/notificationEmailFlowTypes.js";
 
 /**
  * BullMQ + Flowcraft adapter for notification email (`notification-send-plain` and `notification-digest-flush`).

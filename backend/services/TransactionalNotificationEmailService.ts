@@ -7,7 +7,6 @@ import {
 } from "../emails/notificationTransactionalEmailHtml";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import { logger } from "../utils/Logger";
-import { appendNotificationDigestEntry, runNotificationSendPlainOrchestration } from "openquok-orchestrator";
 
 export type SendPlainJobPayload = {
     to: string;
@@ -55,6 +54,7 @@ export class TransactionalNotificationEmailService {
 
     /** Enqueues a Flowcraft distributed run that sends one HTML mail via the notification-email worker. */
     async enqueueSendPlainJob(payload: SendPlainJobPayload): Promise<void> {
+        const { runNotificationSendPlainOrchestration } = await import("openquok-orchestrator");
         await runNotificationSendPlainOrchestration(payload);
     }
 
@@ -64,6 +64,7 @@ export class TransactionalNotificationEmailService {
      * `orchestrator/worker/runNotificationEmailBullMqWorker.ts`, which enqueues the digest-flush Flowcraft run.
      */
     async appendDigestEntry(organizationId: string, entry: DigestQueueEntry): Promise<void> {
+        const { appendNotificationDigestEntry } = await import("openquok-orchestrator");
         const redis = createQueueIoredisClient();
         try {
             await appendNotificationDigestEntry(redis, organizationId, entry);

@@ -1,6 +1,8 @@
-import dotenv from "dotenv";
 import { getEnv, getEnvNumber, getEnvBoolean } from "./envHelper";
 import { logger } from "../utils/Logger";
+import * as loadBackendDotenvCjs from "./loadBackendDotenv.cjs";
+
+const { loadBackendDotenv } = loadBackendDotenvCjs as { loadBackendDotenv: () => void };
 import { orchestratorFlows, type OrchestrationTransport } from "./orchestratorFlows";
 
 const normalizeOrigin = (origin: string): string => origin.trim().replace(/\/+$/, "");
@@ -18,9 +20,7 @@ const deriveWwwVariants = (origin: string): string[] => {
     }
 };
 
-const ENV = process.env.NODE_ENV ?? "development";
-dotenv.config({ path: `.env.${ENV}.local` });
-dotenv.config(); // .env
+loadBackendDotenv();
 const isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
 
 /**

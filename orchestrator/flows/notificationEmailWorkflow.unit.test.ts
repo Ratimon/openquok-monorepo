@@ -17,8 +17,8 @@ import type IORedis from "ioredis";
 import { FlowRuntime } from "flowcraft";
 import { InMemoryEventLogger, runWithTrace } from "flowcraft/testing";
 import { logger } from "backend/utils/Logger.js";
-import { enqueueNotificationDigestFlushDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationDigestFlushDistributedRun";
-import { enqueueNotificationSendPlainDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationSendPlainDistributedRun";
+import { enqueueNotificationDigestFlushDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationDigestFlushDistributedRun.js";
+import { enqueueNotificationSendPlainDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationSendPlainDistributedRun.js";
 import {
     NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_VERSION,
     NOTIFICATION_SEND_PLAIN_BLUEPRINT_VERSION,
@@ -29,13 +29,13 @@ import {
     type NotificationDigestFlushFlowContext,
     type NotificationEmailWorkflowDependencies,
     type NotificationSendPlainFlowContext,
-} from "./notificationEmailWorkflow";
+} from "./notificationEmailWorkflow.js";
 
-jest.mock("../adapters/flowcraft-bullmq/enqueueNotificationSendPlainDistributedRun", () => ({
+jest.mock("../adapters/flowcraft-bullmq/enqueueNotificationSendPlainDistributedRun.js", () => ({
     enqueueNotificationSendPlainDistributedRun: jest.fn(),
 }));
 
-jest.mock("../adapters/flowcraft-bullmq/enqueueNotificationDigestFlushDistributedRun", () => ({
+jest.mock("../adapters/flowcraft-bullmq/enqueueNotificationDigestFlushDistributedRun.js", () => ({
     enqueueNotificationDigestFlushDistributedRun: jest.fn(),
 }));
 

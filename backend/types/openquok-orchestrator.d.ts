@@ -1,6 +1,7 @@
 /**
- * Ambient types for `import { … } from "openquok-orchestrator"` so the backend project stays rooted under `backend/`
- * (orchestrator sources live in `../orchestrator` and must not be pulled in as compilation roots).
+ * Ambient types for `import { … } from "openquok-orchestrator"`.
+ * `tsconfig.json` maps this specifier here so `tsc` does not follow the workspace package into `../orchestrator`
+ * (those sources import `backend/...`, which would resolve to `dist/` outputs and collide with compilation — TS5055).
  * Runtime still resolves the real package via `workspace:*` and `openquok-orchestrator` package exports.
  */
 declare module "openquok-orchestrator" {

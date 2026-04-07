@@ -2,7 +2,7 @@
 title: Configuration - Backend
 description: Backend configuration — env vars, Supabase, and services Openquok.
 order: 0
-lastUpdated: 2026-03-30
+lastUpdated: 2026-04-07
 ---
 
 <script>
@@ -56,5 +56,6 @@ Configure Redis (recommended for production), Sentry (optional), Google OAuth (o
 
 <CardGrid>
 <LinkCard title="Installation" description="Deploy and configure OpenQuok" href="/docs/Installation" />
+<LinkCard title="Orchestrator workers" description="BullMQ workers, Redis, and Railway" href="/docs/configuration-worker" />
 <LinkCard title="Developer guidelines" description="Conventions for working in this repository" href="/docs/developer-guidelines" />
 </CardGrid>

@@ -37,6 +37,11 @@ export const orchestratorFlows = {
     integrationRefresh: {
         /** Passed through to `config.bullmq.integrationRefresh.enabled` when not under Jest. */
         enabled: true,
+        /**
+         * Suggested long-running worker service name (e.g. on Railway) for this flow.
+         * Keep distinct per worker type so logs/metrics and deployments are unambiguous.
+         */
+        workerServiceName: "openquok-worker-integration-refresh",
         queueName: "integration-refresh",
         transport: "in_process" as OrchestrationTransport,
     },
@@ -45,6 +50,11 @@ export const orchestratorFlows = {
      * notification-email worker flushes on a fixed interval.
      */
     notificationEmail: {
+        /**
+         * Suggested long-running worker service name (e.g. on Railway) for this flow.
+         * Keep distinct per worker type so logs/metrics and deployments are unambiguous.
+         */
+        workerServiceName: "openquok-worker-notification-email",
         queueName: "notification-email",
         transport: "in_process" as OrchestrationTransport,
         /** How often the worker drains digest Redis lists (ms). */

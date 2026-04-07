@@ -1,16 +1,16 @@
 import { FlowRuntime, type IEventBus } from "flowcraft";
 import { config } from "backend/config/GlobalConfig.js";
 import { logger } from "backend/utils/Logger.js";
-import { enqueueRefreshTokenDistributedRun } from "../adapters/flowcraft-bullmq/enqueueRefreshTokenDistributedRun";
-import { createRefreshTokenFlowBuilder } from "../blueprints/refreshTokenBlueprint";
-import type { RefreshTokenFlowContext, RefreshTokenWorkflowDependencies } from "../blueprints/refreshTokenTypes";
+import { enqueueRefreshTokenDistributedRun } from "../adapters/flowcraft-bullmq/enqueueRefreshTokenDistributedRun.js";
+import { createRefreshTokenFlowBuilder } from "../blueprints/refreshTokenBlueprint.js";
+import type { RefreshTokenFlowContext, RefreshTokenWorkflowDependencies } from "../blueprints/refreshTokenTypes.js";
 
 export {
     REFRESH_TOKEN_BLUEPRINT_ID,
     REFRESH_TOKEN_BLUEPRINT_VERSION,
     type RefreshTokenFlowContext,
     type RefreshTokenWorkflowDependencies,
-} from "../blueprints/refreshTokenTypes";
+} from "../blueprints/refreshTokenTypes.js";
 
 /** Optional `runRefreshTokenOrchestration` controls (cancellation, test event bus). */
 export type RunRefreshTokenOrchestrationOptions = {
@@ -22,7 +22,7 @@ export {
     createRefreshTokenFlowBuilder,
     buildRefreshTokenBlueprintDistributed,
     getRefreshTokenNodeRegistry,
-} from "../blueprints/refreshTokenBlueprint";
+} from "../blueprints/refreshTokenBlueprint.js";
 
 /**
  * Runs the in-process refresh supervisor until the integration no longer qualifies or refresh fails.

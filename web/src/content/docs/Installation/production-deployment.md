@@ -1,8 +1,8 @@
 ---
 title: Production deployment
-description: Production setup for the OpenQuok web and backend.
+description: Production setup for the OpenQuok web, backend, and optional orchestrator workers.
 order: 1
-lastUpdated: 2026-04-03
+lastUpdated: 2026-04-07
 ---
 
 <script>
@@ -11,12 +11,14 @@ import { Badge, Callout, DocsExternalLink, CardGrid, LinkCard, Steps } from '$li
 
 This project is set up for **Vercel** as the primary host for the **backend** (Express serverless entry) and **web** (SvelteKit). **Supabase** remains the database and auth provider.
 
+**Orchestrator workers** (BullMQ) are **not** run on Vercel: when <code>backend/config/orchestratorFlows.ts</code> uses <code>transport: "bullmq"</code> for integration refresh or notification email, deploy **separate always-on processes** (for example on <a href="/docs/Installation/railway">Railway</a>) that share the same **Redis** and **Supabase** credentials as the API. See <a href="/docs/configuration-worker">Orchestrator workers</a> and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>.
 
 ## What you need
 
 - **Supabase** project (URL, anon key, service role key)
 - **Vercel** projects for `backend/` and `web/` (or your chosen host, with equivalent env injection)
-- **Optional:** managed **Redis** if you set <Badge text="CACHE_PROVIDER" variant="envBackend" /><code>=redis</code> — point <Badge text="REDIS_*" variant="envBackend" /> at your provider
+- **Optional:** managed **Redis** if you set <Badge text="CACHE_PROVIDER" variant="envBackend" /><code>=redis</code> **or** if you use **BullMQ** orchestration — point <Badge text="REDIS_*" variant="envBackend" /> at a host reachable from **both** the API and any worker processes
+- **Optional:** one or more **worker** hosts for BullMQ flows (see <a href="/docs/Installation/railway">Railway (orchestrator workers)</a>)
 
 ## Secrets and configuration
 
@@ -25,7 +27,7 @@ This project is set up for **Vercel** as the primary host for the **backend** (E
 - **CORS:** set <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> without a trailing slash; include apex and <code>www</code> in <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envBackend" /> when both are used. Align the web app’s <Badge text="VITE_API_BASE_URL" variant="envWeb" /> with <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />.
 
 <Callout type="note" title="Infra folder">
-<p><Badge text="infra/README.md" variant="path" /> only documents optional Redis and the in-process workflow model. There is no Docker Compose bundle in this repo.</p>
+<p><Badge text="infra/README.md" variant="path" /> only documents optional Redis and high-level notes. There is no Docker Compose bundle in this repo. Worker deployment detail lives under <a href="/docs/configuration-worker">Orchestrator workers</a> and <a href="/docs/Installation/railway">Railway</a>.</p>
 </Callout>
 
 ## Deploy with Vercel
@@ -43,6 +45,8 @@ After deploy, configure OAuth redirect URIs, webhooks, and any third-party dashb
 
 <CardGrid>
 <LinkCard title="Vercel" description="Root directory, build, and environment variables" href="/docs/Installation/vercel" />
+<LinkCard title="Railway (workers)" description="Long-running BullMQ workers, CLI, and monorepo build" href="/docs/Installation/railway" />
+<LinkCard title="Orchestrator workers" description="Env and scripts for worker processes" href="/docs/configuration-worker" />
 <LinkCard title="Development environment" description="Local API, web, tests, and DB scripts" href="/docs/Installation/development-environment" />
 <LinkCard title="Backend configuration" description="Env keys aligned with GlobalConfig" href="/docs/configuration-backend" />
 <LinkCard title="Frontend configuration" description="Web app environment variables" href="/docs/configuration-web" />

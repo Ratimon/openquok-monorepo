@@ -1,6 +1,6 @@
 import type IORedis from "ioredis";
 import type { TransactionalNotificationEmailService } from "backend/services/TransactionalNotificationEmailService.js";
-import { drainPendingNotificationDigestBatches } from "../stores/notificationDigestRedisStore";
+import { drainPendingNotificationDigestBatches } from "../stores/notificationDigestRedisStore.js";
 
 /**
  * Worker-side digest flush: Redis drain lives in `stores/notificationDigestRedisStore`; org HTML + delivery in the service.

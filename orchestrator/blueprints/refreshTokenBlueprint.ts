@@ -1,11 +1,11 @@
 import { createFlow, type NodeRegistry, type WorkflowBlueprint } from "flowcraft";
-import { beginNode, finishedNode, refreshTokenTickNode } from "../nodes/refreshTokenNodes";
+import { beginNode, finishedNode, refreshTokenTickNode } from "../nodes/refreshTokenNodes.js";
 import {
     REFRESH_TOKEN_BLUEPRINT_ID,
     REFRESH_TOKEN_BLUEPRINT_VERSION,
     type RefreshTokenFlowContext,
     type RefreshTokenWorkflowDependencies,
-} from "./refreshTokenTypes";
+} from "./refreshTokenTypes.js";
 
 /**
  * Fluent blueprint: `begin` enters the loop controller; each iteration runs `tick`.

@@ -6,7 +6,7 @@ import {
     notificationSendPlainBeginNode,
     notificationSendPlainDispatchNode,
     notificationSendPlainFinishedNode,
-} from "../nodes/notificationEmailNodes";
+} from "../nodes/notificationEmailNodes.js";
 import {
     NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID,
     NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_VERSION,
@@ -15,7 +15,7 @@ import {
     type NotificationDigestFlushFlowContext,
     type NotificationEmailWorkflowDependencies,
     type NotificationSendPlainFlowContext,
-} from "./notificationEmailFlowTypes";
+} from "./notificationEmailFlowTypes.js";
 
 export function createNotificationSendPlainFlowBuilder() {
     return createFlow<NotificationSendPlainFlowContext, NotificationEmailWorkflowDependencies>(

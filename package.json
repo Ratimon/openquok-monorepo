@@ -19,29 +19,47 @@
     "backend:db:aggregate-migrations-all": "pnpm --filter ./backend db:aggregate-migrations-all",
     "backend:db:aggregate-migrations-single": "pnpm --filter ./backend db:aggregate-migrations-single",
     "backend:generate-routes-manifest": "node scripts/generate-routes-manifest.mjs",
+    "backend:build": "pnpm --filter backend build",
     "common:build": "pnpm --filter openquok-common build",
     "orchestrator:build": "pnpm --filter openquok-orchestrator build",
+    "orchestrator:build:deps": "pnpm common:build && pnpm backend:build && pnpm orchestrator:build",
     "orchestrator:worker:integration-refresh-bullmq": "pnpm --filter openquok-orchestrator worker:integration-refresh-bullmq",
     "orchestrator:worker:notification-email-bullmq": "pnpm --filter openquok-orchestrator worker:notification-email-bullmq",
+    "orchestrator:start:worker:integration-refresh-bullmq": "pnpm --filter openquok-orchestrator start:worker:integration-refresh-bullmq",
+    "orchestrator:start:worker:notification-email-bullmq": "pnpm --filter openquok-orchestrator start:worker:notification-email-bullmq",
     "orchestrator:test:unit": "pnpm --filter openquok-orchestrator test:unit",
     "---------------------- VERCEL (backend or web) ----------------------": "",
     "vercel:deploy:backend": "npx vercel --cwd backend",
     "vercel:deploy:backend:prod": "npx vercel --cwd backend --prod",
     "vercel:deploy:web": "npx vercel --cwd web",
-    "vercel:deploy:web:prod": "npx vercel --cwd web --prod"
+    "vercel:deploy:web:prod": "npx vercel --cwd web --prod",
+    "---------------------- RAILWAY (orchestrator workers) ----------------------": "",
+    "railway:orchestrator:build": "pnpm orchestrator:build:deps",
+    "railway:orchestrator:start:integration-refresh": "pnpm orchestrator:start:worker:integration-refresh-bullmq",
+    "railway:orchestrator:start:notification-email": "pnpm orchestrator:start:worker:notification-email-bullmq",
+    "railway:setup:integration-refresh": "node scripts/railwaySetupWorkerService.mjs --service-name openquok-worker-integration-refresh --railpack-config-file railpack.integration-refresh.json --env-file orchestrator/.env.worker --var ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT=bullmq",
+    "railway:setup:notification-email": "node scripts/railwaySetupWorkerService.mjs --service-name openquok-worker-notification-email --railpack-config-file railpack.notification-email.json --env-file orchestrator/.env.worker --var ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT=bullmq",
+    "railway:deploy:integration-refresh": "cross-env RAILPACK_CONFIG_FILE=railpack.integration-refresh.json railway up",
+    "railway:deploy:notification-email": "cross-env RAILPACK_CONFIG_FILE=railpack.notification-email.json railway up"
   },
   "keywords": [],
   "author": "Rati Montreewat",
-  "license": "AGPL-3.0",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "@railway/cli": "^4.35.0",
+    "cross-env": "^7.0.3"
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@railway/cli",
       "esbuild",
       "sharp"
     ],
     "overrides": {
       "glob": "^13.0.0",
       "mkdirp": "^1.0.4",
-      "uuid": "^8.3.2"
+      "uuid": "^8.3.2",
+      "node-domexception": "^2.0.2"
     },
     "allowedDeprecatedVersions": {
       "har-validator": "5.1.5",

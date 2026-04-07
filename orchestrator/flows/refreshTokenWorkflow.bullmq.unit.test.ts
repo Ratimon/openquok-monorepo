@@ -6,8 +6,8 @@
  */
 import { faker } from "@faker-js/faker";
 import { config } from "backend/config/GlobalConfig.js";
-import { enqueueRefreshTokenDistributedRun } from "../adapters/flowcraft-bullmq/enqueueRefreshTokenDistributedRun";
-import { runRefreshTokenOrchestration } from "./refreshTokenWorkflow";
+import { enqueueRefreshTokenDistributedRun } from "../adapters/flowcraft-bullmq/enqueueRefreshTokenDistributedRun.js";
+import { runRefreshTokenOrchestration } from "./refreshTokenWorkflow.js";
 
 jest.mock("../adapters/flowcraft-bullmq/enqueueRefreshTokenDistributedRun", () => ({
     enqueueRefreshTokenDistributedRun: jest.fn(),

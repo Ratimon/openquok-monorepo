@@ -3,9 +3,9 @@ import { analyzeBlueprint } from "flowcraft";
 import type IORedis from "ioredis";
 import { config } from "backend/config/GlobalConfig.js";
 import { logger } from "backend/utils/Logger.js";
-import { buildNotificationDigestFlushBlueprintDistributed } from "../../blueprints/notificationEmailBlueprint";
-import { NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID } from "../../blueprints/notificationEmailFlowTypes";
-import { seedNotificationDigestFlushWorkflowContext } from "./seedNotificationEmailWorkflowContext";
+import { buildNotificationDigestFlushBlueprintDistributed } from "../../blueprints/notificationEmailBlueprint.js";
+import { NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID } from "../../blueprints/notificationEmailFlowTypes.js";
+import { seedNotificationDigestFlushWorkflowContext } from "./seedNotificationEmailWorkflowContext.js";
 
 /**
  * Enqueues one `notification-digest-flush` Flowcraft run. Does **not** close `redis` (shared worker connection).

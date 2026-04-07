@@ -18,8 +18,8 @@ import { createStepper, InMemoryEventLogger, runWithTrace } from "flowcraft/test
 import type { AuthTokenDetails } from "backend/integrations/social.integrations.interface.js";
 import type { IntegrationRow } from "backend/repositories/IntegrationRepository.js";
 import { logger } from "backend/utils/Logger.js";
-import { getIntegrationByIdActivity, refreshIntegrationTokenActivity } from "../activities/integrationRefreshActivities";
-import { createRefreshTokenFlowBuilder, runRefreshTokenOrchestration } from "./refreshTokenWorkflow";
+import { getIntegrationByIdActivity, refreshIntegrationTokenActivity } from "../activities/integrationRefreshActivities.js";
+import { createRefreshTokenFlowBuilder, runRefreshTokenOrchestration } from "./refreshTokenWorkflow.js";
 
 jest.mock("../activities/integrationRefreshActivities", () => ({
     getIntegrationByIdActivity: jest.fn(),

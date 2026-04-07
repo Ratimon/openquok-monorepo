@@ -1,8 +1,8 @@
 ---
 title: Backend orchestrator workflows
-description: How OpenQuok uses Flowcraft for long-running in-process integration refresh timing.
+description: How OpenQuok uses Flowcraft for integration refresh and notification email, in-process or on BullMQ workers.
 order: 3
-lastUpdated: 2026-04-06
+lastUpdated: 2026-04-07
 ---
 
 <script>
@@ -41,9 +41,14 @@ The graph uses Flowcraft’s <DocsExternalLink href="https://flowcraft.js.org/gu
 
 The default **in-process** transport **does not survive API restarts**: if the API redeploys during a sleep, the supervisor for that integration is gone until the next OAuth connect or manual trigger.
 
-With <code>transport: bullmq</code> for integration refresh in <code>backend/config/orchestratorFlows.ts</code>, run state and the job queue live in **Redis**, and you run <code>pnpm worker:integration-refresh-bullmq</code> alongside the API. That improves durability across API deploys, but each <code>tick</code> still performs a long in-node sleep while a worker job is active (see Flowcraft pause/sleep guidance). Tune BullMQ concurrency and monitor queue depth accordingly.
+With <code>transport: bullmq</code> for integration refresh in <code>backend/config/orchestratorFlows.ts</code>, run state and the job queue live in **Redis**, and you run a **worker process** alongside the API:
 
-Managed Redis (for example <DocsExternalLink href="https://redis.io/">Redis</DocsExternalLink> Cloud) works the same as for cache: set <code>REDIS_*</code> and optionally <code>REDIS_BULLMQ_DB</code>; see <a href="/docs/configuration-backend/redis/">Redis cache</a>.
+- **Local dev:** <code>pnpm orchestrator:worker:integration-refresh-bullmq</code> from the repository root (or <code>pnpm worker:integration-refresh-bullmq</code> under <code>backend/</code>).
+- **Production:** <code>pnpm railway:orchestrator:start:integration-refresh</code> after <code>pnpm railway:orchestrator:build</code>, on an always-on host such as <a href="/docs/Installation/railway">Railway</a>. When notification email uses <code>bullmq</code>, run a **second** service with <code>pnpm railway:orchestrator:start:notification-email</code>.
+
+That improves durability across API deploys, but each <code>tick</code> still performs a long in-node sleep while a worker job is active (see Flowcraft pause/sleep guidance). Tune BullMQ concurrency and monitor queue depth accordingly.
+
+Managed Redis (for example <DocsExternalLink href="https://redis.io/">Redis</DocsExternalLink> Cloud) works the same as for cache: set <code>REDIS_*</code> and optionally <code>REDIS_BULLMQ_DB</code>; see <a href="/docs/configuration-backend/redis/">Redis cache</a>. Workers must use the **same** Redis as the API. Env and deployment: <a href="/docs/configuration-worker">Orchestrator workers</a>.
 
 ## Configuration
 
@@ -78,6 +83,8 @@ Also, the <code>@flowcraft/bullmq-adapter</code> version used in this repo curre
 
 ## Further reading
 
+- <a href="/docs/configuration-worker">Orchestrator workers</a> — env vars, production scripts, dotenv resolution
+- <a href="/docs/Installation/railway">Railway Deployment</a> — persistent services, CLI, <code>railway.toml</code>
 - <DocsExternalLink href="https://flowcraft.js.org/guide/fluent">Fluent API</DocsExternalLink>
 - <DocsExternalLink href="https://flowcraft.js.org/guide/pausing">Pausing and sleep nodes</DocsExternalLink> (this workflow uses an imperative delay inside <code>tick</code> because the wait length comes from the database at runtime)
 - <DocsExternalLink href="https://flowcraft.js.org/guide/adapters/bullmq">Runtime adapter: BullMQ</DocsExternalLink> (reconciliation, webhooks, worker/client setup)

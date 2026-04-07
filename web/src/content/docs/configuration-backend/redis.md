@@ -2,7 +2,7 @@
 title: Redis cache
 description: Switch CACHE_PROVIDER to Redis and configure REDIS_* variables for Openquok.
 order: 2
-lastUpdated: 2026-04-05
+lastUpdated: 2026-04-07
 ---
 
 <script>
@@ -84,9 +84,11 @@ pnpm test:integration:bullmq-redis
 Then run the worker (after setting <code>transport: bullmq</code> for integration refresh in <code>backend/config/orchestratorFlows.ts</code> and redeploying the API):
 
 ```bash
-cd backend
-pnpm worker:integration-refresh-bullmq
+# From repository root (recommended)
+pnpm orchestrator:worker:integration-refresh-bullmq
 ```
+
+For **production** worker hosts (always-on), use <code>pnpm railway:orchestrator:build</code> and <code>pnpm railway:orchestrator:start:integration-refresh</code> as documented in <a href="/docs/configuration-worker">Orchestrator workers</a> and <a href="/docs/Installation/railway">Railway (orchestrator workers)</a>.
 
 </Steps>
 

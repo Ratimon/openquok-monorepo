@@ -1,7 +1,7 @@
 import type { AuthTokenDetails } from "backend/integrations/social.integrations.interface.js";
 import type { IntegrationRepository, IntegrationRow } from "backend/repositories/IntegrationRepository.js";
 import { logger } from "backend/utils/Logger.js";
-import { sleepChunked } from "../sleepChunked";
+import { sleepChunked } from "../sleepChunked.js";
 
 /**
  * Mirrors typical durable-activity limits: bounded execution time per attempt,

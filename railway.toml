@@ -1,0 +1,25 @@
+# Shared build for orchestrator worker services (same monorepo, same image build).
+# Build (all workers): `pnpm railway:orchestrator:build` (see [build] below).
+#
+# Worker ↔ Railpack file ↔ start command (container process):
+#   Integration refresh (BullMQ):  railpack.integration-refresh.json
+#                                  → `pnpm railway:orchestrator:start:integration-refresh`
+#   Notification email (BullMQ):   railpack.notification-email.json
+#                                  → `pnpm railway:orchestrator:start:notification-email`
+#
+# Local CLI: link the Railway CLI to the service you are deploying, then:
+#   pnpm railway:deploy:integration-refresh   # sets RAILPACK_CONFIG_FILE=railpack.integration-refresh.json
+#   pnpm railway:deploy:notification-email    # sets RAILPACK_CONFIG_FILE=railpack.notification-email.json
+#
+# On Railway dashboard (per service), either:
+#   Set variable `RAILPACK_CONFIG_FILE` to the matching railpack.*.json, or
+#   Set Start Command to the matching `pnpm railway:orchestrator:start:…` line.
+#
+# Config-as-code reference: https://docs.railway.com/reference/config-as-code
+
+[build]
+buildCommand = "pnpm install && pnpm railway:orchestrator:build"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

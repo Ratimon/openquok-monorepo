@@ -43,6 +43,8 @@ Performance feeds back into your pipeline — so next week’s content gets bett
 
 <LinkCard title="Backend Setup" description="Env vars, Supabase, Redis, Sentry, rate limits, and email" href="/docs/configuration-backend/" />
 
+<LinkCard title="Orchestrator workers" description="BullMQ worker env, build/start commands, and Railway" href="/docs/configuration-worker/" />
+
 <LinkCard title="Frontend Setup" description="Vite env, PWA, and defaults for the web app" href="/docs/configuration-web/" />
 
 <LinkCard title="Admin Roles" description="Super admin access and role-based permissions" href="/docs/admin/" />

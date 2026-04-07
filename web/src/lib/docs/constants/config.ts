@@ -47,6 +47,11 @@ export const docsSidebar: DocsSidebarSection[] = [
 		autogenerate: { directory: 'configuration-backend' }
 	},
 	{
+		label: 'Workers Setup',
+		icon: icons.Activity.name,
+		autogenerate: { directory: 'configuration-worker' }
+	},
+	{
 		label: 'Frontend Setup',
 		icon: icons.Settings.name,
 		autogenerate: { directory: 'configuration-web' }

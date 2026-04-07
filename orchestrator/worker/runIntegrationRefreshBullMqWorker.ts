@@ -10,7 +10,7 @@ import { IntegrationManager } from "backend/integrations/integrationManager.js";
 import { integrationRepository } from "backend/repositories/index.js";
 import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
 import { logger } from "backend/utils/Logger.js";
-import { createIntegrationRefreshBullMqAdapter } from "../adapters/flowcraft-bullmq/createIntegrationRefreshBullMqAdapter";
+import { createIntegrationRefreshBullMqAdapter } from "../adapters/flowcraft-bullmq/createIntegrationRefreshBullMqAdapter.js";
 
 const transport = (config.bullmq as { integrationRefresh?: { transport?: string } }).integrationRefresh?.transport;
 if (transport !== "bullmq") {

@@ -1,7 +1,7 @@
 import type IORedis from "ioredis";
 import { logger } from "backend/utils/Logger.js";
-import { enqueueNotificationDigestFlushDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationDigestFlushDistributedRun";
-import { enqueueNotificationSendPlainDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationSendPlainDistributedRun";
+import { enqueueNotificationDigestFlushDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationDigestFlushDistributedRun.js";
+import { enqueueNotificationSendPlainDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationSendPlainDistributedRun.js";
 
 export {
     NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID,
@@ -11,7 +11,7 @@ export {
     type NotificationDigestFlushFlowContext,
     type NotificationEmailWorkflowDependencies,
     type NotificationSendPlainFlowContext,
-} from "../blueprints/notificationEmailFlowTypes";
+} from "../blueprints/notificationEmailFlowTypes.js";
 
 export {
     buildNotificationDigestFlushBlueprintDistributed,
@@ -19,7 +19,7 @@ export {
     createNotificationDigestFlushFlowBuilder,
     createNotificationSendPlainFlowBuilder,
     getNotificationEmailNodeRegistry,
-} from "../blueprints/notificationEmailBlueprint";
+} from "../blueprints/notificationEmailBlueprint.js";
 
 /**
  * Enqueues one `notification-send-plain` Flowcraft run (BullMQ `executeNode` jobs).

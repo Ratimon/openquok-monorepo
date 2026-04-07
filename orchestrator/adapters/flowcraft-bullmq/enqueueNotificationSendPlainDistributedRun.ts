@@ -3,9 +3,9 @@ import { analyzeBlueprint } from "flowcraft";
 import { config } from "backend/config/GlobalConfig.js";
 import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
 import { logger } from "backend/utils/Logger.js";
-import { buildNotificationSendPlainBlueprintDistributed } from "../../blueprints/notificationEmailBlueprint";
-import { NOTIFICATION_SEND_PLAIN_BLUEPRINT_ID } from "../../blueprints/notificationEmailFlowTypes";
-import { seedNotificationSendPlainWorkflowContext } from "./seedNotificationEmailWorkflowContext";
+import { buildNotificationSendPlainBlueprintDistributed } from "../../blueprints/notificationEmailBlueprint.js";
+import { NOTIFICATION_SEND_PLAIN_BLUEPRINT_ID } from "../../blueprints/notificationEmailFlowTypes.js";
+import { seedNotificationSendPlainWorkflowContext } from "./seedNotificationEmailWorkflowContext.js";
 
 /**
  * Enqueues the notification-send-plain Flowcraft blueprint on BullMQ (`executeNode` jobs).

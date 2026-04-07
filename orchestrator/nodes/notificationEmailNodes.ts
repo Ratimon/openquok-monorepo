@@ -3,7 +3,7 @@ import type {
     NotificationDigestFlushFlowContext,
     NotificationEmailWorkflowDependencies,
     NotificationSendPlainFlowContext,
-} from "../blueprints/notificationEmailFlowTypes";
+} from "../blueprints/notificationEmailFlowTypes.js";
 
 export async function notificationSendPlainBeginNode(): Promise<{ output: Record<string, never> }> {
     return { output: {} };

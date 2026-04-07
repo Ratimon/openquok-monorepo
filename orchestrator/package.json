@@ -4,6 +4,7 @@
   "private": true,
   "description": "Flowcraft workers and long-running orchestration processes",
   "type": "module",
+  "license": "AGPL-3.0-or-later",
   "main": "./dist/index.js",
   "types": "./index.ts",
   "exports": {
@@ -15,7 +16,9 @@
     "./*": "./dist/*"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "pnpm exec tsc -p tsconfig.build.json",
+    "start:worker:integration-refresh-bullmq": "node dist/worker/runIntegrationRefreshBullMqWorker.js",
+    "start:worker:notification-email-bullmq": "node dist/worker/runNotificationEmailBullMqWorker.js",
     "worker:integration-refresh-bullmq": "cross-env NODE_ENV=development tsx worker/runIntegrationRefreshBullMqWorker.ts",
     "worker:notification-email-bullmq": "cross-env NODE_ENV=development tsx worker/runNotificationEmailBullMqWorker.ts",
     "test:unit": "cross-env NODE_ENV=development jest --testPathPattern=unit\\.test\\.ts --no-coverage",

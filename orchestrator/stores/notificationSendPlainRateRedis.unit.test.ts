@@ -12,7 +12,7 @@
  * `notificationEmailWorkflow.unit.test.ts` for dispatch ordering.
  */
 import type IORedis from "ioredis";
-import { acquireNotificationSendPlainSlot } from "./notificationSendPlainRateRedis";
+import { acquireNotificationSendPlainSlot } from "./notificationSendPlainRateRedis.js";
 
 describe("acquireNotificationSendPlainSlot (Redis global send-plain slot)", () => {
     it("no-ops when minIntervalMs is 0", async () => {

@@ -3,6 +3,7 @@
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
+	"license": "AGPL-3.0-or-later",
 	"scripts": {
 		"---------------------- DEV WORKFLOW ----------------------": "",
 		"generate_icon": "pwag static/icon.svg src/web-config.json && cp static/pwa/favicon-512.png static/maskable_icon_512x512.png",

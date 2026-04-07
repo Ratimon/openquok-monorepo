@@ -33,7 +33,7 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
   - **`envBackend`** — backend package env (typically no `VITE_` prefix): blue.
   - **`envWeb`** — web / `VITE_*` env: purple. In prose, prefer **`<Badge text="VITE_*" variant="envWeb" />`** (or a specific key) instead of backticks around `VITE_*` / `VITE_` so the label stays visible and MDsveX does not treat `_` as emphasis.
   - **`envCors`** — origins / CORS-related names: warning.
-  - **`envRuntime`** — platform flags such as `VERCEL`, `NODE_ENV`: gray.
+  - **`envRuntime`** — platform flags such as `VERCEL`, `NODE_ENV`, and deployment selectors like `RAILPACK_CONFIG_FILE`: gray.
   - **`envFile`** — `.env` files and example env templates (e.g. `web/.env.development.local`, `backend/.env.development.example`): pink.
   - **`path`** — repo-relative paths, route paths, folder names: outline (use inside **`ExternalLink`** for GitHub file links when you want a chip instead of `<code>`).
 - **Examples**: **`new`** (green) vs **`deprecated`** (red) for **preferred vs discouraged URL shapes** (e.g. with vs without a trailing slash). **`experimental`** (yellow) works well for **npm package names** (e.g. `@sveltejs/adapter-vercel`) when linked to upstream docs.

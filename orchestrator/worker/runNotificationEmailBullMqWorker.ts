@@ -5,10 +5,10 @@
  * Run: pnpm worker:notification-email-bullmq (from backend/)
  */
 import { config } from "backend/config/GlobalConfig.js";
-import { createNotificationEmailBullMqAdapter } from "../adapters/flowcraft-bullmq/createNotificationEmailBullMqAdapter";
-import { executeNotificationDigestFlush } from "../flows/notificationDigestFlushExecution";
-import { runNotificationDigestFlushOrchestration } from "../flows/notificationEmailWorkflow";
-import { acquireNotificationSendPlainSlot } from "../stores/notificationSendPlainRateRedis";
+import { createNotificationEmailBullMqAdapter } from "../adapters/flowcraft-bullmq/createNotificationEmailBullMqAdapter.js";
+import { executeNotificationDigestFlush } from "../flows/notificationDigestFlushExecution.js";
+import { runNotificationDigestFlushOrchestration } from "../flows/notificationEmailWorkflow.js";
+import { acquireNotificationSendPlainSlot } from "../stores/notificationSendPlainRateRedis.js";
 import { transactionalNotificationEmailService } from "backend/services/index.js";
 import { EmailService } from "backend/services/EmailService.js";
 import { logger } from "backend/utils/Logger.js";

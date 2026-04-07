@@ -8,7 +8,7 @@ export {
     type RefreshTokenFlowContext,
     type RefreshTokenWorkflowDependencies,
     type RunRefreshTokenOrchestrationOptions,
-} from "./flows/refreshTokenWorkflow";
+} from "./flows/refreshTokenWorkflow.js";
 
 export { appendNotificationDigestEntry } from "./stores/notificationDigestRedisStore.js";
 
@@ -27,4 +27,4 @@ export {
     type NotificationDigestFlushFlowContext,
     type NotificationEmailWorkflowDependencies,
     type NotificationSendPlainFlowContext,
-} from "./flows/notificationEmailWorkflow";
+} from "./flows/notificationEmailWorkflow.js";
