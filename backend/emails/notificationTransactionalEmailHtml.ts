@@ -1,4 +1,4 @@
-import type { DigestQueueEntry } from "../data/types/notificationEmailTypes";
+import type { DigestQueueEntry } from "openquok-common";
 import { escapeHtml } from "./htmlEscape";
 
 /** Minimal HTML document wrapper for transactional notification mail. */

@@ -1,12 +1,12 @@
 ---
-description: Layout and conventions for backend/orchestrator (Flowcraft graphs, BullMQ workers, testing)
-globs: ["backend/orchestrator/**/*.ts"]
+description: Layout and conventions for orchestrator package (Flowcraft graphs, BullMQ workers, testing)
+globs: ["orchestrator/**/*.ts"]
 alwaysApply: false
 ---
 
-# Backend orchestrator layout (`backend/orchestrator/`)
+# Orchestrator package layout (`orchestrator/`)
 
-Long-lived **worker processes** run Flowcraft graphs via the BullMQ adapter. When `config/orchestratorFlows.ts` uses `transport: "bullmq"`, the API **enqueues**; workers **execute**. See `backend/orchestrator/README.md` for scripts and deployment.
+Long-lived **worker processes** run Flowcraft graphs via the BullMQ adapter. When `config/orchestratorFlows.ts` uses `transport: "bullmq"`, the API **enqueues**; workers **execute**. See `orchestrator/README.md` for scripts and deployment.
 
 Official Flowcraft guides (terminology and patterns): [Core concepts](https://flowcraft.js.org/guide/core-concepts), [Loops](https://flowcraft.js.org/guide/loops), [Testing](https://flowcraft.js.org/guide/testing), [BullMQ adapter](https://flowcraft.js.org/guide/adapters/bullmq).
 
@@ -36,7 +36,7 @@ If the worker needs **shared Redis staging** (lists/sets) used from both API and
 
 ## Imports
 
-- **`services/`** may import **`orchestrator/flows/*`** and **`orchestrator/stores/*`** for enqueue and shared staging helpers.
+- **`backend/services/`** may import the **`openquok-orchestrator`** workspace package (enqueue and shared staging helpers).
 - Avoid **`services/`** importing **`adapters/flowcraft-bullmq/*`** directly when a **`flows/*Workflow`** wrapper exists.
 - Prevent **circular imports**: heavy worker flush logic that needs **`TransactionalNotificationEmailService`** belongs in **`flows/*Execution.ts`**, not in the same file as **`runNotificationSendPlainOrchestration`** if that file is imported by the service.
 
@@ -56,7 +56,7 @@ Queue names and `in_process` vs `bullmq` live in **`backend/config/orchestratorF
 - Prefer the fluent **`.loop()`** construct for iteration instead of hand-wired cyclic edges ([Loops guide](https://flowcraft.js.org/guide/loops)).
 - Loop **conditions** that use comparisons / `===` may require an **`UnsafeEvaluator`** on the runtime—only for **trusted**, first-party blueprints; otherwise use simple conditions or a custom safe evaluator ([Loops guide](https://flowcraft.js.org/guide/loops)).
 - Avoid arbitrary non-DAG cycles; use **`strict: true`** when you need the runtime to reject unintended cycles ([Loops guide](https://flowcraft.js.org/guide/loops)).
-- Long-running loop bodies (e.g. sleeps until token expiry) must stay within BullMQ **stall / lock** expectations—document or tune worker settings (see **`backend/orchestrator/README.md`**).
+- Long-running loop bodies (e.g. sleeps until token expiry) must stay within BullMQ **stall / lock** expectations—document or tune worker settings (see **`orchestrator/README.md`**).
 
 ## Testing (`flowcraft/testing`)
 

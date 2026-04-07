@@ -1,5 +1,5 @@
 import { config } from "../config/GlobalConfig";
-import type { NotificationEmailType } from "../data/types/notificationEmailTypes";
+import type { NotificationEmailType } from "openquok-common";
 import { buildNotificationMessageParagraph } from "../emails/notificationTransactionalEmailHtml";
 import { OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError } from "../errors/UserError";

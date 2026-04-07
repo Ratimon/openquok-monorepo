@@ -2,7 +2,7 @@
 title: Backend orchestrator workflows
 description: How OpenQuok uses Flowcraft for long-running in-process integration refresh timing.
 order: 3
-lastUpdated: 2026-04-05
+lastUpdated: 2026-04-06
 ---
 
 <script>
@@ -15,10 +15,10 @@ Social integrations that expose <code>refreshCron</code> need a **supervisor** t
 
 ## Where the code lives
 
-- Blueprint and tick logic: <code>backend/orchestrator/flows/refreshTokenWorkflow.ts</code>
-- Activity-style steps (timeout + retries on failure): <code>backend/orchestrator/activities/integrationRefreshActivities.ts</code>
-- Barrel exports: <code>backend/orchestrator/index.ts</code>
-- Per-flow transport and BullMQ queue names: <code>backend/config/orchestratorFlows.ts</code> (add new flows there instead of new env vars)
+- Blueprint and tick logic: <code>orchestrator/flows/refreshTokenWorkflow.ts</code>
+- Activity-style steps (timeout + retries on failure): <code>orchestrator/activities/integrationRefreshActivities.ts</code>
+- Barrel exports: <code>orchestrator/index.ts</code>
+- Per-flow transport and BullMQ queue names: <code>backend/config/orchestratorFlows.ts</code> (defaults in TypeScript). Optional runtime overrides without editing that file: <code>ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT</code> and <code>ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT</code> (<code>in_process</code> or <code>bullmq</code>), merged in <code>backend/config/GlobalConfig.ts</code>.
 - OAuth completion starts the supervisor from <code>RefreshIntegrationService.startRefreshWorkflow</code> (fire-and-forget).
 
 ## Activity-style resilience
@@ -53,7 +53,7 @@ Managed Redis (for example <DocsExternalLink href="https://redis.io/">Redis</Doc
 
 ## Testing
 
-- **Unit**: <code>backend/orchestrator/flows/refreshTokenWorkflow.unit.test.ts</code> drives <code>runRefreshTokenOrchestration</code> with mocked activities and chunked sleep so cases finish fast. It also demonstrates <DocsExternalLink href="https://flowcraft.js.org/guide/testing">Flowcraft testing utilities</DocsExternalLink>: <code>InMemoryEventLogger</code> (pass <code>eventBus</code> into the runner), <code>runWithTrace</code>, and <code>createStepper</code> from <code>flowcraft/testing</code>. For replay/CLI-style inspection against persisted events, see <DocsExternalLink href="https://flowcraft.js.org/guide/time-travel">time-travel debugging</DocsExternalLink> and the <DocsExternalLink href="https://flowcraft.js.org/guide/cli">CLI tool</DocsExternalLink>—those need a persistent event store, not just unit mocks.
+- **Unit**: <code>orchestrator/flows/refreshTokenWorkflow.unit.test.ts</code> drives <code>runRefreshTokenOrchestration</code> with mocked activities and chunked sleep so cases finish fast. It also demonstrates <DocsExternalLink href="https://flowcraft.js.org/guide/testing">Flowcraft testing utilities</DocsExternalLink>: <code>InMemoryEventLogger</code> (pass <code>eventBus</code> into the runner), <code>runWithTrace</code>, and <code>createStepper</code> from <code>flowcraft/testing</code>. For replay/CLI-style inspection against persisted events, see <DocsExternalLink href="https://flowcraft.js.org/guide/time-travel">time-travel debugging</DocsExternalLink> and the <DocsExternalLink href="https://flowcraft.js.org/guide/cli">CLI tool</DocsExternalLink>—those need a persistent event store, not just unit mocks.
 - **Conventions**: Repository guidance for workflow tests (Jest + <code>flowcraft/testing</code>, Faker, when to mock <code>config</code> vs call the runner directly) lives in the backend test-suites Cursor rule (<code>.cursor/rules/backend-test-suites.mdc</code>, section on orchestrator workflows).
 
 ## BullMQ reconciliation (Flowcraft adapter)

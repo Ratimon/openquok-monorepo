@@ -1,6 +1,6 @@
 ---
 description: Test suite patterns — RBAC/user setup, Faker, Flowcraft workflow unit tests, data cleanup
-globs: ["backend/supabase/db/**/*.sql", "backend/tests/helpers/**/*.ts", "backend/tests/integration/**/*.ts", "backend/tests/e2e/**/*.ts", "backend/**/*.unit.test.ts", "backend/orchestrator/**/*.ts"]
+globs: ["backend/supabase/db/**/*.sql", "backend/tests/helpers/**/*.ts", "backend/tests/integration/**/*.ts", "backend/tests/e2e/**/*.ts", "backend/**/*.unit.test.ts", "orchestrator/**/*.ts"]
 alwaysApply: false
 ---
 
@@ -92,7 +92,7 @@ Reference: `backend/tests/integration/BlogRbac.integration.test.ts` (comment app
 
 ## 6. Flowcraft orchestrator workflows (unit)
 
-Long-running supervisors under `backend/orchestrator/flows/` are tested with **Jest** by calling the exported runner (e.g. `runRefreshTokenOrchestration`) and **mocking** slow or external pieces—same spirit as other unit suites: no real Redis, no real sleep for hours.
+Long-running supervisors under `orchestrator/flows/` are tested with **Jest** by calling the exported runner (e.g. `runRefreshTokenOrchestration`) and **mocking** slow or external pieces—same spirit as other unit suites: no real Redis, no real sleep for hours.
 
 - **Entry point**: Prefer testing `runRefreshTokenOrchestration` (or the next flow’s public runner) so transport branching (`in_process` vs `bullmq`) and `FlowRuntime` wiring stay covered. Mock `../activities/…` and `../sleepChunked` (or equivalent) so ticks complete quickly.
 - **Faker**: Use `@faker-js/faker` for `organizationId` / `integrationId` and mock integration rows (see §4).
@@ -100,7 +100,8 @@ Long-running supervisors under `backend/orchestrator/flows/` are tested with **J
 - **Framework helpers** (`flowcraft/testing`): `runWithTrace(runtime, blueprint, initialState, { functionRegistry })` for end-to-end graph runs with traces on failure; `createStepper(runtime, blueprint, functionRegistry, initialState)` to step the graph and assert intermediate status. Use the same `createRefreshTokenFlowBuilder()` (or sibling) as production for blueprint + `getFunctionRegistry()`.
 - **Jest resolution**: `flowcraft/testing` is mapped in `backend/jest.config.js` (`^flowcraft/testing$` → `node_modules/flowcraft/dist/testing/index.mjs`) alongside `flowcraft` → `dist/index.mjs`. Keep these in sync if the package layout changes.
 - **Service vs graph**: `RefreshIntegrationService.startRefreshWorkflow` is gated by `config.bullmq.integrationRefresh.enabled` (off under Jest via `JEST_WORKER_ID`). Tests that only exercise the **blueprint** should call `runRefreshTokenOrchestration` directly; tests for “OAuth starts the supervisor” mock `config` or the service as needed.
+- **Transport env (`in_process` | `bullmq`)**: Defaults live in `backend/config/orchestratorFlows.ts`; optional overrides are `ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT` and `ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT` (merged in `GlobalConfig.ts`). Orchestrator’s default Jest setup runs `jest.orchestrator-default-transport.cjs` after `backend/jest.env-setup.cjs` to **clear** those vars so in-process Flow suites are stable even if `.env.development.local` sets `bullmq`.
 
-**Distributed (BullMQ) path**: Cover enqueue/worker behavior with focused tests (e.g. Redis connectivity, adapter smoke) rather than duplicating the full loop in every suite; keep queue names aligned with `backend/config/orchestratorFlows.ts`.
+**Distributed (BullMQ) path**: `pnpm test:unit:refresh-token-workflow:bullmq` (orchestrator) uses `jest.bullmq.config.js` (no transport reset) plus `ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT=bullmq`; see `orchestrator/flows/refreshTokenWorkflow.bullmq.unit.test.ts`. For worker/Redis smoke, use integration-style tests; keep queue names aligned with `orchestratorFlows`.
 
-Reference: `backend/orchestrator/flows/refreshTokenWorkflow.unit.test.ts` (mocked activities + sleep, `InMemoryEventLogger`, `runWithTrace`, `createStepper`).
+Reference: `orchestrator/flows/refreshTokenWorkflow.unit.test.ts` (mocked activities + sleep, `InMemoryEventLogger`, `runWithTrace`, `createStepper`).

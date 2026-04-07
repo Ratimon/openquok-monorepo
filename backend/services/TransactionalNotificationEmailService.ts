@@ -1,14 +1,13 @@
+import type { DigestQueueEntry, NotificationEmailType } from "openquok-common";
 import { createQueueIoredisClient } from "../connections/bullmq/createQueueIoredis";
-import type { DigestQueueEntry, NotificationEmailType } from "../data/types/notificationEmailTypes";
 import {
     buildNotificationDigestBodyInner,
     buildNotificationDigestSubject,
     buildNotificationEmailDocument,
 } from "../emails/notificationTransactionalEmailHtml";
-import { runNotificationSendPlainOrchestration } from "../orchestrator/flows/notificationEmailWorkflow";
-import { appendNotificationDigestEntry } from "../orchestrator/stores/notificationDigestRedisStore";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import { logger } from "../utils/Logger";
+import { appendNotificationDigestEntry, runNotificationSendPlainOrchestration } from "openquok-orchestrator";
 
 export type SendPlainJobPayload = {
     to: string;

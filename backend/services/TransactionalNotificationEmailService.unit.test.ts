@@ -1,4 +1,3 @@
-/// <reference types="jest" />
 import { faker } from "@faker-js/faker";
 import { createQueueIoredisClient } from "../connections/bullmq/createQueueIoredis";
 import {
@@ -6,8 +5,7 @@ import {
     buildNotificationDigestSubject,
     buildNotificationEmailDocument,
 } from "../emails/notificationTransactionalEmailHtml";
-import { appendNotificationDigestEntry } from "../orchestrator/stores/notificationDigestRedisStore";
-import { runNotificationSendPlainOrchestration } from "../orchestrator/flows/notificationEmailWorkflow";
+import { appendNotificationDigestEntry, runNotificationSendPlainOrchestration } from "openquok-orchestrator";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import { logger } from "../utils/Logger";
 import { TransactionalNotificationEmailService } from "./TransactionalNotificationEmailService";
@@ -16,11 +14,9 @@ jest.mock("../connections/bullmq/createQueueIoredis", () => ({
     createQueueIoredisClient: jest.fn(),
 }));
 
-jest.mock("../orchestrator/stores/notificationDigestRedisStore", () => ({
+jest.mock("openquok-orchestrator", () => ({
+    __esModule: true,
     appendNotificationDigestEntry: jest.fn(),
-}));
-
-jest.mock("../orchestrator/flows/notificationEmailWorkflow", () => ({
     runNotificationSendPlainOrchestration: jest.fn(),
 }));
 

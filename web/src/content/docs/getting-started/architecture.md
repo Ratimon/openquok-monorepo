@@ -2,7 +2,7 @@
 title: Project Architecture
 description: OpenQuok's architecture — project layout and key files for the social scheduler.
 order: 1
-lastUpdated: 2026-04-05
+lastUpdated: 2026-04-06
 ---
 
 <script>
@@ -35,13 +35,17 @@ Repository layout at the root:
 ├── LICENSE
 ├── README.md
 ├── backend
+├── common
+├── orchestrator
 ├── package.json
 ├── pnpm-workspace.yaml
 ├── scripts
 └── web
 ```
 
-- **`backend/`** — Supabase project assets (migrations, RLS, modules) and the API layer that talks to **Supabase** (database + auth patterns, and **Storage** where applicable).
+- **`backend/`** — Supabase project assets (migrations, RLS, modules) and the Express API that talks to **Supabase** (database + auth patterns, and **Storage** where applicable).
+- **`common/`** — Shared workspace package (`openquok-common`): types and small utilities imported by **backend** and **orchestrator** (for example notification email types).
+- **`orchestrator/`** — Workspace package (`openquok-orchestrator`): Flowcraft blueprints, BullMQ adapters, **long-running worker** entrypoints, and enqueue helpers used from the API when distributed transport is enabled. See [Orchestrator workflows](/docs/developer-guidelines/orchestrator-workflows).
 - **`scripts/`** — Monorepo automation (build, codegen, migration aggregation, etc.).
 - **`web/`** — SvelteKit frontend; public static files live under `web/static/`.
 
@@ -63,7 +67,6 @@ backend/
 ├── emails
 ├── errors
 ├── middlewares
-├── orchestrator
 ├── repositories
 ├── routes
 ├── scripts
@@ -75,8 +78,7 @@ backend/
 ```
 
 - **`api/`** and **`handler/`** — HTTP entrypoints shaped for **Vercel** (serverless-style functions and the handler surface that connects routing to your app). Use them as the deployment shell; keep business rules in **services** and data access in **repositories**.
-- **`services/`** — Domain orchestration and use-cases; this layer is also where **caching** belongs when you need to reuse or shorten expensive work across requests (in-memory, keyed stores, or upstream cache semantics—depending on what you wire in).
-- **`orchestrator/`** — In-process **Flowcraft** workflows for work that spans waits and repeated steps (for example, the integration **token refresh supervisor** started after OAuth). Blueprints live under `orchestrator/flows/`; activity-style timeouts and retries live under `orchestrator/activities/`. Configuration and limits are described in [Orchestrator workflows](/docs/developer-guidelines/orchestrator-workflows).
+- **`services/`** — Domain orchestration and use-cases; this layer is also where **caching** belongs when you need to reuse or shorten expensive work across requests (in-memory, keyed stores, or upstream cache semantics—depending on what you wire in). Services may call **`openquok-orchestrator`** to enqueue Flowcraft runs or use **in-process** orchestration when `config/orchestratorFlows.ts` keeps transport on `in_process`.
 - **`supabase/`** — Database source of truth: modular SQL under `db/` (tables, RLS, functions, seeds), migrations, and config targeting **Supabase Postgres**.
 - **`repositories/`**, **`controllers/`**, **`routes/`** — Persistence adapters, request/response handling, and route tables; prefer Supabase clients and SQL in migrations over ad hoc SQL in the web app.
 - **`middlewares/`**, **`errors/`**, **`connections/`**, **`config/`**, **`types/`**, **`utils/`**, **`data/`** — Cross-cutting behavior, Supabase/client wiring, shared types, helpers, and supporting data fixtures or reference payloads.
@@ -190,7 +192,7 @@ Documentation UI (layouts, MDX helpers, search, nav):
 
 ## Configuration Files
 
-Paths below are relative to each package root (`backend/` or `web/`).
+Paths below are relative to each package root (`backend/`, `web/`, `common/`, or `orchestrator/` where noted).
 
 ### Backend
 

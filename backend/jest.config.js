@@ -12,6 +12,9 @@ export default {
         "/node_modules/(?!feed|xml-js|flowcraft|@flowcraft/bullmq-adapter|bullmq|ioredis|msgpackr)/",
     ],
     moduleNameMapper: {
+        "^openquok-common$": "<rootDir>/../common/src/index.ts",
+        "^openquok-orchestrator$": "<rootDir>/../orchestrator/index.ts",
+        "^openquok-orchestrator/(.*)\\.js$": "<rootDir>/../orchestrator/$1.ts",
         "^(\\./sentry/index)(\\.js)?$": "<rootDir>/tests/__mocks__/sentry.js",
         "^\\.\\./middlewares/rateLimit$": "<rootDir>/tests/__mocks__/middlewares/rateLimit.js",
         "^(\\.{1,2}/.*)\\.js$": "$1",

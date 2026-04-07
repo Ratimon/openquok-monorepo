@@ -93,23 +93,45 @@ export class UserTestHelper {
         },
         options: { isSuperAdmin?: boolean; isEmailVerified?: boolean } = {}
     ): Promise<{ id: string; email: string; password: string; fullName: string; publicId: string }> {
-        this.trackUser(userData.id);
+        const { data: created, error: createErr } = await this.adminSupabase.auth.admin.createUser({
+            id: userData.id,
+            email: userData.email,
+            password: userData.password,
+            email_confirm: true,
+            user_metadata: { full_name: userData.fullName },
+        });
 
-        try {
-            await this.adminSupabase.auth.admin.createUser({
-                id: userData.id,
-                email: userData.email,
-                password: userData.password,
-                email_confirm: true,
-                user_metadata: { full_name: userData.fullName },
-            });
-        } catch (authErr: unknown) {
-            const msg = authErr instanceof Error ? authErr.message : String(authErr);
-            if (!msg.includes("already registered") && !msg.includes("User already registered")) {
+        let authUserId = userData.id;
+        if (createErr) {
+            const msg = createErr.message ?? "";
+            const duplicate =
+                /already registered|User already registered|duplicate/i.test(msg) ||
+                (createErr as { status?: number }).status === 422;
+            if (!duplicate) {
                 throw new Error(`Failed to create auth user: ${msg}`);
             }
+            const { data: existing } = await this.adminSupabase.auth.admin.getUserById(userData.id);
+            if (existing?.user?.id) {
+                authUserId = existing.user.id;
+            } else {
+                throw new Error(`Auth user already exists but could not be loaded by id: ${msg}`);
+            }
+        } else if (created?.user?.id) {
+            // Use the id returned by Auth; hosted projects may not honor a client-supplied id.
+            authUserId = created.user.id;
         }
-        await new Promise((r) => setTimeout(r, 200));
+
+        this.trackUser(authUserId);
+
+        const { error: upsertErr } = await this.adminSupabase.rpc("internal_upsert_user_from_auth", {
+            p_id: authUserId,
+            p_auth_id: authUserId,
+            p_email: userData.email,
+            p_full_name: userData.fullName,
+        });
+        if (upsertErr) {
+            throw new Error(`Failed to ensure public.users row for test user: ${upsertErr.message}`);
+        }
 
         const isSuperAdmin = options.isSuperAdmin === true;
         const updatePayload: { is_super_admin: boolean; is_email_verified?: boolean } = {
@@ -119,7 +141,7 @@ export class UserTestHelper {
         const { data: updated, error } = await this.adminSupabase
             .from("users")
             .update(updatePayload)
-            .eq("id", userData.id)
+            .eq("id", authUserId)
             .select("id, is_super_admin")
             .single();
         if (error) throw new Error(`Failed to update test user flags: ${error.message}`);
@@ -130,7 +152,7 @@ export class UserTestHelper {
             );
         }
 
-        return { ...userData, publicId: userData.id };
+        return { ...userData, id: authUserId, publicId: authUserId };
     }
 
     trackUser(userId: string): void {

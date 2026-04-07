@@ -1,4 +1,3 @@
-/// <reference types="jest" />
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";

@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import { getEnv, getEnvNumber, getEnvBoolean } from "./envHelper";
 import { logger } from "../utils/Logger";
-import { orchestratorFlows } from "./orchestratorFlows";
+import { orchestratorFlows, type OrchestrationTransport } from "./orchestratorFlows";
 
 const normalizeOrigin = (origin: string): string => origin.trim().replace(/\/+$/, "");
 
@@ -22,6 +22,26 @@ const ENV = process.env.NODE_ENV ?? "development";
 dotenv.config({ path: `.env.${ENV}.local` });
 dotenv.config(); // .env
 const isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
+
+/**
+ * Optional env override for `config.bullmq.*.transport` (see `orchestratorFlows.ts`).
+ * Invalid non-empty values log a warning and fall back to `orchestratorFlows` defaults.
+ */
+function orchestrationTransportFromEnv(envKey: string, fallback: OrchestrationTransport): OrchestrationTransport {
+    const raw = getEnv(envKey, "").trim().toLowerCase();
+    if (raw === "in_process" || raw === "bullmq") {
+        return raw;
+    }
+    if (raw !== "") {
+        logger.warn({
+            msg: "[Config] Invalid orchestrator transport env; using orchestratorFlows default",
+            envKey,
+            value: getEnv(envKey, ""),
+            fallback,
+        });
+    }
+    return fallback;
+}
 
 export type ConfigObject = { [key: string]: unknown };
 
@@ -155,11 +175,17 @@ export const config: ConfigObject = {
                 const underJest = getEnv("JEST_WORKER_ID", "") !== "";
                 return underJest ? false : orchestratorFlows.integrationRefresh.enabled;
             })(),
-            transport: orchestratorFlows.integrationRefresh.transport,
+            transport: orchestrationTransportFromEnv(
+                "ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT",
+                orchestratorFlows.integrationRefresh.transport
+            ),
         },
         notificationEmail: {
             queueName: orchestratorFlows.notificationEmail.queueName,
-            transport: orchestratorFlows.notificationEmail.transport,
+            transport: orchestrationTransportFromEnv(
+                "ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT",
+                orchestratorFlows.notificationEmail.transport
+            ),
             digestFlushIntervalMs: orchestratorFlows.notificationEmail.digestFlushIntervalMs,
             sendPlainMinIntervalMs: orchestratorFlows.notificationEmail.sendPlainMinIntervalMs,
         },

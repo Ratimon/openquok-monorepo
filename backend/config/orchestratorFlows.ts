@@ -2,6 +2,12 @@
  * Flowcraft long-running orchestration: transport, queue names, and enable defaults.
  * Add new flows here as sibling entries instead of growing `.env.development.example` per flow.
  *
+ * **Runtime transport override (optional):** `config/GlobalConfig.ts` reads env after these defaults:
+ * - `ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT` — `in_process` | `bullmq` (empty = use `integrationRefresh.transport` below).
+ * - `ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT` — `in_process` | `bullmq` (empty = use `notificationEmail.transport` below).
+ * Invalid values log a warning and keep the default from this file. Use this to flip BullMQ vs in-process
+ * without editing TypeScript (local dev, CI matrix, or orchestrator Jest when set before `GlobalConfig` loads).
+ *
  * ## Integration token refresh (`integrationRefresh`)
  *
  * After OAuth, integrations with `refreshCron` can run a **supervisor** that sleeps until the access
@@ -19,7 +25,8 @@
  * ## Notification email (`notificationEmail`)
  *
  * - **Transport**: `notificationEmail.transport` is `in_process` (send from the API process) or `bullmq`.
- *   For `bullmq`, run `pnpm worker:notification-email-bullmq` and set `transport` to `bullmq` here.
+ *   For `bullmq`, run `pnpm worker:notification-email-bullmq` and set `transport` to `bullmq` here or via
+ *   `ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT`.
  * - **Digest**: when `NotificationService.inAppNotification` is called with `digest: true`, entries are
  *   stored in Redis and the worker flushes them on `notificationEmail.digestFlushIntervalMs`.
  */

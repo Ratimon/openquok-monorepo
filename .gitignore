@@ -1,9 +1,13 @@
 # Dependencies
 /node_modules
+/orchestrator/node_modules
+/common/node_modules
 .pnpm-store
 
 # Generated files
 /backend/static/routes-manifest.json
+/common/dist
+/orchestrator/dist
 
 # Dotenv / env (never commit secrets; keep example files)
 .env

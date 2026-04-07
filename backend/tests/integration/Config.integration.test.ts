@@ -1,4 +1,3 @@
-/// <reference types="jest" />
 import type { BlogRepository } from "../../repositories/BlogRepository";
 import type { ConfigRepository, ModuleConfigRow } from "../../repositories/ConfigRepository";
 import CacheInvalidationService from "../../connections/cache/CacheInvalidationService";

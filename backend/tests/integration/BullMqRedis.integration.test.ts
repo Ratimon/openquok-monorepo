@@ -1,4 +1,3 @@
-/// <reference types="jest" />
 import { Queue } from "bullmq";
 import { createQueueIoredisClient } from "../../connections/bullmq/createQueueIoredis";
 

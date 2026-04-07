@@ -13,7 +13,7 @@ function quietVerboseLogsNow(): boolean {
 }
 
 const log = (level: "error" | "warn" | "info" | "debug") => (msg: string | object, ...args: unknown[]) => {
-    if (quietVerboseLogsNow() && (level === "info" || level === "debug")) {
+    if (quietVerboseLogsNow() && (level === "info" || level === "debug" || level === "warn")) {
         return;
     }
     const out = typeof msg === "object" ? { ...msg } : { msg, ...(args[0] as object) };

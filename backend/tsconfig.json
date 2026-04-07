@@ -5,6 +5,7 @@
     "moduleResolution": "bundler",
     "outDir": "dist",
     "rootDir": ".",
+    "types": ["node", "jest"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

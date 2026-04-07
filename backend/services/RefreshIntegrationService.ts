@@ -2,10 +2,10 @@ import { config } from "../config/GlobalConfig";
 import { IntegrationManager } from "../integrations/integrationManager";
 import type { IntegrationRepository, IntegrationRow } from "../repositories/IntegrationRepository";
 import type { AuthTokenDetails, SocialProvider } from "../integrations/social.integrations.interface";
-import { runRefreshTokenOrchestration } from "../orchestrator";
+import { runRefreshTokenOrchestration } from "openquok-orchestrator";
 import { logger } from "../utils/Logger";
 
-/** Token refresh orchestration; long-running refresh timing runs as an in-process Flowcraft loop under `backend/orchestrator`. */
+/** Token refresh orchestration; long-running refresh timing runs as an in-process Flowcraft loop under `orchestrator/`. */
 export class RefreshIntegrationService {
     constructor(
         private readonly integrationRepository: IntegrationRepository,

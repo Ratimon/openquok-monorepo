@@ -1,0 +1,47 @@
+{
+  "name": "openquok-orchestrator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Flowcraft workers and long-running orchestration processes",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*": "./dist/*"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "worker:integration-refresh-bullmq": "cross-env NODE_ENV=development tsx worker/runIntegrationRefreshBullMqWorker.ts",
+    "worker:notification-email-bullmq": "cross-env NODE_ENV=development tsx worker/runNotificationEmailBullMqWorker.ts",
+    "test:unit": "cross-env NODE_ENV=development jest --testPathPattern=unit\\.test\\.ts --no-coverage",
+    "test:unit:refresh-token-workflow:in-process": "cross-env NODE_ENV=development jest flows/refreshTokenWorkflow.unit.test.ts --no-coverage",
+    "test:unit:refresh-token-workflow:bullmq": "cross-env NODE_ENV=development ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT=bullmq jest --config=jest.bullmq.config.js --no-coverage",
+    "test:unit:notification-email-workflow": "cross-env NODE_ENV=development jest flows/notificationEmailWorkflow.unit.test.ts --no-coverage"
+  },
+  "dependencies": {
+    "@flowcraft/bullmq-adapter": "^1.4.3",
+    "backend": "workspace:*",
+    "bullmq": "^5.73.0",
+    "openquok-common": "workspace:*",
+    "flowcraft": "^2.9.2",
+    "ioredis": "^5.10.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@faker-js/faker": "^10.3.0",
+    "babel-jest": "^29.7.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.9.0",
+    "cross-env": "^7.0.3",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
