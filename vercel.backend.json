@@ -1,0 +1,16 @@
+{
+	"version": 2,
+	"framework": null,
+	"env": {
+		"OPENQUOK_SKIP_STANDALONE_LISTEN": "1"
+	},
+	"outputDirectory": "backend/public",
+	"installCommand": "pnpm install --frozen-lockfile",
+	"buildCommand": "cd backend && npx tsup && sh scripts/vercel-clean-after-build.sh",
+	"rewrites": [
+		{
+			"source": "/(.*)",
+			"destination": "/api"
+		}
+	]
+}

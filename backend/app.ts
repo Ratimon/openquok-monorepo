@@ -42,16 +42,6 @@ const checkConfigIsValid = () => {
     logger.info({ msg: "[Config] Configuration validation passed" });
 };
 
-try {
-    checkConfigIsValid();
-} catch (error) {
-    logger.error({
-        msg: "[Config] CRITICAL: Configuration validation failed",
-        error: error instanceof Error ? error.message : "Unknown error",
-    });
-    throw error;
-}
-
 const getCorsOptions = () => {
     const c = config.cors as {
         allowedOrigins?: string[] | string;
@@ -103,6 +93,16 @@ const app: Express = express();
  */
 async function createApp(): Promise<Express> {
     const { config } = await import("./config/GlobalConfig");
+
+    try {
+        checkConfigIsValid();
+    } catch (error) {
+        logger.error({
+            msg: "[Config] CRITICAL: Configuration validation failed",
+            error: error instanceof Error ? error.message : "Unknown error",
+        });
+        throw error;
+    }
 
     app.set("trust proxy", 1);
 
@@ -181,8 +181,28 @@ async function createApp(): Promise<Express> {
     return app;
 }
 
+/**
+ * Skip standalone `listen()` when this bundle runs as a Vercel/Lambda serverless function.
+ * Do not rely only on VERCEL=* — system env exposure can be disabled; vercel.json `env` is not always applied as expected.
+ * Node functions on Vercel run on AWS Lambda and expose standard Lambda env (e.g. AWS_LAMBDA_FUNCTION_NAME).
+ */
+function isRunningOnVercel(): boolean {
+    if (process.env.OPENQUOK_SKIP_STANDALONE_LISTEN === "1") {
+        return true;
+    }
+    return Boolean(
+        process.env.VERCEL ||
+            process.env.VERCEL_ENV ||
+            process.env.VERCEL_URL ||
+            process.env.VERCEL_DEPLOYMENT_ID ||
+            process.env.AWS_LAMBDA_FUNCTION_NAME ||
+            process.env.AWS_EXECUTION_ENV === "AWS_Lambda"
+    );
+}
+
 // Local/ECS: start the server. Vercel: handler/index.ts calls createApp() and uses the app as handler.
-if (!process.env.VERCEL) {
+// Do not use process.env.VERCEL alone: "Automatically expose System Environment Variables" can be off in the project.
+if (!isRunningOnVercel()) {
     createApp()
         .then(async (configuredApp) => {
             const { config } = await import("./config/GlobalConfig");
@@ -202,7 +222,10 @@ if (!process.env.VERCEL) {
                 msg: "[App] Error stack",
                 stack: error instanceof Error ? error.stack : "No stack trace",
             });
-            process.exit(1);
+            // Never process.exit in this shared bundle: it is imported by Vercel serverless and would kill the isolate (FUNCTION_INVOCATION_FAILED).
+            if (!isRunningOnVercel()) {
+                process.exit(1);
+            }
         });
 }
 

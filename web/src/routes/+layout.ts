@@ -1,5 +1,6 @@
 import type { LayoutLoad } from './$types';
 import { browser } from '$app/environment';
+import { normalizeApiBaseUrl } from '$lib/utils/path';
 
 export const load: LayoutLoad = async ({ data, depends, fetch, url }) => {
 	if (browser) {
@@ -10,7 +11,7 @@ export const load: LayoutLoad = async ({ data, depends, fetch, url }) => {
 		if (code && url.pathname === '/') {
 			try {
 				const { CONFIG_SCHEMA_BACKEND } = await import('$lib/config/constants/config');
-				let base = String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? '').trim().replace(/\/+$/, '');
+				let base = normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
 				if (!base) base = url.origin;
 				const callback = new URL('/api/v1/auth/oauth/google/callback', `${base}/`);
 				callback.searchParams.set('code', code);

@@ -1,3 +1,5 @@
+import { normalizeApiBaseUrl } from '$lib/utils/path';
+
 /**
  * HTTP methods
  */
@@ -86,7 +88,7 @@ export class HttpGateway {
 	private requestInterceptors: RequestInterceptor[];
 
 	constructor(baseUrl = '', defaultOptions: Partial<ApiRequestOptions> = {}) {
-		this.baseUrl = baseUrl;
+		this.baseUrl = normalizeApiBaseUrl(baseUrl);
 		this.defaultOptions = {
 			method: HttpMethod.GET,
 			headers: {
@@ -189,7 +191,7 @@ export class HttpGateway {
 		url: string,
 		params?: Record<string, string | number | boolean | null | undefined>
 	): string {
-		const base = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
+		const base = this.baseUrl;
 		const path = url.startsWith('/') ? url : `/${url}`;
 		let full = `${base}${path}`;
 		if (params && Object.keys(params).length > 0) {

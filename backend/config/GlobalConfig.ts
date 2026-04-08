@@ -1,4 +1,5 @@
 import { getEnv, getEnvNumber, getEnvBoolean } from "./envHelper";
+import { DEFAULT_API_PREFIX, normalizeApiPrefix } from "./apiPrefix";
 import { logger } from "../utils/Logger";
 import * as loadBackendDotenvCjs from "./loadBackendDotenv.cjs";
 
@@ -22,6 +23,16 @@ const deriveWwwVariants = (origin: string): string[] => {
 
 loadBackendDotenv();
 const isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
+
+const rawApiPrefix = getEnv("API_PREFIX", DEFAULT_API_PREFIX);
+const resolvedApiPrefix = normalizeApiPrefix(rawApiPrefix);
+if (rawApiPrefix.trim() && resolvedApiPrefix !== rawApiPrefix.trim().replace(/\/+$/, "")) {
+	logger.warn({
+		msg: "[Config] API_PREFIX normalized so mounted routes match /api/v1-style URLs",
+		from: rawApiPrefix,
+		to: resolvedApiPrefix,
+	});
+}
 
 /**
  * Optional env override for `config.bullmq.*.transport` (see `orchestratorFlows.ts`).
@@ -61,7 +72,7 @@ export const config: ConfigObject = {
     },
 
     api: {
-        prefix: getEnv("API_PREFIX", "/api/v1"),
+        prefix: resolvedApiPrefix,
     },
 
     cors: {

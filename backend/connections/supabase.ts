@@ -57,10 +57,34 @@ function getSameSiteValue(): "lax" | "none" {
     }
 }
 
-export const supabase = createClient<Database>(
-    supabaseConfig.supabaseUrl,
-    supabaseConfig.supabaseAnonKey
-);
+let supabaseAnonSingleton: SupabaseClient<Database> | undefined;
+
+function getSupabaseAnonClient(): SupabaseClient<Database> {
+    if (!supabaseAnonSingleton) {
+        const url = (supabaseConfig.supabaseUrl ?? "").trim();
+        const key = (supabaseConfig.supabaseAnonKey ?? "").trim();
+        if (!url) {
+            throw new Error("PUBLIC_SUPABASE_URL (or config.supabase.supabaseUrl) is required");
+        }
+        if (!key) {
+            throw new Error("PUBLIC_SUPABASE_ANON_KEY (or config.supabase.supabaseAnonKey) is required");
+        }
+        supabaseAnonSingleton = createClient<Database>(url, key);
+    }
+    return supabaseAnonSingleton;
+}
+
+/** Lazily created anon client so missing env does not crash module load (e.g. serverless cold start). */
+export const supabase = new Proxy({} as SupabaseClient<Database>, {
+    get(_target, prop, receiver) {
+        const client = getSupabaseAnonClient();
+        const value = Reflect.get(client, prop, receiver);
+        if (typeof value === "function") {
+            return (value as (...a: unknown[]) => unknown).bind(client);
+        }
+        return value;
+    },
+});
 
 export const createSupabaseBrowserClient = () => {
     return createBrowserClient<Database>(

@@ -13,6 +13,8 @@ const SIGNOUT_REFRESH_SUPPRESSION_KEY = 'auth_signout_refresh_suppressed_until';
 const SIGNOUT_REFRESH_SUPPRESSION_MS = 45 * 1000; // enough for navigation/layout reload
 // Prevent redundant refresh attempts after refresh fails with 401.
 // This happens when auth check runs on navigation (e.g. `/` -> `/sign-in`).
+// sessionStorage (not localStorage): scoped per tab. Survives SPA navigations but not a new tab/window,
+// so a failed refresh in another tab cannot block POST /auth/refresh after you open the site again.
 const REFRESH_FAILURE_SUPPRESSION_KEY = 'auth_refresh_failure_suppressed_until';
 const REFRESH_FAILURE_SUPPRESSION_MS = 10 * 1000; // short: avoid UX delays for recovery flows
 const TOKEN_EXPIRATION_MS = 60 * 60 * 1000; // 1 hour
@@ -662,13 +664,13 @@ export class AuthenticationRepository {
 	private isRefreshFailureSuppressed(): boolean {
 		if (typeof window === 'undefined') return false;
 		try {
-			const raw = localStorage.getItem(REFRESH_FAILURE_SUPPRESSION_KEY);
+			const raw = sessionStorage.getItem(REFRESH_FAILURE_SUPPRESSION_KEY);
 			if (!raw) return false;
 			const until = Number(raw);
 			if (!Number.isFinite(until) || until <= 0) return false;
 			if (Date.now() >= until) {
 				// Expired: clear so future loads can refresh normally.
-				localStorage.removeItem(REFRESH_FAILURE_SUPPRESSION_KEY);
+				sessionStorage.removeItem(REFRESH_FAILURE_SUPPRESSION_KEY);
 				return false;
 			}
 			return true;
@@ -679,16 +681,20 @@ export class AuthenticationRepository {
 
 	private suppressRefreshFailures(): void {
 		if (typeof window === 'undefined') return;
-		localStorage.setItem(
-			REFRESH_FAILURE_SUPPRESSION_KEY,
-			String(Date.now() + REFRESH_FAILURE_SUPPRESSION_MS)
-		);
+		try {
+			sessionStorage.setItem(
+				REFRESH_FAILURE_SUPPRESSION_KEY,
+				String(Date.now() + REFRESH_FAILURE_SUPPRESSION_MS)
+			);
+		} catch {
+			// ignore (e.g. storage disabled)
+		}
 	}
 
 	private clearRefreshFailureSuppression(): void {
 		if (typeof window === 'undefined') return;
 		try {
-			localStorage.removeItem(REFRESH_FAILURE_SUPPRESSION_KEY);
+			sessionStorage.removeItem(REFRESH_FAILURE_SUPPRESSION_KEY);
 		} catch {
 			// ignore
 		}

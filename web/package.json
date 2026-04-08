@@ -6,7 +6,7 @@
 	"license": "AGPL-3.0-or-later",
 	"scripts": {
 		"---------------------- DEV WORKFLOW ----------------------": "",
-		"generate_icon": "pwag static/icon.svg src/web-config.json && cp static/pwa/favicon-512.png static/maskable_icon_512x512.png",
+		"generate_icon": "node ./scripts/generate-icon.mjs",
 		"generate-routes-manifest": "node ../scripts/generate-routes-manifest.mjs",
 		"clean": "rm -rf node_modules && rm -f pnpm-lock.yaml && pnpm install",
 		"clean:kit": "rm -rf .svelte-kit node_modules/.vite",

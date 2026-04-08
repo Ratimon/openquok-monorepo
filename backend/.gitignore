@@ -3,6 +3,10 @@
 
 # Vercel sourcemap output from tsup bundle
 /api/index.js.map
+/api/[[...path]].js.map
+
+# Vercel outputDirectory (created by vercel-clean-after-build.sh; no index.html)
+/public
 
 # Dotenv files
 .env*.local

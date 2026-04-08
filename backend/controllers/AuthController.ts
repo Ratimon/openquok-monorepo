@@ -98,8 +98,21 @@ export class AuthController {
         }
     }
 
-    private setRefreshTokenCookie(res: Response, refreshToken: string): void {
+    /**
+     * Options shared by Set-Cookie and Clear-Cookie for refreshToken.
+     * `Secure` is required whenever SameSite is `none`; without it browsers reject the cookie,
+     * which breaks cross-origin refresh after access token expiry (~1h) or a new tab load.
+     */
+    private getRefreshTokenCookieOptions(): {
+        httpOnly: true;
+        secure: boolean;
+        sameSite: "lax" | "none";
+        path: string;
+        domain?: string;
+    } {
         const isProduction = serverConfig.nodeEnv === "production";
+        const sameSite = this.getSameSiteValue();
+        const secure = isProduction || sameSite === "none";
         const domain = (() => {
             if (!isProduction) return undefined;
             try {
@@ -119,14 +132,24 @@ export class AuthController {
             }
         })();
 
-        res.cookie("refreshToken", refreshToken, {
+        return {
             httpOnly: true,
-            secure: isProduction,
-            sameSite: this.getSameSiteValue(),
-            maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
+            secure,
+            sameSite,
             path: "/",
             ...(domain ? { domain } : {}),
+        };
+    }
+
+    private setRefreshTokenCookie(res: Response, refreshToken: string): void {
+        res.cookie("refreshToken", refreshToken, {
+            ...this.getRefreshTokenCookieOptions(),
+            maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
         });
+    }
+
+    private clearRefreshTokenCookie(res: Response): void {
+        res.clearCookie("refreshToken", this.getRefreshTokenCookieOptions());
     }
 
     /**
@@ -171,10 +194,11 @@ export class AuthController {
             // Store intended post-login path on the backend origin so Supabase redirect_to stays stable.
             // This avoids Supabase falling back to Site URL when query params cause allow-list mismatches.
             const safeNext = nextPath && nextPath.startsWith("/") ? nextPath : "/account";
+            const oauthSameSite = this.getSameSiteValue();
             res.cookie("oauthNext", safeNext, {
                 httpOnly: true,
-                secure: serverConfig.nodeEnv === "production",
-                sameSite: this.getSameSiteValue(),
+                secure: serverConfig.nodeEnv === "production" || oauthSameSite === "none",
+                sameSite: oauthSameSite,
                 maxAge: 10 * 60 * 1000, // 10 minutes
                 path: "/",
             });
@@ -462,7 +486,7 @@ export class AuthController {
                     logger.warn({ msg: "Failed to revoke refresh token", error: (err as Error).message });
                 }
             }
-            res.clearCookie("refreshToken");
+            this.clearRefreshTokenCookie(res);
             await this.authenticationService.signOut({ req, res });
             logger.info({ msg: "User signed out" });
             res.status(200).json({ success: true, message: "Signed out successfully" });
@@ -507,12 +531,29 @@ export class AuthController {
                 message: "Token refreshed successfully",
             });
         } catch (error) {
-            // Clear custom refresh cookie on any refresh failure to avoid being stuck with a spent/invalid token.
-            if (req.cookies?.refreshToken) res.clearCookie("refreshToken");
-
             // Normalize Supabase refresh token failures to 401 (Supabase sometimes reports them as 400).
             const message =
                 error instanceof Error ? error.message : typeof error === "string" ? error : "";
+
+            // Origin / CSRF policy: do not clear the cookie — fix ALLOWED_FRONTEND_ORIGINS / FRONTEND_DOMAIN_URL instead.
+            if (error instanceof AuthError && error.statusCode === 403 && message.includes("Origin")) {
+                next(error);
+                return;
+            }
+
+            const shouldClearSpentRefreshCookie =
+                message.includes("Invalid Refresh Token") ||
+                message.includes("Refresh Token Not Found") ||
+                error instanceof DatabaseEntityNotFoundError ||
+                error instanceof ValidationError ||
+                error instanceof TokenError;
+
+            // Only clear when the refresh token is invalid or spent — not on infra errors (DB/Supabase outages),
+            // so users are not forced to re-login after transient failures.
+            if (shouldClearSpentRefreshCookie && req.cookies?.refreshToken) {
+                this.clearRefreshTokenCookie(res);
+            }
+
             if (message.includes("Invalid Refresh Token") || message.includes("Refresh Token Not Found")) {
                 res.status(401).json({
                     success: false,
@@ -524,6 +565,14 @@ export class AuthController {
             // Invalid/missing/revoked/expired refresh token → 401 so client treats as unauthenticated; do not send to Sentry
             if (error instanceof DatabaseEntityNotFoundError || error instanceof ValidationError) {
                 logger.debug({ msg: "Refresh token invalid or not found", reason: (error as Error).message });
+                res.status(401).json({
+                    success: false,
+                    message: "Session expired or invalid. Please sign in again.",
+                    error: { type: "Unauthorized", message: (error as Error).message },
+                });
+                return;
+            }
+            if (error instanceof TokenError) {
                 res.status(401).json({
                     success: false,
                     message: "Session expired or invalid. Please sign in again.",

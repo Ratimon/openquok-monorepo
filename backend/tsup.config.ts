@@ -1,8 +1,11 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
+	// Vercel's rewrite destination `/api` resolves to api/index.js — that file must exist.
+	// api/[[...path]].js is the optional catch-all so /api/v1/* reaches Express (index alone would not).
 	entry: {
 		"api/index": "handler/index.ts",
+		"api/[[...path]]": "handler/index.ts",
 	},
 	format: ["cjs"],
 	outDir: ".",

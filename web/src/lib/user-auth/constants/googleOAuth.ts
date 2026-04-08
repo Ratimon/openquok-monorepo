@@ -1,4 +1,5 @@
 import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
+import { normalizeApiBaseUrl } from '$lib/utils/path';
 
 /** Backend route: starts Google OAuth (redirect to Supabase / provider). */
 export const OAUTH_GOOGLE_PATH = '/api/v1/auth/oauth/google';
@@ -8,7 +9,7 @@ export const OAUTH_GOOGLE_PATH = '/api/v1/auth/oauth/google';
  * `next` must be a safe path for the backend callback (leading `/`, or we derive path from an absolute URL).
  */
 export function getGoogleOAuthStartUrl(options?: { next?: string | null }): string {
-	let base = String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? '').trim().replace(/\/+$/, '');
+	let base = normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
 	if (!base) base = 'http://localhost:3000';
 
 	const url = new URL(OAUTH_GOOGLE_PATH, `${base}/`);

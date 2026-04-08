@@ -1,9 +1,10 @@
 import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
+import { normalizeApiBaseUrl } from '$lib/utils/path';
 
 import { BLOG_IMAGES_BUCKET } from '$lib/blog/constants/config';
 
 function trimApiBase(): string {
-	return String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? '').replace(/\/$/, '');
+	return normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
 }
 
 /** Encode each path segment for use in a URL path (Supabase public object URL). */

@@ -1,6 +1,7 @@
 {
 	"version": 2,
-	"framework": "sveltekit",
-	"installCommand": "npm install",
-	"buildCommand": "npx vite build"
+	"framework": null,
+	"outputDirectory": ".vercel/output",
+	"installCommand": "cd .. && pnpm install --frozen-lockfile",
+	"buildCommand": "VERCEL=1 pnpm run build"
 }

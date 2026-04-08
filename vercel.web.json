@@ -1,0 +1,7 @@
+{
+	"version": 2,
+	"framework": null,
+	"outputDirectory": "web/.vercel/output",
+	"installCommand": "pnpm install --frozen-lockfile",
+	"buildCommand": "VERCEL=1 pnpm --filter web build"
+}

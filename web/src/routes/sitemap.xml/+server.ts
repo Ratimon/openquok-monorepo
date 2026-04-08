@@ -1,5 +1,6 @@
 import { mergeDocsUrlsIntoUrlset } from '$lib/docs/utils/merge-docs-sitemap';
 import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
+import { normalizeApiBaseUrl } from '$lib/utils/path';
 
 export async function GET({
 	url,
@@ -11,8 +12,8 @@ export async function GET({
 	const siteUrl = resolvePublicSiteUrl(url);
 
 	try {
-		const backendUrl = process.env.VITE_API_BASE_URL || 'http://localhost:3000';
-		const backendSitemapUrl = `${backendUrl.replace(/\/$/, '')}/sitemap.xml`;
+		const backendUrl = normalizeApiBaseUrl(process.env.VITE_API_BASE_URL || 'http://localhost:3000');
+		const backendSitemapUrl = `${backendUrl}/sitemap.xml`;
 
 		const fetchFn = serverFetch || fetch;
 

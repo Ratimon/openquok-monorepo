@@ -1,7 +1,7 @@
 import type { ModuleConfigSchema } from '$lib/config/constants/types';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
-import { route } from '$lib/utils/path';
+import { normalizeApiBaseUrl, route } from '$lib/utils/path';
 
 const publicBlogPath = route(getRootPathPublicBlog());
 const publicDocsPath = route(getRootPathPublicDocs());
@@ -11,13 +11,18 @@ const appTitle = 'An agentic social media manager';
 const appDescription = 'Openquok web application';
 
 function getApiBaseUrl(): string {
-	if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
-		return import.meta.env.VITE_API_BASE_URL as string;
+	// Distinguish "unset" from empty string: `VITE_API_BASE_URL=""` means same-origin API (path-only URLs).
+	let raw: string | undefined;
+	if (typeof import.meta !== 'undefined' && import.meta.env && 'VITE_API_BASE_URL' in import.meta.env) {
+		const v = import.meta.env.VITE_API_BASE_URL;
+		raw = v === undefined || v === null ? undefined : String(v).trim();
+	} else if (typeof process !== 'undefined' && process.env && 'VITE_API_BASE_URL' in process.env) {
+		const v = process.env.VITE_API_BASE_URL;
+		raw = v === undefined || v === null ? undefined : String(v).trim();
 	}
-	if (typeof process !== 'undefined' && process.env?.VITE_API_BASE_URL) {
-		return process.env.VITE_API_BASE_URL as string;
-	}
-	return 'http://localhost:3000';
+	if (raw === '') return '';
+	if (raw !== undefined) return normalizeApiBaseUrl(raw);
+	return normalizeApiBaseUrl('http://localhost:3000');
 }
 
 export const CONFIG_SCHEMA_BACKEND: ModuleConfigSchema = {

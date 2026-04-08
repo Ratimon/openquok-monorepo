@@ -1,6 +1,14 @@
 import { base } from '$app/paths';
 
 /**
+ * Trim and remove trailing slashes from an API origin (e.g. `VITE_API_BASE_URL`) so
+ * joining with paths like `/api/v1/...` never produces `//` (which can redirect and break CORS preflight).
+ */
+export function normalizeApiBaseUrl(baseUrl: string): string {
+	return baseUrl.trim().replace(/\/+$/, '');
+}
+
+/**
  * Build absolute URL for a path (client-side only; on server returns path as-is).
  */
 export function absoluteUrl(path: string): string {
