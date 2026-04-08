@@ -11,18 +11,15 @@ const appTitle = 'An agentic social media manager';
 const appDescription = 'Openquok web application';
 
 function getApiBaseUrl(): string {
-	// Distinguish "unset" from empty string: `VITE_API_BASE_URL=""` means same-origin API (path-only URLs).
-	let raw: string | undefined;
-	if (typeof import.meta !== 'undefined' && import.meta.env && 'VITE_API_BASE_URL' in import.meta.env) {
-		const v = import.meta.env.VITE_API_BASE_URL;
-		raw = v === undefined || v === null ? undefined : String(v).trim();
-	} else if (typeof process !== 'undefined' && process.env && 'VITE_API_BASE_URL' in process.env) {
-		const v = process.env.VITE_API_BASE_URL;
-		raw = v === undefined || v === null ? undefined : String(v).trim();
+	let raw: string;
+	if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
+		raw = import.meta.env.VITE_API_BASE_URL as string;
+	} else if (typeof process !== 'undefined' && process.env?.VITE_API_BASE_URL) {
+		raw = process.env.VITE_API_BASE_URL as string;
+	} else {
+		raw = 'http://localhost:3000';
 	}
-	if (raw === '') return '';
-	if (raw !== undefined) return normalizeApiBaseUrl(raw);
-	return normalizeApiBaseUrl('http://localhost:3000');
+	return normalizeApiBaseUrl(raw);
 }
 
 export const CONFIG_SCHEMA_BACKEND: ModuleConfigSchema = {
