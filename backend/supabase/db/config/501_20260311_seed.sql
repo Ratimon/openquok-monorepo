@@ -21,7 +21,8 @@ INSERT INTO public.module_configs (module_name, config) VALUES
   "SUPPORT_PHONE": "",
   "FOUNDING_YEAR": "",
   "RESPONSIBLE_PERSON": ""
-}'::jsonb);
+}'::jsonb)
+ON CONFLICT (module_name) DO NOTHING;
 
 -- ---------------------------
 -- Marketing Information Config
@@ -36,7 +37,8 @@ INSERT INTO public.module_configs (module_name, config) VALUES
   "SOCIAL_LINKS_FACEBOOK": "",
   "SOCIAL_LINKS_INSTAGRAM": "",
   "SOCIAL_LINKS_YOUTUBE": ""
-}'::jsonb);
+}'::jsonb)
+ON CONFLICT (module_name) DO NOTHING;
 
 -- ---------------------------
 -- Landing Page Config
@@ -89,7 +91,8 @@ INSERT INTO public.module_configs (module_name, config) VALUES
   "CTA_BANNER_BIG_SUBTITLE": "GETTING STARTED",
   "CTA_BANNER_BIG_TITLE": "Get Started",
   "CTA_BANNER_BIG_DESCRIPTION": "Create your account and get started today."
-}'::jsonb);
+}'::jsonb)
+ON CONFLICT (module_name) DO NOTHING;
 
 -- ---------------------------
 -- END OF FILE

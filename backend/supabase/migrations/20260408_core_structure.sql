@@ -327,7 +327,7 @@ COMMENT ON TABLE public.role_permissions IS 'Maps app roles to their permissions
 -- MODULE CONFIGS
 -- ---------------------------
 
-CREATE TABLE public.module_configs (
+CREATE TABLE IF NOT EXISTS public.module_configs (
   module_name TEXT PRIMARY KEY,
   config JSONB NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -471,6 +471,8 @@ ALTER TABLE public.users
 COMMENT ON COLUMN public.users.last_read_notifications IS 'Cursor for unread in-app notification count (per user)';
 COMMENT ON COLUMN public.users.send_success_emails IS 'When false, org notification emails typed as success are skipped for this user';
 COMMENT ON COLUMN public.users.send_failure_emails IS 'When false, org notification emails typed as failure are skipped for this user';
+
+CREATE INDEX IF NOT EXISTS idx_users_last_read_notifications ON public.users(last_read_notifications);
 
 
 -- Module: user-management, File: 200_20260227_indexes.sql
@@ -1618,6 +1620,7 @@ CREATE POLICY "Super admin admins editors can view all activities" ON public.blo
 -- ---------------------------
 -- Blog Images Storage Policies
 -- ---------------------------
+DROP POLICY IF EXISTS "Allow authenticated users to delete their blog images" ON storage.objects;
 CREATE POLICY "Allow authenticated users to delete their blog images" 
     ON storage.objects
     AS PERMISSIVE
@@ -1629,6 +1632,7 @@ CREATE POLICY "Allow authenticated users to delete their blog images"
         AND auth.uid() = owner
     );
 
+DROP POLICY IF EXISTS "Allow authenticated users to update their blog images" ON storage.objects;
 CREATE POLICY "Allow authenticated users to update their blog images" 
     ON storage.objects
     AS PERMISSIVE
@@ -1652,6 +1656,7 @@ CREATE POLICY "Allow authenticated users to upload blog images"
         AND auth.uid() = owner
     );
 
+DROP POLICY IF EXISTS "Allow read access to blog images" ON storage.objects;
 CREATE POLICY "Allow read access to blog images"
     ON storage.objects
     AS PERMISSIVE
@@ -1661,6 +1666,7 @@ CREATE POLICY "Allow read access to blog images"
         bucket_id = 'blog_images'::text
     );
 
+DROP POLICY IF EXISTS "Allow service_role to manage blog images" ON storage.objects;
 CREATE POLICY "Allow service_role to manage blog images" 
     ON storage.objects
     AS PERMISSIVE
@@ -2602,16 +2608,19 @@ END;
 $$ language 'plpgsql';
 
 -- Apply to all tables with updated_at
+DROP TRIGGER IF EXISTS update_blog_posts_updated_at ON public.blog_posts;
 CREATE TRIGGER update_blog_posts_updated_at
     BEFORE UPDATE ON public.blog_posts
     FOR EACH ROW
     EXECUTE FUNCTION public.update_blog_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_blog_topics_updated_at ON public.blog_topics;
 CREATE TRIGGER update_blog_topics_updated_at
     BEFORE UPDATE ON public.blog_topics
     FOR EACH ROW
     EXECUTE FUNCTION public.update_blog_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_blog_comments_updated_at ON public.blog_comments;
 CREATE TRIGGER update_blog_comments_updated_at
     BEFORE UPDATE ON public.blog_comments
     FOR EACH ROW
@@ -2668,6 +2677,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_post_slug ON public.blog_posts;
 CREATE TRIGGER set_post_slug
     BEFORE INSERT ON public.blog_posts
     FOR EACH ROW
@@ -2686,6 +2696,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_topic_slug ON public.blog_topics;
 CREATE TRIGGER set_topic_slug
     BEFORE INSERT ON public.blog_topics
     FOR EACH ROW
@@ -2713,6 +2724,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_reading_time ON public.blog_posts;
 CREATE TRIGGER set_reading_time
     BEFORE INSERT OR UPDATE OF content ON public.blog_posts
     FOR EACH ROW
@@ -2734,6 +2746,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_published_at ON public.blog_posts;
 CREATE TRIGGER set_published_at
     BEFORE UPDATE ON public.blog_posts
     FOR EACH ROW
@@ -2757,6 +2770,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_post_view_count ON public.blog_activities;
 CREATE TRIGGER update_post_view_count
     AFTER INSERT ON public.blog_activities
     FOR EACH ROW
@@ -2897,7 +2911,8 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.module_configs (module_name, config) VALUES
 ('user_auth', '{
   "ALLOW_USER_SIGNUPS": "true"
-}'::jsonb);
+}'::jsonb)
+ON CONFLICT (module_name) DO NOTHING;
 
 
 -- ---------------------------
@@ -2942,7 +2957,8 @@ INSERT INTO public.module_configs (module_name, config) VALUES
   "SUPPORT_PHONE": "",
   "FOUNDING_YEAR": "",
   "RESPONSIBLE_PERSON": ""
-}'::jsonb);
+}'::jsonb)
+ON CONFLICT (module_name) DO NOTHING;
 
 -- ---------------------------
 -- Marketing Information Config
@@ -2957,7 +2973,8 @@ INSERT INTO public.module_configs (module_name, config) VALUES
   "SOCIAL_LINKS_FACEBOOK": "",
   "SOCIAL_LINKS_INSTAGRAM": "",
   "SOCIAL_LINKS_YOUTUBE": ""
-}'::jsonb);
+}'::jsonb)
+ON CONFLICT (module_name) DO NOTHING;
 
 -- ---------------------------
 -- Landing Page Config
@@ -3010,7 +3027,8 @@ INSERT INTO public.module_configs (module_name, config) VALUES
   "CTA_BANNER_BIG_SUBTITLE": "GETTING STARTED",
   "CTA_BANNER_BIG_TITLE": "Get Started",
   "CTA_BANNER_BIG_DESCRIPTION": "Create your account and get started today."
-}'::jsonb);
+}'::jsonb)
+ON CONFLICT (module_name) DO NOTHING;
 
 -- ---------------------------
 -- END OF FILE

@@ -5,7 +5,7 @@ import {
     requireSupport,
     optionalAuthWithRoles,
 } from "../middlewares/authenticateUser";
-import { supabaseServiceClientConnection } from "../connections/index";
+import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
 import { validateRequest } from "../middlewares/validateRequest";
 import { feedbackSchema } from "../data/schemas/feedbackSchemas";
@@ -13,12 +13,12 @@ import { feedbackSchema } from "../data/schemas/feedbackSchemas";
 type FeedbackRouter = ReturnType<typeof Router>;
 const feedbackRouter: FeedbackRouter = Router();
 const authWithRoles = requireFullAuthWithRoles(
-    supabaseServiceClientConnection,
+    supabaseAnonClient,
     userRepository,
     rbacRepository
 );
 const optionalAuth = optionalAuthWithRoles(
-    supabaseServiceClientConnection,
+    supabaseAnonClient,
     userRepository,
     rbacRepository
 );

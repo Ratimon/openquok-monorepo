@@ -21,16 +21,19 @@ END;
 $$ language 'plpgsql';
 
 -- Apply to all tables with updated_at
+DROP TRIGGER IF EXISTS update_blog_posts_updated_at ON public.blog_posts;
 CREATE TRIGGER update_blog_posts_updated_at
     BEFORE UPDATE ON public.blog_posts
     FOR EACH ROW
     EXECUTE FUNCTION public.update_blog_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_blog_topics_updated_at ON public.blog_topics;
 CREATE TRIGGER update_blog_topics_updated_at
     BEFORE UPDATE ON public.blog_topics
     FOR EACH ROW
     EXECUTE FUNCTION public.update_blog_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_blog_comments_updated_at ON public.blog_comments;
 CREATE TRIGGER update_blog_comments_updated_at
     BEFORE UPDATE ON public.blog_comments
     FOR EACH ROW
@@ -87,6 +90,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_post_slug ON public.blog_posts;
 CREATE TRIGGER set_post_slug
     BEFORE INSERT ON public.blog_posts
     FOR EACH ROW
@@ -105,6 +109,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_topic_slug ON public.blog_topics;
 CREATE TRIGGER set_topic_slug
     BEFORE INSERT ON public.blog_topics
     FOR EACH ROW
@@ -132,6 +137,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_reading_time ON public.blog_posts;
 CREATE TRIGGER set_reading_time
     BEFORE INSERT OR UPDATE OF content ON public.blog_posts
     FOR EACH ROW
@@ -153,6 +159,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_published_at ON public.blog_posts;
 CREATE TRIGGER set_published_at
     BEFORE UPDATE ON public.blog_posts
     FOR EACH ROW
@@ -176,6 +183,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_post_view_count ON public.blog_activities;
 CREATE TRIGGER update_post_view_count
     AFTER INSERT ON public.blog_activities
     FOR EACH ROW

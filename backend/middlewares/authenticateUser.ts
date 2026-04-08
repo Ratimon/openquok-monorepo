@@ -45,6 +45,7 @@ function parseBearerToken(req: Request): string {
     return token.trim();
 }
 
+/** @param supabase Anon client (same project as user JWTs); not the service-role client. */
 export function requireFullAuth(supabase: SupabaseClient) {
     return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -81,6 +82,7 @@ export function requireFullAuth(supabase: SupabaseClient) {
  * Full auth + load roles/permissions and public user id.
  * Use this when routes need role or permission checks (e.g. requireEditor).
  */
+/** @param supabase Anon client for `auth.getUser`; repositories use service role separately. */
 export function requireFullAuthWithRoles(
     supabase: SupabaseClient,
     userRepository: UserRepository,
@@ -138,6 +140,7 @@ export function requireFullAuthWithRoles(
  * If no token or token invalid/expired, continues without setting req.user (anonymous).
  * Use for endpoints that support both authenticated and anonymous calls (e.g. track blog activity).
  */
+/** @param supabase Anon client for `auth.getUser`; repositories use service role separately. */
 export function optionalAuthWithRoles(
     supabase: SupabaseClient,
     userRepository: UserRepository,

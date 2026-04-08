@@ -9,14 +9,14 @@ import {
     requireAdmin,
     requirePermission,
 } from "../middlewares/authenticateUser";
-import { supabaseServiceClientConnection } from "../connections/index";
+import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
 
 type UserRouter = ReturnType<typeof Router>;
 
 const userRouter: UserRouter = Router();
 const authWithRoles = requireFullAuthWithRoles(
-    supabaseServiceClientConnection,
+    supabaseAnonClient,
     userRepository,
     rbacRepository
 );

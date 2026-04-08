@@ -97,6 +97,35 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// config/apiPrefix.ts
+function normalizeApiPrefix(raw) {
+  let p = raw.trim().replace(/\/+$/, "");
+  if (!p) {
+    return DEFAULT_API_PREFIX;
+  }
+  if (!p.startsWith("/")) {
+    p = `/${p}`;
+  }
+  if (!p.startsWith("/api") && /^\/v\d+(\/|$)/.test(p)) {
+    return `/api${p}`;
+  }
+  return p;
+}
+function apiPathAfterFunctionsDirectory(apiPrefix) {
+  const raw = normalizeApiPrefix(apiPrefix).replace(/\/+$/, "") || DEFAULT_API_PREFIX;
+  if (!raw.startsWith("/api")) {
+    return "";
+  }
+  const rest = raw.slice("/api".length);
+  return rest || "/";
+}
+var DEFAULT_API_PREFIX;
+var init_apiPrefix = __esm({
+  "config/apiPrefix.ts"() {
+    DEFAULT_API_PREFIX = "/api/v1";
+  }
+});
+
 // config/envHelper.ts
 function getEnv(key, defaultValue) {
   return process.env[key] ?? defaultValue ?? "";
@@ -243,10 +272,11 @@ function orchestrationTransportFromEnv(envKey, fallback) {
   }
   return fallback;
 }
-var loadBackendDotenvCjs, loadBackendDotenv, normalizeOrigin, deriveWwwVariants, isProductionEnv, config, server;
+var loadBackendDotenvCjs, loadBackendDotenv, normalizeOrigin, deriveWwwVariants, isProductionEnv, rawApiPrefix, resolvedApiPrefix, config, server;
 var init_GlobalConfig = __esm({
   "config/GlobalConfig.ts"() {
     init_envHelper();
+    init_apiPrefix();
     init_Logger();
     loadBackendDotenvCjs = __toESM(require_loadBackendDotenv());
     init_orchestratorFlows();
@@ -266,6 +296,15 @@ var init_GlobalConfig = __esm({
     };
     loadBackendDotenv();
     isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
+    rawApiPrefix = getEnv("API_PREFIX", DEFAULT_API_PREFIX);
+    resolvedApiPrefix = normalizeApiPrefix(rawApiPrefix);
+    if (rawApiPrefix.trim() && resolvedApiPrefix !== rawApiPrefix.trim().replace(/\/+$/, "")) {
+      logger.warn({
+        msg: "[Config] API_PREFIX normalized so mounted routes match /api/v1-style URLs",
+        from: rawApiPrefix,
+        to: resolvedApiPrefix
+      });
+    }
     config = {
       /** Sender identity for transactional email (Resend/SES). */
       basic: {
@@ -279,7 +318,7 @@ var init_GlobalConfig = __esm({
         port: getEnvNumber("PORT", 3e3)
       },
       api: {
-        prefix: getEnv("API_PREFIX", "/api/v1")
+        prefix: resolvedApiPrefix
       },
       cors: {
         allowedOrigins: (() => {
@@ -439,6 +478,9 @@ var init_GlobalConfig = __esm({
   }
 });
 
+// handler/index.ts
+init_apiPrefix();
+
 // connections/supabase.ts
 init_GlobalConfig();
 init_Logger();
@@ -472,10 +514,31 @@ function getSameSiteValue() {
     return "none";
   }
 }
-supabaseJs.createClient(
-  supabaseConfig.supabaseUrl,
-  supabaseConfig.supabaseAnonKey
-);
+var supabaseAnonSingleton;
+function getSupabaseAnonClient() {
+  if (!supabaseAnonSingleton) {
+    const url = (supabaseConfig.supabaseUrl ?? "").trim();
+    const key = (supabaseConfig.supabaseAnonKey ?? "").trim();
+    if (!url) {
+      throw new Error("PUBLIC_SUPABASE_URL (or config.supabase.supabaseUrl) is required");
+    }
+    if (!key) {
+      throw new Error("PUBLIC_SUPABASE_ANON_KEY (or config.supabase.supabaseAnonKey) is required");
+    }
+    supabaseAnonSingleton = supabaseJs.createClient(url, key);
+  }
+  return supabaseAnonSingleton;
+}
+var supabase = new Proxy({}, {
+  get(_target, prop, receiver) {
+    const client = getSupabaseAnonClient();
+    const value = Reflect.get(client, prop, receiver);
+    if (typeof value === "function") {
+      return value.bind(client);
+    }
+    return value;
+  }
+});
 function createSupabaseServiceClient() {
   try {
     const supabaseUrl = supabaseConfig.supabaseUrl;
@@ -9521,7 +9584,7 @@ function requirePermission(permission) {
 // routes/UserRoute.ts
 var userRouter = express2.Router();
 var authWithRoles = requireFullAuthWithRoles(
-  supabaseServiceClientConnection,
+  supabase,
   userRepository,
   rbacRepository
 );
@@ -9763,7 +9826,7 @@ var emailSchemas_default = emailSchemas;
 var adminRouter = express2.Router();
 var parseListReceivedEmailsQuery = createListReceivedEmailsParser();
 var authWithRoles2 = requireFullAuthWithRoles(
-  supabaseServiceClientConnection,
+  supabase,
   userRepository,
   rbacRepository
 );
@@ -10112,7 +10175,7 @@ var validateJoinOrganizationRequest = validateRequest({
 
 // routes/SettingsRoute.ts
 var settingsRouter = express2.Router();
-var auth = requireFullAuth(supabaseServiceClientConnection);
+var auth = requireFullAuth(supabase);
 settingsRouter.get("/", auth, settingsController.listMine);
 settingsRouter.get("/invite/validate", settingsController.validateInviteToken);
 settingsRouter.post("/join", auth, validateJoinOrganizationRequest, settingsController.joinByToken);
@@ -10167,7 +10230,7 @@ settingsRouter.post(
 );
 var rbacRouter = express2.Router();
 var authWithRoles3 = requireFullAuthWithRoles(
-  supabaseServiceClientConnection,
+  supabase,
   userRepository,
   rbacRepository
 );
@@ -10199,12 +10262,12 @@ var feedbackSchema = zod.z.object({
 // routes/FeedbackRoute.ts
 var feedbackRouter = express2.Router();
 var authWithRoles4 = requireFullAuthWithRoles(
-  supabaseServiceClientConnection,
+  supabase,
   userRepository,
   rbacRepository
 );
 var optionalAuth = optionalAuthWithRoles(
-  supabaseServiceClientConnection,
+  supabase,
   userRepository,
   rbacRepository
 );
@@ -10348,12 +10411,12 @@ var blogTrackActivitySchema = zod.z.object({
 // routes/BlogRoute.ts
 var blogRouter = express2.Router();
 var authWithRoles5 = requireFullAuthWithRoles(
-  supabaseServiceClientConnection,
+  supabase,
   userRepository,
   rbacRepository
 );
 var optionalAuth2 = optionalAuthWithRoles(
-  supabaseServiceClientConnection,
+  supabase,
   userRepository,
   rbacRepository
 );
@@ -10501,7 +10564,7 @@ var upload = multer__default.default({
   limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES }
 });
 var authWithRoles6 = requireFullAuthWithRoles(
-  supabaseServiceClientConnection,
+  supabase,
   userRepository,
   rbacRepository
 );
@@ -10551,7 +10614,7 @@ var validateIntegrationTimeRequest = validateRequest({
 
 // routes/integrations/sessionRoutes.ts
 var sessionIntegrationsRouter = express2.Router();
-var auth2 = requireFullAuth(supabaseServiceClientConnection);
+var auth2 = requireFullAuth(supabase);
 sessionIntegrationsRouter.get("/", integrationController.getAllIntegrations);
 sessionIntegrationsRouter.use(auth2);
 sessionIntegrationsRouter.get("/list", validateIntegrationOrganizationQuery, integrationController.getIntegrationList);
@@ -10634,7 +10697,7 @@ var validateNotificationPaginatedQuery = validateRequest({
 
 // routes/NotificationRoute.ts
 var notificationRouter = express2.Router();
-var auth3 = requireFullAuth(supabaseServiceClientConnection);
+var auth3 = requireFullAuth(supabase);
 var parseNotificationOrganizationQuery = createNotificationOrganizationQueryParser();
 var parseNotificationPaginatedQuery = createNotificationPaginatedQueryParser();
 notificationRouter.get(
@@ -11043,15 +11106,6 @@ var checkConfigIsValid = () => {
   }
   logger.info({ msg: "[Config] Configuration validation passed" });
 };
-try {
-  checkConfigIsValid();
-} catch (error) {
-  logger.error({
-    msg: "[Config] CRITICAL: Configuration validation failed",
-    error: error instanceof Error ? error.message : "Unknown error"
-  });
-  throw error;
-}
 var getCorsOptions = () => {
   const c = config.cors;
   return {
@@ -11090,6 +11144,15 @@ var getCorsOptions = () => {
 var app = express2__default.default();
 async function createApp() {
   const { config: config2 } = await Promise.resolve().then(() => (init_GlobalConfig(), GlobalConfig_exports));
+  try {
+    checkConfigIsValid();
+  } catch (error) {
+    logger.error({
+      msg: "[Config] CRITICAL: Configuration validation failed",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+    throw error;
+  }
   app.set("trust proxy", 1);
   app.use(
     helmet__default.default({
@@ -11104,7 +11167,7 @@ async function createApp() {
     if (req._skipJsonParsing) return next();
     return express2.json()(req, res, next);
   });
-  configureCoreMiddleware(app, config2, supabaseServiceClientConnection);
+  configureCoreMiddleware(app, config2, supabase);
   try {
     const isProduction = config2.server.nodeEnv === "production";
     const currentDir = process.cwd();
@@ -11153,7 +11216,7 @@ function isRunningOnVercel() {
     return true;
   }
   return Boolean(
-    process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL || process.env.VERCEL_DEPLOYMENT_ID
+    process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL || process.env.VERCEL_DEPLOYMENT_ID || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV === "AWS_Lambda"
   );
 }
 if (!isRunningOnVercel()) {
@@ -11173,7 +11236,9 @@ if (!isRunningOnVercel()) {
       msg: "[App] Error stack",
       stack: error instanceof Error ? error.stack : "No stack trace"
     });
-    process.exit(1);
+    if (!isRunningOnVercel()) {
+      process.exit(1);
+    }
   });
 }
 
@@ -11185,9 +11250,31 @@ function getApp() {
   }
   return appPromise;
 }
+function normalizeVercelFunctionRequestUrl(req) {
+  if (!req.url) {
+    return;
+  }
+  const q = req.url.indexOf("?");
+  const pathname = q >= 0 ? req.url.slice(0, q) : req.url;
+  const query = q >= 0 ? req.url.slice(q) : "";
+  if (pathname.startsWith("/api")) {
+    return;
+  }
+  const tail = apiPathAfterFunctionsDirectory(process.env.API_PREFIX ?? DEFAULT_API_PREFIX);
+  if (!tail || tail === "/") {
+    return;
+  }
+  if (pathname === tail || pathname.startsWith(`${tail}/`)) {
+    const next = `/api${pathname}${query}`;
+    req.url = next;
+    const extended = req;
+    extended.originalUrl = next;
+  }
+}
 async function handler(req, res) {
   try {
     const app2 = await getApp();
+    normalizeVercelFunctionRequestUrl(req);
     app2(req, res);
   } catch (err) {
     if (res.headersSent) {

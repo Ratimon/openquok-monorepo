@@ -10,12 +10,12 @@ import {
     validateOrganizationIdAndUserIdParam,
 } from "../data/schemas/organizationSchemas";
 import { requireFullAuth } from "../middlewares/authenticateUser";
-import { supabaseServiceClientConnection } from "../connections/index";
+import { supabaseAnonClient } from "../connections/index";
 
 type SettingsRouter = ReturnType<typeof Router>;
 
 const settingsRouter: SettingsRouter = Router();
-const auth = requireFullAuth(supabaseServiceClientConnection);
+const auth = requireFullAuth(supabaseAnonClient);
 
 settingsRouter.get("/", auth, settingsController.listMine);
 settingsRouter.get("/invite/validate", settingsController.validateInviteToken);

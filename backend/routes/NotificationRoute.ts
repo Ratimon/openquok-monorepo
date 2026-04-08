@@ -9,12 +9,12 @@ import {
     createNotificationOrganizationQueryParser,
     createNotificationPaginatedQueryParser,
 } from "../middlewares/queryParsers";
-import { supabaseServiceClientConnection } from "../connections/index";
+import { supabaseAnonClient } from "../connections/index";
 
 type NotificationRouter = ReturnType<typeof Router>;
 
 const notificationRouter: NotificationRouter = Router();
-const auth = requireFullAuth(supabaseServiceClientConnection);
+const auth = requireFullAuth(supabaseAnonClient);
 const parseNotificationOrganizationQuery = createNotificationOrganizationQueryParser();
 const parseNotificationPaginatedQuery = createNotificationPaginatedQueryParser();
 

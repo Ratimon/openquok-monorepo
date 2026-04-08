@@ -10,7 +10,7 @@ BEGIN;
 -- MODULE CONFIGS
 -- ---------------------------
 
-CREATE TABLE public.module_configs (
+CREATE TABLE IF NOT EXISTS public.module_configs (
   module_name TEXT PRIMARY KEY,
   config JSONB NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()

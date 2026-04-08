@@ -14,7 +14,8 @@ BEGIN;
 INSERT INTO public.module_configs (module_name, config) VALUES
 ('user_auth', '{
   "ALLOW_USER_SIGNUPS": "true"
-}'::jsonb);
+}'::jsonb)
+ON CONFLICT (module_name) DO NOTHING;
 
 
 -- ---------------------------

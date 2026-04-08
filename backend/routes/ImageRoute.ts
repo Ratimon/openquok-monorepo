@@ -3,7 +3,7 @@ import multer from "multer";
 
 import { imageController } from "../controllers/index";
 import { requireFullAuthWithRoles, requireEditor } from "../middlewares/authenticateUser";
-import { supabaseServiceClientConnection } from "../connections/index";
+import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
 
 const MAX_IMAGE_UPLOAD_BYTES = 4 * 1024 * 1024;
@@ -14,7 +14,7 @@ const upload = multer({
 });
 
 const authWithRoles = requireFullAuthWithRoles(
-    supabaseServiceClientConnection,
+    supabaseAnonClient,
     userRepository,
     rbacRepository
 );

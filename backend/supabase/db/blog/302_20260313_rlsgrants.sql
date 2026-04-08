@@ -161,6 +161,7 @@ CREATE POLICY "Super admin admins editors can view all activities" ON public.blo
 -- ---------------------------
 -- Blog Images Storage Policies
 -- ---------------------------
+DROP POLICY IF EXISTS "Allow authenticated users to delete their blog images" ON storage.objects;
 CREATE POLICY "Allow authenticated users to delete their blog images" 
     ON storage.objects
     AS PERMISSIVE
@@ -172,6 +173,7 @@ CREATE POLICY "Allow authenticated users to delete their blog images"
         AND auth.uid() = owner
     );
 
+DROP POLICY IF EXISTS "Allow authenticated users to update their blog images" ON storage.objects;
 CREATE POLICY "Allow authenticated users to update their blog images" 
     ON storage.objects
     AS PERMISSIVE
@@ -195,6 +197,7 @@ CREATE POLICY "Allow authenticated users to upload blog images"
         AND auth.uid() = owner
     );
 
+DROP POLICY IF EXISTS "Allow read access to blog images" ON storage.objects;
 CREATE POLICY "Allow read access to blog images"
     ON storage.objects
     AS PERMISSIVE
@@ -204,6 +207,7 @@ CREATE POLICY "Allow read access to blog images"
         bucket_id = 'blog_images'::text
     );
 
+DROP POLICY IF EXISTS "Allow service_role to manage blog images" ON storage.objects;
 CREATE POLICY "Allow service_role to manage blog images" 
     ON storage.objects
     AS PERMISSIVE

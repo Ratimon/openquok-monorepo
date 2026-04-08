@@ -13,7 +13,7 @@ import {
     createAdminBlogCommentsParser,
     createAdminBlogActivitiesParser,
 } from "../middlewares/queryParsers";
-import { supabaseServiceClientConnection } from "../connections/index";
+import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository, blogRepository } from "../repositories/index";
 import { validateRequest } from "../middlewares/validateRequest";
 import {
@@ -38,12 +38,12 @@ type BlogRouter = ReturnType<typeof Router>;
 const blogRouter: BlogRouter = Router();
 
 const authWithRoles = requireFullAuthWithRoles(
-    supabaseServiceClientConnection,
+    supabaseAnonClient,
     userRepository,
     rbacRepository
 );
 const optionalAuth = optionalAuthWithRoles(
-    supabaseServiceClientConnection,
+    supabaseAnonClient,
     userRepository,
     rbacRepository
 );

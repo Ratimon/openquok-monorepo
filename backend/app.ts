@@ -12,7 +12,7 @@ import path from "path";
 import helmet from "helmet";
 import cors from "cors";
 
-import { supabaseServiceClientConnection } from "./connections/index";
+import { supabaseAnonClient, supabaseServiceClientConnection } from "./connections/index";
 import { mountAllRoutes } from "./routes/index";
 import { errorHandler } from "./controllers/ErrorController";
 import { configureCoreMiddleware } from "./middlewares/core";
@@ -122,7 +122,7 @@ async function createApp(): Promise<Express> {
         return json()(req, res, next);
     });
 
-    configureCoreMiddleware(app, config as ConfigObject, supabaseServiceClientConnection);
+    configureCoreMiddleware(app, config as ConfigObject, supabaseAnonClient);
 
     try {
         const isProduction = (config.server as { nodeEnv?: string }).nodeEnv === "production";

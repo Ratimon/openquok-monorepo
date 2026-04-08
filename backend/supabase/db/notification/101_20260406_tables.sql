@@ -33,4 +33,6 @@ COMMENT ON COLUMN public.users.last_read_notifications IS 'Cursor for unread in-
 COMMENT ON COLUMN public.users.send_success_emails IS 'When false, org notification emails typed as success are skipped for this user';
 COMMENT ON COLUMN public.users.send_failure_emails IS 'When false, org notification emails typed as failure are skipped for this user';
 
+CREATE INDEX IF NOT EXISTS idx_users_last_read_notifications ON public.users(last_read_notifications);
+
 COMMIT;

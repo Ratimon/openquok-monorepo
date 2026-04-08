@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { integrationController } from "../../controllers/index";
 import { requireFullAuth } from "../../middlewares/authenticateUser";
-import { supabaseServiceClientConnection } from "../../connections/index";
+import { supabaseAnonClient } from "../../connections/index";
 import {
     validateIntegrationOrganizationQuery,
     validateSocialConnectBody,
@@ -17,7 +17,7 @@ type SessionIntegrationsRouter = ReturnType<typeof Router>;
  * - Other routes — JWT; org from query/body.
  */
 const sessionIntegrationsRouter: SessionIntegrationsRouter = Router();
-const auth = requireFullAuth(supabaseServiceClientConnection);
+const auth = requireFullAuth(supabaseAnonClient);
 
 sessionIntegrationsRouter.get("/", integrationController.getAllIntegrations);
 

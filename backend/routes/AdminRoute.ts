@@ -2,7 +2,7 @@ import { Router } from "express";
 import { configController, emailController, userController } from "../controllers/index";
 import { requireFullAuthWithRoles, requireSuperAdmin } from "../middlewares/authenticateUser";
 import { createListReceivedEmailsParser } from "../middlewares/queryParsers";
-import { supabaseServiceClientConnection } from "../connections/index";
+import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
 import configSchemas from "../data/schemas/configSchemas";
 import emailSchemas from "../data/schemas/emailSchemas";
@@ -12,7 +12,7 @@ type AdminRouter = ReturnType<typeof Router>;
 const adminRouter: AdminRouter = Router();
 const parseListReceivedEmailsQuery = createListReceivedEmailsParser();
 const authWithRoles = requireFullAuthWithRoles(
-    supabaseServiceClientConnection,
+    supabaseAnonClient,
     userRepository,
     rbacRepository
 );
