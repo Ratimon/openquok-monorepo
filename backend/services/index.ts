@@ -31,8 +31,6 @@ import { config } from "../config/GlobalConfig";
 
 export const integrationManager = new IntegrationManager();
 
-export const refreshIntegrationService = new RefreshIntegrationService(integrationRepository, integrationManager);
-
 export const userService = new UserService(
     userRepository,
     cacheServiceConnection,
@@ -42,6 +40,22 @@ export const userService = new UserService(
 export const emailService = new EmailService({
     isEnabled: (config.email as { enabled?: boolean } | undefined)?.enabled ?? false,
 });
+export const transactionalNotificationEmailService = new TransactionalNotificationEmailService(
+    organizationRepository
+);
+export const notificationService = new NotificationService(
+    notificationRepository,
+    userRepository,
+    organizationRepository,
+    emailService,
+    transactionalNotificationEmailService
+);
+
+export const refreshIntegrationService = new RefreshIntegrationService(
+    integrationRepository,
+    integrationManager,
+    notificationService
+);
 export const authenticationService = new AuthenticationService(
     supabaseServiceClientConnection,
     refreshTokenRepository,
@@ -90,16 +104,6 @@ export const integrationConnectionService = new IntegrationConnectionService(
     refreshIntegrationService,
     cacheServiceConnection,
     cacheInvalidationServiceConnection
-);
-export const transactionalNotificationEmailService = new TransactionalNotificationEmailService(
-    organizationRepository
-);
-export const notificationService = new NotificationService(
-    notificationRepository,
-    userRepository,
-    organizationRepository,
-    emailService,
-    transactionalNotificationEmailService
 );
 export { AuthenticationService } from "./AuthenticationService";
 export { UserService } from "./UserService";

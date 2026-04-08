@@ -3,12 +3,14 @@ import { IntegrationManager } from "../integrations/integrationManager";
 import type { IntegrationRepository, IntegrationRow } from "../repositories/IntegrationRepository";
 import type { AuthTokenDetails, SocialProvider } from "../integrations/social.integrations.interface";
 import { logger } from "../utils/Logger";
+import type { NotificationService } from "./NotificationService";
 
 /** Token refresh orchestration; long-running refresh timing runs as an in-process Flowcraft loop under `orchestrator/`. */
 export class RefreshIntegrationService {
     constructor(
         private readonly integrationRepository: IntegrationRepository,
-        private readonly integrationManager: IntegrationManager
+        private readonly integrationManager: IntegrationManager,
+        private readonly notificationService?: NotificationService
     ) {}
 
     async refresh(integration: IntegrationRow): Promise<false | AuthTokenDetails> {
@@ -101,12 +103,39 @@ export class RefreshIntegrationService {
     }
 
     private async markRefreshFailed(integration: IntegrationRow): Promise<void> {
+        const shouldNotify = !integration.refresh_needed;
         await this.integrationRepository.setRefreshNeeded(integration.organization_id, integration.id, true);
+
+        if (shouldNotify) {
+            await this.informAboutRefreshError(integration).catch(() => {
+                /* best-effort */
+            });
+        }
+
         logger.warn({
             msg: "Integration token refresh failed; refresh_needed set",
             integrationId: integration.id,
             organizationId: integration.organization_id,
             provider: integration.provider_identifier,
         });
+    }
+
+    private async informAboutRefreshError(integration: IntegrationRow): Promise<void> {
+        if (!this.notificationService) return;
+
+        // to do: Check message again
+        const subject = "Integration needs attention";
+        const prettyProvider = integration.provider_identifier;
+        const name = integration.name || "integration";
+        const message = `We couldn't refresh the connection for "${name}" (${prettyProvider}). Please reconnect it to keep publishing working.`;
+
+        await this.notificationService.inAppNotification(
+            integration.organization_id,
+            subject,
+            message,
+            true,
+            true,
+            "fail"
+        );
     }
 }
