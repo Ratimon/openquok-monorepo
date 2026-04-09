@@ -115,6 +115,7 @@ export const applyRateLimiting = (app: Express): void => {
 
     const oauthConfig = (config.rateLimit as { oauth?: RateLimitConfig }).oauth;
     app.use(`${apiPrefix}/auth/oauth`, oauthLimiter);
+    
     logger.info({
         msg: "Applied OAuth rate limiting",
         windowMs: oauthConfig?.windowMs ?? 5 * 60 * 1000,

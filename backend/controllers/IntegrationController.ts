@@ -2,6 +2,8 @@ import type { Request, Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
 import type { IntegrationConnectionService } from "../services/IntegrationConnectionService";
 import type { IntegrationManager } from "../integrations/integrationManager";
+import type { IntegrationCatalogDTO, IntegrationListDTO } from "../utils/dtos/IntegrationDTO";
+
 import { UserAuthorizationError } from "../errors/UserError";
 
 /**
@@ -17,7 +19,7 @@ export class IntegrationController {
     /** GET /integrations — public catalog (provider metadata only). */
     getAllIntegrations = async (_req: Request, res: Response, next: NextFunction) => {
         try {
-            const data = await this.integrationManager.getAllIntegrationsWithCustomFields();
+            const data = (await this.integrationManager.getAllIntegrationsWithCustomFields()) as IntegrationCatalogDTO;
             res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);
@@ -33,7 +35,10 @@ export class IntegrationController {
                 return next(new UserAuthorizationError("Not authenticated"));
             }
             const organizationId = (req.query as { organizationId: string }).organizationId;
-            const data = await this.integrationConnectionService.getIntegrationList(authUserId, organizationId);
+            const data = (await this.integrationConnectionService.getIntegrationList(
+                authUserId,
+                organizationId
+            )) as IntegrationListDTO;
             res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);

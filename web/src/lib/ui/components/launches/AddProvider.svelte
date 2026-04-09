@@ -1,4 +1,5 @@
 <script lang="ts">
+    import type { IntegrationCatalogItemProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
 	import type{ IconName } from '$data/icon';
 
 	import { goto } from '$app/navigation';
@@ -6,7 +7,7 @@
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icon';
 
-	import { integrationsRepository, type IntegrationCatalogItemDto } from '$lib/integrations';
+	import { integrationsRepository } from '$lib/integrations';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
     import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -22,7 +23,7 @@
 
 	let open = $state(false);
 	let loading = $state(false);
-	let providers = $state<IntegrationCatalogItemDto[]>([]);
+	let providers = $state<IntegrationCatalogItemProgrammerModel[]>([]);
 
 	const currentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 

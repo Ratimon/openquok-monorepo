@@ -7277,7 +7277,7 @@ function frontendOrigin() {
   return url.indexOf("https") === -1 ? `https://redirectmeto.com/${url}` : url;
 }
 function threadsRedirectUri() {
-  return `${frontendOrigin()}/integrations/social/threads`;
+  return `${frontendOrigin()}/account/integrations/social/threads`;
 }
 function threadsOAuth() {
   return config.integrations.threads;

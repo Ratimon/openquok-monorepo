@@ -19,7 +19,7 @@ function frontendOrigin(): string {
 }
 
 function threadsRedirectUri(): string {
-    return `${frontendOrigin()}/integrations/social/threads`;
+    return `${frontendOrigin()}/account/integrations/social/threads`;
 }
 
 function threadsOAuth(): { appId: string; appSecret: string } {

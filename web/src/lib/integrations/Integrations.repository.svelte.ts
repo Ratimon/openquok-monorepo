@@ -3,30 +3,48 @@ import { ApiError } from '$lib/core/HttpGateway';
 
 export type SocialProviderIdentifier = string;
 
-export interface IntegrationCatalogItemDto {
+/** Programmer model for a catalog integration entry (returned by repository). */
+export interface IntegrationCatalogItemProgrammerModel {
 	identifier: string;
 	name: string;
-	type?: string;
+	toolTip?: string;
 	editor?: string;
+	isExternal?: boolean;
+	isWeb3?: boolean;
+	isChromeExtension?: boolean;
+	extensionCookies?: unknown;
+	customFields?: unknown;
 }
 
 export interface GetIntegrationsCatalogResponseDto {
-	/**
-	 * Legacy shapes (keep flexible):
-	 * - `[...]`
-	 * - `{ integrations: [...] }`
-	 */
-	integrations?: IntegrationCatalogItemDto[];
-	/**
-	 * Current backend shape:
-	 * `{ success: true, data: { social: [...], article: [...] } }`
-	 */
 	success?: boolean;
 	data?: {
-		social?: IntegrationCatalogItemDto[];
-		article?: IntegrationCatalogItemDto[];
+		social?: IntegrationCatalogItemProgrammerModel[];
+		article?: IntegrationCatalogItemProgrammerModel[]
 	};
 	[key: string]: unknown;
+}
+
+/** Programmer model for a connected integration list entry (returned by repository). */
+export interface ConnectedIntegrationProgrammerModel {
+	id: string;
+	internalId: string;
+	name: string;
+	identifier: string;
+	picture: string | null;
+	disabled: boolean;
+	editor: string;
+	type: string;
+	inBetweenSteps: boolean;
+	refreshNeeded: boolean;
+	isCustomFields: boolean;
+	customFields?: unknown;
+	display: string | null;
+	time: unknown[];
+	changeProfilePicture: boolean;
+	changeNickName: boolean;
+	customer: { id: string; name: string } | null;
+	additionalSettings: string;
 }
 
 export interface GetAuthorizeUrlResponseDto {
@@ -49,24 +67,10 @@ export interface ConnectSocialBody {
 	refresh?: string;
 }
 
-export interface ConnectedIntegrationDto {
-	id: string;
-	name: string;
-	identifier: string;
-	picture?: string | null;
-	disabled?: boolean;
-	profile?: string | null;
-}
-
 export interface GetIntegrationListResponseDto {
-	integrations?: Array<{
-		id: string;
-		name: string;
-		identifier: string;
-		picture?: string | null;
-		disabled?: boolean;
-		profile?: string | null;
-	}>;
+	success?: boolean;
+	data?: { integrations?: ConnectedIntegrationProgrammerModel[] };
+	[key: string]: unknown;
 }
 
 export interface IntegrationsConfig {
@@ -84,19 +88,19 @@ export class IntegrationsRepository {
 		private readonly config: IntegrationsConfig
 	) {}
 
-	public async getCatalog(): Promise<IntegrationCatalogItemDto[]> {
+	public async getCatalog(): Promise<IntegrationCatalogItemProgrammerModel[]> {
 		try {
 			const { ok, data: dto } =
 				await this.httpGateway.get<GetIntegrationsCatalogResponseDto>(this.config.endpoints.catalog, undefined, {
 					withCredentials: true
 				});
 			if (ok) {
-				// backend: either `{ success, data: { social: [...] } }` or `{ integrations: [...] }` or `[...]` (legacy); normalize
-				if (Array.isArray(dto)) return dto as unknown as IntegrationCatalogItemDto[];
-				if (dto?.success === true && dto?.data?.social && Array.isArray(dto.data.social)) {
-					return dto.data.social;
-				}
-				if (dto?.integrations && Array.isArray(dto.integrations)) return dto.integrations;
+				// backend: `{ success: true, data: { social: [...] } }`
+				if (dto?.success === true && Array.isArray(dto?.data?.social)) return dto.data.social;
+				// legacy fallbacks (keep flexible)
+				if (Array.isArray(dto)) return dto as unknown as IntegrationCatalogItemProgrammerModel[];
+				if (Array.isArray((dto as { integrations?: unknown })?.integrations))
+					return (dto as { integrations: IntegrationCatalogItemProgrammerModel[] }).integrations;
 			}
 			return [];
 		} catch {
@@ -172,7 +176,7 @@ export class IntegrationsRepository {
 		}
 	}
 
-	public async listConnectedIntegrations(organizationId: string): Promise<ConnectedIntegrationDto[]> {
+	public async listConnectedIntegrations(organizationId: string): Promise<ConnectedIntegrationProgrammerModel[]> {
 		try {
 			const { ok, data: dto } =
 				await this.httpGateway.get<GetIntegrationListResponseDto>(
@@ -180,16 +184,8 @@ export class IntegrationsRepository {
 					{ organizationId },
 					{ withCredentials: true }
 				);
-			if (ok && dto?.integrations && Array.isArray(dto.integrations)) {
-				return dto.integrations.map((i) => ({
-					id: i.id,
-					name: i.name,
-					identifier: i.identifier,
-					picture: i.picture ?? null,
-					disabled: i.disabled ?? false,
-					profile: i.profile ?? null
-				}));
-			}
+			const list = dto?.data?.integrations;
+			if (ok && dto?.success === true && Array.isArray(list)) return list;
 			return [];
 		} catch {
 			return [];

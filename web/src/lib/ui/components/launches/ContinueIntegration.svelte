@@ -1,52 +1,54 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { getRootPathAccount } from '$lib/area-protected';
+	import { continueIntegrationPresenter } from '$lib/integrations';
 	import { toast } from '$lib/ui/sonner';
 	import { absoluteUrl } from '$lib/utils/path';
-	import { integrationsRepository } from '$lib/integrations';
 
 	let submitting = $state(true);
 
-	const provider = $derived(page.params.provider);
+	const provider = $derived(page.params.provider ?? '');
 	const code = $derived(page.url.searchParams.get('code') ?? '');
 	const oauthState = $derived(page.url.searchParams.get('state') ?? '');
 	const refresh = $derived(page.url.searchParams.get('refresh') ?? undefined);
 
 	function timezoneOffsetMinutes(): string {
-		// dayjs.tz().utcOffset() returns minutes offset from UTC (e.g. +420)
-		// JS getTimezoneOffset() returns minutes behind UTC (e.g. -420 => 420); invert to align.
 		return String(-new Date().getTimezoneOffset());
 	}
 
 	async function run() {
 		submitting = true;
 		try {
+			const accountUrl = absoluteUrl(getRootPathAccount());
+
 			if (!provider) {
 				toast.error('Missing provider.');
-				await goto(absoluteUrl('/account'), { replaceState: true });
-				return;
-			}
-			if (!code || !oauthState) {
-				toast.error('Missing OAuth parameters.');
-				await goto(absoluteUrl('/account'), { replaceState: true });
+				await goto(accountUrl, { replaceState: true });
 				return;
 			}
 
-			const result = await integrationsRepository.connectSocial(provider, {
+			if (!code || !oauthState) {
+				toast.error('Missing OAuth parameters.');
+				await goto(accountUrl, { replaceState: true });
+				return;
+			}
+
+			const result = await continueIntegrationPresenter.continueSocialIntegration({
+				provider,
 				code,
 				state: oauthState,
 				timezone: timezoneOffsetMinutes(),
 				...(refresh && { refresh })
 			});
 
-			if (!result.ok) {
-				toast.error(result.error);
-				await goto(absoluteUrl('/account'), { replaceState: true });
-				return;
+			if (continueIntegrationPresenter.showToastMessage) {
+				if (continueIntegrationPresenter.toastKind === 'success') toast.success(continueIntegrationPresenter.toastMessage);
+				else toast.error(continueIntegrationPresenter.toastMessage);
 			}
 
-			toast.success('Channel connected.');
-			await goto(absoluteUrl('/account'), { replaceState: true });
+			await goto(accountUrl, { replaceState: true });
+			return result;
 		} finally {
 			submitting = false;
 		}

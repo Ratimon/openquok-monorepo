@@ -48,7 +48,7 @@ export interface OrganizationDto {
 
 export interface ListMyOrganizationsResponseDto {
 	success: boolean;
-	data: OrganizationWithRoleDto[];
+	data: OrganizationWithRoleProgrammerModel[];
 	message?: string;
 }
 

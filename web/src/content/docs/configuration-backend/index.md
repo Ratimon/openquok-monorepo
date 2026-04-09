@@ -23,7 +23,7 @@ FRONTEND_DOMAIN_URL=http://localhost:5173
 ```
 
 <Callout type="note" title="FRONTEND_DOMAIN_URL affects OAuth redirects">
-<p><Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> must match the <strong>exact</strong> origin you use to open the web app, including the scheme (<code>http</code> vs <code>https</code>). The backend uses it to build OAuth redirect/callback URLs (for example <code>/integrations/social/threads</code>).</p>
+<p><Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> must match the <strong>exact</strong> origin you use to open the web app, including the scheme (<code>http</code> vs <code>https</code>). The backend uses it to build OAuth redirect/callback URLs (for example <code>/account/integrations/social/threads</code>).</p>
 <p>If you run the web dev server on HTTP, use <code>http://localhost:5173</code>. If you switch the web dev server to HTTPS (required by some providers), update this to <code>https://localhost:5173</code>.</p>
 <p>Keep it aligned with the web app’s <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> so links and OAuth redirects point to the same scheme and host.</p>
 </Callout>

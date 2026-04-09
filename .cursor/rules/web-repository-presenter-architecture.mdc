@@ -64,6 +64,9 @@ We use a **concept-first, layered architecture** so logic lives outside the fram
   - ✅ Repository: DTO → PM mapping, return `*ProgrammerModel` / `*Pm` results
   - ❌ Repository: returning `*Vm` types (camelCase UI shape) or anything named `*ViewModel` / `*Vm`
 - **`Get*Presenter` is the VM boundary**: create a stateless `GetX.presenter.svelte.ts` to map **PM → VM** for read/list flows (example: `GetFeedbackPresenter`).
+- **DTO vs PM (practical rule)**:
+  - **Default**: `*ResponseDto.data` is a `*Dto` (wire shape), and the repository maps **DTO → PM** before returning anything.
+  - **Allowed shortcut**: if the API already returns the **exact** shape you want to use internally (same fields, casing, nullability), you may type `*ResponseDto.data` as `*ProgrammerModel` to avoid duplicating identical interfaces. In that case, treat it as “DTO == PM” and do not add a redundant `*Dto` type.
 - **Where types live (default)**:
   - **`*ProgrammerModel` interfaces** — define and export next to the **`*.repository.svelte.ts`** class (same file), not in a shared `*.types.ts` unless the PM is reused across multiple repositories.
   - **`*Vm` / `*ViewModel` interfaces** for `Get*` output — define and export next to the **`Get*.presenter.svelte.ts`** class (same file).
@@ -229,6 +232,7 @@ Flow: **Component → Page presenter → Repository → Gateway**, with **list/r
 ### List reads: DTO vs PM vs Vm (required)
 
 - **Inside the repository only:** HTTP/gateway responses use **`*Dto`** / **`*ResponseDto`** on the wire (e.g. `AdminBlogCommentDto` in `GetAdminBlogCommentsResponseDto`). Parse and **map DTO → `*ProgrammerModel`** before returning. **Public repository methods must not return raw API DTO arrays** to presenters or UI.
+- **If `DTO == PM`** (allowed shortcut above): it is still the repository’s responsibility to ensure it returns PM. You can skip mapping only when the wire shape is already the PM shape.
 - **Naming the result of a repository list call** (inside the repository or `GetBlogPresenter` right after `await blogRepository.get…`): use **`listPm`** (or another `*Pm` name), e.g. `const listPm = await this.blogRepository.getAdminBlogComments(…)` then `listPm.map(…)` inside `GetBlogPresenter`.
 - **Page presenters:** typed list state must use **`*Vm`** with a consistent **`…ToManageVm`** name for admin lists (e.g. `commentsToManageVm`, `activitiesToManageVm`, `allPostsToManageVm`, `allTopicsToManageVm`), **never** `*Dto`. After loading, map **PM → VM** in the stateless **`GetBlogPresenter`** (e.g. `loadAdminCommentsVm`, `loadAdminActivitiesVm` — same pattern as `loadAdminPosts`), then assign the returned VM array to presenter state; **do not** embed `…PmToVm` helpers in area page presenters. The variable holding the **already-mapped** array may use a natural name (`comments`, `activities`, `posts`) — it is **`Vm` data**, not `*Pm`.
 - **Routes and `$lib/ui` children** that display those lists: import and use **`*Vm`** types only for props and helpers (e.g. `getPostHref(comment: AdminBlogCommentVm)`).

@@ -1,6 +1,7 @@
 import { httpGateway } from '$lib/core/index';
 import type { IntegrationsConfig } from '$lib/integrations/Integrations.repository.svelte';
 import { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
+import { ContinueIntegrationPresenter } from '$lib/integrations/ContinueIntegration.presenter.svelte';
 
 const base = '/api/v1/integrations';
 
@@ -14,7 +15,9 @@ const integrationsConfig: IntegrationsConfig = {
 };
 
 export const integrationsRepository = new IntegrationsRepository(httpGateway, integrationsConfig);
+export const continueIntegrationPresenter = new ContinueIntegrationPresenter(integrationsRepository);
 
 export { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
-export type { IntegrationCatalogItemDto, ConnectedIntegrationDto, SocialProviderIdentifier } from '$lib/integrations/Integrations.repository.svelte';
+// export type { IntegrationCatalogItemDto, ConnectedIntegrationDto, SocialProviderIdentifier } from '$lib/integrations/Integrations.repository.svelte';
+export { ContinueIntegrationPresenter, ContinueIntegrationStatus } from '$lib/integrations/ContinueIntegration.presenter.svelte';
 

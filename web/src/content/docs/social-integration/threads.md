@@ -32,16 +32,16 @@ The frontend base URL used for OAuth redirects comes from <Badge text="FRONTEND_
 
 ## OAuth redirect URI (what to enter in Meta)
 
-Meta redirects the **browser** back to your **web app** after consent—not to <Badge text="/api/v1" variant="path" />. The backend builds the redirect from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> plus the path <Badge text="/integrations/social/threads" variant="path" />.
+Meta redirects the **browser** back to your **web app** after consent—not to <Badge text="/api/v1" variant="path" />. The backend builds the redirect from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> plus the path <Badge text="/account/integrations/social/threads" variant="path" />.
 
 - **Production** (when <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> is <Badge text="https://…" variant="new" />): register
 ```bash
-https://YOUR-FRONTEND-DOMAIN/integrations/social/threads
+https://YOUR-FRONTEND-DOMAIN/account/integrations/social/threads
 ```
 
 - **Local development (recommended)**: Meta requires **HTTPS** redirect URIs for Threads. Run your web app on HTTPS (for example with a local dev certificate) and set <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> accordingly. Typical value:  
 ```bash
-https://localhost:5173/integrations/social/threads
+https://localhost:5173/account/integrations/social/threads
 ```
 
 
@@ -92,7 +92,7 @@ In the Meta app **Settings** area, copy **Threads app ID** → <Badge text="THRE
 Add the **production** and/or **local** redirect URIs from the <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/threads#oauth-redirect-uri-what-to-enter-in-meta">OAuth redirect URI (what to enter in Meta)</a> section.
 
 <Callout type="warning" title="Meta dashboard form">
-In Meta’s Threads API settings, type/paste the redirect URI and click the suggested value below to add it. If the form still won’t save, fill the Uninstall and Delete callback URLs too.
+In Meta’s Threads API settings, type/paste the redirect URI and click the suggested value below to add it. If the form still won’t save, fill the Uninstall and Delete callback URLs too. Actuallly, those Uninstall and Delete urls are not used, but if we dont fill them, Meta wont allow us to save.
 </Callout>
 
 <Callout type="note" title="About HTTPS relays">
