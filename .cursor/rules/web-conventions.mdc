@@ -23,22 +23,23 @@ Import from `$lib` using the **alias path**, not relative paths (`./` or `../`) 
 
 Use **blank lines between groups** so imports stay easy to scan.
 
-1. **Type-only imports** (`import type …`) first, in this order:
-   - External packages (e.g. `"svelte"`, other npm types).
-   - `$lib/...` **except** paths under `$lib/ui/` (domain types such as `$lib/docs/types`, `$lib/account/...`).
-   - `$lib/ui/...` type-only imports if any.
-2. **Runtime imports** from **non-UI** code: `$app/*`, `$lib/...` **outside** `$lib/ui/` (e.g. `$lib/docs`, `$lib/utils`), `$data/...`, then other packages.
-3. **Runtime imports** from **`$lib/ui/...`** last (helpers, primitives, feature components).
+1. **Type-only imports** (`import type …`) **before anything else**.
+2. **Native (built-in) modules** next (e.g. `node:*`, `fs`, `path`, `crypto` — depending on runtime/environment).
+3. **External packages** next (e.g. `"svelte"`, `"bits-ui"`, other npm packages).
+4. **Internal modules** next (project imports such as `$app/*`, `$lib/*`, `$data/*`).
+5. **Components last** (Svelte component imports, especially feature/UI components under `$lib/ui/**`).
 
-Do not interleave `import type` from `$lib/ui` ahead of value imports from the same file’s domain `$lib` module; keep the type block at the top and split domain vs UI as above.
+Keep the type-only block strictly at the top. If a module exports both types and values, split into two imports (`import type …` and `import …`) rather than mixing `type` specifiers into a value import.
 
 **Examples**
 
 ```svelte
 <!-- ✅ GOOD -->
-import DialogPortal from "$lib/ui/dialog/dialog-portal.svelte";
-import { cn, type WithoutChildrenOrChild } from "$lib/ui/helpers/common";
 import * as Dialog from "$lib/ui/dialog/index.js";
+import type { WithoutChildrenOrChild } from "$lib/ui/helpers/common";
+import { cn } from "$lib/ui/helpers/common";
+
+import DialogPortal from "$lib/ui/dialog/dialog-portal.svelte";
 
 <!-- ❌ BAD -->
 import DialogPortal from "./dialog-portal.svelte";

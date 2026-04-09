@@ -1,5 +1,5 @@
 ---
-title: Overview: Connetections
+title: Overview - Connetions
 description: Connect social channels (Meta Threads and more) to Openquok — OAuth, backend env, and Meta dashboard settings.
 order: 0
 lastUpdated: 2026-04-02

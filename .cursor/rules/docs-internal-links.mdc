@@ -50,6 +50,7 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
 
 - Do **not** paste GitHub `> [!WARNING]` / `> [!IMPORTANT]` blocks into MDX; they are not rendered as UI components here.
 - Use **`<Callout type="note|tip|warning|danger" title="Optional">`** with **HTML** for lists/links inside the callout when Markdown is not parsed. Prefer **`<a href="...">`** for in-callout links (see `DocsCallout`).
+- **Avoid Markdown emphasis inside `<Callout>` bodies** (e.g. `**bold**`, `_italic_`): it may not be parsed/rendered as expected. Prefer **HTML** (`<strong>…</strong>`, `<em>…</em>`) or `Badge` components.
 
 ## Next steps and related pages (`LinkCard` / `CardGrid`)
 

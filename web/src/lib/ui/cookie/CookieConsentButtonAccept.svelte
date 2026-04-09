@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cookieConsentStore } from '$lib/core/cookieConsent.store';
-    import { cn } from '$lib/ui/helpers/common';
+	import { cn } from '$lib/ui/helpers/common';
 
 	import Button, { type ButtonVariant } from '$lib/ui/buttons/Button.svelte';
 
@@ -12,7 +12,7 @@
 
 	let {
 		buttonText = 'Accept',
-		variant = 'outline',
+		variant = 'secondary',
 		class: className = ''
 	}: Props = $props();
 

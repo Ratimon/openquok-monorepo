@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	
 	import { page } from '$app/state';
+	import AddProvider from '$lib/ui/components/launches/AddProvider.svelte';
 
 	type Props = {
 		data: PageData;
@@ -9,9 +11,9 @@
 	let { data }: Props = $props();
 
 	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? (page.data as App.LayoutData)?.currentUser ?? null);
-	let companyNameVm = $derived((page.data as App.LayoutData)?.companyNameVm ?? (data as App.LayoutData)?.companyNameVm ?? 'Openquok');
-</script>
+	// let companyNameVm = $derived((page.data as App.LayoutData)?.companyNameVm ?? (data as App.LayoutData)?.companyNameVm ?? 'Openquok');
 
+</script>
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
 	<h2 class="text-2xl font-bold text-base-content">
 		Account dashboard</h2>
@@ -34,4 +36,8 @@
 			</div>
 		</dl>
 	{/if}
+
+	<div class="mt-6 flex flex-wrap items-center gap-3">
+		<AddProvider />
+	</div>
 </div>

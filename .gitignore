@@ -32,3 +32,6 @@ Thumbs.db
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# Local HTTPS dev certs (mkcert)
+/web/.cert/

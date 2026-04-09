@@ -1,5 +1,5 @@
 ---
-title: Email Provider Setup - Resend
+title: Email Setup - Resend
 description: Supabase email confirmations, local development email server, and Resend production setup for Openquok.
 order: 6
 lastUpdated: 2026-03-31
@@ -24,7 +24,7 @@ Email flows involve both:
 
 In the Supabase Dashboard, configure whether sign-in requires email confirmation and related Auth settings.
 
-![Supabase confirmation settings](/docs/supabase-email-setting.png)
+![Supabase confirmation settings](/docs/configuration-backend/resend/supabase-email-setting.webp)
 
 ### Run the backend with the local inbox
 

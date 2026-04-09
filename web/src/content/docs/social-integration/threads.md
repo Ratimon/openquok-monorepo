@@ -2,7 +2,7 @@
 title: Meta Threads
 description: Configure Meta Threads OAuth for Openquok — Meta app, redirect URIs, THREADS_APP_ID and THREADS_APP_SECRET, and testers.
 order: 1
-lastUpdated: 2026-04-02
+lastUpdated: 2026-04-08
 ---
 
 <script>
@@ -34,48 +34,111 @@ The frontend base URL used for OAuth redirects comes from <Badge text="FRONTEND_
 
 Meta redirects the **browser** back to your **web app** after consent—not to <Badge text="/api/v1" variant="path" />. The backend builds the redirect from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> plus the path <Badge text="/integrations/social/threads" variant="path" />.
 
-- **Production** (when <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> is <Badge text="https://…" variant="new" />): register  
-  **`https://YOUR-FRONTEND-DOMAIN/integrations/social/threads`**
+- **Production** (when <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> is <Badge text="https://…" variant="new" />): register
+```bash
+https://YOUR-FRONTEND-DOMAIN/integrations/social/threads
+```
 
-- **Local HTTP** (default dev): the backend wraps non-HTTPS origins with a public HTTPS relay so the authorize URL stays valid for Meta. Register **exactly** what your running backend would send, for example:  
-  **`https://redirectmeto.com/http://localhost:5173/integrations/social/threads`**  
-  if <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> is <Badge text="http://localhost:5173" variant="new" />.
+- **Local development (recommended)**: Meta requires **HTTPS** redirect URIs for Threads. Run your web app on HTTPS (for example with a local dev certificate) and set <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> accordingly. Typical value:  
+```bash
+https://localhost:5173/integrations/social/threads
+```
 
-If you change port or host, the redirect string changes—**always match Meta’s field to the URI your backend encodes** (you can copy it from the generated authorize URL’s <Badge text="redirect_uri" variant="default" /> query parameter).
-
-<Callout type="tip" title="Other tools may use different local ports">
-Some stacks document <Badge text="localhost:4200" variant="default" /> or Docker on <Badge text=":5000" variant="default" /> for local redirects. Openquok’s default web dev server is typically <Badge text="5173" variant="default" /> (Vite)—use your actual <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />, not another project’s port, unless you deliberately run the web app elsewhere.
-</Callout>
-
-<Callout type="warning" title="Meta dashboard form">
-On the Meta app **Threads API** settings screen, you often must **click** each OAuth / callback URL field so it is “active” before the form will save. Uninstall / delete callback URLs may still require placeholder values even if unused.
-</Callout>
 
 ## Meta app setup (summary)
 
 <Steps>
 
-### Create and scope a Meta app
+### Create a Meta app
 
-Create an app in <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink>, request **Access the Threads API**, add products/scopes such as <Badge text="threads_basic" variant="default" /> and <Badge text="threads_content_publish" variant="default" />, and complete the dashboard wizard until customization is finished. Follow <DocsExternalLink href="https://developers.facebook.com/docs/threads/get-started">Threads API get started</DocsExternalLink> for current requirements.
+Create an app in <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink>.
 
-### Paste App ID and App Secret into the backend
+![Step 1 - Create a Meta app](/docs/social-integration/threads/create-meta-app.webp)
 
-In the Meta app **Threads** / **Settings** area, copy **Threads App ID** → <Badge text="THREADS_APP_ID" variant="envBackend" />, and **App Secret** → <Badge text="THREADS_APP_SECRET" variant="envBackend" />. Restart the backend.
 
-### Register OAuth redirect URIs
+### Request access to Threads
 
-Add the **production** and/or **local** redirect URIs from the section above. They must match what Openquok sends in the authorize request.
+Select **Access the Threads API**.
 
-### Add testers and accept Threads invites
+![Step 2 - Request Threads Access](/docs/social-integration/threads/request-threads-access.webp)
 
-Add **Threads Testers** under app roles, then on Threads open **Website permissions** invites and accept the app for the test account you use.
+
+### Finish Creating Meta App
+
+You can skip **adding business details** and **connecting a business portfolio**
+
+![Step 3 - Finish Creating Meta App](/docs/social-integration/threads/finish-creating-meta-app.webp)
+
+
+### Scope a Meta app
+
+On your app dashboard, Select **Access the Threads API** to customize the API access.
+
+Add **products/scopes** including <Badge text="threads_basic" variant="default" /> and <Badge text="threads_content_publish" variant="default" />.
+
+![Step 4 - Scope a Meta App](/docs/social-integration/threads/scope-api-access.webp)
+
+<Callout type="tip">
+Follow <DocsExternalLink href="https://developers.facebook.com/docs/threads/get-started">Threads API get started</DocsExternalLink> for current requirements.
+</Callout>
+
+
+### Configure API settings.
+
+In the Meta app **Settings** area, copy **Threads app ID** → <Badge text="THREADS_APP_ID" variant="envBackend" />, and **Threads app Secret** → <Badge text="THREADS_APP_SECRET" variant="envBackend" />. Restart the app. Otherwise, the backend may not pick up your new environment variables
+
+![Step 5 - Scope a Meta App](/docs/social-integration/threads/configure-api-settings.webp)
+
+Add the **production** and/or **local** redirect URIs from the <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/threads#oauth-redirect-uri-what-to-enter-in-meta">OAuth redirect URI (what to enter in Meta)</a> section.
+
+<Callout type="warning" title="Meta dashboard form">
+In Meta’s Threads API settings, type/paste the redirect URI and click the suggested value below to add it. If the form still won’t save, fill the Uninstall and Delete callback URLs too.
+</Callout>
+
+<Callout type="note" title="About HTTPS relays">
+Some OAuth providers accept redirect URIs that are HTTPS wrappers around an HTTP localhost URL. For Threads, Meta can reject redirect URIs that contain an embedded <code>http://</code> segment even when the outer URL is HTTPS. Prefer a “pure HTTPS” redirect URI (HTTPS localhost or an HTTPS tunnel).
+</Callout>
+
+### Add the Threads account as a tester
+
+In the **Meta developer app sidebar**, go to **App roles** → **Roles**.
+
+- Open the **Testers** tab, then choose **Add People**.
+
+![Step 6 - Add test user](/docs/social-integration/threads/add-test-user.webp)
+
+- Under additional roles for this app, select **Threads Tester**.
+
+- Enter the **Threads** username that should test the app (often your own). That handle is for **Threads** and can differ from the Meta developer account tied to Facebook.
+
+### Allow the app on your Threads account
+
+In **Threads** (app or <DocsExternalLink href="https://www.threads.net">threads.net</DocsExternalLink>), open your account **Settings**.
+
+- Open **Website permissions**, then the **Invites** tab.
+
+![Step 7 - Accept invite](/docs/social-integration/threads/accept-invite.webp)
+
+- You should see a pending invite for the app—accept it to finish tester setup for that account.
+
+### Start testing
+
+Return to the <DocsExternalLink href="https://developers.facebook.com/apps">Meta developer portal</DocsExternalLink>. In the sidebar, open **Testing**, then open **Graph API Explorer**.
+
+- In the header, open the **API selector** (app / API version dropdown) and switch it to the **Threads** endpoint Meta lists—for example **threads.net** with **v1.0** (labels vary by dashboard version).
+
+![Step 9 - Graph Api Explorer](/docs/social-integration/threads/graph-api-explorer.webp)
+
+- In the right sidebar, under **Access Token**, choose **Generate Threads Access Token**. A new window lets you pick the **Threads** account to test with—use one that accepted the tester invite earlier.
+
+- If everything is wired correctly, Meta returns a long alphanumeric access token. You do not need to store or paste it into Openquok; receiving it only confirms the app and tester setup work.
 
 </Steps>
 
 ## How Openquok uses the flow
 
 - **Authorize URL** is produced by the backend (session or programmatic API); the user signs in with Meta and returns to the **frontend** route with an authorization <Badge text="code" variant="default" />.
+
 - The web client then calls the backend **social-connect** endpoint with <Badge text="code" variant="default" />, <Badge text="state" variant="default" />, and timezone so the server can exchange the code and persist the channel.
 
 API prefix defaults to <Badge text="/api/v1" variant="path" /> (see <Badge text="API_PREFIX" variant="envBackend" />). Typical patterns include session routes under <Badge text="/integrations" variant="path" /> and org–key routes under <Badge text="/public" variant="path" />—see route modules in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/tree/main/backend/routes"><Badge text="backend/routes" variant="path" /></DocsExternalLink> for the exact paths in your checkout.

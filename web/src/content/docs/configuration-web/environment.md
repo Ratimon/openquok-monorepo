@@ -35,6 +35,11 @@ VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID=
 ```
 
+<Callout type="note" title="VITE_FRONTEND_DOMAIN_URL should match the URL you visit">
+<p>Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>exact</strong> origin you use to open the web app, including the scheme (<code>http</code> vs <code>https</code>).</p>
+<p>For OAuth-based integrations, keep it consistent with the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />. If you move the web dev server from HTTP to HTTPS (or vice versa), update both so redirect URIs and in-app links keep working.</p>
+</Callout>
+
 Stripe price IDs for your plans:
 
 ```bash

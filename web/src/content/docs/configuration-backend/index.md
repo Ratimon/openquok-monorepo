@@ -2,11 +2,11 @@
 title: Configuration - Backend
 description: Backend configuration — env vars, Supabase, and services Openquok.
 order: 0
-lastUpdated: 2026-04-07
+lastUpdated: 2026-04-08
 ---
 
 <script>
-import { Badge, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -21,6 +21,12 @@ For **production**, follow the same naming convention: maintain <Badge text="bac
 NODE_ENV=development
 FRONTEND_DOMAIN_URL=http://localhost:5173
 ```
+
+<Callout type="note" title="FRONTEND_DOMAIN_URL affects OAuth redirects">
+<p><Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> must match the <strong>exact</strong> origin you use to open the web app, including the scheme (<code>http</code> vs <code>https</code>). The backend uses it to build OAuth redirect/callback URLs (for example <code>/integrations/social/threads</code>).</p>
+<p>If you run the web dev server on HTTP, use <code>http://localhost:5173</code>. If you switch the web dev server to HTTPS (required by some providers), update this to <code>https://localhost:5173</code>.</p>
+<p>Keep it aligned with the web app’s <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> so links and OAuth redirects point to the same scheme and host.</p>
+</Callout>
 
 ## Common setup steps
 

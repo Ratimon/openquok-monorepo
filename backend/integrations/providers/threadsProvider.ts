@@ -9,8 +9,9 @@ import type {
 
 import dayjs from "dayjs";
 import { config } from "../../config/GlobalConfig";
-
 import { makeId } from "../../utils/make.is";
+// import { logger } from "../../utils/Logger";
+
 
 function frontendOrigin(): string {
     const url = (config.server as { frontendDomainUrl?: string })?.frontendDomainUrl ?? "http://localhost:5173";
@@ -81,10 +82,11 @@ export class ThreadsProvider implements SocialProvider {
 
         const state = makeId(6);
         const codeVerifier = makeId(10);
+        const redirectUri = threadsRedirectUri();
         const url =
             "https://www.threads.net/oauth/authorize" +
             `?client_id=${appId}` +
-            `&redirect_uri=${encodeURIComponent(threadsRedirectUri())}` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
             `&state=${state}` +
             `&scope=${encodeURIComponent(this.scopes.join(","))}`;
 
