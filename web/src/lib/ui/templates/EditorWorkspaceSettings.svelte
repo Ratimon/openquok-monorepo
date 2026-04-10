@@ -12,6 +12,7 @@
 	import * as Field from '$lib/ui/field';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = {
 		workspacesVm: WorkspaceCardViewModel[];
@@ -467,20 +468,25 @@
 			</createWorkspaceForm.Field>
 			<Dialog.Footer>
 				<Dialog.Close>
-					<button type="button" class="btn btn-ghost border border-base-content text-base-content hover:bg-base-content/10">
+					<Button
+						type="button"
+						variant="ghost"
+						class="border border-base-content text-base-content hover:bg-base-content/10"
+					>
 						Cancel
-					</button>
+					</Button>
 				</Dialog.Close>
 				<createWorkspaceForm.Subscribe selector={(state) => ({ isSubmitting: state.isSubmitting })}>
 					{#snippet children(state)}
-						<button
+						<Button
 							type="submit"
 							form="create-workspace-form"
-							class="btn bg-base-content text-base-100 hover:bg-base-content/90 border-0"
+							variant="ghost"
+							class="border-0 bg-base-content text-base-100 hover:bg-base-content/90"
 							disabled={state.isSubmitting || createSubmitting}
 						>
 							{state.isSubmitting || createSubmitting ? 'Creating…' : 'Create New Workspace'}
-						</button>
+						</Button>
 					{/snippet}
 				</createWorkspaceForm.Subscribe>
 			</Dialog.Footer>
@@ -565,20 +571,25 @@
 			</div>
 			<Dialog.Footer>
 				<Dialog.Close>
-					<button type="button" class="btn btn-ghost border border-base-content text-base-content hover:bg-base-content/10">
+					<Button
+						type="button"
+						variant="ghost"
+						class="border border-base-content text-base-content hover:bg-base-content/10"
+					>
 						Cancel
-					</button>
+					</Button>
 				</Dialog.Close>
 				<inviteMemberForm.Subscribe selector={(state) => ({ isSubmitting: state.isSubmitting })}>
 					{#snippet children(state)}
-						<button
+						<Button
 							type="submit"
 							form="invite-member-form"
-							class="btn bg-base-content text-base-100 hover:bg-base-content/90 border-0"
+							variant="ghost"
+							class="border-0 bg-base-content text-base-100 hover:bg-base-content/90"
 							disabled={state.isSubmitting || inviting}
 						>
 							{state.isSubmitting || inviting ? 'Sending…' : 'Send invite'}
-						</button>
+						</Button>
 					{/snippet}
 				</inviteMemberForm.Subscribe>
 			</Dialog.Footer>

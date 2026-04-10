@@ -11,6 +11,7 @@
 	import { toast } from '$lib/ui/sonner';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Field from '$lib/ui/field';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Avatar from '$lib/ui/components/avatar';
 	import AvatarUploadForm from '$lib/ui/components/AvatarUploadForm.svelte';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
@@ -393,19 +394,17 @@
 			</profileDetailsForm.Field>
 			<Dialog.Footer>
 				<Dialog.Close>
-					<button type="button" class="btn btn-ghost">
-						Close</button>
+					<Button type="button" variant="ghost">Close</Button>
 				</Dialog.Close>
 				<profileDetailsForm.Subscribe selector={(state) => ({ isSubmitting: state.isSubmitting })}>
 					{#snippet children(state)}
-						<button
+						<Button
 							type="submit"
 							form="picture-form"
-							class="btn btn-primary"
 							disabled={state.isSubmitting || loadingProfile || !profileVm?.id}
 						>
 							{state.isSubmitting ? 'Saving…' : 'Save'}
-						</button>
+						</Button>
 					{/snippet}
 				</profileDetailsForm.Subscribe>
 			</Dialog.Footer>
@@ -447,19 +446,13 @@
 			</nameForm.Field>
 			<Dialog.Footer>
 				<Dialog.Close>
-					<button type="button" class="btn btn-ghost">
-						Close</button>
+					<Button type="button" variant="ghost">Close</Button>
 				</Dialog.Close>
 				<nameForm.Subscribe selector={(state) => ({ isSubmitting: state.isSubmitting })}>
 					{#snippet children(state)}
-						<button
-							type="submit"
-							form="name-form"
-							class="btn btn-primary"
-							disabled={state.isSubmitting}
-						>
+						<Button type="submit" form="name-form" disabled={state.isSubmitting}>
 							{state.isSubmitting ? 'Saving…' : 'Save'}
-						</button>
+						</Button>
 					{/snippet}
 				</nameForm.Subscribe>
 			</Dialog.Footer>
@@ -505,19 +498,13 @@
 			</websiteForm.Field>
 			<Dialog.Footer>
 				<Dialog.Close>
-					<button type="button" class="btn btn-ghost">
-						Close</button>
+					<Button type="button" variant="ghost">Close</Button>
 				</Dialog.Close>
 				<websiteForm.Subscribe selector={(state) => ({ isSubmitting: state.isSubmitting })}>
 					{#snippet children(state)}
-						<button
-							type="submit"
-							form="website-form"
-							class="btn btn-primary"
-							disabled={state.isSubmitting}
-						>
+						<Button type="submit" form="website-form" disabled={state.isSubmitting}>
 							{state.isSubmitting ? 'Saving…' : 'Save'}
-						</button>
+						</Button>
 					{/snippet}
 				</websiteForm.Subscribe>
 			</Dialog.Footer>

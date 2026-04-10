@@ -18,6 +18,7 @@
 		CardContent,
 		CardFooter
 	} from '$lib/ui/card';
+	import Button from '$lib/ui/buttons/Button.svelte';
 
 	const isPresenterSubmitting = $derived(editorAccountSettingsPresenter.status === UpdateProfileStatus.UPDATING);
 
@@ -129,23 +130,20 @@
 				</form.Field>
 			</CardContent>
 			<CardFooter class="flex flex-col gap-3 sm:flex-row sm:justify-end">
-				<a
-					href={accountSettingsUrl}
-					class="btn btn-ghost order-2 sm:order-1"
-				>
+				<Button href={accountSettingsUrl} variant="ghost" class="order-2 sm:order-1">
 					Cancel
-				</a>
+				</Button>
 				<form.Subscribe
 					selector={(state) => ({ isSubmitting: state.isSubmitting })}
 				>
 					{#snippet children(state)}
-						<button
+						<Button
 							type="submit"
-							class="btn btn-primary order-1 sm:order-2"
+							class="order-1 sm:order-2"
 							disabled={state.isSubmitting || isPresenterSubmitting}
 						>
 							{state.isSubmitting || isPresenterSubmitting ? 'Updating…' : 'Change password'}
-						</button>
+						</Button>
 					{/snippet}
 				</form.Subscribe>
 			</CardFooter>

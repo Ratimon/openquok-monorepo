@@ -13,6 +13,7 @@
 
     import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Dialog from '$lib/ui/dialog';
+	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = {
 		/** Path to return to after OAuth (path only, e.g. `/account`). Passed to the integration backend as `externalUrl`. */
@@ -88,10 +89,10 @@
 </script>
 
 <Dialog.Root bind:open>
-	<button class="btn btn-primary gap-2" type="button" onclick={() => (open = true)}>
+	<Button class="gap-2" type="button" onclick={() => (open = true)}>
 		<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
 		{buttonLabel}
-	</button>
+	</Button>
 
 	<Dialog.Content class="max-w-lg">
 		<Dialog.Header>
@@ -141,8 +142,9 @@
 		{/if}
 
 		<Dialog.Footer>
-			<button class="btn btn-ghost" type="button" onclick={() => (open = false)}>Close</button>
+			<Button variant="ghost" type="button" onclick={() => (open = false)}>Close</Button>
 		</Dialog.Footer>
+
 	</Dialog.Content>
 </Dialog.Root>
 

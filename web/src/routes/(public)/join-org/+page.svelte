@@ -8,6 +8,7 @@
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { absoluteUrl } from '$lib/utils/path';
+	import Button from '$lib/ui/buttons/Button.svelte';
 
 	const signinUrl = absoluteUrl(`/${getRootPathSignin()}`);
 	const signinUrlWithRedirect = $derived(
@@ -57,15 +58,17 @@
 				You can return to your account or sign in again and try opening the link once more.
 			</p>
 			<div class="mt-6 flex flex-wrap gap-3">
-				<a
+				<Button
 					href={accountUrl}
-					class="btn btn-sm bg-base-content text-base-100 border-0 hover:bg-base-content/90"
+					size="sm"
+					variant="ghost"
+					class="border-0 bg-base-content text-base-100 hover:bg-base-content/90"
 				>
 					Go to account
-				</a>
-				<a href={signinUrl} class="btn btn-sm btn-ghost border border-base-300 text-base-content">
+				</Button>
+				<Button href={signinUrl} variant="ghost" size="sm" class="border border-base-300 text-base-content">
 					Sign in
-				</a>
+				</Button>
 			</div>
 		{:else}
 			<p class="mt-3 text-sm text-base-content/80">
@@ -85,19 +88,21 @@
 
 			<div class="mt-6 flex flex-wrap gap-3">
 				{#if !isAuthenticated}
-					<a
+					<Button
 						href={signinUrlWithRedirect}
-						class="btn bg-base-content text-base-100 border-0 hover:bg-base-content/90"
+						variant="ghost"
+						class="border-0 bg-base-content text-base-100 hover:bg-base-content/90"
 					>
 						Sign in to accept
-					</a>
-					<a href={accountUrl} class="btn btn-ghost border border-base-300 text-base-content">
+					</Button>
+					<Button href={accountUrl} variant="ghost" class="border border-base-300 text-base-content">
 						Go to account
-					</a>
+					</Button>
 				{:else}
-					<button
+					<Button
 						type="button"
-						class="btn bg-base-content text-base-100 border-0 hover:bg-base-content/90"
+						variant="ghost"
+						class="border-0 bg-base-content text-base-100 hover:bg-base-content/90"
 						onclick={acceptInvite}
 						disabled={joining}
 					>
@@ -106,10 +111,10 @@
 						{:else}
 							Accept invite
 						{/if}
-					</button>
-					<a href={accountUrl} class="btn btn-ghost border border-base-300 text-base-content">
+					</Button>
+					<Button href={accountUrl} variant="ghost" class="border border-base-300 text-base-content">
 						Cancel
-					</a>
+					</Button>
 				{/if}
 			</div>
 		{/if}

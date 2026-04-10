@@ -14,6 +14,7 @@
 	import { icons } from '$data/icon';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import AddProvider from '$lib/ui/components/launches/AddProvider.svelte';
 	import IntegrationMenu from '$lib/ui/components/launches/IntegrationMenu.svelte';
 	import * as Dialog from '$lib/ui/dialog';
@@ -201,14 +202,14 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2 sm:justify-end">
-			<button
+			<Button
 				type="button"
-				class="btn btn-ghost"
+				variant="ghost"
 				onclick={() => protectedDashboardPagePresenter.dismissOnboardingWelcome()}
 			>
 				Close
-			</button>
-			<a class="btn btn-primary" href={url(`/${getRootPathAccount()}/settings?section=workspace`)}>Workspace settings</a>
+			</Button>
+			<Button href={url(`/${getRootPathAccount()}/settings?section=workspace`)}>Workspace settings</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

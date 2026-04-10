@@ -8,6 +8,7 @@
 	import * as Dialog from '$lib/ui/dialog';
 	import { ImageWithFallback } from '$lib/ui/images';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = {
 		integration: DashboardConnectedChannelViewModel;
@@ -82,30 +83,34 @@
 					{/if}
 				</div>
 				{#if integration.inBetweenSteps && workspaceId}
-					<a class="btn btn-sm btn-primary w-fit" href={continueSetupHref(integration)}>
+					<Button href={continueSetupHref(integration)} size="sm" class="w-fit">
 						Complete setup
-					</a>
+					</Button>
 				{:else if integration.refreshNeeded && workspaceId}
-					<a class="btn btn-sm btn-outline w-fit" href={continueSetupHref(integration)}>
+					<Button href={continueSetupHref(integration)} variant="outline" size="sm" class="w-fit">
 						Refresh connection
-					</a>
+					</Button>
 				{/if}
-				<button
+				<Button
 					type="button"
-					class="btn btn-sm btn-outline w-fit"
+					variant="outline"
+					size="sm"
+					class="w-fit"
 					disabled={busy}
 					onclick={handleToggleDisabled}
 				>
 					{integration.disabled ? 'Enable channel' : 'Disable channel'}
-				</button>
-				<button
+				</Button>
+				<Button
 					type="button"
-					class="btn btn-sm btn-error btn-outline w-fit"
+					variant="red"
+					size="sm"
+					class="w-fit"
 					disabled={busy}
 					onclick={() => (confirmRemoveOpen = true)}
 				>
 					Remove channel
-				</button>
+				</Button>
 			</div>
 		</Collapsible.CollapsibleContent>
 	</Collapsible.Collapsible>
@@ -122,16 +127,22 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2 sm:justify-end">
-			<button type="button" class="btn btn-ghost" onclick={() => (confirmRemoveOpen = false)} disabled={busy}>
+			<Button type="button" variant="ghost" onclick={() => (confirmRemoveOpen = false)} disabled={busy}>
 				Cancel
-			</button>
-			<button type="button" class="btn btn-error" disabled={busy} onclick={handleRemove}>
+			</Button>
+			<Button
+				type="button"
+				variant="ghost"
+				class="border-0 bg-error text-error-content hover:bg-error/90"
+				disabled={busy}
+				onclick={handleRemove}
+			>
 				{#if busy}
 					<AbstractIcon name={icons.LoaderCircle.name} class="h-4 w-4 animate-spin" width="16" height="16" />
 				{:else}
 					Remove
 				{/if}
-			</button>
+			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

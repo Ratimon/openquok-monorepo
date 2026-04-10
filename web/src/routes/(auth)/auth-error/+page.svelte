@@ -2,6 +2,7 @@
 	import type { PageProps } from './$types';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { absoluteUrl } from '$lib/utils/path';
+	import Button from '$lib/ui/buttons/Button.svelte';
 
 	const signinUrl = absoluteUrl(`/${getRootPathSignin()}`);
 
@@ -19,8 +20,8 @@
 		<p class="mt-4 font-medium text-primary">
 			{errorMessage}</p>
 		<div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-			<a href={signinUrl} class="btn btn-primary">Try signing in again</a>
-			<a href="/" class="btn btn-outline">Return home</a>
+			<Button href={signinUrl}>Try signing in again</Button>
+			<Button href="/" variant="outline">Return home</Button>
 		</div>
 	</div>
 </div>
