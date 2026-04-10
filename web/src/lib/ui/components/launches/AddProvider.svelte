@@ -14,14 +14,18 @@
     import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import * as Tooltip from '$lib/ui/tooltip';
+	import { cn } from '$lib/ui/helpers/common';
 
 	type Props = {
 		/** Path to return to after OAuth (path only, e.g. `/account`). Passed to the integration backend as `externalUrl`. */
 		returnToPath?: string;
 		buttonLabel?: string;
+		/** When true, propagate `?onboarding=true` through the OAuth flow. */
+		onboarding?: boolean;
 	};
 
-	let { returnToPath, buttonLabel = 'Add Channel' }: Props = $props();
+	let { returnToPath, buttonLabel = 'Add Channel', onboarding = false }: Props = $props();
 
 	let open = $state(false);
 	let loading = $state(false);
@@ -82,7 +86,8 @@
 		const connectPath = `${accountRoot}/integrations/social/${encodeURIComponent(identifier)}`;
 		const qs = new URLSearchParams({
 			organizationId: workspaceId,
-			returnTo: afterConnect
+			returnTo: afterConnect,
+			...(onboarding ? { onboarding: 'true' } : {})
 		});
 		goto(absoluteUrl(`${connectPath}?${qs}`));
 	}
@@ -93,17 +98,21 @@
 		<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
 		{buttonLabel}
 	</Button>
-
-	<Dialog.Content class="max-w-lg">
-		<Dialog.Header>
-			<Dialog.Title>Add a channel</Dialog.Title>
-			<Dialog.Description>
-				Connect a social account to start publishing.
+	<!-- Override Dialog.Content defaults: base includes `sm:max-w-lg`, which would keep the modal narrow on sm+ unless we set responsive max-width here. -->
+	<Dialog.Content
+		class={cn(
+			'w-full max-w-[min(96vw,90rem)] p-0 sm:max-w-6xl lg:max-w-7xl xl:max-w-[min(96vw,90rem)]'
+		)}
+	>
+		<div class="relative border-b border-base-300 px-6 py-5">
+			<Dialog.Title class="text-xl font-semibold text-base-content">Add Channel</Dialog.Title>
+			<Dialog.Description class="mt-1 text-sm text-base-content/70">
+				Click a channel to connect it.
 			</Dialog.Description>
-		</Dialog.Header>
+		</div>
 
 		{#if loading}
-			<div class="flex items-center gap-2 py-6 text-base-content/70">
+			<div class="flex items-center gap-2 px-6 py-10 text-base-content/70">
 				<AbstractIcon
 					name={icons.LoaderCircle.name}
 					class="h-4 w-4 animate-spin"
@@ -113,38 +122,60 @@
 				Loading providers…
 			</div>
 		{:else if providers.length === 0}
-			<div class="py-6 text-sm text-base-content/70">
+			<div class="px-6 py-10 text-sm text-base-content/70">
 				No providers available right now.
 			</div>
 		{:else}
-			<div class="grid gap-2 py-2">
+			<div class="px-6 py-6">
+				<div
+					class={cn(
+						'grid gap-[10px] justify-items-center justify-center',
+						onboarding
+							? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9'
+							: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
+					)}
+				>
 				{#each providers as p (p.identifier)}
 					<button
 						type="button"
-						class="flex w-full items-center justify-between rounded-lg border border-base-300 bg-base-100 px-3 py-3 text-left hover:bg-base-200"
+						class="group relative flex h-[94px] w-full max-w-[150px] flex-col items-center justify-center gap-2 rounded-xl border border-base-300 bg-base-100 px-3 py-3 text-center hover:bg-base-200"
 						onclick={() => onPickProvider(p.identifier)}
 					>
-						<div class="flex items-center gap-3">
-							<div class="grid h-10 w-10 place-items-center rounded-md bg-base-200">
-								<AbstractIcon name={providerIcon(p.identifier)} class="h-5 w-5" width="20" height="20" />
-							</div>
-							<div class="min-w-0">
-								<div class="font-medium text-base-content">{p.name ?? p.identifier}</div>
-								<div class="text-xs text-base-content/70">{p.identifier}</div>
-							</div>
+						<div class="grid h-10 w-10 place-items-center rounded-lg bg-base-200">
+							<AbstractIcon name={providerIcon(p.identifier)} class="h-6 w-6" width="24" height="24" />
 						</div>
-						<div class="text-base-content/60">
-							<AbstractIcon name={icons.ChevronRight.name} class="h-4 w-4" width="16" height="16" />
+						<div class="line-clamp-1 text-sm font-medium text-base-content">
+							{p.name ?? p.identifier}
 						</div>
+						{#if p.toolTip}
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									{#snippet child({ props: tipProps })}
+										{@const { class: tipClass, ...tipRest } = tipProps}
+										<span
+											{...tipRest}
+											class={`absolute right-2 top-2 ${String(tipClass ?? '')} text-base-content/70 group-hover:text-base-content`}
+											aria-label="More info"
+										>
+											<AbstractIcon
+												name={icons.FileQuestionMark.name}
+												class="h-4 w-4"
+												width="16"
+												height="16"
+											/>
+										</span>
+									{/snippet}
+								</Tooltip.Trigger>
+								<Tooltip.Content side="top">
+									{p.toolTip}
+								</Tooltip.Content>
+							</Tooltip.Root>
+						{/if}
 					</button>
 				{/each}
+				</div>
 			</div>
 		{/if}
-
-		<Dialog.Footer>
-			<Button variant="ghost" type="button" onclick={() => (open = false)}>Close</Button>
-		</Dialog.Footer>
-
 	</Dialog.Content>
 </Dialog.Root>
 

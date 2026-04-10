@@ -12,10 +12,14 @@
 	import { toast } from '$lib/ui/sonner';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 
+	import CircularProgressBar from '$lib/ui/components/circular-progress-bar/CircularProgressBar.svelte';
+
 	dayjs.extend(utc);
 	dayjs.extend(timezone);
 
 	let busy = $state(true);
+	/** Indeterminate-style value for {@link CircularProgressBar} while work is in progress. */
+	let progressValue = $state(45);
 
 	const provider = $derived(page.params.provider ?? '');
 	/** Authorization code returned by the provider (success path). */
@@ -29,6 +33,7 @@
 	const refresh = $derived(page.url.searchParams.get('refresh') ?? undefined);
 	const organizationIdParam = $derived(page.url.searchParams.get('organizationId') ?? '');
 	const returnTo = $derived(page.url.searchParams.get('returnTo') ?? route(getRootPathAccount()));
+	const onboarding = $derived(page.url.searchParams.get('onboarding') ?? undefined);
 
 	function timezoneOffsetMinutes(): string {
 		const zone = dayjs.tz.guess() || 'UTC';
@@ -123,7 +128,8 @@
 				const qs = new URLSearchParams({
 					organizationId: data.organizationId,
 					returnTo: accountRoot,
-					refresh: data.internalId
+					refresh: data.internalId,
+					...(onboarding === 'true' && { onboarding: 'true' })
 				});
 				await goto(absoluteUrl(`${accountRoot}/integrations/social/${encodeURIComponent(p)}?${qs}`), {
 					replaceState: true
@@ -160,7 +166,8 @@
 			const resPm = await integrationsRepository.getAuthorizeUrl({
 				organizationId,
 				provider: p,
-				externalUrl: externalReturn
+				externalUrl: externalReturn,
+				...(onboarding === 'true' && { onboarding: 'true' })
 			});
 
 			if (!('url' in resPm)) {
@@ -201,6 +208,22 @@
 	$effect(() => {
 		void run();
 	});
+
+	$effect(() => {
+		if (!busy) {
+			progressValue = 0;
+			return;
+		}
+		let frame = 0;
+		const start = Date.now();
+		const tick = () => {
+			const t = (Date.now() - start) / 1000;
+			progressValue = 55 + 35 * Math.sin(t * 1.6);
+			frame = requestAnimationFrame(tick);
+		};
+		tick();
+		return () => cancelAnimationFrame(frame);
+	});
 </script>
 
 <svelte:head>
@@ -214,7 +237,9 @@
 </svelte:head>
 
 <div class="mx-auto max-w-xl py-10">
-	<div class="rounded-lg border border-base-300 bg-base-100 p-6">
+	<div
+		class="flex flex-col items-center rounded-lg border border-base-300 bg-base-100 p-6 text-center"
+	>
 		{#if isOAuthErrorCallback}
 			<h1 class="text-lg font-semibold text-base-content">Returning…</h1>
 			<p class="mt-2 text-sm text-base-content/70">
@@ -226,21 +251,35 @@
 				alt=""
 				width="48"
 				height="48"
-				class="mb-4 h-12 w-12"
+				class="mb-4 h-12 w-12 shrink-0"
 			/>
 			<h1 class="text-lg font-semibold text-base-content">Connecting {provider || 'channel'}…</h1>
 			<p class="mt-2 text-sm text-base-content/70">
 				{#if busy}
-					Preparing authorization…
-				{:else}
 					Redirecting…
+				{:else}
+					Almost there…
 				{/if}
 			</p>
+			{#if busy}
+				<div class="mt-6 flex justify-center">
+					<CircularProgressBar value={progressValue} size={100} strokeWidth={7} />
+				</div>
+			{/if}
 		{:else}
 			<h1 class="text-lg font-semibold text-base-content">Finishing connection…</h1>
 			<p class="mt-2 text-sm text-base-content/70">
-				{busy ? 'Please wait while we connect your account.' : 'Done.'}
+				{#if busy}
+					Please wait while we connect your account.
+				{:else}
+					Done.
+				{/if}
 			</p>
+			{#if busy}
+				<div class="mt-6 flex justify-center">
+					<CircularProgressBar value={progressValue} size={100} strokeWidth={7} />
+				</div>
+			{/if}
 		{/if}
 	</div>
 </div>

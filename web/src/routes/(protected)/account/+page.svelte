@@ -17,7 +17,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AddProvider from '$lib/ui/components/launches/AddProvider.svelte';
 	import IntegrationMenu from '$lib/ui/components/launches/IntegrationMenu.svelte';
-	import * as Dialog from '$lib/ui/dialog';
+	import OnBoardingModal from '$lib/ui/components/launches/OnBoardingModal.svelte';
 	import { toast } from '$lib/ui/sonner';
 
 	type Props = {
@@ -33,8 +33,38 @@
 	const menuGroups = $derived(protectedDashboardPagePresenter.menuGroups);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
 	
+	/**
+	 * Onboarding wizard (`OnBoardingModal`): wide modal, step 1 uses a 9-column grid on large screens.
+	 * It opens from the `$effect` below when there are no connected channels and onboarding is not
+	 * marked complete in `localStorage` (key `onboarding:completed`).
+	 *
+	 * To preview the onboarding UI:
+	 * - DevTools → Application → Local Storage → delete key `onboarding:completed`
+	 * - Remove all channels for the workspace (or use an empty workspace), then reload `/account`
+	 * - Or temporarily force: change the initial state on the next line from `false` to `true`
+	 *   (`let onboardingDialogOpen = $state(true)`), then revert after testing.
+	 */
 	let onboardingDialogOpen = $state(false);
 	let prevOnboardingWelcome = $state(false);
+	let hasAutoOpenedOnboarding = $state(false);
+
+	function isOnboardingCompleted(): boolean {
+		if (typeof window === 'undefined') return false;
+		try {
+			return localStorage.getItem('onboarding:completed') === 'true';
+		} catch {
+			return false;
+		}
+	}
+
+	function markOnboardingCompleted(): void {
+		if (typeof window === 'undefined') return;
+		try {
+			localStorage.setItem('onboarding:completed', 'true');
+		} catch {
+			// ignore
+		}
+	}
 
 	$effect(() => {
 		const w = protectedDashboardPagePresenter.showOnboardingWelcome;
@@ -51,6 +81,18 @@
 		if (!onboardingDialogOpen && protectedDashboardPagePresenter.showOnboardingWelcome) {
 			protectedDashboardPagePresenter.dismissOnboardingWelcome();
 		}
+	});
+
+	$effect(() => {
+		if (hasAutoOpenedOnboarding) return;
+		if (!workspaceId) return;
+		if (!currentUser) return;
+		if (protectedDashboardPagePresenter.listStatus !== 'ready') return;
+		const hasAnyChannels = menuGroups.length > 0 && menuGroups.some((g) => g.items.length > 0);
+		if (hasAnyChannels) return;
+		if (isOnboardingCompleted()) return;
+		onboardingDialogOpen = true;
+		hasAutoOpenedOnboarding = true;
 	});
 
 	const iconByProvider: Record<string, IconName> = {
@@ -145,6 +187,7 @@
 	<section class="mt-8">
 		<div class="flex flex-wrap items-center justify-between gap-3">
 			<h3 class="text-lg font-semibold text-base-content">Connected channels</h3>
+			<!-- `onboarding={true}`: 9-column grid + `?onboarding=true` on OAuth (match reference “onboarding” mode). -->
 			<AddProvider />
 		</div>
 		{#if !workspaceId}
@@ -192,24 +235,15 @@
 	</section>
 </div>
 
-<!-- to do : refactor to component -->
-<Dialog.Root bind:open={onboardingDialogOpen}>
-	<Dialog.Content class="max-w-md">
-		<Dialog.Header>
-			<Dialog.Title>Channel connected</Dialog.Title>
-			<Dialog.Description>
-				Your workspace now includes this channel. You can add more anytime or open settings to manage the workspace.
-			</Dialog.Description>
-		</Dialog.Header>
-		<Dialog.Footer class="gap-2 sm:justify-end">
-			<Button
-				type="button"
-				variant="ghost"
-				onclick={() => protectedDashboardPagePresenter.dismissOnboardingWelcome()}
-			>
-				Close
-			</Button>
-			<Button href={url(`/${getRootPathAccount()}/settings?section=workspace`)}>Workspace settings</Button>
-		</Dialog.Footer>
-	</Dialog.Content>
-</Dialog.Root>
+<OnBoardingModal
+	open={onboardingDialogOpen}
+	onOpenChange={(v) => {
+		onboardingDialogOpen = v;
+		if (!v) {
+			markOnboardingCompleted();
+			if (protectedDashboardPagePresenter.showOnboardingWelcome) {
+				protectedDashboardPagePresenter.dismissOnboardingWelcome();
+			}
+		}
+	}}
+/>
