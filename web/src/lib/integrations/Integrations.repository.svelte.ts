@@ -102,6 +102,9 @@ export interface IntegrationsConfig {
 		socialAuthorize: (provider: SocialProviderIdentifier) => string;
 		connectSocial: (provider: SocialProviderIdentifier) => string;
 		listByOrganization: string;
+		disable: string;
+		enable: string;
+		deleteChannel: string;
 	};
 }
 
@@ -227,6 +230,65 @@ export class IntegrationsRepository {
 			return [];
 		} catch {
 			return [];
+		}
+	}
+
+	public async deleteChannel(params: {
+		organizationId: string;
+		integrationId: string;
+	}): Promise<{ ok: true } | { ok: false; error: string }> {
+		try {
+			await this.httpGateway.delete(this.config.endpoints.deleteChannel, {
+				data: { organizationId: params.organizationId, id: params.integrationId },
+				withCredentials: true
+			});
+			return { ok: true };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Could not remove this channel.' };
+		}
+	}
+
+	public async setChannelDisabled(params: {
+		organizationId: string;
+		integrationId: string;
+		disabled: boolean;
+	}): Promise<{ ok: true } | { ok: false; error: string }> {
+		try {
+			const url = params.disabled ? this.config.endpoints.disable : this.config.endpoints.enable;
+			await this.httpGateway.post(url, { organizationId: params.organizationId, id: params.integrationId }, {
+				withCredentials: true
+			});
+			return { ok: true };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Could not update this channel.' };
 		}
 	}
 }

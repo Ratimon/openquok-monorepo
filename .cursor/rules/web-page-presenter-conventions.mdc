@@ -1,0 +1,109 @@
+---
+description: Page presenters, routes, parent/child wiring, toast patterns (A/B), area barrels, mutation flows
+globs: ["web/src/lib/area-*/**", "web/src/routes/**/*.svelte", "web/src/lib/ui/**/*.svelte"]
+alwaysApply: false
+---
+
+# Page presenter & route conventions (`$lib/area-*`)
+
+Use this rule for **route-level pages**, **page presenters** under `web/src/lib/area-*/`, and how **`+page.svelte`** / **`$lib/ui`** children wire to them.
+
+**Related:** repository layering, DTO/PM/`Get*` mapping, and naming for **repository outputs** live in **web-repository-presenter-architecture** — do not duplicate repository rules here.
+
+---
+
+## Page presenter — role and placement
+
+- **File:** `$lib/area-protected/*Page.presenter.svelte.ts`, `$lib/area-admin/*Page.presenter.svelte.ts`, `$lib/area-public/*Page.presenter.svelte.ts`, etc.
+- **Class name:** e.g. `ProtectedSettingsPagePresenter`, `AdminFeedbackManagerPagePresenter`.
+- **Wiring:** Instantiate the page presenter in the area **`index.ts`**, export the **singleton** (e.g. `protectedSettingsPagePresenter`) and **status enums** the route needs (e.g. `UpdateProfileStatus`). See **Area `index.ts` exports** below for what not to re-export.
+- **Shapes:**
+  - **Thin coordinator:** constructor takes feature presenters (and deps); exposes getters or delegates; route uses one import from the area index.
+  - **Stateful page:** owns `$state`, calls repositories and/or `Get*` presenters for loads and mutations.
+
+---
+
+## Sorting and grouping
+
+- **List ordering, section grouping, and “sort by …” rules** for a screen live in the **page presenter** (`$derived` or private helpers), not in the repository (unless order is a **stable domain rule** shared across clients).
+- **Admin-style lists:** typed list state uses **`*Vm`** (e.g. `…ToManageVm`). Initial **PM → VM** for reads usually goes through a stateless **`Get*Presenter`**; the page presenter holds the **VM array** after load. Do not embed ad-hoc `…PmToVm` helpers in area page presenters when a `Get*` already owns that mapping.
+
+---
+
+## Parent / child components
+
+- **Parent** (route `+page.svelte`, `+layout.svelte`, or section): **only** here import the **area page presenter** singleton. Owns feature UI state (`$state`), derives from presenter (`$derived`), defines handlers that call **presenter methods**, passes **VM + callbacks** (and bindables) to children. No **repository** / **gateway** imports.
+- **Child** (`$lib/ui/...`): receives VM and callbacks via props; **does not** import **`$lib/area-*`** page presenter **singletons** or repositories. **Type-only** imports of `*ViewModel` / mutation result types from `*Page.presenter.svelte` are OK for `Props` when the parent passes that shape — import **types**, not the presenter instance.
+- **Exception — shared feature modals:** a child may import **singleton presenters** from a **feature** `index.ts` (e.g. `$lib/blog`: `upsertBlogTopicModalPresenter`) when they are thin repository wrappers for `ActionVerificationModal`-style `execute`. The **list VM** still lives on the **page presenter**; after success, children call **`onTopicCreated(vm)`** / similar so the page presenter updates **in memory** (no refetch). See **Mutation flow B** below.
+
+---
+
+## Toast (`$lib/ui/sonner`) — patterns
+
+**Never** import or call **`toast`** inside a **page presenter**.
+
+### Pattern A — presenter toast flags (admin list pages)
+
+- **Presenter:** `showToastMessage = $state(false)`, `toastMessage = $state('')`. After mutations, set flags from `resultPm` (prefer **Failed** / **Error** in failure copy so the route can choose `toast.error`). Never call `toast` in the presenter.
+- **Route:** `$derived` those fields; one **`$effect`** when `showToastMessage` is true → `toast.success` / `toast.error`, then **`presenter.showToastMessage = false`**. Handlers only `await presenter.handleXxx(...)` — **no** `toast.*` in handlers for these flows.
+
+**References:** `AdminFeedbackManagerPage.presenter.svelte.ts` + `secret-admin/feedback-manager/+page.svelte`; `AdminBlogCommentsManagerPage.presenter.svelte.ts` + blog comments route.
+
+### Pattern B — explicit mutation results (dashboard / account-style)
+
+- **Presenter:** mutations return a **discriminated result** (e.g. `{ ok: true } | { ok: false; error: string }`). Optional: return **strings** for redirect/query flows (`msg=`) for the route to toast; presenter does not toast.
+- **Route / parent:** after `await presenter.mutation(...)`, call **`toast.success` / `toast.error`** from the handler or a small wrapper.
+
+### Pattern B (modals) — upsert / delete inside feature UI
+
+- Upsert may toast **inside the modal** after `resultPm`. Delete often uses **`ActionVerificationModal`**’s toast. Still no toast in the **page presenter** unless you are using pattern A flags.
+
+### Public blog by slug (variant of A)
+
+- **`PublicBlogBySlugPagePresenter`:** separate `show*SubmitToast` + message + `*IsError` flags per concern (comment / like / share). Route uses **separate `$effect` blocks** (and `browser` when needed), clears flags after toasting. Children (`BlogComments`, `BlogLikeButton`, …) **no** area-presenter import — props only.
+
+---
+
+## Area `index.ts` — exports
+
+- **Export:** route helpers (e.g. `getRootPathAccount`), **presenter classes**, **singleton presenters**, **status enums** shared by the route.
+- **Do not** re-export **page-only types**: `*ViewModel` interfaces, mutation result unions, or other types defined on a single `*Page.presenter.svelte.ts`. Consumers import types **from the presenter file**:
+
+```ts
+import type { SomePageViewModel } from '$lib/area-protected/SomePage.presenter.svelte';
+```
+
+---
+
+## Page presenter — state and helpers
+
+- **Status enum** for async work (`UNKNOWN`, `UPDATING`, …) in `$state` when it helps UI and tests.
+- **In-memory VM updates** after mutations: update only on **success** (`resultPm.success`); no optimistic update + revert. For **blog topics**, HTTP runs in modal/verification presenters; page presenter **`addBlogTopic` / `removeBlogTopic`** only on success callbacks.
+- **Private VM helpers:** name internal apply helpers **`_*`** (e.g. `_applyUserRoleAdd`) — not part of the public API.
+
+---
+
+## Mutation flows
+
+**The route never calls the repository or gateway directly.**
+
+### A — Page presenter owns repository + VM (classic)
+
+- Presenter injects repository; **`Get*Presenter`** for initial list loads where PM→VM belongs in `Get*` (e.g. blog admin lists).
+- Presenter sets **pattern A** toast flags; route uses **`$effect`** as above.
+
+### B — Feature modal presenters + page presenter list VM
+
+- HTTP in **feature** singleton presenters (`$lib/<feature>/index.ts`). Page presenter owns **`loadAllTopics`** and in-memory **`addBlogTopic(vm)`**, **`removeBlogTopic(id)`** only.
+- Route imports **only** the area page presenter; passes **`onTopicCreated` / `onTopicUpdated` / `onTopicDeleted`** into children.
+
+**Reference:** `AdminBlogTopicsManagerPagePresenter`, `web/src/lib/blog/index.ts`, `blog-manager/topics/+page.svelte`, `BlogTopicUpsertModal.svelte`, `BlogTopicsTable.svelte`.
+
+---
+
+## `+page.svelte` checklist
+
+- Import the **page presenter** (and enums) from the **area index** — not repositories/gateways.
+- Own local UI state with `$state`; derive with `$derived`.
+- Mutations: **pattern A** (`$effect` + toast flags) or **pattern B** (explicit results + `toast` in route) or **child** → feature singleton → repository, then callback into page presenter for list VM.
+- Pass **VM + callbacks** to children; children do not import the page presenter (except feature-modal exception above).

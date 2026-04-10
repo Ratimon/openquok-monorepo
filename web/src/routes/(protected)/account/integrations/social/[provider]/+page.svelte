@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ContinueIntegration from '$lib/ui/components/launches/ContinueIntegration.svelte';
+	import IntegrationContinue from '$lib/ui/components/launches/IntegrationContinue.svelte';
 </script>
 
-<ContinueIntegration />
+<IntegrationContinue />

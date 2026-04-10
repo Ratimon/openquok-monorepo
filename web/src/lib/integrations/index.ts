@@ -11,7 +11,10 @@ const integrationsConfig: IntegrationsConfig = {
 		catalog: `${integrationsBase}`,
 		socialAuthorize: (provider) => `${integrationsBase}/social/${encodeURIComponent(provider)}`,
 		connectSocial: (provider) => `${integrationsBase}/social-connect/${encodeURIComponent(provider)}`,
-		listByOrganization: `${integrationsBase}/list`
+		listByOrganization: `${integrationsBase}/list`,
+		disable: `${integrationsBase}/disable`,
+		enable: `${integrationsBase}/enable`,
+		deleteChannel: `${integrationsBase}`
 	}
 };
 
@@ -19,7 +22,6 @@ export const integrationsRepository = new IntegrationsRepository(httpGateway, in
 export const continueIntegrationPresenter = new ContinueIntegrationPresenter(integrationsRepository);
 
 export { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
-// export type { ConnectSocialSuccessProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
 export {
 	ContinueIntegrationPresenter,
 	ContinueIntegrationStatus,

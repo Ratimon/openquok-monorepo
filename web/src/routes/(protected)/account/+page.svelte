@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { IconName } from '$data/icon';
-	import type { ConnectedIntegrationProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
+	import type { DashboardConnectedChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -9,12 +9,15 @@
 		getRootPathAccount,
 		protectedDashboardPagePresenter
 	} from '$lib/area-protected';
-	import { icons } from '$data/icon';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import AddProvider from '$lib/ui/components/launches/AddProvider.svelte';
-	import * as Dialog from '$lib/ui/dialog';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
+	import { icons } from '$data/icon';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import AddProvider from '$lib/ui/components/launches/AddProvider.svelte';
+	import IntegrationMenu from '$lib/ui/components/launches/IntegrationMenu.svelte';
+	import * as Dialog from '$lib/ui/dialog';
+	import { toast } from '$lib/ui/sonner';
 
 	type Props = {
 		data: PageData;
@@ -26,7 +29,7 @@
 
 	const accountRoot = $derived(route(getRootPathAccount()));
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
-	const sortedIntegrations = $derived(protectedDashboardPagePresenter.sortedIntegrations);
+	const menuGroups = $derived(protectedDashboardPagePresenter.menuGroups);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
 	
 	let onboardingDialogOpen = $state(false);
@@ -62,7 +65,27 @@
 		return iconByProvider[identifier] ?? icons.Link.name;
 	}
 
-	function continueSetupHref(integration: ConnectedIntegrationProgrammerModel): string {
+	async function handleRemoveChannel(id: string): Promise<boolean> {
+		const r = await protectedDashboardPagePresenter.removeChannel(id);
+		if (r.ok) {
+			toast.success('Channel removed.');
+			return true;
+		}
+		toast.error(r.error);
+		return false;
+	}
+
+	async function handleSetChannelDisabled(id: string, disabled: boolean): Promise<boolean> {
+		const r = await protectedDashboardPagePresenter.setChannelDisabled(id, disabled);
+		if (r.ok) {
+			toast.success(disabled ? 'Channel disabled.' : 'Channel enabled.');
+			return true;
+		}
+		toast.error(r.error);
+		return false;
+	}
+
+	function continueSetupHref(integration: DashboardConnectedChannelViewModel): string {
 		if (!workspaceId) return url(`/${getRootPathAccount()}`);
 		const qs = new URLSearchParams({
 			organizationId: workspaceId,
@@ -78,7 +101,11 @@
 		const msg = u.searchParams.get('msg');
 		const onboarding = u.searchParams.get('onboarding');
 		if (!added && !msg && onboarding !== 'true') return;
-		void protectedDashboardPagePresenter.handlePostConnectQuery(u, goto);
+		void protectedDashboardPagePresenter.handlePostConnectQuery(u, goto).then((r) => {
+			if (r.handled && r.successToastMessage) {
+				toast.success(r.successToastMessage);
+			}
+		});
 	});
 
 	$effect(() => {
@@ -132,41 +159,34 @@
 			</p>
 		{:else if listStatus === 'error'}
 			<p class="mt-3 text-sm text-error">Could not load channels. Try again in a moment.</p>
-		{:else if sortedIntegrations.length === 0}
+		{:else if menuGroups.length === 0 || menuGroups.every((g) => g.items.length === 0)}
 			<p class="mt-3 text-sm text-base-content/70">
 				No channels yet. Use <span class="font-medium text-base-content">Add Channel</span> to connect one.
 			</p>
 		{:else}
-			<ul class="mt-4 grid gap-3 sm:grid-cols-2">
-				{#each sortedIntegrations as integration (integration.id)}
-					<li
-						class="flex gap-3 rounded-lg border border-base-300 bg-base-200/40 p-4"
-					>
-						<div class="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-md bg-base-300">
-							{#if integration.picture}
-								<img src={integration.picture} alt="" class="h-full w-full object-cover" />
-							{:else}
-								<AbstractIcon name={providerIcon(integration.identifier)} class="h-6 w-6 opacity-60" width="24" height="24" />
-							{/if}
-						</div>
-						<div class="min-w-0 flex-1">
-							<div class="font-medium text-base-content">{integration.name}</div>
-							<div class="text-xs text-base-content/60">{integration.identifier}</div>
-							<div class="mt-2 flex flex-wrap gap-2">
-								{#if integration.disabled}
-									<span class="badge badge-ghost badge-sm">Disabled</span>
-								{/if}
-								{#if integration.refreshNeeded}
-									<span class="badge badge-warning badge-sm">Refresh needed</span>
-								{/if}
-								{#if integration.inBetweenSteps && workspaceId}
-									<a class="btn btn-xs btn-primary" href={continueSetupHref(integration)}>Complete setup</a>
-								{/if}
-							</div>
-						</div>
-					</li>
+			<div class="mt-4 space-y-6">
+				{#each menuGroups as group (group.label)}
+					<div>
+						<h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/60">
+							{group.label}
+						</h4>
+						<ul class="grid gap-3 sm:grid-cols-2">
+							{#each group.items as integration (integration.id)}
+								<li>
+									<IntegrationMenu
+										{integration}
+										workspaceId={workspaceId!}
+										{providerIcon}
+										{continueSetupHref}
+										onRemove={handleRemoveChannel}
+										onSetDisabled={handleSetChannelDisabled}
+									/>
+								</li>
+							{/each}
+						</ul>
+					</div>
 				{/each}
-			</ul>
+			</div>
 		{/if}
 	</section>
 </div>
