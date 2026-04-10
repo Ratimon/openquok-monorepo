@@ -12,6 +12,7 @@
 	import { icons } from '$data/icon';
 	import { SETTINGS_SIDEBAR_KEY } from '$lib/ui/templates/sidebar-secondary-context';
 	import { protectedLayoutPagePresenter } from '$lib/area-protected';
+	
 	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
 
 	type AppSettingsSectionId =

@@ -5,10 +5,15 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
-	import { signinFormSchema, signinPresenter, signupPresenter } from '$lib/user-auth/index';
+	import {
+		getPostSigninRedirectTarget,
+		signinFormSchema,
+		signinPresenter,
+		signupPresenter
+	} from '$lib/user-auth/index';
 	import { getRootPathSignup, getRootPathForgotPassword } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-	import { absoluteUrl, route, url } from '$lib/utils/path';
+	import { absoluteUrl, url } from '$lib/utils/path';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -29,40 +34,14 @@
 	const forgotPasswordUrl = absoluteUrl(`/${forgotPath}`);
 
 	function getRedirectURL(): string {
-		function validateRedirectURL(url: string): string | null {
-			if (!url || !url.trim()) return null;
-			let decoded: string;
-			try {
-				decoded = decodeURIComponent(url).trim();
-			} catch {
-				decoded = url.trim();
-			}
-			if (decoded.startsWith('//') || (!decoded.startsWith('/') && !decoded.startsWith('http'))) return null;
-			if (!decoded.startsWith('http') && !decoded.startsWith('/')) decoded = '/' + decoded;
-			return decoded;
-		}
-		function isLandingPath(pathOrUrl: string): boolean {
-			const pathname = pathOrUrl.startsWith('http')
-				? new URL(pathOrUrl).pathname
-				: pathOrUrl.split('?')[0] || '/';
-			return route(pathname) === '/';
-		}
-
 		const accountPath = url(getRootPathAccount());
 		if (typeof window !== 'undefined') {
-			const params = new URLSearchParams(window.location.search);
-			const redirectParam = params.get('redirectURL');
-			if (redirectParam) {
-				const validated = validateRedirectURL(redirectParam);
-				if (validated) return isLandingPath(validated) ? accountPath : validated;
+			const wParams = new URLSearchParams(window.location.search);
+			if (wParams.get('redirectURL')) {
+				return getPostSigninRedirectTarget(wParams, accountPath);
 			}
 		}
-		const redirectParam = page.url.searchParams.get('redirectURL');
-		if (redirectParam) {
-			const validated = validateRedirectURL(redirectParam);
-			if (validated) return isLandingPath(validated) ? accountPath : validated;
-		}
-		return accountPath;
+		return getPostSigninRedirectTarget(page.url.searchParams, accountPath);
 	}
 
 	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'Openquok');

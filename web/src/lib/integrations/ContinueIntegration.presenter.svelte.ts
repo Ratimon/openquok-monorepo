@@ -1,5 +1,29 @@
-import type { SocialProviderIdentifier } from '$lib/integrations/Integrations.repository.svelte';
-import type { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
+import type {
+	ConnectSocialSuccessProgrammerModel,
+	IntegrationsRepository,
+	SocialProviderIdentifier
+} from '$lib/integrations/Integrations.repository.svelte';
+
+/**
+ * UI-facing result of completing social OAuth (navigation flags only; no raw API shape).
+ */
+export interface ContinueSocialIntegrationViewModel {
+	organizationId: string;
+	internalId: string;
+	inBetweenSteps: boolean;
+	onboarding: boolean;
+}
+
+function toContinueSocialIntegrationViewModel(
+	pm: ConnectSocialSuccessProgrammerModel
+): ContinueSocialIntegrationViewModel {
+	return {
+		organizationId: pm.organizationId,
+		internalId: pm.internalId,
+		inBetweenSteps: pm.inBetweenSteps,
+		onboarding: pm.onboarding
+	};
+}
 
 export enum ContinueIntegrationStatus {
 	UNKNOWN = 'unknown',
@@ -22,7 +46,9 @@ export class ContinueIntegrationPresenter {
 		state: string;
 		timezone: string;
 		refresh?: string;
-	}): Promise<{ ok: true } | { ok: false }> {
+	}): Promise<
+		{ ok: true; data: ContinueSocialIntegrationViewModel } | { ok: false; error: string }
+	> {
 		this.status = ContinueIntegrationStatus.SUBMITTING;
 		this.showToastMessage = false;
 		this.toastMessage = '';
@@ -35,18 +61,19 @@ export class ContinueIntegrationPresenter {
 		});
 
 		if (resultPm.ok) {
-			this.toastKind = 'success';
-			this.toastMessage = 'Channel connected.';
-			this.showToastMessage = true;
 			this.status = ContinueIntegrationStatus.SUCCESS;
-			return { ok: true };
+			this.toastKind = 'success';
+			this.toastMessage = resultPm.data.inBetweenSteps
+				? 'One more step — finish connecting your channel.'
+				: 'Channel added.';
+			this.showToastMessage = true;
+			return { ok: true, data: toContinueSocialIntegrationViewModel(resultPm.data) };
 		}
 
 		this.toastKind = 'error';
 		this.toastMessage = resultPm.error;
 		this.showToastMessage = true;
 		this.status = ContinueIntegrationStatus.UNKNOWN;
-		return { ok: false };
+		return { ok: false, error: resultPm.error };
 	}
 }
-

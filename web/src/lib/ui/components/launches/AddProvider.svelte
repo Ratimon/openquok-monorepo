@@ -3,7 +3,8 @@
 	import type{ IconName } from '$data/icon';
 
 	import { goto } from '$app/navigation';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { getRootPathAccount } from '$lib/area-protected';
+	import { absoluteUrl, route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icon';
 
@@ -14,12 +15,12 @@
 	import * as Dialog from '$lib/ui/dialog';
 
 	type Props = {
-		/** Optional: override where the authorize route lives (defaults to account flow) */
-		authorizePath?: string;
+		/** Path to return to after OAuth (path only, e.g. `/account`). Passed to the integration backend as `externalUrl`. */
+		returnToPath?: string;
 		buttonLabel?: string;
 	};
 
-	let { authorizePath = '/account/oauth/authorize', buttonLabel = 'Add Channel' }: Props = $props();
+	let { returnToPath, buttonLabel = 'Add Channel' }: Props = $props();
 
 	let open = $state(false);
 	let loading = $state(false);
@@ -75,8 +76,14 @@
 			return;
 		}
 		open = false;
-		const url = absoluteUrl(`${authorizePath}?provider=${encodeURIComponent(identifier)}&organizationId=${encodeURIComponent(workspaceId)}`);
-		goto(url);
+		const accountRoot = route(getRootPathAccount());
+		const afterConnect = returnToPath ?? accountRoot;
+		const connectPath = `${accountRoot}/integrations/social/${encodeURIComponent(identifier)}`;
+		const qs = new URLSearchParams({
+			organizationId: workspaceId,
+			returnTo: afterConnect
+		});
+		goto(absoluteUrl(`${connectPath}?${qs}`));
 	}
 </script>
 

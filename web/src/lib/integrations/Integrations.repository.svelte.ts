@@ -60,11 +60,34 @@ export interface GetAuthorizeUrlResponseDto {
 	[key: string]: unknown;
 }
 
-export interface ConnectSocialBody {
+export interface ConnectSocialProgrammerModel {
 	state: string;
 	code: string;
 	timezone: string;
 	refresh?: string;
+}
+
+/** Payload returned after POST `/integrations/social-connect/:provider` succeeds. */
+export interface ConnectSocialSuccessProgrammerModel {
+	id: string;
+	organizationId: string;
+	internalId: string;
+	name: string;
+	picture: string | null;
+	providerIdentifier: string;
+	type: string;
+	disabled: boolean;
+	inBetweenSteps: boolean;
+	refreshNeeded: boolean;
+	onboarding: boolean;
+	pages?: unknown[];
+}
+
+export interface ConnectSocialResponseDto {
+	success?: boolean;
+	data?: ConnectSocialSuccessProgrammerModel;
+	message?: string;
+	[key: string]: unknown;
 }
 
 export interface GetIntegrationListResponseDto {
@@ -76,7 +99,7 @@ export interface GetIntegrationListResponseDto {
 export interface IntegrationsConfig {
 	endpoints: {
 		catalog: string;
-		getAuthorizeUrl: (provider: SocialProviderIdentifier) => string;
+		socialAuthorize: (provider: SocialProviderIdentifier) => string;
 		connectSocial: (provider: SocialProviderIdentifier) => string;
 		listByOrganization: string;
 	};
@@ -116,9 +139,10 @@ export class IntegrationsRepository {
 		externalUrl?: string;
 	}): Promise<{ url: string } | { error: string }> {
 		try {
+			const path = this.config.endpoints.socialAuthorize(params.provider);
 			const { ok, data: dto } =
 				await this.httpGateway.get<GetAuthorizeUrlResponseDto>(
-					this.config.endpoints.getAuthorizeUrl(params.provider),
+					path,
 					{
 						organizationId: params.organizationId,
 						...(params.refresh && { refresh: params.refresh }),
@@ -150,13 +174,27 @@ export class IntegrationsRepository {
 		}
 	}
 
-	public async connectSocial(provider: SocialProviderIdentifier, body: ConnectSocialBody): Promise<{ ok: true } | { ok: false; error: string }> {
+	public async connectSocial(
+		provider: SocialProviderIdentifier,
+		body: ConnectSocialProgrammerModel
+	): Promise<{ ok: true; data: ConnectSocialSuccessProgrammerModel } | { ok: false; error: string }> {
 		try {
-			const { ok } =
-				await this.httpGateway.post(this.config.endpoints.connectSocial(provider), body, {
-					withCredentials: true
-				});
-			return ok ? { ok: true } : { ok: false, error: 'Failed to connect integration.' };
+			const { ok, data: dto } =
+				await this.httpGateway.post<ConnectSocialResponseDto>(
+					this.config.endpoints.connectSocial(provider),
+					body,
+					{ withCredentials: true }
+				);
+			if (ok && dto?.success === true && dto.data) {
+				return { ok: true, data: dto.data };
+			}
+			const message =
+				typeof dto?.message === 'string'
+					? dto.message
+					: typeof (dto as { error?: string })?.error === 'string'
+						? (dto as { error: string }).error
+						: null;
+			return { ok: false, error: message || 'Failed to connect integration.' };
 		} catch (error) {
 			if (
 				error instanceof ApiError &&

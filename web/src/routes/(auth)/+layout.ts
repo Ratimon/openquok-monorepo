@@ -1,6 +1,6 @@
 import type { LayoutLoad } from './$types';
 import { goto } from '$app/navigation';
-import { authenticationRepository } from '$lib/user-auth/index';
+import { authenticationRepository, getPostSigninRedirectTarget } from '$lib/user-auth/index';
 import {
 	getRootPathConfirmChangePassword,
 	getRootPathSignin,
@@ -20,12 +20,17 @@ export const load: LayoutLoad = async ({ parent, url: loadUrl }) => {
 	const isConfirmChangePassword = loadUrl.pathname === confirmChangePasswordPath;
 	const isSignIn = loadUrl.pathname === signInPath;
 	const isVerifySignup = loadUrl.pathname === verifySignupPath;
-	// Allow sign-in so authenticated-but-unverified users can re-sign-in (no redirect loop with (protected)).
-	const allowAuthPage = isConfirmChangePassword || isSignIn || isVerifySignup;
+	const stayOnSignInUnverified =
+		isSignIn &&
+		authenticationRepository.isAuthenticated() &&
+		authenticationRepository.currentUser?.isEmailVerified === false;
+	const allowAuthPage =
+		isConfirmChangePassword || isVerifySignup || stayOnSignInUnverified;
 
 	if (authenticationRepository.isAuthenticated() && !allowAuthPage) {
 		const accountPath = url(getRootPathAccount());
-		goto(accountPath, { replaceState: true });
+		const destination = getPostSigninRedirectTarget(loadUrl.searchParams, accountPath);
+		goto(destination, { replaceState: true });
 	}
 
 	return { isLoggedIn };

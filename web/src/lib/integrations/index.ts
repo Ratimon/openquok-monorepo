@@ -1,16 +1,17 @@
-import { httpGateway } from '$lib/core/index';
 import type { IntegrationsConfig } from '$lib/integrations/Integrations.repository.svelte';
+
+import { httpGateway } from '$lib/core/index';
 import { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
 import { ContinueIntegrationPresenter } from '$lib/integrations/ContinueIntegration.presenter.svelte';
 
-const base = '/api/v1/integrations';
+const integrationsBase = '/api/v1/integrations';
 
 const integrationsConfig: IntegrationsConfig = {
 	endpoints: {
-		catalog: base,
-		getAuthorizeUrl: (provider) => `${base}/social/${provider}`,
-		connectSocial: (provider) => `${base}/social-connect/${provider}`,
-		listByOrganization: `${base}/list`
+		catalog: `${integrationsBase}`,
+		socialAuthorize: (provider) => `${integrationsBase}/social/${encodeURIComponent(provider)}`,
+		connectSocial: (provider) => `${integrationsBase}/social-connect/${encodeURIComponent(provider)}`,
+		listByOrganization: `${integrationsBase}/list`
 	}
 };
 
@@ -18,6 +19,9 @@ export const integrationsRepository = new IntegrationsRepository(httpGateway, in
 export const continueIntegrationPresenter = new ContinueIntegrationPresenter(integrationsRepository);
 
 export { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
-// export type { IntegrationCatalogItemDto, ConnectedIntegrationDto, SocialProviderIdentifier } from '$lib/integrations/Integrations.repository.svelte';
-export { ContinueIntegrationPresenter, ContinueIntegrationStatus } from '$lib/integrations/ContinueIntegration.presenter.svelte';
-
+// export type { ConnectSocialSuccessProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
+export {
+	ContinueIntegrationPresenter,
+	ContinueIntegrationStatus,
+	type ContinueSocialIntegrationViewModel
+} from '$lib/integrations/ContinueIntegration.presenter.svelte';
