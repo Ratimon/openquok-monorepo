@@ -2,7 +2,7 @@
 title: Configuration - Backend
 description: Backend configuration — env vars, Supabase, and services Openquok.
 order: 0
-lastUpdated: 2026-04-08
+lastUpdated: 2026-04-12
 ---
 
 <script>
@@ -23,9 +23,9 @@ FRONTEND_DOMAIN_URL=http://localhost:5173
 ```
 
 <Callout type="note" title="FRONTEND_DOMAIN_URL affects OAuth redirects">
-<p><Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> must match the <strong>exact</strong> origin you use to open the web app, including the scheme (<code>http</code> vs <code>https</code>). The backend uses it to build OAuth redirect/callback URLs (for example <code>/account/integrations/social/threads</code>).</p>
+<p><Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> must match the <strong>exact</strong> origin you use to open the web app, including the scheme (<code>http</code> vs <code>https</code>) and hostname (<code>www</code> vs apex). The backend uses it to build OAuth redirect/callback URLs (for example <code>/account/integrations/social/threads</code>).</p>
 <p>If you run the web dev server on HTTP, use <code>http://localhost:5173</code>. If you switch the web dev server to HTTPS (required by some providers), update this to <code>https://localhost:5173</code>.</p>
-<p>Keep it aligned with the web app’s <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> so links and OAuth redirects point to the same scheme and host.</p>
+<p>Keep it aligned with the web app’s <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> so links and OAuth redirects point to the same scheme and host. Third-party dashboards (Meta, Stripe, etc.) must list the <strong>same</strong> origin in every full redirect URL—swapping <code>www</code> only in Meta while the API still sends the apex host (or the reverse) produces “invalid redirect” style errors.</p>
 </Callout>
 
 ## Common setup steps
@@ -61,6 +61,8 @@ Configure Redis (recommended for production), Sentry (optional), Google OAuth (o
 ## Related Section(s)
 
 <CardGrid>
+<LinkCard title="Production deployment" description="Align FRONTEND_DOMAIN_URL with VITE_FRONTEND_DOMAIN_URL in production" href="/docs/Installation/production-deployment" />
+<LinkCard title="Web environment variables" description="VITE_FRONTEND_DOMAIN_URL and OAuth alignment" href="/docs/configuration-web/environment" />
 <LinkCard title="Installation" description="Deploy and configure OpenQuok" href="/docs/Installation" />
 <LinkCard title="Orchestrator workers" description="BullMQ workers, Redis, and Railway" href="/docs/configuration-worker" />
 <LinkCard title="Developer guidelines" description="Conventions for working in this repository" href="/docs/developer-guidelines" />

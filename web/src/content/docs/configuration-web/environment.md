@@ -2,7 +2,7 @@
 title: Environment variables
 description: Configure VITE's values for API base URL, Supabase, Stripe, and analytics for Openquok.
 order: 1
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-12
 ---
 
 <script>
@@ -36,8 +36,9 @@ VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID=
 ```
 
 <Callout type="note" title="VITE_FRONTEND_DOMAIN_URL should match the URL you visit">
-<p>Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>exact</strong> origin you use to open the web app, including the scheme (<code>http</code> vs <code>https</code>).</p>
-<p>For OAuth-based integrations, keep it consistent with the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />. If you move the web dev server from HTTP to HTTPS (or vice versa), update both so redirect URIs and in-app links keep working.</p>
+<p>Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>exact</strong> origin you use to open the web app: scheme (<code>http</code> vs <code>https</code>) and hostname. Treat <code>www</code> and the apex host as different origins—for example <code>https://www.example.com</code> and <code>https://example.com</code> are not interchangeable for OAuth.</p>
+<p>In <strong>production</strong>, set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>same</strong> string as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the backend (see <a href="/docs/configuration-backend">Configuration - Backend</a> and <a href="/docs/Installation/production-deployment">Production deployment</a>). The backend builds provider redirect URIs from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> only; Meta and similar dashboards must list those full URLs character-for-character.</p>
+<p>Do not add a trailing slash after the host. If you change either variable, rebuild the web app and restart or redeploy the API so both pick up the new origin.</p>
 </Callout>
 
 Stripe price IDs for your plans:
@@ -54,7 +55,7 @@ VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_LIFETIME_PACK=
 
 ### Set production env values
 
-For deployment, ensure <Badge text="web/.env.production.local" variant="envFile" /> (or equivalent secret injection) contains the same key names with production values.
+For deployment, ensure <Badge text="web/.env.production.local" variant="envFile" /> (or your host’s production env) sets the same key names with production values. Double-check <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> against <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the API before you register OAuth redirect URIs in external dashboards.
 
 </Steps>
 
@@ -65,6 +66,8 @@ Do not hard-code secrets in the source code. Use <Badge text="web/.env.developme
 ## Related configuration
 
 <CardGrid>
+<LinkCard title="Production deployment" description="Canonical FRONTEND_DOMAIN_URL, CORS, and redeploy notes" href="/docs/Installation/production-deployment" />
+<LinkCard title="Configuration - Backend" description="FRONTEND_DOMAIN_URL and OAuth redirect construction" href="/docs/configuration-backend" />
 <LinkCard title="PWA configuration" description="Edit web-config.json for app name and icon metadata" href="/docs/configuration-web/pwa" />
 <LinkCard title="Configuration - Web" description="Back to the web configuration hub" href="/docs/configuration-web" />
 </CardGrid>

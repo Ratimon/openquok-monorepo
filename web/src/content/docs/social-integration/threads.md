@@ -2,7 +2,7 @@
 title: Meta Threads
 description: How to configure Meta Threads for Openquok
 order: 1
-lastUpdated: 2026-04-08
+lastUpdated: 2026-04-12
 ---
 
 <script>
@@ -38,6 +38,10 @@ Meta redirects the **browser** back to your **web app** after consent—not to <
 ```bash
 https://YOUR-FRONTEND-DOMAIN/account/integrations/social/threads
 ```
+
+<Callout type="note" title="Replace YOUR-FRONTEND-DOMAIN with your backend origin">
+<p>Use the scheme and host from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> only (no path, no trailing slash). <code>www</code> and apex differ—for example if the env is <code>https://www.example.com</code>, Meta must list <code>https://www.example.com/account/…</code>, not the apex URL, unless that is what you configured everywhere. See <a href="/docs/configuration-backend">Configuration - Backend</a>.</p>
+</Callout>
 
 - **Local development (recommended)**: Meta requires **HTTPS** redirect URIs for Threads. Run your web app on HTTPS (for example with a local dev certificate) and set <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> accordingly. Typical value:  
 ```bash

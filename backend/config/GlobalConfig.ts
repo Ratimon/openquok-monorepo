@@ -1,4 +1,4 @@
-import { getEnv, getEnvNumber, getEnvBoolean } from "./envHelper";
+import { getEnv, getEnvTrimmed, getEnvNumber, getEnvBoolean } from "./envHelper";
 import { DEFAULT_API_PREFIX, normalizeApiPrefix } from "./apiPrefix";
 import { logger } from "../utils/Logger";
 import * as loadBackendDotenvCjs from "./loadBackendDotenv.cjs";
@@ -66,8 +66,8 @@ export const config: ConfigObject = {
 
     server: {
         nodeEnv: getEnv("NODE_ENV", "development"),
-        frontendDomainUrl: getEnv("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
-        backendDomainUrl: getEnv("BACKEND_DOMAIN_URL", "http://localhost:3000"),
+        frontendDomainUrl: getEnvTrimmed("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
+        backendDomainUrl: getEnvTrimmed("BACKEND_DOMAIN_URL", "http://localhost:3000"),
         port: getEnvNumber("PORT", 3000),
     },
 
@@ -233,13 +233,13 @@ export const config: ConfigObject = {
     /** Social integration OAuth (per-provider secrets). */
     integrations: {
         threads: {
-            appId: getEnv("THREADS_APP_ID", ""),
-            appSecret: getEnv("THREADS_APP_SECRET", ""),
+            appId: getEnvTrimmed("THREADS_APP_ID"),
+            appSecret: getEnvTrimmed("THREADS_APP_SECRET"),
         },
         /** Facebook Login — used for Instagram (Business) / Marketing API OAuth in the same Meta app. */
         facebook: {
-            appId: getEnv("FACEBOOK_APP_ID", ""),
-            appSecret: getEnv("FACEBOOK_APP_SECRET", ""),
+            appId: getEnvTrimmed("FACEBOOK_APP_ID"),
+            appSecret: getEnvTrimmed("FACEBOOK_APP_SECRET"),
         },
         /** Instagram Login (standalone professional accounts). */
         instagramStandalone: {

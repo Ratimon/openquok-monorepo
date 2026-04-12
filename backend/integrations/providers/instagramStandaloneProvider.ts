@@ -22,8 +22,20 @@ function instagramStandaloneRedirectUri(): string {
     return `${oauthFrontendOrigin()}/account/integrations/social/instagram-standalone`;
 }
 
+function normalizeOAuthPermissionList(raw: unknown): string[] {
+    if (Array.isArray(raw)) {
+        return raw.filter((x): x is string => typeof x === "string");
+    }
+    if (typeof raw === "string") {
+        return raw.split(",").map((s) => s.trim()).filter(Boolean);
+    }
+    return [];
+}
+
 /**
- * Instagram professional account via Instagram API with Instagram Login (no Facebook Page required).
+ * Instagram professional account via **Business Login for Instagram** (Instagram API with Instagram Login).
+ *
+ * @see https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/business-login
  */
 export class InstagramStandaloneProvider implements SocialProvider {
     identifier = "instagram-standalone";
@@ -32,6 +44,7 @@ export class InstagramStandaloneProvider implements SocialProvider {
     isBetweenSteps = false;
     refreshCron = true;
 
+    /** Matches Meta’s Business Login authorize example; omit scopes your app has not enabled in the dashboard. */
     scopes = [
         "instagram_business_basic",
         "instagram_business_content_publish",
@@ -98,13 +111,14 @@ export class InstagramStandaloneProvider implements SocialProvider {
         const state = makeId(6);
         const codeVerifier = makeId(10);
         const redirectUri = instagramStandaloneRedirectUri();
+        /** Meta documents `www.instagram.com/oauth/authorize` for this product; omit `enable_fb_login` for dashboard default. */
         const url =
-            "https://www.instagram.com/oauth/authorize?enable_fb_login=0" +
-            `&client_id=${encodeURIComponent(appId)}` +
+            "https://www.instagram.com/oauth/authorize" +
+            `?client_id=${encodeURIComponent(appId)}` +
             `&redirect_uri=${encodeURIComponent(redirectUri)}` +
             "&response_type=code" +
             `&scope=${encodeURIComponent(this.scopes.join(","))}` +
-            `&state=${state}`;
+            `&state=${encodeURIComponent(state)}`;
 
         return { url, codeVerifier, state };
     }
@@ -126,28 +140,32 @@ export class InstagramStandaloneProvider implements SocialProvider {
             method: "POST",
             body: formData,
         });
-        const shortLived = (await shortRes.json()) as {
+        const shortRaw = (await shortRes.json()) as {
+            data?: Array<{ access_token?: string; permissions?: string | string[]; user_id?: string }>;
             access_token?: string;
-            permissions?: string[];
+            permissions?: string | string[];
             error_message?: string;
         };
-        if (!shortLived.access_token) {
-            return shortLived.error_message ?? "Instagram token exchange failed";
+        const shortRow = shortRaw.data?.[0] ?? shortRaw;
+        const shortToken = shortRow.access_token;
+        if (!shortToken) {
+            return shortRaw.error_message ?? "Instagram token exchange failed";
         }
 
         const longRes = await fetch(
             `${IG_GRAPH}/access_token?grant_type=ig_exchange_token` +
                 `&client_id=${encodeURIComponent(appId)}` +
                 `&client_secret=${encodeURIComponent(appSecret)}` +
-                `&access_token=${encodeURIComponent(shortLived.access_token)}`
+                `&access_token=${encodeURIComponent(shortToken)}`
         );
         const longLived = (await longRes.json()) as { access_token?: string; error?: { message?: string } };
         if (!longLived.access_token) {
             return longLived.error?.message ?? "Instagram long-lived token exchange failed";
         }
 
+        const granted = normalizeOAuthPermissionList(shortRow.permissions);
         try {
-            this.checkScopes(this.scopes, shortLived.permissions ?? []);
+            this.checkScopes(this.scopes, granted);
         } catch (e) {
             return e instanceof Error ? e.message : "Missing OAuth permissions";
         }

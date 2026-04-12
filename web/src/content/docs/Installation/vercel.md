@@ -2,7 +2,7 @@
 title: Vercel
 description: Deploy Openquok's Application to Vercel — backend/web projects, env vars, CLI, and domains.
 order: 2
-lastUpdated: 2026-04-08
+lastUpdated: 2026-04-12
 ---
 
 <script>
@@ -52,7 +52,8 @@ This reads <Badge text="backend/.env.production.local" variant="path" /> and ups
 <Callout type="warning" title="CORS and production origins">
 <ul class="mt-2 list-disc space-y-1 pl-5">
 <li>Set <Badge text="FRONTEND_DOMAIN_URL" variant="envCors" /> <strong>without a trailing slash</strong> (for example <Badge text="https://www.openquok.com" variant="new" />, not <Badge text="https://www.openquok.com/" variant="deprecated" />).</li>
-<li>Include both apex and <code>www</code> in <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envCors" /> (example: <Badge text="https://openquok.com,https://www.openquok.com" variant="new" />).</li>
+<li>Set the web project’s <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>same</strong> canonical origin string as <Badge text="FRONTEND_DOMAIN_URL" variant="envCors" /> so Meta and other OAuth flows receive redirect URIs that match what you register in their dashboards (see <a href="/docs/Installation/production-deployment">Production deployment</a>).</li>
+<li>Include both apex and <code>www</code> in <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envCors" /> (example: <Badge text="https://openquok.com,https://www.openquok.com" variant="new" />) when visitors may hit either hostname, even if OAuth uses only one canonical host.</li>
 <li>Keep the web app’s <Badge text="VITE_API_BASE_URL" variant="envWeb" /> pointing to the same backend origin used by <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />.</li>
 </ul>
 <p class="mt-3">If these do not match, browser preflight for auth endpoints (such as <Badge text="/api/v1/auth/refresh" variant="path" />) can fail with a CORS error.</p>

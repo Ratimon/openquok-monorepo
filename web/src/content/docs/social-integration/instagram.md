@@ -1,8 +1,8 @@
 ---
 title: Instagram
-description: How to configure Instragram for Openquok
+description: How to configure Instagram for Openquok
 order: 2
-lastUpdated: 2026-04-10
+lastUpdated: 2026-04-12
 ---
 
 <script>
@@ -54,6 +54,10 @@ https://YOUR-FRONTEND-DOMAIN/account/integrations/social/instagram-business
 ```txt
 https://YOUR-FRONTEND-DOMAIN/account/integrations/social/instagram-standalone
 ```
+
+<Callout type="note" title="YOUR-FRONTEND-DOMAIN must match the backend env">
+<p>Substitute the hostname from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (scheme + host, no trailing slash). <code>www</code> and apex are different—register in Meta the same origin the API sends in <code>redirect_uri</code>. Align with <a href="/docs/configuration-backend">Configuration - Backend</a> and <a href="/docs/configuration-web/environment">Web environment variables</a>.</p>
+</Callout>
 
 For local HTTPS (or relay) examples, mirror the pattern used for Threads in <DocsExternalLink href="/docs/social-integration/threads">Meta Threads</DocsExternalLink>.
 
