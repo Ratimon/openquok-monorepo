@@ -148,4 +148,27 @@ export class IntegrationController {
             next(error);
         }
     };
+
+    /** POST /integrations/provider/:id/connect?… — complete in-between-step selection (e.g. Instagram Business `pageId` + `id`). */
+    saveProviderPage = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const integrationId = (req.params as { id: string }).id;
+            const body = req.body as Record<string, unknown>;
+            const organizationId = body.organizationId as string;
+            const data = await this.integrationConnectionService.saveProviderPage(
+                authUserId,
+                organizationId,
+                integrationId,
+                body
+            );
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
 }

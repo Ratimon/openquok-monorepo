@@ -10,16 +10,11 @@ import type {
 import dayjs from "dayjs";
 import { config } from "../../config/GlobalConfig";
 import { makeId } from "../../utils/make.is";
+import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
 // import { logger } from "../../utils/Logger";
 
-
-function frontendOrigin(): string {
-    const url = (config.server as { frontendDomainUrl?: string })?.frontendDomainUrl ?? "http://localhost:5173";
-    return url.indexOf("https") === -1 ? `https://redirectmeto.com/${url}` : url;
-}
-
 function threadsRedirectUri(): string {
-    return `${frontendOrigin()}/account/integrations/social/threads`;
+    return `${oauthFrontendOrigin()}/account/integrations/social/threads`;
 }
 
 function threadsOAuth(): { appId: string; appSecret: string } {

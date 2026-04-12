@@ -1,7 +1,6 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { publicInformationRepository, publicLayoutPagePresenter } from '$lib/area-public/index';
-import { CONFIG_SCHEMA_MARKETING } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -28,12 +27,9 @@ export async function load({ url, cookies }) {
 	});
 
 	const baseMetaTags = Object.freeze({
-		canonical: new URL(url.pathname, url.origin).href,
-		openGraph: {
-			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
-			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default),
-		},
-		...metaTags
+		...metaTags,
+		// Per-request canonical and og:url alignment (createMetaData also sets canonical from the request URL).
+		canonical: new URL(url.pathname, url.origin).href
 	}) satisfies MetaTagsProps;
 
 	const companyProperties = ['FOUNDING_YEAR', 'NAME'];

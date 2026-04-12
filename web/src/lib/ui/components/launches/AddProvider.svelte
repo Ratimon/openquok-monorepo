@@ -35,7 +35,8 @@
 
 	const iconByProvider: Record<string, IconName> = {
 		facebook: icons.Facebook.name,
-		instagram: icons.Instagram.name,
+		'instagram-business': icons.Instagram.name,
+		'instagram-standalone': icons.InstagramGlyph.name,
 		youtube: icons.YouTube.name,
 		tiktok: icons.TikTok.name,
 		x: icons.X.name
@@ -101,18 +102,19 @@
 	<!-- Override Dialog.Content defaults: base includes `sm:max-w-lg`, which would keep the modal narrow on sm+ unless we set responsive max-width here. -->
 	<Dialog.Content
 		class={cn(
-			'w-full max-w-[min(96vw,90rem)] p-0 sm:max-w-6xl lg:max-w-7xl xl:max-w-[min(96vw,90rem)]'
+			'w-full max-w-[min(96vw,90rem)] gap-0 p-0 sm:max-w-6xl lg:max-w-7xl xl:max-w-[min(96vw,90rem)]'
 		)}
 	>
-		<div class="relative border-b border-base-300 px-6 py-5">
+		<Tooltip.Provider delayDuration={200}>
+		<div class="relative border-b border-base-300 px-6 pb-2 pt-3">
 			<Dialog.Title class="text-xl font-semibold text-base-content">Add Channel</Dialog.Title>
-			<Dialog.Description class="mt-1 text-sm text-base-content/70">
+			<Dialog.Description class="mt-0.5 text-sm text-base-content/70">
 				Click a channel to connect it.
 			</Dialog.Description>
 		</div>
 
 		{#if loading}
-			<div class="flex items-center gap-2 px-6 py-10 text-base-content/70">
+			<div class="flex items-center gap-2 px-6 py-8 text-base-content/70">
 				<AbstractIcon
 					name={icons.LoaderCircle.name}
 					class="h-4 w-4 animate-spin"
@@ -122,14 +124,14 @@
 				Loading providers…
 			</div>
 		{:else if providers.length === 0}
-			<div class="px-6 py-10 text-sm text-base-content/70">
+			<div class="px-6 py-8 text-sm text-base-content/70">
 				No providers available right now.
 			</div>
 		{:else}
-			<div class="px-6 py-6">
+			<div class="px-6 pb-4 pt-1">
 				<div
 					class={cn(
-						'grid gap-[10px] justify-items-center justify-center',
+						'grid gap-2 justify-items-stretch justify-center sm:gap-[10px]',
 						onboarding
 							? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9'
 							: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
@@ -138,13 +140,15 @@
 				{#each providers as p (p.identifier)}
 					<button
 						type="button"
-						class="group relative flex h-[94px] w-full max-w-[150px] flex-col items-center justify-center gap-2 rounded-xl border border-base-300 bg-base-100 px-3 py-3 text-center hover:bg-base-200"
+						class="group relative flex min-h-[5.5rem] w-full min-w-0 max-w-none flex-col items-stretch justify-start gap-1.5 overflow-visible rounded-xl border border-base-300 bg-base-100 px-2 py-2 text-center whitespace-normal hover:bg-base-200"
 						onclick={() => onPickProvider(p.identifier)}
 					>
-						<div class="grid h-10 w-10 place-items-center rounded-lg bg-base-200">
+						<div class="mx-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-base-200">
 							<AbstractIcon name={providerIcon(p.identifier)} class="h-6 w-6" width="24" height="24" />
 						</div>
-						<div class="line-clamp-1 text-sm font-medium text-base-content">
+						<div
+							class="min-w-0 w-full shrink text-balance break-words text-sm font-medium leading-snug text-base-content"
+						>
 							{p.name ?? p.identifier}
 						</div>
 						{#if p.toolTip}
@@ -176,6 +180,7 @@
 				</div>
 			</div>
 		{/if}
+		</Tooltip.Provider>
 	</Dialog.Content>
 </Dialog.Root>
 

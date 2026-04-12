@@ -14,7 +14,6 @@
 	import { icons } from '$data/icon';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
 	import AddProvider from '$lib/ui/components/launches/AddProvider.svelte';
 	import IntegrationMenu from '$lib/ui/components/launches/IntegrationMenu.svelte';
 	import OnBoardingModal from '$lib/ui/components/launches/OnBoardingModal.svelte';
@@ -98,6 +97,8 @@
 	const iconByProvider: Record<string, IconName> = {
 		facebook: icons.Facebook.name,
 		instagram: icons.Instagram.name,
+		'instagram-business': icons.Instagram.name,
+		'instagram-standalone': icons.InstagramGlyph.name,
 		youtube: icons.YouTube.name,
 		tiktok: icons.TikTok.name,
 		x: icons.X.name,
@@ -130,6 +131,14 @@
 
 	function continueSetupHref(integration: DashboardConnectedChannelViewModel): string {
 		if (!workspaceId) return url(`/${getRootPathAccount()}`);
+		if (integration.identifier === 'instagram-business') {
+			const qs = new URLSearchParams({
+				organizationId: workspaceId,
+				integrationId: integration.id,
+				returnTo: accountRoot
+			});
+			return absoluteUrl(`${accountRoot}/integrations/instagram-business?${qs}`);
+		}
 		const qs = new URLSearchParams({
 			organizationId: workspaceId,
 			returnTo: accountRoot,

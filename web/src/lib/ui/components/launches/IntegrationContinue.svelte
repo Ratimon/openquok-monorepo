@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { ContinueSocialIntegrationViewModel } from '$lib/integrations';
 	import dayjs from 'dayjs';
 	import utc from 'dayjs/plugin/utc';
 	import timezone from 'dayjs/plugin/timezone';
@@ -6,7 +7,11 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getRootPathAccount } from '$lib/area-protected';
-	import { continueIntegrationPresenter, integrationsRepository } from '$lib/integrations';
+	import {
+		continueIntegrationPresenter,
+		INSTAGRAM_BUSINESS_PICKER_SESSION_KEY,
+		integrationsRepository,
+	} from '$lib/integrations';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { toast } from '$lib/ui/sonner';
@@ -22,6 +27,32 @@
 	let progressValue = $state(45);
 
 	const provider = $derived(page.params.provider ?? '');
+
+	/** Matches backend `SocialProvider.name`; used when the URL only has the identifier. */
+	const PROVIDER_DISPLAY: Record<string, string> = {
+		'instagram-standalone': 'Instagram (Standalone)',
+		'instagram-business': 'Instagram (Business)',
+		threads: 'Threads'
+	};
+
+	const providerLabel = $derived.by(() => {
+		const id = provider;
+		if (PROVIDER_DISPLAY[id]) return PROVIDER_DISPLAY[id];
+		if (!id) return 'channel';
+		return id
+			.split('-')
+			.filter(Boolean)
+			.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+			.join(' ');
+	});
+
+	/** Split "Instagram (Standalone)" → main + "(Standalone)" for a line break before parentheses. */
+	const connectingHeadline = $derived.by(() => {
+		const full = providerLabel;
+		const m = full.match(/^(.+?)\s+(\([^)]+\))$/);
+		if (m) return { main: m[1].trim(), paren: m[2] };
+		return { main: full, paren: null as string | null };
+	});
 	/** Authorization code returned by the provider (success path). */
 	const code = $derived(page.url.searchParams.get('code') ?? '');
 	const oauthState = $derived(page.url.searchParams.get('state') ?? '');
@@ -122,9 +153,34 @@
 			}
 
 			const accountRoot = route(getRootPathAccount());
-			const data = connectResult.data;
+			const data: ContinueSocialIntegrationViewModel = connectResult.data;
 
 			if (data.inBetweenSteps && data.internalId && data.organizationId) {
+				if (p === 'instagram-business') {
+					if (data.instagramBusinessPages?.length && typeof sessionStorage !== 'undefined') {
+						try {
+							sessionStorage.setItem(
+								INSTAGRAM_BUSINESS_PICKER_SESSION_KEY,
+								JSON.stringify({
+									integrationId: data.id,
+									pages: data.instagramBusinessPages
+								})
+							);
+						} catch {
+							/* private / full storage */
+						}
+					}
+					const qs = new URLSearchParams({
+						organizationId: data.organizationId,
+						integrationId: data.id,
+						returnTo: accountRoot,
+						...(onboarding === 'true' && { onboarding: 'true' })
+					});
+					await goto(absoluteUrl(`${accountRoot}/integrations/instagram-business?${qs}`), {
+						replaceState: true
+					});
+					return;
+				}
 				const qs = new URLSearchParams({
 					organizationId: data.organizationId,
 					returnTo: accountRoot,
@@ -236,9 +292,9 @@
 	>
 </svelte:head>
 
-<div class="mx-auto max-w-xl py-10">
+<div class="mx-auto w-full max-w-2xl px-4 py-10 sm:max-w-3xl">
 	<div
-		class="flex flex-col items-center rounded-lg border border-base-300 bg-base-100 p-6 text-center"
+		class="flex flex-col items-center rounded-lg border border-base-300 bg-base-100 px-8 py-8 text-center sm:px-10"
 	>
 		{#if isOAuthErrorCallback}
 			<h1 class="text-lg font-semibold text-base-content">Returning…</h1>
@@ -251,9 +307,17 @@
 				alt=""
 				width="48"
 				height="48"
-				class="mb-4 h-12 w-12 shrink-0"
+				class="mb-3 h-12 w-12 shrink-0"
 			/>
-			<h1 class="text-lg font-semibold text-base-content">Connecting {provider || 'channel'}…</h1>
+			<h1 class="w-full text-balance text-lg font-semibold leading-snug text-base-content sm:text-xl">
+				<span class="block text-sm font-medium text-base-content/75 sm:text-base">Connecting</span>
+				{#if connectingHeadline.paren}
+					<span class="mt-2 block sm:mt-3">{connectingHeadline.main}</span>
+					<span class="mt-1 block">{connectingHeadline.paren}…</span>
+				{:else}
+					<span class="mt-2 block sm:mt-3">{connectingHeadline.main}…</span>
+				{/if}
+			</h1>
 			<p class="mt-2 text-sm text-base-content/70">
 				{#if busy}
 					Redirecting…

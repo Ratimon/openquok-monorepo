@@ -2952,8 +2952,8 @@ INSERT INTO public.module_configs (module_name, config) VALUES
   "LEGAL_NAME": "Openquok",
   "VAT_ID": "",
   "COMPANY_ADDRESS": "",
-  "URL": "https://example.com",
-  "SUPPORT_EMAIL": "support@example.com",
+  "URL": "https://www.openquok.com/",
+  "SUPPORT_EMAIL": "support@openquok.com",
   "SUPPORT_PHONE": "",
   "FOUNDING_YEAR": "",
   "RESPONSIBLE_PERSON": ""

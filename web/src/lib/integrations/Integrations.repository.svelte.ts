@@ -3,6 +3,14 @@ import { ApiError } from '$lib/core/HttpGateway';
 
 export type SocialProviderIdentifier = string;
 
+/** Rows returned on `pages` after Instagram (Business) OAuth (same shape as the former list endpoint). */
+export type InstagramBusinessConnectPageRow = {
+	id: string;
+	pageId: string;
+	name: string;
+	pictureUrl: string;
+};
+
 /** Programmer model for a catalog integration entry (returned by repository). */
 export interface IntegrationCatalogItemProgrammerModel {
 	identifier: string;
@@ -80,7 +88,7 @@ export interface ConnectSocialSuccessProgrammerModel {
 	inBetweenSteps: boolean;
 	refreshNeeded: boolean;
 	onboarding: boolean;
-	pages?: unknown[];
+	pages?: InstagramBusinessConnectPageRow[];
 }
 
 export interface ConnectSocialResponseDto {
@@ -105,6 +113,7 @@ export interface IntegrationsConfig {
 		disable: string;
 		enable: string;
 		deleteChannel: string;
+		providerConnect: (integrationId: string) => string;
 	};
 }
 
@@ -259,6 +268,44 @@ export class IntegrationsRepository {
 				};
 			}
 			return { ok: false, error: 'Could not remove this channel.' };
+		}
+	}
+
+	/** POST `/integrations/provider/:id/connect` — provider-specific body (e.g. Instagram Business: `pageId`, `id`). */
+	public async saveProviderPage(params: {
+		organizationId: string;
+		integrationId: string;
+		pageId: string;
+		id: string;
+	}): Promise<{ ok: true } | { ok: false; error: string }> {
+		try {
+			const { organizationId, integrationId, pageId, id } = params;
+			const { ok, data: dto } = await this.httpGateway.post<{
+				success?: boolean;
+				data?: { success?: boolean };
+			}>(
+				this.config.endpoints.providerConnect(integrationId),
+				{ organizationId, pageId, id },
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true && dto.data?.success === true) return { ok: true };
+			return { ok: false, error: 'Could not complete channel setup.' };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Could not complete channel setup.' };
 		}
 	}
 

@@ -1,7 +1,13 @@
-import type { ClientInformation, SocialProvider } from "./social.integrations.interface";
+import type { SocialProvider } from "./social.integrations.interface";
+import { InstagramBusinessProvider } from "./providers/instagramBusinessProvider";
+import { InstagramStandaloneProvider } from "./providers/instagramStandaloneProvider";
 import { ThreadsProvider } from "./providers/threadsProvider";
 
-const socialIntegrationList: SocialProvider[] = [new ThreadsProvider()];
+const socialIntegrationList: SocialProvider[] = [
+    new ThreadsProvider(),
+    new InstagramBusinessProvider(),
+    new InstagramStandaloneProvider(),
+];
 
 export class IntegrationManager {
     getAllIntegrations() {

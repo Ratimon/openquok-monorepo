@@ -236,6 +236,16 @@ export const config: ConfigObject = {
             appId: getEnv("THREADS_APP_ID", ""),
             appSecret: getEnv("THREADS_APP_SECRET", ""),
         },
+        /** Facebook Login — used for Instagram (Business) / Marketing API OAuth in the same Meta app. */
+        facebook: {
+            appId: getEnv("FACEBOOK_APP_ID", ""),
+            appSecret: getEnv("FACEBOOK_APP_SECRET", ""),
+        },
+        /** Instagram Login (standalone professional accounts). */
+        instagramStandalone: {
+            appId: getEnv("INSTAGRAM_APP_ID", ""),
+            appSecret: getEnv("INSTAGRAM_APP_SECRET", ""),
+        },
     },
 
 

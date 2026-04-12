@@ -1,5 +1,6 @@
 import type {
 	ConnectSocialSuccessProgrammerModel,
+	InstagramBusinessConnectPageRow,
 	IntegrationsRepository,
 	SocialProviderIdentifier
 } from '$lib/integrations/Integrations.repository.svelte';
@@ -8,20 +9,26 @@ import type {
  * UI-facing result of completing social OAuth (navigation flags only; no raw API shape).
  */
 export interface ContinueSocialIntegrationViewModel {
+	/** Integration row id (UUID) — needed for Instagram (Business) account selection. */
+	id: string;
 	organizationId: string;
 	internalId: string;
 	inBetweenSteps: boolean;
 	onboarding: boolean;
+	/** Present when Instagram (Business) OAuth returned `pages` on the connect response. */
+	instagramBusinessPages?: InstagramBusinessConnectPageRow[];
 }
 
 function toContinueSocialIntegrationViewModel(
 	pm: ConnectSocialSuccessProgrammerModel
 ): ContinueSocialIntegrationViewModel {
 	return {
+		id: pm.id,
 		organizationId: pm.organizationId,
 		internalId: pm.internalId,
 		inBetweenSteps: pm.inBetweenSteps,
-		onboarding: pm.onboarding
+		onboarding: pm.onboarding,
+		...(Array.isArray(pm.pages) && pm.pages.length > 0 ? { instagramBusinessPages: pm.pages } : {})
 	};
 }
 

@@ -41,6 +41,16 @@ export class IntegrationService {
         return this.integrationRepository.getById(organizationId, id);
     }
 
+    async updateIntegrationById(
+        organizationId: string,
+        integrationId: string,
+        params: Parameters<IntegrationRepository["updateIntegrationById"]>[2]
+    ) {
+        const result = await this.integrationRepository.updateIntegrationById(organizationId, integrationId, params);
+        await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+        return result;
+    }
+
     async upsertIntegration(params: Parameters<IntegrationRepository["upsertIntegration"]>[0]) {
         const result = await this.integrationRepository.upsertIntegration(params);
         await this.invalidateIntegrationDomainCacheForProvider(params.organizationId, params.providerIdentifier);

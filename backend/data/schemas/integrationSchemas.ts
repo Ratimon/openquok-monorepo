@@ -14,7 +14,8 @@ export const socialConnectBodySchema = z.object({
     state: z.string().min(1, "state is required"),
     code: z.string().min(1, "code is required"),
     timezone: z.string().min(1, "timezone is required"),
-    refresh: z.string().uuid().optional(),
+    /** Optional OAuth refresh hint (e.g. Meta user id — not always a UUID). */
+    refresh: z.string().min(1).optional(),
 });
 
 export const validateSocialConnectBody: RequestHandler = validateRequest({
@@ -28,4 +29,20 @@ export const integrationOrgAndIdBodySchema = z.object({
 
 export const validateIntegrationOrgAndIdBody: RequestHandler = validateRequest({
     body: integrationOrgAndIdBodySchema,
+});
+
+/** `POST /integrations/provider/:id/connect` — `organizationId` plus provider-specific fields (e.g. `pageId` + `id` for Instagram Business). */
+export const saveProviderPageParamsSchema = z.object({
+    id: z.string().uuid("Invalid integration id"),
+});
+
+export const saveProviderPageBodySchema = z
+    .object({
+        organizationId: z.string().uuid("Invalid organization id"),
+    })
+    .passthrough();
+
+export const validateSaveProviderPage: RequestHandler = validateRequest({
+    params: saveProviderPageParamsSchema,
+    body: saveProviderPageBodySchema,
 });

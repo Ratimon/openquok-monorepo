@@ -3,10 +3,15 @@ import type CacheInvalidationService from "../connections/cache/CacheInvalidatio
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { IntegrationRow } from "../repositories/IntegrationRepository";
 import type { RefreshIntegrationService } from "./RefreshIntegrationService";
-import type { AuthTokenDetails, ClientInformation } from "../integrations/social.integrations.interface";
+import type {
+    AuthTokenDetails,
+    ClientInformation,
+    FetchPageInformationResult,
+} from "../integrations/social.integrations.interface";
 import type { IntegrationTimeDto } from "../data/schemas/integrationTimeSchemas";
 import type { IntegrationService } from "./IntegrationService";
 
+import dayjs from "dayjs";
 import { IntegrationManager } from "../integrations/integrationManager";
 
 import { UserNotFoundError } from "../errors/UserError";
@@ -332,6 +337,19 @@ export class IntegrationConnectionService {
                 });
             });
 
+        let pages: unknown[] = [];
+        if (integrationProvider.isBetweenSteps && !refreshState) {
+            const fetchPages =
+                typeof integrationProvider.pages === "function" ? integrationProvider.pages.bind(integrationProvider) : null;
+            if (fetchPages) {
+                try {
+                    pages = await fetchPages(accessToken);
+                } catch {
+                    pages = [];
+                }
+            }
+        }
+
         return {
             id: row.id,
             organizationId: row.organization_id,
@@ -344,7 +362,7 @@ export class IntegrationConnectionService {
             inBetweenSteps: row.in_between_steps,
             refreshNeeded: row.refresh_needed,
             onboarding: onboarding === "true",
-            pages: [] as unknown[],
+            pages,
         };
     }
 
@@ -415,5 +433,65 @@ export class IntegrationConnectionService {
         if (!row) throw new AppError("Integration not found", 404);
         const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
         if (!deleted) throw new AppError("Integration not found", 404);
+    }
+
+    /**
+     * Completes an integration stuck in `in_between_steps` using the provider's
+     * {@link SocialProvider.fetchPageInformation} (same responsibility as a generic `saveProviderPage`).
+     * For Instagram (Business), preserves the Facebook user access token in `refresh_token` and the
+     * Facebook user id in `root_internal_id` so cron refresh can exchange and re-bind the page token.
+     */
+    async saveProviderPage(
+        authUserId: string,
+        organizationId: string,
+        integrationId: string,
+        body: Record<string, unknown>
+    ): Promise<{ success: true }> {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) throw new AppError("Integration not found", 404);
+        if (!row.in_between_steps) {
+            throw new AppError("Integration does not need account selection", 400);
+        }
+
+        const provider = this.manager.getSocialIntegration(row.provider_identifier);
+        if (!provider?.fetchPageInformation) {
+            throw new AppError("Provider does not support page selection", 400);
+        }
+
+        const { organizationId: _org, ...providerPayload } = body;
+        if (Object.keys(providerPayload).length === 0) {
+            throw new AppError("Missing selection payload for this provider", 400);
+        }
+
+        const userAccessToken = row.token;
+        const priorInternalId = row.internal_id;
+
+        let information: FetchPageInformationResult;
+        try {
+            information = await provider.fetchPageInformation(userAccessToken, providerPayload);
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : "Could not load selected account";
+            throw new AppError(msg, 400);
+        }
+
+        const isInstagramBusiness = row.provider_identifier === "instagram-business";
+        const refreshToken = isInstagramBusiness ? userAccessToken : row.refresh_token || "";
+        const rootInternalId = isInstagramBusiness ? priorInternalId : row.root_internal_id;
+        const expiresInSeconds = isInstagramBusiness ? dayjs().add(59, "days").unix() - dayjs().unix() : undefined;
+
+        await this.integrations.updateIntegrationById(organizationId, integrationId, {
+            internalId: String(information.id),
+            name: (information.name ?? "").trim() || information.username || row.name,
+            picture: information.picture || null,
+            token: information.access_token,
+            refreshToken,
+            profile: information.username || null,
+            inBetweenSteps: false,
+            rootInternalId: rootInternalId ?? null,
+            expiresInSeconds,
+        });
+
+        return { success: true };
     }
 }

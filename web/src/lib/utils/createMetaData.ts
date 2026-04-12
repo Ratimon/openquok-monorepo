@@ -20,6 +20,29 @@ export type MetaDataImage = {
 	height: number;
 };
 
+/**
+ * Open Graph + Twitter overrides for a specific public URL (legal pages, docs index, etc.).
+ * Ensures og:title / og:description / og:url match the page — Meta crawlers read OG tags early in the document.
+ */
+export function openGraphForPublicPage(
+	title: string,
+	description: string,
+	pageCanonicalUrl: string
+): Pick<MetaTagsProps, 'openGraph' | 'twitter'> {
+	return {
+		openGraph: {
+			title,
+			description,
+			url: pageCanonicalUrl,
+			type: 'website'
+		},
+		twitter: {
+			title,
+			description
+		}
+	};
+}
+
 const DEFAULT_ORIGIN = 'https://openquok.com';
 const DEFAULT_NAME = 'Openquok';
 const DEFAULT_META_TITLE = 'Openquok';
@@ -149,7 +172,7 @@ export async function createMetaData({
 		keywords,
 
 		openGraph: {
-			url: customSlug ? `${canonicalBaseUrl}/${customSlug}` : canonicalBaseUrl,
+			url: canonicalHref,
 			type: 'website',
 			locale: 'en_US',
 			siteName: companyName,
@@ -173,7 +196,7 @@ export async function createMetaData({
 			{ name: 'apple-mobile-web-app-status-bar-style', content: appleStatusBarStyle ?? 'default' },
 			{ name: 'apple-mobile-web-app-title', content: companyName },
 			{ name: 'version', content: version },
-			{ property: 'twitter:url', content: customSlug ? `${canonicalBaseUrl}/${customSlug}` : canonicalBaseUrl },
+			{ property: 'twitter:url', content: canonicalHref },
 			...(customMetaTags ?? [])
 		],
 

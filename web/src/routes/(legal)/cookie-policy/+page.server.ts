@@ -1,4 +1,4 @@
-import type { MetaTagsProps } from '$lib/utils/createMetaData';
+import { openGraphForPublicPage, type MetaTagsProps } from '$lib/utils/createMetaData';
 import { publicInformationRepository } from '$lib/area-public/index';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 
@@ -25,11 +25,13 @@ export async function load({ url, cookies }) {
 	const description =
 		'Learn how we use cookies and similar technologies on our website.';
 
+	const canonical = new URL(url.pathname, url.origin).href;
 	const pageMetaTags = Object.freeze({
 		title,
 		titleTemplate: `%s | ${companyName}`,
 		description,
-		canonical: new URL(url.pathname, url.origin).href
+		canonical,
+		...openGraphForPublicPage(title, description, canonical)
 	}) satisfies MetaTagsProps;
 
 	return {

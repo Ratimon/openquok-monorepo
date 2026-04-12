@@ -36,6 +36,8 @@
 	const iconByProvider: Record<string, IconName> = {
 		facebook: icons.Facebook.name,
 		instagram: icons.Instagram.name,
+		'instagram-business': icons.Instagram.name,
+		'instagram-standalone': icons.InstagramGlyph.name,
 		youtube: icons.YouTube.name,
 		tiktok: icons.TikTok.name,
 		x: icons.X.name

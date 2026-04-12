@@ -143,6 +143,11 @@ export interface SocialProvider extends IAuthenticator, ISocialMediaIntegration 
     toolTip?: string;
     oneTimeToken?: boolean;
     isBetweenSteps: boolean;
+    /**
+     * Optional account list after OAuth when {@link isBetweenSteps} is true (e.g. Instagram Business).
+     * Returned in the same HTTP response as connect, matching common “social-connect + pages” flows.
+     */
+    pages?(accessToken: string): Promise<unknown[]>;
     scopes: string[];
     externalUrl?: (url: string) => Promise<{ client_id: string; client_secret: string }>;
     mention?: (

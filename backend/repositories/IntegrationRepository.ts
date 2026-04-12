@@ -188,6 +188,58 @@ export class IntegrationRepository {
         }
     }
 
+    /** Update a channel by primary key (e.g. completing Instagram Business account selection). */
+    async updateIntegrationById(
+        organizationId: string,
+        integrationId: string,
+        params: {
+            internalId: string;
+            name: string;
+            picture: string | null;
+            token: string;
+            refreshToken: string;
+            profile: string | null;
+            inBetweenSteps: boolean;
+            rootInternalId: string | null;
+            expiresInSeconds?: number;
+        }
+    ): Promise<IntegrationRow> {
+        const tokenExpiration =
+            params.expiresInSeconds != null && params.expiresInSeconds > 0
+                ? new Date(Date.now() + params.expiresInSeconds * 1000).toISOString()
+                : null;
+
+        const { data, error } = await this.supabase
+            .from(TABLE)
+            .update({
+                internal_id: params.internalId,
+                name: params.name,
+                picture: params.picture,
+                token: params.token,
+                refresh_token: params.refreshToken || null,
+                token_expiration: tokenExpiration,
+                profile: params.profile,
+                in_between_steps: params.inBetweenSteps,
+                root_internal_id: params.rootInternalId,
+                refresh_needed: false,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("organization_id", organizationId)
+            .eq("id", integrationId)
+            .is("deleted_at", null)
+            .select("*")
+            .single();
+
+        if (error || !data) {
+            throw new DatabaseError("Failed to update integration", {
+                cause: (error ?? new Error("no row")) as Error,
+                operation: "update",
+                resource: { type: "table", name: TABLE },
+            });
+        }
+        return data as IntegrationRow;
+    }
+
     /** @returns whether a row was updated */
     async softDeleteChannel(organizationId: string, id: string, internalId: string): Promise<boolean> {
         const suffix = `${Date.now().toString(36)}`;

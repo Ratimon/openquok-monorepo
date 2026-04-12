@@ -18,6 +18,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isLoggedIn: boolean;
 			companyInformationPm: unknown;
 			companyName: string;
+			companyUrl: string;
 			supportEmail: string;
 		};
 
@@ -30,6 +31,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isEditor,
 			companyInformationPm: serverData.companyInformationPm,
 			companyName: serverData.companyName,
+			companyUrl: serverData.companyUrl,
 			supportEmail: serverData.supportEmail
 		};
 	}

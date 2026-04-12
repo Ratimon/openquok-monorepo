@@ -7,6 +7,7 @@
 	"scripts": {
 		"---------------------- DEV WORKFLOW ----------------------": "",
 		"generate_icon": "node ./scripts/generate-icon.mjs",
+		"generate_icon:1024": "node ./scripts/generate-icon-1024.mjs",
 		"generate-routes-manifest": "node ../scripts/generate-routes-manifest.mjs",
 		"clean": "rm -rf node_modules && rm -f pnpm-lock.yaml && pnpm install",
 		"clean:kit": "rm -rf .svelte-kit node_modules/.vite",

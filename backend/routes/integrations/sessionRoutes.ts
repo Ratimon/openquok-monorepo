@@ -6,6 +6,7 @@ import {
     validateIntegrationOrganizationQuery,
     validateSocialConnectBody,
     validateIntegrationOrgAndIdBody,
+    validateSaveProviderPage,
 } from "../../data/schemas/integrationSchemas";
 import { validateIntegrationTimeRequest } from "../../data/schemas/integrationTimeSchemas";
 
@@ -22,6 +23,11 @@ const auth = requireFullAuth(supabaseAnonClient);
 sessionIntegrationsRouter.get("/", integrationController.getAllIntegrations);
 
 sessionIntegrationsRouter.use(auth);
+sessionIntegrationsRouter.post(
+    "/provider/:id/connect",
+    validateSaveProviderPage,
+    integrationController.saveProviderPage
+);
 sessionIntegrationsRouter.get("/list", validateIntegrationOrganizationQuery, integrationController.getIntegrationList);
 sessionIntegrationsRouter.post(
     "/:id/time",
