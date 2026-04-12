@@ -13,8 +13,10 @@
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { icons } from '$data/icon';
 
+	import { Alert, AlertDescription, AlertTitle } from '$lib/ui/alert';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AddProvider from '$lib/ui/components/launches/AddProvider.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationMenu from '$lib/ui/components/launches/IntegrationMenu.svelte';
 	import OnBoardingModal from '$lib/ui/components/launches/OnBoardingModal.svelte';
 	import { toast } from '$lib/ui/sonner';
@@ -29,8 +31,9 @@
 
 	const accountRoot = $derived(route(getRootPathAccount()));
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
-	const menuGroups = $derived(protectedDashboardPagePresenter.menuGroups);
+	const platformChannelRows = $derived(protectedDashboardPagePresenter.platformChannelRows);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
+	const connectedChannelCount = $derived(protectedDashboardPagePresenter.connectedChannels.length);
 	
 	/**
 	 * Onboarding wizard (`OnBoardingModal`): wide modal, step 1 uses a 9-column grid on large screens.
@@ -87,7 +90,7 @@
 		if (!workspaceId) return;
 		if (!currentUser) return;
 		if (protectedDashboardPagePresenter.listStatus !== 'ready') return;
-		const hasAnyChannels = menuGroups.length > 0 && menuGroups.some((g) => g.items.length > 0);
+		const hasAnyChannels = connectedChannelCount > 0;
 		if (hasAnyChannels) return;
 		if (isOnboardingCompleted()) return;
 		onboardingDialogOpen = true;
@@ -102,11 +105,43 @@
 		youtube: icons.YouTube.name,
 		tiktok: icons.TikTok.name,
 		x: icons.X.name,
-		threads: icons.Link.name
+		threads: icons.Threads.name
 	};
 
 	function providerIcon(identifier: string): IconName {
 		return iconByProvider[identifier] ?? icons.Link.name;
+	}
+
+	/** Short label for “Add more …” copy (matches connect flow naming where listed). */
+	const providerAddMoreLabelById: Record<string, string> = {
+		threads: 'Threads',
+		'instagram-business': 'Instagram (Business)',
+		'instagram-standalone': 'Instagram (Standalone)',
+		facebook: 'Facebook',
+		youtube: 'YouTube',
+		tiktok: 'TikTok',
+		x: 'X'
+	};
+
+	function providerAddMoreLabel(identifier: string): string {
+		const key = identifier.trim();
+		if (providerAddMoreLabelById[key]) return providerAddMoreLabelById[key];
+		return key
+			.split('-')
+			.filter(Boolean)
+			.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+			.join(' ');
+	}
+
+	function startAddAnotherChannel(identifier: string): void {
+		const orgId = workspaceSettingsPresenter.currentWorkspaceId;
+		if (!orgId) {
+			toast.error('Create or select a workspace before connecting a channel.');
+			return;
+		}
+		const connectPath = `${accountRoot}/integrations/social/${encodeURIComponent(identifier)}`;
+		const qs = new URLSearchParams({ organizationId: orgId, returnTo: accountRoot });
+		void goto(absoluteUrl(`${connectPath}?${qs}`));
 	}
 
 	async function handleRemoveChannel(id: string): Promise<boolean> {
@@ -195,10 +230,41 @@
 
 	<section class="mt-8">
 		<div class="flex flex-wrap items-center justify-between gap-3">
-			<h3 class="text-lg font-semibold text-base-content">Connected channels</h3>
+			<h3 class="text-lg font-semibold text-base-content">
+				Connected channels
+			</h3>
+			
 			<!-- `onboarding={true}`: 9-column grid + `?onboarding=true` on OAuth (match reference “onboarding” mode). -->
 			<AddProvider />
 		</div>
+
+		{#if workspaceId && listStatus !== 'loading'}
+			<Alert
+				variant="warning"
+				class="mt-3 items-start gap-3 text-sm text-neutral-950 sm:flex-row [&_svg]:text-neutral-950"
+			>
+				<AbstractIcon
+					name={icons.CircleAlert.name}
+					class="mt-0.5 h-5 w-5 shrink-0 text-neutral-950"
+					width="20"
+					height="20"
+					focusable="false"
+				/>
+				<div class="min-w-0 space-y-1">
+					<AlertTitle class="text-sm font-semibold leading-snug text-neutral-950">
+						Multiple accounts on the same platform
+					</AlertTitle>
+					<AlertDescription class="leading-relaxed text-neutral-900">
+						You can connect more than one account per platform. Before you use
+						<span class="font-semibold text-neutral-950">Add Channel</span> or
+						<span class="font-semibold text-neutral-950">Add more</span> for a different login,
+						sign out of that service in your browser. Otherwise the
+						provider may reuse the session for the account you connected last.
+					</AlertDescription>
+				</div>
+			</Alert>
+		{/if}
+
 		{#if !workspaceId}
 			<p class="mt-3 text-sm text-base-content/70">
 				Select or create a workspace in
@@ -212,21 +278,30 @@
 			</p>
 		{:else if listStatus === 'error'}
 			<p class="mt-3 text-sm text-error">Could not load channels. Try again in a moment.</p>
-		{:else if menuGroups.length === 0 || menuGroups.every((g) => g.items.length === 0)}
+		{:else if connectedChannelCount === 0}
 			<p class="mt-3 text-sm text-base-content/70">
 				No channels yet. Use <span class="font-medium text-base-content">Add Channel</span> to connect one.
 			</p>
 		{:else}
-			<div class="mt-4 space-y-6">
-				{#each menuGroups as group (group.label)}
-					<div>
-						<h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/60">
-							{group.label}
-						</h4>
-						<ul class="grid gap-3 sm:grid-cols-2">
-							{#each group.items as integration (integration.id)}
-								<li>
+			<div class="mt-4 divide-y divide-base-300">
+				{#each platformChannelRows as row (row.identifier)}
+					<div class="flex w-full flex-wrap items-center gap-3 py-4 first:pt-1">
+						<div
+							class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-base-200/70 text-base-content"
+							aria-hidden="true"
+						>
+							<AbstractIcon
+								name={providerIcon(row.identifier)}
+								class="size-6"
+								width="24"
+								height="24"
+							/>
+						</div>
+						<ul class="flex min-w-0 flex-1 list-none flex-wrap gap-2 p-0">
+							{#each row.items as integration (integration.id)}
+								<li class="min-w-0">
 									<IntegrationMenu
+										variant="chip"
 										{integration}
 										workspaceId={workspaceId!}
 										{providerIcon}
@@ -237,6 +312,16 @@
 								</li>
 							{/each}
 						</ul>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							class="shrink-0 gap-1.5 border-base-300"
+							onclick={() => startAddAnotherChannel(row.identifier)}
+						>
+							<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
+							Add more {providerAddMoreLabel(row.identifier)}
+						</Button>
 					</div>
 				{/each}
 			</div>

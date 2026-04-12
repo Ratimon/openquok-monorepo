@@ -41,6 +41,12 @@ export interface DashboardConnectedChannelMenuGroupViewModel {
 	items: DashboardConnectedChannelViewModel[];
 }
 
+/** One row per integration provider (`identifier`): platform icon + its connected channels. */
+export interface DashboardPlatformChannelRowViewModel {
+	identifier: string;
+	items: DashboardConnectedChannelViewModel[];
+}
+
 function labelForDashboardChannelGroupType(type: string | undefined): string {
 	const t = type?.trim() ?? '';
 	if (!t) return 'Channels';
@@ -70,6 +76,43 @@ function buildDashboardChannelMenuGroups(
 	return groups;
 }
 
+const DASHBOARD_PLATFORM_ROW_ORDER: readonly string[] = [
+	'threads',
+	'instagram-business',
+	'instagram-standalone',
+	'facebook',
+	'x',
+	'youtube',
+	'tiktok'
+];
+
+function buildPlatformChannelRows(
+	channels: readonly DashboardConnectedChannelViewModel[]
+): DashboardPlatformChannelRowViewModel[] {
+	const map = new Map<string, DashboardConnectedChannelViewModel[]>();
+	for (const ch of channels) {
+		const key = ch.identifier?.trim() || 'unknown';
+		if (!map.has(key)) map.set(key, []);
+		map.get(key)!.push(ch);
+	}
+	const rows: DashboardPlatformChannelRowViewModel[] = [];
+	for (const [identifier, items] of map.entries()) {
+		const sorted = [...items].sort((a, b) =>
+			(a.name || a.identifier).localeCompare(b.name || b.identifier, undefined, { sensitivity: 'base' })
+		);
+		rows.push({ identifier, items: sorted });
+	}
+	rows.sort((a, b) => {
+		const ia = DASHBOARD_PLATFORM_ROW_ORDER.indexOf(a.identifier);
+		const ib = DASHBOARD_PLATFORM_ROW_ORDER.indexOf(b.identifier);
+		const sa = ia === -1 ? 999 : ia;
+		const sb = ib === -1 ? 999 : ib;
+		if (sa !== sb) return sa - sb;
+		return a.identifier.localeCompare(b.identifier, undefined, { sensitivity: 'base' });
+	});
+	return rows;
+}
+
 type DashboardIntegrationsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 export type DashboardChannelMutationResult = { ok: true } | { ok: false; error: string };
@@ -86,13 +129,17 @@ export class ProtectedDashboardPagePresenter {
 	listStatus = $state<DashboardIntegrationsLoadStatus>('idle');
 	showOnboardingWelcome = $state(false);
 
+
+	/** Grouped by integration `type` for dashboard menus. */
+	menuGroups = $derived.by(() => buildDashboardChannelMenuGroups(this.connectedChannels));
+
+	/** Grouped by integration `identifier` (one row per provider on the account dashboard). */
+	platformChannelRows = $derived.by(() => buildPlatformChannelRows(this.connectedChannels));
+
 	constructor(
 		private readonly integrationsRepository: IntegrationsRepository,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter
 	) {}
-
-	/** Grouped by integration `type` for dashboard menus. */
-	menuGroups = $derived.by(() => buildDashboardChannelMenuGroups(this.connectedChannels));
 
 	async loadConnectedIntegrations(): Promise<void> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;

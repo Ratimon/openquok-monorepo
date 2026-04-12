@@ -6,6 +6,7 @@
 
 	import * as Collapsible from '$lib/ui/collapsible';
 	import * as Dialog from '$lib/ui/dialog';
+	import * as Popover from '$lib/ui/popover';
 	import { ImageWithFallback } from '$lib/ui/images';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -17,9 +18,19 @@
 		continueSetupHref: (integration: DashboardConnectedChannelViewModel) => string;
 		onRemove: (integrationId: string) => Promise<boolean>;
 		onSetDisabled: (integrationId: string, disabled: boolean) => Promise<boolean>;
+		/** `chip`: compact pill for horizontal rows (e.g. account dashboard). */
+		variant?: 'card' | 'chip';
 	};
 
-	let { integration, workspaceId, providerIcon, continueSetupHref, onRemove, onSetDisabled }: Props = $props();
+	let {
+		integration,
+		workspaceId,
+		providerIcon,
+		continueSetupHref,
+		onRemove,
+		onSetDisabled,
+		variant = 'card'
+	}: Props = $props();
 
 	let menuOpen = $state(false);
 	let confirmRemoveOpen = $state(false);
@@ -48,73 +59,135 @@
 	}
 </script>
 
-<div class="rounded-lg border border-base-300 bg-base-200/40">
-	<Collapsible.Collapsible bind:open={menuOpen} class="w-full">
-		<Collapsible.CollapsibleTrigger class="rounded-lg px-3 py-3">
-			<div class="flex min-w-0 flex-1 items-center gap-3">
-				<div class="h-12 w-12 shrink-0 overflow-hidden rounded-md">
-					<ImageWithFallback
-						src={integration.picture}
-						alt=""
-						class="h-full w-full object-cover"
-						fallbackIcon={providerIcon(integration.identifier)}
-					/>
-				</div>
-				<div class="min-w-0 text-start">
-					<div class="truncate font-medium text-base-content">{integration.name}</div>
-					<div class="truncate text-xs text-base-content/60">{integration.identifier}</div>
-				</div>
-			</div>
+{#snippet channelActionBody()}
+	<div class="flex flex-col gap-2">
+		<div class="flex flex-wrap gap-2">
+			{#if integration.disabled}
+				<span class="badge badge-ghost badge-sm">Disabled</span>
+			{/if}
+			{#if integration.refreshNeeded}
+				<span class="badge badge-warning badge-sm">Refresh needed</span>
+			{/if}
+		</div>
+		{#if integration.inBetweenSteps && workspaceId}
+			<Button href={continueSetupHref(integration)} size="sm" class="w-fit">
+				Complete setup
+			</Button>
+		{:else if integration.refreshNeeded && workspaceId}
+			<Button href={continueSetupHref(integration)} variant="outline" size="sm" class="w-fit">
+				Refresh connection
+			</Button>
+		{/if}
+		<Button
+			type="button"
+			variant="outline"
+			size="sm"
+			class="w-fit"
+			disabled={busy}
+			onclick={handleToggleDisabled}
+		>
+			{integration.disabled ? 'Enable channel' : 'Disable channel'}
+		</Button>
+		<Button
+			type="button"
+			variant="red"
+			size="sm"
+			class="w-fit"
+			disabled={busy}
+			onclick={() => {
+				menuOpen = false;
+				confirmRemoveOpen = true;
+			}}
+		>
+			Remove channel
+		</Button>
+	</div>
+{/snippet}
+
+{#snippet channelTriggerBody()}
+	<div class="h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-base-300/80">
+		<ImageWithFallback
+			src={integration.picture}
+			alt=""
+			class="h-full w-full object-cover"
+			fallbackIcon={providerIcon(integration.identifier)}
+		/>
+	</div>
+	<div class="min-w-0 text-start">
+		<div class="truncate text-sm font-medium text-base-content">{integration.name}</div>
+	</div>
+{/snippet}
+
+{#if variant === 'chip'}
+	<div
+		class="inline-flex max-w-full items-stretch overflow-hidden rounded-full border border-base-300 bg-base-100 text-base-content shadow-sm"
+	>
+		<Popover.Root bind:open={menuOpen}>
+			<Popover.Trigger
+				class="flex max-w-[min(100%,14rem)] min-w-0 flex-1 items-center gap-2 rounded-none border-0 bg-transparent px-2 py-1.5 text-start outline-none hover:bg-base-200/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-100"
+			>
+				{@render channelTriggerBody()}
+				<AbstractIcon
+					name={icons.ChevronDown.name}
+					class="size-4 shrink-0 text-base-content/50 transition-transform duration-200 {menuOpen
+						? 'rotate-180'
+						: ''}"
+					width="16"
+					height="16"
+				/>
+			</Popover.Trigger>
+			<Popover.Content align="start" side="bottom" class="w-72 p-3">
+				{@render channelActionBody()}
+			</Popover.Content>
+		</Popover.Root>
+		<button
+			type="button"
+			class="flex shrink-0 items-center border-l border-base-300 bg-transparent px-2.5 outline-none hover:bg-base-200/60 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary disabled:opacity-50"
+			disabled={busy}
+			aria-label="Remove channel"
+			onclick={() => (confirmRemoveOpen = true)}
+		>
 			<AbstractIcon
-				name={icons.ChevronDown.name}
-				class="size-4 shrink-0 transition-transform duration-200 {menuOpen ? 'rotate-180' : ''}"
+				name={icons.CircleX.name}
+				class="size-4 text-base-content/45"
 				width="16"
 				height="16"
 			/>
-		</Collapsible.CollapsibleTrigger>
-		<Collapsible.CollapsibleContent class="border-t border-base-300">
-			<div class="flex flex-col gap-2 px-3 py-3">
-				<div class="flex flex-wrap gap-2">
-					{#if integration.disabled}
-						<span class="badge badge-ghost badge-sm">Disabled</span>
-					{/if}
-					{#if integration.refreshNeeded}
-						<span class="badge badge-warning badge-sm">Refresh needed</span>
-					{/if}
+		</button>
+	</div>
+{:else}
+	<div class="rounded-lg border border-base-300 bg-base-200/40">
+		<Collapsible.Collapsible bind:open={menuOpen} class="w-full">
+			<Collapsible.CollapsibleTrigger class="rounded-lg px-3 py-3">
+				<div class="flex min-w-0 flex-1 items-center gap-3">
+					<div class="h-12 w-12 shrink-0 overflow-hidden rounded-md">
+						<ImageWithFallback
+							src={integration.picture}
+							alt=""
+							class="h-full w-full object-cover"
+							fallbackIcon={providerIcon(integration.identifier)}
+						/>
+					</div>
+					<div class="min-w-0 text-start">
+						<div class="truncate font-medium text-base-content">{integration.name}</div>
+						<div class="truncate text-xs text-base-content/60">{integration.identifier}</div>
+					</div>
 				</div>
-				{#if integration.inBetweenSteps && workspaceId}
-					<Button href={continueSetupHref(integration)} size="sm" class="w-fit">
-						Complete setup
-					</Button>
-				{:else if integration.refreshNeeded && workspaceId}
-					<Button href={continueSetupHref(integration)} variant="outline" size="sm" class="w-fit">
-						Refresh connection
-					</Button>
-				{/if}
-				<Button
-					type="button"
-					variant="outline"
-					size="sm"
-					class="w-fit"
-					disabled={busy}
-					onclick={handleToggleDisabled}
-				>
-					{integration.disabled ? 'Enable channel' : 'Disable channel'}
-				</Button>
-				<Button
-					type="button"
-					variant="red"
-					size="sm"
-					class="w-fit"
-					disabled={busy}
-					onclick={() => (confirmRemoveOpen = true)}
-				>
-					Remove channel
-				</Button>
-			</div>
-		</Collapsible.CollapsibleContent>
-	</Collapsible.Collapsible>
-</div>
+				<AbstractIcon
+					name={icons.ChevronDown.name}
+					class="size-4 shrink-0 transition-transform duration-200 {menuOpen ? 'rotate-180' : ''}"
+					width="16"
+					height="16"
+				/>
+			</Collapsible.CollapsibleTrigger>
+			<Collapsible.CollapsibleContent class="border-t border-base-300">
+				<div class="flex flex-col gap-2 px-3 py-3">
+					{@render channelActionBody()}
+				</div>
+			</Collapsible.CollapsibleContent>
+		</Collapsible.Collapsible>
+	</div>
+{/if}
 
 <Dialog.Root bind:open={confirmRemoveOpen}>
 	<Dialog.Content class="max-w-md">

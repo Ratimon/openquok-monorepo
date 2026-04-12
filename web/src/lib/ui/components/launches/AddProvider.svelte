@@ -39,8 +39,8 @@
 		'instagram-standalone': icons.InstagramGlyph.name,
 		youtube: icons.YouTube.name,
 		tiktok: icons.TikTok.name,
-		x: icons.X.name
-		// threads: (not in icon registry yet) -> fallback
+		x: icons.X.name,
+		threads: icons.Threads.name
 	};
 
 	function providerIcon(identifier: string): IconName {
@@ -107,7 +107,9 @@
 	>
 		<Tooltip.Provider delayDuration={200}>
 		<div class="relative border-b border-base-300 px-6 pb-2 pt-3">
-			<Dialog.Title class="text-xl font-semibold text-base-content">Add Channel</Dialog.Title>
+			<Dialog.Title class="text-xl font-semibold text-base-content">
+				Add Channel
+			</Dialog.Title>
 			<Dialog.Description class="mt-0.5 text-sm text-base-content/70">
 				Click a channel to connect it.
 			</Dialog.Description>
