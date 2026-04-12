@@ -30,7 +30,7 @@ Copy from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/b
 
 The frontend base URL used for OAuth redirects comes from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (default <Badge text="http://localhost:5173" variant="new" /> for local Vite).
 
-## OAuth redirect URI (what to enter in Meta)
+<h2 id="oauth-redirect-uri-what-to-enter-in-meta">OAuth redirect URI (what to enter in Meta)</h2>
 
 Meta redirects the **browser** back to your **web app** after consent—not to <Badge text="/api/v1" variant="path" />. The backend builds the redirect from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> plus the path <Badge text="/account/integrations/social/threads" variant="path" />.
 

@@ -44,6 +44,8 @@ process.stderr.write(
 		"(outputDirectory web/.vercel/output). Mixing Root Directory \"web\" with vercel.web.json causes web/web/.vercel/output and 404 NOT_FOUND.",
 		"",
 		"Clear Settings → Build & Development → Output Directory override (not \"public\") unless you intend it.",
+		"",
+		"If the Vercel build fails with ERR_PNPM_OUTDATED_LOCKFILE after editing a workspace package.json, run `pnpm install` at the monorepo root and commit the updated `pnpm-lock.yaml`.",
 		""
 	].join("\n")
 );
