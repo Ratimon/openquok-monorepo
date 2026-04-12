@@ -2,14 +2,16 @@
 	import type { IconName } from '$data/icon';
 	import type { DashboardConnectedChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
-	import { icons } from '$data/icon';
+	import copy from 'copy-to-clipboard';
 
+	import { icons } from '$data/icon';
 	import * as Collapsible from '$lib/ui/collapsible';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Popover from '$lib/ui/popover';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import { ImageWithFallback } from '$lib/ui/images';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
+	import { toast } from '$lib/ui/sonner';
 
 	type Props = {
 		integration: DashboardConnectedChannelViewModel;
@@ -57,6 +59,16 @@
 			busy = false;
 		}
 	}
+
+	function handleCopyChannelId() {
+		menuOpen = false;
+		const copied = copy(integration.id);
+		if (copied) {
+			toast.success('Channel ID copied to clipboard');
+		} else {
+			toast.error('Could not copy to clipboard.');
+		}
+	}
 </script>
 
 {#snippet channelActionBody()}
@@ -70,36 +82,67 @@
 			{/if}
 		</div>
 		{#if integration.inBetweenSteps && workspaceId}
-			<Button href={continueSetupHref(integration)} size="sm" class="w-fit">
-				Complete setup
+			<Button
+				href={continueSetupHref(integration)}
+				size="sm"
+				class="w-full justify-start gap-2 sm:w-fit"
+			>
+				<AbstractIcon name={icons.Settings.name} class="size-4 shrink-0" width="16" height="16" />
+				<span class="min-w-0 text-start text-xs leading-tight">Complete setup</span>
 			</Button>
 		{:else if integration.refreshNeeded && workspaceId}
-			<Button href={continueSetupHref(integration)} variant="outline" size="sm" class="w-fit">
-				Refresh connection
+			<Button
+				href={continueSetupHref(integration)}
+				variant="outline"
+				size="sm"
+				class="w-full justify-start gap-2 sm:w-fit"
+			>
+				<AbstractIcon name={icons.RefreshCw.name} class="size-4 shrink-0" width="16" height="16" />
+				<span class="min-w-0 text-start text-xs leading-tight">Refresh connection</span>
 			</Button>
 		{/if}
 		<Button
 			type="button"
 			variant="outline"
 			size="sm"
-			class="w-fit"
+			class="w-full justify-start gap-2 sm:w-fit"
+			disabled={busy}
+			onclick={handleCopyChannelId}
+		>
+			<AbstractIcon name={icons.Copy.name} class="size-4 shrink-0" width="16" height="16" />
+			<span class="min-w-0 text-start text-xs leading-tight">Copy channel ID</span>
+		</Button>
+		<Button
+			type="button"
+			variant="outline"
+			size="sm"
+			class="w-full justify-start gap-2 sm:w-fit"
 			disabled={busy}
 			onclick={handleToggleDisabled}
 		>
-			{integration.disabled ? 'Enable channel' : 'Disable channel'}
+			<AbstractIcon
+				name={integration.disabled ? icons.CircleCheck.name : icons.Ban.name}
+				class="size-4 shrink-0"
+				width="16"
+				height="16"
+			/>
+			<span class="min-w-0 text-start text-xs leading-tight">
+				{integration.disabled ? 'Enable channel' : 'Disable channel'}
+			</span>
 		</Button>
 		<Button
 			type="button"
 			variant="red"
 			size="sm"
-			class="w-fit"
+			class="w-full justify-start gap-2 sm:w-fit"
 			disabled={busy}
 			onclick={() => {
 				menuOpen = false;
 				confirmRemoveOpen = true;
 			}}
 		>
-			Remove channel
+			<AbstractIcon name={icons.Trash.name} class="size-4 shrink-0" width="16" height="16" />
+			<span class="min-w-0 text-start text-xs leading-tight">Delete channel</span>
 		</Button>
 	</div>
 {/snippet}
@@ -193,7 +236,7 @@
 	<Dialog.Content class="max-w-md">
 		<Dialog.Header>
 			<Dialog.Title>
-                Remove channel?
+                Delete channel?
             </Dialog.Title>
 			<Dialog.Description>
 				This disconnects <strong>{integration.name}</strong> from this workspace. You can add it again later.
