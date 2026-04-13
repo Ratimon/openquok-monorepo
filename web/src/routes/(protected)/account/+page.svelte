@@ -18,7 +18,7 @@
 	import AddProvider from '$lib/ui/components/launches/AddProvider.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationMenu from '$lib/ui/components/launches/IntegrationMenu.svelte';
-	import MoveChannelCustomerModal from '$lib/ui/components/launches/MoveChannelCustomerModal.svelte';
+	import MoveChannelGroupModal from '$lib/ui/components/launches/MoveChannelGroupModal.svelte';
 	import OnBoardingModal from '$lib/ui/components/launches/OnBoardingModal.svelte';
 	import { toast } from '$lib/ui/sonner';
 
@@ -33,30 +33,30 @@
 	const accountRoot = $derived(route(getRootPathAccount()));
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 	const platformChannelRowsUngrouped = $derived(protectedDashboardPagePresenter.platformChannelRowsUngrouped);
-	const channelCustomerGroups = $derived(protectedDashboardPagePresenter.channelCustomerGroups);
+	const channelGroupSections = $derived(protectedDashboardPagePresenter.channelGroupSections);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
 	const connectedChannelCount = $derived(protectedDashboardPagePresenter.connectedChannels.length);
 
-	let customerDetailsOpen = $state<Record<string, boolean>>({});
-	let moveCustomerOpen = $state(false);
-	let moveCustomerFor = $state<DashboardConnectedChannelViewModel | null>(null);
+	let groupDetailsOpen = $state<Record<string, boolean>>({});
+	let moveGroupOpen = $state(false);
+	let moveGroupFor = $state<DashboardConnectedChannelViewModel | null>(null);
 
-	function openMoveCustomerModal(integration: DashboardConnectedChannelViewModel) {
-		moveCustomerFor = integration;
-		moveCustomerOpen = true;
+	function openMoveGroupModal(integration: DashboardConnectedChannelViewModel) {
+		moveGroupFor = integration;
+		moveGroupOpen = true;
 	}
 
 	$effect.pre(() => {
-		for (const g of channelCustomerGroups) {
-			if (customerDetailsOpen[g.id] === undefined) {
-				customerDetailsOpen[g.id] = true;
+		for (const g of channelGroupSections) {
+			if (groupDetailsOpen[g.id] === undefined) {
+				groupDetailsOpen[g.id] = true;
 			}
 		}
 	});
 
 	$effect(() => {
-		if (!moveCustomerOpen) {
-			moveCustomerFor = null;
+		if (!moveGroupOpen) {
+			moveGroupFor = null;
 		}
 	});
 	
@@ -223,12 +223,12 @@
 	$effect(() => {
 		if (workspaceId) {
 			void protectedDashboardPagePresenter.loadConnectedIntegrations();
-			void protectedDashboardPagePresenter.loadChannelCustomers();
+			void protectedDashboardPagePresenter.loadChannelGroups();
 			return;
 		}
 		void workspaceSettingsPresenter.load().then(() => {
 			void protectedDashboardPagePresenter.loadConnectedIntegrations();
-			void protectedDashboardPagePresenter.loadChannelCustomers();
+			void protectedDashboardPagePresenter.loadChannelGroups();
 		});
 	});
 </script>
@@ -260,7 +260,7 @@
 									{continueSetupHref}
 									onRemove={handleRemoveChannel}
 									onSetDisabled={handleSetChannelDisabled}
-									onMoveToCustomer={openMoveCustomerModal}
+									onMoveToGroup={openMoveGroupModal}
 								/>
 							</li>
 						{/each}
@@ -356,17 +356,17 @@
 				No channels yet. Use <span class="font-medium text-base-content">Add Channel</span> to connect one.
 			</p>
 		{:else}
-			{#if channelCustomerGroups.length > 0}
+			{#if channelGroupSections.length > 0}
 				<div class="mt-4 space-y-2">
 					<h4 class="text-sm font-semibold text-base-content/80">Groups</h4>
-					{#each channelCustomerGroups as group (group.id)}
-						<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={customerDetailsOpen[group.id]}>
+					{#each channelGroupSections as group (group.id)}
+						<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={groupDetailsOpen[group.id]}>
 							<summary
 								class="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden"
 							>
 								<AbstractIcon
 									name={icons.ChevronRight.name}
-									class="size-4 shrink-0 text-base-content/70 transition-transform duration-200 {customerDetailsOpen[group.id]
+									class="size-4 shrink-0 text-base-content/70 transition-transform duration-200 {groupDetailsOpen[group.id]
 										? 'rotate-90'
 										: ''}"
 									width="16"
@@ -388,7 +388,7 @@
 	</section>
 </div>
 
-<MoveChannelCustomerModal bind:open={moveCustomerOpen} integration={moveCustomerFor} />
+<MoveChannelGroupModal bind:open={moveGroupOpen} integration={moveGroupFor} />
 
 <OnBoardingModal
 	open={onboardingDialogOpen}

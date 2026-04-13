@@ -17,31 +17,31 @@
 	let { open = $bindable(false), integration }: Props = $props();
 
 	let filterText = $state('');
-	let selectedCustomerId = $state<string | null>(null);
+	let selectedGroupId = $state<string | null>(null);
 	let busy = $state(false);
 
-	const customers = $derived(protectedDashboardPagePresenter.channelCustomers);
+	const groups = $derived(protectedDashboardPagePresenter.channelGroups);
 
-	const filteredCustomers = $derived(
-		customers.filter((c) => c.name.toLowerCase().includes(filterText.trim().toLowerCase()))
+	const filteredGroups = $derived(
+		groups.filter((g) => g.name.toLowerCase().includes(filterText.trim().toLowerCase()))
 	);
 
 	$effect(() => {
 		if (open && integration) {
-			selectedCustomerId = integration.customer?.id ?? null;
-			filterText = integration.customer?.name ?? '';
-			void protectedDashboardPagePresenter.loadChannelCustomers();
+			selectedGroupId = integration.group?.id ?? null;
+			filterText = integration.group?.name ?? '';
+			void protectedDashboardPagePresenter.loadChannelGroups();
 		}
 		if (!open) {
 			filterText = '';
-			selectedCustomerId = null;
+			selectedGroupId = null;
 			busy = false;
 		}
 	});
 
-	function pickCustomer(c: { id: string; name: string }) {
-		selectedCustomerId = c.id;
-		filterText = c.name;
+	function pickGroup(g: { id: string; name: string }) {
+		selectedGroupId = g.id;
+		filterText = g.name;
 	}
 
 	async function handleSave() {
@@ -50,9 +50,9 @@
 		busy = true;
 		try {
 			if (trimmed) {
-				const exactByName = customers.find((c) => c.name.toLowerCase() === trimmed.toLowerCase());
+				const exactByName = groups.find((g) => g.name.toLowerCase() === trimmed.toLowerCase());
 				if (exactByName) {
-					const r = await protectedDashboardPagePresenter.assignChannelCustomer(
+					const r = await protectedDashboardPagePresenter.assignChannelGroup(
 						integration.id,
 						exactByName.id,
 						exactByName.name
@@ -66,9 +66,9 @@
 					return;
 				}
 			}
-			if (selectedCustomerId && customers.some((c) => c.id === selectedCustomerId)) {
-				const picked = customers.find((c) => c.id === selectedCustomerId)!;
-				const r = await protectedDashboardPagePresenter.assignChannelCustomer(
+			if (selectedGroupId && groups.some((g) => g.id === selectedGroupId)) {
+				const picked = groups.find((g) => g.id === selectedGroupId)!;
+				const r = await protectedDashboardPagePresenter.assignChannelGroup(
 					integration.id,
 					picked.id,
 					picked.name
@@ -82,12 +82,12 @@
 				return;
 			}
 			if (trimmed) {
-				const created = await protectedDashboardPagePresenter.createChannelCustomer(trimmed);
+				const created = await protectedDashboardPagePresenter.createChannelGroup(trimmed);
 				if (!created.ok) {
 					toast.error(created.error);
 					return;
 				}
-				const assign = await protectedDashboardPagePresenter.assignChannelCustomer(
+				const assign = await protectedDashboardPagePresenter.assignChannelGroup(
 					integration.id,
 					created.id,
 					created.name
@@ -110,7 +110,7 @@
 		if (!integration) return;
 		busy = true;
 		try {
-			const r = await protectedDashboardPagePresenter.assignChannelCustomer(integration.id, null);
+			const r = await protectedDashboardPagePresenter.assignChannelGroup(integration.id, null);
 			if (r.ok) {
 				toast.success('Removed from group.');
 				open = false;
@@ -138,11 +138,11 @@
 
 		<div class="mt-2 space-y-3">
 			<div class="space-y-1.5">
-				<label class="text-sm font-medium text-base-content" for="move-customer-filter">
+				<label class="text-sm font-medium text-base-content" for="move-group-filter">
 					Select group
 				</label>
 				<Input
-					id="move-customer-filter"
+					id="move-group-filter"
 					bind:value={filterText}
 					placeholder="Start typing…"
 					autocomplete="off"
@@ -150,21 +150,21 @@
 					class="bg-base-100"
 				/>
 			</div>
-			{#if filteredCustomers.length > 0}
+			{#if filteredGroups.length > 0}
 				<div
 					class="border-base-300 bg-base-100 max-h-44 overflow-y-auto rounded-md border text-sm shadow-inner"
 					role="listbox"
 					aria-label="Matching groups"
 				>
-					{#each filteredCustomers as c (c.id)}
+					{#each filteredGroups as g (g.id)}
 						<button
 							type="button"
-							class="hover:bg-base-200/80 flex w-full items-center px-3 py-2.5 text-start text-base-content outline-none focus-visible:bg-base-200/80 {selectedCustomerId === c.id
+							class="hover:bg-base-200/80 flex w-full items-center px-3 py-2.5 text-start text-base-content outline-none focus-visible:bg-base-200/80 {selectedGroupId === g.id
 								? 'bg-primary/10 font-medium'
 								: ''}"
-							onclick={() => pickCustomer(c)}
+							onclick={() => pickGroup(g)}
 						>
-							{c.name}
+							{g.name}
 						</button>
 					{/each}
 				</div>
@@ -179,7 +179,7 @@
 					Save
 				{/if}
 			</Button>
-			{#if integration?.customer}
+			{#if integration?.group}
 				<Button type="button" variant="red" disabled={busy} onclick={() => void handleRemove()}>
 					Remove from group
 				</Button>

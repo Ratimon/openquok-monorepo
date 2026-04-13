@@ -17,7 +17,8 @@ export interface DashboardConnectedChannelViewModel {
 	disabled: boolean;
 	inBetweenSteps: boolean;
 	refreshNeeded: boolean;
-	customer: { id: string; name: string } | null;
+	/** Workspace channel group this channel belongs to, if any. */
+	group: { id: string; name: string } | null;
 }
 
 function toDashboardConnectedChannelViewModel(
@@ -33,7 +34,7 @@ function toDashboardConnectedChannelViewModel(
 		disabled: pm.disabled,
 		inBetweenSteps: pm.inBetweenSteps,
 		refreshNeeded: pm.refreshNeeded,
-		customer: pm.customer ?? null
+		group: pm.group ?? null
 	};
 }
 
@@ -50,11 +51,11 @@ export interface DashboardPlatformChannelRowViewModel {
 }
 
 /** Channels assigned to the same workspace channel group (sidebar section). */
-export interface DashboardChannelCustomerGroupViewModel {
+export interface DashboardChannelGroupViewModel {
 	id: string;
 	name: string;
 	items: DashboardConnectedChannelViewModel[];
-	/** One row per integration `identifier` (icon + chips + Add more), scoped to this group’s channels. */
+	/** One row per integration `identifier` (icon + chips + Add more), scoped to this group's channels. */
 	platformRows: DashboardPlatformChannelRowViewModel[];
 }
 
@@ -124,20 +125,20 @@ function buildPlatformChannelRows(
 	return rows;
 }
 
-type ChannelCustomerGroupAcc = { id: string; name: string; items: DashboardConnectedChannelViewModel[] };
+type ChannelGroupAcc = { id: string; name: string; items: DashboardConnectedChannelViewModel[] };
 
-function buildChannelCustomerGroups(
+function buildChannelGroupSections(
 	channels: readonly DashboardConnectedChannelViewModel[]
-): DashboardChannelCustomerGroupViewModel[] {
-	const map = new Map<string, ChannelCustomerGroupAcc>();
+): DashboardChannelGroupViewModel[] {
+	const map = new Map<string, ChannelGroupAcc>();
 	for (const ch of channels) {
-		if (!ch.customer) continue;
-		if (!map.has(ch.customer.id)) {
-			map.set(ch.customer.id, { id: ch.customer.id, name: ch.customer.name, items: [] });
+		if (!ch.group) continue;
+		if (!map.has(ch.group.id)) {
+			map.set(ch.group.id, { id: ch.group.id, name: ch.group.name, items: [] });
 		}
-		map.get(ch.customer.id)!.items.push(ch);
+		map.get(ch.group.id)!.items.push(ch);
 	}
-	const groups: DashboardChannelCustomerGroupViewModel[] = [];
+	const groups: DashboardChannelGroupViewModel[] = [];
 	for (const g of map.values()) {
 		g.items.sort((a, b) =>
 			(a.name || a.identifier).localeCompare(b.name || b.identifier, undefined, { sensitivity: 'base' })
@@ -154,7 +155,7 @@ function buildChannelCustomerGroups(
 }
 
 type DashboardIntegrationsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
-type ChannelCustomersLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
+type ChannelGroupsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 export type DashboardChannelMutationResult = { ok: true } | { ok: false; error: string };
 
@@ -168,8 +169,8 @@ export type DashboardPostConnectQueryResult =
 export class ProtectedDashboardPagePresenter {
 	connectedChannels = $state<DashboardConnectedChannelViewModel[]>([]);
 	listStatus = $state<DashboardIntegrationsLoadStatus>('idle');
-	channelCustomers = $state<{ id: string; name: string }[]>([]);
-	channelCustomersStatus = $state<ChannelCustomersLoadStatus>('idle');
+	channelGroups = $state<{ id: string; name: string }[]>([]);
+	channelGroupsStatus = $state<ChannelGroupsLoadStatus>('idle');
 	showOnboardingWelcome = $state(false);
 
 
@@ -180,11 +181,11 @@ export class ProtectedDashboardPagePresenter {
 	platformChannelRows = $derived.by(() => buildPlatformChannelRows(this.connectedChannels));
 
 	/** Channels with a workspace channel group, for collapsible sidebar sections. */
-	channelCustomerGroups = $derived.by(() => buildChannelCustomerGroups(this.connectedChannels));
+	channelGroupSections = $derived.by(() => buildChannelGroupSections(this.connectedChannels));
 
 	/** Same as {@link platformChannelRows} but only channels not assigned to a channel group. */
 	platformChannelRowsUngrouped = $derived.by(() =>
-		buildPlatformChannelRows(this.connectedChannels.filter((c) => !c.customer))
+		buildPlatformChannelRows(this.connectedChannels.filter((c) => !c.group))
 	);
 
 	constructor(
@@ -197,8 +198,8 @@ export class ProtectedDashboardPagePresenter {
 		if (!orgId) {
 			this.connectedChannels = [];
 			this.listStatus = 'idle';
-			this.channelCustomers = [];
-			this.channelCustomersStatus = 'idle';
+			this.channelGroups = [];
+			this.channelGroupsStatus = 'idle';
 			return;
 		}
 		this.listStatus = 'loading';
@@ -209,29 +210,29 @@ export class ProtectedDashboardPagePresenter {
 		} catch {
 			this.listStatus = 'error';
 			this.connectedChannels = [];
-			this.channelCustomers = [];
-			this.channelCustomersStatus = 'error';
+			this.channelGroups = [];
+			this.channelGroupsStatus = 'error';
 		}
 	}
 
-	async loadChannelCustomers(): Promise<void> {
+	async loadChannelGroups(): Promise<void> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
-			this.channelCustomers = [];
-			this.channelCustomersStatus = 'idle';
+			this.channelGroups = [];
+			this.channelGroupsStatus = 'idle';
 			return;
 		}
-		this.channelCustomersStatus = 'loading';
+		this.channelGroupsStatus = 'loading';
 		try {
-			this.channelCustomers = await this.integrationsRepository.listChannelCustomers(orgId);
-			this.channelCustomersStatus = 'ready';
+			this.channelGroups = await this.integrationsRepository.listChannelCustomers(orgId);
+			this.channelGroupsStatus = 'ready';
 		} catch {
-			this.channelCustomersStatus = 'error';
-			this.channelCustomers = [];
+			this.channelGroupsStatus = 'error';
+			this.channelGroups = [];
 		}
 	}
 
-	async createChannelCustomer(
+	async createChannelGroup(
 		name: string
 	): Promise<{ ok: true; id: string; name: string } | { ok: false; error: string }> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
@@ -240,7 +241,7 @@ export class ProtectedDashboardPagePresenter {
 		}
 		const res = await this.integrationsRepository.createChannelCustomer({ organizationId: orgId, name });
 		if (res.ok) {
-			this._insertChannelCustomerSorted({ id: res.id, name: res.name });
+			this._insertChannelGroupSorted({ id: res.id, name: res.name });
 			return { ok: true, id: res.id, name: res.name };
 		}
 		return { ok: false, error: res.error };
@@ -248,13 +249,13 @@ export class ProtectedDashboardPagePresenter {
 
 	/**
 	 * Assign or clear workspace channel group on an integration. On success, patches
-	 * `connectedChannels` in place (no full list refetch). Pass `customerDisplayName` when the
-	 * label is known from the UI and may not yet appear in `channelCustomers`.
+	 * `connectedChannels` in place (no full list refetch). Pass `groupDisplayName` when the
+	 * label is known from the UI and may not yet appear in `channelGroups`.
 	 */
-	async assignChannelCustomer(
+	async assignChannelGroup(
 		integrationId: string,
-		customerId: string | null,
-		customerDisplayName?: string | null
+		groupId: string | null,
+		groupDisplayName?: string | null
 	): Promise<DashboardChannelMutationResult> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
@@ -263,24 +264,24 @@ export class ProtectedDashboardPagePresenter {
 		const res = await this.integrationsRepository.assignChannelCustomer({
 			organizationId: orgId,
 			integrationId,
-			customerId
+			customerId: groupId
 		});
 		if (res.ok) {
-			const customer: { id: string; name: string } | null =
-				customerId === null
+			const group: { id: string; name: string } | null =
+				groupId === null
 					? null
 					: {
-							id: customerId,
+							id: groupId,
 							name: (() => {
 								const n = (
-									customerDisplayName?.trim() ||
-									this.channelCustomers.find((c) => c.id === customerId)?.name ||
+									groupDisplayName?.trim() ||
+									this.channelGroups.find((g) => g.id === groupId)?.name ||
 									''
 								).trim();
 								return n || 'Channel group';
 							})()
 						};
-			this._patchIntegrationCustomer(integrationId, customer);
+			this._patchIntegrationGroup(integrationId, group);
 			return { ok: true };
 		}
 		return { ok: false, error: res.error };
@@ -358,26 +359,26 @@ export class ProtectedDashboardPagePresenter {
 			: { handled: true };
 	}
 
-	private _insertChannelCustomerSorted(entry: { id: string; name: string }): void {
-		if (this.channelCustomers.some((c) => c.id === entry.id)) return;
-		this.channelCustomers = [...this.channelCustomers, entry].sort((a, b) =>
+	private _insertChannelGroupSorted(entry: { id: string; name: string }): void {
+		if (this.channelGroups.some((g) => g.id === entry.id)) return;
+		this.channelGroups = [...this.channelGroups, entry].sort((a, b) =>
 			a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
 		);
-		if (this.channelCustomers.length > 0) {
-			this.channelCustomersStatus = 'ready';
+		if (this.channelGroups.length > 0) {
+			this.channelGroupsStatus = 'ready';
 		}
 	}
 
-	private _patchIntegrationCustomer(
+	private _patchIntegrationGroup(
 		integrationId: string,
-		customer: { id: string; name: string } | null
+		group: { id: string; name: string } | null
 	): void {
 		const idx = this.connectedChannels.findIndex((c) => c.id === integrationId);
 		if (idx < 0) return;
 		const prev = this.connectedChannels[idx];
 		this.connectedChannels = [
 			...this.connectedChannels.slice(0, idx),
-			{ ...prev, customer },
+			{ ...prev, group },
 			...this.connectedChannels.slice(idx + 1)
 		];
 	}

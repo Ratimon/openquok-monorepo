@@ -51,7 +51,8 @@ export interface ConnectedIntegrationProgrammerModel {
 	time: unknown[];
 	changeProfilePicture: boolean;
 	changeNickName: boolean;
-	customer: { id: string; name: string } | null;
+	/** Instead of customer, Workspace channel group assigned to this integration (UI term: group). */
+	group: { id: string; name: string } | null;
 	additionalSettings: string;
 }
 
@@ -237,7 +238,19 @@ export class IntegrationsRepository {
 					{ withCredentials: true }
 				);
 			const list = dto?.data?.integrations;
-			if (ok && dto?.success === true && Array.isArray(list)) return list;
+			if (ok && dto?.success === true && Array.isArray(list)) {
+				return list.map((row) => {
+					const raw = row as Omit<ConnectedIntegrationProgrammerModel, 'group'> & {
+						customer?: { id: string; name: string } | null;
+						group?: { id: string; name: string } | null;
+					};
+					const { customer, group: groupFromPayload, ...rest } = raw;
+					return {
+						...rest,
+						group: groupFromPayload ?? customer ?? null
+					} satisfies ConnectedIntegrationProgrammerModel;
+				});
+			}
 			return [];
 		} catch {
 			return [];

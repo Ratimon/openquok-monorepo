@@ -20,7 +20,7 @@
 		continueSetupHref: (integration: DashboardConnectedChannelViewModel) => string;
 		onRemove: (integrationId: string) => Promise<boolean>;
 		onSetDisabled: (integrationId: string, disabled: boolean) => Promise<boolean>;
-		onMoveToCustomer: (integration: DashboardConnectedChannelViewModel) => void;
+		onMoveToGroup: (integration: DashboardConnectedChannelViewModel) => void;
 		/** `chip`: compact pill for horizontal rows (e.g. account dashboard). */
 		variant?: 'card' | 'chip';
 	};
@@ -32,13 +32,23 @@
 		continueSetupHref,
 		onRemove,
 		onSetDisabled,
-		onMoveToCustomer,
+		onMoveToGroup,
 		variant = 'card'
 	}: Props = $props();
 
 	let menuOpen = $state(false);
 	let confirmRemoveOpen = $state(false);
 	let busy = $state(false);
+
+	function handleCopyChannelId() {
+		menuOpen = false;
+		const copied = copy(integration.id);
+		if (copied) {
+			toast.success('Channel ID copied to clipboard');
+		} else {
+			toast.error('Could not copy to clipboard.');
+		}
+	}
 
 	async function handleRemove() {
 		busy = true;
@@ -61,26 +71,20 @@
 			busy = false;
 		}
 	}
-
-	function handleCopyChannelId() {
-		menuOpen = false;
-		const copied = copy(integration.id);
-		if (copied) {
-			toast.success('Channel ID copied to clipboard');
-		} else {
-			toast.error('Could not copy to clipboard.');
-		}
-	}
 </script>
 
 {#snippet channelActionBody()}
 	<div class="flex flex-col gap-2">
 		<div class="flex flex-wrap gap-2">
 			{#if integration.disabled}
-				<span class="badge badge-ghost badge-sm">Disabled</span>
+				<span class="badge badge-ghost badge-sm">
+					Disabled
+				</span>
 			{/if}
 			{#if integration.refreshNeeded}
-				<span class="badge badge-warning badge-sm">Refresh needed</span>
+				<span class="badge badge-warning badge-sm">
+					Refresh needed
+				</span>
 			{/if}
 		</div>
 		{#if integration.inBetweenSteps && workspaceId}
@@ -90,7 +94,9 @@
 				class="w-full justify-start gap-2 sm:w-fit"
 			>
 				<AbstractIcon name={icons.Settings.name} class="size-4 shrink-0" width="16" height="16" />
-				<span class="min-w-0 text-start text-xs leading-tight">Complete setup</span>
+				<span class="min-w-0 text-start text-xs leading-tight">
+					Complete setup
+				</span>
 			</Button>
 		{:else if integration.refreshNeeded && workspaceId}
 			<Button
@@ -100,7 +106,9 @@
 				class="w-full justify-start gap-2 sm:w-fit"
 			>
 				<AbstractIcon name={icons.RefreshCw.name} class="size-4 shrink-0" width="16" height="16" />
-				<span class="min-w-0 text-start text-xs leading-tight">Refresh connection</span>
+				<span class="min-w-0 text-start text-xs leading-tight">
+					Refresh connection
+				</span>
 			</Button>
 		{/if}
 		<Button
@@ -112,7 +120,9 @@
 			onclick={handleCopyChannelId}
 		>
 			<AbstractIcon name={icons.Copy.name} class="size-4 shrink-0" width="16" height="16" />
-			<span class="min-w-0 text-start text-xs leading-tight">Copy channel ID</span>
+			<span class="min-w-0 text-start text-xs leading-tight">
+				Copy channel ID
+			</span>
 		</Button>
 		<Button
 			type="button"
@@ -122,7 +132,7 @@
 			disabled={busy}
 			onclick={() => {
 				menuOpen = false;
-				onMoveToCustomer(integration);
+				onMoveToGroup(integration);
 			}}
 		>
 			<AbstractIcon name={icons.UserPlus.name} class="size-4 shrink-0" width="16" height="16" />
