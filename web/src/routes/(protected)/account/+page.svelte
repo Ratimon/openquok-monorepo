@@ -19,6 +19,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationMenu from '$lib/ui/components/launches/IntegrationMenu.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/launches/MoveChannelGroupModal.svelte';
+	import TimeTable from '$lib/ui/components/launches/TimeTable.svelte';
 	import OnBoardingModal from '$lib/ui/components/launches/OnBoardingModal.svelte';
 	import { toast } from '$lib/ui/sonner';
 
@@ -41,9 +42,17 @@
 	let moveGroupOpen = $state(false);
 	let moveGroupFor = $state<DashboardConnectedChannelViewModel | null>(null);
 
+	let timeTableOpen = $state(false);
+	let timeTableFor = $state<DashboardConnectedChannelViewModel | null>(null);
+
 	function openMoveGroupModal(integration: DashboardConnectedChannelViewModel) {
 		moveGroupFor = integration;
 		moveGroupOpen = true;
+	}
+
+	function openTimeTableModal(integration: DashboardConnectedChannelViewModel) {
+		timeTableFor = integration;
+		timeTableOpen = true;
 	}
 
 	$effect.pre(() => {
@@ -57,6 +66,12 @@
 	$effect(() => {
 		if (!moveGroupOpen) {
 			moveGroupFor = null;
+		}
+	});
+
+	$effect(() => {
+		if (!timeTableOpen) {
+			timeTableFor = null;
 		}
 	});
 	
@@ -258,9 +273,11 @@
 									workspaceId={workspaceId!}
 									{providerIcon}
 									{continueSetupHref}
-									onRemove={handleRemoveChannel}
-									onSetDisabled={handleSetChannelDisabled}
+
 									onMoveToGroup={openMoveGroupModal}
+									onEditTimeSlots={openTimeTableModal}
+									onSetDisabled={handleSetChannelDisabled}
+									onRemove={handleRemoveChannel}
 								/>
 							</li>
 						{/each}
@@ -389,6 +406,8 @@
 </div>
 
 <MoveChannelGroupModal bind:open={moveGroupOpen} integration={moveGroupFor} />
+
+<TimeTable bind:open={timeTableOpen} integration={timeTableFor} />
 
 <OnBoardingModal
 	open={onboardingDialogOpen}

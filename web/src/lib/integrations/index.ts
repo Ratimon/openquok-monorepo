@@ -22,7 +22,9 @@ const integrationsConfig: IntegrationsConfig = {
 		enable: `${integrationsBase}/enable`,
 		deleteChannel: `${integrationsBase}`,
 		providerConnect: (integrationId: string) =>
-			`${integrationsBase}/provider/${encodeURIComponent(integrationId)}/connect`
+			`${integrationsBase}/provider/${encodeURIComponent(integrationId)}/connect`,
+		postingTimes: (integrationId: string) =>
+			`${integrationsBase}/${encodeURIComponent(integrationId)}/time`
 	}
 };
 

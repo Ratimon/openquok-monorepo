@@ -117,6 +117,7 @@ export interface IntegrationsConfig {
 		enable: string;
 		deleteChannel: string;
 		providerConnect: (integrationId: string) => string;
+		postingTimes: (integrationId: string) => string;
 	};
 }
 
@@ -406,6 +407,43 @@ export class IntegrationsRepository {
 				};
 			}
 			return { ok: false, error: 'Could not update channel group.' };
+		}
+	}
+
+	public async setIntegrationPostingTimes(params: {
+		organizationId: string;
+		integrationId: string;
+		time: { time: number }[];
+	}): Promise<{ ok: true } | { ok: false; error: string }> {
+		try {
+			const { ok, data: dto } = await this.httpGateway.post<{
+				success?: boolean;
+				data?: { ok?: boolean };
+				message?: string;
+			}>(
+				this.config.endpoints.postingTimes(params.integrationId),
+				{ time: params.time },
+				{ withCredentials: true, params: { organizationId: params.organizationId } }
+			);
+			if (ok && dto?.success === true && dto.data?.ok === true) return { ok: true };
+			const message = typeof dto?.message === 'string' ? dto.message : null;
+			return { ok: false, error: message || 'Could not save time slots.' };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Could not save time slots.' };
 		}
 	}
 

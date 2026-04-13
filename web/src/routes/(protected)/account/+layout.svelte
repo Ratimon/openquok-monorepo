@@ -35,6 +35,7 @@
 	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'Openquok');
 
 	const mainLinks: SidebarLinkItem[] = [
+		{ label: 'Dashboard', href: '/', iconName: icons.Gauge.name },
 		{ label: 'Calendar', href: '/calendar', iconName: icons.CalendarClock.name },
 		{ label: 'Analytics', href: '/analytics', iconName: icons.ChartBar.name },
 		{ label: 'Media', href: '/media', iconName: icons.Image.name },

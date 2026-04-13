@@ -12,6 +12,7 @@
 	} from '$lib/area-protected';
 
 	import EditorAccountSettings from '$lib/ui/templates/EditorAccountSettings.svelte';
+	import EditorMetric from '$lib/ui/templates/EditorMetric.svelte';
 	import EditorWorkspaceSettings from '$lib/ui/templates/EditorWorkspaceSettings.svelte';
 
 	const ctx = getContext<SettingsSidebarContext>(SETTINGS_SIDEBAR_KEY);
@@ -117,27 +118,9 @@
 		);
 	}
 </script>
-
 <SidebarSecondary>
 	{#if currentSection === 'global'}
-		<!-- Global Settings: Date Metrics -->
-		<section
-			class="rounded-lg border border-base-300 bg-base-200 p-6 shadow-sm"
-			aria-labelledby="date-metrics-heading"
-		>
-			<h2 id="date-metrics-heading" class="text-lg font-semibold text-base-content">
-				Date Metrics
-			</h2>
-			<div class="mt-4">
-				<button
-					type="button"
-					class="rounded-full border border-base-300 bg-base-100 px-4 py-2 text-sm font-medium text-base-content shadow-sm hover:bg-base-content/10"
-				>
-					AM or PM
-				</button>
-			</div>
-		</section>
-
+		<EditorMetric />
 
 	{:else if currentSection === 'profile'}
 		<EditorAccountSettings

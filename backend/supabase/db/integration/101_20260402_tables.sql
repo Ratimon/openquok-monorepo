@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS public.integrations (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     in_between_steps BOOLEAN NOT NULL DEFAULT FALSE,
     refresh_needed BOOLEAN NOT NULL DEFAULT FALSE,
+    -- Default slots: 120/400/700 = minutes after UTC midnight → 02:00 / 06:40 / 11:40 UTC (local labels depend on client TZ).
     posting_times TEXT NOT NULL DEFAULT '[{"time":120},{"time":400},{"time":700}]',
     custom_instance_details TEXT,
     customer_id UUID REFERENCES public.integration_customers(id) ON DELETE SET NULL,
@@ -43,6 +44,7 @@ COMMENT ON COLUMN public.integrations.type IS 'social | article (and other provi
 COMMENT ON COLUMN public.integrations.profile IS 'Display handle or profile line for the connected account';
 COMMENT ON COLUMN public.integrations.customer_id IS 'Optional FK to integration_customers for workspace channel grouping';
 COMMENT ON COLUMN public.integrations.root_internal_id IS 'Normalized id for cross-org trial checks';
+COMMENT ON COLUMN public.integrations.posting_times IS 'JSON [{time:number}, ...]; each time is minutes after UTC midnight for UI decode. Column default 120/400/700 encodes 02:00, 06:40, and 11:40 UTC on that anchor day; local labels depend on the viewer timezone. New rows created with a connect-time offset may use a different default triple in application code.';
 
 -- ---------------------------
 -- END OF FILE

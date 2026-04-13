@@ -18,9 +18,10 @@
 		workspaceId: string;
 		providerIcon: (identifier: string) => IconName;
 		continueSetupHref: (integration: DashboardConnectedChannelViewModel) => string;
-		onRemove: (integrationId: string) => Promise<boolean>;
-		onSetDisabled: (integrationId: string, disabled: boolean) => Promise<boolean>;
 		onMoveToGroup: (integration: DashboardConnectedChannelViewModel) => void;
+		onEditTimeSlots: (integration: DashboardConnectedChannelViewModel) => void;
+		onSetDisabled: (integrationId: string, disabled: boolean) => Promise<boolean>;
+		onRemove: (integrationId: string) => Promise<boolean>;
 		/** `chip`: compact pill for horizontal rows (e.g. account dashboard). */
 		variant?: 'card' | 'chip';
 	};
@@ -30,9 +31,10 @@
 		workspaceId,
 		providerIcon,
 		continueSetupHref,
-		onRemove,
-		onSetDisabled,
 		onMoveToGroup,
+		onEditTimeSlots,
+		onSetDisabled,
+		onRemove,
 		variant = 'card'
 	}: Props = $props();
 
@@ -50,6 +52,15 @@
 		}
 	}
 
+	async function handleToggleDisabled() {
+		busy = true;
+		try {
+			await onSetDisabled(integration.id, !integration.disabled);
+		} finally {
+			busy = false;
+		}
+	}
+
 	async function handleRemove() {
 		busy = true;
 		try {
@@ -63,14 +74,6 @@
 		}
 	}
 
-	async function handleToggleDisabled() {
-		busy = true;
-		try {
-			await onSetDisabled(integration.id, !integration.disabled);
-		} finally {
-			busy = false;
-		}
-	}
 </script>
 
 {#snippet channelActionBody()}
@@ -138,6 +141,22 @@
 			<AbstractIcon name={icons.UserPlus.name} class="size-4 shrink-0" width="16" height="16" />
 			<span class="min-w-0 text-start text-xs leading-tight">
 				Move / add to group
+			</span>
+		</Button>
+		<Button
+			type="button"
+			variant="outline"
+			size="sm"
+			class="w-full justify-start gap-2 sm:w-fit"
+			disabled={busy}
+			onclick={() => {
+				menuOpen = false;
+				onEditTimeSlots(integration);
+			}}
+		>
+			<AbstractIcon name={icons.Timer.name} class="size-4 shrink-0" width="16" height="16" />
+			<span class="min-w-0 text-start text-xs leading-tight">
+				Edit time slots
 			</span>
 		</Button>
 		<Button

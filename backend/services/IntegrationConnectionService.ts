@@ -37,6 +37,20 @@ function rootInternalId(internalId: string): string | null {
     return parts.length > 1 ? (parts.pop() ?? null) : internalId;
 }
 
+/**
+ * Default `posting_times` JSON for a new integration.
+ *
+ * Clients treat each `time` as minutes after **UTC** midnight, then render in the viewer’s zone
+ * (`utc().startOf('day').add(time, 'minute').tz(...)`). The connect flow sends `timezone` as a numeric
+ * **UTC offset in minutes** (browser `dayjs` `utcOffset()` on social connect).
+ *
+ * **560, 850, 1140** — naive “minutes since local midnight” for **09:20**, **14:10**, and **19:00**
+ * (`9*60+20`, `14*60+10`, `19*60`). Subtracting `timezone` converts that intent into stored offsets for the anchor above.
+ *
+ * **120, 400, 700** — fallback when `timezone` is absent or not a number (not the 560/850/1140 preset).
+ * As minutes after **UTC** midnight they are **02:00**, **06:40**, and **11:40** UTC on that anchor day;
+ * the wall clock shown in the app depends on the viewer’s timezone (same decode as other `time` values).
+ */
 function postingTimesForTimezone(timezone?: number): string {
     if (timezone == null || Number.isNaN(timezone)) {
         return JSON.stringify([{ time: 120 }, { time: 400 }, { time: 700 }]);
@@ -47,7 +61,6 @@ function postingTimesForTimezone(timezone?: number): string {
 /**
  * OAuth, session membership checks, and list shaping via {@link IntegrationManager}.
  * Table reads/writes go through {@link IntegrationService}.
- * OAuth URL / callback flows require {@link cache}; key removal uses {@link cacheInvalidator} when set (same metrics as other services).
  */
 export class IntegrationConnectionService {
     constructor(

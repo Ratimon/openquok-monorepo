@@ -4,6 +4,9 @@ import type {
 } from '$lib/integrations/Integrations.repository.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
+/** One scheduled posting slot: minutes after midnight (0–1439), matching `integrations.posting_times` JSON. */
+export type PostingTimeSlot = { time: number };
+
 /**
  * Connected channel row for the account dashboard (presenter / UI). No repository DTO shape.
  */
@@ -19,6 +22,29 @@ export interface DashboardConnectedChannelViewModel {
 	refreshNeeded: boolean;
 	/** Workspace channel group this channel belongs to, if any. */
 	group: { id: string; name: string } | null;
+	/** Parsed `posting_times` from the API (deduplicated, sorted by `time`). */
+	postingTimes: PostingTimeSlot[];
+}
+
+const MINUTES_PER_DAY = 24 * 60;
+
+/** Normalizes list API `time` payloads into unique minute-of-day values. */
+export function parsePostingTimeSlots(raw: unknown): PostingTimeSlot[] {
+	if (!Array.isArray(raw)) return [];
+	const seen = new Set<number>();
+	const out: PostingTimeSlot[] = [];
+	for (const item of raw) {
+		if (!item || typeof item !== 'object') continue;
+		const t = Number((item as Record<string, unknown>).time);
+		if (!Number.isFinite(t)) continue;
+		let m = Math.round(t) % MINUTES_PER_DAY;
+		if (m < 0) m += MINUTES_PER_DAY;
+		if (seen.has(m)) continue;
+		seen.add(m);
+		out.push({ time: m });
+	}
+	out.sort((a, b) => a.time - b.time);
+	return out;
 }
 
 function toDashboardConnectedChannelViewModel(
@@ -34,7 +60,8 @@ function toDashboardConnectedChannelViewModel(
 		disabled: pm.disabled,
 		inBetweenSteps: pm.inBetweenSteps,
 		refreshNeeded: pm.refreshNeeded,
-		group: pm.group ?? null
+		group: pm.group ?? null,
+		postingTimes: parsePostingTimeSlots(pm.time)
 	};
 }
 
@@ -324,6 +351,29 @@ export class ProtectedDashboardPagePresenter {
 		return { ok: false, error: res.error };
 	}
 
+	async setPostingTimes(
+		integrationId: string,
+		slots: PostingTimeSlot[]
+	): Promise<DashboardChannelMutationResult> {
+		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
+		if (!orgId) {
+			return { ok: false, error: 'No workspace selected.' };
+		}
+		if (slots.length < 1) {
+			return { ok: false, error: 'Add at least one time slot.' };
+		}
+		const resPm = await this.integrationsRepository.setIntegrationPostingTimes({
+			organizationId: orgId,
+			integrationId,
+			time: slots
+		});
+		if (resPm.ok) {
+			this._patchIntegrationPostingTimes(integrationId, slots);
+			return { ok: true };
+		}
+		return { ok: false, error: resPm.error };
+	}
+
 	/**
 	 * After social connect redirect: strip query, reload list, optional onboarding dialog.
 	 * Caller should show `successToastMessage` (from `msg` query) via toast when present.
@@ -379,6 +429,18 @@ export class ProtectedDashboardPagePresenter {
 		this.connectedChannels = [
 			...this.connectedChannels.slice(0, idx),
 			{ ...prev, group },
+			...this.connectedChannels.slice(idx + 1)
+		];
+	}
+
+	private _patchIntegrationPostingTimes(integrationId: string, slots: PostingTimeSlot[]): void {
+		const idx = this.connectedChannels.findIndex((c) => c.id === integrationId);
+		if (idx < 0) return;
+		const prev = this.connectedChannels[idx];
+		const sorted = [...slots].sort((a, b) => a.time - b.time);
+		this.connectedChannels = [
+			...this.connectedChannels.slice(0, idx),
+			{ ...prev, postingTimes: sorted },
 			...this.connectedChannels.slice(idx + 1)
 		];
 	}
