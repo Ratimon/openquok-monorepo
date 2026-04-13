@@ -358,7 +358,7 @@
 		{:else}
 			{#if channelCustomerGroups.length > 0}
 				<div class="mt-4 space-y-2">
-					<h4 class="text-sm font-semibold text-base-content/80">Customers</h4>
+					<h4 class="text-sm font-semibold text-base-content/80">Groups</h4>
 					{#each channelCustomerGroups as group (group.id)}
 						<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={customerDetailsOpen[group.id]}>
 							<summary

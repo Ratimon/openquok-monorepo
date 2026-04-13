@@ -93,14 +93,14 @@
 					created.name
 				);
 				if (assign.ok) {
-					toast.success('Customer created and channel assigned.');
+					toast.success('Group created and channel assigned.');
 					open = false;
 				} else {
 					toast.error(assign.error);
 				}
 				return;
 			}
-			toast.error('Select a customer or enter a name.');
+			toast.error('Select a group or enter a name.');
 		} finally {
 			busy = false;
 		}
@@ -112,7 +112,7 @@
 		try {
 			const r = await protectedDashboardPagePresenter.assignChannelCustomer(integration.id, null);
 			if (r.ok) {
-				toast.success('Removed from customer.');
+				toast.success('Removed from group.');
 				open = false;
 			} else {
 				toast.error(r.error);
@@ -126,17 +126,21 @@
 <Dialog.Root bind:open>
 	<Dialog.Content class="max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>Move / add to customer</Dialog.Title>
+			<Dialog.Title>
+				Move / add to group
+			</Dialog.Title>
 			<Dialog.Description>
 				{#if integration}
-					Choose a customer for <strong>{integration.name}</strong>, or type a new customer name to create one.
+					Choose a group for <strong>{integration.name}</strong>, or type a new group name to create one.
 				{/if}
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="mt-2 space-y-3">
 			<div class="space-y-1.5">
-				<label class="text-sm font-medium text-base-content" for="move-customer-filter">Select customer</label>
+				<label class="text-sm font-medium text-base-content" for="move-customer-filter">
+					Select group
+				</label>
 				<Input
 					id="move-customer-filter"
 					bind:value={filterText}
@@ -150,7 +154,7 @@
 				<div
 					class="border-base-300 bg-base-100 max-h-44 overflow-y-auto rounded-md border text-sm shadow-inner"
 					role="listbox"
-					aria-label="Matching customers"
+					aria-label="Matching groups"
 				>
 					{#each filteredCustomers as c (c.id)}
 						<button
@@ -177,7 +181,7 @@
 			</Button>
 			{#if integration?.customer}
 				<Button type="button" variant="red" disabled={busy} onclick={() => void handleRemove()}>
-					Remove from customer
+					Remove from group
 				</Button>
 			{/if}
 			<Button type="button" variant="ghost" disabled={busy} onclick={() => (open = false)}>Cancel</Button>
