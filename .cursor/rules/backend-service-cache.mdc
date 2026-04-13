@@ -23,9 +23,10 @@ constructor(
 
 ## Key design
 
-- Define a **domain-scoped `CACHE_KEYS`** object and a **TTL constant** in the service.
+- Define a **domain-scoped `CACHE_KEYS`** object and a **TTL constant** (or env-based TTLs) in the service.
 - Use consistent prefixes and patterns so invalidation can target keys or patterns.
 - **Name keys so the scope is clear**: use suffixes like `BYUSERID`, `BY_ID`, `LIST_ALL` (e.g. `org:list:byUserId`, `blog:byBlogId`, `feedback:list:all`). This makes it obvious what each key is for and keeps naming consistent across services (e.g. `LIST_BYUSERID` / `listing:list:byUserId` style).
+- **Parameterized lists** (one cache entry per parent id, e.g. per organization): store a **string prefix** on `CACHE_KEYS` and build the full key in a **small helper** next to the constants so read and invalidate always agree (e.g. `` `${CACHE_KEYS.INTEGRATION_CUSTOMERS_LIST}:${organizationId}` ``).
 
 ```ts
 const CACHE_KEYS = {
@@ -34,6 +35,9 @@ const CACHE_KEYS = {
     ORG_LIST_BYUSERID: "org:list:byUserId",
     ORG_BY_IDS: "org:byIds",
     BLOG_BYID: "blog:byBlogId",
+    INTEGRATION: "integration",
+    /** Full key = `${INTEGRATION_CUSTOMERS_LIST}:${organizationId}` */
+    INTEGRATION_CUSTOMERS_LIST: "integration:customers:list",
 };
 const FEEDBACK_CACHE_TTL_SEC = 300;
 ```
@@ -42,12 +46,39 @@ const FEEDBACK_CACHE_TTL_SEC = 300;
 
 Use **`cache.getOrSet(cacheKey, factory, ttl)`** for data that can be cached. When `cache` is optional, call the repository when cache is undefined.
 
+- Use a **named `cacheKey`** (fixed or from a helper) so invalidation can reuse the same expression.
+- The **factory** may log debug/info around the repository call (see `FeedbackService`, `IntegrationService`).
+
+**Fixed key (global list):**
+
 ```ts
 async getAllFeedbacks(): Promise<FeedbackRow[]> {
     const cacheKey = CACHE_KEYS.FEEDBACK_LIST_ALL;
     const factory = async () => await this.feedbackRepository.findAll();
     if (this.cache) {
         return this.cache.getOrSet(cacheKey, factory, FEEDBACK_CACHE_TTL_SEC);
+    }
+    return factory();
+}
+```
+
+**Per-parent key (helper + logging):**
+
+```ts
+function customersListCacheKey(organizationId: string): string {
+    return `${CACHE_KEYS.INTEGRATION_CUSTOMERS_LIST}:${organizationId}`;
+}
+
+async customers(organizationId: string): Promise<CustomerListItem[]> {
+    const cacheKey = customersListCacheKey(organizationId);
+    const factory = async (): Promise<CustomerListItem[]> => {
+        logger.debug({ msg: "Getting customers from repository", organizationId });
+        const list = await this.someRepository.customers(organizationId);
+        logger.info({ msg: "Customers retrieved", organizationId, count: list.length });
+        return list;
+    };
+    if (this.cache) {
+        return this.cache.getOrSet(cacheKey, factory, CUSTOMERS_LIST_TTL_SEC);
     }
     return factory();
 }
@@ -61,12 +92,13 @@ After any **create/update/delete** that affects cached data, call a **private in
 - Invalidate **specific keys** and any **cross-referenced keys** (e.g. profile by id and by email).
 - Invalidate **list/aggregate** caches with `cacheInvalidator.invalidateKey(key)` or `invalidatePattern(pattern)`.
 - You can still use `invalidateEntity(entityType, entityId)` and `invalidatePattern(...)` for broader cleanup; prefer also calling `invalidateKey` with the exact read key for by-id and list keys.
+- **Optional `cache.del` fallback:** if `cacheInvalidator` is omitted but `cache` is present (e.g. some tests), you may `await this.cache.del(exactReadKey)` so read-through caches still drop after mutation. Prefer production wiring with **both** `cache` and `cacheInvalidator` from `services/index.ts`.
 
 ### Invalidation helper signature (readability)
 
 Use a **single `params` object** with named properties when the helper depends on one or more identifiers. This keeps call sites and signatures consistent and self-documenting.
 
-- **With identifiers:** `params: { postId: string }`, `params: { authUserId: string; userEmail?: string | null }`, `params: { authUserId?: string; organizationId?: string }`.
+- **With identifiers:** `params: { postId: string }`, `params: { authUserId: string; userEmail?: string | null }`, `params: { authUserId?: string; organizationId?: string }`, `params: { organizationId: string }` for per-org list caches.
 - **No identifiers (fixed keys only):** no parameters is fine (e.g. topic-related or list-all invalidators).
 
 ```ts
@@ -102,5 +134,6 @@ In **`services/index.ts`**, pass `cacheServiceConnection` and `cacheInvalidation
 
 ## Reference implementations
 
-- `UserService`, `FeedbackService`, `MarketingService`, `OrganizationService`, `RbacService`, `CompanyService`, `BlogService`.
+- `UserService`, `FeedbackService`, `MarketingService`, `OrganizationService`, `RbacService`, `CompanyService`, `BlogService`, `IntegrationService`.
 - For by-id + list invalidation pattern: `BlogService` (BLOG_BYID + explicit invalidateKey), `OrganizationService` (ORG_LIST_BYUSERID, ORG_BY_IDS + explicit keys and pattern).
+- For **per-org `getOrSet` list** + **invalidate same key** + optional **`cache.del` fallback**: `IntegrationService` (`customers`, `createIntegrationCustomer` / `updateOnCustomerName` invalidation). For **pattern** invalidation alongside keys (e.g. per-provider segments under `integration:${orgId}:${provider}:*`): same file.

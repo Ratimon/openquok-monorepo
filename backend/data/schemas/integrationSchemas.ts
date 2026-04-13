@@ -46,3 +46,35 @@ export const validateSaveProviderPage: RequestHandler = validateRequest({
     params: saveProviderPageParamsSchema,
     body: saveProviderPageBodySchema,
 });
+
+export const integrationCustomersQuerySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+});
+
+export const validateIntegrationCustomersQuery: RequestHandler = validateRequest({
+    query: integrationCustomersQuerySchema,
+});
+
+export const integrationCreateCustomerBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    name: z.string().trim().min(1, "Name is required").max(200),
+});
+
+export const validateIntegrationCreateCustomerBody: RequestHandler = validateRequest({
+    body: integrationCreateCustomerBodySchema,
+});
+
+export const integrationGroupParamsSchema = z.object({
+    id: z.string().uuid("Invalid integration id"),
+});
+
+export const integrationGroupBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    /** Set to `null` to clear the customer assignment. */
+    customerId: z.union([z.string().uuid("Invalid customer id"), z.null()]),
+});
+
+export const validateIntegrationGroup: RequestHandler = validateRequest({
+    params: integrationGroupParamsSchema,
+    body: integrationGroupBodySchema,
+});

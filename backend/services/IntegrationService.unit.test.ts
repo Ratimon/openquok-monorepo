@@ -28,6 +28,7 @@ function sampleRow(overrides: Partial<IntegrationRow> = {}): IntegrationRow {
         custom_instance_details: null,
         additional_settings: "[]",
         customer_id: null,
+        customer_name: null,
         root_internal_id: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -65,6 +66,11 @@ function createMockRepo(): jest.Mocked<
         | "disableChannel"
         | "enableChannel"
         | "softDeleteChannel"
+        | "customers"
+        | "createIntegrationCustomer"
+        | "updateIntegrationById"
+        | "updateIntegrationGroup"
+        | "updateOnCustomerName"
     >
 > {
     return {
@@ -75,25 +81,37 @@ function createMockRepo(): jest.Mocked<
         disableChannel: jest.fn(),
         enableChannel: jest.fn(),
         softDeleteChannel: jest.fn(),
+        customers: jest.fn(),
+        createIntegrationCustomer: jest.fn(),
+        updateIntegrationById: jest.fn(),
+        updateIntegrationGroup: jest.fn(),
+        updateOnCustomerName: jest.fn(),
     };
 }
 
-function createMockCache(): jest.Mocked<Pick<CacheService, "get" | "set">> {
+type IntegrationServiceCacheMock = jest.Mocked<Pick<CacheService, "get" | "set" | "del" | "getOrSet">>;
+
+function createMockCache(): IntegrationServiceCacheMock {
     return {
         get: jest.fn(),
         set: jest.fn().mockResolvedValue(true),
+        del: jest.fn().mockResolvedValue(true),
+        getOrSet: jest.fn(async (_key: string, factory: () => Promise<unknown>) => factory()) as IntegrationServiceCacheMock["getOrSet"],
     };
 }
 
 describe("IntegrationService", () => {
     let repo: ReturnType<typeof createMockRepo>;
     let cache: ReturnType<typeof createMockCache>;
-    let cacheInvalidator: jest.Mocked<Pick<CacheInvalidationService, "invalidatePattern">>;
+    let cacheInvalidator: jest.Mocked<Pick<CacheInvalidationService, "invalidatePattern" | "invalidateKey">>;
 
     beforeEach(() => {
         repo = createMockRepo();
         cache = createMockCache();
-        cacheInvalidator = { invalidatePattern: jest.fn().mockResolvedValue(true) };
+        cacheInvalidator = {
+            invalidatePattern: jest.fn().mockResolvedValue(true),
+            invalidateKey: jest.fn().mockResolvedValue(true),
+        };
     });
 
     function service(overrides?: { cache?: CacheService; cacheInvalidator?: CacheInvalidationService }) {
@@ -125,6 +143,67 @@ describe("IntegrationService", () => {
             const out = await service().getById(orgId, integrationId);
             expect(out).toBe(row);
             expect(repo.getById).toHaveBeenCalledWith(orgId, integrationId);
+        });
+
+        it("customers forwards to repository when cache is not configured", async () => {
+            const list = [{ id: faker.string.uuid(), name: "Acme" }];
+            repo.customers.mockResolvedValue(list);
+            const out = await service({ cache: undefined }).customers(orgId);
+            expect(out).toEqual(list);
+            expect(repo.customers).toHaveBeenCalledWith(orgId);
+            expect(cache.getOrSet).not.toHaveBeenCalled();
+        });
+
+        it("customers uses getOrSet with expected cache key when cache is configured", async () => {
+            const list = [{ id: "c2", name: "Beta" }];
+            repo.customers.mockResolvedValue(list);
+            const out = await service().customers(orgId);
+            expect(out).toEqual(list);
+            expect(cache.getOrSet).toHaveBeenCalledWith(
+                `integration:customers:list:${orgId}`,
+                expect.any(Function),
+                expect.any(Number)
+            );
+            expect(repo.customers).toHaveBeenCalledWith(orgId);
+        });
+
+        it("customers returns getOrSet result without calling repository when getOrSet returns cached list", async () => {
+            const list = [{ id: "c1", name: "Acme" }];
+            cache.getOrSet.mockResolvedValue(list);
+            const out = await service().customers(orgId);
+            expect(out).toEqual(list);
+            expect(repo.customers).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("createIntegrationCustomer", () => {
+        it("returns row and invalidates customers list cache key", async () => {
+            const row = { id: faker.string.uuid(), name: "New" };
+            repo.createIntegrationCustomer.mockResolvedValue(row);
+            const out = await service().createIntegrationCustomer(orgId, "New");
+            expect(out).toBe(row);
+            expect(cacheInvalidator.invalidateKey).toHaveBeenCalledWith(`integration:customers:list:${orgId}`);
+        });
+
+        it("uses cache.del when invalidator omitted but cache present", async () => {
+            const row = { id: faker.string.uuid(), name: "X" };
+            repo.createIntegrationCustomer.mockResolvedValue(row);
+            await service({ cacheInvalidator: undefined }).createIntegrationCustomer(orgId, "X");
+            expect(cache.del).toHaveBeenCalledWith(`integration:customers:list:${orgId}`);
+        });
+    });
+
+    describe("updateOnCustomerName", () => {
+        beforeEach(() => {
+            repo.getById.mockResolvedValue(sampleRow({ provider_identifier: "threads" }));
+            repo.updateOnCustomerName.mockResolvedValue(undefined);
+        });
+
+        it("invalidates customers list cache and integration domain cache", async () => {
+            await service().updateOnCustomerName(orgId, integrationId, "Label");
+            expect(repo.updateOnCustomerName).toHaveBeenCalledWith(orgId, integrationId, "Label");
+            expect(cacheInvalidator.invalidateKey).toHaveBeenCalledWith(`integration:customers:list:${orgId}`);
+            expect(cacheInvalidator.invalidatePattern).toHaveBeenCalledWith(`integration:${orgId}:threads:*`);
         });
     });
 

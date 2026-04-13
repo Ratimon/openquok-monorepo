@@ -6,58 +6,13 @@
 -- Prefix 406: integration module functions band (106 tables, 206 indexes, 306 rlsgrants).
 -- Server-side integration reads/updates that bypass RLS (service_role only).
 -- Used by the API service client so programmatic and session flows behave consistently.
+--
+-- `internal_list_integrations_by_org` is defined in the customer module (`401_*_functions.sql`)
+-- so it can join `integration_customers`. Do not redefine it here: MODULE_ORDER runs customer
+-- before integration in the same scope tier, and PostgreSQL rejects CREATE OR REPLACE when
+-- the RETURNS TABLE row shape would change.
 
 BEGIN;
-
-CREATE OR REPLACE FUNCTION public.internal_list_integrations_by_org(p_organization_id uuid)
-RETURNS TABLE (
-    id uuid,
-    organization_id uuid,
-    internal_id text,
-    name text,
-    picture text,
-    provider_identifier text,
-    type text,
-    disabled boolean,
-    in_between_steps boolean,
-    refresh_needed boolean,
-    posting_times text,
-    additional_settings text,
-    profile text,
-    created_at timestamptz,
-    updated_at timestamptz
-)
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path = public
-STABLE
-AS $$
-    SELECT
-        i.id,
-        i.organization_id,
-        i.internal_id,
-        i.name,
-        i.picture,
-        i.provider_identifier,
-        i.type,
-        i.disabled,
-        i.in_between_steps,
-        i.refresh_needed,
-        i.posting_times,
-        i.additional_settings,
-        i.profile,
-        i.created_at,
-        i.updated_at
-    FROM public.integrations i
-    WHERE i.organization_id = p_organization_id
-      AND i.deleted_at IS NULL
-    ORDER BY i.created_at ASC;
-$$;
-
-REVOKE ALL ON FUNCTION public.internal_list_integrations_by_org(uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.internal_list_integrations_by_org(uuid) TO service_role;
-COMMENT ON FUNCTION public.internal_list_integrations_by_org(uuid) IS
-    'List integrations for an organization (bypasses RLS); service_role only';
 
 CREATE OR REPLACE FUNCTION public.internal_get_integration_by_org_and_id(
     p_organization_id uuid,

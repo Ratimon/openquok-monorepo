@@ -20,6 +20,7 @@
 		continueSetupHref: (integration: DashboardConnectedChannelViewModel) => string;
 		onRemove: (integrationId: string) => Promise<boolean>;
 		onSetDisabled: (integrationId: string, disabled: boolean) => Promise<boolean>;
+		onMoveToCustomer: (integration: DashboardConnectedChannelViewModel) => void;
 		/** `chip`: compact pill for horizontal rows (e.g. account dashboard). */
 		variant?: 'card' | 'chip';
 	};
@@ -31,6 +32,7 @@
 		continueSetupHref,
 		onRemove,
 		onSetDisabled,
+		onMoveToCustomer,
 		variant = 'card'
 	}: Props = $props();
 
@@ -111,6 +113,22 @@
 		>
 			<AbstractIcon name={icons.Copy.name} class="size-4 shrink-0" width="16" height="16" />
 			<span class="min-w-0 text-start text-xs leading-tight">Copy channel ID</span>
+		</Button>
+		<Button
+			type="button"
+			variant="outline"
+			size="sm"
+			class="w-full justify-start gap-2 sm:w-fit"
+			disabled={busy}
+			onclick={() => {
+				menuOpen = false;
+				onMoveToCustomer(integration);
+			}}
+		>
+			<AbstractIcon name={icons.UserPlus.name} class="size-4 shrink-0" width="16" height="16" />
+			<span class="min-w-0 text-start text-xs leading-tight">
+				Move / add to customer
+			</span>
 		</Button>
 		<Button
 			type="button"

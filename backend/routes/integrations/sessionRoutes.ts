@@ -7,6 +7,9 @@ import {
     validateSocialConnectBody,
     validateIntegrationOrgAndIdBody,
     validateSaveProviderPage,
+    validateIntegrationCustomersQuery,
+    validateIntegrationCreateCustomerBody,
+    validateIntegrationGroup,
 } from "../../data/schemas/integrationSchemas";
 import { validateIntegrationTimeRequest } from "../../data/schemas/integrationTimeSchemas";
 
@@ -29,6 +32,21 @@ sessionIntegrationsRouter.post(
     integrationController.saveProviderPage
 );
 sessionIntegrationsRouter.get("/list", validateIntegrationOrganizationQuery, integrationController.getIntegrationList);
+sessionIntegrationsRouter.get(
+    "/customers",
+    validateIntegrationCustomersQuery,
+    integrationController.getChannelCustomers
+);
+sessionIntegrationsRouter.post(
+    "/customers",
+    validateIntegrationCreateCustomerBody,
+    integrationController.createChannelCustomer
+);
+sessionIntegrationsRouter.put(
+    "/:id/group",
+    validateIntegrationGroup,
+    integrationController.assignChannelCustomer
+);
 sessionIntegrationsRouter.post(
     "/:id/time",
     validateIntegrationTimeRequest,

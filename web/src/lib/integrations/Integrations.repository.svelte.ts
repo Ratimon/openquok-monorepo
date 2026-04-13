@@ -110,6 +110,8 @@ export interface IntegrationsConfig {
 		socialAuthorize: (provider: SocialProviderIdentifier) => string;
 		connectSocial: (provider: SocialProviderIdentifier) => string;
 		listByOrganization: string;
+		customers: string;
+		integrationGroup: (integrationId: string) => string;
 		disable: string;
 		enable: string;
 		deleteChannel: string;
@@ -306,6 +308,91 @@ export class IntegrationsRepository {
 				};
 			}
 			return { ok: false, error: 'Could not complete channel setup.' };
+		}
+	}
+
+	public async listChannelCustomers(organizationId: string): Promise<{ id: string; name: string }[]> {
+		try {
+			const { ok, data: dto } = await this.httpGateway.get<{
+				success?: boolean;
+				data?: { customers?: { id: string; name: string }[] };
+			}>(this.config.endpoints.customers, { organizationId }, { withCredentials: true });
+			const list = dto?.data?.customers;
+			if (ok && dto?.success === true && Array.isArray(list)) return list;
+			return [];
+		} catch {
+			return [];
+		}
+	}
+
+	public async createChannelCustomer(params: {
+		organizationId: string;
+		name: string;
+	}): Promise<{ ok: true; id: string; name: string } | { ok: false; error: string }> {
+		try {
+			const { ok, data: dto } = await this.httpGateway.post<{
+				success?: boolean;
+				data?: { id: string; name: string };
+				message?: string;
+			}>(this.config.endpoints.customers, params, { withCredentials: true });
+			if (ok && dto?.success === true && dto.data?.id && dto.data?.name) {
+				return { ok: true, id: dto.data.id, name: dto.data.name };
+			}
+			const message = typeof dto?.message === 'string' ? dto.message : null;
+			return { ok: false, error: message || 'Could not create channel group.' };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Could not create channel group.' };
+		}
+	}
+
+	public async assignChannelCustomer(params: {
+		organizationId: string;
+		integrationId: string;
+		customerId: string | null;
+	}): Promise<{ ok: true } | { ok: false; error: string }> {
+		try {
+			const { organizationId, integrationId, customerId } = params;
+			const { ok, data: dto } = await this.httpGateway.put<{
+				success?: boolean;
+				message?: string;
+			}>(
+				this.config.endpoints.integrationGroup(integrationId),
+				{ organizationId, customerId },
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true) return { ok: true };
+			const message = typeof dto?.message === 'string' ? dto.message : null;
+			return { ok: false, error: message || 'Could not update channel group.' };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Could not update channel group.' };
 		}
 	}
 

@@ -5,6 +5,8 @@
  * - Session routes under `/integrations` return camelCase fields.
  * - These DTOs describe the JSON shapes sent to the web client.
  */
+import type { IntegrationCustomerDTO } from "./CustomerDTO";
+
 export interface IntegrationCatalogItemDTO {
     name: string;
     identifier: string;
@@ -39,7 +41,7 @@ export interface IntegrationListItemDTO {
     time: unknown[];
     changeProfilePicture: boolean;
     changeNickName: boolean;
-    customer: { id: string; name: string } | null;
+    customer: IntegrationCustomerDTO | null;
     additionalSettings: string;
 }
 

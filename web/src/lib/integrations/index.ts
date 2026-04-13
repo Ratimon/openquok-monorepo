@@ -15,6 +15,9 @@ const integrationsConfig: IntegrationsConfig = {
 		socialAuthorize: (provider) => `${integrationsBase}/social/${encodeURIComponent(provider)}`,
 		connectSocial: (provider) => `${integrationsBase}/social-connect/${encodeURIComponent(provider)}`,
 		listByOrganization: `${integrationsBase}/list`,
+		customers: `${integrationsBase}/customers`,
+		integrationGroup: (integrationId: string) =>
+			`${integrationsBase}/${encodeURIComponent(integrationId)}/group`,
 		disable: `${integrationsBase}/disable`,
 		enable: `${integrationsBase}/enable`,
 		deleteChannel: `${integrationsBase}`,

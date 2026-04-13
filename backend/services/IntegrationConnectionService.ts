@@ -96,6 +96,36 @@ export class IntegrationConnectionService {
         return { integrations };
     }
 
+    async getIntegrationCustomers(authUserId: string, organizationId: string) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        return this.integrations.customers(organizationId);
+    }
+
+    async createIntegrationCustomer(authUserId: string, organizationId: string, name: string) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        return this.integrations.createIntegrationCustomer(organizationId, name);
+    }
+
+    async assignIntegrationCustomer(
+        authUserId: string,
+        organizationId: string,
+        integrationId: string,
+        customerId: string | null
+    ): Promise<void> {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) {
+            throw new AppError("Integration not found", 404);
+        }
+        if (customerId !== null) {
+            const customerRows = await this.integrations.customers(organizationId);
+            if (!customerRows.some((c) => c.id === customerId)) {
+                throw new AppError("Channel group not found", 404);
+            }
+        }
+        await this.integrations.updateIntegrationGroup(organizationId, integrationId, customerId);
+    }
+
     private async mapListRow(p: IntegrationRow) {
         const findIntegration = this.manager.getSocialIntegration(p.provider_identifier);
         const editor = findIntegration?.editor ?? "normal";
@@ -120,7 +150,10 @@ export class IntegrationConnectionService {
             time: JSON.parse(p.posting_times || "[]"),
             changeProfilePicture: false,
             changeNickName: false,
-            customer: null,
+            customer:
+                p.customer_id && p.customer_name
+                    ? { id: p.customer_id, name: p.customer_name }
+                    : null,
             additionalSettings: p.additional_settings || "[]",
         };
     }
@@ -200,7 +233,10 @@ export class IntegrationConnectionService {
             picture: p.picture || "/no-picture.jpg",
             disabled: p.disabled,
             profile: p.profile,
-            customer: null as { id: string; name: string } | null,
+            customer:
+                p.customer_id && p.customer_name
+                    ? { id: p.customer_id, name: p.customer_name }
+                    : null,
         }));
     }
 

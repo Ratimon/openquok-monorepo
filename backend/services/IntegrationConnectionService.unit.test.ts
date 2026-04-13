@@ -60,6 +60,7 @@ function sampleRow(overrides: Partial<IntegrationRow> = {}): IntegrationRow {
         custom_instance_details: null,
         additional_settings: "[]",
         customer_id: null,
+        customer_name: null,
         root_internal_id: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -77,6 +78,10 @@ function createMockIntegrations(): jest.Mocked<Pick<
     | "disableChannel"
     | "enableChannel"
     | "softDeleteChannel"
+    | "customers"
+    | "createIntegrationCustomer"
+    | "updateIntegrationGroup"
+    | "updateOnCustomerName"
 >> {
     return {
         listByOrganization: jest.fn(),
@@ -87,6 +92,10 @@ function createMockIntegrations(): jest.Mocked<Pick<
         disableChannel: jest.fn(),
         enableChannel: jest.fn(),
         softDeleteChannel: jest.fn(),
+        customers: jest.fn(),
+        createIntegrationCustomer: jest.fn(),
+        updateIntegrationGroup: jest.fn(),
+        updateOnCustomerName: jest.fn(),
     };
 }
 

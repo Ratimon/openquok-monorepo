@@ -7,7 +7,8 @@
 -- provider_identifier, type, token, disabled, token_expiration, refresh_token, profile,
 -- deleted_at, created_at, updated_at, in_between_steps, refresh_needed, posting_times,
 -- custom_instance_details, customer_id, root_internal_id, additional_settings.
--- Optional relations (plugs, posts, webhooks, customer) are not modeled here yet — columns reserved where noted.
+-- Optional relations (plugs, posts, webhooks) are not modeled here yet — columns reserved where noted.
+-- `customer_id` FK requires `customer` module tables to run before this file (see MODULE_ORDER).
 
 BEGIN;
 
@@ -31,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.integrations (
     refresh_needed BOOLEAN NOT NULL DEFAULT FALSE,
     posting_times TEXT NOT NULL DEFAULT '[{"time":120},{"time":400},{"time":700}]',
     custom_instance_details TEXT,
-    customer_id UUID,
+    customer_id UUID REFERENCES public.integration_customers(id) ON DELETE SET NULL,
     root_internal_id TEXT,
     additional_settings TEXT NOT NULL DEFAULT '[]',
     CONSTRAINT uq_integrations_organization_internal UNIQUE (organization_id, internal_id)
@@ -40,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public.integrations (
 COMMENT ON TABLE public.integrations IS 'Connected social/article channels per workspace; access tokens via service role from API';
 COMMENT ON COLUMN public.integrations.type IS 'social | article (and other provider groupings)';
 COMMENT ON COLUMN public.integrations.profile IS 'Display handle or profile line for the connected account';
-COMMENT ON COLUMN public.integrations.customer_id IS 'Optional FK to Customer when that module exists';
+COMMENT ON COLUMN public.integrations.customer_id IS 'Optional FK to integration_customers for workspace channel grouping';
 COMMENT ON COLUMN public.integrations.root_internal_id IS 'Normalized id for cross-org trial checks';
 
 -- ---------------------------

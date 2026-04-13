@@ -19,10 +19,25 @@ CREATE TABLE IF NOT EXISTS public.users (
     is_email_verified BOOLEAN DEFAULT false,
     email_verification_token TEXT,
     email_verification_token_expires TIMESTAMPTZ,
+    last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    send_success_emails BOOLEAN DEFAULT TRUE NOT NULL,
+    send_failure_emails BOOLEAN DEFAULT TRUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL;
+
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS send_success_emails BOOLEAN DEFAULT TRUE NOT NULL;
+
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS send_failure_emails BOOLEAN DEFAULT TRUE NOT NULL;
+
+COMMENT ON COLUMN public.users.last_read_notifications IS 'Cursor for unread in-app notification count (per user)';
+COMMENT ON COLUMN public.users.send_success_emails IS 'When false, org notification emails typed as success are skipped for this user';
+COMMENT ON COLUMN public.users.send_failure_emails IS 'When false, org notification emails typed as failure are skipped for this user';
 
 COMMENT ON COLUMN public.users.is_super_admin IS 'Whether the user has super admin privileges (e.g. manage module_configs)';
 COMMENT ON COLUMN public.users.is_email_verified IS 'Whether the user has verified their email';

@@ -1,30 +1,42 @@
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
-import type { IntegrationRepository, IntegrationRow } from "../repositories/IntegrationRepository";
+import type {
+    IntegrationCustomerRow,
+    IntegrationRepository,
+    IntegrationRow,
+} from "../repositories/IntegrationRepository";
 import { logger } from "../utils/Logger";
+
+type IntegrationCustomerListItem = Pick<IntegrationCustomerRow, "id" | "name">;
 
 /** Domain-scoped cache key prefixes. */
 const CACHE_KEYS = {
-    /**
-     * Per-org, per-provider domain cache (e.g. analytics payloads: `integration:${orgId}:${integration}:${date}`).
-     * Full key via {@link buildIntegrationDomainCacheKey}; invalidate e.g. pattern `integration:${orgId}:*` when needed.
-     */
-    INTEGRATION_DOMAIN: "integration",
-} as const;
+    INTEGRATION: "integration",
+    /** Per-org list cache key is `${INTEGRATION_CUSTOMERS_LIST}:${organizationId}`. */
+    INTEGRATION_CUSTOMERS_LIST: "integration:customers:list",
+};
 
 function buildIntegrationDomainCacheKey(
     organizationId: string,
     integrationIdentifier: string,
     segment: string
 ): string {
-    return `${CACHE_KEYS.INTEGRATION_DOMAIN}:${organizationId}:${integrationIdentifier}:${segment}`;
+    return `${CACHE_KEYS.INTEGRATION}:${organizationId}:${integrationIdentifier}:${segment}`;
+}
+
+function integrationCustomersListCacheKey(organizationId: string): string {
+    return `${CACHE_KEYS.INTEGRATION_CUSTOMERS_LIST}:${organizationId}`;
 }
 
 const ANALYTICS_CACHE_TTL_SEC =
     !process.env.NODE_ENV || process.env.NODE_ENV === "development" ? 1 : 3600;
 
+const INTEGRATION_CUSTOMERS_LIST_TTL_SEC =
+    !process.env.NODE_ENV || process.env.NODE_ENV === "development" ? 5 : 300;
+
 /**
- * Persistence for `organization_integrations` plus `integration:*` domain cache.
+ * Persistence for `organization_integrations` plus integration-scoped caches
+ * (per-provider analytics keys and per-org customer list keys under `CACHE_KEYS`).
  */
 export class IntegrationService {
     constructor(
@@ -35,6 +47,38 @@ export class IntegrationService {
 
     listByOrganization(organizationId: string): Promise<IntegrationRow[]> {
         return this.integrationRepository.listByOrganization(organizationId);
+    }
+
+    /** Returns repository row shape; controller maps to DTO just before response. */
+    async customers(organizationId: string): Promise<IntegrationCustomerListItem[]> {
+        const cacheKey = integrationCustomersListCacheKey(organizationId);
+        const factory = async (): Promise<IntegrationCustomerListItem[]> => {
+            logger.debug({ msg: "Getting integration customers from repository", organizationId });
+            const list = await this.integrationRepository.customers(organizationId);
+            logger.info({ msg: "Integration customers retrieved", organizationId, count: list.length });
+            return list;
+        };
+        if (this.cache) {
+            return this.cache.getOrSet(cacheKey, factory, INTEGRATION_CUSTOMERS_LIST_TTL_SEC);
+        }
+        return factory();
+    }
+
+    async createIntegrationCustomer(organizationId: string, name: string): Promise<IntegrationCustomerListItem> {
+        const row = await this.integrationRepository.createIntegrationCustomer(organizationId, name);
+        await this.invalidateIntegrationCustomersListCache(organizationId);
+        return row;
+    }
+
+    async updateIntegrationGroup(organizationId: string, integrationId: string, group: string | null) {
+        await this.integrationRepository.updateIntegrationGroup(organizationId, integrationId, group);
+        await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+    }
+
+    async updateOnCustomerName(organizationId: string, integrationId: string, name: string) {
+        await this.integrationRepository.updateOnCustomerName(organizationId, integrationId, name);
+        await this.invalidateIntegrationCustomersListCache(organizationId);
+        await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
     }
 
     getById(organizationId: string, id: string) {
@@ -86,7 +130,7 @@ export class IntegrationService {
     ): Promise<void> {
         if (!this.cacheInvalidator) return;
         await this.cacheInvalidator.invalidatePattern(
-            `${CACHE_KEYS.INTEGRATION_DOMAIN}:${organizationId}:${providerIdentifier}:*`
+            `${CACHE_KEYS.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
         );
         logger.debug({
             msg: "Invalidated integration domain cache",
@@ -104,6 +148,17 @@ export class IntegrationService {
         const row = await this.integrationRepository.getById(organizationId, integrationId);
         if (!row) return;
         await this.invalidateIntegrationDomainCacheForProvider(organizationId, row.provider_identifier);
+    }
+
+    /** Invalidate cache used by {@link IntegrationService.customers} (same key as `getOrSet` for that org). */
+    private async invalidateIntegrationCustomersListCache(organizationId: string): Promise<void> {
+        const key = integrationCustomersListCacheKey(organizationId);
+        if (this.cacheInvalidator) {
+            await this.cacheInvalidator.invalidateKey(key);
+        } else if (this.cache) {
+            await this.cache.del(key);
+        }
+        logger.debug({ msg: "Invalidated integration customers list cache", organizationId });
     }
 
     /**

@@ -2,6 +2,11 @@ import type { Request, Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
 import type { IntegrationConnectionService } from "../services/IntegrationConnectionService";
 import type { IntegrationManager } from "../integrations/integrationManager";
+import type {
+    IntegrationCustomerAssignOkDTO,
+    IntegrationCustomerCreatedDTO,
+    IntegrationCustomersListDTO,
+} from "../utils/dtos/CustomerDTO";
 import type { IntegrationCatalogDTO, IntegrationListDTO } from "../utils/dtos/IntegrationDTO";
 
 import { UserAuthorizationError } from "../errors/UserError";
@@ -39,6 +44,69 @@ export class IntegrationController {
                 authUserId,
                 organizationId
             )) as IntegrationListDTO;
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /integrations/customers?organizationId= */
+    getChannelCustomers = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const organizationId = (req.query as { organizationId: string }).organizationId;
+            const customers = await this.integrationConnectionService.getIntegrationCustomers(
+                authUserId,
+                organizationId
+            );
+            const data: IntegrationCustomersListDTO = { customers };
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** POST /integrations/customers */
+    createChannelCustomer = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const body = req.body as { organizationId: string; name: string };
+            const row = (await this.integrationConnectionService.createIntegrationCustomer(
+                authUserId,
+                body.organizationId,
+                body.name
+            )) as IntegrationCustomerCreatedDTO;
+            res.status(200).json({ success: true, data: row });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** PUT /integrations/:id/group */
+    assignChannelCustomer = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const integrationId = (req.params as { id: string }).id;
+            const body = req.body as { organizationId: string; customerId: string | null };
+            await this.integrationConnectionService.assignIntegrationCustomer(
+                authUserId,
+                body.organizationId,
+                integrationId,
+                body.customerId
+            );
+            const data: IntegrationCustomerAssignOkDTO = { ok: true };
             res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);

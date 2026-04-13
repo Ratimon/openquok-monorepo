@@ -24,7 +24,17 @@ export type IntegrationRow = {
     custom_instance_details: string | null;
     additional_settings: string;
     customer_id: string | null;
+    /** Set when row comes from `internal_list_integrations_by_org` (joined label). */
+    customer_name?: string | null;
     root_internal_id: string | null;
+    created_at: string;
+    updated_at: string;
+};
+
+export type IntegrationCustomerRow = {
+    id: string;
+    organization_id: string;
+    name: string;
     created_at: string;
     updated_at: string;
 };
@@ -45,6 +55,106 @@ export class IntegrationRepository {
             });
         }
         return (data ?? []) as IntegrationRow[];
+    }
+
+    /** List workspace channel groups (`integration_customers`); aligns with common integration service naming. */
+    async customers(organizationId: string): Promise<Pick<IntegrationCustomerRow, "id" | "name">[]> {
+        const { data, error } = await this.supabase
+            .from("integration_customers")
+            .select("id, name")
+            .eq("organization_id", organizationId)
+            .order("name", { ascending: true });
+
+        if (error) {
+            throw new DatabaseError("Failed to list channel groups", {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: "integration_customers" },
+            });
+        }
+        return (data ?? []) as Pick<IntegrationCustomerRow, "id" | "name">[];
+    }
+
+    async createIntegrationCustomer(organizationId: string, name: string): Promise<Pick<IntegrationCustomerRow, "id" | "name">> {
+        const trimmed = name.trim();
+        const { data, error } = await this.supabase
+            .from("integration_customers")
+            .insert({
+                organization_id: organizationId,
+                name: trimmed,
+                updated_at: new Date().toISOString(),
+            })
+            .select("id, name")
+            .single();
+
+        if (error || !data) {
+            throw new DatabaseError("Failed to create channel group", {
+                cause: (error ?? new Error("no row")) as Error,
+                operation: "insert",
+                resource: { type: "table", name: "integration_customers" },
+            });
+        }
+        return data as Pick<IntegrationCustomerRow, "id" | "name">;
+    }
+
+    /**
+     * Assign or clear `integrations.customer_id` by customer (group) id.
+     * `group` is the `integration_customers.id`; empty or whitespace clears the assignment (same as `null`).
+     */
+    async updateIntegrationGroup(
+        organizationId: string,
+        integrationId: string,
+        group: string | null
+    ): Promise<void> {
+        const customerId =
+            group == null || group.trim() === "" ? null : group.trim();
+        const { error } = await this.supabase
+            .from(TABLE)
+            .update({
+                customer_id: customerId,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("organization_id", organizationId)
+            .eq("id", integrationId)
+            .is("deleted_at", null);
+
+        if (error) {
+            throw new DatabaseError("Failed to update channel group assignment", {
+                cause: error as unknown as Error,
+                operation: "update",
+                resource: { type: "table", name: TABLE },
+            });
+        }
+    }
+
+    /**
+     * Find-or-create a customer by display name and attach to the integration, or clear when `name` is empty.
+     * Matches the usual integration-layer pattern for grouping channels by label in one call.
+     */
+    async updateOnCustomerName(organizationId: string, integrationId: string, name: string): Promise<void> {
+        const trimmed = name.trim();
+        if (!trimmed) {
+            await this.updateIntegrationGroup(organizationId, integrationId, null);
+            return;
+        }
+
+        const { data: existing, error: findError } = await this.supabase
+            .from("integration_customers")
+            .select("id")
+            .eq("organization_id", organizationId)
+            .eq("name", trimmed)
+            .maybeSingle();
+
+        if (findError) {
+            throw new DatabaseError("Failed to resolve channel group", {
+                cause: findError as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: "integration_customers" },
+            });
+        }
+
+        const customerId = existing?.id ?? (await this.createIntegrationCustomer(organizationId, trimmed)).id;
+        await this.updateIntegrationGroup(organizationId, integrationId, customerId);
     }
 
     async getById(organizationId: string, id: string): Promise<IntegrationRow | null> {

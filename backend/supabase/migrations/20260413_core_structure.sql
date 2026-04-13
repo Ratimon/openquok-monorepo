@@ -30,10 +30,25 @@ CREATE TABLE IF NOT EXISTS public.users (
     is_email_verified BOOLEAN DEFAULT false,
     email_verification_token TEXT,
     email_verification_token_expires TIMESTAMPTZ,
+    last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    send_success_emails BOOLEAN DEFAULT TRUE NOT NULL,
+    send_failure_emails BOOLEAN DEFAULT TRUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL;
+
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS send_success_emails BOOLEAN DEFAULT TRUE NOT NULL;
+
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS send_failure_emails BOOLEAN DEFAULT TRUE NOT NULL;
+
+COMMENT ON COLUMN public.users.last_read_notifications IS 'Cursor for unread in-app notification count (per user)';
+COMMENT ON COLUMN public.users.send_success_emails IS 'When false, org notification emails typed as success are skipped for this user';
+COMMENT ON COLUMN public.users.send_failure_emails IS 'When false, org notification emails typed as failure are skipped for this user';
 
 COMMENT ON COLUMN public.users.is_super_admin IS 'Whether the user has super admin privileges (e.g. manage module_configs)';
 COMMENT ON COLUMN public.users.is_email_verified IS 'Whether the user has verified their email';
@@ -190,6 +205,30 @@ COMMENT ON TABLE public.organization_invites IS 'Pending workspace invites (by e
 -- ---------------------------
 
 
+-- Module: customer, File: 101_20260412_tables.sql
+-- ---------------------------
+-- MODULE NAME: customer
+-- MODULE DATE: 20260412
+-- MODULE SCOPE: Tables
+-- ---------------------------
+-- Workspace-scoped channel groups (`integration_customers`).
+-- Runs before `integration` module `101_*` so `public.integrations` can declare FK to this table.
+
+
+
+CREATE TABLE IF NOT EXISTS public.integration_customers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_integration_customers_org_name UNIQUE (organization_id, name)
+);
+
+COMMENT ON TABLE public.integration_customers IS
+    'Optional labels for grouping connected channels within a workspace; referenced by integrations.customer_id';
+
+
 -- Module: integration, File: 101_20260402_tables.sql
 -- ---------------------------
 -- MODULE NAME: integration
@@ -200,7 +239,8 @@ COMMENT ON TABLE public.organization_invites IS 'Pending workspace invites (by e
 -- provider_identifier, type, token, disabled, token_expiration, refresh_token, profile,
 -- deleted_at, created_at, updated_at, in_between_steps, refresh_needed, posting_times,
 -- custom_instance_details, customer_id, root_internal_id, additional_settings.
--- Optional relations (plugs, posts, webhooks, customer) are not modeled here yet — columns reserved where noted.
+-- Optional relations (plugs, posts, webhooks) are not modeled here yet — columns reserved where noted.
+-- `customer_id` FK requires `customer` module tables to run before this file (see MODULE_ORDER).
 
 
 
@@ -224,7 +264,7 @@ CREATE TABLE IF NOT EXISTS public.integrations (
     refresh_needed BOOLEAN NOT NULL DEFAULT FALSE,
     posting_times TEXT NOT NULL DEFAULT '[{"time":120},{"time":400},{"time":700}]',
     custom_instance_details TEXT,
-    customer_id UUID,
+    customer_id UUID REFERENCES public.integration_customers(id) ON DELETE SET NULL,
     root_internal_id TEXT,
     additional_settings TEXT NOT NULL DEFAULT '[]',
     CONSTRAINT uq_integrations_organization_internal UNIQUE (organization_id, internal_id)
@@ -233,7 +273,7 @@ CREATE TABLE IF NOT EXISTS public.integrations (
 COMMENT ON TABLE public.integrations IS 'Connected social/article channels per workspace; access tokens via service role from API';
 COMMENT ON COLUMN public.integrations.type IS 'social | article (and other provider groupings)';
 COMMENT ON COLUMN public.integrations.profile IS 'Display handle or profile line for the connected account';
-COMMENT ON COLUMN public.integrations.customer_id IS 'Optional FK to Customer when that module exists';
+COMMENT ON COLUMN public.integrations.customer_id IS 'Optional FK to integration_customers for workspace channel grouping';
 COMMENT ON COLUMN public.integrations.root_internal_id IS 'Normalized id for cross-org trial checks';
 
 -- ---------------------------
@@ -459,21 +499,6 @@ COMMENT ON TABLE public.notifications IS 'In-app notifications scoped to an orga
 COMMENT ON COLUMN public.notifications.content IS 'Short message body shown in the app';
 COMMENT ON COLUMN public.notifications.link IS 'Optional deep link or URL related to the notification';
 
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL;
-
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS send_success_emails BOOLEAN DEFAULT TRUE NOT NULL;
-
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS send_failure_emails BOOLEAN DEFAULT TRUE NOT NULL;
-
-COMMENT ON COLUMN public.users.last_read_notifications IS 'Cursor for unread in-app notification count (per user)';
-COMMENT ON COLUMN public.users.send_success_emails IS 'When false, org notification emails typed as success are skipped for this user';
-COMMENT ON COLUMN public.users.send_failure_emails IS 'When false, org notification emails typed as failure are skipped for this user';
-
-CREATE INDEX IF NOT EXISTS idx_users_last_read_notifications ON public.users(last_read_notifications);
-
 
 -- Module: user-management, File: 200_20260227_indexes.sql
 -- ---------------------------
@@ -488,6 +513,8 @@ CREATE INDEX IF NOT EXISTS idx_users_auth_id ON public.users(auth_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 CREATE INDEX IF NOT EXISTS idx_users_email_verification_token ON public.users(email_verification_token)
     WHERE email_verification_token IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_users_last_read_notifications ON public.users(last_read_notifications);
 
 -- ---------------------------
 -- END OF FILE
@@ -534,6 +561,19 @@ CREATE INDEX IF NOT EXISTS idx_organization_invites_expires_at ON public.organiz
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------
+
+
+-- Module: customer, File: 201_20260412_indexes.sql
+-- ---------------------------
+-- MODULE NAME: customer
+-- MODULE DATE: 20260412
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+
+
+CREATE INDEX IF NOT EXISTS idx_integration_customers_organization_id
+    ON public.integration_customers(organization_id);
 
 
 -- Module: integration, File: 201_20260402_indexes.sql
@@ -1175,6 +1215,94 @@ USING (
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------
+
+
+-- Module: customer, File: 301_20260412_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: customer
+-- MODULE DATE: 20260412
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.integration_customers TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.integration_customers TO service_role;
+
+ALTER TABLE public.integration_customers ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Members can view integration_customers" ON public.integration_customers;
+CREATE POLICY "Members can view integration_customers"
+ON public.integration_customers
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = integration_customers.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert integration_customers" ON public.integration_customers;
+CREATE POLICY "Members can insert integration_customers"
+ON public.integration_customers
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = integration_customers.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update integration_customers" ON public.integration_customers;
+CREATE POLICY "Members can update integration_customers"
+ON public.integration_customers
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = integration_customers.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = integration_customers.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete integration_customers" ON public.integration_customers;
+CREATE POLICY "Members can delete integration_customers"
+ON public.integration_customers
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = integration_customers.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
 
 
 -- Module: integration, File: 301_20260402_rlsgrants.sql
@@ -2250,17 +2378,21 @@ TO authenticated
 WITH CHECK (public.is_active_admin_or_superadmin_of_org(organization_invites.organization_id, auth.uid()));
 
 
--- Module: integration, File: 401_20260402_functions.sql
+-- Module: customer, File: 401_20260412_functions.sql
 -- ---------------------------
--- MODULE NAME: integration
--- MODULE DATE: 20260402
--- MODULE SCOPE: functions
+-- MODULE NAME: customer
+-- MODULE DATE: 20260412
+-- MODULE SCOPE: Functions
 -- ---------------------------
--- Prefix 406: integration module functions band (106 tables, 206 indexes, 306 rlsgrants).
--- Server-side integration reads/updates that bypass RLS (service_role only).
--- Used by the API service client so programmatic and session flows behave consistently.
+-- Canonical `internal_list_integrations_by_org`: joins `integration_customers` for list payloads.
+-- MODULE_ORDER runs this module before integration in the same tier; the integration module
+-- must not ship a second definition with a different RETURNS TABLE shape (PostgreSQL 42P13).
+-- Existing DBs may still have the older RETURNS TABLE; `CREATE OR REPLACE` cannot change OUT
+-- types (42P13), so drop first when upgrading.
 
 
+
+DROP FUNCTION IF EXISTS public.internal_list_integrations_by_org(uuid);
 
 CREATE OR REPLACE FUNCTION public.internal_list_integrations_by_org(p_organization_id uuid)
 RETURNS TABLE (
@@ -2278,7 +2410,9 @@ RETURNS TABLE (
     additional_settings text,
     profile text,
     created_at timestamptz,
-    updated_at timestamptz
+    updated_at timestamptz,
+    customer_id uuid,
+    customer_name text
 )
 LANGUAGE sql
 SECURITY DEFINER
@@ -2300,8 +2434,13 @@ AS $$
         i.additional_settings,
         i.profile,
         i.created_at,
-        i.updated_at
+        i.updated_at,
+        i.customer_id,
+        ic.name AS customer_name
     FROM public.integrations i
+    LEFT JOIN public.integration_customers ic
+        ON ic.id = i.customer_id
+        AND ic.organization_id = i.organization_id
     WHERE i.organization_id = p_organization_id
       AND i.deleted_at IS NULL
     ORDER BY i.created_at ASC;
@@ -2310,7 +2449,25 @@ $$;
 REVOKE ALL ON FUNCTION public.internal_list_integrations_by_org(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.internal_list_integrations_by_org(uuid) TO service_role;
 COMMENT ON FUNCTION public.internal_list_integrations_by_org(uuid) IS
-    'List integrations for an organization (bypasses RLS); service_role only';
+    'List integrations for an organization (bypasses RLS); service_role only; includes optional customer label';
+
+
+-- Module: integration, File: 401_20260402_functions.sql
+-- ---------------------------
+-- MODULE NAME: integration
+-- MODULE DATE: 20260402
+-- MODULE SCOPE: functions
+-- ---------------------------
+-- Prefix 406: integration module functions band (106 tables, 206 indexes, 306 rlsgrants).
+-- Server-side integration reads/updates that bypass RLS (service_role only).
+-- Used by the API service client so programmatic and session flows behave consistently.
+--
+-- `internal_list_integrations_by_org` is defined in the customer module (`401_*_functions.sql`)
+-- so it can join `integration_customers`. Do not redefine it here: MODULE_ORDER runs customer
+-- before integration in the same scope tier, and PostgreSQL rejects CREATE OR REPLACE when
+-- the RETURNS TABLE row shape would change.
+
+
 
 CREATE OR REPLACE FUNCTION public.internal_get_integration_by_org_and_id(
     p_organization_id uuid,

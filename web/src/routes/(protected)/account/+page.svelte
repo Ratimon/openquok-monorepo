@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { IconName } from '$data/icon';
-	import type { DashboardConnectedChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type {
+		DashboardConnectedChannelViewModel,
+		DashboardPlatformChannelRowViewModel
+	} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import {
-		getRootPathAccount,
-		protectedDashboardPagePresenter
-	} from '$lib/area-protected';
+	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { icons } from '$data/icon';
@@ -18,6 +18,7 @@
 	import AddProvider from '$lib/ui/components/launches/AddProvider.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationMenu from '$lib/ui/components/launches/IntegrationMenu.svelte';
+	import MoveChannelCustomerModal from '$lib/ui/components/launches/MoveChannelCustomerModal.svelte';
 	import OnBoardingModal from '$lib/ui/components/launches/OnBoardingModal.svelte';
 	import { toast } from '$lib/ui/sonner';
 
@@ -31,9 +32,33 @@
 
 	const accountRoot = $derived(route(getRootPathAccount()));
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
-	const platformChannelRows = $derived(protectedDashboardPagePresenter.platformChannelRows);
+	const platformChannelRowsUngrouped = $derived(protectedDashboardPagePresenter.platformChannelRowsUngrouped);
+	const channelCustomerGroups = $derived(protectedDashboardPagePresenter.channelCustomerGroups);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
 	const connectedChannelCount = $derived(protectedDashboardPagePresenter.connectedChannels.length);
+
+	let customerDetailsOpen = $state<Record<string, boolean>>({});
+	let moveCustomerOpen = $state(false);
+	let moveCustomerFor = $state<DashboardConnectedChannelViewModel | null>(null);
+
+	function openMoveCustomerModal(integration: DashboardConnectedChannelViewModel) {
+		moveCustomerFor = integration;
+		moveCustomerOpen = true;
+	}
+
+	$effect.pre(() => {
+		for (const g of channelCustomerGroups) {
+			if (customerDetailsOpen[g.id] === undefined) {
+				customerDetailsOpen[g.id] = true;
+			}
+		}
+	});
+
+	$effect(() => {
+		if (!moveCustomerOpen) {
+			moveCustomerFor = null;
+		}
+	});
 	
 	/**
 	 * Onboarding wizard (`OnBoardingModal`): wide modal, step 1 uses a 9-column grid on large screens.
@@ -198,15 +223,63 @@
 	$effect(() => {
 		if (workspaceId) {
 			void protectedDashboardPagePresenter.loadConnectedIntegrations();
+			void protectedDashboardPagePresenter.loadChannelCustomers();
 			return;
 		}
 		void workspaceSettingsPresenter.load().then(() => {
 			void protectedDashboardPagePresenter.loadConnectedIntegrations();
+			void protectedDashboardPagePresenter.loadChannelCustomers();
 		});
 	});
 </script>
 
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
+	{#snippet platformChannelRows(rows: DashboardPlatformChannelRowViewModel[])}
+		<div class="divide-y divide-base-300">
+			{#each rows as row (row.identifier)}
+				<div class="flex w-full flex-wrap items-center gap-3 py-4 first:pt-1">
+					<div
+						class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-base-200/70 text-base-content"
+						aria-hidden="true"
+					>
+						<AbstractIcon
+							name={providerIcon(row.identifier)}
+							class="size-6"
+							width="24"
+							height="24"
+						/>
+					</div>
+					<ul class="flex min-w-0 flex-1 list-none flex-wrap gap-2 p-0">
+						{#each row.items as integration (integration.id)}
+							<li class="min-w-0">
+								<IntegrationMenu
+									variant="chip"
+									{integration}
+									workspaceId={workspaceId!}
+									{providerIcon}
+									{continueSetupHref}
+									onRemove={handleRemoveChannel}
+									onSetDisabled={handleSetChannelDisabled}
+									onMoveToCustomer={openMoveCustomerModal}
+								/>
+							</li>
+						{/each}
+					</ul>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						class="shrink-0 gap-1.5 border-base-300"
+						onclick={() => startAddAnotherChannel(row.identifier)}
+					>
+						<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
+						Add more {providerAddMoreLabel(row.identifier)}
+					</Button>
+				</div>
+			{/each}
+		</div>
+	{/snippet}
+
 	<h2 class="text-2xl font-bold text-base-content">Account dashboard</h2>
 	<p class="mt-2 text-base-content/80">
 		Welcome to your account. Connect channels for the selected workspace and manage them here.
@@ -283,51 +356,39 @@
 				No channels yet. Use <span class="font-medium text-base-content">Add Channel</span> to connect one.
 			</p>
 		{:else}
-			<div class="mt-4 divide-y divide-base-300">
-				{#each platformChannelRows as row (row.identifier)}
-					<div class="flex w-full flex-wrap items-center gap-3 py-4 first:pt-1">
-						<div
-							class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-base-200/70 text-base-content"
-							aria-hidden="true"
-						>
-							<AbstractIcon
-								name={providerIcon(row.identifier)}
-								class="size-6"
-								width="24"
-								height="24"
-							/>
-						</div>
-						<ul class="flex min-w-0 flex-1 list-none flex-wrap gap-2 p-0">
-							{#each row.items as integration (integration.id)}
-								<li class="min-w-0">
-									<IntegrationMenu
-										variant="chip"
-										{integration}
-										workspaceId={workspaceId!}
-										{providerIcon}
-										{continueSetupHref}
-										onRemove={handleRemoveChannel}
-										onSetDisabled={handleSetChannelDisabled}
-									/>
-								</li>
-							{/each}
-						</ul>
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							class="shrink-0 gap-1.5 border-base-300"
-							onclick={() => startAddAnotherChannel(row.identifier)}
-						>
-							<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
-							Add more {providerAddMoreLabel(row.identifier)}
-						</Button>
-					</div>
-				{/each}
+			{#if channelCustomerGroups.length > 0}
+				<div class="mt-4 space-y-2">
+					<h4 class="text-sm font-semibold text-base-content/80">Customers</h4>
+					{#each channelCustomerGroups as group (group.id)}
+						<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={customerDetailsOpen[group.id]}>
+							<summary
+								class="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden"
+							>
+								<AbstractIcon
+									name={icons.ChevronRight.name}
+									class="size-4 shrink-0 text-base-content/70 transition-transform duration-200 {customerDetailsOpen[group.id]
+										? 'rotate-90'
+										: ''}"
+									width="16"
+									height="16"
+								/>
+								<span class="font-medium text-base-content">{group.name}</span>
+							</summary>
+							<div class="border-t border-base-300 px-3 py-3">
+								{@render platformChannelRows(group.platformRows)}
+							</div>
+						</details>
+					{/each}
+				</div>
+			{/if}
+			<div class="mt-4">
+				{@render platformChannelRows(platformChannelRowsUngrouped)}
 			</div>
 		{/if}
 	</section>
 </div>
+
+<MoveChannelCustomerModal bind:open={moveCustomerOpen} integration={moveCustomerFor} />
 
 <OnBoardingModal
 	open={onboardingDialogOpen}
