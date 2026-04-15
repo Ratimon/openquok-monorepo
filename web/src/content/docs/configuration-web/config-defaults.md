@@ -2,7 +2,7 @@
 title: Config defaults
 description: How the Openquok web app derives default values from Vite env and fallbacks.
 order: 2
-lastUpdated: 2026-03-31
+lastUpdated: 2026-04-14
 ---
 
 <script>
@@ -30,7 +30,7 @@ Some defaults are resolved from Vite env first, then fall back to a safe constan
 
 Examples:
 
-- **API base URL** — <Badge text="VITE_API_BASE_URL" variant="envWeb" /> → fallback <Badge text="http://localhost:3000" variant="new" />
+- **API base URL** — if <Badge text="VITE_API_BASE_URL" variant="envWeb" /> is set in <Badge text=".env" variant="envFile" />, that value is used as the origin for API requests. If it is <strong>not</strong> set and Vite is in <strong>development</strong> mode, the default is an <strong>empty</strong> base so requests use same-origin paths such as <code>/api/v1/...</code> (required for HTTPS local dev; see <a href="/docs/configuration-web/environment#https-local-development-and-the-api-base-url">Environment variables → HTTPS local development</a>). In non-dev builds when the variable is still unset, the fallback is <Badge text="http://localhost:3000" variant="new" />.
 
 <Callout type="note" title="Vite env changes require restart/rebuild">
 When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web dev server or rebuild so Vite picks them up.
@@ -42,7 +42,8 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
 
 - **What it controls**: where the web app sends API requests.
 - **Common changes**:
-  - Point local web → local API with <Badge text="VITE_API_BASE_URL" variant="envWeb" />
+  - <strong>Local HTTPS</strong> — leave <Badge text="VITE_API_BASE_URL" variant="envWeb" /> unset so the dev server proxies <code>/api</code> to the API (see environment guide).
+  - <strong>Explicit origin</strong> — set <Badge text="VITE_API_BASE_URL" variant="envWeb" /> when you need a fixed API URL (for example production or a custom port).
   - Point production web → production API (via your hosting env/secret injection)
 
 ### `CONFIG_SCHEMA_COMPANY`

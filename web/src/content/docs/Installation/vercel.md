@@ -35,11 +35,11 @@ and connect this repository.
 
 Set **Environment Variables** in the Vercel project to match production (same names as <Badge text="backend/.env.production.local" variant="path" />): <Badge text="NODE_ENV" variant="envRuntime" />, Supabase keys, <Badge text="REDIS_*" variant="envBackend" /> (prefix), <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />, <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />, Stripe, OAuth, Sentry, email, etc.
 
-<Callout type="danger" title="Sensitive environment options">
+<Callout type="danger" title="Sensitive environment">
 Don’t forget to mark sensitive variables appropriately in the Vercel project settings where required.
 </Callout>
 
-<Callout type="tip" title="Sync env vars with the Vercel CLI">
+<Callout type="tip">
 You can sync a local env file into your Vercel project (after linking) from the monorepo root:
 
 ```bash
@@ -49,7 +49,7 @@ pnpm vercel:env:sync:backend:prod
 This reads <Badge text="backend/.env.production.local" variant="path" /> and upserts keys into the Vercel <code>production</code> environment.
 </Callout>
 
-<Callout type="warning" title="CORS and production origins">
+<Callout type="warning">
 <ul class="mt-2 list-disc space-y-1 pl-5">
 <li>Set <Badge text="FRONTEND_DOMAIN_URL" variant="envCors" /> <strong>without a trailing slash</strong> (for example <Badge text="https://www.openquok.com" variant="new" />, not <Badge text="https://www.openquok.com/" variant="deprecated" />).</li>
 <li>Set the web project’s <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>same</strong> canonical origin string as <Badge text="FRONTEND_DOMAIN_URL" variant="envCors" /> so Meta and other OAuth flows receive redirect URIs that match what you register in their dashboards (see <a href="/docs/Installation/production-deployment">Production deployment</a>).</li>
@@ -63,7 +63,7 @@ This reads <Badge text="backend/.env.production.local" variant="path" /> and ups
 
 Deploy from the dashboard (push to the production branch) or from the repository root:
 
-<Callout type="note" title="CLI deploy from the repo root (link stays under backend)">
+<Callout type="note">
 <p class="mt-2">Link the backend once (creates <Badge text="backend/.vercel" variant="path" />):</p>
 
 ```bash
@@ -116,7 +116,7 @@ Set **Environment Variables** to match production (same keys as <Badge text="web
 
 ### Deploy
 
-<Callout type="note" title="CLI deploy from the repo root (link stays under web)">
+<Callout type="note">
 <p class="mt-2">Link the web app once:</p>
 
 ```bash

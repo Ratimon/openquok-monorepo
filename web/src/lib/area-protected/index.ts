@@ -1,4 +1,4 @@
-export { getRootPathAccount } from './getRootPathProtectedArea';
+export { getRootPathAccount, getRootPathCalendar } from './getRootPathProtectedArea';
 import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus } from './ProtectedSettingsPage.presenter.svelte';
 import { ProtectedLayoutPagePresenter } from './ProtectedLayoutPage.presenter.svelte';
 import { ProtectedDashboardPagePresenter } from './ProtectedDashboardPage.presenter.svelte';

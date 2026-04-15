@@ -113,6 +113,8 @@ npm i -g @railway/cli
 
 ### Authenticate and link
 
+Choose your Railway **project** and the **worker service**. Run <code>railway link</code> again only if you need a fresh link.
+
 From the **repository root**:
 
 ```bash
@@ -122,11 +124,9 @@ railway link
 railway service
 ```
 
-Choose your Railway **project** and the **worker service** (integration refresh or notification email). Run <code>railway link</code> again only if you need a fresh link. Use <code>railway unlink</code> to clear the link for this directory.
-
 If you see <strong>No service linked</strong>, run <code>railway service</code> to link a service for this directory.
 
-<Callout type="warning" title="“Available options can not be empty”">
+<Callout type="tip">
 If <code>railway link</code> fails with <strong>Available options can not be empty</strong>, the CLI could not find any projects to link in the selected workspace.
 
 <ul>
@@ -166,8 +166,8 @@ Full CLI reference: <DocsExternalLink href="https://docs.railway.com/develop/cli
 
 </Steps>
 
-<Callout type="tip" title="Two workers from one clone">
-Link the CLI to the first service, run <code>railway up</code>, then <code>railway service</code> (or <code>railway unlink</code> + <code>railway link</code>) to target the second service before deploying again.
+<Callout type="tip">
+To depkoy two workers from one project, link the CLI to the first service, run <code>railway up</code>, then <code>railway service</code> (or <code>railway unlink</code> + <code>railway link</code>) to target the second service before deploying again.
 </Callout>
 
 

@@ -1,5 +1,6 @@
 import type { SettingsRepository, OrganizationWithRoleProgrammerModel } from '$lib/settings/Settings.repository.svelte';
 import type { ProfileRepository } from '$lib/account/Profile.repository.svelte';
+import { authenticationRepository } from '$lib/user-auth/index';
 
 export interface WorkspaceCardViewModel {
 	id: string;
@@ -36,12 +37,16 @@ export class GetWorkspacePresenter {
 		workspacesVm: WorkspaceCardViewModel[];
 		userId: string | null;
 	}> {
-		const [orgs, profile] = await Promise.all([
-			this.settingsRepository.listMyOrganizations(),
-			this.profileRepository.getProfile()
-		]);
+		const orgs = await this.settingsRepository.listMyOrganizations();
+		const workspacesVm = orgs.map((o) => this.toCardVm(o));
+		// Avoid a redundant GET /users/me when root `checkAuth` already populated `currentUser`.
+		const cachedId = authenticationRepository.currentUser?.id ?? null;
+		if (cachedId) {
+			return { workspacesVm, userId: cachedId };
+		}
+		const profile = await this.profileRepository.getProfile();
 		return {
-			workspacesVm: orgs.map((o) => this.toCardVm(o)),
+			workspacesVm,
 			userId: profile?.id ?? null
 		};
 	}

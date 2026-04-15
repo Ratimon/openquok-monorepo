@@ -262,6 +262,7 @@ CREATE TABLE IF NOT EXISTS public.integrations (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     in_between_steps BOOLEAN NOT NULL DEFAULT FALSE,
     refresh_needed BOOLEAN NOT NULL DEFAULT FALSE,
+    -- Default slots: 120/400/700 = minutes after UTC midnight → 02:00 / 06:40 / 11:40 UTC (local labels depend on client TZ).
     posting_times TEXT NOT NULL DEFAULT '[{"time":120},{"time":400},{"time":700}]',
     custom_instance_details TEXT,
     customer_id UUID REFERENCES public.integration_customers(id) ON DELETE SET NULL,
@@ -275,6 +276,76 @@ COMMENT ON COLUMN public.integrations.type IS 'social | article (and other provi
 COMMENT ON COLUMN public.integrations.profile IS 'Display handle or profile line for the connected account';
 COMMENT ON COLUMN public.integrations.customer_id IS 'Optional FK to integration_customers for workspace channel grouping';
 COMMENT ON COLUMN public.integrations.root_internal_id IS 'Normalized id for cross-org trial checks';
+COMMENT ON COLUMN public.integrations.posting_times IS 'JSON [{time:number}, ...]; each time is minutes after UTC midnight for UI decode. Column default 120/400/700 encodes 02:00, 06:40, and 11:40 UTC on that anchor day; local labels depend on the viewer timezone. New rows created with a connect-time offset may use a different default triple in application code.';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: post, File: 102_20260413_tables.sql
+-- ---------------------------
+-- MODULE NAME: post
+-- MODULE DATE: 20260413
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+
+
+CREATE TYPE public.post_state AS ENUM ('QUEUE', 'PUBLISHED', 'ERROR', 'DRAFT');
+
+CREATE TABLE IF NOT EXISTS public.post_tags (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    color TEXT NOT NULL DEFAULT '#6366f1',
+    org_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    deleted_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_post_tags_org_name UNIQUE (org_id, name)
+);
+
+COMMENT ON TABLE public.post_tags IS 'Workspace labels for posts (Tags model shape).';
+
+CREATE TABLE IF NOT EXISTS public.posts (
+    id TEXT PRIMARY KEY DEFAULT (gen_random_uuid())::text,
+    state public.post_state NOT NULL DEFAULT 'DRAFT',
+    publish_date TIMESTAMPTZ NOT NULL,
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    integration_id UUID REFERENCES public.integrations(id) ON DELETE CASCADE,
+    content TEXT NOT NULL DEFAULT '',
+    delay INT NOT NULL DEFAULT 0,
+    post_group TEXT NOT NULL,
+    title TEXT,
+    description TEXT,
+    parent_post_id TEXT REFERENCES public.posts(id) ON DELETE SET NULL,
+    release_id TEXT,
+    release_url TEXT,
+    settings TEXT,
+    image TEXT,
+    interval_in_days INT,
+    error TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ,
+    created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL
+);
+
+COMMENT ON TABLE public.posts IS 'One row per target integration; use post_group to tie a composer session (Post model shape).';
+COMMENT ON COLUMN public.posts.post_group IS 'Same value for all rows created in one compose action (maps Post.group).';
+COMMENT ON COLUMN public.posts.settings IS 'JSON string; may include isGlobal and other provider options (maps Post.settings).';
+COMMENT ON COLUMN public.posts.interval_in_days IS 'Repeat cadence in days when applicable (maps Post.intervalInDays).';
+COMMENT ON COLUMN public.posts.created_by_user_id IS 'Optional audit field; not in reference Post model.';
+
+CREATE TABLE IF NOT EXISTS public.posts_tags (
+    post_id TEXT NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
+    tag_id UUID NOT NULL REFERENCES public.post_tags(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (post_id, tag_id)
+);
+
+COMMENT ON TABLE public.posts_tags IS 'Join between posts and post_tags (TagsPosts model shape).';
 
 -- ---------------------------
 -- END OF FILE
@@ -597,6 +668,34 @@ CREATE INDEX IF NOT EXISTS idx_integrations_customer_id ON public.integrations(c
 CREATE INDEX IF NOT EXISTS idx_integrations_in_between_steps ON public.integrations(in_between_steps);
 CREATE INDEX IF NOT EXISTS idx_integrations_refresh_needed ON public.integrations(refresh_needed);
 CREATE INDEX IF NOT EXISTS idx_integrations_disabled ON public.integrations(disabled);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: post, File: 202_20260413_indexes.sql
+-- ---------------------------
+-- MODULE NAME: post
+-- MODULE DATE: 20260413
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+-- Mirrors common Post / Tags index patterns (group, publish window, org, state).
+
+
+
+CREATE INDEX IF NOT EXISTS idx_post_tags_org_id ON public.post_tags(org_id);
+CREATE INDEX IF NOT EXISTS idx_post_tags_deleted_at ON public.post_tags(deleted_at);
+
+CREATE INDEX IF NOT EXISTS idx_posts_post_group ON public.posts(post_group);
+CREATE INDEX IF NOT EXISTS idx_posts_organization_id ON public.posts(organization_id);
+CREATE INDEX IF NOT EXISTS idx_posts_publish_date ON public.posts(publish_date);
+CREATE INDEX IF NOT EXISTS idx_posts_state ON public.posts(state);
+CREATE INDEX IF NOT EXISTS idx_posts_deleted_at ON public.posts(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_posts_integration_id ON public.posts(integration_id);
+CREATE INDEX IF NOT EXISTS idx_posts_parent_post_id ON public.posts(parent_post_id);
+CREATE INDEX IF NOT EXISTS idx_posts_org_publish ON public.posts(organization_id, publish_date);
+CREATE INDEX IF NOT EXISTS idx_posts_org_state ON public.posts(organization_id, state);
 
 -- ---------------------------
 -- END OF FILE
@@ -1388,6 +1487,265 @@ USING (
         SELECT 1 FROM public.user_organizations uo
         JOIN public.users u ON u.id = uo.user_id
         WHERE uo.organization_id = integrations.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: post, File: 302_20260413_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: post
+-- MODULE DATE: 20260413
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- API uses service_role; RLS limits direct authenticated access.
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tags TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tags TO service_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts TO service_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts_tags TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts_tags TO service_role;
+
+ALTER TABLE public.post_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.posts_tags ENABLE ROW LEVEL SECURITY;
+
+-- post_tags (org_id)
+DROP POLICY IF EXISTS "Members can view post_tags" ON public.post_tags;
+CREATE POLICY "Members can view post_tags"
+ON public.post_tags
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = post_tags.org_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert post_tags" ON public.post_tags;
+CREATE POLICY "Members can insert post_tags"
+ON public.post_tags
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = post_tags.org_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update post_tags" ON public.post_tags;
+CREATE POLICY "Members can update post_tags"
+ON public.post_tags
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = post_tags.org_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = post_tags.org_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete post_tags" ON public.post_tags;
+CREATE POLICY "Members can delete post_tags"
+ON public.post_tags
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = post_tags.org_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+-- posts (scheduling Post model)
+DROP POLICY IF EXISTS "Members can view social_posts" ON public.posts;
+DROP POLICY IF EXISTS "Members can view posts" ON public.posts;
+CREATE POLICY "Members can view posts"
+ON public.posts
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = posts.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert social_posts" ON public.posts;
+DROP POLICY IF EXISTS "Members can insert posts" ON public.posts;
+CREATE POLICY "Members can insert posts"
+ON public.posts
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = posts.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update social_posts" ON public.posts;
+DROP POLICY IF EXISTS "Members can update posts" ON public.posts;
+CREATE POLICY "Members can update posts"
+ON public.posts
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = posts.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = posts.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete social_posts" ON public.posts;
+DROP POLICY IF EXISTS "Members can delete posts" ON public.posts;
+CREATE POLICY "Members can delete posts"
+ON public.posts
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = posts.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+-- posts_tags (via parent post org)
+DROP POLICY IF EXISTS "Members can view posts_tags" ON public.posts_tags;
+CREATE POLICY "Members can view posts_tags"
+ON public.posts_tags
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.posts p
+        JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE p.id = posts_tags.post_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert posts_tags" ON public.posts_tags;
+CREATE POLICY "Members can insert posts_tags"
+ON public.posts_tags
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.posts p
+        JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE p.id = posts_tags.post_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update posts_tags" ON public.posts_tags;
+CREATE POLICY "Members can update posts_tags"
+ON public.posts_tags
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.posts p
+        JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE p.id = posts_tags.post_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.posts p
+        JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE p.id = posts_tags.post_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete posts_tags" ON public.posts_tags;
+CREATE POLICY "Members can delete posts_tags"
+ON public.posts_tags
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.posts p
+        JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE p.id = posts_tags.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )

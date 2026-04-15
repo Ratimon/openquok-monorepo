@@ -2,7 +2,7 @@
 title: Production deployment
 description: Production setup for the OpenQuok web, backend, and optional orchestrator workers.
 order: 1
-lastUpdated: 2026-04-12
+lastUpdated: 2026-04-14
 ---
 
 <script>
@@ -24,20 +24,23 @@ This project is set up for **Vercel** as the primary host for the **backend** (E
 
 - **Never commit** real secrets. Use <Badge text="backend/.env.development.example" variant="path" /> and <Badge text="backend/.env.production.local" variant="path" /> (gitignored) locally; use the **Vercel dashboard** (or another host’s secret store) in production.
 - Mirror the same **variable names** as in <Badge text="backend/config/GlobalConfig.ts" variant="path" /> (via `getEnv` / `getEnvBoolean` / `getEnvNumber`).
-- **Public site origin:** set the **same** canonical HTTPS origin on the **backend** as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> and on the **web** build as <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> (no trailing slash after the host, for example <Badge text="https://www.openquok.com" variant="new" />). Pick one hostname for “the product” (<code>www</code> or apex) and use it in both env vars and in the browser address bar—OAuth redirect URIs are built only from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />, and providers such as Meta require an **exact** string match in their dashboards.
-- **CORS:** include apex and <code>www</code> in <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envBackend" /> when both hostnames serve traffic, even though OAuth uses a single canonical origin above. Align <Badge text="VITE_API_BASE_URL" variant="envWeb" /> with <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />.
+- **Public site origin:** set the **same** canonical HTTPS origin on the **backend** as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> and on the **web** build as <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> (no trailing slash after the host, for example <Badge text="https://www.openquok.com" variant="new" />). Pick one hostname for “the product” (<code>www</code> or apex) and use it — OAuth redirect URIs are built only from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />, and providers such as Meta require an **exact** string match in their dashboards.
+- **CORS:** include apex and <code>www</code> in <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envBackend" /> when both hostnames serve traffic, even though OAuth uses a single canonical origin above. Align <Badge text="VITE_API_BASE_URL" variant="envWeb" /> with <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> (same public API origin in production).
+- **Local HTTPS dev** differs: the web app can use an empty <Badge text="VITE_API_BASE_URL" variant="envWeb" /> and same-origin <code>/api</code> through the dev server. See <a href="/docs/configuration-web/environment#https-local-development-and-the-api-base-url">Environment variables</a>.
 
-<Callout type="warning" title="Redeploy both apps after changing the public origin">
+<Callout type="warning">
 <p>If you change <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> or <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />, redeploy or restart <strong>both</strong> the API and the web app, then update third-party allow-lists (Meta Instagram or Threads redirect URIs, Stripe return URLs, etc.) so every registered URL uses the same scheme and host as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />.</p>
 </Callout>
 
-<Callout type="note" title="Infra folder">
-<p><Badge text="infra/README.md" variant="path" /> only documents optional Redis and high-level notes. There is no Docker Compose bundle in this repo. Worker deployment detail lives under <a href="/docs/configuration-worker">Orchestrator workers</a> and <a href="/docs/Installation/railway">Railway</a>.</p>
-</Callout>
 
 ## Deploy with Vercel
 
 Use the detailed CLI and project settings on <a href="/docs/Installation/vercel">Vercel</a>. From the repository root:
+
+```bash
+pnpm vercel:env:sync:web:prod
+pnpm vercel:env:sync:backend:prod
+```
 
 ```bash
 pnpm vercel:deploy:backend:prod

@@ -1,6 +1,7 @@
+import type IORedis from "ioredis";
+
 import { Queue } from "bullmq";
 import { analyzeBlueprint } from "flowcraft";
-import type IORedis from "ioredis";
 import { config } from "backend/config/GlobalConfig.js";
 import { logger } from "backend/utils/Logger.js";
 import { buildNotificationDigestFlushBlueprintDistributed } from "../../blueprints/notificationEmailBlueprint.js";

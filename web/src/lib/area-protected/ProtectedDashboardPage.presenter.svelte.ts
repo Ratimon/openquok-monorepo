@@ -10,7 +10,7 @@ export type PostingTimeSlot = { time: number };
 /**
  * Connected channel row for the account dashboard (presenter / UI). No repository DTO shape.
  */
-export interface DashboardConnectedChannelViewModel {
+export interface CreateSocialPostChannel {
 	id: string;
 	internalId: string;
 	name: string;
@@ -47,9 +47,9 @@ export function parsePostingTimeSlots(raw: unknown): PostingTimeSlot[] {
 	return out;
 }
 
-function toDashboardConnectedChannelViewModel(
+function toCreateSocialPostChannel(
 	pm: ConnectedIntegrationProgrammerModel
-): DashboardConnectedChannelViewModel {
+): CreateSocialPostChannel {
 	return {
 		id: pm.id,
 		internalId: pm.internalId,
@@ -68,20 +68,20 @@ function toDashboardConnectedChannelViewModel(
 /** Collapsible menu section on the account dashboard (grouped by channel `type`). */
 export interface DashboardConnectedChannelMenuGroupViewModel {
 	label: string;
-	items: DashboardConnectedChannelViewModel[];
+	items: CreateSocialPostChannel[];
 }
 
 /** One row per integration provider (`identifier`): platform icon + its connected channels. */
 export interface DashboardPlatformChannelRowViewModel {
 	identifier: string;
-	items: DashboardConnectedChannelViewModel[];
+	items: CreateSocialPostChannel[];
 }
 
 /** Channels assigned to the same workspace channel group (sidebar section). */
 export interface DashboardChannelGroupViewModel {
 	id: string;
 	name: string;
-	items: DashboardConnectedChannelViewModel[];
+	items: CreateSocialPostChannel[];
 	/** One row per integration `identifier` (icon + chips + Add more), scoped to this group's channels. */
 	platformRows: DashboardPlatformChannelRowViewModel[];
 }
@@ -96,9 +96,9 @@ function labelForDashboardChannelGroupType(type: string | undefined): string {
 }
 
 function buildDashboardChannelMenuGroups(
-	channels: readonly DashboardConnectedChannelViewModel[]
+	channels: readonly CreateSocialPostChannel[]
 ): DashboardConnectedChannelMenuGroupViewModel[] {
-	const map = new Map<string, DashboardConnectedChannelViewModel[]>();
+	const map = new Map<string, CreateSocialPostChannel[]>();
 	for (const item of channels) {
 		const key = labelForDashboardChannelGroupType(item.type);
 		if (!map.has(key)) map.set(key, []);
@@ -126,9 +126,9 @@ const DASHBOARD_PLATFORM_ROW_ORDER: readonly string[] = [
 ];
 
 function buildPlatformChannelRows(
-	channels: readonly DashboardConnectedChannelViewModel[]
+	channels: readonly CreateSocialPostChannel[]
 ): DashboardPlatformChannelRowViewModel[] {
-	const map = new Map<string, DashboardConnectedChannelViewModel[]>();
+	const map = new Map<string, CreateSocialPostChannel[]>();
 	for (const ch of channels) {
 		const key = ch.identifier?.trim() || 'unknown';
 		if (!map.has(key)) map.set(key, []);
@@ -152,10 +152,10 @@ function buildPlatformChannelRows(
 	return rows;
 }
 
-type ChannelGroupAcc = { id: string; name: string; items: DashboardConnectedChannelViewModel[] };
+type ChannelGroupAcc = { id: string; name: string; items: CreateSocialPostChannel[] };
 
 function buildChannelGroupSections(
-	channels: readonly DashboardConnectedChannelViewModel[]
+	channels: readonly CreateSocialPostChannel[]
 ): DashboardChannelGroupViewModel[] {
 	const map = new Map<string, ChannelGroupAcc>();
 	for (const ch of channels) {
@@ -194,11 +194,14 @@ export type DashboardPostConnectQueryResult =
  * Account dashboard: workspace channels list and post-OAuth landing feedback (`?added=&msg=&onboarding=`).
  */
 export class ProtectedDashboardPagePresenter {
-	connectedChannels = $state<DashboardConnectedChannelViewModel[]>([]);
+	connectedChannels = $state<CreateSocialPostChannel[]>([]);
 	listStatus = $state<DashboardIntegrationsLoadStatus>('idle');
 	channelGroups = $state<{ id: string; name: string }[]>([]);
 	channelGroupsStatus = $state<ChannelGroupsLoadStatus>('idle');
 	showOnboardingWelcome = $state(false);
+
+	/** Coalesces overlapping list + channel-group loads (same navigation tick, post-connect, etc.). */
+	private dashboardListsInflight: Promise<void> | null = null;
 
 
 	/** Grouped by integration `type` for dashboard menus. */
@@ -220,6 +223,30 @@ export class ProtectedDashboardPagePresenter {
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter
 	) {}
 
+	/**
+	 * Loads integrations list and channel groups for the current workspace in one coordinated pass.
+	 * Prefer this over separate `loadConnectedIntegrations` / `loadChannelGroups` from UI to avoid duplicate HTTP.
+	 */
+	async loadDashboardLists(): Promise<void> {
+		if (this.dashboardListsInflight) return this.dashboardListsInflight;
+		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
+		if (!orgId) {
+			this.connectedChannels = [];
+			this.listStatus = 'idle';
+			this.channelGroups = [];
+			this.channelGroupsStatus = 'idle';
+			return;
+		}
+		this.dashboardListsInflight = (async () => {
+			await Promise.all([this.loadConnectedIntegrations(), this.loadChannelGroups()]);
+		})();
+		try {
+			await this.dashboardListsInflight;
+		} finally {
+			this.dashboardListsInflight = null;
+		}
+	}
+
 	async loadConnectedIntegrations(): Promise<void> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
@@ -232,7 +259,7 @@ export class ProtectedDashboardPagePresenter {
 		this.listStatus = 'loading';
 		try {
 			const rows = await this.integrationsRepository.listConnectedIntegrations(orgId);
-			this.connectedChannels = rows.map(toDashboardConnectedChannelViewModel);
+			this.connectedChannels = rows.map(toCreateSocialPostChannel);
 			this.listStatus = 'ready';
 		} catch {
 			this.listStatus = 'error';
@@ -403,7 +430,7 @@ export class ProtectedDashboardPagePresenter {
 		}
 
 		await navigate(url.pathname, { replaceState: true });
-		await this.loadConnectedIntegrations();
+		await this.loadDashboardLists();
 		return successToastMessage !== undefined
 			? { handled: true, successToastMessage }
 			: { handled: true };

@@ -3,6 +3,7 @@ import supertest from "supertest";
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { AuthenticationService } from "../../services/AuthenticationService";
+import { UserRepository } from "../../repositories/UserRepository";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
 const authPath = `${apiPrefix}/auth`;
@@ -36,6 +37,19 @@ describe("Google OAuth E2E Tests", () => {
         describe("with mocked successful code exchange", () => {
             const mockUserId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 
+            const mockOAuthUser = {
+                id: mockUserId,
+                email: "oauth-mock@example.com",
+                user_metadata: { full_name: "OAuth Mock" },
+                identities: [
+                    {
+                        provider: "google",
+                        id: "google-provider-id",
+                        identity_data: { sub: "google-provider-id" },
+                    },
+                ],
+            };
+
             afterEach(() => {
                 jest.restoreAllMocks();
             });
@@ -43,8 +57,9 @@ describe("Google OAuth E2E Tests", () => {
             it("should redirect to frontend next path when next is a safe relative path", async () => {
                 jest.spyOn(AuthenticationService.prototype, "exchangeOAuthCodeForSession").mockResolvedValue({
                     session: { access_token: "test-access-token", refresh_token: "test-refresh-token" },
-                    user: { id: mockUserId },
-                });
+                    user: mockOAuthUser,
+                } as unknown as Awaited<ReturnType<AuthenticationService["exchangeOAuthCodeForSession"]>>);
+                jest.spyOn(UserRepository.prototype, "upsertUserFromOAuth").mockResolvedValue({ error: null });
                 jest.spyOn(AuthenticationService.prototype, "generateRefreshToken").mockResolvedValue({
                     id: "token-row-id",
                     userId: mockUserId,
@@ -68,8 +83,9 @@ describe("Google OAuth E2E Tests", () => {
             it("should reject open-redirect next values and redirect to / when exchange succeeds", async () => {
                 jest.spyOn(AuthenticationService.prototype, "exchangeOAuthCodeForSession").mockResolvedValue({
                     session: { access_token: "a", refresh_token: "r" },
-                    user: { id: mockUserId },
-                });
+                    user: mockOAuthUser,
+                } as unknown as Awaited<ReturnType<AuthenticationService["exchangeOAuthCodeForSession"]>>);
+                jest.spyOn(UserRepository.prototype, "upsertUserFromOAuth").mockResolvedValue({ error: null });
                 jest.spyOn(AuthenticationService.prototype, "generateRefreshToken").mockResolvedValue({
                     id: "token-row-id",
                     userId: mockUserId,

@@ -29,7 +29,8 @@ const authConfig: AuthConfig = {
 };
 
 const authStatusModel = new AuthStatusModel();
-const authenticationRepository = new AuthenticationRepository(
+/** Typed explicitly so consumers see full `AuthenticationRepository` API (methods are not always inferred on `.svelte.ts` classes with `$state`). */
+const authenticationRepository: AuthenticationRepository = new AuthenticationRepository(
 	httpGateway,
 	authConfig,
 	authStatusModel

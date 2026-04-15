@@ -1,0 +1,156 @@
+<script lang="ts">
+	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { PostCommentMode } from '$lib/ui/components/launches/AddPostButton.svelte';
+
+	import AddPostButton from '$lib/ui/components/launches/AddPostButton.svelte';
+	import EditorPost from '$lib/ui/components/launches/EditorPost.svelte';
+	import PicksSocialsComponent from '$lib/ui/components/launches/PicksSocialsComponent.svelte';
+	import SelectGroupTargeting from '$lib/ui/components/launches/SelectGroupTargeting.svelte';
+	import SelectTargets from '$lib/ui/components/launches/SelectTargets.svelte';
+	import SettingsAccordion from '$lib/ui/components/launches/SettingsAccordion.svelte';
+	import ShowAllProviders from '$lib/ui/components/launches/providers/ShowAllProviders.svelte';
+
+	type Mode = 'global' | 'custom';
+
+	type Props = {
+		socialChannels: CreateSocialPostChannel[];
+		selectedIds: string[];
+		mode: Mode;
+		focusedIntegrationId: string | null;
+		body?: string;
+		busy?: boolean;
+		previewText: string;
+		charCount: number;
+		softCharLimit: number;
+		selectedGroupId: string | null;
+		onToggleChannel: (id: string) => void;
+		onToggleGlobal: () => void;
+		onRemoveSelected: (id: string) => void;
+		onFocusIntegration: (id: string) => void;
+		onRequestCustomize: (id: string) => void;
+		onSelectGroup: (groupId: string | null) => void;
+		editorLocked: boolean;
+		editorLockMessage: string;
+		onEditorUnlock: () => void;
+		editorBannerLeftLabel: string | null;
+		editorBannerRightActionLabel: string | null;
+		onEditorBannerRightAction: (() => void) | null;
+		postComment: PostCommentMode;
+		onAddPost: () => void;
+		settingsOpen?: boolean;
+		providerSettings?: Record<string, unknown>;
+		onProviderSettingsChange: (value: Record<string, unknown>) => void;
+	};
+
+	let {
+		socialChannels,
+		selectedIds,
+		mode,
+		focusedIntegrationId,
+		body = $bindable(''),
+		busy = false,
+		previewText,
+		charCount,
+		softCharLimit,
+		selectedGroupId,
+		onToggleChannel,
+		onToggleGlobal,
+		onRemoveSelected,
+		onFocusIntegration,
+		onRequestCustomize,
+		onSelectGroup,
+		editorLocked,
+		editorLockMessage,
+		onEditorUnlock,
+		editorBannerLeftLabel,
+		editorBannerRightActionLabel,
+		onEditorBannerRightAction,
+		postComment,
+		onAddPost,
+		settingsOpen = $bindable(false),
+		providerSettings = {},
+		onProviderSettingsChange
+	}: Props = $props();
+</script>
+
+<div class="grid min-h-0 flex-1 grid-cols-1 divide-y divide-base-300 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+	<div class="flex min-h-0 flex-col gap-4 overflow-y-auto p-4 sm:p-6">
+		<div class="flex items-start justify-between gap-3">
+			<PicksSocialsComponent channels={socialChannels} {selectedIds} onToggleChannel={onToggleChannel} />
+			<SelectGroupTargeting
+				channels={socialChannels}
+				selectedGroupId={selectedGroupId}
+				onSelect={onSelectGroup}
+			/>
+		</div>
+
+		<SelectTargets
+			{mode}
+			{focusedIntegrationId}
+			{selectedIds}
+			channels={socialChannels}
+			onToggleGlobal={onToggleGlobal}
+			onRemoveSelected={onRemoveSelected}
+			onFocusIntegration={onFocusIntegration}
+			onRequestCustomize={onRequestCustomize}
+		/>
+
+		<!-- Wrapper: editor + add-post button (matches original structure) -->
+		<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
+			<EditorPost
+				bind:body
+				{busy}
+				{charCount}
+				{softCharLimit}
+				locked={editorLocked}
+				lockMessage={editorLockMessage}
+				onUnlock={onEditorUnlock}
+				bannerLeftLabel={editorBannerLeftLabel}
+				bannerRightActionLabel={editorBannerRightActionLabel}
+				onBannerRightAction={onEditorBannerRightAction ?? undefined}
+				confirmBannerRightAction={editorBannerRightActionLabel === 'Back to global'}
+			/>
+
+			<div class="mt-3">
+				<AddPostButton onclick={onAddPost} postComment={postComment} disabled={busy || editorLocked} />
+			</div>
+		</div>
+
+		{#if mode === 'custom' && focusedIntegrationId}
+			{@const focused = socialChannels.find((c) => c.id === focusedIntegrationId)}
+			{#if focused}
+				<div class="mt-3">
+					<SettingsAccordion
+						bind:open={settingsOpen}
+						channel={focused}
+						value={providerSettings}
+						onChange={onProviderSettingsChange}
+					/>
+				</div>
+			{/if}
+		{/if}
+
+	</div>
+	<div class="min-h-0">
+		{#if focusedIntegrationId}
+			{@const focused = socialChannels.find((c) => c.id === focusedIntegrationId) ?? null}
+			<div class="bg-base-200/20 flex min-h-[200px] flex-col lg:min-h-0">
+				<div class="border-base-300 flex items-center justify-between border-b px-4 py-3 sm:px-6">
+					<div class="text-base-content/90 text-base font-medium">Post Preview</div>
+				</div>
+				<div class="p-4 sm:p-6">
+					<ShowAllProviders channel={focused} {previewText} maximumCharacters={softCharLimit} />
+				</div>
+			</div>
+		{:else}
+			<div class="bg-base-200/20 flex min-h-[200px] flex-col lg:min-h-0">
+				<div class="border-base-300 flex items-center justify-between border-b px-4 py-3 sm:px-6">
+					<div class="text-base-content/90 text-base font-medium">Post Preview</div>
+				</div>
+				<div class="p-4 sm:p-6">
+					<ShowAllProviders channel={null} {previewText} maximumCharacters={softCharLimit} />
+				</div>
+			</div>
+		{/if}
+	</div>
+</div>

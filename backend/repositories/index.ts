@@ -9,6 +9,7 @@ import { BlogRepository } from "./BlogRepository";
 import { StorageRepository } from "./StorageRepository";
 import { IntegrationRepository } from "./IntegrationRepository";
 import { NotificationRepository } from "./NotificationRepository";
+import { PostsRepository } from "./PostsRepository";
 
 export const refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
 export const userRepository = new UserRepository(supabaseServiceClientConnection);
@@ -20,6 +21,7 @@ export const blogRepository = new BlogRepository(supabaseServiceClientConnection
 export const storageRepository = new StorageRepository(supabaseServiceClientConnection);
 export const integrationRepository = new IntegrationRepository(supabaseServiceClientConnection);
 export const notificationRepository = new NotificationRepository(supabaseServiceClientConnection);
+export const postsRepository = new PostsRepository(supabaseServiceClientConnection);
 
 export { RefreshTokenRepository } from "./RefreshTokenRepository";
 export { UserRepository } from "./UserRepository";
@@ -31,3 +33,4 @@ export { BlogRepository } from "./BlogRepository";
 export { StorageRepository } from "./StorageRepository";
 export { IntegrationRepository } from "./IntegrationRepository";
 export { NotificationRepository } from "./NotificationRepository";
+export { PostsRepository } from "./PostsRepository";

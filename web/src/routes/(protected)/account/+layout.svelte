@@ -6,7 +6,6 @@
 
 	import { browser } from '$app/environment';
 	import { afterNavigate } from '$app/navigation';
-	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { setContext } from 'svelte';
 	import { icons } from '$data/icon';
@@ -81,8 +80,6 @@
 		if (!browser) return;
 		void protectedLayoutPagePresenter.refreshEditorDockNotifications();
 	}
-
-	onMount(refreshDockBadge);
 
 	afterNavigate(refreshDockBadge);
 </script>

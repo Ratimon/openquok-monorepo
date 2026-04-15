@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { toast } from '$lib/ui/sonner';
-	import { verifyEmailPresenter, signupPresenter } from '$lib/user-auth/index';
+	import { AuthStatus, authenticationRepository, verifyEmailPresenter, signupPresenter } from '$lib/user-auth/index';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { url } from '$lib/utils/path';
 	import { icons } from '$data/icon';
@@ -24,7 +24,6 @@
 	let isVerifying = $derived(verificationStatus === VerifyEmailStatus.VERIFY_PENDING);
 	let isConfirming = $derived(verificationStatus === VerifyEmailStatus.CONFIRMING);
 	let isConfirmed = $derived(verificationStatus === VerifyEmailStatus.CONFIRMED);
-	let showVerifyMessage = $derived(verifyEmailPresenter.showToastMessage);
 
 	let isEmailResending = $derived(signupPresenter.status === SignupStatus.RESENDING_EMAIL);
 	let showValidationSignupMessage = $derived(signupPresenter.showToastMessage);
@@ -34,35 +33,67 @@
 	let subscribeToNewsletter = $state(true);
 	let message = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
+	let hasVerificationToken = $derived(tempToken.length > 0);
+
 	onMount(async () => {
 		if (typeof window === 'undefined') return;
 		const params = new URLSearchParams(window.location.search);
 		tempToken = params.get('token') ?? '';
 		tempEmail = params.get('email') ?? '';
-		if (!tempToken || !tempEmail) {
+		if (!tempEmail) {
 			goto('/', { replaceState: true });
 			return;
 		}
-		const allowed = await verifyEmailPresenter.checkIfUserIsAllowedToConfirmEmail(tempToken, tempEmail);
-		if (!allowed) {
+		if (tempToken) {
+			const allowed = await verifyEmailPresenter.checkIfUserIsAllowedToConfirmEmail(tempToken, tempEmail);
+			if (!allowed) {
+				goto('/', { replaceState: true });
+			}
+			return;
+		}
+		await authenticationRepository.checkAuth();
+		const cu = authenticationRepository.currentUser;
+		const emailsMatch =
+			cu?.email?.trim().toLowerCase() === tempEmail.trim().toLowerCase();
+		// Inline session check: `.svelte.ts` class instance types omit some methods (e.g. `isAuthenticated`) in TS.
+		const sessionOk =
+			authenticationRepository.currentAuthStatus.status === AuthStatus.AUTHENTICATED &&
+			authenticationRepository.currentUser !== null;
+		if (sessionOk && emailsMatch && cu?.isEmailVerified === true) {
+			goto(accountPath, { replaceState: true });
+			return;
+		}
+		if (!sessionOk || !emailsMatch) {
 			goto('/', { replaceState: true });
 		}
 	});
 
 	async function onSubmit() {
 		message = null;
+		if (!hasVerificationToken) {
+			message = {
+				type: 'error',
+				text: 'Open the confirmation link in the email we sent you to complete verification.'
+			};
+			return;
+		}
 		let token = tempToken;
 		if (!token && typeof window !== 'undefined') {
 			token = new URLSearchParams(window.location.search).get('token') ?? '';
 		}
 		try {
 			await verifyEmailPresenter.verifyEmail(token, subscribeToNewsletter);
-			if (isConfirmed && showVerifyMessage) {
+			if (verifyEmailPresenter.status === VerifyEmailStatus.CONFIRMED) {
 				message = { type: 'success', text: verifyEmailPresenter.toastMessage };
 				signupPresenter.status = SignupStatus.SUCCESS;
+				try {
+					await authenticationRepository.checkAuth(undefined, { forceProfile: true });
+				} catch {
+					// Best-effort; goToAccount / protected layout also refresh
+				}
 				await invalidateAll();
 				// Stay on this route so user sees Verified status
-			} else if (showVerifyMessage) {
+			} else if (verifyEmailPresenter.showToastMessage) {
 				message = { type: 'error', text: verifyEmailPresenter.toastMessage };
 			}
 		} catch (err) {
@@ -110,8 +141,18 @@
 		}
 	}
 
-	function goToAccount() {
-		goto(accountPath, { replaceState: true });
+	async function goToAccount() {
+		try {
+			await authenticationRepository.checkAuth(undefined, { forceProfile: true });
+		} catch {
+			toast.error('Could not refresh your profile. Please wait a moment and try again.');
+			return;
+		}
+		if (authenticationRepository.currentUser?.isEmailVerified !== true) {
+			toast.error('Your email is not marked verified yet. Try refreshing the page.');
+			return;
+		}
+		await goto(accountPath, { replaceState: true });
 	}
 </script>
 
@@ -140,18 +181,20 @@
 				<p class="mt-2 text-base-content/80">
 					By continuing, you may receive news about features and offers. You can unsubscribe at any time.
 				</p>
-				<div class="mt-6 flex items-center gap-2">
-					<input
-						type="checkbox"
-						id="subscribe-newsletter"
-						bind:checked={subscribeToNewsletter}
-						disabled={isConfirming || isConfirmed}
-						class="checkbox checkbox-sm"
-					/>
-					<label for="subscribe-newsletter" class="text-sm text-base-content/80">
-						Subscribe to promotional offers and new features (optional).
-					</label>
-				</div>
+				{#if hasVerificationToken}
+					<div class="mt-6 flex items-center gap-2">
+						<input
+							type="checkbox"
+							id="subscribe-newsletter"
+							bind:checked={subscribeToNewsletter}
+							disabled={isConfirming || isConfirmed}
+							class="checkbox checkbox-sm"
+						/>
+						<label for="subscribe-newsletter" class="text-sm text-base-content/80">
+							Subscribe to promotional offers and new features (optional).
+						</label>
+					</div>
+				{/if}
 			</CardDescription>
 		</CardHeader>
 		{#if message}
@@ -184,7 +227,7 @@
 			<Button
 				type="button"
 				class="flex-1 min-w-0"
-				disabled={isConfirming}
+				disabled={isConfirming || (!isConfirmed && !hasVerificationToken)}
 				onclick={isConfirmed ? goToAccount : onSubmit}
 			>
 				{#if isConfirming}

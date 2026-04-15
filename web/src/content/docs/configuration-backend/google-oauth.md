@@ -2,7 +2,7 @@
 title: Google OAuth
 description: Configure Google login with Supabase Auth (redirect URIs, dashboard settings) for Openquok.
 order: 4
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-14
 ---
 
 <script>
@@ -67,10 +67,10 @@ If your backend uses <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> p
 
 - Under <Badge text="Authorized JavaScript origins" variant="default" />, add the origins where your app runs (scheme + host + port only; no path). Typical values for this project:
 
-  - Local development:
+  - Local development (HTTPS dev server):
 
 ```txt
-http://localhost:5173
+https://localhost:5173
 ```
 
   - Production:
@@ -80,7 +80,7 @@ https://YOUR_FRONTEND_DOMAIN
 ```
 
 <Callout type="danger">
-AWAYS remove the local origin when your application goes into production
+Always remove the local origin when your application goes into production.
 </Callout>
 
 - Under <Badge text="Authorized redirect URIs" variant="default" />, add the Supabase Auth callback Google redirects to (one OAuth client can list several URIs):
@@ -113,10 +113,10 @@ After Google redirects to Supabase and Supabase finishes the exchange, Supabase 
 
 - Set <Badge text="Site URL" variant="path" /> to your frontend (users open this in the browser):
 
-  - Local development:
+  - Local development (HTTPS, same origin as the web app):
 
 ```txt
-http://localhost:5173
+https://localhost:5173
 ```
 
   - Production:
@@ -129,7 +129,13 @@ https://YOUR_FRONTEND_DOMAIN
 
 <Badge text="/api/v1/auth/oauth/google/callback" variant="path" />
 
-  - Local development:
+  - Local development when the browser hits the API on the <strong>same origin</strong> as the web app (recommended with this repo’s HTTPS dev server; see <a href="/docs/configuration-web/environment#https-local-development-and-the-api-base-url">Web environment variables</a>):
+
+```txt
+https://localhost:5173/api/v1/auth/oauth/google/callback
+```
+
+  - Local development when the browser calls the API only at the API host (not used with the default HTTPS web setup):
 
 ```txt
 http://localhost:3000/api/v1/auth/oauth/google/callback
@@ -149,8 +155,8 @@ https://YOUR_BACKEND_DOMAIN/**
 
 Summary:
 
-- Frontend (Supabase <Badge text="Site URL" variant="path" />): local <Badge text="http://localhost:5173" variant="new" />, production <Badge text="https://YOUR_FRONTEND_DOMAIN" variant="new" />
-- Backend (OAuth callback in <Badge text="Redirect URLs" variant="path" />): local <Badge text="http://localhost:3000/api/v1/auth/oauth/google/callback" variant="new" />, production <Badge text="https://YOUR_BACKEND_DOMAIN/api/v1/auth/oauth/google/callback" variant="new" />
+- Frontend (Supabase <Badge text="Site URL" variant="path" />): local <Badge text="https://localhost:5173" variant="new" />, production <Badge text="https://YOUR_FRONTEND_DOMAIN" variant="new" />
+- Backend (OAuth callback in <Badge text="Redirect URLs" variant="path" />): local same-origin <Badge text="https://localhost:5173/api/v1/auth/oauth/google/callback" variant="new" /> when <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> is the web origin; production <Badge text="https://YOUR_BACKEND_DOMAIN/api/v1/auth/oauth/google/callback" variant="new" />
 
 **Local Supabase CLI:** the same redirect allow-list is configured in <Badge text="backend/supabase/config.toml" variant="path" /> under <Badge text="[auth]" variant="path" /> (<Badge text="site_url" variant="path" />, <Badge text="additional_redirect_urls" variant="path" />). Adjust there if your dev ports differ.
 
@@ -160,8 +166,8 @@ For **hosted** Supabase, you do not put Google client secrets in the backend env
 
 The backend still needs:
 
-- <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> (example: <Badge text="http://localhost:3000" variant="new" />)
-- <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (example: <Badge text="http://localhost:5173" variant="new" />)
+- <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> — for default local HTTPS + same-origin <code>/api</code>, use <Badge text="https://localhost:5173" variant="new" /> so the OAuth <code>redirect_to</code> matches Supabase allow-list entries. Use your real API public URL in production.
+- <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> — must match the web origin (for local HTTPS, <Badge text="https://localhost:5173" variant="new" />).
 
 ### Branding the consent screen (optional)
 

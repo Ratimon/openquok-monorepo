@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 	import type { IconName } from '$data/icon';
 	import type {
-		DashboardConnectedChannelViewModel,
+		CreateSocialPostChannel,
 		DashboardPlatformChannelRowViewModel
 	} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
@@ -21,6 +21,7 @@
 	import MoveChannelGroupModal from '$lib/ui/components/launches/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/launches/TimeTable.svelte';
 	import OnBoardingModal from '$lib/ui/components/launches/OnBoardingModal.svelte';
+	import CreateSocialPostModal from '$lib/ui/components/launches/CreateSocialPostModal.svelte';
 	import { toast } from '$lib/ui/sonner';
 
 	type Props = {
@@ -36,21 +37,45 @@
 	const platformChannelRowsUngrouped = $derived(protectedDashboardPagePresenter.platformChannelRowsUngrouped);
 	const channelGroupSections = $derived(protectedDashboardPagePresenter.channelGroupSections);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
-	const connectedChannelCount = $derived(protectedDashboardPagePresenter.connectedChannels.length);
+	const connectedChannels = $derived(protectedDashboardPagePresenter.connectedChannels);
+	const connectedChannelCount = $derived(connectedChannels.length);
+
+	/** Same integration `identifier` with two or more social connections (different accounts). */
+	const hasSocialPlatformWithMultipleChannels = $derived.by(() => {
+		const social = connectedChannels.filter((c) => (c.type ?? '').toLowerCase() === 'social');
+		const counts = new Map<string, number>();
+		for (const c of social) {
+			const key = c.identifier?.trim() || 'unknown';
+			counts.set(key, (counts.get(key) ?? 0) + 1);
+		}
+		for (const n of counts.values()) {
+			if (n >= 2) return true;
+		}
+		return false;
+	});
+
+	const showSamePlatformMultiChannelAlert = $derived(
+		Boolean(workspaceId) &&
+			listStatus === 'ready' &&
+			connectedChannelCount === 1 &&
+			!hasSocialPlatformWithMultipleChannels
+	);
 
 	let groupDetailsOpen = $state<Record<string, boolean>>({});
 	let moveGroupOpen = $state(false);
-	let moveGroupFor = $state<DashboardConnectedChannelViewModel | null>(null);
+	let moveGroupFor = $state<CreateSocialPostChannel | null>(null);
 
 	let timeTableOpen = $state(false);
-	let timeTableFor = $state<DashboardConnectedChannelViewModel | null>(null);
+	let timeTableFor = $state<CreateSocialPostChannel | null>(null);
 
-	function openMoveGroupModal(integration: DashboardConnectedChannelViewModel) {
+	let createSocialPostOpen = $state(false);
+
+	function openMoveGroupModal(integration: CreateSocialPostChannel) {
 		moveGroupFor = integration;
 		moveGroupOpen = true;
 	}
 
-	function openTimeTableModal(integration: DashboardConnectedChannelViewModel) {
+	function openTimeTableModal(integration: CreateSocialPostChannel) {
 		timeTableFor = integration;
 		timeTableOpen = true;
 	}
@@ -204,7 +229,7 @@
 		return false;
 	}
 
-	function continueSetupHref(integration: DashboardConnectedChannelViewModel): string {
+	function continueSetupHref(integration: CreateSocialPostChannel): string {
 		if (!workspaceId) return url(`/${getRootPathAccount()}`);
 		if (integration.identifier === 'instagram-business') {
 			const qs = new URLSearchParams({
@@ -235,16 +260,12 @@
 		});
 	});
 
+	// Workspace is loaded by account `+layout` (`afterNavigate` → dock refresh → `workspaceSettingsPresenter.load()`).
+	// Only react to `workspaceId` here — do not call `load()` then branch again, or list/customers fire twice per navigation.
 	$effect(() => {
-		if (workspaceId) {
-			void protectedDashboardPagePresenter.loadConnectedIntegrations();
-			void protectedDashboardPagePresenter.loadChannelGroups();
-			return;
-		}
-		void workspaceSettingsPresenter.load().then(() => {
-			void protectedDashboardPagePresenter.loadConnectedIntegrations();
-			void protectedDashboardPagePresenter.loadChannelGroups();
-		});
+		const orgId = workspaceId;
+		if (!orgId) return;
+		void protectedDashboardPagePresenter.loadDashboardLists();
 	});
 </script>
 
@@ -323,12 +344,29 @@
 			<h3 class="text-lg font-semibold text-base-content">
 				Connected channels
 			</h3>
-			
-			<!-- `onboarding={true}`: 9-column grid + `?onboarding=true` on OAuth (match reference “onboarding” mode). -->
-			<AddProvider />
+			<div class="flex flex-wrap items-center justify-end gap-2">
+				{#if connectedChannelCount >= 1}
+					<Button
+						type="button"
+						variant="secondary"
+						disabled={!workspaceId}
+						onclick={() => {
+							if (!workspaceId) {
+								toast.error('Create or select a workspace first.');
+								return;
+							}
+							createSocialPostOpen = true;
+						}}
+					>
+						+ Create Post
+					</Button>
+				{/if}
+				<!-- `onboarding={true}`: 9-column grid + `?onboarding=true` on OAuth (match reference “onboarding” mode). -->
+				<AddProvider />
+			</div>
 		</div>
 
-		{#if workspaceId && listStatus !== 'loading'}
+		{#if showSamePlatformMultiChannelAlert}
 			<Alert
 				variant="warning"
 				class="mt-3 items-start gap-3 text-sm text-neutral-950 sm:flex-row [&_svg]:text-neutral-950"
@@ -342,14 +380,13 @@
 				/>
 				<div class="min-w-0 space-y-1">
 					<AlertTitle class="text-sm font-semibold leading-snug text-neutral-950">
-						Multiple accounts on the same platform
+						Multiple channels on the same platform
 					</AlertTitle>
 					<AlertDescription class="leading-relaxed text-neutral-900">
-						You can connect more than one account per platform. Before you use
+						You can connect more than one channel per platform. Before you use
 						<span class="font-semibold text-neutral-950">Add Channel</span> or
 						<span class="font-semibold text-neutral-950">Add more</span> for a different login,
-						sign out of that service in your browser. Otherwise the
-						provider may reuse the session for the account you connected last.
+						sign out of that service in your browser. Otherwise the channel may be reused for the last connected channel.
 					</AlertDescription>
 				</div>
 			</Alert>
@@ -369,9 +406,17 @@
 		{:else if listStatus === 'error'}
 			<p class="mt-3 text-sm text-error">Could not load channels. Try again in a moment.</p>
 		{:else if connectedChannelCount === 0}
-			<p class="mt-3 text-sm text-base-content/70">
-				No channels yet. Use <span class="font-medium text-base-content">Add Channel</span> to connect one.
-			</p>
+			<div class="mt-4 space-y-3">
+				<h4 class="text-base font-semibold text-base-content">
+					No channels yet
+				</h4>
+				<p class="text-sm text-base-content/70">
+					Connect your social accounts to start scheduling, publishing, and analyzing — all in one place.
+				</p>
+				<p class="text-sm text-base-content/70">
+					Use <span class="font-medium text-base-content">Add Channel</span> above to connect one.
+				</p>
+			</div>
 		{:else}
 			{#if channelGroupSections.length > 0}
 				<div class="mt-4 space-y-2">
@@ -408,6 +453,12 @@
 <MoveChannelGroupModal bind:open={moveGroupOpen} integration={moveGroupFor} />
 
 <TimeTable bind:open={timeTableOpen} integration={timeTableFor} />
+
+<CreateSocialPostModal
+	bind:open={createSocialPostOpen}
+	workspaceId={workspaceId}
+	connectedChannels={connectedChannels}
+/>
 
 <OnBoardingModal
 	open={onboardingDialogOpen}

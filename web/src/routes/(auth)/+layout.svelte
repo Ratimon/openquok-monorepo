@@ -19,6 +19,9 @@
 
 	let { children, data }: Props = $props();
 	let isLoggedIn = $derived((data as App.LayoutData)?.isLoggedIn ?? false);
+	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? null);
+	/** Header Account link only when verified (or logged out — link hidden). */
+	let accountNavEnabled = $derived(!isLoggedIn || currentUser?.isEmailVerified === true);
 	// Use server-rendered data from layout, fallback to presenter for client-side resilience
 	let companyNameVm = $derived(
 		(data as App.LayoutData)?.companyNameVm ??
@@ -61,6 +64,7 @@
 
 <PublicArea
 	{isLoggedIn}
+	accountNavEnabled={accountNavEnabled}
 	companyNameVm={companyNameVm}
 	companyYearVm={companyYearVm}
 	marketingInformationVm={marketingInformationVm}

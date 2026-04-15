@@ -1,0 +1,57 @@
+import { z } from "zod";
+import type { RequestHandler } from "express";
+import { validateRequest } from "../../middlewares/validateRequest";
+
+export const postOrganizationQuerySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+});
+
+export const validatePostOrganizationQuery: RequestHandler = validateRequest({
+    query: postOrganizationQuerySchema,
+});
+
+const repeatIntervalEnum = z.enum([
+    "day",
+    "two_days",
+    "three_days",
+    "four_days",
+    "five_days",
+    "six_days",
+    "week",
+    "two_weeks",
+    "month",
+]);
+
+export const createPostBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    body: z.string().max(50000).optional(),
+    /**
+     * Optional per-channel body overrides (customize mode).
+     * Keys are integration IDs; values are the body content to use for that integration.
+     */
+    bodiesByIntegrationId: z.record(z.string().uuid(), z.string().max(50000)).optional(),
+    integrationIds: z.array(z.string().uuid()).optional(),
+    isGlobal: z.boolean().optional(),
+    scheduledAt: z.string().min(1, "Schedule time is required"),
+    repeatInterval: z.union([repeatIntervalEnum, z.null()]).optional(),
+    tagNames: z.array(z.string().max(120)).max(50).optional(),
+    status: z.enum(["draft", "scheduled"]),
+});
+
+export const validateCreatePostBody: RequestHandler = validateRequest({
+    body: createPostBodySchema,
+});
+
+export const createPostTagBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    name: z.string().trim().min(1, "Name is required").max(120),
+    color: z
+        .string()
+        .trim()
+        .regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a #RRGGBB hex value")
+        .optional(),
+});
+
+export const validateCreatePostTagBody: RequestHandler = validateRequest({
+    body: createPostTagBodySchema,
+});

@@ -3,6 +3,7 @@ import type { AuthenticationService } from "../services/AuthenticationService";
 import type { UserRepository } from "../repositories/UserRepository";
 import type { EmailService } from "../services/EmailService";
 import type { OrganizationService } from "../services/OrganizationService";
+import type { UserService } from "../services/UserService";
 
 import type {
     validateSignUpRequestHandler,
@@ -34,6 +35,7 @@ const serverConfig = config.server as {
 
 export class AuthController {
     private userRepository: UserRepository;
+    private userService: UserService;
     private authenticationService: AuthenticationService;
     private emailService: EmailService;
     private organizationService: OrganizationService;
@@ -152,11 +154,13 @@ export class AuthController {
     constructor(
         authenticationService: AuthenticationService,
         userRepository: UserRepository,
+        userService: UserService,
         emailService: EmailService,
         organizationService: OrganizationService
     ) {
         this.authenticationService = authenticationService;
         this.userRepository = userRepository;
+        this.userService = userService;
         this.emailService = emailService;
         this.organizationService = organizationService;
     }
@@ -206,7 +210,50 @@ export class AuthController {
                 return;
             }
 
-            const { session, user } = await this.authenticationService.exchangeOAuthCodeForSession({ req, res }, code);
+            const { session, user: authUser } = await this.authenticationService.exchangeOAuthCodeForSession(
+                { req, res },
+                code
+            );
+
+            const emailRaw = authUser.email?.trim();
+            if (!emailRaw) {
+                logger.warn({ msg: "OAuth user has no email; cannot sync public.users", userId: authUser.id });
+                res.redirect(
+                    `${frontendUrl}/auth-error?message=${encodeURIComponent("Google sign-in failed: missing email on account.")}`
+                );
+                return;
+            }
+            const email = normalizeEmail(emailRaw);
+            const meta = authUser.user_metadata as Record<string, unknown> | undefined;
+            const fullName =
+                (typeof meta?.full_name === "string" && meta.full_name.trim()) ||
+                (typeof meta?.name === "string" && meta.name.trim()) ||
+                email;
+            const googleIdentity = authUser.identities?.find((i) => i.provider === "google");
+            const idData = googleIdentity?.identity_data as Record<string, unknown> | undefined;
+            const providerId =
+                (typeof idData?.sub === "string" && idData.sub) ||
+                (googleIdentity?.id != null ? String(googleIdentity.id) : authUser.id);
+
+            const { error: upsertOAuthError } = await this.userRepository.upsertUserFromOAuth({
+                id: authUser.id,
+                authId: authUser.id,
+                email,
+                fullName,
+                provider: "google",
+                providerId,
+            });
+            if (upsertOAuthError) {
+                logger.error({
+                    msg: "OAuth: failed to upsert public.users (required before refresh_tokens)",
+                    userId: authUser.id,
+                    error: upsertOAuthError,
+                });
+                res.redirect(
+                    `${frontendUrl}/auth-error?message=${encodeURIComponent("Could not finish sign-in. Please try again.")}`
+                );
+                return;
+            }
 
             const clientInfo = {
                 ipAddress: req.ip ?? req.socket?.remoteAddress,
@@ -214,7 +261,7 @@ export class AuthController {
             };
             try {
                 await this.authenticationService.generateRefreshToken({
-                    userId: user.id,
+                    userId: authUser.id,
                     token: session.refresh_token,
                     ipAddress: clientInfo.ipAddress,
                     userAgent: clientInfo.userAgent,
@@ -222,17 +269,17 @@ export class AuthController {
             } catch (err) {
                 logger.warn({
                     msg: "Failed to store refresh token (oauth)",
-                    userId: user.id,
+                    userId: authUser.id,
                     error: (err as Error).message,
                 });
             }
 
             // Google (and other OAuth) accounts have email_confirmed_at in auth; public.users defaulted to false from the old trigger.
-            const { updateError: oauthVerifyErr } = await this.userRepository.updateEmailVerification(user.id, true);
+            const { updateError: oauthVerifyErr } = await this.userRepository.updateEmailVerification(authUser.id, true);
             if (oauthVerifyErr) {
                 logger.warn({
                     msg: "Failed to mark OAuth user email verified in public.users",
-                    userId: user.id,
+                    userId: authUser.id,
                     error: oauthVerifyErr,
                 });
             }
@@ -272,6 +319,19 @@ export class AuthController {
                 { req, res }
             );
 
+            // Ensure public.users exists before refresh_tokens (FK); covers envs where the auth trigger is not installed.
+            if (newUser?.id && email) {
+                const { error: upsertError } = await this.userRepository.upsertUserFromAuth({
+                    id: newUser.id,
+                    authId: newUser.id,
+                    email,
+                    fullName: fullName ?? email,
+                });
+                if (upsertError) {
+                    logger.warn({ msg: "upsertUserFromAuth failed", userId: newUser.id, error: upsertError });
+                }
+            }
+
             if (session?.refresh_token && newUser?.id) {
                 const clientInfo = {
                     ipAddress: req.ip ?? req.socket?.remoteAddress,
@@ -292,19 +352,6 @@ export class AuthController {
                     });
                 }
                 this.setRefreshTokenCookie(res, session.refresh_token);
-            }
-
-            // Ensure public.users row exists (covers envs where DB trigger is not present, e.g. some test Supabase).
-            if (newUser?.id && email) {
-                const { error: upsertError } = await this.userRepository.upsertUserFromAuth({
-                    id: newUser.id,
-                    authId: newUser.id,
-                    email,
-                    fullName: fullName ?? email,
-                });
-                if (upsertError) {
-                    logger.warn({ msg: "upsertUserFromAuth failed", userId: newUser.id, error: upsertError });
-                }
             }
 
             // Create default organization for new user (createOrgAndUser-style); keep multi-org create/update/delete in settings
@@ -776,6 +823,9 @@ export class AuthController {
             }
             await this.userRepository.updateEmailVerification(user.id, true);
             await this.userRepository.updateVerificationToken(user.id, null, null);
+            if (user.auth_id) {
+                await this.userService.invalidateCachesAfterEmailVerification(user.auth_id, user.email);
+            }
             if (this.emailService.isEnabled && user.email) {
                 try {
                     await this.emailService.send(

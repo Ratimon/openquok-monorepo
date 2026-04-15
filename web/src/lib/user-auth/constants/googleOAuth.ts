@@ -10,6 +10,9 @@ export const OAUTH_GOOGLE_PATH = '/api/v1/auth/oauth/google';
  */
 export function getGoogleOAuthStartUrl(options?: { next?: string | null }): string {
 	let base = normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
+	if (!base && typeof window !== 'undefined') {
+		base = window.location.origin;
+	}
 	if (!base) base = 'http://localhost:3000';
 
 	const url = new URL(OAUTH_GOOGLE_PATH, `${base}/`);

@@ -1,9 +1,14 @@
-import dayjs from 'dayjs';
+import dayjs, { type ConfigType } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+/** Configured `dayjs` for posting UI (UTC + IANA timezone plugins). Prefer this over importing `dayjs` directly. */
+export function newDayjs(config?: ConfigType) {
+	return dayjs(config);
+}
 
 /** Persists IANA zone for posting schedules (Time table slots, etc.). */
 export const TIMEZONE_STORAGE_KEY = 'timezone' as const;
@@ -80,4 +85,17 @@ export function setDateMetricUsStyle(usStyle: boolean): void {
 	} catch {
 		/* ignore */
 	}
+}
+
+/** `datetime-local` value (`YYYY-MM-DDTHH:mm`) from an ISO timestamp, in the browser local zone. */
+export function isoToDatetimeLocalValue(iso: string): string {
+	const d = newDayjs(iso);
+	if (!d.isValid()) return '';
+	return d.format('YYYY-MM-DDTHH:mm');
+}
+
+/** ISO string from a `datetime-local` value; falls back to “now” if parsing fails. */
+export function datetimeLocalToIso(value: string): string {
+	const d = newDayjs(value);
+	return d.isValid() ? d.toDate().toISOString() : newDayjs().toDate().toISOString();
 }

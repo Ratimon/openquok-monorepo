@@ -57,6 +57,7 @@ External packages are unchanged: use package names (e.g. `"bits-ui"`, `"svelte"`
 - **Static usage**: Prefer `<AbstractIcon name={icons.SomeIcon.name} ... />` over string literals such as `name="Github"` so icon keys stay tied to the registry and refactors stay safe.
 - **Dynamic usage** (e.g. social platforms, CMS-driven keys): Define a map whose values are `icons.*.name` (typed as `IconName`), then pass the resolved name: `<AbstractIcon name={resolvedIconName} ... />`. Avoid hardcoded `IconName` strings in the map; use `icons.Github.name`, `icons.X.name`, etc.
 - **Components**: Use `AbstractIcon` from `$lib/ui/icons/AbstractIcon.svelte` for Lucide-style icons backed by the registry.
+- **Close / dismiss vs social X**: Use **`icons.X2.name`** for UI that means “close” or “clear” (modal headers, dismiss buttons, chip remove controls, etc.). Reserve **`icons.X.name`** for the **X (Twitter) social provider** in channel maps, footer links, and other places where the glyph identifies that platform—not generic close affordances.
 
 ---
 

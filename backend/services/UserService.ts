@@ -147,6 +147,16 @@ export class UserService {
     }
 
     /**
+     * Call after email verification is persisted (e.g. verify-signup) so GET /users/me is not stale.
+     */
+    async invalidateCachesAfterEmailVerification(authUserId: string, userEmail: string | null): Promise<void> {
+        await this._invalidateUserRelatedCaches({
+            authUserId,
+            userEmail: userEmail ?? undefined,
+        });
+    }
+
+    /**
      * Invalidate cache entries that may be stale after a user mutation.
      * Uses same invalidate pattern as other services (CacheInvalidationService).
      * Logs errors and does not throw so the request is not failed by cache issues.

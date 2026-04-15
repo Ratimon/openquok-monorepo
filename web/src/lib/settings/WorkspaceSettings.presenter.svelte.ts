@@ -76,6 +76,9 @@ export class WorkspaceSettingsPresenter {
 
 	private userId: string | null = null;
 
+	/** Coalesces overlapping `load()` calls (layout dock + account page can trigger in the same tick). */
+	private loadInflight: Promise<void> | null = null;
+
 	constructor(
 		private readonly settingsRepository: SettingsRepository,
 		private readonly getWorkspacePresenter: GetWorkspacePresenter
@@ -91,21 +94,29 @@ export class WorkspaceSettingsPresenter {
 	}
 
 	public async load(): Promise<void> {
-		this.status = WorkspaceSettingsStatus.LOADING;
+		if (this.loadInflight) return this.loadInflight;
+		this.loadInflight = (async () => {
+			this.status = WorkspaceSettingsStatus.LOADING;
+			try {
+				const { workspacesVm, userId } = await this.getWorkspacePresenter.getWorkspaceSettingsData();
+				this.userId = userId;
+				this.workspacesVm = workspacesVm;
+				this.teamMembersVm = [];
+				if (this.workspacesVm.length > 0 && !this.currentWorkspaceId) {
+					this.currentWorkspaceId = this.workspacesVm[0]?.id ?? null;
+				}
+				this.updateCurrentWorkspaceRole();
+				if (this.currentWorkspaceId) {
+					await this.loadTeam(this.currentWorkspaceId);
+				}
+			} finally {
+				this.status = WorkspaceSettingsStatus.IDLE;
+			}
+		})();
 		try {
-			const { workspacesVm, userId } = await this.getWorkspacePresenter.getWorkspaceSettingsData();
-			this.userId = userId;
-			this.workspacesVm = workspacesVm;
-			this.teamMembersVm = [];
-			if (this.workspacesVm.length > 0 && !this.currentWorkspaceId) {
-				this.currentWorkspaceId = this.workspacesVm[0]?.id ?? null;
-			}
-			this.updateCurrentWorkspaceRole();
-			if (this.currentWorkspaceId) {
-				await this.loadTeam(this.currentWorkspaceId);
-			}
+			await this.loadInflight;
 		} finally {
-			this.status = WorkspaceSettingsStatus.IDLE;
+			this.loadInflight = null;
 		}
 	}
 

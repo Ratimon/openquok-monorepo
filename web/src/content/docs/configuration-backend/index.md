@@ -2,7 +2,7 @@
 title: Configuration - Backend
 description: Backend configuration — env vars, Supabase, and services Openquok.
 order: 0
-lastUpdated: 2026-04-12
+lastUpdated: 2026-04-14
 ---
 
 <script>
@@ -19,12 +19,12 @@ For **production**, follow the same naming convention: maintain <Badge text="bac
 
 ```bash
 NODE_ENV=development
-FRONTEND_DOMAIN_URL=http://localhost:5173
+FRONTEND_DOMAIN_URL=https://localhost:5173
 ```
 
-<Callout type="note" title="FRONTEND_DOMAIN_URL affects OAuth redirects">
+<Callout type="warning">
 <p><Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> must match the <strong>exact</strong> origin you use to open the web app, including the scheme (<code>http</code> vs <code>https</code>) and hostname (<code>www</code> vs apex). The backend uses it to build OAuth redirect/callback URLs (for example <code>/account/integrations/social/threads</code>).</p>
-<p>If you run the web dev server on HTTP, use <code>http://localhost:5173</code>. If you switch the web dev server to HTTPS (required by some providers), update this to <code>https://localhost:5173</code>.</p>
+<p>The web dev server in this repo uses <strong>HTTPS</strong> on <code>https://localhost:5173</code>; use that value unless you intentionally run the web app on plain HTTP.</p>
 <p>Keep it aligned with the web app’s <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> so links and OAuth redirects point to the same scheme and host. Third-party dashboards (Meta, Stripe, etc.) must list the <strong>same</strong> origin in every full redirect URL—swapping <code>www</code> only in Meta while the API still sends the apex host (or the reverse) produces “invalid redirect” style errors.</p>
 </Callout>
 

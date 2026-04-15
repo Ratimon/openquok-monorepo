@@ -9,20 +9,23 @@
 		PUBLIC_FOOTER_LINKS
 	} from '$lib/config/constants/config';
 
-	type Props = {
+	interface Props {
 		children: Snippet;
 		isLoggedIn: boolean;
+		/** When false and user is logged in, header Account control is disabled until email is verified. */
+		accountNavEnabled?: boolean;
 		navbarDesktopLinks?: Link[];
 		navbarMobileLinks?: Link[];
 		footerNavigationLinks?: Record<string, { label: string; href: string }[]>;
 		companyNameVm: string;
 		companyYearVm: string;
 		marketingInformationVm: Record<string, string>;
-	};
+	}
 
 	let {
 		children,
 		isLoggedIn,
+		accountNavEnabled = true,
 		navbarDesktopLinks: propNavbarDesktopLinks,
 		navbarMobileLinks: propNavbarMobileLinks,
 		footerNavigationLinks: propFooterNavigationLinks,
@@ -42,6 +45,7 @@
 		{navbarMobileLinks}
 		{companyNameVm}
 		{isLoggedIn}
+		{accountNavEnabled}
 	/>
 	<main class="flex-1">
 		{@render children?.()}

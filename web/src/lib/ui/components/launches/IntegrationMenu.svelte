@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { IconName } from '$data/icon';
-	import type { DashboardConnectedChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import copy from 'copy-to-clipboard';
 
@@ -14,12 +14,12 @@
 	import { toast } from '$lib/ui/sonner';
 
 	type Props = {
-		integration: DashboardConnectedChannelViewModel;
+		integration: CreateSocialPostChannel;
 		workspaceId: string;
 		providerIcon: (identifier: string) => IconName;
-		continueSetupHref: (integration: DashboardConnectedChannelViewModel) => string;
-		onMoveToGroup: (integration: DashboardConnectedChannelViewModel) => void;
-		onEditTimeSlots: (integration: DashboardConnectedChannelViewModel) => void;
+		continueSetupHref: (integration: CreateSocialPostChannel) => string;
+		onMoveToGroup: (integration: CreateSocialPostChannel) => void;
+		onEditTimeSlots: (integration: CreateSocialPostChannel) => void;
 		onSetDisabled: (integrationId: string, disabled: boolean) => Promise<boolean>;
 		onRemove: (integrationId: string) => Promise<boolean>;
 		/** `chip`: compact pill for horizontal rows (e.g. account dashboard). */

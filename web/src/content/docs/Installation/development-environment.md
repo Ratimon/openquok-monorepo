@@ -2,7 +2,7 @@
 title: Development environment
 description: Run Openquok's backend and web apps locally, execute tests, database scripts, and deployment commands.
 order: 0
-lastUpdated: 2026-04-07
+lastUpdated: 2026-04-14
 ---
 
 <script>
@@ -109,6 +109,10 @@ pnpm db:production:push-db
 
 <Callout type="warning">
 Run the <strong>backend API</strong> before the web app so local pages can call your API. In a <strong>separate terminal</strong>, start the API from the repository root with <code>pnpm backend:dev</code> (or <code>cd backend</code> then <code>pnpm dev</code>), then use the commands below for the frontend.
+</Callout>
+
+<Callout type="note" title="HTTPS on localhost:5173">
+<p>The web dev server serves <strong>HTTPS</strong> at <code>https://localhost:5173</code>. Keep <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> and the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on that exact origin, and follow <a href="/docs/configuration-web/environment#https-local-development-and-the-api-base-url">Environment variables → HTTPS local development and the API base URL</a> so API calls and auth cookies stay same-origin.</p>
 </Callout>
 
 You can work from the **monorepo root** (using `web:*` and `pnpm --filter ./web …` scripts) or **change into `web/`** and run package scripts there.

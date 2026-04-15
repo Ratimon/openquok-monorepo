@@ -9,6 +9,7 @@ import {
     blogRepository,
     integrationRepository,
     notificationRepository,
+    postsRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -26,6 +27,7 @@ import { IntegrationService } from "./IntegrationService";
 import { IntegrationConnectionService } from "./IntegrationConnectionService";
 import { NotificationService } from "./NotificationService";
 import { TransactionalNotificationEmailService } from "./TransactionalNotificationEmailService";
+import { PostsService } from "./PostsService";
 
 import { config } from "../config/GlobalConfig";
 
@@ -105,6 +107,12 @@ export const integrationConnectionService = new IntegrationConnectionService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
+export const postsService = new PostsService(
+    postsRepository,
+    integrationConnectionService,
+    integrationService,
+    organizationRepository
+);
 export { AuthenticationService } from "./AuthenticationService";
 export { UserService } from "./UserService";
 export { EmailService } from "./EmailService";
@@ -120,3 +128,4 @@ export { IntegrationConnectionService } from "./IntegrationConnectionService";
 export { RefreshIntegrationService } from "./RefreshIntegrationService";
 export { NotificationService } from "./NotificationService";
 export { TransactionalNotificationEmailService, type SendPlainJobPayload } from "./TransactionalNotificationEmailService";
+export { PostsService } from "./PostsService";

@@ -20,19 +20,22 @@
 	const signUpPath = `/${getRootPathSignup()}`;
 	const accountPath = url(getRootPathAccount());
 
-	type Props = {
+	interface Props {
 		navbarDesktopLinks: Link[];
 		navbarMobileLinks: Link[];
 		companyNameVm: string;
 		isLoggedIn: boolean;
+		/** When false, Account is shown disabled (e.g. email not verified yet). */
+		accountNavEnabled?: boolean;
 		class?: string;
-	};
+	}
 
 	let {
 		navbarDesktopLinks,
 		navbarMobileLinks,
 		companyNameVm,
 		isLoggedIn,
+		accountNavEnabled = true,
 		class: className = 'bg-base-100'
 	}: Props = $props();
 
@@ -147,17 +150,30 @@
 			<div class="relative z-10 ml-auto flex items-center gap-2">
 				{#if isLoggedIn}
 					<div class="hidden items-center gap-2 lg:flex">
-						<PageLink
-							href={accountPath}
-							useGoto
-							onAfterNavigate={setClose}
-							class="flex flex-col items-center gap-1 tab tab-lg tab-lifted account-link"
-							whenSelected="account-link tab-active"
-							whenUnselected="account-link"
-						>
-							<AbstractIcon name={icons.Account.name} width="30" height="30" focusable="false" />
-							Account
-						</PageLink>
+						{#if accountNavEnabled}
+							<PageLink
+								href={accountPath}
+								useGoto
+								onAfterNavigate={setClose}
+								class="flex flex-col items-center gap-1 tab tab-lg tab-lifted account-link"
+								whenSelected="account-link tab-active"
+								whenUnselected="account-link"
+							>
+								<AbstractIcon name={icons.Account.name} width="30" height="30" focusable="false" />
+								Account
+							</PageLink>
+						{:else}
+							<button
+								type="button"
+								disabled
+								class="flex flex-col items-center gap-1 tab tab-lg tab-lifted account-link cursor-not-allowed opacity-50"
+								title="Verify your email to access your account"
+								aria-label="Account (verify your email first)"
+							>
+								<AbstractIcon name={icons.Account.name} width="30" height="30" focusable="false" />
+								Account
+							</button>
+						{/if}
 						<button
 							type="button"
 							onclick={onSignout}
@@ -261,17 +277,30 @@
 
 					{#if isLoggedIn}
 						<div class="flex flex-col gap-y-4 justify-center items-center">
-							<PageLink
-								href={accountPath}
-								useGoto
-								onAfterNavigate={setClose}
-								class="flex flex-col items-center gap-1 tab tab-lg tab-lifted account-link"
-								whenSelected="account-link tab-active"
-								whenUnselected="account-link"
-							>
-								<AbstractIcon name={icons.Account.name} width="30" height="30" focusable="false" />
-								Account
-							</PageLink>
+							{#if accountNavEnabled}
+								<PageLink
+									href={accountPath}
+									useGoto
+									onAfterNavigate={setClose}
+									class="flex flex-col items-center gap-1 tab tab-lg tab-lifted account-link"
+									whenSelected="account-link tab-active"
+									whenUnselected="account-link"
+								>
+									<AbstractIcon name={icons.Account.name} width="30" height="30" focusable="false" />
+									Account
+								</PageLink>
+							{:else}
+								<button
+									type="button"
+									disabled
+									class="flex flex-col items-center gap-1 tab tab-lg tab-lifted account-link cursor-not-allowed opacity-50"
+									title="Verify your email to access your account"
+									aria-label="Account (verify your email first)"
+								>
+									<AbstractIcon name={icons.Account.name} width="30" height="30" focusable="false" />
+									Account
+								</button>
+							{/if}
 							<button
 								type="button"
 								onclick={onSignout}

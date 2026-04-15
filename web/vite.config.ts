@@ -11,7 +11,15 @@ export default defineConfig({
 			cert: fs.readFileSync('./.cert/localhost.pem')
 		},
 		host: 'localhost',
-		port: 5173
+		port: 5173,
+		// Same-origin `/api` in dev so auth cookies set during OAuth match the page origin (HTTPS + port 5173).
+		// Without this, `https://localhost:5173` → `http://localhost:3000` is cross-site and refresh cookies are not sent.
+		proxy: {
+			'/api': {
+				target: 'http://localhost:3000',
+				changeOrigin: true
+			}
+		}
 	},
 	css: {
 		transformer: 'postcss',

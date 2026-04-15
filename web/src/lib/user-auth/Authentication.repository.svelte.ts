@@ -104,6 +104,15 @@ export interface AuthProgrammerModel {
 	message: string;
 }
 
+/** Options for {@link AuthenticationRepository.checkAuth}. */
+export type CheckAuthOptions = {
+	/**
+	 * Re-fetch GET /me even when we already have a token and user marked authenticated.
+	 * Use when server-side profile may have changed (e.g. email just verified) without a new session.
+	 */
+	forceProfile?: boolean;
+};
+
 export interface AuthConfig {
 	endpoints: {
 		signin: string;
@@ -150,6 +159,8 @@ export class AuthenticationRepository {
 	private httpGateway: HttpGateway;
 	private config: AuthConfig;
 	private refreshTimer: ReturnType<typeof setTimeout> | null = null;
+	/** Coalesces concurrent refresh calls (rotating refresh tokens invalidate the previous token). */
+	private refreshRequestPromise: Promise<string> | null = null;
 	private inMemoryToken: { value: string; expiration: number } | null = null;
 
 	public currentUser: BasicUserAuthProgrammerModel | null = $state(null);
@@ -162,7 +173,7 @@ export class AuthenticationRepository {
 		this.setupAuthInterceptor();
 	}
 
-	public async checkAuth(loadFetch?: typeof globalThis.fetch): Promise<void> {
+	public async checkAuth(loadFetch?: typeof globalThis.fetch, options?: CheckAuthOptions): Promise<void> {
 		if (typeof window === 'undefined') {
 			this.currentAuthStatus.status = AuthStatus.UNAUTHENTICATED;
 			return;
@@ -192,6 +203,13 @@ export class AuthenticationRepository {
 		// Already authenticated with token and user (e.g. just signed in) — skip refresh to avoid 401/400
 		if (token && this.currentUser && this.currentAuthStatus.status === AuthStatus.AUTHENTICATED) {
 			this.setupTokenRefresh();
+			if (options?.forceProfile === true && this.config.endpoints.me) {
+				try {
+					await this.fetchCurrentUser(loadFetch);
+				} catch {
+					// Keep cached user; caller may retry (e.g. after email verification propagates).
+				}
+			}
 			return;
 		}
 
@@ -498,20 +516,33 @@ export class AuthenticationRepository {
 			throw new Error('Refresh suppressed after previous 401');
 		}
 		if (!this.config.endpoints.refresh) throw new Error('Refresh not configured');
-		// If we're attempting a refresh again, clear any previous "refresh failed" suppression window.
-		this.clearRefreshFailureSuppression();
-		const response = await this.httpGateway.post<RefreshTokenResponseDto>(
-			this.config.endpoints.refresh,
-			{},
-			{ withCredentials: true, skipInterceptors: true, ...(loadFetch && { fetch: loadFetch }) }
-		);
-		const { data: refreshTokenDto, ok } = response;
-		if (!ok || !refreshTokenDto?.data?.accessToken) throw new Error(refreshTokenDto?.message ?? 'Refresh failed');
-		const { accessToken, expiresIn } = refreshTokenDto.data;
-		const expiresAt = Date.now() + (expiresIn ?? 3600) * 1000;
-		this.storeToken(accessToken, expiresAt);
-		this.setupTokenRefresh();
-		return accessToken;
+
+		if (this.refreshRequestPromise) {
+			return this.refreshRequestPromise;
+		}
+
+		this.refreshRequestPromise = (async () => {
+			try {
+				// If we're attempting a refresh again, clear any previous "refresh failed" suppression window.
+				this.clearRefreshFailureSuppression();
+				const response = await this.httpGateway.post<RefreshTokenResponseDto>(
+					this.config.endpoints.refresh,
+					{},
+					{ withCredentials: true, skipInterceptors: true, ...(loadFetch && { fetch: loadFetch }) }
+				);
+				const { data: refreshTokenDto, ok } = response;
+				if (!ok || !refreshTokenDto?.data?.accessToken) throw new Error(refreshTokenDto?.message ?? 'Refresh failed');
+				const { accessToken, expiresIn } = refreshTokenDto.data;
+				const expiresAt = Date.now() + (expiresIn ?? 3600) * 1000;
+				this.storeToken(accessToken, expiresAt);
+				this.setupTokenRefresh();
+				return accessToken;
+			} finally {
+				this.refreshRequestPromise = null;
+			}
+		})();
+
+		return this.refreshRequestPromise;
 	}
 
 	/** GET /me to validate token; throws on 401 or other error so caller can try refresh. */

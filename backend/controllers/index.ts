@@ -11,6 +11,7 @@ import { EmailController } from "./EmailController";
 import { IntegrationController } from "./IntegrationController";
 import { PublicIntegrationController } from "./PublicIntegrationController";
 import { NotificationController } from "./NotificationController";
+import { PostsController } from "./PostsController";
 import {
     authenticationService,
     emailService,
@@ -25,10 +26,11 @@ import {
     integrationConnectionService,
     integrationManager,
     notificationService,
+    postsService,
 } from "../services/index";
 import { userRepository, storageRepository } from "../repositories/index";
 
-export const authController = new AuthController(authenticationService, userRepository, emailService, organizationService);
+export const authController = new AuthController(authenticationService, userRepository, userService, emailService, organizationService);
 export const userController = new UserController(userService, authenticationService, emailService);
 export const companyController = new CompanyController(companyService, marketingService);
 export const settingsController = new SettingsController(organizationService);
@@ -41,3 +43,4 @@ export const emailController = new EmailController(emailService);
 export const integrationController = new IntegrationController(integrationConnectionService, integrationManager);
 export const publicIntegrationController = new PublicIntegrationController(integrationConnectionService);
 export const notificationController = new NotificationController(notificationService);
+export const postsController = new PostsController(postsService);

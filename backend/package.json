@@ -27,6 +27,7 @@
     "test:unit:integration-connection": "cross-env NODE_ENV=development jest services/IntegrationConnectionService.unit.test.ts --no-coverage",
     "test:unit:integration-service": "cross-env NODE_ENV=development jest services/IntegrationService.unit.test.ts --no-coverage",
     "test:unit:notification-service": "cross-env NODE_ENV=development jest services/NotificationService.unit.test.ts --no-coverage",
+    "test:unit:posts-service": "cross-env NODE_ENV=development jest services/PostsService.unit.test.ts --no-coverage",
     "test:unit:transactional-notification-email": "cross-env NODE_ENV=development jest services/TransactionalNotificationEmailService.unit.test.ts --no-coverage",
     "test:unit:refresh-token-workflow:in-process": "pnpm --filter openquok-orchestrator test:unit:refresh-token-workflow:in-process",
     "test:unit:refresh-token-workflow:bullmq": "pnpm --filter openquok-orchestrator test:unit:refresh-token-workflow:bullmq",
@@ -55,8 +56,6 @@
   "author": "Rati Montreewat",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "openquok-common": "workspace:*",
-    "openquok-orchestrator": "workspace:*",
     "@aws-sdk/client-sesv2": "^3.1000.0",
     "@flowcraft/bullmq-adapter": "^1.4.3",
     "@sentry/node": "^8.55.0",
@@ -77,8 +76,11 @@
     "lodash": "^4.18.1",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.1",
+    "openquok-common": "workspace:*",
+    "openquok-orchestrator": "workspace:*",
     "redis": "^5.11.0",
-    "uuid": "^11.0.3",
+    "twitter-text": "^3.1.0",
+    "uuid": "^8.3.2",
     "zod": "^3.24.0"
   },
   "devDependencies": {

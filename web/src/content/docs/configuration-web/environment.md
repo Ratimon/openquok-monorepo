@@ -2,7 +2,7 @@
 title: Environment variables
 description: Configure VITE's values for API base URL, Supabase, Stripe, and analytics for Openquok.
 order: 1
-lastUpdated: 2026-04-12
+lastUpdated: 2026-04-14
 ---
 
 <script>
@@ -35,11 +35,27 @@ VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID=
 ```
 
-<Callout type="note" title="VITE_FRONTEND_DOMAIN_URL should match the URL you visit">
-<p>Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>exact</strong> origin you use to open the web app: scheme (<code>http</code> vs <code>https</code>) and hostname. Treat <code>www</code> and the apex host as different origins—for example <code>https://www.example.com</code> and <code>https://example.com</code> are not interchangeable for OAuth.</p>
+<Callout type="note">
+<p>Treat <code>www</code> and the apex host as different origins—for example <code>https://www.example.com</code> and <code>https://example.com</code> are not interchangeable for OAuth.</p>
 <p>In <strong>production</strong>, set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>same</strong> string as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the backend (see <a href="/docs/configuration-backend">Configuration - Backend</a> and <a href="/docs/Installation/production-deployment">Production deployment</a>). The backend builds provider redirect URIs from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> only; Meta and similar dashboards must list those full URLs character-for-character.</p>
 <p>Do not add a trailing slash after the host. If you change either variable, rebuild the web app and restart or redeploy the API so both pick up the new origin.</p>
 </Callout>
+
+### HTTPS local development and the API base URL
+
+The web dev server in this repo uses <strong>HTTPS</strong> on <code>https://localhost:5173</code> (local certificates under <Badge text="web/.cert/" variant="path" />). Session cookies for sign-in must be issued on the <strong>same site</strong> as the page origin, so the browser should call the API as <strong>same-origin</strong> <code>/api/...</code> in development, not a separate <code>http://localhost:3000</code> origin.
+
+<Callout type="warning">
+<p>Do not point VITE_API_BASE_URL at http://localhost:3000 when the app runs on HTTPS. If <Badge text="VITE_API_BASE_URL" variant="envWeb" /> is set to <code>http://localhost:3000</code> while you open the app on <code>https://localhost:5173</code>, the scheme differs and the browser treats that as a different site: refresh cookies may not be sent and Google sign-in can loop or fail.</p>
+<p>For local HTTPS, <strong>omit</strong> <Badge text="VITE_API_BASE_URL" variant="envWeb" /> from <Badge text="web/.env.development.local" variant="envFile" /> (or set it to an empty value). The web app then uses a relative API base so requests go to <code>https://localhost:5173/api/...</code>.</p>
+</Callout>
+
+In development, <Badge text="web/src/hooks.server.ts" variant="path" /> forwards <code>/api/*</code> to the process listening on <code>http://localhost:3000</code> (see <Badge text="web/vite.config.ts" variant="path" /> for the same target). Optional override: set <code>DEV_BACKEND_PROXY_TARGET</code> in <Badge text="web/.env.development.local" variant="envFile" /> if the API is not on port 3000.
+
+
+### Set production env values
+
+For deployment, ensure <Badge text="web/.env.production.local" variant="envFile" /> (or your host’s production env) sets the same key names with production values. Double-check <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> against <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the API before you register OAuth redirect URIs in external dashboards.
 
 Stripe price IDs for your plans:
 
@@ -52,10 +68,6 @@ VITE_PUBLIC_STRIPE_PRICE_ID_PROFESSIONAL_PACK=
 VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_1_YEAR_PACK=
 VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_LIFETIME_PACK=
 ```
-
-### Set production env values
-
-For deployment, ensure <Badge text="web/.env.production.local" variant="envFile" /> (or your host’s production env) sets the same key names with production values. Double-check <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> against <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the API before you register OAuth redirect URIs in external dashboards.
 
 </Steps>
 

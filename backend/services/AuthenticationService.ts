@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { RefreshTokenRepository } from "../repositories/RefreshTokenRepository";
 import type { UserRepository } from "../repositories/UserRepository";
 import type { UserRow } from "../repositories/UserRepository";
@@ -149,7 +149,7 @@ export class AuthenticationService {
     async exchangeOAuthCodeForSession(
         context: { req: Request; res: Response },
         code: string
-    ): Promise<{ session: { access_token: string; refresh_token: string }; user: { id: string } }> {
+    ): Promise<{ session: { access_token: string; refresh_token: string }; user: User }> {
         const supabaseRLSClient = this.createRLSClient(context);
         const { data, error } = await supabaseRLSClient.auth.exchangeCodeForSession(code);
         if (error || !data?.session || !data.user?.id) {
@@ -159,7 +159,7 @@ export class AuthenticationService {
         }
         return {
             session: data.session as { access_token: string; refresh_token: string },
-            user: { id: data.user.id },
+            user: data.user as User,
         };
     }
 

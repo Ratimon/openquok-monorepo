@@ -11,15 +11,23 @@ const appTitle = 'An agentic social media manager';
 const appDescription = 'Openquok web application';
 
 function getApiBaseUrl(): string {
-	let raw: string;
-	if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
-		raw = import.meta.env.VITE_API_BASE_URL as string;
-	} else if (typeof process !== 'undefined' && process.env?.VITE_API_BASE_URL) {
-		raw = process.env.VITE_API_BASE_URL as string;
-	} else {
-		raw = 'http://localhost:3000';
+	const fromMeta =
+		typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL !== undefined
+			? String(import.meta.env.VITE_API_BASE_URL)
+			: undefined;
+	const fromProcess =
+		typeof process !== 'undefined' && process.env?.VITE_API_BASE_URL !== undefined
+			? String(process.env.VITE_API_BASE_URL)
+			: undefined;
+	const explicit = fromMeta ?? fromProcess;
+	if (explicit !== undefined) {
+		return normalizeApiBaseUrl(explicit);
 	}
-	return normalizeApiBaseUrl(raw);
+	// Dev + Vite proxy: empty base → relative `/api/...` on the web origin so cookies stay same-site with HTTPS dev.
+	if (typeof import.meta !== 'undefined' && import.meta.env.DEV) {
+		return '';
+	}
+	return normalizeApiBaseUrl('http://localhost:3000');
 }
 
 export const CONFIG_SCHEMA_BACKEND: ModuleConfigSchema = {
