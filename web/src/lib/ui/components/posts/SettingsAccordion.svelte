@@ -5,8 +5,8 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Accordion from '$lib/ui/accordion';
 
-	import ThreadFinisher from '$lib/ui/components/launches/finisher/ThreadFinisher.svelte';
-	import InstagramCollaborators from '$lib/ui/components/launches/providers/instagram/InstagramCollaborators.svelte';
+	import ThreadFinisher from '$lib/ui/components/posts/finisher/ThreadFinisher.svelte';
+	import InstagramCollaborators from '$lib/ui/components/posts/providers/instagram/InstagramCollaborators.svelte';
 
 	type ProviderSettings = {
 		threads: { enabled: boolean; message: string };

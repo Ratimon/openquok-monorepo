@@ -2,7 +2,7 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import DeleteDialog from '$lib/ui/components/launches/DeleteDialog.svelte';
+	import DeleteDialog from '$lib/ui/components/posts/DeleteDialog.svelte';
 
 	type Props = {
 		body?: string;

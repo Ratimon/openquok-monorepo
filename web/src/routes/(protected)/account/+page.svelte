@@ -15,13 +15,13 @@
 
 	import { Alert, AlertDescription, AlertTitle } from '$lib/ui/alert';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import AddProvider from '$lib/ui/components/launches/AddProvider.svelte';
+	import AddProvider from '$lib/ui/components/posts/AddProvider.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import IntegrationMenu from '$lib/ui/components/launches/IntegrationMenu.svelte';
-	import MoveChannelGroupModal from '$lib/ui/components/launches/MoveChannelGroupModal.svelte';
-	import TimeTable from '$lib/ui/components/launches/TimeTable.svelte';
-	import OnBoardingModal from '$lib/ui/components/launches/OnBoardingModal.svelte';
-	import CreateSocialPostModal from '$lib/ui/components/launches/CreateSocialPostModal.svelte';
+	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
+	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
+	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
+	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
+	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import { toast } from '$lib/ui/sonner';
 
 	type Props = {

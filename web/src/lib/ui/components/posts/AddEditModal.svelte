@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-	import type { PostCommentMode } from '$lib/ui/components/launches/AddPostButton.svelte';
+	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 
-	import AddPostButton from '$lib/ui/components/launches/AddPostButton.svelte';
-	import EditorPost from '$lib/ui/components/launches/EditorPost.svelte';
-	import PicksSocialsComponent from '$lib/ui/components/launches/PicksSocialsComponent.svelte';
-	import SelectGroupTargeting from '$lib/ui/components/launches/SelectGroupTargeting.svelte';
-	import SelectTargets from '$lib/ui/components/launches/SelectTargets.svelte';
-	import SettingsAccordion from '$lib/ui/components/launches/SettingsAccordion.svelte';
-	import ShowAllProviders from '$lib/ui/components/launches/providers/ShowAllProviders.svelte';
+	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
+	import EditorPost from '$lib/ui/components/posts/EditorPost.svelte';
+	import PicksSocialsComponent from '$lib/ui/components/posts/PicksSocialsComponent.svelte';
+	import SelectGroupTargeting from '$lib/ui/components/posts/SelectGroupTargeting.svelte';
+	import SelectTargets from '$lib/ui/components/posts/SelectTargets.svelte';
+	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
+	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
 
 	type Mode = 'global' | 'custom';
 

@@ -1,4 +1,4 @@
-import type { PostCommentMode } from '$lib/ui/components/launches/AddPostButton.svelte';
+import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 
 export type LaunchProviderId = string;
 

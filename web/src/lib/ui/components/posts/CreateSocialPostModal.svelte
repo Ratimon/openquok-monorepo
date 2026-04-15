@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { PostTagProgrammerModel, RepeatIntervalKey } from '$lib/posts';
-	import type { PostCommentMode } from '$lib/ui/components/launches/AddPostButton.svelte';
+	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 
 
 	import { icons } from '$data/icon';
@@ -15,7 +15,7 @@
 	import AddEditModal from './AddEditModal.svelte';
 	import DeleteDialog from './DeleteDialog.svelte';
 	import ManageModal from './ManageModal.svelte';
-	import { getLaunchProviderConfig } from '$lib/ui/components/launches/providers';
+	import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 
 	type Mode = 'global' | 'custom';
 

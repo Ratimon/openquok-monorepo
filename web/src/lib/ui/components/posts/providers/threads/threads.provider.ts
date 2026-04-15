@@ -1,4 +1,4 @@
-import type { LaunchProviderConfig } from '$lib/ui/components/launches/providers/provider.types';
+import type { LaunchProviderConfig } from '$lib/ui/components/posts/providers/provider.types';
 
 export const threadsProvider: LaunchProviderConfig = {
 	id: 'threads',

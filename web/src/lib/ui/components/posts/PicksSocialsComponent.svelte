@@ -2,7 +2,7 @@
 	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { socialProviderIcon } from '$lib/ui/components/launches/socialProviderIcons';
+	import { socialProviderIcon } from '$lib/ui/components/posts/socialProviderIcons';
 
 	type Props = {
 		channels: CreateSocialPostChannel[];

@@ -3,8 +3,8 @@
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { socialProviderIcon } from '$lib/ui/components/launches/socialProviderIcons';
-	import RemoveSocialAccount from '$lib/ui/components/launches/RemoveSocialAccount.svelte';
+	import { socialProviderIcon } from '$lib/ui/components/posts/socialProviderIcons';
+	import RemoveSocialAccount from '$lib/ui/components/posts/RemoveSocialAccount.svelte';
 
 	type Mode = 'global' | 'custom';
 

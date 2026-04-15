@@ -1,7 +1,7 @@
-import type { LaunchProviderConfig } from '$lib/ui/components/launches/providers/provider.types';
+import type { LaunchProviderConfig } from '$lib/ui/components/posts/providers/provider.types';
 
-import { instagramProvider } from '$lib/ui/components/launches/providers/instagram/instagram.provider';
-import { threadsProvider } from '$lib/ui/components/launches/providers/threads/threads.provider';
+import { instagramProvider } from '$lib/ui/components/posts/providers/instagram/instagram.provider';
+import { threadsProvider } from '$lib/ui/components/posts/providers/threads/threads.provider';
 
 const DEFAULT_PROVIDER: LaunchProviderConfig = {
 	id: 'default',

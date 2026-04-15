@@ -1,5 +1,5 @@
 <script lang="ts">
-	import InstagramTags from '$lib/ui/components/launches/providers/instagram/InstagramTags.svelte';
+	import InstagramTags from '$lib/ui/components/posts/providers/instagram/InstagramTags.svelte';
 
 	type Props = {
 		postType?: 'post' | 'story';
