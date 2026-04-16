@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { RequestHandler } from "express";
 import { validateRequest } from "../../middlewares/validateRequest";
+import { COMPOSER_MEDIA_BUCKET_NAME } from "../../repositories/StorageR2Repository";
+import { DATABASE_NAMES } from "../../repositories/StorageSupabaseRepository";
 
 export const postOrganizationQuerySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
@@ -22,6 +24,12 @@ const repeatIntervalEnum = z.enum([
     "month",
 ]);
 
+const mediaItemSchema = z.object({
+    id: z.string().min(1).max(200),
+    path: z.string().min(1).max(2000),
+    bucket: z.enum([DATABASE_NAMES.BLOG_IMAGES, COMPOSER_MEDIA_BUCKET_NAME]).optional(),
+});
+
 export const createPostBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     body: z.string().max(50000).optional(),
@@ -30,6 +38,8 @@ export const createPostBodySchema = z.object({
      * Keys are integration IDs; values are the body content to use for that integration.
      */
     bodiesByIntegrationId: z.record(z.string().uuid(), z.string().max(50000)).optional(),
+    /** Attached images (storage paths in `blog_images`); persisted as JSON in `posts.image`. */
+    media: z.array(mediaItemSchema).max(20).optional(),
     integrationIds: z.array(z.string().uuid()).optional(),
     isGlobal: z.boolean().optional(),
     scheduledAt: z.string().min(1, "Schedule time is required"),

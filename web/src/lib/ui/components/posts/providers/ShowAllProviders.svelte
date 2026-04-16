@@ -9,20 +9,23 @@
 		channel: CreateSocialPostChannel | null;
 		previewText: string;
 		maximumCharacters?: number;
+		mediaUrls?: string[];
 	};
 
-	let { channel, previewText, maximumCharacters }: Props = $props();
+	let { channel, previewText, maximumCharacters, mediaUrls = [] }: Props = $props();
 
 	const identifier = $derived((channel?.identifier ?? '').toLowerCase());
+	/** Ensures children always receive a number (avoids `undefined` vs optional-default edge cases). */
+	const maxChars = $derived(maximumCharacters ?? 10_000);
 </script>
 
 {#if !channel}
-	<GeneralPreviewComponent {previewText} maximumCharacters={maximumCharacters} title="Global Edit" />
+	<GeneralPreviewComponent {previewText} {mediaUrls} maximumCharacters={maxChars} title="Global Edit" />
 {:else if identifier.startsWith('instagram')}
-	<InstagramPreview {channel} {previewText} maximumCharacters={maximumCharacters} />
+	<InstagramPreview {channel} {previewText} {mediaUrls} maximumCharacters={maxChars} />
 {:else if identifier === 'threads'}
-	<ThreadsPreview {channel} {previewText} maximumCharacters={maximumCharacters} />
+	<ThreadsPreview {channel} {previewText} {mediaUrls} maximumCharacters={maxChars} />
 {:else}
-	<GeneralPreviewComponent {previewText} maximumCharacters={maximumCharacters} {channel} showVerified={false} />
+	<GeneralPreviewComponent {previewText} {mediaUrls} maximumCharacters={maxChars} {channel} showVerified={false} />
 {/if}
 

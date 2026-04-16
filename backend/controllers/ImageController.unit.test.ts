@@ -3,7 +3,7 @@ import http from "http";
 import https from "https";
 
 import { ImageController } from "./ImageController";
-import type { StorageRepository } from "../repositories/StorageRepository";
+import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseRepository";
 
 function createMockResponse(): jest.Mocked<Response> {
     return {
@@ -15,7 +15,7 @@ function createMockResponse(): jest.Mocked<Response> {
 }
 
 describe("ImageController", () => {
-    let storageRepository: jest.Mocked<StorageRepository>;
+    let storageRepository: jest.Mocked<StorageSupabaseRepository>;
     let controller: ImageController;
 
     beforeEach(() => {
@@ -23,7 +23,7 @@ describe("ImageController", () => {
             downloadImage: jest.fn(),
             uploadImage: jest.fn(),
             deleteImage: jest.fn(),
-        } as unknown as jest.Mocked<StorageRepository>;
+        } as unknown as jest.Mocked<StorageSupabaseRepository>;
 
         controller = new ImageController(storageRepository);
     });

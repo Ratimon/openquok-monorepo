@@ -1,11 +1,13 @@
 <script lang="ts">
 	// Minimal accordion built on bits-ui Collapsible primitives.
 	// This keeps API consistent with our other ui wrappers.
+	import type { Snippet } from 'svelte';
+
 	import { cn } from '$lib/ui/helpers/common';
 
 	type Props = {
 		class?: string;
-		children?: () => unknown;
+		children?: Snippet;
 	};
 
 	let { class: className, children }: Props = $props();

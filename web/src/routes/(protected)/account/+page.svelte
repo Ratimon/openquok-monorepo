@@ -458,6 +458,7 @@
 	bind:open={createSocialPostOpen}
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannels}
+	uploadUid={currentUser?.id ?? ''}
 />
 
 <OnBoardingModal

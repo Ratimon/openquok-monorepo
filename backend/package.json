@@ -38,6 +38,8 @@
     "test:integration:feedback-rbac": "cross-env NODE_ENV=development jest tests/integration/FeedbackRbac.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:blog-rbac": "cross-env NODE_ENV=development jest tests/integration/BlogRbac.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:third-parties": "cross-env NODE_ENV=development jest tests/integration/ThirdParties.integration.test.ts --runInBand --verbose --no-coverage",
+    "test:integration:third-parties:r2": "cross-env THIRD_PARTY_TESTS_R2=true NODE_ENV=development jest tests/integration/ThirdParties.integration.test.ts --runInBand --verbose --no-coverage",
+    "test:integration:third-parties:redis": "cross-env THIRD_PARTY_TESTS_REDIS=true NODE_ENV=development jest tests/integration/ThirdParties.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:bullmq-redis": "cross-env NODE_ENV=development BULLMQ_INTEGRATION_TEST=true jest tests/integration/BullMqRedis.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:social-connection": "cross-env NODE_ENV=development jest tests/integration/SocialConnectionOrganization.integration.test.ts --runInBand --verbose --no-coverage",
     "test:e2e": "cross-env NODE_ENV=development jest tests/e2e --runInBand --verbose --no-coverage",
@@ -56,6 +58,7 @@
   "author": "Rati Montreewat",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1030.0",
     "@aws-sdk/client-sesv2": "^3.1000.0",
     "@flowcraft/bullmq-adapter": "^1.4.3",
     "@sentry/node": "^8.55.0",

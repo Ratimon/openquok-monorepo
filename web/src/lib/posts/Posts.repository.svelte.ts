@@ -1,5 +1,6 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import { ApiError } from '$lib/core/HttpGateway';
+import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
 
 export type PostTagProgrammerModel = {
 	id: string;
@@ -24,11 +25,11 @@ export type CreateTagResponseDto = {
 
 export type PostRowProgrammerModel = {
 	id: string;
-	post_group: string;
+	postGroup: string;
 	state: string;
-	publish_date: string;
-	organization_id: string;
-	integration_id: string | null;
+	publishDate: string;
+	organizationId: string;
+	integrationId: string | null;
 	content: string;
 };
 
@@ -56,6 +57,8 @@ export type CreatePostPayload = {
 	body: string;
 	/** Optional per-channel body overrides (keyed by integration id). */
 	bodiesByIntegrationId?: Record<string, string>;
+	/** Image attachments (storage object keys under `blog_images`). */
+	media?: SocialPostMediaItem[];
 	integrationIds: string[];
 	isGlobal: boolean;
 	scheduledAt: string;

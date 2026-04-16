@@ -1,9 +1,7 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 
-export type DatabaseName =
-	| 'avatars'
-	| 'blog_images'
-	;
+/** Supabase Storage buckets exposed by `/api/v1/image/*`. */
+export type DatabaseName = 'avatars' | 'blog_images';
 
 export interface ImageUploadResponseDto {
 	success: boolean;
@@ -140,4 +138,3 @@ export class ImageRepository {
 		}
 	}
 }
-

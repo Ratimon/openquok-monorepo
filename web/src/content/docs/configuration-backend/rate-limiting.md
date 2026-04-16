@@ -1,7 +1,7 @@
 ---
 title: Rate limiting
 description: Configure backend rate limiting (global, auth, and OAuth endpoints) for Openquok.
-order: 7
+order: 8
 lastUpdated: 2026-04-01
 ---
 

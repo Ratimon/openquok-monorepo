@@ -41,6 +41,20 @@ pnpm backend:test:integration
 pnpm backend:test:e2e
 ```
 
+<Callout type="note" title="Optional: third-party connectivity smoke tests (opt-in)">
+<p>Some integration tests are designed to verify connectivity to managed third-party services (for example Cloudflare R2 or managed Redis). These tests are <strong>disabled by default</strong> to avoid accidental calls to production services during everyday local development or CI.</p>
+<p>To enable them, set the opt-in flags below when running the test file:</p>
+<ul>
+  <li><Badge text="THIRD_PARTY_TESTS_REDIS=true" variant="envBackend" /></li>
+  <li><Badge text="THIRD_PARTY_TESTS_R2=true" variant="envBackend" /></li>
+</ul>
+<p>Run the third-party suite directly (recommended) instead of the full integration folder:</p>
+</Callout>
+
+```bash
+pnpm --filter ./backend test:integration:third-parties:r2
+```
+
 **Aggregate SQL migrations** — builds the combined migration output used by the repo (see `backend/scripts/aggregate_migrations_all.mjs`).
 
 ```bash

@@ -1,13 +1,15 @@
 import type { Request, Response, NextFunction } from "express";
+import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseRepository";
+
 import http from "http";
 import https from "https";
 
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
 import { UserValidationError } from "../errors/UserError";
-import { isAllowedDatabaseName, type StorageRepository } from "../repositories/StorageRepository";
+import { isSupabaseImageBucketName } from "../repositories/StorageSupabaseRepository";
 
 export class ImageController {
-    constructor(private readonly storageRepository: StorageRepository) {}
+    constructor(private readonly storageRepository: StorageSupabaseRepository) {}
 
     getByUrl = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -16,7 +18,7 @@ export class ImageController {
             if (!imageUrl || !databaseName) {
                 throw new UserValidationError("ImageUrl and databaseName are required");
             }
-            if (!isAllowedDatabaseName(databaseName)) {
+            if (!isSupabaseImageBucketName(databaseName)) {
                 throw new UserValidationError("Invalid databaseName");
             }
 
@@ -50,7 +52,7 @@ export class ImageController {
             if (!authUid) {
                 throw new UserValidationError("Authentication required");
             }
-            if (!isAllowedDatabaseName(databaseName)) {
+            if (!isSupabaseImageBucketName(databaseName)) {
                 throw new UserValidationError("Invalid databaseName");
             }
 
@@ -77,7 +79,7 @@ export class ImageController {
             if (!imagePath || !databaseName) {
                 throw new UserValidationError("ImagePath and databaseName are required");
             }
-            if (!isAllowedDatabaseName(databaseName)) {
+            if (!isSupabaseImageBucketName(databaseName)) {
                 throw new UserValidationError("Invalid databaseName");
             }
 

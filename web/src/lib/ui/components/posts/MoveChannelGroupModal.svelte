@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { DashboardConnectedChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { protectedDashboardPagePresenter } from '$lib/area-protected';
 	import { icons } from '$data/icon';
@@ -11,7 +11,7 @@
 
 	type Props = {
 		open?: boolean;
-		integration: DashboardConnectedChannelViewModel | null;
+		integration: CreateSocialPostChannel | null;
 	};
 
 	let { open = $bindable(false), integration }: Props = $props();

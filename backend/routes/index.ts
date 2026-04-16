@@ -10,6 +10,7 @@ import { rbacRouter } from "./RbacRoute.js";
 import { feedbackRouter } from "./FeedbackRoute.js";
 import { blogRouter } from "./BlogRoute.js";
 import { imageRouter } from "./ImageRoute.js";
+import { mediaRouter } from "./MediaRoute.js";
 import { sessionIntegrationsRouter } from "./integrations/sessionRoutes.js";
 import { publicIntegrationRouter } from "./publicApi/integrationRoutes.js";
 import { notificationRouter } from "./NotificationRoute.js";
@@ -39,6 +40,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     apiRouter.use("/feedback", feedbackRouter);
     apiRouter.use("/blog-system", blogRouter);
     apiRouter.use("/image", imageRouter);
+    apiRouter.use("/media", mediaRouter);
     apiRouter.use("/integrations", sessionIntegrationsRouter);
     apiRouter.use("/public", publicIntegrationRouter);
     apiRouter.use("/notifications", notificationRouter);
@@ -57,6 +59,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
         feedback: `${prefix}/feedback`,
         blog: `${prefix}/blog-system`,
         image: `${prefix}/image`,
+        media: `${prefix}/media`,
         integrationsSession: `${prefix}/integrations`,
         integrationsProgrammatic: `${prefix}/public`,
         notifications: `${prefix}/notifications`,

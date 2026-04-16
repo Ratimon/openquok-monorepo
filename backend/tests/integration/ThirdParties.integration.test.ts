@@ -3,6 +3,7 @@ import path from "path";
 import dotenv from "dotenv";
 import { createClient } from "redis";
 import RedisCacheProvider from "../../connections/cache/RedisCacheProvider";
+import { R2StorageClient } from "../../connections/R2StorageClient";
 
 /**
  * Load production env via dotenv.parse() so we get the Redis credentials
@@ -21,9 +22,20 @@ const redisPort = Number(prodEnv.REDIS_PORT || process.env.REDIS_PORT || 6379);
 const redisPassword = prodEnv.REDIS_PASSWORD || process.env.REDIS_PASSWORD || "";
 const redisDb = Number(prodEnv.REDIS_DB || process.env.REDIS_DB || 0);
 
-const hasRedisConfig = !!redisHost && redisHost !== "localhost";
+const enableRedisTests = (process.env.THIRD_PARTY_TESTS_REDIS ?? "").toLowerCase() === "true";
+const hasRedisConfig = enableRedisTests && !!redisHost && redisHost !== "localhost";
 
 const describeIfRedis = hasRedisConfig ? describe : describe.skip;
+
+const r2AccountId = prodEnv.STORAGE_R2_ACCOUNT_ID || process.env.STORAGE_R2_ACCOUNT_ID || "";
+const r2AccessKeyId = prodEnv.STORAGE_R2_ACCESS_KEY_ID || process.env.STORAGE_R2_ACCESS_KEY_ID || "";
+const r2SecretAccessKey = prodEnv.STORAGE_R2_SECRET_ACCESS_KEY || process.env.STORAGE_R2_SECRET_ACCESS_KEY || "";
+const r2Bucket = prodEnv.STORAGE_R2_BUCKET || process.env.STORAGE_R2_BUCKET || "";
+const r2Region = (prodEnv.STORAGE_R2_REGION || process.env.STORAGE_R2_REGION || "auto").trim() || "auto";
+
+const enableR2Tests = (process.env.THIRD_PARTY_TESTS_R2 ?? "").toLowerCase() === "true";
+const hasR2Config = enableR2Tests && Boolean(r2AccountId && r2AccessKeyId && r2SecretAccessKey && r2Bucket);
+const describeIfR2 = hasR2Config ? describe : describe.skip;
 
 // ---------------------------------------------------------------------------
 // Redis Cloud (production) – connectivity & RedisCacheProvider smoke tests
@@ -94,5 +106,33 @@ describeIfRedis("Third-party: Redis Cloud (production)", () => {
             expect(raw).not.toBeNull();
             expect(JSON.parse(raw!)).toEqual(data);
         });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Cloudflare R2 (production) – connectivity smoke test (S3-compatible)
+// ---------------------------------------------------------------------------
+describeIfR2("Third-party: Cloudflare R2 (production)", () => {
+    it("can put + get + delete a small object", async () => {
+        const r2 = new R2StorageClient({
+            accountId: r2AccountId,
+            accessKeyId: r2AccessKeyId,
+            secretAccessKey: r2SecretAccessKey,
+            bucket: r2Bucket,
+            region: r2Region,
+        });
+
+        const key = `test/third-parties/${Date.now()}-${Math.random().toString(16).slice(2)}.txt`;
+        const contentType = "text/plain";
+        const body = Buffer.from(`ok-${Date.now()}`, "utf8");
+
+        await r2.putObject(key, body, contentType);
+        try {
+            const got = await r2.getObjectBuffer(key);
+            expect(got.contentType).toBeTruthy();
+            expect(got.buffer.toString("utf8")).toEqual(body.toString("utf8"));
+        } finally {
+            await r2.deleteObject(key);
+        }
     });
 });

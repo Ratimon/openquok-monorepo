@@ -1,8 +1,12 @@
 <script lang="ts">
+	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
+
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DeleteDialog from '$lib/ui/components/posts/DeleteDialog.svelte';
+	import ComposerMediaToolbar from '$lib/ui/components/posts/ComposerMediaToolbar.svelte';
+	import MultiMedia from '$lib/ui/components/posts/MultiMedia.svelte';
 
 	type Props = {
 		body?: string;
@@ -16,6 +20,9 @@
 		bannerRightActionLabel?: string | null;
 		onBannerRightAction?: () => void;
 		confirmBannerRightAction?: boolean;
+		postMediaItems?: SocialPostMediaItem[];
+		/** Auth uid for multipart upload field; storage path uses JWT on the server. */
+		uploadUid?: string;
 	};
 
 	let {
@@ -30,6 +37,8 @@
 		bannerRightActionLabel = null,
 		onBannerRightAction,
 		confirmBannerRightAction = false,
+		postMediaItems = $bindable<SocialPostMediaItem[]>([]),
+		uploadUid = '',
 	}: Props = $props();
 
 	let confirmOpen = $state(false);
@@ -81,7 +90,9 @@
 			rows="8"
 			placeholder="Write something…"
 			disabled={busy || locked}
-			class="border-base-300 bg-base-200 focus:border-primary focus:ring-primary/30 focus:ring-inset min-h-[140px] sm:min-h-[180px] max-h-[320px] w-full resize-none sm:resize-y rounded-lg border px-3 py-2 text-sm text-base-content placeholder:text-base-content/40 focus:ring-2 focus:outline-none"
+			class="border-base-300 bg-base-200 focus:border-primary focus:ring-primary/30 focus:ring-inset min-h-[140px] sm:min-h-[180px] max-h-[320px] w-full resize-none sm:resize-y rounded-lg border px-3 pt-2 text-sm text-base-content placeholder:text-base-content/40 focus:ring-2 focus:outline-none {locked
+				? 'pb-2'
+				: 'pb-12'}"
 		></textarea>
 
 		{#if locked}
@@ -94,14 +105,23 @@
 					Edit content
 				</Button>
 			</div>
+		{:else}
+			<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-start">
+				<ComposerMediaToolbar
+					class="pointer-events-auto"
+					bind:items={postMediaItems}
+					disabled={busy}
+					{uploadUid}
+				/>
+			</div>
 		{/if}
 	</div>
-	<div class="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-base-300/80 pt-2">
-		<div class="text-base-content/40 flex items-center gap-2 text-xs">
-			<AbstractIcon name={icons.Image.name} class="size-4" width="16" height="16" />
-			<AbstractIcon name={icons.ClapperBoard.name} class="size-4" width="16" height="16" />
-			<AbstractIcon name={icons.Smile.name} class="size-4" width="16" height="16" />
+	{#if !locked}
+		<div class="mt-2 border-t border-base-300/80 pt-2">
+			<MultiMedia bind:items={postMediaItems} disabled={busy} {uploadUid} />
 		</div>
+	{/if}
+	<div class="mt-2 flex flex-wrap items-center justify-end gap-2 border-t border-base-300/80 pt-2">
 		<div
 			class="rounded border px-2 py-0.5 text-xs font-medium {charCount > softCharLimit
 				? 'border-error/60 bg-error/10 text-error'

@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from "uuid";
 
 import { requireFullAuth } from "../middlewares/authenticateUser";
 import { applyRateLimiting } from "../middlewares/rateLimit";
-import { DATABASE_NAMES } from "../repositories/StorageRepository";
 import { logger } from "../utils/Logger";
 
 interface RequestWithId extends Request {
@@ -58,7 +57,7 @@ function shouldSkipApiAuth(
     if (req.method === "GET" && routePath === "/image/download") {
         const dbName = typeof req.query.databaseName === "string" ? req.query.databaseName : "";
         const imageUrlParam = typeof req.query.imageUrl === "string" ? req.query.imageUrl : "";
-        if (dbName === DATABASE_NAMES.BLOG_IMAGES && imageUrlParam.length > 0) {
+        if (dbName === "blog_images" && imageUrlParam.length > 0) {
             return true;
         }
     }

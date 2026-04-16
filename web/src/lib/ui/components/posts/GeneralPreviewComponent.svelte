@@ -3,6 +3,7 @@
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import SliderComponent from '$lib/ui/slider/SliderComponent.svelte';
 
 	type Props = {
 		previewText: string;
@@ -10,6 +11,7 @@
 		channel?: CreateSocialPostChannel | null;
 		title?: string;
 		showVerified?: boolean;
+		mediaUrls?: string[];
 	};
 
 	let {
@@ -17,7 +19,8 @@
 		maximumCharacters = 10000,
 		channel = null,
 		title = 'Global Edit',
-		showVerified = true
+		showVerified = true,
+		mediaUrls = []
 	}: Props = $props();
 
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
@@ -77,6 +80,11 @@
 				{/if}
 			</div>
 		</div>
+		{#if mediaUrls.length > 0}
+			<div class="mt-3 w-full overflow-hidden rounded-lg border border-base-300/80">
+				<SliderComponent class="aspect-[16/9] w-full" urls={mediaUrls} alt="" />
+			</div>
+		{/if}
 	</div>
 </div>
 

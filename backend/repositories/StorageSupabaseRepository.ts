@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { DatabaseError } from "../errors/InfraError";
 
-/** Buckets exposed by the image API — must stay in sync with web `DatabaseName`. */
+/** Supabase Storage bucket names for `/api/v1/image/*` — stay in sync with web `DatabaseName` for that API. */
 export const DATABASE_NAMES = {
     AVATARS: "avatars",
     BLOG_IMAGES: "blog_images",
@@ -14,7 +14,19 @@ export function isAllowedDatabaseName(name: unknown): name is DatabaseName {
     return typeof name === "string" && (Object.values(DATABASE_NAMES) as string[]).includes(name);
 }
 
-export class StorageRepository {
+/** Buckets backed by Supabase Storage (`/api/v1/image/*`). User-owned R2 media uses `/api/v1/media/*`. */
+export type SupabaseImageBucketName = typeof DATABASE_NAMES.AVATARS | typeof DATABASE_NAMES.BLOG_IMAGES;
+
+export function isSupabaseImageBucketName(name: unknown): name is SupabaseImageBucketName {
+    return name === DATABASE_NAMES.AVATARS || name === DATABASE_NAMES.BLOG_IMAGES;
+}
+
+/**
+ * Supabase Storage repository.
+ *
+ * R2 is intentionally handled elsewhere (see `StorageR2Repository`) so this class stays Supabase-only.
+ */
+export class StorageSupabaseRepository {
     constructor(private readonly supabaseServiceClient: SupabaseClient) {}
 
     async getPublicImageUrl(databaseName: DatabaseName, imageUrl: string) {
@@ -36,7 +48,8 @@ export class StorageRepository {
                 msg.includes("nosuchkey") ||
                 msg.includes("no such key") ||
                 (error as { error?: string }).error === "ObjectNotFound";
-            const messageStr = typeof rawMsg === "string" ? rawMsg : rawMsg ? JSON.stringify(rawMsg) : "Unknown storage error";
+            const messageStr =
+                typeof rawMsg === "string" ? rawMsg : rawMsg ? JSON.stringify(rawMsg) : "Unknown storage error";
             throw new DatabaseError(`Error in downloadImage: ${databaseName} with message ${messageStr}`, {
                 cause: error,
                 operation: "download",
@@ -52,7 +65,7 @@ export class StorageRepository {
         file: { buffer: Buffer; originalname: string; mimetype: string },
         uid: string
     ) {
-        const fileExt = file.originalname.split(".").pop();
+        const fileExt = file.originalname.split(".").pop() || "bin";
         const filePath = `${uid}-${Math.random()}.${fileExt}`;
 
         const { error: uploadError } = await this.supabaseServiceClient.storage
@@ -89,3 +102,4 @@ export class StorageRepository {
         return { data, error };
     }
 }
+

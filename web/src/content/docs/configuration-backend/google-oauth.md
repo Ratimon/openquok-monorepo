@@ -1,7 +1,7 @@
 ---
 title: Google OAuth
 description: Configure Google login with Supabase Auth (redirect URIs, dashboard settings) for Openquok.
-order: 4
+order: 6
 lastUpdated: 2026-04-14
 ---
 

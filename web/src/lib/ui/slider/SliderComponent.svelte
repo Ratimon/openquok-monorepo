@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import BlobOrHrefImg from '$lib/ui/components/posts/BlobOrHrefImg.svelte';
 
 	type Props = {
 		class?: string;
@@ -27,7 +28,7 @@
 </script>
 
 <div class={`relative ${className}`}>
-	<img src={urls[show]} {alt} class="h-full w-full object-cover" draggable="false" />
+	<BlobOrHrefImg href={urls[show]} {alt} class="h-full w-full object-cover" draggable={false} />
 
 	{#if canGoPrevious}
 		<button

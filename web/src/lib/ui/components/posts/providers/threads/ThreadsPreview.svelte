@@ -2,14 +2,16 @@
 	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import SliderComponent from '$lib/ui/slider/SliderComponent.svelte';
 
 	type Props = {
 		channel: CreateSocialPostChannel;
 		previewText: string;
 		maximumCharacters?: number;
+		mediaUrls?: string[];
 	};
 
-	let { channel, previewText, maximumCharacters = 500 }: Props = $props();
+	let { channel, previewText, maximumCharacters = 500, mediaUrls = [] }: Props = $props();
 
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
@@ -64,6 +66,11 @@
 					</p>
 				{/if}
 			</div>
+			{#if mediaUrls.length > 0}
+				<div class="mt-3 overflow-hidden rounded-lg border border-white/10">
+					<SliderComponent class="aspect-[4/3] w-full" urls={mediaUrls} alt="" />
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>

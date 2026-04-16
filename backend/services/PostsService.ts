@@ -1,7 +1,8 @@
 import type { IntegrationService } from "./IntegrationService";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
-import type { PostStateDb, PostsRepository, SocialPostInsert, SocialPostRow } from "../repositories/PostsRepository";
+import type { PostsRepository, SocialPostInsert } from "../repositories/PostsRepository";
+import type { PostStateDb, SocialPostLike } from "../utils/dtos/PostDTO";
 import { AppError } from "../errors/AppError";
 
 const SLOT_STEP_MS = 15 * 60 * 1000;
@@ -49,12 +50,19 @@ function repeatIntervalToDays(key: RepeatIntervalKey | null): number | null {
     return m[key] ?? null;
 }
 
+export type PostMediaItemInput = {
+    id: string;
+    path: string;
+};
+
 export type CreatePostInput = {
     organizationId: string;
     authUserId: string;
     body: string;
     /** Optional per-integration body overrides. */
     bodiesByIntegrationId?: Record<string, string> | null;
+    /** Image attachments; stored as JSON in `posts.image`. */
+    media?: PostMediaItemInput[] | null;
     integrationIds: string[];
     isGlobal: boolean;
     scheduledAtIso: string;
@@ -112,13 +120,14 @@ export class PostsService {
 
     async createPost(input: CreatePostInput): Promise<{
         postGroup: string;
-        posts: SocialPostRow[];
+        posts: SocialPostLike[];
     }> {
         const {
             organizationId,
             authUserId,
             body,
             bodiesByIntegrationId,
+            media,
             integrationIds,
             isGlobal,
             scheduledAtIso,
@@ -170,6 +179,11 @@ export class PostsService {
 
         const state: PostStateDb = status === "draft" ? "DRAFT" : "QUEUE";
 
+        const imageColumn =
+            media && media.length > 0
+                ? JSON.stringify({ v: 1, items: media })
+                : null;
+
         const baseRow: Omit<SocialPostInsert, "integration_id"> = {
             state,
             publish_date: publishIso,
@@ -183,7 +197,7 @@ export class PostsService {
             release_id: null,
             release_url: null,
             settings: settingsJson,
-            image: null,
+            image: imageColumn,
             interval_in_days: intervalDays,
             error: null,
             deleted_at: null,

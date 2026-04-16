@@ -1,3 +1,4 @@
+import { config } from "../config/GlobalConfig";
 import { supabaseServiceClientConnection } from "../connections/index";
 import { RefreshTokenRepository } from "./RefreshTokenRepository";
 import { UserRepository } from "./UserRepository";
@@ -6,7 +7,9 @@ import { OrganizationRepository } from "./OrganizationRepository";
 import { RbacRepository } from "./RbacRepository";
 import { FeedbackRepository } from "./FeedbackRepository";
 import { BlogRepository } from "./BlogRepository";
-import { StorageRepository } from "./StorageRepository";
+import { isR2ConnectionReady, type R2ConnectionConfig } from "../connections/R2StorageClient";
+import { StorageR2Repository } from "./StorageR2Repository";
+import { StorageSupabaseRepository } from "./StorageSupabaseRepository";
 import { IntegrationRepository } from "./IntegrationRepository";
 import { NotificationRepository } from "./NotificationRepository";
 import { PostsRepository } from "./PostsRepository";
@@ -18,7 +21,27 @@ export const organizationRepository = new OrganizationRepository(supabaseService
 export const rbacRepository = new RbacRepository(supabaseServiceClientConnection);
 export const feedbackRepository = new FeedbackRepository(supabaseServiceClientConnection);
 export const blogRepository = new BlogRepository(supabaseServiceClientConnection);
-export const storageRepository = new StorageRepository(supabaseServiceClientConnection);
+type R2Slice = {
+    accountId: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    bucket: string;
+    region: string;
+};
+
+const r2Slice = (config as { storage?: { r2?: R2Slice } }).storage?.r2;
+const r2Connection: R2ConnectionConfig | null =
+    r2Slice && isR2ConnectionReady(r2Slice)
+        ? {
+              accountId: r2Slice.accountId,
+              accessKeyId: r2Slice.accessKeyId,
+              secretAccessKey: r2Slice.secretAccessKey,
+              bucket: r2Slice.bucket,
+              region: (r2Slice.region || "auto").trim() || "auto",
+          }
+        : null;
+export const storageR2Repository = new StorageR2Repository(r2Connection);
+export const storageSupabaseRepository = new StorageSupabaseRepository(supabaseServiceClientConnection);
 export const integrationRepository = new IntegrationRepository(supabaseServiceClientConnection);
 export const notificationRepository = new NotificationRepository(supabaseServiceClientConnection);
 export const postsRepository = new PostsRepository(supabaseServiceClientConnection);
@@ -30,7 +53,9 @@ export { OrganizationRepository } from "./OrganizationRepository";
 export { RbacRepository } from "./RbacRepository";
 export { FeedbackRepository } from "./FeedbackRepository";
 export { BlogRepository } from "./BlogRepository";
-export { StorageRepository } from "./StorageRepository";
+export { StorageSupabaseRepository } from "./StorageSupabaseRepository";
+export { StorageR2Repository, COMPOSER_MEDIA_BUCKET_NAME } from "./StorageR2Repository";
+export { DATABASE_NAMES, type DatabaseName, isAllowedDatabaseName } from "./StorageSupabaseRepository";
 export { IntegrationRepository } from "./IntegrationRepository";
 export { NotificationRepository } from "./NotificationRepository";
 export { PostsRepository } from "./PostsRepository";

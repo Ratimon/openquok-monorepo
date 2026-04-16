@@ -6,6 +6,7 @@ import { RbacController } from "./RbacController";
 import { FeedbackController } from "./FeedbackController";
 import { BlogController } from "./BlogController";
 import { ImageController } from "./ImageController";
+import { MediaController, MAX_MEDIA_UPLOAD_BYTES } from "./MediaController";
 import { ConfigController } from "./ConfigController";
 import { EmailController } from "./EmailController";
 import { IntegrationController } from "./IntegrationController";
@@ -28,7 +29,7 @@ import {
     notificationService,
     postsService,
 } from "../services/index";
-import { userRepository, storageRepository } from "../repositories/index";
+import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
 
 export const authController = new AuthController(authenticationService, userRepository, userService, emailService, organizationService);
 export const userController = new UserController(userService, authenticationService, emailService);
@@ -37,7 +38,9 @@ export const settingsController = new SettingsController(organizationService);
 export const rbacController = new RbacController(rbacService, userRepository);
 export const feedbackController = new FeedbackController(feedbackService);
 export const blogController = new BlogController(blogService);
-export const imageController = new ImageController(storageRepository);
+export const imageController = new ImageController(storageSupabaseRepository);
+export const mediaController = new MediaController(storageR2Repository);
+export { MAX_MEDIA_UPLOAD_BYTES };
 export const configController = new ConfigController(configService);
 export const emailController = new EmailController(emailService);
 export const integrationController = new IntegrationController(integrationConnectionService, integrationManager);

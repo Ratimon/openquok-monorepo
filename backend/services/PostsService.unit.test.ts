@@ -1,5 +1,6 @@
 import type { IntegrationRow } from "../repositories/IntegrationRepository";
-import type { PostTagRow, PostsRepository, SocialPostRow } from "../repositories/PostsRepository";
+import type { PostsRepository } from "../repositories/PostsRepository";
+import type { PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
 import type { IntegrationService } from "./IntegrationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
@@ -12,7 +13,7 @@ const authUserId = faker.string.uuid();
 const integrationId = faker.string.uuid();
 const otherIntegrationId = faker.string.uuid();
 
-// to do : remove this when we have DTOs
+// to do : remove this when we have DTOs & Getter
 function integrationRow(overrides: Partial<IntegrationRow> = {}): IntegrationRow {
     const now = new Date().toISOString();
     return {
@@ -42,7 +43,7 @@ function integrationRow(overrides: Partial<IntegrationRow> = {}): IntegrationRow
     };
 }
 
-function tagRow(overrides: Partial<PostTagRow> = {}): PostTagRow {
+function tagRow(overrides: Partial<PostTagLike> = {}): PostTagLike {
     const now = new Date().toISOString();
     return {
         id: faker.string.uuid(),
@@ -56,7 +57,7 @@ function tagRow(overrides: Partial<PostTagRow> = {}): PostTagRow {
     };
 }
 
-function socialPostRow(overrides: Partial<SocialPostRow> = {}): SocialPostRow {
+function socialPostRow(overrides: Partial<SocialPostLike> = {}): SocialPostLike {
     const now = new Date().toISOString();
     const publish = new Date("2030-06-15T12:00:00.000Z").toISOString();
     return {

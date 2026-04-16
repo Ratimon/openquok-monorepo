@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
+	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
 
 	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
 	import EditorPost from '$lib/ui/components/posts/EditorPost.svelte';
@@ -40,6 +41,9 @@
 		settingsOpen?: boolean;
 		providerSettings?: Record<string, unknown>;
 		onProviderSettingsChange: (value: Record<string, unknown>) => void;
+		postMediaItems?: SocialPostMediaItem[];
+		uploadUid?: string;
+		mediaUrls?: string[];
 	};
 
 	let {
@@ -69,7 +73,10 @@
 		onAddPost,
 		settingsOpen = $bindable(false),
 		providerSettings = {},
-		onProviderSettingsChange
+		onProviderSettingsChange,
+		postMediaItems = $bindable([]),
+		uploadUid = '',
+		mediaUrls = []
 	}: Props = $props();
 </script>
 
@@ -99,6 +106,8 @@
 		<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
 			<EditorPost
 				bind:body
+				bind:postMediaItems
+				{uploadUid}
 				{busy}
 				{charCount}
 				{softCharLimit}
@@ -139,7 +148,7 @@
 					<div class="text-base-content/90 text-base font-medium">Post Preview</div>
 				</div>
 				<div class="p-4 sm:p-6">
-					<ShowAllProviders channel={focused} {previewText} maximumCharacters={softCharLimit} />
+					<ShowAllProviders channel={focused} {previewText} {mediaUrls} maximumCharacters={softCharLimit} />
 				</div>
 			</div>
 		{:else}
@@ -148,7 +157,7 @@
 					<div class="text-base-content/90 text-base font-medium">Post Preview</div>
 				</div>
 				<div class="p-4 sm:p-6">
-					<ShowAllProviders channel={null} {previewText} maximumCharacters={softCharLimit} />
+					<ShowAllProviders channel={null} {previewText} {mediaUrls} maximumCharacters={softCharLimit} />
 				</div>
 			</div>
 		{/if}

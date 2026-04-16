@@ -21,3 +21,4 @@ export type {
 	PostTagProgrammerModel,
 	RepeatIntervalKey
 } from '$lib/posts/Posts.repository.svelte';
+export type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';

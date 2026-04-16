@@ -2,11 +2,13 @@
 	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { PostTagProgrammerModel, RepeatIntervalKey } from '$lib/posts';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
-
+	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
 
 	import { icons } from '$data/icon';
 	import * as Dialog from '$lib/ui/dialog';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import { mediaItemsToPreviewUrls } from '$lib/posts/composerMedia.types';
+
 	import { postsRepository } from '$lib/posts';
 	import { datetimeLocalToIso, isoToDatetimeLocalValue } from '$lib/utils/postingSchedulePreferences';
 	import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
@@ -23,9 +25,11 @@
 		open?: boolean;
 		workspaceId: string | null;
 		connectedChannels: CreateSocialPostChannel[];
+		/** For image upload form field; server uses JWT for storage path. */
+		uploadUid?: string;
 	};
 
-	let { open = $bindable(false), workspaceId, connectedChannels }: Props = $props();
+	let { open = $bindable(false), workspaceId, connectedChannels, uploadUid = '' }: Props = $props();
 
 	const repeatOptions: { value: RepeatIntervalKey; label: string }[] = [
 		{ value: 'day', label: 'Day' },
@@ -56,6 +60,7 @@
 	let repeatInterval = $state<RepeatIntervalKey | null>(null);
 	let selectedTagNames = $state<string[]>([]);
 	let tagList = $state<PostTagProgrammerModel[]>([]);
+	let postMediaItems = $state<SocialPostMediaItem[]>([]);
 	let busy = $state(false);
 	let confirmCloseOpen = $state(false);
 	let initialSnapshot = $state('');
@@ -80,6 +85,8 @@
 
 	const charCount = $derived(previewText.length);
 
+	const previewMediaUrls = $derived(mediaItemsToPreviewUrls(postMediaItems));
+
 	const dirty = $derived.by(() => {
 		if (initialSnapshot === '') return false;
 		const snap = JSON.stringify({
@@ -89,6 +96,7 @@
 			globalBody,
 			bodiesByIntegrationId,
 			editorBody,
+			postMediaItems,
 			selectedIds,
 			scheduledLocal,
 			repeatInterval,
@@ -229,6 +237,7 @@
 			globalBody = '';
 			bodiesByIntegrationId = {};
 			editorBody = '';
+			postMediaItems = [];
 
 			initialSnapshot = JSON.stringify({
 				mode,
@@ -237,6 +246,7 @@
 				globalBody,
 				bodiesByIntegrationId,
 				editorBody,
+				postMediaItems,
 				selectedIds,
 				scheduledLocal,
 				repeatInterval,
@@ -255,6 +265,7 @@
 		globalBody = '';
 		bodiesByIntegrationId = {};
 		editorBody = '';
+		postMediaItems = [];
 
 		selectedIds = [];
 		selectedGroupId = null;
@@ -315,11 +326,13 @@
 			return;
 		}
 		const plain = stripHtmlToPlainText(editorBody);
-		if (!plain.length) {
-			toast.error('Write something before saving a draft.');
+		const hasText = plain.length > 0;
+		const hasMedia = postMediaItems.length > 0;
+		if (!hasText && !hasMedia) {
+			toast.error('Write something or attach at least one image.');
 			return;
 		}
-		if (plain.length < minimumCharacters) {
+		if (hasText && plain.length < minimumCharacters) {
 			toast.error(`Please add at least ${minimumCharacters} characters.`);
 			return;
 		}
@@ -334,6 +347,7 @@
 				organizationId: workspaceId,
 				body: globalBody,
 				...(overrides ? { bodiesByIntegrationId: overrides } : {}),
+				...(postMediaItems.length ? { media: postMediaItems } : {}),
 				integrationIds: selectedIds,
 				isGlobal: mode === 'global',
 				scheduledAt: datetimeLocalToIso(scheduledLocal),
@@ -363,11 +377,13 @@
 			return;
 		}
 		const plain = stripHtmlToPlainText(editorBody);
-		if (!plain.length) {
-			toast.error('Write something before scheduling.');
+		const hasText = plain.length > 0;
+		const hasMedia = postMediaItems.length > 0;
+		if (!hasText && !hasMedia) {
+			toast.error('Write something or attach at least one image.');
 			return;
 		}
-		if (plain.length < minimumCharacters) {
+		if (hasText && plain.length < minimumCharacters) {
 			toast.error(`Please add at least ${minimumCharacters} characters.`);
 			return;
 		}
@@ -382,6 +398,7 @@
 				organizationId: workspaceId,
 				body: globalBody,
 				...(overrides ? { bodiesByIntegrationId: overrides } : {}),
+				...(postMediaItems.length ? { media: postMediaItems } : {}),
 				integrationIds: selectedIds,
 				isGlobal: mode === 'global',
 				scheduledAt: datetimeLocalToIso(scheduledLocal),
@@ -428,6 +445,8 @@
 			<AddEditModal
 				socialChannels={baseSocialChannels}
 				bind:body={editorBody}
+				bind:postMediaItems
+				uploadUid={uploadUid}
 				{busy}
 				{selectedIds}
 				{mode}
@@ -453,6 +472,7 @@
 				bind:settingsOpen
 				providerSettings={providerSettingsByIntegrationId[focusedIntegrationId ?? ''] ?? {}}
 				onProviderSettingsChange={updateFocusedProviderSettings}
+				mediaUrls={previewMediaUrls}
 			/>
 
 			<div class="shrink-0">

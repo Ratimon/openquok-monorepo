@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
 import type { RepeatIntervalKey, PostsService } from "../services/PostsService";
+import { PostDTOMapper } from "../utils/dtos/PostDTO";
 
 import { UserAuthorizationError } from "../errors/UserError";
 
@@ -34,7 +35,10 @@ export class PostsController {
             }
             const organizationId = (req.query as { organizationId: string }).organizationId;
             const tags = await this.postsService.listTags(organizationId, authUserId);
-            res.status(200).json({ success: true, data: { tags } });
+            res.status(200).json({
+                success: true,
+                data: { tags: PostDTOMapper.toPostTagDTOCollection(tags) },
+            });
         } catch (error) {
             next(error);
         }
@@ -53,7 +57,10 @@ export class PostsController {
                 color?: string;
             };
             const tag = await this.postsService.createTag(organizationId, authUserId, name, color);
-            res.status(200).json({ success: true, data: { tag } });
+            res.status(200).json({
+                success: true,
+                data: { tag: PostDTOMapper.toPostTagDTO(tag)! },
+            });
         } catch (error) {
             next(error);
         }
@@ -70,6 +77,7 @@ export class PostsController {
                 organizationId: string;
                 body?: string;
                 bodiesByIntegrationId?: Record<string, string>;
+                media?: { id: string; path: string }[];
                 integrationIds?: string[];
                 isGlobal?: boolean;
                 scheduledAt: string;
@@ -82,6 +90,7 @@ export class PostsController {
                 authUserId,
                 body: b.body ?? "",
                 bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
+                media: b.media ?? null,
                 integrationIds: b.integrationIds ?? [],
                 isGlobal: b.isGlobal ?? true,
                 scheduledAtIso: b.scheduledAt,
@@ -93,7 +102,7 @@ export class PostsController {
                 success: true,
                 data: {
                     postGroup: result.postGroup,
-                    posts: result.posts,
+                    posts: PostDTOMapper.toDTOCollection(result.posts),
                 },
             });
         } catch (error) {

@@ -1,49 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";
 import { DatabaseError } from "../errors/InfraError";
+import type { PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
 
 const TABLE_POSTS = "posts";
 const TABLE_TAGS = "post_tags";
 const TABLE_POSTS_TAGS = "posts_tags";
 
-export type PostStateDb = "QUEUE" | "PUBLISHED" | "ERROR" | "DRAFT";
-
-export type SocialPostInsert = {
-    state: PostStateDb;
-    publish_date: string;
-    organization_id: string;
-    integration_id: string | null;
-    content: string;
-    delay: number;
-    post_group: string;
-    title: string | null;
-    description: string | null;
-    parent_post_id: string | null;
-    release_id: string | null;
-    release_url: string | null;
-    settings: string | null;
-    image: string | null;
-    interval_in_days: number | null;
-    error: string | null;
-    deleted_at: string | null;
-    created_by_user_id: string | null;
-};
-
-export type SocialPostRow = SocialPostInsert & {
-    id: string;
-    created_at: string;
-    updated_at: string;
-};
-
-export type PostTagRow = {
-    id: string;
-    name: string;
-    color: string;
-    org_id: string;
-    deleted_at: string | null;
-    created_at: string;
-    updated_at: string;
-};
+export type SocialPostInsert = Omit<SocialPostLike, "id" | "created_at" | "updated_at">;
 
 export class PostsRepository {
     constructor(private readonly supabase: SupabaseClient) {}
@@ -74,7 +38,7 @@ export class PostsRepository {
         return data != null;
     }
 
-    async listTagsByOrganization(organizationId: string): Promise<PostTagRow[]> {
+    async listTagsByOrganization(organizationId: string): Promise<PostTagLike[]> {
         const { data, error } = await this.supabase
             .from(TABLE_TAGS)
             .select("id, name, color, org_id, deleted_at, created_at, updated_at")
@@ -89,10 +53,10 @@ export class PostsRepository {
                 resource: { type: "table", name: TABLE_TAGS },
             });
         }
-        return (data ?? []) as PostTagRow[];
+        return (data ?? []) as PostTagLike[];
     }
 
-    async insertTag(organizationId: string, nameTrimmed: string, color: string): Promise<PostTagRow> {
+    async insertTag(organizationId: string, nameTrimmed: string, color: string): Promise<PostTagLike> {
         const now = new Date().toISOString();
         const { data, error } = await this.supabase
             .from(TABLE_TAGS)
@@ -113,10 +77,10 @@ export class PostsRepository {
                 resource: { type: "table", name: TABLE_TAGS },
             });
         }
-        return data as PostTagRow;
+        return data as PostTagLike;
     }
 
-    async findTagByOrgAndName(organizationId: string, name: string): Promise<PostTagRow | null> {
+    async findTagByOrgAndName(organizationId: string, name: string): Promise<PostTagLike | null> {
         const { data, error } = await this.supabase
             .from(TABLE_TAGS)
             .select("id, name, color, org_id, deleted_at, created_at, updated_at")
@@ -132,10 +96,10 @@ export class PostsRepository {
                 resource: { type: "table", name: TABLE_TAGS },
             });
         }
-        return data as PostTagRow | null;
+        return data as PostTagLike | null;
     }
 
-    async insertPostGroup(rows: SocialPostInsert[]): Promise<SocialPostRow[]> {
+    async insertPostGroup(rows: SocialPostInsert[]): Promise<SocialPostLike[]> {
         if (rows.length === 0) {
             return [];
         }
@@ -154,7 +118,7 @@ export class PostsRepository {
                 resource: { type: "table", name: TABLE_POSTS },
             });
         }
-        return data as SocialPostRow[];
+        return data as SocialPostLike[];
     }
 
     async linkTagsToPosts(postIds: string[], tagIds: string[]): Promise<void> {
