@@ -5,7 +5,7 @@ export function isAuthenticatedMediaDownloadHref(href: string): boolean {
 	if (typeof window === 'undefined') return false;
 	try {
 		const u = href.startsWith('http') ? new URL(href) : new URL(href, window.location.origin);
-		return u.pathname.includes('/media/download') && u.searchParams.has('path');
+		return u.pathname.includes('/media/download') && u.searchParams.has('organizationId');
 	} catch {
 		return false;
 	}
@@ -21,10 +21,13 @@ export async function resolveMediaPreviewUrl(href: string): Promise<string> {
 
 	try {
 		const u = href.startsWith('http') ? new URL(href) : new URL(href, window.location.origin);
+		const organizationId = u.searchParams.get('organizationId');
+		const id = u.searchParams.get('id');
 		const path = u.searchParams.get('path');
-		if (!path) return href;
+		if (!organizationId) return href;
+		if (!id && !path) return href;
 
-		const pm = await mediaRepository.getBlobByPath(path);
+		const pm = await mediaRepository.getBlobByPath({ organizationId, ...(id ? { id } : {}), ...(path ? { path } : {}) });
 		if (!pm?.blob) return href;
 		return URL.createObjectURL(pm.blob);
 	} catch {

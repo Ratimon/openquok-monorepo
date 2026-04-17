@@ -1,4 +1,4 @@
-/** Random alphanumeric id for OAuth state and verifiers. */
+/** Random alphanumeric id (OAuth state, verifiers, flat storage filenames). */
 export const makeId = (length: number): string => {
     let text = "";
     const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

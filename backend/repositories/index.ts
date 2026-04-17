@@ -9,6 +9,7 @@ import { FeedbackRepository } from "./FeedbackRepository";
 import { BlogRepository } from "./BlogRepository";
 import { isR2ConnectionReady, type R2ConnectionConfig } from "../connections/R2StorageClient";
 import { StorageR2Repository } from "./StorageR2Repository";
+import { MediaRepository } from "./MediaRepository";
 import { StorageSupabaseRepository } from "./StorageSupabaseRepository";
 import { IntegrationRepository } from "./IntegrationRepository";
 import { NotificationRepository } from "./NotificationRepository";
@@ -41,6 +42,7 @@ const r2Connection: R2ConnectionConfig | null =
           }
         : null;
 export const storageR2Repository = new StorageR2Repository(r2Connection);
+export const mediaRepository = new MediaRepository(supabaseServiceClientConnection);
 export const storageSupabaseRepository = new StorageSupabaseRepository(supabaseServiceClientConnection);
 export const integrationRepository = new IntegrationRepository(supabaseServiceClientConnection);
 export const notificationRepository = new NotificationRepository(supabaseServiceClientConnection);
@@ -55,6 +57,13 @@ export { FeedbackRepository } from "./FeedbackRepository";
 export { BlogRepository } from "./BlogRepository";
 export { StorageSupabaseRepository } from "./StorageSupabaseRepository";
 export { StorageR2Repository, COMPOSER_MEDIA_BUCKET_NAME } from "./StorageR2Repository";
+export {
+    MediaRepository,
+    type MediaListItemDto,
+    type MediaListResult,
+    type MediaRow,
+    type SaveMediaInformationDto,
+} from "./MediaRepository";
 export { DATABASE_NAMES, type DatabaseName, isAllowedDatabaseName } from "./StorageSupabaseRepository";
 export { IntegrationRepository } from "./IntegrationRepository";
 export { NotificationRepository } from "./NotificationRepository";

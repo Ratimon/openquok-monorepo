@@ -2,9 +2,14 @@ import { Router } from "express";
 import multer from "multer";
 
 import { mediaController, MAX_MEDIA_UPLOAD_BYTES } from "../controllers/index";
-import { requireFullAuthWithRoles, requireEditor } from "../middlewares/authenticateUser";
+import { requireFullAuthWithRoles } from "../middlewares/authenticateUser";
 import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
+import {
+    validateMediaOrganizationQuery,
+    validateSaveMediaInformationBody,
+    validateMultipartEndpoint,
+} from "../data/schemas/mediaSchemas";
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -20,19 +25,33 @@ const authWithRoles = requireFullAuthWithRoles(
 type MediaRouter = ReturnType<typeof Router>;
 const mediaRouter: MediaRouter = Router();
 
-/** All media routes require a valid user JWT (Bearer). Download/delete/save are scoped to the caller's own object keys. */
-mediaRouter.get("/download", authWithRoles, mediaController.download);
+/**
+ * User-owned R2 media: any authenticated user may upload/delete their own keys (`${auth.uid}-…`).
+ * Editor-only restriction would block account holders without the editor role (see account media library).
+ */
+mediaRouter.get("/", authWithRoles, validateMediaOrganizationQuery, mediaController.list);
 
-mediaRouter.post(
-    "/upload",
-    authWithRoles,
-    requireEditor,
-    upload.single("mediaFile"),
-    mediaController.upload
-);
+mediaRouter.get("/download", authWithRoles, validateMediaOrganizationQuery, mediaController.download);
 
-mediaRouter.delete("/delete", authWithRoles, requireEditor, mediaController.delete);
+mediaRouter.post("/upload", authWithRoles, upload.single("mediaFile"), mediaController.upload);
 
-mediaRouter.post("/save", authWithRoles, requireEditor, mediaController.saveMedia);
+/** Multipart field name `file`, includes `originalName` in response for compatibility. */
+mediaRouter.post("/upload-server", authWithRoles, upload.single("file"), mediaController.uploadServer);
+
+/** Multipart field name `file`, supports `preventSave=true` returning `{ path }`. */
+mediaRouter.post("/upload-simple", authWithRoles, upload.single("file"), mediaController.uploadSimple);
+
+mediaRouter.delete("/delete", authWithRoles, mediaController.delete);
+
+mediaRouter.post("/save", authWithRoles, mediaController.saveMedia);
+
+/** Alias for `save-media` body shape (`name`, `originalName`). */
+mediaRouter.post("/save-media", authWithRoles, mediaController.saveMedia);
+
+/** Update thumbnail/alt metadata. */
+mediaRouter.post("/information", authWithRoles, validateSaveMediaInformationBody, mediaController.saveMediaInformation);
+
+/** Multipart upload orchestration endpoints (S3-compatible, e.g. presigned part URLs). */
+mediaRouter.post("/:endpoint", authWithRoles, validateMultipartEndpoint, mediaController.multipart);
 
 export { mediaRouter };

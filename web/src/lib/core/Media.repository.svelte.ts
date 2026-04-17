@@ -2,6 +2,7 @@ import type { HttpGateway } from '$lib/core/HttpGateway';
 
 export interface MediaConfig {
 	endpoints: {
+		list: string;
 		download: string;
 		upload: string;
 		delete: string;
@@ -33,6 +34,36 @@ export interface MediaUploadProgrammerModel {
 	message: string;
 }
 
+export interface MediaLibraryItemProgrammerModel {
+	id: string;
+	path: string;
+	virtualPath?: string;
+	name: string;
+	size: number;
+	lastModified: string | null;
+	publicUrl?: string | null;
+	kind: 'image' | 'video' | 'audio' | 'document' | 'other';
+}
+
+export interface MediaListResponseDto {
+	success: boolean;
+	data?: {
+		results?: MediaLibraryItemProgrammerModel[];
+		total?: number;
+		pages?: number;
+		page?: number;
+		pageSize?: number;
+	};
+}
+
+export interface MediaListProgrammerModel {
+	results: MediaLibraryItemProgrammerModel[];
+	total: number;
+	pages: number;
+	page: number;
+	pageSize: number;
+}
+
 export interface MediaDeleteResponseDto {
 	success: boolean;
 	message: string;
@@ -53,9 +84,12 @@ export class MediaRepository {
 		private readonly config: MediaConfig
 	) {}
 
-	public async getBlobByPath(storagePath: string): Promise<MediaProgrammerModel | null> {
+	public async getBlobByPath(params: { organizationId: string; id?: string; path?: string }): Promise<MediaProgrammerModel | null> {
 		try {
-			const url = `${this.config.endpoints.download}?${new URLSearchParams({ path: storagePath }).toString()}`;
+			const sp = new URLSearchParams({ organizationId: params.organizationId });
+			if (params.id) sp.set('id', params.id);
+			if (!params.id && params.path) sp.set('path', params.path);
+			const url = `${this.config.endpoints.download}?${sp.toString()}`;
 			const { data, ok } = await this.httpGateway.get<Blob>(url, undefined, {
 				responseType: 'blob',
 				headers: { Accept: '*/*' }
@@ -68,7 +102,31 @@ export class MediaRepository {
 		}
 	}
 
-	public async uploadMedia(file: File, uid: string): Promise<MediaUploadProgrammerModel> {
+	public async listMedia(organizationId: string, page = 1, pageSize = 24): Promise<MediaListProgrammerModel> {
+		try {
+			const { data: dto, ok } = await this.httpGateway.get<MediaListResponseDto>(
+				this.config.endpoints.list,
+				{ organizationId, page, pageSize },
+				{ withCredentials: true }
+			);
+
+			if (ok && dto?.data) {
+				return {
+					results: dto.data.results ?? [],
+					total: dto.data.total ?? 0,
+					pages: dto.data.pages ?? 1,
+					page: dto.data.page ?? page,
+					pageSize: dto.data.pageSize ?? pageSize
+				};
+			}
+
+			return { results: [], total: 0, pages: 1, page, pageSize };
+		} catch {
+			return { results: [], total: 0, pages: 1, page, pageSize };
+		}
+	}
+
+	public async uploadMedia(file: File, organizationId: string): Promise<MediaUploadProgrammerModel> {
 		if (file.size > MAX_MEDIA_UPLOAD_BYTES) {
 			return {
 				success: false,
@@ -80,7 +138,7 @@ export class MediaRepository {
 		try {
 			const formData = new FormData();
 			formData.append('mediaFile', file);
-			formData.append('uid', uid);
+			formData.append('organizationId', organizationId);
 
 			const { data: dto, ok } = await this.httpGateway.post<MediaUploadResponseDto>(
 				this.config.endpoints.upload,
@@ -105,11 +163,11 @@ export class MediaRepository {
 		}
 	}
 
-	public async deleteMedia(storagePath: string): Promise<MediaDeleteProgrammerModel> {
+	public async deleteMedia(params: { organizationId: string; id?: string; path?: string }): Promise<MediaDeleteProgrammerModel> {
 		try {
 			const { data: deleteResponse, ok } = await this.httpGateway.delete<MediaDeleteResponseDto>(
 				this.config.endpoints.delete,
-				{ data: { path: storagePath } }
+				{ data: { organizationId: params.organizationId, ...(params.id ? { id: params.id } : {}), ...(params.path ? { path: params.path } : {}) }, withCredentials: true }
 			);
 
 			if (ok) return { success: true, message: deleteResponse.message };

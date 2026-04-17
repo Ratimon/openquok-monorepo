@@ -23,6 +23,10 @@ export type CreateTagResponseDto = {
 	data?: { tag?: PostTagProgrammerModel };
 };
 
+export type DeleteTagResponseDto = {
+	success?: boolean;
+};
+
 export type PostRowProgrammerModel = {
 	id: string;
 	postGroup: string;
@@ -135,6 +139,25 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not create tag.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not create tag.');
+		}
+	}
+
+	async deleteTag(
+		organizationId: string,
+		tagId: string
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		try {
+			const url = `${this.config.endpoints.tags}/${encodeURIComponent(tagId)}`;
+			const { ok, data: dto } = await this.httpGateway.delete<DeleteTagResponseDto>(url, {
+				params: { organizationId },
+				withCredentials: true
+			});
+			if (ok && dto?.success === true) {
+				return { ok: true };
+			}
+			return { ok: false, error: 'Could not delete tag.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not delete tag.');
 		}
 	}
 

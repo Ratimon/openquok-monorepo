@@ -11,3 +11,27 @@ export function getRootPathAccount(): string {
 export function getRootPathCalendar(): string {
 	return 'calendar';
 }
+
+/**
+ * Analytics route segment under the account area (compose with {@link getRootPathAccount}, e.g.
+ * `${absoluteUrl(getRootPathAccount())}/${getRootPathAnalytics()}`).
+ */
+export function getRootPathAnalytics(): string {
+	return 'analytics';
+}
+
+/**
+ * Media library segment under the account area (compose with {@link getRootPathAccount}, e.g.
+ * `${absoluteUrl(getRootPathAccount())}/${getRootPathMedia()}`).
+ */
+export function getRootPathMedia(): string {
+	return 'media';
+}
+
+/**
+ * Integrations route segment under the account area (compose with {@link getRootPathAccount}, e.g.
+ * `${absoluteUrl(getRootPathAccount())}/${getRootPathIntegrations()}`).
+ */
+export function getRootPathIntegrations(): string {
+	return 'integrations';
+}

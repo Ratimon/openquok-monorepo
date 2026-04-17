@@ -6,7 +6,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DeleteDialog from '$lib/ui/components/posts/DeleteDialog.svelte';
 	import ComposerMediaToolbar from '$lib/ui/components/posts/ComposerMediaToolbar.svelte';
-	import MultiMedia from '$lib/ui/components/posts/MultiMedia.svelte';
+	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
 
 	type Props = {
 		body?: string;

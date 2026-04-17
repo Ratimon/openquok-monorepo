@@ -136,6 +136,8 @@ export const config: ConfigObject = {
      * When required keys are missing, media routes cannot talk to object storage until configured.
      */
     storage: {
+        /** Storage provider for user media uploads. */
+        provider: getEnv("STORAGE_PROVIDER", "r2"),
         r2: {
             accountId: getEnvTrimmed("STORAGE_R2_ACCOUNT_ID"),
             accessKeyId: getEnvTrimmed("STORAGE_R2_ACCESS_KEY_ID"),
@@ -144,6 +146,10 @@ export const config: ConfigObject = {
             region: getEnvTrimmed("STORAGE_R2_REGION", "auto"),
             /** Public origin for browser `<img src>` (R2 custom domain or r2.dev); no trailing slash. */
             publicBaseUrl: getEnvTrimmed("STORAGE_R2_PUBLIC_BASE_URL"),
+        },
+        local: {
+            /** Absolute path on disk where uploads are written (for STORAGE_PROVIDER=local). */
+            uploadDirectory: getEnvTrimmed("UPLOAD_DIRECTORY", ""),
         },
     },
 

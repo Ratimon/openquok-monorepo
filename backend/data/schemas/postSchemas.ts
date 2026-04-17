@@ -65,3 +65,12 @@ export const createPostTagBodySchema = z.object({
 export const validateCreatePostTagBody: RequestHandler = validateRequest({
     body: createPostTagBodySchema,
 });
+
+export const deletePostTagParamsSchema = z.object({
+    tagId: z.string().uuid("Invalid tag id"),
+});
+
+export const validateDeletePostTag: RequestHandler = validateRequest({
+    params: deletePostTagParamsSchema,
+    query: postOrganizationQuerySchema,
+});

@@ -18,6 +18,11 @@ export default defineConfig({
 			'/api': {
 				target: 'http://localhost:3000',
 				changeOrigin: true
+			},
+			// Local uploads (STORAGE_PROVIDER=local) are served by the backend at /uploads/*
+			'/uploads': {
+				target: 'http://localhost:3000',
+				changeOrigin: true
 			}
 		}
 	},

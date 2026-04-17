@@ -118,6 +118,14 @@ export class PostsService {
         }
     }
 
+    async deleteTag(organizationId: string, authUserId: string, tagId: string): Promise<void> {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        const deleted = await this.postsRepository.softDeleteTagForOrganization(organizationId, tagId);
+        if (!deleted) {
+            throw new AppError("Tag not found", 404);
+        }
+    }
+
     async createPost(input: CreatePostInput): Promise<{
         postGroup: string;
         posts: SocialPostLike[];

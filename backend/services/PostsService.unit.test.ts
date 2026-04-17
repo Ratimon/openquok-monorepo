@@ -93,6 +93,7 @@ type PostsRepoMock = jest.Mocked<
         | "listTagsByOrganization"
         | "insertTag"
         | "findTagByOrgAndName"
+        | "softDeleteTagForOrganization"
         | "newPostGroup"
         | "insertPostGroup"
         | "linkTagsToPosts"
@@ -105,6 +106,7 @@ function createPostsRepoMock(): PostsRepoMock {
         listTagsByOrganization: jest.fn(),
         insertTag: jest.fn(),
         findTagByOrgAndName: jest.fn(),
+        softDeleteTagForOrganization: jest.fn(),
         newPostGroup: jest.fn(),
         insertPostGroup: jest.fn(),
         linkTagsToPosts: jest.fn(),
@@ -227,6 +229,25 @@ describe("PostsService", () => {
             await expect(service().createTag(orgId, authUserId, "missing")).rejects.toMatchObject({
                 statusCode: 500,
                 message: "Could not save tag",
+            });
+        });
+    });
+
+    describe("deleteTag", () => {
+        const tagId = faker.string.uuid();
+
+        it("asserts membership then soft-deletes when repository reports success", async () => {
+            postsRepo.softDeleteTagForOrganization.mockResolvedValue(true);
+            await service().deleteTag(orgId, authUserId, tagId);
+            expect(integrationConnection.assertOrganizationMember).toHaveBeenCalledWith(authUserId, orgId);
+            expect(postsRepo.softDeleteTagForOrganization).toHaveBeenCalledWith(orgId, tagId);
+        });
+
+        it("throws 404 when no tag row was updated", async () => {
+            postsRepo.softDeleteTagForOrganization.mockResolvedValue(false);
+            await expect(service().deleteTag(orgId, authUserId, tagId)).rejects.toMatchObject({
+                statusCode: 404,
+                message: "Tag not found",
             });
         });
     });

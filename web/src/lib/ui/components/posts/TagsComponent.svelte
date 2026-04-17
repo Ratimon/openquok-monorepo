@@ -12,6 +12,8 @@
 		busy?: boolean;
 		onToggleTag: (name: string) => void;
 		onAddTag: (name?: string, color?: string) => void | Promise<void>;
+		/** When set, unselected tags show a delete control that opens the confirmation dialog. */
+		onDeleteTag?: (tag: PostTagProgrammerModel) => void | Promise<void>;
 	};
 
 	let {
@@ -19,15 +21,18 @@
 		selectedTagNames,
 		busy = false,
 		onToggleTag,
-		onAddTag
+		onAddTag,
+		onDeleteTag
 	}: Props = $props();
 
 	let open = $state(false);
 	let addOpen = $state(false);
+	let deleteOpen = $state(false);
 	let allowClose = $state(true);
 
 	let addName = $state('');
 	let addColor = $state('#942828');
+	let pendingDelete = $state<PostTagProgrammerModel | null>(null);
 
 	const selectedTags = $derived.by(() =>
 		selectedTagNames
@@ -73,6 +78,34 @@
 			setTimeout(() => (allowClose = true), 200);
 		}
 	}
+
+	function requestDeleteTag(tag: PostTagProgrammerModel, e: MouseEvent) {
+		e.stopPropagation();
+		e.preventDefault();
+		if (!onDeleteTag) return;
+		allowClose = false;
+		pendingDelete = tag;
+		deleteOpen = true;
+	}
+
+	function cancelDelete() {
+		deleteOpen = false;
+		pendingDelete = null;
+		setTimeout(() => (allowClose = true), 200);
+	}
+
+	async function confirmDelete() {
+		const tag = pendingDelete;
+		if (!tag || !onDeleteTag) return;
+		allowClose = false;
+		try {
+			await onDeleteTag(tag);
+			deleteOpen = false;
+			pendingDelete = null;
+		} finally {
+			setTimeout(() => (allowClose = true), 200);
+		}
+	}
 </script>
 
 <div class="relative shrink-0" data-tags-root>
@@ -109,7 +142,6 @@
 			height="16"
 		/>
 	</button>
-
 	{#if open}
 		<div
 			class="border-base-300 bg-base-100 absolute left-0 bottom-full z-50 mb-2 w-[260px] rounded-lg border p-2 shadow-xl"
@@ -117,28 +149,40 @@
 		>
 			<div class="max-h-[260px] overflow-y-auto">
 				{#each tagList as t (t.id)}
-					<button
-						type="button"
-						class="hover:bg-base-200 flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm"
-						onclick={() => onToggleTag(t.name)}
-					>
-						<input
-							type="checkbox"
-							class="checkbox checkbox-xs checkbox-primary"
-							checked={selectedTagNames.includes(t.name)}
-							readonly
-							tabindex="-1"
-						/>
-						<span
-							class="text-shadow-tags inline-flex items-center rounded-md px-2 py-1 text-xs text-white"
-							style={`background-color:${t.color ?? '#6366f1'}`}
+					<div class="hover:bg-base-200 group flex w-full items-center gap-1 rounded-md px-1 py-1">
+						<button
+							type="button"
+							class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1.5 text-left text-sm"
+							onclick={() => onToggleTag(t.name)}
 						>
-							{t.name}
-						</span>
-					</button>
+							<input
+								type="checkbox"
+								class="checkbox checkbox-xs checkbox-primary shrink-0"
+								checked={selectedTagNames.includes(t.name)}
+								readonly
+								tabindex="-1"
+							/>
+							<span
+								class="text-shadow-tags inline-flex min-w-0 items-center rounded-md px-2 py-1 text-xs text-white"
+								style={`background-color:${t.color ?? '#6366f1'}`}
+							>
+								<span class="truncate">{t.name}</span>
+							</span>
+						</button>
+						{#if onDeleteTag && !selectedTagNames.includes(t.name)}
+							<button
+								type="button"
+								class="text-error hover:bg-base-300/50 shrink-0 rounded p-1.5 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+								aria-label={`Delete tag ${t.name}`}
+								disabled={busy}
+								onclick={(e) => requestDeleteTag(t, e)}
+							>
+								<AbstractIcon name={icons.X2.name} class="size-4" width="16" height="16" />
+							</button>
+						{/if}
+					</div>
 				{/each}
 			</div>
-
 			<div class="mt-2">
 				<Button type="button" variant="primary" size="sm" class="w-full" onclick={openAddModal}>
 					<span class="inline-flex items-center justify-center gap-2">
@@ -155,7 +199,9 @@
 	<Dialog.Content class="w-[min(92vw,720px)] max-w-[min(92vw,720px)]" showCloseButton={false}>
 		<div class="flex items-start justify-between gap-3">
 			<Dialog.Header class="space-y-2 text-start">
-				<Dialog.Title class="text-2xl font-semibold">Add New Tag</Dialog.Title>
+				<Dialog.Title class="text-2xl font-semibold">
+					Add New Tag
+				</Dialog.Title>
 			</Dialog.Header>
 			<button
 				type="button"
@@ -188,6 +234,43 @@
 		<div class="mt-6 flex flex-wrap gap-3">
 			<Button type="button" variant="primary" onclick={() => void confirmAdd()} disabled={!addName.trim().length}>
 				Save
+			</Button>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={deleteOpen}>
+	<Dialog.Content class="w-[min(92vw,480px)] max-w-[min(92vw,480px)]" showCloseButton={false}>
+		<div class="flex items-start justify-between gap-3">
+			<Dialog.Header class="space-y-2 text-start">
+				<Dialog.Title class="text-xl font-semibold">Delete Tag</Dialog.Title>
+			</Dialog.Header>
+			<button
+				type="button"
+				class="hover:bg-base-200 rounded-md p-2 text-base-content/70 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+				onclick={cancelDelete}
+				aria-label="Close"
+			>
+				<AbstractIcon name={icons.X2.name} class="size-5" width="20" height="20" />
+			</button>
+		</div>
+
+		<p class="text-base-content/90 mt-4 text-sm leading-relaxed">
+			Are you sure you want to delete the tag "{pendingDelete?.name ?? ''}"?
+		</p>
+
+		<div class="mt-6 flex flex-wrap justify-end gap-3">
+			<Button type="button" variant="primary" onclick={cancelDelete} disabled={busy}>
+				Cancel
+			</Button>
+			<Button
+				type="button"
+				variant="primary"
+				class="!from-red-600 !via-red-600 !to-red-600 hover:!from-red-700 hover:!via-red-700 hover:!to-red-700 !text-white"
+				disabled={busy}
+				onclick={() => void confirmDelete()}
+			>
+				Delete
 			</Button>
 		</div>
 	</Dialog.Content>

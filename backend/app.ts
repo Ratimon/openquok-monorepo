@@ -124,6 +124,18 @@ async function createApp(): Promise<Express> {
 
     configureCoreMiddleware(app, config as ConfigObject, supabaseAnonClient);
 
+    // Local uploads (STORAGE_PROVIDER=local): serve files from disk at /uploads/*
+    const storageCfg = config.storage as
+        | { provider?: string; local?: { uploadDirectory?: string; publicBaseUrl?: string } }
+        | undefined;
+    if (storageCfg?.provider === "local" && storageCfg.local?.uploadDirectory) {
+        app.use("/uploads", express.static(storageCfg.local.uploadDirectory));
+        logger.info({
+            msg: "[Setup] Local uploads mounted at /uploads",
+            uploadDirectory: storageCfg.local.uploadDirectory,
+        });
+    }
+
     try {
         const isProduction = (config.server as { nodeEnv?: string }).nodeEnv === "production";
         const currentDir = process.cwd();

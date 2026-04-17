@@ -9,8 +9,16 @@
 	import { page } from '$app/state';
 	import { setContext } from 'svelte';
 	import { icons } from '$data/icon';
+	import {
+		getRootPathAccount,
+		getRootPathCalendar,
+		getRootPathAnalytics,
+		getRootPathMedia,
+		getRootPathIntegrations,
+		protectedLayoutPagePresenter
+	} from '$lib/area-protected';
+	import { route } from '$lib/utils/path';
 	import { SETTINGS_SIDEBAR_KEY } from '$lib/ui/templates/sidebar-secondary-context';
-	import { protectedLayoutPagePresenter } from '$lib/area-protected';
 	
 	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
 
@@ -33,12 +41,32 @@
 	const currentUser = $derived((data as App.LayoutData)?.currentUser ?? null);
 	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'Openquok');
 
+	// /account 
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+
+	// /calendar
+	const rootPathCalendar = getRootPathCalendar();
+	const calendarPath = route(rootPathCalendar);
+
+	// /analytics
+	const rootPathAnalytics = getRootPathAnalytics();
+	const analyticsPath = route(rootPathAnalytics);
+
+	// /account/media
+	const rootPathMedia = getRootPathMedia();
+	const mediaPath = route(`${rootPathAccount}/${rootPathMedia}`);
+
+	// /integrations
+	const rootPathIntegrations = getRootPathIntegrations();
+	const integrationsPath = route(rootPathIntegrations);
+
 	const mainLinks: SidebarLinkItem[] = [
-		{ label: 'Dashboard', href: '/', iconName: icons.Gauge.name },
-		{ label: 'Calendar', href: '/calendar', iconName: icons.CalendarClock.name },
-		{ label: 'Analytics', href: '/analytics', iconName: icons.ChartBar.name },
-		{ label: 'Media', href: '/media', iconName: icons.Image.name },
-		{ label: 'Integrations', href: '/integrations', iconName: icons.Link.name }
+		{ label: 'Dashboard', href: accountPath, iconName: icons.Gauge.name },
+		{ label: 'Calendar', href: calendarPath, iconName: icons.CalendarClock.name },
+		{ label: 'Analytics', href: analyticsPath, iconName: icons.ChartBar.name },
+		{ label: 'Media', href: mediaPath, iconName: icons.Image.name },
+		{ label: 'Integrations', href: integrationsPath, iconName: icons.Link.name }
 	];
 
 	const SETTINGS_NAV: SettingsNavItem<AppSettingsSectionId>[] = [
@@ -65,6 +93,7 @@
 			getBasePath: () => basePath
 		});
 	}
+	
 	setSettingsSidebarContext();
 
 	const notificationsDockPreview = $derived({

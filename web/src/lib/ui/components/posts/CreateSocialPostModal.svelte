@@ -319,6 +319,23 @@
 		}
 	}
 
+	async function deleteWorkspaceTag(tag: PostTagProgrammerModel) {
+		if (!workspaceId) return;
+		busy = true;
+		try {
+			const r = await postsRepository.deleteTag(workspaceId, tag.id);
+			if (r.ok) {
+				tagList = tagList.filter((x) => x.id !== tag.id);
+				selectedTagNames = selectedTagNames.filter((n) => n !== tag.name);
+				toast.success('Tag deleted.');
+			} else {
+				toast.error(r.error);
+			}
+		} finally {
+			busy = false;
+		}
+	}
+
 	async function saveAsDraft() {
 		persistEditorBody();
 		if (!workspaceId) {
@@ -487,6 +504,7 @@
 					scheduleDisabled={selectedIds.length === 0}
 					onToggleTag={toggleTag}
 					onAddTag={addNewTag}
+					onDeleteTag={deleteWorkspaceTag}
 					onRepeatChange={(v) => (repeatInterval = v)}
 					onSaveDraft={saveAsDraft}
 					onSchedule={schedulePost}

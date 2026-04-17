@@ -1,12 +1,16 @@
 import type { Request, Response, NextFunction } from "express";
-
+import type { StorageR2Repository } from "../repositories/StorageR2Repository";
+import type { MediaService } from "../services/MediaService";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
-import { config } from "../config/GlobalConfig";
+import type { IUploadProvider } from "../connections/upload/upload.interface";
+
+import { publicUrlForObjectKey } from "../repositories/MediaRepository";
+import { makeId } from "../utils/make.is";
+
 import { AuthError } from "../errors/AuthError";
 import { UserValidationError } from "../errors/UserError";
-import type { StorageR2Repository } from "../repositories/StorageR2Repository";
 
-/** User-owned media (images, video, etc.) stored in R2 — not blog inline images. */
+/** User-owned media (images, video, etc.) stored in R2  */
 const MAX_MEDIA_UPLOAD_BYTES = 50 * 1024 * 1024;
 
 function isAllowedMediaMime(mimetype: string): boolean {
@@ -19,15 +23,62 @@ function isAllowedMediaMime(mimetype: string): boolean {
     );
 }
 
-function publicUrlForObjectKey(key: string): string | null {
-    const storage = config.storage as { r2: { publicBaseUrl?: string } };
-    const base = storage.r2.publicBaseUrl?.trim().replace(/\/+$/, "");
-    if (!base) return null;
-    return `${base}/${key.replace(/^\/+/, "")}`;
-}
-
 export class MediaController {
-    constructor(private readonly storageR2Repository: StorageR2Repository) {}
+    constructor(
+        private readonly mediaService: MediaService,
+        private readonly storageR2Repository: StorageR2Repository,
+        private readonly uploadProvider: IUploadProvider
+    ) {}
+
+    private async uploadToStorage(params: {
+        organizationId: string;
+        file: { buffer: Buffer; originalname: string; mimetype: string };
+    }): Promise<{ filePath: string; publicUrl: string | null }> {
+        const { organizationId, file } = params;
+
+        if (!isAllowedMediaMime(file.mimetype || "")) {
+            throw new UserValidationError("Unsupported media type");
+        }
+
+        const out = await this.uploadProvider.uploadFile({
+            organizationId,
+            buffer: file.buffer,
+            originalName: file.originalname,
+            contentType: file.mimetype || "application/octet-stream",
+        });
+
+        return { filePath: out.path, publicUrl: out.publicUrl ?? publicUrlForObjectKey(out.path) };
+    }
+
+    list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const organizationId = typeof req.query.organizationId === "string" ? req.query.organizationId : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId query parameter is required");
+            }
+
+            const rawPage = Number(req.query.page ?? 1);
+            const rawPageSize = Number(req.query.pageSize ?? 24);
+            const page = Number.isFinite(rawPage) ? Math.max(1, Math.trunc(rawPage)) : 1;
+            const pageSize = Number.isFinite(rawPageSize)
+                ? Math.min(100, Math.max(1, Math.trunc(rawPageSize)))
+                : 24;
+
+            const data = await this.mediaService.getMedia(organizationId, page, pageSize);
+
+            res.status(200).json({
+                success: true,
+                data,
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
 
     /**
      * Stream one object from R2. Requires JWT; only the owning auth user may read (`path` must start with their `auth.uid` + `-`).
@@ -36,25 +87,28 @@ export class MediaController {
     download = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const authUser = (req as AuthenticatedRequest).user;
-            const authUid = authUser?.id;
-            if (!authUid) {
+            if (!authUser?.id) {
                 throw new UserValidationError("Authentication required");
             }
 
+            const organizationId = typeof req.query.organizationId === "string" ? req.query.organizationId : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId query parameter is required");
+            }
+
+            const idParam = typeof req.query.id === "string" ? req.query.id : "";
             const pathParam = typeof req.query.path === "string" ? req.query.path : "";
-            if (!pathParam.trim()) {
-                throw new UserValidationError("path query parameter is required");
+            const mediaRow = idParam.trim()
+                ? await this.mediaService.getMediaById(organizationId, idParam.trim())
+                : pathParam.trim()
+                  ? await this.mediaService.getMediaByPath(organizationId, pathParam.trim())
+                  : null;
+
+            if (!mediaRow) {
+                throw new AuthError("You do not have access to this media object", 403);
             }
 
-            assertMediaKeyOwnedByUser(pathParam, authUid);
-
-            const { data } = await this.storageR2Repository.downloadObject(pathParam);
-            if (!data) {
-                throw new Error("No data returned from storage");
-            }
-
-            const buffer = data instanceof Buffer ? data : Buffer.from(await data.arrayBuffer());
-            const contentType = (data as Blob & { type?: string }).type ?? "application/octet-stream";
+            const { buffer, contentType } = await this.uploadProvider.downloadObject(mediaRow.path);
             res.set("Content-Type", contentType);
             res.send(buffer);
         } catch (error) {
@@ -69,6 +123,155 @@ export class MediaController {
     upload = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            if (!req.file) {
+                throw new UserValidationError("Media file is required");
+            }
+            const organizationId = typeof (req.body as any)?.organizationId === "string" ? String((req.body as any).organizationId) : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId is required");
+            }
+
+            const file = req.file as { buffer: Buffer; originalname: string; mimetype: string };
+            const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+
+            const saved = await this.mediaService.saveFile({
+                organizationId,
+                name: filePath.split("/").pop() ?? filePath,
+                path: filePath,
+                originalName: file.originalname,
+                fileSize: (file as any).size ?? 0,
+                type: file.mimetype?.startsWith("video/") ? "video" : "image",
+            });
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    filePath: saved.path,
+                    ...(saved.publicUrl ? { publicUrl: saved.publicUrl } : publicUrl ? { publicUrl } : {}),
+                    id: saved.id,
+                },
+                message: "Media uploaded successfully",
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
+     * Multipart helpers for S3-compatible uploaders (client obtains presigned URLs per part).
+     * Route: POST `/api/v1/media/:endpoint` with JSON body.
+     */
+    multipart = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) throw new UserValidationError("Authentication required");
+
+            const endpoint = String((req.params as any)?.endpoint ?? "");
+            const organizationId =
+                typeof (req.body as any)?.organizationId === "string" ? String((req.body as any).organizationId) : "";
+            if (!organizationId.trim()) throw new UserValidationError("organizationId is required");
+
+            if (endpoint === "create-multipart-upload") {
+                const file = (req.body as any)?.file;
+                const contentType = String((req.body as any)?.contentType ?? "");
+                const fileHash =
+                    typeof (req.body as any)?.fileHash === "string" ? String((req.body as any).fileHash) : undefined;
+                const fileName = typeof file?.name === "string" ? file.name : "";
+                const ext = fileName.includes(".") ? `.${fileName.split(".").pop()}` : "";
+                const key = `${makeId(20)}${ext || ""}`;
+                const out = await this.storageR2Repository.createMultipartUpload({ key, contentType, fileHash });
+                res.status(200).json(out);
+                return;
+            }
+
+            if (endpoint === "prepare-upload-parts") {
+                const partData = (req.body as any)?.partData;
+                const key = String(partData?.key ?? "");
+                const uploadId = String(partData?.uploadId ?? "");
+                const parts = Array.isArray(partData?.parts) ? partData.parts : [];
+                const out = await this.storageR2Repository.prepareUploadParts({
+                    key,
+                    uploadId,
+                    parts: parts.map((p: any) => ({ number: Number(p?.number) })),
+                });
+                res.status(200).json(out);
+                return;
+            }
+
+            if (endpoint === "sign-part") {
+                const key = String((req.body as any)?.key ?? "");
+                const uploadId = String((req.body as any)?.uploadId ?? "");
+                const partNumber = Number.parseInt(String((req.body as any)?.partNumber ?? "0"), 10);
+                const out = await this.storageR2Repository.signPart({ key, uploadId, partNumber });
+                res.status(200).json(out);
+                return;
+            }
+
+            if (endpoint === "list-parts") {
+                const key = String((req.body as any)?.key ?? "");
+                const uploadId = String((req.body as any)?.uploadId ?? "");
+                const out = await this.storageR2Repository.listParts({ key, uploadId });
+                res.status(200).json(out);
+                return;
+            }
+
+            if (endpoint === "abort-multipart-upload") {
+                const key = String((req.body as any)?.key ?? "");
+                const uploadId = String((req.body as any)?.uploadId ?? "");
+                const out = await this.storageR2Repository.abortMultipartUpload({ key, uploadId });
+                res.status(200).json(out);
+                return;
+            }
+
+            if (endpoint === "complete-multipart-upload") {
+                const key = String((req.body as any)?.key ?? "");
+                const uploadId = String((req.body as any)?.uploadId ?? "");
+                const parts = Array.isArray((req.body as any)?.parts) ? (req.body as any).parts : [];
+                const completed = await this.storageR2Repository.completeMultipartUpload({
+                    key,
+                    uploadId,
+                    parts: parts.map((p: any) => ({
+                        ETag: String(p?.ETag ?? ""),
+                        PartNumber: Number(p?.PartNumber ?? 0),
+                    })),
+                    publicBaseUrl: null,
+                });
+
+                const originalName =
+                    typeof (req.body as any)?.file?.name === "string" ? String((req.body as any).file.name) : undefined;
+                const saved = await this.mediaService.saveFile({
+                    organizationId,
+                    name: key.split("/").pop() ?? key,
+                    path: key,
+                    originalName: originalName ?? null,
+                    fileSize: Number((req.body as any)?.file?.size ?? 0) || 0,
+                    type:
+                        typeof (req.body as any)?.contentType === "string" &&
+                        String((req.body as any).contentType).startsWith("video/")
+                            ? "video"
+                            : "image",
+                });
+
+                res.status(200).json({ ...completed, saved });
+                return;
+            }
+
+            res.status(404).end();
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
+     * Upload via multipart field `file` (client compatibility). Mirrors `/upload`, but includes `originalName`.
+     */
+    uploadServer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
             const authUid = authUser?.id;
 
             if (!req.file) {
@@ -79,26 +282,94 @@ export class MediaController {
             }
 
             const file = req.file as { buffer: Buffer; originalname: string; mimetype: string };
-            if (!isAllowedMediaMime(file.mimetype || "")) {
-                throw new UserValidationError("Unsupported media type");
+            const organizationId = typeof (req.body as any)?.organizationId === "string" ? String((req.body as any).organizationId) : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId is required");
             }
 
-            const fileExt = file.originalname.split(".").pop() || "bin";
-            const filePath = `${authUid}-${Math.random()}.${fileExt}`;
+            const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
 
-            await this.storageR2Repository.putObject(
-                filePath,
-                file.buffer,
-                file.mimetype || "application/octet-stream"
-            );
-
-            const publicUrl = publicUrlForObjectKey(filePath);
+            const saved = await this.mediaService.saveFile({
+                organizationId,
+                name: filePath.split("/").pop() ?? filePath,
+                path: filePath,
+                originalName: file.originalname,
+                fileSize: (file as any).size ?? 0,
+                type: file.mimetype?.startsWith("video/") ? "video" : "image",
+            });
 
             res.status(200).json({
                 success: true,
                 data: {
-                    filePath,
-                    ...(publicUrl ? { publicUrl } : {}),
+                    filePath: saved.path,
+                    originalName: file.originalname,
+                    ...(saved.publicUrl ? { publicUrl: saved.publicUrl } : publicUrl ? { publicUrl } : {}),
+                    id: saved.id,
+                },
+                message: "Media uploaded successfully",
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
+     * Upload via multipart field `file`. If `preventSave=true`, return only `{ path }` for compatibility.
+     */
+    uploadSimple = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            const authUid = authUser?.id;
+
+            if (!req.file) {
+                throw new UserValidationError("Media file is required");
+            }
+            if (!authUid) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const preventSave =
+                typeof (req.body as any)?.preventSave === "string"
+                    ? String((req.body as any).preventSave).toLowerCase() === "true"
+                    : Boolean((req.body as any)?.preventSave);
+
+            const file = req.file as { buffer: Buffer; originalname: string; mimetype: string };
+            const organizationId = typeof (req.body as any)?.organizationId === "string" ? String((req.body as any).organizationId) : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId is required");
+            }
+
+            const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+
+            if (preventSave) {
+                res.status(200).json({
+                    success: true,
+                    data: {
+                        path: filePath,
+                        filePath,
+                        ...(publicUrl ? { publicUrl } : {}),
+                    },
+                    message: "Media uploaded successfully",
+                });
+                return;
+            }
+
+            const saved = await this.mediaService.saveFile({
+                organizationId,
+                name: filePath.split("/").pop() ?? filePath,
+                path: filePath,
+                originalName: file.originalname,
+                fileSize: (file as any).size ?? 0,
+                type: file.mimetype?.startsWith("video/") ? "video" : "image",
+            });
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    filePath: saved.path,
+                    originalName: file.originalname,
+                    ...(saved.publicUrl ? { publicUrl: saved.publicUrl } : publicUrl ? { publicUrl } : {}),
+                    id: saved.id,
                 },
                 message: "Media uploaded successfully",
             });
@@ -110,20 +381,28 @@ export class MediaController {
     delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const authUser = (req as AuthenticatedRequest).user;
-            const authUid = authUser?.id;
-            if (!authUid) {
+            if (!authUser?.id) {
                 throw new UserValidationError("Authentication required");
             }
 
-            const { path: objectPath } = (req.body ?? {}) as { path?: string };
-
-            if (!objectPath || typeof objectPath !== "string") {
-                throw new UserValidationError("path is required");
+            const organizationId = typeof (req.body as any)?.organizationId === "string" ? String((req.body as any).organizationId) : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId is required");
             }
 
-            assertMediaKeyOwnedByUser(objectPath, authUid);
+            const { id, path: objectPath } = (req.body ?? {}) as { id?: string; path?: string };
+            const mediaRow = id
+                ? await this.mediaService.getMediaById(organizationId, id)
+                : objectPath
+                  ? await this.mediaService.getMediaByPath(organizationId, objectPath)
+                  : null;
 
-            await this.storageR2Repository.deleteObject(objectPath);
+            if (!mediaRow) {
+                throw new AuthError("You do not have access to this media object", 403);
+            }
+
+            await this.uploadProvider.deleteObject(mediaRow.path);
+            await this.mediaService.softDeleteMedia(organizationId, mediaRow.id);
 
             res.status(200).json({
                 success: true,
@@ -134,17 +413,42 @@ export class MediaController {
         }
     };
 
+    saveMediaInformation = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) throw new UserValidationError("Authentication required");
+
+            const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+            if (!organizationId.trim()) throw new UserValidationError("organizationId is required");
+
+            const id = typeof req.body?.id === "string" ? String(req.body.id) : "";
+            if (!id.trim()) throw new UserValidationError("id is required");
+
+            const dto = {
+                id,
+                alt: req.body?.alt ?? undefined,
+                thumbnail: req.body?.thumbnail ?? undefined,
+                thumbnailTimestamp: req.body?.thumbnailTimestamp ?? undefined,
+            };
+            const updated = await this.mediaService.saveMediaInformation(organizationId, dto);
+            res.status(200).json({ success: true, data: updated });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /**
-     * After a client-side or multipart R2 upload, register the object key and receive the canonical public URL
-     * (same idea as OpenQuok `save-media` with `CLOUDFLARE_BUCKET_URL + '/' + name`).
+     * After upload, confirm an object key and receive the canonical public URL for that key.
      */
     saveMedia = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const authUser = (req as AuthenticatedRequest).user;
-            const authUid = authUser?.id;
-            if (!authUid) {
+            if (!authUser?.id) {
                 throw new UserValidationError("Authentication required");
             }
+
+            const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+            if (!organizationId.trim()) throw new UserValidationError("organizationId is required");
 
             const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
             const originalName =
@@ -153,16 +457,21 @@ export class MediaController {
             if (!name) {
                 throw new UserValidationError("name is required");
             }
-
-            assertMediaKeyOwnedByUser(name, authUid);
-
-            const publicUrl = publicUrlForObjectKey(name);
+            const saved = await this.mediaService.saveFile({
+                organizationId,
+                name: name.split("/").pop() ?? name,
+                path: name,
+                originalName: originalName ?? null,
+                fileSize: Number(req.body?.fileSize ?? 0) || 0,
+                type: typeof req.body?.type === "string" ? String(req.body.type) : undefined,
+            });
 
             res.status(200).json({
                 success: true,
                 data: {
-                    path: name,
-                    ...(publicUrl ? { publicUrl } : {}),
+                    id: saved.id,
+                    path: saved.path,
+                    ...(saved.publicUrl ? { publicUrl: saved.publicUrl } : {}),
                     ...(originalName ? { originalName } : {}),
                 },
             });
@@ -173,11 +482,3 @@ export class MediaController {
 }
 
 export { MAX_MEDIA_UPLOAD_BYTES };
-
-/** Object keys are created as `${auth.uid}-${random()}.ext` — reject cross-user access. */
-function assertMediaKeyOwnedByUser(objectKey: string, authUid: string): void {
-    const key = objectKey.replace(/^\/+/, "");
-    if (!key.startsWith(`${authUid}-`)) {
-        throw new AuthError("You do not have access to this media object", 403);
-    }
-}

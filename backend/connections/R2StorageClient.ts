@@ -1,9 +1,15 @@
 import {
     DeleteObjectCommand,
     GetObjectCommand,
+    CreateMultipartUploadCommand,
+    UploadPartCommand,
+    ListPartsCommand,
+    CompleteMultipartUploadCommand,
+    AbortMultipartUploadCommand,
     PutObjectCommand,
     S3Client,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Readable } from "node:stream";
 
 export type R2ConnectionConfig = {
@@ -81,5 +87,99 @@ export class R2StorageClient {
                 Key: key,
             })
         );
+    }
+
+    async createMultipartUpload(params: {
+        key: string;
+        contentType: string;
+        fileHash?: string;
+    }): Promise<{ uploadId: string; key: string }> {
+        const command = new CreateMultipartUploadCommand({
+            Bucket: this.cfg.bucket,
+            Key: params.key,
+            ContentType: params.contentType,
+            ...(params.fileHash
+                ? { Metadata: { "x-amz-meta-file-hash": params.fileHash } }
+                : {}),
+        });
+        const response = await this.client.send(command);
+        if (!response.UploadId || !response.Key) {
+            throw new Error("Multipart upload initialization failed");
+        }
+        return { uploadId: response.UploadId, key: response.Key };
+    }
+
+    async signPart(params: {
+        key: string;
+        uploadId: string;
+        partNumber: number;
+        expiresInSeconds?: number;
+    }): Promise<{ url: string }> {
+        const command = new UploadPartCommand({
+            Bucket: this.cfg.bucket,
+            Key: params.key,
+            PartNumber: params.partNumber,
+            UploadId: params.uploadId,
+        });
+        const url = await getSignedUrl(this.client, command, {
+            expiresIn: params.expiresInSeconds ?? 3600,
+        });
+        return { url };
+    }
+
+    async prepareUploadParts(params: {
+        key: string;
+        uploadId: string;
+        parts: Array<{ number: number }>;
+        expiresInSeconds?: number;
+    }): Promise<{ presignedUrls: Record<string, string> }> {
+        const presignedUrls: Record<string, string> = {};
+        for (const part of params.parts) {
+            const { url } = await this.signPart({
+                key: params.key,
+                uploadId: params.uploadId,
+                partNumber: part.number,
+                expiresInSeconds: params.expiresInSeconds,
+            });
+            presignedUrls[String(part.number)] = url;
+        }
+        return { presignedUrls };
+    }
+
+    async listParts(params: { key: string; uploadId: string }): Promise<unknown> {
+        const command = new ListPartsCommand({
+            Bucket: this.cfg.bucket,
+            Key: params.key,
+            UploadId: params.uploadId,
+        });
+        const response = await this.client.send(command);
+        return response.Parts ?? [];
+    }
+
+    async abortMultipartUpload(params: { key: string; uploadId: string }): Promise<unknown> {
+        const command = new AbortMultipartUploadCommand({
+            Bucket: this.cfg.bucket,
+            Key: params.key,
+            UploadId: params.uploadId,
+        });
+        return await this.client.send(command);
+    }
+
+    async completeMultipartUpload(params: {
+        key: string;
+        uploadId: string;
+        parts: Array<{ ETag: string; PartNumber: number }>;
+        publicBaseUrl?: string | null;
+    }): Promise<{ Location?: string | null }> {
+        const command = new CompleteMultipartUploadCommand({
+            Bucket: this.cfg.bucket,
+            Key: params.key,
+            UploadId: params.uploadId,
+            MultipartUpload: { Parts: params.parts },
+        });
+        const response = await this.client.send(command);
+        const base = (params.publicBaseUrl ?? "").trim().replace(/\/+$/, "");
+        const location = base ? `${base}/${params.key.replace(/^\/+/, "")}` : response.Location ?? null;
+        return { Location: location };
     }
 }

@@ -103,12 +103,13 @@ const aggregateMigrations = async () => {
       "organization": 2,
       "customer": 3,
       "integration": 4,
-      "post": 5,
-      "rbac": 6,
-      "config": 7,
-      "feedback": 8,
-      "blog": 9,
-      "notification": 10
+      "media": 5,
+      "post": 6,
+      "rbac": 7,
+      "config": 8,
+      "feedback": 9,
+      "blog": 10,
+      "notification": 11
     }
     const moduleOrder = (name) => (MODULE_ORDER[name] ?? 99)
 

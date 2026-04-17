@@ -42,7 +42,7 @@ Create a Supabase project, then collect the URL + keys you need for the backend 
 
 ### Add optional services as needed
 
-Configure Redis (recommended for production), Sentry (optional), Google OAuth (optional), and email (Resend in production) depending on what you enable in your environment variables.
+Configure Redis (recommended for production), Sentry (optional), Google OAuth (optional), email (Resend in production), and storage (Cloudflare R2 or local disk) depending on what you enable in your environment variables.
 
 </Steps>
 

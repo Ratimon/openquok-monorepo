@@ -6,7 +6,11 @@
 
 BEGIN;
 
-CREATE TYPE public.post_state AS ENUM ('QUEUE', 'PUBLISHED', 'ERROR', 'DRAFT');
+DO $$ BEGIN
+    CREATE TYPE public.post_state AS ENUM ('QUEUE', 'PUBLISHED', 'ERROR', 'DRAFT');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS public.post_tags (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -51,7 +55,7 @@ COMMENT ON COLUMN public.posts.settings IS 'JSON string; may include isGlobal an
 COMMENT ON COLUMN public.posts.interval_in_days IS 'Repeat cadence in days when applicable (maps Post.intervalInDays).';
 COMMENT ON COLUMN public.posts.created_by_user_id IS 'Optional audit field; not in reference Post model.';
 
-CREATE TABLE IF NOT EXISTS public.posts_tags (
+CREATE TABLE IF NOT EXISTS public.post_tag_assignments (
     post_id TEXT NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
     tag_id UUID NOT NULL REFERENCES public.post_tags(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -59,7 +63,7 @@ CREATE TABLE IF NOT EXISTS public.posts_tags (
     PRIMARY KEY (post_id, tag_id)
 );
 
-COMMENT ON TABLE public.posts_tags IS 'Join between posts and post_tags (TagsPosts model shape).';
+COMMENT ON TABLE public.post_tag_assignments IS 'Join between posts and post_tags (TagsPosts model shape).';
 
 -- ---------------------------
 -- END OF FILE

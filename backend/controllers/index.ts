@@ -28,8 +28,10 @@ import {
     integrationManager,
     notificationService,
     postsService,
+    mediaService,
 } from "../services/index";
 import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
+import { UploadFactory } from "../connections/upload/upload.factory";
 
 export const authController = new AuthController(authenticationService, userRepository, userService, emailService, organizationService);
 export const userController = new UserController(userService, authenticationService, emailService);
@@ -39,7 +41,11 @@ export const rbacController = new RbacController(rbacService, userRepository);
 export const feedbackController = new FeedbackController(feedbackService);
 export const blogController = new BlogController(blogService);
 export const imageController = new ImageController(storageSupabaseRepository);
-export const mediaController = new MediaController(storageR2Repository);
+export const mediaController = new MediaController(
+    mediaService,
+    storageR2Repository,
+    UploadFactory.createStorage(storageR2Repository)
+);
 export { MAX_MEDIA_UPLOAD_BYTES };
 export const configController = new ConfigController(configService);
 export const emailController = new EmailController(emailService);

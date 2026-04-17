@@ -22,6 +22,7 @@ const imageConfig: ImageConfig = {
 
 const mediaConfig: MediaConfig = {
 	endpoints: {
+		list: '/api/v1/media',
 		download: '/api/v1/media/download',
 		upload: '/api/v1/media/upload',
 		delete: '/api/v1/media/delete'

@@ -10,6 +10,7 @@ import {
     integrationRepository,
     notificationRepository,
     postsRepository,
+    mediaRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -28,6 +29,7 @@ import { IntegrationConnectionService } from "./IntegrationConnectionService";
 import { NotificationService } from "./NotificationService";
 import { TransactionalNotificationEmailService } from "./TransactionalNotificationEmailService";
 import { PostsService } from "./PostsService";
+import { MediaService } from "./MediaService";
 
 import { config } from "../config/GlobalConfig";
 
@@ -113,6 +115,7 @@ export const postsService = new PostsService(
     integrationService,
     organizationRepository
 );
+export const mediaService = new MediaService(mediaRepository);
 export { AuthenticationService } from "./AuthenticationService";
 export { UserService } from "./UserService";
 export { EmailService } from "./EmailService";
@@ -129,3 +132,4 @@ export { RefreshIntegrationService } from "./RefreshIntegrationService";
 export { NotificationService } from "./NotificationService";
 export { TransactionalNotificationEmailService, type SendPlainJobPayload } from "./TransactionalNotificationEmailService";
 export { PostsService } from "./PostsService";
+export { MediaService } from "./MediaService";

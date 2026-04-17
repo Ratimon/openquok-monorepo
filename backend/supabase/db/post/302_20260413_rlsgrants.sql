@@ -13,12 +13,12 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tags TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts TO service_role;
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts_tags TO authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts_tags TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tag_assignments TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tag_assignments TO service_role;
 
 ALTER TABLE public.post_tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.posts_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.post_tag_assignments ENABLE ROW LEVEL SECURITY;
 
 -- post_tags (org_id)
 DROP POLICY IF EXISTS "Members can view post_tags" ON public.post_tags;
@@ -172,10 +172,10 @@ USING (
     )
 );
 
--- posts_tags (via parent post org)
-DROP POLICY IF EXISTS "Members can view posts_tags" ON public.posts_tags;
-CREATE POLICY "Members can view posts_tags"
-ON public.posts_tags
+-- post_tag_assignments (via parent post org)
+DROP POLICY IF EXISTS "Members can view post_tag_assignments" ON public.post_tag_assignments;
+CREATE POLICY "Members can view post_tag_assignments"
+ON public.post_tag_assignments
 AS PERMISSIVE
 FOR SELECT
 TO authenticated
@@ -184,15 +184,15 @@ USING (
         SELECT 1 FROM public.posts p
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
-        WHERE p.id = posts_tags.post_id
+        WHERE p.id = post_tag_assignments.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
 );
 
-DROP POLICY IF EXISTS "Members can insert posts_tags" ON public.posts_tags;
-CREATE POLICY "Members can insert posts_tags"
-ON public.posts_tags
+DROP POLICY IF EXISTS "Members can insert post_tag_assignments" ON public.post_tag_assignments;
+CREATE POLICY "Members can insert post_tag_assignments"
+ON public.post_tag_assignments
 AS PERMISSIVE
 FOR INSERT
 TO authenticated
@@ -201,15 +201,15 @@ WITH CHECK (
         SELECT 1 FROM public.posts p
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
-        WHERE p.id = posts_tags.post_id
+        WHERE p.id = post_tag_assignments.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
 );
 
-DROP POLICY IF EXISTS "Members can update posts_tags" ON public.posts_tags;
-CREATE POLICY "Members can update posts_tags"
-ON public.posts_tags
+DROP POLICY IF EXISTS "Members can update post_tag_assignments" ON public.post_tag_assignments;
+CREATE POLICY "Members can update post_tag_assignments"
+ON public.post_tag_assignments
 AS PERMISSIVE
 FOR UPDATE
 TO authenticated
@@ -218,7 +218,7 @@ USING (
         SELECT 1 FROM public.posts p
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
-        WHERE p.id = posts_tags.post_id
+        WHERE p.id = post_tag_assignments.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
@@ -228,15 +228,15 @@ WITH CHECK (
         SELECT 1 FROM public.posts p
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
-        WHERE p.id = posts_tags.post_id
+        WHERE p.id = post_tag_assignments.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
 );
 
-DROP POLICY IF EXISTS "Members can delete posts_tags" ON public.posts_tags;
-CREATE POLICY "Members can delete posts_tags"
-ON public.posts_tags
+DROP POLICY IF EXISTS "Members can delete post_tag_assignments" ON public.post_tag_assignments;
+CREATE POLICY "Members can delete post_tag_assignments"
+ON public.post_tag_assignments
 AS PERMISSIVE
 FOR DELETE
 TO authenticated
@@ -245,7 +245,7 @@ USING (
         SELECT 1 FROM public.posts p
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
-        WHERE p.id = posts_tags.post_id
+        WHERE p.id = post_tag_assignments.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )

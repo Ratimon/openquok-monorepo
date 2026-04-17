@@ -18,6 +18,7 @@
 		scheduleDisabled?: boolean;
 		onToggleTag: (name: string) => void;
 		onAddTag: (name?: string, color?: string) => void | Promise<void>;
+		onDeleteTag?: (tag: PostTagProgrammerModel) => void | Promise<void>;
 		onRepeatChange: (value: RepeatIntervalKey | null) => void;
 		onSaveDraft: () => void | Promise<void>;
 		onSchedule: () => void | Promise<void>;
@@ -34,6 +35,7 @@
 		scheduleDisabled = false,
 		onToggleTag,
 		onAddTag,
+		onDeleteTag,
 		onRepeatChange,
 		onSaveDraft,
 		onSchedule
@@ -50,6 +52,7 @@
 			{busy}
 			onToggleTag={onToggleTag}
 			onAddTag={onAddTag}
+			onDeleteTag={onDeleteTag}
 		/>
 		<RepeatComponent {repeatInterval} {repeatOptions} disabled={busy} onChange={onRepeatChange} />
 	</div>

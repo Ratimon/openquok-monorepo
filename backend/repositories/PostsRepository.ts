@@ -5,7 +5,7 @@ import type { PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
 
 const TABLE_POSTS = "posts";
 const TABLE_TAGS = "post_tags";
-const TABLE_POSTS_TAGS = "posts_tags";
+const TABLE_POSTS_TAGS = "post_tag_assignments";
 
 export type SocialPostInsert = Omit<SocialPostLike, "id" | "created_at" | "updated_at">;
 
@@ -97,6 +97,28 @@ export class PostsRepository {
             });
         }
         return data as PostTagLike | null;
+    }
+
+    /** Soft-delete a workspace tag. Returns true when a row was updated. */
+    async softDeleteTagForOrganization(organizationId: string, tagId: string): Promise<boolean> {
+        const now = new Date().toISOString();
+        const { data, error } = await this.supabase
+            .from(TABLE_TAGS)
+            .update({ deleted_at: now, updated_at: now })
+            .eq("id", tagId)
+            .eq("org_id", organizationId)
+            .is("deleted_at", null)
+            .select("id")
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError(`Failed to delete tag: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_TAGS },
+            });
+        }
+        return data != null;
     }
 
     async insertPostGroup(rows: SocialPostInsert[]): Promise<SocialPostLike[]> {

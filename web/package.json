@@ -23,6 +23,12 @@
 		"lint": "eslint ."
 	},
 	"dependencies": {
+		"@uppy/aws-s3": "^5.1.0",
+		"@uppy/compressor": "^3.1.0",
+		"@uppy/core": "^5.2.0",
+		"@uppy/svelte": "^5.2.0",
+		"@uppy/transloadit": "^5.5.1",
+		"@uppy/xhr-upload": "^5.2.0",
 		"@internationalized/date": "^3.12.0",
 		"@shikijs/transformers": "^4.0.2",
 		"@tanstack/svelte-form": "^1.28.4",
@@ -36,9 +42,9 @@
 		"clsx": "^2.1.1",
 		"copy-to-clipboard": "^3.3.3",
 		"dayjs": "^1.11.19",
+		"konva": "^9.3.22",
 		"mdsvex": "^0.12.7",
 		"parse5": "^8.0.0",
-		"konva": "^9.3.22",
 		"shiki": "^4.0.2",
 		"striptags": "^3.2.0",
 		"svelte-meta-tags": "^4.5.0",

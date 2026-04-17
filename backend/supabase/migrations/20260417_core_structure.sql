@@ -283,6 +283,42 @@ COMMENT ON COLUMN public.integrations.posting_times IS 'JSON [{time:number}, ...
 -- ---------------------------
 
 
+-- Module: media, File: 102_20260417_tables.sql
+-- ---------------------------
+-- MODULE NAME: media
+-- MODULE DATE: 20260417
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+
+
+CREATE TABLE IF NOT EXISTS public.media (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    original_name TEXT,
+    path TEXT NOT NULL,
+    virtual_path TEXT NOT NULL DEFAULT '/',
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ,
+    file_size INT NOT NULL DEFAULT 0,
+    type TEXT NOT NULL DEFAULT 'image',
+    thumbnail TEXT,
+    alt TEXT,
+    thumbnail_timestamp INT
+);
+
+COMMENT ON TABLE public.media IS 'Workspace media records that reference objects stored in external object storage.';
+COMMENT ON COLUMN public.media.path IS 'Public URL or object key returned by storage; used to retrieve the file.';
+COMMENT ON COLUMN public.media.virtual_path IS 'Virtual folder path within the workspace (UI-only). Does not affect object storage keys.';
+COMMENT ON COLUMN public.media.type IS 'Logical media type label (e.g. image, video).';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: post, File: 102_20260413_tables.sql
 -- ---------------------------
 -- MODULE NAME: post
@@ -292,7 +328,11 @@ COMMENT ON COLUMN public.integrations.posting_times IS 'JSON [{time:number}, ...
 
 
 
-CREATE TYPE public.post_state AS ENUM ('QUEUE', 'PUBLISHED', 'ERROR', 'DRAFT');
+DO $$ BEGIN
+    CREATE TYPE public.post_state AS ENUM ('QUEUE', 'PUBLISHED', 'ERROR', 'DRAFT');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS public.post_tags (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -337,7 +377,7 @@ COMMENT ON COLUMN public.posts.settings IS 'JSON string; may include isGlobal an
 COMMENT ON COLUMN public.posts.interval_in_days IS 'Repeat cadence in days when applicable (maps Post.intervalInDays).';
 COMMENT ON COLUMN public.posts.created_by_user_id IS 'Optional audit field; not in reference Post model.';
 
-CREATE TABLE IF NOT EXISTS public.posts_tags (
+CREATE TABLE IF NOT EXISTS public.post_tag_assignments (
     post_id TEXT NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
     tag_id UUID NOT NULL REFERENCES public.post_tags(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -345,7 +385,7 @@ CREATE TABLE IF NOT EXISTS public.posts_tags (
     PRIMARY KEY (post_id, tag_id)
 );
 
-COMMENT ON TABLE public.posts_tags IS 'Join between posts and post_tags (TagsPosts model shape).';
+COMMENT ON TABLE public.post_tag_assignments IS 'Join between posts and post_tags (TagsPosts model shape).';
 
 -- ---------------------------
 -- END OF FILE
@@ -668,6 +708,29 @@ CREATE INDEX IF NOT EXISTS idx_integrations_customer_id ON public.integrations(c
 CREATE INDEX IF NOT EXISTS idx_integrations_in_between_steps ON public.integrations(in_between_steps);
 CREATE INDEX IF NOT EXISTS idx_integrations_refresh_needed ON public.integrations(refresh_needed);
 CREATE INDEX IF NOT EXISTS idx_integrations_disabled ON public.integrations(disabled);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: media, File: 201_20260417_indexes.sql
+-- ---------------------------
+-- MODULE NAME: media
+-- MODULE DATE: 20260417
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+
+
+CREATE INDEX IF NOT EXISTS idx_media_name ON public.media(name);
+CREATE INDEX IF NOT EXISTS idx_media_organization_id ON public.media(organization_id);
+CREATE INDEX IF NOT EXISTS idx_media_type ON public.media(type);
+CREATE INDEX IF NOT EXISTS idx_media_deleted_at ON public.media(deleted_at);
+
+CREATE INDEX IF NOT EXISTS idx_media_org_virtual_path
+ON public.media (organization_id, virtual_path)
+WHERE deleted_at IS NULL;
 
 -- ---------------------------
 -- END OF FILE
@@ -1497,6 +1560,100 @@ USING (
 -- ---------------------------
 
 
+-- Module: media, File: 302_20260417_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: media
+-- MODULE DATE: 20260417
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- API uses service_role; RLS limits direct authenticated access.
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.media TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.media TO service_role;
+
+ALTER TABLE public.media ENABLE ROW LEVEL SECURITY;
+
+-- media (organization_id)
+DROP POLICY IF EXISTS "Members can view media" ON public.media;
+CREATE POLICY "Members can view media"
+ON public.media
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = media.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert media" ON public.media;
+CREATE POLICY "Members can insert media"
+ON public.media
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = media.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update media" ON public.media;
+CREATE POLICY "Members can update media"
+ON public.media
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = media.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = media.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete media" ON public.media;
+CREATE POLICY "Members can delete media"
+ON public.media
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = media.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: post, File: 302_20260413_rlsgrants.sql
 -- ---------------------------
 -- MODULE NAME: post
@@ -1513,12 +1670,12 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tags TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts TO service_role;
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts_tags TO authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts_tags TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tag_assignments TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tag_assignments TO service_role;
 
 ALTER TABLE public.post_tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.posts_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.post_tag_assignments ENABLE ROW LEVEL SECURITY;
 
 -- post_tags (org_id)
 DROP POLICY IF EXISTS "Members can view post_tags" ON public.post_tags;
@@ -1672,10 +1829,10 @@ USING (
     )
 );
 
--- posts_tags (via parent post org)
-DROP POLICY IF EXISTS "Members can view posts_tags" ON public.posts_tags;
-CREATE POLICY "Members can view posts_tags"
-ON public.posts_tags
+-- post_tag_assignments (via parent post org)
+DROP POLICY IF EXISTS "Members can view post_tag_assignments" ON public.post_tag_assignments;
+CREATE POLICY "Members can view post_tag_assignments"
+ON public.post_tag_assignments
 AS PERMISSIVE
 FOR SELECT
 TO authenticated
@@ -1684,15 +1841,15 @@ USING (
         SELECT 1 FROM public.posts p
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
-        WHERE p.id = posts_tags.post_id
+        WHERE p.id = post_tag_assignments.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
 );
 
-DROP POLICY IF EXISTS "Members can insert posts_tags" ON public.posts_tags;
-CREATE POLICY "Members can insert posts_tags"
-ON public.posts_tags
+DROP POLICY IF EXISTS "Members can insert post_tag_assignments" ON public.post_tag_assignments;
+CREATE POLICY "Members can insert post_tag_assignments"
+ON public.post_tag_assignments
 AS PERMISSIVE
 FOR INSERT
 TO authenticated
@@ -1701,15 +1858,15 @@ WITH CHECK (
         SELECT 1 FROM public.posts p
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
-        WHERE p.id = posts_tags.post_id
+        WHERE p.id = post_tag_assignments.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
 );
 
-DROP POLICY IF EXISTS "Members can update posts_tags" ON public.posts_tags;
-CREATE POLICY "Members can update posts_tags"
-ON public.posts_tags
+DROP POLICY IF EXISTS "Members can update post_tag_assignments" ON public.post_tag_assignments;
+CREATE POLICY "Members can update post_tag_assignments"
+ON public.post_tag_assignments
 AS PERMISSIVE
 FOR UPDATE
 TO authenticated
@@ -1718,7 +1875,7 @@ USING (
         SELECT 1 FROM public.posts p
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
-        WHERE p.id = posts_tags.post_id
+        WHERE p.id = post_tag_assignments.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
@@ -1728,15 +1885,15 @@ WITH CHECK (
         SELECT 1 FROM public.posts p
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
-        WHERE p.id = posts_tags.post_id
+        WHERE p.id = post_tag_assignments.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
 );
 
-DROP POLICY IF EXISTS "Members can delete posts_tags" ON public.posts_tags;
-CREATE POLICY "Members can delete posts_tags"
-ON public.posts_tags
+DROP POLICY IF EXISTS "Members can delete post_tag_assignments" ON public.post_tag_assignments;
+CREATE POLICY "Members can delete post_tag_assignments"
+ON public.post_tag_assignments
 AS PERMISSIVE
 FOR DELETE
 TO authenticated
@@ -1745,7 +1902,7 @@ USING (
         SELECT 1 FROM public.posts p
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
-        WHERE p.id = posts_tags.post_id
+        WHERE p.id = post_tag_assignments.post_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
