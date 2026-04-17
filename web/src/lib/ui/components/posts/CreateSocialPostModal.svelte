@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { PostTagProgrammerModel, RepeatIntervalKey } from '$lib/posts';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
@@ -24,7 +24,7 @@
 	type Props = {
 		open?: boolean;
 		workspaceId: string | null;
-		connectedChannels: CreateSocialPostChannel[];
+		connectedChannels: CreateSocialPostChannelViewModel[];
 		/** For image upload form field; server uses JWT for storage path. */
 		uploadUid?: string;
 	};

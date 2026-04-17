@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -15,7 +15,7 @@
 
 	type Props = {
 		open?: boolean;
-		channel: CreateSocialPostChannel;
+		channel: CreateSocialPostChannelViewModel;
 		value?: Partial<ProviderSettings>;
 		onChange: (next: Partial<ProviderSettings>) => void;
 	};

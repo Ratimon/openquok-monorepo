@@ -4,7 +4,7 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import PictureGeneration from '$lib/ui/components/posts/PictureGeneration.svelte';
-	import { mediaRepository } from '$lib/core/index';
+	import { mediaRepository } from '$lib/media';
 	import { toast } from '$lib/ui/sonner';
 
 	type Props = {

@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SliderComponent from '$lib/ui/slider/SliderComponent.svelte';
 
 	type Props = {
-		channel: CreateSocialPostChannel;
+		channel: CreateSocialPostChannelViewModel;
 		previewText: string;
 		maximumCharacters?: number;
 		mediaUrls?: string[];
@@ -16,7 +16,7 @@
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
 
-	// We don't currently have a separate `display`/handle field on `CreateSocialPostChannel`.
+	// We don't currently have a separate `display`/handle field on `CreateSocialPostChannelViewModel`.
 	// Use a reasonable UI fallback to match the original structure.
 	const handle = $derived((channel.name || '').trim() || 'username');
 </script>

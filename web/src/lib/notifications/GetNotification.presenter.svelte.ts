@@ -3,7 +3,7 @@ import type {
 	NotificationRowProgrammerModel
 } from '$lib/notifications/Notification.repository.svelte';
 
-export interface NotificationItemVm {
+export interface NotificationItemViewModel {
 	id: string;
 	content: string;
 	link: string | null;
@@ -11,8 +11,8 @@ export interface NotificationItemVm {
 	createdAtLabel: string;
 }
 
-export interface NotificationsPaginatedSliceVm {
-	notificationsVm: NotificationItemVm[];
+export interface NotificationsPaginatedSliceViewModel {
+	notifications: NotificationItemViewModel[];
 	total: number;
 	hasMore: boolean;
 }
@@ -37,19 +37,21 @@ export class GetNotificationPresenter {
 		return this.notificationRepository.syncReadCursorFromList(organizationId);
 	}
 
-	async loadPaginatedNotificationsVm(
+	async loadPaginatedNotifications(
 		organizationId: string,
 		page: number
-	): Promise<NotificationsPaginatedSliceVm> {
+	): Promise<NotificationsPaginatedSliceViewModel> {
 		const paginated = await this.notificationRepository.getPaginated(organizationId, page);
 		return {
-			notificationsVm: paginated.notifications.map((row) => this.rowToItemVm(row)),
+			notifications: paginated.notifications.map((row) => this.rowToNotificationItemViewModel(row)),
 			total: paginated.total,
 			hasMore: paginated.hasMore
 		};
 	}
 
-	private rowToItemVm(row: NotificationRowProgrammerModel): NotificationItemVm {
+	private rowToNotificationItemViewModel(
+		row: NotificationRowProgrammerModel
+	): NotificationItemViewModel {
 		return {
 			id: row.id,
 			content: row.content,

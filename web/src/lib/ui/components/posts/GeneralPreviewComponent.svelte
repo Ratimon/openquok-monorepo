@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -8,7 +8,7 @@
 	type Props = {
 		previewText: string;
 		maximumCharacters?: number;
-		channel?: CreateSocialPostChannel | null;
+		channel?: CreateSocialPostChannelViewModel | null;
 		title?: string;
 		showVerified?: boolean;
 		mediaUrls?: string[];

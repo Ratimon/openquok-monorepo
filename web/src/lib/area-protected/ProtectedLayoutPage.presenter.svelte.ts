@@ -1,6 +1,6 @@
 import type {
 	GetNotificationPresenter,
-	NotificationItemVm
+	NotificationItemViewModel
 } from '$lib/notifications/GetNotification.presenter.svelte';
 import type { NotificationRepository } from '$lib/notifications/Notification.repository.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
@@ -14,7 +14,7 @@ const SIDEBAR_PREVIEW_LIMIT = 8;
 export class ProtectedLayoutPagePresenter {
 	public editorDockNotificationUnreadCount = $state(0);
 
-	public notificationPreviewVm = $state<NotificationItemVm[]>([]);
+	public notificationPreviewVm = $state<NotificationItemViewModel[]>([]);
 	public notificationPreviewLoading = $state(false);
 	public notificationPreviewEmptyMessage = $state<string | null>(null);
 
@@ -62,8 +62,8 @@ export class ProtectedLayoutPagePresenter {
 					'Select or create a workspace in Account settings to see notifications.';
 				return;
 			}
-			const slice = await this.getNotificationPresenter.loadPaginatedNotificationsVm(organizationId, 0);
-			this.notificationPreviewVm = slice.notificationsVm.slice(0, SIDEBAR_PREVIEW_LIMIT);
+			const slice = await this.getNotificationPresenter.loadPaginatedNotifications(organizationId, 0);
+			this.notificationPreviewVm = slice.notifications.slice(0, SIDEBAR_PREVIEW_LIMIT);
 		} catch {
 			this.notificationPreviewVm = [];
 			this.notificationPreviewEmptyMessage = 'Could not load notifications.';

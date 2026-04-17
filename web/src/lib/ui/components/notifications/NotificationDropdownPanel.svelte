@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { NotificationItemVm } from '$lib/notifications/GetNotification.presenter.svelte';
+	import type { NotificationItemViewModel } from '$lib/notifications/GetNotification.presenter.svelte';
 
 	type Props = {
-		previewItems: NotificationItemVm[];
+		previewItems: NotificationItemViewModel[];
 		previewLoading: boolean;
 		previewEmptyMessage: string | null;
 		footerHref?: string;

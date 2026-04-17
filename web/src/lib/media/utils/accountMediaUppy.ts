@@ -2,9 +2,9 @@ import Uppy from '@uppy/core';
 import Compressor from '@uppy/compressor';
 
 import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
-import { MAX_MEDIA_UPLOAD_BYTES } from '$lib/core/Media.repository.svelte';
+import { MAX_MEDIA_UPLOAD_BYTES } from '$lib/media';
 import { normalizeApiBaseUrl } from '$lib/utils/path';
-import { getUppyUploadPlugin } from '$lib/media/uppyUploadPluginFactory';
+import { getUppyUploadPlugin } from '$lib/media/utils/uppyUploadPluginFactory';
 
 /** Full URL for `POST` multipart field `mediaFile` (same origin as `HttpGateway`). */
 export function buildMediaUploadEndpointUrl(): string {

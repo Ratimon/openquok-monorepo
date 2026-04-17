@@ -1,9 +1,7 @@
 import type { ImageConfig } from '$lib/core/Image.repository.svelte';
-import type { MediaConfig } from '$lib/core/Media.repository.svelte';
 
 import { HttpGateway } from '$lib/core/HttpGateway';
 import { ImageRepository } from '$lib/core/Image.repository.svelte';
-import { MediaRepository } from '$lib/core/Media.repository.svelte';
 import { DeleteImagePresenter } from '$lib/core/DeleteImage.presenter.svelte';
 import { DownloadImagePresenter } from '$lib/core/DownloadImage.presenter.svelte';
 import { SupabaseImageUploadAreaPresenter } from '$lib/core/SupabaseImageUploadArea.presenter.svelte';
@@ -20,15 +18,6 @@ const imageConfig: ImageConfig = {
 	}
 };
 
-const mediaConfig: MediaConfig = {
-	endpoints: {
-		list: '/api/v1/media',
-		download: '/api/v1/media/download',
-		upload: '/api/v1/media/upload',
-		delete: '/api/v1/media/delete'
-	}
-};
-
 const httpGateway = new HttpGateway(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default as string, {
 	headers: {
 		'Content-Type': 'application/json',
@@ -37,7 +26,6 @@ const httpGateway = new HttpGateway(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default a
 });
 
 export const imageRepository = new ImageRepository(httpGateway, imageConfig);
-export const mediaRepository = new MediaRepository(httpGateway, mediaConfig);
 
 // Upload Area Presenters (singletons)
 const downloadImageUploadAreaPresenter = new DownloadImagePresenter(imageRepository);

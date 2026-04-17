@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { MediaLibraryItemProgrammerModel } from '$lib/core/Media.repository.svelte';
+	import type { MediaLibraryItemProgrammerModel } from '$lib/media';
 	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
 
-	import { mediaRepository } from '$lib/core';
+	import { mediaRepository } from '$lib/media';
 	import { mediaItemsToPreviewUrls } from '$lib/posts/composerMedia.types';
 	import { resolveMediaPreviewUrl } from '$lib/posts/mediaPreview';
 	import { icons } from '$data/icon';

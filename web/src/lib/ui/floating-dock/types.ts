@@ -1,9 +1,9 @@
 import type { IconName } from '$data/icon';
-import type { NotificationItemVm } from '$lib/notifications/GetNotification.presenter.svelte';
+import type { NotificationItemViewModel } from '$lib/notifications/GetNotification.presenter.svelte';
 
 /** Data for the header dock bell: preview list + loader (no route navigation). */
 export interface DockNotificationsPreview {
-	items: NotificationItemVm[];
+	items: NotificationItemViewModel[];
 	loading: boolean;
 	emptyMessage: string | null;
 	onOpen: () => void | Promise<void>;

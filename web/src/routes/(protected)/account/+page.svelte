@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 	import type { IconName } from '$data/icon';
 	import type {
-		CreateSocialPostChannel,
+		CreateSocialPostChannelViewModel,
 		DashboardPlatformChannelRowViewModel
 	} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
@@ -37,12 +37,12 @@
 	const platformChannelRowsUngrouped = $derived(protectedDashboardPagePresenter.platformChannelRowsUngrouped);
 	const channelGroupSections = $derived(protectedDashboardPagePresenter.channelGroupSections);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
-	const connectedChannels = $derived(protectedDashboardPagePresenter.connectedChannels);
-	const connectedChannelCount = $derived(connectedChannels.length);
+	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
+	const connectedChannelCount = $derived(connectedChannelsVm.length);
 
 	/** Same integration `identifier` with two or more social connections (different accounts). */
 	const hasSocialPlatformWithMultipleChannels = $derived.by(() => {
-		const social = connectedChannels.filter((c) => (c.type ?? '').toLowerCase() === 'social');
+		const social = connectedChannelsVm.filter((c) => (c.type ?? '').toLowerCase() === 'social');
 		const counts = new Map<string, number>();
 		for (const c of social) {
 			const key = c.identifier?.trim() || 'unknown';
@@ -63,19 +63,19 @@
 
 	let groupDetailsOpen = $state<Record<string, boolean>>({});
 	let moveGroupOpen = $state(false);
-	let moveGroupFor = $state<CreateSocialPostChannel | null>(null);
+	let moveGroupFor = $state<CreateSocialPostChannelViewModel | null>(null);
 
 	let timeTableOpen = $state(false);
-	let timeTableFor = $state<CreateSocialPostChannel | null>(null);
+	let timeTableFor = $state<CreateSocialPostChannelViewModel | null>(null);
 
 	let createSocialPostOpen = $state(false);
 
-	function openMoveGroupModal(integration: CreateSocialPostChannel) {
+	function openMoveGroupModal(integration: CreateSocialPostChannelViewModel) {
 		moveGroupFor = integration;
 		moveGroupOpen = true;
 	}
 
-	function openTimeTableModal(integration: CreateSocialPostChannel) {
+	function openTimeTableModal(integration: CreateSocialPostChannelViewModel) {
 		timeTableFor = integration;
 		timeTableOpen = true;
 	}
@@ -229,7 +229,7 @@
 		return false;
 	}
 
-	function continueSetupHref(integration: CreateSocialPostChannel): string {
+	function continueSetupHref(integration: CreateSocialPostChannelViewModel): string {
 		if (!workspaceId) return url(`/${getRootPathAccount()}`);
 		if (integration.identifier === 'instagram-business') {
 			const qs = new URLSearchParams({
@@ -457,7 +457,7 @@
 <CreateSocialPostModal
 	bind:open={createSocialPostOpen}
 	workspaceId={workspaceId}
-	connectedChannels={connectedChannels}
+	connectedChannels={connectedChannelsVm}
 	uploadUid={currentUser?.id ?? ''}
 />
 

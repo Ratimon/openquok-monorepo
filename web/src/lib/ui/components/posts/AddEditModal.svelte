@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
 
@@ -14,7 +14,7 @@
 	type Mode = 'global' | 'custom';
 
 	type Props = {
-		socialChannels: CreateSocialPostChannel[];
+		socialChannels: CreateSocialPostChannelViewModel[];
 		selectedIds: string[];
 		mode: Mode;
 		focusedIntegrationId: string | null;

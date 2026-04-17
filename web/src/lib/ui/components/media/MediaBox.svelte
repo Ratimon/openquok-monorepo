@@ -2,13 +2,12 @@
 	import type {
 		MediaLibraryItemProgrammerModel,
 		MediaListProgrammerModel
-	} from '$lib/core/Media.repository.svelte';
+	} from '$lib/media';
 
 	import { onDestroy, onMount } from 'svelte';
 
-	import { mediaRepository } from '$lib/core';
-	import { MAX_MEDIA_UPLOAD_BYTES } from '$lib/core/Media.repository.svelte';
-	import { createAccountMediaUppy } from '$lib/media/accountMediaUppy';
+	import { MAX_MEDIA_UPLOAD_BYTES, mediaRepository } from '$lib/media';
+	import { createAccountMediaUppy } from '$lib/media/utils/accountMediaUppy';
 	import { resolveMediaPreviewUrl } from '$lib/posts/mediaPreview';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { workspaceSettingsPresenter } from '$lib/settings';

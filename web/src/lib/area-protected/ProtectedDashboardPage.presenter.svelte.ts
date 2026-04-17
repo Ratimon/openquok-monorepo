@@ -5,12 +5,15 @@ import type {
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
 /** One scheduled posting slot: minutes after midnight (0–1439), matching `integrations.posting_times` JSON. */
-export type PostingTimeSlot = { time: number };
+export type PostingTimeSlotViewModel = { time: number };
+
+/** Workspace channel group row (id + display name) for dashboard lists and assignment. */
+export type WorkspaceChannelGroupViewModel = { id: string; name: string };
 
 /**
  * Connected channel row for the account dashboard (presenter / UI). No repository DTO shape.
  */
-export interface CreateSocialPostChannel {
+export interface CreateSocialPostChannelViewModel {
 	id: string;
 	internalId: string;
 	name: string;
@@ -21,18 +24,18 @@ export interface CreateSocialPostChannel {
 	inBetweenSteps: boolean;
 	refreshNeeded: boolean;
 	/** Workspace channel group this channel belongs to, if any. */
-	group: { id: string; name: string } | null;
+	group: WorkspaceChannelGroupViewModel | null;
 	/** Parsed `posting_times` from the API (deduplicated, sorted by `time`). */
-	postingTimes: PostingTimeSlot[];
+	postingTimes: PostingTimeSlotViewModel[];
 }
 
 const MINUTES_PER_DAY = 24 * 60;
 
 /** Normalizes list API `time` payloads into unique minute-of-day values. */
-export function parsePostingTimeSlots(raw: unknown): PostingTimeSlot[] {
+export function parsePostingTimeSlots(raw: unknown): PostingTimeSlotViewModel[] {
 	if (!Array.isArray(raw)) return [];
 	const seen = new Set<number>();
-	const out: PostingTimeSlot[] = [];
+	const out: PostingTimeSlotViewModel[] = [];
 	for (const item of raw) {
 		if (!item || typeof item !== 'object') continue;
 		const t = Number((item as Record<string, unknown>).time);
@@ -47,9 +50,9 @@ export function parsePostingTimeSlots(raw: unknown): PostingTimeSlot[] {
 	return out;
 }
 
-function toCreateSocialPostChannel(
+function toCreateSocialPostChannelViewModel(
 	pm: ConnectedIntegrationProgrammerModel
-): CreateSocialPostChannel {
+): CreateSocialPostChannelViewModel {
 	return {
 		id: pm.id,
 		internalId: pm.internalId,
@@ -68,20 +71,20 @@ function toCreateSocialPostChannel(
 /** Collapsible menu section on the account dashboard (grouped by channel `type`). */
 export interface DashboardConnectedChannelMenuGroupViewModel {
 	label: string;
-	items: CreateSocialPostChannel[];
+	items: CreateSocialPostChannelViewModel[];
 }
 
 /** One row per integration provider (`identifier`): platform icon + its connected channels. */
 export interface DashboardPlatformChannelRowViewModel {
 	identifier: string;
-	items: CreateSocialPostChannel[];
+	items: CreateSocialPostChannelViewModel[];
 }
 
 /** Channels assigned to the same workspace channel group (sidebar section). */
 export interface DashboardChannelGroupViewModel {
 	id: string;
 	name: string;
-	items: CreateSocialPostChannel[];
+	items: CreateSocialPostChannelViewModel[];
 	/** One row per integration `identifier` (icon + chips + Add more), scoped to this group's channels. */
 	platformRows: DashboardPlatformChannelRowViewModel[];
 }
@@ -95,10 +98,10 @@ function labelForDashboardChannelGroupType(type: string | undefined): string {
 	return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
-function buildDashboardChannelMenuGroups(
-	channels: readonly CreateSocialPostChannel[]
+function buildDashboardChannelMenuGroupsVm(
+	channels: readonly CreateSocialPostChannelViewModel[]
 ): DashboardConnectedChannelMenuGroupViewModel[] {
-	const map = new Map<string, CreateSocialPostChannel[]>();
+	const map = new Map<string, CreateSocialPostChannelViewModel[]>();
 	for (const item of channels) {
 		const key = labelForDashboardChannelGroupType(item.type);
 		if (!map.has(key)) map.set(key, []);
@@ -125,10 +128,10 @@ const DASHBOARD_PLATFORM_ROW_ORDER: readonly string[] = [
 	'tiktok'
 ];
 
-function buildPlatformChannelRows(
-	channels: readonly CreateSocialPostChannel[]
+function buildPlatformChannelRowsVm(
+	channels: readonly CreateSocialPostChannelViewModel[]
 ): DashboardPlatformChannelRowViewModel[] {
-	const map = new Map<string, CreateSocialPostChannel[]>();
+	const map = new Map<string, CreateSocialPostChannelViewModel[]>();
 	for (const ch of channels) {
 		const key = ch.identifier?.trim() || 'unknown';
 		if (!map.has(key)) map.set(key, []);
@@ -152,10 +155,10 @@ function buildPlatformChannelRows(
 	return rows;
 }
 
-type ChannelGroupAcc = { id: string; name: string; items: CreateSocialPostChannel[] };
+type ChannelGroupAcc = WorkspaceChannelGroupViewModel & { items: CreateSocialPostChannelViewModel[] };
 
-function buildChannelGroupSections(
-	channels: readonly CreateSocialPostChannel[]
+function buildChannelGroupSectionsVm(
+	channels: readonly CreateSocialPostChannelViewModel[]
 ): DashboardChannelGroupViewModel[] {
 	const map = new Map<string, ChannelGroupAcc>();
 	for (const ch of channels) {
@@ -174,7 +177,7 @@ function buildChannelGroupSections(
 			id: g.id,
 			name: g.name,
 			items: g.items,
-			platformRows: buildPlatformChannelRows(g.items)
+			platformRows: buildPlatformChannelRowsVm(g.items)
 		});
 	}
 	groups.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
@@ -194,9 +197,9 @@ export type DashboardPostConnectQueryResult =
  * Account dashboard: workspace channels list and post-OAuth landing feedback (`?added=&msg=&onboarding=`).
  */
 export class ProtectedDashboardPagePresenter {
-	connectedChannels = $state<CreateSocialPostChannel[]>([]);
+	connectedChannelsVm = $state<CreateSocialPostChannelViewModel[]>([]);
 	listStatus = $state<DashboardIntegrationsLoadStatus>('idle');
-	channelGroups = $state<{ id: string; name: string }[]>([]);
+	channelGroupsVm = $state<WorkspaceChannelGroupViewModel[]>([]);
 	channelGroupsStatus = $state<ChannelGroupsLoadStatus>('idle');
 	showOnboardingWelcome = $state(false);
 
@@ -205,17 +208,17 @@ export class ProtectedDashboardPagePresenter {
 
 
 	/** Grouped by integration `type` for dashboard menus. */
-	menuGroups = $derived.by(() => buildDashboardChannelMenuGroups(this.connectedChannels));
+	menuGroups = $derived.by(() => buildDashboardChannelMenuGroupsVm(this.connectedChannelsVm));
 
 	/** Grouped by integration `identifier` (one row per provider on the account dashboard). */
-	platformChannelRows = $derived.by(() => buildPlatformChannelRows(this.connectedChannels));
+	platformChannelRows = $derived.by(() => buildPlatformChannelRowsVm(this.connectedChannelsVm));
 
 	/** Channels with a workspace channel group, for collapsible sidebar sections. */
-	channelGroupSections = $derived.by(() => buildChannelGroupSections(this.connectedChannels));
+	channelGroupSections = $derived.by(() => buildChannelGroupSectionsVm(this.connectedChannelsVm));
 
 	/** Same as {@link platformChannelRows} but only channels not assigned to a channel group. */
 	platformChannelRowsUngrouped = $derived.by(() =>
-		buildPlatformChannelRows(this.connectedChannels.filter((c) => !c.group))
+		buildPlatformChannelRowsVm(this.connectedChannelsVm.filter((c) => !c.group))
 	);
 
 	constructor(
@@ -231,9 +234,9 @@ export class ProtectedDashboardPagePresenter {
 		if (this.dashboardListsInflight) return this.dashboardListsInflight;
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
-			this.connectedChannels = [];
+			this.connectedChannelsVm = [];
 			this.listStatus = 'idle';
-			this.channelGroups = [];
+			this.channelGroupsVm = [];
 			this.channelGroupsStatus = 'idle';
 			return;
 		}
@@ -250,21 +253,21 @@ export class ProtectedDashboardPagePresenter {
 	async loadConnectedIntegrations(): Promise<void> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
-			this.connectedChannels = [];
+			this.connectedChannelsVm = [];
 			this.listStatus = 'idle';
-			this.channelGroups = [];
+			this.channelGroupsVm = [];
 			this.channelGroupsStatus = 'idle';
 			return;
 		}
 		this.listStatus = 'loading';
 		try {
 			const rows = await this.integrationsRepository.listConnectedIntegrations(orgId);
-			this.connectedChannels = rows.map(toCreateSocialPostChannel);
+			this.connectedChannelsVm = rows.map(toCreateSocialPostChannelViewModel);
 			this.listStatus = 'ready';
 		} catch {
 			this.listStatus = 'error';
-			this.connectedChannels = [];
-			this.channelGroups = [];
+			this.connectedChannelsVm = [];
+			this.channelGroupsVm = [];
 			this.channelGroupsStatus = 'error';
 		}
 	}
@@ -272,23 +275,23 @@ export class ProtectedDashboardPagePresenter {
 	async loadChannelGroups(): Promise<void> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
-			this.channelGroups = [];
+			this.channelGroupsVm = [];
 			this.channelGroupsStatus = 'idle';
 			return;
 		}
 		this.channelGroupsStatus = 'loading';
 		try {
-			this.channelGroups = await this.integrationsRepository.listChannelCustomers(orgId);
+			this.channelGroupsVm = await this.integrationsRepository.listChannelCustomers(orgId);
 			this.channelGroupsStatus = 'ready';
 		} catch {
 			this.channelGroupsStatus = 'error';
-			this.channelGroups = [];
+			this.channelGroupsVm = [];
 		}
 	}
 
 	async createChannelGroup(
 		name: string
-	): Promise<{ ok: true; id: string; name: string } | { ok: false; error: string }> {
+	): Promise<({ ok: true } & WorkspaceChannelGroupViewModel) | { ok: false; error: string }> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
@@ -303,8 +306,8 @@ export class ProtectedDashboardPagePresenter {
 
 	/**
 	 * Assign or clear workspace channel group on an integration. On success, patches
-	 * `connectedChannels` in place (no full list refetch). Pass `groupDisplayName` when the
-	 * label is known from the UI and may not yet appear in `channelGroups`.
+	 * `connectedChannelsVm` in place (no full list refetch). Pass `groupDisplayName` when the
+	 * label is known from the UI and may not yet appear in `channelGroupsVm`.
 	 */
 	async assignChannelGroup(
 		integrationId: string,
@@ -321,7 +324,7 @@ export class ProtectedDashboardPagePresenter {
 			customerId: groupId
 		});
 		if (res.ok) {
-			const group: { id: string; name: string } | null =
+			const group: WorkspaceChannelGroupViewModel | null =
 				groupId === null
 					? null
 					: {
@@ -329,7 +332,7 @@ export class ProtectedDashboardPagePresenter {
 							name: (() => {
 								const n = (
 									groupDisplayName?.trim() ||
-									this.channelGroups.find((g) => g.id === groupId)?.name ||
+									this.channelGroupsVm.find((g) => g.id === groupId)?.name ||
 									''
 								).trim();
 								return n || 'Channel group';
@@ -380,7 +383,7 @@ export class ProtectedDashboardPagePresenter {
 
 	async setPostingTimes(
 		integrationId: string,
-		slots: PostingTimeSlot[]
+		slots: PostingTimeSlotViewModel[]
 	): Promise<DashboardChannelMutationResult> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
@@ -436,39 +439,39 @@ export class ProtectedDashboardPagePresenter {
 			: { handled: true };
 	}
 
-	private _insertChannelGroupSorted(entry: { id: string; name: string }): void {
-		if (this.channelGroups.some((g) => g.id === entry.id)) return;
-		this.channelGroups = [...this.channelGroups, entry].sort((a, b) =>
+	private _insertChannelGroupSorted(entry: WorkspaceChannelGroupViewModel): void {
+		if (this.channelGroupsVm.some((g) => g.id === entry.id)) return;
+		this.channelGroupsVm = [...this.channelGroupsVm, entry].sort((a, b) =>
 			a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
 		);
-		if (this.channelGroups.length > 0) {
+		if (this.channelGroupsVm.length > 0) {
 			this.channelGroupsStatus = 'ready';
 		}
 	}
 
 	private _patchIntegrationGroup(
 		integrationId: string,
-		group: { id: string; name: string } | null
+		group: WorkspaceChannelGroupViewModel | null
 	): void {
-		const idx = this.connectedChannels.findIndex((c) => c.id === integrationId);
+		const idx = this.connectedChannelsVm.findIndex((c) => c.id === integrationId);
 		if (idx < 0) return;
-		const prev = this.connectedChannels[idx];
-		this.connectedChannels = [
-			...this.connectedChannels.slice(0, idx),
+		const prev = this.connectedChannelsVm[idx];
+		this.connectedChannelsVm = [
+			...this.connectedChannelsVm.slice(0, idx),
 			{ ...prev, group },
-			...this.connectedChannels.slice(idx + 1)
+			...this.connectedChannelsVm.slice(idx + 1)
 		];
 	}
 
-	private _patchIntegrationPostingTimes(integrationId: string, slots: PostingTimeSlot[]): void {
-		const idx = this.connectedChannels.findIndex((c) => c.id === integrationId);
+	private _patchIntegrationPostingTimes(integrationId: string, slots: PostingTimeSlotViewModel[]): void {
+		const idx = this.connectedChannelsVm.findIndex((c) => c.id === integrationId);
 		if (idx < 0) return;
-		const prev = this.connectedChannels[idx];
+		const prev = this.connectedChannelsVm[idx];
 		const sorted = [...slots].sort((a, b) => a.time - b.time);
-		this.connectedChannels = [
-			...this.connectedChannels.slice(0, idx),
+		this.connectedChannelsVm = [
+			...this.connectedChannelsVm.slice(0, idx),
 			{ ...prev, postingTimes: sorted },
-			...this.connectedChannels.slice(idx + 1)
+			...this.connectedChannelsVm.slice(idx + 1)
 		];
 	}
 }

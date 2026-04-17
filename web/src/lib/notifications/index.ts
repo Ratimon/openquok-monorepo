@@ -20,6 +20,6 @@ export type {
 	NotificationsPaginatedProgrammerModel
 } from '$lib/notifications/Notification.repository.svelte';
 export type {
-	NotificationItemVm,
-	NotificationsPaginatedSliceVm
+	NotificationItemViewModel,
+	NotificationsPaginatedSliceViewModel
 } from '$lib/notifications/GetNotification.presenter.svelte';

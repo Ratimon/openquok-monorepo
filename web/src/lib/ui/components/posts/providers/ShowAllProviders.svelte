@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import GeneralPreviewComponent from '$lib/ui/components/posts/GeneralPreviewComponent.svelte';
 	import InstagramPreview from '$lib/ui/components/posts/providers/instagram/InstagramPreview.svelte';
 	import ThreadsPreview from '$lib/ui/components/posts/providers/threads/ThreadsPreview.svelte';
 
 	type Props = {
-		channel: CreateSocialPostChannel | null;
+		channel: CreateSocialPostChannelViewModel | null;
 		previewText: string;
 		maximumCharacters?: number;
 		mediaUrls?: string[];

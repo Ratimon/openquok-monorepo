@@ -1,4 +1,4 @@
-import { mediaRepository } from '$lib/core/index';
+import { mediaRepository } from '$lib/media';
 
 /** True when the URL targets the authenticated media download route (needs Bearer; not usable as raw `<img src>`). */
 export function isAuthenticatedMediaDownloadHref(href: string): boolean {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { protectedDashboardPagePresenter } from '$lib/area-protected';
 	import { icons } from '$data/icon';
@@ -11,7 +11,7 @@
 
 	type Props = {
 		open?: boolean;
-		integration: CreateSocialPostChannel | null;
+		integration: CreateSocialPostChannelViewModel | null;
 	};
 
 	let { open = $bindable(false), integration }: Props = $props();
@@ -20,7 +20,7 @@
 	let selectedGroupId = $state<string | null>(null);
 	let busy = $state(false);
 
-	const groups = $derived(protectedDashboardPagePresenter.channelGroups);
+	const groups = $derived(protectedDashboardPagePresenter.channelGroupsVm);
 
 	const filteredGroups = $derived(
 		groups.filter((g) => g.name.toLowerCase().includes(filterText.trim().toLowerCase()))

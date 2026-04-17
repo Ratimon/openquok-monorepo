@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -7,7 +7,7 @@
 	type ChannelGroup = { id: string; name: string };
 
 	type Props = {
-		channels: CreateSocialPostChannel[];
+		channels: CreateSocialPostChannelViewModel[];
 		selectedGroupId?: string | null;
 		onSelect: (groupId: string | null) => void;
 	};
