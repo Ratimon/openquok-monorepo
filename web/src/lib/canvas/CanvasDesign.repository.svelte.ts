@@ -42,9 +42,9 @@ export type DesignTemplateProgrammerModel = {
 	previewUrl: string;
 	/** Doc snapshot to apply to the canvas (resetting history). */
 	doc: KonvaDesignDoc;
-	/** When “Match current frame” is on, these entries appear for any aspect. */
+	/** If set, row is shown regardless of canvas aspect when lists filter by aspect. */
 	universal?: boolean;
-	/** When “Match current frame” is on, show only if this matches the canvas aspect id. */
+	/** Optional aspect id when lists filter templates to the current frame. */
 	aspectRatioId?: string;
 	/** If set, parent should switch to this aspect before applying fill/clear. */
 	suggestAspectRatioId?: string;
@@ -167,28 +167,23 @@ export class CanvasDesignRepository {
 
 	/**
 	 * One page of Polotno’s public template library (same contract as OpenPolotno `templateList`).
+	 * Uses `size=all` (we do not filter remote templates by export dimensions).
 	 */
 	async fetchPolotnoTemplateListPagePm(
 		params: {
 			query: string;
 			page: number;
-			sameSizeAsCanvas: boolean;
-			exportWidth: number;
-			exportHeight: number;
 			perPage?: number;
 			apiKey?: string;
 		},
 		signal?: AbortSignal
 	): Promise<PolotnoTemplateListPageProgrammerModel> {
 		const perPage = params.perPage ?? POLOTONO_DEFAULT_TEMPLATE_PER_PAGE;
-		const sizeValue = params.sameSizeAsCanvas
-			? `${params.exportWidth}x${params.exportHeight}`
-			: 'all';
 		const key = params.apiKey ?? '';
 		const res = await this.polotnoGateway.get<PolotnoTemplateListPageProgrammerModel>(
 			POLOTONO_GET_TEMPLATES_PATH,
 			{
-				size: sizeValue,
+				size: 'all',
 				query: params.query,
 				per_page: perPage,
 				page: params.page,

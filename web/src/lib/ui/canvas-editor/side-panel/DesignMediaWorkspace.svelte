@@ -195,7 +195,6 @@
 						{disabled}
 						canvasApi={canvasApi}
 						aspectRatioId={aspectRatioId}
-						selectedAspect={selectedAspect}
 						onAspectChange={(id) => (aspectRatioId = id)}
 					/>
 				{:else if section === 'text'}

@@ -2,7 +2,6 @@
 	import { onMount, tick } from 'svelte';
 
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-	import type { AspectRatioPreset } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 	import {
 		canvasDesignRepository,
 		type DesignTemplateProgrammerModel,
@@ -12,7 +11,7 @@
 	import { polotnoJsonToKonvaDoc } from '$lib/canvas/utils/polotnoToKonvaDoc';
 	import { createInfiniteApi } from '$lib/canvas/utils/useInfiniteApi.svelte';
 	import * as InputGroup from '$lib/ui/input-group';
-	import Switch from '$lib/ui/switch/switch.svelte';
+	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { ScrollArea } from '$lib/ui/scroll-area';
@@ -21,7 +20,6 @@
 		disabled?: boolean;
 		canvasApi: KonvaCanvasApi | null;
 		aspectRatioId: string;
-		selectedAspect: AspectRatioPreset;
 		onAspectChange?: (id: string) => void;
 	};
 
@@ -29,7 +27,6 @@
 		disabled = false,
 		canvasApi,
 		aspectRatioId,
-		selectedAspect,
 		onAspectChange
 	}: Props = $props();
 
@@ -38,23 +35,17 @@
 		'';
 
 	let search = $state('');
-	let sameSize = $state(true);
 	let loadSentinel = $state.raw<HTMLDivElement | null>(null);
 	let scrollViewport = $state.raw<HTMLDivElement | null>(null);
 
 	const filteredLocal = $derived.by(() => {
 		const q = search.trim().toLowerCase();
 		return canvasDesignRepository.listDesignTemplatesPm().filter((t) => {
-			if (
-				q &&
-				!t.label.toLowerCase().includes(q) &&
-				!(t.description?.toLowerCase().includes(q) ?? false)
-			) {
-				return false;
-			}
-			if (!sameSize) return true;
-			if (t.universal) return true;
-			return t.aspectRatioId === aspectRatioId;
+			if (!q) return true;
+			return (
+				t.label.toLowerCase().includes(q) ||
+				(t.description?.toLowerCase().includes(q) ?? false)
+			);
 		});
 	});
 
@@ -64,9 +55,6 @@
 				{
 					query: ctx.query,
 					page: ctx.page,
-					sameSizeAsCanvas: sameSize,
-					exportWidth: selectedAspect.exportWidth,
-					exportHeight: selectedAspect.exportHeight,
 					apiKey: polotnoKey
 				},
 				signal
@@ -75,24 +63,6 @@
 	});
 
 	const remoteTemplateRows = $derived(infinite.items as PolotnoTemplateRowProgrammerModel[]);
-
-	const exportWidth = $derived(selectedAspect.exportWidth);
-	const exportHeight = $derived(selectedAspect.exportHeight);
-
-	/** Plain `let` so flipping the skip flag does not re-fire this effect (avoids read/write loop). */
-	let skipSizeResetOnce = true;
-	$effect(() => {
-		sameSize;
-		exportWidth;
-		exportHeight;
-		if (skipSizeResetOnce) {
-			skipSizeResetOnce = false;
-			return;
-		}
-		queueMicrotask(() => {
-			infinite.reset();
-		});
-	});
 
 	let skipSearchQueryOnce = true;
 	$effect(() => {
@@ -170,12 +140,16 @@
 		/>
 	</InputGroup.Root>
 
-	<div class="flex shrink-0 items-center justify-between gap-2 text-sm">
-		<span class="text-base-content/80">
-			Show templates with the same size
-		</span>
-		<Switch bind:checked={sameSize} class="toggle-sm" disabled={disabled} />
-	</div>
+	<p class="text-base-content/70 shrink-0 text-center text-xs">
+		Templates from
+		<ExternalLink
+			href="https://polotno.com/"
+			class="text-primary font-medium hover:underline"
+			ariaLabel="Polotno (opens in a new tab)"
+		>
+			Polotno
+		</ExternalLink>
+	</p>
 
 	{#if infinite.error}
 		<p class="text-error shrink-0 text-xs">{String(infinite.error)}</p>
