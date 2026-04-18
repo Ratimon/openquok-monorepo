@@ -1,3 +1,4 @@
+import { composerPictureModalPresenter } from '$lib/area-protected';
 import { httpGateway } from '$lib/core/index';
 import { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 import { PostsRepository, type PostsConfig } from '$lib/posts/Posts.repository.svelte';
@@ -16,7 +17,10 @@ const postsConfig: PostsConfig = {
 export const postsRepository = new PostsRepository(httpGateway, postsConfig);
 
 /** Account dashboard + per-channel “Create post” entry share this composer instance (see {@link CreateSocialPostPresenter.prepareOpen}). */
-export const createSocialPostPresenter = new CreateSocialPostPresenter(postsRepository);
+export const createSocialPostPresenter = new CreateSocialPostPresenter(
+	postsRepository,
+	composerPictureModalPresenter
+);
 
 export {
 	PostsRepository,

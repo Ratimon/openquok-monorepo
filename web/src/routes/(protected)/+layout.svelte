@@ -3,11 +3,11 @@
 
 	import SetPostingScheduleTimezone from '$lib/ui/components/SetPostingScheduleTimezone.svelte';
 
-	type Props = {
+	type ProtectedLayoutProps = {
 		children: Snippet;
 	};
 
-	let { children }: Props = $props();
+	let { children }: ProtectedLayoutProps = $props();
 </script>
 
 <SetPostingScheduleTimezone />

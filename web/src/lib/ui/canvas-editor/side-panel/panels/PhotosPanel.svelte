@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-	import { STOCK_PHOTOS } from '$lib/ui/canvas-editor/side-panel/data/stockPhotos';
+	import type { StockPhotoViewModel } from '$lib/canvas';
+
 	import PhotosImagesGrid from './PhotosImagesGrid.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
 	import { icons } from '$data/icon';
@@ -8,12 +9,13 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { ScrollArea } from '$lib/ui/scroll-area';
 
-	type Props = {
+	interface Props {
 		disabled?: boolean;
 		canvasApi: KonvaCanvasApi | null;
-	};
+		photosPm: readonly StockPhotoViewModel[];
+	}
 
-	let { disabled = false, canvasApi }: Props = $props();
+	let { disabled = false, canvasApi, photosPm }: Props = $props();
 
 	let query = $state('');
 	/** Must be `null` (not `undefined`) to match `Input`’s `ref = $bindable(null)` for two-way bind. */
@@ -21,8 +23,8 @@
 
 	const filteredPhotos = $derived.by(() => {
 		const q = query.trim().toLowerCase();
-		if (!q) return STOCK_PHOTOS;
-		return STOCK_PHOTOS.filter((p) => p.searchText.includes(q));
+		if (!q) return photosPm;
+		return photosPm.filter((p) => p.searchText.includes(q));
 	});
 
 	function onSearchInput(e: Event) {
@@ -61,13 +63,13 @@
 	</InputGroup.Root>
 
 	<p class="text-base-content/70 shrink-0 text-center text-xs">
-		Photos by
+		Photos from
 		<ExternalLink
-			href="https://unsplash.com/"
+			href="https://picsum.photos/"
 			class="text-primary font-medium hover:underline"
-			ariaLabel="Unsplash (opens in a new tab)"
+			ariaLabel="Lorem Picsum (opens in a new tab)"
 		>
-			Unsplash
+			Lorem Picsum
 		</ExternalLink>
 	</p>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
+	import type { StockPhotoViewModel } from '$lib/canvas';
 
 	import { onDestroy } from 'svelte';
 
@@ -25,7 +26,7 @@
 		| 'background'
 		| 'layers';
 
-	type Props = {
+	interface Props {
 		disabled?: boolean;
 		onCanvasReady?: (api: KonvaCanvasApi | null) => void;
 		onUseMedia?: () => void;
@@ -40,7 +41,9 @@
 		composerMode?: 'global' | 'custom';
 		/** Focused integration’s `identifier` in custom mode (e.g. `tiktok`, `instagram-business`). */
 		focusedProviderIdentifier?: string | null;
-	};
+		/** Stock grid rows from {@link CanvasDesignRepository} (injected per design modal instance). */
+		stockPhotosPm: readonly StockPhotoViewModel[];
+	}
 
 	let {
 		disabled = false,
@@ -49,7 +52,8 @@
 		useMediaLabel = 'Use this media',
 		designSeed = 0,
 		composerMode = 'global',
-		focusedProviderIdentifier = null
+		focusedProviderIdentifier = null,
+		stockPhotosPm
 	}: Props = $props();
 
 	let section = $state<SectionId>('photos');
@@ -184,7 +188,7 @@
 			</div>
 			<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden p-3">
 				{#if section === 'photos'}
-					<PhotosPanel {disabled} canvasApi={canvasApi} />
+					<PhotosPanel {disabled} canvasApi={canvasApi} photosPm={stockPhotosPm} />
 				{:else if section === 'templates'}
 					<p class="text-base-content/70 shrink-0 text-sm font-medium">Templates</p>
 					<TemplatesPanel

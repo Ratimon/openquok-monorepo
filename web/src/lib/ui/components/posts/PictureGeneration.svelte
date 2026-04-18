@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
+	import type { ExportCanvasToMediaFn, StockPhotoViewModel } from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
-	import { mediaRepository } from '$lib/media';
 	import { toast } from '$lib/ui/sonner';
 
 	import { icons } from '$data/icon';
@@ -12,21 +12,23 @@
 	import * as Dialog from '$lib/ui/dialog';
 	import { DesignMediaWorkspace } from '$lib/ui/canvas-editor/side-panel';
 
-	type Props = {
+	interface Props {
+		stockPhotosVm: readonly StockPhotoViewModel[];
+		exportCanvasToMedia: ExportCanvasToMediaFn;
 		open?: boolean;
 		disabled?: boolean;
 		/** Shown in upload flows; storage path uses JWT on the server. */
 		uploadUid: string;
 		onAdd: (items: PostMediaProgrammerModel[]) => void;
-		/** Primary action: composer uses "Use this media"; media library may use e.g. "Save this for later". */
+		/** Primary action label for the dialog footer / toolbar. */
 		useMediaLabel?: string;
-		/** When set from the create-post composer, aligns default canvas format with channel(s). */
 		composerMode?: 'global' | 'custom';
-		/** Focused integration provider id (e.g. `tiktok`) in custom mode; used with `composerMode`. */
 		focusedProviderIdentifier?: string | null;
-	};
+	}
 
 	let {
+		stockPhotosVm,
+		exportCanvasToMedia,
 		open = $bindable(false),
 		disabled = false,
 		uploadUid,
@@ -67,22 +69,18 @@
 		}
 		busy = true;
 		try {
-			const blob = await canvasApi.toPngBlob();
-			if (!blob) {
-				toast.error('Could not export the canvas. Try again.');
+			const result = await exportCanvasToMedia({
+				canvasApi,
+				uploadUid,
+				disabled
+			});
+			if (!result.ok) {
+				toast.error(result.error);
 				return;
 			}
-			const file = new File([blob], 'canvas.png', { type: 'image/png' });
-			const result = await mediaRepository.uploadMedia(file, uploadUid);
-			if (result.success && result.data.filePath) {
-				onAdd([{ id: crypto.randomUUID(), path: result.data.filePath, bucket: 'social_media' }]);
-				toast.success('Canvas exported and attached.');
-				close();
-			} else {
-				toast.error(result.message || 'Upload failed.');
-			}
-		} catch {
-			toast.error('Could not export the canvas. Try again.');
+			onAdd(result.items);
+			toast.success('Canvas exported and attached.');
+			close();
 		} finally {
 			busy = false;
 		}
@@ -112,6 +110,7 @@
 					designSeed={designSeed}
 					{composerMode}
 					{focusedProviderIdentifier}
+					stockPhotosPm={stockPhotosVm}
 					onCanvasReady={(api) => (canvasApi = api)}
 					onUseMedia={() => void exportCanvasToPost()}
 				/>

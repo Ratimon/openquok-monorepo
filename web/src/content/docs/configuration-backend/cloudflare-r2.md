@@ -26,7 +26,7 @@ Pick **one** <Badge text="STORAGE_PROVIDER" variant="envBackend" /> value for th
 
 <Steps>
 
-### Create account and open R2
+<h3 id="create-account-and-open-r2">Create account and open R2</h3>
 
 Sign in to the <DocsExternalLink href="https://dash.cloudflare.com/">Cloudflare dashboard</DocsExternalLink>, then open <strong>R2 Object Storage</strong>. If this is your first time using Cloudflare for this domain, finish the domain onboarding and DNS setup first so you can later attach a custom hostname such as <code>media.yourdomain.com</code>.
 
@@ -241,7 +241,7 @@ UPLOAD_DIRECTORY=/absolute/path/to/openquok-uploads
 FRONTEND_DOMAIN_URL=https://localhost:5173
 ```
 
-## Web environment variables
+<h2 id="web-environment-variables">Web environment variables</h2>
 
 Set these in <Badge text="web/.env.development.local" variant="envFile" /> (or your production web env). Restart Vite after changes. See also <a href="/docs/configuration-web/environment">Environment variables</a>.
 

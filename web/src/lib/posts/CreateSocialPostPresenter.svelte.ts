@@ -1,5 +1,10 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type {
+	ExportCanvasToMediaArgs,
+	ExportDesignToMediaResult,
+	GeneratePictureModalPresenter
+} from '$lib/canvas';
+import type {
 	PostMediaProgrammerModel,
 	PostTagProgrammerModel,
 	PostsRepository,
@@ -23,7 +28,19 @@ export type CreateSocialPostPrepareOpenOptions = {
  * and optional single-channel preselection (e.g. integration menu → create post).
  */
 export class CreateSocialPostPresenter {
-	constructor(private readonly postsRepository: PostsRepository) {}
+	constructor(
+		private readonly postsRepository: PostsRepository,
+		private readonly pictureModalPresenter: GeneratePictureModalPresenter
+	) {}
+
+	/** Stock rows for the design-media dialog (from the injected picture modal). */
+	get stockPhotosVm() {
+		return this.pictureModalPresenter.stockPhotosPm;
+	}
+
+	exportCanvasToMedia(args: ExportCanvasToMediaArgs): Promise<ExportDesignToMediaResult> {
+		return this.pictureModalPresenter.exportCanvasToMedia(args);
+	}
 
 	/** Set before opening the modal; consumed on the next {@link onModalOpen}. */
 	private pendingPreselectIntegrationId: string | null = null;

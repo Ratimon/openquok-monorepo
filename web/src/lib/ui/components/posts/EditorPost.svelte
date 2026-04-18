@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { ExportCanvasToMediaFn, StockPhotoViewModel } from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { icons } from '$data/icon';
@@ -8,7 +9,9 @@
 	import ComposerMediaToolbar from '$lib/ui/components/posts/ComposerMediaToolbar.svelte';
 	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
 
-	type Props = {
+	interface EditorPostProps {
+		stockPhotosVm: readonly StockPhotoViewModel[];
+		exportCanvasToMedia: ExportCanvasToMediaFn;
 		body?: string;
 		busy?: boolean;
 		charCount: number;
@@ -25,9 +28,11 @@
 		uploadUid?: string;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
-	};
+	}
 
 	let {
+		stockPhotosVm,
+		exportCanvasToMedia,
 		body = $bindable(''),
 		busy = false,
 		charCount,
@@ -43,7 +48,7 @@
 		uploadUid = '',
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
-	}: Props = $props();
+	}: EditorPostProps = $props();
 
 	let confirmOpen = $state(false);
 
@@ -113,6 +118,8 @@
 			<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-start">
 				<ComposerMediaToolbar
 					class="pointer-events-auto"
+					{stockPhotosVm}
+					{exportCanvasToMedia}
 					bind:items={postMediaItems}
 					disabled={busy}
 					{uploadUid}

@@ -1,10 +1,11 @@
 <script lang="ts">
+	import type { PageData } from './$types';
 	import type { MediaLibraryItemProgrammerModel } from '$lib/media';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { onDestroy, onMount } from 'svelte';
 
-	import { protectedMediaPagePresenter } from '$lib/area-protected';
+	import { mediaLibraryPictureModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
 	import { formatBytes, MAX_MEDIA_UPLOAD_BYTES } from '$lib/media';
 	import { createAccountMediaUppy } from '$lib/media/utils/accountMediaUppy';
 	import { authenticationRepository } from '$lib/user-auth';
@@ -17,6 +18,12 @@
 	import MediaSettings from '$lib/ui/components/media/MediaSettings.svelte';
 	import PictureGeneration from '$lib/ui/components/posts/PictureGeneration.svelte';
 	import PaginationComposite from '$lib/ui/pagination/pagination-composite.svelte';
+
+	interface MediaLibraryPageProps {
+		data: PageData;
+	}
+
+	let { data }: MediaLibraryPageProps = $props();
 
 	const ACCEPTED_MEDIA_TYPES = ['image/', 'video/'];
 
@@ -209,6 +216,10 @@
 </div>
 
 <PictureGeneration
+	stockPhotosVm={mediaLibraryPictureModalPresenter.stockPhotosPm}
+	exportCanvasToMedia={mediaLibraryPictureModalPresenter.exportCanvasToMedia.bind(
+		mediaLibraryPictureModalPresenter
+	)}
 	bind:open={designOpen}
 	disabled={uploadBusy || !organizationId}
 	uploadUid={organizationId}

@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-	import type { StockPhotoEntry } from '$lib/ui/canvas-editor/side-panel/data/stockPhotos';
+	import type { StockPhotoViewModel } from '$lib/canvas';
 
-	type Props = {
+	interface Props {
 		disabled?: boolean;
 		canvasApi: KonvaCanvasApi | null;
-		photos: readonly StockPhotoEntry[];
+		photos: readonly StockPhotoViewModel[];
 		/** Current search string (for empty state copy). */
 		searchQuery?: string;
-	};
+	}
 
 	let { disabled = false, canvasApi, photos, searchQuery = '' }: Props = $props();
 </script>

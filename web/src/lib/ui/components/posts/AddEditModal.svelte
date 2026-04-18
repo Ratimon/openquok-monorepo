@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { ExportCanvasToMediaFn, StockPhotoViewModel } from '$lib/canvas';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
@@ -13,7 +14,9 @@
 
 	type Mode = 'global' | 'custom';
 
-	type Props = {
+	interface AddEditModalProps {
+		stockPhotosVm: readonly StockPhotoViewModel[];
+		exportCanvasToMedia: ExportCanvasToMediaFn;
 		socialChannels: CreateSocialPostChannelViewModel[];
 		selectedIds: string[];
 		mode: Mode;
@@ -44,9 +47,11 @@
 		postMediaItems?: PostMediaProgrammerModel[];
 		uploadUid?: string;
 		mediaUrls?: string[];
-	};
+	}
 
 	let {
+		stockPhotosVm,
+		exportCanvasToMedia,
 		socialChannels,
 		selectedIds,
 		mode,
@@ -77,7 +82,7 @@
 		postMediaItems = $bindable([]),
 		uploadUid = '',
 		mediaUrls = []
-	}: Props = $props();
+	}: AddEditModalProps = $props();
 
 	/**
 	 * Integration `identifier` used to default the design canvas format.
@@ -121,6 +126,8 @@
 		<!-- Wrapper: editor + add-post button (matches original structure) -->
 		<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
 			<EditorPost
+				{stockPhotosVm}
+				{exportCanvasToMedia}
 				bind:body
 				bind:postMediaItems
 				{uploadUid}

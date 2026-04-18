@@ -14,14 +14,14 @@
 	import DeleteDialog from './DeleteDialog.svelte';
 	import ManageModal from './ManageModal.svelte';
 
-	type Props = {
+	interface CreateSocialPostModalProps {
 		open?: boolean;
 		presenter: CreateSocialPostPresenter;
 		workspaceId: string | null;
 		connectedChannels: CreateSocialPostChannelViewModel[];
 		/** For image upload form field; server uses JWT for storage path. */
 		uploadUid?: string;
-	};
+	}
 
 	let {
 		open = $bindable(false),
@@ -29,7 +29,7 @@
 		workspaceId,
 		connectedChannels,
 		uploadUid = ''
-	}: Props = $props();
+	}: CreateSocialPostModalProps = $props();
 
 	const repeatOptions: { value: RepeatIntervalKey; label: string }[] = [
 		{ value: 'day', label: 'Day' },
@@ -98,6 +98,8 @@
 
 		<div class="flex min-h-0 flex-1 flex-col">
 			<AddEditModal
+				stockPhotosVm={presenter.stockPhotosVm}
+				exportCanvasToMedia={presenter.exportCanvasToMedia}
 				socialChannels={presenter.baseSocialChannelsVm}
 				bind:body={presenter.editorBody}
 				bind:postMediaItems={presenter.postMediaItems}

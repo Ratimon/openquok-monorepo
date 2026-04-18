@@ -31,12 +31,12 @@
 		| 'developers'
 		| 'approved-apps';
 
-	type Props = {
+	type AccountLayoutProps = {
 		children: Snippet;
 		data: LayoutData;
 	};
 
-	let { children, data }: Props = $props();
+	let { children, data }: AccountLayoutProps = $props();
 
 	const currentUser = $derived((data as App.LayoutData)?.currentUser ?? null);
 	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'Openquok');

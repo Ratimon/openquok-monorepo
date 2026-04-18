@@ -41,7 +41,7 @@ VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID=
 <p>Do not add a trailing slash after the host. If you change either variable, rebuild the web app and restart or redeploy the API so both pick up the new origin.</p>
 </Callout>
 
-### HTTPS local development and the API base URL
+<h3 id="https-local-development-and-the-api-base-url">HTTPS local development and the API base URL</h3>
 
 The web dev server in this repo uses <strong>HTTPS</strong> on <code>https://localhost:5173</code> (local certificates under <Badge text="web/.cert/" variant="path" />). Session cookies for sign-in must be issued on the <strong>same site</strong> as the page origin, so the browser should call the API as <strong>same-origin</strong> <code>/api/...</code> in development, not a separate <code>http://localhost:3000</code> origin.
 

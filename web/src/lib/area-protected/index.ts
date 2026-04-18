@@ -9,6 +9,7 @@ import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsS
 import { ProtectedLayoutPagePresenter } from '$lib/area-protected/ProtectedLayoutPage.presenter.svelte';
 import { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import { ProtectedMediaPagePresenter } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
+import { GeneratePictureModalPresenter } from '$lib/canvas';
 import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
 import { mediaRepository } from '$lib/media';
@@ -35,6 +36,9 @@ const protectedDashboardPagePresenter = new ProtectedDashboardPagePresenter(
 
 const protectedMediaPagePresenter = new ProtectedMediaPagePresenter(mediaRepository, workspaceSettingsPresenter);
 
+const composerPictureModalPresenter = new GeneratePictureModalPresenter(mediaRepository);
+const mediaLibraryPictureModalPresenter = new GeneratePictureModalPresenter(mediaRepository);
+
 export {
 	ProtectedSettingsPagePresenter,
 	UpdateProfileStatus,
@@ -45,5 +49,8 @@ export {
 	ProtectedDashboardPagePresenter,
 	protectedDashboardPagePresenter,
 	ProtectedMediaPagePresenter,
-	protectedMediaPagePresenter
+	protectedMediaPagePresenter,
+	GeneratePictureModalPresenter,
+	composerPictureModalPresenter,
+	mediaLibraryPictureModalPresenter
 };

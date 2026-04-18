@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { ComponentProps } from 'svelte';
+	import type { ExportCanvasToMediaFn, StockPhotoViewModel } from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { icons } from '$data/icon';
@@ -8,23 +10,29 @@
 	import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { toast } from '$lib/ui/sonner';
 
-	type Props = {
+	interface ComposerMediaToolbarProps {
+		stockPhotosVm: readonly StockPhotoViewModel[];
+		exportCanvasToMedia: ExportCanvasToMediaFn;
 		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
 		uploadUid: string;
 		class?: string;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
-	};
+	}
 
 	let {
+		stockPhotosVm,
+		exportCanvasToMedia,
 		items = $bindable([]),
 		disabled = false,
 		uploadUid,
 		class: className = '',
 		composerMode = 'global',
 		focusedProviderIdentifier = null
-	}: Props = $props();
+	}: ComposerMediaToolbarProps = $props();
+
+	type PictureGenerationProps = ComponentProps<typeof PictureGeneration>;
 
 	let fileInput = $state.raw<HTMLInputElement | undefined>(undefined);
 	let uploadBusy = $state(false);
@@ -62,6 +70,18 @@
 			items = [...items, ...added];
 		}
 	}
+
+	const pictureGenerationFields = $derived.by(
+		(): Omit<PictureGenerationProps, 'open'> => ({
+			stockPhotosVm,
+			exportCanvasToMedia,
+			disabled: disabled || uploadBusy,
+			uploadUid,
+			composerMode,
+			focusedProviderIdentifier,
+			onAdd: onAddFromDesign
+		})
+	);
 </script>
 
 <div
@@ -128,11 +148,4 @@
 	</button>
 </div>
 
-<PictureGeneration
-	bind:open={designOpen}
-	disabled={disabled || uploadBusy}
-	{uploadUid}
-	{composerMode}
-	{focusedProviderIdentifier}
-	onAdd={onAddFromDesign}
-/>
+<PictureGeneration {...pictureGenerationFields} bind:open={designOpen} />
