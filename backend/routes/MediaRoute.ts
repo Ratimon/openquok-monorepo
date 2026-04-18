@@ -31,8 +31,6 @@ const mediaRouter: MediaRouter = Router();
  */
 mediaRouter.get("/", authWithRoles, validateMediaOrganizationQuery, mediaController.list);
 
-mediaRouter.get("/download", authWithRoles, validateMediaOrganizationQuery, mediaController.download);
-
 mediaRouter.post("/upload", authWithRoles, upload.single("mediaFile"), mediaController.upload);
 
 /** Multipart field name `file`, includes `originalName` in response for compatibility. */

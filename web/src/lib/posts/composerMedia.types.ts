@@ -1,6 +1,6 @@
 import { buildBlogInlineImageSrc } from '$lib/blog/utils/buildBlogInlineImageSrc';
-import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
-import { normalizeApiBaseUrl } from '$lib/utils/path';
+
+import { publicUrlForMediaStorageKey } from '$lib/media/utils/publicMediaObjectUrl';
 
 export type ComposerMediaBucket = 'blog_images' | 'social_media';
 
@@ -51,32 +51,15 @@ export function parsePostMediaColumn(raw: string | null | undefined): SocialPost
 	return [];
 }
 
-function encodeStoragePathSegments(storagePath: string): string {
-	return storagePath
-		.split('/')
-		.map((s) => encodeURIComponent(s))
-		.join('/');
-}
-
 /**
- * Browser URL for one media item (public R2 origin when set; otherwise API download URL — use
- * `resolveMediaPreviewUrl` / `BlobOrHrefImg` for previews because the API requires Bearer).
+ * Browser URL for one media item (public R2 / same-origin `/uploads` — matches backend `publicUrlForObjectKey`).
  */
 export function buildComposerMediaItemSrc(item: SocialPostMediaItem): string {
 	const bucket: ComposerMediaBucket = item.bucket ?? 'blog_images';
 	if (bucket === 'blog_images') {
 		return buildBlogInlineImageSrc(item.path);
 	}
-	const trimmed = item.path.replace(/^\/+/, '');
-	const publicR2 =
-		typeof import.meta !== 'undefined' && import.meta.env?.VITE_STORAGE_R2_PUBLIC_BASE_URL
-			? String(import.meta.env.VITE_STORAGE_R2_PUBLIC_BASE_URL).replace(/\/$/, '')
-			: '';
-	if (publicR2) {
-		return `${publicR2}/${encodeStoragePathSegments(trimmed)}`;
-	}
-	const apiBase = normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
-	return `${apiBase}/api/v1/media/download?path=${encodeURIComponent(trimmed)}`;
+	return publicUrlForMediaStorageKey(item.path);
 }
 
 export function mediaItemsToPreviewUrls(items: SocialPostMediaItem[]): string[] {

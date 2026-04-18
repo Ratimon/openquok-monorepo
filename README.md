@@ -43,12 +43,6 @@ corepack enable
 
 To have the project up and running, please follow the [Quick Start Guide](https://www.openquok.com/docs/getting-started/quick-start).
 
-### Media uploads (R2 vs local)
-
-- **R2 (default)**: set Cloudflare R2 env vars in `backend/.env.development.local`.
-- **Local disk**: set `STORAGE_PROVIDER=local` and `UPLOAD_DIRECTORY=/absolute/path` and the backend will serve files at `/uploads/*`.
-  - Public URLs are derived from `FRONTEND_DOMAIN_URL + '/uploads'`.
-
 
 ### License
 

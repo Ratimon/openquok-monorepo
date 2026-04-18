@@ -1,6 +1,4 @@
-import { mediaRepository } from '$lib/media';
-
-/** True when the URL targets the authenticated media download route (needs Bearer; not usable as raw `<img src>`). */
+/** Legacy: media previews use public object URLs ({@link publicUrlForMediaStorageKey}) or list `publicUrl`, not authenticated download routes. */
 export function isAuthenticatedMediaDownloadHref(href: string): boolean {
 	if (typeof window === 'undefined') return false;
 	try {
@@ -11,26 +9,7 @@ export function isAuthenticatedMediaDownloadHref(href: string): boolean {
 	}
 }
 
-/**
- * For public R2 URLs or blog image URLs, returns `href` unchanged.
- * For `/api/v1/media/download?path=…`, fetches with the session Bearer token and returns a `blob:` URL (caller should revoke when done).
- */
+/** Returns `href` unchanged. User media previews use public storage URLs, not gated `/media/download`. */
 export async function resolveMediaPreviewUrl(href: string): Promise<string> {
-	if (typeof window === 'undefined') return href;
-	if (!isAuthenticatedMediaDownloadHref(href)) return href;
-
-	try {
-		const u = href.startsWith('http') ? new URL(href) : new URL(href, window.location.origin);
-		const organizationId = u.searchParams.get('organizationId');
-		const id = u.searchParams.get('id');
-		const path = u.searchParams.get('path');
-		if (!organizationId) return href;
-		if (!id && !path) return href;
-
-		const pm = await mediaRepository.getBlobByPath({ organizationId, ...(id ? { id } : {}), ...(path ? { path } : {}) });
-		if (!pm?.blob) return href;
-		return URL.createObjectURL(pm.blob);
-	} catch {
-		return href;
-	}
+	return href;
 }

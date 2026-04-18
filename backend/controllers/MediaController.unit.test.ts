@@ -61,6 +61,10 @@ describe("MediaController", () => {
                         lastModified: "2026-04-12T00:00:00.000Z",
                         publicUrl: null,
                         kind: "image",
+                        alt: null,
+                        thumbnail: null,
+                        thumbnailPublicUrl: null,
+                        thumbnailTimestamp: null,
                     },
                     {
                         id: "m1",
@@ -71,6 +75,10 @@ describe("MediaController", () => {
                         lastModified: "2026-04-10T00:00:00.000Z",
                         publicUrl: null,
                         kind: "video",
+                        alt: null,
+                        thumbnail: null,
+                        thumbnailPublicUrl: null,
+                        thumbnailTimestamp: null,
                     },
                 ],
                 total: 2,
@@ -101,83 +109,6 @@ describe("MediaController", () => {
                 }),
             });
             expect(next).not.toHaveBeenCalled();
-        });
-    });
-
-    describe("download", () => {
-        it("requires authentication", async () => {
-            const req = { query: { path: "auth-1.png" } } as unknown as Request;
-            const res = createMockResponse();
-            const next = jest.fn() as unknown as NextFunction;
-
-            await controller.download(req, res, next);
-
-            expect(next).toHaveBeenCalledTimes(1);
-            const err = (next as jest.Mock).mock.calls[0][0];
-            expect((err as Error).message).toBe("Authentication required");
-            expect(storageR2Repository.downloadObject).not.toHaveBeenCalled();
-        });
-
-        it("requires organizationId when authenticated", async () => {
-            const req = { query: {}, user: { id: "auth-uuid" } } as unknown as Request;
-            const res = createMockResponse();
-            const next = jest.fn() as unknown as NextFunction;
-
-            await controller.download(req, res, next);
-
-            expect(next).toHaveBeenCalledTimes(1);
-            expect(storageR2Repository.downloadObject).not.toHaveBeenCalled();
-        });
-
-        it("streams buffer from R2 when media exists in org", async () => {
-            const buffer = Buffer.from([1, 2, 3]);
-            uploadProvider.downloadObject.mockResolvedValue({ buffer, contentType: "image/png" } as any);
-            mediaService.getMediaByPath.mockResolvedValue({
-                id: "m1",
-                name: "k.png",
-                original_name: null,
-                path: "k9j8h7g6f5e4d3c2b1a0.png",
-                organization_id: "org-1",
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                deleted_at: null,
-                file_size: 123,
-                type: "image",
-                thumbnail: null,
-                alt: null,
-                thumbnail_timestamp: null,
-            } as any);
-
-            const req = {
-                query: { organizationId: "org-1", path: "k9j8h7g6f5e4d3c2b1a0.png" },
-                user: { id: "auth-uuid" },
-            } as unknown as Request;
-            const res = createMockResponse();
-            const next = jest.fn() as unknown as NextFunction;
-
-            await controller.download(req, res, next);
-
-            expect(uploadProvider.downloadObject).toHaveBeenCalledWith("k9j8h7g6f5e4d3c2b1a0.png");
-            expect(res.send).toHaveBeenCalledWith(buffer);
-            expect(next).not.toHaveBeenCalled();
-        });
-
-        it("rejects download when media not found in org", async () => {
-            mediaService.getMediaByPath.mockResolvedValue(null);
-            const req = {
-                query: { organizationId: "org-1", path: "missing.png" },
-                user: { id: "auth-uuid" },
-            } as unknown as Request;
-            const res = createMockResponse();
-            const next = jest.fn() as unknown as NextFunction;
-
-            await controller.download(req, res, next);
-
-            expect(uploadProvider.downloadObject).not.toHaveBeenCalled();
-            expect(next).toHaveBeenCalledTimes(1);
-            const err = (next as jest.Mock).mock.calls[0][0];
-            expect(err).toBeInstanceOf(Error);
-            expect((err as Error).message).toContain("do not have access");
         });
     });
 

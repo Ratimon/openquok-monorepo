@@ -12,6 +12,11 @@ export type MediaListItemDto = {
     lastModified: string | null;
     publicUrl: string | null;
     kind: "image" | "video" | "audio" | "document" | "other";
+    alt: string | null;
+    thumbnail: string | null;
+    /** Same derivation as `publicUrl` but for the poster object key (client must not guess R2 vs `/uploads`). */
+    thumbnailPublicUrl: string | null;
+    thumbnailTimestamp: number | null;
 };
 
 export type MediaListResult = {
@@ -130,6 +135,10 @@ export class MediaRepository {
             lastModified: row.updated_at ?? null,
             publicUrl: publicUrlForObjectKey(row.path),
             kind: mediaKindForPath(row.path),
+            alt: row.alt ?? null,
+            thumbnail: row.thumbnail ?? null,
+            thumbnailPublicUrl: row.thumbnail ? publicUrlForObjectKey(row.thumbnail) : null,
+            thumbnailTimestamp: row.thumbnail_timestamp ?? null,
         }));
 
         return { results, total, pages, page: boundedPage, pageSize: safePageSize };

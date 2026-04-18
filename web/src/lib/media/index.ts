@@ -5,15 +5,18 @@ import { MediaRepository } from './Media.repository.svelte';
 const mediaConfig: MediaConfig = {
 	endpoints: {
 		list: '/api/v1/media',
-		download: '/api/v1/media/download',
 		upload: '/api/v1/media/upload',
-		delete: '/api/v1/media/delete'
+		delete: '/api/v1/media/delete',
+		uploadSimple: '/api/v1/media/upload-simple',
+		saveInformation: '/api/v1/media/information'
 	}
 };
 
 export const mediaRepository = new MediaRepository(httpGateway, mediaConfig);
 
 export { MAX_MEDIA_UPLOAD_BYTES, MediaRepository } from './Media.repository.svelte';
+export { formatBytes } from './utils/formatBytes';
+export { publicUrlForMediaStorageKey } from './utils/publicMediaObjectUrl';
 export type {
 	MediaConfig,
 	MediaDeleteProgrammerModel,
@@ -21,7 +24,10 @@ export type {
 	MediaLibraryItemProgrammerModel,
 	MediaListProgrammerModel,
 	MediaListResponseDto,
-	MediaProgrammerModel,
+	SaveMediaInformationProgrammerModel,
+	SaveMediaInformationResponseDto,
+	UploadSimpleProgrammerModel,
+	UploadSimpleResponseDto,
 	MediaUploadProgrammerModel,
 	MediaUploadResponseDto
 } from './Media.repository.svelte';

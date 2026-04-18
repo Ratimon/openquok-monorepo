@@ -15,7 +15,8 @@ export const saveMediaInformationBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     id: z.string().uuid("Invalid media id"),
     alt: z.string().max(2000).optional().nullable(),
-    thumbnail: z.string().url("thumbnail must be a URL").optional().nullable(),
+    /** Public URL or storage object key written to `media.thumbnail`. */
+    thumbnail: z.string().max(2048).optional().nullable(),
     thumbnailTimestamp: z.number().int().nonnegative().optional().nullable(),
 });
 

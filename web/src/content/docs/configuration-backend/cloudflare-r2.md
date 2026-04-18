@@ -120,14 +120,27 @@ Click to edit the CORS policy and add the following JSON if you plan to upload *
 ```json
 [
   {
-    "AllowedOrigins": ["https://localhost:5173", "https://www.openquok.com"],
-    "AllowedMethods": ["GET", "POST", "HEAD", "PUT", "DELETE"],
+    "AllowedOrigins": [
+      "https://localhost:5173",
+      "http://localhost:5173",
+      "https://www.openquok.com"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "POST",
+      "HEAD",
+      "PUT",
+      "DELETE"
+    ],
     "AllowedHeaders": [
       "Authorization",
       "content-type",
       "x-amz-*"
     ],
-    "ExposeHeaders": ["ETag", "Location"],
+    "ExposeHeaders": [
+      "ETag",
+      "Location"
+    ],
     "MaxAgeSeconds": 3600
   }
 ]

@@ -15,6 +15,7 @@ import { sessionIntegrationsRouter } from "./integrations/sessionRoutes.js";
 import { publicIntegrationRouter } from "./publicApi/integrationRoutes.js";
 import { notificationRouter } from "./NotificationRoute.js";
 import { postRouter } from "./postRoutes.js";
+import { thirdPartyRouter } from "./ThirdPartyRoute.js";
 import { logger } from "../utils/Logger";
 
 /**
@@ -45,6 +46,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     apiRouter.use("/public", publicIntegrationRouter);
     apiRouter.use("/notifications", notificationRouter);
     apiRouter.use("/posts", postRouter);
+    apiRouter.use("/third-parties", thirdPartyRouter);
     app.use(prefix, apiRouter);
 
     logger.info({
@@ -64,6 +66,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
         integrationsProgrammatic: `${prefix}/public`,
         notifications: `${prefix}/notifications`,
         posts: `${prefix}/posts`,
+        thirdParties: `${prefix}/third-parties`,
     });
     return true;
 }

@@ -2,9 +2,8 @@
 	import type { MediaLibraryItemProgrammerModel } from '$lib/media';
 	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
 
-	import { mediaRepository } from '$lib/media';
+	import { mediaRepository, publicUrlForMediaStorageKey } from '$lib/media';
 	import { mediaItemsToPreviewUrls } from '$lib/posts/composerMedia.types';
-	import { resolveMediaPreviewUrl } from '$lib/posts/mediaPreview';
 	import { icons } from '$data/icon';
 	import { toast } from '$lib/ui/sonner';
 
@@ -15,6 +14,8 @@
 		item?: MediaLibraryItemProgrammerModel;
 		onOpen?: (item: MediaLibraryItemProgrammerModel) => void;
 		onDelete?: (item: MediaLibraryItemProgrammerModel) => void;
+		onSettings?: (item: MediaLibraryItemProgrammerModel) => void;
+		organizationId?: string;
 		deleting?: boolean;
 		items?: SocialPostMediaItem[];
 		disabled?: boolean;
@@ -25,6 +26,8 @@
 		item,
 		onOpen,
 		onDelete,
+		onSettings,
+		organizationId = '',
 		deleting = false,
 		items = $bindable([]),
 		disabled = false,
@@ -40,6 +43,8 @@
 	const isImage = $derived(item?.kind === 'image');
 	const isVideo = $derived(item?.kind === 'video');
 	const isPreviewable = $derived(isImage || isVideo);
+	/** Saved poster path: grid should show this image, not the first frame of the video file. */
+	const videoUsesPosterImage = $derived(Boolean(isVideo && item?.thumbnail));
 	const kindLabel = $derived(
 		item?.kind === 'document'
 			? 'PDF'
@@ -105,23 +110,21 @@
 			return;
 		}
 
-		let cancelled = false;
-		let blobUrlToRevoke: string | null = null;
-		const directHref = item.publicUrl || `/api/v1/media/download?path=${encodeURIComponent(item.path)}`;
+		if (item.kind === 'video' && item.thumbnail) {
+			const raw = item.thumbnail.trim();
+			const base =
+				item.thumbnailPublicUrl?.trim()
+					? item.thumbnailPublicUrl
+					: raw.startsWith('http://') || raw.startsWith('https://')
+						? raw
+						: publicUrlForMediaStorageKey(raw);
+			const sep = base.includes('?') ? '&' : '?';
+			previewUrl =
+				item.thumbnailTimestamp != null ? `${base}${sep}thumbTs=${item.thumbnailTimestamp}` : base;
+			return;
+		}
 
-		void resolveMediaPreviewUrl(directHref).then((url) => {
-			if (cancelled) {
-				if (url.startsWith('blob:')) URL.revokeObjectURL(url);
-				return;
-			}
-			previewUrl = url;
-			if (url.startsWith('blob:')) blobUrlToRevoke = url;
-		});
-
-		return () => {
-			cancelled = true;
-			if (blobUrlToRevoke?.startsWith('blob:')) URL.revokeObjectURL(blobUrlToRevoke);
-		};
+		previewUrl = item.publicUrl?.trim() ? item.publicUrl : publicUrlForMediaStorageKey(item.path);
 	});
 </script>
 
@@ -135,6 +138,18 @@
 		>
 			{#if isImage && previewUrl}
 				<img src={previewUrl} alt={item.name} class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" loading="lazy" />
+			{:else if isVideo && videoUsesPosterImage && previewUrl}
+				<img
+					src={previewUrl}
+					alt={item.alt?.trim() || item.name}
+					class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+					loading="lazy"
+				/>
+				<div class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/10">
+					<div class="rounded-full bg-black/55 p-3 text-white">
+						<AbstractIcon name={icons.ClapperBoard.name} class="size-5" width="20" height="20" />
+					</div>
+				</div>
 			{:else if isVideo && previewUrl}
 				<!-- svelte-ignore a11y_media_has_caption -->
 				<video
@@ -177,6 +192,19 @@
 					aria-label="Preview media"
 				>
 					<AbstractIcon name={icons.Eye.name} class="size-4" width="16" height="16" />
+				</button>
+			{/if}
+			{#if onSettings}
+				<button
+					type="button"
+					class="flex h-9 w-9 items-center justify-center rounded-full bg-base-100/95 text-base-content shadow-sm"
+					onclick={(e) => {
+						e.stopPropagation();
+						onSettings(item);
+					}}
+					aria-label="Media details"
+				>
+					<AbstractIcon name={icons.Settings.name} class="size-4" width="16" height="16" />
 				</button>
 			{/if}
 			<button

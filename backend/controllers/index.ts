@@ -13,6 +13,7 @@ import { IntegrationController } from "./IntegrationController";
 import { PublicIntegrationController } from "./PublicIntegrationController";
 import { NotificationController } from "./NotificationController";
 import { PostsController } from "./PostsController";
+import { ThirdPartyController } from "./ThirdPartyController";
 import {
     authenticationService,
     emailService,
@@ -53,3 +54,4 @@ export const integrationController = new IntegrationController(integrationConnec
 export const publicIntegrationController = new PublicIntegrationController(integrationConnectionService);
 export const notificationController = new NotificationController(notificationService);
 export const postsController = new PostsController(postsService);
+export const thirdPartyController = new ThirdPartyController();

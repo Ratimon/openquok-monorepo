@@ -81,42 +81,6 @@ export class MediaController {
     };
 
     /**
-     * Stream one object from R2. Requires JWT; only the owning auth user may read (`path` must start with their `auth.uid` + `-`).
-     * Query: `path` — object key (same as stored `filePath` from upload).
-     */
-    download = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const authUser = (req as AuthenticatedRequest).user;
-            if (!authUser?.id) {
-                throw new UserValidationError("Authentication required");
-            }
-
-            const organizationId = typeof req.query.organizationId === "string" ? req.query.organizationId : "";
-            if (!organizationId.trim()) {
-                throw new UserValidationError("organizationId query parameter is required");
-            }
-
-            const idParam = typeof req.query.id === "string" ? req.query.id : "";
-            const pathParam = typeof req.query.path === "string" ? req.query.path : "";
-            const mediaRow = idParam.trim()
-                ? await this.mediaService.getMediaById(organizationId, idParam.trim())
-                : pathParam.trim()
-                  ? await this.mediaService.getMediaByPath(organizationId, pathParam.trim())
-                  : null;
-
-            if (!mediaRow) {
-                throw new AuthError("You do not have access to this media object", 403);
-            }
-
-            const { buffer, contentType } = await this.uploadProvider.downloadObject(mediaRow.path);
-            res.set("Content-Type", contentType);
-            res.send(buffer);
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    /**
      * Upload user media to R2. Field name: `mediaFile` (multipart).
      * Auth user id prefixes the object key so objects stay scoped to the uploading user.
      */
