@@ -2,7 +2,7 @@
  * Built-in editable templates for the design column.
  * Each template applies a KonvaDesignDoc (text/image nodes) so users can tweak content on-canvas.
  */
-import type { KonvaDesignDoc } from '$lib/canvas-editor/utils/canvasDoc';
+import type { KonvaDesignDoc } from '$lib/ui/canvas-editor/utils/canvasDoc';
 
 export type DesignTemplate = {
 	id: string;

@@ -2,13 +2,13 @@
 	import { onMount } from 'svelte';
 
 	import { icons } from '$data/icon';
-	import type { CanvasSelectionState, KonvaCanvasApi, TextPresetId } from '$lib/canvas-editor/canvas/konvaCanvasApi';
-	import type { KonvaDesignDoc, KonvaDesignImageNode } from '$lib/canvas-editor/utils/canvasDoc';
-	import type { AspectRatioPreset } from '$lib/canvas-editor/utils/aspectRatioPresets';
-	import { DEFAULT_ASPECT_RATIO_ID, getAspectPresetById } from '$lib/canvas-editor/utils/aspectRatioPresets';
-	import { GRID_STEP, computePageLayout, drawBackgroundGrid } from '$lib/canvas-editor/canvas/helpers';
-	import { loadKonva } from '$lib/canvas-editor/canvas/loadKonva';
-	import { HistoryStack } from '$lib/canvas-editor/utils/historyStack';
+	import type { CanvasSelectionState, KonvaCanvasApi, TextPresetId } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
+	import type { KonvaDesignDoc, KonvaDesignImageNode } from '$lib/ui/canvas-editor/utils/canvasDoc';
+	import type { AspectRatioPreset } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
+	import { DEFAULT_ASPECT_RATIO_ID, getAspectPresetById } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
+	import { GRID_STEP, computePageLayout, drawBackgroundGrid } from '$lib/ui/canvas-editor/canvas/helpers';
+	import { loadKonva } from '$lib/ui/canvas-editor/canvas/loadKonva';
+	import { HistoryStack } from '$lib/ui/canvas-editor/utils/historyStack';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';

@@ -1,4 +1,4 @@
-import type { AspectRatioPreset } from '$lib/canvas-editor/utils/aspectRatioPresets';
+import type { AspectRatioPreset } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 
 import { PAGE_MARGIN, PAGE_MARGIN_EMBEDDED } from './constants';
 

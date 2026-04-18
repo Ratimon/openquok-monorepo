@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
-	import type { StockPhotoEntry } from '$lib/canvas-editor/side-panel/data/stockPhotos';
+	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
+	import type { StockPhotoEntry } from '$lib/ui/canvas-editor/side-panel/data/stockPhotos';
 
 	type Props = {
 		disabled?: boolean;

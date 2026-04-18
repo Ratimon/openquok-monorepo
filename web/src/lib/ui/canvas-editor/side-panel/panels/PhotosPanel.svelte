@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
-	import { STOCK_PHOTOS } from '$lib/canvas-editor/side-panel/data/stockPhotos';
+	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
+	import { STOCK_PHOTOS } from '$lib/ui/canvas-editor/side-panel/data/stockPhotos';
 	import PhotosImagesGrid from './PhotosImagesGrid.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
 	import { icons } from '$data/icon';

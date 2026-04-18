@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
+	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
@@ -16,9 +16,9 @@
 	type="button"
 	class="btn btn-ghost btn-xs btn-square"
 	disabled={disabled || !canvasApi || !selection.hasSelection}
-	title="Duplicate"
-	aria-label="Duplicate"
-	onclick={() => canvasApi?.duplicateSelected()}
+	title="Remove"
+	aria-label="Remove"
+	onclick={() => canvasApi?.removeSelected()}
 >
-	<AbstractIcon name={icons.Copy.name} class="size-4" width="16" height="16" />
+	<AbstractIcon name={icons.Trash.name} class="size-4" width="16" height="16" />
 </button>

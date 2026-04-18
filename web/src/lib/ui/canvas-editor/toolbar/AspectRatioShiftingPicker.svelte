@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { AspectRatioPreset } from '$lib/canvas-editor/utils/aspectRatioPresets';
+	import type { AspectRatioPreset } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 	import {
 		ASPECT_RATIO_PLATFORM_GROUPS,
 		aspectPresetDisplayLine,
 		getAspectPresetById
-	} from '$lib/canvas-editor/utils/aspectRatioPresets';
+	} from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';

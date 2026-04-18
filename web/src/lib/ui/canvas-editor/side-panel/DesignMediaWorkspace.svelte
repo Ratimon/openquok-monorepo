@@ -1,17 +1,17 @@
 <script lang="ts">
-	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
+	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 
 	import { onDestroy } from 'svelte';
 
-	import KonvaDesignCanvas from '$lib/canvas-editor/canvas/KonvaDesignCanvas.svelte';
-	import PhotosPanel from '$lib/canvas-editor/side-panel/panels/PhotosPanel.svelte';
-	import TextPanel from '$lib/canvas-editor/side-panel/panels/TextPanel.svelte';
-	import TemplatesPanel from '$lib/canvas-editor/side-panel/panels/TemplatesPanel.svelte';
-	import { AspectRatioShiftingPicker, CanvasToolbar } from '$lib/canvas-editor/toolbar';
+	import KonvaDesignCanvas from '$lib/ui/canvas-editor/canvas/KonvaDesignCanvas.svelte';
+	import PhotosPanel from '$lib/ui/canvas-editor/side-panel/panels/PhotosPanel.svelte';
+	import TextPanel from '$lib/ui/canvas-editor/side-panel/panels/TextPanel.svelte';
+	import TemplatesPanel from '$lib/ui/canvas-editor/side-panel/panels/TemplatesPanel.svelte';
+	import { AspectRatioShiftingPicker, CanvasToolbar } from '$lib/ui/canvas-editor/toolbar';
 	import {
 		DEFAULT_ASPECT_RATIO_ID,
 		getAspectPresetById
-	} from '$lib/canvas-editor/utils/aspectRatioPresets';
+	} from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	type SectionId =

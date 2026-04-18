@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
+	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 	import CopyStyleButton from './controls/CopyStyleButton.svelte';
 	import DuplicateButton from './controls/DuplicateButton.svelte';
 	// import GroupButton from './controls/GroupButton.svelte';

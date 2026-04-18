@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
+	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { mediaRepository } from '$lib/media';
@@ -10,7 +10,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Dialog from '$lib/ui/dialog';
-	import { DesignMediaWorkspace } from '$lib/canvas-editor/side-panel';
+	import { DesignMediaWorkspace } from '$lib/ui/canvas-editor/side-panel';
 
 	type Props = {
 		open?: boolean;

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 
-	import type { KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
-	import { DESIGN_TEMPLATES, type DesignTemplate } from '$lib/canvas-editor/side-panel/data/templatesPanelData';
+	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
+	import { DESIGN_TEMPLATES, type DesignTemplate } from '$lib/ui/canvas-editor/side-panel/data/templatesPanelData';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
