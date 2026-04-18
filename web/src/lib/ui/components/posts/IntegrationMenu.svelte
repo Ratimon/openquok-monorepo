@@ -3,21 +3,23 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import copy from 'copy-to-clipboard';
-
+	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icon';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Collapsible from '$lib/ui/collapsible';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Popover from '$lib/ui/popover';
-	import Button from '$lib/ui/buttons/Button.svelte';
 	import { ImageWithFallback } from '$lib/ui/images';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { toast } from '$lib/ui/sonner';
 
 	type Props = {
 		integration: CreateSocialPostChannelViewModel;
 		workspaceId: string;
 		providerIcon: (identifier: string) => IconName;
 		continueSetupHref: (integration: CreateSocialPostChannelViewModel) => string;
+		/** Opens the workspace create-post flow with this channel pre-selected. */
+		onCreatePost?: (integration: CreateSocialPostChannelViewModel) => void;
 		onMoveToGroup: (integration: CreateSocialPostChannelViewModel) => void;
 		onEditTimeSlots: (integration: CreateSocialPostChannelViewModel) => void;
 		onSetDisabled: (integrationId: string, disabled: boolean) => Promise<boolean>;
@@ -31,6 +33,7 @@
 		workspaceId,
 		providerIcon,
 		continueSetupHref,
+		onCreatePost,
 		onMoveToGroup,
 		onEditTimeSlots,
 		onSetDisabled,
@@ -90,6 +93,29 @@
 				</span>
 			{/if}
 		</div>
+		{#if onCreatePost && !integration.disabled && !integration.inBetweenSteps}
+			<Button
+				type="button"
+				variant="primary"
+				size="sm"
+				class="w-full justify-start gap-2 sm:w-fit"
+				disabled={busy}
+				onclick={() => {
+					menuOpen = false;
+					onCreatePost(integration);
+				}}
+			>
+				<AbstractIcon
+					name={icons.Megaphone.name}
+					class="size-4 shrink-0 text-primary-content"
+					width="16"
+					height="16"
+				/>
+				<span class="min-w-0 text-start text-xs leading-tight text-primary-content">
+					Create Post
+				</span>
+			</Button>
+		{/if}
 		{#if integration.inBetweenSteps && workspaceId}
 			<Button
 				href={continueSetupHref(integration)}

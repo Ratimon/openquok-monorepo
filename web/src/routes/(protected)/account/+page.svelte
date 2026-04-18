@@ -10,6 +10,8 @@
 	import { page } from '$app/state';
 	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+	import { createSocialPostPresenter } from '$lib/posts';
+	import { toast } from '$lib/ui/sonner';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { icons } from '$data/icon';
 
@@ -22,7 +24,6 @@
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
-	import { toast } from '$lib/ui/sonner';
 
 	type Props = {
 		data: PageData;
@@ -69,6 +70,11 @@
 	let timeTableFor = $state<CreateSocialPostChannelViewModel | null>(null);
 
 	let createSocialPostOpen = $state(false);
+
+	function openCreatePost(preselectIntegrationId: string | null) {
+		createSocialPostPresenter.prepareOpen({ preselectIntegrationId });
+		createSocialPostOpen = true;
+	}
 
 	function openMoveGroupModal(integration: CreateSocialPostChannelViewModel) {
 		moveGroupFor = integration;
@@ -294,6 +300,7 @@
 									workspaceId={workspaceId!}
 									{providerIcon}
 									{continueSetupHref}
+									onCreatePost={() => openCreatePost(integration.id)}
 
 									onMoveToGroup={openMoveGroupModal}
 									onEditTimeSlots={openTimeTableModal}
@@ -355,7 +362,7 @@
 								toast.error('Create or select a workspace first.');
 								return;
 							}
-							createSocialPostOpen = true;
+							openCreatePost(null);
 						}}
 					>
 						+ Create Post
@@ -456,6 +463,7 @@
 
 <CreateSocialPostModal
 	bind:open={createSocialPostOpen}
+	presenter={createSocialPostPresenter}
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
 	uploadUid={currentUser?.id ?? ''}

@@ -1,4 +1,5 @@
 import { httpGateway } from '$lib/core/index';
+import { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 import { PostsRepository, type PostsConfig } from '$lib/posts/Posts.repository.svelte';
 
 const base = '/api/v1/posts';
@@ -14,6 +15,9 @@ const postsConfig: PostsConfig = {
 
 export const postsRepository = new PostsRepository(httpGateway, postsConfig);
 
+/** Account dashboard + per-channel “Create post” entry share this composer instance (see {@link CreateSocialPostPresenter.prepareOpen}). */
+export const createSocialPostPresenter = new CreateSocialPostPresenter(postsRepository);
+
 export {
 	PostsRepository,
 	uploadSocialPostComposerMediaFiles,
@@ -26,3 +30,5 @@ export type {
 	RepeatIntervalKey,
 	PostMediaProgrammerModel
 } from '$lib/posts/Posts.repository.svelte';
+export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPostPresenter.svelte';
+export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
