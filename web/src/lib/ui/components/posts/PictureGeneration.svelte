@@ -20,6 +20,10 @@
 		onAdd: (items: PostMediaProgrammerModel[]) => void;
 		/** Primary action: composer uses "Use this media"; media library may use e.g. "Save this for later". */
 		useMediaLabel?: string;
+		/** When set from the create-post composer, aligns default canvas format with channel(s). */
+		composerMode?: 'global' | 'custom';
+		/** Focused integration provider id (e.g. `tiktok`) in custom mode; used with `composerMode`. */
+		focusedProviderIdentifier?: string | null;
 	};
 
 	let {
@@ -27,11 +31,16 @@
 		disabled = false,
 		uploadUid,
 		onAdd,
-		useMediaLabel = 'Use this media'
+		useMediaLabel = 'Use this media',
+		composerMode = 'global',
+		focusedProviderIdentifier = null
 	}: Props = $props();
 
 	let busy = $state(false);
 	let canvasApi = $state<KonvaCanvasApi | null>(null);
+	/** Increments when the dialog opens so the workspace reapplies aspect defaults from composer context. */
+	let designSeed = $state(0);
+	let prevOpen = $state(false);
 
 	function close() {
 		open = false;
@@ -42,6 +51,13 @@
 		if (!open) {
 			canvasApi = null;
 		}
+	});
+
+	$effect.pre(() => {
+		if (open && !prevOpen) {
+			designSeed += 1;
+		}
+		prevOpen = open;
 	});
 
 	async function exportCanvasToPost() {
@@ -89,12 +105,17 @@
 		</Dialog.Header>
 
 		<div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-2 pb-2 sm:px-4 sm:pb-4">
-			<DesignMediaWorkspace
-				disabled={disabled || busy}
-				{useMediaLabel}
-				onCanvasReady={(api) => (canvasApi = api)}
-				onUseMedia={() => void exportCanvasToPost()}
-			/>
+			{#key designSeed}
+				<DesignMediaWorkspace
+					disabled={disabled || busy}
+					{useMediaLabel}
+					designSeed={designSeed}
+					{composerMode}
+					{focusedProviderIdentifier}
+					onCanvasReady={(api) => (canvasApi = api)}
+					onUseMedia={() => void exportCanvasToPost()}
+				/>
+			{/key}
 		</div>
 
 		<div class="border-base-300 flex shrink-0 flex-wrap justify-end gap-2 border-t px-4 py-3 sm:px-6">

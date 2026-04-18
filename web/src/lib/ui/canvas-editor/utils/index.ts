@@ -23,8 +23,11 @@ export { measureFont, type FontMetrics } from '$lib/ui/canvas-editor/utils/font-
 export {
 	ASPECT_RATIO_PLATFORM_GROUPS,
 	ASPECT_RATIO_PRESETS,
+	aspectPlatformGroupIdForProviderIdentifier,
 	aspectPresetDisplayLine,
+	defaultAspectRatioIdForComposer,
 	DEFAULT_ASPECT_RATIO_ID,
+	firstAspectPresetIdInGroup,
 	getAspectPresetById,
 	type AspectPlatformGroup,
 	type AspectRatioPreset

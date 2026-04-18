@@ -13,9 +13,18 @@
 		disabled?: boolean;
 		uploadUid: string;
 		class?: string;
+		composerMode?: 'global' | 'custom';
+		focusedProviderIdentifier?: string | null;
 	};
 
-	let { items = $bindable([]), disabled = false, uploadUid, class: className = '' }: Props = $props();
+	let {
+		items = $bindable([]),
+		disabled = false,
+		uploadUid,
+		class: className = '',
+		composerMode = 'global',
+		focusedProviderIdentifier = null
+	}: Props = $props();
 
 	let fileInput = $state.raw<HTMLInputElement | undefined>(undefined);
 	let uploadBusy = $state(false);
@@ -119,4 +128,11 @@
 	</button>
 </div>
 
-<PictureGeneration bind:open={designOpen} disabled={disabled || uploadBusy} {uploadUid} onAdd={onAddFromDesign} />
+<PictureGeneration
+	bind:open={designOpen}
+	disabled={disabled || uploadBusy}
+	{uploadUid}
+	{composerMode}
+	{focusedProviderIdentifier}
+	onAdd={onAddFromDesign}
+/>

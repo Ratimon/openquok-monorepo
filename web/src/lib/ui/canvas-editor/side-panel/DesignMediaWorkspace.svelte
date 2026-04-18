@@ -3,17 +3,18 @@
 
 	import { onDestroy } from 'svelte';
 
+	import { icons } from '$data/icon';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import KonvaDesignCanvas from '$lib/ui/canvas-editor/canvas/KonvaDesignCanvas.svelte';
 	import PhotosPanel from '$lib/ui/canvas-editor/side-panel/panels/PhotosPanel.svelte';
 	import TextPanel from '$lib/ui/canvas-editor/side-panel/panels/TextPanel.svelte';
 	import TemplatesPanel from '$lib/ui/canvas-editor/side-panel/panels/TemplatesPanel.svelte';
 	import { AspectRatioShiftingPicker, CanvasToolbar } from '$lib/ui/canvas-editor/toolbar';
 	import {
-		DEFAULT_ASPECT_RATIO_ID,
+		defaultAspectRatioIdForComposer,
 		getAspectPresetById
 	} from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
-	import { icons } from '$data/icon';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+
 	type SectionId =
 		| 'templates'
 		| 'text'
@@ -30,16 +31,33 @@
 		onUseMedia?: () => void;
 		/** Primary action label on the canvas toolbar (mirrored in the host dialog footer when used there). */
 		useMediaLabel?: string;
+		/**
+		 * Bumps each time the host design dialog opens so aspect ratio resets from composer context
+		 * (global → General 16:9; custom → first format for the focused channel’s platform).
+		 */
+		designSeed?: number;
+		/** Mirrors create-post composer mode (`global` = General formats only). */
+		composerMode?: 'global' | 'custom';
+		/** Focused integration’s `identifier` in custom mode (e.g. `tiktok`, `instagram-business`). */
+		focusedProviderIdentifier?: string | null;
 	};
 
-	let { disabled = false, onCanvasReady, onUseMedia, useMediaLabel = 'Use this media' }: Props = $props();
+	let {
+		disabled = false,
+		onCanvasReady,
+		onUseMedia,
+		useMediaLabel = 'Use this media',
+		designSeed = 0,
+		composerMode = 'global',
+		focusedProviderIdentifier = null
+	}: Props = $props();
 
 	let section = $state<SectionId>('photos');
 	let resourcePanelOpen = $state(true);
 	let photoQuery = $state('');
 	let uploadInput = $state.raw<HTMLInputElement | undefined>(undefined);
 	let canvasApi = $state<KonvaCanvasApi | null>(null);
-	let aspectRatioId = $state(DEFAULT_ASPECT_RATIO_ID);
+	let aspectRatioId = $state('16:9');
 	let historyUi = $state({ canUndo: false, canRedo: false });
 	let selectionState = $state<CanvasSelectionState>({
 		hasSelection: false,
@@ -78,6 +96,14 @@
 	onDestroy(() => {
 		canvasApi = null;
 		onCanvasReady?.(null);
+	});
+
+	/** Re-apply when composer platform context or dialog open cycle changes (not when only `aspectRatioId` changes from the picker). */
+	$effect(() => {
+		designSeed;
+		composerMode;
+		focusedProviderIdentifier;
+		aspectRatioId = defaultAspectRatioIdForComposer(composerMode, focusedProviderIdentifier);
 	});
 
 	function onUploadPick(e: Event) {

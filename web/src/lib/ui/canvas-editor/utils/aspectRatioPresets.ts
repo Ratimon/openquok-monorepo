@@ -329,6 +329,49 @@ const PRESET_BY_ID = new Map(ASPECT_RATIO_PRESETS.map((p) => [p.id, p]));
 
 export const DEFAULT_ASPECT_RATIO_ID = '16:9';
 
+/**
+ * Maps a connected social integration `identifier` to a tab id in {@link ASPECT_RATIO_PLATFORM_GROUPS}.
+ * Unknown or empty identifiers resolve to `general`.
+ */
+export function aspectPlatformGroupIdForProviderIdentifier(identifier: string | null | undefined): string {
+	const id = (identifier ?? '').trim().toLowerCase();
+	if (!id) return 'general';
+	if (id === 'tiktok') return 'tiktok';
+	if (id.startsWith('instagram')) return 'instagram';
+	if (id === 'threads') return 'instagram';
+	if (id === 'facebook') return 'facebook';
+	if (id === 'youtube') return 'youtube';
+	if (id === 'x' || id === 'twitter') return 'x';
+	if (id === 'linkedin') return 'linkedin';
+	return 'general';
+}
+
+/** First preset id in a platform group that exists in {@link ASPECT_RATIO_PRESETS} (skips commented-out ids). */
+export function firstAspectPresetIdInGroup(groupId: string): string | null {
+	const g = ASPECT_RATIO_PLATFORM_GROUPS.find((x) => x.id === groupId);
+	if (!g) return null;
+	for (const pid of g.presetIds) {
+		if (PRESET_BY_ID.has(pid)) return pid;
+	}
+	return null;
+}
+
+/**
+ * Default canvas aspect for the design dialog from the composer.
+ * When `providerIdentifier` is set (single selected channel in global mode, or focused/single channel in custom), uses that platform’s first preset; otherwise General 16:9.
+ * `mode` is kept for call-site clarity; resolution is driven by the resolved provider when present.
+ */
+export function defaultAspectRatioIdForComposer(
+	_mode: 'global' | 'custom',
+	providerIdentifier: string | null | undefined
+): string {
+	const id = (providerIdentifier ?? '').trim();
+	if (!id) return DEFAULT_ASPECT_RATIO_ID;
+	const gid = aspectPlatformGroupIdForProviderIdentifier(id);
+	if (gid === 'general') return DEFAULT_ASPECT_RATIO_ID;
+	return firstAspectPresetIdInGroup(gid) ?? DEFAULT_ASPECT_RATIO_ID;
+}
+
 export function getAspectPresetById(id: string): AspectRatioPreset {
 	return PRESET_BY_ID.get(id) ?? PRESET_BY_ID.get(DEFAULT_ASPECT_RATIO_ID)!;
 }

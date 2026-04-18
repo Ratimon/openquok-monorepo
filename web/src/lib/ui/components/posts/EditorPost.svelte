@@ -23,6 +23,8 @@
 		postMediaItems?: PostMediaProgrammerModel[];
 		/** Auth uid for multipart upload field; storage path uses JWT on the server. */
 		uploadUid?: string;
+		composerMode?: 'global' | 'custom';
+		focusedProviderIdentifier?: string | null;
 	};
 
 	let {
@@ -39,6 +41,8 @@
 		confirmBannerRightAction = false,
 		postMediaItems = $bindable<PostMediaProgrammerModel[]>([]),
 		uploadUid = '',
+		composerMode = 'global',
+		focusedProviderIdentifier = null,
 	}: Props = $props();
 
 	let confirmOpen = $state(false);
@@ -112,6 +116,8 @@
 					bind:items={postMediaItems}
 					disabled={busy}
 					{uploadUid}
+					{composerMode}
+					{focusedProviderIdentifier}
 				/>
 			</div>
 		{/if}

@@ -12,6 +12,9 @@
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { createSocialPostPresenter } from '$lib/posts';
 	import { toast } from '$lib/ui/sonner';
+
+	/** Same singleton as the module export; `bind:presenter` cannot target an import binding. */
+	let createPostPresenter = $state.raw(createSocialPostPresenter);
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { icons } from '$data/icon';
 
@@ -19,11 +22,11 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AddProvider from '$lib/ui/components/posts/AddProvider.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
-	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 
 	type Props = {
 		data: PageData;
@@ -463,7 +466,7 @@
 
 <CreateSocialPostModal
 	bind:open={createSocialPostOpen}
-	presenter={createSocialPostPresenter}
+	bind:presenter={createPostPresenter}
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
 	uploadUid={currentUser?.id ?? ''}

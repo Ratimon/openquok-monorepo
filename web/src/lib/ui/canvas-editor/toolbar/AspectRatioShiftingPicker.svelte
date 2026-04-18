@@ -45,8 +45,12 @@
 		return 'general';
 	}
 
+	// When the dropdown is closed, keep the tab row aligned with the committed aspect ratio.
+	// While open, the user can browse other platform tabs without this overwriting their selection.
 	$effect(() => {
-		if (open) {
+		open;
+		aspectRatioId;
+		if (!open) {
 			selectedPlatformId = groupIdForPreset(aspectRatioId);
 		}
 	});

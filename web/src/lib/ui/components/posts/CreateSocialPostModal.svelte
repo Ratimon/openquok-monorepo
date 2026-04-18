@@ -25,7 +25,7 @@
 
 	let {
 		open = $bindable(false),
-		presenter,
+		presenter = $bindable(),
 		workspaceId,
 		connectedChannels,
 		uploadUid = ''

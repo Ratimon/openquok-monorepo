@@ -78,6 +78,22 @@
 		uploadUid = '',
 		mediaUrls = []
 	}: Props = $props();
+
+	/**
+	 * Integration `identifier` used to default the design canvas format.
+	 * - Custom: focused channel, or the only selected channel if focus is unset.
+	 * - Global: the only selected channel (e.g. “Create post” from IntegrationMenu preselects one id without switching to custom mode).
+	 */
+	const focusedProviderIdentifier = $derived.by(() => {
+		const integrationId =
+			mode === 'custom'
+				? (focusedIntegrationId ?? (selectedIds.length === 1 ? selectedIds[0] : null))
+				: selectedIds.length === 1
+					? selectedIds[0]
+					: null;
+		if (!integrationId) return null;
+		return socialChannels.find((c) => c.id === integrationId)?.identifier ?? null;
+	});
 </script>
 
 <div class="grid min-h-0 flex-1 grid-cols-1 divide-y divide-base-300 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
@@ -111,6 +127,8 @@
 				{busy}
 				{charCount}
 				{softCharLimit}
+				composerMode={mode}
+				focusedProviderIdentifier={focusedProviderIdentifier}
 				locked={editorLocked}
 				lockMessage={editorLockMessage}
 				onUnlock={onEditorUnlock}
