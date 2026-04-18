@@ -895,6 +895,7 @@
 			}
 
 			const api: KonvaCanvasApi = {
+				getPageInnerBox: () => pageInnerBox(),
 				async toPngBlob() {
 					const box = pageInnerBox();
 					const { exportWidth } = presetRef.current;

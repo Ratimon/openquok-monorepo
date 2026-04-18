@@ -18,7 +18,7 @@
 	data-slot={dataSlot}
 	class={cn('toggle toggle-primary', className)}
 	type="checkbox"
-	checked={checked}
+	bind:checked={checked}
 	{...restProps}
 />
 

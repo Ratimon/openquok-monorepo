@@ -21,6 +21,9 @@ export type TextPresetId = 'header' | 'subheader' | 'body';
 
 export type CanvasTemplateApplyMode = 'reset';
 
+/** Inner page rect in stage coordinates (content area inside the frame). */
+export type PageInnerBox = { px: number; py: number; pw: number; ph: number };
+
 export type KonvaCanvasApi = {
 	toPngBlob: () => Promise<Blob | null>;
 	addImageFromUrl: (url: string) => void;
@@ -28,6 +31,8 @@ export type KonvaCanvasApi = {
 	setPageBackground: (cssColor: string) => void;
 	/** Apply a full template snapshot (text + images). */
 	applyTemplateDoc: (doc: import('$lib/ui/canvas-editor/utils/canvasDoc').KonvaDesignDoc, mode?: CanvasTemplateApplyMode) => void;
+	/** Layout box for mapping external template coordinates (e.g. Polotno JSON) onto the canvas. */
+	getPageInnerBox: () => PageInnerBox;
 	/** Insert a preset text block centered on the page (scaled to frame size). Optional drop coordinates are stage pixels; optional font overrides the preset default. */
 	addTextPreset: (
 		preset: TextPresetId,

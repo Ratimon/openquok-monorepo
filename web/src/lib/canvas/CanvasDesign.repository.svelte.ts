@@ -1,7 +1,18 @@
 /**
- * Design canvas stock imagery (deterministic preview tiles; public CDN; no API key).
- * Repository boundary for static PM — swap implementation when a real stock API is wired.
+ * Design canvas data: stock imagery (local PM) and Polotno template list (HTTP via {@link HttpGateway}).
+ * ProgrammerModel types and stock PM construction live here with the repository boundary.
  */
+import { HttpGateway } from '$lib/core/HttpGateway';
+
+import type { KonvaDesignDoc } from '$lib/ui/canvas-editor/utils/canvasDoc';
+
+import {
+	POLOTONO_API_ORIGIN,
+	POLOTONO_DEFAULT_TEMPLATE_PER_PAGE,
+	POLOTONO_GET_TEMPLATES_PATH
+} from '$lib/canvas/constants/polotno';
+import { DESIGN_TEMPLATES_PM } from '$lib/canvas/constants/CanvasDesign.templates.data';
+
 export type StockPhotoProgrammerModel = {
 	id: string;
 	thumbUrl: string;
@@ -12,7 +23,35 @@ export type StockPhotoProgrammerModel = {
 	searchText: string;
 };
 
-const SEARCH_TOPICS = [
+/** Polotno public template row (same shape as `get-templates` items). */
+export type PolotnoTemplateRowProgrammerModel = {
+	json: string;
+	preview: string;
+};
+
+export type PolotnoTemplateListPageProgrammerModel = {
+	hits?: number;
+	totalPages: number;
+	items: PolotnoTemplateRowProgrammerModel[];
+};
+
+export type DesignTemplateProgrammerModel = {
+	id: string;
+	label: string;
+	description?: string;
+	previewUrl: string;
+	/** Doc snapshot to apply to the canvas (resetting history). */
+	doc: KonvaDesignDoc;
+	/** When “Match current frame” is on, these entries appear for any aspect. */
+	universal?: boolean;
+	/** When “Match current frame” is on, show only if this matches the canvas aspect id. */
+	aspectRatioId?: string;
+	/** If set, parent should switch to this aspect before applying fill/clear. */
+	suggestAspectRatioId?: string;
+};
+
+/** Topic tokens for deterministic Lorem Picsum stock rows (client-side search). */
+export const STOCK_PHOTO_SEARCH_TOPICS = [
 	'nature',
 	'city',
 	'people',
@@ -78,31 +117,86 @@ const SEARCH_TOPICS = [
 	'blue hour'
 ] as const;
 
-function buildStockPhotosPm(): StockPhotoProgrammerModel[] {
-	return Array.from({ length: 72 }, (_, i) => {
-		const seed = `openquokdm${i}`;
-		const a = SEARCH_TOPICS[i % SEARCH_TOPICS.length];
-		const b = SEARCH_TOPICS[(i + 9) % SEARCH_TOPICS.length];
+export const STOCK_PHOTO_TILE_COUNT = 72;
+export const STOCK_PHOTO_SEED_PREFIX = 'openquokdm';
+export const STOCK_PHOTO_THUMB_WIDTH = 120;
+export const STOCK_PHOTO_THUMB_HEIGHT = 150;
+export const STOCK_PHOTO_FULL_WIDTH = 900;
+export const STOCK_PHOTO_FULL_HEIGHT = 1125;
+
+/** Exported for tests or tooling that need the same deterministic grid without the repository singleton. */
+export function buildStockPhotosPm(): StockPhotoProgrammerModel[] {
+	return Array.from({ length: STOCK_PHOTO_TILE_COUNT }, (_, i) => {
+		const seed = `${STOCK_PHOTO_SEED_PREFIX}${i}`;
+		const a = STOCK_PHOTO_SEARCH_TOPICS[i % STOCK_PHOTO_SEARCH_TOPICS.length];
+		const b = STOCK_PHOTO_SEARCH_TOPICS[(i + 9) % STOCK_PHOTO_SEARCH_TOPICS.length];
 		const searchText = `${seed} ${a} ${b} photo image stock`.toLowerCase();
 		return {
 			id: seed,
-			thumbUrl: `https://picsum.photos/seed/${seed}/120/150`,
-			fullUrl: `https://picsum.photos/seed/${seed}/900/1125`,
+			thumbUrl: `https://picsum.photos/seed/${seed}/${STOCK_PHOTO_THUMB_WIDTH}/${STOCK_PHOTO_THUMB_HEIGHT}`,
+			fullUrl: `https://picsum.photos/seed/${seed}/${STOCK_PHOTO_FULL_WIDTH}/${STOCK_PHOTO_FULL_HEIGHT}`,
 			searchText
 		};
 	});
 }
 
 export class CanvasDesignRepository {
-	private readonly cache: readonly StockPhotoProgrammerModel[];
+	private readonly stockPhotosPm: readonly StockPhotoProgrammerModel[];
+	private readonly designTemplatesPm: readonly DesignTemplateProgrammerModel[];
+	private readonly polotnoGateway: HttpGateway;
 
 	constructor() {
-		this.cache = Object.freeze(buildStockPhotosPm());
+		this.stockPhotosPm = Object.freeze(buildStockPhotosPm());
+		this.designTemplatesPm = Object.freeze([...DESIGN_TEMPLATES_PM]);
+		this.polotnoGateway = new HttpGateway(POLOTONO_API_ORIGIN, {
+			headers: {
+				Accept: 'application/json'
+			}
+		});
 	}
 
 	/** Curated stock rows for the design picker (PM). */
 	listStockPhotosPm(): readonly StockPhotoProgrammerModel[] {
-		return this.cache;
+		return this.stockPhotosPm;
+	}
+
+	/** Built-in Konva templates for the design picker (PM). */
+	listDesignTemplatesPm(): readonly DesignTemplateProgrammerModel[] {
+		return this.designTemplatesPm;
+	}
+
+	/**
+	 * One page of Polotno’s public template library (same contract as OpenPolotno `templateList`).
+	 */
+	async fetchPolotnoTemplateListPagePm(
+		params: {
+			query: string;
+			page: number;
+			sameSizeAsCanvas: boolean;
+			exportWidth: number;
+			exportHeight: number;
+			perPage?: number;
+			apiKey?: string;
+		},
+		signal?: AbortSignal
+	): Promise<PolotnoTemplateListPageProgrammerModel> {
+		const perPage = params.perPage ?? POLOTONO_DEFAULT_TEMPLATE_PER_PAGE;
+		const sizeValue = params.sameSizeAsCanvas
+			? `${params.exportWidth}x${params.exportHeight}`
+			: 'all';
+		const key = params.apiKey ?? '';
+		const res = await this.polotnoGateway.get<PolotnoTemplateListPageProgrammerModel>(
+			POLOTONO_GET_TEMPLATES_PATH,
+			{
+				size: sizeValue,
+				query: params.query,
+				per_page: perPage,
+				page: params.page,
+				KEY: key
+			},
+			{ signal, skipInterceptors: true }
+		);
+		return res.data;
 	}
 }
 

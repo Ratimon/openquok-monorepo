@@ -1,25 +1,10 @@
 /**
- * Built-in editable templates for the design column.
- * Each template applies a KonvaDesignDoc (text/image nodes) so users can tweak content on-canvas.
+ * Built-in editable templates (PM) for the design column.
+ * Types live on {@link CanvasDesignRepository}; this module only holds the static rows.
  */
-import type { KonvaDesignDoc } from '$lib/ui/canvas-editor/utils/canvasDoc';
+import type { DesignTemplateProgrammerModel } from '$lib/canvas/CanvasDesign.repository.svelte';
 
-export type DesignTemplate = {
-	id: string;
-	label: string;
-	description?: string;
-	previewUrl: string;
-	/** Doc snapshot to apply to the canvas (resetting history). */
-	doc: KonvaDesignDoc;
-	/** When “Match current frame” is on, these entries appear for any aspect. */
-	universal?: boolean;
-	/** When “Match current frame” is on, show only if this matches the canvas aspect id. */
-	aspectRatioId?: string;
-	/** If set, parent should switch to this aspect before applying fill/clear. */
-	suggestAspectRatioId?: string;
-};
-
-export const DESIGN_TEMPLATES: DesignTemplate[] = [
+export const DESIGN_TEMPLATES_PM: DesignTemplateProgrammerModel[] = [
 	{
 		id: 'blank',
 		label: 'Blank',

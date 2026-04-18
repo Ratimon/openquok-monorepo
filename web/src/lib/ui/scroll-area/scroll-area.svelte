@@ -8,6 +8,8 @@
 		viewportClass?: string;
 		/** Parity with common scroll-area APIs; scrolling is vertical-only for now. */
 		orientation?: 'vertical' | 'horizontal' | 'both';
+		/** Bind the scrollable viewport (e.g. for `IntersectionObserver` `root`). */
+		viewportRef?: HTMLDivElement | null;
 		children: Snippet;
 	};
 
@@ -15,6 +17,7 @@
 		class: className,
 		viewportClass,
 		orientation = 'vertical',
+		viewportRef = $bindable<HTMLDivElement | null>(null),
 		children
 	}: Props = $props();
 </script>
@@ -29,6 +32,7 @@
 	class={cn('relative min-h-0 overflow-hidden', className)}
 >
 	<div
+		bind:this={viewportRef}
 		data-slot="scroll-area-viewport"
 		class={cn(
 			'scroll-area-viewport h-full max-h-full min-h-0 w-full overflow-x-hidden overflow-y-auto',
