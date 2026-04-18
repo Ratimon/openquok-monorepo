@@ -1,12 +1,13 @@
 <script lang="ts">
+	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
+
 	import { onDestroy } from 'svelte';
 
 	import KonvaDesignCanvas from '$lib/canvas-editor/canvas/KonvaDesignCanvas.svelte';
-	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/canvas-editor/konvaCanvasApi';
-	import PhotosPanel from '$lib/canvas-editor/side-panel/photosPanel.svelte';
-	import TextPanel from '$lib/canvas-editor/side-panel/textPanel.svelte';
-	import TemplatesPanel from '$lib/canvas-editor/side-panel/templatesPanel.svelte';
-	import { CanvasToolbar } from '$lib/canvas-editor/toolbar';
+	import PhotosPanel from '$lib/canvas-editor/side-panel/panels/PhotosPanel.svelte';
+	import TextPanel from '$lib/canvas-editor/side-panel/panels/TextPanel.svelte';
+	import TemplatesPanel from '$lib/canvas-editor/side-panel/panels/TemplatesPanel.svelte';
+	import { AspectRatioShiftingPicker, CanvasToolbar } from '$lib/canvas-editor/toolbar';
 	import {
 		DEFAULT_ASPECT_RATIO_ID,
 		getAspectPresetById
@@ -27,9 +28,11 @@
 		disabled?: boolean;
 		onCanvasReady?: (api: KonvaCanvasApi | null) => void;
 		onUseMedia?: () => void;
+		/** Primary action label on the canvas toolbar (mirrored in the host dialog footer when used there). */
+		useMediaLabel?: string;
 	};
 
-	let { disabled = false, onCanvasReady, onUseMedia }: Props = $props();
+	let { disabled = false, onCanvasReady, onUseMedia, useMediaLabel = 'Use this media' }: Props = $props();
 
 	let section = $state<SectionId>('photos');
 	let resourcePanelOpen = $state(true);
@@ -52,7 +55,7 @@
 		{ id: 'photos', label: 'Photos', icon: icons.Image },
 		{ id: 'elements', label: 'Elements', icon: icons.Hexagon },
 		{ id: 'draw', label: 'Draw', icon: icons.BrushCleaning },
-		{ id: 'upload', label: 'Upload', icon: icons.SquarePlus },
+		{ id: 'upload', label: 'Upload Image', icon: icons.SquarePlus },
 		{ id: 'background', label: 'Background', icon: icons.Columns3Cog },
 		{ id: 'layers', label: 'Layers', icon: icons.BetweenVerticalEnd }
 	];
@@ -96,7 +99,7 @@
 </script>
 
 <div
-	class="border-base-300 bg-base-200/20 grid h-full min-h-0 min-w-0 flex-1 overflow-hidden rounded-lg border"
+	class="border-base-300 bg-base-200/20 grid h-full min-h-0 min-w-0 flex-1 overflow-visible rounded-lg border"
 	style:grid-template-columns={resourcePanelOpen
 		? 'minmax(5.25rem, 6rem) minmax(0, 2fr) minmax(0, 3fr)'
 		: 'minmax(5.25rem, 6rem) minmax(0, 1fr)'}
@@ -106,6 +109,20 @@
 		class="border-base-300 flex min-h-0 min-w-0 flex-col gap-1 overflow-y-auto border-r py-2 pr-1 pl-1 sm:py-2.5"
 		aria-label="Design tools"
 	>
+		{#if !resourcePanelOpen}
+			<div class="border-base-300 mb-2 shrink-0 border-b pb-2">
+				<p class="text-base-content/60 mb-1.5 text-[9px] font-medium tracking-wide uppercase">
+					Canvas size
+				</p>
+				<AspectRatioShiftingPicker
+					{disabled}
+					{aspectRatioId}
+					{selectedAspect}
+					layout="toolbar"
+					onAspectChange={(id) => (aspectRatioId = id)}
+				/>
+			</div>
+		{/if}
 		{#each navItems as item (item.id)}
 			<button
 				type="button"
@@ -125,9 +142,21 @@
 
 	{#if resourcePanelOpen}
 		<div
-			class="border-base-300 bg-base-100/40 relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-r"
+			class="border-base-300 bg-base-100/40 relative z-20 flex h-full min-h-0 min-w-0 flex-col overflow-visible border-r"
 		>
-			<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-3">
+			<div class="border-base-300 bg-base-200/30 relative z-30 shrink-0 border-b px-3 py-2">
+				<p class="text-base-content/60 mb-1 text-[10px] font-medium tracking-wide uppercase sm:text-xs">
+					Canvas size
+				</p>
+				<AspectRatioShiftingPicker
+					{disabled}
+					{aspectRatioId}
+					{selectedAspect}
+					layout="canvasHeader"
+					onAspectChange={(id) => (aspectRatioId = id)}
+				/>
+			</div>
+			<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden p-3">
 				{#if section === 'photos'}
 					<PhotosPanel {disabled} canvasApi={canvasApi} />
 				{:else if section === 'templates'}
@@ -203,7 +232,7 @@
 		</div>
 	{/if}
 
-	<div class="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
+	<div class="relative z-0 flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
 		{#if !resourcePanelOpen}
 			<button
 				type="button"
@@ -221,9 +250,7 @@
 			canUndo={historyUi.canUndo}
 			canRedo={historyUi.canRedo}
 			selection={selectionState}
-			{selectedAspect}
-			{aspectRatioId}
-			onAspectChange={(id) => (aspectRatioId = id)}
+			{useMediaLabel}
 			onUseMedia={() => onUseMedia?.()}
 		/>
 		<div class="border-base-300 text-base-content/65 border-b px-2 py-2 sm:px-3">

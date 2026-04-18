@@ -2,19 +2,14 @@
 	import { onMount } from 'svelte';
 
 	import { icons } from '$data/icon';
-	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/canvas-editor/konvaCanvasApi';
+	import type { CanvasSelectionState, KonvaCanvasApi, TextPresetId } from '$lib/canvas-editor/canvas/konvaCanvasApi';
 	import type { KonvaDesignDoc, KonvaDesignImageNode } from '$lib/canvas-editor/utils/canvasDoc';
-	import type { TextPresetId } from '$lib/canvas-editor/konvaCanvasApi';
-	import {
-		DEFAULT_ASPECT_RATIO_ID,
-		type AspectRatioPreset,
-		getAspectPresetById
-	} from '$lib/canvas-editor/utils/aspectRatioPresets';
-	import { GRID_STEP } from '$lib/canvas-editor/canvas/constants';
-	import { drawBackgroundGrid } from '$lib/canvas-editor/canvas/drawGrid';
-	import { computePageLayout } from '$lib/canvas-editor/canvas/pageLayout';
+	import type { AspectRatioPreset } from '$lib/canvas-editor/utils/aspectRatioPresets';
+	import { DEFAULT_ASPECT_RATIO_ID, getAspectPresetById } from '$lib/canvas-editor/utils/aspectRatioPresets';
+	import { GRID_STEP, computePageLayout, drawBackgroundGrid } from '$lib/canvas-editor/canvas/helpers';
+	import { loadKonva } from '$lib/canvas-editor/canvas/loadKonva';
 	import { HistoryStack } from '$lib/canvas-editor/utils/historyStack';
-	import { loadKonva } from '$lib/canvas-editor/loadKonva';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
@@ -572,6 +567,15 @@
 				if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
 				if (shouldIgnoreKeyTarget(document.activeElement)) return;
 				const n = getSelectedNode();
+
+				const isDeleteKey = ev.key === 'Delete' || ev.key === 'Backspace';
+				if (n && n.getClassName() === 'Image' && isDeleteKey) {
+					ev.preventDefault();
+					ev.stopPropagation();
+					removeSelected();
+					return;
+				}
+
 				if (!n || n.getClassName() !== 'Text') return;
 
 				// Start edit mode on typing or backspace/delete.

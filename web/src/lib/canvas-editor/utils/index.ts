@@ -1,5 +1,5 @@
-export { deepEqual } from './deepEqual';
-export { HistoryStack } from './historyStack';
+export { deepEqual } from '$lib/canvas-editor/utils/deepEqual';
+export { HistoryStack } from '$lib/canvas-editor/utils/historyStack';
 export type {
 	KonvaDesignDoc,
 	KonvaDesignImageNode,
@@ -19,10 +19,13 @@ export {
 	setGoogleFonts,
 	setGoogleFontsVariants
 } from './fonts';
-export { measureFont, type FontMetrics } from './font-metric';
+export { measureFont, type FontMetrics } from '$lib/canvas-editor/utils/font-metric';
 export {
+	ASPECT_RATIO_PLATFORM_GROUPS,
 	ASPECT_RATIO_PRESETS,
+	aspectPresetDisplayLine,
 	DEFAULT_ASPECT_RATIO_ID,
 	getAspectPresetById,
+	type AspectPlatformGroup,
 	type AspectRatioPreset
-} from './aspectRatioPresets';
+} from '$lib/canvas-editor/utils/aspectRatioPresets';

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { KonvaCanvasApi } from '$lib/canvas-editor/konvaCanvasApi';
+	import type { KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
@@ -15,8 +15,8 @@
 	type="button"
 	class="btn btn-ghost btn-xs btn-square"
 	disabled={disabled || !canvasApi}
-	title="Copy style (coming soon)"
-	aria-label="Copy style"
+	title="Group selection (coming soon)"
+	aria-label="Group selection"
 >
-	<AbstractIcon name={icons.ListPlus.name} class="size-4 opacity-40" width="16" height="16" />
+	<AbstractIcon name={icons.BetweenVerticalEnd.name} class="size-4 opacity-50" width="16" height="16" />
 </button>

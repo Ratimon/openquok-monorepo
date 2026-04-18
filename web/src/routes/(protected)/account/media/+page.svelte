@@ -212,6 +212,7 @@
 	bind:open={designOpen}
 	disabled={uploadBusy || !organizationId}
 	uploadUid={organizationId}
+	useMediaLabel="Save this for later"
 	onAdd={onDesignAdded}
 />
 

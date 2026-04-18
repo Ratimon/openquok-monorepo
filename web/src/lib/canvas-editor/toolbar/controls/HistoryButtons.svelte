@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { KonvaCanvasApi } from '$lib/canvas-editor/konvaCanvasApi';
+	import type { KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 

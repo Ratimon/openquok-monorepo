@@ -27,7 +27,7 @@ export type KonvaCanvasApi = {
 	addImageFromFile: (file: File) => void;
 	setPageBackground: (cssColor: string) => void;
 	/** Apply a full template snapshot (text + images). */
-	applyTemplateDoc: (doc: import('./utils/canvasDoc').KonvaDesignDoc, mode?: CanvasTemplateApplyMode) => void;
+	applyTemplateDoc: (doc: import('$lib/canvas-editor/utils/canvasDoc').KonvaDesignDoc, mode?: CanvasTemplateApplyMode) => void;
 	/** Insert a preset text block centered on the page (scaled to frame size). Optional drop coordinates are stage pixels; optional font overrides the preset default. */
 	addTextPreset: (
 		preset: TextPresetId,

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { KonvaCanvasApi, TextPresetId } from '$lib/canvas-editor/konvaCanvasApi';
+	import type { KonvaCanvasApi, TextPresetId } from '$lib/canvas-editor/canvas/konvaCanvasApi';
 	import { getFontsList, injectGoogleFont, loadFont } from '$lib/canvas-editor/utils';
 
 	import { onMount } from 'svelte';

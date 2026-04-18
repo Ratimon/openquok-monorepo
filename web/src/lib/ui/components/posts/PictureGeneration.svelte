@@ -1,16 +1,16 @@
 <script lang="ts">
-	import type { KonvaCanvasApi } from '$lib/canvas-editor/konvaCanvasApi';
+	import type { KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
-	import { DesignMediaWorkspace } from '$lib/canvas-editor/side-panel';
-	import { icons } from '$data/icon';
-	import * as Dialog from '$lib/ui/dialog';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
 	import { mediaRepository } from '$lib/media';
 	import { toast } from '$lib/ui/sonner';
 
-	type Tab = 'canvas' | 'upload';
+	import { icons } from '$data/icon';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
+	import * as Dialog from '$lib/ui/dialog';
+	import { DesignMediaWorkspace } from '$lib/canvas-editor/side-panel';
 
 	type Props = {
 		open?: boolean;
@@ -18,61 +18,29 @@
 		/** Shown in upload flows; storage path uses JWT on the server. */
 		uploadUid: string;
 		onAdd: (items: PostMediaProgrammerModel[]) => void;
+		/** Primary action: composer uses "Use this media"; media library may use e.g. "Save this for later". */
+		useMediaLabel?: string;
 	};
 
-	let { open = $bindable(false), disabled = false, uploadUid, onAdd }: Props = $props();
+	let {
+		open = $bindable(false),
+		disabled = false,
+		uploadUid,
+		onAdd,
+		useMediaLabel = 'Use this media'
+	}: Props = $props();
 
-	let fileInput = $state.raw<HTMLInputElement | undefined>(undefined);
 	let busy = $state(false);
-	let tab = $state<Tab>('canvas');
 	let canvasApi = $state<KonvaCanvasApi | null>(null);
 
 	function close() {
 		open = false;
 		canvasApi = null;
-		tab = 'canvas';
-	}
-
-	async function uploadFiles(files: FileList | null) {
-		if (!files?.length || disabled || busy) return;
-		const list = Array.from(files).filter((f) => f.type.startsWith('image/'));
-		if (!list.length) {
-			toast.error('Choose an image file.');
-			return;
-		}
-		busy = true;
-		const added: PostMediaProgrammerModel[] = [];
-		try {
-			for (const file of list) {
-				const result = await mediaRepository.uploadMedia(file, uploadUid);
-				if (result.success && result.data.filePath) {
-					added.push({ id: crypto.randomUUID(), path: result.data.filePath, bucket: 'social_media' });
-				} else {
-					toast.error(result.message || 'Upload failed.');
-					busy = false;
-					return;
-				}
-			}
-			if (added.length) {
-				onAdd(added);
-				toast.success(added.length === 1 ? 'Design added.' : 'Designs added.');
-				close();
-			}
-		} finally {
-			busy = false;
-		}
-	}
-
-	function onFileChange(e: Event) {
-		const t = e.currentTarget as HTMLInputElement;
-		void uploadFiles(t.files);
-		t.value = '';
 	}
 
 	$effect(() => {
 		if (!open) {
 			canvasApi = null;
-			tab = 'canvas';
 		}
 	});
 
@@ -116,86 +84,34 @@
 				Design Media
 			</Dialog.Title>
 			<Dialog.Description class="text-base-content/70 text-sm">
-				Tools and stock picks on the left; compose on the canvas on the right — or upload a finished file.
+				Pick tools, stock, or upload an image from the left; compose on the canvas on the right.
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<div class="border-base-300 flex shrink-0 gap-1 border-b px-4 py-2 sm:px-6">
-			<button
-				type="button"
-				class="rounded-md px-3 py-1.5 text-sm font-medium {tab === 'canvas'
-					? 'bg-primary text-primary-content'
-					: 'text-base-content/70 hover:bg-base-200'}"
-				onclick={() => (tab = 'canvas')}
-			>
-				Canvas
-			</button>
-			<button
-				type="button"
-				class="rounded-md px-3 py-1.5 text-sm font-medium {tab === 'upload'
-					? 'bg-primary text-primary-content'
-					: 'text-base-content/70 hover:bg-base-200'}"
-				onclick={() => (tab = 'upload')}
-			>
-				Upload file
-			</button>
-		</div>
-
 		<div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-2 pb-2 sm:px-4 sm:pb-4">
-			{#if tab === 'canvas'}
-				<DesignMediaWorkspace
-					disabled={disabled || busy}
-					onCanvasReady={(api) => (canvasApi = api)}
-					onUseMedia={() => void exportCanvasToPost()}
-				/>
-			{:else}
-				<div class="flex flex-col gap-4 p-4">
-					<input
-						bind:this={fileInput}
-						type="file"
-						accept="image/*"
-						multiple
-						class="hidden"
-						onchange={onFileChange}
-					/>
-					<Button
-						type="button"
-						variant="primary"
-						disabled={disabled || busy}
-						class="w-full max-w-md"
-						onclick={() => fileInput?.click()}
-					>
-						{#if busy}
-							<span class="loading loading-spinner loading-sm"></span>
-							Uploading…
-						{:else}
-							<AbstractIcon name={icons.Plus.name} class="size-4" width="16" height="16" />
-							Choose image file
-						{/if}
-					</Button>
-				</div>
-			{/if}
+			<DesignMediaWorkspace
+				disabled={disabled || busy}
+				{useMediaLabel}
+				onCanvasReady={(api) => (canvasApi = api)}
+				onUseMedia={() => void exportCanvasToPost()}
+			/>
 		</div>
 
 		<div class="border-base-300 flex shrink-0 flex-wrap justify-end gap-2 border-t px-4 py-3 sm:px-6">
 			<Button type="button" variant="ghost" disabled={busy} onclick={close}>Close</Button>
-			{#if tab === 'upload'}
-				<!-- primary upload happens from the button above -->
-			{:else}
-				<Button
-					type="button"
-					variant="secondary"
-					disabled={disabled || busy || !canvasApi}
-					onclick={() => void exportCanvasToPost()}
-				>
-					{#if busy}
-						<span class="loading loading-spinner loading-sm"></span>
-					{:else}
-						<AbstractIcon name={icons.Save.name} class="size-4" width="16" height="16" />
-					{/if}
-					Use this media
-				</Button>
-			{/if}
+			<Button
+				type="button"
+				variant="primary"
+				disabled={disabled || busy || !canvasApi}
+				onclick={() => void exportCanvasToPost()}
+			>
+				{#if busy}
+					<span class="loading loading-spinner loading-sm"></span>
+				{:else}
+					<AbstractIcon name={icons.Save.name} class="size-4" width="16" height="16" />
+				{/if}
+				{useMediaLabel}
+			</Button>
 		</div>
 	</Dialog.Content>
 </Dialog.Root>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/canvas-editor/konvaCanvasApi';
+	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/canvas-editor/canvas/konvaCanvasApi';
 	import { getFontsList, injectGoogleFont, loadFont } from '$lib/canvas-editor/utils';
 	import * as Popover from '$lib/ui/popover';
 
