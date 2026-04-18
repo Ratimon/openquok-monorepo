@@ -14,11 +14,15 @@ const postsConfig: PostsConfig = {
 
 export const postsRepository = new PostsRepository(httpGateway, postsConfig);
 
-export { PostsRepository } from '$lib/posts/Posts.repository.svelte';
+export {
+	PostsRepository,
+	uploadSocialPostComposerMediaFiles,
+	mediaItemsToPreviewUrls
+} from '$lib/posts/Posts.repository.svelte';
 export type {
-	CreatePostPayload,
+	CreatePostProgrammerModel,
 	PostRowProgrammerModel,
 	PostTagProgrammerModel,
-	RepeatIntervalKey
+	RepeatIntervalKey,
+	PostMediaProgrammerModel
 } from '$lib/posts/Posts.repository.svelte';
-export type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';

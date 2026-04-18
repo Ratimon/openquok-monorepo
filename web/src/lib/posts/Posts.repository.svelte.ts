@@ -1,6 +1,44 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import { ApiError } from '$lib/core/HttpGateway';
-import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
+import { mediaRepository } from '$lib/media';
+import { publicUrlForMediaStorageKey } from '$lib/media/utils/publicMediaObjectUrl';
+
+/** One image attached to a social post (R2 / user media paths from `/api/v1/media/*`). */
+export type PostMediaProgrammerModel = {
+	id: string;
+	path: string;
+	/** Wire field for create-post payloads; composer uploads use `social_media`. */
+	bucket?: 'social_media';
+};
+
+export function mediaItemsToPreviewUrls(items: PostMediaProgrammerModel[]): string[] {
+	return items.map((m) => publicUrlForMediaStorageKey(m.path));
+}
+
+/**
+ * Multipart upload for social-post composer images; maps API paths to {@link PostMediaProgrammerModel}.
+ */
+export async function uploadSocialPostComposerMediaFiles(
+	files: FileList,
+	uploadUid: string
+): Promise<
+	{ ok: true; items: PostMediaProgrammerModel[] } | { ok: false; message: string }
+> {
+	const list = Array.from(files).filter((f) => f.type.startsWith('image/'));
+	if (!list.length) {
+		return { ok: false, message: 'Add image files only.' };
+	}
+	const items: PostMediaProgrammerModel[] = [];
+	for (const file of list) {
+		const result = await mediaRepository.uploadMedia(file, uploadUid);
+		if (result.success && result.data.filePath) {
+			items.push({ id: crypto.randomUUID(), path: result.data.filePath, bucket: 'social_media' });
+		} else {
+			return { ok: false, message: result.message || 'Upload failed.' };
+		}
+	}
+	return { ok: true, items };
+}
 
 export type PostTagProgrammerModel = {
 	id: string;
@@ -56,13 +94,13 @@ export type RepeatIntervalKey =
 	| 'two_weeks'
 	| 'month';
 
-export type CreatePostPayload = {
+export type CreatePostProgrammerModel = {
 	organizationId: string;
 	body: string;
 	/** Optional per-channel body overrides (keyed by integration id). */
 	bodiesByIntegrationId?: Record<string, string>;
-	/** Image attachments (storage object keys under `blog_images`). */
-	media?: SocialPostMediaItem[];
+	/** Image attachments (composer / R2 object keys; see `social_media` on each item when set). */
+	media?: PostMediaProgrammerModel[];
 	integrationIds: string[];
 	isGlobal: boolean;
 	scheduledAt: string;
@@ -162,7 +200,7 @@ export class PostsRepository {
 	}
 
 	async createPost(
-		payload: CreatePostPayload
+		payload: CreatePostProgrammerModel
 	): Promise<{ ok: true; postGroup: string; postIds: string[] } | { ok: false; error: string }> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.post<CreatePostResponseDto>(

@@ -1,7 +1,11 @@
 <script lang="ts">
-	import type { MediaLibraryItemProgrammerModel } from '$lib/media';
+	import type {
+		MediaLibraryItemProgrammerModel,
+		SaveMediaInformationProgrammerModel,
+		UploadSimpleProgrammerModel
+	} from '$lib/media';
 
-	import { mediaRepository, publicUrlForMediaStorageKey } from '$lib/media';
+	import { publicUrlForMediaStorageKey } from '$lib/media';
 	import { icons } from '$data/icon';
 	import { toast } from '$lib/ui/sonner';
 
@@ -15,9 +19,28 @@
 		organizationId: string;
 		onSaved?: () => void;
 		onClose?: () => void;
+		uploadSimple: (params: {
+			file: Blob;
+			filename: string;
+			preventSave: boolean;
+		}) => Promise<UploadSimpleProgrammerModel>;
+		saveInformation: (params: {
+			id: string;
+			alt: string | null;
+			thumbnail: string | null;
+			thumbnailTimestamp: number | null;
+		}) => Promise<SaveMediaInformationProgrammerModel>;
 	};
 
-	let { open = $bindable(false), item, organizationId, onSaved, onClose }: Props = $props();
+	let {
+		open = $bindable(false),
+		item,
+		organizationId,
+		onSaved,
+		onClose,
+		uploadSimple,
+		saveInformation
+	}: Props = $props();
 
 	let altText = $state('');
 	let newThumbnailPath = $state<string | null>(null);
@@ -177,8 +200,7 @@
 				toast.error('Could not encode the frame.');
 				return;
 			}
-			const up = await mediaRepository.uploadMediaSimple({
-				organizationId,
+			const up = await uploadSimple({
 				file: blob,
 				filename: 'thumbnail.jpg',
 				preventSave: true
@@ -236,8 +258,7 @@
 							? newThumbnailTimestamp
 							: (item.thumbnailTimestamp ?? null);
 			}
-			const result = await mediaRepository.saveMediaInformation({
-				organizationId,
+			const result = await saveInformation({
 				id: item.id,
 				alt: altText.trim() || null,
 				thumbnail: thumbOut,

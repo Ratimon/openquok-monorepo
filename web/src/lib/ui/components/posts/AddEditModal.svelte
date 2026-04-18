@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
-	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
+	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
 	import EditorPost from '$lib/ui/components/posts/EditorPost.svelte';
@@ -41,7 +41,7 @@
 		settingsOpen?: boolean;
 		providerSettings?: Record<string, unknown>;
 		onProviderSettingsChange: (value: Record<string, unknown>) => void;
-		postMediaItems?: SocialPostMediaItem[];
+		postMediaItems?: PostMediaProgrammerModel[];
 		uploadUid?: string;
 		mediaUrls?: string[];
 	};

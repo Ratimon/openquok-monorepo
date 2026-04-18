@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { MediaLibraryItemProgrammerModel, MediaListProgrammerModel } from '$lib/media';
-	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
+	import type { MediaLibraryItemProgrammerModel } from '$lib/media';
+	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { onDestroy, onMount } from 'svelte';
 
-	import { formatBytes, MAX_MEDIA_UPLOAD_BYTES, mediaRepository } from '$lib/media';
+	import { protectedMediaPagePresenter } from '$lib/area-protected';
+	import { formatBytes, MAX_MEDIA_UPLOAD_BYTES } from '$lib/media';
 	import { createAccountMediaUppy } from '$lib/media/utils/accountMediaUppy';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -17,63 +18,32 @@
 	import PictureGeneration from '$lib/ui/components/posts/PictureGeneration.svelte';
 	import PaginationComposite from '$lib/ui/pagination/pagination-composite.svelte';
 
-	const DEFAULT_PAGE_SIZE = 24;
 	const ACCEPTED_MEDIA_TYPES = ['image/', 'video/'];
 
-	let items = $state<MediaLibraryItemProgrammerModel[]>([]);
-	let loading = $state(true);
 	type UploadPhase = 'idle' | 'encoding' | 'uploading';
 	let uploadPhase = $state<UploadPhase>('idle');
 	let barPercent = $state(0);
 	let uploadDetailLine = $state('');
-	let dragOver = $state(false);
-	let currentPage = $state(1);
-	let totalPages = $state(1);
-	let totalItems = $state(0);
-	let itemsPerPage = $state(DEFAULT_PAGE_SIZE);
-
 	let designOpen = $state(false);
-	let settingsOpen = $state(false);
-	let settingsItem = $state<MediaLibraryItemProgrammerModel | null>(null);
 
+	const p = protectedMediaPagePresenter;
+
+	const items = $derived(p.items);
+	const loading = $derived(p.loading);
+	const currentPage = $derived(p.pagination.currentPage);
+	const totalPages = $derived(p.totalPages);
+	const totalItems = $derived(p.totalItems);
+	const itemsPerPage = $derived(p.pagination.itemsPerPage);
+	const organizationId = $derived(p.organizationId);
 	const uploadLimitLabel = `${Math.round(MAX_MEDIA_UPLOAD_BYTES / (1024 * 1024))} MB`;
 	const uploadBusy = $derived(uploadPhase !== 'idle');
-	const organizationId = $derived(workspaceSettingsPresenter.currentWorkspaceId ?? '');
-	let lastLoadedOrganizationId = $state<string>('');
 
+	let dragOver = $state(false);
 	let uppy = $state.raw<ReturnType<typeof createAccountMediaUppy> | null>(null);
 
 	function isSupportedUpload(file: File): boolean {
 		return ACCEPTED_MEDIA_TYPES.some((prefix) => file.type.startsWith(prefix));
 	}
-
-	async function loadMedia(page = currentPage): Promise<void> {
-		loading = true;
-		try {
-			if (!organizationId) {
-				items = [];
-				totalItems = 0;
-				totalPages = 1;
-				currentPage = 1;
-				return;
-			}
-			const result: MediaListProgrammerModel = await mediaRepository.listMedia(organizationId, page, itemsPerPage);
-			items = result.results;
-			totalItems = result.total;
-			totalPages = Math.max(result.pages, 1);
-			currentPage = result.page;
-		} finally {
-			loading = false;
-		}
-	}
-
-	$effect(() => {
-		if (!organizationId) return;
-		if (organizationId === lastLoadedOrganizationId) return;
-		lastLoadedOrganizationId = organizationId;
-		currentPage = 1;
-		void loadMedia(1);
-	});
 
 	function queueFilesForUpload(fileList: FileList | null): void {
 		if (!fileList?.length || !uppy || uploadBusy) return;
@@ -102,39 +72,12 @@
 		}
 	}
 
-	function setCurrentPage(page: number): void {
-		if (page < 1 || page === currentPage) return;
-		currentPage = page;
-		void loadMedia(page);
-	}
-
-	function setItemsPerPageAndReload(size: number): void {
-		itemsPerPage = size;
-		currentPage = 1;
-		void loadMedia(1);
-	}
-
-	function paginateFrontFF(): void {
-		if (totalPages > 1) setCurrentPage(totalPages);
-	}
-
-	function paginateBackFF(): void {
-		setCurrentPage(1);
-	}
-
-	function onDesignAdded(_items: SocialPostMediaItem[]): void {
-		if (!_items.length) return;
-		currentPage = 1;
-		void loadMedia(1);
-	}
-
-	function openMediaSettings(entry: MediaLibraryItemProgrammerModel): void {
-		settingsItem = entry;
-		settingsOpen = true;
+	function onDesignAdded(_items: PostMediaProgrammerModel[]): void {
+		p.onDesignAdded();
 	}
 
 	onMount(() => {
-		void loadMedia(1);
+		void p.loadMedia(1);
 
 		const storageProvider = String(import.meta.env?.VITE_STORAGE_PROVIDER ?? '').trim().toLowerCase();
 		const provider = (storageProvider === 'local' ? 'local' : 'cloudflare') as 'local' | 'cloudflare';
@@ -179,8 +122,7 @@
 			const failed = result.failed ?? [];
 			const ok = successful.length;
 			if (ok > 0) {
-				currentPage = 1;
-				void loadMedia(1);
+				p.reloadFromFirstPage();
 				toast.success(ok === 1 ? 'Media uploaded.' : `${ok} files uploaded.`);
 			}
 			if (failed.length) {
@@ -197,6 +139,10 @@
 		}
 		uppy?.destroy();
 		uppy = null;
+	});
+
+	$effect(() => {
+		p.syncWorkspaceList();
 	});
 
 	$effect(() => {
@@ -221,7 +167,7 @@
 				{uploadBusy}
 				onFilesSelected={queueFilesForUpload}
 				onDesignClick={() => (designOpen = true)}
-				onImported={() => void loadMedia(currentPage)}
+				onImported={() => void p.loadMedia(currentPage)}
 			/>
 		</div>
 
@@ -229,7 +175,6 @@
 			Drag files here or use <span class="font-medium text-base-content">Upload</span> above (maximum {uploadLimitLabel} per file).
 		</p>
 
-		<!-- Library grid: MultiMedia in "item" mode (see MediaBox.svelte). Composer posts use MultiMedia with `items`. -->
 		<MediaBox
 			{items}
 			{loading}
@@ -240,8 +185,9 @@
 			onSetDragOver={(v) => {
 				dragOver = v;
 			}}
-			onOpenSettings={openMediaSettings}
-			onReload={() => loadMedia(currentPage)}
+			onOpenSettings={(entry: MediaLibraryItemProgrammerModel) => p.openMediaSettings(entry)}
+			onReload={() => p.loadMedia(currentPage)}
+			deleteMedia={(item) => p.deleteLibraryItem(item)}
 			{dragOver}
 		/>
 	</div>
@@ -252,10 +198,10 @@
 			totalItems={totalItems}
 			currentPage={currentPage}
 			totalPages={totalPages}
-			setItemsPerPage={setItemsPerPageAndReload}
-			setCurrentPage={setCurrentPage}
-			paginateFrontFF={paginateFrontFF}
-			paginateBackFF={paginateBackFF}
+			setItemsPerPage={p.setItemsPerPageAndReload.bind(p)}
+			setCurrentPage={p.setCurrentPage.bind(p)}
+			paginateFrontFF={p.paginateFrontFF.bind(p)}
+			paginateBackFF={p.paginateBackFF.bind(p)}
 			nameOfItems="media files"
 			pageSizeOptions={[12, 24, 48, 96]}
 		/>
@@ -270,9 +216,11 @@
 />
 
 <MediaSettings
-	bind:open={settingsOpen}
-	item={settingsItem}
+	bind:open={p.settingsOpen}
+	item={p.settingsItem}
 	organizationId={organizationId}
-	onSaved={() => void loadMedia(currentPage)}
-	onClose={() => (settingsItem = null)}
+	uploadSimple={(args) => p.uploadMediaSimple(args)}
+	saveInformation={(args) => p.saveMediaInformation(args)}
+	onSaved={() => void p.loadMedia(currentPage)}
+	onClose={() => p.clearSettingsItem()}
 />

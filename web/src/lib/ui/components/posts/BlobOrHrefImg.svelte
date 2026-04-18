@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { resolveMediaPreviewUrl, isAuthenticatedMediaDownloadHref } from '$lib/posts/mediaPreview';
+	import { resolveMediaPreviewUrl, isAuthenticatedMediaDownloadHref } from '$lib/posts/utils/mediaPreview';
 
 	type Props = {
 		href: string;

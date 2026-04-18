@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
+	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -20,7 +20,7 @@
 		bannerRightActionLabel?: string | null;
 		onBannerRightAction?: () => void;
 		confirmBannerRightAction?: boolean;
-		postMediaItems?: SocialPostMediaItem[];
+		postMediaItems?: PostMediaProgrammerModel[];
 		/** Auth uid for multipart upload field; storage path uses JWT on the server. */
 		uploadUid?: string;
 	};
@@ -37,7 +37,7 @@
 		bannerRightActionLabel = null,
 		onBannerRightAction,
 		confirmBannerRightAction = false,
-		postMediaItems = $bindable<SocialPostMediaItem[]>([]),
+		postMediaItems = $bindable<PostMediaProgrammerModel[]>([]),
 		uploadUid = '',
 	}: Props = $props();
 

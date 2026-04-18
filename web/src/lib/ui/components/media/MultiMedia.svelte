@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { MediaLibraryItemProgrammerModel } from '$lib/media';
-	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
+	import type { PostMediaProgrammerModel } from '$lib/posts';
 
-	import { mediaRepository, publicUrlForMediaStorageKey } from '$lib/media';
-	import { mediaItemsToPreviewUrls } from '$lib/posts/composerMedia.types';
+	import { publicUrlForMediaStorageKey } from '$lib/media';
+	import { mediaItemsToPreviewUrls, uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { icons } from '$data/icon';
 	import { toast } from '$lib/ui/sonner';
 
@@ -17,7 +17,7 @@
 		onSettings?: (item: MediaLibraryItemProgrammerModel) => void;
 		organizationId?: string;
 		deleting?: boolean;
-		items?: SocialPostMediaItem[];
+		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
 		uploadUid?: string;
 	};
@@ -71,26 +71,16 @@
 
 	async function uploadFiles(files: FileList | null) {
 		if (!files?.length || disabled || uploadBusy || !uploadUid) return;
-		const list = Array.from(files).filter((f) => f.type.startsWith('image/'));
-		if (!list.length) {
-			toast.error('Add image files only.');
-			return;
-		}
 		uploadBusy = true;
-		const added: SocialPostMediaItem[] = [];
 		try {
-			for (const file of list) {
-				const result = await mediaRepository.uploadMedia(file, uploadUid);
-				if (result.success && result.data.filePath) {
-					added.push({ id: crypto.randomUUID(), path: result.data.filePath, bucket: 'social_media' });
-				} else {
-					toast.error(result.message || 'Upload failed.');
-					return;
-				}
+			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid);
+			if (!batch.ok) {
+				toast.error(batch.message);
+				return;
 			}
-			items = [...items, ...added];
-			if (added.length) {
-				toast.success(added.length === 1 ? 'Image attached.' : 'Images attached.');
+			items = [...items, ...batch.items];
+			if (batch.items.length) {
+				toast.success(batch.items.length === 1 ? 'Image attached.' : 'Images attached.');
 			}
 		} finally {
 			uploadBusy = false;

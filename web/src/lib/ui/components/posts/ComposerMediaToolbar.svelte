@@ -1,15 +1,15 @@
 <script lang="ts">
-	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
+	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import DesignEditorGlyph from '$lib/ui/components/posts/DesignEditorGlyph.svelte';
 	import PictureGeneration from '$lib/ui/components/posts/PictureGeneration.svelte';
-	import { mediaRepository } from '$lib/media';
+	import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { toast } from '$lib/ui/sonner';
 
 	type Props = {
-		items?: SocialPostMediaItem[];
+		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
 		uploadUid: string;
 		class?: string;
@@ -25,28 +25,17 @@
 		'border-base-300/90 bg-base-200/45 text-base-content/85 hover:bg-base-300/55 hover:text-base-content focus-visible:ring-primary/40 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border shadow-sm backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35';
 
 	async function uploadFiles(files: FileList | null) {
-		if (!files?.length || disabled || uploadBusy) return;
-		const list = Array.from(files).filter((f) => f.type.startsWith('image/'));
-		if (!list.length) {
-			toast.error('Add image files only.');
-			return;
-		}
+		if (!files?.length || disabled || uploadBusy || !uploadUid) return;
 		uploadBusy = true;
-		const added: SocialPostMediaItem[] = [];
 		try {
-			for (const file of list) {
-				const result = await mediaRepository.uploadMedia(file, uploadUid);
-				if (result.success && result.data.filePath) {
-					added.push({ id: crypto.randomUUID(), path: result.data.filePath, bucket: 'social_media' });
-				} else {
-					toast.error(result.message || 'Upload failed.');
-					uploadBusy = false;
-					return;
-				}
+			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid);
+			if (!batch.ok) {
+				toast.error(batch.message);
+				return;
 			}
-			items = [...items, ...added];
-			if (added.length) {
-				toast.success(added.length === 1 ? 'Image attached.' : 'Images attached.');
+			items = [...items, ...batch.items];
+			if (batch.items.length) {
+				toast.success(batch.items.length === 1 ? 'Image attached.' : 'Images attached.');
 			}
 		} finally {
 			uploadBusy = false;
@@ -59,7 +48,7 @@
 		t.value = '';
 	}
 
-	function onAddFromDesign(added: SocialPostMediaItem[]) {
+	function onAddFromDesign(added: PostMediaProgrammerModel[]) {
 		if (added.length) {
 			items = [...items, ...added];
 		}

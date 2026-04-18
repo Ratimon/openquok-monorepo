@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { MediaLibraryItemProgrammerModel } from '$lib/media';
+	import type { MediaDeleteProgrammerModel, MediaLibraryItemProgrammerModel } from '$lib/media';
 
-	import { formatBytes, mediaRepository, publicUrlForMediaStorageKey } from '$lib/media';
+	import { formatBytes, publicUrlForMediaStorageKey } from '$lib/media';
 	import { icons } from '$data/icon';
 	import { toast } from '$lib/ui/sonner';
 
@@ -26,6 +26,7 @@
 		onSetDragOver: (v: boolean) => void;
 		onOpenSettings: (item: MediaLibraryItemProgrammerModel) => void;
 		onReload: () => void | Promise<void>;
+		deleteMedia: (item: MediaLibraryItemProgrammerModel) => Promise<MediaDeleteProgrammerModel>;
 	};
 
 	let {
@@ -38,7 +39,8 @@
 		onQueueFiles,
 		onSetDragOver,
 		onOpenSettings,
-		onReload
+		onReload,
+		deleteMedia
 	}: Props = $props();
 
 	const hasItems = $derived(items.length > 0);
@@ -93,7 +95,7 @@
 				toast.error('Select a workspace first.');
 				return;
 			}
-			const result = await mediaRepository.deleteMedia({ organizationId, id: item.id, path: item.path });
+			const result = await deleteMedia(item);
 			if (!result.success) {
 				toast.error(result.message || 'Could not delete media.');
 				return;

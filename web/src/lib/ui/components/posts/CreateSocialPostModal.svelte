@@ -2,12 +2,12 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { PostTagProgrammerModel, RepeatIntervalKey } from '$lib/posts';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
-	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
+	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { icons } from '$data/icon';
 	import * as Dialog from '$lib/ui/dialog';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { mediaItemsToPreviewUrls } from '$lib/posts/composerMedia.types';
+	import { mediaItemsToPreviewUrls } from '$lib/posts';
 
 	import { postsRepository } from '$lib/posts';
 	import { datetimeLocalToIso, isoToDatetimeLocalValue } from '$lib/utils/postingSchedulePreferences';
@@ -60,7 +60,7 @@
 	let repeatInterval = $state<RepeatIntervalKey | null>(null);
 	let selectedTagNames = $state<string[]>([]);
 	let tagList = $state<PostTagProgrammerModel[]>([]);
-	let postMediaItems = $state<SocialPostMediaItem[]>([]);
+	let postMediaItems = $state<PostMediaProgrammerModel[]>([]);
 	let busy = $state(false);
 	let confirmCloseOpen = $state(false);
 	let initialSnapshot = $state('');

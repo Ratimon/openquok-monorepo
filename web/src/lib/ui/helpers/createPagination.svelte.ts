@@ -1,16 +1,24 @@
-type PaginationProps<T> = {
+export type { RemotePaginationOptions } from '$lib/ui/helpers/createRemotePagination.svelte';
+export { createRemotePagination } from '$lib/ui/helpers/createRemotePagination.svelte';
+
+type ClientPaginationProps<T> = {
 	initialPage?: number;
 	initialItemsPerPage?: number;
 	initialData: T[];
 	searchField?: keyof T;
 };
 
+/**
+ * Client-side pagination: filter optional `searchField`, then slice `initialData` by page.
+ *
+ * For API-paginated screens use {@link createRemotePagination} instead.
+ */
 export function createPagination<T>({
 	initialPage = 1,
 	initialItemsPerPage = 10,
 	initialData,
 	searchField
-}: PaginationProps<T>) {
+}: ClientPaginationProps<T>) {
 	let currentPage = $state(initialPage);
 	let itemsPerPage = $state(initialItemsPerPage);
 	let data = $state(initialData);
@@ -23,7 +31,7 @@ export function createPagination<T>({
 	const filteredData = $derived(
 		searchField && searchTerm && searchTerm !== ''
 			? data.filter((item) =>
-					(String(item[searchField])).toLowerCase().includes(searchTerm.toLowerCase())
+					String(item[searchField]).toLowerCase().includes(searchTerm.toLowerCase())
 				)
 			: data
 	);

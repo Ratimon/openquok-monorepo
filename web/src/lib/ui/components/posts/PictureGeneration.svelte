@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { KonvaCanvasApi } from '$lib/canvas-editor/konvaCanvasApi';
-	import type { SocialPostMediaItem } from '$lib/posts/composerMedia.types';
+	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { DesignMediaWorkspace } from '$lib/canvas-editor/side-panel';
 	import { icons } from '$data/icon';
@@ -17,7 +17,7 @@
 		disabled?: boolean;
 		/** Shown in upload flows; storage path uses JWT on the server. */
 		uploadUid: string;
-		onAdd: (items: SocialPostMediaItem[]) => void;
+		onAdd: (items: PostMediaProgrammerModel[]) => void;
 	};
 
 	let { open = $bindable(false), disabled = false, uploadUid, onAdd }: Props = $props();
@@ -41,7 +41,7 @@
 			return;
 		}
 		busy = true;
-		const added: SocialPostMediaItem[] = [];
+		const added: PostMediaProgrammerModel[] = [];
 		try {
 			for (const file of list) {
 				const result = await mediaRepository.uploadMedia(file, uploadUid);

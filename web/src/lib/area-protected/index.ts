@@ -8,8 +8,10 @@ export {
 import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus } from './ProtectedSettingsPage.presenter.svelte';
 import { ProtectedLayoutPagePresenter } from '$lib/area-protected/ProtectedLayoutPage.presenter.svelte';
 import { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import { ProtectedMediaPagePresenter } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
 import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
+import { mediaRepository } from '$lib/media';
 import { getNotificationPresenter, notificationRepository } from '$lib/notifications';
 import { workspaceSettingsPresenter } from '$lib/settings';
 import { authenticationRepository } from '$lib/user-auth/index';
@@ -31,6 +33,8 @@ const protectedDashboardPagePresenter = new ProtectedDashboardPagePresenter(
 	workspaceSettingsPresenter
 );
 
+const protectedMediaPagePresenter = new ProtectedMediaPagePresenter(mediaRepository, workspaceSettingsPresenter);
+
 export {
 	ProtectedSettingsPagePresenter,
 	UpdateProfileStatus,
@@ -39,5 +43,7 @@ export {
 	ProtectedLayoutPagePresenter,
 	protectedLayoutPagePresenter,
 	ProtectedDashboardPagePresenter,
-	protectedDashboardPagePresenter
+	protectedDashboardPagePresenter,
+	ProtectedMediaPagePresenter,
+	protectedMediaPagePresenter
 };
