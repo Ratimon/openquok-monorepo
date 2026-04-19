@@ -3,7 +3,12 @@
 
 	import { icons } from '$data/icon';
 	import type { CanvasSelectionState, KonvaCanvasApi, TextPresetId } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-	import type { KonvaDesignDoc, KonvaDesignImageNode } from '$lib/ui/canvas-editor/utils/canvasDoc';
+	import { polotnoTextTemplateJsonToKonvaDoc } from '$lib/canvas/utils/polotnoToKonvaDoc';
+	import type {
+		KonvaDesignDoc,
+		KonvaDesignImageNode,
+		KonvaDesignTextNode
+	} from '$lib/ui/canvas-editor/utils/canvasDoc';
 	import type { AspectRatioPreset } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 	import { DEFAULT_ASPECT_RATIO_ID, getAspectPresetById } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 	import { GRID_STEP, computePageLayout, drawBackgroundGrid } from '$lib/ui/canvas-editor/canvas/helpers';
@@ -603,6 +608,15 @@
 				return layoutPage(sw, sh);
 			}
 
+			/** Matches `IsMobile` breakpoint in `$lib/ui/helpers/is-mobile.svelte.ts`. */
+			function isMobileViewport(): boolean {
+				try {
+					return window.matchMedia('(max-width: 767px)').matches;
+				} catch {
+					return false;
+				}
+			}
+
 			function addImageFromHtmlImage(img: HTMLImageElement) {
 				const { px, py, pw, ph } = pageInnerBox();
 				let w = img.naturalWidth;
@@ -668,6 +682,80 @@
 				selectNode(t);
 				contentLayer.batchDraw();
 				pushHistory();
+				if (!isMobileViewport()) {
+					requestAnimationFrame(() => startTextEditing(t, { selectAll: true }));
+				}
+			}
+
+			async function applyPolotnoTextTemplateJson(
+				json: unknown,
+				opts?: { dropX?: number; dropY?: number }
+			) {
+				const doc = polotnoTextTemplateJsonToKonvaDoc(json, pageInnerBox(), opts);
+				const texts = doc.nodes.filter((n): n is KonvaDesignTextNode => n.kind === 'text');
+				const images = doc.nodes.filter((n): n is KonvaDesignImageNode => n.kind === 'image');
+				const added: DesignNode[] = [];
+				historyMuted = true;
+
+				for (const n of texts) {
+					const t = new Konva.Text({
+						id: n.id,
+						text: n.text,
+						fontSize: n.fontSize,
+						fontFamily: n.fontFamily,
+						fontStyle: n.fontStyle,
+						fill: n.fill,
+						width: n.width,
+						x: n.x,
+						y: n.y,
+						rotation: n.rotation,
+						opacity: n.opacity ?? 1,
+						draggable: n.draggable !== false,
+						name: 'design-text'
+					});
+					attachTextHandlers(t);
+					contentLayer.add(t);
+					added.push(t);
+				}
+
+				await Promise.all(
+					images.map(
+						(n) =>
+							new Promise<void>((resolve) => {
+								const im = new Image();
+								im.crossOrigin = 'anonymous';
+								im.onload = () => {
+									const kImg = new Konva.Image({
+										id: n.id,
+										image: im,
+										x: n.x,
+										y: n.y,
+										width: n.width,
+										height: n.height,
+										rotation: n.rotation,
+										opacity: n.opacity ?? 1,
+										draggable: n.draggable !== false,
+										name: 'design-image'
+									});
+									attachImageHandlers(kImg);
+									contentLayer.add(kImg);
+									added.push(kImg);
+									resolve();
+								};
+								im.onerror = () => resolve();
+								im.src = n.src;
+							})
+					)
+				);
+
+				if (added.length) {
+					transformer.nodes(added);
+					transformer.moveToTop();
+					contentLayer.batchDraw();
+				}
+				historyMuted = false;
+				pushHistory();
+				notifySelection();
 			}
 
 			function retargetTextFontFamily(fromFamily: string, toFamily: string) {
@@ -922,6 +1010,8 @@
 				applyTemplateDoc: (doc: KonvaDesignDoc) => applyTemplateDoc(doc),
 				addTextPreset: (preset: TextPresetId, opts?: { dropX?: number; dropY?: number; fontFamily?: string }) =>
 					addTextFromPreset(preset, opts?.dropX, opts?.dropY, opts?.fontFamily),
+				applyPolotnoTextTemplate: (json: unknown, opts?: { dropX?: number; dropY?: number }) =>
+					applyPolotnoTextTemplateJson(json, opts),
 				retargetTextFontFamily,
 				clearAllImages,
 				undo: () => {
@@ -1029,11 +1119,19 @@
 						type?: string;
 						preset?: TextPresetId;
 						fontFamily?: string;
+						jsonUrl?: string;
 					};
-					if (d.type !== 'design-text-preset' || !d.preset) return;
 					const rect = hostEl.getBoundingClientRect();
 					const sx = e.clientX - rect.left;
 					const sy = e.clientY - rect.top;
+					if (d.type === 'design-text-template' && d.jsonUrl) {
+						void fetch(d.jsonUrl)
+							.then((r) => r.json())
+							.then((json: unknown) => applyPolotnoTextTemplateJson(json, { dropX: sx, dropY: sy }))
+							.catch(() => {});
+						return;
+					}
+					if (d.type !== 'design-text-preset' || !d.preset) return;
 					addTextFromPreset(d.preset, sx, sy, d.fontFamily);
 				} catch {
 					/* ignore malformed drop payloads */

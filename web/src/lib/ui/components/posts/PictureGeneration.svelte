@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-	import type { ExportCanvasToMediaFn, StockPhotoViewModel } from '$lib/canvas';
+	import type {
+		DesignTemplateProgrammerModel,
+		ExportCanvasToMediaFn,
+		PolotnoTemplateListPageProgrammerModel,
+		StockPhotoViewModel
+	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { toast } from '$lib/ui/sonner';
@@ -10,10 +15,15 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Dialog from '$lib/ui/dialog';
-	import { DesignMediaWorkspace } from '$lib/ui/canvas-editor/side-panel';
+	import DesignMediaWorkspace from '$lib/ui/canvas-editor/side-panel/DesignMediaWorkspace.svelte';
 
 	interface Props {
 		stockPhotosVm: readonly StockPhotoViewModel[];
+		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
+		fetchPolotnoTemplateListPage: (
+			params: { query: string; page: number },
+			signal?: AbortSignal
+		) => Promise<PolotnoTemplateListPageProgrammerModel>;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		open?: boolean;
 		disabled?: boolean;
@@ -28,6 +38,8 @@
 
 	let {
 		stockPhotosVm,
+		designTemplatesVm,
+		fetchPolotnoTemplateListPage,
 		exportCanvasToMedia,
 		open = $bindable(false),
 		disabled = false,
@@ -111,6 +123,8 @@
 					{composerMode}
 					{focusedProviderIdentifier}
 					stockPhotosPm={stockPhotosVm}
+					{designTemplatesVm}
+					{fetchPolotnoTemplateListPage}
 					onCanvasReady={(api) => (canvasApi = api)}
 					onUseMedia={() => void exportCanvasToPost()}
 				/>

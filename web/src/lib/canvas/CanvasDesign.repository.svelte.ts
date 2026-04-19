@@ -9,7 +9,8 @@ import type { KonvaDesignDoc } from '$lib/ui/canvas-editor/utils/canvasDoc';
 import {
 	POLOTONO_API_ORIGIN,
 	POLOTONO_DEFAULT_TEMPLATE_PER_PAGE,
-	POLOTONO_GET_TEMPLATES_PATH
+	POLOTONO_GET_TEMPLATES_PATH,
+	POLOTONO_GET_TEXT_TEMPLATES_PATH
 } from '$lib/canvas/constants/polotno';
 import { DESIGN_TEMPLATES_PM } from '$lib/canvas/constants/CanvasDesign.templates.data';
 
@@ -33,6 +34,16 @@ export type PolotnoTemplateListPageProgrammerModel = {
 	hits?: number;
 	totalPages: number;
 	items: PolotnoTemplateRowProgrammerModel[];
+};
+
+/** Polotno `get-text-templates` row (preview + JSON URL). */
+export type PolotnoTextTemplateRowProgrammerModel = {
+	json: string;
+	preview: string;
+};
+
+export type PolotnoTextTemplatesListProgrammerModel = {
+	items?: PolotnoTextTemplateRowProgrammerModel[];
 };
 
 export type DesignTemplateProgrammerModel = {
@@ -189,6 +200,22 @@ export class CanvasDesignRepository {
 				page: params.page,
 				KEY: key
 			},
+			{ signal, skipInterceptors: true }
+		);
+		return res.data;
+	}
+
+	/**
+	 * Polotno public text-style templates (OpenPolotno `textTemplateList` / `get-text-templates`).
+	 */
+	async fetchPolotnoTextTemplatesListPm(
+		params: { apiKey?: string },
+		signal?: AbortSignal
+	): Promise<PolotnoTextTemplatesListProgrammerModel> {
+		const key = params.apiKey ?? '';
+		const res = await this.polotnoGateway.get<PolotnoTextTemplatesListProgrammerModel>(
+			POLOTONO_GET_TEXT_TEMPLATES_PATH,
+			{ KEY: key },
 			{ signal, skipInterceptors: true }
 		);
 		return res.data;

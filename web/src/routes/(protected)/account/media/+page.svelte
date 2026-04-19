@@ -217,6 +217,10 @@
 
 <PictureGeneration
 	stockPhotosVm={mediaLibraryPictureModalPresenter.stockPhotosPm}
+	designTemplatesVm={mediaLibraryPictureModalPresenter.designTemplatesPm}
+	fetchPolotnoTemplateListPage={mediaLibraryPictureModalPresenter.fetchPolotnoTemplateListPagePm.bind(
+		mediaLibraryPictureModalPresenter
+	)}
 	exportCanvasToMedia={mediaLibraryPictureModalPresenter.exportCanvasToMedia.bind(
 		mediaLibraryPictureModalPresenter
 	)}

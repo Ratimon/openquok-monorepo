@@ -1,25 +1,31 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
-
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-	import {
-		canvasDesignRepository,
-		type DesignTemplateProgrammerModel,
-		type PolotnoTemplateListPageProgrammerModel,
-		type PolotnoTemplateRowProgrammerModel
-	} from '$lib/canvas/CanvasDesign.repository.svelte';
+	import type {
+		DesignTemplateProgrammerModel,
+		PolotnoTemplateListPageProgrammerModel,
+		PolotnoTemplateRowProgrammerModel
+	} from '$lib/canvas';
+
+	import { onMount, tick } from 'svelte';
 	import { polotnoJsonToKonvaDoc } from '$lib/canvas/utils/polotnoToKonvaDoc';
 	import { createInfiniteApi } from '$lib/canvas/utils/useInfiniteApi.svelte';
-	import * as InputGroup from '$lib/ui/input-group';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import * as InputGroup from '$lib/ui/input-group';
 	import { ScrollArea } from '$lib/ui/scroll-area';
 
 	type Props = {
 		disabled?: boolean;
 		canvasApi: KonvaCanvasApi | null;
 		aspectRatioId: string;
+		/** From {@link GeneratePictureModalPresenter} (not the repository). */
+		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
+		fetchPolotnoTemplateListPage: (
+			params: { query: string; page: number },
+			signal?: AbortSignal
+		) => Promise<PolotnoTemplateListPageProgrammerModel>;
 		onAspectChange?: (id: string) => void;
 	};
 
@@ -27,12 +33,10 @@
 		disabled = false,
 		canvasApi,
 		aspectRatioId,
+		designTemplatesVm,
+		fetchPolotnoTemplateListPage,
 		onAspectChange
 	}: Props = $props();
-
-	const polotnoKey =
-		(typeof import.meta.env.VITE_POLOTNO_API_KEY === 'string' && import.meta.env.VITE_POLOTNO_API_KEY) ||
-		'';
 
 	let search = $state('');
 	let loadSentinel = $state.raw<HTMLDivElement | null>(null);
@@ -40,7 +44,7 @@
 
 	const filteredLocal = $derived.by(() => {
 		const q = search.trim().toLowerCase();
-		return canvasDesignRepository.listDesignTemplatesPm().filter((t) => {
+		return designTemplatesVm.filter((t) => {
 			if (!q) return true;
 			return (
 				t.label.toLowerCase().includes(q) ||
@@ -50,15 +54,7 @@
 	});
 
 	const infinite = createInfiniteApi<PolotnoTemplateListPageProgrammerModel>({
-		fetchPage: (ctx, signal) =>
-			canvasDesignRepository.fetchPolotnoTemplateListPagePm(
-				{
-					query: ctx.query,
-					page: ctx.page,
-					apiKey: polotnoKey
-				},
-				signal
-			),
+		fetchPage: (ctx, signal) => fetchPolotnoTemplateListPage(ctx, signal),
 		getSize: (p) => p.totalPages
 	});
 
@@ -121,7 +117,9 @@
 </script>
 
 <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden">
-	<label class="sr-only" for="design-template-search">Search templates</label>
+	<label class="sr-only" for="design-template-search">
+		Search templates
+	</label>
 	<InputGroup.Root class="shrink-0 shadow-xs">
 		<InputGroup.Addon align="inline-start" class="pl-2">
 			<AbstractIcon
@@ -155,7 +153,7 @@
 		<p class="text-error shrink-0 text-xs">{String(infinite.error)}</p>
 	{/if}
 
-	<ScrollArea class="min-h-0 min-w-0 flex-1" viewportClass="pr-0.5" bind:viewportRef={scrollViewport}>
+	<ScrollArea class="min-h-0 min-w-0 flex-1 basis-0" viewportClass="pr-0.5" bind:viewportRef={scrollViewport}>
 		<div class="grid min-w-0 grid-cols-2 content-start items-start gap-2 pb-2">
 			{#each filteredLocal as t (t.id)}
 				<button

@@ -1,5 +1,10 @@
 <script lang="ts">
-	import type { ExportCanvasToMediaFn, StockPhotoViewModel } from '$lib/canvas';
+	import type {
+		DesignTemplateProgrammerModel,
+		ExportCanvasToMediaFn,
+		PolotnoTemplateListPageProgrammerModel,
+		StockPhotoViewModel
+	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { icons } from '$data/icon';
@@ -11,6 +16,11 @@
 
 	interface EditorPostProps {
 		stockPhotosVm: readonly StockPhotoViewModel[];
+		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
+		fetchPolotnoTemplateListPage: (
+			params: { query: string; page: number },
+			signal?: AbortSignal
+		) => Promise<PolotnoTemplateListPageProgrammerModel>;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		body?: string;
 		busy?: boolean;
@@ -32,6 +42,8 @@
 
 	let {
 		stockPhotosVm,
+		designTemplatesVm,
+		fetchPolotnoTemplateListPage,
 		exportCanvasToMedia,
 		body = $bindable(''),
 		busy = false,
@@ -119,6 +131,8 @@
 				<ComposerMediaToolbar
 					class="pointer-events-auto"
 					{stockPhotosVm}
+					{designTemplatesVm}
+					{fetchPolotnoTemplateListPage}
 					{exportCanvasToMedia}
 					bind:items={postMediaItems}
 					disabled={busy}

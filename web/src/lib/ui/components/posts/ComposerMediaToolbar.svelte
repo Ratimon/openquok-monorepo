@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { ComponentProps } from 'svelte';
-	import type { ExportCanvasToMediaFn, StockPhotoViewModel } from '$lib/canvas';
+	import type {
+		DesignTemplateProgrammerModel,
+		ExportCanvasToMediaFn,
+		PolotnoTemplateListPageProgrammerModel,
+		StockPhotoViewModel
+	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { icons } from '$data/icon';
@@ -12,6 +17,11 @@
 
 	interface ComposerMediaToolbarProps {
 		stockPhotosVm: readonly StockPhotoViewModel[];
+		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
+		fetchPolotnoTemplateListPage: (
+			params: { query: string; page: number },
+			signal?: AbortSignal
+		) => Promise<PolotnoTemplateListPageProgrammerModel>;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
@@ -23,6 +33,8 @@
 
 	let {
 		stockPhotosVm,
+		designTemplatesVm,
+		fetchPolotnoTemplateListPage,
 		exportCanvasToMedia,
 		items = $bindable([]),
 		disabled = false,
@@ -74,6 +86,8 @@
 	const pictureGenerationFields = $derived.by(
 		(): Omit<PictureGenerationProps, 'open'> => ({
 			stockPhotosVm,
+			designTemplatesVm,
+			fetchPolotnoTemplateListPage,
 			exportCanvasToMedia,
 			disabled: disabled || uploadBusy,
 			uploadUid,

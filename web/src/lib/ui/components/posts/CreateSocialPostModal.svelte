@@ -99,6 +99,8 @@
 		<div class="flex min-h-0 flex-1 flex-col">
 			<AddEditModal
 				stockPhotosVm={presenter.stockPhotosVm}
+				designTemplatesVm={presenter.designTemplatesVm}
+				fetchPolotnoTemplateListPage={presenter.fetchPolotnoTemplateListPage.bind(presenter)}
 				exportCanvasToMedia={presenter.exportCanvasToMedia}
 				socialChannels={presenter.baseSocialChannelsVm}
 				bind:body={presenter.editorBody}

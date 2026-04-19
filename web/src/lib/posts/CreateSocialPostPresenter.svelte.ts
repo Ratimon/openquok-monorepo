@@ -1,5 +1,6 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type {
+	DesignTemplateProgrammerModel,
 	ExportCanvasToMediaArgs,
 	ExportDesignToMediaResult,
 	GeneratePictureModalPresenter
@@ -36,6 +37,18 @@ export class CreateSocialPostPresenter {
 	/** Stock rows for the design-media dialog (from the injected picture modal). */
 	get stockPhotosVm() {
 		return this.pictureModalPresenter.stockPhotosPm;
+	}
+
+	/** Built-in Konva templates for the design dialog templates panel. */
+	get designTemplatesVm(): readonly DesignTemplateProgrammerModel[] {
+		return this.pictureModalPresenter.designTemplatesPm;
+	}
+
+	fetchPolotnoTemplateListPage(
+		params: { query: string; page: number },
+		signal?: AbortSignal
+	) {
+		return this.pictureModalPresenter.fetchPolotnoTemplateListPagePm(params, signal);
 	}
 
 	exportCanvasToMedia(args: ExportCanvasToMediaArgs): Promise<ExportDesignToMediaResult> {

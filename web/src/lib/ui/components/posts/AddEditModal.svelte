@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-	import type { ExportCanvasToMediaFn, StockPhotoViewModel } from '$lib/canvas';
+	import type {
+		DesignTemplateProgrammerModel,
+		ExportCanvasToMediaFn,
+		PolotnoTemplateListPageProgrammerModel,
+		StockPhotoViewModel
+	} from '$lib/canvas';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
@@ -16,6 +21,11 @@
 
 	interface AddEditModalProps {
 		stockPhotosVm: readonly StockPhotoViewModel[];
+		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
+		fetchPolotnoTemplateListPage: (
+			params: { query: string; page: number },
+			signal?: AbortSignal
+		) => Promise<PolotnoTemplateListPageProgrammerModel>;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		socialChannels: CreateSocialPostChannelViewModel[];
 		selectedIds: string[];
@@ -51,6 +61,8 @@
 
 	let {
 		stockPhotosVm,
+		designTemplatesVm,
+		fetchPolotnoTemplateListPage,
 		exportCanvasToMedia,
 		socialChannels,
 		selectedIds,
@@ -123,10 +135,12 @@
 			onRequestCustomize={onRequestCustomize}
 		/>
 
-		<!-- Wrapper: editor + add-post button (matches original structure) -->
+		<!-- Wrapper: editor + add-post button -->
 		<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
 			<EditorPost
 				{stockPhotosVm}
+				{designTemplatesVm}
+				{fetchPolotnoTemplateListPage}
 				{exportCanvasToMedia}
 				bind:body
 				bind:postMediaItems

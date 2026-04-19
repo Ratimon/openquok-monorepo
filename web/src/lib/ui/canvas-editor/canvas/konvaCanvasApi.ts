@@ -38,6 +38,14 @@ export type KonvaCanvasApi = {
 		preset: TextPresetId,
 		opts?: { dropX?: number; dropY?: number; fontFamily?: string }
 	) => void;
+	/**
+	 * Merge Polotno text-template JSON into the current page (OpenPolotno text-panel placement).
+	 * Does not replace the full document.
+	 */
+	applyPolotnoTextTemplate: (
+		json: unknown,
+		opts?: { dropX?: number; dropY?: number }
+	) => Promise<void>;
 	/** Reassign every text node using `fromFamily` to `toFamily` (e.g. after removing a custom font). */
 	retargetTextFontFamily: (fromFamily: string, toFamily: string) => void;
 	/** Remove every placed image and text; page fill and aspect are unchanged unless you set them separately. */

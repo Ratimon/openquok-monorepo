@@ -1,6 +1,41 @@
+<script lang="ts" module>
+	import type {
+		DesignTemplateProgrammerModel,
+		PolotnoTemplateListPageProgrammerModel,
+		StockPhotoViewModel
+	} from '$lib/canvas';
+
+	/** Exported so parents (e.g. `PictureGeneration`) get a stable component prop type in TS. */
+	export type DesignMediaWorkspaceProps = {
+		disabled?: boolean;
+		onCanvasReady?: (
+			api: import('$lib/ui/canvas-editor/canvas/konvaCanvasApi').KonvaCanvasApi | null
+		) => void;
+		onUseMedia?: () => void;
+		/** Primary action label on the canvas toolbar (mirrored in the host dialog footer when used there). */
+		useMediaLabel?: string;
+		/**
+		 * Bumps each time the host design dialog opens so aspect ratio resets from composer context
+		 * (global → General 16:9; custom → first format for the focused channel’s platform).
+		 */
+		designSeed?: number;
+		/** Mirrors create-post composer mode (`global` = General formats only). */
+		composerMode?: 'global' | 'custom';
+		/** Focused integration’s `identifier` in custom mode (e.g. `tiktok`, `instagram-business`). */
+		focusedProviderIdentifier?: string | null;
+		/** Stock grid rows from {@link CanvasDesignRepository} (injected per design modal instance). */
+		stockPhotosPm: readonly StockPhotoViewModel[];
+		/** Built-in templates + Polotno list fetch from {@link GeneratePictureModalPresenter}. */
+		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
+		fetchPolotnoTemplateListPage: (
+			params: { query: string; page: number },
+			signal?: AbortSignal
+		) => Promise<PolotnoTemplateListPageProgrammerModel>;
+	};
+</script>
+
 <script lang="ts">
 	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-	import type { StockPhotoViewModel } from '$lib/canvas';
 
 	import { onDestroy } from 'svelte';
 
@@ -26,25 +61,6 @@
 		| 'background'
 		| 'layers';
 
-	interface Props {
-		disabled?: boolean;
-		onCanvasReady?: (api: KonvaCanvasApi | null) => void;
-		onUseMedia?: () => void;
-		/** Primary action label on the canvas toolbar (mirrored in the host dialog footer when used there). */
-		useMediaLabel?: string;
-		/**
-		 * Bumps each time the host design dialog opens so aspect ratio resets from composer context
-		 * (global → General 16:9; custom → first format for the focused channel’s platform).
-		 */
-		designSeed?: number;
-		/** Mirrors create-post composer mode (`global` = General formats only). */
-		composerMode?: 'global' | 'custom';
-		/** Focused integration’s `identifier` in custom mode (e.g. `tiktok`, `instagram-business`). */
-		focusedProviderIdentifier?: string | null;
-		/** Stock grid rows from {@link CanvasDesignRepository} (injected per design modal instance). */
-		stockPhotosPm: readonly StockPhotoViewModel[];
-	}
-
 	let {
 		disabled = false,
 		onCanvasReady,
@@ -53,8 +69,10 @@
 		designSeed = 0,
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
-		stockPhotosPm
-	}: Props = $props();
+		stockPhotosPm,
+		designTemplatesVm,
+		fetchPolotnoTemplateListPage
+	}: DesignMediaWorkspaceProps = $props();
 
 	let section = $state<SectionId>('photos');
 	let resourcePanelOpen = $state(true);
@@ -186,19 +204,24 @@
 					onAspectChange={(id) => (aspectRatioId = id)}
 				/>
 			</div>
-			<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden p-3">
+			<!--
+				`overflow-hidden` (not `overflow-y-auto`) so each panel owns vertical scrolling (e.g. ScrollArea
+				in Text/Templates/Photos). Otherwise this column scrolls as one block and inner scroll regions
+				get no stable height.
+			-->
+			<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-3">
 				{#if section === 'photos'}
 					<PhotosPanel {disabled} canvasApi={canvasApi} photosPm={stockPhotosPm} />
 				{:else if section === 'templates'}
-					<p class="text-base-content/70 shrink-0 text-sm font-medium">Templates</p>
 					<TemplatesPanel
 						{disabled}
 						canvasApi={canvasApi}
 						aspectRatioId={aspectRatioId}
+						{designTemplatesVm}
+						{fetchPolotnoTemplateListPage}
 						onAspectChange={(id) => (aspectRatioId = id)}
 					/>
 				{:else if section === 'text'}
-					<p class="text-base-content/70 shrink-0 text-sm font-medium">Text</p>
 					<TextPanel {disabled} canvasApi={canvasApi} />
 				{:else if section === 'elements'}
 					<p class="text-base-content/70 text-sm font-medium">Elements</p>

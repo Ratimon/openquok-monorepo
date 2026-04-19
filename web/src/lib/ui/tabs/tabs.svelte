@@ -25,7 +25,12 @@
 	/** Uncontrolled selection; ensures triggers/panels re-render when `value` is not bound from a parent. */
 	let localSelected = $state<string | undefined>(undefined);
 
-	const triggerOrder = $state<string[]>([]);
+	/**
+	 * Keyboard navigation order for triggers. Kept as a plain array (not `$state`): mutating it from
+	 * trigger mount/unmount `effect`s must not invalidate this component, or those effects re-run and
+	 * cause `effect_update_depth_exceeded` (register → parent state → child cleanup → unregister → …).
+	 */
+	const triggerOrder: string[] = [];
 	const triggerEls = new Map<string, Set<HTMLElement>>();
 
 	$effect(() => {

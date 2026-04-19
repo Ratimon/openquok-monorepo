@@ -73,7 +73,7 @@
 		</ExternalLink>
 	</p>
 
-	<ScrollArea class="min-h-0 min-w-0 flex-1" viewportClass="pr-0.5">
+	<ScrollArea class="min-h-0 min-w-0 flex-1 basis-0" viewportClass="pr-0.5">
 		<PhotosImagesGrid {disabled} {canvasApi} photos={filteredPhotos} searchQuery={query} />
 	</ScrollArea>
 </div>

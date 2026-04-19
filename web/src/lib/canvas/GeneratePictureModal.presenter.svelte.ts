@@ -2,10 +2,23 @@ import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi
 import type { PostMediaProgrammerModel } from '$lib/posts';
 import type { MediaRepository } from '$lib/media';
 
-import type { StockPhotoProgrammerModel } from '$lib/canvas/CanvasDesign.repository.svelte';
+import type {
+	DesignTemplateProgrammerModel,
+	PolotnoTemplateListPageProgrammerModel,
+	StockPhotoProgrammerModel
+} from '$lib/canvas/CanvasDesign.repository.svelte';
 import { canvasDesignRepository, CanvasDesignRepository } from '$lib/canvas/CanvasDesign.repository.svelte';
 
 export type StockPhotoViewModel = StockPhotoProgrammerModel;
+
+/** PM list + remote page fetch for the design templates side panel (UI receives this from the presenter). */
+export type DesignTemplatesPanelSource = {
+	readonly designTemplatesPm: readonly DesignTemplateProgrammerModel[];
+	fetchPolotnoTemplateListPagePm: (
+		params: { query: string; page: number },
+		signal?: AbortSignal
+	) => Promise<PolotnoTemplateListPageProgrammerModel>;
+};
 
 export type ExportDesignToMediaResult =
 	| { ok: true; items: PostMediaProgrammerModel[] }
@@ -21,13 +34,26 @@ export type ExportCanvasToMediaFn = (args: ExportCanvasToMediaArgs) => Promise<E
 
 /** One instance per host surface (composer vs media library) so export/stock state stays isolated. */
 export class GeneratePictureModalPresenter {
+
 	readonly stockPhotosPm: readonly StockPhotoViewModel[];
+	readonly designTemplatesPm: readonly DesignTemplateProgrammerModel[];
 
 	constructor(
 		private readonly mediaRepository: MediaRepository,
-		designRepository: CanvasDesignRepository = canvasDesignRepository
+		private readonly designRepository: CanvasDesignRepository = canvasDesignRepository
 	) {
 		this.stockPhotosPm = designRepository.listStockPhotosPm();
+		this.designTemplatesPm = designRepository.listDesignTemplatesPm();
+	}
+
+	fetchPolotnoTemplateListPagePm(
+		params: { query: string; page: number },
+		signal?: AbortSignal
+	): Promise<PolotnoTemplateListPageProgrammerModel> {
+		const apiKey =
+			(typeof import.meta.env.VITE_POLOTNO_API_KEY === 'string' && import.meta.env.VITE_POLOTNO_API_KEY) ||
+			'';
+		return this.designRepository.fetchPolotnoTemplateListPagePm({ ...params, apiKey }, signal);
 	}
 
 	async exportCanvasToMedia(args: ExportCanvasToMediaArgs): Promise<ExportDesignToMediaResult> {

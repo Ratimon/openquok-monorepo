@@ -12,7 +12,9 @@ export {
 	type StockPhotoProgrammerModel,
 	type DesignTemplateProgrammerModel,
 	type PolotnoTemplateRowProgrammerModel,
-	type PolotnoTemplateListPageProgrammerModel
+	type PolotnoTemplateListPageProgrammerModel,
+	type PolotnoTextTemplateRowProgrammerModel,
+	type PolotnoTextTemplatesListProgrammerModel
 } from '$lib/canvas/CanvasDesign.repository.svelte';
 export type { DesignTemplateProgrammerModel as DesignTemplate } from '$lib/canvas/CanvasDesign.repository.svelte';
 export { DESIGN_TEMPLATES_PM, DESIGN_TEMPLATES_PM as DESIGN_TEMPLATES } from '$lib/canvas/constants/CanvasDesign.templates.data';
@@ -21,10 +23,12 @@ export type { InfiniteApiOptions } from '$lib/canvas/utils/useInfiniteApi.svelte
 export {
 	POLOTONO_API_ORIGIN,
 	POLOTONO_GET_TEMPLATES_PATH,
+	POLOTONO_GET_TEXT_TEMPLATES_PATH,
 	POLOTONO_DEFAULT_TEMPLATE_PER_PAGE
 } from '$lib/canvas/constants/polotno';
 export {
 	GeneratePictureModalPresenter,
+	type DesignTemplatesPanelSource,
 	type ExportCanvasToMediaArgs,
 	type ExportCanvasToMediaFn,
 	type ExportDesignToMediaResult,
