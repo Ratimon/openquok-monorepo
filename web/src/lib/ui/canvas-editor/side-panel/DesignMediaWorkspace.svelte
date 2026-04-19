@@ -42,6 +42,7 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import KonvaDesignCanvas from '$lib/ui/canvas-editor/canvas/KonvaDesignCanvas.svelte';
+	import ElementsPanel from '$lib/ui/canvas-editor/side-panel/panels/ElementsPanel.svelte';
 	import PhotosPanel from '$lib/ui/canvas-editor/side-panel/panels/PhotosPanel.svelte';
 	import TextPanel from '$lib/ui/canvas-editor/side-panel/panels/TextPanel.svelte';
 	import TemplatesPanel from '$lib/ui/canvas-editor/side-panel/panels/TemplatesPanel.svelte';
@@ -224,8 +225,7 @@
 				{:else if section === 'text'}
 					<TextPanel {disabled} canvasApi={canvasApi} />
 				{:else if section === 'elements'}
-					<p class="text-base-content/70 text-sm font-medium">Elements</p>
-					<p class="text-base-content/55 text-xs">Shapes and stickers will appear in this column.</p>
+					<ElementsPanel {disabled} canvasApi={canvasApi} />
 				{:else if section === 'draw'}
 					<p class="text-base-content/70 text-sm font-medium">Draw</p>
 					<p class="text-base-content/55 text-xs">Freehand drawing is not enabled in this build.</p>
