@@ -17,7 +17,7 @@
 		useMediaLabel?: string;
 		/**
 		 * Bumps each time the host design dialog opens so aspect ratio resets from composer context
-		 * (global → General 16:9; custom → first format for the focused channel’s platform).
+		 * (global → General default aspect; custom → first format for the focused channel’s platform).
 		 */
 		designSeed?: number;
 		/** Mirrors create-post composer mode (`global` = General formats only). */
@@ -53,6 +53,7 @@
 	import TemplatesPanel from '$lib/ui/canvas-editor/side-panel/panels/TemplatesPanel.svelte';
 	import { AspectRatioShiftingPicker, CanvasToolbar } from '$lib/ui/canvas-editor/toolbar';
 	import {
+		DEFAULT_ASPECT_RATIO_ID,
 		defaultAspectRatioIdForComposer,
 		getAspectPresetById
 	} from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
@@ -85,7 +86,7 @@
 	let resourcePanelOpen = $state(true);
 	let photoQuery = $state('');
 	let canvasApi = $state<KonvaCanvasApi | null>(null);
-	let aspectRatioId = $state('16:9');
+	let aspectRatioId = $state(DEFAULT_ASPECT_RATIO_ID);
 	let historyUi = $state({ canUndo: false, canRedo: false });
 	let selectionState = $state<CanvasSelectionState>({
 		hasSelection: false,

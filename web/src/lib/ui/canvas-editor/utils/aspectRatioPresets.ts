@@ -22,7 +22,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 21,
 		ratioH: 9,
 		exportWidth: 2520,
-		exportHeight: 1080
+		exportHeight: 1080,
+		hint: '2520×1080 — ultrawide displays.'
 	},
 	{
 		id: '16:9',
@@ -31,7 +32,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 16,
 		ratioH: 9,
 		exportWidth: 1920,
-		exportHeight: 1080
+		exportHeight: 1080,
+		hint: '1920×1080 — common HD video and screens.'
 	},
 	{
 		id: '5:4',
@@ -40,7 +42,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 5,
 		ratioH: 4,
 		exportWidth: 1280,
-		exportHeight: 1024
+		exportHeight: 1024,
+		hint: '1280×1024 — classic monitor ratio.'
 	},
 	{
 		id: '4:3',
@@ -49,7 +52,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 4,
 		ratioH: 3,
 		exportWidth: 1600,
-		exportHeight: 1200
+		exportHeight: 1200,
+		hint: '1600×1200 — classic photo / display.'
 	},
 	{
 		id: '3:2',
@@ -58,7 +62,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 3,
 		ratioH: 2,
 		exportWidth: 1800,
-		exportHeight: 1200
+		exportHeight: 1200,
+		hint: '1800×1200 — common still-photo ratio.'
 	},
 	{
 		id: '1:1',
@@ -67,7 +72,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 1,
 		ratioH: 1,
 		exportWidth: 1080,
-		exportHeight: 1080
+		exportHeight: 1080,
+		hint: '1080×1080 — square.'
 	},
 	{
 		id: '2:3',
@@ -76,7 +82,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 2,
 		ratioH: 3,
 		exportWidth: 1080,
-		exportHeight: 1620
+		exportHeight: 1620,
+		hint: '1080×1620 — portrait stills (2:3).'
 	},
 	{
 		id: '3:4',
@@ -85,7 +92,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 3,
 		ratioH: 4,
 		exportWidth: 1080,
-		exportHeight: 1440
+		exportHeight: 1440,
+		hint: '1080×1440 — portrait (3:4).'
 	},
 	{
 		id: '4:5',
@@ -94,7 +102,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 4,
 		ratioH: 5,
 		exportWidth: 1080,
-		exportHeight: 1350
+		exportHeight: 1350,
+		hint: '1080×1350 — tall portrait (4:5).'
 	},
 	{
 		id: '9:16',
@@ -106,10 +115,30 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		exportHeight: 1920,
 		hint: 'Vertical video (1080×1920): short-form feeds and full-screen mobile.'
 	},
-	/* Instagram */
+	/* Instagram — order: square post → portrait feed → vertical → ad → landscape */
+	{
+		id: 'ig-post',
+		label: 'Instagram',
+		menuTitle: 'Post',
+		ratioW: 1,
+		ratioH: 1,
+		exportWidth: 1080,
+		exportHeight: 1080,
+		hint: '1080×1080 — square feed post.'
+	},
+	{
+		id: 'ig-feed-45',
+		label: 'Instagram',
+		menuTitle: 'Feed post (4:5)',
+		ratioW: 4,
+		ratioH: 5,
+		exportWidth: 1080,
+		exportHeight: 1350,
+		hint: '1080×1350 — portrait feed post (4:5).'
+	},
 	{
 		id: 'ig-story-reel',
-		label: 'IG Story/Reel',
+		label: 'Instagram',
 		menuTitle: 'Story / Reel',
 		ratioW: 9,
 		ratioH: 16,
@@ -118,26 +147,18 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		hint: '1080×1920 — Stories, Reels, full-screen vertical.'
 	},
 	{
-		id: 'ig-feed-45',
-		label: 'IG 4:5',
-		menuTitle: 'Feed post (4:5)',
-		ratioW: 4,
-		ratioH: 5,
-		exportWidth: 1080,
-		exportHeight: 1350
-	},
-	{
-		id: 'ig-feed-square',
-		label: 'IG 1:1',
-		menuTitle: 'Feed post (square)',
+		id: 'ig-ad',
+		label: 'Instagram',
+		menuTitle: 'Ad',
 		ratioW: 1,
 		ratioH: 1,
 		exportWidth: 1080,
-		exportHeight: 1080
+		exportHeight: 1080,
+		hint: '1080×1080 — square ad creative.'
 	},
 	{
 		id: 'ig-landscape',
-		label: 'IG 1.91:1',
+		label: 'Instagram',
 		menuTitle: 'Feed (landscape)',
 		ratioW: 1080,
 		ratioH: 566,
@@ -188,6 +209,36 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 	},
 	/* Facebook */
 	{
+		id: 'fb-post-landscape',
+		label: 'Facebook',
+		menuTitle: 'Post (Landscape)',
+		ratioW: 40,
+		ratioH: 21,
+		exportWidth: 1200,
+		exportHeight: 630,
+		hint: '1200×630 — link / landscape feed image.'
+	},
+	{
+		id: 'fb-post-square',
+		label: 'Facebook',
+		menuTitle: 'Post (Square)',
+		ratioW: 1,
+		ratioH: 1,
+		exportWidth: 1080,
+		exportHeight: 1080,
+		hint: '1080×1080 — square feed post.'
+	},
+	{
+		id: 'fb-cover',
+		label: 'Facebook',
+		menuTitle: 'Cover',
+		ratioW: 851,
+		ratioH: 315,
+		exportWidth: 851,
+		exportHeight: 315,
+		hint: '851×315 — page cover photo.'
+	},
+	{
 		id: 'fb-feed-post',
 		label: 'FB feed',
 		menuTitle: 'Feed post',
@@ -204,7 +255,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 1,
 		ratioH: 1,
 		exportWidth: 1080,
-		exportHeight: 1080
+		exportHeight: 1080,
+		hint: '1080×1080 — square in-feed video.'
 	},
 	{
 		id: 'fb-story',
@@ -213,9 +265,30 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 9,
 		ratioH: 16,
 		exportWidth: 1080,
-		exportHeight: 1920
+		exportHeight: 1920,
+		hint: '1080×1920 — Facebook Stories.'
 	},
 	/* YouTube */
+	{
+		id: 'yt-thumbnail',
+		label: 'YouTube',
+		menuTitle: 'Thumbnail',
+		ratioW: 16,
+		ratioH: 9,
+		exportWidth: 1280,
+		exportHeight: 720,
+		hint: '1280×720 — standard thumbnail.'
+	},
+	{
+		id: 'yt-channel',
+		label: 'YouTube',
+		menuTitle: 'Channel',
+		ratioW: 16,
+		ratioH: 9,
+		exportWidth: 2560,
+		exportHeight: 1440,
+		hint: '2560×1440 — channel art safe area varies by device.'
+	},
 	{
 		id: 'yt-hd',
 		label: 'YouTube 16:9',
@@ -223,7 +296,8 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 16,
 		ratioH: 9,
 		exportWidth: 1920,
-		exportHeight: 1080
+		exportHeight: 1080,
+		hint: '1920×1080 — standard horizontal YouTube video.'
 	},
 	{
 		id: 'yt-shorts',
@@ -232,20 +306,61 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 9,
 		ratioH: 16,
 		exportWidth: 1080,
-		exportHeight: 1920
+		exportHeight: 1920,
+		hint: '1080×1920 — Shorts vertical format.'
 	},
 	/* LinkedIn */
 	{
 		id: 'li-share',
 		label: 'LinkedIn',
-		menuTitle: 'Shared image / link',
+		menuTitle: 'Post',
 		ratioW: 400,
 		ratioH: 209,
 		exportWidth: 1200,
 		exportHeight: 627,
-		hint: 'Typical link / article share image.'
+		hint: '1200×627 — typical link / article share image.'
 	},
-	/* X */
+	{
+		id: 'li-banner',
+		label: 'LinkedIn',
+		menuTitle: 'Banner',
+		ratioW: 4,
+		ratioH: 1,
+		exportWidth: 1584,
+		exportHeight: 396,
+		hint: '1584×396 — profile / company banner.'
+	},
+	{
+		id: 'li-square',
+		label: 'LinkedIn',
+		menuTitle: 'Square',
+		ratioW: 1,
+		ratioH: 1,
+		exportWidth: 1080,
+		exportHeight: 1080,
+		hint: '1080×1080 — square post.'
+	},
+	/* X / Twitter */
+	{
+		id: 'x-post',
+		label: 'X',
+		menuTitle: 'Post',
+		ratioW: 16,
+		ratioH: 9,
+		exportWidth: 1600,
+		exportHeight: 900,
+		hint: '1600×900 — landscape post image.'
+	},
+	{
+		id: 'x-header',
+		label: 'X',
+		menuTitle: 'Header',
+		ratioW: 3,
+		ratioH: 1,
+		exportWidth: 1500,
+		exportHeight: 500,
+		hint: '1500×500 — profile header.'
+	},
 	{
 		id: 'x-image-169',
 		label: 'X 16:9',
@@ -253,37 +368,163 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		ratioW: 16,
 		ratioH: 9,
 		exportWidth: 1200,
-		exportHeight: 675
+		exportHeight: 675,
+		hint: '1200×675 — legacy 16:9 post image size.'
 	},
 	{
 		id: 'x-image-11',
 		label: 'X 1:1',
-		menuTitle: 'Post image (square)',
+		menuTitle: 'Square',
 		ratioW: 1,
 		ratioH: 1,
 		exportWidth: 1080,
-		exportHeight: 1080
+		exportHeight: 1080,
+		hint: '1080×1080 — square post image.'
 	},
-	// /* Pinterest */
-	// {
-	// 	id: 'pin-standard',
-	// 	label: 'Pin 2:3',
-	// 	menuTitle: 'Standard pin',
-	// 	ratioW: 2,
-	// 	ratioH: 3,
-	// 	exportWidth: 1000,
-	// 	exportHeight: 1500
-	// },
-	// /* Snapchat */
-	// {
-	// 	id: 'sc-story',
-	// 	label: 'Snapchat',
-	// 	menuTitle: 'Story',
-	// 	ratioW: 9,
-	// 	ratioH: 16,
-	// 	exportWidth: 1080,
-	// 	exportHeight: 1920
-	// }
+	/* Pinterest */
+	{
+		id: 'pin-standard',
+		label: 'Pin 2:3',
+		menuTitle: 'Standard pin',
+		ratioW: 2,
+		ratioH: 3,
+		exportWidth: 1000,
+		exportHeight: 1500,
+		hint: '1000×1500 — standard Pinterest pin (2:3).'
+	},
+	/* Snapchat */
+	{
+		id: 'sc-story',
+		label: 'Snapchat',
+		menuTitle: 'Story',
+		ratioW: 9,
+		ratioH: 16,
+		exportWidth: 1080,
+		exportHeight: 1920,
+		hint: '1080×1920 — full-screen Story.'
+	},
+	/* Video (general) */
+	{
+		id: 'video-fhd',
+		label: 'Video',
+		menuTitle: 'Full HD',
+		ratioW: 16,
+		ratioH: 9,
+		exportWidth: 1920,
+		exportHeight: 1080,
+		hint: '1920×1080 — Full HD (1080p).'
+	},
+	{
+		id: 'video-4k',
+		label: 'Video',
+		menuTitle: '4K UHD',
+		ratioW: 16,
+		ratioH: 9,
+		exportWidth: 3840,
+		exportHeight: 2160,
+		hint: '3840×2160 — 4K UHD.'
+	},
+	{
+		id: 'video-vertical-hd',
+		label: 'Video',
+		menuTitle: 'Vertical HD',
+		ratioW: 9,
+		ratioH: 16,
+		exportWidth: 1080,
+		exportHeight: 1920,
+		hint: '1080×1920 — vertical HD.'
+	},
+	{
+		id: 'video-square-hd',
+		label: 'Video',
+		menuTitle: 'Square HD',
+		ratioW: 1,
+		ratioH: 1,
+		exportWidth: 1080,
+		exportHeight: 1080,
+		hint: '1080×1080 — square HD.'
+	},
+	/* Print — export pixels at 300 DPI unless noted */
+	{
+		id: 'print-invitation-14cm',
+		label: 'Print',
+		menuTitle: 'Invitation',
+		ratioW: 1,
+		ratioH: 1,
+		exportWidth: 1654,
+		exportHeight: 1654,
+		hint: '14×14 cm @ 300 DPI (~1654×1654 px).'
+	},
+	{
+		id: 'print-a4-portrait',
+		label: 'Print',
+		menuTitle: 'A4 Portrait',
+		ratioW: 210,
+		ratioH: 297,
+		exportWidth: 2480,
+		exportHeight: 3508,
+		hint: 'ISO A4 portrait @ 300 DPI.'
+	},
+	{
+		id: 'print-a4-landscape',
+		label: 'Print',
+		menuTitle: 'A4 Landscape',
+		ratioW: 297,
+		ratioH: 210,
+		exportWidth: 3508,
+		exportHeight: 2480,
+		hint: 'ISO A4 landscape @ 300 DPI.'
+	},
+	{
+		id: 'print-a3',
+		label: 'Print',
+		menuTitle: 'A3',
+		ratioW: 297,
+		ratioH: 420,
+		exportWidth: 3508,
+		exportHeight: 4961,
+		hint: 'ISO A3 @ 300 DPI.'
+	},
+	{
+		id: 'print-letter-portrait',
+		label: 'Print',
+		menuTitle: 'Letter Portrait',
+		ratioW: 17,
+		ratioH: 22,
+		exportWidth: 2550,
+		exportHeight: 3300,
+		hint: 'US Letter 8.5×11 in @ 300 DPI.'
+	},
+	{
+		id: 'print-letter-landscape',
+		label: 'Print',
+		menuTitle: 'Letter Landscape',
+		ratioW: 22,
+		ratioH: 17,
+		exportWidth: 3300,
+		exportHeight: 2550,
+		hint: 'US Letter 11×8.5 in @ 300 DPI.'
+	},
+	{
+		id: 'print-business-card',
+		label: 'Print',
+		menuTitle: 'Business card',
+		ratioW: 7,
+		ratioH: 4,
+		exportWidth: 1050,
+		exportHeight: 600,
+		hint: '3.5×2 in @ 300 DPI.'
+	},
+	{
+		id: 'print-poster-18x24',
+		label: 'Print',
+		menuTitle: 'Poster',
+		ratioW: 3,
+		ratioH: 4,
+		exportWidth: 5400,
+		exportHeight: 7200,
+		hint: '18×24 in poster @ 300 DPI (common large format).'
+	}
 ];
 
 export type AspectPlatformGroup = {
@@ -302,7 +543,7 @@ export const ASPECT_RATIO_PLATFORM_GROUPS: readonly AspectPlatformGroup[] = [
 	{
 		id: 'instagram',
 		title: 'Instagram',
-		presetIds: ['ig-story-reel', 'ig-feed-45', 'ig-feed-square', 'ig-landscape']
+		presetIds: ['ig-post', 'ig-feed-45', 'ig-story-reel', 'ig-ad', 'ig-landscape']
 	},
 	{
 		id: 'tiktok',
@@ -312,22 +553,50 @@ export const ASPECT_RATIO_PLATFORM_GROUPS: readonly AspectPlatformGroup[] = [
 	{
 		id: 'facebook',
 		title: 'Facebook',
-		presetIds: ['fb-feed-post', 'fb-video-square', 'fb-story']
+		presetIds: ['fb-post-landscape', 'fb-post-square', 'fb-cover', 'fb-story', 'fb-video-square']
 	},
 	{
 		id: 'youtube',
 		title: 'YouTube',
-		presetIds: ['yt-hd', 'yt-shorts']
+		presetIds: ['yt-thumbnail', 'yt-channel', 'yt-shorts', 'yt-hd']
 	},
-	{ id: 'linkedin', title: 'LinkedIn', presetIds: ['li-share'] },
-	{ id: 'x', title: 'X', presetIds: ['x-image-169', 'x-image-11'] },
+	{
+		id: 'linkedin',
+		title: 'LinkedIn',
+		presetIds: ['li-share', 'li-banner', 'li-square']
+	},
+	{
+		id: 'x',
+		title: 'X',
+		presetIds: ['x-post', 'x-header', 'x-image-11']
+	},
 	{ id: 'pinterest', title: 'Pinterest', presetIds: ['pin-standard'] },
-	{ id: 'snapchat', title: 'Snapchat', presetIds: ['sc-story'] }
+	{ id: 'snapchat', title: 'Snapchat', presetIds: ['sc-story'] },
+	{
+		id: 'video',
+		title: 'Video',
+		presetIds: ['video-fhd', 'video-4k', 'video-vertical-hd', 'video-square-hd']
+	},
+	{
+		id: 'print',
+		title: 'Print',
+		presetIds: [
+			'print-invitation-14cm',
+			'print-a4-portrait',
+			'print-a4-landscape',
+			'print-a3',
+			'print-letter-portrait',
+			'print-letter-landscape',
+			'print-business-card',
+			'print-poster-18x24'
+		]
+	}
 ] as const;
 
 const PRESET_BY_ID = new Map(ASPECT_RATIO_PRESETS.map((p) => [p.id, p]));
 
-export const DEFAULT_ASPECT_RATIO_ID = '16:9';
+/** Default when no platform context: General tab vertical 9:16 (1080×1920). */
+export const DEFAULT_ASPECT_RATIO_ID = '9:16';
 
 /**
  * Maps a connected social integration `identifier` to a tab id in {@link ASPECT_RATIO_PLATFORM_GROUPS}.
@@ -358,7 +627,7 @@ export function firstAspectPresetIdInGroup(groupId: string): string | null {
 
 /**
  * Default canvas aspect for the design dialog from the composer.
- * When `providerIdentifier` is set (single selected channel in global mode, or focused/single channel in custom), uses that platform’s first preset; otherwise General 16:9.
+ * When `providerIdentifier` is set (single selected channel in global mode, or focused/single channel in custom), uses that platform’s first preset; otherwise General {@link DEFAULT_ASPECT_RATIO_ID}.
  * `mode` is kept for call-site clarity; resolution is driven by the resolved provider when present.
  */
 export function defaultAspectRatioIdForComposer(
