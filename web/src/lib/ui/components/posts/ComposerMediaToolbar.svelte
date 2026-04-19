@@ -12,7 +12,7 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import DesignEditorGlyph from '$lib/ui/components/posts/DesignEditorGlyph.svelte';
-	import PictureGeneration from '$lib/ui/components/posts/PictureGeneration.svelte';
+	import MediaGeneration from '$lib/ui/components/media/MediaGeneration.svelte';
 	import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { toast } from '$lib/ui/sonner';
 
@@ -47,7 +47,7 @@
 		focusedProviderIdentifier = null
 	}: ComposerMediaToolbarProps = $props();
 
-	type PictureGenerationProps = ComponentProps<typeof PictureGeneration>;
+	type MediaGenerationProps = ComponentProps<typeof MediaGeneration>;
 
 	let fileInput = $state.raw<HTMLInputElement | undefined>(undefined);
 	let uploadBusy = $state(false);
@@ -86,8 +86,8 @@
 		}
 	}
 
-	const pictureGenerationFields = $derived.by(
-		(): Omit<PictureGenerationProps, 'open'> => ({
+	const mediaGenerationFields = $derived.by(
+		(): Omit<MediaGenerationProps, 'open'> => ({
 			stockPhotosVm,
 			designTemplatesVm,
 			fetchPolotnoTemplateListPage,
@@ -166,4 +166,4 @@
 	</button>
 </div>
 
-<PictureGeneration {...pictureGenerationFields} bind:open={designOpen} />
+<MediaGeneration {...mediaGenerationFields} bind:open={designOpen} />

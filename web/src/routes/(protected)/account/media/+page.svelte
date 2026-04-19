@@ -5,7 +5,7 @@
 
 	import { onDestroy, onMount } from 'svelte';
 
-	import { mediaLibraryPictureModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
+	import { mediaLibraryMediaModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
 	import { formatBytes, MAX_MEDIA_UPLOAD_BYTES } from '$lib/media';
 	import { createAccountMediaUppy } from '$lib/media/utils/accountMediaUppy';
 	import { authenticationRepository } from '$lib/user-auth';
@@ -16,7 +16,7 @@
 	import MediaLibraryToolbar from '$lib/ui/components/media/MediaLibraryToolbar.svelte';
 	import MediaLibraryUploadOverlay from '$lib/ui/components/media/MediaLibraryUploadOverlay.svelte';
 	import MediaSettings from '$lib/ui/components/media/MediaSettings.svelte';
-	import PictureGeneration from '$lib/ui/components/posts/PictureGeneration.svelte';
+	import MediaGeneration from '$lib/ui/components/media/MediaGeneration.svelte';
 	import PaginationComposite from '$lib/ui/pagination/pagination-composite.svelte';
 
 	interface MediaLibraryPageProps {
@@ -215,15 +215,15 @@
 	{/if}
 </div>
 
-<PictureGeneration
-	stockPhotosVm={mediaLibraryPictureModalPresenter.stockPhotosVm}
-	designTemplatesVm={mediaLibraryPictureModalPresenter.designTemplatesVm}
-	fetchPolotnoTemplateListPage={mediaLibraryPictureModalPresenter.fetchPolotnoTemplateListPagePm.bind(
-		mediaLibraryPictureModalPresenter
+<MediaGeneration
+	stockPhotosVm={mediaLibraryMediaModalPresenter.stockPhotosVm}
+	designTemplatesVm={mediaLibraryMediaModalPresenter.designTemplatesVm}
+	fetchPolotnoTemplateListPage={mediaLibraryMediaModalPresenter.fetchPolotnoTemplateListPagePm.bind(
+		mediaLibraryMediaModalPresenter
 	)}
-	backgroundPanelVm={mediaLibraryPictureModalPresenter.backgroundPanelVm}
-	exportCanvasToMedia={mediaLibraryPictureModalPresenter.exportCanvasToMedia.bind(
-		mediaLibraryPictureModalPresenter
+	backgroundPanelVm={mediaLibraryMediaModalPresenter.backgroundPanelVm}
+	exportCanvasToMedia={mediaLibraryMediaModalPresenter.exportCanvasToMedia.bind(
+		mediaLibraryMediaModalPresenter
 	)}
 	bind:open={designOpen}
 	disabled={uploadBusy || !organizationId}

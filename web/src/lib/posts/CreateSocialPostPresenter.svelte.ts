@@ -4,7 +4,7 @@ import type {
 	DesignTemplateProgrammerModel,
 	ExportCanvasToMediaArgs,
 	ExportDesignToMediaResult,
-	GeneratePictureModalPresenter
+	GenerateMediaModalPresenter
 } from '$lib/canvas';
 import type {
 	PostMediaProgrammerModel,
@@ -32,32 +32,32 @@ export type CreateSocialPostPrepareOpenOptions = {
 export class CreateSocialPostPresenter {
 	constructor(
 		private readonly postsRepository: PostsRepository,
-		private readonly pictureModalPresenter: GeneratePictureModalPresenter
+		private readonly mediaModalPresenter: GenerateMediaModalPresenter
 	) {}
 
-	/** Stock rows for the design-media dialog (from the injected picture modal). */
+	/** Stock rows for the design-media dialog (from the injected media modal presenter). */
 	get stockPhotosVm() {
-		return this.pictureModalPresenter.stockPhotosVm;
+		return this.mediaModalPresenter.stockPhotosVm;
 	}
 
 	/** Built-in Konva templates for the design dialog templates panel. */
 	get designTemplatesVm(): readonly DesignTemplateProgrammerModel[] {
-		return this.pictureModalPresenter.designTemplatesVm;
+		return this.mediaModalPresenter.designTemplatesVm;
 	}
 
 	get backgroundPanelVm(): BackgroundPanelVm {
-		return this.pictureModalPresenter.backgroundPanelVm;
+		return this.mediaModalPresenter.backgroundPanelVm;
 	}
 
 	fetchPolotnoTemplateListPage(
 		params: { query: string; page: number },
 		signal?: AbortSignal
 	) {
-		return this.pictureModalPresenter.fetchPolotnoTemplateListPagePm(params, signal);
+		return this.mediaModalPresenter.fetchPolotnoTemplateListPagePm(params, signal);
 	}
 
 	exportCanvasToMedia(args: ExportCanvasToMediaArgs): Promise<ExportDesignToMediaResult> {
-		return this.pictureModalPresenter.exportCanvasToMedia(args);
+		return this.mediaModalPresenter.exportCanvasToMedia(args);
 	}
 
 	/** Set before opening the modal; consumed on the next {@link onModalOpen}. */

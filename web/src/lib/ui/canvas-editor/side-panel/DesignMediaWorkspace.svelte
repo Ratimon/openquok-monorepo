@@ -6,7 +6,7 @@
 		StockPhotoViewModel
 	} from '$lib/canvas';
 
-	/** Exported so parents (e.g. `PictureGeneration`) get a stable component prop type in TS. */
+	/** Exported so parents (e.g. `MediaGeneration`) get a stable component prop type in TS. */
 	export type DesignMediaWorkspaceProps = {
 		disabled?: boolean;
 		onCanvasReady?: (
@@ -26,7 +26,7 @@
 		focusedProviderIdentifier?: string | null;
 		/** Stock grid rows from {@link CanvasDesignRepository} (injected per design modal instance). */
 		stockPhotosVm: readonly StockPhotoViewModel[];
-		/** Built-in templates + Polotno list fetch from {@link GeneratePictureModalPresenter}. */
+		/** Built-in templates + Polotno list fetch from {@link GenerateMediaModalPresenter}. */
 		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
 		fetchPolotnoTemplateListPage: (
 			params: { query: string; page: number },

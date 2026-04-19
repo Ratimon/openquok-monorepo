@@ -22,7 +22,7 @@
 	type Props = {
 		disabled?: boolean;
 		canvasApi: KonvaCanvasApi | null;
-		/** From {@link GeneratePictureModalPresenter} (not the repository). */
+		/** From {@link GenerateMediaModalPresenter} (not the repository). */
 		backgroundPanelVm: BackgroundPanelVm;
 	};
 

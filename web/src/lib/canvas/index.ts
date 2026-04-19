@@ -33,11 +33,11 @@ export {
 	POLOTONO_DEFAULT_UNSPLASH_PER_PAGE
 } from '$lib/canvas/constants/polotno';
 export {
-	GeneratePictureModalPresenter,
+	GenerateMediaModalPresenter,
 	type BackgroundPanelVm,
 	type DesignTemplatesPanelVm,
 	type ExportCanvasToMediaArgs,
 	type ExportCanvasToMediaFn,
 	type ExportDesignToMediaResult,
 	type StockPhotoViewModel
-} from '$lib/canvas/GeneratePictureModal.presenter.svelte';
+} from '$lib/canvas/GenerateMediaModal.presenter.svelte';

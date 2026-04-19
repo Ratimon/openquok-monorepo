@@ -20,7 +20,7 @@
 		disabled?: boolean;
 		canvasApi: KonvaCanvasApi | null;
 		aspectRatioId: string;
-		/** From {@link GeneratePictureModalPresenter} (not the repository). */
+		/** From {@link GenerateMediaModalPresenter} (not the repository). */
 		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
 		fetchPolotnoTemplateListPage: (
 			params: { query: string; page: number },
