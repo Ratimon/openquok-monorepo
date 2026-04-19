@@ -42,6 +42,7 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import KonvaDesignCanvas from '$lib/ui/canvas-editor/canvas/KonvaDesignCanvas.svelte';
+	import DrawPanel from '$lib/ui/canvas-editor/side-panel/panels/DrawPanel.svelte';
 	import ElementsPanel from '$lib/ui/canvas-editor/side-panel/panels/ElementsPanel.svelte';
 	import PhotosPanel from '$lib/ui/canvas-editor/side-panel/panels/PhotosPanel.svelte';
 	import TextPanel from '$lib/ui/canvas-editor/side-panel/panels/TextPanel.svelte';
@@ -227,8 +228,7 @@
 				{:else if section === 'elements'}
 					<ElementsPanel {disabled} canvasApi={canvasApi} />
 				{:else if section === 'draw'}
-					<p class="text-base-content/70 text-sm font-medium">Draw</p>
-					<p class="text-base-content/55 text-xs">Freehand drawing is not enabled in this build.</p>
+					<DrawPanel {disabled} canvasApi={canvasApi} />
 				{:else if section === 'upload'}
 					<p class="text-base-content/70 text-sm font-medium">Upload</p>
 					<input

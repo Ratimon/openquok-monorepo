@@ -1,7 +1,7 @@
 /** Snapshot for toolbar UI (selection on the Konva stage). */
 export type CanvasSelectionState = {
 	hasSelection: boolean;
-	type?: 'image' | 'text';
+	type?: 'image' | 'text' | 'drawStroke';
 	/** 0–100; meaningful when `hasSelection`. */
 	opacity: number;
 	/** When true, the selection cannot be dragged (still transformable). */
@@ -23,6 +23,19 @@ export type CanvasTemplateApplyMode = 'reset';
 
 /** Inner page rect in stage coordinates (content area inside the frame). */
 export type PageInnerBox = { px: number; py: number; pw: number; ph: number };
+
+export type CanvasEditorMode = 'selection' | 'draw';
+
+export type CanvasDrawBrushType = 'brush' | 'highlighter';
+
+export type CanvasDrawSettings = {
+	editorMode: CanvasEditorMode;
+	brushType: CanvasDrawBrushType;
+	strokeWidth: number;
+	strokeColor: string;
+	/** 0–100; applies to brush only (highlighter uses tool defaults). */
+	brushOpacityPercent: number;
+};
 
 export type KonvaCanvasApi = {
 	toPngBlob: () => Promise<Blob | null>;
@@ -79,4 +92,13 @@ export type KonvaCanvasApi = {
 	canMoveSelectedBackward: () => boolean;
 	/** Record the current document as a new undo step (e.g. after opacity slider release). */
 	commitEdit: () => void;
+
+	/** Selection vs freehand draw on the page. */
+	setCanvasEditorMode: (mode: CanvasEditorMode) => void;
+	setDrawBrushType: (type: CanvasDrawBrushType) => void;
+	setDrawStrokeWidth: (px: number) => void;
+	setDrawStrokeColor: (cssColor: string) => void;
+	/** 0–100; only affects the brush tool. */
+	setDrawBrushOpacityPercent: (percent: number) => void;
+	getDrawSettings: () => CanvasDrawSettings;
 };

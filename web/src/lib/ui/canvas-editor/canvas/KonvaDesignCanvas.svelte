@@ -2,10 +2,18 @@
 	import { onMount } from 'svelte';
 
 	import { icons } from '$data/icon';
-	import type { CanvasSelectionState, KonvaCanvasApi, TextPresetId } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
+	import type {
+		CanvasDrawSettings,
+		CanvasEditorMode,
+		CanvasDrawBrushType,
+		CanvasSelectionState,
+		KonvaCanvasApi,
+		TextPresetId
+	} from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 	import { polotnoTextTemplateJsonToKonvaDoc } from '$lib/canvas/utils/polotnoToKonvaDoc';
 	import type {
 		KonvaDesignDoc,
+		KonvaDesignDrawStrokeNode,
 		KonvaDesignImageNode,
 		KonvaDesignTextNode
 	} from '$lib/ui/canvas-editor/utils/canvasDoc';
@@ -63,7 +71,9 @@
 			type KonvaImage = InstanceType<typeof Konva.Image>;
 			type KonvaText = InstanceType<typeof Konva.Text>;
 			type KonvaRect = InstanceType<typeof Konva.Rect>;
-			type DesignNode = KonvaImage | KonvaText;
+			type KonvaLine = InstanceType<typeof Konva.Line>;
+			type KonvaShape = InstanceType<typeof Konva.Shape>;
+			type DesignNode = KonvaImage | KonvaText | KonvaLine;
 
 			const TEXT_PRESETS: Record<
 				TextPresetId,
@@ -78,8 +88,112 @@
 			let pageRect: KonvaRect;
 			let pageLayer: InstanceType<typeof Konva.Layer>;
 			let contentLayer: InstanceType<typeof Konva.Layer>;
+			let marqueeLayer: InstanceType<typeof Konva.Layer>;
+			let marqueeRect: KonvaRect;
 			let transformer: InstanceType<typeof Konva.Transformer>;
 			let bgLayer: InstanceType<typeof Konva.Layer>;
+
+			let editorMode: CanvasEditorMode = 'selection';
+			let brushType: CanvasDrawBrushType = 'brush';
+			let drawStrokeWidth = 5;
+			let drawStrokeColor = '#475569';
+			let drawBrushOpacityPercent = 100;
+
+			let activeStroke: KonvaLine | null = null;
+			let suppressClearClick = false;
+
+			let marqueeSelecting = false;
+			let marqueeStart: { x: number; y: number } | null = null;
+
+			function isDrawStrokeLine(node: {
+				getClassName: () => string;
+				name: () => string | undefined;
+			}): node is KonvaLine {
+				return node.getClassName() === 'Line' && node.name() === 'design-draw-stroke';
+			}
+
+			function rectsIntersect(
+				a: { x: number; y: number; width: number; height: number },
+				b: { x: number; y: number; width: number; height: number }
+			) {
+				return !(
+					b.x > a.x + a.width ||
+					b.x + b.width < a.x ||
+					b.y > a.y + a.height ||
+					b.y + b.height < a.y
+				);
+			}
+
+			function configureDrawStrokeLine(ln: KonvaLine) {
+				const selectionMode = editorMode === 'selection';
+				const sw = ln.strokeWidth() ?? 1;
+				ln.listening(selectionMode);
+				ln.draggable(selectionMode);
+				ln.hitStrokeWidth(Math.max(24, sw * 2));
+			}
+
+			function attachDrawStrokeHandlers(ln: KonvaLine) {
+				ln.off('dragend.drawStroke');
+				ln.on('dragend.drawStroke', () => {
+					const box = pageInnerBox();
+					const pad = 4;
+					const rect = ln.getClientRect();
+					const dx = ln.x() - rect.x;
+					const dy = ln.y() - rect.y;
+
+					const viewW = Math.max(1, box.pw - pad * 2);
+					const viewH = Math.max(1, box.ph - pad * 2);
+
+					const minRectX = box.px + pad - Math.max(0, rect.width - viewW);
+					const maxRectX = box.px + pad + Math.max(0, viewW - rect.width);
+					const minRectY = box.py + pad - Math.max(0, rect.height - viewH);
+					const maxRectY = box.py + pad + Math.max(0, viewH - rect.height);
+
+					const nxRect = Math.min(Math.max(rect.x, minRectX), maxRectX);
+					const nyRect = Math.min(Math.max(rect.y, minRectY), maxRectY);
+
+					ln.position({ x: nxRect + dx, y: nyRect + dy });
+					contentLayer.batchDraw();
+					pushHistory();
+				});
+			}
+
+			function refreshDrawStrokeInteraction() {
+				for (const node of contentLayer.getChildren()) {
+					if (node === transformer) continue;
+					if (isDrawStrokeLine(node)) {
+						configureDrawStrokeLine(node);
+						attachDrawStrokeHandlers(node);
+					}
+				}
+			}
+
+			function applyInteractiveListening() {
+				const interactive = editorMode === 'selection';
+				contentLayer.listening(interactive);
+				transformer.listening(interactive);
+				refreshDrawStrokeInteraction();
+			}
+
+			function getDrawSettingsSnapshot(): CanvasDrawSettings {
+				return {
+					editorMode,
+					brushType,
+					strokeWidth: drawStrokeWidth,
+					strokeColor: drawStrokeColor,
+					brushOpacityPercent: drawBrushOpacityPercent
+				};
+			}
+
+			function pointInPageInner(pos: { x: number; y: number }) {
+				const b = pageInnerBox();
+				return (
+					pos.x >= b.px &&
+					pos.x <= b.px + b.pw &&
+					pos.y >= b.py &&
+					pos.y <= b.py + b.ph
+				);
+			}
 
 			const history = new HistoryStack<KonvaDesignDoc>(50);
 			let historyMuted = false;
@@ -92,9 +206,17 @@
 			}
 
 			function getSelectionState(): CanvasSelectionState {
-				const n = getSelectedNode();
-				if (!n) {
+				const nodes = transformer.nodes();
+				if (!nodes.length) {
 					return { hasSelection: false, opacity: 100, locked: false };
+				}
+				const n = nodes[0];
+				if (nodes.length > 1) {
+					return {
+						hasSelection: true,
+						opacity: Math.round((n.opacity() ?? 1) * 100),
+						locked: !n.draggable()
+					};
 				}
 				if (n.getClassName() === 'Text') {
 					const t = n as KonvaText;
@@ -113,6 +235,15 @@
 							fontStyle: t.fontStyle(),
 							align
 						}
+					};
+				}
+				if (isDrawStrokeLine(n)) {
+					const ln = n as KonvaLine;
+					return {
+						hasSelection: true,
+						type: 'drawStroke',
+						opacity: Math.round((ln.opacity() ?? 1) * 100),
+						locked: !ln.draggable()
 					};
 				}
 				return {
@@ -134,6 +265,7 @@
 				const cn = n.getClassName();
 				if (cn === 'Image') return n as KonvaImage;
 				if (cn === 'Text') return n as KonvaText;
+				if (isDrawStrokeLine(n)) return n as KonvaLine;
 				return undefined;
 			}
 
@@ -160,6 +292,7 @@
 				const pageFill = typeof fill === 'string' ? fill : '#ffffff';
 				const nodes: KonvaDesignDoc['nodes'] = [];
 				for (const node of contentLayer.getChildren()) {
+					if (node === transformer) continue;
 					const cn = node.getClassName();
 					if (cn === 'Image') {
 						const img = node as KonvaImage;
@@ -194,6 +327,20 @@
 							fontFamily: t.fontFamily(),
 							fill: typeof f === 'string' ? f : '#0f172a',
 							fontStyle: t.fontStyle()
+						});
+					} else if (isDrawStrokeLine(node)) {
+						const ln = node as KonvaLine;
+						const pts = ln.points();
+						if (pts.length < 4) continue;
+						const sk = ln.stroke();
+						nodes.push({
+							kind: 'drawStroke',
+							id: ln.id() || ln.name(),
+							points: [...pts],
+							stroke: typeof sk === 'string' ? sk : '#475569',
+							strokeWidth: ln.strokeWidth(),
+							opacity: ln.opacity() ?? 1,
+							globalCompositeOperation: ln.globalCompositeOperation() ?? 'source-over'
 						});
 					}
 				}
@@ -288,14 +435,16 @@
 				historyMuted = true;
 				clearSelection();
 				for (const node of [...contentLayer.getChildren()]) {
+					if (node === transformer) continue;
 					const cn = node.getClassName();
-					if (cn === 'Image' || cn === 'Text') node.destroy();
+					if (cn === 'Image' || cn === 'Text' || isDrawStrokeLine(node)) node.destroy();
 				}
 				pageRect.fill(doc.pageFill);
 				pageLayer.batchDraw();
 
 				const images = doc.nodes.filter((n): n is KonvaDesignImageNode => n.kind === 'image');
 				const texts = doc.nodes.filter((n) => n.kind === 'text');
+				const strokes = doc.nodes.filter((n): n is KonvaDesignDrawStrokeNode => n.kind === 'drawStroke');
 
 				for (const n of texts) {
 					const t = new Konva.Text({
@@ -333,6 +482,26 @@
 					)
 				);
 
+				for (const s of strokes) {
+					const ln = new Konva.Line({
+						id: s.id,
+						points: s.points,
+						stroke: s.stroke,
+						strokeWidth: s.strokeWidth,
+						opacity: s.opacity,
+						globalCompositeOperation: s.globalCompositeOperation as GlobalCompositeOperation,
+						lineCap: 'round',
+						lineJoin: 'round',
+						listening: false,
+						name: 'design-draw-stroke'
+					});
+					contentLayer.add(ln);
+					configureDrawStrokeLine(ln);
+					attachDrawStrokeHandlers(ln);
+				}
+
+				ensureTransformerOnTop();
+				applyInteractiveListening();
 				contentLayer.batchDraw();
 				historyMuted = false;
 				notifyHistory();
@@ -359,6 +528,7 @@
 				bgLayer.batchDraw();
 				pageLayer.batchDraw();
 				contentLayer.batchDraw();
+				marqueeLayer.batchDraw();
 			}
 
 			const { w: sw0, h: sh0 } = getStageSize();
@@ -402,6 +572,18 @@
 			});
 			contentLayer.add(transformer);
 
+			marqueeLayer = new Konva.Layer();
+			marqueeRect = new Konva.Rect({
+				name: 'marquee-selection',
+				visible: false,
+				listening: false,
+				fill: 'rgba(99,102,241,0.08)',
+				stroke: '#6366f1',
+				strokeWidth: 1,
+				dash: [4, 4]
+			});
+			marqueeLayer.add(marqueeRect);
+
 			transformer.on('transformend', () => {
 				pushHistory();
 				notifySelection();
@@ -410,6 +592,9 @@
 			stage.add(bgLayer);
 			stage.add(pageLayer);
 			stage.add(contentLayer);
+			stage.add(marqueeLayer);
+
+			applyInteractiveListening();
 
 			syncPageRect();
 			relayout = syncPageRect;
@@ -418,17 +603,178 @@
 			notifyHistory();
 			notifySelection();
 
+			function finishMarqueeSelection(e?: { evt?: MouseEvent }) {
+				if (!marqueeSelecting) return;
+				const shift = e?.evt?.shiftKey ?? false;
+				marqueeSelecting = false;
+				marqueeStart = null;
+
+				const w = marqueeRect.width();
+				const h = marqueeRect.height();
+				marqueeRect.visible(false);
+				marqueeLayer.batchDraw();
+
+				if (w < 4 || h < 4) return;
+
+				const box = marqueeRect.getClientRect();
+				const picked: KonvaShape[] = [];
+				for (const node of contentLayer.getChildren()) {
+					if (node === transformer) continue;
+					const cn = node.getClassName();
+					if (cn !== 'Image' && cn !== 'Text' && !isDrawStrokeLine(node)) continue;
+					const nb = node.getClientRect({ skipStroke: false });
+					if (rectsIntersect(box, nb)) picked.push(node as KonvaShape);
+				}
+
+				if (!picked.length) return;
+
+				suppressClearClick = true;
+				if (shift) {
+					const cur = transformer.nodes();
+					const merged = [...cur];
+					for (const p of picked) {
+						if (!merged.includes(p)) merged.push(p);
+					}
+					transformer.nodes(merged);
+				} else {
+					transformer.nodes(picked);
+				}
+				transformer.moveToTop();
+				contentLayer.batchDraw();
+				notifySelection();
+			}
+
+			function finishActiveStroke() {
+				if (!activeStroke) return;
+				const ln = activeStroke;
+				const pts = ln.points();
+				if (pts.length < 4) {
+					ln.destroy();
+				} else {
+					configureDrawStrokeLine(ln);
+					attachDrawStrokeHandlers(ln);
+					transformer.nodes([ln]);
+					ensureTransformerOnTop();
+					pushHistory();
+					notifySelection();
+				}
+				activeStroke = null;
+				suppressClearClick = true;
+				contentLayer.batchDraw();
+			}
+
+			stage.on('mousedown', (e) => {
+				if (editorMode === 'draw') {
+					const pos = stage.getPointerPosition();
+					if (!pos || !pointInPageInner(pos)) return;
+					activeStroke = new Konva.Line({
+						id: crypto.randomUUID(),
+						stroke: drawStrokeColor,
+						strokeWidth: drawStrokeWidth,
+						opacity:
+							brushType === 'highlighter'
+								? 0.5
+								: Math.max(0, Math.min(1, drawBrushOpacityPercent / 100)),
+						globalCompositeOperation: (brushType === 'highlighter'
+							? 'multiply'
+							: 'source-over') as GlobalCompositeOperation,
+						lineCap: 'round',
+						lineJoin: 'round',
+						points: [pos.x, pos.y, pos.x, pos.y],
+						listening: false,
+						name: 'design-draw-stroke'
+					});
+					contentLayer.add(activeStroke);
+					ensureTransformerOnTop();
+					contentLayer.batchDraw();
+					return;
+				}
+
+				if (editorMode === 'selection' && e.target === pageRect) {
+					const pos = stage.getPointerPosition();
+					if (!pos || !pointInPageInner(pos)) return;
+					marqueeSelecting = true;
+					marqueeStart = { x: pos.x, y: pos.y };
+					marqueeRect.setAttrs({
+						x: pos.x,
+						y: pos.y,
+						width: 0,
+						height: 0,
+						visible: true
+					});
+					marqueeLayer.batchDraw();
+				}
+			});
+
+			stage.on('mousemove', () => {
+				if (activeStroke) {
+					const pos = stage.getPointerPosition();
+					if (!pos) return;
+					activeStroke.points(activeStroke.points().concat([pos.x, pos.y]));
+					contentLayer.batchDraw();
+					return;
+				}
+				if (marqueeSelecting && marqueeStart) {
+					const pos = stage.getPointerPosition();
+					if (!pos) return;
+					const x = Math.min(marqueeStart.x, pos.x);
+					const y = Math.min(marqueeStart.y, pos.y);
+					const w = Math.abs(pos.x - marqueeStart.x);
+					const h = Math.abs(pos.y - marqueeStart.y);
+					marqueeRect.setAttrs({ x, y, width: w, height: h });
+					marqueeLayer.batchDraw();
+				}
+			});
+
+			stage.on('mouseup mouseleave', (e) => {
+				finishActiveStroke();
+				finishMarqueeSelection(e);
+			});
+
 			stage.on('click tap', (e) => {
+				if (suppressClearClick) {
+					suppressClearClick = false;
+					return;
+				}
+				if (editorMode === 'draw') return;
+
+				let walk: KonvaShape | InstanceType<typeof Konva.Group> | InstanceType<typeof Konva.Stage> | null =
+					e.target as KonvaShape;
+				while (walk) {
+					if ((walk as unknown) === transformer) return;
+					walk = (walk.getParent?.() ??
+						null) as KonvaShape | InstanceType<typeof Konva.Group> | InstanceType<typeof Konva.Stage> | null;
+				}
+
 				const clicked = e.target;
 				const cn = clicked.getClassName();
+
+				function toggleMulti(node: KonvaShape) {
+					const cur = transformer.nodes();
+					if (e.evt.shiftKey) {
+						const exists = cur.includes(node);
+						transformer.nodes(exists ? cur.filter((x) => x !== node) : [...cur, node]);
+					} else {
+						transformer.nodes([node]);
+					}
+					transformer.moveToTop();
+					contentLayer.batchDraw();
+					notifySelection();
+				}
+
 				if (cn === 'Image') {
-					selectNode(clicked as KonvaImage);
+					toggleMulti(clicked as KonvaImage);
 					return;
 				}
 				if (cn === 'Text') {
-					selectNode(clicked as KonvaText);
+					toggleMulti(clicked as KonvaText);
 					return;
 				}
+				if (isDrawStrokeLine(clicked)) {
+					toggleMulti(clicked as KonvaLine);
+					return;
+				}
+
 				clearSelection();
 			});
 
@@ -571,15 +917,28 @@
 				if (editingTextId) return;
 				if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
 				if (shouldIgnoreKeyTarget(document.activeElement)) return;
-				const n = getSelectedNode();
 
 				const isDeleteKey = ev.key === 'Delete' || ev.key === 'Backspace';
-				if (n && n.getClassName() === 'Image' && isDeleteKey) {
-					ev.preventDefault();
-					ev.stopPropagation();
-					removeSelected();
-					return;
+				const selNodes = transformer.nodes();
+
+				if (isDeleteKey && selNodes.length > 0) {
+					const onlySingleText =
+						selNodes.length === 1 && selNodes[0].getClassName() === 'Text';
+					if (!onlySingleText) {
+						const allDeletable = selNodes.every((node) => {
+							const cn = node.getClassName();
+							return cn === 'Image' || cn === 'Text' || isDrawStrokeLine(node);
+						});
+						if (allDeletable) {
+							ev.preventDefault();
+							ev.stopPropagation();
+							removeSelected();
+							return;
+						}
+					}
 				}
+
+				const n = getSelectedNode();
 
 				if (!n || n.getClassName() !== 'Text') return;
 
@@ -805,6 +1164,7 @@
 			}
 
 			function canMoveSelectedForward(): boolean {
+				if (transformer.nodes().length !== 1) return false;
 				const n = getSelectedNode();
 				if (!n) return false;
 				const ch = contentLayer.getChildren();
@@ -813,6 +1173,7 @@
 			}
 
 			function canMoveSelectedBackward(): boolean {
+				if (transformer.nodes().length !== 1) return false;
 				const n = getSelectedNode();
 				if (!n) return false;
 				const i = contentLayer.getChildren().indexOf(n);
@@ -820,17 +1181,20 @@
 			}
 
 			function removeSelected() {
-				const n = getSelectedNode();
-				if (!n) return;
-				n.destroy();
+				const nodes = transformer.nodes();
+				if (!nodes.length) return;
+				for (const node of nodes) {
+					node.destroy();
+				}
 				clearSelection();
 				pushHistory();
 			}
 
 			function clearAllImages() {
 				for (const node of [...contentLayer.getChildren()]) {
+					if (node === transformer) continue;
 					const cn = node.getClassName();
-					if (cn === 'Image' || cn === 'Text') node.destroy();
+					if (cn === 'Image' || cn === 'Text' || isDrawStrokeLine(node)) node.destroy();
 				}
 				clearSelection();
 				contentLayer.batchDraw();
@@ -838,74 +1202,107 @@
 			}
 
 			function duplicateSelected() {
-				const n = getSelectedNode();
-				if (!n) return;
-				if (n.getClassName() === 'Text') {
-					const t = n as KonvaText;
-					const fill = t.fill();
-					const dup = new Konva.Text({
-						id: crypto.randomUUID(),
-						text: t.text(),
-						fontSize: t.fontSize(),
-						fontFamily: t.fontFamily(),
-						fontStyle: t.fontStyle(),
-						fill: typeof fill === 'string' ? fill : '#0f172a',
-						width: t.width(),
-						x: t.x() + 12,
-						y: t.y() + 12,
-						rotation: t.rotation(),
-						opacity: t.opacity(),
-						draggable: t.draggable() !== false,
-						name: 'design-text'
-					});
-					attachTextHandlers(dup);
-					contentLayer.add(dup);
-					selectNode(dup);
+				const nodes = transformer.nodes();
+				if (!nodes.length) return;
+
+				const newNodes: KonvaShape[] = [];
+				let pendingImages = 0;
+
+				function commitDuplicateSelection() {
+					ensureTransformerOnTop();
+					transformer.nodes(newNodes);
+					contentLayer.batchDraw();
 					pushHistory();
-					return;
+					notifySelection();
 				}
-				const img = n as KonvaImage;
-				const el = img.image() as HTMLImageElement | undefined;
-				const src = el?.src;
-				if (!src) return;
-				const im = new Image();
-				im.crossOrigin = 'anonymous';
-				im.onload = () => {
-					const id = crypto.randomUUID();
-					const dup = new Konva.Image({
-						id,
-						image: im,
-						x: img.x() + 12,
-						y: img.y() + 12,
-						width: img.width(),
-						height: img.height(),
-						rotation: img.rotation(),
-						opacity: img.opacity(),
-						draggable: img.draggable() !== false,
-						name: 'design-image'
-					});
-					attachImageHandlers(dup);
-					contentLayer.add(dup);
-					selectNode(dup);
-					pushHistory();
-				};
-				im.onerror = () => {};
-				im.src = src;
+
+				for (const n of nodes) {
+					if (n.getClassName() === 'Text') {
+						const t = n as KonvaText;
+						const fill = t.fill();
+						const dup = new Konva.Text({
+							id: crypto.randomUUID(),
+							text: t.text(),
+							fontSize: t.fontSize(),
+							fontFamily: t.fontFamily(),
+							fontStyle: t.fontStyle(),
+							fill: typeof fill === 'string' ? fill : '#0f172a',
+							width: t.width(),
+							x: t.x() + 12,
+							y: t.y() + 12,
+							rotation: t.rotation(),
+							opacity: t.opacity(),
+							draggable: t.draggable() !== false,
+							name: 'design-text'
+						});
+						attachTextHandlers(dup);
+						contentLayer.add(dup);
+						newNodes.push(dup);
+					} else if (isDrawStrokeLine(n)) {
+						const ln = n as KonvaLine;
+						const dup = ln.clone({ id: crypto.randomUUID() }) as KonvaLine;
+						dup.x(ln.x() + 12);
+						dup.y(ln.y() + 12);
+						configureDrawStrokeLine(dup);
+						attachDrawStrokeHandlers(dup);
+						contentLayer.add(dup);
+						newNodes.push(dup);
+					} else if (n.getClassName() === 'Image') {
+						const img = n as KonvaImage;
+						const el = img.image() as HTMLImageElement | undefined;
+						const src = el?.src;
+						if (!src) continue;
+						pendingImages++;
+						const im = new Image();
+						im.crossOrigin = 'anonymous';
+						im.onload = () => {
+							const id = crypto.randomUUID();
+							const dup = new Konva.Image({
+								id,
+								image: im,
+								x: img.x() + 12,
+								y: img.y() + 12,
+								width: img.width(),
+								height: img.height(),
+								rotation: img.rotation(),
+								opacity: img.opacity(),
+								draggable: img.draggable() !== false,
+								name: 'design-image'
+							});
+							attachImageHandlers(dup);
+							contentLayer.add(dup);
+							newNodes.push(dup);
+							pendingImages--;
+							if (pendingImages === 0) commitDuplicateSelection();
+						};
+						im.onerror = () => {
+							pendingImages--;
+							if (pendingImages === 0) commitDuplicateSelection();
+						};
+						im.src = src;
+					}
+				}
+
+				if (pendingImages === 0) commitDuplicateSelection();
 			}
 
 			function setSelectedOpacity(percent: number) {
-				const n = getSelectedNode();
-				if (!n) return;
-				const p = Math.max(0, Math.min(100, percent));
-				n.opacity(p / 100);
+				const nodes = transformer.nodes();
+				if (!nodes.length) return;
+				const p = Math.max(0, Math.min(100, percent)) / 100;
+				for (const n of nodes) {
+					n.opacity(p);
+				}
 				contentLayer.batchDraw();
 				notifySelection();
 			}
 
 			function setSelectedLocked(locked: boolean) {
-				const n = getSelectedNode();
-				if (!n) return;
-				n.draggable(!locked);
+				const nodes = transformer.nodes();
+				if (!nodes.length) return;
+				for (const n of nodes) {
+					n.draggable(!locked);
+				}
 				contentLayer.batchDraw();
 				pushHistory();
 				notifySelection();
@@ -963,7 +1360,7 @@
 				mode: 'left' | 'centerH' | 'right' | 'top' | 'centerV' | 'bottom'
 			) {
 				const n = getSelectedNode();
-				if (!n) return;
+				if (!n || isDrawStrokeLine(n)) return;
 				const box = pageInnerBox();
 				const pad = 4;
 				const w = n.width();
@@ -1100,7 +1497,30 @@
 				canMoveSelectedBackward,
 				commitEdit: () => {
 					pushHistory();
-				}
+				},
+				setCanvasEditorMode: (mode: CanvasEditorMode) => {
+					editorMode = mode;
+					if (mode === 'draw') {
+						clearSelection();
+					}
+					applyInteractiveListening();
+				},
+				setDrawBrushType: (type: CanvasDrawBrushType) => {
+					brushType = type;
+					if (type === 'highlighter') {
+						drawBrushOpacityPercent = 50;
+					}
+				},
+				setDrawStrokeWidth: (px: number) => {
+					drawStrokeWidth = Math.max(1, Math.min(50, Math.round(px)));
+				},
+				setDrawStrokeColor: (cssColor: string) => {
+					drawStrokeColor = cssColor;
+				},
+				setDrawBrushOpacityPercent: (percent: number) => {
+					drawBrushOpacityPercent = Math.max(0, Math.min(100, Math.round(percent)));
+				},
+				getDrawSettings: () => getDrawSettingsSnapshot()
 			};
 
 			const hostEl = host!;

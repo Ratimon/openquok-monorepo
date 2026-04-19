@@ -35,4 +35,15 @@ export type KonvaDesignTextNode = {
 	fontStyle: string;
 };
 
-export type KonvaDesignNode = KonvaDesignImageNode | KonvaDesignTextNode;
+/** Freehand stroke from the draw tool (Konva.Line). */
+export type KonvaDesignDrawStrokeNode = {
+	kind: 'drawStroke';
+	id: string;
+	points: number[];
+	stroke: string;
+	strokeWidth: number;
+	opacity: number;
+	globalCompositeOperation: string;
+};
+
+export type KonvaDesignNode = KonvaDesignImageNode | KonvaDesignTextNode | KonvaDesignDrawStrokeNode;
