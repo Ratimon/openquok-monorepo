@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type {
+		BackgroundPanelVm,
 		DesignTemplateProgrammerModel,
 		ExportCanvasToMediaFn,
 		PolotnoTemplateListPageProgrammerModel,
@@ -21,6 +22,7 @@
 			params: { query: string; page: number },
 			signal?: AbortSignal
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
+		backgroundPanelVm: BackgroundPanelVm;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		body?: string;
 		busy?: boolean;
@@ -44,6 +46,7 @@
 		stockPhotosVm,
 		designTemplatesVm,
 		fetchPolotnoTemplateListPage,
+		backgroundPanelVm,
 		exportCanvasToMedia,
 		body = $bindable(''),
 		busy = false,
@@ -133,6 +136,7 @@
 					{stockPhotosVm}
 					{designTemplatesVm}
 					{fetchPolotnoTemplateListPage}
+					{backgroundPanelVm}
 					{exportCanvasToMedia}
 					bind:items={postMediaItems}
 					disabled={busy}

@@ -50,7 +50,7 @@
 	const presets: {
 		id: TextPresetId;
 		label: string;
-		/** Visual tier: featured = dark panel (OpenPolotno “Create header”). */
+		/** Visual tier: featured = dark panel (e.g. “Create header”). */
 		tier: 'featured' | 'emphasis' | 'body';
 	}[] = [
 		{ id: 'header', label: 'Create header', tier: 'featured' },

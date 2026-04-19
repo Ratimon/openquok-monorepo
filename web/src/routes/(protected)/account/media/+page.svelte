@@ -216,11 +216,12 @@
 </div>
 
 <PictureGeneration
-	stockPhotosVm={mediaLibraryPictureModalPresenter.stockPhotosPm}
-	designTemplatesVm={mediaLibraryPictureModalPresenter.designTemplatesPm}
+	stockPhotosVm={mediaLibraryPictureModalPresenter.stockPhotosVm}
+	designTemplatesVm={mediaLibraryPictureModalPresenter.designTemplatesVm}
 	fetchPolotnoTemplateListPage={mediaLibraryPictureModalPresenter.fetchPolotnoTemplateListPagePm.bind(
 		mediaLibraryPictureModalPresenter
 	)}
+	backgroundPanelVm={mediaLibraryPictureModalPresenter.backgroundPanelVm}
 	exportCanvasToMedia={mediaLibraryPictureModalPresenter.exportCanvasToMedia.bind(
 		mediaLibraryPictureModalPresenter
 	)}

@@ -1,5 +1,6 @@
 /** Serializable design document for the Konva page (export / undo). */
 export type KonvaDesignDoc = {
+	/** Solid CSS color, or an image URL (`https`, `blob`, or `data:image…`) for a cropped page background. */
 	pageFill: string;
 	nodes: KonvaDesignNode[];
 };

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type {
+		BackgroundPanelVm,
 		DesignTemplateProgrammerModel,
 		ExportCanvasToMediaFn,
 		PolotnoTemplateListPageProgrammerModel,
@@ -26,6 +27,7 @@
 			params: { query: string; page: number },
 			signal?: AbortSignal
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
+		backgroundPanelVm: BackgroundPanelVm;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		socialChannels: CreateSocialPostChannelViewModel[];
 		selectedIds: string[];
@@ -63,6 +65,7 @@
 		stockPhotosVm,
 		designTemplatesVm,
 		fetchPolotnoTemplateListPage,
+		backgroundPanelVm,
 		exportCanvasToMedia,
 		socialChannels,
 		selectedIds,
@@ -141,6 +144,7 @@
 				{stockPhotosVm}
 				{designTemplatesVm}
 				{fetchPolotnoTemplateListPage}
+				{backgroundPanelVm}
 				{exportCanvasToMedia}
 				bind:body
 				bind:postMediaItems

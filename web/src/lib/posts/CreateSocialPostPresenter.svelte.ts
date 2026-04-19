@@ -1,5 +1,6 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type {
+	BackgroundPanelVm,
 	DesignTemplateProgrammerModel,
 	ExportCanvasToMediaArgs,
 	ExportDesignToMediaResult,
@@ -36,12 +37,16 @@ export class CreateSocialPostPresenter {
 
 	/** Stock rows for the design-media dialog (from the injected picture modal). */
 	get stockPhotosVm() {
-		return this.pictureModalPresenter.stockPhotosPm;
+		return this.pictureModalPresenter.stockPhotosVm;
 	}
 
 	/** Built-in Konva templates for the design dialog templates panel. */
 	get designTemplatesVm(): readonly DesignTemplateProgrammerModel[] {
-		return this.pictureModalPresenter.designTemplatesPm;
+		return this.pictureModalPresenter.designTemplatesVm;
+	}
+
+	get backgroundPanelVm(): BackgroundPanelVm {
+		return this.pictureModalPresenter.backgroundPanelVm;
 	}
 
 	fetchPolotnoTemplateListPage(

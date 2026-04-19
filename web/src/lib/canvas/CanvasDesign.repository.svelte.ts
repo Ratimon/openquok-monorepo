@@ -9,8 +9,11 @@ import type { KonvaDesignDoc } from '$lib/ui/canvas-editor/utils/canvasDoc';
 import {
 	POLOTONO_API_ORIGIN,
 	POLOTONO_DEFAULT_TEMPLATE_PER_PAGE,
+	POLOTONO_DEFAULT_UNSPLASH_PER_PAGE,
+	POLOTONO_DOWNLOAD_UNSPLASH_PATH,
 	POLOTONO_GET_TEMPLATES_PATH,
-	POLOTONO_GET_TEXT_TEMPLATES_PATH
+	POLOTONO_GET_TEXT_TEMPLATES_PATH,
+	POLOTONO_GET_UNSPLASH_PATH
 } from '$lib/canvas/constants/polotno';
 import { DESIGN_TEMPLATES_PM } from '$lib/canvas/constants/CanvasDesign.templates.data';
 
@@ -22,6 +25,36 @@ export type StockPhotoProgrammerModel = {
 	 * Lowercase, space-separated tokens for client-side search (local filter until an API exists).
 	 */
 	searchText: string;
+	/** Present for Unsplash-backed rows (Polotno proxy). */
+	photographerName?: string;
+	/** Profile URL with referral params for attribution. */
+	photographerHref?: string;
+};
+
+/** Raw page from Polotno `get-unsplash` (Unsplash-style JSON). */
+export type PolotnoUnsplashApiPageProgrammerModel = {
+	results?: PolotnoUnsplashApiPhotoProgrammerModel[];
+	total_pages?: number;
+};
+
+export type PolotnoUnsplashApiPhotoProgrammerModel = {
+	id: string;
+	urls?: {
+		small?: string;
+		regular?: string;
+		thumb?: string;
+		full?: string;
+	};
+	user?: {
+		name?: string;
+		username?: string;
+	};
+};
+
+/** Normalized page for infinite scroll (`items` matches {@link createInfiniteApi} flattening). */
+export type PolotnoUnsplashListPageProgrammerModel = {
+	items: StockPhotoProgrammerModel[];
+	totalPages: number;
 };
 
 /** Polotno public template row (same shape as `get-templates` items). */
@@ -177,7 +210,69 @@ export class CanvasDesignRepository {
 	}
 
 	/**
-	 * One page of Polotno’s public template library (same contract as OpenPolotno `templateList`).
+	 * One page of Unsplash results via Polotno (`/api/get-unsplash`), for background picker search.
+	 */
+	async fetchPolotnoUnsplashPagePm(
+		params: {
+			query: string;
+			page: number;
+			perPage?: number;
+			apiKey?: string;
+		},
+		signal?: AbortSignal
+	): Promise<PolotnoUnsplashListPageProgrammerModel> {
+		const perPage = params.perPage ?? POLOTONO_DEFAULT_UNSPLASH_PER_PAGE;
+		const key = params.apiKey ?? '';
+		const res = await this.polotnoGateway.get<PolotnoUnsplashApiPageProgrammerModel>(
+			POLOTONO_GET_UNSPLASH_PATH,
+			{
+				query: params.query,
+				per_page: perPage,
+				page: params.page,
+				KEY: key
+			},
+			{ signal, skipInterceptors: true }
+		);
+		const raw = res.data;
+		const results = raw.results ?? [];
+		const items: StockPhotoProgrammerModel[] = results.map((r) => {
+			const urls = r.urls ?? {};
+			const thumbUrl = urls.small ?? urls.thumb ?? urls.regular ?? '';
+			const fullUrl = urls.regular ?? urls.full ?? thumbUrl;
+			const un = r.user?.username ?? '';
+			const name = r.user?.name ?? '';
+			const photographerHref = un
+				? `https://unsplash.com/@${un}?utm_source=polotno&utm_medium=referral`
+				: undefined;
+			return {
+				id: r.id,
+				thumbUrl,
+				fullUrl,
+				searchText: `${r.id} ${un} ${name}`.toLowerCase(),
+				photographerName: name || undefined,
+				photographerHref
+			};
+		});
+		const totalPages = Math.max(1, raw.total_pages ?? 1);
+		return { items, totalPages };
+	}
+
+	/**
+	 * Notify Polotno/Unsplash when a stock image is placed (same as OpenPolotno `fetch(unsplashDownload(id))`).
+	 */
+	triggerPolotnoUnsplashDownloadPm(id: string, apiKey?: string): void {
+		const key = apiKey ?? '';
+		const url = `${POLOTONO_API_ORIGIN}${POLOTONO_DOWNLOAD_UNSPLASH_PATH}?${new URLSearchParams({
+			id,
+			KEY: key
+		}).toString()}`;
+		void fetch(url, { method: 'GET', mode: 'cors' }).catch(() => {
+			/* attribution ping is best-effort */
+		});
+	}
+
+	/**
+	 * One page from Polotno’s public template list (`/api/get-templates`).
 	 * Uses `size=all` (we do not filter remote templates by export dimensions).
 	 */
 	async fetchPolotnoTemplateListPagePm(
@@ -205,9 +300,7 @@ export class CanvasDesignRepository {
 		return res.data;
 	}
 
-	/**
-	 * Polotno public text-style templates (OpenPolotno `textTemplateList` / `get-text-templates`).
-	 */
+	/** Polotno public text-style templates (`/api/get-text-templates`). */
 	async fetchPolotnoTextTemplatesListPm(
 		params: { apiKey?: string },
 		signal?: AbortSignal

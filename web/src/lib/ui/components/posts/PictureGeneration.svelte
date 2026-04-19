@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 	import type {
+		BackgroundPanelVm,
 		DesignTemplateProgrammerModel,
 		ExportCanvasToMediaFn,
 		PolotnoTemplateListPageProgrammerModel,
@@ -33,6 +34,7 @@
 			params: { query: string; page: number },
 			signal?: AbortSignal
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
+		backgroundPanelVm: BackgroundPanelVm;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		open?: boolean;
 		disabled?: boolean;
@@ -49,6 +51,7 @@
 		stockPhotosVm,
 		designTemplatesVm,
 		fetchPolotnoTemplateListPage,
+		backgroundPanelVm,
 		exportCanvasToMedia,
 		open = $bindable(false),
 		disabled = false,
@@ -140,9 +143,10 @@
 							designSeed={designSeed}
 							{composerMode}
 							{focusedProviderIdentifier}
-							stockPhotosPm={stockPhotosVm}
+							stockPhotosVm={stockPhotosVm}
 							{designTemplatesVm}
 							{fetchPolotnoTemplateListPage}
+							{backgroundPanelVm}
 							onCanvasReady={(api) => (canvasApi = api)}
 							onUseMedia={() => void exportCanvasToPost()}
 						/>

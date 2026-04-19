@@ -5,19 +5,29 @@ import type { MediaRepository } from '$lib/media';
 import type {
 	DesignTemplateProgrammerModel,
 	PolotnoTemplateListPageProgrammerModel,
+	PolotnoUnsplashListPageProgrammerModel,
 	StockPhotoProgrammerModel
 } from '$lib/canvas/CanvasDesign.repository.svelte';
 import { canvasDesignRepository, CanvasDesignRepository } from '$lib/canvas/CanvasDesign.repository.svelte';
 
 export type StockPhotoViewModel = StockPhotoProgrammerModel;
 
-/** PM list + remote page fetch for the design templates side panel (UI receives this from the presenter). */
-export type DesignTemplatesPanelSource = {
-	readonly designTemplatesPm: readonly DesignTemplateProgrammerModel[];
+/** VM bundle: template list + remote page fetch for the design templates side panel. */
+export type DesignTemplatesPanelVm = {
+	readonly designTemplatesVm: readonly DesignTemplateProgrammerModel[];
 	fetchPolotnoTemplateListPagePm: (
 		params: { query: string; page: number },
 		signal?: AbortSignal
 	) => Promise<PolotnoTemplateListPageProgrammerModel>;
+};
+
+/** VM bundle: Unsplash search + download ping for the background side panel. */
+export type BackgroundPanelVm = {
+	fetchPolotnoUnsplashPagePm: (
+		params: { query: string; page: number },
+		signal?: AbortSignal
+	) => Promise<PolotnoUnsplashListPageProgrammerModel>;
+	triggerPolotnoUnsplashDownloadPm: (id: string) => void;
 };
 
 export type ExportDesignToMediaResult =
@@ -35,25 +45,56 @@ export type ExportCanvasToMediaFn = (args: ExportCanvasToMediaArgs) => Promise<E
 /** One instance per host surface (composer vs media library) so export/stock state stays isolated. */
 export class GeneratePictureModalPresenter {
 
-	readonly stockPhotosPm: readonly StockPhotoViewModel[];
-	readonly designTemplatesPm: readonly DesignTemplateProgrammerModel[];
+	readonly stockPhotosVm: readonly StockPhotoViewModel[];
+	readonly designTemplatesVm: readonly DesignTemplateProgrammerModel[];
+	/**
+	 * Bundled Unsplash fetch + download ping for the background panel (no static list — results are
+	 * paginated from Polotno, unlike {@link stockPhotosVm}).
+	 */
+	readonly backgroundPanelVm: BackgroundPanelVm;
 
 	constructor(
 		private readonly mediaRepository: MediaRepository,
 		private readonly designRepository: CanvasDesignRepository = canvasDesignRepository
 	) {
-		this.stockPhotosPm = designRepository.listStockPhotosPm();
-		this.designTemplatesPm = designRepository.listDesignTemplatesPm();
+		this.stockPhotosVm = designRepository.listStockPhotosPm();
+		this.designTemplatesVm = designRepository.listDesignTemplatesPm();
+		this.backgroundPanelVm = {
+			fetchPolotnoUnsplashPagePm: (params, signal) =>
+				this.fetchPolotnoUnsplashPagePm(params, signal),
+			triggerPolotnoUnsplashDownloadPm: (id) => this.triggerPolotnoUnsplashDownloadPm(id)
+		};
+	}
+
+	private polotnoApiKey(): string {
+		return (
+			(typeof import.meta.env.VITE_POLOTNO_API_KEY === 'string' && import.meta.env.VITE_POLOTNO_API_KEY) ||
+			''
+		);
 	}
 
 	fetchPolotnoTemplateListPagePm(
 		params: { query: string; page: number },
 		signal?: AbortSignal
 	): Promise<PolotnoTemplateListPageProgrammerModel> {
-		const apiKey =
-			(typeof import.meta.env.VITE_POLOTNO_API_KEY === 'string' && import.meta.env.VITE_POLOTNO_API_KEY) ||
-			'';
-		return this.designRepository.fetchPolotnoTemplateListPagePm({ ...params, apiKey }, signal);
+		return this.designRepository.fetchPolotnoTemplateListPagePm(
+			{ ...params, apiKey: this.polotnoApiKey() },
+			signal
+		);
+	}
+
+	fetchPolotnoUnsplashPagePm(
+		params: { query: string; page: number },
+		signal?: AbortSignal
+	): Promise<PolotnoUnsplashListPageProgrammerModel> {
+		return this.designRepository.fetchPolotnoUnsplashPagePm(
+			{ ...params, apiKey: this.polotnoApiKey() },
+			signal
+		);
+	}
+
+	triggerPolotnoUnsplashDownloadPm(id: string): void {
+		this.designRepository.triggerPolotnoUnsplashDownloadPm(id, this.polotnoApiKey());
 	}
 
 	async exportCanvasToMedia(args: ExportCanvasToMediaArgs): Promise<ExportDesignToMediaResult> {

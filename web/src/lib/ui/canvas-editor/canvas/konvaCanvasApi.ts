@@ -41,7 +41,8 @@ export type KonvaCanvasApi = {
 	toPngBlob: () => Promise<Blob | null>;
 	addImageFromUrl: (url: string) => void;
 	addImageFromFile: (file: File) => void;
-	setPageBackground: (cssColor: string) => void;
+	/** Solid CSS color or an image URL (`https`, `blob`, `data:image…`); images are scaled to cover the page. */
+	setPageBackground: (fill: string) => void;
 	/** Apply a full template snapshot (text + images). */
 	applyTemplateDoc: (doc: import('$lib/ui/canvas-editor/utils/canvasDoc').KonvaDesignDoc, mode?: CanvasTemplateApplyMode) => void;
 	/** Layout box for mapping external template coordinates (e.g. Polotno JSON) onto the canvas. */
@@ -52,7 +53,7 @@ export type KonvaCanvasApi = {
 		opts?: { dropX?: number; dropY?: number; fontFamily?: string }
 	) => void;
 	/**
-	 * Merge Polotno text-template JSON into the current page (OpenPolotno text-panel placement).
+	 * Merge Polotno text-template JSON into the current page (same placement as the text panel).
 	 * Does not replace the full document.
 	 */
 	applyPolotnoTextTemplate: (

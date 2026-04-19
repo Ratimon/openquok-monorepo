@@ -93,6 +93,9 @@
 			let transformer: InstanceType<typeof Konva.Transformer>;
 			let bgLayer: InstanceType<typeof Konva.Layer>;
 
+			/** Mirrors {@link KonvaDesignDoc.pageFill} (color string or image URL). */
+			let pageFillSerialized = '#ffffff';
+
 			let editorMode: CanvasEditorMode = 'selection';
 			let brushType: CanvasDrawBrushType = 'brush';
 			let drawStrokeWidth = 5;
@@ -287,9 +290,78 @@
 				drawBackgroundGrid(Konva, layer, sw, sh, GRID_STEP);
 			}
 
+			function isImageBackgroundFill(s: string): boolean {
+				return /^https?:\/\//i.test(s) || s.startsWith('blob:') || s.startsWith('data:image');
+			}
+
+			function clearPageFillPattern() {
+				pageRect.fillPatternImage(undefined as unknown as HTMLImageElement);
+				pageRect.fillPatternRepeat('repeat');
+				pageRect.fillPatternScaleX(1);
+				pageRect.fillPatternScaleY(1);
+				pageRect.fillPatternOffsetX(0);
+				pageRect.fillPatternOffsetY(0);
+			}
+
+			function layoutImagePatternForPage(img: HTMLImageElement) {
+				const pw = pageRect.width();
+				const ph = pageRect.height();
+				const iw = img.naturalWidth || img.width;
+				const ih = img.naturalHeight || img.height;
+				if (!iw || !ih) return;
+				const scale = Math.max(pw / iw, ph / ih);
+				const ox = (pw - iw * scale) / 2;
+				const oy = (ph - ih * scale) / 2;
+				pageRect.fill('');
+				pageRect.fillPatternImage(img);
+				pageRect.fillPatternRepeat('no-repeat');
+				pageRect.fillPatternScaleX(scale);
+				pageRect.fillPatternScaleY(scale);
+				pageRect.fillPatternOffsetX(ox);
+				pageRect.fillPatternOffsetY(oy);
+			}
+
+			function applySolidPageFill(css: string) {
+				clearPageFillPattern();
+				pageRect.fill(css);
+				pageFillSerialized = css;
+			}
+
+			function refreshImagePageBackgroundLayout() {
+				if (!isImageBackgroundFill(pageFillSerialized)) return;
+				const img = pageRect.fillPatternImage() as HTMLImageElement | undefined;
+				if (!img || !(img instanceof HTMLImageElement)) return;
+				layoutImagePatternForPage(img);
+			}
+
+			function applyImagePageFillFromUrl(url: string): Promise<void> {
+				return new Promise((resolve, reject) => {
+					const im = new Image();
+					im.crossOrigin = 'anonymous';
+					im.onload = () => {
+						layoutImagePatternForPage(im);
+						pageFillSerialized = url;
+						resolve();
+					};
+					im.onerror = () => reject(new Error('Background image failed to load'));
+					im.src = url;
+				});
+			}
+
+			async function applyPageFill(fill: string) {
+				if (isImageBackgroundFill(fill)) {
+					try {
+						await applyImagePageFillFromUrl(fill);
+					} catch {
+						applySolidPageFill('#ffffff');
+					}
+				} else {
+					applySolidPageFill(fill);
+				}
+			}
+
 			function captureDoc(): KonvaDesignDoc {
-				const fill = pageRect.fill();
-				const pageFill = typeof fill === 'string' ? fill : '#ffffff';
+				const pageFill = pageFillSerialized;
 				const nodes: KonvaDesignDoc['nodes'] = [];
 				for (const node of contentLayer.getChildren()) {
 					if (node === transformer) continue;
@@ -439,7 +511,7 @@
 					const cn = node.getClassName();
 					if (cn === 'Image' || cn === 'Text' || isDrawStrokeLine(node)) node.destroy();
 				}
-				pageRect.fill(doc.pageFill);
+				await applyPageFill(doc.pageFill);
 				pageLayer.batchDraw();
 
 				const images = doc.nodes.filter((n): n is KonvaDesignImageNode => n.kind === 'image');
@@ -526,6 +598,7 @@
 				pageRect.height(ph);
 				drawGrid(bgLayer, sw, sh);
 				bgLayer.batchDraw();
+				refreshImagePageBackgroundLayout();
 				pageLayer.batchDraw();
 				contentLayer.batchDraw();
 				marqueeLayer.batchDraw();
@@ -1399,10 +1472,12 @@
 				},
 				addImageFromUrl: (url: string) => loadImageFromRemoteUrl(url),
 				addImageFromFile: (file: File) => loadImageFromFile(file),
-				setPageBackground: (cssColor: string) => {
-					pageRect.fill(cssColor);
-					pageLayer.batchDraw();
-					pushHistory();
+				setPageBackground: (fill: string) => {
+					void (async () => {
+						await applyPageFill(fill);
+						pageLayer.batchDraw();
+						pushHistory();
+					})();
 				},
 				applyTemplateDoc: (doc: KonvaDesignDoc) => applyTemplateDoc(doc),
 				addTextPreset: (preset: TextPresetId, opts?: { dropX?: number; dropY?: number; fontFamily?: string }) =>

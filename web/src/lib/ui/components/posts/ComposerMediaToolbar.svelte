@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ComponentProps } from 'svelte';
 	import type {
+		BackgroundPanelVm,
 		DesignTemplateProgrammerModel,
 		ExportCanvasToMediaFn,
 		PolotnoTemplateListPageProgrammerModel,
@@ -22,6 +23,7 @@
 			params: { query: string; page: number },
 			signal?: AbortSignal
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
+		backgroundPanelVm: BackgroundPanelVm;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
@@ -35,6 +37,7 @@
 		stockPhotosVm,
 		designTemplatesVm,
 		fetchPolotnoTemplateListPage,
+		backgroundPanelVm,
 		exportCanvasToMedia,
 		items = $bindable([]),
 		disabled = false,
@@ -88,6 +91,7 @@
 			stockPhotosVm,
 			designTemplatesVm,
 			fetchPolotnoTemplateListPage,
+			backgroundPanelVm,
 			exportCanvasToMedia,
 			disabled: disabled || uploadBusy,
 			uploadUid,

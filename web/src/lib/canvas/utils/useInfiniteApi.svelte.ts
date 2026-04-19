@@ -1,5 +1,5 @@
 /**
- * Port of OpenPolotno’s `useInfiniteAPI` (`use-api.ts`): debounced reset on search + paginated fetch.
+ * Infinite template/search list: debounced reset on query change + paginated fetch.
  */
 export async function fetcherJson<T>(url: string, signal?: AbortSignal): Promise<T> {
 	const r = await fetch(url, { signal });
@@ -86,7 +86,7 @@ export function createInfiniteApi<T>(options: InfiniteApiOptions<T>) {
 		}
 	}
 
-	/** Matches OpenPolotno: update query immediately; debounce list reset + refetch. */
+	/** Update query immediately; debounce list reset + refetch. */
 	function setQuery(query: string) {
 		queryRef = query;
 		clearTimeout(debounceTimer);

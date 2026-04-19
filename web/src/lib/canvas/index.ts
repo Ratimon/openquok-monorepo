@@ -14,7 +14,10 @@ export {
 	type PolotnoTemplateRowProgrammerModel,
 	type PolotnoTemplateListPageProgrammerModel,
 	type PolotnoTextTemplateRowProgrammerModel,
-	type PolotnoTextTemplatesListProgrammerModel
+	type PolotnoTextTemplatesListProgrammerModel,
+	type PolotnoUnsplashListPageProgrammerModel,
+	type PolotnoUnsplashApiPageProgrammerModel,
+	type PolotnoUnsplashApiPhotoProgrammerModel
 } from '$lib/canvas/CanvasDesign.repository.svelte';
 export type { DesignTemplateProgrammerModel as DesignTemplate } from '$lib/canvas/CanvasDesign.repository.svelte';
 export { DESIGN_TEMPLATES_PM, DESIGN_TEMPLATES_PM as DESIGN_TEMPLATES } from '$lib/canvas/constants/CanvasDesign.templates.data';
@@ -24,11 +27,15 @@ export {
 	POLOTONO_API_ORIGIN,
 	POLOTONO_GET_TEMPLATES_PATH,
 	POLOTONO_GET_TEXT_TEMPLATES_PATH,
-	POLOTONO_DEFAULT_TEMPLATE_PER_PAGE
+	POLOTONO_GET_UNSPLASH_PATH,
+	POLOTONO_DOWNLOAD_UNSPLASH_PATH,
+	POLOTONO_DEFAULT_TEMPLATE_PER_PAGE,
+	POLOTONO_DEFAULT_UNSPLASH_PER_PAGE
 } from '$lib/canvas/constants/polotno';
 export {
 	GeneratePictureModalPresenter,
-	type DesignTemplatesPanelSource,
+	type BackgroundPanelVm,
+	type DesignTemplatesPanelVm,
 	type ExportCanvasToMediaArgs,
 	type ExportCanvasToMediaFn,
 	type ExportDesignToMediaResult,

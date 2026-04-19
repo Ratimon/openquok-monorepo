@@ -146,7 +146,7 @@ export function polotnoJsonToKonvaDoc(json: unknown, box: PageInnerBox): KonvaDe
 }
 
 /**
- * Polotno “text template” placement matching OpenPolotno `text-panel` (uniform scale from page diagonal / 2160,
+ * Polotno text-template placement for the side-panel text picker (uniform scale from page diagonal / 2160,
  * anchored at drop point or page center). Differs from {@link polotnoJsonToKonvaDoc} which letterboxes the full design.
  */
 export function polotnoTextTemplateJsonToKonvaDoc(

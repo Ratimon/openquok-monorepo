@@ -1,5 +1,6 @@
 <script lang="ts" module>
 	import type {
+		BackgroundPanelVm,
 		DesignTemplateProgrammerModel,
 		PolotnoTemplateListPageProgrammerModel,
 		StockPhotoViewModel
@@ -24,13 +25,14 @@
 		/** Focused integration’s `identifier` in custom mode (e.g. `tiktok`, `instagram-business`). */
 		focusedProviderIdentifier?: string | null;
 		/** Stock grid rows from {@link CanvasDesignRepository} (injected per design modal instance). */
-		stockPhotosPm: readonly StockPhotoViewModel[];
+		stockPhotosVm: readonly StockPhotoViewModel[];
 		/** Built-in templates + Polotno list fetch from {@link GeneratePictureModalPresenter}. */
 		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
 		fetchPolotnoTemplateListPage: (
 			params: { query: string; page: number },
 			signal?: AbortSignal
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
+		backgroundPanelVm: BackgroundPanelVm;
 	};
 </script>
 
@@ -44,6 +46,7 @@
 	import KonvaDesignCanvas from '$lib/ui/canvas-editor/canvas/KonvaDesignCanvas.svelte';
 	import DrawPanel from '$lib/ui/canvas-editor/side-panel/panels/DrawPanel.svelte';
 	import ElementsPanel from '$lib/ui/canvas-editor/side-panel/panels/ElementsPanel.svelte';
+	import BackgroundPanel from '$lib/ui/canvas-editor/side-panel/panels/BackgroundPanel.svelte';
 	import PhotosPanel from '$lib/ui/canvas-editor/side-panel/panels/PhotosPanel.svelte';
 	import UploadPanel from '$lib/ui/canvas-editor/side-panel/panels/UploadPanel.svelte';
 	import TextPanel from '$lib/ui/canvas-editor/side-panel/panels/TextPanel.svelte';
@@ -72,9 +75,10 @@
 		designSeed = 0,
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
-		stockPhotosPm,
+		stockPhotosVm,
 		designTemplatesVm,
-		fetchPolotnoTemplateListPage
+		fetchPolotnoTemplateListPage,
+		backgroundPanelVm
 	}: DesignMediaWorkspaceProps = $props();
 
 	let section = $state<SectionId>('photos');
@@ -101,8 +105,6 @@
 		{ id: 'background', label: 'Background', icon: icons.Columns3Cog },
 		{ id: 'layers', label: 'Layers', icon: icons.BetweenVerticalEnd }
 	];
-
-	const bgSwatches = ['#ffffff', '#f1f5f9', '#fef3c7', '#dbeafe', '#fce7f3', '#ecfdf5', '#1e293b', '#0f172a'];
 
 	function handleKonvaReady(api: KonvaCanvasApi) {
 		canvasApi = api;
@@ -197,7 +199,7 @@
 			-->
 			<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden p-3">
 				{#if section === 'photos'}
-					<PhotosPanel {disabled} canvasApi={canvasApi} photosPm={stockPhotosPm} />
+					<PhotosPanel {disabled} canvasApi={canvasApi} photosPm={stockPhotosVm} />
 				{:else if section === 'templates'}
 					<TemplatesPanel
 						{disabled}
@@ -216,20 +218,7 @@
 				{:else if section === 'upload'}
 					<UploadPanel {disabled} canvasApi={canvasApi} />
 				{:else if section === 'background'}
-					<p class="text-base-content/70 text-sm font-medium">Background</p>
-					<p class="text-base-content/55 text-xs">Page fill inside the frame.</p>
-					<div class="flex flex-wrap gap-2">
-						{#each bgSwatches as color (color)}
-							<button
-								type="button"
-								title={color}
-								class="ring-base-300 size-9 rounded-full ring-2 ring-offset-2 ring-offset-base-100 disabled:opacity-40"
-								style:background-color={color}
-								disabled={disabled || !canvasApi}
-								onclick={() => canvasApi?.setPageBackground(color)}
-							></button>
-						{/each}
-					</div>
+					<BackgroundPanel {disabled} canvasApi={canvasApi} {backgroundPanelVm} />
 				{:else if section === 'layers'}
 					<p class="text-base-content/70 text-sm font-medium">Layers</p>
 					<p class="text-base-content/55 text-xs">

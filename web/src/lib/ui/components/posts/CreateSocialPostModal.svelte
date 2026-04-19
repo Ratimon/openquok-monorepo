@@ -101,6 +101,7 @@
 				stockPhotosVm={presenter.stockPhotosVm}
 				designTemplatesVm={presenter.designTemplatesVm}
 				fetchPolotnoTemplateListPage={presenter.fetchPolotnoTemplateListPage.bind(presenter)}
+				backgroundPanelVm={presenter.backgroundPanelVm}
 				exportCanvasToMedia={presenter.exportCanvasToMedia}
 				socialChannels={presenter.baseSocialChannelsVm}
 				bind:body={presenter.editorBody}
