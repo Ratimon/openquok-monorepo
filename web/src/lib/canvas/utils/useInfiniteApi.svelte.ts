@@ -164,7 +164,9 @@ export function createInfiniteApi<T>(options: InfiniteApiOptions<T>) {
 		init,
 		setQuery,
 		loadMore,
-		hasMore,
+		get hasMore() {
+			return hasMore;
+		},
 		reset,
 		get data() {
 			return data;

@@ -16,13 +16,13 @@
 
 	let {
 		meta,
-		component: Content,
+		loadContent,
 		slug = '',
 		rawContent = '',
 		locale
 	}: {
 		meta: DocMeta;
-		component: Component;
+		loadContent: () => Promise<Component>;
 		slug?: string;
 		rawContent?: string;
 		locale?: string;
@@ -113,7 +113,7 @@
 	}
 
 	$effect(() => {
-		void Content;
+		contentEl;
 
 		const timer = setTimeout(() => {
 			if (contentEl) enhanceContent(contentEl);
@@ -155,12 +155,18 @@
 
 	<DocsMobileToc />
 
-	<div
-		class="prose max-w-none min-w-0 break-words text-base-content prose-headings:text-base-content prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-base-content/20 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 prose-hr:border-base-300 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto"
-		bind:this={contentEl}
-	>
-		<Content />
-	</div>
+	{#await loadContent()}
+		<p class="text-base-content/60 px-1 py-10 text-sm">Loading article…</p>
+	{:then Content}
+		<div
+			class="prose max-w-none min-w-0 break-words text-base-content prose-headings:text-base-content prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-base-content/20 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 prose-hr:border-base-300 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+			bind:this={contentEl}
+		>
+			<Content />
+		</div>
+	{:catch}
+		<p class="text-error px-1 py-6 text-sm">Could not load this article.</p>
+	{/await}
 
 	<footer class="border-base-300 mt-12 border-t pt-6">
 		{#if meta.lastUpdated}

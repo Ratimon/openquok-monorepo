@@ -1,18 +1,22 @@
 import { docsConfig } from '$lib/docs/constants';
 import type { DocFile, DocMeta, DocPage } from '$lib/docs/types';
+import type { Component } from 'svelte';
 
-const contentModules = import.meta.glob<DocFile>('/src/content/docs/**/*.{md,svx}', {
-	eager: true
+import { docMetaFromRawSource } from '$lib/docs/utils/parse-doc-frontmatter';
+
+/** Compiled doc modules (default export = page body). Sole import of each file besides `?raw` — avoids Vite duplicate-import warnings. */
+const contentLoaders = import.meta.glob<DocFile>('/src/content/docs/**/*.{md,svx}', {
+	eager: false
+});
+
+const localizedLoaders = import.meta.glob<DocFile>('/src/content/docs-*/**/*.{md,svx}', {
+	eager: false
 });
 
 const rawModules = import.meta.glob<string>('/src/content/docs/**/*.{md,svx}', {
 	query: '?raw',
 	eager: true,
 	import: 'default'
-});
-
-const localizedModules = import.meta.glob<DocFile>('/src/content/docs-*/**/*.{md,svx}', {
-	eager: true
 });
 
 const rawLocalizedModules = import.meta.glob<string>('/src/content/docs-*/**/*.{md,svx}', {
@@ -28,11 +32,36 @@ function slugFromPath(path: string, prefix: string): string {
 		.replace(/(?:^|\/)index$/, '');
 }
 
-function buildDocs(modules: Record<string, DocFile>, prefix: string, hrefPrefix: string): DocPage[] {
+/** Align lazy loader paths with `?raw` glob keys (strip query differences). */
+function metaByPathFromRaw(
+	loaders: Record<string, () => Promise<DocFile>>,
+	rawGlob: Record<string, string>
+): Record<string, DocMeta> {
+	const rawByNorm = new Map<string, string>();
+	for (const [globKey, text] of Object.entries(rawGlob)) {
+		rawByNorm.set(normalizeGlobKey(globKey).replace(/\\/g, '/'), text);
+	}
+
+	const out: Record<string, DocMeta> = {};
+	for (const path of Object.keys(loaders)) {
+		const norm = normalizeGlobKey(path).replace(/\\/g, '/');
+		const raw = rawByNorm.get(norm);
+		if (raw === undefined) continue;
+		out[path] = docMetaFromRawSource(raw);
+	}
+	return out;
+}
+
+function buildDocs(
+	loaders: Record<string, () => Promise<DocFile>>,
+	metaByPath: Record<string, DocMeta>,
+	prefix: string,
+	hrefPrefix: string
+): DocPage[] {
 	const docs: DocPage[] = [];
 
-	for (const [path, mod] of Object.entries(modules)) {
-		const meta = mod.metadata as DocMeta;
+	for (const [path, loader] of Object.entries(loaders)) {
+		const meta = metaByPath[path];
 		if (meta?.draft) continue;
 
 		const slug = slugFromPath(path, prefix);
@@ -46,7 +75,10 @@ function buildDocs(modules: Record<string, DocFile>, prefix: string, hrefPrefix:
 				sidebar: meta?.sidebar,
 				lastUpdated: meta?.lastUpdated
 			},
-			component: mod.default
+			loadContent: async (): Promise<Component> => {
+				const mod = await loader();
+				return mod.default as Component;
+			}
 		});
 	}
 
@@ -94,18 +126,26 @@ export function getAllDocs(locale?: string): DocPage[] {
 	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
 
 	if (!locale || locale === defaultLocale) {
-		return buildDocs(contentModules, '/src/content/docs/', '/docs');
+		return buildDocs(
+			contentLoaders,
+			metaByPathFromRaw(contentLoaders, rawModules),
+			'/src/content/docs/',
+			'/docs'
+		);
 	}
 
 	const prefix = `/src/content/docs-${locale}/`;
-	const filtered: Record<string, DocFile> = {};
-	for (const [path, mod] of Object.entries(localizedModules)) {
-		if (path.startsWith(prefix)) {
-			filtered[path] = mod;
-		}
+	const filteredLoaders: Record<string, () => Promise<DocFile>> = {};
+	const filteredRaw: Record<string, string> = {};
+
+	for (const [path, load] of Object.entries(localizedLoaders)) {
+		if (path.startsWith(prefix)) filteredLoaders[path] = load;
+	}
+	for (const [path, text] of Object.entries(rawLocalizedModules)) {
+		if (path.startsWith(prefix)) filteredRaw[path] = text;
 	}
 
-	return buildDocs(filtered, prefix, `/docs/${locale}`);
+	return buildDocs(filteredLoaders, metaByPathFromRaw(filteredLoaders, filteredRaw), prefix, `/docs/${locale}`);
 }
 
 export function getDoc(slug: string, locale?: string): DocPage | undefined {

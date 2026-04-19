@@ -21,7 +21,7 @@
 
 <DocsSeoHead title={meta.title} description={meta.description} />
 {#if doc}
-	<DocsDocRenderer meta={doc.meta} component={doc.component} {slug} {rawContent} />
+	<DocsDocRenderer meta={doc.meta} loadContent={doc.loadContent} {slug} {rawContent} />
 {/if}
 <DocsFooter {prev} {next} />
 <DocsKeyboardNav {prev} {next} />

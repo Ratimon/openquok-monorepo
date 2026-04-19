@@ -19,7 +19,8 @@ export interface DocPage {
 	slug: string;
 	href: string;
 	meta: DocMeta;
-	component: Component;
+	/** Lazy-loaded compiled MD/SVX body (route-level code split). */
+	loadContent: () => Promise<Component>;
 }
 
 export interface NavItem {

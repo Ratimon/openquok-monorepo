@@ -15,7 +15,16 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Dialog from '$lib/ui/dialog';
-	import DesignMediaWorkspace from '$lib/ui/canvas-editor/side-panel/DesignMediaWorkspace.svelte';
+
+	type DesignWorkspaceModule = typeof import('$lib/ui/canvas-editor/side-panel/DesignMediaWorkspace.svelte');
+
+	/** Set on first open so Konva + side panel stay in a separate chunk until the dialog is used. */
+	let designWorkspaceCache: Promise<DesignWorkspaceModule> | null = null;
+
+	function loadDesignWorkspaceChunk(): Promise<DesignWorkspaceModule> {
+		designWorkspaceCache ??= import('$lib/ui/canvas-editor/side-panel/DesignMediaWorkspace.svelte');
+		return designWorkspaceCache;
+	}
 
 	interface Props {
 		stockPhotosVm: readonly StockPhotoViewModel[];
@@ -116,18 +125,31 @@
 
 		<div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-2 pb-2 sm:px-4 sm:pb-4">
 			{#key designSeed}
-				<DesignMediaWorkspace
-					disabled={disabled || busy}
-					{useMediaLabel}
-					designSeed={designSeed}
-					{composerMode}
-					{focusedProviderIdentifier}
-					stockPhotosPm={stockPhotosVm}
-					{designTemplatesVm}
-					{fetchPolotnoTemplateListPage}
-					onCanvasReady={(api) => (canvasApi = api)}
-					onUseMedia={() => void exportCanvasToPost()}
-				/>
+				{#if open}
+					{#await loadDesignWorkspaceChunk()}
+						<div
+							class="flex min-h-[180px] flex-1 flex-col items-center justify-center gap-3 text-base-content/60"
+						>
+							<span class="loading loading-spinner loading-md"></span>
+							<span class="text-sm">Loading editor…</span>
+						</div>
+					{:then { default: DesignMediaWorkspace }}
+						<DesignMediaWorkspace
+							disabled={disabled || busy}
+							{useMediaLabel}
+							designSeed={designSeed}
+							{composerMode}
+							{focusedProviderIdentifier}
+							stockPhotosPm={stockPhotosVm}
+							{designTemplatesVm}
+							{fetchPolotnoTemplateListPage}
+							onCanvasReady={(api) => (canvasApi = api)}
+							onUseMedia={() => void exportCanvasToPost()}
+						/>
+					{:catch}
+						<p class="text-error px-2 py-8 text-center text-sm">Could not load the design workspace.</p>
+					{/await}
+				{/if}
 			{/key}
 		</div>
 
