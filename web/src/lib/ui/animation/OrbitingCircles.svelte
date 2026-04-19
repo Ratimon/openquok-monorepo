@@ -48,7 +48,7 @@
 		style:animation-delay={`${delay * 1000}ms`}
 		style:animation-direction={reverse ? 'reverse' : 'normal'}
 		class={cn(
-			'absolute z-10 flex h-full w-full transform-gpu items-center justify-center rounded-full border bg-black/10 dark:bg-white/10',
+			'absolute z-10 flex h-full w-full transform-gpu items-center justify-center rounded-full border bg-base-content/10',
 			className
 		)}
 	>

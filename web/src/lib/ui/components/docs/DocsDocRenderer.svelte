@@ -93,7 +93,7 @@
 			img.addEventListener('click', () => {
 				const overlay = document.createElement('div');
 				overlay.className =
-					'fixed inset-0 z-[100] flex cursor-zoom-out items-center justify-center bg-black/80 p-8';
+					'fixed inset-0 z-[100] flex cursor-zoom-out items-center justify-center bg-base-content/80 p-8';
 				const clone = img.cloneNode() as HTMLImageElement;
 				clone.className = 'max-h-full max-w-full rounded-lg object-contain';
 				overlay.appendChild(clone);
@@ -156,7 +156,7 @@
 	<DocsMobileToc />
 
 	<div
-		class="prose prose-neutral max-w-none min-w-0 break-words dark:prose-invert [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+		class="prose max-w-none min-w-0 break-words text-base-content prose-headings:text-base-content prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-base-content/20 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 prose-hr:border-base-300 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto"
 		bind:this={contentEl}
 	>
 		<Content />

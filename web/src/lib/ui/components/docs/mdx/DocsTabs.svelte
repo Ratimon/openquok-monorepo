@@ -37,15 +37,15 @@
 <div class="not-prose my-6">
 	<div
 		role="tablist"
-		class="docs-tabs-switcher inline-flex max-w-full flex-wrap gap-1 rounded-xl border-2 border-base-300 bg-base-200/60 p-1 shadow-sm dark:border-base-content/25 dark:bg-base-300/35"
+		class="docs-tabs-switcher inline-flex max-w-full flex-wrap gap-1 rounded-xl border-2 border-base-300 bg-base-200/60 p-1 shadow-sm"
 	>
 		{#each items as item (item)}
 			<button
 				type="button"
 				role="tab"
-				class="min-w-0 flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 dark:focus-visible:ring-offset-base-300 sm:flex-none md:min-w-[10rem] {tabValue === item
-					? 'bg-primary text-primary-content shadow-md ring-2 ring-inset ring-white/20'
-					: 'bg-base-100/90 text-base-content/75 hover:bg-base-300/55 hover:text-base-content dark:bg-base-100/10 dark:hover:bg-base-100/20'}"
+				class="min-w-0 flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 sm:flex-none md:min-w-[10rem] {tabValue === item
+					? 'bg-primary text-primary-content shadow-md ring-2 ring-inset ring-primary-content/25'
+					: 'bg-base-content/10 text-base-content/75 hover:bg-base-content/15 hover:text-base-content'}"
 				aria-selected={tabValue === item}
 				aria-controls="{tabId(item)}-panel"
 				id="{tabId(item)}-tab"
