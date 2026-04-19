@@ -45,6 +45,7 @@
 	import DrawPanel from '$lib/ui/canvas-editor/side-panel/panels/DrawPanel.svelte';
 	import ElementsPanel from '$lib/ui/canvas-editor/side-panel/panels/ElementsPanel.svelte';
 	import PhotosPanel from '$lib/ui/canvas-editor/side-panel/panels/PhotosPanel.svelte';
+	import UploadPanel from '$lib/ui/canvas-editor/side-panel/panels/UploadPanel.svelte';
 	import TextPanel from '$lib/ui/canvas-editor/side-panel/panels/TextPanel.svelte';
 	import TemplatesPanel from '$lib/ui/canvas-editor/side-panel/panels/TemplatesPanel.svelte';
 	import { AspectRatioShiftingPicker, CanvasToolbar } from '$lib/ui/canvas-editor/toolbar';
@@ -79,7 +80,6 @@
 	let section = $state<SectionId>('photos');
 	let resourcePanelOpen = $state(true);
 	let photoQuery = $state('');
-	let uploadInput = $state.raw<HTMLInputElement | undefined>(undefined);
 	let canvasApi = $state<KonvaCanvasApi | null>(null);
 	let aspectRatioId = $state('16:9');
 	let historyUi = $state({ canUndo: false, canRedo: false });
@@ -130,22 +130,6 @@
 		aspectRatioId = defaultAspectRatioIdForComposer(composerMode, focusedProviderIdentifier);
 	});
 
-	function onUploadPick(e: Event) {
-		const input = e.currentTarget as HTMLInputElement;
-		const f = input.files?.[0];
-		if (f?.type.startsWith('image/')) {
-			canvasApi?.addImageFromFile(f);
-		}
-		input.value = '';
-	}
-
-	function onDropUpload(e: DragEvent) {
-		e.preventDefault();
-		const f = e.dataTransfer?.files?.[0];
-		if (f?.type.startsWith('image/')) {
-			canvasApi?.addImageFromFile(f);
-		}
-	}
 </script>
 
 <div
@@ -230,27 +214,7 @@
 				{:else if section === 'draw'}
 					<DrawPanel {disabled} canvasApi={canvasApi} />
 				{:else if section === 'upload'}
-					<p class="text-base-content/70 text-sm font-medium">Upload</p>
-					<input
-						bind:this={uploadInput}
-						type="file"
-						accept="image/*"
-						class="hidden"
-						onchange={onUploadPick}
-					/>
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div
-						class="border-base-300 hover:border-primary/40 flex min-h-[140px] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm"
-						ondragover={(e) => e.preventDefault()}
-						ondrop={onDropUpload}
-						onclick={() => uploadInput?.click()}
-						role="button"
-						tabindex="0"
-						onkeydown={(e) => e.key === 'Enter' && uploadInput?.click()}
-					>
-						<AbstractIcon name={icons.SquarePlus.name} class="size-10 opacity-60" width="40" height="40" />
-						<span class="text-base-content/70">Drop an image or click to browse</span>
-					</div>
+					<UploadPanel {disabled} canvasApi={canvasApi} />
 				{:else if section === 'background'}
 					<p class="text-base-content/70 text-sm font-medium">Background</p>
 					<p class="text-base-content/55 text-xs">Page fill inside the frame.</p>

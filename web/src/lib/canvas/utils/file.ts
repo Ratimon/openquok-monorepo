@@ -1,6 +1,4 @@
-/**
- * Local file helpers (parity with OpenPolotno `utils/file` / `localFileToURL`).
- */
+
 export function localFileToDataUrl(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
