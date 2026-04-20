@@ -118,7 +118,6 @@
 		onclick={() => (open = !open)}
 	>
 		<AbstractIcon name={icons.Tag.name} class="size-4" width="16" height="16" />
-
 		<span class="flex min-w-0 flex-1 items-center gap-2">
 			{#if primary}
 				<span
@@ -194,7 +193,6 @@
 		</div>
 	{/if}
 </div>
-
 <Dialog.Root bind:open={addOpen}>
 	<Dialog.Content class="w-[min(92vw,720px)] max-w-[min(92vw,720px)]" showCloseButton={false}>
 		<div class="flex items-start justify-between gap-3">
@@ -243,7 +241,9 @@
 	<Dialog.Content class="w-[min(92vw,480px)] max-w-[min(92vw,480px)]" showCloseButton={false}>
 		<div class="flex items-start justify-between gap-3">
 			<Dialog.Header class="space-y-2 text-start">
-				<Dialog.Title class="text-xl font-semibold">Delete Tag</Dialog.Title>
+				<Dialog.Title class="text-xl font-semibold">
+					Delete Tag
+				</Dialog.Title>
 			</Dialog.Header>
 			<button
 				type="button"

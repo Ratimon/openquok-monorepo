@@ -66,6 +66,7 @@
 	);
 
 	let groupDetailsOpen = $state<Record<string, boolean>>({});
+	let ungroupedDetailsOpen = $state(true);
 	let moveGroupOpen = $state(false);
 	let moveGroupFor = $state<CreateSocialPostChannelViewModel | null>(null);
 
@@ -75,7 +76,12 @@
 	let createSocialPostOpen = $state(false);
 
 	function openCreatePost(preselectIntegrationId: string | null) {
-		createSocialPostPresenter.prepareOpen({ preselectIntegrationId });
+		createSocialPostPresenter.prepareOpen({ preselectIntegrationId, preselectGroupId: null });
+		createSocialPostOpen = true;
+	}
+
+	function openCreatePostForGroup(groupId: string) {
+		createSocialPostPresenter.prepareOpen({ preselectIntegrationId: null, preselectGroupId: groupId });
 		createSocialPostOpen = true;
 	}
 
@@ -368,7 +374,7 @@
 							openCreatePost(null);
 						}}
 					>
-						+ Create Post
+						+ Create Post for All Channels
 					</Button>
 				{/if}
 				<!-- `onboarding={true}`: 9-column grid + `?onboarding=true` on OAuth (match reference “onboarding” mode). -->
@@ -430,7 +436,9 @@
 		{:else}
 			{#if channelGroupSections.length > 0}
 				<div class="mt-4 space-y-2">
-					<h4 class="text-sm font-semibold text-base-content/80">Groups</h4>
+					<h4 class="text-sm font-semibold text-base-content/80">
+						Grouped channels
+					</h4>
 					{#each channelGroupSections as group (group.id)}
 						<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={groupDetailsOpen[group.id]}>
 							<summary
@@ -444,7 +452,20 @@
 									width="16"
 									height="16"
 								/>
-								<span class="font-medium text-base-content">{group.name}</span>
+								<span class="min-w-0 flex-1 truncate font-medium text-base-content">{group.name}</span>
+								<Button
+									type="button"
+									size="sm"
+									variant="secondary"
+									class="shrink-0"
+									onclick={(e: MouseEvent) => {
+										e.preventDefault();
+										e.stopPropagation();
+										openCreatePostForGroup(group.id);
+									}}
+								>
+									Create Post for {group.name}
+								</Button>
 							</summary>
 							<div class="border-t border-base-300 px-3 py-3">
 								{@render platformChannelRows(group.platformRows)}
@@ -453,9 +474,40 @@
 					{/each}
 				</div>
 			{/if}
-			<div class="mt-4">
-				{@render platformChannelRows(platformChannelRowsUngrouped)}
-			</div>
+			{#if platformChannelRowsUngrouped.length > 0}
+				<div class="mt-4 space-y-2">
+					<h4 class="text-sm font-semibold text-base-content/80">
+						Ungrouped channels
+					</h4>
+					<p class="text-sm text-base-content/70">
+						To add a channel to a group, open its menu and select <span class="font-medium text-base-content">Move / add to group</span>.
+					</p>
+					{#if channelGroupSections.length === 0}
+						<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={ungroupedDetailsOpen}>
+							<summary
+								class="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden"
+							>
+								<AbstractIcon
+									name={icons.ChevronRight.name}
+									class="size-4 shrink-0 text-base-content/70 transition-transform duration-200 {ungroupedDetailsOpen
+										? 'rotate-90'
+										: ''}"
+									width="16"
+									height="16"
+								/>
+								<span class="font-medium text-base-content">Channels</span>
+							</summary>
+							<div class="border-t border-base-300 px-3 py-3">
+								{@render platformChannelRows(platformChannelRowsUngrouped)}
+							</div>
+						</details>
+					{:else}
+						<div class="rounded-lg border border-base-300 bg-base-200/40 px-3 py-3">
+							{@render platformChannelRows(platformChannelRowsUngrouped)}
+						</div>
+					{/if}
+				</div>
+			{/if}
 		{/if}
 	</section>
 </div>

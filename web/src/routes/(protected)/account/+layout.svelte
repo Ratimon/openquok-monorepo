@@ -45,9 +45,9 @@
 	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);
 
-	// /calendar
+	// /account/calendar
 	const rootPathCalendar = getRootPathCalendar();
-	const calendarPath = route(rootPathCalendar);
+	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
 
 	// /analytics
 	const rootPathAnalytics = getRootPathAnalytics();

@@ -13,7 +13,6 @@
 	};
 
 	let { channels, selectedGroupId = null, onSelect }: Props = $props();
-
 	let open = $state(false);
 
 	const groups = $derived.by(() => {

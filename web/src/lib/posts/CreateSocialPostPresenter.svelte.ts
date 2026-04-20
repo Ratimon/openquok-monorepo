@@ -23,6 +23,7 @@ type Mode = 'global' | 'custom';
 
 export type CreateSocialPostPrepareOpenOptions = {
 	preselectIntegrationId: string | null;
+	preselectGroupId?: string | null;
 };
 
 /**
@@ -62,6 +63,7 @@ export class CreateSocialPostPresenter {
 
 	/** Set before opening the modal; consumed on the next {@link onModalOpen}. */
 	private pendingPreselectIntegrationId: string | null = null;
+	private pendingPreselectGroupId: string | null = null;
 
 	workspaceIdForSession = $state<string | null>(null);
 	connectedChannelsForSessionVm = $state<CreateSocialPostChannelViewModel[]>([]);
@@ -133,6 +135,7 @@ export class CreateSocialPostPresenter {
 
 	prepareOpen(options: CreateSocialPostPrepareOpenOptions): void {
 		this.pendingPreselectIntegrationId = options.preselectIntegrationId;
+		this.pendingPreselectGroupId = options.preselectGroupId ?? null;
 	}
 
 	toggleChannel(id: string): void {
@@ -241,6 +244,8 @@ export class CreateSocialPostPresenter {
 	async onModalOpen(workspaceId: string, connectedChannels: CreateSocialPostChannelViewModel[]): Promise<void> {
 		const preselect = this.pendingPreselectIntegrationId;
 		this.pendingPreselectIntegrationId = null;
+		const preselectGroupId = this.pendingPreselectGroupId;
+		this.pendingPreselectGroupId = null;
 
 		this.workspaceIdForSession = workspaceId;
 		this.connectedChannelsForSessionVm = connectedChannels;
@@ -248,8 +253,13 @@ export class CreateSocialPostPresenter {
 		this.resetForm();
 		await this.loadInitial(workspaceId);
 
+		if (preselectGroupId) {
+			this.selectGroup(preselectGroupId);
+		}
+
 		if (
 			preselect &&
+			!preselectGroupId &&
 			this.baseSocialChannelsVm.some((c) => c.id === preselect)
 		) {
 			this.selectedIds = [preselect];
@@ -261,6 +271,7 @@ export class CreateSocialPostPresenter {
 	onModalClose(): void {
 		this.confirmCloseOpen = false;
 		this.pendingPreselectIntegrationId = null;
+		this.pendingPreselectGroupId = null;
 	}
 
 	private captureInitialSnapshot(): void {
