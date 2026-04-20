@@ -1,4 +1,10 @@
-export type { CanvasSelectionState, KonvaCanvasApi, TextPresetId } from './canvas/konvaCanvasApi';
+export type {
+	CanvasLayerItem,
+	CanvasLayerKind,
+	CanvasSelectionState,
+	KonvaCanvasApi,
+	TextPresetId
+} from './canvas/konvaCanvasApi';
 export {
 	computePageLayout,
 	KonvaDesignCanvas,

@@ -51,6 +51,7 @@
 	import UploadPanel from '$lib/ui/canvas-editor/side-panel/panels/UploadPanel.svelte';
 	import TextPanel from '$lib/ui/canvas-editor/side-panel/panels/TextPanel.svelte';
 	import TemplatesPanel from '$lib/ui/canvas-editor/side-panel/panels/TemplatesPanel.svelte';
+	import LayersPanel from '$lib/ui/canvas-editor/side-panel/panels/LayersPanel.svelte';
 	import { AspectRatioShiftingPicker, CanvasToolbar } from '$lib/ui/canvas-editor/toolbar';
 	import {
 		DEFAULT_ASPECT_RATIO_ID,
@@ -90,9 +91,12 @@
 	let historyUi = $state({ canUndo: false, canRedo: false });
 	let selectionState = $state<CanvasSelectionState>({
 		hasSelection: false,
+		selectedIds: [],
 		opacity: 100,
 		locked: false
 	});
+
+	let canvasMutationTick = $state(0);
 
 	const selectedAspect = $derived(getAspectPresetById(aspectRatioId));
 
@@ -221,10 +225,12 @@
 				{:else if section === 'background'}
 					<BackgroundPanel {disabled} canvasApi={canvasApi} {backgroundPanelVm} />
 				{:else if section === 'layers'}
-					<p class="text-base-content/70 text-sm font-medium">Layers</p>
-					<p class="text-base-content/55 text-xs">
-						A flat list of placed images will be listed here in a future update.
-					</p>
+					<LayersPanel
+						{disabled}
+						canvasApi={canvasApi}
+						selection={selectionState}
+						refreshKey={canvasMutationTick}
+					/>
 				{/if}
 			</div>
 			<button
@@ -276,6 +282,7 @@
 				onReady={handleKonvaReady}
 				onHistoryChange={onHistoryChange}
 				onSelectionChange={onSelectionChange}
+				onCanvasMutation={() => canvasMutationTick++}
 			/>
 		</div>
 	</div>

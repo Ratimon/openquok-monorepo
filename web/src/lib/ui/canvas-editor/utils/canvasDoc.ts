@@ -18,6 +18,10 @@ export type KonvaDesignImageNode = {
 	draggable: boolean;
 	/** Image URL (https or blob: while valid). */
 	src: string;
+	/** Optional layer name shown in the layers panel. */
+	layerLabel?: string;
+	/** Konva visibility; defaults to true when omitted. */
+	visible?: boolean;
 };
 
 export type KonvaDesignTextNode = {
@@ -34,6 +38,8 @@ export type KonvaDesignTextNode = {
 	fontFamily: string;
 	fill: string;
 	fontStyle: string;
+	layerLabel?: string;
+	visible?: boolean;
 };
 
 /** Freehand stroke from the draw tool (Konva.Line). */
@@ -45,6 +51,8 @@ export type KonvaDesignDrawStrokeNode = {
 	strokeWidth: number;
 	opacity: number;
 	globalCompositeOperation: string;
+	layerLabel?: string;
+	visible?: boolean;
 };
 
 export type KonvaDesignNode = KonvaDesignImageNode | KonvaDesignTextNode | KonvaDesignDrawStrokeNode;

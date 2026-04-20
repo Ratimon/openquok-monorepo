@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 
-	import { icons } from '$data/icon';
 	import type {
 		CanvasDrawSettings,
 		CanvasEditorMode,
 		CanvasDrawBrushType,
+		CanvasLayerItem,
+		CanvasLayerKind,
 		CanvasSelectionState,
 		KonvaCanvasApi,
 		TextPresetId
@@ -18,7 +18,12 @@
 		KonvaDesignTextNode
 	} from '$lib/ui/canvas-editor/utils/canvasDoc';
 	import type { AspectRatioPreset } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
+
+	import { onMount } from 'svelte';
 	import { DEFAULT_ASPECT_RATIO_ID, getAspectPresetById } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
+	import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
+	import { icons } from '$data/icon';
+
 	import { GRID_STEP, computePageLayout, drawBackgroundGrid } from '$lib/ui/canvas-editor/canvas/helpers';
 	import { loadKonva } from '$lib/ui/canvas-editor/canvas/loadKonva';
 	import { HistoryStack } from '$lib/ui/canvas-editor/utils/historyStack';
@@ -34,6 +39,8 @@
 		onHistoryChange?: (state: { canUndo: boolean; canRedo: boolean }) => void;
 		/** Fired when the selected element or its opacity/lock state changes. */
 		onSelectionChange?: (state: CanvasSelectionState) => void;
+		/** Used by side panels (e.g. layers) to refresh when the stage document or selection changes. */
+		onCanvasMutation?: () => void;
 	};
 
 	let {
@@ -41,7 +48,8 @@
 		embedded = false,
 		aspectPreset = getAspectPresetById(DEFAULT_ASPECT_RATIO_ID),
 		onHistoryChange,
-		onSelectionChange
+		onSelectionChange,
+		onCanvasMutation
 	}: Props = $props();
 
 	const presetRef: { current: AspectRatioPreset } = {
@@ -210,13 +218,17 @@
 
 			function getSelectionState(): CanvasSelectionState {
 				const nodes = transformer.nodes();
+				const selectedIds = nodes
+					.map((node) => node.id())
+					.filter((id): id is string => Boolean(id));
 				if (!nodes.length) {
-					return { hasSelection: false, opacity: 100, locked: false };
+					return { hasSelection: false, opacity: 100, locked: false, selectedIds: [] };
 				}
 				const n = nodes[0];
 				if (nodes.length > 1) {
 					return {
 						hasSelection: true,
+						selectedIds,
 						opacity: Math.round((n.opacity() ?? 1) * 100),
 						locked: !n.draggable()
 					};
@@ -227,6 +239,7 @@
 					const align = (t.align?.() ?? 'left') as NonNullable<CanvasSelectionState['text']>['align'];
 					return {
 						hasSelection: true,
+						selectedIds,
 						type: 'text',
 						opacity: Math.round((t.opacity() ?? 1) * 100),
 						locked: !t.draggable(),
@@ -244,6 +257,7 @@
 					const ln = n as KonvaLine;
 					return {
 						hasSelection: true,
+						selectedIds,
 						type: 'drawStroke',
 						opacity: Math.round((ln.opacity() ?? 1) * 100),
 						locked: !ln.draggable()
@@ -251,6 +265,7 @@
 				}
 				return {
 					hasSelection: true,
+					selectedIds,
 					type: 'image',
 					opacity: Math.round((n.opacity() ?? 1) * 100),
 					locked: !n.draggable()
@@ -259,6 +274,7 @@
 
 			function notifySelection() {
 				onSelectionChange?.(getSelectionState());
+				onCanvasMutation?.();
 			}
 
 			function getSelectedNode(): DesignNode | undefined {
@@ -370,8 +386,9 @@
 						const img = node as KonvaImage;
 						const el = img.image() as HTMLImageElement | undefined;
 						if (!el?.src) continue;
-						nodes.push({
-							kind: 'image',
+						const layerLabel = img.getAttr('layerLabel') as string | undefined;
+						const base = {
+							kind: 'image' as const,
 							id: img.id() || img.name(),
 							x: img.x(),
 							y: img.y(),
@@ -380,11 +397,15 @@
 							rotation: img.rotation(),
 							opacity: img.opacity() ?? 1,
 							draggable: img.draggable(),
-							src: el.src
-						});
+							src: el.src,
+							...(layerLabel ? { layerLabel } : {}),
+							...(img.visible() === false ? { visible: false } : {})
+						};
+						nodes.push(base);
 					} else if (cn === 'Text') {
 						const t = node as KonvaText;
 						const f = t.fill();
+						const layerLabel = t.getAttr('layerLabel') as string | undefined;
 						nodes.push({
 							kind: 'text',
 							id: t.id() || t.name(),
@@ -398,13 +419,16 @@
 							fontSize: t.fontSize(),
 							fontFamily: t.fontFamily(),
 							fill: typeof f === 'string' ? f : '#0f172a',
-							fontStyle: t.fontStyle()
+							fontStyle: t.fontStyle(),
+							...(layerLabel ? { layerLabel } : {}),
+							...(t.visible() === false ? { visible: false } : {})
 						});
 					} else if (isDrawStrokeLine(node)) {
 						const ln = node as KonvaLine;
 						const pts = ln.points();
 						if (pts.length < 4) continue;
 						const sk = ln.stroke();
+						const layerLabel = ln.getAttr('layerLabel') as string | undefined;
 						nodes.push({
 							kind: 'drawStroke',
 							id: ln.id() || ln.name(),
@@ -412,7 +436,9 @@
 							stroke: typeof sk === 'string' ? sk : '#475569',
 							strokeWidth: ln.strokeWidth(),
 							opacity: ln.opacity() ?? 1,
-							globalCompositeOperation: ln.globalCompositeOperation() ?? 'source-over'
+							globalCompositeOperation: ln.globalCompositeOperation() ?? 'source-over',
+							...(layerLabel ? { layerLabel } : {}),
+							...(ln.visible() === false ? { visible: false } : {})
 						});
 					}
 				}
@@ -499,6 +525,8 @@
 					draggable: node.draggable !== false,
 					name: 'design-image'
 				});
+				if (node.layerLabel) kImg.setAttr('layerLabel', node.layerLabel);
+				if (node.visible === false) kImg.visible(false);
 				attachImageHandlers(kImg);
 				contentLayer.add(kImg);
 			}
@@ -534,6 +562,8 @@
 						draggable: n.draggable !== false,
 						name: 'design-text'
 					});
+					if (n.layerLabel) t.setAttr('layerLabel', n.layerLabel);
+					if (n.visible === false) t.visible(false);
 					attachTextHandlers(t);
 					contentLayer.add(t);
 				}
@@ -567,6 +597,8 @@
 						listening: false,
 						name: 'design-draw-stroke'
 					});
+					if (s.layerLabel) ln.setAttr('layerLabel', s.layerLabel);
+					if (s.visible === false) ln.visible(false);
 					contentLayer.add(ln);
 					configureDrawStrokeLine(ln);
 					attachDrawStrokeHandlers(ln);
@@ -1308,6 +1340,9 @@
 							draggable: t.draggable() !== false,
 							name: 'design-text'
 						});
+						const tl = t.getAttr('layerLabel') as string | undefined;
+						if (tl) dup.setAttr('layerLabel', tl);
+						dup.visible(t.visible() !== false);
 						attachTextHandlers(dup);
 						contentLayer.add(dup);
 						newNodes.push(dup);
@@ -1316,6 +1351,9 @@
 						const dup = ln.clone({ id: crypto.randomUUID() }) as KonvaLine;
 						dup.x(ln.x() + 12);
 						dup.y(ln.y() + 12);
+						const ll = ln.getAttr('layerLabel') as string | undefined;
+						if (ll) dup.setAttr('layerLabel', ll);
+						dup.visible(ln.visible() !== false);
 						configureDrawStrokeLine(dup);
 						attachDrawStrokeHandlers(dup);
 						contentLayer.add(dup);
@@ -1342,6 +1380,9 @@
 								draggable: img.draggable() !== false,
 								name: 'design-image'
 							});
+							const il = img.getAttr('layerLabel') as string | undefined;
+							if (il) dup.setAttr('layerLabel', il);
+							dup.visible(img.visible() !== false);
 							attachImageHandlers(dup);
 							contentLayer.add(dup);
 							newNodes.push(dup);
@@ -1447,6 +1488,142 @@
 				if (mode === 'centerV') y = box.py + (box.ph - h) / 2;
 				if (mode === 'bottom') y = box.py + box.ph - h - pad;
 				n.position({ x, y });
+				contentLayer.batchDraw();
+				pushHistory();
+				notifySelection();
+			}
+
+			function isDesignContentNode(node: KonvaShape): boolean {
+				const cn = node.getClassName();
+				return cn === 'Image' || cn === 'Text' || isDrawStrokeLine(node);
+			}
+
+			function findDesignNodeById(id: string): DesignNode | undefined {
+				if (!id) return undefined;
+				for (const node of contentLayer.getChildren()) {
+					if (node === transformer) continue;
+					if (!isDesignContentNode(node as KonvaShape)) continue;
+					if ((node as KonvaShape).id() === id) return node as DesignNode;
+				}
+				return undefined;
+			}
+
+			function layerDisplayNameFor(node: DesignNode): string {
+				const custom = node.getAttr('layerLabel') as string | undefined;
+				const trimmed = custom?.trim();
+				if (trimmed) return trimmed;
+				const cn = node.getClassName();
+				const id = node.id() || '';
+				const short = id ? id.slice(0, 8) : 'node';
+				if (cn === 'Text') {
+					const plain = stripHtmlToPlainText((node as KonvaText).text());
+					const fromText = plain.slice(0, 48).trim();
+					return fromText || `#${short}`;
+				}
+				if (cn === 'Image') return `image-${short}`;
+				return `draw-${short}`;
+			}
+
+			function getLayerListSnapshot(): CanvasLayerItem[] {
+				const children = contentLayer.getChildren().filter(
+					(n) => n !== transformer && isDesignContentNode(n as KonvaShape)
+				) as DesignNode[];
+				const topFirst = [...children].reverse();
+				return topFirst.map((node): CanvasLayerItem => {
+					const cn = node.getClassName();
+					let kind: CanvasLayerKind;
+					let typeLabel: string;
+					if (cn === 'Image') {
+						kind = 'image';
+						typeLabel = 'Image';
+					} else if (cn === 'Text') {
+						kind = 'text';
+						typeLabel = 'Text';
+					} else {
+						kind = 'drawStroke';
+						typeLabel = 'Drawing';
+					}
+					const id = node.id() || '';
+					return {
+						id,
+						kind,
+						typeLabel,
+						displayName: layerDisplayNameFor(node),
+						visible: node.visible() !== false,
+						locked: node.draggable() === false
+					};
+				});
+			}
+
+			function selectLayers(ids: string[], opts?: { additive?: boolean }) {
+				const resolved = ids.map(findDesignNodeById).filter(Boolean) as KonvaShape[];
+				if (opts?.additive) {
+					const cur = transformer.nodes() as unknown as KonvaShape[];
+					const merged: KonvaShape[] = [...cur];
+					for (const n of resolved) {
+						if (!merged.includes(n)) merged.push(n);
+					}
+					transformer.nodes(merged);
+				} else {
+					transformer.nodes(resolved);
+				}
+				ensureTransformerOnTop();
+				contentLayer.batchDraw();
+				notifySelection();
+			}
+
+			function setLayerOrderTopFirst(topFirstIds: string[]) {
+				const resolved = topFirstIds.map(findDesignNodeById).filter(Boolean) as KonvaShape[];
+				if (!resolved.length) return;
+				const bottomFirst = [...resolved].reverse();
+				for (const n of bottomFirst) {
+					n.remove();
+					contentLayer.add(n);
+				}
+				ensureTransformerOnTop();
+				contentLayer.batchDraw();
+				pushHistory();
+				notifySelection();
+			}
+
+			function removeLayersByIds(ids: string[]) {
+				const cur = transformer.nodes();
+				const idSet = new Set(ids);
+				for (const id of ids) {
+					findDesignNodeById(id)?.destroy();
+				}
+				const next = cur.filter((n) => n.getStage() != null && !idSet.has(n.id()));
+				transformer.nodes(next);
+				ensureTransformerOnTop();
+				contentLayer.batchDraw();
+				pushHistory();
+				notifySelection();
+			}
+
+			function setLayerVisible(id: string, visible: boolean) {
+				const n = findDesignNodeById(id);
+				if (!n) return;
+				n.visible(visible);
+				contentLayer.batchDraw();
+				pushHistory();
+				notifySelection();
+			}
+
+			function setLayerLocked(id: string, locked: boolean) {
+				const n = findDesignNodeById(id);
+				if (!n) return;
+				n.draggable(!locked);
+				contentLayer.batchDraw();
+				pushHistory();
+				notifySelection();
+			}
+
+			function setLayerDisplayName(id: string, label: string) {
+				const n = findDesignNodeById(id);
+				if (!n) return;
+				const t = label.trim();
+				if (t) n.setAttr('layerLabel', t);
+				else (n as unknown as { removeAttr: (name: string) => void }).removeAttr('layerLabel');
 				contentLayer.batchDraw();
 				pushHistory();
 				notifySelection();
@@ -1595,7 +1772,14 @@
 				setDrawBrushOpacityPercent: (percent: number) => {
 					drawBrushOpacityPercent = Math.max(0, Math.min(100, Math.round(percent)));
 				},
-				getDrawSettings: () => getDrawSettingsSnapshot()
+				getDrawSettings: () => getDrawSettingsSnapshot(),
+				getLayerList: () => getLayerListSnapshot(),
+				selectLayers,
+				setLayerOrderTopFirst,
+				removeLayersByIds,
+				setLayerVisible,
+				setLayerLocked,
+				setLayerDisplayName
 			};
 
 			const hostEl = host!;

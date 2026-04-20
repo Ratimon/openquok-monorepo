@@ -1,6 +1,8 @@
 /** Snapshot for toolbar UI (selection on the Konva stage). */
 export type CanvasSelectionState = {
 	hasSelection: boolean;
+	/** Stage node ids for the current transformer selection (top-most first when multiple). */
+	selectedIds: string[];
 	type?: 'image' | 'text' | 'drawStroke';
 	/** 0–100; meaningful when `hasSelection`. */
 	opacity: number;
@@ -35,6 +37,18 @@ export type CanvasDrawSettings = {
 	strokeColor: string;
 	/** 0–100; applies to brush only (highlighter uses tool defaults). */
 	brushOpacityPercent: number;
+};
+
+export type CanvasLayerKind = 'image' | 'text' | 'drawStroke';
+
+/** One row for the layers side panel (top-most layer first). */
+export type CanvasLayerItem = {
+	id: string;
+	kind: CanvasLayerKind;
+	typeLabel: string;
+	displayName: string;
+	visible: boolean;
+	locked: boolean;
 };
 
 export type KonvaCanvasApi = {
@@ -102,4 +116,16 @@ export type KonvaCanvasApi = {
 	/** 0–100; only affects the brush tool. */
 	setDrawBrushOpacityPercent: (percent: number) => void;
 	getDrawSettings: () => CanvasDrawSettings;
+
+	/** Layers ordered top → bottom (same order as the layers panel list). */
+	getLayerList: () => CanvasLayerItem[];
+	/** Replace selection with these node ids, or merge with current selection when `additive` is true. */
+	selectLayers: (ids: string[], opts?: { additive?: boolean }) => void;
+	/** Reorder stacked elements; `ids` is top → bottom. */
+	setLayerOrderTopFirst: (ids: string[]) => void;
+	removeLayersByIds: (ids: string[]) => void;
+	setLayerVisible: (id: string, visible: boolean) => void;
+	setLayerLocked: (id: string, locked: boolean) => void;
+	/** Persisted optional name in the document (empty string clears the custom label). */
+	setLayerDisplayName: (id: string, label: string) => void;
 };
