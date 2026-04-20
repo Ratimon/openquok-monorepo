@@ -469,7 +469,7 @@
 	bind:presenter={createPostPresenter}
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
-	uploadUid={currentUser?.id ?? ''}
+	uploadUid={workspaceId ?? ''}
 />
 
 <OnBoardingModal
