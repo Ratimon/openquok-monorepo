@@ -2,7 +2,7 @@
   "name": "openquok-common",
   "version": "1.0.0",
   "private": true,
-  "description": "Shared types and utilities for backend and orchestrator",
+  "description": "Shared types and constants for backend, web, and orchestrator",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./src/index.ts",

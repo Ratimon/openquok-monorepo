@@ -5,9 +5,11 @@ var ssr = require('@supabase/ssr');
 var redis = require('redis');
 var Sentry = require('@sentry/node');
 var IORedis = require('ioredis');
+var clientS3 = require('@aws-sdk/client-s3');
+var s3RequestPresigner = require('@aws-sdk/s3-request-presigner');
 var http = require('http');
 var express2 = require('express');
-var path2 = require('path');
+var path = require('path');
 var helmet = require('helmet');
 var cors = require('cors');
 var uuid = require('uuid');
@@ -16,8 +18,9 @@ var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
 var dayjs2 = require('dayjs');
 var https = require('https');
+var fs = require('fs/promises');
 var zod = require('zod');
-var fs = require('fs');
+var fs2 = require('fs');
 var multer = require('multer');
 var cookieParser = require('cookie-parser');
 var rateLimit = require('express-rate-limit');
@@ -46,13 +49,14 @@ var Sentry__namespace = /*#__PURE__*/_interopNamespace(Sentry);
 var IORedis__default = /*#__PURE__*/_interopDefault(IORedis);
 var http__default = /*#__PURE__*/_interopDefault(http);
 var express2__default = /*#__PURE__*/_interopDefault(express2);
-var path2__default = /*#__PURE__*/_interopDefault(path2);
+var path__default = /*#__PURE__*/_interopDefault(path);
 var helmet__default = /*#__PURE__*/_interopDefault(helmet);
 var cors__default = /*#__PURE__*/_interopDefault(cors);
 var nodemailer__default = /*#__PURE__*/_interopDefault(nodemailer);
 var dayjs2__default = /*#__PURE__*/_interopDefault(dayjs2);
 var https__default = /*#__PURE__*/_interopDefault(https);
 var fs__default = /*#__PURE__*/_interopDefault(fs);
+var fs2__default = /*#__PURE__*/_interopDefault(fs2);
 var multer__default = /*#__PURE__*/_interopDefault(multer);
 var cookieParser__default = /*#__PURE__*/_interopDefault(cookieParser);
 var rateLimit__default = /*#__PURE__*/_interopDefault(rateLimit);
@@ -130,6 +134,10 @@ var init_apiPrefix = __esm({
 function getEnv(key, defaultValue) {
   return process.env[key] ?? defaultValue ?? "";
 }
+function getEnvTrimmed(key, defaultValue = "") {
+  const raw = process.env[key] ?? defaultValue;
+  return String(raw).replace(/^\uFEFF/, "").trim();
+}
 function getEnvNumber(key, defaultValue) {
   const value = getEnv(key);
   if (!value) return defaultValue;
@@ -176,24 +184,24 @@ var init_Logger = __esm({
 // config/loadBackendDotenv.cjs
 var require_loadBackendDotenv = __commonJS({
   "config/loadBackendDotenv.cjs"(exports$1, module) {
-    var path3 = __require("path");
-    var fs2 = __require("fs");
+    var path5 = __require("path");
+    var fs3 = __require("fs");
     var dotenv = __require("dotenv");
     var BACKEND_PACKAGE_NAME = "backend";
     function resolveBackendPackageRoot() {
       let dir = __dirname;
       for (let i = 0; i < 25; i++) {
-        const pkgPath = path3.join(dir, "package.json");
-        if (fs2.existsSync(pkgPath)) {
+        const pkgPath = path5.join(dir, "package.json");
+        if (fs3.existsSync(pkgPath)) {
           try {
-            const pkg = JSON.parse(fs2.readFileSync(pkgPath, "utf8"));
+            const pkg = JSON.parse(fs3.readFileSync(pkgPath, "utf8"));
             if (pkg.name === BACKEND_PACKAGE_NAME) {
               return dir;
             }
           } catch {
           }
         }
-        const parent = path3.dirname(dir);
+        const parent = path5.dirname(dir);
         if (parent === dir) {
           break;
         }
@@ -204,8 +212,8 @@ var require_loadBackendDotenv = __commonJS({
     function loadBackendDotenv2() {
       const root = resolveBackendPackageRoot();
       const env = process.env.NODE_ENV ?? "development";
-      dotenv.config({ path: path3.join(root, `.env.${env}.local`) });
-      dotenv.config({ path: path3.join(root, ".env") });
+      dotenv.config({ path: path5.join(root, `.env.${env}.local`) });
+      dotenv.config({ path: path5.join(root, ".env") });
     }
     module.exports = { loadBackendDotenv: loadBackendDotenv2 };
   }
@@ -281,7 +289,13 @@ var init_GlobalConfig = __esm({
     loadBackendDotenvCjs = __toESM(require_loadBackendDotenv());
     init_orchestratorFlows();
     ({ loadBackendDotenv } = loadBackendDotenvCjs);
-    normalizeOrigin = (origin) => origin.trim().replace(/\/+$/, "");
+    normalizeOrigin = (origin) => {
+      let s = String(origin).replace(/^\uFEFF/, "").trim().replace(/\/+$/, "");
+      if (s.startsWith('"') && s.endsWith('"') || s.startsWith("'") && s.endsWith("'")) {
+        s = s.slice(1, -1).replace(/^\uFEFF/, "").trim().replace(/\/+$/, "");
+      }
+      return s;
+    };
     deriveWwwVariants = (origin) => {
       try {
         const url = new URL(origin);
@@ -313,8 +327,8 @@ var init_GlobalConfig = __esm({
       },
       server: {
         nodeEnv: getEnv("NODE_ENV", "development"),
-        frontendDomainUrl: getEnv("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
-        backendDomainUrl: getEnv("BACKEND_DOMAIN_URL", "http://localhost:3000"),
+        frontendDomainUrl: getEnvTrimmed("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
+        backendDomainUrl: getEnvTrimmed("BACKEND_DOMAIN_URL", "http://localhost:3000"),
         port: getEnvNumber("PORT", 3e3)
       },
       api: {
@@ -322,7 +336,8 @@ var init_GlobalConfig = __esm({
       },
       cors: {
         allowedOrigins: (() => {
-          const frontendUrl = normalizeOrigin(getEnv("FRONTEND_DOMAIN_URL", "http://localhost:5173"));
+          const feRaw = getEnvTrimmed("FRONTEND_DOMAIN_URL");
+          const frontendUrl = normalizeOrigin(feRaw || "http://localhost:5173");
           const origins = [frontendUrl, ...deriveWwwVariants(frontendUrl)];
           const extra = getEnv("ALLOWED_FRONTEND_ORIGINS", "");
           if (extra) {
@@ -333,14 +348,23 @@ var init_GlobalConfig = __esm({
           if (!isProductionEnv) {
             origins.push(
               "http://localhost:5173",
+              "https://localhost:5173",
               "http://localhost:3000",
               "http://127.0.0.1:5173",
+              "https://127.0.0.1:5173",
               "http://127.0.0.1:3000"
             );
           }
           const unique = [...new Set(origins.map(normalizeOrigin))];
           if (isProductionEnv && unique.some((origin) => origin.includes("*"))) {
             throw new Error("CORS wildcard origins are not allowed in production");
+          }
+          if (isProductionEnv) {
+            logger.info({
+              msg: "[CORS] Allowed origins (check this matches the browser Origin if requests fail)",
+              count: unique.length,
+              origins: unique
+            });
           }
           return unique;
         })(),
@@ -369,6 +393,27 @@ var init_GlobalConfig = __esm({
         supabaseUrl: getEnv("PUBLIC_SUPABASE_URL", ""),
         supabaseAnonKey: getEnv("PUBLIC_SUPABASE_ANON_KEY", ""),
         supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY", "")
+      },
+      /**
+       * S3-compatible object storage (Cloudflare R2) for `/api/v1/media/*` (user-owned composer objects).
+       * When required keys are missing, media routes cannot talk to object storage until configured.
+       */
+      storage: {
+        /** Storage provider for user media uploads. */
+        provider: getEnv("STORAGE_PROVIDER", "r2"),
+        r2: {
+          accountId: getEnvTrimmed("STORAGE_R2_ACCOUNT_ID"),
+          accessKeyId: getEnvTrimmed("STORAGE_R2_ACCESS_KEY_ID"),
+          secretAccessKey: getEnvTrimmed("STORAGE_R2_SECRET_ACCESS_KEY"),
+          bucket: getEnvTrimmed("STORAGE_R2_BUCKET"),
+          region: getEnvTrimmed("STORAGE_R2_REGION", "auto"),
+          /** Public origin for browser `<img src>` (R2 custom domain or r2.dev); no trailing slash. */
+          publicBaseUrl: getEnvTrimmed("STORAGE_R2_PUBLIC_BASE_URL")
+        },
+        local: {
+          /** Absolute path on disk where uploads are written (for STORAGE_PROVIDER=local). */
+          uploadDirectory: getEnvTrimmed("UPLOAD_DIRECTORY", "")
+        }
       },
       /** AWS (SES) for local/dev email. */
       aws: {
@@ -468,8 +513,18 @@ var init_GlobalConfig = __esm({
       /** Social integration OAuth (per-provider secrets). */
       integrations: {
         threads: {
-          appId: getEnv("THREADS_APP_ID", ""),
-          appSecret: getEnv("THREADS_APP_SECRET", "")
+          appId: getEnvTrimmed("THREADS_APP_ID"),
+          appSecret: getEnvTrimmed("THREADS_APP_SECRET")
+        },
+        /** Facebook Login — used for Instagram (Business) / Marketing API OAuth in the same Meta app. */
+        facebook: {
+          appId: getEnvTrimmed("FACEBOOK_APP_ID"),
+          appSecret: getEnvTrimmed("FACEBOOK_APP_SECRET")
+        },
+        /** Instagram Login (standalone professional accounts). */
+        instagramStandalone: {
+          appId: getEnv("INSTAGRAM_APP_ID", ""),
+          appSecret: getEnv("INSTAGRAM_APP_SECRET", "")
         }
       }
     };
@@ -1226,6 +1281,127 @@ function queueRedisOptionsFromConfig() {
 function createQueueIoredisClient() {
   return new IORedis__default.default(queueRedisOptionsFromConfig());
 }
+function isR2ConnectionReady(cfg) {
+  return Boolean(
+    cfg.accountId?.trim() && cfg.accessKeyId?.trim() && cfg.secretAccessKey?.trim() && cfg.bucket?.trim()
+  );
+}
+var R2StorageClient = class {
+  constructor(cfg) {
+    this.cfg = cfg;
+    const endpoint = `https://${cfg.accountId}.r2.cloudflarestorage.com`;
+    this.client = new clientS3.S3Client({
+      region: cfg.region || "auto",
+      endpoint,
+      credentials: {
+        accessKeyId: cfg.accessKeyId,
+        secretAccessKey: cfg.secretAccessKey
+      }
+    });
+  }
+  client;
+  async putObject(key, body, contentType) {
+    await this.client.send(
+      new clientS3.PutObjectCommand({
+        Bucket: this.cfg.bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType
+      })
+    );
+  }
+  async getObjectBuffer(key) {
+    const out = await this.client.send(
+      new clientS3.GetObjectCommand({
+        Bucket: this.cfg.bucket,
+        Key: key
+      })
+    );
+    const stream = out.Body;
+    const chunks = [];
+    for await (const chunk of stream) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    const buffer = Buffer.concat(chunks);
+    const contentType = out.ContentType ?? "application/octet-stream";
+    return { buffer, contentType };
+  }
+  async deleteObject(key) {
+    await this.client.send(
+      new clientS3.DeleteObjectCommand({
+        Bucket: this.cfg.bucket,
+        Key: key
+      })
+    );
+  }
+  async createMultipartUpload(params) {
+    const command = new clientS3.CreateMultipartUploadCommand({
+      Bucket: this.cfg.bucket,
+      Key: params.key,
+      ContentType: params.contentType,
+      ...params.fileHash ? { Metadata: { "x-amz-meta-file-hash": params.fileHash } } : {}
+    });
+    const response = await this.client.send(command);
+    if (!response.UploadId || !response.Key) {
+      throw new Error("Multipart upload initialization failed");
+    }
+    return { uploadId: response.UploadId, key: response.Key };
+  }
+  async signPart(params) {
+    const command = new clientS3.UploadPartCommand({
+      Bucket: this.cfg.bucket,
+      Key: params.key,
+      PartNumber: params.partNumber,
+      UploadId: params.uploadId
+    });
+    const url = await s3RequestPresigner.getSignedUrl(this.client, command, {
+      expiresIn: params.expiresInSeconds ?? 3600
+    });
+    return { url };
+  }
+  async prepareUploadParts(params) {
+    const presignedUrls = {};
+    for (const part of params.parts) {
+      const { url } = await this.signPart({
+        key: params.key,
+        uploadId: params.uploadId,
+        partNumber: part.number,
+        expiresInSeconds: params.expiresInSeconds
+      });
+      presignedUrls[String(part.number)] = url;
+    }
+    return { presignedUrls };
+  }
+  async listParts(params) {
+    const command = new clientS3.ListPartsCommand({
+      Bucket: this.cfg.bucket,
+      Key: params.key,
+      UploadId: params.uploadId
+    });
+    const response = await this.client.send(command);
+    return response.Parts ?? [];
+  }
+  async abortMultipartUpload(params) {
+    const command = new clientS3.AbortMultipartUploadCommand({
+      Bucket: this.cfg.bucket,
+      Key: params.key,
+      UploadId: params.uploadId
+    });
+    return await this.client.send(command);
+  }
+  async completeMultipartUpload(params) {
+    const command = new clientS3.CompleteMultipartUploadCommand({
+      Bucket: this.cfg.bucket,
+      Key: params.key,
+      UploadId: params.uploadId,
+      MultipartUpload: { Parts: params.parts }
+    });
+    const response = await this.client.send(command);
+    const base = (params.publicBaseUrl ?? "").trim().replace(/\/+$/, "");
+    const location = base ? `${base}/${params.key.replace(/^\/+/, "")}` : response.Location ?? null;
+    return { Location: location };
+  }
+};
 
 // connections/index.ts
 var supabaseServiceClientSingleton;
@@ -1600,6 +1776,7 @@ var AuthUserDTOMapper = class {
 var serverConfig3 = config.server;
 var AuthController = class {
   userRepository;
+  userService;
   authenticationService;
   emailService;
   organizationService;
@@ -1696,9 +1873,10 @@ var AuthController = class {
     if (Array.isArray(allowed) && allowed.includes(origin)) return;
     throw new AuthError(`Origin ${origin} not allowed`, 403);
   }
-  constructor(authenticationService2, userRepository2, emailService2, organizationService2) {
+  constructor(authenticationService2, userRepository2, userService2, emailService2, organizationService2) {
     this.authenticationService = authenticationService2;
     this.userRepository = userRepository2;
+    this.userService = userService2;
     this.emailService = emailService2;
     this.organizationService = organizationService2;
   }
@@ -1742,14 +1920,50 @@ var AuthController = class {
         res.redirect(authErrorUrl);
         return;
       }
-      const { session, user } = await this.authenticationService.exchangeOAuthCodeForSession({ req, res }, code);
+      const { session, user: authUser } = await this.authenticationService.exchangeOAuthCodeForSession(
+        { req, res },
+        code
+      );
+      const emailRaw = authUser.email?.trim();
+      if (!emailRaw) {
+        logger.warn({ msg: "OAuth user has no email; cannot sync public.users", userId: authUser.id });
+        res.redirect(
+          `${frontendUrl}/auth-error?message=${encodeURIComponent("Google sign-in failed: missing email on account.")}`
+        );
+        return;
+      }
+      const email = normalizeEmail(emailRaw);
+      const meta = authUser.user_metadata;
+      const fullName = typeof meta?.full_name === "string" && meta.full_name.trim() || typeof meta?.name === "string" && meta.name.trim() || email;
+      const googleIdentity = authUser.identities?.find((i) => i.provider === "google");
+      const idData = googleIdentity?.identity_data;
+      const providerId = typeof idData?.sub === "string" && idData.sub || (googleIdentity?.id != null ? String(googleIdentity.id) : authUser.id);
+      const { error: upsertOAuthError } = await this.userRepository.upsertUserFromOAuth({
+        id: authUser.id,
+        authId: authUser.id,
+        email,
+        fullName,
+        provider: "google",
+        providerId
+      });
+      if (upsertOAuthError) {
+        logger.error({
+          msg: "OAuth: failed to upsert public.users (required before refresh_tokens)",
+          userId: authUser.id,
+          error: upsertOAuthError
+        });
+        res.redirect(
+          `${frontendUrl}/auth-error?message=${encodeURIComponent("Could not finish sign-in. Please try again.")}`
+        );
+        return;
+      }
       const clientInfo = {
         ipAddress: req.ip ?? req.socket?.remoteAddress,
         userAgent: req.headers["user-agent"]
       };
       try {
         await this.authenticationService.generateRefreshToken({
-          userId: user.id,
+          userId: authUser.id,
           token: session.refresh_token,
           ipAddress: clientInfo.ipAddress,
           userAgent: clientInfo.userAgent
@@ -1757,15 +1971,15 @@ var AuthController = class {
       } catch (err) {
         logger.warn({
           msg: "Failed to store refresh token (oauth)",
-          userId: user.id,
+          userId: authUser.id,
           error: err.message
         });
       }
-      const { updateError: oauthVerifyErr } = await this.userRepository.updateEmailVerification(user.id, true);
+      const { updateError: oauthVerifyErr } = await this.userRepository.updateEmailVerification(authUser.id, true);
       if (oauthVerifyErr) {
         logger.warn({
           msg: "Failed to mark OAuth user email verified in public.users",
-          userId: user.id,
+          userId: authUser.id,
           error: oauthVerifyErr
         });
       }
@@ -1792,6 +2006,17 @@ var AuthController = class {
         fullName ?? email,
         { req, res }
       );
+      if (newUser?.id && email) {
+        const { error: upsertError } = await this.userRepository.upsertUserFromAuth({
+          id: newUser.id,
+          authId: newUser.id,
+          email,
+          fullName: fullName ?? email
+        });
+        if (upsertError) {
+          logger.warn({ msg: "upsertUserFromAuth failed", userId: newUser.id, error: upsertError });
+        }
+      }
       if (session?.refresh_token && newUser?.id) {
         const clientInfo = {
           ipAddress: req.ip ?? req.socket?.remoteAddress,
@@ -1812,17 +2037,6 @@ var AuthController = class {
           });
         }
         this.setRefreshTokenCookie(res, session.refresh_token);
-      }
-      if (newUser?.id && email) {
-        const { error: upsertError } = await this.userRepository.upsertUserFromAuth({
-          id: newUser.id,
-          authId: newUser.id,
-          email,
-          fullName: fullName ?? email
-        });
-        if (upsertError) {
-          logger.warn({ msg: "upsertUserFromAuth failed", userId: newUser.id, error: upsertError });
-        }
       }
       if (newUser?.id) {
         const defaultOrg = await this.organizationService.createDefaultOrganizationForNewUser(newUser.id, {
@@ -2240,6 +2454,9 @@ var AuthController = class {
       }
       await this.userRepository.updateEmailVerification(user.id, true);
       await this.userRepository.updateVerificationToken(user.id, null, null);
+      if (user.auth_id) {
+        await this.userService.invalidateCachesAfterEmailVerification(user.auth_id, user.email);
+      }
       if (this.emailService.isEnabled && user.email) {
         try {
           await this.emailService.send(
@@ -3220,9 +3437,9 @@ var FeedbackController = class {
   createFeedback = async (req, res, next) => {
     try {
       const body = req.body;
-      const auth4 = req;
+      const auth5 = req;
       const fromBody = body.email?.trim();
-      const emailFromAuth = auth4.user?.email?.trim();
+      const emailFromAuth = auth5.user?.email?.trim();
       const payload = {
         ...body,
         email: fromBody && fromBody.length > 0 ? fromBody : emailFromAuth && emailFromAuth.length > 0 ? emailFromAuth : void 0
@@ -3470,6 +3687,9 @@ function buildAdminBlogActivitiesCacheKey(options, prefix = "blog:admin:activiti
     `activityType:${activityType}`
   ].join(":");
 }
+
+// repositories/index.ts
+init_GlobalConfig();
 init_Logger();
 var TABLE_NAME = "refresh_tokens";
 var RefreshTokenRepository = class {
@@ -5222,15 +5442,222 @@ var BlogRepository = class {
   }
 };
 
-// repositories/StorageRepository.ts
+// repositories/StorageR2Repository.ts
+var COMPOSER_MEDIA_BUCKET_NAME = "social_media";
+var StorageR2Repository = class {
+  client;
+  constructor(r2Connection2) {
+    this.client = r2Connection2 ? new R2StorageClient(r2Connection2) : null;
+  }
+  isConfigured() {
+    return this.client !== null;
+  }
+  assertClient() {
+    if (!this.client) {
+      throw new DatabaseError("R2 object storage is not configured for this environment", {
+        operation: "upload",
+        resource: { type: "storage", name: COMPOSER_MEDIA_BUCKET_NAME },
+        statusCode: 503
+      });
+    }
+    return this.client;
+  }
+  async downloadObject(path5) {
+    const r2 = this.assertClient();
+    const { buffer, contentType } = await r2.getObjectBuffer(path5);
+    const data = new Blob([new Uint8Array(buffer)], { type: contentType });
+    return { data, error: null };
+  }
+  async putObject(key, buffer, contentType) {
+    const r2 = this.assertClient();
+    await r2.putObject(key, buffer, contentType || "application/octet-stream");
+  }
+  async deleteObject(key) {
+    const r2 = this.assertClient();
+    await r2.deleteObject(key);
+  }
+  async createMultipartUpload(params) {
+    const r2 = this.assertClient();
+    return r2.createMultipartUpload(params);
+  }
+  async prepareUploadParts(params) {
+    const r2 = this.assertClient();
+    return r2.prepareUploadParts(params);
+  }
+  async signPart(params) {
+    const r2 = this.assertClient();
+    return r2.signPart(params);
+  }
+  async listParts(params) {
+    const r2 = this.assertClient();
+    return r2.listParts(params);
+  }
+  async abortMultipartUpload(params) {
+    const r2 = this.assertClient();
+    return r2.abortMultipartUpload(params);
+  }
+  async completeMultipartUpload(params) {
+    const r2 = this.assertClient();
+    return r2.completeMultipartUpload(params);
+  }
+};
+
+// repositories/MediaRepository.ts
+init_GlobalConfig();
+function publicUrlForObjectKey(key) {
+  const storage = config.storage;
+  const provider = String(storage.provider ?? "r2").toLowerCase();
+  const server2 = config.server;
+  const base = provider === "local" ? `${String(server2.frontendDomainUrl ?? server2.backendDomainUrl ?? "").trim().replace(/\/+$/, "")}/uploads` : storage.r2?.publicBaseUrl?.trim().replace(/\/+$/, "");
+  if (!base) return null;
+  return `${base}/${key.replace(/^\/+/, "")}`;
+}
+function mediaKindForPath(path5) {
+  const ext = path5.split(".").pop()?.toLowerCase() ?? "";
+  if (["png", "jpg", "jpeg", "gif", "webp", "svg", "avif"].includes(ext)) return "image";
+  if (["mp4", "mov", "webm", "m4v", "mpeg"].includes(ext)) return "video";
+  if (["mp3", "wav", "ogg", "m4a", "aac"].includes(ext)) return "audio";
+  if (["pdf"].includes(ext)) return "document";
+  return "other";
+}
+var TABLE_MEDIA = "media";
+var MediaRepository = class {
+  constructor(supabase2) {
+    this.supabase = supabase2;
+  }
+  async getMedia(organizationId, page, pageSize) {
+    const safePageSize = Math.min(100, Math.max(1, Math.trunc(pageSize)));
+    const safePage = Math.max(1, Math.trunc(page));
+    const { count, error: countError } = await this.supabase.from(TABLE_MEDIA).select("id", { count: "exact", head: true }).eq("organization_id", organizationId).is("deleted_at", null);
+    if (countError) {
+      throw new DatabaseError(`Failed to count media: ${countError.message}`, {
+        cause: countError,
+        operation: "count",
+        resource: { type: "table", name: TABLE_MEDIA }
+      });
+    }
+    const total = count ?? 0;
+    const pages = Math.max(1, Math.ceil(total / safePageSize));
+    const boundedPage = Math.min(safePage, pages);
+    const boundedFrom = (boundedPage - 1) * safePageSize;
+    const boundedTo = boundedFrom + safePageSize - 1;
+    const { data, error } = await this.supabase.from(TABLE_MEDIA).select(
+      "id, name, original_name, path, virtual_path, organization_id, created_at, updated_at, deleted_at, file_size, type, thumbnail, alt, thumbnail_timestamp"
+    ).eq("organization_id", organizationId).is("deleted_at", null).order("created_at", { ascending: false }).range(boundedFrom, boundedTo);
+    if (error) {
+      throw new DatabaseError(`Failed to list media: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_MEDIA }
+      });
+    }
+    const rows = data ?? [];
+    const results = rows.map((row) => ({
+      id: row.id,
+      path: row.path,
+      virtualPath: row.virtual_path ?? "/",
+      name: row.original_name || row.name,
+      size: row.file_size ?? 0,
+      lastModified: row.updated_at ?? null,
+      publicUrl: publicUrlForObjectKey(row.path),
+      kind: mediaKindForPath(row.path),
+      alt: row.alt ?? null,
+      thumbnail: row.thumbnail ?? null,
+      thumbnailPublicUrl: row.thumbnail ? publicUrlForObjectKey(row.thumbnail) : null,
+      thumbnailTimestamp: row.thumbnail_timestamp ?? null
+    }));
+    return { results, total, pages, page: boundedPage, pageSize: safePageSize };
+  }
+  async saveFile(params) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const payload = {
+      organization_id: params.organizationId,
+      name: params.name,
+      original_name: params.originalName ?? null,
+      path: params.path,
+      virtual_path: params.virtualPath ?? "/",
+      file_size: params.fileSize ?? 0,
+      type: params.type ?? "image",
+      created_at: now,
+      updated_at: now
+    };
+    const { data, error } = await this.supabase.from(TABLE_MEDIA).insert(payload).select("id, path").single();
+    if (error || !data) {
+      throw new DatabaseError(`Failed to save media: ${error?.message ?? "no row"}`, {
+        cause: error ?? void 0,
+        operation: "insert",
+        resource: { type: "table", name: TABLE_MEDIA }
+      });
+    }
+    const row = data;
+    return { id: row.id, path: row.path, publicUrl: publicUrlForObjectKey(row.path) };
+  }
+  async getMediaById(organizationId, id) {
+    const { data, error } = await this.supabase.from(TABLE_MEDIA).select(
+      "id, name, original_name, path, virtual_path, organization_id, created_at, updated_at, deleted_at, file_size, type, thumbnail, alt, thumbnail_timestamp"
+    ).eq("organization_id", organizationId).eq("id", id).maybeSingle();
+    if (error) {
+      throw new DatabaseError(`Failed to fetch media: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_MEDIA }
+      });
+    }
+    return data ?? null;
+  }
+  async getMediaByPath(organizationId, path5) {
+    const { data, error } = await this.supabase.from(TABLE_MEDIA).select(
+      "id, name, original_name, path, virtual_path, organization_id, created_at, updated_at, deleted_at, file_size, type, thumbnail, alt, thumbnail_timestamp"
+    ).eq("organization_id", organizationId).eq("path", path5).is("deleted_at", null).maybeSingle();
+    if (error) {
+      throw new DatabaseError(`Failed to fetch media: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_MEDIA }
+      });
+    }
+    return data ?? null;
+  }
+  async softDeleteMedia(organizationId, id) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE_MEDIA).update({ deleted_at: now, updated_at: now }).eq("organization_id", organizationId).eq("id", id).is("deleted_at", null).select("id").maybeSingle();
+    if (error) {
+      throw new DatabaseError(`Failed to delete media: ${error.message}`, {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_MEDIA }
+      });
+    }
+    return data != null;
+  }
+  async saveMediaInformation(organizationId, dto) {
+    const updated_at = (/* @__PURE__ */ new Date()).toISOString();
+    const payload = { updated_at };
+    if (dto.alt !== void 0) payload.alt = dto.alt;
+    if (dto.thumbnail !== void 0) payload.thumbnail = dto.thumbnail;
+    if (dto.thumbnailTimestamp !== void 0) payload.thumbnail_timestamp = dto.thumbnailTimestamp;
+    const { data, error } = await this.supabase.from(TABLE_MEDIA).update(payload).eq("organization_id", organizationId).eq("id", dto.id).select("id, path").single();
+    if (error || !data) {
+      throw new DatabaseError(`Failed to update media info: ${error?.message ?? "no row"}`, {
+        cause: error ?? void 0,
+        operation: "update",
+        resource: { type: "table", name: TABLE_MEDIA }
+      });
+    }
+    const row = data;
+    return { id: row.id, path: row.path, publicUrl: publicUrlForObjectKey(row.path) };
+  }
+};
+
+// repositories/StorageSupabaseRepository.ts
 var DATABASE_NAMES = {
   AVATARS: "avatars",
   BLOG_IMAGES: "blog_images"
 };
-function isAllowedDatabaseName(name) {
-  return typeof name === "string" && Object.values(DATABASE_NAMES).includes(name);
+function isSupabaseImageBucketName(name) {
+  return name === DATABASE_NAMES.AVATARS || name === DATABASE_NAMES.BLOG_IMAGES;
 }
-var StorageRepository = class {
+var StorageSupabaseRepository = class {
   constructor(supabaseServiceClient) {
     this.supabaseServiceClient = supabaseServiceClient;
   }
@@ -5238,8 +5665,8 @@ var StorageRepository = class {
     const { data } = this.supabaseServiceClient.storage.from(databaseName).getPublicUrl(imageUrl);
     return data.publicUrl;
   }
-  async downloadImage(databaseName, path3) {
-    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).download(path3);
+  async downloadImage(databaseName, path5) {
+    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).download(path5);
     if (error) {
       const rawMsg = error.message;
       const msg = (typeof rawMsg === "string" ? rawMsg : JSON.stringify(rawMsg ?? error) || "Unknown storage error").toLowerCase();
@@ -5255,7 +5682,7 @@ var StorageRepository = class {
     return { data, error };
   }
   async uploadImage(databaseName, file, uid) {
-    const fileExt = file.originalname.split(".").pop();
+    const fileExt = file.originalname.split(".").pop() || "bin";
     const filePath = `${uid}-${Math.random()}.${fileExt}`;
     const { error: uploadError } = await this.supabaseServiceClient.storage.from(databaseName).upload(filePath, file.buffer, {
       contentType: file.mimetype,
@@ -5270,8 +5697,8 @@ var StorageRepository = class {
     }
     return filePath;
   }
-  async deleteImage(databaseName, path3) {
-    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).remove([path3]);
+  async deleteImage(databaseName, path5) {
+    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).remove([path5]);
     if (error) {
       throw new DatabaseError(`Error in deleteImage: ${databaseName} with message ${error.message}`, {
         cause: error,
@@ -5301,6 +5728,73 @@ var IntegrationRepository = class {
       });
     }
     return data ?? [];
+  }
+  /** List workspace channel groups (`integration_customers`); aligns with common integration service naming. */
+  async customers(organizationId) {
+    const { data, error } = await this.supabase.from("integration_customers").select("id, name").eq("organization_id", organizationId).order("name", { ascending: true });
+    if (error) {
+      throw new DatabaseError("Failed to list channel groups", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: "integration_customers" }
+      });
+    }
+    return data ?? [];
+  }
+  async createIntegrationCustomer(organizationId, name) {
+    const trimmed = name.trim();
+    const { data, error } = await this.supabase.from("integration_customers").insert({
+      organization_id: organizationId,
+      name: trimmed,
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    }).select("id, name").single();
+    if (error || !data) {
+      throw new DatabaseError("Failed to create channel group", {
+        cause: error ?? new Error("no row"),
+        operation: "insert",
+        resource: { type: "table", name: "integration_customers" }
+      });
+    }
+    return data;
+  }
+  /**
+   * Assign or clear `integrations.customer_id` by customer (group) id.
+   * `group` is the `integration_customers.id`; empty or whitespace clears the assignment (same as `null`).
+   */
+  async updateIntegrationGroup(organizationId, integrationId, group) {
+    const customerId = group == null || group.trim() === "" ? null : group.trim();
+    const { error } = await this.supabase.from(TABLE2).update({
+      customer_id: customerId,
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null);
+    if (error) {
+      throw new DatabaseError("Failed to update channel group assignment", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+  }
+  /**
+   * Find-or-create a customer by display name and attach to the integration, or clear when `name` is empty.
+   * Matches the usual integration-layer pattern for grouping channels by label in one call.
+   */
+  async updateOnCustomerName(organizationId, integrationId, name) {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      await this.updateIntegrationGroup(organizationId, integrationId, null);
+      return;
+    }
+    const { data: existing, error: findError } = await this.supabase.from("integration_customers").select("id").eq("organization_id", organizationId).eq("name", trimmed).maybeSingle();
+    if (findError) {
+      throw new DatabaseError("Failed to resolve channel group", {
+        cause: findError,
+        operation: "select",
+        resource: { type: "table", name: "integration_customers" }
+      });
+    }
+    const customerId = existing?.id ?? (await this.createIntegrationCustomer(organizationId, trimmed)).id;
+    await this.updateIntegrationGroup(organizationId, integrationId, customerId);
   }
   async getById(organizationId, id) {
     const { data, error } = await this.supabase.rpc("internal_get_integration_by_org_and_id", {
@@ -5389,6 +5883,31 @@ var IntegrationRepository = class {
       });
     }
   }
+  /** Update a channel by primary key (e.g. completing Instagram Business account selection). */
+  async updateIntegrationById(organizationId, integrationId, params) {
+    const tokenExpiration = params.expiresInSeconds != null && params.expiresInSeconds > 0 ? new Date(Date.now() + params.expiresInSeconds * 1e3).toISOString() : null;
+    const { data, error } = await this.supabase.from(TABLE2).update({
+      internal_id: params.internalId,
+      name: params.name,
+      picture: params.picture,
+      token: params.token,
+      refresh_token: params.refreshToken || null,
+      token_expiration: tokenExpiration,
+      profile: params.profile,
+      in_between_steps: params.inBetweenSteps,
+      root_internal_id: params.rootInternalId,
+      refresh_needed: false,
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null).select("*").single();
+    if (error || !data) {
+      throw new DatabaseError("Failed to update integration", {
+        cause: error ?? new Error("no row"),
+        operation: "update",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+    return data;
+  }
   /** @returns whether a row was updated */
   async softDeleteChannel(organizationId, id, internalId) {
     const suffix = `${Date.now().toString(36)}`;
@@ -5472,6 +5991,120 @@ var NotificationRepository = class {
     };
   }
 };
+var TABLE_POSTS = "posts";
+var TABLE_TAGS = "post_tags";
+var TABLE_POSTS_TAGS = "post_tag_assignments";
+var PostsRepository = class {
+  constructor(supabase2) {
+    this.supabase = supabase2;
+  }
+  /** New group id for rows composed together (Prisma `Post.group`). */
+  newPostGroup() {
+    return uuid.v4();
+  }
+  async hasQueueSlotTaken(organizationId, publishDateIso) {
+    const { data, error } = await this.supabase.from(TABLE_POSTS).select("id").eq("organization_id", organizationId).eq("state", "QUEUE").eq("publish_date", publishDateIso).is("deleted_at", null).limit(1).maybeSingle();
+    if (error) {
+      throw new DatabaseError(`Failed to check schedule slot: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    return data != null;
+  }
+  async listTagsByOrganization(organizationId) {
+    const { data, error } = await this.supabase.from(TABLE_TAGS).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).is("deleted_at", null).order("name", { ascending: true });
+    if (error) {
+      throw new DatabaseError(`Failed to list tags: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_TAGS }
+      });
+    }
+    return data ?? [];
+  }
+  async insertTag(organizationId, nameTrimmed, color) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE_TAGS).insert({
+      org_id: organizationId,
+      name: nameTrimmed,
+      color,
+      created_at: now,
+      updated_at: now
+    }).select("id, name, color, org_id, deleted_at, created_at, updated_at").single();
+    if (error || !data) {
+      throw new DatabaseError(`Failed to insert tag: ${error?.message ?? "no row"}`, {
+        cause: error,
+        operation: "insert",
+        resource: { type: "table", name: TABLE_TAGS }
+      });
+    }
+    return data;
+  }
+  async findTagByOrgAndName(organizationId, name) {
+    const { data, error } = await this.supabase.from(TABLE_TAGS).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).eq("name", name).is("deleted_at", null).maybeSingle();
+    if (error) {
+      throw new DatabaseError(`Failed to find tag: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_TAGS }
+      });
+    }
+    return data;
+  }
+  /** Soft-delete a workspace tag. Returns true when a row was updated. */
+  async softDeleteTagForOrganization(organizationId, tagId) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE_TAGS).update({ deleted_at: now, updated_at: now }).eq("id", tagId).eq("org_id", organizationId).is("deleted_at", null).select("id").maybeSingle();
+    if (error) {
+      throw new DatabaseError(`Failed to delete tag: ${error.message}`, {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_TAGS }
+      });
+    }
+    return data != null;
+  }
+  async insertPostGroup(rows) {
+    if (rows.length === 0) {
+      return [];
+    }
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const payload = rows.map((r) => ({
+      ...r,
+      created_at: now,
+      updated_at: now
+    }));
+    const { data, error } = await this.supabase.from(TABLE_POSTS).insert(payload).select("*");
+    if (error || !data?.length) {
+      throw new DatabaseError(`Failed to create posts: ${error?.message ?? "no rows"}`, {
+        cause: error ?? void 0,
+        operation: "insert",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    return data;
+  }
+  async linkTagsToPosts(postIds, tagIds) {
+    if (postIds.length === 0 || tagIds.length === 0) return;
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const rows = [];
+    for (const postId of postIds) {
+      for (const tagId of tagIds) {
+        rows.push({ post_id: postId, tag_id: tagId, created_at: now, updated_at: now });
+      }
+    }
+    const { error } = await this.supabase.from(TABLE_POSTS_TAGS).insert(rows);
+    if (error) {
+      throw new DatabaseError(`Failed to link tags: ${error.message}`, {
+        cause: error,
+        operation: "insert",
+        resource: { type: "table", name: TABLE_POSTS_TAGS }
+      });
+    }
+  }
+};
 
 // repositories/index.ts
 var refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
@@ -5481,9 +6114,20 @@ var organizationRepository = new OrganizationRepository(supabaseServiceClientCon
 var rbacRepository = new RbacRepository(supabaseServiceClientConnection);
 var feedbackRepository = new FeedbackRepository(supabaseServiceClientConnection);
 var blogRepository = new BlogRepository(supabaseServiceClientConnection);
-var storageRepository = new StorageRepository(supabaseServiceClientConnection);
+var r2Slice = config.storage?.r2;
+var r2Connection = r2Slice && isR2ConnectionReady(r2Slice) ? {
+  accountId: r2Slice.accountId,
+  accessKeyId: r2Slice.accessKeyId,
+  secretAccessKey: r2Slice.secretAccessKey,
+  bucket: r2Slice.bucket,
+  region: (r2Slice.region || "auto").trim() || "auto"
+} : null;
+var storageR2Repository = new StorageR2Repository(r2Connection);
+var mediaRepository = new MediaRepository(supabaseServiceClientConnection);
+var storageSupabaseRepository = new StorageSupabaseRepository(supabaseServiceClientConnection);
 var integrationRepository = new IntegrationRepository(supabaseServiceClientConnection);
 var notificationRepository = new NotificationRepository(supabaseServiceClientConnection);
+var postsRepository = new PostsRepository(supabaseServiceClientConnection);
 
 // services/AuthenticationService.ts
 init_Logger();
@@ -5580,7 +6224,7 @@ var AuthenticationService = class {
     }
     return {
       session: data.session,
-      user: { id: data.user.id }
+      user: data.user
     };
   }
   async refreshToken(refreshToken, options = {}) {
@@ -5848,6 +6492,15 @@ var UserService = class {
     await this._invalidateUserRelatedCaches({
       authUserId,
       userEmail: userData?.email ?? void 0
+    });
+  }
+  /**
+   * Call after email verification is persisted (e.g. verify-signup) so GET /users/me is not stale.
+   */
+  async invalidateCachesAfterEmailVerification(authUserId, userEmail) {
+    await this._invalidateUserRelatedCaches({
+      authUserId,
+      userEmail: userEmail ?? void 0
     });
   }
   /**
@@ -7258,7 +7911,7 @@ var ConfigService = class {
   }
 };
 
-// integrations/providers/threadsProvider.ts
+// integrations/providers/instagramBusinessProvider.ts
 init_GlobalConfig();
 
 // utils/make.is.ts
@@ -7271,13 +7924,335 @@ var makeId = (length) => {
   return text;
 };
 
-// integrations/providers/threadsProvider.ts
-function frontendOrigin() {
-  const url = config.server?.frontendDomainUrl ?? "http://localhost:5173";
-  return url.indexOf("https") === -1 ? `https://redirectmeto.com/${url}` : url;
+// integrations/utils/oauthFrontendOrigin.ts
+init_GlobalConfig();
+function normalizeOAuthOriginInput(raw) {
+  return String(raw).trim().replace(/\/+$/, "");
 }
+function oauthFrontendOrigin() {
+  const raw = config.server?.frontendDomainUrl ?? "http://localhost:5173";
+  let candidate = normalizeOAuthOriginInput(raw);
+  if (!/^https?:\/\//i.test(candidate)) {
+    candidate = `https://${candidate}`;
+  }
+  try {
+    const u = new URL(candidate);
+    if (u.protocol === "https:") {
+      return u.origin;
+    }
+    return `https://redirectmeto.com/${u.origin}`;
+  } catch {
+    return candidate.toLowerCase().startsWith("https") ? candidate : `https://redirectmeto.com/${raw}`;
+  }
+}
+
+// integrations/providers/instagramBusinessProvider.ts
+var GRAPH = "https://graph.facebook.com/v20.0";
+function facebookOAuth() {
+  return config.integrations.facebook;
+}
+function instagramBusinessRedirectUri() {
+  return `${oauthFrontendOrigin()}/account/integrations/social/instagram-business`;
+}
+var InstagramBusinessProvider = class {
+  identifier = "instagram-business";
+  name = "Instagram (Business)";
+  editor = "normal";
+  isBetweenSteps = true;
+  refreshCron = true;
+  toolTip = "Instagram account must be business and linked to a Facebook Page";
+  scopes = [
+    "instagram_basic",
+    "pages_show_list",
+    "pages_read_engagement",
+    "business_management",
+    "instagram_content_publish",
+    "instagram_manage_comments",
+    "instagram_manage_insights"
+  ];
+  maxLength(_additionalSettings) {
+    return 2200;
+  }
+  async post(_id, _accessToken, _postDetails, _integration) {
+    throw new Error("Instagram Business posting is not implemented");
+  }
+  checkScopes(required, granted) {
+    const missing = required.filter((s) => !granted.includes(s));
+    if (missing.length > 0) {
+      throw new Error(`Missing permissions: ${missing.join(", ")}`);
+    }
+  }
+  async refreshToken(refresh_token) {
+    const { appId, appSecret } = facebookOAuth();
+    if (!appId || !appSecret) throw new Error("Facebook OAuth is not configured");
+    const tokenRes = await fetch(
+      `${GRAPH}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(refresh_token)}`
+    );
+    const extended = await tokenRes.json();
+    if (!extended.access_token) {
+      throw new Error(extended.error?.message ?? "Facebook token refresh failed");
+    }
+    const meRes = await fetch(
+      `${GRAPH}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
+    );
+    const me = await meRes.json();
+    return {
+      id: me.id ?? "",
+      name: me.name ?? "",
+      accessToken: extended.access_token,
+      refreshToken: extended.access_token,
+      expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs2__default.default().add(59, "days").unix() - dayjs2__default.default().unix(),
+      picture: me.picture?.data?.url ?? "",
+      username: ""
+    };
+  }
+  async generateAuthUrl() {
+    const { appId } = facebookOAuth();
+    if (!appId) throw new Error("Facebook OAuth is not configured");
+    const state = makeId(6);
+    const codeVerifier = makeId(10);
+    const redirectUri = instagramBusinessRedirectUri();
+    const url = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(this.scopes.join(","))}`;
+    return { url, codeVerifier, state };
+  }
+  async authenticate(params) {
+    const { appId, appSecret } = facebookOAuth();
+    if (!appId || !appSecret) return "Facebook OAuth is not configured";
+    const redirectUri = instagramBusinessRedirectUri();
+    const step1 = await fetch(
+      `${GRAPH}/oauth/access_token?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&grant_type=authorization_code&client_secret=${encodeURIComponent(appSecret)}&code=${encodeURIComponent(params.code)}`
+    );
+    const shortLived = await step1.json();
+    if (!shortLived.access_token) {
+      return shortLived.error?.message ?? "Facebook token exchange failed";
+    }
+    const step2 = await fetch(
+      `${GRAPH}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(shortLived.access_token)}`
+    );
+    const longLived = await step2.json();
+    if (!longLived.access_token) {
+      return longLived.error?.message ?? "Facebook long-lived token exchange failed";
+    }
+    const permRes = await fetch(
+      `${GRAPH}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
+    );
+    const permJson = await permRes.json();
+    const permissions = (permJson.data ?? []).filter((d) => d.status === "granted").map((p) => p.permission).filter(Boolean);
+    try {
+      this.checkScopes(this.scopes, permissions);
+    } catch (e) {
+      return e instanceof Error ? e.message : "Missing OAuth permissions";
+    }
+    const meRes = await fetch(
+      `${GRAPH}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
+    );
+    const me = await meRes.json();
+    return {
+      id: me.id ?? "",
+      name: me.name ?? "",
+      accessToken: longLived.access_token,
+      refreshToken: longLived.access_token,
+      expiresIn: dayjs2__default.default().add(59, "days").unix() - dayjs2__default.default().unix(),
+      picture: me.picture?.data?.url ?? "",
+      username: ""
+    };
+  }
+  /** Same as {@link listBetweenStepAccounts}; name matches common integration “pages” step after OAuth. */
+  async pages(accessToken) {
+    return this.listBetweenStepAccounts(accessToken);
+  }
+  /** Facebook Pages that have a linked Instagram professional account (for the between-steps picker). */
+  async listBetweenStepAccounts(accessToken) {
+    const res = await fetch(
+      `${GRAPH}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)&access_token=${encodeURIComponent(accessToken)}&limit=500`
+    );
+    const json2 = await res.json();
+    const rows = json2.data ?? [];
+    const withIg = rows.filter((r) => r.instagram_business_account?.id);
+    const out = [];
+    for (const p of withIg) {
+      const igId = p.instagram_business_account.id;
+      const igRes = await fetch(
+        `${GRAPH}/${igId}?fields=name,profile_picture_url,username&access_token=${encodeURIComponent(accessToken)}`
+      );
+      const ig = await igRes.json();
+      out.push({
+        pageId: p.id,
+        id: igId,
+        name: ig.name ?? p.name ?? ig.username ?? igId,
+        pictureUrl: ig.profile_picture_url || p.picture?.data?.url || ""
+      });
+    }
+    return out;
+  }
+  async fetchPageInformation(accessToken, data) {
+    const pageRes = await fetch(
+      `${GRAPH}/${data.pageId}?fields=access_token,name,picture.type(large)&access_token=${encodeURIComponent(accessToken)}`
+    );
+    const pageJson = await pageRes.json();
+    const pageToken = pageJson.access_token;
+    if (!pageToken) throw new Error("Could not load Page access token");
+    const igRes = await fetch(
+      `${GRAPH}/${data.id}?fields=username,name,profile_picture_url&access_token=${encodeURIComponent(accessToken)}`
+    );
+    const ig = await igRes.json();
+    return {
+      id: data.id,
+      name: ig.name ?? pageJson.name ?? "",
+      picture: ig.profile_picture_url ?? "",
+      access_token: pageToken,
+      username: ig.username ?? ""
+    };
+  }
+  async reConnect(_facebookUserId, instagramBusinessAccountId, accessToken) {
+    const accounts = await this.listBetweenStepAccounts(accessToken);
+    const match = accounts.find((a) => a.id === instagramBusinessAccountId);
+    if (!match) {
+      throw new Error("Selected Instagram account was not found for this login");
+    }
+    const information = await this.fetchPageInformation(accessToken, {
+      id: instagramBusinessAccountId,
+      pageId: match.pageId
+    });
+    return {
+      id: information.id,
+      name: information.name,
+      accessToken: information.access_token,
+      picture: information.picture,
+      username: information.username
+    };
+  }
+};
+
+// integrations/providers/instagramStandaloneProvider.ts
+init_GlobalConfig();
+var IG_GRAPH = "https://graph.instagram.com";
+function instagramStandaloneOAuth() {
+  return config.integrations.instagramStandalone;
+}
+function instagramStandaloneRedirectUri() {
+  return `${oauthFrontendOrigin()}/account/integrations/social/instagram-standalone`;
+}
+function normalizeOAuthPermissionList(raw) {
+  if (Array.isArray(raw)) {
+    return raw.filter((x) => typeof x === "string");
+  }
+  if (typeof raw === "string") {
+    return raw.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+var InstagramStandaloneProvider = class {
+  identifier = "instagram-standalone";
+  name = "Instagram (Standalone)";
+  editor = "normal";
+  isBetweenSteps = false;
+  refreshCron = true;
+  /** Matches Meta’s Business Login authorize example; omit scopes your app has not enabled in the dashboard. */
+  scopes = [
+    "instagram_business_basic",
+    "instagram_business_content_publish",
+    "instagram_business_manage_comments",
+    "instagram_business_manage_insights"
+  ];
+  maxLength(_additionalSettings) {
+    return 2200;
+  }
+  async post(_id, _accessToken, _postDetails, _integration) {
+    throw new Error("Instagram posting is not implemented");
+  }
+  checkScopes(required, granted) {
+    const missing = required.filter((s) => !granted.includes(s));
+    if (missing.length > 0) {
+      throw new Error(`Missing permissions: ${missing.join(", ")}`);
+    }
+  }
+  async refreshToken(refresh_token) {
+    const res = await fetch(
+      `${IG_GRAPH}/refresh_access_token?grant_type=ig_refresh_token&access_token=${encodeURIComponent(refresh_token)}`
+    );
+    const body = await res.json();
+    if (!body.access_token) {
+      throw new Error(body.error?.message ?? "Instagram token refresh failed");
+    }
+    const meRes = await fetch(
+      `https://graph.instagram.com/v21.0/me?fields=user_id,username,name,profile_picture_url&access_token=${encodeURIComponent(body.access_token)}`
+    );
+    const me = await meRes.json();
+    const id = me.user_id ?? "";
+    return {
+      id,
+      name: me.name ?? me.username ?? "",
+      accessToken: body.access_token,
+      refreshToken: body.access_token,
+      expiresIn: dayjs2__default.default().add(58, "days").unix() - dayjs2__default.default().unix(),
+      picture: me.profile_picture_url ?? "",
+      username: me.username ?? ""
+    };
+  }
+  async generateAuthUrl() {
+    const { appId } = instagramStandaloneOAuth();
+    if (!appId) throw new Error("Instagram OAuth is not configured");
+    const state = makeId(6);
+    const codeVerifier = makeId(10);
+    const redirectUri = instagramStandaloneRedirectUri();
+    const url = `https://www.instagram.com/oauth/authorize?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(this.scopes.join(","))}&state=${encodeURIComponent(state)}`;
+    return { url, codeVerifier, state };
+  }
+  async authenticate(params) {
+    const { appId, appSecret } = instagramStandaloneOAuth();
+    if (!appId || !appSecret) return "Instagram OAuth is not configured";
+    const redirectUri = instagramStandaloneRedirectUri();
+    const formData = new FormData();
+    formData.append("client_id", appId);
+    formData.append("client_secret", appSecret);
+    formData.append("grant_type", "authorization_code");
+    formData.append("redirect_uri", redirectUri);
+    formData.append("code", params.code);
+    const shortRes = await fetch("https://api.instagram.com/oauth/access_token", {
+      method: "POST",
+      body: formData
+    });
+    const shortRaw = await shortRes.json();
+    const shortRow = shortRaw.data?.[0] ?? shortRaw;
+    const shortToken = shortRow.access_token;
+    if (!shortToken) {
+      return shortRaw.error_message ?? "Instagram token exchange failed";
+    }
+    const longRes = await fetch(
+      `${IG_GRAPH}/access_token?grant_type=ig_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&access_token=${encodeURIComponent(shortToken)}`
+    );
+    const longLived = await longRes.json();
+    if (!longLived.access_token) {
+      return longLived.error?.message ?? "Instagram long-lived token exchange failed";
+    }
+    const granted = normalizeOAuthPermissionList(shortRow.permissions);
+    try {
+      this.checkScopes(this.scopes, granted);
+    } catch (e) {
+      return e instanceof Error ? e.message : "Missing OAuth permissions";
+    }
+    const meRes = await fetch(
+      `https://graph.instagram.com/v21.0/me?fields=user_id,username,name,profile_picture_url&access_token=${encodeURIComponent(longLived.access_token)}`
+    );
+    const me = await meRes.json();
+    const id = me.user_id ?? "";
+    return {
+      id,
+      name: me.name ?? me.username ?? "",
+      accessToken: longLived.access_token,
+      refreshToken: longLived.access_token,
+      expiresIn: dayjs2__default.default().add(58, "days").unix() - dayjs2__default.default().unix(),
+      picture: me.profile_picture_url ?? "",
+      username: me.username ?? ""
+    };
+  }
+};
+
+// integrations/providers/threadsProvider.ts
+init_GlobalConfig();
 function threadsRedirectUri() {
-  return `${frontendOrigin()}/account/integrations/social/threads`;
+  return `${oauthFrontendOrigin()}/account/integrations/social/threads`;
 }
 function threadsOAuth() {
   return config.integrations.threads;
@@ -7324,7 +8299,8 @@ var ThreadsProvider = class {
     if (!appId) throw new Error("THREADS_APP_ID is not configured");
     const state = makeId(6);
     const codeVerifier = makeId(10);
-    const url = `https://www.threads.net/oauth/authorize?client_id=${appId}&redirect_uri=${encodeURIComponent(threadsRedirectUri())}&state=${state}&scope=${encodeURIComponent(this.scopes.join(","))}`;
+    const redirectUri = threadsRedirectUri();
+    const url = `https://www.threads.net/oauth/authorize?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(this.scopes.join(","))}`;
     return { url, codeVerifier, state };
   }
   async authenticate(params) {
@@ -7370,7 +8346,11 @@ var ThreadsProvider = class {
 };
 
 // integrations/integrationManager.ts
-var socialIntegrationList = [new ThreadsProvider()];
+var socialIntegrationList = [
+  new ThreadsProvider(),
+  new InstagramBusinessProvider(),
+  new InstagramStandaloneProvider()
+];
 var IntegrationManager = class {
   getAllIntegrations() {
     return {
@@ -7427,9 +8407,10 @@ var IntegrationManager = class {
 init_GlobalConfig();
 init_Logger();
 var RefreshIntegrationService = class {
-  constructor(integrationRepository2, integrationManager2) {
+  constructor(integrationRepository2, integrationManager2, notificationService2) {
     this.integrationRepository = integrationRepository2;
     this.integrationManager = integrationManager2;
+    this.notificationService = notificationService2;
   }
   async refresh(integration) {
     const socialProvider = this.integrationManager.getSocialIntegration(integration.provider_identifier);
@@ -7501,7 +8482,12 @@ var RefreshIntegrationService = class {
     };
   }
   async markRefreshFailed(integration) {
+    const shouldNotify = !integration.refresh_needed;
     await this.integrationRepository.setRefreshNeeded(integration.organization_id, integration.id, true);
+    if (shouldNotify) {
+      await this.informAboutRefreshError(integration).catch(() => {
+      });
+    }
     logger.warn({
       msg: "Integration token refresh failed; refresh_needed set",
       integrationId: integration.id,
@@ -7509,21 +8495,38 @@ var RefreshIntegrationService = class {
       provider: integration.provider_identifier
     });
   }
+  async informAboutRefreshError(integration) {
+    if (!this.notificationService) return;
+    const subject = "Integration needs attention";
+    const prettyProvider = integration.provider_identifier;
+    const name = integration.name || "integration";
+    const message = `We couldn't refresh the connection for "${name}" (${prettyProvider}). Please reconnect it to keep publishing working.`;
+    await this.notificationService.inAppNotification(
+      integration.organization_id,
+      subject,
+      message,
+      true,
+      true,
+      "fail"
+    );
+  }
 };
 
 // services/IntegrationService.ts
 init_Logger();
 var CACHE_KEYS9 = {
-  /**
-   * Per-org, per-provider domain cache (e.g. analytics payloads: `integration:${orgId}:${integration}:${date}`).
-   * Full key via {@link buildIntegrationDomainCacheKey}; invalidate e.g. pattern `integration:${orgId}:*` when needed.
-   */
-  INTEGRATION_DOMAIN: "integration"
+  INTEGRATION: "integration",
+  /** Per-org list cache key is `${INTEGRATION_CUSTOMERS_LIST}:${organizationId}`. */
+  INTEGRATION_CUSTOMERS_LIST: "integration:customers:list"
 };
 function buildIntegrationDomainCacheKey(organizationId, integrationIdentifier, segment) {
-  return `${CACHE_KEYS9.INTEGRATION_DOMAIN}:${organizationId}:${integrationIdentifier}:${segment}`;
+  return `${CACHE_KEYS9.INTEGRATION}:${organizationId}:${integrationIdentifier}:${segment}`;
+}
+function integrationCustomersListCacheKey(organizationId) {
+  return `${CACHE_KEYS9.INTEGRATION_CUSTOMERS_LIST}:${organizationId}`;
 }
 var ANALYTICS_CACHE_TTL_SEC = !process.env.NODE_ENV || process.env.NODE_ENV === "development" ? 1 : 3600;
+var INTEGRATION_CUSTOMERS_LIST_TTL_SEC = !process.env.NODE_ENV || process.env.NODE_ENV === "development" ? 5 : 300;
 var IntegrationService = class {
   constructor(integrationRepository2, cache, cacheInvalidator) {
     this.integrationRepository = integrationRepository2;
@@ -7533,8 +8536,41 @@ var IntegrationService = class {
   listByOrganization(organizationId) {
     return this.integrationRepository.listByOrganization(organizationId);
   }
+  /** Returns repository row shape; controller maps to DTO just before response. */
+  async customers(organizationId) {
+    const cacheKey = integrationCustomersListCacheKey(organizationId);
+    const factory = async () => {
+      logger.debug({ msg: "Getting integration customers from repository", organizationId });
+      const list = await this.integrationRepository.customers(organizationId);
+      logger.info({ msg: "Integration customers retrieved", organizationId, count: list.length });
+      return list;
+    };
+    if (this.cache) {
+      return this.cache.getOrSet(cacheKey, factory, INTEGRATION_CUSTOMERS_LIST_TTL_SEC);
+    }
+    return factory();
+  }
+  async createIntegrationCustomer(organizationId, name) {
+    const row = await this.integrationRepository.createIntegrationCustomer(organizationId, name);
+    await this.invalidateIntegrationCustomersListCache(organizationId);
+    return row;
+  }
+  async updateIntegrationGroup(organizationId, integrationId, group) {
+    await this.integrationRepository.updateIntegrationGroup(organizationId, integrationId, group);
+    await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+  }
+  async updateOnCustomerName(organizationId, integrationId, name) {
+    await this.integrationRepository.updateOnCustomerName(organizationId, integrationId, name);
+    await this.invalidateIntegrationCustomersListCache(organizationId);
+    await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+  }
   getById(organizationId, id) {
     return this.integrationRepository.getById(organizationId, id);
+  }
+  async updateIntegrationById(organizationId, integrationId, params) {
+    const result = await this.integrationRepository.updateIntegrationById(organizationId, integrationId, params);
+    await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+    return result;
   }
   async upsertIntegration(params) {
     const result = await this.integrationRepository.upsertIntegration(params);
@@ -7563,7 +8599,7 @@ var IntegrationService = class {
   async invalidateIntegrationDomainCacheForProvider(organizationId, providerIdentifier) {
     if (!this.cacheInvalidator) return;
     await this.cacheInvalidator.invalidatePattern(
-      `${CACHE_KEYS9.INTEGRATION_DOMAIN}:${organizationId}:${providerIdentifier}:*`
+      `${CACHE_KEYS9.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
     );
     logger.debug({
       msg: "Invalidated integration domain cache",
@@ -7577,6 +8613,16 @@ var IntegrationService = class {
     const row = await this.integrationRepository.getById(organizationId, integrationId);
     if (!row) return;
     await this.invalidateIntegrationDomainCacheForProvider(organizationId, row.provider_identifier);
+  }
+  /** Invalidate cache used by {@link IntegrationService.customers} (same key as `getOrSet` for that org). */
+  async invalidateIntegrationCustomersListCache(organizationId) {
+    const key = integrationCustomersListCacheKey(organizationId);
+    if (this.cacheInvalidator) {
+      await this.cacheInvalidator.invalidateKey(key);
+    } else if (this.cache) {
+      await this.cache.del(key);
+    }
+    logger.debug({ msg: "Invalidated integration customers list cache", organizationId });
   }
   /**
    * Read cached analytics (or similar) payload for an integration on a date segment.
@@ -7598,8 +8644,6 @@ var IntegrationService = class {
     await this.cache.set(key, data, ttlSec);
   }
 };
-
-// services/IntegrationConnectionService.ts
 init_Logger();
 var CACHE_KEYS10 = {
   oauth: {
@@ -7662,6 +8706,28 @@ var IntegrationConnectionService = class {
     const integrations = await Promise.all(rows.map((row) => this.mapListRow(row)));
     return { integrations };
   }
+  async getIntegrationCustomers(authUserId, organizationId) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    return this.integrations.customers(organizationId);
+  }
+  async createIntegrationCustomer(authUserId, organizationId, name) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    return this.integrations.createIntegrationCustomer(organizationId, name);
+  }
+  async assignIntegrationCustomer(authUserId, organizationId, integrationId, customerId) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row) {
+      throw new AppError("Integration not found", 404);
+    }
+    if (customerId !== null) {
+      const customerRows = await this.integrations.customers(organizationId);
+      if (!customerRows.some((c) => c.id === customerId)) {
+        throw new AppError("Channel group not found", 404);
+      }
+    }
+    await this.integrations.updateIntegrationGroup(organizationId, integrationId, customerId);
+  }
   async mapListRow(p) {
     const findIntegration = this.manager.getSocialIntegration(p.provider_identifier);
     const editor = findIntegration?.editor ?? "normal";
@@ -7686,7 +8752,7 @@ var IntegrationConnectionService = class {
       time: JSON.parse(p.posting_times || "[]"),
       changeProfilePicture: false,
       changeNickName: false,
-      customer: null,
+      customer: p.customer_id && p.customer_name ? { id: p.customer_id, name: p.customer_name } : null,
       additionalSettings: p.additional_settings || "[]"
     };
   }
@@ -7742,7 +8808,7 @@ var IntegrationConnectionService = class {
       picture: p.picture || "/no-picture.jpg",
       disabled: p.disabled,
       profile: p.profile,
-      customer: null
+      customer: p.customer_id && p.customer_name ? { id: p.customer_id, name: p.customer_name } : null
     }));
   }
   async getIntegrationUrlPublicApi(organizationId, integration, opts) {
@@ -7841,6 +8907,17 @@ var IntegrationConnectionService = class {
         error: err instanceof Error ? err.message : String(err)
       });
     });
+    let pages = [];
+    if (integrationProvider.isBetweenSteps && !refreshState) {
+      const fetchPages = typeof integrationProvider.pages === "function" ? integrationProvider.pages.bind(integrationProvider) : null;
+      if (fetchPages) {
+        try {
+          pages = await fetchPages(accessToken);
+        } catch {
+          pages = [];
+        }
+      }
+    }
     return {
       id: row.id,
       organizationId: row.organization_id,
@@ -7853,12 +8930,12 @@ var IntegrationConnectionService = class {
       inBetweenSteps: row.in_between_steps,
       refreshNeeded: row.refresh_needed,
       onboarding: onboarding === "true",
-      pages: []
+      pages
     };
   }
   async safeAuthenticate(integrationProvider, body, codeVerifier, clientInformation) {
     try {
-      const auth4 = await integrationProvider.authenticate(
+      const auth5 = await integrationProvider.authenticate(
         {
           code: body.code,
           codeVerifier,
@@ -7866,13 +8943,13 @@ var IntegrationConnectionService = class {
         },
         clientInformation
       );
-      if (typeof auth4 === "string") {
-        return { error: auth4 };
+      if (typeof auth5 === "string") {
+        return { error: auth5 };
       }
-      if (auth4.error) {
-        return { error: auth4.error };
+      if (auth5.error) {
+        return { error: auth5.error };
       }
-      return auth4;
+      return auth5;
     } catch {
       return { error: "Authentication failed" };
     }
@@ -7901,6 +8978,53 @@ var IntegrationConnectionService = class {
     if (!row) throw new AppError("Integration not found", 404);
     const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
     if (!deleted) throw new AppError("Integration not found", 404);
+  }
+  /**
+   * Completes an integration stuck in `in_between_steps` using the provider's
+   * {@link SocialProvider.fetchPageInformation} (same responsibility as a generic `saveProviderPage`).
+   * For Instagram (Business), preserves the Facebook user access token in `refresh_token` and the
+   * Facebook user id in `root_internal_id` so cron refresh can exchange and re-bind the page token.
+   */
+  async saveProviderPage(authUserId, organizationId, integrationId, body) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row) throw new AppError("Integration not found", 404);
+    if (!row.in_between_steps) {
+      throw new AppError("Integration does not need account selection", 400);
+    }
+    const provider = this.manager.getSocialIntegration(row.provider_identifier);
+    if (!provider?.fetchPageInformation) {
+      throw new AppError("Provider does not support page selection", 400);
+    }
+    const { organizationId: _org, ...providerPayload } = body;
+    if (Object.keys(providerPayload).length === 0) {
+      throw new AppError("Missing selection payload for this provider", 400);
+    }
+    const userAccessToken = row.token;
+    const priorInternalId = row.internal_id;
+    let information;
+    try {
+      information = await provider.fetchPageInformation(userAccessToken, providerPayload);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Could not load selected account";
+      throw new AppError(msg, 400);
+    }
+    const isInstagramBusiness = row.provider_identifier === "instagram-business";
+    const refreshToken = isInstagramBusiness ? userAccessToken : row.refresh_token || "";
+    const rootInternalId2 = isInstagramBusiness ? priorInternalId : row.root_internal_id;
+    const expiresInSeconds = isInstagramBusiness ? dayjs2__default.default().add(59, "days").unix() - dayjs2__default.default().unix() : void 0;
+    await this.integrations.updateIntegrationById(organizationId, integrationId, {
+      internalId: String(information.id),
+      name: (information.name ?? "").trim() || information.username || row.name,
+      picture: information.picture || null,
+      token: information.access_token,
+      refreshToken,
+      profile: information.username || null,
+      inBetweenSteps: false,
+      rootInternalId: rootInternalId2 ?? null,
+      expiresInSeconds
+    });
+    return { success: true };
   }
 };
 
@@ -8088,10 +9212,214 @@ var TransactionalNotificationEmailService = class {
   }
 };
 
+// services/PostsService.ts
+var SLOT_STEP_MS = 15 * 60 * 1e3;
+var MAX_SLOT_TRIES = 200;
+var DEFAULT_TAG_COLOR = "#6366f1";
+function roundUpToNextSlot(d) {
+  const ms = d.getTime();
+  const rounded = Math.ceil(ms / SLOT_STEP_MS) * SLOT_STEP_MS;
+  return new Date(rounded);
+}
+function alignToFifteenMinuteUtc(d) {
+  return new Date(Math.round(d.getTime() / SLOT_STEP_MS) * SLOT_STEP_MS);
+}
+function addMs(d, ms) {
+  return new Date(d.getTime() + ms);
+}
+function repeatIntervalToDays(key) {
+  if (key == null) return null;
+  const m = {
+    day: 1,
+    two_days: 2,
+    three_days: 3,
+    four_days: 4,
+    five_days: 5,
+    six_days: 6,
+    week: 7,
+    two_weeks: 14,
+    month: 30
+  };
+  return m[key] ?? null;
+}
+var PostsService = class {
+  constructor(postsRepository2, integrationConnectionService2, integrationService2, organizationRepository2) {
+    this.postsRepository = postsRepository2;
+    this.integrationConnectionService = integrationConnectionService2;
+    this.integrationService = integrationService2;
+    this.organizationRepository = organizationRepository2;
+  }
+  async findFreeSlot(organizationId, authUserId) {
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    let candidate = roundUpToNextSlot(/* @__PURE__ */ new Date());
+    for (let i = 0; i < MAX_SLOT_TRIES; i++) {
+      const iso = candidate.toISOString();
+      const taken = await this.postsRepository.hasQueueSlotTaken(organizationId, iso);
+      if (!taken) {
+        return iso;
+      }
+      candidate = addMs(candidate, SLOT_STEP_MS);
+    }
+    return candidate.toISOString();
+  }
+  async listTags(organizationId, authUserId) {
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    return this.postsRepository.listTagsByOrganization(organizationId);
+  }
+  async createTag(organizationId, authUserId, name, color) {
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const trimmed = name.trim();
+    if (!trimmed.length) {
+      throw new AppError("Tag name is required", 400);
+    }
+    if (trimmed.length > 120) {
+      throw new AppError("Tag name is too long", 400);
+    }
+    const c = color?.trim() || DEFAULT_TAG_COLOR;
+    try {
+      return await this.postsRepository.insertTag(organizationId, trimmed, c);
+    } catch {
+      const existing = await this.postsRepository.findTagByOrgAndName(organizationId, trimmed);
+      if (existing) return existing;
+      throw new AppError("Could not save tag", 500);
+    }
+  }
+  async deleteTag(organizationId, authUserId, tagId) {
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const deleted = await this.postsRepository.softDeleteTagForOrganization(organizationId, tagId);
+    if (!deleted) {
+      throw new AppError("Tag not found", 404);
+    }
+  }
+  async createPost(input) {
+    const {
+      organizationId,
+      authUserId,
+      body,
+      bodiesByIntegrationId,
+      media,
+      integrationIds,
+      isGlobal,
+      scheduledAtIso,
+      repeatInterval,
+      tagNames,
+      status
+    } = input;
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const rows = await this.integrationService.listByOrganization(organizationId);
+    const allowed = new Set(rows.filter((r) => r.deleted_at == null).map((r) => r.id));
+    const uniqueIds = [...new Set(integrationIds)];
+    for (const id of uniqueIds) {
+      if (!allowed.has(id)) {
+        throw new AppError("One or more channels are not in this workspace", 400);
+      }
+    }
+    if (status === "scheduled" && uniqueIds.length === 0) {
+      throw new AppError("Select at least one channel to schedule", 400);
+    }
+    const scheduledDate = new Date(scheduledAtIso);
+    if (Number.isNaN(scheduledDate.getTime())) {
+      throw new AppError("Invalid schedule time", 400);
+    }
+    const alignedScheduled = alignToFifteenMinuteUtc(scheduledDate);
+    const publishIso = alignedScheduled.toISOString();
+    if (status === "scheduled") {
+      const taken = await this.postsRepository.hasQueueSlotTaken(organizationId, publishIso);
+      if (taken) {
+        throw new AppError("That time slot is already taken; pick another.", 409);
+      }
+    }
+    const normalizedTagNames = [...new Set(tagNames.map((t) => t.trim()).filter(Boolean))].slice(0, 50);
+    const tagIds = await this.resolveTagIds(organizationId, normalizedTagNames);
+    const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+    const createdByUserId = userId ?? null;
+    const postGroup = this.postsRepository.newPostGroup();
+    const settingsJson = JSON.stringify({ isGlobal, repeatInterval: repeatInterval ?? null });
+    const intervalDays = repeatIntervalToDays(repeatInterval);
+    const state = status === "draft" ? "DRAFT" : "QUEUE";
+    const imageColumn = media && media.length > 0 ? JSON.stringify({ v: 1, items: media }) : null;
+    const baseRow = {
+      state,
+      publish_date: publishIso,
+      organization_id: organizationId,
+      content: body,
+      delay: 0,
+      post_group: postGroup,
+      title: null,
+      description: null,
+      parent_post_id: null,
+      release_id: null,
+      release_url: null,
+      settings: settingsJson,
+      image: imageColumn,
+      interval_in_days: intervalDays,
+      error: null,
+      deleted_at: null,
+      created_by_user_id: createdByUserId
+    };
+    let toInsert;
+    if (uniqueIds.length === 0) {
+      toInsert = [{ ...baseRow, integration_id: null }];
+    } else {
+      toInsert = uniqueIds.map((integrationId) => ({
+        ...baseRow,
+        integration_id: integrationId,
+        content: bodiesByIntegrationId && typeof bodiesByIntegrationId[integrationId] === "string" ? bodiesByIntegrationId[integrationId] : baseRow.content
+      }));
+    }
+    const inserted = await this.postsRepository.insertPostGroup(toInsert);
+    const postIds = inserted.map((p) => p.id);
+    await this.postsRepository.linkTagsToPosts(postIds, tagIds);
+    return { postGroup, posts: inserted };
+  }
+  async resolveTagIds(organizationId, names) {
+    const ids = [];
+    for (const name of names) {
+      const existing = await this.postsRepository.findTagByOrgAndName(organizationId, name);
+      if (existing) {
+        ids.push(existing.id);
+        continue;
+      }
+      try {
+        const created = await this.postsRepository.insertTag(organizationId, name, DEFAULT_TAG_COLOR);
+        ids.push(created.id);
+      } catch {
+        const again = await this.postsRepository.findTagByOrgAndName(organizationId, name);
+        if (again) ids.push(again.id);
+      }
+    }
+    return ids;
+  }
+};
+
+// services/MediaService.ts
+var MediaService = class {
+  constructor(_mediaRepository) {
+    this._mediaRepository = _mediaRepository;
+  }
+  getMedia(organizationId, page, pageSize) {
+    return this._mediaRepository.getMedia(organizationId, page, pageSize);
+  }
+  saveFile(params) {
+    return this._mediaRepository.saveFile(params);
+  }
+  getMediaById(organizationId, id) {
+    return this._mediaRepository.getMediaById(organizationId, id);
+  }
+  getMediaByPath(organizationId, path5) {
+    return this._mediaRepository.getMediaByPath(organizationId, path5);
+  }
+  softDeleteMedia(organizationId, id) {
+    return this._mediaRepository.softDeleteMedia(organizationId, id);
+  }
+  saveMediaInformation(organizationId, dto) {
+    return this._mediaRepository.saveMediaInformation(organizationId, dto);
+  }
+};
+
 // services/index.ts
 init_GlobalConfig();
 var integrationManager = new IntegrationManager();
-var refreshIntegrationService = new RefreshIntegrationService(integrationRepository, integrationManager);
 var userService = new UserService(
   userRepository,
   cacheServiceConnection,
@@ -8101,6 +9429,21 @@ var userService = new UserService(
 var emailService = new EmailService({
   isEnabled: config.email?.enabled ?? false
 });
+var transactionalNotificationEmailService = new TransactionalNotificationEmailService(
+  organizationRepository
+);
+var notificationService = new NotificationService(
+  notificationRepository,
+  userRepository,
+  organizationRepository,
+  emailService,
+  transactionalNotificationEmailService
+);
+var refreshIntegrationService = new RefreshIntegrationService(
+  integrationRepository,
+  integrationManager,
+  notificationService
+);
 var authenticationService = new AuthenticationService(
   supabaseServiceClientConnection,
   refreshTokenRepository,
@@ -8150,16 +9493,13 @@ var integrationConnectionService = new IntegrationConnectionService(
   cacheServiceConnection,
   cacheInvalidationServiceConnection
 );
-var transactionalNotificationEmailService = new TransactionalNotificationEmailService(
+var postsService = new PostsService(
+  postsRepository,
+  integrationConnectionService,
+  integrationService,
   organizationRepository
 );
-var notificationService = new NotificationService(
-  notificationRepository,
-  userRepository,
-  organizationRepository,
-  emailService,
-  transactionalNotificationEmailService
-);
+var mediaService = new MediaService(mediaRepository);
 
 // utils/generateBlogRSSFeed.ts
 async function generateBlogRSSFeed(posts) {
@@ -8701,8 +10041,8 @@ var BlogController = class {
   };
 };
 var ImageController = class {
-  constructor(storageRepository2) {
-    this.storageRepository = storageRepository2;
+  constructor(storageRepository) {
+    this.storageRepository = storageRepository;
   }
   getByUrl = async (req, res, next) => {
     try {
@@ -8710,7 +10050,7 @@ var ImageController = class {
       if (!imageUrl || !databaseName) {
         throw new UserValidationError("ImageUrl and databaseName are required");
       }
-      if (!isAllowedDatabaseName(databaseName)) {
+      if (!isSupabaseImageBucketName(databaseName)) {
         throw new UserValidationError("Invalid databaseName");
       }
       const { data } = await this.storageRepository.downloadImage(databaseName, imageUrl);
@@ -8740,7 +10080,7 @@ var ImageController = class {
       if (!authUid) {
         throw new UserValidationError("Authentication required");
       }
-      if (!isAllowedDatabaseName(databaseName)) {
+      if (!isSupabaseImageBucketName(databaseName)) {
         throw new UserValidationError("Invalid databaseName");
       }
       const filePath = await this.storageRepository.uploadImage(
@@ -8763,7 +10103,7 @@ var ImageController = class {
       if (!imagePath || !databaseName) {
         throw new UserValidationError("ImagePath and databaseName are required");
       }
-      if (!isAllowedDatabaseName(databaseName)) {
+      if (!isSupabaseImageBucketName(databaseName)) {
         throw new UserValidationError("Invalid databaseName");
       }
       await this.storageRepository.deleteImage(databaseName, imagePath);
@@ -8816,6 +10156,362 @@ var ImageController = class {
           request.destroy();
           reject(new Error("Request timeout"));
         });
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// ../common/dist/mediaLimits.js
+var MAX_MEDIA_UPLOAD_BYTES = 1024 * 1024 * 1024;
+
+// controllers/MediaController.ts
+function isAllowedMediaMime(mimetype) {
+  const m = mimetype.toLowerCase();
+  return m.startsWith("image/") || m.startsWith("video/") || m === "application/pdf" || m.startsWith("audio/");
+}
+var MediaController = class {
+  constructor(mediaService2, storageR2Repository2, uploadProvider) {
+    this.mediaService = mediaService2;
+    this.storageR2Repository = storageR2Repository2;
+    this.uploadProvider = uploadProvider;
+  }
+  async uploadToStorage(params) {
+    const { organizationId, file } = params;
+    if (!isAllowedMediaMime(file.mimetype || "")) {
+      throw new UserValidationError("Unsupported media type");
+    }
+    const out = await this.uploadProvider.uploadFile({
+      organizationId,
+      buffer: file.buffer,
+      originalName: file.originalname,
+      contentType: file.mimetype || "application/octet-stream"
+    });
+    return { filePath: out.path, publicUrl: out.publicUrl ?? publicUrlForObjectKey(out.path) };
+  }
+  list = async (req, res, next) => {
+    try {
+      const authUser = req.user;
+      if (!authUser?.id) {
+        throw new UserValidationError("Authentication required");
+      }
+      const organizationId = typeof req.query.organizationId === "string" ? req.query.organizationId : "";
+      if (!organizationId.trim()) {
+        throw new UserValidationError("organizationId query parameter is required");
+      }
+      const rawPage = Number(req.query.page ?? 1);
+      const rawPageSize = Number(req.query.pageSize ?? 24);
+      const page = Number.isFinite(rawPage) ? Math.max(1, Math.trunc(rawPage)) : 1;
+      const pageSize = Number.isFinite(rawPageSize) ? Math.min(100, Math.max(1, Math.trunc(rawPageSize))) : 24;
+      const data = await this.mediaService.getMedia(organizationId, page, pageSize);
+      res.status(200).json({
+        success: true,
+        data
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * Upload user media to R2. Field name: `mediaFile` (multipart).
+   * Auth user id prefixes the object key so objects stay scoped to the uploading user.
+   */
+  upload = async (req, res, next) => {
+    try {
+      const authUser = req.user;
+      if (!authUser?.id) {
+        throw new UserValidationError("Authentication required");
+      }
+      if (!req.file) {
+        throw new UserValidationError("Media file is required");
+      }
+      const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+      if (!organizationId.trim()) {
+        throw new UserValidationError("organizationId is required");
+      }
+      const file = req.file;
+      const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+      const saved = await this.mediaService.saveFile({
+        organizationId,
+        name: filePath.split("/").pop() ?? filePath,
+        path: filePath,
+        originalName: file.originalname,
+        fileSize: file.size ?? 0,
+        type: file.mimetype?.startsWith("video/") ? "video" : "image"
+      });
+      res.status(200).json({
+        success: true,
+        data: {
+          filePath: saved.path,
+          ...saved.publicUrl ? { publicUrl: saved.publicUrl } : publicUrl ? { publicUrl } : {},
+          id: saved.id
+        },
+        message: "Media uploaded successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * Multipart helpers for S3-compatible uploaders (client obtains presigned URLs per part).
+   * Route: POST `/api/v1/media/:endpoint` with JSON body.
+   */
+  multipart = async (req, res, next) => {
+    try {
+      const authUser = req.user;
+      if (!authUser?.id) throw new UserValidationError("Authentication required");
+      const endpoint = String(req.params?.endpoint ?? "");
+      const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+      if (!organizationId.trim()) throw new UserValidationError("organizationId is required");
+      if (endpoint === "create-multipart-upload") {
+        const file = req.body?.file;
+        const contentType = String(req.body?.contentType ?? "");
+        const fileHash = typeof req.body?.fileHash === "string" ? String(req.body.fileHash) : void 0;
+        const fileName = typeof file?.name === "string" ? file.name : "";
+        const ext = fileName.includes(".") ? `.${fileName.split(".").pop()}` : "";
+        const key = `${makeId(20)}${ext || ""}`;
+        const out = await this.storageR2Repository.createMultipartUpload({ key, contentType, fileHash });
+        res.status(200).json(out);
+        return;
+      }
+      if (endpoint === "prepare-upload-parts") {
+        const partData = req.body?.partData;
+        const key = String(partData?.key ?? "");
+        const uploadId = String(partData?.uploadId ?? "");
+        const parts = Array.isArray(partData?.parts) ? partData.parts : [];
+        const out = await this.storageR2Repository.prepareUploadParts({
+          key,
+          uploadId,
+          parts: parts.map((p) => ({ number: Number(p?.number) }))
+        });
+        res.status(200).json(out);
+        return;
+      }
+      if (endpoint === "sign-part") {
+        const key = String(req.body?.key ?? "");
+        const uploadId = String(req.body?.uploadId ?? "");
+        const partNumber = Number.parseInt(String(req.body?.partNumber ?? "0"), 10);
+        const out = await this.storageR2Repository.signPart({ key, uploadId, partNumber });
+        res.status(200).json(out);
+        return;
+      }
+      if (endpoint === "list-parts") {
+        const key = String(req.body?.key ?? "");
+        const uploadId = String(req.body?.uploadId ?? "");
+        const out = await this.storageR2Repository.listParts({ key, uploadId });
+        res.status(200).json(out);
+        return;
+      }
+      if (endpoint === "abort-multipart-upload") {
+        const key = String(req.body?.key ?? "");
+        const uploadId = String(req.body?.uploadId ?? "");
+        const out = await this.storageR2Repository.abortMultipartUpload({ key, uploadId });
+        res.status(200).json(out);
+        return;
+      }
+      if (endpoint === "complete-multipart-upload") {
+        const key = String(req.body?.key ?? "");
+        const uploadId = String(req.body?.uploadId ?? "");
+        const parts = Array.isArray(req.body?.parts) ? req.body.parts : [];
+        const completed = await this.storageR2Repository.completeMultipartUpload({
+          key,
+          uploadId,
+          parts: parts.map((p) => ({
+            ETag: String(p?.ETag ?? ""),
+            PartNumber: Number(p?.PartNumber ?? 0)
+          })),
+          publicBaseUrl: null
+        });
+        const originalName = typeof req.body?.file?.name === "string" ? String(req.body.file.name) : void 0;
+        const saved = await this.mediaService.saveFile({
+          organizationId,
+          name: key.split("/").pop() ?? key,
+          path: key,
+          originalName: originalName ?? null,
+          fileSize: Number(req.body?.file?.size ?? 0) || 0,
+          type: typeof req.body?.contentType === "string" && String(req.body.contentType).startsWith("video/") ? "video" : "image"
+        });
+        res.status(200).json({ ...completed, saved });
+        return;
+      }
+      res.status(404).end();
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * Upload via multipart field `file` (client compatibility). Mirrors `/upload`, but includes `originalName`.
+   */
+  uploadServer = async (req, res, next) => {
+    try {
+      const authUser = req.user;
+      const authUid = authUser?.id;
+      if (!req.file) {
+        throw new UserValidationError("Media file is required");
+      }
+      if (!authUid) {
+        throw new UserValidationError("Authentication required");
+      }
+      const file = req.file;
+      const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+      if (!organizationId.trim()) {
+        throw new UserValidationError("organizationId is required");
+      }
+      const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+      const saved = await this.mediaService.saveFile({
+        organizationId,
+        name: filePath.split("/").pop() ?? filePath,
+        path: filePath,
+        originalName: file.originalname,
+        fileSize: file.size ?? 0,
+        type: file.mimetype?.startsWith("video/") ? "video" : "image"
+      });
+      res.status(200).json({
+        success: true,
+        data: {
+          filePath: saved.path,
+          originalName: file.originalname,
+          ...saved.publicUrl ? { publicUrl: saved.publicUrl } : publicUrl ? { publicUrl } : {},
+          id: saved.id
+        },
+        message: "Media uploaded successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * Upload via multipart field `file`. If `preventSave=true`, return only `{ path }` for compatibility.
+   */
+  uploadSimple = async (req, res, next) => {
+    try {
+      const authUser = req.user;
+      const authUid = authUser?.id;
+      if (!req.file) {
+        throw new UserValidationError("Media file is required");
+      }
+      if (!authUid) {
+        throw new UserValidationError("Authentication required");
+      }
+      const preventSave = typeof req.body?.preventSave === "string" ? String(req.body.preventSave).toLowerCase() === "true" : Boolean(req.body?.preventSave);
+      const file = req.file;
+      const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+      if (!organizationId.trim()) {
+        throw new UserValidationError("organizationId is required");
+      }
+      const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+      if (preventSave) {
+        res.status(200).json({
+          success: true,
+          data: {
+            path: filePath,
+            filePath,
+            ...publicUrl ? { publicUrl } : {}
+          },
+          message: "Media uploaded successfully"
+        });
+        return;
+      }
+      const saved = await this.mediaService.saveFile({
+        organizationId,
+        name: filePath.split("/").pop() ?? filePath,
+        path: filePath,
+        originalName: file.originalname,
+        fileSize: file.size ?? 0,
+        type: file.mimetype?.startsWith("video/") ? "video" : "image"
+      });
+      res.status(200).json({
+        success: true,
+        data: {
+          filePath: saved.path,
+          originalName: file.originalname,
+          ...saved.publicUrl ? { publicUrl: saved.publicUrl } : publicUrl ? { publicUrl } : {},
+          id: saved.id
+        },
+        message: "Media uploaded successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  delete = async (req, res, next) => {
+    try {
+      const authUser = req.user;
+      if (!authUser?.id) {
+        throw new UserValidationError("Authentication required");
+      }
+      const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+      if (!organizationId.trim()) {
+        throw new UserValidationError("organizationId is required");
+      }
+      const { id, path: objectPath } = req.body ?? {};
+      const mediaRow = id ? await this.mediaService.getMediaById(organizationId, id) : objectPath ? await this.mediaService.getMediaByPath(organizationId, objectPath) : null;
+      if (!mediaRow) {
+        throw new AuthError("You do not have access to this media object", 403);
+      }
+      await this.uploadProvider.deleteObject(mediaRow.path);
+      await this.mediaService.softDeleteMedia(organizationId, mediaRow.id);
+      res.status(200).json({
+        success: true,
+        message: "Media deleted successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  saveMediaInformation = async (req, res, next) => {
+    try {
+      const authUser = req.user;
+      if (!authUser?.id) throw new UserValidationError("Authentication required");
+      const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+      if (!organizationId.trim()) throw new UserValidationError("organizationId is required");
+      const id = typeof req.body?.id === "string" ? String(req.body.id) : "";
+      if (!id.trim()) throw new UserValidationError("id is required");
+      const dto = {
+        id,
+        alt: req.body?.alt ?? void 0,
+        thumbnail: req.body?.thumbnail ?? void 0,
+        thumbnailTimestamp: req.body?.thumbnailTimestamp ?? void 0
+      };
+      const updated = await this.mediaService.saveMediaInformation(organizationId, dto);
+      res.status(200).json({ success: true, data: updated });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * After upload, confirm an object key and receive the canonical public URL for that key.
+   */
+  saveMedia = async (req, res, next) => {
+    try {
+      const authUser = req.user;
+      if (!authUser?.id) {
+        throw new UserValidationError("Authentication required");
+      }
+      const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+      if (!organizationId.trim()) throw new UserValidationError("organizationId is required");
+      const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
+      const originalName = typeof req.body?.originalName === "string" ? req.body.originalName : void 0;
+      if (!name) {
+        throw new UserValidationError("name is required");
+      }
+      const saved = await this.mediaService.saveFile({
+        organizationId,
+        name: name.split("/").pop() ?? name,
+        path: name,
+        originalName: originalName ?? null,
+        fileSize: Number(req.body?.fileSize ?? 0) || 0,
+        type: typeof req.body?.type === "string" ? String(req.body.type) : void 0
+      });
+      res.status(200).json({
+        success: true,
+        data: {
+          id: saved.id,
+          path: saved.path,
+          ...saved.publicUrl ? { publicUrl: saved.publicUrl } : {},
+          ...originalName ? { originalName } : {}
+        }
       });
     } catch (error) {
       next(error);
@@ -8969,7 +10665,70 @@ var IntegrationController = class {
         return next(new UserAuthorizationError("Not authenticated"));
       }
       const organizationId = req.query.organizationId;
-      const data = await this.integrationConnectionService.getIntegrationList(authUserId, organizationId);
+      const data = await this.integrationConnectionService.getIntegrationList(
+        authUserId,
+        organizationId
+      );
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /integrations/customers?organizationId= */
+  getChannelCustomers = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const customers = await this.integrationConnectionService.getIntegrationCustomers(
+        authUserId,
+        organizationId
+      );
+      const data = { customers };
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /integrations/customers */
+  createChannelCustomer = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const body = req.body;
+      const row = await this.integrationConnectionService.createIntegrationCustomer(
+        authUserId,
+        body.organizationId,
+        body.name
+      );
+      res.status(200).json({ success: true, data: row });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** PUT /integrations/:id/group */
+  assignChannelCustomer = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const integrationId = req.params.id;
+      const body = req.body;
+      await this.integrationConnectionService.assignIntegrationCustomer(
+        authUserId,
+        body.organizationId,
+        integrationId,
+        body.customerId
+      );
+      const data = { ok: true };
       res.status(200).json({ success: true, data });
     } catch (error) {
       next(error);
@@ -9069,6 +10828,28 @@ var IntegrationController = class {
       const { organizationId, id } = req.body;
       await this.integrationConnectionService.deleteChannel(authUserId, organizationId, id);
       res.status(200).json({ success: true, data: { ok: true } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /integrations/provider/:id/connect?… — complete in-between-step selection (e.g. Instagram Business `pageId` + `id`). */
+  saveProviderPage = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const integrationId = req.params.id;
+      const body = req.body;
+      const organizationId = body.organizationId;
+      const data = await this.integrationConnectionService.saveProviderPage(
+        authUserId,
+        organizationId,
+        integrationId,
+        body
+      );
+      res.status(200).json({ success: true, data });
     } catch (error) {
       next(error);
     }
@@ -9199,20 +10980,289 @@ var NotificationController = class {
   };
 };
 
+// utils/dtos/PostDTO.ts
+var PostDTOMapper = {
+  toDTO(row) {
+    if (row == null) return null;
+    return {
+      id: row.id,
+      state: row.state,
+      publishDate: row.publish_date,
+      organizationId: row.organization_id,
+      integrationId: row.integration_id,
+      content: row.content,
+      delay: row.delay,
+      postGroup: row.post_group,
+      title: row.title,
+      description: row.description,
+      parentPostId: row.parent_post_id,
+      releaseId: row.release_id,
+      releaseUrl: row.release_url,
+      settings: row.settings,
+      image: row.image,
+      intervalInDays: row.interval_in_days,
+      error: row.error,
+      deletedAt: row.deleted_at,
+      createdByUserId: row.created_by_user_id,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  },
+  toDTOCollection(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows.map((r) => PostDTOMapper.toDTO(r)).filter(Boolean);
+  },
+  toPostTagDTO(row) {
+    if (row == null) return null;
+    return {
+      id: row.id,
+      name: row.name,
+      color: row.color,
+      orgId: row.org_id,
+      deletedAt: row.deleted_at,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  },
+  toPostTagDTOCollection(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows.map((r) => PostDTOMapper.toPostTagDTO(r)).filter(Boolean);
+  }
+};
+
+// controllers/PostsController.ts
+var PostsController = class {
+  constructor(postsService2) {
+    this.postsService = postsService2;
+  }
+  findSlot = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const date = await this.postsService.findFreeSlot(organizationId, authUserId);
+      res.status(200).json({ success: true, data: { date } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  listTags = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const tags = await this.postsService.listTags(organizationId, authUserId);
+      res.status(200).json({
+        success: true,
+        data: { tags: PostDTOMapper.toPostTagDTOCollection(tags) }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  createTag = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const { organizationId, name, color } = req.body;
+      const tag = await this.postsService.createTag(organizationId, authUserId, name, color);
+      res.status(200).json({
+        success: true,
+        data: { tag: PostDTOMapper.toPostTagDTO(tag) }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  deleteTag = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const tagId = req.params.tagId;
+      await this.postsService.deleteTag(organizationId, authUserId, tagId);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+  createPost = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const b = req.body;
+      const result = await this.postsService.createPost({
+        organizationId: b.organizationId,
+        authUserId,
+        body: b.body ?? "",
+        bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
+        media: b.media ?? null,
+        integrationIds: b.integrationIds ?? [],
+        isGlobal: b.isGlobal ?? true,
+        scheduledAtIso: b.scheduledAt,
+        repeatInterval: b.repeatInterval ?? null,
+        tagNames: b.tagNames ?? [],
+        status: b.status
+      });
+      res.status(200).json({
+        success: true,
+        data: {
+          postGroup: result.postGroup,
+          posts: PostDTOMapper.toDTOCollection(result.posts)
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// controllers/ThirdPartyController.ts
+var ThirdPartyController = class {
+  /** GET ?organizationId= — integrations that expose a media library for the workspace. */
+  listForMedia = async (req, res, next) => {
+    try {
+      const authUser = req.user;
+      if (!authUser?.id) {
+        throw new UserValidationError("Authentication required");
+      }
+      const organizationId = typeof req.query.organizationId === "string" ? req.query.organizationId : "";
+      if (!organizationId.trim()) {
+        throw new UserValidationError("organizationId query parameter is required");
+      }
+      res.status(200).json({ success: true, data: [] });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// connections/upload/upload.factory.ts
+init_GlobalConfig();
+
+// connections/upload/local.storage.ts
+init_GlobalConfig();
+function safeJoin(base, p) {
+  const out = path__default.default.join(base, p);
+  const rel = path__default.default.relative(base, out);
+  if (rel.startsWith("..") || path__default.default.isAbsolute(rel)) {
+    throw new Error("Invalid upload path");
+  }
+  return out;
+}
+function buildPublicUrl(relativePath) {
+  const server2 = config.server;
+  const origin = String(server2.frontendDomainUrl ?? server2.backendDomainUrl ?? "").trim().replace(/\/+$/, "");
+  if (!origin) return null;
+  return `${origin}/uploads/${relativePath.replace(/^\/+/, "")}`;
+}
+var LocalStorage = class {
+  constructor(uploadDirectory) {
+    this.uploadDirectory = uploadDirectory;
+  }
+  supportsMultipart = false;
+  assertConfigured() {
+    if (!this.uploadDirectory?.trim()) {
+      throw new DatabaseError("Local upload storage is not configured for this environment", {
+        operation: "upload",
+        resource: { type: "storage", name: "local" },
+        statusCode: 503
+      });
+    }
+  }
+  async uploadFile(params) {
+    this.assertConfigured();
+    const ext = path__default.default.extname(params.originalName) || "";
+    const fileName = `${makeId(20)}${ext}`;
+    const relative = fileName;
+    const onDisk = safeJoin(this.uploadDirectory, relative);
+    await fs__default.default.mkdir(path__default.default.dirname(onDisk), { recursive: true });
+    await fs__default.default.writeFile(onDisk, params.buffer);
+    return { path: relative, publicUrl: buildPublicUrl(relative) };
+  }
+  async downloadObject(p) {
+    this.assertConfigured();
+    const onDisk = safeJoin(this.uploadDirectory, p);
+    const buffer = await fs__default.default.readFile(onDisk);
+    return { buffer, contentType: "application/octet-stream" };
+  }
+  async deleteObject(p) {
+    this.assertConfigured();
+    const onDisk = safeJoin(this.uploadDirectory, p);
+    await fs__default.default.rm(onDisk, { force: true });
+  }
+};
+var R2Storage = class {
+  constructor(storageR2Repository2) {
+    this.storageR2Repository = storageR2Repository2;
+  }
+  supportsMultipart = true;
+  async uploadFile(params) {
+    const ext = path__default.default.extname(params.originalName) || "";
+    const key = `${makeId(20)}${ext || ".bin"}`;
+    await this.storageR2Repository.putObject(key, params.buffer, params.contentType);
+    return { path: key, publicUrl: publicUrlForObjectKey(key) };
+  }
+  async downloadObject(path5) {
+    const { data } = await this.storageR2Repository.downloadObject(path5);
+    const buffer = data instanceof Buffer ? data : Buffer.from(await data.arrayBuffer());
+    const contentType = data.type ?? "application/octet-stream";
+    return { buffer, contentType };
+  }
+  async deleteObject(path5) {
+    await this.storageR2Repository.deleteObject(path5);
+  }
+};
+
+// connections/upload/upload.factory.ts
+var UploadFactory = class {
+  static createStorage(storageR2Repository2) {
+    const storageCfg = config.storage;
+    const provider = String(storageCfg?.provider ?? "r2").toLowerCase();
+    if (provider === "local") {
+      const dir = String(storageCfg?.local?.uploadDirectory ?? "");
+      return new LocalStorage(dir);
+    }
+    return new R2Storage(storageR2Repository2);
+  }
+};
+
 // controllers/index.ts
-var authController = new AuthController(authenticationService, userRepository, emailService, organizationService);
+var authController = new AuthController(authenticationService, userRepository, userService, emailService, organizationService);
 var userController = new UserController(userService, authenticationService, emailService);
 var companyController = new CompanyController(companyService, marketingService);
 var settingsController = new SettingsController(organizationService);
 var rbacController = new RbacController(rbacService, userRepository);
 var feedbackController = new FeedbackController(feedbackService);
 var blogController = new BlogController(blogService);
-var imageController = new ImageController(storageRepository);
+var imageController = new ImageController(storageSupabaseRepository);
+var mediaController = new MediaController(
+  mediaService,
+  storageR2Repository,
+  UploadFactory.createStorage(storageR2Repository)
+);
 var configController = new ConfigController(configService);
 var emailController = new EmailController(emailService);
 var integrationController = new IntegrationController(integrationConnectionService, integrationManager);
 var publicIntegrationController = new PublicIntegrationController(integrationConnectionService);
 var notificationController = new NotificationController(notificationService);
+var postsController = new PostsController(postsService);
+var thirdPartyController = new ThirdPartyController();
 
 // errors/RequestError.ts
 var RequestError = class extends Error {
@@ -9880,14 +11930,14 @@ function readFolderStructure(dirPath, previousFolder = "") {
   const disabledIncludes = ["(protected)", "(auth)", "not-found"];
   const disabledStartsWith = ["_", "["];
   try {
-    const dirents = fs__default.default.readdirSync(dirPath, { withFileTypes: true });
+    const dirents = fs2__default.default.readdirSync(dirPath, { withFileTypes: true });
     for (const dirent of dirents) {
       if (!dirent.isDirectory()) continue;
       const dirName = dirent.name;
       if (disabledIncludes.some((d) => dirName.includes(d)) || disabledStartsWith.some((d) => dirName.startsWith(d)) || MANIFEST_EXCLUDED.has(dirName)) {
         continue;
       }
-      const fullPath = path2__default.default.join(dirPath, dirName);
+      const fullPath = path__default.default.join(dirPath, dirName);
       const isRouteGroup = dirName.match(/^\(.*\)$/);
       if (!isRouteGroup) {
         const urlPath = previousFolder === "" ? `/${dirName}` : `/${previousFolder}/${dirName}`;
@@ -9916,7 +11966,7 @@ function readFolderStructure(dirPath, previousFolder = "") {
 }
 function loadRoutesFromManifest(manifestPath) {
   try {
-    const manifestData = fs__default.default.readFileSync(manifestPath, "utf-8");
+    const manifestData = fs2__default.default.readFileSync(manifestPath, "utf-8");
     const manifest = JSON.parse(manifestData);
     logger.info({
       msg: "Loaded routes from manifest",
@@ -9977,10 +12027,10 @@ async function generateSitemapUrls(options) {
     lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
     changeFreq: "weekly"
   });
-  if (routesManifestPath && fs__default.default.existsSync(routesManifestPath)) {
+  if (routesManifestPath && fs2__default.default.existsSync(routesManifestPath)) {
     logger.info({ msg: "Using routes manifest for static pages", path: routesManifestPath });
     urls.push(...loadRoutesFromManifest(routesManifestPath));
-  } else if (routesPath && fs__default.default.existsSync(routesPath)) {
+  } else if (routesPath && fs2__default.default.existsSync(routesPath)) {
     logger.info({ msg: "Scanning file system for routes", path: routesPath });
     try {
       urls.push(...readFolderStructure(routesPath));
@@ -10579,6 +12629,61 @@ imageRouter.post(
 );
 imageRouter.delete("/delete", authWithRoles6, requireEditor, imageController.delete);
 imageRouter.get("/proxy", authWithRoles6, requireEditor, imageController.proxyImage);
+var mediaOrganizationQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var validateMediaOrganizationQuery = validateRequest({
+  query: mediaOrganizationQuerySchema
+});
+var saveMediaInformationBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  id: zod.z.string().uuid("Invalid media id"),
+  alt: zod.z.string().max(2e3).optional().nullable(),
+  /** Public URL or storage object key written to `media.thumbnail`. */
+  thumbnail: zod.z.string().max(2048).optional().nullable(),
+  thumbnailTimestamp: zod.z.number().int().nonnegative().optional().nullable()
+});
+var validateSaveMediaInformationBody = validateRequest({
+  body: saveMediaInformationBodySchema
+});
+var multipartEndpointParamsSchema = zod.z.object({
+  endpoint: zod.z.enum([
+    "create-multipart-upload",
+    "prepare-upload-parts",
+    "complete-multipart-upload",
+    "list-parts",
+    "abort-multipart-upload",
+    "sign-part"
+  ])
+});
+var multipartBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+}).passthrough();
+var validateMultipartEndpoint = validateRequest({
+  params: multipartEndpointParamsSchema,
+  body: multipartBodySchema
+});
+
+// routes/MediaRoute.ts
+var upload2 = multer__default.default({
+  storage: multer__default.default.memoryStorage(),
+  limits: { fileSize: MAX_MEDIA_UPLOAD_BYTES }
+});
+var authWithRoles7 = requireFullAuthWithRoles(
+  supabase,
+  userRepository,
+  rbacRepository
+);
+var mediaRouter = express2.Router();
+mediaRouter.get("/", authWithRoles7, validateMediaOrganizationQuery, mediaController.list);
+mediaRouter.post("/upload", authWithRoles7, upload2.single("mediaFile"), mediaController.upload);
+mediaRouter.post("/upload-server", authWithRoles7, upload2.single("file"), mediaController.uploadServer);
+mediaRouter.post("/upload-simple", authWithRoles7, upload2.single("file"), mediaController.uploadSimple);
+mediaRouter.delete("/delete", authWithRoles7, mediaController.delete);
+mediaRouter.post("/save", authWithRoles7, mediaController.saveMedia);
+mediaRouter.post("/save-media", authWithRoles7, mediaController.saveMedia);
+mediaRouter.post("/information", authWithRoles7, validateSaveMediaInformationBody, mediaController.saveMediaInformation);
+mediaRouter.post("/:endpoint", authWithRoles7, validateMultipartEndpoint, mediaController.multipart);
 var integrationOrganizationQuerySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id")
 });
@@ -10589,7 +12694,8 @@ var socialConnectBodySchema = zod.z.object({
   state: zod.z.string().min(1, "state is required"),
   code: zod.z.string().min(1, "code is required"),
   timezone: zod.z.string().min(1, "timezone is required"),
-  refresh: zod.z.string().uuid().optional()
+  /** Optional OAuth refresh hint (e.g. Meta user id — not always a UUID). */
+  refresh: zod.z.string().min(1).optional()
 });
 var validateSocialConnectBody = validateRequest({
   body: socialConnectBodySchema
@@ -10600,6 +12706,41 @@ var integrationOrgAndIdBodySchema = zod.z.object({
 });
 var validateIntegrationOrgAndIdBody = validateRequest({
   body: integrationOrgAndIdBodySchema
+});
+var saveProviderPageParamsSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid integration id")
+});
+var saveProviderPageBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+}).passthrough();
+var validateSaveProviderPage = validateRequest({
+  params: saveProviderPageParamsSchema,
+  body: saveProviderPageBodySchema
+});
+var integrationCustomersQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var validateIntegrationCustomersQuery = validateRequest({
+  query: integrationCustomersQuerySchema
+});
+var integrationCreateCustomerBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  name: zod.z.string().trim().min(1, "Name is required").max(200)
+});
+var validateIntegrationCreateCustomerBody = validateRequest({
+  body: integrationCreateCustomerBodySchema
+});
+var integrationGroupParamsSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid integration id")
+});
+var integrationGroupBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  /** Set to `null` to clear the customer assignment. */
+  customerId: zod.z.union([zod.z.string().uuid("Invalid customer id"), zod.z.null()])
+});
+var validateIntegrationGroup = validateRequest({
+  params: integrationGroupParamsSchema,
+  body: integrationGroupBodySchema
 });
 var integrationTimeBodySchema = zod.z.object({
   time: zod.z.array(zod.z.object({ time: zod.z.number() })).min(1)
@@ -10617,7 +12758,27 @@ var sessionIntegrationsRouter = express2.Router();
 var auth2 = requireFullAuth(supabase);
 sessionIntegrationsRouter.get("/", integrationController.getAllIntegrations);
 sessionIntegrationsRouter.use(auth2);
+sessionIntegrationsRouter.post(
+  "/provider/:id/connect",
+  validateSaveProviderPage,
+  integrationController.saveProviderPage
+);
 sessionIntegrationsRouter.get("/list", validateIntegrationOrganizationQuery, integrationController.getIntegrationList);
+sessionIntegrationsRouter.get(
+  "/customers",
+  validateIntegrationCustomersQuery,
+  integrationController.getChannelCustomers
+);
+sessionIntegrationsRouter.post(
+  "/customers",
+  validateIntegrationCreateCustomerBody,
+  integrationController.createChannelCustomer
+);
+sessionIntegrationsRouter.put(
+  "/:id/group",
+  validateIntegrationGroup,
+  integrationController.assignChannelCustomer
+);
 sessionIntegrationsRouter.post(
   "/:id/time",
   validateIntegrationTimeRequest,
@@ -10721,6 +12882,75 @@ notificationRouter.get(
   parseNotificationPaginatedQuery,
   notificationController.paginated
 );
+var postOrganizationQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var validatePostOrganizationQuery = validateRequest({
+  query: postOrganizationQuerySchema
+});
+var repeatIntervalEnum = zod.z.enum([
+  "day",
+  "two_days",
+  "three_days",
+  "four_days",
+  "five_days",
+  "six_days",
+  "week",
+  "two_weeks",
+  "month"
+]);
+var mediaItemSchema = zod.z.object({
+  id: zod.z.string().min(1).max(200),
+  path: zod.z.string().min(1).max(2e3),
+  bucket: zod.z.enum([DATABASE_NAMES.BLOG_IMAGES, COMPOSER_MEDIA_BUCKET_NAME]).optional()
+});
+var createPostBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  body: zod.z.string().max(5e4).optional(),
+  /**
+   * Optional per-channel body overrides (customize mode).
+   * Keys are integration IDs; values are the body content to use for that integration.
+   */
+  bodiesByIntegrationId: zod.z.record(zod.z.string().uuid(), zod.z.string().max(5e4)).optional(),
+  /** Attached images (storage paths in `blog_images`); persisted as JSON in `posts.image`. */
+  media: zod.z.array(mediaItemSchema).max(20).optional(),
+  integrationIds: zod.z.array(zod.z.string().uuid()).optional(),
+  isGlobal: zod.z.boolean().optional(),
+  scheduledAt: zod.z.string().min(1, "Schedule time is required"),
+  repeatInterval: zod.z.union([repeatIntervalEnum, zod.z.null()]).optional(),
+  tagNames: zod.z.array(zod.z.string().max(120)).max(50).optional(),
+  status: zod.z.enum(["draft", "scheduled"])
+});
+var validateCreatePostBody = validateRequest({
+  body: createPostBodySchema
+});
+var createPostTagBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  name: zod.z.string().trim().min(1, "Name is required").max(120),
+  color: zod.z.string().trim().regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a #RRGGBB hex value").optional()
+});
+var validateCreatePostTagBody = validateRequest({
+  body: createPostTagBodySchema
+});
+var deletePostTagParamsSchema = zod.z.object({
+  tagId: zod.z.string().uuid("Invalid tag id")
+});
+var validateDeletePostTag = validateRequest({
+  params: deletePostTagParamsSchema,
+  query: postOrganizationQuerySchema
+});
+
+// routes/postRoutes.ts
+var postRouter = express2.Router();
+var auth4 = requireFullAuth(supabase);
+postRouter.get("/find-slot", auth4, validatePostOrganizationQuery, postsController.findSlot);
+postRouter.get("/tags", auth4, validatePostOrganizationQuery, postsController.listTags);
+postRouter.post("/tags", auth4, validateCreatePostTagBody, postsController.createTag);
+postRouter.delete("/tags/:tagId", auth4, validateDeletePostTag, postsController.deleteTag);
+postRouter.post("/", auth4, validateCreatePostBody, postsController.createPost);
+var authWithRoles8 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+var thirdPartyRouter = express2.Router();
+thirdPartyRouter.get("/for-media", authWithRoles8, validateMediaOrganizationQuery, thirdPartyController.listForMedia);
 
 // routes/index.ts
 init_Logger();
@@ -10737,9 +12967,12 @@ async function mountAllRoutes(app2, config2) {
   apiRouter.use("/feedback", feedbackRouter);
   apiRouter.use("/blog-system", blogRouter);
   apiRouter.use("/image", imageRouter);
+  apiRouter.use("/media", mediaRouter);
   apiRouter.use("/integrations", sessionIntegrationsRouter);
   apiRouter.use("/public", publicIntegrationRouter);
   apiRouter.use("/notifications", notificationRouter);
+  apiRouter.use("/posts", postRouter);
+  apiRouter.use("/third-parties", thirdPartyRouter);
   app2.use(prefix, apiRouter);
   logger.info({
     msg: "[Routes] Mounted",
@@ -10753,9 +12986,12 @@ async function mountAllRoutes(app2, config2) {
     feedback: `${prefix}/feedback`,
     blog: `${prefix}/blog-system`,
     image: `${prefix}/image`,
+    media: `${prefix}/media`,
     integrationsSession: `${prefix}/integrations`,
     integrationsProgrammatic: `${prefix}/public`,
-    notifications: `${prefix}/notifications`
+    notifications: `${prefix}/notifications`,
+    posts: `${prefix}/posts`,
+    thirdParties: `${prefix}/third-parties`
   });
   return true;
 }
@@ -10869,15 +13105,23 @@ function errorHandler(err, _req, res, _next) {
   const message = err instanceof Error ? err.message : "Internal server error";
   const status = err.statusCode ?? 500;
   logger.error({ msg: "Unexpected error", error: message, status });
-  const eventId = Sentry__namespace.captureException(err);
-  if (eventId) {
-    logger.info({
-      msg: "Sentry event captured",
-      eventId,
-      hint: "If the event does not appear in Sentry: disable 'Filter out events from localhost' in Project Settings \u2192 Inbound Filters, then search by this eventId in Issues."
+  let eventId;
+  try {
+    eventId = Sentry__namespace.captureException(err) ?? void 0;
+    if (eventId) {
+      logger.info({
+        msg: "Sentry event captured",
+        eventId,
+        hint: "If the event does not appear in Sentry: disable 'Filter out events from localhost' in Project Settings \u2192 Inbound Filters, then search by this eventId in Issues."
+      });
+    } else {
+      logger.warn({ msg: "Sentry did not capture event (filtered or SDK not inited)" });
+    }
+  } catch (sentryErr) {
+    logger.error({
+      msg: "Sentry.captureException failed; continuing with HTTP response",
+      error: sentryErr instanceof Error ? sentryErr.message : String(sentryErr)
     });
-  } else {
-    logger.warn({ msg: "Sentry did not capture event (filtered or SDK not inited)" });
   }
   const httpStatus = status >= 400 && status < 600 ? status : 500;
   res.status(httpStatus).json({
@@ -10934,10 +13178,10 @@ var globalLimiter = createRateLimiter({
   ...config.rateLimit.global,
   skip: (req) => {
     if (shouldSkipRateLimit()) return true;
-    const path3 = req.path;
+    const path5 = req.path;
     const originalUrl = req.originalUrl || req.url;
-    const isWebhook = path3.includes("/webhooks/") || originalUrl.includes("/webhooks/");
-    const isBypass = path3 === "/health" || path3.startsWith("/health") || path3 === "/sitemap.xml" || path3.startsWith("/sitemap.xml");
+    const isWebhook = path5.includes("/webhooks/") || originalUrl.includes("/webhooks/");
+    const isBypass = path5 === "/health" || path5.startsWith("/health") || path5 === "/sitemap.xml" || path5.startsWith("/sitemap.xml");
     return isWebhook || isBypass;
   }
 });
@@ -11008,7 +13252,7 @@ function shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact) {
   if (req.method === "GET" && routePath === "/image/download") {
     const dbName = typeof req.query.databaseName === "string" ? req.query.databaseName : "";
     const imageUrlParam = typeof req.query.imageUrl === "string" ? req.query.imageUrl : "";
-    if (dbName === DATABASE_NAMES.BLOG_IMAGES && imageUrlParam.length > 0) {
+    if (dbName === "blog_images" && imageUrlParam.length > 0) {
       return true;
     }
   }
@@ -11103,6 +13347,14 @@ var checkConfigIsValid = () => {
     if (hasWildcard) {
       throw new Error("CORS wildcard origins are not allowed in production");
     }
+    const looksLikeLocalDevOnly = origins.every(
+      (o) => !o || /localhost|127\.0\.0\.1/i.test(o) || /^http:\/\/www\.localhost/i.test(o)
+    );
+    if (looksLikeLocalDevOnly && origins.length > 0) {
+      throw new Error(
+        "CORS allowedOrigins resolve to localhost only in production. Set FRONTEND_DOMAIN_URL (e.g. https://www.openquok.com) and/or ALLOWED_FRONTEND_ORIGINS on the API host so cross-site browsers are allowed."
+      );
+    }
   }
   logger.info({ msg: "[Config] Configuration validation passed" });
 };
@@ -11168,14 +13420,22 @@ async function createApp() {
     return express2.json()(req, res, next);
   });
   configureCoreMiddleware(app, config2, supabase);
+  const storageCfg = config2.storage;
+  if (storageCfg?.provider === "local" && storageCfg.local?.uploadDirectory) {
+    app.use("/uploads", express2__default.default.static(storageCfg.local.uploadDirectory));
+    logger.info({
+      msg: "[Setup] Local uploads mounted at /uploads",
+      uploadDirectory: storageCfg.local.uploadDirectory
+    });
+  }
   try {
     const isProduction = config2.server.nodeEnv === "production";
     const currentDir = process.cwd();
-    const manifestPath = path2__default.default.join(currentDir, "static", "routes-manifest.json");
+    const manifestPath = path__default.default.join(currentDir, "static", "routes-manifest.json");
     const sitemapMiddleware = generateSitemapMiddleware({
       supabaseClient: supabaseServiceClientConnection,
       baseURL: config2.server.frontendDomainUrl ?? "http://localhost:5173",
-      routesPath: isProduction ? void 0 : path2__default.default.join(currentDir, "../web/src/routes"),
+      routesPath: isProduction ? void 0 : path__default.default.join(currentDir, "../web/src/routes"),
       routesManifestPath: isProduction ? manifestPath : void 0
     });
     app.get("/sitemap.xml", sitemapMiddleware);
@@ -11271,11 +13531,40 @@ function normalizeVercelFunctionRequestUrl(req) {
     extended.originalUrl = next;
   }
 }
+function waitForResponseEnd(res, run) {
+  return new Promise((resolve, reject) => {
+    const done = () => {
+      res.off("finish", done);
+      res.off("close", done);
+      res.off("error", onResError);
+      resolve();
+    };
+    const onResError = (e) => {
+      res.off("finish", done);
+      res.off("close", done);
+      res.off("error", onResError);
+      reject(e);
+    };
+    res.once("finish", done);
+    res.once("close", done);
+    res.once("error", onResError);
+    try {
+      run();
+    } catch (syncErr) {
+      res.off("finish", done);
+      res.off("close", done);
+      res.off("error", onResError);
+      reject(syncErr instanceof Error ? syncErr : new Error(String(syncErr)));
+    }
+  });
+}
 async function handler(req, res) {
   try {
-    const app2 = await getApp();
+    const expressApp = await getApp();
     normalizeVercelFunctionRequestUrl(req);
-    app2(req, res);
+    await waitForResponseEnd(res, () => {
+      expressApp(req, res);
+    });
   } catch (err) {
     if (res.headersSent) {
       return;

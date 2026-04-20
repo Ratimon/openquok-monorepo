@@ -1,4 +1,5 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
+import { MAX_MEDIA_UPLOAD_BYTES, maxMediaUploadShortLabel } from 'openquok-common';
 
 export interface MediaConfig {
 	endpoints: {
@@ -10,8 +11,7 @@ export interface MediaConfig {
 	};
 }
 
-/** Must match backend `MAX_MEDIA_UPLOAD_BYTES`. */
-export const MAX_MEDIA_UPLOAD_BYTES = 50 * 1024 * 1024;
+export { MAX_MEDIA_UPLOAD_BYTES };
 
 export interface MediaUploadResponseDto {
 	success: boolean;
@@ -134,7 +134,7 @@ export class MediaRepository {
 			return {
 				success: false,
 				data: { filePath: '' },
-				message: `Media must be 50 MB or smaller (file is ${(file.size / (1024 * 1024)).toFixed(1)} MB).`
+				message: `Media must be ${maxMediaUploadShortLabel()} or smaller (file is ${(file.size / (1024 * 1024)).toFixed(1)} MB).`
 			};
 		}
 

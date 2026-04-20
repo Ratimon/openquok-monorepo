@@ -37,6 +37,7 @@ const env = {
 
 process.stderr.write(
 	[
+		"pnpm vercel:deploy:backend runs backend:build:vercel first (fail fast); Vercel still runs backend/vercel.json buildCommand on the server.",
 		"pnpm vercel:deploy:backend uses backend/vercel.json (cwd = monorepo root so the full workspace is uploaded).",
 		"",
 		"Required: Vercel → backend project → Settings → General → Root Directory = \"backend\" (not empty).",

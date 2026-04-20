@@ -6,7 +6,17 @@ import * as loadBackendDotenvCjs from "./loadBackendDotenv.cjs";
 const { loadBackendDotenv } = loadBackendDotenvCjs as { loadBackendDotenv: () => void };
 import { orchestratorFlows, type OrchestrationTransport } from "./orchestratorFlows";
 
-const normalizeOrigin = (origin: string): string => origin.trim().replace(/\/+$/, "");
+/** Strips BOM, quotes (bad dashboard paste), trailing slashes — browser `Origin` must match exactly. */
+const normalizeOrigin = (origin: string): string => {
+	let s = String(origin).replace(/^\uFEFF/, "").trim().replace(/\/+$/, "");
+	if (
+		(s.startsWith('"') && s.endsWith('"')) ||
+		(s.startsWith("'") && s.endsWith("'"))
+	) {
+		s = s.slice(1, -1).replace(/^\uFEFF/, "").trim().replace(/\/+$/, "");
+	}
+	return s;
+};
 
 const deriveWwwVariants = (origin: string): string[] => {
     try {
@@ -77,7 +87,8 @@ export const config: ConfigObject = {
 
     cors: {
         allowedOrigins: (() => {
-            const frontendUrl = normalizeOrigin(getEnv("FRONTEND_DOMAIN_URL", "http://localhost:5173"));
+            const feRaw = getEnvTrimmed("FRONTEND_DOMAIN_URL");
+            const frontendUrl = normalizeOrigin(feRaw || "http://localhost:5173");
             const origins: string[] = [frontendUrl, ...deriveWwwVariants(frontendUrl)];
             const extra = getEnv("ALLOWED_FRONTEND_ORIGINS", "");
             if (extra) {
@@ -98,6 +109,13 @@ export const config: ConfigObject = {
             const unique = [...new Set(origins.map(normalizeOrigin))];
             if (isProductionEnv && unique.some((origin) => origin.includes("*"))) {
                 throw new Error("CORS wildcard origins are not allowed in production");
+            }
+            if (isProductionEnv) {
+                logger.info({
+                    msg: "[CORS] Allowed origins (check this matches the browser Origin if requests fail)",
+                    count: unique.length,
+                    origins: unique,
+                });
             }
             return unique;
         })(),

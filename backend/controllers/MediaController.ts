@@ -9,9 +9,7 @@ import { makeId } from "../utils/make.is";
 
 import { AuthError } from "../errors/AuthError";
 import { UserValidationError } from "../errors/UserError";
-
-/** User-owned media (images, video, etc.) stored in R2  */
-const MAX_MEDIA_UPLOAD_BYTES = 50 * 1024 * 1024;
+import { MAX_MEDIA_UPLOAD_BYTES } from "openquok-common";
 
 function isAllowedMediaMime(mimetype: string): boolean {
     const m = mimetype.toLowerCase();

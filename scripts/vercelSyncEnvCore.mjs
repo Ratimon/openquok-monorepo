@@ -7,9 +7,19 @@ function fail(msg) {
   process.exit(1);
 }
 
+/** Suppresses interactive CLI-update prompts and confirmation when spawning `vercel` (see Vercel CLI non-interactive / update notifier). */
+function envForVercelCli() {
+  return {
+    ...process.env,
+    VERCEL_NON_INTERACTIVE: "1",
+    NO_UPDATE_NOTIFIER: "1",
+  };
+}
+
 function run(cmd, args, { cwd, input } = {}) {
   const res = spawnSync(cmd, args, {
     cwd,
+    env: cmd === "vercel" ? envForVercelCli() : process.env,
     stdio: input !== undefined ? ["pipe", "inherit", "inherit"] : "inherit",
     input,
     encoding: "utf8",
@@ -118,6 +128,7 @@ function parseArgs(argv, scriptName) {
           "",
           "Notes:",
           "- Requires the Vercel CLI to be authenticated and linked (run `vercel link` in the target directory first).",
+          "- Runs with VERCEL_NON_INTERACTIVE=1 and NO_UPDATE_NOTIFIER=1 so the CLI does not prompt (e.g. update notices).",
           "- Values are provided to Vercel via stdin (not printed).",
           "- Keys that look like secrets are marked with --sensitive automatically; each entrypoint may add an explicit list.",
           "",
@@ -160,6 +171,7 @@ export function runVercelEnvSync(opts) {
   for (const [key, value] of entries) {
     const cmd = ["env", "add", key, args.environment];
     if (args.force) cmd.push("--force");
+    cmd.push("--yes");
     const sensitive = isSensitiveKey(alwaysSensitiveKeys, key);
     if (sensitive) cmd.push("--sensitive");
 

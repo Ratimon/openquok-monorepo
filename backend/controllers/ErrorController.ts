@@ -127,19 +127,27 @@ export function errorHandler(
         return;
     }
 
-    // Unknown errors — report to Sentry, flush so event is sent, then respond
+    // Unknown errors — report to Sentry, then respond (never let Sentry throw or the client gets a generic Vercel text/plain 500).
     const message = err instanceof Error ? err.message : "Internal server error";
     const status = (err as { statusCode?: number }).statusCode ?? 500;
     logger.error({ msg: "Unexpected error", error: message, status });
-    const eventId = Sentry.captureException(err);
-    if (eventId) {
-        logger.info({
-            msg: "Sentry event captured",
-            eventId,
-            hint: "If the event does not appear in Sentry: disable 'Filter out events from localhost' in Project Settings → Inbound Filters, then search by this eventId in Issues.",
+    let eventId: string | undefined;
+    try {
+        eventId = Sentry.captureException(err) ?? undefined;
+        if (eventId) {
+            logger.info({
+                msg: "Sentry event captured",
+                eventId,
+                hint: "If the event does not appear in Sentry: disable 'Filter out events from localhost' in Project Settings → Inbound Filters, then search by this eventId in Issues.",
+            });
+        } else {
+            logger.warn({ msg: "Sentry did not capture event (filtered or SDK not inited)" });
+        }
+    } catch (sentryErr) {
+        logger.error({
+            msg: "Sentry.captureException failed; continuing with HTTP response",
+            error: sentryErr instanceof Error ? sentryErr.message : String(sentryErr),
         });
-    } else {
-        logger.warn({ msg: "Sentry did not capture event (filtered or SDK not inited)" });
     }
 
     const httpStatus = status >= 400 && status < 600 ? status : 500;

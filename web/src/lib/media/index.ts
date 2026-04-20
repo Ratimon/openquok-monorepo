@@ -15,6 +15,11 @@ const mediaConfig: MediaConfig = {
 export const mediaRepository = new MediaRepository(httpGateway, mediaConfig);
 
 export { MAX_MEDIA_UPLOAD_BYTES, MediaRepository } from './Media.repository.svelte';
+export { maxMediaUploadShortLabel } from 'openquok-common';
+export {
+	resolveMediaLibraryUploadMode,
+	type MediaLibraryUploadMode
+} from './utils/mediaLibraryUploadEnv';
 export { formatBytes } from './utils/formatBytes';
 export { publicUrlForMediaStorageKey } from './utils/publicMediaObjectUrl';
 export type {

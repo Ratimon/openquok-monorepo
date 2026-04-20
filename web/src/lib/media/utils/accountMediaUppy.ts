@@ -4,7 +4,14 @@ import Compressor from '@uppy/compressor';
 import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
 import { MAX_MEDIA_UPLOAD_BYTES } from '$lib/media';
 import { normalizeApiBaseUrl } from '$lib/utils/path';
-import { getUppyUploadPlugin } from '$lib/media/utils/uppyUploadPluginFactory';
+import {
+	getUppyUploadPlugin,
+	type MediaLibraryUppyPluginMode
+} from '$lib/media/utils/uppyUploadPluginFactory';
+import {
+	resolveMediaLibraryUploadMode,
+	type MediaLibraryUploadMode
+} from '$lib/media/utils/mediaLibraryUploadEnv';
 
 /** Full URL for `POST` multipart field `mediaFile` (same origin as `HttpGateway`). */
 export function buildMediaUploadEndpointUrl(): string {
@@ -20,13 +27,16 @@ export type AccountMediaUppyOptions = {
 	onUploadError?: (error: Error) => void;
 	/** Resolved on each API call (workspace may load after mount). */
 	getOrganizationId: () => string;
-	provider?: 'local' | 'cloudflare' | 'r2' | 'transloadit';
+	/**
+	 * Upload strategy; defaults to {@link resolveMediaLibraryUploadMode} (`VITE_MEDIA_LIBRARY_UPLOAD`).
+	 */
+	mode?: MediaLibraryUploadMode;
 	transloadit?: { key: string; templateId: string };
 };
 
 /**
- * Account media library uploader: XHR multipart to `/api/v1/media/upload`, optional image compression, Bearer auth.
- * The UI layer listens for Uppy events (`progress`, `upload-progress`, `file-added`, `complete`).
+ * Account media library uploader (Compressor + upload plugin from {@link resolveMediaLibraryUploadMode}).
+ * The UI listens for Uppy events (`progress`, `upload-progress`, `file-added`, `complete`).
  */
 export function createAccountMediaUppy(options: AccountMediaUppyOptions): Uppy {
 	const uppy = new Uppy({
@@ -44,11 +54,13 @@ export function createAccountMediaUppy(options: AccountMediaUppyOptions): Uppy {
 		maxHeight: 1920
 	});
 
-	// Default to direct-to-R2 multipart (original behavior).
-	const provider = options.provider ?? 'cloudflare';
+	const mode: MediaLibraryUppyPluginMode =
+		options.transloadit?.key && options.transloadit?.templateId
+			? 'transloadit'
+			: (options.mode ?? resolveMediaLibraryUploadMode());
 
 	const plugin = getUppyUploadPlugin({
-		provider,
+		mode,
 		getAccessToken: options.getAccessToken,
 		getOrganizationId: options.getOrganizationId,
 		transloadit: options.transloadit

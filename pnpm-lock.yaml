@@ -316,6 +316,9 @@ importers:
       nanoid:
         specifier: ^5.1.9
         version: 5.1.9
+      openquok-common:
+        specifier: workspace:*
+        version: link:../common
       parse5:
         specifier: ^8.0.0
         version: 8.0.0

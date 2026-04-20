@@ -18,7 +18,7 @@
 		loading: boolean;
 		organizationId: string;
 		dragOver: boolean;
-		/** Shown in the empty-state dropzone copy (e.g. "50 MB"). */
+		/** Shown in the empty-state dropzone copy (e.g. "1 GB"). */
 		uploadLimitLabel: string;
 		/** Disables the empty-state file input while uploads run. */
 		uploadBusy?: boolean;

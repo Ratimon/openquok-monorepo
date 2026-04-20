@@ -38,6 +38,14 @@ const checkConfigIsValid = () => {
         if (hasWildcard) {
             throw new Error("CORS wildcard origins are not allowed in production");
         }
+        const looksLikeLocalDevOnly = origins.every(
+            (o) => !o || /localhost|127\.0\.0\.1/i.test(o) || /^http:\/\/www\.localhost/i.test(o)
+        );
+        if (looksLikeLocalDevOnly && origins.length > 0) {
+            throw new Error(
+                "CORS allowedOrigins resolve to localhost only in production. Set FRONTEND_DOMAIN_URL (e.g. https://www.openquok.com) and/or ALLOWED_FRONTEND_ORIGINS on the API host so cross-site browsers are allowed."
+            );
+        }
     }
     logger.info({ msg: "[Config] Configuration validation passed" });
 };

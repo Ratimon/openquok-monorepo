@@ -20,7 +20,7 @@ OpenQuok can store **workspace media** (account media library, composer attachme
 
 Avatars and blog inline images still use **Supabase Storage** (separate buckets), regardless of this choice.
 
-Pick **one** <Badge text="STORAGE_PROVIDER" variant="envBackend" /> value for the API (<code>r2</code> or <code>local</code>). The web app separately sets <Badge text="VITE_STORAGE_PROVIDER" variant="envWeb" /> so the account media uploader matches: use <code>cloudflare</code> for direct multipart uploads to R2, or <code>local</code> for API-backed uploads to disk (see [Web environment variables](#web-environment-variables)).
+Pick **one** <Badge text="STORAGE_PROVIDER" variant="envBackend" /> value for the API (<code>r2</code> = object storage, <code>local</code> = disk). That is **where the API stores** files. Separately, the web app sets <Badge text="VITE_MEDIA_LIBRARY_UPLOAD" variant="envWeb" /> to choose **how the browser uploads** (direct multipart to R2, via API to disk, or full file through the API). See [Web environment variables](#web-environment-variables).
 
 ## Cloudflare R2
 
@@ -107,10 +107,10 @@ Use <Badge text="backend/.env.development.local" variant="envFile" /> for the ba
 When the API uses <Badge text="STORAGE_PROVIDER" variant="envBackend" /> = <code>r2</code>, set the web app so the media library uses **direct multipart uploads** to R2 (presigned URLs from the API):
 
 ```bash
-VITE_STORAGE_PROVIDER=cloudflare
+VITE_MEDIA_LIBRARY_UPLOAD=direct
 ```
 
-If you **omit** <Badge text="VITE_STORAGE_PROVIDER" variant="envWeb" />, or set it to any value **other than** <code>local</code>, the uploader uses the same R2 multipart flow as <code>cloudflare</code>.
+Synonyms for <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=direct" variant="envWeb" />: <Badge text="multipart" variant="default" />, <Badge text="presigned" variant="default" />. If <Badge text="VITE_MEDIA_LIBRARY_UPLOAD" variant="envWeb" /> is **omitted**, it defaults to <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=direct" variant="envWeb" />.
 
 
 ### Configure bucket CORS
@@ -180,7 +180,7 @@ For **direct-to-R2** multipart uploads, the browser must talk to R2 (bucket CORS
 Set a web env var so the account media uploader uses the server upload flow (XHR to the API) instead of presigned R2 URLs:
 
 ```bash
-VITE_STORAGE_PROVIDER=local
+VITE_MEDIA_LIBRARY_UPLOAD=local
 ```
 
 <Callout type="note" title="Local HTTPS dev: proxy /uploads">
@@ -245,23 +245,24 @@ FRONTEND_DOMAIN_URL=https://localhost:5173
 
 Set these in <Badge text="web/.env.development.local" variant="envFile" /> (or your production web env). Restart Vite after changes. See also <a href="/docs/configuration-web/environment">Environment variables</a>.
 
-| Variable | When to use | Value |
+**Do not confuse** backend <Badge text="STORAGE_PROVIDER" variant="envBackend" /> <code>r2</code> (where the API stores objects) with browser upload mode <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=direct" variant="envWeb" /> (how the client sends bytes).
+
+| Variable | Browser upload | Values |
 | --- | --- | --- |
-| <Badge text="VITE_STORAGE_PROVIDER" variant="envWeb" /> | Account media library upload path | <code>cloudflare</code> — direct multipart to R2 (matches <Badge text="STORAGE_PROVIDER=r2" variant="envBackend" />). Omit or any non-<code>local</code> value behaves like <code>cloudflare</code>. |
-| <Badge text="VITE_STORAGE_PROVIDER" variant="envWeb" /> | Local disk uploads | <code>local</code> — XHR to the API (<Badge text="STORAGE_PROVIDER=local" variant="envBackend" />). |
+| <Badge text="VITE_MEDIA_LIBRARY_UPLOAD" variant="envWeb" /> | How the browser sends files. **Default if unset:** <Badge text="direct" variant="envWeb" />. | <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=direct" variant="envWeb" /> — presigned multipart to R2 (needs bucket CORS). <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=local" variant="envWeb" /> — XHR to the API for disk storage (use with <Badge text="STORAGE_PROVIDER=local" variant="envBackend" />). <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=api" variant="envWeb" /> — full multipart POST to <code>/api/v1/media/upload</code> through the API (no R2 CORS; higher load on the server). |
 | <Badge text="VITE_STORAGE_R2_PUBLIC_BASE_URL" variant="envWeb" /> | Public URLs for R2-hosted objects | Same origin as your bucket custom domain (no trailing slash). |
 
-Example for **R2**:
+Example for **R2** + direct browser uploads:
 
 ```bash
-VITE_STORAGE_PROVIDER=cloudflare
+VITE_MEDIA_LIBRARY_UPLOAD=direct
 VITE_STORAGE_R2_PUBLIC_BASE_URL=https://media.yourdomain.com
 ```
 
 Example for **local disk** (with backend <Badge text="STORAGE_PROVIDER=local" variant="envBackend" />):
 
 ```bash
-VITE_STORAGE_PROVIDER=local
+VITE_MEDIA_LIBRARY_UPLOAD=local
 ```
 
 ## Related

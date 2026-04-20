@@ -47,14 +47,52 @@ function normalizeVercelFunctionRequestUrl(req: import("http").IncomingMessage):
 	}
 }
 
+/**
+ * Wait until Express has finished the response. If the async handler returns before that, Vercel ends
+ * the invocation early and you get `FUNCTION_INVOCATION_FAILED` + plain 500 even when middleware ran.
+ * (Same idea as `serverless-http`.)
+ */
+function waitForResponseEnd(
+	res: import("http").ServerResponse<import("http").IncomingMessage>,
+	run: () => void
+): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		const done = (): void => {
+			res.off("finish", done);
+			res.off("close", done);
+			res.off("error", onResError);
+			resolve();
+		};
+		const onResError = (e: Error): void => {
+			res.off("finish", done);
+			res.off("close", done);
+			res.off("error", onResError);
+			reject(e);
+		};
+		res.once("finish", done);
+		res.once("close", done);
+		res.once("error", onResError);
+		try {
+			run();
+		} catch (syncErr) {
+			res.off("finish", done);
+			res.off("close", done);
+			res.off("error", onResError);
+			reject(syncErr instanceof Error ? syncErr : new Error(String(syncErr)));
+		}
+	});
+}
+
 export default async function handler(
 	req: import("http").IncomingMessage,
 	res: import("http").ServerResponse<import("http").IncomingMessage>
 ): Promise<void> {
 	try {
-		const app = await getApp();
+		const expressApp = await getApp();
 		normalizeVercelFunctionRequestUrl(req);
-		app(req, res);
+		await waitForResponseEnd(res, () => {
+			expressApp(req, res);
+		});
 	} catch (err) {
 		if (res.headersSent) {
 			return;

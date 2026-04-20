@@ -6,7 +6,7 @@
 	import { onDestroy, onMount } from 'svelte';
 
 	import { mediaLibraryMediaModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
-	import { formatBytes, MAX_MEDIA_UPLOAD_BYTES } from '$lib/media';
+	import { formatBytes, maxMediaUploadShortLabel } from '$lib/media';
 	import { createAccountMediaUppy } from '$lib/media/utils/accountMediaUppy';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -42,7 +42,7 @@
 	const totalItems = $derived(p.totalItems);
 	const itemsPerPage = $derived(p.pagination.itemsPerPage);
 	const organizationId = $derived(p.organizationId);
-	const uploadLimitLabel = `${Math.round(MAX_MEDIA_UPLOAD_BYTES / (1024 * 1024))} MB`;
+	const uploadLimitLabel = maxMediaUploadShortLabel();
 	const uploadBusy = $derived(uploadPhase !== 'idle');
 
 	let dragOver = $state(false);
@@ -86,14 +86,10 @@
 	onMount(() => {
 		void p.loadMedia(1);
 
-		const storageProvider = String(import.meta.env?.VITE_STORAGE_PROVIDER ?? '').trim().toLowerCase();
-		const provider = (storageProvider === 'local' ? 'local' : 'cloudflare') as 'local' | 'cloudflare';
-
 		const instance = createAccountMediaUppy({
 			getAccessToken: () => authenticationRepository.getToken(),
 			onUploadError: (err) => toast.error(err.message || 'Upload failed.'),
-			getOrganizationId: () => workspaceSettingsPresenter.currentWorkspaceId ?? '',
-			provider
+			getOrganizationId: () => workspaceSettingsPresenter.currentWorkspaceId ?? ''
 		});
 		uppy = instance;
 		if (organizationId) instance.setMeta({ organizationId });

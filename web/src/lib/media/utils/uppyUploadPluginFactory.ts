@@ -12,7 +12,8 @@ import XHRUpload from '@uppy/xhr-upload';
 import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
 import { normalizeApiBaseUrl } from '$lib/utils/path';
 
-type StorageProvider = 'local' | 'cloudflare' | 'r2' | 'transloadit';
+/** @see resolveMediaLibraryUploadMode — `transloadit` is opt-in only */
+export type MediaLibraryUppyPluginMode = 'local' | 'direct' | 'api' | 'transloadit';
 
 function apiBaseUrl(): string {
 	const raw = String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? '');
@@ -49,7 +50,7 @@ async function postJson(params: {
 }
 
 export type UploadPluginFactoryOptions = {
-	provider: StorageProvider;
+	mode: MediaLibraryUppyPluginMode;
 	getAccessToken: () => string | null;
 	/** Read on each request so uploads work after workspace loads (avoid mount-time empty string). */
 	getOrganizationId: () => string;
@@ -57,17 +58,16 @@ export type UploadPluginFactoryOptions = {
 };
 
 /**
- * Ported capability from the reference helper:
- * - `local`: XHR to `/api/v1/media/upload-server`
- * - `r2`: XHR to `/api/v1/media/upload` (server-side upload; no bucket CORS needed)
- * - `cloudflare`: AwsS3Multipart direct-to-R2 using presigned URLs (requires bucket CORS)
+ * - `local`: XHR to `/api/v1/media/upload-server` (disk via API)
+ * - `api`: XHR multipart to `/api/v1/media/upload` (full file through API; no R2 CORS in browser)
+ * - `direct`: AwsS3Multipart to R2 using presigned part URLs (requires bucket CORS)
  * - `transloadit`: Transloadit plugin (assemblies)
  */
 export function getUppyUploadPlugin(options: UploadPluginFactoryOptions): {
 	plugin: any;
 	options: Record<string, unknown>;
 } {
-	if (options.provider === 'transloadit') {
+	if (options.mode === 'transloadit') {
 		if (!options.transloadit?.key || !options.transloadit?.templateId) {
 			throw new Error('Transloadit is enabled but key/templateId is missing.');
 		}
@@ -86,7 +86,7 @@ export function getUppyUploadPlugin(options: UploadPluginFactoryOptions): {
 		};
 	}
 
-	if (options.provider === 'local') {
+	if (options.mode === 'local') {
 		return {
 			plugin: XHRUpload,
 			options: {
@@ -101,7 +101,7 @@ export function getUppyUploadPlugin(options: UploadPluginFactoryOptions): {
 		};
 	}
 
-	if (options.provider === 'r2') {
+	if (options.mode === 'api') {
 		return {
 			plugin: XHRUpload,
 			options: {
@@ -116,7 +116,7 @@ export function getUppyUploadPlugin(options: UploadPluginFactoryOptions): {
 		};
 	}
 
-	// cloudflare multipart: direct to R2 (requires bucket CORS)
+	// direct: multipart to R2 (requires bucket CORS)
 	return {
 		plugin: AwsS3Multipart,
 		options: {
