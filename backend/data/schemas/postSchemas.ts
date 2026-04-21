@@ -12,6 +12,21 @@ export const validatePostOrganizationQuery: RequestHandler = validateRequest({
     query: postOrganizationQuerySchema,
 });
 
+export const listPostsQuerySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    start: z.string().min(1, "Start is required"),
+    end: z.string().min(1, "End is required"),
+    /**
+     * Optional comma-separated integration ids to filter calendar data.
+     * When omitted, all integrations (including ungrouped) are returned.
+     */
+    integrationIds: z.string().optional(),
+});
+
+export const validateListPostsQuery: RequestHandler = validateRequest({
+    query: listPostsQuerySchema,
+});
+
 const repeatIntervalEnum = z.enum([
     "day",
     "two_days",

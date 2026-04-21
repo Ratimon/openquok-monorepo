@@ -6,6 +6,7 @@ import {
     validateCreatePostBody,
     validateCreatePostTagBody,
     validateDeletePostTag,
+    validateListPostsQuery,
     validatePostOrganizationQuery,
 } from "../data/schemas/postSchemas";
 
@@ -17,6 +18,7 @@ postRouter.get("/find-slot", auth, validatePostOrganizationQuery, postsControlle
 postRouter.get("/tags", auth, validatePostOrganizationQuery, postsController.listTags);
 postRouter.post("/tags", auth, validateCreatePostTagBody, postsController.createTag);
 postRouter.delete("/tags/:tagId", auth, validateDeletePostTag, postsController.deleteTag);
+postRouter.get("/list", auth, validateListPostsQuery, postsController.listPosts);
 postRouter.post("/", auth, validateCreatePostBody, postsController.createPost);
 
 export { postRouter };

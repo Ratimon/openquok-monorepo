@@ -20,6 +20,9 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   backend:
     dependencies:
@@ -250,6 +253,21 @@ importers:
       '@internationalized/date':
         specifier: ^3.12.0
         version: 3.12.0
+      '@preact/signals':
+        specifier: ^2.9.0
+        version: 2.9.0(preact@10.29.1)
+      '@schedule-x/calendar':
+        specifier: ^4.5.0
+        version: 4.5.0(@preact/signals@2.9.0(preact@10.29.1))(preact@10.29.1)(temporal-polyfill@0.3.2)
+      '@schedule-x/events-service':
+        specifier: ^4.5.0
+        version: 4.5.0
+      '@schedule-x/svelte':
+        specifier: ^3.0.0
+        version: 3.0.0(@schedule-x/calendar@4.5.0(@preact/signals@2.9.0(preact@10.29.1))(preact@10.29.1)(temporal-polyfill@0.3.2))(@schedule-x/shared@3.7.3(@preact/signals@2.9.0(preact@10.29.1)))(svelte@5.53.6)
+      '@schedule-x/theme-default':
+        specifier: ^4.5.0
+        version: 4.5.0
       '@shikijs/transformers':
         specifier: ^4.0.2
         version: 4.0.2
@@ -322,6 +340,9 @@ importers:
       parse5:
         specifier: ^8.0.0
         version: 8.0.0
+      preact:
+        specifier: ^10.29.1
+        version: 10.29.1
       shiki:
         specifier: ^4.0.2
         version: 4.0.2
@@ -343,6 +364,9 @@ importers:
       tailwind-variants:
         specifier: ^3.2.2
         version: 3.2.2(tailwind-merge@3.5.0)(tailwindcss@4.2.1)
+      temporal-polyfill:
+        specifier: ^0.3.2
+        version: 0.3.2
       yaml:
         specifier: ^2.8.3
         version: 2.8.3
@@ -2199,6 +2223,14 @@ packages:
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
 
+  '@preact/signals-core@1.14.1':
+    resolution: {integrity: sha512-vxPpfXqrwUe9lpjqfYNjAF/0RF/eFGeLgdJzdmIIZjpOnTmGmAB4BjWone562mJGMRP4frU6iZ6ei3PDsu52Ng==}
+
+  '@preact/signals@2.9.0':
+    resolution: {integrity: sha512-hYrY0KyUqkDgOl1qba/JGn6y81pXnurn21PMaxfcMwdncdZ3M/oVdmpTvEnsGjh48dIwDVc7bjWHqIsngSjYug==}
+    peerDependencies:
+      preact: '>= 10.25.0 || >=11.0.0-0'
+
   '@prisma/instrumentation@5.22.0':
     resolution: {integrity: sha512-LxccF392NN37ISGxIurUljZSh1YWnphO34V5a0+T7FVQG2u9bhAXRTJpgmQ3483woVhkraQZFF7cbRrpbw/F4Q==}
 
@@ -2389,6 +2421,31 @@ packages:
     resolution: {integrity: sha512-2HRCml6OztYXyJXAvdDXPKcawukWY2GpR5/nxKp4iBgiO3wcoEGkAaqctIbZcNB6KlUQBIqt8VYkNSj2397EfA==}
     cpu: [x64]
     os: [win32]
+
+  '@schedule-x/calendar@4.5.0':
+    resolution: {integrity: sha512-KEDtvder+nOLuHv0yWKvNBbJBsvxfBdbL/p1ZwX86sjC63Mp6u3zZt73a6V1a+8DbFSnBQpa+cReIUO3zjf7/A==}
+    peerDependencies:
+      '@preact/signals': ^2.0.2
+      preact: ^10.19.2
+      temporal-polyfill: 0.3.0
+
+  '@schedule-x/events-service@4.5.0':
+    resolution: {integrity: sha512-7xqptu5RLbUYSO+2U7oo3Q5XtwVEH0ZQ6/Lcc7UJkpynqHEfpaplt59E0PMUKXcCTKI78BZmJCca3wZYcpuYkw==}
+
+  '@schedule-x/shared@3.7.3':
+    resolution: {integrity: sha512-VjDnL+3onIynplHqfsQK/eplQl/bsD2XjqnzKQFo6Ji2FYmusALP3Vmtww1brJSAzc+aV9ML2fWCHi14AR/YBg==}
+    peerDependencies:
+      '@preact/signals': ^2.0.2
+
+  '@schedule-x/svelte@3.0.0':
+    resolution: {integrity: sha512-/p91n/sl3iR/pdgvu3QwWTU3OiQoZCm4ftchU8NUcG1exReSxyKnWkiLWc00eK0eS2oTC+cG2v8H8pwggIzIng==}
+    peerDependencies:
+      '@schedule-x/calendar': ^3.0.0
+      '@schedule-x/shared': ^3.0.0
+      svelte: ^4 || ^5
+
+  '@schedule-x/theme-default@4.5.0':
+    resolution: {integrity: sha512-T+OvouoRUPKpR2weZlt/7EvUEjMRmmQeZVfWMnKykoSWuZ2w+ypBncplXuf6mstio+ty2Mx3X/rThr1iJB7XXw==}
 
   '@selderee/plugin-htmlparser2@0.11.0':
     resolution: {integrity: sha512-P33hHGdldxGabLFjPPpaTxVolMrzrcegejx+0GxjrIb9Zv48D8yAIA/QTDR2dFl7Uz7urX8aX6+5bCZslr+gWQ==}
@@ -6517,6 +6574,12 @@ packages:
     resolution: {integrity: sha512-9TsuLcdhOn4XztcQqhNyq1KOwOOED/3k58JAvtULiYqbO8B/0IBAAIE1hj0Svmm58k27TmcigyDI0deMlgG3uw==}
     engines: {node: '>=18'}
 
+  temporal-polyfill@0.3.2:
+    resolution: {integrity: sha512-TzHthD/heRK947GNiSu3Y5gSPpeUDH34+LESnfsq8bqpFhsB79HFBX8+Z834IVX68P3EUyRPZK5bL/1fh437Eg==}
+
+  temporal-spec@0.3.1:
+    resolution: {integrity: sha512-B4TUhezh9knfSIMwt7RVggApDRJZo73uZdj8AacL2mZ8RP5KtLianh2MXxL06GN9ESYiIsiuoLQhgVfwe55Yhw==}
+
   terser@5.46.1:
     resolution: {integrity: sha512-vzCjQO/rgUuK9sf8VJZvjqiqiHFaZLnOiimmUuOKODxWL8mm/xua7viT7aqX7dgPY60otQjUotzFMmCB4VdmqQ==}
     engines: {node: '>=10'}
@@ -9473,6 +9536,13 @@ snapshots:
 
   '@polka/url@1.0.0-next.29': {}
 
+  '@preact/signals-core@1.14.1': {}
+
+  '@preact/signals@2.9.0(preact@10.29.1)':
+    dependencies:
+      '@preact/signals-core': 1.14.1
+      preact: 10.29.1
+
   '@prisma/instrumentation@5.22.0':
     dependencies:
       '@opentelemetry/api': 1.9.0
@@ -9591,6 +9661,26 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.59.0':
     optional: true
+
+  '@schedule-x/calendar@4.5.0(@preact/signals@2.9.0(preact@10.29.1))(preact@10.29.1)(temporal-polyfill@0.3.2)':
+    dependencies:
+      '@preact/signals': 2.9.0(preact@10.29.1)
+      preact: 10.29.1
+      temporal-polyfill: 0.3.2
+
+  '@schedule-x/events-service@4.5.0': {}
+
+  '@schedule-x/shared@3.7.3(@preact/signals@2.9.0(preact@10.29.1))':
+    dependencies:
+      '@preact/signals': 2.9.0(preact@10.29.1)
+
+  '@schedule-x/svelte@3.0.0(@schedule-x/calendar@4.5.0(@preact/signals@2.9.0(preact@10.29.1))(preact@10.29.1)(temporal-polyfill@0.3.2))(@schedule-x/shared@3.7.3(@preact/signals@2.9.0(preact@10.29.1)))(svelte@5.53.6)':
+    dependencies:
+      '@schedule-x/calendar': 4.5.0(@preact/signals@2.9.0(preact@10.29.1))(preact@10.29.1)(temporal-polyfill@0.3.2)
+      '@schedule-x/shared': 3.7.3(@preact/signals@2.9.0(preact@10.29.1))
+      svelte: 5.53.6
+
+  '@schedule-x/theme-default@4.5.0': {}
 
   '@selderee/plugin-htmlparser2@0.11.0':
     dependencies:
@@ -14502,6 +14592,12 @@ snapshots:
       minipass: 7.1.3
       minizlib: 3.1.0
       yallist: 5.0.0
+
+  temporal-polyfill@0.3.2:
+    dependencies:
+      temporal-spec: 0.3.1
+
+  temporal-spec@0.3.1: {}
 
   terser@5.46.1:
     dependencies:

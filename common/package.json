@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "build": "pnpm exec tsc -p tsconfig.json"
+    "build": "pnpm -w exec tsc -p common/tsconfig.json"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

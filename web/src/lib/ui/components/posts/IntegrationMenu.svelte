@@ -26,6 +26,11 @@
 		onRemove: (integrationId: string) => Promise<boolean>;
 		/** `chip`: compact pill for horizontal rows (e.g. account dashboard). */
 		variant?: 'card' | 'chip';
+		/**
+		 * Chip variant: show a small platform icon at the bottom-right of the profile image when a photo exists
+		 * (calendar route); avoids duplicate icon when the avatar is already the platform fallback.
+		 */
+		showProviderBadge?: boolean;
 	};
 
 	let {
@@ -38,8 +43,11 @@
 		onEditTimeSlots,
 		onSetDisabled,
 		onRemove,
-		variant = 'card'
+		variant = 'card',
+		showProviderBadge = false
 	}: Props = $props();
+
+	const hasAvatarPhoto = $derived(Boolean(integration.picture?.trim()));
 
 	let menuOpen = $state(false);
 	let confirmRemoveOpen = $state(false);
@@ -221,14 +229,38 @@
 {/snippet}
 
 {#snippet channelTriggerBody()}
-	<div class="h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-base-300/80">
-		<ImageWithFallback
-			src={integration.picture}
-			alt=""
-			class="h-full w-full object-cover"
-			fallbackIcon={providerIcon(integration.identifier)}
-		/>
-	</div>
+	{#if showProviderBadge && hasAvatarPhoto}
+		<div class="relative h-8 w-8 shrink-0">
+			<div class="h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
+				<ImageWithFallback
+					src={integration.picture}
+					alt=""
+					class="h-full w-full object-cover"
+					fallbackIcon={providerIcon(integration.identifier)}
+				/>
+			</div>
+			<span
+				class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[14px] items-center justify-center rounded-full border border-base-300 bg-base-100 shadow-sm"
+				aria-hidden="true"
+			>
+				<AbstractIcon
+					name={providerIcon(integration.identifier)}
+					class="size-2.5"
+					width="10"
+					height="10"
+				/>
+			</span>
+		</div>
+	{:else}
+		<div class="h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-base-300/80">
+			<ImageWithFallback
+				src={integration.picture}
+				alt=""
+				class="h-full w-full object-cover"
+				fallbackIcon={providerIcon(integration.identifier)}
+			/>
+		</div>
+	{/if}
 	<div class="min-w-0 text-start">
 		<div class="truncate text-sm font-medium text-base-content">{integration.name}</div>
 	</div>

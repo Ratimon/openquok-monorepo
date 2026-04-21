@@ -235,6 +235,38 @@ export class PostsService {
         return { postGroup, posts: inserted };
     }
 
+    async listPostsForCalendar({
+        organizationId,
+        authUserId,
+        startIso,
+        endIso,
+        integrationIds,
+    }: {
+        organizationId: string;
+        authUserId: string;
+        startIso: string;
+        endIso: string;
+        integrationIds?: string[] | null;
+    }): Promise<SocialPostLike[]> {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const start = new Date(startIso);
+        const end = new Date(endIso);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+            throw new AppError("Invalid date range", 400);
+        }
+        if (start.getTime() > end.getTime()) {
+            throw new AppError("Start must be before end", 400);
+        }
+
+        return this.postsRepository.listPostsByOrganizationAndDateRange({
+            organizationId,
+            startIso: start.toISOString(),
+            endIso: end.toISOString(),
+            integrationIds: integrationIds ?? null,
+        });
+    }
+
     private async resolveTagIds(organizationId: string, names: string[]): Promise<string[]> {
         const ids: string[] = [];
         for (const name of names) {

@@ -50,7 +50,8 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@railway/cli": "^4.35.0",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "typescript": "^5.9.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

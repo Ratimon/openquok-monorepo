@@ -10,7 +10,8 @@ const postsConfig: PostsConfig = {
 		findSlot: `${base}/find-slot`,
 		tags: `${base}/tags`,
 		createTag: `${base}/tags`,
-		createPost: `${base}`
+		createPost: `${base}`,
+		listPosts: `${base}/list`
 	}
 };
 

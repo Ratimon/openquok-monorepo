@@ -97,6 +97,7 @@ type PostsRepoMock = jest.Mocked<
         | "newPostGroup"
         | "insertPostGroup"
         | "linkTagsToPosts"
+        | "listPostsByOrganizationAndDateRange"
     >
 >;
 
@@ -110,6 +111,7 @@ function createPostsRepoMock(): PostsRepoMock {
         newPostGroup: jest.fn(),
         insertPostGroup: jest.fn(),
         linkTagsToPosts: jest.fn(),
+        listPostsByOrganizationAndDateRange: jest.fn(),
     };
 }
 
@@ -486,6 +488,80 @@ describe("PostsService", () => {
                 status: "draft",
             });
             expect(postsRepo.insertPostGroup.mock.calls[0][0][0].created_by_user_id).toBeNull();
+        });
+    });
+
+    describe("listPostsForCalendar", () => {
+        it("asserts membership then returns repository rows", async () => {
+            const rows = [socialPostRow({ integration_id: integrationId, state: "QUEUE" })];
+            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue(rows);
+
+            const out = await service().listPostsForCalendar({
+                organizationId: orgId,
+                authUserId,
+                startIso: "2030-06-01T00:00:00.000Z",
+                endIso: "2030-06-30T23:59:59.999Z",
+                integrationIds: [integrationId],
+            });
+
+            expect(integrationConnection.assertOrganizationMember).toHaveBeenCalledWith(authUserId, orgId);
+            expect(postsRepo.listPostsByOrganizationAndDateRange).toHaveBeenCalledWith({
+                organizationId: orgId,
+                startIso: new Date("2030-06-01T00:00:00.000Z").toISOString(),
+                endIso: new Date("2030-06-30T23:59:59.999Z").toISOString(),
+                integrationIds: [integrationId],
+            });
+            expect(out).toEqual(rows);
+        });
+
+        it("normalizes integrationIds to null when omitted", async () => {
+            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue([]);
+
+            await service().listPostsForCalendar({
+                organizationId: orgId,
+                authUserId,
+                startIso: "2030-06-01T00:00:00.000Z",
+                endIso: "2030-06-02T00:00:00.000Z",
+            });
+
+            expect(postsRepo.listPostsByOrganizationAndDateRange).toHaveBeenCalledWith({
+                organizationId: orgId,
+                startIso: new Date("2030-06-01T00:00:00.000Z").toISOString(),
+                endIso: new Date("2030-06-02T00:00:00.000Z").toISOString(),
+                integrationIds: null,
+            });
+        });
+
+        it("throws 400 when date range is invalid", async () => {
+            await expect(
+                service().listPostsForCalendar({
+                    organizationId: orgId,
+                    authUserId,
+                    startIso: "not-a-date",
+                    endIso: "2030-06-02T00:00:00.000Z",
+                })
+            ).rejects.toMatchObject({
+                name: "AppError",
+                statusCode: 400,
+                message: "Invalid date range",
+            });
+            expect(postsRepo.listPostsByOrganizationAndDateRange).not.toHaveBeenCalled();
+        });
+
+        it("throws 400 when start is after end", async () => {
+            await expect(
+                service().listPostsForCalendar({
+                    organizationId: orgId,
+                    authUserId,
+                    startIso: "2030-06-03T00:00:00.000Z",
+                    endIso: "2030-06-02T00:00:00.000Z",
+                })
+            ).rejects.toMatchObject({
+                name: "AppError",
+                statusCode: 400,
+                message: "Start must be before end",
+            });
+            expect(postsRepo.listPostsByOrganizationAndDateRange).not.toHaveBeenCalled();
         });
     });
 });

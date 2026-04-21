@@ -125,4 +125,41 @@ export class PostsController {
             next(error);
         }
     };
+
+    listPosts = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+
+            const q = req.query as {
+                organizationId: string;
+                start: string;
+                end: string;
+                integrationIds?: string;
+            };
+
+            const integrationIds =
+                typeof q.integrationIds === "string" && q.integrationIds.trim().length > 0
+                    ? q.integrationIds
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean)
+                    : null;
+
+            const rows = await this.postsService.listPostsForCalendar({
+                organizationId: q.organizationId,
+                authUserId,
+                startIso: q.start,
+                endIso: q.end,
+                integrationIds,
+            });
+
+            res.status(200).json({ success: true, data: { posts: PostDTOMapper.toDTOCollection(rows) } });
+        } catch (error) {
+            next(error);
+        }
+    };
 }

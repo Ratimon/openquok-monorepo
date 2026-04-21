@@ -83,6 +83,11 @@ export type CreatePostResponseDto = {
 	};
 };
 
+export type ListPostsResponseDto = {
+	success?: boolean;
+	data?: { posts?: PostRowProgrammerModel[] };
+};
+
 export type RepeatIntervalKey =
 	| 'day'
 	| 'two_days'
@@ -115,6 +120,7 @@ export interface PostsConfig {
 		tags: string;
 		createTag: string;
 		createPost: string;
+		listPosts: string;
 	};
 }
 
@@ -226,6 +232,40 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not save post.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not save post.');
+		}
+	}
+
+	async listPosts({
+		organizationId,
+		startIso,
+		endIso,
+		integrationIds
+	}: {
+		organizationId: string;
+		startIso: string;
+		endIso: string;
+		integrationIds?: string[] | null;
+	}): Promise<{ ok: true; posts: PostRowProgrammerModel[] } | { ok: false; error: string }> {
+		try {
+			const params: Record<string, string> = {
+				organizationId,
+				start: startIso,
+				end: endIso
+			};
+			if (integrationIds && integrationIds.length > 0) {
+				params.integrationIds = integrationIds.join(',');
+			}
+			const { ok, data: dto } = await this.httpGateway.get<ListPostsResponseDto>(
+				this.config.endpoints.listPosts,
+				params,
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true && Array.isArray(dto.data?.posts)) {
+				return { ok: true, posts: dto.data.posts };
+			}
+			return { ok: false, error: 'Could not load scheduled posts.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not load scheduled posts.');
 		}
 	}
 

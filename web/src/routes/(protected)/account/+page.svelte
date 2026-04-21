@@ -27,6 +27,7 @@
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
+	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/ui/components/calendar-scheduler/types';
 
 	type Props = {
 		data: PageData;
@@ -81,8 +82,21 @@
 	}
 
 	function openCreatePostForGroup(groupId: string) {
-		createSocialPostPresenter.prepareOpen({ preselectIntegrationId: null, preselectGroupId: groupId });
+		createSocialPostPresenter.prepareOpen({
+			preselectIntegrationId: null,
+			preselectGroupId: groupId,
+			autoCustomizeFirstSelected: true
+		});
 		createSocialPostOpen = true;
+	}
+
+	function goToCalendar(groupId: string | null) {
+		if (!workspaceId) {
+			toast.error('Create or select a workspace first.');
+			return;
+		}
+		const qs = groupId ? `?groupId=${encodeURIComponent(groupId)}` : '';
+		void goto(`${accountRoot}/calendar${qs}`);
 	}
 
 	function openMoveGroupModal(integration: CreateSocialPostChannelViewModel) {
@@ -376,6 +390,14 @@
 					>
 						+ Create Post for All Channels
 					</Button>
+					<Button
+						type="button"
+						variant="outline"
+						disabled={!workspaceId}
+						onclick={() => goToCalendar(null)}
+					>
+						Open Calendar
+					</Button>
 				{/if}
 				<!-- `onboarding={true}`: 9-column grid + `?onboarding=true` on OAuth (match reference “onboarding” mode). -->
 				<AddProvider />
@@ -466,6 +488,19 @@
 								>
 									Create Post for {group.name}
 								</Button>
+								<Button
+									type="button"
+									size="sm"
+									variant="outline"
+									class="shrink-0"
+									onclick={(e: MouseEvent) => {
+										e.preventDefault();
+										e.stopPropagation();
+										goToCalendar(group.id);
+									}}
+								>
+									Calendar
+								</Button>
 							</summary>
 							<div class="border-t border-base-300 px-3 py-3">
 								{@render platformChannelRows(group.platformRows)}
@@ -476,9 +511,39 @@
 			{/if}
 			{#if platformChannelRowsUngrouped.length > 0}
 				<div class="mt-4 space-y-2">
-					<h4 class="text-sm font-semibold text-base-content/80">
-						Ungrouped channels
-					</h4>
+					<div class="flex flex-wrap items-center justify-between gap-2">
+						<h4 class="text-sm font-semibold text-base-content/80">
+							Ungrouped channels
+						</h4>
+						<div class="flex flex-wrap items-center justify-end gap-2">
+							<Button
+								type="button"
+								size="sm"
+								variant="secondary"
+								class="shrink-0"
+								onclick={(e: MouseEvent) => {
+									e.preventDefault();
+									e.stopPropagation();
+									openCreatePost(null);
+								}}
+							>
+								Create Post
+							</Button>
+							<Button
+								type="button"
+								size="sm"
+								variant="outline"
+								class="shrink-0"
+								onclick={(e: MouseEvent) => {
+									e.preventDefault();
+									e.stopPropagation();
+									goToCalendar(CALENDAR_UNGROUPED_SENTINEL);
+								}}
+							>
+								Calendar
+							</Button>
+						</div>
+					</div>
 					<p class="text-sm text-base-content/70">
 						To add a channel to a group, open its menu and select <span class="font-medium text-base-content">Move / add to group</span>.
 					</p>
@@ -522,6 +587,7 @@
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}
+	onScheduled={() => goToCalendar(null)}
 />
 
 <OnBoardingModal

@@ -161,4 +161,39 @@ export class PostsRepository {
             });
         }
     }
+
+    async listPostsByOrganizationAndDateRange({
+        organizationId,
+        startIso,
+        endIso,
+        integrationIds,
+    }: {
+        organizationId: string;
+        startIso: string;
+        endIso: string;
+        integrationIds?: string[] | null;
+    }): Promise<SocialPostLike[]> {
+        let q = this.supabase
+            .from(TABLE_POSTS)
+            .select("*")
+            .eq("organization_id", organizationId)
+            .is("deleted_at", null)
+            .gte("publish_date", startIso)
+            .lte("publish_date", endIso)
+            .order("publish_date", { ascending: true });
+
+        if (integrationIds && integrationIds.length > 0) {
+            q = q.in("integration_id", integrationIds);
+        }
+
+        const { data, error } = await q;
+        if (error) {
+            throw new DatabaseError(`Failed to list posts: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return (data ?? []) as SocialPostLike[];
+    }
 }

@@ -24,6 +24,13 @@ type Mode = 'global' | 'custom';
 export type CreateSocialPostPrepareOpenOptions = {
 	preselectIntegrationId: string | null;
 	preselectGroupId?: string | null;
+	/**
+	 * Calendar page: multi-select targeted channels (may span multiple groups or include ungrouped).
+	 * When it resolves to a single workspace group, `selectedGroupId` will be set automatically.
+	 */
+	preselectIntegrationIds?: string[] | null;
+	/** When true, immediately focus the first selected channel for per-channel editing. */
+	autoCustomizeFirstSelected?: boolean;
 };
 
 /**
@@ -64,6 +71,8 @@ export class CreateSocialPostPresenter {
 	/** Set before opening the modal; consumed on the next {@link onModalOpen}. */
 	private pendingPreselectIntegrationId: string | null = null;
 	private pendingPreselectGroupId: string | null = null;
+	private pendingPreselectIntegrationIds: string[] | null = null;
+	private pendingAutoCustomizeFirstSelected = false;
 
 	workspaceIdForSession = $state<string | null>(null);
 	connectedChannelsForSessionVm = $state<CreateSocialPostChannelViewModel[]>([]);
@@ -136,6 +145,8 @@ export class CreateSocialPostPresenter {
 	prepareOpen(options: CreateSocialPostPrepareOpenOptions): void {
 		this.pendingPreselectIntegrationId = options.preselectIntegrationId;
 		this.pendingPreselectGroupId = options.preselectGroupId ?? null;
+		this.pendingPreselectIntegrationIds = options.preselectIntegrationIds ?? null;
+		this.pendingAutoCustomizeFirstSelected = options.autoCustomizeFirstSelected ?? false;
 	}
 
 	toggleChannel(id: string): void {
@@ -246,6 +257,10 @@ export class CreateSocialPostPresenter {
 		this.pendingPreselectIntegrationId = null;
 		const preselectGroupId = this.pendingPreselectGroupId;
 		this.pendingPreselectGroupId = null;
+		const preselectIntegrationIds = this.pendingPreselectIntegrationIds;
+		this.pendingPreselectIntegrationIds = null;
+		const autoCustomize = this.pendingAutoCustomizeFirstSelected;
+		this.pendingAutoCustomizeFirstSelected = false;
 
 		this.workspaceIdForSession = workspaceId;
 		this.connectedChannelsForSessionVm = connectedChannels;
@@ -258,11 +273,38 @@ export class CreateSocialPostPresenter {
 		}
 
 		if (
+			Array.isArray(preselectIntegrationIds) &&
+			preselectIntegrationIds.length > 0 &&
+			!preselectGroupId
+		) {
+			const allowed = new Set(this.baseSocialChannelsVm.map((c) => c.id));
+			this.selectedIds = [...new Set(preselectIntegrationIds)].filter((id) => allowed.has(id));
+
+			// If all targeted channels belong to exactly one group, reflect that in the group selector UI.
+			const selectedGroups = new Set(
+				this.selectedIds
+					.map((id) => this.baseSocialChannelsVm.find((c) => c.id === id)?.group?.id ?? null)
+					.filter((g): g is string => Boolean(g))
+			);
+			const hasUngrouped = this.selectedIds.some(
+				(id) => !this.baseSocialChannelsVm.find((c) => c.id === id)?.group?.id
+			);
+			if (!hasUngrouped && selectedGroups.size === 1) {
+				this.selectedGroupId = [...selectedGroups][0] ?? null;
+			}
+		}
+
+		if (
 			preselect &&
+			(!preselectIntegrationIds || preselectIntegrationIds.length === 0) &&
 			!preselectGroupId &&
 			this.baseSocialChannelsVm.some((c) => c.id === preselect)
 		) {
 			this.selectedIds = [preselect];
+		}
+
+		if (autoCustomize && this.selectedIds.length > 0) {
+			this.enterCustomMode(this.selectedIds[0]!);
 		}
 
 		this.captureInitialSnapshot();
@@ -272,6 +314,8 @@ export class CreateSocialPostPresenter {
 		this.confirmCloseOpen = false;
 		this.pendingPreselectIntegrationId = null;
 		this.pendingPreselectGroupId = null;
+		this.pendingPreselectIntegrationIds = null;
+		this.pendingAutoCustomizeFirstSelected = false;
 	}
 
 	private captureInitialSnapshot(): void {

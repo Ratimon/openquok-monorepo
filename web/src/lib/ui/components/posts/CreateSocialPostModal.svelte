@@ -20,6 +20,8 @@
 		connectedChannels: CreateSocialPostChannelViewModel[];
 		/** For image upload form field; server uses JWT for storage path. */
 		uploadUid?: string;
+		/** Called after successfully scheduling a post. */
+		onScheduled?: () => void;
 	}
 
 	let {
@@ -27,7 +29,8 @@
 		presenter = $bindable(),
 		workspaceId,
 		connectedChannels,
-		uploadUid = ''
+		uploadUid = '',
+		onScheduled
 	}: CreateSocialPostModalProps = $props();
 
 	const repeatOptions: { value: RepeatIntervalKey; label: string }[] = [
@@ -72,6 +75,7 @@
 	async function schedulePost() {
 		if (await presenter.schedulePost()) {
 			open = false;
+			onScheduled?.();
 		}
 	}
 </script>
@@ -96,50 +100,52 @@
 		</div>
 
 		<div class="flex min-h-0 flex-1 flex-col">
-			<AddEditModal
-				stockPhotosVm={presenter.stockPhotosVm}
-				designTemplatesVm={presenter.designTemplatesVm}
-				fetchPolotnoTemplateListPage={presenter.fetchPolotnoTemplateListPage.bind(presenter)}
-				backgroundPanelVm={presenter.backgroundPanelVm}
-				exportCanvasToMedia={presenter.exportCanvasToMedia}
-				socialChannels={presenter.baseSocialChannelsVm}
-				bind:body={presenter.editorBody}
-				bind:postMediaItems={presenter.postMediaItems}
-				uploadUid={uploadUid}
-				busy={presenter.busy}
-				selectedIds={presenter.selectedIds}
-				mode={presenter.mode}
-				focusedIntegrationId={presenter.focusedIntegrationId}
-				previewText={presenter.previewText}
-				charCount={presenter.charCount}
-				softCharLimit={presenter.softCharLimit}
-				selectedGroupId={presenter.selectedGroupId}
-				onToggleChannel={presenter.toggleChannel.bind(presenter)}
-				onToggleGlobal={() => {
-					if (presenter.mode === 'custom') presenter.backToGlobalMode();
-				}}
-				onRemoveSelected={presenter.removeSelected.bind(presenter)}
-				onFocusIntegration={presenter.focusIntegration.bind(presenter)}
-				onRequestCustomize={presenter.requestCustomize.bind(presenter)}
-				onSelectGroup={presenter.selectGroup.bind(presenter)}
-				editorLocked={presenter.mode === 'custom' ? presenter.editorLocked : false}
-				editorLockMessage="Click this button to exit global editing and customize the post for this channel"
-				onEditorUnlock={() => {
-					presenter.customEditingUnlocked = true;
-					presenter.editorLocked = false;
-				}}
-				editorBannerLeftLabel={presenter.mode === 'custom' ? 'Editing a Specific Network' : null}
-				editorBannerRightActionLabel={presenter.mode === 'custom' ? 'Back to global' : null}
-				onEditorBannerRightAction={presenter.mode === 'custom' ? presenter.backToGlobalMode.bind(presenter) : null}
-				postComment={presenter.postComment}
-				onAddPost={() => toast.message('Thread replies will be added next.')}
-				bind:settingsOpen={presenter.settingsOpen}
-				providerSettings={presenter.providerSettingsByIntegrationId[presenter.focusedIntegrationId ?? ''] ?? {}}
-				onProviderSettingsChange={presenter.updateFocusedProviderSettings.bind(presenter)}
-				mediaUrls={presenter.previewMediaUrls}
-			/>
+			<div class="min-h-0 flex-1 overflow-y-auto">
+				<AddEditModal
+					stockPhotosVm={presenter.stockPhotosVm}
+					designTemplatesVm={presenter.designTemplatesVm}
+					fetchPolotnoTemplateListPage={presenter.fetchPolotnoTemplateListPage.bind(presenter)}
+					backgroundPanelVm={presenter.backgroundPanelVm}
+					exportCanvasToMedia={presenter.exportCanvasToMedia}
+					socialChannels={presenter.baseSocialChannelsVm}
+					bind:body={presenter.editorBody}
+					bind:postMediaItems={presenter.postMediaItems}
+					uploadUid={uploadUid}
+					busy={presenter.busy}
+					selectedIds={presenter.selectedIds}
+					mode={presenter.mode}
+					focusedIntegrationId={presenter.focusedIntegrationId}
+					previewText={presenter.previewText}
+					charCount={presenter.charCount}
+					softCharLimit={presenter.softCharLimit}
+					selectedGroupId={presenter.selectedGroupId}
+					onToggleChannel={presenter.toggleChannel.bind(presenter)}
+					onToggleGlobal={() => {
+						if (presenter.mode === 'custom') presenter.backToGlobalMode();
+					}}
+					onRemoveSelected={presenter.removeSelected.bind(presenter)}
+					onFocusIntegration={presenter.focusIntegration.bind(presenter)}
+					onRequestCustomize={presenter.requestCustomize.bind(presenter)}
+					onSelectGroup={presenter.selectGroup.bind(presenter)}
+					editorLocked={presenter.mode === 'custom' ? presenter.editorLocked : false}
+					editorLockMessage="Click this button to exit global editing and customize the post for this channel"
+					onEditorUnlock={() => {
+						presenter.customEditingUnlocked = true;
+						presenter.editorLocked = false;
+					}}
+					editorBannerLeftLabel={presenter.mode === 'custom' ? 'Editing a Specific Network' : null}
+					editorBannerRightActionLabel={presenter.mode === 'custom' ? 'Back to global' : null}
+					onEditorBannerRightAction={presenter.mode === 'custom' ? presenter.backToGlobalMode.bind(presenter) : null}
+					postComment={presenter.postComment}
+					onAddPost={() => toast.message('Thread replies will be added next.')}
+					bind:settingsOpen={presenter.settingsOpen}
+					providerSettings={presenter.providerSettingsByIntegrationId[presenter.focusedIntegrationId ?? ''] ?? {}}
+					onProviderSettingsChange={presenter.updateFocusedProviderSettings.bind(presenter)}
+					mediaUrls={presenter.previewMediaUrls}
+				/>
+			</div>
 
-			<div class="shrink-0">
+			<div class="sticky bottom-0 z-10 shrink-0 pb-[env(safe-area-inset-bottom)]">
 				<ManageModal
 					tagList={presenter.tagList}
 					selectedTagNames={presenter.selectedTagNames}
