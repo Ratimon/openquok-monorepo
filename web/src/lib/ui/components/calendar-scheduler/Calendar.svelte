@@ -12,11 +12,11 @@
 	} from '@schedule-x/calendar';
 	import '@schedule-x/theme-default/dist/index.css';
 
-	import ScheduleXTimeGridEvent from './ScheduleXTimeGridEvent.svelte';
-	import ScheduleXDateGridEvent from './ScheduleXDateGridEvent.svelte';
-	import ScheduleXMonthGridEvent from './ScheduleXMonthGridEvent.svelte';
+	import TimeGridEvent from '$lib/ui/components/calendar-scheduler/TimeGridEvent.svelte';
+	import DateGridEvent from '$lib/ui/components/calendar-scheduler/DateGridEvent.svelte';
+	import MonthGridEvent from '$lib/ui/components/calendar-scheduler/MonthGridEvent.svelte';
 
-	import type { CalendarDisplay } from './types';
+	import type { CalendarDisplay } from '$lib/ui/components/calendar-scheduler/types';
 
 	type CreateCalendarConfig = Parameters<typeof createCalendar>[0];
 	type DefaultViewName = NonNullable<CreateCalendarConfig['defaultView']>;
@@ -155,9 +155,9 @@
 <div bind:this={hostEl} class="schedule-x-calendar-host w-full">
 	<ScheduleXCalendarHost
 		{calendarApp}
-		timeGridEvent={ScheduleXTimeGridEvent}
-		dateGridEvent={ScheduleXDateGridEvent}
-		monthGridEvent={ScheduleXMonthGridEvent}
+		timeGridEvent={TimeGridEvent}
+		dateGridEvent={DateGridEvent}
+		monthGridEvent={MonthGridEvent}
 	/>
 </div>
 
