@@ -27,6 +27,14 @@ export const validateListPostsQuery: RequestHandler = validateRequest({
     query: listPostsQuerySchema,
 });
 
+export const postGroupParamsSchema = z.object({
+    postGroup: z.string().uuid("Invalid post group id"),
+});
+
+export const validatePostGroupParams: RequestHandler = validateRequest({
+    params: postGroupParamsSchema,
+});
+
 const repeatIntervalEnum = z.enum([
     "day",
     "two_days",
@@ -67,6 +75,21 @@ export const validateCreatePostBody: RequestHandler = validateRequest({
     body: createPostBodySchema,
 });
 
+/**
+ * Update payload mirrors create-post payload; `organizationId` is optional because it can be derived
+ * from the existing post group.
+ */
+export const updatePostGroupBodySchema = createPostBodySchema
+    .omit({ organizationId: true })
+    .extend({
+        organizationId: z.string().uuid("Invalid organization id").optional(),
+    });
+
+export const validateUpdatePostGroupBody: RequestHandler = validateRequest({
+    params: postGroupParamsSchema,
+    body: updatePostGroupBodySchema,
+});
+
 export const createPostTagBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     name: z.string().trim().min(1, "Name is required").max(120),
@@ -88,4 +111,11 @@ export const deletePostTagParamsSchema = z.object({
 export const validateDeletePostTag: RequestHandler = validateRequest({
     params: deletePostTagParamsSchema,
     query: postOrganizationQuerySchema,
+});
+
+export const validateDeletePostGroup: RequestHandler = validateRequest({
+    params: postGroupParamsSchema,
+    query: z.object({
+        organizationId: z.string().uuid("Invalid organization id").optional(),
+    }),
 });

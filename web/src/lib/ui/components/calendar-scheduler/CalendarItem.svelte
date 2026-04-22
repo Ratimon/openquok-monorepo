@@ -24,9 +24,9 @@
 	const ev = $derived((calendarEvent ?? {}) as CalendarEventWithPost);
 	const post = $derived((ev.post ?? {}) as NonNullable<CalendarEventWithPost['post']>);
 
-	const state = $derived(String(post.state ?? '').toUpperCase());
+	const postState = $derived(String(post.state ?? '').toUpperCase());
 	const content = $derived(stripHtmlToPlainText(String(post.content ?? '')) || 'no content');
-	const isDraft = $derived(state === 'DRAFT' || state === 'DRAFTS' || state === 'DRAFTED' || state === 'DRAFT_POST');
+	const isDraft = $derived(postState === 'DRAFT');
 	// Calendar chip: omit QUEUE/PUBLISHED labels; surface only drafts.
 	const statusLabel = $derived(isDraft ? 'Draft' : '');
 
@@ -40,6 +40,8 @@
 
 	const channelName = $derived(String(ev.title ?? ''));
 	const providerBadgeIcon = $derived((ev.channel?.identifier ? ev.channel.identifier : null) as string | null);
+
+	const postGroup = $derived(String((post as any)?.postGroup ?? ''));
 
 	function iconForProvider(identifier: string | null) {
 		if (!identifier) return icons.Link.name;
@@ -56,53 +58,66 @@
 </script>
 
 <div
-	class="oq-calendar-item group relative flex h-full w-full flex-col overflow-hidden rounded-[10px] bg-base-200/30 text-base-content {isBeforeNow ? 'oq-calendar-item--past' : ''}"
+	class="oq-calendar-item group relative flex h-full w-full flex-col overflow-visible rounded-[10px] bg-base-200/30 text-base-content {isBeforeNow ? 'oq-calendar-item--past' : ''}"
 	data-variant={variant}
+	data-post-group={postGroup}
 >
-	<div class="oq-calendar-item__top flex h-6 min-h-6 items-center justify-center gap-2 bg-primary px-2 text-[11px] text-primary-content">
-		<div class="truncate group-hover:hidden">{statusLabel || 'Scheduled'}</div>
-		<div class="hidden items-center gap-2 group-hover:flex">
-			<button type="button" class="hover:opacity-80" aria-label="Copy debug (coming soon)">
-				<AbstractIcon name={icons.Copy.name} class="size-3" width="12" height="12" />
-			</button>
-			<button type="button" class="hover:opacity-80" aria-label="Preview (coming soon)">
-				<AbstractIcon name={icons.Eye.name} class="size-3" width="12" height="12" />
-			</button>
-			<button type="button" class="hover:opacity-80" aria-label="Post statistics (coming soon)">
-				<AbstractIcon name={icons.ChartBar.name} class="size-3" width="12" height="12" />
-			</button>
-			<button type="button" class="hover:opacity-80" aria-label="Delete (coming soon)">
-				<AbstractIcon name={icons.Trash.name} class="size-3" width="12" height="12" />
-			</button>
-		</div>
-	</div>
+	<span
+		class="pointer-events-none absolute right-0.5 top-0.5 z-[2] rounded bg-primary/15 p-0.5 text-primary-content/85 opacity-80"
+		aria-hidden="true"
+	>
+		<AbstractIcon name={icons.MenuLine.name} class="size-3" width="12" height="12" />
+	</span>
 
-	<div class="oq-calendar-item__body flex min-h-0 flex-1 items-start gap-2 bg-base-100/10 p-2">
-		<div class="relative mt-0.5 h-5 w-5 shrink-0">
-			{#if ev.channel?.picture}
-				<img src={ev.channel.picture} alt="" class="h-5 w-5 rounded-md object-cover" />
-			{:else}
-				<div class="h-5 w-5 rounded-md bg-base-200"></div>
-			{/if}
-			{#if providerBadgeIcon}
-				<span
-					class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[12px] items-center justify-center rounded-full border border-base-300 bg-base-100"
-					aria-hidden="true"
-				>
-					<AbstractIcon name={iconForProvider(providerBadgeIcon)} class="size-2.5" width="10" height="10" />
-				</span>
-			{/if}
-		</div>
-
-		<div class="min-w-0 flex-1">
-			<div class="truncate text-xs font-medium text-base-content/90">
-				{#if isDraft}Draft: {/if}{content}
+	{#if variant === 'monthGrid'}
+		<div class="flex h-full min-h-0 items-center gap-2 bg-primary px-2 text-[11px] text-primary-content">
+			<div class="relative h-4 w-4 shrink-0">
+				{#if ev.channel?.picture}
+					<img src={ev.channel.picture} alt="" class="h-4 w-4 rounded object-cover" />
+				{:else}
+					<div class="h-4 w-4 rounded bg-primary-content/20"></div>
+				{/if}
+				{#if providerBadgeIcon}
+					<span
+						class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[10px] items-center justify-center rounded-full border border-primary/30 bg-base-100"
+						aria-hidden="true"
+					>
+						<AbstractIcon name={iconForProvider(providerBadgeIcon)} class="size-2" width="8" height="8" />
+					</span>
+				{/if}
 			</div>
-			{#if variant !== 'monthGrid'}
-				<div class="truncate text-[11px] text-base-content/60">{channelName}</div>
-			{/if}
+			<div class="min-w-0 flex-1 truncate">{statusLabel || 'Scheduled'}</div>
 		</div>
-	</div>
+	{:else}
+		<div class="oq-calendar-item__top flex h-6 min-h-6 items-center justify-center bg-primary px-2 text-[11px] text-primary-content">
+			<div class="truncate">{statusLabel || 'Scheduled'}</div>
+		</div>
+
+		<div class="oq-calendar-item__body flex min-h-0 flex-1 items-start gap-2 bg-base-100/10 p-2">
+			<div class="relative mt-0.5 h-5 w-5 shrink-0">
+				{#if ev.channel?.picture}
+					<img src={ev.channel.picture} alt="" class="h-5 w-5 rounded-md object-cover" />
+				{:else}
+					<div class="h-5 w-5 rounded-md bg-base-200"></div>
+				{/if}
+				{#if providerBadgeIcon}
+					<span
+						class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[12px] items-center justify-center rounded-full border border-base-300 bg-base-100"
+						aria-hidden="true"
+					>
+						<AbstractIcon name={iconForProvider(providerBadgeIcon)} class="size-2.5" width="10" height="10" />
+					</span>
+				{/if}
+			</div>
+
+			<div class="min-w-0 flex-1">
+				<div class="truncate text-xs font-medium text-base-content/90">
+					{#if isDraft}Draft: {/if}{content}
+				</div>
+				<div class="truncate text-[11px] text-base-content/60">{channelName}</div>
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -111,15 +126,45 @@
 		opacity: 0.75;
 	}
 
-	.oq-calendar-item--past:hover::before {
-		content: 'Date passed';
+	/* Tooltip bubble (matches the "Date passed" style). */
+	.oq-calendar-item:hover::after {
+		content: 'Open';
 		position: absolute;
-		inset: 0;
-		display: grid;
-		place-items: center;
-		font-size: 12px;
-		opacity: 0.5;
+		left: 50%;
+		top: 6px;
+		transform: translateX(-50%);
+		max-width: calc(100% - 0.75rem);
+		padding: 0.15rem 0.4rem;
+		border-radius: 0.5rem;
+		background: rgba(0, 0, 0, 0.65);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		backdrop-filter: blur(6px);
+		-webkit-backdrop-filter: blur(6px);
 		pointer-events: none;
+		white-space: normal;
+		text-align: center;
+		overflow-wrap: anywhere;
+		font-weight: 600;
+		font-size: 0.7rem;
+		line-height: 1.1;
+		letter-spacing: 0.01em;
+		color: rgba(255, 255, 255, 0.75);
+		opacity: 0;
+		transition: opacity 120ms ease;
+		z-index: 3;
+	}
+
+	.oq-calendar-item:hover::after {
+		opacity: 0.85;
+	}
+
+	.oq-calendar-item--past:hover::after {
+		content: 'Date passed';
+	}
+
+	/* Month grid cells are tighter: keep the hint minimal. */
+	.oq-calendar-item[data-variant='monthGrid']:hover::after {
+		content: 'Open';
 	}
 </style>
 

@@ -5,6 +5,31 @@ import type { CalendarEventExternal } from '@schedule-x/calendar';
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type { PostRowProgrammerModel, PostsRepository } from '$lib/posts/Posts.repository.svelte';
 
+/**
+ * Schedule‑X can mount event components outside the parent Svelte component tree (portal),
+ * which breaks `setContext/getContext`. This tiny bus lets `Calendar` register an edit handler
+ * and `CalendarItem` invoke it reliably.
+ */
+let editPostGroupHandler: ((postGroup: string) => void) | null = null;
+let refreshCalendarHandler: (() => void) | null = null;
+
+export function registerEditPostGroupHandler(next: ((postGroup: string) => void) | null): void {
+	editPostGroupHandler = next;
+}
+
+export function triggerEditPostGroup(postGroup: string): void {
+	if (!postGroup) return;
+	editPostGroupHandler?.(postGroup);
+}
+
+export function registerRefreshCalendarHandler(next: (() => void) | null): void {
+	refreshCalendarHandler = next;
+}
+
+export function triggerRefreshCalendar(): void {
+	refreshCalendarHandler?.();
+}
+
 export type CalendarDisplayViewModel = 'day' | 'week' | 'month' | 'list';
 
 /** Day / week / month scope for the calendar toolbar. */
@@ -65,7 +90,6 @@ function createInitialScheduledPostsCalendarVm(): ScheduledPostsCalendarVm {
 
 /**
  * Scheduled-post calendar / Schedule‑X wiring: integration filtering, Temporal helpers,
- * {@link ScheduledPostsCalendarVm}, and post lists for the grid.
  */
 export class SchedulerPresenter {
 	/** Reactive UI bundle for browsing scheduled posts in the calendar (Schedule‑X). */

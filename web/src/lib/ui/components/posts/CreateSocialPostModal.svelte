@@ -78,6 +78,16 @@
 			onScheduled?.();
 		}
 	}
+
+	let confirmDeleteOpen = $state(false);
+
+	async function confirmDelete() {
+		confirmDeleteOpen = false;
+		if (await presenter.deleteEditingPostGroup()) {
+			open = false;
+			onScheduled?.();
+		}
+	}
 </script>
 
 <Dialog.Root bind:open>
@@ -155,12 +165,18 @@
 					{repeatOptions}
 					bind:scheduledLocal={presenter.scheduledLocal}
 					busy={presenter.busy}
+					showDelete={Boolean(presenter.editingPostGroup)}
 					primaryLabel={presenter.primaryLabel}
 					scheduleDisabled={!presenter.canSchedule}
 					onToggleTag={presenter.toggleTag.bind(presenter)}
 					onAddTag={presenter.addNewTag.bind(presenter)}
 					onDeleteTag={presenter.deleteWorkspaceTag.bind(presenter)}
-					onRepeatChange={(v) => (presenter.repeatInterval = v)}
+					onRepeatChange={(v) => {
+						presenter.repeatInterval = v;
+					}}
+					onDeletePost={() => {
+						confirmDeleteOpen = true;
+					}}
 					onSaveDraft={saveAsDraft}
 					onSchedule={schedulePost}
 				/>
@@ -173,4 +189,14 @@
 	bind:open={presenter.confirmCloseOpen}
 	onConfirm={confirmClose}
 	onCancel={() => (presenter.confirmCloseOpen = false)}
+/>
+
+<DeleteDialog
+	bind:open={confirmDeleteOpen}
+	title="Are you sure?"
+	description="Are you sure you want to delete this post?"
+	confirmLabel="Yes, delete it!"
+	cancelLabel="No, cancel!"
+	onConfirm={confirmDelete}
+	onCancel={() => (confirmDeleteOpen = false)}
 />

@@ -88,6 +88,25 @@ export type ListPostsResponseDto = {
 	data?: { posts?: PostRowProgrammerModel[] };
 };
 
+export type PostGroupDetailsProgrammerModel = {
+	postGroup: string;
+	organizationId: string;
+	isGlobal: boolean;
+	repeatInterval: RepeatIntervalKey | null;
+	publishDateIso: string;
+	status: 'draft' | 'scheduled';
+	integrationIds: string[];
+	body: string;
+	bodiesByIntegrationId: Record<string, string>;
+	media: PostMediaProgrammerModel[];
+	tagNames: string[];
+};
+
+export type GetPostGroupResponseDto = {
+	success?: boolean;
+	data?: PostGroupDetailsProgrammerModel;
+};
+
 export type RepeatIntervalKey =
 	| 'day'
 	| 'two_days'
@@ -114,6 +133,10 @@ export type CreatePostProgrammerModel = {
 	status: 'draft' | 'scheduled';
 };
 
+export type UpdatePostGroupProgrammerModel = Omit<CreatePostProgrammerModel, 'organizationId'> & {
+	organizationId?: string;
+};
+
 export interface PostsConfig {
 	endpoints: {
 		findSlot: string;
@@ -121,6 +144,9 @@ export interface PostsConfig {
 		createTag: string;
 		createPost: string;
 		listPosts: string;
+		getPostGroup: string;
+		updatePostGroup: string;
+		deletePostGroup: string;
 	};
 }
 
@@ -266,6 +292,60 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not load scheduled posts.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not load scheduled posts.');
+		}
+	}
+
+	async getPostGroup(
+		postGroup: string
+	): Promise<{ ok: true; group: PostGroupDetailsProgrammerModel } | { ok: false; error: string }> {
+		try {
+			const url = `${this.config.endpoints.getPostGroup}/${encodeURIComponent(postGroup)}`;
+			const { ok, data: dto } = await this.httpGateway.get<GetPostGroupResponseDto>(
+				url,
+				{},
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true && dto.data?.postGroup) {
+				return { ok: true, group: dto.data };
+			}
+			return { ok: false, error: 'Could not load post.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not load post.');
+		}
+	}
+
+	async updatePostGroup(
+		postGroup: string,
+		payload: UpdatePostGroupProgrammerModel
+	): Promise<{ ok: true; postGroup: string; postIds: string[] } | { ok: false; error: string }> {
+		try {
+			const url = `${this.config.endpoints.updatePostGroup}/${encodeURIComponent(postGroup)}`;
+			const { ok, data: dto } = await this.httpGateway.put<CreatePostResponseDto>(
+				url,
+				payload,
+				{ withCredentials: true }
+			);
+			const posts = dto?.data?.posts;
+			const outGroup = dto?.data?.postGroup;
+			if (ok && dto?.success === true && typeof outGroup === 'string' && Array.isArray(posts) && posts.length > 0) {
+				return { ok: true, postGroup: outGroup, postIds: posts.map((p) => p.id).filter(Boolean) };
+			}
+			return { ok: false, error: 'Could not update post.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not update post.');
+		}
+	}
+
+	async deletePostGroup(postGroup: string): Promise<{ ok: true } | { ok: false; error: string }> {
+		try {
+			const url = `${this.config.endpoints.deletePostGroup}/${encodeURIComponent(postGroup)}`;
+			const { ok, data: dto } = await this.httpGateway.delete<{ success?: boolean }>(url, {
+				withCredentials: true
+			});
+			if (ok && dto?.success === true) return { ok: true };
+			return { ok: false, error: 'Could not delete post.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not delete post.');
 		}
 	}
 

@@ -11,7 +11,10 @@ const postsConfig: PostsConfig = {
 		tags: `${base}/tags`,
 		createTag: `${base}/tags`,
 		createPost: `${base}`,
-		listPosts: `${base}/list`
+		listPosts: `${base}/list`,
+		getPostGroup: `${base}/group`,
+		updatePostGroup: `${base}/group`,
+		deletePostGroup: `${base}/group`
 	}
 };
 

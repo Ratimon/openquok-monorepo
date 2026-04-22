@@ -7,7 +7,10 @@ import {
     validateCreatePostTagBody,
     validateDeletePostTag,
     validateListPostsQuery,
+    validatePostGroupParams,
     validatePostOrganizationQuery,
+    validateUpdatePostGroupBody,
+    validateDeletePostGroup,
 } from "../data/schemas/postSchemas";
 
 type PostRouter = ReturnType<typeof Router>;
@@ -20,5 +23,10 @@ postRouter.post("/tags", auth, validateCreatePostTagBody, postsController.create
 postRouter.delete("/tags/:tagId", auth, validateDeletePostTag, postsController.deleteTag);
 postRouter.get("/list", auth, validateListPostsQuery, postsController.listPosts);
 postRouter.post("/", auth, validateCreatePostBody, postsController.createPost);
+postRouter.get("/group/:postGroup", auth, validatePostGroupParams, postsController.getPostGroup);
+postRouter.put("/group/:postGroup", auth, validateUpdatePostGroupBody, postsController.updatePostGroup);
+postRouter.delete("/group/:postGroup", auth, validateDeletePostGroup, postsController.deletePostGroup);
+
+postRouter.delete("/:postGroup", auth, validateDeletePostGroup, postsController.deletePostGroup);
 
 export { postRouter };

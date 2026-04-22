@@ -74,9 +74,12 @@ export class CreateSocialPostPresenter {
 	private pendingPreselectGroupId: string | null = null;
 	private pendingPreselectIntegrationIds: string[] | null = null;
 	private pendingAutoCustomizeFirstSelected = false;
+	private pendingEditPostGroup: string | null = null;
 
 	workspaceIdForSession = $state<string | null>(null);
 	connectedChannelsForSessionVm = $state<CreateSocialPostChannelViewModel[]>([]);
+
+	editingPostGroup = $state<string | null>(null);
 
 	mode = $state<Mode>('global');
 	focusedIntegrationId = $state<string | null>(null);
@@ -139,7 +142,11 @@ export class CreateSocialPostPresenter {
 	previewMediaUrls = $derived(mediaItemsToPreviewUrls(this.postMediaItems));
 
 	primaryLabel = $derived(
-		this.selectedIds.length === 0 ? 'Select channels above' : 'Add to calendar'
+		this.selectedIds.length === 0
+			? 'Select channels above'
+			: this.editingPostGroup
+				? 'Update'
+				: 'Add to calendar'
 	);
 
 	scheduleValidationError = $derived.by((): string | null => {
@@ -186,6 +193,15 @@ export class CreateSocialPostPresenter {
 		this.pendingPreselectGroupId = options.preselectGroupId ?? null;
 		this.pendingPreselectIntegrationIds = options.preselectIntegrationIds ?? null;
 		this.pendingAutoCustomizeFirstSelected = options.autoCustomizeFirstSelected ?? false;
+		this.pendingEditPostGroup = null;
+	}
+
+	prepareEdit(postGroup: string): void {
+		this.pendingPreselectIntegrationId = null;
+		this.pendingPreselectGroupId = null;
+		this.pendingPreselectIntegrationIds = null;
+		this.pendingAutoCustomizeFirstSelected = false;
+		this.pendingEditPostGroup = postGroup;
 	}
 
 	toggleChannel(id: string): void {
@@ -300,11 +316,18 @@ export class CreateSocialPostPresenter {
 		this.pendingPreselectIntegrationIds = null;
 		const autoCustomize = this.pendingAutoCustomizeFirstSelected;
 		this.pendingAutoCustomizeFirstSelected = false;
+		const editPostGroup = this.pendingEditPostGroup;
+		this.pendingEditPostGroup = null;
 
 		this.workspaceIdForSession = workspaceId;
 		this.connectedChannelsForSessionVm = connectedChannels;
 
 		this.resetForm();
+		if (editPostGroup) {
+			await this.loadExisting(workspaceId, editPostGroup);
+			this.captureInitialSnapshot();
+			return;
+		}
 		await this.loadInitial(workspaceId);
 
 		if (preselectGroupId) {
@@ -355,6 +378,7 @@ export class CreateSocialPostPresenter {
 		this.pendingPreselectGroupId = null;
 		this.pendingPreselectIntegrationIds = null;
 		this.pendingAutoCustomizeFirstSelected = false;
+		this.pendingEditPostGroup = null;
 	}
 
 	private captureInitialSnapshot(): void {
@@ -378,6 +402,7 @@ export class CreateSocialPostPresenter {
 		this.focusedIntegrationId = null;
 		this.editorLocked = false;
 		this.customEditingUnlocked = false;
+		this.editingPostGroup = null;
 
 		this.globalBody = '';
 		this.bodiesByIntegrationId = {};
@@ -415,6 +440,62 @@ export class CreateSocialPostPresenter {
 			this.bodiesByIntegrationId = {};
 			this.editorBody = '';
 			this.postMediaItems = [];
+		} finally {
+			this.busy = false;
+		}
+	}
+
+	private async loadExisting(workspaceId: string, postGroup: string): Promise<void> {
+		this.busy = true;
+		try {
+			const tags = await this.postsRepository.listTags(workspaceId);
+			if (tags.ok) {
+				this.tagList = tags.tags;
+			} else {
+				toast.error(tags.error);
+			}
+
+			const r = await this.postsRepository.getPostGroup(postGroup);
+			if (!r.ok) {
+				toast.error(r.error);
+				await this.loadInitial(workspaceId);
+				return;
+			}
+			const g = r.group;
+			if (g.organizationId !== workspaceId) {
+				toast.error('Post is not in the selected workspace.');
+				await this.loadInitial(workspaceId);
+				return;
+			}
+
+			this.editingPostGroup = g.postGroup;
+			this.repeatInterval = g.repeatInterval ?? null;
+			this.selectedTagNames = Array.isArray(g.tagNames) ? g.tagNames : [];
+			this.postMediaItems = Array.isArray(g.media) ? g.media : [];
+			this.scheduledLocal = isoToDatetimeLocalValue(g.publishDateIso);
+
+			const allowed = new Set(this.baseSocialChannelsVm.map((c) => c.id));
+			this.selectedIds = (g.integrationIds ?? []).filter((id) => allowed.has(id));
+
+			this.globalBody = g.body ?? '';
+			this.bodiesByIntegrationId = g.bodiesByIntegrationId ?? {};
+
+			if (g.isGlobal) {
+				this.mode = 'global';
+				this.focusedIntegrationId = null;
+				this.editorLocked = false;
+				this.customEditingUnlocked = false;
+				this.editorBody = this.globalBody;
+				return;
+			}
+
+			// Custom mode: focus first selected integration.
+			this.mode = 'custom';
+			this.focusedIntegrationId = this.selectedIds[0] ?? null;
+			this.editorLocked = true;
+			this.customEditingUnlocked = false;
+			this.settingsOpen = false;
+			this.loadEditorBody();
 		} finally {
 			this.busy = false;
 		}
@@ -497,7 +578,7 @@ export class CreateSocialPostPresenter {
 		this.busy = true;
 		try {
 			const overrides = this.mode === 'custom' ? this.bodiesByIntegrationId : undefined;
-			const r = await this.postsRepository.createPost({
+			const payload = {
 				organizationId: workspaceId,
 				body: this.globalBody,
 				...(overrides ? { bodiesByIntegrationId: overrides } : {}),
@@ -507,10 +588,13 @@ export class CreateSocialPostPresenter {
 				scheduledAt: datetimeLocalToIso(this.scheduledLocal),
 				repeatInterval: this.repeatInterval,
 				tagNames: this.selectedTagNames,
-				status: 'draft'
-			});
+				status: 'draft' as const
+			};
+			const r = this.editingPostGroup
+				? await this.postsRepository.updatePostGroup(this.editingPostGroup, payload)
+				: await this.postsRepository.createPost(payload);
 			if (r.ok) {
-				toast.success('Draft saved.');
+				toast.success(this.editingPostGroup ? 'Draft updated.' : 'Draft saved.');
 				return true;
 			}
 			toast.error(r.error);
@@ -553,7 +637,7 @@ export class CreateSocialPostPresenter {
 		this.busy = true;
 		try {
 			const overrides = this.mode === 'custom' ? this.bodiesByIntegrationId : undefined;
-			const r = await this.postsRepository.createPost({
+			const payload = {
 				organizationId: workspaceId,
 				body: this.globalBody,
 				...(overrides ? { bodiesByIntegrationId: overrides } : {}),
@@ -563,10 +647,30 @@ export class CreateSocialPostPresenter {
 				scheduledAt: datetimeLocalToIso(this.scheduledLocal),
 				repeatInterval: this.repeatInterval,
 				tagNames: this.selectedTagNames,
-				status: 'scheduled'
-			});
+				status: 'scheduled' as const
+			};
+			const r = this.editingPostGroup
+				? await this.postsRepository.updatePostGroup(this.editingPostGroup, payload)
+				: await this.postsRepository.createPost(payload);
 			if (r.ok) {
-				toast.success('Post scheduled.');
+				toast.success(this.editingPostGroup ? 'Post updated.' : 'Post scheduled.');
+				return true;
+			}
+			toast.error(r.error);
+			return false;
+		} finally {
+			this.busy = false;
+		}
+	}
+
+	async deleteEditingPostGroup(): Promise<boolean> {
+		const postGroup = this.editingPostGroup;
+		if (!postGroup) return false;
+		this.busy = true;
+		try {
+			const r = await this.postsRepository.deletePostGroup(postGroup);
+			if (r.ok) {
+				toast.success('Post deleted.');
 				return true;
 			}
 			toast.error(r.error);

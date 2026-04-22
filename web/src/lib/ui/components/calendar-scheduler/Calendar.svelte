@@ -17,6 +17,10 @@
 	import TimeGridEvent from '$lib/ui/components/calendar-scheduler/TimeGridEvent.svelte';
 	import DateGridEvent from '$lib/ui/components/calendar-scheduler/DateGridEvent.svelte';
 	import MonthGridEvent from '$lib/ui/components/calendar-scheduler/MonthGridEvent.svelte';
+	import {
+		registerEditPostGroupHandler,
+		registerRefreshCalendarHandler
+	} from '$lib/posts/SchedulerPresenter.svelte';
 
 	type CreateCalendarConfig = Parameters<typeof createCalendar>[0];
 	type DefaultViewName = NonNullable<CreateCalendarConfig['defaultView']>;
@@ -33,9 +37,28 @@
 		rangeStartDate: string;
 		events: CalendarEventExternal[];
 		backgroundEvents?: BackgroundEvent[];
+		onEditPostGroup?: (postGroup: string) => void;
+		openActionsForPostGroup?: (postGroup: string) => void;
+		onRefresh?: () => void;
 	};
 
-	let { display, rangeStartDate, events, backgroundEvents = [] }: Props = $props();
+	let {
+		display,
+		rangeStartDate,
+		events,
+		backgroundEvents = [],
+		onEditPostGroup,
+		openActionsForPostGroup,
+		onRefresh
+	}: Props = $props();
+
+	$effect(() => {
+		registerEditPostGroupHandler(onEditPostGroup ?? null);
+	});
+
+	$effect(() => {
+		registerRefreshCalendarHandler(onRefresh ?? null);
+	});
 
 	type CalendarRuntime = {
 		events: { set: (next: CalendarEventExternal[]) => void };
@@ -106,6 +129,17 @@
 		const el = hostEl;
 		if (!el) return;
 
+		const onClick = (ev: MouseEvent) => {
+			const target = ev.target as HTMLElement | null;
+			const chip = target?.closest?.('[data-post-group]') as HTMLElement | null;
+			const postGroup = chip?.dataset?.postGroup ?? '';
+			if (postGroup) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				openActionsForPostGroup?.(postGroup);
+			}
+		};
+
 		const setXY = (ev: MouseEvent) => {
 			const rect = el.getBoundingClientRect();
 			const x = ev.clientX - rect.left;
@@ -139,15 +173,19 @@
 		el.addEventListener('mousemove', onMove);
 		el.addEventListener('mouseover', onOver);
 		el.addEventListener('mouseout', onOut);
+		el.addEventListener('click', onClick, true);
 
 		return () => {
 			el.removeEventListener('mousemove', onMove);
 			el.removeEventListener('mouseover', onOver);
 			el.removeEventListener('mouseout', onOut);
+			el.removeEventListener('click', onClick, true);
 		};
 	});
 
 	onDestroy(() => {
+		registerEditPostGroupHandler(null);
+		registerRefreshCalendarHandler(null);
 		(calendarApp as unknown as CalendarRuntime).destroy();
 	});
 </script>

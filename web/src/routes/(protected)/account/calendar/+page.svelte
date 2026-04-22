@@ -16,6 +16,9 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import * as Dialog from '$lib/ui/dialog';
+	import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
+	import { postsRepository } from '$lib/posts';
 
 	import Scheduler from '$lib/ui/components/calendar-scheduler/Scheduler.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
@@ -35,6 +38,10 @@
 
 	let timeTableOpen = $state(false);
 	let timeTableFor = $state<CreateSocialPostChannelViewModel | null>(null);
+
+	let actionsOpen = $state(false);
+	let actionsPostGroup = $state<string | null>(null);
+	let actionsBusy = $state(false);
 
 	const accountRoot = route(getRootPathAccount());
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
@@ -59,6 +66,67 @@
 		}
 		calendarPresenter.createSocialPostPresenter.prepareOpen(r.options);
 		createSocialPostOpen = true;
+	}
+
+	function openEditPostGroup(postGroup: string) {
+		if (!workspaceId) {
+			toast.error('Select a workspace first.');
+			return;
+		}
+		calendarPresenter.createSocialPostPresenter.prepareEdit(postGroup);
+		createSocialPostOpen = true;
+	}
+
+	function openActionsForPostGroup(postGroup: string) {
+		if (!postGroup) return;
+		actionsPostGroup = postGroup;
+		actionsOpen = true;
+	}
+
+	function closeActions() {
+		actionsOpen = false;
+		actionsPostGroup = null;
+		actionsBusy = false;
+	}
+
+	async function copyPostGroupText() {
+		const pg = actionsPostGroup;
+		if (!pg) return;
+		actionsBusy = true;
+		try {
+			const r = await postsRepository.getPostGroup(pg);
+			if (!r.ok) {
+				toast.error(r.error);
+				return;
+			}
+			const plain = stripHtmlToPlainText(r.group.body ?? '');
+			await navigator.clipboard.writeText(plain);
+			toast.success('Copied to clipboard.');
+		} catch {
+			toast.error('Could not copy to clipboard.');
+		} finally {
+			actionsBusy = false;
+		}
+	}
+
+	async function deletePostGroup() {
+		const pg = actionsPostGroup;
+		if (!pg) return;
+		const ok = confirm('Delete this post?');
+		if (!ok) return;
+		actionsBusy = true;
+		try {
+			const r = await postsRepository.deletePostGroup(pg);
+			if (r.ok) {
+				toast.success('Post deleted.');
+				calendarPresenter.bumpCalendarRefresh();
+				closeActions();
+				return;
+			}
+			toast.error(r.error);
+		} finally {
+			actionsBusy = false;
+		}
 	}
 
 	function openTimeTableModal(integration: CreateSocialPostChannelViewModel) {
@@ -187,12 +255,79 @@
 				groupId={groupId}
 				refreshKey={calendarRefreshKey}
 				onTargetedChannelsChange={(chs) => calendarPresenter.setTargetedChannels(chs)}
+				onEditPostGroup={openEditPostGroup}
+				openActionsForPostGroup={openActionsForPostGroup}
+				onRefresh={() => calendarPresenter.bumpCalendarRefresh()}
 			/>
 		{:else}
 			<p class="text-sm text-base-content/70">Connect at least one channel to view the calendar.</p>
 		{/if}
 	</section>
 </div>
+
+<Dialog.Root bind:open={actionsOpen} onOpenChange={(o) => (!o ? closeActions() : null)}>
+	<Dialog.Content class="max-w-sm p-0" showCloseButton={true}>
+		<div class="border-b border-base-300 px-4 py-3">
+			<div class="text-base font-semibold text-base-content">Post actions</div>
+			{#if actionsPostGroup}
+				<div class="text-xs text-base-content/60 break-all">{actionsPostGroup}</div>
+			{/if}
+		</div>
+		<div class="p-2">
+			<button
+				type="button"
+				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
+				disabled={actionsBusy || !actionsPostGroup}
+				onclick={() => {
+					const pg = actionsPostGroup;
+					if (!pg) return;
+					closeActions();
+					openEditPostGroup(pg);
+				}}
+			>
+				<AbstractIcon name={icons.Pencil.name} class="size-4 shrink-0" width="16" height="16" />
+				Edit
+			</button>
+			<button
+				type="button"
+				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
+				disabled={actionsBusy || !actionsPostGroup}
+				onclick={() => void copyPostGroupText()}
+			>
+				<AbstractIcon name={icons.Copy.name} class="size-4 shrink-0" width="16" height="16" />
+				Copy
+			</button>
+			<button
+				type="button"
+				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
+				disabled={actionsBusy}
+				onclick={() => toast.message('Preview is coming soon.')}
+			>
+				<AbstractIcon name={icons.Eye.name} class="size-4 shrink-0" width="16" height="16" />
+				Preview
+			</button>
+			<button
+				type="button"
+				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
+				disabled={actionsBusy}
+				onclick={() => toast.message('Statistics is coming soon.')}
+			>
+				<AbstractIcon name={icons.ChartBar.name} class="size-4 shrink-0" width="16" height="16" />
+				Statistics
+			</button>
+			<div class="bg-base-300 my-2 h-px w-full"></div>
+			<button
+				type="button"
+				class="hover:bg-error/10 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start text-error outline-none disabled:opacity-50"
+				disabled={actionsBusy || !actionsPostGroup}
+				onclick={() => void deletePostGroup()}
+			>
+				<AbstractIcon name={icons.Trash.name} class="size-4 shrink-0" width="16" height="16" />
+				Delete
+			</button>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
 
 <CreateSocialPostModal
 	bind:open={createSocialPostOpen}

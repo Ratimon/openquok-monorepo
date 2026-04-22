@@ -196,4 +196,88 @@ export class PostsRepository {
         }
         return (data ?? []) as SocialPostLike[];
     }
+
+    async listPostsByGroup(postGroup: string): Promise<SocialPostLike[]> {
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .select("*")
+            .eq("post_group", postGroup)
+            .is("deleted_at", null)
+            .order("created_at", { ascending: true });
+
+        if (error) {
+            throw new DatabaseError(`Failed to load post group: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return (data ?? []) as SocialPostLike[];
+    }
+
+    /** Soft-delete all rows in a post group. Returns ids of rows affected. */
+    async softDeletePostsByGroup(postGroup: string): Promise<string[]> {
+        const now = new Date().toISOString();
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .update({ deleted_at: now, updated_at: now })
+            .eq("post_group", postGroup)
+            .is("deleted_at", null)
+            .select("id");
+
+        if (error) {
+            throw new DatabaseError(`Failed to delete post group: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return (data ?? []).map((r: any) => String(r.id)).filter(Boolean);
+    }
+
+    async deleteTagAssignmentsForPostIds(postIds: string[]): Promise<void> {
+        if (postIds.length === 0) return;
+        const { error } = await this.supabase.from(TABLE_POSTS_TAGS).delete().in("post_id", postIds);
+        if (error) {
+            throw new DatabaseError(`Failed to delete tag assignments: ${error.message}`, {
+                cause: error,
+                operation: "delete",
+                resource: { type: "table", name: TABLE_POSTS_TAGS },
+            });
+        }
+    }
+
+    async listTagsForPostIds(postIds: string[]): Promise<PostTagLike[]> {
+        if (postIds.length === 0) return [];
+        const { data: links, error: linksErr } = await this.supabase
+            .from(TABLE_POSTS_TAGS)
+            .select("tag_id")
+            .in("post_id", postIds);
+
+        if (linksErr) {
+            throw new DatabaseError(`Failed to load tag assignments: ${linksErr.message}`, {
+                cause: linksErr,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS_TAGS },
+            });
+        }
+        const tagIds = [...new Set((links ?? []).map((r: any) => String(r.tag_id)).filter(Boolean))];
+        if (tagIds.length === 0) return [];
+
+        const { data: tags, error: tagsErr } = await this.supabase
+            .from(TABLE_TAGS)
+            .select("id, name, color, org_id, deleted_at, created_at, updated_at")
+            .in("id", tagIds)
+            .is("deleted_at", null)
+            .order("name", { ascending: true });
+
+        if (tagsErr) {
+            throw new DatabaseError(`Failed to load tags: ${tagsErr.message}`, {
+                cause: tagsErr,
+                operation: "select",
+                resource: { type: "table", name: TABLE_TAGS },
+            });
+        }
+        return (tags ?? []) as PostTagLike[];
+    }
 }

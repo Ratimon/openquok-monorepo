@@ -72,6 +72,50 @@ export type CreatePostInput = {
     status: "draft" | "scheduled";
 };
 
+export type PostGroupDetails = {
+    postGroup: string;
+    organizationId: string;
+    isGlobal: boolean;
+    repeatInterval: RepeatIntervalKey | null;
+    publishDateIso: string;
+    status: "draft" | "scheduled";
+    integrationIds: string[];
+    /** Canonical global body best-effort for edit mode. */
+    body: string;
+    /** Always provided for edit mode; includes all selected integrations (even if equal to body). */
+    bodiesByIntegrationId: Record<string, string>;
+    media: PostMediaItemInput[];
+    tagNames: string[];
+};
+
+function parseSettingsJson(settings: string | null): { isGlobal: boolean; repeatInterval: RepeatIntervalKey | null } {
+    if (!settings) return { isGlobal: true, repeatInterval: null };
+    try {
+        const o = JSON.parse(settings) as { isGlobal?: unknown; repeatInterval?: unknown };
+        const isGlobal = typeof o.isGlobal === "boolean" ? o.isGlobal : true;
+        const repeatInterval = (typeof o.repeatInterval === "string" ? (o.repeatInterval as RepeatIntervalKey) : null) ?? null;
+        return { isGlobal, repeatInterval };
+    } catch {
+        return { isGlobal: true, repeatInterval: null };
+    }
+}
+
+function parseImageColumn(image: string | null): PostMediaItemInput[] {
+    if (!image) return [];
+    try {
+        const o = JSON.parse(image) as { items?: unknown };
+        const items = Array.isArray((o as any).items) ? ((o as any).items as any[]) : [];
+        return items
+            .map((x) => ({
+                id: typeof x?.id === "string" ? x.id : "",
+                path: typeof x?.path === "string" ? x.path : "",
+            }))
+            .filter((m) => m.id && m.path);
+    } catch {
+        return [];
+    }
+}
+
 export class PostsService {
     constructor(
         private readonly postsRepository: PostsRepository,
@@ -128,13 +172,26 @@ export class PostsService {
         }
     }
 
-    async createPost(input: CreatePostInput): Promise<{
+    private async buildPostGroupInsert(input: {
+        organizationId: string;
+        authUserId: string;
         postGroup: string;
-        posts: SocialPostLike[];
-    }> {
+        body: string;
+        bodiesByIntegrationId?: Record<string, string> | null;
+        media?: PostMediaItemInput[] | null;
+        integrationIds: string[];
+        isGlobal: boolean;
+        scheduledAtIso: string;
+        repeatInterval: RepeatIntervalKey | null;
+        tagNames: string[];
+        status: "draft" | "scheduled";
+        /** When scheduling and this flag is true, skip the "slot taken" check. */
+        allowTakenSlot?: boolean;
+    }): Promise<{ postGroup: string; toInsert: SocialPostInsert[]; tagIds: string[] }> {
         const {
             organizationId,
             authUserId,
+            postGroup,
             body,
             bodiesByIntegrationId,
             media,
@@ -144,6 +201,7 @@ export class PostsService {
             repeatInterval,
             tagNames,
             status,
+            allowTakenSlot = false,
         } = input;
 
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
@@ -182,7 +240,7 @@ export class PostsService {
         const alignedScheduled = alignToFifteenMinuteUtc(scheduledDate);
         const publishIso = alignedScheduled.toISOString();
 
-        if (status === "scheduled") {
+        if (status === "scheduled" && !allowTakenSlot) {
             const taken = await this.postsRepository.hasQueueSlotTaken(organizationId, publishIso);
             if (taken) {
                 throw new AppError("That time slot is already taken; pick another.", 409);
@@ -195,7 +253,6 @@ export class PostsService {
         const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
         const createdByUserId = userId ?? null;
 
-        const postGroup = this.postsRepository.newPostGroup();
         const settingsJson = JSON.stringify({ isGlobal, repeatInterval: repeatInterval ?? null });
         const intervalDays = repeatIntervalToDays(repeatInterval);
 
@@ -227,7 +284,6 @@ export class PostsService {
         };
 
         let toInsert: SocialPostInsert[];
-
         if (uniqueIds.length === 0) {
             toInsert = [{ ...baseRow, integration_id: null }];
         } else {
@@ -241,11 +297,17 @@ export class PostsService {
             }));
         }
 
+        return { postGroup, toInsert, tagIds };
+    }
+
+    async createPost(input: CreatePostInput): Promise<{
+        postGroup: string;
+        posts: SocialPostLike[];
+    }> {
+        const postGroup = this.postsRepository.newPostGroup();
+        const { toInsert, tagIds } = await this.buildPostGroupInsert({ ...input, postGroup });
         const inserted = await this.postsRepository.insertPostGroup(toInsert);
-
-        const postIds = inserted.map((p) => p.id);
-        await this.postsRepository.linkTagsToPosts(postIds, tagIds);
-
+        await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
         return { postGroup, posts: inserted };
     }
 
@@ -279,6 +341,122 @@ export class PostsService {
             endIso: end.toISOString(),
             integrationIds: integrationIds ?? null,
         });
+    }
+
+    async getPostGroup(postGroup: string, authUserId: string): Promise<PostGroupDetails> {
+        const rows = await this.postsRepository.listPostsByGroup(postGroup);
+        if (!rows.length) {
+            throw new AppError("Post group not found", 404);
+        }
+
+        const organizationId = rows[0]!.organization_id;
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const { isGlobal, repeatInterval } = parseSettingsJson(rows[0]!.settings);
+        const publishDateIso = rows[0]!.publish_date;
+        const status: "draft" | "scheduled" = rows.every((r) => r.state === "DRAFT") ? "draft" : "scheduled";
+
+        const integrationIds = rows.map((r) => r.integration_id).filter((x): x is string => Boolean(x));
+
+        // Best-effort global body: if global editing was used, all bodies are the same.
+        // If custom mode, choose the first integration's body as a baseline.
+        const body = rows.find((r) => r.integration_id != null)?.content ?? rows[0]!.content ?? "";
+        const bodiesByIntegrationId: Record<string, string> = {};
+        for (const r of rows) {
+            if (!r.integration_id) continue;
+            bodiesByIntegrationId[r.integration_id] = r.content ?? "";
+        }
+
+        const media = parseImageColumn(rows[0]!.image);
+        const tags = await this.postsRepository.listTagsForPostIds(rows.map((r) => r.id));
+        const tagNames = tags.map((t) => t.name).filter(Boolean);
+
+        return {
+            postGroup,
+            organizationId,
+            isGlobal,
+            repeatInterval,
+            publishDateIso,
+            status,
+            integrationIds,
+            body,
+            bodiesByIntegrationId,
+            media,
+            tagNames,
+        };
+    }
+
+    async deletePostGroup(postGroup: string, authUserId: string, organizationId?: string | null): Promise<void> {
+        const rows = await this.postsRepository.listPostsByGroup(postGroup);
+        if (!rows.length) {
+            throw new AppError("Post group not found", 404);
+        }
+        const orgId = rows[0]!.organization_id;
+        if (organizationId && organizationId !== orgId) {
+            throw new AppError("Post group does not belong to that workspace", 400);
+        }
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, orgId);
+        const ids = rows.map((r) => r.id);
+        await this.postsRepository.deleteTagAssignmentsForPostIds(ids);
+        await this.postsRepository.softDeletePostsByGroup(postGroup);
+    }
+
+    async updatePostGroup(input: Omit<CreatePostInput, "organizationId"> & { postGroup: string; organizationId?: string | null }): Promise<{
+        postGroup: string;
+        posts: SocialPostLike[];
+    }> {
+        const {
+            postGroup,
+            authUserId,
+            body,
+            bodiesByIntegrationId,
+            media,
+            integrationIds,
+            isGlobal,
+            scheduledAtIso,
+            repeatInterval,
+            tagNames,
+            status,
+        } = input;
+
+        const existing = await this.postsRepository.listPostsByGroup(postGroup);
+        if (!existing.length) throw new AppError("Post group not found", 404);
+        const organizationId = existing[0]!.organization_id;
+        if (input.organizationId && input.organizationId !== organizationId) {
+            throw new AppError("Post group does not belong to that workspace", 400);
+        }
+
+        // If this group is already scheduled at the same slot, allow "taken slot" when updating without moving.
+        const alignedNext = alignToFifteenMinuteUtc(new Date(scheduledAtIso));
+        const nextPublishIso = Number.isNaN(alignedNext.getTime()) ? null : alignedNext.toISOString();
+        const alreadyAtThatSlot = nextPublishIso != null && existing[0]!.publish_date === nextPublishIso;
+        const allowTakenSlot = status === "scheduled" && alreadyAtThatSlot;
+
+        // Validate + build insert payload first (may throw on membership / provider rules / slot taken).
+        const { toInsert, tagIds } = await this.buildPostGroupInsert({
+            organizationId,
+            authUserId,
+            postGroup,
+            body,
+            bodiesByIntegrationId,
+            media,
+            integrationIds,
+            isGlobal,
+            scheduledAtIso,
+            repeatInterval,
+            tagNames,
+            status,
+            allowTakenSlot,
+        });
+
+        // Delete old tag links & rows; then reinsert with the same group id.
+        const oldIds = existing.map((r) => r.id);
+        await this.postsRepository.deleteTagAssignmentsForPostIds(oldIds);
+        await this.postsRepository.softDeletePostsByGroup(postGroup);
+
+        const inserted = await this.postsRepository.insertPostGroup(toInsert);
+        await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+        return { postGroup, posts: inserted };
     }
 
     private async resolveTagIds(organizationId: string, names: string[]): Promise<string[]> {

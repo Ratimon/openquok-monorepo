@@ -20,23 +20,27 @@
 		title?: string;
 	};
 
-	type Props = {
-		presenter: SchedulerPresenter;
-		organizationId: string;
-		channels: ChannelViewModel[];
-		groupId?: string | null;
-		refreshKey?: string | number;
-		onTargetedChannelsChange?: (channels: ChannelViewModel[]) => void;
-	};
-
 	let {
 		presenter,
 		organizationId,
 		channels,
 		groupId = null,
 		refreshKey = 0,
-		onTargetedChannelsChange
-	}: Props = $props();
+		onTargetedChannelsChange,
+		onEditPostGroup,
+		openActionsForPostGroup,
+		onRefresh
+	}: {
+		presenter: SchedulerPresenter;
+		organizationId: string;
+		channels: ChannelViewModel[];
+		groupId?: string | null;
+		refreshKey?: string | number;
+		onTargetedChannelsChange?: (channels: ChannelViewModel[]) => void;
+		onEditPostGroup?: (postGroup: string) => void;
+		openActionsForPostGroup?: (postGroup: string) => void;
+		onRefresh?: () => void;
+	} = $props();
 
 	const scheduledPostsVm = $derived(presenter.scheduledPostsCalendarVm);
 
@@ -198,5 +202,8 @@
 		rangeStartDate={scheduledPostsVm.rangeStartDate}
 		events={scheduledPostsVm.events}
 		{backgroundEvents}
+		{onEditPostGroup}
+		{openActionsForPostGroup}
+		{onRefresh}
 	/>
 </div>

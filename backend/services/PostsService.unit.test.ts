@@ -98,6 +98,10 @@ type PostsRepoMock = jest.Mocked<
         | "newPostGroup"
         | "insertPostGroup"
         | "linkTagsToPosts"
+        | "listPostsByGroup"
+        | "listTagsForPostIds"
+        | "deleteTagAssignmentsForPostIds"
+        | "softDeletePostsByGroup"
         | "listPostsByOrganizationAndDateRange"
     >
 >;
@@ -112,6 +116,10 @@ function createPostsRepoMock(): PostsRepoMock {
         newPostGroup: jest.fn(),
         insertPostGroup: jest.fn(),
         linkTagsToPosts: jest.fn(),
+        listPostsByGroup: jest.fn(),
+        listTagsForPostIds: jest.fn(),
+        deleteTagAssignmentsForPostIds: jest.fn(),
+        softDeletePostsByGroup: jest.fn(),
         listPostsByOrganizationAndDateRange: jest.fn(),
     };
 }
@@ -587,6 +595,193 @@ describe("PostsService", () => {
                 message: "Start must be before end",
             });
             expect(postsRepo.listPostsByOrganizationAndDateRange).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("getPostGroup", () => {
+        it("throws 404 when group has no posts", async () => {
+            postsRepo.listPostsByGroup.mockResolvedValue([]);
+            await expect(service().getPostGroup(faker.string.uuid(), authUserId)).rejects.toMatchObject({
+                name: "AppError",
+                statusCode: 404,
+            });
+        });
+
+        it("asserts membership and returns composer-friendly details", async () => {
+            const postGroup = faker.string.uuid();
+            const publishDateIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            const image = JSON.stringify({ items: [{ id: "m1", path: "/x.png" }] });
+            const settings = JSON.stringify({ isGlobal: false, repeatInterval: "week" });
+
+            postsRepo.listPostsByGroup.mockResolvedValue([
+                socialPostRow({
+                    id: faker.string.uuid(),
+                    organization_id: orgId,
+                    post_group: postGroup,
+                    integration_id: integrationId,
+                    state: "QUEUE",
+                    publish_date: publishDateIso,
+                    content: "body-a",
+                    image,
+                    settings,
+                }),
+                socialPostRow({
+                    id: faker.string.uuid(),
+                    organization_id: orgId,
+                    post_group: postGroup,
+                    integration_id: otherIntegrationId,
+                    state: "QUEUE",
+                    publish_date: publishDateIso,
+                    content: "body-b",
+                    image,
+                    settings,
+                }),
+            ]);
+            postsRepo.listTagsForPostIds.mockResolvedValue([tagRow({ name: "tag-1" }), tagRow({ name: "tag-2" })]);
+
+            const out = await service().getPostGroup(postGroup, authUserId);
+
+            expect(integrationConnection.assertOrganizationMember).toHaveBeenCalledWith(authUserId, orgId);
+            expect(postsRepo.listTagsForPostIds).toHaveBeenCalledWith(expect.arrayContaining([expect.any(String)]));
+            expect(out).toMatchObject({
+                postGroup,
+                organizationId: orgId,
+                isGlobal: false,
+                repeatInterval: "week",
+                publishDateIso,
+                status: "scheduled",
+                integrationIds: expect.arrayContaining([integrationId, otherIntegrationId]),
+                bodiesByIntegrationId: {
+                    [integrationId]: "body-a",
+                    [otherIntegrationId]: "body-b",
+                },
+                media: [{ id: "m1", path: "/x.png" }],
+                tagNames: expect.arrayContaining(["tag-1", "tag-2"]),
+            });
+        });
+    });
+
+    describe("deletePostGroup", () => {
+        it("throws 404 when group has no posts", async () => {
+            postsRepo.listPostsByGroup.mockResolvedValue([]);
+            await expect(service().deletePostGroup(faker.string.uuid(), authUserId, orgId)).rejects.toMatchObject({
+                statusCode: 404,
+            });
+        });
+
+        it("throws 400 when group does not belong to provided workspace", async () => {
+            const postGroup = faker.string.uuid();
+            postsRepo.listPostsByGroup.mockResolvedValue([socialPostRow({ post_group: postGroup, organization_id: orgId })]);
+            await expect(service().deletePostGroup(postGroup, authUserId, faker.string.uuid())).rejects.toMatchObject({
+                statusCode: 400,
+            });
+        });
+
+        it("deletes tag assignments then soft-deletes group posts", async () => {
+            const postGroup = faker.string.uuid();
+            const a = socialPostRow({ id: faker.string.uuid(), post_group: postGroup, organization_id: orgId });
+            const b = socialPostRow({ id: faker.string.uuid(), post_group: postGroup, organization_id: orgId });
+            postsRepo.listPostsByGroup.mockResolvedValue([a, b]);
+            postsRepo.deleteTagAssignmentsForPostIds.mockResolvedValue(undefined);
+            postsRepo.softDeletePostsByGroup.mockResolvedValue([]);
+
+            await service().deletePostGroup(postGroup, authUserId, orgId);
+
+            expect(integrationConnection.assertOrganizationMember).toHaveBeenCalledWith(authUserId, orgId);
+            expect(postsRepo.deleteTagAssignmentsForPostIds).toHaveBeenCalledWith([a.id, b.id]);
+            expect(postsRepo.softDeletePostsByGroup).toHaveBeenCalledWith(postGroup);
+        });
+    });
+
+    describe("updatePostGroup", () => {
+        it("throws 404 when group has no posts", async () => {
+            postsRepo.listPostsByGroup.mockResolvedValue([]);
+            await expect(
+                service().updatePostGroup({
+                    postGroup: faker.string.uuid(),
+                    organizationId: orgId,
+                    authUserId,
+                    body: "x",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: new Date().toISOString(),
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "draft",
+                })
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("throws 400 when group does not belong to provided workspace", async () => {
+            const postGroup = faker.string.uuid();
+            postsRepo.listPostsByGroup.mockResolvedValue([socialPostRow({ post_group: postGroup, organization_id: orgId })]);
+            await expect(
+                service().updatePostGroup({
+                    postGroup,
+                    organizationId: faker.string.uuid(),
+                    authUserId,
+                    body: "x",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: new Date().toISOString(),
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "draft",
+                })
+            ).rejects.toMatchObject({ statusCode: 400 });
+        });
+
+        it("allows keeping the same scheduled slot even if repository would report it as taken", async () => {
+            const postGroup = faker.string.uuid();
+            const scheduledAtIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            const existingA = socialPostRow({
+                id: faker.string.uuid(),
+                post_group: postGroup,
+                organization_id: orgId,
+                integration_id: integrationId,
+                state: "QUEUE",
+                publish_date: scheduledAtIso,
+            });
+            postsRepo.listPostsByGroup.mockResolvedValue([existingA]);
+
+            // Would normally throw 409 if checked; update should skip check when not moving slots.
+            postsRepo.hasQueueSlotTaken.mockResolvedValue(true);
+
+            integrationService.listByOrganization.mockResolvedValue([integrationRow({ id: integrationId })]);
+            postsRepo.findTagByOrgAndName.mockResolvedValue(null);
+            postsRepo.insertTag.mockImplementation(async (_org, name) => tagRow({ name }));
+
+            const insertedRow = socialPostRow({
+                id: faker.string.uuid(),
+                post_group: postGroup,
+                organization_id: orgId,
+                integration_id: integrationId,
+                state: "QUEUE",
+                publish_date: scheduledAtIso,
+            });
+            postsRepo.insertPostGroup.mockResolvedValue([insertedRow]);
+            postsRepo.linkTagsToPosts.mockResolvedValue(undefined);
+            postsRepo.deleteTagAssignmentsForPostIds.mockResolvedValue(undefined);
+            postsRepo.softDeletePostsByGroup.mockResolvedValue([]);
+
+            const out = await service().updatePostGroup({
+                postGroup,
+                organizationId: orgId,
+                authUserId,
+                body: faker.lorem.sentence(),
+                integrationIds: [integrationId],
+                isGlobal: true,
+                scheduledAtIso,
+                repeatInterval: null,
+                tagNames: ["t1"],
+                status: "scheduled",
+            });
+
+            expect(postsRepo.hasQueueSlotTaken).not.toHaveBeenCalled();
+            expect(postsRepo.deleteTagAssignmentsForPostIds).toHaveBeenCalledWith([existingA.id]);
+            expect(postsRepo.softDeletePostsByGroup).toHaveBeenCalledWith(postGroup);
+            expect(postsRepo.insertPostGroup).toHaveBeenCalled();
+            expect(out).toEqual({ postGroup, posts: [insertedRow] });
         });
     });
 });

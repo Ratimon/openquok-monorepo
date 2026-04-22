@@ -162,4 +162,83 @@ export class PostsController {
             next(error);
         }
     };
+
+    getPostGroup = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postGroup = (req.params as { postGroup: string }).postGroup;
+            const d = await this.postsService.getPostGroup(postGroup, authUserId);
+            res.status(200).json({ success: true, data: d });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    updatePostGroup = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postGroup = (req.params as { postGroup: string }).postGroup;
+            const b = req.body as {
+                organizationId?: string;
+                body?: string;
+                bodiesByIntegrationId?: Record<string, string>;
+                media?: { id: string; path: string }[];
+                integrationIds?: string[];
+                isGlobal?: boolean;
+                scheduledAt: string;
+                repeatInterval?: string | null;
+                tagNames?: string[];
+                status: "draft" | "scheduled";
+            };
+
+            const result = await this.postsService.updatePostGroup({
+                postGroup,
+                organizationId: b.organizationId ?? null,
+                authUserId,
+                body: b.body ?? "",
+                bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
+                media: b.media ?? null,
+                integrationIds: b.integrationIds ?? [],
+                isGlobal: b.isGlobal ?? true,
+                scheduledAtIso: b.scheduledAt,
+                repeatInterval: (b.repeatInterval ?? null) as RepeatIntervalKey | null,
+                tagNames: b.tagNames ?? [],
+                status: b.status,
+            });
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    postGroup: result.postGroup,
+                    posts: PostDTOMapper.toDTOCollection(result.posts),
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    deletePostGroup = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postGroup = (req.params as { postGroup: string }).postGroup;
+            const organizationId = (req.query as { organizationId?: string }).organizationId ?? null;
+            await this.postsService.deletePostGroup(postGroup, authUserId, organizationId);
+            res.status(200).json({ success: true });
+        } catch (error) {
+            next(error);
+        }
+    };
 }
