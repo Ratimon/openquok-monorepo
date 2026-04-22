@@ -26,7 +26,6 @@ postRouter.post("/", auth, validateCreatePostBody, postsController.createPost);
 postRouter.get("/group/:postGroup", auth, validatePostGroupParams, postsController.getPostGroup);
 postRouter.put("/group/:postGroup", auth, validateUpdatePostGroupBody, postsController.updatePostGroup);
 postRouter.delete("/group/:postGroup", auth, validateDeletePostGroup, postsController.deletePostGroup);
-
 postRouter.delete("/:postGroup", auth, validateDeletePostGroup, postsController.deletePostGroup);
 
 export { postRouter };
