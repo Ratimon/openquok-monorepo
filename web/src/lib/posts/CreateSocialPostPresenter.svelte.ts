@@ -34,6 +34,22 @@ export type CreateSocialPostPrepareOpenOptions = {
 	autoCustomizeFirstSelected?: boolean;
 };
 
+/** User-visible prefix for provider validation toasts and inline copy (network + account name). */
+function formatProviderScheduleValidationMessage(
+	ch: CreateSocialPostChannelViewModel,
+	raw: string
+): string {
+	const id = (ch.identifier ?? '').toLowerCase();
+	const label = (ch.name ?? '').trim() || 'Channel';
+	if (id.startsWith('instagram')) {
+		return `Instagram (${label}): ${raw}`;
+	}
+	if (id === 'threads') {
+		return `Threads (${label}): ${raw}`;
+	}
+	return `${label}: ${raw}`;
+}
+
 /**
  * Shared composer state for the create-post dialog: scheduling UI, repository calls,
  * and optional single-channel preselection (e.g. integration menu → create post).
@@ -75,6 +91,8 @@ export class CreateSocialPostPresenter {
 	private pendingPreselectIntegrationIds: string[] | null = null;
 	private pendingAutoCustomizeFirstSelected = false;
 	private pendingEditPostGroup: string | null = null;
+	private lastLoadedEditKey: string | null = null;
+	private tagListCache: { workspaceId: string; loadedAtMs: number } | null = null;
 
 	workspaceIdForSession = $state<string | null>(null);
 	connectedChannelsForSessionVm = $state<CreateSocialPostChannelViewModel[]>([]);
@@ -160,15 +178,18 @@ export class CreateSocialPostPresenter {
 				media: this.postMediaItems,
 				settings: this.providerSettingsByIntegrationId[id] ?? {}
 			});
-			if (typeof res === 'string' && res.trim().length > 0) return res;
+			if (typeof res === 'string' && res.trim().length > 0) {
+				return formatProviderScheduleValidationMessage(ch, res);
+			}
 		}
 		return null;
 	});
 
-	/** When false, the primary schedule action should be disabled (in addition to empty selection). */
-	canSchedule = $derived(
-		!this.busy && this.selectedIds.length > 0 && this.scheduleValidationError == null
-	);
+	/**
+	 * Do not disable "Add to calendar" when `scheduleValidationError` is set; otherwise the user
+	 * never runs {@link schedulePost} and will not see a validation toast. Validation runs on click.
+	 */
+	canSchedule = $derived(!this.busy && this.selectedIds.length > 0);
 
 	dirty = $derived.by(() => {
 		if (this.initialSnapshot === '') return false;
@@ -208,7 +229,7 @@ export class CreateSocialPostPresenter {
 		if (this.selectedIds.includes(id)) {
 			this.selectedIds = this.selectedIds.filter((x) => x !== id);
 			if (this.mode === 'custom' && this.focusedIntegrationId === id) {
-				this.focusedIntegrationId = this.selectedIds.length ? this.selectedIds[0] : null;
+				this.focusedIntegrationId = this.selectedIds.length ? this.selectedIds[0]! : null;
 				this.editorLocked = true;
 				this.loadEditorBody();
 			}
@@ -334,11 +355,7 @@ export class CreateSocialPostPresenter {
 			this.selectGroup(preselectGroupId);
 		}
 
-		if (
-			Array.isArray(preselectIntegrationIds) &&
-			preselectIntegrationIds.length > 0 &&
-			!preselectGroupId
-		) {
+		if (Array.isArray(preselectIntegrationIds) && preselectIntegrationIds.length > 0 && !preselectGroupId) {
 			const allowed = new Set(this.baseSocialChannelsVm.map((c) => c.id));
 			this.selectedIds = [...new Set(preselectIntegrationIds)].filter((id) => allowed.has(id));
 
@@ -370,6 +387,22 @@ export class CreateSocialPostPresenter {
 		}
 
 		this.captureInitialSnapshot();
+	}
+
+	private async ensureTagListLoaded(workspaceId: string): Promise<void> {
+		const now = Date.now();
+		// Tags rarely change; avoid refetching on rapid reopen/HMR.
+		const freshForMs = 30_000;
+		if (this.tagListCache?.workspaceId === workspaceId && now - this.tagListCache.loadedAtMs < freshForMs) {
+			return;
+		}
+		const tags = await this.postsRepository.listTags(workspaceId);
+		if (tags.ok) {
+			this.tagList = tags.tags;
+			this.tagListCache = { workspaceId, loadedAtMs: now };
+		} else {
+			toast.error(tags.error);
+		}
 	}
 
 	onModalClose(): void {
@@ -426,12 +459,7 @@ export class CreateSocialPostPresenter {
 				this.scheduledLocal = isoToDatetimeLocalValue(new Date().toISOString());
 				toast.error(slot.error);
 			}
-			const tags = await this.postsRepository.listTags(workspaceId);
-			if (tags.ok) {
-				this.tagList = tags.tags;
-			} else {
-				toast.error(tags.error);
-			}
+			await this.ensureTagListLoaded(workspaceId);
 
 			this.mode = 'global';
 			this.focusedIntegrationId = null;
@@ -448,11 +476,11 @@ export class CreateSocialPostPresenter {
 	private async loadExisting(workspaceId: string, postGroup: string): Promise<void> {
 		this.busy = true;
 		try {
-			const tags = await this.postsRepository.listTags(workspaceId);
-			if (tags.ok) {
-				this.tagList = tags.tags;
-			} else {
-				toast.error(tags.error);
+			await this.ensureTagListLoaded(workspaceId);
+
+			const editKey = `${workspaceId}:${postGroup}`;
+			if (this.lastLoadedEditKey === editKey && this.editingPostGroup === postGroup) {
+				return;
 			}
 
 			const r = await this.postsRepository.getPostGroup(postGroup);
@@ -469,6 +497,7 @@ export class CreateSocialPostPresenter {
 			}
 
 			this.editingPostGroup = g.postGroup;
+			this.lastLoadedEditKey = editKey;
 			this.repeatInterval = g.repeatInterval ?? null;
 			this.selectedTagNames = Array.isArray(g.tagNames) ? g.tagNames : [];
 			this.postMediaItems = Array.isArray(g.media) ? g.media : [];
@@ -616,7 +645,7 @@ export class CreateSocialPostPresenter {
 			return false;
 		}
 		if (this.scheduleValidationError) {
-			toast.error(this.scheduleValidationError);
+			toast.warning(this.scheduleValidationError);
 			return false;
 		}
 		const plain = stripHtmlToPlainText(this.editorBody);
