@@ -2,7 +2,7 @@
  * Maximum size in bytes for a single user-owned media file on upload (images, video, audio, PDF).
  * Used by the API (multer) and the web app (Uppy and client-side checks).
  *
- * Change this value in one place to adjust the product-wide cap (similar to OpenQuok’s frontend constant).
+ * Change this value in one place to adjust the product-wide cap for uploads.
  */
 export const MAX_MEDIA_UPLOAD_BYTES = 1024 * 1024 * 1024;
 

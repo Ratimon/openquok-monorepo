@@ -23,6 +23,17 @@ Use this rule for **route-level pages**, **page presenters** under `web/src/lib/
 
 ---
 
+## Feature presenters (injected into page presenters)
+
+A **feature presenter** is a stateful **`*.presenter.svelte.ts`** under a **feature** package (e.g. `$lib/posts/SchedulerPresenter`, `$lib/posts/CreateSocialPostPresenter`) that owns reusable UI orchestration for that domain: repository calls, derived or **`$state`** view models (e.g. **`ScheduledPostsCalendarVm`** on **`SchedulerPresenter.scheduledPostsCalendarVm`**), and methods the screen needs. It is **not** an area route file; it lives next to the feature repository / exports.
+
+- **Injection:** The **page presenter** receives feature presenters **via constructor** as **`readonly`** fields (e.g. **`schedulerPresenter`**, **`createSocialPostPresenter`**). The route should use **`protectedCalendarPagePresenter.schedulerPresenter`** / **`.createSocialPostPresenter`** (or the dashboard singleton’s **`createSocialPostPresenter`**) for **`prepareOpen`**, **`bind:presenter`**, and passing into **`$lib/ui`** — **not** a parallel import of the same singleton from **`$lib/posts`** when the area barrel already wires it onto the page presenter.
+- **Composition root:** Construct repositories and shared helpers first, then **feature presenters**, then **`Protected*PagePresenter`** inside **`$lib/area-protected/index.ts`** (or the relevant **`area-*`** barrel), in **dependency order**. Example: **`GenerateMediaModalPresenter`** → **`CreateSocialPostPresenter(postsRepository, composerMediaModalPresenter)`** → **`ProtectedDashboardPagePresenter(..., createSocialPostPresenter)`** → **`ProtectedCalendarPagePresenter(..., schedulerPresenter, createSocialPostPresenter)`**. Keep feature **`index.ts`** (e.g. **`$lib/posts/index.ts`**) limited to **repository + class/type exports** so it does not import **`area-protected`** — cross-cutting wiring stays in the **area** barrel to avoid circular dependencies.
+- **Shared instances:** The **same** feature presenter instance may be injected into **more than one** page presenter when the product shares one composer or scheduler across screens; document that in the area **`index.ts`** next to the constructors.
+- **Boundary:** **Page presenter** = screen-specific orchestration and presenter-owned screen state; **feature presenter** = vertical slice reused across account routes. **`Get*Presenter`** remains stateless PM→VM only — see **web-repository-presenter-architecture**.
+
+---
+
 ## Sorting and grouping
 
 - **List ordering, section grouping, and “sort by …” rules** for a screen live in the **page presenter** (`$derived` or private helpers), not in the repository (unless order is a **stable domain rule** shared across clients).
@@ -66,7 +77,7 @@ Use this rule for **route-level pages**, **page presenters** under `web/src/lib/
 
 ## Area `index.ts` — exports
 
-- **Export:** route helpers (e.g. `getRootPathAccount`), **presenter classes**, **singleton presenters**, **status enums** shared by the route.
+- **Export:** route helpers (e.g. `getRootPathAccount`), **page presenter classes**, **page presenter singletons**, **status enums** shared by the route, and **shared infrastructure** the routes still need (e.g. **`GenerateMediaModalPresenter`** instances for media library). Prefer **feature presenter access through the page presenter** (`calendarPresenter.schedulerPresenter`) in routes; only export a **feature singleton** from the area barrel when something outside page presenters must import it without a natural page presenter owner.
 - **Do not** re-export **page-only types**: `*ViewModel` interfaces, mutation result unions, or other types defined on a single `*Page.presenter.svelte.ts`. Consumers import types **from the presenter file**:
 
 ```ts
@@ -105,5 +116,6 @@ import type { SomePageViewModel } from '$lib/area-protected/SomePage.presenter.s
 
 - Import the **page presenter** (and enums) from the **area index** — not repositories/gateways.
 - Own local UI state with `$state`; derive with `$derived`.
+- Use **injected feature presenters** via the **page presenter** when wired there (e.g. **`protectedDashboardPagePresenter.createSocialPostPresenter.prepareOpen`**, **`calendarPresenter.schedulerPresenter`** passed into **`Scheduler`**). Avoid importing duplicate feature singletons from **`$lib/<feature>`** for the same concern.
 - Mutations: **pattern A** (`$effect` + toast flags) or **pattern B** (explicit results + `toast` in route) or **child** → feature singleton → repository, then callback into page presenter for list VM.
 - Pass **VM + callbacks** to children; children do not import the page presenter (except feature-modal exception above).

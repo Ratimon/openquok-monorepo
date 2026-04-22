@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+
 	import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
 	import { icons } from '$data/icon';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
@@ -25,7 +27,7 @@
 	const state = $derived(String(post.state ?? '').toUpperCase());
 	const content = $derived(stripHtmlToPlainText(String(post.content ?? '')) || 'no content');
 	const isDraft = $derived(state === 'DRAFT' || state === 'DRAFTS' || state === 'DRAFTED' || state === 'DRAFT_POST');
-	// Align with OpenQuok: calendar header doesn't show QUEUE/PUBLISHED; only drafts are called out.
+	// Calendar chip: omit QUEUE/PUBLISHED labels; surface only drafts.
 	const statusLabel = $derived(isDraft ? 'Draft' : '');
 
 	const publishDateIso = $derived(typeof post.publishDate === 'string' ? post.publishDate : '');
@@ -72,7 +74,6 @@
 			<button type="button" class="hover:opacity-80" aria-label="Delete (coming soon)">
 				<AbstractIcon name={icons.Trash.name} class="size-3" width="12" height="12" />
 			</button>
-			
 		</div>
 	</div>
 

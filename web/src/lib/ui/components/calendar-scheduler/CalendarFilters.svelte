@@ -1,20 +1,21 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	import type { CalendarGranularity, CalendarLayoutMode } from './types';
+	import type { CalendarGranularityViewModel, CalendarLayoutModeViewModel } from '$lib/posts';
+	
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = {
-		granularity: CalendarGranularity;
-		layoutMode: CalendarLayoutMode;
+		granularity: CalendarGranularityViewModel;
+		layoutMode: CalendarLayoutModeViewModel;
 		label: string;
 		onToday: () => void;
 		onPrev: () => void;
 		onNext: () => void;
-		onSetGranularity: (g: CalendarGranularity) => void;
-		onSetLayoutMode: (m: CalendarLayoutMode) => void;
+		onSetGranularity: (g: CalendarGranularityViewModel) => void;
+		onSetLayoutMode: (m: CalendarLayoutModeViewModel) => void;
 		groupFilter?: Snippet;
 	};
 

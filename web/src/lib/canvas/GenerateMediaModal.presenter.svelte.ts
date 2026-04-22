@@ -42,9 +42,7 @@ export type ExportCanvasToMediaArgs = {
 
 export type ExportCanvasToMediaFn = (args: ExportCanvasToMediaArgs) => Promise<ExportDesignToMediaResult>;
 
-/** One instance per host surface (composer vs media library) so export/stock state stays isolated. */
 export class GenerateMediaModalPresenter {
-
 	readonly stockPhotosVm: readonly StockPhotoViewModel[];
 	readonly designTemplatesVm: readonly DesignTemplateProgrammerModel[];
 	/**

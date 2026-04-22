@@ -2,6 +2,7 @@ import type {
 	ConnectedIntegrationProgrammerModel,
 	IntegrationsRepository
 } from '$lib/integrations/Integrations.repository.svelte';
+import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
 /** One scheduled posting slot: minutes after midnight (0–1439), matching `integrations.posting_times` JSON. */
@@ -187,9 +188,9 @@ function buildChannelGroupSectionsVm(
 type DashboardIntegrationsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 type ChannelGroupsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
-export type DashboardChannelMutationResult = { ok: true } | { ok: false; error: string };
+export type DashboardChannelMutationViewModel = { ok: true } | { ok: false; error: string };
 
-export type DashboardPostConnectQueryResult =
+export type DashboardPostConnectQueryViewModel =
 	| { handled: false }
 	| { handled: true; successToastMessage?: string };
 
@@ -223,7 +224,8 @@ export class ProtectedDashboardPagePresenter {
 
 	constructor(
 		private readonly integrationsRepository: IntegrationsRepository,
-		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter
+		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
+		readonly createSocialPostPresenter: CreateSocialPostPresenter
 	) {}
 
 	/**
@@ -313,7 +315,7 @@ export class ProtectedDashboardPagePresenter {
 		integrationId: string,
 		groupId: string | null,
 		groupDisplayName?: string | null
-	): Promise<DashboardChannelMutationResult> {
+	): Promise<DashboardChannelMutationViewModel> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
@@ -348,7 +350,7 @@ export class ProtectedDashboardPagePresenter {
 		this.showOnboardingWelcome = false;
 	}
 
-	async removeChannel(integrationId: string): Promise<DashboardChannelMutationResult> {
+	async removeChannel(integrationId: string): Promise<DashboardChannelMutationViewModel> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
@@ -364,7 +366,7 @@ export class ProtectedDashboardPagePresenter {
 		return { ok: false, error: res.error };
 	}
 
-	async setChannelDisabled(integrationId: string, disabled: boolean): Promise<DashboardChannelMutationResult> {
+	async setChannelDisabled(integrationId: string, disabled: boolean): Promise<DashboardChannelMutationViewModel> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
@@ -384,7 +386,7 @@ export class ProtectedDashboardPagePresenter {
 	async setPostingTimes(
 		integrationId: string,
 		slots: PostingTimeSlotViewModel[]
-	): Promise<DashboardChannelMutationResult> {
+	): Promise<DashboardChannelMutationViewModel> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
@@ -411,7 +413,7 @@ export class ProtectedDashboardPagePresenter {
 	async handlePostConnectQuery(
 		url: URL,
 		navigate: (href: string, opts?: { replaceState?: boolean }) => Promise<void>
-	): Promise<DashboardPostConnectQueryResult> {
+	): Promise<DashboardPostConnectQueryViewModel> {
 		const added = url.searchParams.get('added');
 		const msg = url.searchParams.get('msg');
 		const onboarding = url.searchParams.get('onboarding');

@@ -1,4 +1,7 @@
 <script lang="ts">
+	import type { CalendarEventExternal } from '@schedule-x/calendar';
+	import type { CalendarDisplayViewModel } from '$lib/posts';
+
 	import 'temporal-polyfill/global';
 	import { onDestroy, onMount } from 'svelte';
 	import { ScheduleXCalendar as ScheduleXCalendarHost } from '@schedule-x/svelte';
@@ -8,15 +11,12 @@
 		createViewWeek,
 		createViewMonthGrid,
 		createViewList,
-		type CalendarEventExternal
 	} from '@schedule-x/calendar';
 	import '@schedule-x/theme-default/dist/index.css';
 
 	import TimeGridEvent from '$lib/ui/components/calendar-scheduler/TimeGridEvent.svelte';
 	import DateGridEvent from '$lib/ui/components/calendar-scheduler/DateGridEvent.svelte';
 	import MonthGridEvent from '$lib/ui/components/calendar-scheduler/MonthGridEvent.svelte';
-
-	import type { CalendarDisplay } from '$lib/ui/components/calendar-scheduler/types';
 
 	type CreateCalendarConfig = Parameters<typeof createCalendar>[0];
 	type DefaultViewName = NonNullable<CreateCalendarConfig['defaultView']>;
@@ -29,7 +29,7 @@
 	};
 
 	type Props = {
-		display: CalendarDisplay;
+		display: CalendarDisplayViewModel;
 		rangeStartDate: string;
 		events: CalendarEventExternal[];
 		backgroundEvents?: BackgroundEvent[];
@@ -59,7 +59,7 @@
 		createViewList()
 	];
 
-	function viewNameForDisplay(d: CalendarDisplay): string {
+	function viewNameForDisplay(d: CalendarDisplayViewModel): string {
 		if (d === 'month') return 'month-grid';
 		return d;
 	}

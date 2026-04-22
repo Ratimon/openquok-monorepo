@@ -9,7 +9,8 @@ alwaysApply: false
 ## Layering (non‑negotiable)
 
 - **Route / component (`.svelte`)**: UI only — **no** `httpGateway` or repository calls from routes. See **web-page-presenter-conventions** for how routes import **page presenters** and wire toasts.
-- **Page presenter (`$lib/area-*/...Page.presenter.svelte.ts`)**: orchestrates a screen; owns `$state` where needed. **Route/toast/parent-child rules** → **web-page-presenter-conventions** (not repeated here).
+- **Page presenter (`$lib/area-*/...Page.presenter.svelte.ts`)**: orchestrates a screen; owns `$state` where needed; accepts **feature presenters** (and repos) via constructor injection. **Route/toast/parent-child / feature injection** → **web-page-presenter-conventions**.
+- **Feature presenter (`$lib/<feature>/*Presenter.svelte.ts`)**: stateful presenter for a vertical slice (scheduler, composer, …); calls **repositories**; may expose **`$state`** view models; **no** `$app/*` / `goto`. Instantiated in **`area-*`** **`index.ts`** and injected into **page presenters**. Not the same as **`Get*`** (those are stateless PM→VM mappers).
 - **Repository (`*.repository.svelte.ts`)**: I/O via `HttpGateway`, **DTO → PM**, returns **PM** only.
 - **Get presenter (`Get*.presenter.svelte.ts`)**: stateless **PM → VM** mapping for reads/lists.
 
@@ -40,12 +41,13 @@ We use a **concept-first, layered architecture** so logic lives outside the fram
 
 **Page-level details** (parent/child, toast pattern A vs B, area `index.ts` type exports, mutation flow A/B, admin list VMs on the page presenter) are in **web-page-presenter-conventions** — keep this file focused on **data boundaries** and **`Get*`**.
 
-## Four layers (responsibility)
+## Five layers (responsibility)
 
 1. **Svelte components** — visualization; **parents** own area page presenters per **web-page-presenter-conventions**; **children** do not import repositories (with the documented modal exception).
-2. **Presenters (`*.presenter.svelte.ts`)** — UI actions; call repositories; **no** `goto`, `$app/*`, DOM.
-3. **Repositories** — PM + gateway; **no** raw DTOs to UI consumers.
-4. **Gateways** — DTOs at the wire.
+2. **Page presenters (`$lib/area-*/*Page.presenter.svelte.ts`)** — orchestrate one screen; expose injected **feature presenters** to routes when needed.
+3. **Feature presenters (`$lib/<feature>/*Presenter.svelte.ts`)** — reusable stateful orchestration for a domain slice; **repository** in constructor; injected into **page presenters** from **`area-*`** **`index.ts`** (composition root). Not **`Get*`** (stateless).
+4. **Repositories** — PM + gateway; **no** raw DTOs to UI consumers.
+5. **Gateways** — DTOs at the wire.
 
 ## File roles
 
@@ -54,16 +56,23 @@ We use a **concept-first, layered architecture** so logic lives outside the fram
 | Gateways | `$lib/core/*.ts` | HTTP; DTOs |
 | Repositories | `*.repository.svelte.ts` | DTO → PM; export PM types from same file |
 | `Get*` | `Get*.presenter.svelte.ts` | Stateless PM → VM |
-| Presenters | `*.presenter.svelte.ts` | Stateful UI + calls repos / `Get*` |
+| Feature presenters | `$lib/<feature>/*Presenter.svelte.ts` | Stateful slice; repos + optional VM **`$state`**; wired in **`area-*`** **index**, injected into **page presenters** |
+| Page presenters | `$lib/area-*/*Page.presenter.svelte.ts` | Screen orchestration; owns screen **`$state`**; receives **feature presenters** + repos |
 | Models | `*.model.svelte.ts` | Shared reactive state (e.g. auth) |
 
 Reference: `web/src/lib/user-auth/` (repository + signin/signup presenters).
 
 ## Data flow
 
-**DTO** (gateway) → **PM** (repository) → **VM** (`Get*` or page presenter state) → components.
+**DTO** (gateway) → **PM** (repository) → **VM** (`Get*`, feature presenter state, or page presenter state) → components.
 
-Flow: **Component → page presenter → repository → gateway**, with reads often **page presenter → `Get*` → repository → gateway**. No gateway/repository imports from **routes**.
+Typical paths:
+
+- **Component → page presenter → feature presenter → repository → gateway** (account calendar, scheduler, composer).
+- **Component → page presenter → repository → gateway** when the page presenter does not delegate to a feature presenter for that action.
+- Reads with **`Get*`:** **page presenter → `Get*` → repository → gateway**.
+
+No gateway/repository imports from **routes**.
 
 ## Naming conventions (required)
 
@@ -85,10 +94,11 @@ Flow: **Component → page presenter → repository → gateway**, with reads of
 - **`Get*Presenter`**: `await repo.get…` → **`listPm`** → map to **`Vm`** in `Get*` methods (e.g. `loadAdminCommentsVm`).
 - **Routes / `$lib/ui`**: consume **`*Vm`** for list props. **Which presenter holds the array** (page vs feature) → **web-page-presenter-conventions**.
 
-## Presenter split: `Get*` vs stateful presenters
+## Presenter split: `Get*` vs feature presenters vs page presenters
 
 - **`Get*.presenter.svelte.ts`**: **no** `$state`; constructor-injected repos; methods return **`*Vm`** (never PM to components). Instantiate in **feature `index.ts`**, inject into **page presenters**; routes do not construct `Get*` directly.
-- **Stateful feature presenters** (`WorkspaceSettings`, `Editor*`, etc.): `$state` for status/VM; may call repos and `Get*`.
+- **Feature presenters** (`SchedulerPresenter`, `CreateSocialPostPresenter`, …): **stateful**; constructor-injected **repositories** (and sometimes other presenters such as **`GenerateMediaModalPresenter`**); own domain **`$state`** / methods. **Compose in `area-*` `index.ts`**, **inject into `Protected*PagePresenter`** — see **web-page-presenter-conventions**.
+- **Workspace / editor-style feature presenters** (`WorkspaceSettings`, `Editor*`, etc.): `$state` for status/VM; may call repos and `Get*`; still **feature**-scoped, not area page files.
 - **Page presenter `*Stateless` helpers** (e.g. `loadXxxStateless`): must not mutate page `$state`; return `*Vm` for SSR-safe `load()` — details in **web-page-presenter-conventions**.
 
 ## Testing
@@ -98,6 +108,6 @@ Flow: **Component → page presenter → repository → gateway**, with reads of
 
 ## Rules (summary)
 
-- New behavior: **repository (PM) + presenter**; wire in **`index.ts`**; parent component gets the presenter.
+- New behavior: **repository (PM)** + **feature presenter** (if the flow is a reusable slice) + **page presenter**; wire **feature + page** presenters in **`area-*`** **`index.ts`**; parent route gets the **page** presenter singleton.
 - **Routes:** no repo/gateway; **children:** no repo (see **web-page-presenter-conventions** for exceptions).
-- **`+page.svelte` edits:** presenter-only from area index; mutation/toast/checklist details → **web-page-presenter-conventions**.
+- **`+page.svelte` edits:** presenter-only from area index; use **injected feature presenters** via the page presenter when applicable; mutation/toast/checklist details → **web-page-presenter-conventions**.

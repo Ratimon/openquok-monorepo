@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { ChannelVm } from './types';
-	import { CALENDAR_UNGROUPED_SENTINEL } from './types';
+	import type { ChannelViewModel } from '$lib/posts';
+	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { Badge } from '$lib/ui/badge';
@@ -9,7 +9,7 @@
 	type ChannelGroup = { id: string; name: string };
 
 	type Props = {
-		channels: ChannelVm[];
+		channels: ChannelViewModel[];
 		allGroups: boolean;
 		selectedGroupIds: string[];
 		onChange: (next: { allGroups: boolean; selectedGroupIds: string[] }) => void;

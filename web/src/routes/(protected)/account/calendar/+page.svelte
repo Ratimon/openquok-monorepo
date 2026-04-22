@@ -1,34 +1,34 @@
 <script lang="ts">
-	import type { IconName } from '$data/icon';
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { page } from '$app/state';
 	import { toast } from '$lib/ui/sonner';
 	import { goto } from '$app/navigation';
 	import { route } from '$lib/utils/path';
-	
-	import { getRootPathAccount } from '$lib/area-protected';
-	import { protectedDashboardPagePresenter } from '$lib/area-protected';
+
+	import {
+		getRootPathAccount,
+		protectedCalendarPagePresenter,
+		protectedDashboardPagePresenter
+	} from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
-	import { createSocialPostPresenter } from '$lib/posts';
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	
+
 	import Scheduler from '$lib/ui/components/calendar-scheduler/Scheduler.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 
-	/** Same singleton as the module export; `bind:presenter` cannot target an import binding. */
-	let createPostPresenter = $state.raw(createSocialPostPresenter);
+	const calendarPresenter = protectedCalendarPagePresenter;
+
+	/** Same singleton as on the calendar page presenter; `bind:presenter` cannot target an import binding. */
+	let createPostPresenter = $state.raw(calendarPresenter.createSocialPostPresenter);
+
 	let createSocialPostOpen = $state(false);
-
-	let calendarRefreshKey = $state(0);
-
-	let targetedChannelsVm = $state<CreateSocialPostChannelViewModel[]>([]);
 
 	let moveGroupOpen = $state(false);
 	let moveGroupFor = $state<CreateSocialPostChannelViewModel | null>(null);
@@ -42,64 +42,22 @@
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
 	const channelsLoadPending = $derived(listStatus === 'idle' || listStatus === 'loading');
 
+	const targetedChannelsVm = $derived(calendarPresenter.targetedChannelsVm);
+	const calendarRefreshKey = $derived(calendarPresenter.calendarRefreshKey);
+
 	const groupId = $derived(page.url.searchParams.get('groupId'));
-
-	const iconByProvider: Record<string, IconName> = {
-		facebook: icons.Facebook.name,
-		instagram: icons.Instagram.name,
-		'instagram-business': icons.Instagram.name,
-		'instagram-standalone': icons.InstagramGlyph.name,
-		youtube: icons.YouTube.name,
-		tiktok: icons.TikTok.name,
-		x: icons.X.name,
-		threads: icons.Threads.name
-	};
-
-	function providerIcon(identifier: string): IconName {
-		return iconByProvider[identifier] ?? icons.Link.name;
-	}
-
-	function continueSetupHref(integration: CreateSocialPostChannelViewModel): string {
-		if (!workspaceId) return accountRoot;
-		if (integration.identifier === 'instagram-business') {
-			const qs = new URLSearchParams({
-				organizationId: workspaceId,
-				integrationId: integration.id,
-				returnTo: accountRoot
-			});
-			return `${accountRoot}/integrations/instagram-business?${qs}`;
-		}
-		const qs = new URLSearchParams({
-			organizationId: workspaceId,
-			returnTo: accountRoot,
-			refresh: integration.internalId
-		});
-		return `${accountRoot}/integrations/social/${encodeURIComponent(integration.identifier)}?${qs}`;
-	}
 
 	function goBackToAccount() {
 		void goto(accountRoot);
 	}
 
 	function openCreatePostForCurrentScope() {
-		if (!workspaceId) {
-			toast.error('Create or select a workspace first.');
+		const r = calendarPresenter.getCreatePostPrepareOpenOptions();
+		if (!r.ok) {
+			toast.error(r.error);
 			return;
 		}
-		const ids = targetedChannelsVm.map((c) => c.id);
-		const isAllTargeted = targetedChannelsVm.length > 0 && targetedChannelsVm.length === connectedChannelsVm.length;
-		const uniqueGroupIds = new Set(
-			targetedChannelsVm.map((c) => c.group?.id ?? null).filter((g): g is string => Boolean(g))
-		);
-		const hasUngrouped = targetedChannelsVm.some((c) => !c.group?.id);
-		const singleGroupId = !hasUngrouped && uniqueGroupIds.size === 1 ? [...uniqueGroupIds][0]! : null;
-		createSocialPostPresenter.prepareOpen({
-			preselectIntegrationId: null,
-			preselectGroupId: singleGroupId,
-			preselectIntegrationIds: singleGroupId ? null : ids.length ? ids : null,
-			// If the user is targeting everything (All groups), keep the composer in default global mode.
-			autoCustomizeFirstSelected: !isAllTargeted
-		});
+		calendarPresenter.createSocialPostPresenter.prepareOpen(r.options);
 		createSocialPostOpen = true;
 	}
 
@@ -114,10 +72,9 @@
 	}
 
 	async function handleRemoveChannel(id: string): Promise<boolean> {
-		const r = await protectedDashboardPagePresenter.removeChannel(id);
+		const r = await calendarPresenter.removeChannel(id);
 		if (r.ok) {
 			toast.success('Channel removed.');
-			calendarRefreshKey += 1;
 			return true;
 		}
 		toast.error(r.error);
@@ -125,10 +82,9 @@
 	}
 
 	async function handleSetChannelDisabled(id: string, disabled: boolean): Promise<boolean> {
-		const r = await protectedDashboardPagePresenter.setChannelDisabled(id, disabled);
+		const r = await calendarPresenter.setChannelDisabled(id, disabled);
 		if (r.ok) {
 			toast.success(disabled ? 'Channel disabled.' : 'Channel enabled.');
-			calendarRefreshKey += 1;
 			return true;
 		}
 		toast.error(r.error);
@@ -150,7 +106,7 @@
 	$effect(() => {
 		const orgId = workspaceId;
 		if (!orgId) return;
-		void protectedDashboardPagePresenter.loadDashboardLists();
+		calendarPresenter.syncWorkspaceDashboardLists();
 	});
 </script>
 
@@ -207,8 +163,9 @@
 							showProviderBadge={true}
 							{integration}
 							workspaceId={workspaceId}
-							{providerIcon}
-							{continueSetupHref}
+							providerIcon={(id: string) => calendarPresenter.providerIcon(id)}
+							continueSetupHref={(i: CreateSocialPostChannelViewModel) =>
+								calendarPresenter.continueSetupHref(i)}
 							onMoveToGroup={openMoveGroupModal}
 							onEditTimeSlots={openTimeTableModal}
 							onSetDisabled={handleSetChannelDisabled}
@@ -224,11 +181,12 @@
 		<h3 class="text-lg font-semibold text-base-content">Scheduled posts</h3>
 		{#if workspaceId && connectedChannelsVm.length > 0}
 			<Scheduler
+				presenter={calendarPresenter.schedulerPresenter}
 				organizationId={workspaceId}
 				channels={connectedChannelsVm}
 				groupId={groupId}
 				refreshKey={calendarRefreshKey}
-				onTargetedChannelsChange={(chs) => (targetedChannelsVm = chs)}
+				onTargetedChannelsChange={(chs) => calendarPresenter.setTargetedChannels(chs)}
 			/>
 		{:else}
 			<p class="text-sm text-base-content/70">Connect at least one channel to view the calendar.</p>
@@ -242,10 +200,9 @@
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}
-	onScheduled={() => (calendarRefreshKey += 1)}
+	onScheduled={() => calendarPresenter.bumpCalendarRefresh()}
 />
 
 <MoveChannelGroupModal bind:open={moveGroupOpen} integration={moveGroupFor} />
 
 <TimeTable bind:open={timeTableOpen} integration={timeTableFor} />
-

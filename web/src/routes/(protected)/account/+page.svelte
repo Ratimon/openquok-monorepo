@@ -10,11 +10,10 @@
 	import { page } from '$app/state';
 	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
-	import { createSocialPostPresenter } from '$lib/posts';
 	import { toast } from '$lib/ui/sonner';
 
-	/** Same singleton as the module export; `bind:presenter` cannot target an import binding. */
-	let createPostPresenter = $state.raw(createSocialPostPresenter);
+	/** Same singleton as on the page presenter; `bind:presenter` cannot target an import binding. */
+	let createPostPresenter = $state.raw(protectedDashboardPagePresenter.createSocialPostPresenter);
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { icons } from '$data/icon';
 
@@ -27,7 +26,7 @@
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
-	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/ui/components/calendar-scheduler/types';
+	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
 
 	type Props = {
 		data: PageData;
@@ -77,12 +76,15 @@
 	let createSocialPostOpen = $state(false);
 
 	function openCreatePost(preselectIntegrationId: string | null) {
-		createSocialPostPresenter.prepareOpen({ preselectIntegrationId, preselectGroupId: null });
+		protectedDashboardPagePresenter.createSocialPostPresenter.prepareOpen({
+			preselectIntegrationId,
+			preselectGroupId: null
+		});
 		createSocialPostOpen = true;
 	}
 
 	function openCreatePostForGroup(groupId: string) {
-		createSocialPostPresenter.prepareOpen({
+		protectedDashboardPagePresenter.createSocialPostPresenter.prepareOpen({
 			preselectIntegrationId: null,
 			preselectGroupId: groupId,
 			autoCustomizeFirstSelected: true

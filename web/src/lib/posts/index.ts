@@ -1,7 +1,7 @@
-import { composerMediaModalPresenter } from '$lib/area-protected';
+import type { PostsConfig } from '$lib/posts/Posts.repository.svelte';
+
 import { httpGateway } from '$lib/core/index';
-import { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
-import { PostsRepository, type PostsConfig } from '$lib/posts/Posts.repository.svelte';
+import { PostsRepository } from '$lib/posts/Posts.repository.svelte';
 
 const base = '/api/v1/posts';
 
@@ -17,12 +17,6 @@ const postsConfig: PostsConfig = {
 
 export const postsRepository = new PostsRepository(httpGateway, postsConfig);
 
-/** Account dashboard + per-channel “Create post” entry share this composer instance (see {@link CreateSocialPostPresenter.prepareOpen}). */
-export const createSocialPostPresenter = new CreateSocialPostPresenter(
-	postsRepository,
-	composerMediaModalPresenter
-);
-
 export {
 	PostsRepository,
 	uploadSocialPostComposerMediaFiles,
@@ -37,3 +31,14 @@ export type {
 } from '$lib/posts/Posts.repository.svelte';
 export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPostPresenter.svelte';
 export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
+export type {
+	CalendarDisplayViewModel,
+	CalendarGranularityViewModel,
+	CalendarIntegrationFilterViewModel,
+	CalendarLayoutModeViewModel,
+	CalendarPostRowViewModel,
+	CalendarSchedulerFiltersViewModel,
+	ChannelViewModel,
+	ScheduledPostsCalendarVm
+} from '$lib/posts/SchedulerPresenter.svelte';
+export { CALENDAR_UNGROUPED_SENTINEL, SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';

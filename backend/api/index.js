@@ -6104,6 +6104,26 @@ var PostsRepository = class {
       });
     }
   }
+  async listPostsByOrganizationAndDateRange({
+    organizationId,
+    startIso,
+    endIso,
+    integrationIds
+  }) {
+    let q = this.supabase.from(TABLE_POSTS).select("*").eq("organization_id", organizationId).is("deleted_at", null).gte("publish_date", startIso).lte("publish_date", endIso).order("publish_date", { ascending: true });
+    if (integrationIds && integrationIds.length > 0) {
+      q = q.in("integration_id", integrationIds);
+    }
+    const { data, error } = await q;
+    if (error) {
+      throw new DatabaseError(`Failed to list posts: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    return data ?? [];
+  }
 };
 
 // repositories/index.ts
@@ -9372,6 +9392,29 @@ var PostsService = class {
     await this.postsRepository.linkTagsToPosts(postIds, tagIds);
     return { postGroup, posts: inserted };
   }
+  async listPostsForCalendar({
+    organizationId,
+    authUserId,
+    startIso,
+    endIso,
+    integrationIds
+  }) {
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const start = new Date(startIso);
+    const end = new Date(endIso);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      throw new AppError("Invalid date range", 400);
+    }
+    if (start.getTime() > end.getTime()) {
+      throw new AppError("Start must be before end", 400);
+    }
+    return this.postsRepository.listPostsByOrganizationAndDateRange({
+      organizationId,
+      startIso: start.toISOString(),
+      endIso: end.toISOString(),
+      integrationIds: integrationIds ?? null
+    });
+  }
   async resolveTagIds(organizationId, names) {
     const ids = [];
     for (const name of names) {
@@ -10163,7 +10206,7 @@ var ImageController = class {
   };
 };
 
-// ../common/dist/mediaLimits.js
+// ../common/dist/mediaUploadLimits.js
 var MAX_MEDIA_UPLOAD_BYTES = 1024 * 1024 * 1024;
 
 // controllers/MediaController.ts
@@ -11126,6 +11169,27 @@ var PostsController = class {
           posts: PostDTOMapper.toDTOCollection(result.posts)
         }
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+  listPosts = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const q = req.query;
+      const integrationIds = typeof q.integrationIds === "string" && q.integrationIds.trim().length > 0 ? q.integrationIds.split(",").map((s) => s.trim()).filter(Boolean) : null;
+      const rows = await this.postsService.listPostsForCalendar({
+        organizationId: q.organizationId,
+        authUserId,
+        startIso: q.start,
+        endIso: q.end,
+        integrationIds
+      });
+      res.status(200).json({ success: true, data: { posts: PostDTOMapper.toDTOCollection(rows) } });
     } catch (error) {
       next(error);
     }
@@ -12888,6 +12952,19 @@ var postOrganizationQuerySchema = zod.z.object({
 var validatePostOrganizationQuery = validateRequest({
   query: postOrganizationQuerySchema
 });
+var listPostsQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  start: zod.z.string().min(1, "Start is required"),
+  end: zod.z.string().min(1, "End is required"),
+  /**
+   * Optional comma-separated integration ids to filter calendar data.
+   * When omitted, all integrations (including ungrouped) are returned.
+   */
+  integrationIds: zod.z.string().optional()
+});
+var validateListPostsQuery = validateRequest({
+  query: listPostsQuerySchema
+});
 var repeatIntervalEnum = zod.z.enum([
   "day",
   "two_days",
@@ -12947,6 +13024,7 @@ postRouter.get("/find-slot", auth4, validatePostOrganizationQuery, postsControll
 postRouter.get("/tags", auth4, validatePostOrganizationQuery, postsController.listTags);
 postRouter.post("/tags", auth4, validateCreatePostTagBody, postsController.createTag);
 postRouter.delete("/tags/:tagId", auth4, validateDeletePostTag, postsController.deleteTag);
+postRouter.get("/list", auth4, validateListPostsQuery, postsController.listPosts);
 postRouter.post("/", auth4, validateCreatePostBody, postsController.createPost);
 var authWithRoles8 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
 var thirdPartyRouter = express2.Router();
