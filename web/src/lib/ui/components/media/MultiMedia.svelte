@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { MediaLibraryItemProgrammerModel } from '$lib/media';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 
 	import { publicUrlForMediaStorageKey } from '$lib/media';
 	import { mediaItemsToPreviewUrls, uploadSocialPostComposerMediaFiles } from '$lib/posts';
@@ -20,6 +21,7 @@
 		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
 		uploadUid?: string;
+		commentsMode?: LaunchProviderCommentsMode;
 	};
 
 	let {
@@ -31,12 +33,15 @@
 		deleting = false,
 		items = $bindable([]),
 		disabled = false,
-		uploadUid = ''
+		uploadUid = '',
+		commentsMode = true
 	}: Props = $props();
 
 	let previewUrl = $state('');
 	let uploadBusy = $state(false);
 	let dragOver = $state(false);
+	const mediaLocked = $derived(commentsMode === 'no-media' && items.length > 0);
+	const noDrag = $derived(mediaLocked);
 
 	const isLibraryMode = $derived(Boolean(item));
 	const previewUrls = $derived(mediaItemsToPreviewUrls(items));
@@ -70,6 +75,7 @@
 	}
 
 	async function uploadFiles(files: FileList | null) {
+		if (mediaLocked) return;
 		if (!files?.length || disabled || uploadBusy || !uploadUid) return;
 		uploadBusy = true;
 		try {
@@ -90,6 +96,7 @@
 	function onDropZoneDrop(e: DragEvent) {
 		e.preventDefault();
 		dragOver = false;
+		if (noDrag) return;
 		if (disabled || uploadBusy) return;
 		void uploadFiles(e.dataTransfer?.files ?? null);
 	}
@@ -260,12 +267,15 @@
 			class="border-base-300/80 text-base-content/50 flex min-h-[2.25rem] flex-wrap items-center gap-2 border-t pt-2 text-[11px]"
 			ondragover={(e) => {
 				e.preventDefault();
+				if (noDrag) return;
 				if (!disabled) dragOver = true;
 			}}
 			ondragleave={() => (dragOver = false)}
 			ondrop={onDropZoneDrop}
 		>
-			{#if dragOver}
+			{#if noDrag}
+				<span>Adding another attachment isn’t supported for the selected network(s).</span>
+			{:else if dragOver}
 				<span class="text-primary font-medium">Drop images here to attach</span>
 			{:else}
 				<span>Drag and drop images here, or use the icons on the editor.</span>

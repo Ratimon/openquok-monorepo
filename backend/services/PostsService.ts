@@ -1,4 +1,5 @@
 import type { IntegrationService } from "./IntegrationService";
+import type { IntegrationManager } from "../integrations/integrationManager";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { PostsRepository, SocialPostInsert } from "../repositories/PostsRepository";
@@ -76,7 +77,8 @@ export class PostsService {
         private readonly postsRepository: PostsRepository,
         private readonly integrationConnectionService: IntegrationConnectionService,
         private readonly integrationService: IntegrationService,
-        private readonly organizationRepository: OrganizationRepository
+        private readonly organizationRepository: OrganizationRepository,
+        private readonly integrationManager: IntegrationManager
     ) {}
 
     async findFreeSlot(organizationId: string, authUserId: string): Promise<string> {
@@ -148,6 +150,7 @@ export class PostsService {
 
         const rows = await this.integrationService.listByOrganization(organizationId);
         const allowed = new Set(rows.filter((r) => r.deleted_at == null).map((r) => r.id));
+        const providerByIntegrationId = new Map(rows.map((r) => [r.id, (r.provider_identifier ?? "").toLowerCase()]));
 
         const uniqueIds = [...new Set(integrationIds)];
         for (const id of uniqueIds) {
@@ -158,6 +161,17 @@ export class PostsService {
 
         if (status === "scheduled" && uniqueIds.length === 0) {
             throw new AppError("Select at least one channel to schedule", 400);
+        }
+
+        const mediaCount = Array.isArray(media) ? media.length : 0;
+        for (const integrationId of uniqueIds) {
+            const providerIdentifier = providerByIntegrationId.get(integrationId) ?? "";
+            if (!providerIdentifier) continue;
+            const provider = this.integrationManager.getSocialIntegration(providerIdentifier);
+            const message = provider?.validateCreatePost?.({ status, mediaCount });
+            if (typeof message === "string" && message.trim().length > 0) {
+                throw new AppError(message, 400);
+            }
         }
 
         const scheduledDate = new Date(scheduledAtIso);

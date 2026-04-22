@@ -1,11 +1,16 @@
 ---
-description: Do not name external codebases when porting into this repo
+description: Do not name external codebases or cite other projects' files in this repo
 alwaysApply: true
 ---
 
 # Source-project neutrality in the codebase
 
 When implementing behavior that was informed by or ported from another product, library, or external codebase, **do not name that source** in repository content.
+
+**Also forbidden in this repo’s source and docs:**
+
+- File paths, module names, or directory layouts that point at **another** project or machine (e.g. a personal clone, a different app’s `apps/…/file.tsx`, or any path outside this monorepo).
+- JSDoc/TSDoc `@see` (or similar) that reference **other** codebases, repositories, or their files.
 
 Applies to:
 

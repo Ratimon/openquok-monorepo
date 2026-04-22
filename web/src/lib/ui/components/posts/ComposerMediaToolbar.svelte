@@ -8,6 +8,7 @@
 		StockPhotoViewModel
 	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -31,6 +32,8 @@
 		class?: string;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
+		/** When `'no-media'` and there is at least one item, block adding more media. */
+		commentsMode?: LaunchProviderCommentsMode;
 	}
 
 	let {
@@ -44,7 +47,8 @@
 		uploadUid,
 		class: className = '',
 		composerMode = 'global',
-		focusedProviderIdentifier = null
+		focusedProviderIdentifier = null,
+		commentsMode = true
 	}: ComposerMediaToolbarProps = $props();
 
 	type MediaGenerationProps = ComponentProps<typeof MediaGeneration>;
@@ -52,11 +56,13 @@
 	let fileInput = $state.raw<HTMLInputElement | undefined>(undefined);
 	let uploadBusy = $state(false);
 	let designOpen = $state(false);
+	const mediaLocked = $derived(commentsMode === 'no-media' && items.length > 0);
 
 	const iconBtn =
 		'border-base-300/90 bg-base-200/45 text-base-content/85 hover:bg-base-300/55 hover:text-base-content focus-visible:ring-primary/40 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border shadow-sm backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35';
 
 	async function uploadFiles(files: FileList | null) {
+		if (mediaLocked) return;
 		if (!files?.length || disabled || uploadBusy || !uploadUid) return;
 		uploadBusy = true;
 		try {
@@ -93,7 +99,7 @@
 			fetchPolotnoTemplateListPage,
 			backgroundPanelVm,
 			exportCanvasToMedia,
-			disabled: disabled || uploadBusy,
+			disabled: disabled || uploadBusy || mediaLocked,
 			uploadUid,
 			composerMode,
 			focusedProviderIdentifier,
@@ -119,7 +125,7 @@
 	<button
 		type="button"
 		class={iconBtn}
-		disabled={disabled || uploadBusy}
+		disabled={disabled || uploadBusy || mediaLocked}
 		onclick={() => fileInput?.click()}
 		aria-label="Add images from your device"
 		title="Add images"
@@ -142,7 +148,7 @@
 	<button
 		type="button"
 		class={iconBtn}
-		disabled={disabled || uploadBusy}
+		disabled={disabled || uploadBusy || mediaLocked}
 		onclick={() => (designOpen = true)}
 		aria-label="Open design editor"
 		title="Design media"

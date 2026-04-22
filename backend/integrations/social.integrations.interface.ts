@@ -64,6 +64,11 @@ export type PostDetails<T = unknown> = {
     settings: T;
 };
 
+export type ValidateCreatePostInput = {
+    status: "draft" | "scheduled";
+    mediaCount: number;
+};
+
 export type AnalyticsData = {
     label: string;
     data: Array<{ total: string; date: string }>;
@@ -158,4 +163,10 @@ export interface SocialProvider extends IAuthenticator, ISocialMediaIntegration 
     ) => Promise<{ id: string; label: string; image: string; doNotCache?: boolean }[] | { none: true }>;
     mentionFormat?(idOrHandle: string, name: string): string;
     fetchPageInformation?(accessToken: string, data: unknown): Promise<FetchPageInformationResult>;
+
+    /**
+     * Optional provider-owned validation for creating/scheduling posts in our app.
+     * Return a human-friendly message when invalid; return null/undefined when valid.
+     */
+    validateCreatePost?(input: ValidateCreatePostInput): string | null | undefined;
 }

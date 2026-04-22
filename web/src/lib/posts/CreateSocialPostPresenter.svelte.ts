@@ -12,6 +12,7 @@ import type {
 	PostsRepository,
 	RepeatIntervalKey
 } from '$lib/posts/Posts.repository.svelte';
+import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 
 import { mediaItemsToPreviewUrls } from '$lib/posts/Posts.repository.svelte';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
@@ -112,6 +113,23 @@ export class CreateSocialPostPresenter {
 
 	providerConfig = $derived(getLaunchProviderConfig(this.focusedProviderIdentifier));
 
+	/**
+	 * For providers with `comments: 'no-media'` (e.g. Instagram), allow only one attachment in the composer.
+	 */
+	launchCommentsMode = $derived.by((): LaunchProviderCommentsMode => {
+		let out: LaunchProviderCommentsMode = true;
+		for (const id of this.selectedIds) {
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === id);
+			if (!ch) continue;
+			const cfg = getLaunchProviderConfig(ch.identifier);
+			if (typeof cfg.comments === 'undefined') continue;
+			if (cfg.comments === 'no-media') {
+				out = 'no-media';
+			}
+		}
+		return out;
+	});
+
 	softCharLimit = $derived(this.providerConfig.maximumCharacters);
 	minimumCharacters = $derived(this.providerConfig.minimumCharacters);
 	postComment = $derived(this.providerConfig.postComment);
@@ -122,6 +140,27 @@ export class CreateSocialPostPresenter {
 
 	primaryLabel = $derived(
 		this.selectedIds.length === 0 ? 'Select channels above' : 'Add to calendar'
+	);
+
+	scheduleValidationError = $derived.by((): string | null => {
+		if (!this.selectedIds.length) return null;
+		for (const id of this.selectedIds) {
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === id);
+			if (!ch) continue;
+			const cfg = getLaunchProviderConfig(ch.identifier);
+			if (!cfg.checkValidity) continue;
+			const res = cfg.checkValidity({
+				media: this.postMediaItems,
+				settings: this.providerSettingsByIntegrationId[id] ?? {}
+			});
+			if (typeof res === 'string' && res.trim().length > 0) return res;
+		}
+		return null;
+	});
+
+	/** When false, the primary schedule action should be disabled (in addition to empty selection). */
+	canSchedule = $derived(
+		!this.busy && this.selectedIds.length > 0 && this.scheduleValidationError == null
 	);
 
 	dirty = $derived.by(() => {
@@ -490,6 +529,10 @@ export class CreateSocialPostPresenter {
 		}
 		if (this.selectedIds.length === 0) {
 			toast.error('Select at least one channel above.');
+			return false;
+		}
+		if (this.scheduleValidationError) {
+			toast.error(this.scheduleValidationError);
 			return false;
 		}
 		const plain = stripHtmlToPlainText(this.editorBody);

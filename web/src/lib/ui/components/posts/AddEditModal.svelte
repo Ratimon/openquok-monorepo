@@ -9,6 +9,7 @@
 	} from '$lib/canvas';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 
 	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
 	import EditorPost from '$lib/ui/components/posts/EditorPost.svelte';
@@ -59,6 +60,8 @@
 		postMediaItems?: PostMediaProgrammerModel[];
 		uploadUid?: string;
 		mediaUrls?: string[];
+		commentsMode?: LaunchProviderCommentsMode;
+		scheduleValidationMessage?: string | null;
 	}
 
 	let {
@@ -96,7 +99,9 @@
 		onProviderSettingsChange,
 		postMediaItems = $bindable([]),
 		uploadUid = '',
-		mediaUrls = []
+		mediaUrls = [],
+		commentsMode = true,
+		scheduleValidationMessage = null
 	}: AddEditModalProps = $props();
 
 	/**
@@ -154,6 +159,8 @@
 				{softCharLimit}
 				composerMode={mode}
 				focusedProviderIdentifier={focusedProviderIdentifier}
+				{commentsMode}
+				{scheduleValidationMessage}
 				locked={editorLocked}
 				lockMessage={editorLockMessage}
 				onUnlock={onEditorUnlock}

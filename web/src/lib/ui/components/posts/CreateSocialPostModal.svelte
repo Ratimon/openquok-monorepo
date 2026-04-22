@@ -118,6 +118,8 @@
 					previewText={presenter.previewText}
 					charCount={presenter.charCount}
 					softCharLimit={presenter.softCharLimit}
+					commentsMode={presenter.launchCommentsMode}
+					scheduleValidationMessage={presenter.scheduleValidationError}
 					selectedGroupId={presenter.selectedGroupId}
 					onToggleChannel={presenter.toggleChannel.bind(presenter)}
 					onToggleGlobal={() => {
@@ -154,7 +156,7 @@
 					bind:scheduledLocal={presenter.scheduledLocal}
 					busy={presenter.busy}
 					primaryLabel={presenter.primaryLabel}
-					scheduleDisabled={presenter.selectedIds.length === 0}
+					scheduleDisabled={!presenter.canSchedule}
 					onToggleTag={presenter.toggleTag.bind(presenter)}
 					onAddTag={presenter.addNewTag.bind(presenter)}
 					onDeleteTag={presenter.deleteWorkspaceTag.bind(presenter)}

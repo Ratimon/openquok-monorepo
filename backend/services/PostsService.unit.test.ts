@@ -4,6 +4,7 @@ import type { PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
 import type { IntegrationService } from "./IntegrationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import { IntegrationManager } from "../integrations/integrationManager";
 
 import { faker } from "@faker-js/faker";
 import { PostsService } from "./PostsService";
@@ -157,7 +158,8 @@ describe("PostsService", () => {
             postsRepo as unknown as PostsRepository,
             integrationConnection as unknown as IntegrationConnectionService,
             integrationService as unknown as IntegrationService,
-            organizationRepo as unknown as OrganizationRepository
+            organizationRepo as unknown as OrganizationRepository,
+            new IntegrationManager()
         );
     }
 
@@ -339,6 +341,29 @@ describe("PostsService", () => {
             ).rejects.toMatchObject({
                 statusCode: 409,
                 message: "That time slot is already taken; pick another.",
+            });
+        });
+
+        it("throws 400 when scheduling an Instagram post without media", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                integrationRow({ id: integrationId, provider_identifier: "instagram-business" }),
+            ]);
+            await expect(
+                service().createPost({
+                    organizationId: orgId,
+                    authUserId,
+                    body: "caption only",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: scheduledIso,
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                    media: null,
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Instagram should have at least one attachment",
             });
         });
 

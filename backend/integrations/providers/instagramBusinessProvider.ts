@@ -5,6 +5,7 @@ import type {
     PostDetails,
     PostResponse,
     SocialProvider,
+    ValidateCreatePostInput,
 } from "../social.integrations.interface";
 
 import dayjs from "dayjs";
@@ -53,6 +54,13 @@ export class InstagramBusinessProvider implements SocialProvider {
 
     maxLength(_additionalSettings?: unknown): number {
         return 2200;
+    }
+
+    validateCreatePost(input: ValidateCreatePostInput): string | null {
+        if (input.status === "scheduled" && input.mediaCount < 1) {
+            return "Instagram should have at least one attachment";
+        }
+        return null;
     }
 
     async post(

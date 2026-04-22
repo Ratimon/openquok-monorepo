@@ -7,6 +7,8 @@
 		StockPhotoViewModel
 	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
+
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -14,6 +16,7 @@
 	import DeleteDialog from '$lib/ui/components/posts/DeleteDialog.svelte';
 	import ComposerMediaToolbar from '$lib/ui/components/posts/ComposerMediaToolbar.svelte';
 	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
+	import { toast } from '$lib/ui/sonner';
 
 	interface EditorPostProps {
 		stockPhotosVm: readonly StockPhotoViewModel[];
@@ -40,6 +43,9 @@
 		uploadUid?: string;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
+		/** Provider `comments` mode: `true` or `'no-media'` (single attachment only). */
+		commentsMode?: LaunchProviderCommentsMode;
+		scheduleValidationMessage?: string | null;
 	}
 
 	let {
@@ -63,6 +69,8 @@
 		uploadUid = '',
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
+		commentsMode = true,
+		scheduleValidationMessage = null
 	}: EditorPostProps = $props();
 
 	let confirmOpen = $state(false);
@@ -79,6 +87,18 @@
 	function confirm() {
 		confirmOpen = false;
 		onBannerRightAction?.();
+	}
+
+	const numMedia = $derived(postMediaItems.length);
+	const blockMediaPaste = $derived(commentsMode === 'no-media' && numMedia > 0);
+
+	function onComposerPaste(e: ClipboardEvent) {
+		if (!blockMediaPaste) return;
+		const files = e.clipboardData?.files;
+		if (files && files.length > 0) {
+			e.preventDefault();
+			toast.error('This network only supports a single attachment.');
+		}
 	}
 </script>
 
@@ -113,6 +133,7 @@
 			bind:value={body}
 			rows="8"
 			placeholder="Write something…"
+			onpaste={onComposerPaste}
 			disabled={busy || locked}
 			class="border-base-300 bg-base-200 focus:border-primary focus:ring-primary/30 focus:ring-inset min-h-[140px] sm:min-h-[180px] max-h-[320px] w-full resize-none sm:resize-y rounded-lg border px-3 pt-2 text-sm text-base-content placeholder:text-base-content/40 focus:ring-2 focus:outline-none {locked
 				? 'pb-2'
@@ -143,14 +164,20 @@
 					{uploadUid}
 					{composerMode}
 					{focusedProviderIdentifier}
+					{commentsMode}
 				/>
 			</div>
 		{/if}
 	</div>
 	{#if !locked}
 		<div class="mt-2 border-t border-base-300/80 pt-2">
-			<MultiMedia bind:items={postMediaItems} disabled={busy} {uploadUid} />
+			<MultiMedia bind:items={postMediaItems} disabled={busy} {uploadUid} {commentsMode} />
 		</div>
+		{#if scheduleValidationMessage}
+			<div class="text-error mt-2 text-xs font-medium" role="status">
+				{scheduleValidationMessage}
+			</div>
+		{/if}
 	{/if}
 	<div class="mt-2 flex flex-wrap items-center justify-end gap-2 border-t border-base-300/80 pt-2">
 		<div
