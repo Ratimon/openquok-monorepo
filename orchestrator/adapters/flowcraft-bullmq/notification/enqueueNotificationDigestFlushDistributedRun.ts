@@ -4,8 +4,8 @@ import { Queue } from "bullmq";
 import { analyzeBlueprint } from "flowcraft";
 import { config } from "backend/config/GlobalConfig.js";
 import { logger } from "backend/utils/Logger.js";
-import { buildNotificationDigestFlushBlueprintDistributed } from "../../blueprints/notificationEmailBlueprint.js";
-import { NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID } from "../../blueprints/notificationEmailFlowTypes.js";
+import { buildNotificationDigestFlushBlueprintDistributed } from "../../../blueprints/notificationEmailBlueprint.js";
+import { NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID } from "../../../blueprints/notificationEmailFlowTypes.js";
 import { seedNotificationDigestFlushWorkflowContext } from "./seedNotificationEmailWorkflowContext.js";
 
 /**

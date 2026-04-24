@@ -4,7 +4,7 @@ import { logger } from "../utils/Logger";
 import * as loadBackendDotenvCjs from "./loadBackendDotenv.cjs";
 
 const { loadBackendDotenv } = loadBackendDotenvCjs as { loadBackendDotenv: () => void };
-import { orchestratorFlows, type OrchestrationTransport } from "./orchestratorFlows";
+import { flowcraftBullmqDefaults, orchestratorFlows, type OrchestrationTransport } from "./orchestratorFlows";
 
 /** Strips BOM, quotes (bad dashboard paste), trailing slashes — browser `Origin` must match exactly. */
 const normalizeOrigin = (origin: string): string => {
@@ -217,6 +217,14 @@ export const config: ConfigObject = {
      * Queue connection uses `cache.redis` / `REDIS_*` and optional `REDIS_BULLMQ_DB`.
      */
     bullmq: {
+        /**
+         * [Flowcraft BullMQ reconciler](https://flowcraft.js.org/guide/adapters/bullmq#reconciliation): shared by all
+         * `*BullMqWorker` processes. `reconcilerIntervalMs: 0` disables the timer.
+         */
+        flowcraft: {
+            reconcilerStalledThresholdSeconds: flowcraftBullmqDefaults.reconcilerStalledThresholdSeconds,
+            reconcilerIntervalMs: flowcraftBullmqDefaults.reconcilerIntervalMs,
+        },
         queueName: orchestratorFlows.integrationRefresh.queueName,
         /**
          * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).
@@ -240,6 +248,18 @@ export const config: ConfigObject = {
             ),
             digestFlushIntervalMs: orchestratorFlows.notificationEmail.digestFlushIntervalMs,
             sendPlainMinIntervalMs: orchestratorFlows.notificationEmail.sendPlainMinIntervalMs,
+        },
+        scheduledSocialPost: {
+            queueName: orchestratorFlows.scheduledSocialPost.queueName,
+            transport: orchestrationTransportFromEnv(
+                "ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT",
+                orchestratorFlows.scheduledSocialPost.transport
+            ),
+            missingPostRescanIntervalMs: orchestratorFlows.scheduledSocialPost.missingPostRescanIntervalMs,
+            enabled: (() => {
+                const underJest = getEnv("JEST_WORKER_ID", "") !== "";
+                return underJest ? false : orchestratorFlows.scheduledSocialPost.enabled;
+            })(),
         },
     },
 

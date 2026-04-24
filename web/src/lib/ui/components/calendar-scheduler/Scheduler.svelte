@@ -29,6 +29,7 @@
 		onTargetedChannelsChange,
 		onEditPostGroup,
 		openActionsForPostGroup,
+		onCreatePostAtIso,
 		onRefresh
 	}: {
 		presenter: SchedulerPresenter;
@@ -39,6 +40,7 @@
 		onTargetedChannelsChange?: (channels: ChannelViewModel[]) => void;
 		onEditPostGroup?: (postGroup: string) => void;
 		openActionsForPostGroup?: (postGroup: string) => void;
+		onCreatePostAtIso?: (iso: string) => void;
 		onRefresh?: () => void;
 	} = $props();
 
@@ -204,6 +206,7 @@
 		{backgroundEvents}
 		{onEditPostGroup}
 		{openActionsForPostGroup}
+		{onCreatePostAtIso}
 		{onRefresh}
 	/>
 </div>

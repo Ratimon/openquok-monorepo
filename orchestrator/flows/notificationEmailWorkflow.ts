@@ -1,7 +1,7 @@
 import type IORedis from "ioredis";
 import { logger } from "backend/utils/Logger.js";
-import { enqueueNotificationDigestFlushDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationDigestFlushDistributedRun.js";
-import { enqueueNotificationSendPlainDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationSendPlainDistributedRun.js";
+import { enqueueNotificationDigestFlushDistributedRun } from "../adapters/flowcraft-bullmq/notification/enqueueNotificationDigestFlushDistributedRun.js";
+import { enqueueNotificationSendPlainDistributedRun } from "../adapters/flowcraft-bullmq/notification/enqueueNotificationSendPlainDistributedRun.js";
 
 export {
     NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID,

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";
 import { DatabaseError } from "../errors/InfraError";
-import type { PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
+import type { PostStateDb, PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
 
 const TABLE_POSTS = "posts";
 const TABLE_TAGS = "post_tags";
@@ -15,6 +15,65 @@ export class PostsRepository {
     /** New group id for rows composed together (Prisma `Post.group`). */
     newPostGroup(): string {
         return uuidv4();
+    }
+
+    /**
+     * `QUEUE` rows in `[fromIso, toIso)` on `publish_date`,
+     * with resolvable channels (integration row exists, not disabled, not `refresh_needed`, not in-between steps).
+     * Returns one entry per `post_group` (deduped) for re-enqueueing a Flowcraft run.
+     */
+    async listQueuePostGroupsForMissingPublishRescan(
+        fromIso: string,
+        toIso: string
+    ): Promise<{ organizationId: string; postGroup: string }[]> {
+        const { data: posts, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .select("organization_id, post_group, integration_id")
+            .eq("state", "QUEUE")
+            .is("parent_post_id", null)
+            .is("deleted_at", null)
+            .not("integration_id", "is", null)
+            .gte("publish_date", fromIso)
+            .lt("publish_date", toIso);
+
+        if (error) {
+            throw new DatabaseError(`Failed to list posts for rescan: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        const rows = (posts ?? []) as { organization_id: string; post_group: string; integration_id: string }[];
+        if (rows.length === 0) return [];
+
+        const intIds = [...new Set(rows.map((r) => r.integration_id))];
+        const { data: integs, error: intErr } = await this.supabase
+            .from("integrations")
+            .select("id, refresh_needed, in_between_steps, disabled, deleted_at")
+            .in("id", intIds);
+
+        if (intErr) {
+            throw new DatabaseError(`Failed to load integrations for rescan: ${intErr.message}`, {
+                cause: intErr,
+                operation: "select",
+                resource: { type: "table", name: "integrations" },
+            });
+        }
+
+        const intMap = new Map(
+            (integs ?? []).map((i: { id: string; refresh_needed: boolean; in_between_steps: boolean; disabled: boolean; deleted_at: string | null }) => [i.id, i])
+        );
+
+        const byGroup = new Map<string, { organizationId: string; postGroup: string }>();
+        for (const p of rows) {
+            const int = intMap.get(p.integration_id);
+            if (!int || int.deleted_at) continue;
+            if (int.refresh_needed || int.in_between_steps || int.disabled) continue;
+            if (!byGroup.has(p.post_group)) {
+                byGroup.set(p.post_group, { organizationId: p.organization_id, postGroup: p.post_group });
+            }
+        }
+        return [...byGroup.values()];
     }
 
     async hasQueueSlotTaken(organizationId: string, publishDateIso: string): Promise<boolean> {
@@ -243,6 +302,55 @@ export class PostsRepository {
                 cause: error,
                 operation: "delete",
                 resource: { type: "table", name: TABLE_POSTS_TAGS },
+            });
+        }
+    }
+
+    /**
+     * Worker/orchestrator: set published result for a single `posts` row.
+     * Aligned with upstream “updatePost(id, postId, releaseURL)”.
+     */
+    async updatePostRowPublishResult(
+        postId: string,
+        input: { state: "PUBLISHED" | "ERROR"; releaseId: string | null; releaseUrl: string | null; error: string | null }
+    ): Promise<void> {
+        const now = new Date().toISOString();
+        const { error } = await this.supabase
+            .from(TABLE_POSTS)
+            .update({
+                state: input.state,
+                release_id: input.releaseId,
+                release_url: input.releaseUrl,
+                error: input.error,
+                updated_at: now,
+            })
+            .eq("id", postId)
+            .is("deleted_at", null);
+        if (error) {
+            throw new DatabaseError(`Failed to update post publish result: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+    }
+
+    /**
+     * Worker: mark a row in ERROR with message (e.g. group of channels when first failure was fatal to cross-post).
+     * Pass `message: null` to copy a generic string from server.
+     */
+    async markPostState(postId: string, state: PostStateDb, errMessage: string | null = null): Promise<void> {
+        const now = new Date().toISOString();
+        const { error: updateErr } = await this.supabase
+            .from(TABLE_POSTS)
+            .update({ state, error: errMessage, updated_at: now })
+            .eq("id", postId)
+            .is("deleted_at", null);
+        if (updateErr) {
+            throw new DatabaseError(`Failed to set post state: ${updateErr.message}`, {
+                cause: updateErr,
+                operation: "update",
+                resource: { type: "table", name: TABLE_POSTS },
             });
         }
     }

@@ -5,23 +5,34 @@ import type { OrganizationRepository } from "../repositories/OrganizationReposit
 import type { PostsRepository, SocialPostInsert } from "../repositories/PostsRepository";
 import type { PostStateDb, SocialPostLike } from "../utils/dtos/PostDTO";
 import { AppError } from "../errors/AppError";
+import { config } from "../config/GlobalConfig";
+import { logger } from "../utils/Logger";
 
-const SLOT_STEP_MS = 15 * 60 * 1000;
-const MAX_SLOT_TRIES = 200;
+
 const DEFAULT_TAG_COLOR = "#6366f1";
 
-function roundUpToNextSlot(d: Date): Date {
-    const ms = d.getTime();
-    const rounded = Math.ceil(ms / SLOT_STEP_MS) * SLOT_STEP_MS;
-    return new Date(rounded);
+function dayStartUtcIso(d: Date): string {
+    const x = new Date(d.getTime());
+    x.setUTCHours(0, 0, 0, 0);
+    return x.toISOString();
 }
 
-function alignToFifteenMinuteUtc(d: Date): Date {
-    return new Date(Math.round(d.getTime() / SLOT_STEP_MS) * SLOT_STEP_MS);
+function addMinutes(d: Date, minutes: number): Date {
+    return new Date(d.getTime() + minutes * 60 * 1000);
 }
 
-function addMs(d: Date, ms: number): Date {
-    return new Date(d.getTime() + ms);
+function parsePostingTimesMinutes(postingTimesJson: string | null | undefined): number[] {
+    if (!postingTimesJson) return [];
+    try {
+        const raw = JSON.parse(postingTimesJson) as unknown;
+        const arr = Array.isArray(raw) ? raw : [];
+        const minutes = arr
+            .map((x: any) => (typeof x?.time === "number" ? x.time : Number.NaN))
+            .filter((n) => Number.isFinite(n) && n >= 0 && n < 24 * 60) as number[];
+        return minutes;
+    } catch {
+        return [];
+    }
 }
 
 export type RepeatIntervalKey =
@@ -128,16 +139,36 @@ export class PostsService {
     async findFreeSlot(organizationId: string, authUserId: string): Promise<string> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
 
-        let candidate = roundUpToNextSlot(new Date());
-        for (let i = 0; i < MAX_SLOT_TRIES; i++) {
-            const iso = candidate.toISOString();
-            const taken = await this.postsRepository.hasQueueSlotTaken(organizationId, iso);
-            if (!taken) {
-                return iso;
-            }
-            candidate = addMs(candidate, SLOT_STEP_MS);
+        const integrations = await this.integrationService.listByOrganization(organizationId);
+        const minutes = [
+            ...new Set(
+                integrations
+                    .flatMap((i) => parsePostingTimesMinutes((i as any).posting_times))
+                    .filter((n) => Number.isFinite(n))
+            ),
+        ].sort((a, b) => a - b);
+
+        // Fallback: if no posting times exist, suggest "now" (exact datetime), like a generic scheduler.
+        if (minutes.length === 0) {
+            return new Date().toISOString();
         }
-        return candidate.toISOString();
+
+        const now = Date.now();
+        // search day-by-day for the first posting-time slot that is in the future and not taken.
+        for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+            const dayStart = new Date(dayStartUtcIso(new Date(now + dayOffset * 24 * 60 * 60 * 1000)));
+            for (const m of minutes) {
+                const candidate = addMinutes(dayStart, m);
+                if (candidate.getTime() <= now + 60 * 1000) continue;
+                const iso = candidate.toISOString();
+                const taken = await this.postsRepository.hasQueueSlotTaken(organizationId, iso);
+                if (!taken) return iso;
+            }
+        }
+
+        // Worst case: return first slot tomorrow at first posting time.
+        const tomorrowStart = new Date(dayStartUtcIso(new Date(now + 24 * 60 * 60 * 1000)));
+        return addMinutes(tomorrowStart, minutes[0]!).toISOString();
     }
 
     async listTags(organizationId: string, authUserId: string) {
@@ -237,8 +268,7 @@ export class PostsService {
             throw new AppError("Invalid schedule time", 400);
         }
 
-        const alignedScheduled = alignToFifteenMinuteUtc(scheduledDate);
-        const publishIso = alignedScheduled.toISOString();
+        const publishIso = scheduledDate.toISOString();
 
         if (status === "scheduled" && !allowTakenSlot) {
             const taken = await this.postsRepository.hasQueueSlotTaken(organizationId, publishIso);
@@ -308,7 +338,9 @@ export class PostsService {
         const { toInsert, tagIds } = await this.buildPostGroupInsert({ ...input, postGroup });
         const inserted = await this.postsRepository.insertPostGroup(toInsert);
         await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
-        return { postGroup, posts: inserted };
+        const out = { postGroup, posts: inserted };
+        void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
+        return out;
     }
 
     async listPostsForCalendar({
@@ -427,9 +459,12 @@ export class PostsService {
         }
 
         // If this group is already scheduled at the same slot, allow "taken slot" when updating without moving.
-        const alignedNext = alignToFifteenMinuteUtc(new Date(scheduledAtIso));
+        const alignedNext = new Date(scheduledAtIso);
         const nextPublishIso = Number.isNaN(alignedNext.getTime()) ? null : alignedNext.toISOString();
-        const alreadyAtThatSlot = nextPublishIso != null && existing[0]!.publish_date === nextPublishIso;
+        // `publish_date` formatting can vary (`.000Z` vs `+00:00`, etc.). Compare instants, not strings.
+        const alreadyAtThatSlot =
+            nextPublishIso != null &&
+            new Date(existing[0]!.publish_date).getTime() === new Date(nextPublishIso).getTime();
         const allowTakenSlot = status === "scheduled" && alreadyAtThatSlot;
 
         // Validate + build insert payload first (may throw on membership / provider rules / slot taken).
@@ -456,7 +491,70 @@ export class PostsService {
 
         const inserted = await this.postsRepository.insertPostGroup(toInsert);
         await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
-        return { postGroup, posts: inserted };
+        const out = { postGroup, posts: inserted };
+        void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
+        return out;
+    }
+
+    /**
+     * When `scheduledSocialPost` uses BullMQ, enqueue a delayed Flowcraft run for this group ).
+     */
+    private async maybeEnqueueScheduledSocialPostOrchestration(
+        organizationId: string,
+        posts: SocialPostLike[],
+        status: "draft" | "scheduled"
+    ): Promise<void> {
+        if (status !== "scheduled") return;
+        const soc = (config as { bullmq?: { scheduledSocialPost?: { transport?: string; enabled?: boolean } } }).bullmq
+            ?.scheduledSocialPost;
+        if (!soc?.enabled || soc?.transport !== "bullmq") return;
+        const first = posts.find((p) => p.state === "QUEUE" && p.integration_id);
+        if (!first) return;
+
+        // Supabase/Postgres can return timestamptz with a space separator and short offsets (e.g. `2026-04-23 13:03:00+00`).
+        // Normalize to a JS-parseable ISO-ish string before computing delay.
+        const normalizeTimestamptz = (raw: string): string => {
+            let s = String(raw ?? "").trim();
+            if (!s) return s;
+            // Replace first space between date/time with `T`.
+            s = s.replace(" ", "T");
+            // Convert "+0000" → "+00:00"
+            s = s.replace(/([+-]\d{2})(\d{2})$/, "$1:$2");
+            // Convert "+00" → "+00:00"
+            s = s.replace(/([+-]\d{2})$/, "$1:00");
+            return s;
+        };
+
+        const publishMs = new Date(normalizeTimestamptz(first.publish_date)).getTime();
+        if (Number.isNaN(publishMs)) {
+            logger.warn({
+                msg: "[PostsService] Could not parse publish_date for scheduled post enqueue; skipping",
+                publish_date: first.publish_date,
+                postGroup: first.post_group,
+                organizationId,
+            });
+            return;
+        }
+        const delayMs = Math.max(0, publishMs - Date.now());
+        const mod = (await import("openquok-orchestrator")) as any;
+        const runScheduledSocialPostOrchestration =
+            mod?.runScheduledSocialPostOrchestration ?? mod?.default?.runScheduledSocialPostOrchestration;
+        if (typeof runScheduledSocialPostOrchestration !== "function") {
+            throw new TypeError("runScheduledSocialPostOrchestration is not a function");
+        }
+        const ok = await runScheduledSocialPostOrchestration({
+            organizationId,
+            postGroup: first.post_group,
+            delayMs,
+        });
+        if (!ok) {
+            logger.warn({
+                msg: "[PostsService] Failed to enqueue scheduled social post workflow (BullMQ)",
+                organizationId,
+                postGroup: first.post_group,
+                delayMs,
+            });
+        }
     }
 
     private async resolveTagIds(organizationId: string, names: string[]): Promise<string[]> {

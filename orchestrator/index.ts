@@ -13,6 +13,18 @@ export {
 export { appendNotificationDigestEntry } from "./stores/notificationDigestRedisStore.js";
 
 export {
+    SCHEDULED_SOCIAL_POST_BLUEPRINT_ID,
+    SCHEDULED_SOCIAL_POST_BLUEPRINT_VERSION,
+    buildScheduledSocialPostBlueprintDistributed,
+    createScheduledSocialPostFlowBuilder,
+    getScheduledSocialPostNodeRegistry,
+    runScheduledSocialPostOrchestration,
+    type RunScheduledSocialPostOrchestrationOptions,
+    type ScheduledSocialPostFlowContext,
+    type ScheduledSocialPostWorkflowDependencies,
+} from "./flows/scheduledSocialPostWorkflow.js";
+
+export {
     buildNotificationDigestFlushBlueprintDistributed,
     buildNotificationSendPlainBlueprintDistributed,
     createNotificationDigestFlushFlowBuilder,

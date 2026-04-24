@@ -14,11 +14,11 @@ Official Flowcraft guides (terminology and patterns): [Core concepts](https://fl
 
 | Area | Responsibility |
 |------|----------------|
-| **`worker/`** | Process entrypoints (`run*BullMqWorker.ts`): build adapters, `adapter.start()`, shutdown, timers that enqueue repeatable work (e.g. digest flush). Wire domain **services** into adapter `dependencies`; avoid putting Redis key logic here—delegate to **`flows/*Execution`** or **`stores/`**. |
+| **`worker/`** | Process entrypoints (`run*BullMqWorker.ts`): build adapters, `adapter.start()`, [Flowcraft BullMQ reconciler](https://flowcraft.js.org/guide/adapters/bullmq#reconciliation) (`flowcraftBullMqReconciliationTimer.ts`), shutdown, timers that enqueue repeatable work (e.g. digest flush, missing-post rescan for scheduled social). Wire domain **services** into adapter `dependencies`; avoid putting Redis key logic here—delegate to **`flows/*Execution`** or **`stores/`**. |
 | **`flows/`** | **Public orchestration surface** for the rest of the backend: `run*Orchestration` (enqueue + logging), re-exports of blueprint builders/IDs/types. Optional **`*Execution.ts`** for worker-only glue that must not create import cycles with `*Workflow.ts` (e.g. flush: Redis drain + call service). |
 | **`blueprints/`** | Flow graph definitions and **flow-scoped TypeScript types** (`*FlowTypes.ts`): context shape, `*WorkflowDependencies` (what nodes receive from the adapter). |
 | **`nodes/`** | Flowcraft node implementations; read/write **context** and call **`dependencies`** only—no direct env reads (use `GlobalConfig` in factories/workers/adapters). |
-| **`adapters/flowcraft-bullmq/`** | `create*BullMqAdapter`, **enqueue** helpers for distributed runs, **seed** context steps. Uses `config` from `GlobalConfig`. |
+| **`adapters/flowcraft-bullmq/<domain>/`** | Domain folders, e.g. `notification/`, `integration-refresh/`, `scheduled-social-post/`: `create*BullMqAdapter`, **enqueue** helpers, **seed** context. Uses `config` from `GlobalConfig`. |
 | **`stores/`** | Redis (or similar) **key names and low-level commands** shared by API-side writers and worker-side readers. Keeps list/set logic out of **`services/`** where possible. |
 | **`activities/`** | Non–Flowcraft-shaped helpers used by flows/workers when needed. |
 | **`index.ts`** | Re-export the **stable API** other packages import (`runRefreshTokenOrchestration`, notification helpers, types). Do not re-export worker entrypoints. |
@@ -28,7 +28,7 @@ Official Flowcraft guides (terminology and patterns): [Core concepts](https://fl
 1. **`blueprints/<name>FlowTypes.ts`** — blueprint ids/versions, context + `WorkflowDependencies`.
 2. **`blueprints/<name>Blueprint.ts`** — builders for distributed (and any in-process) graphs.
 3. **`nodes/<name>Nodes.ts`** — node functions registered via **`get<Name>NodeRegistry()`**.
-4. **`adapters/flowcraft-bullmq/create<Name>BullMqAdapter.ts`** + enqueue/seed files as needed.
+4. **`adapters/flowcraft-bullmq/<domain>/create<Name>BullMqAdapter.ts`** + enqueue/seed files in that domain folder.
 5. **`flows/<name>Workflow.ts`** — `run*Orchestration` wrappers and re-exports; register exports in **`orchestrator/index.ts`**.
 6. **`worker/run<Name>BullMqWorker.ts`** — thin bootstrap: repositories/services, `create*BullMqAdapter`, `adapter.start()`.
 
@@ -47,7 +47,7 @@ Queue names and `in_process` vs `bullmq` live in **`backend/config/orchestratorF
 ## Flowcraft concepts (how we use them)
 
 - **Blueprint** — JSON-serializable graph: `id`, `nodes`, `edges`, optional **`metadata.version`** (required for distributed runs that validate or seed context). Keep blueprint ids stable; bump **`metadata.version`** when the graph or context contract changes.
-- **Context** — Typed in **`*FlowTypes.ts`**. Distributed runs persist context in Redis (per run); **seed** initial fields in **`adapters/flowcraft-bullmq/seed*`** before enqueueing jobs. Nodes read fields with **`context.get`** / write as the runtime expects for your adapter.
+- **Context** — Typed in **`*FlowTypes.ts`**. Distributed runs persist context in Redis (per run); **seed** initial fields in **`adapters/flowcraft-bullmq/<domain>/seed*`** before enqueueing jobs. Nodes read fields with **`context.get`** / write as the runtime expects for your adapter.
 - **Nodes** — Prefer small **function nodes** that take **`NodeContext`** and call **`dependencies`** only (see **`nodes/`**). Class-based nodes are fine when you need structured lifecycles; keep side effects and I/O behind injected deps.
 - **Runtime** — **`FlowRuntime`** carries **`dependencies`** and optional **`eventBus`** (tests). Workers use the BullMQ adapter’s runtime options (blueprints + registry), not ad-hoc `process.env` in nodes.
 

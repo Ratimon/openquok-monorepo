@@ -2,7 +2,7 @@
 title: Quick Start
 description: Openquok's quick start — install dependencies, configure env, and run the social scheduler locally.
 order: 2
-lastUpdated: 2026-04-02
+lastUpdated: 2026-04-24
 ---
 
 <script>
@@ -43,6 +43,15 @@ Commands for running **`backend/`** and **`web/`**, tests, database scripts, and
 
 <CardGrid>
 <LinkCard title="Development environment" description="Local dev servers, tests, DB tasks, and deployment commands" href="/docs/Installation/development-environment" />
+</CardGrid>
+
+## Orchestrator workers (BullMQ) and cleanup
+
+For BullMQ-backed workflows, run the worker processes from <code>orchestrator/</code>. The orchestrator guide covers **commands**, the **Redis cleanup** script, and what to do when Flowcraft run state in Redis is stale.
+
+<CardGrid>
+<LinkCard title="Backend orchestrator workflows" description="BullMQ transport, workers, and clearing stale Flowcraft runs in Redis" href="/docs/developer-guidelines/orchestrator-workflows" />
+<LinkCard title="Orchestrator workers" description="Env, Railway deploy notes, and worker-related scripts" href="/docs/configuration-worker" />
 </CardGrid>
 
 ## Next steps

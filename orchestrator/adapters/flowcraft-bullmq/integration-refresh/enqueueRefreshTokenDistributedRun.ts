@@ -3,9 +3,9 @@ import { analyzeBlueprint } from "flowcraft";
 import { config } from "backend/config/GlobalConfig.js";
 import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
 import { logger } from "backend/utils/Logger.js";
-import { buildRefreshTokenBlueprintDistributed } from "../../blueprints/refreshTokenBlueprint.js";
-import { REFRESH_TOKEN_BLUEPRINT_ID } from "../../blueprints/refreshTokenTypes.js";
-import { seedRefreshTokenWorkflowContext } from "./seedDistributedWorkflowContext.js";
+import { buildRefreshTokenBlueprintDistributed } from "../../../blueprints/refreshTokenBlueprint.js";
+import { REFRESH_TOKEN_BLUEPRINT_ID } from "../../../blueprints/refreshTokenTypes.js";
+import { seedRefreshTokenWorkflowContext } from "./seedRefreshTokenWorkflowContext.js";
 
 /**
  * Enqueues the integration refresh Flowcraft blueprint on BullMQ (see worker script).

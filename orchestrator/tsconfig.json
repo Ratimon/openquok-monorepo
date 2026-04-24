@@ -15,7 +15,8 @@
     "allowJs": true,
     "baseUrl": ".",
     "paths": {
-      "flowcraft/testing": ["./node_modules/flowcraft/dist/testing/index.d.mts"]
+      "flowcraft/testing": ["./node_modules/flowcraft/dist/testing/index.d.mts"],
+      "backend/*": ["../backend/dist/*"]
     }
   },
   "include": ["**/*.ts"],

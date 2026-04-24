@@ -10,12 +10,13 @@
     "./*": "./dist/*"
   },
   "scripts": {
-    "predev": "pnpm --filter openquok-common build && pnpm --filter openquok-orchestrator build",
+    "predev": "pnpm --filter openquok-common build && pnpm --filter backend build && pnpm --filter openquok-orchestrator build",
     "dev": "cross-env NODE_ENV=development tsx watch app.ts",
     "worker:integration-refresh-bullmq": "pnpm --filter openquok-orchestrator worker:integration-refresh-bullmq",
     "worker:notification-email-bullmq": "pnpm --filter openquok-orchestrator worker:notification-email-bullmq",
+    "worker:scheduled-social-post-bullmq": "pnpm --filter openquok-orchestrator worker:scheduled-social-post-bullmq",
     "dev:local-email": "aws-ses-v2-local",
-    "build": "npx tsc --project ./tsconfig.build.json && npx tsc-alias -p ./tsconfig.build.json --resolve-full-paths --resolve-full-extension .js && cp config/loadBackendDotenv.cjs dist/config/loadBackendDotenv.cjs",
+    "build": "rm -rf dist && pnpm exec tsc -p ./tsconfig.build.json && pnpm exec tsc-alias -p ./tsconfig.build.json --resolve-full-paths --resolve-full-extension .js && cp config/loadBackendDotenv.cjs dist/config/loadBackendDotenv.cjs",
     "build:js": "pnpm exec tsup",
     "build:vercel": "tsup && sh scripts/vercel-clean-after-build.sh",
     "start": "node dist/app.js",
@@ -109,6 +110,7 @@
     "jest": "^29.7.0",
     "supertest": "^7.1.0",
     "ts-jest": "^29.2.5",
+    "tsc-alias": "^1.8.16",
     "tsup": "^8.5.1",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",

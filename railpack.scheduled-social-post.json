@@ -1,0 +1,6 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "deploy": {
+    "startCommand": "pnpm railway:orchestrator:start:scheduled-social-post"
+  }
+}

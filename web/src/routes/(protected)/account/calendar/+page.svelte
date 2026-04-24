@@ -59,12 +59,19 @@
 	}
 
 	function openCreatePostForCurrentScope() {
+		openCreatePostForCurrentScopeAtIso(null);
+	}
+
+	function openCreatePostForCurrentScopeAtIso(preselectScheduledAtIso: string | null) {
 		const r = calendarPresenter.getCreatePostPrepareOpenOptions();
 		if (!r.ok) {
 			toast.error(r.error);
 			return;
 		}
-		calendarPresenter.createSocialPostPresenter.prepareOpen(r.options);
+		calendarPresenter.createSocialPostPresenter.prepareOpen({
+			...r.options,
+			preselectScheduledAtIso
+		});
 		createSocialPostOpen = true;
 	}
 
@@ -257,6 +264,7 @@
 				onTargetedChannelsChange={(chs) => calendarPresenter.setTargetedChannels(chs)}
 				onEditPostGroup={openEditPostGroup}
 				openActionsForPostGroup={openActionsForPostGroup}
+				onCreatePostAtIso={(iso) => openCreatePostForCurrentScopeAtIso(iso)}
 				onRefresh={() => calendarPresenter.bumpCalendarRefresh()}
 			/>
 		{:else}

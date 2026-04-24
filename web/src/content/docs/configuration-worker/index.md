@@ -1,8 +1,8 @@
 ---
 title: Orchestrator workers
-description: Environment and deployment for BullMQ worker processes (integration refresh and notification email).
+description: Environment and deployment for BullMQ worker processes (integration refresh, notification email, and scheduled social posts).
 order: 0
-lastUpdated: 2026-04-07
+lastUpdated: 2026-04-23
 ---
 
 <script>
@@ -19,11 +19,11 @@ Deploy workers on an **always-on** host (for example <a href="/docs/Installation
 
 - **Redis** — Same <Badge text="REDIS_*" variant="envBackend" /> (and optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />) as the API. See <a href="/docs/configuration-backend/redis">Redis cache</a>.
 - **Supabase** — <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" />, <Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" />, <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" /> for server-side tables.
-- **Per worker** — Provider OAuth secrets for integration refresh; email provider keys when the notification-email worker should send mail. A short template lives in the repo at <Badge text="orchestrator/.env.worker.example" variant="path" />.
+- **Per worker** — Provider OAuth secrets for **integration refresh**; email provider keys for **notification email**; the same **provider or channel** credentials the API would use to publish for **scheduled social** posts. A short template lives in the repo at <Badge text="orchestrator/.env.worker.example" variant="path" />.
 
 
 <Callout type="note" title="Minimal secret surface">
-You only need to **inject** variables the worker path actually uses; you do not have to duplicate the entire API <Badge text=".env" variant="envFile" />. See <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/orchestrator/README.md">orchestrator/README.md</DocsExternalLink> in the repo for the full tables.
+You only need to inject variables the worker path actually uses; you do not have to duplicate the entire API <Badge text=".env" variant="envFile" />. See <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/orchestrator/README.md">orchestrator/README.md</DocsExternalLink> in the repo for the full tables.
 </Callout>
 
 ## Monorepo scripts (reference)
@@ -35,9 +35,24 @@ From the **repository root** (after install):
 | Build common + backend + orchestrator | <code>pnpm railway:orchestrator:build</code> (alias of <code>pnpm orchestrator:build:deps</code>) |
 | Production start — integration refresh | <code>pnpm railway:orchestrator:start:integration-refresh</code> |
 | Production start — notification email | <code>pnpm railway:orchestrator:start:notification-email</code> |
-| Local dev (tsx) | <code>pnpm orchestrator:worker:integration-refresh-bullmq</code> / <code>pnpm orchestrator:worker:notification-email-bullmq</code> |
+| Production start — scheduled social post | <code>pnpm railway:orchestrator:start:scheduled-social-post</code> |
+| Local dev (tsx) | <code>pnpm orchestrator:worker:integration-refresh-bullmq</code> / <code>pnpm orchestrator:worker:notification-email-bullmq</code> / <code>pnpm orchestrator:worker:scheduled-social-post-bullmq</code> |
 
-Repo-root <Badge text="railway.toml" variant="path" /> sets a shared **build command** for Railway; **start command** is set **per service** in Railway (two workers ⇒ two start commands). See <a href="/docs/Installation/railway">Railway (orchestrator workers)</a>.
+Repo-root <Badge text="railway.toml" variant="path" /> sets a shared **build command** for Railway; **start command** is set **per service** in Railway (one **always-on** service per worker you run). Use <code>pnpm railway:setup:&#42;</code> and <code>pnpm railway:deploy:&#42;</code> for each worker (integration refresh, notification email, scheduled social post). See <a href="/docs/Installation/railway">Railway (orchestrator workers)</a>.
+
+## Stopping a worker service (Railway CLI)
+
+If you need to stop a worker that is currently consuming BullMQ jobs (for example to ensure **only one** worker is processing a queue during debugging), you can delete the latest deployment for that service:
+
+```bash
+railway down --service "openquok-worker-scheduled-social-post" --environment production --yes
+```
+
+Confirm it is no longer running by checking the service instance list:
+
+```bash
+railway status --json
+```
 
 ## Further reading
 

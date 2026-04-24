@@ -2,8 +2,8 @@ import { BullMQAdapter, RedisCoordinationStore } from "@flowcraft/bullmq-adapter
 import type IORedis from "ioredis";
 import { config } from "backend/config/GlobalConfig.js";
 import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
-import { buildRefreshTokenBlueprintDistributed, getRefreshTokenNodeRegistry } from "../../blueprints/refreshTokenBlueprint.js";
-import { REFRESH_TOKEN_BLUEPRINT_ID, type RefreshTokenWorkflowDependencies } from "../../blueprints/refreshTokenTypes.js";
+import { buildRefreshTokenBlueprintDistributed, getRefreshTokenNodeRegistry } from "../../../blueprints/refreshTokenBlueprint.js";
+import { REFRESH_TOKEN_BLUEPRINT_ID, type RefreshTokenWorkflowDependencies } from "../../../blueprints/refreshTokenTypes.js";
 
 /**
  * Worker-side BullMQ adapter for the refresh-token blueprint.

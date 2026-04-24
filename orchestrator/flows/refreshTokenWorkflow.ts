@@ -1,7 +1,7 @@
 import { FlowRuntime, type IEventBus } from "flowcraft";
 import { config } from "backend/config/GlobalConfig.js";
 import { logger } from "backend/utils/Logger.js";
-import { enqueueRefreshTokenDistributedRun } from "../adapters/flowcraft-bullmq/enqueueRefreshTokenDistributedRun.js";
+import { enqueueRefreshTokenDistributedRun } from "../adapters/flowcraft-bullmq/integration-refresh/enqueueRefreshTokenDistributedRun.js";
 import { createRefreshTokenFlowBuilder } from "../blueprints/refreshTokenBlueprint.js";
 import type { RefreshTokenFlowContext, RefreshTokenWorkflowDependencies } from "../blueprints/refreshTokenTypes.js";
 

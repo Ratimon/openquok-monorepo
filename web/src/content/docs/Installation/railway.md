@@ -2,14 +2,14 @@
 title: Railway
 description: Deploy long-running BullMQ worker services on Railway with the monorepo build and Railway CLI.
 order: 3
-lastUpdated: 2026-04-07
+lastUpdated: 2026-04-23
 ---
 
 <script>
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-This guide covers **orchestrator worker** deployments on **Railway**: always-on processes that consume **BullMQ** queues while your **API** may live on **Vercel** (or another host). The pattern matches Railway’s **API + Redis + worker** model described in <DocsExternalLink href="https://docs.railway.com/guides/ai-agent-workers">Deploy an AI Agent with Async Workers</DocsExternalLink>—here the queue is **BullMQ** instead of a custom Redis list.
+This guide covers **orchestrator worker** deployments on **Railway**: always-on processes that consume **BullMQ** queues while your **API** may live on **Vercel** (or another host).
 
 Railway treats these as <DocsExternalLink href="https://docs.railway.com/services#persistent-services">persistent services</DocsExternalLink> (containers that keep running). See also <a href="/docs/configuration-worker">Orchestrator workers</a> for env vars and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a> for when to use <code>bullmq</code> transport.
 
@@ -28,8 +28,9 @@ Railway treats these as <DocsExternalLink href="https://docs.railway.com/service
 | **Build** (repo root) | <code>pnpm install && pnpm railway:orchestrator:build</code> |
 | **Start** — integration refresh | <code>pnpm railway:orchestrator:start:integration-refresh</code> |
 | **Start** — notification email | <code>pnpm railway:orchestrator:start:notification-email</code> |
+| **Start** — scheduled social post | <code>pnpm railway:orchestrator:start:scheduled-social-post</code> |
 
-The repo includes <Badge text="railway.toml" variant="path" /> at the monorepo root with <code>buildCommand</code> and a restart policy; **start command is not** fixed in that file so **two** Railway services can use the **same image/build** with different start lines (<DocsExternalLink href="https://docs.railway.com/reference/config-as-code">config as code</DocsExternalLink>).
+The repo includes <Badge text="railway.toml" variant="path" /> at the monorepo root with <code>buildCommand</code> and a restart policy; **start command is not** fixed in that file so **each** Railway **worker** service can use the **same image/build** with a different start line (<DocsExternalLink href="https://docs.railway.com/reference/config-as-code">config as code</DocsExternalLink>).
 
 ## Dashboard setup
 
@@ -37,7 +38,7 @@ The repo includes <Badge text="railway.toml" variant="path" /> at the monorepo r
 
 ### Create project resources
 
-Add **Redis** (and reference its connection into worker variables as <Badge text="REDIS_*" variant="envBackend" />). Add **one Railway service per worker** (integration refresh vs notification email), or split later—each needs its own **Start Command**.
+Add **Redis** (and reference its connection into worker variables as <Badge text="REDIS_*" variant="envBackend" />). Add **one Railway service per worker** you need (integration refresh, notification email, and/or scheduled social posts), or split later—each needs its own **Start Command**; set <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> to the <code>railpack</code> file for that worker at the repo root (see the callout below).
 
 Name the services after the worker they run (recommended), but the exact service names are up to you. The CLI bootstrap uses the **linked** service (see “Railway CLI” below).
 
@@ -49,25 +50,8 @@ Use the same repository as the monorepo. Configure <DocsExternalLink href="https
 
 Set <Badge text="NODE_ENV=production" variant="envRuntime" />, Redis, Supabase, and any provider/email keys from <a href="/docs/configuration-worker">Orchestrator workers</a>.
 
-<Callout type="tip" title="Railpack config: set <code>RAILPACK_CONFIG_FILE</code>">
-When using Railpack, this repo relies on setting <code>RAILPACK_CONFIG_FILE</code> (a Railway service variable) to select which worker starts.
-
-- Integration refresh worker: <code>RAILPACK_CONFIG_FILE=railpack.integration-refresh.json</code>
-- Notification email worker: <code>RAILPACK_CONFIG_FILE=railpack.notification-email.json</code>
-
-You can set this in the Railway dashboard (per service) or with the CLI after linking the service:
-
-```bash
-railway service
-railway variables set RAILPACK_CONFIG_FILE=railpack.integration-refresh.json
-```
-
-Switch to the other service, then:
-
-```bash
-railway service
-railway variables set RAILPACK_CONFIG_FILE=railpack.notification-email.json
-```
+<Callout type="tip" title="Railpack config">
+Set <code>RAILPACK_CONFIG_FILE</code> (per service) to one of: <code>railpack.integration-refresh.json</code>, <code>railpack.notification-email.json</code>, or <code>railpack.scheduled-social-post.json</code> (dashboard or <code>railway variables set</code> after <code>railway service</code>).
 </Callout>
 
 ### Set Start Command
@@ -84,6 +68,12 @@ pnpm railway:orchestrator:start:integration-refresh
 
 ```bash
 pnpm railway:orchestrator:start:notification-email
+```
+
+**Scheduled social post worker** (calendar publishes at <code>publish_date</code>) —
+
+```bash
+pnpm railway:orchestrator:start:scheduled-social-post
 ```
 
 Avoid scale-to-zero if it would **stop** a process during long integration-refresh sleeps.
@@ -104,8 +94,10 @@ npm i -g @railway/cli
 
 - <code>pnpm railway:setup:integration-refresh</code> (one-time: create service + set variables via CLI)
 - <code>pnpm railway:setup:notification-email</code> (one-time: create service + set variables via CLI)
+- <code>pnpm railway:setup:scheduled-social-post</code> (one-time: create service + set variables via CLI)
 - <code>pnpm railway:deploy:integration-refresh</code>
 - <code>pnpm railway:deploy:notification-email</code>
+- <code>pnpm railway:deploy:scheduled-social-post</code>
 
 ### Deploy a worker from your machine
 
@@ -128,11 +120,6 @@ If you see <strong>No service linked</strong>, run <code>railway service</code> 
 
 <Callout type="tip">
 If <code>railway link</code> fails with <strong>Available options can not be empty</strong>, the CLI could not find any projects to link in the selected workspace.
-
-<ul>
-  <li>Create a project in the Railway dashboard (empty project is fine), then rerun <code>railway link</code>.</li>
-  <li>Run <code>railway init</code> to create a new project, then rerun <code>railway link</code>.</li>
-</ul>
 </Callout>
 
 ### Create services and set variables (recommended once)
@@ -142,32 +129,39 @@ If this is the first time setting up a worker service, create the services and s
 ```bash
 pnpm railway:setup:integration-refresh
 pnpm railway:setup:notification-email
+pnpm railway:setup:scheduled-social-post
 ```
 
 These scripts create empty services (if missing) and call <code>railway variable set</code> with <code>--skip-deploys</code> so you can safely configure variables before deploying.
 
 ### Deploy
 
-Before deploying, confirm the linked service is configured for the integration-refresh worker. It must have <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> set to <Badge text="railpack.integration-refresh.json" variant="path" /> (see above), otherwise Railpack will report <strong>No start command detected</strong>.
+For each deploy, the **linked** service must have <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> set to the matching <code>railpack</code> file (or use the <strong>Create services and set variables</strong> setup scripts above), otherwise Railpack will report <strong>No start command detected</strong>. Switch services with <code>railway service</code> (or <code>railway unlink</code> and <code>railway link</code>) when moving between workers.
+
+**Integration refresh** —
 
 ```bash
 pnpm railway:deploy:integration-refresh
 ```
-This ships the current directory to the linked service and deploys the **integration-refresh** worker.
 
-To deploy the other worker, switch the linked service (<code>railway service</code> or <code>railway unlink</code> + <code>railway link</code>), ensure it has <code>RAILPACK_CONFIG_FILE=railpack.notification-email.json</code>, then run:
+**Notification email** —
 
 ```bash
 pnpm railway:deploy:notification-email
 ```
 
+**Scheduled social post** —
 
-Full CLI reference: <DocsExternalLink href="https://docs.railway.com/develop/cli">Railway CLI</DocsExternalLink>.
+```bash
+pnpm railway:deploy:scheduled-social-post
+```
+
+Each command ships the current directory to the **currently linked** service. Full CLI reference: <DocsExternalLink href="https://docs.railway.com/develop/cli">Railway CLI</DocsExternalLink>.
 
 </Steps>
 
 <Callout type="tip">
-To depkoy two workers from one project, link the CLI to the first service, run <code>railway up</code>, then <code>railway service</code> (or <code>railway unlink</code> + <code>railway link</code>) to target the second service before deploying again.
+To deploy multiple workers from one project, link the CLI to a service, run <code>railway up</code>, then <code>railway service</code> (or <code>railway unlink</code> + <code>railway link</code>) to target the next service before deploying again.
 </Callout>
 
 

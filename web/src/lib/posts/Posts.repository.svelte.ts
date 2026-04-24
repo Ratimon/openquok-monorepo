@@ -73,6 +73,7 @@ export type PostRowProgrammerModel = {
 	organizationId: string;
 	integrationId: string | null;
 	content: string;
+	error?: string | null;
 };
 
 export type CreatePostResponseDto = {

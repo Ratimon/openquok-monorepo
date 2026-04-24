@@ -8,7 +8,7 @@ const BACKEND_PACKAGE_NAME = "backend";
 
 /**
  * Finds the `backend` package directory by walking upward from this file.
- * CommonJS + __dirname keeps Jest/ts-jest happy (no import.meta in TypeScript).
+ * CommonJS + `__dirname` works in Jest (CJS) and in Node when this file is imported from ESM.
  */
 function resolveBackendPackageRoot() {
     let dir = __dirname;

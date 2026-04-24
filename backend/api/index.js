@@ -101,35 +101,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// config/apiPrefix.ts
-function normalizeApiPrefix(raw) {
-  let p = raw.trim().replace(/\/+$/, "");
-  if (!p) {
-    return DEFAULT_API_PREFIX;
-  }
-  if (!p.startsWith("/")) {
-    p = `/${p}`;
-  }
-  if (!p.startsWith("/api") && /^\/v\d+(\/|$)/.test(p)) {
-    return `/api${p}`;
-  }
-  return p;
-}
-function apiPathAfterFunctionsDirectory(apiPrefix) {
-  const raw = normalizeApiPrefix(apiPrefix).replace(/\/+$/, "") || DEFAULT_API_PREFIX;
-  if (!raw.startsWith("/api")) {
-    return "";
-  }
-  const rest = raw.slice("/api".length);
-  return rest || "/";
-}
-var DEFAULT_API_PREFIX;
-var init_apiPrefix = __esm({
-  "config/apiPrefix.ts"() {
-    DEFAULT_API_PREFIX = "/api/v1";
-  }
-});
-
 // config/envHelper.ts
 function getEnv(key, defaultValue) {
   return process.env[key] ?? defaultValue ?? "";
@@ -151,6 +122,27 @@ function getEnvBoolean(key, defaultValue) {
 }
 var init_envHelper = __esm({
   "config/envHelper.ts"() {
+  }
+});
+
+// config/apiPrefix.ts
+function normalizeApiPrefix2(raw) {
+  let p = raw.trim().replace(/\/+$/, "");
+  if (!p) {
+    return DEFAULT_API_PREFIX2;
+  }
+  if (!p.startsWith("/")) {
+    p = `/${p}`;
+  }
+  if (!p.startsWith("/api") && /^\/v\d+(\/|$)/.test(p)) {
+    return `/api${p}`;
+  }
+  return p;
+}
+var DEFAULT_API_PREFIX2;
+var init_apiPrefix = __esm({
+  "config/apiPrefix.ts"() {
+    DEFAULT_API_PREFIX2 = "/api/v1";
   }
 });
 
@@ -209,20 +201,26 @@ var require_loadBackendDotenv = __commonJS({
       }
       return process.cwd();
     }
-    function loadBackendDotenv2() {
+    function loadBackendDotenv3() {
       const root = resolveBackendPackageRoot();
       const env = process.env.NODE_ENV ?? "development";
       dotenv.config({ path: path5.join(root, `.env.${env}.local`) });
       dotenv.config({ path: path5.join(root, ".env") });
     }
-    module.exports = { loadBackendDotenv: loadBackendDotenv2 };
+    module.exports = { loadBackendDotenv: loadBackendDotenv3 };
   }
 });
 
 // config/orchestratorFlows.ts
-var orchestratorFlows;
+var flowcraftBullmqDefaults, orchestratorFlows;
 var init_orchestratorFlows = __esm({
   "config/orchestratorFlows.ts"() {
+    flowcraftBullmqDefaults = {
+      /** `createBullMQReconciler` — idle time before a run is considered stalled (see Flowcraft docs). */
+      reconcilerStalledThresholdSeconds: 300,
+      /** How often each BullMQ worker runs the reconciler; `0` = off. */
+      reconcilerIntervalMs: 36e5
+    };
     orchestratorFlows = {
       /** OAuth-connected integrations with refreshCron: supervisor after OAuth completes. */
       integrationRefresh: {
@@ -234,7 +232,7 @@ var init_orchestratorFlows = __esm({
          */
         workerServiceName: "openquok-worker-integration-refresh",
         queueName: "integration-refresh",
-        transport: "in_process"
+        transport: "bullmq"
       },
       /**
        * Org notification emails: immediate sends enqueue `sendPlain` jobs; digest appends to Redis and the
@@ -247,7 +245,7 @@ var init_orchestratorFlows = __esm({
          */
         workerServiceName: "openquok-worker-notification-email",
         queueName: "notification-email",
-        transport: "in_process",
+        transport: "bullmq",
         /** How often the worker drains digest Redis lists (ms). */
         digestFlushIntervalMs: 3e5,
         /**
@@ -255,6 +253,20 @@ var init_orchestratorFlows = __esm({
          * Uses Redis; set to `0` to disable. Aligns with queue-style spacing for outbound mail.
          */
         sendPlainMinIntervalMs: 700
+      },
+      /**
+       * Calendar scheduled posts: BullMQ `executeNode` run at `publish_date` (delay from enqueue), worker publishes to each channel.
+       */
+      scheduledSocialPost: {
+        workerServiceName: "openquok-worker-scheduled-social-post",
+        queueName: "scheduled-social-post",
+        transport: "bullmq",
+        /** When false, `PostsService` does not enqueue the worker (local tests use Jest to avoid Redis). */
+        enabled: true,
+        /**
+         * Re-scan `posts` for `QUEUE` rows whose slot passed but publish never ran (worker down, lost job).
+         */
+        missingPostRescanIntervalMs: 36e5
       }
     };
   }
@@ -310,8 +322,8 @@ var init_GlobalConfig = __esm({
     };
     loadBackendDotenv();
     isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
-    rawApiPrefix = getEnv("API_PREFIX", DEFAULT_API_PREFIX);
-    resolvedApiPrefix = normalizeApiPrefix(rawApiPrefix);
+    rawApiPrefix = getEnv("API_PREFIX", DEFAULT_API_PREFIX2);
+    resolvedApiPrefix = normalizeApiPrefix2(rawApiPrefix);
     if (rawApiPrefix.trim() && resolvedApiPrefix !== rawApiPrefix.trim().replace(/\/+$/, "")) {
       logger.warn({
         msg: "[Config] API_PREFIX normalized so mounted routes match /api/v1-style URLs",
@@ -457,6 +469,14 @@ var init_GlobalConfig = __esm({
        * Queue connection uses `cache.redis` / `REDIS_*` and optional `REDIS_BULLMQ_DB`.
        */
       bullmq: {
+        /**
+         * [Flowcraft BullMQ reconciler](https://flowcraft.js.org/guide/adapters/bullmq#reconciliation): shared by all
+         * `*BullMqWorker` processes. `reconcilerIntervalMs: 0` disables the timer.
+         */
+        flowcraft: {
+          reconcilerStalledThresholdSeconds: flowcraftBullmqDefaults.reconcilerStalledThresholdSeconds,
+          reconcilerIntervalMs: flowcraftBullmqDefaults.reconcilerIntervalMs
+        },
         queueName: orchestratorFlows.integrationRefresh.queueName,
         /**
          * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).
@@ -480,6 +500,18 @@ var init_GlobalConfig = __esm({
           ),
           digestFlushIntervalMs: orchestratorFlows.notificationEmail.digestFlushIntervalMs,
           sendPlainMinIntervalMs: orchestratorFlows.notificationEmail.sendPlainMinIntervalMs
+        },
+        scheduledSocialPost: {
+          queueName: orchestratorFlows.scheduledSocialPost.queueName,
+          transport: orchestrationTransportFromEnv(
+            "ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT",
+            orchestratorFlows.scheduledSocialPost.transport
+          ),
+          missingPostRescanIntervalMs: orchestratorFlows.scheduledSocialPost.missingPostRescanIntervalMs,
+          enabled: (() => {
+            const underJest = getEnv("JEST_WORKER_ID", "") !== "";
+            return underJest ? false : orchestratorFlows.scheduledSocialPost.enabled;
+          })()
         }
       },
       /** Rate limiting. When enabled, applies global and auth-specific limits. */
@@ -533,8 +565,29 @@ var init_GlobalConfig = __esm({
   }
 });
 
-// handler/index.ts
-init_apiPrefix();
+// config/apiPrefix.js
+var DEFAULT_API_PREFIX = "/api/v1";
+function normalizeApiPrefix(raw) {
+  let p = raw.trim().replace(/\/+$/, "");
+  if (!p) {
+    return DEFAULT_API_PREFIX;
+  }
+  if (!p.startsWith("/")) {
+    p = `/${p}`;
+  }
+  if (!p.startsWith("/api") && /^\/v\d+(\/|$)/.test(p)) {
+    return `/api${p}`;
+  }
+  return p;
+}
+function apiPathAfterFunctionsDirectory(apiPrefix) {
+  const raw = normalizeApiPrefix(apiPrefix).replace(/\/+$/, "") || DEFAULT_API_PREFIX;
+  if (!raw.startsWith("/api")) {
+    return "";
+  }
+  const rest = raw.slice("/api".length);
+  return rest || "/";
+}
 
 // connections/supabase.ts
 init_GlobalConfig();
@@ -1215,10 +1268,256 @@ var cacheService = new CacheService_default(createCacheProvider(), {
 });
 var cacheInvalidationService = new CacheInvalidationService_default(cacheService);
 
+// config/GlobalConfig.js
+init_envHelper();
+init_apiPrefix();
+init_Logger();
+var loadBackendDotenvCjs2 = __toESM(require_loadBackendDotenv());
+init_orchestratorFlows();
+var { loadBackendDotenv: loadBackendDotenv2 } = loadBackendDotenvCjs2;
+var normalizeOrigin2 = (origin) => {
+  let s = String(origin).replace(/^\uFEFF/, "").trim().replace(/\/+$/, "");
+  if (s.startsWith('"') && s.endsWith('"') || s.startsWith("'") && s.endsWith("'")) {
+    s = s.slice(1, -1).replace(/^\uFEFF/, "").trim().replace(/\/+$/, "");
+  }
+  return s;
+};
+var deriveWwwVariants2 = (origin) => {
+  try {
+    const url = new URL(origin);
+    if (url.hostname.startsWith("www.")) {
+      const apex = url.hostname.replace(/^www\./, "");
+      return [`${url.protocol}//${apex}`];
+    }
+    return [`${url.protocol}//www.${url.hostname}`];
+  } catch {
+    return [];
+  }
+};
+loadBackendDotenv2();
+var isProductionEnv2 = (process.env.NODE_ENV ?? "development") === "production";
+var rawApiPrefix2 = getEnv("API_PREFIX", DEFAULT_API_PREFIX2);
+var resolvedApiPrefix2 = normalizeApiPrefix2(rawApiPrefix2);
+if (rawApiPrefix2.trim() && resolvedApiPrefix2 !== rawApiPrefix2.trim().replace(/\/+$/, "")) {
+  logger.warn({
+    msg: "[Config] API_PREFIX normalized so mounted routes match /api/v1-style URLs",
+    from: rawApiPrefix2,
+    to: resolvedApiPrefix2
+  });
+}
+function orchestrationTransportFromEnv2(envKey, fallback) {
+  const raw = getEnv(envKey, "").trim().toLowerCase();
+  if (raw === "in_process" || raw === "bullmq") {
+    return raw;
+  }
+  if (raw !== "") {
+    logger.warn({
+      msg: "[Config] Invalid orchestrator transport env; using orchestratorFlows default",
+      envKey,
+      value: getEnv(envKey, ""),
+      fallback
+    });
+  }
+  return fallback;
+}
+var config2 = {
+  /** Sender identity for transactional email (Resend/SES). */
+  basic: {
+    siteName: getEnv("SITE_NAME", "Openquok"),
+    senderEmailAddress: getEnv("SENDER_EMAIL_ADDRESS", "noreply@example.com")
+  },
+  server: {
+    nodeEnv: getEnv("NODE_ENV", "development"),
+    frontendDomainUrl: getEnvTrimmed("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
+    backendDomainUrl: getEnvTrimmed("BACKEND_DOMAIN_URL", "http://localhost:3000"),
+    port: getEnvNumber("PORT", 3e3)
+  },
+  cors: {
+    allowedOrigins: (() => {
+      const feRaw = getEnvTrimmed("FRONTEND_DOMAIN_URL");
+      const frontendUrl = normalizeOrigin2(feRaw || "http://localhost:5173");
+      const origins = [frontendUrl, ...deriveWwwVariants2(frontendUrl)];
+      const extra = getEnv("ALLOWED_FRONTEND_ORIGINS", "");
+      if (extra) {
+        for (const origin of extra.split(",").map((o) => normalizeOrigin2(o)).filter(Boolean)) {
+          origins.push(origin, ...deriveWwwVariants2(origin));
+        }
+      }
+      if (!isProductionEnv2) {
+        origins.push("http://localhost:5173", "https://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "https://127.0.0.1:5173", "http://127.0.0.1:3000");
+      }
+      const unique = [...new Set(origins.map(normalizeOrigin2))];
+      if (isProductionEnv2 && unique.some((origin) => origin.includes("*"))) {
+        throw new Error("CORS wildcard origins are not allowed in production");
+      }
+      if (isProductionEnv2) {
+        logger.info({
+          msg: "[CORS] Allowed origins (check this matches the browser Origin if requests fail)",
+          count: unique.length,
+          origins: unique
+        });
+      }
+      return unique;
+    })()},
+  auth: {
+    /** When true, registration is disabled (unless DISABLE_REGISTRATION is not set). */
+    disableRegistration: getEnvBoolean("DISABLE_REGISTRATION", false),
+    /** When true, allow cookie in header for dev (NOT_SECURED). */
+    notSecured: getEnvBoolean("NOT_SECURED", false),
+    /** Secret for signing organization invite tokens. Required for invite-by-email. */
+    inviteTokenSecret: getEnv("INVITE_TOKEN_SECRET", getEnv("JWT_SECRET", ""))
+  },
+  /** Email (verification, welcome). When enabled, verification emails are sent. */
+  email: {
+    enabled: getEnvBoolean("EMAIL_ENABLED", false),
+    /** When true, use local SES mock (e.g. aws-ses-v2-local) for email. */
+    isEmailServerOffline: getEnvBoolean("IS_EMAIL_SERVER_OFFLINE", false)
+    // fromName: getEnv("EMAIL_FROM_NAME", "Openquok"),
+    // fromAddress: getEnv("EMAIL_FROM_ADDRESS", "noreply@example.com"),
+  },
+  supabase: {
+    supabaseUrl: getEnv("PUBLIC_SUPABASE_URL", ""),
+    supabaseAnonKey: getEnv("PUBLIC_SUPABASE_ANON_KEY", ""),
+    supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY", "")
+  },
+  /**
+   * S3-compatible object storage (Cloudflare R2) for `/api/v1/media/*` (user-owned composer objects).
+   * When required keys are missing, media routes cannot talk to object storage until configured.
+   */
+  storage: {
+    /** Storage provider for user media uploads. */
+    provider: getEnv("STORAGE_PROVIDER", "r2"),
+    r2: {
+      accountId: getEnvTrimmed("STORAGE_R2_ACCOUNT_ID"),
+      accessKeyId: getEnvTrimmed("STORAGE_R2_ACCESS_KEY_ID"),
+      secretAccessKey: getEnvTrimmed("STORAGE_R2_SECRET_ACCESS_KEY"),
+      bucket: getEnvTrimmed("STORAGE_R2_BUCKET"),
+      region: getEnvTrimmed("STORAGE_R2_REGION", "auto"),
+      /** Public origin for browser `<img src>` (R2 custom domain or r2.dev); no trailing slash. */
+      publicBaseUrl: getEnvTrimmed("STORAGE_R2_PUBLIC_BASE_URL")
+    },
+    local: {
+      /** Absolute path on disk where uploads are written (for STORAGE_PROVIDER=local). */
+      uploadDirectory: getEnvTrimmed("UPLOAD_DIRECTORY", "")
+    }
+  },
+  /** AWS (SES) for local/dev email. */
+  aws: {
+    accessKeyId: getEnv("AWS_ACCESS_KEY_ID", ""),
+    secretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", "")
+  },
+  /** Resend (production) email. */
+  resend: {
+    secretKey: getEnv("RESEND_SECRET_KEY", "")
+  },
+  /** Sentry error monitoring. When SENTRY_DSN is set and enabled, errors are reported to Sentry. */
+  sentry: {
+    dsn: getEnv("SENTRY_DSN", ""),
+    enabled: getEnvBoolean("SENTRY_ENABLED", true)
+  },
+  /** Cache (memory or redis). Used by CompanyService / MarketingService for module_configs. */
+  cache: {
+    provider: getEnv("CACHE_PROVIDER", "memory"),
+    defaultTTL: getEnvNumber("CACHE_DEFAULT_TTL", 300),
+    logHits: getEnvBoolean("CACHE_LOG_HITS", true),
+    logMisses: getEnvBoolean("CACHE_LOG_MISSES", true),
+    checkPeriod: getEnvNumber("CACHE_CHECK_PERIOD", 60),
+    useClones: getEnvBoolean("CACHE_USE_CLONES", false),
+    enabled: getEnv("CACHE_ENABLED", "true") !== "false",
+    enablePatterns: getEnv("CACHE_ENABLE_PATTERNS", "true") !== "false",
+    redis: {
+      host: getEnv("REDIS_HOST", "localhost"),
+      port: getEnvNumber("REDIS_PORT", 6379),
+      password: getEnv("REDIS_PASSWORD", ""),
+      db: getEnvNumber("REDIS_DB", 0),
+      /** Logical Redis DB for BullMQ / Flowcraft queues (defaults to REDIS_DB). */
+      bullmqDb: getEnvNumber("REDIS_BULLMQ_DB", getEnvNumber("REDIS_DB", 0)),
+      prefix: getEnv("REDIS_PREFIX", "app:cache:"),
+      maxReconnectAttempts: getEnvNumber("REDIS_MAX_RECONNECT_ATTEMPTS", 10),
+      enableOfflineQueue: getEnv("REDIS_ENABLE_OFFLINE_QUEUE", "true") !== "false",
+      useScan: getEnv("REDIS_USE_SCAN", "true") !== "false"
+    }
+  },
+  /**
+   * BullMQ + integration token refresh orchestration (Flowcraft).
+   * Queue connection uses `cache.redis` / `REDIS_*` and optional `REDIS_BULLMQ_DB`.
+   */
+  bullmq: {
+    /**
+     * [Flowcraft BullMQ reconciler](https://flowcraft.js.org/guide/adapters/bullmq#reconciliation): shared by all
+     * `*BullMqWorker` processes. `reconcilerIntervalMs: 0` disables the timer.
+     */
+    flowcraft: {
+      reconcilerStalledThresholdSeconds: flowcraftBullmqDefaults.reconcilerStalledThresholdSeconds,
+      reconcilerIntervalMs: flowcraftBullmqDefaults.reconcilerIntervalMs
+    },
+    queueName: orchestratorFlows.integrationRefresh.queueName,
+    /**
+     * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).
+     * Enabled state from `config/orchestratorFlows.ts`; forced off under Jest (`JEST_WORKER_ID`) so tests do not sleep.
+     */
+    integrationRefresh: {
+      enabled: (() => {
+        const underJest = getEnv("JEST_WORKER_ID", "") !== "";
+        return underJest ? false : orchestratorFlows.integrationRefresh.enabled;
+      })(),
+      transport: orchestrationTransportFromEnv2("ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT", orchestratorFlows.integrationRefresh.transport)
+    },
+    notificationEmail: {
+      queueName: orchestratorFlows.notificationEmail.queueName,
+      transport: orchestrationTransportFromEnv2("ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT", orchestratorFlows.notificationEmail.transport),
+      digestFlushIntervalMs: orchestratorFlows.notificationEmail.digestFlushIntervalMs,
+      sendPlainMinIntervalMs: orchestratorFlows.notificationEmail.sendPlainMinIntervalMs
+    },
+    scheduledSocialPost: {
+      queueName: orchestratorFlows.scheduledSocialPost.queueName,
+      transport: orchestrationTransportFromEnv2("ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT", orchestratorFlows.scheduledSocialPost.transport),
+      missingPostRescanIntervalMs: orchestratorFlows.scheduledSocialPost.missingPostRescanIntervalMs,
+      enabled: (() => {
+        const underJest = getEnv("JEST_WORKER_ID", "") !== "";
+        return underJest ? false : orchestratorFlows.scheduledSocialPost.enabled;
+      })()
+    }
+  },
+  /** Rate limiting. When enabled, applies global and auth-specific limits. */
+  rateLimit: {
+    enabled: getEnv("RATE_LIMIT_ENABLED", "true") !== "false",
+    global: {
+      windowMs: getEnvNumber("RATE_LIMIT_WINDOW_MS", 36e5),
+      // 1 hour
+      max: getEnvNumber("RATE_LIMIT_MAX", 30)},
+    auth: {
+      windowMs: getEnvNumber("AUTH_RATE_LIMIT_WINDOW_MS", 9e5),
+      max: getEnvNumber("AUTH_RATE_LIMIT_MAX", 50)},
+    oauth: {
+      windowMs: getEnvNumber("OAUTH_RATE_LIMIT_WINDOW_MS", 3e5),
+      // 5 minutes
+      max: getEnvNumber("OAUTH_RATE_LIMIT_MAX", 20)}
+  },
+  /** Social integration OAuth (per-provider secrets). */
+  integrations: {
+    threads: {
+      appId: getEnvTrimmed("THREADS_APP_ID"),
+      appSecret: getEnvTrimmed("THREADS_APP_SECRET")
+    },
+    /** Facebook Login — used for Instagram (Business) / Marketing API OAuth in the same Meta app. */
+    facebook: {
+      appId: getEnvTrimmed("FACEBOOK_APP_ID"),
+      appSecret: getEnvTrimmed("FACEBOOK_APP_SECRET")
+    },
+    /** Instagram Login (standalone professional accounts). */
+    instagramStandalone: {
+      appId: getEnv("INSTAGRAM_APP_ID", ""),
+      appSecret: getEnv("INSTAGRAM_APP_SECRET", "")
+    }
+  }
+};
+var server2 = config2.server;
+logger.info({ msg: "[Config] Loaded", env: server2?.nodeEnv });
+
 // connections/sentry/index.ts
-init_GlobalConfig();
-var sentryConfig = config.sentry;
-var serverConfig2 = config.server;
+var sentryConfig = config2.sentry;
+var serverConfig2 = config2.server;
 var dsn = (sentryConfig?.dsn ?? "").toString().trim();
 var sentryEnabled = sentryConfig?.enabled !== false;
 if (dsn && sentryEnabled && !Sentry__namespace.isInitialized()) {
@@ -4087,14 +4386,14 @@ var ConfigRepository = class _ConfigRepository {
         }
       );
     }
-    const config2 = data?.config;
-    if (!data || !config2 || config2[property] === void 0) {
+    const config3 = data?.config;
+    if (!data || !config3 || config3[property] === void 0) {
       throw new DatabaseEntityNotFoundError(
         _ConfigRepository.TABLE_NAME_MODULE_CONFIGS,
         { moduleName, property }
       );
     }
-    return { result: String(config2[property]) };
+    return { result: String(config3[property]) };
   }
   async getConfigByModuleNameAndProperties(params) {
     const { moduleName, properties } = params;
@@ -4116,11 +4415,11 @@ var ConfigRepository = class _ConfigRepository {
         { moduleName }
       );
     }
-    const config2 = data.config;
-    if (config2 && properties.length > 0) {
+    const config3 = data.config;
+    if (config3 && properties.length > 0) {
       for (const key of properties) {
-        if (key in config2 && config2[key] != null) {
-          result[key] = String(config2[key]);
+        if (key in config3 && config3[key] != null) {
+          result[key] = String(config3[key]);
         }
       }
     }
@@ -5507,8 +5806,8 @@ init_GlobalConfig();
 function publicUrlForObjectKey(key) {
   const storage = config.storage;
   const provider = String(storage.provider ?? "r2").toLowerCase();
-  const server2 = config.server;
-  const base = provider === "local" ? `${String(server2.frontendDomainUrl ?? server2.backendDomainUrl ?? "").trim().replace(/\/+$/, "")}/uploads` : storage.r2?.publicBaseUrl?.trim().replace(/\/+$/, "");
+  const server3 = config.server;
+  const base = provider === "local" ? `${String(server3.frontendDomainUrl ?? server3.backendDomainUrl ?? "").trim().replace(/\/+$/, "")}/uploads` : storage.r2?.publicBaseUrl?.trim().replace(/\/+$/, "");
   if (!base) return null;
   return `${base}/${key.replace(/^\/+/, "")}`;
 }
@@ -6002,6 +6301,45 @@ var PostsRepository = class {
   newPostGroup() {
     return uuid.v4();
   }
+  /**
+   * `QUEUE` rows in `[fromIso, toIso)` on `publish_date`,
+   * with resolvable channels (integration row exists, not disabled, not `refresh_needed`, not in-between steps).
+   * Returns one entry per `post_group` (deduped) for re-enqueueing a Flowcraft run.
+   */
+  async listQueuePostGroupsForMissingPublishRescan(fromIso, toIso) {
+    const { data: posts, error } = await this.supabase.from(TABLE_POSTS).select("organization_id, post_group, integration_id").eq("state", "QUEUE").is("parent_post_id", null).is("deleted_at", null).not("integration_id", "is", null).gte("publish_date", fromIso).lt("publish_date", toIso);
+    if (error) {
+      throw new DatabaseError(`Failed to list posts for rescan: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    const rows = posts ?? [];
+    if (rows.length === 0) return [];
+    const intIds = [...new Set(rows.map((r) => r.integration_id))];
+    const { data: integs, error: intErr } = await this.supabase.from("integrations").select("id, refresh_needed, in_between_steps, disabled, deleted_at").in("id", intIds);
+    if (intErr) {
+      throw new DatabaseError(`Failed to load integrations for rescan: ${intErr.message}`, {
+        cause: intErr,
+        operation: "select",
+        resource: { type: "table", name: "integrations" }
+      });
+    }
+    const intMap = new Map(
+      (integs ?? []).map((i) => [i.id, i])
+    );
+    const byGroup = /* @__PURE__ */ new Map();
+    for (const p of rows) {
+      const int = intMap.get(p.integration_id);
+      if (!int || int.deleted_at) continue;
+      if (int.refresh_needed || int.in_between_steps || int.disabled) continue;
+      if (!byGroup.has(p.post_group)) {
+        byGroup.set(p.post_group, { organizationId: p.organization_id, postGroup: p.post_group });
+      }
+    }
+    return [...byGroup.values()];
+  }
   async hasQueueSlotTaken(organizationId, publishDateIso) {
     const { data, error } = await this.supabase.from(TABLE_POSTS).select("id").eq("organization_id", organizationId).eq("state", "QUEUE").eq("publish_date", publishDateIso).is("deleted_at", null).limit(1).maybeSingle();
     if (error) {
@@ -6123,6 +6461,99 @@ var PostsRepository = class {
       });
     }
     return data ?? [];
+  }
+  async listPostsByGroup(postGroup) {
+    const { data, error } = await this.supabase.from(TABLE_POSTS).select("*").eq("post_group", postGroup).is("deleted_at", null).order("created_at", { ascending: true });
+    if (error) {
+      throw new DatabaseError(`Failed to load post group: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    return data ?? [];
+  }
+  /** Soft-delete all rows in a post group. Returns ids of rows affected. */
+  async softDeletePostsByGroup(postGroup) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE_POSTS).update({ deleted_at: now, updated_at: now }).eq("post_group", postGroup).is("deleted_at", null).select("id");
+    if (error) {
+      throw new DatabaseError(`Failed to delete post group: ${error.message}`, {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    return (data ?? []).map((r) => String(r.id)).filter(Boolean);
+  }
+  async deleteTagAssignmentsForPostIds(postIds) {
+    if (postIds.length === 0) return;
+    const { error } = await this.supabase.from(TABLE_POSTS_TAGS).delete().in("post_id", postIds);
+    if (error) {
+      throw new DatabaseError(`Failed to delete tag assignments: ${error.message}`, {
+        cause: error,
+        operation: "delete",
+        resource: { type: "table", name: TABLE_POSTS_TAGS }
+      });
+    }
+  }
+  /**
+   * Worker/orchestrator: set published result for a single `posts` row.
+   * Aligned with upstream “updatePost(id, postId, releaseURL)”.
+   */
+  async updatePostRowPublishResult(postId, input) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { error } = await this.supabase.from(TABLE_POSTS).update({
+      state: input.state,
+      release_id: input.releaseId,
+      release_url: input.releaseUrl,
+      error: input.error,
+      updated_at: now
+    }).eq("id", postId).is("deleted_at", null);
+    if (error) {
+      throw new DatabaseError(`Failed to update post publish result: ${error.message}`, {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+  }
+  /**
+   * Worker: mark a row in ERROR with message (e.g. group of channels when first failure was fatal to cross-post).
+   * Pass `message: null` to copy a generic string from server.
+   */
+  async markPostState(postId, state, errMessage = null) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { error: updateErr } = await this.supabase.from(TABLE_POSTS).update({ state, error: errMessage, updated_at: now }).eq("id", postId).is("deleted_at", null);
+    if (updateErr) {
+      throw new DatabaseError(`Failed to set post state: ${updateErr.message}`, {
+        cause: updateErr,
+        operation: "update",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+  }
+  async listTagsForPostIds(postIds) {
+    if (postIds.length === 0) return [];
+    const { data: links, error: linksErr } = await this.supabase.from(TABLE_POSTS_TAGS).select("tag_id").in("post_id", postIds);
+    if (linksErr) {
+      throw new DatabaseError(`Failed to load tag assignments: ${linksErr.message}`, {
+        cause: linksErr,
+        operation: "select",
+        resource: { type: "table", name: TABLE_POSTS_TAGS }
+      });
+    }
+    const tagIds = [...new Set((links ?? []).map((r) => String(r.tag_id)).filter(Boolean))];
+    if (tagIds.length === 0) return [];
+    const { data: tags, error: tagsErr } = await this.supabase.from(TABLE_TAGS).select("id, name, color, org_id, deleted_at, created_at, updated_at").in("id", tagIds).is("deleted_at", null).order("name", { ascending: true });
+    if (tagsErr) {
+      throw new DatabaseError(`Failed to load tags: ${tagsErr.message}`, {
+        cause: tagsErr,
+        operation: "select",
+        resource: { type: "table", name: TABLE_TAGS }
+      });
+    }
+    return tags ?? [];
   }
 };
 
@@ -7993,6 +8424,12 @@ var InstagramBusinessProvider = class {
   maxLength(_additionalSettings) {
     return 2200;
   }
+  validateCreatePost(input) {
+    if (input.status === "scheduled" && input.mediaCount < 1) {
+      return "Instagram should have at least one attachment";
+    }
+    return null;
+  }
   async post(_id, _accessToken, _postDetails, _integration) {
     throw new Error("Instagram Business posting is not implemented");
   }
@@ -8178,6 +8615,12 @@ var InstagramStandaloneProvider = class {
   maxLength(_additionalSettings) {
     return 2200;
   }
+  validateCreatePost(input) {
+    if (input.status === "scheduled" && input.mediaCount < 1) {
+      return "Instagram should have at least one attachment";
+    }
+    return null;
+  }
   async post(_id, _accessToken, _postDetails, _integration) {
     throw new Error("Instagram posting is not implemented");
   }
@@ -8271,6 +8714,12 @@ var InstagramStandaloneProvider = class {
 
 // integrations/providers/threadsProvider.ts
 init_GlobalConfig();
+init_Logger();
+var GRAPH2 = "https://graph.threads.net/v1.0";
+var THREADS_PROVIDER_BUILD = "2026-04-24d";
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 function threadsRedirectUri() {
   return `${oauthFrontendOrigin()}/account/integrations/social/threads`;
 }
@@ -8292,8 +8741,35 @@ var ThreadsProvider = class {
   maxLength(_additionalSettings) {
     return 500;
   }
-  async post(_id, _accessToken, _postDetails, _integration) {
-    throw new Error("Threads posting is not implemented");
+  async post(userId, accessToken, postDetails, _integration) {
+    if (!postDetails.length) return [];
+    const [first] = postDetails;
+    logger.info({ msg: "[Threads] post()", build: THREADS_PROVIDER_BUILD, postId: first.id });
+    const message = first.message ?? "";
+    const media = this.extractMedia(first.settings).map((m) => ({
+      ...m,
+      path: this.resolvePublicMediaUrl(m.path)
+    }));
+    if (media.length > 0) {
+      logger.info({
+        msg: "[Threads] publishing with media (resolved public URLs)",
+        postId: first.id,
+        urls: media.map((m) => m.path)
+      });
+      for (const m of media) {
+        await this.assertUrlReachableForThreads(m.path);
+      }
+    }
+    const creationId = media.length === 0 ? await this.createTextContent(userId, accessToken, message) : media.length === 1 ? await this.createSingleMediaContent(userId, accessToken, media[0], message) : await this.createCarouselContent(userId, accessToken, media, message);
+    const { threadId, permalink } = await this.publishThread(userId, accessToken, creationId);
+    return [
+      {
+        id: first.id,
+        postId: threadId,
+        status: "success",
+        releaseURL: permalink
+      }
+    ];
   }
   async refreshToken(refresh_token) {
     const { appId } = threadsOAuth();
@@ -8348,6 +8824,175 @@ var ThreadsProvider = class {
       picture: picture || "",
       username: username || ""
     };
+  }
+  extractMedia(settings) {
+    const anySettings = settings ?? {};
+    const media = anySettings.media;
+    if (Array.isArray(media)) {
+      return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+    }
+    const items = media?.items;
+    if (Array.isArray(items)) {
+      return items.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+    }
+    return [];
+  }
+  /**
+   * Composer media stores an object key (R2) in `path`. Threads needs a public HTTPS URL in `image_url` / `video_url`
+   */
+  resolvePublicMediaUrl(path5) {
+    const raw = path5.trim();
+    if (!raw) {
+      throw new Error("Media path is empty");
+    }
+    if (raw.startsWith("http://") || raw.startsWith("https://")) {
+      return raw;
+    }
+    const url = publicUrlForObjectKey(raw);
+    if (!url) {
+      throw new Error(
+        "Cannot build a public media URL for Threads (set STORAGE_R2_PUBLIC_BASE_URL for R2, or use full https:// URLs)"
+      );
+    }
+    return url;
+  }
+  async readGraphJson(res) {
+    const text = await res.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { _nonJsonBody: text };
+    }
+  }
+  formatGraphError(prefix, res, body) {
+    const b = body;
+    if (b?.error?.message) {
+      const extra = [b.error.error_user_msg, b.error.error_user_title].filter(Boolean).join(" \u2014 ");
+      const base = `${prefix}: ${b.error.message}${extra ? ` (${extra})` : ""}`;
+      if (b.error.message === "An unknown error occurred" || b.error.message.toLowerCase().includes("unknown")) {
+        return `${base} [raw: ${JSON.stringify(b).slice(0, 1200)}]`;
+      }
+      return base;
+    }
+    if (b && typeof b === "object" && "_nonJsonBody" in b && typeof b._nonJsonBody === "string") {
+      return `${prefix}: HTTP ${res.status} \u2014 ${b._nonJsonBody.slice(0, 500)}`;
+    }
+    return `${prefix}: HTTP ${res.status} [raw: ${JSON.stringify(body).slice(0, 1200)}]`;
+  }
+  /** Meta fetches `image_url` from their servers; if the URL 403s or is localhost, publish fails with vague Graph errors. */
+  async assertUrlReachableForThreads(url) {
+    let res = await fetch(url, { method: "HEAD", redirect: "follow" });
+    if (res.status === 405 || res.status === 501) {
+      res = await fetch(url, { method: "GET", headers: { Range: "bytes=0-0" }, redirect: "follow" });
+    }
+    if (!res.ok) {
+      throw new Error(
+        `Threads media URL is not publicly reachable (HTTP ${res.status}). Meta must fetch this URL; fix STORAGE_R2_PUBLIC_BASE_URL, bucket policy, or use a public https URL. url=${url}`
+      );
+    }
+  }
+  async checkLoaded(creationId, accessToken) {
+    for (let i = 0; i < 40; i++) {
+      const res = await fetch(
+        `${GRAPH2}/${encodeURIComponent(creationId)}?fields=status,error_message&access_token=${encodeURIComponent(accessToken)}`
+      );
+      const json2 = await this.readGraphJson(res);
+      if (!res.ok) {
+        throw new Error(this.formatGraphError("Threads media status check failed", res, json2));
+      }
+      const status = json2.status ?? "";
+      if (status === "ERROR") {
+        const detail = json2.error_message || "Threads media processing failed";
+        const raw = JSON.stringify(json2).slice(0, 2e3);
+        throw new Error(
+          `Threads media container ERROR: ${detail}. Full status payload: ${raw} (if this is UNKNOWN or a vague message, check image spec: JPEG/PNG, \u22648MB, public URL, sRGB)`
+        );
+      }
+      if (status === "FINISHED") {
+        await sleepMs(2e3);
+        return;
+      }
+      await sleepMs(2200);
+    }
+    throw new Error("Threads media processing timed out");
+  }
+  async formPostThreads(userId, form) {
+    return await fetch(`${GRAPH2}/${encodeURIComponent(userId)}/threads`, { method: "POST", body: form });
+  }
+  async createTextContent(userId, accessToken, message) {
+    const form = new FormData();
+    form.append("media_type", "TEXT");
+    form.append("text", message);
+    form.append("access_token", accessToken);
+    const res = await this.formPostThreads(userId, form);
+    const json2 = await this.readGraphJson(res);
+    if (!json2.id) {
+      throw new Error(this.formatGraphError("Threads create text failed", res, json2));
+    }
+    return json2.id;
+  }
+  async createSingleMediaContent(userId, accessToken, media, message, isCarouselItem = false) {
+    const isVideo = media.path.toLowerCase().includes(".mp4");
+    const form = new FormData();
+    form.append("media_type", isVideo ? "VIDEO" : "IMAGE");
+    if (isVideo) {
+      form.append("video_url", media.path);
+    } else {
+      form.append("image_url", media.path);
+    }
+    if (isCarouselItem) {
+      form.append("is_carousel_item", "true");
+    }
+    form.append("text", message);
+    form.append("access_token", accessToken);
+    const res = await this.formPostThreads(userId, form);
+    const json2 = await this.readGraphJson(res);
+    if (!json2.id) {
+      throw new Error(this.formatGraphError("Threads create media failed", res, json2));
+    }
+    return json2.id;
+  }
+  async createCarouselContent(userId, accessToken, media, message) {
+    const mediaIds = [];
+    for (const item of media) {
+      const mediaId = await this.createSingleMediaContent(userId, accessToken, item, message, true);
+      mediaIds.push(mediaId);
+    }
+    await Promise.all(mediaIds.map((id) => this.checkLoaded(id, accessToken)));
+    const form = new FormData();
+    form.append("text", message);
+    form.append("media_type", "CAROUSEL");
+    form.append("children", mediaIds.join(","));
+    form.append("access_token", accessToken);
+    const res = await this.formPostThreads(userId, form);
+    const json2 = await this.readGraphJson(res);
+    if (!json2.id) {
+      throw new Error(this.formatGraphError("Threads create carousel failed", res, json2));
+    }
+    return json2.id;
+  }
+  async publishThread(userId, accessToken, creationId) {
+    await this.checkLoaded(creationId, accessToken);
+    const pubForm = new FormData();
+    pubForm.append("creation_id", creationId);
+    pubForm.append("access_token", accessToken);
+    const pubRes = await fetch(`${GRAPH2}/${encodeURIComponent(userId)}/threads_publish`, {
+      method: "POST",
+      body: pubForm
+    });
+    const pubJson = await this.readGraphJson(pubRes);
+    if (!pubJson.id) {
+      throw new Error(this.formatGraphError("Threads publish failed", pubRes, pubJson));
+    }
+    const infoRes = await fetch(
+      `${GRAPH2}/${encodeURIComponent(pubJson.id)}?fields=id,permalink&access_token=${encodeURIComponent(accessToken)}`
+    );
+    const infoJson = await this.readGraphJson(infoRes);
+    if (!infoRes.ok) {
+      throw new Error(this.formatGraphError("Threads fetch permalink failed", infoRes, infoJson));
+    }
+    return { threadId: pubJson.id, permalink: infoJson.permalink ?? "" };
   }
   async fetchUserInfo(accessToken) {
     const res = await fetch(
@@ -9233,19 +9878,27 @@ var TransactionalNotificationEmailService = class {
 };
 
 // services/PostsService.ts
-var SLOT_STEP_MS = 15 * 60 * 1e3;
-var MAX_SLOT_TRIES = 200;
+init_GlobalConfig();
+init_Logger();
 var DEFAULT_TAG_COLOR = "#6366f1";
-function roundUpToNextSlot(d) {
-  const ms = d.getTime();
-  const rounded = Math.ceil(ms / SLOT_STEP_MS) * SLOT_STEP_MS;
-  return new Date(rounded);
+function dayStartUtcIso(d) {
+  const x = new Date(d.getTime());
+  x.setUTCHours(0, 0, 0, 0);
+  return x.toISOString();
 }
-function alignToFifteenMinuteUtc(d) {
-  return new Date(Math.round(d.getTime() / SLOT_STEP_MS) * SLOT_STEP_MS);
+function addMinutes(d, minutes) {
+  return new Date(d.getTime() + minutes * 60 * 1e3);
 }
-function addMs(d, ms) {
-  return new Date(d.getTime() + ms);
+function parsePostingTimesMinutes(postingTimesJson) {
+  if (!postingTimesJson) return [];
+  try {
+    const raw = JSON.parse(postingTimesJson);
+    const arr = Array.isArray(raw) ? raw : [];
+    const minutes = arr.map((x) => typeof x?.time === "number" ? x.time : Number.NaN).filter((n) => Number.isFinite(n) && n >= 0 && n < 24 * 60);
+    return minutes;
+  } catch {
+    return [];
+  }
 }
 function repeatIntervalToDays(key) {
   if (key == null) return null;
@@ -9262,25 +9915,62 @@ function repeatIntervalToDays(key) {
   };
   return m[key] ?? null;
 }
+function parseSettingsJson(settings) {
+  if (!settings) return { isGlobal: true, repeatInterval: null };
+  try {
+    const o = JSON.parse(settings);
+    const isGlobal = typeof o.isGlobal === "boolean" ? o.isGlobal : true;
+    const repeatInterval = (typeof o.repeatInterval === "string" ? o.repeatInterval : null) ?? null;
+    return { isGlobal, repeatInterval };
+  } catch {
+    return { isGlobal: true, repeatInterval: null };
+  }
+}
+function parseImageColumn(image) {
+  if (!image) return [];
+  try {
+    const o = JSON.parse(image);
+    const items = Array.isArray(o.items) ? o.items : [];
+    return items.map((x) => ({
+      id: typeof x?.id === "string" ? x.id : "",
+      path: typeof x?.path === "string" ? x.path : ""
+    })).filter((m) => m.id && m.path);
+  } catch {
+    return [];
+  }
+}
 var PostsService = class {
-  constructor(postsRepository2, integrationConnectionService2, integrationService2, organizationRepository2) {
+  constructor(postsRepository2, integrationConnectionService2, integrationService2, organizationRepository2, integrationManager2) {
     this.postsRepository = postsRepository2;
     this.integrationConnectionService = integrationConnectionService2;
     this.integrationService = integrationService2;
     this.organizationRepository = organizationRepository2;
+    this.integrationManager = integrationManager2;
   }
   async findFreeSlot(organizationId, authUserId) {
     await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
-    let candidate = roundUpToNextSlot(/* @__PURE__ */ new Date());
-    for (let i = 0; i < MAX_SLOT_TRIES; i++) {
-      const iso = candidate.toISOString();
-      const taken = await this.postsRepository.hasQueueSlotTaken(organizationId, iso);
-      if (!taken) {
-        return iso;
-      }
-      candidate = addMs(candidate, SLOT_STEP_MS);
+    const integrations = await this.integrationService.listByOrganization(organizationId);
+    const minutes = [
+      ...new Set(
+        integrations.flatMap((i) => parsePostingTimesMinutes(i.posting_times)).filter((n) => Number.isFinite(n))
+      )
+    ].sort((a, b) => a - b);
+    if (minutes.length === 0) {
+      return (/* @__PURE__ */ new Date()).toISOString();
     }
-    return candidate.toISOString();
+    const now = Date.now();
+    for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+      const dayStart = new Date(dayStartUtcIso(new Date(now + dayOffset * 24 * 60 * 60 * 1e3)));
+      for (const m of minutes) {
+        const candidate = addMinutes(dayStart, m);
+        if (candidate.getTime() <= now + 60 * 1e3) continue;
+        const iso = candidate.toISOString();
+        const taken = await this.postsRepository.hasQueueSlotTaken(organizationId, iso);
+        if (!taken) return iso;
+      }
+    }
+    const tomorrowStart = new Date(dayStartUtcIso(new Date(now + 24 * 60 * 60 * 1e3)));
+    return addMinutes(tomorrowStart, minutes[0]).toISOString();
   }
   async listTags(organizationId, authUserId) {
     await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
@@ -9311,10 +10001,11 @@ var PostsService = class {
       throw new AppError("Tag not found", 404);
     }
   }
-  async createPost(input) {
+  async buildPostGroupInsert(input) {
     const {
       organizationId,
       authUserId,
+      postGroup,
       body,
       bodiesByIntegrationId,
       media,
@@ -9323,11 +10014,13 @@ var PostsService = class {
       scheduledAtIso,
       repeatInterval,
       tagNames,
-      status
+      status,
+      allowTakenSlot = false
     } = input;
     await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
     const rows = await this.integrationService.listByOrganization(organizationId);
     const allowed = new Set(rows.filter((r) => r.deleted_at == null).map((r) => r.id));
+    const providerByIntegrationId = new Map(rows.map((r) => [r.id, (r.provider_identifier ?? "").toLowerCase()]));
     const uniqueIds = [...new Set(integrationIds)];
     for (const id of uniqueIds) {
       if (!allowed.has(id)) {
@@ -9337,13 +10030,22 @@ var PostsService = class {
     if (status === "scheduled" && uniqueIds.length === 0) {
       throw new AppError("Select at least one channel to schedule", 400);
     }
+    const mediaCount = Array.isArray(media) ? media.length : 0;
+    for (const integrationId of uniqueIds) {
+      const providerIdentifier = providerByIntegrationId.get(integrationId) ?? "";
+      if (!providerIdentifier) continue;
+      const provider = this.integrationManager.getSocialIntegration(providerIdentifier);
+      const message = provider?.validateCreatePost?.({ status, mediaCount });
+      if (typeof message === "string" && message.trim().length > 0) {
+        throw new AppError(message, 400);
+      }
+    }
     const scheduledDate = new Date(scheduledAtIso);
     if (Number.isNaN(scheduledDate.getTime())) {
       throw new AppError("Invalid schedule time", 400);
     }
-    const alignedScheduled = alignToFifteenMinuteUtc(scheduledDate);
-    const publishIso = alignedScheduled.toISOString();
-    if (status === "scheduled") {
+    const publishIso = scheduledDate.toISOString();
+    if (status === "scheduled" && !allowTakenSlot) {
       const taken = await this.postsRepository.hasQueueSlotTaken(organizationId, publishIso);
       if (taken) {
         throw new AppError("That time slot is already taken; pick another.", 409);
@@ -9353,7 +10055,6 @@ var PostsService = class {
     const tagIds = await this.resolveTagIds(organizationId, normalizedTagNames);
     const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
     const createdByUserId = userId ?? null;
-    const postGroup = this.postsRepository.newPostGroup();
     const settingsJson = JSON.stringify({ isGlobal, repeatInterval: repeatInterval ?? null });
     const intervalDays = repeatIntervalToDays(repeatInterval);
     const state = status === "draft" ? "DRAFT" : "QUEUE";
@@ -9387,10 +10088,16 @@ var PostsService = class {
         content: bodiesByIntegrationId && typeof bodiesByIntegrationId[integrationId] === "string" ? bodiesByIntegrationId[integrationId] : baseRow.content
       }));
     }
+    return { postGroup, toInsert, tagIds };
+  }
+  async createPost(input) {
+    const postGroup = this.postsRepository.newPostGroup();
+    const { toInsert, tagIds } = await this.buildPostGroupInsert({ ...input, postGroup });
     const inserted = await this.postsRepository.insertPostGroup(toInsert);
-    const postIds = inserted.map((p) => p.id);
-    await this.postsRepository.linkTagsToPosts(postIds, tagIds);
-    return { postGroup, posts: inserted };
+    await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+    const out = { postGroup, posts: inserted };
+    void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
+    return out;
   }
   async listPostsForCalendar({
     organizationId,
@@ -9414,6 +10121,149 @@ var PostsService = class {
       endIso: end.toISOString(),
       integrationIds: integrationIds ?? null
     });
+  }
+  async getPostGroup(postGroup, authUserId) {
+    const rows = await this.postsRepository.listPostsByGroup(postGroup);
+    if (!rows.length) {
+      throw new AppError("Post group not found", 404);
+    }
+    const organizationId = rows[0].organization_id;
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const { isGlobal, repeatInterval } = parseSettingsJson(rows[0].settings);
+    const publishDateIso = rows[0].publish_date;
+    const status = rows.every((r) => r.state === "DRAFT") ? "draft" : "scheduled";
+    const integrationIds = rows.map((r) => r.integration_id).filter((x) => Boolean(x));
+    const body = rows.find((r) => r.integration_id != null)?.content ?? rows[0].content ?? "";
+    const bodiesByIntegrationId = {};
+    for (const r of rows) {
+      if (!r.integration_id) continue;
+      bodiesByIntegrationId[r.integration_id] = r.content ?? "";
+    }
+    const media = parseImageColumn(rows[0].image);
+    const tags = await this.postsRepository.listTagsForPostIds(rows.map((r) => r.id));
+    const tagNames = tags.map((t) => t.name).filter(Boolean);
+    return {
+      postGroup,
+      organizationId,
+      isGlobal,
+      repeatInterval,
+      publishDateIso,
+      status,
+      integrationIds,
+      body,
+      bodiesByIntegrationId,
+      media,
+      tagNames
+    };
+  }
+  async deletePostGroup(postGroup, authUserId, organizationId) {
+    const rows = await this.postsRepository.listPostsByGroup(postGroup);
+    if (!rows.length) {
+      throw new AppError("Post group not found", 404);
+    }
+    const orgId = rows[0].organization_id;
+    if (organizationId && organizationId !== orgId) {
+      throw new AppError("Post group does not belong to that workspace", 400);
+    }
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, orgId);
+    const ids = rows.map((r) => r.id);
+    await this.postsRepository.deleteTagAssignmentsForPostIds(ids);
+    await this.postsRepository.softDeletePostsByGroup(postGroup);
+  }
+  async updatePostGroup(input) {
+    const {
+      postGroup,
+      authUserId,
+      body,
+      bodiesByIntegrationId,
+      media,
+      integrationIds,
+      isGlobal,
+      scheduledAtIso,
+      repeatInterval,
+      tagNames,
+      status
+    } = input;
+    const existing = await this.postsRepository.listPostsByGroup(postGroup);
+    if (!existing.length) throw new AppError("Post group not found", 404);
+    const organizationId = existing[0].organization_id;
+    if (input.organizationId && input.organizationId !== organizationId) {
+      throw new AppError("Post group does not belong to that workspace", 400);
+    }
+    const alignedNext = new Date(scheduledAtIso);
+    const nextPublishIso = Number.isNaN(alignedNext.getTime()) ? null : alignedNext.toISOString();
+    const alreadyAtThatSlot = nextPublishIso != null && new Date(existing[0].publish_date).getTime() === new Date(nextPublishIso).getTime();
+    const allowTakenSlot = status === "scheduled" && alreadyAtThatSlot;
+    const { toInsert, tagIds } = await this.buildPostGroupInsert({
+      organizationId,
+      authUserId,
+      postGroup,
+      body,
+      bodiesByIntegrationId,
+      media,
+      integrationIds,
+      isGlobal,
+      scheduledAtIso,
+      repeatInterval,
+      tagNames,
+      status,
+      allowTakenSlot
+    });
+    const oldIds = existing.map((r) => r.id);
+    await this.postsRepository.deleteTagAssignmentsForPostIds(oldIds);
+    await this.postsRepository.softDeletePostsByGroup(postGroup);
+    const inserted = await this.postsRepository.insertPostGroup(toInsert);
+    await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+    const out = { postGroup, posts: inserted };
+    void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
+    return out;
+  }
+  /**
+   * When `scheduledSocialPost` uses BullMQ, enqueue a delayed Flowcraft run for this group ).
+   */
+  async maybeEnqueueScheduledSocialPostOrchestration(organizationId, posts, status) {
+    if (status !== "scheduled") return;
+    const soc = config.bullmq?.scheduledSocialPost;
+    if (!soc?.enabled || soc?.transport !== "bullmq") return;
+    const first = posts.find((p) => p.state === "QUEUE" && p.integration_id);
+    if (!first) return;
+    const normalizeTimestamptz = (raw) => {
+      let s = String(raw ?? "").trim();
+      if (!s) return s;
+      s = s.replace(" ", "T");
+      s = s.replace(/([+-]\d{2})(\d{2})$/, "$1:$2");
+      s = s.replace(/([+-]\d{2})$/, "$1:00");
+      return s;
+    };
+    const publishMs = new Date(normalizeTimestamptz(first.publish_date)).getTime();
+    if (Number.isNaN(publishMs)) {
+      logger.warn({
+        msg: "[PostsService] Could not parse publish_date for scheduled post enqueue; skipping",
+        publish_date: first.publish_date,
+        postGroup: first.post_group,
+        organizationId
+      });
+      return;
+    }
+    const delayMs = Math.max(0, publishMs - Date.now());
+    const mod = await import('openquok-orchestrator');
+    const runScheduledSocialPostOrchestration = mod?.runScheduledSocialPostOrchestration ?? mod?.default?.runScheduledSocialPostOrchestration;
+    if (typeof runScheduledSocialPostOrchestration !== "function") {
+      throw new TypeError("runScheduledSocialPostOrchestration is not a function");
+    }
+    const ok = await runScheduledSocialPostOrchestration({
+      organizationId,
+      postGroup: first.post_group,
+      delayMs
+    });
+    if (!ok) {
+      logger.warn({
+        msg: "[PostsService] Failed to enqueue scheduled social post workflow (BullMQ)",
+        organizationId,
+        postGroup: first.post_group,
+        delayMs
+      });
+    }
   }
   async resolveTagIds(organizationId, names) {
     const ids = [];
@@ -9540,7 +10390,8 @@ var postsService = new PostsService(
   postsRepository,
   integrationConnectionService,
   integrationService,
-  organizationRepository
+  organizationRepository,
+  integrationManager
 );
 var mediaService = new MediaService(mediaRepository);
 
@@ -11194,6 +12045,69 @@ var PostsController = class {
       next(error);
     }
   };
+  getPostGroup = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const postGroup = req.params.postGroup;
+      const d = await this.postsService.getPostGroup(postGroup, authUserId);
+      res.status(200).json({ success: true, data: d });
+    } catch (error) {
+      next(error);
+    }
+  };
+  updatePostGroup = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const postGroup = req.params.postGroup;
+      const b = req.body;
+      const result = await this.postsService.updatePostGroup({
+        postGroup,
+        organizationId: b.organizationId ?? null,
+        authUserId,
+        body: b.body ?? "",
+        bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
+        media: b.media ?? null,
+        integrationIds: b.integrationIds ?? [],
+        isGlobal: b.isGlobal ?? true,
+        scheduledAtIso: b.scheduledAt,
+        repeatInterval: b.repeatInterval ?? null,
+        tagNames: b.tagNames ?? [],
+        status: b.status
+      });
+      res.status(200).json({
+        success: true,
+        data: {
+          postGroup: result.postGroup,
+          posts: PostDTOMapper.toDTOCollection(result.posts)
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  deletePostGroup = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const postGroup = req.params.postGroup;
+      const organizationId = req.query.organizationId ?? null;
+      await this.postsService.deletePostGroup(postGroup, authUserId, organizationId);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  };
 };
 
 // controllers/ThirdPartyController.ts
@@ -11230,8 +12144,8 @@ function safeJoin(base, p) {
   return out;
 }
 function buildPublicUrl(relativePath) {
-  const server2 = config.server;
-  const origin = String(server2.frontendDomainUrl ?? server2.backendDomainUrl ?? "").trim().replace(/\/+$/, "");
+  const server3 = config.server;
+  const origin = String(server3.frontendDomainUrl ?? server3.backendDomainUrl ?? "").trim().replace(/\/+$/, "");
   if (!origin) return null;
   return `${origin}/uploads/${relativePath.replace(/^\/+/, "")}`;
 }
@@ -12965,6 +13879,12 @@ var listPostsQuerySchema = zod.z.object({
 var validateListPostsQuery = validateRequest({
   query: listPostsQuerySchema
 });
+var postGroupParamsSchema = zod.z.object({
+  postGroup: zod.z.string().uuid("Invalid post group id")
+});
+var validatePostGroupParams = validateRequest({
+  params: postGroupParamsSchema
+});
 var repeatIntervalEnum = zod.z.enum([
   "day",
   "two_days",
@@ -13001,6 +13921,13 @@ var createPostBodySchema = zod.z.object({
 var validateCreatePostBody = validateRequest({
   body: createPostBodySchema
 });
+var updatePostGroupBodySchema = createPostBodySchema.omit({ organizationId: true }).extend({
+  organizationId: zod.z.string().uuid("Invalid organization id").optional()
+});
+var validateUpdatePostGroupBody = validateRequest({
+  params: postGroupParamsSchema,
+  body: updatePostGroupBodySchema
+});
 var createPostTagBodySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id"),
   name: zod.z.string().trim().min(1, "Name is required").max(120),
@@ -13016,6 +13943,12 @@ var validateDeletePostTag = validateRequest({
   params: deletePostTagParamsSchema,
   query: postOrganizationQuerySchema
 });
+var validateDeletePostGroup = validateRequest({
+  params: postGroupParamsSchema,
+  query: zod.z.object({
+    organizationId: zod.z.string().uuid("Invalid organization id").optional()
+  })
+});
 
 // routes/postRoutes.ts
 var postRouter = express2.Router();
@@ -13026,14 +13959,18 @@ postRouter.post("/tags", auth4, validateCreatePostTagBody, postsController.creat
 postRouter.delete("/tags/:tagId", auth4, validateDeletePostTag, postsController.deleteTag);
 postRouter.get("/list", auth4, validateListPostsQuery, postsController.listPosts);
 postRouter.post("/", auth4, validateCreatePostBody, postsController.createPost);
+postRouter.get("/group/:postGroup", auth4, validatePostGroupParams, postsController.getPostGroup);
+postRouter.put("/group/:postGroup", auth4, validateUpdatePostGroupBody, postsController.updatePostGroup);
+postRouter.delete("/group/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
+postRouter.delete("/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
 var authWithRoles8 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
 var thirdPartyRouter = express2.Router();
 thirdPartyRouter.get("/for-media", authWithRoles8, validateMediaOrganizationQuery, thirdPartyController.listForMedia);
 
 // routes/index.ts
 init_Logger();
-async function mountAllRoutes(app2, config2) {
-  const api = config2.api;
+async function mountAllRoutes(app2, config3) {
+  const api = config3.api;
   const prefix = api?.prefix ?? "/api/v1";
   const apiRouter = express2__default.default.Router();
   apiRouter.use("/auth", authRouter);
@@ -13339,17 +14276,17 @@ function shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact) {
   }
   return false;
 }
-function configureCoreMiddleware(app2, config2, supabase2) {
+function configureCoreMiddleware(app2, config3, supabase2) {
   logger.info({ msg: "[Setup] Configuring core middleware..." });
   applyRateLimiting(app2);
   app2.use((req, res, next) => {
     if (req._skipJsonParsing) return next();
-    const limit = config2.server?.bodyLimit ?? "10mb";
+    const limit = config3.server?.bodyLimit ?? "10mb";
     return express2__default.default.json({ limit })(req, res, next);
   });
   app2.use((req, res, next) => {
     if (req._skipJsonParsing) return next();
-    const limit = config2.server?.bodyLimit ?? "10mb";
+    const limit = config3.server?.bodyLimit ?? "10mb";
     return express2__default.default.urlencoded({ extended: true, limit })(req, res, next);
   });
   app2.use(cookieParser__default.default());
@@ -13363,7 +14300,7 @@ function configureCoreMiddleware(app2, config2, supabase2) {
       throw new Error("Supabase client not provided for auth middleware");
     }
     const authMiddleware = requireFullAuth(supabase2);
-    const rawPrefix = config2.api?.prefix ?? "/api/v1";
+    const rawPrefix = config3.api?.prefix ?? "/api/v1";
     const apiPrefix = rawPrefix.replace(/\/+$/, "") || "/";
     const publicPaths = ["/auth", "/company", "/feedback", "/public"];
     const publicPathsExact = [
@@ -13473,7 +14410,7 @@ var getCorsOptions = () => {
 };
 var app = express2__default.default();
 async function createApp() {
-  const { config: config2 } = await Promise.resolve().then(() => (init_GlobalConfig(), GlobalConfig_exports));
+  const { config: config3 } = await Promise.resolve().then(() => (init_GlobalConfig(), GlobalConfig_exports));
   try {
     checkConfigIsValid();
   } catch (error) {
@@ -13497,8 +14434,8 @@ async function createApp() {
     if (req._skipJsonParsing) return next();
     return express2.json()(req, res, next);
   });
-  configureCoreMiddleware(app, config2, supabase);
-  const storageCfg = config2.storage;
+  configureCoreMiddleware(app, config3, supabase);
+  const storageCfg = config3.storage;
   if (storageCfg?.provider === "local" && storageCfg.local?.uploadDirectory) {
     app.use("/uploads", express2__default.default.static(storageCfg.local.uploadDirectory));
     logger.info({
@@ -13507,12 +14444,12 @@ async function createApp() {
     });
   }
   try {
-    const isProduction = config2.server.nodeEnv === "production";
+    const isProduction = config3.server.nodeEnv === "production";
     const currentDir = process.cwd();
     const manifestPath = path__default.default.join(currentDir, "static", "routes-manifest.json");
     const sitemapMiddleware = generateSitemapMiddleware({
       supabaseClient: supabaseServiceClientConnection,
-      baseURL: config2.server.frontendDomainUrl ?? "http://localhost:5173",
+      baseURL: config3.server.frontendDomainUrl ?? "http://localhost:5173",
       routesPath: isProduction ? void 0 : path__default.default.join(currentDir, "../web/src/routes"),
       routesManifestPath: isProduction ? manifestPath : void 0
     });
@@ -13539,7 +14476,7 @@ async function createApp() {
   app.get("/debug-sentry", function mainHandler(_req, res) {
     throw new Error("My first Sentry error!");
   });
-  const mounted = await mountAllRoutes(app, config2);
+  const mounted = await mountAllRoutes(app, config3);
   if (!mounted) {
     logger.error({ msg: "[Setup] Failed to mount API routes" });
     throw new Error("Failed to mount API routes");
@@ -13559,13 +14496,13 @@ function isRunningOnVercel() {
 }
 if (!isRunningOnVercel()) {
   createApp().then(async (configuredApp) => {
-    const { config: config2 } = await Promise.resolve().then(() => (init_GlobalConfig(), GlobalConfig_exports));
-    const port = config2.server.port ?? 3e3;
+    const { config: config3 } = await Promise.resolve().then(() => (init_GlobalConfig(), GlobalConfig_exports));
+    const port = config3.server.port ?? 3e3;
     if (process.env.JEST_WORKER_ID) {
       return;
     }
-    const server2 = http__default.default.createServer({ maxHeaderSize: 64 * 1024 }, configuredApp);
-    server2.listen(port, () => {
+    const server3 = http__default.default.createServer({ maxHeaderSize: 64 * 1024 }, configuredApp);
+    server3.listen(port, () => {
       logger.info({ msg: "[server] Server is running", port });
     });
   }).catch((error) => {

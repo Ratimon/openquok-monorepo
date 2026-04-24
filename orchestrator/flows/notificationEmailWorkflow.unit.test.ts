@@ -12,18 +12,21 @@
  * (see that unit test file for why we use distributed throttle instead of Flowcraft sleep nodes). The dispatch
  * node invokes optional `acquireSendPlainSlot` before `sendPlain` when the worker wires it.
  */
-import { faker } from "@faker-js/faker";
 import type IORedis from "ioredis";
+import { faker } from "@faker-js/faker";
 import { FlowRuntime } from "flowcraft";
 import { InMemoryEventLogger, runWithTrace } from "flowcraft/testing";
 import { logger } from "backend/utils/Logger.js";
-import { enqueueNotificationDigestFlushDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationDigestFlushDistributedRun.js";
-import { enqueueNotificationSendPlainDistributedRun } from "../adapters/flowcraft-bullmq/enqueueNotificationSendPlainDistributedRun.js";
+import { enqueueNotificationDigestFlushDistributedRun } from "../adapters/flowcraft-bullmq/notification/enqueueNotificationDigestFlushDistributedRun.js";
+import { enqueueNotificationSendPlainDistributedRun } from "../adapters/flowcraft-bullmq/notification/enqueueNotificationSendPlainDistributedRun.js";
 import {
     NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_VERSION,
     NOTIFICATION_SEND_PLAIN_BLUEPRINT_VERSION,
+    buildNotificationDigestFlushBlueprintDistributed,
+    buildNotificationSendPlainBlueprintDistributed,
     createNotificationDigestFlushFlowBuilder,
     createNotificationSendPlainFlowBuilder,
+    getNotificationEmailNodeRegistry,
     runNotificationDigestFlushOrchestration,
     runNotificationSendPlainOrchestration,
     type NotificationDigestFlushFlowContext,
@@ -31,11 +34,11 @@ import {
     type NotificationSendPlainFlowContext,
 } from "./notificationEmailWorkflow.js";
 
-jest.mock("../adapters/flowcraft-bullmq/enqueueNotificationSendPlainDistributedRun.js", () => ({
+jest.mock("../adapters/flowcraft-bullmq/notification/enqueueNotificationSendPlainDistributedRun.js", () => ({
     enqueueNotificationSendPlainDistributedRun: jest.fn(),
 }));
 
-jest.mock("../adapters/flowcraft-bullmq/enqueueNotificationDigestFlushDistributedRun.js", () => ({
+jest.mock("../adapters/flowcraft-bullmq/notification/enqueueNotificationDigestFlushDistributedRun.js", () => ({
     enqueueNotificationDigestFlushDistributedRun: jest.fn(),
 }));
 
@@ -229,5 +232,20 @@ describe("notificationEmailWorkflow / Flowcraft testing utilities", () => {
         expect(result.status).toBe("completed");
         expect(flushAllPendingDigestEmails).toHaveBeenCalledTimes(1);
         expect(sendPlain).not.toHaveBeenCalled();
+    });
+});
+
+/** Guards Flowcraft’s global `fn_*` keying: worker registry must match the same materialized blueprints. */
+describe("notificationEmailWorkflow / distributed blueprints and merged registry", () => {
+    it("exposes a function in the merged registry for every `uses` key on each distributed blueprint", () => {
+        const send = buildNotificationSendPlainBlueprintDistributed();
+        const digest = buildNotificationDigestFlushBlueprintDistributed();
+        const reg = getNotificationEmailNodeRegistry() as Record<string, unknown>;
+        for (const b of [send, digest]) {
+            for (const n of b.nodes ?? []) {
+                if (!n.uses) continue;
+                expect(typeof reg[n.uses]).toBe("function");
+            }
+        }
     });
 });

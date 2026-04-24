@@ -6,10 +6,13 @@
 #                                  → `pnpm railway:orchestrator:start:integration-refresh`
 #   Notification email (BullMQ):   railpack.notification-email.json
 #                                  → `pnpm railway:orchestrator:start:notification-email`
+#   Scheduled social post (BullMQ): railpack.scheduled-social-post.json
+#                                  → `pnpm railway:orchestrator:start:scheduled-social-post`
 #
 # Local CLI: link the Railway CLI to the service you are deploying, then:
-#   pnpm railway:deploy:integration-refresh   # sets RAILPACK_CONFIG_FILE=railpack.integration-refresh.json
-#   pnpm railway:deploy:notification-email    # sets RAILPACK_CONFIG_FILE=railpack.notification-email.json
+#   pnpm railway:deploy:integration-refresh      # sets RAILPACK_CONFIG_FILE=railpack.integration-refresh.json
+#   pnpm railway:deploy:notification-email       # sets RAILPACK_CONFIG_FILE=railpack.notification-email.json
+#   pnpm railway:deploy:scheduled-social-post    # sets RAILPACK_CONFIG_FILE=railpack.scheduled-social-post.json
 #
 # On Railway dashboard (per service), either:
 #   Set variable `RAILPACK_CONFIG_FILE` to the matching railpack.*.json, or
@@ -18,7 +21,7 @@
 # Config-as-code reference: https://docs.railway.com/reference/config-as-code
 
 [build]
-buildCommand = "pnpm install && pnpm railway:orchestrator:build"
+buildCommand = "pnpm install --prod=false && pnpm railway:orchestrator:build"
 
 [deploy]
 restartPolicyType = "ON_FAILURE"

@@ -1,9 +1,19 @@
 /node_modules
 /dist
 
-# Vercel sourcemap output from tsup bundle
-/api/index.js.map
-/api/[[...path]].js.map
+# Stray TypeScript / tsc emit next to source *.ts (build artifacts belong in dist/). Stops *.js / *.d.ts / maps from polluting the tree in the editor and git.
+**/*.d.ts.map
+**/*.js.map
+
+**/*.d.ts
+!types/openquok-orchestrator.d.ts
+!types/aws-sdk-s3-request-presigner.d.ts
+
+**/*.js
+!jest.config.js
+!eslint.config.js
+!jest.integration.ratelimit.config.js
+!tests/__mocks__/**
 
 # Vercel outputDirectory (created by vercel-clean-after-build.sh; no index.html)
 /public

@@ -4,6 +4,7 @@ import type { CalendarEventExternal } from '@schedule-x/calendar';
 
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type { PostRowProgrammerModel, PostsRepository } from '$lib/posts/Posts.repository.svelte';
+import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
 
 /**
  * Schedule‑X can mount event components outside the parent Svelte component tree (portal),
@@ -11,6 +12,7 @@ import type { PostRowProgrammerModel, PostsRepository } from '$lib/posts/Posts.r
  * and `CalendarItem` invoke it reliably.
  */
 let editPostGroupHandler: ((postGroup: string) => void) | null = null;
+let openActionsForPostGroupHandler: ((postGroup: string) => void) | null = null;
 let refreshCalendarHandler: (() => void) | null = null;
 
 export function registerEditPostGroupHandler(next: ((postGroup: string) => void) | null): void {
@@ -20,6 +22,17 @@ export function registerEditPostGroupHandler(next: ((postGroup: string) => void)
 export function triggerEditPostGroup(postGroup: string): void {
 	if (!postGroup) return;
 	editPostGroupHandler?.(postGroup);
+}
+
+export function registerOpenActionsForPostGroupHandler(
+	next: ((postGroup: string) => void) | null
+): void {
+	openActionsForPostGroupHandler = next;
+}
+
+export function triggerOpenActionsForPostGroup(postGroup: string): void {
+	if (!postGroup) return;
+	openActionsForPostGroupHandler?.(postGroup);
 }
 
 export function registerRefreshCalendarHandler(next: (() => void) | null): void {
@@ -385,26 +398,124 @@ export class SchedulerPresenter {
 				return { ok: false, error: r.error };
 			}
 
-			const events: CalendarEventExternal[] = r.posts
-				.filter((p) => typeof p.publishDate === 'string' && p.publishDate.length > 0)
-				.map((p) => {
-					const zdt = this.isoToUtcZdt(p.publishDate);
-					const end = zdt.add({ minutes: 60 });
-					const channel = p.integrationId ? channelById.get(p.integrationId) : null;
-					const title = channel ? channel.name : 'Draft';
-					return {
-						id: p.id,
-						title,
-						start: zdt,
-						end,
-						channel,
-						post: p
-					};
+			/**
+			 * Schedule‑X enforces a minimum event chip height in the time grid. When two posts are only a
+			 * couple minutes apart, their chips can visually overlap.
+			 *
+			 * We group posts into 15‑minute buckets per day, so very close posts render as a single chip
+			 * with a "+N" indicator. The longer bucket makes each chip tall enough to show the avatar + text
+			 * without hiding inside the time-grid min-height constraints.
+			 */
+			// Bucket posts into half-hour slots to prevent near-adjacent chips from overlapping
+			// while still showing avatar + preview content reliably.
+			const bucketMinutes = 30;
+			const visualMinutes = 30;
+			const bucketed = new Map<string, CalendarEventExternal>();
+			const nowMs = Date.now();
+			const publishMs = (iso: string): number => {
+				const ms = Date.parse(iso);
+				return Number.isFinite(ms) ? ms : Number.NaN;
+			};
+			for (const p of r.posts) {
+				if (typeof p.publishDate !== 'string' || p.publishDate.length === 0) continue;
+				const zdt = this.isoToUtcZdt(p.publishDate);
+				const roundedMinute = Math.floor(zdt.minute / bucketMinutes) * bucketMinutes;
+				const bucketStart = zdt.with({
+					minute: roundedMinute,
+					second: 0,
+					millisecond: 0,
+					microsecond: 0,
+					nanosecond: 0
 				});
+				const key = `${bucketStart.toPlainDate().toString()}|${bucketStart.hour}:${bucketStart.minute}`;
+
+				const existing = bucketed.get(key);
+				if (existing) {
+					(existing as any).posts = [...((((existing as any).posts as any[]) ?? []) as any[]), p];
+					(existing as any).slotSummary = [
+						...((((existing as any).slotSummary as any[]) ?? []) as any[]),
+						{
+							postGroup: (p as any).postGroup ?? '',
+							publishDate: (p as any).publishDate ?? '',
+							content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
+							channelPicture: (p as any).integrationId ? channelById.get((p as any).integrationId)?.picture ?? '' : '',
+							channelName: (p as any).integrationId ? channelById.get((p as any).integrationId)?.name ?? '' : ''
+						}
+					];
+					continue;
+				}
+
+				const end = bucketStart.add({ minutes: Math.max(bucketMinutes, visualMinutes) });
+				const channel = p.integrationId ? channelById.get(p.integrationId) : null;
+				const title = channel ? channel.name : 'Draft';
+				bucketed.set(key, {
+					id: p.id,
+					title,
+					start: bucketStart,
+					end,
+					channel,
+					post: p,
+					posts: [p],
+					slotSummary: [
+						{
+							postGroup: (p as any).postGroup ?? '',
+							publishDate: (p as any).publishDate ?? '',
+							content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
+							channelPicture: channel?.picture ?? '',
+							channelName: channel?.name ?? ''
+						}
+					]
+				} as any);
+			}
+
+			// Choose a stable "representative" post for the bucket so the chip shows the upcoming post
+			// when a bucket contains both past + future posts.
+			for (const ev of bucketed.values()) {
+				const posts = (ev as any).posts as CalendarPostRowViewModel[] | undefined;
+				if (!Array.isArray(posts) || posts.length === 0) continue;
+				const sorted = posts
+					.slice()
+					.map((p) => ({ p, ms: typeof p.publishDate === 'string' ? publishMs(p.publishDate) : Number.NaN }))
+					.filter((x) => Number.isFinite(x.ms))
+					.sort((a, b) => a.ms - b.ms);
+				if (sorted.length === 0) continue;
+
+				const nextFuture = sorted.find((x) => x.ms >= nowMs);
+				const representative = (nextFuture ?? sorted[sorted.length - 1]!)!.p;
+				(ev as any).post = representative;
+
+				const repChannel = representative.integrationId ? channelById.get(representative.integrationId) : null;
+				(ev as any).channel = repChannel;
+				(ev as any).title = repChannel ? repChannel.name : 'Draft';
+
+				// Ensure the slot summary order matches what the chip shows (upcoming-first).
+				const summary = ((ev as any).slotSummary as any[]) ?? [];
+				if (Array.isArray(summary) && summary.length > 1) {
+					const repGroup = String((representative as any).postGroup ?? '');
+					const sortedSummary = summary
+						.slice()
+						.map((s) => ({ s, ms: typeof s?.publishDate === 'string' ? publishMs(s.publishDate) : Number.NaN }))
+						.sort((a, b) => {
+							// representative first, then ascending by time
+							const aIsRep = String(a.s?.postGroup ?? '') === repGroup;
+							const bIsRep = String(b.s?.postGroup ?? '') === repGroup;
+							if (aIsRep && !bIsRep) return -1;
+							if (!aIsRep && bIsRep) return 1;
+							if (Number.isFinite(a.ms) && Number.isFinite(b.ms)) return a.ms - b.ms;
+							if (Number.isFinite(a.ms)) return -1;
+							if (Number.isFinite(b.ms)) return 1;
+							return 0;
+						})
+						.map((x) => x.s);
+					(ev as any).slotSummary = sortedSummary;
+				}
+			}
+
+			const normalizedEvents: CalendarEventExternal[] = Array.from(bucketed.values());
 
 			this._patchScheduledPostsCalendarVm({
 				lastSuccessfulPostsKey: requestKey,
-				events,
+				events: normalizedEvents,
 				loading: false
 			});
 			return { ok: true };

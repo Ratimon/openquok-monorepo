@@ -2,7 +2,7 @@
 title: Production deployment
 description: Production setup for the OpenQuok web, backend, and optional orchestrator workers.
 order: 1
-lastUpdated: 2026-04-14
+lastUpdated: 2026-04-23
 ---
 
 <script>
@@ -11,7 +11,7 @@ import { Badge, Callout, DocsExternalLink, CardGrid, LinkCard, Steps } from '$li
 
 This project is set up for **Vercel** as the primary host for the **backend** (Express serverless entry) and **web** (SvelteKit). **Supabase** remains the database and auth provider.
 
-**Orchestrator workers** (BullMQ) are **not** run on Vercel: when <code>backend/config/orchestratorFlows.ts</code> uses <code>transport: "bullmq"</code> for integration refresh or notification email, deploy **separate always-on processes** (for example on <a href="/docs/Installation/railway">Railway</a>) that share the same **Redis** and **Supabase** credentials as the API. See <a href="/docs/configuration-worker">Orchestrator workers</a> and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>.
+**Orchestrator workers** (BullMQ) are **not** run on Vercel: when <code>backend/config/orchestratorFlows.ts</code> uses <code>transport: "bullmq"</code> for **integration refresh**, **notification email**, and/or **scheduled social posts**, deploy **separate always-on processes** (for example on <a href="/docs/Installation/railway">Railway</a>) that share the same **Redis** and **Supabase** credentials as the API. See <a href="/docs/configuration-worker">Orchestrator workers</a> and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>.
 
 ## What you need
 

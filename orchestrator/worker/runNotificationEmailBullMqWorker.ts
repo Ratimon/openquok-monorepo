@@ -5,13 +5,18 @@
  * Run: pnpm worker:notification-email-bullmq (from backend/)
  */
 import { config } from "backend/config/GlobalConfig.js";
-import { createNotificationEmailBullMqAdapter } from "../adapters/flowcraft-bullmq/createNotificationEmailBullMqAdapter.js";
+import { createNotificationEmailBullMqAdapter } from "../adapters/flowcraft-bullmq/notification/createNotificationEmailBullMqAdapter.js";
 import { executeNotificationDigestFlush } from "../flows/notificationDigestFlushExecution.js";
 import { runNotificationDigestFlushOrchestration } from "../flows/notificationEmailWorkflow.js";
+import {
+    NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID,
+    NOTIFICATION_SEND_PLAIN_BLUEPRINT_ID,
+} from "../blueprints/notificationEmailFlowTypes.js";
 import { acquireNotificationSendPlainSlot } from "../stores/notificationSendPlainRateRedis.js";
 import { transactionalNotificationEmailService } from "backend/services/index.js";
 import { EmailService } from "backend/services/EmailService.js";
 import { logger } from "backend/utils/Logger.js";
+import { startFlowcraftBullMqReconciliationTimer } from "./flowcraftBullMqReconciliationTimer.js";
 
 const bullmqConfig = config.bullmq as {
     notificationEmail?: { queueName?: string; digestFlushIntervalMs?: number; sendPlainMinIntervalMs?: number };
@@ -36,6 +41,12 @@ const { adapter, redis } = createNotificationEmailBullMqAdapter({
 });
 
 adapter.start();
+const flowcraftReconciler = startFlowcraftBullMqReconciliationTimer({
+    adapter,
+    redis,
+    label: "notification-email",
+    allowedBlueprintIds: [NOTIFICATION_SEND_PLAIN_BLUEPRINT_ID, NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID],
+});
 logger.info({
     msg: "[Worker] Flowcraft BullMQ adapter listening for notification-email workflows",
     queueName,
@@ -49,6 +60,7 @@ const digestInterval = setInterval(() => {
 
 async function shutdown(signal: string): Promise<void> {
     logger.info({ msg: "[Worker] Shutting down notification email adapter", signal });
+    flowcraftReconciler.stop();
     clearInterval(digestInterval);
     try {
         await adapter.close();

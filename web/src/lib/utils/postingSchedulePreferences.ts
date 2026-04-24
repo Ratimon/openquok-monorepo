@@ -94,6 +94,17 @@ export function isoToDatetimeLocalValue(iso: string): string {
 	return d.format('YYYY-MM-DDTHH:mm');
 }
 
+/**
+ * `datetime-local` value (`YYYY-MM-DDTHH:mm`) from a UTC ISO-ish timestamp.
+ *
+ * This matters when the backend returns timestamps without an explicit `Z` / offset.
+ */
+export function utcIsoToDatetimeLocalValue(iso: string): string {
+	const d = dayjs.utc(iso).local();
+	if (!d.isValid()) return '';
+	return d.format('YYYY-MM-DDTHH:mm');
+}
+
 /** ISO string from a `datetime-local` value; falls back to “now” if parsing fails. */
 export function datetimeLocalToIso(value: string): string {
 	const d = newDayjs(value);

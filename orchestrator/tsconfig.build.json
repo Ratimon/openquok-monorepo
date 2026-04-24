@@ -1,6 +1,12 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "outDir": "dist" },
+  "compilerOptions": {
+    "outDir": "dist",
+    "paths": {
+      "flowcraft/testing": ["./node_modules/flowcraft/dist/testing/index.d.mts"],
+      "backend/*": ["../backend/dist/*"]
+    }
+  },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

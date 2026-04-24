@@ -5,6 +5,7 @@
  * **Runtime transport override (optional):** `config/GlobalConfig.ts` reads env after these defaults:
  * - `ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT` — `in_process` | `bullmq` (empty = use `integrationRefresh.transport` below).
  * - `ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT` — `in_process` | `bullmq` (empty = use `notificationEmail.transport` below).
+ * - `ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT` — `in_process` | `bullmq` (empty = use `scheduledSocialPost.transport` below).
  * Invalid values log a warning and keep the default from this file. Use this to flip BullMQ vs in-process
  * without editing TypeScript (local dev, CI matrix, or orchestrator Jest when set before `GlobalConfig` loads).
  *
@@ -29,8 +30,29 @@
  *   `ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT`.
  * - **Digest**: when `NotificationService.inAppNotification` is called with `digest: true`, entries are
  *   stored in Redis and the worker flushes them on `notificationEmail.digestFlushIntervalMs`.
+ *
+ * ## Scheduled social post (`scheduledSocialPost`)
+ *
+ * - **Transport**: set to `bullmq` and run `pnpm worker:scheduled-social-post-bullmq` so API-enqueued jobs
+ *   run at the publish time (BullMQ `delay`) and the worker calls provider `post` .
+ * - `in_process` is only for tests (pass workflow dependencies) or same-process smoke runs; it does not replace
+ *   long BullMQ delay for real schedules.
+ * - **Missing posts rescan** (`missingPostRescanIntervalMs`)
+ *   periodic DB scan for `QUEUE` rows in the publish window and re-enqueue Flowcraft runs (BullMQ did not get a job).
+ *
+ * ## Flowcraft BullMQ reconciler (all workers)
+ *
+ * - **`reconcilerIntervalMs` / `reconcilerStalledThresholdSeconds`**: [Redis-side reconciliation](https://flowcraft.js.org/guide/adapters/bullmq#reconciliation) for
+ *   stalled workflow runs. Set `reconcilerIntervalMs` to `0` to disable.
  */
 export type OrchestrationTransport = "in_process" | "bullmq";
+
+export const flowcraftBullmqDefaults = {
+    /** `createBullMQReconciler` — idle time before a run is considered stalled (see Flowcraft docs). */
+    reconcilerStalledThresholdSeconds: 300,
+    /** How often each BullMQ worker runs the reconciler; `0` = off. */
+    reconcilerIntervalMs: 3_600_000,
+} as const;
 
 export const orchestratorFlows = {
     /** OAuth-connected integrations with refreshCron: supervisor after OAuth completes. */
@@ -43,7 +65,7 @@ export const orchestratorFlows = {
          */
         workerServiceName: "openquok-worker-integration-refresh",
         queueName: "integration-refresh",
-        transport: "in_process" as OrchestrationTransport,
+        transport: "bullmq" as OrchestrationTransport,
     },
     /**
      * Org notification emails: immediate sends enqueue `sendPlain` jobs; digest appends to Redis and the
@@ -56,7 +78,7 @@ export const orchestratorFlows = {
          */
         workerServiceName: "openquok-worker-notification-email",
         queueName: "notification-email",
-        transport: "in_process" as OrchestrationTransport,
+        transport: "bullmq" as OrchestrationTransport,
         /** How often the worker drains digest Redis lists (ms). */
         digestFlushIntervalMs: 300_000,
         /**
@@ -64,5 +86,19 @@ export const orchestratorFlows = {
          * Uses Redis; set to `0` to disable. Aligns with queue-style spacing for outbound mail.
          */
         sendPlainMinIntervalMs: 700,
+    },
+    /**
+     * Calendar scheduled posts: BullMQ `executeNode` run at `publish_date` (delay from enqueue), worker publishes to each channel.
+     */
+    scheduledSocialPost: {
+        workerServiceName: "openquok-worker-scheduled-social-post",
+        queueName: "scheduled-social-post",
+        transport: "bullmq" as OrchestrationTransport,
+        /** When false, `PostsService` does not enqueue the worker (local tests use Jest to avoid Redis). */
+        enabled: true,
+        /**
+         * Re-scan `posts` for `QUEUE` rows whose slot passed but publish never ran (worker down, lost job).
+         */
+        missingPostRescanIntervalMs: 3_600_000,
     },
 } as const;

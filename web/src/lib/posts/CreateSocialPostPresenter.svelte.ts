@@ -16,7 +16,11 @@ import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/provid
 
 import { mediaItemsToPreviewUrls } from '$lib/posts/Posts.repository.svelte';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
-import { datetimeLocalToIso, isoToDatetimeLocalValue } from '$lib/utils/postingSchedulePreferences';
+import {
+	datetimeLocalToIso,
+	isoToDatetimeLocalValue,
+	utcIsoToDatetimeLocalValue
+} from '$lib/utils/postingSchedulePreferences';
 import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
 import { toast } from '$lib/ui/sonner';
 
@@ -25,6 +29,8 @@ type Mode = 'global' | 'custom';
 export type CreateSocialPostPrepareOpenOptions = {
 	preselectIntegrationId: string | null;
 	preselectGroupId?: string | null;
+	/** Optional UTC ISO-ish schedule time to seed the composer with (calendar cell click). */
+	preselectScheduledAtIso?: string | null;
 	/**
 	 * Calendar page: multi-select targeted channels (may span multiple groups or include ungrouped).
 	 * When it resolves to a single workspace group, `selectedGroupId` will be set automatically.
@@ -88,6 +94,7 @@ export class CreateSocialPostPresenter {
 	/** Set before opening the modal; consumed on the next {@link onModalOpen}. */
 	private pendingPreselectIntegrationId: string | null = null;
 	private pendingPreselectGroupId: string | null = null;
+	private pendingPreselectScheduledAtIso: string | null = null;
 	private pendingPreselectIntegrationIds: string[] | null = null;
 	private pendingAutoCustomizeFirstSelected = false;
 	private pendingEditPostGroup: string | null = null;
@@ -212,6 +219,7 @@ export class CreateSocialPostPresenter {
 	prepareOpen(options: CreateSocialPostPrepareOpenOptions): void {
 		this.pendingPreselectIntegrationId = options.preselectIntegrationId;
 		this.pendingPreselectGroupId = options.preselectGroupId ?? null;
+		this.pendingPreselectScheduledAtIso = options.preselectScheduledAtIso ?? null;
 		this.pendingPreselectIntegrationIds = options.preselectIntegrationIds ?? null;
 		this.pendingAutoCustomizeFirstSelected = options.autoCustomizeFirstSelected ?? false;
 		this.pendingEditPostGroup = null;
@@ -220,6 +228,7 @@ export class CreateSocialPostPresenter {
 	prepareEdit(postGroup: string): void {
 		this.pendingPreselectIntegrationId = null;
 		this.pendingPreselectGroupId = null;
+		this.pendingPreselectScheduledAtIso = null;
 		this.pendingPreselectIntegrationIds = null;
 		this.pendingAutoCustomizeFirstSelected = false;
 		this.pendingEditPostGroup = postGroup;
@@ -333,6 +342,8 @@ export class CreateSocialPostPresenter {
 		this.pendingPreselectIntegrationId = null;
 		const preselectGroupId = this.pendingPreselectGroupId;
 		this.pendingPreselectGroupId = null;
+		const preselectScheduledAtIso = this.pendingPreselectScheduledAtIso;
+		this.pendingPreselectScheduledAtIso = null;
 		const preselectIntegrationIds = this.pendingPreselectIntegrationIds;
 		this.pendingPreselectIntegrationIds = null;
 		const autoCustomize = this.pendingAutoCustomizeFirstSelected;
@@ -349,7 +360,7 @@ export class CreateSocialPostPresenter {
 			this.captureInitialSnapshot();
 			return;
 		}
-		await this.loadInitial(workspaceId);
+		await this.loadInitial(workspaceId, preselectScheduledAtIso);
 
 		if (preselectGroupId) {
 			this.selectGroup(preselectGroupId);
@@ -409,6 +420,7 @@ export class CreateSocialPostPresenter {
 		this.confirmCloseOpen = false;
 		this.pendingPreselectIntegrationId = null;
 		this.pendingPreselectGroupId = null;
+		this.pendingPreselectScheduledAtIso = null;
 		this.pendingPreselectIntegrationIds = null;
 		this.pendingAutoCustomizeFirstSelected = false;
 		this.pendingEditPostGroup = null;
@@ -449,15 +461,28 @@ export class CreateSocialPostPresenter {
 		this.initialSnapshot = '';
 	}
 
-	private async loadInitial(workspaceId: string): Promise<void> {
+	private async loadInitial(workspaceId: string, preselectScheduledAtIso?: string | null): Promise<void> {
 		this.busy = true;
 		try {
-			const slot = await this.postsRepository.findSlot(workspaceId);
-			if (slot.ok) {
-				this.scheduledLocal = isoToDatetimeLocalValue(slot.dateIso);
+			if (preselectScheduledAtIso) {
+				const v = utcIsoToDatetimeLocalValue(preselectScheduledAtIso);
+				if (v) {
+					this.scheduledLocal = v;
+				} else {
+					const fallbackMs = Date.now() + 5 * 60 * 1000;
+					this.scheduledLocal = isoToDatetimeLocalValue(new Date(fallbackMs).toISOString());
+				}
 			} else {
-				this.scheduledLocal = isoToDatetimeLocalValue(new Date().toISOString());
-				toast.error(slot.error);
+				const slot = await this.postsRepository.findSlot(workspaceId);
+				if (slot.ok) {
+					// treat server timestamp as UTC then convert to local.
+					this.scheduledLocal = utcIsoToDatetimeLocalValue(slot.dateIso);
+				} else {
+					// Fallback: "now + 5 minutes" in local time.
+					const fallbackMs = Date.now() + 5 * 60 * 1000;
+					this.scheduledLocal = isoToDatetimeLocalValue(new Date(fallbackMs).toISOString());
+					toast.error(slot.error);
+				}
 			}
 			await this.ensureTagListLoaded(workspaceId);
 

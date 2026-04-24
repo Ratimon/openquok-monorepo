@@ -17,9 +17,14 @@
 	import TimeGridEvent from '$lib/ui/components/calendar-scheduler/TimeGridEvent.svelte';
 	import DateGridEvent from '$lib/ui/components/calendar-scheduler/DateGridEvent.svelte';
 	import MonthGridEvent from '$lib/ui/components/calendar-scheduler/MonthGridEvent.svelte';
+	import * as Dialog from '$lib/ui/dialog';
+	import { icons } from '$data/icon';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import {
 		registerEditPostGroupHandler,
-		registerRefreshCalendarHandler
+		registerOpenActionsForPostGroupHandler,
+		registerRefreshCalendarHandler,
+		triggerOpenActionsForPostGroup
 	} from '$lib/posts/SchedulerPresenter.svelte';
 
 	type CreateCalendarConfig = Parameters<typeof createCalendar>[0];
@@ -39,6 +44,7 @@
 		backgroundEvents?: BackgroundEvent[];
 		onEditPostGroup?: (postGroup: string) => void;
 		openActionsForPostGroup?: (postGroup: string) => void;
+		onCreatePostAtIso?: (iso: string) => void;
 		onRefresh?: () => void;
 	};
 
@@ -49,11 +55,16 @@
 		backgroundEvents = [],
 		onEditPostGroup,
 		openActionsForPostGroup,
+		onCreatePostAtIso,
 		onRefresh
 	}: Props = $props();
 
 	$effect(() => {
 		registerEditPostGroupHandler(onEditPostGroup ?? null);
+	});
+
+	$effect(() => {
+		registerOpenActionsForPostGroupHandler(openActionsForPostGroup ?? null);
 	});
 
 	$effect(() => {
@@ -94,6 +105,22 @@
 		return Temporal.Now.plainDateISO('UTC');
 	}
 
+	function selectedPlainDateFromCalendar(): Temporal.PlainDate | null {
+		const state = (calendarApp as any)?.$app?.calendarState;
+		const raw =
+			// Schedule‑X stores selectedDate as a signal in most builds.
+			state?.selectedDate?.value ??
+			// Fallbacks for other internal shapes.
+			state?.selectedDate ??
+			null;
+		if (!raw) return null;
+		try {
+			return Temporal.PlainDate.from(raw as any);
+		} catch {
+			return null;
+		}
+	}
+
 	function buildCalendarApp(initialEvents: CalendarEventExternal[]) {
 		return createCalendar(
 			{
@@ -102,7 +129,27 @@
 				events: initialEvents,
 				backgroundEvents,
 				selectedDate: selectedPlainDateFromProps(),
-				defaultView: viewNameForDisplay(display) as DefaultViewName
+				defaultView: viewNameForDisplay(display) as DefaultViewName,
+				callbacks: {
+					onClickDateTime: (dt, e) => {
+						// Only act on empty-cell clicks (ignore clicks on an event chip).
+						const target = (e?.target ?? null) as HTMLElement | null;
+						if (target?.closest?.('[data-post-group]')) return;
+						// Ignore the "date passed" shaded background.
+						if (target?.closest?.('.sx__time-grid-background-event')) return;
+
+						const now = Temporal.Now.zonedDateTimeISO('UTC');
+						const min = now.add({ minutes: 5 });
+
+						// Start of clicked cell hour (UTC), but never earlier than now + 5 minutes.
+						let scheduled = dt.with({ minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
+						if (Temporal.ZonedDateTime.compare(scheduled, min) < 0) {
+							scheduled = min.with({ second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
+						}
+						if (Temporal.ZonedDateTime.compare(scheduled, now) <= 0) return;
+						openCreatePostAtIsoFromCalendar(scheduled.toInstant().toString());
+					}
+				}
 			},
 			[]
 		);
@@ -110,6 +157,115 @@
 
 	let calendarApp = $state.raw(buildCalendarApp([]));
 	let hostEl = $state<HTMLElement | null>(null);
+	let lastAppliedGridHeight = $state<number | null>(null);
+
+	type SlotSummaryItem = { postGroup: string; content: string; channelPicture?: string; channelName?: string };
+	let slotDialogOpen = $state(false);
+	let slotDialogItems = $state<SlotSummaryItem[]>([]);
+
+	let createStripVisible = $state(false);
+	let createStripTopPx = $state('0px');
+	let createStripLeftPx = $state('0px');
+	let createStripHeightPx = $state('0px');
+	let createStripIso = $state<string | null>(null);
+	let createStripHoverKey = $state('');
+	let createStripHoverDate = $state('');
+	let createStripHoverHour = $state<number | null>(null);
+
+	function clearCreateUi(): void {
+		const el = hostEl;
+		el?.classList.remove('create-post-hovering');
+		el?.removeAttribute('data-create-post-label');
+		createStripVisible = false;
+		createStripIso = null;
+		createStripHoverKey = '';
+		createStripHoverDate = '';
+		createStripHoverHour = null;
+	}
+
+	function openCreatePostAtIsoFromCalendar(iso: string): void {
+		clearCreateUi();
+		onCreatePostAtIso?.(iso);
+	}
+
+	function syncCreateStripPosition(): void {
+		const el = hostEl;
+		if (!el) return;
+		if (!createStripVisible || !createStripIso) return;
+		if (!createStripHoverDate || createStripHoverHour == null) return;
+		if (display === 'month' || display === 'list') return;
+
+		// If the pinned hover cell becomes fully past (or otherwise invalid), hide the strip.
+		try {
+			const dt = Temporal.ZonedDateTime.from(
+				`${createStripHoverDate}T${String(createStripHoverHour).padStart(2, '0')}:00:00+00:00[UTC]`
+			);
+			const now = Temporal.Now.zonedDateTimeISO('UTC');
+			const cellEnd = dt.add({ hours: 1 });
+			if (Temporal.ZonedDateTime.compare(cellEnd, now) <= 0) {
+				clearCreateUi();
+				return;
+			}
+		} catch {
+			clearCreateUi();
+			return;
+		}
+
+		const hostRect = el.getBoundingClientRect();
+		const headerEl =
+			(el.querySelector('.sx__week-grid__date-axis') as HTMLElement | null) ??
+			(el.querySelector('.sx__date-axis') as HTMLElement | null);
+		const headerBottomPx = headerEl ? headerEl.getBoundingClientRect().bottom - hostRect.top : 0;
+		const dayEl = el.querySelector(
+			`.sx__time-grid-day[data-time-grid-date="${createStripHoverDate}"]`
+		) as HTMLElement | null;
+		if (!dayEl) {
+			// Hovered day scrolled out of view; don't leave the strip orphaned.
+			clearCreateUi();
+			return;
+		}
+		const rect = dayEl.getBoundingClientRect();
+		const slotHeight = rect.height / 24;
+
+		const stripW = 18;
+		const stripH = Math.max(24, Math.round(slotHeight));
+
+		let left = Math.round(rect.left - hostRect.left);
+		let top = Math.round(rect.top - hostRect.top + createStripHoverHour * slotHeight);
+
+		// Clamp inside the calendar host viewport so it never spills outside on scroll.
+		left = Math.max(0, Math.min(left, Math.round(hostRect.width - stripW)));
+		top = Math.max(Math.ceil(headerBottomPx), Math.min(top, Math.round(hostRect.height - stripH)));
+
+		createStripLeftPx = `${left}px`;
+		createStripTopPx = `${top}px`;
+		createStripHeightPx = `${stripH}px`;
+	}
+
+	const TIME_GRID_HEIGHT_PX = 3600;
+
+	$effect(() => {
+		// Update Schedule‑X grid height in-place (do NOT destroy/recreate, it breaks rendering).
+		// Schedule‑X computes row heights from `weekOptions.gridHeight` and applies them via CSS vars.
+		const nextDisplay = display;
+		if (nextDisplay === 'month' || nextDisplay === 'list') {
+			lastAppliedGridHeight = null;
+			return;
+		}
+
+		// We bucket posts into a single chip per slot (+N), so the time-grid height can be constant.
+		// Schedule‑X default is 1600; we run a denser constant height.
+		const gridHeight = TIME_GRID_HEIGHT_PX;
+		if (lastAppliedGridHeight === gridHeight) return;
+
+		const app = (calendarApp as any)?.$app;
+		const weekOptionsSignal = app?.config?.weekOptions;
+		const current = weekOptionsSignal?.value;
+		if (!current || typeof current !== 'object') return;
+		if (current.gridHeight === gridHeight) return;
+		weekOptionsSignal.value = { ...current, gridHeight };
+		lastAppliedGridHeight = gridHeight;
+	});
 
 	$effect(() => {
 		(calendarApp as unknown as CalendarRuntime).events.set(events);
@@ -121,7 +277,9 @@
 
 	$effect(() => {
 		const view = viewNameForDisplay(display);
-		const date = selectedPlainDateFromProps();
+		// Preserve the currently focused day when switching views (e.g. Week → Day).
+		// `rangeStartDate` is the fetch range start, not the user's currently navigated date.
+		const date = selectedPlainDateFromCalendar() ?? selectedPlainDateFromProps();
 		(calendarApp as unknown as CalendarRuntime).$app.calendarState.setView(view as DefaultViewName, date);
 	});
 
@@ -131,6 +289,84 @@
 
 		const onClick = (ev: MouseEvent) => {
 			const target = ev.target as HTMLElement | null;
+
+			// Plus strip on an event chip: schedule a new post for that slot.
+			const add = target?.closest?.('[data-create-post-at-iso]') as HTMLElement | null;
+			if (add && onCreatePostAtIso) {
+				const rawIso = add.dataset.createPostAtIso ?? '';
+				if (rawIso) {
+					const ms = Date.parse(rawIso);
+					if (Number.isFinite(ms)) {
+						const dt = Temporal.Instant.from(new Date(ms).toISOString()).toZonedDateTimeISO('UTC');
+						const now = Temporal.Now.zonedDateTimeISO('UTC');
+						const min = now.add({ minutes: 5 });
+						let scheduled = dt.with({ minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
+						if (Temporal.ZonedDateTime.compare(scheduled, min) < 0) {
+							scheduled = min.with({ second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
+						}
+						if (Temporal.ZonedDateTime.compare(scheduled, now) > 0) {
+							openCreatePostAtIsoFromCalendar(scheduled.toInstant().toString());
+							ev.preventDefault();
+							ev.stopPropagation();
+							return;
+						}
+					}
+				}
+			}
+
+			// If a time cell is visually "full" (event chip covers it), allow Shift+click on the chip to create a new post
+			// at that hovered hour. This preserves normal click-to-open-actions behavior.
+			if (ev.shiftKey && onCreatePostAtIso && target?.closest?.('[data-post-group]')) {
+				const dayEl = target?.closest?.('.sx__time-grid-day') as HTMLElement | null;
+				if (dayEl && !target?.closest?.('.sx__time-grid-background-event')) {
+					const dateStr = dayEl.getAttribute('data-time-grid-date') ?? '';
+					if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+						const rect = dayEl.getBoundingClientRect();
+						const y = ev.clientY - rect.top;
+						const frac = Math.min(1, Math.max(0, y / rect.height));
+						const minutes = Math.floor(frac * 24 * 60);
+						const hour = Math.min(23, Math.max(0, Math.floor(minutes / 60)));
+						const dt = Temporal.ZonedDateTime.from(
+							`${dateStr}T${String(hour).padStart(2, '0')}:00:00+00:00[UTC]`
+						);
+						const now = Temporal.Now.zonedDateTimeISO('UTC');
+						const cellEnd = dt.add({ hours: 1 });
+						if (Temporal.ZonedDateTime.compare(cellEnd, now) <= 0) return;
+						const min = now.add({ minutes: 5 });
+						let scheduled = dt;
+						if (Temporal.ZonedDateTime.compare(scheduled, min) < 0) {
+							scheduled = min.with({ second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
+						}
+						if (Temporal.ZonedDateTime.compare(scheduled, now) > 0) {
+							openCreatePostAtIsoFromCalendar(scheduled.toInstant().toString());
+							ev.preventDefault();
+							ev.stopPropagation();
+							return;
+						}
+					}
+				}
+			}
+			const multiChip = target?.closest?.('[data-multi-post="true"]') as HTMLElement | null;
+			if (multiChip) {
+				const raw = multiChip.dataset?.slotSummary ?? '';
+				if (raw) {
+					try {
+						const decoded = decodeURIComponent(raw);
+						const parsed = JSON.parse(decoded);
+						if (Array.isArray(parsed) && parsed.length) {
+							slotDialogItems = parsed as SlotSummaryItem[];
+							slotDialogOpen = true;
+							ev.preventDefault();
+							ev.stopPropagation();
+							return;
+						}
+					} catch {
+						// ignore malformed payload
+					}
+				}
+				// If multi-chip has no payload, do nothing.
+				return;
+			}
 			const chip = target?.closest?.('[data-post-group]') as HTMLElement | null;
 			const postGroup = chip?.dataset?.postGroup ?? '';
 			if (postGroup) {
@@ -148,11 +384,91 @@
 			el.style.setProperty('--date-passed-y', `${y}px`);
 		};
 
+		const clearCreateHover = () => {
+			clearCreateUi();
+		};
+
+		const setCreateHover = (ev: MouseEvent, label: string) => {
+			const rect = el.getBoundingClientRect();
+			const x = ev.clientX - rect.left;
+			const y = ev.clientY - rect.top;
+			el.style.setProperty('--create-post-x', `${x}px`);
+			el.style.setProperty('--create-post-y', `${y}px`);
+			el.dataset.createPostLabel = label;
+			el.classList.add('create-post-hovering');
+		};
+
+		function maybeCreatePostHover(ev: MouseEvent): void {
+			const target = ev.target as HTMLElement | null;
+			// Only for time grid day/week.
+			if (display === 'month' || display === 'list') return clearCreateHover();
+			// Do not show over the calendar header.
+			if (target?.closest?.('.sx__week-grid__date-axis')) return clearCreateHover();
+			// Do not show on "date passed" shading.
+			if (target?.closest?.('.sx__time-grid-background-event')) return clearCreateHover();
+			const dayEl = target?.closest?.('.sx__time-grid-day') as HTMLElement | null;
+			if (!dayEl) return clearCreateHover();
+
+			const dateStr = dayEl.getAttribute('data-time-grid-date') ?? '';
+			if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return clearCreateHover();
+
+			const rect = dayEl.getBoundingClientRect();
+			const y = ev.clientY - rect.top;
+			const frac = Math.min(1, Math.max(0, y / rect.height));
+			const minutes = Math.floor(frac * 24 * 60);
+			const hour = Math.min(23, Math.max(0, Math.floor(minutes / 60)));
+			const slotHeight = rect.height / 24;
+			const hoverKey = `${dateStr}|${hour}`;
+
+			const now = Temporal.Now.zonedDateTimeISO('UTC');
+			const min = now.add({ minutes: 5 });
+			const dt = Temporal.ZonedDateTime.from(`${dateStr}T${String(hour).padStart(2, '0')}:00:00+00:00[UTC]`);
+
+			// Never show the create affordance for hour-cells that are fully in the past.
+			// If we're partway through the current hour, keep it available (we'll clamp to now+5m below).
+			const cellEnd = dt.add({ hours: 1 });
+			if (Temporal.ZonedDateTime.compare(cellEnd, now) <= 0) return clearCreateHover();
+
+			let scheduled = dt;
+			if (Temporal.ZonedDateTime.compare(scheduled, min) < 0) {
+				scheduled = min.with({ second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
+			}
+			if (Temporal.ZonedDateTime.compare(scheduled, now) <= 0) return clearCreateHover();
+
+			const localLabel = new Date(scheduled.toInstant().toString()).toLocaleTimeString([], {
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+			const isOverEvent = Boolean(target?.closest?.('[data-post-group]'));
+			setCreateHover(
+				ev,
+				isOverEvent ? `Shift+click to schedule (${localLabel})` : `Schedule at (${localLabel})`
+			);
+
+			// Outer left "+": align to the hovered hour row, on the far left of the time grid.
+			if (onCreatePostAtIso) {
+				const hostRect = el?.getBoundingClientRect();
+				if (!hostRect) return;
+				if (hoverKey !== createStripHoverKey) {
+					createStripHoverKey = hoverKey;
+					createStripHoverDate = dateStr;
+					createStripHoverHour = hour;
+					createStripLeftPx = `${Math.round(rect.left - hostRect.left)}px`;
+					createStripTopPx = `${Math.round(rect.top - hostRect.top + hour * slotHeight)}px`;
+					createStripHeightPx = `${Math.max(24, Math.round(slotHeight))}px`;
+					createStripIso = scheduled.toInstant().toString();
+					createStripVisible = true;
+				}
+				// Keep it clamped even when hovering near edges.
+				syncCreateStripPosition();
+			}
+		}
+
 		const onMove = (ev: MouseEvent) => {
 			const target = ev.target as HTMLElement | null;
 			const bg = target?.closest?.('.sx__time-grid-background-event') as HTMLElement | null;
-			if (!bg) return;
-			setXY(ev);
+			if (bg) setXY(ev);
+			maybeCreatePostHover(ev);
 		};
 
 		const onOver = (ev: MouseEvent) => {
@@ -175,11 +491,48 @@
 		el.addEventListener('mouseout', onOut);
 		el.addEventListener('click', onClick, true);
 
+		let raf = 0;
+		const scheduleSync = () => {
+			if (raf) return;
+			raf = window.requestAnimationFrame(() => {
+				raf = 0;
+				syncCreateStripPosition();
+			});
+		};
+
+		// Schedule-X scroll container can vary by view/build; listen on a few candidates so the
+		// pinned create strip can't get "stuck" when scrolling without moving the mouse.
+		const scrollEls = new Set<HTMLElement>();
+		const addScrollEl = (n: Element | null) => {
+			if (n && n instanceof HTMLElement) scrollEls.add(n);
+		};
+		addScrollEl(el.querySelector('.sx-svelte-calendar-wrapper'));
+		addScrollEl(el.querySelector('.sx__calendar-wrapper'));
+		addScrollEl(el.querySelector('.sx__week-grid'));
+		addScrollEl(el.querySelector('.sx__time-grid'));
+		addScrollEl(el); // capture scrolls from nested elements
+
+		for (const s of scrollEls) {
+			s.addEventListener('scroll', scheduleSync, { passive: true, capture: true } as AddEventListenerOptions);
+			// Track wheel/touch scrolling too (some containers don't emit scroll the way we expect).
+			s.addEventListener('wheel', scheduleSync, { passive: true, capture: true } as AddEventListenerOptions);
+			s.addEventListener('touchmove', scheduleSync, { passive: true, capture: true } as AddEventListenerOptions);
+		}
+		window.addEventListener('resize', scheduleSync);
+
 		return () => {
+			clearCreateHover();
 			el.removeEventListener('mousemove', onMove);
 			el.removeEventListener('mouseover', onOver);
 			el.removeEventListener('mouseout', onOut);
 			el.removeEventListener('click', onClick, true);
+			for (const s of scrollEls) {
+				s.removeEventListener('scroll', scheduleSync as any, true as any);
+				s.removeEventListener('wheel', scheduleSync as any, true as any);
+				s.removeEventListener('touchmove', scheduleSync as any, true as any);
+			}
+			window.removeEventListener('resize', scheduleSync);
+			if (raf) window.cancelAnimationFrame(raf);
 		};
 	});
 
@@ -197,7 +550,64 @@
 		dateGridEvent={DateGridEvent}
 		monthGridEvent={MonthGridEvent}
 	/>
+
+	{#if createStripVisible && createStripIso}
+		<button
+			type="button"
+			class="oq-create-strip bg-primary text-primary-content"
+			style={`left:${createStripLeftPx};top:${createStripTopPx};height:${createStripHeightPx};`}
+			aria-label="Schedule a new post"
+			onclick={(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				openCreatePostAtIsoFromCalendar(createStripIso!);
+			}}
+		>
+			<AbstractIcon name={icons.Plus.name} class="size-4" width="16" height="16" />
+		</button>
+	{/if}
 </div>
+
+<Dialog.Root bind:open={slotDialogOpen} onOpenChange={(o) => (!o ? (slotDialogItems = []) : null)}>
+	<Dialog.Content class="max-w-md p-0" showCloseButton={true}>
+		<div class="border-b border-base-300 px-4 py-3">
+			<div class="text-base font-semibold text-base-content">Posts in this slot</div>
+			<div class="text-xs text-base-content/60">{slotDialogItems.length} posts</div>
+		</div>
+		<div class="max-h-[60vh] overflow-auto p-2">
+			{#each slotDialogItems as item, idx (item.postGroup || String(idx))}
+				<button
+					type="button"
+					class="hover:bg-base-200/60 flex w-full items-start gap-3 rounded px-3 py-2 text-sm text-start outline-none"
+					onclick={() => {
+						if (!item.postGroup) return;
+						slotDialogOpen = false;
+						triggerOpenActionsForPostGroup(item.postGroup);
+					}}
+				>
+					<div class="mt-0.5 h-9 w-9 shrink-0">
+						{#if item.channelPicture}
+							<img src={item.channelPicture} alt="" class="h-9 w-9 rounded-md object-cover" />
+						{:else}
+							<div class="flex h-9 w-9 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60">
+								{(item.channelName || 'CH').slice(0, 2).toUpperCase()}
+							</div>
+						{/if}
+					</div>
+					<div class="min-w-0 flex-1">
+						<div class="text-xs font-semibold text-base-content/70">
+							{item.channelName || 'Channel'}
+						</div>
+						<div class="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-base-content/90">
+							{item.content || 'No content'}
+						</div>
+					</div>
+					<div class="shrink-0 text-xs text-base-content/50">Open</div>
+				</button>
+			{/each}
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
 
 <style>
 	/*
@@ -220,6 +630,31 @@
 		width: 100%;
 		height: min(900px, 78vh);
 	}
+
+	.oq-create-strip {
+		position: absolute;
+		width: 18px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0 8px 8px 0;
+		z-index: 999;
+		opacity: 0.98;
+		pointer-events: auto;
+		min-height: 24px;
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+		border: 1px solid rgba(255, 255, 255, 0.18);
+	}
+
+	.oq-create-strip:hover {
+		opacity: 1;
+	}
+
+	/*
+	  IMPORTANT:
+	  Allowing time-grid events to overflow makes adjacent slots overlap visually (e.g. 10:45 bucket vs 11:00 bucket).
+	  We keep Schedule‑X’s default clipping so each event stays within its slot height.
+	*/
 
 	/* Shade past time cells and show a hover label. */
 	.schedule-x-calendar-host :global(.sx__time-grid-background-event) {
@@ -246,6 +681,27 @@
 		letter-spacing: 0.02em;
 		color: rgba(255, 255, 255, 0.75);
 		z-index: 2;
+	}
+
+	:global(.schedule-x-calendar-host.create-post-hovering)::before {
+		content: attr(data-create-post-label);
+		position: absolute;
+		left: var(--create-post-x, 50%);
+		top: var(--create-post-y, 50%);
+		transform: translate(-50%, -140%);
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.5rem;
+		background: rgba(0, 0, 0, 0.65);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		backdrop-filter: blur(6px);
+		-webkit-backdrop-filter: blur(6px);
+		pointer-events: none;
+		white-space: nowrap;
+		font-weight: 600;
+		font-size: 0.8rem;
+		letter-spacing: 0.02em;
+		color: rgba(255, 255, 255, 0.8);
+		z-index: 3;
 	}
 </style>
 

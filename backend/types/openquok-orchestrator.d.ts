@@ -21,6 +21,18 @@ declare module "openquok-orchestrator" {
         options?: { queueName?: string }
     ): Promise<{ runId: string; enqueued: boolean }>;
 
+    /**
+     * Enqueues a delayed `scheduled-social-post` Flowcraft run when `scheduledSocialPost.transport` is `bullmq`.
+     * In-process use requires the second-argument workflow dependencies (orchestrator / tests only).
+     */
+    export function runScheduledSocialPostOrchestration(
+        input: { organizationId: string; postGroup: string; delayMs?: number },
+        workflowDependencies?: {
+            publishScheduledGroup: (input: { organizationId: string; postGroup: string }) => Promise<void>;
+        },
+        options?: unknown
+    ): Promise<boolean>;
+
     export function appendNotificationDigestEntry(
         redis: import("ioredis").default,
         organizationId: string,

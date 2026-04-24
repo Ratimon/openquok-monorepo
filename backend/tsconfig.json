@@ -14,12 +14,7 @@
     "declaration": true,
     "declarationMap": true,
     "allowJs": true,
-    "baseUrl": ".",
-    "paths": {
-      "flowcraft": ["./node_modules/flowcraft/dist/index.d.mts"],
-      "flowcraft/testing": ["./node_modules/flowcraft/dist/testing/index.d.mts"],
-      "openquok-orchestrator": ["./types/openquok-orchestrator.d.ts"]
-    }
+    "baseUrl": "."
   },
   "include": ["**/*.ts", "**/*.d.ts"],
   "exclude": ["node_modules", "dist"]

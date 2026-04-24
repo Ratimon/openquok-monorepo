@@ -2,12 +2,19 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "flowcraft": ["./node_modules/flowcraft/dist/index.d.mts"],
+      "flowcraft/testing": ["./node_modules/flowcraft/dist/testing/index.d.mts"],
+      "openquok-orchestrator": ["./types/openquok-orchestrator.d.ts"]
+    }
   },
   "include": ["**/*.ts"],
   "exclude": [
     "node_modules",
     "dist",
+    "**/*.d.ts",
     "**/*.test.ts",
     "handler/**",
     "tsup.config.ts"

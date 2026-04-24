@@ -1,9 +1,10 @@
 import type { NodeContext } from "flowcraft";
 import type { IntegrationRow } from "backend/repositories/IntegrationRepository.js";
+import type { RefreshTokenFlowContext, RefreshTokenWorkflowDependencies } from "../blueprints/refreshTokenTypes.js";
+
 import { logger } from "backend/utils/Logger.js";
 import { getIntegrationByIdActivity, refreshIntegrationTokenActivity } from "../activities/integrationRefreshActivities.js";
 import { sleepChunked } from "../sleepChunked.js";
-import type { RefreshTokenFlowContext, RefreshTokenWorkflowDependencies } from "../blueprints/refreshTokenTypes.js";
 
 function integrationShouldExit(row: IntegrationRow | null): boolean {
     if (!row) {

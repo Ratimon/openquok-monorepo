@@ -173,6 +173,9 @@ describe("PostsService", () => {
 
     describe("findFreeSlot", () => {
         it("returns first free slot ISO when repository reports slot not taken", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: faker.string.uuid(), posting_times: JSON.stringify([{ time: 60 }]) },
+            ] as any);
             postsRepo.hasQueueSlotTaken.mockResolvedValue(false);
             const iso = await service().findFreeSlot(orgId, authUserId);
             expect(integrationConnection.assertOrganizationMember).toHaveBeenCalledWith(authUserId, orgId);
@@ -180,7 +183,13 @@ describe("PostsService", () => {
             expect(new Date(iso).getTime()).toBeGreaterThan(0);
         });
 
-        it("advances in 15-minute steps until a slot is free", async () => {
+        it("advances over posting-time slots until a slot is free", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                {
+                    id: faker.string.uuid(),
+                    posting_times: JSON.stringify([{ time: 60 }, { time: 120 }, { time: 180 }]),
+                },
+            ] as any);
             postsRepo.hasQueueSlotTaken
                 .mockResolvedValueOnce(true)
                 .mockResolvedValueOnce(true)
@@ -189,7 +198,7 @@ describe("PostsService", () => {
             expect(postsRepo.hasQueueSlotTaken).toHaveBeenCalledTimes(3);
             const first = postsRepo.hasQueueSlotTaken.mock.calls[0][1];
             const third = postsRepo.hasQueueSlotTaken.mock.calls[2][1];
-            expect(new Date(third).getTime() - new Date(first).getTime()).toBe(2 * 15 * 60 * 1000);
+            expect(new Date(third).getTime() - new Date(first).getTime()).toBe(2 * 60 * 60 * 1000);
         });
     });
 
@@ -734,13 +743,14 @@ describe("PostsService", () => {
         it("allows keeping the same scheduled slot even if repository would report it as taken", async () => {
             const postGroup = faker.string.uuid();
             const scheduledAtIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            const dbFormattedPublishDate = "2030-06-15T12:00:00+00:00";
             const existingA = socialPostRow({
                 id: faker.string.uuid(),
                 post_group: postGroup,
                 organization_id: orgId,
                 integration_id: integrationId,
                 state: "QUEUE",
-                publish_date: scheduledAtIso,
+                publish_date: dbFormattedPublishDate,
             });
             postsRepo.listPostsByGroup.mockResolvedValue([existingA]);
 
