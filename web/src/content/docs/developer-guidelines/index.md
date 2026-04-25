@@ -2,7 +2,7 @@
 title: Overview - Developer Guidelines
 description: OpenQuok's developer guidelines — security, RBAC, SSR safety, and theming conventions.
 order: 0
-lastUpdated: 2026-04-07
+lastUpdated: 2026-04-25
 ---
 
 <script>
@@ -17,6 +17,7 @@ This section collects **engineering guidelines** that are easy to forget during 
 <LinkCard title="Security guidelines" description="Service key rules, RLS guidance, and SSR state management safety" href="/docs/developer-guidelines/security" />
 <LinkCard title="RBAC (roles & permissions)" description="How app-level roles/permissions work and how to secure routes correctly" href="/docs/developer-guidelines/rbac" />
 <LinkCard title="DaisyUI theming" description="Semantic color classes, theme-safe UI tokens, and shadcn-to-DaisyUI mapping" href="/docs/developer-guidelines/daisyui-theme" />
+<LinkCard title="Notifications" description="In-app notifications + notification email (immediate vs digest), workers, and troubleshooting" href="/docs/developer-guidelines/notifications" />
 <LinkCard title="Orchestrator workflows" description="Flowcraft integration refresh, notification email, scheduled posts—in-process or BullMQ" href="/docs/developer-guidelines/orchestrator-workflows" />
 </CardGrid>
 

@@ -5,10 +5,19 @@
  * Run: pnpm worker:scheduled-social-post-bullmq
  */
 import { config } from "backend/config/GlobalConfig.js";
-import { IntegrationManager } from "backend/integrations/integrationManager.js";
-import { integrationRepository, postsRepository } from "backend/repositories/index.js";
-import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
+import {
+    integrationRepository,
+    notificationRepository,
+    organizationRepository,
+    postsRepository,
+    userRepository,
+} from "backend/repositories/index.js";
 import { createPublishScheduledGroupHandler } from "../activities/scheduledSocialPostExecution.js";
+import { IntegrationManager } from "backend/integrations/integrationManager.js";
+import { EmailService } from "backend/services/EmailService.js";
+import { NotificationService } from "backend/services/NotificationService.js";
+import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
+import { TransactionalNotificationEmailService } from "backend/services/TransactionalNotificationEmailService.js";
 import { createScheduledSocialPostBullMqAdapter } from "../adapters/flowcraft-bullmq/scheduled-social-post/createScheduledSocialPostBullMqAdapter.js";
 import {
     buildScheduledSocialPostBlueprintDistributed,
@@ -27,13 +36,47 @@ if (transport !== "bullmq") {
     });
 }
 
+const emailCfg = config.email as { enabled?: boolean } | undefined;
+const emailService = new EmailService({
+    isEnabled: emailCfg?.enabled ?? false,
+});
+const transactionalNotificationEmailService = new TransactionalNotificationEmailService(organizationRepository);
+const notificationService = new NotificationService(
+    notificationRepository,
+    userRepository,
+    organizationRepository,
+    emailService,
+    transactionalNotificationEmailService
+);
+
 const integrationManager = new IntegrationManager();
-const refreshService = new RefreshIntegrationService(integrationRepository, integrationManager);
+const refreshIntegrationService = new RefreshIntegrationService(
+    integrationRepository,
+    integrationManager,
+    notificationService
+);
+
+const supabaseCfg = config.supabase as { supabaseUrl?: string };
+const notifTransport = (config.bullmq as { notificationEmail?: { transport?: string } }).notificationEmail?.transport;
+logger.info({
+    msg: "[Worker] scheduled-social-post notification wiring",
+    supabaseHost: (() => {
+        try {
+            return new URL(supabaseCfg?.supabaseUrl ?? "").host;
+        } catch {
+            return supabaseCfg?.supabaseUrl ?? "";
+        }
+    })(),
+    emailEnabled: emailCfg?.enabled ?? false,
+    notificationEmailTransport: notifTransport ?? "in_process",
+});
+
 const publishScheduledGroup = createPublishScheduledGroupHandler({
     postsRepository,
     integrationRepository,
     integrationManager,
-    refreshService,
+    refreshService: refreshIntegrationService,
+    notificationService,
 });
 
 // Debug: confirm blueprint `uses` keys match registry (no `fn_*`).

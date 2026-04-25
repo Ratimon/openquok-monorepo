@@ -6,9 +6,12 @@
  * Run: pnpm worker:integration-refresh-bullmq (from backend/)
  */
 import { config } from "backend/config/GlobalConfig.js";
-import { IntegrationManager } from "backend/integrations/integrationManager.js";
-import { integrationRepository } from "backend/repositories/index.js";
+import { integrationRepository, notificationRepository, organizationRepository, userRepository } from "backend/repositories/index.js";
+import { EmailService } from "backend/services/EmailService.js";
+import { NotificationService } from "backend/services/NotificationService.js";
 import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
+import { TransactionalNotificationEmailService } from "backend/services/TransactionalNotificationEmailService.js";
+import { IntegrationManager } from "backend/integrations/integrationManager.js";
 import { logger } from "backend/utils/Logger.js";
 import { createIntegrationRefreshBullMqAdapter } from "../adapters/flowcraft-bullmq/integration-refresh/createIntegrationRefreshBullMqAdapter.js";
 import { REFRESH_TOKEN_BLUEPRINT_ID } from "../blueprints/refreshTokenTypes.js";
@@ -22,12 +25,25 @@ if (transport !== "bullmq") {
     });
 }
 
+const emailCfg = config.email as { enabled?: boolean } | undefined;
+const emailService = new EmailService({
+    isEnabled: emailCfg?.enabled ?? false,
+});
+const transactionalNotificationEmailService = new TransactionalNotificationEmailService(organizationRepository);
+const notificationService = new NotificationService(
+    notificationRepository,
+    userRepository,
+    organizationRepository,
+    emailService,
+    transactionalNotificationEmailService
+);
+
 const integrationManager = new IntegrationManager();
-const refreshService = new RefreshIntegrationService(integrationRepository, integrationManager);
+const refreshIntegrationService = new RefreshIntegrationService(integrationRepository, integrationManager, notificationService);
 
 const { adapter, redis } = createIntegrationRefreshBullMqAdapter({
     integrationRepository,
-    runRefresh: (row) => refreshService.refresh(row),
+    runRefresh: (row) => refreshIntegrationService.refresh(row),
 });
 
 adapter.start();

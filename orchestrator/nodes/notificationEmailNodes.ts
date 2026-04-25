@@ -4,6 +4,7 @@ import type {
     NotificationEmailWorkflowDependencies,
     NotificationSendPlainFlowContext,
 } from "../blueprints/notificationEmailFlowTypes.js";
+import { flushNotificationDigestActivity, sendPlainEmailActivity } from "../activities/emailActivities.js";
 
 export async function notificationSendPlainBeginNode(): Promise<{ output: Record<string, never> }> {
     return { output: {} };
@@ -19,8 +20,7 @@ export async function notificationSendPlainDispatchNode({
     const subject = (await context.get("subject")) as string;
     const html = (await context.get("html")) as string;
     const replyTo = (await context.get("replyTo")) as string | undefined;
-    await dependencies.acquireSendPlainSlot?.();
-    await dependencies.sendPlain({ to, subject, html, replyTo });
+    await sendPlainEmailActivity(dependencies, { to, subject, html, replyTo });
     return { output: { ok: true } };
 }
 
@@ -37,7 +37,7 @@ export async function notificationDigestFlushRunNode({
 }: NodeContext<NotificationDigestFlushFlowContext, NotificationEmailWorkflowDependencies>): Promise<{
     output: { ok: boolean };
 }> {
-    await dependencies.flushAllPendingDigestEmails();
+    await flushNotificationDigestActivity(dependencies);
     return { output: { ok: true } };
 }
 

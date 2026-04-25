@@ -2,7 +2,9 @@ import type { IntegrationManager } from "backend/integrations/integrationManager
 import type { AuthTokenDetails, IntegrationRecord, PostDetails, PostResponse } from "backend/integrations/social.integrations.interface.js";
 import type { IntegrationRepository, IntegrationRow } from "backend/repositories/IntegrationRepository.js";
 import type { PostsRepository } from "backend/repositories/PostsRepository.js";
+import type { NotificationService } from "backend/services/NotificationService.js";
 import type { SocialPostLike } from "backend/utils/dtos/PostDTO.js";
+import type { NotificationEmailType } from "openquok-common";
 
 import { logger } from "backend/utils/Logger.js";
 import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
@@ -84,6 +86,54 @@ function firstPostResponse(r: PostResponse[] | void): { releaseId: string; relea
     return { releaseId: x.postId ?? x.id, releaseUrl: x.releaseURL ?? "" };
 }
 
+function capitalizeProvider(id: string): string {
+    const t = id.trim();
+    if (!t) return t;
+    return t[0].toUpperCase() + t.slice(1);
+}
+
+/**` notification behaviour: best-effort; never fails publishing. */
+async function notify(
+    service: Pick<NotificationService, "inAppNotification"> | undefined,
+    organizationId: string,
+    subject: string,
+    message: string,
+    sendEmail: boolean,
+    digest: boolean,
+    type: NotificationEmailType
+): Promise<void> {
+    if (!service) return;
+    try {
+        logger.info({
+            msg: "[Orchestrator] Attempting notification",
+            organizationId,
+            subject,
+            sendEmail,
+            digest,
+            type,
+        });
+        await service.inAppNotification(organizationId, subject, message, sendEmail, digest, type);
+        logger.info({
+            msg: "[Orchestrator] Notification completed",
+            organizationId,
+            subject,
+            sendEmail,
+            digest,
+            type,
+        });
+    } catch (err) {
+        logger.warn({
+            msg: "[Orchestrator] Failed to create or email notification (best-effort)",
+            organizationId,
+            subject,
+            sendEmail,
+            digest,
+            type,
+            error: err instanceof Error ? err.message : String(err),
+        });
+    }
+}
+
 /**
  * Runs one scheduled `post_group`: each QUEUE row with a channel is posted to the network.
  */
@@ -92,6 +142,8 @@ export function createPublishScheduledGroupHandler(deps: {
     integrationRepository: Pick<IntegrationRepository, "getById">;
     integrationManager: IntegrationManager;
     refreshService: Pick<RefreshIntegrationService, "refresh">;
+    /** When set (BullMQ worker), mirrors OpenQuok: email for publish, digest batching, and preflight/ errors. */
+    notificationService?: Pick<NotificationService, "inAppNotification">;
 }): (input: { organizationId: string; postGroup: string }) => Promise<void> {
     return async (input) => {
         const { organizationId, postGroup } = input;
@@ -126,32 +178,85 @@ async function publishOneRow(
         integrationRepository: Pick<IntegrationRepository, "getById">;
         integrationManager: IntegrationManager;
         refreshService: Pick<RefreshIntegrationService, "refresh">;
+        notificationService?: Pick<NotificationService, "inAppNotification">;
     }
 ): Promise<void> {
     const organizationId = post.organization_id;
     const integrationId = post.integration_id;
     const postId = post.id;
+    const ns = deps.notificationService;
     const provider = await deps.integrationRepository.getById(organizationId, integrationId);
     if (!provider) {
         await deps.postsRepository.markPostState(postId, "ERROR", "Channel not found for this workspace");
+        await notify(
+            ns,
+            organizationId,
+            "We couldn't publish your post",
+            "The selected channel for this post was not found. Choose a valid channel and try again.",
+            true,
+            false,
+            "fail"
+        );
         return;
     }
     if (provider.deleted_at) {
         await deps.postsRepository.markPostState(postId, "ERROR", "That channel is no longer connected");
+        const label = capitalizeProvider(provider.provider_identifier);
+        const chName = provider.name || "channel";
+        await notify(
+            ns,
+            organizationId,
+            `We couldn't post to ${label} for ${chName}`,
+            `We couldn't post to ${label} for ${chName} because that connection is no longer available. Reconnect the channel and try again.`,
+            true,
+            false,
+            "info"
+        );
         return;
     }
     if (provider.refresh_needed) {
         await deps.postsRepository.markPostState(postId, "ERROR", "Reconnect the channel, then try again");
+        const label = capitalizeProvider(provider.provider_identifier);
+        const chName = provider.name || "channel";
+        await notify(
+            ns,
+            organizationId,
+            `We couldn't post to ${label} for ${chName}`,
+            `We couldn't post to ${label} for ${chName} because you need to reconnect it. Reconnect the channel and try again.`,
+            true,
+            false,
+            "info"
+        );
         return;
     }
     if (provider.disabled) {
         await deps.postsRepository.markPostState(postId, "ERROR", "That channel is disabled");
+        const label = capitalizeProvider(provider.provider_identifier);
+        const chName = provider.name || "channel";
+        await notify(
+            ns,
+            organizationId,
+            `We couldn't post to ${label} for ${chName}`,
+            `We couldn't post to ${label} for ${chName} because it's disabled. Enable it in channel settings and try again.`,
+            true,
+            false,
+            "info"
+        );
         return;
     }
 
     const social = deps.integrationManager.getSocialIntegration(provider.provider_identifier);
     if (!social) {
         await deps.postsRepository.markPostState(postId, "ERROR", `No integration handler for ${provider.provider_identifier}`);
+        await notify(
+            ns,
+            organizationId,
+            "We couldn't publish your post",
+            `No integration handler is registered for ${capitalizeProvider(provider.provider_identifier)}.`,
+            true,
+            false,
+            "fail"
+        );
         return;
     }
 
@@ -174,6 +279,13 @@ async function publishOneRow(
                 releaseUrl: releaseUrl || null,
                 error: null,
             });
+            {
+                const label = capitalizeProvider(intRow.provider_identifier);
+                const atUrl = releaseUrl?.trim() ? ` at ${releaseUrl}` : "";
+                const subject = `Your post has been published on ${label}`;
+                const message = `Your post has been published on ${label}${atUrl}`;
+                await notify(ns, organizationId, subject, message, true, true, "success");
+            }
             logger.info({
                 msg: "[Orchestrator] post published to provider",
                 postId,
@@ -200,25 +312,50 @@ async function publishOneRow(
                 });
             }
             if (attempt >= PUBLISH_ATTEMPTS - 1) {
-                await deps.postsRepository.markPostState(
-                    postId,
-                    "ERROR",
-                    postPublishErrorForStorage(err, 4000)
+                const stored = postPublishErrorForStorage(err, 4000);
+                await deps.postsRepository.markPostState(postId, "ERROR", stored);
+                const label = capitalizeProvider(intRow.provider_identifier);
+                const chName = intRow.name || "channel";
+                await notify(
+                    ns,
+                    organizationId,
+                    `Error posting on ${intRow.provider_identifier} for ${chName}`,
+                    `An error occurred while posting on ${label} for ${chName}${message ? `: ${message}` : "."}`,
+                    true,
+                    false,
+                    "fail"
                 );
                 return;
             }
             const refreshed: false | AuthTokenDetails = await deps.refreshService.refresh(intRow);
             if (!refreshed) {
-                await deps.postsRepository.markPostState(
-                    postId,
-                    "ERROR",
-                    `Could not publish (${message}) and token refresh did not complete`
+                const errText = `Could not publish (${message}) and token refresh did not complete`;
+                await deps.postsRepository.markPostState(postId, "ERROR", errText);
+                const label = capitalizeProvider(intRow.provider_identifier);
+                const chName = intRow.name || "channel";
+                await notify(
+                    ns,
+                    organizationId,
+                    `We couldn't post to ${label} for ${chName}`,
+                    `We couldn't post to ${label} for ${chName} and the access token could not be refreshed. Reconnect the channel and try again. (${errText})`,
+                    true,
+                    false,
+                    "fail"
                 );
                 return;
             }
             const reloaded = await deps.integrationRepository.getById(organizationId, intRow.id);
             if (!reloaded || reloaded.deleted_at) {
                 await deps.postsRepository.markPostState(postId, "ERROR", "Channel was removed or no longer available");
+                await notify(
+                    ns,
+                    organizationId,
+                    "We couldn't publish your post",
+                    "The channel was removed or is no longer available after token refresh. Reconnect a valid channel and try again.",
+                    true,
+                    false,
+                    "fail"
+                );
                 return;
             }
             intRow = reloaded;

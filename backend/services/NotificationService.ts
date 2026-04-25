@@ -1,6 +1,6 @@
 import { config } from "../config/GlobalConfig";
 import type { NotificationEmailType } from "openquok-common";
-import { buildNotificationMessageParagraph } from "../emails/notificationTransactionalEmailHtml";
+import { buildNotificationMessageParagraphWithAutolink } from "../emails/notificationTransactionalEmailHtml";
 import { OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError } from "../errors/UserError";
 import type { NotificationRepository } from "../repositories/NotificationRepository";
@@ -8,6 +8,7 @@ import type { OrganizationRepository } from "../repositories/OrganizationReposit
 import type { UserRepository } from "../repositories/UserRepository";
 import type { EmailService } from "./EmailService";
 import type { TransactionalNotificationEmailService } from "./TransactionalNotificationEmailService";
+import { logger } from "../utils/Logger";
 
 export type { NotificationEmailType };
 
@@ -72,8 +73,28 @@ export class NotificationService {
         digest = false,
         type: NotificationEmailType = "success"
     ): Promise<void> {
-        await this.notificationRepository.createNotification(organizationId, message);
+        try {
+            await this.notificationRepository.createNotification(organizationId, message);
+        } catch (err) {
+            logger.warn({
+                msg: "[NotificationService] Failed to persist in-app notification",
+                organizationId,
+                subject,
+                error: err instanceof Error ? err.message : String(err),
+            });
+            throw err;
+        }
+
         if (!sendEmail || !this.emailService.isEnabled) {
+            if (sendEmail && !this.emailService.isEnabled) {
+                logger.info({
+                    msg: "[NotificationService] Email requested but EMAIL_ENABLED is false; skipping",
+                    organizationId,
+                    subject,
+                    digest,
+                    type,
+                });
+            }
             return;
         }
 
@@ -92,7 +113,7 @@ export class NotificationService {
             return;
         }
 
-        const inner = buildNotificationMessageParagraph(message);
+        const inner = buildNotificationMessageParagraphWithAutolink(message);
         try {
             await this.transactionalNotificationEmail.deliverToOrganizationMembers({
                 organizationId,

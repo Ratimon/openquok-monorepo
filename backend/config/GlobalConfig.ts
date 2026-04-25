@@ -161,7 +161,7 @@ export const config: ConfigObject = {
             accessKeyId: getEnvTrimmed("STORAGE_R2_ACCESS_KEY_ID"),
             secretAccessKey: getEnvTrimmed("STORAGE_R2_SECRET_ACCESS_KEY"),
             bucket: getEnvTrimmed("STORAGE_R2_BUCKET"),
-            region: getEnvTrimmed("STORAGE_R2_REGION", "auto"),
+            region: getEnvTrimmed("STORAGE_R2_REGION", "APAC"),
             /** Public origin for browser `<img src>` (R2 custom domain or r2.dev); no trailing slash. */
             publicBaseUrl: getEnvTrimmed("STORAGE_R2_PUBLIC_BASE_URL"),
         },

@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import { faker } from "@faker-js/faker";
-import { buildNotificationMessageParagraph } from "../emails/notificationTransactionalEmailHtml";
+import { buildNotificationMessageParagraphWithAutolink } from "../emails/notificationTransactionalEmailHtml";
 import { OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError } from "../errors/UserError";
 import type { NotificationRepository } from "../repositories/NotificationRepository";
@@ -248,7 +248,7 @@ describe("NotificationService", () => {
                 expect.objectContaining({
                     organizationId,
                     subject,
-                    htmlBodyInner: buildNotificationMessageParagraph(message),
+                    htmlBodyInner: buildNotificationMessageParagraphWithAutolink(message),
                     type: "success",
                 })
             );

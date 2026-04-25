@@ -204,8 +204,10 @@ var require_loadBackendDotenv = __commonJS({
     function loadBackendDotenv3() {
       const root = resolveBackendPackageRoot();
       const env = process.env.NODE_ENV ?? "development";
-      dotenv.config({ path: path5.join(root, `.env.${env}.local`) });
-      dotenv.config({ path: path5.join(root, ".env") });
+      const forceOverride = String(process.env.DOTENV_OVERRIDE ?? "").toLowerCase() === "true";
+      const override = forceOverride || env !== "production";
+      dotenv.config({ path: path5.join(root, `.env.${env}.local`), override });
+      dotenv.config({ path: path5.join(root, ".env"), override: false });
     }
     module.exports = { loadBackendDotenv: loadBackendDotenv3 };
   }
@@ -418,7 +420,7 @@ var init_GlobalConfig = __esm({
           accessKeyId: getEnvTrimmed("STORAGE_R2_ACCESS_KEY_ID"),
           secretAccessKey: getEnvTrimmed("STORAGE_R2_SECRET_ACCESS_KEY"),
           bucket: getEnvTrimmed("STORAGE_R2_BUCKET"),
-          region: getEnvTrimmed("STORAGE_R2_REGION", "auto"),
+          region: getEnvTrimmed("STORAGE_R2_REGION", "APAC"),
           /** Public origin for browser `<img src>` (R2 custom domain or r2.dev); no trailing slash. */
           publicBaseUrl: getEnvTrimmed("STORAGE_R2_PUBLIC_BASE_URL")
         },
@@ -1103,15 +1105,16 @@ var RedisCacheProvider = class {
     }
   }
   async disconnect() {
-    if (this.client && this.isConnected) {
-      try {
-        await this.client.quit();
-        this.isConnected = false;
-        logger.info({ msg: "[Cache] Disconnected from Redis" });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logger.error({ msg: "[Cache] Error disconnecting from Redis", error: message });
-      }
+    if (!this.client) return;
+    try {
+      await this.client.quit();
+      this.isConnected = false;
+      logger.info({ msg: "[Cache] Disconnected from Redis" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error({ msg: "[Cache] Error disconnecting from Redis", error: message });
+    } finally {
+      this.client = null;
     }
   }
   async get(key) {
@@ -9171,7 +9174,7 @@ var RefreshIntegrationService = class {
       subject,
       message,
       true,
-      true,
+      false,
       "fail"
     );
   }
@@ -9702,11 +9705,23 @@ function escapeHtml(text) {
 }
 
 // emails/notificationTransactionalEmailHtml.ts
+var URL_IN_TEXT = /(https?:\/\/[^\s<]+)/gi;
 function buildNotificationEmailDocument(bodyInner) {
   return `<!DOCTYPE html><html><body>${bodyInner}</body></html>`;
 }
-function buildNotificationMessageParagraph(message) {
-  return `<p style="margin:0 0 12px;">${escapeHtml(message)}</p>`;
+function buildNotificationMessageParagraphWithAutolink(message) {
+  const parts = message.split(URL_IN_TEXT);
+  const inner = parts.map((part, i) => {
+    if (i % 2 === 1) {
+      const u = part.trim();
+      if (/^https?:\/\//i.test(u)) {
+        const safe = escapeHtml(u);
+        return `<a href="${safe}">${safe}</a>`;
+      }
+    }
+    return escapeHtml(part);
+  }).join("");
+  return `<p style="margin:0 0 12px;">${inner}</p>`;
 }
 function buildNotificationDigestSubject(entries) {
   if (entries.length === 1) {
@@ -9716,11 +9731,12 @@ function buildNotificationDigestSubject(entries) {
 }
 function buildNotificationDigestBodyInner(entries) {
   return entries.map(
-    (e) => `<h3 style="margin:16px 0 8px;">${escapeHtml(e.subject)}</h3>${buildNotificationMessageParagraph(e.message)}`
+    (e) => `<h3 style="margin:16px 0 8px;">${escapeHtml(e.subject)}</h3>${buildNotificationMessageParagraphWithAutolink(e.message)}`
   ).join('<hr style="border:none;border-top:1px solid #eee;"/>');
 }
 
 // services/NotificationService.ts
+init_Logger();
 var NotificationService = class {
   constructor(notificationRepository2, userRepository2, organizationRepository2, emailService2, transactionalNotificationEmail) {
     this.notificationRepository = notificationRepository2;
@@ -9767,8 +9783,27 @@ var NotificationService = class {
    * Digest entries are flushed by the notification-email BullMQ worker on an interval.
    */
   async inAppNotification(organizationId, subject, message, sendEmail = false, digest = false, type = "success") {
-    await this.notificationRepository.createNotification(organizationId, message);
+    try {
+      await this.notificationRepository.createNotification(organizationId, message);
+    } catch (err) {
+      logger.warn({
+        msg: "[NotificationService] Failed to persist in-app notification",
+        organizationId,
+        subject,
+        error: err instanceof Error ? err.message : String(err)
+      });
+      throw err;
+    }
     if (!sendEmail || !this.emailService.isEnabled) {
+      if (sendEmail && !this.emailService.isEnabled) {
+        logger.info({
+          msg: "[NotificationService] Email requested but EMAIL_ENABLED is false; skipping",
+          organizationId,
+          subject,
+          digest,
+          type
+        });
+      }
       return;
     }
     const transport = config.bullmq.notificationEmail?.transport ?? "in_process";
@@ -9780,7 +9815,7 @@ var NotificationService = class {
       });
       return;
     }
-    const inner = buildNotificationMessageParagraph(message);
+    const inner = buildNotificationMessageParagraphWithAutolink(message);
     try {
       await this.transactionalNotificationEmail.deliverToOrganizationMembers({
         organizationId,
