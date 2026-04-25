@@ -51,7 +51,7 @@
 			sideOffset={8}
 		>
 			<NotificationDropdownPanel
-				previewItems={preview.items}
+				previewItemsVm={preview.items}
 				previewLoading={preview.loading}
 				previewEmptyMessage={preview.emptyMessage}
 				footerHref={preview.footerHref}

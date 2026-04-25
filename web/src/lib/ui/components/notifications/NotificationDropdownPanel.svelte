@@ -23,7 +23,7 @@
 	}
 
 	type Props = {
-		previewItems: NotificationItemViewModel[];
+		previewItemsVm: NotificationItemViewModel[];
 		previewLoading: boolean;
 		previewEmptyMessage: string | null;
 		footerHref?: string;
@@ -31,7 +31,7 @@
 	};
 
 	let {
-		previewItems,
+		previewItemsVm,
 		previewLoading,
 		previewEmptyMessage,
 		footerHref,
@@ -48,13 +48,13 @@
 		<p class="px-2 py-3 text-sm text-base-content/70">
 			{previewEmptyMessage}
 		</p>
-	{:else if previewItems.length === 0}
+	{:else if previewItemsVm.length === 0}
 		<p class="px-2 py-3 text-sm text-base-content/60">
 			No notifications yet.
 		</p>
 	{:else}
 		<ul class="flex flex-col gap-1">
-			{#each previewItems as row (row.id)}
+			{#each previewItemsVm as row (row.id)}
 				{@const parsed = splitFirstUrl(row.content)}
 				<li
 					class="rounded-md border border-base-300/80 bg-base-100 px-2 py-2 text-left text-sm text-base-content"

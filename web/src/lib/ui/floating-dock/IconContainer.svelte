@@ -70,10 +70,31 @@
 	const hasSublinks = $derived(Array.isArray(item.sublinks) && item.sublinks.length > 0);
 	const notificationsPreview = $derived(item.notificationsPreview);
 
+	const NOTIFICATION_PREVIEW_RELOAD_MIN_MS = 30_000;
+	let lastNotificationPreviewLoadAtMs = $state(0);
+	let notificationPreviewLoadInFlight = $state(false);
+
 	function handleNotificationMenuOpenChange(open: boolean) {
-		if (open && item.notificationsPreview) {
-			void item.notificationsPreview.onOpen();
-		}
+		const p = item.notificationsPreview;
+		if (!open || !p) return;
+
+		// Reduce redundant network calls when users rapidly toggle the bell.
+		// We still allow refresh after a short TTL so the preview stays current.
+		const now = Date.now();
+		const hasAnyItems = Array.isArray(p.items) && p.items.length > 0;
+		const shouldLoad =
+			!notificationPreviewLoadInFlight &&
+			!p.loading &&
+			(!hasAnyItems || now - lastNotificationPreviewLoadAtMs > NOTIFICATION_PREVIEW_RELOAD_MIN_MS);
+
+		if (!shouldLoad) return;
+		notificationPreviewLoadInFlight = true;
+		lastNotificationPreviewLoadAtMs = now;
+		void Promise.resolve()
+			.then(() => p.onOpen())
+			.finally(() => {
+				notificationPreviewLoadInFlight = false;
+			});
 	}
 
 	function updatePanelPosition() {
@@ -132,7 +153,7 @@
 			sideOffset={8}
 		>
 			<NotificationDropdownPanel
-				previewItems={notificationsPreview.items}
+				previewItemsVm={notificationsPreview.items}
 				previewLoading={notificationsPreview.loading}
 				previewEmptyMessage={notificationsPreview.emptyMessage}
 				footerHref={notificationsPreview.footerHref}
