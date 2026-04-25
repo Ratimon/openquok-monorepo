@@ -1,37 +1,24 @@
-import { readFileSync } from "fs";
-import path from "path";
-import dotenv from "dotenv";
 import { createClient } from "redis";
 import RedisCacheProvider from "../../connections/cache/RedisCacheProvider";
 import { R2StorageClient } from "../../connections/R2StorageClient";
 
-/**
- * Load production env via dotenv.parse() so we get the Redis credentials
- * without polluting process.env or needing NODE_ENV=production.
- */
-const prodEnvPath = path.resolve(process.cwd(), ".env.production.local");
-let prodEnv: Record<string, string> = {};
-try {
-    prodEnv = dotenv.parse(readFileSync(prodEnvPath));
-} catch (err) {
-    console.warn(`[ThirdParties] Could not load ${prodEnvPath}: ${(err as Error).message}`);
-}
-
-const redisHost = prodEnv.REDIS_HOST || process.env.REDIS_HOST || "";
-const redisPort = Number(prodEnv.REDIS_PORT || process.env.REDIS_PORT || 6379);
-const redisPassword = prodEnv.REDIS_PASSWORD || process.env.REDIS_PASSWORD || "";
-const redisDb = Number(prodEnv.REDIS_DB || process.env.REDIS_DB || 0);
+// Production smoke tests should run with NODE_ENV=production so jest.env-setup loads backend/.env.production.local.
+// Dev runs can still set THIRD_PARTY_TESTS_* and export env vars explicitly.
+const redisHost = process.env.REDIS_HOST || "";
+const redisPort = Number(process.env.REDIS_PORT || 6379);
+const redisPassword = process.env.REDIS_PASSWORD || "";
+const redisDb = Number(process.env.REDIS_DB || 0);
 
 const enableRedisTests = (process.env.THIRD_PARTY_TESTS_REDIS ?? "").toLowerCase() === "true";
 const hasRedisConfig = enableRedisTests && !!redisHost && redisHost !== "localhost";
 
 const describeIfRedis = hasRedisConfig ? describe : describe.skip;
 
-const r2AccountId = prodEnv.STORAGE_R2_ACCOUNT_ID || process.env.STORAGE_R2_ACCOUNT_ID || "";
-const r2AccessKeyId = prodEnv.STORAGE_R2_ACCESS_KEY_ID || process.env.STORAGE_R2_ACCESS_KEY_ID || "";
-const r2SecretAccessKey = prodEnv.STORAGE_R2_SECRET_ACCESS_KEY || process.env.STORAGE_R2_SECRET_ACCESS_KEY || "";
-const r2Bucket = prodEnv.STORAGE_R2_BUCKET || process.env.STORAGE_R2_BUCKET || "";
-const r2Region = (prodEnv.STORAGE_R2_REGION || process.env.STORAGE_R2_REGION || "auto").trim() || "auto";
+const r2AccountId = process.env.STORAGE_R2_ACCOUNT_ID || "";
+const r2AccessKeyId = process.env.STORAGE_R2_ACCESS_KEY_ID || "";
+const r2SecretAccessKey = process.env.STORAGE_R2_SECRET_ACCESS_KEY || "";
+const r2Bucket = process.env.STORAGE_R2_BUCKET || "";
+const r2Region = (process.env.STORAGE_R2_REGION || "auto").trim() || "auto";
 
 const enableR2Tests = (process.env.THIRD_PARTY_TESTS_R2 ?? "").toLowerCase() === "true";
 const hasR2Config = enableR2Tests && Boolean(r2AccountId && r2AccessKeyId && r2SecretAccessKey && r2Bucket);

@@ -53,7 +53,7 @@ All expect **Redis** at `REDIS_*` (and optional `REDIS_BULLMQ_DB`), matching the
 |----------|--------|
 | `ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT`, `ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT`, `ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT` | Mainly for the **API** (how enqueues are sent); set `=bullmq` in worker env so config matches production intent. Workers consume queues when running. |
 
-Env files are loaded from the **`backend` package directory** (resolved from the installed `backend` module), not from the worker process `cwd`, so you can keep using `backend/.env.production.local` (or inject the same keys in your host) without duplicating files under `orchestrator/`. See `orchestrator/.env.worker.example` for a short template.
+Env files are loaded from the **`backend` package directory** (resolved from the installed `backend` module), not from the worker process `cwd`, so you can keep using `backend/.env.production.local` (or inject the same keys in your host) without duplicating files under `orchestrator/`. See `orchestrator/.env.production.example` for a short template.
 
 ## Unit tests (orchestrator package)
 

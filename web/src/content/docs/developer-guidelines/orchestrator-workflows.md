@@ -60,9 +60,9 @@ The default **in-process** transport **does not survive API restarts**: if the A
 
 With <code>transport: bullmq</code> in <code>backend/config/orchestratorFlows.ts</code>, run state and the job queue live in **Redis**, and you run a **worker process** for each flow you enable:
 
-- **Integration refresh** — <code>pnpm orchestrator:worker:integration-refresh-bullmq</code> locally (or <code>pnpm worker:integration-refresh-bullmq</code> under <code>backend/</code>); **production** <code>pnpm railway:orchestrator:start:integration-refresh</code> after <code>pnpm railway:orchestrator:build</code>, on an always-on host such as <a href="/docs/Installation/railway">Railway</a>.
-- **Notification email** (when that transport is <code>bullmq</code>) — <code>pnpm railway:orchestrator:start:notification-email</code> in production; local <code>pnpm orchestrator:worker:notification-email-bullmq</code>.
-- **Scheduled social posts** (when that transport is <code>bullmq</code>) — <code>pnpm railway:orchestrator:start:scheduled-social-post</code> in production (Railway); local <code>pnpm orchestrator:worker:scheduled-social-post-bullmq</code>.
+- **Integration refresh** — <code>pnpm orchestrator:dev:worker:integration-refresh-bullmq</code> locally (or <code>pnpm worker:integration-refresh-bullmq</code> under <code>backend/</code>); **production** <code>pnpm railway:orchestrator:start:integration-refresh</code> after <code>pnpm railway:orchestrator:build</code>, on an always-on host such as <a href="/docs/Installation/railway">Railway</a>.
+- **Notification email** (when that transport is <code>bullmq</code>) — <code>pnpm railway:orchestrator:start:notification-email</code> in production; local <code>pnpm orchestrator:dev:worker:notification-email-bullmq</code>.
+- **Scheduled social posts** (when that transport is <code>bullmq</code>) — <code>pnpm railway:orchestrator:start:scheduled-social-post</code> in production (Railway); local <code>pnpm orchestrator:dev:worker:scheduled-social-post-bullmq</code>.
 
 For integration refresh, that improves durability across API deploys, but each <code>tick</code> still performs a long in-node sleep while a worker job is active (see Flowcraft pause/sleep guidance). Tune BullMQ concurrency and monitor queue depth accordingly.
 

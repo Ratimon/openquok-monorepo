@@ -115,15 +115,18 @@ class RedisCacheProvider {
     }
 
     async disconnect(): Promise<void> {
-        if (this.client && this.isConnected) {
-            try {
-                await this.client.quit();
-                this.isConnected = false;
-                logger.info({ msg: "[Cache] Disconnected from Redis" });
-            } catch (error: unknown) {
-                const message = error instanceof Error ? error.message : String(error);
-                logger.error({ msg: "[Cache] Error disconnecting from Redis", error: message });
-            }
+        if (!this.client) return;
+        try {
+            // Quit even when `isConnected` is false: tests (and reconnect flows) can leave a client open
+            // while the ready/end events have already toggled the flag.
+            await this.client.quit();
+            this.isConnected = false;
+            logger.info({ msg: "[Cache] Disconnected from Redis" });
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            logger.error({ msg: "[Cache] Error disconnecting from Redis", error: message });
+        } finally {
+            this.client = null;
         }
     }
 

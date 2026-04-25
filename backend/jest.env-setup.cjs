@@ -13,7 +13,8 @@ if (process.env.NODE_ENV === undefined || process.env.NODE_ENV === "") {
 const env = process.env.NODE_ENV;
 
 // Same order as GlobalConfig: `.env.${NODE_ENV}.local` first, then `.env` (fills missing keys only).
-dotenv.config({ path: path.join(root, `.env.${env}.local`) });
+const forceOverride = (process.env.DOTENV_OVERRIDE ?? "").toLowerCase() === "true";
+dotenv.config({ path: path.join(root, `.env.${env}.local`), override: forceOverride || env !== "production" });
 dotenv.config({ path: path.join(root, ".env") });
 
 // Optional overrides (e.g. CI): only if present so we do not wipe values with an empty file.

@@ -1,9 +1,11 @@
+import type { CacheProvider } from "./CacheService";
+
 import { config } from "../../config/GlobalConfig";
+
 import CacheService from "./CacheService";
 import CacheInvalidationService from "./CacheInvalidationService";
 import MemoryCacheProvider from "./MemoryCacheProvider";
 import RedisCacheProvider from "./RedisCacheProvider";
-import type { CacheProvider } from "./CacheService";
 
 function createCacheProvider(): CacheProvider {
     const cacheConfig = config.cache as {

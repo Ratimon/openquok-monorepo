@@ -2,7 +2,7 @@
 title: Development environment
 description: Run Openquok's backend and web apps locally, execute tests, database scripts, and deployment commands.
 order: 0
-lastUpdated: 2026-04-14
+lastUpdated: 2026-04-24
 ---
 
 <script>
@@ -184,7 +184,10 @@ pnpm preview
 
 ### Optional Redis (cache)
 
-If you use <code>CACHE_PROVIDER=redis</code>, run Redis locally or use a managed instance and set <code>REDIS_HOST</code>, <code>REDIS_PORT</code>, and password fields to match. See <Badge text="infra/README.md" variant="path" /> for a short note.
+If you use <code>CACHE_PROVIDER=redis</code>, run Redis locally or use a managed instance and set <code>REDIS_HOST</code>, <code>REDIS_PORT</code>, and password fields to match.
+
+- Local Docker: <a href="/docs/configuration-backend/docker">Docker (local services)</a>
+- Full Redis config: <a href="/docs/configuration-backend/redis">Redis cache</a>
 
 **Workflow-style jobs** (e.g. integration refresh orchestration) run **in the API process** via Flowcraft (<Badge text="backend/flowcraft/" variant="path" />); there is no separate worker script in this repo.
 

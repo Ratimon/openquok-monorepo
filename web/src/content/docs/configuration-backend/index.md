@@ -2,7 +2,7 @@
 title: Configuration - Backend
 description: Backend configuration — env vars, Supabase, and services Openquok.
 order: 0
-lastUpdated: 2026-04-14
+lastUpdated: 2026-04-24
 ---
 
 <script>
@@ -49,6 +49,7 @@ Configure Redis (recommended for production), Sentry (optional), Google OAuth (o
 ## Guides
 
 <CardGrid>
+<LinkCard title="Docker (local services)" description="Run local Redis via Docker Compose for API + workers" href="/docs/configuration-backend/docker" />
 <LinkCard title="Supabase" description="Project setup, keys, dashboard settings, and local vs cloud notes" href="/docs/configuration-backend/supabase" />
 <LinkCard title="Redis cache" description="Switch cache provider to Redis and configure REDIS_* variables" href="/docs/configuration-backend/redis" />
 <LinkCard title="Sentry" description="Enable error monitoring with SENTRY_DSN" href="/docs/configuration-backend/sentry" />

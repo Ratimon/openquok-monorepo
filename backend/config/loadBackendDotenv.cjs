@@ -36,8 +36,12 @@ function resolveBackendPackageRoot() {
 function loadBackendDotenv() {
     const root = resolveBackendPackageRoot();
     const env = process.env.NODE_ENV ?? "development";
-    dotenv.config({ path: path.join(root, `.env.${env}.local`) });
-    dotenv.config({ path: path.join(root, ".env") });
+    // In local/dev, prefer env files over shell-exported vars so developers don't accidentally
+    // run workers against a production-managed Redis (or other shared services).
+    const forceOverride = String(process.env.DOTENV_OVERRIDE ?? "").toLowerCase() === "true";
+    const override = forceOverride || env !== "production";
+    dotenv.config({ path: path.join(root, `.env.${env}.local`), override });
+    dotenv.config({ path: path.join(root, ".env"), override: false });
 }
 
 module.exports = { loadBackendDotenv };
