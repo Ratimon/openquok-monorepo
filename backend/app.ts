@@ -224,8 +224,7 @@ function isRunningOnVercel(): boolean {
 // Do not use process.env.VERCEL alone: "Automatically expose System Environment Variables" can be off in the project.
 if (!isRunningOnVercel()) {
     createApp()
-        .then(async (configuredApp) => {
-            const { config } = await import("./config/GlobalConfig");
+        .then((configuredApp) => {
             const port = (config.server as { port?: number }).port ?? 3000;
             if (process.env.JEST_WORKER_ID) {
                 return;
