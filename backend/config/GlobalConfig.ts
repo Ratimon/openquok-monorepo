@@ -74,6 +74,15 @@ export const config: ConfigObject = {
         senderEmailAddress: getEnv("SENDER_EMAIL_ADDRESS", "noreply@example.com"),
     },
 
+    admin: {
+        bullBoard: {
+            enabled: getEnvBoolean("BULL_BOARD_ENABLED", false),
+            path: getEnvTrimmed("BULL_BOARD_PATH", "/admin/queues"),
+            username: getEnvTrimmed("BULL_BOARD_USERNAME", ""),
+            password: getEnvTrimmed("BULL_BOARD_PASSWORD", ""),
+        },
+    },
+
     server: {
         nodeEnv: getEnv("NODE_ENV", "development"),
         frontendDomainUrl: getEnvTrimmed("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
@@ -225,12 +234,12 @@ export const config: ConfigObject = {
             reconcilerStalledThresholdSeconds: flowcraftBullmqDefaults.reconcilerStalledThresholdSeconds,
             reconcilerIntervalMs: flowcraftBullmqDefaults.reconcilerIntervalMs,
         },
-        queueName: orchestratorFlows.integrationRefresh.queueName,
         /**
          * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).
          * Enabled state from `config/orchestratorFlows.ts`; forced off under Jest (`JEST_WORKER_ID`) so tests do not sleep.
          */
         integrationRefresh: {
+            queueName: orchestratorFlows.integrationRefresh.queueName,
             enabled: (() => {
                 const underJest = getEnv("JEST_WORKER_ID", "") !== "";
                 return underJest ? false : orchestratorFlows.integrationRefresh.enabled;

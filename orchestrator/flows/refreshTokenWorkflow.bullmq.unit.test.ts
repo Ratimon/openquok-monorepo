@@ -21,7 +21,8 @@ const integrationId = faker.string.uuid();
 describe("runRefreshTokenOrchestration (bullmq transport)", () => {
     const getById = jest.fn();
     const runRefresh = jest.fn();
-    const queueName = (config.bullmq as { queueName: string }).queueName;
+    const bullmq = config.bullmq as { integrationRefresh?: { queueName?: string } };
+    const queueName = bullmq.integrationRefresh?.queueName ?? "integration-refresh";
 
     beforeAll(() => {
         expect((config.bullmq as { integrationRefresh?: { transport?: string } }).integrationRefresh?.transport).toBe(

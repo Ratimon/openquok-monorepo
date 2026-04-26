@@ -1,7 +1,8 @@
-import { BullMQAdapter, RedisCoordinationStore } from "@flowcraft/bullmq-adapter";
+import { RedisCoordinationStore } from "@flowcraft/bullmq-adapter";
 import type IORedis from "ioredis";
 import { config } from "backend/config/GlobalConfig.js";
 import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
+import { SafeBullMQAdapter } from "../safeBullMQAdapter.js";
 import {
     buildNotificationDigestFlushBlueprintDistributed,
     buildNotificationSendPlainBlueprintDistributed,
@@ -20,7 +21,7 @@ import {
 export function createNotificationEmailBullMqAdapter(
     workflowDependencies: NotificationEmailWorkflowDependencies
 ): {
-    adapter: BullMQAdapter;
+    adapter: SafeBullMQAdapter;
     redis: IORedis;
 } {
     const redis = createQueueIoredisClient();
@@ -31,7 +32,7 @@ export function createNotificationEmailBullMqAdapter(
     const sendPlainBlueprint = buildNotificationSendPlainBlueprintDistributed();
     const digestFlushBlueprint = buildNotificationDigestFlushBlueprintDistributed();
 
-    const adapter = new BullMQAdapter({
+    const adapter = new SafeBullMQAdapter({
         connection: redis,
         coordinationStore,
         queueName,

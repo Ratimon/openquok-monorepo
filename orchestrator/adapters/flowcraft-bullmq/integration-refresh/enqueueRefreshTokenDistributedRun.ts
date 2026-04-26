@@ -16,7 +16,8 @@ export async function enqueueRefreshTokenDistributedRun(
     options?: { queueName?: string }
 ): Promise<{ runId: string; enqueued: boolean }> {
     const redis = createQueueIoredisClient();
-    const { queueName: configuredQueueName } = config.bullmq as { queueName: string };
+    const bullmq = config.bullmq as { integrationRefresh?: { queueName?: string } };
+    const configuredQueueName = bullmq.integrationRefresh?.queueName ?? "integration-refresh";
     const queueName = options?.queueName ?? configuredQueueName;
 
     const blueprint = buildRefreshTokenBlueprintDistributed();

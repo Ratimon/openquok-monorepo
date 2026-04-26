@@ -44,6 +44,20 @@ function stripOptionalJsonQuotes(s: string): string {
     return s;
 }
 
+async function resolveBlueprintIdForRun(redis: IORedis, runId: string): Promise<string | undefined> {
+    const fromCoord = await redis.get(`flowcraft:blueprint:${runId}`);
+    if (fromCoord) {
+        return stripOptionalJsonQuotes(fromCoord);
+    }
+    const raw = await redis.hget(`${WORKFLOW_STATE_KEY_PREFIX}${runId}`, "blueprintId");
+    if (!raw) return undefined;
+    try {
+        return stripOptionalJsonQuotes(JSON.parse(raw) as string);
+    } catch {
+        return stripOptionalJsonQuotes(raw);
+    }
+}
+
 async function main(): Promise<void> {
     const blueprintId = parseBlueprintIdArg(process.argv);
     const host = requireEnv("REDIS_HOST");
@@ -76,10 +90,8 @@ async function main(): Promise<void> {
             for (const key of keys) {
                 scanned++;
                 const runId = key.slice(WORKFLOW_STATE_KEY_PREFIX.length);
-                const raw = await redis.hget(key, "blueprintId");
-                if (!raw) continue;
-                const resolved = stripOptionalJsonQuotes(raw);
-                if (resolved !== blueprintId) continue;
+                const resolved = await resolveBlueprintIdForRun(redis, runId);
+                if (!resolved || resolved !== blueprintId) continue;
 
                 await redis.del(key);
                 await redis.del(`flowcraft:blueprint:${runId}`);

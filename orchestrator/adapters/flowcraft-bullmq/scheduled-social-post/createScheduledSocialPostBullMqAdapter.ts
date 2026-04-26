@@ -1,7 +1,8 @@
-import { BullMQAdapter, RedisCoordinationStore } from "@flowcraft/bullmq-adapter";
+import { RedisCoordinationStore } from "@flowcraft/bullmq-adapter";
 import type IORedis from "ioredis";
 import { config } from "backend/config/GlobalConfig.js";
 import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
+import { SafeBullMQAdapter } from "../safeBullMQAdapter.js";
 import {
     buildScheduledSocialPostBlueprintDistributed,
     getScheduledSocialPostNodeRegistry,
@@ -16,7 +17,7 @@ import {
  * Use with `pnpm worker:scheduled-social-post-bullmq`.
  */
 export function createScheduledSocialPostBullMqAdapter(workflowDependencies: ScheduledSocialPostWorkflowDependencies): {
-    adapter: BullMQAdapter;
+    adapter: SafeBullMQAdapter;
     redis: IORedis;
 } {
     const redis = createQueueIoredisClient();
@@ -25,7 +26,7 @@ export function createScheduledSocialPostBullMqAdapter(workflowDependencies: Sch
     const queueName = bullmq.scheduledSocialPost?.queueName ?? "scheduled-social-post";
     const blueprint = buildScheduledSocialPostBlueprintDistributed();
 
-    const adapter = new BullMQAdapter({
+    const adapter = new SafeBullMQAdapter({
         connection: redis,
         coordinationStore,
         queueName,

@@ -34,15 +34,14 @@ export async function runRefreshTokenOrchestration(
     options?: RunRefreshTokenOrchestrationOptions
 ): Promise<boolean> {
     const bullmqSection = config.bullmq as {
-        integrationRefresh?: { transport?: string };
-        queueName?: string;
+        integrationRefresh?: { transport?: string; queueName?: string };
     };
     const refreshOrch = bullmqSection.integrationRefresh;
 
     if (refreshOrch?.transport === "bullmq") {
         try {
             const { enqueued } = await enqueueRefreshTokenDistributedRun(input, {
-                queueName: bullmqSection.queueName,
+                queueName: refreshOrch.queueName,
             });
             return enqueued;
         } catch (err) {

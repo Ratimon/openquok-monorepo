@@ -55,7 +55,7 @@ const flowcraftReconciler = startFlowcraftBullMqReconciliationTimer({
 });
 logger.info({
     msg: "[Worker] Flowcraft BullMQ adapter listening for integration refresh workflows",
-    queueName: (config.bullmq as { queueName: string }).queueName,
+    queueName: (config.bullmq as { integrationRefresh?: { queueName?: string } }).integrationRefresh?.queueName ?? "integration-refresh",
 });
 
 async function shutdown(signal: string): Promise<void> {

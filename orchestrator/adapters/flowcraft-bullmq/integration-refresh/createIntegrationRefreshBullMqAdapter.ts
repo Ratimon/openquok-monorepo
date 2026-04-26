@@ -1,9 +1,10 @@
-import { BullMQAdapter, RedisCoordinationStore } from "@flowcraft/bullmq-adapter";
+import { RedisCoordinationStore } from "@flowcraft/bullmq-adapter";
 import type IORedis from "ioredis";
 import { config } from "backend/config/GlobalConfig.js";
 import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
 import { buildRefreshTokenBlueprintDistributed, getRefreshTokenNodeRegistry } from "../../../blueprints/refreshTokenBlueprint.js";
 import { REFRESH_TOKEN_BLUEPRINT_ID, type RefreshTokenWorkflowDependencies } from "../../../blueprints/refreshTokenTypes.js";
+import { SafeBullMQAdapter } from "../safeBullMQAdapter.js";
 
 /**
  * Worker-side BullMQ adapter for the refresh-token blueprint.
@@ -11,15 +12,16 @@ import { REFRESH_TOKEN_BLUEPRINT_ID, type RefreshTokenWorkflowDependencies } fro
  * (the adapter does not disconnect a caller-supplied `IORedis` instance).
  */
 export function createIntegrationRefreshBullMqAdapter(workflowDependencies: RefreshTokenWorkflowDependencies): {
-    adapter: BullMQAdapter;
+    adapter: SafeBullMQAdapter;
     redis: IORedis;
 } {
     const redis = createQueueIoredisClient();
     const coordinationStore = new RedisCoordinationStore(redis);
     const blueprint = buildRefreshTokenBlueprintDistributed();
-    const { queueName } = config.bullmq as { queueName: string };
+    const bullmq = config.bullmq as { integrationRefresh?: { queueName?: string } };
+    const queueName = bullmq.integrationRefresh?.queueName ?? "integration-refresh";
 
-    const adapter = new BullMQAdapter({
+    const adapter = new SafeBullMQAdapter({
         connection: redis,
         coordinationStore,
         queueName,

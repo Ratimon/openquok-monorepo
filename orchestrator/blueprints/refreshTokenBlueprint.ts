@@ -8,6 +8,30 @@ import {
 } from "./refreshTokenTypes.js";
 
 /**
+ * Flowcraft assigns `fn_<hash>` node keys with a process-global counter, so the blueprint and the
+ * registry must be produced from the **same** FlowBuilder instance.
+ */
+type RefreshTokenDistributedArtifacts = {
+    blueprint: WorkflowBlueprint;
+    registry: NodeRegistry;
+};
+
+let distributedArtifacts: RefreshTokenDistributedArtifacts | null = null;
+
+function getRefreshTokenDistributedArtifacts(): RefreshTokenDistributedArtifacts {
+    if (distributedArtifacts) return distributedArtifacts;
+    const flow = createRefreshTokenFlowBuilder();
+    const blueprint = flow.toBlueprint();
+    blueprint.metadata = {
+        ...blueprint.metadata,
+        version: REFRESH_TOKEN_BLUEPRINT_VERSION,
+    };
+    const registry = Object.fromEntries(flow.getFunctionRegistry().entries());
+    distributedArtifacts = { blueprint, registry };
+    return distributedArtifacts;
+}
+
+/**
  * Fluent blueprint: `begin` enters the loop controller; each iteration runs `tick`.
  * Continuation uses the default property evaluator and the `loopShouldContinue` workflow key (flat state from context.toJSON()).
  * A `break` edge to `finished` is required so the loop controller can terminate the workflow when the condition is false.
@@ -28,15 +52,10 @@ export function createRefreshTokenFlowBuilder() {
 
 /** Blueprint + version metadata for BullMQ / distributed execution. */
 export function buildRefreshTokenBlueprintDistributed(): WorkflowBlueprint {
-    const blueprint = createRefreshTokenFlowBuilder().toBlueprint();
-    blueprint.metadata = {
-        ...blueprint.metadata,
-        version: REFRESH_TOKEN_BLUEPRINT_VERSION,
-    };
-    return blueprint;
+    return getRefreshTokenDistributedArtifacts().blueprint;
 }
 
 /** User node implementations for the worker registry (function nodes use stable `fn_*` keys from the builder). */
 export function getRefreshTokenNodeRegistry(): NodeRegistry {
-    return Object.fromEntries(createRefreshTokenFlowBuilder().getFunctionRegistry());
+    return getRefreshTokenDistributedArtifacts().registry;
 }
