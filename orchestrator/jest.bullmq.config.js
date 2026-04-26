@@ -9,5 +9,5 @@ export default {
     ...baseConfig,
     setupFiles: ["<rootDir>/../backend/jest.env-setup.cjs"],
     testMatch: ["**/*.bullmq.unit.test.{js,ts}"],
-    testPathIgnorePatterns: ["/node_modules/"],
+    testPathIgnorePatterns: ["/node_modules/", "/dist/"],
 };

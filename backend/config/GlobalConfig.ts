@@ -77,9 +77,13 @@ export const config: ConfigObject = {
     admin: {
         bullBoard: {
             enabled: getEnvBoolean("BULL_BOARD_ENABLED", false),
-            path: getEnvTrimmed("BULL_BOARD_PATH", "/admin/queues"),
-            username: getEnvTrimmed("BULL_BOARD_USERNAME", ""),
-            password: getEnvTrimmed("BULL_BOARD_PASSWORD", ""),
+            /**
+             * Path relative to `API_PREFIX` (default `/api/v1`), e.g. `/admin-queues` → `/api/v1/admin-queues`.
+             * Not nested under the REST `AdminRoute` at `/api/v1/admin/*` (e.g. avoid `/admin/queues` unless you
+             * also mount this router before `use("/admin", adminRouter)` in `routes/index.ts`).
+             * You may set an absolute public path that starts with `API_PREFIX`.
+             */
+            path: getEnvTrimmed("BULL_BOARD_PATH", "/admin-queues"),
         },
     },
 
@@ -233,6 +237,8 @@ export const config: ConfigObject = {
         flowcraft: {
             reconcilerStalledThresholdSeconds: flowcraftBullmqDefaults.reconcilerStalledThresholdSeconds,
             reconcilerIntervalMs: flowcraftBullmqDefaults.reconcilerIntervalMs,
+            /** Override via `BULLMQ_WORKER_LOCK_DURATION_MS` (milliseconds). */
+            workerLockDurationMs: getEnvNumber("BULLMQ_WORKER_LOCK_DURATION_MS", flowcraftBullmqDefaults.workerLockDurationMs),
         },
         /**
          * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).

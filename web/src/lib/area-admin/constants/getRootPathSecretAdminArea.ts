@@ -34,6 +34,13 @@ export function getRootPathEmailManager(): string {
 }
 
 /**
+ * Segment for Bull Board (BullMQ) queue dashboard (proxied in the web app with Bearer token).
+ */
+export function getRootPathBullBoard(): string {
+	return 'bull-board';
+}
+
+/**
  * Full path for secret-admin feedback manager.
  */
 export function getRootPathSecretAdminFeedbackManager(): string {
@@ -59,6 +66,13 @@ export function getRootPathSecretAdminPermissionManager(): string {
  */
 export function getRootPathSecretAdminEmailManager(): string {
 	return `${getRootPathSecretAdminArea()}/${getRootPathEmailManager()}`;
+}
+
+/**
+ * Full path for secret-admin Bull Board (queues).
+ */
+export function getRootPathSecretAdminBullBoard(): string {
+	return `${getRootPathSecretAdminArea()}/${getRootPathBullBoard()}`;
 }
 
 /**

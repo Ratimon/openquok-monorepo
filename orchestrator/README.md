@@ -25,6 +25,7 @@ All expect **Redis** at `REDIS_*` (and optional `REDIS_BULLMQ_DB`), matching the
 | `PUBLIC_SUPABASE_ANON_KEY` | Required (service client falls back only in test/Jest). |
 | `SUPABASE_SERVICE_ROLE_KEY` | Required in production for server-side tables used by refresh, notifications, and scheduled posts. |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`, `REDIS_BULLMQ_DB` | Match the API’s queue/cache Redis; defaults exist for local Redis. |
+| `BULLMQ_WORKER_LOCK_DURATION_MS` | Optional. Flowcraft jobs use this as BullMQ `lockDuration` (default **600000** ms = 10 min). The upstream `@flowcraft/bullmq-adapter` did not set this; BullMQ’s **30s** default can cause `Error: could not renew lock for job …` when a node runs longer (OAuth refresh, slow HTTP). |
 
 **Integration refresh worker only**
 

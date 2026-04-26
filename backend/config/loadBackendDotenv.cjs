@@ -40,7 +40,13 @@ function loadBackendDotenv() {
     // run workers against a production-managed Redis (or other shared services).
     const forceOverride = String(process.env.DOTENV_OVERRIDE ?? "").toLowerCase() === "true";
     const override = forceOverride || env !== "production";
-    dotenv.config({ path: path.join(root, `.env.${env}.local`), override });
+    // `backend/jest.env-setup.cjs` (and optional per-package Jest `setupFiles`) already applied
+    // `.env.${NODE_ENV}.local` with the intended override rules. Re-applying with `override: true`
+    // here would clobber `setupFiles` values (e.g. orchestrator `ORCHESTRATOR_*_TRANSPORT=in_process`)
+    // when `GlobalConfig` loads. Only backfill keys not already in `process.env`.
+    const underJest = String(process.env.JEST_WORKER_ID ?? "").length > 0;
+    const overrideLocal = underJest ? false : override;
+    dotenv.config({ path: path.join(root, `.env.${env}.local`), override: overrideLocal });
     dotenv.config({ path: path.join(root, ".env"), override: false });
 }
 

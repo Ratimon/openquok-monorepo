@@ -14,7 +14,6 @@ import cors from "cors";
 
 import { supabaseAnonClient, supabaseServiceClientConnection } from "./connections/index";
 import { mountAllRoutes } from "./routes/index";
-import { mountBullBoard } from "./routes/BullBoardRoute";
 import { errorHandler } from "./controllers/ErrorController";
 import { configureCoreMiddleware } from "./middlewares/core";
 import { generateSitemapMiddleware } from "./middlewares/generateSitemap";
@@ -193,9 +192,6 @@ async function createApp(): Promise<Express> {
         logger.error({ msg: "[Setup] Failed to mount API routes" });
         throw new Error("Failed to mount API routes");
     }
-
-    // Admin-only BullMQ dashboard (Bull Board). Mounted outside /api/v1 to avoid Bearer-token coupling.
-    mountBullBoard(app, config as ConfigObject);
 
     Sentry.setupExpressErrorHandler(app);
 

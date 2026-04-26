@@ -4,6 +4,7 @@
 		getRootPathSecretAdminRoleManager,
 		getRootPathSecretAdminPermissionManager,
 		getRootPathSecretAdminEmailManager,
+		getRootPathSecretAdminBullBoard,
 		getRootPathSecretAdminBlogManager,
 		getRootPathSecretAdminConfigManager
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
@@ -13,6 +14,7 @@
 	const roleManagerUrl = absoluteUrl(getRootPathSecretAdminRoleManager());
 	const permissionManagerUrl = absoluteUrl(getRootPathSecretAdminPermissionManager());
 	const emailManagerUrl = absoluteUrl(getRootPathSecretAdminEmailManager());
+	const bullBoardUrl = absoluteUrl(getRootPathSecretAdminBullBoard());
 	const blogManagerUrl = absoluteUrl(getRootPathSecretAdminBlogManager());
 	const configManagerUrl = absoluteUrl(getRootPathSecretAdminConfigManager());
 </script>
@@ -28,6 +30,7 @@
 		<li><a href={roleManagerUrl} class="link link-primary">Role manager</a></li>
 		<li><a href={permissionManagerUrl} class="link link-primary">Permission manager</a></li>
 		<li><a href={emailManagerUrl} class="link link-primary">Email manager</a></li>
+		<li><a href={bullBoardUrl} class="link link-primary">Queue dashboard (Bull Board)</a></li>
 		<li><a href={blogManagerUrl} class="link link-primary">Blog Manager</a></li>
 		<li><a href={configManagerUrl} class="link link-primary">Config manager</a></li>
 	</ul>

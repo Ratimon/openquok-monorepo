@@ -16,6 +16,7 @@ import { publicIntegrationRouter } from "./publicApi/integrationRoutes.js";
 import { notificationRouter } from "./NotificationRoute.js";
 import { postRouter } from "./postRoutes.js";
 import { thirdPartyRouter } from "./ThirdPartyRoute.js";
+import { registerBullBoardRoutes, registerBullBoardSessionRoutes } from "./BullBoardRoute.js";
 import { logger } from "../utils/Logger";
 
 /**
@@ -34,6 +35,10 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
 
     apiRouter.use("/auth", authRouter);
     apiRouter.use("/users", userRouter);
+    // Bull Board must mount before the generic `/admin` router, otherwise a path like `/admin/queues`
+    // is handled only by `AdminRoute` (as `/queues` on the admin router) and the dashboard is never hit.
+    registerBullBoardSessionRoutes(apiRouter, config);
+    registerBullBoardRoutes(apiRouter, config);
     apiRouter.use("/admin", adminRouter);
     apiRouter.use("/company", companyRouter);
     apiRouter.use("/settings", settingsRouter);

@@ -44,6 +44,9 @@
  *
  * - **`reconcilerIntervalMs` / `reconcilerStalledThresholdSeconds`**: [Redis-side reconciliation](https://flowcraft.js.org/guide/adapters/bullmq#reconciliation) for
  *   stalled workflow runs. Set `reconcilerIntervalMs` to `0` to disable.
+ * - **`workerLockDurationMs`**: passed to BullMQ `Worker` `lockDuration` in `openquok-orchestrator`’s
+ *   `SafeBullMQAdapter` (the upstream adapter defaults to 30s, which is too short for OAuth / long node execution
+ *   and causes “could not renew lock” errors).
  */
 export type OrchestrationTransport = "in_process" | "bullmq";
 
@@ -52,6 +55,11 @@ export const flowcraftBullmqDefaults = {
     reconcilerStalledThresholdSeconds: 300,
     /** How often each BullMQ worker runs the reconciler; `0` = off. */
     reconcilerIntervalMs: 3_600_000,
+    /**
+     * BullMQ `lockDuration` (ms) for Flowcraft `executeNode` jobs. The stock `@flowcraft/bullmq-adapter` uses
+     * BullMQ’s 30s default; refresh / HTTP-heavy nodes often need several minutes.
+     */
+    workerLockDurationMs: 600_000,
 } as const;
 
 export const orchestratorFlows = {

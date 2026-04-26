@@ -4,10 +4,16 @@ import { logger } from "backend/utils/Logger.js";
 import { runMissingScheduledPostRescan } from "./missingScheduledPostReconciliation.js";
 import { runScheduledSocialPostOrchestration } from "./scheduledSocialPostWorkflow.js";
 
-/** Mutable: tests flip `transport` between `in_process` and `bullmq`. */
-const mockBullmqSection: {
-    scheduledSocialPost: { transport: string };
-} = { scheduledSocialPost: { transport: "in_process" } };
+/**
+ * Only the fields this module reads. Do not add `integrationRefresh` (production default is `bullmq` in
+ * `orchestratorFlows`); a partial `config.bullmq` with `integrationRefresh: { transport: "bullmq" }`
+ * would make other Flowcraft unit tests in the same Jest worker enqueue to BullMQ. Leaving it unset
+ * means `integrationRefresh` is `undefined` here — not production parity, but not the enqueue branch either.
+ * Mutable: tests flip `scheduledSocialPost.transport` only.
+ */
+const mockBullmqSection: { scheduledSocialPost: { transport: string } } = {
+    scheduledSocialPost: { transport: "in_process" },
+};
 
 jest.mock("backend/config/GlobalConfig.js", () => ({
     config: {

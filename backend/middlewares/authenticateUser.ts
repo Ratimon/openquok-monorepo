@@ -7,6 +7,12 @@ import type { RbacRepository } from "../repositories/RbacRepository";
 import { AuthError, TokenError, PermissionError } from "../errors/AuthError";
 import { logger } from "../utils/Logger";
 
+/**
+ * HttpOnly cookie name for Bull Board: path-scoped mirror of the access token
+ * (set by `POST /admin/bull-board/session`; see `routes/BullBoardRoute.ts`).
+ */
+export const BULL_BOARD_ACCESS_COOKIE_NAME = "openquok_bullboard_jwt";
+
 /** Auth id = Supabase auth.uid(); publicId = public.users.id (used in RBAC). */
 export interface AuthenticatedRequest extends Request {
     user?: {
@@ -22,18 +28,11 @@ export interface AuthenticatedRequest extends Request {
     };
 }
 
-function parseBearerToken(req: Request): string {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        throw new TokenError("No token provided or invalid format");
-    }
-    const token = authHeader.split(" ")[1];
-    if (!token) throw new TokenError("No token provided");
-
-    if (token.startsWith("{")) {
+function normalizeAccessTokenString(raw: string): string {
+    if (raw.startsWith("{")) {
         let parsed: { value?: string };
         try {
-            parsed = JSON.parse(token);
+            parsed = JSON.parse(raw);
         } catch {
             throw new TokenError("Invalid token format");
         }
@@ -42,7 +41,27 @@ function parseBearerToken(req: Request): string {
         }
         return parsed.value;
     }
-    return token.trim();
+    return raw.trim();
+}
+
+/**
+ * Resolves a Supabase access token from `Authorization: Bearer` or, for Bull Board only, a path-scoped
+ * {@link BULL_BOARD_ACCESS_COOKIE_NAME} (set via `POST /admin/bull-board/session`). Subresources like
+ * `<script src>` cannot send the Bearer header; the cookie is HttpOnly and limited by Path.
+ */
+export function parseBearerToken(req: Request): string {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.split(" ")[1];
+        if (!token) throw new TokenError("No token provided");
+        return normalizeAccessTokenString(token);
+    }
+    const cookies = (req as Request & { cookies?: Record<string, string> }).cookies;
+    const fromCookie = cookies?.[BULL_BOARD_ACCESS_COOKIE_NAME];
+    if (fromCookie && fromCookie.length > 0) {
+        return normalizeAccessTokenString(fromCookie.trim());
+    }
+    throw new TokenError("No token provided or invalid format");
 }
 
 /** @param supabase Anon client (same project as user JWTs); not the service-role client. */
