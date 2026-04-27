@@ -24,9 +24,9 @@
 <div class="rounded-xl border border-base-300 bg-base-100 text-base-content overflow-hidden">
 	<div class="flex gap-3 p-4">
 		<div class="relative h-10 w-10 shrink-0">
-			{#if channel.picture}
+			{#if channel.pictureUrl}
 				<img
-					src={channel.picture}
+					src={channel.pictureUrl}
 					alt={channel.name}
 					class="h-10 w-10 rounded-full bg-base-200 object-cover"
 				/>

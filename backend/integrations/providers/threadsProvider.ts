@@ -19,6 +19,26 @@ type ThreadsSettingsWithMedia = { media?: { items?: ThreadsMediaItem[] } | Threa
 
 const GRAPH = "https://graph.threads.net/v1.0";
 
+function mediaExtFromUrlOrKey(path: string): string {
+    const raw = String(path || "").trim();
+    if (!raw) return "";
+    try {
+        const u = new URL(raw);
+        const p = u.pathname || "";
+        return (p.split(".").pop() ?? "").toLowerCase();
+    } catch {
+        return (raw.split("?")[0]?.split("#")[0]?.split(".").pop() ?? "").toLowerCase();
+    }
+}
+
+function assertThreadsSupportedMedia(pathOrUrl: string): void {
+    const ext = mediaExtFromUrlOrKey(pathOrUrl);
+    // Meta frequently rejects SVG for media containers; keep it explicit to avoid vague Graph errors.
+    if (ext === "svg") {
+        throw new Error("Threads does not support SVG uploads. Convert the image to PNG or JPEG and try again.");
+    }
+}
+
 // to do : remove this log (debug purpose)
 /** Bumped when publish request shape or error handling changes (verify worker picked up `backend` build). */
 const THREADS_PROVIDER_BUILD = "2026-04-24d";
@@ -200,6 +220,7 @@ export class ThreadsProvider implements SocialProvider {
         if (!raw) {
             throw new Error("Media path is empty");
         }
+        assertThreadsSupportedMedia(raw);
         if (raw.startsWith("http://") || raw.startsWith("https://")) {
             return raw;
         }

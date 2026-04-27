@@ -1,21 +1,40 @@
 import IORedis, { type RedisOptions } from "ioredis";
 import { config } from "../../config/GlobalConfig";
+import { logger } from "../../utils/Logger";
 
 function queueRedisOptionsFromConfig(): RedisOptions {
     const redis = config.cache as {
-        redis?: { host?: string; port?: number; password?: string; db?: number; bullmqDb?: number };
+        redis?: {
+            host?: string;
+            port?: number;
+            password?: string;
+            db?: number;
+            bullmqDb?: number;
+            tls?: boolean;
+            tlsRejectUnauthorized?: boolean;
+        };
     };
     const r = redis.redis;
-    const host = r?.host ?? "127.0.0.1";
+    const host = String(r?.host ?? "127.0.0.1").trim();
     const port = r?.port ?? 6379;
-    const password = r?.password;
+    const password = typeof r?.password === "string" ? r.password.trim() : r?.password;
     const db = r?.bullmqDb ?? r?.db ?? 0;
+    const tlsEnabled = r?.tls === true;
+    const tlsRejectUnauthorized = r?.tlsRejectUnauthorized !== false;
 
     return {
         host,
         port,
         password: password || undefined,
         db,
+        connectTimeout: 10_000,
+        ...(tlsEnabled
+            ? {
+                  tls: {
+                      rejectUnauthorized: tlsRejectUnauthorized,
+                  },
+              }
+            : {}),
         maxRetriesPerRequest: null,
     };
 }
@@ -35,5 +54,30 @@ export function getQueueRedisConnectionOptions(): RedisOptions {
  * `RedisCacheProvider`, which uses the `redis` package and key prefixing for cache keys.
  */
 export function createQueueIoredisClient(): IORedis {
-    return new IORedis(queueRedisOptionsFromConfig());
+    const opts = queueRedisOptionsFromConfig();
+    const redis = new IORedis(opts);
+
+    // Ensure we never emit an unhandled "error" event (common prod symptom: only "Unhandled error event" lines).
+    redis.on("error", (err) => {
+        logger.error({
+            msg: "[BullMQ] Redis error",
+            error: err instanceof Error ? err.message : String(err),
+            host: opts.host,
+            port: opts.port,
+            db: opts.db,
+            tls: Boolean((opts as any).tls),
+        });
+    });
+
+    redis.on("ready", () => {
+        logger.info({
+            msg: "[BullMQ] Redis connection ready",
+            host: opts.host,
+            port: opts.port,
+            db: opts.db,
+            tls: Boolean((opts as any).tls),
+        });
+    });
+
+    return redis;
 }

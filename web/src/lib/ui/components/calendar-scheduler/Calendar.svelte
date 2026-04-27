@@ -638,7 +638,8 @@
 		align-items: center;
 		justify-content: center;
 		border-radius: 0 8px 8px 0;
-		z-index: 999;
+		/* Keep below modal dialogs (Create Post / Edit) */
+		z-index: 20;
 		opacity: 0.98;
 		pointer-events: auto;
 		min-height: 24px;
@@ -680,7 +681,8 @@
 		font-size: 0.875rem;
 		letter-spacing: 0.02em;
 		color: rgba(255, 255, 255, 0.75);
-		z-index: 2;
+		/* Above the create-strip (+) but below dialogs */
+		z-index: 30;
 	}
 
 	:global(.schedule-x-calendar-host.create-post-hovering)::before {
@@ -701,7 +703,8 @@
 		font-size: 0.8rem;
 		letter-spacing: 0.02em;
 		color: rgba(255, 255, 255, 0.8);
-		z-index: 3;
+		/* Above the create-strip (+) but below dialogs */
+		z-index: 30;
 	}
 </style>
 

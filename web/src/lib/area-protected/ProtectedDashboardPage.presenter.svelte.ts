@@ -4,6 +4,7 @@ import type {
 } from '$lib/integrations/Integrations.repository.svelte';
 import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
+import { imageRepository } from '$lib/core';
 
 /** One scheduled posting slot: minutes after midnight (0–1439), matching `integrations.posting_times` JSON. */
 export type PostingTimeSlotViewModel = { time: number };
@@ -19,11 +20,18 @@ export interface CreateSocialPostChannelViewModel {
 	internalId: string;
 	name: string;
 	identifier: string;
+	/** Raw provider/profile picture URL from the API (may be an Instagram CDN URL). */
 	picture: string | null;
+	/** Resolved image URL safe for `<img src>` (may route Instagram CDN through the backend proxy). */
+	pictureUrl: string | null;
 	type: string;
 	disabled: boolean;
 	inBetweenSteps: boolean;
 	refreshNeeded: boolean;
+	/** Whether this channel can be scheduled/published right now (UI gating). */
+	schedulable: boolean;
+	/** Short UI message explaining why a channel cannot be scheduled. */
+	unschedulableReason: string | null;
 	/** Workspace channel group this channel belongs to, if any. */
 	group: WorkspaceChannelGroupViewModel | null;
 	/** Parsed `posting_times` from the API (deduplicated, sorted by `time`). */
@@ -54,16 +62,30 @@ export function parsePostingTimeSlots(raw: unknown): PostingTimeSlotViewModel[] 
 function toCreateSocialPostChannelViewModel(
 	pm: ConnectedIntegrationProgrammerModel
 ): CreateSocialPostChannelViewModel {
+	const disabled = pm.disabled;
+	const inBetweenSteps = pm.inBetweenSteps;
+	const refreshNeeded = pm.refreshNeeded;
+	const schedulable = !disabled && !inBetweenSteps && !refreshNeeded;
+	const unschedulableReason = (() => {
+		if (disabled) return 'This channel is disabled.';
+		if (inBetweenSteps) return 'Finish connecting this channel first.';
+		if (refreshNeeded) return 'Reconnect this channel first.';
+		return null;
+	})();
+	const picture = pm.picture;
 	return {
 		id: pm.id,
 		internalId: pm.internalId,
 		name: pm.name,
 		identifier: pm.identifier,
-		picture: pm.picture,
+		picture,
+		pictureUrl: imageRepository.channelPictureUrl(picture),
 		type: pm.type,
-		disabled: pm.disabled,
-		inBetweenSteps: pm.inBetweenSteps,
-		refreshNeeded: pm.refreshNeeded,
+		disabled,
+		inBetweenSteps,
+		refreshNeeded,
+		schedulable,
+		unschedulableReason,
 		group: pm.group ?? null,
 		postingTimes: parsePostingTimeSlots(pm.time)
 	};

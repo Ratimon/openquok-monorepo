@@ -18,6 +18,8 @@
   "scripts": {
     "build": "pnpm exec tsc -p tsconfig.build.json && pnpm exec tsc-alias -p tsconfig.build.json --resolve-full-paths --resolve-full-extension .js",
     "script:clear-flowcraft-runs": "cross-env NODE_ENV=development tsx scripts/clearFlowcraftRuns.ts",
+    "script:free-openquok-redis-memory": "cross-env NODE_ENV=development tsx scripts/freeOpenquokRedisMemory.ts",
+    "script:railway:env:sync-worker-env": "tsx scripts/railwaySetupWorkerEnv.ts",
     "start:worker:integration-refresh-bullmq": "node dist/worker/runIntegrationRefreshBullMqWorker.js",
     "start:worker:notification-email-bullmq": "node dist/worker/runNotificationEmailBullMqWorker.js",
     "start:worker:scheduled-social-post-bullmq": "node dist/worker/runScheduledSocialPostBullMqWorker.js",
@@ -27,6 +29,9 @@
     "worker:integration-refresh-bullmq": "pnpm dev:worker:integration-refresh-bullmq",
     "worker:notification-email-bullmq": "pnpm dev:worker:notification-email-bullmq",
     "worker:scheduled-social-post-bullmq": "pnpm dev:worker:scheduled-social-post-bullmq",
+    "railway:env:sync:integration-refresh:prod": "pnpm run script:railway:env:sync-worker-env -- --no-create-if-missing --skip-deploys --service-name openquok-worker-integration-refresh --railpack-config-file orchestrator/railpack.integration-refresh.json --env-file .env.production.local --var ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT=bullmq",
+    "railway:env:sync:notification-email:prod": "pnpm run script:railway:env:sync-worker-env -- --no-create-if-missing --skip-deploys --service-name openquok-worker-notification-email --railpack-config-file orchestrator/railpack.notification-email.json --env-file .env.production.local --var ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT=bullmq",
+    "railway:env:sync:scheduled-social-post:prod": "pnpm run script:railway:env:sync-worker-env -- --no-create-if-missing --skip-deploys --service-name openquok-worker-scheduled-social-post --railpack-config-file orchestrator/railpack.scheduled-social-post.json --env-file .env.production.local --var ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT=bullmq",
     "test:unit": "cross-env NODE_ENV=development jest --testPathPattern=unit\\.test\\.ts --no-coverage",
     "test:unit:refresh-token-workflow:in-process": "cross-env NODE_ENV=development jest flows/refreshTokenWorkflow.unit.test.ts --no-coverage",
     "test:unit:refresh-token-workflow:bullmq": "cross-env NODE_ENV=development ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT=bullmq jest --config=jest.bullmq.config.js --no-coverage",

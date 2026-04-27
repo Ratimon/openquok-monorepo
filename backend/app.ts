@@ -20,6 +20,12 @@ import { generateSitemapMiddleware } from "./middlewares/generateSitemap";
 import { logger } from "./utils/Logger";
 import { config } from "./config/GlobalConfig";
 
+// Vercel's Node runtime + Express 4 query parsing triggers Node's DEP0169 warning (`url.parse()` via `parseurl`).
+// It's dependency noise and does not affect correctness, but it can spam production logs.
+if ((process.env.NODE_ENV ?? "development") === "production") {
+    process.noDeprecation = true;
+}
+
 const checkConfigIsValid = () => {
     const criticalConfigKeys = ["server", "api", "cors"];
     const missingKeys: string[] = [];

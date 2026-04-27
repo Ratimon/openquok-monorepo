@@ -8,7 +8,7 @@ var IORedis = require('ioredis');
 var clientS3 = require('@aws-sdk/client-s3');
 var s3RequestPresigner = require('@aws-sdk/s3-request-presigner');
 var http = require('http');
-var express2 = require('express');
+var express = require('express');
 var path = require('path');
 var helmet = require('helmet');
 var cors = require('cors');
@@ -22,6 +22,10 @@ var fs = require('fs/promises');
 var zod = require('zod');
 var fs2 = require('fs');
 var multer = require('multer');
+var api = require('@bull-board/api');
+var bullMQAdapter = require('@bull-board/api/bullMQAdapter');
+var express$1 = require('@bull-board/express');
+var bullmq = require('bullmq');
 var cookieParser = require('cookie-parser');
 var rateLimit = require('express-rate-limit');
 
@@ -48,7 +52,7 @@ function _interopNamespace(e) {
 var Sentry__namespace = /*#__PURE__*/_interopNamespace(Sentry);
 var IORedis__default = /*#__PURE__*/_interopDefault(IORedis);
 var http__default = /*#__PURE__*/_interopDefault(http);
-var express2__default = /*#__PURE__*/_interopDefault(express2);
+var express__default = /*#__PURE__*/_interopDefault(express);
 var path__default = /*#__PURE__*/_interopDefault(path);
 var helmet__default = /*#__PURE__*/_interopDefault(helmet);
 var cors__default = /*#__PURE__*/_interopDefault(cors);
@@ -206,7 +210,9 @@ var require_loadBackendDotenv = __commonJS({
       const env = process.env.NODE_ENV ?? "development";
       const forceOverride = String(process.env.DOTENV_OVERRIDE ?? "").toLowerCase() === "true";
       const override = forceOverride || env !== "production";
-      dotenv.config({ path: path5.join(root, `.env.${env}.local`), override });
+      const underJest = String(process.env.JEST_WORKER_ID ?? "").length > 0;
+      const overrideLocal = underJest ? false : override;
+      dotenv.config({ path: path5.join(root, `.env.${env}.local`), override: overrideLocal });
       dotenv.config({ path: path5.join(root, ".env"), override: false });
     }
     module.exports = { loadBackendDotenv: loadBackendDotenv3 };
@@ -221,7 +227,12 @@ var init_orchestratorFlows = __esm({
       /** `createBullMQReconciler` — idle time before a run is considered stalled (see Flowcraft docs). */
       reconcilerStalledThresholdSeconds: 300,
       /** How often each BullMQ worker runs the reconciler; `0` = off. */
-      reconcilerIntervalMs: 36e5
+      reconcilerIntervalMs: 36e5,
+      /**
+       * BullMQ `lockDuration` (ms) for Flowcraft `executeNode` jobs. The stock `@flowcraft/bullmq-adapter` uses
+       * BullMQ’s 30s default; refresh / HTTP-heavy nodes often need several minutes.
+       */
+      workerLockDurationMs: 6e5
     };
     orchestratorFlows = {
       /** OAuth-connected integrations with refreshCron: supervisor after OAuth completes. */
@@ -339,6 +350,18 @@ var init_GlobalConfig = __esm({
         siteName: getEnv("SITE_NAME", "Openquok"),
         senderEmailAddress: getEnv("SENDER_EMAIL_ADDRESS", "noreply@example.com")
       },
+      admin: {
+        bullBoard: {
+          enabled: getEnvBoolean("BULL_BOARD_ENABLED", false),
+          /**
+           * Path relative to `API_PREFIX` (default `/api/v1`), e.g. `/admin-queues` → `/api/v1/admin-queues`.
+           * Not nested under the REST `AdminRoute` at `/api/v1/admin/*` (e.g. avoid `/admin/queues` unless you
+           * also mount this router before `use("/admin", adminRouter)` in `routes/index.ts`).
+           * You may set an absolute public path that starts with `API_PREFIX`.
+           */
+          path: getEnvTrimmed("BULL_BOARD_PATH", "/admin-queues")
+        }
+      },
       server: {
         nodeEnv: getEnv("NODE_ENV", "development"),
         frontendDomainUrl: getEnvTrimmed("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
@@ -454,10 +477,20 @@ var init_GlobalConfig = __esm({
         enabled: getEnv("CACHE_ENABLED", "true") !== "false",
         enablePatterns: getEnv("CACHE_ENABLE_PATTERNS", "true") !== "false",
         redis: {
-          host: getEnv("REDIS_HOST", "localhost"),
+          host: getEnvTrimmed("REDIS_HOST", "localhost"),
           port: getEnvNumber("REDIS_PORT", 6379),
-          password: getEnv("REDIS_PASSWORD", ""),
+          password: getEnvTrimmed("REDIS_PASSWORD", ""),
           db: getEnvNumber("REDIS_DB", 0),
+          /**
+           * Managed Redis providers frequently require TLS.
+           * When enabled, `RedisCacheProvider` and BullMQ `ioredis` clients use TLS sockets.
+           */
+          tls: getEnv("REDIS_TLS", "false") === "true",
+          /**
+           * When `REDIS_TLS=true`, you may need to disable cert verification in some dev/test environments.
+           * Production should keep the default (`true`) unless you know your provider requires otherwise.
+           */
+          tlsRejectUnauthorized: getEnv("REDIS_TLS_REJECT_UNAUTHORIZED", "true") !== "false",
           /** Logical Redis DB for BullMQ / Flowcraft queues (defaults to REDIS_DB). */
           bullmqDb: getEnvNumber("REDIS_BULLMQ_DB", getEnvNumber("REDIS_DB", 0)),
           prefix: getEnv("REDIS_PREFIX", "app:cache:"),
@@ -477,14 +510,16 @@ var init_GlobalConfig = __esm({
          */
         flowcraft: {
           reconcilerStalledThresholdSeconds: flowcraftBullmqDefaults.reconcilerStalledThresholdSeconds,
-          reconcilerIntervalMs: flowcraftBullmqDefaults.reconcilerIntervalMs
+          reconcilerIntervalMs: flowcraftBullmqDefaults.reconcilerIntervalMs,
+          /** Override via `BULLMQ_WORKER_LOCK_DURATION_MS` (milliseconds). */
+          workerLockDurationMs: getEnvNumber("BULLMQ_WORKER_LOCK_DURATION_MS", flowcraftBullmqDefaults.workerLockDurationMs)
         },
-        queueName: orchestratorFlows.integrationRefresh.queueName,
         /**
          * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).
          * Enabled state from `config/orchestratorFlows.ts`; forced off under Jest (`JEST_WORKER_ID`) so tests do not sleep.
          */
         integrationRefresh: {
+          queueName: orchestratorFlows.integrationRefresh.queueName,
           enabled: (() => {
             const underJest = getEnv("JEST_WORKER_ID", "") !== "";
             return underJest ? false : orchestratorFlows.integrationRefresh.enabled;
@@ -734,6 +769,7 @@ var createSupabaseRLSClient = ({ req, res }) => {
 
 // connections/cache/index.ts
 init_GlobalConfig();
+init_Logger();
 
 // connections/cache/CacheService.ts
 init_Logger();
@@ -1031,6 +1067,8 @@ var RedisCacheProvider = class {
       password: options.password,
       db: options.db ?? 0,
       prefix: options.prefix ?? "app:cache:",
+      tls: options.tls === true,
+      tlsRejectUnauthorized: options.tlsRejectUnauthorized !== false,
       enableOfflineQueue: options.enableOfflineQueue !== false,
       useScan: options.useScan !== false,
       maxReconnectAttempts: options.maxReconnectAttempts ?? 10
@@ -1040,31 +1078,36 @@ var RedisCacheProvider = class {
   async connect() {
     try {
       if (this.client) await this.disconnect();
+      const reconnectStrategy = (retries) => {
+        if (retries > this.options.maxReconnectAttempts) {
+          logger.error({
+            msg: "Max Redis reconnect attempts reached",
+            attempt: retries,
+            maxReconnectAttempts: this.options.maxReconnectAttempts
+          });
+          return new Error("Max Redis reconnect attempts reached");
+        }
+        const delay = Math.min(Math.pow(2, retries) * 100 + Math.random() * 100, 3e4);
+        logger.warn({
+          msg: "Redis reconnecting...",
+          attempt: retries,
+          delayMs: Math.round(delay)
+        });
+        return delay;
+      };
+      const socket = this.options.tls ? {
+        host: this.options.host,
+        port: this.options.port,
+        tls: true,
+        rejectUnauthorized: this.options.tlsRejectUnauthorized,
+        reconnectStrategy
+      } : {
+        host: this.options.host,
+        port: this.options.port,
+        reconnectStrategy
+      };
       const clientOptions = {
-        socket: {
-          host: this.options.host,
-          port: this.options.port,
-          reconnectStrategy: (retries) => {
-            if (retries > this.options.maxReconnectAttempts) {
-              logger.error({
-                msg: "Max Redis reconnect attempts reached",
-                attempt: retries,
-                maxReconnectAttempts: this.options.maxReconnectAttempts
-              });
-              return new Error("Max Redis reconnect attempts reached");
-            }
-            const delay = Math.min(
-              Math.pow(2, retries) * 100 + Math.random() * 100,
-              3e4
-            );
-            logger.warn({
-              msg: "Redis reconnecting...",
-              attempt: retries,
-              delayMs: Math.round(delay)
-            });
-            return delay;
-          }
-        },
+        socket,
         password: this.options.password || void 0,
         database: this.options.db
       };
@@ -1075,7 +1118,8 @@ var RedisCacheProvider = class {
           msg: "[Cache] Redis connection established",
           host: this.options.host,
           port: this.options.port,
-          db: this.options.db
+          db: this.options.db,
+          tls: this.options.tls
         });
       });
       this.client.on("error", (err) => {
@@ -1084,7 +1128,8 @@ var RedisCacheProvider = class {
           msg: "[Cache] Redis error",
           error: err.message,
           host: this.options.host,
-          port: this.options.port
+          port: this.options.port,
+          tls: this.options.tls
         });
       });
       this.client.on("end", () => {
@@ -1230,7 +1275,17 @@ function createCacheProvider() {
   const providerName = cacheConfig2?.provider ?? "memory";
   const defaultTTL = cacheConfig2?.defaultTTL ?? 300;
   const redisOpts = cacheConfig2?.redis;
-  if (providerName === "redis" && redisOpts) {
+  const nodeEnv = String(config.server?.nodeEnv ?? process.env.NODE_ENV ?? "");
+  const isProduction = nodeEnv === "production";
+  const hasRedisConfig = Boolean(redisOpts?.host);
+  const shouldUseRedis = (providerName === "redis" || isProduction && hasRedisConfig) && redisOpts;
+  if (shouldUseRedis) {
+    if (isProduction && providerName !== "redis") {
+      logger.warn({
+        msg: "[Cache] Forcing Redis cache provider in production for OAuth state durability",
+        provider: providerName
+      });
+    }
     const redis = new RedisCacheProvider_default({
       host: redisOpts.host,
       port: redisOpts.port,
@@ -1238,6 +1293,8 @@ function createCacheProvider() {
       db: redisOpts.db,
       prefix: redisOpts.prefix,
       maxReconnectAttempts: redisOpts.maxReconnectAttempts,
+      tls: redisOpts.tls,
+      tlsRejectUnauthorized: redisOpts.tlsRejectUnauthorized,
       enableOfflineQueue: redisOpts.enableOfflineQueue,
       useScan: redisOpts.useScan
     });
@@ -1248,6 +1305,13 @@ function createCacheProvider() {
       delPattern: (p) => redis.delPattern(p),
       flush: () => redis.flush()
     };
+  }
+  if (isProduction) {
+    logger.warn({
+      msg: "[Cache] Using in-memory cache provider in production (OAuth state may be lost across instances). Set CACHE_PROVIDER=redis.",
+      provider: providerName,
+      hasRedisConfig
+    });
   }
   const memory = new MemoryCacheProvider_default({
     ttl: defaultTTL,
@@ -1565,23 +1629,56 @@ if (dsn && sentryEnabled && !Sentry__namespace.isInitialized()) {
 
 // connections/bullmq/createQueueIoredis.ts
 init_GlobalConfig();
+init_Logger();
 function queueRedisOptionsFromConfig() {
   const redis = config.cache;
   const r = redis.redis;
-  const host = r?.host ?? "127.0.0.1";
+  const host = String(r?.host ?? "127.0.0.1").trim();
   const port = r?.port ?? 6379;
-  const password = r?.password;
+  const password = typeof r?.password === "string" ? r.password.trim() : r?.password;
   const db = r?.bullmqDb ?? r?.db ?? 0;
+  const tlsEnabled = r?.tls === true;
+  const tlsRejectUnauthorized = r?.tlsRejectUnauthorized !== false;
   return {
     host,
     port,
     password: password || void 0,
     db,
+    connectTimeout: 1e4,
+    ...tlsEnabled ? {
+      tls: {
+        rejectUnauthorized: tlsRejectUnauthorized
+      }
+    } : {},
     maxRetriesPerRequest: null
   };
 }
+function getQueueRedisConnectionOptions() {
+  return queueRedisOptionsFromConfig();
+}
 function createQueueIoredisClient() {
-  return new IORedis__default.default(queueRedisOptionsFromConfig());
+  const opts = queueRedisOptionsFromConfig();
+  const redis = new IORedis__default.default(opts);
+  redis.on("error", (err) => {
+    logger.error({
+      msg: "[BullMQ] Redis error",
+      error: err instanceof Error ? err.message : String(err),
+      host: opts.host,
+      port: opts.port,
+      db: opts.db,
+      tls: Boolean(opts.tls)
+    });
+  });
+  redis.on("ready", () => {
+    logger.info({
+      msg: "[BullMQ] Redis connection ready",
+      host: opts.host,
+      port: opts.port,
+      db: opts.db,
+      tls: Boolean(opts.tls)
+    });
+  });
+  return redis;
 }
 function isR2ConnectionReady(cfg) {
   return Boolean(
@@ -8719,6 +8816,23 @@ var InstagramStandaloneProvider = class {
 init_GlobalConfig();
 init_Logger();
 var GRAPH2 = "https://graph.threads.net/v1.0";
+function mediaExtFromUrlOrKey(path5) {
+  const raw = String(path5 || "").trim();
+  if (!raw) return "";
+  try {
+    const u = new URL(raw);
+    const p = u.pathname || "";
+    return (p.split(".").pop() ?? "").toLowerCase();
+  } catch {
+    return (raw.split("?")[0]?.split("#")[0]?.split(".").pop() ?? "").toLowerCase();
+  }
+}
+function assertThreadsSupportedMedia(pathOrUrl) {
+  const ext = mediaExtFromUrlOrKey(pathOrUrl);
+  if (ext === "svg") {
+    throw new Error("Threads does not support SVG uploads. Convert the image to PNG or JPEG and try again.");
+  }
+}
 var THREADS_PROVIDER_BUILD = "2026-04-24d";
 function sleepMs(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -8848,6 +8962,7 @@ var ThreadsProvider = class {
     if (!raw) {
       throw new Error("Media path is empty");
     }
+    assertThreadsSupportedMedia(raw);
     if (raw.startsWith("http://") || raw.startsWith("https://")) {
       return raw;
     }
@@ -9409,7 +9524,9 @@ var IntegrationConnectionService = class {
       internalId: p.internal_id,
       disabled: p.disabled,
       editor,
-      picture: p.picture || "/no-picture.jpg",
+      // Do not inject a placeholder path: the web uses provider icon fallbacks and a hardcoded
+      // "/no-picture.jpg" path breaks avatar rendering (it is not guaranteed to exist on the web origin).
+      picture: p.picture || null,
       identifier: p.provider_identifier,
       inBetweenSteps: p.in_between_steps,
       refreshNeeded: p.refresh_needed,
@@ -10973,6 +11090,10 @@ var ImageController = class {
   constructor(storageRepository) {
     this.storageRepository = storageRepository;
   }
+  isAllowedExternalImageHost(hostname) {
+    const h = hostname.toLowerCase();
+    return h === "cdninstagram.com" || h.endsWith(".cdninstagram.com") || h === "fbcdn.net" || h.endsWith(".fbcdn.net") || h === "platform-lookaside.fbsbx.com" || h.endsWith(".fbsbx.com");
+  }
   getByUrl = async (req, res, next) => {
     try {
       const { databaseName, imageUrl } = req.query;
@@ -11039,6 +11160,67 @@ var ImageController = class {
       res.status(200).json({
         success: true,
         message: "Image deleted successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * Public, allowlisted proxy for external avatar URLs (e.g. Instagram CDN).
+   *
+   * This route is intentionally unauthenticated because it is used by `<img src="...">`,
+   * which cannot attach Bearer auth headers. To avoid SSRF, only a small host allowlist is supported.
+   */
+  publicProxyImage = async (req, res, next) => {
+    try {
+      const { url } = req.query;
+      if (!url || typeof url !== "string") {
+        throw new UserValidationError("URL parameter is required");
+      }
+      const imageUrl = new URL(url);
+      if (!["http:", "https:"].includes(imageUrl.protocol)) {
+        throw new UserValidationError("Invalid URL protocol. Only HTTP and HTTPS are allowed.");
+      }
+      if (!this.isAllowedExternalImageHost(imageUrl.hostname)) {
+        throw new UserValidationError("URL host is not allowed");
+      }
+      const httpModule = imageUrl.protocol === "https:" ? https__default.default : http__default.default;
+      await new Promise((resolve, reject) => {
+        const request = httpModule.get(
+          url,
+          {
+            headers: {
+              // Some CDNs return 403 for missing/unknown UA.
+              "User-Agent": "Mozilla/5.0 (compatible; OpenquokPublicImageProxy/1.0)",
+              Accept: "image/*,*/*;q=0.8"
+            },
+            timeout: 1e4
+          },
+          (response) => {
+            if (response.statusCode && response.statusCode >= 400) {
+              reject(
+                new Error(
+                  `Failed to fetch image: ${response.statusCode} ${response.statusMessage}`
+                )
+              );
+              return;
+            }
+            const contentType = response.headers["content-type"];
+            if (!contentType || !contentType.startsWith("image/")) {
+              reject(new UserValidationError("URL does not point to a valid image"));
+              return;
+            }
+            res.set("Content-Type", contentType);
+            res.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+            response.pipe(res);
+            response.on("end", () => resolve());
+          }
+        );
+        request.on("error", (error) => reject(error));
+        request.on("timeout", () => {
+          request.destroy();
+          reject(new Error("Request timeout"));
+        });
       });
     } catch (error) {
       next(error);
@@ -12379,7 +12561,7 @@ var authSchemas = {
 var authSchemas_default = authSchemas;
 
 // routes/AuthRoute.ts
-var authRouter = express2.Router();
+var authRouter = express.Router();
 authRouter.post("/sign-up", authSchemas_default.validateSignUpRequest, authController.signUp);
 authRouter.post("/sign-in", authSchemas_default.validateSignInRequest, authController.signIn);
 authRouter.post("/sign-out", authController.signOut);
@@ -12430,17 +12612,12 @@ var validateUpdatePasswordMeRequest = validateRequest({
 
 // middlewares/authenticateUser.ts
 init_Logger();
-function parseBearerToken(req) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new TokenError("No token provided or invalid format");
-  }
-  const token = authHeader.split(" ")[1];
-  if (!token) throw new TokenError("No token provided");
-  if (token.startsWith("{")) {
+var BULL_BOARD_ACCESS_COOKIE_NAME = "openquok_bullboard_jwt";
+function normalizeAccessTokenString(raw) {
+  if (raw.startsWith("{")) {
     let parsed;
     try {
-      parsed = JSON.parse(token);
+      parsed = JSON.parse(raw);
     } catch {
       throw new TokenError("Invalid token format");
     }
@@ -12449,7 +12626,21 @@ function parseBearerToken(req) {
     }
     return parsed.value;
   }
-  return token.trim();
+  return raw.trim();
+}
+function parseBearerToken(req) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    if (!token) throw new TokenError("No token provided");
+    return normalizeAccessTokenString(token);
+  }
+  const cookies = req.cookies;
+  const fromCookie = cookies?.[BULL_BOARD_ACCESS_COOKIE_NAME];
+  if (fromCookie && fromCookie.length > 0) {
+    return normalizeAccessTokenString(fromCookie.trim());
+  }
+  throw new TokenError("No token provided or invalid format");
 }
 function requireFullAuth(supabase2) {
   return async (req, _res, next) => {
@@ -12645,7 +12836,7 @@ function requirePermission(permission) {
 }
 
 // routes/UserRoute.ts
-var userRouter = express2.Router();
+var userRouter = express.Router();
 var authWithRoles = requireFullAuthWithRoles(
   supabase,
   userRepository,
@@ -12886,7 +13077,7 @@ var emailSchemas = {
 var emailSchemas_default = emailSchemas;
 
 // routes/AdminRoute.ts
-var adminRouter = express2.Router();
+var adminRouter = express.Router();
 var parseListReceivedEmailsQuery = createListReceivedEmailsParser();
 var authWithRoles2 = requireFullAuthWithRoles(
   supabase,
@@ -13177,7 +13368,7 @@ function generateSitemapMiddleware(options) {
 }
 
 // routes/CompanyRoute.ts
-var companyRouter = express2.Router();
+var companyRouter = express.Router();
 companyRouter.get(
   "/information/properties",
   createConfigPropertiesParser(),
@@ -13237,7 +13428,7 @@ var validateJoinOrganizationRequest = validateRequest({
 });
 
 // routes/SettingsRoute.ts
-var settingsRouter = express2.Router();
+var settingsRouter = express.Router();
 var auth = requireFullAuth(supabase);
 settingsRouter.get("/", auth, settingsController.listMine);
 settingsRouter.get("/invite/validate", settingsController.validateInviteToken);
@@ -13291,7 +13482,7 @@ settingsRouter.post(
   validateOrganizationIdParam,
   settingsController.rotateApiKey
 );
-var rbacRouter = express2.Router();
+var rbacRouter = express.Router();
 var authWithRoles3 = requireFullAuthWithRoles(
   supabase,
   userRepository,
@@ -13323,7 +13514,7 @@ var feedbackSchema = zod.z.object({
 });
 
 // routes/FeedbackRoute.ts
-var feedbackRouter = express2.Router();
+var feedbackRouter = express.Router();
 var authWithRoles4 = requireFullAuthWithRoles(
   supabase,
   userRepository,
@@ -13472,7 +13663,7 @@ var blogTrackActivitySchema = zod.z.object({
 });
 
 // routes/BlogRoute.ts
-var blogRouter = express2.Router();
+var blogRouter = express.Router();
 var authWithRoles5 = requireFullAuthWithRoles(
   supabase,
   userRepository,
@@ -13631,8 +13822,9 @@ var authWithRoles6 = requireFullAuthWithRoles(
   userRepository,
   rbacRepository
 );
-var imageRouter = express2.Router();
+var imageRouter = express.Router();
 imageRouter.get("/download", imageController.getByUrl);
+imageRouter.get("/public-proxy", imageController.publicProxyImage);
 imageRouter.post(
   "/upload",
   authWithRoles6,
@@ -13687,7 +13879,7 @@ var authWithRoles7 = requireFullAuthWithRoles(
   userRepository,
   rbacRepository
 );
-var mediaRouter = express2.Router();
+var mediaRouter = express.Router();
 mediaRouter.get("/", authWithRoles7, validateMediaOrganizationQuery, mediaController.list);
 mediaRouter.post("/upload", authWithRoles7, upload2.single("mediaFile"), mediaController.upload);
 mediaRouter.post("/upload-server", authWithRoles7, upload2.single("file"), mediaController.uploadServer);
@@ -13767,7 +13959,7 @@ var validateIntegrationTimeRequest = validateRequest({
 });
 
 // routes/integrations/sessionRoutes.ts
-var sessionIntegrationsRouter = express2.Router();
+var sessionIntegrationsRouter = express.Router();
 var auth2 = requireFullAuth(supabase);
 sessionIntegrationsRouter.get("/", integrationController.getAllIntegrations);
 sessionIntegrationsRouter.use(auth2);
@@ -13845,7 +14037,7 @@ var validatePublicSocialOAuthQuery = validateRequest({
 });
 
 // routes/publicApi/integrationRoutes.ts
-var publicIntegrationRouter = express2.Router();
+var publicIntegrationRouter = express.Router();
 var apiKeyAuth = requireOrganizationApiKey(organizationRepository);
 publicIntegrationRouter.get("/is-connected", apiKeyAuth, publicIntegrationController.isConnected);
 publicIntegrationRouter.get("/integrations", apiKeyAuth, publicIntegrationController.listIntegrations);
@@ -13870,7 +14062,7 @@ var validateNotificationPaginatedQuery = validateRequest({
 });
 
 // routes/NotificationRoute.ts
-var notificationRouter = express2.Router();
+var notificationRouter = express.Router();
 var auth3 = requireFullAuth(supabase);
 var parseNotificationOrganizationQuery = createNotificationOrganizationQueryParser();
 var parseNotificationPaginatedQuery = createNotificationPaginatedQueryParser();
@@ -13986,7 +14178,7 @@ var validateDeletePostGroup = validateRequest({
 });
 
 // routes/postRoutes.ts
-var postRouter = express2.Router();
+var postRouter = express.Router();
 var auth4 = requireFullAuth(supabase);
 postRouter.get("/find-slot", auth4, validatePostOrganizationQuery, postsController.findSlot);
 postRouter.get("/tags", auth4, validatePostOrganizationQuery, postsController.listTags);
@@ -13999,17 +14191,136 @@ postRouter.put("/group/:postGroup", auth4, validateUpdatePostGroupBody, postsCon
 postRouter.delete("/group/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
 postRouter.delete("/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
 var authWithRoles8 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
-var thirdPartyRouter = express2.Router();
+var thirdPartyRouter = express.Router();
 thirdPartyRouter.get("/for-media", authWithRoles8, validateMediaOrganizationQuery, thirdPartyController.listForMedia);
+init_Logger();
+function normalizeLeadingSlash(p) {
+  const s = p.trim();
+  if (!s) return "/";
+  return s.startsWith("/") ? s : `/${s}`;
+}
+function joinUrlPath(a, b) {
+  const left = a.replace(/\/+$/, "") || "/";
+  const right = normalizeLeadingSlash(b).replace(/^\/+/, "");
+  if (left === "/") return `/${right}`;
+  return `${left}/${right}`;
+}
+function getBullBoardPathLayout(config3) {
+  const admin = config3.admin?.bullBoard;
+  if (admin?.enabled !== true) {
+    return null;
+  }
+  const api = config3.api?.prefix ?? "/api/v1";
+  const apiPrefix = normalizeLeadingSlash(api);
+  const configuredPath = normalizeLeadingSlash(String(admin?.path ?? "/admin-queues"));
+  const fullPath = configuredPath.startsWith(apiPrefix) ? configuredPath : joinUrlPath(apiPrefix, configuredPath);
+  if (!fullPath.startsWith(apiPrefix)) {
+    logger.error({
+      msg: "[BullBoard] Invalid BULL_BOARD_PATH (must be under API_PREFIX)",
+      apiPrefix,
+      configuredPath,
+      fullPath
+    });
+    return null;
+  }
+  const mountPath = fullPath.slice(apiPrefix.length) || "/";
+  return { fullPath, mountPath, apiPrefix };
+}
+var DEFAULT_BULL_BOARD_SESSION_MAX_AGE_SEC = 30 * 60;
+function getBullBoardSessionMaxAgeMs() {
+  const raw = String(process.env.BULL_BOARD_SESSION_MAX_AGE_SEC ?? "").trim();
+  if (!raw) {
+    return DEFAULT_BULL_BOARD_SESSION_MAX_AGE_SEC * 1e3;
+  }
+  const n = Number.parseInt(raw, 10);
+  if (Number.isFinite(n) && n > 0) {
+    return n * 1e3;
+  }
+  return DEFAULT_BULL_BOARD_SESSION_MAX_AGE_SEC * 1e3;
+}
+function bullBoardSessionCookieAttributes(req, cookiePath, maxAge) {
+  const forwarded = String(req.get("x-forwarded-proto") ?? "").toLowerCase();
+  const isHttps = forwarded === "https" || req.secure === true;
+  if (isHttps) {
+    return { httpOnly: true, secure: true, sameSite: "none", path: cookiePath, maxAge };
+  }
+  return { httpOnly: true, secure: false, sameSite: "lax", path: cookiePath, maxAge };
+}
+function registerBullBoardSessionRoutes(apiRouter, config3) {
+  const layout = getBullBoardPathLayout(config3);
+  if (!layout) {
+    return;
+  }
+  const authWithRoles9 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+  const maxAge = getBullBoardSessionMaxAgeMs();
+  const cookiePath = layout.fullPath;
+  const setSession = (req, res) => {
+    const token = parseBearerToken(req);
+    const attr = bullBoardSessionCookieAttributes(req, cookiePath, maxAge);
+    res.cookie(BULL_BOARD_ACCESS_COOKIE_NAME, token, attr);
+    res.status(200).json({ ok: true });
+  };
+  const clearSession = (req, res) => {
+    const attr = bullBoardSessionCookieAttributes(req, cookiePath, 0);
+    res.clearCookie(BULL_BOARD_ACCESS_COOKIE_NAME, {
+      path: attr.path,
+      secure: attr.secure,
+      sameSite: attr.sameSite
+    });
+    res.status(200).json({ ok: true });
+  };
+  const session = express__default.default.Router();
+  session.post("/", authWithRoles9, requireSuperAdmin, setSession);
+  session.post("/clear", authWithRoles9, requireSuperAdmin, clearSession);
+  apiRouter.use("/admin/bull-board/session", session);
+  logger.info({ msg: "[BullBoard] Session cookie routes mounted", cookiePath, sessionBase: "/admin/bull-board/session" });
+}
+function registerBullBoardRoutes(apiRouter, config3) {
+  const bullBoardEnabled = config3.admin?.bullBoard?.enabled === true;
+  const layout = getBullBoardPathLayout(config3);
+  if (!layout) {
+    if (!bullBoardEnabled) {
+      logger.info({ msg: "[BullBoard] Disabled (set BULL_BOARD_ENABLED=true to enable)" });
+    }
+    return;
+  }
+  const { fullPath, mountPath } = layout;
+  const bullmq$1 = config3.bullmq ?? {};
+  const queueNames = [
+    bullmq$1.integrationRefresh?.queueName,
+    bullmq$1.notificationEmail?.queueName,
+    bullmq$1.scheduledSocialPost?.queueName
+  ].filter((q) => typeof q === "string" && q.length > 0);
+  const uniqueQueueNames = [...new Set(queueNames)];
+  if (uniqueQueueNames.length === 0) {
+    logger.warn({ msg: "[BullBoard] No BullMQ queues configured; not mounting", fullPath });
+    return;
+  }
+  const serverAdapter = new express$1.ExpressAdapter();
+  serverAdapter.setBasePath(fullPath);
+  const connection = getQueueRedisConnectionOptions();
+  const queues = uniqueQueueNames.map((name) => new bullMQAdapter.BullMQAdapter(new bullmq.Queue(name, { connection })));
+  api.createBullBoard({
+    queues,
+    serverAdapter
+  });
+  const boardRouter = express__default.default.Router();
+  const authWithRoles9 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+  boardRouter.use(authWithRoles9, requireSuperAdmin, serverAdapter.getRouter());
+  apiRouter.use(mountPath, boardRouter);
+  logger.info({ msg: "[BullBoard] Mounted (super admin only)", publicUrl: fullPath, mountPath, queues: uniqueQueueNames });
+}
 
 // routes/index.ts
 init_Logger();
 async function mountAllRoutes(app2, config3) {
   const api = config3.api;
   const prefix = api?.prefix ?? "/api/v1";
-  const apiRouter = express2__default.default.Router();
+  const apiRouter = express__default.default.Router();
   apiRouter.use("/auth", authRouter);
   apiRouter.use("/users", userRouter);
+  registerBullBoardSessionRoutes(apiRouter, config3);
+  registerBullBoardRoutes(apiRouter, config3);
   apiRouter.use("/admin", adminRouter);
   apiRouter.use("/company", companyRouter);
   apiRouter.use("/settings", settingsRouter);
@@ -14306,6 +14617,9 @@ function shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact) {
       return true;
     }
   }
+  if (req.method === "GET" && routePath === "/image/public-proxy") {
+    return true;
+  }
   if (req.method === "GET" && routePath === "/integrations") {
     return true;
   }
@@ -14317,12 +14631,12 @@ function configureCoreMiddleware(app2, config3, supabase2) {
   app2.use((req, res, next) => {
     if (req._skipJsonParsing) return next();
     const limit = config3.server?.bodyLimit ?? "10mb";
-    return express2__default.default.json({ limit })(req, res, next);
+    return express__default.default.json({ limit })(req, res, next);
   });
   app2.use((req, res, next) => {
     if (req._skipJsonParsing) return next();
     const limit = config3.server?.bodyLimit ?? "10mb";
-    return express2__default.default.urlencoded({ extended: true, limit })(req, res, next);
+    return express__default.default.urlencoded({ extended: true, limit })(req, res, next);
   });
   app2.use(cookieParser__default.default());
   app2.use((req, res, next) => {
@@ -14379,6 +14693,9 @@ function configureCoreMiddleware(app2, config3, supabase2) {
 // app.ts
 init_Logger();
 init_GlobalConfig();
+if ((process.env.NODE_ENV ?? "development") === "production") {
+  process.noDeprecation = true;
+}
 var checkConfigIsValid = () => {
   const criticalConfigKeys = ["server", "api", "cors"];
   const missingKeys = [];
@@ -14443,7 +14760,7 @@ var getCorsOptions = () => {
     optionsSuccessStatus: 204
   };
 };
-var app = express2__default.default();
+var app = express__default.default();
 async function createApp() {
   const { config: config3 } = await Promise.resolve().then(() => (init_GlobalConfig(), GlobalConfig_exports));
   try {
@@ -14467,12 +14784,12 @@ async function createApp() {
   app.options("/{*path}", cors__default.default(corsOptions));
   app.use((req, res, next) => {
     if (req._skipJsonParsing) return next();
-    return express2.json()(req, res, next);
+    return express.json()(req, res, next);
   });
   configureCoreMiddleware(app, config3, supabase);
   const storageCfg = config3.storage;
   if (storageCfg?.provider === "local" && storageCfg.local?.uploadDirectory) {
-    app.use("/uploads", express2__default.default.static(storageCfg.local.uploadDirectory));
+    app.use("/uploads", express__default.default.static(storageCfg.local.uploadDirectory));
     logger.info({
       msg: "[Setup] Local uploads mounted at /uploads",
       uploadDirectory: storageCfg.local.uploadDirectory
@@ -14530,9 +14847,8 @@ function isRunningOnVercel() {
   );
 }
 if (!isRunningOnVercel()) {
-  createApp().then(async (configuredApp) => {
-    const { config: config3 } = await Promise.resolve().then(() => (init_GlobalConfig(), GlobalConfig_exports));
-    const port = config3.server.port ?? 3e3;
+  createApp().then((configuredApp) => {
+    const port = config.server.port ?? 3e3;
     if (process.env.JEST_WORKER_ID) {
       return;
     }

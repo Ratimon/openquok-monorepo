@@ -13,6 +13,22 @@ const PUBLISH_ATTEMPTS = 5;
 
 const META_OPAQUE_MESSAGE = "An unknown error occurred";
 
+function isNonRefreshablePublishError(message: string): boolean {
+    const m = (message || "").toLowerCase();
+    // Token refresh cannot fix these: they are configuration / media-public-access issues.
+    if (m.includes("cannot build a public media url")) return true;
+    if (m.includes("storage_r2_public_base_url")) return true;
+    if (m.includes("media url is not publicly reachable")) return true;
+    if (m.includes("meta must fetch this url")) return true;
+    if (m.includes("bucket policy")) return true;
+    // Meta rejection of the media URI (format/content requirements); refresh cannot fix.
+    if (m.includes("the media could not be fetched from this uri")) return true;
+    if (m.includes("media download has failed")) return true;
+    if (m.includes("media uri doesn't meet our requirements")) return true;
+    if (m.includes("error_subcode") && m.includes("2207052")) return true;
+    return false;
+}
+
 /**
  * If the DB only ever shows Meta’s stock message, the process is often loading an outdated `backend/dist`
  * (e.g. worker image built without `pnpm --filter backend build` after changing Threads). Surface that in the row.
@@ -310,6 +326,22 @@ async function publishOneRow(
                     attempt,
                     message,
                 });
+            }
+            if (isNonRefreshablePublishError(message)) {
+                const errText = `Could not publish (${message})`;
+                await deps.postsRepository.markPostState(postId, "ERROR", errText);
+                const label = capitalizeProvider(intRow.provider_identifier);
+                const chName = intRow.name || "channel";
+                await notify(
+                    ns,
+                    organizationId,
+                    `We couldn't post to ${label} for ${chName}`,
+                    `We couldn't post to ${label} for ${chName}. ${message}`,
+                    true,
+                    false,
+                    "fail"
+                );
+                return;
             }
             if (attempt >= PUBLISH_ATTEMPTS - 1) {
                 const stored = postPublishErrorForStorage(err, 4000);

@@ -2,7 +2,7 @@
 title: Production deployment
 description: Production setup for the OpenQuok web, backend, and optional orchestrator workers.
 order: 1
-lastUpdated: 2026-04-23
+lastUpdated: 2026-04-27
 ---
 
 <script>
@@ -17,7 +17,7 @@ This project is set up for **Vercel** as the primary host for the **backend** (E
 
 - **Supabase** project (URL, anon key, service role key)
 - **Vercel** projects for `backend/` and `web/` (or your chosen host, with equivalent env injection)
-- **Optional:** managed **Redis** if you set <Badge text="CACHE_PROVIDER" variant="envBackend" /><code>=redis</code> **or** if you use **BullMQ** orchestration — point <Badge text="REDIS_*" variant="envBackend" /> at a host reachable from **both** the API and any worker processes
+- **Recommended:** managed **Redis** for production OAuth flows and BullMQ orchestration — point <Badge text="REDIS_*" variant="envBackend" /> at a host reachable from **both** the API and any worker processes. In production, OAuth connection state must be durable across instances (avoid <Badge text="CACHE_PROVIDER=memory" variant="envBackend" />).
 - **Optional:** one or more **worker** hosts for BullMQ flows (see <a href="/docs/Installation/railway">Railway (orchestrator workers)</a>)
 
 ## Secrets and configuration
@@ -27,6 +27,7 @@ This project is set up for **Vercel** as the primary host for the **backend** (E
 - **Public site origin:** set the **same** canonical HTTPS origin on the **backend** as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> and on the **web** build as <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> (no trailing slash after the host, for example <Badge text="https://www.openquok.com" variant="new" />). Pick one hostname for “the product” (<code>www</code> or apex) and use it — OAuth redirect URIs are built only from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />, and providers such as Meta require an **exact** string match in their dashboards.
 - **CORS:** include apex and <code>www</code> in <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envBackend" /> when both hostnames serve traffic, even though OAuth uses a single canonical origin above. Align <Badge text="VITE_API_BASE_URL" variant="envWeb" /> with <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> (same public API origin in production).
 - **Local HTTPS dev** differs: the web app can use an empty <Badge text="VITE_API_BASE_URL" variant="envWeb" /> and same-origin <code>/api</code> through the dev server. See <a href="/docs/configuration-web/environment#https-local-development-and-the-api-base-url">Environment variables</a>.
+- **Media publishing (Threads, etc.)**: for posts with media stored as object keys, set <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> so workers can build public HTTPS URLs for Meta to fetch. See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
 
 <Callout type="warning">
 <p>If you change <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> or <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />, redeploy or restart <strong>both</strong> the API and the web app, then update third-party allow-lists (Meta Instagram or Threads redirect URIs, Stripe return URLs, etc.) so every registered URL uses the same scheme and host as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />.</p>

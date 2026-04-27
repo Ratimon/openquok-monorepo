@@ -82,8 +82,13 @@
 							? 'ring-primary/70'
 							: 'ring-primary/25'}"
 						>
-							{#if ch.picture}
-								<img src={ch.picture} alt="" class="h-full w-full object-cover" draggable="false" />
+							{#if ch.pictureUrl}
+								<img
+									src={ch.pictureUrl}
+									alt=""
+									class="h-full w-full object-cover"
+									draggable="false"
+								/>
 							{:else}
 								<span class="flex h-full w-full items-center justify-center text-xs text-base-content/50">
 									{ch.name.slice(0, 2)}

@@ -97,7 +97,9 @@
 	>
 		<div class="flex items-start justify-between border-b border-base-300 px-4 py-3 sm:px-6">
 			<div class="flex flex-wrap items-center gap-3 text-lg font-semibold text-base-content">
-				<span>Create Post</span>
+				<span>
+					Create Post
+				</span>
 			</div>
 			<button
 				type="button"

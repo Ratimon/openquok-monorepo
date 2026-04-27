@@ -152,7 +152,9 @@ export class IntegrationConnectionService {
             internalId: p.internal_id,
             disabled: p.disabled,
             editor,
-            picture: p.picture || "/no-picture.jpg",
+            // Do not inject a placeholder path: the web uses provider icon fallbacks and a hardcoded
+            // "/no-picture.jpg" path breaks avatar rendering (it is not guaranteed to exist on the web origin).
+            picture: p.picture || null,
             identifier: p.provider_identifier,
             inBetweenSteps: p.in_between_steps,
             refreshNeeded: p.refresh_needed,

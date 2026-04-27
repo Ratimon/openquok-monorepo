@@ -25,6 +25,12 @@
 	let busy = $state(true);
 	/** Indeterminate-style value for {@link CircularProgressBar} while work is in progress. */
 	let progressValue = $state(45);
+	/**
+	 * Guard against duplicate effect runs causing multiple OAuth callback submissions.
+	 * Backend treats OAuth state as single-use (it deletes the cached state on first success path).
+	 */
+	let lastHandledOAuthCallbackKey = $state<string | null>(null);
+	let startedOAuthRedirectKey = $state<string | null>(null);
 
 	const provider = $derived(page.params.provider ?? '');
 
@@ -208,6 +214,13 @@
 			}
 			const organizationId = orgParam || workspaceSettingsPresenter.currentWorkspaceId || '';
 
+			// Prevent duplicate redirects on rapid reactivity/navigation updates.
+			const redirectKey = `${p}:${organizationId}:${externalReturn}:${onboarding ?? ''}`;
+			if (startedOAuthRedirectKey === redirectKey) {
+				return;
+			}
+			startedOAuthRedirectKey = redirectKey;
+
 			if (!p) {
 				toast.error('Missing provider.');
 				await goto(absoluteUrl(route(getRootPathAccount())), { replaceState: true });
@@ -255,6 +268,13 @@
 			return;
 		}
 		if (authCode && authState) {
+			// Guard: if effect runs multiple times for the same callback, only submit once.
+			const callbackKey = `${p}:${authState}:${authCode}:${refreshParam ?? ''}`;
+			if (lastHandledOAuthCallbackKey === callbackKey) {
+				busy = false;
+				return;
+			}
+			lastHandledOAuthCallbackKey = callbackKey;
 			await finishOAuthCallback(p, authCode, authState, refreshParam);
 			return;
 		}

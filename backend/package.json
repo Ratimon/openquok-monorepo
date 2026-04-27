@@ -18,7 +18,7 @@
     "dev:local-email": "aws-ses-v2-local",
     "build": "rm -rf dist && pnpm exec tsc -p ./tsconfig.build.json && pnpm exec tsc-alias -p ./tsconfig.build.json --resolve-full-paths --resolve-full-extension .js && cp config/loadBackendDotenv.cjs dist/config/loadBackendDotenv.cjs",
     "build:js": "pnpm exec tsup",
-    "build:vercel": "tsup && sh scripts/vercel-clean-after-build.sh",
+    "build:vercel": "pnpm run build && pnpm run build:js && sh scripts/vercel-clean-after-build.sh",
     "start": "node dist/app.js",
     "test:unit": "cross-env NODE_ENV=development jest --testPathPattern=unit\\.test\\.ts --no-coverage",
     "test:unit:email": "cross-env NODE_ENV=development jest -- emails/",

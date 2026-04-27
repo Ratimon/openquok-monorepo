@@ -7,6 +7,8 @@ interface RedisCacheOptions {
     password?: string;
     db?: number;
     prefix?: string;
+    tls?: boolean;
+    tlsRejectUnauthorized?: boolean;
     enableOfflineQueue?: boolean;
     useScan?: boolean;
     maxReconnectAttempts?: number;
@@ -19,6 +21,8 @@ class RedisCacheProvider {
         password?: string;
         db: number;
         prefix: string;
+        tls: boolean;
+        tlsRejectUnauthorized: boolean;
         enableOfflineQueue: boolean;
         useScan: boolean;
         maxReconnectAttempts: number;
@@ -33,6 +37,8 @@ class RedisCacheProvider {
             password: options.password,
             db: options.db ?? 0,
             prefix: options.prefix ?? "app:cache:",
+            tls: options.tls === true,
+            tlsRejectUnauthorized: options.tlsRejectUnauthorized !== false,
             enableOfflineQueue: options.enableOfflineQueue !== false,
             useScan: options.useScan !== false,
             maxReconnectAttempts: options.maxReconnectAttempts ?? 10,
@@ -44,31 +50,41 @@ class RedisCacheProvider {
         try {
             if (this.client) await this.disconnect();
 
+            const reconnectStrategy = (retries: number) => {
+                if (retries > this.options.maxReconnectAttempts) {
+                    logger.error({
+                        msg: "Max Redis reconnect attempts reached",
+                        attempt: retries,
+                        maxReconnectAttempts: this.options.maxReconnectAttempts,
+                    });
+                    return new Error("Max Redis reconnect attempts reached");
+                }
+                const delay = Math.min(Math.pow(2, retries) * 100 + Math.random() * 100, 30000);
+                logger.warn({
+                    msg: "Redis reconnecting...",
+                    attempt: retries,
+                    delayMs: Math.round(delay),
+                });
+                return delay;
+            };
+
+            const socket =
+                this.options.tls
+                    ? {
+                          host: this.options.host,
+                          port: this.options.port,
+                          tls: true as const,
+                          rejectUnauthorized: this.options.tlsRejectUnauthorized,
+                          reconnectStrategy,
+                      }
+                    : {
+                          host: this.options.host,
+                          port: this.options.port,
+                          reconnectStrategy,
+                      };
+
             const clientOptions = {
-                socket: {
-                    host: this.options.host,
-                    port: this.options.port,
-                    reconnectStrategy: (retries: number) => {
-                        if (retries > this.options.maxReconnectAttempts) {
-                            logger.error({
-                                msg: "Max Redis reconnect attempts reached",
-                                attempt: retries,
-                                maxReconnectAttempts: this.options.maxReconnectAttempts,
-                            });
-                            return new Error("Max Redis reconnect attempts reached");
-                        }
-                        const delay = Math.min(
-                            Math.pow(2, retries) * 100 + Math.random() * 100,
-                            30000
-                        );
-                        logger.warn({
-                            msg: "Redis reconnecting...",
-                            attempt: retries,
-                            delayMs: Math.round(delay),
-                        });
-                        return delay;
-                    },
-                },
+                socket,
                 password: this.options.password || undefined,
                 database: this.options.db,
             };
@@ -82,6 +98,7 @@ class RedisCacheProvider {
                     host: this.options.host,
                     port: this.options.port,
                     db: this.options.db,
+                    tls: this.options.tls,
                 });
             });
 
@@ -92,6 +109,7 @@ class RedisCacheProvider {
                     error: err.message,
                     host: this.options.host,
                     port: this.options.port,
+                    tls: this.options.tls,
                 });
             });
 

@@ -94,7 +94,10 @@ export class ProtectedCalendarPagePresenter {
 		}
 		const targetedChannelsVm = this.targetedChannelsVm;
 		const connectedChannelsVm = this.dashboardPagePresenter.connectedChannelsVm;
-		const ids = targetedChannelsVm.map((c) => c.id);
+		const ids = targetedChannelsVm.filter((c) => c.schedulable).map((c) => c.id);
+		if (targetedChannelsVm.length > 0 && ids.length === 0) {
+			return { ok: false, error: 'All targeted channels need reconnecting before you can schedule posts.' };
+		}
 		const isAllTargeted =
 			targetedChannelsVm.length > 0 && targetedChannelsVm.length === connectedChannelsVm.length;
 		const uniqueGroupIds = new Set(

@@ -2,7 +2,7 @@
 title: Orchestrator workers
 description: Environment and deployment for BullMQ worker processes (integration refresh, notification email, and scheduled social posts), plus the super-admin queue dashboard in the web app.
 order: 0
-lastUpdated: 2026-04-26
+lastUpdated: 2026-04-27
 ---
 
 <script>
@@ -29,6 +29,7 @@ Super admins can inspect and **manage BullMQ jobs** (pause / resume queues, open
 
 - **Redis** — Same <Badge text="REDIS_*" variant="envBackend" /> (and optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />) as the API. See <a href="/docs/configuration-backend/redis">Redis cache</a>.
 - **Supabase** — <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" />, <Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" />, <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" /> for server-side tables.
+- **Storage (scheduled social post publishing)** — If you publish posts with media (for example Threads image posts), workers must be able to build a **public HTTPS URL** for uploaded objects. Set <Badge text="STORAGE_PROVIDER" variant="envBackend" /> (typically <code>r2</code>) and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (your public bucket hostname, no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
 - **Per worker** — Provider OAuth secrets for **integration refresh**; email provider keys for **notification email**; the same **provider or channel** credentials the API would use to publish for **scheduled social** posts. A short template lives in the repo at <Badge text="orchestrator/.env.production.example" variant="path" />.
 
 ## Pages in this section

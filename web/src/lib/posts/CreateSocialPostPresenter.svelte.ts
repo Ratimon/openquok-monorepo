@@ -56,6 +56,24 @@ function formatProviderScheduleValidationMessage(
 	return `${label}: ${raw}`;
 }
 
+export function isChannelSchedulable(ch: CreateSocialPostChannelViewModel | null | undefined): boolean {
+	if (!ch) return false;
+	// Prefer the precomputed view-model flag (keeps UI logic consistent across components).
+	if (typeof (ch as any).schedulable === 'boolean') return (ch as any).schedulable as boolean;
+	return !ch.disabled && !ch.inBetweenSteps && !ch.refreshNeeded;
+}
+
+export function unschedulableReason(ch: CreateSocialPostChannelViewModel | null | undefined): string | null {
+	if (!ch) return 'Channel not found.';
+	if (typeof (ch as any).unschedulableReason === 'string' || (ch as any).unschedulableReason === null) {
+		return ((ch as any).unschedulableReason ?? null) as string | null;
+	}
+	if (ch.disabled) return 'This channel is disabled.';
+	if (ch.inBetweenSteps) return 'Finish connecting this channel first.';
+	if (ch.refreshNeeded) return 'Reconnect this channel first.';
+	return null;
+}
+
 /**
  * Shared composer state for the create-post dialog: scheduling UI, repository calls,
  * and optional single-channel preselection (e.g. integration menu → create post).
@@ -130,7 +148,7 @@ export class CreateSocialPostPresenter {
 
 	baseSocialChannelsVm = $derived(
 		this.connectedChannelsForSessionVm.filter(
-			(c) => (c.type ?? '').toLowerCase() === 'social' && !c.disabled
+			(c) => (c.type ?? '').toLowerCase() === 'social'
 		)
 	);
 
@@ -243,6 +261,11 @@ export class CreateSocialPostPresenter {
 				this.loadEditorBody();
 			}
 		} else {
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === id);
+			if (!isChannelSchedulable(ch)) {
+				toast.error(unschedulableReason(ch) ?? 'Reconnect this channel first.');
+				return;
+			}
 			this.selectedIds = [...this.selectedIds, id];
 		}
 	}
@@ -368,7 +391,16 @@ export class CreateSocialPostPresenter {
 
 		if (Array.isArray(preselectIntegrationIds) && preselectIntegrationIds.length > 0 && !preselectGroupId) {
 			const allowed = new Set(this.baseSocialChannelsVm.map((c) => c.id));
-			this.selectedIds = [...new Set(preselectIntegrationIds)].filter((id) => allowed.has(id));
+			const deduped = [...new Set(preselectIntegrationIds)].filter((id) => allowed.has(id));
+			const okIds = deduped.filter((id) => {
+				const ch = this.baseSocialChannelsVm.find((c) => c.id === id);
+				return isChannelSchedulable(ch);
+			});
+			const dropped = deduped.filter((id) => !okIds.includes(id));
+			this.selectedIds = okIds;
+			if (dropped.length > 0) {
+				toast.error('Some channels need reconnecting before you can schedule posts to them.');
+			}
 
 			// If all targeted channels belong to exactly one group, reflect that in the group selector UI.
 			const selectedGroups = new Set(
@@ -390,7 +422,12 @@ export class CreateSocialPostPresenter {
 			!preselectGroupId &&
 			this.baseSocialChannelsVm.some((c) => c.id === preselect)
 		) {
-			this.selectedIds = [preselect];
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === preselect);
+			if (isChannelSchedulable(ch)) {
+				this.selectedIds = [preselect];
+			} else {
+				toast.error(unschedulableReason(ch) ?? 'Reconnect this channel first.');
+			}
 		}
 
 		if (autoCustomize && this.selectedIds.length > 0) {
@@ -668,6 +705,13 @@ export class CreateSocialPostPresenter {
 		if (this.selectedIds.length === 0) {
 			toast.error('Select at least one channel above.');
 			return false;
+		}
+		for (const id of this.selectedIds) {
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === id);
+			if (!isChannelSchedulable(ch)) {
+				toast.error(unschedulableReason(ch) ?? 'Reconnect this channel first.');
+				return false;
+			}
 		}
 		if (this.scheduleValidationError) {
 			toast.warning(this.scheduleValidationError);

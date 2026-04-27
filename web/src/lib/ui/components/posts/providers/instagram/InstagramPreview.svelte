@@ -23,7 +23,7 @@
 <div class="bg-[#0f0f10] text-white rounded-xl border border-white/10 overflow-hidden">
 	<div class="flex items-center gap-3 px-4 py-3">
 		<img
-			src={channel.picture || '/no-picture.jpg'}
+			src={channel.pictureUrl ?? '/no-picture.jpg'}
 			alt={channel.name}
 			class="h-9 w-9 rounded-full bg-white object-cover"
 		/>

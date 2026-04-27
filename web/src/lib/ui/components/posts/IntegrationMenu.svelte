@@ -47,7 +47,7 @@
 		showProviderBadge = false
 	}: Props = $props();
 
-	const hasAvatarPhoto = $derived(Boolean(integration.picture?.trim()));
+	const hasAvatarPhoto = $derived(Boolean(integration.pictureUrl?.trim()));
 
 	let menuOpen = $state(false);
 	let confirmRemoveOpen = $state(false);
@@ -101,7 +101,7 @@
 				</span>
 			{/if}
 		</div>
-		{#if onCreatePost && !integration.disabled && !integration.inBetweenSteps}
+		{#if onCreatePost && integration.schedulable}
 			<Button
 				type="button"
 				variant="primary"
@@ -138,7 +138,7 @@
 		{:else if integration.refreshNeeded && workspaceId}
 			<Button
 				href={continueSetupHref(integration)}
-				variant="outline"
+				variant="warning"
 				size="sm"
 				class="w-full justify-start gap-2 sm:w-fit"
 			>
@@ -233,12 +233,21 @@
 		<div class="relative h-8 w-8 shrink-0">
 			<div class="h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
 				<ImageWithFallback
-					src={integration.picture}
+					src={integration.pictureUrl}
 					alt=""
 					class="h-full w-full object-cover"
 					fallbackIcon={providerIcon(integration.identifier)}
 				/>
 			</div>
+			{#if integration.refreshNeeded}
+				<span
+					class="absolute -top-0.5 -right-0.5 z-[2] flex size-[14px] items-center justify-center rounded-full border border-base-300 bg-warning text-warning-content shadow-sm"
+					aria-label="Refresh needed"
+					title="Refresh needed"
+				>
+					<AbstractIcon name={icons.RefreshCw.name} class="size-2.5" width="10" height="10" />
+				</span>
+			{/if}
 			<span
 				class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[14px] items-center justify-center rounded-full border border-base-300 bg-base-100 shadow-sm"
 				aria-hidden="true"
@@ -252,13 +261,24 @@
 			</span>
 		</div>
 	{:else}
-		<div class="h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-base-300/80">
-			<ImageWithFallback
-				src={integration.picture}
-				alt=""
-				class="h-full w-full object-cover"
-				fallbackIcon={providerIcon(integration.identifier)}
-			/>
+		<div class="relative h-8 w-8 shrink-0">
+			<div class="h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
+				<ImageWithFallback
+					src={integration.pictureUrl}
+					alt=""
+					class="h-full w-full object-cover"
+					fallbackIcon={providerIcon(integration.identifier)}
+				/>
+			</div>
+			{#if integration.refreshNeeded}
+				<span
+					class="absolute -top-0.5 -right-0.5 z-[2] flex size-[14px] items-center justify-center rounded-full border border-base-300 bg-warning text-warning-content shadow-sm"
+					aria-label="Refresh needed"
+					title="Refresh needed"
+				>
+					<AbstractIcon name={icons.RefreshCw.name} class="size-2.5" width="10" height="10" />
+				</span>
+			{/if}
 		</div>
 	{/if}
 	<div class="min-w-0 text-start">
@@ -304,13 +324,24 @@
 		</button>
 	</div>
 {:else}
-	<div class="rounded-lg border border-base-300 bg-base-200/40">
+	<div class="relative rounded-lg border border-base-300 bg-base-200/40">
+		{#if integration.refreshNeeded && workspaceId}
+			<a
+				href={continueSetupHref(integration)}
+				class="absolute top-2 right-2 inline-flex items-center gap-1 rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs font-medium text-base-content shadow-sm hover:bg-base-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+				aria-label="Refresh connection for {integration.name}"
+				title="Refresh connection"
+			>
+				<AbstractIcon name={icons.RefreshCw.name} class="size-3.5 shrink-0" width="14" height="14" />
+				<span class="hidden sm:inline">Refresh</span>
+			</a>
+		{/if}
 		<Collapsible.Collapsible bind:open={menuOpen} class="w-full">
 			<Collapsible.CollapsibleTrigger class="rounded-lg px-3 py-3">
 				<div class="flex min-w-0 flex-1 items-center gap-3">
 					<div class="h-12 w-12 shrink-0 overflow-hidden rounded-md">
 						<ImageWithFallback
-							src={integration.picture}
+							src={integration.pictureUrl}
 							alt=""
 							class="h-full w-full object-cover"
 							fallbackIcon={providerIcon(integration.identifier)}

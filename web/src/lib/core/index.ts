@@ -9,14 +9,15 @@ import { UploadImagePresenter } from '$lib/core/UploadImage.presenter.svelte';
 import { AvatarUploadPresenter } from '$lib/core/AvatarUpload.presenter.svelte';
 import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
 
-const imageConfig: ImageConfig = {
-	endpoints: {
-		getImageBlob: '/api/v1/image/download',
-		uploadImage: '/api/v1/image/upload',
-		deleteImage: '/api/v1/image/delete',
-		proxyImage: '/api/v1/image/proxy'
-	}
-};
+export const imageEndpoints = {
+	getImageBlob: '/api/v1/image/download',
+	uploadImage: '/api/v1/image/upload',
+	deleteImage: '/api/v1/image/delete',
+	proxyImage: '/api/v1/image/proxy',
+	publicProxyImage: '/api/v1/image/public-proxy'
+} as const;
+
+const imageConfig: ImageConfig = { endpoints: imageEndpoints };
 
 const httpGateway = new HttpGateway(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default as string, {
 	headers: {

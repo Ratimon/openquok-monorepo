@@ -2,7 +2,7 @@
 title: Docker (local services)
 description: Run local Redis (and other services) via Docker Compose for Openquok development.
 order: 0.5
-lastUpdated: 2026-04-24
+lastUpdated: 2026-04-27
 ---
 
 <script>
@@ -39,6 +39,8 @@ REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_DB=0
 REDIS_BULLMQ_DB=0
+REDIS_TLS=false
+REDIS_TLS_REJECT_UNAUTHORIZED=true
 ```
 
 ### Stop Redis

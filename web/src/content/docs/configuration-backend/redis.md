@@ -2,7 +2,7 @@
 title: Redis cache
 description: Switch CACHE_PROVIDER to Redis and configure REDIS_* variables for Openquok.
 order: 2
-lastUpdated: 2026-04-24
+lastUpdated: 2026-04-27
 ---
 
 <script>
@@ -53,6 +53,8 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_DB=0
+REDIS_TLS=false
+REDIS_TLS_REJECT_UNAUTHORIZED=true
 REDIS_BULLMQ_DB=0
 ```
 </Callout>
@@ -82,6 +84,8 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_DB=0
+REDIS_TLS=false
+REDIS_TLS_REJECT_UNAUTHORIZED=true
 REDIS_PREFIX=app:cache:
 REDIS_MAX_RECONNECT_ATTEMPTS=10
 REDIS_ENABLE_OFFLINE_QUEUE=true

@@ -212,10 +212,20 @@ export const config: ConfigObject = {
         enabled: getEnv("CACHE_ENABLED", "true") !== "false",
         enablePatterns: getEnv("CACHE_ENABLE_PATTERNS", "true") !== "false",
         redis: {
-            host: getEnv("REDIS_HOST", "localhost"),
+            host: getEnvTrimmed("REDIS_HOST", "localhost"),
             port: getEnvNumber("REDIS_PORT", 6379),
-            password: getEnv("REDIS_PASSWORD", ""),
+            password: getEnvTrimmed("REDIS_PASSWORD", ""),
             db: getEnvNumber("REDIS_DB", 0),
+            /**
+             * Managed Redis providers frequently require TLS.
+             * When enabled, `RedisCacheProvider` and BullMQ `ioredis` clients use TLS sockets.
+             */
+            tls: getEnv("REDIS_TLS", "false") === "true",
+            /**
+             * When `REDIS_TLS=true`, you may need to disable cert verification in some dev/test environments.
+             * Production should keep the default (`true`) unless you know your provider requires otherwise.
+             */
+            tlsRejectUnauthorized: getEnv("REDIS_TLS_REJECT_UNAUTHORIZED", "true") !== "false",
             /** Logical Redis DB for BullMQ / Flowcraft queues (defaults to REDIS_DB). */
             bullmqDb: getEnvNumber("REDIS_BULLMQ_DB", getEnvNumber("REDIS_DB", 0)),
             prefix: getEnv("REDIS_PREFIX", "app:cache:"),

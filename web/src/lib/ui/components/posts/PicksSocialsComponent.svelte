@@ -17,16 +17,22 @@
 	<p class="mb-2 text-xs font-medium text-base-content/60">Connected channels</p>
 	<div class="flex flex-wrap gap-3">
 		{#each channels as ch (ch.id)}
+			{@const schedulable = ch.schedulable}
+			{@const selected = selectedIds.includes(ch.id)}
 			<button
 				type="button"
-				class="ring-primary/60 relative shrink-0 rounded-full focus-visible:ring-2 focus-visible:outline-none {selectedIds.includes(
+				class="ring-primary/60 relative shrink-0 rounded-full focus-visible:ring-2 focus-visible:outline-none {schedulable || selected
+					? ''
+					: 'cursor-not-allowed opacity-60'} {selectedIds.includes(
 					ch.id
 				)
 					? 'ring-2'
 					: 'ring-0'}"
 				onclick={() => onToggleChannel(ch.id)}
 				aria-pressed={selectedIds.includes(ch.id)}
+				aria-disabled={!schedulable && !selected}
 				aria-label="Toggle channel {ch.name}"
+				title={schedulable ? ch.name : `${ch.name}: ${ch.unschedulableReason ?? 'Reconnect required'}`}
 			>
 				<span
 					class="relative block h-12 w-12 overflow-hidden rounded-full bg-base-200 transition {selectedIds.includes(
@@ -35,8 +41,13 @@
 						? 'grayscale-0'
 						: 'grayscale opacity-70'}"
 				>
-					{#if ch.picture}
-						<img src={ch.picture} alt="" class="h-full w-full object-cover" draggable="false" />
+					{#if ch.pictureUrl}
+						<img
+							src={ch.pictureUrl}
+							alt=""
+							class="h-full w-full object-cover"
+							draggable="false"
+						/>
 					{:else}
 						<span class="flex h-full w-full items-center justify-center text-xs text-base-content/50">
 							{ch.name.slice(0, 2)}

@@ -1,4 +1,6 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
+import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
+import { normalizeApiBaseUrl } from '$lib/utils/path';
 
 /** Supabase Storage buckets exposed by `/api/v1/image/*`. */
 export type DatabaseName = 'avatars' | 'blog_images';
@@ -39,17 +41,52 @@ export interface ImageConfig {
 		uploadImage: string;
 		deleteImage: string;
 		proxyImage: string;
+		publicProxyImage: string;
 	};
 }
 
 /** Max file size for upload (4MB). Vercel serverless body limit is 4.5MB; multipart overhead keeps us under. */
 export const MAX_IMAGE_UPLOAD_BYTES = 4 * 1024 * 1024;
 
+function apiBaseForPublicProxy(): string {
+	// In dev, `API_BASE_URL` defaults to '' so images use same-origin `/api/...` via SvelteKit proxy.
+	return normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
+}
+
+function isInstagramCdnUrl(url: string): boolean {
+	try {
+		const u = new URL(url);
+		return u.hostname === 'cdninstagram.com' || u.hostname.endsWith('.cdninstagram.com');
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Instagram `profile_picture_url` often resolves to `*.cdninstagram.com`, which may 403 when hotlinked from the app.
+ * Route those URLs through the backend public image proxy so `<img src>` loads in production.
+ */
+export function proxiedChannelPictureUrl(
+	raw: string | null | undefined,
+	endpoints: ImageConfig['endpoints']
+): string | null {
+	const trimmed = typeof raw === 'string' ? raw.trim() : '';
+	if (!trimmed) return null;
+	if (!/^https?:\/\//i.test(trimmed)) return trimmed;
+	if (!isInstagramCdnUrl(trimmed)) return trimmed;
+	const base = apiBaseForPublicProxy();
+	return `${base}${endpoints.publicProxyImage}?url=${encodeURIComponent(trimmed)}`;
+}
+
 export class ImageRepository {
 	constructor(
 		private readonly httpGateway: HttpGateway,
 		private readonly config: ImageConfig
 	) {}
+
+	public channelPictureUrl(raw: string | null | undefined): string | null {
+		return proxiedChannelPictureUrl(raw, this.config.endpoints);
+	}
 
 	public async getImageBlobByUrl(databaseName: DatabaseName, imageUrl: string): Promise<ImageProgrammerModel | null> {
 		try {

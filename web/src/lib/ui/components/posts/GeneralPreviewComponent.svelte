@@ -32,9 +32,9 @@
 		<div class="flex gap-3 relative pb-3">
 			<div class="min-w-10 h-10 min-h-10 w-10 flex flex-col items-center">
 				<div class="relative">
-					{#if channel?.picture}
+					{#if channel?.pictureUrl}
 						<img
-							src={channel.picture}
+							src={channel.pictureUrl}
 							alt={channel.name}
 							class="h-10 w-10 rounded-full relative z-[2] object-cover"
 						/>

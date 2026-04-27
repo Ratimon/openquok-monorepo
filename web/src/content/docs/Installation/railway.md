@@ -2,7 +2,7 @@
 title: Railway
 description: Deploy long-running BullMQ worker services on Railway with the monorepo build and Railway CLI.
 order: 3
-lastUpdated: 2026-04-23
+lastUpdated: 2026-04-27
 ---
 
 <script>
@@ -19,6 +19,7 @@ Railway treats these as <DocsExternalLink href="https://docs.railway.com/service
 - Worker environment variables set on each Railway service (applies to **dashboard deploys** and **CLI deploys**):
   - <Badge text="REDIS_*" variant="envBackend" /> (shared with your API). See <a href="/docs/configuration-backend/redis">Redis cache</a>.
   - Supabase keys (at minimum <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> and <Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" />; in production also <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" />). See <a href="/docs/configuration-worker">Orchestrator workers</a>.
+  - Storage public URL for media publishing (recommended if you schedule posts with images/videos): <Badge text="STORAGE_PROVIDER" variant="envBackend" /> and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
   - <code>RAILPACK_CONFIG_FILE</code> set per worker service (see “Set variables per worker service” below).
 
 ## Build and start (summary)
@@ -117,6 +118,10 @@ railway service
 ```
 
 If you see <strong>No service linked</strong>, run <code>railway service</code> to link a service for this directory.
+
+<Callout type="warning" title="Run railway service before each deploy">
+When deploying multiple workers from the same repo, you must run <code>railway service</code> to select the correct Railway service <strong>before</strong> each deploy command. The deploy scripts (<code>pnpm railway:deploy:…</code>) run <code>railway up</code> and will deploy to the <strong>currently linked</strong> service—if you forget to switch, you may deploy the wrong worker to the wrong service name.
+</Callout>
 
 <Callout type="tip">
 If <code>railway link</code> fails with <strong>Available options can not be empty</strong>, the CLI could not find any projects to link in the selected workspace.
