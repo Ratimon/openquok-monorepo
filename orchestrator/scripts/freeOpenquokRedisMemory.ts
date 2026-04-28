@@ -10,9 +10,7 @@
  *   pnpm --filter openquok-orchestrator script:free-openquok-redis-memory -- --targets=cache
  */
 import IORedis, { type RedisOptions } from "ioredis";
-import * as loadBackendDotenvCjs from "backend/config/loadBackendDotenv.cjs";
-
-const { loadBackendDotenv } = loadBackendDotenvCjs as unknown as { loadBackendDotenv: () => void };
+import { loadDotenvIntoProcessEnv } from "./dotenvFile.js";
 
 const QUEUE_SEGMENTS = ["integration-refresh", "notification-email", "scheduled-social-post"] as const;
 const SCAN_COUNT = 500;
@@ -25,7 +23,17 @@ const FLOWCRAFT_PATTERNS = [
     "workflow:status:*",
 ] as const;
 
-loadBackendDotenv();
+function parseArgValue(argv: string[], flag: string): string | undefined {
+    const idx = argv.findIndex((x) => x === flag);
+    if (idx !== -1) return argv[idx + 1];
+    const byEq = argv.find((x) => x.startsWith(`${flag}=`));
+    return byEq ? byEq.slice(`${flag}=`.length) : undefined;
+}
+
+const envFile = parseArgValue(process.argv, "--env-file");
+if (envFile) {
+    loadDotenvIntoProcessEnv(envFile, { override: false });
+}
 
 function getEnv(name: string): string | undefined {
     const v = process.env[name];

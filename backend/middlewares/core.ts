@@ -62,6 +62,7 @@ function shouldSkipApiAuth(
         }
     }
 
+    
     // Public allowlisted avatar proxy (used by <img src>; cannot attach Bearer auth headers).
     if (req.method === "GET" && routePath === "/image/public-proxy") {
         return true;

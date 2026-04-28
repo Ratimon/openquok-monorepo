@@ -1,0 +1,33 @@
+---
+description: Orchestrator env files must stay in sync with backend GlobalConfig; run env-file check script; prefer --env-file for orchestrator scripts
+globs:
+  - "orchestrator/.env*.example"
+  - "orchestrator/.env*.local"
+  - "orchestrator/scripts/*.ts"
+  - "backend/config/GlobalConfig.ts"
+alwaysApply: false
+---
+
+# Orchestrator env files (avoid drift)
+
+The orchestrator imports backend modules (notably `backend/config/GlobalConfig.ts`), so it can silently gain new environment-variable dependencies when backend config changes. To prevent production drift:
+
+## Keep env templates complete
+
+- When you add a new env var in backend config that the orchestrator can depend on (Redis, BullMQ, Supabase, storage, email, etc.), ensure `orchestrator/.env.production.example` includes it (even if blank).
+- Prefer adding keys to the **orchestrator** example template rather than relying on backend dotenv loading.
+
+## Validate any orchestrator env file with the checker
+
+Use the orchestrator checker script to confirm a dotenv file contains all env keys referenced by backend/orchestrator code (scoped to orchestrator-relevant namespaces).
+
+```bash
+pnpm --filter openquok-orchestrator script:check-env:file
+pnpm --filter openquok-orchestrator script:check-env:file -- --env-file .env.production.local
+```
+
+## Orchestrator scripts should not import backend dotenv loader
+
+- Orchestrator admin/ops scripts should **not** import `backend/config/loadBackendDotenv.cjs`.
+- They should accept `--env-file <path>` and load it locally (same convention as `railwaySetupWorkerEnv.ts`) so the orchestrator stays self-contained and predictable in CI/production.
+

@@ -1,11 +1,19 @@
 import IORedis from "ioredis";
-import * as loadBackendDotenvCjs from "backend/config/loadBackendDotenv.cjs";
-
-const { loadBackendDotenv } = loadBackendDotenvCjs as unknown as { loadBackendDotenv: () => void };
+import { loadDotenvIntoProcessEnv } from "./dotenvFile.js";
 
 const WORKFLOW_STATE_KEY_PREFIX = "workflow:state:";
 
-loadBackendDotenv();
+function parseArgValue(argv: string[], flag: string): string | undefined {
+    const idx = argv.findIndex((x) => x === flag);
+    if (idx !== -1) return argv[idx + 1];
+    const byEq = argv.find((x) => x.startsWith(`${flag}=`));
+    return byEq ? byEq.slice(`${flag}=`.length) : undefined;
+}
+
+const envFile = parseArgValue(process.argv, "--env-file");
+if (envFile) {
+    loadDotenvIntoProcessEnv(envFile, { override: false });
+}
 
 function getEnv(name: string): string | undefined {
     const v = process.env[name];

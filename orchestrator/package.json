@@ -17,6 +17,7 @@
   },
   "scripts": {
     "build": "pnpm exec tsc -p tsconfig.build.json && pnpm exec tsc-alias -p tsconfig.build.json --resolve-full-paths --resolve-full-extension .js",
+    "script:check-env:file": "tsx scripts/checkOrchestratorEnvFile.ts",
     "script:clear-flowcraft-runs": "cross-env NODE_ENV=development tsx scripts/clearFlowcraftRuns.ts",
     "script:free-openquok-redis-memory": "cross-env NODE_ENV=development tsx scripts/freeOpenquokRedisMemory.ts",
     "script:railway:env:sync-worker-env": "tsx scripts/railwaySetupWorkerEnv.ts",

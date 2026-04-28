@@ -110,6 +110,12 @@ It loads dotenv the same way workers do (via <code>backend/config/loadBackendDot
 - <code>backend/.env.production.local</code> when <code>NODE_ENV=production</code>
 - injected environment variables in production hosts (Railway, Fly, etc.)
 
+<Callout type="note" title="Worker env files vs this script">
+The Railway worker setup/sync scripts in the repo root (<code>railway:setup:*</code>, <code>railway:env:sync:*</code>) intentionally read from <code>orchestrator/.env.production.local</code> (see the <code>--env-file</code> flag in <code>package.json</code>), because those commands are managing <em>orchestrator</em> services.
+
+This <code>script:clear-flowcraft-runs</code> helper is a dev/admin script that imports backend config and therefore loads dotenv via <code>backend/config/loadBackendDotenv.cjs</code>.
+</Callout>
+
 <Callout type="warning" title="Be careful">
 This deletes Redis keys for the selected blueprint (<code>workflow:state:*</code>, <code>flowcraft:blueprint:*</code>, <code>workflow:status:*</code>). It is safe when you are cleaning up broken runs after a deploy, but you should not run it casually in production during normal operation.
 </Callout>
