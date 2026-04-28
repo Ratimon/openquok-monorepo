@@ -4,7 +4,6 @@ import type {
 } from '$lib/integrations/Integrations.repository.svelte';
 import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
-import { imageRepository } from '$lib/core';
 
 /** One scheduled posting slot: minutes after midnight (0–1439), matching `integrations.posting_times` JSON. */
 export type PostingTimeSlotViewModel = { time: number };
@@ -22,8 +21,6 @@ export interface CreateSocialPostChannelViewModel {
 	identifier: string;
 	/** Raw provider/profile picture URL from the API (may be an Instagram CDN URL). */
 	picture: string | null;
-	/** Resolved image URL safe for `<img src>` (may route Instagram CDN through the backend proxy). */
-	pictureUrl: string | null;
 	type: string;
 	disabled: boolean;
 	inBetweenSteps: boolean;
@@ -79,7 +76,6 @@ function toCreateSocialPostChannelViewModel(
 		name: pm.name,
 		identifier: pm.identifier,
 		picture,
-		pictureUrl: imageRepository.channelPictureUrl(picture),
 		type: pm.type,
 		disabled,
 		inBetweenSteps,

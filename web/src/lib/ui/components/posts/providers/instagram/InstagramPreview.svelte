@@ -2,6 +2,7 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import { IntegrationChannelPicture } from '$lib/ui/images';
 	import SliderComponent from '$lib/ui/slider/SliderComponent.svelte';
 
 	type Props = {
@@ -22,11 +23,22 @@
 
 <div class="bg-[#0f0f10] text-white rounded-xl border border-white/10 overflow-hidden">
 	<div class="flex items-center gap-3 px-4 py-3">
-		<img
-			src={channel.pictureUrl ?? '/no-picture.jpg'}
-			alt={channel.name}
-			class="h-9 w-9 rounded-full bg-white object-cover"
-		/>
+		{#if channel.picture?.trim()}
+			<span class="block h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white">
+				<IntegrationChannelPicture
+					profilePictureUrl={channel.picture}
+					fallbackIcon={icons.User1.name}
+					alt={channel.name}
+					class="h-full w-full object-cover"
+				/>
+			</span>
+		{:else}
+			<img
+				src="/no-picture.jpg"
+				alt={channel.name}
+				class="h-9 w-9 shrink-0 rounded-full bg-white object-cover"
+			/>
+		{/if}
 		<div class="min-w-0">
 			<div class="truncate text-sm font-semibold leading-4">{channel.name}</div>
 			<div class="text-[11px] text-white/60">{isInstagram ? 'Instagram' : channel.identifier}</div>

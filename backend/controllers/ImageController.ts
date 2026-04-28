@@ -109,12 +109,17 @@ export class ImageController {
     };
 
     /**
-     * Public, allowlisted proxy for external avatar URLs (e.g. Instagram CDN).
+     * Allowlisted proxy for external avatar URLs (e.g. Instagram CDN profile pictures).
      *
-     * This route is intentionally unauthenticated because it is used by `<img src="...">`,
-     * which cannot attach Bearer auth headers. To avoid SSRF, only a small host allowlist is supported.
+     * Requires a valid user JWT (see global API auth in `middlewares/core.ts`). To avoid SSRF, only a
+     * small host allowlist is supported. The web client loads pixels via fetch + Bearer token (see
+     * `IntegrationChannelPicture.svelte`), not bare `<img src>` to this URL.
      */
-    publicProxyImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    allowlistedExternalImageProxy = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
         try {
             const { url } = req.query;
 

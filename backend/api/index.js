@@ -11166,12 +11166,13 @@ var ImageController = class {
     }
   };
   /**
-   * Public, allowlisted proxy for external avatar URLs (e.g. Instagram CDN).
+   * Allowlisted proxy for external avatar URLs (e.g. Instagram CDN profile pictures).
    *
-   * This route is intentionally unauthenticated because it is used by `<img src="...">`,
-   * which cannot attach Bearer auth headers. To avoid SSRF, only a small host allowlist is supported.
+   * Requires a valid user JWT (see global API auth in `middlewares/core.ts`). To avoid SSRF, only a
+   * small host allowlist is supported. The web client loads pixels via fetch + Bearer token (see
+   * `IntegrationChannelPicture.svelte`), not bare `<img src>` to this URL.
    */
-  publicProxyImage = async (req, res, next) => {
+  allowlistedExternalImageProxy = async (req, res, next) => {
     try {
       const { url } = req.query;
       if (!url || typeof url !== "string") {
@@ -13824,7 +13825,8 @@ var authWithRoles6 = requireFullAuthWithRoles(
 );
 var imageRouter = express.Router();
 imageRouter.get("/download", imageController.getByUrl);
-imageRouter.get("/public-proxy", imageController.publicProxyImage);
+imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
+imageRouter.get("/public-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post(
   "/upload",
   authWithRoles6,
@@ -14616,9 +14618,6 @@ function shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact) {
     if (dbName === "blog_images" && imageUrlParam.length > 0) {
       return true;
     }
-  }
-  if (req.method === "GET" && routePath === "/image/public-proxy") {
-    return true;
   }
   if (req.method === "GET" && routePath === "/integrations") {
     return true;

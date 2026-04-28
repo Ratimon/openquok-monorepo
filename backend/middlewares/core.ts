@@ -22,7 +22,7 @@ const BLOG_POST_ACTIVITY_PATH = /^\/blog-system\/posts\/[^/]+\/activity$/;
  * Routes under the API prefix normally require `Authorization: Bearer` (see `requireFullAuth`).
  * These checks define exceptions: callers skip the auth middleware entirely.
  *
- * Order of checks does not change the final OR result; helpers are grouped by feature (blog, image, integrations).
+ * Order of checks does not change the final OR result; helpers are grouped by feature (blog, integrations).
  */
 function shouldSkipApiAuth(
     req: Request,
@@ -60,12 +60,6 @@ function shouldSkipApiAuth(
         if (dbName === "blog_images" && imageUrlParam.length > 0) {
             return true;
         }
-    }
-
-    
-    // Public allowlisted avatar proxy (used by <img src>; cannot attach Bearer auth headers).
-    if (req.method === "GET" && routePath === "/image/public-proxy") {
-        return true;
     }
 
     // Integrations: public provider catalog (metadata only; no tokens).

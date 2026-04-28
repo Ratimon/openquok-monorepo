@@ -24,8 +24,10 @@ const imageRouter: ImageRouter = Router();
 
 imageRouter.get("/download", imageController.getByUrl);
 
-// Public, allowlisted proxy for external avatars (e.g. Instagram CDN profile pictures).
-imageRouter.get("/public-proxy", imageController.publicProxyImage);
+// Allowlisted external avatar proxy (Instagram CDN, etc.); JWT required (see `middlewares/core.ts`).
+imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
+// Backwards-compatible alias (will be removed): prefer `/external-proxy`.
+imageRouter.get("/public-proxy", imageController.allowlistedExternalImageProxy);
 
 imageRouter.post(
     "/upload",

@@ -2,6 +2,7 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import { IntegrationChannelPicture } from '$lib/ui/images';
 	import SliderComponent from '$lib/ui/slider/SliderComponent.svelte';
 
 	type Props = {
@@ -24,9 +25,10 @@
 <div class="rounded-xl border border-base-300 bg-base-100 text-base-content overflow-hidden">
 	<div class="flex gap-3 p-4">
 		<div class="relative h-10 w-10 shrink-0">
-			{#if channel.pictureUrl}
-				<img
-					src={channel.pictureUrl}
+			{#if channel.picture?.trim()}
+				<IntegrationChannelPicture
+					profilePictureUrl={channel.picture}
+					fallbackIcon={icons.User1.name}
 					alt={channel.name}
 					class="h-10 w-10 rounded-full bg-base-200 object-cover"
 				/>

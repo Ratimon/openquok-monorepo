@@ -11,7 +11,7 @@
 	import * as Collapsible from '$lib/ui/collapsible';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Popover from '$lib/ui/popover';
-	import { ImageWithFallback } from '$lib/ui/images';
+	import { IntegrationChannelPicture } from '$lib/ui/images';
 
 	type Props = {
 		integration: CreateSocialPostChannelViewModel;
@@ -47,7 +47,7 @@
 		showProviderBadge = false
 	}: Props = $props();
 
-	const hasAvatarPhoto = $derived(Boolean(integration.pictureUrl?.trim()));
+	const hasAvatarPhoto = $derived(Boolean(integration.picture?.trim()));
 
 	let menuOpen = $state(false);
 	let confirmRemoveOpen = $state(false);
@@ -232,8 +232,8 @@
 	{#if showProviderBadge && hasAvatarPhoto}
 		<div class="relative h-8 w-8 shrink-0">
 			<div class="h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
-				<ImageWithFallback
-					src={integration.pictureUrl}
+				<IntegrationChannelPicture
+					profilePictureUrl={integration.picture}
 					alt=""
 					class="h-full w-full object-cover"
 					fallbackIcon={providerIcon(integration.identifier)}
@@ -263,8 +263,8 @@
 	{:else}
 		<div class="relative h-8 w-8 shrink-0">
 			<div class="h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
-				<ImageWithFallback
-					src={integration.pictureUrl}
+				<IntegrationChannelPicture
+					profilePictureUrl={integration.picture}
 					alt=""
 					class="h-full w-full object-cover"
 					fallbackIcon={providerIcon(integration.identifier)}
@@ -340,8 +340,8 @@
 			<Collapsible.CollapsibleTrigger class="rounded-lg px-3 py-3">
 				<div class="flex min-w-0 flex-1 items-center gap-3">
 					<div class="h-12 w-12 shrink-0 overflow-hidden rounded-md">
-						<ImageWithFallback
-							src={integration.pictureUrl}
+						<IntegrationChannelPicture
+							profilePictureUrl={integration.picture}
 							alt=""
 							class="h-full w-full object-cover"
 							fallbackIcon={providerIcon(integration.identifier)}

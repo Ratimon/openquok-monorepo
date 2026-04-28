@@ -3,6 +3,7 @@
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import { IntegrationChannelPicture } from '$lib/ui/images';
 	import SliderComponent from '$lib/ui/slider/SliderComponent.svelte';
 
 	type Props = {
@@ -32,12 +33,15 @@
 		<div class="flex gap-3 relative pb-3">
 			<div class="min-w-10 h-10 min-h-10 w-10 flex flex-col items-center">
 				<div class="relative">
-					{#if channel?.pictureUrl}
-						<img
-							src={channel.pictureUrl}
-							alt={channel.name}
-							class="h-10 w-10 rounded-full relative z-[2] object-cover"
-						/>
+					{#if channel?.picture?.trim()}
+						<span class="relative z-[2] block h-10 w-10 overflow-hidden rounded-full">
+							<IntegrationChannelPicture
+								profilePictureUrl={channel.picture}
+								fallbackIcon={icons.User1.name}
+								alt={channel.name}
+								class="h-full w-full object-cover"
+							/>
+						</span>
 					{:else}
 						<span class="h-10 w-10 rounded-full relative z-[2] bg-base-200 flex items-center justify-center">
 							<AbstractIcon

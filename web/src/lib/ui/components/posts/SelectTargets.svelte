@@ -3,6 +3,7 @@
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import { IntegrationChannelPicture } from '$lib/ui/images';
 	import { socialProviderIcon } from '$lib/ui/components/posts/socialProviderIcons';
 	import RemoveSocialAccount from '$lib/ui/components/posts/RemoveSocialAccount.svelte';
 
@@ -82,12 +83,12 @@
 							? 'ring-primary/70'
 							: 'ring-primary/25'}"
 						>
-							{#if ch.pictureUrl}
-								<img
-									src={ch.pictureUrl}
+							{#if ch.picture?.trim()}
+								<IntegrationChannelPicture
+									profilePictureUrl={ch.picture}
+									fallbackIcon={socialProviderIcon(ch.identifier)}
 									alt=""
 									class="h-full w-full object-cover"
-									draggable="false"
 								/>
 							{:else}
 								<span class="flex h-full w-full items-center justify-center text-xs text-base-content/50">
