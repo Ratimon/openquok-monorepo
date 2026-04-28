@@ -16,14 +16,13 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import * as Dialog from '$lib/ui/dialog';
 	import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
 	import { postsRepository } from '$lib/posts';
-	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 
 	import Scheduler from '$lib/ui/components/calendar-scheduler/Scheduler.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
+	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 
@@ -43,18 +42,6 @@
 	let actionsOpen = $state(false);
 	let actionsPostGroup = $state<string | null>(null);
 	let actionsBusy = $state(false);
-	let actionsHeaderLoading = $state(false);
-	let actionsHeaderError = $state<string | null>(null);
-	let actionsSummary = $state<{
-		channelPicture?: string;
-		channelName?: string;
-		channelIdentifier?: string;
-		publishDateIso?: string;
-		status?: string;
-		content?: string;
-		channelCount?: number;
-	} | null>(null);
-	let actionsLoadToken = 0;
 
 	const accountRoot = route(getRootPathAccount());
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
@@ -100,56 +87,13 @@
 	function openActionsForPostGroup(postGroup: string) {
 		if (!postGroup) return;
 		actionsPostGroup = postGroup;
-		actionsHeaderLoading = true;
-		actionsHeaderError = null;
-		actionsSummary = null;
 		actionsOpen = true;
-
-		const token = ++actionsLoadToken;
-		void (async () => {
-			try {
-				const r = await postsRepository.getPostGroup(postGroup);
-				if (token !== actionsLoadToken) return;
-				if (!r.ok) {
-					actionsHeaderError = r.error;
-					return;
-				}
-				const g = r.group;
-				const firstIntegrationId = g.integrationIds?.[0] ?? null;
-				const ch = firstIntegrationId ? connectedChannelsVm.find((x) => x.id === firstIntegrationId) : null;
-				actionsSummary = {
-					channelPicture: ch?.picture ?? undefined,
-					channelName: ch?.name ?? undefined,
-					channelIdentifier: ch?.identifier ?? undefined,
-					publishDateIso: g.publishDateIso ?? undefined,
-					status: g.status ? String(g.status).toUpperCase() : undefined,
-					content: stripHtmlToPlainText(String(g.body ?? '')).trim(),
-					channelCount: Array.isArray(g.integrationIds) ? g.integrationIds.length : 0
-				};
-			} finally {
-				if (token === actionsLoadToken) actionsHeaderLoading = false;
-			}
-		})();
 	}
 
 	function closeActions() {
 		actionsOpen = false;
 		actionsPostGroup = null;
 		actionsBusy = false;
-		actionsHeaderLoading = false;
-		actionsHeaderError = null;
-		actionsSummary = null;
-	}
-
-	function formatLocalDateTime(iso: string | undefined): { date: string; time: string } {
-		if (!iso) return { date: '', time: '' };
-		const ms = Date.parse(iso);
-		if (!Number.isFinite(ms)) return { date: '', time: '' };
-		const d = new Date(ms);
-		return {
-			date: d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }),
-			time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-		};
 	}
 
 	async function copyPostGroupText() {
@@ -329,127 +273,18 @@
 	</section>
 </div>
 
-<Dialog.Root bind:open={actionsOpen} onOpenChange={(o) => (!o ? closeActions() : null)}>
-	<Dialog.Content class="max-w-sm p-0" showCloseButton={true}>
-		<div class="border-b border-base-300 px-4 py-3">
-			<div class="text-base font-semibold text-base-content">Post actions</div>
-
-			{#if actionsHeaderLoading}
-				<div class="mt-2 flex items-center gap-2 text-xs text-base-content/60">
-					<AbstractIcon name={icons.LoaderCircle.name} class="h-3.5 w-3.5 animate-spin" width="14" height="14" />
-					Loading post…
-				</div>
-			{:else if actionsHeaderError}
-				<div class="mt-2 text-xs text-error">{actionsHeaderError}</div>
-			{:else if actionsSummary}
-				{@const dt = formatLocalDateTime(actionsSummary.publishDateIso)}
-				{@const iconName = socialProviderIcon(actionsSummary.channelIdentifier)}
-				<div class="mt-2 flex items-start gap-3">
-					<div class="relative h-9 w-9 shrink-0">
-						{#if actionsSummary.channelPicture}
-							<img src={actionsSummary.channelPicture} alt="" class="h-9 w-9 rounded-md object-cover" />
-						{:else}
-							<div class="flex h-9 w-9 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60">
-								{(actionsSummary.channelName || 'CH').slice(0, 2).toUpperCase()}
-							</div>
-						{/if}
-						{#if actionsSummary.channelIdentifier}
-							<span
-								class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"
-								aria-hidden="true"
-							>
-								<AbstractIcon name={iconName} class="size-3.5" width="14" height="14" />
-							</span>
-						{/if}
-					</div>
-
-					<div class="min-w-0 flex-1">
-						<div class="flex items-start justify-between gap-2">
-							<div class="min-w-0">
-								<div class="truncate text-xs font-semibold text-base-content/70">
-									{actionsSummary.channelName || 'Channel'}
-									{#if (actionsSummary.channelCount ?? 0) > 1}
-										<span class="ml-1 text-[11px] font-semibold text-base-content/50">
-											+{(actionsSummary.channelCount ?? 0) - 1}
-										</span>
-									{/if}
-								</div>
-								<div class="mt-0.5 text-xs text-base-content/55">
-									{#if dt.date || dt.time}
-										{dt.date}{dt.time ? ` · ${dt.time}` : ''}
-									{:else}
-										Draft
-									{/if}
-								</div>
-							</div>
-							{#if actionsSummary.status}
-								<div class="shrink-0 rounded bg-base-200 px-2 py-0.5 text-[11px] font-semibold text-base-content/70">
-									{actionsSummary.status}
-								</div>
-							{/if}
-						</div>
-						<div class="mt-2 line-clamp-2 text-sm font-medium leading-snug text-base-content/90">
-							{actionsSummary.content || 'No content'}
-						</div>
-					</div>
-				</div>
-			{/if}
-		</div>
-		<div class="p-2">
-			<button
-				type="button"
-				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
-				disabled={actionsBusy || !actionsPostGroup}
-				onclick={() => {
-					const pg = actionsPostGroup;
-					if (!pg) return;
-					closeActions();
-					openEditPostGroup(pg);
-				}}
-			>
-				<AbstractIcon name={icons.Pencil.name} class="size-4 shrink-0" width="16" height="16" />
-				Edit
-			</button>
-			<button
-				type="button"
-				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
-				disabled={actionsBusy || !actionsPostGroup}
-				onclick={() => void copyPostGroupText()}
-			>
-				<AbstractIcon name={icons.Copy.name} class="size-4 shrink-0" width="16" height="16" />
-				Copy
-			</button>
-			<button
-				type="button"
-				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
-				disabled={actionsBusy}
-				onclick={() => toast.message('Preview is coming soon.')}
-			>
-				<AbstractIcon name={icons.Eye.name} class="size-4 shrink-0" width="16" height="16" />
-				Preview
-			</button>
-			<button
-				type="button"
-				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
-				disabled={actionsBusy}
-				onclick={() => toast.message('Statistics is coming soon.')}
-			>
-				<AbstractIcon name={icons.ChartBar.name} class="size-4 shrink-0" width="16" height="16" />
-				Statistics
-			</button>
-			<div class="bg-base-300 my-2 h-px w-full"></div>
-			<button
-				type="button"
-				class="hover:bg-error/10 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start text-error outline-none disabled:opacity-50"
-				disabled={actionsBusy || !actionsPostGroup}
-				onclick={() => void deletePostGroup()}
-			>
-				<AbstractIcon name={icons.Trash.name} class="size-4 shrink-0" width="16" height="16" />
-				Delete
-			</button>
-		</div>
-	</Dialog.Content>
-</Dialog.Root>
+<ShowPostActionsModal
+	open={actionsOpen}
+	postGroup={actionsPostGroup}
+	busy={actionsBusy}
+	channels={connectedChannelsVm}
+	onClose={closeActions}
+	onEdit={openEditPostGroup}
+	onCopy={copyPostGroupText}
+	onDelete={deletePostGroup}
+	onPreview={() => toast.message('Preview is coming soon.')}
+	onStatistics={() => toast.message('Statistics is coming soon.')}
+/>
 
 <CreateSocialPostModal
 	bind:open={createSocialPostOpen}
