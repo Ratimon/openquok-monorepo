@@ -22,3 +22,8 @@ const testLocalPath = path.join(root, ".env.test.local");
 if (fs.existsSync(testLocalPath)) {
     dotenv.config({ path: testLocalPath, override: true });
 }
+
+// Jest stability: avoid external Redis connections and reconnect loops keeping the process open.
+// Integration/e2e tests use supertest against the in-process app and do not require Redis.
+process.env.CACHE_PROVIDER = "memory";
+process.env.CACHE_ENABLED = "false";

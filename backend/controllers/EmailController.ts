@@ -47,7 +47,7 @@ export class EmailController {
                 return;
             }
 
-            const { id } = req.params;
+            const { id } = req.params as { id: string };
             const data = await this.emailService.getReceivedEmail(id);
 
             res.status(200).json({

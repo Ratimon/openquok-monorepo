@@ -5,10 +5,6 @@ import { logger } from "../utils/Logger";
 
 export type ResourceType =
     | "blog_posts"
-    | "listings"
-    | "sublistings"
-    | "listing_categories"
-    | "listing_tags"
     | "users";
 
 export type ResourceAction = "read" | "update" | "delete" | "create";
@@ -47,7 +43,13 @@ export function authorizeResource(options: ResourceAuthOptions) {
             }
 
             const userId = req.user.publicId;
-            const resourceId = req.params[paramName];
+            const resourceIdRaw = req.params[paramName] as unknown;
+            const resourceId =
+                typeof resourceIdRaw === "string"
+                    ? resourceIdRaw
+                    : Array.isArray(resourceIdRaw)
+                      ? resourceIdRaw[0]
+                      : undefined;
 
             if (!resourceId) {
                 next(

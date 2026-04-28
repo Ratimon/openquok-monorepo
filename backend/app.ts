@@ -100,6 +100,23 @@ const getCorsOptions = () => {
 };
 
 const app: Express = express();
+let appInitPromise: Promise<Express> | null = null;
+
+function ensureAppInitialized(): Promise<Express> {
+    if (!appInitPromise) {
+        appInitPromise = createApp();
+    }
+    return appInitPromise;
+}
+
+// Under Jest, `createApp()` is async and route mounting can race with the first supertest request.
+// Gate all requests until initialization completes to avoid intermittent 404s.
+app.use((req: Request, res: Response, next: NextFunction) => {
+    if (!process.env.JEST_WORKER_ID) return next();
+    ensureAppInitialized()
+        .then(() => next())
+        .catch((e) => next(e));
+});
 
 /**
  * Creates and configures the Express app (middleware, routes, error handler).
@@ -229,7 +246,7 @@ function isRunningOnVercel(): boolean {
 // Local/ECS: start the server. Vercel: handler/index.ts calls createApp() and uses the app as handler.
 // Do not use process.env.VERCEL alone: "Automatically expose System Environment Variables" can be off in the project.
 if (!isRunningOnVercel()) {
-    createApp()
+    ensureAppInitialized()
         .then((configuredApp) => {
             const port = (config.server as { port?: number }).port ?? 3000;
             if (process.env.JEST_WORKER_ID) {
@@ -254,4 +271,4 @@ if (!isRunningOnVercel()) {
         });
 }
 
-export { app, createApp };
+export { app, createApp, ensureAppInitialized };

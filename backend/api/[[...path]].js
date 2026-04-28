@@ -13551,7 +13551,8 @@ function authorizeResource(options) {
         return;
       }
       const userId = req.user.publicId;
-      const resourceId = req.params[paramName];
+      const resourceIdRaw = req.params[paramName];
+      const resourceId = typeof resourceIdRaw === "string" ? resourceIdRaw : Array.isArray(resourceIdRaw) ? resourceIdRaw[0] : void 0;
       if (!resourceId) {
         next(
           new UserAuthorizationError(
@@ -14760,6 +14761,17 @@ var getCorsOptions = () => {
   };
 };
 var app = express__default.default();
+var appInitPromise = null;
+function ensureAppInitialized() {
+  if (!appInitPromise) {
+    appInitPromise = createApp();
+  }
+  return appInitPromise;
+}
+app.use((req, res, next) => {
+  if (!process.env.JEST_WORKER_ID) return next();
+  ensureAppInitialized().then(() => next()).catch((e) => next(e));
+});
 async function createApp() {
   const { config: config3 } = await Promise.resolve().then(() => (init_GlobalConfig(), GlobalConfig_exports));
   try {
@@ -14846,7 +14858,7 @@ function isRunningOnVercel() {
   );
 }
 if (!isRunningOnVercel()) {
-  createApp().then((configuredApp) => {
+  ensureAppInitialized().then((configuredApp) => {
     const port = config.server.port ?? 3e3;
     if (process.env.JEST_WORKER_ID) {
       return;

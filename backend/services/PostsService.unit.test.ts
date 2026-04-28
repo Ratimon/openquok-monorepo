@@ -184,6 +184,9 @@ describe("PostsService", () => {
         });
 
         it("advances over posting-time slots until a slot is free", async () => {
+            jest.useFakeTimers();
+            // Freeze time at UTC midnight so posting-time slots advance deterministically.
+            jest.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
             integrationService.listByOrganization.mockResolvedValue([
                 {
                     id: faker.string.uuid(),
@@ -194,11 +197,15 @@ describe("PostsService", () => {
                 .mockResolvedValueOnce(true)
                 .mockResolvedValueOnce(true)
                 .mockResolvedValueOnce(false);
-            await service().findFreeSlot(orgId, authUserId);
-            expect(postsRepo.hasQueueSlotTaken).toHaveBeenCalledTimes(3);
-            const first = postsRepo.hasQueueSlotTaken.mock.calls[0][1];
-            const third = postsRepo.hasQueueSlotTaken.mock.calls[2][1];
-            expect(new Date(third).getTime() - new Date(first).getTime()).toBe(2 * 60 * 60 * 1000);
+            try {
+                await service().findFreeSlot(orgId, authUserId);
+                expect(postsRepo.hasQueueSlotTaken).toHaveBeenCalledTimes(3);
+                const first = postsRepo.hasQueueSlotTaken.mock.calls[0][1];
+                const third = postsRepo.hasQueueSlotTaken.mock.calls[2][1];
+                expect(new Date(third).getTime() - new Date(first).getTime()).toBe(2 * 60 * 60 * 1000);
+            } finally {
+                jest.useRealTimers();
+            }
         });
     });
 
