@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { IconName } from '$data/icon';
 	import type {
 		CreateSocialPostChannelViewModel,
 		DashboardPlatformChannelRowViewModel
@@ -27,6 +26,7 @@
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
 	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
+	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 
 	type Props = {
 		data: PageData;
@@ -193,21 +193,6 @@
 		hasAutoOpenedOnboarding = true;
 	});
 
-	const iconByProvider: Record<string, IconName> = {
-		facebook: icons.Facebook.name,
-		instagram: icons.Instagram.name,
-		'instagram-business': icons.Instagram.name,
-		'instagram-standalone': icons.InstagramGlyph.name,
-		youtube: icons.YouTube.name,
-		tiktok: icons.TikTok.name,
-		x: icons.X.name,
-		threads: icons.Threads.name
-	};
-
-	function providerIcon(identifier: string): IconName {
-		return iconByProvider[identifier] ?? icons.Link.name;
-	}
-
 	/** Short label for “Add more …” copy (matches connect flow naming where listed). */
 	const providerAddMoreLabelById: Record<string, string> = {
 		threads: 'Threads',
@@ -310,7 +295,7 @@
 						aria-hidden="true"
 					>
 						<AbstractIcon
-							name={providerIcon(row.identifier)}
+							name={socialProviderIcon(row.identifier)}
 							class="size-6"
 							width="24"
 							height="24"
@@ -323,7 +308,7 @@
 									variant="chip"
 									{integration}
 									workspaceId={workspaceId!}
-									{providerIcon}
+									providerIcon={socialProviderIcon}
 									{continueSetupHref}
 									onCreatePost={() => openCreatePost(integration.id)}
 

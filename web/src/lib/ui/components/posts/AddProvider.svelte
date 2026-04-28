@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { IntegrationCatalogItemProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
-	import type{ IconName } from '$data/icon';
 
 	import { goto } from '$app/navigation';
 	import { getRootPathAccount } from '$lib/area-protected';
@@ -16,6 +15,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import { cn } from '$lib/ui/helpers/common';
+	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 
 	type Props = {
 		/** Path to return to after OAuth (path only, e.g. `/account`). Passed to the integration backend as `externalUrl`. */
@@ -32,20 +32,6 @@
 	let providers = $state<IntegrationCatalogItemProgrammerModel[]>([]);
 
 	const currentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
-
-	const iconByProvider: Record<string, IconName> = {
-		facebook: icons.Facebook.name,
-		'instagram-business': icons.Instagram.name,
-		'instagram-standalone': icons.InstagramGlyph.name,
-		youtube: icons.YouTube.name,
-		tiktok: icons.TikTok.name,
-		x: icons.X.name,
-		threads: icons.Threads.name
-	};
-
-	function providerIcon(identifier: string): IconName {
-		return iconByProvider[identifier] ?? icons.Link.name;
-	}
 
 	async function ensureWorkspaceLoaded() {
 		if (currentWorkspaceId) return;
@@ -146,7 +132,7 @@
 						onclick={() => onPickProvider(p.identifier)}
 					>
 						<div class="mx-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-base-200">
-							<AbstractIcon name={providerIcon(p.identifier)} class="h-6 w-6" width="24" height="24" />
+							<AbstractIcon name={socialProviderIcon(p.identifier)} class="h-6 w-6" width="24" height="24" />
 						</div>
 						<div
 							class="min-w-0 w-full shrink text-balance break-words text-sm font-medium leading-snug text-base-content"

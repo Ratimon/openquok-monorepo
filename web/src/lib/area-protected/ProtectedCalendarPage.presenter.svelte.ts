@@ -1,4 +1,3 @@
-import type { IconName } from '$data/icon';
 import type {
 	CreateSocialPostPresenter,
 	CreateSocialPostPrepareOpenOptions
@@ -11,7 +10,9 @@ import type {
 	ProtectedDashboardPagePresenter
 } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
-import { icons } from '$data/icon';
+import type { IconName } from '$data/icon';
+
+import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 
 import { route } from '$lib/utils/path';
 import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
@@ -24,17 +25,6 @@ export class ProtectedCalendarPagePresenter {
 	targetedChannelsVm = $state<CreateSocialPostChannelViewModel[]>([]);
 	calendarRefreshKey = $state(0);
 
-	private readonly iconByProvider: Record<string, IconName> = {
-		facebook: icons.Facebook.name,
-		instagram: icons.Instagram.name,
-		'instagram-business': icons.Instagram.name,
-		'instagram-standalone': icons.InstagramGlyph.name,
-		youtube: icons.YouTube.name,
-		tiktok: icons.TikTok.name,
-		x: icons.X.name,
-		threads: icons.Threads.name
-	};
-
 	constructor(
 		private readonly dashboardPagePresenter: ProtectedDashboardPagePresenter,
 		private readonly workspaceSettings: WorkspaceSettingsPresenter,
@@ -43,7 +33,7 @@ export class ProtectedCalendarPagePresenter {
 	) {}
 
 	providerIcon(identifier: string): IconName {
-		return this.iconByProvider[identifier] ?? icons.Link.name;
+		return socialProviderIcon(identifier);
 	}
 
 	continueSetupHref(integration: CreateSocialPostChannelViewModel): string {

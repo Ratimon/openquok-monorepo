@@ -5,12 +5,15 @@
 	import { icons } from '$data/icon';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 	type SlotSummaryItem = {
 		postGroup: string;
 		publishDate?: string;
 		content: string;
 		channelPicture?: string;
 		channelName?: string;
+		state?: string;
+		channelIdentifier?: string;
 	};
 
 	type Props = {
@@ -87,18 +90,6 @@
 			.slice(0, 3)
 	);
 
-	function iconForProvider(identifier: string | null) {
-		if (!identifier) return icons.Link.name;
-		if (identifier === 'instagram-standalone') return icons.InstagramGlyph.name;
-		if (identifier === 'instagram-business') return icons.Instagram.name;
-		if (identifier === 'instagram') return icons.Instagram.name;
-		if (identifier === 'facebook') return icons.Facebook.name;
-		if (identifier === 'youtube') return icons.YouTube.name;
-		if (identifier === 'tiktok') return icons.TikTok.name;
-		if (identifier === 'x') return icons.X.name;
-		if (identifier === 'threads') return icons.Threads.name;
-		return icons.Link.name;
-	}
 </script>
 
 <button
@@ -129,7 +120,7 @@
 						class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[10px] items-center justify-center rounded-full border border-primary/30 bg-base-100"
 						aria-hidden="true"
 					>
-						<AbstractIcon name={iconForProvider(providerBadgeIcon)} class="size-2" width="8" height="8" />
+						<AbstractIcon name={socialProviderIcon(providerBadgeIcon)} class="size-2" width="8" height="8" />
 					</span>
 				{/if}
 			</div>

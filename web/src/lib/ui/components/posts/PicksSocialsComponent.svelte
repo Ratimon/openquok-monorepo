@@ -3,7 +3,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { IntegrationChannelPicture } from '$lib/ui/images';
-	import { socialProviderIcon } from '$lib/ui/components/posts/socialProviderIcons';
+	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 
 	type Props = {
 		channels: CreateSocialPostChannelViewModel[];

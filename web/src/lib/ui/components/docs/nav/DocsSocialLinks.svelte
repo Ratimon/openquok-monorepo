@@ -2,14 +2,13 @@
 	import type { IconName } from '$data/icon';
 	import { icons } from '$data/icon';
 
+	import { socialProviderIconByIdentifier } from '$lib/posts/constants/socialProviderIcons';
+
 	const iconMap: Record<string, IconName> = {
+		...socialProviderIconByIdentifier,
 		github: icons.Github.name,
 		twitter: icons.X.name,
-		x: icons.X.name,
-		facebook: icons.Facebook.name,
-		instagram: icons.Instagram.name,
 		linkedin: icons.Link.name,
-		youtube: icons.YouTube.name,
 		// to do: add discord, slack, twitch, mastodon, rss, mail, email, website icons
 		discord: icons.MessageCircle.name,
 		slack: icons.MessageCircle.name,

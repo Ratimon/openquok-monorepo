@@ -26,6 +26,7 @@
 		registerRefreshCalendarHandler,
 		triggerOpenActionsForPostGroup
 	} from '$lib/posts/SchedulerPresenter.svelte';
+	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 
 	type CreateCalendarConfig = Parameters<typeof createCalendar>[0];
 	type DefaultViewName = NonNullable<CreateCalendarConfig['defaultView']>;
@@ -159,7 +160,44 @@
 	let hostEl = $state<HTMLElement | null>(null);
 	let lastAppliedGridHeight = $state<number | null>(null);
 
-	type SlotSummaryItem = { postGroup: string; content: string; channelPicture?: string; channelName?: string };
+	type SlotSummaryItem = {
+		postGroup: string;
+		content: string;
+		channelPicture?: string;
+		channelName?: string;
+		/** Scheduled / publish instant (ISO); shown in the slot dialog */
+		publishDate?: string;
+		/** DB row state, e.g. DRAFT | QUEUE | PUBLISHED | ERROR */
+		state?: string;
+		/** Integration `identifier` for platform icon (instagram, facebook, …) */
+		channelIdentifier?: string;
+	};
+
+	function formatSlotSummaryTime(iso: string | undefined): string {
+		if (!iso || typeof iso !== 'string') return '';
+		const ms = Date.parse(iso);
+		if (!Number.isFinite(ms)) return '';
+		return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+	}
+
+	function slotSummaryStatusLine(stateRaw: string | undefined, publishDateIso: string | undefined): string {
+		const state = String(stateRaw ?? '').toUpperCase();
+		const time = formatSlotSummaryTime(publishDateIso);
+
+		if (state === 'DRAFT') return 'draft';
+
+		if (state === 'PUBLISHED') {
+			return time ? `published at ${time}` : 'published';
+		}
+
+		if (state === 'ERROR' || state === 'FAILED') {
+			return 'publish failed';
+		}
+
+		// QUEUE and anything schedule-like / unknown with a time
+		if (time) return `scheduled at ${time}`;
+		return state === 'QUEUE' ? 'scheduled' : '';
+	}
 	let slotDialogOpen = $state(false);
 	let slotDialogItems = $state<SlotSummaryItem[]>([]);
 
@@ -571,38 +609,57 @@
 <Dialog.Root bind:open={slotDialogOpen} onOpenChange={(o) => (!o ? (slotDialogItems = []) : null)}>
 	<Dialog.Content class="max-w-md p-0" showCloseButton={true}>
 		<div class="border-b border-base-300 px-4 py-3">
-			<div class="text-base font-semibold text-base-content">Posts in this slot</div>
+			<div class="text-base font-semibold text-base-content">
+				Posts in this slot
+			</div>
 			<div class="text-xs text-base-content/60">{slotDialogItems.length} posts</div>
 		</div>
 		<div class="max-h-[60vh] overflow-auto p-2">
 			{#each slotDialogItems as item, idx (item.postGroup || String(idx))}
+				{@const statusLine = slotSummaryStatusLine(item.state, item.publishDate)}
+				{@const channelIconName = socialProviderIcon(item.channelIdentifier)}
 				<button
 					type="button"
-					class="hover:bg-base-200/60 flex w-full items-start gap-3 rounded px-3 py-2 text-sm text-start outline-none"
+					class="hover:bg-base-200/60 grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-3 rounded px-3 py-2 text-start outline-none"
 					onclick={() => {
 						if (!item.postGroup) return;
 						slotDialogOpen = false;
 						triggerOpenActionsForPostGroup(item.postGroup);
 					}}
 				>
-					<div class="mt-0.5 h-9 w-9 shrink-0">
-						{#if item.channelPicture}
-							<img src={item.channelPicture} alt="" class="h-9 w-9 rounded-md object-cover" />
-						{:else}
-							<div class="flex h-9 w-9 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60">
-								{(item.channelName || 'CH').slice(0, 2).toUpperCase()}
+					<div class="flex min-w-0 items-start gap-3">
+						<div class="relative mt-0.5 h-9 w-9 shrink-0">
+							{#if item.channelPicture}
+								<img src={item.channelPicture} alt="" class="h-9 w-9 rounded-md object-cover" />
+							{:else}
+								<div class="flex h-9 w-9 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60">
+									{(item.channelName || 'CH').slice(0, 2).toUpperCase()}
+								</div>
+							{/if}
+							<span
+								class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"
+								aria-hidden="true"
+							>
+								<AbstractIcon name={channelIconName} class="size-3.5" width="14" height="14" />
+							</span>
+						</div>
+						<div class="min-w-0">
+							<div class="text-xs font-semibold text-base-content/70">
+								{item.channelName || 'Channel'}
 							</div>
-						{/if}
-					</div>
-					<div class="min-w-0 flex-1">
-						<div class="text-xs font-semibold text-base-content/70">
-							{item.channelName || 'Channel'}
-						</div>
-						<div class="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-base-content/90">
-							{item.content || 'No content'}
+							<div class="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-base-content/90">
+								{item.content || 'No content'}
+							</div>
 						</div>
 					</div>
-					<div class="shrink-0 text-xs text-base-content/50">Open</div>
+					{#if statusLine}
+						<div class="pointer-events-none max-w-[min(100%,11rem)] justify-self-center px-1 text-center text-xs leading-snug text-base-content/65">
+							{statusLine}
+						</div>
+					{:else}
+						<div aria-hidden="true"></div>
+					{/if}
+					<div class="justify-self-end text-xs text-base-content/50">Open</div>
 				</button>
 			{/each}
 		</div>

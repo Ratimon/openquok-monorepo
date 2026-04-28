@@ -436,10 +436,14 @@ export class SchedulerPresenter {
 						...((((existing as any).slotSummary as any[]) ?? []) as any[]),
 						{
 							postGroup: (p as any).postGroup ?? '',
+							state: typeof (p as any).state === 'string' ? (p as any).state : '',
 							publishDate: (p as any).publishDate ?? '',
 							content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
 							channelPicture: (p as any).integrationId ? channelById.get((p as any).integrationId)?.picture ?? '' : '',
-							channelName: (p as any).integrationId ? channelById.get((p as any).integrationId)?.name ?? '' : ''
+							channelName: (p as any).integrationId ? channelById.get((p as any).integrationId)?.name ?? '' : '',
+							channelIdentifier: (p as any).integrationId
+								? channelById.get((p as any).integrationId)?.identifier ?? ''
+								: ''
 						}
 					];
 					continue;
@@ -459,10 +463,12 @@ export class SchedulerPresenter {
 					slotSummary: [
 						{
 							postGroup: (p as any).postGroup ?? '',
+							state: typeof (p as any).state === 'string' ? (p as any).state : '',
 							publishDate: (p as any).publishDate ?? '',
 							content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
 							channelPicture: channel?.picture ?? '',
-							channelName: channel?.name ?? ''
+							channelName: channel?.name ?? '',
+							channelIdentifier: channel?.identifier ?? ''
 						}
 					]
 				} as any);
