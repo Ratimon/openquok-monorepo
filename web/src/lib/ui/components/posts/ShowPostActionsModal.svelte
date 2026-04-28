@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-	import type { PostGroupDetailsViewModel } from '$lib/posts/SchedulerPresenter.svelte';
+	import type { PostGroupDetailsViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
 
 	import { icons } from '$data/icon';
 	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
@@ -208,7 +208,7 @@
 				aria-label="Export & Debug as JSON"
 				onclick={() => void onCopy()}
 			>
-				<AbstractIcon name={icons.Copy.name} class="size-4 shrink-0" width="16" height="16" />
+				<AbstractIcon name={icons.Braces.name} class="size-4 shrink-0" width="16" height="16" />
 				Export & debug as JSON
 			</button>
 

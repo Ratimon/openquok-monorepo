@@ -14,7 +14,7 @@ import { mediaRouter } from "./MediaRoute.js";
 import { sessionIntegrationsRouter } from "./integrations/sessionRoutes.js";
 import { publicIntegrationRouter } from "./publicApi/integrationRoutes.js";
 import { notificationRouter } from "./NotificationRoute.js";
-import { postRouter } from "./postRoutes.js";
+import { postRouter } from "./PostRoutes.js";
 import { thirdPartyRouter } from "./ThirdPartyRoute.js";
 import { registerBullBoardRoutes, registerBullBoardSessionRoutes } from "./BullBoardRoute.js";
 import { logger } from "../utils/Logger";

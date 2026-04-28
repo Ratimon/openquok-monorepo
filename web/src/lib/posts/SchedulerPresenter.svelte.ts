@@ -5,10 +5,13 @@ import type { CalendarEventExternal } from '@schedule-x/calendar';
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type {
 	DebugExportPostGroupProgrammerModel,
-	PostGroupDetailsProgrammerModel,
-	PostRowProgrammerModel,
 	PostsRepository
 } from '$lib/posts/Posts.repository.svelte';
+import type {
+	CalendarPostRowViewModel,
+	GetPostGroupResultViewModel
+} from '$lib/posts/GetScheduledPosts.presenter.svelte';
+import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPosts.presenter.svelte';
 import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
 
 /**
@@ -65,15 +68,7 @@ export type CalendarSchedulerFiltersViewModel = {
 	groupId: string | null;
 };
 
-export type CalendarPostRowViewModel = PostRowProgrammerModel;
-
 export type ChannelViewModel = CreateSocialPostChannelViewModel;
-
-/**
- * View model for UI consumption.
- * Currently identical to repository PM (wire shape), but kept distinct so UI does not depend on repository types.
- */
-export type PostGroupDetailsViewModel = PostGroupDetailsProgrammerModel;
 
 /** Checkbox id for channels that are not in any workspace channel group. */
 export const CALENDAR_UNGROUPED_SENTINEL = '__ungrouped__';
@@ -98,10 +93,6 @@ export type ScheduledPostsCalendarViewModel = {
 	prevUrlGroupId: string | null | undefined;
 	events: CalendarEventExternal[];
 };
-
-export type GetPostGroupResult =
-	| { ok: true; group: PostGroupDetailsViewModel }
-	| { ok: false; error: string };
 
 export type DebugExportPostGroupResult =
 	| { ok: true; data: DebugExportPostGroupProgrammerModel }
@@ -133,7 +124,10 @@ export class SchedulerPresenter {
 		createInitialScheduledPostsCalendarViewModel()
 	);
 
-	constructor(private readonly postsRepository: PostsRepository) {}
+	constructor(
+		private readonly postsRepository: PostsRepository,
+		private readonly getScheduledPostsPresenter: GetScheduledPostsPresenter
+	) {}
 
 	private _patchScheduledPostsCalendarVm(partial: Partial<ScheduledPostsCalendarViewModel>): void {
 		this.scheduledPostsCalendarVm = { ...this.scheduledPostsCalendarVm, ...partial };
@@ -161,13 +155,13 @@ export class SchedulerPresenter {
 		| { ok: true; posts: CalendarPostRowViewModel[] }
 		| { ok: false; error: string }
 	> {
-		return this.postsRepository.listPosts(params);
+		return this.getScheduledPostsPresenter.listPosts(params);
 	}
 
 	getPostGroup(
 		postGroup: string
-	): Promise<GetPostGroupResult> {
-		return this.postsRepository.getPostGroup(postGroup);
+	): Promise<GetPostGroupResultViewModel> {
+		return this.getScheduledPostsPresenter.getPostGroup(postGroup);
 	}
 
 	debugExportPostGroup(

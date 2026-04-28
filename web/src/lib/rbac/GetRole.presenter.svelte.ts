@@ -10,7 +10,8 @@ export class GetRolePresenter {
 	constructor(private readonly rbacRepository: RbacRepository) {}
 
 	async loadRolesWithPermissions(): Promise<RoleViewModel[]> {
-		const rolePermissions = await this.rbacRepository.getAllRolePermissions();
+		const rolePermissions = await this.rbacRepository
+			.getAllRolePermissions();
 
 		const roleMap = rolePermissions.reduce(
 			(acc, { role, permission }) => {

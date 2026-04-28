@@ -35,12 +35,17 @@ export type {
 } from '$lib/posts/Posts.repository.svelte';
 export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPostPresenter.svelte';
 export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
+export { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPosts.presenter.svelte';
+export type {
+	CalendarPostRowViewModel,
+	GetPostGroupResultViewModel,
+	PostGroupDetailsViewModel
+} from '$lib/posts/GetScheduledPosts.presenter.svelte';
 export type {
 	CalendarDisplayViewModel,
 	CalendarGranularityViewModel,
 	CalendarIntegrationFilterViewModel,
 	CalendarLayoutModeViewModel,
-	CalendarPostRowViewModel,
 	CalendarSchedulerFiltersViewModel,
 	ChannelViewModel,
 	ScheduledPostsCalendarViewModel
