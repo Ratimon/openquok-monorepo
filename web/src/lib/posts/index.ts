@@ -42,7 +42,7 @@ export type {
 	CalendarPostRowViewModel,
 	CalendarSchedulerFiltersViewModel,
 	ChannelViewModel,
-	ScheduledPostsCalendarVm
+	ScheduledPostsCalendarViewModel
 } from '$lib/posts/SchedulerPresenter.svelte';
 export { CALENDAR_UNGROUPED_SENTINEL, SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
 export {

@@ -10,9 +10,10 @@
 	import { toast } from '$lib/ui/sonner';
 
 	import CalendarGroupFilter from '$lib/ui/components/calendar-scheduler/CalendarGroupFilter.svelte';
+	import PostTypeFilter from './PostTypeFilter.svelte';
 	import CalendarFilters from '$lib/ui/components/calendar-scheduler/CalendarFilters.svelte';
 	import Calendar from '$lib/ui/components/calendar-scheduler/Calendar.svelte';
-	import ListView from '$lib/ui/components/calendar-scheduler/ListView.svelte';
+	import ListView from './ListView.svelte';
 
 	type BackgroundEvent = {
 		start: Temporal.PlainDate | Temporal.ZonedDateTime;
@@ -113,6 +114,8 @@
 			s.rangeEndDate,
 			String(s.allGroups),
 			s.selectedGroupIds.slice().sort().join(','),
+			String(s.allPostStates),
+			s.selectedPostStates.slice().map((x) => String(x).toUpperCase()).sort().join(','),
 			s.granularity,
 			s.layoutMode,
 			channels.map((c) => c.id).sort().join(',')
@@ -156,6 +159,10 @@
 		presenter.setGroupFilter(next);
 	}
 
+	function onPostTypeFilterChange(next: { allPostStates: boolean; selectedPostStates: string[] }) {
+		presenter.setPostStateFilter(next);
+	}
+
 	function setGranularity(next: CalendarGranularityViewModel) {
 		presenter.setGranularity(next);
 	}
@@ -174,6 +181,7 @@
 </script>
 
 <div class="space-y-3">
+
 	<CalendarFilters
 		granularity={scheduledPostsVm.granularity}
 		layoutMode={scheduledPostsVm.layoutMode}
@@ -185,14 +193,21 @@
 		onSetLayoutMode={setLayoutMode}
 	>
 		{#snippet groupFilter()}
-			{#if channels.length > 0}
-				<CalendarGroupFilter
-					{channels}
-					allGroups={scheduledPostsVm.allGroups}
-					selectedGroupIds={scheduledPostsVm.selectedGroupIds}
-					onChange={onGroupFilterChange}
+			<div class="flex flex-wrap items-center gap-2">
+				{#if channels.length > 0}
+					<CalendarGroupFilter
+						{channels}
+						allGroups={scheduledPostsVm.allGroups}
+						selectedGroupIds={scheduledPostsVm.selectedGroupIds}
+						onChange={onGroupFilterChange}
+					/>
+				{/if}
+				<PostTypeFilter
+					allPostStates={scheduledPostsVm.allPostStates}
+					selectedPostStates={scheduledPostsVm.selectedPostStates}
+					onChange={onPostTypeFilterChange}
 				/>
-			{/if}
+			</div>
 		{/snippet}
 	</CalendarFilters>
 

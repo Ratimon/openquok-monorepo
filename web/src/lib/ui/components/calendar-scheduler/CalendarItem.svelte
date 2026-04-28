@@ -52,7 +52,7 @@
 	const content = $derived(stripHtmlToPlainText(String(post.content ?? '')) || 'no content');
 	const hasError = $derived(Boolean((post as any)?.error));
 	const isDraft = $derived(postState === 'DRAFT');
-	const isFailed = $derived(hasError || postState === 'FAILED' || postState === 'ERROR');
+	const isFailed = $derived(hasError || postState === 'ERROR');
 	const isPublished = $derived(postState === 'PUBLISHED');
 	// Calendar chip: omit QUEUE/PUBLISHED labels; surface only drafts.
 	const statusLabel = $derived(isFailed ? 'Failed' : isDraft ? 'Draft' : isPublished ? 'Published' : '');

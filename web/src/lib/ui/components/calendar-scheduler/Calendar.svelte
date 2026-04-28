@@ -190,7 +190,7 @@
 			return time ? `published at ${time}` : 'published';
 		}
 
-		if (state === 'ERROR' || state === 'FAILED') {
+		if (state === 'ERROR') {
 			return 'publish failed';
 		}
 

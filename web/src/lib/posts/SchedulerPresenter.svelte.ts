@@ -73,11 +73,13 @@ export type CalendarIntegrationFilterViewModel =
 	| { kind: 'none' };
 
 /** Scheduled-posts calendar surface: toolbar, date range, channel-group scope, fetch status, grid events. */
-export type ScheduledPostsCalendarVm = {
+export type ScheduledPostsCalendarViewModel = {
 	granularity: CalendarGranularityViewModel;
 	layoutMode: CalendarLayoutModeViewModel;
 	allGroups: boolean;
 	selectedGroupIds: string[];
+	allPostStates: boolean;
+	selectedPostStates: string[];
 	rangeStartDate: string;
 	rangeEndDate: string;
 	loading: boolean;
@@ -86,12 +88,14 @@ export type ScheduledPostsCalendarVm = {
 	events: CalendarEventExternal[];
 };
 
-function createInitialScheduledPostsCalendarVm(): ScheduledPostsCalendarVm {
+function createInitialScheduledPostsCalendarViewModel(): ScheduledPostsCalendarViewModel {
 	return {
 		granularity: 'week',
 		layoutMode: 'calendar',
 		allGroups: true,
 		selectedGroupIds: [],
+		allPostStates: true,
+		selectedPostStates: [],
 		rangeStartDate: '',
 		rangeEndDate: '',
 		loading: false,
@@ -106,13 +110,13 @@ function createInitialScheduledPostsCalendarVm(): ScheduledPostsCalendarVm {
  */
 export class SchedulerPresenter {
 	/** Reactive UI bundle for browsing scheduled posts in the calendar (Schedule‑X). */
-	scheduledPostsCalendarVm = $state<ScheduledPostsCalendarVm>(
-		createInitialScheduledPostsCalendarVm()
+	scheduledPostsCalendarVm = $state<ScheduledPostsCalendarViewModel>(
+		createInitialScheduledPostsCalendarViewModel()
 	);
 
 	constructor(private readonly postsRepository: PostsRepository) {}
 
-	private _patchScheduledPostsCalendarVm(partial: Partial<ScheduledPostsCalendarVm>): void {
+	private _patchScheduledPostsCalendarVm(partial: Partial<ScheduledPostsCalendarViewModel>): void {
 		this.scheduledPostsCalendarVm = { ...this.scheduledPostsCalendarVm, ...partial };
 	}
 
@@ -124,7 +128,7 @@ export class SchedulerPresenter {
 	}
 
 	resetCalendarUiState(): void {
-		this._patchScheduledPostsCalendarVm(createInitialScheduledPostsCalendarVm());
+		this._patchScheduledPostsCalendarVm(createInitialScheduledPostsCalendarViewModel());
 	}
 
 	listPosts(
@@ -284,6 +288,13 @@ export class SchedulerPresenter {
 		this._patchScheduledPostsCalendarVm({ allGroups: next.allGroups, selectedGroupIds: next.selectedGroupIds });
 	}
 
+	setPostStateFilter(next: { allPostStates: boolean; selectedPostStates: string[] }): void {
+		this._patchScheduledPostsCalendarVm({
+			allPostStates: next.allPostStates,
+			selectedPostStates: next.selectedPostStates
+		});
+	}
+
 	setGranularity(next: CalendarGranularityViewModel): void {
 		this.setInitialRangeForGranularity(next);
 	}
@@ -351,11 +362,16 @@ export class SchedulerPresenter {
 		refreshKey: string | number;
 	}): Promise<{ ok: true } | { ok: false; error: string }> {
 		const { startDate, endDate, organizationId, channels, refreshKey } = params;
-		const { allGroups, selectedGroupIds } = this.scheduledPostsCalendarVm;
+		const { allGroups, selectedGroupIds, allPostStates, selectedPostStates } = this.scheduledPostsCalendarVm;
 
 		const filt = this.deriveIntegrationFilter(channels, allGroups, selectedGroupIds);
+		const statesKey = allPostStates
+			? 'allStates'
+			: selectedPostStates.length
+				? [...selectedPostStates].map((s) => s.toUpperCase()).sort().join(',')
+				: 'noneStates';
 		if (filt.kind === 'none') {
-			const noneKey = `none|${startDate}|${endDate}|${refreshKey}`;
+			const noneKey = `none|${startDate}|${endDate}|${refreshKey}|${statesKey}`;
 			if (noneKey === this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) {
 				this._maybePatchRange(startDate, endDate);
 				return { ok: true };
@@ -370,7 +386,7 @@ export class SchedulerPresenter {
 
 		const integrationIds = filt.kind === 'all' ? null : filt.integrationIds;
 		const idsKey = integrationIds?.length ? [...integrationIds].sort().join(',') : 'all';
-		const requestKey = `${refreshKey}|${startDate}|${endDate}|${idsKey}`;
+		const requestKey = `${refreshKey}|${startDate}|${endDate}|${idsKey}|${statesKey}`;
 		if (requestKey === this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) {
 			this._maybePatchRange(startDate, endDate);
 			return { ok: true };
@@ -398,6 +414,13 @@ export class SchedulerPresenter {
 				return { ok: false, error: r.error };
 			}
 
+			const stateSet = allPostStates
+				? null
+				: new Set(selectedPostStates.map((s) => String(s).toUpperCase()).filter(Boolean));
+			const posts = stateSet
+				? r.posts.filter((p) => stateSet.has(String((p as any)?.state ?? '').toUpperCase()))
+				: r.posts;
+
 			/**
 			 * Schedule‑X enforces a minimum event chip height in the time grid. When two posts are only a
 			 * couple minutes apart, their chips can visually overlap.
@@ -416,7 +439,7 @@ export class SchedulerPresenter {
 				const ms = Date.parse(iso);
 				return Number.isFinite(ms) ? ms : Number.NaN;
 			};
-			for (const p of r.posts) {
+			for (const p of posts) {
 				if (typeof p.publishDate !== 'string' || p.publishDate.length === 0) continue;
 				const zdt = this.isoToUtcZdt(p.publishDate);
 				const roundedMinute = Math.floor(zdt.minute / bucketMinutes) * bucketMinutes;
