@@ -18,6 +18,7 @@ export interface UpsertModuleResponseDto {
 export interface ModuleConfigConfig {
 	endpoints: {
 		getModuleConfig: string;
+		getPublicModuleConfig: string;
 		updateConfig: string;
 	};
 }
@@ -32,6 +33,26 @@ export class ModuleConfigRepository {
 		try {
 			const { data: moduleConfigDto, ok } = await this.httpGateway.get<ModuleConfigResponseDto>(
 				this.config.endpoints.getModuleConfig,
+				{ moduleName },
+				{ withCredentials: true }
+			);
+
+			if (ok && moduleConfigDto?.success && moduleConfigDto.data) {
+				return Object.fromEntries(
+					Object.entries(moduleConfigDto.data).map(([key, value]) => [key, value == null ? '' : String(value)])
+				);
+			}
+		} catch {
+			// Fallback handled at presenter/UI layer.
+		}
+
+		return {};
+	}
+
+	public async getPublicModuleConfig(moduleName: string): Promise<Record<string, string>> {
+		try {
+			const { data: moduleConfigDto, ok } = await this.httpGateway.get<ModuleConfigResponseDto>(
+				this.config.endpoints.getPublicModuleConfig,
 				{ moduleName },
 				{ withCredentials: false }
 			);
@@ -58,7 +79,7 @@ export class ModuleConfigRepository {
 				moduleName,
 				newConfig
 			},
-			{ withCredentials: false }
+			{ withCredentials: true }
 		);
 
 		if (ok && upsertDto?.success) {
@@ -79,6 +100,7 @@ export class ModuleConfigRepository {
 const moduleConfigConfig: ModuleConfigConfig = {
 	endpoints: {
 		getModuleConfig: '/api/v1/admin/config',
+		getPublicModuleConfig: '/api/v1/company/config',
 		updateConfig: '/api/v1/admin/config'
 	}
 };

@@ -24,12 +24,13 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 	} satisfies MetaTagsProps;
 
 	// ✅ SAFE: Load landing page config using SSR
-	let landingPageConfigVm: { [key: string]: string } = {};
+	let landingPageConfigPm: { [key: string]: string } = {};
 	try {
-		landingPageConfigVm = await configRepository.getModuleConfig('landing-page');
+		landingPageConfigPm = await configRepository
+			.getPublicModuleConfig('landing-page');
 	} catch (error) {
 		console.error('[+page.server] Failed to fetch landing page config:', error);
-		landingPageConfigVm = {
+		landingPageConfigPm = {
 			HERO_TITLE: String(CONFIG_SCHEMA_LANDING_PAGE.HERO_TITLE.default),
 			HERO_SLOGAN: String(CONFIG_SCHEMA_LANDING_PAGE.HERO_SLOGAN.default),
 			ACTIVE_TOP_BANNER: String(CONFIG_SCHEMA_LANDING_PAGE.ACTIVE_TOP_BANNER.default)
@@ -40,7 +41,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		pageMetaTags,
 		navbarDesktopLinks,
 		navbarMobileLinks,
-		landingPageConfigVm,
+		landingPageConfigPm,
 		footerNavigationLinks
 	};
 };

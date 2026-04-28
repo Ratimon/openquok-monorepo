@@ -50,8 +50,8 @@
 	);
 
 	let landingPageConfigVm = $derived(
-		(data as any)?.landingPageConfigVm ??
-			(page.data as any)?.landingPageConfigVm ?? {
+		(data as any)?.landingPageConfigPm ??
+			(page.data as any)?.landingPageConfigPm ?? {
 				HERO_TITLE: String(CONFIG_SCHEMA_LANDING_PAGE.HERO_TITLE.default),
 				HERO_SLOGAN: String(CONFIG_SCHEMA_LANDING_PAGE.HERO_SLOGAN.default),
 				ACTIVE_TOP_BANNER: String(CONFIG_SCHEMA_LANDING_PAGE.ACTIVE_TOP_BANNER.default)

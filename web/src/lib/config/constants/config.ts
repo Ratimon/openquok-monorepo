@@ -27,7 +27,9 @@ function getApiBaseUrl(): string {
 	if (typeof import.meta !== 'undefined' && import.meta.env.DEV) {
 		return '';
 	}
-	return normalizeApiBaseUrl('http://localhost:3000');
+	// Production default: use same-origin relative API paths (deploy behind a reverse proxy).
+	// If your backend is on a different host, you must set VITE_API_BASE_URL explicitly.
+	return '';
 }
 
 export const CONFIG_SCHEMA_BACKEND: ModuleConfigSchema = {
