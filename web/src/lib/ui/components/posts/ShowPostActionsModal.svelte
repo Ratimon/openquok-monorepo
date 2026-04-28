@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { PostGroupDetailsViewModel } from '$lib/posts/SchedulerPresenter.svelte';
 
 	import { icons } from '$data/icon';
-	import { postsRepository } from '$lib/posts';
 	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 	import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
 
@@ -14,6 +14,11 @@
 		postGroup: string | null;
 		busy: boolean;
 		channels: readonly CreateSocialPostChannelViewModel[];
+		loadPostGroup: (
+			postGroup: string
+		) => Promise<
+			{ ok: true; group: PostGroupDetailsViewModel } | { ok: false; error: string }
+		>;
 		onClose: () => void;
 		onEdit: (postGroup: string) => void;
 		onCopy: () => Promise<void> | void;
@@ -27,6 +32,7 @@
 		postGroup,
 		busy,
 		channels,
+		loadPostGroup,
 		onClose,
 		onEdit,
 		onCopy,
@@ -83,7 +89,7 @@
 
 		void (async () => {
 			try {
-				const r = await postsRepository.getPostGroup(pg);
+				const r = await loadPostGroup(pg);
 				if (token !== loadToken) return;
 				if (!r.ok) {
 					headerError = r.error;
@@ -108,6 +114,7 @@
 			}
 		})();
 	});
+
 </script>
 
 <Dialog.Root bind:open onOpenChange={(o) => (!o ? onClose() : null)}>
@@ -192,15 +199,17 @@
 				<AbstractIcon name={icons.Pencil.name} class="size-4 shrink-0" width="16" height="16" />
 				Edit
 			</button>
-
+            
 			<button
 				type="button"
 				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
 				disabled={busy || !postGroup}
+				title="Export & Debug as JSON"
+				aria-label="Export & Debug as JSON"
 				onclick={() => void onCopy()}
 			>
 				<AbstractIcon name={icons.Copy.name} class="size-4 shrink-0" width="16" height="16" />
-				Copy
+				Export & debug as JSON
 			</button>
 
 			<button

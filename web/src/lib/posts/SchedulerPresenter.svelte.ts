@@ -3,7 +3,12 @@ import 'temporal-polyfill/global';
 import type { CalendarEventExternal } from '@schedule-x/calendar';
 
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-import type { PostRowProgrammerModel, PostsRepository } from '$lib/posts/Posts.repository.svelte';
+import type {
+	DebugExportPostGroupProgrammerModel,
+	PostGroupDetailsProgrammerModel,
+	PostRowProgrammerModel,
+	PostsRepository
+} from '$lib/posts/Posts.repository.svelte';
 import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
 
 /**
@@ -64,6 +69,12 @@ export type CalendarPostRowViewModel = PostRowProgrammerModel;
 
 export type ChannelViewModel = CreateSocialPostChannelViewModel;
 
+/**
+ * View model for UI consumption.
+ * Currently identical to repository PM (wire shape), but kept distinct so UI does not depend on repository types.
+ */
+export type PostGroupDetailsViewModel = PostGroupDetailsProgrammerModel;
+
 /** Checkbox id for channels that are not in any workspace channel group. */
 export const CALENDAR_UNGROUPED_SENTINEL = '__ungrouped__';
 
@@ -87,6 +98,14 @@ export type ScheduledPostsCalendarViewModel = {
 	prevUrlGroupId: string | null | undefined;
 	events: CalendarEventExternal[];
 };
+
+export type GetPostGroupResult =
+	| { ok: true; group: PostGroupDetailsViewModel }
+	| { ok: false; error: string };
+
+export type DebugExportPostGroupResult =
+	| { ok: true; data: DebugExportPostGroupProgrammerModel }
+	| { ok: false; error: string };
 
 function createInitialScheduledPostsCalendarViewModel(): ScheduledPostsCalendarViewModel {
 	return {
@@ -143,6 +162,22 @@ export class SchedulerPresenter {
 		| { ok: false; error: string }
 	> {
 		return this.postsRepository.listPosts(params);
+	}
+
+	getPostGroup(
+		postGroup: string
+	): Promise<GetPostGroupResult> {
+		return this.postsRepository.getPostGroup(postGroup);
+	}
+
+	debugExportPostGroup(
+		postGroup: string
+	): Promise<DebugExportPostGroupResult> {
+		return this.postsRepository.debugExportPostGroup(postGroup);
+	}
+
+	deletePostGroup(postGroup: string): Promise<{ ok: true } | { ok: false; error: string }> {
+		return this.postsRepository.deletePostGroup(postGroup);
 	}
 
 	deriveIntegrationFilter(

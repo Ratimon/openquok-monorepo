@@ -178,6 +178,21 @@ export class PostsController {
         }
     };
 
+    debugExportPostGroup = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postGroup = (req.params as { postGroup: string }).postGroup;
+            const d = await this.postsService.debugExportPostGroup(postGroup, authUserId);
+            res.status(200).json({ success: true, data: d });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     updatePostGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;

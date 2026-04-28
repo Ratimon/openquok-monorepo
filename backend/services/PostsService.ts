@@ -418,6 +418,35 @@ export class PostsService {
         };
     }
 
+    /**
+     * Debug endpoint to export a post group's raw rows + derived group details.
+     * Intended for support/debugging; not a stable public contract.
+     */
+    async debugExportPostGroup(
+        postGroup: string,
+        authUserId: string
+    ): Promise<{
+        postGroup: string;
+        organizationId: string;
+        group: PostGroupDetails;
+        posts: SocialPostLike[];
+    }> {
+        const rows = await this.postsRepository.listPostsByGroup(postGroup);
+        if (!rows.length) {
+            throw new AppError("Post group not found", 404);
+        }
+        const organizationId = rows[0]!.organization_id;
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const group = await this.getPostGroup(postGroup, authUserId);
+        return {
+            postGroup,
+            organizationId,
+            group,
+            posts: rows,
+        };
+    }
+
     async deletePostGroup(postGroup: string, authUserId: string, organizationId?: string | null): Promise<void> {
         const rows = await this.postsRepository.listPostsByGroup(postGroup);
         if (!rows.length) {

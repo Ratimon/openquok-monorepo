@@ -16,8 +16,6 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
-	import { postsRepository } from '$lib/posts';
 
 	import Scheduler from '$lib/ui/components/calendar-scheduler/Scheduler.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
@@ -101,16 +99,15 @@
 		if (!pg) return;
 		actionsBusy = true;
 		try {
-			const r = await postsRepository.getPostGroup(pg);
+			const r = await calendarPresenter.schedulerPresenter.debugExportPostGroup(pg);
 			if (!r.ok) {
-				toast.error(r.error);
+				toast.warning('Failed to copy debug data.');
 				return;
 			}
-			const plain = stripHtmlToPlainText(r.group.body ?? '');
-			await navigator.clipboard.writeText(plain);
-			toast.success('Copied to clipboard.');
+			await navigator.clipboard.writeText(JSON.stringify(r.data, null, 2));
+			toast.success('Debug JSON copied to clipboard.');
 		} catch {
-			toast.error('Could not copy to clipboard.');
+			toast.warning('Failed to copy debug data.');
 		} finally {
 			actionsBusy = false;
 		}
@@ -123,7 +120,7 @@
 		if (!ok) return;
 		actionsBusy = true;
 		try {
-			const r = await postsRepository.deletePostGroup(pg);
+			const r = await calendarPresenter.schedulerPresenter.deletePostGroup(pg);
 			if (r.ok) {
 				toast.success('Post deleted.');
 				calendarPresenter.bumpCalendarRefresh();
@@ -278,6 +275,7 @@
 	postGroup={actionsPostGroup}
 	busy={actionsBusy}
 	channels={connectedChannelsVm}
+	loadPostGroup={(pg) => calendarPresenter.schedulerPresenter.getPostGroup(pg)}
 	onClose={closeActions}
 	onEdit={openEditPostGroup}
 	onCopy={copyPostGroupText}

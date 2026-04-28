@@ -108,6 +108,22 @@ export type GetPostGroupResponseDto = {
 	data?: PostGroupDetailsProgrammerModel;
 };
 
+export type DebugExportPostGroupProgrammerModel = {
+	postGroup: string;
+	organizationId: string;
+	group: PostGroupDetailsProgrammerModel;
+	/**
+	 * Backend returns raw `posts` rows for debugging. This is intentionally not modeled in the web client
+	 * because it is not a stable UI contract.
+	 */
+	posts: unknown[];
+};
+
+export type DebugExportPostGroupResponseDto = {
+	success?: boolean;
+	data?: DebugExportPostGroupProgrammerModel;
+};
+
 export type RepeatIntervalKey =
 	| 'day'
 	| 'two_days'
@@ -146,6 +162,7 @@ export interface PostsConfig {
 		createPost: string;
 		listPosts: string;
 		getPostGroup: string;
+		debugExportPostGroup: string;
 		updatePostGroup: string;
 		deletePostGroup: string;
 	};
@@ -312,6 +329,25 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not load post.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not load post.');
+		}
+	}
+
+	async debugExportPostGroup(
+		postGroup: string
+	): Promise<{ ok: true; data: DebugExportPostGroupProgrammerModel } | { ok: false; error: string }> {
+		try {
+			const url = `${this.config.endpoints.debugExportPostGroup}/${encodeURIComponent(postGroup)}/debug-export`;
+			const { ok, data: dto } = await this.httpGateway.get<DebugExportPostGroupResponseDto>(
+				url,
+				{},
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true && dto.data) {
+				return { ok: true, data: dto.data };
+			}
+			return { ok: false, error: 'Could not export debug data.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not export debug data.');
 		}
 	}
 

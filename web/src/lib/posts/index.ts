@@ -13,6 +13,7 @@ const postsConfig: PostsConfig = {
 		createPost: `${base}`,
 		listPosts: `${base}/list`,
 		getPostGroup: `${base}/group`,
+		debugExportPostGroup: `${base}/group`,
 		updatePostGroup: `${base}/group`,
 		deletePostGroup: `${base}/group`
 	}
