@@ -31,7 +31,7 @@ export class ProtectedLayoutPagePresenter {
 	async refreshEditorDockNotifications(): Promise<void> {
 		try {
 			if (!this.workspaceSettingsPresenter.currentWorkspaceId) {
-				await this.workspaceSettingsPresenter.load();
+				await this.workspaceSettingsPresenter.load({ includeTeam: false });
 			}
 			const organizationId = this.workspaceSettingsPresenter.currentWorkspaceId;
 			if (!organizationId) {
@@ -53,7 +53,7 @@ export class ProtectedLayoutPagePresenter {
 		this.notificationPreviewEmptyMessage = null;
 		try {
 			if (!this.workspaceSettingsPresenter.currentWorkspaceId) {
-				await this.workspaceSettingsPresenter.load();
+				await this.workspaceSettingsPresenter.load({ includeTeam: false });
 			}
 			const organizationId = this.workspaceSettingsPresenter.currentWorkspaceId;
 			if (!organizationId) {

@@ -34,7 +34,14 @@ import {
 import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
 import { UploadFactory } from "../connections/upload/upload.factory";
 
-export const authController = new AuthController(authenticationService, userRepository, userService, emailService, organizationService);
+export const authController = new AuthController(
+    authenticationService,
+    userRepository,
+    userService,
+    emailService,
+    organizationService,
+    rbacService
+);
 export const userController = new UserController(userService, authenticationService, emailService);
 export const companyController = new CompanyController(companyService, marketingService);
 export const settingsController = new SettingsController(organizationService);

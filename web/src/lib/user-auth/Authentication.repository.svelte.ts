@@ -70,6 +70,15 @@ export interface RefreshTokenResponseDto {
 		accessToken?: string;
 		refreshToken?: string;
 		expiresIn?: number;
+		user?: {
+			id: string | null;
+			email: string;
+			fullName: string;
+			username?: string;
+			isEmailVerified?: boolean;
+			roles?: string[];
+			isSuperAdmin?: boolean;
+		};
 	};
 	message: string;
 }
@@ -235,17 +244,19 @@ export class AuthenticationRepository {
 				setUnauthenticated();
 				return;
 			}
-			// After a successful refresh (OAuth redirect, returning users, etc), ensure we populate currentUser.
-			// Otherwise isAuthenticated() may remain false and protected routes will redirect.
-			try {
-				if (this.config.endpoints.me) {
-					await this.fetchCurrentUser(loadFetch);
+			// After a successful refresh, prefer the refresh response user (if provided) to avoid an extra /me call.
+			// Fall back to /me only when we still don't have a user or when explicitly forced.
+			if (!this.currentUser || options?.forceProfile === true) {
+				try {
+					if (this.config.endpoints.me) {
+						await this.fetchCurrentUser(loadFetch);
+					}
+				} catch {
+					// Fallback to stored user when /me fails; still mark as authenticated so app can retry.
+					const stored = this.getStoredUser();
+					this.currentUser = stored ?? this.currentUser;
+					this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
 				}
-			} catch {
-				// Fallback to stored user when /me fails; still mark as authenticated so app can retry.
-				const stored = this.getStoredUser();
-				this.currentUser = stored ?? this.currentUser;
-				this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
 			}
 			// If fetchCurrentUser succeeded it already set AUTHENTICATED; keep it consistent.
 			this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
@@ -532,9 +543,23 @@ export class AuthenticationRepository {
 				);
 				const { data: refreshTokenDto, ok } = response;
 				if (!ok || !refreshTokenDto?.data?.accessToken) throw new Error(refreshTokenDto?.message ?? 'Refresh failed');
-				const { accessToken, expiresIn } = refreshTokenDto.data;
+				const { accessToken, expiresIn, user } = refreshTokenDto.data;
 				const expiresAt = Date.now() + (expiresIn ?? 3600) * 1000;
 				this.storeToken(accessToken, expiresAt);
+				if (user && typeof user === 'object') {
+					const userModel: BasicUserAuthProgrammerModel = {
+						id: user.id ?? null,
+						email: user.email ?? '',
+						fullName: user.fullName ?? user.email ?? '',
+						username: user.username ?? user.email ?? undefined,
+						isEmailVerified: user.isEmailVerified,
+						roles: user.roles ?? [],
+						isSuperAdmin: user.isSuperAdmin ?? false
+					};
+					this.storeUser(userModel);
+					this.currentUser = userModel;
+					this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
+				}
 				this.setupTokenRefresh();
 				return accessToken;
 			} finally {

@@ -125,27 +125,26 @@ export class OrganizationRepository {
         if (organizationIds.length === 0) {
             return {};
         }
-        const { data, error } = await this.supabase
-            .from(USER_ORGS_TABLE)
-            .select("organization_id")
-            .in("organization_id", organizationIds)
-            .eq("disabled", false);
+        const { data, error } = await this.supabase.rpc(
+            "internal_get_org_member_counts" as never,
+            { p_org_ids: organizationIds } as never
+        );
 
         if (error) {
             throw new DatabaseError("Failed to get member counts", {
                 cause: error as unknown as Error,
                 operation: "getMemberCounts",
-                resource: { type: "table", name: USER_ORGS_TABLE },
+                resource: { type: "rpc", name: "internal_get_org_member_counts" },
             });
         }
 
-        const rows = (data ?? []) as { organization_id: string }[];
+        const rows = (data ?? []) as Array<{ organization_id: string; member_count: number }>;
         const counts: Record<string, number> = {};
         for (const id of organizationIds) {
             counts[id] = 0;
         }
         for (const row of rows) {
-            counts[row.organization_id] = (counts[row.organization_id] ?? 0) + 1;
+            counts[row.organization_id] = row.member_count ?? 0;
         }
         return counts;
     }
@@ -245,50 +244,40 @@ export class OrganizationRepository {
         members: (UserOrganizationRow & { email: string | null; full_name: string | null })[];
         error: unknown;
     }> {
-        const { data: uoList, error: uoError } = await this.supabase
-            .from(USER_ORGS_TABLE)
-            .select(USER_ORG_SELECT)
-            .eq("organization_id", organizationId);
-
-        if (uoError) {
-            throw new DatabaseError("Failed to get team", {
-                cause: uoError as unknown as Error,
-                operation: "getTeam",
-                resource: { type: "table", name: USER_ORGS_TABLE },
-            });
-        }
-
-        const rows = (uoList ?? []) as UserOrganizationRow[];
-        if (rows.length === 0) {
-            return { members: [], error: null };
-        }
-
-        const userIds = [...new Set(rows.map((r) => r.user_id))];
-        const { data: userList, error: userError } = await this.supabase
-            .from("users")
-            .select("id, email, full_name")
-            .in("id", userIds);
-
-        if (userError) {
-            throw new DatabaseError("Failed to get users for team", {
-                cause: userError as unknown as Error,
-                operation: "getTeam",
-                resource: { type: "table", name: "users" },
-            });
-        }
-
-        const userMap = new Map(
-            (userList ?? []).map((u: { id: string; email: string | null; full_name: string | null }) => [
-                u.id,
-                { email: u.email, full_name: u.full_name },
-            ])
+        const { data, error } = await this.supabase.rpc(
+            "internal_get_org_team_members" as never,
+            { p_organization_id: organizationId } as never
         );
 
-        const members = rows.map((r) => ({
-            ...r,
-            email: userMap.get(r.user_id)?.email ?? null,
-            full_name: userMap.get(r.user_id)?.full_name ?? null,
-        }));
+        if (error) {
+            throw new DatabaseError("Failed to get team", {
+                cause: error as unknown as Error,
+                operation: "getTeam",
+                resource: { type: "rpc", name: "internal_get_org_team_members" },
+            });
+        }
+
+        const members = ((data ?? []) as Array<{
+            id: string;
+            user_id: string;
+            organization_id: string;
+            role: string;
+            disabled: boolean;
+            created_at: string;
+            updated_at: string;
+            email: string | null;
+            full_name: string | null;
+        }>).map((r) => ({
+            id: r.id,
+            user_id: r.user_id,
+            organization_id: r.organization_id,
+            role: r.role,
+            disabled: r.disabled,
+            created_at: r.created_at,
+            updated_at: r.updated_at,
+            email: r.email ?? null,
+            full_name: r.full_name ?? null,
+        })) as (UserOrganizationRow & { email: string | null; full_name: string | null })[];
 
         return { members, error: null };
     }

@@ -210,7 +210,7 @@
 	async function startOAuthRedirect(p: string, orgParam: string, externalReturn: string) {
 		try {
 			if (!workspaceSettingsPresenter.currentWorkspaceId) {
-				await workspaceSettingsPresenter.load();
+				await workspaceSettingsPresenter.load({ includeTeam: false });
 			}
 			const organizationId = orgParam || workspaceSettingsPresenter.currentWorkspaceId || '';
 

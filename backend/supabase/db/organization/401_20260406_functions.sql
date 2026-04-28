@@ -158,4 +158,58 @@ FOR INSERT
 TO authenticated
 WITH CHECK (public.is_active_admin_or_superadmin_of_org(organization_invites.organization_id, auth.uid()));
 
+-- ---------------------------
+-- Backend RPC helpers (API performance)
+-- ---------------------------
+
+-- Fast group-by member counts for organization lists.
+-- Used by backend `OrganizationRepository.getMemberCounts` to avoid fetching all rows and counting in JS.
+CREATE OR REPLACE FUNCTION public.internal_get_org_member_counts(p_org_ids uuid[])
+RETURNS TABLE (organization_id uuid, member_count integer)
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT
+    uo.organization_id,
+    COUNT(*)::integer AS member_count
+  FROM public.user_organizations uo
+  WHERE uo.organization_id = ANY(p_org_ids)
+    AND uo.disabled = false
+  GROUP BY uo.organization_id;
+$$;
+
+-- One-shot team list (membership + email/full_name).
+-- Used by backend `OrganizationRepository.getTeam` to avoid two sequential queries.
+CREATE OR REPLACE FUNCTION public.internal_get_org_team_members(p_organization_id uuid)
+RETURNS TABLE (
+  id uuid,
+  user_id uuid,
+  organization_id uuid,
+  role text,
+  disabled boolean,
+  created_at timestamptz,
+  updated_at timestamptz,
+  email text,
+  full_name text
+)
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT
+    uo.id,
+    uo.user_id,
+    uo.organization_id,
+    uo.role,
+    uo.disabled,
+    uo.created_at,
+    uo.updated_at,
+    u.email,
+    u.full_name
+  FROM public.user_organizations uo
+  JOIN public.users u ON u.id = uo.user_id
+  WHERE uo.organization_id = p_organization_id;
+$$;
+
 COMMIT;

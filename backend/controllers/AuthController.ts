@@ -4,6 +4,7 @@ import type { UserRepository } from "../repositories/UserRepository";
 import type { EmailService } from "../services/EmailService";
 import type { OrganizationService } from "../services/OrganizationService";
 import type { UserService } from "../services/UserService";
+import type { RbacService } from "../services/RbacService";
 
 import type {
     validateSignUpRequestHandler,
@@ -39,6 +40,7 @@ export class AuthController {
     private authenticationService: AuthenticationService;
     private emailService: EmailService;
     private organizationService: OrganizationService;
+    private rbacService: RbacService;
 
     /**
      * Best-effort "site" key for SameSite decisions (eTLD+1-ish).
@@ -156,13 +158,15 @@ export class AuthController {
         userRepository: UserRepository,
         userService: UserService,
         emailService: EmailService,
-        organizationService: OrganizationService
+        organizationService: OrganizationService,
+        rbacService: RbacService
     ) {
         this.authenticationService = authenticationService;
         this.userRepository = userRepository;
         this.userService = userService;
         this.emailService = emailService;
         this.organizationService = organizationService;
+        this.rbacService = rbacService;
     }
 
     /**
@@ -536,6 +540,36 @@ export class AuthController {
                 userAgent: req.headers["user-agent"],
             };
             const data = await this.authenticationService.refreshToken(refreshToken, clientInfo);
+            const authUserId = data.user?.id;
+
+            const user =
+                authUserId
+                    ? await (async () => {
+                          // Build the same "current user" shape the frontend normally gets from GET /users/me,
+                          // so the client can skip an immediate /me fetch after refresh.
+                          const [{ userData }, { userId: publicId }] = await Promise.all([
+                              this.userService.getProfile(authUserId).then((u) => ({ userData: u })),
+                              this.userRepository.findUserIdByAuthId(authUserId),
+                          ]);
+
+                          const rolesResult = publicId
+                              ? await this.rbacService.getUserRoles(publicId)
+                              : { roles: [] as string[] };
+                          const isSuperAdmin = publicId ? await this.rbacService.isSuperAdmin(publicId) : false;
+
+                          return userData
+                              ? {
+                                    id: userData.id,
+                                    email: userData.email,
+                                    fullName: userData.full_name,
+                                    username: userData.email,
+                                    isEmailVerified: userData.is_email_verified === true,
+                                    roles: rolesResult.roles,
+                                    isSuperAdmin,
+                                }
+                              : null;
+                      })()
+                    : null;
 
             // Refresh tokens rotate (single-use). Always update our httpOnly refreshToken cookie after a successful refresh in production.
             if (serverConfig.nodeEnv === "production" || cookieRefreshToken) {
@@ -550,6 +584,7 @@ export class AuthController {
                     refreshToken: cookieRefreshToken ? undefined : data.session.refresh_token,
                     expiresIn: 3600,
                     tokenType: "Bearer",
+                    ...(user ? { user } : {}),
                 },
                 message: "Token refreshed successfully",
             });

@@ -9,6 +9,12 @@ import type { Express } from "express";
 import { DEFAULT_API_PREFIX, apiPathAfterFunctionsDirectory } from "../config/apiPrefix.js";
 import { createApp } from "../app.js";
 
+// Vercel Node runtime can emit DEP0169 (`url.parse()` in router/parseurl chain).
+// It's dependency noise (no CVEs issued for it); suppress in production/serverless logs.
+if ((process.env.NODE_ENV ?? "production") === "production") {
+	process.noDeprecation = true;
+}
+
 let appPromise: Promise<Express> | null = null;
 
 function getApp(): Promise<Express> {

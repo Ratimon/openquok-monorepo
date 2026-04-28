@@ -93,20 +93,26 @@ export class WorkspaceSettingsPresenter {
 		return this.currentWorkspaceRole === 'admin' || this.currentWorkspaceRole === 'superadmin';
 	}
 
-	public async load(): Promise<void> {
+	public async load(options?: { includeTeam?: boolean }): Promise<void> {
 		if (this.loadInflight) return this.loadInflight;
+		const includeTeam = options?.includeTeam !== false;
 		this.loadInflight = (async () => {
 			this.status = WorkspaceSettingsStatus.LOADING;
 			try {
 				const { workspacesVm, userId } = await this.getWorkspacePresenter.getWorkspaceSettingsData();
 				this.userId = userId;
 				this.workspacesVm = workspacesVm;
-				this.teamMembersVm = [];
+				if (!includeTeam) {
+					// Keep prior team list when background-refreshing workspace selection for the dock.
+					// The settings page explicitly loads team for the selected workspace.
+				} else {
+					this.teamMembersVm = [];
+				}
 				if (this.workspacesVm.length > 0 && !this.currentWorkspaceId) {
 					this.currentWorkspaceId = this.workspacesVm[0]?.id ?? null;
 				}
 				this.updateCurrentWorkspaceRole();
-				if (this.currentWorkspaceId) {
+				if (includeTeam && this.currentWorkspaceId) {
 					await this.loadTeam(this.currentWorkspaceId);
 				}
 			} finally {

@@ -49,7 +49,7 @@
 
 	async function ensureWorkspaceLoaded() {
 		if (currentWorkspaceId) return;
-		await workspaceSettingsPresenter.load();
+		await workspaceSettingsPresenter.load({ includeTeam: false });
 	}
 
 	async function loadProviders() {

@@ -2179,6 +2179,7 @@ var AuthController = class {
   authenticationService;
   emailService;
   organizationService;
+  rbacService;
   /**
    * Best-effort "site" key for SameSite decisions (eTLD+1-ish).
    *
@@ -2272,12 +2273,13 @@ var AuthController = class {
     if (Array.isArray(allowed) && allowed.includes(origin)) return;
     throw new AuthError(`Origin ${origin} not allowed`, 403);
   }
-  constructor(authenticationService2, userRepository2, userService2, emailService2, organizationService2) {
+  constructor(authenticationService2, userRepository2, userService2, emailService2, organizationService2, rbacService2) {
     this.authenticationService = authenticationService2;
     this.userRepository = userRepository2;
     this.userService = userService2;
     this.emailService = emailService2;
     this.organizationService = organizationService2;
+    this.rbacService = rbacService2;
   }
   /**
    * Start Google OAuth (Supabase PKCE).
@@ -2598,6 +2600,24 @@ var AuthController = class {
         userAgent: req.headers["user-agent"]
       };
       const data = await this.authenticationService.refreshToken(refreshToken, clientInfo);
+      const authUserId = data.user?.id;
+      const user = authUserId ? await (async () => {
+        const [{ userData }, { userId: publicId }] = await Promise.all([
+          this.userService.getProfile(authUserId).then((u) => ({ userData: u })),
+          this.userRepository.findUserIdByAuthId(authUserId)
+        ]);
+        const rolesResult = publicId ? await this.rbacService.getUserRoles(publicId) : { roles: [] };
+        const isSuperAdmin = publicId ? await this.rbacService.isSuperAdmin(publicId) : false;
+        return userData ? {
+          id: userData.id,
+          email: userData.email,
+          fullName: userData.full_name,
+          username: userData.email,
+          isEmailVerified: userData.is_email_verified === true,
+          roles: rolesResult.roles,
+          isSuperAdmin
+        } : null;
+      })() : null;
       if (serverConfig3.nodeEnv === "production" || cookieRefreshToken) {
         this.setRefreshTokenCookie(res, data.session.refresh_token);
       }
@@ -2608,7 +2628,8 @@ var AuthController = class {
           accessToken: data.session.access_token,
           refreshToken: cookieRefreshToken ? void 0 : data.session.refresh_token,
           expiresIn: 3600,
-          tokenType: "Bearer"
+          tokenType: "Bearer",
+          ...user ? { user } : {}
         },
         message: "Token refreshed successfully"
       });
@@ -4607,12 +4628,15 @@ var OrganizationRepository = class {
     if (organizationIds.length === 0) {
       return {};
     }
-    const { data, error } = await this.supabase.from(USER_ORGS_TABLE).select("organization_id").in("organization_id", organizationIds).eq("disabled", false);
+    const { data, error } = await this.supabase.rpc(
+      "internal_get_org_member_counts",
+      { p_org_ids: organizationIds }
+    );
     if (error) {
       throw new DatabaseError("Failed to get member counts", {
         cause: error,
         operation: "getMemberCounts",
-        resource: { type: "table", name: USER_ORGS_TABLE }
+        resource: { type: "rpc", name: "internal_get_org_member_counts" }
       });
     }
     const rows = data ?? [];
@@ -4621,7 +4645,7 @@ var OrganizationRepository = class {
       counts[id] = 0;
     }
     for (const row of rows) {
-      counts[row.organization_id] = (counts[row.organization_id] ?? 0) + 1;
+      counts[row.organization_id] = row.member_count ?? 0;
     }
     return counts;
   }
@@ -4672,37 +4696,27 @@ var OrganizationRepository = class {
   }
   /** Get all members of an organization (user_organizations + user profile). */
   async getTeam(organizationId) {
-    const { data: uoList, error: uoError } = await this.supabase.from(USER_ORGS_TABLE).select(USER_ORG_SELECT).eq("organization_id", organizationId);
-    if (uoError) {
-      throw new DatabaseError("Failed to get team", {
-        cause: uoError,
-        operation: "getTeam",
-        resource: { type: "table", name: USER_ORGS_TABLE }
-      });
-    }
-    const rows = uoList ?? [];
-    if (rows.length === 0) {
-      return { members: [], error: null };
-    }
-    const userIds = [...new Set(rows.map((r) => r.user_id))];
-    const { data: userList, error: userError } = await this.supabase.from("users").select("id, email, full_name").in("id", userIds);
-    if (userError) {
-      throw new DatabaseError("Failed to get users for team", {
-        cause: userError,
-        operation: "getTeam",
-        resource: { type: "table", name: "users" }
-      });
-    }
-    const userMap = new Map(
-      (userList ?? []).map((u) => [
-        u.id,
-        { email: u.email, full_name: u.full_name }
-      ])
+    const { data, error } = await this.supabase.rpc(
+      "internal_get_org_team_members",
+      { p_organization_id: organizationId }
     );
-    const members = rows.map((r) => ({
-      ...r,
-      email: userMap.get(r.user_id)?.email ?? null,
-      full_name: userMap.get(r.user_id)?.full_name ?? null
+    if (error) {
+      throw new DatabaseError("Failed to get team", {
+        cause: error,
+        operation: "getTeam",
+        resource: { type: "rpc", name: "internal_get_org_team_members" }
+      });
+    }
+    const members = (data ?? []).map((r) => ({
+      id: r.id,
+      user_id: r.user_id,
+      organization_id: r.organization_id,
+      role: r.role,
+      disabled: r.disabled,
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      email: r.email ?? null,
+      full_name: r.full_name ?? null
     }));
     return { members, error: null };
   }
@@ -12439,7 +12453,14 @@ var UploadFactory = class {
 };
 
 // controllers/index.ts
-var authController = new AuthController(authenticationService, userRepository, userService, emailService, organizationService);
+var authController = new AuthController(
+  authenticationService,
+  userRepository,
+  userService,
+  emailService,
+  organizationService,
+  rbacService
+);
 var userController = new UserController(userService, authenticationService, emailService);
 var companyController = new CompanyController(companyService, marketingService);
 var settingsController = new SettingsController(organizationService);
@@ -13827,7 +13848,6 @@ var authWithRoles6 = requireFullAuthWithRoles(
 var imageRouter = express.Router();
 imageRouter.get("/download", imageController.getByUrl);
 imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
-imageRouter.get("/public-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post(
   "/upload",
   authWithRoles6,
