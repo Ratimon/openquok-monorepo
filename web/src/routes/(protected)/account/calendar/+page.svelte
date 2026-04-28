@@ -82,6 +82,15 @@
 		createSocialPostOpen = true;
 	}
 
+	function duplicatePostGroup(postGroup: string) {
+		if (!workspaceId) {
+			toast.error('Select a workspace first.');
+			return;
+		}
+		calendarPresenter.createSocialPostPresenter.prepareDuplicate(postGroup);
+		createSocialPostOpen = true;
+	}
+
 	function openActionsForPostGroup(postGroup: string) {
 		if (!postGroup) return;
 		actionsPostGroup = postGroup;
@@ -278,6 +287,7 @@
 	loadPostGroup={(pg) => calendarPresenter.schedulerPresenter.getPostGroup(pg)}
 	onClose={closeActions}
 	onEdit={openEditPostGroup}
+	onDuplicate={duplicatePostGroup}
 	onCopy={copyPostGroupText}
 	onDelete={deletePostGroup}
 	onPreview={() => toast.message('Preview is coming soon.')}

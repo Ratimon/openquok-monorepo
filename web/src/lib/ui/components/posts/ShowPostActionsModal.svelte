@@ -21,6 +21,7 @@
 		>;
 		onClose: () => void;
 		onEdit: (postGroup: string) => void;
+		onDuplicate: (postGroup: string) => void;
 		onCopy: () => Promise<void> | void;
 		onDelete: () => Promise<void> | void;
 		onPreview?: () => void;
@@ -35,6 +36,7 @@
 		loadPostGroup,
 		onClose,
 		onEdit,
+		onDuplicate,
 		onCopy,
 		onDelete,
 		onPreview,
@@ -198,6 +200,23 @@
 			>
 				<AbstractIcon name={icons.Pencil.name} class="size-4 shrink-0" width="16" height="16" />
 				Edit
+			</button>
+
+			<button
+				type="button"
+				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
+				disabled={busy || !postGroup}
+				title="Duplicate Post"
+				aria-label="Duplicate Post"
+				onclick={() => {
+					const pg = postGroup;
+					if (!pg) return;
+					onClose();
+					onDuplicate(pg);
+				}}
+			>
+				<AbstractIcon name={icons.Copy.name} class="size-4 shrink-0" width="16" height="16" />
+				Duplicate
 			</button>
             
 			<button

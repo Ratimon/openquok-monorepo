@@ -116,6 +116,7 @@ export class CreateSocialPostPresenter {
 	private pendingPreselectIntegrationIds: string[] | null = null;
 	private pendingAutoCustomizeFirstSelected = false;
 	private pendingEditPostGroup: string | null = null;
+	private pendingDuplicatePostGroup: string | null = null;
 	private lastLoadedEditKey: string | null = null;
 	private tagListCache: { workspaceId: string; loadedAtMs: number } | null = null;
 
@@ -250,6 +251,17 @@ export class CreateSocialPostPresenter {
 		this.pendingPreselectIntegrationIds = null;
 		this.pendingAutoCustomizeFirstSelected = false;
 		this.pendingEditPostGroup = postGroup;
+		this.pendingDuplicatePostGroup = null;
+	}
+
+	prepareDuplicate(postGroup: string): void {
+		this.pendingPreselectIntegrationId = null;
+		this.pendingPreselectGroupId = null;
+		this.pendingPreselectScheduledAtIso = null;
+		this.pendingPreselectIntegrationIds = null;
+		this.pendingAutoCustomizeFirstSelected = false;
+		this.pendingEditPostGroup = null;
+		this.pendingDuplicatePostGroup = postGroup;
 	}
 
 	toggleChannel(id: string): void {
@@ -373,11 +385,28 @@ export class CreateSocialPostPresenter {
 		this.pendingAutoCustomizeFirstSelected = false;
 		const editPostGroup = this.pendingEditPostGroup;
 		this.pendingEditPostGroup = null;
+		const duplicatePostGroup = this.pendingDuplicatePostGroup;
+		this.pendingDuplicatePostGroup = null;
 
 		this.workspaceIdForSession = workspaceId;
 		this.connectedChannelsForSessionVm = connectedChannels;
 
 		this.resetForm();
+		if (duplicatePostGroup) {
+			await this.loadExisting(workspaceId, duplicatePostGroup);
+
+			// Ensure saving creates a new group (not overwriting the original).
+			this.editingPostGroup = null;
+			this.lastLoadedEditKey = null;
+
+			const slot = await this.postsRepository.findSlot(workspaceId);
+			if (slot.ok) {
+				this.scheduledLocal = isoToDatetimeLocalValue(slot.dateIso);
+			}
+
+			this.captureInitialSnapshot();
+			return;
+		}
 		if (editPostGroup) {
 			await this.loadExisting(workspaceId, editPostGroup);
 			this.captureInitialSnapshot();
