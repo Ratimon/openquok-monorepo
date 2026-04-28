@@ -35,6 +35,14 @@ export const validatePostGroupParams: RequestHandler = validateRequest({
     params: postGroupParamsSchema,
 });
 
+export const postPreviewParamsSchema = z.object({
+    postId: z.string().uuid("Invalid post id"),
+});
+
+export const validatePostPreviewParams: RequestHandler = validateRequest({
+    params: postPreviewParamsSchema,
+});
+
 const repeatIntervalEnum = z.enum([
     "day",
     "two_days",

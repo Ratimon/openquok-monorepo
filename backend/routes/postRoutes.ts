@@ -9,6 +9,7 @@ import {
     validateDeletePostTag,
     validateListPostsQuery,
     validatePostGroupParams,
+    validatePostPreviewParams,
     validatePostOrganizationQuery,
     validateUpdatePostGroupBody,
 } from "../data/schemas/postSchemas";
@@ -23,6 +24,8 @@ postRouter.post("/tags", auth, validateCreatePostTagBody, postsController.create
 postRouter.delete("/tags/:tagId", auth, validateDeletePostTag, postsController.deleteTag);
 postRouter.get("/list", auth, validateListPostsQuery, postsController.listPosts);
 postRouter.post("/", auth, validateCreatePostBody, postsController.createPost);
+// public preview
+postRouter.get("/preview/:postId", validatePostPreviewParams, postsController.getPostPreview);
 postRouter.get(
     "/group/:postGroup/debug-export",
     auth,

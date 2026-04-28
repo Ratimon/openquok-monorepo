@@ -14,6 +14,7 @@ const postsConfig: PostsConfig = {
 		listPosts: `${base}/list`,
 		getPostGroup: `${base}/group`,
 		debugExportPostGroup: `${base}/group`,
+		getPostPreview: `${base}/preview`,
 		updatePostGroup: `${base}/group`,
 		deletePostGroup: `${base}/group`
 	}

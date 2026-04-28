@@ -193,6 +193,17 @@ export class PostsController {
         }
     };
 
+    getPostPreview = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const postId = (req.params as { postId: string }).postId;
+            const share = typeof req.query.share === "string" ? req.query.share : null;
+            const d = await this.postsService.getPostPreview(postId, share);
+            res.status(200).json({ success: true, data: d });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     updatePostGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;

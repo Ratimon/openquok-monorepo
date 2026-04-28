@@ -4,7 +4,7 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { IntegrationChannelPicture } from '$lib/ui/images';
-	import SliderComponent from '$lib/ui/slider/SliderComponent.svelte';
+	import VideoOrImage from '$lib/ui/components/VideoOrImage.svelte';
 
 	type Props = {
 		previewText: string;
@@ -26,6 +26,7 @@
 
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
+	const firstMediaUrl = $derived((mediaUrls?.[0] ?? '').trim());
 </script>
 
 <div class="w-full p-4 sm:p-6">
@@ -86,7 +87,9 @@
 		</div>
 		{#if mediaUrls.length > 0}
 			<div class="mt-3 w-full overflow-hidden rounded-lg border border-base-300/80">
-				<SliderComponent class="aspect-[16/9] w-full" urls={mediaUrls} alt="" />
+				<div class="aspect-[16/9] w-full bg-base-200">
+					<VideoOrImage src={firstMediaUrl} autoplay={true} isContain={true} />
+				</div>
 			</div>
 		{/if}
 	</div>

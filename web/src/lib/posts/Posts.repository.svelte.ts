@@ -101,6 +101,7 @@ export type PostGroupDetailsProgrammerModel = {
 	bodiesByIntegrationId: Record<string, string>;
 	media: PostMediaProgrammerModel[];
 	tagNames: string[];
+	postIds?: string[];
 };
 
 export type GetPostGroupResponseDto = {
@@ -116,12 +117,25 @@ export type DebugExportPostGroupProgrammerModel = {
 	 * Backend returns raw `posts` rows for debugging. This is intentionally not modeled in the web client
 	 * because it is not a stable UI contract.
 	 */
-	posts: unknown[];
+	posts: { id: string }[];
 };
 
 export type DebugExportPostGroupResponseDto = {
 	success?: boolean;
 	data?: DebugExportPostGroupProgrammerModel;
+};
+
+export type PostPreviewProgrammerModel = {
+	id: string;
+	postGroup: string;
+	publishDateIso: string;
+	content: string;
+	media: { id: string; path: string }[];
+};
+
+export type GetPostPreviewResponseDto = {
+	success?: boolean;
+	data?: PostPreviewProgrammerModel;
 };
 
 export type RepeatIntervalKey =
@@ -163,6 +177,7 @@ export interface PostsConfig {
 		listPosts: string;
 		getPostGroup: string;
 		debugExportPostGroup: string;
+		getPostPreview: string;
 		updatePostGroup: string;
 		deletePostGroup: string;
 	};
@@ -348,6 +363,25 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not export debug data.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not export debug data.');
+		}
+	}
+
+	async getPostPreview(
+		postId: string
+	): Promise<{ ok: true; post: PostPreviewProgrammerModel } | { ok: false; error: string }> {
+		try {
+			const url = `${this.config.endpoints.getPostPreview}/${encodeURIComponent(postId)}`;
+			const { ok, data: dto } = await this.httpGateway.get<GetPostPreviewResponseDto>(
+				url,
+				{ share: 'true' },
+				{ withCredentials: false }
+			);
+			if (ok && dto?.success === true && dto.data?.id) {
+				return { ok: true, post: dto.data };
+			}
+			return { ok: false, error: 'Could not load preview.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not load preview.');
 		}
 	}
 

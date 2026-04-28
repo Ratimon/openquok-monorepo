@@ -27,6 +27,7 @@ export interface PostGroupDetailsViewModel {
 	bodiesByIntegrationId: Record<string, string>;
 	media: { id: string; path: string; bucket?: 'social_media' }[];
 	tagNames: string[];
+	postIds?: string[];
 }
 
 export type GetPostGroupResultViewModel =
@@ -49,7 +50,8 @@ function toPostGroupDetailsVm(pm: PostGroupDetailsProgrammerModel): PostGroupDet
 		body: pm.body,
 		bodiesByIntegrationId: pm.bodiesByIntegrationId,
 		media: pm.media,
-		tagNames: pm.tagNames
+		tagNames: pm.tagNames,
+		postIds: pm.postIds
 	};
 }
 

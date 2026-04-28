@@ -274,6 +274,24 @@ export class PostsRepository {
         return (data ?? []) as SocialPostLike[];
     }
 
+    async getPostById(postId: string): Promise<SocialPostLike | null> {
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .select("*")
+            .eq("id", postId)
+            .is("deleted_at", null)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError(`Failed to load post: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return (data as SocialPostLike | null) ?? null;
+    }
+
     /** Soft-delete all rows in a post group. Returns ids of rows affected. */
     async softDeletePostsByGroup(postGroup: string): Promise<string[]> {
         const now = new Date().toISOString();

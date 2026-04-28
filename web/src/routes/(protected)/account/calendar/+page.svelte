@@ -91,6 +91,27 @@
 		createSocialPostOpen = true;
 	}
 
+	async function previewPostGroup(): Promise<void> {
+		const pg = actionsPostGroup;
+		if (!pg) return;
+		actionsBusy = true;
+		try {
+			const r = await calendarPresenter.schedulerPresenter.debugExportPostGroup(pg);
+			if (!r.ok) {
+				toast.error(r.error);
+				return;
+			}
+			const id = r.data.posts?.[0]?.id;
+			if (!id) {
+				toast.error('Could not preview this post.');
+				return;
+			}
+			window.open(`/p/${id}?share=true`, '_blank');
+		} finally {
+			actionsBusy = false;
+		}
+	}
+
 	function openActionsForPostGroup(postGroup: string) {
 		if (!postGroup) return;
 		actionsPostGroup = postGroup;
@@ -290,7 +311,7 @@
 	onDuplicate={duplicatePostGroup}
 	onCopy={copyPostGroupText}
 	onDelete={deletePostGroup}
-	onPreview={() => toast.message('Preview is coming soon.')}
+	onPreview={() => void previewPostGroup()}
 	onStatistics={() => toast.message('Statistics is coming soon.')}
 />
 

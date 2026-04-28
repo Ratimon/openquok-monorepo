@@ -97,6 +97,8 @@ export type PostGroupDetails = {
     bodiesByIntegrationId: Record<string, string>;
     media: PostMediaItemInput[];
     tagNames: string[];
+    /** All post row ids in this group (for preview/debug tooling). */
+    postIds?: string[];
 };
 
 function parseSettingsJson(settings: string | null): { isGlobal: boolean; repeatInterval: RepeatIntervalKey | null } {
@@ -415,6 +417,7 @@ export class PostsService {
             bodiesByIntegrationId,
             media,
             tagNames,
+            postIds: rows.map((r) => r.id),
         };
     }
 
@@ -444,6 +447,31 @@ export class PostsService {
             organizationId,
             group,
             posts: rows,
+        };
+    }
+
+    async getPostPreview(postId: string, share: string | null): Promise<{
+        id: string;
+        postGroup: string;
+        publishDateIso: string;
+        content: string;
+        media: PostMediaItemInput[];
+    }> {
+        if (share !== "true") {
+            throw new AppError("Forbidden", 403);
+        }
+        const row = await this.postsRepository.getPostById(postId);
+        if (!row) {
+            throw new AppError("Post not found", 404);
+        }
+
+        const media = parseImageColumn(row.image ?? null);
+        return {
+            id: row.id,
+            postGroup: row.post_group,
+            publishDateIso: row.publish_date,
+            content: row.content ?? "",
+            media,
         };
     }
 
