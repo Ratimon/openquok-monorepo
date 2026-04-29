@@ -1,0 +1,92 @@
+---
+description: SEO via SSR for public blog + post preview routes — server meta, OG/Twitter images, canonical, JSON-LD, and universal load forwarding
+globs:
+  - web/src/routes/(public)/blog/[slug]/+page.server.ts
+  - web/src/routes/(public)/blog/[slug]/+page.ts
+  - web/src/routes/(public)/blog/[slug]/+page.svelte
+  - web/src/routes/(public)/p/[postId]/+page.server.ts
+  - web/src/routes/(public)/p/[postId]/+page.ts
+  - web/src/routes/(public)/p/[postId]/+page.svelte
+alwaysApply: false
+---
+
+# Web: SSR SEO (meta tags + JSON‑LD) for public routes
+
+For SEO and link unfurls, ensure **all metadata is computed during SSR** (in `+page.server.ts`) and **rendered in the initial HTML**. The universal `+page.ts` and `+page.svelte` should *forward and render* the server results without recomputing them client-side.
+
+This rule applies to:
+- `web/src/routes/(public)/blog/[slug]/*`
+- `web/src/routes/(public)/p/[postId]/*`
+
+---
+
+## 1. SSR meta must be created in `+page.server.ts`
+
+- **Set** `export const ssr = true;`.
+- **Build meta via** `createMetaData(...) satisfies MetaTagsProps`.
+- **Freeze** `pageMetaTags` and include a canonical fallback:
+  - `canonical: new URL(url.pathname, url.origin).href`
+  - then spread `...metaTags`
+- **Return** `pageMetaTags` from the server load so it exists on the first render (no JS required).
+
+### Keywords (`customTags`)
+
+- Prefer a dedicated `keywords` variable (array of strings) before calling `createMetaData`.
+- Keep the array **stable and filter empty values**:
+  - `.filter((t) => typeof t === 'string' && t.trim().length > 0)`
+
+### OG image + Twitter card
+
+If the page has a content-specific image, pass it via `customImages`:
+- **Blog route**: build from `heroImageFilename` (inline blog image helper) and include `type` from a mime guess helper.
+- **Preview route**: if there is post media, derive the public URL from the first `media[].path` (do not guess relative URLs).
+
+When a content-specific image is present, also add a `twitter:card` override tag:
+- `customMetaTags: [{ name: 'twitter:card', content: 'summary_large_image' }, ...]`
+
+Notes:
+- `createMetaData` already provides sane defaults (OG images and `twitter.cardType`), but **explicit `twitter:card` helps parity** with other public pages and avoids crawler quirks.
+
+---
+
+## 2. JSON‑LD must render in `+page.svelte` `<svelte:head>`
+
+- Compute structured data (JSON‑LD) in `+page.server.ts` (`schemaData`) and return it.
+- Render it in `+page.svelte` so it appears in SSR HTML:
+
+```svelte
+<svelte:head>
+  {#if schemaData}
+    <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
+  {/if}
+</svelte:head>
+```
+
+Avoid:
+- Generating JSON‑LD only in `onMount` (not SSR-visible).
+- Putting JSON‑LD behind client-only conditions (`if (browser)`).
+
+---
+
+## 3. Universal `+page.ts` must forward SSR meta + schema on client navigations
+
+Client-side navigation (`goto`, clicking internal links) still needs correct meta/schema in page data.
+
+- Follow the universal load pattern in `web-sveltekit-universal-page-load`:
+  - `await parent()` first (auth state)
+  - `if (browser && data)` return an explicit object that includes:
+    - `pageMetaTags`
+    - `schemaData`
+    - route view models / arrays
+    - accurate `isLoggedIn` (and `currentUser` / role flags if that route uses them)
+- Do **not** recompute SEO meta in `+page.ts` on the client. Forward server output.
+
+---
+
+## 4. Canonical + slug hygiene
+
+- `customSlug` passed to `createMetaData` must be a **path segment**, not a full URL.
+- Use `encodeURIComponent` for dynamic path pieces.
+- Prefer canonical derived from the request URL for SSR correctness:
+  - `new URL(url.pathname, url.origin).href`
+
