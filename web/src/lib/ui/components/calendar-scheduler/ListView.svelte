@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { CalendarEventExternal } from '@schedule-x/calendar';
 
-	import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
+	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 	import { icons } from '$data/icon';
 

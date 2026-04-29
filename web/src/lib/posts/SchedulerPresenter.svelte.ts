@@ -12,7 +12,7 @@ import type {
 	GetPostGroupResultViewModel
 } from '$lib/posts/GetScheduledPosts.presenter.svelte';
 import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPosts.presenter.svelte';
-import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
+import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 /**
  * Schedule‑X can mount event components outside the parent Svelte component tree (portal),
@@ -431,24 +431,24 @@ export class SchedulerPresenter {
 			const startIso = new Date(`${startDate}T00:00:00.000Z`).toISOString();
 			const endIso = new Date(`${endDate}T23:59:59.999Z`).toISOString();
 
-			const r = await this.listPosts({
+			const listPostsPmResult = await this.listPosts({
 				organizationId,
 				startIso,
 				endIso,
 				integrationIds
 			});
 
-			if (!r.ok) {
+			if (!listPostsPmResult.ok) {
 				this._patchScheduledPostsCalendarVm({ events: [], lastSuccessfulPostsKey: '', loading: false });
-				return { ok: false, error: r.error };
+				return { ok: false, error: listPostsPmResult.error };
 			}
 
 			const stateSet = allPostStates
 				? null
 				: new Set(selectedPostStates.map((s) => String(s).toUpperCase()).filter(Boolean));
 			const posts = stateSet
-				? r.posts.filter((p) => stateSet.has(String((p as any)?.state ?? '').toUpperCase()))
-				: r.posts;
+				? listPostsPmResult.posts.filter((p) => stateSet.has(String((p as any)?.state ?? '').toUpperCase()))
+				: listPostsPmResult.posts;
 
 			/**
 			 * Schedule‑X enforces a minimum event chip height in the time grid. When two posts are only a

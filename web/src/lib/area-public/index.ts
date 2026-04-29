@@ -1,5 +1,6 @@
 import type { PublicInformationConfig } from '$lib/area-public/PublicInformation.repository.svelte';
 import { blogRepository, getBlogPresenter } from '$lib/blog/index';
+import { getScheduledPostsPresenter } from '$lib/posts/index';
 import { httpGateway } from '$lib/core/index';
 import { PublicBlogPagePresenter } from '$lib/area-public/PublicBlogPage.presenter.svelte';
 import { PublicBlogTopicPagePresenter } from '$lib/area-public/PublicBlogTopicPage.presenter.svelte';
@@ -7,6 +8,7 @@ import { PublicBlogTopicBySlugPagePresenter } from '$lib/area-public/PublicBlogT
 import { PublicBlogAuthorPagePresenter } from '$lib/area-public/PublicBlogAuthorPage.presenter.svelte';
 import { PublicBlogAuthorByIdentifierPagePresenter } from '$lib/area-public/PublicBlogAuthorByIdentifierPage.presenter.svelte';
 import { PublicBlogBySlugPagePresenter } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
+import { PublicPreviewPostByIdPagePresenter } from '$lib/area-public/PublicPreviewPostByIdPage.presenter.svelte';
 import { PublicInformationRepository } from '$lib/area-public/PublicInformation.repository.svelte';
 import { PublicLayoutPagePresenter } from '$lib/area-public/PublicLayoutPage.presenter.svelte';
 
@@ -31,6 +33,7 @@ const publicBlogTopicBySlugPagePresenter = new PublicBlogTopicBySlugPagePresente
 const publicBlogAuthorPagePresenter = new PublicBlogAuthorPagePresenter(getBlogPresenter);
 const publicBlogAuthorByIdentifierPagePresenter = new PublicBlogAuthorByIdentifierPagePresenter(getBlogPresenter);
 const publicBlogBySlugPagePresenter = new PublicBlogBySlugPagePresenter(getBlogPresenter, blogRepository);
+const publicPreviewPostByIdPagePresenter = new PublicPreviewPostByIdPagePresenter(getScheduledPostsPresenter);
 
 export {
 	publicInformationRepository,
@@ -40,5 +43,6 @@ export {
 	publicBlogTopicBySlugPagePresenter,
 	publicBlogAuthorPagePresenter,
 	publicBlogAuthorByIdentifierPagePresenter,
-	publicBlogBySlugPagePresenter
+	publicBlogBySlugPagePresenter,
+	publicPreviewPostByIdPagePresenter
 };

@@ -21,7 +21,7 @@ import {
 	isoToDatetimeLocalValue,
 	utcIsoToDatetimeLocalValue
 } from '$lib/utils/postingSchedulePreferences';
-import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
+import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 import { toast } from '$lib/ui/sonner';
 
 type Mode = 'global' | 'custom';
@@ -574,13 +574,13 @@ export class CreateSocialPostPresenter {
 				return;
 			}
 
-			const r = await this.postsRepository.getPostGroup(postGroup);
-			if (!r.ok) {
-				toast.error(r.error);
+			const getPostGroupPmResult = await this.postsRepository.getPostGroup(postGroup);
+			if (!getPostGroupPmResult.ok) {
+				toast.error(getPostGroupPmResult.error);
 				await this.loadInitial(workspaceId);
 				return;
 			}
-			const g = r.group;
+			const g = getPostGroupPmResult.group;
 			if (g.organizationId !== workspaceId) {
 				toast.error('Post is not in the selected workspace.');
 				await this.loadInitial(workspaceId);
@@ -641,15 +641,15 @@ export class CreateSocialPostPresenter {
 		if (!t || !this.workspaceIdForSession) return;
 		this.busy = true;
 		try {
-			const r = await this.postsRepository.createTag(this.workspaceIdForSession, t, c);
-			if (r.ok) {
-				this.tagList = [...this.tagList.filter((x) => x.id !== r.tag.id), r.tag];
-				if (!this.selectedTagNames.includes(r.tag.name)) {
-					this.selectedTagNames = [...this.selectedTagNames, r.tag.name];
+			const createTagPmResult = await this.postsRepository.createTag(this.workspaceIdForSession, t, c);
+			if (createTagPmResult.ok) {
+				this.tagList = [...this.tagList.filter((x) => x.id !== createTagPmResult.tag.id), createTagPmResult.tag];
+				if (!this.selectedTagNames.includes(createTagPmResult.tag.name)) {
+					this.selectedTagNames = [...this.selectedTagNames, createTagPmResult.tag.name];
 				}
 				toast.success('Tag added.');
 			} else {
-				toast.error(r.error);
+				toast.error(createTagPmResult.error);
 			}
 		} finally {
 			this.busy = false;
@@ -660,13 +660,13 @@ export class CreateSocialPostPresenter {
 		if (!this.workspaceIdForSession) return;
 		this.busy = true;
 		try {
-			const r = await this.postsRepository.deleteTag(this.workspaceIdForSession, tag.id);
-			if (r.ok) {
+			const deleteTagPmResult = await this.postsRepository.deleteTag(this.workspaceIdForSession, tag.id);
+			if (deleteTagPmResult.ok) {
 				this.tagList = this.tagList.filter((x) => x.id !== tag.id);
 				this.selectedTagNames = this.selectedTagNames.filter((n) => n !== tag.name);
 				toast.success('Tag deleted.');
 			} else {
-				toast.error(r.error);
+				toast.error(deleteTagPmResult.error);
 			}
 		} finally {
 			this.busy = false;
@@ -710,14 +710,14 @@ export class CreateSocialPostPresenter {
 				tagNames: this.selectedTagNames,
 				status: 'draft' as const
 			};
-			const r = this.editingPostGroup
+			const persistDraftPmResult = this.editingPostGroup
 				? await this.postsRepository.updatePostGroup(this.editingPostGroup, payload)
 				: await this.postsRepository.createPost(payload);
-			if (r.ok) {
+			if (persistDraftPmResult.ok) {
 				toast.success(this.editingPostGroup ? 'Draft updated.' : 'Draft saved.');
 				return true;
 			}
-			toast.error(r.error);
+			toast.error(persistDraftPmResult.error);
 			return false;
 		} finally {
 			this.busy = false;
@@ -776,14 +776,14 @@ export class CreateSocialPostPresenter {
 				tagNames: this.selectedTagNames,
 				status: 'scheduled' as const
 			};
-			const r = this.editingPostGroup
+			const schedulePostPmResult = this.editingPostGroup
 				? await this.postsRepository.updatePostGroup(this.editingPostGroup, payload)
 				: await this.postsRepository.createPost(payload);
-			if (r.ok) {
+			if (schedulePostPmResult.ok) {
 				toast.success(this.editingPostGroup ? 'Post updated.' : 'Post scheduled.');
 				return true;
 			}
-			toast.error(r.error);
+			toast.error(schedulePostPmResult.error);
 			return false;
 		} finally {
 			this.busy = false;
@@ -795,12 +795,12 @@ export class CreateSocialPostPresenter {
 		if (!postGroup) return false;
 		this.busy = true;
 		try {
-			const r = await this.postsRepository.deletePostGroup(postGroup);
-			if (r.ok) {
+			const deletePostGroupPmResult = await this.postsRepository.deletePostGroup(postGroup);
+			if (deletePostGroupPmResult.ok) {
 				toast.success('Post deleted.');
 				return true;
 			}
-			toast.error(r.error);
+			toast.error(deletePostGroupPmResult.error);
 			return false;
 		} finally {
 			this.busy = false;

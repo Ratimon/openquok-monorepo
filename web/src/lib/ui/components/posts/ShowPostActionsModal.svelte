@@ -4,7 +4,7 @@
 
 	import { icons } from '$data/icon';
 	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
-	import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
+	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Dialog from '$lib/ui/dialog';

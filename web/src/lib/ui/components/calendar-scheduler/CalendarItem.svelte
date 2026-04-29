@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
-	import { stripHtmlToPlainText } from '$lib/utils/stripHtml';
+	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 	import { icons } from '$data/icon';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

@@ -4,6 +4,7 @@ import type { IntegrationConnectionService } from "./IntegrationConnectionServic
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { PostsRepository, SocialPostInsert } from "../repositories/PostsRepository";
 import type { PostStateDb, SocialPostLike } from "../utils/dtos/PostDTO";
+
 import { AppError } from "../errors/AppError";
 import { config } from "../config/GlobalConfig";
 import { logger } from "../utils/Logger";
@@ -60,6 +61,35 @@ function repeatIntervalToDays(key: RepeatIntervalKey | null): number | null {
         month: 30,
     };
     return m[key] ?? null;
+}
+
+/** Human-readable platform label for SEO / previews from `integrations.provider_identifier`. */
+function socialPlatformLabelFromProviderIdentifier(
+    integrationManager: IntegrationManager,
+    providerIdentifier: string | null | undefined
+): string | null {
+    const id = (providerIdentifier ?? "").trim().toLowerCase();
+    if (!id) return null;
+
+    const FALLBACK: Record<string, string> = {
+        facebook: "Facebook",
+        instagram: "Instagram",
+        "instagram-business": "Instagram",
+        "instagram-standalone": "Instagram",
+        youtube: "YouTube",
+        tiktok: "TikTok",
+        x: "X",
+        threads: "Threads",
+    };
+    if (FALLBACK[id]) return FALLBACK[id];
+
+    const registered = integrationManager.getSocialIntegration(id);
+    if (registered?.name) return registered.name;
+
+    return id
+        .split("-")
+        .map((w) => (w.length > 0 ? w[0]!.toUpperCase() + w.slice(1).toLowerCase() : ""))
+        .join(" ");
 }
 
 export type PostMediaItemInput = {
@@ -456,6 +486,8 @@ export class PostsService {
         publishDateIso: string;
         content: string;
         media: PostMediaItemInput[];
+        /** Set when the post row is tied to an integration (channel). */
+        socialPlatformLabel: string | null;
     }> {
         if (share !== "true") {
             throw new AppError("Forbidden", 403);
@@ -466,12 +498,23 @@ export class PostsService {
         }
 
         const media = parseImageColumn(row.image ?? null);
+
+        let socialPlatformLabel: string | null = null;
+        if (row.integration_id) {
+            const integration = await this.integrationService.getById(row.organization_id, row.integration_id);
+            socialPlatformLabel = socialPlatformLabelFromProviderIdentifier(
+                this.integrationManager,
+                integration?.provider_identifier
+            );
+        }
+
         return {
             id: row.id,
             postGroup: row.post_group,
             publishDateIso: row.publish_date,
             content: row.content ?? "",
             media,
+            socialPlatformLabel,
         };
     }
 

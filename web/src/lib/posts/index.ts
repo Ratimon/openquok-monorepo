@@ -1,6 +1,7 @@
 import type { PostsConfig } from '$lib/posts/Posts.repository.svelte';
 
 import { httpGateway } from '$lib/core/index';
+import { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPosts.presenter.svelte';
 import { PostsRepository } from '$lib/posts/Posts.repository.svelte';
 
 const base = '/api/v1/posts';
@@ -22,6 +23,9 @@ const postsConfig: PostsConfig = {
 
 export const postsRepository = new PostsRepository(httpGateway, postsConfig);
 
+/** Shared read-side presenter for calendar + public preview composition roots. */
+export const getScheduledPostsPresenter = new GetScheduledPostsPresenter(postsRepository);
+
 export {
 	PostsRepository,
 	uploadSocialPostComposerMediaFiles,
@@ -37,6 +41,7 @@ export type {
 export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPostPresenter.svelte';
 export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 export { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPosts.presenter.svelte';
+export type { PublicPreviewPostViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
 export type {
 	CalendarPostRowViewModel,
 	GetPostGroupResultViewModel,

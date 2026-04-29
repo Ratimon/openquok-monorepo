@@ -15,8 +15,7 @@ import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
 import { mediaRepository } from '$lib/media';
 import { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
-import { postsRepository } from '$lib/posts';
-import { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPosts.presenter.svelte';
+import { getScheduledPostsPresenter, postsRepository } from '$lib/posts';
 import { SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
 import { getNotificationPresenter, notificationRepository } from '$lib/notifications';
 import { workspaceSettingsPresenter } from '$lib/settings';
@@ -43,7 +42,6 @@ const composerMediaModalPresenter = new GenerateMediaModalPresenter(mediaReposit
 const mediaLibraryMediaModalPresenter = new GenerateMediaModalPresenter(mediaRepository);
 
 /** Account calendar / Schedule‑X (see {@link SchedulerPresenter}). */
-const getScheduledPostsPresenter = new GetScheduledPostsPresenter(postsRepository);
 const schedulerPresenter = new SchedulerPresenter(postsRepository, getScheduledPostsPresenter);
 
 /** Shared create-post composer (posts repository + composer media modal). */

@@ -84,7 +84,8 @@ No gateway/repository imports from **routes**.
 
 ### Variables
 
-- After `await someRepository...`: **`resultPm`**, **`listPm`**, etc.
+- After `await someRepository...`: **`resultPm`**, **`listPm`**, **`listPostsPmResult`** / **`getPostGroupPmResult`** when the return is a discriminated union — **avoid bare `r`**.
+- **`Get*Presenter`** PM→VM methods: assign **`xyzPm`** first (see **`GetFeedbackPresenter`**: `feedbacksPm` → mapped **`FeedbackViewModel`**), then build **`xyzVm`** and return — e.g. **`previewPostPm`** → **`previewPostVm`** in **`mapPreviewPostPmToVm`**.
 - Presenter fields for the UI: **`workspacesVm`**, etc.
 - Internal VM mutation helpers on presenters: **`_*`** prefix when not public API (full pattern: **web-page-presenter-conventions**).
 
@@ -99,7 +100,7 @@ No gateway/repository imports from **routes**.
 - **`Get*.presenter.svelte.ts`**: **no** `$state`; constructor-injected repos; methods return **`*Vm`** (never PM to components). Instantiate in **feature `index.ts`**, inject into **page presenters**; routes do not construct `Get*` directly.
 - **Feature presenters** (`SchedulerPresenter`, `CreateSocialPostPresenter`, …): **stateful**; constructor-injected **repositories** (and sometimes other presenters such as **`GenerateMediaModalPresenter`**); own domain **`$state`** / methods. **Compose in `area-*` `index.ts`**, **inject into `Protected*PagePresenter`** — see **web-page-presenter-conventions**.
 - **Workspace / editor-style feature presenters** (`WorkspaceSettings`, `Editor*`, etc.): `$state` for status/VM; may call repos and `Get*`; still **feature**-scoped, not area page files.
-- **Page presenter `*Stateless` helpers** (e.g. `loadXxxStateless`): must not mutate page `$state`; return `*Vm` for SSR-safe `load()` — details in **web-page-presenter-conventions**.
+- **Page presenter `*Stateless` helpers** (e.g. `loadPreviewPostStateless`): must not mutate page **`$state`**; map PM→VM via injected **`Get*`** (`mapPreviewPostPmToVm`). Paired non-**Stateless** methods assign **`$state`** (e.g. **`loadPreviewPost`**). Optional async **`loadPreviewPostByIdStateless`** / **`loadPreviewPostById`** when fetch-by-id is needed — details in **web-page-presenter-conventions** (**Public area page presenters**).
 
 ## Testing
 

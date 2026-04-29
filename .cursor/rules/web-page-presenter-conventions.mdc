@@ -92,11 +92,31 @@ import type { SomePageViewModel } from '$lib/area-protected/SomePage.presenter.s
 - **In-memory VM updates** after mutations: update only on **success** (`resultPm.success`); no optimistic update + revert. For **blog topics**, HTTP runs in modal/verification presenters; page presenter **`addBlogTopic` / `removeBlogTopic`** only on success callbacks.
 - **Private VM helpers:** name internal apply helpers **`_*`** (e.g. `_applyUserRoleAdd`) — not part of the public API.
 
+### Public area page presenters — `*Stateless` vs paired loads
+
+Use explicit naming when the same screen mixes **SSR-safe PM→VM**, optional **async fetch + map**, and **`$state`**:
+
+**Reference implementation:** `PublicPreviewPostByIdPagePresenter` (`web/src/lib/area-public/PublicPreviewPostByIdPage.presenter.svelte.ts`).
+
+1. **`loadPreviewPostStateless(postPreviewPm)`** — PM → VM via injected **`GetScheduledPostsPresenter.mapPreviewPostPmToVm`**; **does not** mutate **`$state`**. Safe for **`+page.server.ts`** after the repository returns PM.
+2. **`loadPreviewPost(postPreviewPm)`** — thin wrapper: **`loadPreviewPostStateless`**, then **`currentPreviewPostVm =`** mapped VM.
+
+Optional **async** tier when the page presenter must fetch PM by id (client/tests) **without** touching **`$state`** first:
+
+- **`loadPreviewPostByIdStateless`** — **`fetchPostPreviewPm`** → **`loadPreviewPostStateless`**; returns **`{ postVm, loadError }`**.
+- **`loadPreviewPostById`** — **`await loadPreviewPostByIdStateless`**, then assign **`currentPreviewPostVm`**.
+
+Comments on those methods should label **stateless** (no **`$state`**) vs **stateful** (**`$state`**).
+
+### Exception — public route `load()` and repositories
+
+For **`routes/(public)/…/+page.server.ts`**, **`postsRepository.getPostPreview`** (or equivalent) may run on the server so PM exists before **`loadPreviewPostStateless`** — still **no `httpGateway` in `+page.svelte`**. Thread SvelteKit **`fetch`** through **`HttpGateway`** when required for SSR/proxy/TLS — see repository **`getPostPreview`** options.
+
 ---
 
 ## Mutation flows
 
-**The route never calls the repository or gateway directly.**
+**`+page.svelte` must not call the repository or gateway directly.** **`+page.server.ts`** may load PM via repository for SSR-only public routes as above.
 
 ### A — Page presenter owns repository + VM (classic)
 

@@ -131,6 +131,8 @@ export type PostPreviewProgrammerModel = {
 	publishDateIso: string;
 	content: string;
 	media: { id: string; path: string }[];
+	/** Resolved from the linked integration's provider when present. */
+	socialPlatformLabel?: string | null;
 };
 
 export type GetPostPreviewResponseDto = {
@@ -367,14 +369,15 @@ export class PostsRepository {
 	}
 
 	async getPostPreview(
-		postId: string
+		postId: string,
+		options?: { fetch?: typeof globalThis.fetch }
 	): Promise<{ ok: true; post: PostPreviewProgrammerModel } | { ok: false; error: string }> {
 		try {
 			const url = `${this.config.endpoints.getPostPreview}/${encodeURIComponent(postId)}`;
 			const { ok, data: dto } = await this.httpGateway.get<GetPostPreviewResponseDto>(
 				url,
 				{ share: 'true' },
-				{ withCredentials: false }
+				{ withCredentials: false, ...(options?.fetch ? { fetch: options.fetch } : {}) }
 			);
 			if (ok && dto?.success === true && dto.data?.id) {
 				return { ok: true, post: dto.data };

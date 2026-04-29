@@ -106,14 +106,14 @@ export class ProtectedCalendarPagePresenter {
 	}
 
 	async removeChannel(id: string): Promise<DashboardChannelMutationViewModel> {
-		const r = await this.dashboardPagePresenter.removeChannel(id);
-		if (r.ok) this.bumpCalendarRefresh();
-		return r;
+		const removeChannelResult = await this.dashboardPagePresenter.removeChannel(id);
+		if (removeChannelResult.ok) this.bumpCalendarRefresh();
+		return removeChannelResult;
 	}
 
 	async setChannelDisabled(id: string, disabled: boolean): Promise<DashboardChannelMutationViewModel> {
-		const r = await this.dashboardPagePresenter.setChannelDisabled(id, disabled);
-		if (r.ok) this.bumpCalendarRefresh();
-		return r;
+		const setChannelDisabledResult = await this.dashboardPagePresenter.setChannelDisabled(id, disabled);
+		if (setChannelDisabledResult.ok) this.bumpCalendarRefresh();
+		return setChannelDisabledResult;
 	}
 }
