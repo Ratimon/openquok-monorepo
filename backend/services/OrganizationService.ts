@@ -1,10 +1,9 @@
+import type { OrganizationRepository, WorkspaceMembershipRole } from "../repositories/OrganizationRepository";
 import type {
-    OrganizationRepository,
-    OrganizationRow,
-    UserOrganizationRow,
-    PendingInviteViewRow,
-    WorkspaceMembershipRole,
-} from "../repositories/OrganizationRepository";
+    OrganizationLike,
+    PendingInviteViewLike,
+    UserOrganizationLike,
+} from "../utils/dtos/OrganizationDTO";
 import type { UserRepository } from "../repositories/UserRepository";
 import type { EmailService } from "./EmailService";
 import type CacheService from "../connections/cache/CacheService";
@@ -127,13 +126,13 @@ export class OrganizationService {
     }
 
     /** List pending workspace invites for the current user (by email). Returns row shape; controller maps to DTO. */
-    async listPendingInvitesForUser(authUserId: string): Promise<PendingInviteViewRow[]> {
+    async listPendingInvitesForUser(authUserId: string): Promise<PendingInviteViewLike[]> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { userData } = await this.userRepository.findFullUserByUserId(authUserId);
         const email = userData?.email?.trim();
         if (!email) return [];
         const { invites } = await this.organizationRepository.findPendingInvitesByEmail(email);
-        const result: PendingInviteViewRow[] = [];
+        const result: PendingInviteViewLike[] = [];
         for (const inv of invites) {
             const { membership } = await this.organizationRepository.findMembership(userId, inv.organization_id);
             if (membership && !membership.disabled) continue;
@@ -190,13 +189,13 @@ export class OrganizationService {
 
     /** List organizations for the authenticated user. Returns aggregate; controller maps to DTO. */
     async listMyOrganizations(authUserId: string): Promise<{
-        organizations: OrganizationRow[];
+        organizations: OrganizationLike[];
         memberships: { organizationId: string; role: string; disabled: boolean }[];
         memberCounts: Record<string, number>;
     }> {
         const cacheKey = `${CACHE_KEYS.ORG_LIST_BYUSERID}:${authUserId}`;
         const factory = async (): Promise<{
-            organizations: OrganizationRow[];
+            organizations: OrganizationLike[];
             memberships: { organizationId: string; role: string; disabled: boolean }[];
             memberCounts: Record<string, number>;
         }> => {
@@ -215,13 +214,13 @@ export class OrganizationService {
 
     /** Get one organization by id; caller must be a member. Returns aggregate or null; controller maps to DTO. */
     async getOrganizationById(authUserId: string, organizationId: string): Promise<{
-        organization: OrganizationRow;
+        organization: OrganizationLike;
         membership: { role: string; disabled: boolean };
         memberCount: number;
     } | null> {
         const cacheKey = `${CACHE_KEYS.ORG_BY_IDS}:${authUserId}:${organizationId}`;
         const factory = async (): Promise<{
-            organization: OrganizationRow;
+            organization: OrganizationLike;
             membership: { role: string; disabled: boolean };
             memberCount: number;
         } | null> => {
@@ -249,7 +248,7 @@ export class OrganizationService {
     async createOrganization(
         authUserId: string,
         params: { name: string; description?: string | null }
-    ): Promise<OrganizationRow> {
+    ): Promise<OrganizationLike> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { organization, error } = await this.organizationRepository.createOrganization(params);
         if (error) throw error as Error;
@@ -270,7 +269,7 @@ export class OrganizationService {
     async createDefaultOrganizationForNewUser(
         authUserId: string,
         params?: { name?: string }
-    ): Promise<OrganizationRow | null> {
+    ): Promise<OrganizationLike | null> {
         try {
             return await this.createOrganization(authUserId, {
                 name: params?.name?.trim() || "My Organization",
@@ -291,7 +290,7 @@ export class OrganizationService {
         authUserId: string,
         organizationId: string,
         params: { name?: string; description?: string | null }
-    ): Promise<OrganizationRow> {
+    ): Promise<OrganizationLike> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) {
@@ -312,7 +311,7 @@ export class OrganizationService {
 
     /** Get team members; requires membership. Returns row shape; controller maps to DTO. */
     async getTeam(authUserId: string, organizationId: string): Promise<
-        (UserOrganizationRow & { email: string | null; full_name: string | null })[]
+        (UserOrganizationLike & { email: string | null; full_name: string | null })[]
     > {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
@@ -328,7 +327,7 @@ export class OrganizationService {
         authUserId: string,
         organizationId: string,
         params: { userId: string; workspaceRole: WorkspaceMembershipRole }
-    ): Promise<UserOrganizationRow & { email: string | null; full_name: string | null }> {
+    ): Promise<UserOrganizationLike & { email: string | null; full_name: string | null }> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) {
@@ -410,7 +409,7 @@ export class OrganizationService {
     }
 
     /** Rotate API key; requires admin or superadmin. Returns row; controller maps to DTO. */
-    async rotateApiKey(authUserId: string, organizationId: string): Promise<OrganizationRow> {
+    async rotateApiKey(authUserId: string, organizationId: string): Promise<OrganizationLike> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) {

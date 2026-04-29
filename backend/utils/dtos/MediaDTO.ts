@@ -1,8 +1,17 @@
-export type SaveMediaInformationDto = {
-    organizationId: string;
+/** Row shape from `media` table. */
+export type MediaLike = {
     id: string;
-    alt?: string | null;
-    thumbnail?: string | null;
-    thumbnailTimestamp?: number | null;
+    name: string;
+    original_name: string | null;
+    path: string;
+    virtual_path: string;
+    organization_id: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    file_size: number;
+    type: string;
+    thumbnail: string | null;
+    alt: string | null;
+    thumbnail_timestamp: number | null;
 };
-

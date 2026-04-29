@@ -1,17 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { NotificationLike } from "../utils/dtos/NotificationDTO";
 import { DatabaseError } from "../errors/InfraError";
 
 const TABLE = "notifications";
-
-export type NotificationRow = {
-    id: string;
-    organization_id: string;
-    content: string;
-    link: string | null;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-};
 
 const NOTIFICATION_LIST_SELECT = "id, content, link, created_at";
 
@@ -52,7 +43,7 @@ export class NotificationRepository {
         return count ?? 0;
     }
 
-    async listRecentForOrg(organizationId: string, limit: number): Promise<Pick<NotificationRow, "created_at" | "content">[]> {
+    async listRecentForOrg(organizationId: string, limit: number): Promise<Pick<NotificationLike, "created_at" | "content">[]> {
         const { data, error } = await this.supabase
             .from(TABLE)
             .select("created_at, content")
@@ -68,7 +59,7 @@ export class NotificationRepository {
                 resource: { type: "table", name: TABLE },
             });
         }
-        return (data ?? []) as Pick<NotificationRow, "created_at" | "content">[];
+        return (data ?? []) as Pick<NotificationLike, "created_at" | "content">[];
     }
 
     async listPaginated(
@@ -76,7 +67,7 @@ export class NotificationRepository {
         page: number,
         pageSize: number
     ): Promise<{
-        notifications: Array<Pick<NotificationRow, "id" | "content" | "link" | "created_at">>;
+        notifications: Array<Pick<NotificationLike, "id" | "content" | "link" | "created_at">>;
         total: number;
         hasMore: boolean;
     }> {
@@ -98,7 +89,7 @@ export class NotificationRepository {
         }
 
         const total = count ?? 0;
-        const notifications = (rows ?? []) as Array<Pick<NotificationRow, "id" | "content" | "link" | "created_at">>;
+        const notifications = (rows ?? []) as Array<Pick<NotificationLike, "id" | "content" | "link" | "created_at">>;
         return {
             notifications,
             total,

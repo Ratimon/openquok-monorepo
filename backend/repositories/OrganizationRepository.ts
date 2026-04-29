@@ -1,40 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type {
+    OrganizationInviteLike,
+    OrganizationLike,
+    PendingInviteViewLike,
+    UserOrganizationLike,
+} from "../utils/dtos/OrganizationDTO";
 import { DatabaseError } from "../errors/InfraError";
-
-/** DB row shape for organizations table. */
-export type OrganizationRow = {
-    id: string;
-    name: string;
-    description: string | null;
-    api_key: string | null;
-    created_at: string;
-    updated_at: string;
-};
-
-/** DB row shape for user_organizations table. */
-export type UserOrganizationRow = {
-    id: string;
-    user_id: string;
-    organization_id: string;
-    role: string;
-    disabled: boolean;
-    created_at: string;
-    updated_at: string;
-};
-
-/** DB row shape for organization_invites table. */
-export type OrganizationInviteRow = {
-    id: string;
-    email: string;
-    organization_id: string;
-    role: string;
-    invited_by_user_id: string;
-    created_at: string;
-    expires_at: string;
-};
-
-/** Pending invite with org name (e.g. findPendingInvitesByEmail result). */
-export type PendingInviteViewRow = OrganizationInviteRow & { organization_name: string };
 
 const ORGS_TABLE = "organizations";
 const USER_ORGS_TABLE = "user_organizations";
@@ -69,7 +40,7 @@ export class OrganizationRepository {
 
     /** List organizations the user belongs to (non-disabled memberships). */
     async findOrganizationsByUserId(userId: string): Promise<{
-        organizations: OrganizationRow[];
+        organizations: OrganizationLike[];
         memberships: { organizationId: string; role: string; disabled: boolean }[];
         error: unknown;
     }> {
@@ -87,7 +58,7 @@ export class OrganizationRepository {
             });
         }
 
-        const list = (memberships ?? []) as UserOrganizationRow[];
+        const list = (memberships ?? []) as UserOrganizationLike[];
         if (list.length === 0) {
             return { organizations: [], memberships: [], error: null };
         }
@@ -106,7 +77,7 @@ export class OrganizationRepository {
             });
         }
 
-        const orgRows = (orgs ?? []) as OrganizationRow[];
+        const orgRows = (orgs ?? []) as OrganizationLike[];
         const membershipMap = list.map((m) => ({
             organizationId: m.organization_id,
             role: m.role,
@@ -151,7 +122,7 @@ export class OrganizationRepository {
 
     /** Get a single organization by id. */
     async findOrganizationById(organizationId: string): Promise<{
-        organization: OrganizationRow | null;
+        organization: OrganizationLike | null;
         error: unknown;
     }> {
         const { data, error } = await this.supabase
@@ -159,12 +130,12 @@ export class OrganizationRepository {
             .select(ORG_SELECT)
             .eq("id", organizationId)
             .single();
-        return { organization: data as OrganizationRow | null, error };
+        return { organization: data as OrganizationLike | null, error };
     }
 
     /** Get membership for a user in an organization. */
     async findMembership(userId: string, organizationId: string): Promise<{
-        membership: UserOrganizationRow | null;
+        membership: UserOrganizationLike | null;
         error: unknown;
     }> {
         const { data, error } = await this.supabase
@@ -181,14 +152,14 @@ export class OrganizationRepository {
                 resource: { type: "table", name: USER_ORGS_TABLE },
             });
         }
-        return { membership: data as UserOrganizationRow | null, error: null };
+        return { membership: data as UserOrganizationLike | null, error: null };
     }
 
     /** Create organization and optionally add first member. */
     async createOrganization(params: {
         name: string;
         description?: string | null;
-    }): Promise<{ organization: OrganizationRow; error: unknown }> {
+    }): Promise<{ organization: OrganizationLike; error: unknown }> {
         const { data, error } = await this.supabase
             .from(ORGS_TABLE)
             .insert({
@@ -198,7 +169,7 @@ export class OrganizationRepository {
             })
             .select(ORG_SELECT)
             .single();
-        return { organization: data as OrganizationRow, error };
+        return { organization: data as OrganizationLike, error };
     }
 
     /** Add user to organization with role. */
@@ -206,7 +177,7 @@ export class OrganizationRepository {
         userId: string;
         organizationId: string;
         role: WorkspaceMembershipRole;
-    }): Promise<{ membership: UserOrganizationRow; error: unknown }> {
+    }): Promise<{ membership: UserOrganizationLike; error: unknown }> {
         const { data, error } = await this.supabase
             .from(USER_ORGS_TABLE)
             .insert({
@@ -218,14 +189,14 @@ export class OrganizationRepository {
             })
             .select(USER_ORG_SELECT)
             .single();
-        return { membership: data as UserOrganizationRow, error };
+        return { membership: data as UserOrganizationLike, error };
     }
 
     /** Update organization. */
     async updateOrganization(
         organizationId: string,
         params: { name?: string; description?: string | null }
-    ): Promise<{ organization: OrganizationRow | null; error: unknown }> {
+    ): Promise<{ organization: OrganizationLike | null; error: unknown }> {
         const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
         if (params.name !== undefined) payload.name = params.name;
         if (params.description !== undefined) payload.description = params.description;
@@ -236,12 +207,12 @@ export class OrganizationRepository {
             .eq("id", organizationId)
             .select(ORG_SELECT)
             .single();
-        return { organization: data as OrganizationRow | null, error };
+        return { organization: data as OrganizationLike | null, error };
     }
 
     /** Get all members of an organization (user_organizations + user profile). */
     async getTeam(organizationId: string): Promise<{
-        members: (UserOrganizationRow & { email: string | null; full_name: string | null })[];
+        members: (UserOrganizationLike & { email: string | null; full_name: string | null })[];
         error: unknown;
     }> {
         const { data, error } = await this.supabase.rpc(
@@ -277,7 +248,7 @@ export class OrganizationRepository {
             updated_at: r.updated_at,
             email: r.email ?? null,
             full_name: r.full_name ?? null,
-        })) as (UserOrganizationRow & { email: string | null; full_name: string | null })[];
+        })) as (UserOrganizationLike & { email: string | null; full_name: string | null })[];
 
         return { members, error: null };
     }
@@ -305,7 +276,7 @@ export class OrganizationRepository {
     }
 
     /** Resolve organization by programmatic API key (Authorization header value). */
-    async findOrganizationByApiKey(apiKey: string): Promise<OrganizationRow | null> {
+    async findOrganizationByApiKey(apiKey: string): Promise<OrganizationLike | null> {
         const { data, error } = await this.supabase
             .from(ORGS_TABLE)
             .select(ORG_SELECT)
@@ -319,12 +290,12 @@ export class OrganizationRepository {
                 resource: { type: "table", name: ORGS_TABLE },
             });
         }
-        return (data as OrganizationRow) ?? null;
+        return (data as OrganizationLike) ?? null;
     }
 
     /** Generate and set a new api_key for the organization. */
     async rotateApiKey(organizationId: string): Promise<{
-        organization: OrganizationRow | null;
+        organization: OrganizationLike | null;
         error: unknown;
     }> {
         const crypto = await import("node:crypto");
@@ -335,7 +306,7 @@ export class OrganizationRepository {
             .eq("id", organizationId)
             .select(ORG_SELECT)
             .single();
-        return { organization: data as OrganizationRow | null, error };
+        return { organization: data as OrganizationLike | null, error };
     }
 
     /** Insert a pending invite (when admin sends invite by email). */
@@ -345,7 +316,7 @@ export class OrganizationRepository {
         role: "user" | "admin";
         invitedByUserId: string;
         expiresAt: string;
-    }): Promise<{ invite: OrganizationInviteRow; error: unknown }> {
+    }): Promise<{ invite: OrganizationInviteLike; error: unknown }> {
         const { data, error } = await this.supabase
             .from(INVITES_TABLE)
             .insert({
@@ -357,12 +328,12 @@ export class OrganizationRepository {
             })
             .select()
             .single();
-        return { invite: data as OrganizationInviteRow, error };
+        return { invite: data as OrganizationInviteLike, error };
     }
 
     /** List pending invites for an email (not yet accepted, not expired), with org name. */
     async findPendingInvitesByEmail(email: string): Promise<{
-        invites: PendingInviteViewRow[];
+        invites: PendingInviteViewLike[];
         error: unknown;
     }> {
         const now = new Date().toISOString();
@@ -380,7 +351,7 @@ export class OrganizationRepository {
             });
         }
 
-        const rows = (data ?? []) as OrganizationInviteRow[];
+        const rows = (data ?? []) as OrganizationInviteLike[];
         if (rows.length === 0) return { invites: [], error: null };
 
         const orgIds = [...new Set(rows.map((r) => r.organization_id))];
@@ -408,13 +379,13 @@ export class OrganizationRepository {
     }
 
     /** Get a single invite by id. */
-    async findInviteById(inviteId: string): Promise<{ invite: OrganizationInviteRow | null; error: unknown }> {
+    async findInviteById(inviteId: string): Promise<{ invite: OrganizationInviteLike | null; error: unknown }> {
         const { data, error } = await this.supabase
             .from(INVITES_TABLE)
             .select()
             .eq("id", inviteId)
             .single();
-        return { invite: data as OrganizationInviteRow | null, error };
+        return { invite: data as OrganizationInviteLike | null, error };
     }
 
     /** Delete one invite by id. */

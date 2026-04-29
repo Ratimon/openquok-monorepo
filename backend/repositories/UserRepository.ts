@@ -1,29 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { UserAdminLike, UserLike } from "../utils/dtos/UserDTO";
 import { DatabaseError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 
 const TABLE_NAME = "users";
-
-export type UserProfilesJoinRow = {
-    avatar_url?: string | null;
-    website_url?: string | null;
-};
-
-/** Row from users with optional embedded user_profiles (1:1). */
-export type UserRow = {
-    id: string;
-    auth_id: string | null;
-    email: string | null;
-    full_name: string | null;
-    is_email_verified: boolean | null;
-    email_verification_token?: string | null;
-    email_verification_token_expires?: string | null;
-    provider?: string | null;
-    provider_id?: string | null;
-    created_at: string;
-    updated_at: string;
-    user_profiles?: UserProfilesJoinRow | UserProfilesJoinRow[] | null;
-};
 
 /** Columns that exist on public.users in all environments (no OAuth columns). Use for backward compatibility when provider/provider_id may not exist. */
 const CORE_USER_SELECT =
@@ -31,14 +11,6 @@ const CORE_USER_SELECT =
 
 /** Same as CORE_USER_SELECT plus one-to-one user_profiles (avatar, website). */
 const USER_WITH_PROFILE_SELECT = `${CORE_USER_SELECT}, user_profiles(avatar_url, website_url)`;
-
-/** Row shape for admin list (users with roles). */
-export type UserAdminRow = {
-    id: string;
-    email: string | null;
-    created_at: string;
-    is_super_admin: boolean;
-};
 
 const ADMIN_USER_SELECT = "id, email, created_at, is_super_admin";
 
@@ -48,14 +20,14 @@ const ADMIN_USER_SELECT = "id, email, created_at, is_super_admin";
 export class UserRepository {
     constructor(private readonly supabase: SupabaseClient) {}
 
-    async findFullUserByUserId(userId: string): Promise<{ userData: UserRow | null; userError: unknown }> {
+    async findFullUserByUserId(userId: string): Promise<{ userData: UserLike | null; userError: unknown }> {
         const { data: userData, error: userError } = await this.supabase
             .from(TABLE_NAME)
             .select(USER_WITH_PROFILE_SELECT)
             .eq("auth_id", userId)
             .single();
 
-        return { userData: userData as UserRow | null, userError };
+        return { userData: userData as UserLike | null, userError };
     }
 
     /**
@@ -123,7 +95,7 @@ export class UserRepository {
 
     /** Find user by email with all core columns.
      *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
-    async findFullUserByEmail(email: string): Promise<{ userData: UserRow | null }> {
+    async findFullUserByEmail(email: string): Promise<{ userData: UserLike | null }> {
         const { data, error } = await this.supabase.rpc("internal_find_full_user_by_email" as never, {
             p_email: email,
         } as never);
@@ -135,7 +107,7 @@ export class UserRepository {
                 resource: { type: "table", name: TABLE_NAME },
             });
         }
-        const rows = data as UserRow[] | null;
+        const rows = data as UserLike[] | null;
         return { userData: rows && rows.length > 0 ? rows[0] : null };
     }
 
@@ -143,13 +115,13 @@ export class UserRepository {
      * Find all users for admin list (id, email, created_at, is_super_admin).
      * Used with RbacRepository.getUserRoles to build full users with roles.
      */
-    async findAllForAdmin(): Promise<{ data: UserAdminRow[]; error: unknown }> {
+    async findAllForAdmin(): Promise<{ data: UserAdminLike[]; error: unknown }> {
         const { data, error } = await this.supabase
             .from(TABLE_NAME)
             .select(ADMIN_USER_SELECT)
             .order("created_at", { ascending: false });
 
-        return { data: (data ?? []) as UserAdminRow[], error };
+        return { data: (data ?? []) as UserAdminLike[], error };
     }
 
     async checkIfEmailVerified(email: string): Promise<boolean> {
@@ -186,12 +158,12 @@ export class UserRepository {
 
     /** Find users by hashed verification token (non-expired).
      *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
-    async findUserByTokenHash(hashedToken: string): Promise<{ userData: UserRow[]; userError: unknown }> {
+    async findUserByTokenHash(hashedToken: string): Promise<{ userData: UserLike[]; userError: unknown }> {
         const { data, error: userError } = await this.supabase.rpc("internal_find_user_by_token_hash" as never, {
             p_hashed_token: hashedToken,
         } as never);
 
-        return { userData: (data ?? []) as UserRow[], userError };
+        return { userData: (data ?? []) as UserLike[], userError };
     }
 
     /** Set or clear email verification token for a user (by user id).
@@ -274,7 +246,7 @@ export class UserRepository {
             .eq("id", userId);
         return { updateError };
     }
-    async findUserByProvider(provider: string, providerId: string): Promise<{ userData: UserRow | null }> {
+    async findUserByProvider(provider: string, providerId: string): Promise<{ userData: UserLike | null }> {
         const { data: userData, error } = await this.supabase
             .from(TABLE_NAME)
             .select(CORE_USER_SELECT)
@@ -289,7 +261,7 @@ export class UserRepository {
                 resource: { type: "table", name: TABLE_NAME },
             });
         }
-        return { userData: userData as UserRow | null };
+        return { userData: userData as UserLike | null };
     }
 
     /**

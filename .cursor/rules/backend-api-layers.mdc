@@ -36,14 +36,16 @@ userRouter.put("/me/password", auth, validateUpdatePasswordMeRequest, userContro
 
 ## 4. Utils (`backend/utils/`)
 
-- **dtos/** — API response shapes and mappers only (e.g. `UserDTO`, `toUserDTO(row)` or `XxxDTOMapper.toDTOCollection(rows)`). Map from **repository row types** to API shape. Row types are defined in **repositories** (e.g. `UserRow`, `FeedbackRow`, `OrganizationRow`); DTO files import them for mapper parameter types. **Mapping is invoked in the controller**, not in the service.
+- **dtos/** — **API response shapes (camelCase DTOs), DB-aligned types with a `Like` suffix, and mappers** (e.g. `SocialPostDTO`, `SocialPostLike`, `PostDTOMapper.toDTO(...)`; `FeedbackLike`, `toFeedbackDTO`). Types such as **`SocialPostLike` / `FeedbackLike`** describe raw / persisted shapes (snake_case columns, join payloads) and live **here**, not in repositories. Repositories **import** those types from the appropriate DTO module for return types and casts; **do not** introduce a parallel `Row` duplicate name for the same shape.
+- Some modules bundle related concerns in one file (e.g. `IntegrationDTO.ts`: `IntegrationLike` for DB rows plus `IntegrationCatalogDTO` / `IntegrationListDTO` for API responses).
+- **Mapping is invoked in the controller**, not in the service (same as before).
 - **valueObjects/** — Domain value objects (e.g. `UserId`) when you need validation/reuse. Optional.
 
 ## 5. Controller (`backend/controllers/`)
 
 - Receives **Request, Response, NextFunction**. Cast to **AuthenticatedRequest** when using `req.user`.
 - Call **service** (and optionally other services, e.g. AuthenticationService). Do not call repositories directly.
-- **Map to DTOs in the controller** just before sending the response (e.g. pass service result into a DTO mapper, then `res.json({ data: dtos })`). Do not expect services to return API DTOs; services return repository/row or domain types.
+- **Map to DTOs in the controller** just before sending the response (e.g. pass service result into a DTO mapper, then `res.json({ data: dtos })`). Do not expect services to return API DTOs; services return **persistence-aligned `Like` types or domain types** from the persistence layer (via repositories), not camelCase API DTOs.
 - **Create/update responses** — Use a consistent envelope: `{ success: true, data: { id: result.id }, message: "X created/updated successfully" }`. Return **201** for create and **200** for update. The service still returns full domain data; the controller exposes only `id` in `data` for create/update. Reference: `BlogController` (createBlogPost, updateBlogPost, createBlogTopic, updateBlogTopic), `ListingController` (createListing, updateListing).
 - On validation/authorization/not-found: **`return next(new XxxError(...))`**. On unexpected errors: **`next(error)`** in catch. Do not throw in async handlers.
 - Instantiate in `controllers/index.ts` with injected services; export the controller instance.
@@ -51,7 +53,7 @@ userRouter.put("/me/password", auth, validateUpdatePasswordMeRequest, userContro
 ## 6. Service (`backend/services/`)
 
 - Holds business logic; depends on **repositories** (and config). No Express types.
-- Methods return **repository/row types or domain types**, not API DTOs. The controller is responsible for mapping these to DTOs just before `res.json(...)`.
+- Methods return persistence-aligned types (e.g. `SocialPostLike`, `OrganizationLike`), repository results, or domain types—not API DTOs. Import the matching symbols from **`utils/dtos`** when typing parameters or return values that mirror DB rows. The controller maps to API DTOs just before `res.json(...)`.
 - Instantiate in `services/index.ts` with injected repositories; export instances.
 
 ### Cache (when the domain benefits from caching)
@@ -67,9 +69,10 @@ Reference: `UserService`, `BlogService`, `OrganizationService`, `FeedbackService
 
 ## 7. Repository (`backend/repositories/`)
 
-- Talks to DB (e.g. Supabase). **Defines and exports row types** (e.g. `UserRow`, `FeedbackRow`, `OrganizationRow`, `UserOrganizationRow`) that match DB/query shapes. No DTOs; controllers and **utils/dtos** mappers use these row types (DTO files import row types from the repository for mapper signatures).
-- Methods return `{ data, error }` or throw **InfraError**/ **DatabaseError**.
-- Instantiate in `repositories/index.ts`; export instances and row types.
+- Talks to DB (e.g. Supabase). **Import DB-aligned types from `utils/dtos`** for query results and inserts (e.g. `SocialPostLike`, `FeedbackLike`, `OrganizationLike`, `IntegrationLike`). **Define insert/partial helpers next to usage** when needed (e.g. `SocialPostInsert` on `PostsRepository`). Avoid duplicate `Row` vs `Like` names for the same table; **one shape per entity in the DTO file** is the source of truth.
+- Optional composite exports (e.g. list result types) may stay on the repository if they are not shared mapper inputs.
+- Methods return typed data or throw **InfraError**/ **DatabaseError** (or `{ data, error }` where that pattern is already used).
+- Instantiate in `repositories/index.ts`; export **repository classes**; export **`MediaLike` etc. from DTOs** when consumers need the type at package boundaries (see `repositories/index.ts`).
 
 ## 8. E2E tests (`backend/tests/e2e/`)
 
@@ -83,11 +86,11 @@ Reference: `UserService`, `BlogService`, `OrganizationService`, `FeedbackService
 1. **Routes** — Add route(s); mount in `routes/index.ts`.
 2. **Data** — Add/use schema + `validateXxxRequest` + `validateXxxRequestHandler` type.
 3. **Errors** — Use AppError subclasses (or Auth/Validation/Infra) and pass to `next(...)`.
-4. **Utils** — DTO + mapper if response shape is new; value object if needed.
+4. **Utils** — Add/update **DB-aligned `Like` types** and API **DTO** + mapper in `dtos/` if response shape is new; value object if needed.
 5. **Controller** — Handler(s) calling service(s); typed with schema handler type where validation runs.
-6. **Service** — Method(s) calling repository; return row/domain types (no DTO mapping). Add cache (CACHE_KEYS, getOrSet, invalidation after mutations) when the domain benefits.
-7. **Repository** — Method(s) for DB access; **define and export row types** (e.g. `XxxRow`). No row types in DTO files.
+6. **Service** — Method(s) calling repository; return **persistence-aligned / domain types** (no API DTO mapping). Add cache (CACHE_KEYS, getOrSet, invalidation after mutations) when the domain benefits.
+7. **Repository** — Method(s) for DB access; use **types from `utils/dtos`** for entity shapes; add narrow insert types on the repository if needed. **Do not** add a parallel `XxxRow` in the repository when `XxxLike` (or equivalent) already exists in `dtos/`.
 8. **Wire** — Controllers/index, services/index, repositories/index.
 9. **E2E** — Add or extend `tests/e2e/<domain>.e2e.test.ts`. Use feature/scenario naming (see **backend-e2e-integration-test-naming**). If you added a new table, update test helpers for cleanup (see **backend-test-helpers-new-tables**).
 
-Reference implementation: user API (`UserRoute`, `UserController`, `UserService`, `UserRepository`, `userSchemas`, `UserDTO`, `UserError`, `user.e2e.test.ts`). For “DTO in controller” pattern: FeedbackController (maps service rows to DTO just before `res.json`); FeedbackService (returns repository row shape).
+Reference implementation: user API (`UserRoute`, `UserController`, `UserService`, `UserRepository`, `userSchemas`, `UserDTO`, `UserError`, `user.e2e.test.ts`). For **DTO in controller**: `FeedbackController` maps **`FeedbackLike`** to API DTO before `res.json`; `FeedbackService` returns **`FeedbackLike[]`** from the repository (types from `FeedbackDTO.ts`).

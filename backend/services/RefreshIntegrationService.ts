@@ -1,4 +1,5 @@
-import type { IntegrationRepository, IntegrationRow } from "../repositories/IntegrationRepository";
+import type { IntegrationRepository } from "../repositories/IntegrationRepository";
+import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { NotificationService } from "./NotificationService";
 import type { AuthTokenDetails, SocialProvider } from "../integrations/social.integrations.interface";
 
@@ -14,7 +15,7 @@ export class RefreshIntegrationService {
         private readonly notificationService?: NotificationService
     ) {}
 
-    async refresh(integration: IntegrationRow): Promise<false | AuthTokenDetails> {
+    async refresh(integration: IntegrationLike): Promise<false | AuthTokenDetails> {
         const socialProvider = this.integrationManager.getSocialIntegration(integration.provider_identifier);
         if (!socialProvider) {
             return false;
@@ -61,13 +62,13 @@ export class RefreshIntegrationService {
             { integrationId, organizationId },
             {
                 integrationRepository: this.integrationRepository,
-                runRefresh: (row: IntegrationRow) => this.refresh(row),
+                runRefresh: (row: IntegrationLike) => this.refresh(row),
             }
         );
     }
 
     private async refreshProcess(
-        integration: IntegrationRow,
+        integration: IntegrationLike,
         socialProvider: SocialProvider
     ): Promise<AuthTokenDetails | false> {
         const rt = integration.refresh_token;
@@ -103,7 +104,7 @@ export class RefreshIntegrationService {
         };
     }
 
-    private async markRefreshFailed(integration: IntegrationRow): Promise<void> {
+    private async markRefreshFailed(integration: IntegrationLike): Promise<void> {
         const shouldNotify = !integration.refresh_needed;
         await this.integrationRepository.setRefreshNeeded(integration.organization_id, integration.id, true);
 
@@ -121,7 +122,7 @@ export class RefreshIntegrationService {
         });
     }
 
-    private async informAboutRefreshError(integration: IntegrationRow): Promise<void> {
+    private async informAboutRefreshError(integration: IntegrationLike): Promise<void> {
         if (!this.notificationService) return;
 
         // to do: Check message again

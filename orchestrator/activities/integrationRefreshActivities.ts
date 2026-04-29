@@ -1,5 +1,6 @@
 import type { AuthTokenDetails } from "backend/integrations/social.integrations.interface.js";
-import type { IntegrationRepository, IntegrationRow } from "backend/repositories/IntegrationRepository.js";
+import type { IntegrationRepository } from "backend/repositories/IntegrationRepository.js";
+import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
 import { logger } from "backend/utils/Logger.js";
 import { sleepChunked } from "../sleepChunked.js";
 
@@ -86,7 +87,7 @@ export async function getIntegrationByIdActivity(
     organizationId: string,
     integrationId: string,
     signal: AbortSignal | undefined
-): Promise<IntegrationRow | null> {
+): Promise<IntegrationLike | null> {
     return runWithRetries(
         "getIntegrationById",
         () => repository.getById(organizationId, integrationId),
@@ -100,8 +101,8 @@ export async function getIntegrationByIdActivity(
  * A resolved `false` from the service is a normal outcome (no retry).
  */
 export async function refreshIntegrationTokenActivity(
-    runRefresh: (row: IntegrationRow) => Promise<false | AuthTokenDetails>,
-    row: IntegrationRow,
+    runRefresh: (row: IntegrationLike) => Promise<false | AuthTokenDetails>,
+    row: IntegrationLike,
     signal: AbortSignal | undefined
 ): Promise<false | AuthTokenDetails> {
     return runWithRetries(

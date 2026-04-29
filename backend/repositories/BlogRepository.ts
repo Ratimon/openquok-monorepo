@@ -20,22 +20,11 @@ import type {
     BlogCommentCreateSchemaType,
     BlogCommentUpdateSchemaType,
 } from "../data/schemas/blogSchemas";
-import type { BlogPostLike } from "../utils/dtos/BlogDTO";
+import type { BlogActivityLike, BlogPostLike } from "../utils/dtos/BlogDTO";
 
 import { DatabaseError, DatabaseEntityNotFoundError, ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 import { stringToSlug } from "../utils/slug";
-
-/** Row shape returned from DB for admin blog activities select; findAdminBlogActivities maps to AdminBlogActivity. */
-export type BlogActivityRow = {
-    id: string;
-    activity_type: string;
-    created_at: string;
-    user_id: string | null;
-    post_id: string;
-    author?: Array<{ id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }> | { id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null } | null;
-    blog_post?: Array<{ id: string; title: string; slug: string }> | { id: string; title: string; slug: string } | null;
-};
 
 const RPC_GET_PUBLISHED_BLOG_AUTHORS = "get_published_blog_authors";
 const RPC_GET_ACTIVE_BLOG_TOPICS = "get_active_blog_topics";
@@ -1063,7 +1052,7 @@ export class BlogRepository {
             });
         }
 
-        const rows = (data ?? []) as BlogActivityRow[];
+        const rows = (data ?? []) as BlogActivityLike[];
         const activities: AdminBlogActivity[] = rows.map((row) => {
             const rawAuthor = Array.isArray(row.author) ? row.author[0] ?? null : row.author ?? null;
             const profile = rawAuthor?.user_profiles;

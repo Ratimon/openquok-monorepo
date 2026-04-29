@@ -16,7 +16,7 @@ import { faker } from "@faker-js/faker";
 import { FlowRuntime } from "flowcraft";
 import { createStepper, InMemoryEventLogger, runWithTrace } from "flowcraft/testing";
 import type { AuthTokenDetails } from "backend/integrations/social.integrations.interface.js";
-import type { IntegrationRow } from "backend/repositories/IntegrationRepository.js";
+import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
 import { logger } from "backend/utils/Logger.js";
 import { getIntegrationByIdActivity, refreshIntegrationTokenActivity } from "../activities/integrationRefreshActivities.js";
 import { createRefreshTokenFlowBuilder, runRefreshTokenOrchestration } from "./refreshTokenWorkflow.js";
@@ -50,7 +50,7 @@ function sampleAuth(): AuthTokenDetails {
     };
 }
 
-function baseRow(overrides: Partial<IntegrationRow> = {}): IntegrationRow {
+function baseRow(overrides: Partial<IntegrationLike> = {}): IntegrationLike {
     const now = new Date();
     return {
         id: integrationId,
@@ -80,8 +80,8 @@ function baseRow(overrides: Partial<IntegrationRow> = {}): IntegrationRow {
 }
 
 describe("refreshTokenWorkflow / runRefreshTokenOrchestration", () => {
-    const getById = jest.fn<Promise<IntegrationRow | null>, [string, string]>();
-    const runRefresh = jest.fn<Promise<false | AuthTokenDetails>, [IntegrationRow]>();
+    const getById = jest.fn<Promise<IntegrationLike | null>, [string, string]>();
+    const runRefresh = jest.fn<Promise<false | AuthTokenDetails>, [IntegrationLike]>();
 
     beforeEach(() => {
         getById.mockReset();
@@ -191,8 +191,8 @@ describe("refreshTokenWorkflow / runRefreshTokenOrchestration", () => {
 });
 
 describe("refreshTokenWorkflow / Flowcraft testing utilities", () => {
-    const getById = jest.fn<Promise<IntegrationRow | null>, [string, string]>();
-    const runRefresh = jest.fn<Promise<false | AuthTokenDetails>, [IntegrationRow]>();
+    const getById = jest.fn<Promise<IntegrationLike | null>, [string, string]>();
+    const runRefresh = jest.fn<Promise<false | AuthTokenDetails>, [IntegrationLike]>();
 
     const deps = { integrationRepository: { getById }, runRefresh };
 

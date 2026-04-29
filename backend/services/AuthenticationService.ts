@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { RefreshTokenRepository } from "../repositories/RefreshTokenRepository";
 import type { UserRepository } from "../repositories/UserRepository";
-import type { UserRow } from "../repositories/UserRepository";
+import type { UserLike } from "../utils/dtos/UserDTO";
 import type { UserService } from "./UserService";
 
 import { createSupabaseRLSClient } from "../connections/supabase";
@@ -42,7 +42,7 @@ export class AuthenticationService {
         context: { req: Request; res: Response }
     ): Promise<{
         signedInUser: { id: string; email?: string; user_metadata?: Record<string, unknown> };
-        userDBdata: UserRow | null;
+        userDBdata: UserLike | null;
         session: { access_token: string; refresh_token: string };
     }> {
         const normalizedEmail = normalizeEmail(email);

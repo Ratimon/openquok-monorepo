@@ -1,9 +1,10 @@
 import type { IntegrationManager } from "backend/integrations/integrationManager.js";
 import type { AuthTokenDetails, IntegrationRecord, PostDetails, PostResponse } from "backend/integrations/social.integrations.interface.js";
-import type { IntegrationRepository, IntegrationRow } from "backend/repositories/IntegrationRepository.js";
+import type { IntegrationRepository } from "backend/repositories/IntegrationRepository.js";
+import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
 import type { PostsRepository } from "backend/repositories/PostsRepository.js";
-import type { NotificationService } from "backend/services/NotificationService.js";
 import type { SocialPostLike } from "backend/utils/dtos/PostDTO.js";
+import type { NotificationService } from "backend/services/NotificationService.js";
 import type { NotificationEmailType } from "openquok-common";
 
 import { logger } from "backend/utils/Logger.js";
@@ -48,7 +49,7 @@ function postPublishErrorForStorage(err: unknown, max = 4000): string {
     return `Publish failed: ${raw}`.slice(0, max);
 }
 
-function integrationRowToRecord(row: IntegrationRow): IntegrationRecord {
+function integrationRowToRecord(row: IntegrationLike): IntegrationRecord {
     return {
         id: row.id,
         organization_id: row.organization_id,
@@ -276,7 +277,7 @@ async function publishOneRow(
         return;
     }
 
-    let intRow: IntegrationRow = provider;
+    let intRow: IntegrationLike = provider;
     const postDetails: PostDetails[] = [postRowToPostDetails(post)];
 
     for (let attempt = 0; attempt < PUBLISH_ATTEMPTS; attempt++) {

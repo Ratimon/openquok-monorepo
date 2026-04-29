@@ -1,12 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
-import type { OrganizationRepository, OrganizationRow } from "../repositories/OrganizationRepository";
+import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { OrganizationLike } from "../utils/dtos/OrganizationDTO";
 
 /**
  * Request carrying the organization resolved from the programmatic API key
  * (`Authorization` header: raw key or `Bearer <key>`).
  */
 export interface OrganizationApiRequest extends Request {
-    organization?: OrganizationRow;
+    organization?: OrganizationLike;
 }
 
 /**

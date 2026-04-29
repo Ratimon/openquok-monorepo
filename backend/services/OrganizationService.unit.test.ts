@@ -1,6 +1,7 @@
-import { OrganizationService } from "./OrganizationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { UserRepository } from "../repositories/UserRepository";
+
+import { OrganizationService } from "./OrganizationService";
 import { signInviteToken, verifyInviteToken } from "../utils/inviteToken";
 import { logger } from "../utils/Logger";
 import { faker } from "@faker-js/faker";

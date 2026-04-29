@@ -1,6 +1,7 @@
 import type { IntegrationService } from "./IntegrationService";
-import type { OrganizationRepository, UserOrganizationRow } from "../repositories/OrganizationRepository";
-import type { IntegrationRow } from "../repositories/IntegrationRepository";
+import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { UserOrganizationLike } from "../utils/dtos/OrganizationDTO";
+import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { RefreshIntegrationService } from "./RefreshIntegrationService";
 import type { IntegrationManager } from "../integrations/integrationManager";
 import type { AuthTokenDetails, SocialProvider } from "../integrations/social.integrations.interface";
@@ -23,11 +24,11 @@ function mockFindUserIdByAuthIdResult(userIdValue: string | null) {
     return { userId: userIdValue, error: null };
 }
 
-function mockFindMembershipResult(membership: UserOrganizationRow | null) {
+function mockFindMembershipResult(membership: UserOrganizationLike | null) {
     return { membership, error: null };
 }
 
-function activeMembershipRow(): UserOrganizationRow {
+function activeMembershipRow(): UserOrganizationLike {
     return {
         id: faker.string.uuid(),
         user_id: userId,
@@ -39,8 +40,8 @@ function activeMembershipRow(): UserOrganizationRow {
     };
 }
 
-function sampleRow(overrides: Partial<IntegrationRow> = {}): IntegrationRow {
-    const base: IntegrationRow = {
+function sampleRow(overrides: Partial<IntegrationLike> = {}): IntegrationLike {
+    const base: IntegrationLike = {
         id: integrationId,
         organization_id: orgId,
         internal_id: "int-internal",

@@ -1,9 +1,5 @@
-import type {
-    MediaListResult,
-    MediaRepository,
-    MediaRow,
-    SaveMediaInformationDto,
-} from "../repositories/MediaRepository";
+import type { MediaListResult, MediaRepository, SaveMediaInformationDto } from "../repositories/MediaRepository";
+import type { MediaLike } from "../utils/dtos/MediaDTO";
 
 /**
  * Application layer for user media metadata and listing (storage-backed).
@@ -27,11 +23,11 @@ export class MediaService {
         return this._mediaRepository.saveFile(params);
     }
 
-    getMediaById(organizationId: string, id: string): Promise<MediaRow | null> {
+    getMediaById(organizationId: string, id: string): Promise<MediaLike | null> {
         return this._mediaRepository.getMediaById(organizationId, id);
     }
 
-    getMediaByPath(organizationId: string, path: string): Promise<MediaRow | null> {
+    getMediaByPath(organizationId: string, path: string): Promise<MediaLike | null> {
         return this._mediaRepository.getMediaByPath(organizationId, path);
     }
 

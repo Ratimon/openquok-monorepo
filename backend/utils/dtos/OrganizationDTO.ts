@@ -1,11 +1,41 @@
 /**
  * Organization DTO for API responses.
  */
-import type {
-    OrganizationRow,
-    UserOrganizationRow,
-    PendingInviteViewRow,
-} from "../../repositories/OrganizationRepository";
+
+/** DB row shape for organizations table. */
+export type OrganizationLike = {
+    id: string;
+    name: string;
+    description: string | null;
+    api_key: string | null;
+    created_at: string;
+    updated_at: string;
+};
+
+/** DB row shape for user_organizations table. */
+export type UserOrganizationLike = {
+    id: string;
+    user_id: string;
+    organization_id: string;
+    role: string;
+    disabled: boolean;
+    created_at: string;
+    updated_at: string;
+};
+
+/** DB row shape for organization_invites table. */
+export type OrganizationInviteLike = {
+    id: string;
+    email: string;
+    organization_id: string;
+    role: string;
+    invited_by_user_id: string;
+    created_at: string;
+    expires_at: string;
+};
+
+/** Pending invite with org name (e.g. findPendingInvitesByEmail result). */
+export type PendingInviteViewLike = OrganizationInviteLike & { organization_name: string };
 
 export interface OrganizationDTO {
     id: string;
@@ -48,7 +78,7 @@ export interface PendingInviteDTO {
     expiresAt: string;
 }
 
-export function toPendingInviteDTO(row: PendingInviteViewRow): PendingInviteDTO {
+export function toPendingInviteDTO(row: PendingInviteViewLike): PendingInviteDTO {
     return {
         id: row.id,
         organizationId: row.organization_id,
@@ -58,7 +88,7 @@ export function toPendingInviteDTO(row: PendingInviteViewRow): PendingInviteDTO 
     };
 }
 
-export function toOrganizationDTO(row: OrganizationRow | null): OrganizationDTO | null {
+export function toOrganizationDTO(row: OrganizationLike | null): OrganizationDTO | null {
     if (!row) return null;
     return {
         id: row.id,
@@ -71,7 +101,7 @@ export function toOrganizationDTO(row: OrganizationRow | null): OrganizationDTO 
 }
 
 export function toOrganizationWithRoleDTO(
-    org: OrganizationRow,
+    org: OrganizationLike,
     membership: { role: string; disabled: boolean },
     memberCount: number
 ): OrganizationWithRoleDTO {
@@ -85,7 +115,7 @@ export function toOrganizationWithRoleDTO(
 }
 
 export function toOrganizationMemberDTO(
-    uo: UserOrganizationRow,
+    uo: UserOrganizationLike,
     user: { email: string | null; full_name: string | null } | null
 ): OrganizationMemberDTO {
     return {

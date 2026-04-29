@@ -1,12 +1,12 @@
 import type { NodeContext } from "flowcraft";
-import type { IntegrationRow } from "backend/repositories/IntegrationRepository.js";
+import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
 import type { RefreshTokenFlowContext, RefreshTokenWorkflowDependencies } from "../blueprints/refreshTokenTypes.js";
 
 import { logger } from "backend/utils/Logger.js";
 import { getIntegrationByIdActivity, refreshIntegrationTokenActivity } from "../activities/integrationRefreshActivities.js";
 import { sleepChunked } from "../sleepChunked.js";
 
-function integrationShouldExit(row: IntegrationRow | null): boolean {
+function integrationShouldExit(row: IntegrationLike | null): boolean {
     if (!row) {
         return true;
     }
@@ -35,7 +35,7 @@ export async function refreshTokenTickNode({
     const organizationId = (await context.get("organizationId")) as string;
     const integrationId = (await context.get("integrationId")) as string;
 
-    let row: IntegrationRow | null;
+    let row: IntegrationLike | null;
     try {
         row = await getIntegrationByIdActivity(integrationRepository, organizationId, integrationId, signal);
     } catch {
@@ -47,7 +47,7 @@ export async function refreshTokenTickNode({
         return { output: { ok: false } };
     }
 
-    const active = row as IntegrationRow;
+    const active = row as IntegrationLike;
     if (!active.token_expiration) {
         await context.set("loopShouldContinue", false);
         return { output: { ok: false } };
@@ -75,7 +75,7 @@ export async function refreshTokenTickNode({
 
     let refreshed: Awaited<ReturnType<RefreshTokenWorkflowDependencies["runRefresh"]>>;
     try {
-        refreshed = await refreshIntegrationTokenActivity(runRefresh, row as IntegrationRow, signal);
+        refreshed = await refreshIntegrationTokenActivity(runRefresh, row as IntegrationLike, signal);
     } catch {
         await context.set("loopShouldContinue", false);
         return { output: { ok: false } };

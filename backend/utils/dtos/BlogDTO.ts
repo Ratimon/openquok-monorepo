@@ -10,6 +10,20 @@ import type {
     AdminBlogActivity,
 } from "../../data/types/blogTypes";
 
+/** Raw admin `blog_activity` select shape before mapping to AdminBlogActivity. */
+export interface BlogActivityLike {
+    id: string;
+    activity_type: string;
+    created_at: string;
+    user_id: string | null;
+    post_id: string;
+    author?:
+        | Array<{ id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }>
+        | { id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }
+        | null;
+    blog_post?: Array<{ id: string; title: string; slug: string }> | { id: string; title: string; slug: string } | null;
+}
+
 /**
  * Raw row shape from Supabase blog_posts select (with topic/author joins).
  * Used as input to BlogDTOMapper; repository returns this type.

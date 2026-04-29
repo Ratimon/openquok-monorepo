@@ -10,7 +10,7 @@ declare module "openquok-orchestrator" {
         workflowDependencies: {
             integrationRepository: import("../repositories/IntegrationRepository.js").IntegrationRepository;
             runRefresh: (
-                row: import("../repositories/IntegrationRepository.js").IntegrationRow
+                row: import("../utils/dtos/IntegrationDTO.js").IntegrationLike
             ) => Promise<false | import("../integrations/social.integrations.interface.js").AuthTokenDetails>;
         },
         options?: unknown

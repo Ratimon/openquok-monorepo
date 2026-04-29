@@ -1,7 +1,7 @@
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
-import type { IntegrationRow } from "../repositories/IntegrationRepository";
+import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { RefreshIntegrationService } from "./RefreshIntegrationService";
 import type {
     AuthTokenDetails,
@@ -139,7 +139,7 @@ export class IntegrationConnectionService {
         await this.integrations.updateIntegrationGroup(organizationId, integrationId, customerId);
     }
 
-    private async mapListRow(p: IntegrationRow) {
+    private async mapListRow(p: IntegrationLike) {
         const findIntegration = this.manager.getSocialIntegration(p.provider_identifier);
         const editor = findIntegration?.editor ?? "normal";
         let customFields: unknown;

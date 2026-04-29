@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { UserService } from "./UserService";
 import type { UserRepository } from "../repositories/UserRepository";
-import type { UserRow } from "../repositories/UserRepository";
+import type { UserLike } from "../utils/dtos/UserDTO";
 import type { RbacRepository } from "../repositories/RbacRepository";
 import { config } from "../config/GlobalConfig";
 
@@ -11,7 +11,7 @@ const email = faker.internet.email();
 const fullName = faker.person.fullName();
 const createdAt = faker.date.past().toISOString();
 
-const mockUserRow: UserRow = {
+const mockUserLike: UserLike = {
     id: userId,
     auth_id: authUserId,
     email,
@@ -75,12 +75,12 @@ describe("UserService", () => {
     describe("getProfile", () => {
         it("returns user data from repository when no cache", async () => {
             userRepo.findFullUserByUserId.mockResolvedValue({
-                userData: mockUserRow,
+                userData: mockUserLike,
                 userError: null,
             });
             const service = new UserService(userRepo);
             const result = await service.getProfile(authUserId);
-            expect(result).toEqual(mockUserRow);
+            expect(result).toEqual(mockUserLike);
             expect(userRepo.findFullUserByUserId).toHaveBeenCalledWith(authUserId);
         });
 
@@ -96,10 +96,10 @@ describe("UserService", () => {
         });
 
         it("uses cache when provided (cache hit)", async () => {
-            const getOrSet = jest.fn().mockResolvedValue(mockUserRow);
+            const getOrSet = jest.fn().mockResolvedValue(mockUserLike);
             const service = new UserService(userRepo, { getOrSet } as never);
             const result = await service.getProfile(authUserId);
-            expect(result).toEqual(mockUserRow);
+            expect(result).toEqual(mockUserLike);
             expect(getOrSet).toHaveBeenCalledWith(
                 `user:profile:${authUserId}`,
                 expect.any(Function),
@@ -110,7 +110,7 @@ describe("UserService", () => {
 
         it("calls repository when cache misses and sets USER_BY_EMAIL when user has email", async () => {
             userRepo.findFullUserByUserId.mockResolvedValue({
-                userData: mockUserRow,
+                userData: mockUserLike,
                 userError: null,
             });
             const set = jest.fn().mockResolvedValue(undefined);
@@ -118,11 +118,11 @@ describe("UserService", () => {
             const cache = { getOrSet, set };
             const service = new UserService(userRepo, cache as never);
             const result = await service.getProfile(authUserId);
-            expect(result).toEqual(mockUserRow);
+            expect(result).toEqual(mockUserLike);
             expect(userRepo.findFullUserByUserId).toHaveBeenCalledWith(authUserId);
             expect(set).toHaveBeenCalledWith(
                 `user:email:${email}`,
-                mockUserRow,
+                mockUserLike,
                 300
             );
         });
@@ -195,7 +195,7 @@ describe("UserService", () => {
         it("updates full name and invalidates caches", async () => {
             userRepo.updateFullNameByAuthId.mockResolvedValue({ updateError: null });
             userRepo.findFullUserByUserId.mockResolvedValue({
-                userData: { ...mockUserRow, full_name: fullName },
+                userData: { ...mockUserLike, full_name: fullName },
                 userError: null,
             });
             const invalidateKey = jest.fn().mockResolvedValue(true);
@@ -220,7 +220,7 @@ describe("UserService", () => {
         it("invalidates only profile key when user has no email", async () => {
             userRepo.updateFullNameByAuthId.mockResolvedValue({ updateError: null });
             userRepo.findFullUserByUserId.mockResolvedValue({
-                userData: { ...mockUserRow, email: null },
+                userData: { ...mockUserLike, email: null },
                 userError: null,
             });
             const invalidateKey = jest.fn().mockResolvedValue(true);
@@ -247,7 +247,7 @@ describe("UserService", () => {
         it("does not call cacheInvalidator when not provided", async () => {
             userRepo.updateFullNameByAuthId.mockResolvedValue({ updateError: null });
             userRepo.findFullUserByUserId.mockResolvedValue({
-                userData: mockUserRow,
+                userData: mockUserLike,
                 userError: null,
             });
             const service = new UserService(userRepo);
@@ -259,7 +259,7 @@ describe("UserService", () => {
         it("updates user_profiles when avatarUrl or websiteUrl is provided", async () => {
             userRepo.upsertUserProfileByAuthId.mockResolvedValue({ updateError: null });
             userRepo.findFullUserByUserId.mockResolvedValue({
-                userData: mockUserRow,
+                userData: mockUserLike,
                 userError: null,
             });
             const service = new UserService(userRepo);

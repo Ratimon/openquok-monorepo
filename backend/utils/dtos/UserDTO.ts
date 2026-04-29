@@ -1,6 +1,36 @@
 /**
  * User profile DTO for GET /users/me and other user read APIs.
  */
+/** Narrow fragment embedded from user_profiles on scalar user selects. */
+export type UserProfilesEmbeddedLike = {
+    avatar_url?: string | null;
+    website_url?: string | null;
+};
+
+/** Full `public.users` row with optional embedded profile(s). */
+export type UserLike = {
+    id: string;
+    auth_id: string | null;
+    email: string | null;
+    full_name: string | null;
+    is_email_verified: boolean | null;
+    email_verification_token?: string | null;
+    email_verification_token_expires?: string | null;
+    provider?: string | null;
+    provider_id?: string | null;
+    created_at: string;
+    updated_at: string;
+    user_profiles?: UserProfilesEmbeddedLike | UserProfilesEmbeddedLike[] | null;
+};
+
+/** Row shape for admin list (users with roles). */
+export type UserAdminLike = {
+    id: string;
+    email: string | null;
+    created_at: string;
+    is_super_admin: boolean;
+};
+
 export interface UserDTO {
     id: string;
     email: string | null;
@@ -18,8 +48,8 @@ export interface UserDTO {
 }
 
 export type UserProfilesJoinLike =
-    | { avatar_url?: string | null; website_url?: string | null }
-    | Array<{ avatar_url?: string | null; website_url?: string | null }>
+    | UserProfilesEmbeddedLike
+    | UserProfilesEmbeddedLike[]
     | null
     | undefined;
 

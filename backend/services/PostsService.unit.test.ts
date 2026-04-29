@@ -1,4 +1,4 @@
-import type { IntegrationRow } from "../repositories/IntegrationRepository";
+import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { PostsRepository } from "../repositories/PostsRepository";
 import type { PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
@@ -13,36 +13,6 @@ const orgId = faker.string.uuid();
 const authUserId = faker.string.uuid();
 const integrationId = faker.string.uuid();
 const otherIntegrationId = faker.string.uuid();
-
-// to do : remove this when we have DTOs & Getter
-function integrationRow(overrides: Partial<IntegrationRow> = {}): IntegrationRow {
-    const now = new Date().toISOString();
-    return {
-        id: integrationId,
-        organization_id: orgId,
-        internal_id: "int-1",
-        name: "Channel",
-        picture: null,
-        provider_identifier: "threads",
-        type: "social",
-        token: "t",
-        disabled: false,
-        token_expiration: null,
-        refresh_token: null,
-        profile: null,
-        deleted_at: null,
-        in_between_steps: false,
-        refresh_needed: false,
-        posting_times: "[]",
-        custom_instance_details: null,
-        additional_settings: "[]",
-        customer_id: null,
-        root_internal_id: null,
-        created_at: now,
-        updated_at: now,
-        ...overrides,
-    };
-}
 
 function tagRow(overrides: Partial<PostTagLike> = {}): PostTagLike {
     const now = new Date().toISOString();
@@ -103,6 +73,7 @@ type PostsRepoMock = jest.Mocked<
         | "deleteTagAssignmentsForPostIds"
         | "softDeletePostsByGroup"
         | "listPostsByOrganizationAndDateRange"
+        | "getPostById"
     >
 >;
 
@@ -121,6 +92,7 @@ function createPostsRepoMock(): PostsRepoMock {
         deleteTagAssignmentsForPostIds: jest.fn(),
         softDeletePostsByGroup: jest.fn(),
         listPostsByOrganizationAndDateRange: jest.fn(),
+        getPostById: jest.fn(),
     };
 }
 
@@ -132,11 +104,12 @@ function createIntegrationConnectionMock(): IntegrationConnectionMock {
     };
 }
 
-type IntegrationServiceMock = jest.Mocked<Pick<IntegrationService, "listByOrganization">>;
+type IntegrationServiceMock = jest.Mocked<Pick<IntegrationService, "listByOrganization" | "getById">>;
 
 function createIntegrationServiceMock(): IntegrationServiceMock {
     return {
         listByOrganization: jest.fn(),
+        getById: jest.fn(),
     };
 }
 
@@ -284,7 +257,9 @@ describe("PostsService", () => {
         const scheduledIso = "2030-06-15T12:07:33.000Z";
 
         beforeEach(() => {
-            integrationService.listByOrganization.mockResolvedValue([integrationRow({ id: integrationId })]);
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+            ]);
             postsRepo.newPostGroup.mockReturnValue("post-group-uuid");
             postsRepo.hasQueueSlotTaken.mockResolvedValue(false);
             postsRepo.findTagByOrgAndName.mockResolvedValue(null);
@@ -370,7 +345,11 @@ describe("PostsService", () => {
 
         it("throws 400 when scheduling an Instagram post without media", async () => {
             integrationService.listByOrganization.mockResolvedValue([
-                integrationRow({ id: integrationId, provider_identifier: "instagram-business" }),
+                {
+                    id: integrationId,
+                    deleted_at: null,
+                    provider_identifier: "instagram-business",
+                } as unknown as IntegrationLike,
             ]);
             await expect(
                 service().createPost({
@@ -423,8 +402,8 @@ describe("PostsService", () => {
 
         it("creates one row per selected integration for scheduled post", async () => {
             integrationService.listByOrganization.mockResolvedValue([
-                integrationRow({ id: integrationId }),
-                integrationRow({ id: otherIntegrationId }),
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+                { id: otherIntegrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
             ]);
             const inserted = [
                 socialPostRow({ integration_id: integrationId, state: "QUEUE" }),
@@ -455,8 +434,8 @@ describe("PostsService", () => {
 
         it("applies bodiesByIntegrationId overrides per channel when provided", async () => {
             integrationService.listByOrganization.mockResolvedValue([
-                integrationRow({ id: integrationId }),
-                integrationRow({ id: otherIntegrationId }),
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+                { id: otherIntegrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
             ]);
             postsRepo.insertPostGroup.mockResolvedValue([
                 socialPostRow({ integration_id: integrationId, state: "QUEUE" }),
@@ -485,7 +464,11 @@ describe("PostsService", () => {
 
         it("ignores deleted integrations when validating channel ids", async () => {
             integrationService.listByOrganization.mockResolvedValue([
-                integrationRow({ id: integrationId, deleted_at: new Date().toISOString() }),
+                {
+                    id: integrationId,
+                    deleted_at: new Date().toISOString(),
+                    provider_identifier: "threads",
+                } as unknown as IntegrationLike,
             ]);
             await expect(
                 service().createPost({
@@ -677,6 +660,76 @@ describe("PostsService", () => {
         });
     });
 
+    describe("getPostPreview", () => {
+        const postId = faker.string.uuid();
+
+        it("throws 403 when share is not exactly \"true\"", async () => {
+            await expect(service().getPostPreview(postId, null)).rejects.toMatchObject({
+                statusCode: 403,
+                message: "Forbidden",
+            });
+            await expect(service().getPostPreview(postId, "false")).rejects.toMatchObject({ statusCode: 403 });
+            expect(postsRepo.getPostById).not.toHaveBeenCalled();
+        });
+
+        it("throws 404 when post does not exist", async () => {
+            postsRepo.getPostById.mockResolvedValue(null);
+            await expect(service().getPostPreview(postId, "true")).rejects.toMatchObject({
+                statusCode: 404,
+                message: "Post not found",
+            });
+            expect(postsRepo.getPostById).toHaveBeenCalledWith(postId);
+        });
+
+        it("returns preview with empty media and null platform when post has no integration", async () => {
+            const row = socialPostRow({
+                id: postId,
+                integration_id: null,
+                content: "preview body",
+                image: null,
+            });
+            postsRepo.getPostById.mockResolvedValue(row);
+
+            const out = await service().getPostPreview(postId, "true");
+
+            expect(integrationService.getById).not.toHaveBeenCalled();
+            expect(out).toEqual({
+                id: postId,
+                postGroup: row.post_group,
+                publishDateIso: row.publish_date,
+                content: "preview body",
+                media: [],
+                socialPlatformLabel: null,
+            });
+        });
+
+        it("parses media JSON and resolves platform label when post has integration", async () => {
+            const image = JSON.stringify({ v: 1, items: [{ id: "img1", path: "/a.jpg" }] });
+            const row = socialPostRow({
+                id: postId,
+                integration_id: integrationId,
+                content: "caption",
+                image,
+            });
+            postsRepo.getPostById.mockResolvedValue(row);
+            integrationService.getById.mockResolvedValue({
+                provider_identifier: "threads",
+            } as unknown as IntegrationLike);
+
+            const out = await service().getPostPreview(postId, "true");
+
+            expect(integrationService.getById).toHaveBeenCalledWith(orgId, integrationId);
+            expect(out).toEqual({
+                id: postId,
+                postGroup: row.post_group,
+                publishDateIso: row.publish_date,
+                content: "caption",
+                media: [{ id: "img1", path: "/a.jpg" }],
+                socialPlatformLabel: "Threads",
+            });
+        });
+    });
+
     describe("deletePostGroup", () => {
         it("throws 404 when group has no posts", async () => {
             postsRepo.listPostsByGroup.mockResolvedValue([]);
@@ -764,7 +817,9 @@ describe("PostsService", () => {
             // Would normally throw 409 if checked; update should skip check when not moving slots.
             postsRepo.hasQueueSlotTaken.mockResolvedValue(true);
 
-            integrationService.listByOrganization.mockResolvedValue([integrationRow({ id: integrationId })]);
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+            ]);
             postsRepo.findTagByOrgAndName.mockResolvedValue(null);
             postsRepo.insertTag.mockImplementation(async (_org, name) => tagRow({ name }));
 

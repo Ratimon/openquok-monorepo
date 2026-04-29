@@ -1,7 +1,9 @@
 import type { FeedbackSchemaType } from "../data/schemas/feedbackSchemas";
-import type { FeedbackRepository, FeedbackRow } from "../repositories/FeedbackRepository";
+import type { FeedbackRepository } from "../repositories/FeedbackRepository";
+import type { FeedbackLike } from "../utils/dtos/FeedbackDTO";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
+
 import { logger } from "../utils/Logger";
 
 /** Domain-scoped cache key prefixes. */
@@ -35,9 +37,9 @@ export class FeedbackService {
     }
 
     /** Returns repository row shape; controller maps to DTO just before response. */
-    async getAllFeedbacks(): Promise<FeedbackRow[]> {
+    async getAllFeedbacks(): Promise<FeedbackLike[]> {
         const cacheKey = CACHE_KEYS.FEEDBACK_LIST_ALL;
-        const factory = async (): Promise<FeedbackRow[]> => {
+        const factory = async (): Promise<FeedbackLike[]> => {
             logger.debug({ msg: "Getting all feedback from repository" });
             const list = await this.feedbackRepository.findAll();
             logger.info({ msg: "All feedback retrieved successfully", count: list.length });

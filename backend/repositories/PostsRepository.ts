@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PostStateDb, PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
+
 import { v4 as uuidv4 } from "uuid";
 import { DatabaseError } from "../errors/InfraError";
-import type { PostStateDb, PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
 
 const TABLE_POSTS = "posts";
 const TABLE_TAGS = "post_tags";
@@ -12,7 +13,7 @@ export type SocialPostInsert = Omit<SocialPostLike, "id" | "created_at" | "updat
 export class PostsRepository {
     constructor(private readonly supabase: SupabaseClient) {}
 
-    /** New group id for rows composed together (Prisma `Post.group`). */
+    /** New group id for rows composed together. */
     newPostGroup(): string {
         return uuidv4();
     }

@@ -1,48 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { IntegrationCustomerLike, IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import { DatabaseError } from "../errors/InfraError";
 
 /** Table `public.integrations` — connected channels (snake_case columns). */
 const TABLE = "integrations";
 
-export type IntegrationRow = {
-    id: string;
-    organization_id: string;
-    internal_id: string;
-    name: string;
-    picture: string | null;
-    provider_identifier: string;
-    type: string;
-    token: string;
-    disabled: boolean;
-    token_expiration: string | null;
-    refresh_token: string | null;
-    profile: string | null;
-    deleted_at: string | null;
-    in_between_steps: boolean;
-    refresh_needed: boolean;
-    posting_times: string;
-    custom_instance_details: string | null;
-    additional_settings: string;
-    customer_id: string | null;
-    /** Set when row comes from `internal_list_integrations_by_org` (joined label). */
-    customer_name?: string | null;
-    root_internal_id: string | null;
-    created_at: string;
-    updated_at: string;
-};
-
-export type IntegrationCustomerRow = {
-    id: string;
-    organization_id: string;
-    name: string;
-    created_at: string;
-    updated_at: string;
-};
-
 export class IntegrationRepository {
     constructor(private readonly supabase: SupabaseClient) {}
 
-    async listByOrganization(organizationId: string): Promise<IntegrationRow[]> {
+    async listByOrganization(organizationId: string): Promise<IntegrationLike[]> {
         const { data, error } = await this.supabase.rpc("internal_list_integrations_by_org", {
             p_organization_id: organizationId,
         });
@@ -54,11 +20,11 @@ export class IntegrationRepository {
                 resource: { type: "table", name: TABLE },
             });
         }
-        return (data ?? []) as IntegrationRow[];
+        return (data ?? []) as IntegrationLike[];
     }
 
     /** List workspace channel groups (`integration_customers`); aligns with common integration service naming. */
-    async customers(organizationId: string): Promise<Pick<IntegrationCustomerRow, "id" | "name">[]> {
+    async customers(organizationId: string): Promise<Pick<IntegrationCustomerLike, "id" | "name">[]> {
         const { data, error } = await this.supabase
             .from("integration_customers")
             .select("id, name")
@@ -72,10 +38,10 @@ export class IntegrationRepository {
                 resource: { type: "table", name: "integration_customers" },
             });
         }
-        return (data ?? []) as Pick<IntegrationCustomerRow, "id" | "name">[];
+        return (data ?? []) as Pick<IntegrationCustomerLike, "id" | "name">[];
     }
 
-    async createIntegrationCustomer(organizationId: string, name: string): Promise<Pick<IntegrationCustomerRow, "id" | "name">> {
+    async createIntegrationCustomer(organizationId: string, name: string): Promise<Pick<IntegrationCustomerLike, "id" | "name">> {
         const trimmed = name.trim();
         const { data, error } = await this.supabase
             .from("integration_customers")
@@ -94,7 +60,7 @@ export class IntegrationRepository {
                 resource: { type: "table", name: "integration_customers" },
             });
         }
-        return data as Pick<IntegrationCustomerRow, "id" | "name">;
+        return data as Pick<IntegrationCustomerLike, "id" | "name">;
     }
 
     /**
@@ -157,7 +123,7 @@ export class IntegrationRepository {
         await this.updateIntegrationGroup(organizationId, integrationId, customerId);
     }
 
-    async getById(organizationId: string, id: string): Promise<IntegrationRow | null> {
+    async getById(organizationId: string, id: string): Promise<IntegrationLike | null> {
         const { data, error } = await this.supabase.rpc("internal_get_integration_by_org_and_id", {
             p_organization_id: organizationId,
             p_integration_id: id,
@@ -170,7 +136,7 @@ export class IntegrationRepository {
                 resource: { type: "table", name: TABLE },
             });
         }
-        const rows = (data ?? []) as IntegrationRow[];
+        const rows = (data ?? []) as IntegrationLike[];
         return rows[0] ?? null;
     }
 
@@ -190,7 +156,7 @@ export class IntegrationRepository {
         customInstanceDetails?: string | null;
         postingTimesJson: string;
         rootInternalId: string | null;
-    }): Promise<IntegrationRow> {
+    }): Promise<IntegrationLike> {
         const tokenExpiration =
             params.expiresInSeconds != null && params.expiresInSeconds > 0
                 ? new Date(Date.now() + params.expiresInSeconds * 1000).toISOString()
@@ -230,7 +196,7 @@ export class IntegrationRepository {
                 resource: { type: "table", name: TABLE },
             });
         }
-        return data as IntegrationRow;
+        return data as IntegrationLike;
     }
 
     async disableChannel(organizationId: string, id: string): Promise<void> {
@@ -313,7 +279,7 @@ export class IntegrationRepository {
             rootInternalId: string | null;
             expiresInSeconds?: number;
         }
-    ): Promise<IntegrationRow> {
+    ): Promise<IntegrationLike> {
         const tokenExpiration =
             params.expiresInSeconds != null && params.expiresInSeconds > 0
                 ? new Date(Date.now() + params.expiresInSeconds * 1000).toISOString()
@@ -347,7 +313,7 @@ export class IntegrationRepository {
                 resource: { type: "table", name: TABLE },
             });
         }
-        return data as IntegrationRow;
+        return data as IntegrationLike;
     }
 
     /** @returns whether a row was updated */

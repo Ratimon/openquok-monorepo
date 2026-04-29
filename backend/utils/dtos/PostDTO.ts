@@ -1,9 +1,10 @@
-/**
- * Raw row shape from Supabase `posts` select.
- * Used as input to PostDTOMapper; repository returns this type.
- */
+/** DB enum column `posts.state`. */
 export type PostStateDb = "QUEUE" | "PUBLISHED" | "ERROR" | "DRAFT";
 
+/**
+ * Raw row shape from Supabase `posts` select.
+ * Repository returns this type; controllers map via PostDTOMapper.
+ */
 export interface SocialPostLike {
     id: string;
     state: PostStateDb;
@@ -28,9 +29,7 @@ export interface SocialPostLike {
     updated_at: string;
 }
 
-/**
- * Raw row shape from Supabase `post_tags` select.
- */
+/** Raw row shape from Supabase `post_tags` select. */
 export interface PostTagLike {
     id: string;
     name: string;

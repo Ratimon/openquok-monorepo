@@ -1,13 +1,10 @@
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
-import type {
-    IntegrationCustomerRow,
-    IntegrationRepository,
-    IntegrationRow,
-} from "../repositories/IntegrationRepository";
+import type { IntegrationRepository } from "../repositories/IntegrationRepository";
+import type { IntegrationCustomerLike, IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import { logger } from "../utils/Logger";
 
-type IntegrationCustomerListItem = Pick<IntegrationCustomerRow, "id" | "name">;
+type IntegrationCustomerListItem = Pick<IntegrationCustomerLike, "id" | "name">;
 
 /** Domain-scoped cache key prefixes. */
 const CACHE_KEYS = {
@@ -45,7 +42,7 @@ export class IntegrationService {
         private readonly cacheInvalidator?: CacheInvalidationService
     ) {}
 
-    listByOrganization(organizationId: string): Promise<IntegrationRow[]> {
+    listByOrganization(organizationId: string): Promise<IntegrationLike[]> {
         return this.integrationRepository.listByOrganization(organizationId);
     }
 

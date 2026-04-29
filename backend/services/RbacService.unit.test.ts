@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
-import { RbacService } from "./RbacService";
+
 import type { RbacRepository } from "../repositories/RbacRepository";
+import { RbacService } from "./RbacService";
 
 const roleId = faker.string.uuid();
 const userId = faker.string.uuid();

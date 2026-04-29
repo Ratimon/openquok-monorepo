@@ -1,5 +1,5 @@
 import type { UserRepository } from "../repositories/UserRepository";
-import type { UserRow } from "../repositories/UserRepository";
+import type { UserLike } from "../utils/dtos/UserDTO";
 import type { RbacRepository } from "../repositories/RbacRepository";
 import type { AppRole } from "../data/types/rbacTypes";
 import type CacheService from "../connections/cache/CacheService";
@@ -50,9 +50,9 @@ export class UserService {
      * Returns null if no user row is found. Controller maps to DTO just before response.
      * Uses cache when cache service is available; optionally cross-references by email.
      */
-    async getProfile(authUserId: string): Promise<UserRow | null> {
+    async getProfile(authUserId: string): Promise<UserLike | null> {
         const cacheKey = `${CACHE_KEYS.USER_PROFILE}:${authUserId}`;
-        const factory = async (): Promise<UserRow | null> => {
+        const factory = async (): Promise<UserLike | null> => {
             const { userData } = await this.userRepository.findFullUserByUserId(authUserId);
             if (this.cache && userData?.email) {
                 await this.cache.set(`${CACHE_KEYS.USER_BY_EMAIL}:${userData.email}`, userData, USER_CACHE_TTL_SEC);

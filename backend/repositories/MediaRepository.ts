@@ -1,5 +1,6 @@
 import { config } from "../config/GlobalConfig";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { MediaLike } from "../utils/dtos/MediaDTO";
 
 import { DatabaseError } from "../errors/InfraError";
 
@@ -52,23 +53,6 @@ export function mediaKindForPath(path: string): MediaListItemDto["kind"] {
 }
 
 const TABLE_MEDIA = "media";
-
-export type MediaRow = {
-    id: string;
-    name: string;
-    original_name: string | null;
-    path: string;
-    virtual_path: string;
-    organization_id: string;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-    file_size: number;
-    type: string;
-    thumbnail: string | null;
-    alt: string | null;
-    thumbnail_timestamp: number | null;
-};
 
 export type SaveMediaInformationDto = {
     id: string;
@@ -125,7 +109,7 @@ export class MediaRepository {
             });
         }
 
-        const rows = (data ?? []) as MediaRow[];
+        const rows = (data ?? []) as MediaLike[];
         const results: MediaListItemDto[] = rows.map((row) => ({
             id: row.id,
             path: row.path,
@@ -184,7 +168,7 @@ export class MediaRepository {
         return { id: row.id, path: row.path, publicUrl: publicUrlForObjectKey(row.path) };
     }
 
-    async getMediaById(organizationId: string, id: string): Promise<MediaRow | null> {
+    async getMediaById(organizationId: string, id: string): Promise<MediaLike | null> {
         const { data, error } = await this.supabase
             .from(TABLE_MEDIA)
             .select(
@@ -202,10 +186,10 @@ export class MediaRepository {
             });
         }
 
-        return (data as MediaRow) ?? null;
+        return (data as MediaLike) ?? null;
     }
 
-    async getMediaByPath(organizationId: string, path: string): Promise<MediaRow | null> {
+    async getMediaByPath(organizationId: string, path: string): Promise<MediaLike | null> {
         const { data, error } = await this.supabase
             .from(TABLE_MEDIA)
             .select(
@@ -223,7 +207,7 @@ export class MediaRepository {
                 resource: { type: "table", name: TABLE_MEDIA },
             });
         }
-        return (data as MediaRow) ?? null;
+        return (data as MediaLike) ?? null;
     }
 
     async softDeleteMedia(organizationId: string, id: string): Promise<boolean> {

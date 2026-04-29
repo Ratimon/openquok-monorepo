@@ -3,7 +3,7 @@
  * Shaped like the upstream social integration library; `IntegrationRecord` replaces ORM rows.
  */
 
-/** DB row shape used where the upstream library referenced a Prisma `Integration`. */
+/** DB row shape used where the upstream library. */
 export type IntegrationRecord = {
     id: string;
     organization_id: string;

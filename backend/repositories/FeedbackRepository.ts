@@ -1,20 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { FeedbackSchemaType } from "../data/schemas/feedbackSchemas";
+import type { FeedbackLike } from "../utils/dtos/FeedbackDTO";
 import { DatabaseError } from "../errors/InfraError";
 
 const TABLE = "feedback";
 const COLS = "id, feedback_type, url, description, email, is_handled, created_at";
-
-/** Row shape returned from DB; controller maps to API DTO. */
-export type FeedbackRow = {
-    id: string;
-    feedback_type: string;
-    url: string;
-    description: string;
-    email: string | null;
-    is_handled: boolean;
-    created_at: string;
-};
 
 export class FeedbackRepository {
     constructor(private readonly supabase: SupabaseClient) {}
@@ -59,7 +49,7 @@ export class FeedbackRepository {
         return data.id as string;
     }
 
-    async findAll(): Promise<FeedbackRow[]> {
+    async findAll(): Promise<FeedbackLike[]> {
         const { data, error } = await this.supabase
             .from(TABLE)
             .select(COLS)

@@ -1,40 +1,12 @@
 import { faker } from "@faker-js/faker";
 import { IntegrationService } from "./IntegrationService";
-import type { IntegrationRepository, IntegrationRow } from "../repositories/IntegrationRepository";
+import type { IntegrationRepository } from "../repositories/IntegrationRepository";
+import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 
 const orgId = faker.string.uuid();
 const integrationId = faker.string.uuid();
-
-function sampleRow(overrides: Partial<IntegrationRow> = {}): IntegrationRow {
-    const base: IntegrationRow = {
-        id: integrationId,
-        organization_id: orgId,
-        internal_id: "int-internal",
-        name: "Channel",
-        picture: null,
-        provider_identifier: "threads",
-        type: "social",
-        token: "tok",
-        disabled: false,
-        token_expiration: null,
-        refresh_token: null,
-        profile: "prof",
-        deleted_at: null,
-        in_between_steps: false,
-        refresh_needed: false,
-        posting_times: "[]",
-        custom_instance_details: null,
-        additional_settings: "[]",
-        customer_id: null,
-        customer_name: null,
-        root_internal_id: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    };
-    return { ...base, ...overrides };
-}
 
 function minimalUpsertParams() {
     return {
@@ -130,7 +102,7 @@ describe("IntegrationService", () => {
 
     describe("repository delegation", () => {
         it("listByOrganization forwards to repository", async () => {
-            const rows = [sampleRow()];
+            const rows = [{} as unknown as IntegrationLike];
             repo.listByOrganization.mockResolvedValue(rows);
             const out = await service().listByOrganization(orgId);
             expect(out).toBe(rows);
@@ -138,7 +110,7 @@ describe("IntegrationService", () => {
         });
 
         it("getById forwards to repository", async () => {
-            const row = sampleRow();
+            const row = {} as unknown as IntegrationLike;
             repo.getById.mockResolvedValue(row);
             const out = await service().getById(orgId, integrationId);
             expect(out).toBe(row);
@@ -195,7 +167,7 @@ describe("IntegrationService", () => {
 
     describe("updateOnCustomerName", () => {
         beforeEach(() => {
-            repo.getById.mockResolvedValue(sampleRow({ provider_identifier: "threads" }));
+            repo.getById.mockResolvedValue({ provider_identifier: "threads" } as unknown as IntegrationLike);
             repo.updateOnCustomerName.mockResolvedValue(undefined);
         });
 
@@ -209,7 +181,7 @@ describe("IntegrationService", () => {
 
     describe("upsertIntegration", () => {
         it("returns repository row and invalidates integration domain pattern for provider", async () => {
-            const row = sampleRow();
+            const row = {} as unknown as IntegrationLike;
             repo.upsertIntegration.mockResolvedValue(row);
             const params = minimalUpsertParams();
             const out = await service().upsertIntegration(params);
@@ -218,7 +190,7 @@ describe("IntegrationService", () => {
         });
 
         it("does not call invalidator when cacheInvalidator omitted", async () => {
-            const row = sampleRow();
+            const row = {} as unknown as IntegrationLike;
             repo.upsertIntegration.mockResolvedValue(row);
             await service({ cacheInvalidator: undefined }).upsertIntegration(minimalUpsertParams());
             expect(cacheInvalidator.invalidatePattern).not.toHaveBeenCalled();
@@ -227,7 +199,7 @@ describe("IntegrationService", () => {
 
     describe("mutations with per-integration invalidation", () => {
         beforeEach(() => {
-            repo.getById.mockResolvedValue(sampleRow({ provider_identifier: "threads" }));
+            repo.getById.mockResolvedValue({ provider_identifier: "threads" } as unknown as IntegrationLike);
         });
 
         it("setPostingTimes updates then invalidates by provider from row", async () => {

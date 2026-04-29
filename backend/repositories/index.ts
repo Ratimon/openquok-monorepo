@@ -61,9 +61,9 @@ export {
     MediaRepository,
     type MediaListItemDto,
     type MediaListResult,
-    type MediaRow,
     type SaveMediaInformationDto,
 } from "./MediaRepository";
+export type { MediaLike } from "../utils/dtos/MediaDTO";
 export { DATABASE_NAMES, type DatabaseName, isAllowedDatabaseName } from "./StorageSupabaseRepository";
 export { IntegrationRepository } from "./IntegrationRepository";
 export { NotificationRepository } from "./NotificationRepository";
