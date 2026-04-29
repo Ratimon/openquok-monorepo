@@ -5,6 +5,8 @@
 	import { page } from '$app/state';
 	import { url } from '$lib/utils/path';
 	import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
+	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { authenticationRepository } from '$lib/user-auth';
 
 	import Comments from '$lib/ui/components/preview/Comments.svelte';
 	import CopyClient from '$lib/ui/components/preview/CopyClient.svelte';
@@ -23,6 +25,28 @@
 
 	// Prefer SSR data; fall back to presenter state (client-side refreshes).
 	const previewPostVm = $derived(data.postVm ?? publicPreviewPostByIdPagePresenter.currentPreviewPostVm);
+
+	const signInHref = $derived(
+		url(
+			`/${getRootPathSignin()}?redirectURL=${encodeURIComponent(`${page.url.pathname}${page.url.search}`)}`
+		)
+	);
+	const currentUserLabel = $derived(
+		authenticationRepository.currentUser?.fullName ?? authenticationRepository.currentUser?.email ?? null
+	);
+	const isLoggedIn = $derived(authenticationRepository.isAuthenticated());
+
+	const handleLoadComments = async (postId: string) => {
+		return publicPreviewPostByIdPagePresenter.getPublicComments(postId);
+	};
+
+	const handleSubmitComment = async (params: {
+		postId: string;
+		organizationId: string;
+		comment: string;
+	}) => {
+		return publicPreviewPostByIdPagePresenter.createComment(params);
+	};
 </script>
 
 <div class="min-h-screen bg-base-200 text-base-content">
@@ -76,7 +100,12 @@
 				<Comments
 					postId={previewPostVm.id}
 					organizationId={previewPostVm.organizationId}
-					/>
+					isLoggedIn={isLoggedIn}
+					currentUserLabel={currentUserLabel}
+					signInHref={signInHref}
+					loadComments={handleLoadComments}
+					submitComment={handleSubmitComment}
+				/>
 			</div>
 		</div>
 	{:else}

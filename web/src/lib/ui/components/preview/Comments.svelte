@@ -1,38 +1,45 @@
 <script lang="ts">
 	import type { PostCommentProgrammerModel } from '$lib/posts';
-
-	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 
-	import { postsRepository } from '$lib/posts';
-	import { authenticationRepository } from '$lib/user-auth';
-	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { cn, formatPassedTime } from '$lib/ui/helpers/common';
 	import { toast } from '$lib/ui/sonner';
 	import { Textarea } from '$lib/ui/textarea';
-	import { url } from '$lib/utils/path';
 
 	type Props = {
 		postId: string;
 		organizationId: string;
+		isLoggedIn: boolean;
+		currentUserLabel?: string | null;
+		signInHref: string;
+		loadComments: (
+			postId: string
+		) => Promise<{ ok: true; comments: PostCommentProgrammerModel[] } | { ok: false; error: string }>;
+		submitComment: (params: {
+			postId: string;
+			organizationId: string;
+			comment: string;
+		}) => Promise<{ ok: true; comment: PostCommentProgrammerModel } | { ok: false; error: string }>;
 		class?: string;
 	};
 
-	let { postId, organizationId, class: className = '' }: Props = $props();
+	let {
+		postId,
+		organizationId,
+		isLoggedIn,
+		currentUserLabel = null,
+		signInHref,
+		loadComments,
+		submitComment,
+		class: className = ''
+	}: Props = $props();
 
 	let comments = $state<PostCommentProgrammerModel[]>([]);
 	let commentContent = $state('');
 	let loadingComments = $state(true);
 	let submittingComment = $state(false);
 
-	let currentUser = $derived(authenticationRepository.currentUser);
-	let isLoggedIn = $derived(authenticationRepository.isAuthenticated());
-	let signInHref = $derived(
-		url(
-			`/${getRootPathSignin()}?redirectURL=${encodeURIComponent(`${page.url.pathname}${page.url.search}`)}`
-		)
-	);
 	let commentsHeading = $derived(comments.length === 1 ? '1 Comment' : `${comments.length} Comments`);
 	let userLabels = $derived.by(() => {
 		const labels: Record<string, string> = {};
@@ -46,10 +53,9 @@
 		return labels;
 	});
 
-	async function loadComments(): Promise<void> {
+	async function refreshComments(): Promise<void> {
 		loadingComments = true;
-		const result = await postsRepository
-            .getPublicPostComments(postId);
+		const result = await loadComments(postId);
 		if (result.ok) {
 			comments = result.comments;
 		} else {
@@ -58,7 +64,7 @@
 		loadingComments = false;
 	}
 
-	async function submitComment(): Promise<void> {
+	async function handleSubmitComment(): Promise<void> {
 		const trimmedComment = commentContent.trim();
 		if (!trimmedComment.length) {
 			toast.error('Comment is required.');
@@ -66,12 +72,7 @@
 		}
 
 		submittingComment = true;
-		const result = await postsRepository
-            .createPostComment({
-                postId,
-                organizationId,
-                comment: trimmedComment
-            });
+		const result = await submitComment({ postId, organizationId, comment: trimmedComment });
 		submittingComment = false;
 
 		if (!result.ok) {
@@ -85,7 +86,7 @@
 	}
 
 	onMount(() => {
-		void loadComments();
+		void refreshComments();
 	});
 </script>
 
@@ -104,7 +105,7 @@
 		{#if isLoggedIn}
 			<div class="space-y-3 rounded-lg border border-base-300 bg-base-200/50 p-3">
 				<div class="text-sm text-base-content/70">
-					Commenting as {currentUser?.fullName ?? currentUser?.email ?? 'current user'}
+					Commenting as {currentUserLabel ?? 'current user'}
 				</div>
 				<Textarea
 					bind:value={commentContent}
@@ -117,7 +118,7 @@
 					<Button
 						type="button"
 						disabled={submittingComment || !commentContent.trim().length}
-						onclick={() => void submitComment()}
+						onclick={() => void handleSubmitComment()}
 					>
 						{submittingComment ? 'Posting...' : 'Post'}
 					</Button>

@@ -1,6 +1,6 @@
 import type { PublicInformationConfig } from '$lib/area-public/PublicInformation.repository.svelte';
 import { blogRepository, getBlogPresenter } from '$lib/blog/index';
-import { getScheduledPostsPresenter } from '$lib/posts/index';
+import { getScheduledPostsPresenter, postsRepository } from '$lib/posts/index';
 import { httpGateway } from '$lib/core/index';
 import { PublicBlogPagePresenter } from '$lib/area-public/PublicBlogPage.presenter.svelte';
 import { PublicBlogTopicPagePresenter } from '$lib/area-public/PublicBlogTopicPage.presenter.svelte';
@@ -33,7 +33,7 @@ const publicBlogTopicBySlugPagePresenter = new PublicBlogTopicBySlugPagePresente
 const publicBlogAuthorPagePresenter = new PublicBlogAuthorPagePresenter(getBlogPresenter);
 const publicBlogAuthorByIdentifierPagePresenter = new PublicBlogAuthorByIdentifierPagePresenter(getBlogPresenter);
 const publicBlogBySlugPagePresenter = new PublicBlogBySlugPagePresenter(getBlogPresenter, blogRepository);
-const publicPreviewPostByIdPagePresenter = new PublicPreviewPostByIdPagePresenter(getScheduledPostsPresenter);
+const publicPreviewPostByIdPagePresenter = new PublicPreviewPostByIdPagePresenter(getScheduledPostsPresenter, postsRepository);
 
 export {
 	publicInformationRepository,

@@ -3,6 +3,7 @@ import type {
 	GetScheduledPostsPresenter,
 	PublicPreviewPostViewModel
 } from '$lib/posts/GetScheduledPosts.presenter.svelte';
+import type { PostCommentProgrammerModel, PostsRepository } from '$lib/posts';
 
 export type { PublicPreviewPostViewModel };
 
@@ -11,7 +12,8 @@ export type { PublicPreviewPostViewModel };
  */
 export class PublicPreviewPostByIdPagePresenter {
 	constructor(
-		private readonly getScheduledPostsPresenter: GetScheduledPostsPresenter
+		private readonly getScheduledPostsPresenter: GetScheduledPostsPresenter,
+		private readonly postsRepository: PostsRepository
 	) {}
 
 	public currentPreviewPostVm: PublicPreviewPostViewModel | null = $state(null);
@@ -31,6 +33,20 @@ export class PublicPreviewPostByIdPagePresenter {
 		const previewPostVm = this.loadPreviewPostStateless(postPreviewPm).postVm;
 		this.currentPreviewPostVm = previewPostVm;
 		return { postVm: previewPostVm };
+	}
+
+	getPublicComments(
+		postId: string
+	): Promise<{ ok: true; comments: PostCommentProgrammerModel[] } | { ok: false; error: string }> {
+		return this.postsRepository.getPublicPostComments(postId);
+	}
+
+	createComment(params: {
+		postId: string;
+		organizationId: string;
+		comment: string;
+	}): Promise<{ ok: true; comment: PostCommentProgrammerModel } | { ok: false; error: string }> {
+		return this.postsRepository.createPostComment(params);
 	}
 
 	// /**
