@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS public.posts (
     created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL
 );
 
-COMMENT ON TABLE public.posts IS 'One row per target integration; use post_group to tie a composer session (Post model shape).';
+COMMENT ON TABLE public.posts IS 'One row per target integration; use post_group to tie a composer session (Post model shape). Child composer comments live in public.comments (post_id → posts.id); distinct from blog_comments.';
 COMMENT ON COLUMN public.posts.post_group IS 'Same value for all rows created in one compose action (maps Post.group).';
 COMMENT ON COLUMN public.posts.settings IS 'JSON string; may include isGlobal and other provider options (maps Post.settings).';
 COMMENT ON COLUMN public.posts.interval_in_days IS 'Repeat cadence in days when applicable (maps Post.intervalInDays).';
@@ -64,6 +64,22 @@ CREATE TABLE IF NOT EXISTS public.post_tag_assignments (
 );
 
 COMMENT ON TABLE public.post_tag_assignments IS 'Join between posts and post_tags (TagsPosts model shape).';
+
+-- Composer comments on posts.
+-- FKs: organizations — db/organization; users — db/user-management; posts — this module. Distinct from blog_comments.
+
+CREATE TABLE IF NOT EXISTS public.comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    content TEXT NOT NULL,
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    post_id TEXT NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
+);
+
+COMMENT ON TABLE public.comments IS 'Comments on composer posts (Comments ↔ Post / Organization / User); indexes in 202_20260413_indexes.sql; RLS in 302_20260413_rlsgrants.sql.';
 
 -- ---------------------------
 -- END OF FILE

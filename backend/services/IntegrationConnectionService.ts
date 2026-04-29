@@ -279,8 +279,8 @@ export class IntegrationConnectionService {
         }
     }
 
-    async connectSocialMedia(
-        authUserId: string,
+    private async connectSocialMediaInternal(
+        authUserId: string | null,
         integration: string,
         body: { state: string; code: string; timezone: string; refresh?: string }
     ) {
@@ -306,13 +306,15 @@ export class IntegrationConnectionService {
             await this.invalidateOAuthCacheKey(CACHE_KEYS.oauth.login(body.state));
         }
 
-        const organizationId = (await cache.get(CACHE_KEYS.oauth.organization(body.state))) as string | null;
+        const organizationKey = CACHE_KEYS.oauth.organization(body.state);
+        const organizationId = (await cache.get(organizationKey)) as string | null;
         if (!organizationId || typeof organizationId !== "string") {
             throw new AppError("Organization not found", 400);
         }
 
-        await this.assertOrganizationMember(authUserId, organizationId);
-        await this.invalidateOAuthCacheKey(CACHE_KEYS.oauth.organization(body.state));
+        if (authUserId) {
+            await this.assertOrganizationMember(authUserId, organizationId);
+        }
 
         const detailsRaw = await cache.get(CACHE_KEYS.oauth.external(body.state));
         if (detailsRaw) {
@@ -401,6 +403,12 @@ export class IntegrationConnectionService {
             }
         }
 
+        const shouldKeepOrganizationState =
+            !authUserId && Boolean(integrationProvider.isBetweenSteps) && !refreshState;
+        if (!shouldKeepOrganizationState) {
+            await this.invalidateOAuthCacheKey(organizationKey);
+        }
+
         return {
             id: row.id,
             organizationId: row.organization_id,
@@ -415,6 +423,22 @@ export class IntegrationConnectionService {
             onboarding: onboarding === "true",
             pages,
         };
+    }
+
+    async connectSocialMedia(
+        authUserId: string,
+        integration: string,
+        body: { state: string; code: string; timezone: string; refresh?: string }
+    ) {
+        return this.connectSocialMediaInternal(authUserId, integration, body);
+    }
+
+    /** No-auth OAuth callback variant: organization comes from short-lived OAuth state cache. */
+    async connectSocialMediaNoAuth(
+        integration: string,
+        body: { state: string; code: string; timezone: string; refresh?: string }
+    ) {
+        return this.connectSocialMediaInternal(null, integration, body);
     }
 
     private async safeAuthenticate(
@@ -499,6 +523,35 @@ export class IntegrationConnectionService {
         body: Record<string, unknown>
     ): Promise<{ success: true }> {
         await this.assertOrganizationMember(authUserId, organizationId);
+        return this.saveProviderPageForOrganization(organizationId, integrationId, body);
+    }
+
+    /** No-auth provider-page completion: organization is resolved from short-lived OAuth state cache. */
+    async saveProviderPageNoAuth(
+        integrationId: string,
+        body: Record<string, unknown>
+    ): Promise<{ success: true }> {
+        const state = typeof body.state === "string" ? body.state : "";
+        if (!state) {
+            throw new AppError("Invalid state", 400);
+        }
+        const cache = this.requireCache();
+        const organizationKey = CACHE_KEYS.oauth.organization(state);
+        const organizationId = (await cache.get(organizationKey)) as string | null;
+        if (!organizationId || typeof organizationId !== "string") {
+            throw new AppError("Organization not found", 400);
+        }
+        const { state: _state, ...providerPayload } = body;
+        const result = await this.saveProviderPageForOrganization(organizationId, integrationId, providerPayload);
+        await this.invalidateOAuthCacheKey(organizationKey);
+        return result;
+    }
+
+    private async saveProviderPageForOrganization(
+        organizationId: string,
+        integrationId: string,
+        body: Record<string, unknown>
+    ): Promise<{ success: true }> {
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row) throw new AppError("Integration not found", 404);
         if (!row.in_between_steps) {

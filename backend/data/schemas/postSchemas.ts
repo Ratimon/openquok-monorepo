@@ -43,6 +43,28 @@ export const validatePostPreviewParams: RequestHandler = validateRequest({
     params: postPreviewParamsSchema,
 });
 
+export const publicPostCommentsParamsSchema = z.object({
+    postId: z.string().uuid("Invalid post id"),
+});
+
+export const validatePublicPostCommentsParams: RequestHandler = validateRequest({
+    params: publicPostCommentsParamsSchema,
+});
+
+export const createComposerCommentParamsSchema = z.object({
+    postId: z.string().uuid("Invalid post id"),
+});
+
+export const createComposerCommentBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    comment: z.string().trim().min(1, "Comment is required").max(10000),
+});
+
+export const validateCreateComposerComment: RequestHandler = validateRequest({
+    params: createComposerCommentParamsSchema,
+    body: createComposerCommentBodySchema,
+});
+
 const repeatIntervalEnum = z.enum([
     "day",
     "two_days",

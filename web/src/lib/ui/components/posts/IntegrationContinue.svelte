@@ -17,7 +17,7 @@
 	import { toast } from '$lib/ui/sonner';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 
-	import CircularProgressBar from '$lib/ui/components/circular-progress-bar/CircularProgressBar.svelte';
+	import CircularProgressBar from '$lib/ui/circular-progress-bar/CircularProgressBar.svelte';
 
 	dayjs.extend(utc);
 	dayjs.extend(timezone);
@@ -169,7 +169,8 @@
 								INSTAGRAM_BUSINESS_PICKER_SESSION_KEY,
 								JSON.stringify({
 									integrationId: data.id,
-									pages: data.instagramBusinessPages
+									pages: data.instagramBusinessPages,
+									state: authState
 								})
 							);
 						} catch {
@@ -179,6 +180,7 @@
 					const qs = new URLSearchParams({
 						organizationId: data.organizationId,
 						integrationId: data.id,
+						state: authState,
 						returnTo: accountRoot,
 						...(onboarding === 'true' && { onboarding: 'true' })
 					});

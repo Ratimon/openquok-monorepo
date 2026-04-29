@@ -9,7 +9,9 @@ type PublicIntegrationRouter = ReturnType<typeof Router>;
 /**
  * Programmatic integration API under `/public` (full URL: `{api.prefix}/public/...`, e.g. `/api/v1/public/...`).
  * Version is carried by `api.prefix` only — no second `v1` segment. Organization from API key (not user JWT).
- * Listed in `middlewares/core.ts` `publicPaths` as `/public`; each route uses `requireOrganizationApiKey`.
+ * Listed in `middlewares/core.ts` `publicPaths` as `/public`; routes here use `requireOrganizationApiKey`.
+ *
+ * Session-scoped integration UX lives under `{api.prefix}/integrations` — see `routes/integrationRoutes.ts`
  */
 const publicIntegrationRouter: PublicIntegrationRouter = Router();
 const apiKeyAuth = requireOrganizationApiKey(organizationRepository);

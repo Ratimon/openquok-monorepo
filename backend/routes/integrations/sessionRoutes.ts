@@ -13,57 +13,50 @@ import {
 } from "../../data/schemas/integrationSchemas";
 import { validateIntegrationTimeRequest } from "../../data/schemas/integrationTimeSchemas";
 
-type SessionIntegrationsRouter = ReturnType<typeof Router>;
+type IntegrationSessionRouter = ReturnType<typeof Router>;
 
-/**
- * Session + catalog under `/integrations`:
- * - GET `/` — provider catalog (no JWT; also whitelisted in `core.ts`).
- * - Other routes — JWT; org from query/body.
- */
-const sessionIntegrationsRouter: SessionIntegrationsRouter = Router();
+const integrationSessionRouter: IntegrationSessionRouter = Router();
 const auth = requireFullAuth(supabaseAnonClient);
 
-sessionIntegrationsRouter.get("/", integrationController.getAllIntegrations);
-
-sessionIntegrationsRouter.use(auth);
-sessionIntegrationsRouter.post(
+integrationSessionRouter.use(auth);
+integrationSessionRouter.post(
     "/provider/:id/connect",
     validateSaveProviderPage,
     integrationController.saveProviderPage
 );
-sessionIntegrationsRouter.get("/list", validateIntegrationOrganizationQuery, integrationController.getIntegrationList);
-sessionIntegrationsRouter.get(
+integrationSessionRouter.get("/list", validateIntegrationOrganizationQuery, integrationController.getIntegrationList);
+integrationSessionRouter.get(
     "/customers",
     validateIntegrationCustomersQuery,
     integrationController.getChannelCustomers
 );
-sessionIntegrationsRouter.post(
+integrationSessionRouter.post(
     "/customers",
     validateIntegrationCreateCustomerBody,
     integrationController.createChannelCustomer
 );
-sessionIntegrationsRouter.put(
+integrationSessionRouter.put(
     "/:id/group",
     validateIntegrationGroup,
     integrationController.assignChannelCustomer
 );
-sessionIntegrationsRouter.post(
+integrationSessionRouter.post(
     "/:id/time",
     validateIntegrationTimeRequest,
     integrationController.setTime
 );
-sessionIntegrationsRouter.get(
+integrationSessionRouter.get(
     "/social/:integration",
     validateIntegrationOrganizationQuery,
     integrationController.getIntegrationUrl
 );
-sessionIntegrationsRouter.post(
+integrationSessionRouter.post(
     "/social-connect/:integration",
     validateSocialConnectBody,
     integrationController.connectSocialMedia
 );
-sessionIntegrationsRouter.post("/disable", validateIntegrationOrgAndIdBody, integrationController.disable);
-sessionIntegrationsRouter.post("/enable", validateIntegrationOrgAndIdBody, integrationController.enable);
-sessionIntegrationsRouter.delete("/", validateIntegrationOrgAndIdBody, integrationController.deleteChannel);
+integrationSessionRouter.post("/disable", validateIntegrationOrgAndIdBody, integrationController.disable);
+integrationSessionRouter.post("/enable", validateIntegrationOrgAndIdBody, integrationController.enable);
+integrationSessionRouter.delete("/", validateIntegrationOrgAndIdBody, integrationController.deleteChannel);
 
-export { sessionIntegrationsRouter };
+export { integrationSessionRouter };

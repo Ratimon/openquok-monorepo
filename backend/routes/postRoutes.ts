@@ -3,6 +3,7 @@ import { supabaseAnonClient } from "../connections/index";
 import { requireFullAuth } from "../middlewares/authenticateUser";
 import { postsController } from "../controllers/index.js";
 import {
+    validateCreateComposerComment,
     validateCreatePostBody,
     validateCreatePostTagBody,
     validateDeletePostGroup,
@@ -24,6 +25,7 @@ postRouter.post("/tags", auth, validateCreatePostTagBody, postsController.create
 postRouter.delete("/tags/:tagId", auth, validateDeletePostTag, postsController.deleteTag);
 postRouter.get("/list", auth, validateListPostsQuery, postsController.listPosts);
 postRouter.post("/", auth, validateCreatePostBody, postsController.createPost);
+postRouter.post("/:postId/comments", auth, validateCreateComposerComment, postsController.createComposerComment);
 // public preview
 postRouter.get("/preview/:postId", validatePostPreviewParams, postsController.getPostPreview);
 postRouter.get(

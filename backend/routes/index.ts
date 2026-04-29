@@ -11,8 +11,8 @@ import { feedbackRouter } from "./FeedbackRoute.js";
 import { blogRouter } from "./BlogRoute.js";
 import { imageRouter } from "./ImageRoute.js";
 import { mediaRouter } from "./MediaRoute.js";
-import { sessionIntegrationsRouter } from "./integrations/sessionRoutes.js";
-import { publicIntegrationRouter } from "./publicApi/integrationRoutes.js";
+import { integrationsRouter } from "./integrations/index.js";
+import { publicApiRouter } from "./publicApi/index.js";
 import { notificationRouter } from "./NotificationRoute.js";
 import { postRouter } from "./PostRoutes.js";
 import { thirdPartyRouter } from "./ThirdPartyRoute.js";
@@ -24,9 +24,10 @@ import { logger } from "../utils/Logger";
  *
  * 1. **No user JWT** — paths listed in `middlewares/core.ts` `shouldSkipApiAuth` (e.g. auth, company,
  *    blog read paths, GET `/integrations` catalog only).
- * 2. **User JWT** — most of `/integrations/*` (see `routes/integrations/sessionRoutes.ts`), `/settings`, etc.
+ * 2. **User JWT** — most of `/integrations/*` (see `routes/integrations`), `/settings`, etc.
  * 3. **Organization API key** — `{prefix}/public/*` (e.g. `/api/v1/public/*`); `core.ts` lists `/public` in `publicPaths`
- *    so JWT is skipped; each route uses `requireOrganizationApiKey` (`routes/publicApi/integrationRoutes.ts`).
+ *    so JWT is skipped. Programmatic integration routes use `requireOrganizationApiKey` (`routes/publicApi/integrationRoutes.ts`);
+ *    `GET {prefix}/public/posts/:postId/comments` is anonymous.
  */
 export async function mountAllRoutes(app: Express, config: ConfigObject): Promise<boolean> {
     const api = config.api as { prefix?: string } | undefined;
@@ -47,8 +48,8 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     apiRouter.use("/blog-system", blogRouter);
     apiRouter.use("/image", imageRouter);
     apiRouter.use("/media", mediaRouter);
-    apiRouter.use("/integrations", sessionIntegrationsRouter);
-    apiRouter.use("/public", publicIntegrationRouter);
+    apiRouter.use("/integrations", integrationsRouter);
+    apiRouter.use("/public", publicApiRouter);
     apiRouter.use("/notifications", notificationRouter);
     apiRouter.use("/posts", postRouter);
     apiRouter.use("/third-parties", thirdPartyRouter);

@@ -126,6 +126,30 @@ export class PostsController {
         }
     };
 
+    createComposerComment = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postId = (req.params as { postId: string }).postId;
+            const { organizationId, comment } = req.body as { organizationId: string; comment: string };
+            const row = await this.postsService.createComposerComment({
+                organizationId,
+                authUserId,
+                postId,
+                comment,
+            });
+            res.status(201).json({
+                success: true,
+                data: { comment: PostDTOMapper.toPostCommentDTO(row)! },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     listPosts = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;
@@ -199,6 +223,16 @@ export class PostsController {
             const share = typeof req.query.share === "string" ? req.query.share : null;
             const d = await this.postsService.getPostPreview(postId, share);
             res.status(200).json({ success: true, data: d });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getPublicComments = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const postId = (req.params as { postId: string }).postId;
+            const comments = await this.postsService.getPublicComments(postId);
+            res.status(200).json({ comments: PostDTOMapper.toPostCommentDTOCollection(comments) });
         } catch (error) {
             next(error);
         }

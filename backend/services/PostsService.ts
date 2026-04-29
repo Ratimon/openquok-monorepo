@@ -9,6 +9,7 @@ import type {
     PostMediaItemInput,
     PostStateDb,
     RepeatIntervalKey,
+    PostCommentLike,
     SocialPostLike,
 } from "../utils/dtos/PostDTO";
 import {
@@ -570,6 +571,49 @@ export class PostsService {
         return factory();
     }
 
+    /** Public `GET /public/posts/:postId/comments` — no API key; comments keyed by post id only. */
+    async getPublicComments(postId: string): Promise<PostCommentLike[]> {
+        return this.postsRepository.listCommentsByPostId(postId);
+    }
+
+    /** Workspace `POST /posts/:postId/comments` — authenticated composer comment on a post row. */
+    async createComposerComment(params: {
+        organizationId: string;
+        authUserId: string;
+        postId: string;
+        comment: string;
+    }): Promise<PostCommentLike> {
+        const { organizationId, authUserId, postId, comment } = params;
+
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const trimmed = comment.trim();
+        if (!trimmed.length) {
+            throw new AppError("Comment is required", 400);
+        }
+
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+        if (!userId) {
+            throw new AppError("User not found", 400);
+        }
+
+        const row = await this.postsRepository.insertComposerComment({
+            organizationId,
+            postId,
+            userId,
+            content: trimmed,
+        });
+
+        await this._invalidatePostPreviewCaches([postId]);
+
+        return row;
+    }
+
     async deletePostGroup(postGroup: string, authUserId: string, organizationId?: string | null): Promise<void> {
         const rows = await this.postsRepository.listPostsByGroup(postGroup);
         if (!rows.length) {
@@ -690,6 +734,44 @@ export class PostsService {
                 logger.error({
                     msg: "Error deleting organization posts list cache keys",
                     organizationId,
+                    error: String(error),
+                });
+            }
+        }
+    }
+
+    /** Invalidate public preview caches for given post row ids (e.g. after composer comment insert). */
+    private async _invalidatePostPreviewCaches(postIds: string[]): Promise<void> {
+        if (postIds.length === 0) return;
+
+        const invalidateWithInvalidator = async () => {
+            for (const id of postIds) {
+                await this.cacheInvalidator!.invalidateKey(`${CACHE_KEYS.POSTS_PREVIEW}:${id}`);
+            }
+        };
+
+        if (this.cacheInvalidator) {
+            try {
+                await invalidateWithInvalidator();
+            } catch (error) {
+                logger.error({
+                    msg: "Error invalidating post preview caches",
+                    postIdsCount: postIds.length,
+                    error: String(error),
+                });
+            }
+            return;
+        }
+
+        if (this.cache) {
+            try {
+                for (const id of postIds) {
+                    await this.cache.del(`${CACHE_KEYS.POSTS_PREVIEW}:${id}`);
+                }
+            } catch (error) {
+                logger.error({
+                    msg: "Error deleting post preview cache keys",
+                    postIdsCount: postIds.length,
                     error: String(error),
                 });
             }

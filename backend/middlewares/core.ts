@@ -66,6 +66,13 @@ function shouldSkipApiAuth(
     if (req.method === "GET" && routePath === "/integrations") {
         return true;
     }
+    // Integrations: OAuth callback exchange uses short-lived OAuth state cache (no JWT required).
+    if (req.method === "POST" && /^\/integrations\/social-connect\/[^/]+$/.test(routePath)) {
+        return true;
+    }
+    if (req.method === "POST" && /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(routePath)) {
+        return true;
+    }
 
     return false;
 }
@@ -101,6 +108,7 @@ function configureCoreMiddleware(app: Express, config: ConfigObject, supabase: S
         const authMiddleware = requireFullAuth(supabase);
         const rawPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
         const apiPrefix = rawPrefix.replace(/\/+$/, "") || "/";
+        // to do: check if we can refactor
         const publicPaths = ["/auth", "/company", "/feedback", "/public", "/posts/preview"];
         const publicPathsExact = [
             "/blog-system/posts",

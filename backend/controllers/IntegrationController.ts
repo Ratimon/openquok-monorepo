@@ -12,7 +12,7 @@ import type { IntegrationCatalogDTO, IntegrationListDTO } from "../utils/dtos/In
 import { UserAuthorizationError } from "../errors/UserError";
 
 /**
- * Session-scoped integration routes under `/integrations` (JWT + org in query/body).
+ * Session-scoped integration routes under `/integrations` (JWT + org in query/body); mounted from `routes/integrationRoutes.ts`.
  * Programmatic routes under `/public` (within the API prefix) use {@link PublicIntegrationController}.
  */
 export class IntegrationController {
@@ -152,6 +152,18 @@ export class IntegrationController {
         }
     };
 
+    /** POST /integrations/social-connect/:integration (no-auth callback variant; organization resolved from OAuth state cache). */
+    connectSocialMediaNoAuth = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { integration } = req.params as { integration: string };
+            const body = req.body as { state: string; code: string; timezone: string; refresh?: string };
+            const data = await this.integrationConnectionService.connectSocialMediaNoAuth(integration, body);
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** POST /integrations/:id/time?organizationId= */
     setTime = async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -234,6 +246,18 @@ export class IntegrationController {
                 integrationId,
                 body
             );
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** POST /integrations/public/provider/:id/connect — no-auth completion using OAuth state cache. */
+    saveProviderPageNoAuth = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const integrationId = (req.params as { id: string }).id;
+            const body = req.body as Record<string, unknown>;
+            const data = await this.integrationConnectionService.saveProviderPageNoAuth(integrationId, body);
             res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);

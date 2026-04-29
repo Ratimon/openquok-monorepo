@@ -117,6 +117,7 @@ export interface IntegrationsConfig {
 		enable: string;
 		deleteChannel: string;
 		providerConnect: (integrationId: string) => string;
+		publicProviderConnect: (integrationId: string) => string;
 		postingTimes: (integrationId: string) => string;
 	};
 }
@@ -293,15 +294,22 @@ export class IntegrationsRepository {
 		integrationId: string;
 		pageId: string;
 		id: string;
+		state?: string;
 	}): Promise<{ ok: true } | { ok: false; error: string }> {
 		try {
-			const { organizationId, integrationId, pageId, id } = params;
+			const { organizationId, integrationId, pageId, id, state } = params;
+			const payload = state
+				? { state, pageId, id }
+				: { organizationId, pageId, id };
+			const endpoint = state
+				? this.config.endpoints.publicProviderConnect(integrationId)
+				: this.config.endpoints.providerConnect(integrationId);
 			const { ok, data: dto } = await this.httpGateway.post<{
 				success?: boolean;
 				data?: { success?: boolean };
 			}>(
-				this.config.endpoints.providerConnect(integrationId),
-				{ organizationId, pageId, id },
+				endpoint,
+				payload,
 				{ withCredentials: true }
 			);
 			if (ok && dto?.success === true && dto.data?.success === true) return { ok: true };

@@ -402,6 +402,34 @@ describe("IntegrationConnectionService", () => {
             expect(out.inBetweenSteps).toBe(true);
         });
 
+        it("keeps organization OAuth state for no-auth between-step completion", async () => {
+            const betweenProvider = createMockProvider({
+                identifier: "instagram-business",
+                name: "Instagram (Business)",
+                isBetweenSteps: true,
+                pages: jest.fn().mockResolvedValue([]),
+            });
+            manager.getAllowedSocialsIntegrations.mockReturnValue(["instagram-business"]);
+            manager.getSocialIntegration.mockReturnValue(betweenProvider);
+            cache.get.mockImplementation(async (key: string) => {
+                if (key === "login:st") return "verifier";
+                if (key === "organization:st") return orgId;
+                return null;
+            });
+            integrations.upsertIntegration.mockResolvedValue(
+                sampleRow({ id: "conn-row", provider_identifier: "instagram-business", in_between_steps: true })
+            );
+
+            await service().connectSocialMediaNoAuth("instagram-business", {
+                state: "st",
+                code: "c",
+                timezone: "0",
+            });
+
+            expect(cacheInvalidator.invalidateKey).toHaveBeenCalledWith("login:st");
+            expect(cacheInvalidator.invalidateKey).not.toHaveBeenCalledWith("organization:st");
+        });
+
         it("skips pages fetch when refresh OAuth state is present", async () => {
             const betweenProvider = createMockProvider({
                 identifier: "instagram-business",
@@ -647,6 +675,47 @@ describe("IntegrationConnectionService", () => {
             );
             const updateArg = integrations.updateIntegrationById.mock.calls[0][2];
             expect(updateArg.expiresInSeconds).toBeUndefined();
+        });
+
+        it("allows no-auth provider page completion via OAuth state cache", async () => {
+            cache.get.mockImplementation(async (key: string) => {
+                if (key === "organization:oauth-st") return orgId;
+                return null;
+            });
+            integrations.getById.mockResolvedValue(
+                sampleRow({
+                    in_between_steps: true,
+                    provider_identifier: "instagram-business",
+                    token: "fb-user-access",
+                    internal_id: "fb-user-id",
+                })
+            );
+            const fetchPageInformation = jest.fn().mockResolvedValue({
+                id: "ig-99",
+                name: "Shop",
+                access_token: "page-access",
+                picture: "https://pic",
+                username: "shop_handle",
+            });
+            manager.getSocialIntegration.mockReturnValue(
+                createMockProvider({
+                    identifier: "instagram-business",
+                    name: "Instagram (Business)",
+                    fetchPageInformation,
+                })
+            );
+            integrations.updateIntegrationById.mockResolvedValue(sampleRow());
+
+            const out = await service().saveProviderPageNoAuth(integrationId, {
+                state: "oauth-st",
+                pageId: "page-1",
+                id: "ig-99",
+            });
+
+            expect(out).toEqual({ success: true });
+            expect(fetchPageInformation).toHaveBeenCalledWith("fb-user-access", { pageId: "page-1", id: "ig-99" });
+            expect(cacheInvalidator.invalidateKey).toHaveBeenCalledWith("organization:oauth-st");
+            expect(orgRepo.findMembership).not.toHaveBeenCalled();
         });
     });
 

@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS public.users (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
+COMMENT ON TABLE public.users IS 'Core identity row (auth.users link). Referenced by user_organizations and tenant-scoped tables such as public.comments (composer post comments; FK user_id — defined in post module).';
+
 ALTER TABLE public.users
     ADD COLUMN IF NOT EXISTS last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL;
 

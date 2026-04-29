@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS public.users (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
+COMMENT ON TABLE public.users IS 'Core identity row (auth.users link). Referenced by user_organizations and tenant-scoped tables such as public.comments (composer post comments; FK user_id — defined in post module).';
+
 ALTER TABLE public.users
     ADD COLUMN IF NOT EXISTS last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL;
 
@@ -162,7 +164,7 @@ CREATE TABLE IF NOT EXISTS public.organizations (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
-COMMENT ON TABLE public.organizations IS 'Organizations (workspaces/tenants)';
+COMMENT ON TABLE public.organizations IS 'Organizations (workspaces/tenants). Tenant key for org-scoped rows (e.g. public.posts.organization_id, public.comments.organization_id).';
 COMMENT ON COLUMN public.organizations.api_key IS 'Optional API key for programmatic access';
 
 -- ---------------------------
@@ -371,7 +373,7 @@ CREATE TABLE IF NOT EXISTS public.posts (
     created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL
 );
 
-COMMENT ON TABLE public.posts IS 'One row per target integration; use post_group to tie a composer session (Post model shape).';
+COMMENT ON TABLE public.posts IS 'One row per target integration; use post_group to tie a composer session (Post model shape). Child composer comments live in public.comments (post_id → posts.id); distinct from blog_comments.';
 COMMENT ON COLUMN public.posts.post_group IS 'Same value for all rows created in one compose action (maps Post.group).';
 COMMENT ON COLUMN public.posts.settings IS 'JSON string; may include isGlobal and other provider options (maps Post.settings).';
 COMMENT ON COLUMN public.posts.interval_in_days IS 'Repeat cadence in days when applicable (maps Post.intervalInDays).';
@@ -386,6 +388,22 @@ CREATE TABLE IF NOT EXISTS public.post_tag_assignments (
 );
 
 COMMENT ON TABLE public.post_tag_assignments IS 'Join between posts and post_tags (TagsPosts model shape).';
+
+-- Composer comments on posts.
+-- FKs: organizations — db/organization; users — db/user-management; posts — this module. Distinct from blog_comments.
+
+CREATE TABLE IF NOT EXISTS public.comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    content TEXT NOT NULL,
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    post_id TEXT NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
+);
+
+COMMENT ON TABLE public.comments IS 'Comments on composer posts (Comments ↔ Post / Organization / User); indexes in 202_20260413_indexes.sql; RLS in 302_20260413_rlsgrants.sql.';
 
 -- ---------------------------
 -- END OF FILE
@@ -759,6 +777,13 @@ CREATE INDEX IF NOT EXISTS idx_posts_integration_id ON public.posts(integration_
 CREATE INDEX IF NOT EXISTS idx_posts_parent_post_id ON public.posts(parent_post_id);
 CREATE INDEX IF NOT EXISTS idx_posts_org_publish ON public.posts(organization_id, publish_date);
 CREATE INDEX IF NOT EXISTS idx_posts_org_state ON public.posts(organization_id, state);
+
+-- public.comments (composer post comments;
+CREATE INDEX IF NOT EXISTS idx_comments_created_at ON public.comments(created_at);
+CREATE INDEX IF NOT EXISTS idx_comments_organization_id ON public.comments(organization_id);
+CREATE INDEX IF NOT EXISTS idx_comments_user_id ON public.comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_comments_post_id ON public.comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON public.comments(deleted_at);
 
 -- ---------------------------
 -- END OF FILE
@@ -1673,9 +1698,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tag_assignments TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tag_assignments TO service_role;
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.comments TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.comments TO service_role;
+
 ALTER TABLE public.post_tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.post_tag_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 
 -- post_tags (org_id)
 DROP POLICY IF EXISTS "Members can view post_tags" ON public.post_tags;
@@ -1903,6 +1932,80 @@ USING (
         JOIN public.user_organizations uo ON uo.organization_id = p.organization_id
         JOIN public.users u ON u.id = uo.user_id
         WHERE p.id = post_tag_assignments.post_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+-- comments (composer post comments; organization_id scope)
+DROP POLICY IF EXISTS "Members can view composer comments" ON public.comments;
+CREATE POLICY "Members can view composer comments"
+ON public.comments
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = comments.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert composer comments" ON public.comments;
+CREATE POLICY "Members can insert composer comments"
+ON public.comments
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = comments.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update composer comments" ON public.comments;
+CREATE POLICY "Members can update composer comments"
+ON public.comments
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = comments.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = comments.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete composer comments" ON public.comments;
+CREATE POLICY "Members can delete composer comments"
+ON public.comments
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = comments.organization_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )

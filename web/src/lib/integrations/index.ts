@@ -6,7 +6,7 @@ import { ContinueIntegrationPresenter } from '$lib/integrations/ContinueIntegrat
 
 const integrationsBase = '/api/v1/integrations';
 
-/** SessionStorage key: JSON `{ integrationId, pages }` between OAuth callback and the picker route. */
+/** SessionStorage key: JSON `{ integrationId, pages, state }` between OAuth callback and the picker route. */
 export const INSTAGRAM_BUSINESS_PICKER_SESSION_KEY = 'openquok:instagram-business:connect-pages' as const;
 
 const integrationsConfig: IntegrationsConfig = {
@@ -23,6 +23,8 @@ const integrationsConfig: IntegrationsConfig = {
 		deleteChannel: `${integrationsBase}`,
 		providerConnect: (integrationId: string) =>
 			`${integrationsBase}/provider/${encodeURIComponent(integrationId)}/connect`,
+		publicProviderConnect: (integrationId: string) =>
+			`${integrationsBase}/public/provider/${encodeURIComponent(integrationId)}/connect`,
 		postingTimes: (integrationId: string) =>
 			`${integrationsBase}/${encodeURIComponent(integrationId)}/time`
 	}

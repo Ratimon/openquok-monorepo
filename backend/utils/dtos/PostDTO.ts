@@ -40,6 +40,18 @@ export interface PostTagLike {
     updated_at: string;
 }
 
+/** Raw row shape from Supabase `public.comments` (composer posts, not blog_comments). */
+export interface PostCommentLike {
+    id: string;
+    post_id: string;
+    organization_id: string;
+    user_id: string;
+    content: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
 /** Stored in `posts.settings` JSON (`repeatInterval`). */
 export type RepeatIntervalKey =
     | "day"
@@ -146,6 +158,17 @@ export interface PostTagDTO {
     updatedAt: string;
 }
 
+export interface PostCommentDTO {
+    id: string;
+    postId: string;
+    organizationId: string;
+    userId: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+}
+
 export const PostDTOMapper = {
     toDTO(row: SocialPostLike | null | undefined): SocialPostDTO | null {
         if (row == null) return null;
@@ -195,5 +218,24 @@ export const PostDTOMapper = {
     toPostTagDTOCollection(rows: PostTagLike[]): PostTagDTO[] {
         if (!Array.isArray(rows)) return [];
         return rows.map((r) => PostDTOMapper.toPostTagDTO(r)!).filter(Boolean);
+    },
+
+    toPostCommentDTO(row: PostCommentLike | null | undefined): PostCommentDTO | null {
+        if (row == null) return null;
+        return {
+            id: row.id,
+            postId: row.post_id,
+            organizationId: row.organization_id,
+            userId: row.user_id,
+            content: row.content,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            deletedAt: row.deleted_at,
+        };
+    },
+
+    toPostCommentDTOCollection(rows: PostCommentLike[]): PostCommentDTO[] {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => PostDTOMapper.toPostCommentDTO(r)!).filter(Boolean);
     },
 };

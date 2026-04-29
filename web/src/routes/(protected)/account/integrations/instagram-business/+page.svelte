@@ -15,6 +15,7 @@
 
 	const organizationId = $derived(page.url.searchParams.get('organizationId') ?? '');
 	const integrationId = $derived(page.url.searchParams.get('integrationId') ?? '');
+const oauthStateFromQuery = $derived(page.url.searchParams.get('state') ?? '');
 	const returnTo = $derived(page.url.searchParams.get('returnTo') ?? accountRoot);
 
 	type AccountRow = { id: string; pageId: string; name: string; pictureUrl: string };
@@ -23,15 +24,18 @@
 	let accounts = $state<AccountRow[]>([]);
 	let submittingId = $state<string | null>(null);
 	let loadError = $state<string | null>(null);
+	let oauthStateForPublicCompletion = $state<string | null>(null);
 
 	function readPagesFromConnectSession(): AccountRow[] | null {
 		if (typeof sessionStorage === 'undefined') return null;
 		const raw = sessionStorage.getItem(INSTAGRAM_BUSINESS_PICKER_SESSION_KEY);
 		if (!raw) return null;
 		try {
-			const parsed = JSON.parse(raw) as { integrationId?: string; pages?: unknown };
+			const parsed = JSON.parse(raw) as { integrationId?: string; pages?: unknown; state?: unknown };
 			if (parsed.integrationId !== integrationId || !Array.isArray(parsed.pages)) return null;
 			sessionStorage.removeItem(INSTAGRAM_BUSINESS_PICKER_SESSION_KEY);
+			oauthStateForPublicCompletion =
+				typeof parsed.state === 'string' && parsed.state.trim().length > 0 ? parsed.state : null;
 			const rows: AccountRow[] = [];
 			for (const item of parsed.pages) {
 				if (
@@ -56,6 +60,12 @@
 			return null;
 		}
 	}
+
+	$effect(() => {
+		if (!oauthStateForPublicCompletion && oauthStateFromQuery) {
+			oauthStateForPublicCompletion = oauthStateFromQuery;
+		}
+	});
 
 	$effect(() => {
 		void (async () => {
@@ -98,7 +108,8 @@
 				organizationId,
 				integrationId,
 				pageId: row.pageId,
-				id: row.id
+				id: row.id,
+				state: oauthStateForPublicCompletion ?? undefined
 			});
 			if (!r.ok) {
 				toast.error(r.error);

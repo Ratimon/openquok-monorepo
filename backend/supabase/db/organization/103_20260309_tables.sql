@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS public.organizations (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
-COMMENT ON TABLE public.organizations IS 'Organizations (workspaces/tenants)';
+COMMENT ON TABLE public.organizations IS 'Organizations (workspaces/tenants). Tenant key for org-scoped rows (e.g. public.posts.organization_id, public.comments.organization_id).';
 COMMENT ON COLUMN public.organizations.api_key IS 'Optional API key for programmatic access';
 
 -- ---------------------------

@@ -1,6 +1,6 @@
 import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { PostsRepository } from "../repositories/PostsRepository";
-import type { PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
+import type { PostTagLike, PostCommentLike, SocialPostLike } from "../utils/dtos/PostDTO";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
@@ -59,6 +59,21 @@ function socialPostRow(overrides: Partial<SocialPostLike> = {}): SocialPostLike 
     };
 }
 
+function postCommentRow(overrides: Partial<PostCommentLike> = {}): PostCommentLike {
+    const now = new Date().toISOString();
+    return {
+        id: faker.string.uuid(),
+        post_id: faker.string.uuid(),
+        organization_id: orgId,
+        user_id: faker.string.uuid(),
+        content: "comment body",
+        created_at: now,
+        updated_at: now,
+        deleted_at: null,
+        ...overrides,
+    };
+}
+
 type PostsRepoMock = jest.Mocked<
     Pick<
         PostsRepository,
@@ -76,6 +91,8 @@ type PostsRepoMock = jest.Mocked<
         | "softDeletePostsByGroup"
         | "listPostsByOrganizationAndDateRange"
         | "getPostById"
+        | "listCommentsByPostId"
+        | "insertComposerComment"
     >
 >;
 
@@ -95,6 +112,8 @@ function createPostsRepoMock(): PostsRepoMock {
         softDeletePostsByGroup: jest.fn(),
         listPostsByOrganizationAndDateRange: jest.fn(),
         getPostById: jest.fn(),
+        listCommentsByPostId: jest.fn(),
+        insertComposerComment: jest.fn(),
     };
 }
 
@@ -1005,6 +1024,89 @@ describe("PostsService", () => {
             await s.getPostPreview(postId, "true");
 
             expect(postsRepo.getPostById).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("getPublicComments", () => {
+        const postId = faker.string.uuid();
+
+        it("loads comments by post id only — no org gate=", async () => {
+            const comments = [
+                postCommentRow({ post_id: postId, organization_id: orgId, content: "first" }),
+                postCommentRow({ post_id: postId, organization_id: orgId, content: "second" }),
+            ];
+            postsRepo.listCommentsByPostId.mockResolvedValue(comments);
+
+            await expect(service().getPublicComments(postId)).resolves.toEqual(comments);
+            expect(postsRepo.listCommentsByPostId).toHaveBeenCalledWith(postId);
+            expect(postsRepo.getPostById).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("createComposerComment", () => {
+        const postId = faker.string.uuid();
+        const dbUserId = faker.string.uuid();
+
+        it("creates a comment when post belongs to the workspace", async () => {
+            postsRepo.getPostById.mockResolvedValue(socialPostRow({ id: postId, organization_id: orgId }));
+            organizationRepo.findUserIdByAuthId.mockResolvedValue({ userId: dbUserId, error: null });
+            const created = postCommentRow({ post_id: postId, organization_id: orgId, user_id: dbUserId });
+            postsRepo.insertComposerComment.mockResolvedValue(created);
+
+            await expect(
+                service().createComposerComment({
+                    organizationId: orgId,
+                    authUserId,
+                    postId,
+                    comment: " Hello ",
+                })
+            ).resolves.toEqual(created);
+
+            expect(integrationConnection.assertOrganizationMember).toHaveBeenCalledWith(authUserId, orgId);
+            expect(postsRepo.insertComposerComment).toHaveBeenCalledWith({
+                organizationId: orgId,
+                postId,
+                userId: dbUserId,
+                content: "Hello",
+            });
+        });
+
+        it("throws 404 when post is missing or not in workspace", async () => {
+            postsRepo.getPostById.mockResolvedValue(null);
+            await expect(
+                service().createComposerComment({
+                    organizationId: orgId,
+                    authUserId,
+                    postId,
+                    comment: "x",
+                })
+            ).rejects.toMatchObject({ statusCode: 404 });
+
+            postsRepo.getPostById.mockResolvedValue(socialPostRow({ id: postId, organization_id: faker.string.uuid() }));
+            await expect(
+                service().createComposerComment({
+                    organizationId: orgId,
+                    authUserId,
+                    postId,
+                    comment: "x",
+                })
+            ).rejects.toMatchObject({ statusCode: 404 });
+            expect(postsRepo.insertComposerComment).not.toHaveBeenCalled();
+        });
+
+        it("throws 400 when workspace user row cannot be resolved", async () => {
+            postsRepo.getPostById.mockResolvedValue(socialPostRow({ id: postId, organization_id: orgId }));
+            organizationRepo.findUserIdByAuthId.mockResolvedValue({ userId: null, error: null });
+
+            await expect(
+                service().createComposerComment({
+                    organizationId: orgId,
+                    authUserId,
+                    postId,
+                    comment: "note",
+                })
+            ).rejects.toMatchObject({ statusCode: 400 });
+            expect(postsRepo.insertComposerComment).not.toHaveBeenCalled();
         });
     });
 

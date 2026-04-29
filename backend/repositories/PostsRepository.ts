@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { PostStateDb, PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
+import type { PostStateDb, PostTagLike, PostCommentLike, SocialPostLike } from "../utils/dtos/PostDTO";
 
 import { v4 as uuidv4 } from "uuid";
 import { DatabaseError } from "../errors/InfraError";
@@ -7,6 +7,8 @@ import { DatabaseError } from "../errors/InfraError";
 const TABLE_POSTS = "posts";
 const TABLE_TAGS = "post_tags";
 const TABLE_POSTS_TAGS = "post_tag_assignments";
+/** Composer comments on `posts` rows */
+const TABLE_COMMENTS = "comments";
 
 export type SocialPostInsert = Omit<SocialPostLike, "id" | "created_at" | "updated_at">;
 
@@ -291,6 +293,57 @@ export class PostsRepository {
             });
         }
         return (data as SocialPostLike | null) ?? null;
+    }
+
+    /** Lists non-deleted comments for a composer post row (`posts.id`). */
+    async listCommentsByPostId(postId: string): Promise<PostCommentLike[]> {
+        const { data, error } = await this.supabase
+            .from(TABLE_COMMENTS)
+            .select("id, post_id, organization_id, user_id, content, created_at, updated_at, deleted_at")
+            .eq("post_id", postId)
+            .is("deleted_at", null)
+            .order("created_at", { ascending: true });
+
+        if (error) {
+            throw new DatabaseError(`Failed to load post comments: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_COMMENTS },
+            });
+        }
+        return (data ?? []) as PostCommentLike[];
+    }
+
+    /** Inserts a composer comment on `posts.id`. */
+    async insertComposerComment(input: {
+        organizationId: string;
+        postId: string;
+        userId: string;
+        content: string;
+    }): Promise<PostCommentLike> {
+        const now = new Date().toISOString();
+        const { data, error } = await this.supabase
+            .from(TABLE_COMMENTS)
+            .insert({
+                organization_id: input.organizationId,
+                post_id: input.postId,
+                user_id: input.userId,
+                content: input.content,
+                created_at: now,
+                updated_at: now,
+                deleted_at: null,
+            })
+            .select("id, post_id, organization_id, user_id, content, created_at, updated_at, deleted_at")
+            .single();
+
+        if (error || !data) {
+            throw new DatabaseError(`Failed to insert composer comment: ${error?.message ?? "no row"}`, {
+                cause: error ?? undefined,
+                operation: "insert",
+                resource: { type: "table", name: TABLE_COMMENTS },
+            });
+        }
+        return data as PostCommentLike;
     }
 
     /** Soft-delete all rows in a post group. Returns ids of rows affected. */

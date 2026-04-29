@@ -47,6 +47,17 @@ export const validateSaveProviderPage: RequestHandler = validateRequest({
     body: saveProviderPageBodySchema,
 });
 
+export const saveProviderPageNoAuthBodySchema = z
+    .object({
+        state: z.string().min(1, "state is required"),
+    })
+    .passthrough();
+
+export const validateSaveProviderPageNoAuth: RequestHandler = validateRequest({
+    params: saveProviderPageParamsSchema,
+    body: saveProviderPageNoAuthBodySchema,
+});
+
 export const integrationCustomersQuerySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
 });

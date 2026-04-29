@@ -15,7 +15,7 @@ const usersPath = `${apiPrefix}/users`;
 const settingsPath = `${apiPrefix}/settings`;
 /** Programmatic integration routes — see `routes/publicApi/integrationRoutes.ts` (`{apiPrefix}/public/...`). */
 const publicProgrammaticBase = `${apiPrefix}/public`;
-/** Session integration routes — see `routes/integrations/sessionRoutes.ts`. */
+/** Session integration routes — see `routes/integrationRoutes.ts`. */
 const sessionIntegrationsBase = `${apiPrefix}/integrations`;
 
 const threadsOAuthConfigured = Boolean(
