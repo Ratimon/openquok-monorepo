@@ -3,7 +3,19 @@ import type { IntegrationManager } from "../integrations/integrationManager";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { PostsRepository, SocialPostInsert } from "../repositories/PostsRepository";
-import type { PostStateDb, SocialPostLike } from "../utils/dtos/PostDTO";
+import type CacheService from "../connections/cache/CacheService";
+import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
+import type {
+    PostMediaItemInput,
+    PostStateDb,
+    RepeatIntervalKey,
+    SocialPostLike,
+} from "../utils/dtos/PostDTO";
+import {
+    parsePostImageColumn,
+    parsePostSettingsJson,
+    repeatIntervalToDays,
+} from "../utils/dtos/PostDTO";
 
 import { AppError } from "../errors/AppError";
 import { config } from "../config/GlobalConfig";
@@ -11,6 +23,41 @@ import { logger } from "../utils/Logger";
 
 
 const DEFAULT_TAG_COLOR = "#6366f1";
+
+/** Domain-scoped cache key prefixes (social posts / calendar / tags). */
+const CACHE_KEYS = {
+    POSTS: "posts",
+    /** Full key = `${POSTS_GROUP}:${postGroup}` */
+    POSTS_GROUP: "posts:group",
+    /** Full key = `${POSTS_TAGS_LIST}:${organizationId}` */
+    POSTS_TAGS_LIST: "posts:tags:list",
+    /**
+     * Full key = `${POSTS_CALENDAR_LIST}:${organizationId}:${startIso}:${endIso}:${integrationKey}`.
+     * `integrationKey` is sorted ids or `all` when no filter.
+     */
+    POSTS_CALENDAR_LIST: "posts:calendar:list",
+    /** Full key = `${POSTS_PREVIEW}:${postId}` (public preview with share=true). */
+    POSTS_PREVIEW: "posts:preview",
+};
+
+const POSTS_CACHE_TTL_SEC = 300;
+
+function tagsListCacheKey(organizationId: string): string {
+    return `${CACHE_KEYS.POSTS_TAGS_LIST}:${organizationId}`;
+}
+
+function calendarPostsCacheKey(params: {
+    organizationId: string;
+    startIso: string;
+    endIso: string;
+    integrationIds?: string[] | null;
+}): string {
+    const integrationKey =
+        params.integrationIds != null && params.integrationIds.length > 0
+            ? [...params.integrationIds].sort().join(",")
+            : "all";
+    return `${CACHE_KEYS.POSTS_CALENDAR_LIST}:${params.organizationId}:${params.startIso}:${params.endIso}:${integrationKey}`;
+}
 
 function dayStartUtcIso(d: Date): string {
     const x = new Date(d.getTime());
@@ -34,33 +81,6 @@ function parsePostingTimesMinutes(postingTimesJson: string | null | undefined): 
     } catch {
         return [];
     }
-}
-
-export type RepeatIntervalKey =
-    | "day"
-    | "two_days"
-    | "three_days"
-    | "four_days"
-    | "five_days"
-    | "six_days"
-    | "week"
-    | "two_weeks"
-    | "month";
-
-function repeatIntervalToDays(key: RepeatIntervalKey | null): number | null {
-    if (key == null) return null;
-    const m: Record<RepeatIntervalKey, number> = {
-        day: 1,
-        two_days: 2,
-        three_days: 3,
-        four_days: 4,
-        five_days: 5,
-        six_days: 6,
-        week: 7,
-        two_weeks: 14,
-        month: 30,
-    };
-    return m[key] ?? null;
 }
 
 /** Human-readable platform label for SEO / previews from `integrations.provider_identifier`. */
@@ -91,11 +111,6 @@ function socialPlatformLabelFromProviderIdentifier(
         .map((w) => (w.length > 0 ? w[0]!.toUpperCase() + w.slice(1).toLowerCase() : ""))
         .join(" ");
 }
-
-export type PostMediaItemInput = {
-    id: string;
-    path: string;
-};
 
 export type CreatePostInput = {
     organizationId: string;
@@ -131,33 +146,7 @@ export type PostGroupDetails = {
     postIds?: string[];
 };
 
-function parseSettingsJson(settings: string | null): { isGlobal: boolean; repeatInterval: RepeatIntervalKey | null } {
-    if (!settings) return { isGlobal: true, repeatInterval: null };
-    try {
-        const o = JSON.parse(settings) as { isGlobal?: unknown; repeatInterval?: unknown };
-        const isGlobal = typeof o.isGlobal === "boolean" ? o.isGlobal : true;
-        const repeatInterval = (typeof o.repeatInterval === "string" ? (o.repeatInterval as RepeatIntervalKey) : null) ?? null;
-        return { isGlobal, repeatInterval };
-    } catch {
-        return { isGlobal: true, repeatInterval: null };
-    }
-}
-
-function parseImageColumn(image: string | null): PostMediaItemInput[] {
-    if (!image) return [];
-    try {
-        const o = JSON.parse(image) as { items?: unknown };
-        const items = Array.isArray((o as any).items) ? ((o as any).items as any[]) : [];
-        return items
-            .map((x) => ({
-                id: typeof x?.id === "string" ? x.id : "",
-                path: typeof x?.path === "string" ? x.path : "",
-            }))
-            .filter((m) => m.id && m.path);
-    } catch {
-        return [];
-    }
-}
+export type { PostMediaItemInput, RepeatIntervalKey } from "../utils/dtos/PostDTO";
 
 export class PostsService {
     constructor(
@@ -165,7 +154,9 @@ export class PostsService {
         private readonly integrationConnectionService: IntegrationConnectionService,
         private readonly integrationService: IntegrationService,
         private readonly organizationRepository: OrganizationRepository,
-        private readonly integrationManager: IntegrationManager
+        private readonly integrationManager: IntegrationManager,
+        private readonly cache?: CacheService,
+        private readonly cacheInvalidator?: CacheInvalidationService
     ) {}
 
     async findFreeSlot(organizationId: string, authUserId: string): Promise<string> {
@@ -205,7 +196,12 @@ export class PostsService {
 
     async listTags(organizationId: string, authUserId: string) {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
-        return this.postsRepository.listTagsByOrganization(organizationId);
+        const cacheKey = tagsListCacheKey(organizationId);
+        const factory = async () => this.postsRepository.listTagsByOrganization(organizationId);
+        if (this.cache) {
+            return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+        }
+        return factory();
     }
 
     async createTag(organizationId: string, authUserId: string, name: string, color?: string) {
@@ -219,10 +215,15 @@ export class PostsService {
         }
         const c = color?.trim() || DEFAULT_TAG_COLOR;
         try {
-            return await this.postsRepository.insertTag(organizationId, trimmed, c);
+            const created = await this.postsRepository.insertTag(organizationId, trimmed, c);
+            await this._invalidateOrganizationPostsListCaches({ organizationId });
+            return created;
         } catch {
             const existing = await this.postsRepository.findTagByOrgAndName(organizationId, trimmed);
-            if (existing) return existing;
+            if (existing) {
+                await this._invalidateOrganizationPostsListCaches({ organizationId });
+                return existing;
+            }
             throw new AppError("Could not save tag", 500);
         }
     }
@@ -233,6 +234,7 @@ export class PostsService {
         if (!deleted) {
             throw new AppError("Tag not found", 404);
         }
+        await this._invalidateOrganizationPostsListCaches({ organizationId });
     }
 
     private async buildPostGroupInsert(input: {
@@ -372,6 +374,11 @@ export class PostsService {
         await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
         const out = { postGroup, posts: inserted };
         void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
+        await this._invalidatePostMutationCaches({
+            organizationId: input.organizationId,
+            postGroup,
+            postIds: inserted.map((p) => p.id),
+        });
         return out;
     }
 
@@ -399,12 +406,29 @@ export class PostsService {
             throw new AppError("Start must be before end", 400);
         }
 
-        return this.postsRepository.listPostsByOrganizationAndDateRange({
+        const startIsoNorm = start.toISOString();
+        const endIsoNorm = end.toISOString();
+        const integrationIdsNorm = integrationIds ?? null;
+
+        const cacheKey = calendarPostsCacheKey({
             organizationId,
-            startIso: start.toISOString(),
-            endIso: end.toISOString(),
-            integrationIds: integrationIds ?? null,
+            startIso: startIsoNorm,
+            endIso: endIsoNorm,
+            integrationIds: integrationIdsNorm,
         });
+
+        const factory = async (): Promise<SocialPostLike[]> =>
+            this.postsRepository.listPostsByOrganizationAndDateRange({
+                organizationId,
+                startIso: startIsoNorm,
+                endIso: endIsoNorm,
+                integrationIds: integrationIdsNorm,
+            });
+
+        if (this.cache) {
+            return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+        }
+        return factory();
     }
 
     async getPostGroup(postGroup: string, authUserId: string): Promise<PostGroupDetails> {
@@ -416,7 +440,19 @@ export class PostsService {
         const organizationId = rows[0]!.organization_id;
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
 
-        const { isGlobal, repeatInterval } = parseSettingsJson(rows[0]!.settings);
+        const cacheKey = `${CACHE_KEYS.POSTS_GROUP}:${postGroup}`;
+        const factory = async (): Promise<PostGroupDetails> => this.buildPostGroupDetails(postGroup, rows);
+
+        if (this.cache) {
+            return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+        }
+        return factory();
+    }
+
+    private async buildPostGroupDetails(postGroup: string, rows: SocialPostLike[]): Promise<PostGroupDetails> {
+        const organizationId = rows[0]!.organization_id;
+
+        const { isGlobal, repeatInterval } = parsePostSettingsJson(rows[0]!.settings);
         const publishDateIso = rows[0]!.publish_date;
         const status: "draft" | "scheduled" = rows.every((r) => r.state === "DRAFT") ? "draft" : "scheduled";
 
@@ -431,7 +467,7 @@ export class PostsService {
             bodiesByIntegrationId[r.integration_id] = r.content ?? "";
         }
 
-        const media = parseImageColumn(rows[0]!.image);
+        const media = parsePostImageColumn(rows[0]!.image);
         const tags = await this.postsRepository.listTagsForPostIds(rows.map((r) => r.id));
         const tagNames = tags.map((t) => t.name).filter(Boolean);
 
@@ -492,30 +528,46 @@ export class PostsService {
         if (share !== "true") {
             throw new AppError("Forbidden", 403);
         }
-        const row = await this.postsRepository.getPostById(postId);
-        if (!row) {
-            throw new AppError("Post not found", 404);
-        }
 
-        const media = parseImageColumn(row.image ?? null);
+        const cacheKey = `${CACHE_KEYS.POSTS_PREVIEW}:${postId}`;
+        const factory = async (): Promise<{
+            id: string;
+            postGroup: string;
+            publishDateIso: string;
+            content: string;
+            media: PostMediaItemInput[];
+            socialPlatformLabel: string | null;
+        }> => {
+            const row = await this.postsRepository.getPostById(postId);
+            if (!row) {
+                throw new AppError("Post not found", 404);
+            }
 
-        let socialPlatformLabel: string | null = null;
-        if (row.integration_id) {
-            const integration = await this.integrationService.getById(row.organization_id, row.integration_id);
-            socialPlatformLabel = socialPlatformLabelFromProviderIdentifier(
-                this.integrationManager,
-                integration?.provider_identifier
-            );
-        }
+            const media = parsePostImageColumn(row.image ?? null);
 
-        return {
-            id: row.id,
-            postGroup: row.post_group,
-            publishDateIso: row.publish_date,
-            content: row.content ?? "",
-            media,
-            socialPlatformLabel,
+            let socialPlatformLabel: string | null = null;
+            if (row.integration_id) {
+                const integration = await this.integrationService.getById(row.organization_id, row.integration_id);
+                socialPlatformLabel = socialPlatformLabelFromProviderIdentifier(
+                    this.integrationManager,
+                    integration?.provider_identifier
+                );
+            }
+
+            return {
+                id: row.id,
+                postGroup: row.post_group,
+                publishDateIso: row.publish_date,
+                content: row.content ?? "",
+                media,
+                socialPlatformLabel,
+            };
         };
+
+        if (this.cache) {
+            return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+        }
+        return factory();
     }
 
     async deletePostGroup(postGroup: string, authUserId: string, organizationId?: string | null): Promise<void> {
@@ -531,6 +583,11 @@ export class PostsService {
         const ids = rows.map((r) => r.id);
         await this.postsRepository.deleteTagAssignmentsForPostIds(ids);
         await this.postsRepository.softDeletePostsByGroup(postGroup);
+        await this._invalidatePostMutationCaches({
+            organizationId: orgId,
+            postGroup,
+            postIds: ids,
+        });
     }
 
     async updatePostGroup(input: Omit<CreatePostInput, "organizationId"> & { postGroup: string; organizationId?: string | null }): Promise<{
@@ -593,7 +650,109 @@ export class PostsService {
         await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
         const out = { postGroup, posts: inserted };
         void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
+        await this._invalidatePostMutationCaches({
+            organizationId,
+            postGroup,
+            postIds: [...new Set([...oldIds, ...inserted.map((p) => p.id)])],
+        });
         return out;
+    }
+
+    /**
+     * Invalidate tags list + calendar lists for an organization (tag CRUD or indirect tag changes).
+     */
+    private async _invalidateOrganizationPostsListCaches(params: { organizationId: string }): Promise<void> {
+        const { organizationId } = params;
+        const invalidateWithInvalidator = async () => {
+            await this.cacheInvalidator!.invalidateKey(tagsListCacheKey(organizationId));
+            await this.cacheInvalidator!.invalidatePattern(`${CACHE_KEYS.POSTS_CALENDAR_LIST}:${organizationId}:*`);
+            logger.debug({ msg: "Invalidated organization posts list caches", organizationId });
+        };
+
+        if (this.cacheInvalidator) {
+            try {
+                await invalidateWithInvalidator();
+            } catch (error) {
+                logger.error({
+                    msg: "Error invalidating organization posts list caches",
+                    organizationId,
+                    error: String(error),
+                });
+            }
+            return;
+        }
+
+        if (this.cache) {
+            try {
+                await this.cache.del(tagsListCacheKey(organizationId));
+                await this.cache.delPattern(`${CACHE_KEYS.POSTS_CALENDAR_LIST}:${organizationId}:*`);
+            } catch (error) {
+                logger.error({
+                    msg: "Error deleting organization posts list cache keys",
+                    organizationId,
+                    error: String(error),
+                });
+            }
+        }
+    }
+
+    /**
+     * Invalidate group detail, previews, calendar, and tags list after post create/update/delete.
+     */
+    private async _invalidatePostMutationCaches(params: {
+        organizationId: string;
+        postGroup: string;
+        postIds: string[];
+    }): Promise<void> {
+        const { organizationId, postGroup, postIds } = params;
+
+        const invalidateWithInvalidator = async () => {
+            await this.cacheInvalidator!.invalidateKey(`${CACHE_KEYS.POSTS_GROUP}:${postGroup}`);
+            for (const id of postIds) {
+                await this.cacheInvalidator!.invalidateKey(`${CACHE_KEYS.POSTS_PREVIEW}:${id}`);
+            }
+            await this.cacheInvalidator!.invalidatePattern(`${CACHE_KEYS.POSTS_CALENDAR_LIST}:${organizationId}:*`);
+            await this.cacheInvalidator!.invalidateKey(tagsListCacheKey(organizationId));
+            await this.cacheInvalidator!.invalidateEntity(CACHE_KEYS.POSTS, postGroup);
+            logger.debug({
+                msg: "Invalidated post mutation caches",
+                organizationId,
+                postGroup,
+                postIdsCount: postIds.length,
+            });
+        };
+
+        if (this.cacheInvalidator) {
+            try {
+                await invalidateWithInvalidator();
+            } catch (error) {
+                logger.error({
+                    msg: "Error invalidating post mutation caches",
+                    organizationId,
+                    postGroup,
+                    error: String(error),
+                });
+            }
+            return;
+        }
+
+        if (this.cache) {
+            try {
+                await this.cache.del(`${CACHE_KEYS.POSTS_GROUP}:${postGroup}`);
+                for (const id of postIds) {
+                    await this.cache.del(`${CACHE_KEYS.POSTS_PREVIEW}:${id}`);
+                }
+                await this.cache.delPattern(`${CACHE_KEYS.POSTS_CALENDAR_LIST}:${organizationId}:*`);
+                await this.cache.del(tagsListCacheKey(organizationId));
+            } catch (error) {
+                logger.error({
+                    msg: "Error deleting post mutation cache keys",
+                    organizationId,
+                    postGroup,
+                    error: String(error),
+                });
+            }
+        }
     }
 
     /**

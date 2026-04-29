@@ -114,7 +114,9 @@ export const postsService = new PostsService(
     integrationConnectionService,
     integrationService,
     organizationRepository,
-    integrationManager
+    integrationManager,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
 );
 export const mediaService = new MediaService(mediaRepository);
 export { AuthenticationService } from "./AuthenticationService";

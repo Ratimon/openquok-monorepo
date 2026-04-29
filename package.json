@@ -20,6 +20,7 @@
     "backend:db:aggregate-migrations-single": "pnpm --filter ./backend db:aggregate-migrations-single",
     "backend:generate-routes-manifest": "node scripts/generate-routes-manifest.mjs",
     "backend:build": "pnpm --filter backend build",
+    "backend:sync-declarations": "pnpm --filter backend sync-declarations",
     "backend:build:vercel": "pnpm common:build && pnpm --filter backend build:vercel",
     "common:build": "pnpm --filter openquok-common build",
     "orchestrator:build": "pnpm --filter openquok-orchestrator build",

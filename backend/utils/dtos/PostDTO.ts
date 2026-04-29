@@ -40,6 +40,74 @@ export interface PostTagLike {
     updated_at: string;
 }
 
+/** Stored in `posts.settings` JSON (`repeatInterval`). */
+export type RepeatIntervalKey =
+    | "day"
+    | "two_days"
+    | "three_days"
+    | "four_days"
+    | "five_days"
+    | "six_days"
+    | "week"
+    | "two_weeks"
+    | "month";
+
+/** Item shape inside `posts.image` JSON (`items`). */
+export type PostMediaItemInput = {
+    id: string;
+    path: string;
+};
+
+/** Maps composer repeat key to `posts.interval_in_days`. */
+export function repeatIntervalToDays(key: RepeatIntervalKey | null): number | null {
+    if (key == null) return null;
+    const m: Record<RepeatIntervalKey, number> = {
+        day: 1,
+        two_days: 2,
+        three_days: 3,
+        four_days: 4,
+        five_days: 5,
+        six_days: 6,
+        week: 7,
+        two_weeks: 14,
+        month: 30,
+    };
+    return m[key] ?? null;
+}
+
+/** Parses `posts.settings` JSON column. */
+export function parsePostSettingsJson(settings: string | null): {
+    isGlobal: boolean;
+    repeatInterval: RepeatIntervalKey | null;
+} {
+    if (!settings) return { isGlobal: true, repeatInterval: null };
+    try {
+        const o = JSON.parse(settings) as { isGlobal?: unknown; repeatInterval?: unknown };
+        const isGlobal = typeof o.isGlobal === "boolean" ? o.isGlobal : true;
+        const repeatInterval = (typeof o.repeatInterval === "string" ? (o.repeatInterval as RepeatIntervalKey) : null) ?? null;
+        return { isGlobal, repeatInterval };
+    } catch {
+        return { isGlobal: true, repeatInterval: null };
+    }
+}
+
+/** Parses `posts.image` JSON column into media items. */
+export function parsePostImageColumn(image: string | null): PostMediaItemInput[] {
+    if (!image) return [];
+    try {
+        const o = JSON.parse(image) as { items?: unknown };
+        const items = Array.isArray((o as { items?: unknown }).items) ? ((o as { items: unknown[] }).items as unknown[]) : [];
+        return items
+            .map((x) => ({
+                id: typeof (x as { id?: unknown })?.id === "string" ? (x as { id: string }).id : "",
+                path: typeof (x as { path?: unknown })?.path === "string" ? (x as { path: string }).path : "",
+            }))
+            .filter((m) => m.id && m.path);
+    } catch {
+        return [];
+    }
+}
+
 /**
  * Social post DTO for API responses (camelCase).
  * Decouples the API contract from the database shape.

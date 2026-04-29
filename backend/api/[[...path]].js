@@ -6411,7 +6411,7 @@ var PostsRepository = class {
   constructor(supabase2) {
     this.supabase = supabase2;
   }
-  /** New group id for rows composed together (Prisma `Post.group`). */
+  /** New group id for rows composed together. */
   newPostGroup() {
     return uuid.v4();
   }
@@ -6586,6 +6586,17 @@ var PostsRepository = class {
       });
     }
     return data ?? [];
+  }
+  async getPostById(postId) {
+    const { data, error } = await this.supabase.from(TABLE_POSTS).select("*").eq("id", postId).is("deleted_at", null).maybeSingle();
+    if (error) {
+      throw new DatabaseError(`Failed to load post: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    return data ?? null;
   }
   /** Soft-delete all rows in a post group. Returns ids of rows affected. */
   async softDeletePostsByGroup(postGroup) {
@@ -10043,6 +10054,95 @@ var TransactionalNotificationEmailService = class {
   }
 };
 
+// utils/dtos/PostDTO.ts
+function repeatIntervalToDays(key) {
+  if (key == null) return null;
+  const m = {
+    day: 1,
+    two_days: 2,
+    three_days: 3,
+    four_days: 4,
+    five_days: 5,
+    six_days: 6,
+    week: 7,
+    two_weeks: 14,
+    month: 30
+  };
+  return m[key] ?? null;
+}
+function parsePostSettingsJson(settings) {
+  if (!settings) return { isGlobal: true, repeatInterval: null };
+  try {
+    const o = JSON.parse(settings);
+    const isGlobal = typeof o.isGlobal === "boolean" ? o.isGlobal : true;
+    const repeatInterval = (typeof o.repeatInterval === "string" ? o.repeatInterval : null) ?? null;
+    return { isGlobal, repeatInterval };
+  } catch {
+    return { isGlobal: true, repeatInterval: null };
+  }
+}
+function parsePostImageColumn(image) {
+  if (!image) return [];
+  try {
+    const o = JSON.parse(image);
+    const items = Array.isArray(o.items) ? o.items : [];
+    return items.map((x) => ({
+      id: typeof x?.id === "string" ? x.id : "",
+      path: typeof x?.path === "string" ? x.path : ""
+    })).filter((m) => m.id && m.path);
+  } catch {
+    return [];
+  }
+}
+var PostDTOMapper = {
+  toDTO(row) {
+    if (row == null) return null;
+    return {
+      id: row.id,
+      state: row.state,
+      publishDate: row.publish_date,
+      organizationId: row.organization_id,
+      integrationId: row.integration_id,
+      content: row.content,
+      delay: row.delay,
+      postGroup: row.post_group,
+      title: row.title,
+      description: row.description,
+      parentPostId: row.parent_post_id,
+      releaseId: row.release_id,
+      releaseUrl: row.release_url,
+      settings: row.settings,
+      image: row.image,
+      intervalInDays: row.interval_in_days,
+      error: row.error,
+      deletedAt: row.deleted_at,
+      createdByUserId: row.created_by_user_id,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  },
+  toDTOCollection(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows.map((r) => PostDTOMapper.toDTO(r)).filter(Boolean);
+  },
+  toPostTagDTO(row) {
+    if (row == null) return null;
+    return {
+      id: row.id,
+      name: row.name,
+      color: row.color,
+      orgId: row.org_id,
+      deletedAt: row.deleted_at,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  },
+  toPostTagDTOCollection(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows.map((r) => PostDTOMapper.toPostTagDTO(r)).filter(Boolean);
+  }
+};
+
 // services/PostsService.ts
 init_GlobalConfig();
 init_Logger();
@@ -10066,44 +10166,23 @@ function parsePostingTimesMinutes(postingTimesJson) {
     return [];
   }
 }
-function repeatIntervalToDays(key) {
-  if (key == null) return null;
-  const m = {
-    day: 1,
-    two_days: 2,
-    three_days: 3,
-    four_days: 4,
-    five_days: 5,
-    six_days: 6,
-    week: 7,
-    two_weeks: 14,
-    month: 30
+function socialPlatformLabelFromProviderIdentifier(integrationManager2, providerIdentifier) {
+  const id = (providerIdentifier ?? "").trim().toLowerCase();
+  if (!id) return null;
+  const FALLBACK = {
+    facebook: "Facebook",
+    instagram: "Instagram",
+    "instagram-business": "Instagram",
+    "instagram-standalone": "Instagram",
+    youtube: "YouTube",
+    tiktok: "TikTok",
+    x: "X",
+    threads: "Threads"
   };
-  return m[key] ?? null;
-}
-function parseSettingsJson(settings) {
-  if (!settings) return { isGlobal: true, repeatInterval: null };
-  try {
-    const o = JSON.parse(settings);
-    const isGlobal = typeof o.isGlobal === "boolean" ? o.isGlobal : true;
-    const repeatInterval = (typeof o.repeatInterval === "string" ? o.repeatInterval : null) ?? null;
-    return { isGlobal, repeatInterval };
-  } catch {
-    return { isGlobal: true, repeatInterval: null };
-  }
-}
-function parseImageColumn(image) {
-  if (!image) return [];
-  try {
-    const o = JSON.parse(image);
-    const items = Array.isArray(o.items) ? o.items : [];
-    return items.map((x) => ({
-      id: typeof x?.id === "string" ? x.id : "",
-      path: typeof x?.path === "string" ? x.path : ""
-    })).filter((m) => m.id && m.path);
-  } catch {
-    return [];
-  }
+  if (FALLBACK[id]) return FALLBACK[id];
+  const registered = integrationManager2.getSocialIntegration(id);
+  if (registered?.name) return registered.name;
+  return id.split("-").map((w) => w.length > 0 ? w[0].toUpperCase() + w.slice(1).toLowerCase() : "").join(" ");
 }
 var PostsService = class {
   constructor(postsRepository2, integrationConnectionService2, integrationService2, organizationRepository2, integrationManager2) {
@@ -10295,7 +10374,7 @@ var PostsService = class {
     }
     const organizationId = rows[0].organization_id;
     await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
-    const { isGlobal, repeatInterval } = parseSettingsJson(rows[0].settings);
+    const { isGlobal, repeatInterval } = parsePostSettingsJson(rows[0].settings);
     const publishDateIso = rows[0].publish_date;
     const status = rows.every((r) => r.state === "DRAFT") ? "draft" : "scheduled";
     const integrationIds = rows.map((r) => r.integration_id).filter((x) => Boolean(x));
@@ -10305,7 +10384,7 @@ var PostsService = class {
       if (!r.integration_id) continue;
       bodiesByIntegrationId[r.integration_id] = r.content ?? "";
     }
-    const media = parseImageColumn(rows[0].image);
+    const media = parsePostImageColumn(rows[0].image);
     const tags = await this.postsRepository.listTagsForPostIds(rows.map((r) => r.id));
     const tagNames = tags.map((t) => t.name).filter(Boolean);
     return {
@@ -10319,7 +10398,53 @@ var PostsService = class {
       body,
       bodiesByIntegrationId,
       media,
-      tagNames
+      tagNames,
+      postIds: rows.map((r) => r.id)
+    };
+  }
+  /**
+   * Debug endpoint to export a post group's raw rows + derived group details.
+   * Intended for support/debugging; not a stable public contract.
+   */
+  async debugExportPostGroup(postGroup, authUserId) {
+    const rows = await this.postsRepository.listPostsByGroup(postGroup);
+    if (!rows.length) {
+      throw new AppError("Post group not found", 404);
+    }
+    const organizationId = rows[0].organization_id;
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const group = await this.getPostGroup(postGroup, authUserId);
+    return {
+      postGroup,
+      organizationId,
+      group,
+      posts: rows
+    };
+  }
+  async getPostPreview(postId, share) {
+    if (share !== "true") {
+      throw new AppError("Forbidden", 403);
+    }
+    const row = await this.postsRepository.getPostById(postId);
+    if (!row) {
+      throw new AppError("Post not found", 404);
+    }
+    const media = parsePostImageColumn(row.image ?? null);
+    let socialPlatformLabel = null;
+    if (row.integration_id) {
+      const integration = await this.integrationService.getById(row.organization_id, row.integration_id);
+      socialPlatformLabel = socialPlatformLabelFromProviderIdentifier(
+        this.integrationManager,
+        integration?.provider_identifier
+      );
+    }
+    return {
+      id: row.id,
+      postGroup: row.post_group,
+      publishDateIso: row.publish_date,
+      content: row.content ?? "",
+      media,
+      socialPlatformLabel
     };
   }
   async deletePostGroup(postGroup, authUserId, organizationId) {
@@ -11646,13 +11771,35 @@ var MediaController = class {
 };
 
 // controllers/ConfigController.ts
-var ConfigController = class {
+var ConfigController = class _ConfigController {
   constructor(configService2) {
     this.configService = configService2;
   }
+  static PUBLIC_MODULE_ALLOWLIST = /* @__PURE__ */ new Set(["landing-page"]);
   getModuleConfig = async (req, res, next) => {
     try {
       const moduleName = String(req.query.moduleName ?? "");
+      const moduleConfig = await this.configService.getModuleConfig(moduleName);
+      res.status(200).json({
+        success: true,
+        data: moduleConfig,
+        message: "Module config fetched successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  getPublicModuleConfig = async (req, res, next) => {
+    try {
+      const moduleName = String(req.query.moduleName ?? "");
+      if (!_ConfigController.PUBLIC_MODULE_ALLOWLIST.has(moduleName)) {
+        res.status(404).json({
+          success: false,
+          data: {},
+          message: "Module config not found"
+        });
+        return;
+      }
       const moduleConfig = await this.configService.getModuleConfig(moduleName);
       res.status(200).json({
         success: true,
@@ -12106,56 +12253,6 @@ var NotificationController = class {
   };
 };
 
-// utils/dtos/PostDTO.ts
-var PostDTOMapper = {
-  toDTO(row) {
-    if (row == null) return null;
-    return {
-      id: row.id,
-      state: row.state,
-      publishDate: row.publish_date,
-      organizationId: row.organization_id,
-      integrationId: row.integration_id,
-      content: row.content,
-      delay: row.delay,
-      postGroup: row.post_group,
-      title: row.title,
-      description: row.description,
-      parentPostId: row.parent_post_id,
-      releaseId: row.release_id,
-      releaseUrl: row.release_url,
-      settings: row.settings,
-      image: row.image,
-      intervalInDays: row.interval_in_days,
-      error: row.error,
-      deletedAt: row.deleted_at,
-      createdByUserId: row.created_by_user_id,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    };
-  },
-  toDTOCollection(rows) {
-    if (!Array.isArray(rows)) return [];
-    return rows.map((r) => PostDTOMapper.toDTO(r)).filter(Boolean);
-  },
-  toPostTagDTO(row) {
-    if (row == null) return null;
-    return {
-      id: row.id,
-      name: row.name,
-      color: row.color,
-      orgId: row.org_id,
-      deletedAt: row.deleted_at,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    };
-  },
-  toPostTagDTOCollection(rows) {
-    if (!Array.isArray(rows)) return [];
-    return rows.map((r) => PostDTOMapper.toPostTagDTO(r)).filter(Boolean);
-  }
-};
-
 // controllers/PostsController.ts
 var PostsController = class {
   constructor(postsService2) {
@@ -12286,6 +12383,30 @@ var PostsController = class {
       }
       const postGroup = req.params.postGroup;
       const d = await this.postsService.getPostGroup(postGroup, authUserId);
+      res.status(200).json({ success: true, data: d });
+    } catch (error) {
+      next(error);
+    }
+  };
+  debugExportPostGroup = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const postGroup = req.params.postGroup;
+      const d = await this.postsService.debugExportPostGroup(postGroup, authUserId);
+      res.status(200).json({ success: true, data: d });
+    } catch (error) {
+      next(error);
+    }
+  };
+  getPostPreview = async (req, res, next) => {
+    try {
+      const postId = req.params.postId;
+      const share = typeof req.query.share === "string" ? req.query.share : null;
+      const d = await this.postsService.getPostPreview(postId, share);
       res.status(200).json({ success: true, data: d });
     } catch (error) {
       next(error);
@@ -13403,6 +13524,7 @@ companyRouter.get(
   createCombinedConfigPropertiesParser(),
   companyController.getInformationByPropertiesCombined
 );
+companyRouter.get("/config", configSchemas_default.validateGetModuleConfigQuery, configController.getPublicModuleConfig);
 var workspaceMembershipRoleSchema = zod.z.enum(["user", "admin", "superadmin"]);
 var createOrganizationBodySchema = zod.z.object({
   name: zod.z.string().min(1, "Name is required").max(256).trim(),
@@ -14135,6 +14257,12 @@ var postGroupParamsSchema = zod.z.object({
 var validatePostGroupParams = validateRequest({
   params: postGroupParamsSchema
 });
+var postPreviewParamsSchema = zod.z.object({
+  postId: zod.z.string().uuid("Invalid post id")
+});
+var validatePostPreviewParams = validateRequest({
+  params: postPreviewParamsSchema
+});
 var repeatIntervalEnum = zod.z.enum([
   "day",
   "two_days",
@@ -14200,7 +14328,7 @@ var validateDeletePostGroup = validateRequest({
   })
 });
 
-// routes/postRoutes.ts
+// routes/PostRoutes.ts
 var postRouter = express.Router();
 var auth4 = requireFullAuth(supabase);
 postRouter.get("/find-slot", auth4, validatePostOrganizationQuery, postsController.findSlot);
@@ -14209,6 +14337,13 @@ postRouter.post("/tags", auth4, validateCreatePostTagBody, postsController.creat
 postRouter.delete("/tags/:tagId", auth4, validateDeletePostTag, postsController.deleteTag);
 postRouter.get("/list", auth4, validateListPostsQuery, postsController.listPosts);
 postRouter.post("/", auth4, validateCreatePostBody, postsController.createPost);
+postRouter.get("/preview/:postId", validatePostPreviewParams, postsController.getPostPreview);
+postRouter.get(
+  "/group/:postGroup/debug-export",
+  auth4,
+  validatePostGroupParams,
+  postsController.debugExportPostGroup
+);
 postRouter.get("/group/:postGroup", auth4, validatePostGroupParams, postsController.getPostGroup);
 postRouter.put("/group/:postGroup", auth4, validateUpdatePostGroupBody, postsController.updatePostGroup);
 postRouter.delete("/group/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
@@ -14671,7 +14806,7 @@ function configureCoreMiddleware(app2, config3, supabase2) {
     const authMiddleware = requireFullAuth(supabase2);
     const rawPrefix = config3.api?.prefix ?? "/api/v1";
     const apiPrefix = rawPrefix.replace(/\/+$/, "") || "/";
-    const publicPaths = ["/auth", "/company", "/feedback", "/public"];
+    const publicPaths = ["/auth", "/company", "/feedback", "/public", "/posts/preview"];
     const publicPathsExact = [
       "/blog-system/posts",
       "/blog-system/rss",
@@ -14900,6 +15035,9 @@ if (!isRunningOnVercel()) {
 }
 
 // handler/index.ts
+if ((process.env.NODE_ENV ?? "production") === "production") {
+  process.noDeprecation = true;
+}
 var appPromise = null;
 function getApp() {
   if (!appPromise) {

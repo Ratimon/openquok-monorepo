@@ -1,6 +1,8 @@
 import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { PostsRepository } from "../repositories/PostsRepository";
 import type { PostTagLike, SocialPostLike } from "../utils/dtos/PostDTO";
+import type CacheService from "../connections/cache/CacheService";
+import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
 import type { IntegrationService } from "./IntegrationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
@@ -121,6 +123,24 @@ function createOrganizationRepoMock(): OrganizationRepoMock {
     };
 }
 
+function asGetOrSet(mock: jest.Mock): CacheService["getOrSet"] {
+    return mock as unknown as CacheService["getOrSet"];
+}
+
+/** Mirrors PostsService calendar cache key helper for assertions. */
+function expectedCalendarCacheKey(params: {
+    organizationId: string;
+    startIso: string;
+    endIso: string;
+    integrationIds?: string[] | null;
+}): string {
+    const integrationKey =
+        params.integrationIds != null && params.integrationIds.length > 0
+            ? [...params.integrationIds].sort().join(",")
+            : "all";
+    return `posts:calendar:list:${params.organizationId}:${params.startIso}:${params.endIso}:${integrationKey}`;
+}
+
 describe("PostsService", () => {
     let postsRepo: PostsRepoMock;
     let integrationConnection: IntegrationConnectionMock;
@@ -134,13 +154,20 @@ describe("PostsService", () => {
         organizationRepo = createOrganizationRepoMock();
     });
 
-    function service(): PostsService {
+    function service(
+        cache?: { getOrSet?: CacheService["getOrSet"] },
+        cacheInvalidator?: Partial<
+            jest.Mocked<Pick<CacheInvalidationService, "invalidateKey" | "invalidatePattern" | "invalidateEntity">>
+        >
+    ): PostsService {
         return new PostsService(
             postsRepo as unknown as PostsRepository,
             integrationConnection as unknown as IntegrationConnectionService,
             integrationService as unknown as IntegrationService,
             organizationRepo as unknown as OrganizationRepository,
-            new IntegrationManager()
+            new IntegrationManager(),
+            cache as never,
+            cacheInvalidator as never
         );
     }
 
@@ -191,6 +218,34 @@ describe("PostsService", () => {
             expect(postsRepo.listTagsByOrganization).toHaveBeenCalledWith(orgId);
             expect(out).toEqual(tags);
         });
+
+        it("uses getOrSet with tags list key and TTL 300 when cache provided", async () => {
+            const tags = [tagRow({ name: "t1" })];
+            postsRepo.listTagsByOrganization.mockResolvedValue(tags);
+            const getOrSet = jest.fn().mockResolvedValue(tags);
+            const out = await service({ getOrSet }).listTags(orgId, authUserId);
+            expect(out).toEqual(tags);
+            expect(getOrSet).toHaveBeenCalledWith(`posts:tags:list:${orgId}`, expect.any(Function), 300);
+        });
+
+        it("calls repository once when getOrSet remembers (second request hits cache)", async () => {
+            const tags = [tagRow({ name: "cached" })];
+            postsRepo.listTagsByOrganization.mockResolvedValue(tags);
+            const memory = new Map<string, unknown>();
+            const getOrSet = jest.fn(async (key: string, factory: () => Promise<unknown>) => {
+                if (memory.has(key)) return memory.get(key);
+                const value = await factory();
+                memory.set(key, value);
+                return value;
+            });
+
+            const s = service({ getOrSet: asGetOrSet(getOrSet) });
+            await s.listTags(orgId, authUserId);
+            await s.listTags(orgId, authUserId);
+
+            expect(postsRepo.listTagsByOrganization).toHaveBeenCalledTimes(1);
+            expect(getOrSet).toHaveBeenCalledWith(`posts:tags:list:${orgId}`, expect.any(Function), 300);
+        });
     });
 
     describe("createTag", () => {
@@ -224,6 +279,30 @@ describe("PostsService", () => {
             expect(out).toEqual(existing);
         });
 
+        it("invalidates tags list and calendar pattern when cacheInvalidator provided (insert succeeds)", async () => {
+            postsRepo.insertTag.mockResolvedValue(tagRow({ name: "new" }));
+            const invalidateKey = jest.fn().mockResolvedValue(true);
+            const invalidatePattern = jest.fn().mockResolvedValue(true);
+
+            await service(undefined, { invalidateKey, invalidatePattern }).createTag(orgId, authUserId, "fresh");
+
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:tags:list:${orgId}`);
+            expect(invalidatePattern).toHaveBeenCalledWith(`posts:calendar:list:${orgId}:*`);
+        });
+
+        it("invalidates tags list and calendar pattern when cacheInvalidator provided (duplicate race)", async () => {
+            const existing = tagRow({ name: "dup" });
+            postsRepo.insertTag.mockRejectedValue(new Error("unique"));
+            postsRepo.findTagByOrgAndName.mockResolvedValue(existing);
+            const invalidateKey = jest.fn().mockResolvedValue(true);
+            const invalidatePattern = jest.fn().mockResolvedValue(true);
+
+            await service(undefined, { invalidateKey, invalidatePattern }).createTag(orgId, authUserId, "dup");
+
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:tags:list:${orgId}`);
+            expect(invalidatePattern).toHaveBeenCalledWith(`posts:calendar:list:${orgId}:*`);
+        });
+
         it("throws 500 when insert fails and no existing tag", async () => {
             postsRepo.insertTag.mockRejectedValue(new Error("db"));
             postsRepo.findTagByOrgAndName.mockResolvedValue(null);
@@ -250,6 +329,17 @@ describe("PostsService", () => {
                 statusCode: 404,
                 message: "Tag not found",
             });
+        });
+
+        it("invalidates tags list and calendar pattern when cacheInvalidator provided", async () => {
+            postsRepo.softDeleteTagForOrganization.mockResolvedValue(true);
+            const invalidateKey = jest.fn().mockResolvedValue(true);
+            const invalidatePattern = jest.fn().mockResolvedValue(true);
+
+            await service(undefined, { invalidateKey, invalidatePattern }).deleteTag(orgId, authUserId, tagId);
+
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:tags:list:${orgId}`);
+            expect(invalidatePattern).toHaveBeenCalledWith(`posts:calendar:list:${orgId}:*`);
         });
     });
 
@@ -521,6 +611,36 @@ describe("PostsService", () => {
             });
             expect(postsRepo.insertPostGroup.mock.calls[0][0][0].created_by_user_id).toBeNull();
         });
+
+        it("invalidates group, previews, calendar, tags list, and entity when cacheInvalidator provided", async () => {
+            const postGroup = "post-group-uuid";
+            const rowId = faker.string.uuid();
+            postsRepo.newPostGroup.mockReturnValue(postGroup);
+            postsRepo.insertPostGroup.mockResolvedValue([socialPostRow({ id: rowId })]);
+            postsRepo.linkTagsToPosts.mockResolvedValue(undefined);
+
+            const invalidateKey = jest.fn().mockResolvedValue(true);
+            const invalidatePattern = jest.fn().mockResolvedValue(true);
+            const invalidateEntity = jest.fn().mockResolvedValue(true);
+
+            await service(undefined, { invalidateKey, invalidatePattern, invalidateEntity }).createPost({
+                organizationId: orgId,
+                authUserId,
+                body: "draft body",
+                integrationIds: [],
+                isGlobal: false,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "draft",
+            });
+
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:group:${postGroup}`);
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${rowId}`);
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:tags:list:${orgId}`);
+            expect(invalidatePattern).toHaveBeenCalledWith(`posts:calendar:list:${orgId}:*`);
+            expect(invalidateEntity).toHaveBeenCalledWith("posts", postGroup);
+        });
     });
 
     describe("listPostsForCalendar", () => {
@@ -595,6 +715,57 @@ describe("PostsService", () => {
             });
             expect(postsRepo.listPostsByOrganizationAndDateRange).not.toHaveBeenCalled();
         });
+
+        it("uses getOrSet with calendar key and TTL 300 when cache provided", async () => {
+            const rows = [socialPostRow()];
+            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue(rows);
+            const startIso = new Date("2030-06-01T00:00:00.000Z").toISOString();
+            const endIso = new Date("2030-06-30T23:59:59.999Z").toISOString();
+            const getOrSet = jest.fn().mockResolvedValue(rows);
+
+            const out = await service({ getOrSet }).listPostsForCalendar({
+                organizationId: orgId,
+                authUserId,
+                startIso: "2030-06-01T00:00:00.000Z",
+                endIso: "2030-06-30T23:59:59.999Z",
+                integrationIds: [integrationId],
+            });
+
+            expect(out).toEqual(rows);
+            expect(getOrSet).toHaveBeenCalledWith(
+                expectedCalendarCacheKey({
+                    organizationId: orgId,
+                    startIso,
+                    endIso,
+                    integrationIds: [integrationId],
+                }),
+                expect.any(Function),
+                300
+            );
+        });
+
+        it("calls repository once when getOrSet remembers", async () => {
+            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue([]);
+            const memory = new Map<string, unknown>();
+            const getOrSet = jest.fn(async (key: string, factory: () => Promise<unknown>) => {
+                if (memory.has(key)) return memory.get(key);
+                const value = await factory();
+                memory.set(key, value);
+                return value;
+            });
+
+            const args = {
+                organizationId: orgId,
+                authUserId,
+                startIso: "2030-06-01T00:00:00.000Z",
+                endIso: "2030-06-02T00:00:00.000Z",
+            };
+            const s = service({ getOrSet: asGetOrSet(getOrSet) });
+            await s.listPostsForCalendar(args);
+            await s.listPostsForCalendar(args);
+
+            expect(postsRepo.listPostsByOrganizationAndDateRange).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe("getPostGroup", () => {
@@ -657,6 +828,65 @@ describe("PostsService", () => {
                 media: [{ id: "m1", path: "/x.png" }],
                 tagNames: expect.arrayContaining(["tag-1", "tag-2"]),
             });
+        });
+
+        it("uses getOrSet with posts:group key and TTL 300 when cache provided", async () => {
+            const postGroup = faker.string.uuid();
+            const publishDateIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            const rows = [
+                socialPostRow({
+                    organization_id: orgId,
+                    post_group: postGroup,
+                    integration_id: integrationId,
+                    state: "QUEUE",
+                    publish_date: publishDateIso,
+                    content: "body-a",
+                    settings: "{}",
+                }),
+            ];
+            postsRepo.listPostsByGroup.mockResolvedValue(rows);
+            postsRepo.listTagsForPostIds.mockResolvedValue([]);
+            const getOrSet = jest.fn().mockImplementation(async (_key: string, factory: () => Promise<unknown>) =>
+                factory()
+            );
+
+            await service({ getOrSet }).getPostGroup(postGroup, authUserId);
+
+            expect(getOrSet).toHaveBeenCalledWith(`posts:group:${postGroup}`, expect.any(Function), 300);
+        });
+
+        it("calls listTagsForPostIds once when group details are cached on second request", async () => {
+            const postGroup = faker.string.uuid();
+            const publishDateIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            const rows = [
+                socialPostRow({
+                    organization_id: orgId,
+                    post_group: postGroup,
+                    integration_id: integrationId,
+                    state: "QUEUE",
+                    publish_date: publishDateIso,
+                    content: "body-a",
+                    settings: "{}",
+                }),
+            ];
+            postsRepo.listPostsByGroup.mockResolvedValue(rows);
+            postsRepo.listTagsForPostIds.mockResolvedValue([tagRow({ name: "t" })]);
+
+            const memory = new Map<string, unknown>();
+            const getOrSet = jest.fn(async (key: string, factory: () => Promise<unknown>) => {
+                if (memory.has(key)) return memory.get(key);
+                const value = await factory();
+                memory.set(key, value);
+                return value;
+            });
+
+            const s = service({ getOrSet: asGetOrSet(getOrSet) });
+            await s.getPostGroup(postGroup, authUserId);
+            await s.getPostGroup(postGroup, authUserId);
+
+            expect(postsRepo.listPostsByGroup).toHaveBeenCalledTimes(2);
+            expect(postsRepo.listTagsForPostIds).toHaveBeenCalledTimes(1);
+            expect(getOrSet).toHaveBeenCalledWith(`posts:group:${postGroup}`, expect.any(Function), 300);
         });
     });
 
@@ -728,6 +958,54 @@ describe("PostsService", () => {
                 socialPlatformLabel: "Threads",
             });
         });
+
+        it("uses getOrSet with preview key and TTL 300 when cache provided", async () => {
+            const row = socialPostRow({
+                id: postId,
+                integration_id: null,
+                content: "x",
+                image: null,
+            });
+            postsRepo.getPostById.mockResolvedValue(row);
+            const expected = {
+                id: postId,
+                postGroup: row.post_group,
+                publishDateIso: row.publish_date,
+                content: "x",
+                media: [],
+                socialPlatformLabel: null,
+            };
+            const getOrSet = jest.fn().mockResolvedValue(expected);
+
+            const out = await service({ getOrSet }).getPostPreview(postId, "true");
+
+            expect(out).toEqual(expected);
+            expect(getOrSet).toHaveBeenCalledWith(`posts:preview:${postId}`, expect.any(Function), 300);
+        });
+
+        it("calls getPostById once when preview is cached on second request", async () => {
+            const row = socialPostRow({
+                id: postId,
+                integration_id: null,
+                content: "cached",
+                image: null,
+            });
+            postsRepo.getPostById.mockResolvedValue(row);
+
+            const memory = new Map<string, unknown>();
+            const getOrSet = jest.fn(async (key: string, factory: () => Promise<unknown>) => {
+                if (memory.has(key)) return memory.get(key);
+                const value = await factory();
+                memory.set(key, value);
+                return value;
+            });
+
+            const s = service({ getOrSet: asGetOrSet(getOrSet) });
+            await s.getPostPreview(postId, "true");
+            await s.getPostPreview(postId, "true");
+
+            expect(postsRepo.getPostById).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe("deletePostGroup", () => {
@@ -759,6 +1037,32 @@ describe("PostsService", () => {
             expect(integrationConnection.assertOrganizationMember).toHaveBeenCalledWith(authUserId, orgId);
             expect(postsRepo.deleteTagAssignmentsForPostIds).toHaveBeenCalledWith([a.id, b.id]);
             expect(postsRepo.softDeletePostsByGroup).toHaveBeenCalledWith(postGroup);
+        });
+
+        it("invalidates mutation caches when cacheInvalidator provided", async () => {
+            const postGroup = faker.string.uuid();
+            const a = socialPostRow({ id: faker.string.uuid(), post_group: postGroup, organization_id: orgId });
+            const b = socialPostRow({ id: faker.string.uuid(), post_group: postGroup, organization_id: orgId });
+            postsRepo.listPostsByGroup.mockResolvedValue([a, b]);
+            postsRepo.deleteTagAssignmentsForPostIds.mockResolvedValue(undefined);
+            postsRepo.softDeletePostsByGroup.mockResolvedValue([]);
+
+            const invalidateKey = jest.fn().mockResolvedValue(true);
+            const invalidatePattern = jest.fn().mockResolvedValue(true);
+            const invalidateEntity = jest.fn().mockResolvedValue(true);
+
+            await service(undefined, { invalidateKey, invalidatePattern, invalidateEntity }).deletePostGroup(
+                postGroup,
+                authUserId,
+                orgId
+            );
+
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:group:${postGroup}`);
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${a.id}`);
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${b.id}`);
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:tags:list:${orgId}`);
+            expect(invalidatePattern).toHaveBeenCalledWith(`posts:calendar:list:${orgId}:*`);
+            expect(invalidateEntity).toHaveBeenCalledWith("posts", postGroup);
         });
     });
 
@@ -854,6 +1158,63 @@ describe("PostsService", () => {
             expect(postsRepo.softDeletePostsByGroup).toHaveBeenCalledWith(postGroup);
             expect(postsRepo.insertPostGroup).toHaveBeenCalled();
             expect(out).toEqual({ postGroup, posts: [insertedRow] });
+        });
+
+        it("invalidates previews for old and new row ids when cacheInvalidator provided", async () => {
+            const postGroup = faker.string.uuid();
+            const scheduledAtIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            const dbFormattedPublishDate = "2030-06-15T12:00:00+00:00";
+            const existingA = socialPostRow({
+                id: faker.string.uuid(),
+                post_group: postGroup,
+                organization_id: orgId,
+                integration_id: integrationId,
+                state: "QUEUE",
+                publish_date: dbFormattedPublishDate,
+            });
+            postsRepo.listPostsByGroup.mockResolvedValue([existingA]);
+
+            postsRepo.hasQueueSlotTaken.mockResolvedValue(true);
+
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+            ]);
+            postsRepo.findTagByOrgAndName.mockResolvedValue(null);
+            postsRepo.insertTag.mockImplementation(async (_org, name) => tagRow({ name }));
+
+            const insertedRow = socialPostRow({
+                id: faker.string.uuid(),
+                post_group: postGroup,
+                organization_id: orgId,
+                integration_id: integrationId,
+                state: "QUEUE",
+                publish_date: scheduledAtIso,
+            });
+            postsRepo.insertPostGroup.mockResolvedValue([insertedRow]);
+            postsRepo.linkTagsToPosts.mockResolvedValue(undefined);
+            postsRepo.deleteTagAssignmentsForPostIds.mockResolvedValue(undefined);
+            postsRepo.softDeletePostsByGroup.mockResolvedValue([]);
+
+            const invalidateKey = jest.fn().mockResolvedValue(true);
+            const invalidatePattern = jest.fn().mockResolvedValue(true);
+            const invalidateEntity = jest.fn().mockResolvedValue(true);
+
+            await service(undefined, { invalidateKey, invalidatePattern, invalidateEntity }).updatePostGroup({
+                postGroup,
+                organizationId: orgId,
+                authUserId,
+                body: faker.lorem.sentence(),
+                integrationIds: [integrationId],
+                isGlobal: true,
+                scheduledAtIso,
+                repeatInterval: null,
+                tagNames: ["t1"],
+                status: "scheduled",
+            });
+
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${existingA.id}`);
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${insertedRow.id}`);
+            expect(invalidateEntity).toHaveBeenCalledWith("posts", postGroup);
         });
     });
 });
