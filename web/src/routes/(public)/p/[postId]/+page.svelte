@@ -6,10 +6,10 @@
 	import { url } from '$lib/utils/path';
 	import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
 
+	import Comments from '$lib/ui/components/preview/Comments.svelte';
 	import CopyClient from '$lib/ui/components/preview/CopyClient.svelte';
 	import RenderPreviewDate from '$lib/ui/components/preview/RenderPreviewDate.svelte';
 	import VideoOrImage from '$lib/ui/components/VideoOrImage.svelte';
-
 
 	let { data }: { data: PageData } = $props();
 
@@ -56,19 +56,27 @@
 			</div>
 		</div>
 
-		<div class="mx-auto w-full max-w-[1346px] px-4 py-6">
-			<div class="rounded-lg border border-base-300 bg-base-100 p-4 text-base-content">
-				<div class="whitespace-pre-wrap text-sm">{@html previewPostVm.content}</div>
+		<div class="mx-auto flex w-full max-w-[1346px] flex-col gap-6 px-4 py-6 lg:flex-row lg:items-start">
+			<div class="min-w-0 flex-1">
+				<div class="rounded-lg border border-base-300 bg-base-100 p-4 text-base-content">
+					<div class="whitespace-pre-wrap text-sm">{@html previewPostVm.content}</div>
 
-				{#if Array.isArray(previewPostVm.media) && previewPostVm.media.length > 0}
-					<div class="mt-4 flex w-full gap-3">
-						{#each previewPostVm.media as m (m.id)}
-							<div class="flex-1 overflow-hidden rounded-lg border border-base-300 bg-base-200">
-								<VideoOrImage src={m.path} autoplay={true} isContain={true} />
-							</div>
-						{/each}
-					</div>
-				{/if}
+					{#if Array.isArray(previewPostVm.media) && previewPostVm.media.length > 0}
+						<div class="mt-4 flex w-full gap-3">
+							{#each previewPostVm.media as m (m.id)}
+								<div class="flex-1 overflow-hidden rounded-lg border border-base-300 bg-base-200">
+									<VideoOrImage src={m.path} autoplay={true} isContain={true} />
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			</div>
+			<div class="w-full lg:w-96 lg:shrink-0">
+				<Comments
+					postId={previewPostVm.id}
+					organizationId={previewPostVm.organizationId}
+					/>
 			</div>
 		</div>
 	{:else}

@@ -520,6 +520,7 @@ export class PostsService {
     async getPostPreview(postId: string, share: string | null): Promise<{
         id: string;
         postGroup: string;
+        organizationId: string;
         publishDateIso: string;
         content: string;
         media: PostMediaItemInput[];
@@ -534,6 +535,7 @@ export class PostsService {
         const factory = async (): Promise<{
             id: string;
             postGroup: string;
+            organizationId: string;
             publishDateIso: string;
             content: string;
             media: PostMediaItemInput[];
@@ -558,6 +560,7 @@ export class PostsService {
             return {
                 id: row.id,
                 postGroup: row.post_group,
+                organizationId: row.organization_id,
                 publishDateIso: row.publish_date,
                 content: row.content ?? "",
                 media,

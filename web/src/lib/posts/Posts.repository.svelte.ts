@@ -128,6 +128,7 @@ export type DebugExportPostGroupResponseDto = {
 export type PostPreviewProgrammerModel = {
 	id: string;
 	postGroup: string;
+	organizationId: string;
 	publishDateIso: string;
 	content: string;
 	media: { id: string; path: string }[];
@@ -138,6 +139,28 @@ export type PostPreviewProgrammerModel = {
 export type GetPostPreviewResponseDto = {
 	success?: boolean;
 	data?: PostPreviewProgrammerModel;
+};
+
+export type PostCommentProgrammerModel = {
+	id: string;
+	postId: string;
+	organizationId: string;
+	userId: string;
+	content: string;
+	createdAt: string;
+	updatedAt: string;
+	deletedAt: string | null;
+};
+
+export type GetPublicPostCommentsResponseDto = {
+	comments?: PostCommentProgrammerModel[];
+};
+
+export type CreatePostCommentResponseDto = {
+	success?: boolean;
+	data?: {
+		comment?: PostCommentProgrammerModel;
+	};
 };
 
 export type RepeatIntervalKey =
@@ -180,6 +203,8 @@ export interface PostsConfig {
 		getPostGroup: string;
 		debugExportPostGroup: string;
 		getPostPreview: string;
+		getPublicPostComments: (postId: string) => string;
+		createPostComment: (postId: string) => string;
 		updatePostGroup: string;
 		deletePostGroup: string;
 	};
@@ -385,6 +410,49 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not load preview.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not load preview.');
+		}
+	}
+
+	async getPublicPostComments(
+		postId: string,
+		options?: { fetch?: typeof globalThis.fetch }
+	): Promise<{ ok: true; comments: PostCommentProgrammerModel[] } | { ok: false; error: string }> {
+		try {
+			const { ok, data: dto } = await this.httpGateway.get<GetPublicPostCommentsResponseDto>(
+				this.config.endpoints.getPublicPostComments(postId),
+				undefined,
+				{ withCredentials: false, ...(options?.fetch ? { fetch: options.fetch } : {}) }
+			);
+			if (ok && Array.isArray(dto?.comments)) {
+				return { ok: true, comments: dto.comments };
+			}
+			return { ok: false, error: 'Could not load comments.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not load comments.');
+		}
+	}
+
+	async createPostComment(params: {
+		postId: string;
+		organizationId: string;
+		comment: string;
+	}): Promise<{ ok: true; comment: PostCommentProgrammerModel } | { ok: false; error: string }> {
+		try {
+			const { ok, data: dto } = await this.httpGateway.post<CreatePostCommentResponseDto>(
+				this.config.endpoints.createPostComment(params.postId),
+				{
+					organizationId: params.organizationId,
+					comment: params.comment
+				},
+				{ withCredentials: true }
+			);
+			const commentPm = dto?.data?.comment;
+			if (ok && dto?.success === true && commentPm?.id) {
+				return { ok: true, comment: commentPm };
+			}
+			return { ok: false, error: 'Could not submit comment.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not submit comment.');
 		}
 	}
 

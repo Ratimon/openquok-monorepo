@@ -8,11 +8,11 @@ export type { PublicPreviewPostViewModel };
 
 /**
  * Public `/p/[postId]` page shell: maps preview PM → VM via {@link GetScheduledPostsPresenter}.
- *
- * Naming pairs {@link loadPreviewPostStateless} (PM→VM only, SSR-safe, no `$state`) vs {@link loadPreviewPost}
  */
 export class PublicPreviewPostByIdPagePresenter {
-	constructor(private readonly getScheduledPostsPresenter: GetScheduledPostsPresenter) {}
+	constructor(
+		private readonly getScheduledPostsPresenter: GetScheduledPostsPresenter
+	) {}
 
 	public currentPreviewPostVm: PublicPreviewPostViewModel | null = $state(null);
 

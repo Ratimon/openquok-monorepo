@@ -16,6 +16,8 @@ const postsConfig: PostsConfig = {
 		getPostGroup: `${base}/group`,
 		debugExportPostGroup: `${base}/group`,
 		getPostPreview: `${base}/preview`,
+		getPublicPostComments: (postId: string) => `/api/v1/public/posts/${postId}/comments`,
+		createPostComment: (postId: string) => `${base}/${postId}/comments`,
 		updatePostGroup: `${base}/group`,
 		deletePostGroup: `${base}/group`
 	}
@@ -33,6 +35,7 @@ export {
 } from '$lib/posts/Posts.repository.svelte';
 export type {
 	CreatePostProgrammerModel,
+	PostCommentProgrammerModel,
 	PostRowProgrammerModel,
 	PostTagProgrammerModel,
 	RepeatIntervalKey,

@@ -39,6 +39,7 @@ export type GetPostGroupResultViewModel =
 export interface PublicPreviewPostViewModel {
 	id: string;
 	postGroup: string;
+	organizationId: string;
 	publishDateIso: string;
 	content: string;
 	media: { id: string; path: string }[];
@@ -73,6 +74,7 @@ export class GetScheduledPostsPresenter {
 		const previewPostVm: PublicPreviewPostViewModel = {
 			id: previewPostPm.id,
 			postGroup: previewPostPm.postGroup,
+			organizationId: previewPostPm.organizationId,
 			publishDateIso: previewPostPm.publishDateIso,
 			content: previewPostPm.content,
 			media: Array.isArray(previewPostPm.media) ? previewPostPm.media : [],
