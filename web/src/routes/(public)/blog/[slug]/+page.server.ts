@@ -1,9 +1,9 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
+import type { BlogPostCommentProgrammerModel } from '$lib/blog/index';
 
 import { error } from '@sveltejs/kit';
 
 import { buildBlogInlineImageSrc, createBlogPostSEOSchema, guessImageMimeFromFilename } from '$lib/blog/utils';
-import { blogRepository, type BlogPostCommentProgrammerModel } from '$lib/blog/index';
 import { publicBlogBySlugPagePresenter, publicInformationRepository } from '$lib/area-public/index';
 import { getRootPathPublicBlog, getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { CONFIG_SCHEMA_MARKETING } from '$lib/config/constants/config';
@@ -39,12 +39,8 @@ export async function load({ url, params, fetch, cookies }) {
 		throw error(404, 'Blog post not found');
 	}
 
-	let comments: BlogPostCommentProgrammerModel[] = [];
-	try {
-		comments = await blogRepository.getPostComments(currentPostVm.id, fetch);
-	} catch {
-		comments = [];
-	}
+	const comments: BlogPostCommentProgrammerModel[] =
+		await publicBlogBySlugPagePresenter.loadPostComments({ postId: currentPostVm.id, fetch });
 
 	const { CONFIG_SCHEMA_COMPANY } = await import('$lib/config/constants/config');
 	const companyConfig = companyInformationPm?.config as Record<string, string> | undefined;
@@ -130,6 +126,7 @@ export async function load({ url, params, fetch, cookies }) {
 
 	const schemaData = createBlogPostSEOSchema({
 		post: currentPostVm,
+		comments,
 		canonicalUrl: canonicalHref,
 		companyName,
 		companySiteUrl,

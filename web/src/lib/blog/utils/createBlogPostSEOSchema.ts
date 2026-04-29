@@ -2,6 +2,7 @@ import { base } from '$app/paths';
 
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import type { BlogPostBySlugPublicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
+import type { BlogPostCommentProgrammerModel } from '$lib/blog/index';
 import { buildBlogInlineImageSrc } from '$lib/blog/utils/buildBlogInlineImageSrc';
 
 /** Guess MIME type from a storage filename (used for OG / JSON-LD image). */
@@ -33,6 +34,7 @@ function absoluteAppUrl(origin: string, pathname: string): string {
 
 export type CreateBlogPostSEOSchemaParams = {
 	post: BlogPostBySlugPublicViewModel;
+	comments?: BlogPostCommentProgrammerModel[];
 	/** Full canonical URL of this post page (matches `<link rel="canonical">`). */
 	canonicalUrl: string;
 	companyName: string;
@@ -49,7 +51,7 @@ export type CreateBlogPostSEOSchemaParams = {
  * (ported from `blog-system` `generateBlogPostSEOSchema`, adapted to `BlogPostBySlugPublicViewModel`).
  */
 export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): Record<string, unknown> {
-	const { post, canonicalUrl, companyName, companySiteUrl, companyLogoUrl, requestUrl } = params;
+	const { post, comments = [], canonicalUrl, companyName, companySiteUrl, companyLogoUrl, requestUrl } = params;
 
 	const origin = requestUrl.origin;
 	const blogIndexUrl = absoluteAppUrl(origin, `/${getRootPathPublicBlog()}`);
@@ -159,6 +161,31 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		blogPosting.interactionStatistic = interactionStatistic;
 	}
 
+	const commentNodes: Record<string, unknown>[] = [];
+	for (const c of comments) {
+		if (!c?.id || !c.content) continue;
+		const commentId = String(c.id);
+		const commentAnchor = `${canonicalUrl}#comment-${encodeURIComponent(commentId)}`;
+		const authorNameForComment =
+			c.author?.fullName?.trim() || (c.userId ? `User ${String(c.userId).slice(0, 8)}` : 'User');
+
+		commentNodes.push({
+			'@type': 'Comment',
+			'@id': commentAnchor,
+			url: commentAnchor,
+			text: c.content,
+			dateCreated: c.createdAt ? new Date(c.createdAt).toISOString() : undefined,
+			dateModified: c.updatedAt ? new Date(c.updatedAt).toISOString() : undefined,
+			author: {
+				'@type': 'Person',
+				name: authorNameForComment
+			}
+		});
+	}
+	if (commentNodes.length > 0) {
+		blogPosting.comment = commentNodes.map((n) => ({ '@id': n['@id'] }));
+	}
+
 	const breadcrumbItems: Record<string, unknown>[] = [
 		{
 			'@type': 'ListItem',
@@ -198,6 +225,6 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 
 	return {
 		'@context': 'https://schema.org',
-		'@graph': [blogPosting, breadcrumbList]
+		'@graph': [blogPosting, breadcrumbList, ...commentNodes]
 	};
 }

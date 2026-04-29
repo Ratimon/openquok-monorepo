@@ -23,7 +23,6 @@
 		"lint": "eslint ."
 	},
 	"dependencies": {
-		"openquok-common": "workspace:*",
 		"@internationalized/date": "^3.12.0",
 		"@preact/signals": "^2.9.0",
 		"@schedule-x/calendar": "^4.5.0",
@@ -52,8 +51,10 @@
 		"konva": "^9.3.22",
 		"mdsvex": "^0.12.7",
 		"nanoid": "^5.1.9",
+		"openquok-common": "workspace:*",
 		"parse5": "^8.0.0",
 		"preact": "^10.29.1",
+		"schema-dts": "^2.0.0",
 		"shiki": "^4.0.2",
 		"striptags": "^3.2.0",
 		"svelte-meta-tags": "^4.5.0",

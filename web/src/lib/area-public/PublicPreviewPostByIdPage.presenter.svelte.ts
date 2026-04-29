@@ -1,11 +1,10 @@
-import type { PostPreviewProgrammerModel } from '$lib/posts/Posts.repository.svelte';
 import type {
 	GetScheduledPostsPresenter,
+	PostCommentViewModel,
 	PublicPreviewPostViewModel
 } from '$lib/posts/GetScheduledPosts.presenter.svelte';
-import type { PostCommentProgrammerModel, PostsRepository } from '$lib/posts';
+import type {  PostsRepository } from '$lib/posts';
 
-export type { PublicPreviewPostViewModel };
 
 /**
  * Public `/p/[postId]` page shell: maps preview PM → VM via {@link GetScheduledPostsPresenter}.
@@ -17,67 +16,90 @@ export class PublicPreviewPostByIdPagePresenter {
 	) {}
 
 	public currentPreviewPostVm: PublicPreviewPostViewModel | null = $state(null);
-
+	public currentCommentsVm: PostCommentViewModel[] = $state([]);
+	public submittingComment = $state(false);
+	public showCommentSubmitToast = $state(false);
+	public commentSubmitToastMessage = $state('');
+	public commentSubmitToastIsError = $state(false);
 	/**
 	 * ✅ Stateless — safe for `+page.server.ts` (SSR): maps programmer model → view model **without** mutating `$state`.
+	 * Does **not** mutate `$state` (usable from tests or orchestration).
 	 */
-	loadPreviewPostStateless(postPreviewPm: PostPreviewProgrammerModel): { postVm: PublicPreviewPostViewModel } {
-		const previewPostVm = this.getScheduledPostsPresenter.mapPreviewPostPmToVm(postPreviewPm);
-		return { postVm: previewPostVm };
+	async loadPreviewPostByIdStateless(params: {
+		postId: string;
+		fetch?: typeof globalThis.fetch;
+	}): Promise<PublicPreviewPostViewModel | null> {
+		return this.getScheduledPostsPresenter.loadPostPreviewVmById(
+			params.postId,
+			params.fetch ? { fetch: params.fetch } : undefined
+		);
 	}
 
 	/**
-	 * Stateful wrapper — calls {@link loadPreviewPostStateless} and assigns {@link currentPreviewPostVm}.
+	 * Stateful wrapper — calls {@link loadPreviewPostByIdStateless} and assigns {@link currentPreviewPostVm} for client-side use.
 	 */
-	loadPreviewPost(postPreviewPm: PostPreviewProgrammerModel): { postVm: PublicPreviewPostViewModel } {
-		const previewPostVm = this.loadPreviewPostStateless(postPreviewPm).postVm;
-		this.currentPreviewPostVm = previewPostVm;
-		return { postVm: previewPostVm };
+	async loadPreviewPostById(params: {
+		postId: string;
+		fetch?: typeof globalThis.fetch;
+	}): Promise<PublicPreviewPostViewModel | null> {
+		const postVm = await this.loadPreviewPostByIdStateless(params);
+		this.currentPreviewPostVm = postVm;
+		return postVm;
 	}
 
-	getPublicComments(
-		postId: string
-	): Promise<{ ok: true; comments: PostCommentProgrammerModel[] } | { ok: false; error: string }> {
-		return this.postsRepository.getPublicPostComments(postId);
+	/**
+	 * ✅ Stateless — safe for SSR loads: fetch comments via {@link GetScheduledPostsPresenter.getPublicComments}.
+	 * Does **not** mutate `$state` (usable from `+page.server.ts` and other stateless composition).
+	 */
+	async loadPublicCommentsStateless(
+		postId: string,
+		options?: { fetch?: typeof globalThis.fetch }
+	): Promise<PostCommentViewModel[]> {
+		return this.getScheduledPostsPresenter.loadPublicCommentsVm(postId, options);
 	}
 
-	createComment(params: {
+	/**
+	 * Stateful wrapper — calls {@link getPublicCommentsStateless} and assigns {@link currentCommentsVm}
+	 * for client-side use (e.g. after posting a comment, or on client navigations without SSR).
+	 */
+	async loadPublicComments(
+		postId: string,
+		options?: { fetch?: typeof globalThis.fetch }
+	): Promise<PostCommentViewModel[]> {
+		const comments = await this.loadPublicCommentsStateless(postId, options);
+		this.currentCommentsVm = comments;
+		return comments;
+	}
+
+	async createComment(params: {
 		postId: string;
 		organizationId: string;
 		comment: string;
-	}): Promise<{ ok: true; comment: PostCommentProgrammerModel } | { ok: false; error: string }> {
-		return this.postsRepository.createPostComment(params);
+	}): Promise<PostCommentViewModel | null> {
+		this.submittingComment = true;
+		this.showCommentSubmitToast = false;
+		try {
+			const resultPm = await this.postsRepository.createPostComment(params);
+			if (!resultPm.ok) {
+				this.commentSubmitToastMessage = resultPm.error || 'Could not submit comment.';
+				this.commentSubmitToastIsError = true;
+				this.showCommentSubmitToast = true;
+				return null;
+			}
+			const vm = this.getScheduledPostsPresenter.mapPostCommentPmToVm(resultPm.comment);
+			this.currentCommentsVm = [...this.currentCommentsVm, vm];
+			this.commentSubmitToastMessage = 'Comment posted.';
+			this.commentSubmitToastIsError = false;
+			this.showCommentSubmitToast = true;
+			return vm;
+		} catch {
+			this.commentSubmitToastMessage = 'Could not submit comment.';
+			this.commentSubmitToastIsError = true;
+			this.showCommentSubmitToast = true;
+			return null;
+		} finally {
+			this.submittingComment = false;
+		}
 	}
 
-	// /**
-	//  * Stateless — fetch preview PM via {@link GetScheduledPostsPresenter.fetchPostPreviewPm}, then {@link loadPreviewPostStateless}.
-	//  * Does **not** mutate `$state` (usable from tests or orchestration).
-	//  */
-	// async loadPreviewPostByIdStateless(params: {
-	// 	postId: string;
-	// 	fetch?: typeof globalThis.fetch;
-	// }): Promise<{ postVm: PublicPreviewPostViewModel | null; loadError: string | null }> {
-	// 	const postPreviewPmResult = await this.getScheduledPostsPresenter.fetchPostPreviewPm(
-	// 		params.postId,
-	// 		params.fetch ? { fetch: params.fetch } : undefined
-	// 	);
-	// 	if (!postPreviewPmResult.ok) {
-	// 		return { postVm: null, loadError: postPreviewPmResult.error };
-	// 	}
-	// 	const previewPostPm = postPreviewPmResult.post;
-	// 	const previewPostVm = this.loadPreviewPostStateless(previewPostPm).postVm;
-	// 	return { postVm: previewPostVm, loadError: null };
-	// }
-
-	// /**
-	//  * Stateful wrapper — calls {@link loadPreviewPostByIdStateless} and assigns {@link currentPreviewPostVm} for client-side use.
-	//  */
-	// async loadPreviewPostById(params: {
-	// 	postId: string;
-	// 	fetch?: typeof globalThis.fetch;
-	// }): Promise<{ postVm: PublicPreviewPostViewModel | null; loadError: string | null }> {
-	// 	const { postVm, loadError } = await this.loadPreviewPostByIdStateless(params);
-	// 	this.currentPreviewPostVm = postVm;
-	// 	return { postVm, loadError };
-	// }
 }

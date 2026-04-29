@@ -4,6 +4,7 @@ import type {
 	AdminBlogCommentProgrammerModel,
 	ActiveBlogTopicProgrammerModel,
 	BlogPostProgrammerModel,
+	BlogPostCommentProgrammerModel,
 	BlogRepository,
 	BlogTopicProgrammerModel,
 	PublishedBlogAuthorProgrammerModel
@@ -225,6 +226,18 @@ export class GetBlogPresenter {
 		});
 
 		return posts.map((p: BlogPostProgrammerModel): BlogPostPublicViewModel => this.toBlogPostPublicVm(p));
+	}
+
+	/** Public: approved comments for a published post (no auth). */
+	public async loadPublishedBlogPostComments(
+		postId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<BlogPostCommentProgrammerModel[]> {
+		try {
+			return await this.blogRepository.getPostComments(postId, fetch);
+		} catch {
+			return [];
+		}
 	}
 
 	private toBlogPostBySlugPublicVm(post: BlogPostProgrammerModel): BlogPostBySlugPublicViewModel {

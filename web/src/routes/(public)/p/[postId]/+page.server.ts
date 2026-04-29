@@ -1,9 +1,10 @@
 import type { PageServerLoad } from './$types';
 import type { MetaTagsProps } from 'svelte-meta-tags';
-import type { PublicPreviewPostViewModel } from '$lib/posts/index';
+import type { PostCommentViewModel, PublicPreviewPostViewModel } from '$lib/posts/index';
 
+import { error } from '@sveltejs/kit';
 import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
-import { postsRepository } from '$lib/posts/index';
+import { createPostSEOSchema } from '$lib/posts/utils/createPostSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';
 
@@ -20,17 +21,15 @@ export const load: PageServerLoad = async ({ params, fetch, parent, url }) => {
 	const companyConfig = companyInformationPm?.config as Record<string, string> | undefined;
 	const companyName = String(companyConfig?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default);
 
-	const postPreviewPmResult = await postsRepository.getPostPreview(postId, { fetch });
-
 	let postVm: PublicPreviewPostViewModel | null = null;
-	let loadError: string | null = null;
+	let commentsVm: PostCommentViewModel[] = [];
 
-	if (!postPreviewPmResult.ok) {
-		loadError = postPreviewPmResult.error;
-	} else {
-		const previewPostPm = postPreviewPmResult.post;
-		postVm = publicPreviewPostByIdPagePresenter.loadPreviewPostStateless(previewPostPm).postVm;
+	postVm = await publicPreviewPostByIdPagePresenter.loadPreviewPostByIdStateless({ postId, fetch });
+	if (!postVm) {
+		throw error(404, 'Post not found');
 	}
+
+	commentsVm = await publicPreviewPostByIdPagePresenter.loadPublicCommentsStateless(postId, { fetch });
 
 	const postText = postVm ? stripHtmlToPlainText(postVm.content || '') : '';
 	const postSnippet = truncatePlainText(postText, 120);
@@ -61,7 +60,6 @@ export const load: PageServerLoad = async ({ params, fetch, parent, url }) => {
 			...(platformLabel ? [platformLabel.toLowerCase()] : []),
 			'social media scheduler',
 			'social media scheduling',
-			'content calendar',
 			'scheduled post',
 			'post preview'
 		].filter((t) => typeof t === 'string' && t.trim().length > 0),
@@ -74,9 +72,26 @@ export const load: PageServerLoad = async ({ params, fetch, parent, url }) => {
 		...metaTags
 	}) satisfies MetaTagsProps;
 
+	const canonicalHref =
+		typeof pageMetaTags.canonical === 'string'
+			? pageMetaTags.canonical
+			: new URL(url.pathname, url.origin).href;
+
+	const companyUrl = String((companyConfig?.URL ?? CONFIG_SCHEMA_COMPANY.URL.default) || '');
+
+	const schemaData = createPostSEOSchema({
+		post: postVm,
+		comments: commentsVm,
+		canonicalUrl: canonicalHref,
+		companyName,
+		companySiteUrl: companyUrl,
+		requestUrl: url
+	});
+
 	return {
 		postVm,
-		loadError,
-		pageMetaTags
+		commentsVm,
+		pageMetaTags,
+		schemaData
 	};
 };

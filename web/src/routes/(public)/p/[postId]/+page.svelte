@@ -1,7 +1,10 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { PublicPreviewPostViewModel } from '$lib/posts';
+	import type { PostCommentViewModel } from '$lib/posts';
 
 	import { toast } from '$lib/ui/sonner';
+	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { url } from '$lib/utils/path';
 	import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
@@ -16,15 +19,25 @@
 	let { data }: { data: PageData } = $props();
 
 	$effect(() => {
-		if (data?.loadError) {
-			toast.error(data.loadError || 'Could not load preview.');
+		if (!browser) return;
+		if (!publicPreviewPostByIdPagePresenter.showCommentSubmitToast) return;
+		const msg = publicPreviewPostByIdPagePresenter.commentSubmitToastMessage;
+		if (publicPreviewPostByIdPagePresenter.commentSubmitToastIsError) {
+			toast.error(msg);
+		} else {
+			toast.success(msg);
 		}
+		publicPreviewPostByIdPagePresenter.showCommentSubmitToast = false;
 	});
 
 	const showShare = $derived(page.url.searchParams.get('share') === 'true');
 
 	// Prefer SSR data; fall back to presenter state (client-side refreshes).
-	const previewPostVm = $derived(data.postVm ?? publicPreviewPostByIdPagePresenter.currentPreviewPostVm);
+	const previewPostVm = $derived(
+		(data.postVm ?? publicPreviewPostByIdPagePresenter.currentPreviewPostVm) as
+			| PublicPreviewPostViewModel
+			| null
+	);
 
 	const signInHref = $derived(
 		url(
@@ -35,10 +48,17 @@
 		authenticationRepository.currentUser?.fullName ?? authenticationRepository.currentUser?.email ?? null
 	);
 	const isLoggedIn = $derived(authenticationRepository.isAuthenticated());
+	let schemaData = $derived(data.schemaData);
+	const commentsVm = $derived(
+		(data.commentsVm ?? publicPreviewPostByIdPagePresenter.currentCommentsVm) as PostCommentViewModel[]
+	);
 
-	const handleLoadComments = async (postId: string) => {
-		return publicPreviewPostByIdPagePresenter.getPublicComments(postId);
-	};
+	$effect(() => {
+		// Seed presenter state so subsequent client-side comment posts update the displayed list.
+		if (Array.isArray(data.commentsVm)) {
+			publicPreviewPostByIdPagePresenter.currentCommentsVm = data.commentsVm;
+		}
+	});
 
 	const handleSubmitComment = async (params: {
 		postId: string;
@@ -47,14 +67,18 @@
 	}) => {
 		return publicPreviewPostByIdPagePresenter.createComment(params);
 	};
+
+	const submittingComment = $derived(publicPreviewPostByIdPagePresenter.submittingComment);
 </script>
 
+<svelte:head>
+	{#if schemaData}
+		<script type="application/ld+json">{JSON.stringify(schemaData)}</script>
+	{/if}
+</svelte:head>
+
 <div class="min-h-screen bg-base-200 text-base-content">
-	{#if data.loadError}
-		<div class="fixed inset-0 flex items-center justify-center p-6 text-[20px] text-base-content">
-			{data.loadError || 'Could not load preview.'}
-		</div>
-	{:else if previewPostVm}
+	{#if previewPostVm}
 		<div class="border-b border-base-300 bg-base-100/80 backdrop-blur">
 			<div class="mx-auto flex w-full max-w-[1346px] items-center justify-between gap-3 px-4 py-3">
 				<a href="/" class="flex items-center gap-3 text-base-content">
@@ -103,8 +127,9 @@
 					isLoggedIn={isLoggedIn}
 					currentUserLabel={currentUserLabel}
 					signInHref={signInHref}
-					loadComments={handleLoadComments}
+					comments={commentsVm}
 					submitComment={handleSubmitComment}
+					{submittingComment}
 				/>
 			</div>
 		</div>

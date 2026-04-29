@@ -4,6 +4,7 @@ import type {
 	PostRowProgrammerModel,
 	PostsRepository
 } from '$lib/posts/Posts.repository.svelte';
+import type { PostCommentProgrammerModel } from '$lib/posts/Posts.repository.svelte';
 
 export interface CalendarPostRowViewModel {
 	id: string;
@@ -46,6 +47,22 @@ export interface PublicPreviewPostViewModel {
 	socialPlatformLabel?: string | null;
 }
 
+/** Public composer comment view model (UI-safe shape). */
+export interface PostCommentViewModel {
+	id: string;
+	postId: string;
+	organizationId: string;
+	userId: string;
+	content: string;
+	createdAt: string;
+	updatedAt: string;
+	deletedAt: string | null;
+}
+
+function toPostCommentVm(pm: PostCommentProgrammerModel): PostCommentViewModel {
+	return { ...pm };
+}
+
 function toCalendarPostRowVm(pm: PostRowProgrammerModel): CalendarPostRowViewModel {
 	return { ...pm };
 }
@@ -70,6 +87,10 @@ function toPostGroupDetailsVm(pm: PostGroupDetailsProgrammerModel): PostGroupDet
 export class GetScheduledPostsPresenter {
 	constructor(private readonly postsRepository: PostsRepository) {}
 
+	mapPostCommentPmToVm(pm: PostCommentProgrammerModel): PostCommentViewModel {
+		return toPostCommentVm(pm);
+	}
+
 	mapPreviewPostPmToVm(previewPostPm: PostPreviewProgrammerModel): PublicPreviewPostViewModel {
 		const previewPostVm: PublicPreviewPostViewModel = {
 			id: previewPostPm.id,
@@ -83,31 +104,76 @@ export class GetScheduledPostsPresenter {
 		return previewPostVm;
 	}
 
-	// async fetchPostPreviewPm(
-	// 	postId: string,
-	// 	options?: { fetch?: typeof globalThis.fetch }
-	// ): Promise<{ ok: true; post: PostPreviewProgrammerModel } | { ok: false; error: string }> {
-	// 	return this.postsRepository.getPostPreview(postId, options);
-	// }
+	/**
+	 * ✅ Stateless — fetch public preview PM then map to {@link PublicPreviewPostViewModel}.
+	 * Keeps repository access + mapping inside this presenter.
+	 */
+	async getPostPreviewVm(
+		postId: string,
+		options?: { fetch?: typeof globalThis.fetch }
+	): Promise<PublicPreviewPostViewModel | null> {
+		try {
+			const pmResult = await this.postsRepository.getPostPreview(postId, options);
+			if (!pmResult.ok) return null;
+			return this.mapPreviewPostPmToVm(pmResult.post);
+		} catch {
+			return null;
+		}
+	}
+
+	/** Public preview VM (no auth) — returns `null` on failure (clean UI-friendly helper). */
+	async loadPostPreviewVmById(
+		postId: string,
+		options?: { fetch?: typeof globalThis.fetch }
+	): Promise<PublicPreviewPostViewModel | null> {
+		return this.getPostPreviewVm(postId, options);
+	}
 
 	async listPosts(params: {
 		organizationId: string;
 		startIso: string;
 		endIso: string;
 		integrationIds?: string[] | null;
-	}): Promise<{ ok: true; posts: CalendarPostRowViewModel[] } | { ok: false; error: string }> {
-		const listPostsPmResult = await this.postsRepository.listPosts(params);
-		if (!listPostsPmResult.ok) return listPostsPmResult;
-		const postRowsPm = listPostsPmResult.posts;
-		return { ok: true, posts: postRowsPm.map(toCalendarPostRowVm) };
+	}): Promise<CalendarPostRowViewModel[]> {
+		try {
+			const listPostsPmResult = await this.postsRepository.listPosts(params);
+			if (!listPostsPmResult.ok) return [];
+			return listPostsPmResult.posts.map(toCalendarPostRowVm);
+		} catch {
+			return [];
+		}
 	}
 
-	async getPostGroup(postGroup: string): Promise<GetPostGroupResultViewModel> {
-		const getPostGroupPmResult = await this.postsRepository.getPostGroup(postGroup);
-		if (!getPostGroupPmResult.ok) return getPostGroupPmResult;
-		const postGroupDetailsPm = getPostGroupPmResult.group;
-		const postGroupDetailsVm = toPostGroupDetailsVm(postGroupDetailsPm);
-		return { ok: true, group: postGroupDetailsVm };
+	async getPostGroup(postGroup: string): Promise<PostGroupDetailsViewModel | null> {
+		try {
+			const r = await this.postsRepository.getPostGroup(postGroup);
+			if (!r.ok) return null;
+			return toPostGroupDetailsVm(r.group);
+		} catch {
+			return null;
+		}
+	}
+
+	/** Public `GET /public/posts/:postId/comments` — keep repo access behind the presenter boundary. */
+	async getPublicComments(
+		postId: string,
+		options?: { fetch?: typeof globalThis.fetch }
+	): Promise<PostCommentViewModel[]> {
+		try {
+			const r = await this.postsRepository.getPublicPostComments(postId, options);
+			if (!r.ok) return [];
+			return r.comments.map(toPostCommentVm);
+		} catch {
+			return [];
+		}
+	}
+
+	/** Public comments VM (no auth) — returns empty list on failure. */
+	async loadPublicCommentsVm(
+		postId: string,
+		options?: { fetch?: typeof globalThis.fetch }
+	): Promise<PostCommentViewModel[]> {
+		return this.getPublicComments(postId, options);
 	}
 }
 

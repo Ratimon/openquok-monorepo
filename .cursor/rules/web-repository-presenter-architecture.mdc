@@ -32,6 +32,7 @@ alwaysApply: false
 - **Repositories return PM**, not `*Vm` / `*ViewModel`.
 - **`Get*Presenter`** is the **read/list VM boundary** (map PM → VM).
 - **DTO == PM** is allowed only when the wire shape is identical; still treat the return as PM at the boundary.
+- **Prefer clean returns in presenters:** for public read flows, prefer returning `null` / `[]` over `{ ok: true } | { ok: false }` unions. Keep unions when the caller truly needs to branch on multiple failure modes.
 
 ---
 
@@ -89,6 +90,11 @@ No gateway/repository imports from **routes**.
 - Presenter fields for the UI: **`workspacesVm`**, etc.
 - Internal VM mutation helpers on presenters: **`_*`** prefix when not public API (full pattern: **web-page-presenter-conventions**).
 
+When a presenter returns clean values (`null` / `[]`) instead of unions, prefer variable names like:
+
+- `postVm` (nullable) instead of `postResult`
+- `commentsVm` (array) instead of `commentsResult`
+
 ### List reads: DTO vs PM vs Vm
 
 - Repositories **map DTO → PM** before returning; no raw DTO arrays to presenters.
@@ -101,6 +107,12 @@ No gateway/repository imports from **routes**.
 - **Feature presenters** (`SchedulerPresenter`, `CreateSocialPostPresenter`, …): **stateful**; constructor-injected **repositories** (and sometimes other presenters such as **`GenerateMediaModalPresenter`**); own domain **`$state`** / methods. **Compose in `area-*` `index.ts`**, **inject into `Protected*PagePresenter`** — see **web-page-presenter-conventions**.
 - **Workspace / editor-style feature presenters** (`WorkspaceSettings`, `Editor*`, etc.): `$state` for status/VM; may call repos and `Get*`; still **feature**-scoped, not area page files.
 - **Page presenter `*Stateless` helpers** (e.g. `loadPreviewPostStateless`): must not mutate page **`$state`**; map PM→VM via injected **`Get*`** (`mapPreviewPostPmToVm`). Paired non-**Stateless** methods assign **`$state`** (e.g. **`loadPreviewPost`**). Optional async **`loadPreviewPostByIdStateless`** / **`loadPreviewPostById`** when fetch-by-id is needed — details in **web-page-presenter-conventions** (**Public area page presenters**).
+
+### Return-shape guidance (pragmatic)
+
+- **Repositories**: may return unions (`{ ok: true } | { ok: false }`) for transport errors; they are the I/O boundary.
+- **`Get*` presenters (reads)**: prefer **clean values** (`Vm | null`, `Vm[]`) and handle repository unions internally with `try/catch` fallbacks.
+- **Feature presenters / mutations**: unions are OK when needed, but consider also using presenter toast flags (pattern A) or returning `null`/`false` when the UI only needs success/failure.
 
 ## Testing
 

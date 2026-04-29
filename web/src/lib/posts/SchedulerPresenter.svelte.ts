@@ -155,13 +155,28 @@ export class SchedulerPresenter {
 		| { ok: true; posts: CalendarPostRowViewModel[] }
 		| { ok: false; error: string }
 	> {
-		return this.getScheduledPostsPresenter.listPosts(params);
+		return (async () => {
+			try {
+				const posts = await this.getScheduledPostsPresenter.listPosts(params);
+				return { ok: true, posts };
+			} catch {
+				return { ok: false, error: 'Could not load posts.' };
+			}
+		})();
 	}
 
 	getPostGroup(
 		postGroup: string
 	): Promise<GetPostGroupResultViewModel> {
-		return this.getScheduledPostsPresenter.getPostGroup(postGroup);
+		return (async () => {
+			try {
+				const group = await this.getScheduledPostsPresenter.getPostGroup(postGroup);
+				if (!group) return { ok: false, error: 'Could not load post.' };
+				return { ok: true, group };
+			} catch {
+				return { ok: false, error: 'Could not load post.' };
+			}
+		})();
 	}
 
 	debugExportPostGroup(

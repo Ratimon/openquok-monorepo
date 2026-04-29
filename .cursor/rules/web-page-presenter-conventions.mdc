@@ -103,14 +103,18 @@ Use explicit naming when the same screen mixes **SSR-safe PM→VM**, optional **
 
 Optional **async** tier when the page presenter must fetch PM by id (client/tests) **without** touching **`$state`** first:
 
-- **`loadPreviewPostByIdStateless`** — **`fetchPostPreviewPm`** → **`loadPreviewPostStateless`**; returns **`{ postVm, loadError }`**.
-- **`loadPreviewPostById`** — **`await loadPreviewPostByIdStateless`**, then assign **`currentPreviewPostVm`**.
+- **`loadPreviewPostByIdStateless`** — fetch + map; returns **`PublicPreviewPostViewModel | null`** (no `{ ok: true }` unions, no `loadError` strings).
+- **`loadPreviewPostById`** — **`await loadPreviewPostByIdStateless`**, then assign **`currentPreviewPostVm`**; returns the VM or `null`.
 
 Comments on those methods should label **stateless** (no **`$state`**) vs **stateful** (**`$state`**).
 
 ### Exception — public route `load()` and repositories
 
 For **`routes/(public)/…/+page.server.ts`**, **`postsRepository.getPostPreview`** (or equivalent) may run on the server so PM exists before **`loadPreviewPostStateless`** — still **no `httpGateway` in `+page.svelte`**. Thread SvelteKit **`fetch`** through **`HttpGateway`** when required for SSR/proxy/TLS — see repository **`getPostPreview`** options.
+
+### Route-level errors (public SSR)
+
+- For “not found” or invalid identifiers in **`+page.server.ts`**, prefer throwing SvelteKit errors (e.g. `throw error(404, 'Post not found')`) instead of returning `loadError` fields. This keeps HTTP status codes consistent and avoids “half-rendered” public pages.
 
 ---
 

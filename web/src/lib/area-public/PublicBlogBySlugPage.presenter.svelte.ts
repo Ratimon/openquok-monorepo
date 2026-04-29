@@ -4,10 +4,12 @@ import type {
 	BlogPostPublicViewModel,
 	GetBlogPresenter
 } from '$lib/blog/GetBlog.presenter.svelte';
+import type { BlogPostCommentProgrammerModel } from '$lib/blog/index';
 
 export class PublicBlogBySlugPagePresenter {
 	public currentPostVm: BlogPostBySlugPublicViewModel | null = $state(null);
 	public otherPostsVm: BlogPostPublicViewModel[] = $state([]);
+	public currentCommentsVm: BlogPostCommentProgrammerModel[] = $state([]);
 
 	public submittingComment = $state(false);
 	public showCommentSubmitToast = $state(false);
@@ -29,6 +31,27 @@ export class PublicBlogBySlugPagePresenter {
 		private readonly blogRepository: BlogRepository
 	) {}
 
+	/**
+	 * ✅ Stateless — safe for SSR loads: fetch approved public comments for a post.
+	 * Does **not** mutate `$state` (usable from `+page.server.ts`).
+	 */
+	public async loadPostCommentsStateless(params: {
+		postId: string;
+		fetch?: typeof globalThis.fetch;
+	}): Promise<BlogPostCommentProgrammerModel[]> {
+		return this.getBlogPresenter.loadPublishedBlogPostComments(params.postId, params.fetch);
+	}
+
+	/** Stateful wrapper — calls {@link getPostCommentsStateless} and assigns {@link currentCommentsVm}. */
+	public async loadPostComments(params: {
+		postId: string;
+		fetch?: typeof globalThis.fetch;
+	}): Promise<BlogPostCommentProgrammerModel[]> {
+		const comments = await this.loadPostCommentsStateless(params);
+		this.currentCommentsVm = comments;
+		return comments;
+	}
+
 	public async submitBlogComment(params: {
 		postId: string;
 		content: string;
@@ -37,17 +60,17 @@ export class PublicBlogBySlugPagePresenter {
 		this.submittingComment = true;
 		this.showCommentSubmitToast = false;
 		try {
-			const result = await this.blogRepository.createBlogComment({
+			const resultPm = await this.blogRepository.createBlogComment({
 				postId: params.postId,
 				content: params.content,
 				parentId: params.parentId
 			});
-			this.commentSubmitToastMessage = result.success
+			this.commentSubmitToastMessage = resultPm.success
 				? 'Comment submitted. It may appear after moderation.'
-				: (result.message || 'Could not submit comment.');
-			this.commentSubmitToastIsError = !result.success;
+				: (resultPm.message || 'Could not submit comment.');
+			this.commentSubmitToastIsError = !resultPm.success;
 			this.showCommentSubmitToast = true;
-			return result;
+			return resultPm;
 		} finally {
 			this.submittingComment = false;
 		}

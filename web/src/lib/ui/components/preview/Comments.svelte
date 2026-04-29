@@ -1,10 +1,8 @@
 <script lang="ts">
-	import type { PostCommentProgrammerModel } from '$lib/posts';
-	import { onMount } from 'svelte';
+	import type { PostCommentViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { cn, formatPassedTime } from '$lib/ui/helpers/common';
-	import { toast } from '$lib/ui/sonner';
 	import { Textarea } from '$lib/ui/textarea';
 
 	type Props = {
@@ -13,14 +11,13 @@
 		isLoggedIn: boolean;
 		currentUserLabel?: string | null;
 		signInHref: string;
-		loadComments: (
-			postId: string
-		) => Promise<{ ok: true; comments: PostCommentProgrammerModel[] } | { ok: false; error: string }>;
+		comments: PostCommentViewModel[];
 		submitComment: (params: {
 			postId: string;
 			organizationId: string;
 			comment: string;
-		}) => Promise<{ ok: true; comment: PostCommentProgrammerModel } | { ok: false; error: string }>;
+		}) => Promise<PostCommentViewModel | null>;
+		submittingComment?: boolean;
 		class?: string;
 	};
 
@@ -30,15 +27,13 @@
 		isLoggedIn,
 		currentUserLabel = null,
 		signInHref,
-		loadComments,
+		comments,
 		submitComment,
+		submittingComment = false,
 		class: className = ''
 	}: Props = $props();
 
-	let comments = $state<PostCommentProgrammerModel[]>([]);
 	let commentContent = $state('');
-	let loadingComments = $state(true);
-	let submittingComment = $state(false);
 
 	let commentsHeading = $derived(comments.length === 1 ? '1 Comment' : `${comments.length} Comments`);
 	let userLabels = $derived.by(() => {
@@ -53,41 +48,15 @@
 		return labels;
 	});
 
-	async function refreshComments(): Promise<void> {
-		loadingComments = true;
-		const result = await loadComments(postId);
-		if (result.ok) {
-			comments = result.comments;
-		} else {
-			toast.error(result.error);
-		}
-		loadingComments = false;
-	}
-
 	async function handleSubmitComment(): Promise<void> {
 		const trimmedComment = commentContent.trim();
-		if (!trimmedComment.length) {
-			toast.error('Comment is required.');
-			return;
-		}
+		if (!trimmedComment.length) return;
 
-		submittingComment = true;
-		const result = await submitComment({ postId, organizationId, comment: trimmedComment });
-		submittingComment = false;
-
-		if (!result.ok) {
-			toast.error(result.error);
-			return;
-		}
+		const comment = await submitComment({ postId, organizationId, comment: trimmedComment });
+		if (!comment) return;
 
 		commentContent = '';
-		comments = [...comments, result.comment];
-		toast.success('Comment posted.');
 	}
-
-	onMount(() => {
-		void refreshComments();
-	});
 </script>
 
 <div
@@ -127,15 +96,13 @@
 		{:else}
 			<div class="rounded-lg border border-dashed border-base-300 bg-base-200/40 p-4">
 				<Button href={signInHref} class="w-full" checkCurrent={false}>
-					Login / Register to add comments
+					Login to add comments
 				</Button>
 			</div>
 		{/if}
 
 		<div class="space-y-3">
-			{#if loadingComments}
-				<p class="text-sm text-base-content/60">Loading comments...</p>
-			{:else if comments.length === 0}
+			{#if comments.length === 0}
 				<p class="text-sm text-base-content/60">No comments yet.</p>
 			{:else}
 				{#each comments as comment (comment.id)}

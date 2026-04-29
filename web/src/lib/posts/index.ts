@@ -45,6 +45,7 @@ export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocial
 export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 export { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPosts.presenter.svelte';
 export type { PublicPreviewPostViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
+export type { PostCommentViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
 export type {
 	CalendarPostRowViewModel,
 	GetPostGroupResultViewModel,
