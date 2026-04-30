@@ -205,6 +205,69 @@ export class PostsRepository {
         return data as SocialPostLike[];
     }
 
+    /**
+     * Creates a new scheduled QUEUE group by duplicating an existing group's rows.
+     *
+     * Used for "repeat post" scheduling: after a group is published, we schedule the same content
+     * again in the future by inserting a new group with a new `publish_date`.
+     *
+     * - Sets `state` to QUEUE
+     * - Clears publish results (release_id / release_url / error)
+     * - Sets `parent_post_id` to the source row id for lineage
+     * - Copies tag assignments from the source group to the new rows
+     */
+    async createRepeatGroupFromPostGroup(params: {
+        postGroup: string;
+        publishDateIso: string;
+    }): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
+        const { postGroup, publishDateIso } = params;
+        const rows = await this.listPostsByGroup(postGroup);
+        if (rows.length === 0) {
+            throw new DatabaseError("Failed to create repeat group: source post group not found", {
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+
+        const newGroup = this.newPostGroup();
+
+        const toInsert: SocialPostInsert[] = rows
+            .filter((r) => !r.deleted_at)
+            .map((r) => ({
+                state: "QUEUE",
+                publish_date: publishDateIso,
+                organization_id: r.organization_id,
+                integration_id: r.integration_id,
+                content: r.content ?? "",
+                delay: r.delay ?? 0,
+                post_group: newGroup,
+                title: r.title ?? null,
+                description: r.description ?? null,
+                parent_post_id: r.id,
+                release_id: null,
+                release_url: null,
+                settings: r.settings ?? null,
+                image: r.image ?? null,
+                interval_in_days: r.interval_in_days ?? null,
+                error: null,
+                deleted_at: null,
+                created_by_user_id: r.created_by_user_id ?? null,
+            }));
+
+        const inserted = await this.insertPostGroup(toInsert);
+
+        // Copy tags from the source group to the new group.
+        const sourceIds = rows.map((r) => r.id);
+        const tags = await this.listTagsForPostIds(sourceIds);
+        const tagIds = tags.map((t) => t.id).filter(Boolean);
+        await this.linkTagsToPosts(
+            inserted.map((p) => p.id),
+            tagIds
+        );
+
+        return { postGroup: newGroup, posts: inserted };
+    }
+
     async linkTagsToPosts(postIds: string[], tagIds: string[]): Promise<void> {
         if (postIds.length === 0 || tagIds.length === 0) return;
         const now = new Date().toISOString();

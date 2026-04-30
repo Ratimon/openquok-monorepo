@@ -60,7 +60,12 @@
 			onAddTag={onAddTag}
 			onDeleteTag={onDeleteTag}
 		/>
-		<RepeatComponent {repeatInterval} {repeatOptions} disabled={busy} onChange={onRepeatChange} />
+		<RepeatComponent
+			{repeatInterval}
+			{repeatOptions}
+			disabled={busy}
+			onChange={onRepeatChange}
+		/>
 	</div>
 
 	<div class="flex flex-wrap items-center justify-end gap-2">

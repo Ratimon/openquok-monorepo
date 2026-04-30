@@ -7,6 +7,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "---------------------- DEV WORKFLOW ----------------------": "",
+    "common:build": "pnpm --filter openquok-common build",
     "web:dev": "pnpm --filter ./web dev",
     "web:build": "pnpm --filter ./web build",
     "web:dev:clean": "pnpm --filter ./web dev:clean",
@@ -22,7 +23,6 @@
     "backend:build": "pnpm --filter backend build",
     "backend:sync-declarations": "pnpm --filter backend sync-declarations",
     "backend:build:vercel": "pnpm common:build && pnpm --filter backend build:vercel",
-    "common:build": "pnpm --filter openquok-common build",
     "orchestrator:build": "pnpm --filter openquok-orchestrator build",
     "orchestrator:build:deps": "pnpm common:build && pnpm backend:build && pnpm orchestrator:build",
     "orchestrator:dev:worker:integration-refresh-bullmq": "pnpm --filter openquok-orchestrator dev:worker:integration-refresh-bullmq",

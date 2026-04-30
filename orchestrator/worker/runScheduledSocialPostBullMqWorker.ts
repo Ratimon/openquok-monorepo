@@ -12,7 +12,7 @@ import {
     postsRepository,
     userRepository,
 } from "backend/repositories/index.js";
-import { createPublishScheduledGroupHandler } from "../activities/scheduledSocialPostExecution.js";
+import { createPublishScheduledGroupHandler, type ScheduledPostsRepository } from "../activities/scheduledSocialPostExecution.js";
 import { IntegrationManager } from "backend/integrations/integrationManager.js";
 import { EmailService } from "backend/services/EmailService.js";
 import { NotificationService } from "backend/services/NotificationService.js";
@@ -27,6 +27,7 @@ import { SCHEDULED_SOCIAL_POST_BLUEPRINT_ID } from "../blueprints/scheduledSocia
 import { logger } from "backend/utils/Logger.js";
 import { runMissingScheduledPostRescan } from "../flows/missingScheduledPostReconciliation.js";
 import { startFlowcraftBullMqReconciliationTimer } from "./flowcraftBullMqReconciliationTimer.js";
+import { enqueueScheduledSocialPostDistributedRun } from "../adapters/flowcraft-bullmq/scheduled-social-post/enqueueScheduledSocialPostDistributedRun.js";
 
 const transport = (config.bullmq as { scheduledSocialPost?: { transport?: string } }).scheduledSocialPost?.transport;
 if (transport !== "bullmq") {
@@ -72,7 +73,7 @@ logger.info({
 });
 
 const publishScheduledGroup = createPublishScheduledGroupHandler({
-    postsRepository,
+    postsRepository: postsRepository as unknown as ScheduledPostsRepository,
     integrationRepository,
     integrationManager,
     refreshService: refreshIntegrationService,
@@ -97,7 +98,12 @@ try {
     });
 }
 
-const { adapter, redis } = createScheduledSocialPostBullMqAdapter({ publishScheduledGroup });
+const { adapter, redis } = createScheduledSocialPostBullMqAdapter({
+    publishScheduledGroup,
+    startChildScheduledSocialPost: async ({ organizationId, postGroup, delayMs }) => {
+        await enqueueScheduledSocialPostDistributedRun({ organizationId, postGroup, delayMs });
+    },
+});
 adapter.start();
 const flowcraftReconciler = startFlowcraftBullMqReconciliationTimer({
     adapter,

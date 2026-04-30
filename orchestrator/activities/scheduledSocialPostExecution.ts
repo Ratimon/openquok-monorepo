@@ -2,13 +2,25 @@ import type { IntegrationManager } from "backend/integrations/integrationManager
 import type { AuthTokenDetails, IntegrationRecord, PostDetails, PostResponse } from "backend/integrations/social.integrations.interface.js";
 import type { IntegrationRepository } from "backend/repositories/IntegrationRepository.js";
 import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
-import type { PostsRepository } from "backend/repositories/PostsRepository.js";
 import type { SocialPostLike } from "backend/utils/dtos/PostDTO.js";
 import type { NotificationService } from "backend/services/NotificationService.js";
 import type { NotificationEmailType } from "openquok-common";
 
 import { logger } from "backend/utils/Logger.js";
 import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
+
+export type ScheduledPostsRepository = {
+    listPostsByGroup: (postGroup: string) => Promise<SocialPostLike[]>;
+    markPostState: (postId: string, state: "QUEUE" | "PUBLISHED" | "ERROR" | "DRAFT", errMessage?: string | null) => Promise<void>;
+    updatePostRowPublishResult: (
+        postId: string,
+        input: { state: "PUBLISHED" | "ERROR"; releaseId: string | null; releaseUrl: string | null; error: string | null }
+    ) => Promise<void>;
+    createRepeatGroupFromPostGroup: (params: {
+        postGroup: string;
+        publishDateIso: string;
+    }) => Promise<{ postGroup: string; posts: SocialPostLike[] }>;
+};
 
 const PUBLISH_ATTEMPTS = 5;
 
@@ -155,13 +167,13 @@ async function notify(
  * Runs one scheduled `post_group`: each QUEUE row with a channel is posted to the network.
  */
 export function createPublishScheduledGroupHandler(deps: {
-    postsRepository: PostsRepository;
+    postsRepository: ScheduledPostsRepository;
     integrationRepository: Pick<IntegrationRepository, "getById">;
     integrationManager: IntegrationManager;
     refreshService: Pick<RefreshIntegrationService, "refresh">;
     /** When set (BullMQ worker), mirrors OpenQuok: email for publish, digest batching, and preflight/ errors. */
     notificationService?: Pick<NotificationService, "inAppNotification">;
-}): (input: { organizationId: string; postGroup: string }) => Promise<void> {
+}): (input: { organizationId: string; postGroup: string }) => Promise<void | { todos?: { type: "repeat-post"; postGroup: string; delayMs?: number }[] }> {
     return async (input) => {
         const { organizationId, postGroup } = input;
         const rows = await deps.postsRepository.listPostsByGroup(postGroup);
@@ -185,13 +197,34 @@ export function createPublishScheduledGroupHandler(deps: {
         for (const post of toPublish) {
             await publishOneRow(post, deps);
         }
+
+        // Repeat scheduling : if this group is configured with a repeat cadence,
+        // create a new QUEUE group scheduled in the future and enqueue it via a repeat-post todo.
+        const intervalDays = rows[0]?.interval_in_days ?? null;
+        if (typeof intervalDays === "number" && Number.isFinite(intervalDays) && intervalDays > 0) {
+            const delayMs = Math.floor(intervalDays * 24 * 60 * 60 * 1000);
+            const publishDateIso = new Date(Date.now() + delayMs).toISOString();
+            const repeat = await deps.postsRepository.createRepeatGroupFromPostGroup({
+                postGroup,
+                publishDateIso,
+            });
+            return {
+                todos: [
+                    {
+                        type: "repeat-post",
+                        postGroup: repeat.postGroup,
+                        delayMs,
+                    },
+                ],
+            };
+        }
     };
 }
 
 async function publishOneRow(
     post: SocialPostLike & { integration_id: string },
     deps: {
-        postsRepository: PostsRepository;
+        postsRepository: Pick<ScheduledPostsRepository, "markPostState" | "updatePostRowPublishResult">;
         integrationRepository: Pick<IntegrationRepository, "getById">;
         integrationManager: IntegrationManager;
         refreshService: Pick<RefreshIntegrationService, "refresh">;

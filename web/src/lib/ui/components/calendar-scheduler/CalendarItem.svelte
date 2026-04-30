@@ -32,6 +32,7 @@
 			content?: string;
 			publishDate?: string;
 			integrationId?: string | null;
+			intervalInDays?: number | null;
 			error?: string | null;
 		};
 		posts?: {
@@ -40,6 +41,7 @@
 			publishDate?: string;
 			integrationId?: string | null;
 			postGroup?: string;
+			intervalInDays?: number | null;
 			error?: string | null;
 		}[];
 		channel?: CreateSocialPostChannelViewModel | null;
@@ -77,6 +79,26 @@
 	const postGroup = $derived(String((post as any)?.postGroup ?? ''));
 	const postCount = $derived(Array.isArray((ev as any).posts) ? ((ev as any).posts as any[]).length : 1);
 	const multiPosts = $derived(postCount > 1);
+
+	const repeatIntervalDays = $derived.by(() => {
+		const raw = (post as any)?.intervalInDays ?? (post as any)?.interval_in_days ?? null;
+		const n = typeof raw === 'number' ? raw : raw == null ? null : Number(raw);
+		return typeof n === 'number' && Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+	});
+	const isRepeating = $derived(repeatIntervalDays > 0);
+	const repeatLabel = $derived.by(() => {
+		const d = repeatIntervalDays;
+		if (!d) return '';
+		if (d % 30 === 0) {
+			const m = d / 30;
+			return `Every ${m} m${m === 1 ? '' : 's'}`;
+		}
+		if (d % 7 === 0) {
+			const w = d / 7;
+			return `Repeat every ${w} w${w === 1 ? '' : 's'}`;
+		}
+		return `Repeat every ${d} d${d === 1 ? '' : 's'}`;
+	});
 	const slotSummary = $derived(
 		Array.isArray((ev as any).slotSummary) ? (((ev as any).slotSummary as any[]) ?? []) : []
 	);
@@ -98,6 +120,8 @@
 	data-variant={variant}
 	data-post-group={postGroup}
 	data-multi-post={multiPosts ? 'true' : 'false'}
+	data-repeating={isRepeating ? 'true' : 'false'}
+	data-repeat-label={isRepeating ? repeatLabel : ''}
 	data-slot-summary={multiPosts ? encodeURIComponent(JSON.stringify(slotSummary satisfies SlotSummaryItem[])) : ''}
 >
 	<span
@@ -114,6 +138,15 @@
 					<img src={ev.channel.picture} alt="" class="h-4 w-4 rounded object-cover" />
 				{:else}
 					<div class="h-4 w-4 rounded bg-primary-content/20"></div>
+				{/if}
+				{#if isRepeating}
+					<span
+						class="absolute -left-1 -top-1 z-[2] flex size-[12px] items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
+						title={repeatLabel}
+						aria-label={repeatLabel}
+					>
+						<AbstractIcon name={icons.RefreshCw.name} class="size-2.5" width="10" height="10" />
+					</span>
 				{/if}
 				{#if providerBadgeIcon}
 					<span
@@ -148,6 +181,15 @@
 							{(previewChannelName || 'CH').slice(0, 1).toUpperCase()}
 						</div>
 					{/if}
+					{#if isRepeating}
+						<span
+							class="absolute -left-1 -top-1 z-[2] flex size-[12px] items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
+							title={repeatLabel}
+							aria-label={repeatLabel}
+						>
+							<AbstractIcon name={icons.RefreshCw.name} class="size-2.5" width="10" height="10" />
+						</span>
+					{/if}
 				</div>
 			{:else}
 				<div class="relative h-4 w-4 shrink-0">
@@ -155,6 +197,15 @@
 						<img src={ev.channel.picture} alt="" class="h-4 w-4 rounded object-cover" />
 					{:else}
 						<div class="h-4 w-4 rounded bg-primary-content/20"></div>
+					{/if}
+					{#if isRepeating}
+						<span
+							class="absolute -left-1 -top-1 z-[2] flex size-[12px] items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
+							title={repeatLabel}
+							aria-label={repeatLabel}
+						>
+							<AbstractIcon name={icons.RefreshCw.name} class="size-2.5" width="10" height="10" />
+						</span>
 					{/if}
 				</div>
 			{/if}
@@ -188,11 +239,42 @@
 	}
 
 	/* Tooltip bubble (matches the "Date passed" style). */
-	.oq-calendar-item:hover::after {
+	.oq-calendar-item:hover::before {
 		content: 'Open';
 		position: absolute;
-		left: 50%;
+		right: 6px;
 		top: 6px;
+		max-width: calc(100% - 1.25rem);
+		padding: 0.15rem 0.4rem;
+		border-radius: 0.5rem;
+		background: rgba(0, 0, 0, 0.65);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		backdrop-filter: blur(6px);
+		-webkit-backdrop-filter: blur(6px);
+		pointer-events: none;
+		white-space: normal;
+		text-align: center;
+		overflow-wrap: anywhere;
+		font-weight: 600;
+		font-size: 0.7rem;
+		line-height: 1.1;
+		letter-spacing: 0.01em;
+		color: rgba(255, 255, 255, 0.75);
+		opacity: 0;
+		transition: opacity 120ms ease;
+		z-index: 3;
+	}
+
+	.oq-calendar-item:hover::before {
+		opacity: 0.85;
+	}
+
+	/* Secondary tooltip: repeating label at center (only for repeating posts). */
+	.oq-calendar-item[data-repeating='true']:hover::after {
+		content: attr(data-repeat-label);
+		position: absolute;
+		left: 50%;
+		bottom: 6px;
 		transform: translateX(-50%);
 		max-width: calc(100% - 0.75rem);
 		padding: 0.15rem 0.4rem;
@@ -215,16 +297,16 @@
 		z-index: 3;
 	}
 
-	.oq-calendar-item:hover::after {
+	.oq-calendar-item[data-repeating='true']:hover::after {
 		opacity: 0.85;
 	}
 
-	.oq-calendar-item--past:hover::after {
+	.oq-calendar-item--past:hover::before {
 		content: 'Date passed';
 	}
 
 	/* Month grid cells are tighter: keep the hint minimal. */
-	.oq-calendar-item[data-variant='monthGrid']:hover::after {
+	.oq-calendar-item[data-variant='monthGrid']:hover::before {
 		content: 'Open';
 	}
 </style>

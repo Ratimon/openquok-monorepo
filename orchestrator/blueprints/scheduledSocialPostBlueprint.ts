@@ -3,6 +3,7 @@ import {
     ScheduledSocialPostBeginNode,
     ScheduledSocialPostFinishedNode,
     ScheduledSocialPostPublishNode,
+    ScheduledSocialPostRepeatNode,
 } from "../nodes/scheduledSocialPostNodes";
 import {
     SCHEDULED_SOCIAL_POST_BLUEPRINT_ID,
@@ -36,9 +37,11 @@ export function createScheduledSocialPostFlowBuilder() {
     return createFlow<ScheduledSocialPostFlowContext, ScheduledSocialPostWorkflowDependencies>(SCHEDULED_SOCIAL_POST_BLUEPRINT_ID)
         .node("ssBegin", ScheduledSocialPostBeginNode)
         .node("ssPublish", ScheduledSocialPostPublishNode)
+        .node("ssRepeat", ScheduledSocialPostRepeatNode)
         .node("ssFinished", ScheduledSocialPostFinishedNode)
         .edge("ssBegin", "ssPublish")
-        .edge("ssPublish", "ssFinished");
+        .edge("ssPublish", "ssRepeat")
+        .edge("ssRepeat", "ssFinished");
 }
 
 export function buildScheduledSocialPostBlueprintDistributed(): WorkflowBlueprint {

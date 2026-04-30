@@ -136,6 +136,23 @@ describe("scheduledSocialPostWorkflow / runScheduledSocialPostOrchestration (in-
             expect(typeof reg[n.uses]).toBe("function");
         }
     });
+
+    it("starts a child run when publishScheduledGroup returns a repeat-post todo", async () => {
+        const publishScheduledGroup = jest.fn().mockResolvedValue({
+            todos: [{ type: "repeat-post", postGroup: "repeat-group-1", delayMs: 0 }],
+        });
+        const startChildScheduledSocialPost = jest.fn().mockResolvedValue(undefined);
+        const ok = await runScheduledSocialPostOrchestration(
+            { organizationId: orgId, postGroup, delayMs: 0 },
+            { publishScheduledGroup, startChildScheduledSocialPost }
+        );
+        expect(ok).toBe(true);
+        expect(startChildScheduledSocialPost).toHaveBeenCalledWith({
+            organizationId: orgId,
+            postGroup: "repeat-group-1",
+            delayMs: 0,
+        });
+    });
 });
 
 describe("runScheduledSocialPostOrchestration (bullmq transport)", () => {
