@@ -14,9 +14,8 @@ export interface FeedbackViewModel {
 export class GetFeedbackPresenter {
 	constructor(private readonly feedbackRepository: FeedbackRepository) {}
 
-	public async loadAllFeedbacks(fetch?: typeof globalThis.fetch): Promise<FeedbackViewModel[]> {
-		const feedbacksPm = await this.feedbackRepository.getAllFeedbacks(fetch);
-		return feedbacksPm.map((feedback: FeedbackProgrammerModel): FeedbackViewModel => ({
+	public toFeedbackVm(feedback: FeedbackProgrammerModel): FeedbackViewModel {
+		return {
 			id: feedback.id,
 			feedbackType: feedback.feedbackType,
 			url: feedback.url,
@@ -24,6 +23,11 @@ export class GetFeedbackPresenter {
 			email: feedback.email,
 			isHandled: feedback.isHandled,
 			createdAt: feedback.createdAt
-		}));
+		};
+	}
+
+	public async loadAllFeedbacksVm(fetch?: typeof globalThis.fetch): Promise<FeedbackViewModel[]> {
+		const feedbacksPm = await this.feedbackRepository.getAllFeedbacks(fetch);
+		return feedbacksPm.map((feedback) => this.toFeedbackVm(feedback));
 	}
 }

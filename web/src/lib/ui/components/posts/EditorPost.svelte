@@ -8,6 +8,7 @@
 	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
+	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -42,6 +43,7 @@
 		uploadUid?: string;
 		/** Current workspace for org-scoped signatures in the toolbar. */
 		organizationId?: string | null;
+		loadSignaturesForComposer?: FetchSignaturesForComposerFn;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
 		/** Provider `comments` mode: `true` or `'no-media'` (single attachment only). */
@@ -69,6 +71,7 @@
 		postMediaItems = $bindable<PostMediaProgrammerModel[]>([]),
 		uploadUid = '',
 		organizationId = null,
+		loadSignaturesForComposer = undefined,
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
 		commentsMode = true,
@@ -167,6 +170,7 @@
 					disabled={busy}
 					{uploadUid}
 					{organizationId}
+					{loadSignaturesForComposer}
 					{composerMode}
 					{focusedProviderIdentifier}
 					{commentsMode}

@@ -1,7 +1,7 @@
 import type { SignaturesConfig } from '$lib/signatures/Signatures.repository.svelte';
 import { httpGateway } from '$lib/core/index';
 import { SignaturesRepository } from '$lib/signatures/Signatures.repository.svelte';
-import { SignaturesPresenter } from '$lib/signatures/Signatures.presenter.svelte';
+import { GetSignaturesPresenter } from '$lib/signatures/GetSignatures.presenter.svelte';
 
 const signaturesConfig: SignaturesConfig = {
 	endpoints: {
@@ -12,9 +12,12 @@ const signaturesConfig: SignaturesConfig = {
 };
 
 export const signaturesRepository = new SignaturesRepository(httpGateway, signaturesConfig);
-export const signaturesPresenter = new SignaturesPresenter(signaturesRepository);
+export const getSignaturesPresenter = new GetSignaturesPresenter(signaturesRepository);
 
 export type { SignatureProgrammerModel } from '$lib/signatures/Signatures.repository.svelte';
+export type { FetchSignaturesForComposerFn } from '$lib/signatures/Signatures.repository.svelte';
+export type { SignatureUpsertProgrammerModel } from '$lib/signatures/Signatures.repository.svelte';
+export type { SignatureViewModel } from '$lib/signatures/GetSignatures.presenter.svelte';
 export { SignaturesStatus } from '$lib/signatures/Signatures.presenter.svelte';
 export {
 	createSignatureSchema,

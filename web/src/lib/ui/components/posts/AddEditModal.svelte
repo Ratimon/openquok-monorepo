@@ -10,6 +10,7 @@
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
+	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
 	import EditorPost from '$lib/ui/components/posts/EditorPost.svelte';
@@ -60,6 +61,7 @@
 		postMediaItems?: PostMediaProgrammerModel[];
 		uploadUid?: string;
 		organizationId?: string | null;
+		loadSignaturesForComposer?: FetchSignaturesForComposerFn;
 		mediaUrls?: string[];
 		commentsMode?: LaunchProviderCommentsMode;
 		scheduleValidationMessage?: string | null;
@@ -101,6 +103,7 @@
 		postMediaItems = $bindable([]),
 		uploadUid = '',
 		organizationId = null,
+		loadSignaturesForComposer = undefined,
 		mediaUrls = [],
 		commentsMode = true,
 		scheduleValidationMessage = null
@@ -157,6 +160,7 @@
 				bind:postMediaItems
 				{uploadUid}
 				organizationId={organizationId}
+				{loadSignaturesForComposer}
 				{busy}
 				{charCount}
 				{softCharLimit}
@@ -174,7 +178,11 @@
 			/>
 
 			<div class="mt-3">
-				<AddPostButton onclick={onAddPost} postComment={postComment} disabled={busy || editorLocked} />
+				<AddPostButton
+					onclick={onAddPost}
+					postComment={postComment}
+					disabled={busy || editorLocked}
+				/>
 			</div>
 		</div>
 

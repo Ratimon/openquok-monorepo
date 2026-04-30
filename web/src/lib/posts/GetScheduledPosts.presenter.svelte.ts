@@ -87,11 +87,11 @@ function toPostGroupDetailsVm(pm: PostGroupDetailsProgrammerModel): PostGroupDet
 export class GetScheduledPostsPresenter {
 	constructor(private readonly postsRepository: PostsRepository) {}
 
-	mapPostCommentPmToVm(pm: PostCommentProgrammerModel): PostCommentViewModel {
+	public toPostCommentVm(pm: PostCommentProgrammerModel): PostCommentViewModel {
 		return toPostCommentVm(pm);
 	}
 
-	mapPreviewPostPmToVm(previewPostPm: PostPreviewProgrammerModel): PublicPreviewPostViewModel {
+	private toPreviewPostVm(previewPostPm: PostPreviewProgrammerModel): PublicPreviewPostViewModel {
 		const previewPostVm: PublicPreviewPostViewModel = {
 			id: previewPostPm.id,
 			postGroup: previewPostPm.postGroup,
@@ -108,28 +108,21 @@ export class GetScheduledPostsPresenter {
 	 * ✅ Stateless — fetch public preview PM then map to {@link PublicPreviewPostViewModel}.
 	 * Keeps repository access + mapping inside this presenter.
 	 */
-	async getPostPreviewVm(
+	public async loadPostPreviewVmById(
 		postId: string,
 		options?: { fetch?: typeof globalThis.fetch }
 	): Promise<PublicPreviewPostViewModel | null> {
 		try {
 			const pmResult = await this.postsRepository.getPostPreview(postId, options);
 			if (!pmResult.ok) return null;
-			return this.mapPreviewPostPmToVm(pmResult.post);
+			return this.toPreviewPostVm(pmResult.post);
 		} catch {
 			return null;
 		}
 	}
 
-	/** Public preview VM (no auth) — returns `null` on failure (clean UI-friendly helper). */
-	async loadPostPreviewVmById(
-		postId: string,
-		options?: { fetch?: typeof globalThis.fetch }
-	): Promise<PublicPreviewPostViewModel | null> {
-		return this.getPostPreviewVm(postId, options);
-	}
-
-	async listPosts(params: {
+	/** Calendar list — returns empty list on failure. */
+	public async loadCalendarPostsVm(params: {
 		organizationId: string;
 		startIso: string;
 		endIso: string;
@@ -144,7 +137,7 @@ export class GetScheduledPostsPresenter {
 		}
 	}
 
-	async getPostGroup(postGroup: string): Promise<PostGroupDetailsViewModel | null> {
+	public async loadPostGroupDetailsVm(postGroup: string): Promise<PostGroupDetailsViewModel | null> {
 		try {
 			const r = await this.postsRepository.getPostGroup(postGroup);
 			if (!r.ok) return null;
@@ -154,8 +147,8 @@ export class GetScheduledPostsPresenter {
 		}
 	}
 
-	/** Public `GET /public/posts/:postId/comments` — keep repo access behind the presenter boundary. */
-	async getPublicComments(
+	/** Public comments VM (no auth) — returns empty list on failure. */
+	public async loadPublicCommentsVm(
 		postId: string,
 		options?: { fetch?: typeof globalThis.fetch }
 	): Promise<PostCommentViewModel[]> {
@@ -166,14 +159,6 @@ export class GetScheduledPostsPresenter {
 		} catch {
 			return [];
 		}
-	}
-
-	/** Public comments VM (no auth) — returns empty list on failure. */
-	async loadPublicCommentsVm(
-		postId: string,
-		options?: { fetch?: typeof globalThis.fetch }
-	): Promise<PostCommentViewModel[]> {
-		return this.getPublicComments(postId, options);
 	}
 }
 

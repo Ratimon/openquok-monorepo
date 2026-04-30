@@ -27,6 +27,12 @@ alwaysApply: false
 - Presenter values passed to UI: **`*Vm`** / **`*ViewModel`**.
 - DTOs: **`*Dto`**, **`*ResponseDto`**.
 
+### `Get*Presenter` method naming (project convention)
+
+- **PM → VM mappers**: prefer **`toXxxVm(pm)`** (or `toXxxListVm(listPm)` when helpful).
+- **Read/load methods that return UI shapes**: prefer **`loadXxxVm(...)`** / **`loadXxx*Vm(...)`** and return **clean values** (`Vm | null`, `Vm[]`) instead of `{ ok: true } | { ok: false }` unions.
+- **Avoid** `mapXxxPmToVm` / `getXxxVm` / `listXxx` on `Get*Presenter` public APIs unless there is a very specific reason.
+
 ## Rule of thumb (enforced)
 
 - **Repositories return PM**, not `*Vm` / `*ViewModel`.
@@ -86,7 +92,7 @@ No gateway/repository imports from **routes**.
 ### Variables
 
 - After `await someRepository...`: **`resultPm`**, **`listPm`**, **`listPostsPmResult`** / **`getPostGroupPmResult`** when the return is a discriminated union — **avoid bare `r`**.
-- **`Get*Presenter`** PM→VM methods: assign **`xyzPm`** first (see **`GetFeedbackPresenter`**: `feedbacksPm` → mapped **`FeedbackViewModel`**), then build **`xyzVm`** and return — e.g. **`previewPostPm`** → **`previewPostVm`** in **`mapPreviewPostPmToVm`**.
+- **`Get*Presenter`** PM→VM methods: assign **`xyzPm`** first (see **`GetFeedbackPresenter`**: `feedbacksPm` → mapped **`FeedbackViewModel`**), then build **`xyzVm`** and return — e.g. **`previewPostPm`** → **`previewPostVm`** in **`toPreviewPostVm`** / `toXxxVm`.
 - Presenter fields for the UI: **`workspacesVm`**, etc.
 - Internal VM mutation helpers on presenters: **`_*`** prefix when not public API (full pattern: **web-page-presenter-conventions**).
 

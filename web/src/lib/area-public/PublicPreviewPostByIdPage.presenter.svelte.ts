@@ -86,7 +86,7 @@ export class PublicPreviewPostByIdPagePresenter {
 				this.showCommentSubmitToast = true;
 				return null;
 			}
-			const vm = this.getScheduledPostsPresenter.mapPostCommentPmToVm(resultPm.comment);
+			const vm = this.getScheduledPostsPresenter.toPostCommentVm(resultPm.comment);
 			this.currentCommentsVm = [...this.currentCommentsVm, vm];
 			this.commentSubmitToastMessage = 'Comment posted.';
 			this.commentSubmitToastIsError = false;

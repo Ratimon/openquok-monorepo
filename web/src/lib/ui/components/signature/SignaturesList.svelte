@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { SignatureProgrammerModel } from '$lib/signatures';
+	import type { SignaturesPresenter } from '$lib/signatures/Signatures.presenter.svelte';
 
 	import { onMount, untrack } from 'svelte';
 	import { toast } from '$lib/ui/sonner';
@@ -11,13 +12,18 @@
 
 	import {
 		createSignatureSchema,
-		signaturesPresenter,
 		SignaturesStatus,
 		updateSignatureSchema
 	} from '$lib/signatures';
 
-	import SignatureBox from '$lib/ui/components/settings/SignatureBox.svelte';
+	import SignatureBox from '$lib/ui/components/signature/SignatureBox.svelte';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+
+	type Props = {
+		presenter: SignaturesPresenter;
+	};
+
+	let { presenter: signaturesPresenter }: Props = $props();
 
 	let createOpen = $state(false);
 	let editOpen = $state(false);
@@ -29,7 +35,7 @@
 	let isDefault = $state(false);
 
 	const busy = $derived(signaturesPresenter.status !== SignaturesStatus.IDLE);
-	const items = $derived(signaturesPresenter.items);
+	const items = $derived(signaturesPresenter.itemsVm);
 	const organizationId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
 	onMount(() => {
@@ -39,7 +45,7 @@
 	$effect(() => {
 		const oid = organizationId;
 		if (!oid) return;
-		void signaturesPresenter.load(oid);
+		void signaturesPresenter.loadSignaturesForOrganization(oid);
 	});
 
 	$effect(() => {
@@ -106,14 +112,14 @@
 			toast.error(parsed.error.issues.map((i) => i.message).join(' '));
 			return;
 		}
-		const ok = await signaturesPresenter.update(oid, selected.id, parsed.data);
+		const ok = await signaturesPresenter.update(selected.id, parsed.data);
 		if (ok) editOpen = false;
 	}
 
 	async function handleDeleteSelected() {
 		const oid = organizationId;
 		if (!selected || !oid) return;
-		const ok = await signaturesPresenter.delete(oid, selected.id);
+		const ok = await signaturesPresenter.delete(selected.id);
 		if (ok) {
 			confirmDeleteOpen = false;
 			selected = null;
@@ -123,7 +129,7 @@
 	async function handleSetDefault(id: string) {
 		const oid = organizationId;
 		if (!oid) return;
-		await signaturesPresenter.update(oid, id, { isDefault: true });
+		await signaturesPresenter.update(id, { isDefault: true });
 	}
 </script>
 

@@ -16,7 +16,7 @@
 	import MediaLibraryToolbar from '$lib/ui/components/media/MediaLibraryToolbar.svelte';
 	import MediaLibraryUploadOverlay from '$lib/ui/components/media/MediaLibraryUploadOverlay.svelte';
 	import MediaSettings from '$lib/ui/components/media/MediaSettings.svelte';
-	import MediaGeneration from '$lib/ui/components/media/MediaGeneration.svelte';
+	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
 	import PaginationComposite from '$lib/ui/pagination/pagination-composite.svelte';
 
 	interface MediaLibraryPageProps {
@@ -211,7 +211,7 @@
 	{/if}
 </div>
 
-<MediaGeneration
+<MediaGenerationModal
 	stockPhotosVm={mediaLibraryMediaModalPresenter.stockPhotosVm}
 	designTemplatesVm={mediaLibraryMediaModalPresenter.designTemplatesVm}
 	fetchPolotnoTemplateListPage={mediaLibraryMediaModalPresenter.fetchPolotnoTemplateListPagePm.bind(

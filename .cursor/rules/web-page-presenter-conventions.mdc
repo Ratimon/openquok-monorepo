@@ -98,7 +98,7 @@ Use explicit naming when the same screen mixes **SSR-safe PM→VM**, optional **
 
 **Reference implementation:** `PublicPreviewPostByIdPagePresenter` (`web/src/lib/area-public/PublicPreviewPostByIdPage.presenter.svelte.ts`).
 
-1. **`loadPreviewPostStateless(postPreviewPm)`** — PM → VM via injected **`GetScheduledPostsPresenter.mapPreviewPostPmToVm`**; **does not** mutate **`$state`**. Safe for **`+page.server.ts`** after the repository returns PM.
+1. **`loadPreviewPostStateless(postPreviewPm)`** — PM → VM via an injected **`Get*Presenter`** PM→VM mapper (prefer `toXxxVm(...)` naming); **does not** mutate **`$state`**. Safe for **`+page.server.ts`** after the repository returns PM.
 2. **`loadPreviewPost(postPreviewPm)`** — thin wrapper: **`loadPreviewPostStateless`**, then **`currentPreviewPostVm =`** mapped VM.
 
 Optional **async** tier when the page presenter must fetch PM by id (client/tests) **without** touching **`$state`** first:

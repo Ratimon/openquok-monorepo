@@ -157,7 +157,7 @@ export class SchedulerPresenter {
 	> {
 		return (async () => {
 			try {
-				const posts = await this.getScheduledPostsPresenter.listPosts(params);
+				const posts = await this.getScheduledPostsPresenter.loadCalendarPostsVm(params);
 				return { ok: true, posts };
 			} catch {
 				return { ok: false, error: 'Could not load posts.' };
@@ -170,7 +170,7 @@ export class SchedulerPresenter {
 	): Promise<GetPostGroupResultViewModel> {
 		return (async () => {
 			try {
-				const group = await this.getScheduledPostsPresenter.getPostGroup(postGroup);
+				const group = await this.getScheduledPostsPresenter.loadPostGroupDetailsVm(postGroup);
 				if (!group) return { ok: false, error: 'Could not load post.' };
 				return { ok: true, group };
 			} catch {

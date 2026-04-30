@@ -8,7 +8,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
-	import { integrationOAuthCallbackPath } from '$lib/integration/oauthCallbackPath';
+	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { toast } from '$lib/ui/sonner';
 

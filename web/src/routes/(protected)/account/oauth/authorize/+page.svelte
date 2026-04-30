@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getRootPathAccount } from '$lib/area-protected';
-	import { integrationOAuthCallbackPath } from '$lib/integration/oauthCallbackPath';
+	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { absoluteUrl, url } from '$lib/utils/path';
 
 	/**

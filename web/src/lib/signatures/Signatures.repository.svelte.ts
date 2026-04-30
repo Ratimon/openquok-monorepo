@@ -1,8 +1,9 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
+import type { CreateSignatureInput, UpdateSignatureInput } from '$lib/signatures/signatures.types';
+
 import { ApiError } from '$lib/core/HttpGateway';
 import { HttpMethod } from '$lib/core/HttpGateway';
 
-import type { CreateSignatureInput, UpdateSignatureInput } from '$lib/signatures/signatures.types';
 
 export type SignatureProgrammerModel = {
 	id: string;
@@ -30,6 +31,12 @@ export type UpsertSignatureResponseDto = {
 	data?: { id?: string };
 	message?: string;
 };
+
+export interface SignatureUpsertProgrammerModel {
+	success: boolean;
+	message: string;
+	id?: string;
+}
 
 export interface SignaturesConfig {
 	endpoints: {
@@ -86,7 +93,7 @@ export class SignaturesRepository {
 	async create(
 		input: CreateSignatureInput,
 		fetch?: typeof globalThis.fetch
-	): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+	): Promise<SignatureUpsertProgrammerModel> {
 		try {
 			const { ok, data: createSignatureDto } = await this.httpGateway.post<UpsertSignatureResponseDto>(
 				this.config.endpoints.create,
@@ -100,11 +107,11 @@ export class SignaturesRepository {
 			);
 			const id = createSignatureDto?.data?.id;
 			if (ok && createSignatureDto?.success === true && typeof id === 'string' && id.length > 0) {
-				return { ok: true, id };
+				return { success: true, message: createSignatureDto?.message ?? 'Signature created.', id };
 			}
-			return { ok: false, error: createSignatureDto?.message ?? 'Could not create signature.' };
+			return { success: false, message: createSignatureDto?.message ?? 'Could not create signature.' };
 		} catch (error) {
-			return this.mapCatch(error, 'Could not create signature.');
+			return { success: false, message: this.extractMessage(error, 'Could not create signature.') };
 		}
 	}
 
@@ -112,7 +119,7 @@ export class SignaturesRepository {
 		id: string,
 		input: UpdateSignatureInput,
 		fetch?: typeof globalThis.fetch
-	): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+	): Promise<SignatureUpsertProgrammerModel> {
 		try {
 			const { ok, data: updateSignatureDto } = await this.httpGateway.request<UpsertSignatureResponseDto>({
 				method: HttpMethod.PATCH,
@@ -123,32 +130,41 @@ export class SignaturesRepository {
 			});
 			const outId = updateSignatureDto?.data?.id ?? id;
 			if (ok && updateSignatureDto?.success === true && typeof outId === 'string') {
-				return { ok: true, id: outId };
+				return { success: true, message: updateSignatureDto?.message ?? 'Signature updated.', id: outId };
 			}
-			return { ok: false, error: updateSignatureDto?.message ?? 'Could not update signature.' };
+			return { success: false, message: updateSignatureDto?.message ?? 'Could not update signature.' };
 		} catch (error) {
-			return this.mapCatch(error, 'Could not update signature.');
+			return { success: false, message: this.extractMessage(error, 'Could not update signature.') };
 		}
 	}
 
-	async delete(id: string, fetch?: typeof globalThis.fetch): Promise<{ ok: true } | { ok: false; error: string }> {
+	async delete(id: string, fetch?: typeof globalThis.fetch): Promise<SignatureUpsertProgrammerModel> {
 		try {
 			const { ok, data: deleteSignatureDto } = await this.httpGateway.delete<{ success?: boolean; message?: string }>(
 				this.config.endpoints.byId(id),
 				{ withCredentials: true, fetch }
 			);
-			if (ok && deleteSignatureDto?.success === true) return { ok: true };
-			return { ok: false, error: deleteSignatureDto?.message ?? 'Could not delete signature.' };
+			if (ok && deleteSignatureDto?.success === true) {
+				return { success: true, message: deleteSignatureDto?.message ?? 'Signature deleted.' };
+			}
+			return { success: false, message: deleteSignatureDto?.message ?? 'Could not delete signature.' };
 		} catch (error) {
-			return this.mapCatch(error, 'Could not delete signature.');
+			return { success: false, message: this.extractMessage(error, 'Could not delete signature.') };
 		}
 	}
 
 	private mapCatch(error: unknown, fallback: string): { ok: false; error: string } {
+		return { ok: false, error: this.extractMessage(error, fallback) };
+	}
+
+	private extractMessage(error: unknown, fallback: string): string {
 		if (error instanceof ApiError && typeof error.data === 'object' && error.data !== null) {
 			const o = error.data as Record<string, unknown>;
-			if (typeof o.message === 'string') return { ok: false, error: o.message };
+			if (typeof o.message === 'string') return o.message;
 		}
-		return { ok: false, error: fallback };
+		return fallback;
 	}
 }
+
+/** Composer toolbar signature picker: read-only list fetch (no presenter state). */
+export type FetchSignaturesForComposerFn = SignaturesRepository['listForOrganization'];

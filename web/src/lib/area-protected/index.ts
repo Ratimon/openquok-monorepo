@@ -18,8 +18,10 @@ import { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.
 import { getScheduledPostsPresenter, postsRepository } from '$lib/posts';
 import { SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
 import { getNotificationPresenter, notificationRepository } from '$lib/notifications';
+import { getSignaturesPresenter, signaturesRepository } from '$lib/signatures';
 import { workspaceSettingsPresenter } from '$lib/settings';
 import { authenticationRepository } from '$lib/user-auth/index';
+import { SignaturesPresenter } from '$lib/signatures/Signatures.presenter.svelte';
 
 const protectedSettingsPagePresenter = new ProtectedSettingsPagePresenter(
 	editorAccountSettingsPresenter,
@@ -35,6 +37,9 @@ const protectedLayoutPagePresenter = new ProtectedLayoutPagePresenter(
 
 const protectedMediaPagePresenter = new ProtectedMediaPagePresenter(mediaRepository, workspaceSettingsPresenter);
 
+/** Settings: stateful presenter (items/status/toasts). */
+const signatureSettingPresenter = new SignaturesPresenter(signaturesRepository, getSignaturesPresenter);
+
 /** Design / background surface for the social post composer (see {@link CreateSocialPostPresenter}). */
 const composerMediaModalPresenter = new GenerateMediaModalPresenter(mediaRepository);
 
@@ -45,7 +50,11 @@ const mediaLibraryMediaModalPresenter = new GenerateMediaModalPresenter(mediaRep
 const schedulerPresenter = new SchedulerPresenter(postsRepository, getScheduledPostsPresenter);
 
 /** Shared create-post composer (posts repository + composer media modal). */
-const createSocialPostPresenter = new CreateSocialPostPresenter(postsRepository, composerMediaModalPresenter);
+const createSocialPostPresenter = new CreateSocialPostPresenter(
+	postsRepository,
+	composerMediaModalPresenter,
+	signaturesRepository
+);
 
 const protectedDashboardPagePresenter = new ProtectedDashboardPagePresenter(
 	integrationsRepository,
@@ -76,5 +85,6 @@ export {
 	GenerateMediaModalPresenter,
 	composerMediaModalPresenter,
 	mediaLibraryMediaModalPresenter,
-	schedulerPresenter
+	schedulerPresenter,
+	signatureSettingPresenter,
 };

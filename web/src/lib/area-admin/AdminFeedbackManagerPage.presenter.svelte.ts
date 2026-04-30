@@ -13,7 +13,7 @@ export class AdminFeedbackManagerPagePresenter {
 	) {}
 
 	public async loadAllFeedbacks(fetch?: typeof globalThis.fetch): Promise<FeedbackViewModel[]> {
-		const list = await this.getFeedbackPresenter.loadAllFeedbacks(fetch);
+		const list = await this.getFeedbackPresenter.loadAllFeedbacksVm(fetch);
 		this.allFeedbacksToManageVm = list;
 		return this.allFeedbacksToManageVm;
 	}

@@ -14,7 +14,7 @@ import type { IconName } from '$data/icon';
 
 import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 
-import { integrationOAuthCallbackPath } from '$lib/integration/oauthCallbackPath';
+import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 import { route } from '$lib/utils/path';
 import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 

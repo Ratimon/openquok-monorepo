@@ -4,3 +4,4 @@ import { route } from '$lib/utils/path';
 export function integrationOAuthCallbackPath(provider: string): string {
 	return route(`/integration/oauth/${encodeURIComponent(provider)}`);
 }
+

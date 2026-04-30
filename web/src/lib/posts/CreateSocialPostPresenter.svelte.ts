@@ -13,6 +13,7 @@ import type {
 	RepeatIntervalKey
 } from '$lib/posts/Posts.repository.svelte';
 import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
+import type { SignaturesRepository } from '$lib/signatures/Signatures.repository.svelte';
 
 import { mediaItemsToPreviewUrls } from '$lib/posts/Posts.repository.svelte';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
@@ -81,8 +82,13 @@ export function unschedulableReason(ch: CreateSocialPostChannelViewModel | null 
 export class CreateSocialPostPresenter {
 	constructor(
 		private readonly postsRepository: PostsRepository,
-		private readonly mediaModalPresenter: GenerateMediaModalPresenter
+		private readonly mediaModalPresenter: GenerateMediaModalPresenter,
+		private readonly signaturesRepository: SignaturesRepository
 	) {}
+
+	/** Composer toolbar: fetch signatures without mutating settings presenter state. */
+	loadSignaturesForComposer = (organizationId: string) =>
+		this.signaturesRepository.listForOrganization(organizationId);
 
 	/** Stock rows for the design-media dialog (from the injected media modal presenter). */
 	get stockPhotosVm() {

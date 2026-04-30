@@ -119,6 +119,7 @@
 					fetchPolotnoTemplateListPage={presenter.fetchPolotnoTemplateListPage.bind(presenter)}
 					backgroundPanelVm={presenter.backgroundPanelVm}
 					exportCanvasToMedia={presenter.exportCanvasToMedia}
+					loadSignaturesForComposer={presenter.loadSignaturesForComposer}
 					socialChannels={presenter.baseSocialChannelsVm}
 					bind:body={presenter.editorBody}
 					bind:postMediaItems={presenter.postMediaItems}

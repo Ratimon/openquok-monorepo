@@ -39,7 +39,7 @@ export class UpsertBlogTopicModalPresenter {
 		fetch?: typeof globalThis.fetch
 	): Promise<BlogUpsertProgrammerModel> {
 		this.status = UpsertBlogTopicModalStatus.UPSERTING;
-		const result = await this.blogRepository.upsertBlogTopic(
+		const resultPm = await this.blogRepository.upsertBlogTopic(
 			{
 				id: input.id,
 				name: input.name,
@@ -48,18 +48,18 @@ export class UpsertBlogTopicModalPresenter {
 			},
 			fetch
 		);
-		this.applyUpsertResult(result);
-		return result;
+		this.applyUpsertResult(resultPm);
+		return resultPm;
 	}
 
-	private applyUpsertResult(result: BlogUpsertProgrammerModel): void {
-		if (result.success) {
+	private applyUpsertResult(resultPm: BlogUpsertProgrammerModel): void {
+		if (resultPm.success) {
 			this.showToastMessage = true;
-			this.toastMessage = result.message ?? 'Saved.';
+			this.toastMessage = resultPm.message ?? 'Saved.';
 			this.status = UpsertBlogTopicModalStatus.UPSERTED;
 		} else {
 			this.showToastMessage = true;
-			this.toastMessage = result.message ?? 'Something went wrong.';
+			this.toastMessage = resultPm.message ?? 'Something went wrong.';
 			this.status = UpsertBlogTopicModalStatus.UNKNOWN;
 		}
 	}
