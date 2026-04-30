@@ -3,7 +3,7 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { IntegrationChannelPicture } from '$lib/ui/images';
-	import SliderComponent from '$lib/ui/slider/SliderComponent.svelte';
+	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 
 	type Props = {
 		channel: CreateSocialPostChannelViewModel;
@@ -70,7 +70,7 @@
 			</div>
 			{#if mediaUrls.length > 0}
 				<div class="mt-3 overflow-hidden rounded-lg border border-base-300">
-					<SliderComponent class="aspect-[4/3] w-full" urls={mediaUrls} alt="" />
+					<ImageSlider class="aspect-[4/3] w-full" urls={mediaUrls} alt="" />
 				</div>
 			{/if}
 		</div>

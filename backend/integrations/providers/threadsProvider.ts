@@ -120,6 +120,54 @@ export class ThreadsProvider implements SocialProvider {
         ];
     }
 
+    /**
+     * Create a reply (comment) under a Threads post.
+     *
+     * Threads uses the same two-step publish flow as posting:
+     * 1) create a TEXT media container with `reply_to_id`
+     * 2) publish it via `/{threads-user-id}/threads_publish`
+     */
+    async comment(
+        userId: string,
+        postId: string,
+        lastCommentId: string | undefined,
+        accessToken: string,
+        postDetails: PostDetails[],
+        _integration: IntegrationRecord
+    ): Promise<PostResponse[]> {
+        if (!postDetails.length) return [];
+        const [first] = postDetails;
+        const message = first.message ?? "";
+        const replyToId = (lastCommentId ?? postId ?? "").trim();
+        
+        if (!replyToId) {
+            throw new Error("Threads reply_to_id is required to publish a comment");
+        }
+
+        logger.info({
+            msg: "[Threads] comment()",
+            build: THREADS_PROVIDER_BUILD,
+            postId: first.id,
+            replyToId,
+        });
+
+        const creationId = await this.createTextContent(userId, accessToken, message, replyToId);
+
+        // Meta recommends waiting before publishing replies; otherwise publish can be flaky.
+        await sleepMs(30_000);
+
+        const { threadId, permalink } = await this.publishThread(userId, accessToken, creationId);
+
+        return [
+            {
+                id: first.id,
+                postId: threadId,
+                status: "success",
+                releaseURL: permalink,
+            },
+        ];
+    }
+
     async refreshToken(refresh_token: string): Promise<AuthTokenDetails> {
         const { appId } = threadsOAuth();
         if (!appId) throw new Error("THREADS_APP_ID is not configured");
@@ -309,10 +357,18 @@ export class ThreadsProvider implements SocialProvider {
         return await fetch(`${GRAPH}/${encodeURIComponent(userId)}/threads`, { method: "POST", body: form });
     }
 
-    private async createTextContent(userId: string, accessToken: string, message: string): Promise<string> {
+    private async createTextContent(
+        userId: string,
+        accessToken: string,
+        message: string,
+        replyToId?: string
+    ): Promise<string> {
         const form = new FormData();
         form.append("media_type", "TEXT");
         form.append("text", message);
+        if (replyToId && replyToId.trim().length > 0) {
+            form.append("reply_to_id", replyToId.trim());
+        }
         form.append("access_token", accessToken);
 
         const res = await this.formPostThreads(userId, form);

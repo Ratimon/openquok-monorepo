@@ -4,7 +4,7 @@
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { IntegrationChannelPicture } from '$lib/ui/images';
-	import VideoOrImage from '$lib/ui/components/VideoOrImage.svelte';
+	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 
 	type Props = {
 		previewText: string;

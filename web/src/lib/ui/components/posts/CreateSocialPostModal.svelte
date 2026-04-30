@@ -134,6 +134,7 @@
 					softCharLimit={presenter.softCharLimit}
 					commentsMode={presenter.launchCommentsMode}
 					scheduleValidationMessage={presenter.scheduleValidationError}
+					scheduledPostDatetimeLocal={presenter.scheduledLocal}
 					selectedGroupId={presenter.selectedGroupId}
 					onToggleChannel={presenter.toggleChannel.bind(presenter)}
 					onToggleGlobal={() => {
@@ -153,10 +154,58 @@
 					editorBannerRightActionLabel={presenter.mode === 'custom' ? 'Back to global' : null}
 					onEditorBannerRightAction={presenter.mode === 'custom' ? presenter.backToGlobalMode.bind(presenter) : null}
 					postComment={presenter.postComment}
-					onAddPost={() => toast.message('Thread replies will be added next.')}
+					onAddPost={() => presenter.handleAddThreadItemClick()}
 					bind:settingsOpen={presenter.settingsOpen}
 					providerSettings={presenter.providerSettingsByIntegrationId[presenter.focusedIntegrationId ?? ''] ?? {}}
 					onProviderSettingsChange={presenter.updateFocusedProviderSettings.bind(presenter)}
+					settingsDisabled={presenter.busy}
+					threadReplies={
+						// Thread replies are per-network; show only when a single channel is selected or custom focus is set.
+						(() => {
+							const id =
+								presenter.mode === 'custom'
+									? presenter.focusedIntegrationId
+									: presenter.selectedIds.length === 1
+										? presenter.selectedIds[0]
+										: null;
+							const settings = id ? presenter.providerSettingsByIntegrationId[id] ?? {} : {};
+							const t = (settings as any).threads;
+							return Array.isArray(t?.replies) ? t.replies : [];
+						})()
+					}
+					onChangeThreadReplies={(next) => {
+						const id =
+							presenter.mode === 'custom'
+								? presenter.focusedIntegrationId
+								: presenter.selectedIds.length === 1
+									? presenter.selectedIds[0]
+									: null;
+						if (!id) return;
+						const current = presenter.providerSettingsByIntegrationId[id] ?? {};
+						const threadsObj =
+							(current as any).threads && typeof (current as any).threads === 'object'
+								? (current as any).threads
+								: { enabled: false, message: "That's a wrap!" };
+						presenter.providerSettingsByIntegrationId = {
+							...presenter.providerSettingsByIntegrationId,
+							[id]: {
+								...current,
+								threads: { ...threadsObj, replies: next }
+							}
+						};
+					}}
+					threadProviderIdentifier={
+						(() => {
+							const id =
+								presenter.mode === 'custom'
+									? presenter.focusedIntegrationId
+									: presenter.selectedIds.length === 1
+										? presenter.selectedIds[0]
+										: null;
+							if (!id) return null;
+							return presenter.baseSocialChannelsVm.find((c) => c.id === id)?.identifier ?? null;
+						})()
+					}
 					mediaUrls={presenter.previewMediaUrls}
 				/>
 			</div>

@@ -14,7 +14,7 @@
 	import Comments from '$lib/ui/components/preview/Comments.svelte';
 	import CopyClient from '$lib/ui/components/preview/CopyClient.svelte';
 	import RenderPreviewDate from '$lib/ui/components/preview/RenderPreviewDate.svelte';
-	import VideoOrImage from '$lib/ui/components/VideoOrImage.svelte';
+	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 
 	let { data }: { data: PageData } = $props();
 

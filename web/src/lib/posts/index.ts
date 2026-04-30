@@ -43,6 +43,7 @@ export type {
 } from '$lib/posts/Post.repository.svelte';
 export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPostPresenter.svelte';
 export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
+export { default as Delay } from '$lib/ui/components/posts/thread/Delay.svelte';
 export { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
 export type { PublicPreviewPostViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 export type { PostCommentViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';

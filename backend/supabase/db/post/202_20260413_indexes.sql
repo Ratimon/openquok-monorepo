@@ -20,13 +20,6 @@ CREATE INDEX IF NOT EXISTS idx_posts_parent_post_id ON public.posts(parent_post_
 CREATE INDEX IF NOT EXISTS idx_posts_org_publish ON public.posts(organization_id, publish_date);
 CREATE INDEX IF NOT EXISTS idx_posts_org_state ON public.posts(organization_id, state);
 
--- public.comments (composer post comments;
-CREATE INDEX IF NOT EXISTS idx_comments_created_at ON public.comments(created_at);
-CREATE INDEX IF NOT EXISTS idx_comments_organization_id ON public.comments(organization_id);
-CREATE INDEX IF NOT EXISTS idx_comments_user_id ON public.comments(user_id);
-CREATE INDEX IF NOT EXISTS idx_comments_post_id ON public.comments(post_id);
-CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON public.comments(deleted_at);
-
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------

@@ -65,22 +65,6 @@ CREATE TABLE IF NOT EXISTS public.post_tag_assignments (
 
 COMMENT ON TABLE public.post_tag_assignments IS 'Join between posts and post_tags (TagsPosts model shape).';
 
--- Composer comments on posts.
--- FKs: organizations — db/organization; users — db/user-management; posts — this module. Distinct from blog_comments.
-
-CREATE TABLE IF NOT EXISTS public.comments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    content TEXT NOT NULL,
-    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-    post_id TEXT NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
-);
-
-COMMENT ON TABLE public.comments IS 'Comments on composer posts (Comments ↔ Post / Organization / User); indexes in 202_20260413_indexes.sql; RLS in 302_20260413_rlsgrants.sql.';
-
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------

@@ -179,6 +179,8 @@ export type CreatePostProgrammerModel = {
 	body: string;
 	/** Optional per-channel body overrides (keyed by integration id). */
 	bodiesByIntegrationId?: Record<string, string>;
+	/** Optional provider-defined per-channel settings (keyed by integration id). */
+	providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
 	/** Image attachments (composer / R2 object keys; see `social_media` on each item when set). */
 	media?: PostMediaProgrammerModel[];
 	integrationIds: string[];

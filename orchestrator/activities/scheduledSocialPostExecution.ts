@@ -2,7 +2,7 @@ import type { IntegrationManager } from "backend/integrations/integrationManager
 import type { AuthTokenDetails, IntegrationRecord, PostDetails, PostResponse } from "backend/integrations/social.integrations.interface.js";
 import type { IntegrationRepository } from "backend/repositories/IntegrationRepository.js";
 import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
-import type { SocialPostLike } from "backend/utils/dtos/PostDTO.js";
+import type { PostThreadReplyLike, SocialPostLike } from "backend/utils/dtos/PostDTO.js";
 import type { NotificationService } from "backend/services/NotificationService.js";
 import type { NotificationEmailType } from "openquok-common";
 
@@ -20,11 +20,29 @@ export type ScheduledPostsRepository = {
         postGroup: string;
         publishDateIso: string;
     }) => Promise<{ postGroup: string; posts: SocialPostLike[] }>;
+
+    // Thread replies (follow-up comments)
+    listThreadRepliesByPostId?: (postId: string) => Promise<PostThreadReplyLike[]>;
+    updateThreadReplyPublishResult?: (
+        replyId: string,
+        input: { state: "PUBLISHED" | "ERROR"; releaseId: string | null; releaseUrl: string | null; error: string | null }
+    ) => Promise<void>;
 };
 
 const PUBLISH_ATTEMPTS = 5;
 
 const META_OPAQUE_MESSAGE = "An unknown error occurred";
+
+type PublishDeps = {
+    postsRepository: Pick<
+        ScheduledPostsRepository,
+        "markPostState" | "updatePostRowPublishResult" | "listThreadRepliesByPostId" | "updateThreadReplyPublishResult"
+    >;
+    integrationRepository: Pick<IntegrationRepository, "getById">;
+    integrationManager: IntegrationManager;
+    refreshService: Pick<RefreshIntegrationService, "refresh">;
+    notificationService?: Pick<NotificationService, "inAppNotification">;
+};
 
 function isNonRefreshablePublishError(message: string): boolean {
     const m = (message || "").toLowerCase();
@@ -115,13 +133,37 @@ function firstPostResponse(r: PostResponse[] | void): { releaseId: string; relea
     return { releaseId: x.postId ?? x.id, releaseUrl: x.releaseURL ?? "" };
 }
 
+function parseProviderSettingsFromPostRow(row: SocialPostLike): Record<string, unknown> | null {
+    if (!row.settings) return null;
+    try {
+        const o = JSON.parse(row.settings) as { providerSettings?: unknown };
+        if (o && typeof o === "object" && o.providerSettings && typeof o.providerSettings === "object") {
+            return o.providerSettings as Record<string, unknown>;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+function threadsThreadFinisherMessageFromSettings(settings: Record<string, unknown> | null): string | null {
+    const s = settings as { threads?: unknown } | null;
+    const threads = (s && typeof s.threads === "object" ? (s.threads as any) : null) as
+        | { enabled?: unknown; message?: unknown }
+        | null;
+    if (!threads) return null;
+    if (threads.enabled !== true) return null;
+    const msg = typeof threads.message === "string" ? threads.message.trim() : "";
+    return msg.length > 0 ? msg : null;
+}
+
 function capitalizeProvider(id: string): string {
     const t = id.trim();
     if (!t) return t;
     return t[0].toUpperCase() + t.slice(1);
 }
 
-/**` notification behaviour: best-effort; never fails publishing. */
+/** Notification behavior: best-effort; never fails publishing. */
 async function notify(
     service: Pick<NotificationService, "inAppNotification"> | undefined,
     organizationId: string,
@@ -160,6 +202,271 @@ async function notify(
             type,
             error: err instanceof Error ? err.message : String(err),
         });
+    }
+}
+
+async function resolveIntegrationOrFail(
+    post: SocialPostLike & { integration_id: string },
+    deps: PublishDeps
+): Promise<{ ok: true; integration: IntegrationLike } | { ok: false }> {
+    const organizationId = post.organization_id;
+    const postId = post.id;
+    const ns = deps.notificationService;
+
+    const integrationId = post.integration_id;
+    const provider = await deps.integrationRepository.getById(organizationId, integrationId);
+    if (!provider) {
+        await deps.postsRepository.markPostState(postId, "ERROR", "Channel not found for this workspace");
+        await notify(
+            ns,
+            organizationId,
+            "We couldn't publish your post",
+            "The selected channel for this post was not found. Choose a valid channel and try again.",
+            true,
+            false,
+            "fail"
+        );
+        return { ok: false };
+    }
+    if (provider.deleted_at) {
+        await deps.postsRepository.markPostState(postId, "ERROR", "That channel is no longer connected");
+        const label = capitalizeProvider(provider.provider_identifier);
+        const chName = provider.name || "channel";
+        await notify(
+            ns,
+            organizationId,
+            `We couldn't post to ${label} for ${chName}`,
+            `We couldn't post to ${label} for ${chName} because that connection is no longer available. Reconnect the channel and try again.`,
+            true,
+            false,
+            "info"
+        );
+        return { ok: false };
+    }
+    if (provider.refresh_needed) {
+        await deps.postsRepository.markPostState(postId, "ERROR", "Reconnect the channel, then try again");
+        const label = capitalizeProvider(provider.provider_identifier);
+        const chName = provider.name || "channel";
+        await notify(
+            ns,
+            organizationId,
+            `We couldn't post to ${label} for ${chName}`,
+            `We couldn't post to ${label} for ${chName} because you need to reconnect it. Reconnect the channel and try again.`,
+            true,
+            false,
+            "info"
+        );
+        return { ok: false };
+    }
+    if (provider.disabled) {
+        await deps.postsRepository.markPostState(postId, "ERROR", "That channel is disabled");
+        const label = capitalizeProvider(provider.provider_identifier);
+        const chName = provider.name || "channel";
+        await notify(
+            ns,
+            organizationId,
+            `We couldn't post to ${label} for ${chName}`,
+            `We couldn't post to ${label} for ${chName} because it's disabled. Enable it in channel settings and try again.`,
+            true,
+            false,
+            "info"
+        );
+        return { ok: false };
+    }
+
+    return { ok: true, integration: provider };
+}
+
+async function resolveSocialProviderOrFail(
+    input: { organizationId: string; postId: string; providerIdentifier: string },
+    deps: PublishDeps
+): Promise<{ ok: true; social: any } | { ok: false }> {
+    const ns = deps.notificationService;
+    const social = deps.integrationManager.getSocialIntegration(input.providerIdentifier);
+    if (!social) {
+        await deps.postsRepository.markPostState(input.postId, "ERROR", `No integration handler for ${input.providerIdentifier}`);
+        await notify(
+            ns,
+            input.organizationId,
+            "We couldn't publish your post",
+            `No integration handler is registered for ${capitalizeProvider(input.providerIdentifier)}.`,
+            true,
+            false,
+            "fail"
+        );
+        return { ok: false };
+    }
+    return { ok: true, social };
+}
+
+type ThreadsReplySettings = { id: string; message: string; delaySeconds: number };
+
+function threadsRepliesFromSettings(settings: Record<string, unknown> | null): ThreadsReplySettings[] {
+    const s = settings as { threads?: unknown } | null;
+    const threads = (s && typeof s.threads === "object" ? (s.threads as any) : null) as { replies?: unknown } | null;
+    const raw = threads?.replies;
+    if (!Array.isArray(raw)) return [];
+    return raw
+        .map((r) => ({
+            id: typeof (r as any)?.id === "string" ? (r as any).id : "",
+            message: typeof (r as any)?.message === "string" ? (r as any).message : "",
+            delaySeconds: Number.isFinite(Number((r as any)?.delaySeconds)) ? Number((r as any).delaySeconds) : 0,
+        }))
+        .filter((r) => r.id && r.message.trim().length > 0)
+        .slice(0, 25);
+}
+
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function maybePublishThreadsThreadFinisher(params: {
+    post: SocialPostLike;
+    integration: IntegrationLike;
+    record: IntegrationRecord;
+    social: any;
+    publishedPostId: string;
+    deps: PublishDeps;
+}): Promise<void> {
+    const { post, integration, record, social, publishedPostId, deps } = params;
+    if (integration.provider_identifier !== "threads") return;
+    if (typeof social.comment !== "function") return;
+    if (!publishedPostId) return;
+
+    const providerSettings = parseProviderSettingsFromPostRow(post);
+    const finisher = threadsThreadFinisherMessageFromSettings(providerSettings);
+    if (!finisher) return;
+
+    const organizationId = post.organization_id;
+    const postId = post.id;
+    const ns = deps.notificationService;
+
+    try {
+        await social.comment(
+            integration.internal_id,
+            publishedPostId,
+            undefined,
+            integration.token,
+            [{ id: postId, message: finisher, settings: {} }],
+            record
+        );
+        logger.info({
+            msg: "[Orchestrator] threads thread-finisher comment published",
+            postId,
+            organizationId,
+        });
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        logger.warn({
+            msg: "[Orchestrator] threads thread-finisher comment failed (best-effort)",
+            postId,
+            organizationId,
+            error: msg,
+        });
+        await notify(
+            ns,
+            organizationId,
+            "We published your post, but the follow-up comment failed",
+            `Your Threads post was published, but the follow-up comment (“thread finisher”) could not be posted. ${msg}`,
+            true,
+            false,
+            "info"
+        );
+    }
+}
+
+async function maybePublishThreadsReplies(params: {
+    post: SocialPostLike;
+    integration: IntegrationLike;
+    record: IntegrationRecord;
+    social: any;
+    publishedPostId: string;
+    deps: PublishDeps;
+}): Promise<void> {
+    const { post, integration, record, social, publishedPostId, deps } = params;
+    if (integration.provider_identifier !== "threads") return;
+    if (typeof social.comment !== "function") return;
+    if (!publishedPostId) return;
+
+    // Fallback to old settings JSON for backwards compatibility.
+    let replies: ThreadsReplySettings[] = [];
+    if (typeof deps.postsRepository.listThreadRepliesByPostId === "function") {
+        try {
+            const rows = await deps.postsRepository.listThreadRepliesByPostId(post.id);
+            replies = (rows ?? [])
+                .filter((r: PostThreadReplyLike) => !r.deleted_at && r.state === "QUEUE")
+                .map((r: PostThreadReplyLike) => ({
+                    id: r.id,
+                    message: r.content,
+                    delaySeconds: r.delay_seconds ?? 0,
+                }));
+        } catch {
+            replies = [];
+        }
+    }
+    if (replies.length === 0) {
+        const providerSettings = parseProviderSettingsFromPostRow(post);
+        replies = threadsRepliesFromSettings(providerSettings);
+    }
+    if (replies.length === 0) return;
+
+    const organizationId = post.organization_id;
+    const postId = post.id;
+    const ns = deps.notificationService;
+
+    let lastCommentId: string | undefined = publishedPostId;
+    for (const r of replies) {
+        const delayMs = Math.max(0, Math.floor((r.delaySeconds ?? 0) * 1000));
+        if (delayMs > 0) {
+            await sleep(delayMs);
+        }
+        try {
+            const res: PostResponse[] = await social.comment(
+                integration.internal_id,
+                publishedPostId,
+                lastCommentId,
+                integration.token,
+                [{ id: postId, message: r.message, settings: {} }],
+                record
+            );
+            const next = firstPostResponse(res).releaseId;
+            lastCommentId = next || lastCommentId;
+            if (typeof deps.postsRepository.updateThreadReplyPublishResult === "function") {
+                const { releaseId, releaseUrl } = firstPostResponse(res);
+                await deps.postsRepository.updateThreadReplyPublishResult(r.id, {
+                    state: "PUBLISHED",
+                    releaseId: releaseId || null,
+                    releaseUrl: releaseUrl || null,
+                    error: null,
+                });
+            }
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            logger.warn({
+                msg: "[Orchestrator] threads thread reply failed (best-effort)",
+                postId,
+                organizationId,
+                error: msg,
+            });
+            if (typeof deps.postsRepository.updateThreadReplyPublishResult === "function") {
+                await deps.postsRepository.updateThreadReplyPublishResult(r.id, {
+                    state: "ERROR",
+                    releaseId: null,
+                    releaseUrl: null,
+                    error: msg.slice(0, 4000),
+                });
+            }
+            await notify(
+                ns,
+                organizationId,
+                "We published your post, but a thread reply failed",
+                `Your Threads post was published, but one of the scheduled thread replies could not be posted. ${msg}`,
+                true,
+                false,
+                "info"
+            );
+            // Keep going to attempt later replies and finisher.
+        }
     }
 }
 
@@ -223,92 +530,21 @@ export function createPublishScheduledGroupHandler(deps: {
 
 async function publishOneRow(
     post: SocialPostLike & { integration_id: string },
-    deps: {
-        postsRepository: Pick<ScheduledPostsRepository, "markPostState" | "updatePostRowPublishResult">;
-        integrationRepository: Pick<IntegrationRepository, "getById">;
-        integrationManager: IntegrationManager;
-        refreshService: Pick<RefreshIntegrationService, "refresh">;
-        notificationService?: Pick<NotificationService, "inAppNotification">;
-    }
+    deps: PublishDeps
 ): Promise<void> {
     const organizationId = post.organization_id;
-    const integrationId = post.integration_id;
     const postId = post.id;
     const ns = deps.notificationService;
-    const provider = await deps.integrationRepository.getById(organizationId, integrationId);
-    if (!provider) {
-        await deps.postsRepository.markPostState(postId, "ERROR", "Channel not found for this workspace");
-        await notify(
-            ns,
-            organizationId,
-            "We couldn't publish your post",
-            "The selected channel for this post was not found. Choose a valid channel and try again.",
-            true,
-            false,
-            "fail"
-        );
-        return;
-    }
-    if (provider.deleted_at) {
-        await deps.postsRepository.markPostState(postId, "ERROR", "That channel is no longer connected");
-        const label = capitalizeProvider(provider.provider_identifier);
-        const chName = provider.name || "channel";
-        await notify(
-            ns,
-            organizationId,
-            `We couldn't post to ${label} for ${chName}`,
-            `We couldn't post to ${label} for ${chName} because that connection is no longer available. Reconnect the channel and try again.`,
-            true,
-            false,
-            "info"
-        );
-        return;
-    }
-    if (provider.refresh_needed) {
-        await deps.postsRepository.markPostState(postId, "ERROR", "Reconnect the channel, then try again");
-        const label = capitalizeProvider(provider.provider_identifier);
-        const chName = provider.name || "channel";
-        await notify(
-            ns,
-            organizationId,
-            `We couldn't post to ${label} for ${chName}`,
-            `We couldn't post to ${label} for ${chName} because you need to reconnect it. Reconnect the channel and try again.`,
-            true,
-            false,
-            "info"
-        );
-        return;
-    }
-    if (provider.disabled) {
-        await deps.postsRepository.markPostState(postId, "ERROR", "That channel is disabled");
-        const label = capitalizeProvider(provider.provider_identifier);
-        const chName = provider.name || "channel";
-        await notify(
-            ns,
-            organizationId,
-            `We couldn't post to ${label} for ${chName}`,
-            `We couldn't post to ${label} for ${chName} because it's disabled. Enable it in channel settings and try again.`,
-            true,
-            false,
-            "info"
-        );
-        return;
-    }
+    const providerRes = await resolveIntegrationOrFail(post, deps);
+    if (!providerRes.ok) return;
+    const provider = providerRes.integration;
 
-    const social = deps.integrationManager.getSocialIntegration(provider.provider_identifier);
-    if (!social) {
-        await deps.postsRepository.markPostState(postId, "ERROR", `No integration handler for ${provider.provider_identifier}`);
-        await notify(
-            ns,
-            organizationId,
-            "We couldn't publish your post",
-            `No integration handler is registered for ${capitalizeProvider(provider.provider_identifier)}.`,
-            true,
-            false,
-            "fail"
-        );
-        return;
-    }
+    const socialRes = await resolveSocialProviderOrFail(
+        { organizationId, postId, providerIdentifier: provider.provider_identifier },
+        deps
+    );
+    if (!socialRes.ok) return;
+    const social = socialRes.social;
 
     let intRow: IntegrationLike = provider;
     const postDetails: PostDetails[] = [postRowToPostDetails(post)];
@@ -342,6 +578,25 @@ async function publishOneRow(
                 organizationId,
                 provider: intRow.provider_identifier,
             });
+
+            // Optional scheduled follow-up comment (thread finisher) for providers that support replies.
+            await maybePublishThreadsReplies({
+                post,
+                integration: intRow,
+                record,
+                social,
+                publishedPostId: releaseId,
+                deps,
+            });
+            await maybePublishThreadsThreadFinisher({
+                post,
+                integration: intRow,
+                record,
+                social,
+                publishedPostId: releaseId,
+                deps,
+            });
+
             return;
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);

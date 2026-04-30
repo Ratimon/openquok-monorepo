@@ -389,9 +389,58 @@ CREATE TABLE IF NOT EXISTS public.post_tag_assignments (
 
 COMMENT ON TABLE public.post_tag_assignments IS 'Join between posts and post_tags (TagsPosts model shape).';
 
--- Composer comments on posts.
--- FKs: organizations — db/organization; users — db/user-management; posts — this module. Distinct from blog_comments.
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
+
+-- Module: post, File: 103_20260501_thread_replies_tables.sql
+-- ---------------------------
+-- MODULE NAME: post
+-- MODULE DATE: 20260501
+-- MODULE SCOPE: Tables
+-- ---------------------------
+-- Thread replies / follow-up comments for social posts (scheduled publishing entities).
+
+
+
+CREATE TABLE IF NOT EXISTS public.post_thread_replies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    post_id TEXT NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
+    integration_id UUID REFERENCES public.integrations(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    delay_seconds INT NOT NULL DEFAULT 0,
+    state public.post_state NOT NULL DEFAULT 'QUEUE',
+    release_id TEXT,
+    release_url TEXT,
+    error TEXT,
+    created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
+);
+
+COMMENT ON TABLE public.post_thread_replies IS 'Follow-up thread replies for scheduled social posts; published after the main post. Distinct from public.comments which are composer/preview comments.';
+COMMENT ON COLUMN public.post_thread_replies.delay_seconds IS 'Delay (seconds) before posting this reply after the previous item.';
+COMMENT ON COLUMN public.post_thread_replies.state IS 'Publish state for this reply row (QUEUE/PUBLISHED/ERROR).';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: comment, File: 101_20260413_tables.sql
+-- ---------------------------
+-- MODULE NAME: comment
+-- MODULE DATE: 20260413
+-- MODULE SCOPE: Tables
+-- ---------------------------
+-- Composer / preview comments on scheduled posts (internal discussion).
+
+
+
+-- FKs: organizations — db/organization; users — db/user-management; posts — db/post. Distinct from blog_comments.
 CREATE TABLE IF NOT EXISTS public.comments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     content TEXT NOT NULL,
@@ -403,7 +452,7 @@ CREATE TABLE IF NOT EXISTS public.comments (
     deleted_at TIMESTAMPTZ
 );
 
-COMMENT ON TABLE public.comments IS 'Comments on composer posts (Comments ↔ Post / Organization / User); indexes in 202_20260413_indexes.sql; RLS in 302_20260413_rlsgrants.sql.';
+COMMENT ON TABLE public.comments IS 'Comments on composer posts (internal discussion). Indexes in db/comment/201_20260413_indexes.sql; RLS in db/comment/301_20260413_rlsgrants.sql.';
 
 -- ---------------------------
 -- END OF FILE
@@ -807,7 +856,42 @@ CREATE INDEX IF NOT EXISTS idx_posts_parent_post_id ON public.posts(parent_post_
 CREATE INDEX IF NOT EXISTS idx_posts_org_publish ON public.posts(organization_id, publish_date);
 CREATE INDEX IF NOT EXISTS idx_posts_org_state ON public.posts(organization_id, state);
 
--- public.comments (composer post comments;
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: post, File: 203_20260501_thread_replies_indexes.sql
+-- ---------------------------
+-- MODULE NAME: post
+-- MODULE DATE: 20260501
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+
+
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_org_id ON public.post_thread_replies(organization_id);
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_post_id ON public.post_thread_replies(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_integration_id ON public.post_thread_replies(integration_id);
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_state ON public.post_thread_replies(state);
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_deleted_at ON public.post_thread_replies(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_created_at ON public.post_thread_replies(created_at);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: comment, File: 201_20260413_indexes.sql
+-- ---------------------------
+-- MODULE NAME: comment
+-- MODULE DATE: 20260413
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+
+
+-- public.comments (composer / preview comments)
 CREATE INDEX IF NOT EXISTS idx_comments_created_at ON public.comments(created_at);
 CREATE INDEX IF NOT EXISTS idx_comments_organization_id ON public.comments(organization_id);
 CREATE INDEX IF NOT EXISTS idx_comments_user_id ON public.comments(user_id);
@@ -1748,13 +1832,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tag_assignments TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tag_assignments TO service_role;
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.comments TO authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.comments TO service_role;
-
 ALTER TABLE public.post_tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.post_tag_assignments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 
 -- post_tags (org_id)
 DROP POLICY IF EXISTS "Members can view post_tags" ON public.post_tags;
@@ -1986,6 +2066,120 @@ USING (
           AND uo.disabled = FALSE
     )
 );
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: post, File: 303_20260501_thread_replies_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: post
+-- MODULE DATE: 20260501
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- API uses service_role; RLS limits direct authenticated access.
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_thread_replies TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_thread_replies TO service_role;
+
+ALTER TABLE public.post_thread_replies ENABLE ROW LEVEL SECURITY;
+
+-- post_thread_replies (organization_id scope)
+DROP POLICY IF EXISTS "Members can view post_thread_replies" ON public.post_thread_replies;
+CREATE POLICY "Members can view post_thread_replies"
+ON public.post_thread_replies
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = post_thread_replies.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert post_thread_replies" ON public.post_thread_replies;
+CREATE POLICY "Members can insert post_thread_replies"
+ON public.post_thread_replies
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = post_thread_replies.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update post_thread_replies" ON public.post_thread_replies;
+CREATE POLICY "Members can update post_thread_replies"
+ON public.post_thread_replies
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = post_thread_replies.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = post_thread_replies.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete post_thread_replies" ON public.post_thread_replies;
+CREATE POLICY "Members can delete post_thread_replies"
+ON public.post_thread_replies
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = post_thread_replies.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: comment, File: 301_20260413_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: comment
+-- MODULE DATE: 20260413
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- API uses service_role; RLS limits direct authenticated access.
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.comments TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.comments TO service_role;
+
+ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 
 -- comments (composer post comments; organization_id scope)
 DROP POLICY IF EXISTS "Members can view composer comments" ON public.comments;

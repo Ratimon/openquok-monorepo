@@ -18,6 +18,7 @@
 	import SelectGroupTargeting from '$lib/ui/components/posts/SelectGroupTargeting.svelte';
 	import SelectTargets from '$lib/ui/components/posts/SelectTargets.svelte';
 	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
+	import ThreadRepliesEditor from '$lib/ui/components/posts/thread/ThreadRepliesEditor.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
 
 	type Mode = 'global' | 'custom';
@@ -58,6 +59,12 @@
 		settingsOpen?: boolean;
 		providerSettings?: Record<string, unknown>;
 		onProviderSettingsChange: (value: Record<string, unknown>) => void;
+		threadReplies?: { id: string; message: string; delaySeconds: number }[];
+		onChangeThreadReplies?: (next: { id: string; message: string; delaySeconds: number }[]) => void;
+		/** Main post `datetime-local` (ManageModal); used for thread reply delay hints. */
+		scheduledPostDatetimeLocal?: string | null;
+		threadProviderIdentifier?: string | null;
+		settingsDisabled?: boolean;
 		postMediaItems?: PostMediaProgrammerModel[];
 		uploadUid?: string;
 		organizationId?: string | null;
@@ -102,6 +109,11 @@
 		settingsOpen = $bindable(false),
 		providerSettings = {},
 		onProviderSettingsChange,
+		threadReplies = [],
+		onChangeThreadReplies = undefined,
+		scheduledPostDatetimeLocal = null,
+		threadProviderIdentifier = null,
+		settingsDisabled = false,
 		postMediaItems = $bindable([]),
 		uploadUid = '',
 		organizationId = null,
@@ -182,14 +194,28 @@
 				confirmBannerRightAction={editorBannerRightActionLabel === 'Back to global'}
 			/>
 
-			<div class="mt-3">
-				<AddPostButton
-					onclick={onAddPost}
-					postComment={postComment}
-					disabled={busy || editorLocked}
-				/>
-			</div>
+			{#if !onChangeThreadReplies}
+				<div class="mt-3">
+					<AddPostButton
+						onclick={onAddPost}
+						postComment={postComment}
+						disabled={busy || editorLocked}
+					/>
+				</div>
+			{/if}
 		</div>
+
+		{#if onChangeThreadReplies}
+			<ThreadRepliesEditor
+				providerIdentifier={threadProviderIdentifier}
+				{postComment}
+				scheduledPostDatetimeLocal={scheduledPostDatetimeLocal}
+				disabled={busy}
+				replies={threadReplies}
+				onAddReply={onAddPost}
+				onChangeReplies={onChangeThreadReplies}
+			/>
+		{/if}
 
 		{#if mode === 'custom' && focusedIntegrationId}
 			{@const focused = socialChannels.find((c) => c.id === focusedIntegrationId)}
@@ -200,6 +226,7 @@
 						channel={focused}
 						value={providerSettings}
 						onChange={onProviderSettingsChange}
+						disabled={settingsDisabled}
 					/>
 				</div>
 			{/if}

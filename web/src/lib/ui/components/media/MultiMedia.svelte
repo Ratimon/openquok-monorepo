@@ -8,7 +8,7 @@
 	import { icons } from '$data/icon';
 	import { toast } from '$lib/ui/sonner';
 
-	import BlobOrHrefImg from '$lib/ui/components/posts/BlobOrHrefImg.svelte';
+	import BlobOrHrefImg from '$lib/ui/media-files/BlobOrHrefImg.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {

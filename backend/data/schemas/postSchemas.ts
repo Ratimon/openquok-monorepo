@@ -98,6 +98,11 @@ export const createPostBodySchema = z.object({
     scheduledAt: z.string().min(1, "Schedule time is required"),
     repeatInterval: z.union([repeatIntervalEnum, z.null()]).optional(),
     tagNames: z.array(z.string().max(120)).max(50).optional(),
+    /**
+     * Per-channel provider settings (e.g. Threads thread finisher).
+     * Keys are integration IDs; values are provider-defined objects.
+     */
+    providerSettingsByIntegrationId: z.record(z.string().uuid(), z.record(z.string(), z.unknown())).optional(),
     status: z.enum(["draft", "scheduled"]),
 });
 

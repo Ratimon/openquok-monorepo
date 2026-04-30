@@ -5,11 +5,14 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Accordion from '$lib/ui/accordion';
 
-	import ThreadFinisher from '$lib/ui/components/posts/finisher/ThreadFinisher.svelte';
+	import ThreadFinisher from '$lib/ui/components/posts/thread/ThreadFinisher.svelte';
 	import InstagramCollaborators from '$lib/ui/components/posts/providers/instagram/InstagramCollaborators.svelte';
 
 	type ProviderSettings = {
-		threads: { enabled: boolean; message: string };
+		threads: {
+			enabled: boolean;
+			message: string;
+		};
 		instagram: { postType: 'post' | 'story'; collaborators: string[]; trialReel: boolean };
 	};
 
@@ -18,9 +21,10 @@
 		channel: CreateSocialPostChannelViewModel;
 		value?: Partial<ProviderSettings>;
 		onChange: (next: Partial<ProviderSettings>) => void;
+		disabled?: boolean;
 	};
 
-	let { open = $bindable(false), channel, value = {}, onChange }: Props = $props();
+	let { open = $bindable(false), channel, value = {}, onChange, disabled = false }: Props = $props();
 
 	const identifier = $derived((channel.identifier ?? '').toLowerCase());
 	const title = $derived(`${channel.name} Settings`);
@@ -105,7 +109,7 @@
 
 			<div class="max-h-[calc(100vh-8rem)] overflow-y-auto p-4 sm:p-6">
 				{#if identifier === 'threads'}
-					<ThreadFinisher bind:enabled={threadsEnabled} bind:message={threadsMessage} />
+					<ThreadFinisher bind:enabled={threadsEnabled} bind:message={threadsMessage} disabled={disabled} />
 				{:else if identifier.startsWith('instagram')}
 					<InstagramCollaborators
 						bind:postType={igPostType}

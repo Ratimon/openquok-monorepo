@@ -427,6 +427,69 @@ export class CreateSocialPostPresenter {
 		};
 	}
 
+	/**
+	 * Upstream parity: "Add post in a thread" / "Add comment" adds another text item for the focused provider.
+	 * We currently support this only for Threads (stored in provider settings); publishing is handled in the worker.
+	 */
+	addThreadReplyForFocused(): boolean {
+		const integrationId =
+			this.mode === 'custom'
+				? this.focusedIntegrationId
+				: this.selectedIds.length === 1
+					? this.selectedIds[0]
+					: null;
+		if (!integrationId) {
+			toast.message('Select a single channel to add thread replies.');
+			return false;
+		}
+		const channel = this.baseSocialChannelsVm.find((c) => c.id === integrationId);
+		const identifier = (channel?.identifier ?? '').toLowerCase();
+		if (identifier !== 'threads') {
+			toast.message('Thread replies are currently supported on Threads only.');
+			return false;
+		}
+
+		const current = this.providerSettingsByIntegrationId[integrationId] ?? {};
+		const threads = (current as { threads?: unknown }).threads;
+		const threadsObj =
+			threads && typeof threads === 'object'
+				? (threads as Record<string, unknown>)
+				: ({ enabled: false, message: "That's a wrap!" } as Record<string, unknown>);
+
+		const repliesRaw = (threadsObj as { replies?: unknown }).replies;
+		const replies = Array.isArray(repliesRaw) ? (repliesRaw as any[]) : [];
+		const nextReplies = [
+			...replies,
+			{ id: crypto.randomUUID(), message: '', delaySeconds: 0 }
+		];
+
+		this.providerSettingsByIntegrationId = {
+			...this.providerSettingsByIntegrationId,
+			[integrationId]: {
+				...current,
+				threads: {
+					...threadsObj,
+					replies: nextReplies
+				}
+			}
+		};
+		// Ensure the user sees the editor section; settings panel still holds finisher/provider settings.
+		return true;
+	}
+
+	/**
+	 * Handler for the "+ Add comment or post" button.
+	 *
+	 * - If editing a single channel (or only one is selected), switch to custom mode for that channel and add a reply.
+	 * - If multiple channels are selected, ask the user to pick one (thread replies are provider-specific).
+	 */
+	handleAddThreadItemClick(): void {
+		const ok = this.addThreadReplyForFocused();
+		if (ok) {
+			toast.success('Comment editor added below — you can edit it there.');
+		}
+	}
+
 	selectGroup(groupId: string | null): void {
 		this.selectedGroupId = groupId;
 		if (!groupId) return;
@@ -768,6 +831,9 @@ export class CreateSocialPostPresenter {
 				organizationId: workspaceId,
 				body: this.globalBody,
 				...(overrides ? { bodiesByIntegrationId: overrides } : {}),
+				...(Object.keys(this.providerSettingsByIntegrationId ?? {}).length
+					? { providerSettingsByIntegrationId: this.providerSettingsByIntegrationId }
+					: {}),
 				...(this.postMediaItems.length ? { media: this.postMediaItems } : {}),
 				integrationIds: this.selectedIds,
 				isGlobal: this.mode === 'global',
@@ -834,6 +900,9 @@ export class CreateSocialPostPresenter {
 				organizationId: workspaceId,
 				body: this.globalBody,
 				...(overrides ? { bodiesByIntegrationId: overrides } : {}),
+				...(Object.keys(this.providerSettingsByIntegrationId ?? {}).length
+					? { providerSettingsByIntegrationId: this.providerSettingsByIntegrationId }
+					: {}),
 				...(this.postMediaItems.length ? { media: this.postMediaItems } : {}),
 				integrationIds: this.selectedIds,
 				isGlobal: this.mode === 'global',

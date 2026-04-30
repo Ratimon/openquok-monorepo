@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import BlobOrHrefImg from '$lib/ui/components/posts/BlobOrHrefImg.svelte';
+	import BlobOrHrefImg from './BlobOrHrefImg.svelte';
 
 	type Props = {
 		class?: string;
@@ -67,4 +67,3 @@
 		</div>
 	{/if}
 </div>
-

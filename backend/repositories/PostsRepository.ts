@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { PostStateDb, PostTagLike, PostCommentLike, SocialPostLike } from "../utils/dtos/PostDTO";
+import type { PostStateDb, PostTagLike, PostCommentLike, PostThreadReplyLike, SocialPostLike } from "../utils/dtos/PostDTO";
 
 import { v4 as uuidv4 } from "uuid";
 import { DatabaseError } from "../errors/InfraError";
@@ -9,8 +9,11 @@ const TABLE_TAGS = "post_tags";
 const TABLE_POSTS_TAGS = "post_tag_assignments";
 /** Composer comments on `posts` rows */
 const TABLE_COMMENTS = "comments";
+/** Thread replies on social posts (follow-ups) */
+const TABLE_THREAD_REPLIES = "post_thread_replies";
 
 export type SocialPostInsert = Omit<SocialPostLike, "id" | "created_at" | "updated_at">;
+export type PostThreadReplyInsert = Omit<PostThreadReplyLike, "id" | "created_at" | "updated_at">;
 
 export class PostsRepository {
     constructor(private readonly supabase: SupabaseClient) {}
@@ -407,6 +410,84 @@ export class PostsRepository {
             });
         }
         return data as PostCommentLike;
+    }
+
+    /** Inserts follow-up thread replies for a given scheduled post row (`posts.id`). */
+    async insertThreadReplies(rows: PostThreadReplyInsert[]): Promise<PostThreadReplyLike[]> {
+        if (rows.length === 0) return [];
+        const now = new Date().toISOString();
+        const payload = rows.map((r) => ({ ...r, created_at: now, updated_at: now }));
+        const { data, error } = await this.supabase.from(TABLE_THREAD_REPLIES).insert(payload).select("*");
+        if (error) {
+            throw new DatabaseError(`Failed to insert thread replies: ${error.message}`, {
+                cause: error,
+                operation: "insert",
+                resource: { type: "table", name: TABLE_THREAD_REPLIES },
+            });
+        }
+        return (data ?? []) as PostThreadReplyLike[];
+    }
+
+    /** Lists non-deleted thread replies for a scheduled post row (`posts.id`). */
+    async listThreadRepliesByPostId(postId: string): Promise<PostThreadReplyLike[]> {
+        const { data, error } = await this.supabase
+            .from(TABLE_THREAD_REPLIES)
+            .select("*")
+            .eq("post_id", postId)
+            .is("deleted_at", null)
+            .order("created_at", { ascending: true });
+        if (error) {
+            throw new DatabaseError(`Failed to load thread replies: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_THREAD_REPLIES },
+            });
+        }
+        return (data ?? []) as PostThreadReplyLike[];
+    }
+
+    /** Soft-delete thread replies by parent post ids (used when overwriting a post group). */
+    async softDeleteThreadRepliesByPostIds(postIds: string[]): Promise<void> {
+        if (postIds.length === 0) return;
+        const now = new Date().toISOString();
+        const { error } = await this.supabase
+            .from(TABLE_THREAD_REPLIES)
+            .update({ deleted_at: now, updated_at: now })
+            .in("post_id", postIds)
+            .is("deleted_at", null);
+        if (error) {
+            throw new DatabaseError(`Failed to delete thread replies: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_THREAD_REPLIES },
+            });
+        }
+    }
+
+    /** Worker/orchestrator: set published result for a thread reply row. */
+    async updateThreadReplyPublishResult(
+        replyId: string,
+        input: { state: "PUBLISHED" | "ERROR"; releaseId: string | null; releaseUrl: string | null; error: string | null }
+    ): Promise<void> {
+        const now = new Date().toISOString();
+        const { error } = await this.supabase
+            .from(TABLE_THREAD_REPLIES)
+            .update({
+                state: input.state,
+                release_id: input.releaseId,
+                release_url: input.releaseUrl,
+                error: input.error,
+                updated_at: now,
+            })
+            .eq("id", replyId)
+            .is("deleted_at", null);
+        if (error) {
+            throw new DatabaseError(`Failed to update thread reply publish result: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_THREAD_REPLIES },
+            });
+        }
     }
 
     /** Soft-delete all rows in a post group. Returns ids of rows affected. */

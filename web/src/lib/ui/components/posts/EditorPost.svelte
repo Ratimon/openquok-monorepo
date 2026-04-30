@@ -19,14 +19,14 @@
 	import { toast } from '$lib/ui/sonner';
 
 	interface EditorPostProps {
-		stockPhotosVm: readonly StockPhotoViewModel[];
-		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
-		fetchPolotnoTemplateListPage: (
+		stockPhotosVm?: readonly StockPhotoViewModel[];
+		designTemplatesVm?: readonly DesignTemplateProgrammerModel[];
+		fetchPolotnoTemplateListPage?: (
 			params: { query: string; page: number },
 			signal?: AbortSignal
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
-		backgroundPanelVm: BackgroundPanelVm;
-		exportCanvasToMedia: ExportCanvasToMediaFn;
+		backgroundPanelVm?: BackgroundPanelVm;
+		exportCanvasToMedia?: ExportCanvasToMediaFn;
 		body?: string;
 		busy?: boolean;
 		charCount: number;
@@ -50,15 +50,20 @@
 		focusedProviderIdentifier?: string | null;
 		/** Provider `comments` mode: `true` or `'no-media'` (single attachment only). */
 		commentsMode?: LaunchProviderCommentsMode;
+		/** When true, render in "comment" mode (no media; smaller UX). */
+		comments?: boolean;
 		scheduleValidationMessage?: string | null;
 	}
 
 	let {
-		stockPhotosVm,
-		designTemplatesVm,
-		fetchPolotnoTemplateListPage,
-		backgroundPanelVm,
-		exportCanvasToMedia,
+		stockPhotosVm = [],
+		designTemplatesVm = [],
+		fetchPolotnoTemplateListPage = async () => ({ items: [], page: 1, totalPages: 1 }),
+		backgroundPanelVm = {
+			fetchPolotnoUnsplashPagePm: async () => ({ items: [], page: 1, totalPages: 1 }),
+			triggerPolotnoUnsplashDownloadPm: () => {}
+		},
+		exportCanvasToMedia = async () => ({ ok: false, error: 'Export is not configured.' }),
 		body = $bindable(''),
 		busy = false,
 		charCount,
@@ -73,15 +78,20 @@
 		postMediaItems = $bindable<PostMediaProgrammerModel[]>([]),
 		uploadUid = '',
 		organizationId = null,
-		loadSignaturesForComposer = undefined,
 		loadSignaturesVmForComposer = undefined,
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
 		commentsMode = true,
-		scheduleValidationMessage = null
-	}: EditorPostProps = $props();
+		comments = false,
+		scheduleValidationMessage = null,
+		...rest
+	}: EditorPostProps & Record<string, unknown> = $props();
 
-	const signaturesLoader = $derived(loadSignaturesVmForComposer ?? loadSignaturesForComposer);
+	// Back-compat: allow older callers to pass `loadSignaturesForComposer` without surfacing the deprecation warning here.
+	const signaturesLoader = $derived(
+		loadSignaturesVmForComposer ??
+			(rest['loadSignaturesForComposer'] as FetchSignaturesForComposerFn | undefined)
+	);
 
 	let confirmOpen = $state(false);
 	let composerTextarea = $state.raw<HTMLTextAreaElement | null>(null);
@@ -145,13 +155,15 @@
 			id="composer-body"
 			bind:this={composerTextarea}
 			bind:value={body}
-			rows="8"
-			placeholder="Write something…"
+			rows={comments ? 5 : 8}
+			placeholder={comments ? 'Write a comment…' : 'Write something…'}
 			onpaste={onComposerPaste}
 			disabled={busy || locked}
 			class="border-base-300 bg-base-200 focus:border-primary focus:ring-primary/30 focus:ring-inset min-h-[140px] sm:min-h-[180px] max-h-[320px] w-full resize-none sm:resize-y rounded-lg border px-3 pt-2 text-sm text-base-content placeholder:text-base-content/40 focus:ring-2 focus:outline-none {locked
 				? 'pb-2'
-				: 'pb-12'}"
+				: comments
+					? 'pb-2'
+					: 'pb-12'}"
 		></textarea>
 
 		{#if locked}
@@ -164,7 +176,7 @@
 					Edit content
 				</Button>
 			</div>
-		{:else}
+		{:else if !comments}
 			<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-start">
 				<ComposerMediaToolbar
 					class="pointer-events-auto"
@@ -191,7 +203,7 @@
 			</div>
 		{/if}
 	</div>
-	{#if !locked}
+	{#if !locked && !comments}
 		<div class="mt-2 border-t border-base-300/80 pt-2">
 			<MultiMedia
 				bind:items={postMediaItems}

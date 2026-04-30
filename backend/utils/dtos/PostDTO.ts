@@ -169,6 +169,41 @@ export interface PostCommentDTO {
     deletedAt: string | null;
 }
 
+/** Raw row shape from Supabase `public.post_thread_replies` (follow-up thread replies). */
+export interface PostThreadReplyLike {
+    id: string;
+    organization_id: string;
+    post_id: string;
+    integration_id: string | null;
+    content: string;
+    delay_seconds: number;
+    state: PostStateDb;
+    release_id: string | null;
+    release_url: string | null;
+    error: string | null;
+    created_by_user_id: string | null;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
+export interface PostThreadReplyDTO {
+    id: string;
+    organizationId: string;
+    postId: string;
+    integrationId: string | null;
+    content: string;
+    delaySeconds: number;
+    state: PostStateDb;
+    releaseId: string | null;
+    releaseUrl: string | null;
+    error: string | null;
+    createdByUserId: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+}
+
 export const PostDTOMapper = {
     toDTO(row: SocialPostLike | null | undefined): SocialPostDTO | null {
         if (row == null) return null;
@@ -237,5 +272,30 @@ export const PostDTOMapper = {
     toPostCommentDTOCollection(rows: PostCommentLike[]): PostCommentDTO[] {
         if (!Array.isArray(rows)) return [];
         return rows.map((r) => PostDTOMapper.toPostCommentDTO(r)!).filter(Boolean);
+    },
+
+    toPostThreadReplyDTO(row: PostThreadReplyLike | null | undefined): PostThreadReplyDTO | null {
+        if (row == null) return null;
+        return {
+            id: row.id,
+            organizationId: row.organization_id,
+            postId: row.post_id,
+            integrationId: row.integration_id,
+            content: row.content,
+            delaySeconds: row.delay_seconds,
+            state: row.state,
+            releaseId: row.release_id,
+            releaseUrl: row.release_url,
+            error: row.error,
+            createdByUserId: row.created_by_user_id,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            deletedAt: row.deleted_at,
+        };
+    },
+
+    toPostThreadReplyDTOCollection(rows: PostThreadReplyLike[]): PostThreadReplyDTO[] {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => PostDTOMapper.toPostThreadReplyDTO(r)!).filter(Boolean);
     },
 };

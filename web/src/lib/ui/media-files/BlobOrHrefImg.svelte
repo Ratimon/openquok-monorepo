@@ -48,3 +48,4 @@
 {#if src}
 	<img {src} class={className} {alt} {draggable} {loading} />
 {/if}
+

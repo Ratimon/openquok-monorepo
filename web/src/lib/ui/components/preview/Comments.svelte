@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { PostCommentViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
-	import Button from '$lib/ui/buttons/Button.svelte';
 	import { cn, formatPassedTime } from '$lib/ui/helpers/common';
+
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import { Textarea } from '$lib/ui/textarea';
 
 	type Props = {

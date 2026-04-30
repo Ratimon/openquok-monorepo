@@ -119,6 +119,8 @@ export type CreatePostInput = {
     body: string;
     /** Optional per-integration body overrides. */
     bodiesByIntegrationId?: Record<string, string> | null;
+    /** Optional per-integration provider settings (e.g. Threads thread finisher). */
+    providerSettingsByIntegrationId?: Record<string, Record<string, unknown>> | null;
     /** Image attachments; stored as JSON in `posts.image`. */
     media?: PostMediaItemInput[] | null;
     integrationIds: string[];
@@ -244,6 +246,7 @@ export class PostsService {
         postGroup: string;
         body: string;
         bodiesByIntegrationId?: Record<string, string> | null;
+        providerSettingsByIntegrationId?: Record<string, Record<string, unknown>> | null;
         media?: PostMediaItemInput[] | null;
         integrationIds: string[];
         isGlobal: boolean;
@@ -260,6 +263,7 @@ export class PostsService {
             postGroup,
             body,
             bodiesByIntegrationId,
+            providerSettingsByIntegrationId,
             media,
             integrationIds,
             isGlobal,
@@ -318,7 +322,7 @@ export class PostsService {
         const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
         const createdByUserId = userId ?? null;
 
-        const settingsJson = JSON.stringify({ isGlobal, repeatInterval: repeatInterval ?? null });
+        const baseSettings = { isGlobal, repeatInterval: repeatInterval ?? null };
         const intervalDays = repeatIntervalToDays(repeatInterval);
 
         const state: PostStateDb = status === "draft" ? "DRAFT" : "QUEUE";
@@ -340,7 +344,7 @@ export class PostsService {
             parent_post_id: null,
             release_id: null,
             release_url: null,
-            settings: settingsJson,
+            settings: JSON.stringify(baseSettings),
             image: imageColumn,
             interval_in_days: intervalDays,
             error: null,
@@ -359,6 +363,10 @@ export class PostsService {
                     bodiesByIntegrationId && typeof bodiesByIntegrationId[integrationId] === "string"
                         ? bodiesByIntegrationId[integrationId]!
                         : baseRow.content,
+                settings: JSON.stringify({
+                    ...baseSettings,
+                    providerSettings: providerSettingsByIntegrationId?.[integrationId] ?? null,
+                }),
             }));
         }
 
@@ -373,6 +381,12 @@ export class PostsService {
         const { toInsert, tagIds } = await this.buildPostGroupInsert({ ...input, postGroup });
         const inserted = await this.postsRepository.insertPostGroup(toInsert);
         await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+        await this.persistThreadRepliesFromProviderSettings({
+            organizationId: input.organizationId,
+            authUserId: input.authUserId,
+            posts: inserted,
+            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
+        });
         const out = { postGroup, posts: inserted };
         void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
         await this._invalidatePostMutationCaches({
@@ -691,10 +705,17 @@ export class PostsService {
         // Delete old tag links & rows; then reinsert with the same group id.
         const oldIds = existing.map((r) => r.id);
         await this.postsRepository.deleteTagAssignmentsForPostIds(oldIds);
+        await this.postsRepository.softDeleteThreadRepliesByPostIds(oldIds);
         await this.postsRepository.softDeletePostsByGroup(postGroup);
 
         const inserted = await this.postsRepository.insertPostGroup(toInsert);
         await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+        await this.persistThreadRepliesFromProviderSettings({
+            organizationId,
+            authUserId,
+            posts: inserted,
+            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
+        });
         const out = { postGroup, posts: inserted };
         void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
         await this._invalidatePostMutationCaches({
@@ -918,5 +939,48 @@ export class PostsService {
             }
         }
         return ids;
+    }
+
+    private async persistThreadRepliesFromProviderSettings(params: {
+        organizationId: string;
+        authUserId: string;
+        posts: SocialPostLike[];
+        providerSettingsByIntegrationId: Record<string, Record<string, unknown>> | null;
+    }): Promise<void> {
+        const { organizationId, authUserId, posts, providerSettingsByIntegrationId } = params;
+        if (!providerSettingsByIntegrationId) return;
+
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+        const createdByUserId = userId ?? null;
+
+        const rows: any[] = [];
+        for (const post of posts) {
+            const integrationId = post.integration_id;
+            if (!integrationId) continue;
+            const settings = providerSettingsByIntegrationId[integrationId];
+            if (!settings) continue;
+            const threads = (settings as any).threads;
+            const replies = Array.isArray(threads?.replies) ? threads.replies : [];
+            for (const r of replies) {
+                const content = typeof r?.message === "string" ? r.message.trim() : "";
+                if (!content) continue;
+                const delaySeconds = Number.isFinite(Number(r?.delaySeconds)) ? Number(r.delaySeconds) : 0;
+                rows.push({
+                    organization_id: organizationId,
+                    post_id: post.id,
+                    integration_id: integrationId,
+                    content,
+                    delay_seconds: Math.max(0, Math.floor(delaySeconds)),
+                    state: "QUEUE",
+                    release_id: null,
+                    release_url: null,
+                    error: null,
+                    deleted_at: null,
+                    created_by_user_id: createdByUserId,
+                });
+            }
+        }
+        if (rows.length === 0) return;
+        await this.postsRepository.insertThreadReplies(rows);
     }
 }

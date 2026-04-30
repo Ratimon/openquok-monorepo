@@ -99,6 +99,7 @@ export class PostsController {
                 scheduledAt: string;
                 repeatInterval?: string | null;
                 tagNames?: string[];
+                providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
                 status: "draft" | "scheduled";
             };
             const result = await this.postsService.createPost({
@@ -112,6 +113,7 @@ export class PostsController {
                 scheduledAtIso: b.scheduledAt,
                 repeatInterval: (b.repeatInterval ?? null) as RepeatIntervalKey | null,
                 tagNames: b.tagNames ?? [],
+                providerSettingsByIntegrationId: b.providerSettingsByIntegrationId ?? null,
                 status: b.status,
             });
             res.status(200).json({
@@ -256,6 +258,7 @@ export class PostsController {
                 scheduledAt: string;
                 repeatInterval?: string | null;
                 tagNames?: string[];
+                providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
                 status: "draft" | "scheduled";
             };
 
@@ -271,6 +274,7 @@ export class PostsController {
                 scheduledAtIso: b.scheduledAt,
                 repeatInterval: (b.repeatInterval ?? null) as RepeatIntervalKey | null,
                 tagNames: b.tagNames ?? [],
+                providerSettingsByIntegrationId: b.providerSettingsByIntegrationId ?? null,
                 status: b.status,
             });
 
