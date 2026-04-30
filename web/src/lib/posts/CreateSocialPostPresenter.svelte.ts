@@ -13,7 +13,10 @@ import type {
 	RepeatIntervalKey
 } from '$lib/posts/Post.repository.svelte';
 import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
-import type { SignaturesRepository } from '$lib/signatures/Signature.repository.svelte';
+import type {
+	GetSignaturesPresenter,
+	SignatureViewModel
+} from '$lib/signatures/GetSignature.presenter.svelte';
 
 import { mediaItemsToPreviewUrls } from '$lib/posts/Post.repository.svelte';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
@@ -83,12 +86,68 @@ export class CreateSocialPostPresenter {
 	constructor(
 		private readonly postsRepository: PostsRepository,
 		private readonly mediaModalPresenter: GenerateMediaModalPresenter,
-		private readonly signaturesRepository: SignaturesRepository
+		private readonly getSignaturesPresenter: GetSignaturesPresenter
 	) {}
 
+	private signaturesCache: { organizationId: string; items: SignatureViewModel[]; loadedAtMs: number } | null = null;
+	private readonly signaturesCacheTtlMs = 30_000;
+
 	/** Composer toolbar: fetch signatures without mutating settings presenter state. */
-	loadSignaturesForComposer = (organizationId: string) =>
-		this.signaturesRepository.listForOrganization(organizationId);
+	loadSignaturesVmForComposer = async (organizationId: string, fetch?: typeof globalThis.fetch) => {
+		const oid = (organizationId ?? '').trim();
+		if (!oid) return { ok: true as const, items: [] };
+
+		// If a custom fetch is provided (SSR / universal load), bypass in-memory cache.
+		if (!fetch) {
+			const cached = this.signaturesCache;
+			if (
+				cached &&
+				cached.organizationId === oid &&
+				Date.now() - cached.loadedAtMs < this.signaturesCacheTtlMs
+			) {
+				return { ok: true as const, items: cached.items };
+			}
+		}
+
+		// HMR-safety: older presenter instances may not have the newer `...Result` method yet.
+		const p = this.getSignaturesPresenter as unknown as {
+			loadSignaturesForOrganizationResult?: (
+				organizationId: string,
+				fetch?: typeof globalThis.fetch
+			) => Promise<{ ok: true; items: SignatureViewModel[] } | { ok: false; error: string }>;
+			loadSignaturesForOrganizationVm: (
+				organizationId: string,
+				fetch?: typeof globalThis.fetch
+			) => Promise<SignatureViewModel[]>;
+		};
+
+		const resVm = p.loadSignaturesForOrganizationResult
+			? await p.loadSignaturesForOrganizationResult(oid, fetch)
+			: ({ ok: true, items: await p.loadSignaturesForOrganizationVm(oid, fetch) } as const);
+		if (resVm.ok) {
+			this.signaturesCache = { organizationId: oid, items: resVm.items, loadedAtMs: Date.now() };
+		}
+		return resVm;
+	};
+
+	private async maybeAutoAddDefaultSignature(workspaceId: string): Promise<void> {
+		// Only auto-add on a fresh composer; never overwrite existing content.
+		if (this.globalBody.trim().length > 0) return;
+		if (Object.keys(this.bodiesByIntegrationId ?? {}).length > 0) return;
+
+		const res = await this.loadSignaturesVmForComposer(workspaceId);
+		if (!res.ok) return;
+		const sig = res.items.find((s) => s.isDefault);
+		const content = (sig?.content ?? '').trim();
+		if (!content) return;
+
+		this.globalBody = content;
+		// Keep the visible editor in sync with current mode.
+		if (this.mode === 'custom' && this.focusedIntegrationId) {
+			this.bodiesByIntegrationId = { ...this.bodiesByIntegrationId, [this.focusedIntegrationId]: content };
+		}
+		this.editorBody = content;
+	}
 
 	/** Stock rows for the design-media dialog (from the injected media modal presenter). */
 	get stockPhotosVm() {
@@ -419,6 +478,7 @@ export class CreateSocialPostPresenter {
 			return;
 		}
 		await this.loadInitial(workspaceId, preselectScheduledAtIso);
+		await this.maybeAutoAddDefaultSignature(workspaceId);
 
 		if (preselectGroupId) {
 			this.selectGroup(preselectGroupId);

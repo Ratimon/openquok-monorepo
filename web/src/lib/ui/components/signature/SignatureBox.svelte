@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { SignatureProgrammerModel } from '$lib/signatures';
 
+	import { Badge } from '$lib/ui/badge';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { icons } from '$data/icon';
@@ -25,11 +26,9 @@
 				<h4 class="truncate text-sm font-semibold text-base-content">
                     {signature.title}
                 </h4>
-				{#if signature.isDefault}
-					<span class="badge badge-sm badge-primary">
-                        Default
-                    </span>
-				{/if}
+				<Badge variant={signature.isDefault ? 'default' : 'secondary'}>
+					{signature.isDefault ? 'Auto add' : 'Manual'}
+				</Badge>
 			</div>
 			<p class="mt-1 whitespace-pre-wrap break-words text-sm text-base-content/70">{preview}</p>
 		</div>

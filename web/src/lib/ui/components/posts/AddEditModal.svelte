@@ -22,7 +22,7 @@
 
 	type Mode = 'global' | 'custom';
 
-	interface AddEditModalProps {
+	type Props = {
 		stockPhotosVm: readonly StockPhotoViewModel[];
 		designTemplatesVm: readonly DesignTemplateProgrammerModel[];
 		fetchPolotnoTemplateListPage: (
@@ -61,11 +61,13 @@
 		postMediaItems?: PostMediaProgrammerModel[];
 		uploadUid?: string;
 		organizationId?: string | null;
+		/** @deprecated prefer `loadSignaturesVmForComposer` */
 		loadSignaturesForComposer?: FetchSignaturesForComposerFn;
+		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		mediaUrls?: string[];
 		commentsMode?: LaunchProviderCommentsMode;
 		scheduleValidationMessage?: string | null;
-	}
+	};
 
 	let {
 		stockPhotosVm,
@@ -104,10 +106,13 @@
 		uploadUid = '',
 		organizationId = null,
 		loadSignaturesForComposer = undefined,
+		loadSignaturesVmForComposer = undefined,
 		mediaUrls = [],
 		commentsMode = true,
 		scheduleValidationMessage = null
-	}: AddEditModalProps = $props();
+	}: Props = $props();
+
+	const signaturesLoader = $derived(loadSignaturesVmForComposer ?? loadSignaturesForComposer);
 
 	/**
 	 * Integration `identifier` used to default the design canvas format.
@@ -160,7 +165,7 @@
 				bind:postMediaItems
 				{uploadUid}
 				organizationId={organizationId}
-				{loadSignaturesForComposer}
+				loadSignaturesForComposer={signaturesLoader}
 				{busy}
 				{charCount}
 				{softCharLimit}

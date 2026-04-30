@@ -43,7 +43,9 @@
 		uploadUid?: string;
 		/** Current workspace for org-scoped signatures in the toolbar. */
 		organizationId?: string | null;
+		/** @deprecated prefer `loadSignaturesVmForComposer` */
 		loadSignaturesForComposer?: FetchSignaturesForComposerFn;
+		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
 		/** Provider `comments` mode: `true` or `'no-media'` (single attachment only). */
@@ -72,11 +74,14 @@
 		uploadUid = '',
 		organizationId = null,
 		loadSignaturesForComposer = undefined,
+		loadSignaturesVmForComposer = undefined,
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
 		commentsMode = true,
 		scheduleValidationMessage = null
 	}: EditorPostProps = $props();
+
+	const signaturesLoader = $derived(loadSignaturesVmForComposer ?? loadSignaturesForComposer);
 
 	let confirmOpen = $state(false);
 	let composerTextarea = $state.raw<HTMLTextAreaElement | null>(null);
@@ -172,7 +177,7 @@
 					disabled={busy}
 					{uploadUid}
 					{organizationId}
-					{loadSignaturesForComposer}
+					loadSignaturesForComposer={signaturesLoader}
 					textarea={composerTextarea}
 					{composerMode}
 					{focusedProviderIdentifier}

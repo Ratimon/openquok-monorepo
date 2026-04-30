@@ -13,7 +13,9 @@
 	type Props = {
 		open?: boolean;
 		organizationId?: string | null;
+		/** @deprecated prefer `loadSignaturesVmForComposer` */
 		loadSignaturesForComposer?: FetchSignaturesForComposerFn;
+		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		onInsertSignature?: (text: string) => void;
 	};
 
@@ -21,6 +23,7 @@
 		open = $bindable(false),
 		organizationId = null,
 		loadSignaturesForComposer = undefined,
+		loadSignaturesVmForComposer = undefined,
 		onInsertSignature = undefined
 	}: Props = $props();
 
@@ -38,14 +41,15 @@
 
 	async function loadSignaturesIfNeeded() {
 		if (!organizationId?.trim()) return;
-		if (!loadSignaturesForComposer) {
+		const loader = loadSignaturesVmForComposer ?? loadSignaturesForComposer;
+		if (!loader) {
 			toast.error('Signatures could not be loaded.');
 			return;
 		}
 		if (signatureBusy) return;
 		signatureBusy = true;
 		try {
-			const res = await loadSignaturesForComposer(organizationId.trim());
+			const res = await loader(organizationId.trim());
 			if (res.ok) {
 				signatures = res.items;
 			} else {
@@ -86,7 +90,7 @@
 						Signatures
 					</Dialog.Title>
 					<Dialog.Description class="mt-1 text-xs leading-snug text-base-content/70">
-						Insert a workspace snippet eg. hashtags, sign-offs, or other text you use often.
+						Pre-write a snippet eg. hashtags, sign-offs, or other text you use often.
 					</Dialog.Description>
 				</div>
 				{#if signatureBusy}

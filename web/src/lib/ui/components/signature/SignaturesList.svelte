@@ -33,6 +33,7 @@
 	let title = $state('');
 	let content = $state('');
 	let isDefault = $state(false);
+	let autoAddValue = $state<'true' | 'false'>('false');
 
 	const busy = $derived(signaturesPresenter.status !== SignaturesStatus.IDLE);
 	const items = $derived(signaturesPresenter.itemsVm);
@@ -59,6 +60,7 @@
 		title = '';
 		content = '';
 		isDefault = false;
+		autoAddValue = 'false';
 	}
 
 	function openCreate() {
@@ -76,6 +78,7 @@
 			title = sig.title ?? '';
 			content = sig.content ?? '';
 			isDefault = sig.isDefault ?? false;
+			autoAddValue = (sig.isDefault ?? false) ? 'true' : 'false';
 		});
 		editOpen = true;
 	}
@@ -91,6 +94,7 @@
 			toast.error('No workspace selected.');
 			return;
 		}
+		isDefault = autoAddValue === 'true';
 		const parsed = createSignatureSchema.safeParse({ organizationId: oid, title, content, isDefault });
 		if (!parsed.success) {
 			toast.error(parsed.error.issues.map((i) => i.message).join(' '));
@@ -107,6 +111,7 @@
 	async function submitEdit() {
 		const oid = organizationId;
 		if (!selected || !oid) return;
+		isDefault = autoAddValue === 'true';
 		const parsed = updateSignatureSchema.safeParse({ title, content, isDefault });
 		if (!parsed.success) {
 			toast.error(parsed.error.issues.map((i) => i.message).join(' '));
@@ -139,8 +144,8 @@
 			<div>
 				<h3 class="text-sm font-semibold text-base-content">Signatures</h3>
 				<p class="mt-1 text-sm leading-snug text-base-content/70">
-					Insert a workspace snippet eg. hashtags, sign-offs, or other text you use often. They are shared with
-					everyone in this workspace and available from the composer signatures menu.
+					Pre-write a snippet eg. hashtags, sign-offs, or other text you use often. They are shared with
+					everyone in this workspace.
 				</p>
 			</div>
 			<Button
@@ -197,7 +202,9 @@
 			class="space-y-4"
 		>
 			<Dialog.Header>
-				<Dialog.Title>Create signature</Dialog.Title>
+				<Dialog.Title>
+					Add Signature
+				</Dialog.Title>
 				<Dialog.Description>Add a snippet you can insert quickly into posts.</Dialog.Description>
 			</Dialog.Header>
 
@@ -221,18 +228,25 @@
 						disabled={busy}
 					></textarea>
 				</div>
-				<label class="mt-1 inline-flex items-center gap-2 text-sm text-base-content/80">
-					<input type="checkbox" bind:checked={isDefault} class="checkbox checkbox-sm" disabled={busy} />
-					<span>Set as default</span>
-				</label>
+				<div>
+					<Field.Label>Auto add signature?</Field.Label>
+					<select
+						class="mt-1 w-full rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm text-base-content outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-base-100"
+						bind:value={autoAddValue}
+						disabled={busy}
+					>
+						<option value="false">No</option>
+						<option value="true">Yes</option>
+					</select>
+				</div>
 			</div>
 
 			<Dialog.Footer class="gap-2 sm:justify-end">
-				<Dialog.Close>
-					<Button type="button" variant="ghost" disabled={busy}>Cancel</Button>
-				</Dialog.Close>
+				<Button type="button" variant="ghost" disabled={busy} onclick={() => (createOpen = false)}>
+					Cancel
+				</Button>
 				<Button type="submit" variant="primary" disabled={busy}>
-					{busy ? 'Saving…' : 'Create'}
+					{busy ? 'Saving…' : 'Save'}
 				</Button>
 			</Dialog.Footer>
 		</form>
@@ -252,7 +266,9 @@
 			class="space-y-4"
 		>
 			<Dialog.Header>
-				<Dialog.Title>Edit signature</Dialog.Title>
+				<Dialog.Title>
+					Edit Signature
+				</Dialog.Title>
 			</Dialog.Header>
 
 			<div class="space-y-3">
@@ -273,16 +289,23 @@
 						disabled={busy}
 					></textarea>
 				</div>
-				<label class="mt-1 inline-flex items-center gap-2 text-sm text-base-content/80">
-					<input type="checkbox" bind:checked={isDefault} class="checkbox checkbox-sm" disabled={busy} />
-					<span>Set as default</span>
-				</label>
+				<div>
+					<Field.Label>Auto add signature?</Field.Label>
+					<select
+						class="mt-1 w-full rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm text-base-content outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-base-100"
+						bind:value={autoAddValue}
+						disabled={busy}
+					>
+						<option value="false">No</option>
+						<option value="true">Yes</option>
+					</select>
+				</div>
 			</div>
 
 			<Dialog.Footer class="gap-2 sm:justify-end">
-				<Dialog.Close>
-					<Button type="button" variant="ghost" disabled={busy}>Cancel</Button>
-				</Dialog.Close>
+				<Button type="button" variant="ghost" disabled={busy} onclick={() => (editOpen = false)}>
+					Cancel
+				</Button>
 				<Button type="submit" variant="primary" disabled={busy || !selected?.id}>
 					{busy ? 'Saving…' : 'Save'}
 				</Button>

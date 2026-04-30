@@ -53,7 +53,7 @@ const schedulerPresenter = new SchedulerPresenter(postsRepository, getScheduledP
 const createSocialPostPresenter = new CreateSocialPostPresenter(
 	postsRepository,
 	composerMediaModalPresenter,
-	signaturesRepository
+	getSignaturesPresenter
 );
 
 const protectedDashboardPagePresenter = new ProtectedDashboardPagePresenter(
