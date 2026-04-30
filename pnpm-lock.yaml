@@ -340,6 +340,9 @@ importers:
       dayjs:
         specifier: ^1.11.19
         version: 1.11.19
+      emoji-picker-element:
+        specifier: ^1.29.1
+        version: 1.29.1
       konva:
         specifier: ^9.3.22
         version: 9.3.22
@@ -4140,6 +4143,9 @@ packages:
   emittery@0.13.1:
     resolution: {integrity: sha512-DeWwawk6r5yR9jFgnDKYt4sLS0LmHJJi3ZOnb5/JdbYwj3nW+FxQnHIjhBKz8YLC7oRNPVM9NQ47I3CVx34eqQ==}
     engines: {node: '>=12'}
+
+  emoji-picker-element@1.29.1:
+    resolution: {integrity: sha512-TOiHzu9Dqib3x4MwcAi3wi3RdyT4SoeB4b15AvH1ks4SBwTl7DeebhZ0d3x6dNi4XfNU7IGRZ7NBQllj0RqwrQ==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -11250,6 +11256,8 @@ snapshots:
   electron-to-chromium@1.5.302: {}
 
   emittery@0.13.1: {}
+
+  emoji-picker-element@1.29.1: {}
 
   emoji-regex@8.0.0: {}
 
