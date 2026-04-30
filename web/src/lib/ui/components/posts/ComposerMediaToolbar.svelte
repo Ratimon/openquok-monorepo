@@ -15,6 +15,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import GlyphBoldText from '$lib/ui/components/posts/GlyphBoldText.svelte';
 	import GlyphDesignEditor from '$lib/ui/components/posts/GlyphDesignEditor.svelte';
+	import GlyphItalicText from '$lib/ui/components/posts/GlyphItalicText.svelte';
 	import GlyphUText from '$lib/ui/components/posts/GlyphUText.svelte';
 	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
@@ -197,11 +198,12 @@
 		</span>
 	</button>
 
-	<!-- 4–5: inline text styling (selection-based) -->
+	<!-- 4–6: inline text styling (selection-based) -->
 	<GlyphUText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
+	<GlyphItalicText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
 	<GlyphBoldText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
 
-	<!-- 6–7: parity placeholders (not wired yet) -->
+	<!-- 7–8: parity placeholders (not wired yet) -->
 	<!-- <button type="button" class={iconBtn} disabled aria-label="AI image (coming soon)" title="Coming soon">
 		<AbstractIcon name={icons.Sparkles.name} class="size-5" width="20" height="20" />
 	</button>
