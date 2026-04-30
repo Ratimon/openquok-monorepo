@@ -2,7 +2,7 @@
 	import { icons } from '$data/icon';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import DesignEditorGlyph from '$lib/ui/components/posts/DesignEditorGlyph.svelte';
+	import GlyphDesignEditor from '$lib/ui/components/posts/GlyphDesignEditor.svelte';
 	import ThirdPartyMediaLibrary from '$lib/ui/components/third-parties/ThirdPartyMediaLibrary.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
@@ -50,7 +50,7 @@
 		onclick={onDesignClick}
 	>
 		<span class="inline-flex shrink-0 text-secondary-content">
-			<DesignEditorGlyph badgeSurfaceClass="rounded-sm bg-secondary shadow-none ring-0" />
+			<GlyphDesignEditor badgeSurfaceClass="rounded-sm bg-secondary shadow-none ring-0" />
 		</span>
 		Design
 	</Button>

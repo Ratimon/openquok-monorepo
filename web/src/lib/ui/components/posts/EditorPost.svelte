@@ -79,6 +79,7 @@
 	}: EditorPostProps = $props();
 
 	let confirmOpen = $state(false);
+	let composerTextarea = $state.raw<HTMLTextAreaElement | null>(null);
 
 	function requestBannerRightAction() {
 		if (!onBannerRightAction) return;
@@ -137,6 +138,7 @@
 	<div class="relative">
 		<textarea
 			id="composer-body"
+			bind:this={composerTextarea}
 			bind:value={body}
 			rows="8"
 			placeholder="Write something…"
@@ -171,6 +173,7 @@
 					{uploadUid}
 					{organizationId}
 					{loadSignaturesForComposer}
+					textarea={composerTextarea}
 					{composerMode}
 					{focusedProviderIdentifier}
 					{commentsMode}
