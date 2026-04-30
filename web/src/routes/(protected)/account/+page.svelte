@@ -253,7 +253,7 @@
 				integrationId: integration.id,
 				returnTo: accountRoot
 			});
-			return absoluteUrl(`${accountRoot}/integrations/instagram-business?${qs}`);
+			return absoluteUrl(`${accountRoot}/integrations/social/instagram-business?${qs}`);
 		}
 		const qs = new URLSearchParams({
 			organizationId: workspaceId,
@@ -361,11 +361,13 @@
 			<h3 class="text-lg font-semibold text-base-content">
 				Connected channels
 			</h3>
+
 			<div class="flex flex-wrap items-center justify-end gap-2">
 				{#if connectedChannelCount >= 1}
 					<Button
 						type="button"
-						variant="secondary"
+						variant="primary"
+						class="gap-1.5"
 						disabled={!workspaceId}
 						onclick={() => {
 							if (!workspaceId) {
@@ -375,7 +377,8 @@
 							openCreatePost(null);
 						}}
 					>
-						+ Create Post for All Channels
+						<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
+						Create Post for All Channels
 					</Button>
 					<Button
 						type="button"
@@ -386,8 +389,16 @@
 						Open Calendar
 					</Button>
 				{/if}
-				<!-- `onboarding={true}`: 9-column grid + `?onboarding=true` on OAuth (match reference “onboarding” mode). -->
-				<AddProvider />
+				<AddProvider
+					buttonLabel="Add Channel"
+					hasConnectedChannels={connectedChannelCount >= 1}
+				/>
+				<AddProvider
+					buttonLabel="Invite to connect"
+					invite
+					iconOnly
+					hasConnectedChannels={connectedChannelCount >= 1}
+				/>
 			</div>
 		</div>
 
@@ -506,14 +517,15 @@
 							<Button
 								type="button"
 								size="sm"
-								variant="secondary"
-								class="shrink-0"
+								variant="primary"
+								class="shrink-0 gap-1.5"
 								onclick={(e: MouseEvent) => {
 									e.preventDefault();
 									e.stopPropagation();
 									openCreatePost(null);
 								}}
 							>
+								<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
 								Create Post
 							</Button>
 							<Button

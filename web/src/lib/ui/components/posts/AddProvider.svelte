@@ -23,9 +23,24 @@
 		buttonLabel?: string;
 		/** When true, propagate `?onboarding=true` through the OAuth flow. */
 		onboarding?: boolean;
+		/** When true, selecting a provider copies an invite URL instead of navigating. */
+		invite?: boolean;
+		/** When true, render as icon-only button (useful for the invite-link button). */
+		iconOnly?: boolean;
+		/** After at least one channel exists, Add Channel / invite use secondary instead of primary. */
+		hasConnectedChannels?: boolean;
 	};
 
-	let { returnToPath, buttonLabel = 'Add Channel', onboarding = false }: Props = $props();
+	let {
+		returnToPath,
+		buttonLabel = 'Add Channel',
+		onboarding = false,
+		invite = false,
+		iconOnly = false,
+		hasConnectedChannels = false
+	}: Props = $props();
+
+	const channelButtonVariant = $derived(hasConnectedChannels ? 'secondary' : 'primary');
 
 	let open = $state(false);
 	let loading = $state(false);
@@ -67,6 +82,28 @@
 			toast.error('Create or select a workspace before connecting a channel.');
 			return;
 		}
+		if (invite) {
+			void (async () => {
+				const r = await integrationsRepository.getAuthorizeUrl({
+					organizationId: workspaceId,
+					provider: identifier,
+					...(onboarding ? { onboarding: 'true' } : {})
+				});
+				if (!('url' in r)) {
+					toast.error(r.error);
+					return;
+				}
+				try {
+					await navigator.clipboard.writeText(r.url);
+					toast.success('Invite link copied to clipboard (valid for 1 hour).');
+					open = false;
+				} catch {
+					toast.error('Could not copy invite link.');
+				}
+			})();
+			return;
+		}
+
 		open = false;
 		const accountRoot = route(getRootPathAccount());
 		const afterConnect = returnToPath ?? accountRoot;
@@ -81,11 +118,29 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Button class="gap-2" type="button" onclick={() => (open = true)}>
-		<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
-		{buttonLabel}
-	</Button>
-	<!-- Override Dialog.Content defaults: base includes `sm:max-w-lg`, which would keep the modal narrow on sm+ unless we set responsive max-width here. -->
+	{#if invite && iconOnly}
+		<Button
+			type="button"
+			variant={channelButtonVariant}
+			class="gap-1.5 border-base-300"
+			onclick={() => (open = true)}
+			aria-label={buttonLabel}
+			title={buttonLabel}
+		>
+			<AbstractIcon name={icons.Link.name} class="size-4" width="16" height="16" />
+			{buttonLabel}
+		</Button>
+	{:else}
+		<Button
+			class="gap-2"
+			type="button"
+			variant={channelButtonVariant}
+			onclick={() => (open = true)}
+		>
+			<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
+			{buttonLabel}
+		</Button>
+	{/if}
 	<Dialog.Content
 		class={cn(
 			'w-full max-w-[min(96vw,90rem)] gap-0 p-0 sm:max-w-6xl lg:max-w-7xl xl:max-w-[min(96vw,90rem)]'
@@ -116,6 +171,9 @@
 				No providers available right now.
 			</div>
 		{:else}
+			{@const visibleProviders = invite
+				? providers.filter((p) => !p.isExternal && !p.isWeb3 && !p.isChromeExtension && !p.customFields)
+				: providers}
 			<div class="px-6 pb-4 pt-1">
 				<div
 					class={cn(
@@ -125,7 +183,7 @@
 							: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
 					)}
 				>
-				{#each providers as p (p.identifier)}
+				{#each visibleProviders as p (p.identifier)}
 					<button
 						type="button"
 						class="group relative flex min-h-[5.5rem] w-full min-w-0 max-w-none flex-col items-stretch justify-start gap-1.5 overflow-visible rounded-xl border border-base-300 bg-base-100 px-2 py-2 text-center whitespace-normal hover:bg-base-200"

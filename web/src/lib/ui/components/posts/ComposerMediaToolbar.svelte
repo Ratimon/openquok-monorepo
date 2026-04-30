@@ -155,6 +155,7 @@
 	>
 		<DesignEditorGlyph badgeSurfaceClass="rounded-sm bg-base-200/45 shadow-none ring-0" />
 	</button>
+	
 	<!-- 3–4: parity placeholders (not wired yet) -->
 	<button type="button" class={iconBtn} disabled aria-label="AI image (coming soon)" title="Coming soon">
 		<AbstractIcon name={icons.Sparkles.name} class="size-5" width="20" height="20" />

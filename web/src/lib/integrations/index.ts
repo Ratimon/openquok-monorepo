@@ -6,9 +6,6 @@ import { ContinueIntegrationPresenter } from '$lib/integrations/ContinueIntegrat
 
 const integrationsBase = '/api/v1/integrations';
 
-/** SessionStorage key: JSON `{ integrationId, pages, state }` between OAuth callback and the picker route. */
-export const INSTAGRAM_BUSINESS_PICKER_SESSION_KEY = 'openquok:instagram-business:connect-pages' as const;
-
 const integrationsConfig: IntegrationsConfig = {
 	endpoints: {
 		catalog: `${integrationsBase}`,

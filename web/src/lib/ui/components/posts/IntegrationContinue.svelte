@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ContinueSocialIntegrationViewModel } from '$lib/integrations';
+	import type { InstagramBusinessConnectPageRow } from '$lib/integrations/Integrations.repository.svelte';
 	import dayjs from 'dayjs';
 	import utc from 'dayjs/plugin/utc';
 	import timezone from 'dayjs/plugin/timezone';
@@ -7,24 +8,36 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getRootPathAccount } from '$lib/area-protected';
-	import {
-		continueIntegrationPresenter,
-		INSTAGRAM_BUSINESS_PICKER_SESSION_KEY,
-		integrationsRepository,
-	} from '$lib/integrations';
+	import { continueIntegrationPresenter, integrationsRepository } from '$lib/integrations';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { toast } from '$lib/ui/sonner';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import CircularProgressBar from '$lib/ui/circular-progress-bar/CircularProgressBar.svelte';
+	import { ImageWithFallback } from '$lib/ui/images';
+	import { icons } from '$data/icon';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	dayjs.extend(utc);
 	dayjs.extend(timezone);
 
+	type IgBusinessPickerVm = {
+		organizationId: string;
+		integrationId: string;
+		oauthState: string;
+		pages: InstagramBusinessConnectPageRow[];
+		successReturnPath: string;
+		onboarding: boolean;
+	};
+
 	let busy = $state(true);
 	/** Indeterminate-style value for {@link CircularProgressBar} while work is in progress. */
 	let progressValue = $state(45);
+	/** Inline Instagram (Business) account selection — same route as OAuth callback. */
+	let igBusinessPicker = $state<IgBusinessPickerVm | null>(null);
+	let submittingIgId = $state<string | null>(null);
 	/**
 	 * Guard against duplicate effect runs causing multiple OAuth callback submissions.
 	 * Backend treats OAuth state as single-use (it deletes the cached state on first success path).
@@ -163,30 +176,27 @@
 
 			if (data.inBetweenSteps && data.internalId && data.organizationId) {
 				if (p === 'instagram-business') {
-					if (data.instagramBusinessPages?.length && typeof sessionStorage !== 'undefined') {
-						try {
-							sessionStorage.setItem(
-								INSTAGRAM_BUSINESS_PICKER_SESSION_KEY,
-								JSON.stringify({
-									integrationId: data.id,
-									pages: data.instagramBusinessPages,
-									state: authState
-								})
-							);
-						} catch {
-							/* private / full storage */
-						}
+					const pages = data.instagramBusinessPages ?? [];
+					if (pages.length === 0) {
+						toast.error(
+							'No Instagram professional accounts were found. Link Instagram to a Facebook Page in Meta, then try again.'
+						);
+						await goto(accountUrl, { replaceState: true });
+						return;
 					}
-					const qs = new URLSearchParams({
+					igBusinessPicker = {
 						organizationId: data.organizationId,
 						integrationId: data.id,
-						state: authState,
-						returnTo: accountRoot,
-						...(onboarding === 'true' && { onboarding: 'true' })
-					});
-					await goto(absoluteUrl(`${accountRoot}/integrations/instagram-business?${qs}`), {
-						replaceState: true
-					});
+						oauthState: authState,
+						pages,
+						successReturnPath: returnTo,
+						onboarding: data.onboarding
+					};
+					await goto(
+						absoluteUrl(`${accountRoot}/integrations/social/${encodeURIComponent(p)}`),
+						{ replaceState: true }
+					);
+					busy = false;
 					return;
 				}
 				const qs = new URLSearchParams({
@@ -207,6 +217,45 @@
 		} finally {
 			busy = false;
 		}
+	}
+
+	async function selectInstagramBusinessAccount(igId: string) {
+		const vm = igBusinessPicker;
+		if (!vm) return;
+		const row = vm.pages.find((a) => a.id === igId);
+		if (!row?.pageId) {
+			toast.error('Could not resolve this account.');
+			return;
+		}
+		submittingIgId = igId;
+		try {
+			const r = await integrationsRepository.saveProviderPage({
+				organizationId: vm.organizationId,
+				integrationId: vm.integrationId,
+				pageId: row.pageId,
+				id: row.id,
+				state: vm.oauthState
+			});
+			if (!r.ok) {
+				toast.error(r.error);
+				return;
+			}
+			toast.success('Instagram channel connected.');
+			const accountRoot = route(getRootPathAccount());
+			const successQs = new URLSearchParams({ added: 'instagram-business' });
+			if (vm.onboarding) successQs.set('onboarding', 'true');
+			await goto(absoluteUrl(`${accountRoot}?${successQs}`), { replaceState: true });
+			igBusinessPicker = null;
+		} catch {
+			toast.error('Could not complete setup.');
+		} finally {
+			submittingIgId = null;
+		}
+	}
+
+	async function cancelInstagramBusinessPicker() {
+		const dest = igBusinessPicker?.successReturnPath ?? route(getRootPathAccount());
+		await goto(absoluteUrl(dest), { replaceState: true });
 	}
 
 	async function startOAuthRedirect(p: string, orgParam: string, externalReturn: string) {
@@ -230,7 +279,9 @@
 			}
 			if (!organizationId) {
 				toast.error('Create or select a workspace before connecting a channel.');
-				await goto(absoluteUrl(`${route(getRootPathAccount())}/settings?section=workspace`), { replaceState: true });
+				await goto(absoluteUrl(`${route(getRootPathAccount())}/settings?section=workspace`), {
+					replaceState: true
+				});
 				return;
 			}
 
@@ -255,6 +306,11 @@
 	}
 
 	async function run() {
+		if (igBusinessPicker) {
+			busy = false;
+			return;
+		}
+
 		busy = true;
 		const p = provider;
 		const authCode = code;
@@ -306,66 +362,105 @@
 
 <svelte:head>
 	<title
-		>{isOAuthErrorCallback
-			? 'Connection cancelled'
-			: isOAuthSuccessCallback
-				? 'Connecting channel'
-				: 'Connect channel'}</title
+		>{igBusinessPicker
+			? 'Choose Instagram account'
+			: isOAuthErrorCallback
+				? 'Connection cancelled'
+				: isOAuthSuccessCallback
+					? 'Connecting channel'
+					: 'Connect channel'}</title
 	>
 </svelte:head>
 
-<div class="mx-auto w-full max-w-2xl px-4 py-10 sm:max-w-3xl">
-	<div
-		class="flex flex-col items-center rounded-lg border border-base-300 bg-base-100 px-8 py-8 text-center sm:px-10"
-	>
-		{#if isOAuthErrorCallback}
-			<h1 class="text-lg font-semibold text-base-content">Returning…</h1>
-			<p class="mt-2 text-sm text-base-content/70">
-				{busy ? 'Taking you back to your account.' : 'Done.'}
-			</p>
-		{:else if !isOAuthSuccessCallback}
-			<img
-				src={url('/icon.svg')}
-				alt=""
-				width="48"
-				height="48"
-				class="mb-3 h-12 w-12 shrink-0"
-			/>
-			<h1 class="w-full text-balance text-lg font-semibold leading-snug text-base-content sm:text-xl">
-				<span class="block text-sm font-medium text-base-content/75 sm:text-base">Connecting</span>
-				{#if connectingHeadline.paren}
-					<span class="mt-2 block sm:mt-3">{connectingHeadline.main}</span>
-					<span class="mt-1 block">{connectingHeadline.paren}…</span>
-				{:else}
-					<span class="mt-2 block sm:mt-3">{connectingHeadline.main}…</span>
-				{/if}
-			</h1>
-			<p class="mt-2 text-sm text-base-content/70">
-				{#if busy}
-					Redirecting…
-				{:else}
-					Almost there…
-				{/if}
-			</p>
-			{#if busy}
-				<div class="mt-6 flex justify-center">
-					<CircularProgressBar value={progressValue} size={100} strokeWidth={7} />
-				</div>
-			{/if}
-		{:else}
-			<h1 class="text-lg font-semibold text-base-content">Finishing connection…</h1>
-			<p class="mt-2 text-sm text-base-content/70">
-				{#if busy}
-					Please wait while we connect your account.
-				{:else}
-					Done.
-				{/if}
-			</p>
-			{#if busy}
-				<div class="mt-6 flex justify-center">
-					<CircularProgressBar value={progressValue} size={100} strokeWidth={7} />
-				</div>
-			{/if}
-		{/if}
+{#if igBusinessPicker}
+	<div class="mx-auto max-w-lg px-4 py-10">
+		<h1 class="text-xl font-semibold text-base-content">Choose an Instagram account</h1>
+		<p class="mt-2 text-sm text-base-content/70">
+			Select the professional Instagram account linked to your Facebook Page. You can change this later by
+			removing and re-adding the channel.
+		</p>
+
+		<ul class="mt-6 flex flex-col gap-2">
+			{#each igBusinessPicker.pages as a (a.id)}
+				<li>
+					<button
+						type="button"
+						class="flex w-full items-center gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-3 text-start hover:bg-base-200 disabled:opacity-60"
+						disabled={submittingIgId !== null}
+						onclick={() => selectInstagramBusinessAccount(a.id)}
+					>
+						<div class="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-base-200">
+							<ImageWithFallback
+								src={a.pictureUrl?.trim() || null}
+								alt=""
+								class="h-full w-full object-cover"
+								fallbackIcon={icons.Instagram.name}
+							/>
+						</div>
+						<span class="min-w-0 flex-1 truncate font-medium text-base-content">{a.name}</span>
+						{#if submittingIgId === a.id}
+							<AbstractIcon name={icons.LoaderCircle.name} class="h-4 w-4 shrink-0 animate-spin" width="16" height="16" />
+						{/if}
+					</button>
+				</li>
+			{/each}
+		</ul>
+		<Button class="mt-6" variant="ghost" onclick={() => cancelInstagramBusinessPicker()}>Cancel</Button>
 	</div>
-</div>
+{:else}
+	<div class="mx-auto w-full max-w-2xl px-4 py-10 sm:max-w-3xl">
+		<div
+			class="flex flex-col items-center rounded-lg border border-base-300 bg-base-100 px-8 py-8 text-center sm:px-10"
+		>
+			{#if isOAuthErrorCallback}
+				<h1 class="text-lg font-semibold text-base-content">Returning…</h1>
+				<p class="mt-2 text-sm text-base-content/70">
+					{busy ? 'Taking you back to your account.' : 'Done.'}
+				</p>
+			{:else if !isOAuthSuccessCallback}
+				<img
+					src={url('/icon.svg')}
+					alt=""
+					width="48"
+					height="48"
+					class="mb-3 h-12 w-12 shrink-0"
+				/>
+				<h1 class="w-full text-balance text-lg font-semibold leading-snug text-base-content sm:text-xl">
+					<span class="block text-sm font-medium text-base-content/75 sm:text-base">Connecting</span>
+					{#if connectingHeadline.paren}
+						<span class="mt-2 block sm:mt-3">{connectingHeadline.main}</span>
+						<span class="mt-1 block">{connectingHeadline.paren}…</span>
+					{:else}
+						<span class="mt-2 block sm:mt-3">{connectingHeadline.main}…</span>
+					{/if}
+				</h1>
+				<p class="mt-2 text-sm text-base-content/70">
+					{#if busy}
+						Redirecting…
+					{:else}
+						Almost there…
+					{/if}
+				</p>
+				{#if busy}
+					<div class="mt-6 flex justify-center">
+						<CircularProgressBar value={progressValue} size={100} strokeWidth={7} />
+					</div>
+				{/if}
+			{:else}
+				<h1 class="text-lg font-semibold text-base-content">Finishing connection…</h1>
+				<p class="mt-2 text-sm text-base-content/70">
+					{#if busy}
+						Please wait while we connect your account.
+					{:else}
+						Done.
+					{/if}
+				</p>
+				{#if busy}
+					<div class="mt-6 flex justify-center">
+						<CircularProgressBar value={progressValue} size={100} strokeWidth={7} />
+					</div>
+				{/if}
+			{/if}
+		</div>
+	</div>
+{/if}

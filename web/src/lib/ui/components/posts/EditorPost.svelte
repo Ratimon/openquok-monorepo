@@ -9,7 +9,6 @@
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 
-
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -109,7 +108,9 @@
 				{#if bannerLeftLabel}
 					<span class="inline-flex items-center gap-2">
 						<span class="bg-primary/70 inline-block h-2 w-2 rounded-full"></span>
-						<span class="font-medium">{bannerLeftLabel}</span>
+						<span class="font-medium">
+							{bannerLeftLabel}
+						</span>
 					</span>
 				{/if}
 			</div>
@@ -171,7 +172,12 @@
 	</div>
 	{#if !locked}
 		<div class="mt-2 border-t border-base-300/80 pt-2">
-			<MultiMedia bind:items={postMediaItems} disabled={busy} {uploadUid} {commentsMode} />
+			<MultiMedia
+				bind:items={postMediaItems}
+				disabled={busy}
+				{uploadUid}
+				{commentsMode}
+			/>
 		</div>
 		{#if scheduleValidationMessage}
 			<div class="text-error mt-2 text-xs font-medium" role="status">
@@ -188,7 +194,6 @@
 			{charCount}/{softCharLimit}
 		</div>
 	</div>
-	<!-- Add-post button is rendered by the parent so Settings can sit outside the wrapper. -->
 </div>
 
 <DeleteDialog

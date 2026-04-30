@@ -46,7 +46,7 @@ export class ProtectedCalendarPagePresenter {
 				integrationId: integration.id,
 				returnTo: accountRoot
 			});
-			return `${accountRoot}/integrations/instagram-business?${qs}`;
+			return `${accountRoot}/integrations/social/instagram-business?${qs}`;
 		}
 		const qs = new URLSearchParams({
 			organizationId: workspaceId,

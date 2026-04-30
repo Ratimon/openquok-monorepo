@@ -10,6 +10,7 @@ import type {
 
 import dayjs from "dayjs";
 import { config } from "../../config/GlobalConfig";
+import { AppError } from "../../errors/AppError";
 import { makeId } from "../../utils/make.is";
 import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
 
@@ -81,7 +82,12 @@ export class InstagramBusinessProvider implements SocialProvider {
 
     async refreshToken(refresh_token: string): Promise<AuthTokenDetails> {
         const { appId, appSecret } = facebookOAuth();
-        if (!appId || !appSecret) throw new Error("Facebook OAuth is not configured");
+        if (!appId || !appSecret) {
+            throw new AppError(
+                "Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET.",
+                503
+            );
+        }
 
         const tokenRes = await fetch(
             `${GRAPH}/oauth/access_token?grant_type=fb_exchange_token` +
@@ -119,7 +125,12 @@ export class InstagramBusinessProvider implements SocialProvider {
 
     async generateAuthUrl(): Promise<GenerateAuthUrlResponse> {
         const { appId } = facebookOAuth();
-        if (!appId) throw new Error("Facebook OAuth is not configured");
+        if (!appId) {
+            throw new AppError(
+                "Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET for the Meta app used by Instagram (Business).",
+                503
+            );
+        }
 
         const state = makeId(6);
         const codeVerifier = makeId(10);
