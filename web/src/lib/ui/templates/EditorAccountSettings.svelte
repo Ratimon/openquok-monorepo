@@ -14,6 +14,8 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Avatar from '$lib/ui/components/avatar';
 	import AvatarUploadForm from '$lib/ui/components/AvatarUploadForm.svelte';
+	import UpdateFullnameModal from '$lib/ui/components/settings/UpdateFullnameModal.svelte';
+	import UpdateWebsiteModal from '$lib/ui/components/settings/UpdateWebsiteModal.svelte';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 	import { untrack } from 'svelte';
 
@@ -215,7 +217,8 @@
 		>
 			<div class="min-w-0">
 				<h3 class="text-sm font-semibold text-base-content">
-					Full name</h3>
+					Full name
+				</h3>
 				<p class="mt-1 text-sm text-base-content/70">
 					{loadingProfile ? 'Loading…' : (displayFullName || '—')}
 				</p>
@@ -260,10 +263,12 @@
 		>
 			<div class="min-w-0">
 				<h3 class="text-sm font-semibold text-base-content">
-					Avatar</h3>
+					Avatar
+				</h3>
 				{#if loadingProfile}
 					<p class="mt-1 text-sm text-base-content/70">
-						Loading…</p>
+						Loading…
+					</p>
 				{:else}
 					<div class="mt-1 flex items-center gap-3">
 						<Avatar.Root class="size-12 shrink-0 rounded-full border border-base-300 bg-base-100">
@@ -328,7 +333,9 @@
 			class="space-y-4"
 		>
 			<Dialog.Header>
-				<Dialog.Title>Update avatar</Dialog.Title>
+				<Dialog.Title>
+					Update avatar
+				</Dialog.Title>
 			</Dialog.Header>
 			<profileDetailsForm.Field name="avatarUrl">
 				{#snippet children(field)}
@@ -412,102 +419,9 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<!-- Update full name modal -->
-<Dialog.Root bind:open={nameModalOpen}>
-	<Dialog.Content>
-		<form
-			id="name-form"
-			method="dialog"
-			onsubmit={handleNameFormSubmit}
-			class="space-y-4"
-		>
-			<Dialog.Header>
-				<Dialog.Title>Update full name</Dialog.Title>
-			</Dialog.Header>
-			<nameForm.Field name="fullName">
-				{#snippet children(field)}
-					<div>
-						<Field.Label field={field} for="profile-fullname">Full name</Field.Label>
-						<input
-							id="profile-fullname"
-							type="text"
-							value={field.state.value}
-							onblur={field.handleBlur}
-							oninput={(e) => field.handleChange(e.currentTarget.value)}
-							class="input input-bordered w-full"
-							placeholder="Your name"
-							autocomplete="name"
-						/>
-						<Field.Error
-							errors={field.state.meta.errors as unknown as Array<{ message?: string }>}
-						/>
-					</div>
-				{/snippet}
-			</nameForm.Field>
-			<Dialog.Footer>
-				<Dialog.Close>
-					<Button type="button" variant="ghost">Close</Button>
-				</Dialog.Close>
-				<nameForm.Subscribe selector={(state) => ({ isSubmitting: state.isSubmitting })}>
-					{#snippet children(state)}
-						<Button type="submit" form="name-form" disabled={state.isSubmitting}>
-							{state.isSubmitting ? 'Saving…' : 'Save'}
-						</Button>
-					{/snippet}
-				</nameForm.Subscribe>
-			</Dialog.Footer>
-		</form>
-	</Dialog.Content>
-</Dialog.Root>
-
-<!-- Update website modal -->
-<Dialog.Root bind:open={websiteModalOpen}>
-	<Dialog.Content>
-		<form
-			id="website-form"
-			method="dialog"
-			onsubmit={handleWebsiteFormSubmit}
-			class="space-y-4"
-		>
-			<Dialog.Header>
-				<Dialog.Title>Update website</Dialog.Title>
-			</Dialog.Header>
-			<websiteForm.Field name="websiteUrl">
-				{#snippet children(field)}
-					<div>
-						<Field.Label field={field} for="profile-website-url">Website</Field.Label>
-						<p class="mt-1 text-xs text-base-content/60">
-							Optional — link shown as your author site on blog posts.
-						</p>
-						<input
-							id="profile-website-url"
-							type="url"
-							inputmode="url"
-							autocomplete="url"
-							placeholder="https://example.com"
-							value={field.state.value ?? ''}
-							onblur={field.handleBlur}
-							oninput={(e) => field.handleChange(e.currentTarget.value)}
-							class="input input-bordered mt-2 w-full"
-						/>
-						<Field.Error
-							errors={field.state.meta.errors as unknown as Array<{ message?: string }>}
-						/>
-					</div>
-				{/snippet}
-			</websiteForm.Field>
-			<Dialog.Footer>
-				<Dialog.Close>
-					<Button type="button" variant="ghost">Close</Button>
-				</Dialog.Close>
-				<websiteForm.Subscribe selector={(state) => ({ isSubmitting: state.isSubmitting })}>
-					{#snippet children(state)}
-						<Button type="submit" form="website-form" disabled={state.isSubmitting}>
-							{state.isSubmitting ? 'Saving…' : 'Save'}
-						</Button>
-					{/snippet}
-				</websiteForm.Subscribe>
-			</Dialog.Footer>
-		</form>
-	</Dialog.Content>
-</Dialog.Root>
+<UpdateFullnameModal bind:open={nameModalOpen} form={nameForm} onSubmit={handleNameFormSubmit} />
+<UpdateWebsiteModal
+	bind:open={websiteModalOpen}
+	form={websiteForm}
+	onSubmit={handleWebsiteFormSubmit}
+/>
