@@ -88,7 +88,9 @@ type PostsRepoMock = jest.Mocked<
         | "listPostsByGroup"
         | "listTagsForPostIds"
         | "deleteTagAssignmentsForPostIds"
+        | "softDeleteThreadRepliesByPostIds"
         | "softDeletePostsByGroup"
+        | "insertThreadReplies"
         | "listPostsByOrganizationAndDateRange"
         | "getPostById"
         | "listCommentsByPostId"
@@ -109,7 +111,9 @@ function createPostsRepoMock(): PostsRepoMock {
         listPostsByGroup: jest.fn(),
         listTagsForPostIds: jest.fn(),
         deleteTagAssignmentsForPostIds: jest.fn(),
+        softDeleteThreadRepliesByPostIds: jest.fn().mockResolvedValue(undefined),
         softDeletePostsByGroup: jest.fn(),
+        insertThreadReplies: jest.fn().mockResolvedValue([]),
         listPostsByOrganizationAndDateRange: jest.fn(),
         getPostById: jest.fn(),
         listCommentsByPostId: jest.fn(),
@@ -659,6 +663,90 @@ describe("PostsService", () => {
             expect(invalidateKey).toHaveBeenCalledWith(`posts:tags:list:${orgId}`);
             expect(invalidatePattern).toHaveBeenCalledWith(`posts:calendar:list:${orgId}:*`);
             expect(invalidateEntity).toHaveBeenCalledWith("posts", postGroup);
+        });
+
+        it("does not call insertThreadReplies when providerSettingsByIntegrationId is omitted", async () => {
+            postsRepo.insertPostGroup.mockResolvedValue([socialPostRow({ integration_id: integrationId, state: "QUEUE" })]);
+            await service().createPost({
+                organizationId: orgId,
+                authUserId,
+                body: "hi",
+                integrationIds: [integrationId],
+                isGlobal: true,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "scheduled",
+            });
+            expect(postsRepo.insertThreadReplies).not.toHaveBeenCalled();
+        });
+
+        it("persists threads.replies via insertThreadReplies per scheduled post row", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+                { id: otherIntegrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+            ]);
+            const postA = faker.string.uuid();
+            const postB = faker.string.uuid();
+            const inserted = [
+                socialPostRow({ id: postA, integration_id: integrationId, state: "QUEUE" }),
+                socialPostRow({ id: postB, integration_id: otherIntegrationId, state: "QUEUE" }),
+            ];
+            postsRepo.insertPostGroup.mockResolvedValue(inserted);
+            const dbUserId = faker.string.uuid();
+            organizationRepo.findUserIdByAuthId.mockResolvedValue({ userId: dbUserId, error: null });
+
+            await service().createPost({
+                organizationId: orgId,
+                authUserId,
+                body: "hi",
+                integrationIds: [integrationId, otherIntegrationId],
+                isGlobal: true,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "scheduled",
+                providerSettingsByIntegrationId: {
+                    [integrationId]: {
+                        threads: {
+                            replies: [
+                                { id: "r1", message: " first ", delaySeconds: 5 },
+                                { id: "r2", message: "", delaySeconds: 99 },
+                                { id: "r3", message: "after-blank", delaySeconds: NaN },
+                            ],
+                        },
+                    },
+                    [otherIntegrationId]: {
+                        threads: {
+                            replies: [{ id: "x", message: "other", delaySeconds: 0 }],
+                        },
+                    },
+                },
+            });
+
+            expect(postsRepo.insertThreadReplies).toHaveBeenCalledTimes(1);
+            const rows = postsRepo.insertThreadReplies.mock.calls[0][0] as Record<string, unknown>[];
+            expect(rows).toHaveLength(3);
+            expect(rows[0]).toMatchObject({
+                organization_id: orgId,
+                post_id: postA,
+                integration_id: integrationId,
+                content: "first",
+                delay_seconds: 5,
+                state: "QUEUE",
+                created_by_user_id: dbUserId,
+            });
+            expect(rows[1]).toMatchObject({
+                post_id: postA,
+                content: "after-blank",
+                delay_seconds: 0,
+            });
+            expect(rows[2]).toMatchObject({
+                post_id: postB,
+                integration_id: otherIntegrationId,
+                content: "other",
+                delay_seconds: 0,
+            });
         });
     });
 
@@ -1260,6 +1348,7 @@ describe("PostsService", () => {
 
             expect(postsRepo.hasQueueSlotTaken).not.toHaveBeenCalled();
             expect(postsRepo.deleteTagAssignmentsForPostIds).toHaveBeenCalledWith([existingA.id]);
+            expect(postsRepo.softDeleteThreadRepliesByPostIds).toHaveBeenCalledWith([existingA.id]);
             expect(postsRepo.softDeletePostsByGroup).toHaveBeenCalledWith(postGroup);
             expect(postsRepo.insertPostGroup).toHaveBeenCalled();
             expect(out).toEqual({ postGroup, posts: [insertedRow] });
@@ -1298,6 +1387,7 @@ describe("PostsService", () => {
             postsRepo.insertPostGroup.mockResolvedValue([insertedRow]);
             postsRepo.linkTagsToPosts.mockResolvedValue(undefined);
             postsRepo.deleteTagAssignmentsForPostIds.mockResolvedValue(undefined);
+            postsRepo.softDeleteThreadRepliesByPostIds.mockResolvedValue(undefined);
             postsRepo.softDeletePostsByGroup.mockResolvedValue([]);
 
             const invalidateKey = jest.fn().mockResolvedValue(true);
@@ -1317,6 +1407,7 @@ describe("PostsService", () => {
                 status: "scheduled",
             });
 
+            expect(postsRepo.softDeleteThreadRepliesByPostIds).toHaveBeenCalledWith([existingA.id]);
             expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${existingA.id}`);
             expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${insertedRow.id}`);
             expect(invalidateEntity).toHaveBeenCalledWith("posts", postGroup);
