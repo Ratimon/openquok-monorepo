@@ -46,13 +46,13 @@ Meta redirects the browser to your **web app** after consent. Register these **e
 **Instagram (Business)** — Facebook Login for Business
 
 ```txt
-https://YOUR-FRONTEND-DOMAIN/account/integrations/social/instagram-business
+https://YOUR-FRONTEND-DOMAIN/integration/oauth/instagram-business
 ```
 
 **Instagram (Standalone)** — Instagram Login
 
 ```txt
-https://YOUR-FRONTEND-DOMAIN/account/integrations/social/instagram-standalone
+https://YOUR-FRONTEND-DOMAIN/integration/oauth/instagram-standalone
 ```
 
 <Callout type="note" title="YOUR-FRONTEND-DOMAIN must match the backend env">

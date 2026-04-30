@@ -32,11 +32,11 @@ The frontend base URL used for OAuth redirects comes from <Badge text="FRONTEND_
 
 <h2 id="oauth-redirect-uri-what-to-enter-in-meta">OAuth redirect URI (what to enter in Meta)</h2>
 
-Meta redirects the **browser** back to your **web app** after consent—not to <Badge text="/api/v1" variant="path" />. The backend builds the redirect from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> plus the path <Badge text="/account/integrations/social/threads" variant="path" />.
+Meta redirects the **browser** back to your **web app** after consent—not to <Badge text="/api/v1" variant="path" />. The backend builds the redirect from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> plus the path <Badge text="/integration/oauth/threads" variant="path" />.
 
 - **Production** (when <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> is <Badge text="https://…" variant="new" />): register
 ```bash
-https://YOUR-FRONTEND-DOMAIN/account/integrations/social/threads
+https://YOUR-FRONTEND-DOMAIN/integration/oauth/threads
 ```
 
 <Callout type="note" title="Replace YOUR-FRONTEND-DOMAIN with your backend origin">
@@ -45,7 +45,7 @@ https://YOUR-FRONTEND-DOMAIN/account/integrations/social/threads
 
 - **Local development (recommended)**: Meta requires **HTTPS** redirect URIs for Threads. Run your web app on HTTPS (for example with a local dev certificate) and set <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> accordingly. Typical value:  
 ```bash
-https://localhost:5173/account/integrations/social/threads
+https://localhost:5173/integration/oauth/threads
 ```
 
 

@@ -13,6 +13,7 @@ import { config } from "../../config/GlobalConfig";
 import { AppError } from "../../errors/AppError";
 import { makeId } from "../../utils/make.is";
 import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
+import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackPath";
 
 const GRAPH = "https://graph.facebook.com/v20.0";
 
@@ -21,7 +22,7 @@ function facebookOAuth(): { appId: string; appSecret: string } {
 }
 
 function instagramBusinessRedirectUri(): string {
-    return `${oauthFrontendOrigin()}/account/integrations/social/instagram-business`;
+    return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("instagram-business")}`;
 }
 
 export type InstagramBusinessAccountOption = {

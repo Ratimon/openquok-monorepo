@@ -12,6 +12,7 @@ import { config } from "../../config/GlobalConfig";
 import { makeId } from "../../utils/make.is";
 import { publicUrlForObjectKey } from "../../repositories/MediaRepository";
 import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
+import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackPath";
 import { logger } from "../../utils/Logger";
 
 type ThreadsMediaItem = { path: string; bucket?: string };
@@ -48,7 +49,7 @@ function sleepMs(ms: number): Promise<void> {
 }
 
 function threadsRedirectUri(): string {
-    return `${oauthFrontendOrigin()}/account/integrations/social/threads`;
+    return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("threads")}`;
 }
 
 function threadsOAuth(): { appId: string; appSecret: string } {

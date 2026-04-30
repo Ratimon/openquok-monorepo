@@ -12,6 +12,7 @@ import dayjs from "dayjs";
 import { config } from "../../config/GlobalConfig";
 import { makeId } from "../../utils/make.is";
 import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
+import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackPath";
 
 const IG_GRAPH = "https://graph.instagram.com";
 
@@ -20,7 +21,7 @@ function instagramStandaloneOAuth(): { appId: string; appSecret: string } {
 }
 
 function instagramStandaloneRedirectUri(): string {
-    return `${oauthFrontendOrigin()}/account/integrations/social/instagram-standalone`;
+    return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("instagram-standalone")}`;
 }
 
 function normalizeOAuthPermissionList(raw: unknown): string[] {

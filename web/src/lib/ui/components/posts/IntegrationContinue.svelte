@@ -5,11 +5,14 @@
 	import utc from 'dayjs/plugin/utc';
 	import timezone from 'dayjs/plugin/timezone';
 
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getRootPathAccount } from '$lib/area-protected';
+	import { integrationOAuthCallbackPath } from '$lib/integration/oauthCallbackPath';
 	import { continueIntegrationPresenter, integrationsRepository } from '$lib/integrations';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { toast } from '$lib/ui/sonner';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
@@ -33,6 +36,10 @@
 	};
 
 	let busy = $state(true);
+	/** Signed-out user landed without OAuth callback params — GET authorize requires a session. */
+	let signInRequiredForOAuthStart = $state(false);
+	/** Signed-out user finished OAuth server-side; prompt sign-in to open `/account`. */
+	let oauthAnonymousSuccess = $state<{ provider: string; onboarding: boolean } | null>(null);
 	/** Indeterminate-style value for {@link CircularProgressBar} while work is in progress. */
 	let progressValue = $state(45);
 	/** Inline Instagram (Business) account selection — same route as OAuth callback. */
@@ -84,6 +91,31 @@
 	const organizationIdParam = $derived(page.url.searchParams.get('organizationId') ?? '');
 	const returnTo = $derived(page.url.searchParams.get('returnTo') ?? route(getRootPathAccount()));
 	const onboarding = $derived(page.url.searchParams.get('onboarding') ?? undefined);
+
+	function signInHrefForRedirectTarget(targetPathAndQuery: string): string {
+		const signIn = getRootPathSignin();
+		const redirectURL = encodeURIComponent(route(targetPathAndQuery));
+		return absoluteUrl(`/${signIn}?redirectURL=${redirectURL}`);
+	}
+
+	let signInToContinueHref = $derived.by(() =>
+		signInHrefForRedirectTarget(`${page.url.pathname}${page.url.search}`)
+	);
+
+	let signInAfterAnonymousConnectHref = $derived.by(() => {
+		const o = oauthAnonymousSuccess;
+		if (!o) return '';
+		const accountRoot = route(getRootPathAccount());
+		const qs = new URLSearchParams({ added: o.provider });
+		if (o.onboarding) qs.set('onboarding', 'true');
+		return signInHrefForRedirectTarget(`${accountRoot}?${qs}`);
+	});
+
+	function oauthContinueAbsolute(providerSlug: string, searchParams?: URLSearchParams): string {
+		const path = integrationOAuthCallbackPath(providerSlug);
+		if (!searchParams || [...searchParams].length === 0) return absoluteUrl(path);
+		return absoluteUrl(`${path}?${searchParams}`);
+	}
 
 	function timezoneOffsetMinutes(): string {
 		const zone = dayjs.tz.guess() || 'UTC';
@@ -192,10 +224,7 @@
 						successReturnPath: returnTo,
 						onboarding: data.onboarding
 					};
-					await goto(
-						absoluteUrl(`${accountRoot}/integrations/social/${encodeURIComponent(p)}`),
-						{ replaceState: true }
-					);
+					await goto(oauthContinueAbsolute(p), { replaceState: true });
 					busy = false;
 					return;
 				}
@@ -205,14 +234,17 @@
 					refresh: data.internalId,
 					...(onboarding === 'true' && { onboarding: 'true' })
 				});
-				await goto(absoluteUrl(`${accountRoot}/integrations/social/${encodeURIComponent(p)}?${qs}`), {
-					replaceState: true
-				});
+				await goto(oauthContinueAbsolute(p, qs), { replaceState: true });
 				return;
 			}
 
 			const successQs = new URLSearchParams({ added: p });
 			if (data.onboarding) successQs.set('onboarding', 'true');
+			if (!authenticationRepository.isAuthenticated()) {
+				oauthAnonymousSuccess = { provider: p, onboarding: data.onboarding };
+				busy = false;
+				return;
+			}
 			await goto(absoluteUrl(`${accountRoot}?${successQs}`), { replaceState: true });
 		} finally {
 			busy = false;
@@ -244,6 +276,11 @@
 			const accountRoot = route(getRootPathAccount());
 			const successQs = new URLSearchParams({ added: 'instagram-business' });
 			if (vm.onboarding) successQs.set('onboarding', 'true');
+			if (!authenticationRepository.isAuthenticated()) {
+				oauthAnonymousSuccess = { provider: 'instagram-business', onboarding: vm.onboarding };
+				igBusinessPicker = null;
+				return;
+			}
 			await goto(absoluteUrl(`${accountRoot}?${successQs}`), { replaceState: true });
 			igBusinessPicker = null;
 		} catch {
@@ -258,7 +295,12 @@
 		await goto(absoluteUrl(dest), { replaceState: true });
 	}
 
-	async function startOAuthRedirect(p: string, orgParam: string, externalReturn: string) {
+	async function startOAuthRedirect(
+		p: string,
+		orgParam: string,
+		externalReturn: string,
+		refreshFromUrl: string | undefined
+	) {
 		try {
 			if (!workspaceSettingsPresenter.currentWorkspaceId) {
 				await workspaceSettingsPresenter.load({ includeTeam: false });
@@ -266,7 +308,7 @@
 			const organizationId = orgParam || workspaceSettingsPresenter.currentWorkspaceId || '';
 
 			// Prevent duplicate redirects on rapid reactivity/navigation updates.
-			const redirectKey = `${p}:${organizationId}:${externalReturn}:${onboarding ?? ''}`;
+			const redirectKey = `${p}:${organizationId}:${externalReturn}:${onboarding ?? ''}:${refreshFromUrl ?? ''}`;
 			if (startedOAuthRedirectKey === redirectKey) {
 				return;
 			}
@@ -289,6 +331,7 @@
 				organizationId,
 				provider: p,
 				externalUrl: externalReturn,
+				...(refreshFromUrl && { refresh: refreshFromUrl }),
 				...(onboarding === 'true' && { onboarding: 'true' })
 			});
 
@@ -306,12 +349,17 @@
 	}
 
 	async function run() {
+		if (oauthAnonymousSuccess) {
+			busy = false;
+			return;
+		}
 		if (igBusinessPicker) {
 			busy = false;
 			return;
 		}
 
 		busy = true;
+		signInRequiredForOAuthStart = false;
 		const p = provider;
 		const authCode = code;
 		const authState = oauthState;
@@ -336,7 +384,21 @@
 			await finishOAuthCallback(p, authCode, authState, refreshParam);
 			return;
 		}
-		await startOAuthRedirect(p, orgParam, externalReturn);
+
+		if (browser) {
+			try {
+				await authenticationRepository.checkAuth(globalThis.fetch);
+			} catch {
+				/* refresh failure ok — treat as signed out */
+			}
+		}
+		if (!authenticationRepository.isAuthenticated()) {
+			signInRequiredForOAuthStart = true;
+			busy = false;
+			return;
+		}
+
+		await startOAuthRedirect(p, orgParam, externalReturn, refreshParam);
 	}
 
 	$effect(() => {
@@ -364,11 +426,15 @@
 	<title
 		>{igBusinessPicker
 			? 'Choose Instagram account'
-			: isOAuthErrorCallback
-				? 'Connection cancelled'
-				: isOAuthSuccessCallback
-					? 'Connecting channel'
-					: 'Connect channel'}</title
+			: oauthAnonymousSuccess
+				? 'Channel connected'
+				: signInRequiredForOAuthStart
+					? 'Sign in to connect'
+					: isOAuthErrorCallback
+						? 'Connection cancelled'
+						: isOAuthSuccessCallback
+							? 'Connecting channel'
+							: 'Connect channel'}</title
 	>
 </svelte:head>
 
@@ -406,6 +472,22 @@
 			{/each}
 		</ul>
 		<Button class="mt-6" variant="ghost" onclick={() => cancelInstagramBusinessPicker()}>Cancel</Button>
+	</div>
+{:else if oauthAnonymousSuccess}
+	<div class="mx-auto max-w-lg px-4 py-10">
+		<h1 class="text-xl font-semibold text-base-content">Channel connected</h1>
+		<p class="mt-2 text-sm text-base-content/70">
+			Your account is linked. Sign in to open your workspace and manage channels.
+		</p>
+		<Button class="mt-6" href={signInAfterAnonymousConnectHref}>Sign in</Button>
+	</div>
+{:else if signInRequiredForOAuthStart}
+	<div class="mx-auto max-w-lg px-4 py-10">
+		<h1 class="text-xl font-semibold text-base-content">Sign in to connect</h1>
+		<p class="mt-2 text-sm text-base-content/70">
+			Starting this connection requires an Openquok session. Sign in, then try again from your workspace.
+		</p>
+		<Button class="mt-6" href={signInToContinueHref}>Sign in</Button>
 	</div>
 {:else}
 	<div class="mx-auto w-full max-w-2xl px-4 py-10 sm:max-w-3xl">

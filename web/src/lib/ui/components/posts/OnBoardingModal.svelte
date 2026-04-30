@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getRootPathAccount } from '$lib/area-protected';
+	import { integrationOAuthCallbackPath } from '$lib/integration/oauthCallbackPath';
 	import { absoluteUrl, route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icon';
@@ -73,7 +74,7 @@
 			return;
 		}
 		close();
-		const connectPath = `${accountRoot}/integrations/social/${encodeURIComponent(identifier)}`;
+		const connectPath = integrationOAuthCallbackPath(identifier);
 		const qs = new URLSearchParams({
 			organizationId: workspaceId,
 			returnTo,

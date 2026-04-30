@@ -8,6 +8,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
+	import { integrationOAuthCallbackPath } from '$lib/integration/oauthCallbackPath';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { toast } from '$lib/ui/sonner';
 
@@ -220,7 +221,7 @@
 			toast.error('Create or select a workspace before connecting a channel.');
 			return;
 		}
-		const connectPath = `${accountRoot}/integrations/social/${encodeURIComponent(identifier)}`;
+		const connectPath = integrationOAuthCallbackPath(identifier);
 		const qs = new URLSearchParams({ organizationId: orgId, returnTo: accountRoot });
 		void goto(absoluteUrl(`${connectPath}?${qs}`));
 	}
@@ -253,14 +254,14 @@
 				integrationId: integration.id,
 				returnTo: accountRoot
 			});
-			return absoluteUrl(`${accountRoot}/integrations/social/instagram-business?${qs}`);
+			return absoluteUrl(`${integrationOAuthCallbackPath('instagram-business')}?${qs}`);
 		}
 		const qs = new URLSearchParams({
 			organizationId: workspaceId,
 			returnTo: accountRoot,
 			refresh: integration.internalId
 		});
-		return absoluteUrl(`${accountRoot}/integrations/social/${encodeURIComponent(integration.identifier)}?${qs}`);
+		return absoluteUrl(`${integrationOAuthCallbackPath(integration.identifier)}?${qs}`);
 	}
 
 	$effect(() => {

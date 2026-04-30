@@ -14,6 +14,7 @@ import type { IconName } from '$data/icon';
 
 import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 
+import { integrationOAuthCallbackPath } from '$lib/integration/oauthCallbackPath';
 import { route } from '$lib/utils/path';
 import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 
@@ -46,14 +47,14 @@ export class ProtectedCalendarPagePresenter {
 				integrationId: integration.id,
 				returnTo: accountRoot
 			});
-			return `${accountRoot}/integrations/social/instagram-business?${qs}`;
+			return `${integrationOAuthCallbackPath('instagram-business')}?${qs}`;
 		}
 		const qs = new URLSearchParams({
 			organizationId: workspaceId,
 			returnTo: accountRoot,
 			refresh: integration.internalId
 		});
-		return `${accountRoot}/integrations/social/${encodeURIComponent(integration.identifier)}?${qs}`;
+		return `${integrationOAuthCallbackPath(integration.identifier)}?${qs}`;
 	}
 
 	setTargetedChannels(channels: CreateSocialPostChannelViewModel[]): void {

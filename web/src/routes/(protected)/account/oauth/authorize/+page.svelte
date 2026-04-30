@@ -2,7 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getRootPathAccount } from '$lib/area-protected';
-	import { absoluteUrl, route, url } from '$lib/utils/path';
+	import { integrationOAuthCallbackPath } from '$lib/integration/oauthCallbackPath';
+	import { absoluteUrl, url } from '$lib/utils/path';
 
 	/**
 	 * App-level OAuth authorize (e.g. third-party clients), not workspace channel connect.
@@ -14,11 +15,10 @@
 
 	$effect(() => {
 		if (!legacyProvider || !legacyOrganizationId) return;
-		const accountRoot = route(getRootPathAccount());
 		const qs = new URLSearchParams({ organizationId: legacyOrganizationId });
 		if (legacyReturnTo) qs.set('returnTo', legacyReturnTo);
 		void goto(
-			absoluteUrl(`${accountRoot}/integrations/social/${encodeURIComponent(legacyProvider)}?${qs}`),
+			absoluteUrl(`${integrationOAuthCallbackPath(legacyProvider)}?${qs}`),
 			{ replaceState: true }
 		);
 	});

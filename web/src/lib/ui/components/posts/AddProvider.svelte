@@ -3,6 +3,7 @@
 
 	import { goto } from '$app/navigation';
 	import { getRootPathAccount } from '$lib/area-protected';
+	import { integrationOAuthCallbackPath } from '$lib/integration/oauthCallbackPath';
 	import { absoluteUrl, route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icon';
@@ -107,7 +108,7 @@
 		open = false;
 		const accountRoot = route(getRootPathAccount());
 		const afterConnect = returnToPath ?? accountRoot;
-		const connectPath = `${accountRoot}/integrations/social/${encodeURIComponent(identifier)}`;
+		const connectPath = integrationOAuthCallbackPath(identifier);
 		const qs = new URLSearchParams({
 			organizationId: workspaceId,
 			returnTo: afterConnect,
