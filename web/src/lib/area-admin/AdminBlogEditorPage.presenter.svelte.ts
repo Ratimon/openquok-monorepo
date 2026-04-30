@@ -1,13 +1,13 @@
-import type { BlogRepository } from '$lib/blog/Blog.repository.svelte';
+import type { BlogRepository } from '$lib/blogs/Blog.repository.svelte';
 import type { ImageRepository } from '$lib/core/Image.repository.svelte';
 
 import type {
 	BlogPostEditorViewModel,
 	BlogTopicViewModel
-} from '$lib/blog/GetBlog.presenter.svelte';
-import type { BlogPostFormSchemaType } from '$lib/blog/blog.types';
-import { BLOG_IMAGES_BUCKET } from '$lib/blog/constants/config';
-import { extractBlogImageStoragePathsFromHtml } from '$lib/blog/utils';
+} from '$lib/blogs/GetBlog.presenter.svelte';
+import type { BlogPostFormSchemaType } from '$lib/blogs/blog.types';
+import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
+import { extractBlogImageStoragePathsFromHtml } from '$lib/blogs/utils';
 
 
 export class AdminBlogEditorPagePresenter {

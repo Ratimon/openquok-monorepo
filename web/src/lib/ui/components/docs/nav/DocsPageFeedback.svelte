@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
-	import { docsPageFeedbackPresenter, FeedbackStatus } from '$lib/feedback';
+	import { docsPageFeedbackPresenter, FeedbackStatus } from '$lib/feedbacks';
 
 	import { icons } from '$data/icon';
 

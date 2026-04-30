@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { FeedbackPopoverViewModel } from '$lib/feedback';
-	import { feedbackDescriptionSchema } from '$lib/feedback/feedback.types';
+	import type { FeedbackPopoverViewModel } from '$lib/feedbacks';
+	import { feedbackDescriptionSchema } from '$lib/feedbacks/feedback.types';
 	import { toast } from '$lib/ui/sonner';
 	import * as Popover from '$lib/ui/popover';
 	import { icons } from '$data/icon';

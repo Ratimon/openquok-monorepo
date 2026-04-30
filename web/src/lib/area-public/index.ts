@@ -1,5 +1,5 @@
 import type { PublicInformationConfig } from '$lib/area-public/PublicInformation.repository.svelte';
-import { blogRepository, getBlogPresenter } from '$lib/blog/index';
+import { blogRepository, getBlogPresenter } from '$lib/blogs/index';
 import { getScheduledPostsPresenter, postsRepository } from '$lib/posts/index';
 import { httpGateway } from '$lib/core/index';
 import { PublicBlogPagePresenter } from '$lib/area-public/PublicBlogPage.presenter.svelte';

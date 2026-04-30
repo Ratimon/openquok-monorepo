@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FeedbackViewModel } from '$lib/feedback';
+	import type { FeedbackViewModel } from '$lib/feedbacks';
 
 	import { createPagination } from '$lib/ui/helpers/createPagination.svelte';
 	import { capitalize } from '$lib/ui/helpers/common';

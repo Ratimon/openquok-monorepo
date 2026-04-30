@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BlogPostPublicViewModel } from '$lib/blog/index';
+	import type { BlogPostPublicViewModel } from '$lib/blogs/index';
 	import FormattedISODate from '$lib/ui/components/FormattedISODate.svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/ui/card';
 	import { cn } from '$lib/ui/helpers/common';

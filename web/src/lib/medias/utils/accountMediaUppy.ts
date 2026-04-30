@@ -2,16 +2,16 @@ import Uppy from '@uppy/core';
 import Compressor from '@uppy/compressor';
 
 import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
-import { MAX_MEDIA_UPLOAD_BYTES } from '$lib/media';
+import { MAX_MEDIA_UPLOAD_BYTES } from '$lib/medias';
 import { normalizeApiBaseUrl } from '$lib/utils/path';
 import {
 	getUppyUploadPlugin,
 	type MediaLibraryUppyPluginMode
-} from '$lib/media/utils/uppyUploadPluginFactory';
+} from '$lib/medias/utils/uppyUploadPluginFactory';
 import {
 	resolveMediaLibraryUploadMode,
 	type MediaLibraryUploadMode
-} from '$lib/media/utils/mediaLibraryUploadEnv';
+} from '$lib/medias/utils/mediaLibraryUploadEnv';
 
 async function svgFileToPng(file: File): Promise<File> {
 	const svgText = await file.text();

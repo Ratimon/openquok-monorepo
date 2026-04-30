@@ -1,4 +1,4 @@
-import type { FeedbackRepository, FeedbackProgrammerModel } from '$lib/feedback/Feedback.repository.svelte';
+import type { FeedbackRepository, FeedbackProgrammerModel } from '$lib/feedbacks/Feedback.repository.svelte';
 
 /** View model for feedback list (e.g. feedback manager page). */
 export interface FeedbackViewModel {

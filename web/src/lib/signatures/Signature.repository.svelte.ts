@@ -1,5 +1,5 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
-import type { CreateSignatureInput, UpdateSignatureInput } from '$lib/signatures/signatures.types';
+import type { CreateSignatureInput, UpdateSignatureInput } from '$lib/signatures/signature.types';
 
 import { ApiError } from '$lib/core/HttpGateway';
 import { HttpMethod } from '$lib/core/HttpGateway';

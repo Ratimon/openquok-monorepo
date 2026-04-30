@@ -1,5 +1,5 @@
-import type { BlogRepository, BlogUpsertProgrammerModel } from '$lib/blog/Blog.repository.svelte';
-import type { BlogTopicFormSchemaType } from '$lib/blog/blog.types';
+import type { BlogRepository, BlogUpsertProgrammerModel } from '$lib/blogs/Blog.repository.svelte';
+import type { BlogTopicFormSchemaType } from '$lib/blogs/blog.types';
 
 export enum UpsertBlogTopicModalStatus {
 	UNKNOWN = 'unknown',

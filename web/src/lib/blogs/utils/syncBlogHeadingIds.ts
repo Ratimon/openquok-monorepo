@@ -1,4 +1,4 @@
-import { parseHeadersFromHTMLString } from '$lib/blog/utils/parseHeadersFromHTMLString';
+import { parseHeadersFromHTMLString } from '$lib/blogs/utils/parseHeadersFromHTMLString';
 
 /**
  * Assigns `id` on each heading in `container` so `#slug` links (e.g. from the table of contents)

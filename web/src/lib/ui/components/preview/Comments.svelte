@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PostCommentViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
+	import type { PostCommentViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { cn, formatPassedTime } from '$lib/ui/helpers/common';

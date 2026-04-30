@@ -6,12 +6,12 @@ import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/Prote
 import type {
 	DebugExportPostGroupProgrammerModel,
 	PostsRepository
-} from '$lib/posts/Posts.repository.svelte';
+} from '$lib/posts/Post.repository.svelte';
 import type {
 	CalendarPostRowViewModel,
 	GetPostGroupResultViewModel
-} from '$lib/posts/GetScheduledPosts.presenter.svelte';
-import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPosts.presenter.svelte';
+} from '$lib/posts/GetScheduledPost.presenter.svelte';
+import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 /**

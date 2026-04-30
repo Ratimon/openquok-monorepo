@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-	import type { PostGroupDetailsViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
+	import type { PostGroupDetailsViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
 	import { icons } from '$data/icon';
 	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';

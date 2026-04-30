@@ -2,8 +2,8 @@ import { HttpGateway, HttpMethod } from '$lib/core/HttpGateway';
 import type {
 	BlogPostFormSchemaType,
 	BlogTopicFormSchemaType,
-} from '$lib/blog/blog.types';
-import { CONFIG_SCHEMA_BLOG } from '$lib/blog/constants/config';
+} from '$lib/blogs/blog.types';
+import { CONFIG_SCHEMA_BLOG } from '$lib/blogs/constants/config';
 
 /** API response shape for a single blog post (camelCase from backend BlogDTOMapper). */
 export interface BlogPostDto {

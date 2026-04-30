@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 
 	import { page } from '$app/state';
-	import { generalFeedbackPresenter } from '$lib/feedback';
+	import { generalFeedbackPresenter } from '$lib/feedbacks';
 
 	import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { parseHeadersFromHTMLString } from '$lib/blog/utils';
+	import { parseHeadersFromHTMLString } from '$lib/blogs/utils';
 	import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { cn } from '$lib/ui/helpers/common';
 	import * as Breadcrumb from '$lib/ui/breadcrumb';

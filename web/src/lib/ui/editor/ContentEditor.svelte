@@ -5,11 +5,11 @@
 	import { Placeholder } from '@tiptap/extensions';
 	import StarterKit from '@tiptap/starter-kit';
 
-	import { BLOG_IMAGES_BUCKET } from '$lib/blog/constants/config';
+	import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
 	import {
 		buildBlogInlineImageSrc,
 		normalizeBlogInlineImagesInHtml
-	} from '$lib/blog/utils';
+	} from '$lib/blogs/utils';
 	import { imageRepository } from '$lib/core/index';
 	import { cn } from '$lib/ui/helpers/common';
 	import { toast } from '$lib/ui/sonner';

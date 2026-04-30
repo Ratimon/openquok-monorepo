@@ -1,9 +1,9 @@
 import { base } from '$app/paths';
 
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
-import type { BlogPostBySlugPublicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
-import type { BlogPostCommentProgrammerModel } from '$lib/blog/index';
-import { buildBlogInlineImageSrc } from '$lib/blog/utils/buildBlogInlineImageSrc';
+import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
+import type { BlogPostCommentProgrammerModel } from '$lib/blogs/index';
+import { buildBlogInlineImageSrc } from '$lib/blogs/utils/buildBlogInlineImageSrc';
 
 /** Guess MIME type from a storage filename (used for OG / JSON-LD image). */
 export function guessImageMimeFromFilename(filename: string): string {

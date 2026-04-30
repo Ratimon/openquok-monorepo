@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AdminBlogActivityVm } from '$lib/blog/blog.types';
+	import type { AdminBlogActivityVm } from '$lib/blogs/blog.types';
 	import type { BadgeVariant } from '$lib/ui/badge/Badge.svelte';
 
 

@@ -1,4 +1,4 @@
-import type { BlogTopicProgrammerModel } from '$lib/blog/Blog.repository.svelte';
+import type { BlogTopicProgrammerModel } from '$lib/blogs/Blog.repository.svelte';
 import { stringToSlug } from '$lib/ui/helpers/common';
 
 /**

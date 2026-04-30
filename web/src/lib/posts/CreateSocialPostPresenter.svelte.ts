@@ -11,11 +11,11 @@ import type {
 	PostTagProgrammerModel,
 	PostsRepository,
 	RepeatIntervalKey
-} from '$lib/posts/Posts.repository.svelte';
+} from '$lib/posts/Post.repository.svelte';
 import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
-import type { SignaturesRepository } from '$lib/signatures/Signatures.repository.svelte';
+import type { SignaturesRepository } from '$lib/signatures/Signature.repository.svelte';
 
-import { mediaItemsToPreviewUrls } from '$lib/posts/Posts.repository.svelte';
+import { mediaItemsToPreviewUrls } from '$lib/posts/Post.repository.svelte';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 import {
 	datetimeLocalToIso,

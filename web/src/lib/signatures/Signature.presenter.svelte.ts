@@ -1,6 +1,6 @@
-import type { CreateSignatureInput, UpdateSignatureInput } from '$lib/signatures/signatures.types';
-import type { SignaturesRepository } from '$lib/signatures/Signatures.repository.svelte';
-import type { GetSignaturesPresenter, SignatureViewModel } from '$lib/signatures/GetSignatures.presenter.svelte';
+import type { CreateSignatureInput, UpdateSignatureInput } from '$lib/signatures/signature.types';
+import type { SignaturesRepository } from '$lib/signatures/Signature.repository.svelte';
+import type { GetSignaturesPresenter, SignatureViewModel } from '$lib/signatures/GetSignature.presenter.svelte';
 
 export enum SignaturesStatus {
 	IDLE = 'idle',

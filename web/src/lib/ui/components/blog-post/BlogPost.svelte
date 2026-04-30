@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import type { BlogPostCommentProgrammerModel, BlogUpsertProgrammerModel } from '$lib/blog/index';
-	import type { BlogPostBySlugPublicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
+	import type { BlogPostCommentProgrammerModel, BlogUpsertProgrammerModel } from '$lib/blogs/index';
+	import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 
 	import { browser } from '$app/environment';
 
-	import { syncBlogHeadingIds } from '$lib/blog/utils';
+	import { syncBlogHeadingIds } from '$lib/blogs/utils';
 	import { getRootPathPublicBlog, getRootPathPublicBlogAuthor } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { stringToSlug } from '$lib/ui/helpers/common';

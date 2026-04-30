@@ -3,8 +3,8 @@ import type {
 	PostPreviewProgrammerModel,
 	PostRowProgrammerModel,
 	PostsRepository
-} from '$lib/posts/Posts.repository.svelte';
-import type { PostCommentProgrammerModel } from '$lib/posts/Posts.repository.svelte';
+} from '$lib/posts/Post.repository.svelte';
+import type { PostCommentProgrammerModel } from '$lib/posts/Post.repository.svelte';
 
 export interface CalendarPostRowViewModel {
 	id: string;

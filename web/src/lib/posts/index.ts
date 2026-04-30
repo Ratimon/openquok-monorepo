@@ -1,8 +1,8 @@
-import type { PostsConfig } from '$lib/posts/Posts.repository.svelte';
+import type { PostsConfig } from '$lib/posts/Post.repository.svelte';
 
 import { httpGateway } from '$lib/core/index';
-import { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPosts.presenter.svelte';
-import { PostsRepository } from '$lib/posts/Posts.repository.svelte';
+import { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
+import { PostsRepository } from '$lib/posts/Post.repository.svelte';
 
 const base = '/api/v1/posts';
 
@@ -32,7 +32,7 @@ export {
 	PostsRepository,
 	uploadSocialPostComposerMediaFiles,
 	mediaItemsToPreviewUrls
-} from '$lib/posts/Posts.repository.svelte';
+} from '$lib/posts/Post.repository.svelte';
 export type {
 	CreatePostProgrammerModel,
 	PostCommentProgrammerModel,
@@ -40,17 +40,17 @@ export type {
 	PostTagProgrammerModel,
 	RepeatIntervalKey,
 	PostMediaProgrammerModel
-} from '$lib/posts/Posts.repository.svelte';
+} from '$lib/posts/Post.repository.svelte';
 export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPostPresenter.svelte';
 export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
-export { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPosts.presenter.svelte';
-export type { PublicPreviewPostViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
-export type { PostCommentViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
+export { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
+export type { PublicPreviewPostViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
+export type { PostCommentViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 export type {
 	CalendarPostRowViewModel,
 	GetPostGroupResultViewModel,
 	PostGroupDetailsViewModel
-} from '$lib/posts/GetScheduledPosts.presenter.svelte';
+} from '$lib/posts/GetScheduledPost.presenter.svelte';
 export type {
 	CalendarDisplayViewModel,
 	CalendarGranularityViewModel,

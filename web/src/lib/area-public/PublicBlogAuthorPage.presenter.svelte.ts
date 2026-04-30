@@ -1,4 +1,4 @@
-import type { BlogAuthorPublicViewModel, GetBlogPresenter } from '$lib/blog/GetBlog.presenter.svelte';
+import type { BlogAuthorPublicViewModel, GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
 
 export class PublicBlogAuthorPagePresenter {
 	public authorsVm: BlogAuthorPublicViewModel[] = $state([]);

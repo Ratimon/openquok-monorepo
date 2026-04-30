@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { MediaDeleteProgrammerModel, MediaLibraryItemProgrammerModel } from '$lib/media';
+	import type { MediaDeleteProgrammerModel, MediaLibraryItemProgrammerModel } from '$lib/medias';
 
-	import { formatBytes, publicUrlForMediaStorageKey } from '$lib/media';
+	import { formatBytes, publicUrlForMediaStorageKey } from '$lib/medias';
 	import { icons } from '$data/icon';
 	import { toast } from '$lib/ui/sonner';
 

@@ -1,9 +1,9 @@
 import { httpGateway } from '$lib/core/index';
 import { ActionVerificationModalPresenter } from '$lib/core/ActionVerificationModal.presenter.svelte';
-import { BlogRepository } from '$lib/blog/Blog.repository.svelte';
-import { createSortedTopicChoices } from '$lib/blog/Blog.repository.svelte';
-import { GetBlogPresenter } from '$lib/blog/GetBlog.presenter.svelte';
-import { UpsertBlogTopicModalPresenter } from '$lib/blog/UpsertBlogTopicModal.presenter.svelte';
+import { BlogRepository } from '$lib/blogs/Blog.repository.svelte';
+import { createSortedTopicChoices } from '$lib/blogs/Blog.repository.svelte';
+import { GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
+import { UpsertBlogTopicModalPresenter } from '$lib/blogs/UpsertBlogTopicModal.presenter.svelte';
 
 const blogConfig = {
 	endpoints: {
@@ -65,13 +65,13 @@ export {
 	getBlogPresenter,
 	upsertBlogTopicModalPresenter
 };
-export { blogPublicTopicIdParamSchema } from '$lib/blog/blog.types';
+export { blogPublicTopicIdParamSchema } from '$lib/blogs/blog.types';
 export type {
 	AdminBlogActivityVm,
 	AdminBlogCommentVm,
 	BlogPostFormSchemaType,
 	TopicChoice
-} from '$lib/blog/blog.types';
+} from '$lib/blogs/blog.types';
 export type {
 	AdminBlogActivityProgrammerModel,
 	AdminBlogCommentProgrammerModel,
@@ -82,7 +82,7 @@ export type {
 	BlogTopicProgrammerModel,
 	ActiveBlogTopicProgrammerModel,
 	PublishedBlogAuthorProgrammerModel
-} from '$lib/blog/Blog.repository.svelte';
+} from '$lib/blogs/Blog.repository.svelte';
 export type {
 	BlogAuthorPublicViewModel,
 	BlogPostViewModel,
@@ -90,11 +90,11 @@ export type {
 	BlogTopicPublicViewModel,
 	BlogTopicOverviewPublicViewModel,
 	PublicBlogOverviewVm
-} from '$lib/blog/GetBlog.presenter.svelte';
-export { BLOG_IMAGES_BUCKET } from '$lib/blog/constants/config';
+} from '$lib/blogs/GetBlog.presenter.svelte';
+export { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
 export {
 	buildBlogInlineImageSrc,
 	buildBlogTopicViewModelFromUpsert,
 	extractBlogImageStoragePathFromImageSrc,
 	normalizeBlogInlineImagesInHtml
-} from '$lib/blog/utils';
+} from '$lib/blogs/utils';

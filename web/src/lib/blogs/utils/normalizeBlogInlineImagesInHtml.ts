@@ -1,6 +1,6 @@
-import { buildBlogInlineImageSrc } from '$lib/blog/utils/buildBlogInlineImageSrc';
+import { buildBlogInlineImageSrc } from '$lib/blogs/utils/buildBlogInlineImageSrc';
 
-import { extractBlogImageStoragePathFromImageSrc } from '$lib/blog/utils/extractBlogImageStoragePathFromImageSrc';
+import { extractBlogImageStoragePathFromImageSrc } from '$lib/blogs/utils/extractBlogImageStoragePathFromImageSrc';
 
 /**
  * Ensures each blog inline `<img>` has `data-storage-path` and a working `src` for the current env.

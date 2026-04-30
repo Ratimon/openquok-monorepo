@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SignatureProgrammerModel } from '$lib/signatures';
-	import type { SignaturesPresenter } from '$lib/signatures/Signatures.presenter.svelte';
+	import type { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte';
 
 	import { onMount, untrack } from 'svelte';
 	import { toast } from '$lib/ui/sonner';

@@ -1,9 +1,9 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import { CONFIG_SCHEMA_BLOG } from '$lib/blog/constants/config';
-import { blogPublicTopicIdParamSchema } from '$lib/blog/blog.types';
+import { CONFIG_SCHEMA_BLOG } from '$lib/blogs/constants/config';
+import { blogPublicTopicIdParamSchema } from '$lib/blogs/blog.types';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
-import { blogRepository } from '$lib/blog/index';
+import { blogRepository } from '$lib/blogs/index';
 import {
 	publicBlogPagePresenter,
 	publicBlogTopicPagePresenter,

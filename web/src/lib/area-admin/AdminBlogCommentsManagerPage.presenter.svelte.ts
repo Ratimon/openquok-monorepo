@@ -1,6 +1,6 @@
-import type { AdminBlogCommentVm } from '$lib/blog/blog.types';
-import type { GetBlogPresenter } from '$lib/blog/GetBlog.presenter.svelte';
-import type { BlogRepository } from '$lib/blog/Blog.repository.svelte';
+import type { AdminBlogCommentVm } from '$lib/blogs/blog.types';
+import type { GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
+import type { BlogRepository } from '$lib/blogs/Blog.repository.svelte';
 
 export class AdminBlogCommentsManagerPagePresenter {
 	public commentsToManageVm: AdminBlogCommentVm[] = $state([]);

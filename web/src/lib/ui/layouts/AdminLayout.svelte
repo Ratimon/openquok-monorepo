@@ -10,8 +10,8 @@
 	import { icons } from '$data/icon';
 	import { authenticationRepository, signoutPresenter } from '$lib/user-auth/index';
 	import { SignoutStatus } from '$lib/user-auth/Signout.presenter.svelte';
-	import { feedbackPresenter } from '$lib/feedback';
-	import { FeedbackStatus } from '$lib/feedback/Feedback.presenter.svelte';
+	import { feedbackPresenter } from '$lib/feedbacks';
+	import { FeedbackStatus } from '$lib/feedbacks/Feedback.presenter.svelte';
 	import { getRootPathEditorArea } from '$lib/area-admin/constants/getRootPathEditorArea';
 	import { getRootPathSecretAdminArea } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathAdminArea } from '$lib/area-admin/constants/getRootPathAdminArea';

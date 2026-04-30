@@ -1,4 +1,4 @@
-import type { AdminBlogCommentVm, AdminBlogActivityVm } from '$lib/blog/blog.types';
+import type { AdminBlogCommentVm, AdminBlogActivityVm } from '$lib/blogs/blog.types';
 import type {
 	AdminBlogActivityProgrammerModel,
 	AdminBlogCommentProgrammerModel,
@@ -8,7 +8,7 @@ import type {
 	BlogRepository,
 	BlogTopicProgrammerModel,
 	PublishedBlogAuthorProgrammerModel
-} from '$lib/blog/Blog.repository.svelte';
+} from '$lib/blogs/Blog.repository.svelte';
 
 /** View model for admin blog posts list (e.g. blog manager posts page). */
 export interface BlogPostViewModel {

@@ -1,10 +1,10 @@
-import type { BlogRepository, BlogUpsertProgrammerModel } from '$lib/blog/Blog.repository.svelte';
+import type { BlogRepository, BlogUpsertProgrammerModel } from '$lib/blogs/Blog.repository.svelte';
 import type {
 	BlogPostBySlugPublicViewModel,
 	BlogPostPublicViewModel,
 	GetBlogPresenter
-} from '$lib/blog/GetBlog.presenter.svelte';
-import type { BlogPostCommentProgrammerModel } from '$lib/blog/index';
+} from '$lib/blogs/GetBlog.presenter.svelte';
+import type { BlogPostCommentProgrammerModel } from '$lib/blogs/index';
 
 export class PublicBlogBySlugPagePresenter {
 	public currentPostVm: BlogPostBySlugPublicViewModel | null = $state(null);

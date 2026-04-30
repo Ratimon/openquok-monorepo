@@ -4,7 +4,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type {
 	BlogPostPublicViewModel,
 	BlogTopicOverviewPublicViewModel
-} from '$lib/blog/GetBlog.presenter.svelte';
+} from '$lib/blogs/GetBlog.presenter.svelte';
 
 import type { PageLoad } from './$types';
 

@@ -1,9 +1,9 @@
-import type { GetBlogPresenter } from '$lib/blog/GetBlog.presenter.svelte';
-import type { BlogPostViewModel } from '$lib/blog/GetBlog.presenter.svelte';
+import type { GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
+import type { BlogPostViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 import type { ImageRepository } from '$lib/core/Image.repository.svelte';
 
-import { BLOG_IMAGES_BUCKET } from '$lib/blog/constants/config';
-import { extractBlogImageStoragePathsFromHtml } from '$lib/blog/utils';
+import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
+import { extractBlogImageStoragePathsFromHtml } from '$lib/blogs/utils';
 
 export type PostDeleteStorageCleanupResultVm =
 	| { kind: 'none' }

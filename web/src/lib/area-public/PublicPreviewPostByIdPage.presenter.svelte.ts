@@ -2,7 +2,7 @@ import type {
 	GetScheduledPostsPresenter,
 	PostCommentViewModel,
 	PublicPreviewPostViewModel
-} from '$lib/posts/GetScheduledPosts.presenter.svelte';
+} from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type {  PostsRepository } from '$lib/posts';
 
 

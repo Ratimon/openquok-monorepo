@@ -1,4 +1,4 @@
-import type { BlogAuthorPublicViewModel, BlogPostPublicViewModel, GetBlogPresenter } from '$lib/blog/GetBlog.presenter.svelte';
+import type { BlogAuthorPublicViewModel, BlogPostPublicViewModel, GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
 import { stringToSlug } from '$lib/ui/helpers/common';
 
 function authorProfileSlug(author: BlogAuthorPublicViewModel): string {

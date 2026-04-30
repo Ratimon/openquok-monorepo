@@ -1,6 +1,6 @@
-import type { GetFeedbackPresenter } from '$lib/feedback/GetFeedback.presenter.svelte';
-import type { FeedbackViewModel } from '$lib/feedback/GetFeedback.presenter.svelte';
-import type { FeedbackRepository } from '$lib/feedback/Feedback.repository.svelte';
+import type { GetFeedbackPresenter } from '$lib/feedbacks/GetFeedback.presenter.svelte';
+import type { FeedbackViewModel } from '$lib/feedbacks/GetFeedback.presenter.svelte';
+import type { FeedbackRepository } from '$lib/feedbacks/Feedback.repository.svelte';
 
 export class AdminFeedbackManagerPagePresenter {
 	public allFeedbacksToManageVm: FeedbackViewModel[] = $state([]);

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { icons } from '$data/icon';
-	import { deleteBlogPostVerificationPresenter } from '$lib/blog';
+	import { deleteBlogPostVerificationPresenter } from '$lib/blogs';
 	import ActionVerificationModal from '$lib/ui/templates/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { CardContent, CardFooter } from '$lib/ui/card';

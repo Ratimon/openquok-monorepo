@@ -1,5 +1,5 @@
-import type { BlogPostPublicViewModel, BlogTopicOverviewPublicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
-import type { GetBlogPresenter } from '$lib/blog/GetBlog.presenter.svelte';
+import type { BlogPostPublicViewModel, BlogTopicOverviewPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
+import type { GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
 
 export class PublicBlogTopicBySlugPagePresenter {
 	constructor(private readonly getBlogPresenter: GetBlogPresenter) {}

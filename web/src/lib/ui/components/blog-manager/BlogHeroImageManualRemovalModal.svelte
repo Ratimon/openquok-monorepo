@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { toast } from '$lib/ui/sonner';
 
-	import { BLOG_IMAGES_BUCKET } from '$lib/blog/constants/config';
+	import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import {
 		Dialog,

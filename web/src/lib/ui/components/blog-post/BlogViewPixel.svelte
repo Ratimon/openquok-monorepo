@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BlogUpsertProgrammerModel } from '$lib/blog/index';
+	import type { BlogUpsertProgrammerModel } from '$lib/blogs/index';
 
 	import { dev } from '$app/environment';
 	import { onMount } from 'svelte';

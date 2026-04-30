@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FeedbackViewModel } from '$lib/feedback';
+	import type { FeedbackViewModel } from '$lib/feedbacks';
 
 	import { onMount } from 'svelte';
 	import { toast } from '$lib/ui/sonner';

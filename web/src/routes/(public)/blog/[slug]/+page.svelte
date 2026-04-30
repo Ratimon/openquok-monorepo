@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { BlogPostCommentProgrammerModel, BlogUpsertProgrammerModel } from '$lib/blog/index';
-	import type { BlogPostBySlugPublicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
-	import type { BlogPostPublicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
+	import type { BlogPostCommentProgrammerModel, BlogUpsertProgrammerModel } from '$lib/blogs/index';
+	import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
+	import type { BlogPostPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -15,7 +15,7 @@
 	import { url } from '$lib/utils/path';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
-	import { normalizeBlogInlineImagesInHtml } from '$lib/blog/utils';
+	import { normalizeBlogInlineImagesInHtml } from '$lib/blogs/utils';
 
 	import BlogPost from '$lib/ui/components/blog-post/BlogPost.svelte';
 

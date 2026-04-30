@@ -1,11 +1,11 @@
-import type { MediaRepository } from '$lib/media/Media.repository.svelte';
+import type { MediaRepository } from '$lib/medias/Media.repository.svelte';
 import type {
 	MediaDeleteProgrammerModel,
 	MediaLibraryItemProgrammerModel,
 	MediaListProgrammerModel,
 	SaveMediaInformationProgrammerModel,
 	UploadSimpleProgrammerModel
-} from '$lib/media/Media.repository.svelte';
+} from '$lib/medias/Media.repository.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import { createRemotePagination } from '$lib/ui/helpers/createRemotePagination.svelte';
 

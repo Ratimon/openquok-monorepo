@@ -1,5 +1,5 @@
-import type { AdminBlogActivityVm } from '$lib/blog/blog.types';
-import type { GetBlogPresenter } from '$lib/blog/GetBlog.presenter.svelte';
+import type { AdminBlogActivityVm } from '$lib/blogs/blog.types';
+import type { GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
 
 export class AdminBlogActivitiesManagerPagePresenter {
 	public activitiesToManageVm: AdminBlogActivityVm[] = $state([]);

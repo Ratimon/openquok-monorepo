@@ -1,4 +1,4 @@
-import { BLOG_IMAGES_BUCKET } from '$lib/blog/constants/config';
+import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
 
 const PUBLIC_OBJECT_MARKER = `/object/public/${BLOG_IMAGES_BUCKET}/`;
 

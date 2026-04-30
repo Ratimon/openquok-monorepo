@@ -4,7 +4,7 @@ import type { PostCommentViewModel, PublicPreviewPostViewModel } from '$lib/post
 
 import { error } from '@sveltejs/kit';
 import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
-import { publicUrlForMediaStorageKey } from '$lib/media/utils/publicMediaObjectUrl';
+import { publicUrlForMediaStorageKey } from '$lib/medias/utils/publicMediaObjectUrl';
 import { createPostSEOSchema } from '$lib/posts/utils/createPostSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';

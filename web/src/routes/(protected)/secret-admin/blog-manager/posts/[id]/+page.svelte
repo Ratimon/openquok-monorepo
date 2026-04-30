@@ -9,7 +9,7 @@
 
 	import { toast } from '$lib/ui/sonner';
 	import { adminBlogEditorPagePresenter } from '$lib/area-admin';
-	import { createSortedTopicChoices } from '$lib/blog';
+	import { createSortedTopicChoices } from '$lib/blogs';
 	import EditorBlog from '$lib/ui/templates/EditorBlog.svelte';
 
 	type Props = { data: PageData };

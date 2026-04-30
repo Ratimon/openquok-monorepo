@@ -1,4 +1,4 @@
-import { extractBlogImageStoragePathFromImageSrc } from '$lib/blog/utils/extractBlogImageStoragePathFromImageSrc';
+import { extractBlogImageStoragePathFromImageSrc } from '$lib/blogs/utils/extractBlogImageStoragePathFromImageSrc';
 
 /**
  * Collects `blog_images` object keys referenced by HTML body (src URLs and `data-storage-path`).

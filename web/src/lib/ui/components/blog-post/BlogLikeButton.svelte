@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BlogUpsertProgrammerModel } from '$lib/blog/index';
+	import type { BlogUpsertProgrammerModel } from '$lib/blogs/index';
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

@@ -1,7 +1,7 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import { ApiError } from '$lib/core/HttpGateway';
-import { mediaRepository } from '$lib/media';
-import { publicUrlForMediaStorageKey } from '$lib/media/utils/publicMediaObjectUrl';
+import { mediaRepository } from '$lib/medias';
+import { publicUrlForMediaStorageKey } from '$lib/medias/utils/publicMediaObjectUrl';
 
 /** One image attached to a social post (R2 / user media paths from `/api/v1/media/*`). */
 export type PostMediaProgrammerModel = {

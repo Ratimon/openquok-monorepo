@@ -1,7 +1,7 @@
 import type {
 	SignatureProgrammerModel,
 	SignaturesRepository
-} from '$lib/signatures/Signatures.repository.svelte';
+} from '$lib/signatures/Signature.repository.svelte';
 
 /** UI view model for signatures (currently 1:1 with the repository PM). */
 export type SignatureViewModel = SignatureProgrammerModel;

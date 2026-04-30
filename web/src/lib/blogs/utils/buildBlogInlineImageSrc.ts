@@ -1,7 +1,7 @@
 import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
 import { normalizeApiBaseUrl } from '$lib/utils/path';
 
-import { BLOG_IMAGES_BUCKET } from '$lib/blog/constants/config';
+import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
 
 function trimApiBase(): string {
 	return normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));

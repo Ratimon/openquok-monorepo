@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { AdminBlogCommentVm } from '$lib/blog/blog.types';
+	import type { AdminBlogCommentVm } from '$lib/blogs/blog.types';
 
-	import { deleteBlogCommentVerificationPresenter } from '$lib/blog';
+	import { deleteBlogCommentVerificationPresenter } from '$lib/blogs';
 	import { icons } from '$data/icon';
 	import ActionVerificationModal from '$lib/ui/templates/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';

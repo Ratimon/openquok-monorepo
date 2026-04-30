@@ -1,8 +1,8 @@
-import type { FeedbackConfig } from '$lib/feedback/Feedback.repository.svelte';
+import type { FeedbackConfig } from '$lib/feedbacks/Feedback.repository.svelte';
 import { httpGateway } from '$lib/core/index';
-import { FeedbackRepository } from '$lib/feedback/Feedback.repository.svelte';
-import { FeedbackPresenter } from '$lib/feedback/Feedback.presenter.svelte';
-import { GetFeedbackPresenter } from '$lib/feedback/GetFeedback.presenter.svelte';
+import { FeedbackRepository } from '$lib/feedbacks/Feedback.repository.svelte';
+import { FeedbackPresenter } from '$lib/feedbacks/Feedback.presenter.svelte';
+import { GetFeedbackPresenter } from '$lib/feedbacks/GetFeedback.presenter.svelte';
 
 const feedbackConfig: FeedbackConfig = {
 	endpoints: {
@@ -28,14 +28,14 @@ export {
 	docsPageFeedbackPresenter,
 	getFeedbackPresenter
 };
-export { FeedbackStatus } from '$lib/feedback/Feedback.presenter.svelte';
+export { FeedbackStatus } from '$lib/feedbacks/Feedback.presenter.svelte';
 export type {
 	CreateFeedbackProgrammerModel,
 	FeedbackProgrammerModel,
 	FeedbackManagerProgrammerModel
-} from '$lib/feedback/Feedback.repository.svelte';
-export type { FeedbackViewModel } from '$lib/feedback/GetFeedback.presenter.svelte';
-export { feedbackDescriptionSchema } from '$lib/feedback/feedback.types';
+} from '$lib/feedbacks/Feedback.repository.svelte';
+export type { FeedbackViewModel } from '$lib/feedbacks/GetFeedback.presenter.svelte';
+export { feedbackDescriptionSchema } from '$lib/feedbacks/feedback.types';
 export { default as FeedbackDialog } from '$lib/ui/components/feedback/FeedbackDialog.svelte';
 
 /** View model for FeedbackPopoverForm: state and callbacks from parent (e.g. layout). */

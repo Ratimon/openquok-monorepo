@@ -1,4 +1,4 @@
-import { feedbackRepository, getFeedbackPresenter } from '$lib/feedback';
+import { feedbackRepository, getFeedbackPresenter } from '$lib/feedbacks';
 import { getUserPresenter } from '$lib/user-management';
 import { AdminFeedbackManagerPagePresenter } from '$lib/area-admin/AdminFeedbackManagerPage.presenter.svelte';
 import { AdminPermissionManagerPagePresenter } from '$lib/area-admin/AdminPermissionManagerPage.presenter.svelte';
@@ -10,7 +10,7 @@ import { AdminBlogTopicsManagerPagePresenter } from '$lib/area-admin/AdminBlogTo
 import { AdminBlogActivitiesManagerPagePresenter } from '$lib/area-admin/AdminBlogActivitiesManagerPage.presenter.svelte';
 import { AdminBlogCommentsManagerPagePresenter } from '$lib/area-admin/AdminBlogCommentsManagerPage.presenter.svelte';
 import { getRolePresenter, rbacRepository } from '$lib/rbac';
-import { blogRepository, getBlogPresenter } from '$lib/blog';
+import { blogRepository, getBlogPresenter } from '$lib/blogs';
 import { emailRepository, getEmailPresenter } from '$lib/email';
 import { imageRepository } from '$lib/core/index';
 import { configRepository } from '$lib/config/Config.repository.svelte';
@@ -68,7 +68,7 @@ export {
 	companyInformationFormPresenter,
 	blogInformationFormPresenter
 };
-export type { FeedbackViewModel } from '$lib/feedback';
+export type { FeedbackViewModel } from '$lib/feedbacks';
 export type { AppRole, AppPermission } from '$lib/rbac/rbac.types';
 export type { ExtendedFullUserViewModel } from '$lib/user-management';
-export type { BlogPostViewModel } from '$lib/blog';
+export type { BlogPostViewModel } from '$lib/blogs';

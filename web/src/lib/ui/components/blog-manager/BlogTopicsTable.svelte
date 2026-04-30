@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { BlogTopicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
-	import { deleteBlogTopicVerificationPresenter } from '$lib/blog';
+	import type { BlogTopicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
+	import { deleteBlogTopicVerificationPresenter } from '$lib/blogs';
 	import { icons } from '$data/icon';
 	import ActionVerificationModal from '$lib/ui/templates/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -8,7 +8,7 @@
 	import { createPagination } from '$lib/ui/helpers/createPagination.svelte';
 	import { Pagination } from '$lib/ui/pagination';
 	import BlogTopicUpsertModal from '$lib/ui/components/blog-manager/BlogTopicUpsertModal.svelte';
-	import { createSortedTopicChoices } from '$lib/blog/utils/parentPathCreator';
+	import { createSortedTopicChoices } from '$lib/blogs/utils/parentPathCreator';
 
 	type Props = {
 		topicsVm: BlogTopicViewModel[];

@@ -1,7 +1,7 @@
 import { base } from '$app/paths';
 
-import type { PublicPreviewPostViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
-import type { PostCommentViewModel } from '$lib/posts/GetScheduledPosts.presenter.svelte';
+import type { PublicPreviewPostViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
+import type { PostCommentViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';
 
 function absoluteAppUrl(origin: string, pathname: string): string {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BlogTopicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
+	import type { BlogTopicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 	import { onMount } from 'svelte';
 
 	import { adminBlogTopicsManagerPagePresenter } from '$lib/area-admin';

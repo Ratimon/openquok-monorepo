@@ -3,9 +3,9 @@
 		MediaLibraryItemProgrammerModel,
 		SaveMediaInformationProgrammerModel,
 		UploadSimpleProgrammerModel
-	} from '$lib/media';
+	} from '$lib/medias';
 
-	import { publicUrlForMediaStorageKey } from '$lib/media';
+	import { publicUrlForMediaStorageKey } from '$lib/medias';
 	import { icons } from '$data/icon';
 	import { toast } from '$lib/ui/sonner';
 

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { BlogPostFormSchemaType, TopicChoice } from '$lib/blog/blog.types';
+	import type { BlogPostFormSchemaType, TopicChoice } from '$lib/blogs/blog.types';
 	import type { DatabaseName } from '$lib/core/Image.repository.svelte';
 
-	import { blogPostFormSchema } from '$lib/blog/blog.types';
+	import { blogPostFormSchema } from '$lib/blogs/blog.types';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
 	import * as Field from '$lib/ui/field';

@@ -1,6 +1,6 @@
 import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 import type { PostMediaProgrammerModel } from '$lib/posts';
-import type { MediaRepository } from '$lib/media';
+import type { MediaRepository } from '$lib/medias';
 
 import type {
 	DesignTemplateProgrammerModel,

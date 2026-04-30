@@ -1,7 +1,7 @@
 import type {
 	FeedbackRepository,
 	CreateFeedbackProgrammerModel
-} from '$lib/feedback/Feedback.repository.svelte';
+} from '$lib/feedbacks/Feedback.repository.svelte';
 
 export enum FeedbackStatus {
 	UNKNOWN = 'unknown',

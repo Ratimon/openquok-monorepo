@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AdminBlogCommentVm } from '$lib/blog/blog.types';
+	import type { AdminBlogCommentVm } from '$lib/blogs/blog.types';
 
 	import { onMount } from 'svelte';
 	import { toast } from '$lib/ui/sonner';

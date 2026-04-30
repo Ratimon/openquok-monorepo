@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { BlogTopicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
-	import { blogTopicFormSchema } from '$lib/blog/blog.types';
-	import { upsertBlogTopicModalPresenter } from '$lib/blog';
-	import { buildBlogTopicViewModelFromUpsert } from '$lib/blog/utils';
-	import { createSortedTopicChoices } from '$lib/blog/utils/parentPathCreator';
+	import type { BlogTopicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
+	import { blogTopicFormSchema } from '$lib/blogs/blog.types';
+	import { upsertBlogTopicModalPresenter } from '$lib/blogs';
+	import { buildBlogTopicViewModelFromUpsert } from '$lib/blogs/utils';
+	import { createSortedTopicChoices } from '$lib/blogs/utils/parentPathCreator';
 
 	import { icons } from '$data/icon';
 	import { toast } from '$lib/ui/sonner';

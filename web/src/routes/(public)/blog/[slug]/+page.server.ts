@@ -1,9 +1,9 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
-import type { BlogPostCommentProgrammerModel } from '$lib/blog/index';
+import type { BlogPostCommentProgrammerModel } from '$lib/blogs/index';
 
 import { error } from '@sveltejs/kit';
 
-import { buildBlogInlineImageSrc, createBlogPostSEOSchema, guessImageMimeFromFilename } from '$lib/blog/utils';
+import { buildBlogInlineImageSrc, createBlogPostSEOSchema, guessImageMimeFromFilename } from '$lib/blogs/utils';
 import { publicBlogBySlugPagePresenter, publicInformationRepository } from '$lib/area-public/index';
 import { getRootPathPublicBlog, getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { CONFIG_SCHEMA_MARKETING } from '$lib/config/constants/config';

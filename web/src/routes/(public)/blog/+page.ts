@@ -1,8 +1,8 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { BlogPostPublicViewModel } from '$lib/blog/index';
-import type { BlogTopicOverviewPublicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
+import type { BlogPostPublicViewModel } from '$lib/blogs/index';
+import type { BlogTopicOverviewPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 
 import type { PageLoad } from './$types';
 

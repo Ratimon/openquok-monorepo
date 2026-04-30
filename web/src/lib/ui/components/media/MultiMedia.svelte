@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { MediaLibraryItemProgrammerModel } from '$lib/media';
+	import type { MediaLibraryItemProgrammerModel } from '$lib/medias';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 
-	import { publicUrlForMediaStorageKey } from '$lib/media';
+	import { publicUrlForMediaStorageKey } from '$lib/medias';
 	import { mediaItemsToPreviewUrls, uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { icons } from '$data/icon';
 	import { toast } from '$lib/ui/sonner';

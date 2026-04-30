@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BlogPostCommentProgrammerModel, BlogUpsertProgrammerModel } from '$lib/blog/index';
+	import type { BlogPostCommentProgrammerModel, BlogUpsertProgrammerModel } from '$lib/blogs/index';
 
 	import { icons } from '$data/icon';
 

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { MediaLibraryItemProgrammerModel } from '$lib/media';
+	import type { MediaLibraryItemProgrammerModel } from '$lib/medias';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { onDestroy, onMount } from 'svelte';
 
 	import { mediaLibraryMediaModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
-	import { formatBytes, maxMediaUploadShortLabel } from '$lib/media';
-	import { createAccountMediaUppy } from '$lib/media/utils/accountMediaUppy';
+	import { formatBytes, maxMediaUploadShortLabel } from '$lib/medias';
+	import { createAccountMediaUppy } from '$lib/medias/utils/accountMediaUppy';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { toast } from '$lib/ui/sonner';

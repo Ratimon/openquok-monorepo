@@ -13,7 +13,7 @@ import { ProtectedMediaPagePresenter } from '$lib/area-protected/ProtectedMediaP
 import { GenerateMediaModalPresenter } from '$lib/canvas';
 import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
-import { mediaRepository } from '$lib/media';
+import { mediaRepository } from '$lib/medias';
 import { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 import { getScheduledPostsPresenter, postsRepository } from '$lib/posts';
 import { SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
@@ -21,7 +21,7 @@ import { getNotificationPresenter, notificationRepository } from '$lib/notificat
 import { getSignaturesPresenter, signaturesRepository } from '$lib/signatures';
 import { workspaceSettingsPresenter } from '$lib/settings';
 import { authenticationRepository } from '$lib/user-auth/index';
-import { SignaturesPresenter } from '$lib/signatures/Signatures.presenter.svelte';
+import { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte';
 
 const protectedSettingsPagePresenter = new ProtectedSettingsPagePresenter(
 	editorAccountSettingsPresenter,

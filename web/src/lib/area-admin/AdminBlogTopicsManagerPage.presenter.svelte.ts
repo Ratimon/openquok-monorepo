@@ -1,6 +1,6 @@
-import type { BlogRepository } from '$lib/blog/Blog.repository.svelte';
-import type { BlogTopicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
-import { sortTopics } from '$lib/blog/utils/parentPathCreator';
+import type { BlogRepository } from '$lib/blogs/Blog.repository.svelte';
+import type { BlogTopicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
+import { sortTopics } from '$lib/blogs/utils/parentPathCreator';
 
 export class AdminBlogTopicsManagerPagePresenter {
 	public allTopicsToManageVm: BlogTopicViewModel[] = $state([]);

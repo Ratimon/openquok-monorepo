@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BlogTopicOverviewPublicViewModel } from '$lib/blog/GetBlog.presenter.svelte';
+	import type { BlogTopicOverviewPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 	import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { Badge } from '$lib/ui/badge';
 	import { cn } from '$lib/ui/helpers/common';
