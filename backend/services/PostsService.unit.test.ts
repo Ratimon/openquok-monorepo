@@ -945,6 +945,7 @@ describe("PostsService", () => {
             expect(out).toEqual({
                 id: postId,
                 postGroup: row.post_group,
+                organizationId: orgId,
                 publishDateIso: row.publish_date,
                 content: "preview body",
                 media: [],
@@ -971,6 +972,7 @@ describe("PostsService", () => {
             expect(out).toEqual({
                 id: postId,
                 postGroup: row.post_group,
+                organizationId: orgId,
                 publishDateIso: row.publish_date,
                 content: "caption",
                 media: [{ id: "img1", path: "/a.jpg" }],
@@ -989,6 +991,7 @@ describe("PostsService", () => {
             const expected = {
                 id: postId,
                 postGroup: row.post_group,
+                organizationId: orgId,
                 publishDateIso: row.publish_date,
                 content: "x",
                 media: [],

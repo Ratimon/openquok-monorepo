@@ -26,6 +26,7 @@
 		| 'global'
 		| 'workspace'
 		| 'profile'
+		| 'signature'
 		| 'webhooks'
 		| 'templates'
 		| 'developers'
@@ -73,6 +74,7 @@
 		{ id: 'global', label: 'Global Settings' },
 		{ id: 'workspace', label: 'Workspace' },
 		{ id: 'profile', label: 'Profile' },
+		{ id: 'signature', label: 'Signatures' },
 		{ id: 'webhooks', label: 'Webhooks' },
 		{ id: 'templates', label: 'Templates' },
 		{ id: 'developers', label: 'Developers' },

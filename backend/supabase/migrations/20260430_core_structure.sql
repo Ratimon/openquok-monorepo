@@ -629,6 +629,35 @@ COMMENT ON COLUMN public.notifications.content IS 'Short message body shown in t
 COMMENT ON COLUMN public.notifications.link IS 'Optional deep link or URL related to the notification';
 
 
+-- Module: signature, File: 101_20260430_tables.sql
+-- ---------------------------
+-- MODULE NAME: signature
+-- MODULE DATE: 20260430
+-- MODULE SCOPE: Tables
+-- ---------------------------
+-- Workspace-scoped signatures.
+
+
+
+CREATE TABLE IF NOT EXISTS public.signatures (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.signatures IS 'Workspace-scoped signatures/snippets for the composer (FK organizations.id).';
+COMMENT ON COLUMN public.signatures.organization_id IS 'Owning workspace/organization.';
+COMMENT ON COLUMN public.signatures.is_default IS 'When true, default signature for this organization.';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: user-management, File: 200_20260227_indexes.sql
 -- ---------------------------
 -- MODULE NAME: User Management
@@ -871,6 +900,27 @@ CREATE INDEX IF NOT EXISTS idx_notifications_organization_id ON public.notificat
 CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(created_at);
 CREATE INDEX IF NOT EXISTS idx_notifications_deleted_at ON public.notifications(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_users_last_read_notifications ON public.users(last_read_notifications);
+
+
+-- Module: signature, File: 201_20260430_indexes.sql
+-- ---------------------------
+-- MODULE NAME: signature
+-- MODULE DATE: 20260430
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+
+
+CREATE INDEX IF NOT EXISTS idx_signatures_organization_id ON public.signatures(organization_id);
+
+-- One default signature per organization.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_signatures_organization_default
+    ON public.signatures(organization_id)
+    WHERE is_default = TRUE;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
 
 -- Module: user-management, File: 300_20260227_rlsgrants.sql
@@ -2594,6 +2644,99 @@ USING (
           AND uo.disabled = FALSE
     )
 );
+
+
+-- Module: signature, File: 301_20260430_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: signature
+-- MODULE DATE: 20260430
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- Same membership pattern as post_tags / posts (organization_id scope).
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.signatures TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.signatures TO service_role;
+
+ALTER TABLE public.signatures ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Members can view signatures" ON public.signatures;
+CREATE POLICY "Members can view signatures"
+ON public.signatures
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = signatures.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert signatures" ON public.signatures;
+CREATE POLICY "Members can insert signatures"
+ON public.signatures
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = signatures.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update signatures" ON public.signatures;
+CREATE POLICY "Members can update signatures"
+ON public.signatures
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = signatures.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = signatures.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete signatures" ON public.signatures;
+CREATE POLICY "Members can delete signatures"
+ON public.signatures
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = signatures.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
 
 -- Module: user-management, File: 400_20260227_functions.sql

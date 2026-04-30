@@ -11,6 +11,7 @@ import {
     notificationRepository,
     postsRepository,
     mediaRepository,
+    signatureRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -30,6 +31,7 @@ import { NotificationService } from "./NotificationService";
 import { TransactionalNotificationEmailService } from "./TransactionalNotificationEmailService";
 import { PostsService } from "./PostsService";
 import { MediaService } from "./MediaService";
+import { SignatureService } from "./SignatureService";
 
 import { config } from "../config/GlobalConfig";
 
@@ -119,6 +121,12 @@ export const postsService = new PostsService(
     cacheInvalidationServiceConnection
 );
 export const mediaService = new MediaService(mediaRepository);
+export const signatureService = new SignatureService(
+    signatureRepository,
+    integrationConnectionService,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
+);
 export { AuthenticationService } from "./AuthenticationService";
 export { UserService } from "./UserService";
 export { EmailService } from "./EmailService";
@@ -136,3 +144,4 @@ export { NotificationService } from "./NotificationService";
 export { TransactionalNotificationEmailService, type SendPlainJobPayload } from "./TransactionalNotificationEmailService";
 export { PostsService } from "./PostsService";
 export { MediaService } from "./MediaService";
+export { SignatureService } from "./SignatureService";

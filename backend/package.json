@@ -50,6 +50,7 @@
     "test:e2e:auth:normal": "cross-env NODE_ENV=development jest tests/e2e/auth.normal.e2e.test.ts --runInBand --verbose --no-coverage",
     "test:e2e:auth:google": "cross-env NODE_ENV=development jest tests/e2e/auth.google.e2e.test.ts --runInBand --verbose --no-coverage",
     "test:e2e:schedule-post": "cross-env NODE_ENV=development jest tests/e2e/schedule.post.e2e.test.ts --runInBand --verbose --no-coverage",
+    "test:e2e:signature": "cross-env NODE_ENV=development jest tests/e2e/signature.e2e.test.ts --runInBand --verbose --no-coverage",
     "test:e2e:user:setting": "cross-env NODE_ENV=development jest tests/e2e --runInBand --testPathPattern=user.setting.e2e --verbose --no-coverage",
     "test:e2e:resend": "cross-env NODE_ENV=development jest tests/e2e/auth.e2e.test.ts --runInBand --testNamePattern=\"Resend verification email\"",
     "lint": "eslint .",

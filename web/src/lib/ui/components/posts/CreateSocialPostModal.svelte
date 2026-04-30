@@ -123,6 +123,7 @@
 					bind:body={presenter.editorBody}
 					bind:postMediaItems={presenter.postMediaItems}
 					uploadUid={uploadUid}
+					organizationId={workspaceId}
 					busy={presenter.busy}
 					selectedIds={presenter.selectedIds}
 					mode={presenter.mode}

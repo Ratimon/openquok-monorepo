@@ -57,6 +57,7 @@ export type IconName =
     | "Github"
     | "Globe"
     | "Google"
+    | "Hash"
     | "Heading1"
     | "Heading2"
     | "Heading3"
@@ -106,6 +107,7 @@ export type IconName =
     | "Oceania"
     | "Save"
     | "Share2"
+    | "Signature"
     | "Search"
     | "Settings"
     | "Send"
@@ -489,6 +491,11 @@ export const icons: Record<IconName, IconEntry> = {
       <path fill="none" d="M0 0h48v48H0z"></path>
     </svg>`
     },
+    Hash: {
+        name: "Hash",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hash-icon lucide-hash"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>`
+    },
     Heading1: {
         name: "Heading1",
         box: 24,
@@ -763,6 +770,11 @@ export const icons: Record<IconName, IconEntry> = {
         name: "Share2",
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2-icon lucide-share-2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>`
+    },
+    Signature: {
+        name: "Signature",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-signature-icon lucide-signature"><path d="m21 17-2.156-1.868A.5.5 0 0 0 18 15.5v.5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1c0-2.545-3.991-3.97-8.5-4a1 1 0 0 0 0 5c4.153 0 4.745-11.295 5.708-13.5a2.5 2.5 0 1 1 3.31 3.284"/><path d="M3 21h18"/></svg>`
     },
     Search: {
         name: "Search",

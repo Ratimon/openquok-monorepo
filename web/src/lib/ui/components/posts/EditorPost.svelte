@@ -40,6 +40,8 @@
 		postMediaItems?: PostMediaProgrammerModel[];
 		/** Auth uid for multipart upload field; storage path uses JWT on the server. */
 		uploadUid?: string;
+		/** Current workspace for org-scoped signatures in the toolbar. */
+		organizationId?: string | null;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
 		/** Provider `comments` mode: `true` or `'no-media'` (single attachment only). */
@@ -66,6 +68,7 @@
 		confirmBannerRightAction = false,
 		postMediaItems = $bindable<PostMediaProgrammerModel[]>([]),
 		uploadUid = '',
+		organizationId = null,
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
 		commentsMode = true,
@@ -163,9 +166,15 @@
 					bind:items={postMediaItems}
 					disabled={busy}
 					{uploadUid}
+					{organizationId}
 					{composerMode}
 					{focusedProviderIdentifier}
 					{commentsMode}
+					onInsertSignature={(sig) => {
+						const base = body ?? '';
+						const suffix = base.trim().length === 0 ? sig : `\n\n${sig}`;
+						body = `${base}${suffix}`;
+					}}
 				/>
 			</div>
 		{/if}

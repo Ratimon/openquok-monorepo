@@ -16,6 +16,7 @@ import { publicApiRouter } from "./publicApi/index.js";
 import { notificationRouter } from "./NotificationRoute.js";
 import { postRouter } from "./PostRoutes.js";
 import { thirdPartyRouter } from "./ThirdPartyRoute.js";
+import { signatureRouter } from "./SignatureRoute.js";
 import { registerBullBoardRoutes, registerBullBoardSessionRoutes } from "./BullBoardRoute.js";
 import { logger } from "../utils/Logger";
 
@@ -53,6 +54,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     apiRouter.use("/notifications", notificationRouter);
     apiRouter.use("/posts", postRouter);
     apiRouter.use("/third-parties", thirdPartyRouter);
+    apiRouter.use("/signatures", signatureRouter);
     app.use(prefix, apiRouter);
 
     logger.info({
@@ -73,6 +75,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
         notifications: `${prefix}/notifications`,
         posts: `${prefix}/posts`,
         thirdParties: `${prefix}/third-parties`,
+        signatures: `${prefix}/signatures`,
     });
     return true;
 }

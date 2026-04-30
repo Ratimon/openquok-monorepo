@@ -59,6 +59,7 @@
 		onProviderSettingsChange: (value: Record<string, unknown>) => void;
 		postMediaItems?: PostMediaProgrammerModel[];
 		uploadUid?: string;
+		organizationId?: string | null;
 		mediaUrls?: string[];
 		commentsMode?: LaunchProviderCommentsMode;
 		scheduleValidationMessage?: string | null;
@@ -99,6 +100,7 @@
 		onProviderSettingsChange,
 		postMediaItems = $bindable([]),
 		uploadUid = '',
+		organizationId = null,
 		mediaUrls = [],
 		commentsMode = true,
 		scheduleValidationMessage = null
@@ -154,6 +156,7 @@
 				bind:body
 				bind:postMediaItems
 				{uploadUid}
+				organizationId={organizationId}
 				{busy}
 				{charCount}
 				{softCharLimit}

@@ -14,6 +14,7 @@ import { PublicIntegrationController } from "./PublicIntegrationController";
 import { NotificationController } from "./NotificationController";
 import { PostsController } from "./PostsController";
 import { ThirdPartyController } from "./ThirdPartyController";
+import { SignatureController } from "./SignatureController";
 import {
     authenticationService,
     emailService,
@@ -30,6 +31,7 @@ import {
     notificationService,
     postsService,
     mediaService,
+    signatureService,
 } from "../services/index";
 import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
 import { UploadFactory } from "../connections/upload/upload.factory";
@@ -62,3 +64,4 @@ export const publicIntegrationController = new PublicIntegrationController(integ
 export const notificationController = new NotificationController(notificationService);
 export const postsController = new PostsController(postsService);
 export const thirdPartyController = new ThirdPartyController();
+export const signatureController = new SignatureController(signatureService);

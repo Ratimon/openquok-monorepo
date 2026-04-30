@@ -14,6 +14,7 @@ import { StorageSupabaseRepository } from "./StorageSupabaseRepository";
 import { IntegrationRepository } from "./IntegrationRepository";
 import { NotificationRepository } from "./NotificationRepository";
 import { PostsRepository } from "./PostsRepository";
+import { SignatureRepository } from "./SignatureRepository";
 
 export const refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
 export const userRepository = new UserRepository(supabaseServiceClientConnection);
@@ -47,6 +48,7 @@ export const storageSupabaseRepository = new StorageSupabaseRepository(supabaseS
 export const integrationRepository = new IntegrationRepository(supabaseServiceClientConnection);
 export const notificationRepository = new NotificationRepository(supabaseServiceClientConnection);
 export const postsRepository = new PostsRepository(supabaseServiceClientConnection);
+export const signatureRepository = new SignatureRepository(supabaseServiceClientConnection);
 
 export { RefreshTokenRepository } from "./RefreshTokenRepository";
 export { UserRepository } from "./UserRepository";
@@ -68,3 +70,4 @@ export { DATABASE_NAMES, type DatabaseName, isAllowedDatabaseName } from "./Stor
 export { IntegrationRepository } from "./IntegrationRepository";
 export { NotificationRepository } from "./NotificationRepository";
 export { PostsRepository } from "./PostsRepository";
+export { SignatureRepository } from "./SignatureRepository";
