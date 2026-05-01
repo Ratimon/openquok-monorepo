@@ -10,7 +10,7 @@ import { generateRandomVerificationToken } from "../utils/getVerificationTokenSt
 import {
     createPublishScheduledGroupHandler,
     type ScheduledPostsRepository,
-} from "openquok-orchestrator/activities/scheduledSocialPostExecution.js";
+} from "openquok-orchestrator/activities/scheduledSocialPostActivities.js";
 import { IntegrationManager } from "../../integrations/integrationManager.js";
 import { integrationRepository, postsRepository } from "../../repositories/index.js";
 import type { RefreshIntegrationService } from "../../services/RefreshIntegrationService.js";

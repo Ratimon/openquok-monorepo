@@ -12,7 +12,7 @@ import {
     postsRepository,
     userRepository,
 } from "backend/repositories/index.js";
-import { createPublishScheduledGroupHandler, type ScheduledPostsRepository } from "../activities/scheduledSocialPostExecution.js";
+import { createPublishScheduledGroupHandler, type ScheduledPostsRepository } from "../activities/scheduledSocialPostActivities.js";
 import { IntegrationManager } from "backend/integrations/integrationManager.js";
 import { EmailService } from "backend/services/EmailService.js";
 import { NotificationService } from "backend/services/NotificationService.js";

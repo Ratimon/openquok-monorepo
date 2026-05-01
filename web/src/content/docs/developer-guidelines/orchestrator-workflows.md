@@ -30,7 +30,7 @@ import { Badge, Callout, DocsExternalLink } from '$lib/ui/components/docs/mdx/in
 ### Scheduled social posts (calendar)
 
 - Enqueue and in-process / BullMQ entry: <code>orchestrator/flows/scheduledSocialPostWorkflow.ts</code> (blueprint <code>scheduled-social-post</code>, one publish pass per org/post group)
-- Node implementation: <code>orchestrator/nodes/scheduledSocialPostNodes.ts</code>; publish path: <code>orchestrator/activities/scheduledSocialPostExecution.ts</code>
+- Node implementation: <code>orchestrator/nodes/scheduledSocialPostNodes.ts</code>; publish path: <code>orchestrator/activities/scheduledSocialPostActivities.ts</code>
 - If the worker is down, optional **rescan** re-lists <code>QUEUE</code> posts that should have published and re-enqueues: <code>orchestrator/flows/missingScheduledPostReconciliation.ts</code> (interval from <code>orchestratorFlows.scheduledSocialPost.missingPostRescanIntervalMs</code>)
 
 ### Shared

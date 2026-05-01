@@ -4,7 +4,6 @@
 	import type { RepeatIntervalKey } from '$lib/posts';
 
 	import { untrack } from 'svelte';
-	import { toast } from '$lib/ui/sonner';
 
 	import { icons } from '$data/icon';
 	import * as Dialog from '$lib/ui/dialog';
