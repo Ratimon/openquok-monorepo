@@ -20,6 +20,8 @@ export interface CalendarPostRowViewModel {
 	organizationId: string;
 	integrationId: string | null;
 	content: string;
+	intervalInDays?: number | null;
+	repeatInterval?: string | null;
 	error?: string | null;
 }
 

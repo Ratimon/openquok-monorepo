@@ -17,7 +17,7 @@
 
 	let open = $state(false);
 
-	const KNOWN_STATES = ['QUEUE', 'DRAFT', 'PUBLISHED', 'ERROR'] as const;
+	const KNOWN_STATES = ['QUEUE', 'DRAFT', 'PUBLISHED', 'ERROR', 'REPEATING'] as const;
 
 	const normalizedSelected = $derived.by(() =>
 		selectedPostStates

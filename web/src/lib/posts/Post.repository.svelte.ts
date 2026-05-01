@@ -68,6 +68,10 @@ export type PostRowProgrammerModel = {
 	organizationId: string;
 	integrationId: string | null;
 	content: string;
+	/** Repeat cadence in days when applicable (`posts.interval_in_days`). */
+	intervalInDays?: number | null;
+	/** Composer repeat key when applicable (`posts.settings.repeatInterval`). */
+	repeatInterval?: RepeatIntervalKey | null;
 	error?: string | null;
 };
 

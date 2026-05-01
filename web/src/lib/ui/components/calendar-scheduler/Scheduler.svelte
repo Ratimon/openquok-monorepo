@@ -181,7 +181,6 @@
 </script>
 
 <div class="space-y-3">
-
 	<CalendarFilters
 		granularity={scheduledPostsVm.granularity}
 		layoutMode={scheduledPostsVm.layoutMode}

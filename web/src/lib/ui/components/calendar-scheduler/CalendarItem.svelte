@@ -133,27 +133,29 @@
 
 	{#if variant === 'monthGrid'}
 		<div class="flex h-full min-h-0 items-center gap-2 bg-primary px-2 text-[11px] text-primary-content">
-			<div class="relative h-4 w-4 shrink-0">
-				{#if ev.channel?.picture}
-					<img src={ev.channel.picture} alt="" class="h-4 w-4 rounded object-cover" />
-				{:else}
-					<div class="h-4 w-4 rounded bg-primary-content/20"></div>
-				{/if}
+			<div class="flex shrink-0 items-center gap-1">
+				<div class="relative h-4 w-4 shrink-0">
+					{#if ev.channel?.picture}
+						<img src={ev.channel.picture} alt="" class="h-4 w-4 rounded object-cover" />
+					{:else}
+						<div class="h-4 w-4 rounded bg-primary-content/20"></div>
+					{/if}
+					{#if providerBadgeIcon}
+						<span
+							class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[10px] items-center justify-center rounded-full border border-primary/30 bg-base-100"
+							aria-hidden="true"
+						>
+							<AbstractIcon name={socialProviderIcon(providerBadgeIcon)} class="size-2" width="8" height="8" />
+						</span>
+					{/if}
+				</div>
 				{#if isRepeating}
 					<span
-						class="absolute -left-1 -top-1 z-[2] flex size-[12px] items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
+						class="z-[2] flex size-[12px] shrink-0 items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
 						title={repeatLabel}
 						aria-label={repeatLabel}
 					>
 						<AbstractIcon name={icons.RefreshCw.name} class="size-2.5" width="10" height="10" />
-					</span>
-				{/if}
-				{#if providerBadgeIcon}
-					<span
-						class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[10px] items-center justify-center rounded-full border border-primary/30 bg-base-100"
-						aria-hidden="true"
-					>
-						<AbstractIcon name={socialProviderIcon(providerBadgeIcon)} class="size-2" width="8" height="8" />
 					</span>
 				{/if}
 			</div>
@@ -167,23 +169,25 @@
 	{:else}
 		<div class="oq-calendar-item__top flex h-6 min-h-6 items-center justify-between gap-2 bg-primary px-2 text-[11px] text-primary-content">
 			{#if multiPosts}
-				<div class="relative h-4 w-8 shrink-0">
-					{#each previewPictures as pic, i (i)}
-						<img
-							src={pic}
-							alt=""
-							class="absolute top-0 h-4 w-4 rounded object-cover ring-1 ring-primary"
-							style={`left:${i * 6}px`}
-						/>
-					{/each}
-					{#if previewPictures.length === 0}
-						<div class="absolute left-0 top-0 flex h-4 w-4 items-center justify-center rounded bg-primary-content/20 text-[9px] font-semibold text-primary-content/90">
-							{(previewChannelName || 'CH').slice(0, 1).toUpperCase()}
-						</div>
-					{/if}
+				<div class="flex shrink-0 items-center gap-1">
+					<div class="relative h-4 w-8 shrink-0">
+						{#each previewPictures as pic, i (i)}
+							<img
+								src={pic}
+								alt=""
+								class="absolute top-0 h-4 w-4 rounded object-cover ring-1 ring-primary"
+								style={`left:${i * 6}px`}
+							/>
+						{/each}
+						{#if previewPictures.length === 0}
+							<div class="absolute left-0 top-0 flex h-4 w-4 items-center justify-center rounded bg-primary-content/20 text-[9px] font-semibold text-primary-content/90">
+								{(previewChannelName || 'CH').slice(0, 1).toUpperCase()}
+							</div>
+						{/if}
+					</div>
 					{#if isRepeating}
 						<span
-							class="absolute -left-1 -top-1 z-[2] flex size-[12px] items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
+							class="z-[2] flex size-[12px] shrink-0 items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
 							title={repeatLabel}
 							aria-label={repeatLabel}
 						>
@@ -192,15 +196,17 @@
 					{/if}
 				</div>
 			{:else}
-				<div class="relative h-4 w-4 shrink-0">
-					{#if ev.channel?.picture}
-						<img src={ev.channel.picture} alt="" class="h-4 w-4 rounded object-cover" />
-					{:else}
-						<div class="h-4 w-4 rounded bg-primary-content/20"></div>
-					{/if}
+				<div class="flex shrink-0 items-center gap-1">
+					<div class="relative h-4 w-4 shrink-0">
+						{#if ev.channel?.picture}
+							<img src={ev.channel.picture} alt="" class="h-4 w-4 rounded object-cover" />
+						{:else}
+							<div class="h-4 w-4 rounded bg-primary-content/20"></div>
+						{/if}
+					</div>
 					{#if isRepeating}
 						<span
-							class="absolute -left-1 -top-1 z-[2] flex size-[12px] items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
+							class="z-[2] flex size-[12px] shrink-0 items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
 							title={repeatLabel}
 							aria-label={repeatLabel}
 						>
