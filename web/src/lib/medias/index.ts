@@ -1,5 +1,6 @@
 import type { MediaConfig } from './Media.repository.svelte';
 import { httpGateway } from '$lib/core/index';
+import { GetMediaPresenter } from './GetMedia.presenter.svelte';
 import { MediaRepository } from './Media.repository.svelte';
 
 const mediaConfig: MediaConfig = {
@@ -14,7 +15,18 @@ const mediaConfig: MediaConfig = {
 
 export const mediaRepository = new MediaRepository(httpGateway, mediaConfig);
 
+/** PM → VM for media reads; list loads call {@link MediaRepository} then map to VMs. */
+export const getMediaPresenter = new GetMediaPresenter(mediaRepository);
+
 export { MAX_MEDIA_UPLOAD_BYTES, MediaRepository } from './Media.repository.svelte';
+export type {
+	MediaDeleteViewModel,
+	MediaLibraryItemViewModel,
+	MediaListViewModel,
+	SaveMediaInformationViewModel,
+	UploadSimpleViewModel
+} from './GetMedia.presenter.svelte';
+export { GetMediaPresenter } from './GetMedia.presenter.svelte';
 export { maxMediaUploadShortLabel } from 'openquok-common';
 export {
 	resolveMediaLibraryUploadMode,

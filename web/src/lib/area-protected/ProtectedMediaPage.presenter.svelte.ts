@@ -1,48 +1,54 @@
-import type { MediaRepository } from '$lib/medias/Media.repository.svelte';
 import type {
-	MediaDeleteProgrammerModel,
-	MediaLibraryItemProgrammerModel,
-	MediaListProgrammerModel,
-	SaveMediaInformationProgrammerModel,
-	UploadSimpleProgrammerModel
-} from '$lib/medias/Media.repository.svelte';
+	GetMediaPresenter,
+	MediaDeleteViewModel,
+	MediaLibraryItemViewModel,
+	SaveMediaInformationViewModel,
+	UploadSimpleViewModel
+} from '$lib/medias/GetMedia.presenter.svelte';
+import type { MediaRepository } from '$lib/medias/Media.repository.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import { createRemotePagination } from '$lib/ui/helpers/createRemotePagination.svelte';
 
 const DEFAULT_PAGE_SIZE = 24;
 
+/** Intersect with `protectedMediaPagePresenter` in routes when IDE TS omits `$state` fields on `.svelte.ts` presenters. */
+export interface ProtectedMediaPagePresenterMediaSettingsVmPublic {
+	settingsMediaVm: MediaLibraryItemViewModel | null;
+}
+
 /**
- * Account media library: paginated list, settings modal, and mutations delegated to {@link MediaRepository}.
+ * Account media library: list reads via {@link GetMediaPresenter}; mutations via {@link MediaRepository}.
  */
 export class ProtectedMediaPagePresenter {
 	readonly pagination = createRemotePagination({ initialItemsPerPage: DEFAULT_PAGE_SIZE });
 
-	items = $state<MediaLibraryItemProgrammerModel[]>([]);
+	mediaItemsVm = $state<MediaLibraryItemViewModel[]>([]);
 	loading = $state(true);
 	totalPages = $state(1);
 	totalItems = $state(0);
 	dragOver = $state(false);
 	settingsOpen = $state(false);
-	settingsItem = $state<MediaLibraryItemProgrammerModel | null>(null);
+	settingsMediaVm = $state<MediaLibraryItemViewModel | null>(null);
 
 	private lastLoadedOrganizationId = $state('');
 
 	constructor(
 		private readonly mediaRepository: MediaRepository,
-		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter
+		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
+		private readonly getMediaPresenter: GetMediaPresenter
 	) {}
 
 	get organizationId(): string {
 		return this.workspaceSettingsPresenter.currentWorkspaceId ?? '';
 	}
 
-	openMediaSettings(entry: MediaLibraryItemProgrammerModel): void {
-		this.settingsItem = entry;
+	openMediaSettings(mediaVm: MediaLibraryItemViewModel): void {
+		this.settingsMediaVm = mediaVm;
 		this.settingsOpen = true;
 	}
 
-	clearSettingsItem(): void {
-		this.settingsItem = null;
+	clearSettingsMediaVm(): void {
+		this.settingsMediaVm = null;
 	}
 
 	/**
@@ -65,21 +71,21 @@ export class ProtectedMediaPagePresenter {
 		try {
 			const organizationId = this.organizationId;
 			if (!organizationId) {
-				this.items = [];
+				this.mediaItemsVm = [];
 				this.totalItems = 0;
 				this.totalPages = 1;
 				this.pagination.currentPage = 1;
 				return;
 			}
-			const result: MediaListProgrammerModel = await this.mediaRepository.listMedia(
+			const listVm = await this.getMediaPresenter.loadMediaLibraryListVm(
 				organizationId,
 				page,
 				this.pagination.itemsPerPage
 			);
-			this.items = result.results;
-			this.totalItems = result.total;
-			this.totalPages = Math.max(result.pages, 1);
-			this.pagination.currentPage = result.page;
+			this.mediaItemsVm = listVm.results;
+			this.totalItems = listVm.total;
+			this.totalPages = Math.max(listVm.pages, 1);
+			this.pagination.currentPage = listVm.page;
 		} finally {
 			this.loading = false;
 		}
@@ -115,29 +121,31 @@ export class ProtectedMediaPagePresenter {
 		this.reloadFromFirstPage();
 	}
 
-	async deleteLibraryItem(item: MediaLibraryItemProgrammerModel): Promise<MediaDeleteProgrammerModel> {
+	async deleteLibraryItem(mediaVm: MediaLibraryItemViewModel): Promise<MediaDeleteViewModel> {
 		const organizationId = this.organizationId;
 		if (!organizationId) {
-			return { success: false, message: 'Select a workspace first.' };
+			return this.getMediaPresenter.toMediaDeleteVm({ success: false, message: 'Select a workspace first.' });
 		}
-		return this.mediaRepository.deleteMedia({ organizationId, id: item.id, path: item.path });
+		const pm = await this.mediaRepository.deleteMedia({ organizationId, id: mediaVm.id, path: mediaVm.path });
+		return this.getMediaPresenter.toMediaDeleteVm(pm);
 	}
 
 	async uploadMediaSimple(params: {
 		file: Blob;
 		filename: string;
 		preventSave: boolean;
-	}): Promise<UploadSimpleProgrammerModel> {
+	}): Promise<UploadSimpleViewModel> {
 		const organizationId = this.organizationId;
 		if (!organizationId) {
-			return { success: false, message: 'Select a workspace first.' };
+			return this.getMediaPresenter.toUploadSimpleVm({ success: false, message: 'Select a workspace first.' });
 		}
-		return this.mediaRepository.uploadMediaSimple({
+		const pm = await this.mediaRepository.uploadMediaSimple({
 			organizationId,
 			file: params.file,
 			filename: params.filename,
 			preventSave: params.preventSave
 		});
+		return this.getMediaPresenter.toUploadSimpleVm(pm);
 	}
 
 	async saveMediaInformation(params: {
@@ -145,17 +153,30 @@ export class ProtectedMediaPagePresenter {
 		alt: string | null;
 		thumbnail: string | null;
 		thumbnailTimestamp: number | null;
-	}): Promise<SaveMediaInformationProgrammerModel> {
+	}): Promise<SaveMediaInformationViewModel> {
 		const organizationId = this.organizationId;
 		if (!organizationId) {
-			return { success: false, message: 'Select a workspace first.' };
+			return this.getMediaPresenter.toSaveMediaInformationVm({
+				success: false,
+				message: 'Select a workspace first.'
+			});
 		}
-		return this.mediaRepository.saveMediaInformation({
+		const pm = await this.mediaRepository.saveMediaInformation({
 			organizationId,
 			id: params.id,
 			alt: params.alt,
 			thumbnail: params.thumbnail,
 			thumbnailTimestamp: params.thumbnailTimestamp
 		});
+		return this.getMediaPresenter.toSaveMediaInformationVm(pm);
 	}
 }
+
+/** Media library UI boundary types (repository PM → VM via {@link GetMediaPresenter}). */
+export type {
+	MediaDeleteViewModel,
+	MediaLibraryItemViewModel,
+	MediaListViewModel,
+	SaveMediaInformationViewModel,
+	UploadSimpleViewModel
+} from '$lib/medias/GetMedia.presenter.svelte';

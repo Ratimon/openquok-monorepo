@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type {
-		MediaLibraryItemProgrammerModel,
-		SaveMediaInformationProgrammerModel,
-		UploadSimpleProgrammerModel
-	} from '$lib/medias';
+		MediaLibraryItemViewModel,
+		SaveMediaInformationViewModel,
+		UploadSimpleViewModel
+	} from '$lib/medias/GetMedia.presenter.svelte';
 
 	import { publicUrlForMediaStorageKey } from '$lib/medias';
 	import { icons } from '$data/icon';
@@ -15,7 +15,7 @@
 
 	type Props = {
 		open?: boolean;
-		item: MediaLibraryItemProgrammerModel | null;
+		mediaVm: MediaLibraryItemViewModel | null;
 		organizationId: string;
 		onSaved?: () => void;
 		onClose?: () => void;
@@ -23,18 +23,18 @@
 			file: Blob;
 			filename: string;
 			preventSave: boolean;
-		}) => Promise<UploadSimpleProgrammerModel>;
+		}) => Promise<UploadSimpleViewModel>;
 		saveInformation: (params: {
 			id: string;
 			alt: string | null;
 			thumbnail: string | null;
 			thumbnailTimestamp: number | null;
-		}) => Promise<SaveMediaInformationProgrammerModel>;
+		}) => Promise<SaveMediaInformationViewModel>;
 	};
 
 	let {
 		open = $bindable(false),
-		item,
+		mediaVm,
 		organizationId,
 		onSaved,
 		onClose,
@@ -63,7 +63,7 @@
 	let currentTimeSec = $state(0);
 	let videoReady = $state(false);
 
-	const isVideo = $derived(item?.kind === 'video');
+	const isVideo = $derived(mediaVm?.kind === 'video');
 
 	/** Cross-origin public video (e.g. R2) must use CORS mode or `canvas.drawImage` leaves the canvas tainted and `toBlob` throws. */
 	const videoCrossOriginForCapture = $derived.by((): 'anonymous' | undefined => {
@@ -89,8 +89,8 @@
 		if (newThumbnailPath && key === newThumbnailPath && newThumbnailPublicUrl?.trim()) {
 			return newThumbnailPublicUrl;
 		}
-		if (item?.thumbnail && key === item.thumbnail && item.thumbnailPublicUrl?.trim()) {
-			return item.thumbnailPublicUrl;
+		if (mediaVm?.thumbnail && key === mediaVm.thumbnail && mediaVm.thumbnailPublicUrl?.trim()) {
+			return mediaVm.thumbnailPublicUrl;
 		}
 		return thumbSourceHref(key);
 	}
@@ -101,10 +101,10 @@
 			thumbnailEditorOpen = false;
 			return;
 		}
-		if (!item) return;
-		if (item.id !== initializedForId) {
-			initializedForId = item.id;
-			altText = item.alt ?? '';
+		if (!mediaVm) return;
+		if (mediaVm.id !== initializedForId) {
+			initializedForId = mediaVm.id;
+			altText = mediaVm.alt ?? '';
 			newThumbnailPath = null;
 			newThumbnailPublicUrl = null;
 			newThumbnailTimestamp = null;
@@ -114,7 +114,7 @@
 	});
 
 	$effect(() => {
-		if (!open || !item || !isVideo || !thumbnailEditorOpen) {
+		if (!open || !mediaVm || !isVideo || !thumbnailEditorOpen) {
 			videoPreviewUrl = '';
 			durationSec = 0;
 			currentTimeSec = 0;
@@ -122,15 +122,17 @@
 			return;
 		}
 
-		videoPreviewUrl = item.publicUrl?.trim() ? item.publicUrl : publicUrlForMediaStorageKey(item.path);
+		videoPreviewUrl = mediaVm.publicUrl?.trim()
+			? mediaVm.publicUrl
+			: publicUrlForMediaStorageKey(mediaVm.path);
 	});
 
 	$effect(() => {
-		if (!open || !item) {
+		if (!open || !mediaVm) {
 			thumbPreviewUrl = '';
 			return;
 		}
-		const key = thumbnailExplicitlyCleared ? null : (newThumbnailPath ?? item.thumbnail ?? null);
+		const key = thumbnailExplicitlyCleared ? null : (newThumbnailPath ?? mediaVm.thumbnail ?? null);
 		if (!key) {
 			thumbPreviewUrl = '';
 			return;
@@ -168,7 +170,7 @@
 	async function captureFrame(): Promise<void> {
 		const v = videoEl;
 		const c = canvasEl;
-		if (!v || !c || !item || !organizationId) {
+		if (!v || !c || !mediaVm || !organizationId) {
 			toast.error('Video is not ready yet.');
 			return;
 		}
@@ -238,28 +240,28 @@
 	}
 
 	async function save(): Promise<void> {
-		if (!item || !organizationId) return;
+		if (!mediaVm || !organizationId) return;
 		saving = true;
 		try {
 			let thumbOut: string | null;
 			let tsOut: number | null;
 			if (!isVideo) {
-				thumbOut = item.thumbnail ?? null;
+				thumbOut = mediaVm.thumbnail ?? null;
 				tsOut = null;
 			} else if (thumbnailExplicitlyCleared && !newThumbnailPath) {
 				thumbOut = null;
 				tsOut = null;
 			} else {
-				thumbOut = newThumbnailPath ?? item.thumbnail ?? null;
+				thumbOut = newThumbnailPath ?? mediaVm.thumbnail ?? null;
 				tsOut =
 					thumbOut === null
 						? null
 						: newThumbnailTimestamp !== null
 							? newThumbnailTimestamp
-							: (item.thumbnailTimestamp ?? null);
+							: (mediaVm.thumbnailTimestamp ?? null);
 			}
 			const result = await saveInformation({
-				id: item.id,
+				id: mediaVm.id,
 				alt: altText.trim() || null,
 				thumbnail: thumbOut,
 				thumbnailTimestamp: tsOut
@@ -291,7 +293,7 @@
 	}}
 >
 	<Dialog.Content class="max-h-[min(90vh,720px)] w-[min(96vw,32rem)] max-w-[min(96vw,32rem)] overflow-y-auto">
-		{#if item}
+		{#if mediaVm}
 			<Dialog.Header>
 				<Dialog.Title class="flex items-center gap-2">
 					<AbstractIcon name={icons.Settings.name} class="size-5" width="20" height="20" />
@@ -304,9 +306,9 @@
 
 			<div class="mt-4 flex flex-col gap-4">
 				<div class="flex flex-col gap-1.5">
-					<label class="text-sm font-medium text-base-content" for="media-alt-{item.id}">Alt text</label>
+					<label class="text-sm font-medium text-base-content" for="media-alt-{mediaVm.id}">Alt text</label>
 					<input
-						id="media-alt-{item.id}"
+						id="media-alt-{mediaVm.id}"
 						type="text"
 						class="border-base-300 bg-base-100 focus:ring-primary/30 rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
 						placeholder="Describe this asset for screen readers"
@@ -340,11 +342,11 @@
 							<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
 								<Button type="button" variant="secondary" disabled={saving} onclick={openThumbnailEditor}>
 									<AbstractIcon name={icons.Image.name} class="size-4" width="16" height="16" />
-									{(newThumbnailPath || item.thumbnail) && !thumbnailExplicitlyCleared
+									{(newThumbnailPath || mediaVm.thumbnail) && !thumbnailExplicitlyCleared
 										? 'Edit thumbnail'
 										: 'Create thumbnail'}
 								</Button>
-								{#if (newThumbnailPath || item.thumbnail) && !thumbnailExplicitlyCleared}
+								{#if (newThumbnailPath || mediaVm.thumbnail) && !thumbnailExplicitlyCleared}
 									<Button type="button" variant="red" disabled={saving} onclick={clearThumbnail}>
 										Clear thumbnail
 									</Button>
@@ -382,11 +384,11 @@
 								<canvas bind:this={canvasEl} class="hidden"></canvas>
 
 								{#if videoReady && durationSec > 0}
-									<label class="text-xs text-base-content/70" for="media-thumb-scrub-{item.id}">
+									<label class="text-xs text-base-content/70" for="media-thumb-scrub-{mediaVm.id}">
 										Choose frame ({formatTime(currentTimeSec)} / {formatTime(durationSec)})
 									</label>
 									<input
-										id="media-thumb-scrub-{item.id}"
+										id="media-thumb-scrub-{mediaVm.id}"
 										type="range"
 										min={0}
 										max={durationSec}

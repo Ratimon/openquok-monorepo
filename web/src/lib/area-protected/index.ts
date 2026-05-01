@@ -13,7 +13,7 @@ import { ProtectedMediaPagePresenter } from '$lib/area-protected/ProtectedMediaP
 import { GenerateMediaModalPresenter } from '$lib/canvas';
 import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
-import { mediaRepository } from '$lib/medias';
+import { getMediaPresenter, mediaRepository } from '$lib/medias';
 import { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 import { getScheduledPostsPresenter, postsRepository } from '$lib/posts';
 import { SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
@@ -35,7 +35,11 @@ const protectedLayoutPagePresenter = new ProtectedLayoutPagePresenter(
 	getNotificationPresenter
 );
 
-const protectedMediaPagePresenter = new ProtectedMediaPagePresenter(mediaRepository, workspaceSettingsPresenter);
+const protectedMediaPagePresenter = new ProtectedMediaPagePresenter(
+	mediaRepository,
+	workspaceSettingsPresenter,
+	getMediaPresenter
+);
 
 /** Settings: stateful presenter (items/status/toasts). */
 const signatureSettingPresenter = new SignaturesPresenter(signaturesRepository, getSignaturesPresenter);
@@ -70,6 +74,7 @@ const protectedCalendarPagePresenter = new ProtectedCalendarPagePresenter(
 	createSocialPostPresenter
 );
 
+export type { ProtectedMediaPagePresenterMediaSettingsVmPublic } from './ProtectedMediaPage.presenter.svelte';
 export {
 	ProtectedSettingsPagePresenter,
 	UpdateProfileStatus,

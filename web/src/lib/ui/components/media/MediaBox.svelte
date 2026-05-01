@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MediaDeleteProgrammerModel, MediaLibraryItemProgrammerModel } from '$lib/medias';
+	import type { MediaDeleteViewModel, MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 
 	import { formatBytes, publicUrlForMediaStorageKey } from '$lib/medias';
 	import { icons } from '$data/icon';
@@ -14,7 +14,7 @@
 	import * as Dialog from '$lib/ui/dialog';
 
 	type Props = {
-		items: MediaLibraryItemProgrammerModel[];
+		mediaItemsVm: MediaLibraryItemViewModel[];
 		loading: boolean;
 		organizationId: string;
 		dragOver: boolean;
@@ -24,13 +24,13 @@
 		uploadBusy?: boolean;
 		onQueueFiles: (files: FileList | null) => void;
 		onSetDragOver: (v: boolean) => void;
-		onOpenSettings: (item: MediaLibraryItemProgrammerModel) => void;
+		onOpenSettings: (mediaVm: MediaLibraryItemViewModel) => void;
 		onReload: () => void | Promise<void>;
-		deleteMedia: (item: MediaLibraryItemProgrammerModel) => Promise<MediaDeleteProgrammerModel>;
+		deleteMedia: (mediaVm: MediaLibraryItemViewModel) => Promise<MediaDeleteViewModel>;
 	};
 
 	let {
-		items,
+		mediaItemsVm,
 		loading,
 		organizationId,
 		dragOver,
@@ -43,7 +43,7 @@
 		deleteMedia
 	}: Props = $props();
 
-	const hasItems = $derived(items.length > 0);
+	const hasItems = $derived(mediaItemsVm.length > 0);
 
 	let emptyDropzoneFiles = $state<FileList | null>(null);
 
@@ -61,21 +61,21 @@
 	}
 
 	let deleteConfirmOpen = $state(false);
-	let deleteTarget = $state<MediaLibraryItemProgrammerModel | null>(null);
+	let deleteTarget = $state<MediaLibraryItemViewModel | null>(null);
 	let deletingPath = $state<string | null>(null);
 
 	let previewOpen = $state(false);
-	let previewItem = $state<MediaLibraryItemProgrammerModel | null>(null);
+	let previewItem = $state<MediaLibraryItemViewModel | null>(null);
 	let previewUrl = $state('');
 
-	function deleteConfirmationCopy(item: MediaLibraryItemProgrammerModel): string {
-		if (item.kind === 'video') return 'Are you sure you want to delete this video?';
-		if (item.kind === 'image') return 'Are you sure you want to delete this image?';
+	function deleteConfirmationCopy(mediaVm: MediaLibraryItemViewModel): string {
+		if (mediaVm.kind === 'video') return 'Are you sure you want to delete this video?';
+		if (mediaVm.kind === 'image') return 'Are you sure you want to delete this image?';
 		return 'Are you sure you want to delete this file?';
 	}
 
-	function openDeleteConfirm(item: MediaLibraryItemProgrammerModel): void {
-		deleteTarget = item;
+	function openDeleteConfirm(mediaVm: MediaLibraryItemViewModel): void {
+		deleteTarget = mediaVm;
 		deleteConfirmOpen = true;
 	}
 
@@ -86,16 +86,16 @@
 	}
 
 	async function confirmDelete(): Promise<void> {
-		const item = deleteTarget;
-		if (!item) return;
+		const mediaVm = deleteTarget;
+		if (!mediaVm) return;
 
-		deletingPath = item.path;
+		deletingPath = mediaVm.path;
 		try {
 			if (!organizationId) {
 				toast.error('Select a workspace first.');
 				return;
 			}
-			const result = await deleteMedia(item);
+			const result = await deleteMedia(mediaVm);
 			if (!result.success) {
 				toast.error(result.message || 'Could not delete media.');
 				return;
@@ -111,8 +111,8 @@
 		}
 	}
 
-	function openPreview(item: MediaLibraryItemProgrammerModel): void {
-		previewItem = item;
+	function openPreview(mediaVm: MediaLibraryItemViewModel): void {
+		previewItem = mediaVm;
 		previewOpen = true;
 	}
 
@@ -148,14 +148,14 @@
 			<div
 				class="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2.5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
 			>
-				{#each items as item (item.id)}
+				{#each mediaItemsVm as mediaVm (mediaVm.id)}
 					<MultiMedia
-						{item}
+						{mediaVm}
 						{organizationId}
 						onOpen={openPreview}
 						onDelete={openDeleteConfirm}
 						onSettings={onOpenSettings}
-						deleting={deletingPath === item.path}
+						deleting={deletingPath === mediaVm.path}
 					/>
 				{/each}
 			</div>

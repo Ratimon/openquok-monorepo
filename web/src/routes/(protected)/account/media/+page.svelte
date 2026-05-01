@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { MediaLibraryItemProgrammerModel } from '$lib/medias';
+	import type { ProtectedMediaPagePresenterMediaSettingsVmPublic } from '$lib/area-protected';
+	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { onDestroy, onMount } from 'svelte';
@@ -33,9 +34,10 @@
 	let uploadDetailLine = $state('');
 	let designOpen = $state(false);
 
-	const p = protectedMediaPagePresenter;
+	const p = protectedMediaPagePresenter as typeof protectedMediaPagePresenter &
+		ProtectedMediaPagePresenterMediaSettingsVmPublic;
 
-	const items = $derived(p.items);
+	const mediaItemsVm = $derived(p.mediaItemsVm);
 	const loading = $derived(p.loading);
 	const currentPage = $derived(p.pagination.currentPage);
 	const totalPages = $derived(p.totalPages);
@@ -179,7 +181,7 @@
 		</p>
 
 		<MediaBox
-			{items}
+			{mediaItemsVm}
 			{loading}
 			{organizationId}
 			{uploadLimitLabel}
@@ -188,9 +190,9 @@
 			onSetDragOver={(v) => {
 				dragOver = v;
 			}}
-			onOpenSettings={(entry: MediaLibraryItemProgrammerModel) => p.openMediaSettings(entry)}
+			onOpenSettings={(mediaVm: MediaLibraryItemViewModel) => p.openMediaSettings(mediaVm)}
 			onReload={() => p.loadMedia(currentPage)}
-			deleteMedia={(item) => p.deleteLibraryItem(item)}
+			deleteMedia={(mediaVm) => p.deleteLibraryItem(mediaVm)}
 			{dragOver}
 		/>
 	</div>
@@ -230,10 +232,10 @@
 
 <MediaSettings
 	bind:open={p.settingsOpen}
-	item={p.settingsItem}
+	mediaVm={p.settingsMediaVm}
 	organizationId={organizationId}
 	uploadSimple={(args) => p.uploadMediaSimple(args)}
 	saveInformation={(args) => p.saveMediaInformation(args)}
 	onSaved={() => void p.loadMedia(currentPage)}
-	onClose={() => p.clearSettingsItem()}
+	onClose={() => p.clearSettingsMediaVm()}
 />

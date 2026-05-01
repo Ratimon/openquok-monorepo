@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MediaLibraryItemProgrammerModel } from '$lib/medias';
+	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 
@@ -12,10 +12,10 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
-		item?: MediaLibraryItemProgrammerModel;
-		onOpen?: (item: MediaLibraryItemProgrammerModel) => void;
-		onDelete?: (item: MediaLibraryItemProgrammerModel) => void;
-		onSettings?: (item: MediaLibraryItemProgrammerModel) => void;
+		mediaVm?: MediaLibraryItemViewModel;
+		onOpen?: (mediaVm: MediaLibraryItemViewModel) => void;
+		onDelete?: (mediaVm: MediaLibraryItemViewModel) => void;
+		onSettings?: (mediaVm: MediaLibraryItemViewModel) => void;
 		organizationId?: string;
 		deleting?: boolean;
 		items?: PostMediaProgrammerModel[];
@@ -25,7 +25,7 @@
 	};
 
 	let {
-		item,
+		mediaVm,
 		onOpen,
 		onDelete,
 		onSettings,
@@ -43,22 +43,22 @@
 	const mediaLocked = $derived(commentsMode === 'no-media' && items.length > 0);
 	const noDrag = $derived(mediaLocked);
 
-	const isLibraryMode = $derived(Boolean(item));
+	const isLibraryMode = $derived(Boolean(mediaVm));
 	const previewUrls = $derived(getScheduledPostsPresenter.toPostMediaPreviewUrlsVm(items));
-	const isImage = $derived(item?.kind === 'image');
-	const isVideo = $derived(item?.kind === 'video');
+	const isImage = $derived(mediaVm?.kind === 'image');
+	const isVideo = $derived(mediaVm?.kind === 'video');
 	const isPreviewable = $derived(isImage || isVideo);
 	/** Saved poster path: grid should show this image, not the first frame of the video file. */
-	const videoUsesPosterImage = $derived(Boolean(isVideo && item?.thumbnail));
+	const videoUsesPosterImage = $derived(Boolean(isVideo && mediaVm?.thumbnail));
 	const kindLabel = $derived(
-		item?.kind === 'document'
+		mediaVm?.kind === 'document'
 			? 'PDF'
-			: item?.kind === 'audio'
+			: mediaVm?.kind === 'audio'
 				? 'Audio'
-				: item?.kind === 'other'
+				: mediaVm?.kind === 'other'
 					? 'File'
-					: item?.kind
-						? item.kind.charAt(0).toUpperCase() + item.kind.slice(1)
+					: mediaVm?.kind
+						? mediaVm.kind.charAt(0).toUpperCase() + mediaVm.kind.slice(1)
 						: ''
 	);
 
@@ -102,43 +102,43 @@
 	}
 
 	$effect(() => {
-		if (!item) {
+		if (!mediaVm) {
 			previewUrl = '';
 			return;
 		}
 
-		if (item.kind === 'video' && item.thumbnail) {
-			const raw = item.thumbnail.trim();
+		if (mediaVm.kind === 'video' && mediaVm.thumbnail) {
+			const raw = mediaVm.thumbnail.trim();
 			const base =
-				item.thumbnailPublicUrl?.trim()
-					? item.thumbnailPublicUrl
+				mediaVm.thumbnailPublicUrl?.trim()
+					? mediaVm.thumbnailPublicUrl
 					: raw.startsWith('http://') || raw.startsWith('https://')
 						? raw
 						: publicUrlForMediaStorageKey(raw);
 			const sep = base.includes('?') ? '&' : '?';
 			previewUrl =
-				item.thumbnailTimestamp != null ? `${base}${sep}thumbTs=${item.thumbnailTimestamp}` : base;
+				mediaVm.thumbnailTimestamp != null ? `${base}${sep}thumbTs=${mediaVm.thumbnailTimestamp}` : base;
 			return;
 		}
 
-		previewUrl = item.publicUrl?.trim() ? item.publicUrl : publicUrlForMediaStorageKey(item.path);
+		previewUrl = mediaVm.publicUrl?.trim() ? mediaVm.publicUrl : publicUrlForMediaStorageKey(mediaVm.path);
 	});
 </script>
 
-{#if isLibraryMode && item}
+{#if isLibraryMode && mediaVm}
 	<div class="group relative overflow-hidden rounded-lg border border-base-300/70 bg-base-100 shadow-sm">
 		<button
 			type="button"
 			class="relative aspect-square w-full overflow-hidden bg-base-200 text-left"
-			onclick={() => isPreviewable && onOpen?.(item)}
+			onclick={() => isPreviewable && onOpen?.(mediaVm)}
 			disabled={!isPreviewable}
 		>
 			{#if isImage && previewUrl}
-				<img src={previewUrl} alt={item.name} class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" loading="lazy" />
+				<img src={previewUrl} alt={mediaVm.name} class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" loading="lazy" />
 			{:else if isVideo && videoUsesPosterImage && previewUrl}
 				<img
 					src={previewUrl}
-					alt={item.alt?.trim() || item.name}
+					alt={mediaVm.alt?.trim() || mediaVm.name}
 					class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
 					loading="lazy"
 				/>
@@ -164,7 +164,7 @@
 			{:else}
 				<div class="flex h-full w-full flex-col items-center justify-center gap-3 px-4 text-base-content/65">
 					<AbstractIcon
-						name={item.kind === 'audio' ? icons.Activity.name : icons.FileText.name}
+						name={mediaVm.kind === 'audio' ? icons.Activity.name : icons.FileText.name}
 						class="size-10"
 						width="40"
 						height="40"
@@ -176,7 +176,7 @@
 			<div
 				class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent px-2 py-2 text-white sm:px-2.5 sm:py-2.5"
 			>
-				<div class="truncate text-[11px] font-medium leading-tight sm:text-xs">{item.name}</div>
+				<div class="truncate text-[11px] font-medium leading-tight sm:text-xs">{mediaVm.name}</div>
 			</div>
 		</button>
 
@@ -185,7 +185,7 @@
 				<button
 					type="button"
 					class="flex h-9 w-9 items-center justify-center rounded-full bg-base-100/95 text-base-content shadow-sm"
-					onclick={() => onOpen?.(item)}
+					onclick={() => onOpen?.(mediaVm)}
 					aria-label="Preview media"
 				>
 					<AbstractIcon name={icons.Eye.name} class="size-4" width="16" height="16" />
@@ -197,7 +197,7 @@
 					class="flex h-9 w-9 items-center justify-center rounded-full bg-base-100/95 text-base-content shadow-sm"
 					onclick={(e) => {
 						e.stopPropagation();
-						onSettings(item);
+						onSettings(mediaVm);
 					}}
 					aria-label="Media details"
 				>
@@ -207,7 +207,7 @@
 			<button
 				type="button"
 				class="flex h-9 w-9 items-center justify-center rounded-full bg-base-100/95 text-red-500 shadow-sm"
-				onclick={() => onDelete?.(item)}
+				onclick={() => onDelete?.(mediaVm)}
 				disabled={deleting}
 				aria-label="Delete media"
 			>
