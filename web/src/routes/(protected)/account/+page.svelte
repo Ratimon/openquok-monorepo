@@ -384,10 +384,17 @@
 					<Button
 						type="button"
 						variant="outline"
+						class="gap-1.5"
 						disabled={!workspaceId}
 						onclick={() => goToCalendar(null)}
 					>
-						Open Calendar
+						<AbstractIcon
+							name={icons.CalendarClock.name}
+							class="h-4 w-4"
+							width="16"
+							height="16"
+						/>
+						Calendar
 					</Button>
 				{/if}
 				<AddProvider
@@ -395,9 +402,9 @@
 					hasConnectedChannels={connectedChannelCount >= 1}
 				/>
 				<AddProvider
-					buttonLabel="Invite to connect"
 					invite
 					iconOnly
+					iconOnlyTooltip="Send Invite Link to connect channel"
 					hasConnectedChannels={connectedChannelCount >= 1}
 				/>
 			</div>
@@ -491,13 +498,19 @@
 									type="button"
 									size="sm"
 									variant="outline"
-									class="shrink-0"
+									class="shrink-0 gap-1.5"
 									onclick={(e: MouseEvent) => {
 										e.preventDefault();
 										e.stopPropagation();
 										goToCalendar(group.id);
 									}}
 								>
+									<AbstractIcon
+										name={icons.CalendarClock.name}
+										class="h-4 w-4"
+										width="16"
+										height="16"
+									/>
 									Calendar
 								</Button>
 							</summary>
@@ -533,13 +546,19 @@
 								type="button"
 								size="sm"
 								variant="outline"
-								class="shrink-0"
+								class="shrink-0 gap-1.5"
 								onclick={(e: MouseEvent) => {
 									e.preventDefault();
 									e.stopPropagation();
 									goToCalendar(CALENDAR_UNGROUPED_SENTINEL);
 								}}
 							>
+								<AbstractIcon
+									name={icons.CalendarClock.name}
+									class="h-4 w-4"
+									width="16"
+									height="16"
+								/>
 								Calendar
 							</Button>
 						</div>

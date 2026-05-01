@@ -28,6 +28,8 @@
 		invite?: boolean;
 		/** When true, render as icon-only button (useful for the invite-link button). */
 		iconOnly?: boolean;
+		/** Tooltip for the invite icon-only trigger; also used for `aria-label` when set. */
+		iconOnlyTooltip?: string;
 		/** After at least one channel exists, Add Channel / invite use secondary instead of primary. */
 		hasConnectedChannels?: boolean;
 	};
@@ -38,6 +40,7 @@
 		onboarding = false,
 		invite = false,
 		iconOnly = false,
+		iconOnlyTooltip,
 		hasConnectedChannels = false
 	}: Props = $props();
 
@@ -120,17 +123,42 @@
 
 <Dialog.Root bind:open>
 	{#if invite && iconOnly}
-		<Button
-			type="button"
-			variant={channelButtonVariant}
-			class="gap-1.5 border-base-300"
-			onclick={() => (open = true)}
-			aria-label={buttonLabel}
-			title={buttonLabel}
-		>
-			<AbstractIcon name={icons.Link.name} class="size-4" width="16" height="16" />
-			{buttonLabel}
-		</Button>
+		{@const inviteTriggerLabel = iconOnlyTooltip ?? buttonLabel}
+		{#if iconOnlyTooltip}
+			<Tooltip.Provider delayDuration={200}>
+				<Tooltip.Root>
+					<Tooltip.Trigger>
+						{#snippet child({ props: triggerProps })}
+							<span {...triggerProps} class="inline-flex">
+								<Button
+									type="button"
+									variant={channelButtonVariant}
+									size="icon"
+									class="shrink-0 border-base-300"
+									onclick={() => (open = true)}
+									aria-label={inviteTriggerLabel}
+								>
+									<AbstractIcon name={icons.Link.name} class="size-4" width="16" height="16" />
+								</Button>
+							</span>
+						{/snippet}
+					</Tooltip.Trigger>
+					<Tooltip.Content side="top" sideOffset={8}>{iconOnlyTooltip}</Tooltip.Content>
+				</Tooltip.Root>
+			</Tooltip.Provider>
+		{:else}
+			<Button
+				type="button"
+				variant={channelButtonVariant}
+				size="icon"
+				class="shrink-0 border-base-300"
+				onclick={() => (open = true)}
+				aria-label={inviteTriggerLabel}
+				title={inviteTriggerLabel}
+			>
+				<AbstractIcon name={icons.Link.name} class="size-4" width="16" height="16" />
+			</Button>
+		{/if}
 	{:else}
 		<Button
 			class="gap-2"

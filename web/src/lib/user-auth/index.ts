@@ -46,6 +46,7 @@ export {
 	resetPasswordCodeSchema,
 	resetPasswordEmailSchema,
 	signinFormSchema,
+	signupFormFieldsSchema,
 	signupFormSchema,
 	type SigninFormSchemaType,
 	type SignupFormSchemaType

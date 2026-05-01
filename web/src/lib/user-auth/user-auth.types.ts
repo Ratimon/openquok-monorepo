@@ -18,7 +18,8 @@ export const signinFormSchema = z.object({
 
 export type SigninFormSchemaType = z.infer<typeof signinFormSchema>;
 
-export const signupFormSchema = z.object({
+/** Object shape used for field-level access (e.g. resend-email email check). Prefer `signupFormSchema` for full validation including password match. */
+export const signupFormFieldsSchema = z.object({
 	fullName: z.string().trim().min(2, 'Full name must be at least 2 characters.'),
 	email: z.string().email('Please enter a valid email.').trim(),
 	password: z
@@ -27,7 +28,13 @@ export const signupFormSchema = z.object({
 		.regex(/[a-zA-Z]/, 'At least one letter.')
 		.regex(/[0-9]/, 'At least one number.')
 		.max(72)
-		.trim()
+		.trim(),
+	confirmPassword: z.string().trim().min(1, 'Please confirm your password.')
 });
 
-export type SignupFormSchemaType = z.infer<typeof signupFormSchema>;
+export const signupFormSchema = signupFormFieldsSchema.refine(
+	(data) => data.password === data.confirmPassword,
+	{ message: 'Passwords do not match.', path: ['confirmPassword'] }
+);
+
+export type SignupFormSchemaType = z.infer<typeof signupFormFieldsSchema>;

@@ -2,7 +2,7 @@
 	import { SignupStatus } from '$lib/user-auth/Signup.presenter.svelte';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
-	import { signupFormSchema, signupPresenter } from '$lib/user-auth/index';
+	import { signupFormFieldsSchema, signupFormSchema, signupPresenter } from '$lib/user-auth/index';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { absoluteUrl, url } from '$lib/utils/path';
@@ -40,7 +40,8 @@
 		defaultValues: {
 			fullName: '',
 			email: '',
-			password: ''
+			password: '',
+			confirmPassword: ''
 		},
 		validators: {
 			onChange: signupFormSchema
@@ -76,7 +77,7 @@
 
 	async function onResend() {
 		if (waitTime > 0) return;
-		const emailResult = signupFormSchema.shape.email.safeParse(lastEmail);
+		const emailResult = signupFormFieldsSchema.shape.email.safeParse(lastEmail);
 		if (!emailResult.success) {
 			toast.error(emailResult.error.issues.map((i) => i.message).join(' '));
 			return;
@@ -198,6 +199,43 @@
 										class="input input-bordered mt-1 w-full"
 									/>
 									<Field.Description>At least 8 characters, one letter, one number.</Field.Description>
+									<Field.Error
+										errors={field.state.meta.errors as unknown as Array<{ message?: string }>}
+									/>
+								</label>
+							{/snippet}
+						</form.Field>
+						<form.Field name="confirmPassword">
+							{#snippet children(field)}
+								<label class="mt-4 block">
+									<div class="flex items-center justify-between">
+										<Field.Label field={field} for="signup-confirmPassword">Confirm password</Field.Label>
+										<button
+											type="button"
+											class="text-primary hover:underline text-xs"
+											onclick={() => (showPassword = !showPassword)}
+											aria-label={showPassword ? 'Hide confirm password' : 'Show confirm password'}
+										>
+											<AbstractIcon
+												name={icons.Eye.name}
+												width="20"
+												height="20"
+												focusable="false"
+												class={showPassword ? 'opacity-50' : ''}
+											/>
+										</button>
+									</div>
+									<input
+										id="signup-confirmPassword"
+										name="confirmPassword"
+										type={showPassword ? 'text' : 'password'}
+										required
+										autocomplete="new-password"
+										value={field.state.value}
+										onblur={field.handleBlur}
+										oninput={(e) => field.handleChange(e.currentTarget.value)}
+										class="input input-bordered mt-1 w-full"
+									/>
 									<Field.Error
 										errors={field.state.meta.errors as unknown as Array<{ message?: string }>}
 									/>
