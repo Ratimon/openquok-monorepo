@@ -1,10 +1,16 @@
 import type {
+	PostingTimeSlotViewModel,
+	WorkspaceChannelGroupViewModel
+} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import { publicUrlForMediaStorageKey } from '$lib/medias/utils/publicMediaObjectUrl';
+import type {
+	PostCommentProgrammerModel,
 	PostGroupDetailsProgrammerModel,
+	PostMediaProgrammerModel,
 	PostPreviewProgrammerModel,
 	PostRowProgrammerModel,
 	PostsRepository
 } from '$lib/posts/Post.repository.svelte';
-import type { PostCommentProgrammerModel } from '$lib/posts/Post.repository.svelte';
 
 export interface CalendarPostRowViewModel {
 	id: string;
@@ -37,6 +43,13 @@ export type GetPostGroupResultViewModel =
 	| { ok: false; error: string };
 
 /** Public `/p/[postId]` preview (maps API programmer model → UI view model). */
+export interface PublicPreviewThreadReplyViewModel {
+	id: string;
+	message: string;
+	delaySeconds: number;
+}
+
+/** Public `/p/[postId]` — scheduled thread follow-ups (distinct from composer comments). */
 export interface PublicPreviewPostViewModel {
 	id: string;
 	postGroup: string;
@@ -45,6 +58,58 @@ export interface PublicPreviewPostViewModel {
 	content: string;
 	media: { id: string; path: string }[];
 	socialPlatformLabel?: string | null;
+	integrationId?: string | null;
+	providerIdentifier?: string | null;
+	channelName?: string | null;
+	channelPictureUrl?: string | null;
+	threadReplies: PublicPreviewThreadReplyViewModel[];
+	threadFinisher: { enabled: boolean; message: string } | null;
+}
+
+/**
+ * Minimal channel VM for provider-specific mock previews on `/p/[postId]` (no integrations list fetch).
+ * Same field shape as `CreateSocialPostChannelViewModel`; kept explicit so public preview stays decoupled from dashboard wiring.
+ */
+export interface PublicPreviewChannelViewModel {
+	id: string;
+	internalId: string;
+	name: string;
+	identifier: string;
+	picture: string | null;
+	type: string;
+	disabled: boolean;
+	inBetweenSteps: boolean;
+	refreshNeeded: boolean;
+	schedulable: boolean;
+	unschedulableReason: string | null;
+	group: WorkspaceChannelGroupViewModel | null;
+	postingTimes: PostingTimeSlotViewModel[];
+}
+
+export function toPublicPreviewChannelVm(
+	post: PublicPreviewPostViewModel
+): PublicPreviewChannelViewModel | null {
+	const integrationId = post.integrationId?.trim() ?? '';
+	const providerIdentifier = (post.providerIdentifier ?? '').trim().toLowerCase();
+	const label = (post.channelName ?? '').trim() || (post.socialPlatformLabel ?? '').trim();
+	if (!integrationId && !providerIdentifier && !label) return null;
+	const displayName = label || 'Channel';
+	const pictureRaw = post.channelPictureUrl?.trim();
+	return {
+		id: integrationId || 'public-preview',
+		internalId: '',
+		name: displayName,
+		identifier: providerIdentifier || 'generic',
+		picture: pictureRaw ? pictureRaw : null,
+		type: 'social',
+		disabled: false,
+		inBetweenSteps: false,
+		refreshNeeded: false,
+		schedulable: true,
+		unschedulableReason: null,
+		group: null,
+		postingTimes: []
+	};
 }
 
 /** Public composer comment view model (UI-safe shape). */
@@ -91,7 +156,13 @@ export class GetScheduledPostsPresenter {
 		return toPostCommentVm(pm);
 	}
 
+	/** Maps attached post media PM rows to public CDN URLs for previews / thumbnails. */
+	public toPostMediaPreviewUrlsVm(items: PostMediaProgrammerModel[]): string[] {
+		return items.map((m) => publicUrlForMediaStorageKey(m.path));
+	}
+
 	private toPreviewPostVm(previewPostPm: PostPreviewProgrammerModel): PublicPreviewPostViewModel {
+		const replies = Array.isArray(previewPostPm.threadReplies) ? previewPostPm.threadReplies : [];
 		const previewPostVm: PublicPreviewPostViewModel = {
 			id: previewPostPm.id,
 			postGroup: previewPostPm.postGroup,
@@ -99,7 +170,17 @@ export class GetScheduledPostsPresenter {
 			publishDateIso: previewPostPm.publishDateIso,
 			content: previewPostPm.content,
 			media: Array.isArray(previewPostPm.media) ? previewPostPm.media : [],
-			socialPlatformLabel: previewPostPm.socialPlatformLabel ?? null
+			socialPlatformLabel: previewPostPm.socialPlatformLabel ?? null,
+			integrationId: previewPostPm.integrationId ?? null,
+			providerIdentifier: previewPostPm.providerIdentifier ?? null,
+			channelName: previewPostPm.channelName ?? null,
+			channelPictureUrl: previewPostPm.channelPictureUrl ?? null,
+			threadReplies: replies.map((r) => ({
+				id: r.id,
+				message: r.message,
+				delaySeconds: r.delaySeconds
+			})),
+			threadFinisher: previewPostPm.threadFinisher ?? null
 		};
 		return previewPostVm;
 	}

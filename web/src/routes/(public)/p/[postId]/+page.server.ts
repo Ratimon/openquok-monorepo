@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { PostCommentViewModel, PublicPreviewPostViewModel } from '$lib/posts/index';
+import { getScheduledPostsPresenter, toPublicPreviewChannelVm } from '$lib/posts/index';
 
 import { error } from '@sveltejs/kit';
 import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
@@ -117,6 +118,8 @@ export const load: PageServerLoad = async ({ params, fetch, parent, url }) => {
 
 	return {
 		postVm,
+		previewChannelVm: toPublicPreviewChannelVm(postVm),
+		previewMediaUrlsVm: getScheduledPostsPresenter.toPostMediaPreviewUrlsVm(postVm.media ?? []),
 		commentsVm,
 		pageMetaTags,
 		schemaData

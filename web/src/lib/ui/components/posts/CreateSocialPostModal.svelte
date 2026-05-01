@@ -4,11 +4,11 @@
 	import type { RepeatIntervalKey } from '$lib/posts';
 
 	import { untrack } from 'svelte';
-
 	import { icons } from '$data/icon';
-	import * as Dialog from '$lib/ui/dialog';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AddEditModal from './AddEditModal.svelte';
+	import * as Dialog from '$lib/ui/dialog';
 	import DeleteDialog from './DeleteDialog.svelte';
 	import ManageModal from './ManageModal.svelte';
 
@@ -118,7 +118,7 @@
 					fetchPolotnoTemplateListPage={presenter.fetchPolotnoTemplateListPage.bind(presenter)}
 					backgroundPanelVm={presenter.backgroundPanelVm}
 					exportCanvasToMedia={presenter.exportCanvasToMedia}
-					loadSignaturesForComposer={presenter.loadSignaturesVmForComposer}
+					loadSignaturesVmForComposer={presenter.loadSignaturesVmForComposer}
 					socialChannels={presenter.baseSocialChannelsVm}
 					bind:body={presenter.editorBody}
 					bind:postMediaItems={presenter.postMediaItems}
@@ -206,6 +206,15 @@
 						})()
 					}
 					mediaUrls={presenter.previewMediaUrls}
+					previewProviderSettings={(() => {
+						const id =
+							presenter.mode === 'custom'
+								? presenter.focusedIntegrationId
+								: presenter.selectedIds.length === 1
+									? presenter.selectedIds[0]
+									: null;
+						return id ? presenter.providerSettingsByIntegrationId[id] ?? {} : {};
+					})()}
 				/>
 			</div>
 

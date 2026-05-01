@@ -43,8 +43,6 @@
 		uploadUid?: string;
 		/** Current workspace for org-scoped signatures in the toolbar. */
 		organizationId?: string | null;
-		/** @deprecated prefer `loadSignaturesVmForComposer` */
-		loadSignaturesForComposer?: FetchSignaturesForComposerFn;
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
@@ -83,15 +81,8 @@
 		focusedProviderIdentifier = null,
 		commentsMode = true,
 		comments = false,
-		scheduleValidationMessage = null,
-		...rest
-	}: EditorPostProps & Record<string, unknown> = $props();
-
-	// Back-compat: allow older callers to pass `loadSignaturesForComposer` without surfacing the deprecation warning here.
-	const signaturesLoader = $derived(
-		loadSignaturesVmForComposer ??
-			(rest['loadSignaturesForComposer'] as FetchSignaturesForComposerFn | undefined)
-	);
+		scheduleValidationMessage = null
+	}: EditorPostProps = $props();
 
 	let confirmOpen = $state(false);
 	let composerTextarea = $state.raw<HTMLTextAreaElement | null>(null);
@@ -189,7 +180,7 @@
 					disabled={busy}
 					{uploadUid}
 					{organizationId}
-					loadSignaturesForComposer={signaturesLoader}
+					{loadSignaturesVmForComposer}
 					textarea={composerTextarea}
 					{composerMode}
 					{focusedProviderIdentifier}

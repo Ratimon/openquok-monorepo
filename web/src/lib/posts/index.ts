@@ -28,11 +28,7 @@ export const postsRepository = new PostsRepository(httpGateway, postsConfig);
 /** Shared read-side presenter for calendar + public preview composition roots. */
 export const getScheduledPostsPresenter = new GetScheduledPostsPresenter(postsRepository);
 
-export {
-	PostsRepository,
-	uploadSocialPostComposerMediaFiles,
-	mediaItemsToPreviewUrls
-} from '$lib/posts/Post.repository.svelte';
+export { PostsRepository, uploadSocialPostComposerMediaFiles } from '$lib/posts/Post.repository.svelte';
 export type {
 	CreatePostProgrammerModel,
 	PostCommentProgrammerModel,
@@ -44,8 +40,12 @@ export type {
 export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPostPresenter.svelte';
 export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 export { default as Delay } from '$lib/ui/components/posts/thread/Delay.svelte';
-export { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
-export type { PublicPreviewPostViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
+export { GetScheduledPostsPresenter, toPublicPreviewChannelVm } from '$lib/posts/GetScheduledPost.presenter.svelte';
+export type {
+	PublicPreviewChannelViewModel,
+	PublicPreviewPostViewModel,
+	PublicPreviewThreadReplyViewModel
+} from '$lib/posts/GetScheduledPost.presenter.svelte';
 export type { PostCommentViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 export type {
 	CalendarPostRowViewModel,

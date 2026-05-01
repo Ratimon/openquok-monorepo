@@ -87,6 +87,48 @@ export function repeatIntervalToDays(key: RepeatIntervalKey | null): number | nu
     return m[key] ?? null;
 }
 
+/**
+ * Reads `providerSettings.threads` from `posts.settings` for public preview fallbacks
+ * (when `post_thread_replies` rows are not present yet).
+ */
+export function parseProviderThreadsPreviewFromPostSettings(settings: string | null): {
+    replies: { content: string; delaySeconds: number }[];
+    finisher: { enabled: boolean; message: string } | null;
+} {
+    const empty = {
+        replies: [] as { content: string; delaySeconds: number }[],
+        finisher: null as { enabled: boolean; message: string } | null,
+    };
+    if (!settings?.trim()) return empty;
+    try {
+        const o = JSON.parse(settings) as { providerSettings?: unknown };
+        const ps =
+            o.providerSettings && typeof o.providerSettings === "object"
+                ? (o.providerSettings as Record<string, unknown>)
+                : null;
+        if (!ps) return empty;
+        const threads =
+            ps.threads && typeof ps.threads === "object" ? (ps.threads as Record<string, unknown>) : null;
+        if (!threads) return empty;
+        const repliesRaw = threads.replies;
+        const arr = Array.isArray(repliesRaw) ? repliesRaw : [];
+        const replies = arr
+            .map((r: { message?: unknown; delaySeconds?: unknown }) => ({
+                content: typeof r?.message === "string" ? r.message.trim() : "",
+                delaySeconds: Number.isFinite(Number(r?.delaySeconds))
+                    ? Math.max(0, Math.floor(Number(r.delaySeconds)))
+                    : 0,
+            }))
+            .filter((r) => r.content.length > 0);
+        const enabled = typeof threads.enabled === "boolean" ? threads.enabled : false;
+        const rawMsg = typeof threads.message === "string" ? threads.message.trim() : "";
+        const finisher = enabled ? { enabled: true, message: rawMsg || "That's a wrap!" } : null;
+        return { replies, finisher };
+    } catch {
+        return empty;
+    }
+}
+
 /** Parses `posts.settings` JSON column. */
 export function parsePostSettingsJson(settings: string | null): {
     isGlobal: boolean;

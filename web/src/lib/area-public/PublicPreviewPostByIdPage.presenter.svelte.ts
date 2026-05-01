@@ -1,13 +1,17 @@
-import type {
-	GetScheduledPostsPresenter,
-	PostCommentViewModel,
-	PublicPreviewPostViewModel
+import type { PostsRepository } from '$lib/posts';
+import {
+	toPublicPreviewChannelVm,
+	type GetScheduledPostsPresenter,
+	type PostCommentViewModel,
+	type PublicPreviewPostViewModel
 } from '$lib/posts/GetScheduledPost.presenter.svelte';
-import type {  PostsRepository } from '$lib/posts';
 
 
 /**
  * Public `/p/[postId]` page shell: maps preview PM → VM via {@link GetScheduledPostsPresenter}.
+ *
+ * The preview API includes scheduled social thread replies (`threadReplies`, `threadFinisher`),
+ * which are distinct from collaboration comments loaded via `loadPublicComments*`.
  */
 export class PublicPreviewPostByIdPagePresenter {
 	constructor(
@@ -16,6 +20,19 @@ export class PublicPreviewPostByIdPagePresenter {
 	) {}
 
 	public currentPreviewPostVm: PublicPreviewPostViewModel | null = $state(null);
+
+	/** Derived mock channel row for {@link currentPreviewPostVm} (provider previews). */
+	public currentPreviewChannelVm = $derived.by(() =>
+		this.currentPreviewPostVm ? toPublicPreviewChannelVm(this.currentPreviewPostVm) : null
+	);
+
+	/** Public URLs for {@link currentPreviewPostVm} media (preview mocks). */
+	public currentPreviewMediaUrlsVm = $derived.by(() =>
+		this.currentPreviewPostVm
+			? this.getScheduledPostsPresenter.toPostMediaPreviewUrlsVm(this.currentPreviewPostVm.media ?? [])
+			: []
+	);
+
 	public currentCommentsVm: PostCommentViewModel[] = $state([]);
 	public submittingComment = $state(false);
 	public showCommentSubmitToast = $state(false);

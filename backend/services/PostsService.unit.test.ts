@@ -1,6 +1,6 @@
 import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { PostsRepository } from "../repositories/PostsRepository";
-import type { PostTagLike, PostCommentLike, SocialPostLike } from "../utils/dtos/PostDTO";
+import type { PostTagLike, PostCommentLike, PostThreadReplyLike, SocialPostLike } from "../utils/dtos/PostDTO";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
@@ -95,6 +95,7 @@ type PostsRepoMock = jest.Mocked<
         | "getPostById"
         | "listCommentsByPostId"
         | "insertComposerComment"
+        | "listThreadRepliesByPostId"
     >
 >;
 
@@ -118,6 +119,7 @@ function createPostsRepoMock(): PostsRepoMock {
         getPostById: jest.fn(),
         listCommentsByPostId: jest.fn(),
         insertComposerComment: jest.fn(),
+        listThreadRepliesByPostId: jest.fn().mockResolvedValue([]),
     };
 }
 
@@ -1038,7 +1040,14 @@ describe("PostsService", () => {
                 content: "preview body",
                 media: [],
                 socialPlatformLabel: null,
+                integrationId: null,
+                providerIdentifier: null,
+                channelName: null,
+                channelPictureUrl: null,
+                threadReplies: [],
+                threadFinisher: null,
             });
+            expect(postsRepo.listThreadRepliesByPostId).toHaveBeenCalledWith(postId);
         });
 
         it("parses media JSON and resolves platform label when post has integration", async () => {
@@ -1052,6 +1061,8 @@ describe("PostsService", () => {
             postsRepo.getPostById.mockResolvedValue(row);
             integrationService.getById.mockResolvedValue({
                 provider_identifier: "threads",
+                name: "Thread User",
+                picture: "https://cdn.example/p.png",
             } as unknown as IntegrationLike);
 
             const out = await service().getPostPreview(postId, "true");
@@ -1065,7 +1076,94 @@ describe("PostsService", () => {
                 content: "caption",
                 media: [{ id: "img1", path: "/a.jpg" }],
                 socialPlatformLabel: "Threads",
+                integrationId,
+                providerIdentifier: "threads",
+                channelName: "Thread User",
+                channelPictureUrl: "https://cdn.example/p.png",
+                threadReplies: [],
+                threadFinisher: null,
             });
+        });
+
+        it("includes thread replies from post_thread_replies when present", async () => {
+            const replyId = faker.string.uuid();
+            const now = new Date().toISOString();
+            const threadReply: PostThreadReplyLike = {
+                id: replyId,
+                organization_id: orgId,
+                post_id: postId,
+                integration_id: integrationId,
+                content: "Follow-up text",
+                delay_seconds: 90,
+                state: "QUEUE",
+                release_id: null,
+                release_url: null,
+                error: null,
+                created_by_user_id: null,
+                created_at: now,
+                updated_at: now,
+                deleted_at: null,
+            };
+            const row = socialPostRow({
+                id: postId,
+                integration_id: integrationId,
+                content: "Root",
+                image: null,
+                settings: JSON.stringify({
+                    isGlobal: false,
+                    repeatInterval: null,
+                    providerSettings: {
+                        threads: { enabled: true, message: "Wrap msg", replies: [] },
+                    },
+                }),
+            });
+            postsRepo.getPostById.mockResolvedValue(row);
+            postsRepo.listThreadRepliesByPostId.mockResolvedValue([threadReply]);
+            integrationService.getById.mockResolvedValue({
+                provider_identifier: "threads",
+                name: "N",
+                picture: null,
+            } as unknown as IntegrationLike);
+
+            const out = await service().getPostPreview(postId, "true");
+
+            expect(out.threadReplies).toEqual([
+                { id: replyId, message: "Follow-up text", delaySeconds: 90 },
+            ]);
+            expect(out.threadFinisher).toEqual({ enabled: true, message: "Wrap msg" });
+        });
+
+        it("falls back to settings JSON thread replies when DB rows are empty", async () => {
+            const row = socialPostRow({
+                id: postId,
+                integration_id: integrationId,
+                content: "Root",
+                image: null,
+                settings: JSON.stringify({
+                    providerSettings: {
+                        threads: {
+                            enabled: false,
+                            message: "ignored when disabled",
+                            replies: [{ message: "  Legacy reply ", delaySeconds: 45 }],
+                        },
+                    },
+                }),
+            });
+            postsRepo.getPostById.mockResolvedValue(row);
+            postsRepo.listThreadRepliesByPostId.mockResolvedValue([]);
+            integrationService.getById.mockResolvedValue({
+                provider_identifier: "instagram-business",
+                name: "IG",
+                picture: null,
+            } as unknown as IntegrationLike);
+
+            const out = await service().getPostPreview(postId, "true");
+
+            expect(out.threadReplies).toEqual([
+                { id: "settings-0", message: "Legacy reply", delaySeconds: 45 },
+            ]);
+            expect(out.threadFinisher).toBeNull();
+            expect(out.providerIdentifier).toBe("instagram-business");
         });
 
         it("uses getOrSet with preview key and TTL 300 when cache provided", async () => {
@@ -1084,6 +1182,12 @@ describe("PostsService", () => {
                 content: "x",
                 media: [],
                 socialPlatformLabel: null,
+                integrationId: null,
+                providerIdentifier: null,
+                channelName: null,
+                channelPictureUrl: null,
+                threadReplies: [],
+                threadFinisher: null,
             };
             const getOrSet = jest.fn().mockResolvedValue(expected);
 

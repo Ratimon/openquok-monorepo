@@ -38,8 +38,6 @@
 		/** Workspace whose shared signatures are listed. */
 		organizationId?: string | null;
 		/** Wired from create-post presenter; keeps the repository out of this component. */
-		/** @deprecated prefer `loadSignaturesVmForComposer` */
-		loadSignaturesForComposer?: FetchSignaturesForComposerFn;
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		onInsertSignature?: (text: string) => void;
 		textarea?: HTMLTextAreaElement | null;
@@ -60,7 +58,6 @@
 		disabled = false,
 		uploadUid,
 		organizationId = null,
-		loadSignaturesForComposer = undefined,
 		loadSignaturesVmForComposer = undefined,
 		onInsertSignature = undefined,
 		textarea = null,
@@ -77,8 +74,6 @@
 	let designOpen = $state(false);
 	const mediaLocked = $derived(commentsMode === 'no-media' && items.length > 0);
 	let signatureOpen = $state(false);
-	const signaturesLoader = $derived(loadSignaturesVmForComposer ?? loadSignaturesForComposer);
-
 	const iconBtn =
 		'border-base-300/90 bg-base-200/45 text-base-content/85 hover:bg-base-300/55 hover:text-base-content focus-visible:ring-primary/40 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border shadow-sm backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35';
 
@@ -187,7 +182,7 @@
 	<button
 		type="button"
 		class={iconBtn}
-		disabled={disabled || uploadBusy || !organizationId?.trim() || !signaturesLoader}
+		disabled={disabled || uploadBusy || !organizationId?.trim() || !loadSignaturesVmForComposer}
 		onclick={() => (signatureOpen = true)}
 		aria-label="Insert signature"
 		title="Signatures"
@@ -234,6 +229,6 @@
 <SignatureModal
 	bind:open={signatureOpen}
 	organizationId={organizationId}
-	loadSignaturesForComposer={signaturesLoader}
+	{loadSignaturesVmForComposer}
 	onInsertSignature={insertSignatureFromModal}
 />

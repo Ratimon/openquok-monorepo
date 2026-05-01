@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { PublicPreviewPostViewModel } from '$lib/posts';
-	import type { PostCommentViewModel } from '$lib/posts';
+	import type {
+		PostCommentViewModel,
+		PublicPreviewPostViewModel
+	} from '$lib/posts/GetScheduledPost.presenter.svelte';
 
 	import { toast } from '$lib/ui/sonner';
 	import { browser } from '$app/environment';
@@ -10,11 +12,12 @@
 	import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { authenticationRepository } from '$lib/user-auth';
+	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 	import Comments from '$lib/ui/components/preview/Comments.svelte';
 	import CopyClient from '$lib/ui/components/preview/CopyClient.svelte';
 	import RenderPreviewDate from '$lib/ui/components/preview/RenderPreviewDate.svelte';
-	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
+	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -32,11 +35,31 @@
 
 	const showShare = $derived(page.url.searchParams.get('share') === 'true');
 
+	const previewMetaLabel = $derived.by(() => {
+		const iso = previewPostVm?.publishDateIso;
+		if (!iso) return null;
+		const ms = Date.parse(iso);
+		if (!Number.isFinite(ms)) return null;
+		return new Date(ms).toLocaleDateString(undefined, {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit'
+		});
+	});
+
 	// Prefer SSR data; fall back to presenter state (client-side refreshes).
 	const previewPostVm = $derived(
 		(data.postVm ?? publicPreviewPostByIdPagePresenter.currentPreviewPostVm) as
 			| PublicPreviewPostViewModel
 			| null
+	);
+
+	const previewChannelVm = $derived(
+		data.previewChannelVm ?? publicPreviewPostByIdPagePresenter.currentPreviewChannelVm
+	);
+
+	const previewMediaUrlsVm = $derived(
+		data.previewMediaUrlsVm ?? publicPreviewPostByIdPagePresenter.currentPreviewMediaUrlsVm
 	);
 
 	const signInHref = $derived(
@@ -53,6 +76,11 @@
 		(data.commentsVm ?? publicPreviewPostByIdPagePresenter.currentCommentsVm) as PostCommentViewModel[]
 	);
 
+	$effect(() => {
+		if (data.postVm) {
+			publicPreviewPostByIdPagePresenter.currentPreviewPostVm = data.postVm;
+		}
+	});
 	$effect(() => {
 		// Seed presenter state so subsequent client-side comment posts update the displayed list.
 		if (Array.isArray(data.commentsVm)) {
@@ -73,7 +101,8 @@
 
 <svelte:head>
 	{#if schemaData}
-		<script type="application/ld+json">{JSON.stringify(schemaData)}</script>
+		<script type="application/ld+json">
+			{JSON.stringify(schemaData)}</script>
 	{/if}
 </svelte:head>
 
@@ -107,17 +136,14 @@
 		<div class="mx-auto flex w-full max-w-[1346px] flex-col gap-6 px-4 py-6 lg:flex-row lg:items-start">
 			<div class="min-w-0 flex-1">
 				<div class="rounded-lg border border-base-300 bg-base-100 p-4 text-base-content">
-					<div class="whitespace-pre-wrap text-sm">{@html previewPostVm.content}</div>
-
-					{#if Array.isArray(previewPostVm.media) && previewPostVm.media.length > 0}
-						<div class="mt-4 flex w-full gap-3">
-							{#each previewPostVm.media as m (m.id)}
-								<div class="flex-1 overflow-hidden rounded-lg border border-base-300 bg-base-200">
-									<VideoOrImage src={m.path} autoplay={true} isContain={true} />
-								</div>
-							{/each}
-						</div>
-					{/if}
+					<ShowAllProviders
+						channel={previewChannelVm}
+						previewText={stripHtmlToPlainText(previewPostVm.content ?? '')}
+						mediaUrls={previewMediaUrlsVm}
+						threadReplies={previewPostVm.threadReplies}
+						threadFinisher={previewPostVm.threadFinisher}
+						previewMetaLabel={previewMetaLabel}
+					/>
 				</div>
 			</div>
 			<div class="w-full lg:w-96 lg:shrink-0">

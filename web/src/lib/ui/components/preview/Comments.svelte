@@ -66,9 +66,11 @@
 >
 	<div class="space-y-4">
 		<div class="space-y-1">
-			<h2 class="text-lg font-semibold">{commentsHeading}</h2>
+			<h2 class="text-lg font-semibold">
+				{commentsHeading}
+			</h2>
 			<p class="text-sm text-base-content/65">
-				Join the conversation on this post preview.
+				Join conversation or add notes on this share link. Scheduled social thread replies are shown in the main preview.
 			</p>
 		</div>
 
@@ -104,7 +106,8 @@
 
 		<div class="space-y-3">
 			{#if comments.length === 0}
-				<p class="text-sm text-base-content/60">No comments yet.</p>
+				<p class="text-sm text-base-content/60">
+					No comments yet.</p>
 			{:else}
 				{#each comments as comment (comment.id)}
 					<div class="border-t border-base-300 pt-3 first:border-t-0 first:pt-0">

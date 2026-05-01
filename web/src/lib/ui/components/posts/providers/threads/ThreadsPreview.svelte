@@ -1,25 +1,43 @@
-<script lang="ts">
+<script module lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-	import { icons } from '$data/icon';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { IntegrationChannelPicture } from '$lib/ui/images';
-	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
+	import type { PublicPreviewThreadReplyViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
-	type Props = {
+	/** Exported for parent components / language-service prop checking. */
+	export type ThreadsPreviewProps = {
 		channel: CreateSocialPostChannelViewModel;
 		previewText: string;
 		maximumCharacters?: number;
 		mediaUrls?: string[];
+		threadReplies?: PublicPreviewThreadReplyViewModel[];
+		threadFinisher?: { enabled: boolean; message: string } | null;
+		/** Optional subtitle under the name row (e.g. scheduled date). */
+		previewMetaLabel?: string | null;
 	};
+</script>
 
-	let { channel, previewText, maximumCharacters = 500, mediaUrls = [] }: Props = $props();
+<script lang="ts">
+	import { icons } from '$data/icon';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import { IntegrationChannelPicture } from '$lib/ui/images';
+	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
+	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
+	import ThreadsReplyEngagementMock from './ThreadsReplyEngagementMock.svelte';
+
+	let {
+		channel,
+		previewText,
+		maximumCharacters = 500,
+		mediaUrls = [],
+		threadReplies = [],
+		threadFinisher = null,
+		previewMetaLabel = null
+	}: ThreadsPreviewProps = $props();
 
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
 
-	// We don't currently have a separate `display`/handle field on `CreateSocialPostChannelViewModel`.
-	// Use a reasonable UI fallback to match the original structure.
 	const handle = $derived((channel.name || '').trim() || 'username');
+	const replyCount = $derived(threadReplies.length);
 </script>
 
 <div class="rounded-xl border border-base-300 bg-base-100 text-base-content overflow-hidden">
@@ -44,21 +62,34 @@
 		</div>
 
 		<div class="min-w-0 flex-1">
-			<div class="flex items-center gap-2">
-				<div class="truncate text-[15px] font-bold leading-5 text-base-content">{channel.name}</div>
-				<AbstractIcon
-					name={icons.VerifiedBadge.name}
-					class="size-[18px] text-sky-500"
-					width="18"
-					height="18"
-				/>
-
-				<div class="truncate text-[15px] text-base-content/50">{handle}</div>
+			<div class="flex items-start justify-between gap-2">
+				<div class="min-w-0 flex-1">
+					<div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+						<span class="truncate text-[15px] font-bold leading-5 text-base-content">{channel.name}</span>
+						<AbstractIcon
+							name={icons.VerifiedBadge.name}
+							class="size-[18px] shrink-0 text-sky-500"
+							width="18"
+							height="18"
+						/>
+						<span class="truncate text-[15px] text-base-content/50">{handle}</span>
+					</div>
+					{#if previewMetaLabel?.trim()}
+						<div class="mt-0.5 text-[13px] leading-4 text-base-content/45">
+							{previewMetaLabel.trim()}
+						</div>
+					{/if}
+				</div>
+				<span class="inline-flex shrink-0 text-base-content/45" aria-hidden="true">
+					<AbstractIcon name={icons.MoreHorizontal.name} class="size-5" width="20" height="20" />
+				</span>
 			</div>
 
 			<div class="mt-1 text-[15px] leading-6">
 				{#if previewText.length === 0}
-					<p class="text-base-content/60">Start writing your post for a preview</p>
+					<p class="text-base-content/60">
+						Start writing your post for a preview
+					</p>
 				{:else}
 					<p class="whitespace-pre-wrap">
 						<span>{cropped}</span>
@@ -68,12 +99,26 @@
 					</p>
 				{/if}
 			</div>
+
 			{#if mediaUrls.length > 0}
 				<div class="mt-3 overflow-hidden rounded-lg border border-base-300">
 					<ImageSlider class="aspect-[4/3] w-full" urls={mediaUrls} alt="" />
 				</div>
 			{/if}
+
+			<ThreadsReplyEngagementMock class="mt-3" commentCount={replyCount} />
 		</div>
 	</div>
-</div>
 
+	{#if threadReplies.length > 0 || (threadFinisher?.enabled && (threadFinisher.message ?? '').trim())}
+		<div class="px-4 pb-4">
+			<PreviewScheduledSocialReplies
+				replies={threadReplies}
+				{threadFinisher}
+				variant="threads"
+				replyActor={{ displayName: channel.name, picture: channel.picture }}
+				threadContinuesFromRoot={true}
+			/>
+		</div>
+	{/if}
+</div>

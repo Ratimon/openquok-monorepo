@@ -1,18 +1,30 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { PublicPreviewThreadReplyViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
+
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { IntegrationChannelPicture } from '$lib/ui/images';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
+	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 
 	type Props = {
 		channel: CreateSocialPostChannelViewModel;
 		previewText: string;
 		maximumCharacters?: number;
 		mediaUrls?: string[];
+		threadReplies?: PublicPreviewThreadReplyViewModel[];
+		threadFinisher?: { enabled: boolean; message: string } | null;
 	};
 
-	let { channel, previewText, maximumCharacters = 2200, mediaUrls = [] }: Props = $props();
+	let {
+		channel,
+		previewText,
+		maximumCharacters = 2200,
+		mediaUrls = [],
+		threadReplies = [],
+		threadFinisher = null
+	}: Props = $props();
 
 	const identifier = $derived((channel.identifier ?? '').toLowerCase());
 	const isInstagram = $derived(identifier.startsWith('instagram'));
@@ -87,5 +99,7 @@
 				{/if}
 			</p>
 		{/if}
+
+		<PreviewScheduledSocialReplies replies={threadReplies} {threadFinisher} variant="instagram" />
 	</div>
 </div>

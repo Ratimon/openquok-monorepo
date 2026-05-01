@@ -68,12 +68,12 @@
 		postMediaItems?: PostMediaProgrammerModel[];
 		uploadUid?: string;
 		organizationId?: string | null;
-		/** @deprecated prefer `loadSignaturesVmForComposer` */
-		loadSignaturesForComposer?: FetchSignaturesForComposerFn;
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		mediaUrls?: string[];
 		commentsMode?: LaunchProviderCommentsMode;
 		scheduleValidationMessage?: string | null;
+		/** Provider settings row for the channel used in the preview (same scope as thread replies). */
+		previewProviderSettings?: Record<string, unknown>;
 	};
 
 	let {
@@ -117,14 +117,57 @@
 		postMediaItems = $bindable([]),
 		uploadUid = '',
 		organizationId = null,
-		loadSignaturesForComposer = undefined,
 		loadSignaturesVmForComposer = undefined,
 		mediaUrls = [],
 		commentsMode = true,
-		scheduleValidationMessage = null
+		scheduleValidationMessage = null,
+		previewProviderSettings = {}
 	}: Props = $props();
 
-	const signaturesLoader = $derived(loadSignaturesVmForComposer ?? loadSignaturesForComposer);
+	/** Channel shown in the preview: custom focus, or exactly one selected target in global mode. */
+	const previewChannel = $derived.by(() => {
+		const integrationId =
+			mode === 'custom'
+				? focusedIntegrationId
+				: selectedIds.length === 1
+					? selectedIds[0]
+					: null;
+		return integrationId ? socialChannels.find((c) => c.id === integrationId) ?? null : null;
+	});
+
+	const previewThreadRepliesVm = $derived(
+		threadReplies.filter((r) => typeof r.message === 'string' && r.message.trim().length > 0)
+	);
+
+	const previewThreadFinisher = $derived.by(() => {
+		const threads = previewProviderSettings?.threads;
+		if (!threads || typeof threads !== 'object') return null;
+		const t = threads as Record<string, unknown>;
+		const enabled = typeof t.enabled === 'boolean' ? t.enabled : false;
+		if (!enabled) return null;
+		const message = typeof t.message === 'string' ? t.message.trim() : '';
+		return { enabled: true as const, message: message || "That's a wrap!" };
+	});
+
+	const previewScheduleMetaLabel = $derived.by(() => {
+		const raw = scheduledPostDatetimeLocal?.trim();
+		if (!raw) return null;
+		const ms = Date.parse(raw);
+		if (Number.isFinite(ms)) {
+			return new Date(ms).toLocaleDateString(undefined, {
+				year: 'numeric',
+				month: '2-digit',
+				day: '2-digit'
+			});
+		}
+		const d = new Date(raw);
+		if (!Number.isFinite(d.getTime())) return null;
+		return d.toLocaleDateString(undefined, {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit'
+		});
+	});
 
 	/**
 	 * Integration `identifier` used to default the design canvas format.
@@ -177,7 +220,7 @@
 				bind:postMediaItems
 				{uploadUid}
 				organizationId={organizationId}
-				loadSignaturesForComposer={signaturesLoader}
+				{loadSignaturesVmForComposer}
 				{busy}
 				{charCount}
 				{softCharLimit}
@@ -234,25 +277,21 @@
 
 	</div>
 	<div class="min-h-0">
-		{#if focusedIntegrationId}
-			{@const focused = socialChannels.find((c) => c.id === focusedIntegrationId) ?? null}
-			<div class="bg-base-200/20 flex min-h-[200px] flex-col lg:min-h-0">
-				<div class="border-base-300 flex items-center justify-between border-b px-4 py-3 sm:px-6">
-					<div class="text-base-content/90 text-base font-medium">Post Preview</div>
-				</div>
-				<div class="p-4 sm:p-6">
-					<ShowAllProviders channel={focused} {previewText} {mediaUrls} maximumCharacters={softCharLimit} />
-				</div>
+		<div class="bg-base-200/20 flex min-h-[200px] flex-col lg:min-h-0">
+			<div class="border-base-300 flex items-center justify-between border-b px-4 py-3 sm:px-6">
+				<div class="text-base-content/90 text-base font-medium">Post Preview</div>
 			</div>
-		{:else}
-			<div class="bg-base-200/20 flex min-h-[200px] flex-col lg:min-h-0">
-				<div class="border-base-300 flex items-center justify-between border-b px-4 py-3 sm:px-6">
-					<div class="text-base-content/90 text-base font-medium">Post Preview</div>
-				</div>
-				<div class="p-4 sm:p-6">
-					<ShowAllProviders channel={null} {previewText} {mediaUrls} maximumCharacters={softCharLimit} />
-				</div>
+			<div class="p-4 sm:p-6">
+				<ShowAllProviders
+					channel={previewChannel}
+					{previewText}
+					{mediaUrls}
+					maximumCharacters={softCharLimit}
+					threadReplies={previewThreadRepliesVm}
+					threadFinisher={previewThreadFinisher}
+					previewMetaLabel={previewScheduleMetaLabel}
+				/>
 			</div>
-		{/if}
+		</div>
 	</div>
 </div>

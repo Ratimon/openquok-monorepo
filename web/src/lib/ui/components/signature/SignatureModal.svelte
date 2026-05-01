@@ -13,8 +13,6 @@
 	type Props = {
 		open?: boolean;
 		organizationId?: string | null;
-		/** @deprecated prefer `loadSignaturesVmForComposer` */
-		loadSignaturesForComposer?: FetchSignaturesForComposerFn;
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		onInsertSignature?: (text: string) => void;
 	};
@@ -22,7 +20,6 @@
 	let {
 		open = $bindable(false),
 		organizationId = null,
-		loadSignaturesForComposer = undefined,
 		loadSignaturesVmForComposer = undefined,
 		onInsertSignature = undefined
 	}: Props = $props();
@@ -41,7 +38,7 @@
 
 	async function loadSignaturesIfNeeded() {
 		if (!organizationId?.trim()) return;
-		const loader = loadSignaturesVmForComposer ?? loadSignaturesForComposer;
+		const loader = loadSignaturesVmForComposer;
 		if (!loader) {
 			toast.error('Signatures could not be loaded.');
 			return;

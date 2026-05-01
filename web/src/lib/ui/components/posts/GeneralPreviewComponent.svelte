@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { PublicPreviewThreadReplyViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { IntegrationChannelPicture } from '$lib/ui/images';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
+	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 
 	type Props = {
 		previewText: string;
@@ -13,6 +15,8 @@
 		title?: string;
 		showVerified?: boolean;
 		mediaUrls?: string[];
+		threadReplies?: PublicPreviewThreadReplyViewModel[];
+		threadFinisher?: { enabled: boolean; message: string } | null;
 	};
 
 	let {
@@ -21,7 +25,9 @@
 		channel = null,
 		title = 'Global Edit',
 		showVerified = true,
-		mediaUrls = []
+		mediaUrls = [],
+		threadReplies = [],
+		threadFinisher = null
 	}: Props = $props();
 
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
@@ -72,7 +78,8 @@
 				</div>
 
 				{#if previewText.length === 0}
-					<p class="text-sm text-base-content/50">Start writing your post for a preview</p>
+					<p class="text-sm text-base-content/50">
+						Start writing your post for a preview</p>
 				{:else}
 					<p class="text-sm whitespace-pre-wrap text-base-content/90">
 						<span>{cropped}</span>
@@ -92,6 +99,8 @@
 				</div>
 			</div>
 		{/if}
+
+		<PreviewScheduledSocialReplies replies={threadReplies} {threadFinisher} variant="general" />
 	</div>
 </div>
 

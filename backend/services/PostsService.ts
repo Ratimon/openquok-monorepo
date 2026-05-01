@@ -15,6 +15,7 @@ import type {
 import {
     parsePostImageColumn,
     parsePostSettingsJson,
+    parseProviderThreadsPreviewFromPostSettings,
     repeatIntervalToDays,
 } from "../utils/dtos/PostDTO";
 
@@ -540,6 +541,15 @@ export class PostsService {
         media: PostMediaItemInput[];
         /** Set when the post row is tied to an integration (channel). */
         socialPlatformLabel: string | null;
+        integrationId: string | null;
+        /** Lowercase provider id from `integrations.provider_identifier` (e.g. `threads`, `instagram`). */
+        providerIdentifier: string | null;
+        channelName: string | null;
+        channelPictureUrl: string | null;
+        /** Scheduled thread follow-ups (`post_thread_replies` or legacy `settings` JSON). */
+        threadReplies: { id: string; message: string; delaySeconds: number }[];
+        /** Threads-style finisher when enabled in composer settings. */
+        threadFinisher: { enabled: boolean; message: string } | null;
     }> {
         if (share !== "true") {
             throw new AppError("Forbidden", 403);
@@ -554,6 +564,12 @@ export class PostsService {
             content: string;
             media: PostMediaItemInput[];
             socialPlatformLabel: string | null;
+            integrationId: string | null;
+            providerIdentifier: string | null;
+            channelName: string | null;
+            channelPictureUrl: string | null;
+            threadReplies: { id: string; message: string; delaySeconds: number }[];
+            threadFinisher: { enabled: boolean; message: string } | null;
         }> => {
             const row = await this.postsRepository.getPostById(postId);
             if (!row) {
@@ -563,12 +579,44 @@ export class PostsService {
             const media = parsePostImageColumn(row.image ?? null);
 
             let socialPlatformLabel: string | null = null;
+            let integrationId: string | null = row.integration_id;
+            let providerIdentifier: string | null = null;
+            let channelName: string | null = null;
+            let channelPictureUrl: string | null = null;
             if (row.integration_id) {
                 const integration = await this.integrationService.getById(row.organization_id, row.integration_id);
+                providerIdentifier = (integration?.provider_identifier ?? "").trim().toLowerCase() || null;
+                channelName = integration?.name?.trim() ? integration.name.trim() : null;
+                channelPictureUrl = integration?.picture?.trim() ? integration.picture.trim() : null;
                 socialPlatformLabel = socialPlatformLabelFromProviderIdentifier(
                     this.integrationManager,
                     integration?.provider_identifier
                 );
+            }
+
+            const fromSettings = parseProviderThreadsPreviewFromPostSettings(row.settings ?? null);
+            let threadFinisher = fromSettings.finisher;
+
+            let threadReplies: { id: string; message: string; delaySeconds: number }[] = [];
+            try {
+                const dbReplies = await this.postsRepository.listThreadRepliesByPostId(postId);
+                if (dbReplies.length > 0) {
+                    threadReplies = dbReplies.map((r) => ({
+                        id: r.id,
+                        message: r.content ?? "",
+                        delaySeconds: Math.max(0, Math.floor(Number(r.delay_seconds) || 0)),
+                    }));
+                }
+            } catch {
+                threadReplies = [];
+            }
+
+            if (threadReplies.length === 0 && fromSettings.replies.length > 0) {
+                threadReplies = fromSettings.replies.map((r, i) => ({
+                    id: `settings-${i}`,
+                    message: r.content,
+                    delaySeconds: r.delaySeconds,
+                }));
             }
 
             return {
@@ -579,6 +627,12 @@ export class PostsService {
                 content: row.content ?? "",
                 media,
                 socialPlatformLabel,
+                integrationId,
+                providerIdentifier,
+                channelName,
+                channelPictureUrl,
+                threadReplies,
+                threadFinisher,
             };
         };
 

@@ -1,7 +1,6 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import { ApiError } from '$lib/core/HttpGateway';
 import { mediaRepository } from '$lib/medias';
-import { publicUrlForMediaStorageKey } from '$lib/medias/utils/publicMediaObjectUrl';
 
 /** One image attached to a social post (R2 / user media paths from `/api/v1/media/*`). */
 export type PostMediaProgrammerModel = {
@@ -10,10 +9,6 @@ export type PostMediaProgrammerModel = {
 	/** Wire field for create-post payloads; composer uploads use `social_media`. */
 	bucket?: 'social_media';
 };
-
-export function mediaItemsToPreviewUrls(items: PostMediaProgrammerModel[]): string[] {
-	return items.map((m) => publicUrlForMediaStorageKey(m.path));
-}
 
 /**
  * Multipart upload for social-post composer images; maps API paths to {@link PostMediaProgrammerModel}.
@@ -134,6 +129,12 @@ export type PostPreviewProgrammerModel = {
 	media: { id: string; path: string }[];
 	/** Resolved from the linked integration's provider when present. */
 	socialPlatformLabel?: string | null;
+	integrationId?: string | null;
+	providerIdentifier?: string | null;
+	channelName?: string | null;
+	channelPictureUrl?: string | null;
+	threadReplies?: { id: string; message: string; delaySeconds: number }[];
+	threadFinisher?: { enabled: boolean; message: string } | null;
 };
 
 export type GetPostPreviewResponseDto = {

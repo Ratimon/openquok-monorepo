@@ -6,6 +6,7 @@ import type {
 	ExportDesignToMediaResult,
 	GenerateMediaModalPresenter
 } from '$lib/canvas';
+import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type {
 	PostMediaProgrammerModel,
 	PostTagProgrammerModel,
@@ -18,7 +19,6 @@ import type {
 	SignatureViewModel
 } from '$lib/signatures/GetSignature.presenter.svelte';
 
-import { mediaItemsToPreviewUrls } from '$lib/posts/Post.repository.svelte';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 import {
 	datetimeLocalToIso,
@@ -83,11 +83,17 @@ export function unschedulableReason(ch: CreateSocialPostChannelViewModel | null 
  * and optional single-channel preselection (e.g. integration menu → create post).
  */
 export class CreateSocialPostPresenter {
+	/** Assigned in constructor — `$derived` fields otherwise see TDZ vs parameter timing (Svelte class analysis). */
+	private readonly scheduledPostsPresenter!: GetScheduledPostsPresenter;
+
 	constructor(
 		private readonly postsRepository: PostsRepository,
 		private readonly mediaModalPresenter: GenerateMediaModalPresenter,
-		private readonly getSignaturesPresenter: GetSignaturesPresenter
-	) {}
+		private readonly getSignaturesPresenter: GetSignaturesPresenter,
+		scheduledPostsPresenter: GetScheduledPostsPresenter
+	) {
+		this.scheduledPostsPresenter = scheduledPostsPresenter;
+	}
 
 	private signaturesCache: { organizationId: string; items: SignatureViewModel[]; loadedAtMs: number } | null = null;
 	private readonly signaturesCacheTtlMs = 30_000;
@@ -248,7 +254,9 @@ export class CreateSocialPostPresenter {
 
 	previewText = $derived(stripHtmlToPlainText(this.editorBody));
 	charCount = $derived(this.previewText.length);
-	previewMediaUrls = $derived(mediaItemsToPreviewUrls(this.postMediaItems));
+	previewMediaUrls = $derived(
+		this.scheduledPostsPresenter.toPostMediaPreviewUrlsVm(this.postMediaItems)
+	);
 
 	primaryLabel = $derived(
 		this.selectedIds.length === 0

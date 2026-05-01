@@ -4,7 +4,7 @@
 	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 
 	import { publicUrlForMediaStorageKey } from '$lib/medias';
-	import { mediaItemsToPreviewUrls, uploadSocialPostComposerMediaFiles } from '$lib/posts';
+	import { getScheduledPostsPresenter, uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { icons } from '$data/icon';
 	import { toast } from '$lib/ui/sonner';
 
@@ -44,7 +44,7 @@
 	const noDrag = $derived(mediaLocked);
 
 	const isLibraryMode = $derived(Boolean(item));
-	const previewUrls = $derived(mediaItemsToPreviewUrls(items));
+	const previewUrls = $derived(getScheduledPostsPresenter.toPostMediaPreviewUrlsVm(items));
 	const isImage = $derived(item?.kind === 'image');
 	const isVideo = $derived(item?.kind === 'video');
 	const isPreviewable = $derived(isImage || isVideo);

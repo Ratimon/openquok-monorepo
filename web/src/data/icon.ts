@@ -94,6 +94,7 @@ export type IconName =
     | "Megaphone"
     | "MenuLine"
     | "MessageCircle"
+    | "MoreHorizontal"
     | "MonitorPause"
     | "MousePointerClickIcon"
     | "Newspaper"
@@ -104,6 +105,7 @@ export type IconName =
     | "PaintRoller"
     | "Plus"
     | "RefreshCw"
+    | "Repeat2"
     | "Rocket"
     | "Oceania"
     | "Save"
@@ -129,6 +131,10 @@ export type IconName =
     | "ThumbsUp"
     | "ThumbsDown"
     | "Threads"
+    | "ThreadsActionComment"
+    | "ThreadsActionLike"
+    | "ThreadsActionRepost"
+    | "ThreadsActionSend"
     | "TikTok"
     | "Timer"
     | "Trash"
@@ -581,6 +587,30 @@ export const icons: Record<IconName, IconEntry> = {
         box: 24,
         svg: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 21L12 17L5 21V5C5 3.89543 5.89543 3 7 3H17C18.1046 3 19 3.89543 19 5V21Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
     },
+    /** Threads-style like (outline heart); same glyph as {@link Heart}. */
+    ThreadsActionLike: {
+        name: "ThreadsActionLike",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>`
+    },
+    /** Threads-style reply bubble; horizontally flipped {@link MessageCircle} (tail on the left). */
+    ThreadsActionComment: {
+        name: "ThreadsActionComment",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g transform="scale(-1 1) translate(-24 0)"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></g></svg>`
+    },
+    /** Threads “repost” control; same glyph as {@link RefreshCw} (mock only). */
+    ThreadsActionRepost: {
+        name: "ThreadsActionRepost",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`
+    },
+    /** Threads share / send; same glyph as {@link Send}. */
+    ThreadsActionSend: {
+        name: "ThreadsActionSend",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>`
+    },
     Languages: {
         name: "Languages",
         box: 24,
@@ -681,6 +711,12 @@ export const icons: Record<IconName, IconEntry> = {
         box: 24,
         svg: `<path fill="currentColor" d="M32 29H4a1 1 0 0 1 0-2h28a1 1 0 0 1 0 2" class="clr-i-outline clr-i-outline-path-1"/><path fill="currentColor" d="M32 19H4a1 1 0 0 1 0-2h28a1 1 0 0 1 0 2" class="clr-i-outline clr-i-outline-path-2"/><path fill="currentColor" d="M32 9H4a1 1 0 0 1 0-2h28a1 1 0 0 1 0 2" class="clr-i-outline clr-i-outline-path-3"/><path fill="none" d="M0 0h36v36H0z"/>`
     },
+    /** Three dots (overflow); Lucide-style horizontal ellipsis. */
+    MoreHorizontal: {
+        name: "MoreHorizontal",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>`
+    },
     MessageCircle: {
         name: "MessageCircle",
         box: 24,
@@ -757,6 +793,11 @@ export const icons: Record<IconName, IconEntry> = {
         name: "RefreshCw",
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw-icon lucide-refresh-cw"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`
+    },
+    Repeat2: {
+        name: "Repeat2",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat2-icon lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>`
     },
     Rocket: {
         name: "Rocket",
