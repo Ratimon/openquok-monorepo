@@ -84,6 +84,9 @@ export type ScheduledPostsCalendarViewModel = {
 	layoutMode: CalendarLayoutModeViewModel;
 	allGroups: boolean;
 	selectedGroupIds: string[];
+	/** When false, calendar loads only integrations whose `identifier` is in {@link selectedSocialPlatformIdentifiers}. */
+	allSocialPlatforms: boolean;
+	selectedSocialPlatformIdentifiers: string[];
 	allPostStates: boolean;
 	selectedPostStates: string[];
 	rangeStartDate: string;
@@ -104,6 +107,8 @@ function createInitialScheduledPostsCalendarViewModel(): ScheduledPostsCalendarV
 		layoutMode: 'calendar',
 		allGroups: true,
 		selectedGroupIds: [],
+		allSocialPlatforms: true,
+		selectedSocialPlatformIdentifiers: [],
 		allPostStates: true,
 		selectedPostStates: [],
 		rangeStartDate: '',
@@ -241,9 +246,39 @@ export class SchedulerPresenter {
 	deriveIntegrationFilter(
 		channels: ChannelViewModel[],
 		allGroups: boolean,
-		selectedGroupIds: string[]
+		selectedGroupIds: string[],
+		allSocialPlatforms: boolean,
+		selectedSocialPlatformIdentifiers: string[]
 	): CalendarIntegrationFilterViewModel {
-		if (allGroups) return { kind: 'all' };
+		const normalizePid = (s: string) => String(s ?? '').trim();
+
+		function integrationIdsMatchingPlatforms(ids: string[]): string[] {
+			if (allSocialPlatforms) return ids;
+			const ps = new Set(
+				selectedSocialPlatformIdentifiers.map(normalizePid).filter(Boolean)
+			);
+			if (ps.size === 0) return [];
+			const idSet = new Set(ids);
+			return channels
+				.filter((c) => idSet.has(c.id) && ps.has(normalizePid(c.identifier)))
+				.map((c) => c.id);
+		}
+
+		if (allGroups) {
+			if (!allSocialPlatforms) {
+				const ps = new Set(
+					selectedSocialPlatformIdentifiers.map(normalizePid).filter(Boolean)
+				);
+				if (ps.size === 0) return { kind: 'none' };
+				const integrationIds = channels
+					.filter((c) => ps.has(normalizePid(c.identifier)))
+					.map((c) => c.id);
+				if (integrationIds.length === 0) return { kind: 'none' };
+				return { kind: 'integrations', integrationIds };
+			}
+			return { kind: 'all' };
+		}
+
 		const selected = new Set(selectedGroupIds);
 		const integrationIds: string[] = [];
 		for (const c of channels) {
@@ -252,7 +287,10 @@ export class SchedulerPresenter {
 			if (!gid && selected.has(CALENDAR_UNGROUPED_SENTINEL)) integrationIds.push(c.id);
 		}
 		if (integrationIds.length === 0) return { kind: 'none' };
-		return { kind: 'integrations', integrationIds };
+
+		const narrowed = integrationIdsMatchingPlatforms(integrationIds);
+		if (narrowed.length === 0) return { kind: 'none' };
+		return { kind: 'integrations', integrationIds: narrowed };
 	}
 
 	isoToUtcZdt(iso: string): Temporal.ZonedDateTime {
@@ -356,6 +394,19 @@ export class SchedulerPresenter {
 	 * When "All groups" is active, keep selection populated so the UI can render badges
 	 * and allow unchecking a single group without first switching modes.
 	 */
+	populateAllSocialPlatformSelectionWhenEmpty(channels: ChannelViewModel[]): void {
+		if (!this.scheduledPostsCalendarVm.allSocialPlatforms) return;
+		if (!channels.length) return;
+		if (this.scheduledPostsCalendarVm.selectedSocialPlatformIdentifiers.length) return;
+		const ids = new Set<string>();
+		for (const c of channels) {
+			const id = String(c.identifier ?? '').trim();
+			if (id) ids.add(id);
+		}
+		const sorted = [...ids].sort((a, b) => a.localeCompare(b));
+		this._patchScheduledPostsCalendarVm({ selectedSocialPlatformIdentifiers: sorted });
+	}
+
 	populateAllGroupSelectionWhenEmpty(channels: ChannelViewModel[]): void {
 		if (!this.scheduledPostsCalendarVm.allGroups) return;
 		if (!channels.length) return;
@@ -385,6 +436,16 @@ export class SchedulerPresenter {
 		this._patchScheduledPostsCalendarVm({
 			allPostStates: next.allPostStates,
 			selectedPostStates: next.selectedPostStates
+		});
+	}
+
+	setSocialPlatformFilter(next: {
+		allSocialPlatforms: boolean;
+		selectedSocialPlatformIdentifiers: string[];
+	}): void {
+		this._patchScheduledPostsCalendarVm({
+			allSocialPlatforms: next.allSocialPlatforms,
+			selectedSocialPlatformIdentifiers: next.selectedSocialPlatformIdentifiers
 		});
 	}
 
@@ -455,16 +516,38 @@ export class SchedulerPresenter {
 		refreshKey: string | number;
 	}): Promise<{ ok: true } | { ok: false; error: string }> {
 		const { startDate, endDate, organizationId, channels, refreshKey } = params;
-		const { allGroups, selectedGroupIds, allPostStates, selectedPostStates } = this.scheduledPostsCalendarVm;
+		const {
+			allGroups,
+			selectedGroupIds,
+			allSocialPlatforms,
+			selectedSocialPlatformIdentifiers,
+			allPostStates,
+			selectedPostStates
+		} = this.scheduledPostsCalendarVm;
 
-		const filt = this.deriveIntegrationFilter(channels, allGroups, selectedGroupIds);
+		const filt = this.deriveIntegrationFilter(
+			channels,
+			allGroups,
+			selectedGroupIds,
+			allSocialPlatforms,
+			selectedSocialPlatformIdentifiers
+		);
 		const statesKey = allPostStates
 			? 'allStates'
 			: selectedPostStates.length
 				? [...selectedPostStates].map((s) => s.toUpperCase()).sort().join(',')
 				: 'noneStates';
+		const platformsKey = allSocialPlatforms
+			? 'allPlatforms'
+			: selectedSocialPlatformIdentifiers.length
+				? [...selectedSocialPlatformIdentifiers]
+						.map((s) => String(s ?? '').trim())
+						.filter(Boolean)
+						.sort()
+						.join(',')
+				: 'nonePlatforms';
 		if (filt.kind === 'none') {
-			const noneKey = `none|${startDate}|${endDate}|${refreshKey}|${statesKey}`;
+			const noneKey = `none|${startDate}|${endDate}|${refreshKey}|${statesKey}|${platformsKey}`;
 			if (noneKey === this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) {
 				this._maybePatchRange(startDate, endDate);
 				return { ok: true };
@@ -479,7 +562,7 @@ export class SchedulerPresenter {
 
 		const integrationIds = filt.kind === 'all' ? null : filt.integrationIds;
 		const idsKey = integrationIds?.length ? [...integrationIds].sort().join(',') : 'all';
-		const requestKey = `${refreshKey}|${startDate}|${endDate}|${idsKey}|${statesKey}`;
+		const requestKey = `${refreshKey}|${startDate}|${endDate}|${idsKey}|${statesKey}|${platformsKey}`;
 		if (requestKey === this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) {
 			this._maybePatchRange(startDate, endDate);
 			return { ok: true };

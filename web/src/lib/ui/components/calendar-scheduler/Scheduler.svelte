@@ -10,8 +10,10 @@
 	import { toast } from '$lib/ui/sonner';
 
 	import CalendarGroupFilter from '$lib/ui/components/calendar-scheduler/CalendarGroupFilter.svelte';
+	import SocialChannelFilter from '$lib/ui/components/calendar-scheduler/SocialChannelFilter.svelte';
 	import PostTypeFilter from './PostTypeFilter.svelte';
 	import CalendarFilters from '$lib/ui/components/calendar-scheduler/CalendarFilters.svelte';
+
 	import Calendar from '$lib/ui/components/calendar-scheduler/Calendar.svelte';
 	import ListView from './ListView.svelte';
 
@@ -101,6 +103,10 @@
 		presenter.populateAllGroupSelectionWhenEmpty(channels);
 	});
 
+	$effect(() => {
+		presenter.populateAllSocialPlatformSelectionWhenEmpty(channels);
+	});
+
 	/**
 	 * Primitive reload fingerprint — when only `events` / `loading` / `lastSuccessfulPostsKey` change,
 	 * this string stays equal so the load `$effect` does not run again (avoids `effect_update_depth_exceeded`).
@@ -114,6 +120,8 @@
 			s.rangeEndDate,
 			String(s.allGroups),
 			s.selectedGroupIds.slice().sort().join(','),
+			String(s.allSocialPlatforms),
+			s.selectedSocialPlatformIdentifiers.slice().sort().join(','),
 			String(s.allPostStates),
 			s.selectedPostStates.slice().map((x) => String(x).toUpperCase()).sort().join(','),
 			s.granularity,
@@ -143,7 +151,9 @@
 		const filt = presenter.deriveIntegrationFilter(
 			channels,
 			scheduledPostsVm.allGroups,
-			scheduledPostsVm.selectedGroupIds
+			scheduledPostsVm.selectedGroupIds,
+			scheduledPostsVm.allSocialPlatforms,
+			scheduledPostsVm.selectedSocialPlatformIdentifiers
 		);
 		if (filt.kind === 'none') return [];
 		if (filt.kind === 'all') return channels;
@@ -162,6 +172,22 @@
 	function onPostTypeFilterChange(next: { allPostStates: boolean; selectedPostStates: string[] }) {
 		presenter.setPostStateFilter(next);
 	}
+
+	function onSocialPlatformFilterChange(next: {
+		allSocialPlatforms: boolean;
+		selectedSocialPlatformIdentifiers: string[];
+	}) {
+		presenter.setSocialPlatformFilter(next);
+	}
+
+	const hasDistinctSocialPlatforms = $derived.by(() => {
+		const ids = new Set<string>();
+		for (const c of channels) {
+			const id = String(c.identifier ?? '').trim();
+			if (id) ids.add(id);
+		}
+		return ids.size >= 2;
+	});
 
 	function setGranularity(next: CalendarGranularityViewModel) {
 		presenter.setGranularity(next);
@@ -199,6 +225,14 @@
 						allGroups={scheduledPostsVm.allGroups}
 						selectedGroupIds={scheduledPostsVm.selectedGroupIds}
 						onChange={onGroupFilterChange}
+					/>
+				{/if}
+				{#if hasDistinctSocialPlatforms}
+					<SocialChannelFilter
+						{channels}
+						allSocialPlatforms={scheduledPostsVm.allSocialPlatforms}
+						selectedSocialPlatformIdentifiers={scheduledPostsVm.selectedSocialPlatformIdentifiers}
+						onChange={onSocialPlatformFilterChange}
 					/>
 				{/if}
 				<PostTypeFilter
