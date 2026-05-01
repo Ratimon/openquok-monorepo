@@ -80,8 +80,8 @@
 				title: 'Date passed',
 				style: {
 					backgroundImage:
-						'repeating-linear-gradient(135deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 8px, rgba(255,255,255,0.02) 8px, rgba(255,255,255,0.02) 16px)',
-					backgroundColor: 'rgba(0,0,0,0.25)'
+						'repeating-linear-gradient(135deg, var(--oq-cal-past-stripe-strong) 0px, var(--oq-cal-past-stripe-strong) 8px, var(--oq-cal-past-stripe-weak) 8px, var(--oq-cal-past-stripe-weak) 16px)',
+					backgroundColor: 'var(--oq-cal-past-overlay)'
 				}
 			});
 		}

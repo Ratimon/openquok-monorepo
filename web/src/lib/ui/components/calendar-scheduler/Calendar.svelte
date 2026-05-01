@@ -680,6 +680,49 @@
 		--sx-z-index-event-modal: 20;
 		--sx-calendar-header-popup-z-index: 15;
 		position: relative;
+
+		/*
+		  Schedule-X ships light/dark tokens under `:root` and `.is-dark`. This app themes via
+		  `html[data-theme]` (DaisyUI), so bridge SX variables to DaisyUI semantic colors here.
+		*/
+		--sx-color-background: var(--color-base-100);
+		--sx-color-on-background: var(--color-base-content);
+		--sx-color-surface: var(--color-base-100);
+		--sx-color-surface-dim: color-mix(in oklab, var(--color-base-content) 7%, var(--color-base-100));
+		--sx-color-surface-bright: var(--color-base-200);
+		--sx-color-on-surface: var(--color-base-content);
+		--sx-color-surface-container: var(--color-base-200);
+		--sx-color-surface-container-low: var(--color-base-100);
+		--sx-color-surface-container-high: var(--color-base-300);
+		--sx-color-outline: color-mix(in oklab, var(--color-base-content) 38%, transparent);
+		--sx-color-outline-variant: color-mix(in oklab, var(--color-base-content) 14%, transparent);
+		--sx-color-neutral: color-mix(in oklab, var(--color-base-content) 52%, transparent);
+		--sx-color-neutral-variant: color-mix(in oklab, var(--color-base-content) 38%, transparent);
+		--sx-color-primary: var(--color-primary);
+		--sx-color-on-primary: var(--color-primary-content);
+		--sx-color-primary-container: color-mix(in oklab, var(--color-primary) 28%, var(--color-base-100));
+		--sx-color-on-primary-container: var(--color-base-content);
+		--sx-color-secondary: var(--color-secondary);
+		--sx-color-on-secondary: var(--color-secondary-content);
+		--sx-color-secondary-container: color-mix(in oklab, var(--color-secondary) 24%, var(--color-base-100));
+		--sx-color-on-secondary-container: var(--color-base-content);
+		--sx-color-tertiary: var(--color-accent);
+		--sx-color-on-tertiary: var(--color-accent-content);
+		--sx-color-tertiary-container: color-mix(in oklab, var(--color-accent) 24%, var(--color-base-100));
+		--sx-color-on-tertiary-container: var(--color-base-content);
+		--sx-color-surface-tint: var(--color-primary);
+		--sx-internal-color-text: var(--color-base-content);
+		--sx-internal-color-gray-ripple-background: color-mix(
+			in oklab,
+			var(--color-base-content) 12%,
+			var(--color-base-100)
+		);
+		--sx-internal-color-light-gray: var(--color-base-200);
+
+		/* Past-range background events (Scheduler.svelte inline styles reference these) */
+		--oq-cal-past-overlay: color-mix(in oklab, var(--color-base-content) 16%, var(--color-base-100));
+		--oq-cal-past-stripe-strong: color-mix(in oklab, var(--color-base-content) 11%, transparent);
+		--oq-cal-past-stripe-weak: color-mix(in oklab, var(--color-base-content) 5%, transparent);
 	}
 
 	.schedule-x-calendar-host :global(.sx__calendar-header) {
