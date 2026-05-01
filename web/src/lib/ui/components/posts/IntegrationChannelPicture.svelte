@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { IconName } from '$data/icon';
+	import type { IconName } from '$data/icons';
 
 	import { imageRepository } from '$lib/core';
 	import { instagramProfilePictureNeedsAuthenticatedProxy } from '$lib/core/Image.repository.svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type ChannelGroup = { id: string; name: string };

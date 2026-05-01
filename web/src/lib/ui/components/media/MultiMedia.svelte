@@ -5,7 +5,7 @@
 
 	import { publicUrlForMediaStorageKey } from '$lib/medias';
 	import { getScheduledPostsPresenter, uploadSocialPostComposerMediaFiles } from '$lib/posts';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 
 	import BlobOrHrefImg from '$lib/ui/media-files/BlobOrHrefImg.svelte';

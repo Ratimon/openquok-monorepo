@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';

@@ -2,7 +2,7 @@
 	import { toast } from '$lib/ui/sonner';
 	import { getGoogleOAuthStartUrl } from '$lib/user-auth/constants/googleOAuth';
 	import { authenticationRepository } from '$lib/user-auth/index';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 

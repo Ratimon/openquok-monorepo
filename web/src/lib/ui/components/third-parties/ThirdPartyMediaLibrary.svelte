@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { thirdPartyRepository } from '$lib/third-parties';
 	import type { ThirdPartyConnectorVm } from '$lib/third-parties';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 
 	import Button from '$lib/ui/buttons/Button.svelte';

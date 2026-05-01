@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { IconName } from '$data/icon';
-	import { icons } from '$data/icon';
+	import type { IconName } from '$data/icons';
+	import { icons } from '$data/icons';
 
 	type Props = {
 		name: string;

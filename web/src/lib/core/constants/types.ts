@@ -1,4 +1,4 @@
-import type { IconName } from '$data/icon';
+import type { IconName } from '$data/icons';
 
 export interface LocalImage {
 	file: File | undefined;

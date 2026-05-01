@@ -2,7 +2,7 @@
 	import type { ExtendedFullUserViewModel } from '$lib/user-management';
 	import type { AppRole } from '$lib/rbac/rbac.types';
 	import { ActionVerificationModalStatus } from '$lib/core/ActionVerificationModal.presenter.svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import { assignRolePresenter, removeRolePresenter } from '$lib/rbac/index';
 	import { createPagination } from '$lib/ui/helpers/createPagination.svelte';
 	import ActionVerificationModal from '$lib/ui/templates/ActionVerificationModal.svelte';

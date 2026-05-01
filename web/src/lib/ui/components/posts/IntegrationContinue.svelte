@@ -16,8 +16,8 @@
 	import { authenticationRepository } from '$lib/user-auth';
 	import { toast } from '$lib/ui/sonner';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
-	import { socialProviderDisplayLabel } from '$lib/posts/constants/socialProviderDisplayNames';
-	import { icons } from '$data/icon';
+	import { socialProviderDisplayLabel } from '$data/social-providers';
+	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';

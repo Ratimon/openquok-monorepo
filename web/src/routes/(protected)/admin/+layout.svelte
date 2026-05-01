@@ -15,7 +15,7 @@
 		getRootPathAdminRoleManager
 	} from '$lib/area-admin/constants/getRootPathAdminArea';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	type Props = {
 		children: Snippet;

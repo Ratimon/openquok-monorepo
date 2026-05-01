@@ -12,7 +12,7 @@
 <script lang="ts">
 	import type { CanvasLayerItem } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { cn } from '$lib/ui/helpers/common';

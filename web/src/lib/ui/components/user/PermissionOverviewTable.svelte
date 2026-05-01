@@ -2,7 +2,7 @@
 	import type { RoleViewModel } from '$lib/rbac/GetRole.presenter.svelte';
 	import type { AppRole, AppPermission } from '$lib/rbac/rbac.types';
 	import { ActionVerificationModalStatus } from '$lib/core/ActionVerificationModal.presenter.svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import {
 		assignPermissionToRolePresenter,
 		removePermissionFromRolePresenter

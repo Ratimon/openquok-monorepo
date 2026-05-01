@@ -1,4 +1,4 @@
-import type { IconName } from '$data/icon';
+import type { IconName } from '$data/icons';
 import type { Component } from 'svelte';
 
 export interface DocMeta {

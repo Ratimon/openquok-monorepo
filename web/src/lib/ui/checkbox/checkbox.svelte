@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Checkbox as CheckboxPrimitive } from 'bits-ui';
 	import { cn } from '$lib/ui/helpers/common';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = CheckboxPrimitive.RootProps & { class?: string };

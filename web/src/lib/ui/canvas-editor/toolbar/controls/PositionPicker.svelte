@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Popover from '$lib/ui/popover';
 

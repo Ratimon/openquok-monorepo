@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Calendar as CalendarPrimitive } from 'bits-ui';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import { buttonVariants, type ButtonVariant } from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { cn } from '$lib/ui/helpers/common';

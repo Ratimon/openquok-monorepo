@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import * as Dialog from '$lib/ui/dialog';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

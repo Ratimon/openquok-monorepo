@@ -5,7 +5,7 @@
 		aspectPresetDisplayLine,
 		getAspectPresetById
 	} from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { ShiftingTabDropdown } from '$lib/ui/dropdown-shifting';

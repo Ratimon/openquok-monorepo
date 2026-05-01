@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import GlyphDesignEditor from '$lib/ui/components/posts/GlyphDesignEditor.svelte';

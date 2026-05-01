@@ -22,7 +22,7 @@
 	import { onMount } from 'svelte';
 	import { DEFAULT_ASPECT_RATIO_ID, getAspectPresetById } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import { GRID_STEP, computePageLayout, drawBackgroundGrid } from '$lib/ui/canvas-editor/canvas/helpers';
 	import { loadKonva } from '$lib/ui/canvas-editor/canvas/loadKonva';

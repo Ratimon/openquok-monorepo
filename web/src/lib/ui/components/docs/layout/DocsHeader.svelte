@@ -2,7 +2,7 @@
 	import { url } from '$lib/utils/path';
 	import { cn } from '$lib/ui/helpers/common';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import AutoBreadcrumb from '$lib/ui/components/docs/nav/DocsAutoBreadcrumb.svelte';
 	import DocsLocaleSwitcher from '$lib/ui/components/docs/DocsLocaleSwitcher.svelte';

@@ -3,7 +3,7 @@
 	import { Alert, AlertDescription, AlertTitle } from '$lib/ui/alert/index.js';
 	import type { AlertVariant } from '$lib/ui/alert/alert.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import type { IconName } from '$data/icon';
+	import type { IconName } from '$data/icons';
 
 	let {
 		type = 'note',

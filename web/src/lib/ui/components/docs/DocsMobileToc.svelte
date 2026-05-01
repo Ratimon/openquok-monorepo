@@ -2,7 +2,7 @@
 	import { toc } from '$lib/docs/utils/toc-state.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	let open = $state(false);
 

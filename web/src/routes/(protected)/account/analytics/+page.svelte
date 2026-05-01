@@ -4,7 +4,7 @@
 
 	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
@@ -13,11 +13,13 @@
 	} from '$lib/ui/components/calendar-scheduler/SocialChannelFilter.svelte';
 	import RenderAnalyticsGrid from '$lib/ui/platform-analytics/RenderAnalyticsGrid.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
-	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
-	import { SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS } from '$lib/platform-analytics';
+	import {
+		SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS,
+		socialProviderIcon
+	} from '$data/social-providers';
 
 	const accountRoot = route(getRootPathAccount());
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);

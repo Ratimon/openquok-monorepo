@@ -11,7 +11,7 @@
 	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import GlyphBoldText from '$lib/ui/components/posts/GlyphBoldText.svelte';
 	import GlyphDesignEditor from '$lib/ui/components/posts/GlyphDesignEditor.svelte';

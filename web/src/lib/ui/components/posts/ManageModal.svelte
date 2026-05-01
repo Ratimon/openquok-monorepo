@@ -2,7 +2,7 @@
 	import type { PostTagProgrammerModel, RepeatIntervalKey } from '$lib/posts';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import DatePicker from './DatePicker.svelte';
 	import RepeatComponent from './RepeatComponent.svelte';
 	import TagsComponent from './TagsComponent.svelte';

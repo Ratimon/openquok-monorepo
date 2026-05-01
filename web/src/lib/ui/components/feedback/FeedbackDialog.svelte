@@ -20,7 +20,7 @@
 	import { Input } from '$lib/ui/input';
 	import { Textarea } from '$lib/ui/textarea';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	const rootPathSignin = getRootPathSignin();
 	const signinUrl = absoluteUrl(rootPathSignin);

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn, capitalize } from '$lib/ui/helpers/common';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import Root from '$lib/ui/pagination/pagination.svelte';

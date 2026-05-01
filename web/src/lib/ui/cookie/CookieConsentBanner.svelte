@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	
 	import { cookieConsentStore } from '$lib/core/cookieConsent.store';
 	import CookieConsentButtonDeny from '$lib/ui/cookie/CookieConsentButtonDeny.svelte';

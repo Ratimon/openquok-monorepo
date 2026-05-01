@@ -4,7 +4,7 @@
 	import Button from "$lib/ui/buttons/Button.svelte";
 	import { cn } from "$lib/ui/helpers/common";
 	import AbstractIcon from "$lib/ui/icons/AbstractIcon.svelte";
-	import { icons } from "$data/icon";
+	import { icons } from "$data/icons";
 	import { useSidebar } from "$lib/ui/sidebar-main/context.svelte";
 
 	let {

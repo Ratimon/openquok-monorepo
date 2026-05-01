@@ -6,7 +6,7 @@
 	import { browser } from '$app/environment';
 	import { afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import { url } from '$lib/utils/path';
 	import { getRootPathEditorArea, getRootPathEditorFeedbackManager } from '$lib/area-admin/constants/getRootPathEditorArea';
 	import { getRootPathSecretAdminBlogManagerTopics } from '$lib/area-admin/constants/getRootPathSecretAdminArea';

@@ -2,7 +2,7 @@
 	import type { NavItem } from '$lib/docs/types';
 
 	import { goto } from '$app/navigation';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Command from '$lib/ui/command/index.js';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

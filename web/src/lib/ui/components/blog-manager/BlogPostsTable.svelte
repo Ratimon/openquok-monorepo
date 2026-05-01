@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import { deleteBlogPostVerificationPresenter } from '$lib/blogs';
 	import ActionVerificationModal from '$lib/ui/templates/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';

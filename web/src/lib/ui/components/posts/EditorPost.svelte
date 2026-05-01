@@ -10,7 +10,7 @@
 	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DeleteDialog from '$lib/ui/components/posts/DeleteDialog.svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
 	import { cn, type WithoutChildrenOrChild } from "$lib/ui/helpers/common";
-	import { icons } from "$data/icon";
+	import { icons } from "$data/icons";
 	import AbstractIcon from "$lib/ui/icons/AbstractIcon.svelte";
 	import type { Snippet } from "svelte";
 

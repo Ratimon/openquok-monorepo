@@ -51,9 +51,9 @@ External packages are unchanged: use package names (e.g. `"bits-ui"`, `"svelte"`
 
 ---
 
-## 1a. Icons: `$data/icon` registry and `AbstractIcon`
+## 1a. Icons: `$data/icons` registry and `AbstractIcon`
 
-- **Registry**: Icon metadata lives in `web/src/data/icon.ts`. Import `icons` and `IconName` from `$data/icon` where needed.
+- **Registry**: Icon metadata lives in `web/src/data/icons.ts`. Import `icons` and `IconName` from `$data/icons` where needed.
 - **Static usage**: Prefer `<AbstractIcon name={icons.SomeIcon.name} ... />` over string literals such as `name="Github"` so icon keys stay tied to the registry and refactors stay safe.
 - **Dynamic usage** (e.g. social platforms, CMS-driven keys): Define a map whose values are `icons.*.name` (typed as `IconName`), then pass the resolved name: `<AbstractIcon name={resolvedIconName} ... />`. Avoid hardcoded `IconName` strings in the map; use `icons.Github.name`, `icons.X.name`, etc.
 - **Components**: Use `AbstractIcon` from `$lib/ui/icons/AbstractIcon.svelte` for Lucide-style icons backed by the registry.

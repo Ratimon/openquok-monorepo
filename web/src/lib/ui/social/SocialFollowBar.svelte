@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn } from '$lib/ui/helpers/common';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';

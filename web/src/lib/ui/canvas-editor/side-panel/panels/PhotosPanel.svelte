@@ -4,7 +4,7 @@
 
 	import PhotosImagesGrid from './PhotosImagesGrid.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import * as InputGroup from '$lib/ui/input-group';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { ScrollArea } from '$lib/ui/scroll-area';

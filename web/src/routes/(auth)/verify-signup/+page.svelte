@@ -7,7 +7,7 @@
 	import { AuthStatus, authenticationRepository, verifyEmailPresenter, signupPresenter } from '$lib/user-auth/index';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { url } from '$lib/utils/path';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import {

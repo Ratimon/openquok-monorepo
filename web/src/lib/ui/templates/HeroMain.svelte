@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';

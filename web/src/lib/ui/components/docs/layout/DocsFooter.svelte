@@ -2,7 +2,7 @@
 	import type { NavItem } from '$lib/docs/types';
 
 	import { docsConfig } from '$lib/docs/constants';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 

@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { docsConfig } from '$lib/docs/constants';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import * as Tooltip from '$lib/ui/tooltip';

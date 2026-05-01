@@ -1,8 +1,8 @@
 <script lang="ts" module>
-	import type { IconName } from '$data/icon';
-	import { icons } from '$data/icon';
+	import type { IconName } from '$data/icons';
+	import { icons } from '$data/icons';
 
-	import { socialProviderIconByIdentifier } from '$lib/posts/constants/socialProviderIcons';
+	import { socialProviderIconByIdentifier } from '$data/social-providers';
 
 	const iconMap: Record<string, IconName> = {
 		...socialProviderIconByIdentifier,

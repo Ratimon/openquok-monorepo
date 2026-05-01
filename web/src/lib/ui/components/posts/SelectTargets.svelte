@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
-	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
+	import { socialProviderIcon } from '$data/social-providers';
 	import RemoveSocialAccount from '$lib/ui/components/posts/RemoveSocialAccount.svelte';
 
 	type Mode = 'global' | 'custom';

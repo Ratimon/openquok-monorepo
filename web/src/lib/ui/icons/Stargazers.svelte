@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	type Props = {
 		owner: string;

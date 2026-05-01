@@ -19,7 +19,7 @@
 		getRootPathSecretAdminEmailManager,
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
 
 	type Props = {

@@ -15,7 +15,7 @@
 	/** Same singleton as on the page presenter; `bind:presenter` cannot target an import binding. */
 	let createPostPresenter = $state.raw(protectedDashboardPagePresenter.createSocialPostPresenter);
 	import { absoluteUrl, route, url } from '$lib/utils/path';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import { Alert, AlertDescription, AlertTitle } from '$lib/ui/alert';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -27,8 +27,7 @@
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
 	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
-	import { socialProviderDisplayLabel } from '$lib/posts/constants/socialProviderDisplayNames';
-	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
+	import { socialProviderDisplayLabel, socialProviderIcon } from '$data/social-providers';
 
 	type Props = {
 		data: PageData;

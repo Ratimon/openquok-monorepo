@@ -10,7 +10,7 @@
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import { toast } from '$lib/ui/sonner';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	let {
 		rawContent = '',

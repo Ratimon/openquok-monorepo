@@ -7,7 +7,7 @@
 	import { page } from '$app/state';
 	import { invalidateAll } from '$app/navigation';
 	import { toast } from '$lib/ui/sonner';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import { authenticationRepository, signoutPresenter } from '$lib/user-auth/index';
 	import { SignoutStatus } from '$lib/user-auth/Signout.presenter.svelte';
 	import { feedbackPresenter } from '$lib/feedbacks';

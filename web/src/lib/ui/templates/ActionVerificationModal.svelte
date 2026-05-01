@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { IconName } from '$data/icon';
+	import type { IconName } from '$data/icons';
 	import { ActionVerificationModalStatus } from '$lib/core/ActionVerificationModal.presenter.svelte';
 
 	import { toast } from '$lib/ui/sonner';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';

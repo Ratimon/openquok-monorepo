@@ -2,8 +2,8 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { PostGroupDetailsViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
-	import { icons } from '$data/icon';
-	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
+	import { icons } from '$data/icons';
+	import { socialProviderIcon } from '$data/social-providers';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

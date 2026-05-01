@@ -10,9 +10,9 @@ import type {
 	ProtectedDashboardPagePresenter
 } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
-import type { IconName } from '$data/icon';
+import type { IconName } from '$data/icons';
 
-import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
+import { socialProviderIcon } from '$data/social-providers';
 
 import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 import { route } from '$lib/utils/path';

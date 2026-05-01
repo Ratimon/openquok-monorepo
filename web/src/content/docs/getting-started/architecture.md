@@ -101,7 +101,7 @@ web/
     ├── content/                # docs markdown (see Document Directories)
     ├── data/
     │   ├── docs.ts             # docs site + sidebar config consumed by $lib/docs
-    │   └── icon.ts             # icon registry for AbstractIcon / MDX
+    │   └── icons.ts            # icon registry for AbstractIcon / MDX
     ├── lib/
     │   ├── area-admin/         # admin-area page presenters + wiring
     │   ├── area-protected/     # signed-in app: settings, account, …
@@ -122,7 +122,7 @@ web/
 ```
 
 - **`src/routes/`** — File-based routing. **Route groups** `(public)`, `(auth)`, `(protected)`, `(docs)`, `(legal)` share layouts and auth boundaries without affecting the URL prefix. Pages stay thin: compose UI, own or call **page presenters**, and avoid direct **repository** or **gateway** imports (see **Presenters, repositories, and tests**).
-- **`src/data/`** — Small **typed registries and config** imported from `$data/…` (e.g. **`docs.ts`**, **`icon.ts`**). Keeps sidebar and icon keys out of feature modules.
+- **`src/data/`** — Small **typed registries and config** imported from `$data/…` (e.g. **`docs.ts`**, **`icons.ts`**). Keeps sidebar and icon keys out of feature modules.
 - **`src/lib/core/`** — **Infrastructure**: HTTP **`HttpGateway`**, cookies, shared presenters that sit next to I/O. DTOs from the API are parsed here and in repositories, not in `.svelte` files.
 - **`src/lib/area-admin`**, **`area-protected`**, **`area-public/`** — **Page-level presenters** and exports for each surface: admin console, signed-in app, and public/marketing. Routes import singletons from these indexes instead of pulling every feature presenter separately.
 - **`src/lib/ui/`** — Reusable **UI primitives and composites** (buttons, dialogs, docs chrome, **DaisyUI**-styled patterns). Feature routes pass view models and callbacks into these components; children under `$lib/ui` do not import **`area-*`** page presenters.

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ChannelViewModel } from '$lib/posts';
 	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { Badge } from '$lib/ui/badge';
 	import { Checkbox } from '$lib/ui/checkbox';

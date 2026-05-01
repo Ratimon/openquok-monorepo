@@ -6,7 +6,7 @@
 		KonvaCanvasApi
 	} from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import * as ButtonGroup from '$lib/ui/button-group';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ColorPicker from '$lib/ui/color-picker/ColorPicker.svelte';

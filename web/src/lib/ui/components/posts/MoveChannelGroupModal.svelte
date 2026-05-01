@@ -2,7 +2,7 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { protectedDashboardPagePresenter } from '$lib/area-protected';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import * as Dialog from '$lib/ui/dialog';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import Input from '$lib/ui/input/Input.svelte';

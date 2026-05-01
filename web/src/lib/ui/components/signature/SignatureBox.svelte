@@ -4,7 +4,7 @@
 	import { Badge } from '$lib/ui/badge';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	type Props = {
 		signature: SignatureProgrammerModel;

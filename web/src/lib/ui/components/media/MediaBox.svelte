@@ -2,7 +2,7 @@
 	import type { MediaDeleteViewModel, MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 
 	import { formatBytes, publicUrlForMediaStorageKey } from '$lib/medias';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 
 	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';

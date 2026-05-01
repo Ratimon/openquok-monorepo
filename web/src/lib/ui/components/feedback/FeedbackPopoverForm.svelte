@@ -3,7 +3,7 @@
 	import { feedbackDescriptionSchema } from '$lib/feedbacks/feedback.types';
 	import { toast } from '$lib/ui/sonner';
 	import * as Popover from '$lib/ui/popover';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

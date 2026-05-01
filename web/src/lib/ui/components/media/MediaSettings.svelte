@@ -6,7 +6,7 @@
 	} from '$lib/medias/GetMedia.presenter.svelte';
 
 	import { publicUrlForMediaStorageKey } from '$lib/medias';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 
 	import Button from '$lib/ui/buttons/Button.svelte';

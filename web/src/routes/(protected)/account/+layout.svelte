@@ -8,7 +8,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { setContext } from 'svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import {
 		getRootPathAccount,
 		getRootPathCalendar,

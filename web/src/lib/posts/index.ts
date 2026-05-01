@@ -62,7 +62,4 @@ export type {
 	ScheduledPostsCalendarViewModel
 } from '$lib/posts/SchedulerPresenter.svelte';
 export { CALENDAR_UNGROUPED_SENTINEL, SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
-export {
-	socialProviderIcon,
-	socialProviderIconByIdentifier
-} from '$lib/posts/constants/socialProviderIcons';
+export { socialProviderIcon, socialProviderIconByIdentifier } from '$data/social-providers';

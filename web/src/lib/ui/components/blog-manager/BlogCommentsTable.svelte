@@ -2,7 +2,7 @@
 	import type { AdminBlogCommentVm } from '$lib/blogs/blog.types';
 
 	import { deleteBlogCommentVerificationPresenter } from '$lib/blogs';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import ActionVerificationModal from '$lib/ui/templates/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { CardContent, CardFooter } from '$lib/ui/card';

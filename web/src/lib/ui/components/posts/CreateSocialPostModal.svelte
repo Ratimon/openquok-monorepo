@@ -4,7 +4,7 @@
 	import type { RepeatIntervalKey } from '$lib/posts';
 
 	import { untrack } from 'svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AddEditModal from './AddEditModal.svelte';

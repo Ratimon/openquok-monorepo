@@ -1,7 +1,7 @@
 <script lang="ts">
 	import 'emoji-picker-element';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {

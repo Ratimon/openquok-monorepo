@@ -6,7 +6,7 @@
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { absoluteUrl, route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import { integrationsRepository } from '$lib/integrations';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -16,7 +16,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import { cn } from '$lib/ui/helpers/common';
-	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
+	import { socialProviderIcon } from '$data/social-providers';
 
 	type Props = {
 		/** Path to return to after OAuth (path only, e.g. `/account`). Passed to the integration backend as `externalUrl`. */

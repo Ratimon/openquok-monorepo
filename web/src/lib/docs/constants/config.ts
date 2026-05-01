@@ -1,8 +1,8 @@
 import type { DocsConfig } from '$lib/docs/types';
 
-import type { IconName } from '$data/icon';
+import type { IconName } from '$data/icons';
 
-import { icons } from '$data/icon';
+import { icons } from '$data/icons';
 
 export const docsSite = {
 	title: 'OpenQuok Documentation',

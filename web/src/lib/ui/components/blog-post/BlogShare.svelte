@@ -5,7 +5,7 @@
 
 	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { absoluteUrl, url } from '$lib/utils/path';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';

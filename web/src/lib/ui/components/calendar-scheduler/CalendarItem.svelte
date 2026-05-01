@@ -2,10 +2,10 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
+	import { socialProviderIcon } from '$data/social-providers';
 	type SlotSummaryItem = {
 		postGroup: string;
 		publishDate?: string;

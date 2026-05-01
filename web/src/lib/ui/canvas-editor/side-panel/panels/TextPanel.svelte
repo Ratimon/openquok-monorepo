@@ -8,7 +8,7 @@
 	} from '$lib/canvas/CanvasDesign.repository.svelte';
 	import { injectGoogleFont, loadFont } from '$lib/ui/canvas-editor/utils';
 	import { IsMobile } from '$lib/ui/helpers/is-mobile.svelte';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';

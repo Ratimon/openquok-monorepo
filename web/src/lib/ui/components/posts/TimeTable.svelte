@@ -6,7 +6,7 @@
 	import timezone from 'dayjs/plugin/timezone';
 
 	import { protectedDashboardPagePresenter } from '$lib/area-protected';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import {
 		getDateMetricUsStyle,
 		getPostingScheduleTimezone

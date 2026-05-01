@@ -4,7 +4,7 @@
 
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import { cn } from '$lib/ui/helpers/common';
 

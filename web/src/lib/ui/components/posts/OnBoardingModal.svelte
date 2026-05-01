@@ -7,7 +7,7 @@
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { absoluteUrl, route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import { integrationsRepository } from '$lib/integrations';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -17,7 +17,7 @@
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import { cn } from '$lib/ui/helpers/common';
-	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
+	import { socialProviderIcon } from '$data/social-providers';
 
 	type Props = {
 		open: boolean;

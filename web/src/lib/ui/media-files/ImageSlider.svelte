@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import BlobOrHrefImg from './BlobOrHrefImg.svelte';
 

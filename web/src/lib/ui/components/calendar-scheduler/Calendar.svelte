@@ -20,8 +20,8 @@
 		registerRefreshCalendarHandler,
 		triggerOpenActionsForPostGroup
 	} from '$lib/posts/SchedulerPresenter.svelte';
-	import { icons } from '$data/icon';
-	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
+	import { icons } from '$data/icons';
+	import { socialProviderIcon } from '$data/social-providers';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import DateGridEvent from '$lib/ui/components/calendar-scheduler/DateGridEvent.svelte';

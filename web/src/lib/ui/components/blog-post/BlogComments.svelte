@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { BlogPostCommentProgrammerModel, BlogUpsertProgrammerModel } from '$lib/blogs/index';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

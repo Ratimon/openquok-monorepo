@@ -10,7 +10,7 @@
 	import { svgToDataUrl } from '$lib/ui/canvas-editor/utils/svgToDataUrl';
 	import { tableGridSvgString } from '$lib/ui/canvas-editor/utils/tableGridSvg';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import * as InputGroup from '$lib/ui/input-group';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { ScrollArea } from '$lib/ui/scroll-area';

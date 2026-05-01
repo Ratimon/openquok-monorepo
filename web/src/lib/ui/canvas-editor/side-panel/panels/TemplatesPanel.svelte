@@ -10,7 +10,7 @@
 	import { polotnoJsonToKonvaDoc } from '$lib/canvas/utils/polotnoToKonvaDoc';
 	import { createInfiniteApi } from '$lib/canvas/utils/useInfiniteApi.svelte';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
 	import * as InputGroup from '$lib/ui/input-group';

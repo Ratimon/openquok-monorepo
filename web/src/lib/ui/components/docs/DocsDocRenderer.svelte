@@ -4,7 +4,7 @@
 
 	import { toc } from '$lib/docs/utils/toc-state.svelte';
 	import { docsConfig } from '$lib/docs/constants';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import DocsMobileToc from '$lib/ui/components/docs/DocsMobileToc.svelte';
 	import DocsBackToTop from '$lib/ui/components/docs/nav/DocsBackToTop.svelte';

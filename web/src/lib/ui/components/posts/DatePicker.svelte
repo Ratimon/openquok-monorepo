@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { CalendarDate, getLocalTimeZone, type DateValue } from '@internationalized/date';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import { Calendar, Day } from '$lib/ui/calendar';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';

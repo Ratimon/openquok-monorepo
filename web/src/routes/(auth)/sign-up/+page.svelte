@@ -6,7 +6,7 @@
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { absoluteUrl, url } from '$lib/utils/path';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Field from '$lib/ui/field';

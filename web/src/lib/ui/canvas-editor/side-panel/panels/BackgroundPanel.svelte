@@ -10,7 +10,7 @@
 
 	import { createInfiniteApi } from '$lib/canvas/utils/useInfiniteApi.svelte';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
 	import ColorPicker from '$lib/ui/color-picker/ColorPicker.svelte';

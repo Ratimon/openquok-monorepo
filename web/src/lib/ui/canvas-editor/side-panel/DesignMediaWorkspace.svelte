@@ -41,7 +41,7 @@
 
 	import { onDestroy } from 'svelte';
 
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import KonvaDesignCanvas from '$lib/ui/canvas-editor/canvas/KonvaDesignCanvas.svelte';
 	import DrawPanel from '$lib/ui/canvas-editor/side-panel/panels/DrawPanel.svelte';

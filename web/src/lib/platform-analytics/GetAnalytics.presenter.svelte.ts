@@ -20,20 +20,6 @@ export type AnalyticsSeriesViewModel = {
 /** Alias for UI card props — same shape as {@link AnalyticsSeriesViewModel}. */
 export type AnalyticsSeriesVm = AnalyticsSeriesViewModel;
 
-/** Provider identifiers treated as analytics-capable in the dashboard */
-export const SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS = [
-	'facebook',
-	'instagram',
-	'instagram-standalone',
-	'linkedin-page',
-	'tiktok',
-	'youtube',
-	'gmb',
-	'pinterest',
-	'threads',
-	'x'
-] as const;
-
 export function mapAnalyticsSeriesDto(dto: AnalyticsSeriesProgrammerModel[]): AnalyticsSeriesViewModel[] {
 	return (dto ?? []).map((s) => ({
 		label: s.label,

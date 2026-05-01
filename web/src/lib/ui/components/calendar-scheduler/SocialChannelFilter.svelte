@@ -1,11 +1,10 @@
 <script lang="ts">
 	import type { ChannelViewModel } from '$lib/posts';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { Badge } from '$lib/ui/badge';
 	import { Checkbox } from '$lib/ui/checkbox';
-	import { socialProviderDisplayLabel } from '$lib/posts/constants/socialProviderDisplayNames';
-	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
+	import { socialProviderDisplayLabel, socialProviderIcon } from '$data/social-providers';
 
 	export type SocialPlatformFilterVm = {
 		allSocialPlatforms: boolean;

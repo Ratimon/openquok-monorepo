@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { IconName } from '$data/icon';
+	import type { IconName } from '$data/icons';
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import copy from 'copy-to-clipboard';
 	import { toast } from '$lib/ui/sonner';
-	import { icons } from '$data/icon';
+	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
