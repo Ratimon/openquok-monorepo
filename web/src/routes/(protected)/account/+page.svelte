@@ -27,6 +27,7 @@
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
 	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
+	import { socialProviderDisplayLabel } from '$lib/posts/constants/socialProviderDisplayNames';
 	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 
 	type Props = {
@@ -194,27 +195,6 @@
 		hasAutoOpenedOnboarding = true;
 	});
 
-	/** Short label for “Add more …” copy (matches connect flow naming where listed). */
-	const providerAddMoreLabelById: Record<string, string> = {
-		threads: 'Threads',
-		'instagram-business': 'Instagram (Business)',
-		'instagram-standalone': 'Instagram (Standalone)',
-		facebook: 'Facebook',
-		youtube: 'YouTube',
-		tiktok: 'TikTok',
-		x: 'X'
-	};
-
-	function providerAddMoreLabel(identifier: string): string {
-		const key = identifier.trim();
-		if (providerAddMoreLabelById[key]) return providerAddMoreLabelById[key];
-		return key
-			.split('-')
-			.filter(Boolean)
-			.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-			.join(' ');
-	}
-
 	function startAddAnotherChannel(identifier: string): void {
 		const orgId = workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
@@ -326,10 +306,19 @@
 						variant="outline"
 						size="sm"
 						class="shrink-0 gap-1.5 border-base-300"
+						aria-label={`Add another ${socialProviderDisplayLabel(row.identifier)} connection`}
 						onclick={() => startAddAnotherChannel(row.identifier)}
 					>
-						<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
-						Add more {providerAddMoreLabel(row.identifier)}
+						<span class="inline-flex items-center gap-1.5" aria-hidden="true">
+							<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
+							Add more
+							<AbstractIcon
+								name={socialProviderIcon(row.identifier)}
+								class="h-4 w-4"
+								width="16"
+								height="16"
+							/>
+						</span>
 					</Button>
 				</div>
 			{/each}

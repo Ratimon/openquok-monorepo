@@ -16,6 +16,7 @@
 	import { authenticationRepository } from '$lib/user-auth';
 	import { toast } from '$lib/ui/sonner';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
+	import { socialProviderDisplayLabel } from '$lib/posts/constants/socialProviderDisplayNames';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CircularProgressBar from '$lib/ui/circular-progress-bar/CircularProgressBar.svelte';
@@ -54,22 +55,10 @@
 
 	const provider = $derived(page.params.provider ?? '');
 
-	/** Matches backend `SocialProvider.name`; used when the URL only has the identifier. */
-	const PROVIDER_DISPLAY: Record<string, string> = {
-		'instagram-standalone': 'Instagram (Standalone)',
-		'instagram-business': 'Instagram (Business)',
-		threads: 'Threads'
-	};
-
 	const providerLabel = $derived.by(() => {
 		const id = provider;
-		if (PROVIDER_DISPLAY[id]) return PROVIDER_DISPLAY[id];
 		if (!id) return 'channel';
-		return id
-			.split('-')
-			.filter(Boolean)
-			.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-			.join(' ');
+		return socialProviderDisplayLabel(id);
 	});
 
 	/** Split "Instagram (Standalone)" → main + "(Standalone)" for a line break before parentheses. */

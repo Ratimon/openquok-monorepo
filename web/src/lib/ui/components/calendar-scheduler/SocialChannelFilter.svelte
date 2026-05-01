@@ -4,6 +4,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { Badge } from '$lib/ui/badge';
 	import { Checkbox } from '$lib/ui/checkbox';
+	import { socialProviderDisplayLabel } from '$lib/posts/constants/socialProviderDisplayNames';
 	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 
 	export type SocialPlatformFilterVm = {
@@ -20,27 +21,6 @@
 
 	let open = $state(false);
 
-	const KNOWN_LABELS: Record<string, string> = {
-		threads: 'Threads',
-		'instagram-business': 'Instagram (Business)',
-		'instagram-standalone': 'Instagram (Standalone)',
-		instagram: 'Instagram',
-		facebook: 'Facebook',
-		youtube: 'YouTube',
-		tiktok: 'TikTok',
-		x: 'X'
-	};
-
-	function labelForIdentifier(identifier: string): string {
-		const key = identifier.trim();
-		if (KNOWN_LABELS[key]) return KNOWN_LABELS[key];
-		return key
-			.split('-')
-			.filter(Boolean)
-			.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-			.join(' ');
-	}
-
 	const normalizedSelected = $derived.by(() =>
 		selectedSocialPlatformIdentifiers
 			.map((x) => String(x ?? '').trim())
@@ -52,10 +32,10 @@
 		for (const c of channels) {
 			const id = String(c.identifier ?? '').trim();
 			if (!id) continue;
-			if (!map.has(id)) map.set(id, labelForIdentifier(id));
+			if (!map.has(id)) map.set(id, socialProviderDisplayLabel(id));
 		}
 		for (const s of normalizedSelected) {
-			if (!map.has(s)) map.set(s, labelForIdentifier(s));
+			if (!map.has(s)) map.set(s, socialProviderDisplayLabel(s));
 		}
 		return [...map.entries()]
 			.map(([id, label]) => ({ id, label }))
@@ -111,7 +91,7 @@
 	const selectedBadges = $derived.by(() =>
 		effectiveSelected.map((id) => ({
 			id,
-			label: platformRows.find((p) => p.id === id)?.label ?? labelForIdentifier(id)
+			label: platformRows.find((p) => p.id === id)?.label ?? socialProviderDisplayLabel(id)
 		}))
 	);
 
