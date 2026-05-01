@@ -116,7 +116,6 @@
 	disabled={disabled || !textarea}
 	onclick={onClick}
 	aria-label="Bold text"
-	title="Bold"
 >
 	<AbstractIcon name={icons.Bold.name} class="size-5" width="20" height="20" />
 </button>

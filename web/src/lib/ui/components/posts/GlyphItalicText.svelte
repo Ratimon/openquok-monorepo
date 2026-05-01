@@ -106,7 +106,6 @@
 	disabled={disabled || !textarea}
 	onclick={onClick}
 	aria-label="Italic text"
-	title="Italic"
 >
 	<AbstractIcon name={icons.Italic.name} class="size-5" width="20" height="20" />
 </button>

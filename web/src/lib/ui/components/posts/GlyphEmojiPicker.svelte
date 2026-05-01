@@ -77,7 +77,6 @@
 		disabled={disabled || !textarea}
 		onclick={onToggle}
 		aria-label="Insert emoji"
-		title="Emoji"
 	>
 		<AbstractIcon name={icons.Smile.name} class="size-5" width="20" height="20" />
 	</button>

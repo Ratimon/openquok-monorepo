@@ -19,7 +19,11 @@
 	import GlyphItalicText from '$lib/ui/components/posts/GlyphItalicText.svelte';
 	import GlyphUText from '$lib/ui/components/posts/GlyphUText.svelte';
 	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
+	import ComposerMediaTooltip, {
+		composeTooltipTriggerClick
+	} from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
+	import * as Tooltip from '$lib/ui/tooltip';
 	import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { toast } from '$lib/ui/sonner';
 
@@ -135,74 +139,116 @@
 	role="toolbar"
 	aria-label="Post media"
 >
-	<input
-		bind:this={fileInput}
-		type="file"
-		accept="image/*"
-		multiple
-		class="hidden"
-		onchange={onFileChange}
-	/>
-	<!-- 1: add images from disk -->
-	<button
-		type="button"
-		class={iconBtn}
-		disabled={disabled || uploadBusy || mediaLocked}
-		onclick={() => fileInput?.click()}
-		aria-label="Add images from your device"
-		title="Add images"
-	>
-		{#if uploadBusy}
-			<span class="loading loading-spinner loading-sm text-primary"></span>
-		{:else}
-			<span class="relative inline-flex size-6 items-center justify-center">
-				<AbstractIcon name={icons.Image.name} class="size-6" width="24" height="24" />
-				<span
-					class="bg-primary text-primary-content ring-base-100 absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full ring-2"
-					aria-hidden="true"
+	<Tooltip.Provider delayDuration={200}>
+		<input
+			bind:this={fileInput}
+			type="file"
+			accept="image/*"
+			multiple
+			class="hidden"
+			onchange={onFileChange}
+		/>
+		<!-- 1: add images from disk -->
+		<ComposerMediaTooltip label="Attach images from your device">
+			{#snippet trigger({ props })}
+				<button
+					{...props}
+					type="button"
+					class={iconBtn}
+					disabled={disabled || uploadBusy || mediaLocked}
+					onclick={composeTooltipTriggerClick(props, () => fileInput?.click())}
+					aria-label="Add images from your device"
 				>
-					<AbstractIcon name={icons.Plus.name} class="size-2.5" width="10" height="10" />
+					{#if uploadBusy}
+						<span class="loading loading-spinner loading-sm text-primary"></span>
+					{:else}
+						<span class="relative inline-flex size-6 items-center justify-center">
+							<AbstractIcon name={icons.Image.name} class="size-6" width="24" height="24" />
+							<span
+								class="bg-primary text-primary-content ring-base-100 absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full ring-2"
+								aria-hidden="true"
+							>
+								<AbstractIcon name={icons.Plus.name} class="size-2.5" width="10" height="10" />
+							</span>
+						</span>
+					{/if}
+				</button>
+			{/snippet}
+		</ComposerMediaTooltip>
+		<!-- 2: design / canvas modal -->
+		<ComposerMediaTooltip label="Open the design editor to create or edit visuals">
+			{#snippet trigger({ props })}
+				<button
+					{...props}
+					type="button"
+					class={iconBtn}
+					disabled={disabled || uploadBusy || mediaLocked}
+					onclick={composeTooltipTriggerClick(props, () => {
+						designOpen = true;
+					})}
+					aria-label="Open design editor"
+				>
+					<GlyphDesignEditor badgeSurfaceClass="rounded-sm bg-base-200/45 shadow-none ring-0" />
+				</button>
+			{/snippet}
+		</ComposerMediaTooltip>
+
+		<!-- 3: signatures modal -->
+		<ComposerMediaTooltip label="Insert a saved workspace signature">
+			{#snippet trigger({ props })}
+				<button
+					{...props}
+					type="button"
+					class={iconBtn}
+					disabled={disabled || uploadBusy || !organizationId?.trim() || !loadSignaturesVmForComposer}
+					onclick={composeTooltipTriggerClick(props, () => {
+						signatureOpen = true;
+					})}
+					aria-label="Insert signature"
+				>
+					<span class="relative inline-flex size-6 items-center justify-center">
+						<AbstractIcon name={icons.Hash.name} class="size-5" width="20" height="20" />
+						<span
+							class="bg-primary text-primary-content ring-base-100 absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full ring-2"
+							aria-hidden="true"
+						>
+							<AbstractIcon name={icons.Plus.name} class="size-2.5" width="10" height="10" />
+						</span>
+					</span>
+				</button>
+			{/snippet}
+		</ComposerMediaTooltip>
+
+		<!-- 4–7: inline text styling (selection-based) -->
+		<ComposerMediaTooltip label="Underline the selected text">
+			{#snippet trigger({ props })}
+				<span {...props} class="inline-flex">
+					<GlyphUText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
 				</span>
-			</span>
-		{/if}
-	</button>
-	<!-- 2: design / canvas modal -->
-	<button
-		type="button"
-		class={iconBtn}
-		disabled={disabled || uploadBusy || mediaLocked}
-		onclick={() => (designOpen = true)}
-		aria-label="Open design editor"
-		title="Design media"
-	>
-		<GlyphDesignEditor badgeSurfaceClass="rounded-sm bg-base-200/45 shadow-none ring-0" />
-	</button>
-
-	<!-- 3: signatures modal -->
-	<button
-		type="button"
-		class={iconBtn}
-		disabled={disabled || uploadBusy || !organizationId?.trim() || !loadSignaturesVmForComposer}
-		onclick={() => (signatureOpen = true)}
-		aria-label="Insert signature"
-		title="Signatures"
-	>
-		<span class="relative inline-flex size-6 items-center justify-center">
-			<AbstractIcon name={icons.Hash.name} class="size-5" width="20" height="20" />
-			<span
-				class="bg-primary text-primary-content ring-base-100 absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full ring-2"
-				aria-hidden="true"
-			>
-				<AbstractIcon name={icons.Plus.name} class="size-2.5" width="10" height="10" />
-			</span>
-		</span>
-	</button>
-
-	<!-- 4–7: inline text styling (selection-based) -->
-	<GlyphUText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
-	<GlyphItalicText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
-	<GlyphBoldText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
-	<GlyphEmojiPicker class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
+			{/snippet}
+		</ComposerMediaTooltip>
+		<ComposerMediaTooltip label="Italicize the selected text">
+			{#snippet trigger({ props })}
+				<span {...props} class="inline-flex">
+					<GlyphItalicText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
+				</span>
+			{/snippet}
+		</ComposerMediaTooltip>
+		<ComposerMediaTooltip label="Bold the selected text">
+			{#snippet trigger({ props })}
+				<span {...props} class="inline-flex">
+					<GlyphBoldText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
+				</span>
+			{/snippet}
+		</ComposerMediaTooltip>
+		<ComposerMediaTooltip label="Insert an emoji at the cursor">
+			{#snippet trigger({ props })}
+				<span {...props} class="inline-flex">
+					<GlyphEmojiPicker class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
+				</span>
+			{/snippet}
+		</ComposerMediaTooltip>
+	</Tooltip.Provider>
 
 	<!-- 8–9: parity placeholders (not wired yet) -->
 	<!-- <button type="button" class={iconBtn} disabled aria-label="AI image (coming soon)" title="Coming soon">

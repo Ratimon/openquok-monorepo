@@ -118,7 +118,6 @@
 	disabled={disabled || !textarea}
 	onclick={onClick}
 	aria-label="Underline text"
-	title="Underline"
 >
 	<AbstractIcon name={icons.Underline.name} class="size-5" width="20" height="20" />
 </button>
