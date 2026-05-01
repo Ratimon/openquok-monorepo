@@ -17,12 +17,12 @@
 	import { toast } from '$lib/ui/sonner';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { socialProviderDisplayLabel } from '$lib/posts/constants/socialProviderDisplayNames';
+	import { icons } from '$data/icon';
 
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CircularProgressBar from '$lib/ui/circular-progress-bar/CircularProgressBar.svelte';
-	import { ImageWithFallback } from '$lib/ui/images';
-	import { icons } from '$data/icon';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
 
 	dayjs.extend(utc);
 	dayjs.extend(timezone);

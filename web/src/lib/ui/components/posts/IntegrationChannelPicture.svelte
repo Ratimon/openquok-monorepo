@@ -4,7 +4,7 @@
 	import { imageRepository } from '$lib/core';
 	import { instagramProfilePictureNeedsAuthenticatedProxy } from '$lib/core/Image.repository.svelte';
 
-	import ImageWithFallback from '$lib/ui/images/ImageWithFallback.svelte';
+	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
 
 	type Props = {
 		/** Raw profile picture URL from the integration API (may be an Instagram CDN URL). */

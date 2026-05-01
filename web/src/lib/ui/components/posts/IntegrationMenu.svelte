@@ -11,7 +11,7 @@
 	import * as Collapsible from '$lib/ui/collapsible';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Popover from '$lib/ui/popover';
-	import { IntegrationChannelPicture } from '$lib/ui/images';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 
 	type Props = {
 		integration: CreateSocialPostChannelViewModel;

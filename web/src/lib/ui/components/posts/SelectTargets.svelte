@@ -3,7 +3,7 @@
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { IntegrationChannelPicture } from '$lib/ui/images';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
 	import RemoveSocialAccount from '$lib/ui/components/posts/RemoveSocialAccount.svelte';
 

@@ -3,7 +3,7 @@
 
 	import { icons } from '$data/icon';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { IntegrationChannelPicture } from '$lib/ui/images';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 	import ThreadsReplyEngagementMock from '$lib/ui/components/posts/providers/threads/ThreadsReplyEngagementMock.svelte';
