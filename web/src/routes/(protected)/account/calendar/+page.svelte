@@ -244,18 +244,26 @@
 		</div>
 
 		{#if !workspaceId}
-			<p class="text-sm text-base-content/70">Select or create a workspace to load channels.</p>
+			<p class="text-sm text-base-content/70">
+				Select or create a workspace to load channels.
+			</p>
 		{:else if channelsLoadPending}
 			<p class="flex items-center gap-2 text-sm text-base-content/70">
 				<AbstractIcon name={icons.LoaderCircle.name} class="h-4 w-4 animate-spin" width="16" height="16" />
 				Loading channels…
 			</p>
 		{:else if listStatus === 'error'}
-			<p class="text-sm text-error">Could not load channels. Try again in a moment.</p>
+			<p class="text-sm text-error">
+				Could not load channels. Try again in a moment.
+			</p>
 		{:else if connectedChannelsVm.length === 0}
-			<p class="text-sm text-base-content/70">No channels yet. Go back and use Add Channel to connect one.</p>
+			<p class="text-sm text-base-content/70">
+				No channels yet. Go back and use Add Channel to connect one.
+			</p>
 		{:else if targetedChannelsVm.length === 0}
-			<p class="text-sm text-base-content/70">No channels match the current filter.</p>
+			<p class="text-sm text-base-content/70">
+				No channels match the current filter.
+			</p>
 		{:else}
 			<ul class="flex list-none flex-row flex-wrap items-center gap-2 p-0">
 				{#each targetedChannelsVm as integration (integration.id)}

@@ -1,4 +1,5 @@
 import type {
+    AnalyticsData,
     AuthTokenDetails,
     GenerateAuthUrlResponse,
     IntegrationRecord,
@@ -7,6 +8,10 @@ import type {
     SocialProvider,
     ValidateCreatePostInput,
 } from "../social.integrations.interface";
+import {
+    fetchInstagramAccountInsights,
+    fetchInstagramMediaInsights,
+} from "./instagramInsightsAnalytics";
 
 import dayjs from "dayjs";
 import { config } from "../../config/GlobalConfig";
@@ -15,6 +20,7 @@ import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
 import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackPath";
 
 const IG_GRAPH = "https://graph.instagram.com";
+const IG_INSIGHTS_GRAPH = "https://graph.instagram.com/v21.0";
 
 function instagramStandaloneOAuth(): { appId: string; appSecret: string } {
     return (config.integrations as { instagramStandalone: { appId: string; appSecret: string } }).instagramStandalone;
@@ -200,5 +206,19 @@ export class InstagramStandaloneProvider implements SocialProvider {
             picture: me.profile_picture_url ?? "",
             username: me.username ?? "",
         };
+    }
+
+    /** Same metrics as Instagram Business, via Instagram Graph host (Business Login). */
+    async analytics(igUserId: string, accessToken: string, dateWindowDays: number): Promise<AnalyticsData[]> {
+        return fetchInstagramAccountInsights(IG_INSIGHTS_GRAPH, igUserId, accessToken, dateWindowDays);
+    }
+
+    async postAnalytics(
+        _integrationId: string,
+        accessToken: string,
+        mediaId: string,
+        _fromDate: number
+    ): Promise<AnalyticsData[]> {
+        return fetchInstagramMediaInsights(IG_INSIGHTS_GRAPH, mediaId, accessToken);
     }
 }

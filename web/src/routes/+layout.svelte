@@ -9,7 +9,7 @@
 	import '../app.postcss';
 	import { page } from '$app/state';
 	import CookieConsentBanner from '$lib/ui/cookie/CookieConsentBanner.svelte';
-	import GoogleAnalytics from '$lib/analytics/GoogleAnalytics.svelte';
+	import GoogleAnalytics from '$lib/product-analytics/GoogleAnalytics.svelte';
 	import { THEME_STORAGE_KEY } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
 
 	type Props = {

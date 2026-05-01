@@ -50,9 +50,9 @@
 	const rootPathCalendar = getRootPathCalendar();
 	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
 
-	// /analytics
+	// /account/analytics
 	const rootPathAnalytics = getRootPathAnalytics();
-	const analyticsPath = route(rootPathAnalytics);
+	const analyticsPath = route(`${rootPathAccount}/${rootPathAnalytics}`);
 
 	// /account/media
 	const rootPathMedia = getRootPathMedia();

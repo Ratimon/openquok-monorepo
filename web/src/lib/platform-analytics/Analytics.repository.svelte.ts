@@ -1,0 +1,61 @@
+import type { HttpGateway } from '$lib/core/HttpGateway';
+import { ApiError } from '$lib/core/HttpGateway';
+import type { AnalyticsSeriesProgrammerModel } from './GetAnalytics.presenter.svelte';
+
+export interface AnalyticsConfig {
+	endpoints: {
+		integrationAnalytics: (integrationId: string) => string;
+	};
+}
+
+export type GetIntegrationAnalyticsResponseDto = {
+	success?: boolean;
+	data?: AnalyticsSeriesProgrammerModel[];
+	message?: string;
+	[key: string]: unknown;
+};
+
+export class AnalyticsRepository {
+	constructor(
+		private readonly httpGateway: HttpGateway,
+		private readonly config: AnalyticsConfig
+	) {}
+
+	async getIntegrationAnalytics(params: {
+		organizationId: string;
+		integrationId: string;
+		date: number;
+	}): Promise<{ ok: true; data: AnalyticsSeriesProgrammerModel[] } | { ok: false; error: string }> {
+		try {
+			const url = this.config.endpoints.integrationAnalytics(params.integrationId);
+			const { ok, data: dto } = await this.httpGateway.get<GetIntegrationAnalyticsResponseDto>(
+				url,
+				{ organizationId: params.organizationId, date: String(params.date) },
+				{ withCredentials: true }
+			);
+
+			if (ok && dto?.success === true && Array.isArray(dto?.data)) {
+				return { ok: true, data: dto.data };
+			}
+			const message = typeof dto?.message === 'string' ? dto.message : null;
+			return { ok: false, error: message || 'Failed to load analytics.' };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Failed to load analytics.' };
+		}
+	}
+}
+

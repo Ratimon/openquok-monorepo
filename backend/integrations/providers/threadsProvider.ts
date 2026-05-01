@@ -1,4 +1,5 @@
 import type {
+    AnalyticsData,
     AuthTokenDetails,
     GenerateAuthUrlResponse,
     IntegrationRecord,
@@ -465,6 +466,116 @@ export class ThreadsProvider implements SocialProvider {
         }
 
         return { threadId: pubJson.id, permalink: infoJson.permalink ?? "" };
+    }
+
+    private capitalizeMetric(name: string): string {
+        if (!name) return name;
+        return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    }
+
+    /**
+     * Account insights for the analytics dashboard (`threads_manage_insights`).
+     */
+    async analytics(id: string, accessToken: string, dateWindowDays: number): Promise<AnalyticsData[]> {
+        const until = dayjs().endOf("day").unix();
+        const since = dayjs().subtract(dateWindowDays, "day").unix();
+        const url =
+            `${GRAPH}/${encodeURIComponent(id)}/threads_insights` +
+            `?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken)}` +
+            `&period=day&since=${since}&until=${until}`;
+
+        const res = await fetch(url);
+        const body = (await res.json()) as {
+            data?: Array<{
+                name?: string;
+                total_value?: { value?: number };
+                values?: Array<{ value?: number; end_time?: string }>;
+            }>;
+            error?: { message?: string };
+        };
+        if (!res.ok || body.error) {
+            return [];
+        }
+
+        const today = dayjs().format("YYYY-MM-DD");
+        const rows =
+            body.data?.map((d) => ({
+                label: this.capitalizeMetric(d.name ?? ""),
+                percentageChange: 0,
+                data: d.total_value
+                    ? [{ total: String(d.total_value.value ?? 0), date: today }]
+                    : (d.values ?? []).map((v) => ({
+                          total: String(v.value ?? 0),
+                          date: v.end_time ? dayjs(v.end_time).format("YYYY-MM-DD") : today,
+                      })),
+            })) ?? [];
+        return rows.filter((r) => r.label.length > 0);
+    }
+
+    /**
+     * Per-thread insights for post statistics (`threads_manage_insights`).
+     */
+    async postAnalytics(
+        _integrationId: string,
+        accessToken: string,
+        threadMediaOrPostId: string,
+        _fromDate: number
+    ): Promise<AnalyticsData[]> {
+        const today = dayjs().format("YYYY-MM-DD");
+        try {
+            const res = await fetch(
+                `${GRAPH}/${encodeURIComponent(threadMediaOrPostId)}/insights` +
+                    `?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken)}`
+            );
+            const json = (await res.json()) as {
+                data?: Array<{
+                    name?: string;
+                    values?: Array<{ value?: number }>;
+                    total_value?: { value?: number };
+                }>;
+                error?: { message?: string };
+            };
+            if (!res.ok || json.error || !json.data?.length) {
+                return [];
+            }
+
+            const result: AnalyticsData[] = [];
+            for (const metric of json.data) {
+                const value = metric.values?.[0]?.value ?? metric.total_value?.value;
+                if (value === undefined) continue;
+
+                let label = "";
+                switch (metric.name) {
+                    case "views":
+                        label = "Views";
+                        break;
+                    case "likes":
+                        label = "Likes";
+                        break;
+                    case "replies":
+                        label = "Replies";
+                        break;
+                    case "reposts":
+                        label = "Reposts";
+                        break;
+                    case "quotes":
+                        label = "Quotes";
+                        break;
+                    default:
+                        label = "";
+                }
+                if (label) {
+                    result.push({
+                        label,
+                        percentageChange: 0,
+                        data: [{ total: String(value), date: today }],
+                    });
+                }
+            }
+            return result;
+        } catch {
+            return [];
+        }
     }
 
     private async fetchUserInfo(accessToken: string): Promise<{

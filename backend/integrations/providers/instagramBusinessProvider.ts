@@ -1,4 +1,5 @@
 import type {
+    AnalyticsData,
     AuthTokenDetails,
     GenerateAuthUrlResponse,
     IntegrationRecord,
@@ -7,6 +8,10 @@ import type {
     SocialProvider,
     ValidateCreatePostInput,
 } from "../social.integrations.interface";
+import {
+    fetchInstagramAccountInsights,
+    fetchInstagramMediaInsights,
+} from "./instagramInsightsAnalytics";
 
 import dayjs from "dayjs";
 import { config } from "../../config/GlobalConfig";
@@ -16,6 +21,7 @@ import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
 import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackPath";
 
 const GRAPH = "https://graph.facebook.com/v20.0";
+const IG_INSIGHTS_GRAPH = "https://graph.facebook.com/v21.0";
 
 function facebookOAuth(): { appId: string; appSecret: string } {
     return (config.integrations as { facebook: { appId: string; appSecret: string } }).facebook;
@@ -312,5 +318,20 @@ export class InstagramBusinessProvider implements SocialProvider {
             picture: information.picture,
             username: information.username,
         };
+    }
+
+    /** Instagram user insights via Facebook Graph (`instagram_manage_insights`). */
+    async analytics(igUserId: string, accessToken: string, dateWindowDays: number): Promise<AnalyticsData[]> {
+        return fetchInstagramAccountInsights(IG_INSIGHTS_GRAPH, igUserId, accessToken, dateWindowDays);
+    }
+
+    /** Media insights for a published Instagram object id (`releaseId`). */
+    async postAnalytics(
+        _integrationId: string,
+        accessToken: string,
+        mediaId: string,
+        _fromDate: number
+    ): Promise<AnalyticsData[]> {
+        return fetchInstagramMediaInsights(IG_INSIGHTS_GRAPH, mediaId, accessToken);
     }
 }

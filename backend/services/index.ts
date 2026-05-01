@@ -32,6 +32,7 @@ import { TransactionalNotificationEmailService } from "./TransactionalNotificati
 import { PostsService } from "./PostsService";
 import { MediaService } from "./MediaService";
 import { SignatureService } from "./SignatureService";
+import { AnalyticsService } from "./AnalyticsService";
 
 import { config } from "../config/GlobalConfig";
 
@@ -127,6 +128,12 @@ export const signatureService = new SignatureService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
+
+export const analyticsService = new AnalyticsService(
+    integrationService,
+    integrationManager,
+    refreshIntegrationService
+);
 export { AuthenticationService } from "./AuthenticationService";
 export { UserService } from "./UserService";
 export { EmailService } from "./EmailService";
@@ -145,3 +152,4 @@ export { TransactionalNotificationEmailService, type SendPlainJobPayload } from 
 export { PostsService } from "./PostsService";
 export { MediaService } from "./MediaService";
 export { SignatureService } from "./SignatureService";
+export { AnalyticsService } from "./AnalyticsService";

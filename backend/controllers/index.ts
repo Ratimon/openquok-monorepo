@@ -15,6 +15,7 @@ import { NotificationController } from "./NotificationController";
 import { PostsController } from "./PostsController";
 import { ThirdPartyController } from "./ThirdPartyController";
 import { SignatureController } from "./SignatureController";
+import { AnalyticsController } from "./AnalyticsController";
 import {
     authenticationService,
     emailService,
@@ -32,6 +33,7 @@ import {
     postsService,
     mediaService,
     signatureService,
+    analyticsService,
 } from "../services/index";
 import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
 import { UploadFactory } from "../connections/upload/upload.factory";
@@ -65,3 +67,4 @@ export const notificationController = new NotificationController(notificationSer
 export const postsController = new PostsController(postsService);
 export const thirdPartyController = new ThirdPartyController();
 export const signatureController = new SignatureController(signatureService);
+export const analyticsController = new AnalyticsController(analyticsService, integrationConnectionService);
