@@ -14,19 +14,21 @@
 	} from '@schedule-x/calendar';
 	import '@schedule-x/theme-default/dist/index.css';
 
-	import TimeGridEvent from '$lib/ui/components/calendar-scheduler/TimeGridEvent.svelte';
-	import DateGridEvent from '$lib/ui/components/calendar-scheduler/DateGridEvent.svelte';
-	import MonthGridEvent from '$lib/ui/components/calendar-scheduler/MonthGridEvent.svelte';
-	import * as Dialog from '$lib/ui/dialog';
-	import { icons } from '$data/icon';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import {
 		registerEditPostGroupHandler,
 		registerOpenActionsForPostGroupHandler,
 		registerRefreshCalendarHandler,
 		triggerOpenActionsForPostGroup
 	} from '$lib/posts/SchedulerPresenter.svelte';
+	import { icons } from '$data/icon';
 	import { socialProviderIcon } from '$lib/posts/constants/socialProviderIcons';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import DateGridEvent from '$lib/ui/components/calendar-scheduler/DateGridEvent.svelte';
+	import * as Dialog from '$lib/ui/dialog';
+	import TimeGridEvent from '$lib/ui/components/calendar-scheduler/TimeGridEvent.svelte';
+	import MonthGridEvent from '$lib/ui/components/calendar-scheduler/MonthGridEvent.svelte';
+	
 
 	type CreateCalendarConfig = Parameters<typeof createCalendar>[0];
 	type DefaultViewName = NonNullable<CreateCalendarConfig['defaultView']>;
@@ -265,7 +267,7 @@
 		const rect = dayEl.getBoundingClientRect();
 		const slotHeight = rect.height / 24;
 
-		const stripW = 18;
+		const stripW = CREATE_STRIP_WIDTH_PX;
 		const stripH = Math.max(24, Math.round(slotHeight));
 
 		let left = Math.round(rect.left - hostRect.left);
@@ -281,6 +283,7 @@
 	}
 
 	const TIME_GRID_HEIGHT_PX = 3600;
+	const CREATE_STRIP_WIDTH_PX = 32;
 
 	$effect(() => {
 		// Update Schedule‑X grid height in-place (do NOT destroy/recreate, it breaks rendering).
@@ -593,7 +596,7 @@
 		<button
 			type="button"
 			class="oq-create-strip bg-primary text-primary-content"
-			style={`left:${createStripLeftPx};top:${createStripTopPx};height:${createStripHeightPx};`}
+			style={`left:${createStripLeftPx};top:${createStripTopPx};height:${createStripHeightPx};width:${CREATE_STRIP_WIDTH_PX}px;`}
 			aria-label="Schedule a new post"
 			onclick={(e) => {
 				e.preventDefault();
@@ -690,7 +693,6 @@
 
 	.oq-create-strip {
 		position: absolute;
-		width: 18px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
