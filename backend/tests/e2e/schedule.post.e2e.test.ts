@@ -33,6 +33,7 @@ const authPath = `${apiPrefix}/auth`;
 const usersPath = `${apiPrefix}/users`;
 const settingsPath = `${apiPrefix}/settings`;
 const postsPath = `${apiPrefix}/posts`;
+const analyticsPath = `${apiPrefix}/analytics`;
 
 const supabaseConfig = config.supabase as { supabaseUrl?: string; supabaseServiceRoleKey?: string };
 const hasSupabaseE2E = Boolean(supabaseConfig.supabaseUrl?.trim() && supabaseConfig.supabaseServiceRoleKey?.trim());
@@ -295,6 +296,14 @@ describe("Scheduling a post for social channels", () => {
         expect(getGroup.body?.data?.status).toBe("scheduled");
         expect(getGroup.body?.data?.integrationIds).toContain(integrationId);
         expect(getGroup.body?.data?.repeatInterval).toBe(repeatInterval);
+
+        const analyticsRes = await supertest(app)
+            .get(`${analyticsPath}/${integrationId}`)
+            .query({ organizationId: orgId, date: "7" })
+            .set("Authorization", `Bearer ${accessToken}`);
+        expect(analyticsRes.status).toBe(200);
+        expect(analyticsRes.body?.success).toBe(true);
+        expect(Array.isArray(analyticsRes.body?.data)).toBe(true);
         },
         25_000
     );
@@ -445,4 +454,44 @@ describe("Scheduling a post for social channels", () => {
         },
         35_000
     );
+
+    describe("Channel analytics for the same workspace setup", () => {
+        it("request without a session cannot load integration analytics", async () => {
+            const res = await supertest(app)
+                .get(`${analyticsPath}/${faker.string.uuid()}`)
+                .query({ organizationId: faker.string.uuid(), date: "7" });
+            expect(res.status).toBe(401);
+        });
+
+        (hasSupabaseE2E ? it : it.skip)(
+            "workspace member gets a structured analytics response for a connected social integration",
+            async () => {
+                const payload = userHelper.setupTestUser1();
+                const { accessToken, orgId } = await signupVerifyAndSignIn(payload);
+
+                const integrationId = faker.string.uuid();
+                const { error: intErr } = await adminSupabase.from("integrations").insert({
+                    id: integrationId,
+                    organization_id: orgId,
+                    internal_id: `e2e-${faker.string.alphanumeric(12)}`,
+                    name: faker.company.name(),
+                    picture: null,
+                    provider_identifier: "threads",
+                    type: "social",
+                    token: "e2e-test-token",
+                });
+                expect(intErr).toBeNull();
+
+                const analyticsRes = await supertest(app)
+                    .get(`${analyticsPath}/${integrationId}`)
+                    .query({ organizationId: orgId, date: "7" })
+                    .set("Authorization", `Bearer ${accessToken}`);
+
+                expect(analyticsRes.status).toBe(200);
+                expect(analyticsRes.body?.success).toBe(true);
+                expect(Array.isArray(analyticsRes.body?.data)).toBe(true);
+            },
+            25_000
+        );
+    });
 });
