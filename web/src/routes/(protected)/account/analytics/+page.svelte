@@ -25,7 +25,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import SocialChannelFilter from '$lib/ui/components/calendar-scheduler/SocialChannelFilter.svelte';
-	import RenderAnalyticsGrid from '$lib/ui/platform-analytics/RenderAnalyticsGrid.svelte';
+	import RenderAnalyticsGrid from '$lib/ui/components/platform-analytics/RenderAnalyticsGrid.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
 
 	/** Same singleton as exported name; shorter reads in markup (matches calendar page pattern). */

@@ -4,7 +4,7 @@
 	import { cn } from '$lib/ui/helpers/common';
     import { icons } from '$data/icons';
 
-	import AnalyticsSparkline from '$lib/ui/platform-analytics/AnalyticsSparkline.svelte';
+	import AnalyticsSparkline from '$lib/ui/components/platform-analytics/AnalyticsSparkline.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {

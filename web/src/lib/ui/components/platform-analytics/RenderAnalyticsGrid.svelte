@@ -2,8 +2,8 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { AnalyticsSeriesViewModel } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 
-	import AnalyticsCard from '$lib/ui/platform-analytics/AnalyticsCard.svelte';
-	import AnalyticsEmptyState from '$lib/ui/platform-analytics/AnalyticsEmptyState.svelte';
+	import AnalyticsCard from '$lib/ui/components/platform-analytics/AnalyticsCard.svelte';
+	import AnalyticsEmptyState from '$lib/ui/components/platform-analytics/AnalyticsEmptyState.svelte';
 
 	type Props = {
 		integrationVm: CreateSocialPostChannelViewModel[];
