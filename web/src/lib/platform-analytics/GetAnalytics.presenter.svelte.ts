@@ -1,13 +1,6 @@
+import type { AnalyticsSeriesProgrammerModel } from '$lib/platform-analytics/Analytics.repository.svelte';
+import type { AnalyticsRepository } from '$lib/platform-analytics/Analytics.repository.svelte';
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-import type { AnalyticsRepository } from './Analytics.repository.svelte';
-
-/** Raw analytics series row from `GET /api/v1/analytics/:integrationId`. */
-export type AnalyticsSeriesProgrammerModel = {
-	label: string;
-	data: Array<{ total: string; date: string }>;
-	percentageChange?: number;
-	average?: boolean;
-};
 
 /** Normalized series for charts / cards (`total` coerced to number). */
 export type AnalyticsSeriesViewModel = {
@@ -64,56 +57,50 @@ export function formatAnalyticsSeriesTotals(list: AnalyticsSeriesViewModel[]): s
 	});
 }
 
+export type LoadMergedAnalyticsResultViewModel =
+	| {
+			ok: true;
+			mergedSeriesVm: AnalyticsSeriesViewModel[];
+			mergedTotalsVm: string[];
+	  }
+	| { ok: false; error: string };
+
 /**
- * Loads merged integration analytics for the analytics overview grid.
+ * ✅ Stateless “Get*” presenter:
+ * - loads analytics PM via {@link AnalyticsRepository}
  */
 export class GetAnalyticsPresenter {
-	loading = $state(false);
-	error = $state<string | null>(null);
-	mergedSeries = $state<AnalyticsSeriesViewModel[]>([]);
-	formattedTotals = $state<string[]>([]);
-
 	constructor(private readonly analyticsRepository: AnalyticsRepository) {}
 
-	async loadMergedAnalytics(params: {
-		organizationId: string | null;
+	async loadMergedAnalyticsVmStateless(params: {
+		organizationId: string;
 		integrations: CreateSocialPostChannelViewModel[];
 		dateWindowDays: number;
-	}): Promise<void> {
-		const { organizationId, integrations, dateWindowDays } = params;
-
-		this.error = null;
-		this.mergedSeries = [];
-		this.formattedTotals = [];
-
-		if (!organizationId || integrations.length === 0) return;
-
-		this.loading = true;
+	}): Promise<LoadMergedAnalyticsResultViewModel> {
 		try {
 			const results = await Promise.all(
-				integrations.map((i) =>
+				params.integrations.map((i) =>
 					this.analyticsRepository.getIntegrationAnalytics({
-						organizationId,
+						organizationId: params.organizationId,
 						integrationId: i.id,
-						date: dateWindowDays
+						date: params.dateWindowDays
 					})
 				)
 			);
 
-			const ok = results.filter((r): r is { ok: true; data: AnalyticsSeriesProgrammerModel[] } => r.ok);
+			const ok = results.filter(
+				(r): r is { ok: true; data: AnalyticsSeriesProgrammerModel[] } => r.ok
+			);
 			if (ok.length === 0) {
 				const firstErr = results.find((r) => !r.ok) as { ok: false; error: string } | undefined;
-				this.error = firstErr?.error ?? 'Failed to load analytics.';
-				return;
+				return { ok: false, error: firstErr?.error ?? 'Failed to load analytics.' };
 			}
 
-			const merged = mergeAnalyticsSeries(ok.map((r) => mapAnalyticsSeriesDto(r.data)));
-			this.mergedSeries = merged;
-			this.formattedTotals = formatAnalyticsSeriesTotals(merged);
+			const mergedSeriesVm = mergeAnalyticsSeries(ok.map((r) => mapAnalyticsSeriesDto(r.data)));
+			const mergedTotalsVm = formatAnalyticsSeriesTotals(mergedSeriesVm);
+			return { ok: true, mergedSeriesVm, mergedTotalsVm };
 		} catch {
-			this.error = 'Failed to load analytics.';
-		} finally {
-			this.loading = false;
+			return { ok: false, error: 'Failed to load analytics.' };
 		}
 	}
 }

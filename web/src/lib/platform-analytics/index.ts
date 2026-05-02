@@ -13,7 +13,6 @@ const analyticsConfig: AnalyticsConfig = {
 };
 
 export const analyticsRepository = new AnalyticsRepository(httpGateway, analyticsConfig);
-
 export const getAnalyticsPresenter = new GetAnalyticsPresenter(analyticsRepository);
 
 export { AnalyticsRepository } from '$lib/platform-analytics/Analytics.repository.svelte';
@@ -28,8 +27,8 @@ export {
 	type SupportedAnalyticsProviderIdentifier
 } from '$data/social-providers';
 export type {
-	AnalyticsSeriesProgrammerModel,
 	AnalyticsSeriesViewModel,
 	AnalyticsSeriesVm
 } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
+export type { AnalyticsSeriesProgrammerModel } from '$lib/platform-analytics/Analytics.repository.svelte';
 

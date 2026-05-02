@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
+	// --- App / routing ---
 	import { page } from '$app/state';
-	import { toast } from '$lib/ui/sonner';
 	import { goto } from '$app/navigation';
 	import { route } from '$lib/utils/path';
 
+	// --- Area presenters ---
 	import {
 		getRootPathAccount,
 		protectedCalendarPagePresenter,
@@ -13,10 +14,15 @@
 	} from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
+	// --- Feedback ---
+	import { toast } from '$lib/ui/sonner';
+
+	// --- Icons ---
 	import { icons } from '$data/icons';
+
+	// --- UI ---
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-
 	import Scheduler from '$lib/ui/components/calendar-scheduler/Scheduler.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
@@ -26,9 +32,10 @@
 
 	const calendarPresenter = protectedCalendarPagePresenter;
 
-	/** Same singleton as on the calendar page presenter; `bind:presenter` cannot target an import binding. */
+	/** Same singleton as calendar presenter; `bind:presenter` cannot target an import binding. */
 	let createPostPresenter = $state.raw(calendarPresenter.createSocialPostPresenter);
 
+	// --- Modal / sheet open state ---
 	let createSocialPostOpen = $state(false);
 
 	let moveGroupOpen = $state(false);
@@ -41,6 +48,7 @@
 	let actionsPostGroup = $state<string | null>(null);
 	let actionsBusy = $state(false);
 
+	// --- Routes & workspace ---
 	const accountRoot = route(getRootPathAccount());
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
@@ -52,6 +60,7 @@
 
 	const groupId = $derived(page.url.searchParams.get('groupId'));
 
+	// --- Navigation & composer ---
 	function goBackToAccount() {
 		void goto(accountRoot);
 	}
@@ -61,13 +70,13 @@
 	}
 
 	function openCreatePostForCurrentScopeAtIso(preselectScheduledAtIso: string | null) {
-		const r = calendarPresenter.getCreatePostPrepareOpenOptions();
-		if (!r.ok) {
-			toast.error(r.error);
+		const resultVm = calendarPresenter.getCreatePostPrepareOpenOptions();
+		if (!resultVm.ok) {
+			toast.error(resultVm.error);
 			return;
 		}
 		calendarPresenter.createSocialPostPresenter.prepareOpen({
-			...r.options,
+			...resultVm.options,
 			preselectScheduledAtIso
 		});
 		createSocialPostOpen = true;
@@ -96,12 +105,12 @@
 		if (!pg) return;
 		actionsBusy = true;
 		try {
-			const r = await calendarPresenter.schedulerPresenter.debugExportPostGroup(pg);
-			if (!r.ok) {
-				toast.error(r.error);
+			const resultVm = await calendarPresenter.schedulerPresenter.debugExportPostGroup(pg);
+			if (!resultVm.ok) {
+				toast.error(resultVm.error);
 				return;
 			}
-			const id = r.data.posts?.[0]?.id;
+			const id = resultVm.data.posts?.[0]?.id;
 			if (!id) {
 				toast.error('Could not preview this post.');
 				return;
@@ -112,6 +121,7 @@
 		}
 	}
 
+	// --- Post group actions modal ---
 	function openActionsForPostGroup(postGroup: string) {
 		if (!postGroup) return;
 		actionsPostGroup = postGroup;
@@ -129,12 +139,12 @@
 		if (!pg) return;
 		actionsBusy = true;
 		try {
-			const r = await calendarPresenter.schedulerPresenter.debugExportPostGroup(pg);
-			if (!r.ok) {
+			const resultVm = await calendarPresenter.schedulerPresenter.debugExportPostGroup(pg);
+			if (!resultVm.ok) {
 				toast.warning('Failed to copy debug data.');
 				return;
 			}
-			await navigator.clipboard.writeText(JSON.stringify(r.data, null, 2));
+			await navigator.clipboard.writeText(JSON.stringify(resultVm.data, null, 2));
 			toast.success('Debug JSON copied to clipboard.');
 		} catch {
 			toast.warning('Failed to copy debug data.');
@@ -150,19 +160,20 @@
 		if (!ok) return;
 		actionsBusy = true;
 		try {
-			const r = await calendarPresenter.schedulerPresenter.deletePostGroup(pg);
-			if (r.ok) {
+			const resultVm = await calendarPresenter.schedulerPresenter.deletePostGroup(pg);
+			if (resultVm.ok) {
 				toast.success('Post deleted.');
 				calendarPresenter.bumpCalendarRefresh();
 				closeActions();
 				return;
 			}
-			toast.error(r.error);
+			toast.error(resultVm.error);
 		} finally {
 			actionsBusy = false;
 		}
 	}
 
+	// --- Channel chips (IntegrationMenu) ---
 	function openTimeTableModal(integration: CreateSocialPostChannelViewModel) {
 		timeTableFor = integration;
 		timeTableOpen = true;
@@ -174,25 +185,26 @@
 	}
 
 	async function handleRemoveChannel(id: string): Promise<boolean> {
-		const r = await calendarPresenter.removeChannel(id);
-		if (r.ok) {
+		const resultVm = await calendarPresenter.removeChannel(id);
+		if (resultVm.ok) {
 			toast.success('Channel removed.');
 			return true;
 		}
-		toast.error(r.error);
+		toast.error(resultVm.error);
 		return false;
 	}
 
 	async function handleSetChannelDisabled(id: string, disabled: boolean): Promise<boolean> {
-		const r = await calendarPresenter.setChannelDisabled(id, disabled);
-		if (r.ok) {
+		const resultVm = await calendarPresenter.setChannelDisabled(id, disabled);
+		if (resultVm.ok) {
 			toast.success(disabled ? 'Channel disabled.' : 'Channel enabled.');
 			return true;
 		}
-		toast.error(r.error);
+		toast.error(resultVm.error);
 		return false;
 	}
 
+	// --- Effects: reset modal payloads; load integrations when workspace is set ---
 	$effect(() => {
 		if (!moveGroupOpen) {
 			moveGroupFor = null;

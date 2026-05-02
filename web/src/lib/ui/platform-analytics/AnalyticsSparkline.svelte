@@ -1,4 +1,5 @@
 <script lang="ts">
+
 	type Point = { date: string; total: number };
 	type Props = {
 		data: Point[];

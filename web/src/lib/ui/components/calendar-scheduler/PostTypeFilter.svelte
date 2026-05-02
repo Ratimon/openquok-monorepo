@@ -1,13 +1,11 @@
 <script lang="ts">
+	import type { PostStateFilterVm } from '$lib/posts';
+
 	import { icons } from '$data/icons';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { Badge } from '$lib/ui/badge';
 	import { Checkbox } from '$lib/ui/checkbox';
-
-	export type PostStateFilterVm = {
-		allPostStates: boolean;
-		selectedPostStates: string[];
-	};
 
 	type Props = PostStateFilterVm & {
 		onChange: (next: PostStateFilterVm) => void;

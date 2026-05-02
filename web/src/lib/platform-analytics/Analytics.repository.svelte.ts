@@ -1,6 +1,13 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import { ApiError } from '$lib/core/HttpGateway';
-import type { AnalyticsSeriesProgrammerModel } from './GetAnalytics.presenter.svelte';
+
+/** Raw analytics series row from `GET /api/v1/analytics/:integrationId`. */
+export type AnalyticsSeriesProgrammerModel = {
+	label: string;
+	data: Array<{ total: string; date: string }>;
+	percentageChange?: number;
+	average?: boolean;
+};
 
 export interface AnalyticsConfig {
 	endpoints: {

@@ -1,9 +1,11 @@
 <script lang="ts">
-	import AnalyticsSparkline from './AnalyticsSparkline.svelte';
-	import { cn } from '$lib/ui/helpers/common';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { icons } from '$data/icons';
 	import type { AnalyticsSeriesVm } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
+
+	import { cn } from '$lib/ui/helpers/common';
+    import { icons } from '$data/icons';
+
+	import AnalyticsSparkline from '$lib/ui/platform-analytics/AnalyticsSparkline.svelte';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
 		item: AnalyticsSeriesVm;

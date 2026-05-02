@@ -9,20 +9,19 @@ import type {
 	DashboardChannelMutationViewModel,
 	ProtectedDashboardPagePresenter
 } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-
 import type { IconName } from '$data/icons';
 
+import { url } from '$lib/utils/path';
 import { socialProviderIcon } from '$data/social-providers';
 
-import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
-import { route } from '$lib/utils/path';
-import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-
 /**
- * Account calendar screen: scoped channel targeting, scheduler refresh, and create-post preparation
- * on top of {@link ProtectedDashboardPagePresenter} workspace channel data.
+ * Account `/account/calendar`: targeted channels, Schedule‑X reload fingerprint, composer scope.
+ *
+ * Delegates channel CRUD + OAuth URLs to {@link ProtectedDashboardPagePresenter}; bumps {@link calendarRefreshKey}
+ * after mutations so {@link SchedulerPresenter} reloads.
  */
 export class ProtectedCalendarPagePresenter {
+	// --- Scheduler header chips / reload ---
 	targetedChannelsVm = $state<CreateSocialPostChannelViewModel[]>([]);
 	calendarRefreshKey = $state(0);
 
@@ -33,30 +32,16 @@ export class ProtectedCalendarPagePresenter {
 		readonly createSocialPostPresenter: CreateSocialPostPresenter
 	) {}
 
+	// --- OAuth / icons ---
 	providerIcon(identifier: string): IconName {
 		return socialProviderIcon(identifier);
 	}
 
 	continueSetupHref(integration: CreateSocialPostChannelViewModel): string {
-		const accountRoot = route(getRootPathAccount());
-		const workspaceId = this.workspaceSettings.currentWorkspaceId;
-		if (!workspaceId) return accountRoot;
-		if (integration.identifier === 'instagram-business') {
-			const qs = new URLSearchParams({
-				organizationId: workspaceId,
-				integrationId: integration.id,
-				returnTo: accountRoot
-			});
-			return `${integrationOAuthCallbackPath('instagram-business')}?${qs}`;
-		}
-		const qs = new URLSearchParams({
-			organizationId: workspaceId,
-			returnTo: accountRoot,
-			refresh: integration.internalId
-		});
-		return `${integrationOAuthCallbackPath(integration.identifier)}?${qs}`;
+		return this.dashboardPagePresenter.continueSetupHref(integration, url('/account/calendar'));
 	}
 
+	// --- Targeted channel list (filled by Scheduler via callback) ---
 	setTargetedChannels(channels: CreateSocialPostChannelViewModel[]): void {
 		this.targetedChannelsVm = channels;
 	}
@@ -74,6 +59,7 @@ export class ProtectedCalendarPagePresenter {
 		void this.dashboardPagePresenter.loadDashboardLists();
 	}
 
+	// --- Create-post composer scope from current targeted channels ---
 	/** Composer open options for the current calendar channel scope (route applies via {@link CreateSocialPostPresenter.prepareOpen}). */
 	getCreatePostPrepareOpenOptions():
 		| { ok: true; options: CreateSocialPostPrepareOpenOptions }
@@ -106,6 +92,7 @@ export class ProtectedCalendarPagePresenter {
 		return { ok: true, options };
 	}
 
+	// --- Channel mutations (delegate + bump scheduler refresh on success) ---
 	async removeChannel(id: string): Promise<DashboardChannelMutationViewModel> {
 		const removeChannelResult = await this.dashboardPagePresenter.removeChannel(id);
 		if (removeChannelResult.ok) this.bumpCalendarRefresh();

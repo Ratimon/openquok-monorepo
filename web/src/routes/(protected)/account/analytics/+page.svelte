@@ -1,50 +1,56 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { absoluteUrl, route, url } from '$lib/utils/path';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
-	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
+	// --- Navigation & routing ---
+	import { goto } from '$app/navigation';
+	import { route } from '$lib/utils/path';
+
+	// --- Area presenters (singletons from composition root) ---
+	import {
+		getRootPathAccount,
+		protectedAnalyticsPagePresenter,
+		protectedDashboardPagePresenter
+	} from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+
+	// --- Feedback ---
+	import { toast } from '$lib/ui/sonner';
+
+	// --- Data / icons ---
 	import { icons } from '$data/icons';
+	import { socialProviderIcon } from '$data/social-providers';
+
+	// --- UI ---
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
-	import SocialChannelFilter, {
-		type SocialPlatformFilterVm
-	} from '$lib/ui/components/calendar-scheduler/SocialChannelFilter.svelte';
+	import SocialChannelFilter from '$lib/ui/components/calendar-scheduler/SocialChannelFilter.svelte';
 	import RenderAnalyticsGrid from '$lib/ui/platform-analytics/RenderAnalyticsGrid.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
-	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
-	import {
-		SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS,
-		socialProviderIcon
-	} from '$data/social-providers';
+	/** Same singleton as exported name; shorter reads in markup (matches calendar page pattern). */
+	const analyticsPresenter = protectedAnalyticsPagePresenter;
 
+	// --- Routes (static, base-aware via `route`) ---
 	const accountRoot = route(getRootPathAccount());
+
+	// --- Workspace + integration list (dashboard presenter is source of truth) ---
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
 	const channelsLoadPending = $derived(listStatus === 'idle' || listStatus === 'loading');
 
-	const supportedIntegrations = [...SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS];
-	const supportedIntegrationSet = new Set<string>(supportedIntegrations);
+	// --- Analytics screen VM (filters + merged series live on analytics presenter) ---
+	const supportedIntegrations = $derived(analyticsPresenter.supportedIntegrations);
+	const filteredIntegrationsVm = $derived(analyticsPresenter.filteredIntegrationsVm);
 
+	/** Triggers reload when targeted integration set changes (platform filter / disconnect). */
+	const analyticsIntegrationIdsKey = $derived.by(() => filteredIntegrationsVm.map((i) => i.id).join(','));
+
+	// --- Page-local UI state ---
 	let dateWindowDays = $state<number>(7);
-	let platformFilter = $state<SocialPlatformFilterVm>({
-		allSocialPlatforms: true,
-		selectedSocialPlatformIdentifiers: []
-	});
 
-	const filteredIntegrations = $derived.by(() => {
-		const list = connectedChannelsVm.filter((c) =>
-			supportedIntegrationSet.has(String(c.identifier ?? '').trim())
-		);
-		if (platformFilter.allSocialPlatforms) return list;
-		const allowed = new Set(platformFilter.selectedSocialPlatformIdentifiers);
-		return list.filter((c) => allowed.has(String(c.identifier ?? '')));
-	});
-
+	// --- Handlers (Pattern B: toast in route after mutation-style results) ---
 	function goToCalendarToAddChannels() {
 		void goto(`${accountRoot}/calendar`);
 	}
@@ -57,32 +63,47 @@
 			.join('-');
 	}
 
-	function continueSetupHrefForIntegration(integration: CreateSocialPostChannelViewModel): string {
-		if (!workspaceId) return url(`/${getRootPathAccount()}`);
-		if (integration.identifier === 'instagram-business') {
-			const qs = new URLSearchParams({
-				organizationId: workspaceId,
-				integrationId: integration.id,
-				returnTo: url('/account/analytics')
-			});
-			return absoluteUrl(`${integrationOAuthCallbackPath('instagram-business')}?${qs}`);
+	async function handleRemoveChannel(id: string): Promise<boolean> {
+		const resultVm = await protectedDashboardPagePresenter.removeChannel(id);
+		if (resultVm.ok) {
+			toast.success('Channel removed.');
+			return true;
 		}
-		const qs = new URLSearchParams({
-			organizationId: workspaceId,
-			returnTo: url('/account/analytics'),
-			refresh: integration.internalId
-		});
-		return absoluteUrl(`${integrationOAuthCallbackPath(integration.identifier)}?${qs}`);
-	}
-
-	async function noopAsync(): Promise<boolean> {
+		toast.error(resultVm.error);
 		return false;
 	}
 
+	async function handleSetChannelDisabled(id: string, disabled: boolean): Promise<boolean> {
+		const resultVm = await protectedDashboardPagePresenter.setChannelDisabled(id, disabled);
+		if (resultVm.ok) {
+			toast.success(disabled ? 'Channel disabled.' : 'Channel enabled.');
+			return true;
+		}
+		toast.error(resultVm.error);
+		return false;
+	}
+
+	function handleRefreshIntegration(integration: CreateSocialPostChannelViewModel) {
+		// Authorize-url fetch, error toast, and redirect are handled by the presenter.
+		void analyticsPresenter.refreshIntegrationForAnalytics(integration);
+	}
+
+	// --- Effects: keep lists warm, then load merged analytics when inputs change ---
 	$effect(() => {
 		const orgId = workspaceId;
 		if (!orgId) return;
-		void protectedDashboardPagePresenter.loadDashboardLists();
+		analyticsPresenter.syncWorkspaceDashboardLists();
+	});
+
+	$effect(() => {
+		void analyticsIntegrationIdsKey;
+		void dateWindowDays;
+		void workspaceId;
+		void analyticsPresenter.loadMergedAnalytics({
+			organizationId: workspaceId,
+			integrations: filteredIntegrationsVm,
+			dateWindowDays
+		});
 	});
 </script>
 
@@ -131,9 +152,11 @@
 				<div class="flex flex-wrap items-center justify-end gap-2">
 					<SocialChannelFilter
 						channels={connectedChannelsVm}
-						allSocialPlatforms={platformFilter.allSocialPlatforms}
-						selectedSocialPlatformIdentifiers={platformFilter.selectedSocialPlatformIdentifiers}
-						onChange={(next) => (platformFilter = next)}
+						allSocialPlatforms={analyticsPresenter.platformFilterVm.allSocialPlatforms}
+						selectedSocialPlatformIdentifiers={
+							analyticsPresenter.platformFilterVm.selectedSocialPlatformIdentifiers
+						}
+						onChange={(next) => (analyticsPresenter.platformFilterVm = next)}
 					/>
 
 					<div class="w-[200px]">
@@ -151,11 +174,11 @@
 				</div>
 			</div>
 
-			{#if filteredIntegrations.length === 0}
+			{#if filteredIntegrationsVm.length === 0}
 				<p class="text-sm text-base-content/70">No channels match the current filter.</p>
 			{:else}
 				<ul class="flex list-none flex-row flex-wrap items-center gap-2 p-0">
-					{#each filteredIntegrations as integration (integration.id)}
+					{#each filteredIntegrationsVm as integration (integration.id)}
 						<li class="min-w-0">
 							<IntegrationMenu
 								variant="chip"
@@ -163,11 +186,11 @@
 								{integration}
 								workspaceId={workspaceId}
 								providerIcon={socialProviderIcon}
-								continueSetupHref={continueSetupHrefForIntegration}
+								continueSetupHref={(i) => analyticsPresenter.continueSetupHref(i)}
 								onMoveToGroup={() => {}}
 								onEditTimeSlots={() => {}}
-								onSetDisabled={noopAsync}
-								onRemove={noopAsync}
+								onSetDisabled={handleSetChannelDisabled}
+								onRemove={handleRemoveChannel}
 							/>
 						</li>
 					{/each}
@@ -176,9 +199,17 @@
 		</section>
 
 		<section class="space-y-3">
-			<h3 class="text-lg font-semibold text-base-content">Overview</h3>
-			<RenderAnalyticsGrid organizationId={workspaceId} integrations={filteredIntegrations} dateWindowDays={dateWindowDays} />
+			<h3 class="text-lg font-semibold text-base-content">
+				Overview
+			</h3>
+			<RenderAnalyticsGrid
+				integrationVm={filteredIntegrationsVm}
+				loading={analyticsPresenter.loading}
+				error={analyticsPresenter.error}
+				seriesVm={analyticsPresenter.mergedSeriesVm}
+				totals={analyticsPresenter.mergedTotalsVm}
+				onRefreshIntegration={handleRefreshIntegration}
+			/>
 		</section>
 	{/if}
 </div>
-

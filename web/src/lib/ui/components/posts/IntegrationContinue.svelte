@@ -250,15 +250,15 @@
 		}
 		submittingIgId = igId;
 		try {
-			const r = await integrationsRepository.saveProviderPage({
+			const resultVm = await integrationsRepository.saveProviderPage({
 				organizationId: vm.organizationId,
 				integrationId: vm.integrationId,
 				pageId: row.pageId,
 				id: row.id,
 				state: vm.oauthState
 			});
-			if (!r.ok) {
-				toast.error(r.error);
+			if (!resultVm.ok) {
+				toast.error(resultVm.error);
 				return;
 			}
 			toast.success('Instagram channel connected.');

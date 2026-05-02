@@ -52,32 +52,32 @@
 			if (trimmed) {
 				const exactByName = groups.find((g) => g.name.toLowerCase() === trimmed.toLowerCase());
 				if (exactByName) {
-					const r = await protectedDashboardPagePresenter.assignChannelGroup(
+					const resultVm = await protectedDashboardPagePresenter.assignChannelGroup(
 						integration.id,
 						exactByName.id,
 						exactByName.name
 					);
-					if (r.ok) {
+					if (resultVm.ok) {
 						toast.success('Channel updated.');
 						open = false;
 					} else {
-						toast.error(r.error);
+						toast.error(resultVm.error);
 					}
 					return;
 				}
 			}
 			if (selectedGroupId && groups.some((g) => g.id === selectedGroupId)) {
 				const picked = groups.find((g) => g.id === selectedGroupId)!;
-				const r = await protectedDashboardPagePresenter.assignChannelGroup(
+				const resultVm = await protectedDashboardPagePresenter.assignChannelGroup(
 					integration.id,
 					picked.id,
 					picked.name
 				);
-				if (r.ok) {
+				if (resultVm.ok) {
 					toast.success('Channel updated.');
 					open = false;
 				} else {
-					toast.error(r.error);
+					toast.error(resultVm.error);
 				}
 				return;
 			}
@@ -110,12 +110,12 @@
 		if (!integration) return;
 		busy = true;
 		try {
-			const r = await protectedDashboardPagePresenter.assignChannelGroup(integration.id, null);
-			if (r.ok) {
+			const resultVm = await protectedDashboardPagePresenter.assignChannelGroup(integration.id, null);
+			if (resultVm.ok) {
 				toast.success('Removed from group.');
 				open = false;
 			} else {
-				toast.error(r.error);
+				toast.error(resultVm.error);
 			}
 		} finally {
 			busy = false;

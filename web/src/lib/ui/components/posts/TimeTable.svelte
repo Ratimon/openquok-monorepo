@@ -136,13 +136,13 @@
 		const payload = [...draftMinutes].sort((a, b) => a - b).map((time) => ({ time }));
 		busy = true;
 		try {
-			const r = await protectedDashboardPagePresenter.setPostingTimes(integration.id, payload);
-			if (r.ok) {
+			const resultVm = await protectedDashboardPagePresenter.setPostingTimes(integration.id, payload);
+			if (resultVm.ok) {
 				toast.success('Time slots saved.');
 				baselineMinutes = [...draftMinutes].sort((a, b) => a - b);
 				open = false;
 			} else {
-				toast.error(r.error);
+				toast.error(resultVm.error);
 			}
 		} finally {
 			busy = false;

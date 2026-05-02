@@ -91,13 +91,13 @@
 
 		void (async () => {
 			try {
-				const r = await loadPostGroup(pg);
+				const resultVm = await loadPostGroup(pg);
 				if (token !== loadToken) return;
-				if (!r.ok) {
-					headerError = r.error;
+				if (!resultVm.ok) {
+					headerError = resultVm.error;
 					return;
 				}
-				const g = r.group;
+				const g = resultVm.group;
 				const firstIntegrationId = g.integrationIds?.[0] ?? null;
 				const ch = firstIntegrationId
 					? channels.find((x: CreateSocialPostChannelViewModel) => x.id === firstIntegrationId)

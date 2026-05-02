@@ -59,7 +59,9 @@ export type {
 	CalendarLayoutModeViewModel,
 	CalendarSchedulerFiltersViewModel,
 	ChannelViewModel,
-	ScheduledPostsCalendarViewModel
+	PostStateFilterVm,
+	ScheduledPostsCalendarViewModel,
+	SocialPlatformFilterVm
 } from '$lib/posts/SchedulerPresenter.svelte';
 export { CALENDAR_UNGROUPED_SENTINEL, SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
 export { socialProviderIcon, socialProviderIconByIdentifier } from '$data/social-providers';

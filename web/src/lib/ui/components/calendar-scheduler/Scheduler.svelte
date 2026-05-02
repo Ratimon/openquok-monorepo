@@ -4,7 +4,9 @@
 		CalendarGranularityViewModel,
 		CalendarLayoutModeViewModel,
 		ChannelViewModel,
-		SchedulerPresenter
+		PostStateFilterVm,
+		SchedulerPresenter,
+		SocialPlatformFilterVm
 	} from '$lib/posts';
 
 	import { toast } from '$lib/ui/sonner';
@@ -137,12 +139,12 @@
 		// `effect_update_depth_exceeded` because this effect depends on `presenter.scheduledPostsCalendarVm`.
 		queueMicrotask(() => {
 			void (async () => {
-				const r = await presenter.loadPostsForCurrentRange({
+				const resultVm = await presenter.loadPostsForCurrentRange({
 					organizationId,
 					channels,
 					refreshKey
 				});
-				if (!r.ok) toast.error(r.error);
+				if (!resultVm.ok) toast.error(resultVm.error);
 			})();
 		});
 	});
@@ -169,14 +171,11 @@
 		presenter.setGroupFilter(next);
 	}
 
-	function onPostTypeFilterChange(next: { allPostStates: boolean; selectedPostStates: string[] }) {
+	function onPostTypeFilterChange(next: PostStateFilterVm) {
 		presenter.setPostStateFilter(next);
 	}
 
-	function onSocialPlatformFilterChange(next: {
-		allSocialPlatforms: boolean;
-		selectedSocialPlatformIdentifiers: string[];
-	}) {
+	function onSocialPlatformFilterChange(next: SocialPlatformFilterVm) {
 		presenter.setSocialPlatformFilter(next);
 	}
 

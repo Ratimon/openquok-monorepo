@@ -78,6 +78,18 @@ export type CalendarIntegrationFilterViewModel =
 	| { kind: 'integrations'; integrationIds: string[] }
 	| { kind: 'none' };
 
+/** Post state checkbox filter (calendar toolbar). */
+export type PostStateFilterVm = {
+	allPostStates: boolean;
+	selectedPostStates: string[];
+};
+
+/** Social platform checkbox filter (calendar toolbar). */
+export type SocialPlatformFilterVm = {
+	allSocialPlatforms: boolean;
+	selectedSocialPlatformIdentifiers: string[];
+};
+
 /** Scheduled-posts calendar surface: toolbar, date range, channel-group scope, fetch status, grid events. */
 export type ScheduledPostsCalendarViewModel = {
 	granularity: CalendarGranularityViewModel;
@@ -432,17 +444,14 @@ export class SchedulerPresenter {
 		this._patchScheduledPostsCalendarVm({ allGroups: next.allGroups, selectedGroupIds: next.selectedGroupIds });
 	}
 
-	setPostStateFilter(next: { allPostStates: boolean; selectedPostStates: string[] }): void {
+	setPostStateFilter(next: PostStateFilterVm): void {
 		this._patchScheduledPostsCalendarVm({
 			allPostStates: next.allPostStates,
 			selectedPostStates: next.selectedPostStates
 		});
 	}
 
-	setSocialPlatformFilter(next: {
-		allSocialPlatforms: boolean;
-		selectedSocialPlatformIdentifiers: string[];
-	}): void {
+	setSocialPlatformFilter(next: SocialPlatformFilterVm): void {
 		this._patchScheduledPostsCalendarVm({
 			allSocialPlatforms: next.allSocialPlatforms,
 			selectedSocialPlatformIdentifiers: next.selectedSocialPlatformIdentifiers

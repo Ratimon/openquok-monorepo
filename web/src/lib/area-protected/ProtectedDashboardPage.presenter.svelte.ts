@@ -5,6 +5,10 @@ import type {
 import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
+import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
+import { absoluteUrl, route, url } from '$lib/utils/path';
+import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
+
 /** One scheduled posting slot: minutes after midnight (0–1439), matching `integrations.posting_times` JSON. */
 export type PostingTimeSlotViewModel = { time: number };
 
@@ -213,9 +217,10 @@ export type DashboardPostConnectQueryViewModel =
 	| { handled: true; successToastMessage?: string };
 
 /**
- * Account dashboard: workspace channels list and post-OAuth landing feedback (`?added=&msg=&onboarding=`).
+ * Account `/account` dashboard: workspace channels, channel groups, post-connect query handling, OAuth continue URLs.
  */
 export class ProtectedDashboardPagePresenter {
+	// --- Raw list + status (integrations API) ---
 	connectedChannelsVm = $state<CreateSocialPostChannelViewModel[]>([]);
 	listStatus = $state<DashboardIntegrationsLoadStatus>('idle');
 	channelGroupsVm = $state<WorkspaceChannelGroupViewModel[]>([]);
@@ -225,7 +230,7 @@ export class ProtectedDashboardPagePresenter {
 	/** Coalesces overlapping list + channel-group loads (same navigation tick, post-connect, etc.). */
 	private dashboardListsInflight: Promise<void> | null = null;
 
-
+	// --- Derived rows for menus / sections (built from connectedChannelsVm) ---
 	/** Grouped by integration `type` for dashboard menus. */
 	menuGroups = $derived.by(() => buildDashboardChannelMenuGroupsVm(this.connectedChannelsVm));
 
@@ -246,6 +251,35 @@ export class ProtectedDashboardPagePresenter {
 		readonly createSocialPostPresenter: CreateSocialPostPresenter
 	) {}
 
+	// --- OAuth continue URLs (optional `oauthReturnTo` for calendar/analytics) ---
+	/**
+	 * Absolute OAuth continue URL for a channel.
+	 * When `oauthReturnTo` is omitted, `returnTo` is the routed account root (same as dashboard / calendar).
+	 */
+	continueSetupHref(
+		integration: CreateSocialPostChannelViewModel,
+		oauthReturnTo?: string
+	): string {
+		const workspaceId = this.workspaceSettingsPresenter.currentWorkspaceId;
+		if (!workspaceId) return url(`/${getRootPathAccount()}`);
+		const returnTo = oauthReturnTo ?? route(getRootPathAccount());
+		if (integration.identifier === 'instagram-business') {
+			const qs = new URLSearchParams({
+				organizationId: workspaceId,
+				integrationId: integration.id,
+				returnTo
+			});
+			return absoluteUrl(`${integrationOAuthCallbackPath('instagram-business')}?${qs}`);
+		}
+		const qs = new URLSearchParams({
+			organizationId: workspaceId,
+			returnTo,
+			refresh: integration.internalId
+		});
+		return absoluteUrl(`${integrationOAuthCallbackPath(integration.identifier)}?${qs}`);
+	}
+
+	// --- Integration list + channel groups ---
 	/**
 	 * Loads integrations list and channel groups for the current workspace in one coordinated pass.
 	 * Prefer this over separate `loadConnectedIntegrations` / `loadChannelGroups` from UI to avoid duplicate HTTP.
@@ -316,12 +350,12 @@ export class ProtectedDashboardPagePresenter {
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
 		}
-		const res = await this.integrationsRepository.createChannelCustomer({ organizationId: orgId, name });
-		if (res.ok) {
-			this._insertChannelGroupSorted({ id: res.id, name: res.name });
-			return { ok: true, id: res.id, name: res.name };
+		const resPm = await this.integrationsRepository.createChannelCustomer({ organizationId: orgId, name });
+		if (resPm.ok) {
+			this._insertChannelGroupSorted({ id: resPm.id, name: resPm.name });
+			return { ok: true, id: resPm.id, name: resPm.name };
 		}
-		return { ok: false, error: res.error };
+		return { ok: false, error: resPm.error };
 	}
 
 	/**
@@ -338,12 +372,12 @@ export class ProtectedDashboardPagePresenter {
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
 		}
-		const res = await this.integrationsRepository.assignChannelCustomer({
+		const resPm = await this.integrationsRepository.assignChannelCustomer({
 			organizationId: orgId,
 			integrationId,
 			customerId: groupId
 		});
-		if (res.ok) {
+		if (resPm.ok) {
 			const group: WorkspaceChannelGroupViewModel | null =
 				groupId === null
 					? null
@@ -361,7 +395,7 @@ export class ProtectedDashboardPagePresenter {
 			this._patchIntegrationGroup(integrationId, group);
 			return { ok: true };
 		}
-		return { ok: false, error: res.error };
+		return { ok: false, error: resPm.error };
 	}
 
 	dismissOnboardingWelcome(): void {
@@ -373,15 +407,15 @@ export class ProtectedDashboardPagePresenter {
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
 		}
-		const res = await this.integrationsRepository.deleteChannel({
+		const resPm = await this.integrationsRepository.deleteChannel({
 			organizationId: orgId,
 			integrationId
 		});
-		if (res.ok) {
+		if (resPm.ok) {
 			await this.loadConnectedIntegrations();
 			return { ok: true };
 		}
-		return { ok: false, error: res.error };
+		return { ok: false, error: resPm.error };
 	}
 
 	async setChannelDisabled(integrationId: string, disabled: boolean): Promise<DashboardChannelMutationViewModel> {
@@ -389,16 +423,16 @@ export class ProtectedDashboardPagePresenter {
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
 		}
-		const res = await this.integrationsRepository.setChannelDisabled({
+		const resPm = await this.integrationsRepository.setChannelDisabled({
 			organizationId: orgId,
 			integrationId,
 			disabled
 		});
-		if (res.ok) {
+		if (resPm.ok) {
 			await this.loadConnectedIntegrations();
 			return { ok: true };
 		}
-		return { ok: false, error: res.error };
+		return { ok: false, error: resPm.error };
 	}
 
 	async setPostingTimes(

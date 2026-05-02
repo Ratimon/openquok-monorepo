@@ -88,17 +88,17 @@
 		}
 		if (invite) {
 			void (async () => {
-				const r = await integrationsRepository.getAuthorizeUrl({
+				const resultVm = await integrationsRepository.getAuthorizeUrl({
 					organizationId: workspaceId,
 					provider: identifier,
 					...(onboarding ? { onboarding: 'true' } : {})
 				});
-				if (!('url' in r)) {
-					toast.error(r.error);
+				if (!('url' in resultVm)) {
+					toast.error(resultVm.error);
 					return;
 				}
 				try {
-					await navigator.clipboard.writeText(r.url);
+					await navigator.clipboard.writeText(resultVm.url);
 					toast.success('Invite link copied to clipboard (valid for 1 hour).');
 					open = false;
 				} catch {

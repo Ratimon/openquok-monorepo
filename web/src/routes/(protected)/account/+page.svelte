@@ -5,18 +5,25 @@
 		DashboardPlatformChannelRowViewModel
 	} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
+	// --- App / routing ---
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { absoluteUrl, route, url } from '$lib/utils/path';
+
+	// --- Area & integrations ---
 	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
+	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+
+	// --- Feedback ---
 	import { toast } from '$lib/ui/sonner';
 
-	/** Same singleton as on the page presenter; `bind:presenter` cannot target an import binding. */
-	let createPostPresenter = $state.raw(protectedDashboardPagePresenter.createSocialPostPresenter);
-	import { absoluteUrl, route, url } from '$lib/utils/path';
+	// --- Data / icons ---
 	import { icons } from '$data/icons';
+	import { socialProviderDisplayLabel, socialProviderIcon } from '$data/social-providers';
 
+	// --- UI ---
 	import { Alert, AlertDescription, AlertTitle } from '$lib/ui/alert';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AddProvider from '$lib/ui/components/posts/AddProvider.svelte';
@@ -24,10 +31,8 @@
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
-	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
-	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
-	import { socialProviderDisplayLabel, socialProviderIcon } from '$data/social-providers';
+	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 
 	type Props = {
 		data: PageData;
@@ -35,15 +40,20 @@
 
 	let { data }: Props = $props();
 
+	/** Same singleton as dashboard presenter; `bind:presenter` cannot target an import binding. */
+	let createPostPresenter = $state.raw(protectedDashboardPagePresenter.createSocialPostPresenter);
+
+	// --- Layout data ---
 	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? (page.data as App.LayoutData)?.currentUser ?? null);
 
+	// --- Workspace + dashboard VMs ---
 	const accountRoot = $derived(route(getRootPathAccount()));
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 	const platformChannelRowsUngrouped = $derived(protectedDashboardPagePresenter.platformChannelRowsUngrouped);
 	const channelGroupSections = $derived(protectedDashboardPagePresenter.channelGroupSections);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
 	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
-	const connectedChannelCount = $derived(connectedChannelsVm.length);
+	const connectedChannelCountVm = $derived(connectedChannelsVm.length);
 
 	/** Same integration `identifier` with two or more social connections (different accounts). */
 	const hasSocialPlatformWithMultipleChannels = $derived.by(() => {
@@ -62,20 +72,22 @@
 	const showSamePlatformMultiChannelAlert = $derived(
 		Boolean(workspaceId) &&
 			listStatus === 'ready' &&
-			connectedChannelCount === 1 &&
+			connectedChannelCountVm === 1 &&
 			!hasSocialPlatformWithMultipleChannels
 	);
 
+	// --- Modal open state ---
 	let groupDetailsOpen = $state<Record<string, boolean>>({});
 	let ungroupedDetailsOpen = $state(true);
 	let moveGroupOpen = $state(false);
 	let moveGroupFor = $state<CreateSocialPostChannelViewModel | null>(null);
 
 	let timeTableOpen = $state(false);
-	let timeTableFor = $state<CreateSocialPostChannelViewModel | null>(null);
+	let timeTableForVm = $state<CreateSocialPostChannelViewModel | null>(null);
 
 	let createSocialPostOpen = $state(false);
 
+	// --- Composer & navigation ---
 	function openCreatePost(preselectIntegrationId: string | null) {
 		protectedDashboardPagePresenter.createSocialPostPresenter.prepareOpen({
 			preselectIntegrationId,
@@ -108,10 +120,11 @@
 	}
 
 	function openTimeTableModal(integration: CreateSocialPostChannelViewModel) {
-		timeTableFor = integration;
+		timeTableForVm = integration;
 		timeTableOpen = true;
 	}
 
+	// --- Effects: section defaults + modal cleanup ---
 	$effect.pre(() => {
 		for (const g of channelGroupSections) {
 			if (groupDetailsOpen[g.id] === undefined) {
@@ -128,10 +141,10 @@
 
 	$effect(() => {
 		if (!timeTableOpen) {
-			timeTableFor = null;
+			timeTableForVm = null;
 		}
 	});
-	
+
 	/**
 	 * Onboarding wizard (`OnBoardingModal`): wide modal, step 1 uses a 9-column grid on large screens.
 	 * It opens from the `$effect` below when there are no connected channels and onboarding is not
@@ -165,6 +178,7 @@
 		}
 	}
 
+	// --- Onboarding visibility (welcome flag + first-empty-workspace auto-open) ---
 	$effect(() => {
 		const w = protectedDashboardPagePresenter.showOnboardingWelcome;
 		if (w && !prevOnboardingWelcome) {
@@ -187,13 +201,14 @@
 		if (!workspaceId) return;
 		if (!currentUser) return;
 		if (protectedDashboardPagePresenter.listStatus !== 'ready') return;
-		const hasAnyChannels = connectedChannelCount > 0;
+		const hasAnyChannels = connectedChannelCountVm > 0;
 		if (hasAnyChannels) return;
 		if (isOnboardingCompleted()) return;
 		onboardingDialogOpen = true;
 		hasAutoOpenedOnboarding = true;
 	});
 
+	// --- Channel mutations & post-connect query (Pattern B toasts in handlers / effect) ---
 	function startAddAnotherChannel(identifier: string): void {
 		const orgId = workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
@@ -206,41 +221,23 @@
 	}
 
 	async function handleRemoveChannel(id: string): Promise<boolean> {
-		const r = await protectedDashboardPagePresenter.removeChannel(id);
-		if (r.ok) {
+		const resultVm = await protectedDashboardPagePresenter.removeChannel(id);
+		if (resultVm.ok) {
 			toast.success('Channel removed.');
 			return true;
 		}
-		toast.error(r.error);
+		toast.error(resultVm.error);
 		return false;
 	}
 
 	async function handleSetChannelDisabled(id: string, disabled: boolean): Promise<boolean> {
-		const r = await protectedDashboardPagePresenter.setChannelDisabled(id, disabled);
-		if (r.ok) {
+		const resultVm = await protectedDashboardPagePresenter.setChannelDisabled(id, disabled);
+		if (resultVm.ok) {
 			toast.success(disabled ? 'Channel disabled.' : 'Channel enabled.');
 			return true;
 		}
-		toast.error(r.error);
+		toast.error(resultVm.error);
 		return false;
-	}
-
-	function continueSetupHref(integration: CreateSocialPostChannelViewModel): string {
-		if (!workspaceId) return url(`/${getRootPathAccount()}`);
-		if (integration.identifier === 'instagram-business') {
-			const qs = new URLSearchParams({
-				organizationId: workspaceId,
-				integrationId: integration.id,
-				returnTo: accountRoot
-			});
-			return absoluteUrl(`${integrationOAuthCallbackPath('instagram-business')}?${qs}`);
-		}
-		const qs = new URLSearchParams({
-			organizationId: workspaceId,
-			returnTo: accountRoot,
-			refresh: integration.internalId
-		});
-		return absoluteUrl(`${integrationOAuthCallbackPath(integration.identifier)}?${qs}`);
 	}
 
 	$effect(() => {
@@ -256,8 +253,10 @@
 		});
 	});
 
-	// Workspace is loaded by account `+layout` (`afterNavigate` → dock refresh → `workspaceSettingsPresenter.load()`).
-	// Only react to `workspaceId` here — do not call `load()` then branch again, or list/customers fire twice per navigation.
+	/**
+	 * Workspace is loaded by account `+layout` (`afterNavigate` → dock refresh → `workspaceSettingsPresenter.load()`).
+	 * Only react to `workspaceId` here — do not call `load()` then branch again, or list/customers fire twice per navigation.
+	 */
 	$effect(() => {
 		const orgId = workspaceId;
 		if (!orgId) return;
@@ -289,7 +288,7 @@
 									{integration}
 									workspaceId={workspaceId!}
 									providerIcon={socialProviderIcon}
-									{continueSetupHref}
+									continueSetupHref={(i) => protectedDashboardPagePresenter.continueSetupHref(i)}
 									onCreatePost={() => openCreatePost(integration.id)}
 
 									onMoveToGroup={openMoveGroupModal}
@@ -352,7 +351,7 @@
 			</h3>
 
 			<div class="flex flex-wrap items-center justify-end gap-2">
-				{#if connectedChannelCount >= 1}
+				{#if connectedChannelCountVm >= 1}
 					<Button
 						type="button"
 						variant="primary"
@@ -387,13 +386,13 @@
 				{/if}
 				<AddProvider
 					buttonLabel="Add Channel"
-					hasConnectedChannels={connectedChannelCount >= 1}
+					hasConnectedChannels={connectedChannelCountVm >= 1}
 				/>
 				<AddProvider
 					invite
 					iconOnly
 					iconOnlyTooltip="Send Invite Link to connect channel"
-					hasConnectedChannels={connectedChannelCount >= 1}
+					hasConnectedChannels={connectedChannelCountVm >= 1}
 				/>
 			</div>
 		</div>
@@ -437,7 +436,7 @@
 			</p>
 		{:else if listStatus === 'error'}
 			<p class="mt-3 text-sm text-error">Could not load channels. Try again in a moment.</p>
-		{:else if connectedChannelCount === 0}
+		{:else if connectedChannelCountVm === 0}
 			<div class="mt-4 space-y-3">
 				<h4 class="text-base font-semibold text-base-content">
 					No channels yet
@@ -586,7 +585,10 @@
 
 <MoveChannelGroupModal bind:open={moveGroupOpen} integration={moveGroupFor} />
 
-<TimeTable bind:open={timeTableOpen} integration={timeTableFor} />
+<TimeTable
+	bind:open={timeTableOpen}
+	integration={timeTableForVm}
+/>
 
 <CreateSocialPostModal
 	bind:open={createSocialPostOpen}
