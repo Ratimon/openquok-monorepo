@@ -19,3 +19,20 @@ export const validateIntegrationAnalyticsRequest: RequestHandler = validateReque
     query: integrationAnalyticsQuerySchema,
 });
 
+export const postAnalyticsParamsSchema = z.object({
+    postId: z.string().uuid("Invalid post id"),
+});
+
+export const postAnalyticsQuerySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    date: z.string().refine((v) => {
+        const n = Number(v);
+        return Number.isFinite(n) && [7, 30, 90].includes(n);
+    }, "Invalid date window"),
+});
+
+export const validatePostAnalyticsRequest: RequestHandler = validateRequest({
+    params: postAnalyticsParamsSchema,
+    query: postAnalyticsQuerySchema,
+});
+

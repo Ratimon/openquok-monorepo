@@ -571,6 +571,30 @@ export class PostsRepository {
         }
     }
 
+    /**
+     * Sets `release_id` when the worker marked the publish as needing manual linking (`release_id = 'missing'`).
+     */
+    async updateReleaseIdIfMissing(postId: string, organizationId: string, releaseId: string): Promise<boolean> {
+        const now = new Date().toISOString();
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .update({ release_id: releaseId, updated_at: now })
+            .eq("id", postId)
+            .eq("organization_id", organizationId)
+            .eq("release_id", "missing")
+            .is("deleted_at", null)
+            .select("id");
+
+        if (error) {
+            throw new DatabaseError(`Failed to update release id: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return (data?.length ?? 0) > 0;
+    }
+
     async listTagsForPostIds(postIds: string[]): Promise<PostTagLike[]> {
         if (postIds.length === 0) return [];
         const { data: links, error: linksErr } = await this.supabase

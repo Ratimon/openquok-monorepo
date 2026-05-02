@@ -73,6 +73,8 @@ export type AnalyticsData = {
     label: string;
     data: Array<{ total: string; date: string }>;
     percentageChange: number;
+    /** When true, totals are averaged over `data` (e.g. rate-style metrics). */
+    average?: boolean;
 };
 
 export interface IAuthenticator {
@@ -88,11 +90,15 @@ export interface IAuthenticator {
     ): Promise<Omit<AuthTokenDetails, "refreshToken" | "expiresIn">>;
     generateAuthUrl(clientInformation?: ClientInformation): Promise<GenerateAuthUrlResponse>;
     analytics?(id: string, accessToken: string, date: number): Promise<AnalyticsData[]>;
+    /**
+     * Per-post (published media / thread) insights. `postId` here is the provider’s public object id
+     * stored in `posts.release_id` after publish, not the app’s `posts.id`.
+     */
     postAnalytics?(
         integrationId: string,
         accessToken: string,
-        postId: string,
-        fromDate: number
+        releaseId: string,
+        fromDateDays: number
     ): Promise<AnalyticsData[]>;
     changeNickname?(id: string, accessToken: string, name: string): Promise<{ name: string }>;
     changeProfilePicture?(id: string, accessToken: string, url: string): Promise<{ url: string }>;

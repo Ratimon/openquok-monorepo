@@ -3,9 +3,10 @@
 
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 	import { icons } from '$data/icons';
+	import { socialProviderIcon } from '$data/social-providers';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { socialProviderIcon } from '$data/social-providers';
+	
 	type SlotSummaryItem = {
 		postGroup: string;
 		publishDate?: string;
@@ -216,7 +217,9 @@
 				</div>
 			{/if}
 
-			<div class="min-w-0 flex-1 truncate text-center">{statusLabel || 'Scheduled'}</div>
+			<div class="min-w-0 flex-1 truncate text-center">
+				{statusLabel || 'Scheduled'}
+			</div>
 
 			{#if postCount > 1}
 				<div class="shrink-0 rounded bg-primary-content/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary-content/90">

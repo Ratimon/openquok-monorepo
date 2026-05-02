@@ -19,7 +19,9 @@ const postsConfig: PostsConfig = {
 		getPublicPostComments: (postId: string) => `/api/v1/public/posts/${postId}/comments`,
 		createPostComment: (postId: string) => `${base}/${postId}/comments`,
 		updatePostGroup: `${base}/group`,
-		deletePostGroup: `${base}/group`
+		deletePostGroup: `${base}/group`,
+		missingPublishCandidates: (postId: string) => `${base}/${encodeURIComponent(postId)}/missing`,
+		updatePostReleaseId: (postId: string) => `${base}/${encodeURIComponent(postId)}/release-id`
 	}
 };
 

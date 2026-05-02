@@ -118,6 +118,7 @@ export const postsService = new PostsService(
     integrationService,
     organizationRepository,
     integrationManager,
+    refreshIntegrationService,
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );

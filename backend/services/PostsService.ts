@@ -12,6 +12,10 @@ import type {
     PostCommentLike,
     SocialPostLike,
 } from "../utils/dtos/PostDTO";
+import type { AnalyticsData, SocialProvider } from "../integrations/social.integrations.interface";
+import type { RefreshIntegrationService } from "./RefreshIntegrationService";
+import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
+import dayjs from "dayjs";
 import {
     parsePostImageColumn,
     parsePostSettingsJson,
@@ -20,6 +24,7 @@ import {
 } from "../utils/dtos/PostDTO";
 
 import { AppError } from "../errors/AppError";
+import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
 import { config } from "../config/GlobalConfig";
 import { logger } from "../utils/Logger";
 
@@ -43,6 +48,14 @@ const CACHE_KEYS = {
 };
 
 const POSTS_CACHE_TTL_SEC = 300;
+
+/** Same TTL strategy as {@link IntegrationService} analytics cache (short in dev). */
+const POST_ANALYTICS_CACHE_TTL_SEC =
+    !process.env.NODE_ENV || process.env.NODE_ENV === "development" ? 1 : 3600;
+
+function sleepMs(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function tagsListCacheKey(organizationId: string): string {
     return `${CACHE_KEYS.POSTS_TAGS_LIST}:${organizationId}`;
@@ -159,6 +172,7 @@ export class PostsService {
         private readonly integrationService: IntegrationService,
         private readonly organizationRepository: OrganizationRepository,
         private readonly integrationManager: IntegrationManager,
+        private readonly refreshIntegrationService: RefreshIntegrationService,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService
     ) {}
@@ -683,6 +697,233 @@ export class PostsService {
         await this._invalidatePostPreviewCaches([postId]);
 
         return row;
+    }
+
+    /**
+     * Loads provider-native insights for one published post (`posts.release_id`).
+     * Returns `{ missing: true }` when the worker could not map the live network object (`release_id === "missing"`).
+     */
+    async checkPostAnalytics(params: {
+        authUserId: string;
+        organizationId: string;
+        postId: string;
+        dateWindowDays: number;
+    }): Promise<AnalyticsData[] | { missing: true }> {
+        const { authUserId, organizationId, postId, dateWindowDays } = params;
+
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+
+        if (!post.release_id) {
+            return [];
+        }
+        if (post.release_id === "missing") {
+            return { missing: true };
+        }
+        if (!post.integration_id) {
+            return [];
+        }
+
+        const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
+        if (!integrationRow || (integrationRow.type ?? "").toLowerCase() !== "social") {
+            return [];
+        }
+
+        const provider = this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+        if (!provider?.postAnalytics) {
+            return [];
+        }
+        const postAnalyticsFn = provider.postAnalytics;
+
+        const cacheKeyId = `post:${postId}`;
+        const cached = await this.integrationService.getCachedIntegrationPayload(
+            organizationId,
+            cacheKeyId,
+            String(dateWindowDays)
+        );
+        if (cached != null) {
+            return cached as AnalyticsData[];
+        }
+
+        const runPostAnalytics = async (forceRefresh: boolean): Promise<AnalyticsData[]> => {
+            const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
+                force: forceRefresh,
+                provider,
+            });
+            if (!row) {
+                return [];
+            }
+            return postAnalyticsFn(row.internal_id, row.token, post.release_id!, dateWindowDays);
+        };
+
+        try {
+            const data = await runPostAnalytics(false);
+            await this.integrationService.setCachedIntegrationPayload(
+                organizationId,
+                cacheKeyId,
+                String(dateWindowDays),
+                data as unknown[],
+                POST_ANALYTICS_CACHE_TTL_SEC
+            );
+            return data;
+        } catch (e) {
+            if (e instanceof ProviderAccessTokenExpiredError) {
+                try {
+                    const data = await runPostAnalytics(true);
+                    await this.integrationService.setCachedIntegrationPayload(
+                        organizationId,
+                        cacheKeyId,
+                        String(dateWindowDays),
+                        data as unknown[],
+                        POST_ANALYTICS_CACHE_TTL_SEC
+                    );
+                    return data;
+                } catch {
+                    return [];
+                }
+            }
+            return [];
+        }
+    }
+
+    /** Candidate thumbnails when analytics cannot map until the user picks the matching published asset. */
+    async getMissingPublishCandidates(params: {
+        authUserId: string;
+        organizationId: string;
+        postId: string;
+    }): Promise<{ id: string; url: string }[]> {
+        const { authUserId, organizationId, postId } = params;
+
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+        if (!post.integration_id || post.release_id !== "missing") {
+            return [];
+        }
+
+        const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
+        if (!integrationRow) {
+            return [];
+        }
+
+        const provider = this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+        if (!provider?.missing) {
+            return [];
+        }
+        const missingFn = provider.missing;
+
+        const runMissing = async (forceRefresh: boolean): Promise<{ id: string; url: string }[]> => {
+            const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
+                force: forceRefresh,
+                provider,
+            });
+            if (!row) {
+                return [];
+            }
+            return missingFn(row.internal_id, row.token);
+        };
+
+        try {
+            return await runMissing(false);
+        } catch (e) {
+            if (e instanceof ProviderAccessTokenExpiredError) {
+                try {
+                    return await runMissing(true);
+                } catch {
+                    return [];
+                }
+            }
+            return [];
+        }
+    }
+
+    async updatePostReleaseId(params: {
+        authUserId: string;
+        organizationId: string;
+        postId: string;
+        releaseId: string;
+    }): Promise<void> {
+        const { authUserId, organizationId, postId, releaseId } = params;
+
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+
+        const trimmed = releaseId.trim();
+        if (!trimmed.length) {
+            throw new AppError("releaseId is required", 400);
+        }
+
+        const updated = await this.postsRepository.updateReleaseIdIfMissing(postId, organizationId, trimmed);
+        if (!updated) {
+            throw new AppError("Post cannot be linked", 400);
+        }
+
+        await this._invalidatePostAnalyticsCaches(organizationId, postId);
+
+        await this._invalidatePostMutationCaches({
+            organizationId,
+            postGroup: post.post_group,
+            postIds: [postId],
+        });
+    }
+
+    /** Invalidate cached post-level analytics for all date windows for this row. */
+    private async _invalidatePostAnalyticsCaches(organizationId: string, postId: string): Promise<void> {
+        if (!this.cacheInvalidator) return;
+        const pattern = `integration:${organizationId}:post:${postId}:*`;
+        await this.cacheInvalidator.invalidatePattern(pattern);
+    }
+
+    /**
+     * Ensures a valid access token before calling Graph-backed provider methods.
+     * On failed refresh, soft-deletes the channel.
+     */
+    private async ensureFreshSocialToken(
+        integrationRow: IntegrationLike,
+        organizationId: string,
+        options?: { force?: boolean; provider?: SocialProvider | null }
+    ): Promise<IntegrationLike | null> {
+        const exp = integrationRow.token_expiration ? dayjs(integrationRow.token_expiration) : null;
+        const expired = !exp || !exp.isValid() || exp.isBefore(dayjs());
+        const provider =
+            options?.provider ?? this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+
+        if (options?.force || expired) {
+            const refreshed = await this.refreshIntegrationService.refresh(integrationRow);
+            if (!refreshed || !refreshed.accessToken) {
+                const removed = await this.integrationService.softDeleteChannel(
+                    organizationId,
+                    integrationRow.id,
+                    integrationRow.internal_id
+                );
+                if (removed) {
+                    logger.warn({
+                        msg: "[PostsService] Removed channel after failed token refresh",
+                        organizationId,
+                        integrationId: integrationRow.id,
+                    });
+                }
+                return null;
+            }
+            integrationRow.token = refreshed.accessToken;
+
+            if (provider?.refreshWait) {
+                await sleepMs(10_000);
+            }
+        }
+
+        return integrationRow;
     }
 
     async deletePostGroup(postGroup: string, authUserId: string, organizationId?: string | null): Promise<void> {

@@ -29,6 +29,7 @@
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
+	import StatisticsModal from '$lib/ui/components/platform-analytics/StatisticsModal.svelte';
 
 	const calendarPresenter = protectedCalendarPagePresenter;
 
@@ -47,6 +48,9 @@
 	let actionsOpen = $state(false);
 	let actionsPostGroup = $state<string | null>(null);
 	let actionsBusy = $state(false);
+
+	let statisticsOpen = $state(false);
+	let statisticsPostId = $state<string | null>(null);
 
 	// --- Routes & workspace ---
 	const accountRoot = route(getRootPathAccount());
@@ -332,7 +336,19 @@
 	onCopy={copyPostGroupText}
 	onDelete={deletePostGroup}
 	onPreview={() => void previewPostGroup()}
-	onStatistics={() => toast.message('Statistics is coming soon.')}
+	onStatistics={(postId) => {
+		statisticsPostId = postId;
+		statisticsOpen = true;
+	}}
+/>
+
+<StatisticsModal
+	bind:open={statisticsOpen}
+	postId={statisticsPostId}
+	organizationId={workspaceId}
+	onClose={() => {
+		statisticsPostId = null;
+	}}
 />
 
 <CreateSocialPostModal

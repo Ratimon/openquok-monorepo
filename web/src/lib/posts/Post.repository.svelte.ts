@@ -168,6 +168,17 @@ export type CreatePostCommentResponseDto = {
 	};
 };
 
+export type MissingPublishCandidatePm = { id: string; url: string };
+
+export type GetMissingPublishCandidatesResponseDto = {
+	success?: boolean;
+	data?: { items?: MissingPublishCandidatePm[] };
+};
+
+export type UpdatePostReleaseIdResponseDto = {
+	success?: boolean;
+};
+
 export type RepeatIntervalKey =
 	| 'day'
 	| 'two_days'
@@ -214,6 +225,8 @@ export interface PostsConfig {
 		createPostComment: (postId: string) => string;
 		updatePostGroup: string;
 		deletePostGroup: string;
+		missingPublishCandidates: (postId: string) => string;
+		updatePostReleaseId: (postId: string) => string;
 	};
 }
 
@@ -495,6 +508,44 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not delete post.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not delete post.');
+		}
+	}
+
+	async getMissingPublishCandidates(params: {
+		postId: string;
+		organizationId: string;
+	}): Promise<{ ok: true; items: MissingPublishCandidatePm[] } | { ok: false; error: string }> {
+		try {
+			const { ok, data: dto } = await this.httpGateway.get<GetMissingPublishCandidatesResponseDto>(
+				this.config.endpoints.missingPublishCandidates(params.postId),
+				{ organizationId: params.organizationId },
+				{ withCredentials: true }
+			);
+			const items = dto?.data?.items;
+			if (ok && dto?.success === true && Array.isArray(items)) {
+				return { ok: true, items };
+			}
+			return { ok: false, error: 'Could not load candidates.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not load candidates.');
+		}
+	}
+
+	async updatePostReleaseId(params: {
+		postId: string;
+		organizationId: string;
+		releaseId: string;
+	}): Promise<{ ok: true } | { ok: false; error: string }> {
+		try {
+			const { ok, data: dto } = await this.httpGateway.put<UpdatePostReleaseIdResponseDto>(
+				this.config.endpoints.updatePostReleaseId(params.postId),
+				{ organizationId: params.organizationId, releaseId: params.releaseId },
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true) return { ok: true };
+			return { ok: false, error: 'Could not connect post.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not connect post.');
 		}
 	}
 

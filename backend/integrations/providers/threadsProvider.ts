@@ -14,6 +14,8 @@ import { makeId } from "../../utils/make.is";
 import { publicUrlForObjectKey } from "../../repositories/MediaRepository";
 import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
 import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackPath";
+import { ProviderAccessTokenExpiredError } from "../../errors/ProviderIntegrationErrors";
+import { throwIfMetaGraphInvalidAccessToken } from "../../errors/metaGraphTokenError";
 import { logger } from "../../utils/Logger";
 
 type ThreadsMediaItem = { path: string; bucket?: string };
@@ -533,8 +535,9 @@ export class ThreadsProvider implements SocialProvider {
                     values?: Array<{ value?: number }>;
                     total_value?: { value?: number };
                 }>;
-                error?: { message?: string };
+                error?: { message?: string; code?: number; error_subcode?: number };
             };
+            throwIfMetaGraphInvalidAccessToken(json);
             if (!res.ok || json.error || !json.data?.length) {
                 return [];
             }
@@ -573,7 +576,8 @@ export class ThreadsProvider implements SocialProvider {
                 }
             }
             return result;
-        } catch {
+        } catch (e) {
+            if (e instanceof ProviderAccessTokenExpiredError) throw e;
             return [];
         }
     }

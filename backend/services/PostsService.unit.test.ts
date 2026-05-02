@@ -131,12 +131,24 @@ function createIntegrationConnectionMock(): IntegrationConnectionMock {
     };
 }
 
-type IntegrationServiceMock = jest.Mocked<Pick<IntegrationService, "listByOrganization" | "getById">>;
+type IntegrationServiceMock = jest.Mocked<
+    Pick<
+        IntegrationService,
+        | "listByOrganization"
+        | "getById"
+        | "getCachedIntegrationPayload"
+        | "setCachedIntegrationPayload"
+        | "softDeleteChannel"
+    >
+>;
 
 function createIntegrationServiceMock(): IntegrationServiceMock {
     return {
         listByOrganization: jest.fn(),
         getById: jest.fn(),
+        getCachedIntegrationPayload: jest.fn().mockResolvedValue(null),
+        setCachedIntegrationPayload: jest.fn().mockResolvedValue(undefined),
+        softDeleteChannel: jest.fn().mockResolvedValue(false),
     };
 }
 
@@ -191,6 +203,7 @@ describe("PostsService", () => {
             integrationService as unknown as IntegrationService,
             organizationRepo as unknown as OrganizationRepository,
             new IntegrationManager(),
+            { refresh: jest.fn().mockResolvedValue(false) } as never,
             cache as never,
             cacheInvalidator as never
         );

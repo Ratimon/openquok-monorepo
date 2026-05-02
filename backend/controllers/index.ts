@@ -67,4 +67,4 @@ export const notificationController = new NotificationController(notificationSer
 export const postsController = new PostsController(postsService);
 export const thirdPartyController = new ThirdPartyController();
 export const signatureController = new SignatureController(signatureService);
-export const analyticsController = new AnalyticsController(analyticsService, integrationConnectionService);
+export const analyticsController = new AnalyticsController(analyticsService, integrationConnectionService, postsService);

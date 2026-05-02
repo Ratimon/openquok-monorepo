@@ -25,7 +25,7 @@
 		onCopy: () => Promise<void> | void;
 		onDelete: () => Promise<void> | void;
 		onPreview?: () => void;
-		onStatistics?: () => void;
+		onStatistics?: (postId: string) => void;
 	};
 
 	let {
@@ -54,6 +54,8 @@
 		content?: string;
 		channelCount?: number;
 	} | null>(null);
+	/** First row id in the group — used for per-post analytics APIs. */
+	let firstPostId = $state<string | null>(null);
 	let loadToken = 0;
 
 	function formatLocalDateTime(iso: string | undefined): { date: string; time: string } {
@@ -71,6 +73,7 @@
 		headerLoading = false;
 		headerError = null;
 		summary = null;
+		firstPostId = null;
 	}
 
 	$effect(() => {
@@ -88,6 +91,7 @@
 		headerLoading = true;
 		headerError = null;
 		summary = null;
+		firstPostId = null;
 
 		void (async () => {
 			try {
@@ -95,6 +99,7 @@
 				if (token !== loadToken) return;
 				if (!resultVm.ok) {
 					headerError = resultVm.error;
+					firstPostId = null;
 					return;
 				}
 				const g = resultVm.group;
@@ -102,6 +107,7 @@
 				const ch = firstIntegrationId
 					? channels.find((x: CreateSocialPostChannelViewModel) => x.id === firstIntegrationId)
 					: null;
+				firstPostId = g.postIds?.[0] ?? null;
 				summary = {
 					channelPicture: ch?.picture ?? undefined,
 					channelName: ch?.name ?? undefined,
@@ -244,8 +250,13 @@
 			<button
 				type="button"
 				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
-				disabled={busy}
-				onclick={() => onStatistics?.()}
+				disabled={busy || !firstPostId}
+				onclick={() => {
+					const id = firstPostId;
+					if (!id) return;
+					onClose();
+					onStatistics?.(id);
+				}}
 			>
 				<AbstractIcon name={icons.ChartBar.name} class="size-4 shrink-0" width="16" height="16" />
 				Statistics

@@ -8,7 +8,8 @@ const analyticsBase = '/api/v1/analytics';
 const analyticsConfig: AnalyticsConfig = {
 	endpoints: {
 		integrationAnalytics: (integrationId: string) =>
-			`${analyticsBase}/${encodeURIComponent(integrationId)}`
+			`${analyticsBase}/${encodeURIComponent(integrationId)}`,
+		postAnalytics: (postId: string) => `${analyticsBase}/post/${encodeURIComponent(postId)}`
 	}
 };
 

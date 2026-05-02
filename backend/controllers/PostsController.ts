@@ -305,4 +305,45 @@ export class PostsController {
             next(error);
         }
     };
+
+    getMissingPublishCandidates = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postId = (req.params as { postId: string }).postId;
+            const organizationId = (req.query as { organizationId: string }).organizationId;
+            const items = await this.postsService.getMissingPublishCandidates({
+                authUserId,
+                organizationId,
+                postId,
+            });
+            res.status(200).json({ success: true, data: { items } });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    updatePostReleaseId = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postId = (req.params as { postId: string }).postId;
+            const { organizationId, releaseId } = req.body as { organizationId: string; releaseId: string };
+            await this.postsService.updatePostReleaseId({
+                authUserId,
+                organizationId,
+                postId,
+                releaseId,
+            });
+            res.status(200).json({ success: true });
+        } catch (error) {
+            next(error);
+        }
+    };
 }

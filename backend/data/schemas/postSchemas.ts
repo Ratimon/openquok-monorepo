@@ -154,3 +154,22 @@ export const validateDeletePostGroup: RequestHandler = validateRequest({
         organizationId: z.string().uuid("Invalid organization id").optional(),
     }),
 });
+
+export const postIdParamsSchema = z.object({
+    postId: z.string().uuid("Invalid post id"),
+});
+
+export const validatePostMissingQuery: RequestHandler = validateRequest({
+    params: postIdParamsSchema,
+    query: postOrganizationQuerySchema,
+});
+
+export const updatePostReleaseIdBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    releaseId: z.string().trim().min(1, "releaseId is required"),
+});
+
+export const validateUpdatePostReleaseId: RequestHandler = validateRequest({
+    params: postIdParamsSchema,
+    body: updatePostReleaseIdBodySchema,
+});

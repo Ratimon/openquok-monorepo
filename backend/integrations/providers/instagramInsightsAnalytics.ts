@@ -7,6 +7,8 @@ import type { AnalyticsData } from "../social.integrations.interface";
 
 import dayjs from "dayjs";
 
+import { throwIfMetaGraphInvalidAccessToken } from "../../errors/metaGraphTokenError";
+
 /** e.g. `https://graph.facebook.com/v21.0` or `https://graph.instagram.com/v21.0` */
 export type InstagramGraphInsightsBaseUrl = string;
 
@@ -125,8 +127,9 @@ export async function fetchInstagramMediaInsights(
     );
     const json = (await res.json()) as {
         data?: Array<{ name?: string; values?: Array<{ value?: number }> }>;
-        error?: { message?: string };
+        error?: { message?: string; code?: number; error_subcode?: number };
     };
+    throwIfMetaGraphInvalidAccessToken(json);
     if (!res.ok || json.error || !json.data?.length) {
         return [];
     }
