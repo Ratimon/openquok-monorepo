@@ -8,12 +8,12 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
-		item: AnalyticsSeriesVm;
+		seriesVm: AnalyticsSeriesVm;
 		total: string | number;
 		index: number;
 	};
 
-	let { item, total, index }: Props = $props();
+	let { seriesVm, total, index }: Props = $props();
 
 	// const colorVariants = ['text-purple-400', 'text-emerald-400', 'text-sky-400'] as const;
 	const strokeVariants = ['stroke-purple-400', 'stroke-emerald-400', 'stroke-sky-400'] as const;
@@ -21,18 +21,18 @@
 
 	const dotBg = $derived(dotBgVariants[index % dotBgVariants.length]);
 	const lineColor = $derived(strokeVariants[index % strokeVariants.length]);
-	const trendUp = $derived((item.percentageChange ?? 0) > 0);
-	const trendDown = $derived((item.percentageChange ?? 0) < 0);
+	const trendUp = $derived((seriesVm.percentageChange ?? 0) > 0);
+	const trendDown = $derived((seriesVm.percentageChange ?? 0) < 0);
 
-	const showTrend = $derived(item.percentageChange !== undefined && (item.percentageChange ?? 0) !== 0);
+	const showTrend = $derived(seriesVm.percentageChange !== undefined && (seriesVm.percentageChange ?? 0) !== 0);
 	const trendText = $derived.by(() => {
-		const v = item.percentageChange ?? 0;
+		const v = seriesVm.percentageChange ?? 0;
 		if (!Number.isFinite(v) || v === 0) return '';
 		const display = Math.abs(v).toFixed(1);
-		return `${display}${item.average ? 'pp' : '%'}`;
+		return `${display}${seriesVm.average ? 'pp' : '%'}`;
 	});
 
-	const hasMultipleDataPoints = $derived((item.data?.length ?? 0) > 1);
+	const hasMultipleDataPoints = $derived((seriesVm.data?.length ?? 0) > 1);
 </script>
 
 <div class="group relative">
@@ -42,10 +42,12 @@
 			'overflow-hidden'
 		)}
 	>
-		<div class="flex items-center justify-between px-4 pt-4 pb-2">
+		<div class="flex seriesVms-center justify-between px-4 pt-4 pb-2">
 			<div class="flex items-center gap-2">
 				<span class={cn('h-2 w-2 rounded-full', dotBg)} aria-hidden="true"></span>
-				<span class="text-sm font-medium text-base-content/90">{item.label}</span>
+				<span class="text-sm font-medium text-base-content/90">
+					{seriesVm.label}
+				</span>
 			</div>
 			{#if showTrend}
 				<div
@@ -70,7 +72,7 @@
 			<div class="px-3 py-2">
 				<div class="h-28 w-full">
 					<AnalyticsSparkline
-						data={item.data}
+						data={seriesVm.data}
 						class="h-full w-full"
 						colorClass={lineColor}
 					/>

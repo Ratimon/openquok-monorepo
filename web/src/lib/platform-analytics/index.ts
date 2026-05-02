@@ -18,9 +18,9 @@ export const getAnalyticsPresenter = new GetAnalyticsPresenter(analyticsReposito
 export { AnalyticsRepository } from '$lib/platform-analytics/Analytics.repository.svelte';
 export {
 	GetAnalyticsPresenter,
-	mapAnalyticsSeriesDto,
-	mergeAnalyticsSeries,
-	formatAnalyticsSeriesTotals
+	mapAnalyticsSeriesVm,
+	mergeAnalyticsSeriesVm,
+	formatAnalyticsSeriesTotalsVm
 } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 export {
 	SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS,

@@ -13,31 +13,31 @@ export type AnalyticsSeriesViewModel = {
 /** Alias for UI card props — same shape as {@link AnalyticsSeriesViewModel}. */
 export type AnalyticsSeriesVm = AnalyticsSeriesViewModel;
 
-export function mapAnalyticsSeriesDto(dto: AnalyticsSeriesProgrammerModel[]): AnalyticsSeriesViewModel[] {
-	return (dto ?? []).map((s) => ({
-		label: s.label,
-		average: s.average,
-		percentageChange: s.percentageChange,
-		data: (s.data ?? []).map((p) => ({
-			date: String(p.date ?? ''),
-			total: Number(p.total ?? 0)
+export function mapAnalyticsSeriesVm(pms: AnalyticsSeriesProgrammerModel[]): AnalyticsSeriesViewModel[] {
+	return (pms ?? []).map((pm) => ({
+		label: pm.label,
+		average: pm.average,
+		percentageChange: pm.percentageChange,
+		data: (pm.data ?? []).map((pm) => ({
+			date: String(pm.date ?? ''),
+			total: Number(pm.total ?? 0)
 		}))
 	}));
 }
 
-export function mergeAnalyticsSeries(all: AnalyticsSeriesViewModel[][]): AnalyticsSeriesViewModel[] {
+export function mergeAnalyticsSeriesVm(allVm: AnalyticsSeriesViewModel[][]): AnalyticsSeriesViewModel[] {
 	const map = new Map<string, AnalyticsSeriesViewModel>();
 
-	for (const list of all) {
-		for (const s of list) {
-			const key = s.label;
+	for (const list of allVm) {
+		for (const vm of list) {
+			const key = vm.label;
 			if (!map.has(key)) {
-				map.set(key, { ...s, data: [...s.data] });
+				map.set(key, { ...vm, data: [...vm.data] });
 				continue;
 			}
 			const existing = map.get(key)!;
 			const byDate = new Map(existing.data.map((p) => [p.date, p.total]));
-			for (const p of s.data) {
+			for (const p of vm.data) {
 				byDate.set(p.date, (byDate.get(p.date) ?? 0) + p.total);
 			}
 			existing.data = [...byDate.entries()]
@@ -48,11 +48,11 @@ export function mergeAnalyticsSeries(all: AnalyticsSeriesViewModel[][]): Analyti
 	return [...map.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
 
-export function formatAnalyticsSeriesTotals(list: AnalyticsSeriesViewModel[]): string[] {
-	return list.map((p) => {
-		const sum = (p.data ?? []).reduce((acc, curr) => acc + (Number(curr.total) || 0), 0);
-		const value = p.average ? sum / Math.max(1, p.data.length) : sum;
-		if (p.average) return `${value.toFixed(2)}%`;
+export function formatAnalyticsSeriesTotalsVm(listsVm: AnalyticsSeriesViewModel[]): string[] {
+	return listsVm.map((vm) => {
+		const sum = (vm.data ?? []).reduce((acc, curr) => acc + (Number(curr.total) || 0), 0);
+		const value = vm.average ? sum / Math.max(1, vm.data.length) : sum;
+		if (vm.average) return `${value.toFixed(2)}%`;
 		return new Intl.NumberFormat().format(Math.round(value));
 	});
 }
@@ -96,8 +96,8 @@ export class GetAnalyticsPresenter {
 				return { ok: false, error: firstErr?.error ?? 'Failed to load analytics.' };
 			}
 
-			const mergedSeriesVm = mergeAnalyticsSeries(ok.map((r) => mapAnalyticsSeriesDto(r.data)));
-			const mergedTotalsVm = formatAnalyticsSeriesTotals(mergedSeriesVm);
+			const mergedSeriesVm = mergeAnalyticsSeriesVm(ok.map((r) => mapAnalyticsSeriesVm(r.data)));
+			const mergedTotalsVm = formatAnalyticsSeriesTotalsVm(mergedSeriesVm);
 			return { ok: true, mergedSeriesVm, mergedTotalsVm };
 		} catch {
 			return { ok: false, error: 'Failed to load analytics.' };

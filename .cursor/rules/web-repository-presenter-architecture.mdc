@@ -29,16 +29,16 @@ alwaysApply: false
 
 ### `Get*Presenter` method naming (project convention)
 
-- **PM → VM mappers**: prefer **`toXxxVm(pm)`** (or `toXxxListVm(listPm)` when helpful).
-- **Read/load methods that return UI shapes**: prefer **`loadXxxVm(...)`** / **`loadXxx*Vm(...)`** and return **clean values** (`Vm | null`, `Vm[]`) instead of `{ ok: true } | { ok: false }` unions.
-- **Avoid** `mapXxxPmToVm` / `getXxxVm` / `listXxx` on `Get*Presenter` public APIs unless there is a very specific reason.
+- **PM → VM mappers**: prefer **`toXxxVm(pm)`** (or `toXxxListVm(listPm)` when helpful). Pure **`map*` / `merge*` / `format*`** helpers may live in the same file as **`Get*`** when they support one read path and tests (see **`GetAnalyticsPresenter`** / **`mapAnalyticsSeriesVm`**, **`mergeAnalyticsSeriesVm`**, **`formatAnalyticsSeriesTotalsVm`**).
+- **Read/load methods that return UI shapes**: prefer **`loadXxxVm(...)`** / **`loadXxx*Vm(...)`**. For **aggregate reads** (parallel repository calls, merged result), use a **`loadXxxVmStateless`** name when the method **does not** mutate any presenter **`$state`**; a discriminated **`{ ok: true; … } | { ok: false; error: string }`** return is acceptable when the caller must treat **partial HTTP failure** as one screen-level error (reference: **`loadMergedAnalyticsVmStateless`**).
+- **Avoid** `mapXxxPmToVm` / `getXxxVm` / `listXxx` on `Get*Presenter` **method names** unless there is a very specific reason (standalone **`map*`** **functions** next to **`Get*`** are fine).
 
 ## Rule of thumb (enforced)
 
 - **Repositories return PM**, not `*Vm` / `*ViewModel`.
 - **`Get*Presenter`** is the **read/list VM boundary** (map PM → VM).
 - **DTO == PM** is allowed only when the wire shape is identical; still treat the return as PM at the boundary.
-- **Prefer clean returns in presenters:** for public read flows, prefer returning `null` / `[]` over `{ ok: true } | { ok: false }` unions. Keep unions when the caller truly needs to branch on multiple failure modes.
+- **Prefer clean returns in presenters:** for public read flows, prefer returning `null` / `[]` over `{ ok: true } | { ok: false }` unions. Keep unions for **repository I/O**, **aggregate multi-fetch** **`Get*`** loads, or when the caller truly needs multiple failure modes.
 
 ---
 
@@ -109,7 +109,7 @@ When a presenter returns clean values (`null` / `[]`) instead of unions, prefer 
 
 ## Presenter split: `Get*` vs feature presenters vs page presenters
 
-- **`Get*.presenter.svelte.ts`**: **no** `$state`; constructor-injected repos; methods return **`*Vm`** (never PM to components). Instantiate in **feature `index.ts`**, inject into **page presenters**; routes do not construct `Get*` directly.
+- **`Get*.presenter.svelte.ts`**: **no** `$state`; constructor-injected repos; methods return **`*Vm`** or a **discriminated aggregate result** (never raw PM to components). Instantiate in **feature `index.ts`**, inject into **page presenters**; routes do not construct `Get*` directly.
 - **Feature presenters** (`SchedulerPresenter`, `CreateSocialPostPresenter`, …): **stateful**; constructor-injected **repositories** (and sometimes other presenters such as **`GenerateMediaModalPresenter`**); own domain **`$state`** / methods. **Compose in `area-*` `index.ts`**, **inject into `Protected*PagePresenter`** — see **web-page-presenter-conventions**.
 - **Workspace / editor-style feature presenters** (`WorkspaceSettings`, `Editor*`, etc.): `$state` for status/VM; may call repos and `Get*`; still **feature**-scoped, not area page files.
 - **Page presenter `*Stateless` helpers** (e.g. `loadPreviewPostStateless`): must not mutate page **`$state`**; map PM→VM via injected **`Get*`** (`mapPreviewPostPmToVm`). Paired non-**Stateless** methods assign **`$state`** (e.g. **`loadPreviewPost`**). Optional async **`loadPreviewPostByIdStateless`** / **`loadPreviewPostById`** when fetch-by-id is needed — details in **web-page-presenter-conventions** (**Public area page presenters**).

@@ -20,6 +20,7 @@ Use this rule for **route-level pages**, **page presenters** under `web/src/lib/
 - **Shapes:**
   - **Thin coordinator:** constructor takes feature presenters (and deps); exposes getters or delegates; route uses one import from the area index.
   - **Stateful page:** owns `$state`, calls repositories and/or `Get*` presenters for loads and mutations.
+  - **Cross-presenter composition (reference: analytics):** a page presenter may inject **another area page presenter** when that screen reuses its read model and behavior
 
 ---
 
@@ -51,7 +52,11 @@ A **feature presenter** is a stateful **`*.presenter.svelte.ts`** under a **feat
 
 ## Toast (`$lib/ui/sonner`) — patterns
 
-**Never** import or call **`toast`** inside a **page presenter**.
+**Never** import or call **`toast`** inside a **page presenter**, except the **narrow exception** below.
+
+### Exception — authorize-url + redirect (reference: analytics)
+
+When the flow is **get authorize URL → `toast` only on failure → `window.location` redirect**, and the route cannot meaningfully show copy before navigation, **`toast.error`** inside the **page presenter** is an acceptable **documented** exception (see **`ProtectedAnalyticsPagePresenter.refreshIntegrationForAnalytics`**). Do not generalize this to ordinary mutations; keep Pattern B (toast in route) as the default.
 
 ### Pattern A — presenter toast flags (admin list pages)
 
@@ -140,6 +145,7 @@ For **`routes/(public)/…/+page.server.ts`**, **`postsRepository.getPostPreview
 
 - Import the **page presenter** (and enums) from the **area index** — not repositories/gateways.
 - Own local UI state with `$state`; derive with `$derived`.
+- **Multiple area singletons:** when a screen **displays** state owned by another page presenter (e.g. channel **load status** and **`connectedChannelsVm`** from **`protectedDashboardPagePresenter`** while **`protectedAnalyticsPagePresenter`** owns filters and merged series), the route may import **both** singletons — still **no** repository/gateway. Mutations (remove channel, etc.) call the **owning** presenter methods.
 - Use **injected feature presenters** via the **page presenter** when wired there (e.g. **`protectedDashboardPagePresenter.createSocialPostPresenter.prepareOpen`**, **`calendarPresenter.schedulerPresenter`** passed into **`Scheduler`**). Avoid importing duplicate feature singletons from **`$lib/<feature>`** for the same concern.
 - Mutations: **pattern A** (`$effect` + toast flags) or **pattern B** (explicit results + `toast` in route) or **child** → feature singleton → repository, then callback into page presenter for list VM.
 - Pass **VM + callbacks** to children; children do not import the page presenter (except feature-modal exception above).
