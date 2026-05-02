@@ -23,13 +23,17 @@ export {
 	mergeAnalyticsSeriesVm,
 	formatAnalyticsSeriesTotalsVm
 } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
+export type {
+	PostStatisticsAnalyticsParams,
+	PostStatisticsAnalyticsViewModel
+} from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 export {
 	SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS,
 	type SupportedAnalyticsProviderIdentifier
 } from '$data/social-providers';
+export type { AnalyticsSeriesViewModel } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 export type {
-	AnalyticsSeriesViewModel,
-	AnalyticsSeriesVm
-} from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
-export type { AnalyticsSeriesProgrammerModel } from '$lib/platform-analytics/Analytics.repository.svelte';
+	AnalyticsSeriesProgrammerModel,
+	GetPostAnalyticsResultPm
+} from '$lib/platform-analytics/Analytics.repository.svelte';
 

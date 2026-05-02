@@ -346,6 +346,9 @@
 	bind:open={statisticsOpen}
 	postId={statisticsPostId}
 	organizationId={workspaceId}
+	loadPostAnalytics={(p) => calendarPresenter.loadPostStatisticsAnalyticsVm(p)}
+	loadMissingCandidates={(p) => calendarPresenter.loadMissingPublishCandidatesForPost(p)}
+	updatePostRelease={(p) => calendarPresenter.updatePostReleaseIdForStatistics(p)}
 	onClose={() => {
 		statisticsPostId = null;
 	}}

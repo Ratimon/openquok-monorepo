@@ -23,7 +23,7 @@ import { getSignaturesPresenter, signaturesRepository } from '$lib/signatures';
 import { workspaceSettingsPresenter } from '$lib/settings';
 import { authenticationRepository } from '$lib/user-auth/index';
 import { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte';
-import { analyticsRepository, getAnalyticsPresenter } from '$lib/platform-analytics';
+import { getAnalyticsPresenter } from '$lib/platform-analytics';
 
 const protectedSettingsPagePresenter = new ProtectedSettingsPagePresenter(
 	editorAccountSettingsPresenter,
@@ -73,7 +73,9 @@ const protectedCalendarPagePresenter = new ProtectedCalendarPagePresenter(
 	protectedDashboardPagePresenter,
 	workspaceSettingsPresenter,
 	schedulerPresenter,
-	createSocialPostPresenter
+	createSocialPostPresenter,
+	getAnalyticsPresenter,
+	postsRepository
 );
 
 const protectedAnalyticsPagePresenter = new ProtectedAnalyticsPagePresenter(

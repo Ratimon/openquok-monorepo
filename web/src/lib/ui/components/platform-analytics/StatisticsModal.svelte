@@ -1,13 +1,8 @@
 <script lang="ts">
-	import { analyticsRepository } from '$lib/platform-analytics';
-	import {
-		formatAnalyticsSeriesTotalsVm,
-		mapAnalyticsSeriesVm,
-		type AnalyticsSeriesViewModel
-	} from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
+	import type { ProtectedCalendarPagePresenter } from '$lib/area-protected/ProtectedCalendarPage.presenter.svelte';
+	import type { AnalyticsSeriesViewModel } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 
-    import { icons } from '$data/icons';
-
+	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AnalyticsCard from '$lib/ui/components/platform-analytics/AnalyticsCard.svelte';
@@ -19,10 +14,21 @@
 		open: boolean;
 		postId: string | null;
 		organizationId: string | null;
+		loadPostAnalytics: ProtectedCalendarPagePresenter['loadPostStatisticsAnalyticsVm'];
+		loadMissingCandidates: ProtectedCalendarPagePresenter['loadMissingPublishCandidatesForPost'];
+		updatePostRelease: ProtectedCalendarPagePresenter['updatePostReleaseIdForStatistics'];
 		onClose?: () => void;
 	};
 
-	let { open = $bindable(false), postId, organizationId, onClose }: Props = $props();
+	let {
+		open = $bindable(false),
+		postId,
+		organizationId,
+		loadPostAnalytics,
+		loadMissingCandidates,
+		updatePostRelease,
+		onClose
+	}: Props = $props();
 
 	let dateWindowDays = $state(7);
 	let loading = $state(false);
@@ -36,32 +42,16 @@
 		loading = true;
 		error = null;
 		showMissing = false;
-		const r = await analyticsRepository.getPostAnalytics({
+		const postStatisticsVm = await loadPostAnalytics({
 			organizationId,
 			postId,
 			date: dateWindowDays
 		});
 		loading = false;
-		if (!r.ok) {
-			error = r.error;
-			seriesVm = [];
-			totals = [];
-			return;
-		}
-		if ('missing' in r && r.missing) {
-			showMissing = true;
-			seriesVm = [];
-			totals = [];
-			return;
-		}
-		if (!('data' in r) || !Array.isArray(r.data)) {
-			seriesVm = [];
-			totals = [];
-			return;
-		}
-		const mapped = mapAnalyticsSeriesVm(r.data);
-		seriesVm = mapped;
-		totals = formatAnalyticsSeriesTotalsVm(mapped);
+		error = postStatisticsVm.error ?? null;
+		showMissing = postStatisticsVm.missing === true;
+		seriesVm = postStatisticsVm.seriesVm;
+		totals = postStatisticsVm.totalsVm;
 	}
 
 	$effect(() => {
@@ -128,6 +118,8 @@
 				<MissingReleaseModal
 					{postId}
 					organizationId={organizationId}
+					{loadMissingCandidates}
+					{updatePostRelease}
 					onSuccess={afterConnectSuccess}
 					onCancel={() => (open = false)}
 				/>

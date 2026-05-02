@@ -30,6 +30,12 @@ export type GetPostAnalyticsResponseDto = {
 	[key: string]: unknown;
 };
 
+/** PM union from {@link AnalyticsRepository.getPostAnalytics} (wire + parse; not UI). */
+export type GetPostAnalyticsResultPm =
+	| { ok: true; data: AnalyticsSeriesProgrammerModel[] }
+	| { ok: true; missing: true }
+	| { ok: false; error: string };
+
 export class AnalyticsRepository {
 	constructor(
 		private readonly httpGateway: HttpGateway,
@@ -77,11 +83,7 @@ export class AnalyticsRepository {
 		organizationId: string;
 		postId: string;
 		date: number;
-	}): Promise<
-		| { ok: true; data: AnalyticsSeriesProgrammerModel[] }
-		| { ok: true; missing: true }
-		| { ok: false; error: string }
-	> {
+	}): Promise<GetPostAnalyticsResultPm> {
 		try {
 			const url = this.config.endpoints.postAnalytics(params.postId);
 			const { ok, data: dto } = await this.httpGateway.get<GetPostAnalyticsResponseDto>(
@@ -124,4 +126,3 @@ export class AnalyticsRepository {
 		}
 	}
 }
-

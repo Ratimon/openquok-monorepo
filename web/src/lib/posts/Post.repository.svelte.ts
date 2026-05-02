@@ -170,6 +170,12 @@ export type CreatePostCommentResponseDto = {
 
 export type MissingPublishCandidatePm = { id: string; url: string };
 
+export type LoadMissingPublishCandidatesResultPm =
+	| { ok: true; items: MissingPublishCandidatePm[] }
+	| { ok: false; error: string };
+
+export type UpdatePostReleaseIdResultPm = { ok: true } | { ok: false; error: string };
+
 export type GetMissingPublishCandidatesResponseDto = {
 	success?: boolean;
 	data?: { items?: MissingPublishCandidatePm[] };
@@ -514,7 +520,7 @@ export class PostsRepository {
 	async getMissingPublishCandidates(params: {
 		postId: string;
 		organizationId: string;
-	}): Promise<{ ok: true; items: MissingPublishCandidatePm[] } | { ok: false; error: string }> {
+	}): Promise<LoadMissingPublishCandidatesResultPm> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.get<GetMissingPublishCandidatesResponseDto>(
 				this.config.endpoints.missingPublishCandidates(params.postId),
@@ -535,7 +541,7 @@ export class PostsRepository {
 		postId: string;
 		organizationId: string;
 		releaseId: string;
-	}): Promise<{ ok: true } | { ok: false; error: string }> {
+	}): Promise<UpdatePostReleaseIdResultPm> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.put<UpdatePostReleaseIdResponseDto>(
 				this.config.endpoints.updatePostReleaseId(params.postId),

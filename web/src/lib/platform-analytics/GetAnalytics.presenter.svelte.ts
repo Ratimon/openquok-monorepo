@@ -1,5 +1,4 @@
-import type { AnalyticsSeriesProgrammerModel } from '$lib/platform-analytics/Analytics.repository.svelte';
-import type { AnalyticsRepository } from '$lib/platform-analytics/Analytics.repository.svelte';
+import type { AnalyticsSeriesProgrammerModel, AnalyticsRepository } from '$lib/platform-analytics/Analytics.repository.svelte';
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 /** Normalized series for charts / cards (`total` coerced to number). */
@@ -9,9 +8,6 @@ export type AnalyticsSeriesViewModel = {
 	percentageChange?: number;
 	average?: boolean;
 };
-
-/** Alias for UI card props — same shape as {@link AnalyticsSeriesViewModel}. */
-export type AnalyticsSeriesVm = AnalyticsSeriesViewModel;
 
 export function mapAnalyticsSeriesVm(pms: AnalyticsSeriesProgrammerModel[]): AnalyticsSeriesViewModel[] {
 	return (pms ?? []).map((pm) => ({
@@ -57,50 +53,84 @@ export function formatAnalyticsSeriesTotalsVm(listsVm: AnalyticsSeriesViewModel[
 	});
 }
 
-export type LoadMergedAnalyticsResultViewModel =
-	| {
-			ok: true;
-			mergedSeriesVm: AnalyticsSeriesViewModel[];
-			mergedTotalsVm: string[];
-	  }
-	| { ok: false; error: string };
+/** Route/repository params for post-level analytics (`GET …/analytics/post/:postId`). */
+export interface PostStatisticsAnalyticsParams {
+	organizationId: string;
+	postId: string;
+	date: number;
+}
+
+/**
+ * Calendar statistics modal: merged series + formatted totals; optional `error` / `missing` mirror repository PM.
+ */
+export interface PostStatisticsAnalyticsViewModel {
+	seriesVm: AnalyticsSeriesViewModel[];
+	totalsVm: string[];
+	/** When `true`, the post has no linked release; UI should prompt to pick a published asset. */
+	missing?: boolean;
+	/** Set when the repository call failed; `seriesVm` / `totalsVm` are empty. */
+	error?: string;
+}
 
 /**
  * ✅ Stateless “Get*” presenter:
- * - loads analytics PM via {@link AnalyticsRepository}
+ * - loads analytics PM via {@link AnalyticsRepository}; maps PM → VM only.
  */
 export class GetAnalyticsPresenter {
 	constructor(private readonly analyticsRepository: AnalyticsRepository) {}
 
-	async loadMergedAnalyticsVmStateless(params: {
+	/**
+	 * Calendar / statistics modal: post analytics PM → {@link PostStatisticsAnalyticsViewModel}.
+	 */
+	async loadPostStatisticsAnalyticsVm(
+		params: PostStatisticsAnalyticsParams
+	): Promise<PostStatisticsAnalyticsViewModel> {
+		const postAnalyticsPm = await this.analyticsRepository.getPostAnalytics(params);
+		if (!postAnalyticsPm.ok) {
+			return { seriesVm: [], totalsVm: [], error: postAnalyticsPm.error };
+		}
+		if ('missing' in postAnalyticsPm && postAnalyticsPm.missing) {
+			return { seriesVm: [], totalsVm: [], missing: true };
+		}
+		if (!('data' in postAnalyticsPm) || !Array.isArray(postAnalyticsPm.data)) {
+			return { seriesVm: [], totalsVm: [] };
+		}
+		const seriesVm = mapAnalyticsSeriesVm(postAnalyticsPm.data);
+		const totalsVm = formatAnalyticsSeriesTotalsVm(seriesVm);
+		return { seriesVm, totalsVm };
+	}
+
+	/**
+	 * Merged integration analytics for `/account/analytics`: parallel integration PMs → one merged series VM list.
+	 */
+	async loadMergedAnalyticsSeriesVm(params: {
 		organizationId: string;
 		integrations: CreateSocialPostChannelViewModel[];
 		dateWindowDays: number;
-	}): Promise<LoadMergedAnalyticsResultViewModel> {
-		try {
-			const results = await Promise.all(
-				params.integrations.map((i) =>
-					this.analyticsRepository.getIntegrationAnalytics({
-						organizationId: params.organizationId,
-						integrationId: i.id,
-						date: params.dateWindowDays
-					})
-				)
-			);
+	}): Promise<AnalyticsSeriesViewModel[]> {
+		const integrationAnalyticsResultsPm = await Promise.all(
+			params.integrations.map((i) =>
+				this.analyticsRepository.getIntegrationAnalytics({
+					organizationId: params.organizationId,
+					integrationId: i.id,
+					date: params.dateWindowDays
+				})
+			)
+		);
 
-			const ok = results.filter(
-				(r): r is { ok: true; data: AnalyticsSeriesProgrammerModel[] } => r.ok
-			);
-			if (ok.length === 0) {
-				const firstErr = results.find((r) => !r.ok) as { ok: false; error: string } | undefined;
-				return { ok: false, error: firstErr?.error ?? 'Failed to load analytics.' };
-			}
-
-			const mergedSeriesVm = mergeAnalyticsSeriesVm(ok.map((r) => mapAnalyticsSeriesVm(r.data)));
-			const mergedTotalsVm = formatAnalyticsSeriesTotalsVm(mergedSeriesVm);
-			return { ok: true, mergedSeriesVm, mergedTotalsVm };
-		} catch {
-			return { ok: false, error: 'Failed to load analytics.' };
+		const integrationAnalyticsOkPm = integrationAnalyticsResultsPm.filter(
+			(resultPm): resultPm is { ok: true; data: AnalyticsSeriesProgrammerModel[] } => resultPm.ok
+		);
+		if (integrationAnalyticsOkPm.length === 0) {
+			const firstErrPm = integrationAnalyticsResultsPm.find(
+				(resultPm) => !resultPm.ok
+			) as { ok: false; error: string } | undefined;
+			throw new Error(firstErrPm?.error ?? 'Failed to load analytics.');
 		}
+
+		const mergedSeriesVm = mergeAnalyticsSeriesVm(
+			integrationAnalyticsOkPm.map((resultPm) => mapAnalyticsSeriesVm(resultPm.data))
+		);
+		return mergedSeriesVm;
 	}
 }

@@ -10,9 +10,26 @@ import type {
 	ProtectedDashboardPagePresenter
 } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type { IconName } from '$data/icons';
+import type {
+	GetAnalyticsPresenter,
+	PostStatisticsAnalyticsViewModel
+} from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
+import type { PostsRepository } from '$lib/posts/Post.repository.svelte';
 
 import { url } from '$lib/utils/path';
 import { socialProviderIcon } from '$data/social-providers';
+
+/** One provider-published asset the user can link to a scheduled post (missing-release flow). */
+export interface MissingPublishCandidateViewModel {
+	id: string;
+	url: string;
+}
+
+export type LoadMissingPublishCandidatesResultViewModel =
+	| { ok: true; items: MissingPublishCandidateViewModel[] }
+	| { ok: false; error: string };
+
+export type UpdatePostReleaseIdResultViewModel = { ok: true } | { ok: false; error: string };
 
 /**
  * Account `/account/calendar`: targeted channels, Schedule‑X reload fingerprint, composer scope.
@@ -29,7 +46,9 @@ export class ProtectedCalendarPagePresenter {
 		private readonly dashboardPagePresenter: ProtectedDashboardPagePresenter,
 		private readonly workspaceSettings: WorkspaceSettingsPresenter,
 		readonly schedulerPresenter: SchedulerPresenter,
-		readonly createSocialPostPresenter: CreateSocialPostPresenter
+		readonly createSocialPostPresenter: CreateSocialPostPresenter,
+		private readonly getAnalyticsPresenter: GetAnalyticsPresenter,
+		private readonly postsRepository: PostsRepository
 	) {}
 
 	// --- OAuth / icons ---
@@ -103,5 +122,42 @@ export class ProtectedCalendarPagePresenter {
 		const setChannelDisabledResult = await this.dashboardPagePresenter.setChannelDisabled(id, disabled);
 		if (setChannelDisabledResult.ok) this.bumpCalendarRefresh();
 		return setChannelDisabledResult;
+	}
+
+	// --- Post statistics: delegate to {@link GetAnalyticsPresenter} (PM→VM in Get*; modal stays dumb) ---
+
+	loadPostStatisticsAnalyticsVm(params: {
+		organizationId: string;
+		postId: string;
+		date: number;
+	}): Promise<PostStatisticsAnalyticsViewModel> {
+		return this.getAnalyticsPresenter.loadPostStatisticsAnalyticsVm(params);
+	}
+
+	async loadMissingPublishCandidatesForPost(params: {
+		postId: string;
+		organizationId: string;
+	}): Promise<LoadMissingPublishCandidatesResultViewModel> {
+		const resultPm = await this.postsRepository.getMissingPublishCandidates(params);
+		if (!resultPm.ok) {
+			return { ok: false, error: resultPm.error };
+		}
+		const itemsVm: MissingPublishCandidateViewModel[] = resultPm.items.map((itemPm) => ({
+			id: itemPm.id,
+			url: itemPm.url
+		}));
+		return { ok: true, items: itemsVm };
+	}
+
+	async updatePostReleaseIdForStatistics(params: {
+		postId: string;
+		organizationId: string;
+		releaseId: string;
+	}): Promise<UpdatePostReleaseIdResultViewModel> {
+		const resultPm = await this.postsRepository.updatePostReleaseId(params);
+		if (!resultPm.ok) {
+			return { ok: false, error: resultPm.error };
+		}
+		return { ok: true };
 	}
 }

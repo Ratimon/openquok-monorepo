@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { postsRepository } from '$lib/posts';
+	import type { ProtectedCalendarPagePresenter } from '$lib/area-protected/ProtectedCalendarPage.presenter.svelte';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -9,11 +9,14 @@
 	type Props = {
 		postId: string;
 		organizationId: string;
+		loadMissingCandidates: ProtectedCalendarPagePresenter['loadMissingPublishCandidatesForPost'];
+		updatePostRelease: ProtectedCalendarPagePresenter['updatePostReleaseIdForStatistics'];
 		onSuccess: () => void;
 		onCancel: () => void;
 	};
 
-	let { postId, organizationId, onSuccess, onCancel }: Props = $props();
+	let { postId, organizationId, loadMissingCandidates, updatePostRelease, onSuccess, onCancel }: Props =
+		$props();
 
 	let loading = $state(true);
 	let items = $state<{ id: string; url: string }[]>([]);
@@ -22,7 +25,7 @@
 
 	async function load(): Promise<void> {
 		loading = true;
-		const r = await postsRepository.getMissingPublishCandidates({ postId, organizationId });
+		const r = await loadMissingCandidates({ postId, organizationId });
 		loading = false;
 		if (r.ok) {
 			items = r.items;
@@ -40,7 +43,7 @@
 	async function handleConnect(): Promise<void> {
 		if (!selected) return;
 		saving = true;
-		const r = await postsRepository.updatePostReleaseId({
+		const r = await updatePostRelease({
 			postId,
 			organizationId,
 			releaseId: selected

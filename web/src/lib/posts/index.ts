@@ -33,11 +33,14 @@ export const getScheduledPostsPresenter = new GetScheduledPostsPresenter(postsRe
 export { PostsRepository, uploadSocialPostComposerMediaFiles } from '$lib/posts/Post.repository.svelte';
 export type {
 	CreatePostProgrammerModel,
+	LoadMissingPublishCandidatesResultPm,
+	MissingPublishCandidatePm,
 	PostCommentProgrammerModel,
 	PostRowProgrammerModel,
 	PostTagProgrammerModel,
+	PostMediaProgrammerModel,
 	RepeatIntervalKey,
-	PostMediaProgrammerModel
+	UpdatePostReleaseIdResultPm
 } from '$lib/posts/Post.repository.svelte';
 export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPostPresenter.svelte';
 export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';

@@ -2,7 +2,11 @@ import type {
 	CreateSocialPostChannelViewModel,
 	ProtectedDashboardPagePresenter
 } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-import type { AnalyticsSeriesViewModel, GetAnalyticsPresenter } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
+import {
+	formatAnalyticsSeriesTotalsVm,
+	type AnalyticsSeriesViewModel,
+	type GetAnalyticsPresenter
+} from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 import type { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
 import type { SocialPlatformFilterVm } from '$lib/posts';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
@@ -113,19 +117,15 @@ export class ProtectedAnalyticsPagePresenter {
 
 		this.loading = true;
 		try {
-			const r = await this.getAnalyticsPresenter.loadMergedAnalyticsVmStateless({
+			const merged = await this.getAnalyticsPresenter.loadMergedAnalyticsSeriesVm({
 				organizationId,
 				integrations,
 				dateWindowDays
 			});
-			if (!r.ok) {
-				this.error = r.error;
-				return;
-			}
-			this.mergedSeriesVm = r.mergedSeriesVm;
-			this.mergedTotalsVm = r.mergedTotalsVm;
-		} catch {
-			this.error = 'Failed to load analytics.';
+			this.mergedSeriesVm = merged;
+			this.mergedTotalsVm = formatAnalyticsSeriesTotalsVm(merged);
+		} catch (e) {
+			this.error = e instanceof Error ? e.message : 'Failed to load analytics.';
 		} finally {
 			this.loading = false;
 		}

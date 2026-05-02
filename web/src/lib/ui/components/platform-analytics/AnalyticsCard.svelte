@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AnalyticsSeriesVm } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
+	import type { AnalyticsSeriesViewModel } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 
 	import { cn } from '$lib/ui/helpers/common';
     import { icons } from '$data/icons';
@@ -8,7 +8,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
-		seriesVm: AnalyticsSeriesVm;
+		seriesVm: AnalyticsSeriesViewModel;
 		total: string | number;
 		index: number;
 	};
