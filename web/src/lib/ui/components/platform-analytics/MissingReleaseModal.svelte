@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { ProtectedCalendarPagePresenter } from '$lib/area-protected/ProtectedCalendarPage.presenter.svelte';
 
+    import { toast } from '$lib/ui/sonner';
+	import { icons } from '$data/icons';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import { toast } from '$lib/ui/sonner';
-	import { icons } from '$data/icons';
 
 	type Props = {
 		postId: string;

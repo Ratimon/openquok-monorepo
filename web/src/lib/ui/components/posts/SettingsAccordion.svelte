@@ -109,7 +109,11 @@
 
 			<div class="max-h-[calc(100vh-8rem)] overflow-y-auto p-4 sm:p-6">
 				{#if identifier === 'threads'}
-					<ThreadFinisher bind:enabled={threadsEnabled} bind:message={threadsMessage} disabled={disabled} />
+					<ThreadFinisher
+						bind:enabled={threadsEnabled}
+						bind:message={threadsMessage}
+						disabled={disabled}
+					/>
 				{:else if identifier.startsWith('instagram')}
 					<InstagramCollaborators
 						bind:postType={igPostType}
