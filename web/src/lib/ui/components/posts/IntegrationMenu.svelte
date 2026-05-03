@@ -9,8 +9,8 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Collapsible from '$lib/ui/collapsible';
-	import * as Dialog from '$lib/ui/dialog';
 	import * as Popover from '$lib/ui/popover';
+	import DeleteChannelModal from '$lib/ui/components/posts/DeleteChannelModal.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 
 	type Props = {
@@ -368,33 +368,10 @@
 	</div>
 {/if}
 
-<Dialog.Root bind:open={confirmRemoveOpen}>
-	<Dialog.Content class="max-w-md">
-		<Dialog.Header>
-			<Dialog.Title>
-                Delete channel?
-            </Dialog.Title>
-			<Dialog.Description>
-				This disconnects <strong>{integration.name}</strong> from this workspace. You can add it again later.
-			</Dialog.Description>
-		</Dialog.Header>
-		<Dialog.Footer class="gap-2 sm:justify-end">
-			<Button type="button" variant="ghost" onclick={() => (confirmRemoveOpen = false)} disabled={busy}>
-				Cancel
-			</Button>
-			<Button
-				type="button"
-				variant="ghost"
-				class="border-0 bg-error text-error-content hover:bg-error/90"
-				disabled={busy}
-				onclick={handleRemove}
-			>
-				{#if busy}
-					<AbstractIcon name={icons.LoaderCircle.name} class="h-4 w-4 animate-spin" width="16" height="16" />
-				{:else}
-					Remove
-				{/if}
-			</Button>
-		</Dialog.Footer>
-	</Dialog.Content>
-</Dialog.Root>
+<DeleteChannelModal
+	bind:open={confirmRemoveOpen}
+	channelName={integration.name}
+	{busy}
+	onCancel={() => (confirmRemoveOpen = false)}
+	onConfirm={handleRemove}
+/>

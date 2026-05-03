@@ -1,8 +1,10 @@
 <script lang="ts">
 	import type { ICellProps } from '@svar-ui/svelte-grid';
-	import { getContext } from 'svelte';
 	import type { PlugRuleTableRowViewModel } from '$lib/plugs/GetPlug.presenter.svelte';
-	import { plugsGridActionsKey, type PlugsGridActions } from '$lib/ui/components/plugs/plugsGridContext';
+	import type { PlugsGridActions } from '$lib/ui/components/plugs/plugsGridContext';
+
+	import { getContext } from 'svelte';
+	import { plugsGridActionsKey } from '$lib/ui/components/plugs/plugsGridContext';
 	import Switch from '$lib/ui/switch/switch.svelte';
 
 	let { row }: ICellProps = $props();

@@ -2,10 +2,11 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 	import { icons } from '$data/icons';
+	import { socialProviderIcon } from '$data/social-providers';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
-	import { socialProviderIcon } from '$data/social-providers';
-	import RemoveSocialAccount from '$lib/ui/components/posts/RemoveSocialAccount.svelte';
+	import RemoveSocialAccountModal from '$lib/ui/components/posts/RemoveSocialAccountModal.svelte';
 
 	type Mode = 'global' | 'custom';
 
@@ -123,7 +124,7 @@
 	</div>
 </div>
 
-<RemoveSocialAccount
+<RemoveSocialAccountModal
 	bind:open={removeConfirmOpen}
 	onConfirm={confirmRemove}
 	onCancel={() => (removeConfirmOpen = false)}
