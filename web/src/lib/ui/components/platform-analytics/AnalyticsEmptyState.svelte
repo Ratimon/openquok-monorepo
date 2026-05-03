@@ -18,9 +18,11 @@
 	<div class="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
 		<AbstractIcon name={icons.CircleAlert.name} class="size-6" width="24" height="24" />
 	</div>
-	<p class="text-sm font-semibold text-base-content">{title}</p>
+	<p class="text-sm font-semibold text-base-content">
+		{title}</p>
 	{#if description}
-		<p class="mt-2 text-sm text-base-content/70">{description}</p>
+		<p class="mt-2 text-sm text-base-content/70">
+			{description}</p>
 	{/if}
 	{#if onAction}
 		<div class="mt-4 flex justify-center">

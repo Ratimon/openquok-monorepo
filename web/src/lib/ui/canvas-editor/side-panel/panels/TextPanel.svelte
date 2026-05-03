@@ -269,7 +269,8 @@
 				</p>
 
 				{#if templatesError}
-					<p class="text-error mb-2 shrink-0 text-xs">{templatesError}</p>
+					<p class="text-error mb-2 shrink-0 text-xs">
+						{templatesError}</p>
 				{/if}
 
 				<ScrollArea
@@ -277,7 +278,8 @@
 					viewportClass="pr-1"
 				>
 					{#if templatesLoading}
-						<p class="text-base-content/60 py-8 text-center text-sm">Loading text styles…</p>
+						<p class="text-base-content/60 py-8 text-center text-sm">
+							Loading text styles…</p>
 					{:else}
 						<div class="grid grid-cols-2 gap-x-3 gap-y-4 pb-4">
 							{#each textTemplateRows as item (item.preview + item.json)}
@@ -376,7 +378,8 @@
 					</div>
 				{/each}
 				{#if customFonts.length === 0}
-					<p class="text-base-content/50 py-8 text-center text-sm">No custom fonts yet.</p>
+					<p class="text-base-content/50 py-8 text-center text-sm">
+						No custom fonts yet.</p>
 				{/if}
 			</ScrollArea>
 		</Tabs.Content>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { icons } from '$data/icons';
-	
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Dialog from '$lib/ui/dialog';
@@ -35,8 +35,20 @@
 		</div>
 
 		<div class="mt-6 flex flex-wrap gap-3">
-			<Button type="button" variant="primary" onclick={onConfirm} class="min-w-[120px]">Yes</Button>
-			<Button type="button" variant="secondary" onclick={onCancel} class="min-w-[120px]">No</Button>
+			<Button
+				type="button"
+				variant="primary"
+				onclick={onConfirm}
+				class="min-w-[120px]">
+				Yes
+			</Button>
+			<Button
+				type="button"
+				variant="secondary"
+				onclick={onCancel}
+				class="min-w-[120px]">
+				No
+			</Button>
 		</div>
 	</Dialog.Content>
 </Dialog.Root>

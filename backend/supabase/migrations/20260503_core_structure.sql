@@ -736,6 +736,36 @@ COMMENT ON COLUMN public.notifications.content IS 'Short message body shown in t
 COMMENT ON COLUMN public.notifications.link IS 'Optional deep link or URL related to the notification';
 
 
+-- Module: sets, File: 101_20260503_tables.sql
+-- ---------------------------
+-- MODULE NAME: sets
+-- MODULE DATE: 20260503
+-- MODULE SCOPE: Tables
+-- ---------------------------
+-- Workspace-scoped presets (channel selections + composer snapshot JSON).
+
+
+
+CREATE TABLE IF NOT EXISTS public.sets (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    name text NOT NULL,
+    content text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.sets IS 'Workspace-scoped presets grouping channels and composer snapshot JSON (FK organizations.id).';
+COMMENT ON COLUMN public.sets.organization_id IS 'Owning workspace/organization.';
+COMMENT ON COLUMN public.sets.content IS 'Opaque composer snapshot JSON (client-defined schema version).';
+
+
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: signature, File: 101_20260430_tables.sql
 -- ---------------------------
 -- MODULE NAME: signature
@@ -1063,6 +1093,24 @@ CREATE INDEX IF NOT EXISTS idx_notifications_organization_id ON public.notificat
 CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(created_at);
 CREATE INDEX IF NOT EXISTS idx_notifications_deleted_at ON public.notifications(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_users_last_read_notifications ON public.users(last_read_notifications);
+
+
+-- Module: sets, File: 201_20260503_indexes.sql
+-- ---------------------------
+-- MODULE NAME: sets
+-- MODULE DATE: 20260503
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+
+
+CREATE INDEX IF NOT EXISTS idx_sets_organization_id ON public.sets(organization_id);
+
+
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
 
 -- Module: signature, File: 201_20260430_indexes.sql
@@ -2940,6 +2988,100 @@ USING (
           AND uo.disabled = FALSE
     )
 );
+
+
+-- Module: sets, File: 301_20260503_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: sets
+-- MODULE DATE: 20260503
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.sets TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.sets TO service_role;
+
+ALTER TABLE public.sets ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Members can view sets" ON public.sets;
+CREATE POLICY "Members can view sets"
+ON public.sets
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = sets.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert sets" ON public.sets;
+CREATE POLICY "Members can insert sets"
+ON public.sets
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = sets.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update sets" ON public.sets;
+CREATE POLICY "Members can update sets"
+ON public.sets
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = sets.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = sets.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete sets" ON public.sets;
+CREATE POLICY "Members can delete sets"
+ON public.sets
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = sets.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
 
 -- Module: signature, File: 301_20260430_rlsgrants.sql

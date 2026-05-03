@@ -244,7 +244,8 @@
 	</CalendarFilters>
 
 	{#if scheduledPostsVm.loading}
-		<div class="text-sm text-base-content/70">Loading scheduled posts…</div>
+		<div class="text-sm text-base-content/70">
+			Loading scheduled posts…</div>
 	{/if}
 
 	{#if display === 'list'}

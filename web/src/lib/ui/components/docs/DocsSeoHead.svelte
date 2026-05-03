@@ -53,7 +53,8 @@
 </script>
 
 <svelte:head>
-	<title>{fullTitle}</title>
+	<title>
+		{fullTitle}</title>
 	{#if description}
 		<meta name="description" content={description} />
 	{/if}

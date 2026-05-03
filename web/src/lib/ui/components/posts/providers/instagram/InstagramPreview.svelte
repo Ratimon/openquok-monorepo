@@ -53,8 +53,10 @@
 			/>
 		{/if}
 		<div class="min-w-0">
-			<div class="truncate text-sm font-semibold leading-4">{channel.name}</div>
-			<div class="text-[11px] text-base-content/60">{isInstagram ? 'Instagram' : channel.identifier}</div>
+			<div class="truncate text-sm font-semibold leading-4">
+				{channel.name}</div>
+			<div class="text-[11px] text-base-content/60">
+				{isInstagram ? 'Instagram' : channel.identifier}</div>
 		</div>
 	</div>
 
@@ -89,7 +91,8 @@
 
 	<div class="px-4 py-3 text-sm leading-5">
 		{#if previewText.length === 0}
-			<p class="text-base-content/60">Start writing your post for a preview</p>
+			<p class="text-base-content/60">
+				Start writing your post for a preview</p>
 		{:else}
 			<p class="whitespace-pre-wrap">
 				<strong class="font-semibold">{channel.name} </strong>

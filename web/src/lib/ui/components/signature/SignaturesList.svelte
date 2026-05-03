@@ -142,7 +142,8 @@
 	<div class="flex flex-col gap-1 p-4 sm:p-6">
 		<div class="flex items-center justify-between gap-3">
 			<div>
-				<h3 class="text-sm font-semibold text-base-content">Signatures</h3>
+				<h3 class="text-sm font-semibold text-base-content">
+					Signatures</h3>
 				<p class="mt-1 text-sm leading-snug text-base-content/70">
 					Pre-write a snippet eg. hashtags, sign-offs, or other text you use often. They are shared with
 					everyone in this workspace.
@@ -168,7 +169,8 @@
 				Loading workspace…
 			</div>
 		{:else if busy && items.length === 0}
-			<div class="text-sm text-base-content/70">Loading…</div>
+			<div class="text-sm text-base-content/70">
+				Loading…</div>
 		{:else if items.length === 0}
 			<div class="rounded-lg border border-base-300 bg-base-100 p-4 text-sm text-base-content/70">
 				No signatures yet for this workspace.
@@ -235,8 +237,10 @@
 						bind:value={autoAddValue}
 						disabled={busy}
 					>
-						<option value="false">No</option>
-						<option value="true">Yes</option>
+						<option value="false">
+							No</option>
+						<option value="true">
+							Yes</option>
 					</select>
 				</div>
 			</div>
@@ -296,8 +300,10 @@
 						bind:value={autoAddValue}
 						disabled={busy}
 					>
-						<option value="false">No</option>
-						<option value="true">Yes</option>
+						<option value="false">
+							No</option>
+						<option value="true">
+							Yes</option>
 					</select>
 				</div>
 			</div>

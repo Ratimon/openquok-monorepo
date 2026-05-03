@@ -27,7 +27,7 @@
 		try {
 			const pagefindUrl = `${window.location.origin}/pagefind/pagefind.js`;
 			/* Vite cannot analyze import(variable). Svelte may drop @vite-ignore on import(); use runtime indirection. */
-			// eslint-disable-next-line no-new-func -- dynamic import URL must stay out of the static graph
+			 
 			const runtimeImport = new Function('url', 'return import(url)') as (
 				url: string
 			) => Promise<{ init: () => Promise<void> }>;

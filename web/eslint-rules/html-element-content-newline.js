@@ -3,6 +3,9 @@
  * Matches the pattern used in EditorWorkspaceSettings.svelte (e.g. lines 191–197):
  * opening tag on one line, text on the next, closing tag on the next.
  *
+ * The shared `Button` Svelte component is included so modal/footer actions match
+ * `UpdateWebsiteModal.svelte` (multiline attrs + label on its own line).
+ *
  * Inline elements (span, a, strong, etc.) are ignored by default so short
  * phrases can stay on one line.
  */
@@ -31,12 +34,20 @@ function create(context) {
 
 	return {
 		SvelteElement(node) {
-			if (node.kind !== 'html' || node.endTag == null || node.children.length === 0) {
+			if (node.endTag == null || node.children.length === 0) {
 				return;
 			}
 
-			const tagName = (node.name && node.name.name || '').toLowerCase();
-			if (ignores.has(tagName)) {
+			const rawName = node.name?.name ?? '';
+			const tagNameLower = rawName.toLowerCase();
+			const isHtmlKind = node.kind === 'html';
+			const isButtonComponent = node.kind !== 'html' && rawName === 'Button';
+
+			if (!isHtmlKind && !isButtonComponent) {
+				return;
+			}
+
+			if (isHtmlKind && ignores.has(tagNameLower)) {
 				return;
 			}
 

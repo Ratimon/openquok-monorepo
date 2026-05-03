@@ -74,8 +74,10 @@
 							class="border-base-300 hover:border-primary/50 flex flex-col gap-2 rounded-xl border bg-base-200/30 p-4 text-left"
 							onclick={() => (selected = p)}
 						>
-							<div class="text-sm font-semibold">{p.title}: {p.name}</div>
-							<div class="line-clamp-3 text-xs text-base-content/70">{p.description}</div>
+							<div class="text-sm font-semibold">
+								{p.title}: {p.name}</div>
+							<div class="line-clamp-3 text-xs text-base-content/70">
+								{p.description}</div>
 						</button>
 					{/each}
 				</div>
@@ -83,12 +85,15 @@
 				<button type="button" class="text-primary mb-3 text-sm font-medium hover:underline" onclick={() => (selected = null)}>
 					← Back
 				</button>
-				<p class="text-base-content/80 mb-4 text-sm">{selected.description}</p>
-				<Button type="button" variant="secondary" onclick={placeholderUse}>Use</Button>
+				<p class="text-base-content/80 mb-4 text-sm">
+					{selected.description}</p>
+				<Button type="button" variant="secondary" onclick={placeholderUse}>
+					Use</Button>
 			{/if}
 
 			<Dialog.Footer class="mt-4">
-				<Button type="button" variant="ghost" onclick={closeDialog}>Close</Button>
+				<Button type="button" variant="ghost" onclick={closeDialog}>
+					Close</Button>
 			</Dialog.Footer>
 		</Dialog.Content>
 	</Dialog.Root>

@@ -74,9 +74,12 @@
 					<h1 class="text-3xl font-bold">
 						{heroTitle}</h1>
 					<div class="flex flex-wrap gap-2">
-						<Button variant="outline" size="sm" href={`${rssBase}?format=rss`}>RSS</Button>
-						<Button variant="outline" size="sm" href={`${rssBase}?format=atom`}>Atom</Button>
-						<Button variant="outline" size="sm" href={`${rssBase}?format=json`}>JSON</Button>
+						<Button variant="outline" size="sm" href={`${rssBase}?format=rss`}>
+							RSS</Button>
+						<Button variant="outline" size="sm" href={`${rssBase}?format=atom`}>
+							Atom</Button>
+						<Button variant="outline" size="sm" href={`${rssBase}?format=json`}>
+							JSON</Button>
 					</div>
 				</div>
 				<p class="text-base-content/70 max-w-3xl">

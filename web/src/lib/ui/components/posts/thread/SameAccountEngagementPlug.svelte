@@ -25,7 +25,8 @@
 <div class="border-base-300 bg-base-200/30 mt-6 rounded-lg border p-4">
 	<div class="flex items-center justify-between gap-3">
 		<div>
-			<div class="text-sm font-medium text-base-content/80">Delayed engagement reply</div>
+			<div class="text-sm font-medium text-base-content/80">
+				Delayed engagement reply</div>
 			<p class="mt-1 text-xs text-base-content/55">
 				Same Threads account — schedules one extra reply after your main post (internal plug).
 			</p>
@@ -48,7 +49,8 @@
 		</label>
 
 		<div>
-			<div class="mb-1 text-xs font-medium text-base-content/70">Reply message</div>
+			<div class="mb-1 text-xs font-medium text-base-content/70">
+				Reply message</div>
 			<EditorPost
 				charCount={charCount}
 				softCharLimit={softCharLimit}

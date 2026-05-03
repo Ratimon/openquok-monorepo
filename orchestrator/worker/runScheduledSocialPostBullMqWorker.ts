@@ -5,6 +5,7 @@
  * Run: pnpm worker:scheduled-social-post-bullmq
  */
 import { config } from "backend/config/GlobalConfig.js";
+import { cacheInvalidationServiceConnection, cacheServiceConnection } from "backend/connections/index.js";
 import {
     integrationRepository,
     plugRepository,
@@ -13,6 +14,7 @@ import {
     postsRepository,
     userRepository,
 } from "backend/repositories/index.js";
+import { invalidatePostsCalendarListCachesForOrganization } from "backend/services/PostsService.js";
 import { createPublishScheduledGroupHandler, type ScheduledPostsRepository } from "../activities/scheduledSocialPostActivities.js";
 import { IntegrationManager } from "backend/integrations/integrationManager.js";
 import { EmailService } from "backend/services/EmailService.js";
@@ -84,6 +86,13 @@ const publishScheduledGroup = createPublishScheduledGroupHandler({
         integrationRepository,
         integrationManager,
         refreshService: refreshIntegrationService,
+    },
+    invalidatePostsCalendarListForOrganization: async (organizationId) => {
+        await invalidatePostsCalendarListCachesForOrganization(
+            organizationId,
+            cacheInvalidationServiceConnection,
+            cacheServiceConnection
+        );
     },
 });
 

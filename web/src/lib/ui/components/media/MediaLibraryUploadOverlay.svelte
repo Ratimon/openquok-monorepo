@@ -45,7 +45,8 @@
 					{/if}
 				</div>
 				{#if uploadPhase === 'uploading' && uploadDetailLine}
-					<div class="truncate text-xs text-base-content/60">{uploadDetailLine}</div>
+					<div class="truncate text-xs text-base-content/60">
+						{uploadDetailLine}</div>
 				{/if}
 			</div>
 		</div>

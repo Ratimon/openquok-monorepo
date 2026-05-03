@@ -32,7 +32,8 @@
 		<span class="hidden sm:inline">Position</span>
 	</Popover.Trigger>
 	<Popover.Content class="w-[min(20rem,calc(100vw-2rem))] p-3" align="start" sideOffset={6}>
-		<p class="text-base-content/60 mb-2 text-xs font-medium tracking-wide uppercase">Layer</p>
+		<p class="text-base-content/60 mb-2 text-xs font-medium tracking-wide uppercase">
+			Layer</p>
 		<div class="grid grid-cols-2 gap-1">
 			<button
 				type="button"
@@ -79,7 +80,8 @@
 				To front
 			</button>
 		</div>
-		<p class="text-base-content/60 mt-3 mb-2 text-xs font-medium tracking-wide uppercase">Align to page</p>
+		<p class="text-base-content/60 mt-3 mb-2 text-xs font-medium tracking-wide uppercase">
+			Align to page</p>
 		<div class="grid grid-cols-3 gap-1">
 			<button
 				type="button"
@@ -88,7 +90,8 @@
 				onclick={() => {
 					canvasApi?.alignSelected('left');
 					open = false;
-				}}>Left</button>
+				}}>
+				Left</button>
 			<button
 				type="button"
 				class="btn btn-ghost btn-xs"
@@ -96,7 +99,8 @@
 				onclick={() => {
 					canvasApi?.alignSelected('centerH');
 					open = false;
-				}}>Center</button>
+				}}>
+				Center</button>
 			<button
 				type="button"
 				class="btn btn-ghost btn-xs"
@@ -104,7 +108,8 @@
 				onclick={() => {
 					canvasApi?.alignSelected('right');
 					open = false;
-				}}>Right</button>
+				}}>
+				Right</button>
 			<button
 				type="button"
 				class="btn btn-ghost btn-xs"
@@ -112,7 +117,8 @@
 				onclick={() => {
 					canvasApi?.alignSelected('top');
 					open = false;
-				}}>Top</button>
+				}}>
+				Top</button>
 			<button
 				type="button"
 				class="btn btn-ghost btn-xs"
@@ -120,7 +126,8 @@
 				onclick={() => {
 					canvasApi?.alignSelected('centerV');
 					open = false;
-				}}>Middle</button>
+				}}>
+				Middle</button>
 			<button
 				type="button"
 				class="btn btn-ghost btn-xs"
@@ -128,7 +135,8 @@
 				onclick={() => {
 					canvasApi?.alignSelected('bottom');
 					open = false;
-				}}>Bottom</button>
+				}}>
+				Bottom</button>
 		</div>
 	</Popover.Content>
 </Popover.Root>

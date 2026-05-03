@@ -169,14 +169,16 @@
 						width="40"
 						height="40"
 					/>
-					<div class="text-xs font-medium uppercase tracking-[0.2em]">{kindLabel}</div>
+					<div class="text-xs font-medium uppercase tracking-[0.2em]">
+						{kindLabel}</div>
 				</div>
 			{/if}
 
 			<div
 				class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent px-2 py-2 text-white sm:px-2.5 sm:py-2.5"
 			>
-				<div class="truncate text-[11px] font-medium leading-tight sm:text-xs">{mediaVm.name}</div>
+				<div class="truncate text-[11px] font-medium leading-tight sm:text-xs">
+					{mediaVm.name}</div>
 			</div>
 		</button>
 

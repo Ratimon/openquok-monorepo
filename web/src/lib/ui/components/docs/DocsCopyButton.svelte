@@ -129,7 +129,8 @@
 					<AbstractIcon name={icons.Copy.name} class="size-4" width="16" height="16" />
 				</span>
 				<div class="min-w-0 flex-1">
-					<div class="text-base-content font-medium leading-tight">Copy page</div>
+					<div class="text-base-content font-medium leading-tight">
+						Copy page</div>
 					<div class="text-base-content/55 mt-0.5 text-xs leading-snug">
 						Copy page as Markdown for LLMs
 					</div>

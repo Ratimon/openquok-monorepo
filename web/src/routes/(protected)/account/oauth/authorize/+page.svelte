@@ -25,7 +25,8 @@
 </script>
 
 <svelte:head>
-	<title>Authorize application</title>
+	<title>
+		Authorize application</title>
 </svelte:head>
 
 <div class="mx-auto max-w-xl py-10">
@@ -37,13 +38,15 @@
 			height="48"
 			class="mb-4 h-12 w-12"
 		/>
-		<h1 class="text-lg font-semibold text-base-content">Authorize application</h1>
+		<h1 class="text-lg font-semibold text-base-content">
+			Authorize application</h1>
 		<p class="mt-2 text-sm text-base-content/70">
 			This page is reserved for application-level OAuth (for example when a third-party client requests access).
 			Connecting a social channel happens under <span class="font-medium text-base-content">Account → Integrations</span>.
 		</p>
 		{#if legacyProvider && legacyOrganizationId}
-			<p class="mt-3 text-sm text-base-content/70">Redirecting to channel connect…</p>
+			<p class="mt-3 text-sm text-base-content/70">
+				Redirecting to channel connect…</p>
 		{:else}
 			<p class="mt-4">
 				<a class="link link-primary" href={url(`/${getRootPathAccount()}`)}>Back to account</a>

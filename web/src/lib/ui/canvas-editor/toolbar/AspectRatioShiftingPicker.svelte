@@ -127,7 +127,8 @@
 	{/snippet}
 
 	{#snippet children()}
-		<p class="text-base-content/70 mb-2 text-xs font-medium sm:text-sm">Choose a platform, then a format</p>
+		<p class="text-base-content/70 mb-2 text-xs font-medium sm:text-sm">
+			Choose a platform, then a format</p>
 		<div
 			class="grid max-h-[min(65vh,26rem)] grid-cols-1 gap-2.5 overflow-y-auto pr-0.5 sm:grid-cols-2 lg:grid-cols-3"
 		>

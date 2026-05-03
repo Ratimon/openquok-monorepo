@@ -41,7 +41,8 @@
 </script>
 
 <div class="space-y-2">
-	<div class="text-xs font-medium text-base-content/70">{label}</div>
+	<div class="text-xs font-medium text-base-content/70">
+		{label}</div>
 
 	<div class="border-base-300 bg-base-100 rounded-md border p-2">
 		<div class="flex flex-wrap gap-2">
@@ -78,5 +79,6 @@
 		</div>
 	</div>
 
-	<div class="text-xs text-base-content/50">{value.length}/{maxTags} tags</div>
+	<div class="text-xs text-base-content/50">
+		{value.length}/{maxTags} tags</div>
 </div>

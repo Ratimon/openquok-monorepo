@@ -81,7 +81,8 @@
 		</div>
 
 		<div class="flex items-center gap-2">
-			<Button variant="primary" size="sm" href={newPostHref}>New post</Button>
+			<Button variant="primary" size="sm" href={newPostHref}>
+				New post</Button>
 		</div>
 	</div>
 
@@ -98,7 +99,8 @@
 					You have no posts</h3>
 				<p class="text-sm text-base-content/70">
 					Create your first blog post to get started.</p>
-				<Button variant="primary" size="sm" href={newPostHref} class="mt-4">Add post</Button>
+				<Button variant="primary" size="sm" href={newPostHref} class="mt-4">
+					Add post</Button>
 			</div>
 		</div>
 	{:else}

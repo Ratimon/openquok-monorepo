@@ -110,8 +110,10 @@
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm space-y-6">
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="space-y-1">
-			<h2 class="text-2xl font-bold text-base-content">Analytics</h2>
-			<p class="text-base-content/70 text-sm">Track performance across your connected channels.</p>
+			<h2 class="text-2xl font-bold text-base-content">
+				Analytics</h2>
+			<p class="text-base-content/70 text-sm">
+				Track performance across your connected channels.</p>
 		</div>
 		<div class="flex items-center gap-2">
 			<Button type="button" variant="outline" href={route(getRootPathAccount())}>
@@ -122,19 +124,23 @@
 	</div>
 
 	{#if !workspaceId}
-		<p class="text-sm text-base-content/70">Select or create a workspace to load analytics.</p>
+		<p class="text-sm text-base-content/70">
+			Select or create a workspace to load analytics.</p>
 	{:else if channelsLoadPending}
 		<p class="flex items-center gap-2 text-sm text-base-content/70">
 			<AbstractIcon name={icons.LoaderCircle.name} class="h-4 w-4 animate-spin" width="16" height="16" />
 			Loading channels…
 		</p>
 	{:else if listStatus === 'error'}
-		<p class="text-sm text-error">Could not load channels. Try again in a moment.</p>
+		<p class="text-sm text-error">
+			Could not load channels. Try again in a moment.</p>
 	{:else if connectedChannelsVm.length === 0}
 		<div class="space-y-4 text-center py-10">
 			<div class="mx-auto max-w-xl space-y-3">
-				<p class="text-3xl font-semibold text-base-content">Can’t show analytics yet</p>
-				<p class="text-base-content/70 text-sm">You have to add Social Media channels.</p>
+				<p class="text-3xl font-semibold text-base-content">
+					Can’t show analytics yet</p>
+				<p class="text-base-content/70 text-sm">
+					You have to add Social Media channels.</p>
 				<p class="text-base-content/70 text-sm">
 					Supported: {supportedIntegrations.map(supportedLabel).join(', ')}
 				</p>
@@ -148,7 +154,8 @@
 	{:else}
 		<section class="space-y-3">
 			<div class="flex flex-wrap items-center justify-between gap-3">
-				<h3 class="text-lg font-semibold text-base-content">Targeted channels</h3>
+				<h3 class="text-lg font-semibold text-base-content">
+					Targeted channels</h3>
 				<div class="flex flex-wrap items-center justify-end gap-2">
 					<SocialChannelFilter
 						channels={connectedChannelsVm}
@@ -175,7 +182,8 @@
 			</div>
 
 			{#if filteredIntegrationsVm.length === 0}
-				<p class="text-sm text-base-content/70">No channels match the current filter.</p>
+				<p class="text-sm text-base-content/70">
+					No channels match the current filter.</p>
 			{:else}
 				<ul class="flex list-none flex-row flex-wrap items-center gap-2 p-0">
 					{#each filteredIntegrationsVm as integration (integration.id)}

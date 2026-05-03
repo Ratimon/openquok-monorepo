@@ -131,7 +131,8 @@
 			}}
 		>
 			{#each options as opt (opt.seconds)}
-				<option value={String(opt.seconds)}>{opt.label}</option>
+				<option value={String(opt.seconds)}>
+					{opt.label}</option>
 			{/each}
 		</select>
 	</div>

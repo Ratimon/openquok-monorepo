@@ -205,7 +205,8 @@
 			</div>
 			<div class="flex flex-wrap items-end gap-2">
 				<div class="min-w-0 flex-1 space-y-1">
-					<label class="text-xs font-medium text-base-content/70" for="tt-hour">Hour</label>
+					<label class="text-xs font-medium text-base-content/70" for="tt-hour">
+						Hour</label>
 					<select
 						id="tt-hour"
 						class="select select-bordered select-sm w-full min-w-[4.5rem] bg-base-100"
@@ -213,12 +214,14 @@
 						disabled={busy || !integration}
 					>
 						{#each hourChoices as h (h)}
-							<option value={h}>{h}</option>
+							<option value={h}>
+								{h}</option>
 						{/each}
 					</select>
 				</div>
 				<div class="min-w-0 flex-1 space-y-1">
-					<label class="text-xs font-medium text-base-content/70" for="tt-min">Minutes</label>
+					<label class="text-xs font-medium text-base-content/70" for="tt-min">
+						Minutes</label>
 					<select
 						id="tt-min"
 						class="select select-bordered select-sm w-full min-w-[4.5rem] bg-base-100"
@@ -226,7 +229,8 @@
 						disabled={busy || !integration}
 					>
 						{#each minuteChoices as mm (mm)}
-							<option value={mm}>{mm}</option>
+							<option value={mm}>
+								{mm}</option>
 						{/each}
 					</select>
 				</div>
@@ -249,7 +253,8 @@
 				Scheduled times ({displayRows.length})
 			</h3>
 			{#if displayRows.length === 0}
-				<p class="text-base-content/60 mt-2 text-sm">No time slots added yet.</p>
+				<p class="text-base-content/60 mt-2 text-sm">
+					No time slots added yet.</p>
 			{:else}
 				<ul class="mt-2 space-y-2">
 					{#each displayRows as row (row.value)}
@@ -298,10 +303,20 @@
 			<Dialog.Description>Are you sure you want to close this modal?</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="mt-4 flex flex-wrap gap-2 sm:justify-end">
-			<Button type="button" variant="primary" class="min-w-[4.5rem]" onclick={confirmDiscardAndClose}>
+			<Button
+				type="button"
+				variant="primary"
+				class="min-w-[4.5rem]"
+				onclick={confirmDiscardAndClose}
+			>
 				Yes
 			</Button>
-			<Button type="button" variant="primary" class="min-w-[4.5rem]" onclick={cancelDiscard}>
+			<Button
+				type="button"
+				variant="primary"
+				class="min-w-[4.5rem]"
+				onclick={cancelDiscard}
+			>
 				No
 			</Button>
 		</Dialog.Footer>

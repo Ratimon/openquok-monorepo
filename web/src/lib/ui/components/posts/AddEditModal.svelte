@@ -74,6 +74,8 @@
 		scheduleValidationMessage?: string | null;
 		/** Provider settings row for the channel used in the preview (same scope as thread replies). */
 		previewProviderSettings?: Record<string, unknown>;
+		/** Locks per-network customization while authoring a reusable workspace set. */
+		contentSetAuthoringNetworkLock?: boolean;
 	};
 
 	let {
@@ -121,7 +123,8 @@
 		mediaUrls = [],
 		commentsMode = true,
 		scheduleValidationMessage = null,
-		previewProviderSettings = {}
+		previewProviderSettings = {},
+		contentSetAuthoringNetworkLock = false
 	}: Props = $props();
 
 	/** Channel shown in the preview: custom focus, or exactly one selected target in global mode. */
@@ -257,6 +260,7 @@
 				focusedProviderIdentifier={focusedProviderIdentifier}
 				{commentsMode}
 				{scheduleValidationMessage}
+				setsAuthoringNetworkLock={contentSetAuthoringNetworkLock}
 				locked={editorLocked}
 				lockMessage={editorLockMessage}
 				onUnlock={onEditorUnlock}

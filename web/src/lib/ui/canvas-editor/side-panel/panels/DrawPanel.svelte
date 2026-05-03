@@ -150,7 +150,8 @@
 		>
 			<div class="flex items-center justify-between gap-2">
 				<span class="text-base-content/85 text-sm">Stroke Width</span>
-				<label class="sr-only" for="draw-stroke-width-num">Stroke width</label>
+				<label class="sr-only" for="draw-stroke-width-num">
+					Stroke width</label>
 				<input
 					id="draw-stroke-width-num"
 					type="number"
@@ -215,7 +216,8 @@
 			>
 				<div class="flex items-center justify-between gap-2">
 					<span class="text-base-content/85 text-sm">Opacity</span>
-					<label class="sr-only" for="draw-opacity-num">Brush opacity percent</label>
+					<label class="sr-only" for="draw-opacity-num">
+						Brush opacity percent</label>
 					<input
 						id="draw-opacity-num"
 						type="number"

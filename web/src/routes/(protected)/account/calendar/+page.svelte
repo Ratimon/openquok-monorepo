@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { SetProgrammerModel, SetSnapshotV1 } from '$lib/sets';
 
 	// --- App / routing ---
+	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { route } from '$lib/utils/path';
@@ -26,10 +28,13 @@
 	import Scheduler from '$lib/ui/components/calendar-scheduler/Scheduler.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
+	import SetPickerDialog from '$lib/ui/components/posts/SetPickerDialog.svelte';
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import StatisticsModal from '$lib/ui/components/platform-analytics/StatisticsModal.svelte';
+
+	import { setsRepository, parseSetContent } from '$lib/sets';
 
 	const calendarPresenter = protectedCalendarPagePresenter;
 
@@ -38,6 +43,10 @@
 
 	// --- Modal / sheet open state ---
 	let createSocialPostOpen = $state(false);
+
+	let setPickOpen = $state(false);
+	let setPickRows = $state<SetProgrammerModel[]>([]);
+	let setPickFinish: ((v: SetSnapshotV1 | null | undefined) => void) | null = null;
 
 	let moveGroupOpen = $state(false);
 	let moveGroupFor = $state<CreateSocialPostChannelViewModel | null>(null);
@@ -62,6 +71,22 @@
 	const targetedChannelsVm = $derived(calendarPresenter.targetedChannelsVm);
 	const calendarRefreshKey = $derived(calendarPresenter.calendarRefreshKey);
 
+	/** Worker publishes update DB without bumping this key; refetch after tab focus (throttled). */
+	let lastCalendarVisibilityBumpMs = 0;
+	$effect(() => {
+		if (!browser) return;
+		const presenter = calendarPresenter;
+		const onVisibility = () => {
+			if (document.visibilityState !== 'visible') return;
+			const now = Date.now();
+			if (now - lastCalendarVisibilityBumpMs < 45_000) return;
+			lastCalendarVisibilityBumpMs = now;
+			presenter.bumpCalendarRefresh();
+		};
+		document.addEventListener('visibilitychange', onVisibility);
+		return () => document.removeEventListener('visibilitychange', onVisibility);
+	});
+
 	const groupId = $derived(page.url.searchParams.get('groupId'));
 
 	// --- Navigation & composer ---
@@ -69,19 +94,52 @@
 		void goto(accountRoot);
 	}
 
-	function openCreatePostForCurrentScope() {
-		openCreatePostForCurrentScopeAtIso(null);
+	async function chooseSetSnapshotForWorkspace(): Promise<SetSnapshotV1 | null | undefined> {
+		const oid = workspaceId;
+		if (!oid) return undefined;
+		const res = await setsRepository.listForOrganization(oid);
+		const rows = res.ok ? res.items : [];
+		if (!rows.length) return null;
+		return new Promise((resolve) => {
+			setPickRows = rows;
+			setPickFinish = resolve;
+			setPickOpen = true;
+		});
 	}
 
-	function openCreatePostForCurrentScopeAtIso(preselectScheduledAtIso: string | null) {
+	function finishSetPick(value: SetSnapshotV1 | null | undefined) {
+		setPickOpen = false;
+		setPickFinish?.(value);
+		setPickFinish = null;
+	}
+
+	function handleSetPickRow(row: SetProgrammerModel) {
+		const snap = parseSetContent(row.content);
+		if (!snap) {
+			toast.error('This set could not be loaded.');
+			return;
+		}
+		finishSetPick(snap);
+	}
+
+	async function openCreatePostForCurrentScope() {
+		await openCreatePostForCurrentScopeAtIso(null);
+	}
+
+	async function openCreatePostForCurrentScopeAtIso(preselectScheduledAtIso: string | null) {
 		const resultVm = calendarPresenter.getCreatePostPrepareOpenOptions();
 		if (!resultVm.ok) {
 			toast.error(resultVm.error);
 			return;
 		}
+		const oid = workspaceId;
+		if (!oid) return;
+		const picked = await chooseSetSnapshotForWorkspace();
+		if (picked === undefined) return;
 		calendarPresenter.createSocialPostPresenter.prepareOpen({
 			...resultVm.options,
-			preselectScheduledAtIso
+			preselectScheduledAtIso,
+			setSnapshot: picked ?? null
 		});
 		createSocialPostOpen = true;
 	}
@@ -231,8 +289,10 @@
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm space-y-6">
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="space-y-1">
-			<h2 class="text-2xl font-bold text-base-content">Calendar</h2>
-			<p class="text-base-content/70 text-sm">View and manage scheduled posts for this workspace.</p>
+			<h2 class="text-2xl font-bold text-base-content">
+				Calendar</h2>
+			<p class="text-base-content/70 text-sm">
+				View and manage scheduled posts for this workspace.</p>
 		</div>
 		<div class="flex items-center gap-2">
 			<Button
@@ -304,7 +364,8 @@
 	</section>
 
 	<section class="space-y-3">
-		<h3 class="text-lg font-semibold text-base-content">Scheduled posts</h3>
+		<h3 class="text-lg font-semibold text-base-content">
+			Scheduled posts</h3>
 		{#if workspaceId && connectedChannelsVm.length > 0}
 			<Scheduler
 				presenter={calendarPresenter.schedulerPresenter}
@@ -319,7 +380,8 @@
 				onRefresh={() => calendarPresenter.bumpCalendarRefresh()}
 			/>
 		{:else}
-			<p class="text-sm text-base-content/70">Connect at least one channel to view the calendar.</p>
+			<p class="text-sm text-base-content/70">
+				Connect at least one channel to view the calendar.</p>
 		{/if}
 	</section>
 </div>
@@ -361,6 +423,14 @@
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}
 	onScheduled={() => calendarPresenter.bumpCalendarRefresh()}
+/>
+
+<SetPickerDialog
+	bind:open={setPickOpen}
+	sets={setPickRows}
+	onPick={handleSetPickRow}
+	onContinueWithout={() => finishSetPick(null)}
+	onDismiss={() => finishSetPick(undefined)}
 />
 
 <MoveChannelGroupModal bind:open={moveGroupOpen} integration={moveGroupFor} />

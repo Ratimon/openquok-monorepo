@@ -14,6 +14,8 @@
 	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
+	import type { SetProgrammerModel, SetSnapshotV1 } from '$lib/sets';
+	import { setsRepository, parseSetContent } from '$lib/sets';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
 	// --- Feedback ---
@@ -29,6 +31,7 @@
 	import AddProvider from '$lib/ui/components/posts/AddProvider.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
+	import SetPickerDialog from '$lib/ui/components/posts/SetPickerDialog.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
@@ -87,20 +90,68 @@
 
 	let createSocialPostOpen = $state(false);
 
+	let setPickOpen = $state(false);
+	let setPickRows = $state<SetProgrammerModel[]>([]);
+	let setPickFinish: ((v: SetSnapshotV1 | null | undefined) => void) | null = null;
+
+	async function chooseSetSnapshotForWorkspace(): Promise<SetSnapshotV1 | null | undefined> {
+		const oid = workspaceId;
+		if (!oid) return undefined;
+		const res = await setsRepository.listForOrganization(oid);
+		const rows = res.ok ? res.items : [];
+		if (!rows.length) return null;
+		return new Promise((resolve) => {
+			setPickRows = rows;
+			setPickFinish = resolve;
+			setPickOpen = true;
+		});
+	}
+
+	function finishSetPick(value: SetSnapshotV1 | null | undefined) {
+		setPickOpen = false;
+		setPickFinish?.(value);
+		setPickFinish = null;
+	}
+
+	function handleSetPickRow(row: SetProgrammerModel) {
+		const snap = parseSetContent(row.content);
+		if (!snap) {
+			toast.error('This set could not be loaded.');
+			return;
+		}
+		finishSetPick(snap);
+	}
+
 	// --- Composer & navigation ---
-	function openCreatePost(preselectIntegrationId: string | null) {
+	async function openCreatePost(preselectIntegrationId: string | null) {
+		const oid = workspaceId;
+		if (!oid) {
+			toast.error('Create or select a workspace first.');
+			return;
+		}
+		const picked = await chooseSetSnapshotForWorkspace();
+		if (picked === undefined) return;
 		protectedDashboardPagePresenter.createSocialPostPresenter.prepareOpen({
 			preselectIntegrationId,
-			preselectGroupId: null
+			preselectGroupId: null,
+			setSnapshot: picked ?? null
 		});
 		createSocialPostOpen = true;
 	}
 
-	function openCreatePostForGroup(groupId: string) {
+	async function openCreatePostForGroup(groupId: string) {
+		const oid = workspaceId;
+		if (!oid) {
+			toast.error('Create or select a workspace first.');
+			return;
+		}
+		const picked = await chooseSetSnapshotForWorkspace();
+		if (picked === undefined) return;
 		protectedDashboardPagePresenter.createSocialPostPresenter.prepareOpen({
 			preselectIntegrationId: null,
 			preselectGroupId: groupId,
-			autoCustomizeFirstSelected: true
+			autoCustomizeFirstSelected: true,
+			setSnapshot: picked ?? null
 		});
 		createSocialPostOpen = true;
 	}
@@ -323,23 +374,30 @@
 		</div>
 	{/snippet}
 
-	<h2 class="text-2xl font-bold text-base-content">Account dashboard</h2>
+	<h2 class="text-2xl font-bold text-base-content">
+		Account dashboard</h2>
 	<p class="mt-2 text-base-content/80">
 		Welcome to your account. Connect channels for the selected workspace and manage them here.
 	</p>
 	{#if currentUser}
 		<dl class="mt-6 grid gap-2 text-sm sm:grid-cols-2">
 			<div class="contents">
-				<dt class="font-medium text-base-content/70">Email</dt>
-				<dd class="text-base-content">{currentUser.email}</dd>
+				<dt class="font-medium text-base-content/70">
+					Email</dt>
+				<dd class="text-base-content">
+					{currentUser.email}</dd>
 			</div>
 			<div class="contents">
-				<dt class="font-medium text-base-content/70">Full name</dt>
-				<dd class="text-base-content">{currentUser.fullName ?? '—'}</dd>
+				<dt class="font-medium text-base-content/70">
+					Full name</dt>
+				<dd class="text-base-content">
+					{currentUser.fullName ?? '—'}</dd>
 			</div>
 			<div class="contents">
-				<dt class="font-medium text-base-content/70">Username</dt>
-				<dd class="text-base-content">{currentUser.username ?? '—'}</dd>
+				<dt class="font-medium text-base-content/70">
+					Username</dt>
+				<dd class="text-base-content">
+					{currentUser.username ?? '—'}</dd>
 			</div>
 		</dl>
 	{/if}
@@ -435,7 +493,8 @@
 				Loading channels…
 			</p>
 		{:else if listStatus === 'error'}
-			<p class="mt-3 text-sm text-error">Could not load channels. Try again in a moment.</p>
+			<p class="mt-3 text-sm text-error">
+				Could not load channels. Try again in a moment.</p>
 		{:else if connectedChannelCountVm === 0}
 			<div class="mt-4 space-y-3">
 				<h4 class="text-base font-semibold text-base-content">
@@ -582,6 +641,14 @@
 		{/if}
 	</section>
 </div>
+
+<SetPickerDialog
+	bind:open={setPickOpen}
+	sets={setPickRows}
+	onPick={handleSetPickRow}
+	onContinueWithout={() => finishSetPick(null)}
+	onDismiss={() => finishSetPick(undefined)}
+/>
 
 <MoveChannelGroupModal bind:open={moveGroupOpen} integration={moveGroupFor} />
 

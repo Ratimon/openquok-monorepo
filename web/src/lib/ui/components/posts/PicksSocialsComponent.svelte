@@ -15,7 +15,8 @@
 </script>
 
 <div>
-	<p class="mb-2 text-xs font-medium text-base-content/60">Connected channels</p>
+	<p class="mb-2 text-xs font-medium text-base-content/60">
+		Connected channels</p>
 	<div class="flex flex-wrap gap-3">
 		{#each channels as ch (ch.id)}
 			{@const schedulable = ch.schedulable}

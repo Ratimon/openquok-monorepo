@@ -64,7 +64,8 @@
 		</Popover.Content>
 	</Popover.Root>
 
-	<label class="sr-only" for="text-size">Font size</label>
+	<label class="sr-only" for="text-size">
+		Font size</label>
 	<input
 		id="text-size"
 		type="number"
@@ -75,7 +76,8 @@
 		onchange={(e) => canvasApi?.setSelectedFontSize(Number((e.currentTarget as HTMLInputElement).value))}
 	/>
 
-	<label class="sr-only" for="text-color">Text color</label>
+	<label class="sr-only" for="text-color">
+		Text color</label>
 	<input
 		id="text-color"
 		type="color"

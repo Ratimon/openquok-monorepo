@@ -43,12 +43,15 @@
 	<SubSectionOuterContainer class="md:py-10">
 		<SubSectionInnerContainer class="max-w-7xl py-8">
 			<section class="flex flex-col gap-2">
-				<h1 class="mb-8 text-3xl font-bold">{PAGE_TITLE}</h1>
+				<h1 class="mb-8 text-3xl font-bold">
+					{PAGE_TITLE}</h1>
 
 				{#if !authors.length}
-					<p class="text-base-content/70">{NO_AUTHORS}</p>
+					<p class="text-base-content/70">
+						{NO_AUTHORS}</p>
 				{:else}
-					<p class="text-base-content/70 mb-8">{PAGE_DESCRIPTION}</p>
+					<p class="text-base-content/70 mb-8">
+						{PAGE_DESCRIPTION}</p>
 					<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 						{#each authors as author (author.id)}
 							<a href={authorHref(author)} class="block">
@@ -66,13 +69,16 @@
 											</Avatar.Fallback>
 										</Avatar.Root>
 										<div>
-											<h2 class="text-xl font-semibold">{displayName(author)}</h2>
-											<p class="text-sm text-base-content/70">{postCountLabel(author.postCount)}</p>
+											<h2 class="text-xl font-semibold">
+												{displayName(author)}</h2>
+											<p class="text-sm text-base-content/70">
+												{postCountLabel(author.postCount)}</p>
 										</div>
 									</CardHeader>
 									{#if author.tagLine}
 										<CardContent>
-											<p class="text-sm text-base-content/70">{author.tagLine}</p>
+											<p class="text-sm text-base-content/70">
+												{author.tagLine}</p>
 										</CardContent>
 									{/if}
 								</Card>

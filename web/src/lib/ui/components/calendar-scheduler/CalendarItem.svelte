@@ -160,7 +160,8 @@
 					</span>
 				{/if}
 			</div>
-			<div class="min-w-0 flex-1 truncate">{statusLabel || 'Scheduled'}</div>
+			<div class="min-w-0 flex-1 truncate">
+				{statusLabel || 'Scheduled'}</div>
 			{#if postCount > 1}
 				<div class="ml-1 rounded bg-primary-content/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary-content/90">
 					+{postCount - 1}

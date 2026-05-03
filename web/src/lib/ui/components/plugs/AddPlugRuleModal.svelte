@@ -159,7 +159,8 @@
 										>
 											Cancel
 										</Button>
-										<Button type="submit" variant="primary">Save rule</Button>
+										<Button type="submit" variant="primary">
+											Save rule</Button>
 									</div>
 								</form>
 							</div>

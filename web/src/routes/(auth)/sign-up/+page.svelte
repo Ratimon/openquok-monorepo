@@ -326,7 +326,8 @@
 				<p class="mt-4 text-base-content/80">
 					We've sent you a verification email. Please check your inbox (and spam) and click the link to verify your account.
 				</p>
-				<Button href="/" class="mt-6">Go to home</Button>
+				<Button href="/" class="mt-6">
+					Go to home</Button>
 			</div>
 		{/if}
 	</div>

@@ -94,8 +94,10 @@
 		<SubSectionInnerContainer class="max-w-7xl py-8">
 			<section class="flex flex-col gap-2">
 				{#if !author}
-					<h1 class="mb-8 text-3xl font-bold">{AUTHOR_NOT_FOUND}</h1>
-					<Button variant="outline" href={blogIndexHref}>{BACK_TO_ALL}</Button>
+					<h1 class="mb-8 text-3xl font-bold">
+						{AUTHOR_NOT_FOUND}</h1>
+					<Button variant="outline" href={blogIndexHref}>
+						{BACK_TO_ALL}</Button>
 				{:else}
 					<div class="mb-8 flex flex-col gap-6 sm:flex-row sm:items-start">
 						<Avatar.Root class="size-24 shrink-0 rounded-full">
@@ -111,9 +113,11 @@
 						</Avatar.Root>
 						<div class="flex w-full flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 							<div>
-								<h1 class="mb-2 text-3xl font-bold">{displayName(author)}</h1>
+								<h1 class="mb-2 text-3xl font-bold">
+									{displayName(author)}</h1>
 								{#if author.tagLine}
-									<p class="text-base-content/70 mb-4">{author.tagLine}</p>
+									<p class="text-base-content/70 mb-4">
+										{author.tagLine}</p>
 								{/if}
 								{#if author.website?.trim()}
 									<Button
@@ -127,16 +131,19 @@
 									</Button>
 								{/if}
 							</div>
-							<Button variant="outline" href={authorsIndexHref}>{SEE_ALL_AUTHORS}</Button>
+							<Button variant="outline" href={authorsIndexHref}>
+								{SEE_ALL_AUTHORS}</Button>
 						</div>
 					</div>
 
-					<h2 class="mb-8 text-2xl font-semibold">{postsByAuthorHeading(author)}</h2>
+					<h2 class="mb-8 text-2xl font-semibold">
+						{postsByAuthorHeading(author)}</h2>
 
 					{#if !posts.length}
 						<Card>
 							<CardContent class="p-6 text-center">
-								<p class="text-base-content/80">{NO_POSTS}</p>
+								<p class="text-base-content/80">
+									{NO_POSTS}</p>
 							</CardContent>
 						</Card>
 					{:else}

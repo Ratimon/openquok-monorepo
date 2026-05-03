@@ -33,7 +33,8 @@
 		Loading analytics…
 	</div>
 {:else if error}
-	<div class="rounded-xl border border-base-300 bg-base-100/60 p-6 text-sm text-error">{error}</div>
+	<div class="rounded-xl border border-base-300 bg-base-100/60 p-6 text-sm text-error">
+		{error}</div>
 {:else if showRefreshState}
 	<AnalyticsEmptyState
 		title="This channel needs to be refreshed"

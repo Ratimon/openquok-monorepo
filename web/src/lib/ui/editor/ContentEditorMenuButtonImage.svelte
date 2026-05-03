@@ -100,8 +100,10 @@
 				This inserts a local preview now. The file uploads only when you click Update/Create.
 			</p>
 			<div class="flex justify-end gap-2">
-				<Button type="button" variant="outline" onclick={() => closeDialog()}>Cancel</Button>
-				<Button type="button" onclick={insertSelectedFileAsPreview}>Insert preview</Button>
+				<Button type="button" variant="outline" onclick={() => closeDialog()}>
+					Cancel</Button>
+				<Button type="button" onclick={insertSelectedFileAsPreview}>
+					Insert preview</Button>
 			</div>
 		</div>
 	</Dialog.Content>

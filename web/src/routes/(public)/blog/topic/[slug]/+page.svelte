@@ -80,16 +80,20 @@
 		<SubSectionInnerContainer class="max-w-7xl py-8">
 			<section class="flex flex-col gap-2">
 				{#if !topic}
-					<h1 class="mb-8 text-3xl font-bold">{TOPIC_NOT_FOUND}</h1>
+					<h1 class="mb-8 text-3xl font-bold">
+						{TOPIC_NOT_FOUND}</h1>
 				{:else}
 					<div class="flex w-full flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 						<div>
-							<h1 class="mb-4 text-3xl font-bold">{topic.name}</h1>
+							<h1 class="mb-4 text-3xl font-bold">
+								{topic.name}</h1>
 							{#if topic.description}
-								<p class="text-base-content/70 mb-8">{topic.description}</p>
+								<p class="text-base-content/70 mb-8">
+									{topic.description}</p>
 							{/if}
 						</div>
-						<Button variant="outline" href={topicsOverviewHref}>{VIEW_ALL_TOPICS}</Button>
+						<Button variant="outline" href={topicsOverviewHref}>
+							{VIEW_ALL_TOPICS}</Button>
 					</div>
 
 					<BlogTopicsNavigation activeTopicSlug={topicSlug} class="my-8" topics={topicsNav} />
@@ -97,7 +101,8 @@
 					{#if !posts.length}
 						<Card>
 							<CardContent class="p-6 text-center">
-								<p class="text-base-content/80">{NO_POSTS}</p>
+								<p class="text-base-content/80">
+									{NO_POSTS}</p>
 							</CardContent>
 						</Card>
 					{:else}

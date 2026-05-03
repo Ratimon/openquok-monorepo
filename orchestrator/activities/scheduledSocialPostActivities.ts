@@ -794,50 +794,73 @@ export function createPublishScheduledGroupHandler(deps: {
     notificationService?: Pick<NotificationService, "inAppNotification">;
     /** When set (e.g. BullMQ worker), runs Threads internal + global plugs after publish. */
     plugPipeline?: ScheduledSocialPostPlugPipelineDeps;
+    /**
+     * Clear API-layer calendar list caches for this org after publishes (worker updates DB via repository,
+     * bypassing PostsService cache invalidation).
+     */
+    invalidatePostsCalendarListForOrganization?: (organizationId: string) => Promise<void>;
 }): (input: { organizationId: string; postGroup: string }) => Promise<void | { todos?: { type: "repeat-post"; postGroup: string; delayMs?: number }[] }> {
     return async (input) => {
         const { organizationId, postGroup } = input;
-        const rows = await deps.postsRepository.listPostsByGroup(postGroup);
-        if (!rows.length) {
-            logger.info({ msg: "[Orchestrator] scheduled post: empty group, skipping", postGroup, organizationId });
-            return;
-        }
+        let shouldInvalidateCalendar = false;
+        try {
+            const rows = await deps.postsRepository.listPostsByGroup(postGroup);
+            if (!rows.length) {
+                logger.info({ msg: "[Orchestrator] scheduled post: empty group, skipping", postGroup, organizationId });
+                return;
+            }
 
-        const toPublish = rows.filter(
-            (r) => r.state === "QUEUE" && r.integration_id && !r.deleted_at
-        ) as (SocialPostLike & { integration_id: string })[];
-        if (toPublish.length === 0) {
-            logger.info({
-                msg: "[Orchestrator] scheduled post: nothing in QUEUE with channel, skipping",
-                postGroup,
-                organizationId,
-            });
-            return;
-        }
+            shouldInvalidateCalendar = true;
 
-        for (const post of toPublish) {
-            await publishOneRow(post, deps);
-        }
+            const toPublish = rows.filter(
+                (r) => r.state === "QUEUE" && r.integration_id && !r.deleted_at
+            ) as (SocialPostLike & { integration_id: string })[];
+            if (toPublish.length === 0) {
+                logger.info({
+                    msg: "[Orchestrator] scheduled post: nothing in QUEUE with channel, skipping",
+                    postGroup,
+                    organizationId,
+                });
+                return;
+            }
 
-        // Repeat scheduling : if this group is configured with a repeat cadence,
-        // create a new QUEUE group scheduled in the future and enqueue it via a repeat-post todo.
-        const intervalDays = rows[0]?.interval_in_days ?? null;
-        if (typeof intervalDays === "number" && Number.isFinite(intervalDays) && intervalDays > 0) {
-            const delayMs = Math.floor(intervalDays * 24 * 60 * 60 * 1000);
-            const publishDateIso = new Date(Date.now() + delayMs).toISOString();
-            const repeat = await deps.postsRepository.createRepeatGroupFromPostGroup({
-                postGroup,
-                publishDateIso,
-            });
-            return {
-                todos: [
-                    {
-                        type: "repeat-post",
-                        postGroup: repeat.postGroup,
-                        delayMs,
-                    },
-                ],
-            };
+            for (const post of toPublish) {
+                await publishOneRow(post, deps);
+            }
+
+            // Repeat scheduling : if this group is configured with a repeat cadence,
+            // create a new QUEUE group scheduled in the future and enqueue it via a repeat-post todo.
+            const intervalDays = rows[0]?.interval_in_days ?? null;
+            if (typeof intervalDays === "number" && Number.isFinite(intervalDays) && intervalDays > 0) {
+                const delayMs = Math.floor(intervalDays * 24 * 60 * 60 * 1000);
+                const publishDateIso = new Date(Date.now() + delayMs).toISOString();
+                const repeat = await deps.postsRepository.createRepeatGroupFromPostGroup({
+                    postGroup,
+                    publishDateIso,
+                });
+                return {
+                    todos: [
+                        {
+                            type: "repeat-post",
+                            postGroup: repeat.postGroup,
+                            delayMs,
+                        },
+                    ],
+                };
+            }
+        } finally {
+            if (shouldInvalidateCalendar && deps.invalidatePostsCalendarListForOrganization) {
+                try {
+                    await deps.invalidatePostsCalendarListForOrganization(organizationId);
+                } catch (error) {
+                    logger.error({
+                        msg: "[Orchestrator] scheduled post: calendar cache invalidation failed",
+                        organizationId,
+                        postGroup,
+                        error: error instanceof Error ? error.message : String(error),
+                    });
+                }
+            }
         }
     };
 }

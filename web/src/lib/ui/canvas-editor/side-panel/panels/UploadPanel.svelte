@@ -146,11 +146,13 @@
 	</div>
 
 	{#if loading}
-		<p class="text-base-content/60 shrink-0 text-center text-xs">Processing uploads…</p>
+		<p class="text-base-content/60 shrink-0 text-center text-xs">
+			Processing uploads…</p>
 	{/if}
 
 	{#if assets.length > 0}
-		<p class="text-base-content/70 shrink-0 text-sm font-medium">Your uploads</p>
+		<p class="text-base-content/70 shrink-0 text-sm font-medium">
+			Your uploads</p>
 		<ScrollArea class="min-h-0 min-w-0 flex-1 basis-0" viewportClass="pr-0.5">
 			<div class="grid min-w-0 grid-cols-2 gap-2 pb-1">
 				{#each assets as asset (asset.id)}

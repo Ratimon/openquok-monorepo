@@ -18,6 +18,8 @@ import type {
 	GetSignaturesPresenter,
 	SignatureViewModel
 } from '$lib/signatures/GetSignature.presenter.svelte';
+import type { SetsRepository } from '$lib/sets/Sets.repository.svelte';
+import { stringifySetSnapshot, type SetSnapshotV1 } from '$lib/sets/setSnapshot';
 
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 import {
@@ -69,6 +71,10 @@ export type CreateSocialPostPrepareOpenOptions = {
 	preselectIntegrationIds?: string[] | null;
 	/** When true, immediately focus the first selected channel for per-channel editing. */
 	autoCustomizeFirstSelected?: boolean;
+	/** Restore a saved workspace “set” (channels + composer fields) after load. */
+	setSnapshot?: SetSnapshotV1 | null;
+	/** Settings: define a reusable preset; optional `editingSetId` for update. */
+	contentSetAuthoring?: { editingSetId?: string | null } | null;
 };
 
 /** User-visible prefix for provider validation toasts and inline copy (network + account name). */
@@ -117,7 +123,8 @@ export class CreateSocialPostPresenter {
 		private readonly postsRepository: PostsRepository,
 		private readonly mediaModalPresenter: GenerateMediaModalPresenter,
 		private readonly getSignaturesPresenter: GetSignaturesPresenter,
-		scheduledPostsPresenter: GetScheduledPostsPresenter
+		scheduledPostsPresenter: GetScheduledPostsPresenter,
+		private readonly setsRepository: SetsRepository
 	) {
 		this.scheduledPostsPresenter = scheduledPostsPresenter;
 	}
@@ -215,6 +222,8 @@ export class CreateSocialPostPresenter {
 	private pendingAutoCustomizeFirstSelected = false;
 	private pendingEditPostGroup: string | null = null;
 	private pendingDuplicatePostGroup: string | null = null;
+	private pendingSetSnapshot: SetSnapshotV1 | null = null;
+	private pendingContentSetAuthoring: { editingSetId?: string | null } | null = null;
 	private lastLoadedEditKey: string | null = null;
 	private tagListCache: { workspaceId: string; loadedAtMs: number } | null = null;
 
@@ -244,6 +253,9 @@ export class CreateSocialPostPresenter {
 	busy = $state(false);
 	confirmCloseOpen = $state(false);
 	initialSnapshot = $state('');
+	/** True while defining a reusable channel+preset bundle from workspace settings. */
+	contentSetAuthoringActive = $state(false);
+	editingSetId = $state<string | null>(null);
 
 	baseSocialChannelsVm = $derived(
 		this.connectedChannelsForSessionVm.filter(
@@ -336,12 +348,15 @@ export class CreateSocialPostPresenter {
 	});
 
 	prepareOpen(options: CreateSocialPostPrepareOpenOptions): void {
+		this.pendingEditPostGroup = null;
+		this.pendingDuplicatePostGroup = null;
 		this.pendingPreselectIntegrationId = options.preselectIntegrationId;
 		this.pendingPreselectGroupId = options.preselectGroupId ?? null;
 		this.pendingPreselectScheduledAtIso = options.preselectScheduledAtIso ?? null;
 		this.pendingPreselectIntegrationIds = options.preselectIntegrationIds ?? null;
 		this.pendingAutoCustomizeFirstSelected = options.autoCustomizeFirstSelected ?? false;
-		this.pendingEditPostGroup = null;
+		this.pendingSetSnapshot = options.setSnapshot ?? null;
+		this.pendingContentSetAuthoring = options.contentSetAuthoring ?? null;
 	}
 
 	prepareEdit(postGroup: string): void {
@@ -350,6 +365,8 @@ export class CreateSocialPostPresenter {
 		this.pendingPreselectScheduledAtIso = null;
 		this.pendingPreselectIntegrationIds = null;
 		this.pendingAutoCustomizeFirstSelected = false;
+		this.pendingSetSnapshot = null;
+		this.pendingContentSetAuthoring = null;
 		this.pendingEditPostGroup = postGroup;
 		this.pendingDuplicatePostGroup = null;
 	}
@@ -360,8 +377,23 @@ export class CreateSocialPostPresenter {
 		this.pendingPreselectScheduledAtIso = null;
 		this.pendingPreselectIntegrationIds = null;
 		this.pendingAutoCustomizeFirstSelected = false;
+		this.pendingSetSnapshot = null;
+		this.pendingContentSetAuthoring = null;
 		this.pendingEditPostGroup = null;
 		this.pendingDuplicatePostGroup = postGroup;
+	}
+
+	/** Open the composer to author or edit a reusable workspace set (consumers bind modal `open`). */
+	prepareContentSetAuthoring(opts: { editingSetId?: string | null; snapshot?: SetSnapshotV1 | null }): void {
+		this.pendingEditPostGroup = null;
+		this.pendingDuplicatePostGroup = null;
+		this.pendingPreselectIntegrationId = null;
+		this.pendingPreselectGroupId = null;
+		this.pendingPreselectScheduledAtIso = null;
+		this.pendingPreselectIntegrationIds = null;
+		this.pendingAutoCustomizeFirstSelected = false;
+		this.pendingSetSnapshot = opts.snapshot ?? null;
+		this.pendingContentSetAuthoring = { editingSetId: opts.editingSetId ?? null };
 	}
 
 	toggleChannel(id: string): void {
@@ -423,6 +455,10 @@ export class CreateSocialPostPresenter {
 	}
 
 	enterCustomMode(integrationId: string): void {
+		if (this.contentSetAuthoringActive) {
+			toast.message('Per-channel editing is disabled while you define a reusable set.');
+			return;
+		}
 		this.persistEditorBody();
 		this.mode = 'custom';
 		this.focusedIntegrationId = integrationId;
@@ -554,6 +590,10 @@ export class CreateSocialPostPresenter {
 		this.pendingEditPostGroup = null;
 		const duplicatePostGroup = this.pendingDuplicatePostGroup;
 		this.pendingDuplicatePostGroup = null;
+		const pendingSnapshot = this.pendingSetSnapshot;
+		this.pendingSetSnapshot = null;
+		const pendingAuthoring = this.pendingContentSetAuthoring;
+		this.pendingContentSetAuthoring = null;
 
 		this.workspaceIdForSession = workspaceId;
 		this.connectedChannelsForSessionVm = connectedChannels;
@@ -580,7 +620,24 @@ export class CreateSocialPostPresenter {
 			return;
 		}
 		await this.loadInitial(workspaceId, preselectScheduledAtIso);
-		await this.maybeAutoAddDefaultSignature(workspaceId);
+
+		if (pendingAuthoring) {
+			this.contentSetAuthoringActive = true;
+			this.editingSetId = pendingAuthoring.editingSetId ?? null;
+		} else {
+			this.contentSetAuthoringActive = false;
+			this.editingSetId = null;
+		}
+
+		if (pendingSnapshot) {
+			this.applySetSnapshot(pendingSnapshot);
+			this.captureInitialSnapshot();
+			return;
+		}
+
+		if (!this.contentSetAuthoringActive) {
+			await this.maybeAutoAddDefaultSignature(workspaceId);
+		}
 
 		if (preselectGroupId) {
 			this.selectGroup(preselectGroupId);
@@ -627,7 +684,7 @@ export class CreateSocialPostPresenter {
 			}
 		}
 
-		if (autoCustomize && this.selectedIds.length > 0) {
+		if (autoCustomize && this.selectedIds.length > 0 && !this.contentSetAuthoringActive) {
 			this.enterCustomMode(this.selectedIds[0]!);
 		}
 
@@ -658,6 +715,8 @@ export class CreateSocialPostPresenter {
 		this.pendingPreselectIntegrationIds = null;
 		this.pendingAutoCustomizeFirstSelected = false;
 		this.pendingEditPostGroup = null;
+		this.pendingSetSnapshot = null;
+		this.pendingContentSetAuthoring = null;
 	}
 
 	private captureInitialSnapshot(): void {
@@ -682,6 +741,8 @@ export class CreateSocialPostPresenter {
 		this.editorLocked = false;
 		this.customEditingUnlocked = false;
 		this.editingPostGroup = null;
+		this.contentSetAuthoringActive = false;
+		this.editingSetId = null;
 
 		this.globalBody = '';
 		this.bodiesByIntegrationId = {};
@@ -895,6 +956,123 @@ export class CreateSocialPostPresenter {
 			}
 			toast.error(persistDraftPmResult.error);
 			return false;
+		} finally {
+			this.busy = false;
+		}
+	}
+
+	private applySetSnapshot(snapshot: SetSnapshotV1): void {
+		const allowed = new Set(this.baseSocialChannelsVm.map((c) => c.id));
+		const ids = snapshot.selectedIntegrationIds.filter((id) => allowed.has(id));
+		const okIds = ids.filter((id) => {
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === id);
+			return isChannelSchedulable(ch);
+		});
+		this.selectedIds = okIds;
+
+		let gid = snapshot.selectedGroupId;
+		if (
+			gid &&
+			!okIds.some((id) => this.baseSocialChannelsVm.find((c) => c.id === id)?.group?.id === gid)
+		) {
+			gid = null;
+		}
+		this.selectedGroupId = gid;
+
+		this.globalBody = snapshot.globalBody ?? '';
+		this.bodiesByIntegrationId = { ...snapshot.bodiesByIntegrationId };
+		try {
+			this.providerSettingsByIntegrationId = JSON.parse(
+				JSON.stringify(snapshot.providerSettingsByIntegrationId ?? {})
+			) as Record<string, Record<string, unknown>>;
+		} catch {
+			this.providerSettingsByIntegrationId = {};
+		}
+		this.postMediaItems = Array.isArray(snapshot.postMediaItems) ? [...snapshot.postMediaItems] : [];
+		this.selectedTagNames = [...(snapshot.selectedTagNames ?? [])];
+		this.repeatInterval = snapshot.repeatInterval ?? null;
+
+		const mode = snapshot.mode === 'custom' ? 'custom' : 'global';
+		this.mode = mode;
+		if (mode === 'custom') {
+			const focusCandidate =
+				snapshot.focusedIntegrationId && okIds.includes(snapshot.focusedIntegrationId)
+					? snapshot.focusedIntegrationId
+					: okIds[0] ?? null;
+			this.focusedIntegrationId = focusCandidate;
+			this.editorLocked = true;
+			this.customEditingUnlocked = false;
+		} else {
+			this.focusedIntegrationId = null;
+			this.editorLocked = false;
+			this.customEditingUnlocked = false;
+		}
+		this.settingsOpen = false;
+		this.loadEditorBody();
+	}
+
+	buildSetSnapshot(): SetSnapshotV1 {
+		this.persistEditorBody();
+		let providerCopy: Record<string, Record<string, unknown>> = {};
+		try {
+			providerCopy = JSON.parse(JSON.stringify(this.providerSettingsByIntegrationId ?? {})) as Record<
+				string,
+				Record<string, unknown>
+			>;
+		} catch {
+			providerCopy = {};
+		}
+		return {
+			v: 1,
+			selectedIntegrationIds: [...this.selectedIds],
+			selectedGroupId: this.selectedGroupId,
+			mode: this.mode,
+			focusedIntegrationId: this.focusedIntegrationId,
+			globalBody: this.globalBody,
+			bodiesByIntegrationId: { ...this.bodiesByIntegrationId },
+			providerSettingsByIntegrationId: providerCopy,
+			postMediaItems: [...this.postMediaItems],
+			selectedTagNames: [...this.selectedTagNames],
+			repeatInterval: this.repeatInterval
+		};
+	}
+
+	async saveContentSet(workspaceId: string, name: string): Promise<boolean> {
+		const trimmed = name.trim();
+		if (!trimmed) {
+			toast.error('Enter a name for this set.');
+			return false;
+		}
+		if (!this.selectedIds.length) {
+			toast.error('Select at least one channel for this set.');
+			return false;
+		}
+		this.persistEditorBody();
+		const plain = stripHtmlToPlainText(this.editorBody);
+		const hasText = plain.length > 0;
+		const hasMedia = this.postMediaItems.length > 0;
+		if (!hasText && !hasMedia) {
+			toast.error('Write something or attach media before saving a set.');
+			return false;
+		}
+		const snapshot = this.buildSetSnapshot();
+		const raw = stringifySetSnapshot(snapshot);
+		this.busy = true;
+		try {
+			const res = await this.setsRepository.upsert({
+				organizationId: workspaceId,
+				...(this.editingSetId ? { id: this.editingSetId } : {}),
+				name: trimmed,
+				content: raw
+			});
+			if (!res.ok) {
+				toast.error(res.error);
+				return false;
+			}
+			this.editingSetId = res.id;
+			toast.success('Set saved.');
+			this.captureInitialSnapshot();
+			return true;
 		} finally {
 			this.busy = false;
 		}

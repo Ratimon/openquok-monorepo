@@ -70,7 +70,8 @@
 					listed there so they are not blocked from public pages.
 				</p>
 
-				<h2>1. Our services and third-party platforms</h2>
+				<h2>
+					1. Our services and third-party platforms</h2>
 				<p>
 					{companyName} provides tools to plan, manage, and publish content, including optional
 					connections to third-party social and messaging platforms (each a “Platform”) when you
@@ -96,7 +97,8 @@
 					</li>
 				</ul>
 
-				<h2>2. Information we collect</h2>
+				<h2>
+					2. Information we collect</h2>
 				<p>
 					We collect information about you as reasonably necessary for the activities described
 					below, including information you provide directly, information we collect automatically,
@@ -104,10 +106,13 @@
 					processors, analytics subprocessors, or Platforms you connect).
 				</p>
 
-				<h3>2.1 Using our services</h3>
-				<p>When you use our services, we may collect the following categories of information.</p>
+				<h3>
+					2.1 Using our services</h3>
+				<p>
+					When you use our services, we may collect the following categories of information.</p>
 
-				<h4>Account information</h4>
+				<h4>
+					Account information</h4>
 				<ul>
 					<li>
 						Contact and profile information, including your name, email address, organization or
@@ -132,7 +137,8 @@
 					</li>
 				</ul>
 
-				<h4>Billing and other payment information</h4>
+				<h4>
+					Billing and other payment information</h4>
 				<ul>
 					<li>
 						If you sign up for a paid service, we and our payment processors may collect billing
@@ -148,7 +154,8 @@
 					</li>
 				</ul>
 
-				<h4>Content</h4>
+				<h4>
+					Content</h4>
 				<ul>
 					<li>
 						<strong>Connected Platform profiles and credentials:</strong> When you connect a
@@ -196,7 +203,8 @@
 					</li>
 				</ul>
 
-				<h4>Logs, usage, and support data</h4>
+				<h4>
+					Logs, usage, and support data</h4>
 				<ul>
 					<li>
 						<strong>Log data:</strong> May include your IP address, the address of the web page you
@@ -227,7 +235,8 @@
 					</li>
 				</ul>
 
-				<h3>2.2 Surveys, events, marketing, and other activities</h3>
+				<h3>
+					2.2 Surveys, events, marketing, and other activities</h3>
 				<p>
 					If you participate in surveys, contests, webinars, in-person events, or similar
 					activities that we host or are affiliated with, we may collect:
@@ -237,7 +246,8 @@
 						Contact information such as your name, email address, telephone number, organization
 						name, and address, as requested on registration or RSVP forms.
 					</li>
-					<li>Participation, attendance, feedback, and opinions you submit.</li>
+					<li>
+						Participation, attendance, feedback, and opinions you submit.</li>
 					<li>
 						General information about your organization that you choose to provide (for example
 						industry, approximate company size, or revenue band).
@@ -249,7 +259,8 @@
 					</li>
 				</ul>
 
-				<h3>2.3 Other interactions with us</h3>
+				<h3>
+					2.3 Other interactions with us</h3>
 				<ul>
 					<li>
 						<strong>Brand and community channels:</strong> Messages, posts, mentions, and other
@@ -276,7 +287,8 @@
 					</li>
 				</ul>
 
-				<h3>2.4 Browsing our websites</h3>
+				<h3>
+					2.4 Browsing our websites</h3>
 				<p>
 					When you browse our marketing sites, documentation, or other public web properties, we
 					may collect information as described below, including automatic collection by us or by
@@ -303,16 +315,19 @@
 					</li>
 				</ul>
 
-				<h2>3. How we use your information</h2>
+				<h2>
+					3. How we use your information</h2>
 				<p>
 					We use personal information only where we have an appropriate legal basis under applicable
 					law (for example performance of a contract, legitimate interests, consent where
 					required, or legal obligation). The purposes below describe how and why we process data
 					in practice.
 				</p>
-				<p>We use your information for the purposes described in the following sections.</p>
+				<p>
+					We use your information for the purposes described in the following sections.</p>
 
-				<h3>3.1 Providing and securing our services</h3>
+				<h3>
+					3.1 Providing and securing our services</h3>
 				<ul>
 					<li>
 						<strong>Identify and authenticate:</strong> To verify who you are, maintain secure
@@ -366,7 +381,8 @@
 					</li>
 				</ul>
 
-				<h3>3.2 Communicating with you</h3>
+				<h3>
+					3.2 Communicating with you</h3>
 				<ul>
 					<li>
 						<strong>Service, events, and marketing:</strong> To use your contact information, where
@@ -388,7 +404,8 @@
 					</li>
 				</ul>
 
-				<h3>3.3 Improving our websites and applications</h3>
+				<h3>
+					3.3 Improving our websites and applications</h3>
 				<ul>
 					<li>
 						To use information about you and your activity to understand usage patterns and other
@@ -412,7 +429,8 @@
 					</li>
 				</ul>
 
-				<h3>3.4 Legal and safety</h3>
+				<h3>
+					3.4 Legal and safety</h3>
 				<ul>
 					<li>
 						To comply with applicable law, regulation, or lawful requests from public authorities.
@@ -427,9 +445,11 @@
 					</li>
 				</ul>
 
-				<h2>4. Your rights regarding your information</h2>
+				<h2>
+					4. Your rights regarding your information</h2>
 
-				<h3>4.1 Services information</h3>
+				<h3>
+					4.1 Services information</h3>
 				<p>
 					When using our services, you may access, update, or correct most of your account information
 					by signing in and editing your profile or organization record.
@@ -467,7 +487,8 @@
 					contact address and we will respond in line with applicable law.
 				</p>
 
-				<h3>4.2 Marketing emails, advertising, and website browsing</h3>
+				<h3>
+					4.2 Marketing emails, advertising, and website browsing</h3>
 				<p>
 					For marketing communications, you may opt out by following the unsubscribe link in any
 					marketing email you receive from us. If you have an account, unsubscribing from marketing
@@ -494,14 +515,16 @@
 					<a href="/cookie-policy" class="link link-hover">Cookie Policy</a>.
 				</p>
 
-				<h2>5. Who has access to your information</h2>
+				<h2>
+					5. Who has access to your information</h2>
 				<p>
 					{companyName} does not rent or sell your personal information. We restrict access to
 					authorized personnel and contractors who need it for their job, and we do not share your
 					information with third parties except as described below.
 				</p>
 
-				<h3>5.1 Authorized contractors and employees</h3>
+				<h3>
+					5.1 Authorized contractors and employees</h3>
 				<p>
 					Our employees and authorized contractors may access information about you when they need it
 					to perform their role—for example customer support to validate your identity and respond to
@@ -511,7 +534,8 @@
 					policy.
 				</p>
 
-				<h3>5.2 Service providers, resellers, and partners</h3>
+				<h3>
+					5.2 Service providers, resellers, and partners</h3>
 				<p>
 					We share limited information with service providers that assist us with hosting, databases,
 					email delivery, analytics, security, marketing operations, customer relationship tools,
@@ -529,7 +553,8 @@
 					your requests.
 				</p>
 
-				<h3>5.3 Marketing events and sponsors</h3>
+				<h3>
+					5.3 Marketing events and sponsors</h3>
 				<p>
 					We may run or co-host events (for example webinars or conferences) with sponsors or other
 					organizations. If a sponsor wishes to collect your information for its own marketing, it
@@ -538,14 +563,16 @@
 					your information with the sponsor, such as at registration or during the event.
 				</p>
 
-				<h3>5.4 Connected Platforms and third-party services</h3>
+				<h3>
+					5.4 Connected Platforms and third-party services</h3>
 				<p>
 					When you connect a Platform or authorize a third-party service to access your account, you
 					agree that information about you may be processed by that Platform or service under its own
 					terms and privacy policy. We do not control their practices.
 				</p>
 
-				<h3>5.5 Customer organizations</h3>
+				<h3>
+					5.5 Customer organizations</h3>
 				<p>
 					If your employer or another entity purchases or administers the services for you, we may
 					disclose limited information—such as your name, email address, and high-level usage
@@ -554,7 +581,8 @@
 					agreements with them and with us.
 				</p>
 
-				<h3>5.6 Affiliates and corporate transactions</h3>
+				<h3>
+					5.6 Affiliates and corporate transactions</h3>
 				<p>
 					We may share information among {companyName}-controlled affiliates or successors, who must
 					handle it consistently with this Privacy Policy (or notify you if a successor policy
@@ -563,7 +591,8 @@
 					you of material changes.
 				</p>
 
-				<h3>5.7 Law enforcement, regulators, and professional advisors</h3>
+				<h3>
+					5.7 Law enforcement, regulators, and professional advisors</h3>
 				<p>
 					We may disclose information where we believe in good faith that it is necessary to comply
 					with law, regulation, court order, or legal process, or to establish, exercise, or defend
@@ -582,7 +611,8 @@
 					reviews.
 				</p>
 
-				<h2>6. International data transfers</h2>
+				<h2>
+					6. International data transfers</h2>
 				<p>
 					Under laws such as the EU General Data Protection Regulation (GDPR) and similar regimes,
 					personal information may only be transferred to another country when appropriate safeguards
@@ -602,7 +632,8 @@
 					globally according to those Platforms’ terms and policies.
 				</p>
 
-				<h2>7. How we safeguard your information</h2>
+				<h2>
+					7. How we safeguard your information</h2>
 				<p>
 					We maintain industry-standard administrative, technical, and physical safeguards designed
 					to protect personal information. This includes security and privacy training for personnel
@@ -626,7 +657,8 @@
 					protect workspace invitations, and review connected integrations regularly.
 				</p>
 
-				<h2>8. How long we retain your information</h2>
+				<h2>
+					8. How long we retain your information</h2>
 				<p>
 					For some connected Platform data, the product may retrieve or refresh information when
 					you use the services so it can be shown or used in your session, while credentials and
@@ -648,34 +680,41 @@
 					archival cycles.
 				</p>
 
-				<h2 id="gdpr-roles">9. Our roles under the GDPR and UK data protection laws</h2>
+				<h2 id="gdpr-roles">
+					9. Our roles under the GDPR and UK data protection laws</h2>
 				<p>
 					Depending on the situation and the type of data involved, {companyName} may act as a
 					<strong>data controller</strong> or a <strong>data processor</strong> under the EU General
 					Data Protection Regulation (GDPR), the UK GDPR, and related UK data protection legislation.
 				</p>
 
-				<h3>9.1 When we act as a data controller</h3>
-				<p>We typically act as a controller when we decide why and how personal data is processed, for example when we are:</p>
+				<h3>
+					9.1 When we act as a data controller</h3>
+				<p>
+					We typically act as a controller when we decide why and how personal data is processed, for example when we are:</p>
 				<ul>
 					<li>
 						Collecting information from you to set up and administer your account (for example
 						account contact and profile details such as your name and email address).
 					</li>
-					<li>Monitoring usage information on our websites and applications.</li>
+					<li>
+						Monitoring usage information on our websites and applications.</li>
 					<li>
 						Managing your contact details and related preferences to send marketing, service, and
 						other communications to you, consistent with this policy and your choices.
 					</li>
-					<li>Responding to a support or general inquiry you send us.</li>
+					<li>
+						Responding to a support or general inquiry you send us.</li>
 					<li>
 						Recruiting individuals for employment or contractor roles, where we operate recruitment
 						activities.
 					</li>
 				</ul>
 
-				<h3>9.2 Legal bases when we act as a controller</h3>
-				<p>Where we are a controller, we rely on one or more of the following legal bases as applicable:</p>
+				<h3>
+					9.2 Legal bases when we act as a controller</h3>
+				<p>
+					Where we are a controller, we rely on one or more of the following legal bases as applicable:</p>
 				<ul>
 					<li>
 						<strong>Consent</strong> — for example where you submit information to create an account,
@@ -703,12 +742,14 @@
 					</li>
 				</ul>
 
-				<h3>9.3 Your rights when we act as a controller</h3>
+				<h3>
+					9.3 Your rights when we act as a controller</h3>
 				<p>
 					Where we act as a controller, the rights described in <strong>Section 4</strong> (Your
 					rights regarding your information) apply, subject to applicable law.
 				</p>
-				<p>You may also have the following rights, where they apply:</p>
+				<p>
+					You may also have the following rights, where they apply:</p>
 				<ul>
 					<li>
 						<strong>Right to object</strong> — for example to object to processing based on
@@ -729,7 +770,8 @@
 					<a href={supportContactHref} class="link link-hover">{supportEmail}</a>.
 				</p>
 
-				<h3>9.4 When we act as a data processor</h3>
+				<h3>
+					9.4 When we act as a data processor</h3>
 				<p>
 					When you use our services and determine the purposes and means of processing personal data
 					in them—including choosing which Platform accounts to connect or uploading and using
@@ -758,7 +800,8 @@
 					check with that customer for the rules that apply to your use of the services.
 				</p>
 
-				<h2 id="california-rights">10. Your California privacy rights</h2>
+				<h2 id="california-rights">
+					10. Your California privacy rights</h2>
 				<p>
 					If you are a California resident and the California Consumer Privacy Act as amended by the
 					California Privacy Rights Act (together, the <strong>“California Privacy Laws”</strong>)
@@ -766,7 +809,8 @@
 					statutes have the meanings given in the California Privacy Laws.
 				</p>
 
-				<h3>10.1 Your rights</h3>
+				<h3>
+					10.1 Your rights</h3>
 				<p>
 					Section 4 describes how to exercise several rights. In addition, the California Privacy Laws
 					may grant you rights including:
@@ -776,7 +820,8 @@
 						The <strong>right to know</strong> what personal information we collect, including the
 						categories described in <strong>Section 2</strong> (Information we collect) above.
 					</li>
-					<li>The <strong>right to delete</strong> personal information we hold, subject to exceptions.</li>
+					<li>
+						The <strong>right to delete</strong> personal information we hold, subject to exceptions.</li>
 					<li>
 						The <strong>right to correct</strong> inaccurate personal information, taking into account
 						the nature of the data and the purposes of processing.
@@ -798,14 +843,16 @@
 					Privacy Laws.
 				</p>
 
-				<h2>11. Children</h2>
+				<h2>
+					11. Children</h2>
 				<p>
 					The services are not directed to children under the age where parental consent is
 					required in their jurisdiction. We do not knowingly collect personal information from such
 					children. If you believe we have done so, contact us and we will take appropriate steps.
 				</p>
 
-				<h2>12. Changes to this policy</h2>
+				<h2>
+					12. Changes to this policy</h2>
 				<p>
 					We may change this Privacy Policy at any time to reflect updates to our services, applicable
 					laws, and other factors. If we make material changes, we will provide a prominent notice on
@@ -813,7 +860,8 @@
 					policy periodically to stay informed.
 				</p>
 
-				<h2>13. Contact</h2>
+				<h2>
+					13. Contact</h2>
 				<p>
 					For questions about this Privacy Policy or our data practices, contact us at
 					<a href={supportContactHref} class="link link-hover">{supportEmail}</a>.

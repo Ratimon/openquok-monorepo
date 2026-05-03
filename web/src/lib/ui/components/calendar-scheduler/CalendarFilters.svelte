@@ -45,7 +45,8 @@
 				<AbstractIcon name={icons.ChevronRight.name} class="size-4" width="16" height="16" />
 			</Button>
 		</div>
-		<Button type="button" variant="outline" onclick={onToday}>Today</Button>
+		<Button type="button" variant="outline" onclick={onToday}>
+			Today</Button>
 		{@render groupFilter?.()}
 	</div>
 

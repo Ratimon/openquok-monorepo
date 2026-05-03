@@ -53,7 +53,8 @@
 	{/if}
 
 	{#if headers.length > 0}
-		<h2 class="text-sm font-semibold text-base-content">{title}</h2>
+		<h2 class="text-sm font-semibold text-base-content">
+			{title}</h2>
 		<ul class="space-y-1 py-2">
 			{#each headers as header, index (header.slug + index)}
 				<li class={indentClass(header.level)}>

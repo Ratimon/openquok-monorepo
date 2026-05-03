@@ -36,7 +36,8 @@
 		<AbstractIcon name={icons.Eye.name} class="size-4" width="16" height="16" />
 	</Popover.Trigger>
 	<Popover.Content class="w-64 p-3" align="start" sideOffset={6}>
-		<p class="text-base-content/80 mb-3 text-center text-sm font-medium">Transparency</p>
+		<p class="text-base-content/80 mb-3 text-center text-sm font-medium">
+			Transparency</p>
 		<div class="flex items-center gap-3">
 			<input
 				type="range"
@@ -47,7 +48,8 @@
 				oninput={() => canvasApi?.setSelectedOpacity(localOpacity)}
 				onpointerup={() => canvasApi?.commitEdit()}
 			/>
-			<label class="sr-only" for="opacity-num">Opacity percent</label>
+			<label class="sr-only" for="opacity-num">
+				Opacity percent</label>
 			<input
 				id="opacity-num"
 				type="number"

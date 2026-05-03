@@ -9,6 +9,8 @@
 
 	type RepeatOption = { value: RepeatIntervalKey; label: string };
 
+	type FooterVariant = 'schedulePost' | 'contentSet';
+
 	type Props = {
 		tagList: PostTagProgrammerModel[];
 		selectedTagNames: string[];
@@ -26,6 +28,8 @@
 		onDeletePost?: () => void | Promise<void>;
 		onSaveDraft: () => void | Promise<void>;
 		onSchedule: () => void | Promise<void>;
+		footerVariant?: FooterVariant;
+		onSaveContentSet?: () => void | Promise<void>;
 	};
 
 	let {
@@ -44,7 +48,9 @@
 		onRepeatChange,
 		onDeletePost,
 		onSaveDraft,
-		onSchedule
+		onSchedule,
+		footerVariant = 'schedulePost',
+		onSaveContentSet = undefined
 	}: Props = $props();
 </script>
 
@@ -69,29 +75,40 @@
 	</div>
 
 	<div class="flex flex-wrap items-center justify-end gap-2">
-		{#if showDelete}
+		{#if footerVariant === 'schedulePost'}
+			{#if showDelete}
+				<Button
+					type="button"
+					variant="ghost"
+					class="text-error hover:bg-error/10"
+					disabled={busy}
+					onclick={() => void onDeletePost?.()}
+				>
+					<AbstractIcon name={icons.Trash.name} class="size-4" width="16" height="16" />
+					Delete Post
+				</Button>
+			{/if}
+			<DatePicker bind:value={scheduledLocal} disabled={busy} />
+			<Button type="button" variant="secondary" disabled={busy} onclick={() => void onSaveDraft()}>
+				Save as draft
+			</Button>
 			<Button
 				type="button"
-				variant="ghost"
-				class="text-error hover:bg-error/10"
-				disabled={busy}
-				onclick={() => void onDeletePost?.()}
+				variant="primary"
+				disabled={busy || scheduleDisabled}
+				onclick={() => void onSchedule()}
 			>
-				<AbstractIcon name={icons.Trash.name} class="size-4" width="16" height="16" />
-				Delete Post
+				{primaryLabel}
+			</Button>
+		{:else}
+			<Button
+				type="button"
+				variant="primary"
+				disabled={busy || scheduleDisabled}
+				onclick={() => void onSaveContentSet?.()}
+			>
+				Save set…
 			</Button>
 		{/if}
-		<DatePicker bind:value={scheduledLocal} disabled={busy} />
-		<Button type="button" variant="secondary" disabled={busy} onclick={() => void onSaveDraft()}>
-			Save as draft
-		</Button>
-		<Button
-			type="button"
-			variant="primary"
-			disabled={busy || scheduleDisabled}
-			onclick={() => void onSchedule()}
-		>
-			{primaryLabel}
-		</Button>
 	</div>
 </div>

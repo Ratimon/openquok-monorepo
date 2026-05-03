@@ -16,6 +16,7 @@
 	import EditorMetric from '$lib/ui/templates/EditorMetric.svelte';
 	import EditorWorkspaceSettings from '$lib/ui/templates/EditorWorkspaceSettings.svelte';
 	import SignaturesList from '$lib/ui/components/signature/SignaturesList.svelte';
+	import ContentSetsSettingsSection from '$lib/ui/components/posts/ContentSetsSettingsSection.svelte';
 
 	const ctx = getContext<SettingsSidebarContext>(SETTINGS_SIDEBAR_KEY);
 	const currentSection = $derived(ctx?.getCurrentSection() ?? 'global');
@@ -133,6 +134,8 @@
 		/>
 	{:else if currentSection === 'signature'}
 		<SignaturesList presenter={signatureSettingPresenter} />
+	{:else if currentSection === 'sets'}
+		<ContentSetsSettingsSection />
 	{:else if currentSection === 'workspace'}
 		<EditorWorkspaceSettings
 			workspacesVm={workspacesVm}

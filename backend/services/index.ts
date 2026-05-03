@@ -13,6 +13,7 @@ import {
     postsRepository,
     mediaRepository,
     signatureRepository,
+    setsRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -34,6 +35,7 @@ import { TransactionalNotificationEmailService } from "./TransactionalNotificati
 import { PostsService } from "./PostsService";
 import { MediaService } from "./MediaService";
 import { SignatureService } from "./SignatureService";
+import { SetsService } from "./SetsService";
 import { AnalyticsService } from "./AnalyticsService";
 import { config } from "../config/GlobalConfig";
 
@@ -138,6 +140,13 @@ export const signatureService = new SignatureService(
     cacheInvalidationServiceConnection
 );
 
+export const setsService = new SetsService(
+    setsRepository,
+    integrationConnectionService,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
+);
+
 export const analyticsService = new AnalyticsService(
     integrationService,
     integrationManager,
@@ -162,4 +171,5 @@ export { TransactionalNotificationEmailService, type SendPlainJobPayload } from 
 export { PostsService } from "./PostsService";
 export { MediaService } from "./MediaService";
 export { SignatureService } from "./SignatureService";
+export { SetsService } from "./SetsService";
 export { AnalyticsService } from "./AnalyticsService";

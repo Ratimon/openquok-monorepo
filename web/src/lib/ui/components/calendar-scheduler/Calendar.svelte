@@ -615,7 +615,8 @@
 			<div class="text-base font-semibold text-base-content">
 				Posts in this slot
 			</div>
-			<div class="text-xs text-base-content/60">{slotDialogItems.length} posts</div>
+			<div class="text-xs text-base-content/60">
+				{slotDialogItems.length} posts</div>
 		</div>
 		<div class="max-h-[60vh] overflow-auto p-2">
 			{#each slotDialogItems as item, idx (item.postGroup || String(idx))}
@@ -662,7 +663,8 @@
 					{:else}
 						<div aria-hidden="true"></div>
 					{/if}
-					<div class="justify-self-end text-xs text-base-content/50">Open</div>
+					<div class="justify-self-end text-xs text-base-content/50">
+						Open</div>
 				</button>
 			{/each}
 		</div>

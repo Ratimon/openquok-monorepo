@@ -192,7 +192,8 @@
 			>
 				<AbstractIcon name={icons.Image.name} width="64" height="64" class="text-base-content/50" />
 				{#if !uploadBusy}
-					<h3 class="text-xl font-bold tracking-tight text-base-content">No media uploaded yet</h3>
+					<h3 class="text-xl font-bold tracking-tight text-base-content">
+						No media uploaded yet</h3>
 					<p class="max-w-md text-sm text-base-content/60">
 						Get started by uploading images or videos, or drag and drop files here. Maximum {uploadLimitLabel} per
 						file.
@@ -207,7 +208,8 @@
 						Drag and click to upload
 					</span>
 				{:else}
-					<p class="text-sm text-base-content/60">Upload in progress…</p>
+					<p class="text-sm text-base-content/60">
+						Upload in progress…</p>
 				{/if}
 			</Dropzone>
 		</div>
@@ -281,7 +283,8 @@
 				{:else}
 					<div class="flex flex-col items-center gap-4 text-base-content/65">
 						<AbstractIcon name={icons.FileText.name} class="size-12" width="48" height="48" />
-						<div>No preview available for this file type.</div>
+						<div>
+							No preview available for this file type.</div>
 					</div>
 				{/if}
 			</div>

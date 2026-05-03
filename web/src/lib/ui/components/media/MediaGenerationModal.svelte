@@ -151,14 +151,16 @@
 							onUseMedia={() => void exportCanvasToPost()}
 						/>
 					{:catch}
-						<p class="text-error px-2 py-8 text-center text-sm">Could not load the design workspace.</p>
+						<p class="text-error px-2 py-8 text-center text-sm">
+							Could not load the design workspace.</p>
 					{/await}
 				{/if}
 			{/key}
 		</div>
 
 		<div class="border-base-300 flex shrink-0 flex-wrap justify-end gap-2 border-t px-4 py-3 sm:px-6">
-			<Button type="button" variant="ghost" disabled={busy} onclick={close}>Close</Button>
+			<Button type="button" variant="ghost" disabled={busy} onclick={close}>
+				Close</Button>
 			<Button
 				type="button"
 				variant="primary"

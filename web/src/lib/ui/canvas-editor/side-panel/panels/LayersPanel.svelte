@@ -102,9 +102,11 @@
 </script>
 
 <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-hidden">
-	<p class="text-base-content/75 shrink-0 text-xs font-medium">Elements on your active page:</p>
+	<p class="text-base-content/75 shrink-0 text-xs font-medium">
+		Elements on your active page:</p>
 	{#if layers.length === 0}
-		<p class="text-base-content/50 text-sm">No elements yet.</p>
+		<p class="text-base-content/50 text-sm">
+			No elements yet.</p>
 	{:else}
 		<ScrollArea class="min-h-0 flex-1" orientation="vertical">
 			{#snippet children()}

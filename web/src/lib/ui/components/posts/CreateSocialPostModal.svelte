@@ -11,6 +11,7 @@
 	import * as Dialog from '$lib/ui/dialog';
 	import DeleteDialog from './DeleteDialog.svelte';
 	import ManageModal from './ManageModal.svelte';
+	import SaveSetNameDialog from './SaveSetNameDialog.svelte';
 
 	interface CreateSocialPostModalProps {
 		open?: boolean;
@@ -21,6 +22,10 @@
 		uploadUid?: string;
 		/** Called after successfully scheduling a post. */
 		onScheduled?: () => void;
+		/** Close after saving a reusable set from workspace settings. */
+		closeComposerAfterSaveSet?: boolean;
+		/** Notify listeners after a reusable set was persisted. */
+		onContentSetSaved?: () => void;
 	}
 
 	let {
@@ -29,8 +34,14 @@
 		workspaceId,
 		connectedChannels,
 		uploadUid = '',
-		onScheduled
+		onScheduled,
+		closeComposerAfterSaveSet = false,
+		onContentSetSaved = undefined
 	}: CreateSocialPostModalProps = $props();
+
+	let saveSetNameOpen = $state(false);
+
+	const modalTitle = $derived(presenter.contentSetAuthoringActive ? 'Define reusable set' : 'Create Post');
 
 	const repeatOptions: { value: RepeatIntervalKey; label: string }[] = [
 		{ value: 'day', label: 'Day' },
@@ -46,6 +57,7 @@
 
 	$effect(() => {
 		if (!open) {
+			saveSetNameOpen = false;
 			presenter.onModalClose();
 			return;
 		}
@@ -87,6 +99,18 @@
 			onScheduled?.();
 		}
 	}
+
+	async function confirmSaveSetName(name: string) {
+		const oid = workspaceId;
+		if (!oid) return;
+		const ok = await presenter.saveContentSet(oid, name);
+		if (!ok) return;
+		saveSetNameOpen = false;
+		onContentSetSaved?.();
+		if (closeComposerAfterSaveSet) {
+			open = false;
+		}
+	}
 </script>
 
 <Dialog.Root bind:open>
@@ -96,9 +120,7 @@
 	>
 		<div class="flex items-start justify-between border-b border-base-300 px-4 py-3 sm:px-6">
 			<div class="flex flex-wrap items-center gap-3 text-lg font-semibold text-base-content">
-				<span>
-					Create Post
-				</span>
+				<span>{modalTitle}</span>
 			</div>
 			<button
 				type="button"
@@ -133,6 +155,7 @@
 					softCharLimit={presenter.softCharLimit}
 					commentsMode={presenter.launchCommentsMode}
 					scheduleValidationMessage={presenter.scheduleValidationError}
+					contentSetAuthoringNetworkLock={presenter.contentSetAuthoringActive}
 					scheduledPostDatetimeLocal={presenter.scheduledLocal}
 					selectedGroupId={presenter.selectedGroupId}
 					onToggleChannel={presenter.toggleChannel.bind(presenter)}
@@ -226,9 +249,13 @@
 					{repeatOptions}
 					bind:scheduledLocal={presenter.scheduledLocal}
 					busy={presenter.busy}
-					showDelete={Boolean(presenter.editingPostGroup)}
+					showDelete={Boolean(presenter.editingPostGroup) && !presenter.contentSetAuthoringActive}
 					primaryLabel={presenter.primaryLabel}
 					scheduleDisabled={!presenter.canSchedule}
+					footerVariant={presenter.contentSetAuthoringActive ? 'contentSet' : 'schedulePost'}
+					onSaveContentSet={() => {
+						saveSetNameOpen = true;
+					}}
 					onToggleTag={presenter.toggleTag.bind(presenter)}
 					onAddTag={presenter.addNewTag.bind(presenter)}
 					onDeleteTag={presenter.deleteWorkspaceTag.bind(presenter)}
@@ -245,6 +272,13 @@
 		</div>
 	</Dialog.Content>
 </Dialog.Root>
+
+<SaveSetNameDialog
+	bind:open={saveSetNameOpen}
+	busy={presenter.busy}
+	onConfirm={(name) => void confirmSaveSetName(name)}
+	onCancel={() => (saveSetNameOpen = false)}
+/>
 
 <DeleteDialog
 	bind:open={presenter.confirmCloseOpen}

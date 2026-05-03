@@ -75,8 +75,10 @@
 								class="border-base-300 hover:border-primary/50 flex flex-col gap-2 rounded-xl border bg-base-200/30 p-4 text-left transition-colors"
 								onclick={() => (selected = p)}
 							>
-								<div class="text-base font-semibold text-base-content">{p.title}: {p.name}</div>
-								<div class="line-clamp-3 text-sm text-base-content/70">{p.description}</div>
+								<div class="text-base font-semibold text-base-content">
+									{p.title}: {p.name}</div>
+								<div class="line-clamp-3 text-sm text-base-content/70">
+									{p.description}</div>
 								<span class="text-primary text-sm font-medium">Continue →</span>
 							</button>
 						{/each}
@@ -101,7 +103,8 @@
 			</div>
 
 			<Dialog.Footer class="border-base-300 shrink-0 flex-wrap gap-2 border-t px-5 py-3">
-				<Button type="button" variant="ghost" onclick={closeDialog}>Close</Button>
+				<Button type="button" variant="ghost" onclick={closeDialog}>
+					Close</Button>
 				{#if selected}
 					<Button
 						type="button"

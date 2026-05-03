@@ -47,11 +47,20 @@
 
 			<Dialog.Footer>
 				<Dialog.Close>
-					<Button type="button" variant="ghost">Close</Button>
+					<Button
+						type="button"
+						variant="ghost"
+					>
+						Close
+					</Button>
 				</Dialog.Close>
 				<form.Subscribe selector={(state: any) => ({ isSubmitting: state.isSubmitting })}>
 					{#snippet children(state: any)}
-						<Button type="submit" form="website-form" disabled={state.isSubmitting}>
+						<Button
+							type="submit"
+							form="website-form"
+							disabled={state.isSubmitting}
+						>
 							{state.isSubmitting ? 'Saving…' : 'Save'}
 						</Button>
 					{/snippet}

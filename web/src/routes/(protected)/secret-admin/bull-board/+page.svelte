@@ -121,7 +121,8 @@
 
 <div class="p-4 md:p-6 max-w-7xl mx-auto w-full flex flex-col min-h-0 flex-1 gap-3">
 	<div>
-		<h1 class="text-xl font-semibold text-base-content">Queue dashboard</h1>
+		<h1 class="text-xl font-semibold text-base-content">
+			Queue dashboard</h1>
 		<p class="text-sm text-base-content/70 mt-1">
 			Bull Board is loaded in an iframe. The API stores a short-lived, path-scoped HttpOnly cookie (via
 			<code class="text-xs">POST {bullBoardSessionPath}</code>) so the dashboard’s static assets and own API calls
@@ -136,16 +137,20 @@
 	</div>
 
 	{#if !isSuperAdmin}
-		<div class="alert alert-warning text-sm">Super admin only.</div>
+		<div class="alert alert-warning text-sm">
+			Super admin only.</div>
 	{/if}
 
 	{#if loadState === 'loading' || loadState === 'idle'}
-		<div class="text-sm text-base-content/70">Loading…</div>
+		<div class="text-sm text-base-content/70">
+			Loading…</div>
 	{/if}
 
 	{#if loadState === 'error' && loadError}
-		<div class="alert alert-error text-sm whitespace-pre-wrap">{loadError}</div>
-		<button type="button" class="btn btn-sm btn-primary w-fit" onclick={() => void loadBoard()}>Retry</button>
+		<div class="alert alert-error text-sm whitespace-pre-wrap">
+			{loadError}</div>
+		<button type="button" class="btn btn-sm btn-primary w-fit" onclick={() => void loadBoard()}>
+			Retry</button>
 	{/if}
 
 	{#if iframeUrl}

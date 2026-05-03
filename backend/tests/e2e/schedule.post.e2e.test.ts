@@ -33,7 +33,37 @@ const authPath = `${apiPrefix}/auth`;
 const usersPath = `${apiPrefix}/users`;
 const settingsPath = `${apiPrefix}/settings`;
 const postsPath = `${apiPrefix}/posts`;
+const setsPath = `${apiPrefix}/sets`;
 const analyticsPath = `${apiPrefix}/analytics`;
+
+/** Compare persisted scheduling shape between two main posts (ignores body text and ids). */
+function fingerprintSchedulingTarget(settingsJson: string | null, intervalInDays: number | null): {
+    intervalInDays: number | null;
+    isGlobal: boolean | undefined;
+    repeatInterval: string | null;
+    providerSettings: unknown;
+} {
+    const settings = JSON.parse(settingsJson ?? "{}") as {
+        isGlobal?: boolean;
+        repeatInterval?: string | null;
+        providerSettings?: unknown;
+    };
+    return {
+        intervalInDays,
+        isGlobal: settings.isGlobal,
+        repeatInterval: settings.repeatInterval ?? null,
+        providerSettings: settings.providerSettings,
+    };
+}
+
+function normalizeThreadReplyRows(
+    rows: Array<{ content: string; delay_seconds: number | null }> | null | undefined
+): Array<{ content: string; delay_seconds: number }> {
+    return (rows ?? []).map((r) => ({
+        content: r.content,
+        delay_seconds: r.delay_seconds ?? 0,
+    }));
+}
 
 const supabaseConfig = config.supabase as { supabaseUrl?: string; supabaseServiceRoleKey?: string };
 const hasSupabaseE2E = Boolean(supabaseConfig.supabaseUrl?.trim() && supabaseConfig.supabaseServiceRoleKey?.trim());
@@ -453,6 +483,188 @@ describe("Scheduling a post for social channels", () => {
             expect(commentMock).toHaveBeenCalledTimes(2);
         },
         35_000
+    );
+
+    (hasSupabaseE2E ? it : it.skip)(
+        "two scheduled posts created from the same workspace set preset persist equivalent targeting, repeats, and thread replies",
+        async () => {
+            const payload = userHelper.setupTestUser1();
+            const { accessToken, orgId } = await signupVerifyAndSignIn(payload);
+
+            const integrationId = faker.string.uuid();
+            const { error: intErr } = await adminSupabase.from("integrations").insert({
+                id: integrationId,
+                organization_id: orgId,
+                internal_id: `e2e-${faker.string.alphanumeric(12)}`,
+                name: faker.company.name(),
+                picture: null,
+                provider_identifier: "threads",
+                type: "social",
+                token: "e2e-test-token",
+            });
+            expect(intErr).toBeNull();
+
+            const threadReplyFirst = `e2e-set-match-a-${faker.string.alphanumeric(8)}`;
+            const threadReplySecond = `e2e-set-match-b-${faker.string.alphanumeric(8)}`;
+            const delayFirstSeconds = 2;
+            const delaySecondSeconds = 9;
+
+            const setSnapshot = {
+                v: 1 as const,
+                selectedIntegrationIds: [integrationId],
+                selectedGroupId: null as string | null,
+                mode: "global" as const,
+                focusedIntegrationId: null as string | null,
+                globalBody: "",
+                bodiesByIntegrationId: {} as Record<string, string>,
+                providerSettingsByIntegrationId: {
+                    [integrationId]: {
+                        threads: {
+                            replies: [
+                                {
+                                    id: faker.string.uuid(),
+                                    message: threadReplyFirst,
+                                    delaySeconds: delayFirstSeconds,
+                                },
+                                {
+                                    id: faker.string.uuid(),
+                                    message: threadReplySecond,
+                                    delaySeconds: delaySecondSeconds,
+                                },
+                            ],
+                        },
+                    },
+                },
+                postMediaItems: [] as unknown[],
+                selectedTagNames: [] as string[],
+                repeatInterval: null as string | null,
+            };
+
+            const saveSetRes = await supertest(app)
+                .post(setsPath)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({
+                    organizationId: orgId,
+                    name: `e2e-preset-${faker.string.alphanumeric(8)}`,
+                    content: JSON.stringify(setSnapshot),
+                });
+            expect(saveSetRes.status).toBe(200);
+            expect(saveSetRes.body?.success).toBe(true);
+
+            const sharedSchedulePayload = {
+                organizationId: orgId,
+                integrationIds: [...setSnapshot.selectedIntegrationIds],
+                isGlobal: setSnapshot.mode === "global",
+                repeatInterval: setSnapshot.repeatInterval,
+                tagNames: [...setSnapshot.selectedTagNames],
+                providerSettingsByIntegrationId: setSnapshot.providerSettingsByIntegrationId,
+                status: "scheduled" as const,
+            };
+
+            const findSlot1 = await supertest(app)
+                .get(`${postsPath}/find-slot`)
+                .query({ organizationId: orgId })
+                .set("Authorization", `Bearer ${accessToken}`);
+            expect(findSlot1.status).toBe(200);
+            const scheduledAt1 = findSlot1.body?.data?.date as string;
+
+            const bodyTextOne = `${faker.lorem.sentence()} [set-equiv-1]`;
+            const create1 = await supertest(app)
+                .post(postsPath)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({
+                    ...sharedSchedulePayload,
+                    body: bodyTextOne,
+                    scheduledAt: scheduledAt1,
+                });
+            expect(create1.status).toBe(200);
+            expect(create1.body?.success).toBe(true);
+            const posts1 = create1.body?.data?.posts as Array<{
+                id: string;
+                integrationId: string | null;
+                intervalInDays: number | null;
+                settings: string | null;
+            }>;
+            const main1 = posts1.find((p) => p.integrationId === integrationId);
+            expect(main1?.id).toBeDefined();
+
+            const findSlot2 = await supertest(app)
+                .get(`${postsPath}/find-slot`)
+                .query({ organizationId: orgId })
+                .set("Authorization", `Bearer ${accessToken}`);
+            expect(findSlot2.status).toBe(200);
+            const scheduledAt2 = findSlot2.body?.data?.date as string;
+
+            const bodyTextTwo = `${faker.lorem.sentence()} [set-equiv-2]`;
+            const create2 = await supertest(app)
+                .post(postsPath)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({
+                    ...sharedSchedulePayload,
+                    body: bodyTextTwo,
+                    scheduledAt: scheduledAt2,
+                });
+            expect(create2.status).toBe(200);
+            expect(create2.body?.success).toBe(true);
+            const posts2 = create2.body?.data?.posts as Array<{
+                id: string;
+                integrationId: string | null;
+                intervalInDays: number | null;
+                settings: string | null;
+            }>;
+            const main2 = posts2.find((p) => p.integrationId === integrationId);
+            expect(main2?.id).toBeDefined();
+
+            expect(bodyTextOne).not.toBe(bodyTextTwo);
+
+            expect(fingerprintSchedulingTarget(main1!.settings, main1!.intervalInDays ?? null)).toEqual(
+                fingerprintSchedulingTarget(main2!.settings, main2!.intervalInDays ?? null)
+            );
+
+            const { data: row1, error: err1 } = await adminSupabase
+                .from("posts")
+                .select("content, interval_in_days, settings")
+                .eq("id", main1!.id)
+                .maybeSingle();
+            const { data: row2, error: err2 } = await adminSupabase
+                .from("posts")
+                .select("content, interval_in_days, settings")
+                .eq("id", main2!.id)
+                .maybeSingle();
+            expect(err1).toBeNull();
+            expect(err2).toBeNull();
+            expect((row1?.content as string) ?? "").not.toBe((row2?.content as string) ?? "");
+            expect(fingerprintSchedulingTarget((row1?.settings as string) ?? null, row1?.interval_in_days ?? null)).toEqual(
+                fingerprintSchedulingTarget((row2?.settings as string) ?? null, row2?.interval_in_days ?? null)
+            );
+
+            const { data: replies1, error: rErr1 } = await adminSupabase
+                .from("post_thread_replies")
+                .select("content, delay_seconds")
+                .eq("post_id", main1!.id)
+                .is("deleted_at", null)
+                .order("created_at", { ascending: true });
+            const { data: replies2, error: rErr2 } = await adminSupabase
+                .from("post_thread_replies")
+                .select("content, delay_seconds")
+                .eq("post_id", main2!.id)
+                .is("deleted_at", null)
+                .order("created_at", { ascending: true });
+            expect(rErr1).toBeNull();
+            expect(rErr2).toBeNull();
+            expect(normalizeThreadReplyRows(replies1)).toEqual(normalizeThreadReplyRows(replies2));
+            expect(normalizeThreadReplyRows(replies1)).toEqual([
+                { content: threadReplyFirst, delay_seconds: delayFirstSeconds },
+                { content: threadReplySecond, delay_seconds: delaySecondSeconds },
+            ]);
+
+            for (let i = 0; i < 30 && mockRunScheduledSocialPost.mock.calls.length < 2; i++) {
+                // eslint-disable-next-line no-await-in-loop
+                await new Promise((r) => setImmediate(r));
+            }
+            expect(mockRunScheduledSocialPost).toHaveBeenCalledTimes(2);
+        },
+        30_000
     );
 
     describe("Channel analytics for the same workspace setup", () => {

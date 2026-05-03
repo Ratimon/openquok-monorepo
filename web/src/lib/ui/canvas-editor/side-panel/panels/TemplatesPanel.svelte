@@ -150,7 +150,8 @@
 	</p>
 
 	{#if infinite.error}
-		<p class="text-error shrink-0 text-xs">{String(infinite.error)}</p>
+		<p class="text-error shrink-0 text-xs">
+			{String(infinite.error)}</p>
 	{/if}
 
 	<ScrollArea class="min-h-0 min-w-0 flex-1 basis-0" viewportClass="pr-0.5" bind:viewportRef={scrollViewport}>
@@ -199,7 +200,8 @@
 			{/each}
 
 			{#if infinite.isLoading && infinite.items.length === 0}
-				<div class="text-base-content/60 col-span-2 py-8 text-center text-sm">Loading templates…</div>
+				<div class="text-base-content/60 col-span-2 py-8 text-center text-sm">
+					Loading templates…</div>
 			{/if}
 
 			{#if infinite.hasMore}
@@ -207,7 +209,8 @@
 			{/if}
 
 			{#if infinite.isLoading && infinite.items.length > 0}
-				<div class="text-base-content/55 col-span-2 py-2 text-center text-xs">Loading more…</div>
+				<div class="text-base-content/55 col-span-2 py-2 text-center text-xs">
+					Loading more…</div>
 			{/if}
 		</div>
 	</ScrollArea>

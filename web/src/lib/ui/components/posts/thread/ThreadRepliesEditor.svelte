@@ -51,7 +51,8 @@
 {#if postComment === 'POST' || postComment === 'COMMENT' || postComment === 'ALL'}
 	<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
 		<div class="flex items-center justify-between gap-3">
-			<div class="text-sm font-medium text-base-content/80">Thread replies</div>
+			<div class="text-sm font-medium text-base-content/80">
+				Thread replies</div>
 			<AddPostButton onclick={onAddReply} {postComment} disabled={disabled} />
 		</div>
 
@@ -79,7 +80,8 @@
 				{#each replies as reply, replyIndex (reply.id)}
 					<div class="rounded-lg border border-base-300 bg-base-200/20 p-3">
 						<div class="mb-3 flex items-center justify-between gap-3">
-							<div class="text-xs font-semibold text-base-content/70">Reply</div>
+							<div class="text-xs font-semibold text-base-content/70">
+								Reply</div>
 							<button
 								type="button"
 								class="text-xs font-semibold text-error hover:underline disabled:opacity-60"

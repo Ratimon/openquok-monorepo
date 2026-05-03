@@ -20,8 +20,10 @@
 		<p class="mt-4 font-medium text-primary">
 			{errorMessage}</p>
 		<div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-			<Button href={signinUrl}>Try signing in again</Button>
-			<Button href="/" variant="outline">Return home</Button>
+			<Button href={signinUrl}>
+				Try signing in again</Button>
+			<Button href="/" variant="outline">
+				Return home</Button>
 		</div>
 	</div>
 </div>

@@ -24,9 +24,11 @@
 		}}
 		{disabled}
 	>
-		<option value="">No repeat</option>
+		<option value="">
+			No repeat</option>
 		{#each repeatOptions as opt (opt.value)}
-			<option value={opt.value}>{opt.label}</option>
+			<option value={opt.value}>
+				{opt.label}</option>
 		{/each}
 	</select>
 </div>

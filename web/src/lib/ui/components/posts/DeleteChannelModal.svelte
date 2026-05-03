@@ -30,7 +30,8 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2 sm:justify-end">
-			<Button type="button" variant="ghost" onclick={onCancel} disabled={busy}>Cancel</Button>
+			<Button type="button" variant="ghost" onclick={onCancel} disabled={busy}>
+				Cancel</Button>
 			<Button
 				type="button"
 				variant="ghost"

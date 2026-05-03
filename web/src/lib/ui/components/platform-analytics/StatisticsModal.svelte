@@ -124,13 +124,15 @@
 					onCancel={() => (open = false)}
 				/>
 			{:else if error}
-				<div class="rounded-lg border border-error/30 bg-error/5 p-4 text-sm text-error">{error}</div>
+				<div class="rounded-lg border border-error/30 bg-error/5 p-4 text-sm text-error">
+					{error}</div>
 			{:else if seriesVm.length === 0}
 				<div class="py-10 text-center text-sm text-base-content/70">
 					No statistics available for this post.
 				</div>
 			{:else}
-				<h3 class="mb-4 text-base font-semibold text-base-content">Post analytics</h3>
+				<h3 class="mb-4 text-base font-semibold text-base-content">
+					Post analytics</h3>
 
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{#each seriesVm as item, index (item.label)}

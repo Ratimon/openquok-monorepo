@@ -15,6 +15,7 @@ import { NotificationController } from "./NotificationController";
 import { PostsController } from "./PostsController";
 import { ThirdPartyController } from "./ThirdPartyController";
 import { SignatureController } from "./SignatureController";
+import { SetsController } from "./SetsController";
 import { AnalyticsController } from "./AnalyticsController";
 import {
     authenticationService,
@@ -33,6 +34,7 @@ import {
     postsService,
     mediaService,
     signatureService,
+    setsService,
     analyticsService,
 } from "../services/index";
 import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
@@ -67,4 +69,5 @@ export const notificationController = new NotificationController(notificationSer
 export const postsController = new PostsController(postsService);
 export const thirdPartyController = new ThirdPartyController();
 export const signatureController = new SignatureController(signatureService);
+export const setsController = new SetsController(setsService);
 export const analyticsController = new AnalyticsController(analyticsService, integrationConnectionService, postsService);

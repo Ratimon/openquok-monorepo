@@ -29,8 +29,10 @@ import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationEr
 import { config } from "../config/GlobalConfig";
 import { logger } from "../utils/Logger";
 
-
 const DEFAULT_TAG_COLOR = "#6366f1";
+
+/** Prefix for {@link PostsService.listPostsForCalendar} cache keys (`posts:calendar:list:${organizationId}:…`). */
+export const POSTS_CALENDAR_LIST_CACHE_PREFIX = "posts:calendar:list";
 
 /** Domain-scoped cache key prefixes (social posts / calendar / tags). */
 const CACHE_KEYS = {
@@ -43,7 +45,7 @@ const CACHE_KEYS = {
      * Full key = `${POSTS_CALENDAR_LIST}:${organizationId}:${startIso}:${endIso}:${integrationKey}`.
      * `integrationKey` is sorted ids or `all` when no filter.
      */
-    POSTS_CALENDAR_LIST: "posts:calendar:list",
+    POSTS_CALENDAR_LIST: POSTS_CALENDAR_LIST_CACHE_PREFIX,
     /** Full key = `${POSTS_PREVIEW}:${postId}` (public preview with share=true). */
     POSTS_PREVIEW: "posts:preview",
 };
@@ -73,6 +75,41 @@ function calendarPostsCacheKey(params: {
             ? [...params.integrationIds].sort().join(",")
             : "all";
     return `${CACHE_KEYS.POSTS_CALENDAR_LIST}:${params.organizationId}:${params.startIso}:${params.endIso}:${integrationKey}`;
+}
+
+/**
+ * Drops cached calendar ranges for a workspace (API reads via {@link PostsService.listPostsForCalendar}).
+ * Used by {@link PostsService} on mutations and by the scheduled-publish worker (repository updates bypass the service).
+ */
+export async function invalidatePostsCalendarListCachesForOrganization(
+    organizationId: string,
+    cacheInvalidator?: CacheInvalidationService,
+    cache?: CacheService
+): Promise<void> {
+    const pattern = `${POSTS_CALENDAR_LIST_CACHE_PREFIX}:${organizationId}:*`;
+    if (cacheInvalidator) {
+        try {
+            await cacheInvalidator.invalidatePattern(pattern);
+            return;
+        } catch (error) {
+            logger.error({
+                msg: "Error invalidating posts calendar list cache pattern",
+                organizationId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
+    }
+    if (cache) {
+        try {
+            await cache.delPattern(pattern);
+        } catch (error) {
+            logger.error({
+                msg: "Error deleting posts calendar list cache pattern (fallback)",
+                organizationId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
+    }
 }
 
 function dayStartUtcIso(d: Date): string {
@@ -1092,7 +1129,11 @@ export class PostsService {
         const { organizationId } = params;
         const invalidateWithInvalidator = async () => {
             await this.cacheInvalidator!.invalidateKey(tagsListCacheKey(organizationId));
-            await this.cacheInvalidator!.invalidatePattern(`${CACHE_KEYS.POSTS_CALENDAR_LIST}:${organizationId}:*`);
+            await invalidatePostsCalendarListCachesForOrganization(
+                organizationId,
+                this.cacheInvalidator,
+                undefined
+            );
             logger.debug({ msg: "Invalidated organization posts list caches", organizationId });
         };
 
@@ -1112,7 +1153,7 @@ export class PostsService {
         if (this.cache) {
             try {
                 await this.cache.del(tagsListCacheKey(organizationId));
-                await this.cache.delPattern(`${CACHE_KEYS.POSTS_CALENDAR_LIST}:${organizationId}:*`);
+                await invalidatePostsCalendarListCachesForOrganization(organizationId, undefined, this.cache);
             } catch (error) {
                 logger.error({
                     msg: "Error deleting organization posts list cache keys",
@@ -1176,7 +1217,11 @@ export class PostsService {
             for (const id of postIds) {
                 await this.cacheInvalidator!.invalidateKey(`${CACHE_KEYS.POSTS_PREVIEW}:${id}`);
             }
-            await this.cacheInvalidator!.invalidatePattern(`${CACHE_KEYS.POSTS_CALENDAR_LIST}:${organizationId}:*`);
+            await invalidatePostsCalendarListCachesForOrganization(
+                organizationId,
+                this.cacheInvalidator,
+                undefined
+            );
             await this.cacheInvalidator!.invalidateKey(tagsListCacheKey(organizationId));
             await this.cacheInvalidator!.invalidateEntity(CACHE_KEYS.POSTS, postGroup);
             logger.debug({
@@ -1207,7 +1252,7 @@ export class PostsService {
                 for (const id of postIds) {
                     await this.cache.del(`${CACHE_KEYS.POSTS_PREVIEW}:${id}`);
                 }
-                await this.cache.delPattern(`${CACHE_KEYS.POSTS_CALENDAR_LIST}:${organizationId}:*`);
+                await invalidatePostsCalendarListCachesForOrganization(organizationId, undefined, this.cache);
                 await this.cache.del(tagsListCacheKey(organizationId));
             } catch (error) {
                 logger.error({

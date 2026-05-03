@@ -413,7 +413,8 @@
 
 <svelte:head>
 	<title
-		>{igBusinessPicker
+		>
+		{igBusinessPicker
 			? 'Choose Instagram account'
 			: oauthAnonymousSuccess
 				? 'Channel connected'
@@ -429,7 +430,8 @@
 
 {#if igBusinessPicker}
 	<div class="mx-auto max-w-lg px-4 py-10">
-		<h1 class="text-xl font-semibold text-base-content">Choose an Instagram account</h1>
+		<h1 class="text-xl font-semibold text-base-content">
+			Choose an Instagram account</h1>
 		<p class="mt-2 text-sm text-base-content/70">
 			Select the professional Instagram account linked to your Facebook Page. You can change this later by
 			removing and re-adding the channel.
@@ -460,23 +462,28 @@
 				</li>
 			{/each}
 		</ul>
-		<Button class="mt-6" variant="ghost" onclick={() => cancelInstagramBusinessPicker()}>Cancel</Button>
+		<Button class="mt-6" variant="ghost" onclick={() => cancelInstagramBusinessPicker()}>
+			Cancel</Button>
 	</div>
 {:else if oauthAnonymousSuccess}
 	<div class="mx-auto max-w-lg px-4 py-10">
-		<h1 class="text-xl font-semibold text-base-content">Channel connected</h1>
+		<h1 class="text-xl font-semibold text-base-content">
+			Channel connected</h1>
 		<p class="mt-2 text-sm text-base-content/70">
 			Your account is linked. Sign in to open your workspace and manage channels.
 		</p>
-		<Button class="mt-6" href={signInAfterAnonymousConnectHref}>Sign in</Button>
+		<Button class="mt-6" href={signInAfterAnonymousConnectHref}>
+			Sign in</Button>
 	</div>
 {:else if signInRequiredForOAuthStart}
 	<div class="mx-auto max-w-lg px-4 py-10">
-		<h1 class="text-xl font-semibold text-base-content">Sign in to connect</h1>
+		<h1 class="text-xl font-semibold text-base-content">
+			Sign in to connect</h1>
 		<p class="mt-2 text-sm text-base-content/70">
 			Starting this connection requires an Openquok session. Sign in, then try again from your workspace.
 		</p>
-		<Button class="mt-6" href={signInToContinueHref}>Sign in</Button>
+		<Button class="mt-6" href={signInToContinueHref}>
+			Sign in</Button>
 	</div>
 {:else}
 	<div class="mx-auto w-full max-w-2xl px-4 py-10 sm:max-w-3xl">
@@ -484,7 +491,8 @@
 			class="flex flex-col items-center rounded-lg border border-base-300 bg-base-100 px-8 py-8 text-center sm:px-10"
 		>
 			{#if isOAuthErrorCallback}
-				<h1 class="text-lg font-semibold text-base-content">Returning…</h1>
+				<h1 class="text-lg font-semibold text-base-content">
+					Returning…</h1>
 				<p class="mt-2 text-sm text-base-content/70">
 					{busy ? 'Taking you back to your account.' : 'Done.'}
 				</p>
@@ -518,7 +526,8 @@
 					</div>
 				{/if}
 			{:else}
-				<h1 class="text-lg font-semibold text-base-content">Finishing connection…</h1>
+				<h1 class="text-lg font-semibold text-base-content">
+					Finishing connection…</h1>
 				<p class="mt-2 text-sm text-base-content/70">
 					{#if busy}
 						Please wait while we connect your account.

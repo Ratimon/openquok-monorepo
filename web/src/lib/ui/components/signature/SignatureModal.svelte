@@ -103,7 +103,8 @@
 				</div>
 			{:else if signatures.length === 0 && !signatureBusy}
 				<div class="flex flex-col gap-2 rounded-md border border-base-300 bg-base-100 p-3 text-sm text-base-content/70">
-					<p>No signatures for this workspace yet.</p>
+					<p>
+						No signatures for this workspace yet.</p>
 					<Button type="button" variant="primary" size="sm" class="w-full" onclick={openSignaturesSettings}>
 						Open Signatures settings
 					</Button>
@@ -117,7 +118,8 @@
 							onclick={() => insertSignature(s.content)}
 						>
 							<div class="flex items-center justify-between gap-2">
-								<div class="truncate text-sm font-medium text-base-content">{s.title}</div>
+								<div class="truncate text-sm font-medium text-base-content">
+									{s.title}</div>
 								{#if s.isDefault}
 									<span class="badge badge-sm badge-primary">Default</span>
 								{/if}
@@ -141,7 +143,8 @@
 		</div>
 
 		<div class="border-base-300 flex shrink-0 justify-end border-t px-4 py-3 sm:px-6">
-			<Button type="button" variant="ghost" onclick={close}>Close</Button>
+			<Button type="button" variant="ghost" onclick={close}>
+				Close</Button>
 		</div>
 	</Dialog.Content>
 </Dialog.Root>

@@ -93,7 +93,8 @@
 		</div>
 
 		<div class="flex justify-end gap-2 border-t border-base-300 pt-3">
-			<Button type="button" variant="outline" onclick={onCancel} disabled={saving}>Cancel</Button>
+			<Button type="button" variant="outline" onclick={onCancel} disabled={saving}>
+				Cancel</Button>
 			<Button type="button" variant="primary" disabled={!selected || saving} onclick={() => void handleConnect()}>
 				{#if saving}
 					<AbstractIcon name={icons.LoaderCircle.name} class="size-4 animate-spin" width="16" height="16" />

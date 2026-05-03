@@ -111,14 +111,17 @@
 				class="steps steps-vertical mt-4 w-full sm:steps-horizontal"
 				aria-label="Onboarding progress"
 			>
-				<li class={cn('step', step >= 1 && 'step-primary')}>Add channel</li>
-				<li class={cn('step', step === 2 && 'step-primary')}>Watch tutorial</li>
+				<li class={cn('step', step >= 1 && 'step-primary')}>
+					Add channel</li>
+				<li class={cn('step', step === 2 && 'step-primary')}>
+					Watch tutorial</li>
 			</ul>
 		</div>
 
 		{#if step === 1}
 			<div class="px-6 py-6">
-				<p class="mb-4 text-sm text-base-content/70">Click a channel to add it.</p>
+				<p class="mb-4 text-sm text-base-content/70">
+					Click a channel to add it.</p>
 				{#if loading}
 					<div class="flex items-center gap-2 py-10 text-base-content/70">
 						<AbstractIcon
@@ -130,7 +133,8 @@
 						Loading providers…
 					</div>
 				{:else if providers.length === 0}
-					<div class="py-10 text-sm text-base-content/70">No providers available right now.</div>
+					<div class="py-10 text-sm text-base-content/70">
+						No providers available right now.</div>
 				{:else}
 					<div
 						class={cn(
@@ -181,12 +185,15 @@
 			</div>
 
 			<div class="flex items-center justify-end gap-2 border-t border-base-300 px-6 py-4">
-				<Button variant="ghost" type="button" onclick={close}>Close</Button>
-				<Button type="button" onclick={() => (step = 2)}>Next</Button>
+				<Button variant="ghost" type="button" onclick={close}>
+					Close</Button>
+				<Button type="button" onclick={() => (step = 2)}>
+					Next</Button>
 			</div>
 		{:else}
 			<div class="px-6 py-8">
-				<h3 class="text-lg font-semibold text-base-content">Watch a quick tutorial</h3>
+				<h3 class="text-lg font-semibold text-base-content">
+					Watch a quick tutorial</h3>
 				<p class="mt-2 max-w-2xl text-sm text-base-content/70">
 					This step is a placeholder for now. We’ll link a short walkthrough video here.
 				</p>
@@ -197,18 +204,23 @@
 							<AbstractIcon name={icons.YouTube.name} class="h-6 w-6" width="24" height="24" />
 						</div>
 						<div class="min-w-0">
-							<div class="font-medium text-base-content">Getting started (mock)</div>
-							<div class="text-xs text-base-content/70">Coming soon</div>
+							<div class="font-medium text-base-content">
+								Getting started (mock)</div>
+							<div class="text-xs text-base-content/70">
+								Coming soon</div>
 						</div>
 					</div>
 				</div>
 			</div>
 
 			<div class="flex items-center justify-between gap-2 border-t border-base-300 px-6 py-4">
-				<Button variant="ghost" type="button" onclick={() => (step = 1)}>Back</Button>
+				<Button variant="ghost" type="button" onclick={() => (step = 1)}>
+					Back</Button>
 				<div class="flex items-center gap-2">
-					<Button variant="ghost" type="button" onclick={close}>Close</Button>
-					<Button type="button" onclick={finish}>Finish</Button>
+					<Button variant="ghost" type="button" onclick={close}>
+						Close</Button>
+					<Button type="button" onclick={finish}>
+						Finish</Button>
 				</div>
 			</div>
 		{/if}

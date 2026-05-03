@@ -282,7 +282,8 @@
 		</div>
 	{/if}
 	<div class="min-w-0 text-start">
-		<div class="truncate text-sm font-medium text-base-content">{integration.name}</div>
+		<div class="truncate text-sm font-medium text-base-content">
+			{integration.name}</div>
 	</div>
 {/snippet}
 
@@ -348,8 +349,10 @@
 						/>
 					</div>
 					<div class="min-w-0 text-start">
-						<div class="truncate font-medium text-base-content">{integration.name}</div>
-						<div class="truncate text-xs text-base-content/60">{integration.identifier}</div>
+						<div class="truncate font-medium text-base-content">
+							{integration.name}</div>
+						<div class="truncate text-xs text-base-content/60">
+							{integration.identifier}</div>
 					</div>
 				</div>
 				<AbstractIcon

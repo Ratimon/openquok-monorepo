@@ -80,11 +80,13 @@
 			</div>
 
 			<div class="px-4 pb-4">
-				<div class="text-4xl font-semibold tracking-tight text-base-content">{total}</div>
+				<div class="text-4xl font-semibold tracking-tight text-base-content">
+					{total}</div>
 			</div>
 		{:else}
 			<div class="flex flex-1 items-center justify-center px-4 py-8">
-				<div class="text-5xl font-semibold tracking-tight text-base-content">{total}</div>
+				<div class="text-5xl font-semibold tracking-tight text-base-content">
+					{total}</div>
 			</div>
 		{/if}
 	</div>

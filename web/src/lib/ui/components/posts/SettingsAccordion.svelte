@@ -159,7 +159,8 @@
 						bind:trialReel={igTrialReel}
 					/>
 				{:else}
-					<p class="text-sm text-base-content/60">No settings available for this provider yet.</p>
+					<p class="text-sm text-base-content/60">
+						No settings available for this provider yet.</p>
 				{/if}
 			</div>
 		</div>

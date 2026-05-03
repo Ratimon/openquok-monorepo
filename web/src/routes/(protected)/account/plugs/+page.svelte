@@ -213,7 +213,8 @@
 		<div class="rounded-xl border border-base-300 bg-base-200/20 p-8 text-center">
 			<p class="text-base-content/75">
 				No channels with plug support yet. Connect Threads to get started.</p>
-			<Button class="mt-4" variant="outline" onclick={() => void goto(accountPath)}>Go to Dashboard</Button>
+			<Button class="mt-4" variant="outline" onclick={() => void goto(accountPath)}>
+				Go to Dashboard</Button>
 		</div>
 	{:else}
 		<div class="rounded-xl border border-base-300 bg-base-100 shadow-sm">

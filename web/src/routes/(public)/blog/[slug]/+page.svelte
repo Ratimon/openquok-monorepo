@@ -142,7 +142,8 @@
 
 <svelte:head>
 	{#if schemaData}
-		<script type="application/ld+json">{JSON.stringify(schemaData)}</script>
+		<script type="application/ld+json">
+			{JSON.stringify(schemaData)}</script>
 	{/if}
 </svelte:head>
 

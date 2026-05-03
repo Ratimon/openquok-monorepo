@@ -69,7 +69,8 @@
 			class="border-base-300 bg-base-100 absolute right-0 z-50 mt-2 w-[280px] rounded-lg border p-2 shadow-xl"
 			role="menu"
 		>
-			<div class="px-2 py-1 text-xs font-semibold text-base-content/60">Groups</div>
+			<div class="px-2 py-1 text-xs font-semibold text-base-content/60">
+				Groups</div>
 			<button
 				type="button"
 				class="hover:bg-base-200 w-full rounded-md px-2 py-2 text-left text-sm {selectedGroupId === null

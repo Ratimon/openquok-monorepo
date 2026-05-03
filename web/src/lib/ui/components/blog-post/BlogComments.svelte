@@ -185,7 +185,8 @@
 					{/if}
 					<span class="text-xs italic text-base-content/50">{commentContent.length}/{maxLength}</span>
 					{#if replyingTo}
-						<Button variant="secondary" onclick={handleCancelReply}>Cancel</Button>
+						<Button variant="secondary" onclick={handleCancelReply}>
+							Cancel</Button>
 					{/if}
 					<Button
 						variant="outline"

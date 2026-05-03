@@ -213,7 +213,8 @@
 
 		<div class="mt-6 space-y-5">
 			<div class="space-y-2">
-				<label class="text-sm font-medium text-base-content/80" for="tag-name">Name</label>
+				<label class="text-sm font-medium text-base-content/80" for="tag-name">
+					Name</label>
 				<input
 					id="tag-name"
 					class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
@@ -224,7 +225,8 @@
 			</div>
 
 			<div class="space-y-2">
-				<div class="text-sm font-medium text-base-content/80">Tag Color</div>
+				<div class="text-sm font-medium text-base-content/80">
+					Tag Color</div>
 				<ColorPicker bind:value={addColor} />
 			</div>
 		</div>
@@ -260,13 +262,17 @@
 		</p>
 
 		<div class="mt-6 flex flex-wrap justify-end gap-3">
-			<Button type="button" variant="primary" onclick={cancelDelete} disabled={busy}>
+			<Button
+				type="button"
+				variant="primary"
+				disabled={busy}
+				onclick={cancelDelete}
+			>
 				Cancel
 			</Button>
 			<Button
 				type="button"
-				variant="primary"
-				class="!from-red-600 !via-red-600 !to-red-600 hover:!from-red-700 hover:!via-red-700 hover:!to-red-700 !text-white"
+				variant="red"
 				disabled={busy}
 				onclick={() => void confirmDelete()}
 			>

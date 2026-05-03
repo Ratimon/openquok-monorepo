@@ -54,7 +54,8 @@
 </script>
 
 <div>
-	<p class="mb-2 text-xs font-medium text-base-content/60">Targets for this post</p>
+	<p class="mb-2 text-xs font-medium text-base-content/60">
+		Targets for this post</p>
 
 	<div class="flex flex-wrap items-center gap-2">
 		<button

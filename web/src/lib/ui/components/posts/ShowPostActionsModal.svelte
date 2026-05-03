@@ -128,7 +128,8 @@
 <Dialog.Root bind:open onOpenChange={(o) => (!o ? onClose() : null)}>
 	<Dialog.Content class="max-w-sm p-0" showCloseButton={true}>
 		<div class="border-b border-base-300 px-4 py-3">
-			<div class="text-base font-semibold text-base-content">Post actions</div>
+			<div class="text-base font-semibold text-base-content">
+				Post actions</div>
 
 			{#if headerLoading}
 				<div class="mt-2 flex items-center gap-2 text-xs text-base-content/60">
@@ -136,7 +137,8 @@
 					Loading post…
 				</div>
 			{:else if headerError}
-				<div class="mt-2 text-xs text-error">{headerError}</div>
+				<div class="mt-2 text-xs text-error">
+					{headerError}</div>
 			{:else if summary}
 				{@const dt = formatLocalDateTime(summary.publishDateIso)}
 				{@const iconName = socialProviderIcon(summary.channelIdentifier)}

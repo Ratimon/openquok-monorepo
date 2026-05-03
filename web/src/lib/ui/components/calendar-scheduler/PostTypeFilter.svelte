@@ -104,7 +104,8 @@
 			class="border-base-300 bg-base-100 absolute left-0 z-[60] mt-2 w-[min(calc(100vw-2rem),320px)] rounded-lg border p-3 shadow-xl sm:left-auto sm:right-0"
 			role="menu"
 		>
-			<p class="px-1 pb-2 text-xs font-semibold text-base-content/60">Post types</p>
+			<p class="px-1 pb-2 text-xs font-semibold text-base-content/60">
+				Post types</p>
 
 			<div class="flex items-center justify-between gap-2 px-1 pb-2">
 				<label class="flex cursor-pointer items-center gap-2 rounded-md">

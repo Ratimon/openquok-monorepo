@@ -162,7 +162,8 @@
 	<div class="rounded-[28px] border border-base-300/70 bg-base-100/70 p-5 shadow-sm backdrop-blur-sm sm:p-6">
 		<div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 			<div>
-				<h1 class="text-2xl font-semibold text-base-content">Media Library</h1>
+				<h1 class="text-2xl font-semibold text-base-content">
+					Media Library</h1>
 				<p class="mt-1 text-sm text-base-content/70">
 					Select or upload media files. Maximum {uploadLimitLabel} per file.
 				</p>

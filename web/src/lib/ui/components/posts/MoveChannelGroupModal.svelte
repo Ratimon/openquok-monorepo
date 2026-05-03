@@ -184,7 +184,8 @@
 					Remove from group
 				</Button>
 			{/if}
-			<Button type="button" variant="ghost" disabled={busy} onclick={() => (open = false)}>Cancel</Button>
+			<Button type="button" variant="ghost" disabled={busy} onclick={() => (open = false)}>
+				Cancel</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

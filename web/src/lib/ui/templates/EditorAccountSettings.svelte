@@ -401,7 +401,8 @@
 			</profileDetailsForm.Field>
 			<Dialog.Footer>
 				<Dialog.Close>
-					<Button type="button" variant="ghost">Close</Button>
+					<Button type="button" variant="ghost">
+						Close</Button>
 				</Dialog.Close>
 				<profileDetailsForm.Subscribe selector={(state) => ({ isSubmitting: state.isSubmitting })}>
 					{#snippet children(state)}

@@ -306,7 +306,8 @@
 
 			<div class="mt-4 flex flex-col gap-4">
 				<div class="flex flex-col gap-1.5">
-					<label class="text-sm font-medium text-base-content" for="media-alt-{mediaVm.id}">Alt text</label>
+					<label class="text-sm font-medium text-base-content" for="media-alt-{mediaVm.id}">
+						Alt text</label>
 					<input
 						id="media-alt-{mediaVm.id}"
 						type="text"
@@ -319,7 +320,8 @@
 
 				{#if isVideo}
 					<div class="flex flex-col gap-3">
-						<div class="text-sm font-medium text-base-content">Video poster</div>
+						<div class="text-sm font-medium text-base-content">
+							Video poster</div>
 
 						{#if !thumbnailEditorOpen}
 							{#if thumbPreviewUrl}
@@ -336,7 +338,8 @@
 									Poster will be removed when you save. You can still create a new one before saving.
 								</p>
 							{:else}
-								<p class="text-sm text-base-content/60">No poster yet — pick a frame from the video.</p>
+								<p class="text-sm text-base-content/60">
+									No poster yet — pick a frame from the video.</p>
 							{/if}
 
 							<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -414,7 +417,8 @@
 								</Button>
 
 								{#if thumbPreviewUrl}
-									<div class="text-xs font-medium text-base-content/80">Preview</div>
+									<div class="text-xs font-medium text-base-content/80">
+										Preview</div>
 									<img src={thumbPreviewUrl} alt="" class="border-base-300 max-h-40 rounded-lg border object-contain" />
 								{/if}
 							</div>
@@ -425,7 +429,8 @@
 
 			{#if !isVideo || !thumbnailEditorOpen}
 			<Dialog.Footer class="mt-6 gap-2 sm:justify-end">
-				<Button type="button" variant="ghost" disabled={saving} onclick={close}>Cancel</Button>
+				<Button type="button" variant="ghost" disabled={saving} onclick={close}>
+					Cancel</Button>
 				<Button type="button" variant="primary" disabled={saving} onclick={() => void save()}>
 					{#if saving}
 						<AbstractIcon name={icons.LoaderCircle.name} class="size-4 animate-spin" width="16" height="16" />

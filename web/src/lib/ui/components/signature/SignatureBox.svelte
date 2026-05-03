@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { SignatureProgrammerModel } from '$lib/signatures';
 
+	import { icons } from '$data/icons';
+
 	import { Badge } from '$lib/ui/badge';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { icons } from '$data/icons';
 
 	type Props = {
 		signature: SignatureProgrammerModel;
@@ -30,7 +31,8 @@
 					{signature.isDefault ? 'Auto add' : 'Manual'}
 				</Badge>
 			</div>
-			<p class="mt-1 whitespace-pre-wrap break-words text-sm text-base-content/70">{preview}</p>
+			<p class="mt-1 whitespace-pre-wrap break-words text-sm text-base-content/70">
+				{preview}</p>
 		</div>
 		<div class="flex shrink-0 flex-col items-end gap-2">
 			<Button type="button" variant="outline" size="sm" class="gap-1.5" disabled={busy} onclick={() => onEdit(signature)}>

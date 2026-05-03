@@ -105,7 +105,8 @@
 
 <div class="p-4 md:p-6 max-w-7xl mx-auto w-full">
 	<div class="min-w-0">
-		<h1 class="text-xl font-semibold text-base-content">Email manager</h1>
+		<h1 class="text-xl font-semibold text-base-content">
+			Email manager</h1>
 		<p class="text-sm text-base-content/70 mt-1">
 			List received mail via Resend, open a message, and send a plain-text reply. Requires
 			<code class="text-xs bg-base-300 px-1 rounded">RESEND_SECRET_KEY</code> on the API. Super admin
@@ -120,7 +121,8 @@
 	{/if}
 
 	{#if listError}
-		<div class="alert alert-error mt-4 text-sm whitespace-pre-wrap">{listError}</div>
+		<div class="alert alert-error mt-4 text-sm whitespace-pre-wrap">
+			{listError}</div>
 	{/if}
 
 	<div class="mt-6 flex flex-col lg:flex-row gap-6 min-h-[min(70vh,720px)]">
@@ -140,11 +142,14 @@
 			{/if}
 			<CardContent class="flex-1 overflow-y-auto min-h-0 p-0">
 				{#if listLoading}
-					<div class="p-4 text-sm text-base-content/60">Loading…</div>
+					<div class="p-4 text-sm text-base-content/60">
+						Loading…</div>
 				{:else if receivedEmails.length === 0}
-					<div class="p-4 text-sm text-base-content/60">No messages.</div>
+					<div class="p-4 text-sm text-base-content/60">
+						No messages.</div>
 				{:else if totalFilteredItems === 0}
-					<div class="p-4 text-sm text-base-content/60">No messages match your search.</div>
+					<div class="p-4 text-sm text-base-content/60">
+						No messages match your search.</div>
 				{:else}
 					<ul class="divide-y divide-base-300">
 						{#each currentData as row (row.id)}
@@ -157,9 +162,12 @@
 										: ''}"
 									onclick={() => onSelectEmail(row.id)}
 								>
-									<div class="font-medium line-clamp-2 text-base-content">{row.subject || '(no subject)'}</div>
-									<div class="text-xs text-base-content/60 mt-0.5 truncate">{row.from}</div>
-									<div class="text-xs text-base-content/50 mt-0.5">{formatCreatedAt(row.createdAt)}</div>
+									<div class="font-medium line-clamp-2 text-base-content">
+										{row.subject || '(no subject)'}</div>
+									<div class="text-xs text-base-content/60 mt-0.5 truncate">
+										{row.from}</div>
+									<div class="text-xs text-base-content/50 mt-0.5">
+										{formatCreatedAt(row.createdAt)}</div>
 								</button>
 							</li>
 						{/each}
@@ -204,11 +212,14 @@
 				</div>
 				<div class="flex-1 overflow-y-auto p-4 min-h-0">
 					{#if !selectedId}
-						<p class="text-sm text-base-content/60">Select a message from the list.</p>
+						<p class="text-sm text-base-content/60">
+							Select a message from the list.</p>
 					{:else if detailLoading}
-						<p class="text-sm text-base-content/60">Loading message…</p>
+						<p class="text-sm text-base-content/60">
+							Loading message…</p>
 					{:else if detailError}
-						<p class="text-sm text-error">{detailError}</p>
+						<p class="text-sm text-error">
+							{detailError}</p>
 					{:else if detail}
 						<div class="space-y-2 text-sm">
 							<div><span class="text-base-content/60">From:</span> {detail.from}</div>
@@ -226,9 +237,11 @@
 							{#if detail.text}
 								<pre class="whitespace-pre-wrap font-sans text-sm bg-base-200 p-3 rounded-md">{detail.text}</pre>
 							{:else if detail.html}
-								<div class="email-html-preview text-sm">{@html detail.html}</div>
+								<div class="email-html-preview text-sm">
+									{@html detail.html}</div>
 							{:else}
-								<p class="text-base-content/60">(No body)</p>
+								<p class="text-base-content/60">
+									(No body)</p>
 							{/if}
 						</div>
 					{/if}
@@ -236,7 +249,8 @@
 			</div>
 
 			<div class="border border-base-300 rounded-lg bg-base-100 p-4">
-				<h2 class="text-sm font-medium text-base-content/80 mb-3">Reply (plain text)</h2>
+				<h2 class="text-sm font-medium text-base-content/80 mb-3">
+					Reply (plain text)</h2>
 				<div class="space-y-3">
 					<label class="form-control w-full">
 						<span class="label-text text-xs">From</span>

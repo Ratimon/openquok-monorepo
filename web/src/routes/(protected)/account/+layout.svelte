@@ -28,6 +28,7 @@
 		| 'workspace'
 		| 'profile'
 		| 'signature'
+		| 'sets'
 		| 'webhooks'
 		| 'templates'
 		| 'developers'
@@ -80,6 +81,7 @@
 		{ id: 'workspace', label: 'Workspace' },
 		{ id: 'profile', label: 'Profile' },
 		{ id: 'signature', label: 'Signatures' },
+		{ id: 'sets', label: 'Sets' },
 		{ id: 'webhooks', label: 'Webhooks' },
 		{ id: 'templates', label: 'Templates' },
 		{ id: 'developers', label: 'Developers' },

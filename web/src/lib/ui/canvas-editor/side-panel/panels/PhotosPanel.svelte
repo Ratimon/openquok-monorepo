@@ -38,7 +38,8 @@
 </script>
 
 <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden">
-	<label class="sr-only" for="design-photo-search">Search photos</label>
+	<label class="sr-only" for="design-photo-search">
+		Search photos</label>
 	<InputGroup.Root class="shrink-0 shadow-xs">
 		<InputGroup.Addon align="inline-start" class="pl-2.5">
 			<button

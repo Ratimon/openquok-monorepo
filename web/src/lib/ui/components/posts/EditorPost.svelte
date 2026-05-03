@@ -51,6 +51,8 @@
 		/** When true, render in "comment" mode (no media; smaller UX). */
 		comments?: boolean;
 		scheduleValidationMessage?: string | null;
+		/** Blocks per-network customization UX while defining a reusable workspace set (global authoring only). */
+		setsAuthoringNetworkLock?: boolean;
 	}
 
 	let {
@@ -81,7 +83,8 @@
 		focusedProviderIdentifier = null,
 		commentsMode = true,
 		comments = false,
-		scheduleValidationMessage = null
+		scheduleValidationMessage = null,
+		setsAuthoringNetworkLock = false
 	}: EditorPostProps = $props();
 
 	let confirmOpen = $state(false);
@@ -108,6 +111,8 @@
 
 	const numMedia = $derived(postMediaItems.length);
 	const blockMediaPaste = $derived(commentsMode === 'no-media' && numMedia > 0);
+
+	const defineSetScopeOverlay = $derived(setsAuthoringNetworkLock && composerMode === 'custom');
 
 	function onComposerPaste(e: ClipboardEvent) {
 		if (!blockMediaPaste) return;
@@ -145,7 +150,8 @@
 		</div>
 	{/if}
 
-	<label class="sr-only" for="composer-body">Post body</label>
+	<label class="sr-only" for="composer-body">
+		Post body</label>
 	<div class="relative">
 		<textarea
 			id="composer-body"
@@ -154,7 +160,7 @@
 			rows={comments ? 5 : 8}
 			placeholder={comments ? 'Write a comment…' : 'Write something…'}
 			onpaste={onComposerPaste}
-			disabled={busy || locked}
+			disabled={busy || locked || defineSetScopeOverlay}
 			class="border-base-300 bg-base-200 focus:border-primary focus:ring-primary/30 focus:ring-inset min-h-[140px] sm:min-h-[180px] max-h-[320px] w-full resize-none sm:resize-y rounded-lg border px-3 pt-2 text-sm text-base-content placeholder:text-base-content/40 focus:ring-2 focus:outline-none {locked
 				? 'pb-2'
 				: comments
@@ -167,10 +173,23 @@
 				<div class="bg-base-100/90 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
 					<AbstractIcon name={icons.Lock.name} class="size-6" width="24" height="24" />
 				</div>
-				<p class="mb-4 max-w-[420px] text-sm font-medium text-white/90">{lockMessage}</p>
+				<p class="mb-4 max-w-[420px] text-sm font-medium text-white/90">
+					{lockMessage}</p>
 				<Button type="button" variant="primary" disabled={busy} onclick={() => onUnlock?.()}>
 					Edit content
 				</Button>
+			</div>
+		{:else if defineSetScopeOverlay}
+			<div
+				class="pointer-events-auto absolute inset-0 z-[5] flex flex-col items-center justify-center rounded-lg bg-black/50 p-6 text-center"
+				aria-live="polite"
+			>
+				<div class="bg-base-100/90 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
+					<AbstractIcon name={icons.Lock.name} class="size-6" width="24" height="24" />
+				</div>
+				<p class="max-w-[420px] text-sm font-medium text-white/95">
+					You can't edit networks when creating a set
+				</p>
 			</div>
 		{:else if !comments}
 			<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-start">
@@ -199,7 +218,7 @@
 			</div>
 		{/if}
 	</div>
-	{#if !locked && !comments}
+	{#if !locked && !defineSetScopeOverlay && !comments}
 		<div class="mt-2 border-t border-base-300/80 pt-2">
 			<MultiMedia
 				bind:items={postMediaItems}

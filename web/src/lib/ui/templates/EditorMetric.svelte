@@ -101,7 +101,8 @@
 				onchange={(e) => onTimezoneChange((e.currentTarget as HTMLSelectElement).value)}
 			>
 				{#each tzOptions as opt (opt.value)}
-					<option value={opt.value}>{opt.label}</option>
+					<option value={opt.value}>
+						{opt.label}</option>
 				{/each}
 			</select>
 		</div>
