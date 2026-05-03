@@ -101,6 +101,11 @@
 		onBannerRightAction?.();
 	}
 
+	/** Same flow as the "Back to global" banner control (confirmation when enabled). */
+	export function requestBackToGlobalWithConfirmation() {
+		requestBannerRightAction();
+	}
+
 	const numMedia = $derived(postMediaItems.length);
 	const blockMediaPaste = $derived(commentsMode === 'no-media' && numMedia > 0);
 

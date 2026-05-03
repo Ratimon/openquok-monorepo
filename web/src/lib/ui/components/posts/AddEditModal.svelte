@@ -150,6 +150,20 @@
 	});
 
 	/** Threads internal plug (`threads.internalEngagementPlug`) — runs after replies & thread finisher in the worker. */
+	let editorPostRef = $state<import('./EditorPost.svelte').default | undefined>();
+
+	function handleToggleGlobalFromTargets() {
+		const needsConfirm =
+			mode === 'custom' &&
+			editorBannerRightActionLabel === 'Back to global' &&
+			onEditorBannerRightAction != null;
+		if (needsConfirm) {
+			editorPostRef?.requestBackToGlobalWithConfirmation?.();
+			return;
+		}
+		onToggleGlobal();
+	}
+
 	const previewDelayedEngagementReply = $derived.by(() => {
 		const threads = previewProviderSettings?.threads;
 		if (!threads || typeof threads !== 'object') return null;
@@ -216,7 +230,7 @@
 			{focusedIntegrationId}
 			{selectedIds}
 			channels={socialChannels}
-			onToggleGlobal={onToggleGlobal}
+			onToggleGlobal={handleToggleGlobalFromTargets}
 			onRemoveSelected={onRemoveSelected}
 			onFocusIntegration={onFocusIntegration}
 			onRequestCustomize={onRequestCustomize}
@@ -225,6 +239,7 @@
 		<!-- Wrapper: editor + add-post button -->
 		<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
 			<EditorPost
+				bind:this={editorPostRef}
 				{stockPhotosVm}
 				{designTemplatesVm}
 				{fetchPolotnoTemplateListPage}
