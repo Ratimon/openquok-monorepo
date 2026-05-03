@@ -35,3 +35,8 @@ export function getRootPathMedia(): string {
 export function getRootPathIntegrations(): string {
 	return 'integrations';
 }
+
+/** Plugs (channel automation) segment under the account area. */
+export function getRootPathPlugs(): string {
+	return 'plugs';
+}

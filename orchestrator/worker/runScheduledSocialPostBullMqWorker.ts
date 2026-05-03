@@ -7,6 +7,7 @@
 import { config } from "backend/config/GlobalConfig.js";
 import {
     integrationRepository,
+    plugRepository,
     notificationRepository,
     organizationRepository,
     postsRepository,
@@ -78,6 +79,12 @@ const publishScheduledGroup = createPublishScheduledGroupHandler({
     integrationManager,
     refreshService: refreshIntegrationService,
     notificationService,
+    plugPipeline: {
+        plugRepository,
+        integrationRepository,
+        integrationManager,
+        refreshService: refreshIntegrationService,
+    },
 });
 
 // Debug: confirm blueprint `uses` keys match registry (no `fn_*`).

@@ -1,11 +1,13 @@
 import type { IntegrationManager } from "backend/integrations/integrationManager.js";
 import type { AuthTokenDetails, IntegrationRecord, PostDetails, PostResponse } from "backend/integrations/social.integrations.interface.js";
 import type { IntegrationRepository } from "backend/repositories/IntegrationRepository.js";
+import type { PlugRepository } from "backend/repositories/PlugRepository.js";
 import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
 import type { PostThreadReplyLike, SocialPostLike } from "backend/utils/dtos/PostDTO.js";
 import type { NotificationService } from "backend/services/NotificationService.js";
 import type { NotificationEmailType } from "openquok-common";
 
+import { ProviderAccessTokenExpiredError } from "backend/errors/ProviderIntegrationErrors.js";
 import { logger } from "backend/utils/Logger.js";
 import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
 
@@ -33,6 +35,14 @@ const PUBLISH_ATTEMPTS = 5;
 
 const META_OPAQUE_MESSAGE = "An unknown error occurred";
 
+/** Dependencies for post-publish plug pipeline (Threads internal + global threshold plugs). */
+export type ScheduledSocialPostPlugPipelineDeps = {
+    plugRepository: Pick<PlugRepository, "listActivatedPlugsByIntegration" | "getPlugRowById">;
+    integrationRepository: Pick<IntegrationRepository, "getById">;
+    integrationManager: IntegrationManager;
+    refreshService: Pick<RefreshIntegrationService, "refresh">;
+};
+
 type PublishDeps = {
     postsRepository: Pick<
         ScheduledPostsRepository,
@@ -42,6 +52,7 @@ type PublishDeps = {
     integrationManager: IntegrationManager;
     refreshService: Pick<RefreshIntegrationService, "refresh">;
     notificationService?: Pick<NotificationService, "inAppNotification">;
+    plugPipeline?: ScheduledSocialPostPlugPipelineDeps;
 };
 
 function isNonRefreshablePublishError(message: string): boolean {
@@ -143,6 +154,299 @@ function parseProviderSettingsFromPostRow(row: SocialPostLike): Record<string, u
         return null;
     } catch {
         return null;
+    }
+}
+
+function sleepMs(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+type PlugTodo =
+    | {
+          kind: "internal";
+          delayMs: number;
+          plugName: string;
+          integrationId: string;
+          originalIntegrationId: string;
+          information: Record<string, unknown>;
+      }
+    | {
+          kind: "global";
+          delayMs: number;
+          plugId: string;
+          plugFunction: string;
+          totalRuns: number;
+          currentRun: number;
+      };
+
+function collectInternalTodosFromThreadsSettings(
+    integrationManager: IntegrationManager,
+    params: {
+        postIntegrationId: string;
+        providerSettings: Record<string, unknown> | null;
+    }
+): PlugTodo[] {
+    const root = params.providerSettings as { threads?: unknown } | null;
+    const threads = root?.threads && typeof root.threads === "object" ? (root.threads as Record<string, unknown>) : null;
+    if (!threads) return [];
+
+    const ig = threads.internalEngagementPlug;
+    if (!ig || typeof ig !== "object") return [];
+    const plugObj = ig as Record<string, unknown>;
+    if (plugObj.enabled !== true) return [];
+
+    const msg = typeof plugObj.message === "string" ? plugObj.message.trim() : "";
+    if (!msg.length) return [];
+
+    const delaySeconds = Number.isFinite(Number(plugObj.delaySeconds)) ? Number(plugObj.delaySeconds) : 0;
+    const plugName =
+        typeof plugObj.plugName === "string" && plugObj.plugName.trim().length > 0
+            ? plugObj.plugName.trim()
+            : "threads-internal-follow-up";
+
+    const integrationId =
+        typeof plugObj.integrationId === "string" && plugObj.integrationId.trim().length > 0
+            ? plugObj.integrationId.trim()
+            : params.postIntegrationId;
+
+    if (integrationId !== params.postIntegrationId) {
+        logger.warn({
+            msg: "[Plugs] Internal plug skipped — only the publishing channel is supported for Threads today",
+            integrationId,
+            postIntegrationId: params.postIntegrationId,
+        });
+        return [];
+    }
+
+    const defs = integrationManager.getInternalPlugDefinitionsForProvider("threads");
+    if (!defs.some((d) => d.identifier === plugName)) return [];
+
+    return [
+        {
+            kind: "internal",
+            delayMs: Math.max(0, Math.floor(delaySeconds * 1000)),
+            plugName,
+            integrationId,
+            originalIntegrationId: params.postIntegrationId,
+            information: { message: msg },
+        },
+    ];
+}
+
+async function collectGlobalPlugTodos(
+    deps: ScheduledSocialPostPlugPipelineDeps,
+    organizationId: string,
+    integrationId: string,
+    providerIdentifier: string
+): Promise<PlugTodo[]> {
+    const rows = await deps.plugRepository.listActivatedPlugsByIntegration(organizationId, integrationId);
+    const out: PlugTodo[] = [];
+    for (const row of rows) {
+        const def = deps.integrationManager.findGlobalPlugDefinition(providerIdentifier, row.plug_function);
+        if (!def) continue;
+        for (let i = 1; i <= def.totalRuns; i++) {
+            out.push({
+                kind: "global",
+                delayMs: def.runEveryMilliseconds * i,
+                plugId: row.id,
+                plugFunction: row.plug_function,
+                totalRuns: def.totalRuns,
+                currentRun: i,
+            });
+        }
+    }
+    return out;
+}
+
+async function processInternalPlug(
+    deps: ScheduledSocialPostPlugPipelineDeps,
+    input: {
+        organizationId: string;
+        networkPostId: string;
+        plugName: string;
+        integrationId: string;
+        originalIntegrationId: string;
+        information: Record<string, unknown>;
+        /** Network id the internal reply should attach under (linear thread after replies + finisher). */
+        threadsReplyParentId: string;
+    }
+): Promise<void> {
+    const acting = await deps.integrationRepository.getById(input.organizationId, input.integrationId);
+    const original = await deps.integrationRepository.getById(input.organizationId, input.originalIntegrationId);
+    if (!acting || acting.deleted_at || !original || original.deleted_at) return;
+
+    const defs = deps.integrationManager.getInternalPlugDefinitionsForProvider(acting.provider_identifier);
+    const meta = defs.find((d) => d.identifier === input.plugName);
+    if (!meta) return;
+
+    const social = deps.integrationManager.getSocialIntegration(acting.provider_identifier);
+    if (!social) return;
+
+    const fn = (social as unknown as Record<string, unknown>)[meta.methodName];
+    if (typeof fn !== "function") return;
+
+    await (fn as (this: typeof social, ...args: unknown[]) => Promise<unknown>).call(
+        social,
+        integrationRowToRecord(acting),
+        integrationRowToRecord(original),
+        input.networkPostId,
+        {
+            ...input.information,
+            replyToParentId: input.threadsReplyParentId,
+        }
+    );
+}
+
+async function processGlobalPlug(
+    deps: ScheduledSocialPostPlugPipelineDeps,
+    input: {
+        plugId: string;
+        networkPostId: string;
+        totalRuns: number;
+        currentRun: number;
+    }
+): Promise<boolean> {
+    const plugRow = await deps.plugRepository.getPlugRowById(input.plugId);
+    if (!plugRow || !plugRow.activated) return true;
+
+    const integration = await deps.integrationRepository.getById(plugRow.organization_id, plugRow.integration_id);
+    if (!integration || integration.deleted_at) return true;
+
+    const social = deps.integrationManager.getSocialIntegration(integration.provider_identifier);
+    if (!social) return true;
+
+    const method = (social as unknown as Record<string, unknown>)[plugRow.plug_function];
+    if (typeof method !== "function") return true;
+
+    let fieldsParsed: { name: string; value: string }[] = [];
+    try {
+        const raw = JSON.parse(plugRow.data) as unknown;
+        fieldsParsed = Array.isArray(raw) ? (raw as { name: string; value: string }[]) : [];
+    } catch {
+        fieldsParsed = [];
+    }
+
+    const fieldsObj = fieldsParsed.reduce<Record<string, string>>((acc, cur) => {
+        acc[cur.name] = cur.value;
+        return acc;
+    }, {});
+
+    const record = integrationRowToRecord(integration);
+
+    const run = async (): Promise<boolean> => {
+        const result = await (method as (this: typeof social, ...args: unknown[]) => Promise<unknown>).call(
+            social,
+            record,
+            input.networkPostId,
+            fieldsObj
+        );
+        return result === true;
+    };
+
+    try {
+        return await run();
+    } catch (err) {
+        if (err instanceof ProviderAccessTokenExpiredError) {
+            const refreshed = await deps.refreshService.refresh(integration);
+            if (!refreshed) return input.totalRuns === input.currentRun;
+            const reloaded = await deps.integrationRepository.getById(plugRow.organization_id, plugRow.integration_id);
+            if (!reloaded || reloaded.deleted_at) return true;
+            try {
+                const retry = await (method as (this: typeof social, ...args: unknown[]) => Promise<unknown>).call(
+                    social,
+                    integrationRowToRecord(reloaded),
+                    input.networkPostId,
+                    fieldsObj
+                );
+                return retry === true;
+            } catch {
+                return input.totalRuns === input.currentRun;
+            }
+        }
+        logger.warn({
+            msg: "[Plugs] Global plug run failed",
+            plugId: input.plugId,
+            error: err instanceof Error ? err.message : String(err),
+        });
+        return input.totalRuns === input.currentRun;
+    }
+}
+
+/**
+ * Runs internal + global plug todos sorted by delay (ms from publish completion).
+ */
+async function runPostPublishPlugPipeline(
+    deps: ScheduledSocialPostPlugPipelineDeps,
+    params: {
+        organizationId: string;
+        networkPostId: string;
+        providerIdentifier: string;
+        postIntegrationId: string;
+        providerSettings: Record<string, unknown> | null;
+        /** Latest published Threads id (root, last reply, or finisher) for `reply_to_id` on internal plug. */
+        threadsInternalReplyParentId: string;
+    }
+): Promise<void> {
+    if (params.providerIdentifier !== "threads") return;
+
+    const internal = collectInternalTodosFromThreadsSettings(deps.integrationManager, {
+        postIntegrationId: params.postIntegrationId,
+        providerSettings: params.providerSettings,
+    });
+    const global = await collectGlobalPlugTodos(deps, params.organizationId, params.postIntegrationId, params.providerIdentifier);
+
+    const sorted = [...internal, ...global].sort((a, b) => a.delayMs - b.delayMs);
+    let elapsedMs = 0;
+
+    while (sorted.length > 0) {
+        const todo = sorted.shift()!;
+        const waitMs = Math.max(0, todo.delayMs - elapsedMs);
+        await sleepMs(waitMs);
+        elapsedMs += waitMs;
+
+        if (todo.kind === "internal") {
+            try {
+                await processInternalPlug(deps, {
+                    organizationId: params.organizationId,
+                    networkPostId: params.networkPostId,
+                    plugName: todo.plugName,
+                    integrationId: todo.integrationId,
+                    originalIntegrationId: todo.originalIntegrationId,
+                    information: todo.information,
+                    threadsReplyParentId: params.threadsInternalReplyParentId,
+                });
+            } catch (err) {
+                logger.warn({
+                    msg: "[Plugs] Internal plug failed (best-effort)",
+                    plugName: todo.plugName,
+                    error: err instanceof Error ? err.message : String(err),
+                });
+            }
+            continue;
+        }
+
+        try {
+            const done = await processGlobalPlug(deps, {
+                plugId: todo.plugId,
+                networkPostId: params.networkPostId,
+                totalRuns: todo.totalRuns,
+                currentRun: todo.currentRun,
+            });
+            if (done) {
+                for (let i = sorted.length - 1; i >= 0; i--) {
+                    const t = sorted[i]!;
+                    if (t.kind === "global" && t.plugId === todo.plugId) {
+                        sorted.splice(i, 1);
+                    }
+                }
+            }
+        } catch (err) {
+            logger.warn({
+                msg: "[Plugs] Global plug iteration failed (best-effort)",
+                plugId: todo.plugId,
+                error: err instanceof Error ? err.message : String(err),
+            });
+        }
     }
 }
 
@@ -325,36 +629,41 @@ async function maybePublishThreadsThreadFinisher(params: {
     integration: IntegrationLike;
     record: IntegrationRecord;
     social: any;
+    /** Root Threads id (same as orchestrator passes to replies). */
     publishedPostId: string;
+    /** Tip of the reply chain — finisher publishes under this id (not the root). */
+    replyParentId: string;
     deps: PublishDeps;
-}): Promise<void> {
-    const { post, integration, record, social, publishedPostId, deps } = params;
-    if (integration.provider_identifier !== "threads") return;
-    if (typeof social.comment !== "function") return;
-    if (!publishedPostId) return;
+}): Promise<string> {
+    const { post, integration, record, social, publishedPostId, replyParentId, deps } = params;
+    if (integration.provider_identifier !== "threads") return replyParentId;
+    if (typeof social.comment !== "function") return replyParentId;
+    if (!publishedPostId) return replyParentId;
 
     const providerSettings = parseProviderSettingsFromPostRow(post);
     const finisher = threadsThreadFinisherMessageFromSettings(providerSettings);
-    if (!finisher) return;
+    if (!finisher) return replyParentId;
 
     const organizationId = post.organization_id;
     const postId = post.id;
     const ns = deps.notificationService;
 
     try {
-        await social.comment(
+        const res: PostResponse[] = await social.comment(
             integration.internal_id,
             publishedPostId,
-            undefined,
+            replyParentId,
             integration.token,
             [{ id: postId, message: finisher, settings: {} }],
             record
         );
+        const nextId = firstPostResponse(res).releaseId?.trim();
         logger.info({
             msg: "[Orchestrator] threads thread-finisher comment published",
             postId,
             organizationId,
         });
+        return nextId || replyParentId;
     } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         logger.warn({
@@ -372,6 +681,7 @@ async function maybePublishThreadsThreadFinisher(params: {
             false,
             "info"
         );
+        return replyParentId;
     }
 }
 
@@ -382,11 +692,11 @@ async function maybePublishThreadsReplies(params: {
     social: any;
     publishedPostId: string;
     deps: PublishDeps;
-}): Promise<void> {
+}): Promise<string> {
     const { post, integration, record, social, publishedPostId, deps } = params;
-    if (integration.provider_identifier !== "threads") return;
-    if (typeof social.comment !== "function") return;
-    if (!publishedPostId) return;
+    if (integration.provider_identifier !== "threads") return publishedPostId;
+    if (typeof social.comment !== "function") return publishedPostId;
+    if (!publishedPostId) return publishedPostId;
 
     // Fallback to old settings JSON for backwards compatibility.
     let replies: ThreadsReplySettings[] = [];
@@ -408,7 +718,7 @@ async function maybePublishThreadsReplies(params: {
         const providerSettings = parseProviderSettingsFromPostRow(post);
         replies = threadsRepliesFromSettings(providerSettings);
     }
-    if (replies.length === 0) return;
+    if (replies.length === 0) return publishedPostId;
 
     const organizationId = post.organization_id;
     const postId = post.id;
@@ -468,6 +778,8 @@ async function maybePublishThreadsReplies(params: {
             // Keep going to attempt later replies and finisher.
         }
     }
+
+    return lastCommentId ?? publishedPostId;
 }
 
 /**
@@ -480,6 +792,8 @@ export function createPublishScheduledGroupHandler(deps: {
     refreshService: Pick<RefreshIntegrationService, "refresh">;
     /** When set (BullMQ worker), mirrors OpenQuok: email for publish, digest batching, and preflight/ errors. */
     notificationService?: Pick<NotificationService, "inAppNotification">;
+    /** When set (e.g. BullMQ worker), runs Threads internal + global plugs after publish. */
+    plugPipeline?: ScheduledSocialPostPlugPipelineDeps;
 }): (input: { organizationId: string; postGroup: string }) => Promise<void | { todos?: { type: "repeat-post"; postGroup: string; delayMs?: number }[] }> {
     return async (input) => {
         const { organizationId, postGroup } = input;
@@ -579,8 +893,9 @@ async function publishOneRow(
                 provider: intRow.provider_identifier,
             });
 
-            // Optional scheduled follow-up comment (thread finisher) for providers that support replies.
-            await maybePublishThreadsReplies({
+            // Thread replies → finisher → internal plug share one linear chain (reply_to last published id).
+            let threadsLeafId = releaseId;
+            threadsLeafId = await maybePublishThreadsReplies({
                 post,
                 integration: intRow,
                 record,
@@ -588,14 +903,27 @@ async function publishOneRow(
                 publishedPostId: releaseId,
                 deps,
             });
-            await maybePublishThreadsThreadFinisher({
+            threadsLeafId = await maybePublishThreadsThreadFinisher({
                 post,
                 integration: intRow,
                 record,
                 social,
                 publishedPostId: releaseId,
+                replyParentId: threadsLeafId,
                 deps,
             });
+
+            if (deps.plugPipeline && releaseId) {
+                const providerSettings = parseProviderSettingsFromPostRow(post);
+                await runPostPublishPlugPipeline(deps.plugPipeline, {
+                    organizationId,
+                    networkPostId: releaseId,
+                    providerIdentifier: intRow.provider_identifier,
+                    postIntegrationId: post.integration_id,
+                    providerSettings,
+                    threadsInternalReplyParentId: threadsLeafId,
+                });
+            }
 
             return;
         } catch (err) {

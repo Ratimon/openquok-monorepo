@@ -10,6 +10,7 @@ import type {
     PostStateDb,
     RepeatIntervalKey,
     PostCommentLike,
+    PostThreadReplyLike,
     SocialPostLike,
 } from "../utils/dtos/PostDTO";
 import type { AnalyticsData, SocialProvider } from "../integrations/social.integrations.interface";
@@ -161,6 +162,11 @@ export type PostGroupDetails = {
     tagNames: string[];
     /** All post row ids in this group (for preview/debug tooling). */
     postIds?: string[];
+    /**
+     * Per-integration provider payload from each post row (`settings.providerSettings`),
+     * with `threads.replies` refreshed from `post_thread_replies` when rows exist (edit mode parity with public preview).
+     */
+    providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
 };
 
 export type { PostMediaItemInput, RepeatIntervalKey } from "../utils/dtos/PostDTO";
@@ -501,6 +507,16 @@ export class PostsService {
         const tags = await this.postsRepository.listTagsForPostIds(rows.map((r) => r.id));
         const tagNames = tags.map((t) => t.name).filter(Boolean);
 
+        const providerSettingsByIntegrationId: Record<string, Record<string, unknown>> = {};
+        for (const r of rows) {
+            if (!r.integration_id) continue;
+            const parsed = this.parsePostRowProviderSettings(r.settings);
+            const merged = await this.augmentComposerProviderSettingsFromDb(r.id, parsed);
+            if (merged && typeof merged === "object" && Object.keys(merged).length > 0) {
+                providerSettingsByIntegrationId[r.integration_id] = merged;
+            }
+        }
+
         return {
             postGroup,
             organizationId,
@@ -514,7 +530,49 @@ export class PostsService {
             media,
             tagNames,
             postIds: rows.map((r) => r.id),
+            ...(Object.keys(providerSettingsByIntegrationId).length > 0 ? { providerSettingsByIntegrationId } : {}),
         };
+    }
+
+    private parsePostRowProviderSettings(settings: string | null): Record<string, unknown> | null {
+        if (!settings?.trim()) return null;
+        try {
+            const o = JSON.parse(settings) as { providerSettings?: unknown };
+            if (!o || typeof o !== "object") return null;
+            const ps = o.providerSettings;
+            if (!ps || typeof ps !== "object") return null;
+            return { ...(ps as Record<string, unknown>) };
+        } catch {
+            return null;
+        }
+    }
+
+    /** Prefer DB-backed thread replies when editing (published QUEUE→PUBLISHED rows stay in sync). */
+    private async augmentComposerProviderSettingsFromDb(
+        postId: string,
+        base: Record<string, unknown> | null
+    ): Promise<Record<string, unknown>> {
+        const merged: Record<string, unknown> =
+            base && typeof base === "object" ? { ...base } : {};
+        let dbRows: PostThreadReplyLike[] = [];
+        try {
+            dbRows = await this.postsRepository.listThreadRepliesByPostId(postId);
+        } catch {
+            return merged;
+        }
+        if (!dbRows.length) return merged;
+
+        const threads =
+            merged.threads && typeof merged.threads === "object"
+                ? { ...(merged.threads as Record<string, unknown>) }
+                : {};
+        threads.replies = dbRows.map((r) => ({
+            id: r.id,
+            message: r.content ?? "",
+            delaySeconds: Math.max(0, Math.floor(Number(r.delay_seconds) || 0)),
+        }));
+        merged.threads = threads;
+        return merged;
     }
 
     /**
@@ -564,6 +622,8 @@ export class PostsService {
         threadReplies: { id: string; message: string; delaySeconds: number }[];
         /** Threads-style finisher when enabled in composer settings. */
         threadFinisher: { enabled: boolean; message: string } | null;
+        /** Threads same-account delayed engagement plug (`threads.internalEngagementPlug`) when enabled. */
+        delayedEngagementReply: { message: string; delaySeconds: number } | null;
     }> {
         if (share !== "true") {
             throw new AppError("Forbidden", 403);
@@ -584,6 +644,7 @@ export class PostsService {
             channelPictureUrl: string | null;
             threadReplies: { id: string; message: string; delaySeconds: number }[];
             threadFinisher: { enabled: boolean; message: string } | null;
+            delayedEngagementReply: { message: string; delaySeconds: number } | null;
         }> => {
             const row = await this.postsRepository.getPostById(postId);
             if (!row) {
@@ -609,7 +670,8 @@ export class PostsService {
             }
 
             const fromSettings = parseProviderThreadsPreviewFromPostSettings(row.settings ?? null);
-            let threadFinisher = fromSettings.finisher;
+            const threadFinisher = fromSettings.finisher;
+            const delayedEngagementReply = fromSettings.delayedEngagementReply;
 
             let threadReplies: { id: string; message: string; delaySeconds: number }[] = [];
             try {
@@ -647,6 +709,7 @@ export class PostsService {
                 channelPictureUrl,
                 threadReplies,
                 threadFinisher,
+                delayedEngagementReply,
             };
         };
 
@@ -987,6 +1050,7 @@ export class PostsService {
             postGroup,
             body,
             bodiesByIntegrationId,
+            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
             media,
             integrationIds,
             isGlobal,

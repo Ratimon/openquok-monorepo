@@ -7,6 +7,9 @@
 
 	export type ThreadReplyViewModel = { id: string; message: string; delaySeconds: number };
 
+	/** Matches `sleepMs(30_000)` in threadsProvider.comment after container create. */
+	const THREADS_PUBLISH_PREPARE_SECONDS = 30;
+
 	type Props = {
 		/** Provider identifier (e.g. `threads`). */
 		providerIdentifier: string | null;
@@ -52,6 +55,17 @@
 			<AddPostButton onclick={onAddReply} {postComment} disabled={disabled} />
 		</div>
 
+		{#if id === 'threads'}
+			<p class="mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug text-base-content/75">
+				<span class="font-medium text-base-content/90">
+					Threads timing:
+				</span>
+				After each reply’s scheduled delay, publishing waits
+				<span class="font-semibold tabular-nums text-base-content">{THREADS_PUBLISH_PREPARE_SECONDS} seconds</span>
+				while Meta finishes preparing the reply. The Delay row includes this in “≈” time.
+			</p>
+		{/if}
+
 		{#if id !== 'threads'}
 			<p class="mt-2 text-sm text-base-content/60">
 				Thread replies are currently supported on Threads only.
@@ -94,6 +108,9 @@
 								delayChainSeconds={replies
 									.slice(0, replyIndex + 1)
 									.map((r) => r.delaySeconds)}
+								threadsPublishPrepareSecondsPerReply={id === 'threads'
+									? THREADS_PUBLISH_PREPARE_SECONDS
+									: 0}
 							/>
 						</div>
 					</div>

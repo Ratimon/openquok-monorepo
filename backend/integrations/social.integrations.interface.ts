@@ -3,6 +3,8 @@
  * Shaped like the upstream social integration library; `IntegrationRecord` replaces ORM rows.
  */
 
+import type { GlobalPlugCatalogEntryDto, InternalPlugCatalogEntryDto } from "../utils/dtos/PlugDTO";
+
 /** DB row shape used where the upstream library. */
 export type IntegrationRecord = {
     id: string;
@@ -175,4 +177,10 @@ export interface SocialProvider extends IAuthenticator, ISocialMediaIntegration 
      * Return a human-friendly message when invalid; return null/undefined when valid.
      */
     validateCreatePost?(input: ValidateCreatePostInput): string | null | undefined;
+
+    /** Channel-level plug definitions (likes threshold, etc.); omit when unsupported. */
+    globalPlugCatalog?: () => GlobalPlugCatalogEntryDto[];
+
+    /** Post-compose plugs (delayed reply on same channel); omit when unsupported. */
+    internalPlugCatalog?: () => InternalPlugCatalogEntryDto[];
 }

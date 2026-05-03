@@ -94,10 +94,13 @@ export function repeatIntervalToDays(key: RepeatIntervalKey | null): number | nu
 export function parseProviderThreadsPreviewFromPostSettings(settings: string | null): {
     replies: { content: string; delaySeconds: number }[];
     finisher: { enabled: boolean; message: string } | null;
+    /** Same-account delayed engagement (`threads.internalEngagementPlug`) when enabled in composer settings. */
+    delayedEngagementReply: { message: string; delaySeconds: number } | null;
 } {
     const empty = {
         replies: [] as { content: string; delaySeconds: number }[],
         finisher: null as { enabled: boolean; message: string } | null,
+        delayedEngagementReply: null as { message: string; delaySeconds: number } | null,
     };
     if (!settings?.trim()) return empty;
     try {
@@ -123,7 +126,22 @@ export function parseProviderThreadsPreviewFromPostSettings(settings: string | n
         const enabled = typeof threads.enabled === "boolean" ? threads.enabled : false;
         const rawMsg = typeof threads.message === "string" ? threads.message.trim() : "";
         const finisher = enabled ? { enabled: true, message: rawMsg || "That's a wrap!" } : null;
-        return { replies, finisher };
+
+        let delayedEngagementReply: { message: string; delaySeconds: number } | null = null;
+        const igRaw = threads.internalEngagementPlug;
+        if (igRaw && typeof igRaw === "object") {
+            const ig = igRaw as Record<string, unknown>;
+            if (ig.enabled === true) {
+                const message = typeof ig.message === "string" ? ig.message : "";
+                const delaySeconds =
+                    typeof ig.delaySeconds === "number" && Number.isFinite(ig.delaySeconds)
+                        ? Math.max(0, Math.floor(ig.delaySeconds))
+                        : 0;
+                delayedEngagementReply = { message, delaySeconds };
+            }
+        }
+
+        return { replies, finisher, delayedEngagementReply };
     } catch {
         return empty;
     }

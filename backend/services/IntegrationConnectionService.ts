@@ -10,6 +10,8 @@ import type {
 } from "../integrations/social.integrations.interface";
 import type { IntegrationTimeDto } from "../data/schemas/integrationTimeSchemas";
 import type { IntegrationService } from "./IntegrationService";
+import type { PlugService } from "./PlugService";
+import type { PlugUpsertBodyDto } from "../utils/dtos/PlugDTO";
 
 import dayjs from "dayjs";
 import { IntegrationManager } from "../integrations/integrationManager";
@@ -60,11 +62,12 @@ function postingTimesForTimezone(timezone?: number): string {
 
 /**
  * OAuth, session membership checks, and list shaping via {@link IntegrationManager}.
- * Table reads/writes go through {@link IntegrationService}.
+ * Channel reads/writes go through {@link IntegrationService}; plug rules through {@link PlugService}.
  */
 export class IntegrationConnectionService {
     constructor(
         private readonly integrations: IntegrationService,
+        private readonly plugs: PlugService,
         private readonly organizationRepository: OrganizationRepository,
         private readonly manager: IntegrationManager,
         private readonly refreshIntegrationService: RefreshIntegrationService,
@@ -545,6 +548,87 @@ export class IntegrationConnectionService {
         const result = await this.saveProviderPageForOrganization(organizationId, integrationId, providerPayload);
         await this.invalidateOAuthCacheKey(organizationKey);
         return result;
+    }
+
+    /** Catalog of global (threshold) plugs for channels that support them. */
+    getPlugCatalog() {
+        return this.manager.listGlobalPlugCatalog();
+    }
+
+    /** Definitions for internal (post-compose) plugs for a provider slug (e.g. `threads`). */
+    async getInternalPlugDefinitions(authUserId: string, organizationId: string, providerIdentifier: string) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        return { internalPlugs: this.manager.getInternalPlugDefinitionsForProvider(providerIdentifier) };
+    }
+
+    async listIntegrationPlugs(authUserId: string, organizationId: string, integrationId: string) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row || row.deleted_at) {
+            throw new AppError("Integration not found", 404);
+        }
+        return this.plugs.listIntegrationPlugs(organizationId, integrationId);
+    }
+
+    async upsertIntegrationPlug(authUserId: string, organizationId: string, integrationId: string, body: PlugUpsertBodyDto) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row || row.deleted_at) {
+            throw new AppError("Integration not found", 404);
+        }
+        const validationError = this.manager.validatePlugFieldsAgainstCatalog({
+            providerIdentifier: row.provider_identifier,
+            methodName: body.func,
+            fields: body.fields,
+        });
+        if (validationError) {
+            throw new AppError(validationError, 400);
+        }
+        if (body.plugId) {
+            const existing = await this.plugs.getPlugRowById(body.plugId);
+            if (!existing || existing.organization_id !== organizationId) {
+                throw new AppError("Plug not found", 404);
+            }
+            if (existing.integration_id !== integrationId) {
+                throw new AppError("Plug not found", 404);
+            }
+            if (existing.plug_function !== body.func) {
+                throw new AppError("Plug type does not match request", 400);
+            }
+        }
+        return this.plugs.upsertIntegrationPlug({
+            organizationId,
+            integrationId,
+            plugFunction: body.func,
+            dataJson: JSON.stringify(body.fields),
+            plugId: body.plugId,
+        });
+    }
+
+    async deleteIntegrationPlug(authUserId: string, organizationId: string, plugId: string) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const plug = await this.plugs.getPlugRowById(plugId);
+        if (!plug || plug.organization_id !== organizationId) {
+            throw new AppError("Plug not found", 404);
+        }
+        const deleted = await this.plugs.deleteIntegrationPlug(organizationId, plugId);
+        if (!deleted) {
+            throw new AppError("Plug not found", 404);
+        }
+        return deleted;
+    }
+
+    async setIntegrationPlugActivated(authUserId: string, organizationId: string, plugId: string, activated: boolean) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const plug = await this.plugs.getPlugRowById(plugId);
+        if (!plug || plug.organization_id !== organizationId) {
+            throw new AppError("Plug not found", 404);
+        }
+        const updated = await this.plugs.setIntegrationPlugActivated(organizationId, plugId, activated);
+        if (!updated) {
+            throw new AppError("Plug not found", 404);
+        }
+        return updated;
     }
 
     private async saveProviderPageForOrganization(

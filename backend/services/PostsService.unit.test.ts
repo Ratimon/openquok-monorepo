@@ -952,6 +952,66 @@ describe("PostsService", () => {
             });
         });
 
+        it("when you open an existing post to edit, saved channel settings and thread replies from the database come back together", async () => {
+            const postGroup = faker.string.uuid();
+            const publishDateIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            const postAId = faker.string.uuid();
+            const replyId = faker.string.uuid();
+            const settings = JSON.stringify({
+                isGlobal: false,
+                repeatInterval: null,
+                providerSettings: {
+                    threads: {
+                        enabled: true,
+                        message: "That's a wrap!",
+                        internalEngagementPlug: { enabled: false },
+                    },
+                },
+            });
+
+            postsRepo.listPostsByGroup.mockResolvedValue([
+                socialPostRow({
+                    id: postAId,
+                    post_group: postGroup,
+                    integration_id: integrationId,
+                    state: "PUBLISHED",
+                    publish_date: publishDateIso,
+                    settings,
+                }),
+            ]);
+            postsRepo.listTagsForPostIds.mockResolvedValue([]);
+            postsRepo.listThreadRepliesByPostId.mockImplementation(async (pid: string) => {
+                if (pid !== postAId) return [];
+                const now = new Date().toISOString();
+                const row: PostThreadReplyLike = {
+                    id: replyId,
+                    organization_id: orgId,
+                    post_id: postAId,
+                    integration_id: integrationId,
+                    content: "reply from db",
+                    delay_seconds: 12,
+                    state: "PUBLISHED",
+                    release_id: "rel-1",
+                    release_url: "https://threads.example/p/rel-1",
+                    error: null,
+                    created_by_user_id: null,
+                    created_at: now,
+                    updated_at: now,
+                    deleted_at: null,
+                };
+                return [row];
+            });
+
+            const out = await service().getPostGroup(postGroup, authUserId);
+
+            expect(out.providerSettingsByIntegrationId?.[integrationId]?.threads).toMatchObject({
+                enabled: true,
+                message: "That's a wrap!",
+                replies: [{ id: replyId, message: "reply from db", delaySeconds: 12 }],
+            });
+            postsRepo.listThreadRepliesByPostId.mockResolvedValue([]);
+        });
+
         it("uses getOrSet with posts:group key and TTL 300 when cache provided", async () => {
             const postGroup = faker.string.uuid();
             const publishDateIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
@@ -1059,6 +1119,7 @@ describe("PostsService", () => {
                 channelPictureUrl: null,
                 threadReplies: [],
                 threadFinisher: null,
+                delayedEngagementReply: null,
             });
             expect(postsRepo.listThreadRepliesByPostId).toHaveBeenCalledWith(postId);
         });
@@ -1095,6 +1156,7 @@ describe("PostsService", () => {
                 channelPictureUrl: "https://cdn.example/p.png",
                 threadReplies: [],
                 threadFinisher: null,
+                delayedEngagementReply: null,
             });
         });
 
@@ -1144,6 +1206,47 @@ describe("PostsService", () => {
                 { id: replyId, message: "Follow-up text", delaySeconds: 90 },
             ]);
             expect(out.threadFinisher).toEqual({ enabled: true, message: "Wrap msg" });
+            expect(out.delayedEngagementReply).toBeNull();
+        });
+
+        it("includes delayed engagement reply from settings when internal plug is enabled", async () => {
+            const row = socialPostRow({
+                id: postId,
+                integration_id: integrationId,
+                content: "Root",
+                image: null,
+                settings: JSON.stringify({
+                    providerSettings: {
+                        threads: {
+                            enabled: true,
+                            message: "Wrap",
+                            replies: [],
+                            internalEngagementPlug: {
+                                enabled: true,
+                                delaySeconds: 120,
+                                message: "engagement test",
+                                plugName: "threads-internal-follow-up",
+                                integrationId,
+                            },
+                        },
+                    },
+                }),
+            });
+            postsRepo.getPostById.mockResolvedValue(row);
+            postsRepo.listThreadRepliesByPostId.mockResolvedValue([]);
+            integrationService.getById.mockResolvedValue({
+                provider_identifier: "threads",
+                name: "N",
+                picture: null,
+            } as unknown as IntegrationLike);
+
+            const out = await service().getPostPreview(postId, "true");
+
+            expect(out.delayedEngagementReply).toEqual({
+                message: "engagement test",
+                delaySeconds: 120,
+            });
+            expect(out.threadFinisher).toEqual({ enabled: true, message: "Wrap" });
         });
 
         it("falls back to settings JSON thread replies when DB rows are empty", async () => {
@@ -1176,6 +1279,7 @@ describe("PostsService", () => {
                 { id: "settings-0", message: "Legacy reply", delaySeconds: 45 },
             ]);
             expect(out.threadFinisher).toBeNull();
+            expect(out.delayedEngagementReply).toBeNull();
             expect(out.providerIdentifier).toBe("instagram-business");
         });
 
@@ -1201,6 +1305,7 @@ describe("PostsService", () => {
                 channelPictureUrl: null,
                 threadReplies: [],
                 threadFinisher: null,
+                delayedEngagementReply: null,
             };
             const getOrSet = jest.fn().mockResolvedValue(expected);
 

@@ -13,6 +13,8 @@
 		mediaUrls?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
+		/** Threads only: internal delayed engagement plug preview. */
+		delayedEngagementReply?: { message: string; delaySeconds: number } | null;
 		/** Shown under the Threads header (e.g. scheduled date). */
 		previewMetaLabel?: string | null;
 	};
@@ -24,6 +26,7 @@
 		mediaUrls = [],
 		threadReplies = [],
 		threadFinisher = null,
+		delayedEngagementReply = null,
 		previewMetaLabel = null
 	}: Props = $props();
 
@@ -31,7 +34,6 @@
 	/** Ensures children always receive a number (avoids `undefined` vs optional-default edge cases). */
 	const maxChars = $derived(maximumCharacters ?? 10_000);
 </script>
-
 {#if !channel}
 	<GeneralPreviewComponent
 		{previewText}
@@ -58,6 +60,7 @@
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}
+		{delayedEngagementReply}
 		{previewMetaLabel}
 	/>
 {:else}

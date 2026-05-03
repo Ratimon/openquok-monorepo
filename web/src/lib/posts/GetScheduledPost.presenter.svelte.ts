@@ -38,6 +38,7 @@ export interface PostGroupDetailsViewModel {
 	media: { id: string; path: string; bucket?: 'social_media' }[];
 	tagNames: string[];
 	postIds?: string[];
+	providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
 }
 
 export type GetPostGroupResultViewModel =
@@ -66,6 +67,8 @@ export interface PublicPreviewPostViewModel {
 	channelPictureUrl?: string | null;
 	threadReplies: PublicPreviewThreadReplyViewModel[];
 	threadFinisher: { enabled: boolean; message: string } | null;
+	/** Threads only: delayed engagement plug — mirrors composer preview. */
+	delayedEngagementReply: { message: string; delaySeconds: number } | null;
 }
 
 /**
@@ -147,7 +150,11 @@ function toPostGroupDetailsVm(pm: PostGroupDetailsProgrammerModel): PostGroupDet
 		bodiesByIntegrationId: pm.bodiesByIntegrationId,
 		media: pm.media,
 		tagNames: pm.tagNames,
-		postIds: pm.postIds
+		postIds: pm.postIds,
+		...(pm.providerSettingsByIntegrationId &&
+		Object.keys(pm.providerSettingsByIntegrationId).length > 0
+			? { providerSettingsByIntegrationId: pm.providerSettingsByIntegrationId }
+			: {})
 	};
 }
 
@@ -182,7 +189,8 @@ export class GetScheduledPostsPresenter {
 				message: r.message,
 				delaySeconds: r.delaySeconds
 			})),
-			threadFinisher: previewPostPm.threadFinisher ?? null
+			threadFinisher: previewPostPm.threadFinisher ?? null,
+			delayedEngagementReply: previewPostPm.delayedEngagementReply ?? null
 		};
 		return previewPostVm;
 	}

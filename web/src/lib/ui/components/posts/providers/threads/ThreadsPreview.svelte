@@ -10,6 +10,8 @@
 		mediaUrls?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
+		/** Same-account delayed engagement (`threads.internalEngagementPlug`). */
+		delayedEngagementReply?: { message: string; delaySeconds: number } | null;
 		/** Optional subtitle under the name row (e.g. scheduled date). */
 		previewMetaLabel?: string | null;
 	};
@@ -30,6 +32,7 @@
 		mediaUrls = [],
 		threadReplies = [],
 		threadFinisher = null,
+		delayedEngagementReply = null,
 		previewMetaLabel = null
 	}: ThreadsPreviewProps = $props();
 
@@ -110,11 +113,12 @@
 		</div>
 	</div>
 
-	{#if threadReplies.length > 0 || (threadFinisher?.enabled && (threadFinisher.message ?? '').trim())}
+	{#if threadReplies.length > 0 || (threadFinisher?.enabled && (threadFinisher.message ?? '').trim()) || delayedEngagementReply}
 		<div class="px-4 pb-4">
 			<PreviewScheduledSocialReplies
 				replies={threadReplies}
 				{threadFinisher}
+				{delayedEngagementReply}
 				variant="threads"
 				replyActor={{ displayName: channel.name, picture: channel.picture }}
 				threadContinuesFromRoot={true}

@@ -285,6 +285,64 @@ COMMENT ON COLUMN public.integrations.posting_times IS 'JSON [{time:number}, ...
 -- ---------------------------
 
 
+-- Module: plug, File: 101_20260502_tables.sql
+-- ---------------------------
+-- MODULE NAME: plug
+-- MODULE DATE: 20260502
+-- MODULE SCOPE: Tables
+-- ---------------------------
+-- Global plugs (threshold-triggered replies, etc.)
+-- (single table with BOTH organization_id and integration_id).
+--
+-- Prisma lists `plugs Plugs[]` on Organization and again on Integration — that is one relation
+-- mirrored from each parent model to the same child rows, not two separate plug tables.
+-- Every row still scopes to exactly one integration (and redundantly stores organization_id for
+-- org-level queries / RLS, matching upstream organizationId + integrationId).
+
+
+
+CREATE TABLE IF NOT EXISTS public.plugs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    integration_id UUID NOT NULL REFERENCES public.integrations(id) ON DELETE CASCADE,
+    plug_function TEXT NOT NULL,
+    data TEXT NOT NULL DEFAULT '[]',
+    activated BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.plugs IS 'Plugs`: org + integration FKs, plug_function, data JSON [{name,value}], activated. Separate from internal/post-compose plugs stored in post settings.';
+COMMENT ON COLUMN public.plugs.organization_id IS 'Denormalized workspace scope.';
+COMMENT ON COLUMN public.plugs.integration_id IS 'Channel scope.';
+
+
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: plug, File: 102_20260504_tables.sql
+-- ---------------------------
+-- MODULE NAME: plug
+-- MODULE DATE: 20260504
+-- MODULE SCOPE: Tables (allow multiple global plug rows per integration + plug_function)
+-- ---------------------------
+-- Drops unique (integration_id, plug_function) so channels can stack several rules of the same type
+-- (e.g. multiple auto-threshold replies). Identity is `plugs.id`.
+
+
+
+ALTER TABLE public.plugs DROP CONSTRAINT IF EXISTS uq_plugs_integration_function;
+
+
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: media, File: 102_20260417_tables.sql
 -- ---------------------------
 -- MODULE NAME: media
@@ -804,6 +862,27 @@ CREATE INDEX IF NOT EXISTS idx_integrations_customer_id ON public.integrations(c
 CREATE INDEX IF NOT EXISTS idx_integrations_in_between_steps ON public.integrations(in_between_steps);
 CREATE INDEX IF NOT EXISTS idx_integrations_refresh_needed ON public.integrations(refresh_needed);
 CREATE INDEX IF NOT EXISTS idx_integrations_disabled ON public.integrations(disabled);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: plug, File: 201_20260502_indexes.sql
+-- ---------------------------
+-- MODULE NAME: plug
+-- MODULE DATE: 20260502
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+
+
+CREATE INDEX IF NOT EXISTS idx_plugs_organization_id ON public.plugs(organization_id);
+CREATE INDEX IF NOT EXISTS idx_plugs_integration_id ON public.plugs(integration_id);
+CREATE INDEX IF NOT EXISTS idx_plugs_activated ON public.plugs(activated)
+    WHERE activated = TRUE;
+
+
 
 -- ---------------------------
 -- END OF FILE
@@ -1713,6 +1792,29 @@ USING (
           AND uo.disabled = FALSE
     )
 );
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: plug, File: 301_20260502_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: plug
+-- MODULE DATE: 20260502
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- Table privileges and enable RLS only. Policies that call `public.is_active_member_of_org`
+-- live in `402_*` (tier 4) so they run after `organization/401_*_functions.sql`.
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.plugs TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.plugs TO service_role;
+
+ALTER TABLE public.plugs ENABLE ROW LEVEL SECURITY;
+
+
 
 -- ---------------------------
 -- END OF FILE
@@ -3573,6 +3675,58 @@ AS PERMISSIVE
 FOR DELETE
 TO authenticated
 USING (public.is_active_member_of_org(integrations.organization_id, auth.uid()));
+
+
+-- Module: plug, File: 402_20260502_rls_policies.sql
+-- ---------------------------
+-- MODULE NAME: plug
+-- MODULE DATE: 20260502
+-- MODULE SCOPE: RLS policies (4xx band — after organization functions)
+-- ---------------------------
+-- Policies call `public.is_active_member_of_org` (defined in organization `401_*_functions.sql`).
+-- Plug module defines no SQL functions yet; add `401_*_functions.sql` here when needed.
+-- Same layering as integration: `301_*` = grants + enable RLS; `402_*` = membership-aware policies.
+
+
+
+DROP POLICY IF EXISTS "Members can view plugs" ON public.plugs;
+CREATE POLICY "Members can view plugs"
+ON public.plugs
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (public.is_active_member_of_org(plugs.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Members can insert plugs" ON public.plugs;
+CREATE POLICY "Members can insert plugs"
+ON public.plugs
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (public.is_active_member_of_org(plugs.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Members can update plugs" ON public.plugs;
+CREATE POLICY "Members can update plugs"
+ON public.plugs
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (public.is_active_member_of_org(plugs.organization_id, auth.uid()))
+WITH CHECK (public.is_active_member_of_org(plugs.organization_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Members can delete plugs" ON public.plugs;
+CREATE POLICY "Members can delete plugs"
+ON public.plugs
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (public.is_active_member_of_org(plugs.organization_id, auth.uid()));
+
+
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
 
 -- Module: rbac, File: 401_20260311_functions.sql

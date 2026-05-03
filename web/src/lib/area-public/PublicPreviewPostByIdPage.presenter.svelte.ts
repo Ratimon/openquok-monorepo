@@ -10,7 +10,8 @@ import {
 /**
  * Public `/p/[postId]` page shell: maps preview PM → VM via {@link GetScheduledPostsPresenter}.
  *
- * The preview API includes scheduled social thread replies (`threadReplies`, `threadFinisher`),
+ * The preview API includes scheduled social thread replies (`threadReplies`, `threadFinisher`,
+ * `delayedEngagementReply` for Threads internal plug),
  * which are distinct from collaboration comments loaded via `loadPublicComments*`.
  */
 export class PublicPreviewPostByIdPagePresenter {

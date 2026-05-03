@@ -26,10 +26,13 @@
 		CardFooter
 	} from '$lib/ui/card';
 
+	// /sign-in
 	const signinPath = getRootPathSignin();
 	const signinUrl = absoluteUrl(signinPath);
+	// /forgot-password
 	const forgotPath = getRootPathForgotPassword();
 	const forgotPasswordUrl = absoluteUrl(forgotPath);
+	// /account
 	const accountPath = getRootPathAccount();
 	const accountUrl = absoluteUrl(accountPath);
 

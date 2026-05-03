@@ -149,6 +149,20 @@
 		return { enabled: true as const, message: message || "That's a wrap!" };
 	});
 
+	/** Threads internal plug (`threads.internalEngagementPlug`) — runs after replies & thread finisher in the worker. */
+	const previewDelayedEngagementReply = $derived.by(() => {
+		const threads = previewProviderSettings?.threads;
+		if (!threads || typeof threads !== 'object') return null;
+		const ig = (threads as Record<string, unknown>).internalEngagementPlug;
+		if (!ig || typeof ig !== 'object') return null;
+		const p = ig as Record<string, unknown>;
+		if (p.enabled !== true) return null;
+		const message = typeof p.message === 'string' ? p.message : '';
+		const delaySeconds =
+			typeof p.delaySeconds === 'number' && Number.isFinite(p.delaySeconds) ? p.delaySeconds : 0;
+		return { enabled: true as const, message, delaySeconds };
+	});
+
 	const previewScheduleMetaLabel = $derived.by(() => {
 		const raw = scheduledPostDatetimeLocal?.trim();
 		if (!raw) return null;
@@ -279,7 +293,9 @@
 	<div class="min-h-0">
 		<div class="bg-base-200/20 flex min-h-[200px] flex-col lg:min-h-0">
 			<div class="border-base-300 flex items-center justify-between border-b px-4 py-3 sm:px-6">
-				<div class="text-base-content/90 text-base font-medium">Post Preview</div>
+				<div class="text-base-content/90 text-base font-medium">
+					Post Preview
+				</div>
 			</div>
 			<div class="p-4 sm:p-6">
 				<ShowAllProviders
@@ -289,6 +305,12 @@
 					maximumCharacters={softCharLimit}
 					threadReplies={previewThreadRepliesVm}
 					threadFinisher={previewThreadFinisher}
+					delayedEngagementReply={previewDelayedEngagementReply
+						? {
+								message: previewDelayedEngagementReply.message,
+								delaySeconds: previewDelayedEngagementReply.delaySeconds
+							}
+						: null}
 					previewMetaLabel={previewScheduleMetaLabel}
 				/>
 			</div>

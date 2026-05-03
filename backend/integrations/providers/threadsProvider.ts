@@ -7,6 +7,7 @@ import type {
     PostResponse,
     SocialProvider,
 } from "../social.integrations.interface";
+import type { GlobalPlugCatalogEntryDto, InternalPlugCatalogEntryDto } from "../../utils/dtos/PlugDTO";
 
 import dayjs from "dayjs";
 import { config } from "../../config/GlobalConfig";
@@ -17,6 +18,7 @@ import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackP
 import { ProviderAccessTokenExpiredError } from "../../errors/ProviderIntegrationErrors";
 import { throwIfMetaGraphInvalidAccessToken } from "../../errors/metaGraphTokenError";
 import { logger } from "../../utils/Logger";
+import { htmlToPlainText } from "../../utils/htmlToPlain";
 
 type ThreadsMediaItem = { path: string; bucket?: string };
 type ThreadsSettingsWithMedia = { media?: { items?: ThreadsMediaItem[] } | ThreadsMediaItem[] };
@@ -43,9 +45,7 @@ function assertThreadsSupportedMedia(pathOrUrl: string): void {
     }
 }
 
-// to do : remove this log (debug purpose)
-/** Bumped when publish request shape or error handling changes (verify worker picked up `backend` build). */
-const THREADS_PROVIDER_BUILD = "2026-04-24d";
+
 
 function sleepMs(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -58,6 +58,46 @@ function threadsRedirectUri(): string {
 function threadsOAuth(): { appId: string; appSecret: string } {
     return (config.integrations as { threads: { appId: string; appSecret: string } }).threads;
 }
+
+/** Channel-level Threads plugs (scheduled threshold checks via orchestrator). */
+const THREADS_GLOBAL_PLUG_CATALOG: GlobalPlugCatalogEntryDto[] = [
+    {
+        methodName: "autoPlugPost",
+        identifier: "threads-autoPlugPost",
+        title: "Auto plug post",
+        description:
+            "When a thread reaches a certain number of likes, publish a reply so followers get another notification.",
+        runEveryMilliseconds: 21600000,
+        totalRuns: 3,
+        fields: [
+            {
+                name: "likesAmount",
+                description: "The number of likes required to trigger the reply",
+                type: "number",
+                placeholder: "Amount of likes",
+                validation: "/^\\d+$/",
+            },
+            {
+                name: "post",
+                description: "Message content for the reply",
+                type: "richtext",
+                placeholder: "Post to plug",
+                validation: "/^[\\s\\S]{3,}$/g",
+            },
+        ],
+    },
+];
+
+/** Post-publish Threads plugs (same-account internal engagement). */
+const THREADS_INTERNAL_PLUG_CATALOG: InternalPlugCatalogEntryDto[] = [
+    {
+        identifier: "threads-internal-follow-up",
+        methodName: "threadsInternalFollowUp",
+        title: "Delayed follow-up reply (same account)",
+        description:
+            "Schedule an extra reply from this channel after your thread goes live. Cross-account boosting can be added later.",
+    },
+];
 
 /** Meta Threads OAuth provider. */
 export class ThreadsProvider implements SocialProvider {
@@ -74,6 +114,14 @@ export class ThreadsProvider implements SocialProvider {
         "threads_manage_insights",
     ];
 
+    globalPlugCatalog(): GlobalPlugCatalogEntryDto[] {
+        return THREADS_GLOBAL_PLUG_CATALOG;
+    }
+
+    internalPlugCatalog(): InternalPlugCatalogEntryDto[] {
+        return THREADS_INTERNAL_PLUG_CATALOG;
+    }
+
     maxLength(_additionalSettings?: unknown): number {
         return 500;
     }
@@ -87,7 +135,6 @@ export class ThreadsProvider implements SocialProvider {
         if (!postDetails.length) return [];
 
         const [first] = postDetails;
-        logger.info({ msg: "[Threads] post()", build: THREADS_PROVIDER_BUILD, postId: first.id });
         const message = first.message ?? "";
         const media = this.extractMedia(first.settings as ThreadsSettingsWithMedia).map((m) => ({
             ...m,
@@ -147,13 +194,6 @@ export class ThreadsProvider implements SocialProvider {
             throw new Error("Threads reply_to_id is required to publish a comment");
         }
 
-        logger.info({
-            msg: "[Threads] comment()",
-            build: THREADS_PROVIDER_BUILD,
-            postId: first.id,
-            replyToId,
-        });
-
         const creationId = await this.createTextContent(userId, accessToken, message, replyToId);
 
         // Meta recommends waiting before publishing replies; otherwise publish can be flaky.
@@ -169,6 +209,85 @@ export class ThreadsProvider implements SocialProvider {
                 releaseURL: permalink,
             },
         ];
+    }
+
+    /**
+     * Internal plug: delayed follow-up reply from the same Threads account that published the thread.
+     */
+    async threadsInternalFollowUp(
+        acting: IntegrationRecord,
+        _original: IntegrationRecord,
+        threadId: string,
+        information: { message?: string; replyToParentId?: string }
+    ): Promise<void> {
+        const raw = typeof information?.message === "string" ? information.message : "";
+        const msg = htmlToPlainText(raw).trim();
+        if (!msg.length || !threadId.trim()) return;
+
+        const parent =
+            typeof information.replyToParentId === "string" && information.replyToParentId.trim().length > 0
+                ? information.replyToParentId.trim()
+                : undefined;
+
+        await this.comment(
+            acting.internal_id,
+            threadId.trim(),
+            parent,
+            acting.token,
+            [{ id: "threads-internal-plug", message: msg, settings: {} }],
+            acting
+        );
+    }
+
+    /**
+     * Global plug: when thread likes reach threshold, publish a reply (promotion / CTA).
+     */
+    async autoPlugPost(
+        integration: IntegrationRecord,
+        threadId: string,
+        fields: { likesAmount: string; post: string }
+    ): Promise<boolean> {
+        const threshold = Number(fields.likesAmount);
+        if (!Number.isFinite(threshold) || threshold < 0) return false;
+
+        const res = await fetch(
+            `${GRAPH}/${encodeURIComponent(threadId)}/insights?metric=likes&access_token=${encodeURIComponent(integration.token)}`
+        );
+        const body = (await res.json()) as {
+            data?: Array<{
+                name?: string;
+                values?: Array<{ value?: number }>;
+                total_value?: { value?: number };
+            }>;
+            error?: { message?: string };
+        };
+
+        if (!res.ok || body.error || !body.data?.length) {
+            logger.warn({
+                msg: "[Threads] autoPlugPost insights unavailable",
+                threadId,
+                err: body.error?.message,
+            });
+            return false;
+        }
+
+        const likesMetric = body.data.find((p) => p.name === "likes");
+        const value =
+            likesMetric?.values?.[0]?.value ?? likesMetric?.total_value?.value ?? 0;
+
+        if (value < threshold) {
+            return false;
+        }
+
+        await sleepMs(2000);
+
+        const text = htmlToPlainText(fields.post ?? "").slice(0, this.maxLength());
+        const creationId = await this.createTextContent(integration.internal_id, integration.token, text, threadId.trim());
+
+        await sleepMs(2000);
+
+        await this.publishThread(integration.internal_id, integration.token, creationId);
+        return true;
     }
 
     async refreshToken(refresh_token: string): Promise<AuthTokenDetails> {

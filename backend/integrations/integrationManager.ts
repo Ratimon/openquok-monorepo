@@ -1,4 +1,9 @@
 import type { SocialProvider } from "./social.integrations.interface";
+import type {
+    GlobalPlugCatalogEntryDto,
+    InternalPlugCatalogEntryDto,
+    ProviderPlugsCatalogDto,
+} from "../utils/dtos/PlugDTO";
 import { InstagramBusinessProvider } from "./providers/instagramBusinessProvider";
 import { InstagramStandaloneProvider } from "./providers/instagramStandaloneProvider";
 import { ThreadsProvider } from "./providers/threadsProvider";
@@ -58,11 +63,69 @@ export class IntegrationManager {
         };
     }
 
-    getInternalPlugs(_identifier: string): { plugs: unknown[] } {
-        return { plugs: [] };
+    /** Global plug rows for API responses (aggregated from providers that expose {@link SocialProvider.globalPlugCatalog}). */
+    listGlobalPlugCatalog(): { plugs: ProviderPlugsCatalogDto[] } {
+        const plugs: ProviderPlugsCatalogDto[] = [];
+        for (const p of socialIntegrationList) {
+            const rows = p.globalPlugCatalog?.();
+            if (rows?.length) {
+                plugs.push({ name: p.name, identifier: p.identifier, plugs: rows });
+            }
+        }
+        return { plugs };
     }
 
-    getAllPlugs(): unknown[] {
-        return [];
+    getGlobalPlugDefinitionsForProvider(providerIdentifier: string): GlobalPlugCatalogEntryDto[] {
+        return this.getSocialIntegration(providerIdentifier)?.globalPlugCatalog?.() ?? [];
+    }
+
+    getInternalPlugDefinitionsForProvider(providerIdentifier: string): InternalPlugCatalogEntryDto[] {
+        return this.getSocialIntegration(providerIdentifier)?.internalPlugCatalog?.() ?? [];
+    }
+
+    findGlobalPlugDefinition(
+        providerIdentifier: string,
+        methodName: string
+    ): GlobalPlugCatalogEntryDto | undefined {
+        return this.getGlobalPlugDefinitionsForProvider(providerIdentifier).find((p) => p.methodName === methodName);
+    }
+
+    validatePlugFieldsAgainstCatalog(params: {
+        providerIdentifier: string;
+        methodName: string;
+        fields: { name: string; value: string }[];
+    }): string | null {
+        const def = this.findGlobalPlugDefinition(params.providerIdentifier, params.methodName);
+        if (!def) return `Unknown plug "${params.methodName}" for provider ${params.providerIdentifier}`;
+        const allowed = new Set(def.fields.map((f) => f.name));
+        for (const f of params.fields) {
+            if (!allowed.has(f.name)) return `Unexpected field "${f.name}"`;
+        }
+        for (const spec of def.fields) {
+            const row = params.fields.find((x) => x.name === spec.name);
+            if (!row || row.value.trim().length === 0) return `Field "${spec.name}" is required`;
+            if (spec.validation) {
+                try {
+                    const m = spec.validation.match(/^\/(.*)\/([a-z]*)$/);
+                    const pattern = m?.[1] ?? "";
+                    const flags = m?.[2] ?? "";
+                    const re = new RegExp(pattern, flags);
+                    if (!re.test(row.value)) return `Invalid value for "${spec.name}"`;
+                } catch {
+                    return `Invalid validation rule for "${spec.name}"`;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Metadata for post-level internal plugs for `identifier`. */
+    getInternalPlugs(identifier: string): { internalPlugs: InternalPlugCatalogEntryDto[] } {
+        return { internalPlugs: this.getInternalPlugDefinitionsForProvider(identifier) };
+    }
+
+    /** Channel-level global plugs for integrations catalog UI. */
+    getAllPlugs(): ProviderPlugsCatalogDto[] {
+        return this.listGlobalPlugCatalog().plugs;
     }
 }

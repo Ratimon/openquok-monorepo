@@ -11,6 +11,13 @@ import {
     validateIntegrationCreateCustomerBody,
     validateIntegrationGroup,
 } from "../../data/schemas/integrationSchemas";
+import {
+    validateIntegrationInternalPlugsRequest,
+    validateIntegrationPlugActivateRequest,
+    validateIntegrationPlugDeleteRequest,
+    validateIntegrationPlugsListRequest,
+    validateIntegrationPlugsUpsertRequest,
+} from "../../data/schemas/integrationPlugSchemas";
 import { validateIntegrationTimeRequest } from "../../data/schemas/integrationTimeSchemas";
 
 type IntegrationSessionRouter = ReturnType<typeof Router>;
@@ -19,6 +26,34 @@ const integrationSessionRouter: IntegrationSessionRouter = Router();
 const auth = requireFullAuth(supabaseAnonClient);
 
 integrationSessionRouter.use(auth);
+
+integrationSessionRouter.get("/plug/list", integrationController.getPlugCatalog);
+integrationSessionRouter.get(
+    "/internal-plugs/:providerIdentifier",
+    validateIntegrationInternalPlugsRequest,
+    integrationController.getInternalPlugDefinitions
+);
+integrationSessionRouter.put(
+    "/plugs/:plugId/activate",
+    validateIntegrationPlugActivateRequest,
+    integrationController.setIntegrationPlugActivated
+);
+integrationSessionRouter.delete(
+    "/plugs/:plugId",
+    validateIntegrationPlugDeleteRequest,
+    integrationController.deleteIntegrationPlug
+);
+integrationSessionRouter.get(
+    "/:integrationId/plugs",
+    validateIntegrationPlugsListRequest,
+    integrationController.listIntegrationPlugs
+);
+integrationSessionRouter.post(
+    "/:integrationId/plugs",
+    validateIntegrationPlugsUpsertRequest,
+    integrationController.upsertIntegrationPlug
+);
+
 integrationSessionRouter.post(
     "/provider/:id/connect",
     validateSaveProviderPage,

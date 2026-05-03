@@ -8,6 +8,7 @@ import type {
     IntegrationCustomersListDTO,
 } from "../utils/dtos/CustomerDTO";
 import type { IntegrationCatalogDTO, IntegrationListDTO } from "../utils/dtos/IntegrationDTO";
+import type { PlugUpsertBodyDto } from "../utils/dtos/PlugDTO";
 
 import { UserAuthorizationError } from "../errors/UserError";
 
@@ -258,6 +259,124 @@ export class IntegrationController {
             const integrationId = (req.params as { id: string }).id;
             const body = req.body as Record<string, unknown>;
             const data = await this.integrationConnectionService.saveProviderPageNoAuth(integrationId, body);
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /integrations/plug/list — global plug catalog (threshold-style rules). */
+    getPlugCatalog = async (_req: Request, res: Response, next: NextFunction) => {
+        try {
+            const data = this.integrationConnectionService.getPlugCatalog();
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /integrations/internal-plugs/:providerIdentifier?organizationId= */
+    getInternalPlugDefinitions = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const organizationId = (req.query as { organizationId: string }).organizationId;
+            const providerIdentifier = (req.params as { providerIdentifier: string }).providerIdentifier;
+            const data = await this.integrationConnectionService.getInternalPlugDefinitions(
+                authUserId,
+                organizationId,
+                providerIdentifier
+            );
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /integrations/:integrationId/plugs?organizationId= */
+    listIntegrationPlugs = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const organizationId = (req.query as { organizationId: string }).organizationId;
+            const integrationId = (req.params as { integrationId: string }).integrationId;
+            const plugs = await this.integrationConnectionService.listIntegrationPlugs(
+                authUserId,
+                organizationId,
+                integrationId
+            );
+            res.status(200).json({ success: true, data: { plugs } });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** POST /integrations/:integrationId/plugs?organizationId= */
+    upsertIntegrationPlug = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const organizationId = (req.query as { organizationId: string }).organizationId;
+            const integrationId = (req.params as { integrationId: string }).integrationId;
+            const body = req.body as PlugUpsertBodyDto;
+            const data = await this.integrationConnectionService.upsertIntegrationPlug(
+                authUserId,
+                organizationId,
+                integrationId,
+                body
+            );
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** PUT /integrations/plugs/:plugId/activate */
+    setIntegrationPlugActivated = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const plugId = (req.params as { plugId: string }).plugId;
+            const { organizationId, activated } = req.body as { organizationId: string; activated: boolean };
+            const data = await this.integrationConnectionService.setIntegrationPlugActivated(
+                authUserId,
+                organizationId,
+                plugId,
+                activated
+            );
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** DELETE /integrations/plugs/:plugId?organizationId= */
+    deleteIntegrationPlug = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const organizationId = (req.query as { organizationId: string }).organizationId;
+            const plugId = (req.params as { plugId: string }).plugId;
+            const data = await this.integrationConnectionService.deleteIntegrationPlug(
+                authUserId,
+                organizationId,
+                plugId
+            );
             res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);

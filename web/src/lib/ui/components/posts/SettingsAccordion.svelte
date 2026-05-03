@@ -6,12 +6,20 @@
 	import * as Accordion from '$lib/ui/accordion';
 
 	import ThreadFinisher from '$lib/ui/components/posts/thread/ThreadFinisher.svelte';
+	import SameAccountEngagementPlug from '$lib/ui/components/posts/thread/SameAccountEngagementPlug.svelte';
 	import InstagramCollaborators from '$lib/ui/components/posts/providers/instagram/InstagramCollaborators.svelte';
 
 	type ProviderSettings = {
 		threads: {
 			enabled: boolean;
 			message: string;
+			internalEngagementPlug: {
+				enabled: boolean;
+				delaySeconds: number;
+				message: string;
+				plugName: string;
+				integrationId: string;
+			};
 		};
 		instagram: { postType: 'post' | 'story'; collaborators: string[]; trialReel: boolean };
 	};
@@ -31,6 +39,9 @@
 
 	let threadsEnabled = $state(false);
 	let threadsMessage = $state("That's a wrap!");
+	let igPlugEnabled = $state(false);
+	let igPlugDelaySeconds = $state(120);
+	let igPlugMessage = $state('');
 
 	let igPostType = $state<'post' | 'story'>('post');
 	let igCollaborators = $state<string[]>([]);
@@ -42,6 +53,17 @@
 		if (s.threads) {
 			threadsEnabled = s.threads.enabled;
 			threadsMessage = s.threads.message;
+			const ig = s.threads.internalEngagementPlug;
+			if (ig && typeof ig === 'object') {
+				igPlugEnabled = ig.enabled === true;
+				igPlugDelaySeconds =
+					typeof ig.delaySeconds === 'number' && Number.isFinite(ig.delaySeconds) ? ig.delaySeconds : 120;
+				igPlugMessage = typeof ig.message === 'string' ? ig.message : '';
+			} else {
+				igPlugEnabled = false;
+				igPlugDelaySeconds = 120;
+				igPlugMessage = '';
+			}
 		}
 		if (s.instagram) {
 			igPostType = s.instagram.postType;
@@ -60,7 +82,17 @@
 	let lastEmitted = $state('');
 	$effect(() => {
 		const next: Partial<ProviderSettings> = {
-			threads: { enabled: threadsEnabled, message: threadsMessage },
+			threads: {
+				enabled: threadsEnabled,
+				message: threadsMessage,
+				internalEngagementPlug: {
+					enabled: igPlugEnabled,
+					delaySeconds: igPlugDelaySeconds,
+					message: igPlugMessage,
+					plugName: 'threads-internal-follow-up',
+					integrationId: channel.id
+				}
+			},
 			instagram: { postType: igPostType, collaborators: igCollaborators, trialReel: igTrialReel }
 		};
 		const sig = JSON.stringify(next);
@@ -112,6 +144,12 @@
 					<ThreadFinisher
 						bind:enabled={threadsEnabled}
 						bind:message={threadsMessage}
+						disabled={disabled}
+					/>
+					<SameAccountEngagementPlug
+						bind:enabled={igPlugEnabled}
+						bind:delaySeconds={igPlugDelaySeconds}
+						bind:message={igPlugMessage}
 						disabled={disabled}
 					/>
 				{:else if identifier.startsWith('instagram')}

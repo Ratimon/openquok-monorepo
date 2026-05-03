@@ -101,6 +101,7 @@ export type PostGroupDetailsProgrammerModel = {
 	media: PostMediaProgrammerModel[];
 	tagNames: string[];
 	postIds?: string[];
+	providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
 };
 
 export type GetPostGroupResponseDto = {
@@ -139,6 +140,8 @@ export type PostPreviewProgrammerModel = {
 	channelPictureUrl?: string | null;
 	threadReplies?: { id: string; message: string; delaySeconds: number }[];
 	threadFinisher?: { enabled: boolean; message: string } | null;
+	/** Threads: `threads.internalEngagementPlug` when enabled (public preview API). */
+	delayedEngagementReply?: { message: string; delaySeconds: number } | null;
 };
 
 export type GetPostPreviewResponseDto = {

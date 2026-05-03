@@ -11,6 +11,8 @@
 	type Props = {
 		replies: PublicPreviewThreadReplyViewModel[];
 		threadFinisher: { enabled: boolean; message: string } | null;
+		/** Threads: same-account delayed engagement (`threads.internalEngagementPlug`), after finisher in the worker. */
+		delayedEngagementReply?: { message: string; delaySeconds: number } | null;
 		variant: 'threads' | 'instagram' | 'general';
 		/**
 		 * Threads-only: same account as the root post (avatar + name per reply).
@@ -23,8 +25,14 @@
 		threadContinuesFromRoot?: boolean;
 	};
 
-	let { replies, threadFinisher, variant, replyActor = null, threadContinuesFromRoot = false }: Props =
-		$props();
+	let {
+		replies,
+		threadFinisher,
+		delayedEngagementReply = null,
+		variant,
+		replyActor = null,
+		threadContinuesFromRoot = false
+	}: Props = $props();
 
 	function plain(text: string): string {
 		return stripHtmlToPlainText(text ?? '');
@@ -40,6 +48,16 @@
 		return `After ${h} h`;
 	}
 
+	function formatDelayedEngagementTiming(delaySeconds: number): string {
+		const s = Math.max(0, Math.floor(delaySeconds));
+		let wait: string;
+		if (s === 0) wait = 'Right after the prior step';
+		else if (s < 60) wait = `Wait ${s}s after the prior step`;
+		else if (s < 3600) wait = `Wait ${Math.floor(s / 60)} min after the prior step`;
+		else wait = `Wait ${Math.floor(s / 3600)} h after the prior step`;
+		return `${wait}; then ~30s while Threads prepares this reply`;
+	}
+
 	const rootGapClass = $derived(
 		replyActor && variant === 'threads'
 			? 'pt-2'
@@ -49,7 +67,7 @@
 	);
 </script>
 
-{#if replies.length > 0 || (threadFinisher?.enabled && (threadFinisher.message ?? '').trim())}
+{#if replies.length > 0 || (threadFinisher?.enabled && (threadFinisher.message ?? '').trim()) || delayedEngagementReply}
 	<div class={rootGapClass}>
 		{#if variant !== 'threads'}
 			<div class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
@@ -64,7 +82,7 @@
 		{#if variant === 'threads' && replyActor}
 			{@const actor = replyActor}
 			<div class="relative">
-				{#if threadContinuesFromRoot && (replies.length > 0 || (threadFinisher?.enabled && plain(threadFinisher.message).trim()))}
+				{#if threadContinuesFromRoot && (replies.length > 0 || (threadFinisher?.enabled && plain(threadFinisher.message).trim()) || delayedEngagementReply)}
 					<div
 						class="pointer-events-none absolute left-5 top-0 z-0 h-3 w-px -translate-x-1/2 bg-base-300"
 						aria-hidden="true"
@@ -74,7 +92,7 @@
 				{#each replies as r, i (r.id)}
 					<li class="flex gap-3">
 						<div class="relative flex w-10 shrink-0 flex-col items-center">
-							{#if i < replies.length - 1 || (threadFinisher?.enabled && plain(threadFinisher.message).trim())}
+							{#if i < replies.length - 1 || (threadFinisher?.enabled && plain(threadFinisher.message).trim()) || delayedEngagementReply}
 								<div
 									class="absolute left-1/2 top-10 bottom-0 z-0 w-px -translate-x-1/2 bg-base-300"
 									aria-hidden="true"
@@ -134,6 +152,12 @@
 				{#if threadFinisher?.enabled && plain(threadFinisher.message).trim()}
 					<li class="flex gap-3">
 						<div class="relative flex w-10 shrink-0 flex-col items-center">
+							{#if delayedEngagementReply}
+								<div
+									class="absolute left-1/2 top-10 bottom-0 z-0 w-px -translate-x-1/2 bg-base-300"
+									aria-hidden="true"
+								></div>
+							{/if}
 							<div class="relative z-[1] h-10 w-10 shrink-0">
 								{#if actor.picture?.trim()}
 									<IntegrationChannelPicture
@@ -187,6 +211,66 @@
 						</div>
 					</li>
 				{/if}
+				{#if delayedEngagementReply}
+					<li class="flex gap-3">
+						<div class="relative flex w-10 shrink-0 flex-col items-center">
+							<div class="relative z-[1] h-10 w-10 shrink-0">
+								{#if actor.picture?.trim()}
+									<IntegrationChannelPicture
+										profilePictureUrl={actor.picture}
+										fallbackIcon={icons.User1.name}
+										alt={actor.displayName}
+										class="h-10 w-10 rounded-full bg-base-200 object-cover ring-2 ring-base-100"
+									/>
+								{:else}
+									<span
+										class="flex h-10 w-10 items-center justify-center rounded-full bg-base-200 ring-2 ring-base-100"
+									>
+										<AbstractIcon
+											name={icons.User1.name}
+											class="size-5 text-base-content/60"
+											width="20"
+											height="20"
+										/>
+									</span>
+								{/if}
+								<span
+									class="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-base-100 ring-1 ring-base-300"
+								>
+									<AbstractIcon
+										name={icons.Threads.name}
+										class="size-3.5 text-base-content"
+										width="14"
+										height="14"
+									/>
+								</span>
+							</div>
+						</div>
+						<div class="min-w-0 flex-1 pb-0">
+							<div class="flex items-start justify-between gap-2">
+								<div class="min-w-0">
+									<div class="truncate text-[15px] font-bold leading-5 text-base-content">
+										{actor.displayName}
+									</div>
+									<div class="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-base-content/50">
+										Delayed engagement
+									</div>
+								</div>
+								<span class="inline-flex shrink-0 text-base-content/45" aria-hidden="true">
+									<AbstractIcon name={icons.MoreHorizontal.name} class="size-5" width="20" height="20" />
+								</span>
+							</div>
+							<div class="mt-0.5 text-[13px] leading-4 text-base-content/45">
+								{formatDelayedEngagementTiming(delayedEngagementReply.delaySeconds)}
+							</div>
+							<p class="mt-1 whitespace-pre-wrap text-[15px] leading-6 text-base-content">
+								{plain(delayedEngagementReply.message).trim() ||
+									'No message yet — add text under “Delayed engagement reply” in channel settings.'}
+							</p>
+							<ThreadsReplyEngagementMock commentCount={0} />
+						</div>
+					</li>
+				{/if}
 				</ul>
 			</div>
 		{:else if variant === 'threads'}
@@ -216,6 +300,24 @@
 						</div>
 						<p class="mt-1 whitespace-pre-wrap text-[15px] leading-6 text-base-content">
 							{plain(threadFinisher.message)}
+						</p>
+					</li>
+				{/if}
+				{#if delayedEngagementReply}
+					<li class="relative pb-0">
+						<span
+							class="absolute -left-[21px] top-2 h-2 w-2 rounded-full bg-base-content/30 ring-2 ring-base-100"
+							aria-hidden="true"
+						></span>
+						<div class="text-[11px] font-medium text-base-content/60">
+							Delayed engagement
+						</div>
+						<div class="text-[11px] text-base-content/50">
+							{formatDelayedEngagementTiming(delayedEngagementReply.delaySeconds)}
+						</div>
+						<p class="mt-1 whitespace-pre-wrap text-[15px] leading-6 text-base-content">
+							{plain(delayedEngagementReply.message).trim() ||
+								'No message yet — add text under “Delayed engagement reply” in channel settings.'}
 						</p>
 					</li>
 				{/if}

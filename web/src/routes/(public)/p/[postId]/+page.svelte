@@ -142,6 +142,7 @@
 						mediaUrls={previewMediaUrlsVm}
 						threadReplies={previewPostVm.threadReplies}
 						threadFinisher={previewPostVm.threadFinisher}
+						delayedEngagementReply={previewPostVm.delayedEngagementReply}
 						previewMetaLabel={previewMetaLabel}
 					/>
 				</div>

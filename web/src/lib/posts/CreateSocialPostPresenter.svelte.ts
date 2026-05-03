@@ -28,6 +28,33 @@ import {
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 import { toast } from '$lib/ui/sonner';
 
+function isPlainSettingsObject(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Merge a partial provider-settings update into what we already have per integration.
+ * Top-level buckets (`threads`, `instagram`, a future `tiktok`, …) are shallow-merged so UI that
+ * only emits one subsection does not wipe siblings (e.g. `threads.replies` from the composer).
+ * Non-objects (and arrays) are replaced wholesale by `next`, matching normal `{ ...current, ...next }`.
+ */
+function mergeProviderSettingsPatch(
+	current: Record<string, unknown>,
+	next: Record<string, unknown>
+): Record<string, unknown> {
+	const merged: Record<string, unknown> = { ...current };
+	for (const key of Object.keys(next)) {
+		const n = next[key];
+		const c = current[key];
+		if (isPlainSettingsObject(c) && isPlainSettingsObject(n)) {
+			merged[key] = { ...c, ...n };
+		} else {
+			merged[key] = n;
+		}
+	}
+	return merged;
+}
+
 type Mode = 'global' | 'custom';
 
 export type CreateSocialPostPrepareOpenOptions = {
@@ -427,11 +454,15 @@ export class CreateSocialPostPresenter {
 		this.loadEditorBody();
 	}
 
+
 	updateFocusedProviderSettings(next: Record<string, unknown>): void {
 		if (this.mode !== 'custom' || !this.focusedIntegrationId) return;
+		const id = this.focusedIntegrationId;
+		const current = this.providerSettingsByIntegrationId[id] ?? {};
+		const merged = mergeProviderSettingsPatch(current, next);
 		this.providerSettingsByIntegrationId = {
 			...this.providerSettingsByIntegrationId,
-			[this.focusedIntegrationId]: next
+			[id]: merged
 		};
 	}
 
@@ -656,6 +687,7 @@ export class CreateSocialPostPresenter {
 		this.bodiesByIntegrationId = {};
 		this.editorBody = '';
 		this.postMediaItems = [];
+		this.providerSettingsByIntegrationId = {};
 
 		this.selectedIds = [];
 		this.selectedGroupId = null;
@@ -736,6 +768,10 @@ export class CreateSocialPostPresenter {
 
 			this.globalBody = g.body ?? '';
 			this.bodiesByIntegrationId = g.bodiesByIntegrationId ?? {};
+			this.providerSettingsByIntegrationId =
+				g.providerSettingsByIntegrationId && typeof g.providerSettingsByIntegrationId === 'object'
+					? { ...g.providerSettingsByIntegrationId }
+					: {};
 
 			if (g.isGlobal) {
 				this.mode = 'global';

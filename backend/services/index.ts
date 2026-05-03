@@ -8,6 +8,7 @@ import {
     feedbackRepository,
     blogRepository,
     integrationRepository,
+    plugRepository,
     notificationRepository,
     postsRepository,
     mediaRepository,
@@ -26,6 +27,7 @@ import { ConfigService } from "./ConfigService";
 import { IntegrationManager } from "../integrations/integrationManager";
 import { RefreshIntegrationService } from "./RefreshIntegrationService";
 import { IntegrationService } from "./IntegrationService";
+import { PlugService } from "./PlugService";
 import { IntegrationConnectionService } from "./IntegrationConnectionService";
 import { NotificationService } from "./NotificationService";
 import { TransactionalNotificationEmailService } from "./TransactionalNotificationEmailService";
@@ -33,7 +35,6 @@ import { PostsService } from "./PostsService";
 import { MediaService } from "./MediaService";
 import { SignatureService } from "./SignatureService";
 import { AnalyticsService } from "./AnalyticsService";
-
 import { config } from "../config/GlobalConfig";
 
 export const integrationManager = new IntegrationManager();
@@ -104,8 +105,15 @@ export const integrationService = new IntegrationService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
+export const plugService = new PlugService(
+    plugRepository,
+    integrationRepository,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
+);
 export const integrationConnectionService = new IntegrationConnectionService(
     integrationService,
+    plugService,
     organizationRepository,
     integrationManager,
     refreshIntegrationService,
@@ -146,6 +154,7 @@ export { FeedbackService } from "./FeedbackService";
 export { BlogService } from "./BlogService";
 export { ConfigService } from "./ConfigService";
 export { IntegrationService } from "./IntegrationService";
+export { PlugService } from "./PlugService";
 export { IntegrationConnectionService } from "./IntegrationConnectionService";
 export { RefreshIntegrationService } from "./RefreshIntegrationService";
 export { NotificationService } from "./NotificationService";

@@ -17,7 +17,9 @@
 
 <div class="border-base-300 bg-base-200/20 rounded-lg border p-4">
 	<div class="flex items-center justify-between gap-3">
-		<div class="text-sm font-medium text-base-content/80">Add a thread finisher</div>
+		<div class="text-sm font-medium text-base-content/80">
+			Add a thread finisher
+		</div>
 		<Switch bind:checked={enabled} disabled={disabled} />
 	</div>
 

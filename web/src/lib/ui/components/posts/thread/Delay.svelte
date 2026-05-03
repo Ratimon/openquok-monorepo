@@ -19,6 +19,11 @@
 		 * This reply plus all prior replies’ delay values in order (seconds). Matches worker: wait then publish, chained.
 		 */
 		delayChainSeconds?: number[];
+		/**
+		 * Extra seconds per reply after each user delay (Threads: fixed wait in `threadsProvider.comment` before publish).
+		 * Adds `value × delayChainSeconds.length` to the approximate clock.
+		 */
+		threadsPublishPrepareSecondsPerReply?: number;
 	};
 
 	let {
@@ -34,7 +39,8 @@
 		],
 		onChange,
 		scheduledPostDatetimeLocal = null,
-		delayChainSeconds = []
+		delayChainSeconds = [],
+		threadsPublishPrepareSecondsPerReply = 0
 	}: Props = $props();
 
 	let selected = $derived(String(value));
@@ -52,10 +58,20 @@
 		if (chain.length === 0) return { line: '', title: '', approxClock: '' };
 
 		const clock = formatScheduledClock(scheduledPostDatetimeLocal);
-		const parts = chain.map((s) => `${s}s`).join(' + ');
-		const line = clock ? `${clock} + ${parts}` : `+ ${parts}`;
+		const userParts = chain.map((s) => `${Number.isFinite(s) ? s : 0}s`).join(' + ');
+		const preparePerReply = Number.isFinite(threadsPublishPrepareSecondsPerReply)
+			? Math.max(0, threadsPublishPrepareSecondsPerReply)
+			: 0;
+		const threadsPrepareTotal = preparePerReply * chain.length;
 
-		const sumSec = chain.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
+		const threadsTail =
+			preparePerReply > 0 && threadsPrepareTotal > 0
+				? ` + ${preparePerReply}s×${chain.length} (Threads)`
+				: '';
+		const line = clock ? `${clock} + ${userParts}${threadsTail}` : `+ ${userParts}${threadsTail}`;
+
+		const userSumSec = chain.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
+		const sumSec = userSumSec + threadsPrepareTotal;
 		let approxClock = '';
 		if (clock) {
 			const start = newDayjs((scheduledPostDatetimeLocal ?? '').trim());
@@ -68,7 +84,9 @@
 		}
 
 		const title =
-			'Each reply waits its delay after the previous step (main post or prior reply). Times use your scheduled post time from the panel below.';
+			preparePerReply > 0
+				? 'Each reply waits its delay after the previous step, then Threads waits ~30s before the reply appears. Clock uses your scheduled main post time.'
+				: 'Each reply waits its delay after the previous step (main post or prior reply). Times use your scheduled post time from the panel below.';
 
 		return { line, title, approxClock };
 	});

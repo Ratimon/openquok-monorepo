@@ -105,6 +105,40 @@ export interface GetIntegrationListResponseDto {
 	[key: string]: unknown;
 }
 
+/** Global plug catalog entry (threshold-style rules per provider). */
+export type PlugFieldCatalogPm = {
+	name: string;
+	description: string;
+	type: string;
+	placeholder: string;
+	validation?: string;
+};
+
+export type GlobalPlugCatalogEntryPm = {
+	methodName: string;
+	identifier: string;
+	title: string;
+	description: string;
+	runEveryMilliseconds: number;
+	totalRuns: number;
+	fields: PlugFieldCatalogPm[];
+};
+
+export type PlugCatalogProviderPm = {
+	name: string;
+	identifier: string;
+	plugs: GlobalPlugCatalogEntryPm[];
+};
+
+export type IntegrationPlugRowPm = {
+	id: string;
+	organization_id: string;
+	integration_id: string;
+	plug_function: string;
+	data: string;
+	activated: boolean;
+};
+
 export interface IntegrationsConfig {
 	endpoints: {
 		catalog: string;
@@ -119,6 +153,10 @@ export interface IntegrationsConfig {
 		providerConnect: (integrationId: string) => string;
 		publicProviderConnect: (integrationId: string) => string;
 		postingTimes: (integrationId: string) => string;
+		plugList: string;
+		integrationPlugs: (integrationId: string) => string;
+		integrationPlugActivate: (plugId: string) => string;
+		integrationPlugDelete: (plugId: string) => string;
 	};
 }
 
@@ -452,6 +490,156 @@ export class IntegrationsRepository {
 				};
 			}
 			return { ok: false, error: 'Could not save time slots.' };
+		}
+	}
+
+	public async getPlugCatalog(): Promise<PlugCatalogProviderPm[]> {
+		try {
+			const { ok, data: dto } = await this.httpGateway.get<{
+				success?: boolean;
+				data?: { plugs?: PlugCatalogProviderPm[] };
+			}>(this.config.endpoints.plugList, undefined, { withCredentials: true });
+			const plugs = dto?.data?.plugs;
+			if (ok && dto?.success === true && Array.isArray(plugs)) return plugs;
+			return [];
+		} catch {
+			return [];
+		}
+	}
+
+	public async listIntegrationPlugs(
+		organizationId: string,
+		integrationId: string
+	): Promise<IntegrationPlugRowPm[]> {
+		try {
+			const path = this.config.endpoints.integrationPlugs(integrationId);
+			const { ok, data: dto } = await this.httpGateway.get<{
+				success?: boolean;
+				data?: { plugs?: IntegrationPlugRowPm[] };
+			}>(path, { organizationId }, { withCredentials: true });
+			const plugs = dto?.data?.plugs;
+			if (ok && dto?.success === true && Array.isArray(plugs)) return plugs;
+			return [];
+		} catch {
+			return [];
+		}
+	}
+
+	public async upsertIntegrationPlug(params: {
+		organizationId: string;
+		integrationId: string;
+		func: string;
+		fields: { name: string; value: string }[];
+		plugId?: string;
+	}): Promise<{ ok: true; id: string; activated: boolean } | { ok: false; error: string }> {
+		try {
+			const path = this.config.endpoints.integrationPlugs(params.integrationId);
+			const { ok, data: dto } = await this.httpGateway.post<{
+				success?: boolean;
+				data?: { id?: string; activated?: boolean };
+				message?: string;
+			}>(
+				path,
+				{
+					func: params.func,
+					fields: params.fields,
+					...(params.plugId ? { plugId: params.plugId } : {})
+				},
+				{ withCredentials: true, params: { organizationId: params.organizationId } }
+			);
+			if (
+				ok &&
+				dto?.success === true &&
+				dto.data &&
+				typeof dto.data.activated === 'boolean' &&
+				typeof dto.data.id === 'string'
+			) {
+				return { ok: true, id: dto.data.id, activated: dto.data.activated };
+			}
+			const message = typeof dto?.message === 'string' ? dto.message : null;
+			return { ok: false, error: message || 'Could not save plug.' };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Could not save plug.' };
+		}
+	}
+
+	public async deleteIntegrationPlug(params: {
+		organizationId: string;
+		plugId: string;
+	}): Promise<{ ok: true } | { ok: false; error: string }> {
+		try {
+			const path = this.config.endpoints.integrationPlugDelete(params.plugId);
+			const { ok, data: dto } = await this.httpGateway.delete<{ success?: boolean; message?: string }>(
+				path,
+				{ params: { organizationId: params.organizationId }, withCredentials: true }
+			);
+			if (ok && dto?.success === true) return { ok: true };
+			const message = typeof dto?.message === 'string' ? dto.message : null;
+			return { ok: false, error: message || 'Could not delete plug.' };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Could not delete plug.' };
+		}
+	}
+
+	public async setIntegrationPlugActivated(params: {
+		organizationId: string;
+		plugId: string;
+		activated: boolean;
+	}): Promise<{ ok: true } | { ok: false; error: string }> {
+		try {
+			const path = this.config.endpoints.integrationPlugActivate(params.plugId);
+			const { ok, data: dto } = await this.httpGateway.put<{ success?: boolean; message?: string }>(
+				path,
+				{ organizationId: params.organizationId, activated: params.activated },
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true) return { ok: true };
+			const message = typeof dto?.message === 'string' ? dto.message : null;
+			return { ok: false, error: message || 'Could not update plug.' };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Could not update plug.' };
 		}
 	}
 

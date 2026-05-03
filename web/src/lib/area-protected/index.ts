@@ -3,7 +3,8 @@ export {
 	getRootPathCalendar,
 	getRootPathAnalytics,
 	getRootPathMedia,
-	getRootPathIntegrations
+	getRootPathIntegrations,
+	getRootPathPlugs
 } from '$lib/area-protected/getRootPathProtectedArea';
 import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus } from './ProtectedSettingsPage.presenter.svelte';
 import { ProtectedLayoutPagePresenter } from '$lib/area-protected/ProtectedLayoutPage.presenter.svelte';
