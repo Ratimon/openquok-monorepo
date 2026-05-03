@@ -108,22 +108,6 @@
 		return Temporal.Now.plainDateISO('UTC');
 	}
 
-	function selectedPlainDateFromCalendar(): Temporal.PlainDate | null {
-		const state = (calendarApp as any)?.$app?.calendarState;
-		const raw =
-			// Schedule‑X stores selectedDate as a signal in most builds.
-			state?.selectedDate?.value ??
-			// Fallbacks for other internal shapes.
-			state?.selectedDate ??
-			null;
-		if (!raw) return null;
-		try {
-			return Temporal.PlainDate.from(raw as any);
-		} catch {
-			return null;
-		}
-	}
-
 	function buildCalendarApp(initialEvents: CalendarEventExternal[]) {
 		return createCalendar(
 			{
@@ -318,10 +302,19 @@
 
 	$effect(() => {
 		const view = viewNameForDisplay(display);
-		// Preserve the currently focused day when switching views (e.g. Week → Day).
-		// `rangeStartDate` is the fetch range start, not the user's currently navigated date.
-		const date = selectedPlainDateFromCalendar() ?? selectedPlainDateFromProps();
-		(calendarApp as unknown as CalendarRuntime).$app.calendarState.setView(view as DefaultViewName, date);
+		const date = selectedPlainDateFromProps();
+		const app = calendarApp as unknown as CalendarRuntime;
+		app.$app.calendarState.setView(view as DefaultViewName, date);
+
+		// Week/day columns (`createWeek` in Schedule‑X) follow `datePickerState.selectedDate`, while toolbar
+		// navigation only updates `rangeStartDate` → `setView` → `calendarState.range`. If those diverge,
+		// `data-time-grid-date` stays on the previous week and create-strip positioning/querySelector fails.
+		const dpSelected = (app.$app as { datePickerState?: { selectedDate?: { value: Temporal.PlainDate } } })
+			.datePickerState?.selectedDate;
+		const cur = dpSelected?.value;
+		if (cur && !date.equals(cur)) {
+			dpSelected!.value = date;
+		}
 	});
 
 	onMount(() => {
