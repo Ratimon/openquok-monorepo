@@ -9,7 +9,11 @@
 	import { goto } from '$app/navigation';
 	import { route } from '$lib/utils/path';
 	import { workspaceSettingsPresenter } from '$lib/settings';
-	import { getRootPathAccount, protectedPlugsPagePresenter } from '$lib/area-protected';
+	import {
+		getRootPathAccount,
+		getRootPathCalendar,
+		protectedPlugsPagePresenter
+	} from '$lib/area-protected';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
 	import { Willow, Grid } from '@svar-ui/svelte-grid';
@@ -28,6 +32,7 @@
 
 	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);
+	const calendarPath = route(`${rootPathAccount}/${getRootPathCalendar()}`);
 
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
@@ -172,17 +177,29 @@
 			<AbstractIcon name={icons.Sparkles.name} class="size-8 text-primary" width="32" height="32" />
 			<div>
 				<h1 class="text-2xl font-semibold tracking-tight text-base-content">
-					Plugs</h1>
+					Auto Plugs
+				</h1>
 				<p class="text-sm text-base-content/65">
-					Automation rules per connected channel (e.g. auto-reply when a Threads post reaches N likes).
-					Auto replies can also be set per post under Threads settings when scheduling.
+					Global Automation rules per connected channel (e.g. auto-reply when a Threads post reaches a certain number of likes).
+					Auto replies (internal rule for the same social account) can also be set per post under Threads settings when scheduling.
 				</p>
 			</div>
 		</div>
 		{#if supportedChannelsVm.length}
-			<Button type="button" variant="primary" onclick={() => presenter.openAddPlugRuleModal(0)}>
-				Add rule
-			</Button>
+			<div class="flex flex-wrap items-center gap-2">
+				<Button
+					type="button"
+					variant="primary"
+					onclick={() => presenter.openAddPlugRuleModal(0)}
+				>
+					Add Global Rule
+				</Button>
+
+				<Button variant="secondary" href={calendarPath} class="gap-2">
+					<AbstractIcon name={icons.CalendarClock.name} class="size-4 shrink-0" width="16" height="16" />
+					Open calendar to configure internal rule
+				</Button>
+			</div>
 		{/if}
 	</div>
 

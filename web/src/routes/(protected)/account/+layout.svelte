@@ -69,10 +69,10 @@
 	const mainLinks: SidebarLinkItem[] = [
 		{ label: 'Dashboard', href: accountPath, iconName: icons.Gauge.name },
 		{ label: 'Calendar', href: calendarPath, iconName: icons.CalendarClock.name },
+		{ label: 'Auto Plugs', href: plugsPath, iconName: icons.Sparkles.name },
 		{ label: 'Analytics', href: analyticsPath, iconName: icons.ChartBar.name },
 		{ label: 'Media', href: mediaPath, iconName: icons.Image.name },
 		{ label: 'Integrations', href: integrationsPath, iconName: icons.Link.name },
-		{ label: 'Plugs', href: plugsPath, iconName: icons.Sparkles.name }
 	];
 
 	const SETTINGS_NAV: SettingsNavItem<AppSettingsSectionId>[] = [
