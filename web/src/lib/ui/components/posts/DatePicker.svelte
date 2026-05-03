@@ -62,6 +62,11 @@
 		return w === 0 || w === 6;
 	}
 
+	/** Weekend tint uses `!text-primary`; skip when this day is selected so it does not override `text-primary-content`. */
+	function isSelectedCalendarDay(day: DateValue): boolean {
+		return calValue !== undefined && day.compare(calValue) === 0;
+	}
+
 	const labelText = $derived.by(() => {
 		if (!value) return 'Select date & time';
 		const d = newDayjs(value);
@@ -103,7 +108,7 @@
 {#snippet daySnippet({ day, outsideMonth }: { day: DateValue; outsideMonth: boolean })}
 	<Day
 		class={cn(
-			isWeekendDay(day) && !outsideMonth && '!text-primary/85',
+			isWeekendDay(day) && !outsideMonth && !isSelectedCalendarDay(day) && '!text-primary/85',
 			outsideMonth && 'opacity-70'
 		)}
 	/>
