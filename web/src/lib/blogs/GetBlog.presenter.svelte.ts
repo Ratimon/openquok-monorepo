@@ -72,6 +72,22 @@ export interface BlogPostBySlugPublicViewModel {
 	likeCount: number | null;
 }
 
+/** Public approved comment row for post detail UI / SEO (maps from {@link BlogPostCommentProgrammerModel}). */
+export interface BlogPostCommentViewModel {
+	id: string;
+	content: string;
+	isApproved: boolean;
+	createdAt: string;
+	updatedAt: string | null;
+	parentId: string | null;
+	userId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
+}
+
 /** Public blog topic view model (used by topic navigation UI). */
 export interface BlogTopicPublicViewModel {
 	id: string;
@@ -232,12 +248,26 @@ export class GetBlogPresenter {
 	public async loadPublishedBlogPostComments(
 		postId: string,
 		fetch?: typeof globalThis.fetch
-	): Promise<BlogPostCommentProgrammerModel[]> {
+	): Promise<BlogPostCommentViewModel[]> {
 		try {
-			return await this.blogRepository.getPostComments(postId, fetch);
+			const resultPm = await this.blogRepository.getPostComments(postId, fetch);
+			return resultPm.map((pm) => this.toBlogPostCommentVm(pm));
 		} catch {
 			return [];
 		}
+	}
+
+	private toBlogPostCommentVm(pm: BlogPostCommentProgrammerModel): BlogPostCommentViewModel {
+		return {
+			id: pm.id,
+			content: pm.content,
+			isApproved: pm.isApproved,
+			createdAt: pm.createdAt,
+			updatedAt: pm.updatedAt,
+			parentId: pm.parentId,
+			userId: pm.userId,
+			author: pm.author ? { ...pm.author } : null
+		};
 	}
 
 	private toBlogPostBySlugPublicVm(post: BlogPostProgrammerModel): BlogPostBySlugPublicViewModel {

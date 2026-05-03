@@ -118,13 +118,13 @@ export class AdminBlogEditorPagePresenter {
 				? await this.blogRepository.updateBlogPost(id, formData, fetch)
 				: await this.blogRepository.createBlogPost(formData, fetch);
 
-			if (resultPm.success) {
+			if (resultPm.ok) {
 				const { deleted, failed } = await this.deleteOrphanedInlineBlogImages(
 					isUpdate ? (this.blogPost?.content ?? '') : '',
 					formData.content ?? '',
 					(formData.hero_image_filename ?? '').trim()
 				);
-				this.toastMessage = resultPm.message ?? (isUpdate ? 'Blog post updated.' : 'Blog post created.');
+				this.toastMessage = isUpdate ? 'Blog post updated.' : 'Blog post created.';
 				this.showToastMessage = true;
 				this.redirectToManager = true;
 
@@ -149,7 +149,7 @@ export class AdminBlogEditorPagePresenter {
 					this.showStorageInlineToast = true;
 				}
 			} else {
-				this.toastMessage = resultPm.message ?? 'Something went wrong.';
+				this.toastMessage = resultPm.error ?? 'Something went wrong.';
 				this.showToastMessage = true;
 			}
 		} finally {

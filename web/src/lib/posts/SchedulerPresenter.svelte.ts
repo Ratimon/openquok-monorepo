@@ -5,6 +5,7 @@ import type { CalendarEventExternal } from '@schedule-x/calendar';
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type {
 	DebugExportPostGroupProgrammerModel,
+	PostUpsertProgrammerModel,
 	PostsRepository
 } from '$lib/posts/Post.repository.svelte';
 import type {
@@ -251,7 +252,7 @@ export class SchedulerPresenter {
 		return this.postsRepository.debugExportPostGroup(postGroup);
 	}
 
-	deletePostGroup(postGroup: string): Promise<{ ok: true } | { ok: false; error: string }> {
+	deletePostGroup(postGroup: string): Promise<PostUpsertProgrammerModel> {
 		return this.postsRepository.deletePostGroup(postGroup);
 	}
 

@@ -73,13 +73,13 @@ export class ProtectedAnalyticsPagePresenter {
 	async refreshIntegrationForAnalytics(integration: CreateSocialPostChannelViewModel): Promise<void> {
 		const organizationId = this.workspaceSettings.currentWorkspaceId;
 		if (!organizationId) return;
-		const r = await this.integrationsRepository.getAuthorizeUrl({
+		const resultPm = await this.integrationsRepository.getAuthorizeUrl({
 			organizationId,
 			provider: integration.identifier,
 			refresh: integration.internalId
 		});
-		if ('error' in r) {
-			toast.error(r.error);
+		if ('error' in resultPm) {
+			toast.error(resultPm.error);
 			return;
 		}
 		window.location.href = this.continueSetupHref(integration);

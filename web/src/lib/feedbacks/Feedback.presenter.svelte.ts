@@ -1,6 +1,6 @@
 import type {
 	FeedbackRepository,
-	CreateFeedbackProgrammerModel
+	UpsertFeedbackProgrammerModel
 } from '$lib/feedbacks/Feedback.repository.svelte';
 
 export enum FeedbackStatus {
@@ -25,7 +25,7 @@ export class FeedbackPresenter {
 		url: string,
 		description: string,
 		email: string
-	): Promise<CreateFeedbackProgrammerModel | null> {
+	): Promise<UpsertFeedbackProgrammerModel | null> {
 		this.status = FeedbackStatus.SUBMITTING;
 
 		const createFeedbackPm = await this.feedbackRepository.createFeedback({
@@ -53,7 +53,7 @@ export class FeedbackPresenter {
 		helpful: boolean,
 		pageUrl: string,
 		pageTitle: string
-	): Promise<CreateFeedbackProgrammerModel | null> {
+	): Promise<UpsertFeedbackProgrammerModel | null> {
 		const vote = helpful ? 'yes' : 'no';
 		const title = pageTitle.trim() || '(untitled)';
 		const description = `Documentation page helpful: ${vote}. Page: ${title}`;

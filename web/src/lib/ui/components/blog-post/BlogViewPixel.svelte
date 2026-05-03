@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { BlogUpsertProgrammerModel } from '$lib/blogs/index';
+	import type { PublicBlogMutationResultViewModel } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
 
 	import { dev } from '$app/environment';
 	import { onMount } from 'svelte';
 
 	type Props = {
 		postId: string;
-		trackBlogView: (postId: string) => Promise<BlogUpsertProgrammerModel>;
+		trackBlogView: (postId: string) => Promise<PublicBlogMutationResultViewModel>;
 	};
 
 	let { postId, trackBlogView }: Props = $props();

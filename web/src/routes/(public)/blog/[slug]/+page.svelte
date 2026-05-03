@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { BlogPostCommentProgrammerModel, BlogUpsertProgrammerModel } from '$lib/blogs/index';
+	import type { PublicBlogMutationResultViewModel } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
+	import type { BlogPostCommentViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 	import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 	import type { BlogPostPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 
@@ -26,7 +27,7 @@
 		data: {
 			currentPostVm: BlogPostBySlugPublicViewModel;
 			otherPostsVm: BlogPostPublicViewModel[];
-			comments: BlogPostCommentProgrammerModel[];
+			comments: BlogPostCommentViewModel[];
 			isLoggedIn?: boolean;
 			schemaData?: Record<string, unknown>;
 		}
@@ -122,19 +123,19 @@
 		postId: string;
 		content: string;
 		parentId: string | null;
-	}): Promise<BlogUpsertProgrammerModel> {
+	}): Promise<PublicBlogMutationResultViewModel> {
 		return publicBlogBySlugPagePresenter.submitBlogComment(params);
 	}
 
-	async function trackBlogLike(postId: string): Promise<BlogUpsertProgrammerModel> {
+	async function trackBlogLike(postId: string): Promise<PublicBlogMutationResultViewModel> {
 		return publicBlogBySlugPagePresenter.trackBlogLike(postId);
 	}
 
-	async function trackBlogShare(postId: string): Promise<BlogUpsertProgrammerModel> {
+	async function trackBlogShare(postId: string): Promise<PublicBlogMutationResultViewModel> {
 		return publicBlogBySlugPagePresenter.trackBlogShare(postId);
 	}
 
-	async function trackBlogView(postId: string): Promise<BlogUpsertProgrammerModel> {
+	async function trackBlogView(postId: string): Promise<PublicBlogMutationResultViewModel> {
 		return publicBlogBySlugPagePresenter.trackBlogView(postId);
 	}
 </script>

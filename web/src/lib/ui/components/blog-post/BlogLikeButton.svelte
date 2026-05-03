@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BlogUpsertProgrammerModel } from '$lib/blogs/index';
+	import type { PublicBlogMutationResultViewModel } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -15,7 +15,7 @@
 	type Props = {
 		postId: string;
 		initialLikeCount: number;
-		trackBlogLike: (postId: string) => Promise<BlogUpsertProgrammerModel>;
+		trackBlogLike: (postId: string) => Promise<PublicBlogMutationResultViewModel>;
 		/** From page presenter `submittingLike` — parent derives from presenter. */
 		submittingLike?: boolean;
 		class?: string;
@@ -39,7 +39,7 @@
 		isLiked = true;
 		optimisticDelta += 1;
 		const result = await trackBlogLike(postId);
-		if (!result.success) {
+		if (!result.ok) {
 			isLiked = false;
 			optimisticDelta -= 1;
 		}

@@ -204,9 +204,9 @@ export class GetScheduledPostsPresenter {
 		options?: { fetch?: typeof globalThis.fetch }
 	): Promise<PublicPreviewPostViewModel | null> {
 		try {
-			const pmResult = await this.postsRepository.getPostPreview(postId, options);
-			if (!pmResult.ok) return null;
-			return this.toPreviewPostVm(pmResult.post);
+			const resultPm = await this.postsRepository.getPostPreview(postId, options);
+			if (!resultPm.ok) return null;
+			return this.toPreviewPostVm(resultPm.post);
 		} catch {
 			return null;
 		}
@@ -220,9 +220,9 @@ export class GetScheduledPostsPresenter {
 		integrationIds?: string[] | null;
 	}): Promise<CalendarPostRowViewModel[]> {
 		try {
-			const listPostsPmResult = await this.postsRepository.listPosts(params);
-			if (!listPostsPmResult.ok) return [];
-			return listPostsPmResult.posts.map(toCalendarPostRowVm);
+			const resultPm = await this.postsRepository.listPosts(params);
+			if (!resultPm.ok) return [];
+			return resultPm.posts.map(toCalendarPostRowVm);
 		} catch {
 			return [];
 		}
@@ -230,9 +230,9 @@ export class GetScheduledPostsPresenter {
 
 	public async loadPostGroupDetailsVm(postGroup: string): Promise<PostGroupDetailsViewModel | null> {
 		try {
-			const r = await this.postsRepository.getPostGroup(postGroup);
-			if (!r.ok) return null;
-			return toPostGroupDetailsVm(r.group);
+			const resultPm = await this.postsRepository.getPostGroup(postGroup);
+			if (!resultPm.ok) return null;
+			return toPostGroupDetailsVm(resultPm.group);
 		} catch {
 			return null;
 		}
@@ -244,9 +244,9 @@ export class GetScheduledPostsPresenter {
 		options?: { fetch?: typeof globalThis.fetch }
 	): Promise<PostCommentViewModel[]> {
 		try {
-			const r = await this.postsRepository.getPublicPostComments(postId, options);
-			if (!r.ok) return [];
-			return r.comments.map(toPostCommentVm);
+			const resultPm = await this.postsRepository.getPublicPostComments(postId, options);
+			if (!resultPm.ok) return [];
+			return resultPm.comments.map(toPostCommentVm);
 		} catch {
 			return [];
 		}

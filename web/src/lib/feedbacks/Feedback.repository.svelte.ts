@@ -15,7 +15,7 @@ export interface CreateFeedbackResponseDto {
 	message: string;
 }
 
-export interface CreateFeedbackProgrammerModel {
+export interface UpsertFeedbackProgrammerModel {
 	success: boolean;
 	message: string;
 }
@@ -74,7 +74,7 @@ export class FeedbackRepository {
 	public async createFeedback(
 		payload: CreateFeedbackRequestDto,
 		fetch?: typeof globalThis.fetch
-	): Promise<CreateFeedbackProgrammerModel> {
+	): Promise<UpsertFeedbackProgrammerModel> {
 		try {
 			const { data: createFeedbackDto, ok } = await this.httpGateway.post<CreateFeedbackResponseDto>(
 				this.config.endpoints.createFeedback,

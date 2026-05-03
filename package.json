@@ -9,6 +9,7 @@
     "---------------------- DEV WORKFLOW ----------------------": "",
     "common:build": "pnpm --filter openquok-common build",
     "web:dev": "pnpm --filter ./web dev",
+    "web:check": "pnpm --filter ./web check",
     "web:build": "pnpm --filter ./web build",
     "web:dev:clean": "pnpm --filter ./web dev:clean",
     "backend:dev": "pnpm --filter ./backend dev",

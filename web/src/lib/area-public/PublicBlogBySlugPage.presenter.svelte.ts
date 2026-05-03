@@ -1,15 +1,25 @@
 import type { BlogRepository, BlogUpsertProgrammerModel } from '$lib/blogs/Blog.repository.svelte';
 import type {
 	BlogPostBySlugPublicViewModel,
+	BlogPostCommentViewModel,
 	BlogPostPublicViewModel,
 	GetBlogPresenter
 } from '$lib/blogs/GetBlog.presenter.svelte';
-import type { BlogPostCommentProgrammerModel } from '$lib/blogs/index';
+
+/** Mutation result for public blog post actions (comment, like, share, view). Maps from {@link BlogUpsertProgrammerModel}. */
+export type PublicBlogMutationResultViewModel =
+	| { ok: true; id?: string }
+	| { ok: false; error: string };
+
+function blogUpsertPmToMutationVm(pm: BlogUpsertProgrammerModel): PublicBlogMutationResultViewModel {
+	if (!pm.ok) return { ok: false, error: pm.error };
+	return pm.id !== undefined ? { ok: true, id: pm.id } : { ok: true };
+}
 
 export class PublicBlogBySlugPagePresenter {
 	public currentPostVm: BlogPostBySlugPublicViewModel | null = $state(null);
 	public otherPostsVm: BlogPostPublicViewModel[] = $state([]);
-	public currentCommentsVm: BlogPostCommentProgrammerModel[] = $state([]);
+	public currentCommentsVm: BlogPostCommentViewModel[] = $state([]);
 
 	public submittingComment = $state(false);
 	public showCommentSubmitToast = $state(false);
@@ -38,7 +48,7 @@ export class PublicBlogBySlugPagePresenter {
 	public async loadPostCommentsStateless(params: {
 		postId: string;
 		fetch?: typeof globalThis.fetch;
-	}): Promise<BlogPostCommentProgrammerModel[]> {
+	}): Promise<BlogPostCommentViewModel[]> {
 		return this.getBlogPresenter.loadPublishedBlogPostComments(params.postId, params.fetch);
 	}
 
@@ -46,7 +56,7 @@ export class PublicBlogBySlugPagePresenter {
 	public async loadPostComments(params: {
 		postId: string;
 		fetch?: typeof globalThis.fetch;
-	}): Promise<BlogPostCommentProgrammerModel[]> {
+	}): Promise<BlogPostCommentViewModel[]> {
 		const comments = await this.loadPostCommentsStateless(params);
 		this.currentCommentsVm = comments;
 		return comments;
@@ -56,7 +66,7 @@ export class PublicBlogBySlugPagePresenter {
 		postId: string;
 		content: string;
 		parentId: string | null;
-	}): Promise<BlogUpsertProgrammerModel> {
+	}): Promise<PublicBlogMutationResultViewModel> {
 		this.submittingComment = true;
 		this.showCommentSubmitToast = false;
 		try {
@@ -65,52 +75,56 @@ export class PublicBlogBySlugPagePresenter {
 				content: params.content,
 				parentId: params.parentId
 			});
-			this.commentSubmitToastMessage = resultPm.success
+			const resultVm = blogUpsertPmToMutationVm(resultPm);
+			this.commentSubmitToastMessage = resultVm.ok
 				? 'Comment submitted. It may appear after moderation.'
-				: (resultPm.message || 'Could not submit comment.');
-			this.commentSubmitToastIsError = !resultPm.success;
+				: (resultVm.error || 'Could not submit comment.');
+			this.commentSubmitToastIsError = !resultVm.ok;
 			this.showCommentSubmitToast = true;
-			return resultPm;
+			return resultVm;
 		} finally {
 			this.submittingComment = false;
 		}
 	}
 
-	public async trackBlogLike(postId: string): Promise<BlogUpsertProgrammerModel> {
+	public async trackBlogLike(postId: string): Promise<PublicBlogMutationResultViewModel> {
 		this.submittingLike = true;
 		this.showLikeSubmitToast = false;
 		try {
 			const resultPm = await this.blogRepository.trackBlogActivity(postId, 'like');
-			this.likeSubmitToastMessage = resultPm.success
+			const resultVm = blogUpsertPmToMutationVm(resultPm);
+			this.likeSubmitToastMessage = resultVm.ok
 				? 'Thanks for the like!'
-				: (resultPm.message || 'Could not record like.');
-			this.likeSubmitToastIsError = !resultPm.success;
+				: (resultVm.error || 'Could not record like.');
+			this.likeSubmitToastIsError = !resultVm.ok;
 			this.showLikeSubmitToast = true;
-			return resultPm;
+			return resultVm;
 		} finally {
 			this.submittingLike = false;
 		}
 	}
 
-	public async trackBlogShare(postId: string): Promise<BlogUpsertProgrammerModel> {
+	public async trackBlogShare(postId: string): Promise<PublicBlogMutationResultViewModel> {
 		this.submittingShare = true;
 		this.showShareSubmitToast = false;
 		try {
 			const resultPm = await this.blogRepository.trackBlogActivity(postId, 'share');
-			this.shareSubmitToastMessage = resultPm.success
+			const resultVm = blogUpsertPmToMutationVm(resultPm);
+			this.shareSubmitToastMessage = resultVm.ok
 				? 'Thanks for sharing!'
-				: (resultPm.message || 'Could not record share.');
-			this.shareSubmitToastIsError = !resultPm.success;
+				: (resultVm.error || 'Could not record share.');
+			this.shareSubmitToastIsError = !resultVm.ok;
 			this.showShareSubmitToast = true;
-			return resultPm;
+			return resultVm;
 		} finally {
 			this.submittingShare = false;
 		}
 	}
 
 	/** View count on post open; no toast (fire-and-forget from UI). */
-	public async trackBlogView(postId: string): Promise<BlogUpsertProgrammerModel> {
-		return this.blogRepository.trackBlogActivity(postId, 'view');
+	public async trackBlogView(postId: string): Promise<PublicBlogMutationResultViewModel> {
+		const resultPm = await this.blogRepository.trackBlogActivity(postId, 'view');
+		return blogUpsertPmToMutationVm(resultPm);
 	}
 
 	/**

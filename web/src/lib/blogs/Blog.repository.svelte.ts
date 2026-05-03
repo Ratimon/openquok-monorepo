@@ -258,11 +258,10 @@ export interface DeleteBlogPostResponseDto {
 	message: string;
 }
 
-export interface BlogUpsertProgrammerModel {
-	success: boolean;
-	message: string;
-	id?: string;
-}
+/** Blog mutations mapped to a discriminated union (aligned with plug/post repository patterns). */
+export type BlogUpsertProgrammerModel =
+	| { ok: true; id?: string }
+	| { ok: false; error: string };
 
 export interface BlogInformationProgrammerModel {
 	[key: string]: string;
@@ -456,28 +455,28 @@ export class BlogRepository {
 				fetch
 			});
 			if (ok && dto?.success) {
-				return { success: true, message: dto.message ?? 'Comment approved.', id: dto.data?.id ?? commentId };
+				return { ok: true, id: dto.data?.id ?? commentId };
 			}
-			return { success: false, message: dto?.message ?? 'Failed to approve comment.' };
+			return { ok: false, error: dto?.message ?? 'Failed to approve comment.' };
 		} catch (err) {
 			const message = this.extractMessage(err);
-			return { success: false, message };
+			return { ok: false, error: message };
 		}
 	}
 
-	async deleteBlogComment(commentId: string, fetch?: typeof globalThis.fetch): Promise<BlogUpsertProgrammerModel> {
+	async deleteBlogComment(commentId: string, fetch?: typeof globalThis.fetch):Promise<BlogUpsertProgrammerModel> {
 		try {
 			const { data: dto, ok } = await this.httpGateway.delete<DeleteBlogCommentResponseDto>(
 				this.config.endpoints.deleteComment(commentId),
 				{ withCredentials: true, fetch }
 			);
 			if (ok && dto?.success) {
-				return { success: true, message: dto.message ?? 'Comment deleted.' };
+				return { ok: true };
 			}
-			return { success: false, message: dto?.message ?? 'Failed to delete comment.' };
+			return { ok: false, error: dto?.message ?? 'Failed to delete comment.' };
 		} catch (err) {
 			const message = this.extractMessage(err);
-			return { success: false, message };
+			return { ok: false, error: message };
 		}
 	}
 
@@ -542,12 +541,11 @@ export class BlogRepository {
 				);
 				if (ok && dto?.success) {
 					return {
-						success: true,
-						message: dto.message ?? 'Blog topic updated.',
+						ok: true,
 						id: dto.data?.id ?? id
 					};
 				}
-				return { success: false, message: dto?.message ?? 'Failed to update blog topic.' };
+				return { ok: false, error: dto?.message ?? 'Failed to update blog topic.' };
 			}
 
 			const { data: dto, ok } = await this.httpGateway.post<UpsertBlogTopicResponseDto>(
@@ -556,12 +554,12 @@ export class BlogRepository {
 				{ withCredentials: true, fetch }
 			);
 			if (ok && dto?.success && dto.data?.id) {
-				return { success: true, message: dto.message ?? 'Blog topic created.', id: dto.data.id };
+				return { ok: true, id: dto.data.id };
 			}
-			return { success: false, message: dto?.message ?? 'Failed to create blog topic.' };
+			return { ok: false, error: dto?.message ?? 'Failed to create blog topic.' };
 		} catch (err) {
 			const message = this.extractMessage(err);
-			return { success: false, message };
+			return { ok: false, error: message };
 		}
 	}
 
@@ -572,12 +570,12 @@ export class BlogRepository {
 				{ withCredentials: true, fetch }
 			);
 			if (ok && dto?.success) {
-				return { success: true, message: dto.message ?? 'Blog topic deleted.' };
+				return { ok: true };
 			}
-			return { success: false, message: dto?.message ?? 'Failed to delete blog topic.' };
+			return { ok: false, error: dto?.message ?? 'Failed to delete blog topic.' };
 		} catch (err) {
 			const message = this.extractMessage(err);
-			return { success: false, message };
+			return { ok: false, error: message };
 		}
 	}
 
@@ -588,12 +586,12 @@ export class BlogRepository {
 				{ withCredentials: true, fetch }
 			);
 			if (ok && dto?.success) {
-				return { success: true, message: dto.message ?? 'Blog post deleted.' };
+				return { ok: true };
 			}
-			return { success: false, message: dto?.message ?? 'Failed to delete blog post.' };
+			return { ok: false, error: dto?.message ?? 'Failed to delete blog post.' };
 		} catch (err) {
 			const message = this.extractMessage(err);
-			return { success: false, message };
+			return { ok: false, error: message };
 		}
 	}
 
@@ -734,12 +732,12 @@ export class BlogRepository {
 				{ withCredentials: true, fetch }
 			);
 			if (ok && dto?.success) {
-				return { success: true, message: dto.message ?? 'Activity recorded.' };
+				return { ok: true };
 			}
-			return { success: false, message: dto?.message ?? 'Failed to record activity.' };
+			return { ok: false, error: dto?.message ?? 'Failed to record activity.' };
 		} catch (err) {
 			const message = this.extractMessage(err);
-			return { success: false, message };
+			return { ok: false, error: message };
 		}
 	}
 
@@ -762,12 +760,12 @@ export class BlogRepository {
 				{ withCredentials: true, fetch }
 			);
 			if (ok && dto?.success && dto.data?.id) {
-				return { success: true, message: dto.message ?? 'Comment submitted.', id: dto.data.id };
+				return { ok: true, id: dto.data.id };
 			}
-			return { success: false, message: dto?.message ?? 'Failed to submit comment.' };
+			return { ok: false, error: dto?.message ?? 'Failed to submit comment.' };
 		} catch (err) {
 			const message = this.extractMessage(err);
-			return { success: false, message };
+			return { ok: false, error: message };
 		}
 	}
 
@@ -782,12 +780,12 @@ export class BlogRepository {
 				{ withCredentials: true, fetch }
 			);
 			if (ok && dto?.success && dto.data?.id) {
-				return { success: true, message: dto.message ?? 'Blog post created.', id: dto.data.id };
+				return { ok: true, id: dto.data.id };
 			}
-			return { success: false, message: dto?.message ?? 'Failed to create blog post.' };
+			return { ok: false, error: dto?.message ?? 'Failed to create blog post.' };
 		} catch (err) {
 			const message = this.extractMessage(err);
-			return { success: false, message };
+			return { ok: false, error: message };
 		}
 	}
 
@@ -803,12 +801,12 @@ export class BlogRepository {
 				{ withCredentials: true, fetch }
 			);
 			if (ok && dto?.success) {
-				return { success: true, message: dto.message ?? 'Blog post updated.', id: dto.data?.id ?? id };
+				return { ok: true, id: dto.data?.id ?? id };
 			}
-			return { success: false, message: dto?.message ?? 'Failed to update blog post.' };
+			return { ok: false, error: dto?.message ?? 'Failed to update blog post.' };
 		} catch (err) {
 			const message = this.extractMessage(err);
-			return { success: false, message };
+			return { ok: false, error: message };
 		}
 	}
 

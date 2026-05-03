@@ -30,6 +30,7 @@
 		"@schedule-x/svelte": "^3.0.0",
 		"@schedule-x/theme-default": "^4.5.0",
 		"@shikijs/transformers": "^4.0.2",
+		"@svar-ui/svelte-grid": "^2.6.2",
 		"@tanstack/svelte-form": "^1.28.4",
 		"@tiptap/core": "^3.20.4",
 		"@tiptap/extension-image": "^3.20.4",

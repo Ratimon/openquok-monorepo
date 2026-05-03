@@ -12,6 +12,7 @@ import { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDa
 import { ProtectedCalendarPagePresenter } from '$lib/area-protected/ProtectedCalendarPage.presenter.svelte';
 import { ProtectedMediaPagePresenter } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
 import { ProtectedAnalyticsPagePresenter } from '$lib/area-protected/ProtectedAnalyticsPage.presenter.svelte';
+import { ProtectedPlugsPagePresenter } from '$lib/area-protected/ProtectedPlugsPage.presenter.svelte';
 import { GenerateMediaModalPresenter } from '$lib/canvas';
 import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
@@ -25,6 +26,7 @@ import { workspaceSettingsPresenter } from '$lib/settings';
 import { authenticationRepository } from '$lib/user-auth/index';
 import { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte';
 import { getAnalyticsPresenter } from '$lib/platform-analytics';
+import { getPlugPresenter, globalPlugSettingsPresenter, plugRepository } from '$lib/plugs';
 
 const protectedSettingsPagePresenter = new ProtectedSettingsPagePresenter(
 	editorAccountSettingsPresenter,
@@ -86,6 +88,14 @@ const protectedAnalyticsPagePresenter = new ProtectedAnalyticsPagePresenter(
 	integrationsRepository
 );
 
+const protectedPlugsPagePresenter = new ProtectedPlugsPagePresenter(
+	integrationsRepository,
+	workspaceSettingsPresenter,
+	plugRepository,
+	getPlugPresenter,
+	globalPlugSettingsPresenter
+);
+
 export type { ProtectedMediaPagePresenterMediaSettingsVmPublic } from './ProtectedMediaPage.presenter.svelte';
 export {
 	ProtectedSettingsPagePresenter,
@@ -100,6 +110,8 @@ export {
 	protectedCalendarPagePresenter,
 	ProtectedAnalyticsPagePresenter,
 	protectedAnalyticsPagePresenter,
+	ProtectedPlugsPagePresenter,
+	protectedPlugsPagePresenter,
 	ProtectedMediaPagePresenter,
 	protectedMediaPagePresenter,
 	GenerateMediaModalPresenter,

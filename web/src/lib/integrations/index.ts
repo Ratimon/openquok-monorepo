@@ -23,14 +23,7 @@ const integrationsConfig: IntegrationsConfig = {
 		publicProviderConnect: (integrationId: string) =>
 			`${integrationsBase}/public/provider/${encodeURIComponent(integrationId)}/connect`,
 		postingTimes: (integrationId: string) =>
-			`${integrationsBase}/${encodeURIComponent(integrationId)}/time`,
-		plugList: `${integrationsBase}/plug/list`,
-		integrationPlugs: (integrationId: string) =>
-			`${integrationsBase}/${encodeURIComponent(integrationId)}/plugs`,
-		integrationPlugActivate: (plugId: string) =>
-			`${integrationsBase}/plugs/${encodeURIComponent(plugId)}/activate`,
-		integrationPlugDelete: (plugId: string) =>
-			`${integrationsBase}/plugs/${encodeURIComponent(plugId)}`
+			`${integrationsBase}/${encodeURIComponent(integrationId)}/time`
 	}
 };
 

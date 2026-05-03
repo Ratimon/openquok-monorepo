@@ -1,8 +1,10 @@
 import { base } from '$app/paths';
 
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
-import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
-import type { BlogPostCommentProgrammerModel } from '$lib/blogs/index';
+import type {
+	BlogPostBySlugPublicViewModel,
+	BlogPostCommentViewModel
+} from '$lib/blogs/GetBlog.presenter.svelte';
 import { buildBlogInlineImageSrc } from '$lib/blogs/utils/buildBlogInlineImageSrc';
 
 /** Guess MIME type from a storage filename (used for OG / JSON-LD image). */
@@ -34,7 +36,7 @@ function absoluteAppUrl(origin: string, pathname: string): string {
 
 export type CreateBlogPostSEOSchemaParams = {
 	post: BlogPostBySlugPublicViewModel;
-	comments?: BlogPostCommentProgrammerModel[];
+	comments?: BlogPostCommentViewModel[];
 	/** Full canonical URL of this post page (matches `<link rel="canonical">`). */
 	canonicalUrl: string;
 	companyName: string;

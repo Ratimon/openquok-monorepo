@@ -37,13 +37,13 @@ export class AdminBlogCommentsManagerPagePresenter {
 	public async handleApproveComment(commentId: string, fetch?: typeof globalThis.fetch): Promise<void> {
 		const resultPm = await this.blogRepository.approveBlogComment(commentId, fetch);
 
-		if (resultPm.success) {
+		if (resultPm.ok) {
 			this.patchCommentApproved(commentId);
 			this.showToastMessage = true;
-			this.toastMessage = resultPm.message || 'Comment approved.';
+			this.toastMessage = 'Comment approved.';
 		} else {
 			this.showToastMessage = true;
-			this.toastMessage = resultPm.message || 'Failed to approve comment.';
+			this.toastMessage = resultPm.error || 'Failed to approve comment.';
 		}
 	}
 }

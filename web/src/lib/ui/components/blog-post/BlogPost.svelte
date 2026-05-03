@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import type { BlogPostCommentProgrammerModel, BlogUpsertProgrammerModel } from '$lib/blogs/index';
+	import type { PublicBlogMutationResultViewModel } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
+	import type { BlogPostCommentViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 	import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 
 	import { browser } from '$app/environment';
@@ -29,7 +30,7 @@
 	type Props = {
 		post: BlogPostBySlugPublicViewModel;
 		contentHtml: string;
-		comments: BlogPostCommentProgrammerModel[];
+		comments: BlogPostCommentViewModel[];
 		previousLink?: NavLink;
 		nextLink?: NavLink;
 		isLoggedIn?: boolean;
@@ -39,13 +40,13 @@
 			postId: string;
 			content: string;
 			parentId: string | null;
-		}) => Promise<BlogUpsertProgrammerModel>;
+		}) => Promise<PublicBlogMutationResultViewModel>;
 		submittingComment?: boolean;
-		trackBlogLike: (postId: string) => Promise<BlogUpsertProgrammerModel>;
+		trackBlogLike: (postId: string) => Promise<PublicBlogMutationResultViewModel>;
 		submittingLike?: boolean;
-		trackBlogShare: (postId: string) => Promise<BlogUpsertProgrammerModel>;
+		trackBlogShare: (postId: string) => Promise<PublicBlogMutationResultViewModel>;
 		submittingShare?: boolean;
-		trackBlogView: (postId: string) => Promise<BlogUpsertProgrammerModel>;
+		trackBlogView: (postId: string) => Promise<PublicBlogMutationResultViewModel>;
 		class?: string;
 	};
 

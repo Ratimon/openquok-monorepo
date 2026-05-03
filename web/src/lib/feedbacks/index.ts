@@ -30,7 +30,7 @@ export {
 };
 export { FeedbackStatus } from '$lib/feedbacks/Feedback.presenter.svelte';
 export type {
-	CreateFeedbackProgrammerModel,
+	UpsertFeedbackProgrammerModel,
 	FeedbackProgrammerModel,
 	FeedbackManagerProgrammerModel
 } from '$lib/feedbacks/Feedback.repository.svelte';

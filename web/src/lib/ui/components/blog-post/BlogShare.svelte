@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BlogUpsertProgrammerModel } from '$lib/blogs/index';
+	import type { PublicBlogMutationResultViewModel } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
 
 	import { browser } from '$app/environment';
 
@@ -21,7 +21,7 @@
 		postId: string;
 		title: string;
 		slug: string;
-		trackBlogShare: (postId: string) => Promise<BlogUpsertProgrammerModel>;
+		trackBlogShare: (postId: string) => Promise<PublicBlogMutationResultViewModel>;
 		/** From page presenter `submittingShare` — parent derives from presenter. */
 		submittingShare?: boolean;
 		class?: string;

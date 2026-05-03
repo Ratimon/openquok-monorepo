@@ -41,6 +41,19 @@ export type PostTagProgrammerModel = {
 	color?: string;
 };
 
+/** Result of POST tag create (repository maps wire response). */
+export type PostTagCreateProgrammerModel =
+	| { ok: true; tag: PostTagProgrammerModel }
+	| { ok: false; error: string };
+
+/**
+ * Result of POST create / PUT update post group, or DELETE post group on success
+ * (`postIds` empty when the API does not return rows after delete).
+ */
+export type PostUpsertProgrammerModel =
+	| { ok: true; postGroup: string; postIds: string[] }
+	| { ok: false; error: string };
+
 export type FindSlotResponseDto = {
 	success?: boolean;
 	data?: { date?: string };
@@ -171,17 +184,22 @@ export type CreatePostCommentResponseDto = {
 	};
 };
 
-export type MissingPublishCandidatePm = { id: string; url: string };
-
-export type LoadMissingPublishCandidatesResultPm =
-	| { ok: true; items: MissingPublishCandidatePm[] }
+/** Result of POST post comment create (repository maps wire response). */
+export type PostCommentCreateProgrammerModel =
+	| { ok: true; comment: PostCommentProgrammerModel }
 	| { ok: false; error: string };
 
-export type UpdatePostReleaseIdResultPm = { ok: true } | { ok: false; error: string };
+export type MissingPublishCandidateProgrammerModel = { id: string; url: string };
+
+export type LoadMissingPublishCandidatesResultProgrammerModel =
+	| { ok: true; items: MissingPublishCandidateProgrammerModel[] }
+	| { ok: false; error: string };
+
+export type UpdatePostReleaseIdResultProgrammerModel = { ok: true } | { ok: false; error: string };
 
 export type GetMissingPublishCandidatesResponseDto = {
 	success?: boolean;
-	data?: { items?: MissingPublishCandidatePm[] };
+	data?: { items?: MissingPublishCandidateProgrammerModel[] };
 };
 
 export type UpdatePostReleaseIdResponseDto = {
@@ -284,7 +302,7 @@ export class PostsRepository {
 		organizationId: string,
 		name: string,
 		color?: string
-	): Promise<{ ok: true; tag: PostTagProgrammerModel } | { ok: false; error: string }> {
+	): Promise<PostTagCreateProgrammerModel> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.post<CreateTagResponseDto>(
 				this.config.endpoints.createTag,
@@ -322,7 +340,7 @@ export class PostsRepository {
 
 	async createPost(
 		payload: CreatePostProgrammerModel
-	): Promise<{ ok: true; postGroup: string; postIds: string[] } | { ok: false; error: string }> {
+	): Promise<PostUpsertProgrammerModel> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.post<CreatePostResponseDto>(
 				this.config.endpoints.createPost,
@@ -465,7 +483,7 @@ export class PostsRepository {
 		postId: string;
 		organizationId: string;
 		comment: string;
-	}): Promise<{ ok: true; comment: PostCommentProgrammerModel } | { ok: false; error: string }> {
+	}): Promise<PostCommentCreateProgrammerModel> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.post<CreatePostCommentResponseDto>(
 				this.config.endpoints.createPostComment(params.postId),
@@ -488,7 +506,7 @@ export class PostsRepository {
 	async updatePostGroup(
 		postGroup: string,
 		payload: UpdatePostGroupProgrammerModel
-	): Promise<{ ok: true; postGroup: string; postIds: string[] } | { ok: false; error: string }> {
+	): Promise<PostUpsertProgrammerModel> {
 		try {
 			const url = `${this.config.endpoints.updatePostGroup}/${encodeURIComponent(postGroup)}`;
 			const { ok, data: dto } = await this.httpGateway.put<CreatePostResponseDto>(
@@ -507,13 +525,13 @@ export class PostsRepository {
 		}
 	}
 
-	async deletePostGroup(postGroup: string): Promise<{ ok: true } | { ok: false; error: string }> {
+	async deletePostGroup(postGroup: string): Promise<PostUpsertProgrammerModel> {
 		try {
 			const url = `${this.config.endpoints.deletePostGroup}/${encodeURIComponent(postGroup)}`;
 			const { ok, data: dto } = await this.httpGateway.delete<{ success?: boolean }>(url, {
 				withCredentials: true
 			});
-			if (ok && dto?.success === true) return { ok: true };
+			if (ok && dto?.success === true) return { ok: true, postGroup, postIds: [] };
 			return { ok: false, error: 'Could not delete post.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not delete post.');
@@ -523,7 +541,7 @@ export class PostsRepository {
 	async getMissingPublishCandidates(params: {
 		postId: string;
 		organizationId: string;
-	}): Promise<LoadMissingPublishCandidatesResultPm> {
+	}): Promise<LoadMissingPublishCandidatesResultProgrammerModel> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.get<GetMissingPublishCandidatesResponseDto>(
 				this.config.endpoints.missingPublishCandidates(params.postId),
@@ -544,7 +562,7 @@ export class PostsRepository {
 		postId: string;
 		organizationId: string;
 		releaseId: string;
-	}): Promise<UpdatePostReleaseIdResultPm> {
+	}): Promise<UpdatePostReleaseIdResultProgrammerModel> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.put<UpdatePostReleaseIdResponseDto>(
 				this.config.endpoints.updatePostReleaseId(params.postId),

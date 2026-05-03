@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { BlogPostCommentProgrammerModel, BlogUpsertProgrammerModel } from '$lib/blogs/index';
+	import type { PublicBlogMutationResultViewModel } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
+	import type { BlogPostCommentViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 
 	import { icons } from '$data/icons';
 
@@ -13,7 +14,7 @@
 	import { url } from '$lib/utils/path';
 
 	type Props = {
-		comments: BlogPostCommentProgrammerModel[];
+		comments: BlogPostCommentViewModel[];
 		postId: string;
 		isLoggedIn?: boolean;
 		signInHref?: string;
@@ -23,7 +24,7 @@
 			postId: string;
 			content: string;
 			parentId: string | null;
-		}) => Promise<BlogUpsertProgrammerModel>;
+		}) => Promise<PublicBlogMutationResultViewModel>;
 		/** From page presenter `submittingComment` — parent derives from presenter. */
 		submittingComment?: boolean;
 		class?: string;
@@ -40,12 +41,12 @@
 		class: className = ''
 	}: Props = $props();
 
-	let replyingTo = $state<BlogPostCommentProgrammerModel | null>(null);
+	let replyingTo = $state<BlogPostCommentViewModel | null>(null);
 	let disabledSubmit = $state(false);
 	let commentContent = $state('');
 	const maxLength = 1000;
 
-	function repliesFor(parentId: string): BlogPostCommentProgrammerModel[] {
+	function repliesFor(parentId: string): BlogPostCommentViewModel[] {
 		return comments.filter((c) => c.parentId === parentId);
 	}
 
@@ -55,7 +56,7 @@
 			content: commentContent.trim(),
 			parentId: replyingTo?.id ?? null
 		});
-		if (result.success) {
+		if (result.ok) {
 			disabledSubmit = true;
 			commentContent = '';
 			replyingTo = null;
@@ -67,7 +68,7 @@
 	}
 </script>
 
-{#snippet commentBlock(c: BlogPostCommentProgrammerModel, isReply: boolean)}
+{#snippet commentBlock(c: BlogPostCommentViewModel, isReply: boolean)}
 	<div class={cn(isReply && 'w-full py-2 pl-14')}>
 		<div class="flex items-start gap-4">
 			<Avatar.Root class="size-10 shrink-0 border border-base-300">

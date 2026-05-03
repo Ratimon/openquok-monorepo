@@ -53,13 +53,13 @@ export class UpsertBlogTopicModalPresenter {
 	}
 
 	private applyUpsertResult(resultPm: BlogUpsertProgrammerModel): void {
-		if (resultPm.success) {
+		if (resultPm.ok) {
 			this.showToastMessage = true;
-			this.toastMessage = resultPm.message ?? 'Saved.';
+			this.toastMessage = 'Saved.';
 			this.status = UpsertBlogTopicModalStatus.UPSERTED;
 		} else {
 			this.showToastMessage = true;
-			this.toastMessage = resultPm.message ?? 'Something went wrong.';
+			this.toastMessage = resultPm.error;
 			this.status = UpsertBlogTopicModalStatus.UNKNOWN;
 		}
 	}

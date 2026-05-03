@@ -38,21 +38,27 @@ const upsertBlogTopicModalPresenter = new UpsertBlogTopicModalPresenter(blogRepo
 const deleteBlogTopicVerificationPresenter = new ActionVerificationModalPresenter(
 	async (data: unknown) => {
 		const d = data as { topicId: string; topicName: string };
-		return blogRepository.deleteBlogTopic(d.topicId);
+		const resultPm = await blogRepository.deleteBlogTopic(d.topicId);
+		if (resultPm.ok) return { success: true, message: 'Blog topic deleted.' };
+		return { success: false, message: resultPm.error };
 	}
 );
 
 const deleteBlogPostVerificationPresenter = new ActionVerificationModalPresenter(
 	async (data: unknown) => {
 		const d = data as { postId: string; postTitle: string };
-		return blogRepository.deleteBlogPost(d.postId);
+		const resultPm = await blogRepository.deleteBlogPost(d.postId);
+		if (resultPm.ok) return { success: true, message: 'Blog post deleted.' };
+		return { success: false, message: resultPm.error };
 	}
 );
 
 const deleteBlogCommentVerificationPresenter = new ActionVerificationModalPresenter(
 	async (data: unknown) => {
 		const d = data as { commentId: string };
-		return blogRepository.deleteBlogComment(d.commentId);
+		const resultPm = await blogRepository.deleteBlogComment(d.commentId);
+		if (resultPm.ok) return { success: true, message: 'Comment deleted.' };
+		return { success: false, message: resultPm.error };
 	}
 );
 
@@ -85,6 +91,7 @@ export type {
 } from '$lib/blogs/Blog.repository.svelte';
 export type {
 	BlogAuthorPublicViewModel,
+	BlogPostCommentViewModel,
 	BlogPostViewModel,
 	BlogPostPublicViewModel,
 	BlogTopicPublicViewModel,

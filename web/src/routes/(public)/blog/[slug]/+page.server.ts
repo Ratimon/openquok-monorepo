@@ -1,5 +1,5 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
-import type { BlogPostCommentProgrammerModel } from '$lib/blogs/index';
+import type { BlogPostCommentViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 
 import { error } from '@sveltejs/kit';
 
@@ -39,7 +39,7 @@ export async function load({ url, params, fetch, cookies }) {
 		throw error(404, 'Blog post not found');
 	}
 
-	const comments: BlogPostCommentProgrammerModel[] =
+	const comments: BlogPostCommentViewModel[] =
 		await publicBlogBySlugPagePresenter.loadPostComments({ postId: currentPostVm.id, fetch });
 
 	const { CONFIG_SCHEMA_COMPANY } = await import('$lib/config/constants/config');

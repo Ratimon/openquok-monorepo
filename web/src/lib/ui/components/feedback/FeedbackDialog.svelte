@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { CreateFeedbackProgrammerModel } from '$lib/feedbacks/Feedback.repository.svelte';
-	
+	import type { UpsertFeedbackProgrammerModel } from '$lib/feedbacks/Feedback.repository.svelte';
+
 	import { FeedbackStatus } from '$lib/feedbacks/Feedback.presenter.svelte';
 
 	import { toast } from '$lib/ui/sonner';
@@ -47,7 +47,7 @@
 			url: string,
 			description: string,
 			email: string
-		) => Promise<CreateFeedbackProgrammerModel | null>;
+		) => Promise<UpsertFeedbackProgrammerModel | null>;
 		handleReset: () => void;
 	};
 
@@ -179,7 +179,9 @@
 
 				{#if !isLoggedIn}
 					<div class="rounded-md border border-warning/20 bg-warning/10 p-4 text-sm text-warning">
-						<p>You need to sign in first to {feedbackTitle.toLowerCase()}.</p>
+						<p>
+							You need to sign in first to {feedbackTitle.toLowerCase()}.
+						</p>
 					</div>
 				{:else}
 					<div>

@@ -286,6 +286,9 @@ importers:
       '@shikijs/transformers':
         specifier: ^4.0.2
         version: 4.0.2
+      '@svar-ui/svelte-grid':
+        specifier: ^2.6.2
+        version: 2.6.2
       '@tanstack/svelte-form':
         specifier: ^1.28.4
         version: 1.28.4(svelte@5.53.6)
@@ -2680,6 +2683,42 @@ packages:
   '@supabase/supabase-js@2.97.0':
     resolution: {integrity: sha512-kTD91rZNO4LvRUHv4x3/4hNmsEd2ofkYhuba2VMUPRVef1RCmnHtm7rIws38Fg0yQnOSZOplQzafn0GSiy6GVg==}
     engines: {node: '>=20.0.0'}
+
+  '@svar-ui/core-locales@2.5.1':
+    resolution: {integrity: sha512-3VYDf/zdFVPKb8Zyf6u5IjM089WGOtNswPG8KT4KZNEoWiVIHblCJp1uXfzHERTFikNSVjllaT44S7M9nOhRsw==}
+
+  '@svar-ui/grid-data-provider@2.6.2':
+    resolution: {integrity: sha512-wFmxuaWsodJvgCMyRIBm29X4ETSLxxZ1sKqw16TRt+THlulO7TB9bwCBzUAS46jhgtMahXT1Kyi3Yc4CfzLnIQ==}
+
+  '@svar-ui/grid-locales@2.6.2':
+    resolution: {integrity: sha512-K8HKXly8t0imBJC23e/ZRa+t3jLGf+S+QW4ryKoqVwhdqOi3ugndDPj5mYfNNpZEwox7aWhdLBiakP+QMs2ueA==}
+
+  '@svar-ui/grid-store@2.6.2':
+    resolution: {integrity: sha512-M7VsTCAvpyzpE46lA0YN1ZQfp09o1O6TszKnVCuB7Fu87w4oB4NtkNKdoI8TXDEYY3z7MGv6eHQ3c/TXpsq1eQ==}
+
+  '@svar-ui/lib-data-provider@1.7.2':
+    resolution: {integrity: sha512-Od93Iiy0vBwVzgJm25WdizH3d4Xlli/HAA2kqoUj1pzeZ2SWBeFzvE59iihQz8NuIlfAtQJ6MMe168458T+2lQ==}
+
+  '@svar-ui/lib-dom@0.12.1':
+    resolution: {integrity: sha512-srvDleQqR6stBBDijCgzDHMFTTffI6sv3XCpNPKmurrnE83L1MDNqezqg6j3+0dUVPd4AAEGOez2DvK6byblTQ==}
+
+  '@svar-ui/lib-state@1.9.6':
+    resolution: {integrity: sha512-twoHa8wZvzdxtES68s6Wnp4Xi1WivScNaFFK6sJ6WDgqVYOzJw0ZhVVrdwHQgieLITTKl/DYh/U3nuqtMetKYw==}
+
+  '@svar-ui/lib-svelte@0.5.2':
+    resolution: {integrity: sha512-i+hHMT3zctaGbRpyMDREt9im7YfLpvGwFYvH1ntEp/kYAwUrR/sxMJlEEKIid+Yg2EeMUstGxmYQbkWoMpPG7A==}
+
+  '@svar-ui/svelte-core@2.5.1':
+    resolution: {integrity: sha512-snXNEYhWkg+7JQmhsS3xnN6UozfTj8+cQadKl3dsUyh3328F6NZZpKbUkXNArK95+OcueJZUXyExkDWv1NqmDA==}
+
+  '@svar-ui/svelte-grid@2.6.2':
+    resolution: {integrity: sha512-iFOoYBZQnXMQUx2Ko80sjcDGBWvmKQSHb/pYesdYEewgvF5w3ZeUc0qG3FX/7EWthKADoIACzdMLVHDRY9j1ow==}
+
+  '@svar-ui/svelte-menu@2.5.1':
+    resolution: {integrity: sha512-2ysDlaWR9FrLPRjCd/KB9L9FQry6xR06krAGKPvfFeueXIo3ySuRks6lniNzbLMvKWHG6VOzrBlAAfn0FTeipw==}
+
+  '@svar-ui/svelte-toolbar@2.5.1':
+    resolution: {integrity: sha512-QAomfCKtX4tqFLLid/H/U5STqVwrFi5FKPGssDHO55rYlyk+q/v6TfkO3qJYQlFEveui7IgaoWHY9lGxIn8tXg==}
 
   '@sveltejs/acorn-typescript@1.0.9':
     resolution: {integrity: sha512-lVJX6qEgs/4DOcRTpo56tmKzVPtoWAaVbL4hfO7t7NVwl9AAXzQR6cihesW1BmNMPl+bK6dreu2sOKBP2Q9CIA==}
@@ -9720,6 +9759,59 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+
+  '@svar-ui/core-locales@2.5.1': {}
+
+  '@svar-ui/grid-data-provider@2.6.2':
+    dependencies:
+      '@svar-ui/lib-data-provider': 1.7.2
+
+  '@svar-ui/grid-locales@2.6.2': {}
+
+  '@svar-ui/grid-store@2.6.2':
+    dependencies:
+      '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/lib-state': 1.9.6
+
+  '@svar-ui/lib-data-provider@1.7.2':
+    dependencies:
+      '@svar-ui/lib-state': 1.9.6
+
+  '@svar-ui/lib-dom@0.12.1': {}
+
+  '@svar-ui/lib-state@1.9.6': {}
+
+  '@svar-ui/lib-svelte@0.5.2':
+    dependencies:
+      '@svar-ui/lib-state': 1.9.6
+
+  '@svar-ui/svelte-core@2.5.1':
+    dependencies:
+      '@svar-ui/core-locales': 2.5.1
+      '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/lib-svelte': 0.5.2
+
+  '@svar-ui/svelte-grid@2.6.2':
+    dependencies:
+      '@svar-ui/grid-data-provider': 2.6.2
+      '@svar-ui/grid-locales': 2.6.2
+      '@svar-ui/grid-store': 2.6.2
+      '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/lib-state': 1.9.6
+      '@svar-ui/lib-svelte': 0.5.2
+      '@svar-ui/svelte-core': 2.5.1
+      '@svar-ui/svelte-menu': 2.5.1
+      '@svar-ui/svelte-toolbar': 2.5.1
+
+  '@svar-ui/svelte-menu@2.5.1':
+    dependencies:
+      '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/svelte-core': 2.5.1
+
+  '@svar-ui/svelte-toolbar@2.5.1':
+    dependencies:
+      '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/svelte-core': 2.5.1
 
   '@sveltejs/acorn-typescript@1.0.9(acorn@8.16.0)':
     dependencies:

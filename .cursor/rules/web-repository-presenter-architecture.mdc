@@ -18,7 +18,8 @@ alwaysApply: false
 
 - **DTOs / `*ResponseDto`**: next to the **repository** that consumes them.
 - **PM (`*ProgrammerModel`)**: same file as the **repository** class (unless shared across repos).
-- **VM for `Get*` outputs**: same file as **`Get*.presenter.svelte.ts`**.
+- **VM for `Get*` outputs** (reads/lists): same file as **`Get*.presenter.svelte.ts`** (e.g. **`BlogPostCommentViewModel`** next to **`loadPublishedBlogPostComments`**).
+- **Mutation result `*ViewModel`** (discriminated `{ ok: … }` exposed to routes/UI): **not** in the repository file. Prefer **page presenter** when screen-specific (**`PublicBlogMutationResultViewModel`**), or **feature presenter** when shared orchestration wraps the repo (**`PlugMutationResultViewModel`** on **`GlobalPlugSettingsPresenter`**). Map from **`BlogUpsertProgrammerModel`**, **`PlugUpsertProgrammerModel`**, etc. inside that presenter.
 - **Feature `*.types.ts`**: Zod / form types and other **non-repository-only** shared UI types.
 
 ## Naming (quick rules)
@@ -35,10 +36,11 @@ alwaysApply: false
 
 ## Rule of thumb (enforced)
 
-- **Repositories return PM**, not `*Vm` / `*ViewModel`.
-- **`Get*Presenter`** is the **read/list VM boundary** (map PM → VM).
+- **Repositories return PM** (including discriminated **`{ ok: … }`** unions), not arbitrary screen **`…ViewModel`** types — except documented **DTO == PM** aliases.
+- **`Get*Presenter`** is the **read/list VM boundary** (map PM → VM); **`load…Vm`** methods return **`Vm`**, **`Vm[]`**, or **`Vm | null`** — not PM arrays to **`$lib/ui`** or routes.
+- **Page / feature presenters** are the usual **mutation VM boundary**: convert **`resultPm`** from **`await repo…`** into a **`*MutationResultViewModel`** (or delegate to a feature presenter that already returns one). Do not thread **`BlogUpsertProgrammerModel`** / **`PlugUpsertProgrammerModel`** through callback props typed for UI consumers.
 - **DTO == PM** is allowed only when the wire shape is identical; still treat the return as PM at the boundary.
-- **Prefer clean returns in presenters:** for public read flows, prefer returning `null` / `[]` over `{ ok: true } | { ok: false }` unions. Keep unions for **repository I/O**, **aggregate multi-fetch** **`Get*`** loads, or when the caller truly needs multiple failure modes.
+- **Prefer clean returns in presenters:** for public **read** flows, prefer returning `null` / `[]` over `{ ok: true } | { ok: false }` unions. Keep unions for **repository I/O**, **aggregate multi-fetch** **`Get*`** loads, or when the caller truly needs multiple failure modes.
 
 ---
 
@@ -91,8 +93,9 @@ No gateway/repository imports from **routes**.
 
 ### Variables
 
-- After `await someRepository...`: **`resultPm`**, **`listPm`**, **`listPostsPmResult`** / **`getPostGroupPmResult`** when the return is a discriminated union — **avoid bare `r`**.
-- **`Get*Presenter`** PM→VM methods: assign **`xyzPm`** first (see **`GetFeedbackPresenter`**: `feedbacksPm` → mapped **`FeedbackViewModel`**), then build **`xyzVm`** and return — e.g. **`previewPostPm`** → **`previewPostVm`** in **`toPreviewPostVm`** / `toXxxVm`.
+- After **`await someRepository.someMethod(...)`**: bind to **`resultPm`** when holding a single repository outcome (discriminated union or PM payload). For **arrays** straight from the repo before mapping, **`listPm`** is fine — **avoid bare `r`**, **`res`**, **`data`** for that binding.
+- After mapping PM → VM for the caller: **`resultVm`**, **`commentsVm`**, **`groupVm`**, etc.
+- **`Get*Presenter`** PM→VM methods: assign **`resultPm`** / **`listPm`** first (see **`GetFeedbackPresenter`**: list PM → mapped **`FeedbackViewModel`**), then **`.map(toXxxVm)`** or **`toXxxVm(pm)`** and return **`Vm`** / **`Vm[]`** — e.g. **`resultPm`** → **`previewPostVm`** via **`toPreviewPostVm`**.
 - Presenter fields for the UI: **`workspacesVm`**, etc.
 - Internal VM mutation helpers on presenters: **`_*`** prefix when not public API (full pattern: **web-page-presenter-conventions**).
 
@@ -116,9 +119,9 @@ When a presenter returns clean values (`null` / `[]`) instead of unions, prefer 
 
 ### Return-shape guidance (pragmatic)
 
-- **Repositories**: may return unions (`{ ok: true } | { ok: false }`) for transport errors; they are the I/O boundary.
-- **`Get*` presenters (reads)**: prefer **clean values** (`Vm | null`, `Vm[]`) and handle repository unions internally with `try/catch` fallbacks.
-- **Feature presenters / mutations**: unions are OK when needed, but consider also using presenter toast flags (pattern A) or returning `null`/`false` when the UI only needs success/failure.
+- **Repositories**: may return unions (`{ ok: true; … } | { ok: false; error: string }`) for transport errors; they are the I/O boundary.
+- **`Get*` presenters (reads)**: prefer **clean values** (`Vm | null`, `Vm[]`) and handle repository unions internally with `try/catch` or **`if (!resultPm.ok)`** before mapping — callers receive **VMs only**.
+- **Feature / page presenters (mutations)**: prefer exposing **`Promise<*MutationResultViewModel>`** (discriminated **`ok`**) to routes/UI after mapping **`resultPm`**; alternatively **pattern A** toast flags (**web-page-presenter-conventions**) when the screen never inspects return values from children.
 
 ## Testing
 

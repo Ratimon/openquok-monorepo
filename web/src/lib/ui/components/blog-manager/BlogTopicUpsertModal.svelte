@@ -90,10 +90,8 @@
 						...(parsed.parent_id ? { parent_id: parsed.parent_id } : {})
 					});
 
-			if (upsertResult.success) {
-				toast.success(
-					upsertResult.message ?? (topic?.id ? 'Topic updated.' : 'Topic created.')
-				);
+			if (upsertResult.ok) {
+				toast.success(topic?.id ? 'Topic updated.' : 'Topic created.');
 				const id = upsertResult.id ?? topic?.id;
 				if (!id) {
 					toast.error('Missing topic id from server.');
@@ -113,7 +111,7 @@
 				}
 				dialogOpen = false;
 			} else {
-				toast.error(upsertResult.message ?? 'Failed to save topic.');
+				toast.error(upsertResult.error ?? 'Failed to save topic.');
 			}
 		} catch (err) {
 			console.error(err);
