@@ -69,6 +69,10 @@
 									{#if sub.href != null}
 										<a
 											href={sub.href}
+											onclick={() => {
+												openSublinksFor = null;
+												open = false;
+											}}
 											class={cn(
 												'flex items-center gap-2 rounded-md py-1.5 px-2 text-sm font-medium text-base-content/70 hover:text-base-content hover:bg-base-300',
 												sub?.customStyle

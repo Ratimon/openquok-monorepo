@@ -214,6 +214,9 @@
 								{#if sub.href != null}
 									<a
 										href={sub.href}
+										onclick={() => {
+											dropdownOpen = false;
+										}}
 										class={cn(
 											'flex items-center gap-2 rounded-md py-2 px-2 text-sm font-medium text-base-content/70 hover:text-base-content hover:bg-base-300',
 											sub?.customStyle
