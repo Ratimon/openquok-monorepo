@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-	import type { SetProgrammerModel, SetSnapshotV1 } from '$lib/sets';
+	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
 
 	// --- App / routing ---
 	import { browser } from '$app/environment';
@@ -14,6 +14,7 @@
 		protectedCalendarPagePresenter,
 		protectedDashboardPagePresenter
 	} from '$lib/area-protected';
+	import { getSetPresenter } from '$lib/sets';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
 	// --- Feedback ---
@@ -34,7 +35,6 @@
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import StatisticsModal from '$lib/ui/components/platform-analytics/StatisticsModal.svelte';
 
-	import { setsRepository, parseSetContent } from '$lib/sets';
 
 	const calendarPresenter = protectedCalendarPagePresenter;
 
@@ -45,8 +45,8 @@
 	let createSocialPostOpen = $state(false);
 
 	let setPickOpen = $state(false);
-	let setPickRows = $state<SetProgrammerModel[]>([]);
-	let setPickFinish: ((v: SetSnapshotV1 | null | undefined) => void) | null = null;
+	let setPickRowsVm = $state<SetRowViewModel[]>([]);
+	let setPickFinish: ((v: SetSnapshotViewModel | null | undefined) => void) | null = null;
 
 	let moveGroupOpen = $state(false);
 	let moveGroupFor = $state<CreateSocialPostChannelViewModel | null>(null);
@@ -94,32 +94,32 @@
 		void goto(accountRoot);
 	}
 
-	async function chooseSetSnapshotForWorkspace(): Promise<SetSnapshotV1 | null | undefined> {
+	async function chooseSetSnapshotForWorkspace(): Promise<SetSnapshotViewModel | null | undefined> {
 		const oid = workspaceId;
 		if (!oid) return undefined;
-		const res = await setsRepository.listForOrganization(oid);
-		const rows = res.ok ? res.items : [];
-		if (!rows.length) return null;
+		const resultVm = await getSetPresenter.loadSetsListVm(oid);
+		const rowsVm = resultVm.ok ? resultVm.rows : [];
+		if (!rowsVm.length) return null;
 		return new Promise((resolve) => {
-			setPickRows = rows;
+			setPickRowsVm = rowsVm;
 			setPickFinish = resolve;
 			setPickOpen = true;
 		});
 	}
 
-	function finishSetPick(value: SetSnapshotV1 | null | undefined) {
+	function finishSetPick(value: SetSnapshotViewModel | null | undefined) {
 		setPickOpen = false;
 		setPickFinish?.(value);
 		setPickFinish = null;
 	}
 
-	function handleSetPickRow(row: SetProgrammerModel) {
-		const snap = parseSetContent(row.content);
-		if (!snap) {
+	function handleSetPickRow(row: SetRowViewModel) {
+		const snapshotVm = getSetPresenter.parseSnapshotFromContentStateless(row.content);
+		if (!snapshotVm) {
 			toast.error('This set could not be loaded.');
 			return;
 		}
-		finishSetPick(snap);
+		finishSetPick(snapshotVm);
 	}
 
 	async function openCreatePostForCurrentScope() {
@@ -427,7 +427,7 @@
 
 <SetPickerDialog
 	bind:open={setPickOpen}
-	sets={setPickRows}
+	setsVm={setPickRowsVm}
 	onPick={handleSetPickRow}
 	onContinueWithout={() => finishSetPick(null)}
 	onDismiss={() => finishSetPick(undefined)}

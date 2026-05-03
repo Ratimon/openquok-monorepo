@@ -18,8 +18,8 @@ import type {
 	GetSignaturesPresenter,
 	SignatureViewModel
 } from '$lib/signatures/GetSignature.presenter.svelte';
-import type { SetsRepository } from '$lib/sets/Sets.repository.svelte';
-import { stringifySetSnapshot, type SetSnapshotV1 } from '$lib/sets/setSnapshot';
+import type { SetSnapshotProgrammerModel } from '$lib/sets/Sets.repository.svelte';
+import type { UpsertSetPresenter } from '$lib/sets/UpsertSetPresenter.svelte';
 
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 import {
@@ -72,7 +72,7 @@ export type CreateSocialPostPrepareOpenOptions = {
 	/** When true, immediately focus the first selected channel for per-channel editing. */
 	autoCustomizeFirstSelected?: boolean;
 	/** Restore a saved workspace “set” (channels + composer fields) after load. */
-	setSnapshot?: SetSnapshotV1 | null;
+	setSnapshot?: SetSnapshotProgrammerModel | null;
 	/** Settings: define a reusable preset; optional `editingSetId` for update. */
 	contentSetAuthoring?: { editingSetId?: string | null } | null;
 };
@@ -124,7 +124,7 @@ export class CreateSocialPostPresenter {
 		private readonly mediaModalPresenter: GenerateMediaModalPresenter,
 		private readonly getSignaturesPresenter: GetSignaturesPresenter,
 		scheduledPostsPresenter: GetScheduledPostsPresenter,
-		private readonly setsRepository: SetsRepository
+		private readonly upsertSetPresenter: UpsertSetPresenter
 	) {
 		this.scheduledPostsPresenter = scheduledPostsPresenter;
 	}
@@ -205,7 +205,7 @@ export class CreateSocialPostPresenter {
 	private pendingAutoCustomizeFirstSelected = false;
 	private pendingEditPostGroup: string | null = null;
 	private pendingDuplicatePostGroup: string | null = null;
-	private pendingSetSnapshot: SetSnapshotV1 | null = null;
+	private pendingSetSnapshot: SetSnapshotProgrammerModel | null = null;
 	private pendingContentSetAuthoring: { editingSetId?: string | null } | null = null;
 	private lastLoadedEditKey: string | null = null;
 	private tagListCache: { workspaceId: string; loadedAtMs: number } | null = null;
@@ -367,7 +367,7 @@ export class CreateSocialPostPresenter {
 	}
 
 	/** Open the composer to author or edit a reusable workspace set (consumers bind modal `open`). */
-	prepareContentSetAuthoring(opts: { editingSetId?: string | null; snapshot?: SetSnapshotV1 | null }): void {
+	prepareContentSetAuthoring(opts: { editingSetId?: string | null; snapshot?: SetSnapshotProgrammerModel | null }): void {
 		this.pendingEditPostGroup = null;
 		this.pendingDuplicatePostGroup = null;
 		this.pendingPreselectIntegrationId = null;
@@ -944,7 +944,7 @@ export class CreateSocialPostPresenter {
 		}
 	}
 
-	private applySetSnapshot(snapshot: SetSnapshotV1): void {
+	private applySetSnapshot(snapshot: SetSnapshotProgrammerModel): void {
 		const allowed = new Set(this.baseSocialChannelsVm.map((c) => c.id));
 		const ids = snapshot.selectedIntegrationIds.filter((id) => allowed.has(id));
 		const okIds = ids.filter((id) => {
@@ -994,7 +994,7 @@ export class CreateSocialPostPresenter {
 		this.loadEditorBody();
 	}
 
-	buildSetSnapshot(): SetSnapshotV1 {
+	buildSetSnapshot(): SetSnapshotProgrammerModel {
 		this.persistEditorBody();
 		let providerCopy: Record<string, Record<string, unknown>> = {};
 		try {
@@ -1006,7 +1006,6 @@ export class CreateSocialPostPresenter {
 			providerCopy = {};
 		}
 		return {
-			v: 1,
 			selectedIntegrationIds: [...this.selectedIds],
 			selectedGroupId: this.selectedGroupId,
 			mode: this.mode,
@@ -1039,20 +1038,19 @@ export class CreateSocialPostPresenter {
 			return false;
 		}
 		const snapshot = this.buildSetSnapshot();
-		const raw = stringifySetSnapshot(snapshot);
 		this.busy = true;
 		try {
-			const res = await this.setsRepository.upsert({
+			const resultVm = await this.upsertSetPresenter.upsertSet({
 				organizationId: workspaceId,
 				...(this.editingSetId ? { id: this.editingSetId } : {}),
 				name: trimmed,
-				content: raw
+				snapshot
 			});
-			if (!res.ok) {
-				toast.error(res.error);
+			if (!resultVm.ok) {
+				toast.error(resultVm.error);
 				return false;
 			}
-			this.editingSetId = res.id;
+			this.editingSetId = resultVm.id;
 			toast.success('Set saved.');
 			this.captureInitialSnapshot();
 			return true;

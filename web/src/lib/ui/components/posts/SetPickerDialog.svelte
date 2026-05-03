@@ -1,20 +1,20 @@
 <script lang="ts">
-	import type { SetProgrammerModel } from '$lib/sets';
+	import type { SetRowViewModel } from '$lib/sets';
 
 	import * as Dialog from '$lib/ui/dialog';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = {
 		open?: boolean;
-		sets: SetProgrammerModel[];
-		onPick: (row: SetProgrammerModel) => void;
+		setsVm: SetRowViewModel[];
+		onPick: (row: SetRowViewModel) => void;
 		onContinueWithout: () => void;
 		onDismiss: () => void;
 	};
 
 	let {
 		open = $bindable(false),
-		sets,
+		setsVm,
 		onPick,
 		onContinueWithout,
 		onDismiss
@@ -31,7 +31,7 @@
 		</Dialog.Header>
 
 		<div class="max-h-60 space-y-2 overflow-y-auto py-3">
-			{#each sets as row (row.id)}
+			{#each setsVm as row (row.id)}
 				<button
 					type="button"
 					class="border-base-300 hover:bg-base-200/80 w-full rounded-lg border px-3 py-2.5 text-left transition-colors"

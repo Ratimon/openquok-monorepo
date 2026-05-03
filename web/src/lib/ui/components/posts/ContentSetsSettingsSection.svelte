@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { SetProgrammerModel } from '$lib/sets';
+	import type { SetRowViewModel } from '$lib/sets';
 
-	import { setsRepository, parseSetContent } from '$lib/sets';
+	import { getSetPresenter, upsertSetPresenter } from '$lib/sets';
 	import { protectedDashboardPagePresenter } from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
@@ -10,7 +10,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { icons } from '$data/icons';
 
-	let sets = $state<SetProgrammerModel[]>([]);
+	let setsVm = $state<SetRowViewModel[]>([]);
 	let loading = $state(false);
 	let composeOpen = $state(false);
 
@@ -21,13 +21,13 @@
 	async function reload() {
 		const oid = workspaceId;
 		if (!oid) {
-			sets = [];
+			setsVm = [];
 			return;
 		}
 		loading = true;
 		try {
-			const res = await setsRepository.listForOrganization(oid);
-			sets = res.ok ? res.items : [];
+			const resultVm = await getSetPresenter.loadSetsListVm(oid);
+			setsVm = resultVm.ok ? resultVm.rows : [];
 		} finally {
 			loading = false;
 		}
@@ -47,10 +47,10 @@
 		composeOpen = true;
 	}
 
-	function openEditSet(row: SetProgrammerModel) {
+	function openEditSet(row: SetRowViewModel) {
 		const oid = workspaceId;
 		if (!oid) return;
-		const snap = parseSetContent(row.content);
+		const snap = getSetPresenter.parseSnapshotFromContentStateless(row.content);
 		if (!snap) {
 			window.alert('This set uses an unsupported format and cannot be edited.');
 			return;
@@ -60,13 +60,13 @@
 		composeOpen = true;
 	}
 
-	async function deleteSet(row: SetProgrammerModel) {
+	async function deleteSet(row: SetRowViewModel) {
 		if (!workspaceId) return;
 		const ok = confirm(`Delete set "${row.name}"?`);
 		if (!ok) return;
-		const res = await setsRepository.deleteById(row.id);
-		if (!res.ok) {
-			window.alert(res.error);
+		const resultVm = await upsertSetPresenter.deleteSet(row.id);
+		if (!resultVm.ok) {
+			window.alert(resultVm.error);
 			return;
 		}
 		await reload();
@@ -76,7 +76,7 @@
 
 <div class="flex flex-col gap-3">
 	<h3 class="text-xl font-semibold text-base-content">
-		Sets ({sets.length})
+		Sets ({setsVm.length})
 	</h3>
 	<p class="text-base-content/70 text-sm">
 		Manage reusable combinations of channels and draft content for faster scheduling.
@@ -92,7 +92,7 @@
 				<AbstractIcon name={icons.LoaderCircle.name} class="size-4 animate-spin" width="16" height="16" />
 				Loading sets…
 			</p>
-		{:else if sets.length === 0}
+		{:else if setsVm.length === 0}
 			<Button type="button" variant="primary" onclick={openNewSetModal}>
 				Add a set
 			</Button>
@@ -102,7 +102,7 @@
 					Name</div>
 				<div class="hidden sm:block"></div>
 				<div class="hidden sm:block"></div>
-				{#each sets as row (row.id)}
+				{#each setsVm as row (row.id)}
 					<div class="text-base-content font-medium">
 						{row.name}</div>
 					<Button

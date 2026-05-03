@@ -4,6 +4,8 @@
 		CreateSocialPostChannelViewModel,
 		DashboardPlatformChannelRowViewModel
 	} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
+
 
 	// --- App / routing ---
 	import { goto } from '$app/navigation';
@@ -12,10 +14,9 @@
 
 	// --- Area & integrations ---
 	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
+	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
-	import type { SetProgrammerModel, SetSnapshotV1 } from '$lib/sets';
-	import { setsRepository, parseSetContent } from '$lib/sets';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
 	// --- Feedback ---
@@ -91,30 +92,30 @@
 	let createSocialPostOpen = $state(false);
 
 	let setPickOpen = $state(false);
-	let setPickRows = $state<SetProgrammerModel[]>([]);
-	let setPickFinish: ((v: SetSnapshotV1 | null | undefined) => void) | null = null;
+	let setPickRowsVm = $state<SetRowViewModel[]>([]);
+	let setPickFinish: ((v: SetSnapshotViewModel | null | undefined) => void) | null = null;
 
-	async function chooseSetSnapshotForWorkspace(): Promise<SetSnapshotV1 | null | undefined> {
+	async function chooseSetSnapshotForWorkspace(): Promise<SetSnapshotViewModel | null | undefined> {
 		const oid = workspaceId;
 		if (!oid) return undefined;
-		const res = await setsRepository.listForOrganization(oid);
-		const rows = res.ok ? res.items : [];
+		const resultVm = await getSetPresenter.loadSetsListVm(oid);
+		const rows = resultVm.ok ? resultVm.rows : [];
 		if (!rows.length) return null;
 		return new Promise((resolve) => {
-			setPickRows = rows;
+			setPickRowsVm = rows;
 			setPickFinish = resolve;
 			setPickOpen = true;
 		});
 	}
 
-	function finishSetPick(value: SetSnapshotV1 | null | undefined) {
+	function finishSetPick(value: SetSnapshotViewModel | null | undefined) {
 		setPickOpen = false;
 		setPickFinish?.(value);
 		setPickFinish = null;
 	}
 
-	function handleSetPickRow(row: SetProgrammerModel) {
-		const snap = parseSetContent(row.content);
+	function handleSetPickRow(row: SetRowViewModel) {
+		const snap = getSetPresenter.parseSnapshotFromContentStateless(row.content);
 		if (!snap) {
 			toast.error('This set could not be loaded.');
 			return;
@@ -644,7 +645,7 @@
 
 <SetPickerDialog
 	bind:open={setPickOpen}
-	sets={setPickRows}
+	setsVm={setPickRowsVm}
 	onPick={handleSetPickRow}
 	onContinueWithout={() => finishSetPick(null)}
 	onDismiss={() => finishSetPick(undefined)}

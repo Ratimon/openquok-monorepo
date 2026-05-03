@@ -22,7 +22,7 @@ import { getScheduledPostsPresenter, postsRepository } from '$lib/posts';
 import { SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
 import { getNotificationPresenter, notificationRepository } from '$lib/notifications';
 import { getSignaturesPresenter, signaturesRepository } from '$lib/signatures';
-import { setsRepository } from '$lib/sets';
+import { upsertSetPresenter } from '$lib/sets';
 import { workspaceSettingsPresenter } from '$lib/settings';
 import { authenticationRepository } from '$lib/user-auth/index';
 import { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte';
@@ -65,7 +65,7 @@ const createSocialPostPresenter = new CreateSocialPostPresenter(
 	composerMediaModalPresenter,
 	getSignaturesPresenter,
 	getScheduledPostsPresenter,
-	setsRepository
+	upsertSetPresenter
 );
 
 const protectedDashboardPagePresenter = new ProtectedDashboardPagePresenter(

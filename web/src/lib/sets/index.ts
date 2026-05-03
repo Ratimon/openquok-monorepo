@@ -1,6 +1,8 @@
 import { httpGateway } from '$lib/core/index';
 
+import { GetSetPresenter } from '$lib/sets/GetSet.presenter.svelte';
 import { SetsRepository } from '$lib/sets/Sets.repository.svelte';
+import { UpsertSetPresenter } from '$lib/sets/UpsertSetPresenter.svelte';
 
 const setsConfig = {
 	endpoints: {
@@ -10,8 +12,19 @@ const setsConfig = {
 	}
 };
 
-export const setsRepository = new SetsRepository(httpGateway, setsConfig);
+const setsRepository = new SetsRepository(httpGateway, setsConfig);
 
-export type { SetProgrammerModel } from '$lib/sets/Sets.repository.svelte';
-export type { SetSnapshotV1 } from '$lib/sets/setSnapshot';
-export { parseSetContent, stringifySetSnapshot } from '$lib/sets/setSnapshot';
+export const getSetPresenter = new GetSetPresenter(setsRepository);
+export const upsertSetPresenter = new UpsertSetPresenter(setsRepository);
+
+export type { SetProgrammerModel, SetSnapshotProgrammerModel } from '$lib/sets/Sets.repository.svelte';
+export type {
+	SetListLoadResultViewModel,
+	SetRowViewModel,
+	SetSnapshotViewModel
+} from '$lib/sets/GetSet.presenter.svelte';
+export type {
+	SetDeleteResultViewModel,
+	SetUpsertProgrammerModel,
+	SetUpsertResultViewModel
+} from '$lib/sets/UpsertSetPresenter.svelte';
