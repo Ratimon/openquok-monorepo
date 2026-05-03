@@ -22,10 +22,9 @@ export class GetSignaturesPresenter {
 	}
 
 	public async loadSignaturesForOrganizationResult(
-		organizationId: string,
-		fetch?: typeof globalThis.fetch
+		organizationId: string
 	): Promise<LoadSignaturesForOrganizationResult> {
-		const res = await this.signaturesRepository.listForOrganization(organizationId, fetch);
+		const res = await this.signaturesRepository.listForOrganization(organizationId);
 		if (!res.ok) return res;
 		return { ok: true, items: this.toSignatureListVm(res.items) };
 	}
@@ -34,11 +33,8 @@ export class GetSignaturesPresenter {
 	 * Load workspace signatures and map to {@link SignatureViewModel}.
 	 * Stateless: does not touch `$state`.
 	 */
-	public async loadSignaturesForOrganizationVm(
-		organizationId: string,
-		fetch?: typeof globalThis.fetch
-	): Promise<SignatureViewModel[]> {
-		const resVm = await this.loadSignaturesForOrganizationResult(organizationId, fetch);
+	public async loadSignaturesForOrganizationVm(organizationId: string): Promise<SignatureViewModel[]> {
+		const resVm = await this.loadSignaturesForOrganizationResult(organizationId);
 		return resVm.ok ? resVm.items : [];
 	}
 }

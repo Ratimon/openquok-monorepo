@@ -2,10 +2,22 @@ import type { HttpGateway } from '$lib/core/HttpGateway';
 import { ApiError } from '$lib/core/HttpGateway';
 import type { AppRole, AppPermission } from '$lib/rbac/rbac.types';
 
+/** One role / permission pair from {@link RbacRepository.getAllRolePermissions}. */
+export interface RbacRolePermissionProgrammerModel {
+	role: AppRole;
+	permission: AppPermission;
+}
+
+/** RBAC assign/remove permission or role — repository PM boundary. */
+export interface RbacMutationProgrammerModel {
+	success: boolean;
+	message: string;
+}
+
 export interface GetAllRolePermissionsResponseDto {
 	success: boolean;
 	data: {
-		permissions: Array<{ role: AppRole; permission: AppPermission }>;
+		permissions: RbacRolePermissionProgrammerModel[];
 	};
 }
 
@@ -47,7 +59,7 @@ export class RbacRepository {
 		private readonly config: RbacConfig
 	) {}
 
-	async getAllRolePermissions(): Promise<Array<{ role: AppRole; permission: AppPermission }>> {
+	async getAllRolePermissions(): Promise<RbacRolePermissionProgrammerModel[]> {
 		const { data: getAllRolePermissionsDto, ok } =
 			await this.httpGateway.get<GetAllRolePermissionsResponseDto>(
 				this.config.endpoints.getAllRolePermissions
@@ -62,7 +74,7 @@ export class RbacRepository {
 	async assignPermissionToRole(
 		role: AppRole,
 		permission: AppPermission
-	): Promise<{ success: boolean; message: string }> {
+	): Promise<RbacMutationProgrammerModel> {
 		try {
 			const url = this.config.endpoints.assignPermissionToRole
 				.replace(':role', role)
@@ -86,7 +98,7 @@ export class RbacRepository {
 	async removePermissionFromRole(
 		role: AppRole,
 		permission: AppPermission
-	): Promise<{ success: boolean; message: string }> {
+	): Promise<RbacMutationProgrammerModel> {
 		try {
 			const url = this.config.endpoints.removePermissionFromRole
 				.replace(':role', role)
@@ -107,7 +119,7 @@ export class RbacRepository {
 		}
 	}
 
-	async assignRole(userId: string, role: AppRole): Promise<{ success: boolean; message: string }> {
+	async assignRole(userId: string, role: AppRole): Promise<RbacMutationProgrammerModel> {
 		try {
 			const url = this.config.endpoints.assignRole
 				.replace(':userId', userId)
@@ -128,7 +140,7 @@ export class RbacRepository {
 		}
 	}
 
-	async removeRole(userId: string, role: AppRole): Promise<{ success: boolean; message: string }> {
+	async removeRole(userId: string, role: AppRole): Promise<RbacMutationProgrammerModel> {
 		try {
 			const url = this.config.endpoints.removeRole
 				.replace(':userId', userId)

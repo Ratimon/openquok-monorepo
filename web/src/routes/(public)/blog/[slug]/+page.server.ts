@@ -22,7 +22,7 @@ export async function load({ url, params, fetch, cookies }) {
 	const isLoggedIn = !!accessToken;
 
 	const { companyInformation: companyInformationPm, marketingInformation: marketingInformationPm } =
-		await publicInformationRepository.getAllInformationCombined();
+		await publicInformationRepository.getAllInformationCombined(fetch);
 
 	const rootBlog = getRootPathPublicBlog();
 

@@ -133,37 +133,20 @@ export class CreateSocialPostPresenter {
 	private readonly signaturesCacheTtlMs = 30_000;
 
 	/** Composer toolbar: fetch signatures without mutating settings presenter state. */
-	loadSignaturesVmForComposer = async (organizationId: string, fetch?: typeof globalThis.fetch) => {
+	loadSignaturesVmForComposer = async (organizationId: string) => {
 		const oid = (organizationId ?? '').trim();
 		if (!oid) return { ok: true as const, items: [] };
 
-		// If a custom fetch is provided (SSR / universal load), bypass in-memory cache.
-		if (!fetch) {
-			const cached = this.signaturesCache;
-			if (
-				cached &&
-				cached.organizationId === oid &&
-				Date.now() - cached.loadedAtMs < this.signaturesCacheTtlMs
-			) {
-				return { ok: true as const, items: cached.items };
-			}
+		const cached = this.signaturesCache;
+		if (
+			cached &&
+			cached.organizationId === oid &&
+			Date.now() - cached.loadedAtMs < this.signaturesCacheTtlMs
+		) {
+			return { ok: true as const, items: cached.items };
 		}
 
-		// HMR-safety: older presenter instances may not have the newer `...Result` method yet.
-		const p = this.getSignaturesPresenter as unknown as {
-			loadSignaturesForOrganizationResult?: (
-				organizationId: string,
-				fetch?: typeof globalThis.fetch
-			) => Promise<{ ok: true; items: SignatureViewModel[] } | { ok: false; error: string }>;
-			loadSignaturesForOrganizationVm: (
-				organizationId: string,
-				fetch?: typeof globalThis.fetch
-			) => Promise<SignatureViewModel[]>;
-		};
-
-		const resVm = p.loadSignaturesForOrganizationResult
-			? await p.loadSignaturesForOrganizationResult(oid, fetch)
-			: ({ ok: true, items: await p.loadSignaturesForOrganizationVm(oid, fetch) } as const);
+		const resVm = await this.getSignaturesPresenter.loadSignaturesForOrganizationResult(oid);
 		if (resVm.ok) {
 			this.signaturesCache = { organizationId: oid, items: resVm.items, loadedAtMs: Date.now() };
 		}

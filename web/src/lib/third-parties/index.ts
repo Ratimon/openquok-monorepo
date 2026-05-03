@@ -11,4 +11,8 @@ const thirdPartyConfig: ThirdPartyConfig = {
 export const thirdPartyRepository = new ThirdPartyRepository(httpGateway, thirdPartyConfig);
 
 export { ThirdPartyRepository } from '$lib/third-parties/ThirdParty.repository.svelte';
-export type { ThirdPartyConfig, ThirdPartyConnectorVm, ThirdPartyListResponseDto } from '$lib/third-parties/ThirdParty.repository.svelte';
+export type {
+	ThirdPartyConfig,
+	ThirdPartyConnectorProgrammerModel,
+	ThirdPartyListResponseDto
+} from '$lib/third-parties/ThirdParty.repository.svelte';

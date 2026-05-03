@@ -50,10 +50,10 @@ export class AdminEmailManagerPagePresenter {
 		private readonly emailRepository: EmailRepository
 	) {}
 
-	async loadInitial(fetch?: typeof globalThis.fetch): Promise<void> {
+	async loadInitial(): Promise<void> {
 		this.listLoading = true;
 		this.listError = null;
-		const res = await this.getEmailPresenter.loadReceivedEmailsVm({ limit: 25 }, fetch);
+		const res = await this.getEmailPresenter.loadReceivedEmailsVm({ limit: 25 });
 		this.listLoading = false;
 		if (res.success) {
 			this.receivedEmails = res.list;
@@ -65,12 +65,12 @@ export class AdminEmailManagerPagePresenter {
 		}
 	}
 
-	async loadMore(fetch?: typeof globalThis.fetch): Promise<void> {
+	async loadMore(): Promise<void> {
 		if (!this.hasMore || this.listLoadingMore) return;
 		const last = this.receivedEmails[this.receivedEmails.length - 1];
 		if (!last) return;
 		this.listLoadingMore = true;
-		const res = await this.getEmailPresenter.loadReceivedEmailsVm({ limit: 25, after: last.id }, fetch);
+		const res = await this.getEmailPresenter.loadReceivedEmailsVm({ limit: 25, after: last.id });
 		this.listLoadingMore = false;
 		if (res.success) {
 			this.receivedEmails = [...this.receivedEmails, ...res.list];
@@ -81,12 +81,12 @@ export class AdminEmailManagerPagePresenter {
 		}
 	}
 
-	async selectEmail(id: string, fetch?: typeof globalThis.fetch): Promise<void> {
+	async selectEmail(id: string): Promise<void> {
 		this.selectedId = id;
 		this.detailLoading = true;
 		this.detailError = null;
 		this.detail = null;
-		const res = await this.getEmailPresenter.loadReceivedEmailDetailVm(id, fetch);
+		const res = await this.getEmailPresenter.loadReceivedEmailDetailVm(id);
 		this.detailLoading = false;
 		if (res.success && res.detail) {
 			this.detail = res.detail;
@@ -108,7 +108,7 @@ export class AdminEmailManagerPagePresenter {
 		this.composeInReplyTo = '';
 	}
 
-	async sendReply(fetch?: typeof globalThis.fetch): Promise<void> {
+	async sendReply(): Promise<void> {
 		const to = this.composeTo.trim();
 		const subject = this.composeSubject.trim();
 		const text = this.composeText.trim();
@@ -120,16 +120,13 @@ export class AdminEmailManagerPagePresenter {
 		}
 
 		this.sendInProgress = true;
-		const res = await this.emailRepository.sendEmail(
-			{
-				to,
-				subject,
-				text,
-				...(replyTo ? { reply_to: replyTo } : {}),
-				...(this.composeInReplyTo ? { in_reply_to: this.composeInReplyTo } : {})
-			},
-			fetch
-		);
+		const res = await this.emailRepository.sendEmail({
+			to,
+			subject,
+			text,
+			...(replyTo ? { reply_to: replyTo } : {}),
+			...(this.composeInReplyTo ? { in_reply_to: this.composeInReplyTo } : {})
+		});
 		this.sendInProgress = false;
 
 		if (res.success) {

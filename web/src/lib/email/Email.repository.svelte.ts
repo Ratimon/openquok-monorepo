@@ -134,10 +134,11 @@ export class EmailRepository {
 		private readonly config: EmailConfig
 	) {}
 
-	async listReceivedEmails(
-		params: { limit?: number; after?: string; before?: string },
-		fetch?: typeof globalThis.fetch
-	): Promise<ListReceivedEmailsResult> {
+	async listReceivedEmails(params: {
+		limit?: number;
+		after?: string;
+		before?: string;
+	}): Promise<ListReceivedEmailsResult> {
 		try {
 			const { data: dto, ok } = await this.httpGateway.get<ListReceivedEmailsResponseDto>(
 				this.config.endpoints.listReceiving,
@@ -146,7 +147,7 @@ export class EmailRepository {
 					...(params.after ? { after: params.after } : {}),
 					...(params.before ? { before: params.before } : {})
 				},
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 
 			if (ok && dto?.data?.data) {
@@ -197,15 +198,12 @@ export class EmailRepository {
 		};
 	}
 
-	async getReceivedEmail(
-		id: string,
-		fetch?: typeof globalThis.fetch
-	): Promise<GetReceivedEmailResult> {
+	async getReceivedEmail(id: string): Promise<GetReceivedEmailResult> {
 		try {
 			const { data: dto, ok } = await this.httpGateway.get<GetReceivedEmailResponseDto>(
 				this.config.endpoints.receivingEmail(id),
 				undefined,
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 
 			if (ok && dto?.data && typeof dto.data === 'object') {
@@ -234,15 +232,12 @@ export class EmailRepository {
 		}
 	}
 
-	async sendEmail(
-		payload: SendEmailRequestBody,
-		fetch?: typeof globalThis.fetch
-	): Promise<SendEmailResult> {
+	async sendEmail(payload: SendEmailRequestBody): Promise<SendEmailResult> {
 		try {
 			const { data: dto, ok } = await this.httpGateway.post<SendEmailResponseDto>(
 				this.config.endpoints.send,
 				payload,
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 
 			if (ok && dto?.data?.id) {

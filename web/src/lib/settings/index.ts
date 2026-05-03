@@ -36,7 +36,12 @@ export type {
 	OrganizationWithRoleDto,
 	OrganizationDto,
 	OrganizationProgrammerModel,
-	OrganizationWithRoleProgrammerModel
+	OrganizationWithRoleProgrammerModel,
+	SettingsTeamMutationProgrammerModel,
+	LeaveWorkspaceProgrammerModel,
+	InviteTeamMemberProgrammerModel,
+	AcceptPendingInviteProgrammerModel,
+	JoinWorkspaceByTokenProgrammerModel
 } from '$lib/settings/Settings.repository.svelte';
 
 export { GetWorkspacePresenter } from '$lib/settings/GetWorkspace.presenter.svelte';

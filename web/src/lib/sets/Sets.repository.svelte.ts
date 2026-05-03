@@ -38,14 +38,13 @@ export class SetsRepository {
 	) {}
 
 	async listForOrganization(
-		organizationId: string,
-		fetch?: typeof globalThis.fetch
+		organizationId: string
 	): Promise<{ ok: true; items: SetProgrammerModel[] } | { ok: false; error: string }> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.get<ListSetsResponseDto>(
 				this.config.endpoints.list,
 				{ organizationId },
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 			if (ok && dto?.success === true && Array.isArray(dto.data)) {
 				return { ok: true, items: dto.data };
@@ -56,15 +55,17 @@ export class SetsRepository {
 		}
 	}
 
-	async upsert(
-		body: { organizationId: string; id?: string; name: string; content: string },
-		fetch?: typeof globalThis.fetch
-	): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+	async upsert(body: {
+		organizationId: string;
+		id?: string;
+		name: string;
+		content: string;
+	}): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.post<UpsertSetResponseDto>(
 				this.config.endpoints.upsert,
 				body,
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 			if (ok && dto?.success === true && dto.data?.id && typeof dto.data.id === 'string') {
 				return { ok: true, id: dto.data.id };
@@ -75,11 +76,11 @@ export class SetsRepository {
 		}
 	}
 
-	async deleteById(id: string, fetch?: typeof globalThis.fetch): Promise<{ ok: true } | { ok: false; error: string }> {
+	async deleteById(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
 		try {
 			const { ok, data: dto } = await this.httpGateway.delete<{ success?: boolean; message?: string }>(
 				this.config.endpoints.byId(id),
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 			if (ok && dto?.success === true) {
 				return { ok: true };

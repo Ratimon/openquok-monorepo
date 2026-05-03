@@ -53,14 +53,13 @@ export class SignaturesRepository {
 	) {}
 
 	async listForOrganization(
-		organizationId: string,
-		fetch?: typeof globalThis.fetch
+		organizationId: string
 	): Promise<{ ok: true; items: SignatureProgrammerModel[] } | { ok: false; error: string }> {
 		try {
 			const { ok, data: listSignaturesDto } = await this.httpGateway.get<ListSignaturesResponseDto>(
 				this.config.endpoints.list,
 				{ organizationId },
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 			if (ok && listSignaturesDto?.success === true && Array.isArray(listSignaturesDto.data)) {
 				return { ok: true, items: listSignaturesDto.data };
@@ -72,14 +71,13 @@ export class SignaturesRepository {
 	}
 
 	async getById(
-		id: string,
-		fetch?: typeof globalThis.fetch
+		id: string
 	): Promise<{ ok: true; item: SignatureProgrammerModel | null } | { ok: false; error: string }> {
 		try {
 			const { ok, data: signatureDto } = await this.httpGateway.get<SignatureResponseDto>(
 				this.config.endpoints.byId(id),
 				undefined,
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 			if (ok && signatureDto?.success === true) {
 				return { ok: true, item: signatureDto.data ?? null };
@@ -90,10 +88,7 @@ export class SignaturesRepository {
 		}
 	}
 
-	async create(
-		input: CreateSignatureInput,
-		fetch?: typeof globalThis.fetch
-	): Promise<SignatureUpsertProgrammerModel> {
+	async create(input: CreateSignatureInput): Promise<SignatureUpsertProgrammerModel> {
 		try {
 			const { ok, data: createSignatureDto } = await this.httpGateway.post<UpsertSignatureResponseDto>(
 				this.config.endpoints.create,
@@ -103,7 +98,7 @@ export class SignaturesRepository {
 					content: input.content,
 					isDefault: input.isDefault ?? false
 				},
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 			const id = createSignatureDto?.data?.id;
 			if (ok && createSignatureDto?.success === true && typeof id === 'string' && id.length > 0) {
@@ -115,18 +110,13 @@ export class SignaturesRepository {
 		}
 	}
 
-	async update(
-		id: string,
-		input: UpdateSignatureInput,
-		fetch?: typeof globalThis.fetch
-	): Promise<SignatureUpsertProgrammerModel> {
+	async update(id: string, input: UpdateSignatureInput): Promise<SignatureUpsertProgrammerModel> {
 		try {
 			const { ok, data: updateSignatureDto } = await this.httpGateway.request<UpsertSignatureResponseDto>({
 				method: HttpMethod.PATCH,
 				url: this.config.endpoints.byId(id),
 				data: input,
-				withCredentials: true,
-				fetch
+				withCredentials: true
 			});
 			const outId = updateSignatureDto?.data?.id ?? id;
 			if (ok && updateSignatureDto?.success === true && typeof outId === 'string') {
@@ -138,11 +128,11 @@ export class SignaturesRepository {
 		}
 	}
 
-	async delete(id: string, fetch?: typeof globalThis.fetch): Promise<SignatureUpsertProgrammerModel> {
+	async delete(id: string): Promise<SignatureUpsertProgrammerModel> {
 		try {
 			const { ok, data: deleteSignatureDto } = await this.httpGateway.delete<{ success?: boolean; message?: string }>(
 				this.config.endpoints.byId(id),
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 			if (ok && deleteSignatureDto?.success === true) {
 				return { success: true, message: deleteSignatureDto?.message ?? 'Signature deleted.' };

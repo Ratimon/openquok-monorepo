@@ -139,9 +139,20 @@ Optional **async** tier when the page presenter must fetch PM by id (client/test
 
 Comments on those methods should label **stateless** (no **`$state`**) vs **stateful** (**`$state`**).
 
+### Public SSR — thread SvelteKit `fetch` through server loads
+
+When **`+page.server.ts`**, **`+layout.server.ts`**, or any **`load` / `RequestEvent`** handler runs on the **server** and calls your **same-origin** HTTP API (public blog, public post preview, company/marketing combined info, etc.):
+
+- **Pass `fetch`** from the `load` arguments into **public page presenters** / **`Get*`** / **repositories** (whatever layer performs the HTTP call) and through to **`HttpGateway`** via request options (`fetch?: typeof globalThis.fetch`). Examples: **`publicBlogBySlugPagePresenter.loadDataForBlogPostBySlugStateless({ slug, fetch, … })`**, **`publicPreviewPostByIdPagePresenter.loadPreviewPostByIdStateless({ postId, fetch })`**, **`publicInformationRepository.getAllInformationCombined(fetch)`** from **`routes/+layout.server.ts`** or **`routes/(public)/blog/**/+page.server.ts`**.
+- **Do not** rely on the gateway’s default server **`fetch`** for those calls when the response can depend on **incoming request cookies** or SvelteKit’s request-bound behavior (cookie forwarding to your API, relative URL resolution, in-load deduplication). Skipping **`event.fetch`** can produce SSR HTML that disagrees with what the same user sees after hydration.
+
+**Why it matters here:** Page presenters do not call `fetch` themselves; **routes** own the `load` contract. The **area-public** presenters expose optional **`fetch`** on **`*Stateless`** methods precisely so **`+page.server.ts`** can stay the composition point without importing **`httpGateway`** in **`+page.svelte`**.
+
+**Client-only repository paths** (e.g. CSR, `export const ssr = false`, or UI handlers after mount) may omit optional **`fetch`** when nothing in **`+page.server.ts`** invokes that method — repository/Gateway details live in **web-repository-presenter-architecture**.
+
 ### Exception — public route `load()` and repositories
 
-For **`routes/(public)/…/+page.server.ts`**, **`postsRepository.getPostPreview`** (or equivalent) may run on the server so PM exists before **`loadPreviewPostStateless`** — still **no `httpGateway` in `+page.svelte`**. Thread SvelteKit **`fetch`** through **`HttpGateway`** when required for SSR/proxy/TLS — see repository **`getPostPreview`** options.
+For **`routes/(public)/…/+page.server.ts`**, the repository may run on the server so PM exists before a **`Get*Presenter`** / **`*Stateless`** mapper (e.g. post preview before **`loadPreviewPostByIdStateless`**). Still **no `httpGateway` or repository imports in `+page.svelte`**. Thread **`fetch`** as in **Public SSR — thread SvelteKit `fetch`** above; see **`postsRepository` / `getPostPreview`** options where applicable.
 
 ### Route-level errors (public SSR)
 

@@ -71,15 +71,12 @@ export class FeedbackRepository {
 		this.config = { ...config };
 	}
 
-	public async createFeedback(
-		payload: CreateFeedbackRequestDto,
-		fetch?: typeof globalThis.fetch
-	): Promise<UpsertFeedbackProgrammerModel> {
+	public async createFeedback(payload: CreateFeedbackRequestDto): Promise<UpsertFeedbackProgrammerModel> {
 		try {
 			const { data: createFeedbackDto, ok } = await this.httpGateway.post<CreateFeedbackResponseDto>(
 				this.config.endpoints.createFeedback,
 				payload,
-				{ withCredentials: true, fetch }
+				{ withCredentials: true }
 			);
 
 			if (ok && createFeedbackDto?.success && createFeedbackDto.data) {
@@ -118,13 +115,12 @@ export class FeedbackRepository {
 		}
 	}
 
-	public async getAllFeedbacks(fetch?: typeof globalThis.fetch): Promise<FeedbackProgrammerModel[]> {
+	public async getAllFeedbacks(): Promise<FeedbackProgrammerModel[]> {
 		const { data: getAllFeedbacksDto, ok } = await this.httpGateway.get<GetAllFeedbacksResponseDto>(
 			this.config.endpoints.getAllFeedbacks,
 			undefined,
 			{
-				withCredentials: true,
-				fetch
+				withCredentials: true
 			}
 		);
 
@@ -136,16 +132,14 @@ export class FeedbackRepository {
 
 	public async handleFeedback(
 		feedbackId: string,
-		isHandled: boolean,
-		fetch?: typeof globalThis.fetch
+		isHandled: boolean
 	): Promise<FeedbackManagerProgrammerModel> {
 		try {
 			const { data: handleFeedbackDto, ok } = await this.httpGateway.request<HandleFeedbackResponseDto>({
 				method: HttpMethod.PATCH,
 				url: this.config.endpoints.handleFeedback(feedbackId),
 				data: { is_handled: isHandled },
-				withCredentials: true,
-				fetch
+				withCredentials: true
 			});
 
 			if (ok && handleFeedbackDto?.success) {

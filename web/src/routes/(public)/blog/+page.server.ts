@@ -18,7 +18,7 @@ export async function load({ url, fetch, cookies }) {
 	const isLoggedIn = !!accessToken;
 
 	const { companyInformation: companyInformationPm, marketingInformation: marketingInformationPm } =
-		await publicInformationRepository.getAllInformationCombined();
+		await publicInformationRepository.getAllInformationCombined(fetch);
 
 	const { CONFIG_SCHEMA_COMPANY, CONFIG_SCHEMA_MARKETING } = await import('$lib/config/constants/config');
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;

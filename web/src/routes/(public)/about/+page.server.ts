@@ -11,7 +11,7 @@ export async function load({ url, fetch, cookies }) {
 
     // Fetch public data on server
     const { companyInformation: companyInformationPm } = 
-        await publicInformationRepository.getAllInformationCombined();
+        await publicInformationRepository.getAllInformationCombined(fetch);
     
     // Lazy import to avoid circular dependency
     const { CONFIG_SCHEMA_COMPANY } = await import("$lib/config/constants/config");

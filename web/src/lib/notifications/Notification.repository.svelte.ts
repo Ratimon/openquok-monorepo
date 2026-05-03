@@ -71,15 +71,12 @@ export class NotificationRepository {
 		this.config = { ...config };
 	}
 
-	public async getMainPageCount(
-		organizationId: string,
-		fetch?: typeof globalThis.fetch
-	): Promise<NotificationMainCountProgrammerModel> {
+	public async getMainPageCount(organizationId: string): Promise<NotificationMainCountProgrammerModel> {
 		try {
 			const { data: mainPageCountDto, ok } = await this.httpGateway.get<MainPageCountResponseDto>(
 				this.config.endpoints.mainPageCount,
 				{ organizationId },
-				{ fetch }
+				{}
 			);
 			if (!ok || !mainPageCountDto?.success || mainPageCountDto.data == null) {
 				return { total: 0 };
@@ -98,15 +95,12 @@ export class NotificationRepository {
 	 * Loads the recent list and advances the server-side “last read” cursor for this user
 	 * (dock unread count is derived from that cursor).
 	 */
-	public async syncReadCursorFromList(
-		organizationId: string,
-		fetch?: typeof globalThis.fetch
-	): Promise<void> {
+	public async syncReadCursorFromList(organizationId: string): Promise<void> {
 		try {
 			await this.httpGateway.get<{ success: boolean }>(
 				this.config.endpoints.list,
 				{ organizationId },
-				{ fetch }
+				{}
 			);
 		} catch (e) {
 			if (e instanceof ApiError) {
@@ -118,13 +112,12 @@ export class NotificationRepository {
 
 	public async getPaginated(
 		organizationId: string,
-		page: number,
-		fetch?: typeof globalThis.fetch
+		page: number
 	): Promise<NotificationsPaginatedProgrammerModel> {
 		const { data: paginatedDto, ok } = await this.httpGateway.get<PaginatedResponseDto>(
 			this.config.endpoints.paginated,
 			{ organizationId, page },
-			{ fetch }
+			{}
 		);
 		if (!ok || !paginatedDto?.success || paginatedDto.data == null) {
 			return {

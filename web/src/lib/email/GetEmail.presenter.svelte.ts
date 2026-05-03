@@ -29,11 +29,12 @@ export interface ReceivedEmailDetailVm {
 export class GetEmailPresenter {
 	constructor(private readonly emailRepository: EmailRepository) {}
 
-	async loadReceivedEmailsVm(
-		params: { limit?: number; after?: string; before?: string },
-		fetch?: typeof globalThis.fetch
-	): Promise<{ list: ReceivedEmailSummaryVm[]; hasMore: boolean; message: string; success: boolean }> {
-		const listPm = await this.emailRepository.listReceivedEmails(params, fetch);
+	async loadReceivedEmailsVm(params: {
+		limit?: number;
+		after?: string;
+		before?: string;
+	}): Promise<{ list: ReceivedEmailSummaryVm[]; hasMore: boolean; message: string; success: boolean }> {
+		const listPm = await this.emailRepository.listReceivedEmails(params);
 		return {
 			success: listPm.success,
 			hasMore: listPm.hasMore,
@@ -43,10 +44,9 @@ export class GetEmailPresenter {
 	}
 
 	async loadReceivedEmailDetailVm(
-		id: string,
-		fetch?: typeof globalThis.fetch
+		id: string
 	): Promise<{ detail: ReceivedEmailDetailVm | null; message: string; success: boolean }> {
-		const detailPm = await this.emailRepository.getReceivedEmail(id, fetch);
+		const detailPm = await this.emailRepository.getReceivedEmail(id);
 		return {
 			success: detailPm.success,
 			message: detailPm.message,

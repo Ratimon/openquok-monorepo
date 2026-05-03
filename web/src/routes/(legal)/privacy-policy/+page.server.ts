@@ -4,12 +4,12 @@ import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 
 export const ssr = true;
 
-export async function load({ url, cookies }) {
+export async function load({ url, cookies, fetch }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
 	const { companyInformation: companyInformationPm } =
-		await publicInformationRepository.getAllInformationCombined();
+		await publicInformationRepository.getAllInformationCombined(fetch);
 
 	const companyConfig = companyInformationPm?.config as Record<string, string> | undefined;
 	const companyName =

@@ -12,8 +12,8 @@ export class AdminFeedbackManagerPagePresenter {
 		private readonly feedbackRepository: FeedbackRepository
 	) {}
 
-	public async loadAllFeedbacks(fetch?: typeof globalThis.fetch): Promise<FeedbackViewModel[]> {
-		const list = await this.getFeedbackPresenter.loadAllFeedbacksVm(fetch);
+	public async loadAllFeedbacks(): Promise<FeedbackViewModel[]> {
+		const list = await this.getFeedbackPresenter.loadAllFeedbacksVm();
 		this.allFeedbacksToManageVm = list;
 		return this.allFeedbacksToManageVm;
 	}

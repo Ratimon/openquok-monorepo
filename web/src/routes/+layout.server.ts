@@ -5,7 +5,7 @@ import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
 
-export async function load({ url, cookies }) {
+export async function load({ url, cookies, fetch }) {
 	// Security: use cookies only for auth in SSR — never import authenticationRepository in server load
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
@@ -13,7 +13,7 @@ export async function load({ url, cookies }) {
 	let companyInformationPm = null;
 	let marketingInformationPm = null;
 	try {
-		const result = await publicInformationRepository.getAllInformationCombined();
+		const result = await publicInformationRepository.getAllInformationCombined(fetch);
 		companyInformationPm = result.companyInformation;
 		marketingInformationPm = result.marketingInformation;
 	} catch (error) {
@@ -47,7 +47,8 @@ export async function load({ url, cookies }) {
 	try {
 		const result = await publicInformationRepository.getInformationByPropertiesCombined(
 			companyProperties,
-			marketingProperties
+			marketingProperties,
+			fetch
 		);
 
 		const footerInfo = publicLayoutPagePresenter.loadInfoForFooterStateless(

@@ -146,6 +146,17 @@ export interface PendingInviteProgrammerModel {
 	expiresAt: string;
 }
 
+/** Leave workspace, team invite, accept invite, or join-by-token — repository mutation PM. */
+export interface SettingsTeamMutationProgrammerModel {
+	success: boolean;
+	message?: string;
+}
+
+export type LeaveWorkspaceProgrammerModel = SettingsTeamMutationProgrammerModel;
+export type InviteTeamMemberProgrammerModel = SettingsTeamMutationProgrammerModel;
+export type AcceptPendingInviteProgrammerModel = SettingsTeamMutationProgrammerModel;
+export type JoinWorkspaceByTokenProgrammerModel = SettingsTeamMutationProgrammerModel;
+
 export function toOrganizationPm(dto: OrganizationDto): OrganizationProgrammerModel {
 	return {
 		id: dto.id,
@@ -232,7 +243,7 @@ export class SettingsRepository {
 	public async leaveWorkspace(params: {
 		organizationId: string;
 		userId: string;
-	}): Promise<{ success: boolean; message?: string }> {
+	}): Promise<LeaveWorkspaceProgrammerModel> {
 		try {
 			const url = this.config.endpoints.removeTeamMember(params.organizationId, params.userId);
 			const { data: leaveWorkspaceDto, ok } =
@@ -278,7 +289,7 @@ export class SettingsRepository {
 	public async inviteTeamMember(
 		organizationId: string,
 		params: { email: string; role?: 'user' | 'admin'; sendEmail?: boolean }
-	): Promise<{ success: boolean; message?: string }> {
+	): Promise<InviteTeamMemberProgrammerModel> {
 		try {
 			const { data: inviteTeamMemberDto, ok } =
 				await this.httpGateway.request<InviteTeamMemberResponseDto>({
@@ -333,7 +344,7 @@ export class SettingsRepository {
 		}
 	}
 
-	public async acceptPendingInvite(inviteId: string): Promise<{ success: boolean; message?: string }> {
+	public async acceptPendingInvite(inviteId: string): Promise<AcceptPendingInviteProgrammerModel> {
 		try {
 			const url = this.config.endpoints.acceptPendingInvite(inviteId);
 			const { data: acceptPendingInviteDto, ok } =
@@ -376,7 +387,7 @@ export class SettingsRepository {
 		}
 	}
 
-	public async joinByToken(token: string): Promise<{ success: boolean; message?: string }> {
+	public async joinByToken(token: string): Promise<JoinWorkspaceByTokenProgrammerModel> {
 		try {
 			const { data: joinByTokenDto, ok } =
 				await this.httpGateway.request<JoinByTokenResponseDto>({

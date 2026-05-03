@@ -26,8 +26,8 @@ export class GetFeedbackPresenter {
 		};
 	}
 
-	public async loadAllFeedbacksVm(fetch?: typeof globalThis.fetch): Promise<FeedbackViewModel[]> {
-		const feedbacksPm = await this.feedbackRepository.getAllFeedbacks(fetch);
+	public async loadAllFeedbacksVm(): Promise<FeedbackViewModel[]> {
+		const feedbacksPm = await this.feedbackRepository.getAllFeedbacks();
 		return feedbacksPm.map((feedback) => this.toFeedbackVm(feedback));
 	}
 }

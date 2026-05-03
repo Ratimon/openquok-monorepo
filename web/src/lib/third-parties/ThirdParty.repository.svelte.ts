@@ -7,18 +7,18 @@ export interface ThirdPartyConfig {
 }
 
 /** Registered workspace connector that can surface in media UI (composer or import). */
-export type ThirdPartyConnectorVm = {
+export interface ThirdPartyConnectorProgrammerModel {
 	id: string;
 	identifier: string;
 	name: string;
 	title: string;
 	description: string;
 	position: string;
-};
+}
 
 export interface ThirdPartyListResponseDto {
 	success: boolean;
-	data?: ThirdPartyConnectorVm[];
+	data?: ThirdPartyConnectorProgrammerModel[];
 }
 
 export class ThirdPartyRepository {
@@ -27,7 +27,7 @@ export class ThirdPartyRepository {
 		private readonly config: ThirdPartyConfig
 	) {}
 
-	public async listForOrganization(organizationId: string): Promise<ThirdPartyConnectorVm[]> {
+	public async listForOrganization(organizationId: string): Promise<ThirdPartyConnectorProgrammerModel[]> {
 		try {
 			const { data: listDto, ok } = await this.httpGateway.get<ThirdPartyListResponseDto>(
 				this.config.endpoints.listForMedia,

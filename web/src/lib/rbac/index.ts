@@ -1,4 +1,4 @@
-import type { RbacConfig } from '$lib/rbac/Rbac.repository.svelte';
+import type { RbacConfig, RbacMutationProgrammerModel } from '$lib/rbac/Rbac.repository.svelte';
 import type { AppRole, AppPermission } from '$lib/rbac/rbac.types';
 import { RbacRepository } from '$lib/rbac/Rbac.repository.svelte';
 import { GetRolePresenter } from '$lib/rbac/GetRole.presenter.svelte';
@@ -18,22 +18,22 @@ const rbacConfig: RbacConfig = {
 export const rbacRepository = new RbacRepository(httpGateway, rbacConfig);
 export const getRolePresenter = new GetRolePresenter(rbacRepository);
 
-const assignPermissionToRoleWrapper = async (data: unknown): Promise<{ success: boolean; message: string }> => {
+const assignPermissionToRoleWrapper = async (data: unknown): Promise<RbacMutationProgrammerModel> => {
 	const { role, permission } = data as { role: string; permission: string };
 	return rbacRepository.assignPermissionToRole(role as AppRole, permission as AppPermission);
 };
 
-const removePermissionFromRoleWrapper = async (data: unknown): Promise<{ success: boolean; message: string }> => {
+const removePermissionFromRoleWrapper = async (data: unknown): Promise<RbacMutationProgrammerModel> => {
 	const { role, permission } = data as { role: string; permission: string };
 	return rbacRepository.removePermissionFromRole(role as AppRole, permission as AppPermission);
 };
 
-const assignRoleWrapper = async (data: unknown): Promise<{ success: boolean; message: string }> => {
+const assignRoleWrapper = async (data: unknown): Promise<RbacMutationProgrammerModel> => {
 	const { userId, role } = data as { userId: string; role: string };
 	return rbacRepository.assignRole(userId, role as AppRole);
 };
 
-const removeRoleWrapper = async (data: unknown): Promise<{ success: boolean; message: string }> => {
+const removeRoleWrapper = async (data: unknown): Promise<RbacMutationProgrammerModel> => {
 	const { userId, role } = data as { userId: string; role: string };
 	return rbacRepository.removeRole(userId, role as AppRole);
 };
@@ -44,4 +44,8 @@ export const assignRolePresenter = new ActionVerificationModalPresenter(assignRo
 export const removeRolePresenter = new ActionVerificationModalPresenter(removeRoleWrapper);
 
 export type { AppRole, AppPermission } from '$lib/rbac/rbac.types';
+export type {
+	RbacMutationProgrammerModel,
+	RbacRolePermissionProgrammerModel
+} from '$lib/rbac/Rbac.repository.svelte';
 export type { RoleViewModel } from '$lib/rbac/GetRole.presenter.svelte';

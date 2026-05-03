@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ThirdPartyConnectorVm } from '$lib/third-parties';
+	import type { ThirdPartyConnectorProgrammerModel } from '$lib/third-parties';
 	
 	import { thirdPartyRepository } from '$lib/third-parties';
 	import { icons } from '$data/icons';
@@ -16,9 +16,9 @@
 	let { organizationId }: Props = $props();
 
 	let loaded = $state(false);
-	let integrations = $state<ThirdPartyConnectorVm[]>([]);
+	let integrations = $state<ThirdPartyConnectorProgrammerModel[]>([]);
 	let dialogOpen = $state(false);
-	let selected = $state<ThirdPartyConnectorVm | null>(null);
+	let selected = $state<ThirdPartyConnectorProgrammerModel | null>(null);
 
 	const mediaIntegrations = $derived(integrations.filter((p) => p.position === 'media'));
 

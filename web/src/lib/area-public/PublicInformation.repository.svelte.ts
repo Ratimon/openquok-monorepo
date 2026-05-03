@@ -89,14 +89,18 @@ export class PublicInformationRepository {
 		this.config = { ...defaults, ...config } as PublicInformationConfig;
 	}
 
-	public async getAllInformationCombined(): Promise<{
+	public async getAllInformationCombined(
+		fetch?: typeof globalThis.fetch
+	): Promise<{
 		companyInformation: CompanyInformationProgrammerModel | null;
 		marketingInformation: MarketingInformationProgrammerModel | null;
 	}> {
 		try {
 			const { data: getAllInformationCombinedDto, ok } =
 				await this.httpGateway.get<GetAllInformationCombinedResponseDto>(
-					this.config.endpoints.informationCombined
+					this.config.endpoints.informationCombined,
+					undefined,
+					fetch ? { fetch } : undefined
 				);
 
 			if (ok && getAllInformationCombinedDto?.data) {
@@ -113,7 +117,8 @@ export class PublicInformationRepository {
 
 	public async getInformationByPropertiesCombined(
 		companyProperties: string[],
-		marketingProperties: string[]
+		marketingProperties: string[],
+		fetch?: typeof globalThis.fetch
 	): Promise<{
 		companyInformation: { [key: string]: string } | null;
 		marketingInformation: { [key: string]: string } | null;
@@ -125,7 +130,8 @@ export class PublicInformationRepository {
 					{
 						companyProperties: companyProperties.join(','),
 						marketingProperties: marketingProperties.join(',')
-					}
+					},
+					fetch ? { fetch } : undefined
 				);
 
 			if (ok && getInformationByPropertiesCombinedDto?.data) {
