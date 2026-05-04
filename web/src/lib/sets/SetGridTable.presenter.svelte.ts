@@ -424,10 +424,9 @@ type SetsGridApiWithColumn = IApi & {
 };
 
 /**
- * Account → Templates SVAR grid: row VMs, responsive columns, and autosize helpers.
  * Wired from {@link ProtectedTemplatesPagePresenter} like {@link SchedulerPresenter} on the calendar page.
  */
-export class SetGridPresenter {
+export class SetGridTablePresenter {
 	setsGridRowsVm = $state<SetGridTableRowViewModel[]>([]);
 	loading = $state(true);
 
@@ -649,7 +648,7 @@ export class SetGridPresenter {
 	] as const;
 
 	private static readonly SETS_GRID_COLUMN_MIN_WIDTH_PX: Partial<
-		Record<(typeof SetGridPresenter.SETS_GRID_AUTOSIZE_COLUMN_IDS)[number], number>
+		Record<(typeof SetGridTablePresenter.SETS_GRID_AUTOSIZE_COLUMN_IDS)[number], number>
 	> = {
 		name: 168,
 		channelsSummary: 96,
@@ -677,51 +676,51 @@ export class SetGridPresenter {
 			return;
 		}
 
-		const ids = SetGridPresenter.SETS_GRID_AUTOSIZE_COLUMN_IDS;
+		const ids = SetGridTablePresenter.SETS_GRID_AUTOSIZE_COLUMN_IDS;
 		const dataW: Record<string, number> = {};
 
-		const narrowNameFlexLayout = SetGridPresenter.isSetsGridColumnHidden(api, 'channelsSummary');
+		const narrowNameFlexLayout = SetGridTablePresenter.isSetsGridColumnHidden(api, 'channelsSummary');
 
 		for (const id of ids) {
-			if (SetGridPresenter.isSetsGridColumnHidden(api, id)) continue;
+			if (SetGridTablePresenter.isSetsGridColumnHidden(api, id)) continue;
 			if (id === 'name' && narrowNameFlexLayout) continue;
 			api.exec('resize-column', { id, auto: 'data', maxRows: 200 });
 		}
 		await tick();
 		for (const id of ids) {
-			dataW[id] = SetGridPresenter.readColumnWidthPx(api, id);
+			dataW[id] = SetGridTablePresenter.readColumnWidthPx(api, id);
 		}
 
 		for (const id of ids) {
-			if (SetGridPresenter.isSetsGridColumnHidden(api, id)) continue;
+			if (SetGridTablePresenter.isSetsGridColumnHidden(api, id)) continue;
 			if (id === 'name' && narrowNameFlexLayout) continue;
 			api.exec('resize-column', { id, auto: 'header' });
 		}
 		await tick();
 		for (const id of ids) {
-			if (SetGridPresenter.isSetsGridColumnHidden(api, id)) continue;
+			if (SetGridTablePresenter.isSetsGridColumnHidden(api, id)) continue;
 			if (id === 'name' && narrowNameFlexLayout) continue;
-			const w = Math.max(dataW[id] ?? 0, SetGridPresenter.readColumnWidthPx(api, id));
+			const w = Math.max(dataW[id] ?? 0, SetGridTablePresenter.readColumnWidthPx(api, id));
 			if (w > 0) api.exec('resize-column', { id, width: w });
 		}
 
 		await tick();
 		for (const id of ids) {
-			if (SetGridPresenter.isSetsGridColumnHidden(api, id)) continue;
+			if (SetGridTablePresenter.isSetsGridColumnHidden(api, id)) continue;
 			if (id === 'name' && narrowNameFlexLayout) continue;
-			const min = SetGridPresenter.SETS_GRID_COLUMN_MIN_WIDTH_PX[id];
+			const min = SetGridTablePresenter.SETS_GRID_COLUMN_MIN_WIDTH_PX[id];
 			if (min == null) continue;
-			const w = SetGridPresenter.readColumnWidthPx(api, id);
+			const w = SetGridTablePresenter.readColumnWidthPx(api, id);
 			if (w < min) api.exec('resize-column', { id, width: min });
 		}
 
 		await tick();
-		if (!SetGridPresenter.isSetsGridColumnHidden(api, 'channelsSummary')) {
-			const wch = SetGridPresenter.readColumnWidthPx(api, 'channelsSummary');
-			if (wch > SetGridPresenter.SETS_GRID_CHANNELS_MAX_WIDTH_PX) {
+		if (!SetGridTablePresenter.isSetsGridColumnHidden(api, 'channelsSummary')) {
+			const wch = SetGridTablePresenter.readColumnWidthPx(api, 'channelsSummary');
+			if (wch > SetGridTablePresenter.SETS_GRID_CHANNELS_MAX_WIDTH_PX) {
 				api.exec('resize-column', {
 					id: 'channelsSummary',
-					width: SetGridPresenter.SETS_GRID_CHANNELS_MAX_WIDTH_PX
+					width: SetGridTablePresenter.SETS_GRID_CHANNELS_MAX_WIDTH_PX
 				});
 			}
 		}

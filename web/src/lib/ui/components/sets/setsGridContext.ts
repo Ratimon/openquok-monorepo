@@ -1,4 +1,4 @@
-import type { SetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
+import type { SetGridTableRowViewModel } from '$lib/sets/SetGridTable.presenter.svelte';
 
 export const setsGridActionsKey = Symbol('setsGridActions');
 

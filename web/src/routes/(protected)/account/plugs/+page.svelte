@@ -28,7 +28,7 @@
 	import RemovePlugRuleModal from '$lib/ui/components/plugs/RemovePlugRuleModal.svelte';
 
 	const pagePresenter = protectedPlugsPagePresenter;
-	const gridPresenter = pagePresenter.plugGridPresenter;
+	const gridPresenter = pagePresenter.plugGridTable;
 
 	function readViewportWidthPx(): number {
 		if (!browser || typeof window === 'undefined') return 0;

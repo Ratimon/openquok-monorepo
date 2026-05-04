@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ICellProps } from '@svar-ui/svelte-grid';
-	import type { SetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
+	import type { SetGridTableRowViewModel } from '$lib/sets/SetGridTable.presenter.svelte';
 
 	import Badge from '$lib/ui/badge/Badge.svelte';
 

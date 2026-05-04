@@ -31,4 +31,4 @@ export const upsertGlobalPlugPresenter = new UpsertGlobalPlugPresenter(
 export { PlugRepository } from '$lib/plugs/Plug.repository.svelte';
 export { GetPlugPresenter } from '$lib/plugs/GetPlug.presenter.svelte';
 export { UpsertGlobalPlugPresenter } from '$lib/plugs/UpsertGlobalPlug.presenter.svelte';
-export { PlugGridPresenter } from '$lib/plugs/PlugGrid.presenter.svelte';
+export { PlugGridTablePresenter } from '$lib/plugs/PlugGridTable.presenter.svelte';

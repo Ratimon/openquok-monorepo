@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { IApi } from '@svar-ui/svelte-grid';
-	import type { SetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
+	import type { SetGridTableRowViewModel } from '$lib/sets/SetGridTable.presenter.svelte';
 
 	import { browser } from '$app/environment';
 	import { setContext } from 'svelte';
@@ -25,7 +25,7 @@
 	const settingsSetsPath = route(`${rootPathAccount}/settings?section=sets`);
 
 	const pagePresenter = protectedTemplatesPagePresenter;
-	const gridPresenter = pagePresenter.setGridPresenter;
+	const gridPresenter = pagePresenter.setGridTable;
 
 	/** Stable ref for composer `bind:` chain (`pagePresenter.createSocialPostPresenter`). */
 	let createSocialPostModalPresenter = $state.raw(pagePresenter.createSocialPostPresenter);

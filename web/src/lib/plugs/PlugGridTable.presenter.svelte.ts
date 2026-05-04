@@ -1,7 +1,6 @@
 import type { IColumn } from '@svar-ui/svelte-grid';
 
 import type {
-	GlobalPlugCatalogEntryProgrammerModel,
 	IntegrationPlugRowProgrammerModel,
 	PlugRepository
 } from '$lib/plugs/Plug.repository.svelte';
@@ -30,10 +29,9 @@ type PlugGridVis = {
 };
 
 /**
- * Account → Plugs SVAR grid: rule rows and responsive column definitions.
- * Wired from {@link ProtectedPlugsPagePresenter} like {@link SetGridPresenter} on templates.
+ * Wired from {@link ProtectedPlugsPagePresenter} like {@link SetGridTablePresenter} on templates.
  */
-export class PlugGridPresenter {
+export class PlugGridTablePresenter {
 	plugRulesRowsVm = $state<PlugRuleTableRowViewModel[]>([]);
 
 	constructor(

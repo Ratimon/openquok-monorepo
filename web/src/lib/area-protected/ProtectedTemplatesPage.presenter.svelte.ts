@@ -1,6 +1,6 @@
 import type { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type { GetSetPresenter } from '$lib/sets/GetSet.presenter.svelte';
-import type { SetGridPresenter, SetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
+import type { SetGridTablePresenter, SetGridTableRowViewModel } from '$lib/sets/SetGridTable.presenter.svelte';
 import type { UpsertSetPresenter } from '$lib/sets/UpsertSet.presenter.svelte';
 import type { SetDeleteResultViewModel } from '$lib/sets/UpsertSet.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
@@ -8,7 +8,7 @@ import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings
 /**
  * Account → Templates: workspace content sets in a SVAR grid (parsed from each row’s `content` JSON).
  *
- * Grid rows and layout orchestration live on {@link SetGridPresenter}; this screen delegates loads/edits/deletes.
+ * Grid rows and layout orchestration live on {@link SetGridTablePresenter}; this screen delegates loads/edits/deletes.
  */
 export class ProtectedTemplatesPagePresenter {
 	constructor(
@@ -16,7 +16,7 @@ export class ProtectedTemplatesPagePresenter {
 		private readonly getSetPresenter: GetSetPresenter,
 		private readonly upsertSetPresenter: UpsertSetPresenter,
 		private readonly protectedDashboardPagePresenter: ProtectedDashboardPagePresenter,
-		readonly setGridPresenter: SetGridPresenter
+		readonly setGridTable: SetGridTablePresenter
 	) {}
 
 	get organizationId(): string {
@@ -34,24 +34,24 @@ export class ProtectedTemplatesPagePresenter {
 	async syncWorkspace(): Promise<void> {
 		const organizationId = this.organizationId;
 		if (!organizationId) {
-			this.setGridPresenter.resetForNoWorkspace();
+			this.setGridTable.resetForNoWorkspace();
 			return;
 		}
-		this.setGridPresenter.loading = true;
+		this.setGridTable.loading = true;
 		try {
 			await this.refreshSetsTable();
 		} finally {
-			this.setGridPresenter.loading = false;
+			this.setGridTable.loading = false;
 		}
 	}
 
 	async refreshSetsTable(): Promise<void> {
 		const organizationId = this.organizationId;
 		if (!organizationId) {
-			this.setGridPresenter.resetForNoWorkspace();
+			this.setGridTable.resetForNoWorkspace();
 			return;
 		}
-		await this.setGridPresenter.refreshRowsForOrganization(organizationId);
+		await this.setGridTable.refreshRowsForOrganization(organizationId);
 	}
 
 	openNewSet(): void {
@@ -84,7 +84,7 @@ export class ProtectedTemplatesPagePresenter {
 	async deleteSet(vm: SetGridTableRowViewModel): Promise<SetDeleteResultViewModel> {
 		const resultVm = await this.upsertSetPresenter.deleteSet(vm.setRowVm.id);
 		if (resultVm.ok) {
-			this.setGridPresenter.removeRowById(vm.id);
+			this.setGridTable.removeRowById(vm.id);
 		}
 		return resultVm;
 	}
