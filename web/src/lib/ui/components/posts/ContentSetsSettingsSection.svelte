@@ -31,8 +31,7 @@
 		}
 		loading = true;
 		try {
-			const resultVm = await getSetPresenter.loadSetsListVm(oid);
-			setsVm = resultVm.ok ? resultVm.rows : [];
+			setsVm = await getSetPresenter.loadSetsListVm(oid);
 		} finally {
 			loading = false;
 		}

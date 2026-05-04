@@ -95,8 +95,7 @@
 	async function chooseSetSnapshotForWorkspace(): Promise<SetSnapshotViewModel | null | undefined> {
 		const oid = workspaceId;
 		if (!oid) return undefined;
-		const resultVm = await getSetPresenter.loadSetsListVm(oid);
-		const rows = resultVm.ok ? resultVm.rows : [];
+		const rows = await getSetPresenter.loadSetsListVm(oid);
 		if (!rows.length) return null;
 		return new Promise((resolve) => {
 			setPickRowsVm = rows;

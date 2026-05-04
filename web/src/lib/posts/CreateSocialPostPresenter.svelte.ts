@@ -22,7 +22,7 @@ import type {
 	SetSharedFollowUpReplyViewModel,
 	SetSnapshotViewModel
 } from '$lib/sets/GetSet.presenter.svelte';
-import type { UpsertSetPresenter } from '$lib/sets/UpsertSetPresenter.svelte';
+import type { UpsertSetPresenter } from '$lib/sets/UpsertSet.presenter.svelte';
 
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 import {
@@ -862,6 +862,11 @@ export class CreateSocialPostPresenter {
 		} else {
 			toast.error(tags.error);
 		}
+	}
+
+	/** Loads workspace tags into {@link tagList} (shared with composer; same cache as modal open). */
+	async loadWorkspaceTagsIfNeeded(workspaceId: string): Promise<void> {
+		await this.ensureTagListLoaded(workspaceId);
 	}
 
 	onModalClose(): void {

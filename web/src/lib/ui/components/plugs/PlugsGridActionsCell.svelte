@@ -15,16 +15,21 @@
 </script>
 
 <div class="flex flex-wrap items-center gap-1">
-	<Button type="button" variant="outline" size="sm" class="h-8 text-xs px-2" onclick={() => actions?.openEdit(vm())}>
+	<Button type="button"
+		variant="outline"
+		size="sm"
+		class="h-8 px-2 text-xs"
+		onclick={() => actions?.openEdit(vm())}
+	>
 		Edit
 	</Button>
 	<Button
 		type="button"
-		variant="outline"
+		variant="red"
 		size="sm"
-		class="h-8 text-xs px-2"
+		class="h-8 px-2 text-xs"
 		onclick={() => void actions?.remove(vm())}
 	>
-		Remove
+		Delete
 	</Button>
 </div>

@@ -37,6 +37,8 @@
             class?: string | undefined | null;
             href?: string | undefined;
             variant: BadgeVariant;
+            /** Inline `style` for the root chip (e.g. workspace tag hex from the API). */
+            surfaceStyle?: string | undefined;
             /** When `href` is set, forwarded to the anchor for nav chips (e.g. topic filters). */
             ariaCurrent?: "page" | undefined;
             /** References an element `id` (e.g. a visually hidden label). */
@@ -49,6 +51,7 @@
             class: className = undefined,
             href = undefined,
             variant = "default",
+            surfaceStyle = undefined,
             ariaCurrent = undefined,
             ariaLabelledby = undefined,
             dataTestid = undefined,
@@ -62,6 +65,7 @@
             data-testid={dataTestid}
             aria-labelledby={ariaLabelledby}
             aria-current={ariaCurrent}
+            style={surfaceStyle}
             class={cn(badgeVariants({ variant }), className)}
         >
         {@render children?.()}
@@ -71,6 +75,7 @@
             data-slot="badge"
             data-testid={dataTestid}
             aria-labelledby={ariaLabelledby}
+            style={surfaceStyle}
             class={cn(badgeVariants({ variant }), className)}
         >
         {@render children?.()}

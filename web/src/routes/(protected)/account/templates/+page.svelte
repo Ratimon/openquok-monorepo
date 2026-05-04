@@ -1,9 +1,6 @@
 <script lang="ts">
 	import type { IApi, IColumn } from '@svar-ui/svelte-grid';
-	import {
-		buildSetsGridChannelsTooltipPlainText,
-		type SetGridTableRowViewModel
-	} from '$lib/sets/SetGrid.presenter.svelte';
+	import type { SetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
 
 	import { browser } from '$app/environment';
 	import { setContext, tick } from 'svelte';
@@ -15,6 +12,10 @@
 	} from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { setsGridActionsKey } from '$lib/ui/components/sets/setsGridContext';
+	import {
+		buildSetsGridChannelsTooltipPlainText,
+		buildSetsGridThreadsRepliesTooltipPlainText
+	} from '$lib/sets/SetGrid.presenter.svelte';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
 	import { Willow, Grid, Tooltip } from '@svar-ui/svelte-grid';
@@ -24,6 +25,7 @@
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import SetsGridActionsCell from '$lib/ui/components/sets/SetsGridActionsCell.svelte';
 	import SetsGridChannelsCell from '$lib/ui/components/sets/SetsGridChannelsCell.svelte';
+	import SetsGridTagsCell from '$lib/ui/components/sets/SetsGridTagsCell.svelte';
 
 	const presenter = protectedTemplatesPagePresenter;
 
@@ -150,7 +152,7 @@
 	> = {
 		name: 168,
 		channelsSummary: 96,
-		tagsSummary: 88,
+		tagsSummary: 120,
 		threadsSummary: 118,
 		mediaSummary: 88,
 		repeatSummary: 88,
@@ -238,6 +240,12 @@
 		return row as SetGridTableRowViewModel;
 	}
 
+	function setsGridTagsTooltip(row: unknown): string {
+		const vm = setsGridRowVm(row);
+		if (vm.tagsDisplay.length) return vm.tagsDisplay.map((t) => t.name).join(', ');
+		return vm.tagsSummary;
+	}
+
 	/** Which optional columns are visible (used for default + SVAR `responsive`). */
 	type TemplatesGridColVis = {
 		channels: boolean;
@@ -309,14 +317,26 @@
 							}
 					: { tooltip: false })
 			},
-			{ id: 'tagsSummary', header: 'Tags', tooltip: false, hidden: !vis.tags },
-			{ id: 'threadsSummary', header: 'Auto-replies', tooltip: false, hidden: !vis.threads },
+			{
+				id: 'tagsSummary',
+				header: 'Tags',
+				tooltip: (row: unknown) => setsGridTagsTooltip(row),
+				hidden: !vis.tags,
+				cell: SetsGridTagsCell
+			},
+			{
+				id: 'threadsSummary',
+				header: 'Auto-replies',
+				tooltip: (row: unknown) =>
+					buildSetsGridThreadsRepliesTooltipPlainText(setsGridRowVm(row), presenter.connectedChannelsVm),
+				hidden: !vis.threads
+			},
 			{ id: 'mediaSummary', header: 'Media', tooltip: false, hidden: !vis.media },
 			{ id: 'repeatSummary', header: 'Repeat', tooltip: false, hidden: !vis.repeat },
 			{ id: 'updatedDisplay', header: 'Updated', tooltip: false, hidden: !vis.updated },
 			{
 				id: 'actions',
-				header: vis.compact ? 'Actions' : '',
+				header: 'Actions',
 				width: vis.compactActionsWidthPx ?? 168,
 				cell: SetsGridActionsCell,
 				tooltip: false

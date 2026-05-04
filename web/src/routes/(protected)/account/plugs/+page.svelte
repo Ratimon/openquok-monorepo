@@ -178,7 +178,7 @@
 			},
 			{
 				id: 'actions',
-				header: vis.compact ? 'Actions' : '',
+				header: 'Actions',
 				width: vis.actionsWidthPx,
 				cell: PlugsGridActionsCell,
 				tooltip: false

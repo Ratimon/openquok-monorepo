@@ -2,7 +2,7 @@ import { httpGateway } from '$lib/core/index';
 
 import { GetSetPresenter } from '$lib/sets/GetSet.presenter.svelte';
 import { SetsRepository } from '$lib/sets/Sets.repository.svelte';
-import { UpsertSetPresenter } from '$lib/sets/UpsertSetPresenter.svelte';
+import { UpsertSetPresenter } from '$lib/sets/UpsertSet.presenter.svelte';
 
 const setsConfig = {
 	endpoints: {
@@ -19,7 +19,6 @@ export const upsertSetPresenter = new UpsertSetPresenter(setsRepository);
 
 export type { SetProgrammerModel, SetSnapshotProgrammerModel } from '$lib/sets/Sets.repository.svelte';
 export type {
-	SetListLoadResultViewModel,
 	SetRowViewModel,
 	SetSharedFollowUpReplyViewModel,
 	SetSnapshotViewModel
@@ -28,6 +27,6 @@ export type {
 	SetDeleteResultViewModel,
 	SetUpsertProgrammerModel,
 	SetUpsertResultViewModel
-} from '$lib/sets/UpsertSetPresenter.svelte';
+} from '$lib/sets/UpsertSet.presenter.svelte';
 export type { SetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
 export { sortSetGridRows, toSetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';

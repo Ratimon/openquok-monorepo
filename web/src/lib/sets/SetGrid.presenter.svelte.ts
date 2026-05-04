@@ -1,10 +1,11 @@
-import type { RepeatIntervalKey } from '$lib/posts';
-import { formatDateShort } from '$lib/ui/helpers/formatters';
-import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
-import { socialProviderDisplayLabel } from '$data/social-providers';
-
 import type { SetRowViewModel } from '$lib/sets/GetSet.presenter.svelte';
 import type { SetSnapshotProgrammerModel } from '$lib/sets/Sets.repository.svelte';
+import type { RepeatIntervalKey } from '$lib/posts';
+
+import { formatDateShort } from '$lib/ui/helpers/formatters';
+import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
+import { socialProviderDisplayLabel, socialProviderEmoji } from '$data/social-providers';
+
 import { parseSetContent } from '$lib/sets/Sets.repository.svelte';
 
 /** One resolved channel row for templates grid (Channels column + tooltip). */
@@ -35,6 +36,18 @@ export type SetGridChannelsTooltipGroupVm = {
 	channels: SetGridChannelSummaryVm[];
 };
 
+/** One tag chip in the templates grid Tags column (resolved color from workspace tag list). */
+export type SetGridTagChipVm = {
+	name: string;
+	color: string;
+};
+
+/** Minimal workspace tag row for resolving chip colors on the sets grid. */
+export type SetGridTagLookupVm = {
+	name: string;
+	color?: string | null;
+};
+
 /** One row in the account → Templates (sets) SVAR grid. */
 export type SetGridTableRowViewModel = {
 	id: string;
@@ -47,6 +60,8 @@ export type SetGridTableRowViewModel = {
 	/** Full plain-text body for grid hover (cell uses truncated {@link bodyPreview}). */
 	bodyPreviewTooltip: string;
 	tagsSummary: string;
+	/** Tags column chips; empty when the set has no tags. */
+	tagsDisplay: readonly SetGridTagChipVm[];
 	threadsSummary: string;
 	mediaSummary: string;
 	repeatSummary: string;
@@ -54,6 +69,31 @@ export type SetGridTableRowViewModel = {
 };
 
 const DASH = '—';
+
+/** Matches {@link TagsComponent} default when a tag has no stored color. */
+const DEFAULT_TAG_COLOR = '#6366f1';
+
+function tagColorByName(tags: readonly SetGridTagLookupVm[]): Map<string, string> {
+	const m = new Map<string, string>();
+	for (const t of tags) {
+		const name = String(t.name ?? '').trim();
+		if (!name) continue;
+		const c = String(t.color ?? '').trim();
+		m.set(name, c.length ? c : DEFAULT_TAG_COLOR);
+	}
+	return m;
+}
+
+export function buildSetGridTagsDisplayVm(
+	selectedNames: readonly string[],
+	workspaceTags: readonly SetGridTagLookupVm[]
+): SetGridTagChipVm[] {
+	const byName = tagColorByName(workspaceTags);
+	return selectedNames.map((raw) => {
+		const name = String(raw ?? '').trim();
+		return { name, color: byName.get(name) ?? DEFAULT_TAG_COLOR };
+	});
+}
 
 function truncate(text: string, maxLen: number): string {
 	const t = text.trim();
@@ -94,6 +134,91 @@ function countThreadsAutoReplies(
 		n += countFollowUpRepliesInBucket(settings, 'instagram');
 	}
 	return n;
+}
+
+function channelSupportsFollowUpComments(identifier: string): boolean {
+	const id = identifier.trim().toLowerCase();
+	return id === 'threads' || id.startsWith('instagram');
+}
+
+/** Matches composer bucket routing for persisted `providerSettings` (Threads vs Instagram keys). */
+function followUpBucketForIdentifier(identifier: string): 'threads' | 'instagram' {
+	const id = identifier.trim().toLowerCase();
+	return id.startsWith('instagram') ? 'instagram' : 'threads';
+}
+
+function parseFollowUpReplyMessagesFromBucket(block: unknown): string[] {
+	if (!block || typeof block !== 'object' || Array.isArray(block)) return [];
+	const rep = (block as Record<string, unknown>).replies;
+	if (!Array.isArray(rep)) return [];
+	const out: string[] = [];
+	for (const item of rep) {
+		if (!item || typeof item !== 'object' || Array.isArray(item)) continue;
+		const msg = stripHtmlToPlainText(String((item as Record<string, unknown>).message ?? '')).trim();
+		if (msg.length) out.push(msg);
+	}
+	return out;
+}
+
+/** Plain multiline text for SVAR Auto-replies column tooltip (channels-style: total, then platform + bullets). */
+export function buildSetsGridThreadsRepliesTooltipPlainText(
+	vm: SetGridTableRowViewModel,
+	channels: readonly SetGridChannelLookupVm[]
+): string {
+	const head = String(vm.threadsSummary ?? '').trim() || 'Auto-replies';
+	if (head === DASH) return head;
+	const snap = parseSetContent(vm.setRow.content);
+	if (!snap) return head;
+
+	type Row = {
+		platformLabel: string;
+		providerIdentifier: string;
+		displayName: string;
+		messages: string[];
+	};
+	const byId = channelByIdRecord(channels);
+	const perIntegration: Row[] = [];
+	for (const integrationId of snap.selectedIntegrationIds) {
+		const id = String(integrationId ?? '').trim();
+		if (!id) continue;
+		const ch = byId[id];
+		const identifier = String(ch?.identifier ?? '').trim() || 'generic';
+		if (!channelSupportsFollowUpComments(identifier)) continue;
+		const bucket = followUpBucketForIdentifier(identifier);
+		const settings = snap.providerSettingsByIntegrationId[id] ?? {};
+		const messages = parseFollowUpReplyMessagesFromBucket((settings as Record<string, unknown>)[bucket]);
+		if (messages.length === 0) continue;
+		perIntegration.push({
+			platformLabel: socialProviderDisplayLabel(identifier),
+			providerIdentifier: identifier,
+			displayName: (ch?.name ?? '').trim() || 'Unknown channel',
+			messages
+		});
+	}
+	if (perIntegration.length === 0) return head;
+
+	const buckets: Record<string, Row[]> = {};
+	for (const r of perIntegration) {
+		if (!buckets[r.platformLabel]) buckets[r.platformLabel] = [];
+		buckets[r.platformLabel]!.push(r);
+	}
+	const groups = Object.entries(buckets)
+		.sort(([a], [b]) => a.localeCompare(b))
+		.map(([, rows]) => rows);
+
+	const lines: string[] = [head];
+	for (const rows of groups) {
+		const id0 = rows[0]?.providerIdentifier ?? 'threads';
+		lines.push(`${socialProviderEmoji(id0)} ${rows[0]!.platformLabel}`);
+		const multiAccount = rows.length > 1;
+		for (const row of rows) {
+			const prefix = multiAccount ? `${row.displayName}: ` : '';
+			for (const msg of row.messages) {
+				lines.push(`  • ${prefix}${msg}`);
+			}
+		}
+	}
+	return lines.join('\n');
 }
 
 /** Grid cell copy (tooltips stay full-length); larger cap so multiline + `autoRowHeight` rows stay useful */
@@ -189,15 +314,15 @@ export function buildSetsGridChannelsTooltipPlainText(vm: SetGridTableRowViewMod
 	const d = vm.channelsDisplay;
 	if (!d) return head;
 	const groups = groupSetGridChannelsForTooltipVm(d);
-	const lines: string[] = [head, ''];
+	const lines: string[] = [head];
 	for (const g of groups) {
-		lines.push(g.platformLabel);
+		const id0 = g.channels[0]?.providerIdentifier ?? '';
+		lines.push(`${socialProviderEmoji(id0)} ${g.platformLabel}`);
 		for (const ch of g.channels) {
 			lines.push(`  • ${ch.displayName}`);
 		}
-		lines.push('');
 	}
-	return lines.join('\n').trimEnd();
+	return lines.join('\n');
 }
 
 /**
@@ -205,7 +330,8 @@ export function buildSetsGridChannelsTooltipPlainText(vm: SetGridTableRowViewMod
  */
 export function toSetGridTableRowViewModel(
 	row: SetRowViewModel,
-	channels: readonly SetGridChannelLookupVm[]
+	channels: readonly SetGridChannelLookupVm[],
+	workspaceTags: readonly SetGridTagLookupVm[] = []
 ): SetGridTableRowViewModel {
 	const snap = parseSetContent(row.content);
 
@@ -219,6 +345,7 @@ export function toSetGridTableRowViewModel(
 			bodyPreview: 'Unsupported or invalid content JSON',
 			bodyPreviewTooltip: 'Unsupported or invalid content JSON',
 			tagsSummary: DASH,
+			tagsDisplay: [],
 			threadsSummary: DASH,
 			mediaSummary: DASH,
 			repeatSummary: DASH,
@@ -232,6 +359,8 @@ export function toSetGridTableRowViewModel(
 
 	const nTags = snap.selectedTagNames.length;
 	const tagsSummary = nTags === 0 ? DASH : snap.selectedTagNames.join(', ');
+	const tagsDisplay =
+		nTags === 0 ? [] : buildSetGridTagsDisplayVm(snap.selectedTagNames, workspaceTags);
 
 	const nReplies = countThreadsAutoReplies(snap.providerSettingsByIntegrationId);
 	const threadsSummary =
@@ -249,6 +378,7 @@ export function toSetGridTableRowViewModel(
 		bodyPreview: bodyPreviewFromSnapshot(snap),
 		bodyPreviewTooltip: bodyPreviewTooltipFromSnapshot(snap),
 		tagsSummary: truncate(tagsSummary, 80),
+		tagsDisplay,
 		threadsSummary,
 		mediaSummary,
 		repeatSummary: repeatIntervalLabel(snap.repeatInterval),

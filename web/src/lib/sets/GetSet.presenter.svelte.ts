@@ -22,10 +22,6 @@ export type SetSnapshotViewModel = SetSnapshotProgrammerModel;
 /** Follow-up reply row while authoring a reusable set; same shape as repository PM. */
 export type SetSharedFollowUpReplyViewModel = SetSharedFollowUpReplyProgrammerModel;
 
-export type SetListLoadResultViewModel =
-	| { ok: true; rows: SetRowViewModel[] }
-	| { ok: false; error: string };
-
 function toSetRowVm(pm: SetProgrammerModel): SetRowViewModel {
 	return {
 		id: pm.id,
@@ -40,10 +36,10 @@ function toSetRowVm(pm: SetProgrammerModel): SetRowViewModel {
 export class GetSetPresenter {
 	constructor(private readonly setsRepository: SetsRepository) {}
 
-	async loadSetsListVm(organizationId: string): Promise<SetListLoadResultViewModel> {
+	async loadSetsListVm(organizationId: string): Promise<SetRowViewModel[]> {
 		const resultPm = await this.setsRepository.listForOrganization(organizationId);
-		if (!resultPm.ok) return { ok: false, error: resultPm.error };
-		return { ok: true, rows: resultPm.items.map(toSetRowVm) };
+		if (!resultPm.ok) return [];
+		return resultPm.items.map(toSetRowVm);
 	}
 
 	/** Stateless: map stored `content` JSON to a snapshot VM, or `null` if invalid. */

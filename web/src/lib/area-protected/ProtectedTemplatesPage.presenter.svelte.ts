@@ -1,8 +1,8 @@
 import type { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type { GetSetPresenter } from '$lib/sets/GetSet.presenter.svelte';
 import type { SetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
-import type { UpsertSetPresenter } from '$lib/sets/UpsertSetPresenter.svelte';
-import type { SetDeleteResultViewModel } from '$lib/sets/UpsertSetPresenter.svelte';
+import type { UpsertSetPresenter } from '$lib/sets/UpsertSet.presenter.svelte';
+import type { SetDeleteResultViewModel } from '$lib/sets/UpsertSet.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
 import { sortSetGridRows, toSetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
@@ -56,11 +56,8 @@ export class ProtectedTemplatesPagePresenter {
 		}
 		// Sets store integration UUIDs from the composer; resolve names/avatars from the same list API.
 		await this.protectedDashboardPagePresenter.loadDashboardLists();
-		const resultVm = await this.getSetPresenter.loadSetsListVm(organizationId);
-		if (!resultVm.ok) {
-			this.setsGridRowsVm = [];
-			return;
-		}
+		await this.createSocialPostPresenter.loadWorkspaceTagsIfNeeded(organizationId);
+		const rowsVm = await this.getSetPresenter.loadSetsListVm(organizationId);
 		const channelLookup = this.connectedChannelsVm.map((c) => ({
 			id: c.id,
 			internalId: c.internalId,
@@ -68,7 +65,8 @@ export class ProtectedTemplatesPagePresenter {
 			identifier: c.identifier,
 			picture: c.picture
 		}));
-		const rows = resultVm.rows.map((r) => toSetGridTableRowViewModel(r, channelLookup));
+		const tagLookup = this.createSocialPostPresenter.tagList;
+		const rows = rowsVm.map((r) => toSetGridTableRowViewModel(r, channelLookup, tagLookup));
 		this.setsGridRowsVm = sortSetGridRows(rows);
 	}
 

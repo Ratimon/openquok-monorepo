@@ -13,6 +13,7 @@ import type {
 	GetPostGroupResultViewModel
 } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
+
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 /**

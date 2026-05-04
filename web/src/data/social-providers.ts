@@ -46,6 +46,24 @@ export function socialProviderDisplayLabel(identifier: string): string {
 		.join(' ');
 }
 
+/** Single grapheme for plain-text tooltips / summaries by integration `identifier`. */
+export function socialProviderEmoji(identifier: string): string {
+	const key = identifier.trim();
+	const byId: Record<string, string> = {
+		threads: '🧵',
+		instagram: '📸',
+		'instagram-business': '📸',
+		'instagram-standalone': '📸',
+		facebook: '📘',
+		youtube: '▶️',
+		tiktok: '🎵',
+		x: '𝕏',
+		'linkedin-page': '💼',
+		gmb: '📍'
+	};
+	return byId[key] ?? '🔗';
+}
+
 /** Integration catalog / channel `identifier` → AbstractIcon name. Single source for calendar, account, composer, docs overlap. */
 export const socialProviderIconByIdentifier: Record<string, IconName> = {
 	facebook: icons.Facebook.name,
