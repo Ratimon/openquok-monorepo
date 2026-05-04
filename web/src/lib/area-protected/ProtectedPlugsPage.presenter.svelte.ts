@@ -12,9 +12,9 @@ import type {
 	PlugRuleTableRowViewModel
 } from '$lib/plugs/GetPlug.presenter.svelte';
 import type {
-	GlobalPlugSettingsPresenter,
+	UpsertGlobalPlugPresenter,
 	PlugMutationResultViewModel
-} from '$lib/plugs/GlobalPlugSettings.presenter.svelte';
+} from '$lib/plugs/UpsertGlobalPlug.presenter.svelte';
 
 /**
  * Account → Plugs: catalog + connected channels + aggregated plug rules for the SVAR grid.
@@ -40,7 +40,7 @@ export class ProtectedPlugsPagePresenter {
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
 		private readonly plugRepository: PlugRepository,
 		private readonly getPlugPresenter: GetPlugPresenter,
-		readonly globalPlugSettingsPresenter: GlobalPlugSettingsPresenter
+		readonly upsertGlobalPlugPresenter: UpsertGlobalPlugPresenter
 	) {}
 
 	get organizationId(): string {
@@ -180,7 +180,7 @@ export class ProtectedPlugsPagePresenter {
 		if (!organizationId || !ch) {
 			return { ok: false, error: 'No channel selected.' };
 		}
-		const resultVm = await this.globalPlugSettingsPresenter.upsertPlug({
+		const resultVm = await this.upsertGlobalPlugPresenter.upsertPlug({
 			organizationId,
 			integrationId: ch.id,
 			def: params.def,
@@ -220,7 +220,7 @@ export class ProtectedPlugsPagePresenter {
 	}): Promise<PlugMutationResultViewModel> {
 		const organizationId = this.organizationId;
 		if (!organizationId) return { ok: false, error: 'No workspace.' };
-		const resultVm = await this.globalPlugSettingsPresenter.upsertPlug({
+		const resultVm = await this.upsertGlobalPlugPresenter.upsertPlug({
 			organizationId,
 			integrationId: params.integrationId,
 			def: params.def,
@@ -254,7 +254,7 @@ export class ProtectedPlugsPagePresenter {
 	async deletePlugRow(vm: PlugRuleTableRowViewModel): Promise<PlugMutationResultViewModel> {
 		const organizationId = this.organizationId;
 		if (!organizationId) return { ok: false, error: 'No workspace.' };
-		const resultVm = await this.globalPlugSettingsPresenter.deletePlug({
+		const resultVm = await this.upsertGlobalPlugPresenter.deletePlug({
 			organizationId,
 			plugId: vm.plugRowPm.id
 		});
@@ -276,7 +276,7 @@ export class ProtectedPlugsPagePresenter {
 		if (!plugId) {
 			return { ok: false, error: 'Save plug fields first — then you can enable or pause it.' };
 		}
-		const resultVm = await this.globalPlugSettingsPresenter.setPlugActivated({
+		const resultVm = await this.upsertGlobalPlugPresenter.setPlugActivated({
 			organizationId,
 			plugId,
 			activated: on

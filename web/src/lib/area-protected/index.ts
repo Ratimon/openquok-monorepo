@@ -19,9 +19,9 @@ import { GenerateMediaModalPresenter } from '$lib/canvas';
 import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
 import { getMediaPresenter, mediaRepository } from '$lib/medias';
-import { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
+import { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 import { getScheduledPostsPresenter, postsRepository } from '$lib/posts';
-import { SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
+import { SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
 import { getNotificationPresenter, notificationRepository } from '$lib/notifications';
 import { getSignaturesPresenter, signaturesRepository } from '$lib/signatures';
 import { getSetPresenter, upsertSetPresenter } from '$lib/sets';
@@ -29,7 +29,7 @@ import { workspaceSettingsPresenter } from '$lib/settings';
 import { authenticationRepository } from '$lib/user-auth/index';
 import { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte';
 import { getAnalyticsPresenter } from '$lib/platform-analytics';
-import { getPlugPresenter, globalPlugSettingsPresenter, plugRepository } from '$lib/plugs';
+import { getPlugPresenter, upsertGlobalPlugPresenter, plugRepository } from '$lib/plugs';
 
 const protectedSettingsPagePresenter = new ProtectedSettingsPagePresenter(
 	editorAccountSettingsPresenter,
@@ -97,7 +97,7 @@ const protectedPlugsPagePresenter = new ProtectedPlugsPagePresenter(
 	workspaceSettingsPresenter,
 	plugRepository,
 	getPlugPresenter,
-	globalPlugSettingsPresenter
+	upsertGlobalPlugPresenter
 );
 
 const protectedTemplatesPagePresenter = new ProtectedTemplatesPagePresenter(

@@ -30,7 +30,7 @@ function validationToRegExp(s: string | undefined): RegExp | null {
 /**
  * Validation and mutations for workspace-wide plug rules (channels share the same HTTP surface via {@link PlugRepository}).
  */
-export class GlobalPlugSettingsPresenter {
+export class UpsertGlobalPlugPresenter {
 	constructor(
 		private readonly plugRepository: PlugRepository,
 		private readonly getPlugPresenter: GetPlugPresenter

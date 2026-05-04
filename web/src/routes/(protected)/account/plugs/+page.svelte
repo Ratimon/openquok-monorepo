@@ -327,7 +327,7 @@
 		const rowPm = rowId
 			? presenter.plugRulesRowsVm.find((r) => r.id === rowId)?.plugRowPm
 			: undefined;
-		return presenter.globalPlugSettingsPresenter.fieldDefaults(def, rowPm);
+		return presenter.upsertGlobalPlugPresenter.fieldDefaults(def, rowPm);
 	}
 
 	const handleAddPlugRuleModalOpenChange = (nextOpen: boolean): void => {
@@ -346,7 +346,7 @@
 		def: GlobalPlugCatalogEntryProgrammerModel,
 		rowPm: IntegrationPlugRowProgrammerModel
 	): Record<string, string> {
-		return presenter.globalPlugSettingsPresenter.fieldDefaults(def, rowPm);
+		return presenter.upsertGlobalPlugPresenter.fieldDefaults(def, rowPm);
 	}
 
 	const handleClosePlugSingleRuleEditor = (): void => {

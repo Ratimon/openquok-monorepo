@@ -3,7 +3,7 @@ import type { PlugRepositoryConfig } from '$lib/plugs/Plug.repository.svelte';
 import { httpGateway } from '$lib/core/index';
 import { PlugRepository } from '$lib/plugs/Plug.repository.svelte';
 import { GetPlugPresenter } from '$lib/plugs/GetPlug.presenter.svelte';
-import { GlobalPlugSettingsPresenter } from '$lib/plugs/GlobalPlugSettings.presenter.svelte';
+import { UpsertGlobalPlugPresenter } from '$lib/plugs/UpsertGlobalPlug.presenter.svelte';
 
 const integrationsBase = '/api/v1/integrations';
 
@@ -23,11 +23,11 @@ export const plugRepository = new PlugRepository(httpGateway, plugRepositoryConf
 
 export const getPlugPresenter = new GetPlugPresenter();
 
-export const globalPlugSettingsPresenter = new GlobalPlugSettingsPresenter(
+export const upsertGlobalPlugPresenter = new UpsertGlobalPlugPresenter(
 	plugRepository,
 	getPlugPresenter
 );
 
 export { PlugRepository } from '$lib/plugs/Plug.repository.svelte';
 export { GetPlugPresenter } from '$lib/plugs/GetPlug.presenter.svelte';
-export { GlobalPlugSettingsPresenter } from '$lib/plugs/GlobalPlugSettings.presenter.svelte';
+export { UpsertGlobalPlugPresenter } from '$lib/plugs/UpsertGlobalPlug.presenter.svelte';

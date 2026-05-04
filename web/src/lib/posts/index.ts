@@ -47,8 +47,8 @@ export type {
 	RepeatIntervalKey,
 	UpdatePostReleaseIdResultProgrammerModel
 } from '$lib/posts/Post.repository.svelte';
-export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPostPresenter.svelte';
-export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
+export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPost.presenter.svelte';
+export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 export { default as Delay } from '$lib/ui/components/posts/thread/Delay.svelte';
 export { GetScheduledPostsPresenter, toPublicPreviewChannelVm } from '$lib/posts/GetScheduledPost.presenter.svelte';
 export type {
@@ -72,6 +72,6 @@ export type {
 	PostStateFilterVm,
 	ScheduledPostsCalendarViewModel,
 	SocialPlatformFilterVm
-} from '$lib/posts/SchedulerPresenter.svelte';
-export { CALENDAR_UNGROUPED_SENTINEL, SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
+} from '$lib/posts/Scheduler.presenter.svelte';
+export { CALENDAR_UNGROUPED_SENTINEL, SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
 export { socialProviderIcon, socialProviderIconByIdentifier } from '$data/social-providers';

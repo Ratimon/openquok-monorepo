@@ -1,8 +1,8 @@
 import type {
 	CreateSocialPostPresenter,
 	CreateSocialPostPrepareOpenOptions
-} from '$lib/posts/CreateSocialPostPresenter.svelte';
-import type { SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
+} from '$lib/posts/CreateSocialPost.presenter.svelte';
+import type { SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import type {
 	CreateSocialPostChannelViewModel,

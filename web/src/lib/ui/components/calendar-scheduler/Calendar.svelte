@@ -19,7 +19,7 @@
 		registerOpenActionsForPostGroupHandler,
 		registerRefreshCalendarHandler,
 		triggerOpenActionsForPostGroup
-	} from '$lib/posts/SchedulerPresenter.svelte';
+	} from '$lib/posts/Scheduler.presenter.svelte';
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
 

@@ -2,7 +2,7 @@ import type {
 	ConnectedIntegrationProgrammerModel,
 	IntegrationsRepository
 } from '$lib/integrations/Integrations.repository.svelte';
-import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPostPresenter.svelte';
+import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
 import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';

@@ -19,7 +19,7 @@ alwaysApply: false
 - **DTOs / `*ResponseDto`**: next to the **repository** that consumes them.
 - **PM (`*ProgrammerModel`)**: same file as the **repository** class (unless shared across repos).
 - **VM for `Get*` outputs** (reads/lists): same file as **`Get*.presenter.svelte.ts`** (e.g. **`BlogPostCommentViewModel`** next to **`loadPublishedBlogPostComments`**).
-- **Mutation result `*ViewModel`** (discriminated `{ ok: … }` exposed to routes/UI): **not** in the repository file. Prefer **page presenter** when screen-specific (**`PublicBlogMutationResultViewModel`**), or **feature presenter** when shared orchestration wraps the repo (**`PlugMutationResultViewModel`** on **`GlobalPlugSettingsPresenter`**). Map from **`BlogUpsertProgrammerModel`**, **`PlugUpsertProgrammerModel`**, etc. inside that presenter.
+- **Mutation result `*ViewModel`** (discriminated `{ ok: … }` exposed to routes/UI): **not** in the repository file. Prefer **page presenter** when screen-specific (**`PublicBlogMutationResultViewModel`**), or **feature presenter** when shared orchestration wraps the repo (**`PlugMutationResultViewModel`** on **`UpsertGlobalPlugPresenter`**). Map from **`BlogUpsertProgrammerModel`**, **`PlugUpsertProgrammerModel`**, etc. inside that presenter.
 - **Feature `*.types.ts`**: Zod / form types and other **non-repository-only** shared UI types.
 
 ## Naming (quick rules)
