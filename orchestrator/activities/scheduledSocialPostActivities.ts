@@ -7,6 +7,7 @@ import type { PostThreadReplyLike, SocialPostLike } from "backend/utils/dtos/Pos
 import type { NotificationService } from "backend/services/NotificationService.js";
 import type { NotificationEmailType } from "openquok-common";
 
+import { extractFollowUpRepliesFromProviderSettingsObject } from "backend/utils/dtos/PostDTO.js";
 import { ProviderAccessTokenExpiredError } from "backend/errors/ProviderIntegrationErrors.js";
 import { logger } from "backend/utils/Logger.js";
 import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
@@ -29,6 +30,8 @@ export type ScheduledPostsRepository = {
         replyId: string,
         input: { state: "PUBLISHED" | "ERROR"; releaseId: string | null; releaseUrl: string | null; error: string | null }
     ) => Promise<void>;
+    /** Refetch row before follow-ups so `settings` matches DB (e.g. jsonb shape). */
+    getPostById?: (postId: string) => Promise<SocialPostLike | null>;
 };
 
 const PUBLISH_ATTEMPTS = 5;
@@ -46,7 +49,11 @@ export type ScheduledSocialPostPlugPipelineDeps = {
 type PublishDeps = {
     postsRepository: Pick<
         ScheduledPostsRepository,
-        "markPostState" | "updatePostRowPublishResult" | "listThreadRepliesByPostId" | "updateThreadReplyPublishResult"
+        | "markPostState"
+        | "updatePostRowPublishResult"
+        | "listThreadRepliesByPostId"
+        | "updateThreadReplyPublishResult"
+        | "getPostById"
     >;
     integrationRepository: Pick<IntegrationRepository, "getById">;
     integrationManager: IntegrationManager;
@@ -68,6 +75,8 @@ function isNonRefreshablePublishError(message: string): boolean {
     if (m.includes("media download has failed")) return true;
     if (m.includes("media uri doesn't meet our requirements")) return true;
     if (m.includes("error_subcode") && m.includes("2207052")) return true;
+    if (m.includes("cannot build a public media url for instagram")) return true;
+    if (m.includes("instagram media url is not publicly reachable")) return true;
     return false;
 }
 
@@ -88,6 +97,25 @@ function postPublishErrorForStorage(err: unknown, max = 4000): string {
         return `Publish failed: ${raw} (if there is no Threads- prefix, the worker may be on stale backend/dist)`.slice(0, max);
     }
     return `Publish failed: ${raw}`.slice(0, max);
+}
+
+/**
+ * `posts.settings` / `posts.image` are json/jsonb. PostgREST + the Supabase JS client often return them as
+ * parsed objects; some paths still use stringified JSON. Treat both so orchestration never silently drops
+ * `providerSettings` (e.g. Instagram follow-up replies).
+ */
+function parsePostsJsonColumn(raw: unknown): unknown {
+    if (raw == null) return null;
+    if (typeof raw === "string") {
+        const t = raw.trim();
+        if (!t) return null;
+        try {
+            return JSON.parse(t) as unknown;
+        } catch {
+            return null;
+        }
+    }
+    return raw;
 }
 
 function integrationRowToRecord(row: IntegrationLike): IntegrationRecord {
@@ -111,22 +139,14 @@ function integrationRowToRecord(row: IntegrationLike): IntegrationRecord {
 
 function postRowToPostDetails(row: SocialPostLike): PostDetails {
     let settings: Record<string, unknown> = {};
-    if (row.settings) {
-        try {
-            const o = JSON.parse(row.settings) as unknown;
-            if (o && typeof o === "object") settings = o as Record<string, unknown>;
-        } catch {
-            /* use empty */
-        }
+    const settingsRaw = parsePostsJsonColumn(row.settings as unknown);
+    if (settingsRaw && typeof settingsRaw === "object" && !Array.isArray(settingsRaw)) {
+        settings = settingsRaw as Record<string, unknown>;
     }
     if (row.image) {
-        try {
-            const img = JSON.parse(row.image) as { items?: unknown };
-            if (img && typeof img === "object" && "items" in img) {
-                settings = { ...settings, media: img };
-            }
-        } catch {
-            /* ignore */
+        const img = parsePostsJsonColumn(row.image as unknown) as { items?: unknown } | null;
+        if (img && typeof img === "object" && "items" in img) {
+            settings = { ...settings, media: img };
         }
     }
     return {
@@ -145,16 +165,14 @@ function firstPostResponse(r: PostResponse[] | void): { releaseId: string; relea
 }
 
 function parseProviderSettingsFromPostRow(row: SocialPostLike): Record<string, unknown> | null {
-    if (!row.settings) return null;
-    try {
-        const o = JSON.parse(row.settings) as { providerSettings?: unknown };
-        if (o && typeof o === "object" && o.providerSettings && typeof o.providerSettings === "object") {
-            return o.providerSettings as Record<string, unknown>;
-        }
-        return null;
-    } catch {
-        return null;
+    const o = parsePostsJsonColumn(row.settings as unknown);
+    if (!o || typeof o !== "object" || Array.isArray(o)) return null;
+    const root = o as Record<string, unknown>;
+    const ps = root.providerSettings;
+    if (ps && typeof ps === "object" && !Array.isArray(ps)) {
+        return ps as Record<string, unknown>;
     }
+    return null;
 }
 
 function sleepMs(ms: number): Promise<void> {
@@ -605,19 +623,11 @@ async function resolveSocialProviderOrFail(
 
 type ThreadsReplySettings = { id: string; message: string; delaySeconds: number };
 
-function threadsRepliesFromSettings(settings: Record<string, unknown> | null): ThreadsReplySettings[] {
-    const s = settings as { threads?: unknown } | null;
-    const threads = (s && typeof s.threads === "object" ? (s.threads as any) : null) as { replies?: unknown } | null;
-    const raw = threads?.replies;
-    if (!Array.isArray(raw)) return [];
-    return raw
-        .map((r) => ({
-            id: typeof (r as any)?.id === "string" ? (r as any).id : "",
-            message: typeof (r as any)?.message === "string" ? (r as any).message : "",
-            delaySeconds: Number.isFinite(Number((r as any)?.delaySeconds)) ? Number((r as any).delaySeconds) : 0,
-        }))
-        .filter((r) => r.id && r.message.trim().length > 0)
-        .slice(0, 25);
+function followUpRepliesFromStoredProviderSettings(
+    providerIdentifier: string,
+    settings: Record<string, unknown> | null
+): ThreadsReplySettings[] {
+    return extractFollowUpRepliesFromProviderSettingsObject(settings, providerIdentifier);
 }
 
 function sleep(ms: number): Promise<void> {
@@ -694,35 +704,80 @@ async function maybePublishThreadsReplies(params: {
     deps: PublishDeps;
 }): Promise<string> {
     const { post, integration, record, social, publishedPostId, deps } = params;
-    if (integration.provider_identifier !== "threads") return publishedPostId;
+    const pid = integration.provider_identifier.trim().toLowerCase();
+    const supportsFollowUps = pid === "threads" || pid.startsWith("instagram");
+    if (!supportsFollowUps) return publishedPostId;
     if (typeof social.comment !== "function") return publishedPostId;
     if (!publishedPostId) return publishedPostId;
 
-    // Fallback to old settings JSON for backwards compatibility.
-    let replies: ThreadsReplySettings[] = [];
+    // Canonical reply program lives in `posts.settings.providerSettings` (composer). `post_thread_replies`
+    // mirrors it for QUEUE/PUBLISHED state — prefer settings when drafts exist so we never skip because the
+    // DB mirror is empty, out of sync, or has unusable rows while settings still has the real copy.
+    const providerSettings = parseProviderSettingsFromPostRow(post);
+    const fromSettings = followUpRepliesFromStoredProviderSettings(integration.provider_identifier, providerSettings);
+
+    let fromDb: ThreadsReplySettings[] = [];
     if (typeof deps.postsRepository.listThreadRepliesByPostId === "function") {
         try {
             const rows = await deps.postsRepository.listThreadRepliesByPostId(post.id);
-            replies = (rows ?? [])
+            fromDb = (rows ?? [])
                 .filter((r: PostThreadReplyLike) => !r.deleted_at && r.state === "QUEUE")
                 .map((r: PostThreadReplyLike) => ({
                     id: r.id,
-                    message: r.content,
+                    message: typeof r.content === "string" ? r.content : "",
                     delaySeconds: r.delay_seconds ?? 0,
-                }));
+                }))
+                .filter((r) => r.message.trim().length > 0);
         } catch {
-            replies = [];
+            fromDb = [];
         }
     }
-    if (replies.length === 0) {
-        const providerSettings = parseProviderSettingsFromPostRow(post);
-        replies = threadsRepliesFromSettings(providerSettings);
+
+    /** Prefer composer `settings` for text/delays; when `post_thread_replies` has the same count, reuse DB row ids so `updateThreadReplyPublishResult` hits real UUIDs. */
+    let replies: ThreadsReplySettings[];
+    if (fromSettings.length > 0) {
+        if (fromDb.length === fromSettings.length) {
+            replies = fromSettings.map((s, i) => ({
+                ...s,
+                id: typeof fromDb[i]?.id === "string" && fromDb[i]!.id.trim() ? fromDb[i]!.id : s.id,
+            }));
+        } else {
+            replies = fromSettings;
+        }
+    } else {
+        replies = fromDb;
     }
-    if (replies.length === 0) return publishedPostId;
+
+    if (replies.length === 0) {
+        logger.info({
+            msg: "[Orchestrator] no follow-up replies to publish for channel",
+            postId: post.id,
+            organizationId: post.organization_id,
+            provider: integration.provider_identifier,
+            settingsDraftCount: fromSettings.length,
+            dbQueueReplyCount: fromDb.length,
+        });
+        return publishedPostId;
+    }
+
+    logger.info({
+        msg: "[Orchestrator] publishing scheduled follow-up replies",
+        postId: post.id,
+        organizationId: post.organization_id,
+        provider: integration.provider_identifier,
+        replyCount: replies.length,
+        source:
+            fromSettings.length > 0
+                ? fromDb.length === fromSettings.length
+                    ? "posts.settings+post_thread_replies_ids"
+                    : "posts.settings"
+                : "post_thread_replies",
+    });
 
     const organizationId = post.organization_id;
     const postId = post.id;
     const ns = deps.notificationService;
+    const networkLabel = pid.startsWith("instagram") ? "Instagram" : "Threads";
 
     let lastCommentId: string | undefined = publishedPostId;
     for (const r of replies) {
@@ -742,35 +797,58 @@ async function maybePublishThreadsReplies(params: {
             const next = firstPostResponse(res).releaseId;
             lastCommentId = next || lastCommentId;
             if (typeof deps.postsRepository.updateThreadReplyPublishResult === "function") {
-                const { releaseId, releaseUrl } = firstPostResponse(res);
-                await deps.postsRepository.updateThreadReplyPublishResult(r.id, {
-                    state: "PUBLISHED",
-                    releaseId: releaseId || null,
-                    releaseUrl: releaseUrl || null,
-                    error: null,
-                });
+                try {
+                    const { releaseId, releaseUrl } = firstPostResponse(res);
+                    await deps.postsRepository.updateThreadReplyPublishResult(r.id, {
+                        state: "PUBLISHED",
+                        releaseId: releaseId || null,
+                        releaseUrl: releaseUrl || null,
+                        error: null,
+                    });
+                } catch (dbErr) {
+                    const dbMsg = dbErr instanceof Error ? dbErr.message : String(dbErr);
+                    logger.warn({
+                        msg: "[Orchestrator] updateThreadReplyPublishResult failed after successful comment",
+                        postId,
+                        organizationId,
+                        replyId: r.id,
+                        error: dbMsg,
+                    });
+                }
             }
         } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
             logger.warn({
-                msg: "[Orchestrator] threads thread reply failed (best-effort)",
+                msg: "[Orchestrator] follow-up comment failed (best-effort)",
                 postId,
                 organizationId,
+                provider: integration.provider_identifier,
                 error: msg,
             });
             if (typeof deps.postsRepository.updateThreadReplyPublishResult === "function") {
-                await deps.postsRepository.updateThreadReplyPublishResult(r.id, {
-                    state: "ERROR",
-                    releaseId: null,
-                    releaseUrl: null,
-                    error: msg.slice(0, 4000),
-                });
+                try {
+                    await deps.postsRepository.updateThreadReplyPublishResult(r.id, {
+                        state: "ERROR",
+                        releaseId: null,
+                        releaseUrl: null,
+                        error: msg.slice(0, 4000),
+                    });
+                } catch (dbErr) {
+                    const dbMsg = dbErr instanceof Error ? dbErr.message : String(dbErr);
+                    logger.warn({
+                        msg: "[Orchestrator] updateThreadReplyPublishResult failed while recording comment error",
+                        postId,
+                        organizationId,
+                        replyId: r.id,
+                        error: dbMsg,
+                    });
+                }
             }
             await notify(
                 ns,
                 organizationId,
-                "We published your post, but a thread reply failed",
-                `Your Threads post was published, but one of the scheduled thread replies could not be posted. ${msg}`,
+                `We published your post, but a ${networkLabel} follow-up failed`,
+                `Your ${networkLabel} post was published, but one of the scheduled follow-up comments could not be posted. ${msg}`,
                 true,
                 false,
                 "info"
@@ -824,8 +902,51 @@ export function createPublishScheduledGroupHandler(deps: {
                 return;
             }
 
+            // Publish every channel’s root post first, then run follow-ups / plugs per channel.
+            // Otherwise a slow Threads reply chain or plug pipeline blocks other networks (e.g. Instagram stuck in QUEUE).
+            const publishedRoots: PublishedRootContext[] = [];
             for (const post of toPublish) {
-                await publishOneRow(post, deps);
+                logger.info({
+                    msg: "[Orchestrator] scheduled post: publishing root for channel",
+                    postGroup,
+                    organizationId,
+                    postId: post.id,
+                    integrationId: post.integration_id,
+                });
+                const ctx = await publishRootForRow(post, deps);
+                if (ctx) publishedRoots.push(ctx);
+            }
+            // Comments first for every channel, then Threads plug pipeline (which can sleep a long time for global
+            // plug schedules). Otherwise Instagram follow-ups never start until all plug delays elapse.
+            for (const ctx of publishedRoots) {
+                try {
+                    await runFollowUpsCommentsPhase(deps, ctx);
+                } catch (err) {
+                    logger.error({
+                        msg: "[Orchestrator] scheduled post: follow-up comments failed after root publish (other channels may already be live)",
+                        postGroup,
+                        organizationId,
+                        postId: ctx.post.id,
+                        provider: ctx.integration.provider_identifier,
+                        error: err instanceof Error ? err.message : String(err),
+                        ...(err instanceof Error && err.stack ? { stack: err.stack } : {}),
+                    });
+                }
+            }
+            for (const ctx of publishedRoots) {
+                try {
+                    await runFollowUpsPlugPhase(deps, ctx);
+                } catch (err) {
+                    logger.error({
+                        msg: "[Orchestrator] scheduled post: post-publish plug pipeline failed (comments already ran)",
+                        postGroup,
+                        organizationId,
+                        postId: ctx.post.id,
+                        provider: ctx.integration.provider_identifier,
+                        error: err instanceof Error ? err.message : String(err),
+                        ...(err instanceof Error && err.stack ? { stack: err.stack } : {}),
+                    });
+                }
             }
 
             // Repeat scheduling : if this group is configured with a repeat cadence,
@@ -865,25 +986,34 @@ export function createPublishScheduledGroupHandler(deps: {
     };
 }
 
-async function publishOneRow(
+type PublishedRootContext = {
+    post: SocialPostLike & { integration_id: string };
+    integration: IntegrationLike;
+    social: any;
+    releaseId: string;
+    /** Latest Threads id after scheduled replies + thread finisher; used by {@link runFollowUpsPlugPhase}. */
+    threadsReplyTipAfterComments?: string;
+};
+
+/** Root `social.post` + DB PUBLISHED + notification; retries with token refresh. Follow-ups in {@link runFollowUpsCommentsPhase} / {@link runFollowUpsPlugPhase}. */
+async function publishRootForRow(
     post: SocialPostLike & { integration_id: string },
     deps: PublishDeps
-): Promise<void> {
+): Promise<PublishedRootContext | null> {
     const organizationId = post.organization_id;
     const postId = post.id;
     const ns = deps.notificationService;
     const providerRes = await resolveIntegrationOrFail(post, deps);
-    if (!providerRes.ok) return;
-    const provider = providerRes.integration;
+    if (!providerRes.ok) return null;
+    let intRow = providerRes.integration;
 
     const socialRes = await resolveSocialProviderOrFail(
-        { organizationId, postId, providerIdentifier: provider.provider_identifier },
+        { organizationId, postId, providerIdentifier: intRow.provider_identifier },
         deps
     );
-    if (!socialRes.ok) return;
+    if (!socialRes.ok) return null;
     const social = socialRes.social;
 
-    let intRow: IntegrationLike = provider;
     const postDetails: PostDetails[] = [postRowToPostDetails(post)];
 
     for (let attempt = 0; attempt < PUBLISH_ATTEMPTS; attempt++) {
@@ -915,40 +1045,15 @@ async function publishOneRow(
                 organizationId,
                 provider: intRow.provider_identifier,
             });
-
-            // Thread replies → finisher → internal plug share one linear chain (reply_to last published id).
-            let threadsLeafId = releaseId;
-            threadsLeafId = await maybePublishThreadsReplies({
-                post,
-                integration: intRow,
-                record,
-                social,
-                publishedPostId: releaseId,
-                deps,
-            });
-            threadsLeafId = await maybePublishThreadsThreadFinisher({
-                post,
-                integration: intRow,
-                record,
-                social,
-                publishedPostId: releaseId,
-                replyParentId: threadsLeafId,
-                deps,
-            });
-
-            if (deps.plugPipeline && releaseId) {
-                const providerSettings = parseProviderSettingsFromPostRow(post);
-                await runPostPublishPlugPipeline(deps.plugPipeline, {
+            const rid = (releaseId ?? "").trim();
+            if (!rid) {
+                logger.warn({
+                    msg: "[Orchestrator] post succeeded but release id empty; follow-ups / plugs will be skipped",
+                    postId,
                     organizationId,
-                    networkPostId: releaseId,
-                    providerIdentifier: intRow.provider_identifier,
-                    postIntegrationId: post.integration_id,
-                    providerSettings,
-                    threadsInternalReplyParentId: threadsLeafId,
                 });
             }
-
-            return;
+            return { post, integration: intRow, social, releaseId: rid };
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
             if (err instanceof Error && err.stack) {
@@ -981,7 +1086,7 @@ async function publishOneRow(
                     false,
                     "fail"
                 );
-                return;
+                return null;
             }
             if (attempt >= PUBLISH_ATTEMPTS - 1) {
                 const stored = postPublishErrorForStorage(err, 4000);
@@ -997,7 +1102,7 @@ async function publishOneRow(
                     false,
                     "fail"
                 );
-                return;
+                return null;
             }
             const refreshed: false | AuthTokenDetails = await deps.refreshService.refresh(intRow);
             if (!refreshed) {
@@ -1014,7 +1119,7 @@ async function publishOneRow(
                     false,
                     "fail"
                 );
-                return;
+                return null;
             }
             const reloaded = await deps.integrationRepository.getById(organizationId, intRow.id);
             if (!reloaded || reloaded.deleted_at) {
@@ -1028,9 +1133,97 @@ async function publishOneRow(
                     false,
                     "fail"
                 );
-                return;
+                return null;
             }
             intRow = reloaded;
         }
     }
+    return null;
+}
+
+async function refreshPostRowForFollowUps(
+    deps: PublishDeps,
+    ctx: PublishedRootContext
+): Promise<SocialPostLike & { integration_id: string }> {
+    let post: SocialPostLike & { integration_id: string } = ctx.post;
+    if (typeof deps.postsRepository.getPostById === "function") {
+        try {
+            const fresh = await deps.postsRepository.getPostById(ctx.post.id);
+            if (fresh) {
+                post = {
+                    ...ctx.post,
+                    ...fresh,
+                    // Avoid wiping jsonb columns when the refetch omits or nulls them.
+                    settings: fresh.settings ?? ctx.post.settings,
+                    image: fresh.image ?? ctx.post.image,
+                    integration_id: (fresh.integration_id ?? ctx.post.integration_id) as string,
+                };
+            }
+        } catch (e) {
+            logger.warn({
+                msg: "[Orchestrator] getPostById before follow-ups failed; using in-memory post row",
+                postId: ctx.post.id,
+                error: e instanceof Error ? e.message : String(e),
+            });
+        }
+    }
+    return post;
+}
+
+/** Scheduled reply chain + Threads thread finisher (same-channel). Runs for every published root before any plug delays. */
+async function runFollowUpsCommentsPhase(deps: PublishDeps, ctx: PublishedRootContext): Promise<void> {
+    const { integration: intRow, social, releaseId } = ctx;
+    if (!releaseId) {
+        logger.warn({
+            msg: "[Orchestrator] follow-ups skipped: empty release id after root publish",
+            postId: ctx.post.id,
+            organizationId: ctx.post.organization_id,
+            provider: ctx.integration.provider_identifier,
+        });
+        return;
+    }
+
+    const post = await refreshPostRowForFollowUps(deps, ctx);
+    const record = integrationRowToRecord(intRow);
+
+    let threadsLeafId = releaseId;
+    threadsLeafId = await maybePublishThreadsReplies({
+        post,
+        integration: intRow,
+        record,
+        social,
+        publishedPostId: releaseId,
+        deps,
+    });
+    threadsLeafId = await maybePublishThreadsThreadFinisher({
+        post,
+        integration: intRow,
+        record,
+        social,
+        publishedPostId: releaseId,
+        replyParentId: threadsLeafId,
+        deps,
+    });
+
+    ctx.threadsReplyTipAfterComments = threadsLeafId;
+}
+
+/** Threads-only internal + global plugs (may sleep a long time). Runs after all channels’ comment follow-ups. */
+async function runFollowUpsPlugPhase(deps: PublishDeps, ctx: PublishedRootContext): Promise<void> {
+    const { integration: intRow, releaseId } = ctx;
+    if (!releaseId || !deps.plugPipeline) return;
+
+    const post = await refreshPostRowForFollowUps(deps, ctx);
+    const organizationId = post.organization_id;
+    const providerSettings = parseProviderSettingsFromPostRow(post);
+    const threadsInternalReplyParentId = ctx.threadsReplyTipAfterComments ?? releaseId;
+
+    await runPostPublishPlugPipeline(deps.plugPipeline, {
+        organizationId,
+        networkPostId: releaseId,
+        providerIdentifier: intRow.provider_identifier,
+        postIntegrationId: post.integration_id,
+        providerSettings,
+        threadsInternalReplyParentId,
+    });
 }

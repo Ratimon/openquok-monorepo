@@ -1,4 +1,9 @@
-import type { SetProgrammerModel, SetsRepository, SetSnapshotProgrammerModel } from '$lib/sets/Sets.repository.svelte';
+import type {
+	SetProgrammerModel,
+	SetSharedFollowUpReplyProgrammerModel,
+	SetsRepository,
+	SetSnapshotProgrammerModel
+} from '$lib/sets/Sets.repository.svelte';
 import { parseSetContent } from '$lib/sets/Sets.repository.svelte';
 
 /** List row for set picker and settings (PM → VM). */
@@ -13,6 +18,9 @@ export type SetRowViewModel = {
 
 /** Parsed persisted composer snapshot for UI / composer handoff. */
 export type SetSnapshotViewModel = SetSnapshotProgrammerModel;
+
+/** Follow-up reply row while authoring a reusable set; same shape as repository PM. */
+export type SetSharedFollowUpReplyViewModel = SetSharedFollowUpReplyProgrammerModel;
 
 export type SetListLoadResultViewModel =
 	| { ok: true; rows: SetRowViewModel[] }

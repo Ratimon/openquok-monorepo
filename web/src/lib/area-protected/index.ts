@@ -4,7 +4,8 @@ export {
 	getRootPathAnalytics,
 	getRootPathMedia,
 	getRootPathIntegrations,
-	getRootPathPlugs
+	getRootPathPlugs,
+	getRootPathTemplates
 } from '$lib/area-protected/getRootPathProtectedArea';
 import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus } from './ProtectedSettingsPage.presenter.svelte';
 import { ProtectedLayoutPagePresenter } from '$lib/area-protected/ProtectedLayoutPage.presenter.svelte';
@@ -13,6 +14,7 @@ import { ProtectedCalendarPagePresenter } from '$lib/area-protected/ProtectedCal
 import { ProtectedMediaPagePresenter } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
 import { ProtectedAnalyticsPagePresenter } from '$lib/area-protected/ProtectedAnalyticsPage.presenter.svelte';
 import { ProtectedPlugsPagePresenter } from '$lib/area-protected/ProtectedPlugsPage.presenter.svelte';
+import { ProtectedTemplatesPagePresenter } from '$lib/area-protected/ProtectedTemplatesPage.presenter.svelte';
 import { GenerateMediaModalPresenter } from '$lib/canvas';
 import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
@@ -22,7 +24,7 @@ import { getScheduledPostsPresenter, postsRepository } from '$lib/posts';
 import { SchedulerPresenter } from '$lib/posts/SchedulerPresenter.svelte';
 import { getNotificationPresenter, notificationRepository } from '$lib/notifications';
 import { getSignaturesPresenter, signaturesRepository } from '$lib/signatures';
-import { upsertSetPresenter } from '$lib/sets';
+import { getSetPresenter, upsertSetPresenter } from '$lib/sets';
 import { workspaceSettingsPresenter } from '$lib/settings';
 import { authenticationRepository } from '$lib/user-auth/index';
 import { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte';
@@ -98,6 +100,13 @@ const protectedPlugsPagePresenter = new ProtectedPlugsPagePresenter(
 	globalPlugSettingsPresenter
 );
 
+const protectedTemplatesPagePresenter = new ProtectedTemplatesPagePresenter(
+	workspaceSettingsPresenter,
+	getSetPresenter,
+	upsertSetPresenter,
+	protectedDashboardPagePresenter
+);
+
 export type { ProtectedMediaPagePresenterMediaSettingsVmPublic } from './ProtectedMediaPage.presenter.svelte';
 export {
 	ProtectedSettingsPagePresenter,
@@ -114,6 +123,8 @@ export {
 	protectedAnalyticsPagePresenter,
 	ProtectedPlugsPagePresenter,
 	protectedPlugsPagePresenter,
+	ProtectedTemplatesPagePresenter,
+	protectedTemplatesPagePresenter,
 	ProtectedMediaPagePresenter,
 	protectedMediaPagePresenter,
 	GenerateMediaModalPresenter,

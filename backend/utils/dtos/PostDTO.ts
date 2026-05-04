@@ -147,6 +147,62 @@ export function parseProviderThreadsPreviewFromPostSettings(settings: string | n
     }
 }
 
+/** Where scheduled follow-up replies live in `providerSettings` (per integration). */
+export function replyChainBucketForProvider(providerIdentifier: string | null | undefined): "threads" | "instagram" {
+    const id = (providerIdentifier ?? "").trim().toLowerCase();
+    return id.startsWith("instagram") ? "instagram" : "threads";
+}
+
+export type FollowUpReplyDraft = { id: string; message: string; delaySeconds: number };
+
+function mapRawRepliesToFollowUpDrafts(repliesRaw: unknown): FollowUpReplyDraft[] {
+    if (!Array.isArray(repliesRaw)) return [];
+    return repliesRaw
+        .map((r: unknown) => {
+            const o = r as { id?: unknown; message?: unknown; delaySeconds?: unknown };
+            return {
+                id: typeof o?.id === "string" ? o.id : "",
+                message: typeof o?.message === "string" ? o.message.trim() : "",
+                delaySeconds: Number.isFinite(Number(o?.delaySeconds)) ? Math.max(0, Math.floor(Number(o.delaySeconds))) : 0,
+            };
+        })
+        .filter((r) => r.id && r.message.length > 0)
+        .slice(0, 25);
+}
+
+/**
+ * Reads scheduled follow-up replies from `posts.settings.providerSettings` using the correct bucket
+ * (`threads` vs `instagram`) for the channel.
+ */
+export function extractFollowUpRepliesFromProviderSettingsObject(
+    providerSettings: Record<string, unknown> | null | undefined,
+    providerIdentifier: string | null
+): FollowUpReplyDraft[] {
+    if (!providerSettings || typeof providerSettings !== "object") return [];
+    const bucket = replyChainBucketForProvider(providerIdentifier);
+    const sub = providerSettings[bucket];
+    if (!sub || typeof sub !== "object" || Array.isArray(sub)) return [];
+    return mapRawRepliesToFollowUpDrafts((sub as { replies?: unknown }).replies);
+}
+
+/** Same as {@link extractFollowUpRepliesFromProviderSettingsObject} but parses the full `posts.settings` JSON. */
+export function extractFollowUpRepliesFromPostSettingsColumn(
+    settings: string | null,
+    providerIdentifier: string | null
+): FollowUpReplyDraft[] {
+    if (!settings?.trim()) return [];
+    try {
+        const o = JSON.parse(settings) as { providerSettings?: unknown };
+        const ps =
+            o.providerSettings && typeof o.providerSettings === "object"
+                ? (o.providerSettings as Record<string, unknown>)
+                : null;
+        return extractFollowUpRepliesFromProviderSettingsObject(ps, providerIdentifier);
+    } catch {
+        return [];
+    }
+}
+
 /** Parses `posts.settings` JSON column. */
 export function parsePostSettingsJson(settings: string | null): {
     isGlobal: boolean;

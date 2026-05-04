@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type {
-		BackgroundPanelVm,
+		BackgroundPanelViewModel,
 		DesignTemplateProgrammerModel,
 		ExportCanvasToMediaFn,
 		PolotnoTemplateListPageProgrammerModel,
@@ -25,7 +25,7 @@
 			params: { query: string; page: number },
 			signal?: AbortSignal
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
-		backgroundPanelVm?: BackgroundPanelVm;
+		backgroundPanelVm?: BackgroundPanelViewModel;
 		exportCanvasToMedia?: ExportCanvasToMediaFn;
 		body?: string;
 		busy?: boolean;

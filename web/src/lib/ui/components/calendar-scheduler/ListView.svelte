@@ -8,7 +8,9 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type SlotSummaryItem = {
+		postId?: string;
 		postGroup?: string;
+		integrationId?: string;
 		content?: string;
 		channelPicture?: string;
 		channelName?: string;
@@ -19,13 +21,15 @@
 
 	export type Props = {
 		events: CalendarEventExternal[];
-		onOpenPostGroup?: (postGroup: string) => void;
+		onOpenPostGroup?: (postGroup: string, focusPostId?: string, focusIntegrationId?: string) => void;
 	};
 
 	let { events, onOpenPostGroup }: Props = $props();
 
 	type ListRow = {
 		postGroup: string;
+		postId?: string;
+		integrationId?: string;
 		content: string;
 		channelPicture?: string;
 		channelName?: string;
@@ -63,6 +67,8 @@
 				if (!postGroup) continue;
 				rows.push({
 					postGroup,
+					postId: s.postId ? String(s.postId) : undefined,
+					integrationId: s.integrationId ? String(s.integrationId) : undefined,
 					content: stripHtmlToPlainText(String(s.content ?? '')).trim(),
 					channelPicture: s.channelPicture ? String(s.channelPicture) : undefined,
 					channelName: s.channelName ? String(s.channelName) : (ev as any)?.title ? String((ev as any).title) : undefined,
@@ -73,12 +79,15 @@
 			}
 		}
 
-		// Dedupe by postGroup (some buckets may contain duplicated slotSummary entries after merges).
-		const byGroup = new Map<string, ListRow>();
+		// Dedupe identical rows (merges), not multi-channel groups (same postGroup, different integration).
+		const byKey = new Map<string, ListRow>();
 		for (const r of rows) {
-			if (!byGroup.has(r.postGroup)) byGroup.set(r.postGroup, r);
+			const k = r.postId?.trim()
+				? `id:${r.postId.trim()}`
+				: `g:${r.postGroup}|i:${r.integrationId?.trim() ?? ''}|c:${r.channelIdentifier ?? ''}`;
+			if (!byKey.has(k)) byKey.set(k, r);
 		}
-		return Array.from(byGroup.values());
+		return Array.from(byKey.values());
 	}
 
 	const upcomingRows = $derived.by(() => {
@@ -109,13 +118,17 @@
 	</div>
 {:else}
 	<div class="space-y-2">
-		{#each upcomingRows as row (row.postGroup)}
+		{#each upcomingRows as row (`${row.postGroup}:${row.postId ?? row.integrationId ?? ''}`)}
 			{@const dt = formatLocalDateTime(row.publishDateIso)}
 			{@const iconName = socialProviderIcon(row.channelIdentifier)}
 			<button
 				type="button"
 				class="hover:bg-base-200/60 flex w-full items-center gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-2 text-start outline-none"
-				onclick={() => onOpenPostGroup?.(row.postGroup)}
+				onclick={() => {
+					const pid = row.postId?.trim();
+					const iid = row.integrationId?.trim();
+					onOpenPostGroup?.(row.postGroup, pid || undefined, iid || undefined);
+				}}
 			>
 				<div class="relative h-9 w-9 shrink-0">
 					{#if row.channelPicture}

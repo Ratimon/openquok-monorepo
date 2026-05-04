@@ -3,6 +3,13 @@ import type { PostMediaProgrammerModel, RepeatIntervalKey } from '$lib/posts';
 
 import { ApiError } from '$lib/core/HttpGateway';
 
+/** One scheduled follow-up (Threads / Instagram); set-level list is shared across selected channels. */
+export type SetSharedFollowUpReplyProgrammerModel = {
+	id: string;
+	message: string;
+	delaySeconds: number;
+};
+
 /** Persisted JSON shape for `/sets` `content` column (workspace presets). */
 export type SetSnapshotProgrammerModel = {
 	selectedIntegrationIds: string[];
@@ -12,6 +19,11 @@ export type SetSnapshotProgrammerModel = {
 	globalBody: string;
 	bodiesByIntegrationId: Record<string, string>;
 	providerSettingsByIntegrationId: Record<string, Record<string, unknown>>;
+	/**
+	 * Set authoring / templates: one list of follow-ups for all selected Threads+Instagram channels
+	 * Also copied into each integration’s `providerSettings` on save.
+	 */
+	sharedFollowUpReplies?: SetSharedFollowUpReplyProgrammerModel[];
 	postMediaItems: PostMediaProgrammerModel[];
 	selectedTagNames: string[];
 	repeatInterval: RepeatIntervalKey | null;
@@ -42,6 +54,21 @@ export function parseSetContent(raw: string): SetSnapshotProgrammerModel | null 
 				? (settingsRaw as Record<string, Record<string, unknown>>)
 				: {};
 
+		let sharedFollowUpReplies: SetSharedFollowUpReplyProgrammerModel[] | undefined;
+		const sfr = o.sharedFollowUpReplies;
+		if (Array.isArray(sfr)) {
+			sharedFollowUpReplies = sfr
+				.map((r: unknown) => {
+					const x = r as Record<string, unknown>;
+					return {
+						id: typeof x.id === 'string' ? x.id : '',
+						message: typeof x.message === 'string' ? x.message : '',
+						delaySeconds: Number.isFinite(Number(x.delaySeconds)) ? Math.max(0, Math.floor(Number(x.delaySeconds))) : 0
+					};
+				})
+				.filter((r) => r.id && (r.message ?? '').trim().length > 0);
+		}
+
 		let repeatInterval: RepeatIntervalKey | null = null;
 		if (o.repeatInterval === null) repeatInterval = null;
 		else if (typeof o.repeatInterval === 'string') repeatInterval = o.repeatInterval as RepeatIntervalKey;
@@ -54,6 +81,7 @@ export function parseSetContent(raw: string): SetSnapshotProgrammerModel | null 
 			globalBody: typeof o.globalBody === 'string' ? o.globalBody : '',
 			bodiesByIntegrationId,
 			providerSettingsByIntegrationId,
+			...(sharedFollowUpReplies && sharedFollowUpReplies.length > 0 ? { sharedFollowUpReplies } : {}),
 			postMediaItems: Array.isArray(o.postMediaItems) ? (o.postMediaItems as PostMediaProgrammerModel[]) : [],
 			selectedTagNames: Array.isArray(o.selectedTagNames)
 				? o.selectedTagNames.filter((x): x is string => typeof x === 'string')

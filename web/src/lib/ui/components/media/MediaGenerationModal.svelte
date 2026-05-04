@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 	import type {
-		BackgroundPanelVm,
+		BackgroundPanelViewModel,
 		DesignTemplateProgrammerModel,
 		ExportCanvasToMediaFn,
 		PolotnoTemplateListPageProgrammerModel,
@@ -34,7 +34,7 @@
 			params: { query: string; page: number },
 			signal?: AbortSignal
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
-		backgroundPanelVm: BackgroundPanelVm;
+		backgroundPanelVm: BackgroundPanelViewModel;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		open?: boolean;
 		disabled?: boolean;

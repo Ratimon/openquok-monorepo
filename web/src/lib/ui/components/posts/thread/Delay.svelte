@@ -20,8 +20,8 @@
 		 */
 		delayChainSeconds?: number[];
 		/**
-		 * Extra seconds per reply after each user delay (Threads: fixed wait in `threadsProvider.comment` before publish).
-		 * Adds `value × delayChainSeconds.length` to the approximate clock.
+		 * Optional extra seconds per reply for the “≈” clock only (not enforced by the worker).
+		 * When > 0, adds `value × delayChainSeconds.length` to the approximate time.
 		 */
 		threadsPublishPrepareSecondsPerReply?: number;
 	};
@@ -85,7 +85,7 @@
 
 		const title =
 			preparePerReply > 0
-				? 'Each reply waits its delay after the previous step, then Threads waits ~30s before the reply appears. Clock uses your scheduled main post time.'
+				? `Each reply waits its delay after the previous step; the ≈ clock adds ${preparePerReply}s per reply. Main post time from the panel below.`
 				: 'Each reply waits its delay after the previous step (main post or prior reply). Times use your scheduled post time from the panel below.';
 
 		return { line, title, approxClock };

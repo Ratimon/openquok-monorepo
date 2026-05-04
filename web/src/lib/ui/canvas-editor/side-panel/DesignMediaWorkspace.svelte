@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	import type {
-		BackgroundPanelVm,
+		BackgroundPanelViewModel,
 		DesignTemplateProgrammerModel,
 		PolotnoTemplateListPageProgrammerModel,
 		StockPhotoViewModel
@@ -32,7 +32,7 @@
 			params: { query: string; page: number },
 			signal?: AbortSignal
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
-		backgroundPanelVm: BackgroundPanelVm;
+		backgroundPanelVm: BackgroundPanelViewModel;
 	};
 </script>
 

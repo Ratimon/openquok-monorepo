@@ -187,18 +187,21 @@ export class ThreadsProvider implements SocialProvider {
     ): Promise<PostResponse[]> {
         if (!postDetails.length) return [];
         const [first] = postDetails;
-        const message = first.message ?? "";
+        const message = htmlToPlainText(first.message ?? "")
+            .trim()
+            .slice(0, this.maxLength());
         const replyToId = (lastCommentId ?? postId ?? "").trim();
-        
+
+        if (!message.length) {
+            throw new Error("Threads comment message is empty");
+        }
         if (!replyToId) {
             throw new Error("Threads reply_to_id is required to publish a comment");
         }
 
         const creationId = await this.createTextContent(userId, accessToken, message, replyToId);
 
-        // Meta recommends waiting before publishing replies; otherwise publish can be flaky.
-        await sleepMs(30_000);
-
+        // goes straight to publish after create; `publishThread` polls `checkLoaded` until FINISHED.
         const { threadId, permalink } = await this.publishThread(userId, accessToken, creationId);
 
         return [

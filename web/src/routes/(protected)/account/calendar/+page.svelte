@@ -38,9 +38,6 @@
 
 	const calendarPresenter = protectedCalendarPagePresenter;
 
-	/** Same singleton as calendar presenter; `bind:presenter` cannot target an import binding. */
-	let createPostPresenter = $state.raw(calendarPresenter.createSocialPostPresenter);
-
 	// --- Modal / sheet open state ---
 	let createSocialPostOpen = $state(false);
 
@@ -56,6 +53,10 @@
 
 	let actionsOpen = $state(false);
 	let actionsPostGroup = $state<string | null>(null);
+	/** When set, Preview / Statistics target this row id inside the `post_group` (multi-channel). */
+	let actionsFocusPostId = $state<string | null>(null);
+	/** When set, Post actions header shows this channel only (avatar + per-channel body). */
+	let actionsFocusIntegrationId = $state<string | null>(null);
 	let actionsBusy = $state(false);
 
 	let statisticsOpen = $state(false);
@@ -172,7 +173,12 @@
 				toast.error(resultVm.error);
 				return;
 			}
-			const id = resultVm.data.posts?.[0]?.id;
+			const focus = actionsFocusPostId?.trim() ?? '';
+			const posts = resultVm.data.posts ?? [];
+			const id =
+				focus && posts.some((p) => p.id === focus)
+					? focus
+					: posts[0]?.id;
 			if (!id) {
 				toast.error('Could not preview this post.');
 				return;
@@ -184,15 +190,19 @@
 	}
 
 	// --- Post group actions modal ---
-	function openActionsForPostGroup(postGroup: string) {
+	function openActionsForPostGroup(postGroup: string, focusPostId?: string, focusIntegrationId?: string) {
 		if (!postGroup) return;
 		actionsPostGroup = postGroup;
+		actionsFocusPostId = focusPostId?.trim() || null;
+		actionsFocusIntegrationId = focusIntegrationId?.trim() || null;
 		actionsOpen = true;
 	}
 
 	function closeActions() {
 		actionsOpen = false;
 		actionsPostGroup = null;
+		actionsFocusPostId = null;
+		actionsFocusIntegrationId = null;
 		actionsBusy = false;
 	}
 
@@ -389,6 +399,8 @@
 <ShowPostActionsModal
 	open={actionsOpen}
 	postGroup={actionsPostGroup}
+	focusPostId={actionsFocusPostId}
+	focusIntegrationId={actionsFocusIntegrationId}
 	busy={actionsBusy}
 	channels={connectedChannelsVm}
 	loadPostGroup={(pg) => calendarPresenter.schedulerPresenter.getPostGroup(pg)}
@@ -418,7 +430,7 @@
 
 <CreateSocialPostModal
 	bind:open={createSocialPostOpen}
-	bind:presenter={createPostPresenter}
+	bind:presenter={calendarPresenter.createSocialPostPresenter}
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}

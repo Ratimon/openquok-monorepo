@@ -1,15 +1,15 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type {
-	BackgroundPanelVm,
-	DesignTemplateProgrammerModel,
+	BackgroundPanelViewModel,
+	DesignTemplateViewModel,
 	ExportCanvasToMediaArgs,
 	ExportDesignToMediaResult,
 	GenerateMediaModalPresenter
 } from '$lib/canvas';
 import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type {
-	PostMediaProgrammerModel,
-	PostTagProgrammerModel,
+	PostMediaViewModel,
+	PostTagViewModel,
 	PostsRepository,
 	RepeatIntervalKey
 } from '$lib/posts/Post.repository.svelte';
@@ -18,7 +18,10 @@ import type {
 	GetSignaturesPresenter,
 	SignatureViewModel
 } from '$lib/signatures/GetSignature.presenter.svelte';
-import type { SetSnapshotProgrammerModel } from '$lib/sets/Sets.repository.svelte';
+import type {
+	SetSharedFollowUpReplyViewModel,
+	SetSnapshotViewModel
+} from '$lib/sets/GetSet.presenter.svelte';
 import type { UpsertSetPresenter } from '$lib/sets/UpsertSetPresenter.svelte';
 
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
@@ -72,9 +75,9 @@ export type CreateSocialPostPrepareOpenOptions = {
 	/** When true, immediately focus the first selected channel for per-channel editing. */
 	autoCustomizeFirstSelected?: boolean;
 	/** Restore a saved workspace “set” (channels + composer fields) after load. */
-	setSnapshot?: SetSnapshotProgrammerModel | null;
-	/** Settings: define a reusable preset; optional `editingSetId` for update. */
-	contentSetAuthoring?: { editingSetId?: string | null } | null;
+	setSnapshot?: SetSnapshotViewModel | null;
+	/** Settings: define a reusable preset; optional `editingSetId` / `editingSetName` for update. */
+	contentSetAuthoring?: { editingSetId?: string | null; editingSetName?: string | null } | null;
 };
 
 /** User-visible prefix for provider validation toasts and inline copy (network + account name). */
@@ -178,11 +181,11 @@ export class CreateSocialPostPresenter {
 	}
 
 	/** Built-in Konva templates for the design dialog templates panel. */
-	get designTemplatesVm(): readonly DesignTemplateProgrammerModel[] {
+	get designTemplatesVm(): readonly DesignTemplateViewModel[] {
 		return this.mediaModalPresenter.designTemplatesVm;
 	}
 
-	get backgroundPanelVm(): BackgroundPanelVm {
+	get backgroundPanelVm(): BackgroundPanelViewModel {
 		return this.mediaModalPresenter.backgroundPanelVm;
 	}
 
@@ -205,8 +208,9 @@ export class CreateSocialPostPresenter {
 	private pendingAutoCustomizeFirstSelected = false;
 	private pendingEditPostGroup: string | null = null;
 	private pendingDuplicatePostGroup: string | null = null;
-	private pendingSetSnapshot: SetSnapshotProgrammerModel | null = null;
-	private pendingContentSetAuthoring: { editingSetId?: string | null } | null = null;
+	private pendingSetSnapshot: SetSnapshotViewModel | null = null;
+	private pendingContentSetAuthoring: { editingSetId?: string | null; editingSetName?: string | null } | null =
+		null;
 	private lastLoadedEditKey: string | null = null;
 	private tagListCache: { workspaceId: string; loadedAtMs: number } | null = null;
 
@@ -231,14 +235,21 @@ export class CreateSocialPostPresenter {
 	scheduledLocal = $state('');
 	repeatInterval = $state<RepeatIntervalKey | null>(null);
 	selectedTagNames = $state<string[]>([]);
-	tagList = $state<PostTagProgrammerModel[]>([]);
-	postMediaItems = $state<PostMediaProgrammerModel[]>([]);
+	tagList = $state<PostTagViewModel[]>([]);
+	postMediaItems = $state<PostMediaViewModel[]>([]);
 	busy = $state(false);
 	confirmCloseOpen = $state(false);
 	initialSnapshot = $state('');
 	/** True while defining a reusable channel+preset bundle from workspace settings. */
 	contentSetAuthoringActive = $state(false);
 	editingSetId = $state<string | null>(null);
+	/** Pre-filled in Save set dialog when editing an existing preset. */
+	editingSetName = $state<string>('');
+	/**
+	 * Global” follow-up list while authoring a set: one chain for all selected
+	 * Threads/Instagram channels, fanned out into `providerSettings` on save.
+	 */
+	sharedFollowUpReplies = $state<SetSharedFollowUpReplyViewModel[]>([]);
 
 	baseSocialChannelsVm = $derived(
 		this.connectedChannelsForSessionVm.filter(
@@ -308,7 +319,6 @@ export class CreateSocialPostPresenter {
 
 	/**
 	 * Do not disable "Add to calendar" when `scheduleValidationError` is set; otherwise the user
-	 * never runs {@link schedulePost} and will not see a validation toast. Validation runs on click.
 	 */
 	canSchedule = $derived(!this.busy && this.selectedIds.length > 0);
 
@@ -325,7 +335,8 @@ export class CreateSocialPostPresenter {
 			selectedIds: this.selectedIds,
 			scheduledLocal: this.scheduledLocal,
 			repeatInterval: this.repeatInterval,
-			selectedTagNames: this.selectedTagNames
+			selectedTagNames: this.selectedTagNames,
+			...(this.contentSetAuthoringActive ? { sharedFollowUpReplies: this.sharedFollowUpReplies } : {})
 		});
 		return snap !== this.initialSnapshot;
 	});
@@ -367,7 +378,11 @@ export class CreateSocialPostPresenter {
 	}
 
 	/** Open the composer to author or edit a reusable workspace set (consumers bind modal `open`). */
-	prepareContentSetAuthoring(opts: { editingSetId?: string | null; snapshot?: SetSnapshotProgrammerModel | null }): void {
+	prepareContentSetAuthoring(opts: {
+		editingSetId?: string | null;
+		editingSetName?: string | null;
+		snapshot?: SetSnapshotViewModel | null;
+	}): void {
 		this.pendingEditPostGroup = null;
 		this.pendingDuplicatePostGroup = null;
 		this.pendingPreselectIntegrationId = null;
@@ -376,7 +391,10 @@ export class CreateSocialPostPresenter {
 		this.pendingPreselectIntegrationIds = null;
 		this.pendingAutoCustomizeFirstSelected = false;
 		this.pendingSetSnapshot = opts.snapshot ?? null;
-		this.pendingContentSetAuthoring = { editingSetId: opts.editingSetId ?? null };
+		this.pendingContentSetAuthoring = {
+			editingSetId: opts.editingSetId ?? null,
+			editingSetName: opts.editingSetName ?? null
+		};
 	}
 
 	toggleChannel(id: string): void {
@@ -487,59 +505,213 @@ export class CreateSocialPostPresenter {
 
 	/**
 	 * Upstream parity: "Add post in a thread" / "Add comment" adds another text item for the focused provider.
-	 * We currently support this only for Threads (stored in provider settings); publishing is handled in the worker.
+	 * Set authoring: one shared list for all Threads/Instagram targets.
 	 */
 	addThreadReplyForFocused(): boolean {
-		const integrationId =
-			this.mode === 'custom'
-				? this.focusedIntegrationId
-				: this.selectedIds.length === 1
-					? this.selectedIds[0]
-					: null;
-		if (!integrationId) {
-			toast.message('Select a single channel to add thread replies.');
-			return false;
+		if (this.contentSetAuthoringActive) {
+			const hasSupport = this.selectedIds.some((id) => {
+				const ch = this.baseSocialChannelsVm.find((c) => c.id === id);
+				return this._channelSupportsFollowUpComments(ch?.identifier);
+			});
+			if (!hasSupport) {
+				toast.message('Add at least one Threads or Instagram channel to use follow-up comments.');
+				return false;
+			}
+			this.sharedFollowUpReplies = [
+				...this.sharedFollowUpReplies,
+				{ id: crypto.randomUUID(), message: '', delaySeconds: 0 }
+			];
+			return true;
 		}
-		const channel = this.baseSocialChannelsVm.find((c) => c.id === integrationId);
-		const identifier = (channel?.identifier ?? '').toLowerCase();
-		if (identifier !== 'threads') {
-			toast.message('Thread replies are currently supported on Threads only.');
+
+		const targets = this.listThreadFollowUpSupportedIntegrationIds();
+		if (targets.length === 0) {
+			if (this.mode === 'custom') {
+				toast.message('Follow-up comments are supported on Threads and Instagram only.');
+			} else {
+				toast.message('Select at least one Threads or Instagram channel to add follow-up comments.');
+			}
 			return false;
 		}
 
-		const current = this.providerSettingsByIntegrationId[integrationId] ?? {};
-		const threads = (current as { threads?: unknown }).threads;
-		const threadsObj =
-			threads && typeof threads === 'object'
-				? (threads as Record<string, unknown>)
-				: ({ enabled: false, message: "That's a wrap!" } as Record<string, unknown>);
-
-		const repliesRaw = (threadsObj as { replies?: unknown }).replies;
-		const replies = Array.isArray(repliesRaw) ? (repliesRaw as any[]) : [];
+		const primary = this.getPrimaryThreadFollowUpIntegrationId() ?? targets[0]!;
+		const replies = this._threadFollowUpRepliesRawForIntegration(primary);
 		const nextReplies = [
 			...replies,
 			{ id: crypto.randomUUID(), message: '', delaySeconds: 0 }
 		];
-
-		this.providerSettingsByIntegrationId = {
-			...this.providerSettingsByIntegrationId,
-			[integrationId]: {
-				...current,
-				threads: {
-					...threadsObj,
-					replies: nextReplies
-				}
-			}
-		};
-		// Ensure the user sees the editor section; settings panel still holds finisher/provider settings.
+		this.applyThreadFollowUpReplies(nextReplies);
 		return true;
+	}
+
+	setSharedFollowUpRepliesForSetAuthoring(next: SetSharedFollowUpReplyViewModel[]): void {
+		this.sharedFollowUpReplies = next;
+	}
+
+	private _channelSupportsFollowUpComments(identifier: string | null | undefined): boolean {
+		const id = (identifier ?? '').toLowerCase();
+		return id === 'threads' || id.startsWith('instagram');
+	}
+
+	private _followUpBucketForChannel(identifier: string | null | undefined): 'threads' | 'instagram' {
+		const id = (identifier ?? '').trim().toLowerCase();
+		return id.startsWith('instagram') ? 'instagram' : 'threads';
+	}
+
+	/**
+	 * Channels that participate in follow-up comments for the current mode/selection.
+	 * Global + multi-select: every selected Threads/Instagram channel. Custom: focused channel if it supports follow-ups.
+	 */
+	listThreadFollowUpSupportedIntegrationIds(): string[] {
+		if (this.contentSetAuthoringActive) return [];
+		if (this.mode === 'custom') {
+			const fid = this.focusedIntegrationId;
+			if (!fid) return [];
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === fid);
+			return this._channelSupportsFollowUpComments(ch?.identifier) ? [fid] : [];
+		}
+		return this.selectedIds.filter((sid) => {
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === sid);
+			return this._channelSupportsFollowUpComments(ch?.identifier);
+		});
+	}
+
+	/**
+	 * Which integration’s bucket we read for the follow-up editor. Prefer a channel that already has non-empty replies
+	 * (edit + multi-target), else the first Threads/Instagram in the selection.
+	 */
+	getPrimaryThreadFollowUpIntegrationId(): string | null {
+		if (this.contentSetAuthoringActive) {
+			return (
+				this.selectedIds.find((sid) => {
+					const ch = this.baseSocialChannelsVm.find((c) => c.id === sid);
+					const id = (ch?.identifier ?? '').trim().toLowerCase();
+					return id === 'threads' || id.startsWith('instagram');
+				}) ?? null
+			);
+		}
+		const supporters = this.listThreadFollowUpSupportedIntegrationIds();
+		if (supporters.length === 0) return null;
+		for (const sid of supporters) {
+			const raw = this._threadFollowUpRepliesRawForIntegration(sid);
+			if (raw.some((r) => (r.message ?? '').trim().length > 0)) return sid;
+		}
+		return supporters[0] ?? null;
+	}
+
+	private _threadFollowUpRepliesRawForIntegration(integrationId: string): {
+		id: string;
+		message: string;
+		delaySeconds: number;
+	}[] {
+		const ch = this.baseSocialChannelsVm.find((c) => c.id === integrationId);
+		const bucket = this._followUpBucketForChannel(ch?.identifier);
+		const settings = this.providerSettingsByIntegrationId[integrationId] ?? {};
+		const block = (settings as Record<string, unknown>)[bucket];
+		const rep = (block as { replies?: unknown } | undefined)?.replies;
+		if (!Array.isArray(rep)) return [];
+		return rep as { id: string; message: string; delaySeconds: number }[];
+	}
+
+	/** Follow-up list for the composer (non–set-authoring). */
+	getThreadFollowUpRepliesForEditor(): { id: string; message: string; delaySeconds: number }[] {
+		const pid = this.getPrimaryThreadFollowUpIntegrationId();
+		if (!pid) return [];
+		return this._threadFollowUpRepliesRawForIntegration(pid);
+	}
+
+	/** Writes the same follow-up program to every selected Threads/Instagram channel (global multi-select). */
+	applyThreadFollowUpReplies(next: { id: string; message: string; delaySeconds: number }[]): void {
+		const targets = this.listThreadFollowUpSupportedIntegrationIds();
+		if (targets.length === 0) return;
+		const merged: Record<string, Record<string, unknown>> = { ...this.providerSettingsByIntegrationId };
+		for (const intId of targets) {
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === intId);
+			const bucket = this._followUpBucketForChannel(ch?.identifier);
+			const current = merged[intId] ?? {};
+			const prevRaw = (current as Record<string, unknown>)[bucket];
+			const bucketObj: Record<string, unknown> =
+				prevRaw && typeof prevRaw === 'object' && !Array.isArray(prevRaw)
+					? { ...(prevRaw as Record<string, unknown>) }
+					: bucket === 'threads'
+						? { enabled: false, message: "That's a wrap!" }
+						: {};
+			merged[intId] = {
+				...current,
+				[bucket]: {
+					...bucketObj,
+					replies: next
+				}
+			};
+		}
+		this.providerSettingsByIntegrationId = merged;
+	}
+
+	private _legacySharedRepliesFromProviderSnapshot(
+		snapshot: SetSnapshotViewModel,
+		okIds: string[]
+	): SetSharedFollowUpReplyViewModel[] {
+		for (const intId of okIds) {
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === intId);
+			if (!this._channelSupportsFollowUpComments(ch?.identifier)) continue;
+			const ident = (ch?.identifier ?? '').toLowerCase();
+			const bucket: 'threads' | 'instagram' = ident.startsWith('instagram') ? 'instagram' : 'threads';
+			const ps = snapshot.providerSettingsByIntegrationId?.[intId];
+			if (!ps) continue;
+			const sub = ps[bucket] as Record<string, unknown> | undefined;
+			const rep = sub?.replies;
+			if (!Array.isArray(rep) || rep.length === 0) continue;
+			return rep.map((r: unknown) => {
+				const x = r as Record<string, unknown>;
+				const id =
+					typeof x.id === 'string' && x.id.length > 0 ? x.id : crypto.randomUUID();
+				return {
+					id,
+					message: typeof x.message === 'string' ? x.message : '',
+					delaySeconds: Number.isFinite(Number(x.delaySeconds))
+						? Math.max(0, Math.floor(Number(x.delaySeconds)))
+						: 0
+				};
+			});
+		}
+		return [];
+	}
+
+	/** While authoring a set, mirror `sharedFollowUpReplies` into every selected Threads/IG bucket (or clear replies). */
+	private _syncSharedFollowUpsToProviderSettingsForSetAuthoring(
+		base: Record<string, Record<string, unknown>>
+	): Record<string, Record<string, unknown>> {
+		const shared = this.sharedFollowUpReplies;
+		const serial =
+			shared.length > 0
+				? (JSON.parse(JSON.stringify(shared)) as SetSharedFollowUpReplyViewModel[])
+				: [];
+		const out: Record<string, Record<string, unknown>> = JSON.parse(JSON.stringify(base));
+		for (const intId of this.selectedIds) {
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === intId);
+			if (!this._channelSupportsFollowUpComments(ch?.identifier)) continue;
+			const ident = (ch?.identifier ?? '').toLowerCase();
+			const bucket: 'threads' | 'instagram' = ident.startsWith('instagram') ? 'instagram' : 'threads';
+			const cur =
+				out[intId] && typeof out[intId] === 'object' && !Array.isArray(out[intId])
+					? { ...(out[intId] as Record<string, unknown>) }
+					: {};
+			const prevB =
+				cur[bucket] && typeof cur[bucket] === 'object' && !Array.isArray(cur[bucket])
+					? { ...(cur[bucket] as Record<string, unknown>) }
+					: bucket === 'threads'
+						? { enabled: false, message: "That's a wrap!" }
+						: {};
+			out[intId] = { ...cur, [bucket]: { ...prevB, replies: serial } };
+		}
+		return out;
 	}
 
 	/**
 	 * Handler for the "+ Add comment or post" button.
 	 *
-	 * - If editing a single channel (or only one is selected), switch to custom mode for that channel and add a reply.
-	 * - If multiple channels are selected, ask the user to pick one (thread replies are provider-specific).
+	 * - **Define reusable set:** append to the shared follow-up list when any Threads/Instagram channel is selected.
+	 * - **Else:** one focused channel only (custom mode or a single selected id); replies live in that integration’s settings.
 	 */
 	handleAddThreadItemClick(): void {
 		const ok = this.addThreadReplyForFocused();
@@ -607,9 +779,11 @@ export class CreateSocialPostPresenter {
 		if (pendingAuthoring) {
 			this.contentSetAuthoringActive = true;
 			this.editingSetId = pendingAuthoring.editingSetId ?? null;
+			this.editingSetName = (pendingAuthoring.editingSetName ?? '').trim();
 		} else {
 			this.contentSetAuthoringActive = false;
 			this.editingSetId = null;
+			this.editingSetName = '';
 		}
 
 		if (pendingSnapshot) {
@@ -714,7 +888,8 @@ export class CreateSocialPostPresenter {
 			selectedIds: this.selectedIds,
 			scheduledLocal: this.scheduledLocal,
 			repeatInterval: this.repeatInterval,
-			selectedTagNames: this.selectedTagNames
+			selectedTagNames: this.selectedTagNames,
+			...(this.contentSetAuthoringActive ? { sharedFollowUpReplies: this.sharedFollowUpReplies } : {})
 		});
 	}
 
@@ -726,12 +901,14 @@ export class CreateSocialPostPresenter {
 		this.editingPostGroup = null;
 		this.contentSetAuthoringActive = false;
 		this.editingSetId = null;
+		this.editingSetName = '';
 
 		this.globalBody = '';
 		this.bodiesByIntegrationId = {};
 		this.editorBody = '';
 		this.postMediaItems = [];
 		this.providerSettingsByIntegrationId = {};
+		this.sharedFollowUpReplies = [];
 
 		this.selectedIds = [];
 		this.selectedGroupId = null;
@@ -873,7 +1050,7 @@ export class CreateSocialPostPresenter {
 		}
 	}
 
-	async deleteWorkspaceTag(tag: PostTagProgrammerModel): Promise<void> {
+	async deleteWorkspaceTag(tag: PostTagViewModel): Promise<void> {
 		if (!this.workspaceIdForSession) return;
 		this.busy = true;
 		try {
@@ -944,7 +1121,7 @@ export class CreateSocialPostPresenter {
 		}
 	}
 
-	private applySetSnapshot(snapshot: SetSnapshotProgrammerModel): void {
+	private applySetSnapshot(snapshot: SetSnapshotViewModel): void {
 		const allowed = new Set(this.baseSocialChannelsVm.map((c) => c.id));
 		const ids = snapshot.selectedIntegrationIds.filter((id) => allowed.has(id));
 		const okIds = ids.filter((id) => {
@@ -971,6 +1148,17 @@ export class CreateSocialPostPresenter {
 		} catch {
 			this.providerSettingsByIntegrationId = {};
 		}
+
+		if (this.contentSetAuthoringActive) {
+			const sfr = snapshot.sharedFollowUpReplies;
+			if (Array.isArray(sfr) && sfr.length > 0) {
+				this.sharedFollowUpReplies = JSON.parse(JSON.stringify(sfr)) as SetSharedFollowUpReplyViewModel[];
+			} else {
+				this.sharedFollowUpReplies = this._legacySharedRepliesFromProviderSnapshot(snapshot, okIds);
+			}
+		} else {
+			this.sharedFollowUpReplies = [];
+		}
 		this.postMediaItems = Array.isArray(snapshot.postMediaItems) ? [...snapshot.postMediaItems] : [];
 		this.selectedTagNames = [...(snapshot.selectedTagNames ?? [])];
 		this.repeatInterval = snapshot.repeatInterval ?? null;
@@ -994,7 +1182,7 @@ export class CreateSocialPostPresenter {
 		this.loadEditorBody();
 	}
 
-	buildSetSnapshot(): SetSnapshotProgrammerModel {
+	buildSetSnapshot(): SetSnapshotViewModel {
 		this.persistEditorBody();
 		let providerCopy: Record<string, Record<string, unknown>> = {};
 		try {
@@ -1005,6 +1193,13 @@ export class CreateSocialPostPresenter {
 		} catch {
 			providerCopy = {};
 		}
+		if (this.contentSetAuthoringActive) {
+			providerCopy = this._syncSharedFollowUpsToProviderSettingsForSetAuthoring(providerCopy);
+		}
+		const shared =
+			this.contentSetAuthoringActive && this.sharedFollowUpReplies.length > 0
+				? JSON.parse(JSON.stringify(this.sharedFollowUpReplies)) as SetSharedFollowUpReplyViewModel[]
+				: undefined;
 		return {
 			selectedIntegrationIds: [...this.selectedIds],
 			selectedGroupId: this.selectedGroupId,
@@ -1013,6 +1208,7 @@ export class CreateSocialPostPresenter {
 			globalBody: this.globalBody,
 			bodiesByIntegrationId: { ...this.bodiesByIntegrationId },
 			providerSettingsByIntegrationId: providerCopy,
+			...(shared && shared.length > 0 ? { sharedFollowUpReplies: shared } : {}),
 			postMediaItems: [...this.postMediaItems],
 			selectedTagNames: [...this.selectedTagNames],
 			repeatInterval: this.repeatInterval
@@ -1051,6 +1247,7 @@ export class CreateSocialPostPresenter {
 				return false;
 			}
 			this.editingSetId = resultVm.id;
+			this.editingSetName = trimmed;
 			toast.success('Set saved.');
 			this.captureInitialSnapshot();
 			return true;

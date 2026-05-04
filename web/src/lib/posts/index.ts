@@ -40,8 +40,10 @@ export type {
 	PostRowProgrammerModel,
 	PostTagCreateProgrammerModel,
 	PostTagProgrammerModel,
+	PostTagViewModel,
 	PostUpsertProgrammerModel,
 	PostMediaProgrammerModel,
+	PostMediaViewModel,
 	RepeatIntervalKey,
 	UpdatePostReleaseIdResultProgrammerModel
 } from '$lib/posts/Post.repository.svelte';

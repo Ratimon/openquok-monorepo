@@ -1,11 +1,12 @@
-import type { SetsRepository, SetSnapshotProgrammerModel } from '$lib/sets/Sets.repository.svelte';
+import type { SetSnapshotViewModel } from '$lib/sets/GetSet.presenter.svelte';
+import type { SetsRepository } from '$lib/sets/Sets.repository.svelte';
 import { stringifySetSnapshot } from '$lib/sets/Sets.repository.svelte';
 
 export type SetUpsertProgrammerModel = {
 	organizationId: string;
 	id?: string;
 	name: string;
-	snapshot: SetSnapshotProgrammerModel;
+	snapshot: SetSnapshotViewModel;
 };
 
 export type SetUpsertResultViewModel = { ok: true; id: string } | { ok: false; error: string };

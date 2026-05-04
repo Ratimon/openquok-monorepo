@@ -41,6 +41,12 @@ export type PostTagProgrammerModel = {
 	color?: string;
 };
 
+/** Composer UI shape; structurally identical to {@link PostTagProgrammerModel}. */
+export type PostTagViewModel = PostTagProgrammerModel;
+
+/** Composer UI shape; structurally identical to {@link PostMediaProgrammerModel}. */
+export type PostMediaViewModel = PostMediaProgrammerModel;
+
 /** Result of POST tag create (repository maps wire response). */
 export type PostTagCreateProgrammerModel =
 	| { ok: true; tag: PostTagProgrammerModel }

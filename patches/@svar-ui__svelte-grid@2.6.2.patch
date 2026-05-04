@@ -1,0 +1,13 @@
+diff --git a/src/components/Layout.svelte b/src/components/Layout.svelte
+index b3b5d2a81f05e0d7d5c4350080084a02da69b401..f8a2bd33ab13c3718753844435a35560c7caf98a 100644
+--- a/src/components/Layout.svelte
++++ b/src/components/Layout.svelte
+@@ -642,6 +642,8 @@
+ 	function adjustHeight() {
+ 		// make sure the UI is updated before syncing the state
+ 		tick().then(() => {
++			// `bind:this={dataEl}` may not have run yet, or the node may be gone after unmount/async tick.
++			if (!dataEl) return;
+ 			let rh = 0;
+ 			let re = renderStart;
+ 			Array.from(dataEl.children).forEach((row, i) => {

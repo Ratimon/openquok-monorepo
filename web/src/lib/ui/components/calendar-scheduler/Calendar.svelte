@@ -46,7 +46,7 @@
 		events: CalendarEventExternal[];
 		backgroundEvents?: BackgroundEvent[];
 		onEditPostGroup?: (postGroup: string) => void;
-		openActionsForPostGroup?: (postGroup: string) => void;
+		openActionsForPostGroup?: (postGroup: string, focusPostId?: string, focusIntegrationId?: string) => void;
 		onCreatePostAtIso?: (iso: string) => void;
 		onRefresh?: () => void;
 	};
@@ -147,7 +147,10 @@
 	let lastAppliedGridHeight = $state<number | null>(null);
 
 	type SlotSummaryItem = {
+		/** DB post row id — unique per channel row in a multi-channel `post_group`. */
+		postId?: string;
 		postGroup: string;
+		integrationId?: string;
 		content: string;
 		channelPicture?: string;
 		channelName?: string;
@@ -158,6 +161,28 @@
 		/** Integration `identifier` for platform icon (instagram, facebook, …) */
 		channelIdentifier?: string;
 	};
+
+	/** Drop duplicate slot rows (same post id or same group+integration); keep one row per channel in a group. */
+	function dedupeSlotDialogItems(items: SlotSummaryItem[]): SlotSummaryItem[] {
+		const seen = new Set<string>();
+		const out: SlotSummaryItem[] = [];
+		for (const item of items) {
+			const pid = String(item.postId ?? '').trim();
+			if (pid) {
+				if (seen.has(`id:${pid}`)) continue;
+				seen.add(`id:${pid}`);
+				out.push(item);
+				continue;
+			}
+			const g = String(item.postGroup ?? '').trim();
+			const iid = String(item.integrationId ?? '').trim();
+			const key = iid ? `g:${g}|i:${iid}` : `g:${g}|c:${String(item.channelIdentifier ?? '').trim()}`;
+			if (seen.has(key)) continue;
+			seen.add(key);
+			out.push(item);
+		}
+		return out;
+	}
 
 	function formatSlotSummaryTime(iso: string | undefined): string {
 		if (!iso || typeof iso !== 'string') return '';
@@ -388,7 +413,7 @@
 						const decoded = decodeURIComponent(raw);
 						const parsed = JSON.parse(decoded);
 						if (Array.isArray(parsed) && parsed.length) {
-							slotDialogItems = parsed as SlotSummaryItem[];
+							slotDialogItems = dedupeSlotDialogItems(parsed as SlotSummaryItem[]);
 							slotDialogOpen = true;
 							ev.preventDefault();
 							ev.stopPropagation();
@@ -406,7 +431,9 @@
 			if (postGroup) {
 				ev.preventDefault();
 				ev.stopPropagation();
-				openActionsForPostGroup?.(postGroup);
+				const focusId = String(chip?.dataset?.postId ?? '').trim();
+				const focusInt = String(chip?.dataset?.integrationId ?? '').trim();
+				openActionsForPostGroup?.(postGroup, focusId || undefined, focusInt || undefined);
 			}
 		};
 
@@ -612,7 +639,7 @@
 				{slotDialogItems.length} posts</div>
 		</div>
 		<div class="max-h-[60vh] overflow-auto p-2">
-			{#each slotDialogItems as item, idx (item.postGroup || String(idx))}
+			{#each slotDialogItems as item, idx (`${String(item.postId ?? item.integrationId ?? '')}:${String(item.postGroup ?? '')}:${idx}`)}
 				{@const statusLine = slotSummaryStatusLine(item.state, item.publishDate)}
 				{@const channelIconName = socialProviderIcon(item.channelIdentifier)}
 				<button
@@ -621,7 +648,13 @@
 					onclick={() => {
 						if (!item.postGroup) return;
 						slotDialogOpen = false;
-						triggerOpenActionsForPostGroup(item.postGroup);
+						const rowPostId = String(item.postId ?? '').trim();
+						const rowInt = String(item.integrationId ?? '').trim();
+						triggerOpenActionsForPostGroup(
+							item.postGroup,
+							rowPostId || undefined,
+							rowInt || undefined
+						);
 					}}
 				>
 					<div class="flex min-w-0 items-start gap-3">

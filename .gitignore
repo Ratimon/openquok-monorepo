@@ -6,6 +6,8 @@
 
 # Generated files
 /backend/static/routes-manifest.json
+# Stale ESM next to `.ts` was shadowing real implementations (tsx / ambiguous resolution). Output lives in `backend/dist/`.
+# /backend/integrations/providers/*.js
 /common/dist
 /orchestrator/dist
 

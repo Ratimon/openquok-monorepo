@@ -94,6 +94,9 @@ export type DesignTemplateProgrammerModel = {
 	suggestAspectRatioId?: string;
 };
 
+/** Design dialog template row; structurally identical to {@link DesignTemplateProgrammerModel}. */
+export type DesignTemplateViewModel = DesignTemplateProgrammerModel;
+
 /** Topic tokens for deterministic Lorem Picsum stock rows (client-side search). */
 export const STOCK_PHOTO_SEARCH_TOPICS = [
 	'nature',

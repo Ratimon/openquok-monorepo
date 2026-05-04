@@ -12,6 +12,10 @@
 	export type Props = {
 		open: boolean;
 		postGroup: string | null;
+		/** Prefer this post row for Preview / Statistics when the group has multiple channels. */
+		focusPostId?: string | null;
+		/** When set with a multi-channel group, header shows this channel only and body uses `bodiesByIntegrationId`. */
+		focusIntegrationId?: string | null;
 		busy: boolean;
 		channels: readonly CreateSocialPostChannelViewModel[];
 		loadPostGroup: (
@@ -31,6 +35,8 @@
 	let {
 		open,
 		postGroup,
+		focusPostId = null,
+		focusIntegrationId = null,
 		busy,
 		channels,
 		loadPostGroup,
@@ -43,16 +49,21 @@
 		onStatistics
 	}: Props = $props();
 
-	let headerLoading = $state(false);
-	let headerError = $state<string | null>(null);
-	let summary = $state<{
+	type HeaderChannelVm = {
+		integrationId: string;
 		channelPicture?: string;
 		channelName?: string;
 		channelIdentifier?: string;
+	};
+
+	let headerLoading = $state(false);
+	let headerError = $state<string | null>(null);
+	let summary = $state<{
 		publishDateIso?: string;
 		status?: string;
 		content?: string;
-		channelCount?: number;
+		/** One entry per scheduled row / integration in the group (multi-channel). */
+		channels: HeaderChannelVm[];
 	} | null>(null);
 	/** First row id in the group — used for per-post analytics APIs. */
 	let firstPostId = $state<string | null>(null);
@@ -103,19 +114,45 @@
 					return;
 				}
 				const g = resultVm.group;
-				const firstIntegrationId = g.integrationIds?.[0] ?? null;
-				const ch = firstIntegrationId
-					? channels.find((x: CreateSocialPostChannelViewModel) => x.id === firstIntegrationId)
-					: null;
-				firstPostId = g.postIds?.[0] ?? null;
+				const ids = Array.isArray(g.integrationIds) ? [...new Set(g.integrationIds.filter(Boolean))] : [];
+				const strip: HeaderChannelVm[] = ids.map((integrationId) => {
+					const ch = channels.find((x: CreateSocialPostChannelViewModel) => x.id === integrationId);
+					return {
+						integrationId,
+						channelPicture: ch?.picture ?? undefined,
+						channelName: ch?.name ?? undefined,
+						channelIdentifier: ch?.identifier ?? undefined
+					};
+				});
+				const postIdsRaw = Array.isArray(g.postIds) ? g.postIds.filter(Boolean) : [];
+				const integrationIdsRaw = Array.isArray(g.integrationIds) ? g.integrationIds.filter(Boolean) : [];
+				const focusPid = String(focusPostId ?? '').trim();
+				let focusInt = String(focusIntegrationId ?? '').trim();
+				if (!focusInt && focusPid && postIdsRaw.length === integrationIdsRaw.length) {
+					const ix = postIdsRaw.indexOf(focusPid);
+					if (ix >= 0) focusInt = String(integrationIdsRaw[ix] ?? '').trim();
+				}
+				firstPostId =
+					focusPid && postIdsRaw.includes(focusPid)
+						? focusPid
+						: (postIdsRaw[0] ?? (focusPid || null));
+
+				let headerChannels = strip;
+				if (focusInt) {
+					const one = strip.filter((c) => c.integrationId === focusInt);
+					if (one.length) headerChannels = one;
+				}
+
+				const bodies = g.bodiesByIntegrationId ?? {};
+				const bodyText =
+					focusInt && Object.prototype.hasOwnProperty.call(bodies, focusInt)
+						? String(bodies[focusInt] ?? '')
+						: String(g.body ?? '');
 				summary = {
-					channelPicture: ch?.picture ?? undefined,
-					channelName: ch?.name ?? undefined,
-					channelIdentifier: ch?.identifier ?? undefined,
 					publishDateIso: g.publishDateIso ?? undefined,
 					status: g.status ? String(g.status).toUpperCase() : undefined,
-					content: stripHtmlToPlainText(String(g.body ?? '')).trim(),
-					channelCount: Array.isArray(g.integrationIds) ? g.integrationIds.length : 0
+					content: stripHtmlToPlainText(bodyText).trim(),
+					channels: headerChannels.length ? headerChannels : []
 				};
 			} finally {
 				if (token === loadToken) headerLoading = false;
@@ -141,35 +178,61 @@
 					{headerError}</div>
 			{:else if summary}
 				{@const dt = formatLocalDateTime(summary.publishDateIso)}
-				{@const iconName = socialProviderIcon(summary.channelIdentifier)}
+				{@const chs = summary.channels ?? []}
+				{@const maxAvatars = 4}
+				{@const visibleChs = chs.slice(0, maxAvatars)}
+				{@const overflow = Math.max(0, chs.length - visibleChs.length)}
 				<div class="mt-2 flex items-start gap-3">
-					<div class="relative h-9 w-9 shrink-0">
-						{#if summary.channelPicture}
-							<img src={summary.channelPicture} alt="" class="h-9 w-9 rounded-md object-cover" />
-						{:else}
-							<div class="flex h-9 w-9 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60">
-								{(summary.channelName || 'CH').slice(0, 2).toUpperCase()}
-							</div>
-						{/if}
-						{#if summary.channelIdentifier}
-							<span
-								class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"
-								aria-hidden="true"
+					<div class="flex shrink-0 items-center">
+						<div class="flex shrink-0 -space-x-2">
+							{#each visibleChs.length ? visibleChs : [{ integrationId: '_', channelPicture: undefined, channelName: undefined, channelIdentifier: undefined }] as ch, i (ch.integrationId)}
+								{@const iconName = socialProviderIcon(ch.channelIdentifier)}
+								<div
+									class="relative h-9 w-9 shrink-0 rounded-md ring-2 ring-base-100"
+									style={`z-index:${10 - i}`}
+								>
+									{#if ch.channelPicture}
+										<img src={ch.channelPicture} alt="" class="h-9 w-9 rounded-md object-cover" />
+									{:else}
+										<div
+											class="flex h-9 w-9 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60"
+										>
+											{(ch.channelName || 'CH').slice(0, 2).toUpperCase()}
+										</div>
+									{/if}
+									{#if ch.channelIdentifier}
+										<span
+											class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"
+											aria-hidden="true"
+										>
+											<AbstractIcon name={iconName} class="size-3.5" width="14" height="14" />
+										</span>
+									{/if}
+								</div>
+							{/each}
+						</div>
+						{#if overflow > 0}
+							<div
+								class="z-[20] -ml-1 flex h-9 min-w-9 shrink-0 items-center justify-center rounded-md bg-base-200 px-1.5 text-[11px] font-semibold text-base-content/80 ring-2 ring-base-100"
+								title={`${overflow} more channel${overflow === 1 ? '' : 's'}`}
 							>
-								<AbstractIcon name={iconName} class="size-3.5" width="14" height="14" />
-							</span>
+								+{overflow}
+							</div>
 						{/if}
 					</div>
 
 					<div class="min-w-0 flex-1">
 						<div class="flex items-start justify-between gap-2">
 							<div class="min-w-0">
-								<div class="truncate text-xs font-semibold text-base-content/70">
-									{summary.channelName || 'Channel'}
-									{#if (summary.channelCount ?? 0) > 1}
-										<span class="ml-1 text-[11px] font-semibold text-base-content/50">
-											+{(summary.channelCount ?? 0) - 1}
-										</span>
+								<div class="text-xs font-semibold text-base-content/70">
+									{#if chs.length <= 1}
+										<div class="truncate">{chs[0]?.channelName || 'Channel'}</div>
+									{:else}
+										<div class="line-clamp-2 leading-snug">
+											{chs
+												.map((c) => c.channelName || c.channelIdentifier || 'Channel')
+												.join(' · ')}
+										</div>
 									{/if}
 								</div>
 								<div class="mt-0.5 text-xs text-base-content/55">

@@ -40,3 +40,8 @@ export function getRootPathIntegrations(): string {
 export function getRootPathPlugs(): string {
 	return 'plugs';
 }
+
+/** Content sets (saved composer presets) segment under the account area. */
+export function getRootPathTemplates(): string {
+	return 'templates';
+}

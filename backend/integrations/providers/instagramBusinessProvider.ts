@@ -12,6 +12,8 @@ import {
     fetchInstagramAccountInsights,
     fetchInstagramMediaInsights,
 } from "./instagramInsightsAnalytics";
+import { publishInstagramGraphComment } from "./instagramGraphComment";
+import { publishInstagramGraphFeedPost } from "./instagramGraphContentPublish";
 
 import dayjs from "dayjs";
 import { config } from "../../config/GlobalConfig";
@@ -71,13 +73,49 @@ export class InstagramBusinessProvider implements SocialProvider {
         return null;
     }
 
+    /** Content Publishing on `graph.facebook.com` with Page token. */
     async post(
-        _id: string,
-        _accessToken: string,
-        _postDetails: PostDetails[],
+        id: string,
+        accessToken: string,
+        postDetails: PostDetails[],
         _integration: IntegrationRecord
     ): Promise<PostResponse[]> {
-        throw new Error("Instagram Business posting is not implemented");
+        if (!postDetails.length) return [];
+        return publishInstagramGraphFeedPost(id, accessToken, postDetails[0]!, {
+            graphHostname: "graph.facebook.com",
+            apiVersion: "v20.0",
+        });
+    }
+
+    /**
+     * Follow-up comment or nested reply on a published Instagram media id (Facebook Graph, Page token).
+     */
+    async comment(
+        _userId: string,
+        postId: string,
+        lastCommentId: string | undefined,
+        accessToken: string,
+        postDetails: PostDetails[],
+        _integration: IntegrationRecord
+    ): Promise<PostResponse[]> {
+        if (!postDetails.length) return [];
+        const [first] = postDetails;
+        const { commentId, mediaPermalink } = await publishInstagramGraphComment({
+            graphHost: "graph.facebook.com",
+            apiVersion: "v20.0",
+            mediaId: postId,
+            lastCommentId,
+            message: first.message ?? "",
+            accessToken,
+        });
+        return [
+            {
+                id: first.id,
+                postId: commentId,
+                status: "success",
+                releaseURL: mediaPermalink,
+            },
+        ];
     }
 
     private checkScopes(required: readonly string[], granted: readonly string[]): void {

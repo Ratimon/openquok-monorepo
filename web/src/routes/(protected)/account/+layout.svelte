@@ -12,10 +12,11 @@
 	import {
 		getRootPathAccount,
 		getRootPathCalendar,
+		getRootPathTemplates,
+		getRootPathPlugs,
 		getRootPathAnalytics,
 		getRootPathMedia,
 		getRootPathIntegrations,
-		getRootPathPlugs,
 		protectedLayoutPagePresenter
 	} from '$lib/area-protected';
 	import { route } from '$lib/utils/path';
@@ -52,6 +53,14 @@
 	const rootPathCalendar = getRootPathCalendar();
 	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
 
+	// /account/templates
+	const rootPathTemplates = getRootPathTemplates();
+	const templatesPath = route(`${rootPathAccount}/${rootPathTemplates}`);
+
+	// /account/plugs
+	const rootPathPlugs = getRootPathPlugs();
+	const plugsPath = route(`${rootPathAccount}/${rootPathPlugs}`);
+
 	// /account/analytics
 	const rootPathAnalytics = getRootPathAnalytics();
 	const analyticsPath = route(`${rootPathAccount}/${rootPathAnalytics}`);
@@ -60,16 +69,14 @@
 	const rootPathMedia = getRootPathMedia();
 	const mediaPath = route(`${rootPathAccount}/${rootPathMedia}`);
 
-	// /integrations
+	// /account/integrations
 	const rootPathIntegrations = getRootPathIntegrations();
-	const integrationsPath = route(rootPathIntegrations);
-
-	const rootPathPlugs = getRootPathPlugs();
-	const plugsPath = route(`${rootPathAccount}/${rootPathPlugs}`);
+	const integrationsPath = route(`${rootPathAccount}/${rootPathIntegrations}`);
 
 	const mainLinks: SidebarLinkItem[] = [
 		{ label: 'Dashboard', href: accountPath, iconName: icons.Gauge.name },
 		{ label: 'Calendar', href: calendarPath, iconName: icons.CalendarClock.name },
+		{ label: 'Templates', href: templatesPath, iconName: icons.LayoutTemplate.name },
 		{ label: 'Auto Plugs', href: plugsPath, iconName: icons.Sparkles.name },
 		{ label: 'Analytics', href: analyticsPath, iconName: icons.ChartBar.name },
 		{ label: 'Media', href: mediaPath, iconName: icons.Image.name },

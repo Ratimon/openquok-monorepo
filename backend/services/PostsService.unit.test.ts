@@ -763,6 +763,48 @@ describe("PostsService", () => {
                 delay_seconds: 0,
             });
         });
+
+        it("persists instagram.replies via insertThreadReplies when channel is Instagram", async () => {
+            const igIntegrationId = faker.string.uuid();
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: igIntegrationId, deleted_at: null, provider_identifier: "instagram-standalone" } as unknown as IntegrationLike,
+            ]);
+            const postId = faker.string.uuid();
+            const inserted = [socialPostRow({ id: postId, integration_id: igIntegrationId, state: "QUEUE" })];
+            postsRepo.insertPostGroup.mockResolvedValue(inserted);
+            const dbUserId = faker.string.uuid();
+            organizationRepo.findUserIdByAuthId.mockResolvedValue({ userId: dbUserId, error: null });
+
+            await service().createPost({
+                organizationId: orgId,
+                authUserId,
+                body: "caption",
+                integrationIds: [igIntegrationId],
+                isGlobal: true,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "scheduled",
+                media: [{ id: "m-ig", path: "/ig.png" }],
+                providerSettingsByIntegrationId: {
+                    [igIntegrationId]: {
+                        instagram: {
+                            replies: [{ id: "ig1", message: "First comment", delaySeconds: 2 }],
+                        },
+                    },
+                },
+            });
+
+            expect(postsRepo.insertThreadReplies).toHaveBeenCalledTimes(1);
+            const rows = postsRepo.insertThreadReplies.mock.calls[0][0] as Record<string, unknown>[];
+            expect(rows).toHaveLength(1);
+            expect(rows[0]).toMatchObject({
+                post_id: postId,
+                integration_id: igIntegrationId,
+                content: "First comment",
+                delay_seconds: 2,
+            });
+        });
     });
 
     describe("listPostsForCalendar", () => {

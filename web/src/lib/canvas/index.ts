@@ -11,6 +11,7 @@ export {
 	STOCK_PHOTO_FULL_HEIGHT,
 	type StockPhotoProgrammerModel,
 	type DesignTemplateProgrammerModel,
+	type DesignTemplateViewModel,
 	type PolotnoTemplateRowProgrammerModel,
 	type PolotnoTemplateListPageProgrammerModel,
 	type PolotnoTextTemplateRowProgrammerModel,
@@ -34,7 +35,7 @@ export {
 } from '$lib/canvas/constants/polotno';
 export {
 	GenerateMediaModalPresenter,
-	type BackgroundPanelVm,
+	type BackgroundPanelViewModel,
 	type DesignTemplatesPanelVm,
 	type ExportCanvasToMediaArgs,
 	type ExportCanvasToMediaFn,

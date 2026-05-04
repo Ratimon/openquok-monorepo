@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 	import type {
-		BackgroundPanelVm,
+		BackgroundPanelViewModel,
 		PolotnoUnsplashListPageProgrammerModel,
 		StockPhotoViewModel
 	} from '$lib/canvas';
@@ -23,7 +23,7 @@
 		disabled?: boolean;
 		canvasApi: KonvaCanvasApi | null;
 		/** From {@link GenerateMediaModalPresenter} (not the repository). */
-		backgroundPanelVm: BackgroundPanelVm;
+		backgroundPanelVm: BackgroundPanelViewModel;
 	};
 
 	const BG_COLOR_PRESETS = [

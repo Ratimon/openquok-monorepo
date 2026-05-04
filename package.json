@@ -22,6 +22,8 @@
     "backend:db:aggregate-migrations-single": "pnpm --filter ./backend db:aggregate-migrations-single",
     "backend:generate-routes-manifest": "node scripts/generate-routes-manifest.mjs",
     "backend:build": "pnpm --filter backend build",
+    "backend:clean:stale-ts-shadow-js": "node scripts/cleanBackendStaleTsShadowJs.mjs",
+    "backend:rebuild:all": "pnpm backend:clean:stale-ts-shadow-js && pnpm backend:build",
     "backend:sync-declarations": "pnpm --filter backend sync-declarations",
     "backend:build:vercel": "pnpm common:build && pnpm --filter backend build:vercel",
     "orchestrator:build": "pnpm --filter openquok-orchestrator build",

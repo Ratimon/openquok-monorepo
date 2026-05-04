@@ -21,6 +21,7 @@ export type { SetProgrammerModel, SetSnapshotProgrammerModel } from '$lib/sets/S
 export type {
 	SetListLoadResultViewModel,
 	SetRowViewModel,
+	SetSharedFollowUpReplyViewModel,
 	SetSnapshotViewModel
 } from '$lib/sets/GetSet.presenter.svelte';
 export type {
@@ -28,3 +29,5 @@ export type {
 	SetUpsertProgrammerModel,
 	SetUpsertResultViewModel
 } from '$lib/sets/UpsertSetPresenter.svelte';
+export type { SetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
+export { sortSetGridRows, toSetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';

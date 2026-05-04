@@ -2,7 +2,7 @@ import type { IntegrationService } from "./IntegrationService";
 import type { IntegrationManager } from "../integrations/integrationManager";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
-import type { PostsRepository, SocialPostInsert } from "../repositories/PostsRepository";
+import type { PostThreadReplyInsert, PostsRepository, SocialPostInsert } from "../repositories/PostsRepository";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import type {
@@ -18,9 +18,12 @@ import type { RefreshIntegrationService } from "./RefreshIntegrationService";
 import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import dayjs from "dayjs";
 import {
+    extractFollowUpRepliesFromPostSettingsColumn,
+    extractFollowUpRepliesFromProviderSettingsObject,
     parsePostImageColumn,
     parsePostSettingsJson,
     parseProviderThreadsPreviewFromPostSettings,
+    replyChainBucketForProvider,
     repeatIntervalToDays,
 } from "../utils/dtos/PostDTO";
 
@@ -548,7 +551,7 @@ export class PostsService {
         for (const r of rows) {
             if (!r.integration_id) continue;
             const parsed = this.parsePostRowProviderSettings(r.settings);
-            const merged = await this.augmentComposerProviderSettingsFromDb(r.id, parsed);
+            const merged = await this.augmentComposerProviderSettingsFromDb(r.id, organizationId, r.integration_id, parsed);
             if (merged && typeof merged === "object" && Object.keys(merged).length > 0) {
                 providerSettingsByIntegrationId[r.integration_id] = merged;
             }
@@ -587,6 +590,8 @@ export class PostsService {
     /** Prefer DB-backed thread replies when editing (published QUEUE→PUBLISHED rows stay in sync). */
     private async augmentComposerProviderSettingsFromDb(
         postId: string,
+        organizationId: string,
+        integrationId: string | null,
         base: Record<string, unknown> | null
     ): Promise<Record<string, unknown>> {
         const merged: Record<string, unknown> =
@@ -599,16 +604,22 @@ export class PostsService {
         }
         if (!dbRows.length) return merged;
 
-        const threads =
-            merged.threads && typeof merged.threads === "object"
-                ? { ...(merged.threads as Record<string, unknown>) }
+        let providerIdentifier: string | null = null;
+        if (integrationId) {
+            const int = await this.integrationService.getById(organizationId, integrationId);
+            providerIdentifier = int?.provider_identifier ?? null;
+        }
+        const bucket = replyChainBucketForProvider(providerIdentifier);
+        const prev =
+            merged[bucket] && typeof merged[bucket] === "object" && !Array.isArray(merged[bucket])
+                ? { ...(merged[bucket] as Record<string, unknown>) }
                 : {};
-        threads.replies = dbRows.map((r) => ({
+        prev.replies = dbRows.map((r) => ({
             id: r.id,
             message: r.content ?? "",
             delaySeconds: Math.max(0, Math.floor(Number(r.delay_seconds) || 0)),
         }));
-        merged.threads = threads;
+        merged[bucket] = prev;
         return merged;
     }
 
@@ -691,7 +702,7 @@ export class PostsService {
             const media = parsePostImageColumn(row.image ?? null);
 
             let socialPlatformLabel: string | null = null;
-            let integrationId: string | null = row.integration_id;
+            const integrationId: string | null = row.integration_id;
             let providerIdentifier: string | null = null;
             let channelName: string | null = null;
             let channelPictureUrl: string | null = null;
@@ -724,12 +735,21 @@ export class PostsService {
                 threadReplies = [];
             }
 
-            if (threadReplies.length === 0 && fromSettings.replies.length > 0) {
-                threadReplies = fromSettings.replies.map((r, i) => ({
-                    id: `settings-${i}`,
-                    message: r.content,
-                    delaySeconds: r.delaySeconds,
-                }));
+            if (threadReplies.length === 0) {
+                const chain = extractFollowUpRepliesFromPostSettingsColumn(row.settings ?? null, providerIdentifier);
+                if (chain.length > 0) {
+                    threadReplies = chain.map((r, i) => ({
+                        id: r.id || `settings-${i}`,
+                        message: r.message,
+                        delaySeconds: r.delaySeconds,
+                    }));
+                } else if (fromSettings.replies.length > 0) {
+                    threadReplies = fromSettings.replies.map((r, i) => ({
+                        id: `settings-${i}`,
+                        message: r.content,
+                        delaySeconds: r.delaySeconds,
+                    }));
+                }
             }
 
             return {
@@ -1357,24 +1377,28 @@ export class PostsService {
         const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
         const createdByUserId = userId ?? null;
 
-        const rows: any[] = [];
+        const integrations = await this.integrationService.listByOrganization(organizationId);
+        const providerByIntegrationId = new Map<string, string>(
+            integrations.map((i) => [i.id, (i.provider_identifier ?? "").trim().toLowerCase()])
+        );
+
+        const rows: PostThreadReplyInsert[] = [];
         for (const post of posts) {
             const integrationId = post.integration_id;
             if (!integrationId) continue;
             const settings = providerSettingsByIntegrationId[integrationId];
             if (!settings) continue;
-            const threads = (settings as any).threads;
-            const replies = Array.isArray(threads?.replies) ? threads.replies : [];
-            for (const r of replies) {
-                const content = typeof r?.message === "string" ? r.message.trim() : "";
+            const pid = providerByIntegrationId.get(integrationId) ?? "";
+            const drafts = extractFollowUpRepliesFromProviderSettingsObject(settings, pid);
+            for (const r of drafts) {
+                const content = r.message.trim();
                 if (!content) continue;
-                const delaySeconds = Number.isFinite(Number(r?.delaySeconds)) ? Number(r.delaySeconds) : 0;
                 rows.push({
                     organization_id: organizationId,
                     post_id: post.id,
                     integration_id: integrationId,
                     content,
-                    delay_seconds: Math.max(0, Math.floor(delaySeconds)),
+                    delay_seconds: Math.max(0, Math.floor(r.delaySeconds)),
                     state: "QUEUE",
                     release_id: null,
                     release_url: null,

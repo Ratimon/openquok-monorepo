@@ -44,9 +44,6 @@
 
 	let { data }: Props = $props();
 
-	/** Same singleton as dashboard presenter; `bind:presenter` cannot target an import binding. */
-	let createPostPresenter = $state.raw(protectedDashboardPagePresenter.createSocialPostPresenter);
-
 	// --- Layout data ---
 	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? (page.data as App.LayoutData)?.currentUser ?? null);
 
@@ -660,7 +657,7 @@
 
 <CreateSocialPostModal
 	bind:open={createSocialPostOpen}
-	bind:presenter={createPostPresenter}
+	bind:presenter={protectedDashboardPagePresenter.createSocialPostPresenter}
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}

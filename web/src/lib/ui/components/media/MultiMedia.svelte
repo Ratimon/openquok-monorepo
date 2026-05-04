@@ -263,7 +263,6 @@
 				{/each}
 			</div>
 		{/if}
-
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="border-base-300/80 text-base-content/50 flex min-h-[2.25rem] flex-wrap items-center gap-2 border-t pt-2 text-[11px]"

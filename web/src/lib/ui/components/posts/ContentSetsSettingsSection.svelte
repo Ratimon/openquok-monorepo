@@ -2,8 +2,9 @@
 	import type { SetRowViewModel } from '$lib/sets';
 
 	import { getSetPresenter, upsertSetPresenter } from '$lib/sets';
-	import { protectedDashboardPagePresenter } from '$lib/area-protected';
+	import { getRootPathAccount, getRootPathTemplates, protectedDashboardPagePresenter } from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+	import { route } from '$lib/utils/path';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
@@ -17,6 +18,10 @@
 	let composePresenter = $state.raw(protectedDashboardPagePresenter.createSocialPostPresenter);
 
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
+
+	const templatesSetsPath = $derived(
+		route(`${getRootPathAccount()}/${getRootPathTemplates()}`)
+	);
 
 	async function reload() {
 		const oid = workspaceId;
@@ -56,7 +61,11 @@
 			return;
 		}
 		void protectedDashboardPagePresenter.loadDashboardLists();
-		composePresenter.prepareContentSetAuthoring({ editingSetId: row.id, snapshot: snap });
+		composePresenter.prepareContentSetAuthoring({
+			editingSetId: row.id,
+			editingSetName: row.name,
+			snapshot: snap
+		});
 		composeOpen = true;
 	}
 
@@ -80,6 +89,10 @@
 	</h3>
 	<p class="text-base-content/70 text-sm">
 		Manage reusable combinations of channels and draft content for faster scheduling.
+	</p>
+	<p class="text-base-content/70 text-sm">
+		For a sortable table of all sets (parsed from each row’s stored content), open
+		<a href={templatesSetsPath} class="link link-primary font-medium">Templates</a> in the main account menu.
 	</p>
 
 	<div class="border-base-300 bg-base-200/40 rounded-lg border p-6">

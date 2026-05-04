@@ -21,7 +21,7 @@ import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
  * and `CalendarItem` invoke it reliably.
  */
 let editPostGroupHandler: ((postGroup: string) => void) | null = null;
-let openActionsForPostGroupHandler: ((postGroup: string) => void) | null = null;
+let openActionsForPostGroupHandler: ((postGroup: string, focusPostId?: string, focusIntegrationId?: string) => void) | null = null;
 let refreshCalendarHandler: (() => void) | null = null;
 
 export function registerEditPostGroupHandler(next: ((postGroup: string) => void) | null): void {
@@ -34,14 +34,18 @@ export function triggerEditPostGroup(postGroup: string): void {
 }
 
 export function registerOpenActionsForPostGroupHandler(
-	next: ((postGroup: string) => void) | null
+	next: ((postGroup: string, focusPostId?: string, focusIntegrationId?: string) => void) | null
 ): void {
 	openActionsForPostGroupHandler = next;
 }
 
-export function triggerOpenActionsForPostGroup(postGroup: string): void {
+export function triggerOpenActionsForPostGroup(
+	postGroup: string,
+	focusPostId?: string,
+	focusIntegrationId?: string
+): void {
 	if (!postGroup) return;
-	openActionsForPostGroupHandler?.(postGroup);
+	openActionsForPostGroupHandler?.(postGroup, focusPostId, focusIntegrationId);
 }
 
 export function registerRefreshCalendarHandler(next: (() => void) | null): void {
@@ -647,7 +651,9 @@ export class SchedulerPresenter {
 					(existing as any).slotSummary = [
 						...((((existing as any).slotSummary as any[]) ?? []) as any[]),
 						{
+							postId: (p as any).id ?? '',
 							postGroup: (p as any).postGroup ?? '',
+							integrationId: (p as any).integrationId ?? '',
 							state: typeof (p as any).state === 'string' ? (p as any).state : '',
 							publishDate: (p as any).publishDate ?? '',
 							content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
@@ -674,7 +680,9 @@ export class SchedulerPresenter {
 					posts: [p],
 					slotSummary: [
 						{
+							postId: (p as any).id ?? '',
 							postGroup: (p as any).postGroup ?? '',
+							integrationId: (p as any).integrationId ?? '',
 							state: typeof (p as any).state === 'string' ? (p as any).state : '',
 							publishDate: (p as any).publishDate ?? '',
 							content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
@@ -709,14 +717,13 @@ export class SchedulerPresenter {
 				// Ensure the slot summary order matches what the chip shows (upcoming-first).
 				const summary = ((ev as any).slotSummary as any[]) ?? [];
 				if (Array.isArray(summary) && summary.length > 1) {
-					const repGroup = String((representative as any).postGroup ?? '');
+					const repId = String((representative as any).id ?? '');
 					const sortedSummary = summary
 						.slice()
 						.map((s) => ({ s, ms: typeof s?.publishDate === 'string' ? publishMs(s.publishDate) : Number.NaN }))
 						.sort((a, b) => {
-							// representative first, then ascending by time
-							const aIsRep = String(a.s?.postGroup ?? '') === repGroup;
-							const bIsRep = String(b.s?.postGroup ?? '') === repGroup;
+							const aIsRep = repId.length > 0 && String(a.s?.postId ?? '') === repId;
+							const bIsRep = repId.length > 0 && String(b.s?.postId ?? '') === repId;
 							if (aIsRep && !bIsRep) return -1;
 							if (!aIsRep && bIsRep) return 1;
 							if (Number.isFinite(a.ms) && Number.isFinite(b.ms)) return a.ms - b.ms;

@@ -7,9 +7,6 @@
 
 	export type ThreadReplyViewModel = { id: string; message: string; delaySeconds: number };
 
-	/** Matches `sleepMs(30_000)` in threadsProvider.comment after container create. */
-	const THREADS_PUBLISH_PREPARE_SECONDS = 30;
-
 	type Props = {
 		/** Provider identifier (e.g. `threads`). */
 		providerIdentifier: string | null;
@@ -52,7 +49,7 @@
 	<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
 		<div class="flex items-center justify-between gap-3">
 			<div class="text-sm font-medium text-base-content/80">
-				Thread replies</div>
+				Follow-up comments</div>
 			<AddPostButton onclick={onAddReply} {postComment} disabled={disabled} />
 		</div>
 
@@ -61,19 +58,25 @@
 				<span class="font-medium text-base-content/90">
 					Threads timing:
 				</span>
-				After each reply’s scheduled delay, publishing waits
-				<span class="font-semibold tabular-nums text-base-content">{THREADS_PUBLISH_PREPARE_SECONDS} seconds</span>
-				while Meta finishes preparing the reply. The Delay row includes this in “≈” time.
+				Each reply runs after your chosen delay; Meta may take a few seconds before the reply appears on the network.
+				The “≈” line uses your scheduled main post time plus your delays only (no extra fixed wait on our servers).
+			</p>
+		{:else if id.startsWith('instagram')}
+			<p class="text-base-content/75 mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug">
+				<span class="text-base-content/90 font-medium">
+					Instagram:
+				</span>
+				Each item is published as a comment on your post (chained as replies when the network supports it). There is no extra Threads-style publish wait.
 			</p>
 		{/if}
 
-		{#if id !== 'threads'}
-			<p class="mt-2 text-sm text-base-content/60">
-				Thread replies are currently supported on Threads only.
+		{#if id !== 'threads' && !id.startsWith('instagram')}
+			<p class="text-base-content/60 mt-2 text-sm">
+				Follow-up comments are supported on Threads and Instagram only.
 			</p>
 		{:else if replies.length === 0}
-			<p class="mt-2 text-sm text-base-content/60">
-				Add follow-up posts to publish as replies after the main post.
+			<p class="text-base-content/60 mt-2 text-sm">
+				Add follow-up comments to publish after the main post.
 			</p>
 		{:else}
 			<div class="mt-3 space-y-4">
@@ -110,9 +113,6 @@
 								delayChainSeconds={replies
 									.slice(0, replyIndex + 1)
 									.map((r) => r.delaySeconds)}
-								threadsPublishPrepareSecondsPerReply={id === 'threads'
-									? THREADS_PUBLISH_PREPARE_SECONDS
-									: 0}
 							/>
 						</div>
 					</div>

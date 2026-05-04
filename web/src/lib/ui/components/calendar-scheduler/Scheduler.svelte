@@ -45,7 +45,7 @@
 		refreshKey?: string | number;
 		onTargetedChannelsChange?: (channels: ChannelViewModel[]) => void;
 		onEditPostGroup?: (postGroup: string) => void;
-		openActionsForPostGroup?: (postGroup: string) => void;
+		openActionsForPostGroup?: (postGroup: string, focusPostId?: string, focusIntegrationId?: string) => void;
 		onCreatePostAtIso?: (iso: string) => void;
 		onRefresh?: () => void;
 	} = $props();

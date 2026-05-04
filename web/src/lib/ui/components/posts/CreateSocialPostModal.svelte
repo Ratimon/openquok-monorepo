@@ -41,6 +41,14 @@
 
 	let saveSetNameOpen = $state(false);
 
+	const followUpTargetIntegrationId = $derived(presenter.getPrimaryThreadFollowUpIntegrationId());
+
+	const followUpTargetChannel = $derived(
+		followUpTargetIntegrationId
+			? (presenter.baseSocialChannelsVm.find((c) => c.id === followUpTargetIntegrationId) ?? null)
+			: null
+	);
+
 	const modalTitle = $derived(presenter.contentSetAuthoringActive ? 'Define reusable set' : 'Create Post');
 
 	const repeatOptions: { value: RepeatIntervalKey; label: string }[] = [
@@ -181,63 +189,21 @@
 					providerSettings={presenter.providerSettingsByIntegrationId[presenter.focusedIntegrationId ?? ''] ?? {}}
 					onProviderSettingsChange={presenter.updateFocusedProviderSettings.bind(presenter)}
 					settingsDisabled={presenter.busy}
-					threadReplies={
-						// Thread replies are per-network; show only when a single channel is selected or custom focus is set.
-						(() => {
-							const id =
-								presenter.mode === 'custom'
-									? presenter.focusedIntegrationId
-									: presenter.selectedIds.length === 1
-										? presenter.selectedIds[0]
-										: null;
-							const settings = id ? presenter.providerSettingsByIntegrationId[id] ?? {} : {};
-							const t = (settings as any).threads;
-							return Array.isArray(t?.replies) ? t.replies : [];
-						})()
-					}
+					threadReplies={presenter.contentSetAuthoringActive
+						? presenter.sharedFollowUpReplies
+						: presenter.getThreadFollowUpRepliesForEditor()}
 					onChangeThreadReplies={(next) => {
-						const id =
-							presenter.mode === 'custom'
-								? presenter.focusedIntegrationId
-								: presenter.selectedIds.length === 1
-									? presenter.selectedIds[0]
-									: null;
-						if (!id) return;
-						const current = presenter.providerSettingsByIntegrationId[id] ?? {};
-						const threadsObj =
-							(current as any).threads && typeof (current as any).threads === 'object'
-								? (current as any).threads
-								: { enabled: false, message: "That's a wrap!" };
-						presenter.providerSettingsByIntegrationId = {
-							...presenter.providerSettingsByIntegrationId,
-							[id]: {
-								...current,
-								threads: { ...threadsObj, replies: next }
-							}
-						};
+						if (presenter.contentSetAuthoringActive) {
+							presenter.setSharedFollowUpRepliesForSetAuthoring(next);
+							return;
+						}
+						presenter.applyThreadFollowUpReplies(next);
 					}}
-					threadProviderIdentifier={
-						(() => {
-							const id =
-								presenter.mode === 'custom'
-									? presenter.focusedIntegrationId
-									: presenter.selectedIds.length === 1
-										? presenter.selectedIds[0]
-										: null;
-							if (!id) return null;
-							return presenter.baseSocialChannelsVm.find((c) => c.id === id)?.identifier ?? null;
-						})()
-					}
+					threadProviderIdentifier={followUpTargetChannel?.identifier ?? null}
 					mediaUrls={presenter.previewMediaUrls}
-					previewProviderSettings={(() => {
-						const id =
-							presenter.mode === 'custom'
-								? presenter.focusedIntegrationId
-								: presenter.selectedIds.length === 1
-									? presenter.selectedIds[0]
-									: null;
-						return id ? presenter.providerSettingsByIntegrationId[id] ?? {} : {};
-					})()}
+					previewProviderSettings={followUpTargetIntegrationId
+						? (presenter.providerSettingsByIntegrationId[followUpTargetIntegrationId] ?? {})
+						: {}}
 				/>
 			</div>
 
@@ -276,6 +242,7 @@
 <SaveSetNameDialog
 	bind:open={saveSetNameOpen}
 	busy={presenter.busy}
+	initialName={presenter.editingSetName}
 	onConfirm={(name) => void confirmSaveSetName(name)}
 	onCancel={() => (saveSetNameOpen = false)}
 />

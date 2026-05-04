@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ComponentProps } from 'svelte';
 	import type {
-		BackgroundPanelVm,
+		BackgroundPanelViewModel,
 		DesignTemplateProgrammerModel,
 		ExportCanvasToMediaFn,
 		PolotnoTemplateListPageProgrammerModel,
@@ -23,6 +23,9 @@
 		composeTooltipTriggerClick
 	} from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
+	import * as Dialog from '$lib/ui/dialog';
+	import { Dropzone } from '$lib/ui/dropzone';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { toast } from '$lib/ui/sonner';
@@ -34,7 +37,7 @@
 			params: { query: string; page: number },
 			signal?: AbortSignal
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
-		backgroundPanelVm: BackgroundPanelVm;
+		backgroundPanelVm: BackgroundPanelViewModel;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
@@ -73,37 +76,39 @@
 
 	type MediaGenerationProps = ComponentProps<typeof MediaGenerationModal>;
 
-	let fileInput = $state.raw<HTMLInputElement | undefined>(undefined);
 	let uploadBusy = $state(false);
 	let designOpen = $state(false);
+	let deviceAttachOpen = $state(false);
 	const mediaLocked = $derived(commentsMode === 'no-media' && items.length > 0);
 	let signatureOpen = $state(false);
 	const iconBtn =
 		'border-base-300/90 bg-base-200/45 text-base-content/85 hover:bg-base-300/55 hover:text-base-content focus-visible:ring-primary/40 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border shadow-sm backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35';
 
-	async function uploadFiles(files: FileList | null) {
-		if (mediaLocked) return;
-		if (!files?.length || disabled || uploadBusy || !uploadUid) return;
+	async function uploadFiles(files: FileList | null): Promise<boolean> {
+		if (mediaLocked) return false;
+		if (!files?.length || disabled || uploadBusy || !uploadUid) return false;
 		uploadBusy = true;
 		try {
 			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid);
 			if (!batch.ok) {
 				toast.error(batch.message);
-				return;
+				return false;
 			}
 			items = [...items, ...batch.items];
 			if (batch.items.length) {
 				toast.success(batch.items.length === 1 ? 'Image attached.' : 'Images attached.');
 			}
+			return true;
 		} finally {
 			uploadBusy = false;
 		}
 	}
 
-	function onFileChange(e: Event) {
-		const t = e.currentTarget as HTMLInputElement;
-		void uploadFiles(t.files);
-		t.value = '';
+	async function ingestFilesFromAttachDialog(files: FileList | null) {
+		const ok = await uploadFiles(files);
+		if (ok) {
+			deviceAttachOpen = false;
+		}
 	}
 
 	function onAddFromDesign(added: PostMediaProgrammerModel[]) {
@@ -140,14 +145,6 @@
 	aria-label="Post media"
 >
 	<Tooltip.Provider delayDuration={200}>
-		<input
-			bind:this={fileInput}
-			type="file"
-			accept="image/*"
-			multiple
-			class="hidden"
-			onchange={onFileChange}
-		/>
 		<!-- 1: add images from disk -->
 		<ComposerMediaTooltip label="Attach images from your device">
 			{#snippet trigger({ props })}
@@ -156,7 +153,9 @@
 					type="button"
 					class={iconBtn}
 					disabled={disabled || uploadBusy || mediaLocked}
-					onclick={composeTooltipTriggerClick(props, () => fileInput?.click())}
+					onclick={composeTooltipTriggerClick(props, () => {
+						deviceAttachOpen = true;
+					})}
 					aria-label="Add images from your device"
 				>
 					{#if uploadBusy}
@@ -249,6 +248,59 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 	</Tooltip.Provider>
+
+	<Dialog.Root bind:open={deviceAttachOpen}>
+		<Dialog.Content
+			class="max-w-md gap-5"
+			showCloseButton={!uploadBusy}
+			onOpenAutoFocus={(e) => e.preventDefault()}
+		>
+			<Dialog.Header>
+				<Dialog.Title>Add images</Dialog.Title>
+				<Dialog.Description class="text-base-content/75 text-sm">
+					Drag and drop images here, or click the area to browse. Files upload as soon as they are added;
+					you do not need to save the set first.
+				</Dialog.Description>
+			</Dialog.Header>
+
+			<Dropzone
+				accept="image/*"
+				multiple
+				disabled={disabled || uploadBusy || mediaLocked}
+				class="border-primary/25 hover:border-primary/40 bg-base-200/50 h-52 min-h-48 cursor-pointer border-dashed disabled:cursor-not-allowed disabled:opacity-50"
+				onChange={(e) => {
+					const t = e.currentTarget as HTMLInputElement;
+					void ingestFilesFromAttachDialog(t.files);
+					t.value = '';
+				}}
+				onDrop={(e) => {
+					const list = e.dataTransfer?.files ?? null;
+					if (list?.length) void ingestFilesFromAttachDialog(list);
+				}}
+			>
+				<div class="text-base-content/80 pointer-events-none flex flex-col items-center gap-3 px-4 text-center">
+					{#if uploadBusy}
+						<span class="loading loading-spinner loading-lg text-primary"></span>
+						<span class="text-sm font-medium">Uploading…</span>
+					{:else}
+						<span class="relative inline-flex size-12 items-center justify-center text-primary">
+							<AbstractIcon name={icons.Image.name} class="size-12" width="48" height="48" />
+						</span>
+						<div class="space-y-1">
+							<p class="text-sm font-medium">Drop images here</p>
+							<p class="text-base-content/60 text-xs">or click to choose from your device</p>
+						</div>
+					{/if}
+				</div>
+			</Dropzone>
+
+			<Dialog.Footer>
+				<Button type="button" variant="ghost" disabled={uploadBusy} onclick={() => (deviceAttachOpen = false)}>
+					Cancel
+				</Button>
+			</Dialog.Footer>
+		</Dialog.Content>
+	</Dialog.Root>
 
 	<!-- 8–9: parity placeholders (not wired yet) -->
 	<!-- <button type="button" class={iconBtn} disabled aria-label="AI image (coming soon)" title="Coming soon">

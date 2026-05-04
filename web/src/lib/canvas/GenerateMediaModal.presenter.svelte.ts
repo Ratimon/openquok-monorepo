@@ -1,9 +1,9 @@
 import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-import type { PostMediaProgrammerModel } from '$lib/posts';
+import type { PostMediaViewModel } from '$lib/posts/Post.repository.svelte';
 import type { MediaRepository } from '$lib/medias';
 
 import type {
-	DesignTemplateProgrammerModel,
+	DesignTemplateViewModel,
 	PolotnoTemplateListPageProgrammerModel,
 	PolotnoUnsplashListPageProgrammerModel,
 	StockPhotoProgrammerModel
@@ -14,7 +14,7 @@ export type StockPhotoViewModel = StockPhotoProgrammerModel;
 
 /** VM bundle: template list + remote page fetch for the design templates side panel. */
 export type DesignTemplatesPanelVm = {
-	readonly designTemplatesVm: readonly DesignTemplateProgrammerModel[];
+	readonly designTemplatesVm: readonly DesignTemplateViewModel[];
 	fetchPolotnoTemplateListPagePm: (
 		params: { query: string; page: number },
 		signal?: AbortSignal
@@ -22,7 +22,7 @@ export type DesignTemplatesPanelVm = {
 };
 
 /** VM bundle: Unsplash search + download ping for the background side panel. */
-export type BackgroundPanelVm = {
+export type BackgroundPanelViewModel = {
 	fetchPolotnoUnsplashPagePm: (
 		params: { query: string; page: number },
 		signal?: AbortSignal
@@ -31,7 +31,7 @@ export type BackgroundPanelVm = {
 };
 
 export type ExportDesignToMediaResult =
-	| { ok: true; items: PostMediaProgrammerModel[] }
+	| { ok: true; items: PostMediaViewModel[] }
 	| { ok: false; error: string };
 
 export type ExportCanvasToMediaArgs = {
@@ -44,12 +44,12 @@ export type ExportCanvasToMediaFn = (args: ExportCanvasToMediaArgs) => Promise<E
 
 export class GenerateMediaModalPresenter {
 	readonly stockPhotosVm: readonly StockPhotoViewModel[];
-	readonly designTemplatesVm: readonly DesignTemplateProgrammerModel[];
+	readonly designTemplatesVm: readonly DesignTemplateViewModel[];
 	/**
 	 * Bundled Unsplash fetch + download ping for the background panel (no static list — results are
 	 * paginated from Polotno, unlike {@link stockPhotosVm}).
 	 */
-	readonly backgroundPanelVm: BackgroundPanelVm;
+	readonly backgroundPanelVm: BackgroundPanelViewModel;
 
 	constructor(
 		private readonly mediaRepository: MediaRepository,
