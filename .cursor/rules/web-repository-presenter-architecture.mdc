@@ -10,7 +10,7 @@ alwaysApply: false
 
 - **Route / component (`.svelte`)**: UI only — **no** `httpGateway` or repository calls from routes. See **web-page-presenter-conventions** for how routes import **page presenters** and wire toasts.
 - **Page presenter (`$lib/area-*/...Page.presenter.svelte.ts`)**: orchestrates a screen; owns `$state` where needed; accepts **feature presenters** (and repos) via constructor injection. **Route/toast/parent-child / feature injection** → **web-page-presenter-conventions**.
-- **Feature presenter (`$lib/<feature>/*Presenter.svelte.ts`)**: stateful presenter for a vertical slice (scheduler, composer, …); calls **repositories**; may expose **`$state`** view models; **no** `$app/*` / `goto`. Instantiated in **`area-*`** **`index.ts`** and injected into **page presenters**. Not the same as **`Get*`** (those are stateless PM→VM mappers).
+- **Feature presenter (`$lib/<feature>/*.presenter.svelte.ts`)**: stateful presenter for a vertical slice (scheduler, composer, …); calls **repositories**; may expose **`$state`** view models; **no** `$app/*` / `goto`. Instantiated in **`area-*`** **`index.ts`** and injected into **page presenters**. Imports resolve as **`$lib/<feature>/<Name>.presenter.svelte`** (on-disk **`*.presenter.svelte.ts`**). Not the same as **`Get*`** (those are stateless PM→VM mappers).
 - **Repository (`*.repository.svelte.ts`)**: I/O via `HttpGateway`, **DTO → PM**, returns **PM** only.
 - **Get presenter (`Get*.presenter.svelte.ts`)**: stateless **PM → VM** mapping for reads/lists.
 
@@ -54,7 +54,7 @@ We use a **concept-first, layered architecture** so logic lives outside the fram
 
 1. **Svelte components** — visualization; **parents** own area page presenters per **web-page-presenter-conventions**; **children** do not import repositories (with the documented modal exception).
 2. **Page presenters (`$lib/area-*/*Page.presenter.svelte.ts`)** — orchestrate one screen; expose injected **feature presenters** to routes when needed.
-3. **Feature presenters (`$lib/<feature>/*Presenter.svelte.ts`)** — reusable stateful orchestration for a domain slice; **repository** in constructor; injected into **page presenters** from **`area-*`** **`index.ts`** (composition root). Not **`Get*`** (stateless).
+3. **Feature presenters (`$lib/<feature>/*.presenter.svelte.ts`)** — reusable stateful orchestration for a domain slice; **repository** in constructor; injected into **page presenters** from **`area-*`** **`index.ts`** (composition root). Not **`Get*`** (stateless).
 4. **Repositories** — PM + gateway; **no** raw DTOs to UI consumers.
 5. **Gateways** — DTOs at the wire.
 
@@ -65,7 +65,7 @@ We use a **concept-first, layered architecture** so logic lives outside the fram
 | Gateways | `$lib/core/*.ts` | HTTP; DTOs |
 | Repositories | `*.repository.svelte.ts` | DTO → PM; export PM types from same file |
 | `Get*` | `Get*.presenter.svelte.ts` | Stateless PM → VM |
-| Feature presenters | `$lib/<feature>/*Presenter.svelte.ts` | Stateful slice; repos + optional VM **`$state`**; wired in **`area-*`** **index**, injected into **page presenters** |
+| Feature presenters | `$lib/<feature>/*.presenter.svelte.ts` | Stateful slice; repos + optional VM **`$state`**; wired in **`area-*`** **index**, injected into **page presenters** |
 | Page presenters | `$lib/area-*/*Page.presenter.svelte.ts` | Screen orchestration; owns screen **`$state`**; receives **feature presenters** + repos |
 | Models | `*.model.svelte.ts` | Shared reactive state (e.g. auth) |
 

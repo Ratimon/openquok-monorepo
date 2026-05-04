@@ -25,11 +25,13 @@ import { SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
 import { getNotificationPresenter, notificationRepository } from '$lib/notifications';
 import { getSignaturesPresenter, signaturesRepository } from '$lib/signatures';
 import { getSetPresenter, upsertSetPresenter } from '$lib/sets';
+import { SetGridPresenter } from '$lib/sets/SetGrid.presenter.svelte';
 import { workspaceSettingsPresenter } from '$lib/settings';
 import { authenticationRepository } from '$lib/user-auth/index';
 import { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte';
 import { getAnalyticsPresenter } from '$lib/platform-analytics';
 import { getPlugPresenter, upsertGlobalPlugPresenter, plugRepository } from '$lib/plugs';
+import { PlugGridPresenter } from '$lib/plugs/PlugGrid.presenter.svelte';
 
 const protectedSettingsPagePresenter = new ProtectedSettingsPagePresenter(
 	editorAccountSettingsPresenter,
@@ -92,19 +94,24 @@ const protectedAnalyticsPagePresenter = new ProtectedAnalyticsPagePresenter(
 	integrationsRepository
 );
 
+const plugGridPresenter = new PlugGridPresenter(getPlugPresenter, plugRepository);
+
 const protectedPlugsPagePresenter = new ProtectedPlugsPagePresenter(
 	integrationsRepository,
 	workspaceSettingsPresenter,
 	plugRepository,
-	getPlugPresenter,
-	upsertGlobalPlugPresenter
+	upsertGlobalPlugPresenter,
+	plugGridPresenter
 );
+
+const setGridPresenter = new SetGridPresenter(getSetPresenter, protectedDashboardPagePresenter);
 
 const protectedTemplatesPagePresenter = new ProtectedTemplatesPagePresenter(
 	workspaceSettingsPresenter,
 	getSetPresenter,
 	upsertSetPresenter,
-	protectedDashboardPagePresenter
+	protectedDashboardPagePresenter,
+	setGridPresenter
 );
 
 export type { ProtectedMediaPagePresenterMediaSettingsVmPublic } from './ProtectedMediaPage.presenter.svelte';

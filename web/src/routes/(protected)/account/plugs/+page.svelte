@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { IApi, IColumn } from '@svar-ui/svelte-grid';
+	import type { IApi } from '@svar-ui/svelte-grid';
 	import type {
 		GlobalPlugCatalogEntryProgrammerModel,
 		IntegrationPlugRowProgrammerModel
@@ -26,11 +26,9 @@
 	import AddPlugRuleModal from '$lib/ui/components/plugs/AddPlugRuleModal.svelte';
 	import EditPlugModal from '$lib/ui/components/plugs/EditPlugModal.svelte';
 	import RemovePlugRuleModal from '$lib/ui/components/plugs/RemovePlugRuleModal.svelte';
-	import PlugsGridAccountCell from '$lib/ui/components/plugs/PlugsGridAccountCell.svelte';
-	import PlugsGridActiveCell from '$lib/ui/components/plugs/PlugsGridActiveCell.svelte';
-	import PlugsGridActionsCell from '$lib/ui/components/plugs/PlugsGridActionsCell.svelte';
 
-	const presenter = protectedPlugsPagePresenter;
+	const pagePresenter = protectedPlugsPagePresenter;
+	const gridPresenter = pagePresenter.plugGridPresenter;
 
 	function readViewportWidthPx(): number {
 		if (!browser || typeof window === 'undefined') return 0;
@@ -111,191 +109,46 @@
 		return vw;
 	});
 
-	function plugAccountTooltipPlainText(row: unknown): string {
-		const r = row as PlugRuleTableRowViewModel;
-		const parts = [r.channelName?.trim(), r.platformLabel?.trim()].filter(Boolean);
-		return parts.join('\n');
-	}
-
 	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);
 	const calendarPath = route(`${rootPathAccount}/${getRootPathCalendar()}`);
 
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
-	const plugRulesRowsVm = $derived(presenter.plugRulesRowsVm);
-	const loading = $derived(presenter.loading);
-	const supportedChannelsVm = $derived(presenter.supportedChannelsVm);
-	const channelIndexForModal = $derived(presenter.channelIndexForModal);
-	const catalogForModalChannelVm = $derived(presenter.catalogForModalChannelVm);
-	const singleRuleEditorVm = $derived(presenter.singleRuleEditorVm);
+	const plugRulesRowsVm = $derived(gridPresenter.plugRulesRowsVm);
+	const loading = $derived(pagePresenter.loading);
+	const supportedChannelsVm = $derived(pagePresenter.supportedChannelsVm);
+	const channelIndexForModal = $derived(pagePresenter.channelIndexForModal);
+	const catalogForModalChannelVm = $derived(pagePresenter.catalogForModalChannelVm);
+	const singleRuleEditorVm = $derived(pagePresenter.singleRuleEditorVm);
+
+	const plugGridColumnsForHost = $derived.by(() => {
+		return gridPresenter.getPlugGridColumnsForViewport(
+			layoutTierWidthPx,
+			plugGridLayoutWidthPx,
+			browser
+		);
+	});
+
+	const plugGridSizesForHost = $derived.by(() => {
+		return gridPresenter.getPlugGridSizesForViewport(layoutTierWidthPx, browser);
+	});
+
+	const plugsGridAutoRowHeight = $derived(
+		gridPresenter.getPlugsGridAutoRowHeight(layoutTierWidthPx, browser)
+	);
 
 	let removePlugRuleModalOpen = $state(false);
 	let plugRulePendingRemoval = $state<PlugRuleTableRowViewModel | null>(null);
 	let removePlugRuleBusy = $state(false);
 
-	type PlugGridVis = {
-		likes: boolean;
-		accountWidth: number;
-		likesWidthPx: number;
-		messageFlexGrow: boolean;
-		/** With `flexgrow`, SVAR still uses `width` as a sensible minimum. */
-		messageWidthPx: number;
-		actionsWidthPx: number;
-		activeWidthPx: number;
-		compact: boolean;
-		accountHeader: string;
-	};
-
-	function buildPlugGridColumns(vis: PlugGridVis) {
-		return [
-			{
-				id: 'channelAccount',
-				header: vis.accountHeader,
-				width: vis.accountWidth,
-				cell: PlugsGridAccountCell,
-				tooltip: (row: unknown) => plugAccountTooltipPlainText(row)
-			},
-			{
-				id: 'likesToTriggerDisplay',
-				header: '# of likes',
-				width: vis.likesWidthPx,
-				hidden: !vis.likes,
-				tooltip: false
-			},
-			{
-				id: 'messageDisplay',
-				header: 'Message',
-				tooltip: false,
-				...(vis.messageFlexGrow ? { flexgrow: 1, width: vis.messageWidthPx } : { width: vis.messageWidthPx })
-			},
-			{
-				id: 'active',
-				header: 'Active',
-				width: vis.activeWidthPx,
-				cell: PlugsGridActiveCell,
-				tooltip: false
-			},
-			{
-				id: 'actions',
-				header: 'Actions',
-				width: vis.actionsWidthPx,
-				cell: PlugsGridActionsCell,
-				tooltip: false
-			}
-		];
-	}
-
-	const plugGridDefaultVis: PlugGridVis = {
-		likes: true,
-		accountWidth: 220,
-		likesWidthPx: 118,
-		messageFlexGrow: false,
-		messageWidthPx: 320,
-		actionsWidthPx: 152,
-		activeWidthPx: 88,
-		compact: false,
-		accountHeader: 'Connected account'
-	};
-
-	const plugGridColumns = buildPlugGridColumns(plugGridDefaultVis);
-
-	/**
-	 * Viewport-based column sets (same idea as templates): avoids SVAR `responsive` fighting intrinsic
-	 * width. Platform is shown in the account cell (avatar + badge + label), not a separate column.
-	 */
-	const plugGridColumnsForHost = $derived.by(() => {
-		const w = layoutTierWidthPx;
-		if (!browser || w <= 0) return plugGridColumns;
-
-		if (w <= 640) {
-			const cw = w;
-			const activePx = 56;
-			const actionsPx = 132;
-			const accountPx = Math.max(88, Math.min(116, Math.floor(cw * 0.32)));
-			const gutter = 16;
-			const messageW = Math.max(72, cw - accountPx - activePx - actionsPx - gutter);
-			return buildPlugGridColumns({
-				likes: false,
-				accountWidth: accountPx,
-				likesWidthPx: 96,
-				messageFlexGrow: false,
-				messageWidthPx: messageW,
-				actionsWidthPx: actionsPx,
-				activeWidthPx: activePx,
-				compact: true,
-				accountHeader: 'Account'
-			});
-		}
-
-		const basis = plugGridLayoutWidthPx > 0 ? plugGridLayoutWidthPx : w;
-
-		if (w <= 1024) {
-			const accountPx = Math.max(168, Math.min(208, Math.floor(w * 0.22)));
-			const likesPx = Math.max(88, Math.min(112, Math.floor(w * 0.11)));
-			const activePx = 88;
-			const actionsPx = 144;
-			const gutter = 28;
-			const reserved = accountPx + likesPx + activePx + actionsPx + gutter;
-			const messageW = Math.max(100, Math.floor(basis - reserved));
-			return buildPlugGridColumns({
-				likes: true,
-				accountWidth: accountPx,
-				likesWidthPx: likesPx,
-				messageFlexGrow: false,
-				messageWidthPx: messageW,
-				actionsWidthPx: actionsPx,
-				activeWidthPx: activePx,
-				compact: false,
-				accountHeader: 'Connected account'
-			});
-		}
-
-		const accountPx = 220;
-		const likesPx = 118;
-		const activePx = 88;
-		const actionsPx = 152;
-		const gutter = 36;
-		const reserved = accountPx + likesPx + activePx + actionsPx + gutter;
-		const messageW = Math.max(120, Math.floor(basis - reserved));
-		return buildPlugGridColumns({
-			likes: true,
-			accountWidth: accountPx,
-			likesWidthPx: likesPx,
-			messageFlexGrow: false,
-			messageWidthPx: messageW,
-			actionsWidthPx: actionsPx,
-			activeWidthPx: activePx,
-			compact: false,
-			accountHeader: 'Connected account'
-		});
-	});
-
-	const plugGridSizesForHost = $derived.by(() => {
-		if (!browser || layoutTierWidthPx <= 0) return { rowHeight: 44, headerHeight: 40 };
-		if (layoutTierWidthPx <= 640) return { rowHeight: 48, headerHeight: 42 };
-		if (layoutTierWidthPx <= 1024) return { rowHeight: 44, headerHeight: 40 };
-		return { rowHeight: 44, headerHeight: 40 };
-	});
-
-	const plugsGridAutoRowHeight = $derived(
-		Boolean(browser && layoutTierWidthPx > 0 && layoutTierWidthPx <= 1024)
-	);
-
-	function plugsGridCellStyle(_row: unknown, column: IColumn): string {
-		if (column.id === 'messageDisplay') {
-			return 'white-space:normal;word-break:break-word;overflow-wrap:anywhere;';
-		}
-		return '';
-	}
-
 	setContext(plugsGridActionsKey, {
 		toggleActive: async (vm: PlugRuleTableRowViewModel, on: boolean) => {
-			const resultVm = await presenter.togglePlugActive(vm, on);
+			const resultVm = await pagePresenter.togglePlugActive(vm, on);
 			if (resultVm.ok) toast.success(on ? 'Plug enabled' : 'Plug paused');
 			else toast.error(resultVm.error);
 		},
-		openEdit: (vm: PlugRuleTableRowViewModel) => presenter.openSingleRuleEditor(vm),
+		openEdit: (vm: PlugRuleTableRowViewModel) => pagePresenter.openSingleRuleEditor(vm),
 		remove: (vm: PlugRuleTableRowViewModel) => {
 			plugRulePendingRemoval = vm;
 			removePlugRuleModalOpen = true;
@@ -311,46 +164,46 @@
 
 	$effect(() => {
 		void workspaceId;
-		void presenter.syncWorkspaceAndCatalog();
+		void pagePresenter.syncWorkspaceAndCatalog();
 	});
 
 	$effect(() => {
-		void presenter.channelIndexForModal;
-		presenter.pendingNewForMethod = null;
+		void pagePresenter.channelIndexForModal;
+		pagePresenter.pendingNewForMethod = null;
 	});
 
 	$effect(() => {
-		if (!presenter.addPlugRuleModalOpen) presenter.pendingNewForMethod = null;
+		if (!pagePresenter.addPlugRuleModalOpen) pagePresenter.pendingNewForMethod = null;
 	});
 
 	function fieldDefaults(def: GlobalPlugCatalogEntryProgrammerModel, rowId?: string): Record<string, string> {
 		const rowPm = rowId
-			? presenter.plugRulesRowsVm.find((r) => r.id === rowId)?.plugRowPm
+			? gridPresenter.plugRulesRowsVm.find((r) => r.id === rowId)?.plugRowPm
 			: undefined;
-		return presenter.upsertGlobalPlugPresenter.fieldDefaults(def, rowPm);
+		return pagePresenter.upsertGlobalPlugPresenter.fieldDefaults(def, rowPm);
 	}
 
 	const handleAddPlugRuleModalOpenChange = (nextOpen: boolean): void => {
-		presenter.addPlugRuleModalOpen = nextOpen;
+		pagePresenter.addPlugRuleModalOpen = nextOpen;
 	};
 
 	const handlePlugAddModalChannelIndexChange = (index: number): void => {
-		presenter.channelIndexForModal = index;
+		pagePresenter.channelIndexForModal = index;
 	};
 
 	const handlePlugAddModalPendingNewForMethodChange = (method: string | null): void => {
-		presenter.pendingNewForMethod = method;
+		pagePresenter.pendingNewForMethod = method;
 	};
 
 	function getPlugEditFieldDefaults(
 		def: GlobalPlugCatalogEntryProgrammerModel,
 		rowPm: IntegrationPlugRowProgrammerModel
 	): Record<string, string> {
-		return presenter.upsertGlobalPlugPresenter.fieldDefaults(def, rowPm);
+		return pagePresenter.upsertGlobalPlugPresenter.fieldDefaults(def, rowPm);
 	}
 
 	const handleClosePlugSingleRuleEditor = (): void => {
-		presenter.closeSingleRuleEditor();
+		pagePresenter.closeSingleRuleEditor();
 	};
 
 	const handleSavePlugFromCatalog = async (
@@ -358,7 +211,7 @@
 		values: Record<string, string>,
 		plugId?: string
 	): Promise<void> => {
-		const resultVm = await presenter.savePlugFromCatalog({ def, values, ...(plugId ? { plugId } : {}) });
+		const resultVm = await pagePresenter.savePlugFromCatalog({ def, values, ...(plugId ? { plugId } : {}) });
 		if (resultVm.ok) toast.success(plugId ? 'Rule updated' : 'Rule saved');
 		else toast.error(resultVm.error);
 	};
@@ -369,7 +222,7 @@
 		plugId: string,
 		integrationId: string
 	): Promise<void> => {
-		const resultVm = await presenter.savePlugFromSingleEditor({ def, values, plugId, integrationId });
+		const resultVm = await pagePresenter.savePlugFromSingleEditor({ def, values, plugId, integrationId });
 		if (resultVm.ok) toast.success('Rule updated');
 		else toast.error(resultVm.error);
 	};
@@ -385,7 +238,7 @@
 		if (!vm) return;
 		removePlugRuleBusy = true;
 		try {
-			const resultVm = await presenter.deletePlugRow(vm);
+			const resultVm = await pagePresenter.deletePlugRow(vm);
 			if (resultVm.ok) {
 				toast.success('Rule removed');
 				removePlugRuleModalOpen = false;
@@ -423,7 +276,7 @@
 				<Button
 					type="button"
 					variant="primary"
-					onclick={() => presenter.openAddPlugRuleModal(0)}
+					onclick={() => pagePresenter.openAddPlugRuleModal(0)}
 				>
 					Add Global Rule
 				</Button>
@@ -462,7 +315,7 @@
 							columns={plugGridColumnsForHost}
 							sizes={plugGridSizesForHost}
 							autoRowHeight={plugsGridAutoRowHeight}
-							cellStyle={plugsGridCellStyle}
+							cellStyle={gridPresenter.plugsGridCellStyle}
 							select={false}
 							header={true}
 							init={(api: IApi) => {
@@ -483,11 +336,11 @@
 </div>
 
 <AddPlugRuleModal
-	open={presenter.addPlugRuleModalOpen}
+	open={pagePresenter.addPlugRuleModalOpen}
 	onOpenChange={handleAddPlugRuleModalOpenChange}
-	channelIndexForModal={presenter.channelIndexForModal}
+	channelIndexForModal={pagePresenter.channelIndexForModal}
 	onChannelIndexChange={handlePlugAddModalChannelIndexChange}
-	pendingNewForMethod={presenter.pendingNewForMethod}
+	pendingNewForMethod={pagePresenter.pendingNewForMethod}
 	onPendingNewForMethodChange={handlePlugAddModalPendingNewForMethodChange}
 	{supportedChannelsVm}
 	{catalogForModalChannelVm}

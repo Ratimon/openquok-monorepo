@@ -7,7 +7,6 @@ import type {
 } from '$lib/plugs/Plug.repository.svelte';
 import type {
 	ConnectedIntegrationChannelViewModel,
-	GetPlugPresenter,
 	PlugCatalogProviderViewModel,
 	PlugRuleTableRowViewModel
 } from '$lib/plugs/GetPlug.presenter.svelte';
@@ -15,14 +14,11 @@ import type {
 	UpsertGlobalPlugPresenter,
 	PlugMutationResultViewModel
 } from '$lib/plugs/UpsertGlobalPlug.presenter.svelte';
+import type { PlugGridPresenter } from '$lib/plugs/PlugGrid.presenter.svelte';
 
-/**
- * Account → Plugs: catalog + connected channels + aggregated plug rules for the SVAR grid.
- */
 export class ProtectedPlugsPagePresenter {
 	plugCatalogVm = $state<PlugCatalogProviderViewModel[]>([]);
 	channelsVm = $state<ConnectedIntegrationChannelViewModel[]>([]);
-	plugRulesRowsVm = $state<PlugRuleTableRowViewModel[]>([]);
 	loading = $state(true);
 
 	/** Modal: browse plug types and add new rules only (edit existing rows via grid + single-rule dialog). */
@@ -39,8 +35,8 @@ export class ProtectedPlugsPagePresenter {
 		private readonly integrationsRepository: IntegrationsRepository,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
 		private readonly plugRepository: PlugRepository,
-		private readonly getPlugPresenter: GetPlugPresenter,
-		readonly upsertGlobalPlugPresenter: UpsertGlobalPlugPresenter
+		readonly upsertGlobalPlugPresenter: UpsertGlobalPlugPresenter,
+		readonly plugGridPresenter: PlugGridPresenter
 	) {}
 
 	get organizationId(): string {
@@ -67,7 +63,7 @@ export class ProtectedPlugsPagePresenter {
 		if (!organizationId) {
 			this.channelsVm = [];
 			this.plugCatalogVm = [];
-			this.plugRulesRowsVm = [];
+			this.plugGridPresenter.clearRules();
 			this.loading = false;
 			return;
 		}
@@ -91,38 +87,10 @@ export class ProtectedPlugsPagePresenter {
 	async refreshPlugRulesTable(): Promise<void> {
 		const organizationId = this.organizationId;
 		if (!organizationId) {
-			this.plugRulesRowsVm = [];
+			this.plugGridPresenter.clearRules();
 			return;
 		}
-		const catalog = this.plugCatalogVm;
-		const supported = this.channelsVm.filter((c) =>
-			catalog.some((p) => p.identifier === (c.identifier ?? '').toLowerCase())
-		);
-		const rows: PlugRuleTableRowViewModel[] = [];
-		for (const ch of supported) {
-			const catalogForProvider = catalog.find(
-				(p) => p.identifier === (ch.identifier ?? '').toLowerCase()
-			);
-			const plugRows = await this.plugRepository.listIntegrationPlugs(organizationId, ch.id);
-			for (const rowPm of plugRows) {
-				rows.push(
-					this.getPlugPresenter.toPlugRuleTableRowViewModel({
-						channel: ch,
-						catalogForProvider,
-						rowPm
-					})
-				);
-			}
-		}
-		this.plugRulesRowsVm = this._sortPlugRuleRows(rows);
-	}
-
-	private _sortPlugRuleRows(rows: PlugRuleTableRowViewModel[]): PlugRuleTableRowViewModel[] {
-		return [...rows].sort((a, b) => {
-			const byChannel = a.channelName.localeCompare(b.channelName);
-			if (byChannel !== 0) return byChannel;
-			return a.ruleTitle.localeCompare(b.ruleTitle);
-		});
+		await this.plugGridPresenter.refreshRulesTable(organizationId, this.plugCatalogVm, this.channelsVm);
 	}
 
 	private _valuesToPlugDataJson(
@@ -134,17 +102,6 @@ export class ProtectedPlugsPagePresenter {
 			value: (values[f.name] ?? '').trim()
 		}));
 		return JSON.stringify(payload);
-	}
-
-	private _rowVmFromPm(channel: ConnectedIntegrationChannelViewModel, rowPm: IntegrationPlugRowProgrammerModel): PlugRuleTableRowViewModel {
-		const catalogForProvider = this.plugCatalogVm.find(
-			(p) => p.identifier === (channel.identifier ?? '').toLowerCase()
-		);
-		return this.getPlugPresenter.toPlugRuleTableRowViewModel({
-			channel,
-			catalogForProvider,
-			rowPm
-		});
 	}
 
 	private _channelByIntegrationId(
@@ -197,14 +154,8 @@ export class ProtectedPlugsPagePresenter {
 				data,
 				activated: resultVm.activated
 			};
-			const rowVm = this._rowVmFromPm(ch, rowPm);
-			if (params.plugId) {
-				this.plugRulesRowsVm = this._sortPlugRuleRows(
-					this.plugRulesRowsVm.map((r) => (r.plugRowPm.id === params.plugId ? rowVm : r))
-				);
-			} else {
-				this.plugRulesRowsVm = this._sortPlugRuleRows([...this.plugRulesRowsVm, rowVm]);
-			}
+			const rowVm = this.plugGridPresenter.toRuleRowVm(this.plugCatalogVm, ch, rowPm);
+			this.plugGridPresenter.upsertRuleAfterCatalogSave(rowVm, params.plugId);
 			if (!params.plugId && this.pendingNewForMethod === params.def.methodName) {
 				this.pendingNewForMethod = null;
 			}
@@ -239,10 +190,8 @@ export class ProtectedPlugsPagePresenter {
 					data,
 					activated: resultVm.activated
 				};
-				const rowVm = this._rowVmFromPm(ch, rowPm);
-				this.plugRulesRowsVm = this._sortPlugRuleRows(
-					this.plugRulesRowsVm.map((r) => (r.plugRowPm.id === params.plugId ? rowVm : r))
-				);
+				const rowVm = this.plugGridPresenter.toRuleRowVm(this.plugCatalogVm, ch, rowPm);
+				this.plugGridPresenter.replaceRuleAfterSingleEditorSave(params.plugId, rowVm);
 			} else {
 				await this.refreshPlugRulesTable();
 			}
@@ -260,7 +209,7 @@ export class ProtectedPlugsPagePresenter {
 		});
 		if (resultVm.ok) {
 			const removedId = vm.plugRowPm.id;
-			this.plugRulesRowsVm = this.plugRulesRowsVm.filter((r) => r.plugRowPm.id !== removedId);
+			this.plugGridPresenter.removeRuleRowByPlugId(removedId);
 			if (this.singleRuleEditorVm?.plugRowPm.id === removedId) this.closeSingleRuleEditor();
 		}
 		return resultVm;
@@ -282,15 +231,7 @@ export class ProtectedPlugsPagePresenter {
 			activated: on
 		});
 		if (resultVm.ok) {
-			this.plugRulesRowsVm = this.plugRulesRowsVm.map((r) =>
-				r.plugRowPm.id !== plugId
-					? r
-					: {
-							...r,
-							activated: resultVm.activated,
-							plugRowPm: { ...r.plugRowPm, activated: resultVm.activated }
-						}
-			);
+			this.plugGridPresenter.patchRuleActivated(plugId, resultVm.activated);
 			const editor = this.singleRuleEditorVm;
 			if (editor?.plugRowPm.id === plugId) {
 				this.singleRuleEditorVm = {

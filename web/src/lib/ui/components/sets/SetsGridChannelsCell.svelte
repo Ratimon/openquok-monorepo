@@ -8,26 +8,26 @@
 	let { row }: ICellProps = $props();
 
 	const vm = $derived(row as unknown as SetGridTableRowViewModel);
-	const display = $derived(vm.channelsDisplay);
+	const displayVm = $derived(vm.channelsDisplayVm);
 </script>
 
-{#if !display}
+{#if !displayVm}
 	<span class="text-base-content/55 text-xs">{vm.channelsSummary}</span>
 {:else}
 	<div class="flex min-w-0 items-center gap-1.5 py-0.5">
 		<div class="flex shrink-0 -space-x-2">
-			{#each display.preview as ch, i (ch.integrationId)}
+			{#each displayVm.previewVm as channelSummaryVm, i (channelSummaryVm.integrationId)}
 				<div
 					class="relative h-8 w-8 shrink-0 rounded-md ring-2 ring-base-100"
 					style="z-index: {10 - i}"
 				>
-					{#if ch.pictureUrl}
-						<img src={ch.pictureUrl} alt="" class="h-8 w-8 rounded-md object-cover" />
+					{#if channelSummaryVm.pictureUrl}
+						<img src={channelSummaryVm.pictureUrl} alt="" class="h-8 w-8 rounded-md object-cover" />
 					{:else}
 						<div
 							class="flex h-8 w-8 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60"
 						>
-							{ch.displayName.slice(0, 2).toUpperCase()}
+							{channelSummaryVm.displayName.slice(0, 2).toUpperCase()}
 						</div>
 					{/if}
 					<span
@@ -35,7 +35,7 @@
 						aria-hidden="true"
 					>
 						<AbstractIcon
-							name={socialProviderIcon(ch.providerIdentifier)}
+							name={socialProviderIcon(channelSummaryVm.providerIdentifier)}
 							class="size-3"
 							width="12"
 							height="12"
@@ -44,9 +44,9 @@
 				</div>
 			{/each}
 		</div>
-		{#if display.restCount > 0}
+		{#if displayVm.restCount > 0}
 			<span class="text-base-content/60 shrink-0 text-[11px] font-semibold tabular-nums">
-				+{display.restCount}
+				+{displayVm.restCount}
 			</span>
 		{/if}
 	</div>

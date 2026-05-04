@@ -1,24 +1,22 @@
 import type { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type { GetSetPresenter } from '$lib/sets/GetSet.presenter.svelte';
-import type { SetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
+import type { SetGridPresenter, SetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
 import type { UpsertSetPresenter } from '$lib/sets/UpsertSet.presenter.svelte';
 import type { SetDeleteResultViewModel } from '$lib/sets/UpsertSet.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
-import { sortSetGridRows, toSetGridTableRowViewModel } from '$lib/sets/SetGrid.presenter.svelte';
-
 /**
  * Account → Templates: workspace content sets in a SVAR grid (parsed from each row’s `content` JSON).
+ *
+ * Grid rows and layout orchestration live on {@link SetGridPresenter}; this screen delegates loads/edits/deletes.
  */
 export class ProtectedTemplatesPagePresenter {
-	setsGridRowsVm = $state<SetGridTableRowViewModel[]>([]);
-	loading = $state(true);
-
 	constructor(
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
 		private readonly getSetPresenter: GetSetPresenter,
 		private readonly upsertSetPresenter: UpsertSetPresenter,
-		private readonly protectedDashboardPagePresenter: ProtectedDashboardPagePresenter
+		private readonly protectedDashboardPagePresenter: ProtectedDashboardPagePresenter,
+		readonly setGridPresenter: SetGridPresenter
 	) {}
 
 	get organizationId(): string {
@@ -36,38 +34,24 @@ export class ProtectedTemplatesPagePresenter {
 	async syncWorkspace(): Promise<void> {
 		const organizationId = this.organizationId;
 		if (!organizationId) {
-			this.setsGridRowsVm = [];
-			this.loading = false;
+			this.setGridPresenter.resetForNoWorkspace();
 			return;
 		}
-		this.loading = true;
+		this.setGridPresenter.loading = true;
 		try {
 			await this.refreshSetsTable();
 		} finally {
-			this.loading = false;
+			this.setGridPresenter.loading = false;
 		}
 	}
 
 	async refreshSetsTable(): Promise<void> {
 		const organizationId = this.organizationId;
 		if (!organizationId) {
-			this.setsGridRowsVm = [];
+			this.setGridPresenter.resetForNoWorkspace();
 			return;
 		}
-		// Sets store integration UUIDs from the composer; resolve names/avatars from the same list API.
-		await this.protectedDashboardPagePresenter.loadDashboardLists();
-		await this.createSocialPostPresenter.loadWorkspaceTagsIfNeeded(organizationId);
-		const rowsVm = await this.getSetPresenter.loadSetsListVm(organizationId);
-		const channelLookup = this.connectedChannelsVm.map((c) => ({
-			id: c.id,
-			internalId: c.internalId,
-			name: c.name,
-			identifier: c.identifier,
-			picture: c.picture
-		}));
-		const tagLookup = this.createSocialPostPresenter.tagList;
-		const rows = rowsVm.map((r) => toSetGridTableRowViewModel(r, channelLookup, tagLookup));
-		this.setsGridRowsVm = sortSetGridRows(rows);
+		await this.setGridPresenter.refreshRowsForOrganization(organizationId);
 	}
 
 	openNewSet(): void {
@@ -81,7 +65,7 @@ export class ProtectedTemplatesPagePresenter {
 	openEditSet(vm: SetGridTableRowViewModel): { ok: true } | { ok: false; error: string } {
 		const oid = this.organizationId;
 		if (!oid) return { ok: false, error: 'Select a workspace first.' };
-		const snap = this.getSetPresenter.parseSnapshotFromContentStateless(vm.setRow.content);
+		const snap = this.getSetPresenter.parseSnapshotFromContentStateless(vm.setRowVm.content);
 		if (!snap) {
 			return {
 				ok: false,
@@ -90,7 +74,7 @@ export class ProtectedTemplatesPagePresenter {
 		}
 		void this.protectedDashboardPagePresenter.loadDashboardLists();
 		this.createSocialPostPresenter.prepareContentSetAuthoring({
-			editingSetId: vm.setRow.id,
+			editingSetId: vm.setRowVm.id,
 			editingSetName: vm.name,
 			snapshot: snap
 		});
@@ -98,9 +82,9 @@ export class ProtectedTemplatesPagePresenter {
 	}
 
 	async deleteSet(vm: SetGridTableRowViewModel): Promise<SetDeleteResultViewModel> {
-		const resultVm = await this.upsertSetPresenter.deleteSet(vm.setRow.id);
+		const resultVm = await this.upsertSetPresenter.deleteSet(vm.setRowVm.id);
 		if (resultVm.ok) {
-			this.setsGridRowsVm = this.setsGridRowsVm.filter((r) => r.id !== vm.id);
+			this.setGridPresenter.removeRowById(vm.id);
 		}
 		return resultVm;
 	}
