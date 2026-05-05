@@ -4,7 +4,6 @@
 		type SetGridTableRowViewModel
 	} from '$lib/sets/SetGridTable.presenter.svelte';
 
-
 	import { browser } from '$app/environment';
 	import { setContext } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -424,13 +423,40 @@
 		text-align: start;
 	}
 
+	/* Grid theme: bridge SVAR CSS vars to DaisyUI semantic tokens. */
+	.svar-grid-host--fit-content :global(.wx-willow-theme),
+	.svar-grid-host--fit-content :global(.wx-willow-dark-theme) {
+		--wx-color-font: var(--color-base-content);
+		--wx-background: var(--color-base-100);
+		--wx-background-alt: var(--color-base-200);
+		--wx-border: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent);
+
+		--wx-table-border: var(--wx-border);
+		--wx-table-header-border: var(--wx-border);
+		--wx-table-header-cell-border: var(--wx-border);
+		--wx-table-footer-cell-border: var(--wx-border);
+		--wx-table-cell-border: var(--wx-border);
+
+		--wx-table-header-background: color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-100));
+		--wx-table-select-background: color-mix(in oklab, var(--color-primary) 22%, var(--color-base-100));
+		--wx-table-select-focus-background: color-mix(in oklab, var(--color-primary) 28%, var(--color-base-100));
+		--wx-table-select-color: var(--color-base-content);
+		--wx-table-select-border: inset 3px 0 var(--color-primary);
+		--wx-table-fixed-column-right-border: 3px solid
+			color-mix(in oklab, var(--color-base-content) 14%, transparent);
+
+		--wx-table-editor-dropdown-border: var(--wx-border);
+		--wx-table-editor-dropdown-shadow: 0 10px 30px
+			color-mix(in oklab, var(--color-base-content) 18%, transparent);
+	}
+
 	/* FilterBuilder: improve contrast + always-visible menu button (no hover hunting). */
-	.sets-filter-builder :global(.wx-willow-theme) {
-		/* Use DaisyUI semantic colors when present; fall back to SVAR defaults. */
-		--wx-filter-or-background: hsl(var(--p, 142 71% 45%));
-		--wx-filter-or-font-color: hsl(var(--pc, 0 0% 100%));
-		--wx-filter-and-background: hsl(var(--a, 45 93% 47%));
-		--wx-filter-and-font-color: hsl(var(--ac, 0 0% 0%));
+	.sets-filter-builder :global(.wx-willow-theme),
+	.sets-filter-builder :global(.wx-willow-dark-theme) {
+		--wx-filter-or-background: var(--color-primary);
+		--wx-filter-or-font-color: var(--color-primary-content);
+		--wx-filter-and-background: var(--color-accent);
+		--wx-filter-and-font-color: var(--color-accent-content);
 	}
 
 	/* “Simple” toolbar layout while keeping AND/OR glue controls (type="line" renders glue). */
@@ -464,16 +490,16 @@
 	}
 
 	.sets-filter-builder :global(.wx-rule) {
-		background: hsl(var(--b2, 0 0% 96%));
-		color: hsl(var(--bc, 222 47% 11%));
+		background: var(--color-base-200);
+		color: var(--color-base-content);
 	}
 
 	.sets-filter-builder :global(.wx-rule .wx-menu-icon) {
 		opacity: 1;
-		background: hsl(var(--b1, 0 0% 100%));
-		color: hsl(var(--bc, 222 47% 11%));
-		border: 1px solid hsl(var(--b3, 0 0% 90%));
-		box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+		background: var(--color-base-100);
+		color: var(--color-base-content);
+		border: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent);
+		box-shadow: 0 1px 0 color-mix(in oklab, var(--color-base-content) 10%, transparent);
 		font-style: normal;
 	}
 
@@ -490,6 +516,6 @@
 	}
 
 	.sets-filter-builder :global(.wx-rule .wx-menu-icon:hover) {
-		background: hsl(var(--b2, 0 0% 96%));
+		background: color-mix(in oklab, var(--color-base-content) 7%, var(--color-base-100));
 	}
 </style>
