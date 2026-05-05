@@ -401,8 +401,11 @@ export function sortSetGridRows(rows: SetGridTableRowViewModel[]): SetGridTableR
 	return [...rows].sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/** Which optional columns are visible (used for default + SVAR `responsive`). */
-type TemplatesGridColVis = {
+/**
+ * Column visibility and width hints for the sets (templates) SVAR grid — pairs with `PlugGridVis` in
+ * `PlugGridTable.presenter.svelte.ts`.
+ */
+type SetsGridVis = {
 	channels: boolean;
 	bodyPreview: boolean;
 	tags: boolean;
@@ -417,6 +420,22 @@ type TemplatesGridColVis = {
 	bodyPreviewFlexGrow?: boolean;
 	compactChannelsWidthPx?: number;
 	compactActionsWidthPx?: number;
+};
+
+/**
+ * Wide-desktop layout: all metadata columns + flexing body — analogue of `PLUG_GRID_WIDE_DEFAULTS` in `PlugGridTable.presenter.svelte.ts`.
+ * `bodyPreviewMinWidthPx` is tuned per breakpoint and autosize.
+ */
+const SETS_GRID_WIDE_DEFAULTS: SetsGridVis = {
+	channels: true,
+	bodyPreview: true,
+	bodyPreviewMinWidthPx: 176,
+	tags: true,
+	threads: true,
+	media: true,
+	repeat: true,
+	updated: true,
+	compact: false
 };
 
 type SetsGridApiWithColumn = IApi & {
@@ -486,7 +505,28 @@ export class SetGridTablePresenter {
 		return '';
 	}
 
-	private _templatesGridColumns(vis: TemplatesGridColVis): IColumn[] {
+	/** Fixed pixel width when compact; otherwise baseline width plus flexgrow so the column absorbs leftover horizontal space. */
+	private _channelsColumnSizing(vis: SetsGridVis): Pick<IColumn, 'flexgrow' | 'width'> | Record<string, never> {
+		if (!vis.channels) return {};
+		if (vis.compact && vis.compactChannelsWidthPx != null) {
+			return { width: vis.compactChannelsWidthPx };
+		}
+		return { flexgrow: 1, width: 96 };
+	}
+
+	/**
+	 * Width / flexgrow for `bodyPreview` — analogue of {@link PlugGridTablePresenter['_messageDisplayColumnSizing']} (`messageDisplay`).
+	 */
+	private _bodyPreviewColumnSizing(vis: SetsGridVis): Pick<IColumn, 'flexgrow' | 'width'> {
+		const width = vis.bodyPreviewMinWidthPx ?? 200;
+		if (vis.bodyPreviewFlexGrow === false) {
+			return { width };
+		}
+		return { flexgrow: 1, width };
+	}
+
+	/** Column defs for the sets (templates) SVAR grid — analogue of {@link PlugGridTablePresenter['_plugGridColumns']}. */
+	private _setsGridColumns(vis: SetsGridVis): IColumn[] {
 		const channelsForThreadsTooltip = this._channelLookup();
 		return [
 			{
@@ -499,11 +539,7 @@ export class SetGridTablePresenter {
 				id: 'channelsSummary',
 				header: 'Channels',
 				hidden: !vis.channels,
-				...(vis.channels
-					? vis.compact && vis.compactChannelsWidthPx != null
-						? { width: vis.compactChannelsWidthPx }
-						: { flexgrow: 1, width: 96 }
-					: {}),
+				...this._channelsColumnSizing(vis),
 				cell: SetsGridChannelsCell,
 				tooltip: (row: unknown) => buildSetsGridChannelsTooltipPlainText(this.asTableRowVm(row))
 			},
@@ -512,16 +548,10 @@ export class SetGridTablePresenter {
 				header: 'Body preview',
 				hidden: !vis.bodyPreview,
 				...(vis.bodyPreview
-					? vis.bodyPreviewFlexGrow === false
-						? {
-								width: vis.bodyPreviewMinWidthPx ?? 200,
-								tooltip: (row: unknown) => this.asTableRowVm(row).bodyPreviewTooltip
-							}
-						: {
-								flexgrow: 1,
-								width: vis.bodyPreviewMinWidthPx ?? 200,
-								tooltip: (row: unknown) => this.asTableRowVm(row).bodyPreviewTooltip
-							}
+					? {
+							...this._bodyPreviewColumnSizing(vis),
+							tooltip: (row: unknown) => this.asTableRowVm(row).bodyPreviewTooltip
+						}
 					: { tooltip: false })
 			},
 			{
@@ -551,23 +581,29 @@ export class SetGridTablePresenter {
 		] as IColumn[];
 	}
 
+	/** Shared column visibility for mid-width breakpoints (metadata hidden; body column uses a computed fixed width). */
+	private _setsGridColumnsMidTier(bodyPreviewMinWidthPx: number, overrides: Partial<SetsGridVis> = {}): IColumn[] {
+		return this._setsGridColumns({
+			channels: true,
+			bodyPreview: true,
+			bodyPreviewMinWidthPx,
+			bodyPreviewFlexGrow: false,
+			tags: false,
+			threads: false,
+			media: false,
+			repeat: false,
+			updated: false,
+			compact: false,
+			...overrides
+		});
+	}
+
 	getSetsGridColumnsForViewport(
 		layoutTierWidthPx: number,
 		compactLayoutWidthPx: number,
 		browser: boolean
 	): IColumn[] {
-		const setsGridColumnsAll: TemplatesGridColVis = {
-			channels: true,
-			bodyPreview: true,
-			bodyPreviewMinWidthPx: 176,
-			tags: true,
-			threads: true,
-			media: true,
-			repeat: true,
-			updated: true,
-			compact: false
-		};
-		const setsGridColumns = this._templatesGridColumns(setsGridColumnsAll);
+		const setsGridColumns = this._setsGridColumns(SETS_GRID_WIDE_DEFAULTS);
 
 		if (!browser || layoutTierWidthPx <= 0) return setsGridColumns;
 		if (layoutTierWidthPx <= 640) {
@@ -578,7 +614,7 @@ export class SetGridTablePresenter {
 			const reserved = compactActionPx + compactChannelsPx + compactGutterPx;
 			const nameW = Math.max(64, Math.min(132, Math.floor((cw - reserved) * 0.36)));
 			const bodyColW = Math.max(72, cw - reserved - nameW);
-			return this._templatesGridColumns({
+			return this._setsGridColumns({
 				channels: true,
 				bodyPreview: true,
 				bodyPreviewMinWidthPx: bodyColW,
@@ -596,33 +632,11 @@ export class SetGridTablePresenter {
 		}
 		if (layoutTierWidthPx <= 1024) {
 			const bodyMidW = Math.max(140, Math.min(240, Math.floor(layoutTierWidthPx - 420)));
-			return this._templatesGridColumns({
-				channels: true,
-				bodyPreview: true,
-				bodyPreviewMinWidthPx: bodyMidW,
-				bodyPreviewFlexGrow: false,
-				tags: false,
-				threads: false,
-				media: false,
-				repeat: false,
-				updated: false,
-				compact: false
-			});
+			return this._setsGridColumnsMidTier(bodyMidW);
 		}
 		if (layoutTierWidthPx <= 1100) {
 			const body1100W = Math.max(160, Math.min(220, Math.floor(layoutTierWidthPx - 480)));
-			return this._templatesGridColumns({
-				channels: true,
-				bodyPreview: true,
-				bodyPreviewMinWidthPx: body1100W,
-				bodyPreviewFlexGrow: false,
-				tags: false,
-				threads: true,
-				media: false,
-				repeat: false,
-				updated: true,
-				compact: false
-			});
+			return this._setsGridColumnsMidTier(body1100W, { threads: true, updated: true });
 		}
 		return setsGridColumns;
 	}
@@ -676,14 +690,16 @@ export class SetGridTablePresenter {
 			return;
 		}
 
-		const ids = SetGridTablePresenter.SETS_GRID_AUTOSIZE_COLUMN_IDS;
+		const narrowNameFlexLayout = SetGridTablePresenter.isSetsGridColumnHidden(api, 'channelsSummary');
+		const ids = SetGridTablePresenter.SETS_GRID_AUTOSIZE_COLUMN_IDS.filter((id) => {
+			if (SetGridTablePresenter.isSetsGridColumnHidden(api, id)) return false;
+			if (id === 'name' && narrowNameFlexLayout) return false;
+			return true;
+		});
+
 		const dataW: Record<string, number> = {};
 
-		const narrowNameFlexLayout = SetGridTablePresenter.isSetsGridColumnHidden(api, 'channelsSummary');
-
 		for (const id of ids) {
-			if (SetGridTablePresenter.isSetsGridColumnHidden(api, id)) continue;
-			if (id === 'name' && narrowNameFlexLayout) continue;
 			api.exec('resize-column', { id, auto: 'data', maxRows: 200 });
 		}
 		await tick();
@@ -692,22 +708,16 @@ export class SetGridTablePresenter {
 		}
 
 		for (const id of ids) {
-			if (SetGridTablePresenter.isSetsGridColumnHidden(api, id)) continue;
-			if (id === 'name' && narrowNameFlexLayout) continue;
 			api.exec('resize-column', { id, auto: 'header' });
 		}
 		await tick();
 		for (const id of ids) {
-			if (SetGridTablePresenter.isSetsGridColumnHidden(api, id)) continue;
-			if (id === 'name' && narrowNameFlexLayout) continue;
 			const w = Math.max(dataW[id] ?? 0, SetGridTablePresenter.readColumnWidthPx(api, id));
 			if (w > 0) api.exec('resize-column', { id, width: w });
 		}
 
 		await tick();
 		for (const id of ids) {
-			if (SetGridTablePresenter.isSetsGridColumnHidden(api, id)) continue;
-			if (id === 'name' && narrowNameFlexLayout) continue;
 			const min = SetGridTablePresenter.SETS_GRID_COLUMN_MIN_WIDTH_PX[id];
 			if (min == null) continue;
 			const w = SetGridTablePresenter.readColumnWidthPx(api, id);

@@ -320,7 +320,9 @@
 	{:else}
 		<div class="rounded-xl border border-base-300 bg-base-100 shadow-sm">
 			<div
-				class="border-base-300 min-h-[200px] min-w-0 w-full overflow-x-auto border-b"
+				class="svar-grid-host--fit-content border-base-300 min-h-[200px] min-w-0 w-full overflow-x-auto border-b {plugRulesRowsVm.length <= 80
+					? 'svar-grid-host--body-auto-height'
+					: ''}"
 				bind:this={plugsGridHostEl}
 			>
 				<Willow fonts={false}>
@@ -381,6 +383,27 @@
 />
 
 <style>
+	:global(.svar-grid-host--fit-content .wx-area),
+	:global(.svar-grid-host--fit-content .wx-grid) {
+		height: auto;
+	}
+
+	:global(.svar-grid-host--fit-content .wx-table-box) {
+		height: auto;
+		overflow: visible;
+	}
+
+	:global(.svar-grid-host--fit-content .wx-scroll) {
+		flex: none;
+		overflow-x: auto !important;
+		overflow-y: visible !important;
+	}
+
+	:global(.svar-grid-host--body-auto-height .wx-body) {
+		height: auto !important;
+		overflow: visible;
+	}
+
 	:global(.wx-grid .wx-row.wx-autoheight .wx-cell) {
 		align-items: flex-start;
 		padding-block: 0.35rem;

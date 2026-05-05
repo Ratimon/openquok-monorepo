@@ -15,7 +15,7 @@ import PlugsGridAccountCell from '$lib/ui/components/plugs/PlugsGridAccountCell.
 import PlugsGridActiveCell from '$lib/ui/components/plugs/PlugsGridActiveCell.svelte';
 import PlugsGridActionsCell from '$lib/ui/components/plugs/PlugsGridActionsCell.svelte';
 
-/** Which columns / widths for the plugs SVAR grid at a breakpoint. */
+/** Which columns / widths for the plugs SVAR grid at a breakpoint — pairs with `SetsGridVis` in SetGridTable.presenter.svelte.ts. */
 type PlugGridVis = {
 	likes: boolean;
 	accountWidth: number;
@@ -26,6 +26,22 @@ type PlugGridVis = {
 	activeWidthPx: number;
 	compact: boolean;
 	accountHeader: string;
+};
+
+/**
+ * Wide-desktop chrome (fixed column widths); {@link PlugGridVis.messageWidthPx} is refined per layout basis.
+ * Analogue of `SETS_GRID_WIDE_DEFAULTS` in `SetGridTable.presenter.svelte.ts`.
+ */
+const PLUG_GRID_WIDE_DEFAULTS: PlugGridVis = {
+	likes: true,
+	accountWidth: 220,
+	likesWidthPx: 118,
+	messageFlexGrow: false,
+	messageWidthPx: 320,
+	actionsWidthPx: 152,
+	activeWidthPx: 88,
+	compact: false,
+	accountHeader: 'Connected account'
 };
 
 /**
@@ -136,7 +152,19 @@ export class PlugGridTablePresenter {
 		return parts.join('\n');
 	}
 
-	private _buildPlugGridColumns(vis: PlugGridVis): IColumn[] {
+	/**
+	 * Width / flexgrow for the `messageDisplay` column — mirrors {@link SetGridTablePresenter['_bodyPreviewColumnSizing']}
+	 * on the templates grid (`bodyPreview`).
+	 */
+	private _messageDisplayColumnSizing(vis: PlugGridVis): Pick<IColumn, 'flexgrow' | 'width'> {
+		if (vis.messageFlexGrow) {
+			return { flexgrow: 1, width: vis.messageWidthPx };
+		}
+		return { width: vis.messageWidthPx };
+	}
+
+	/** Column defs for the plugs SVAR grid — mirrors {@link SetGridTablePresenter['_setsGridColumns']}. */
+	private _plugGridColumns(vis: PlugGridVis): IColumn[] {
 		return [
 			{
 				id: 'channelAccount',
@@ -156,7 +184,7 @@ export class PlugGridTablePresenter {
 				id: 'messageDisplay',
 				header: 'Message',
 				tooltip: false,
-				...(vis.messageFlexGrow ? { flexgrow: 1, width: vis.messageWidthPx } : { width: vis.messageWidthPx })
+				...this._messageDisplayColumnSizing(vis)
 			},
 			{
 				id: 'active',
@@ -180,18 +208,7 @@ export class PlugGridTablePresenter {
 		plugGridLayoutWidthPx: number,
 		browser: boolean
 	): IColumn[] {
-		const plugGridDefaultVis: PlugGridVis = {
-			likes: true,
-			accountWidth: 220,
-			likesWidthPx: 118,
-			messageFlexGrow: false,
-			messageWidthPx: 320,
-			actionsWidthPx: 152,
-			activeWidthPx: 88,
-			compact: false,
-			accountHeader: 'Connected account'
-		};
-		const plugGridColumns = this._buildPlugGridColumns(plugGridDefaultVis);
+		const plugGridColumns = this._plugGridColumns(PLUG_GRID_WIDE_DEFAULTS);
 
 		const w = layoutTierWidthPx;
 		if (!browser || w <= 0) return plugGridColumns;
@@ -203,7 +220,7 @@ export class PlugGridTablePresenter {
 			const accountPx = Math.max(88, Math.min(116, Math.floor(cw * 0.32)));
 			const gutter = 16;
 			const messageW = Math.max(72, cw - accountPx - activePx - actionsPx - gutter);
-			return this._buildPlugGridColumns({
+			return this._plugGridColumns({
 				likes: false,
 				accountWidth: accountPx,
 				likesWidthPx: 96,
@@ -226,36 +243,26 @@ export class PlugGridTablePresenter {
 			const gutter = 28;
 			const reserved = accountPx + likesPx + activePx + actionsPx + gutter;
 			const messageW = Math.max(100, Math.floor(basis - reserved));
-			return this._buildPlugGridColumns({
-				likes: true,
+			return this._plugGridColumns({
+				...PLUG_GRID_WIDE_DEFAULTS,
 				accountWidth: accountPx,
 				likesWidthPx: likesPx,
-				messageFlexGrow: false,
 				messageWidthPx: messageW,
-				actionsWidthPx: actionsPx,
-				activeWidthPx: activePx,
-				compact: false,
-				accountHeader: 'Connected account'
+				actionsWidthPx: actionsPx
 			});
 		}
 
-		const accountPx = 220;
-		const likesPx = 118;
-		const activePx = 88;
-		const actionsPx = 152;
 		const gutter = 36;
-		const reserved = accountPx + likesPx + activePx + actionsPx + gutter;
+		const reserved =
+			PLUG_GRID_WIDE_DEFAULTS.accountWidth +
+			PLUG_GRID_WIDE_DEFAULTS.likesWidthPx +
+			PLUG_GRID_WIDE_DEFAULTS.activeWidthPx +
+			PLUG_GRID_WIDE_DEFAULTS.actionsWidthPx +
+			gutter;
 		const messageW = Math.max(120, Math.floor(basis - reserved));
-		return this._buildPlugGridColumns({
-			likes: true,
-			accountWidth: accountPx,
-			likesWidthPx: likesPx,
-			messageFlexGrow: false,
-			messageWidthPx: messageW,
-			actionsWidthPx: actionsPx,
-			activeWidthPx: activePx,
-			compact: false,
-			accountHeader: 'Connected account'
+		return this._plugGridColumns({
+			...PLUG_GRID_WIDE_DEFAULTS,
+			messageWidthPx: messageW
 		});
 	}
 
@@ -270,7 +277,7 @@ export class PlugGridTablePresenter {
 	}
 
 	getPlugsGridAutoRowHeight(layoutTierWidthPx: number, browser: boolean): boolean {
-		return Boolean(browser && layoutTierWidthPx > 0 && layoutTierWidthPx <= 1024);
+		return Boolean(browser && layoutTierWidthPx > 0);
 	}
 
 	plugsGridCellStyle(_row: unknown, column: IColumn): string {

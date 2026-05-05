@@ -249,7 +249,7 @@
 	{:else}
 		<div class="border-base-300 bg-base-100 min-w-0 rounded-xl border shadow-sm">
 			<div
-				class="border-base-300 min-h-[200px] min-w-0 w-full max-w-full border-b"
+				class="svar-grid-host--fit-content svar-grid-host--body-auto-height border-base-300 min-h-[200px] min-w-0 w-full max-w-full border-b"
 				bind:this={setsGridHostEl}
 			>
 				<Willow fonts={false}>
@@ -295,6 +295,37 @@
 />
 
 <style>
+	/*
+	 * SVAR defaults (`wx-grid` / `wx-area` height 100%, `wx-scroll` flex:1) assume a fixed-height container
+	 * (see SizeToContainer). Inside `overflow-auto` main without that height, `clientHeight` + `fullHeight`
+	 * diverge and the last row can clip. Match SizeToContent by letting the grid measure from intrinsic height.
+	 */
+	:global(.svar-grid-host--fit-content .wx-area),
+	:global(.svar-grid-host--fit-content .wx-grid) {
+		height: auto;
+	}
+
+	:global(.svar-grid-host--fit-content .wx-table-box) {
+		height: auto;
+		/* Package default `overflow:hidden` clips when inline `fullHeight` lags `autoRowHeight` measurement */
+		overflow: visible;
+	}
+
+	:global(.svar-grid-host--fit-content .wx-scroll) {
+		flex: none;
+		overflow-x: auto !important;
+		overflow-y: visible !important;
+	}
+
+	/*
+	 * Optional `wx-body { height:auto }` breaks SVAR virtual scroll for huge datasets — only combine with
+	 * `svar-grid-host--body-auto-height` when row counts stay modest (templates grid below).
+	 */
+	:global(.svar-grid-host--body-auto-height .wx-body) {
+		height: auto !important;
+		overflow: visible;
+	}
+
 	/* Multiline rows (`autoRowHeight`): keep body text readable (Willow sample pattern) */
 	:global(.wx-grid .wx-row.wx-autoheight .wx-cell) {
 		align-items: flex-start;
