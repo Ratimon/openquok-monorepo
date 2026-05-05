@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { IApi } from '@svar-ui/svelte-grid';
 	import {
-		createSetGridTableFilter,
 		type SetGridTableRowViewModel
 	} from '$lib/sets/SetGridTable.presenter.svelte';
+
 
 	import { browser } from '$app/environment';
 	import { setContext } from 'svelte';
@@ -14,6 +14,7 @@
 		getRootPathCalendar,
 		protectedTemplatesPagePresenter
 	} from '$lib/area-protected';
+	import { createSetGridTableFilter } from '$lib/sets';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { setsGridActionsKey } from '$lib/ui/components/sets/setsGridContext';
 	import { toast } from '$lib/ui/sonner';

@@ -32,3 +32,4 @@ export { PlugRepository } from '$lib/plugs/Plug.repository.svelte';
 export { GetPlugPresenter } from '$lib/plugs/GetPlug.presenter.svelte';
 export { UpsertGlobalPlugPresenter } from '$lib/plugs/UpsertGlobalPlug.presenter.svelte';
 export { PlugGridTablePresenter } from '$lib/plugs/PlugGridTable.presenter.svelte';
+export { createPlugGridTableFilter } from '$lib/plugs/PlugGridFilterBuilder.presenter.svelte';

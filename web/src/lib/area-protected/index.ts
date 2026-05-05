@@ -32,6 +32,7 @@ import { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte'
 import { getAnalyticsPresenter } from '$lib/platform-analytics';
 import { getPlugPresenter, upsertGlobalPlugPresenter, plugRepository } from '$lib/plugs';
 import { PlugGridTablePresenter } from '$lib/plugs/PlugGridTable.presenter.svelte';
+import { PlugGridFilterBuilderPresenter } from '$lib/plugs/PlugGridFilterBuilder.presenter.svelte';
 import { SetGridFilterBuilderPresenter } from '$lib/sets/SetGridFilterBuilder.presenter.svelte';
 
 const protectedSettingsPagePresenter = new ProtectedSettingsPagePresenter(
@@ -96,13 +97,15 @@ const protectedAnalyticsPagePresenter = new ProtectedAnalyticsPagePresenter(
 );
 
 const plugGridTable = new PlugGridTablePresenter(getPlugPresenter, plugRepository);
+const plugGridFilterBuilder = new PlugGridFilterBuilderPresenter();
 
 const protectedPlugsPagePresenter = new ProtectedPlugsPagePresenter(
 	integrationsRepository,
 	workspaceSettingsPresenter,
 	plugRepository,
 	upsertGlobalPlugPresenter,
-	plugGridTable
+	plugGridTable,
+	plugGridFilterBuilder
 );
 
 const setGridTable = new SetGridTablePresenter(getSetPresenter, protectedDashboardPagePresenter);

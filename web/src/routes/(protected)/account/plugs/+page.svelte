@@ -16,9 +16,11 @@
 		protectedPlugsPagePresenter
 	} from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+	import { createPlugGridTableFilter } from '$lib/plugs';
 	import { plugsGridActionsKey } from '$lib/ui/components/plugs/plugsGridContext';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
+	import { FilterBuilder, Willow as FilterWillow } from '@svar-ui/svelte-filter';
 	import { Willow, Grid, Tooltip } from '@svar-ui/svelte-grid';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -37,6 +39,7 @@
 
 	const pagePresenter = protectedPlugsPagePresenter;
 	const gridPresenter = pagePresenter.plugGridTable;
+	const filterPresenter = pagePresenter.plugGridFilterBuilder;
 
 	function readViewportWidthPx(): number {
 		if (!browser || typeof window === 'undefined') return 0;
@@ -128,7 +131,7 @@
 	const singleRuleEditorVm = $derived(pagePresenter.singleRuleEditorVm);
 
 	const plugGridColumnsForHost = $derived.by(() => {
-		return gridPresenter.getPlugGridColumnsForViewport(
+		return gridPresenter.getPlugsGridColumnsForViewport(
 			layoutTierWidthPx,
 			plugGridLayoutWidthPx,
 			browser
@@ -136,7 +139,7 @@
 	});
 
 	const plugGridSizesForHost = $derived.by(() => {
-		return gridPresenter.getPlugGridSizesForViewport(layoutTierWidthPx, browser);
+		return gridPresenter.getPlugsGridSizesForViewport(layoutTierWidthPx, browser);
 	});
 
 	const plugsGridAutoRowHeight = $derived(
@@ -169,7 +172,17 @@
 
 	$effect(() => {
 		void workspaceId;
+		filterPresenter.reset();
 		void pagePresenter.syncWorkspaceAndCatalog();
+	});
+
+	/** Re-apply FilterBuilder predicate after grid API wiring or row reload. */
+	$effect(() => {
+		void plugRulesRowsVm;
+		void filterPresenter.value;
+		const api = plugsGridApi;
+		if (!api) return;
+		api.exec('filter-rows', { filter: createPlugGridTableFilter(filterPresenter.value) });
 	});
 
 	$effect(() => {
@@ -294,6 +307,35 @@
 					Add Global Rule
 				</Button>
 
+				<div class="relative">
+					<Button
+						type="button"
+						variant="secondary"
+						class="h-9 gap-2 whitespace-nowrap"
+						onclick={() => filterPresenter.toggleAddFilterMenu()}
+						disabled={!filterPresenter.addableFieldOptions.length || !filterPresenter.isReady}
+					>
+						<AbstractIcon name={icons.ListFilterPlus.name} class="size-4 shrink-0" width="16" height="16" />
+						Add filters
+						<AbstractIcon name={icons.ChevronDown.name} class="size-4 shrink-0 opacity-80" width="16" height="16" />
+					</Button>
+					{#if filterPresenter.addFilterMenuOpen}
+						<div
+							class="border-base-300 bg-base-100 absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-lg border shadow-lg"
+						>
+							{#each filterPresenter.addableFieldOptions as opt (opt.id)}
+								<button
+									type="button"
+									class="hover:bg-base-200 flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-base-content"
+									onclick={() => filterPresenter.addFilterForField(opt.id)}
+								>
+									<span class="truncate">{opt.label}</span>
+								</button>
+							{/each}
+						</div>
+					{/if}
+				</div>
+
 				<Button variant="secondary" href={calendarPath} class="gap-2">
 					<AbstractIcon name={icons.CalendarClock.name} class="size-4 shrink-0" width="16" height="16" />
 					Open calendar to configure internal rule
@@ -320,6 +362,40 @@
 		</div>
 	{:else}
 		<div class="rounded-xl border border-base-300 bg-base-100 shadow-sm">
+			{#if filterPresenter.hasAnyRule}
+				<div class="border-base-300 border-b px-3 py-3">
+					<p class="text-base-content/70 mb-2 text-xs font-medium tracking-wide uppercase">
+						Filters
+					</p>
+					<div class="plugs-filter-builder min-w-0 overflow-x-auto">
+						<FilterWillow fonts={false}>
+							<FilterBuilder
+								value={filterPresenter.value}
+								fields={filterPresenter.fields}
+								options={filterPresenter.buildOptions(plugRulesRowsVm)}
+								type="line"
+								init={(api: unknown) => filterPresenter.initFilterBuilderApi(api)}
+								onchange={(ev: { value: { glue: 'and' | 'or'; rules: unknown[] } }) =>
+									filterPresenter.applyChange(ev)}
+							/>
+						</FilterWillow>
+					</div>
+				</div>
+			{:else}
+				<div class="sr-only">
+					<FilterWillow fonts={false}>
+						<FilterBuilder
+							value={filterPresenter.value}
+							fields={filterPresenter.fields}
+							options={filterPresenter.buildOptions(plugRulesRowsVm)}
+							type="line"
+							init={(api: unknown) => filterPresenter.initFilterBuilderApi(api)}
+							onchange={(ev: { value: { glue: 'and' | 'or'; rules: unknown[] } }) =>
+								filterPresenter.applyChange(ev)}
+						/>
+					</FilterWillow>
+				</div>
+			{/if}
 			<div
 				class="svar-grid-host--fit-content border-base-300 min-h-[200px] min-w-0 w-full overflow-x-auto border-b {plugRulesRowsVm.length <= 80
 					? 'svar-grid-host--body-auto-height'
@@ -414,5 +490,37 @@
 		max-width: min(36rem, 92vw);
 		white-space: pre-wrap;
 		text-align: start;
+	}
+
+	/* Plug FilterBuilder: match templates styling + ensure menu icon is visible without SVAR icon-font. */
+	.plugs-filter-builder :global(.wx-willow-theme) {
+		--wx-filter-or-background: hsl(var(--p, 142 71% 45%));
+		--wx-filter-or-font-color: hsl(var(--pc, 0 0% 100%));
+		--wx-filter-and-background: hsl(var(--a, 45 93% 47%));
+		--wx-filter-and-font-color: hsl(var(--ac, 0 0% 0%));
+	}
+
+	.plugs-filter-builder :global(.wx-toolbar.wx-line .wx-button) {
+		display: none;
+	}
+
+	.plugs-filter-builder :global(.wx-rule .wx-menu-icon) {
+		opacity: 1;
+		background: hsl(var(--b1, 0 0% 100%));
+		color: hsl(var(--bc, 222 47% 11%));
+		border: 1px solid hsl(var(--b3, 0 0% 90%));
+		box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+		font-style: normal;
+	}
+
+	.plugs-filter-builder :global(.wx-rule .wx-menu-icon::before) {
+		content: '⋮';
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		font-size: 16px;
+		line-height: 1;
 	}
 </style>

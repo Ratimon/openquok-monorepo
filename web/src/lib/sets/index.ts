@@ -29,4 +29,9 @@ export type {
 	SetUpsertResultViewModel
 } from '$lib/sets/UpsertSet.presenter.svelte';
 export type { SetGridTableRowViewModel } from '$lib/sets/SetGridTable.presenter.svelte';
-export { SetGridTablePresenter, sortSetGridRows, toSetGridTableRowViewModel } from '$lib/sets/SetGridTable.presenter.svelte';
+export {
+	SetGridTablePresenter,
+	sortSetGridRows,
+} from '$lib/sets/SetGridTable.presenter.svelte';
+
+export { createSetGridTableFilter} from '$lib/sets/SetGridFilterBuilder.presenter.svelte';

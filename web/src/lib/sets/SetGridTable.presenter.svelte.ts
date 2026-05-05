@@ -89,212 +89,6 @@ export type SetGridTableRowViewModel = {
 
 const DASH = '—';
 
-/** Matches `@svar-ui/filter-store` default **text** operators used by FilterBuilder. */
-function textFilterHandler(filterKind: string | undefined): (cell: unknown, value: unknown) => boolean {
-	switch (filterKind ?? 'equal') {
-		case 'equal':
-			return (t, e) => t != null && String(t).toLowerCase() === String(e ?? '').toLowerCase();
-		case 'notEqual':
-			return (t, e) => t == null || String(t).toLowerCase() !== String(e ?? '').toLowerCase();
-		case 'contains':
-			return (t, e) => t != null && String(t).toLowerCase().includes(String(e ?? '').toLowerCase());
-		case 'notContains':
-			return (t, e) => t == null || !String(t).toLowerCase().includes(String(e ?? '').toLowerCase());
-		case 'beginsWith':
-			return (t, e) => {
-				if (t == null) return false;
-				const a = String(t).toLowerCase();
-				const b = String(e ?? '').toLowerCase();
-				return a.lastIndexOf(b, 0) === 0;
-			};
-		case 'notBeginsWith':
-			return (t, e) => {
-				if (t == null) return true;
-				const a = String(t).toLowerCase();
-				const b = String(e ?? '').toLowerCase();
-				return a.lastIndexOf(b, 0) !== 0;
-			};
-		case 'endsWith':
-			return (t, e) => {
-				if (t == null) return false;
-				const a = String(t).toLowerCase();
-				const b = String(e ?? '').toLowerCase();
-				return a.indexOf(b, Math.max(0, a.length - b.length)) !== -1;
-			};
-		case 'notEndsWith':
-			return (t, e) => {
-				if (t == null) return true;
-				const a = String(t).toLowerCase();
-				const b = String(e ?? '').toLowerCase();
-				return a.indexOf(b, Math.max(0, a.length - b.length)) === -1;
-			};
-		default:
-			return (t, e) => t != null && String(t).toLowerCase() === String(e ?? '').toLowerCase();
-	}
-}
-
-function normalizeSocialProviderIdForFilter(identifier: string): string {
-	const id = identifier.trim().toLowerCase();
-	if (id.startsWith('instagram')) return 'instagram';
-	return id;
-}
-
-function normalizeSocialFilterRuleValue(raw: unknown): string {
-	const s = String(raw ?? '').trim().toLowerCase();
-	if (!s) return '';
-	if (s.startsWith('instagram')) return 'instagram';
-	if (s === 'thread') return 'threads';
-	return s;
-}
-
-function rowMatchesSocialChannelEqual(row: SetGridTableRowViewModel, raw: unknown): boolean {
-	const want = normalizeSocialFilterRuleValue(raw);
-	if (!want) return true;
-	for (const idRaw of row.filterSocialProviderIdsLower) {
-		if (normalizeSocialProviderIdForFilter(idRaw) === want) return true;
-	}
-	const d = row.channelsDisplayVm;
-	if (d) {
-		for (const ch of d.allVm) {
-			if (socialProviderDisplayLabel(ch.providerIdentifier).toLowerCase() === String(raw ?? '').trim().toLowerCase()) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-type SetGridFilterLeafRule = {
-	field?: string;
-	filter?: string;
-	value?: unknown;
-	includes?: unknown[];
-	type?: string;
-};
-
-function isSetGridFilterGroupNode(node: unknown): node is { glue?: string; rules: unknown[] } {
-	return typeof node === 'object' && node !== null && Array.isArray((node as { rules?: unknown }).rules);
-}
-
-function compileSocialChannelLeaf(rule: SetGridFilterLeafRule): (row: SetGridTableRowViewModel) => boolean {
-	const filterKind = rule.filter ?? 'equal';
-
-	if (filterKind === 'equal') {
-		return (row) => rowMatchesSocialChannelEqual(row, rule.value);
-	}
-	if (filterKind === 'notEqual') {
-		return (row) => !rowMatchesSocialChannelEqual(row, rule.value);
-	}
-
-	const handler = textFilterHandler(filterKind);
-	return (row) => handler(row.filterSocialSearchText, rule.value);
-}
-
-function compileTagsLeaf(rule: SetGridFilterLeafRule): (row: SetGridTableRowViewModel) => boolean {
-	const filterKind = rule.filter ?? 'contains';
-
-	if (filterKind === 'equal') {
-		const v = String(rule.value ?? '').trim().toLowerCase();
-		return (row) => row.filterTagNamesLower.some((t) => t === v);
-	}
-	if (filterKind === 'notEqual') {
-		const v = String(rule.value ?? '').trim().toLowerCase();
-		return (row) => !row.filterTagNamesLower.some((t) => t === v);
-	}
-
-	const handler = textFilterHandler(filterKind);
-	return (row) => handler(row.filterTagNamesLower.join(' '), rule.value);
-}
-
-function compileIncludesLeaf(rule: SetGridFilterLeafRule): (row: SetGridTableRowViewModel) => boolean {
-	const field = rule.field;
-	const includes = rule.includes ?? [];
-	if (!field || !includes.length) return () => true;
-
-	// FilterBuilder's editor uses `includes` to represent multi-select values and will render the rule as “in …”.
-	// When the user chooses "not equal", the intent is "not in" for multi-select.
-	const negate = (rule.filter ?? 'equal') === 'notEqual';
-
-	const scalars = includes.map((x) =>
-		x instanceof Date ? String(x) : String(x ?? '').trim()
-	);
-
-	if (field === 'socialChannel') {
-		return (row) => {
-			const hit = row.filterSocialProviderIdsLower.some((id) =>
-				scalars.some((inc) => normalizeSocialProviderIdForFilter(id) === normalizeSocialFilterRuleValue(inc))
-			);
-			return negate ? !hit : hit;
-		};
-	}
-	if (field === 'tags') {
-		const lowered = scalars.map((s) => String(s).toLowerCase());
-		return (row) => {
-			const hit = row.filterTagNamesLower.some((t) => lowered.includes(t));
-			return negate ? !hit : hit;
-		};
-	}
-
-	return (row) => {
-		let cell = '';
-		if (field === 'name') cell = row.name;
-		else if (field === 'bodyPreview') cell = row.bodyPreview === DASH ? '' : row.bodyPreview;
-		const c = cell.trim().toLowerCase();
-		const hit = scalars.some((inc) => c === String(inc).trim().toLowerCase());
-		return negate ? !hit : hit;
-	};
-}
-
-function compileSetGridFilterLeaf(rule: SetGridFilterLeafRule): (row: SetGridTableRowViewModel) => boolean {
-	const field = rule.field;
-	if (!field || field === '*') return () => true;
-
-	if (rule.includes && rule.includes.length > 0) {
-		return compileIncludesLeaf(rule);
-	}
-
-	if (field === 'socialChannel') return compileSocialChannelLeaf(rule);
-	if (field === 'tags') return compileTagsLeaf(rule);
-
-	const filterKind = rule.filter ?? 'equal';
-	const handler = textFilterHandler(filterKind);
-
-	return (row) => {
-		let cell: unknown = '';
-		if (field === 'name') cell = row.name;
-		else if (field === 'bodyPreview') cell = row.bodyPreview === DASH ? '' : row.bodyPreview;
-		else cell = '';
-		return handler(cell, rule.value);
-	};
-}
-
-function compileSetGridFilterNode(node: unknown): (row: SetGridTableRowViewModel) => boolean {
-	if (!node || typeof node !== 'object') return () => true;
-
-	if (isSetGridFilterGroupNode(node)) {
-		const { glue = 'and', rules } = node;
-		const parts = rules.map(compileSetGridFilterNode).filter((fn) => typeof fn === 'function');
-		if (parts.length === 0) return () => true;
-		if (glue === 'or') {
-			return (row) => parts.some((fn) => fn(row));
-		}
-		return (row) => parts.every((fn) => fn(row));
-	}
-
-	return compileSetGridFilterLeaf(node as SetGridFilterLeafRule);
-}
-
-/**
- * Builds a row predicate from SVAR FilterBuilder serialized state for the templates (sets) grid.
- * Social channel rules treat Instagram variants as one bucket and match when **any** connected channel satisfies the rule.
- */
-export function createSetGridTableFilter(filterValue: unknown): (row: SetGridTableRowViewModel) => boolean {
-	if (!filterValue || typeof filterValue !== 'object') return () => true;
-	const rules = (filterValue as { rules?: unknown }).rules;
-	if (!Array.isArray(rules) || rules.length === 0) return () => true;
-	return compileSetGridFilterNode(filterValue);
-}
-
 /** Matches {@link TagsComponent} default when a tag has no stored color. */
 const DEFAULT_TAG_COLOR = '#6366f1';
 
@@ -309,7 +103,7 @@ function tagColorByName(tags: readonly SetGridTagLookupViewModel[]): Map<string,
 	return m;
 }
 
-export function buildSetGridTagsDisplayViewModel(
+export function buildSetGridTagsDisplayVm(
 	selectedNames: readonly string[],
 	workspaceTags: readonly SetGridTagLookupViewModel[]
 ): SetGridTagChipViewModel[] {
@@ -386,7 +180,7 @@ function parseFollowUpReplyMessagesFromBucket(block: unknown): string[] {
 }
 
 /** Plain multiline text for SVAR Auto-replies column tooltip (channels-style: total, then platform + bullets). */
-export function buildSetsGridThreadsRepliesTooltipPlainText(
+export function buildSetGridThreadsRepliesTooltipPlainText(
 	vm: SetGridTableRowViewModel,
 	channels: readonly SetGridChannelLookupViewModel[]
 ): string {
@@ -536,7 +330,7 @@ export function groupSetGridChannelsForTooltipViewModel(
 }
 
 /** Plain multiline text for default SVAR column `tooltip` (channels column). */
-export function buildSetsGridChannelsTooltipPlainText(vm: SetGridTableRowViewModel): string {
+export function buildSetGridChannelsTooltipPlainText(vm: SetGridTableRowViewModel): string {
 	const head = String(vm.channelsSummary ?? '').trim() || 'Channels';
 	const d = vm.channelsDisplayVm;
 	if (!d) return head;
@@ -555,10 +349,10 @@ export function buildSetsGridChannelsTooltipPlainText(vm: SetGridTableRowViewMod
 /**
  * Maps a persisted set row + parsed `content` JSON into SVAR grid columns.
  */
-export function toSetGridTableRowViewModel(
+export function toSetGridTableRowVm(
 	row: SetRowViewModel,
-	channels: readonly SetGridChannelLookupViewModel[],
-	workspaceTags: readonly SetGridTagLookupViewModel[] = []
+	channelsVm: readonly SetGridChannelLookupViewModel[],
+	workspaceTagsVm: readonly SetGridTagLookupViewModel[] = []
 ): SetGridTableRowViewModel {
 	const snap = parseSetContent(row.content);
 
@@ -587,12 +381,12 @@ export function toSetGridTableRowViewModel(
 
 	const nChannels = snap.selectedIntegrationIds.length;
 	const channelsSummary = nChannels === 0 ? 'No channels' : `${nChannels} channel${nChannels === 1 ? '' : 's'}`;
-	const channelsDisplayVm = nChannels === 0 ? null : buildSetGridChannelsDisplayViewModel(snap, channels);
+	const channelsDisplayVm = nChannels === 0 ? null : buildSetGridChannelsDisplayViewModel(snap, channelsVm);
 
 	const nTags = snap.selectedTagNames.length;
 	const tagsSummary = nTags === 0 ? DASH : snap.selectedTagNames.join(', ');
 	const tagsDisplayVm =
-		nTags === 0 ? [] : buildSetGridTagsDisplayViewModel(snap.selectedTagNames, workspaceTags);
+		nTags === 0 ? [] : buildSetGridTagsDisplayVm(snap.selectedTagNames, workspaceTagsVm);
 
 	const nReplies = countThreadsAutoReplies(snap.providerSettingsByIntegrationId);
 	const threadsSummary =
@@ -714,6 +508,15 @@ export class SetGridTablePresenter {
 		}));
 	}
 
+	/** Maps one persisted set row VM into one grid row VM (analogue of `PlugGridTablePresenter.toRuleRowVm`). */
+	toGridRowVm(
+		rowVm: SetRowViewModel,
+		channelLookup: readonly SetGridChannelLookupViewModel[],
+		tagLookup: readonly SetGridTagLookupViewModel[]
+	): SetGridTableRowViewModel {
+		return toSetGridTableRowVm(rowVm, channelLookup, tagLookup);
+	}
+
 	/** Refresh grid rows for the current workspace (loads dashboard lists + tags; maps PM → grid VMs). */
 	async refreshRowsForOrganization(organizationId: string): Promise<void> {
 		if (!organizationId) {
@@ -725,7 +528,7 @@ export class SetGridTablePresenter {
 		const rowsVm = await this.getSetPresenter.loadSetsListVm(organizationId);
 		const channelLookup = this._channelLookup();
 		const tagLookup = this.dashboardPagePresenter.createSocialPostPresenter.tagList;
-		const rows = rowsVm.map((r) => toSetGridTableRowViewModel(r, channelLookup, tagLookup));
+		const rows = rowsVm.map((r) => this.toGridRowVm(r, channelLookup, tagLookup));
 		this.setsGridRowsVm = sortSetGridRows(rows);
 	}
 
@@ -791,7 +594,7 @@ export class SetGridTablePresenter {
 				hidden: !vis.channels,
 				...this._channelsColumnSizing(vis),
 				cell: SetsGridChannelsCell,
-				tooltip: (row: unknown) => buildSetsGridChannelsTooltipPlainText(this.asTableRowVm(row))
+				tooltip: (row: unknown) => buildSetGridChannelsTooltipPlainText(this.asTableRowVm(row))
 			},
 			{
 				id: 'bodyPreview',
@@ -815,7 +618,7 @@ export class SetGridTablePresenter {
 				id: 'threadsSummary',
 				header: 'Auto-replies',
 				tooltip: (row: unknown) =>
-					buildSetsGridThreadsRepliesTooltipPlainText(this.asTableRowVm(row), channelsForThreadsTooltip),
+					buildSetGridThreadsRepliesTooltipPlainText(this.asTableRowVm(row), channelsForThreadsTooltip),
 				hidden: !vis.threads
 			},
 			{ id: 'mediaSummary', header: 'Media', tooltip: false, hidden: !vis.media },

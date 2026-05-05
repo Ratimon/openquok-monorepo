@@ -15,7 +15,11 @@ import PlugsGridAccountCell from '$lib/ui/components/plugs/PlugsGridAccountCell.
 import PlugsGridActiveCell from '$lib/ui/components/plugs/PlugsGridActiveCell.svelte';
 import PlugsGridActionsCell from '$lib/ui/components/plugs/PlugsGridActionsCell.svelte';
 
-/** Which columns / widths for the plugs SVAR grid at a breakpoint — pairs with `SetsGridVis` in SetGridTable.presenter.svelte.ts. */
+
+/**
+ * Column visibility / width hints for the plugs SVAR grid at a breakpoint — pairs with `SetsGridVis` in
+ * `SetGridTable.presenter.svelte.ts`.
+ */
 type PlugGridVis = {
 	likes: boolean;
 	accountWidth: number;
@@ -55,11 +59,11 @@ export class PlugGridTablePresenter {
 		private readonly plugRepository: PlugRepository
 	) {}
 
-	clearRules(): void {
+	resetForNoWorkspace(): void {
 		this.plugRulesRowsVm = [];
 	}
 
-	toRuleRowVm(
+	toGridRowVm(
 		plugCatalogVm: PlugCatalogProviderViewModel[],
 		channel: ConnectedIntegrationChannelViewModel,
 		rowPm: IntegrationPlugRowProgrammerModel
@@ -82,13 +86,13 @@ export class PlugGridTablePresenter {
 		});
 	}
 
-	async refreshRulesTable(
+	async refreshRowsForOrganization(
 		organizationId: string,
 		plugCatalogVm: PlugCatalogProviderViewModel[],
 		channelsVm: ConnectedIntegrationChannelViewModel[]
 	): Promise<void> {
 		if (!organizationId) {
-			this.clearRules();
+			this.resetForNoWorkspace();
 			return;
 		}
 		const catalog = plugCatalogVm;
@@ -203,7 +207,7 @@ export class PlugGridTablePresenter {
 		] as unknown as IColumn[];
 	}
 
-	getPlugGridColumnsForViewport(
+	getPlugsGridColumnsForViewport(
 		layoutTierWidthPx: number,
 		plugGridLayoutWidthPx: number,
 		browser: boolean
@@ -266,7 +270,7 @@ export class PlugGridTablePresenter {
 		});
 	}
 
-	getPlugGridSizesForViewport(layoutTierWidthPx: number, browser: boolean): {
+	getPlugsGridSizesForViewport(layoutTierWidthPx: number, browser: boolean): {
 		rowHeight: number;
 		headerHeight: number;
 	} {

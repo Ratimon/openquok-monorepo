@@ -15,6 +15,7 @@ import type {
 	PlugMutationResultViewModel
 } from '$lib/plugs/UpsertGlobalPlug.presenter.svelte';
 import type { PlugGridTablePresenter } from '$lib/plugs/PlugGridTable.presenter.svelte';
+import type { PlugGridFilterBuilderPresenter } from '$lib/plugs/PlugGridFilterBuilder.presenter.svelte';
 
 export class ProtectedPlugsPagePresenter {
 	plugCatalogVm = $state<PlugCatalogProviderViewModel[]>([]);
@@ -36,7 +37,8 @@ export class ProtectedPlugsPagePresenter {
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
 		private readonly plugRepository: PlugRepository,
 		readonly upsertGlobalPlugPresenter: UpsertGlobalPlugPresenter,
-		readonly plugGridTable: PlugGridTablePresenter
+		readonly plugGridTable: PlugGridTablePresenter,
+		readonly plugGridFilterBuilder: PlugGridFilterBuilderPresenter
 	) {}
 
 	get organizationId(): string {
@@ -63,7 +65,7 @@ export class ProtectedPlugsPagePresenter {
 		if (!organizationId) {
 			this.channelsVm = [];
 			this.plugCatalogVm = [];
-			this.plugGridTable.clearRules();
+			this.plugGridTable.resetForNoWorkspace();
 			this.loading = false;
 			return;
 		}
@@ -87,10 +89,10 @@ export class ProtectedPlugsPagePresenter {
 	async refreshPlugRulesTable(): Promise<void> {
 		const organizationId = this.organizationId;
 		if (!organizationId) {
-			this.plugGridTable.clearRules();
+			this.plugGridTable.resetForNoWorkspace();
 			return;
 		}
-		await this.plugGridTable.refreshRulesTable(organizationId, this.plugCatalogVm, this.channelsVm);
+		await this.plugGridTable.refreshRowsForOrganization(organizationId, this.plugCatalogVm, this.channelsVm);
 	}
 
 	private _valuesToPlugDataJson(
@@ -154,7 +156,7 @@ export class ProtectedPlugsPagePresenter {
 				data,
 				activated: resultVm.activated
 			};
-			const rowVm = this.plugGridTable.toRuleRowVm(this.plugCatalogVm, ch, rowPm);
+			const rowVm = this.plugGridTable.toGridRowVm(this.plugCatalogVm, ch, rowPm);
 			this.plugGridTable.upsertRuleAfterCatalogSave(rowVm, params.plugId);
 			if (!params.plugId && this.pendingNewForMethod === params.def.methodName) {
 				this.pendingNewForMethod = null;
@@ -190,7 +192,7 @@ export class ProtectedPlugsPagePresenter {
 					data,
 					activated: resultVm.activated
 				};
-				const rowVm = this.plugGridTable.toRuleRowVm(this.plugCatalogVm, ch, rowPm);
+				const rowVm = this.plugGridTable.toGridRowVm(this.plugCatalogVm, ch, rowPm);
 				this.plugGridTable.replaceRuleAfterSingleEditorSave(params.plugId, rowVm);
 			} else {
 				await this.refreshPlugRulesTable();
