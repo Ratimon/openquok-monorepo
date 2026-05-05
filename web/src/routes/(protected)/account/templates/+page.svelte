@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { IApi } from '@svar-ui/svelte-grid';
 	import {
-		SET_GRID_FILTER_BUILDER_FIELDS,
-		buildSetGridFilterBuilderOptions,
 		createSetGridTableFilter,
 		type SetGridTableRowViewModel
 	} from '$lib/sets/SetGridTable.presenter.svelte';
@@ -32,9 +30,6 @@
 	// /account
 	const accountPath = route(rootPathAccount);
 
-	// /account/settings?section=sets
-	const settingsSetsPath = route(`${rootPathAccount}/settings?section=sets`);
-
 	// /account/calendar
 	const rootPathCalendar = getRootPathCalendar();
 	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
@@ -42,6 +37,7 @@
 
 	const pagePresenter = protectedTemplatesPagePresenter;
 	const gridPresenter = pagePresenter.setGridTable;
+	const filterPresenter = pagePresenter.setGridFilterBuilder;
 
 	/** Stable ref for composer `bind:` chain (`pagePresenter.createSocialPostPresenter`). */
 	let createSocialPostModalPresenter = $state.raw(pagePresenter.createSocialPostPresenter);
@@ -54,19 +50,6 @@
 	}
 
 	let composeOpen = $state(false);
-	/** Serialized SVAR FilterBuilder value (`glue` defaults to OR so rules stack like “Threads OR Instagram OR tag …”). */
-	let setsGridFilterBuilderValue = $state<{ glue: 'and' | 'or'; rules: unknown[] }>({
-		glue: 'or',
-		rules: []
-	});
-	/** FilterBuilder API instance (used for custom “Add filter” dropdown). */
-	let setsFilterBuilderApi = $state<
-		| {
-				exec: (action: string, payload?: unknown) => void;
-		  }
-		| undefined
-	>(undefined);
-	let addFilterMenuOpen = $state(false);
 	/** Grid API for SVAR `Tooltip` (wired via `init`, not `bind:this`). */
 	let setsGridApi = $state<IApi | undefined>(undefined);
 	/** Layout host width from ResizeObserver (can inflate to column min-content without `min-w-0` on ancestors). */
@@ -170,86 +153,7 @@
 		return gridPresenter.setsGridCellStyle;
 	});
 
-	const setsGridFilterBuilderOptions = $derived.by(() => buildSetGridFilterBuilderOptions(setsGridRowsVm));
-
-	type FilterNode = {
-		glue?: 'and' | 'or';
-		rules?: FilterNode[];
-		field?: string;
-		filter?: string;
-		value?: unknown;
-		includes?: unknown[];
-		type?: string;
-	};
-
-	function normalizeFilterBuilderValueForTemplates(v: FilterNode): FilterNode {
-		const walk = (node: FilterNode): FilterNode => {
-			if (node && Array.isArray(node.rules)) {
-				return {
-					...node,
-					rules: node.rules.map(walk)
-				};
-			}
-
-			const field = String(node?.field ?? '');
-			if ((field === 'socialChannel' || field === 'tags') && Array.isArray(node.includes) && node.includes.length) {
-				const filterKind = String(node.filter ?? 'equal');
-				const values = node.includes.map((x) => String(x ?? '').trim()).filter(Boolean);
-				if (values.length === 0) {
-					return { ...node, includes: [] };
-				}
-
-				// To render “contains/=” chips (not “in …”), we must avoid `includes` entirely.
-				// We explode multi-select into a group of leaf rules.
-				const glue: 'and' | 'or' = filterKind === 'notEqual' ? 'and' : 'or';
-				return {
-					glue,
-					rules: values.map((value) => ({
-						field,
-						filter: filterKind,
-						type: 'text',
-						value,
-						includes: []
-					}))
-				};
-			}
-
-			return node;
-		};
-
-		return walk(v);
-	}
-
-	function applySetsGridFilterBuilder(ev: { value: typeof setsGridFilterBuilderValue }): void {
-		const normalized = normalizeFilterBuilderValueForTemplates(ev.value as unknown as FilterNode);
-		setsGridFilterBuilderValue = normalized as typeof setsGridFilterBuilderValue;
-	}
-
-	function collectUsedFilterFields(node: FilterNode, out: Set<string>): void {
-		if (!node || typeof node !== 'object') return;
-		if (Array.isArray(node.rules)) {
-			for (const r of node.rules) collectUsedFilterFields(r, out);
-			return;
-		}
-		const f = String(node.field ?? '').trim();
-		if (f) out.add(f);
-	}
-
-	const addFilterFieldOptions = $derived.by(() => {
-		const used = new Set<string>();
-		collectUsedFilterFields(setsGridFilterBuilderValue as unknown as FilterNode, used);
-		return SET_GRID_FILTER_BUILDER_FIELDS.filter((f) => !used.has(f.id)).map((f) => ({
-			id: f.id,
-			label: f.label
-		}));
-	});
-
-	function addFilterForField(fieldId: string): void {
-		addFilterMenuOpen = false;
-		const api = setsFilterBuilderApi;
-		if (!api) return;
-		api.exec('add-rule', { rule: { $temp: true, field: fieldId }, edit: true });
-	}
+	const setsGridFilterBuilderOptions = $derived.by(() => filterPresenter.buildOptions(setsGridRowsVm));
 
 	const handleRefreshSetsTable = async (): Promise<void> => {
 		return pagePresenter.refreshSetsTable();
@@ -276,8 +180,7 @@
 	$effect(() => {
 		void workspaceId;
 		composeOpen = false;
-		addFilterMenuOpen = false;
-		setsGridFilterBuilderValue = { glue: 'or', rules: [] };
+		filterPresenter.reset();
 		void pagePresenter.syncWorkspace();
 	});
 
@@ -297,10 +200,10 @@
 	/** Re-apply FilterBuilder predicate after grid API wiring or row reload (mirrors SVAR FilterBuilder demos). */
 	$effect(() => {
 		void setsGridRowsVm;
-		void setsGridFilterBuilderValue;
+		void filterPresenter.value;
 		const api = setsGridApi;
 		if (!api) return;
-		api.exec('filter-rows', { filter: createSetGridTableFilter(setsGridFilterBuilderValue) });
+		api.exec('filter-rows', { filter: createSetGridTableFilter(filterPresenter.value) });
 	});
 </script>
 
@@ -349,23 +252,23 @@
 						variant="secondary"
 						class="h-9 gap-2 whitespace-nowrap"
 						onclick={() => {
-							addFilterMenuOpen = !addFilterMenuOpen;
+							filterPresenter.toggleAddFilterMenu();
 						}}
-						disabled={!addFilterFieldOptions.length || !setsFilterBuilderApi}
+						disabled={!filterPresenter.addableFieldOptions.length || !filterPresenter.isReady}
 					>
 						<AbstractIcon name={icons.ListFilterPlus.name} class="size-4 shrink-0" width="16" height="16" />
 						Add filters
 						<AbstractIcon name={icons.ChevronDown.name} class="size-4 shrink-0 opacity-80" width="16" height="16" />
 					</Button>
-					{#if addFilterMenuOpen}
+					{#if filterPresenter.addFilterMenuOpen}
 						<div
 							class="border-base-300 bg-base-100 absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-lg border shadow-lg"
 						>
-							{#each addFilterFieldOptions as opt (opt.id)}
+							{#each filterPresenter.addableFieldOptions as opt (opt.id)}
 								<button
 									type="button"
 									class="hover:bg-base-200 flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-base-content"
-									onclick={() => addFilterForField(opt.id)}
+									onclick={() => filterPresenter.addFilterForField(opt.id)}
 								>
 									<span class="truncate">{opt.label}</span>
 								</button>
@@ -390,7 +293,7 @@
 		</p>
 	{:else}
 		<div class="border-base-300 bg-base-100 min-w-0 rounded-xl border shadow-sm">
-			{#if setsGridFilterBuilderValue.rules.length}
+			{#if filterPresenter.hasAnyRule}
 				<div class="border-base-300 border-b px-3 py-3">
 					<p class="text-base-content/70 mb-2 text-xs font-medium tracking-wide uppercase">
 						Filters
@@ -398,14 +301,15 @@
 					<div class="sets-filter-builder min-w-0 overflow-x-auto">
 						<FilterWillow fonts={false}>
 							<FilterBuilder
-								value={setsGridFilterBuilderValue}
-								fields={SET_GRID_FILTER_BUILDER_FIELDS}
+								value={filterPresenter.value}
+								fields={filterPresenter.fields}
 								options={setsGridFilterBuilderOptions}
 								type="line"
 								init={(api: unknown) => {
-									setsFilterBuilderApi = api as unknown as { exec: (action: string, payload?: unknown) => void };
+									filterPresenter.initFilterBuilderApi(api);
 								}}
-								onchange={applySetsGridFilterBuilder}
+								onchange={(ev: { value: { glue: 'and' | 'or'; rules: unknown[] } }) =>
+									filterPresenter.applyChange(ev)}
 							/>
 						</FilterWillow>
 					</div>
@@ -415,14 +319,15 @@
 				<div class="sr-only">
 					<FilterWillow fonts={false}>
 						<FilterBuilder
-							value={setsGridFilterBuilderValue}
-							fields={SET_GRID_FILTER_BUILDER_FIELDS}
+							value={filterPresenter.value}
+							fields={filterPresenter.fields}
 							options={setsGridFilterBuilderOptions}
 							type="line"
 							init={(api: unknown) => {
-								setsFilterBuilderApi = api as unknown as { exec: (action: string, payload?: unknown) => void };
+								filterPresenter.initFilterBuilderApi(api);
 							}}
-							onchange={applySetsGridFilterBuilder}
+							onchange={(ev: { value: { glue: 'and' | 'or'; rules: unknown[] } }) =>
+								filterPresenter.applyChange(ev)}
 						/>
 					</FilterWillow>
 				</div>

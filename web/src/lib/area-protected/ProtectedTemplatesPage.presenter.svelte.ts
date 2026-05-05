@@ -1,6 +1,7 @@
 import type { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type { GetSetPresenter } from '$lib/sets/GetSet.presenter.svelte';
 import type { SetGridTablePresenter, SetGridTableRowViewModel } from '$lib/sets/SetGridTable.presenter.svelte';
+import type { SetGridFilterBuilderPresenter } from '$lib/sets/SetGridFilterBuilder.presenter.svelte';
 import type { UpsertSetPresenter } from '$lib/sets/UpsertSet.presenter.svelte';
 import type { SetDeleteResultViewModel } from '$lib/sets/UpsertSet.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
@@ -16,7 +17,8 @@ export class ProtectedTemplatesPagePresenter {
 		private readonly getSetPresenter: GetSetPresenter,
 		private readonly upsertSetPresenter: UpsertSetPresenter,
 		private readonly protectedDashboardPagePresenter: ProtectedDashboardPagePresenter,
-		readonly setGridTable: SetGridTablePresenter
+		readonly setGridTable: SetGridTablePresenter,
+		readonly setGridFilterBuilder: SetGridFilterBuilderPresenter
 	) {}
 
 	get organizationId(): string {

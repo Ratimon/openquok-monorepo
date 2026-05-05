@@ -89,19 +89,6 @@ export type SetGridTableRowViewModel = {
 
 const DASH = '—';
 
-function formatBodyPreviewFilterOption(v: unknown): string {
-	const s = typeof v === 'string' ? v : String(v ?? '');
-	return s.length > 72 ? `${s.slice(0, 71)}…` : s;
-}
-
-/** SVAR FilterBuilder field list for the account → Templates grid. */
-export const SET_GRID_FILTER_BUILDER_FIELDS = [
-	{ id: 'socialChannel', label: 'Social channel', type: 'text' },
-	{ id: 'tags', label: 'Tags', type: 'text' },
-	{ id: 'name', label: 'Name', type: 'text' },
-	{ id: 'bodyPreview', label: 'Body preview', type: 'text', format: formatBodyPreviewFilterOption }
-];
-
 /** Matches `@svar-ui/filter-store` default **text** operators used by FilterBuilder. */
 function textFilterHandler(filterKind: string | undefined): (cell: unknown, value: unknown) => boolean {
 	switch (filterKind ?? 'equal') {
@@ -306,53 +293,6 @@ export function createSetGridTableFilter(filterValue: unknown): (row: SetGridTab
 	const rules = (filterValue as { rules?: unknown }).rules;
 	if (!Array.isArray(rules) || rules.length === 0) return () => true;
 	return compileSetGridFilterNode(filterValue);
-}
-
-/**
- * Primitive string lists per field. The SVAR filter checkbox list renders each option via `String(v)` unless
- * `v` is a string (or Date) — passing `{ id, label }` objects becomes `[object Object]`.
- */
-export function buildSetGridFilterBuilderOptions(
-	rows: readonly SetGridTableRowViewModel[]
-): Record<string, string[]> {
-	const platformByNorm = new Map<string, { id: string; label: string }>();
-	for (const r of rows) {
-		for (const rawId of r.filterSocialProviderIdsLower) {
-			const norm = normalizeSocialProviderIdForFilter(rawId);
-			if (!platformByNorm.has(norm)) {
-				platformByNorm.set(norm, { id: rawId, label: socialProviderDisplayLabel(rawId) });
-			}
-		}
-	}
-	const socialChannel = [...platformByNorm.values()]
-		.sort((a, b) => a.label.localeCompare(b.label))
-		.map((o) => o.label);
-
-	const tagSeen = new Map<string, string>();
-	for (const r of rows) {
-		for (const chip of r.tagsDisplayVm) {
-			const name = chip.name.trim();
-			if (name.length === 0) continue;
-			const key = name.toLowerCase();
-			if (!tagSeen.has(key)) tagSeen.set(key, name);
-		}
-	}
-	const tags = [...tagSeen.values()].sort((a, b) => a.localeCompare(b));
-
-	const name = [...new Set(rows.map((r) => r.name.trim()).filter(Boolean))].sort((a, b) =>
-		a.localeCompare(b)
-	);
-
-	const MAX_BODY_OPTIONS = 80;
-	const bodyPreview = [
-		...new Set(
-			rows.map((r) => (r.bodyPreview === DASH ? '' : r.bodyPreview.trim())).filter(Boolean)
-		)
-	]
-		.sort((a, b) => a.localeCompare(b))
-		.slice(0, MAX_BODY_OPTIONS);
-
-	return { socialChannel, tags, name, bodyPreview };
 }
 
 /** Matches {@link TagsComponent} default when a tag has no stored color. */
@@ -796,14 +736,6 @@ export class SetGridTablePresenter {
 
 	removeRowById(id: string): void {
 		this.setsGridRowsVm = this.setsGridRowsVm.filter((r) => r.id !== id);
-	}
-
-	getSetsGridFilterBuilderFields(): typeof SET_GRID_FILTER_BUILDER_FIELDS {
-		return SET_GRID_FILTER_BUILDER_FIELDS;
-	}
-
-	buildSetsGridFilterBuilderOptions(): Record<string, string[]> {
-		return buildSetGridFilterBuilderOptions(this.setsGridRowsVm);
 	}
 
 	asTableRowVm(row: unknown): SetGridTableRowViewModel {
