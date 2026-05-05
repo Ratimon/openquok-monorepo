@@ -75,9 +75,285 @@ export type SetGridTableRowViewModel = {
 	mediaSummary: string;
 	repeatSummary: string;
 	updatedDisplay: string;
+	/** Comma-separated channel labels (stable sort) — useful for exports / debugging alongside filter option lists. */
+	socialChannel: string;
+	/** Comma-separated tag names when the set has tags (full list, not truncated for the Tags column). */
+	tags: string;
+	/** Lowercase integration identifiers used by templates grid filters (Threads, Instagram variants, …). */
+	filterSocialProviderIdsLower: readonly string[];
+	/** Lowercase blob (identifiers + platform labels) for “contains” / text operators on social channel rules. */
+	filterSocialSearchText: string;
+	/** Normalized lowercase tag names for tag rule matching. */
+	filterTagNamesLower: readonly string[];
 };
 
 const DASH = '—';
+
+function formatBodyPreviewFilterOption(v: unknown): string {
+	const s = typeof v === 'string' ? v : String(v ?? '');
+	return s.length > 72 ? `${s.slice(0, 71)}…` : s;
+}
+
+/** SVAR FilterBuilder field list for the account → Templates grid. */
+export const SET_GRID_FILTER_BUILDER_FIELDS = [
+	{ id: 'socialChannel', label: 'Social channel', type: 'text' },
+	{ id: 'tags', label: 'Tags', type: 'text' },
+	{ id: 'name', label: 'Name', type: 'text' },
+	{ id: 'bodyPreview', label: 'Body preview', type: 'text', format: formatBodyPreviewFilterOption }
+];
+
+/** Matches `@svar-ui/filter-store` default **text** operators used by FilterBuilder. */
+function textFilterHandler(filterKind: string | undefined): (cell: unknown, value: unknown) => boolean {
+	switch (filterKind ?? 'equal') {
+		case 'equal':
+			return (t, e) => t != null && String(t).toLowerCase() === String(e ?? '').toLowerCase();
+		case 'notEqual':
+			return (t, e) => t == null || String(t).toLowerCase() !== String(e ?? '').toLowerCase();
+		case 'contains':
+			return (t, e) => t != null && String(t).toLowerCase().includes(String(e ?? '').toLowerCase());
+		case 'notContains':
+			return (t, e) => t == null || !String(t).toLowerCase().includes(String(e ?? '').toLowerCase());
+		case 'beginsWith':
+			return (t, e) => {
+				if (t == null) return false;
+				const a = String(t).toLowerCase();
+				const b = String(e ?? '').toLowerCase();
+				return a.lastIndexOf(b, 0) === 0;
+			};
+		case 'notBeginsWith':
+			return (t, e) => {
+				if (t == null) return true;
+				const a = String(t).toLowerCase();
+				const b = String(e ?? '').toLowerCase();
+				return a.lastIndexOf(b, 0) !== 0;
+			};
+		case 'endsWith':
+			return (t, e) => {
+				if (t == null) return false;
+				const a = String(t).toLowerCase();
+				const b = String(e ?? '').toLowerCase();
+				return a.indexOf(b, Math.max(0, a.length - b.length)) !== -1;
+			};
+		case 'notEndsWith':
+			return (t, e) => {
+				if (t == null) return true;
+				const a = String(t).toLowerCase();
+				const b = String(e ?? '').toLowerCase();
+				return a.indexOf(b, Math.max(0, a.length - b.length)) === -1;
+			};
+		default:
+			return (t, e) => t != null && String(t).toLowerCase() === String(e ?? '').toLowerCase();
+	}
+}
+
+function normalizeSocialProviderIdForFilter(identifier: string): string {
+	const id = identifier.trim().toLowerCase();
+	if (id.startsWith('instagram')) return 'instagram';
+	return id;
+}
+
+function normalizeSocialFilterRuleValue(raw: unknown): string {
+	const s = String(raw ?? '').trim().toLowerCase();
+	if (!s) return '';
+	if (s.startsWith('instagram')) return 'instagram';
+	if (s === 'thread') return 'threads';
+	return s;
+}
+
+function rowMatchesSocialChannelEqual(row: SetGridTableRowViewModel, raw: unknown): boolean {
+	const want = normalizeSocialFilterRuleValue(raw);
+	if (!want) return true;
+	for (const idRaw of row.filterSocialProviderIdsLower) {
+		if (normalizeSocialProviderIdForFilter(idRaw) === want) return true;
+	}
+	const d = row.channelsDisplayVm;
+	if (d) {
+		for (const ch of d.allVm) {
+			if (socialProviderDisplayLabel(ch.providerIdentifier).toLowerCase() === String(raw ?? '').trim().toLowerCase()) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+type SetGridFilterLeafRule = {
+	field?: string;
+	filter?: string;
+	value?: unknown;
+	includes?: unknown[];
+	type?: string;
+};
+
+function isSetGridFilterGroupNode(node: unknown): node is { glue?: string; rules: unknown[] } {
+	return typeof node === 'object' && node !== null && Array.isArray((node as { rules?: unknown }).rules);
+}
+
+function compileSocialChannelLeaf(rule: SetGridFilterLeafRule): (row: SetGridTableRowViewModel) => boolean {
+	const filterKind = rule.filter ?? 'equal';
+
+	if (filterKind === 'equal') {
+		return (row) => rowMatchesSocialChannelEqual(row, rule.value);
+	}
+	if (filterKind === 'notEqual') {
+		return (row) => !rowMatchesSocialChannelEqual(row, rule.value);
+	}
+
+	const handler = textFilterHandler(filterKind);
+	return (row) => handler(row.filterSocialSearchText, rule.value);
+}
+
+function compileTagsLeaf(rule: SetGridFilterLeafRule): (row: SetGridTableRowViewModel) => boolean {
+	const filterKind = rule.filter ?? 'contains';
+
+	if (filterKind === 'equal') {
+		const v = String(rule.value ?? '').trim().toLowerCase();
+		return (row) => row.filterTagNamesLower.some((t) => t === v);
+	}
+	if (filterKind === 'notEqual') {
+		const v = String(rule.value ?? '').trim().toLowerCase();
+		return (row) => !row.filterTagNamesLower.some((t) => t === v);
+	}
+
+	const handler = textFilterHandler(filterKind);
+	return (row) => handler(row.filterTagNamesLower.join(' '), rule.value);
+}
+
+function compileIncludesLeaf(rule: SetGridFilterLeafRule): (row: SetGridTableRowViewModel) => boolean {
+	const field = rule.field;
+	const includes = rule.includes ?? [];
+	if (!field || !includes.length) return () => true;
+
+	// FilterBuilder's editor uses `includes` to represent multi-select values and will render the rule as “in …”.
+	// When the user chooses "not equal", the intent is "not in" for multi-select.
+	const negate = (rule.filter ?? 'equal') === 'notEqual';
+
+	const scalars = includes.map((x) =>
+		x instanceof Date ? String(x) : String(x ?? '').trim()
+	);
+
+	if (field === 'socialChannel') {
+		return (row) => {
+			const hit = row.filterSocialProviderIdsLower.some((id) =>
+				scalars.some((inc) => normalizeSocialProviderIdForFilter(id) === normalizeSocialFilterRuleValue(inc))
+			);
+			return negate ? !hit : hit;
+		};
+	}
+	if (field === 'tags') {
+		const lowered = scalars.map((s) => String(s).toLowerCase());
+		return (row) => {
+			const hit = row.filterTagNamesLower.some((t) => lowered.includes(t));
+			return negate ? !hit : hit;
+		};
+	}
+
+	return (row) => {
+		let cell = '';
+		if (field === 'name') cell = row.name;
+		else if (field === 'bodyPreview') cell = row.bodyPreview === DASH ? '' : row.bodyPreview;
+		const c = cell.trim().toLowerCase();
+		const hit = scalars.some((inc) => c === String(inc).trim().toLowerCase());
+		return negate ? !hit : hit;
+	};
+}
+
+function compileSetGridFilterLeaf(rule: SetGridFilterLeafRule): (row: SetGridTableRowViewModel) => boolean {
+	const field = rule.field;
+	if (!field || field === '*') return () => true;
+
+	if (rule.includes && rule.includes.length > 0) {
+		return compileIncludesLeaf(rule);
+	}
+
+	if (field === 'socialChannel') return compileSocialChannelLeaf(rule);
+	if (field === 'tags') return compileTagsLeaf(rule);
+
+	const filterKind = rule.filter ?? 'equal';
+	const handler = textFilterHandler(filterKind);
+
+	return (row) => {
+		let cell: unknown = '';
+		if (field === 'name') cell = row.name;
+		else if (field === 'bodyPreview') cell = row.bodyPreview === DASH ? '' : row.bodyPreview;
+		else cell = '';
+		return handler(cell, rule.value);
+	};
+}
+
+function compileSetGridFilterNode(node: unknown): (row: SetGridTableRowViewModel) => boolean {
+	if (!node || typeof node !== 'object') return () => true;
+
+	if (isSetGridFilterGroupNode(node)) {
+		const { glue = 'and', rules } = node;
+		const parts = rules.map(compileSetGridFilterNode).filter((fn) => typeof fn === 'function');
+		if (parts.length === 0) return () => true;
+		if (glue === 'or') {
+			return (row) => parts.some((fn) => fn(row));
+		}
+		return (row) => parts.every((fn) => fn(row));
+	}
+
+	return compileSetGridFilterLeaf(node as SetGridFilterLeafRule);
+}
+
+/**
+ * Builds a row predicate from SVAR FilterBuilder serialized state for the templates (sets) grid.
+ * Social channel rules treat Instagram variants as one bucket and match when **any** connected channel satisfies the rule.
+ */
+export function createSetGridTableFilter(filterValue: unknown): (row: SetGridTableRowViewModel) => boolean {
+	if (!filterValue || typeof filterValue !== 'object') return () => true;
+	const rules = (filterValue as { rules?: unknown }).rules;
+	if (!Array.isArray(rules) || rules.length === 0) return () => true;
+	return compileSetGridFilterNode(filterValue);
+}
+
+/**
+ * Primitive string lists per field. The SVAR filter checkbox list renders each option via `String(v)` unless
+ * `v` is a string (or Date) — passing `{ id, label }` objects becomes `[object Object]`.
+ */
+export function buildSetGridFilterBuilderOptions(
+	rows: readonly SetGridTableRowViewModel[]
+): Record<string, string[]> {
+	const platformByNorm = new Map<string, { id: string; label: string }>();
+	for (const r of rows) {
+		for (const rawId of r.filterSocialProviderIdsLower) {
+			const norm = normalizeSocialProviderIdForFilter(rawId);
+			if (!platformByNorm.has(norm)) {
+				platformByNorm.set(norm, { id: rawId, label: socialProviderDisplayLabel(rawId) });
+			}
+		}
+	}
+	const socialChannel = [...platformByNorm.values()]
+		.sort((a, b) => a.label.localeCompare(b.label))
+		.map((o) => o.label);
+
+	const tagSeen = new Map<string, string>();
+	for (const r of rows) {
+		for (const chip of r.tagsDisplayVm) {
+			const name = chip.name.trim();
+			if (name.length === 0) continue;
+			const key = name.toLowerCase();
+			if (!tagSeen.has(key)) tagSeen.set(key, name);
+		}
+	}
+	const tags = [...tagSeen.values()].sort((a, b) => a.localeCompare(b));
+
+	const name = [...new Set(rows.map((r) => r.name.trim()).filter(Boolean))].sort((a, b) =>
+		a.localeCompare(b)
+	);
+
+	const MAX_BODY_OPTIONS = 80;
+	const bodyPreview = [
+		...new Set(
+			rows.map((r) => (r.bodyPreview === DASH ? '' : r.bodyPreview.trim())).filter(Boolean)
+		)
+	]
+		.sort((a, b) => a.localeCompare(b))
+		.slice(0, MAX_BODY_OPTIONS);
+
+	return { socialChannel, tags, name, bodyPreview };
+}
 
 /** Matches {@link TagsComponent} default when a tag has no stored color. */
 const DEFAULT_TAG_COLOR = '#6366f1';
@@ -360,7 +636,12 @@ export function toSetGridTableRowViewModel(
 			threadsSummary: DASH,
 			mediaSummary: DASH,
 			repeatSummary: DASH,
-			updatedDisplay: formatDateShort(row.updatedAt)
+			updatedDisplay: formatDateShort(row.updatedAt),
+			socialChannel: '',
+			tags: '',
+			filterSocialProviderIdsLower: [],
+			filterSocialSearchText: '',
+			filterTagNamesLower: []
 		};
 	}
 
@@ -380,6 +661,30 @@ export function toSetGridTableRowViewModel(
 	const nMedia = snap.postMediaItems.length;
 	const mediaSummary = nMedia === 0 ? DASH : `${nMedia} attachment${nMedia === 1 ? '' : 's'}`;
 
+	const socialChannel =
+		channelsDisplayVm != null
+			? [...new Set(channelsDisplayVm.allVm.map((ch) => socialProviderDisplayLabel(ch.providerIdentifier)))].sort(
+					(a, b) => a.localeCompare(b)
+				).join(', ')
+			: '';
+
+	const idsLower: string[] = [];
+	const socialSearchParts: string[] = [];
+	if (channelsDisplayVm) {
+		for (const ch of channelsDisplayVm.allVm) {
+			const rawId = String(ch.providerIdentifier ?? '').trim().toLowerCase();
+			if (!rawId) continue;
+			idsLower.push(rawId);
+			socialSearchParts.push(rawId);
+			socialSearchParts.push(socialProviderDisplayLabel(ch.providerIdentifier).toLowerCase());
+		}
+	}
+	const filterSocialProviderIdsLower = [...new Set(idsLower)];
+	const filterSocialSearchText = socialSearchParts.join(' ');
+	const filterTagNamesLower = snap.selectedTagNames
+		.map((t) => String(t ?? '').trim().toLowerCase())
+		.filter(Boolean);
+
 	return {
 		id: row.id,
 		setRowVm: row,
@@ -393,7 +698,12 @@ export function toSetGridTableRowViewModel(
 		threadsSummary,
 		mediaSummary,
 		repeatSummary: repeatIntervalLabel(snap.repeatInterval),
-		updatedDisplay: formatDateShort(row.updatedAt)
+		updatedDisplay: formatDateShort(row.updatedAt),
+		socialChannel,
+		tags: nTags === 0 ? '' : snap.selectedTagNames.join(', '),
+		filterSocialProviderIdsLower,
+		filterSocialSearchText,
+		filterTagNamesLower
 	};
 }
 
@@ -486,6 +796,14 @@ export class SetGridTablePresenter {
 
 	removeRowById(id: string): void {
 		this.setsGridRowsVm = this.setsGridRowsVm.filter((r) => r.id !== id);
+	}
+
+	getSetsGridFilterBuilderFields(): typeof SET_GRID_FILTER_BUILDER_FIELDS {
+		return SET_GRID_FILTER_BUILDER_FIELDS;
+	}
+
+	buildSetsGridFilterBuilderOptions(): Record<string, string[]> {
+		return buildSetGridFilterBuilderOptions(this.setsGridRowsVm);
 	}
 
 	asTableRowVm(row: unknown): SetGridTableRowViewModel {

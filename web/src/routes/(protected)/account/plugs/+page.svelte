@@ -290,6 +290,7 @@
 					variant="primary"
 					onclick={() => pagePresenter.openAddPlugRuleModal(0)}
 				>
+					<AbstractIcon name={icons.Plus.name} class="mr-2 size-4 shrink-0" width="16" height="16" />
 					Add Global Rule
 				</Button>
 

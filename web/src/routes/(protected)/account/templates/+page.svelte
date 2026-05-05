@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { IApi } from '@svar-ui/svelte-grid';
-	import type { SetGridTableRowViewModel } from '$lib/sets/SetGridTable.presenter.svelte';
+	import {
+		SET_GRID_FILTER_BUILDER_FIELDS,
+		buildSetGridFilterBuilderOptions,
+		createSetGridTableFilter,
+		type SetGridTableRowViewModel
+	} from '$lib/sets/SetGridTable.presenter.svelte';
 
 	import { browser } from '$app/environment';
 	import { setContext } from 'svelte';
@@ -15,6 +20,7 @@
 	import { setsGridActionsKey } from '$lib/ui/components/sets/setsGridContext';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
+	import { FilterBuilder, Willow as FilterWillow } from '@svar-ui/svelte-filter';
 	import { Willow, Grid, Tooltip } from '@svar-ui/svelte-grid';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -48,6 +54,19 @@
 	}
 
 	let composeOpen = $state(false);
+	/** Serialized SVAR FilterBuilder value (`glue` defaults to OR so rules stack like “Threads OR Instagram OR tag …”). */
+	let setsGridFilterBuilderValue = $state<{ glue: 'and' | 'or'; rules: unknown[] }>({
+		glue: 'or',
+		rules: []
+	});
+	/** FilterBuilder API instance (used for custom “Add filter” dropdown). */
+	let setsFilterBuilderApi = $state<
+		| {
+				exec: (action: string, payload?: unknown) => void;
+		  }
+		| undefined
+	>(undefined);
+	let addFilterMenuOpen = $state(false);
 	/** Grid API for SVAR `Tooltip` (wired via `init`, not `bind:this`). */
 	let setsGridApi = $state<IApi | undefined>(undefined);
 	/** Layout host width from ResizeObserver (can inflate to column min-content without `min-w-0` on ancestors). */
@@ -151,6 +170,87 @@
 		return gridPresenter.setsGridCellStyle;
 	});
 
+	const setsGridFilterBuilderOptions = $derived.by(() => buildSetGridFilterBuilderOptions(setsGridRowsVm));
+
+	type FilterNode = {
+		glue?: 'and' | 'or';
+		rules?: FilterNode[];
+		field?: string;
+		filter?: string;
+		value?: unknown;
+		includes?: unknown[];
+		type?: string;
+	};
+
+	function normalizeFilterBuilderValueForTemplates(v: FilterNode): FilterNode {
+		const walk = (node: FilterNode): FilterNode => {
+			if (node && Array.isArray(node.rules)) {
+				return {
+					...node,
+					rules: node.rules.map(walk)
+				};
+			}
+
+			const field = String(node?.field ?? '');
+			if ((field === 'socialChannel' || field === 'tags') && Array.isArray(node.includes) && node.includes.length) {
+				const filterKind = String(node.filter ?? 'equal');
+				const values = node.includes.map((x) => String(x ?? '').trim()).filter(Boolean);
+				if (values.length === 0) {
+					return { ...node, includes: [] };
+				}
+
+				// To render “contains/=” chips (not “in …”), we must avoid `includes` entirely.
+				// We explode multi-select into a group of leaf rules.
+				const glue: 'and' | 'or' = filterKind === 'notEqual' ? 'and' : 'or';
+				return {
+					glue,
+					rules: values.map((value) => ({
+						field,
+						filter: filterKind,
+						type: 'text',
+						value,
+						includes: []
+					}))
+				};
+			}
+
+			return node;
+		};
+
+		return walk(v);
+	}
+
+	function applySetsGridFilterBuilder(ev: { value: typeof setsGridFilterBuilderValue }): void {
+		const normalized = normalizeFilterBuilderValueForTemplates(ev.value as unknown as FilterNode);
+		setsGridFilterBuilderValue = normalized as typeof setsGridFilterBuilderValue;
+	}
+
+	function collectUsedFilterFields(node: FilterNode, out: Set<string>): void {
+		if (!node || typeof node !== 'object') return;
+		if (Array.isArray(node.rules)) {
+			for (const r of node.rules) collectUsedFilterFields(r, out);
+			return;
+		}
+		const f = String(node.field ?? '').trim();
+		if (f) out.add(f);
+	}
+
+	const addFilterFieldOptions = $derived.by(() => {
+		const used = new Set<string>();
+		collectUsedFilterFields(setsGridFilterBuilderValue as unknown as FilterNode, used);
+		return SET_GRID_FILTER_BUILDER_FIELDS.filter((f) => !used.has(f.id)).map((f) => ({
+			id: f.id,
+			label: f.label
+		}));
+	});
+
+	function addFilterForField(fieldId: string): void {
+		addFilterMenuOpen = false;
+		const api = setsFilterBuilderApi;
+		if (!api) return;
+		api.exec('add-rule', { rule: { $temp: true, field: fieldId }, edit: true });
+	}
+
 	const handleRefreshSetsTable = async (): Promise<void> => {
 		return pagePresenter.refreshSetsTable();
 	};
@@ -176,6 +276,8 @@
 	$effect(() => {
 		void workspaceId;
 		composeOpen = false;
+		addFilterMenuOpen = false;
+		setsGridFilterBuilderValue = { glue: 'or', rules: [] };
 		void pagePresenter.syncWorkspace();
 	});
 
@@ -190,6 +292,15 @@
 			void gridPresenter.autosizeSetsGridColumns(api, layoutTierWidthPx);
 		}, 120);
 		return () => clearTimeout(id);
+	});
+
+	/** Re-apply FilterBuilder predicate after grid API wiring or row reload (mirrors SVAR FilterBuilder demos). */
+	$effect(() => {
+		void setsGridRowsVm;
+		void setsGridFilterBuilderValue;
+		const api = setsGridApi;
+		if (!api) return;
+		api.exec('filter-rows', { filter: createSetGridTableFilter(setsGridFilterBuilderValue) });
 	});
 </script>
 
@@ -229,8 +340,39 @@
 						composeOpen = true;
 					}}
 				>
+					<AbstractIcon name={icons.Plus.name} class="mr-2 size-4 shrink-0" width="16" height="16" />
 					Add a Template
 				</Button>
+				<div class="relative">
+					<Button
+						type="button"
+						variant="secondary"
+						class="h-9 gap-2 whitespace-nowrap"
+						onclick={() => {
+							addFilterMenuOpen = !addFilterMenuOpen;
+						}}
+						disabled={!addFilterFieldOptions.length || !setsFilterBuilderApi}
+					>
+						<AbstractIcon name={icons.ListFilterPlus.name} class="size-4 shrink-0" width="16" height="16" />
+						Add filters
+						<AbstractIcon name={icons.ChevronDown.name} class="size-4 shrink-0 opacity-80" width="16" height="16" />
+					</Button>
+					{#if addFilterMenuOpen}
+						<div
+							class="border-base-300 bg-base-100 absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-lg border shadow-lg"
+						>
+							{#each addFilterFieldOptions as opt (opt.id)}
+								<button
+									type="button"
+									class="hover:bg-base-200 flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-base-content"
+									onclick={() => addFilterForField(opt.id)}
+								>
+									<span class="truncate">{opt.label}</span>
+								</button>
+							{/each}
+						</div>
+					{/if}
+				</div>
 				<Button variant="secondary" href={calendarPath} class="gap-2">
 					<AbstractIcon name={icons.CalendarClock.name} class="size-4 shrink-0" width="16" height="16" />
 					Open calendar to schedule posts
@@ -248,6 +390,43 @@
 		</p>
 	{:else}
 		<div class="border-base-300 bg-base-100 min-w-0 rounded-xl border shadow-sm">
+			{#if setsGridFilterBuilderValue.rules.length}
+				<div class="border-base-300 border-b px-3 py-3">
+					<p class="text-base-content/70 mb-2 text-xs font-medium tracking-wide uppercase">
+						Filters
+					</p>
+					<div class="sets-filter-builder min-w-0 overflow-x-auto">
+						<FilterWillow fonts={false}>
+							<FilterBuilder
+								value={setsGridFilterBuilderValue}
+								fields={SET_GRID_FILTER_BUILDER_FIELDS}
+								options={setsGridFilterBuilderOptions}
+								type="line"
+								init={(api: unknown) => {
+									setsFilterBuilderApi = api as unknown as { exec: (action: string, payload?: unknown) => void };
+								}}
+								onchange={applySetsGridFilterBuilder}
+							/>
+						</FilterWillow>
+					</div>
+				</div>
+			{:else}
+				<!-- Keep FilterBuilder mounted (for API + filtering) but hide the empty white “Filters” trap. -->
+				<div class="sr-only">
+					<FilterWillow fonts={false}>
+						<FilterBuilder
+							value={setsGridFilterBuilderValue}
+							fields={SET_GRID_FILTER_BUILDER_FIELDS}
+							options={setsGridFilterBuilderOptions}
+							type="line"
+							init={(api: unknown) => {
+								setsFilterBuilderApi = api as unknown as { exec: (action: string, payload?: unknown) => void };
+							}}
+							onchange={applySetsGridFilterBuilder}
+						/>
+					</FilterWillow>
+				</div>
+			{/if}
 			<div
 				class="svar-grid-host--fit-content svar-grid-host--body-auto-height border-base-300 min-h-[200px] min-w-0 w-full max-w-full border-b"
 				bind:this={setsGridHostEl}
@@ -337,5 +516,74 @@
 		max-width: min(36rem, 92vw);
 		white-space: pre-wrap;
 		text-align: start;
+	}
+
+	/* FilterBuilder: improve contrast + always-visible menu button (no hover hunting). */
+	.sets-filter-builder :global(.wx-willow-theme) {
+		/* Use DaisyUI semantic colors when present; fall back to SVAR defaults. */
+		--wx-filter-or-background: hsl(var(--p, 142 71% 45%));
+		--wx-filter-or-font-color: hsl(var(--pc, 0 0% 100%));
+		--wx-filter-and-background: hsl(var(--a, 45 93% 47%));
+		--wx-filter-and-font-color: hsl(var(--ac, 0 0% 0%));
+	}
+
+	/* “Simple” toolbar layout while keeping AND/OR glue controls (type="line" renders glue). */
+	.sets-filter-builder :global(.wx-toolbar.wx-line) {
+		justify-content: flex-start;
+		gap: 12px;
+		height: auto;
+		padding: 0;
+	}
+
+	.sets-filter-builder :global(.wx-toolbar.wx-line .wx-button) {
+		display: none;
+	}
+
+	.sets-filter-builder :global(.wx-toolbar.wx-line .wx-filters) {
+		order: 1;
+		flex: 1 1 auto;
+		min-width: 0;
+		padding-block: 2px;
+	}
+
+	/* Make rule chips + glue pill closer to demo’s compact look */
+	.sets-filter-builder :global(.wx-rule.wx-line) {
+		border-radius: 0.75rem;
+		padding: 0.5rem 0.65rem;
+	}
+
+	.sets-filter-builder :global(.wx-glue) {
+		border-radius: 9999px;
+		padding-inline: 0.65rem;
+	}
+
+	.sets-filter-builder :global(.wx-rule) {
+		background: hsl(var(--b2, 0 0% 96%));
+		color: hsl(var(--bc, 222 47% 11%));
+	}
+
+	.sets-filter-builder :global(.wx-rule .wx-menu-icon) {
+		opacity: 1;
+		background: hsl(var(--b1, 0 0% 100%));
+		color: hsl(var(--bc, 222 47% 11%));
+		border: 1px solid hsl(var(--b3, 0 0% 90%));
+		box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+		font-style: normal;
+	}
+
+	/* Replace missing SVAR icon-font circle with a visible ellipsis glyph. */
+	.sets-filter-builder :global(.wx-rule .wx-menu-icon::before) {
+		content: '⋮';
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		font-size: 16px;
+		line-height: 1;
+	}
+
+	.sets-filter-builder :global(.wx-rule .wx-menu-icon:hover) {
+		background: hsl(var(--b2, 0 0% 96%));
 	}
 </style>
