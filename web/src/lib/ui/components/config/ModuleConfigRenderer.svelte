@@ -103,7 +103,8 @@
 >
 	<div class="flex w-full justify-end">
 		<Button class="my-4 mr-4 w-fit" type="submit" variant="outline">
-			Save Settings</Button>
+			Save Settings
+		</Button>
 	</div>
 
 	<div class="mb-4">
@@ -142,7 +143,8 @@
 	{#if Object.entries(moduleSchema).length > 4}
 		<div class="flex w-full justify-end">
 			<Button class="my-4 w-fit" type="submit" variant="outline">
-				Save Settings</Button>
+				Save Settings
+			</Button>
 		</div>
 	{/if}
 </form>

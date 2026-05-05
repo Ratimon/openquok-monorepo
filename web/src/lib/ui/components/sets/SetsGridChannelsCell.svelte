@@ -7,12 +7,14 @@
 
 	let { row }: ICellProps = $props();
 
-	const vm = $derived(row as unknown as SetGridTableRowViewModel);
-	const displayVm = $derived(vm.channelsDisplayVm);
+	const rowVm = $derived(row as unknown as SetGridTableRowViewModel);
+	const displayVm = $derived(rowVm.channelsDisplayVm);
 </script>
 
 {#if !displayVm}
-	<span class="text-base-content/55 text-xs">{vm.channelsSummary}</span>
+	<span class="text-base-content/55 text-xs">
+		{rowVm.channelsSummary}
+	</span>
 {:else}
 	<div class="flex min-w-0 items-center gap-1.5 py-0.5">
 		<div class="flex shrink-0 -space-x-2">

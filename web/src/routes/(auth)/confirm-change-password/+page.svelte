@@ -50,7 +50,8 @@
 
 <svelte:head>
 	<title>
-		Confirm change password</title>
+		Confirm change password - OpenQuok
+	</title>
 </svelte:head>
 
 <div class="mt-12 flex justify-center px-4">

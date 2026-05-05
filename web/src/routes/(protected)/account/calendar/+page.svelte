@@ -298,8 +298,17 @@
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm space-y-6">
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="space-y-1">
-			<h2 class="text-2xl font-bold text-base-content">
-				Calendar</h2>
+			<div class="flex items-center gap-3">
+				<AbstractIcon
+					name={icons.CalendarClock.name}
+					class="text-primary size-8 shrink-0"
+					width="32"
+					height="32"
+				/>
+				<h1 class="text-2xl font-bold text-base-content">
+					Calendar
+				</h1>
+			</div>
 			<p class="text-base-content/70 text-sm">
 				View and manage scheduled posts for this workspace.</p>
 		</div>

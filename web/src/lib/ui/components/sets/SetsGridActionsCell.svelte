@@ -9,16 +9,16 @@
 
 	const actions = getContext<SetsGridActions>(setsGridActionsKey);
 
-	function vm(): SetGridTableRowViewModel {
+	function rowVm(): SetGridTableRowViewModel {
 		return row as unknown as SetGridTableRowViewModel;
 	}
 </script>
 
 <div class="flex flex-wrap items-center gap-1">
-	<Button type="button" variant="outline" size="sm" class="h-8 px-2 text-xs" onclick={() => actions?.openEdit(vm())}>
+	<Button type="button" variant="outline" size="sm" class="h-8 px-2 text-xs" onclick={() => actions?.openEdit(rowVm())}>
 		Edit
 	</Button>
-	<Button type="button" variant="red" size="sm" class="h-8 px-2 text-xs" onclick={() => void actions?.remove(vm())}>
+	<Button type="button" variant="red" size="sm" class="h-8 px-2 text-xs" onclick={() => void actions?.remove(rowVm())}>
 		Delete
 	</Button>
 </div>

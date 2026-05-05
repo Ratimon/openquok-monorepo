@@ -27,6 +27,14 @@
 	import EditPlugModal from '$lib/ui/components/plugs/EditPlugModal.svelte';
 	import RemovePlugRuleModal from '$lib/ui/components/plugs/RemovePlugRuleModal.svelte';
 
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+
+	// /account/calendar
+	const rootPathCalendar = getRootPathCalendar();
+	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
+
 	const pagePresenter = protectedPlugsPagePresenter;
 	const gridPresenter = pagePresenter.plugGridTable;
 
@@ -109,9 +117,6 @@
 		return vw;
 	});
 
-	const rootPathAccount = getRootPathAccount();
-	const accountPath = route(rootPathAccount);
-	const calendarPath = route(`${rootPathAccount}/${getRootPathCalendar()}`);
 
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
@@ -253,20 +258,27 @@
 
 <svelte:head>
 	<title>
-		Plugs — OpenQuok
+		Auto Plugs — OpenQuok
 	</title>
 </svelte:head>
 
 <div class="mx-auto max-w-6xl min-w-0 px-4 py-8">
 	<div class="mb-6 flex flex-wrap items-start justify-between gap-4">
 		<div class="flex flex-wrap items-center gap-3">
-			<AbstractIcon name={icons.Sparkles.name} class="size-8 text-primary" width="32" height="32" />
 			<div>
-				<h1 class="text-2xl font-semibold tracking-tight text-base-content">
-					Auto Plugs
-				</h1>
-				<p class="text-sm text-base-content/65">
-					Global Automation rules per connected channel (e.g. auto-reply when a Threads post reaches a certain number of likes).
+				<div class="flex items-center gap-3">
+					<AbstractIcon
+						name={icons.Sparkles.name}
+						class="size-8 shrink-0 text-primary"
+						width="32"
+						height="32"
+					/>
+					<h1 class="text-2xl font-semibold tracking-tight text-base-content">
+						Auto Plugs
+					</h1>
+				</div>
+				<p class="mt-2 text-base-content/80">
+					Global automation rules per connected channel (e.g. auto-reply when a Threads post reaches a certain number of likes).
 					Auto replies (internal rule for the same social account) can also be set per post under Threads settings when scheduling.
 				</p>
 			</div>
@@ -291,16 +303,19 @@
 
 	{#if loading}
 		<p class="text-sm text-base-content/60">
-			Loading…</p>
+			Loading…
+		</p>
 	{:else if !workspaceId}
 		<p class="text-sm text-base-content/60">
-			Select a workspace to manage plugs.</p>
+			Select a workspace to manage plugs.
+		</p>
 	{:else if !supportedChannelsVm.length}
 		<div class="rounded-xl border border-base-300 bg-base-200/20 p-8 text-center">
 			<p class="text-base-content/75">
 				No channels with plug support yet. Connect Threads to get started.</p>
 			<Button class="mt-4" variant="outline" onclick={() => void goto(accountPath)}>
-				Go to Dashboard</Button>
+				Go to Dashboard
+			</Button>
 		</div>
 	{:else}
 		<div class="rounded-xl border border-base-300 bg-base-100 shadow-sm">

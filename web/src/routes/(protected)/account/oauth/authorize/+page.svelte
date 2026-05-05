@@ -26,7 +26,8 @@
 
 <svelte:head>
 	<title>
-		Authorize application</title>
+		Authorize Application - OpenQuok
+	</title>
 </svelte:head>
 
 <div class="mx-auto max-w-xl py-10">

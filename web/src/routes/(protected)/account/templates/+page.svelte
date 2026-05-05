@@ -8,6 +8,7 @@
 	import { route } from '$lib/utils/path';
 	import {
 		getRootPathAccount,
+		getRootPathCalendar,
 		protectedTemplatesPagePresenter
 	} from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -21,8 +22,17 @@
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 
 	const rootPathAccount = getRootPathAccount();
+
+	// /account
 	const accountPath = route(rootPathAccount);
+
+	// /account/settings?section=sets
 	const settingsSetsPath = route(`${rootPathAccount}/settings?section=sets`);
+
+	// /account/calendar
+	const rootPathCalendar = getRootPathCalendar();
+	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
+
 
 	const pagePresenter = protectedTemplatesPagePresenter;
 	const gridPresenter = pagePresenter.setGridTable;
@@ -137,6 +147,14 @@
 		return gridPresenter.getSetsGridSizesForViewport(layoutTierWidthPx, browser);
 	});
 
+	const setsGridCellStyle = $derived.by(() => {
+		return gridPresenter.setsGridCellStyle;
+	});
+
+	const handleRefreshSetsTable = async (): Promise<void> => {
+		return pagePresenter.refreshSetsTable();
+	};
+
 	setContext(setsGridActionsKey, {
 		openEdit: (vm: SetGridTableRowViewModel) => {
 			const opened = pagePresenter.openEditSet(vm);
@@ -177,22 +195,27 @@
 
 <svelte:head>
 	<title>
-		Templates (sets) — OpenQuok
+		Reusable Templates Content Sets — OpenQuok
 	</title>
 </svelte:head>
 
 <div class="mx-auto max-w-6xl min-w-0 px-4 py-8">
 	<div class="mb-6 flex flex-wrap items-start justify-between gap-4">
 		<div class="flex flex-wrap items-center gap-3">
-			<AbstractIcon name={icons.LayoutTemplate.name} class="text-primary size-8" width="32" height="32" />
 			<div>
-				<h1 class="text-base-content text-2xl font-semibold tracking-tight">
-					Templates (sets)
-				</h1>
-				<p class="text-base-content/65 text-sm">
-					Reusable channel selections and draft content, parsed from each set’s stored <span class="font-mono text-xs">content</span> JSON.
-					Quick edits also live under
-					<a href={settingsSetsPath} class="link link-primary font-medium">Settings → Sets</a>.
+				<div class="flex items-center gap-3">
+					<AbstractIcon
+						name={icons.LayoutTemplate.name}
+						class="text-primary size-8 shrink-0"
+						width="32"
+						height="32"
+					/>
+					<h1 class="text-2xl font-semibold tracking-tight text-base-content">
+						Reusable Templates Content Sets
+					</h1>
+				</div>
+				<p class="mt-2 text-base-content/80">
+					Manage reusable combinations of social channels and draft content/reply set for faster scheduling.
 				</p>
 			</div>
 		</div>
@@ -206,7 +229,11 @@
 						composeOpen = true;
 					}}
 				>
-					Add a set
+					Add a Template
+				</Button>
+				<Button variant="secondary" href={calendarPath} class="gap-2">
+					<AbstractIcon name={icons.CalendarClock.name} class="size-4 shrink-0" width="16" height="16" />
+					Open calendar to schedule posts
 				</Button>
 			</div>
 		{/if}
@@ -217,7 +244,8 @@
 			Loading…</p>
 	{:else if !workspaceId}
 		<p class="text-base-content/60 text-sm">
-			Select a workspace to manage sets.</p>
+			Select a workspace to manage templates.
+		</p>
 	{:else}
 		<div class="border-base-300 bg-base-100 min-w-0 rounded-xl border shadow-sm">
 			<div
@@ -231,7 +259,7 @@
 							columns={setsGridColumnsForHost}
 							sizes={setsGridSizesForHost}
 							autoRowHeight={true}
-							cellStyle={gridPresenter.setsGridCellStyle}
+							cellStyle={setsGridCellStyle}
 							select={false}
 							header={true}
 							init={(api: IApi) => {
@@ -243,8 +271,7 @@
 			</div>
 			{#if !setsGridRowsVm.length}
 				<p class="text-base-content/60 p-6 text-sm">
-					No sets yet. Use <span class="text-base-content font-medium">Add a set</span> to create one, or open
-					<a href={settingsSetsPath} class="link link-primary">Settings → Sets</a>.
+					No templates yet. Use <span class="text-base-content font-medium">Add a set</span> to create one.
 				</p>
 			{/if}
 		</div>
@@ -252,7 +279,8 @@
 
 	{#if !workspaceId}
 		<Button class="mt-4" variant="outline" onclick={() => void goto(accountPath)}>
-			Go to Dashboard</Button>
+			Go to Dashboard
+		</Button>
 	{/if}
 </div>
 
@@ -263,7 +291,7 @@
 	connectedChannels={pagePresenter.connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}
 	closeComposerAfterSaveSet={true}
-	onContentSetSaved={() => void pagePresenter.refreshSetsTable()}
+	onContentSetSaved={handleRefreshSetsTable}
 />
 
 <style>

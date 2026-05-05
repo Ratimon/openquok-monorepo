@@ -15,7 +15,7 @@
 		open = $bindable(false),
 		busy = false,
 		initialName = '',
-		title = 'Save set',
+		title = 'Save Template',
 		onConfirm,
 		onCancel
 	}: Props = $props();

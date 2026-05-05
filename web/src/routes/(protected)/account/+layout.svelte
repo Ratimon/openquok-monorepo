@@ -29,7 +29,6 @@
 		| 'workspace'
 		| 'profile'
 		| 'signature'
-		| 'sets'
 		| 'webhooks'
 		| 'templates'
 		| 'developers'
@@ -73,6 +72,7 @@
 	const rootPathIntegrations = getRootPathIntegrations();
 	const integrationsPath = route(`${rootPathAccount}/${rootPathIntegrations}`);
 
+	
 	const mainLinks: SidebarLinkItem[] = [
 		{ label: 'Dashboard', href: accountPath, iconName: icons.Gauge.name },
 		{ label: 'Calendar', href: calendarPath, iconName: icons.CalendarClock.name },
@@ -88,7 +88,6 @@
 		{ id: 'workspace', label: 'Workspace' },
 		{ id: 'profile', label: 'Profile' },
 		{ id: 'signature', label: 'Signatures' },
-		{ id: 'sets', label: 'Sets' },
 		{ id: 'webhooks', label: 'Webhooks' },
 		{ id: 'templates', label: 'Templates' },
 		{ id: 'developers', label: 'Developers' },

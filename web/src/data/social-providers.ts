@@ -6,10 +6,9 @@ export const SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS = [
 	'facebook',
 	'instagram',
 	'instagram-standalone',
-	'linkedin-page',
+	'linkedin',
 	'tiktok',
 	'youtube',
-	'gmb',
 	'threads',
 	'x'
 ] as const;
@@ -30,8 +29,7 @@ export const socialProviderDisplayNameByIdentifier: Record<string, string> = {
 	youtube: 'YouTube',
 	tiktok: 'TikTok',
 	x: 'X',
-	'linkedin-page': 'LinkedIn',
-	gmb: 'Google Business Profile',
+	'linkedin': 'LinkedIn',
 };
 
 export function socialProviderDisplayLabel(identifier: string): string {
@@ -50,16 +48,15 @@ export function socialProviderDisplayLabel(identifier: string): string {
 export function socialProviderEmoji(identifier: string): string {
 	const key = identifier.trim();
 	const byId: Record<string, string> = {
-		threads: '🧵',
-		instagram: '📸',
-		'instagram-business': '📸',
-		'instagram-standalone': '📸',
-		facebook: '📘',
+		threads: '𓍯',
+		instagram: '🅾',
+		'instagram-business': '🅾',
+		'instagram-standalone': '🅾',
+		facebook: 'ⓕ',
 		youtube: '▶️',
 		tiktok: '🎵',
 		x: '𝕏',
-		'linkedin-page': '💼',
-		gmb: '📍'
+		'linkedin': '[in]',
 	};
 	return byId[key] ?? '🔗';
 }

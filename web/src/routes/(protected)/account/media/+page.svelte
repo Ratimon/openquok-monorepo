@@ -13,6 +13,8 @@
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { toast } from '$lib/ui/sonner';
 
+	import { icons } from '$data/icons';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import MediaBox from '$lib/ui/components/media/MediaBox.svelte';
 	import MediaLibraryToolbar from '$lib/ui/components/media/MediaLibraryToolbar.svelte';
 	import MediaLibraryUploadOverlay from '$lib/ui/components/media/MediaLibraryUploadOverlay.svelte';
@@ -162,8 +164,17 @@
 	<div class="rounded-[28px] border border-base-300/70 bg-base-100/70 p-5 shadow-sm backdrop-blur-sm sm:p-6">
 		<div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 			<div>
-				<h1 class="text-2xl font-semibold text-base-content">
-					Media Library</h1>
+				<div class="flex items-center gap-3">
+					<AbstractIcon
+						name={icons.Image.name}
+						class="text-primary size-8 shrink-0"
+						width="32"
+						height="32"
+					/>
+					<h1 class="text-2xl font-semibold text-base-content">
+						Media Library
+					</h1>
+				</div>
 				<p class="mt-1 text-sm text-base-content/70">
 					Select or upload media files. Maximum {uploadLimitLabel} per file.
 				</p>

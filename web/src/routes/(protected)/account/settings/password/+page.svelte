@@ -69,12 +69,14 @@
 
 <svelte:head>
 	<title>
-		Change password</title>
+		Change password - OpenQuok
+	</title>
 </svelte:head>
 
 <div class="mx-auto max-w-xl space-y-6 py-8">
 	<h1 class="text-2xl font-bold text-base-content">
-		Change password</h1>
+		Change password
+	</h1>
 
 	<Card class="border-base-300 bg-base-100">
 		<form onsubmit={handleFormSubmit}>

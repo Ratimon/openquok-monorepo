@@ -6,7 +6,6 @@
 	} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
 
-
 	// --- App / routing ---
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -371,8 +370,17 @@
 		</div>
 	{/snippet}
 
-	<h2 class="text-2xl font-bold text-base-content">
-		Account dashboard</h2>
+	<div class="flex items-center gap-3">
+		<AbstractIcon
+			name={icons.Gauge.name}
+			class="text-primary size-8 shrink-0"
+			width="32"
+			height="32"
+		/>
+		<h1 class="text-2xl font-bold text-base-content">
+			Account dashboard
+		</h1>
+	</div>
 	<p class="mt-2 text-base-content/80">
 		Welcome to your account. Connect channels for the selected workspace and manage them here.
 	</p>

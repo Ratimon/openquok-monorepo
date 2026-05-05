@@ -107,7 +107,7 @@
 				disabled={busy || scheduleDisabled}
 				onclick={() => void onSaveContentSet?.()}
 			>
-				Save set…
+				Save Template…
 			</Button>
 		{/if}
 	</div>

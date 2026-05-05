@@ -49,7 +49,7 @@
 			: null
 	);
 
-	const modalTitle = $derived(presenter.contentSetAuthoringActive ? 'Define reusable set' : 'Create Post');
+	const modalTitle = $derived(presenter.contentSetAuthoringActive ? 'Define Reusable Template Set' : 'Create Post');
 
 	const repeatOptions: { value: RepeatIntervalKey; label: string }[] = [
 		{ value: 'day', label: 'Day' },

@@ -6,12 +6,14 @@
 
 	let { row }: ICellProps = $props();
 
-	const vm = $derived(row as unknown as SetGridTableRowViewModel);
-	const tagsVm = $derived(vm.tagsDisplayVm);
+	const rowVm = $derived(row as unknown as SetGridTableRowViewModel);
+	const tagsVm = $derived(rowVm.tagsDisplayVm);
 </script>
 
 {#if !tagsVm.length}
-	<span class="text-base-content/55 text-xs">{vm.tagsSummary}</span>
+	<span class="text-base-content/55 text-xs">
+		{rowVm.tagsSummary}
+	</span>
 {:else}
 	<div class="flex min-w-0 flex-wrap items-center gap-1 py-0.5">
 		{#each tagsVm as tagVm (tagVm.name)}

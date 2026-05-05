@@ -161,9 +161,9 @@ export class SetsRepository {
 			if (ok && dto?.success === true && dto.data?.id && typeof dto.data.id === 'string') {
 				return { ok: true, id: dto.data.id };
 			}
-			return { ok: false, error: dto?.message ?? 'Could not save set.' };
+			return { ok: false, error: dto?.message ?? 'Could not save template.' };
 		} catch (error) {
-			return this.mapCatch(error, 'Could not save set.');
+			return this.mapCatch(error, 'Could not save template.');
 		}
 	}
 
