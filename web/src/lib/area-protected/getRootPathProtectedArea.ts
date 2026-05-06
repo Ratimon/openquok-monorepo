@@ -45,3 +45,8 @@ export function getRootPathPlugs(): string {
 export function getRootPathTemplates(): string {
 	return 'templates';
 }
+
+/** Payload wizard segment under the account area (build API create-post JSON). */
+export function getRootPathPayloadWizard(): string {
+	return 'payload-wizard';
+}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { DevelopersSettingsPresenter } from '$lib/settings/DevelopersSettings.presenter.svelte';
 
+	import { getRootPathAccount, getRootPathPayloadWizard } from '$lib/area-protected/getRootPathProtectedArea';
 	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 	import { route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
@@ -23,6 +24,11 @@
 	// /docs
 	const rootPathPublicDocs = getRootPathPublicDocs();
 	const publicDocsPath = route(rootPathPublicDocs);
+
+	// /account/payload-wizard
+	const rootPathAccount = getRootPathAccount();
+	const rootPathPayloadWizard = getRootPathPayloadWizard();
+	const payloadWizardPath = route(`${rootPathAccount}/${rootPathPayloadWizard}`);
 
 	function maskedKey(key: string) {
 		if (key.length <= 10) return '•'.repeat(Math.max(4, key.length));
@@ -78,7 +84,7 @@
 	<div class="mt-4 flex flex-wrap items-center gap-2">
 		<Button
 			class="gap-2"
-			variant="secondary"
+			variant="ghost"
 			disabled={!apiKey}
 			onclick={() => presenter.setApiKeyVisible(!apiKeyVisible)}
 		>
@@ -119,8 +125,8 @@
 		</Button>
 		<Button
             class="gap-2"
-            variant="outline"
-            href={publicDocsPath}
+            variant="secondary"
+			href={payloadWizardPath}
             target="_blank"
         >
 			<AbstractIcon name={icons.Sparkles.name} class="h-4 w-4 shrink-0" width="16" height="16" />
