@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { OAuthAppsPresenter } from '$lib/developers';
+	import type { UpsertOAuthAppsPresenter } from '$lib/developers';
 	import { OAuthAppsPresenterStatus } from '$lib/developers';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -7,7 +7,7 @@
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 
 	type Props = {
-		presenter: OAuthAppsPresenter;
+		presenter: UpsertOAuthAppsPresenter;
 		onCopy: (text: string) => void | Promise<void>;
 	};
 
@@ -82,9 +82,7 @@
 								class="size-12 rounded-full object-cover"
 							/>
 						{:else}
-							<div
-								class="flex size-12 items-center justify-center rounded-full bg-base-300 text-base-content/50"
-							>
+							<div class="flex size-12 items-center justify-center rounded-full bg-base-300 text-base-content/50">
 								?
 							</div>
 						{/if}
@@ -165,9 +163,7 @@
 										Icon
 									</div>
 								{:else}
-									<div
-										class="flex size-12 items-center justify-center rounded-full bg-base-300 text-base-content/50"
-									>
+									<div class="flex size-12 items-center justify-center rounded-full bg-base-300 text-base-content/50">
 										?
 									</div>
 								{/if}
@@ -251,9 +247,7 @@
 								{#if presenter.plaintextClientSecret}
 									{presenter.plaintextClientSecret}
 								{:else}
-									<span class="text-base-content/60">
-										Secret is only shown when you create the app or rotate it.
-									</span>
+									<span class="text-base-content/60">Secret is only shown when you create the app or rotate it.</span>
 								{/if}
 							</div>
 						</div>
@@ -262,8 +256,7 @@
 							{#if presenter.plaintextClientSecret}
 								<Button
 									variant="outline"
-									onclick={() =>
-										presenter.plaintextClientSecret && onCopy(presenter.plaintextClientSecret)}
+									onclick={() => presenter.plaintextClientSecret && onCopy(presenter.plaintextClientSecret)}
 								>
 									Copy secret
 								</Button>
@@ -300,9 +293,7 @@
 		{#if presenter.mediaPickerLoading}
 			<p class="py-8 text-center text-sm text-base-content/70">Loading…</p>
 		{:else if presenter.mediaPickerItemsVm.length === 0}
-			<p class="py-8 text-center text-sm text-base-content/70">
-				No images yet. Upload some in Media Library first.
-			</p>
+			<p class="py-8 text-center text-sm text-base-content/70">No images yet. Upload some in Media Library first.</p>
 		{:else}
 			<div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
 				{#each presenter.mediaPickerItemsVm as item (item.id)}

@@ -10,11 +10,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { icons } from '$data/icons';
 
-	import {
-		createSignatureSchema,
-		SignaturesStatus,
-		updateSignatureSchema
-	} from '$lib/signatures';
+	import { createSignatureSchema, SignaturesStatus, updateSignatureSchema } from '$lib/signatures';
 
 	import SignatureBox from '$lib/ui/components/signature/SignatureBox.svelte';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -142,8 +138,7 @@
 	<div class="flex flex-col gap-1 p-4 sm:p-6">
 		<div class="flex items-center justify-between gap-3">
 			<div>
-				<h3 class="text-sm font-semibold text-base-content">
-					Signatures</h3>
+				<h3 class="text-sm font-semibold text-base-content">Signatures</h3>
 				<p class="mt-1 text-sm leading-snug text-base-content/70">
 					Pre-write a snippet eg. hashtags, sign-offs, or other text you use often. They are shared with
 					everyone in this workspace.
@@ -169,8 +164,7 @@
 				Loading workspace…
 			</div>
 		{:else if busy && items.length === 0}
-			<div class="text-sm text-base-content/70">
-				Loading…</div>
+			<div class="text-sm text-base-content/70">Loading…</div>
 		{:else if items.length === 0}
 			<div class="rounded-lg border border-base-300 bg-base-100 p-4 text-sm text-base-content/70">
 				No signatures yet for this workspace.
@@ -204,9 +198,7 @@
 			class="space-y-4"
 		>
 			<Dialog.Header>
-				<Dialog.Title>
-					Add Signature
-				</Dialog.Title>
+				<Dialog.Title>Add Signature</Dialog.Title>
 				<Dialog.Description>Add a snippet you can insert quickly into posts.</Dialog.Description>
 			</Dialog.Header>
 
@@ -237,10 +229,8 @@
 						bind:value={autoAddValue}
 						disabled={busy}
 					>
-						<option value="false">
-							No</option>
-						<option value="true">
-							Yes</option>
+						<option value="false">No</option>
+						<option value="true">Yes</option>
 					</select>
 				</div>
 			</div>
@@ -270,9 +260,7 @@
 			class="space-y-4"
 		>
 			<Dialog.Header>
-				<Dialog.Title>
-					Edit Signature
-				</Dialog.Title>
+				<Dialog.Title>Edit Signature</Dialog.Title>
 			</Dialog.Header>
 
 			<div class="space-y-3">
@@ -300,10 +288,8 @@
 						bind:value={autoAddValue}
 						disabled={busy}
 					>
-						<option value="false">
-							No</option>
-						<option value="true">
-							Yes</option>
+						<option value="false">No</option>
+						<option value="true">Yes</option>
 					</select>
 				</div>
 			</div>
@@ -345,3 +331,4 @@
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
+

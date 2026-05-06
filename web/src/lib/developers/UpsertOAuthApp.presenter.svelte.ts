@@ -1,4 +1,4 @@
-import type { OAuthAppsRepository, OauthAppProgrammerModel } from '$lib/developers/UpsertOAuthApp.repository.svelte';
+import type { OAuthAppsRepository, OauthAppProgrammerModel } from '$lib/developers/OAuthApps.repository.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import type { GetMediaPresenter, MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 
@@ -34,7 +34,7 @@ function toOauthAppVm(pm: OauthAppProgrammerModel): OauthAppViewModel {
 	};
 }
 
-export class OAuthAppsPresenter {
+export class UpsertOAuthAppsPresenter {
 	public status = $state<OAuthAppsPresenterStatus>(OAuthAppsPresenterStatus.IDLE);
 	/** `undefined` until first load completes for the current workspace. */
 	public appVm = $state<OauthAppViewModel | null | undefined>(undefined);

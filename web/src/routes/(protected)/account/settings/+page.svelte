@@ -12,15 +12,14 @@
 	} from '$lib/area-protected';
 
 	import EditorAccountSettings from '$lib/ui/templates/EditorAccountSettings.svelte';
+	import EditorDeveloperSettings from '$lib/ui/templates/EditorDeveloperSettings.svelte';
 	import EditorMetric from '$lib/ui/templates/EditorMetric.svelte';
+	import EditorSignatureSettings from '$lib/ui/templates/EditorSignatureSettings.svelte';
 	import EditorWorkspaceSettings from '$lib/ui/templates/EditorWorkspaceSettings.svelte';
-	import SignaturesList from '$lib/ui/components/signature/SignaturesList.svelte';
 	import SidebarSecondary from '$lib/ui/templates/SidebarSecondary.svelte';
-	import UpdateDeveloperAccess from '$lib/ui/components/settings/UpdateDeveloperAccess.svelte';
-	import UpdateDeveloperOauth from '$lib/ui/components/settings/UpdateDeveloperOauth.svelte';
 	import { DevelopersSettingsPresenter, DevelopersSettingsStatus } from '$lib/settings/DevelopersSettings.presenter.svelte';
 	import { settingsRepository } from '$lib/settings';
-	import { oauthAppsPresenter } from '$lib/developers';
+	import { upsertOauthAppsPresenter } from '$lib/developers';
 	
 	const ctx = getContext<SettingsSidebarContext>(SETTINGS_SIDEBAR_KEY);
 	const currentSection = $derived(ctx?.getCurrentSection() ?? 'global');
@@ -108,15 +107,15 @@
 
 	$effect(() => {
 		if (currentSection === 'developers' && developerTab === 'apps') {
-			oauthAppsPresenter.loadForCurrentWorkspace();
+			upsertOauthAppsPresenter.loadForCurrentWorkspace();
 		}
 	});
 
 	$effect(() => {
-		if (!oauthAppsPresenter.showToastMessage) return;
-		if (oauthAppsPresenter.toastIsError) toast.error(oauthAppsPresenter.toastMessage);
-		else toast.success(oauthAppsPresenter.toastMessage);
-		oauthAppsPresenter.showToastMessage = false;
+		if (!upsertOauthAppsPresenter.showToastMessage) return;
+		if (upsertOauthAppsPresenter.toastIsError) toast.error(upsertOauthAppsPresenter.toastMessage);
+		else toast.success(upsertOauthAppsPresenter.toastMessage);
+		upsertOauthAppsPresenter.showToastMessage = false;
 	});
 
 	async function handleUpdateProfileDetails(updates: {
@@ -173,7 +172,9 @@
 			onUpdateProfileDetails={handleUpdateProfileDetails}
 		/>
 	{:else if currentSection === 'signature'}
-		<SignaturesList presenter={signatureSettingPresenter} />
+		<EditorSignatureSettings
+			presenter={signatureSettingPresenter}
+		/>
 	{:else if currentSection === 'workspace'}
 		<EditorWorkspaceSettings
 			workspacesVm={workspacesVm}
@@ -196,55 +197,16 @@
 			onCopyWorkspaceId={handleCopyWorkspaceId}
 		/>
 	{:else if currentSection === 'developers'}
-		<div class="space-y-6">
-			<div class="flex items-center justify-between gap-3">
-				<div>
-					<p class="text-sm text-base-content/70">
-						Use your API Key to automate your own account.
-					</p>
-					<p class="text-sm text-base-content/70">
-						If you’re building a product that schedules posts on behalf of other users, use OAuth Apps.
-					</p>
-				</div>
-
-				<div class="inline-flex rounded-full bg-base-200 p-1">
-					<button
-						type="button"
-						class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-							developerTab === 'access'
-								? 'bg-primary text-primary-content'
-								: 'text-base-content/70 hover:bg-base-300/50'
-						}`}
-						onclick={() => (developerTab = 'access')}
-					>
-						Access
-					</button>
-					<button
-						type="button"
-						class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-							developerTab === 'apps'
-								? 'bg-primary text-primary-content'
-								: 'text-base-content/70 hover:bg-base-300/50'
-						}`}
-						onclick={() => (developerTab = 'apps')}
-					>
-						Apps
-					</button>
-				</div>
-			</div>
-
-			{#if developerTab === 'access'}
-				<UpdateDeveloperAccess
-					presenter={developersPresenter}
-					apiKey={developerApiKey}
-					apiKeyVisible={developerApiKeyVisible}
-					canRotate={developerCanRotate}
-					rotating={developerRotating}
-				/>
-			{:else}
-				<UpdateDeveloperOauth presenter={oauthAppsPresenter} onCopy={copyToClipboard} />
-			{/if}
-		</div>
+		<EditorDeveloperSettings
+			developersPresenter={developersPresenter}
+			upsertOauthAppsPresenter={upsertOauthAppsPresenter}
+			apiKey={developerApiKey}
+			apiKeyVisible={developerApiKeyVisible}
+			canRotate={developerCanRotate}
+			rotating={developerRotating}
+			onCopy={copyToClipboard}
+			bind:developerTab
+		/>
 	{:else}
 		<div
 			class="rounded-lg border border-base-300 bg-base-200 p-8 text-center text-base-content/70"

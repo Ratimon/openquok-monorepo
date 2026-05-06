@@ -14,8 +14,8 @@
 	import * as Avatar from '$lib/ui/components/avatar';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AvatarUploadForm from '$lib/ui/components/AvatarUploadForm.svelte';
-	import UpdateFullnameModal from '$lib/ui/components/settings/UpdateFullnameModal.svelte';
-	import UpdateWebsiteModal from '$lib/ui/components/settings/UpdateWebsiteModal.svelte';
+	import UpdateFullnameModal from '$lib/ui/components/user/UpdateFullnameModal.svelte';
+	import UpdateWebsiteModal from '$lib/ui/components/user/UpdateWebsiteModal.svelte';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 	import { untrack } from 'svelte';
 

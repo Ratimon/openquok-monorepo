@@ -181,7 +181,10 @@ export class OAuthAppsRepository {
 		}
 	}
 
-	public async deleteApp(organizationId: string, oauthAppId: string): Promise<{ ok: true } | { ok: false; message: string }> {
+	public async deleteApp(
+		organizationId: string,
+		oauthAppId: string
+	): Promise<{ ok: true } | { ok: false; message: string }> {
 		try {
 			const url = this.config.endpoints.delete(oauthAppId, organizationId);
 			const { ok, data: dto } = await this.httpGateway.request<{ success: boolean; message?: string }>({
