@@ -3,7 +3,7 @@
 
 	import { untrack } from 'svelte';
 
-	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
+	import { getRootPathAccount, protectedPayloadWizardPagePresenter } from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
@@ -20,15 +20,17 @@
 	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);
 
+	const pagePresenter = protectedPayloadWizardPagePresenter;
+
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
-	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
-	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
+	const connectedChannelsVm = $derived(pagePresenter.connectedChannelsVm);
+	const listStatus = $derived(pagePresenter.listStatus);
 	const channelsLoadPending = $derived(listStatus === 'idle' || listStatus === 'loading');
 
-	/** Stable ref for composer `bind:` chain (`protectedDashboardPagePresenter.createSocialPostPresenter`). */
-	const presenter = protectedDashboardPagePresenter.createSocialPostPresenter;
+	/** Stable ref for composer `bind:` chain (`pagePresenter.createSocialPostPresenter`). */
+	const composerPresenter = pagePresenter.createSocialPostPresenter;
 	/** Writable ref for `bind:` (Svelte cannot bind to `const`). */
-	let createSocialPostModalPresenter = $state.raw(presenter);
+	let createSocialPostModalPresenter = $state.raw(composerPresenter);
 
 	let initializedForWorkspaceId = $state<string | null>(null);
 	let createSocialPostOpen = $state(false);
@@ -45,11 +47,13 @@
 		{ value: 'month', label: 'Month' }
 	];
 
-	const wizardPayloadResult = $derived(presenter.getProgrammaticCreatePostPayloadPreview('scheduled'));
+	const wizardPayloadResult = $derived(
+		composerPresenter.getProgrammaticCreatePostPayloadPreview('scheduled')
+	);
 	const wizardPayload = $derived(wizardPayloadResult.ok ? wizardPayloadResult.payload : null);
 
 	async function copyProgrammaticPayload(status: 'draft' | 'scheduled'): Promise<void> {
-		const res = presenter.getProgrammaticCreatePostPayloadPreview(status);
+		const res = composerPresenter.getProgrammaticCreatePostPayloadPreview(status);
 		if (!res.ok) {
 			toast.error(res.error);
 			return;
@@ -68,8 +72,8 @@
 			toast.error('Select a workspace first.');
 			return;
 		}
-		const snapshot = presenter.buildSetSnapshot();
-		presenter.prepareOpen({
+		const snapshot = composerPresenter.buildSetSnapshot();
+		composerPresenter.prepareOpen({
 			preselectIntegrationId: null,
 			preselectIntegrationIds: snapshot.selectedIntegrationIds,
 			preselectScheduledAtIso: null,
@@ -79,9 +83,7 @@
 	}
 
 	$effect(() => {
-		const oid = workspaceId;
-		if (!oid) return;
-		void protectedDashboardPagePresenter.loadDashboardLists();
+		pagePresenter.syncWorkspaceConnectedChannels();
 	});
 
 	$effect(() => {
@@ -101,13 +103,13 @@
 			.filter(Boolean);
 
 		// Wizard: open composer with all social channels preselected.
-		presenter.prepareOpen({
+		composerPresenter.prepareOpen({
 			preselectIntegrationId: null,
 			preselectIntegrationIds: selected,
 			preselectScheduledAtIso: null,
 			setSnapshot: null
 		});
-		void presenter.onModalOpen(oid, channels);
+		void composerPresenter.onModalOpen(oid, channels);
 		initializedForWorkspaceId = oid;
 	});
 </script>
@@ -182,83 +184,89 @@
 				<div class="rounded-lg border border-base-300 bg-base-100/50 overflow-hidden">
 					<div class="min-h-0">
 						<AddEditModal
-							stockPhotosVm={presenter.stockPhotosVm}
-							designTemplatesVm={presenter.designTemplatesVm}
-							fetchPolotnoTemplateListPage={presenter.fetchPolotnoTemplateListPage.bind(presenter)}
-							backgroundPanelVm={presenter.backgroundPanelVm}
-							exportCanvasToMedia={presenter.exportCanvasToMedia}
-							loadSignaturesVmForComposer={presenter.loadSignaturesVmForComposer}
-							socialChannels={presenter.baseSocialChannelsVm}
-							bind:body={presenter.editorBody}
-							bind:postMediaItems={presenter.postMediaItems}
+							stockPhotosVm={composerPresenter.stockPhotosVm}
+							designTemplatesVm={composerPresenter.designTemplatesVm}
+							fetchPolotnoTemplateListPage={composerPresenter.fetchPolotnoTemplateListPage.bind(
+								composerPresenter
+							)}
+							backgroundPanelVm={composerPresenter.backgroundPanelVm}
+							exportCanvasToMedia={composerPresenter.exportCanvasToMedia}
+							loadSignaturesVmForComposer={composerPresenter.loadSignaturesVmForComposer}
+							socialChannels={composerPresenter.baseSocialChannelsVm}
+							bind:body={composerPresenter.editorBody}
+							bind:postMediaItems={composerPresenter.postMediaItems}
 							uploadUid={workspaceId ?? ''}
 							organizationId={workspaceId}
-							busy={presenter.busy}
-							selectedIds={presenter.selectedIds}
-							mode={presenter.mode}
-							focusedIntegrationId={presenter.focusedIntegrationId}
-							previewText={presenter.previewText}
-							charCount={presenter.charCount}
-							softCharLimit={presenter.softCharLimit}
-							commentsMode={presenter.launchCommentsMode}
-							scheduleValidationMessage={presenter.scheduleValidationError}
+							busy={composerPresenter.busy}
+							selectedIds={composerPresenter.selectedIds}
+							mode={composerPresenter.mode}
+							focusedIntegrationId={composerPresenter.focusedIntegrationId}
+							previewText={composerPresenter.previewText}
+							charCount={composerPresenter.charCount}
+							softCharLimit={composerPresenter.softCharLimit}
+							commentsMode={composerPresenter.launchCommentsMode}
+							scheduleValidationMessage={composerPresenter.scheduleValidationError}
 							contentSetAuthoringNetworkLock={false}
-							scheduledPostDatetimeLocal={presenter.scheduledLocal}
-							selectedGroupId={presenter.selectedGroupId}
-							onToggleChannel={presenter.toggleChannel.bind(presenter)}
+							scheduledPostDatetimeLocal={composerPresenter.scheduledLocal}
+							selectedGroupId={composerPresenter.selectedGroupId}
+							onToggleChannel={composerPresenter.toggleChannel.bind(composerPresenter)}
 							onToggleGlobal={() => {
-								if (presenter.mode === 'custom') presenter.backToGlobalMode();
+								if (composerPresenter.mode === 'custom') composerPresenter.backToGlobalMode();
 							}}
-							onRemoveSelected={presenter.removeSelected.bind(presenter)}
-							onFocusIntegration={presenter.focusIntegration.bind(presenter)}
-							onRequestCustomize={presenter.requestCustomize.bind(presenter)}
-							onSelectGroup={presenter.selectGroup.bind(presenter)}
-							editorLocked={presenter.mode === 'custom' ? presenter.editorLocked : false}
+							onRemoveSelected={composerPresenter.removeSelected.bind(composerPresenter)}
+							onFocusIntegration={composerPresenter.focusIntegration.bind(composerPresenter)}
+							onRequestCustomize={composerPresenter.requestCustomize.bind(composerPresenter)}
+							onSelectGroup={composerPresenter.selectGroup.bind(composerPresenter)}
+							editorLocked={composerPresenter.mode === 'custom' ? composerPresenter.editorLocked : false}
 							editorLockMessage="Click this button to exit global editing and customize the post for this channel"
 							onEditorUnlock={() => {
-								presenter.customEditingUnlocked = true;
-								presenter.editorLocked = false;
+								composerPresenter.customEditingUnlocked = true;
+								composerPresenter.editorLocked = false;
 							}}
-							editorBannerLeftLabel={presenter.mode === 'custom' ? 'Editing a Specific Network' : null}
-							editorBannerRightActionLabel={presenter.mode === 'custom' ? 'Back to global' : null}
-							onEditorBannerRightAction={presenter.mode === 'custom' ? presenter.backToGlobalMode.bind(presenter) : null}
-							postComment={presenter.postComment}
-							onAddPost={() => presenter.handleAddThreadItemClick()}
-							bind:settingsOpen={presenter.settingsOpen}
-							providerSettings={presenter.providerSettingsByIntegrationId[presenter.focusedIntegrationId ?? ''] ?? {}}
-							onProviderSettingsChange={presenter.updateFocusedProviderSettings.bind(presenter)}
-							settingsDisabled={presenter.busy}
-							threadReplies={presenter.getThreadFollowUpRepliesForEditor()}
-							onChangeThreadReplies={(next) => {
-								presenter.applyThreadFollowUpReplies(next);
-							}}
-							threadProviderIdentifier={presenter.getPrimaryThreadFollowUpIntegrationId()
-								? (presenter.baseSocialChannelsVm.find((c) => c.id === presenter.getPrimaryThreadFollowUpIntegrationId())?.identifier ?? null)
+							editorBannerLeftLabel={composerPresenter.mode === 'custom' ? 'Editing a Specific Network' : null}
+							editorBannerRightActionLabel={composerPresenter.mode === 'custom' ? 'Back to global' : null}
+							onEditorBannerRightAction={composerPresenter.mode === 'custom'
+								? composerPresenter.backToGlobalMode.bind(composerPresenter)
 								: null}
-							mediaUrls={presenter.previewMediaUrls}
-							previewProviderSettings={presenter.getPrimaryThreadFollowUpIntegrationId()
-								? (presenter.providerSettingsByIntegrationId[presenter.getPrimaryThreadFollowUpIntegrationId() ?? ''] ?? {})
+							postComment={composerPresenter.postComment}
+							onAddPost={() => composerPresenter.handleAddThreadItemClick()}
+							bind:settingsOpen={composerPresenter.settingsOpen}
+							providerSettings={composerPresenter.providerSettingsByIntegrationId[composerPresenter.focusedIntegrationId ?? ''] ?? {}}
+							onProviderSettingsChange={composerPresenter.updateFocusedProviderSettings.bind(composerPresenter)}
+							settingsDisabled={composerPresenter.busy}
+							threadReplies={composerPresenter.getThreadFollowUpRepliesForEditor()}
+							onChangeThreadReplies={(next) => {
+								composerPresenter.applyThreadFollowUpReplies(next);
+							}}
+							threadProviderIdentifier={composerPresenter.getPrimaryThreadFollowUpIntegrationId()
+								? (composerPresenter.baseSocialChannelsVm.find(
+										(c) => c.id === composerPresenter.getPrimaryThreadFollowUpIntegrationId()
+									)?.identifier ?? null)
+								: null}
+							mediaUrls={composerPresenter.previewMediaUrls}
+							previewProviderSettings={composerPresenter.getPrimaryThreadFollowUpIntegrationId()
+								? (composerPresenter.providerSettingsByIntegrationId[composerPresenter.getPrimaryThreadFollowUpIntegrationId() ?? ''] ?? {})
 								: {}}
 						/>
 					</div>
 					<div class="sticky bottom-0 z-10 shrink-0 pb-[env(safe-area-inset-bottom)]">
 						<ManageModal
-							tagList={presenter.tagList}
-							selectedTagNames={presenter.selectedTagNames}
-							repeatInterval={presenter.repeatInterval}
+							tagList={composerPresenter.tagList}
+							selectedTagNames={composerPresenter.selectedTagNames}
+							repeatInterval={composerPresenter.repeatInterval}
 							{repeatOptions}
-							bind:scheduledLocal={presenter.scheduledLocal}
-							busy={presenter.busy}
+							bind:scheduledLocal={composerPresenter.scheduledLocal}
+							busy={composerPresenter.busy}
 							showDelete={false}
 							saveDraftLabel="Copy draft payload"
 							primaryLabel="Copy scheduled payload"
 							scheduleDisabled={!wizardPayloadResult.ok}
 							footerVariant="schedulePost"
-							onToggleTag={presenter.toggleTag.bind(presenter)}
-							onAddTag={presenter.addNewTag.bind(presenter)}
-							onDeleteTag={presenter.deleteWorkspaceTag.bind(presenter)}
+							onToggleTag={composerPresenter.toggleTag.bind(composerPresenter)}
+							onAddTag={composerPresenter.addNewTag.bind(composerPresenter)}
+							onDeleteTag={composerPresenter.deleteWorkspaceTag.bind(composerPresenter)}
 							onRepeatChange={(v) => {
-								presenter.repeatInterval = v;
+								composerPresenter.repeatInterval = v;
 							}}
 							onSaveDraft={() => void copyProgrammaticPayload('draft')}
 							onSchedule={() => void copyProgrammaticPayload('scheduled')}

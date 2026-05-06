@@ -15,6 +15,7 @@ import { ProtectedMediaPagePresenter } from '$lib/area-protected/ProtectedMediaP
 import { ProtectedAnalyticsPagePresenter } from '$lib/area-protected/ProtectedAnalyticsPage.presenter.svelte';
 import { ProtectedPlugsPagePresenter } from '$lib/area-protected/ProtectedPlugsPage.presenter.svelte';
 import { ProtectedTemplatesPagePresenter } from '$lib/area-protected/ProtectedTemplatesPage.presenter.svelte';
+import { ProtectedPayloadWizardPagePresenter } from '$lib/area-protected/ProtectedPayloadWizardPage.presenter.svelte';
 import { GenerateMediaModalPresenter } from '$lib/canvas';
 import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
@@ -100,6 +101,12 @@ const protectedAnalyticsPagePresenter = new ProtectedAnalyticsPagePresenter(
 	integrationsRepository
 );
 
+const protectedPayloadWizardPagePresenter = new ProtectedPayloadWizardPagePresenter(
+	integrationsRepository,
+	workspaceSettingsPresenter,
+	createSocialPostPresenter
+);
+
 const plugGridTable = new PlugGridTablePresenter(getPlugPresenter, plugRepository);
 const plugGridFilterBuilder = new PlugGridFilterBuilderPresenter();
 
@@ -144,6 +151,8 @@ export {
 	protectedTemplatesPagePresenter,
 	ProtectedMediaPagePresenter,
 	protectedMediaPagePresenter,
+	ProtectedPayloadWizardPagePresenter,
+	protectedPayloadWizardPagePresenter,
 	GenerateMediaModalPresenter,
 	composerMediaModalPresenter,
 	mediaLibraryMediaModalPresenter,
