@@ -5,7 +5,7 @@
 	import { signupFormFieldsSchema, signupFormSchema, signupPresenter } from '$lib/user-auth/index';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-	import { absoluteUrl, url } from '$lib/utils/path';
+	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -20,9 +20,14 @@
 	} from '$lib/ui/card';
 	import SignInWithGoogleButton from '$lib/ui/components/social-login/SignInWithGoogleButton.svelte';
 
-	const signinPath = getRootPathSignin();
-	const signinUrl = absoluteUrl(`/${signinPath}`);
-	const googleOAuthNext = url(getRootPathAccount());
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signInPath = route(rootPathSignIn);
+	const signinUrl = absoluteUrl(signInPath);
+
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const googleOAuthNext = url(rootPathAccount);
 
 	let status = $derived(signupPresenter.status);
 	let isSubmitting = $derived(status === SignupStatus.SUBMITTING);

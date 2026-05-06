@@ -4,7 +4,9 @@
 	import { absoluteUrl } from '$lib/utils/path';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
-	const signinUrl = absoluteUrl(`/${getRootPathSignin()}`);
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signinUrl = absoluteUrl(`/${rootPathSignIn}`);
 
 	let { data }: PageProps = $props();
 	let errorMessage = $derived(data?.errorMessage ?? 'An error occurred.');

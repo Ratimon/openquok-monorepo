@@ -5,6 +5,7 @@
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
+	import { url } from '$lib/utils/path';
 
 	import {
 		getRootPathPublicBlog,
@@ -21,7 +22,13 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
-	import { url } from '$lib/utils/path';
+
+	// /blog
+	const rootPathPublicBlog = getRootPathPublicBlog();
+	const blogIndexHrefDefault = url(`/${rootPathPublicBlog}`);
+	const authorsIndexHrefDefault = url(`/${rootPathPublicBlog}/author`);
+
+	
 
 	/** From `en.ts` — blog.blog-author-page */
 	const AUTHOR_NOT_FOUND = 'Author Not Found';
@@ -50,8 +57,8 @@
 	let itemsPerPage = $derived(data.itemsPerPage);
 	let listPage = $derived(data.page);
 
-	let blogIndexHref = $derived(url(`/${getRootPathPublicBlog()}`));
-	let authorsIndexHref = $derived(url(`/${getRootPathPublicBlog()}/author`));
+	let blogIndexHref = $derived(blogIndexHrefDefault);
+	let authorsIndexHref = $derived(authorsIndexHrefDefault);
 
 	function buildListUrl(overrides: Record<string, string | null | undefined>): string {
 		const sp = new URLSearchParams(page.url.searchParams);

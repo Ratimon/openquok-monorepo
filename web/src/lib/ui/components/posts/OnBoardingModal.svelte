@@ -31,7 +31,10 @@
 	let providers = $state<IntegrationCatalogItemProgrammerModel[]>([]);
 
 	const currentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
-	const accountRoot = $derived(route(getRootPathAccount()));
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+	const accountRoot = $derived(accountPath);
 	const returnTo = $derived(page.url.pathname || accountRoot);
 
 	async function ensureWorkspaceLoaded() {

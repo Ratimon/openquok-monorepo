@@ -1,12 +1,15 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, route } from '$lib/utils/path';
 	import { getRootPathEditorFeedbackManager } from '$lib/area-admin/constants/getRootPathEditorArea';
 
 	type Props = { data: PageData };
 	let { data }: Props = $props();
 
-	const feedbackManagerUrl = absoluteUrl(getRootPathEditorFeedbackManager());
+	// /editor/feedback-manager
+	const rootPathEditorFeedbackManager = getRootPathEditorFeedbackManager();
+	const editorFeedbackManagerPath = route(rootPathEditorFeedbackManager);
+	const feedbackManagerUrl = absoluteUrl(editorFeedbackManagerPath);
 </script>
 
 <div class="p-4 md:p-6">

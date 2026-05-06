@@ -18,6 +18,10 @@
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
 	import { url } from '$lib/utils/path';
 
+	// /blog
+	const rootPathPublicBlog = getRootPathPublicBlog();
+	const topicsOverviewHref = url(`/${rootPathPublicBlog}/topic`);
+
 	/** From `en.ts` — blog.blog-topic-page */
 	const TOPIC_NOT_FOUND = 'Topic Not Found';
 	const VIEW_ALL_TOPICS = 'View All Topics';
@@ -67,8 +71,6 @@
 	function postHref(slug: string): string {
 		return url(`/${getRootPathPublicBlogPost(slug)}`);
 	}
-
-	const topicsOverviewHref = url(`/${getRootPathPublicBlog()}/topic`);
 
 	let totalPages = $derived(Math.max(1, Math.ceil(count / Math.max(itemsPerPage, 1))));
 	let firstPost = $derived(posts[0]);

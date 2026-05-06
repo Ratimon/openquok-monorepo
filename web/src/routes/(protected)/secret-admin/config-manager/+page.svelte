@@ -3,10 +3,17 @@
 		getRootPathSecretAdminConfigManagerBlogInformation,
 		getRootPathSecretAdminConfigManagerCompanyInformation
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, route } from '$lib/utils/path';
 
-	const companyInformationUrl = absoluteUrl(getRootPathSecretAdminConfigManagerCompanyInformation());
-	const blogInformationUrl = absoluteUrl(getRootPathSecretAdminConfigManagerBlogInformation());
+	// /secret-admin/config-manager/company-information
+	const rootPathCompanyInformation = getRootPathSecretAdminConfigManagerCompanyInformation();
+	const companyInformationPath = route(rootPathCompanyInformation);
+	const companyInformationUrl = absoluteUrl(companyInformationPath);
+
+	// /secret-admin/config-manager/blog-information
+	const rootPathBlogInformation = getRootPathSecretAdminConfigManagerBlogInformation();
+	const blogInformationPath = route(rootPathBlogInformation);
+	const blogInformationUrl = absoluteUrl(blogInformationPath);
 </script>
 
 <div class="p-4 md:p-6">

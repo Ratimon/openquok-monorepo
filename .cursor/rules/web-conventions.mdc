@@ -304,6 +304,27 @@ Do not hardcode route path strings (e.g. `'/confirm-change-password'`, `'/accoun
 - **Full URLs for navigation**: Use `absoluteUrl(segment)` from `$lib/utils/path` so the path respects base and origin.
 - **Path for comparison** (e.g. with `url.pathname`): Use `route(segment)` from `$lib/utils/path` to get a normalized path with a leading slash.
 
+### `getRootPath*` locals: define segment + `route(...)` before use
+
+When you use a `getRootPath*()` helper in a Svelte route/component, **do not call it inline** where it’s used (e.g. inside markup props or comparisons).
+
+Instead, **right after the Svelte component imports** (the “components last” import group), define:
+
+1. A **comment** documenting the human-readable path (e.g. `// /account`, `// /docs`)
+2. The **root segment** (no leading slash): `const rootPathX = getRootPathX();`
+3. The **normalized route** (leading slash): `const xPath = route(rootPathX);`
+
+This keeps a consistent style, makes paths easy to grep, and avoids repeating helper calls in templates.
+
+```ts
+import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
+import { route } from '$lib/utils/path';
+
+// /account
+const rootPathAccount = getRootPathAccount();
+const accountPath = route(rootPathAccount);
+```
+
 ### Pattern
 
 1. **Define the segment** in the right constants file: `getRootpathUserAuth.ts` for (auth) routes, `getRootPathProtectedArea.ts` for protected/account routes. Return the segment without leading slash (e.g. `'confirm-change-password'`, `'account'`).

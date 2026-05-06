@@ -3,10 +3,17 @@
 		getRootPathAdminFeedbackManager,
 		getRootPathAdminRoleManager
 	} from '$lib/area-admin/constants/getRootPathAdminArea';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, route } from '$lib/utils/path';
 
-	const feedbackManagerUrl = absoluteUrl(getRootPathAdminFeedbackManager());
-	const roleManagerUrl = absoluteUrl(getRootPathAdminRoleManager());
+	// /admin/feedback-manager
+	const rootPathAdminFeedbackManager = getRootPathAdminFeedbackManager();
+	const adminFeedbackManagerPath = route(rootPathAdminFeedbackManager);
+	const feedbackManagerUrl = absoluteUrl(adminFeedbackManagerPath);
+
+	// /admin/role-manager
+	const rootPathAdminRoleManager = getRootPathAdminRoleManager();
+	const adminRoleManagerPath = route(rootPathAdminRoleManager);
+	const roleManagerUrl = absoluteUrl(adminRoleManagerPath);
 </script>
 
 <div class="p-4 md:p-6">

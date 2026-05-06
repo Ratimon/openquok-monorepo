@@ -36,6 +36,10 @@
 	import StatisticsModal from '$lib/ui/components/platform-analytics/StatisticsModal.svelte';
 
 
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+
 	const calendarPresenter = protectedCalendarPagePresenter;
 
 	// --- Modal / sheet open state ---
@@ -63,7 +67,7 @@
 	let statisticsPostId = $state<string | null>(null);
 
 	// --- Routes & workspace ---
-	const accountRoot = route(getRootPathAccount());
+	const accountRoot = accountPath;
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);

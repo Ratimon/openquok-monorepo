@@ -5,6 +5,10 @@
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { absoluteUrl, url } from '$lib/utils/path';
 
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountHref = url(`/${rootPathAccount}`);
+
 	/**
 	 * App-level OAuth authorize (e.g. third-party clients), not workspace channel connect.
 	 * Legacy links that used `provider` + `organizationId` for social connect are forwarded to integrations.
@@ -50,7 +54,7 @@
 				Redirecting to channel connect…</p>
 		{:else}
 			<p class="mt-4">
-				<a class="link link-primary" href={url(`/${getRootPathAccount()}`)}>Back to account</a>
+				<a class="link link-primary" href={accountHref}>Back to account</a>
 			</p>
 		{/if}
 	</div>

@@ -11,7 +11,12 @@
 	import { Textarea } from '$lib/ui/textarea';
 	import { cn, formatPassedTime } from '$lib/ui/helpers/common';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
-	import { url } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
+
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signInPath = route(rootPathSignIn);
+	const signInHrefDefault = url(signInPath);
 
 	type Props = {
 		comments: BlogPostCommentViewModel[];
@@ -34,7 +39,7 @@
 		comments,
 		postId,
 		isLoggedIn = false,
-		signInHref = url(`/${getRootPathSignin()}`),
+		signInHref = signInHrefDefault,
 		composerAvatarUrl = null,
 		submitBlogComment,
 		submittingComment = false,

@@ -17,6 +17,30 @@
 
 	import SidebarSecondary from '$lib/ui/templates/SidebarSecondary.svelte';
 
+	// /secret-admin/blog-manager
+	const rootPathSecretAdminBlogManager = getRootPathSecretAdminBlogManager();
+	const blogManagerBaseHref = url(rootPathSecretAdminBlogManager);
+
+	// /secret-admin/blog-manager/posts
+	const rootPathSecretAdminBlogManagerPosts = getRootPathSecretAdminBlogManagerPosts();
+	const blogManagerPostsHref = url(rootPathSecretAdminBlogManagerPosts);
+
+	// /secret-admin/blog-manager/posts/new
+	const rootPathSecretAdminBlogManagerNewPost = getRootPathSecretAdminBlogManagerNewPost();
+	const blogManagerNewPostHref = url(rootPathSecretAdminBlogManagerNewPost);
+
+	// /secret-admin/blog-manager/topics
+	const rootPathSecretAdminBlogManagerTopics = getRootPathSecretAdminBlogManagerTopics();
+	const blogManagerTopicsHref = url(rootPathSecretAdminBlogManagerTopics);
+
+	// /secret-admin/blog-manager/comments
+	const rootPathSecretAdminBlogManagerComments = getRootPathSecretAdminBlogManagerComments();
+	const blogManagerCommentsHref = url(rootPathSecretAdminBlogManagerComments);
+
+	// /secret-admin/blog-manager/activities
+	const rootPathSecretAdminBlogManagerActivities = getRootPathSecretAdminBlogManagerActivities();
+	const blogManagerActivitiesHref = url(rootPathSecretAdminBlogManagerActivities);
+
 	type BlogManagerSectionId = 'dashboard' | 'posts' | 'new_post' | 'comments' | 'activities' | 'topics';
 
 	type Props = {
@@ -50,14 +74,14 @@
 			const current = getCurrentSectionFromPathname(page.url.pathname);
 			return navItems.find((i) => i.id === current)?.label ?? 'Posts';
 		},
-		getBasePath: () => url(getRootPathSecretAdminBlogManager()),
+		getBasePath: () => blogManagerBaseHref,
 		getItemHref: (id) => {
-			if (id === 'dashboard') return url(getRootPathSecretAdminBlogManager());
-			if (id === 'posts') return url(getRootPathSecretAdminBlogManagerPosts());
-			if (id === 'new_post') return url(getRootPathSecretAdminBlogManagerNewPost());
-			if (id === 'topics') return url(getRootPathSecretAdminBlogManagerTopics());
-			if (id === 'comments') return url(getRootPathSecretAdminBlogManagerComments());
-			return url(getRootPathSecretAdminBlogManagerActivities());
+			if (id === 'dashboard') return blogManagerBaseHref;
+			if (id === 'posts') return blogManagerPostsHref;
+			if (id === 'new_post') return blogManagerNewPostHref;
+			if (id === 'topics') return blogManagerTopicsHref;
+			if (id === 'comments') return blogManagerCommentsHref;
+			return blogManagerActivitiesHref;
 		},
 		getHeaderTitle: () => 'Blog manager'
 	};

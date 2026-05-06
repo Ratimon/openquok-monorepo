@@ -10,6 +10,10 @@
 	import { absoluteUrl, route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+
 	type Props = {
 		open?: boolean;
 		organizationId?: string | null;
@@ -66,7 +70,7 @@
 
 	function openSignaturesSettings() {
 		open = false;
-		void goto(absoluteUrl(`${route(getRootPathAccount())}/settings?section=signature`));
+		void goto(absoluteUrl(`${accountPath}/settings?section=signature`));
 	}
 
 	function close() {

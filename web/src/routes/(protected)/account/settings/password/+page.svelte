@@ -8,7 +8,7 @@
 		UpdateProfileStatus
 	} from '$lib/account';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, route } from '$lib/utils/path';
 	import * as Field from '$lib/ui/field';
 	import {
 		Card,
@@ -22,7 +22,10 @@
 
 	const isPresenterSubmitting = $derived(editorAccountSettingsPresenter.status === UpdateProfileStatus.UPDATING);
 
-	const accountSettingsUrl = absoluteUrl(`${getRootPathAccount()}/settings`);
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+	const accountSettingsUrl = absoluteUrl(`${accountPath}/settings`);
 
 	const form = createForm(() => ({
 		defaultValues: {

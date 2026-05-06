@@ -28,11 +28,15 @@
 	import RenderAnalyticsGrid from '$lib/ui/components/platform-analytics/RenderAnalyticsGrid.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
 
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+
 	/** Same singleton as exported name; shorter reads in markup (matches calendar page pattern). */
 	const analyticsPresenter = protectedAnalyticsPagePresenter;
 
 	// --- Routes (static, base-aware via `route`) ---
-	const accountRoot = route(getRootPathAccount());
+	const accountRoot = accountPath;
 
 	// --- Workspace + integration list (dashboard presenter is source of truth) ---
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
@@ -125,7 +129,7 @@
 				Track performance across your connected channels.</p>
 		</div>
 		<div class="flex items-center gap-2">
-			<Button type="button" variant="outline" href={route(getRootPathAccount())}>
+			<Button type="button" variant="outline" href={accountPath}>
 				<AbstractIcon name={icons.ArrowLeft.name} class="size-4" width="16" height="16" />
 				Back to dashboard
 			</Button>

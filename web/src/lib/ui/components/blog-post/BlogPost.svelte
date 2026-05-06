@@ -25,6 +25,15 @@
 	import SupabaseImage from '$lib/ui/supabase/SupabaseImage.svelte';
 	import OneColSection from '$lib/ui/layouts/OneColSection.svelte';
 
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signInPath = `/${rootPathSignIn}`;
+	const signInHrefDefault = url(signInPath);
+
+	// /blog
+	const rootPathPublicBlog = getRootPathPublicBlog();
+	const publicBlogPath = `/${rootPathPublicBlog}`;
+
 	type NavLink = { name: string; href: string };
 
 	type Props = {
@@ -57,7 +66,7 @@
 		previousLink,
 		nextLink,
 		isLoggedIn = false,
-		signInHref = url(`/${getRootPathSignin()}`),
+		signInHref = signInHrefDefault,
 		composerAvatarUrl = null,
 		submitBlogComment,
 		submittingComment = false,
@@ -83,7 +92,7 @@
 	let authorDisplay = $derived(post.author?.fullName ?? post.author?.username ?? 'Anonymous');
 
 	let topicPageHref = $derived(
-		post.topic ? url(`/${getRootPathPublicBlog()}/topic/${post.topic.slug}`) : ''
+		post.topic ? url(`${publicBlogPath}/topic/${post.topic.slug}`) : ''
 	);
 
 	let authorProfileHref = $derived(

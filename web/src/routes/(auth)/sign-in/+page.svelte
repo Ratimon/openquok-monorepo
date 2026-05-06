@@ -13,7 +13,7 @@
 	} from '$lib/user-auth/index';
 	import { getRootPathSignup, getRootPathForgotPassword } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-	import { absoluteUrl, url } from '$lib/utils/path';
+	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -28,20 +28,28 @@
 	} from '$lib/ui/card';
 	import SignInWithGoogleButton from '$lib/ui/components/social-login/SignInWithGoogleButton.svelte';
 
-	const signupPath = getRootPathSignup();
-	const signupUrl = absoluteUrl(`/${signupPath}`);
-	const forgotPath = getRootPathForgotPassword();
-	const forgotPasswordUrl = absoluteUrl(`/${forgotPath}`);
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
+	const signupUrl = absoluteUrl(signUpPath);
+
+	// /forgot-password
+	const rootPathForgotPassword = getRootPathForgotPassword();
+	const forgotPasswordPath = route(rootPathForgotPassword);
+	const forgotPasswordUrl = absoluteUrl(forgotPasswordPath);
+
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountHref = url(rootPathAccount);
 
 	function getRedirectURL(): string {
-		const accountPath = url(getRootPathAccount());
 		if (typeof window !== 'undefined') {
 			const wParams = new URLSearchParams(window.location.search);
 			if (wParams.get('redirectURL')) {
-				return getPostSigninRedirectTarget(wParams, accountPath);
+				return getPostSigninRedirectTarget(wParams, accountHref);
 			}
 		}
-		return getPostSigninRedirectTarget(page.url.searchParams, accountPath);
+		return getPostSigninRedirectTarget(page.url.searchParams, accountHref);
 	}
 
 	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'Openquok');

@@ -8,15 +8,42 @@
 		getRootPathSecretAdminBlogManager,
 		getRootPathSecretAdminConfigManager
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, route } from '$lib/utils/path';
 
-	const feedbackManagerUrl = absoluteUrl(getRootPathSecretAdminFeedbackManager());
-	const roleManagerUrl = absoluteUrl(getRootPathSecretAdminRoleManager());
-	const permissionManagerUrl = absoluteUrl(getRootPathSecretAdminPermissionManager());
-	const emailManagerUrl = absoluteUrl(getRootPathSecretAdminEmailManager());
-	const bullBoardUrl = absoluteUrl(getRootPathSecretAdminBullBoard());
-	const blogManagerUrl = absoluteUrl(getRootPathSecretAdminBlogManager());
-	const configManagerUrl = absoluteUrl(getRootPathSecretAdminConfigManager());
+	// /secret-admin/feedback-manager
+	const rootPathSecretAdminFeedbackManager = getRootPathSecretAdminFeedbackManager();
+	const secretAdminFeedbackManagerPath = route(rootPathSecretAdminFeedbackManager);
+	const feedbackManagerUrl = absoluteUrl(secretAdminFeedbackManagerPath);
+
+	// /secret-admin/role-manager
+	const rootPathSecretAdminRoleManager = getRootPathSecretAdminRoleManager();
+	const secretAdminRoleManagerPath = route(rootPathSecretAdminRoleManager);
+	const roleManagerUrl = absoluteUrl(secretAdminRoleManagerPath);
+
+	// /secret-admin/permission-manager
+	const rootPathSecretAdminPermissionManager = getRootPathSecretAdminPermissionManager();
+	const secretAdminPermissionManagerPath = route(rootPathSecretAdminPermissionManager);
+	const permissionManagerUrl = absoluteUrl(secretAdminPermissionManagerPath);
+
+	// /secret-admin/email-manager
+	const rootPathSecretAdminEmailManager = getRootPathSecretAdminEmailManager();
+	const secretAdminEmailManagerPath = route(rootPathSecretAdminEmailManager);
+	const emailManagerUrl = absoluteUrl(secretAdminEmailManagerPath);
+
+	// /secret-admin/bull-board
+	const rootPathSecretAdminBullBoard = getRootPathSecretAdminBullBoard();
+	const secretAdminBullBoardPath = route(rootPathSecretAdminBullBoard);
+	const bullBoardUrl = absoluteUrl(secretAdminBullBoardPath);
+
+	// /secret-admin/blog-manager
+	const rootPathSecretAdminBlogManager = getRootPathSecretAdminBlogManager();
+	const secretAdminBlogManagerPath = route(rootPathSecretAdminBlogManager);
+	const blogManagerUrl = absoluteUrl(secretAdminBlogManagerPath);
+
+	// /secret-admin/config-manager
+	const rootPathSecretAdminConfigManager = getRootPathSecretAdminConfigManager();
+	const secretAdminConfigManagerPath = route(rootPathSecretAdminConfigManager);
+	const configManagerUrl = absoluteUrl(secretAdminConfigManagerPath);
 </script>
 
 <div class="p-4 md:p-6">

@@ -13,7 +13,7 @@
 		getRootPathForgotPassword
 	} from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, route } from '$lib/utils/path';
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -27,13 +27,16 @@
 	} from '$lib/ui/card';
 
 	// /sign-in
-	const signinPath = getRootPathSignin();
-	const signinUrl = absoluteUrl(signinPath);
+	const rootPathSignIn = getRootPathSignin();
+	const signInPath = route(rootPathSignIn);
+	const signinUrl = absoluteUrl(signInPath);
 	// /forgot-password
-	const forgotPath = getRootPathForgotPassword();
-	const forgotPasswordUrl = absoluteUrl(forgotPath);
+	const rootPathForgotPassword = getRootPathForgotPassword();
+	const forgotPasswordPath = route(rootPathForgotPassword);
+	const forgotPasswordUrl = absoluteUrl(forgotPasswordPath);
 	// /account
-	const accountPath = getRootPathAccount();
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
 	const accountUrl = absoluteUrl(accountPath);
 
 	let status = $derived(resetPasswordPresenter.status);

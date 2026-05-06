@@ -19,7 +19,9 @@
 	import BlogHeroImageManualRemovalModal from '$lib/ui/components/blog-manager/BlogHeroImageManualRemovalModal.svelte';
 	import BlogPostsTable from '$lib/ui/components/blog-manager/BlogPostsTable.svelte';
 
-	const newPostHref = url(getRootPathSecretAdminBlogManagerNewPost());
+	// /secret-admin/blog-manager/posts/new
+	const rootPathSecretAdminBlogManagerNewPost = getRootPathSecretAdminBlogManagerNewPost();
+	const newPostHref = url(rootPathSecretAdminBlogManagerNewPost);
 
 	const isLoading = $derived(adminBlogPostsManagerPagePresenter.loading);
 	const posts = $derived(adminBlogPostsManagerPagePresenter.allPostsToManageVm);

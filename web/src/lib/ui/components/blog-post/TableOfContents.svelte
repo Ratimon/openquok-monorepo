@@ -6,6 +6,10 @@
 	import ScrollLink from '$lib/ui/nav-bars/ScrollLink.svelte';
 	import { url } from '$lib/utils/path';
 
+	// /blog
+	const rootPathPublicBlog = getRootPathPublicBlog();
+	const publicBlogHrefDefault = url(`/${rootPathPublicBlog}`);
+
 	type Props = {
 		content: string;
 		title?: string;
@@ -27,7 +31,7 @@
 
 	let headers = $derived(parseHeadersFromHTMLString(content ?? ''));
 
-	let blogHref = $derived(blogHrefProp ?? url(`/${getRootPathPublicBlog()}`));
+	let blogHref = $derived(blogHrefProp ?? publicBlogHrefDefault);
 
 	function indentClass(level: number): string {
 		if (level <= 1) return 'pl-0';

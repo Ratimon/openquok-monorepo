@@ -62,10 +62,12 @@
 		data.previewMediaUrlsVm ?? publicPreviewPostByIdPagePresenter.currentPreviewMediaUrlsVm
 	);
 
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signInHrefBase = url(`/${rootPathSignIn}`);
+
 	const signInHref = $derived(
-		url(
-			`/${getRootPathSignin()}?redirectURL=${encodeURIComponent(`${page.url.pathname}${page.url.search}`)}`
-		)
+		`${signInHrefBase}?redirectURL=${encodeURIComponent(`${page.url.pathname}${page.url.search}`)}`
 	);
 	const currentUserLabel = $derived(
 		authenticationRepository.currentUser?.fullName ?? authenticationRepository.currentUser?.email ?? null

@@ -7,7 +7,7 @@
 	import { z } from 'zod';
 
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
-	import { absoluteUrl, url as appPath } from '$lib/utils/path';
+	import { absoluteUrl, route, url as appPath } from '$lib/utils/path';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import {
@@ -22,8 +22,10 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { icons } from '$data/icons';
 
-	const rootPathSignin = getRootPathSignin();
-	const signinUrl = absoluteUrl(rootPathSignin);
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signInPath = route(rootPathSignIn);
+	const signinUrl = absoluteUrl(signInPath);
 
 	type Props = {
 		open?: boolean;

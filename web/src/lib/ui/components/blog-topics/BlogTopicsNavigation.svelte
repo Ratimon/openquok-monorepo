@@ -1,9 +1,15 @@
 <script lang="ts">
 	import type { BlogTopicOverviewPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 	import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
-	import { Badge } from '$lib/ui/badge';
 	import { cn } from '$lib/ui/helpers/common';
 	import { url } from '$lib/utils/path';
+	
+	import { Badge } from '$lib/ui/badge';
+	
+
+	// /blog
+	const rootPathPublicBlog = getRootPathPublicBlog();
+	const blogIndexHref = url(`/${rootPathPublicBlog}`);
 
 	type Props = {
 		topics: BlogTopicOverviewPublicViewModel[];
@@ -12,9 +18,6 @@
 	};
 
 	let { topics, activeTopicSlug = null, class: className = '' }: Props = $props();
-
-	const blogRoot = getRootPathPublicBlog();
-	const blogIndexHref = url(`/${blogRoot}`);
 
 	let totalPosts = $derived(topics.reduce((acc, topic) => acc + Number(topic.postCount), 0));
 
@@ -38,7 +41,7 @@
 		</Badge>
 		{#each topics as topic (topic.id)}
 			<Badge
-				href={url(`/${blogRoot}/topic/${topic.slug}`)}
+				href={url(`/${rootPathPublicBlog}/topic/${topic.slug}`)}
 				variant={activeTopicSlug === topic.slug ? 'default' : 'outline'}
 				ariaCurrent={activeTopicSlug === topic.slug ? 'page' : undefined}
 				class={chipClass}

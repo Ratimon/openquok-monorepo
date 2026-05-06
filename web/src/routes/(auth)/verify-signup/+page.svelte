@@ -18,7 +18,9 @@
 		CardFooter
 	} from '$lib/ui/card';
 
-	const accountPath = url(getRootPathAccount());
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = url(rootPathAccount);
 
 	let verificationStatus = $derived(verifyEmailPresenter.status);
 	let isVerifying = $derived(verificationStatus === VerifyEmailStatus.VERIFY_PENDING);

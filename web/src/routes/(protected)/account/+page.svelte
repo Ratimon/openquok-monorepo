@@ -37,6 +37,10 @@
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+
 	type Props = {
 		data: PageData;
 	};
@@ -47,7 +51,8 @@
 	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? (page.data as App.LayoutData)?.currentUser ?? null);
 
 	// --- Workspace + dashboard VMs ---
-	const accountRoot = $derived(route(getRootPathAccount()));
+	const accountRoot = $derived(accountPath);
+	const accountSettingsWorkspaceHref = $derived(url(`${accountRoot}/settings?section=workspace`));
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 	const platformChannelRowsUngrouped = $derived(protectedDashboardPagePresenter.platformChannelRowsUngrouped);
 	const channelGroupSections = $derived(protectedDashboardPagePresenter.channelGroupSections);
@@ -489,7 +494,7 @@
 		{#if !workspaceId}
 			<p class="mt-3 text-sm text-base-content/70">
 				Select or create a workspace in
-				<a class="link link-primary" href={url(`/${getRootPathAccount()}/settings?section=workspace`)}>settings</a>
+				<a class="link link-primary" href={accountSettingsWorkspaceHref}>settings</a>
 				to load channels.
 			</p>
 		{:else if listStatus === 'loading'}

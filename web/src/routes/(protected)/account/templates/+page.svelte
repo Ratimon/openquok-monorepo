@@ -25,9 +25,8 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 
-	const rootPathAccount = getRootPathAccount();
-
 	// /account
+	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);
 
 	// /account/calendar

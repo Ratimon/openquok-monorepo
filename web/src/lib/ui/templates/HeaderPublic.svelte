@@ -7,7 +7,7 @@
 	import { SignoutStatus } from '$lib/user-auth/Signout.presenter.svelte';
 	import { getRootPathSignin, getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-	import { url } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -16,9 +16,17 @@
 	import PublicNavbar from '$lib/ui/nav-bars/PublicNavbar.svelte';
 	import PageLink from '$lib/ui/nav-bars/PageLink.svelte';
 
-	const signInPath = `/${getRootPathSignin()}`;
-	const signUpPath = `/${getRootPathSignup()}`;
-	const accountPath = url(getRootPathAccount());
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signInPath = route(rootPathSignIn);
+
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
+
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = url(rootPathAccount);
 
 	interface Props {
 		navbarDesktopLinks: Link[];

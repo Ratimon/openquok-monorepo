@@ -5,9 +5,13 @@
 	import { toast } from '$lib/ui/sonner';
 	import { adminFeedbackManagerPagePresenter } from '$lib/area-admin';
 	import { getRootPathAdminArea } from '$lib/area-admin/constants/getRootPathAdminArea';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, route } from '$lib/utils/path';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import FeedbackTable from '$lib/ui/components/feedback/FeedbackTable.svelte';
+
+	// /admin
+	const rootPathAdminArea = getRootPathAdminArea();
+	const adminAreaPath = route(rootPathAdminArea);
 
 	type Props = { data: { isSuperAdmin?: boolean } };
 
@@ -15,7 +19,7 @@
 
 	let isSuperAdmin = $derived(data.isSuperAdmin ?? false);
 	let canSeeAdminArea = $derived(isSuperAdmin);
-	let adminAreaHref = $derived(absoluteUrl(getRootPathAdminArea()));
+	let adminAreaHref = $derived(absoluteUrl(adminAreaPath));
 
 	let showHandled = $state(true);
 

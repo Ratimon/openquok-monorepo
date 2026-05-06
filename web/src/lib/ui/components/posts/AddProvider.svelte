@@ -15,6 +15,11 @@
 	import * as Dialog from '$lib/ui/dialog';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
+
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+
 	import { cn } from '$lib/ui/helpers/common';
 	import { socialProviderIcon } from '$data/social-providers';
 
@@ -109,8 +114,7 @@
 		}
 
 		open = false;
-		const accountRoot = route(getRootPathAccount());
-		const afterConnect = returnToPath ?? accountRoot;
+		const afterConnect = returnToPath ?? accountPath;
 		const connectPath = integrationOAuthCallbackPath(identifier);
 		const qs = new URLSearchParams({
 			organizationId: workspaceId,

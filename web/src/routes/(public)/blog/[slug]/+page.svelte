@@ -19,9 +19,12 @@
 	import { normalizeBlogInlineImagesInHtml } from '$lib/blogs/utils';
 
 	import BlogPost from '$lib/ui/components/blog-post/BlogPost.svelte';
-
 	import LayoutInnerContainer from '$lib/ui/layouts/LayoutInnerContainer.svelte';
 	import LayoutOuterContainer from '$lib/ui/layouts/LayoutOuterContainer.svelte';
+
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signInHrefBase = url(`/${rootPathSignIn}`);
 
 	type Props = {
 		data: {
@@ -72,11 +75,10 @@
 	);
 
 	let signInHref = $derived.by(() => {
-		const signInBase = url(`/${getRootPathSignin()}`);
 		const pathname = page.url.pathname || '/';
 		const search = page.url.search || '';
 		const redirectTarget = `${pathname}${search}`;
-		return `${signInBase}?redirectURL=${encodeURIComponent(redirectTarget)}`;
+		return `${signInHrefBase}?redirectURL=${encodeURIComponent(redirectTarget)}`;
 	});
 
 	let blogCommentSubmitting = $derived(publicBlogBySlugPagePresenter.submittingComment);

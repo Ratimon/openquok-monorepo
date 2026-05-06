@@ -14,6 +14,22 @@
 	import { protectedLayoutPagePresenter } from '$lib/area-protected';
 	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
 
+	// /editor
+	const rootPathEditorArea = getRootPathEditorArea();
+	const editorAreaHref = url(rootPathEditorArea);
+
+	// /editor/feedback-manager
+	const rootPathEditorFeedbackManager = getRootPathEditorFeedbackManager();
+	const editorFeedbackManagerHref = url(rootPathEditorFeedbackManager);
+
+	// /secret-admin/blog-manager/topics
+	const rootPathSecretAdminBlogManagerTopics = getRootPathSecretAdminBlogManagerTopics();
+	const editorNewTemplateHref = $derived(url(rootPathSecretAdminBlogManagerTopics));
+
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountHref = url(rootPathAccount);
+
 	type Props = {
 		children: Snippet;
 		data: LayoutData;
@@ -23,12 +39,10 @@
 	const currentUser = $derived((data as App.LayoutData)?.currentUser ?? null);
 	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'Openquok');
 
-	const editorNewTemplateHref = $derived(url(getRootPathSecretAdminBlogManagerTopics()));
-
 	const navLinks: SidebarLinkItem[] = $derived([
-		{ label: 'Admin Dashboard', href: url(getRootPathEditorArea()), iconName: icons.Gauge.name },
-		{ label: 'Feedback manager', href: url(getRootPathEditorFeedbackManager()), iconName: icons.MessageCircle.name },
-		{ label: 'Exit admin area', href: url(getRootPathAccount()), iconName: icons.LogOut.name }
+		{ label: 'Admin Dashboard', href: editorAreaHref, iconName: icons.Gauge.name },
+		{ label: 'Feedback manager', href: editorFeedbackManagerHref, iconName: icons.MessageCircle.name },
+		{ label: 'Exit admin area', href: accountHref, iconName: icons.LogOut.name }
 	]);
 
 	const notificationsDockPreview = $derived({

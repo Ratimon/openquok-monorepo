@@ -9,6 +9,9 @@
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
 
+	// /blog
+	const rootPathPublicBlog = getRootPathPublicBlog();
+
 	const PAGE_TITLE = 'Blog Topics';
 	const PAGE_DESCRIPTION =
 		'Explore our diverse range of blog topics and find content that interests you.';
@@ -23,8 +26,7 @@
 	let topics = $derived(data.topics);
 
 	function topicListingHref(topicId: string): string {
-		const base = getRootPathPublicBlog();
-		return url(`/${base}?topic=${encodeURIComponent(topicId)}`);
+		return url(`/${rootPathPublicBlog}?topic=${encodeURIComponent(topicId)}`);
 	}
 
 	function postCountLabel(count: number): string {

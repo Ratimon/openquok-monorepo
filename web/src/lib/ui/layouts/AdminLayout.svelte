@@ -20,6 +20,18 @@
 
 	import SidebarProtected from '$lib/ui/templates/SidebarProtected.svelte';
 
+	// /editor
+	const rootPathEditorArea = getRootPathEditorArea();
+	const editorAreaHref = $derived(absoluteUrl(rootPathEditorArea));
+
+	// /admin
+	const rootPathAdminArea = getRootPathAdminArea();
+	const adminAreaHref = $derived(absoluteUrl(rootPathAdminArea));
+
+	// /secret-admin
+	const rootPathSecretAdminArea = getRootPathSecretAdminArea();
+	const secretAdminAreaHref = $derived(absoluteUrl(rootPathSecretAdminArea));
+
 	type Props = {
 		children: Snippet;
 		currentUser?: App.LayoutData['currentUser'] | null;
@@ -59,9 +71,6 @@
 	let currentUserName = $derived(
 		(currentUser?.fullName ?? currentUser?.email ?? null)?.split(/\s+/)[0] ?? null
 	);
-	let editorAreaHref = $derived(absoluteUrl(getRootPathEditorArea()));
-	let adminAreaHref = $derived(absoluteUrl(getRootPathAdminArea()));
-	let secretAdminAreaHref = $derived(absoluteUrl(getRootPathSecretAdminArea()));
 
 	let feedbackDescription = $state('');
 	let feedbackOpen = $state(false);

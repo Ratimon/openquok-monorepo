@@ -7,14 +7,20 @@
 	import { authenticationRepository } from '$lib/user-auth/index';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, route } from '$lib/utils/path';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
-	const signinUrl = absoluteUrl(`/${getRootPathSignin()}`);
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signInPath = route(rootPathSignIn);
+	const signinUrl = absoluteUrl(signInPath);
 	const signinUrlWithRedirect = $derived(
 		`${signinUrl}?redirectURL=${encodeURIComponent(page.url.pathname + page.url.search)}`
 	);
-	const accountUrl = absoluteUrl(`/${getRootPathAccount()}`);
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+	const accountUrl = absoluteUrl(accountPath);
 
 	const isAuthenticated = $derived(authenticationRepository.isAuthenticated());
 

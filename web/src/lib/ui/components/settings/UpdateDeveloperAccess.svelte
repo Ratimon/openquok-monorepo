@@ -1,8 +1,11 @@
 <script lang="ts">
 	import type { DevelopersSettingsPresenter } from '$lib/settings/DevelopersSettings.presenter.svelte';
 
-	import Button from '$lib/ui/buttons/Button.svelte';
+	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
+	import { route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
+
+	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = {
 		presenter: DevelopersSettingsPresenter;
@@ -13,6 +16,10 @@
 	};
 
 	let { presenter, apiKey, apiKeyVisible, canRotate, rotating }: Props = $props();
+
+	// /docs
+	const rootPathPublicDocs = getRootPathPublicDocs();
+	const publicDocsPath = route(rootPathPublicDocs);
 
 	function maskedKey(key: string) {
 		if (key.length <= 10) return '•'.repeat(Math.max(4, key.length));
@@ -32,12 +39,22 @@
 <div class="rounded-xl border border-base-300 bg-base-200 p-6">
 	<div class="flex items-start justify-between gap-4">
 		<div>
-			<h3 class="text-base font-semibold">API Key</h3>
-			<p class="text-sm text-base-content/70">Use Openquok API to integrate with your tools.</p>
+			<h3 class="text-base font-semibold">
+                API Key
+            </h3>
+			<p class="text-sm text-base-content/70">
+                Use Openquok API to integrate with your tools.
+            </p>
 		</div>
 
 		<div class="flex items-center gap-2">
-			<Button variant="outline" onclick={() => toast.message('Docs link coming soon')}>Docs</Button>
+			<Button
+                variant="outline"
+                href={publicDocsPath}
+                target="_blank"
+            >
+                Docs
+            </Button>
 		</div>
 	</div>
 

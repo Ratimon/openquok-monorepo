@@ -6,13 +6,32 @@
 		getRootPathSecretAdminBlogManagerActivities,
 		getRootPathSecretAdminBlogManagerNewPost
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, route } from '$lib/utils/path';
 
-	const dashboardUrl = absoluteUrl(getRootPathSecretAdminBlogManager());
-	const postsUrl = absoluteUrl(getRootPathSecretAdminBlogManagerPosts());
-	const newPostUrl = absoluteUrl(getRootPathSecretAdminBlogManagerNewPost());
-	const commentsUrl = absoluteUrl(getRootPathSecretAdminBlogManagerComments());
-	const activitiesUrl = absoluteUrl(getRootPathSecretAdminBlogManagerActivities());
+	// /secret-admin/blog-manager
+	const rootPathSecretAdminBlogManager = getRootPathSecretAdminBlogManager();
+	const secretAdminBlogManagerPath = route(rootPathSecretAdminBlogManager);
+	const dashboardUrl = absoluteUrl(secretAdminBlogManagerPath);
+
+	// /secret-admin/blog-manager/posts
+	const rootPathSecretAdminBlogManagerPosts = getRootPathSecretAdminBlogManagerPosts();
+	const secretAdminBlogManagerPostsPath = route(rootPathSecretAdminBlogManagerPosts);
+	const postsUrl = absoluteUrl(secretAdminBlogManagerPostsPath);
+
+	// /secret-admin/blog-manager/posts/new
+	const rootPathSecretAdminBlogManagerNewPost = getRootPathSecretAdminBlogManagerNewPost();
+	const secretAdminBlogManagerNewPostPath = route(rootPathSecretAdminBlogManagerNewPost);
+	const newPostUrl = absoluteUrl(secretAdminBlogManagerNewPostPath);
+
+	// /secret-admin/blog-manager/comments
+	const rootPathSecretAdminBlogManagerComments = getRootPathSecretAdminBlogManagerComments();
+	const secretAdminBlogManagerCommentsPath = route(rootPathSecretAdminBlogManagerComments);
+	const commentsUrl = absoluteUrl(secretAdminBlogManagerCommentsPath);
+
+	// /secret-admin/blog-manager/activities
+	const rootPathSecretAdminBlogManagerActivities = getRootPathSecretAdminBlogManagerActivities();
+	const secretAdminBlogManagerActivitiesPath = route(rootPathSecretAdminBlogManagerActivities);
+	const activitiesUrl = absoluteUrl(secretAdminBlogManagerActivitiesPath);
 </script>
 
 <div class="p-4 md:p-6">

@@ -17,6 +17,22 @@
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { icons } from '$data/icons';
 
+	// /admin
+	const rootPathAdminArea = getRootPathAdminArea();
+	const adminAreaHref = url(rootPathAdminArea);
+
+	// /admin/feedback-manager
+	const rootPathAdminFeedbackManager = getRootPathAdminFeedbackManager();
+	const adminFeedbackManagerHref = url(rootPathAdminFeedbackManager);
+
+	// /admin/role-manager
+	const rootPathAdminRoleManager = getRootPathAdminRoleManager();
+	const adminRoleManagerHref = url(rootPathAdminRoleManager);
+
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountHref = url(rootPathAccount);
+
 	type Props = {
 		children: Snippet;
 		data: LayoutData;
@@ -27,10 +43,10 @@
 	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'Openquok');
 
 	const navLinks: SidebarLinkItem[] = [
-		{ label: 'Admin Dashboard', href: url(getRootPathAdminArea()), iconName: icons.Gauge.name },
-		{ label: 'Feedback manager', href: url(getRootPathAdminFeedbackManager()), iconName: icons.MessageCircle.name },
-		{ label: 'Role manager', href: url(getRootPathAdminRoleManager()), iconName: icons.UserCheck.name },
-		{ label: 'Exit admin area', href: url(getRootPathAccount()), iconName: icons.LogOut.name }
+		{ label: 'Admin Dashboard', href: adminAreaHref, iconName: icons.Gauge.name },
+		{ label: 'Feedback manager', href: adminFeedbackManagerHref, iconName: icons.MessageCircle.name },
+		{ label: 'Role manager', href: adminRoleManagerHref, iconName: icons.UserCheck.name },
+		{ label: 'Exit admin area', href: accountHref, iconName: icons.LogOut.name }
 	];
 
 	const notificationsDockPreview = $derived({

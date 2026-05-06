@@ -12,6 +12,10 @@
 	import { createSortedTopicChoices } from '$lib/blogs';
 	import EditorBlog from '$lib/ui/templates/EditorBlog.svelte';
 
+	// /secret-admin/blog-manager
+	const rootPathSecretAdminBlogManager = getRootPathSecretAdminBlogManager();
+	const secretAdminBlogManagerHref = url(rootPathSecretAdminBlogManager);
+
 	type Props = { data: PageData };
 
 	let { data }: Props = $props();
@@ -55,7 +59,7 @@
 	$effect(() => {
 		if (adminBlogNewPostPagePresenter.redirectToManager) {
 			adminBlogNewPostPagePresenter.redirectToManager = false;
-			goto(url(getRootPathSecretAdminBlogManager()), { replaceState: true });
+			goto(secretAdminBlogManagerHref, { replaceState: true });
 		}
 	});
 
@@ -64,7 +68,7 @@
 	}
 
 	function handleDiscard() {
-		goto(url(getRootPathSecretAdminBlogManager()), { replaceState: true });
+		goto(secretAdminBlogManagerHref, { replaceState: true });
 	}
 </script>
 

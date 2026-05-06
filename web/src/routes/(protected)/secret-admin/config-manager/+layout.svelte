@@ -14,6 +14,18 @@
 		getRootPathSecretAdminConfigManagerBlogInformation
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 
+	// /secret-admin/config-manager
+	const rootPathSecretAdminConfigManager = getRootPathSecretAdminConfigManager();
+	const configManagerBaseHref = url(rootPathSecretAdminConfigManager);
+
+	// /secret-admin/config-manager/company-information
+	const rootPathCompanyInformation = getRootPathSecretAdminConfigManagerCompanyInformation();
+	const companyInformationHref = url(rootPathCompanyInformation);
+
+	// /secret-admin/config-manager/blog-information
+	const rootPathBlogInformation = getRootPathSecretAdminConfigManagerBlogInformation();
+	const blogInformationHref = url(rootPathBlogInformation);
+
 	type Props = {
 		children: Snippet;
 	};
@@ -39,12 +51,12 @@
 			const current = getCurrentSectionFromPathname(page.url.pathname);
 			return navItems.find((i) => i.id === current)?.label ?? 'Company Information';
 		},
-		getBasePath: () => url(getRootPathSecretAdminConfigManager()),
+		getBasePath: () => configManagerBaseHref,
 		getItemHref: (id) => {
 			if (id === 'company_information') {
-				return url(getRootPathSecretAdminConfigManagerCompanyInformation());
+				return companyInformationHref;
 			}
-			return url(getRootPathSecretAdminConfigManagerBlogInformation());
+			return blogInformationHref;
 		},
 		getHeaderTitle: () => 'Config manager'
 	};

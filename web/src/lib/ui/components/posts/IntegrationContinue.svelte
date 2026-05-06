@@ -24,6 +24,14 @@
 	import CircularProgressBar from '$lib/ui/circular-progress-bar/CircularProgressBar.svelte';
 	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
 
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
+
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signInPath = route(rootPathSignIn);
+
 	dayjs.extend(utc);
 	dayjs.extend(timezone);
 
@@ -78,13 +86,12 @@
 	const isOAuthErrorCallback = $derived(Boolean(oauthError));
 	const refresh = $derived(page.url.searchParams.get('refresh') ?? undefined);
 	const organizationIdParam = $derived(page.url.searchParams.get('organizationId') ?? '');
-	const returnTo = $derived(page.url.searchParams.get('returnTo') ?? route(getRootPathAccount()));
+	const returnTo = $derived(page.url.searchParams.get('returnTo') ?? accountPath);
 	const onboarding = $derived(page.url.searchParams.get('onboarding') ?? undefined);
 
 	function signInHrefForRedirectTarget(targetPathAndQuery: string): string {
-		const signIn = getRootPathSignin();
 		const redirectURL = encodeURIComponent(route(targetPathAndQuery));
-		return absoluteUrl(`/${signIn}?redirectURL=${redirectURL}`);
+		return absoluteUrl(`${signInPath}?redirectURL=${redirectURL}`);
 	}
 
 	let signInToContinueHref = $derived.by(() =>
@@ -94,10 +101,9 @@
 	let signInAfterAnonymousConnectHref = $derived.by(() => {
 		const o = oauthAnonymousSuccess;
 		if (!o) return '';
-		const accountRoot = route(getRootPathAccount());
 		const qs = new URLSearchParams({ added: o.provider });
 		if (o.onboarding) qs.set('onboarding', 'true');
-		return signInHrefForRedirectTarget(`${accountRoot}?${qs}`);
+		return signInHrefForRedirectTarget(`${accountPath}?${qs}`);
 	});
 
 	function oauthContinueAbsolute(providerSlug: string, searchParams?: URLSearchParams): string {
@@ -128,7 +134,7 @@
 		description: string
 	) {
 		try {
-			const safeReturn = externalReturn || route(getRootPathAccount());
+			const safeReturn = externalReturn || accountPath;
 			if (errorCode === 'access_denied') {
 				toast('Connection cancelled', {
 					description: 'You can connect this channel anytime from integrations.'
@@ -152,7 +158,7 @@
 		refreshParam: string | undefined
 	) {
 		try {
-			const accountUrl = absoluteUrl(getRootPathAccount());
+			const accountUrl = absoluteUrl(accountPath);
 
 			if (!p) {
 				toast.error('Missing provider.');
@@ -192,7 +198,7 @@
 				continueIntegrationPresenter.showToastMessage = false;
 			}
 
-			const accountRoot = route(getRootPathAccount());
+			const accountRoot = accountPath;
 			const data: ContinueSocialIntegrationViewModel = connectResult.data;
 
 			if (data.inBetweenSteps && data.internalId && data.organizationId) {
@@ -262,7 +268,7 @@
 				return;
 			}
 			toast.success('Instagram channel connected.');
-			const accountRoot = route(getRootPathAccount());
+			const accountRoot = accountPath;
 			const successQs = new URLSearchParams({ added: 'instagram-business' });
 			if (vm.onboarding) successQs.set('onboarding', 'true');
 			if (!authenticationRepository.isAuthenticated()) {
@@ -280,7 +286,7 @@
 	}
 
 	async function cancelInstagramBusinessPicker() {
-		const dest = igBusinessPicker?.successReturnPath ?? route(getRootPathAccount());
+		const dest = igBusinessPicker?.successReturnPath ?? accountPath;
 		await goto(absoluteUrl(dest), { replaceState: true });
 	}
 
@@ -305,12 +311,12 @@
 
 			if (!p) {
 				toast.error('Missing provider.');
-				await goto(absoluteUrl(route(getRootPathAccount())), { replaceState: true });
+				await goto(absoluteUrl(accountPath), { replaceState: true });
 				return;
 			}
 			if (!organizationId) {
 				toast.error('Create or select a workspace before connecting a channel.');
-				await goto(absoluteUrl(`${route(getRootPathAccount())}/settings?section=workspace`), {
+				await goto(absoluteUrl(`${accountPath}/settings?section=workspace`), {
 					replaceState: true
 				});
 				return;
