@@ -1,6 +1,6 @@
 ---
 title: Security secrets
-description: Configure SECURITY_SECRET for invite links and OAuth2 token hashing.
+description: Configure the secret variable for invite links and OAuth2 token hashing.
 order: 2
 lastUpdated: 2026-05-06
 ---

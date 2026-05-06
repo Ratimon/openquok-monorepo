@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, LinkCard, DocsExternalLink } from '$lib/ui/co
 
 ## Production: always-on worker services
 
-Orchestrator workers are long-running processes and should run on an **always-on** host (for example <a href="/docs/Installation/railway">Railway</a>). See <DocsExternalLink href="https://docs.railway.com/services#persistent-services">Railway → persistent services</DocsExternalLink>.
+Orchestrator workers are long-running processes and should run on an **always-on** host (for example <a href="/docs/installation/railway">Railway</a>). See <DocsExternalLink href="https://docs.railway.com/services#persistent-services">Railway → persistent services</DocsExternalLink>.
 
 Workers must share the same **Supabase** and **Redis** credentials as the API:
 
@@ -40,7 +40,7 @@ Repo-root <Badge text="railway.toml" variant="path" /> sets a shared build comma
 
 ## Stopping a worker service (Railway CLI)
 
-If you need to stop a worker that is currently consuming BullMQ jobs (for example to ensure only one worker is processing a queue during debugging), you can delete the latest deployment for that service. Service names match the <a href="/docs/Installation/railway">Railway</a> setup scripts (<code>openquok-worker-*</code>):
+If you need to stop a worker that is currently consuming BullMQ jobs (for example to ensure only one worker is processing a queue during debugging), you can delete the latest deployment for that service. Service names match the <a href="/docs/installation/railway">Railway</a> setup scripts (<code>openquok-worker-*</code>):
 
 ```bash
 railway down --service "openquok-worker-integration-refresh" --environment production --yes
@@ -66,7 +66,7 @@ railway link
 railway service
 ```
 
-Each script sets <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> and runs the deploy; see <a href="/docs/Installation/railway#railway-cli">Railway (workers) → Railway CLI</a> for the full flow.
+Each script sets <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> and runs the deploy; see <a href="/docs/installation/railway#railway-cli">Railway (workers) → Railway CLI</a> for the full flow.
 
 ```bash
 pnpm railway:deploy:integration-refresh
@@ -146,6 +146,6 @@ Re-check <code>DBSIZE</code> / <code>INFO memory</code> after cleanup, then re-d
 <CardGrid>
 <LinkCard title="Local development (workers + Redis)" description="Run Redis locally, start workers, and queue debugging commands" href="/docs/configuration-worker/development-environment" />
 <LinkCard title="Redis cache" description="REDIS_* variables, TLS, and provider setup" href="/docs/configuration-backend/redis" />
-<LinkCard title="Railway (workers)" description="Service definitions and deployment patterns for worker processes" href="/docs/Installation/railway" />
+<LinkCard title="Railway (workers)" description="Service definitions and deployment patterns for worker processes" href="/docs/installation/railway" />
 </CardGrid>
 

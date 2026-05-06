@@ -12,7 +12,7 @@ import { Badge, Callout, DocsExternalLink, CardGrid, LinkCard, Steps } from '$li
 Deploy the **backend** (Express) and **web** (SvelteKit) to <DocsExternalLink href="https://vercel.com">Vercel</DocsExternalLink>.
 
 <Callout type="note" title="Production checklist">
-<p>For env vars, CORS, optional Redis, and how integration refresh flows run in-process, start at <a href="/docs/Installation/production-deployment">Production deployment</a>.</p>
+<p>For env vars, CORS, optional Redis, and how integration refresh flows run in-process, start at <a href="/docs/installation/production-deployment">Production deployment</a>.</p>
 </Callout>
 
 ## Prerequisites
@@ -52,7 +52,7 @@ This reads <Badge text="backend/.env.production.local" variant="path" /> and ups
 <Callout type="warning">
 <ul class="mt-2 list-disc space-y-1 pl-5">
 <li>Set <Badge text="FRONTEND_DOMAIN_URL" variant="envCors" /> <strong>without a trailing slash</strong> (for example <Badge text="https://www.openquok.com" variant="new" />, not <Badge text="https://www.openquok.com/" variant="deprecated" />).</li>
-<li>Set the web project’s <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>same</strong> canonical origin string as <Badge text="FRONTEND_DOMAIN_URL" variant="envCors" /> so Meta and other OAuth flows receive redirect URIs that match what you register in their dashboards (see <a href="/docs/Installation/production-deployment">Production deployment</a>).</li>
+<li>Set the web project’s <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>same</strong> canonical origin string as <Badge text="FRONTEND_DOMAIN_URL" variant="envCors" /> so Meta and other OAuth flows receive redirect URIs that match what you register in their dashboards (see <a href="/docs/installation/production-deployment">Production deployment</a>).</li>
 <li>Include both apex and <code>www</code> in <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envCors" /> (example: <Badge text="https://openquok.com,https://www.openquok.com" variant="new" />) when visitors may hit either hostname, even if OAuth uses only one canonical host.</li>
 <li>Keep the web app’s <Badge text="VITE_API_BASE_URL" variant="envWeb" /> pointing to the same backend origin used by <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />.</li>
 </ul>
@@ -152,8 +152,8 @@ Add each domain in the Vercel project (**Settings → Domains**), create the DNS
 ## Next steps
 
 <CardGrid>
-<LinkCard title="Production deployment" description="Vercel, env vars, optional Redis, in-process workflows" href="/docs/Installation/production-deployment" />
-<LinkCard title="Development environment" description="Local API, web, tests, and DB scripts" href="/docs/Installation/development-environment" />
+<LinkCard title="Production deployment" description="Vercel, env vars, optional Redis, in-process workflows" href="/docs/installation/production-deployment" />
+<LinkCard title="Development environment" description="Local API, web, tests, and DB scripts" href="/docs/installation/development-environment" />
 <LinkCard title="Backend configuration" description="Environment variables and Supabase setup for the backend package" href="/docs/configuration-backend" />
 <LinkCard title="Web configuration" description="Environment variables and Vite/SvelteKit settings for the web app" href="/docs/configuration-web" />
 </CardGrid>

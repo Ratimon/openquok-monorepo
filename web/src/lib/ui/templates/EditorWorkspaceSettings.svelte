@@ -430,7 +430,9 @@
 			class="space-y-4"
 		>
 			<Dialog.Header>
-				<Dialog.Title>Create new workspace</Dialog.Title>
+				<Dialog.Title>
+					Create new workspace
+				</Dialog.Title>
 				<Dialog.Description>
 					Before proceeding, please note:
 				</Dialog.Description>

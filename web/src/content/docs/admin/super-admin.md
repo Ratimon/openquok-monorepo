@@ -41,6 +41,6 @@ After that, sign out and sign in again if the app caches roles, or refresh the s
 
 <CardGrid>
 <LinkCard title="Supabase" description="Dashboard, Auth, and database" href="/docs/configuration-backend/supabase" />
-<LinkCard title="Installation" description="Deploy and environment setup" href="/docs/Installation" />
+<LinkCard title="Installation" description="Deploy and environment setup" href="/docs/installation" />
 <LinkCard title="Admin — overview" description="Back to the admin docs hub" href="/docs/admin" />
 </CardGrid>

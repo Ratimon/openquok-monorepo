@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-description: Openquok's quick start — install dependencies, configure env, and run the social scheduler locally.
+description: Quick start — install dependencies, configure env, and run the Openquok's social scheduler locally.
 order: 2
 lastUpdated: 2026-04-24
 ---
@@ -42,7 +42,7 @@ pnpm install
 Commands for running **`backend/`** and **`web/`**, tests, database scripts, and deployment live on the **Development environment** page so this quick start stays focused on first-time setup.
 
 <CardGrid>
-<LinkCard title="Development environment" description="Local dev servers, tests, DB tasks, and deployment commands" href="/docs/Installation/development-environment" />
+<LinkCard title="Development environment" description="Local dev servers, tests, DB tasks, and deployment commands" href="/docs/installation/development-environment" />
 </CardGrid>
 
 ## Orchestrator workers (BullMQ) and cleanup
@@ -60,7 +60,7 @@ Explore the architecture, installation, contributor guidelines, and how to autho
 
 <CardGrid>
 <LinkCard title="Project architecture" description="Monorepo layout, key directories, and how the stack fits together" href="/docs/getting-started/architecture" />
-<LinkCard title="Installation" description="Development environment, deployment on Vercel, and related setup guides" href="/docs/Installation" />
+<LinkCard title="Installation" description="Development environment, deployment on Vercel, and related setup guides" href="/docs/installation" />
 <LinkCard title="Developer guidelines" description="Conventions and practices for working in this repository" href="/docs/developer-guidelines" />
 <LinkCard title="How to write docs" description="Configure, write, and extend the documentation area in web/" href="/docs/how-to-write-docs" />
 </CardGrid>

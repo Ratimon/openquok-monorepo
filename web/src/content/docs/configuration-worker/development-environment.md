@@ -115,6 +115,6 @@ redis-cli -h localhost -p 6379 -n 0 --scan --pattern "bull:<QUEUE_NAME>:*" | xar
 
 <CardGrid>
 <LinkCard title="Production deployment (workers)" description="Build/start commands and operational commands for production queues" href="/docs/configuration-worker/production-deployment" />
-<LinkCard title="Railway (workers)" description="Always-on worker services on Railway" href="/docs/Installation/railway" />
+<LinkCard title="Railway (workers)" description="Always-on worker services on Railway" href="/docs/installation/railway" />
 </CardGrid>
 

@@ -1,6 +1,6 @@
 ---
 title: Overview - Installation
-description: Set up your environment and deploy Openquok.
+description: Getting Started to set up your environment and deploy Openquok Application.
 order: 0
 lastUpdated: 2026-04-07
 ---
@@ -12,10 +12,10 @@ import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTre
 # Installation
 
 <CardGrid>
-<LinkCard title="Production deployment" description="Vercel API and web, Redis, optional BullMQ workers" href="/docs/Installation/production-deployment" />
-<LinkCard title="Development environment" description="Local development commands" href="/docs/Installation/development-environment" />
-<LinkCard title="Vercel" description="Vercel-focused deployment detail for backend and web" href="/docs/Installation/vercel" />
-<LinkCard title="Railway (workers)" description="Always-on orchestrator worker services and CLI" href="/docs/Installation/railway" />
+<LinkCard title="Production deployment" description="Vercel API and web, Redis, optional BullMQ workers" href="/docs/installation/production-deployment" />
+<LinkCard title="Development environment" description="Local development commands" href="/docs/installation/development-environment" />
+<LinkCard title="Vercel" description="Vercel-focused deployment detail for backend and web" href="/docs/installation/vercel" />
+<LinkCard title="Railway (workers)" description="Always-on orchestrator worker services and CLI" href="/docs/installation/railway" />
 </CardGrid>
 
 ## Related Section(s)

@@ -39,7 +39,7 @@ Performance feeds back into your pipeline — so next week’s content gets bett
 <CardGrid>
 <LinkCard title="Getting Started" description="Overview of the stack, architecture, and where to go first" href="/docs/getting-started/" />
 
-<LinkCard title="Installation" description="Local development, Vercel deploy, and environment setup" href="/docs/Installation/" />
+<LinkCard title="Installation" description="Local development, Vercel deploy, and environment setup" href="/docs/installation/" />
 
 <LinkCard title="Backend Setup" description="Env vars, Supabase, Redis, Sentry, rate limits, and email" href="/docs/configuration-backend/" />
 

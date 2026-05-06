@@ -37,7 +37,7 @@ VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID=
 
 <Callout type="note">
 <p>Treat <code>www</code> and the apex host as different origins—for example <code>https://www.example.com</code> and <code>https://example.com</code> are not interchangeable for OAuth.</p>
-<p>In <strong>production</strong>, set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>same</strong> string as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the backend (see <a href="/docs/configuration-backend">Configuration - Backend</a> and <a href="/docs/Installation/production-deployment">Production deployment</a>). The backend builds provider redirect URIs from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> only; Meta and similar dashboards must list those full URLs character-for-character.</p>
+<p>In <strong>production</strong>, set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>same</strong> string as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the backend (see <a href="/docs/configuration-backend">Configuration - Backend</a> and <a href="/docs/installation/production-deployment">Production deployment</a>). The backend builds provider redirect URIs from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> only; Meta and similar dashboards must list those full URLs character-for-character.</p>
 <p>Do not add a trailing slash after the host. If you change either variable, rebuild the web app and restart or redeploy the API so both pick up the new origin.</p>
 </Callout>
 
@@ -78,7 +78,7 @@ Do not hard-code secrets in the source code. Use <Badge text="web/.env.developme
 ## Related configuration
 
 <CardGrid>
-<LinkCard title="Production deployment" description="Canonical FRONTEND_DOMAIN_URL, CORS, and redeploy notes" href="/docs/Installation/production-deployment" />
+<LinkCard title="Production deployment" description="Canonical FRONTEND_DOMAIN_URL, CORS, and redeploy notes" href="/docs/installation/production-deployment" />
 <LinkCard title="Configuration - Backend" description="FRONTEND_DOMAIN_URL and OAuth redirect construction" href="/docs/configuration-backend" />
 <LinkCard title="PWA configuration" description="Edit web-config.json for app name and icon metadata" href="/docs/configuration-web/pwa" />
 <LinkCard title="Configuration - Web" description="Back to the web configuration hub" href="/docs/configuration-web" />

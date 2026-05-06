@@ -11,7 +11,7 @@ Create a new `.md` file in `src/content/docs/` to add a page. The file path dete
 | File Path | URL |
 |-----------|-----|
 | `docs/index.md` | `/docs` |
-| `docs/Installation/index.md` | `/docs/Installation` |
+| `docs/installation/index.md` | `/docs/installation` |
 | `docs/how-to-write-docs/configuration.md` | `/docs/how-to-write-docs/configuration` |
 
 ## Markdown Features

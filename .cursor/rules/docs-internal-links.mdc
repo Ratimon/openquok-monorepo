@@ -54,7 +54,7 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
 
 ## Next steps and related pages (`LinkCard` / `CardGrid`)
 
-- For **“Next steps”** (or similar) sections with **multiple in-site destinations**, prefer **`CardGrid`** + **`LinkCard`** from `$lib/ui/components/docs/mdx/index.js` over a Markdown bullet list of `[label](/docs/...)` links. This matches pages such as **quick-start**, **development-environment**, and **Installation/vercel**.
+- For **“Next steps”** (or similar) sections with **multiple in-site destinations**, prefer **`CardGrid`** + **`LinkCard`** from `$lib/ui/components/docs/mdx/index.js` over a Markdown bullet list of `[label](/docs/...)` links. This matches pages such as **quick-start**, **development-environment**, and **installation/vercel**.
 - **Pattern** (add the components to the page `<script>` import):
 
 ```html
@@ -70,13 +70,13 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </CardGrid>
 ```
 
-- **`href`** values use the site’s docs path prefix only: **`/docs/<slug>`** (e.g. `/docs/configuration-backend`, `/docs/getting-started/quick-start`). Slugs follow `web/src/content/docs/**` paths (`Installation/...` → `/docs/Installation/...` with the same casing as on disk).
+- **`href`** values use the site’s docs path prefix only: **`/docs/<slug>`** (e.g. `/docs/configuration-backend`, `/docs/getting-started/quick-start`). Slugs follow `web/src/content/docs/**` paths (`installation/...` → `/docs/installation/...` with the same casing as on disk).
 - Reuse **titles and descriptions** that already appear on other pages (e.g. quick-start’s configuration cards) so the UX stays consistent.
 
 ### Main section index pages: “Related Section(s)”
 
-- For **top-level section index pages** (the `index.md` at a section root such as `getting-started/`, `Installation/`, `configuration-backend/`, `configuration-web/`), add a bottom section named **`## Related Section(s)`**.
-- Use **`CardGrid`** + **`LinkCard`** to point readers to the **next** or **related** top-level areas (for example linking `Getting Started` → `/docs/Installation`, config hubs → `/docs/Installation` and `/docs/developer-guidelines`).
+- For **top-level section index pages** (the `index.md` at a section root such as `getting-started/`, `installation/`, `configuration-backend/`, `configuration-web/`), add a bottom section named **`## Related Section(s)`**.
+- Use **`CardGrid`** + **`LinkCard`** to point readers to the **next** or **related** top-level areas (for example linking `Getting Started` → `/docs/installation`, config hubs → `/docs/installation` and `/docs/developer-guidelines`).
 - **Do not** add this block to **subpages** inside a section unless they truly need cross-section navigation; prefer small “Related configuration” blocks only when helpful.
 
 ## Inline components and “missing words” (MDsveX)
@@ -91,7 +91,7 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 
 - For **ordered multi-step instructions** (deploy guides, setup flows), prefer **`Steps`** from `$lib/ui/components/docs/mdx/index.js` over Markdown `1.` / `2.` lists so the UI shows **circled step numbers** and consistent vertical rhythm.
 - **Pattern**: wrap the section in `<Steps>…</Steps>`. Each step is **`###` or `####`** (Markdown heading) plus body content (paragraphs, tables, `<Callout>`, etc.). Do **not** put numbers in the heading text — the component numbers steps automatically.
-- **Example** (see `web/src/content/docs/how-to-write-docs/components.md` and `web/src/content/docs/Installation/vercel.md`):
+- **Example** (see `web/src/content/docs/how-to-write-docs/components.md` and `web/src/content/docs/installation/vercel.md`):
 
 ```html
 <script>
@@ -117,15 +117,15 @@ Edit `web/src/data/docs.ts` and `web/src/lib/docs/constants/config.ts` with your
 
 - **Terminal / shell commands** (anything the reader would paste into a shell: `pnpm`, `npm`, `yarn`, `docker`, `railway`, `vercel`, `git`, `cp`, `npx`, multi-line with `\`, etc.): always use a **` ```bash `** fenced block—not a bare **` ``` `**, not **` ```sh `** (standardize on **`bash`** for consistency and Shiki highlighting).
 - **`.env` / env-style key=value examples** in docs: use **` ```bash `** (same as elsewhere in this repo) so assignment lines highlight consistently.
-- **Interactive CLI transcripts** (questions, `?` prompts, pasted tool output): use **` ```text `** (see **`web/src/content/docs/Installation/vercel.md`** example prompts).
+- **Interactive CLI transcripts** (questions, `?` prompts, pasted tool output): use **` ```text `** (see **`web/src/content/docs/installation/vercel.md`** example prompts).
 - **Directory trees and ASCII layout** (not executable commands): use **` ```text `**, not **` ```bash `** and not a bare **` ``` `**.
 - **URLs, redirect URIs, or label-only examples** where shell highlighting is wrong: **` ```txt `** or **` ```text `** as fits.
 - **Other languages** (`typescript`, `svelte`, `json`, `yaml`, `html`, …): keep the correct language tag.
 
 ## CLI commands in prose
 
-- Do **not** document runnable commands only in a **Markdown table** (`| Command | Description |`). Use the same pattern as **`web/src/content/docs/Installation/development-environment.md`** (Deployment section): a **bold lead-in** with an em dash and short explanation, then a **` ```bash `** fenced block with the command.
-- Example (see **`web/src/content/docs/Installation/vercel.md`**): write `**Deploy backend to Vercel (preview)** — invokes the Vercel CLI with backend/ as the working directory.`, a blank line, then a fenced **`bash`** block containing `pnpm vercel:deploy:backend` (no table of command vs description).
+- Do **not** document runnable commands only in a **Markdown table** (`| Command | Description |`). Use the same pattern as **`web/src/content/docs/installation/development-environment.md`** (Deployment section): a **bold lead-in** with an em dash and short explanation, then a **` ```bash `** fenced block with the command.
+- Example (see **`web/src/content/docs/installation/vercel.md`**): write `**Deploy backend to Vercel (preview)** — invokes the Vercel CLI with backend/ as the working directory.`, a blank line, then a fenced **`bash`** block containing `pnpm vercel:deploy:backend` (no table of command vs description).
 
 ## Front matter
 

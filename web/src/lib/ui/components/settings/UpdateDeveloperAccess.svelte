@@ -5,6 +5,9 @@
 	import { route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
+	import { icons } from '$data/icons';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = {
@@ -53,7 +56,7 @@
                 href={publicDocsPath}
                 target="_blank"
             >
-                Docs
+                Public API Docs
             </Button>
 		</div>
 	</div>
@@ -66,23 +69,58 @@
 				{maskedKey(apiKey)}
 			{/if}
 		{:else}
-			<span class="text-base-content/60">No API key found for this workspace.</span>
+			<span class="text-base-content/60">
+                No API key found for this workspace.
+            </span>
 		{/if}
 	</div>
 
 	<div class="mt-4 flex flex-wrap items-center gap-2">
-		<Button variant="outline" disabled={!apiKey} onclick={() => presenter.setApiKeyVisible(!apiKeyVisible)}>
+		<Button
+			class="gap-2"
+			variant="outline"
+			disabled={!apiKey}
+			onclick={() => presenter.setApiKeyVisible(!apiKeyVisible)}
+		>
+			<AbstractIcon
+				name={apiKeyVisible ? icons.Lock.name : icons.Eye.name}
+				class="h-4 w-4 shrink-0"
+				width="16"
+				height="16"
+			/>
 			{apiKeyVisible ? 'Hide' : 'Reveal'}
 		</Button>
-		<Button variant="outline" disabled={!apiKey} onclick={() => apiKey && copyToClipboard(apiKey)}>Copy</Button>
 		<Button
+			class="gap-2"
+			variant="outline"
+			disabled={!apiKey}
+			onclick={() => apiKey && copyToClipboard(apiKey)}
+		>
+			<AbstractIcon name={icons.Copy.name} class="h-4 w-4 shrink-0" width="16" height="16" />
+			Copy
+		</Button>
+		<Button
+			class="gap-2"
 			variant="outline"
 			disabled={!apiKey || !canRotate || rotating}
 			onclick={() => presenter.rotateApiKey()}
 		>
+			{#if rotating}
+				<AbstractIcon
+					name={icons.LoaderCircle.name}
+					class="h-4 w-4 shrink-0 animate-spin"
+					width="16"
+					height="16"
+				/>
+			{:else}
+				<AbstractIcon name={icons.RefreshCw.name} class="h-4 w-4 shrink-0" width="16" height="16" />
+			{/if}
 			{rotating ? 'Rotating…' : 'Rotate Key'}
 		</Button>
-		<Button variant="outline" onclick={() => toast.message('Wizard coming soon')}>Open Wizard</Button>
+		<Button class="gap-2" variant="outline" href={publicDocsPath} target="_blank">
+			<AbstractIcon name={icons.Sparkles.name} class="h-4 w-4 shrink-0" width="16" height="16" />
+			Open Wizard
+		</Button>
 	</div>
 </div>
 

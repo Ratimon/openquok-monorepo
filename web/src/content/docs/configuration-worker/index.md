@@ -1,6 +1,6 @@
 ---
 title: Orchestrator workers
-description: Environment and deployment for BullMQ worker processes (integration refresh, notification email, and scheduled social posts), plus the super-admin queue dashboard in the web app.
+description: Getting Started to Environment and deployment for orchestrator processes, plus the admin queue dashboard.
 order: 0
 lastUpdated: 2026-04-27
 ---
@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard, DocsExternalLink } from '$lib/ui/co
 
 When <code>backend/config/orchestratorFlows.ts</code> sets <code>transport: "bullmq"</code> for a flow, the **API only enqueues** work to **Redis / BullMQ**. **Long-running worker processes** in the <Badge text="orchestrator/" variant="path" /> package execute those jobs by importing backend services and repositories in the **same Node process** (they do not call your HTTP API to run business logic).
 
-Deploy workers on an **always-on** host (for example <a href="/docs/Installation/railway">Railway</a>). Serverless-only platforms are a poor fit because workers loop until <code>SIGTERM</code>. Railway describes persistent containers under <DocsExternalLink href="https://docs.railway.com/services#persistent-services">Services → persistent services</DocsExternalLink>.
+Deploy workers on an **always-on** host (for example <a href="/docs/installation/railway">Railway</a>). Serverless-only platforms are a poor fit because workers loop until <code>SIGTERM</code>. Railway describes persistent containers under <DocsExternalLink href="https://docs.railway.com/services#persistent-services">Services → persistent services</DocsExternalLink>.
 
 ## Queue dashboard (Bull Board)
 
@@ -47,9 +47,9 @@ You only need to inject variables the worker path actually uses; you do not have
 
 <CardGrid>
 <LinkCard title="Web environment variables" description="VITE_API_BASE_URL and same-origin /api in development" href="/docs/configuration-web/environment" />
-<LinkCard title="Railway (workers)" description="CLI, build/start commands, and persistent services" href="/docs/Installation/railway" />
+<LinkCard title="Railway (workers)" description="CLI, build/start commands, and persistent services" href="/docs/installation/railway" />
 <LinkCard title="Orchestrator workflows" description="Flowcraft, BullMQ transport, and behavior" href="/docs/developer-guidelines/orchestrator-workflows" />
 <LinkCard title="Redis" description="REDIS_* shared with cache and BullMQ" href="/docs/configuration-backend/redis" />
 <LinkCard title="RBAC" description="Super admin, roles, and permissions" href="/docs/developer-guidelines/rbac" />
-<LinkCard title="Production deployment" description="Vercel API + optional worker hosts" href="/docs/Installation/production-deployment" />
+<LinkCard title="Production deployment" description="Vercel API + optional worker hosts" href="/docs/installation/production-deployment" />
 </CardGrid>

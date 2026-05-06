@@ -1,6 +1,6 @@
 ---
 title: Roles Overview
-description: Super admin access and post-deployment setup for operators in Openquok.
+description: Grtting Started to Super admin access and post-deployment setup in Openquok.
 order: 0
 lastUpdated: 2026-03-31
 ---
@@ -21,7 +21,7 @@ Guides for using tools for different **admin** roles and how to grant the roles 
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Installation" description="Deploy and set up OpenQuok" href="/docs/Installation" />
+<LinkCard title="Installation" description="Deploy and set up OpenQuok" href="/docs/installation" />
 <LinkCard title="Configuration - Backend" description="Backend env, Supabase, and services" href="/docs/configuration-backend" />
 <LinkCard title="Configuration - Web" description="Vite env and web defaults" href="/docs/configuration-web" />
 </CardGrid>

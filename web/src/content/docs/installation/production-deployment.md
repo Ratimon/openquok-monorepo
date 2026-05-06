@@ -11,14 +11,14 @@ import { Badge, Callout, DocsExternalLink, CardGrid, LinkCard, Steps } from '$li
 
 This project is set up for **Vercel** as the primary host for the **backend** (Express serverless entry) and **web** (SvelteKit). **Supabase** remains the database and auth provider.
 
-**Orchestrator workers** (BullMQ) are **not** run on Vercel: when <code>backend/config/orchestratorFlows.ts</code> uses <code>transport: "bullmq"</code> for **integration refresh**, **notification email**, and/or **scheduled social posts**, deploy **separate always-on processes** (for example on <a href="/docs/Installation/railway">Railway</a>) that share the same **Redis** and **Supabase** credentials as the API. See <a href="/docs/configuration-worker">Orchestrator workers</a> and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>.
+**Orchestrator workers** (BullMQ) are **not** run on Vercel: when <code>backend/config/orchestratorFlows.ts</code> uses <code>transport: "bullmq"</code> for **integration refresh**, **notification email**, and/or **scheduled social posts**, deploy **separate always-on processes** (for example on <a href="/docs/installation/railway">Railway</a>) that share the same **Redis** and **Supabase** credentials as the API. See <a href="/docs/configuration-worker">Orchestrator workers</a> and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>.
 
 ## What you need
 
 - **Supabase** project (URL, anon key, service role key)
 - **Vercel** projects for `backend/` and `web/` (or your chosen host, with equivalent env injection)
 - **Recommended:** managed **Redis** for production OAuth flows and BullMQ orchestration — point <Badge text="REDIS_*" variant="envBackend" /> at a host reachable from **both** the API and any worker processes. In production, OAuth connection state must be durable across instances (avoid <Badge text="CACHE_PROVIDER=memory" variant="envBackend" />).
-- **Optional:** one or more **worker** hosts for BullMQ flows (see <a href="/docs/Installation/railway">Railway (orchestrator workers)</a>)
+- **Optional:** one or more **worker** hosts for BullMQ flows (see <a href="/docs/installation/railway">Railway (orchestrator workers)</a>)
 
 ## Secrets and configuration
 
@@ -36,7 +36,7 @@ This project is set up for **Vercel** as the primary host for the **backend** (E
 
 ## Deploy with Vercel
 
-Use the detailed CLI and project settings on <a href="/docs/Installation/vercel">Vercel</a>. From the repository root:
+Use the detailed CLI and project settings on <a href="/docs/installation/vercel">Vercel</a>. From the repository root:
 
 ```bash
 pnpm vercel:env:sync:web:prod
@@ -53,10 +53,10 @@ After deploy, configure OAuth redirect URIs, webhooks, and any third-party dashb
 ## Next steps
 
 <CardGrid>
-<LinkCard title="Vercel" description="Root directory, build, and environment variables" href="/docs/Installation/vercel" />
-<LinkCard title="Railway (workers)" description="Long-running BullMQ workers, CLI, and monorepo build" href="/docs/Installation/railway" />
+<LinkCard title="Vercel" description="Root directory, build, and environment variables" href="/docs/installation/vercel" />
+<LinkCard title="Railway (workers)" description="Long-running BullMQ workers, CLI, and monorepo build" href="/docs/installation/railway" />
 <LinkCard title="Orchestrator workers" description="Env and scripts for worker processes" href="/docs/configuration-worker" />
-<LinkCard title="Development environment" description="Local API, web, tests, and DB scripts" href="/docs/Installation/development-environment" />
+<LinkCard title="Development environment" description="Local API, web, tests, and DB scripts" href="/docs/installation/development-environment" />
 <LinkCard title="Backend configuration" description="Env keys aligned with GlobalConfig" href="/docs/configuration-backend" />
 <LinkCard title="Web environment variables" description="VITE_FRONTEND_DOMAIN_URL and matching FRONTEND_DOMAIN_URL" href="/docs/configuration-web/environment" />
 <LinkCard title="Frontend configuration" description="Web app configuration hub" href="/docs/configuration-web" />

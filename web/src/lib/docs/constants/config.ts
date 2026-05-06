@@ -1,5 +1,4 @@
 import type { DocsConfig } from '$lib/docs/types';
-
 import type { IconName } from '$data/icons';
 
 import { icons } from '$data/icons';
@@ -37,9 +36,14 @@ export const docsSidebar: DocsSidebarSection[] = [
 		autogenerate: { directory: 'getting-started' }
 	},
 	{
+		label: 'Public API',
+		icon: icons.Code.name,
+		autogenerate: { directory: 'public-api' }
+	},
+	{
 		label: 'Installation',
 		icon: icons.Terminal.name,
-		autogenerate: { directory: 'Installation' }
+		autogenerate: { directory: 'installation' }
 	},
 	{
 		label: 'Backend Setup',
@@ -68,7 +72,7 @@ export const docsSidebar: DocsSidebarSection[] = [
 	},
 	{
 		label: 'Developer Guidelines',
-		icon: icons.Code.name,
+		icon: icons.FolderCode.name,
 		autogenerate: { directory: 'developer-guidelines' }
 	},
 	{

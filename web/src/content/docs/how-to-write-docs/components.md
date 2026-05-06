@@ -110,7 +110,7 @@ OpenGraph, Twitter cards, JSON-LD structured data, and auto-generated sitemap.
 Use link cards for navigation:
 
 <CardGrid>
-<LinkCard title="Installation" description="Set up your environment and deploy OpenQuok" href="/docs/Installation" />
+<LinkCard title="Installation" description="Set up your environment and deploy OpenQuok" href="/docs/installation" />
 <LinkCard title="Configuration" description="Customize your docs site" href="/docs/how-to-write-docs/configuration" />
 </CardGrid>
 
@@ -128,7 +128,7 @@ Use **`Badge`** from `$lib/ui/components/docs/mdx/index.js` for short labels in 
 
 **Release / status:** <Badge text="New" variant="new" /> <Badge text="Experimental" variant="experimental" /> <Badge text="Deprecated" variant="deprecated" /> <Badge text="v1.0.0" />
 
-**Docs semantics** (pick variants so readers can scan by color — see `web/src/content/docs/Installation/vercel.md`):
+**Docs semantics** (pick variants so readers can scan by color — see `web/src/content/docs/installation/vercel.md`):
 
 - **Backend env** (no <Badge text="VITE_" variant="envWeb" /> prefix): <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />
 - **Web / Vite env**: <Badge text="VITE_API_BASE_URL" variant="envWeb" />

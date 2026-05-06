@@ -87,11 +87,10 @@
 		{ id: 'global', label: 'Global Settings' },
 		{ id: 'workspace', label: 'Workspace' },
 		{ id: 'profile', label: 'Profile' },
+		{ id: 'developers', label: 'Developers' },
+		{ id: 'approved-apps', label: 'Approved Apps' },
 		{ id: 'signature', label: 'Signatures' },
 		{ id: 'webhooks', label: 'Webhooks' },
-		{ id: 'templates', label: 'Templates' },
-		{ id: 'developers', label: 'Developers' },
-		{ id: 'approved-apps', label: 'Approved Apps' }
 	];
 
 	function setSettingsSidebarContext() {

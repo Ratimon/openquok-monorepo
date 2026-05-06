@@ -130,7 +130,7 @@ Then run the worker (after setting <code>transport: bullmq</code> for integratio
 pnpm orchestrator:dev:worker:integration-refresh-bullmq
 ```
 
-For **production** worker hosts (always-on), use <code>pnpm railway:orchestrator:build</code> and <code>pnpm railway:orchestrator:start:integration-refresh</code> as documented in <a href="/docs/configuration-worker">Orchestrator workers</a> and <a href="/docs/Installation/railway">Railway (orchestrator workers)</a>.
+For **production** worker hosts (always-on), use <code>pnpm railway:orchestrator:build</code> and <code>pnpm railway:orchestrator:start:integration-refresh</code> as documented in <a href="/docs/configuration-worker">Orchestrator workers</a> and <a href="/docs/installation/railway">Railway (orchestrator workers)</a>.
 
 </Steps>
 

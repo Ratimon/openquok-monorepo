@@ -54,6 +54,6 @@ docker compose -f infra/docker-compose.yml down
 
 <Callout type="note" title="Related docs">
 <p>Once Redis is running, see <a href="/docs/configuration-backend/redis">Redis cache</a> for the full list of <Badge text="REDIS_*" variant="envBackend" /> options and BullMQ notes.</p>
-<p>For end-to-end setup (backend + web), see <a href="/docs/Installation/development-environment">Development environment</a>.</p>
+<p>For end-to-end setup (backend + web), see <a href="/docs/installation/development-environment">Development environment</a>.</p>
 </Callout>
 

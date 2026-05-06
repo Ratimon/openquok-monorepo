@@ -1,6 +1,6 @@
 ---
 title: Configuration - Web
-description: Environment variables and configuration for the Openquok's SvelteKit app in web/.
+description: Getting Started to Environment variables and configuration for the Openquok's in web application.
 order: 0
 lastUpdated: 2026-04-14
 ---
@@ -28,7 +28,7 @@ Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/m
 
 ### Set production env values
 
-Maintain <Badge text="web/.env.production.local" variant="envFile" /> and set matching production values for your deployment. Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the same canonical origin as the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> so OAuth redirect URIs stay consistent (see <a href="/docs/configuration-web/environment">Environment variables</a> and <a href="/docs/Installation/production-deployment">Production deployment</a>).
+Maintain <Badge text="web/.env.production.local" variant="envFile" /> and set matching production values for your deployment. Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the same canonical origin as the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> so OAuth redirect URIs stay consistent (see <a href="/docs/configuration-web/environment">Environment variables</a> and <a href="/docs/installation/production-deployment">Production deployment</a>).
 
 ### Update PWA settings
 
@@ -49,7 +49,7 @@ For the full checklist, see the repository <DocsExternalLink href="https://githu
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Production deployment" description="Canonical origins, CORS, and redeploying API + web" href="/docs/Installation/production-deployment" />
-<LinkCard title="Installation" description="Deploy and configure OpenQuok" href="/docs/Installation" />
+<LinkCard title="Production deployment" description="Canonical origins, CORS, and redeploying API + web" href="/docs/installation/production-deployment" />
+<LinkCard title="Installation" description="Deploy and configure OpenQuok" href="/docs/installation" />
 <LinkCard title="Developer guidelines" description="Conventions for working in this repository" href="/docs/developer-guidelines" />
 </CardGrid>

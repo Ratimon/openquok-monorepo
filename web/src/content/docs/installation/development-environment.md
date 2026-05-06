@@ -125,7 +125,7 @@ pnpm db:production:push-db
 Run the <strong>backend API</strong> before the web app so local pages can call your API. In a <strong>separate terminal</strong>, start the API from the repository root with <code>pnpm backend:dev</code> (or <code>cd backend</code> then <code>pnpm dev</code>), then use the commands below for the frontend.
 </Callout>
 
-<Callout type="note" title="HTTPS on localhost:5173">
+<Callout type="note" title="HTTPS on localhost">
 <p>The web dev server serves <strong>HTTPS</strong> at <code>https://localhost:5173</code>. Keep <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> and the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on that exact origin, and follow <a href="/docs/configuration-web/environment#https-local-development-and-the-api-base-url">Environment variables → HTTPS local development and the API base URL</a> so API calls and auth cookies stay same-origin.</p>
 </Callout>
 
@@ -193,7 +193,7 @@ If you use <code>CACHE_PROVIDER=redis</code>, run Redis locally or use a managed
 
 ### Deployment
 
-For a **full production sequence** (backend env, web env, CORS), use <a href="/docs/Installation/production-deployment">Production deployment</a>. The commands below are quick references from the **repository root** (see root <code>package.json</code>).
+For a **full production sequence** (backend env, web env, CORS), use <a href="/docs/installation/production-deployment">Production deployment</a>. The commands below are quick references from the **repository root** (see root <code>package.json</code>).
 
 **Backend JS bundle** — runs `tsup` in `backend/` to produce the bundled API output used for deploys.
 
@@ -216,7 +216,7 @@ pnpm vercel:deploy:web
 ## Next Steps
 
 <CardGrid>
-<LinkCard title="Production deployment" description="Backend and web on Vercel, env and optional Redis" href="/docs/Installation/production-deployment" />
+<LinkCard title="Production deployment" description="Backend and web on Vercel, env and optional Redis" href="/docs/installation/production-deployment" />
 <LinkCard title="Project architecture" description="Monorepo layout, key directories, and how the stack fits together" href="/docs/getting-started/architecture" />
-<LinkCard title="Vercel" description="Vercel CLI and project settings detail" href="/docs/Installation/vercel" />
+<LinkCard title="Vercel" description="Vercel CLI and project settings detail" href="/docs/installation/vercel" />
 </CardGrid>

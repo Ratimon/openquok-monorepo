@@ -165,7 +165,6 @@
 <SidebarSecondary>
 	{#if currentSection === 'global'}
 		<EditorMetric />
-
 	{:else if currentSection === 'profile'}
 		<EditorAccountSettings
 			profileVm={currentProfileVm}

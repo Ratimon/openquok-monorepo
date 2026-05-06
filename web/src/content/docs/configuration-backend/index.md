@@ -1,6 +1,6 @@
 ---
 title: Configuration - Backend
-description: Backend configuration — env vars, Supabase, and services Openquok.
+description: Getting Started to Backend configuration — env vars, Supabase, and services Openquok.
 order: 0
 lastUpdated: 2026-04-24
 ---
@@ -63,9 +63,9 @@ Configure Redis (recommended for production), Sentry (optional), Google OAuth (o
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Production deployment" description="Align FRONTEND_DOMAIN_URL with VITE_FRONTEND_DOMAIN_URL in production" href="/docs/Installation/production-deployment" />
+<LinkCard title="Production deployment" description="Align FRONTEND_DOMAIN_URL with VITE_FRONTEND_DOMAIN_URL in production" href="/docs/installation/production-deployment" />
 <LinkCard title="Web environment variables" description="VITE_FRONTEND_DOMAIN_URL and OAuth alignment" href="/docs/configuration-web/environment" />
-<LinkCard title="Installation" description="Deploy and configure OpenQuok" href="/docs/Installation" />
+<LinkCard title="Installation" description="Deploy and configure OpenQuok" href="/docs/installation" />
 <LinkCard title="Orchestrator workers" description="BullMQ workers, Redis, and Railway" href="/docs/configuration-worker" />
 <LinkCard title="Developer guidelines" description="Conventions for working in this repository" href="/docs/developer-guidelines" />
 </CardGrid>

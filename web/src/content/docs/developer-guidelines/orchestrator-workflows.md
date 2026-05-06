@@ -60,7 +60,7 @@ The default **in-process** transport **does not survive API restarts**: if the A
 
 With <code>transport: bullmq</code> in <code>backend/config/orchestratorFlows.ts</code>, run state and the job queue live in **Redis**, and you run a **worker process** for each flow you enable:
 
-- **Integration refresh** — <code>pnpm orchestrator:dev:worker:integration-refresh-bullmq</code> locally (or <code>pnpm worker:integration-refresh-bullmq</code> under <code>backend/</code>); **production** <code>pnpm railway:orchestrator:start:integration-refresh</code> after <code>pnpm railway:orchestrator:build</code>, on an always-on host such as <a href="/docs/Installation/railway">Railway</a>.
+- **Integration refresh** — <code>pnpm orchestrator:dev:worker:integration-refresh-bullmq</code> locally (or <code>pnpm worker:integration-refresh-bullmq</code> under <code>backend/</code>); **production** <code>pnpm railway:orchestrator:start:integration-refresh</code> after <code>pnpm railway:orchestrator:build</code>, on an always-on host such as <a href="/docs/installation/railway">Railway</a>.
 - **Notification email** (when that transport is <code>bullmq</code>) — <code>pnpm railway:orchestrator:start:notification-email</code> in production; local <code>pnpm orchestrator:dev:worker:notification-email-bullmq</code>.
 - **Scheduled social posts** (when that transport is <code>bullmq</code>) — <code>pnpm railway:orchestrator:start:scheduled-social-post</code> in production (Railway); local <code>pnpm orchestrator:dev:worker:scheduled-social-post-bullmq</code>.
 
@@ -133,7 +133,7 @@ Also, the <code>@flowcraft/bullmq-adapter</code> version used in this repo curre
 ## Further reading
 
 - <a href="/docs/configuration-worker">Orchestrator workers</a> — env vars, production scripts, dotenv resolution
-- <a href="/docs/Installation/railway">Railway Deployment</a> — persistent services, CLI, <code>railway.toml</code>
+- <a href="/docs/installation/railway">Railway Deployment</a> — persistent services, CLI, <code>railway.toml</code>
 - <DocsExternalLink href="https://flowcraft.js.org/guide/fluent">Fluent API</DocsExternalLink>
 - <DocsExternalLink href="https://flowcraft.js.org/guide/pausing">Pausing and sleep nodes</DocsExternalLink> (this workflow uses an imperative delay inside <code>tick</code> because the wait length comes from the database at runtime)
 - <DocsExternalLink href="https://flowcraft.js.org/guide/adapters/bullmq">Runtime adapter: BullMQ</DocsExternalLink> (reconciliation, webhooks, worker/client setup)

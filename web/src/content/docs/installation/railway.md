@@ -174,6 +174,6 @@ To deploy multiple workers from one project, link the CLI to a service, run <cod
 
 <CardGrid>
 <LinkCard title="Orchestrator workers (config)" description="Env tables and script reference" href="/docs/configuration-worker" />
-<LinkCard title="Production deployment" description="Vercel API and overall production picture" href="/docs/Installation/production-deployment" />
+<LinkCard title="Production deployment" description="Vercel API and overall production picture" href="/docs/installation/production-deployment" />
 <LinkCard title="Orchestrator workflows" description="Flowcraft, queues, and transport flags" href="/docs/developer-guidelines/orchestrator-workflows" />
 </CardGrid>

@@ -1,6 +1,6 @@
 ---
 title: Overview - Getting Started
-description: Start here — Openquok's project layout and a quick guide for starters.
+description: Getting Started to Openquok's project layout and a quick guide for starters.
 order: 0
 ---
 
@@ -23,5 +23,5 @@ Looking to edit or extend this documentation? Check out the <a href="/docs/how-t
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Installation" description="Deploy and set up OpenQuok" href="/docs/Installation" />
+<LinkCard title="Installation" description="Deploy and set up OpenQuok" href="/docs/installation" />
 </CardGrid>
