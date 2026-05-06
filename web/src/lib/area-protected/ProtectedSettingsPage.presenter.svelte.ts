@@ -1,6 +1,7 @@
 import type { EditorAccountSettingsPresenter } from '$lib/account/EditorAccountSettings.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import type { AuthenticationRepository } from '$lib/user-auth/Authentication.repository.svelte';
+import type { DevelopersSettingsPresenter } from '$lib/settings/DevelopersSettings.presenter.svelte';
 
 /**
  * Page presenter for the protected account settings page.
@@ -11,6 +12,7 @@ export class ProtectedSettingsPagePresenter {
 	constructor(
 		private readonly editorAccountSettingsPresenter: EditorAccountSettingsPresenter,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
+		private readonly developersSettingsPresenter: DevelopersSettingsPresenter,
 		private readonly authenticationRepository: AuthenticationRepository
 	) {}
 
@@ -20,6 +22,10 @@ export class ProtectedSettingsPagePresenter {
 
 	get workspacePresenter(): WorkspaceSettingsPresenter {
 		return this.workspaceSettingsPresenter;
+	}
+
+	get developersPresenter(): DevelopersSettingsPresenter {
+		return this.developersSettingsPresenter;
 	}
 
 	loadProfile(): Promise<void> {

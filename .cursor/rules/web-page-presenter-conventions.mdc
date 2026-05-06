@@ -70,6 +70,11 @@ Repositories stay the **`{ ok: … } | PM`** boundary; presenters expose **`{ ok
   - **Read / list VMs** from **`Get*.presenter.svelte.ts`** (e.g. **`BlogPostCommentViewModel`**) or from a **feature `index.ts`** when the project re-exports them (e.g. **`$lib/blogs`**).
   - **Screen-specific mutation result** types from **`…Page.presenter.svelte.ts`** when the parent passes that callback return type (e.g. **`PublicBlogMutationResultViewModel`**).
   Import **types only**, never the presenter class/singleton.
+- **Do not pass presenter objects as props:** avoid `presenter={somePresenter}` / `developersPresenter={...}` / `upsertOauthAppsPresenter={...}` on `$lib/ui` components. Instead pass **only what the child needs**:
+  - **State**: `itemsVm`, `status`, booleans/strings, etc. (`$derived(...)` in the parent if you want pure values).
+  - **Bindables**: `bind:formName`, `bind:open`, etc. when the child must edit parent-owned/presenter-owned `$state`.
+  - **Actions**: callbacks like `onSubmit`, `onRotateApiKey`, `onStartEdit` that call the presenter method in the parent.
+  This keeps components presentational and prevents “reach-through” coupling to presenter internals.
 - **Exception — shared feature modals:** a child may import **singleton presenters** from a **feature** `index.ts` (e.g. `$lib/blog`: `upsertBlogTopicModalPresenter`) when they are thin repository wrappers for `ActionVerificationModal`-style `execute`. The **list VM** still lives on the **page presenter**; after success, children call **`onTopicCreated(vm)`** / similar so the page presenter updates **in memory** (no refetch). See **Mutation flow B** below.
 
 ---

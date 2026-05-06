@@ -26,7 +26,8 @@ import { getNotificationPresenter, notificationRepository } from '$lib/notificat
 import { getSignaturesPresenter, signaturesRepository } from '$lib/signatures';
 import { getSetPresenter, upsertSetPresenter } from '$lib/sets';
 import { SetGridTablePresenter } from '$lib/sets/SetGridTable.presenter.svelte';
-import { workspaceSettingsPresenter } from '$lib/settings';
+import { settingsRepository, workspaceSettingsPresenter } from '$lib/settings';
+import { DevelopersSettingsPresenter } from '$lib/settings/DevelopersSettings.presenter.svelte';
 import { authenticationRepository } from '$lib/user-auth/index';
 import { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte';
 import { getAnalyticsPresenter } from '$lib/platform-analytics';
@@ -35,9 +36,12 @@ import { PlugGridTablePresenter } from '$lib/plugs/PlugGridTable.presenter.svelt
 import { PlugGridFilterBuilderPresenter } from '$lib/plugs/PlugGridFilterBuilder.presenter.svelte';
 import { SetGridFilterBuilderPresenter } from '$lib/sets/SetGridFilterBuilder.presenter.svelte';
 
+const developersSettingsPresenter = new DevelopersSettingsPresenter(settingsRepository, workspaceSettingsPresenter);
+
 const protectedSettingsPagePresenter = new ProtectedSettingsPagePresenter(
 	editorAccountSettingsPresenter,
 	workspaceSettingsPresenter,
+	developersSettingsPresenter,
 	authenticationRepository
 );
 

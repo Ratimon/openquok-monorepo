@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { DevelopersSettingsPresenter } from '$lib/settings/DevelopersSettings.presenter.svelte';
-
 	import { getRootPathAccount, getRootPathPayloadWizard } from '$lib/area-protected/getRootPathProtectedArea';
 	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 	import { route } from '$lib/utils/path';
@@ -12,14 +10,15 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = {
-		presenter: DevelopersSettingsPresenter;
 		apiKey: string | null;
 		apiKeyVisible: boolean;
 		canRotate: boolean;
 		rotating: boolean;
+		onSetApiKeyVisible: (visible: boolean) => void;
+		onRotateApiKey: () => void | Promise<void>;
 	};
 
-	let { presenter, apiKey, apiKeyVisible, canRotate, rotating }: Props = $props();
+	let { apiKey, apiKeyVisible, canRotate, rotating, onSetApiKeyVisible, onRotateApiKey }: Props = $props();
 
 	// /docs
 	const rootPathPublicDocs = getRootPathPublicDocs();
@@ -86,7 +85,7 @@
 			class="gap-2"
 			variant="ghost"
 			disabled={!apiKey}
-			onclick={() => presenter.setApiKeyVisible(!apiKeyVisible)}
+			onclick={() => onSetApiKeyVisible(!apiKeyVisible)}
 		>
 			<AbstractIcon
 				name={apiKeyVisible ? icons.Lock.name : icons.Eye.name}
@@ -109,7 +108,7 @@
 			class="gap-2"
 			variant="warning"
 			disabled={!apiKey || !canRotate || rotating}
-			onclick={() => presenter.rotateApiKey()}
+			onclick={() => onRotateApiKey()}
 		>
 			{#if rotating}
 				<AbstractIcon

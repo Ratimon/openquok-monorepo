@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { SignatureProgrammerModel } from '$lib/signatures';
-	import type { SignaturesPresenter } from '$lib/signatures/Signature.presenter.svelte';
+	import type { SignatureViewModel } from '$lib/signatures/GetSignature.presenter.svelte';
+	import type { UpdateSignatureInput, CreateSignatureInput } from '$lib/signatures/signature.types';
 
 	import { onMount, untrack } from 'svelte';
 	import { toast } from '$lib/ui/sonner';
@@ -16,10 +17,33 @@
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
 	type Props = {
-		presenter: SignaturesPresenter;
+		status: SignaturesStatus;
+		itemsVm: SignatureViewModel[];
+		showToastMessage: boolean;
+		toastMessage: string;
+		toastIsError: boolean;
+		onClearToast: () => void;
+		onLoadSignaturesForOrganization: (organizationId: string) => void | Promise<void>;
+		onCreateSignature: (
+			organizationId: string,
+			input: Omit<CreateSignatureInput, 'organizationId'>
+		) => Promise<boolean>;
+		onUpdateSignature: (id: string, input: UpdateSignatureInput) => Promise<boolean>;
+		onDeleteSignature: (id: string) => Promise<boolean>;
 	};
 
-	let { presenter: signaturesPresenter }: Props = $props();
+	let {
+		status,
+		itemsVm,
+		showToastMessage,
+		toastMessage,
+		toastIsError,
+		onClearToast,
+		onLoadSignaturesForOrganization,
+		onCreateSignature,
+		onUpdateSignature,
+		onDeleteSignature
+	}: Props = $props();
 
 	let createOpen = $state(false);
 	let editOpen = $state(false);
@@ -31,8 +55,8 @@
 	let isDefault = $state(false);
 	let autoAddValue = $state<'true' | 'false'>('false');
 
-	const busy = $derived(signaturesPresenter.status !== SignaturesStatus.IDLE);
-	const items = $derived(signaturesPresenter.itemsVm);
+	const busy = $derived(status !== SignaturesStatus.IDLE);
+	const items = $derived(itemsVm);
 	const organizationId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
 	onMount(() => {
@@ -42,14 +66,14 @@
 	$effect(() => {
 		const oid = organizationId;
 		if (!oid) return;
-		void signaturesPresenter.loadSignaturesForOrganization(oid);
+		void onLoadSignaturesForOrganization(oid);
 	});
 
 	$effect(() => {
-		if (!signaturesPresenter.showToastMessage) return;
-		if (signaturesPresenter.toastIsError) toast.error(signaturesPresenter.toastMessage);
-		else toast.success(signaturesPresenter.toastMessage);
-		signaturesPresenter.showToastMessage = false;
+		if (!showToastMessage) return;
+		if (toastIsError) toast.error(toastMessage);
+		else toast.success(toastMessage);
+		onClearToast();
 	});
 
 	function resetForm() {
@@ -96,7 +120,7 @@
 			toast.error(parsed.error.issues.map((i) => i.message).join(' '));
 			return;
 		}
-		const ok = await signaturesPresenter.create(oid, {
+		const ok = await onCreateSignature(oid, {
 			title: parsed.data.title,
 			content: parsed.data.content,
 			isDefault: parsed.data.isDefault
@@ -113,14 +137,14 @@
 			toast.error(parsed.error.issues.map((i) => i.message).join(' '));
 			return;
 		}
-		const ok = await signaturesPresenter.update(selected.id, parsed.data);
+		const ok = await onUpdateSignature(selected.id, parsed.data);
 		if (ok) editOpen = false;
 	}
 
 	async function handleDeleteSelected() {
 		const oid = organizationId;
 		if (!selected || !oid) return;
-		const ok = await signaturesPresenter.delete(selected.id);
+		const ok = await onDeleteSignature(selected.id);
 		if (ok) {
 			confirmDeleteOpen = false;
 			selected = null;
@@ -130,7 +154,7 @@
 	async function handleSetDefault(id: string) {
 		const oid = organizationId;
 		if (!oid) return;
-		await signaturesPresenter.update(id, { isDefault: true });
+		await onUpdateSignature(id, { isDefault: true });
 	}
 </script>
 
