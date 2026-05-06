@@ -353,7 +353,7 @@
 					</ul>
 					<Button
 						type="button"
-						variant="outline"
+						variant="ghost"
 						size="sm"
 						class="shrink-0 gap-1.5 border-base-300"
 						aria-label={`Add another ${socialProviderDisplayLabel(row.identifier)} connection`}

@@ -8,11 +8,12 @@
 	} from '$lib/settings';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
-	import * as Dialog from '$lib/ui/dialog';
-	import * as Field from '$lib/ui/field';
+	
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import * as Dialog from '$lib/ui/dialog';
+	import * as Field from '$lib/ui/field';
 
 	type Props = {
 		workspacesVm: WorkspaceCardViewModel[];
@@ -224,14 +225,13 @@
 		<h2 id="workspaces-heading" class="text-lg font-semibold text-base-content">
 			All Workspaces
 		</h2>
-		<button
+		<Button
 			type="button"
-			class="rounded-lg border border-base-300 bg-base-content px-4 py-2 text-sm font-medium text-base-100 shadow-sm hover:bg-base-content/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 			onclick={openCreateDialog}
 			disabled={loadingWorkspaces || createSubmitting}
 		>
 			Create New Workspace
-		</button>
+		</Button>
 	</div>
 	<div class="border-t border-base-300 px-6 pb-6 pt-4 space-y-4">
 		{#if loadingWorkspaces}
@@ -264,26 +264,27 @@
 								Current Workspace
 							</span>
 						{:else}
-							<button
+							<Button
 								type="button"
-								class="rounded-full border border-base-300 bg-base-100 px-4 py-2 text-sm font-medium text-base-content shadow-sm hover:bg-base-content/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+								variant="ghost"
 								onclick={() => switchWorkspace(org.id)}
 								disabled={leavingWorkspace}
 							>
 								Switch
-							</button>
+							</Button>
 						{/if}
 						<div class="relative" data-workspace-menu>
-							<button
+							<Button
 								type="button"
-								class="rounded-full p-2 border border-base-300 bg-base-100 text-base-content/70 hover:bg-base-content/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+								variant="ghost"
+								size="icon"
 								aria-label="Workspace options"
 								aria-expanded={openMenuOrgId === org.id}
 								aria-haspopup="true"
 								onclick={() => openMenuOrgId = openMenuOrgId === org.id ? null : org.id}
 							>
 								<AbstractIcon name={icons.Cog.name} width="16" height="16" focusable="false" />
-							</button>
+							</Button>
 							{#if openMenuOrgId === org.id}
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
 								<div
@@ -353,14 +354,9 @@
 			{/if}
 
 			{#if canInviteInCurrentWorkspace}
-				<button
-					type="button"
-					class="rounded-lg border-0 bg-base-content px-4 py-2 text-sm font-medium text-base-100 shadow-sm hover:bg-base-content/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
-					onclick={openInviteDialog}
-					disabled={loadingTeam || inviting}
-				>
+				<Button type="button" onclick={openInviteDialog} disabled={loadingTeam || inviting}>
 					{inviting ? 'Sending…' : 'Add another member'}
-				</button>
+				</Button>
 			{:else}
 				<p class="text-xs text-base-content/60">
 					Only workspace admins can invite new members.
@@ -406,14 +402,14 @@
 							{/if}
 						</p>
 					</div>
-					<button
+					<Button
 						type="button"
-						class="rounded-lg border-0 bg-base-content px-3 py-1.5 text-sm font-medium text-base-100 shadow-sm hover:bg-base-content/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+						size="sm"
 						onclick={() => handleAcceptPendingInvite(invite.id)}
 						disabled={acceptingInviteId !== null}
 					>
 						{acceptingInviteId === invite.id ? 'Accepting…' : 'Accept'}
-					</button>
+					</Button>
 				</div>
 			{/each}
 		{/if}
@@ -470,11 +466,7 @@
 			</createWorkspaceForm.Field>
 			<Dialog.Footer>
 				<Dialog.Close>
-					<Button
-						type="button"
-						variant="ghost"
-						class="border border-base-content text-base-content hover:bg-base-content/10"
-					>
+					<Button type="button" variant="outline">
 						Cancel
 					</Button>
 				</Dialog.Close>
@@ -483,8 +475,7 @@
 						<Button
 							type="submit"
 							form="create-workspace-form"
-							variant="ghost"
-							class="border-0 bg-base-content text-base-100 hover:bg-base-content/90"
+							variant="primary"
 							disabled={state.isSubmitting || createSubmitting}
 						>
 							{state.isSubmitting || createSubmitting ? 'Creating…' : 'Create New Workspace'}
@@ -573,11 +564,7 @@
 			</div>
 			<Dialog.Footer>
 				<Dialog.Close>
-					<Button
-						type="button"
-						variant="ghost"
-						class="border border-base-content text-base-content hover:bg-base-content/10"
-					>
+					<Button type="button" variant="outline">
 						Cancel
 					</Button>
 				</Dialog.Close>
@@ -586,8 +573,7 @@
 						<Button
 							type="submit"
 							form="invite-member-form"
-							variant="ghost"
-							class="border-0 bg-base-content text-base-100 hover:bg-base-content/90"
+							variant="primary"
 							disabled={state.isSubmitting || inviting}
 						>
 							{state.isSubmitting || inviting ? 'Sending…' : 'Send invite'}

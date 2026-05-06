@@ -19,7 +19,9 @@
 	<Dialog.Content>
 		<form id="name-form" method="dialog" onsubmit={onSubmit} class="space-y-4">
 			<Dialog.Header>
-				<Dialog.Title>Update full name</Dialog.Title>
+				<Dialog.Title>
+					Update full name
+				</Dialog.Title>
 			</Dialog.Header>
 
 			<form.Field name="fullName">

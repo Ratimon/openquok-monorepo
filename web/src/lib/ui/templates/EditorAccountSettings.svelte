@@ -11,8 +11,8 @@
 	import { toast } from '$lib/ui/sonner';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Field from '$lib/ui/field';
-	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Avatar from '$lib/ui/components/avatar';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import AvatarUploadForm from '$lib/ui/components/AvatarUploadForm.svelte';
 	import UpdateFullnameModal from '$lib/ui/components/settings/UpdateFullnameModal.svelte';
 	import UpdateWebsiteModal from '$lib/ui/components/settings/UpdateWebsiteModal.svelte';
@@ -224,14 +224,15 @@
 				</p>
 			</div>
 			<div class="shrink-0">
-				<button
+				<Button
 					type="button"
-					class="rounded-full border border-base-300 bg-base-100 px-4 py-2 text-sm font-medium text-base-content shadow-sm hover:bg-base-content/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+					variant="ghost"
+					class="!rounded-full"
 					onclick={openNameModal}
 					disabled={loadingProfile}
 				>
 					Update full name
-				</button>
+				</Button>
 			</div>
 		</div>
 		<!-- Password row -->
@@ -246,14 +247,15 @@
 				</p>
 			</div>
 			<div class="shrink-0">
-				<button
+				<Button
 					type="button"
-					class="rounded-full border border-base-300 bg-base-100 px-4 py-2 text-sm font-medium text-base-content shadow-sm hover:bg-base-content/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+					variant="ghost"
+					class="!rounded-full"
 					onclick={requestChangePasswordEmail}
 					disabled={sendingChangePasswordEmail}
 				>
 					{sendingChangePasswordEmail ? 'Sending…' : 'Change password'}
-				</button>
+				</Button>
 			</div>
 		</div>
 
@@ -287,14 +289,15 @@
 				{/if}
 			</div>
 			<div class="shrink-0">
-				<button
+				<Button
 					type="button"
-					class="rounded-full border border-base-300 bg-base-100 px-4 py-2 text-sm font-medium text-base-content shadow-sm hover:bg-base-content/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+					variant="ghost"
+					class="!rounded-full"
 					onclick={openPictureModal}
 					disabled={loadingProfile}
 				>
 					Update picture
-				</button>
+				</Button>
 			</div>
 		</div>
 
@@ -310,14 +313,15 @@
 				</p>
 			</div>
 			<div class="shrink-0">
-				<button
+				<Button
 					type="button"
-					class="rounded-full border border-base-300 bg-base-100 px-4 py-2 text-sm font-medium text-base-content shadow-sm hover:bg-base-content/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+					variant="ghost"
+					class="!rounded-full"
 					onclick={openWebsiteModal}
 					disabled={loadingProfile}
 				>
 					Update website
-				</button>
+				</Button>
 			</div>
 		</div>
 	</div>

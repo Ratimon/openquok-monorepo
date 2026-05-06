@@ -4,7 +4,6 @@
 	import { getContext } from 'svelte';
 	import { toast } from '$lib/ui/sonner';
 	import { SETTINGS_SIDEBAR_KEY } from '$lib/ui/templates/sidebar-secondary-context';
-	import SidebarSecondary from '$lib/ui/templates/SidebarSecondary.svelte';
 	import {
 		protectedSettingsPagePresenter,
 		signatureSettingPresenter,
@@ -16,6 +15,7 @@
 	import EditorMetric from '$lib/ui/templates/EditorMetric.svelte';
 	import EditorWorkspaceSettings from '$lib/ui/templates/EditorWorkspaceSettings.svelte';
 	import SignaturesList from '$lib/ui/components/signature/SignaturesList.svelte';
+	import SidebarSecondary from '$lib/ui/templates/SidebarSecondary.svelte';
 	import UpdateDeveloperAccess from '$lib/ui/components/settings/UpdateDeveloperAccess.svelte';
 	import UpdateDeveloperOauth from '$lib/ui/components/settings/UpdateDeveloperOauth.svelte';
 	import { DevelopersSettingsPresenter, DevelopersSettingsStatus } from '$lib/settings/DevelopersSettings.presenter.svelte';

@@ -336,7 +336,11 @@
 					{/if}
 				</div>
 
-				<Button variant="secondary" href={calendarPath} class="gap-2">
+				<Button
+					variant="ghost"
+					href={calendarPath}
+					class="gap-2"
+				>
 					<AbstractIcon name={icons.CalendarClock.name} class="size-4 shrink-0" width="16" height="16" />
 					Open calendar to configure internal rule
 				</Button>

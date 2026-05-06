@@ -14,7 +14,7 @@
                 warning: "bg-warning text-warning-content hover:bg-warning/90",
                 outline:
                     "border-input bg-accent/70 text-neutral hover:bg-accent-content hover:text-accent border",
-                ghost: "hover:bg-accent hover:text-accent-content",
+                ghost: "border border-base-300 bg-base-100 text-sm font-medium text-base-content shadow-sm hover:bg-base-content/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                 link: "text-primary underline-offset-4 hover:underline",
 				red: 'focus-visible:outline-red-500 border border-red-500/20 hover:bg-red-500/20 bg-red-500/10 text-red-600',
 				yellow: 'focus-visible:outline-yellow-500 border border-yellow-500/20 hover:bg-yellow-500/20 bg-yellow-500/10 text-yellow-600',

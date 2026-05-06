@@ -52,7 +52,7 @@
 
 		<div class="flex items-center gap-2">
 			<Button
-                variant="outline"
+                variant="ghost"
                 href={publicDocsPath}
                 target="_blank"
             >
@@ -78,7 +78,7 @@
 	<div class="mt-4 flex flex-wrap items-center gap-2">
 		<Button
 			class="gap-2"
-			variant="outline"
+			variant="secondary"
 			disabled={!apiKey}
 			onclick={() => presenter.setApiKeyVisible(!apiKeyVisible)}
 		>
@@ -92,7 +92,7 @@
 		</Button>
 		<Button
 			class="gap-2"
-			variant="outline"
+			variant="primary"
 			disabled={!apiKey}
 			onclick={() => apiKey && copyToClipboard(apiKey)}
 		>
@@ -101,7 +101,7 @@
 		</Button>
 		<Button
 			class="gap-2"
-			variant="outline"
+			variant="warning"
 			disabled={!apiKey || !canRotate || rotating}
 			onclick={() => presenter.rotateApiKey()}
 		>
@@ -117,7 +117,12 @@
 			{/if}
 			{rotating ? 'Rotating…' : 'Rotate Key'}
 		</Button>
-		<Button class="gap-2" variant="outline" href={publicDocsPath} target="_blank">
+		<Button
+            class="gap-2"
+            variant="outline"
+            href={publicDocsPath}
+            target="_blank"
+        >
 			<AbstractIcon name={icons.Sparkles.name} class="h-4 w-4 shrink-0" width="16" height="16" />
 			Open Wizard
 		</Button>
@@ -127,12 +132,19 @@
 <div class="rounded-xl border border-base-300 bg-base-200 p-6">
 	<div class="flex items-start justify-between gap-4">
 		<div>
-			<h3 class="text-base font-semibold">CLI &amp; AI Skills</h3>
+			<h3 class="text-base font-semibold">
+                CLI &amp; AI Skills
+            </h3>
 			<p class="text-sm text-base-content/70">
 				Install the CLI and configure your environment variable for programmatic access.
 			</p>
 		</div>
-		<Button variant="outline" onclick={() => toast.message('Docs link coming soon')}>Docs</Button>
+		<Button
+            variant="ghost"
+            onclick={() => toast.message('Docs link coming soon')}
+        >
+            Docs
+        </Button>
 	</div>
 
 	<div class="mt-4 space-y-3">
