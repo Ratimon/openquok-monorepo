@@ -79,6 +79,7 @@ export class OauthController {
         }
     };
 
+    // to do : move to Approved-apps controller
     /** GET /oauth/approved-apps (requires user JWT) */
     approvedApps = async (req: Request, res: Response, next: NextFunction) => {
         try {
