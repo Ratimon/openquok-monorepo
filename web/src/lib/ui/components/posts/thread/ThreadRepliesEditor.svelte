@@ -66,7 +66,7 @@
 				<span class="text-base-content/90 font-medium">
 					Instagram:
 				</span>
-				Each item is published as a comment on your post (chained as replies when the network supports it). There is no extra Threads-style publish wait.
+				Each item is published as a comment on your post (chained as replies when the network supports it).
 			</p>
 		{/if}
 

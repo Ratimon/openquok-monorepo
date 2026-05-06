@@ -27,6 +27,7 @@
 		onRepeatChange: (value: RepeatIntervalKey | null) => void;
 		onDeletePost?: () => void | Promise<void>;
 		onSaveDraft: () => void | Promise<void>;
+		saveDraftLabel?: string;
 		onSchedule: () => void | Promise<void>;
 		footerVariant?: FooterVariant;
 		onSaveContentSet?: () => void | Promise<void>;
@@ -48,6 +49,7 @@
 		onRepeatChange,
 		onDeletePost,
 		onSaveDraft,
+		saveDraftLabel = 'Save as draft',
 		onSchedule,
 		footerVariant = 'schedulePost',
 		onSaveContentSet = undefined
@@ -90,7 +92,7 @@
 			{/if}
 			<DatePicker bind:value={scheduledLocal} disabled={busy} />
 			<Button type="button" variant="secondary" disabled={busy} onclick={() => void onSaveDraft()}>
-				Save as draft
+				{saveDraftLabel}
 			</Button>
 			<Button
 				type="button"

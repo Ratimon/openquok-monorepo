@@ -10,6 +10,7 @@ import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.pre
 import type {
 	PostMediaViewModel,
 	PostTagViewModel,
+	CreatePostProgrammerModel,
 	PostsRepository,
 	RepeatIntervalKey
 } from '$lib/posts/Post.repository.svelte';
@@ -1070,6 +1071,79 @@ export class CreateSocialPostPresenter {
 		} finally {
 			this.busy = false;
 		}
+	}
+
+	/**
+	 * Build a programmatic (public API) create-post payload preview for the current composer state.
+	 * Matches backend `{api.prefix}/public/posts` schemas: **organization id is derived from the token/key**.
+	 *
+	 * This is used by the payload wizard page to let users compose with the normal UI and copy JSON.
+	 */
+	getProgrammaticCreatePostPayloadPreview(
+		status: CreatePostProgrammerModel['status']
+	):
+		| { ok: true; payload: Omit<CreatePostProgrammerModel, 'organizationId'> }
+		| { ok: false; error: string } {
+		const workspaceId = this.workspaceIdForSession;
+		if (!workspaceId) return { ok: false, error: 'Select a workspace.' };
+		if (this.selectedIds.length === 0) return { ok: false, error: 'Select at least one channel.' };
+		if (!this.scheduledLocal.trim()) return { ok: false, error: 'Pick a schedule time.' };
+
+		// NOTE: This method must be pure (no `$state` writes). It is called from `$derived(...)` in the payload wizard page.
+		// `editorBody` is the source of truth for current UI edits; `globalBody` / `bodiesByIntegrationId` may lag until persisted.
+		const plain = stripHtmlToPlainText(this.editorBody);
+		const hasText = plain.length > 0;
+		const hasMedia = this.postMediaItems.length > 0;
+		if (!hasText && !hasMedia) return { ok: false, error: 'Write something or attach at least one image.' };
+		if (hasText && plain.length < this.minimumCharacters) {
+			return { ok: false, error: `Please add at least ${this.minimumCharacters} characters.` };
+		}
+		if (plain.length > this.softCharLimit) {
+			return { ok: false, error: `Too long for this mode (${plain.length}/${this.softCharLimit}).` };
+		}
+
+		const scheduledAt = datetimeLocalToIso(this.scheduledLocal);
+		if (!scheduledAt) return { ok: false, error: 'Schedule time is invalid.' };
+
+		// Scheduled payload should be schedulable via the UI (same checks as `schedulePost()`).
+		if (status === 'scheduled') {
+			for (const id of this.selectedIds) {
+				const ch = this.baseSocialChannelsVm.find((c) => c.id === id);
+				if (!isChannelSchedulable(ch)) {
+					return { ok: false, error: unschedulableReason(ch) ?? 'Reconnect this channel first.' };
+				}
+			}
+			if (this.scheduleValidationError) {
+				return { ok: false, error: this.scheduleValidationError };
+			}
+		}
+
+		const body = this.mode === 'global' ? this.editorBody : this.globalBody;
+		const overrides =
+			this.mode === 'custom' && this.focusedIntegrationId
+				? { ...this.bodiesByIntegrationId, [this.focusedIntegrationId]: this.editorBody }
+				: this.mode === 'custom'
+					? this.bodiesByIntegrationId
+					: undefined;
+		const sessionPayload: CreatePostProgrammerModel = {
+			organizationId: workspaceId,
+			body,
+			...(overrides ? { bodiesByIntegrationId: overrides } : {}),
+			...(Object.keys(this.providerSettingsByIntegrationId ?? {}).length
+				? { providerSettingsByIntegrationId: this.providerSettingsByIntegrationId }
+				: {}),
+			...(this.postMediaItems.length ? { media: this.postMediaItems } : {}),
+			integrationIds: this.selectedIds,
+			isGlobal: this.mode === 'global',
+			scheduledAt,
+			repeatInterval: this.repeatInterval,
+			tagNames: this.selectedTagNames,
+			status
+		};
+
+		// Programmatic/public schema omits `organizationId` — it is derived from auth.
+		const { organizationId: _omit, ...programmatic } = sessionPayload;
+		return { ok: true, payload: programmatic };
 	}
 
 	async saveAsDraft(): Promise<boolean> {
