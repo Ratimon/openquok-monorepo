@@ -15,6 +15,7 @@ Guides for using tools for different **admin** roles and how to grant the roles 
 
 <CardGrid>
 <LinkCard title="Super admin (first operator)" description="Sign up, then promote your user in Supabase — do this after config and deployment" href="/docs/admin/super-admin" />
+<LinkCard title="Security secrets" description="Set SECURITY_SECRET for invite links and OAuth2 hashing" href="/docs/admin/security-secrets" />
 </CardGrid>
 
 ## Related Section(s)

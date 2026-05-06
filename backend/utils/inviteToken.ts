@@ -22,11 +22,11 @@ function base64UrlDecode(str: string): Buffer {
 
 /**
  * Sign an invite payload. Returns a token string (payload.signature).
- * Secret: INVITE_TOKEN_SECRET or JWT_SECRET.
+ * Secret: SECURITY_SECRET.
  */
 export function signInviteToken(payload: Omit<InviteTokenPayload, "expiresAt" | "id">, secret: string): string {
     if (!secret) {
-        throw new Error("Invite token secret is not configured (set INVITE_TOKEN_SECRET or JWT_SECRET)");
+        throw new Error("Invite token secret is not configured (set SECURITY_SECRET)");
     }
     const expiresAt = new Date(Date.now() + TTL_MS).toISOString();
     const id = randomBytes(6).toString("hex");

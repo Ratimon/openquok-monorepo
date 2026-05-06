@@ -13,6 +13,9 @@ import { IntegrationController } from "./IntegrationController";
 import { PublicIntegrationController } from "./PublicIntegrationController";
 import { NotificationController } from "./NotificationController";
 import { PostsController } from "./PostsController";
+import { PublicPostsController } from "./PublicPostsController";
+import { OauthAppController } from "./OauthAppController";
+import { OauthController } from "./OauthController";
 import { ThirdPartyController } from "./ThirdPartyController";
 import { SignatureController } from "./SignatureController";
 import { SetsController } from "./SetsController";
@@ -32,6 +35,8 @@ import {
     integrationManager,
     notificationService,
     postsService,
+    oauthAppService,
+    oauthService,
     mediaService,
     signatureService,
     setsService,
@@ -67,6 +72,9 @@ export const integrationController = new IntegrationController(integrationConnec
 export const publicIntegrationController = new PublicIntegrationController(integrationConnectionService);
 export const notificationController = new NotificationController(notificationService);
 export const postsController = new PostsController(postsService);
+export const publicPostsController = new PublicPostsController(postsService);
+export const oauthAppController = new OauthAppController(oauthAppService);
+export const oauthController = new OauthController(oauthService);
 export const thirdPartyController = new ThirdPartyController();
 export const signatureController = new SignatureController(signatureService);
 export const setsController = new SetsController(setsService);

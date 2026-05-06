@@ -14,6 +14,7 @@ import {
     mediaRepository,
     signatureRepository,
     setsRepository,
+    oauthAppRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -37,6 +38,8 @@ import { MediaService } from "./MediaService";
 import { SignatureService } from "./SignatureService";
 import { SetsService } from "./SetsService";
 import { AnalyticsService } from "./AnalyticsService";
+import { OauthAppService } from "./OauthAppService";
+import { OauthService } from "./OauthService";
 import { config } from "../config/GlobalConfig";
 
 export const integrationManager = new IntegrationManager();
@@ -122,6 +125,9 @@ export const integrationConnectionService = new IntegrationConnectionService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
+
+export const oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository);
+export const oauthService = new OauthService(oauthAppRepository, organizationRepository);
 export const postsService = new PostsService(
     postsRepository,
     integrationConnectionService,

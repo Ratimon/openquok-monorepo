@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import type { OrganizationApiRequest } from "../middlewares/organizationApiKey";
+import type { ProgrammaticAuthRequest } from "../middlewares/programmaticAuth";
 import type { IntegrationConnectionService } from "../services/IntegrationConnectionService";
 
 /**
@@ -21,7 +21,7 @@ export class PublicIntegrationController {
     /** GET /public/integrations */
     listIntegrations = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const organizationId = (req as OrganizationApiRequest).organization!.id;
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
             const data = await this.integrationConnectionService.publicListIntegrations(organizationId);
             res.status(200).json(data);
         } catch (error) {
@@ -32,7 +32,7 @@ export class PublicIntegrationController {
     /** GET /public/social/:integration — OAuth URL (same responsibility as reference `getIntegrationUrl`). */
     getIntegrationUrl = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const organizationId = (req as OrganizationApiRequest).organization!.id;
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
             const { integration } = req.params as { integration: string };
             const q = req.query as { refresh?: string };
             const data = await this.integrationConnectionService.getIntegrationUrlPublicApi(organizationId, integration, {
@@ -47,7 +47,7 @@ export class PublicIntegrationController {
     /** DELETE /public/integrations/:id */
     deleteChannel = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const organizationId = (req as OrganizationApiRequest).organization!.id;
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
             const { id } = req.params as { id: string };
             await this.integrationConnectionService.publicDeleteChannel(organizationId, id);
             res.status(200).json({ id });

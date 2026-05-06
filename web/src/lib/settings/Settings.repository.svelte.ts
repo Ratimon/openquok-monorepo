@@ -11,6 +11,7 @@ export interface SettingsConfig {
 		getById: (id: string) => string;
 		update: (id: string) => string;
 		delete: (id: string) => string;
+		rotateApiKey: (id: string) => string;
 		getTeam: (id: string) => string;
 		invite: (id: string) => string;
 		removeTeamMember: (orgId: string, userId: string) => string;
@@ -53,6 +54,12 @@ export interface ListMyOrganizationsResponseDto {
 }
 
 export interface CreateOrganizationResponseDto {
+	success: boolean;
+	data: OrganizationDto;
+	message?: string;
+}
+
+export interface RotateApiKeyResponseDto {
 	success: boolean;
 	data: OrganizationDto;
 	message?: string;
@@ -233,6 +240,26 @@ export class SettingsRepository {
 			});
 			if (ok && createOrganizationDto?.success && createOrganizationDto.data) {
 				return toOrganizationPm(createOrganizationDto.data);
+			}
+			return null;
+		} catch {
+			return null;
+		}
+	}
+
+	public async rotateApiKey(organizationId: string): Promise<OrganizationProgrammerModel | null> {
+		try {
+			const { ok, data: rotateApiKeyDto } = await this.httpGateway.request<RotateApiKeyResponseDto>({
+				method: HttpMethod.POST,
+				url: this.config.endpoints.rotateApiKey(organizationId),
+				withCredentials: true
+			});
+			if (ok && rotateApiKeyDto?.success && rotateApiKeyDto.data) {
+				const updated = toOrganizationPm(rotateApiKeyDto.data);
+				this.organizationsPm = this.organizationsPm.map((o) =>
+					o.id === organizationId ? { ...o, apiKey: updated.apiKey, updatedAt: updated.updatedAt } : o
+				);
+				return updated;
 			}
 			return null;
 		} catch {

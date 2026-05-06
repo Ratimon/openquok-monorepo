@@ -11,7 +11,7 @@ import { feedbackRouter } from "./FeedbackRoute.js";
 import { blogRouter } from "./BlogRoute.js";
 import { imageRouter } from "./ImageRoute.js";
 import { mediaRouter } from "./MediaRoute.js";
-import { integrationsRouter } from "./integrations/index.js";
+import { integrationsRouter } from "./integrationApi/index.js";
 import { publicApiRouter } from "./publicApi/index.js";
 import { notificationRouter } from "./NotificationRoute.js";
 import { postRouter } from "./PostRoutes.js";
@@ -19,6 +19,8 @@ import { thirdPartyRouter } from "./ThirdPartyRoute.js";
 import { signatureRouter } from "./SignatureRoute.js";
 import { setsRouter } from "./SetsRoute.js";
 import { analyticsRouter } from "./AnalyticsRoute.js";
+import { oauthAppRouter } from "./OauthAppRoute.js";
+import { oauthRouter } from "./OauthRoute.js";
 import { registerBullBoardRoutes, registerBullBoardSessionRoutes } from "./BullBoardRoute.js";
 import { logger } from "../utils/Logger";
 
@@ -27,9 +29,9 @@ import { logger } from "../utils/Logger";
  *
  * 1. **No user JWT** — paths listed in `middlewares/core.ts` `shouldSkipApiAuth` (e.g. auth, company,
  *    blog read paths, GET `/integrations` catalog only).
- * 2. **User JWT** — most of `/integrations/*` (see `routes/integrations`), `/settings`, etc.
+ * 2. **User JWT** — most of `/integrations/*` (see `routes/integrationApi`), `/settings`, etc.
  * 3. **Organization API key** — `{prefix}/public/*` (e.g. `/api/v1/public/*`); `core.ts` lists `/public` in `publicPaths`
- *    so JWT is skipped. Programmatic integration routes use `requireOrganizationApiKey` (`routes/publicApi/integrationRoutes.ts`);
+ *    so JWT is skipped. Programmatic integration routes use `requireOrganizationApiKey` (`routes/publicApi/IntegrationRoutes.ts`);
  *    `GET {prefix}/public/posts/:postId/comments` is anonymous.
  */
 export async function mountAllRoutes(app: Express, config: ConfigObject): Promise<boolean> {
@@ -59,6 +61,8 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     apiRouter.use("/signatures", signatureRouter);
     apiRouter.use("/sets", setsRouter);
     apiRouter.use("/analytics", analyticsRouter);
+    apiRouter.use("/oauth-apps", oauthAppRouter);
+    apiRouter.use("/oauth", oauthRouter);
     app.use(prefix, apiRouter);
 
     logger.info({
@@ -82,6 +86,8 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
         signatures: `${prefix}/signatures`,
         sets: `${prefix}/sets`,
         analytics: `${prefix}/analytics`,
+        oauthApps: `${prefix}/oauth-apps`,
+        oauth: `${prefix}/oauth`,
     });
     return true;
 }

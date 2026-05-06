@@ -17,6 +17,7 @@ import { NotificationRepository } from "./NotificationRepository";
 import { PostsRepository } from "./PostsRepository";
 import { SignatureRepository } from "./SignatureRepository";
 import { SetsRepository } from "./SetsRepository";
+import { OauthAppRepository } from "./OauthAppRepository";
 
 export const refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
 export const userRepository = new UserRepository(supabaseServiceClientConnection);
@@ -53,6 +54,7 @@ export const notificationRepository = new NotificationRepository(supabaseService
 export const postsRepository = new PostsRepository(supabaseServiceClientConnection);
 export const signatureRepository = new SignatureRepository(supabaseServiceClientConnection);
 export const setsRepository = new SetsRepository(supabaseServiceClientConnection);
+export const oauthAppRepository = new OauthAppRepository(supabaseServiceClientConnection);
 
 export { RefreshTokenRepository } from "./RefreshTokenRepository";
 export { UserRepository } from "./UserRepository";
@@ -77,3 +79,4 @@ export { NotificationRepository } from "./NotificationRepository";
 export { PostsRepository } from "./PostsRepository";
 export { SignatureRepository } from "./SignatureRepository";
 export { SetsRepository } from "./SetsRepository";
+export { OauthAppRepository } from "./OauthAppRepository";

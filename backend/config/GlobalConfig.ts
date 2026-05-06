@@ -143,8 +143,15 @@ export const config: ConfigObject = {
         disableRegistration: getEnvBoolean("DISABLE_REGISTRATION", false),
         /** When true, allow cookie in header for dev (NOT_SECURED). */
         notSecured: getEnvBoolean("NOT_SECURED", false),
+        /** Shared secret for security-sensitive deterministic signing/hashing. */
+        securitySecret: getEnv("SECURITY_SECRET", ""),
         /** Secret for signing organization invite tokens. Required for invite-by-email. */
-        inviteTokenSecret: getEnv("INVITE_TOKEN_SECRET", getEnv("JWT_SECRET", "")),
+        inviteTokenSecret: getEnv("SECURITY_SECRET", ""),
+        /**
+         * Secret key used for hashing programmatic OAuth2 secrets/tokens (HMAC).
+         * Required in production; fallback keeps local dev friction low.
+         */
+        programmaticTokenSecret: getEnv("SECURITY_SECRET", ""),
     },
 
     /** Email (verification, welcome). When enabled, verification emails are sent. */

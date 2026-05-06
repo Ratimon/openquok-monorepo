@@ -13,7 +13,7 @@
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import DeleteDialog from '$lib/ui/components/posts/DeleteDialog.svelte';
+	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 	import ComposerMediaToolbar from '$lib/ui/components/posts/ComposerMediaToolbar.svelte';
 	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
 	import { toast } from '$lib/ui/sonner';
@@ -244,7 +244,7 @@
 	</div>
 </div>
 
-<DeleteDialog
+<DeleteModal
 	bind:open={confirmOpen}
 	title="Are you sure?"
 	description="This action is irreversible. Are you sure you want to go back to global mode?"

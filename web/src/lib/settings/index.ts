@@ -13,6 +13,7 @@ const settingsConfig: SettingsConfig = {
 		getById: (id) => `${base}/${id}`,
 		update: (id) => `${base}/${id}`,
 		delete: (id) => `${base}/${id}`,
+		rotateApiKey: (id) => `${base}/${id}/rotate-api-key`,
 		getTeam: (id) => `${base}/${id}/team`,
 		invite: (id) => `${base}/${id}/invite`,
 		removeTeamMember: (orgId, userId) => `${base}/${orgId}/team/${userId}`,

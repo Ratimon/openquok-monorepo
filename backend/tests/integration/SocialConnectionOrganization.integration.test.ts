@@ -13,7 +13,7 @@ const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
 const authPath = `${apiPrefix}/auth`;
 const usersPath = `${apiPrefix}/users`;
 const settingsPath = `${apiPrefix}/settings`;
-/** Programmatic integration routes — see `routes/publicApi/integrationRoutes.ts` (`{apiPrefix}/public/...`). */
+/** Programmatic integration routes — see `routes/publicApi/IntegrationRoutes.ts` (`{apiPrefix}/public/...`). */
 const publicProgrammaticBase = `${apiPrefix}/public`;
 /** Session integration routes — see `routes/integrationRoutes.ts`. */
 const sessionIntegrationsBase = `${apiPrefix}/integrations`;
@@ -150,7 +150,7 @@ describe("Social connection (organization programmatic API)", () => {
         it("responds 401 when the key is not a registered organization API key", async () => {
             const res = await supertest(app)
                 .get(`${publicProgrammaticBase}/is-connected`)
-                .set("Authorization", "co_not_a_real_key_000000000000000000000000");
+                .set("Authorization", "opo_not_a_real_key_000000000000000000000000");
             expect(res.status).toBe(401);
             expect(res.body).toEqual({ msg: "Invalid API key" });
         });

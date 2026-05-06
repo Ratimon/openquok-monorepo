@@ -186,6 +186,12 @@ export type CreatePostInput = {
     status: "draft" | "scheduled";
 };
 
+/**
+ * Programmatic post creation input (organization API key auth).
+ * No auth user is available; `created_by_user_id` is stored as null.
+ */
+export type CreatePostProgrammaticInput = Omit<CreatePostInput, "authUserId">;
+
 export type PostGroupDetails = {
     postGroup: string;
     organizationId: string;
@@ -303,7 +309,8 @@ export class PostsService {
 
     private async buildPostGroupInsert(input: {
         organizationId: string;
-        authUserId: string;
+        /** Auth user id (Supabase auth.uid()) when called via JWT routes. */
+        authUserId?: string | null;
         postGroup: string;
         body: string;
         bodiesByIntegrationId?: Record<string, string> | null;
@@ -317,10 +324,15 @@ export class PostsService {
         status: "draft" | "scheduled";
         /** When scheduling and this flag is true, skip the "slot taken" check. */
         allowTakenSlot?: boolean;
+        /**
+         * Programmatic API key auth: skip membership checks and do not attempt to resolve `created_by_user_id`.
+         * Only safe when the caller is already scoped to `organizationId` by the API key.
+         */
+        skipMembershipCheck?: boolean;
     }): Promise<{ postGroup: string; toInsert: SocialPostInsert[]; tagIds: string[] }> {
         const {
             organizationId,
-            authUserId,
+            authUserId = null,
             postGroup,
             body,
             bodiesByIntegrationId,
@@ -333,9 +345,15 @@ export class PostsService {
             tagNames,
             status,
             allowTakenSlot = false,
+            skipMembershipCheck = false,
         } = input;
 
-        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        if (!skipMembershipCheck) {
+            if (!authUserId) {
+                throw new AppError("Not authenticated", 401);
+            }
+            await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        }
 
         const rows = await this.integrationService.listByOrganization(organizationId);
         const allowed = new Set(rows.filter((r) => r.deleted_at == null).map((r) => r.id));
@@ -380,8 +398,11 @@ export class PostsService {
         const normalizedTagNames = [...new Set(tagNames.map((t) => t.trim()).filter(Boolean))].slice(0, 50);
         const tagIds = await this.resolveTagIds(organizationId, normalizedTagNames);
 
-        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
-        const createdByUserId = userId ?? null;
+        let createdByUserId: string | null = null;
+        if (!skipMembershipCheck && authUserId) {
+            const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+            createdByUserId = userId ?? null;
+        }
 
         const baseSettings = { isGlobal, repeatInterval: repeatInterval ?? null };
         const intervalDays = repeatIntervalToDays(repeatInterval);
@@ -439,12 +460,45 @@ export class PostsService {
         posts: SocialPostLike[];
     }> {
         const postGroup = this.postsRepository.newPostGroup();
-        const { toInsert, tagIds } = await this.buildPostGroupInsert({ ...input, postGroup });
+        const { toInsert, tagIds } = await this.buildPostGroupInsert({ ...input, postGroup, skipMembershipCheck: false });
         const inserted = await this.postsRepository.insertPostGroup(toInsert);
         await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
         await this.persistThreadRepliesFromProviderSettings({
             organizationId: input.organizationId,
             authUserId: input.authUserId,
+            posts: inserted,
+            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
+        });
+        const out = { postGroup, posts: inserted };
+        void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
+        await this._invalidatePostMutationCaches({
+            organizationId: input.organizationId,
+            postGroup,
+            postIds: inserted.map((p) => p.id),
+        });
+        return out;
+    }
+
+    /**
+     * Programmatic `{api.prefix}/public/posts` create endpoint (org API key auth).
+     * Caller is scoped to organization by API key; membership checks are skipped.
+     */
+    async createPostProgrammatic(input: CreatePostProgrammaticInput): Promise<{
+        postGroup: string;
+        posts: SocialPostLike[];
+    }> {
+        const postGroup = this.postsRepository.newPostGroup();
+        const { toInsert, tagIds } = await this.buildPostGroupInsert({
+            ...input,
+            postGroup,
+            skipMembershipCheck: true,
+        });
+        const inserted = await this.postsRepository.insertPostGroup(toInsert);
+        await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+        // Thread replies still persist (created_by_user_id stays null).
+        await this.persistThreadRepliesFromProviderSettings({
+            organizationId: input.organizationId,
+            authUserId: null,
             posts: inserted,
             providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
         });
@@ -507,6 +561,52 @@ export class PostsService {
         return factory();
     }
 
+    /**
+     * Programmatic calendar list (org API key auth).
+     * Matches `listPostsForCalendar` behavior but skips membership checks.
+     */
+    async listPostsForCalendarProgrammatic(params: {
+        organizationId: string;
+        startIso: string;
+        endIso: string;
+        integrationIds?: string[] | null;
+    }): Promise<SocialPostLike[]> {
+        const { organizationId, startIso, endIso, integrationIds } = params;
+
+        const start = new Date(startIso);
+        const end = new Date(endIso);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+            throw new AppError("Invalid date range", 400);
+        }
+        if (start.getTime() > end.getTime()) {
+            throw new AppError("Start must be before end", 400);
+        }
+
+        const startIsoNorm = start.toISOString();
+        const endIsoNorm = end.toISOString();
+        const integrationIdsNorm = integrationIds ?? null;
+
+        const cacheKey = calendarPostsCacheKey({
+            organizationId,
+            startIso: startIsoNorm,
+            endIso: endIsoNorm,
+            integrationIds: integrationIdsNorm,
+        });
+
+        const factory = async (): Promise<SocialPostLike[]> =>
+            this.postsRepository.listPostsByOrganizationAndDateRange({
+                organizationId,
+                startIso: startIsoNorm,
+                endIso: endIsoNorm,
+                integrationIds: integrationIdsNorm,
+            });
+
+        if (this.cache) {
+            return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+        }
+        return factory();
+    }
+
     async getPostGroup(postGroup: string, authUserId: string): Promise<PostGroupDetails> {
         const rows = await this.postsRepository.listPostsByGroup(postGroup);
         if (!rows.length) {
@@ -519,6 +619,27 @@ export class PostsService {
         const cacheKey = `${CACHE_KEYS.POSTS_GROUP}:${postGroup}`;
         const factory = async (): Promise<PostGroupDetails> => this.buildPostGroupDetails(postGroup, rows);
 
+        if (this.cache) {
+            return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+        }
+        return factory();
+    }
+
+    /**
+     * Programmatic post-group details for `{api.prefix}/public/posts/group/:postGroup`.
+     * Ensures the post group belongs to the organization resolved from the API key.
+     */
+    async getPostGroupProgrammatic(postGroup: string, organizationId: string): Promise<PostGroupDetails> {
+        const rows = await this.postsRepository.listPostsByGroup(postGroup);
+        if (!rows.length) {
+            throw new AppError("Post group not found", 404);
+        }
+        const orgId = rows[0]!.organization_id;
+        if (orgId !== organizationId) {
+            throw new AppError("Post group does not belong to that workspace", 400);
+        }
+        const cacheKey = `${CACHE_KEYS.POSTS_GROUP}:${postGroup}`;
+        const factory = async (): Promise<PostGroupDetails> => this.buildPostGroupDetails(postGroup, rows);
         if (this.cache) {
             return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
         }
@@ -1066,6 +1187,29 @@ export class PostsService {
         });
     }
 
+    /**
+     * Programmatic delete (org API key auth).
+     * Ensures group belongs to the org derived from the API key.
+     */
+    async deletePostGroupProgrammatic(postGroup: string, organizationId: string): Promise<void> {
+        const rows = await this.postsRepository.listPostsByGroup(postGroup);
+        if (!rows.length) {
+            throw new AppError("Post group not found", 404);
+        }
+        const orgId = rows[0]!.organization_id;
+        if (orgId !== organizationId) {
+            throw new AppError("Post group does not belong to that workspace", 400);
+        }
+        const ids = rows.map((r) => r.id);
+        await this.postsRepository.deleteTagAssignmentsForPostIds(ids);
+        await this.postsRepository.softDeletePostsByGroup(postGroup);
+        await this._invalidatePostMutationCaches({
+            organizationId: orgId,
+            postGroup,
+            postIds: ids,
+        });
+    }
+
     async updatePostGroup(input: Omit<CreatePostInput, "organizationId"> & { postGroup: string; organizationId?: string | null }): Promise<{
         postGroup: string;
         posts: SocialPostLike[];
@@ -1129,6 +1273,83 @@ export class PostsService {
         await this.persistThreadRepliesFromProviderSettings({
             organizationId,
             authUserId,
+            posts: inserted,
+            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
+        });
+        const out = { postGroup, posts: inserted };
+        void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
+        await this._invalidatePostMutationCaches({
+            organizationId,
+            postGroup,
+            postIds: [...new Set([...oldIds, ...inserted.map((p) => p.id)])],
+        });
+        return out;
+    }
+
+    /**
+     * Programmatic update (org API key auth).
+     * Ensures group belongs to the org derived from the API key; skips membership checks.
+     */
+    async updatePostGroupProgrammatic(input: Omit<CreatePostProgrammaticInput, "organizationId"> & { postGroup: string; organizationId: string }): Promise<{
+        postGroup: string;
+        posts: SocialPostLike[];
+    }> {
+        const {
+            postGroup,
+            organizationId,
+            body,
+            bodiesByIntegrationId,
+            media,
+            integrationIds,
+            isGlobal,
+            scheduledAtIso,
+            repeatInterval,
+            tagNames,
+            status,
+        } = input;
+
+        const existing = await this.postsRepository.listPostsByGroup(postGroup);
+        if (!existing.length) throw new AppError("Post group not found", 404);
+        const orgId = existing[0]!.organization_id;
+        if (orgId !== organizationId) {
+            throw new AppError("Post group does not belong to that workspace", 400);
+        }
+
+        const alignedNext = new Date(scheduledAtIso);
+        const nextPublishIso = Number.isNaN(alignedNext.getTime()) ? null : alignedNext.toISOString();
+        const alreadyAtThatSlot =
+            nextPublishIso != null &&
+            new Date(existing[0]!.publish_date).getTime() === new Date(nextPublishIso).getTime();
+        const allowTakenSlot = status === "scheduled" && alreadyAtThatSlot;
+
+        const { toInsert, tagIds } = await this.buildPostGroupInsert({
+            organizationId,
+            authUserId: null,
+            postGroup,
+            body,
+            bodiesByIntegrationId: bodiesByIntegrationId ?? null,
+            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
+            media: media ?? null,
+            integrationIds,
+            isGlobal,
+            scheduledAtIso,
+            repeatInterval,
+            tagNames,
+            status,
+            allowTakenSlot,
+            skipMembershipCheck: true,
+        });
+
+        const oldIds = existing.map((r) => r.id);
+        await this.postsRepository.deleteTagAssignmentsForPostIds(oldIds);
+        await this.postsRepository.softDeleteThreadRepliesByPostIds(oldIds);
+        await this.postsRepository.softDeletePostsByGroup(postGroup);
+
+        const inserted = await this.postsRepository.insertPostGroup(toInsert);
+        await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+        await this.persistThreadRepliesFromProviderSettings({
+            organizationId,
+            authUserId: null,
             posts: inserted,
             providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
         });
@@ -1367,15 +1588,19 @@ export class PostsService {
 
     private async persistThreadRepliesFromProviderSettings(params: {
         organizationId: string;
-        authUserId: string;
+        /** Auth user id when available; when omitted (programmatic API), created_by_user_id is null. */
+        authUserId?: string | null;
         posts: SocialPostLike[];
         providerSettingsByIntegrationId: Record<string, Record<string, unknown>> | null;
     }): Promise<void> {
-        const { organizationId, authUserId, posts, providerSettingsByIntegrationId } = params;
+        const { organizationId, authUserId = null, posts, providerSettingsByIntegrationId } = params;
         if (!providerSettingsByIntegrationId) return;
 
-        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
-        const createdByUserId = userId ?? null;
+        let createdByUserId: string | null = null;
+        if (authUserId && authUserId.trim().length > 0) {
+            const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+            createdByUserId = userId ?? null;
+        }
 
         const integrations = await this.integrationService.listByOrganization(organizationId);
         const providerByIntegrationId = new Map<string, string>(

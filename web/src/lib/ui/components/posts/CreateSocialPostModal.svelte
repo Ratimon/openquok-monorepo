@@ -9,7 +9,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AddEditModal from './AddEditModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
-	import DeleteDialog from './DeleteDialog.svelte';
+	import Deletemodal from '../../modals/DeleteModal.svelte';
 	import ManageModal from './ManageModal.svelte';
 	import SaveSetNameDialog from './SaveSetNameDialog.svelte';
 
@@ -247,13 +247,13 @@
 	onCancel={() => (saveSetNameOpen = false)}
 />
 
-<DeleteDialog
+<Deletemodal
 	bind:open={presenter.confirmCloseOpen}
 	onConfirm={confirmClose}
 	onCancel={() => (presenter.confirmCloseOpen = false)}
 />
 
-<DeleteDialog
+<Deletemodal
 	bind:open={confirmDeleteOpen}
 	title="Are you sure?"
 	description="Are you sure you want to delete this post?"

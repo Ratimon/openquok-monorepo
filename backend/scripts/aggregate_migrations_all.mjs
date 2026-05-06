@@ -96,24 +96,26 @@ const aggregateMigrations = async () => {
     }
 
     // When two files share the same numeric prefix (e.g. multiple modules use 101_* for tables),
-    // sort by this list so dependencies run first (… → integration → plug → media → post → …).
+    // sort by this list so dependencies run first (… → media → oauth → integration → plug → post → …).
+    // `media` must run before `oauth` (`oauth_apps.picture_id` → `public.media`).
     const MODULE_ORDER = {
       "user-management": 0,
       "user-auth": 1,
       "organization": 2,
-      "customer": 3,
-      "integration": 4,
+      "media": 3,
+      "oauth": 4,
+      "customer": 5,
+      "integration": 6,
       // plug: after integration (`plugs.integration_id` → `integrations`).
-      plug: 5,
-      "media": 6,
-      "post": 7,
-      comment: 8,
-      rbac: 9,
-      config: 10,
-      feedback: 11,
-      blog: 12,
-      notification: 13,
-      sets: 14
+      plug: 7,
+      "post": 8,
+      comment: 9,
+      rbac: 10,
+      config: 11,
+      feedback: 12,
+      blog: 13,
+      notification: 14,
+      sets: 15
     }
     const moduleOrder = (name) => (MODULE_ORDER[name] ?? 99)
 

@@ -5,6 +5,7 @@ import supertest from "supertest";
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
+import { insertTestSocialIntegration } from "../helpers/integrationTestHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 import {
@@ -168,18 +169,7 @@ describe("Scheduling a post for social channels", () => {
         const payload = userHelper.setupTestUser1();
         const { accessToken, orgId } = await signupVerifyAndSignIn(payload);
 
-        const integrationId = faker.string.uuid();
-        const { error: intErr } = await adminSupabase.from("integrations").insert({
-            id: integrationId,
-            organization_id: orgId,
-            internal_id: `e2e-${faker.string.alphanumeric(12)}`,
-            name: faker.company.name(),
-            picture: null,
-            provider_identifier: "threads",
-            type: "social",
-            token: "e2e-test-token",
-        });
-        expect(intErr).toBeNull();
+        const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId);
 
         const findSlot = await supertest(app)
             .get(`${postsPath}/find-slot`)
@@ -344,18 +334,7 @@ describe("Scheduling a post for social channels", () => {
             const payload = userHelper.setupTestUser1();
             const { accessToken, orgId } = await signupVerifyAndSignIn(payload);
 
-            const integrationId = faker.string.uuid();
-            const { error: intErr } = await adminSupabase.from("integrations").insert({
-                id: integrationId,
-                organization_id: orgId,
-                internal_id: `e2e-${faker.string.alphanumeric(12)}`,
-                name: faker.company.name(),
-                picture: null,
-                provider_identifier: "threads",
-                type: "social",
-                token: "e2e-test-token",
-            });
-            expect(intErr).toBeNull();
+            const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId);
 
             const findSlot = await supertest(app)
                 .get(`${postsPath}/find-slot`)
@@ -491,18 +470,7 @@ describe("Scheduling a post for social channels", () => {
             const payload = userHelper.setupTestUser1();
             const { accessToken, orgId } = await signupVerifyAndSignIn(payload);
 
-            const integrationId = faker.string.uuid();
-            const { error: intErr } = await adminSupabase.from("integrations").insert({
-                id: integrationId,
-                organization_id: orgId,
-                internal_id: `e2e-${faker.string.alphanumeric(12)}`,
-                name: faker.company.name(),
-                picture: null,
-                provider_identifier: "threads",
-                type: "social",
-                token: "e2e-test-token",
-            });
-            expect(intErr).toBeNull();
+            const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId);
 
             const threadReplyFirst = `e2e-set-match-a-${faker.string.alphanumeric(8)}`;
             const threadReplySecond = `e2e-set-match-b-${faker.string.alphanumeric(8)}`;
@@ -681,18 +649,7 @@ describe("Scheduling a post for social channels", () => {
                 const payload = userHelper.setupTestUser1();
                 const { accessToken, orgId } = await signupVerifyAndSignIn(payload);
 
-                const integrationId = faker.string.uuid();
-                const { error: intErr } = await adminSupabase.from("integrations").insert({
-                    id: integrationId,
-                    organization_id: orgId,
-                    internal_id: `e2e-${faker.string.alphanumeric(12)}`,
-                    name: faker.company.name(),
-                    picture: null,
-                    provider_identifier: "threads",
-                    type: "social",
-                    token: "e2e-test-token",
-                });
-                expect(intErr).toBeNull();
+                const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId);
 
                 const analyticsRes = await supertest(app)
                     .get(`${analyticsPath}/${integrationId}`)

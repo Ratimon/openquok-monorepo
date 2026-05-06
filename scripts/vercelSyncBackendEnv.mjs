@@ -4,8 +4,7 @@ import { runVercelEnvSync } from "./vercelSyncEnvCore.mjs";
 const ALWAYS_SENSITIVE_KEYS = new Set([
   "THREADS_APP_SECRET",
   "SUPABASE_SERVICE_ROLE_KEY",
-  "INVITE_TOKEN_SECRET",
-  "JWT_SECRET",
+  "SECURITY_SECRET",
   "AWS_SECRET_ACCESS_KEY",
   "RESEND_SECRET_KEY",
   "SENTRY_DSN",

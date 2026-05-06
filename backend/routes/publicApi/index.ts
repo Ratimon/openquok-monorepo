@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { publicIntegrationRouter } from "./integrationRoutes.js";
+import { publicIntegrationRouter } from "./IntegrationRoutes.js";
 import { publicPostRouter } from "./PostRoutes.js";
 
 /**
  * `{api.prefix}/public` composite router.
- * - **`integrationRoutes`** — org API key (programmatic integrations); not the same as session `routes/integrationRoutes.ts`.
- * - **`PostRoutes`** — anonymous post-adjacent handlers (e.g. comments).
+ * - **`IntegrationRoutes`** — org API key (programmatic integrations); not the same as session `routes/integrationApi/*`.
+ * - **`PostRoutes`** — anonymous and org API key post endpoints.
  */
 type PublicApiRouter = ReturnType<typeof Router>;
 

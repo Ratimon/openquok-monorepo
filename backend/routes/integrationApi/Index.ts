@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { integrationNoAuthRouter } from "./noAuthRoutes.js";
-import { integrationSessionRouter } from "./sessionRoutes.js";
+import { integrationNoAuthRouter } from "./NoAuthRoutes.js";
+import { integrationSessionRouter } from "./SessionRoutes.js";
 
 type IntegrationsRouter = ReturnType<typeof Router>;
 
@@ -9,7 +9,7 @@ type IntegrationsRouter = ReturnType<typeof Router>;
  * - GET `/` — provider catalog (no JWT; also whitelisted in `core.ts`).
  * - Other routes — JWT; org from query/body.
  *
- * Programmatic org API key routes live under `{api.prefix}/public` — see `routes/publicApi/integrationRoutes.ts`.
+ * Programmatic org API key routes live under `{api.prefix}/public` — see `routes/publicApi/IntegrationRoutes.ts`.
  */
 const integrationsRouter: IntegrationsRouter = Router();
 

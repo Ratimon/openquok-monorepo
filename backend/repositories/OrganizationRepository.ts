@@ -6,6 +6,7 @@ import type {
     UserOrganizationLike,
 } from "../utils/dtos/OrganizationDTO";
 import { DatabaseError } from "../errors/InfraError";
+import { makeId } from "../utils/make.is";
 
 const ORGS_TABLE = "organizations";
 const USER_ORGS_TABLE = "user_organizations";
@@ -21,6 +22,10 @@ export type OrgRole = WorkspaceMembershipRole;
 
 export class OrganizationRepository {
     constructor(private readonly supabase: SupabaseClient) {}
+
+    private async generateApiKey(): Promise<string> {
+        return `opo_${makeId(48)}`;
+    }
 
     /** Find public.users.id by auth_id (Supabase auth user id).
      *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
@@ -165,11 +170,33 @@ export class OrganizationRepository {
             .insert({
                 name: params.name,
                 description: params.description ?? null,
+                api_key: await this.generateApiKey(),
                 updated_at: new Date().toISOString(),
             })
             .select(ORG_SELECT)
             .single();
         return { organization: data as OrganizationLike, error };
+    }
+
+    /** Ensure an organization has an API key; writes only when `api_key` is null. */
+    async ensureApiKeyForOrganization(organizationId: string): Promise<OrganizationLike | null> {
+        const newKey = await this.generateApiKey();
+        const { data, error } = await this.supabase
+            .from(ORGS_TABLE)
+            .update({ api_key: newKey, updated_at: new Date().toISOString() })
+            .eq("id", organizationId)
+            .is("api_key", null)
+            .select(ORG_SELECT)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Failed to ensure organization api key", {
+                cause: error as unknown as Error,
+                operation: "ensureApiKeyForOrganization",
+                resource: { type: "table", name: ORGS_TABLE },
+            });
+        }
+        return (data as OrganizationLike | null) ?? null;
     }
 
     /** Add user to organization with role. */
@@ -298,8 +325,7 @@ export class OrganizationRepository {
         organization: OrganizationLike | null;
         error: unknown;
     }> {
-        const crypto = await import("node:crypto");
-        const newKey = `co_${crypto.randomBytes(24).toString("hex")}`;
+        const newKey = await this.generateApiKey();
         const { data, error } = await this.supabase
             .from(ORGS_TABLE)
             .update({ api_key: newKey, updated_at: new Date().toISOString() })

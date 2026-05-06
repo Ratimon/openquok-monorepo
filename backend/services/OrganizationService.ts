@@ -202,9 +202,27 @@ export class OrganizationService {
             const userId = await this.resolveAuthUserToUserId(authUserId);
             const { organizations, memberships } =
                 await this.organizationRepository.findOrganizationsByUserId(userId);
+
+            // Backfill missing programmatic API keys (legacy orgs created before api_key generation existed).
+            // Safe: caller is already a member of these orgs.
+            const patched: OrganizationLike[] = [];
+            for (const org of organizations) {
+                if (org.api_key == null) {
+                    try {
+                        const updated = await this.organizationRepository.ensureApiKeyForOrganization(org.id);
+                        patched.push(updated ?? org);
+                        continue;
+                    } catch {
+                        patched.push(org);
+                        continue;
+                    }
+                }
+                patched.push(org);
+            }
+
             const orgIds = organizations.map((o) => o.id);
             const memberCounts = await this.organizationRepository.getMemberCounts(orgIds);
-            return { organizations, memberships, memberCounts };
+            return { organizations: patched, memberships, memberCounts };
         };
         if (this.cache) {
             return this.cache.getOrSet(cacheKey, factory, ORG_CACHE_TTL_SEC);
