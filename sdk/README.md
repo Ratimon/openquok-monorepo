@@ -39,7 +39,7 @@ const openquok = new Openquok("YOUR_API_KEY", {
 // Upload a file (multipart field name: `file`)
 const uploaded = await openquok.upload(fileBuffer, "png");
 
-// Create a scheduled post (DTOs are exported by this package)
+// Create a scheduled post
 await openquok.createPost({
   scheduledAt: new Date().toISOString(),
   status: "scheduled",

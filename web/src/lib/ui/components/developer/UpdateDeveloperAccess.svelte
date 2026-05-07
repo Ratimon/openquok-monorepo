@@ -8,6 +8,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
 
 	type Props = {
 		apiKey: string | null;
@@ -33,6 +34,13 @@
 		if (key.length <= 10) return '•'.repeat(Math.max(4, key.length));
 		return `${'•'.repeat(Math.max(12, key.length - 6))}${key.slice(-6)}`;
 	}
+
+	const installCliCommand = 'npm install -g @openquok/node';
+	const exportApiKeyCommand = $derived(
+		apiKey
+			? `export OPENQUOK_API_KEY="${apiKeyVisible ? apiKey : maskedKey(apiKey)}"`
+			: 'export OPENQUOK_API_KEY="..."'
+	);
 
 	async function copyToClipboard(text: string) {
 		try {
@@ -102,7 +110,7 @@
 			onclick={() => apiKey && copyToClipboard(apiKey)}
 		>
 			<AbstractIcon name={icons.Copy.name} class="h-4 w-4 shrink-0" width="16" height="16" />
-			Copy
+			Copy Key
 		</Button>
 		<Button
 			class="gap-2"
@@ -155,28 +163,36 @@
 	<div class="mt-4 space-y-3">
 		<div>
 			<p class="text-sm font-medium text-base-content/80">1. Install the CLI</p>
-			<div class="mt-2 rounded-lg border border-base-300 bg-base-100 p-4 font-mono text-sm">
-				npm install -g openquok
-			</div>
+			<CopyBlock
+				text={installCliCommand}
+				boxClass="mt-2 w-full cursor-pointer rounded-lg border p-4 font-mono text-sm text-left"
+				background="border-base-300 bg-base-100"
+				copiedBackground="border-success/50 bg-success/10"
+				class="text-base-content break-all"
+				copiedColor="text-success"
+			/>
 		</div>
 
 		<div>
 			<p class="text-sm font-medium text-base-content/80">2. Set your API key</p>
-			<div class="mt-2 rounded-lg border border-base-300 bg-base-100 p-4 font-mono text-sm">
-				{#if apiKey}
-					export OPENQUOK_API_KEY="{apiKeyVisible ? apiKey : maskedKey(apiKey)}"
-				{:else}
-					export OPENQUOK_API_KEY="..."
-				{/if}
-			</div>
+			<CopyBlock
+				text={exportApiKeyCommand}
+				boxClass="mt-2 w-full cursor-pointer rounded-lg border p-4 font-mono text-sm text-left"
+				background="border-base-300 bg-base-100"
+				copiedBackground="border-success/50 bg-success/10"
+				class="text-base-content break-all"
+				copiedColor="text-success"
+			/>
 		</div>
 
 		<div class="flex flex-wrap gap-2">
 			<Button
-				variant="outline"
+				class="gap-2"
+				variant="primary"
 				disabled={!apiKey}
 				onclick={() => apiKey && copyToClipboard(`export OPENQUOK_API_KEY=\"${apiKey}\"`)}
 			>
+				<AbstractIcon name={icons.Copy.name} class="h-4 w-4 shrink-0" width="16" height="16" />
 				Copy Export
 			</Button>
 		</div>

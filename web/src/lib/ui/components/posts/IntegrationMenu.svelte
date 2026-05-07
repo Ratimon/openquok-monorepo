@@ -2,7 +2,7 @@
 	import type { IconName } from '$data/icons';
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
-	import copy from 'copy-to-clipboard';
+	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
 
@@ -53,9 +53,9 @@
 	let confirmRemoveOpen = $state(false);
 	let busy = $state(false);
 
-	function handleCopyChannelId() {
+	async function handleCopyChannelId() {
 		menuOpen = false;
-		const copied = copy(integration.id);
+		const copied = await copyToClipboard(integration.id);
 		if (copied) {
 			toast.success('Channel ID copied to clipboard');
 		} else {
