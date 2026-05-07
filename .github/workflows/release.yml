@@ -3,8 +3,8 @@ name: "Release"
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
       - "sdk-v[0-9]+.[0-9]+.[0-9]+"
+      - "cli-v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   release:
@@ -20,8 +20,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  npm_publish:
-    name: publish to npm
+  sdk_publish:
+    name: publish sdk to npm
     needs: [release]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/sdk-v')
@@ -37,5 +37,26 @@ jobs:
 
       - name: Publish sdk to npm
         run: pnpm --filter ./sdk publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+
+  cli_publish:
+    name: publish cli to npm
+    needs: [release]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/cli-v')
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - run: pnpm install
+      - run: pnpm run build:cli
+
+      - name: Publish cli to npm
+        run: pnpm --filter ./apps/cli publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

@@ -19,10 +19,10 @@ pnpm install -g @openquok/node-sdk
 
 ```bash
 git add .
-git commit -am "v0.0.3"
+git commit -m "sdk-v0.0.3"
 git push -u origin main
-git tag v0.0.3 main
-git push origin tag v0.0.3
+git tag sdk-v0.0.3
+git push origin sdk-v0.0.3
 ```
 
 ## Publishing Checklist
