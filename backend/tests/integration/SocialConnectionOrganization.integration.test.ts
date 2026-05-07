@@ -150,7 +150,7 @@ describe("Social connection (organization programmatic API)", () => {
         it("responds 401 when the key is not a registered organization API key", async () => {
             const res = await supertest(app)
                 .get(`${publicProgrammaticBase}/is-connected`)
-                .set("Authorization", "opo_not_a_real_key_000000000000000000000000");
+                .set("Authorization", "opk_not_a_real_key_000000000000000000000000");
             expect(res.status).toBe(401);
             expect(res.body).toEqual({ msg: "Invalid API key" });
         });

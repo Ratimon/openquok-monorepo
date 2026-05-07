@@ -24,7 +24,8 @@ export class OrganizationRepository {
     constructor(private readonly supabase: SupabaseClient) {}
 
     private async generateApiKey(): Promise<string> {
-        return `opo_${makeId(48)}`;
+        // `opk_` is an organization API key (distinct from OAuth app tokens).
+        return `opk_${makeId(48)}`;
     }
 
     /** Find public.users.id by auth_id (Supabase auth user id).

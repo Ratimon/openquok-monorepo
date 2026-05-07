@@ -101,7 +101,7 @@ describe("Programmatic posts API", () => {
             apiKey = rotate.body?.data?.apiKey as string | null;
         }
         expect(typeof apiKey).toBe("string");
-        expect(apiKey).toMatch(/^opo_/);
+        expect(apiKey).toMatch(/^opk_/);
 
         return { accessToken: accessToken as string, orgId, apiKey: apiKey as string };
     }
