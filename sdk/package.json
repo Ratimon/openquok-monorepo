@@ -1,12 +1,13 @@
 {
   "name": "@openquok/node",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "The Openquok programmatic API SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup",
-    "publish": "pnpm run build && pnpm publish --access public"
+    "publish:manual": "pnpm run build && pnpm publish --access public",
+    "prepublishOnly": "pnpm run build"
   },
   "publishConfig": {
     "access": "public"
