@@ -31,8 +31,8 @@ import { logger } from "../utils/Logger";
  *    blog read paths, GET `/integrations` catalog only).
  * 2. **User JWT** — most of `/integrations/*` (see `routes/integrationApi`), `/settings`, etc.
  * 3. **Organization API key** — `{prefix}/public/*` (e.g. `/api/v1/public/*`); `core.ts` lists `/public` in `publicPaths`
- *    so JWT is skipped. Programmatic integration routes use `requireOrganizationApiKey` (`routes/publicApi/IntegrationRoutes.ts`);
- *    `GET {prefix}/public/posts/:postId/comments` is anonymous.
+ *    so JWT is skipped. Programmatic routes use `requireProgrammaticAuth` (e.g. `routes/publicApi/IntegrationRoutes.ts`,
+ *    `MediaUploadRoutes.ts`, `PostRoutes.ts`); `GET {prefix}/public/posts/:postId/comments` is anonymous.
  */
 export async function mountAllRoutes(app: Express, config: ConfigObject): Promise<boolean> {
     const api = config.api as { prefix?: string } | undefined;

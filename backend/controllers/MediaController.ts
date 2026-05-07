@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import type { StorageR2Repository } from "../repositories/StorageR2Repository";
 import type { MediaService } from "../services/MediaService";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
+import type { ProgrammaticAuthRequest } from "../middlewares/programmaticAuth";
 import type { IUploadProvider } from "../connections/upload/upload.interface";
 
 import { publicUrlForObjectKey } from "../repositories/MediaRepository";
@@ -249,6 +250,62 @@ export class MediaController {
                 throw new UserValidationError("organizationId is required");
             }
 
+            const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+
+            const saved = await this.mediaService.saveFile({
+                organizationId,
+                name: filePath.split("/").pop() ?? filePath,
+                path: filePath,
+                originalName: file.originalname,
+                fileSize: (file as any).size ?? 0,
+                type: file.mimetype?.startsWith("video/") ? "video" : "image",
+            });
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    filePath: saved.path,
+                    originalName: file.originalname,
+                    ...(saved.publicUrl ? { publicUrl: saved.publicUrl } : publicUrl ? { publicUrl } : {}),
+                    id: saved.id,
+                },
+                message: "Media uploaded successfully",
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
+     * Programmatic upload (`POST {api.prefix}/public/upload`). Organization from API key / OAuth app token.
+     * Multipart field name: `file` (same as `/media/upload-server` for session users).
+     */
+    uploadProgrammatic = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const organization = (req as ProgrammaticAuthRequest).organization;
+            if (!organization?.id?.trim()) {
+                throw new UserValidationError("Organization required");
+            }
+            if (!req.file) {
+                throw new UserValidationError("Media file is required");
+            }
+
+            const raw = req.file as { buffer: Buffer; originalname: string; mimetype: string };
+            let mimetype = (raw.mimetype ?? "").trim();
+            if (!mimetype) {
+                const ext = (raw.originalname ?? "").split(".").pop()?.toLowerCase() ?? "";
+                const map: Record<string, string> = {
+                    png: "image/png",
+                    jpg: "image/jpeg",
+                    jpeg: "image/jpeg",
+                    gif: "image/gif",
+                    webp: "image/webp",
+                };
+                mimetype = map[ext] || "application/octet-stream";
+            }
+            const file = { ...raw, mimetype };
+
+            const organizationId = organization.id;
             const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
 
             const saved = await this.mediaService.saveFile({

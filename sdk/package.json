@@ -1,0 +1,27 @@
+{
+  "name": "@openquok/node",
+  "version": "0.0.1",
+  "description": "The Openquok programmatic API SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "publish": "pnpm run build && pnpm publish --access public"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "agentic social media",
+    "social media",
+    "scheduling tool",
+    "social media scheduling tool"
+  ],
+  "author": "Rati Montreewat",
+  "license": "AGPL-3.0",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsup": "^8.5.1"
+  }
+}

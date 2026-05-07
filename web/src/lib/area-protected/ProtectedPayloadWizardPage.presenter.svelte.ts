@@ -1,7 +1,6 @@
 import type { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
 import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
-
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 
 import { parsePostingTimeSlots } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';

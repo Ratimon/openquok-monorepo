@@ -5,6 +5,7 @@ packages:
   - 'common'
   - 'backend'
   - 'orchestrator'
+  - 'sdk'
   - 'web'
 onlyBuiltDependencies:
   - esbuild
