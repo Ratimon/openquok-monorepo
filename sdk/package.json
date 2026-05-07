@@ -8,6 +8,9 @@
     "build": "tsup",
     "publish": "pnpm run build && pnpm publish --access public"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist"
   ],
