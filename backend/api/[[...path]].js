@@ -16,7 +16,7 @@ var uuid = require('uuid');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
-var dayjs2 = require('dayjs');
+var dayjs5 = require('dayjs');
 var https = require('https');
 var fs = require('fs/promises');
 var zod = require('zod');
@@ -56,8 +56,9 @@ var express__default = /*#__PURE__*/_interopDefault(express);
 var path__default = /*#__PURE__*/_interopDefault(path);
 var helmet__default = /*#__PURE__*/_interopDefault(helmet);
 var cors__default = /*#__PURE__*/_interopDefault(cors);
+var crypto__default = /*#__PURE__*/_interopDefault(crypto);
 var nodemailer__default = /*#__PURE__*/_interopDefault(nodemailer);
-var dayjs2__default = /*#__PURE__*/_interopDefault(dayjs2);
+var dayjs5__default = /*#__PURE__*/_interopDefault(dayjs5);
 var https__default = /*#__PURE__*/_interopDefault(https);
 var fs__default = /*#__PURE__*/_interopDefault(fs);
 var fs2__default = /*#__PURE__*/_interopDefault(fs2);
@@ -105,6 +106,35 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// config/apiPrefix.ts
+function normalizeApiPrefix(raw) {
+  let p = raw.trim().replace(/\/+$/, "");
+  if (!p) {
+    return DEFAULT_API_PREFIX;
+  }
+  if (!p.startsWith("/")) {
+    p = `/${p}`;
+  }
+  if (!p.startsWith("/api") && /^\/v\d+(\/|$)/.test(p)) {
+    return `/api${p}`;
+  }
+  return p;
+}
+function apiPathAfterFunctionsDirectory(apiPrefix) {
+  const raw = normalizeApiPrefix(apiPrefix).replace(/\/+$/, "") || DEFAULT_API_PREFIX;
+  if (!raw.startsWith("/api")) {
+    return "";
+  }
+  const rest = raw.slice("/api".length);
+  return rest || "/";
+}
+var DEFAULT_API_PREFIX;
+var init_apiPrefix = __esm({
+  "config/apiPrefix.ts"() {
+    DEFAULT_API_PREFIX = "/api/v1";
+  }
+});
+
 // config/envHelper.ts
 function getEnv(key, defaultValue) {
   return process.env[key] ?? defaultValue ?? "";
@@ -126,27 +156,6 @@ function getEnvBoolean(key, defaultValue) {
 }
 var init_envHelper = __esm({
   "config/envHelper.ts"() {
-  }
-});
-
-// config/apiPrefix.ts
-function normalizeApiPrefix2(raw) {
-  let p = raw.trim().replace(/\/+$/, "");
-  if (!p) {
-    return DEFAULT_API_PREFIX2;
-  }
-  if (!p.startsWith("/")) {
-    p = `/${p}`;
-  }
-  if (!p.startsWith("/api") && /^\/v\d+(\/|$)/.test(p)) {
-    return `/api${p}`;
-  }
-  return p;
-}
-var DEFAULT_API_PREFIX2;
-var init_apiPrefix = __esm({
-  "config/apiPrefix.ts"() {
-    DEFAULT_API_PREFIX2 = "/api/v1";
   }
 });
 
@@ -205,7 +214,7 @@ var require_loadBackendDotenv = __commonJS({
       }
       return process.cwd();
     }
-    function loadBackendDotenv3() {
+    function loadBackendDotenv2() {
       const root = resolveBackendPackageRoot();
       const env = process.env.NODE_ENV ?? "development";
       const forceOverride = String(process.env.DOTENV_OVERRIDE ?? "").toLowerCase() === "true";
@@ -215,7 +224,7 @@ var require_loadBackendDotenv = __commonJS({
       dotenv.config({ path: path5.join(root, `.env.${env}.local`), override: overrideLocal });
       dotenv.config({ path: path5.join(root, ".env"), override: false });
     }
-    module.exports = { loadBackendDotenv: loadBackendDotenv3 };
+    module.exports = { loadBackendDotenv: loadBackendDotenv2 };
   }
 });
 
@@ -335,8 +344,8 @@ var init_GlobalConfig = __esm({
     };
     loadBackendDotenv();
     isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
-    rawApiPrefix = getEnv("API_PREFIX", DEFAULT_API_PREFIX2);
-    resolvedApiPrefix = normalizeApiPrefix2(rawApiPrefix);
+    rawApiPrefix = getEnv("API_PREFIX", DEFAULT_API_PREFIX);
+    resolvedApiPrefix = normalizeApiPrefix(rawApiPrefix);
     if (rawApiPrefix.trim() && resolvedApiPrefix !== rawApiPrefix.trim().replace(/\/+$/, "")) {
       logger.warn({
         msg: "[Config] API_PREFIX normalized so mounted routes match /api/v1-style URLs",
@@ -415,8 +424,15 @@ var init_GlobalConfig = __esm({
         disableRegistration: getEnvBoolean("DISABLE_REGISTRATION", false),
         /** When true, allow cookie in header for dev (NOT_SECURED). */
         notSecured: getEnvBoolean("NOT_SECURED", false),
+        /** Shared secret for security-sensitive deterministic signing/hashing. */
+        securitySecret: getEnv("SECURITY_SECRET", ""),
         /** Secret for signing organization invite tokens. Required for invite-by-email. */
-        inviteTokenSecret: getEnv("INVITE_TOKEN_SECRET", getEnv("JWT_SECRET", ""))
+        inviteTokenSecret: getEnv("SECURITY_SECRET", ""),
+        /**
+         * Secret key used for hashing programmatic OAuth2 secrets/tokens (HMAC).
+         * Required in production; fallback keeps local dev friction low.
+         */
+        programmaticTokenSecret: getEnv("SECURITY_SECRET", "")
       },
       /** Email (verification, welcome). When enabled, verification emails are sent. */
       email: {
@@ -602,29 +618,8 @@ var init_GlobalConfig = __esm({
   }
 });
 
-// config/apiPrefix.js
-var DEFAULT_API_PREFIX = "/api/v1";
-function normalizeApiPrefix(raw) {
-  let p = raw.trim().replace(/\/+$/, "");
-  if (!p) {
-    return DEFAULT_API_PREFIX;
-  }
-  if (!p.startsWith("/")) {
-    p = `/${p}`;
-  }
-  if (!p.startsWith("/api") && /^\/v\d+(\/|$)/.test(p)) {
-    return `/api${p}`;
-  }
-  return p;
-}
-function apiPathAfterFunctionsDirectory(apiPrefix) {
-  const raw = normalizeApiPrefix(apiPrefix).replace(/\/+$/, "") || DEFAULT_API_PREFIX;
-  if (!raw.startsWith("/api")) {
-    return "";
-  }
-  const rest = raw.slice("/api".length);
-  return rest || "/";
-}
+// handler/index.ts
+init_apiPrefix();
 
 // connections/supabase.ts
 init_GlobalConfig();
@@ -1335,256 +1330,10 @@ var cacheService = new CacheService_default(createCacheProvider(), {
 });
 var cacheInvalidationService = new CacheInvalidationService_default(cacheService);
 
-// config/GlobalConfig.js
-init_envHelper();
-init_apiPrefix();
-init_Logger();
-var loadBackendDotenvCjs2 = __toESM(require_loadBackendDotenv());
-init_orchestratorFlows();
-var { loadBackendDotenv: loadBackendDotenv2 } = loadBackendDotenvCjs2;
-var normalizeOrigin2 = (origin) => {
-  let s = String(origin).replace(/^\uFEFF/, "").trim().replace(/\/+$/, "");
-  if (s.startsWith('"') && s.endsWith('"') || s.startsWith("'") && s.endsWith("'")) {
-    s = s.slice(1, -1).replace(/^\uFEFF/, "").trim().replace(/\/+$/, "");
-  }
-  return s;
-};
-var deriveWwwVariants2 = (origin) => {
-  try {
-    const url = new URL(origin);
-    if (url.hostname.startsWith("www.")) {
-      const apex = url.hostname.replace(/^www\./, "");
-      return [`${url.protocol}//${apex}`];
-    }
-    return [`${url.protocol}//www.${url.hostname}`];
-  } catch {
-    return [];
-  }
-};
-loadBackendDotenv2();
-var isProductionEnv2 = (process.env.NODE_ENV ?? "development") === "production";
-var rawApiPrefix2 = getEnv("API_PREFIX", DEFAULT_API_PREFIX2);
-var resolvedApiPrefix2 = normalizeApiPrefix2(rawApiPrefix2);
-if (rawApiPrefix2.trim() && resolvedApiPrefix2 !== rawApiPrefix2.trim().replace(/\/+$/, "")) {
-  logger.warn({
-    msg: "[Config] API_PREFIX normalized so mounted routes match /api/v1-style URLs",
-    from: rawApiPrefix2,
-    to: resolvedApiPrefix2
-  });
-}
-function orchestrationTransportFromEnv2(envKey, fallback) {
-  const raw = getEnv(envKey, "").trim().toLowerCase();
-  if (raw === "in_process" || raw === "bullmq") {
-    return raw;
-  }
-  if (raw !== "") {
-    logger.warn({
-      msg: "[Config] Invalid orchestrator transport env; using orchestratorFlows default",
-      envKey,
-      value: getEnv(envKey, ""),
-      fallback
-    });
-  }
-  return fallback;
-}
-var config2 = {
-  /** Sender identity for transactional email (Resend/SES). */
-  basic: {
-    siteName: getEnv("SITE_NAME", "Openquok"),
-    senderEmailAddress: getEnv("SENDER_EMAIL_ADDRESS", "noreply@example.com")
-  },
-  server: {
-    nodeEnv: getEnv("NODE_ENV", "development"),
-    frontendDomainUrl: getEnvTrimmed("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
-    backendDomainUrl: getEnvTrimmed("BACKEND_DOMAIN_URL", "http://localhost:3000"),
-    port: getEnvNumber("PORT", 3e3)
-  },
-  cors: {
-    allowedOrigins: (() => {
-      const feRaw = getEnvTrimmed("FRONTEND_DOMAIN_URL");
-      const frontendUrl = normalizeOrigin2(feRaw || "http://localhost:5173");
-      const origins = [frontendUrl, ...deriveWwwVariants2(frontendUrl)];
-      const extra = getEnv("ALLOWED_FRONTEND_ORIGINS", "");
-      if (extra) {
-        for (const origin of extra.split(",").map((o) => normalizeOrigin2(o)).filter(Boolean)) {
-          origins.push(origin, ...deriveWwwVariants2(origin));
-        }
-      }
-      if (!isProductionEnv2) {
-        origins.push("http://localhost:5173", "https://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "https://127.0.0.1:5173", "http://127.0.0.1:3000");
-      }
-      const unique = [...new Set(origins.map(normalizeOrigin2))];
-      if (isProductionEnv2 && unique.some((origin) => origin.includes("*"))) {
-        throw new Error("CORS wildcard origins are not allowed in production");
-      }
-      if (isProductionEnv2) {
-        logger.info({
-          msg: "[CORS] Allowed origins (check this matches the browser Origin if requests fail)",
-          count: unique.length,
-          origins: unique
-        });
-      }
-      return unique;
-    })()},
-  auth: {
-    /** When true, registration is disabled (unless DISABLE_REGISTRATION is not set). */
-    disableRegistration: getEnvBoolean("DISABLE_REGISTRATION", false),
-    /** When true, allow cookie in header for dev (NOT_SECURED). */
-    notSecured: getEnvBoolean("NOT_SECURED", false),
-    /** Secret for signing organization invite tokens. Required for invite-by-email. */
-    inviteTokenSecret: getEnv("INVITE_TOKEN_SECRET", getEnv("JWT_SECRET", ""))
-  },
-  /** Email (verification, welcome). When enabled, verification emails are sent. */
-  email: {
-    enabled: getEnvBoolean("EMAIL_ENABLED", false),
-    /** When true, use local SES mock (e.g. aws-ses-v2-local) for email. */
-    isEmailServerOffline: getEnvBoolean("IS_EMAIL_SERVER_OFFLINE", false)
-    // fromName: getEnv("EMAIL_FROM_NAME", "Openquok"),
-    // fromAddress: getEnv("EMAIL_FROM_ADDRESS", "noreply@example.com"),
-  },
-  supabase: {
-    supabaseUrl: getEnv("PUBLIC_SUPABASE_URL", ""),
-    supabaseAnonKey: getEnv("PUBLIC_SUPABASE_ANON_KEY", ""),
-    supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY", "")
-  },
-  /**
-   * S3-compatible object storage (Cloudflare R2) for `/api/v1/media/*` (user-owned composer objects).
-   * When required keys are missing, media routes cannot talk to object storage until configured.
-   */
-  storage: {
-    /** Storage provider for user media uploads. */
-    provider: getEnv("STORAGE_PROVIDER", "r2"),
-    r2: {
-      accountId: getEnvTrimmed("STORAGE_R2_ACCOUNT_ID"),
-      accessKeyId: getEnvTrimmed("STORAGE_R2_ACCESS_KEY_ID"),
-      secretAccessKey: getEnvTrimmed("STORAGE_R2_SECRET_ACCESS_KEY"),
-      bucket: getEnvTrimmed("STORAGE_R2_BUCKET"),
-      region: getEnvTrimmed("STORAGE_R2_REGION", "auto"),
-      /** Public origin for browser `<img src>` (R2 custom domain or r2.dev); no trailing slash. */
-      publicBaseUrl: getEnvTrimmed("STORAGE_R2_PUBLIC_BASE_URL")
-    },
-    local: {
-      /** Absolute path on disk where uploads are written (for STORAGE_PROVIDER=local). */
-      uploadDirectory: getEnvTrimmed("UPLOAD_DIRECTORY", "")
-    }
-  },
-  /** AWS (SES) for local/dev email. */
-  aws: {
-    accessKeyId: getEnv("AWS_ACCESS_KEY_ID", ""),
-    secretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", "")
-  },
-  /** Resend (production) email. */
-  resend: {
-    secretKey: getEnv("RESEND_SECRET_KEY", "")
-  },
-  /** Sentry error monitoring. When SENTRY_DSN is set and enabled, errors are reported to Sentry. */
-  sentry: {
-    dsn: getEnv("SENTRY_DSN", ""),
-    enabled: getEnvBoolean("SENTRY_ENABLED", true)
-  },
-  /** Cache (memory or redis). Used by CompanyService / MarketingService for module_configs. */
-  cache: {
-    provider: getEnv("CACHE_PROVIDER", "memory"),
-    defaultTTL: getEnvNumber("CACHE_DEFAULT_TTL", 300),
-    logHits: getEnvBoolean("CACHE_LOG_HITS", true),
-    logMisses: getEnvBoolean("CACHE_LOG_MISSES", true),
-    checkPeriod: getEnvNumber("CACHE_CHECK_PERIOD", 60),
-    useClones: getEnvBoolean("CACHE_USE_CLONES", false),
-    enabled: getEnv("CACHE_ENABLED", "true") !== "false",
-    enablePatterns: getEnv("CACHE_ENABLE_PATTERNS", "true") !== "false",
-    redis: {
-      host: getEnv("REDIS_HOST", "localhost"),
-      port: getEnvNumber("REDIS_PORT", 6379),
-      password: getEnv("REDIS_PASSWORD", ""),
-      db: getEnvNumber("REDIS_DB", 0),
-      /** Logical Redis DB for BullMQ / Flowcraft queues (defaults to REDIS_DB). */
-      bullmqDb: getEnvNumber("REDIS_BULLMQ_DB", getEnvNumber("REDIS_DB", 0)),
-      prefix: getEnv("REDIS_PREFIX", "app:cache:"),
-      maxReconnectAttempts: getEnvNumber("REDIS_MAX_RECONNECT_ATTEMPTS", 10),
-      enableOfflineQueue: getEnv("REDIS_ENABLE_OFFLINE_QUEUE", "true") !== "false",
-      useScan: getEnv("REDIS_USE_SCAN", "true") !== "false"
-    }
-  },
-  /**
-   * BullMQ + integration token refresh orchestration (Flowcraft).
-   * Queue connection uses `cache.redis` / `REDIS_*` and optional `REDIS_BULLMQ_DB`.
-   */
-  bullmq: {
-    /**
-     * [Flowcraft BullMQ reconciler](https://flowcraft.js.org/guide/adapters/bullmq#reconciliation): shared by all
-     * `*BullMqWorker` processes. `reconcilerIntervalMs: 0` disables the timer.
-     */
-    flowcraft: {
-      reconcilerStalledThresholdSeconds: flowcraftBullmqDefaults.reconcilerStalledThresholdSeconds,
-      reconcilerIntervalMs: flowcraftBullmqDefaults.reconcilerIntervalMs
-    },
-    queueName: orchestratorFlows.integrationRefresh.queueName,
-    /**
-     * Long-running refresh supervisor for OAuth-connected integrations with refreshCron (not provider-specific secrets).
-     * Enabled state from `config/orchestratorFlows.ts`; forced off under Jest (`JEST_WORKER_ID`) so tests do not sleep.
-     */
-    integrationRefresh: {
-      enabled: (() => {
-        const underJest = getEnv("JEST_WORKER_ID", "") !== "";
-        return underJest ? false : orchestratorFlows.integrationRefresh.enabled;
-      })(),
-      transport: orchestrationTransportFromEnv2("ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT", orchestratorFlows.integrationRefresh.transport)
-    },
-    notificationEmail: {
-      queueName: orchestratorFlows.notificationEmail.queueName,
-      transport: orchestrationTransportFromEnv2("ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT", orchestratorFlows.notificationEmail.transport),
-      digestFlushIntervalMs: orchestratorFlows.notificationEmail.digestFlushIntervalMs,
-      sendPlainMinIntervalMs: orchestratorFlows.notificationEmail.sendPlainMinIntervalMs
-    },
-    scheduledSocialPost: {
-      queueName: orchestratorFlows.scheduledSocialPost.queueName,
-      transport: orchestrationTransportFromEnv2("ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT", orchestratorFlows.scheduledSocialPost.transport),
-      missingPostRescanIntervalMs: orchestratorFlows.scheduledSocialPost.missingPostRescanIntervalMs,
-      enabled: (() => {
-        const underJest = getEnv("JEST_WORKER_ID", "") !== "";
-        return underJest ? false : orchestratorFlows.scheduledSocialPost.enabled;
-      })()
-    }
-  },
-  /** Rate limiting. When enabled, applies global and auth-specific limits. */
-  rateLimit: {
-    enabled: getEnv("RATE_LIMIT_ENABLED", "true") !== "false",
-    global: {
-      windowMs: getEnvNumber("RATE_LIMIT_WINDOW_MS", 36e5),
-      // 1 hour
-      max: getEnvNumber("RATE_LIMIT_MAX", 30)},
-    auth: {
-      windowMs: getEnvNumber("AUTH_RATE_LIMIT_WINDOW_MS", 9e5),
-      max: getEnvNumber("AUTH_RATE_LIMIT_MAX", 50)},
-    oauth: {
-      windowMs: getEnvNumber("OAUTH_RATE_LIMIT_WINDOW_MS", 3e5),
-      // 5 minutes
-      max: getEnvNumber("OAUTH_RATE_LIMIT_MAX", 20)}
-  },
-  /** Social integration OAuth (per-provider secrets). */
-  integrations: {
-    threads: {
-      appId: getEnvTrimmed("THREADS_APP_ID"),
-      appSecret: getEnvTrimmed("THREADS_APP_SECRET")
-    },
-    /** Facebook Login — used for Instagram (Business) / Marketing API OAuth in the same Meta app. */
-    facebook: {
-      appId: getEnvTrimmed("FACEBOOK_APP_ID"),
-      appSecret: getEnvTrimmed("FACEBOOK_APP_SECRET")
-    },
-    /** Instagram Login (standalone professional accounts). */
-    instagramStandalone: {
-      appId: getEnv("INSTAGRAM_APP_ID", ""),
-      appSecret: getEnv("INSTAGRAM_APP_SECRET", "")
-    }
-  }
-};
-var server2 = config2.server;
-logger.info({ msg: "[Config] Loaded", env: server2?.nodeEnv });
-
 // connections/sentry/index.ts
-var sentryConfig = config2.sentry;
-var serverConfig2 = config2.server;
+init_GlobalConfig();
+var sentryConfig = config.sentry;
+var serverConfig2 = config.server;
 var dsn = (sentryConfig?.dsn ?? "").toString().trim();
 var sentryEnabled = sentryConfig?.enabled !== false;
 if (dsn && sentryEnabled && !Sentry__namespace.isInitialized()) {
@@ -3857,9 +3606,9 @@ var FeedbackController = class {
   createFeedback = async (req, res, next) => {
     try {
       const body = req.body;
-      const auth5 = req;
+      const auth10 = req;
       const fromBody = body.email?.trim();
-      const emailFromAuth = auth5.user?.email?.trim();
+      const emailFromAuth = auth10.user?.email?.trim();
       const payload = {
         ...body,
         email: fromBody && fromBody.length > 0 ? fromBody : emailFromAuth && emailFromAuth.length > 0 ? emailFromAuth : void 0
@@ -4507,14 +4256,14 @@ var ConfigRepository = class _ConfigRepository {
         }
       );
     }
-    const config3 = data?.config;
-    if (!data || !config3 || config3[property] === void 0) {
+    const config2 = data?.config;
+    if (!data || !config2 || config2[property] === void 0) {
       throw new DatabaseEntityNotFoundError(
         _ConfigRepository.TABLE_NAME_MODULE_CONFIGS,
         { moduleName, property }
       );
     }
-    return { result: String(config3[property]) };
+    return { result: String(config2[property]) };
   }
   async getConfigByModuleNameAndProperties(params) {
     const { moduleName, properties } = params;
@@ -4536,11 +4285,11 @@ var ConfigRepository = class _ConfigRepository {
         { moduleName }
       );
     }
-    const config3 = data.config;
-    if (config3 && properties.length > 0) {
+    const config2 = data.config;
+    if (config2 && properties.length > 0) {
       for (const key of properties) {
-        if (key in config3 && config3[key] != null) {
-          result[key] = String(config3[key]);
+        if (key in config2 && config2[key] != null) {
+          result[key] = String(config2[key]);
         }
       }
     }
@@ -4563,6 +4312,16 @@ var ConfigRepository = class _ConfigRepository {
   }
 };
 
+// utils/make.is.ts
+var makeId = (length) => {
+  let text = "";
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < length; i += 1) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+};
+
 // repositories/OrganizationRepository.ts
 var ORGS_TABLE = "organizations";
 var USER_ORGS_TABLE = "user_organizations";
@@ -4572,6 +4331,9 @@ var USER_ORG_SELECT = "id, user_id, organization_id, role, disabled, created_at,
 var OrganizationRepository = class {
   constructor(supabase2) {
     this.supabase = supabase2;
+  }
+  async generateApiKey() {
+    return `opo_${makeId(48)}`;
   }
   /** Find public.users.id by auth_id (Supabase auth user id).
    *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
@@ -4671,9 +4433,23 @@ var OrganizationRepository = class {
     const { data, error } = await this.supabase.from(ORGS_TABLE).insert({
       name: params.name,
       description: params.description ?? null,
+      api_key: await this.generateApiKey(),
       updated_at: (/* @__PURE__ */ new Date()).toISOString()
     }).select(ORG_SELECT).single();
     return { organization: data, error };
+  }
+  /** Ensure an organization has an API key; writes only when `api_key` is null. */
+  async ensureApiKeyForOrganization(organizationId) {
+    const newKey = await this.generateApiKey();
+    const { data, error } = await this.supabase.from(ORGS_TABLE).update({ api_key: newKey, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", organizationId).is("api_key", null).select(ORG_SELECT).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to ensure organization api key", {
+        cause: error,
+        operation: "ensureApiKeyForOrganization",
+        resource: { type: "table", name: ORGS_TABLE }
+      });
+    }
+    return data ?? null;
   }
   /** Add user to organization with role. */
   async addMember(params) {
@@ -4744,8 +4520,7 @@ var OrganizationRepository = class {
   }
   /** Generate and set a new api_key for the organization. */
   async rotateApiKey(organizationId) {
-    const crypto = await import('crypto');
-    const newKey = `co_${crypto.randomBytes(24).toString("hex")}`;
+    const newKey = await this.generateApiKey();
     const { data, error } = await this.supabase.from(ORGS_TABLE).update({ api_key: newKey, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", organizationId).select(ORG_SELECT).single();
     return { organization: data, error };
   }
@@ -5920,8 +5695,8 @@ init_GlobalConfig();
 function publicUrlForObjectKey(key) {
   const storage = config.storage;
   const provider = String(storage.provider ?? "r2").toLowerCase();
-  const server3 = config.server;
-  const base = provider === "local" ? `${String(server3.frontendDomainUrl ?? server3.backendDomainUrl ?? "").trim().replace(/\/+$/, "")}/uploads` : storage.r2?.publicBaseUrl?.trim().replace(/\/+$/, "");
+  const server2 = config.server;
+  const base = provider === "local" ? `${String(server2.frontendDomainUrl ?? server2.backendDomainUrl ?? "").trim().replace(/\/+$/, "")}/uploads` : storage.r2?.publicBaseUrl?.trim().replace(/\/+$/, "");
   if (!base) return null;
   return `${base}/${key.replace(/^\/+/, "")}`;
 }
@@ -6341,6 +6116,102 @@ var IntegrationRepository = class {
   }
 };
 
+// repositories/PlugRepository.ts
+var PLUGS_TABLE = "plugs";
+var PlugRepository = class {
+  constructor(supabase2) {
+    this.supabase = supabase2;
+  }
+  async listPlugsByIntegration(organizationId, integrationId) {
+    const { data, error } = await this.supabase.from(PLUGS_TABLE).select("id, organization_id, integration_id, plug_function, data, activated").eq("organization_id", organizationId).eq("integration_id", integrationId).order("created_at", { ascending: true });
+    if (error) {
+      throw new DatabaseError("Failed to list integration plugs", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: PLUGS_TABLE }
+      });
+    }
+    return data ?? [];
+  }
+  async listActivatedPlugsByIntegration(organizationId, integrationId) {
+    const { data, error } = await this.supabase.from(PLUGS_TABLE).select("id, organization_id, integration_id, plug_function, data, activated").eq("organization_id", organizationId).eq("integration_id", integrationId).eq("activated", true);
+    if (error) {
+      throw new DatabaseError("Failed to list active integration plugs", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: PLUGS_TABLE }
+      });
+    }
+    return data ?? [];
+  }
+  async getPlugRowById(plugId) {
+    const { data, error } = await this.supabase.from(PLUGS_TABLE).select("id, organization_id, integration_id, plug_function, data, activated").eq("id", plugId).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to load integration plug", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: PLUGS_TABLE }
+      });
+    }
+    return data ?? null;
+  }
+  async insertPlug(params) {
+    const row = {
+      organization_id: params.organizationId,
+      integration_id: params.integrationId,
+      plug_function: params.plugFunction,
+      data: params.dataJson,
+      activated: true,
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    const { data, error } = await this.supabase.from(PLUGS_TABLE).insert(row).select("id, activated").single();
+    if (error || !data) {
+      throw new DatabaseError("Failed to insert integration plug", {
+        cause: error ?? new Error("no row"),
+        operation: "insert",
+        resource: { type: "table", name: PLUGS_TABLE }
+      });
+    }
+    return data;
+  }
+  async updatePlugData(params) {
+    const { data, error } = await this.supabase.from(PLUGS_TABLE).update({
+      data: params.dataJson,
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    }).eq("organization_id", params.organizationId).eq("integration_id", params.integrationId).eq("id", params.plugId).select("id, activated").maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to update integration plug", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: PLUGS_TABLE }
+      });
+    }
+    return data ?? null;
+  }
+  async deletePlugById(organizationId, plugId) {
+    const { data, error } = await this.supabase.from(PLUGS_TABLE).delete().eq("organization_id", organizationId).eq("id", plugId).select("id").maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to delete integration plug", {
+        cause: error,
+        operation: "delete",
+        resource: { type: "table", name: PLUGS_TABLE }
+      });
+    }
+    return data ? { id: data.id } : null;
+  }
+  async setPlugActivated(organizationId, plugId, activated) {
+    const { data, error } = await this.supabase.from(PLUGS_TABLE).update({ activated, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", plugId).select("id").maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to update plug activation", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: PLUGS_TABLE }
+      });
+    }
+    return data ? { id: data.id } : null;
+  }
+};
+
 // repositories/NotificationRepository.ts
 var TABLE3 = "notifications";
 var NOTIFICATION_LIST_SELECT = "id, content, link, created_at";
@@ -6407,6 +6278,8 @@ var NotificationRepository = class {
 var TABLE_POSTS = "posts";
 var TABLE_TAGS = "post_tags";
 var TABLE_POSTS_TAGS = "post_tag_assignments";
+var TABLE_COMMENTS = "comments";
+var TABLE_THREAD_REPLIES = "post_thread_replies";
 var PostsRepository = class {
   constructor(supabase2) {
     this.supabase = supabase2;
@@ -6538,6 +6411,57 @@ var PostsRepository = class {
     }
     return data;
   }
+  /**
+   * Creates a new scheduled QUEUE group by duplicating an existing group's rows.
+   *
+   * Used for "repeat post" scheduling: after a group is published, we schedule the same content
+   * again in the future by inserting a new group with a new `publish_date`.
+   *
+   * - Sets `state` to QUEUE
+   * - Clears publish results (release_id / release_url / error)
+   * - Sets `parent_post_id` to the source row id for lineage
+   * - Copies tag assignments from the source group to the new rows
+   */
+  async createRepeatGroupFromPostGroup(params) {
+    const { postGroup, publishDateIso } = params;
+    const rows = await this.listPostsByGroup(postGroup);
+    if (rows.length === 0) {
+      throw new DatabaseError("Failed to create repeat group: source post group not found", {
+        operation: "select",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    const newGroup = this.newPostGroup();
+    const toInsert = rows.filter((r) => !r.deleted_at).map((r) => ({
+      state: "QUEUE",
+      publish_date: publishDateIso,
+      organization_id: r.organization_id,
+      integration_id: r.integration_id,
+      content: r.content ?? "",
+      delay: r.delay ?? 0,
+      post_group: newGroup,
+      title: r.title ?? null,
+      description: r.description ?? null,
+      parent_post_id: r.id,
+      release_id: null,
+      release_url: null,
+      settings: r.settings ?? null,
+      image: r.image ?? null,
+      interval_in_days: r.interval_in_days ?? null,
+      error: null,
+      deleted_at: null,
+      created_by_user_id: r.created_by_user_id ?? null
+    }));
+    const inserted = await this.insertPostGroup(toInsert);
+    const sourceIds = rows.map((r) => r.id);
+    const tags = await this.listTagsForPostIds(sourceIds);
+    const tagIds = tags.map((t) => t.id).filter(Boolean);
+    await this.linkTagsToPosts(
+      inserted.map((p) => p.id),
+      tagIds
+    );
+    return { postGroup: newGroup, posts: inserted };
+  }
   async linkTagsToPosts(postIds, tagIds) {
     if (postIds.length === 0 || tagIds.length === 0) return;
     const now = (/* @__PURE__ */ new Date()).toISOString();
@@ -6597,6 +6521,97 @@ var PostsRepository = class {
       });
     }
     return data ?? null;
+  }
+  /** Lists non-deleted comments for a composer post row (`posts.id`). */
+  async listCommentsByPostId(postId) {
+    const { data, error } = await this.supabase.from(TABLE_COMMENTS).select("id, post_id, organization_id, user_id, content, created_at, updated_at, deleted_at").eq("post_id", postId).is("deleted_at", null).order("created_at", { ascending: true });
+    if (error) {
+      throw new DatabaseError(`Failed to load post comments: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_COMMENTS }
+      });
+    }
+    return data ?? [];
+  }
+  /** Inserts a composer comment on `posts.id`. */
+  async insertComposerComment(input) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE_COMMENTS).insert({
+      organization_id: input.organizationId,
+      post_id: input.postId,
+      user_id: input.userId,
+      content: input.content,
+      created_at: now,
+      updated_at: now,
+      deleted_at: null
+    }).select("id, post_id, organization_id, user_id, content, created_at, updated_at, deleted_at").single();
+    if (error || !data) {
+      throw new DatabaseError(`Failed to insert composer comment: ${error?.message ?? "no row"}`, {
+        cause: error ?? void 0,
+        operation: "insert",
+        resource: { type: "table", name: TABLE_COMMENTS }
+      });
+    }
+    return data;
+  }
+  /** Inserts follow-up thread replies for a given scheduled post row (`posts.id`). */
+  async insertThreadReplies(rows) {
+    if (rows.length === 0) return [];
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const payload = rows.map((r) => ({ ...r, created_at: now, updated_at: now }));
+    const { data, error } = await this.supabase.from(TABLE_THREAD_REPLIES).insert(payload).select("*");
+    if (error) {
+      throw new DatabaseError(`Failed to insert thread replies: ${error.message}`, {
+        cause: error,
+        operation: "insert",
+        resource: { type: "table", name: TABLE_THREAD_REPLIES }
+      });
+    }
+    return data ?? [];
+  }
+  /** Lists non-deleted thread replies for a scheduled post row (`posts.id`). */
+  async listThreadRepliesByPostId(postId) {
+    const { data, error } = await this.supabase.from(TABLE_THREAD_REPLIES).select("*").eq("post_id", postId).is("deleted_at", null).order("created_at", { ascending: true });
+    if (error) {
+      throw new DatabaseError(`Failed to load thread replies: ${error.message}`, {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_THREAD_REPLIES }
+      });
+    }
+    return data ?? [];
+  }
+  /** Soft-delete thread replies by parent post ids (used when overwriting a post group). */
+  async softDeleteThreadRepliesByPostIds(postIds) {
+    if (postIds.length === 0) return;
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { error } = await this.supabase.from(TABLE_THREAD_REPLIES).update({ deleted_at: now, updated_at: now }).in("post_id", postIds).is("deleted_at", null);
+    if (error) {
+      throw new DatabaseError(`Failed to delete thread replies: ${error.message}`, {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_THREAD_REPLIES }
+      });
+    }
+  }
+  /** Worker/orchestrator: set published result for a thread reply row. */
+  async updateThreadReplyPublishResult(replyId, input) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { error } = await this.supabase.from(TABLE_THREAD_REPLIES).update({
+      state: input.state,
+      release_id: input.releaseId,
+      release_url: input.releaseUrl,
+      error: input.error,
+      updated_at: now
+    }).eq("id", replyId).is("deleted_at", null);
+    if (error) {
+      throw new DatabaseError(`Failed to update thread reply publish result: ${error.message}`, {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_THREAD_REPLIES }
+      });
+    }
   }
   /** Soft-delete all rows in a post group. Returns ids of rows affected. */
   async softDeletePostsByGroup(postGroup) {
@@ -6658,6 +6673,21 @@ var PostsRepository = class {
       });
     }
   }
+  /**
+   * Sets `release_id` when the worker marked the publish as needing manual linking (`release_id = 'missing'`).
+   */
+  async updateReleaseIdIfMissing(postId, organizationId, releaseId) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE_POSTS).update({ release_id: releaseId, updated_at: now }).eq("id", postId).eq("organization_id", organizationId).eq("release_id", "missing").is("deleted_at", null).select("id");
+    if (error) {
+      throw new DatabaseError(`Failed to update release id: ${error.message}`, {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    return (data?.length ?? 0) > 0;
+  }
   async listTagsForPostIds(postIds) {
     if (postIds.length === 0) return [];
     const { data: links, error: linksErr } = await this.supabase.from(TABLE_POSTS_TAGS).select("tag_id").in("post_id", postIds);
@@ -6682,6 +6712,404 @@ var PostsRepository = class {
   }
 };
 
+// repositories/SignatureRepository.ts
+var TABLE4 = "signatures";
+var COLS2 = "id, organization_id, title, content, is_default, created_at, updated_at";
+var SignatureRepository = class {
+  constructor(supabase2) {
+    this.supabase = supabase2;
+  }
+  async listByOrganization(organizationId) {
+    const { data, error } = await this.supabase.from(TABLE4).select(COLS2).eq("organization_id", organizationId).order("updated_at", { ascending: false });
+    if (error) {
+      throw new DatabaseError("Error listing signatures", {
+        cause: error,
+        operation: "listByOrganization",
+        resource: { type: "table", name: TABLE4 }
+      });
+    }
+    return data ?? [];
+  }
+  async findById(signatureId) {
+    const { data, error } = await this.supabase.from(TABLE4).select(COLS2).eq("id", signatureId).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Error finding signature", {
+        cause: error,
+        operation: "findById",
+        resource: { type: "table", name: TABLE4 }
+      });
+    }
+    return data ?? null;
+  }
+  async clearDefaultForOrganization(organizationId) {
+    const { error } = await this.supabase.from(TABLE4).update({ is_default: false, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("is_default", true);
+    if (error) {
+      throw new DatabaseError("Error clearing default signature", {
+        cause: error,
+        operation: "clearDefaultForOrganization",
+        resource: { type: "table", name: TABLE4 }
+      });
+    }
+  }
+  async insert(params) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE4).insert({
+      organization_id: params.organizationId,
+      title: params.title,
+      content: params.content,
+      is_default: params.isDefault,
+      created_at: now,
+      updated_at: now
+    }).select(COLS2).single();
+    if (error || !data) {
+      throw new DatabaseError("Error inserting signature", {
+        cause: error,
+        operation: "insert",
+        resource: { type: "table", name: TABLE4 }
+      });
+    }
+    return data;
+  }
+  async update(params) {
+    const payload = {
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    if (params.title !== void 0) payload.title = params.title;
+    if (params.content !== void 0) payload.content = params.content;
+    if (params.isDefault !== void 0) payload.is_default = params.isDefault;
+    const { data, error } = await this.supabase.from(TABLE4).update(payload).eq("id", params.signatureId).eq("organization_id", params.organizationId).select(COLS2).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Error updating signature", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE4 }
+      });
+    }
+    return data ?? null;
+  }
+  async delete(signatureId, organizationId) {
+    const { error, count } = await this.supabase.from(TABLE4).delete({ count: "exact" }).eq("id", signatureId).eq("organization_id", organizationId);
+    if (error) {
+      throw new DatabaseError("Error deleting signature", {
+        cause: error,
+        operation: "delete",
+        resource: { type: "table", name: TABLE4 }
+      });
+    }
+    return (count ?? 0) > 0;
+  }
+};
+
+// repositories/SetsRepository.ts
+var TABLE5 = "sets";
+var COLS3 = "id, organization_id, name, content, created_at, updated_at";
+var SetsRepository = class {
+  constructor(supabase2) {
+    this.supabase = supabase2;
+  }
+  async listByOrganization(organizationId) {
+    const { data, error } = await this.supabase.from(TABLE5).select(COLS3).eq("organization_id", organizationId).order("updated_at", { ascending: false });
+    if (error) {
+      throw new DatabaseError("Error listing sets", {
+        cause: error,
+        operation: "listByOrganization",
+        resource: { type: "table", name: TABLE5 }
+      });
+    }
+    return data ?? [];
+  }
+  async findById(setId) {
+    const { data, error } = await this.supabase.from(TABLE5).select(COLS3).eq("id", setId).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Error finding set", {
+        cause: error,
+        operation: "findById",
+        resource: { type: "table", name: TABLE5 }
+      });
+    }
+    return data ?? null;
+  }
+  async insert(params) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE5).insert({
+      organization_id: params.organizationId,
+      name: params.name,
+      content: params.content,
+      created_at: now,
+      updated_at: now
+    }).select(COLS3).single();
+    if (error || !data) {
+      throw new DatabaseError("Error inserting set", {
+        cause: error,
+        operation: "insert",
+        resource: { type: "table", name: TABLE5 }
+      });
+    }
+    return data;
+  }
+  async update(params) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE5).update({
+      name: params.name,
+      content: params.content,
+      updated_at: now
+    }).eq("id", params.setId).eq("organization_id", params.organizationId).select(COLS3).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Error updating set", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE5 }
+      });
+    }
+    return data ?? null;
+  }
+  async delete(setId, organizationId) {
+    const { error, count } = await this.supabase.from(TABLE5).delete({ count: "exact" }).eq("id", setId).eq("organization_id", organizationId);
+    if (error) {
+      throw new DatabaseError("Error deleting set", {
+        cause: error,
+        operation: "delete",
+        resource: { type: "table", name: TABLE5 }
+      });
+    }
+    return (count ?? 0) > 0;
+  }
+};
+
+// repositories/OauthAppRepository.ts
+var TABLE_APPS = "oauth_apps";
+var TABLE_AUTHS = "oauth_authorizations";
+var OauthAppRepository = class {
+  constructor(supabase2) {
+    this.supabase = supabase2;
+  }
+  async getAppByOrganizationId(organizationId) {
+    const { data, error } = await this.supabase.from(TABLE_APPS).select("*").eq("organization_id", organizationId).is("deleted_at", null).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to resolve oauth app by organization_id", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_APPS }
+      });
+    }
+    return data ?? null;
+  }
+  async listAppsByOrganization(organizationId) {
+    const { data, error } = await this.supabase.from(TABLE_APPS).select("*").eq("organization_id", organizationId).is("deleted_at", null).order("created_at", { ascending: false });
+    if (error) {
+      throw new DatabaseError("Failed to list oauth apps", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_APPS }
+      });
+    }
+    return data ?? [];
+  }
+  async createApp(input) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE_APPS).insert({
+      organization_id: input.organizationId,
+      created_by_user_id: input.createdByUserId,
+      name: input.name,
+      description: input.description,
+      picture_id: input.pictureId ?? null,
+      redirect_url: input.redirectUrl,
+      client_id: input.clientId,
+      client_secret_hash: input.clientSecretHash,
+      deleted_at: null,
+      created_at: now,
+      updated_at: now
+    }).select("*").single();
+    if (error || !data) {
+      throw new DatabaseError("Failed to create oauth app", {
+        cause: error,
+        operation: "insert",
+        resource: { type: "table", name: TABLE_APPS }
+      });
+    }
+    return data;
+  }
+  async updateApp(params) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const payload = { updated_at: now };
+    if (params.name !== void 0) payload.name = params.name;
+    if (params.description !== void 0) payload.description = params.description;
+    if (params.pictureId !== void 0) payload.picture_id = params.pictureId;
+    if (params.redirectUrl !== void 0) payload.redirect_url = params.redirectUrl;
+    const { data, error } = await this.supabase.from(TABLE_APPS).update(payload).eq("id", params.oauthAppId).eq("organization_id", params.organizationId).is("deleted_at", null).select("*").maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to update oauth app", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_APPS }
+      });
+    }
+    return data ?? null;
+  }
+  async updateClientSecretHash(params) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { error } = await this.supabase.from(TABLE_APPS).update({ client_secret_hash: params.clientSecretHash, updated_at: now }).eq("id", params.oauthAppId).eq("organization_id", params.organizationId).is("deleted_at", null);
+    if (error) {
+      throw new DatabaseError("Failed to update oauth app client secret hash", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_APPS }
+      });
+    }
+  }
+  async deleteApp(organizationId, oauthAppId) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { error } = await this.supabase.from(TABLE_APPS).update({ deleted_at: now, updated_at: now }).eq("id", oauthAppId).eq("organization_id", organizationId).is("deleted_at", null);
+    if (error) {
+      throw new DatabaseError("Failed to delete oauth app", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_APPS }
+      });
+    }
+  }
+  async findActiveAppByClientId(clientId) {
+    const { data, error } = await this.supabase.from(TABLE_APPS).select("*").eq("client_id", clientId).is("deleted_at", null).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to resolve oauth app by client_id", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_APPS }
+      });
+    }
+    return data ?? null;
+  }
+  async findAuthorizationByCodeHash(codeHash) {
+    const { data, error } = await this.supabase.from(TABLE_AUTHS).select("*").eq("authorization_code_hash", codeHash).is("revoked_at", null).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to resolve oauth authorization by code", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_AUTHS }
+      });
+    }
+    return data ?? null;
+  }
+  async listApprovedAuthorizationsByUserId(userId) {
+    const { data, error } = await this.supabase.from(TABLE_AUTHS).select("*").eq("user_id", userId).is("revoked_at", null).not("access_token_hash", "is", null).order("created_at", { ascending: false });
+    if (error) {
+      throw new DatabaseError("Failed to list approved oauth authorizations", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_AUTHS }
+      });
+    }
+    return data ?? [];
+  }
+  async revokeAuthorizationByIdAndUserId(params) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { error } = await this.supabase.from(TABLE_AUTHS).update({ revoked_at: now, updated_at: now, access_token_hash: null, authorization_code_hash: null, code_expires_at: null }).eq("id", params.authorizationId).eq("user_id", params.userId).is("revoked_at", null);
+    if (error) {
+      throw new DatabaseError("Failed to revoke oauth authorization", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_AUTHS }
+      });
+    }
+  }
+  async revokeAllForApp(oauthAppId) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { error } = await this.supabase.from(TABLE_AUTHS).update({ revoked_at: now, updated_at: now, access_token_hash: null, authorization_code_hash: null, code_expires_at: null }).eq("oauth_app_id", oauthAppId).is("revoked_at", null);
+    if (error) {
+      throw new DatabaseError("Failed to revoke oauth authorizations for app", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_AUTHS }
+      });
+    }
+  }
+  async upsertAuthorization(input) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE_AUTHS).upsert(
+      {
+        oauth_app_id: input.oauthAppId,
+        user_id: input.userId,
+        organization_id: input.organizationId,
+        updated_at: now
+      },
+      { onConflict: "oauth_app_id,user_id,organization_id" }
+    ).select("*").single();
+    if (error || !data) {
+      throw new DatabaseError("Failed to upsert oauth authorization", {
+        cause: error,
+        operation: "upsert",
+        resource: { type: "table", name: TABLE_AUTHS }
+      });
+    }
+    return data;
+  }
+  async setAuthorizationCode(params) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { error } = await this.supabase.from(TABLE_AUTHS).update({
+      authorization_code_hash: params.codeHash,
+      code_expires_at: params.expiresAtIso,
+      updated_at: now
+    }).eq("id", params.authorizationId);
+    if (error) {
+      throw new DatabaseError("Failed to set authorization code", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_AUTHS }
+      });
+    }
+  }
+  async exchangeCodeForAccessToken(params) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { data, error } = await this.supabase.from(TABLE_AUTHS).update({
+      access_token_hash: params.accessTokenHash,
+      authorization_code_hash: null,
+      code_expires_at: null,
+      updated_at: now
+    }).eq("oauth_app_id", params.oauthAppId).eq("organization_id", params.organizationId).eq("authorization_code_hash", params.codeHash).is("revoked_at", null).gte("code_expires_at", now).select("*").maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to exchange authorization code", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_AUTHS }
+      });
+    }
+    return data ?? null;
+  }
+  async listAuthorizationsByApp(params) {
+    const { data, error } = await this.supabase.from(TABLE_AUTHS).select("*").eq("oauth_app_id", params.oauthAppId).eq("organization_id", params.organizationId).order("created_at", { ascending: false });
+    if (error) {
+      throw new DatabaseError("Failed to list oauth authorizations", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_AUTHS }
+      });
+    }
+    return data ?? [];
+  }
+  async findActiveAuthorizationByAccessTokenHash(accessTokenHash) {
+    const { data, error } = await this.supabase.from(TABLE_AUTHS).select("*").is("revoked_at", null).eq("access_token_hash", accessTokenHash).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to resolve oauth access token", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE_AUTHS }
+      });
+    }
+    return data ?? null;
+  }
+  async revokeAuthorizationByAccessTokenHash(params) {
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const { error } = await this.supabase.from(TABLE_AUTHS).update({ revoked_at: now, updated_at: now, access_token_hash: null }).eq("oauth_app_id", params.oauthAppId).eq("organization_id", params.organizationId).eq("access_token_hash", params.accessTokenHash).is("revoked_at", null);
+    if (error) {
+      throw new DatabaseError("Failed to revoke oauth authorization", {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_AUTHS }
+      });
+    }
+  }
+};
+
 // repositories/index.ts
 var refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
 var userRepository = new UserRepository(supabaseServiceClientConnection);
@@ -6702,8 +7130,12 @@ var storageR2Repository = new StorageR2Repository(r2Connection);
 var mediaRepository = new MediaRepository(supabaseServiceClientConnection);
 var storageSupabaseRepository = new StorageSupabaseRepository(supabaseServiceClientConnection);
 var integrationRepository = new IntegrationRepository(supabaseServiceClientConnection);
+var plugRepository = new PlugRepository(supabaseServiceClientConnection);
 var notificationRepository = new NotificationRepository(supabaseServiceClientConnection);
 var postsRepository = new PostsRepository(supabaseServiceClientConnection);
+var signatureRepository = new SignatureRepository(supabaseServiceClientConnection);
+var setsRepository = new SetsRepository(supabaseServiceClientConnection);
+var oauthAppRepository = new OauthAppRepository(supabaseServiceClientConnection);
 
 // services/AuthenticationService.ts
 init_Logger();
@@ -7394,7 +7826,7 @@ function base64UrlDecode(str) {
 }
 function signInviteToken(payload, secret) {
   if (!secret) {
-    throw new Error("Invite token secret is not configured (set INVITE_TOKEN_SECRET or JWT_SECRET)");
+    throw new Error("Invite token secret is not configured (set SECURITY_SECRET)");
   }
   const expiresAt = new Date(Date.now() + TTL_MS).toISOString();
   const id = crypto.randomBytes(6).toString("hex");
@@ -7528,7 +7960,7 @@ var OrganizationService = class {
     );
     const frontendUrl = config.server?.frontendDomainUrl ?? "";
     const inviteUrl = `${frontendUrl}/join-org?token=${encodeURIComponent(token)}`;
-    const expiresAt = dayjs2__default.default().add(1, "hour").toISOString();
+    const expiresAt = dayjs5__default.default().add(1, "hour").toISOString();
     if (params.sendEmail && this.emailService?.isEnabled) {
       try {
         await this.emailService.send(
@@ -7653,9 +8085,23 @@ var OrganizationService = class {
     const factory = async () => {
       const userId = await this.resolveAuthUserToUserId(authUserId);
       const { organizations, memberships } = await this.organizationRepository.findOrganizationsByUserId(userId);
+      const patched = [];
+      for (const org of organizations) {
+        if (org.api_key == null) {
+          try {
+            const updated = await this.organizationRepository.ensureApiKeyForOrganization(org.id);
+            patched.push(updated ?? org);
+            continue;
+          } catch {
+            patched.push(org);
+            continue;
+          }
+        }
+        patched.push(org);
+      }
       const orgIds = organizations.map((o) => o.id);
       const memberCounts = await this.organizationRepository.getMemberCounts(orgIds);
-      return { organizations, memberships, memberCounts };
+      return { organizations: patched, memberships, memberCounts };
     };
     if (this.cache) {
       return this.cache.getOrSet(cacheKey, factory, ORG_CACHE_TTL_SEC);
@@ -8487,18 +8933,432 @@ var ConfigService = class {
   }
 };
 
+// errors/ProviderIntegrationErrors.ts
+var ProviderAccessTokenExpiredError = class extends Error {
+  name = "ProviderAccessTokenExpiredError";
+  constructor(message = "Provider rejected access token; refresh and retry") {
+    super(message);
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+};
+
+// errors/metaGraphTokenError.ts
+function throwIfMetaGraphInvalidAccessToken(json2) {
+  const e = json2.error;
+  if (!e) return;
+  const code = e.code;
+  const sub = e.error_subcode;
+  if (code === 190 || code === 102 || sub === 463) {
+    throw new ProviderAccessTokenExpiredError(e.message);
+  }
+}
+
+// integrations/providers/instagramInsightsAnalytics.ts
+function metricTitle(name) {
+  switch (name) {
+    case "likes":
+      return "Likes";
+    case "followers":
+      return "Followers";
+    case "reach":
+      return "Reach";
+    case "follower_count":
+      return "Follower Count";
+    case "views":
+      return "Views";
+    case "comments":
+      return "Comments";
+    case "shares":
+      return "Shares";
+    case "saves":
+      return "Saves";
+    case "replies":
+      return "Replies";
+    case "saved":
+      return "Saves";
+    case "engagement":
+      return "Engagement";
+    default:
+      return name;
+  }
+}
+async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken, dateWindowDays) {
+  const until = dayjs5__default.default().endOf("day").unix();
+  const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
+  const enc = encodeURIComponent(accessToken);
+  const res1 = await fetch(
+    `${graphBaseUrl}/${encodeURIComponent(igUserId)}/insights?metric=follower_count,reach&access_token=${enc}&period=day&since=${since}&until=${until}`
+  );
+  const json1 = await res1.json();
+  if (!res1.ok || json1.error) {
+    return [];
+  }
+  const res2 = await fetch(
+    `${graphBaseUrl}/${encodeURIComponent(igUserId)}/insights?metric_type=total_value&metric=likes,views,comments,shares,saves,replies&access_token=${enc}&period=day&since=${since}&until=${until}`
+  );
+  const json2 = await res2.json();
+  if (!res2.ok || json2.error) {
+    return [];
+  }
+  const today = dayjs5__default.default().format("YYYY-MM-DD");
+  const tomorrow = dayjs5__default.default().add(1, "day").format("YYYY-MM-DD");
+  const analytics = [];
+  for (const d of json1.data ?? []) {
+    const name = d.name ?? "";
+    const label = metricTitle(name);
+    if (!label) continue;
+    analytics.push({
+      label,
+      percentageChange: 0,
+      data: (d.values ?? []).map((v) => ({
+        total: String(v.value ?? 0),
+        date: v.end_time ? dayjs5__default.default(v.end_time).format("YYYY-MM-DD") : today
+      }))
+    });
+  }
+  for (const d of json2.data ?? []) {
+    const name = d.name ?? "";
+    const label = metricTitle(name);
+    if (!label) continue;
+    const raw = d.total_value?.value;
+    const totalStr = raw != null ? String(raw) : "0";
+    analytics.push({
+      label,
+      percentageChange: 0,
+      data: [
+        { total: totalStr, date: today },
+        { total: totalStr, date: tomorrow }
+      ]
+    });
+  }
+  return analytics;
+}
+async function fetchInstagramMediaInsights(graphBaseUrl, mediaId, accessToken) {
+  const today = dayjs5__default.default().format("YYYY-MM-DD");
+  const enc = encodeURIComponent(accessToken);
+  const res = await fetch(
+    `${graphBaseUrl}/${encodeURIComponent(mediaId)}/insights?metric=views,reach,saved,likes,comments,shares&access_token=${enc}`
+  );
+  const json2 = await res.json();
+  throwIfMetaGraphInvalidAccessToken(json2);
+  if (!res.ok || json2.error || !json2.data?.length) {
+    return [];
+  }
+  const result = [];
+  for (const metric of json2.data) {
+    const value = metric.values?.[0]?.value;
+    if (value === void 0) continue;
+    const label = metricTitle(metric.name ?? "");
+    if (!label) continue;
+    result.push({
+      label,
+      percentageChange: 0,
+      data: [{ total: String(value), date: today }]
+    });
+  }
+  return result;
+}
+
+// utils/htmlToPlain.ts
+function htmlToPlainText(html) {
+  if (!html) return "";
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+// integrations/providers/instagramGraphComment.ts
+async function publishInstagramGraphComment(params) {
+  const msg = htmlToPlainText(params.message ?? "").trim();
+  if (!msg.length) {
+    throw new Error("Instagram comment message is empty");
+  }
+  const mediaId = params.mediaId.trim();
+  if (!mediaId) {
+    throw new Error("Instagram media id is required to publish a comment");
+  }
+  const base = `https://${params.graphHost}/${params.apiVersion}`;
+  const token = encodeURIComponent(params.accessToken);
+  const last = (params.lastCommentId ?? "").trim();
+  const parentIsMedia = !last || last === mediaId;
+  const createUrl = parentIsMedia ? `${base}/${encodeURIComponent(mediaId)}/comments?message=${encodeURIComponent(msg)}&access_token=${token}` : `${base}/${encodeURIComponent(last)}/replies?message=${encodeURIComponent(msg)}&access_token=${token}`;
+  const createRes = await fetch(createUrl, { method: "POST" });
+  const createBody = await createRes.json();
+  if (!createBody.id) {
+    throw new Error(createBody.error?.message ?? "Instagram comment failed");
+  }
+  const permRes = await fetch(
+    `${base}/${encodeURIComponent(mediaId)}?fields=permalink&access_token=${token}`
+  );
+  const permJson = await permRes.json();
+  if (permJson.error?.message && !permJson.permalink) {
+    return { commentId: createBody.id, mediaPermalink: "" };
+  }
+  return { commentId: createBody.id, mediaPermalink: typeof permJson.permalink === "string" ? permJson.permalink : "" };
+}
+
+// integrations/providers/instagramGraphContentPublish.ts
+init_Logger();
+var DEFAULT_API_VERSION = "v20.0";
+var POLL_INTERVAL_MS = 3e3;
+var POLL_MAX_ROUNDS = 60;
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+function mediaExtFromUrlOrKey(path5) {
+  const raw = String(path5 || "").trim();
+  if (!raw) return "";
+  try {
+    const u = new URL(raw);
+    const p = u.pathname || "";
+    return (p.split(".").pop() ?? "").toLowerCase();
+  } catch {
+    return (raw.split("?")[0]?.split("#")[0]?.split(".").pop() ?? "").toLowerCase();
+  }
+}
+function assertInstagramSupportedMedia(pathOrUrl) {
+  const ext = mediaExtFromUrlOrKey(pathOrUrl);
+  if (ext === "svg") {
+    throw new Error("Instagram does not support SVG. Use JPEG or PNG.");
+  }
+}
+function extractComposerMedia(settings) {
+  if (!settings || typeof settings !== "object") return [];
+  const s = settings;
+  const media = s.media;
+  if (Array.isArray(media)) {
+    return media.filter((m) => !!m && typeof m.path === "string");
+  }
+  const items = media?.items;
+  if (Array.isArray(items)) {
+    return items.filter((m) => !!m && typeof m.path === "string");
+  }
+  return [];
+}
+function resolvePublicMediaUrl(path5) {
+  const raw = path5.trim();
+  if (!raw) throw new Error("Media path is empty");
+  assertInstagramSupportedMedia(raw);
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw;
+  }
+  const url = publicUrlForObjectKey(raw);
+  if (!url) {
+    throw new Error(
+      "Cannot build a public media URL for Instagram (set STORAGE_R2_PUBLIC_BASE_URL for R2, or use full https:// URLs)"
+    );
+  }
+  return url;
+}
+async function readGraphJson(res) {
+  const text = await res.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { _nonJsonBody: text };
+  }
+}
+function formatGraphError(prefix, res, body) {
+  const b = body;
+  if (b?.error?.message) {
+    const extra = [b.error.error_user_msg].filter(Boolean).join(" \u2014 ");
+    return `${prefix}: ${b.error.message}${extra ? ` (${extra})` : ""}`;
+  }
+  if (b && typeof b === "object" && "_nonJsonBody" in b && typeof b._nonJsonBody === "string") {
+    return `${prefix}: HTTP ${res.status} \u2014 ${b._nonJsonBody.slice(0, 500)}`;
+  }
+  return `${prefix}: HTTP ${res.status}`;
+}
+function apiRoot(hostname, apiVersion) {
+  const host = hostname.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const ver = apiVersion.replace(/^\//, "");
+  return `https://${host}/${ver}`;
+}
+async function assertUrlPubliclyReachable(url) {
+  let res = await fetch(url, { method: "HEAD", redirect: "follow" });
+  if (res.status === 405 || res.status === 501) {
+    res = await fetch(url, { method: "GET", headers: { Range: "bytes=0-0" }, redirect: "follow" });
+  }
+  if (!res.ok) {
+    throw new Error(
+      `Instagram media URL is not publicly reachable (HTTP ${res.status}). Meta must fetch this URL. url=${url}`
+    );
+  }
+}
+async function waitForMediaContainerReady(root, creationId, accessToken) {
+  for (let i = 0; i < POLL_MAX_ROUNDS; i++) {
+    const res = await fetch(
+      `${root}/${encodeURIComponent(creationId)}?fields=status_code,status&access_token=${encodeURIComponent(accessToken)}`
+    );
+    const json2 = await readGraphJson(res);
+    if (!res.ok) {
+      throw new Error(formatGraphError("Instagram media status check failed", res, json2));
+    }
+    const code = (json2.status_code ?? json2.status ?? "").toUpperCase();
+    if (code === "ERROR" || code === "EXPIRED") {
+      throw new Error(`Instagram media container ${code}. ${JSON.stringify(json2).slice(0, 800)}`);
+    }
+    if (code && code !== "IN_PROGRESS") {
+      return;
+    }
+    await sleepMs(POLL_INTERVAL_MS);
+  }
+  throw new Error("Instagram media processing timed out");
+}
+async function postForm(url, params) {
+  const body = new URLSearchParams(params);
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
+  const json2 = await readGraphJson(res);
+  return { res, json: json2 };
+}
+async function publishInstagramGraphFeedPost(igUserId, accessToken, first, target) {
+  const version = target.apiVersion ?? DEFAULT_API_VERSION;
+  const root = apiRoot(target.graphHostname, version);
+  const rawItems = extractComposerMedia(first.settings);
+  const medias = rawItems.map((m) => ({ ...m, path: resolvePublicMediaUrl(String(m.path)) }));
+  if (medias.length === 0) {
+    throw new Error("Instagram requires at least one image or video");
+  }
+  for (const m of medias) {
+    await assertUrlPubliclyReachable(m.path);
+  }
+  const settings = first.settings ?? {};
+  const isStory = settings.post_type === "story";
+  const isTrialReel = Boolean(settings.is_trial_reel);
+  const message = first.message ?? "";
+  logger.info({
+    msg: "[Instagram] publishing media",
+    igUserId,
+    graph: target.graphHostname,
+    mediaCount: medias.length,
+    isStory
+  });
+  const creationIds = [];
+  for (const m of medias) {
+    const isVideo = m.path.toLowerCase().includes(".mp4");
+    const caption = medias.length === 1 && !isStory ? `&caption=${encodeURIComponent(message)}` : "";
+    const isCarousel = medias.length > 1 && !isStory ? "&is_carousel_item=true" : "";
+    let mediaQuery;
+    if (isVideo) {
+      if (medias.length === 1) {
+        if (isStory) {
+          mediaQuery = `video_url=${encodeURIComponent(m.path)}&media_type=STORIES`;
+        } else {
+          mediaQuery = `video_url=${encodeURIComponent(m.path)}&media_type=REELS&thumb_offset=${encodeURIComponent(String(m.thumbnailTimestamp ?? 0))}`;
+        }
+      } else if (isStory) {
+        mediaQuery = `video_url=${encodeURIComponent(m.path)}&media_type=STORIES`;
+      } else {
+        mediaQuery = `video_url=${encodeURIComponent(m.path)}&media_type=VIDEO&thumb_offset=${encodeURIComponent(String(m.thumbnailTimestamp ?? 0))}`;
+      }
+    } else if (isStory) {
+      mediaQuery = `image_url=${encodeURIComponent(m.path)}&media_type=STORIES`;
+    } else {
+      mediaQuery = `image_url=${encodeURIComponent(m.path)}`;
+    }
+    const trialParams = isTrialReel ? `&trial_params=${encodeURIComponent(
+      JSON.stringify({
+        graduation_strategy: settings.graduation_strategy || "MANUAL"
+      })
+    )}` : "";
+    const collaborators = Array.isArray(settings.collaborators) && settings.collaborators.length > 0 && !isStory ? `&collaborators=${encodeURIComponent(JSON.stringify(settings.collaborators.map((p) => p.label).filter(Boolean)))}` : "";
+    const url = `${root}/${encodeURIComponent(igUserId)}/media?${mediaQuery}${isCarousel}${collaborators}${trialParams}${caption}&access_token=${encodeURIComponent(accessToken)}`;
+    const createRes = await fetch(url, { method: "POST" });
+    const createJson = await readGraphJson(createRes);
+    if (!createRes.ok || !createJson.id) {
+      throw new Error(formatGraphError("Instagram create media container failed", createRes, createJson));
+    }
+    await waitForMediaContainerReady(root, createJson.id, accessToken);
+    creationIds.push(createJson.id);
+  }
+  if (isStory && creationIds.length > 1) {
+    let lastMediaId = "";
+    let lastPermalink = "";
+    for (const creationId of creationIds) {
+      const pub = await postForm(`${root}/${encodeURIComponent(igUserId)}/media_publish`, {
+        creation_id: creationId,
+        access_token: accessToken
+      });
+      const pubJson = pub.json;
+      if (!pub.res.ok || !pubJson.id) {
+        throw new Error(formatGraphError("Instagram media_publish failed", pub.res, pubJson));
+      }
+      lastMediaId = pubJson.id;
+      const permRes = await fetch(
+        `${root}/${encodeURIComponent(pubJson.id)}?fields=permalink&access_token=${encodeURIComponent(accessToken)}`
+      );
+      const permJson = await readGraphJson(permRes);
+      if (permRes.ok && permJson.permalink) {
+        lastPermalink = permJson.permalink;
+      }
+    }
+    return [
+      {
+        id: first.id,
+        postId: lastMediaId,
+        releaseURL: lastPermalink,
+        status: "success"
+      }
+    ];
+  }
+  if (creationIds.length === 1) {
+    const pub = await postForm(`${root}/${encodeURIComponent(igUserId)}/media_publish`, {
+      creation_id: creationIds[0],
+      access_token: accessToken
+    });
+    const pubJson = pub.json;
+    if (!pub.res.ok || !pubJson.id) {
+      throw new Error(formatGraphError("Instagram media_publish failed", pub.res, pubJson));
+    }
+    const permRes = await fetch(
+      `${root}/${encodeURIComponent(pubJson.id)}?fields=permalink&access_token=${encodeURIComponent(accessToken)}`
+    );
+    const permJson = await readGraphJson(permRes);
+    if (!permRes.ok) {
+      throw new Error(formatGraphError("Instagram load permalink failed", permRes, permJson));
+    }
+    return [
+      {
+        id: first.id,
+        postId: pubJson.id,
+        releaseURL: permJson.permalink ?? "",
+        status: "success"
+      }
+    ];
+  }
+  const carouselUrl = `${root}/${encodeURIComponent(igUserId)}/media?caption=${encodeURIComponent(message)}&media_type=CAROUSEL&children=${encodeURIComponent(creationIds.join(","))}&access_token=${encodeURIComponent(accessToken)}`;
+  const carRes = await fetch(carouselUrl, { method: "POST" });
+  const carJson = await readGraphJson(carRes);
+  if (!carRes.ok || !carJson.id) {
+    throw new Error(formatGraphError("Instagram create carousel container failed", carRes, carJson));
+  }
+  await waitForMediaContainerReady(root, carJson.id, accessToken);
+  const pub2 = await postForm(`${root}/${encodeURIComponent(igUserId)}/media_publish`, {
+    creation_id: carJson.id,
+    access_token: accessToken
+  });
+  const pub2Json = pub2.json;
+  if (!pub2.res.ok || !pub2Json.id) {
+    throw new Error(formatGraphError("Instagram carousel media_publish failed", pub2.res, pub2Json));
+  }
+  const perm2 = await fetch(
+    `${root}/${encodeURIComponent(pub2Json.id)}?fields=permalink&access_token=${encodeURIComponent(accessToken)}`
+  );
+  const perm2Json = await readGraphJson(perm2);
+  if (!perm2.ok) {
+    throw new Error(formatGraphError("Instagram carousel permalink failed", perm2, perm2Json));
+  }
+  return [
+    {
+      id: first.id,
+      postId: pub2Json.id,
+      releaseURL: perm2Json.permalink ?? "",
+      status: "success"
+    }
+  ];
+}
+
 // integrations/providers/instagramBusinessProvider.ts
 init_GlobalConfig();
-
-// utils/make.is.ts
-var makeId = (length) => {
-  let text = "";
-  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < length; i += 1) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-};
 
 // integrations/utils/oauthFrontendOrigin.ts
 init_GlobalConfig();
@@ -8522,13 +9382,19 @@ function oauthFrontendOrigin() {
   }
 }
 
+// integrations/utils/oauthFrontendCallbackPath.ts
+function oauthFrontendSocialCallbackPath(provider) {
+  return `/integration/oauth/${encodeURIComponent(provider)}`;
+}
+
 // integrations/providers/instagramBusinessProvider.ts
 var GRAPH = "https://graph.facebook.com/v20.0";
+var IG_INSIGHTS_GRAPH = "https://graph.facebook.com/v21.0";
 function facebookOAuth() {
   return config.integrations.facebook;
 }
 function instagramBusinessRedirectUri() {
-  return `${oauthFrontendOrigin()}/account/integrations/social/instagram-business`;
+  return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("instagram-business")}`;
 }
 var InstagramBusinessProvider = class {
   identifier = "instagram-business";
@@ -8555,8 +9421,36 @@ var InstagramBusinessProvider = class {
     }
     return null;
   }
-  async post(_id, _accessToken, _postDetails, _integration) {
-    throw new Error("Instagram Business posting is not implemented");
+  /** Content Publishing on `graph.facebook.com` with Page token. */
+  async post(id, accessToken, postDetails, _integration) {
+    if (!postDetails.length) return [];
+    return publishInstagramGraphFeedPost(id, accessToken, postDetails[0], {
+      graphHostname: "graph.facebook.com",
+      apiVersion: "v20.0"
+    });
+  }
+  /**
+   * Follow-up comment or nested reply on a published Instagram media id (Facebook Graph, Page token).
+   */
+  async comment(_userId, postId, lastCommentId, accessToken, postDetails, _integration) {
+    if (!postDetails.length) return [];
+    const [first] = postDetails;
+    const { commentId, mediaPermalink } = await publishInstagramGraphComment({
+      graphHost: "graph.facebook.com",
+      apiVersion: "v20.0",
+      mediaId: postId,
+      lastCommentId,
+      message: first.message ?? "",
+      accessToken
+    });
+    return [
+      {
+        id: first.id,
+        postId: commentId,
+        status: "success",
+        releaseURL: mediaPermalink
+      }
+    ];
   }
   checkScopes(required, granted) {
     const missing = required.filter((s) => !granted.includes(s));
@@ -8566,7 +9460,12 @@ var InstagramBusinessProvider = class {
   }
   async refreshToken(refresh_token) {
     const { appId, appSecret } = facebookOAuth();
-    if (!appId || !appSecret) throw new Error("Facebook OAuth is not configured");
+    if (!appId || !appSecret) {
+      throw new AppError(
+        "Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET.",
+        503
+      );
+    }
     const tokenRes = await fetch(
       `${GRAPH}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(refresh_token)}`
     );
@@ -8583,14 +9482,19 @@ var InstagramBusinessProvider = class {
       name: me.name ?? "",
       accessToken: extended.access_token,
       refreshToken: extended.access_token,
-      expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs2__default.default().add(59, "days").unix() - dayjs2__default.default().unix(),
+      expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
       picture: me.picture?.data?.url ?? "",
       username: ""
     };
   }
   async generateAuthUrl() {
     const { appId } = facebookOAuth();
-    if (!appId) throw new Error("Facebook OAuth is not configured");
+    if (!appId) {
+      throw new AppError(
+        "Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET for the Meta app used by Instagram (Business).",
+        503
+      );
+    }
     const state = makeId(6);
     const codeVerifier = makeId(10);
     const redirectUri = instagramBusinessRedirectUri();
@@ -8634,7 +9538,7 @@ var InstagramBusinessProvider = class {
       name: me.name ?? "",
       accessToken: longLived.access_token,
       refreshToken: longLived.access_token,
-      expiresIn: dayjs2__default.default().add(59, "days").unix() - dayjs2__default.default().unix(),
+      expiresIn: dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
       picture: me.picture?.data?.url ?? "",
       username: ""
     };
@@ -8704,16 +9608,25 @@ var InstagramBusinessProvider = class {
       username: information.username
     };
   }
+  /** Instagram user insights via Facebook Graph (`instagram_manage_insights`). */
+  async analytics(igUserId, accessToken, dateWindowDays) {
+    return fetchInstagramAccountInsights(IG_INSIGHTS_GRAPH, igUserId, accessToken, dateWindowDays);
+  }
+  /** Media insights for a published Instagram object id (`releaseId`). */
+  async postAnalytics(_integrationId, accessToken, mediaId, _fromDate) {
+    return fetchInstagramMediaInsights(IG_INSIGHTS_GRAPH, mediaId, accessToken);
+  }
 };
 
 // integrations/providers/instagramStandaloneProvider.ts
 init_GlobalConfig();
 var IG_GRAPH = "https://graph.instagram.com";
+var IG_INSIGHTS_GRAPH2 = "https://graph.instagram.com/v21.0";
 function instagramStandaloneOAuth() {
   return config.integrations.instagramStandalone;
 }
 function instagramStandaloneRedirectUri() {
-  return `${oauthFrontendOrigin()}/account/integrations/social/instagram-standalone`;
+  return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("instagram-standalone")}`;
 }
 function normalizeOAuthPermissionList(raw) {
   if (Array.isArray(raw)) {
@@ -8746,8 +9659,36 @@ var InstagramStandaloneProvider = class {
     }
     return null;
   }
-  async post(_id, _accessToken, _postDetails, _integration) {
-    throw new Error("Instagram posting is not implemented");
+  /** Content Publishing on `graph.instagram.com`. */
+  async post(id, accessToken, postDetails, _integration) {
+    if (!postDetails.length) return [];
+    return publishInstagramGraphFeedPost(id, accessToken, postDetails[0], {
+      graphHostname: "graph.instagram.com",
+      apiVersion: "v20.0"
+    });
+  }
+  /**
+   * Follow-up comment or nested reply on a published Instagram media object (Business Login / Instagram Graph).
+   */
+  async comment(_userId, postId, lastCommentId, accessToken, postDetails, _integration) {
+    if (!postDetails.length) return [];
+    const [first] = postDetails;
+    const { commentId, mediaPermalink } = await publishInstagramGraphComment({
+      graphHost: "graph.instagram.com",
+      apiVersion: "v21.0",
+      mediaId: postId,
+      lastCommentId,
+      message: first.message ?? "",
+      accessToken
+    });
+    return [
+      {
+        id: first.id,
+        postId: commentId,
+        status: "success",
+        releaseURL: mediaPermalink
+      }
+    ];
   }
   checkScopes(required, granted) {
     const missing = required.filter((s) => !granted.includes(s));
@@ -8773,7 +9714,7 @@ var InstagramStandaloneProvider = class {
       name: me.name ?? me.username ?? "",
       accessToken: body.access_token,
       refreshToken: body.access_token,
-      expiresIn: dayjs2__default.default().add(58, "days").unix() - dayjs2__default.default().unix(),
+      expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
       picture: me.profile_picture_url ?? "",
       username: me.username ?? ""
     };
@@ -8830,10 +9771,17 @@ var InstagramStandaloneProvider = class {
       name: me.name ?? me.username ?? "",
       accessToken: longLived.access_token,
       refreshToken: longLived.access_token,
-      expiresIn: dayjs2__default.default().add(58, "days").unix() - dayjs2__default.default().unix(),
+      expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
       picture: me.profile_picture_url ?? "",
       username: me.username ?? ""
     };
+  }
+  /** Same metrics as Instagram Business, via Instagram Graph host (Business Login). */
+  async analytics(igUserId, accessToken, dateWindowDays) {
+    return fetchInstagramAccountInsights(IG_INSIGHTS_GRAPH2, igUserId, accessToken, dateWindowDays);
+  }
+  async postAnalytics(_integrationId, accessToken, mediaId, _fromDate) {
+    return fetchInstagramMediaInsights(IG_INSIGHTS_GRAPH2, mediaId, accessToken);
   }
 };
 
@@ -8841,7 +9789,7 @@ var InstagramStandaloneProvider = class {
 init_GlobalConfig();
 init_Logger();
 var GRAPH2 = "https://graph.threads.net/v1.0";
-function mediaExtFromUrlOrKey(path5) {
+function mediaExtFromUrlOrKey2(path5) {
   const raw = String(path5 || "").trim();
   if (!raw) return "";
   try {
@@ -8853,21 +9801,54 @@ function mediaExtFromUrlOrKey(path5) {
   }
 }
 function assertThreadsSupportedMedia(pathOrUrl) {
-  const ext = mediaExtFromUrlOrKey(pathOrUrl);
+  const ext = mediaExtFromUrlOrKey2(pathOrUrl);
   if (ext === "svg") {
     throw new Error("Threads does not support SVG uploads. Convert the image to PNG or JPEG and try again.");
   }
 }
-var THREADS_PROVIDER_BUILD = "2026-04-24d";
-function sleepMs(ms) {
+function sleepMs2(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function threadsRedirectUri() {
-  return `${oauthFrontendOrigin()}/account/integrations/social/threads`;
+  return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("threads")}`;
 }
 function threadsOAuth() {
   return config.integrations.threads;
 }
+var THREADS_GLOBAL_PLUG_CATALOG = [
+  {
+    methodName: "autoPlugPost",
+    identifier: "threads-autoPlugPost",
+    title: "Auto plug post",
+    description: "When a thread reaches a certain number of likes, publish a reply so followers get another notification.",
+    runEveryMilliseconds: 216e5,
+    totalRuns: 3,
+    fields: [
+      {
+        name: "likesAmount",
+        description: "The number of likes required to trigger the reply",
+        type: "number",
+        placeholder: "Amount of likes",
+        validation: "/^\\d+$/"
+      },
+      {
+        name: "post",
+        description: "Message content for the reply",
+        type: "richtext",
+        placeholder: "Post to plug",
+        validation: "/^[\\s\\S]{3,}$/g"
+      }
+    ]
+  }
+];
+var THREADS_INTERNAL_PLUG_CATALOG = [
+  {
+    identifier: "threads-internal-follow-up",
+    methodName: "threadsInternalFollowUp",
+    title: "Delayed follow-up reply (same account)",
+    description: "Schedule an extra reply from this channel after your thread goes live. Cross-account boosting can be added later."
+  }
+];
 var ThreadsProvider = class {
   identifier = "threads";
   name = "Threads";
@@ -8880,13 +9861,18 @@ var ThreadsProvider = class {
     "threads_manage_replies",
     "threads_manage_insights"
   ];
+  globalPlugCatalog() {
+    return THREADS_GLOBAL_PLUG_CATALOG;
+  }
+  internalPlugCatalog() {
+    return THREADS_INTERNAL_PLUG_CATALOG;
+  }
   maxLength(_additionalSettings) {
     return 500;
   }
   async post(userId, accessToken, postDetails, _integration) {
     if (!postDetails.length) return [];
     const [first] = postDetails;
-    logger.info({ msg: "[Threads] post()", build: THREADS_PROVIDER_BUILD, postId: first.id });
     const message = first.message ?? "";
     const media = this.extractMedia(first.settings).map((m) => ({
       ...m,
@@ -8913,6 +9899,82 @@ var ThreadsProvider = class {
       }
     ];
   }
+  /**
+   * Create a reply (comment) under a Threads post.
+   *
+   * Threads uses the same two-step publish flow as posting:
+   * 1) create a TEXT media container with `reply_to_id`
+   * 2) publish it via `/{threads-user-id}/threads_publish`
+   */
+  async comment(userId, postId, lastCommentId, accessToken, postDetails, _integration) {
+    if (!postDetails.length) return [];
+    const [first] = postDetails;
+    const message = htmlToPlainText(first.message ?? "").trim().slice(0, this.maxLength());
+    const replyToId = (lastCommentId ?? postId ?? "").trim();
+    if (!message.length) {
+      throw new Error("Threads comment message is empty");
+    }
+    if (!replyToId) {
+      throw new Error("Threads reply_to_id is required to publish a comment");
+    }
+    const creationId = await this.createTextContent(userId, accessToken, message, replyToId);
+    const { threadId, permalink } = await this.publishThread(userId, accessToken, creationId);
+    return [
+      {
+        id: first.id,
+        postId: threadId,
+        status: "success",
+        releaseURL: permalink
+      }
+    ];
+  }
+  /**
+   * Internal plug: delayed follow-up reply from the same Threads account that published the thread.
+   */
+  async threadsInternalFollowUp(acting, _original, threadId, information) {
+    const raw = typeof information?.message === "string" ? information.message : "";
+    const msg = htmlToPlainText(raw).trim();
+    if (!msg.length || !threadId.trim()) return;
+    const parent = typeof information.replyToParentId === "string" && information.replyToParentId.trim().length > 0 ? information.replyToParentId.trim() : void 0;
+    await this.comment(
+      acting.internal_id,
+      threadId.trim(),
+      parent,
+      acting.token,
+      [{ id: "threads-internal-plug", message: msg, settings: {} }],
+      acting
+    );
+  }
+  /**
+   * Global plug: when thread likes reach threshold, publish a reply (promotion / CTA).
+   */
+  async autoPlugPost(integration, threadId, fields) {
+    const threshold = Number(fields.likesAmount);
+    if (!Number.isFinite(threshold) || threshold < 0) return false;
+    const res = await fetch(
+      `${GRAPH2}/${encodeURIComponent(threadId)}/insights?metric=likes&access_token=${encodeURIComponent(integration.token)}`
+    );
+    const body = await res.json();
+    if (!res.ok || body.error || !body.data?.length) {
+      logger.warn({
+        msg: "[Threads] autoPlugPost insights unavailable",
+        threadId,
+        err: body.error?.message
+      });
+      return false;
+    }
+    const likesMetric = body.data.find((p) => p.name === "likes");
+    const value = likesMetric?.values?.[0]?.value ?? likesMetric?.total_value?.value ?? 0;
+    if (value < threshold) {
+      return false;
+    }
+    await sleepMs2(2e3);
+    const text = htmlToPlainText(fields.post ?? "").slice(0, this.maxLength());
+    const creationId = await this.createTextContent(integration.internal_id, integration.token, text, threadId.trim());
+    await sleepMs2(2e3);
+    await this.publishThread(integration.internal_id, integration.token, creationId);
+    return true;
+  }
   async refreshToken(refresh_token) {
     const { appId } = threadsOAuth();
     if (!appId) throw new Error("THREADS_APP_ID is not configured");
@@ -8927,7 +9989,7 @@ var ThreadsProvider = class {
       name,
       accessToken: access_token,
       refreshToken: access_token,
-      expiresIn: dayjs2__default.default().add(58, "days").unix() - dayjs2__default.default().unix(),
+      expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
       picture: picture || "",
       username: username || ""
     };
@@ -8962,7 +10024,7 @@ var ThreadsProvider = class {
       name,
       accessToken: longLived.access_token,
       refreshToken: longLived.access_token,
-      expiresIn: dayjs2__default.default().add(58, "days").unix() - dayjs2__default.default().unix(),
+      expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
       picture: picture || "",
       username: username || ""
     };
@@ -9053,20 +10115,23 @@ var ThreadsProvider = class {
         );
       }
       if (status === "FINISHED") {
-        await sleepMs(2e3);
+        await sleepMs2(2e3);
         return;
       }
-      await sleepMs(2200);
+      await sleepMs2(2200);
     }
     throw new Error("Threads media processing timed out");
   }
   async formPostThreads(userId, form) {
     return await fetch(`${GRAPH2}/${encodeURIComponent(userId)}/threads`, { method: "POST", body: form });
   }
-  async createTextContent(userId, accessToken, message) {
+  async createTextContent(userId, accessToken, message, replyToId) {
     const form = new FormData();
     form.append("media_type", "TEXT");
     form.append("text", message);
+    if (replyToId && replyToId.trim().length > 0) {
+      form.append("reply_to_id", replyToId.trim());
+    }
     form.append("access_token", accessToken);
     const res = await this.formPostThreads(userId, form);
     const json2 = await this.readGraphJson(res);
@@ -9137,6 +10202,85 @@ var ThreadsProvider = class {
     }
     return { threadId: pubJson.id, permalink: infoJson.permalink ?? "" };
   }
+  capitalizeMetric(name) {
+    if (!name) return name;
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  }
+  /**
+   * Account insights for the analytics dashboard (`threads_manage_insights`).
+   */
+  async analytics(id, accessToken, dateWindowDays) {
+    const until = dayjs5__default.default().endOf("day").unix();
+    const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
+    const url = `${GRAPH2}/${encodeURIComponent(id)}/threads_insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken)}&period=day&since=${since}&until=${until}`;
+    const res = await fetch(url);
+    const body = await res.json();
+    if (!res.ok || body.error) {
+      return [];
+    }
+    const today = dayjs5__default.default().format("YYYY-MM-DD");
+    const rows = body.data?.map((d) => ({
+      label: this.capitalizeMetric(d.name ?? ""),
+      percentageChange: 0,
+      data: d.total_value ? [{ total: String(d.total_value.value ?? 0), date: today }] : (d.values ?? []).map((v) => ({
+        total: String(v.value ?? 0),
+        date: v.end_time ? dayjs5__default.default(v.end_time).format("YYYY-MM-DD") : today
+      }))
+    })) ?? [];
+    return rows.filter((r) => r.label.length > 0);
+  }
+  /**
+   * Per-thread insights for post statistics (`threads_manage_insights`).
+   */
+  async postAnalytics(_integrationId, accessToken, threadMediaOrPostId, _fromDate) {
+    const today = dayjs5__default.default().format("YYYY-MM-DD");
+    try {
+      const res = await fetch(
+        `${GRAPH2}/${encodeURIComponent(threadMediaOrPostId)}/insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken)}`
+      );
+      const json2 = await res.json();
+      throwIfMetaGraphInvalidAccessToken(json2);
+      if (!res.ok || json2.error || !json2.data?.length) {
+        return [];
+      }
+      const result = [];
+      for (const metric of json2.data) {
+        const value = metric.values?.[0]?.value ?? metric.total_value?.value;
+        if (value === void 0) continue;
+        let label = "";
+        switch (metric.name) {
+          case "views":
+            label = "Views";
+            break;
+          case "likes":
+            label = "Likes";
+            break;
+          case "replies":
+            label = "Replies";
+            break;
+          case "reposts":
+            label = "Reposts";
+            break;
+          case "quotes":
+            label = "Quotes";
+            break;
+          default:
+            label = "";
+        }
+        if (label) {
+          result.push({
+            label,
+            percentageChange: 0,
+            data: [{ total: String(value), date: today }]
+          });
+        }
+      }
+      return result;
+    } catch (e) {
+      if (e instanceof ProviderAccessTokenExpiredError) throw e;
+      return [];
+    }
+  }
   async fetchUserInfo(accessToken) {
     const res = await fetch(
       `https://graph.threads.net/v1.0/me?fields=id,username,threads_profile_picture_url&access_token=${encodeURIComponent(accessToken)}`
@@ -9203,11 +10347,57 @@ var IntegrationManager = class {
       article: []
     };
   }
-  getInternalPlugs(_identifier) {
-    return { plugs: [] };
+  /** Global plug rows for API responses (aggregated from providers that expose {@link SocialProvider.globalPlugCatalog}). */
+  listGlobalPlugCatalog() {
+    const plugs = [];
+    for (const p of socialIntegrationList) {
+      const rows = p.globalPlugCatalog?.();
+      if (rows?.length) {
+        plugs.push({ name: p.name, identifier: p.identifier, plugs: rows });
+      }
+    }
+    return { plugs };
   }
+  getGlobalPlugDefinitionsForProvider(providerIdentifier) {
+    return this.getSocialIntegration(providerIdentifier)?.globalPlugCatalog?.() ?? [];
+  }
+  getInternalPlugDefinitionsForProvider(providerIdentifier) {
+    return this.getSocialIntegration(providerIdentifier)?.internalPlugCatalog?.() ?? [];
+  }
+  findGlobalPlugDefinition(providerIdentifier, methodName) {
+    return this.getGlobalPlugDefinitionsForProvider(providerIdentifier).find((p) => p.methodName === methodName);
+  }
+  validatePlugFieldsAgainstCatalog(params) {
+    const def = this.findGlobalPlugDefinition(params.providerIdentifier, params.methodName);
+    if (!def) return `Unknown plug "${params.methodName}" for provider ${params.providerIdentifier}`;
+    const allowed = new Set(def.fields.map((f) => f.name));
+    for (const f of params.fields) {
+      if (!allowed.has(f.name)) return `Unexpected field "${f.name}"`;
+    }
+    for (const spec of def.fields) {
+      const row = params.fields.find((x) => x.name === spec.name);
+      if (!row || row.value.trim().length === 0) return `Field "${spec.name}" is required`;
+      if (spec.validation) {
+        try {
+          const m = spec.validation.match(/^\/(.*)\/([a-z]*)$/);
+          const pattern = m?.[1] ?? "";
+          const flags = m?.[2] ?? "";
+          const re = new RegExp(pattern, flags);
+          if (!re.test(row.value)) return `Invalid value for "${spec.name}"`;
+        } catch {
+          return `Invalid validation rule for "${spec.name}"`;
+        }
+      }
+    }
+    return null;
+  }
+  /** Metadata for post-level internal plugs for `identifier`. */
+  getInternalPlugs(identifier) {
+    return { internalPlugs: this.getInternalPlugDefinitionsForProvider(identifier) };
+  }
+  /** Channel-level global plugs for integrations catalog UI. */
   getAllPlugs() {
-    return [];
+    return this.listGlobalPlugCatalog().plugs;
   }
 };
 
@@ -9452,8 +10642,142 @@ var IntegrationService = class {
     await this.cache.set(key, data, ttlSec);
   }
 };
+
+// services/PlugService.ts
 init_Logger();
 var CACHE_KEYS10 = {
+  INTEGRATION: "integration",
+  PLUG_LIST: "plug:list",
+  PLUG_ACTIVATED: "plug:activated",
+  PLUG_ROW: "plug:row"
+};
+var PLUG_CACHE_TTL_SEC = !process.env.NODE_ENV || process.env.NODE_ENV === "development" ? 15 : 90;
+function plugsListCacheKey(organizationId, integrationId) {
+  return `${CACHE_KEYS10.PLUG_LIST}:${organizationId}:${integrationId}`;
+}
+function plugsActivatedCacheKey(organizationId, integrationId) {
+  return `${CACHE_KEYS10.PLUG_ACTIVATED}:${organizationId}:${integrationId}`;
+}
+function plugRowCacheKey(plugId) {
+  return `${CACHE_KEYS10.PLUG_ROW}:${plugId}`;
+}
+var PlugService = class {
+  constructor(plugRepository2, integrationRepository2, cache, cacheInvalidator) {
+    this.plugRepository = plugRepository2;
+    this.integrationRepository = integrationRepository2;
+    this.cache = cache;
+    this.cacheInvalidator = cacheInvalidator;
+  }
+  async listIntegrationPlugs(organizationId, integrationId) {
+    if (!this.cache) {
+      return this.plugRepository.listPlugsByIntegration(organizationId, integrationId);
+    }
+    const key = plugsListCacheKey(organizationId, integrationId);
+    return this.cache.getOrSet(
+      key,
+      () => this.plugRepository.listPlugsByIntegration(organizationId, integrationId),
+      PLUG_CACHE_TTL_SEC
+    );
+  }
+  async listActivatedPlugsByIntegration(organizationId, integrationId) {
+    if (!this.cache) {
+      return this.plugRepository.listActivatedPlugsByIntegration(organizationId, integrationId);
+    }
+    const key = plugsActivatedCacheKey(organizationId, integrationId);
+    return this.cache.getOrSet(
+      key,
+      () => this.plugRepository.listActivatedPlugsByIntegration(organizationId, integrationId),
+      PLUG_CACHE_TTL_SEC
+    );
+  }
+  async getPlugRowById(plugId) {
+    if (!this.cache) {
+      return this.plugRepository.getPlugRowById(plugId);
+    }
+    const key = plugRowCacheKey(plugId);
+    return this.cache.getOrSet(key, () => this.plugRepository.getPlugRowById(plugId), PLUG_CACHE_TTL_SEC);
+  }
+  async upsertIntegrationPlug(params) {
+    let row;
+    if (params.plugId) {
+      const updated = await this.plugRepository.updatePlugData({
+        organizationId: params.organizationId,
+        integrationId: params.integrationId,
+        plugId: params.plugId,
+        dataJson: params.dataJson
+      });
+      if (!updated) {
+        throw new DatabaseError("Plug not found or not updatable", {
+          operation: "update",
+          resource: { type: "table", name: "plugs" }
+        });
+      }
+      row = updated;
+    } else {
+      row = await this.plugRepository.insertPlug({
+        organizationId: params.organizationId,
+        integrationId: params.integrationId,
+        plugFunction: params.plugFunction,
+        dataJson: params.dataJson
+      });
+    }
+    await this.invalidatePlugReadCaches(params.organizationId, params.integrationId, [row.id]);
+    await this.invalidateIntegrationDomainCacheForIntegration(params.organizationId, params.integrationId);
+    return row;
+  }
+  async deleteIntegrationPlug(organizationId, plugId) {
+    const existing = await this.plugRepository.getPlugRowById(plugId);
+    const result = await this.plugRepository.deletePlugById(organizationId, plugId);
+    if (existing && result) {
+      await this.invalidatePlugReadCaches(organizationId, existing.integration_id, [plugId]);
+      await this.invalidateIntegrationDomainCacheForIntegration(organizationId, existing.integration_id);
+    }
+    return result;
+  }
+  async setIntegrationPlugActivated(organizationId, plugId, activated) {
+    const existing = await this.plugRepository.getPlugRowById(plugId);
+    const result = await this.plugRepository.setPlugActivated(organizationId, plugId, activated);
+    if (existing) {
+      await this.invalidatePlugReadCaches(organizationId, existing.integration_id, [plugId]);
+      await this.invalidateIntegrationDomainCacheForIntegration(organizationId, existing.integration_id);
+    }
+    return result;
+  }
+  /** Drops plug read caches for one channel (list + activated list + affected rows). */
+  async invalidatePlugReadCaches(organizationId, integrationId, plugIds) {
+    if (!this.cache) return;
+    await Promise.all([
+      this.cache.del(plugsListCacheKey(organizationId, integrationId)),
+      this.cache.del(plugsActivatedCacheKey(organizationId, integrationId)),
+      ...plugIds.map((id) => this.cache.del(plugRowCacheKey(id)))
+    ]);
+    logger.debug({
+      msg: "Invalidated plug read caches",
+      organizationId,
+      integrationId,
+      plugIds
+    });
+  }
+  async invalidateIntegrationDomainCacheForProvider(organizationId, providerIdentifier) {
+    if (!this.cacheInvalidator) return;
+    await this.cacheInvalidator.invalidatePattern(
+      `${CACHE_KEYS10.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
+    );
+    logger.debug({
+      msg: "Invalidated integration domain cache (plug mutation)",
+      organizationId,
+      providerIdentifier
+    });
+  }
+  async invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId) {
+    if (!this.cacheInvalidator) return;
+    const row = await this.integrationRepository.getById(organizationId, integrationId);
+    if (!row) return;
+    await this.invalidateIntegrationDomainCacheForProvider(organizationId, row.provider_identifier);
+  }
+};
+init_Logger();
+var CACHE_KEYS11 = {
   oauth: {
     login: (state) => `login:${state}`,
     organization: (state) => `organization:${state}`,
@@ -9474,8 +10798,9 @@ function postingTimesForTimezone(timezone) {
   return JSON.stringify([{ time: 560 - timezone }, { time: 850 - timezone }, { time: 1140 - timezone }]);
 }
 var IntegrationConnectionService = class {
-  constructor(integrations, organizationRepository2, manager, refreshIntegrationService2, cache, cacheInvalidator) {
+  constructor(integrations, plugs, organizationRepository2, manager, refreshIntegrationService2, cache, cacheInvalidator) {
     this.integrations = integrations;
+    this.plugs = plugs;
     this.organizationRepository = organizationRepository2;
     this.manager = manager;
     this.refreshIntegrationService = refreshIntegrationService2;
@@ -9588,15 +10913,15 @@ var IntegrationConnectionService = class {
     const { codeVerifier, state, url } = await integrationProvider.generateAuthUrl(clientInformation);
     const cache = this.requireCache();
     if (opts.refresh) {
-      await cache.set(CACHE_KEYS10.oauth.refresh(state), opts.refresh, OAUTH_STATE_TTL_SEC);
+      await cache.set(CACHE_KEYS11.oauth.refresh(state), opts.refresh, OAUTH_STATE_TTL_SEC);
     }
     if (opts.onboarding === "true") {
-      await cache.set(CACHE_KEYS10.oauth.onboarding(state), "true", OAUTH_STATE_TTL_SEC);
+      await cache.set(CACHE_KEYS11.oauth.onboarding(state), "true", OAUTH_STATE_TTL_SEC);
     }
-    await cache.set(CACHE_KEYS10.oauth.organization(state), organizationId, OAUTH_STATE_TTL_SEC);
-    await cache.set(CACHE_KEYS10.oauth.login(state), codeVerifier, OAUTH_STATE_TTL_SEC);
+    await cache.set(CACHE_KEYS11.oauth.organization(state), organizationId, OAUTH_STATE_TTL_SEC);
+    await cache.set(CACHE_KEYS11.oauth.login(state), codeVerifier, OAUTH_STATE_TTL_SEC);
     if (clientInformation) {
-      await cache.set(CACHE_KEYS10.oauth.external(state), JSON.stringify(clientInformation), OAUTH_STATE_TTL_SEC);
+      await cache.set(CACHE_KEYS11.oauth.external(state), JSON.stringify(clientInformation), OAUTH_STATE_TTL_SEC);
     }
     return { url };
   }
@@ -9639,7 +10964,7 @@ var IntegrationConnectionService = class {
       throw new AppError("Integration not found", 404);
     }
   }
-  async connectSocialMedia(authUserId, integration, body) {
+  async connectSocialMediaInternal(authUserId, integration, body) {
     if (!this.manager.getAllowedSocialsIntegrations().includes(integration)) {
       throw new AppError("Integration not allowed", 400);
     }
@@ -9648,27 +10973,29 @@ var IntegrationConnectionService = class {
       throw new AppError("Integration not found", 404);
     }
     const cache = this.requireCache();
-    const getCodeVerifier = integrationProvider.customFields ? "none" : await cache.get(CACHE_KEYS10.oauth.login(body.state));
+    const getCodeVerifier = integrationProvider.customFields ? "none" : await cache.get(CACHE_KEYS11.oauth.login(body.state));
     if (!getCodeVerifier && !integrationProvider.customFields) {
       throw new AppError("Invalid state", 400);
     }
     if (!integrationProvider.customFields) {
-      await this.invalidateOAuthCacheKey(CACHE_KEYS10.oauth.login(body.state));
+      await this.invalidateOAuthCacheKey(CACHE_KEYS11.oauth.login(body.state));
     }
-    const organizationId = await cache.get(CACHE_KEYS10.oauth.organization(body.state));
+    const organizationKey = CACHE_KEYS11.oauth.organization(body.state);
+    const organizationId = await cache.get(organizationKey);
     if (!organizationId || typeof organizationId !== "string") {
       throw new AppError("Organization not found", 400);
     }
-    await this.assertOrganizationMember(authUserId, organizationId);
-    await this.invalidateOAuthCacheKey(CACHE_KEYS10.oauth.organization(body.state));
-    const detailsRaw = await cache.get(CACHE_KEYS10.oauth.external(body.state));
-    if (detailsRaw) {
-      await this.invalidateOAuthCacheKey(CACHE_KEYS10.oauth.external(body.state));
+    if (authUserId) {
+      await this.assertOrganizationMember(authUserId, organizationId);
     }
-    const refreshState = await cache.get(CACHE_KEYS10.oauth.refresh(body.state));
-    if (refreshState) await this.invalidateOAuthCacheKey(CACHE_KEYS10.oauth.refresh(body.state));
-    const onboarding = await cache.get(CACHE_KEYS10.oauth.onboarding(body.state));
-    if (onboarding) await this.invalidateOAuthCacheKey(CACHE_KEYS10.oauth.onboarding(body.state));
+    const detailsRaw = await cache.get(CACHE_KEYS11.oauth.external(body.state));
+    if (detailsRaw) {
+      await this.invalidateOAuthCacheKey(CACHE_KEYS11.oauth.external(body.state));
+    }
+    const refreshState = await cache.get(CACHE_KEYS11.oauth.refresh(body.state));
+    if (refreshState) await this.invalidateOAuthCacheKey(CACHE_KEYS11.oauth.refresh(body.state));
+    const onboarding = await cache.get(CACHE_KEYS11.oauth.onboarding(body.state));
+    if (onboarding) await this.invalidateOAuthCacheKey(CACHE_KEYS11.oauth.onboarding(body.state));
     let clientInformation;
     if (detailsRaw && typeof detailsRaw === "string") {
       clientInformation = JSON.parse(detailsRaw);
@@ -9728,6 +11055,10 @@ var IntegrationConnectionService = class {
         }
       }
     }
+    const shouldKeepOrganizationState = !authUserId && Boolean(integrationProvider.isBetweenSteps) && !refreshState;
+    if (!shouldKeepOrganizationState) {
+      await this.invalidateOAuthCacheKey(organizationKey);
+    }
     return {
       id: row.id,
       organizationId: row.organization_id,
@@ -9743,9 +11074,16 @@ var IntegrationConnectionService = class {
       pages
     };
   }
+  async connectSocialMedia(authUserId, integration, body) {
+    return this.connectSocialMediaInternal(authUserId, integration, body);
+  }
+  /** No-auth OAuth callback variant: organization comes from short-lived OAuth state cache. */
+  async connectSocialMediaNoAuth(integration, body) {
+    return this.connectSocialMediaInternal(null, integration, body);
+  }
   async safeAuthenticate(integrationProvider, body, codeVerifier, clientInformation) {
     try {
-      const auth5 = await integrationProvider.authenticate(
+      const auth10 = await integrationProvider.authenticate(
         {
           code: body.code,
           codeVerifier,
@@ -9753,13 +11091,13 @@ var IntegrationConnectionService = class {
         },
         clientInformation
       );
-      if (typeof auth5 === "string") {
-        return { error: auth5 };
+      if (typeof auth10 === "string") {
+        return { error: auth10 };
       }
-      if (auth5.error) {
-        return { error: auth5.error };
+      if (auth10.error) {
+        return { error: auth10.error };
       }
-      return auth5;
+      return auth10;
     } catch {
       return { error: "Authentication failed" };
     }
@@ -9797,6 +11135,101 @@ var IntegrationConnectionService = class {
    */
   async saveProviderPage(authUserId, organizationId, integrationId, body) {
     await this.assertOrganizationMember(authUserId, organizationId);
+    return this.saveProviderPageForOrganization(organizationId, integrationId, body);
+  }
+  /** No-auth provider-page completion: organization is resolved from short-lived OAuth state cache. */
+  async saveProviderPageNoAuth(integrationId, body) {
+    const state = typeof body.state === "string" ? body.state : "";
+    if (!state) {
+      throw new AppError("Invalid state", 400);
+    }
+    const cache = this.requireCache();
+    const organizationKey = CACHE_KEYS11.oauth.organization(state);
+    const organizationId = await cache.get(organizationKey);
+    if (!organizationId || typeof organizationId !== "string") {
+      throw new AppError("Organization not found", 400);
+    }
+    const { state: _state, ...providerPayload } = body;
+    const result = await this.saveProviderPageForOrganization(organizationId, integrationId, providerPayload);
+    await this.invalidateOAuthCacheKey(organizationKey);
+    return result;
+  }
+  /** Catalog of global (threshold) plugs for channels that support them. */
+  getPlugCatalog() {
+    return this.manager.listGlobalPlugCatalog();
+  }
+  /** Definitions for internal (post-compose) plugs for a provider slug (e.g. `threads`). */
+  async getInternalPlugDefinitions(authUserId, organizationId, providerIdentifier) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    return { internalPlugs: this.manager.getInternalPlugDefinitionsForProvider(providerIdentifier) };
+  }
+  async listIntegrationPlugs(authUserId, organizationId, integrationId) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row || row.deleted_at) {
+      throw new AppError("Integration not found", 404);
+    }
+    return this.plugs.listIntegrationPlugs(organizationId, integrationId);
+  }
+  async upsertIntegrationPlug(authUserId, organizationId, integrationId, body) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row || row.deleted_at) {
+      throw new AppError("Integration not found", 404);
+    }
+    const validationError = this.manager.validatePlugFieldsAgainstCatalog({
+      providerIdentifier: row.provider_identifier,
+      methodName: body.func,
+      fields: body.fields
+    });
+    if (validationError) {
+      throw new AppError(validationError, 400);
+    }
+    if (body.plugId) {
+      const existing = await this.plugs.getPlugRowById(body.plugId);
+      if (!existing || existing.organization_id !== organizationId) {
+        throw new AppError("Plug not found", 404);
+      }
+      if (existing.integration_id !== integrationId) {
+        throw new AppError("Plug not found", 404);
+      }
+      if (existing.plug_function !== body.func) {
+        throw new AppError("Plug type does not match request", 400);
+      }
+    }
+    return this.plugs.upsertIntegrationPlug({
+      organizationId,
+      integrationId,
+      plugFunction: body.func,
+      dataJson: JSON.stringify(body.fields),
+      plugId: body.plugId
+    });
+  }
+  async deleteIntegrationPlug(authUserId, organizationId, plugId) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const plug = await this.plugs.getPlugRowById(plugId);
+    if (!plug || plug.organization_id !== organizationId) {
+      throw new AppError("Plug not found", 404);
+    }
+    const deleted = await this.plugs.deleteIntegrationPlug(organizationId, plugId);
+    if (!deleted) {
+      throw new AppError("Plug not found", 404);
+    }
+    return deleted;
+  }
+  async setIntegrationPlugActivated(authUserId, organizationId, plugId, activated) {
+    await this.assertOrganizationMember(authUserId, organizationId);
+    const plug = await this.plugs.getPlugRowById(plugId);
+    if (!plug || plug.organization_id !== organizationId) {
+      throw new AppError("Plug not found", 404);
+    }
+    const updated = await this.plugs.setIntegrationPlugActivated(organizationId, plugId, activated);
+    if (!updated) {
+      throw new AppError("Plug not found", 404);
+    }
+    return updated;
+  }
+  async saveProviderPageForOrganization(organizationId, integrationId, body) {
     const row = await this.integrations.getById(organizationId, integrationId);
     if (!row) throw new AppError("Integration not found", 404);
     if (!row.in_between_steps) {
@@ -9822,7 +11255,7 @@ var IntegrationConnectionService = class {
     const isInstagramBusiness = row.provider_identifier === "instagram-business";
     const refreshToken = isInstagramBusiness ? userAccessToken : row.refresh_token || "";
     const rootInternalId2 = isInstagramBusiness ? priorInternalId : row.root_internal_id;
-    const expiresInSeconds = isInstagramBusiness ? dayjs2__default.default().add(59, "days").unix() - dayjs2__default.default().unix() : void 0;
+    const expiresInSeconds = isInstagramBusiness ? dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix() : void 0;
     await this.integrations.updateIntegrationById(organizationId, integrationId, {
       internalId: String(information.id),
       name: (information.name ?? "").trim() || information.username || row.name,
@@ -10070,6 +11503,75 @@ function repeatIntervalToDays(key) {
   };
   return m[key] ?? null;
 }
+function parseProviderThreadsPreviewFromPostSettings(settings) {
+  const empty = {
+    replies: [],
+    finisher: null,
+    delayedEngagementReply: null
+  };
+  if (!settings?.trim()) return empty;
+  try {
+    const o = JSON.parse(settings);
+    const ps = o.providerSettings && typeof o.providerSettings === "object" ? o.providerSettings : null;
+    if (!ps) return empty;
+    const threads = ps.threads && typeof ps.threads === "object" ? ps.threads : null;
+    if (!threads) return empty;
+    const repliesRaw = threads.replies;
+    const arr = Array.isArray(repliesRaw) ? repliesRaw : [];
+    const replies = arr.map((r) => ({
+      content: typeof r?.message === "string" ? r.message.trim() : "",
+      delaySeconds: Number.isFinite(Number(r?.delaySeconds)) ? Math.max(0, Math.floor(Number(r.delaySeconds))) : 0
+    })).filter((r) => r.content.length > 0);
+    const enabled = typeof threads.enabled === "boolean" ? threads.enabled : false;
+    const rawMsg = typeof threads.message === "string" ? threads.message.trim() : "";
+    const finisher = enabled ? { enabled: true, message: rawMsg || "That's a wrap!" } : null;
+    let delayedEngagementReply = null;
+    const igRaw = threads.internalEngagementPlug;
+    if (igRaw && typeof igRaw === "object") {
+      const ig = igRaw;
+      if (ig.enabled === true) {
+        const message = typeof ig.message === "string" ? ig.message : "";
+        const delaySeconds = typeof ig.delaySeconds === "number" && Number.isFinite(ig.delaySeconds) ? Math.max(0, Math.floor(ig.delaySeconds)) : 0;
+        delayedEngagementReply = { message, delaySeconds };
+      }
+    }
+    return { replies, finisher, delayedEngagementReply };
+  } catch {
+    return empty;
+  }
+}
+function replyChainBucketForProvider(providerIdentifier) {
+  const id = (providerIdentifier ?? "").trim().toLowerCase();
+  return id.startsWith("instagram") ? "instagram" : "threads";
+}
+function mapRawRepliesToFollowUpDrafts(repliesRaw) {
+  if (!Array.isArray(repliesRaw)) return [];
+  return repliesRaw.map((r) => {
+    const o = r;
+    return {
+      id: typeof o?.id === "string" ? o.id : "",
+      message: typeof o?.message === "string" ? o.message.trim() : "",
+      delaySeconds: Number.isFinite(Number(o?.delaySeconds)) ? Math.max(0, Math.floor(Number(o.delaySeconds))) : 0
+    };
+  }).filter((r) => r.id && r.message.length > 0).slice(0, 25);
+}
+function extractFollowUpRepliesFromProviderSettingsObject(providerSettings, providerIdentifier) {
+  if (!providerSettings || typeof providerSettings !== "object") return [];
+  const bucket = replyChainBucketForProvider(providerIdentifier);
+  const sub = providerSettings[bucket];
+  if (!sub || typeof sub !== "object" || Array.isArray(sub)) return [];
+  return mapRawRepliesToFollowUpDrafts(sub.replies);
+}
+function extractFollowUpRepliesFromPostSettingsColumn(settings, providerIdentifier) {
+  if (!settings?.trim()) return [];
+  try {
+    const o = JSON.parse(settings);
+    const ps = o.providerSettings && typeof o.providerSettings === "object" ? o.providerSettings : null;
+    return extractFollowUpRepliesFromProviderSettingsObject(ps, providerIdentifier);
+  } catch {
+    return [];
+  }
+}
 function parsePostSettingsJson(settings) {
   if (!settings) return { isGlobal: true, repeatInterval: null };
   try {
@@ -10140,6 +11642,46 @@ var PostDTOMapper = {
   toPostTagDTOCollection(rows) {
     if (!Array.isArray(rows)) return [];
     return rows.map((r) => PostDTOMapper.toPostTagDTO(r)).filter(Boolean);
+  },
+  toPostCommentDTO(row) {
+    if (row == null) return null;
+    return {
+      id: row.id,
+      postId: row.post_id,
+      organizationId: row.organization_id,
+      userId: row.user_id,
+      content: row.content,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      deletedAt: row.deleted_at
+    };
+  },
+  toPostCommentDTOCollection(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows.map((r) => PostDTOMapper.toPostCommentDTO(r)).filter(Boolean);
+  },
+  toPostThreadReplyDTO(row) {
+    if (row == null) return null;
+    return {
+      id: row.id,
+      organizationId: row.organization_id,
+      postId: row.post_id,
+      integrationId: row.integration_id,
+      content: row.content,
+      delaySeconds: row.delay_seconds,
+      state: row.state,
+      releaseId: row.release_id,
+      releaseUrl: row.release_url,
+      error: row.error,
+      createdByUserId: row.created_by_user_id,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      deletedAt: row.deleted_at
+    };
+  },
+  toPostThreadReplyDTOCollection(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows.map((r) => PostDTOMapper.toPostThreadReplyDTO(r)).filter(Boolean);
   }
 };
 
@@ -10147,6 +11689,59 @@ var PostDTOMapper = {
 init_GlobalConfig();
 init_Logger();
 var DEFAULT_TAG_COLOR = "#6366f1";
+var POSTS_CALENDAR_LIST_CACHE_PREFIX = "posts:calendar:list";
+var CACHE_KEYS12 = {
+  POSTS: "posts",
+  /** Full key = `${POSTS_GROUP}:${postGroup}` */
+  POSTS_GROUP: "posts:group",
+  /** Full key = `${POSTS_TAGS_LIST}:${organizationId}` */
+  POSTS_TAGS_LIST: "posts:tags:list",
+  /**
+   * Full key = `${POSTS_CALENDAR_LIST}:${organizationId}:${startIso}:${endIso}:${integrationKey}`.
+   * `integrationKey` is sorted ids or `all` when no filter.
+   */
+  POSTS_CALENDAR_LIST: POSTS_CALENDAR_LIST_CACHE_PREFIX,
+  /** Full key = `${POSTS_PREVIEW}:${postId}` (public preview with share=true). */
+  POSTS_PREVIEW: "posts:preview"
+};
+var POSTS_CACHE_TTL_SEC = 300;
+var POST_ANALYTICS_CACHE_TTL_SEC = !process.env.NODE_ENV || process.env.NODE_ENV === "development" ? 1 : 3600;
+function sleepMs3(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+function tagsListCacheKey(organizationId) {
+  return `${CACHE_KEYS12.POSTS_TAGS_LIST}:${organizationId}`;
+}
+function calendarPostsCacheKey(params) {
+  const integrationKey = params.integrationIds != null && params.integrationIds.length > 0 ? [...params.integrationIds].sort().join(",") : "all";
+  return `${CACHE_KEYS12.POSTS_CALENDAR_LIST}:${params.organizationId}:${params.startIso}:${params.endIso}:${integrationKey}`;
+}
+async function invalidatePostsCalendarListCachesForOrganization(organizationId, cacheInvalidator, cache) {
+  const pattern = `${POSTS_CALENDAR_LIST_CACHE_PREFIX}:${organizationId}:*`;
+  if (cacheInvalidator) {
+    try {
+      await cacheInvalidator.invalidatePattern(pattern);
+      return;
+    } catch (error) {
+      logger.error({
+        msg: "Error invalidating posts calendar list cache pattern",
+        organizationId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
+  if (cache) {
+    try {
+      await cache.delPattern(pattern);
+    } catch (error) {
+      logger.error({
+        msg: "Error deleting posts calendar list cache pattern (fallback)",
+        organizationId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
+}
 function dayStartUtcIso(d) {
   const x = new Date(d.getTime());
   x.setUTCHours(0, 0, 0, 0);
@@ -10185,12 +11780,15 @@ function socialPlatformLabelFromProviderIdentifier(integrationManager2, provider
   return id.split("-").map((w) => w.length > 0 ? w[0].toUpperCase() + w.slice(1).toLowerCase() : "").join(" ");
 }
 var PostsService = class {
-  constructor(postsRepository2, integrationConnectionService2, integrationService2, organizationRepository2, integrationManager2) {
+  constructor(postsRepository2, integrationConnectionService2, integrationService2, organizationRepository2, integrationManager2, refreshIntegrationService2, cache, cacheInvalidator) {
     this.postsRepository = postsRepository2;
     this.integrationConnectionService = integrationConnectionService2;
     this.integrationService = integrationService2;
     this.organizationRepository = organizationRepository2;
     this.integrationManager = integrationManager2;
+    this.refreshIntegrationService = refreshIntegrationService2;
+    this.cache = cache;
+    this.cacheInvalidator = cacheInvalidator;
   }
   async findFreeSlot(organizationId, authUserId) {
     await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
@@ -10219,7 +11817,12 @@ var PostsService = class {
   }
   async listTags(organizationId, authUserId) {
     await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
-    return this.postsRepository.listTagsByOrganization(organizationId);
+    const cacheKey = tagsListCacheKey(organizationId);
+    const factory = async () => this.postsRepository.listTagsByOrganization(organizationId);
+    if (this.cache) {
+      return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+    }
+    return factory();
   }
   async createTag(organizationId, authUserId, name, color) {
     await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
@@ -10232,10 +11835,15 @@ var PostsService = class {
     }
     const c = color?.trim() || DEFAULT_TAG_COLOR;
     try {
-      return await this.postsRepository.insertTag(organizationId, trimmed, c);
+      const created = await this.postsRepository.insertTag(organizationId, trimmed, c);
+      await this._invalidateOrganizationPostsListCaches({ organizationId });
+      return created;
     } catch {
       const existing = await this.postsRepository.findTagByOrgAndName(organizationId, trimmed);
-      if (existing) return existing;
+      if (existing) {
+        await this._invalidateOrganizationPostsListCaches({ organizationId });
+        return existing;
+      }
       throw new AppError("Could not save tag", 500);
     }
   }
@@ -10245,14 +11853,16 @@ var PostsService = class {
     if (!deleted) {
       throw new AppError("Tag not found", 404);
     }
+    await this._invalidateOrganizationPostsListCaches({ organizationId });
   }
   async buildPostGroupInsert(input) {
     const {
       organizationId,
-      authUserId,
+      authUserId = null,
       postGroup,
       body,
       bodiesByIntegrationId,
+      providerSettingsByIntegrationId,
       media,
       integrationIds,
       isGlobal,
@@ -10260,9 +11870,15 @@ var PostsService = class {
       repeatInterval,
       tagNames,
       status,
-      allowTakenSlot = false
+      allowTakenSlot = false,
+      skipMembershipCheck = false
     } = input;
-    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    if (!skipMembershipCheck) {
+      if (!authUserId) {
+        throw new AppError("Not authenticated", 401);
+      }
+      await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    }
     const rows = await this.integrationService.listByOrganization(organizationId);
     const allowed = new Set(rows.filter((r) => r.deleted_at == null).map((r) => r.id));
     const providerByIntegrationId = new Map(rows.map((r) => [r.id, (r.provider_identifier ?? "").toLowerCase()]));
@@ -10298,9 +11914,12 @@ var PostsService = class {
     }
     const normalizedTagNames = [...new Set(tagNames.map((t) => t.trim()).filter(Boolean))].slice(0, 50);
     const tagIds = await this.resolveTagIds(organizationId, normalizedTagNames);
-    const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
-    const createdByUserId = userId ?? null;
-    const settingsJson = JSON.stringify({ isGlobal, repeatInterval: repeatInterval ?? null });
+    let createdByUserId = null;
+    if (!skipMembershipCheck && authUserId) {
+      const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+      createdByUserId = userId ?? null;
+    }
+    const baseSettings = { isGlobal, repeatInterval: repeatInterval ?? null };
     const intervalDays = repeatIntervalToDays(repeatInterval);
     const state = status === "draft" ? "DRAFT" : "QUEUE";
     const imageColumn = media && media.length > 0 ? JSON.stringify({ v: 1, items: media }) : null;
@@ -10316,7 +11935,7 @@ var PostsService = class {
       parent_post_id: null,
       release_id: null,
       release_url: null,
-      settings: settingsJson,
+      settings: JSON.stringify(baseSettings),
       image: imageColumn,
       interval_in_days: intervalDays,
       error: null,
@@ -10330,18 +11949,61 @@ var PostsService = class {
       toInsert = uniqueIds.map((integrationId) => ({
         ...baseRow,
         integration_id: integrationId,
-        content: bodiesByIntegrationId && typeof bodiesByIntegrationId[integrationId] === "string" ? bodiesByIntegrationId[integrationId] : baseRow.content
+        content: bodiesByIntegrationId && typeof bodiesByIntegrationId[integrationId] === "string" ? bodiesByIntegrationId[integrationId] : baseRow.content,
+        settings: JSON.stringify({
+          ...baseSettings,
+          providerSettings: providerSettingsByIntegrationId?.[integrationId] ?? null
+        })
       }));
     }
     return { postGroup, toInsert, tagIds };
   }
   async createPost(input) {
     const postGroup = this.postsRepository.newPostGroup();
-    const { toInsert, tagIds } = await this.buildPostGroupInsert({ ...input, postGroup });
+    const { toInsert, tagIds } = await this.buildPostGroupInsert({ ...input, postGroup, skipMembershipCheck: false });
     const inserted = await this.postsRepository.insertPostGroup(toInsert);
     await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+    await this.persistThreadRepliesFromProviderSettings({
+      organizationId: input.organizationId,
+      authUserId: input.authUserId,
+      posts: inserted,
+      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null
+    });
     const out = { postGroup, posts: inserted };
     void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
+    await this._invalidatePostMutationCaches({
+      organizationId: input.organizationId,
+      postGroup,
+      postIds: inserted.map((p) => p.id)
+    });
+    return out;
+  }
+  /**
+   * Programmatic `{api.prefix}/public/posts` create endpoint (org API key auth).
+   * Caller is scoped to organization by API key; membership checks are skipped.
+   */
+  async createPostProgrammatic(input) {
+    const postGroup = this.postsRepository.newPostGroup();
+    const { toInsert, tagIds } = await this.buildPostGroupInsert({
+      ...input,
+      postGroup,
+      skipMembershipCheck: true
+    });
+    const inserted = await this.postsRepository.insertPostGroup(toInsert);
+    await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+    await this.persistThreadRepliesFromProviderSettings({
+      organizationId: input.organizationId,
+      authUserId: null,
+      posts: inserted,
+      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null
+    });
+    const out = { postGroup, posts: inserted };
+    void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
+    await this._invalidatePostMutationCaches({
+      organizationId: input.organizationId,
+      postGroup,
+      postIds: inserted.map((p) => p.id)
+    });
     return out;
   }
   async listPostsForCalendar({
@@ -10360,12 +12022,59 @@ var PostsService = class {
     if (start.getTime() > end.getTime()) {
       throw new AppError("Start must be before end", 400);
     }
-    return this.postsRepository.listPostsByOrganizationAndDateRange({
+    const startIsoNorm = start.toISOString();
+    const endIsoNorm = end.toISOString();
+    const integrationIdsNorm = integrationIds ?? null;
+    const cacheKey = calendarPostsCacheKey({
       organizationId,
-      startIso: start.toISOString(),
-      endIso: end.toISOString(),
-      integrationIds: integrationIds ?? null
+      startIso: startIsoNorm,
+      endIso: endIsoNorm,
+      integrationIds: integrationIdsNorm
     });
+    const factory = async () => this.postsRepository.listPostsByOrganizationAndDateRange({
+      organizationId,
+      startIso: startIsoNorm,
+      endIso: endIsoNorm,
+      integrationIds: integrationIdsNorm
+    });
+    if (this.cache) {
+      return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+    }
+    return factory();
+  }
+  /**
+   * Programmatic calendar list (org API key auth).
+   * Matches `listPostsForCalendar` behavior but skips membership checks.
+   */
+  async listPostsForCalendarProgrammatic(params) {
+    const { organizationId, startIso, endIso, integrationIds } = params;
+    const start = new Date(startIso);
+    const end = new Date(endIso);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      throw new AppError("Invalid date range", 400);
+    }
+    if (start.getTime() > end.getTime()) {
+      throw new AppError("Start must be before end", 400);
+    }
+    const startIsoNorm = start.toISOString();
+    const endIsoNorm = end.toISOString();
+    const integrationIdsNorm = integrationIds ?? null;
+    const cacheKey = calendarPostsCacheKey({
+      organizationId,
+      startIso: startIsoNorm,
+      endIso: endIsoNorm,
+      integrationIds: integrationIdsNorm
+    });
+    const factory = async () => this.postsRepository.listPostsByOrganizationAndDateRange({
+      organizationId,
+      startIso: startIsoNorm,
+      endIso: endIsoNorm,
+      integrationIds: integrationIdsNorm
+    });
+    if (this.cache) {
+      return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+    }
+    return factory();
   }
   async getPostGroup(postGroup, authUserId) {
     const rows = await this.postsRepository.listPostsByGroup(postGroup);
@@ -10374,6 +12083,35 @@ var PostsService = class {
     }
     const organizationId = rows[0].organization_id;
     await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const cacheKey = `${CACHE_KEYS12.POSTS_GROUP}:${postGroup}`;
+    const factory = async () => this.buildPostGroupDetails(postGroup, rows);
+    if (this.cache) {
+      return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+    }
+    return factory();
+  }
+  /**
+   * Programmatic post-group details for `{api.prefix}/public/posts/group/:postGroup`.
+   * Ensures the post group belongs to the organization resolved from the API key.
+   */
+  async getPostGroupProgrammatic(postGroup, organizationId) {
+    const rows = await this.postsRepository.listPostsByGroup(postGroup);
+    if (!rows.length) {
+      throw new AppError("Post group not found", 404);
+    }
+    const orgId = rows[0].organization_id;
+    if (orgId !== organizationId) {
+      throw new AppError("Post group does not belong to that workspace", 400);
+    }
+    const cacheKey = `${CACHE_KEYS12.POSTS_GROUP}:${postGroup}`;
+    const factory = async () => this.buildPostGroupDetails(postGroup, rows);
+    if (this.cache) {
+      return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+    }
+    return factory();
+  }
+  async buildPostGroupDetails(postGroup, rows) {
+    const organizationId = rows[0].organization_id;
     const { isGlobal, repeatInterval } = parsePostSettingsJson(rows[0].settings);
     const publishDateIso = rows[0].publish_date;
     const status = rows.every((r) => r.state === "DRAFT") ? "draft" : "scheduled";
@@ -10387,6 +12125,15 @@ var PostsService = class {
     const media = parsePostImageColumn(rows[0].image);
     const tags = await this.postsRepository.listTagsForPostIds(rows.map((r) => r.id));
     const tagNames = tags.map((t) => t.name).filter(Boolean);
+    const providerSettingsByIntegrationId = {};
+    for (const r of rows) {
+      if (!r.integration_id) continue;
+      const parsed = this.parsePostRowProviderSettings(r.settings);
+      const merged = await this.augmentComposerProviderSettingsFromDb(r.id, organizationId, r.integration_id, parsed);
+      if (merged && typeof merged === "object" && Object.keys(merged).length > 0) {
+        providerSettingsByIntegrationId[r.integration_id] = merged;
+      }
+    }
     return {
       postGroup,
       organizationId,
@@ -10399,8 +12146,46 @@ var PostsService = class {
       bodiesByIntegrationId,
       media,
       tagNames,
-      postIds: rows.map((r) => r.id)
+      postIds: rows.map((r) => r.id),
+      ...Object.keys(providerSettingsByIntegrationId).length > 0 ? { providerSettingsByIntegrationId } : {}
     };
+  }
+  parsePostRowProviderSettings(settings) {
+    if (!settings?.trim()) return null;
+    try {
+      const o = JSON.parse(settings);
+      if (!o || typeof o !== "object") return null;
+      const ps = o.providerSettings;
+      if (!ps || typeof ps !== "object") return null;
+      return { ...ps };
+    } catch {
+      return null;
+    }
+  }
+  /** Prefer DB-backed thread replies when editing (published QUEUE→PUBLISHED rows stay in sync). */
+  async augmentComposerProviderSettingsFromDb(postId, organizationId, integrationId, base) {
+    const merged = base && typeof base === "object" ? { ...base } : {};
+    let dbRows = [];
+    try {
+      dbRows = await this.postsRepository.listThreadRepliesByPostId(postId);
+    } catch {
+      return merged;
+    }
+    if (!dbRows.length) return merged;
+    let providerIdentifier = null;
+    if (integrationId) {
+      const int = await this.integrationService.getById(organizationId, integrationId);
+      providerIdentifier = int?.provider_identifier ?? null;
+    }
+    const bucket = replyChainBucketForProvider(providerIdentifier);
+    const prev = merged[bucket] && typeof merged[bucket] === "object" && !Array.isArray(merged[bucket]) ? { ...merged[bucket] } : {};
+    prev.replies = dbRows.map((r) => ({
+      id: r.id,
+      message: r.content ?? "",
+      delaySeconds: Math.max(0, Math.floor(Number(r.delay_seconds) || 0))
+    }));
+    merged[bucket] = prev;
+    return merged;
   }
   /**
    * Debug endpoint to export a post group's raw rows + derived group details.
@@ -10425,27 +12210,290 @@ var PostsService = class {
     if (share !== "true") {
       throw new AppError("Forbidden", 403);
     }
-    const row = await this.postsRepository.getPostById(postId);
-    if (!row) {
+    const cacheKey = `${CACHE_KEYS12.POSTS_PREVIEW}:${postId}`;
+    const factory = async () => {
+      const row = await this.postsRepository.getPostById(postId);
+      if (!row) {
+        throw new AppError("Post not found", 404);
+      }
+      const media = parsePostImageColumn(row.image ?? null);
+      let socialPlatformLabel = null;
+      const integrationId = row.integration_id;
+      let providerIdentifier = null;
+      let channelName = null;
+      let channelPictureUrl = null;
+      if (row.integration_id) {
+        const integration = await this.integrationService.getById(row.organization_id, row.integration_id);
+        providerIdentifier = (integration?.provider_identifier ?? "").trim().toLowerCase() || null;
+        channelName = integration?.name?.trim() ? integration.name.trim() : null;
+        channelPictureUrl = integration?.picture?.trim() ? integration.picture.trim() : null;
+        socialPlatformLabel = socialPlatformLabelFromProviderIdentifier(
+          this.integrationManager,
+          integration?.provider_identifier
+        );
+      }
+      const fromSettings = parseProviderThreadsPreviewFromPostSettings(row.settings ?? null);
+      const threadFinisher = fromSettings.finisher;
+      const delayedEngagementReply = fromSettings.delayedEngagementReply;
+      let threadReplies = [];
+      try {
+        const dbReplies = await this.postsRepository.listThreadRepliesByPostId(postId);
+        if (dbReplies.length > 0) {
+          threadReplies = dbReplies.map((r) => ({
+            id: r.id,
+            message: r.content ?? "",
+            delaySeconds: Math.max(0, Math.floor(Number(r.delay_seconds) || 0))
+          }));
+        }
+      } catch {
+        threadReplies = [];
+      }
+      if (threadReplies.length === 0) {
+        const chain = extractFollowUpRepliesFromPostSettingsColumn(row.settings ?? null, providerIdentifier);
+        if (chain.length > 0) {
+          threadReplies = chain.map((r, i) => ({
+            id: r.id || `settings-${i}`,
+            message: r.message,
+            delaySeconds: r.delaySeconds
+          }));
+        } else if (fromSettings.replies.length > 0) {
+          threadReplies = fromSettings.replies.map((r, i) => ({
+            id: `settings-${i}`,
+            message: r.content,
+            delaySeconds: r.delaySeconds
+          }));
+        }
+      }
+      return {
+        id: row.id,
+        postGroup: row.post_group,
+        organizationId: row.organization_id,
+        publishDateIso: row.publish_date,
+        content: row.content ?? "",
+        media,
+        socialPlatformLabel,
+        integrationId,
+        providerIdentifier,
+        channelName,
+        channelPictureUrl,
+        threadReplies,
+        threadFinisher,
+        delayedEngagementReply
+      };
+    };
+    if (this.cache) {
+      return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+    }
+    return factory();
+  }
+  /** Public `GET /public/posts/:postId/comments` — no API key; comments keyed by post id only. */
+  async getPublicComments(postId) {
+    return this.postsRepository.listCommentsByPostId(postId);
+  }
+  /** Workspace `POST /posts/:postId/comments` — authenticated composer comment on a post row. */
+  async createComposerComment(params) {
+    const { organizationId, authUserId, postId, comment } = params;
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const trimmed = comment.trim();
+    if (!trimmed.length) {
+      throw new AppError("Comment is required", 400);
+    }
+    const post = await this.postsRepository.getPostById(postId);
+    if (!post || post.organization_id !== organizationId) {
       throw new AppError("Post not found", 404);
     }
-    const media = parsePostImageColumn(row.image ?? null);
-    let socialPlatformLabel = null;
-    if (row.integration_id) {
-      const integration = await this.integrationService.getById(row.organization_id, row.integration_id);
-      socialPlatformLabel = socialPlatformLabelFromProviderIdentifier(
-        this.integrationManager,
-        integration?.provider_identifier
-      );
+    const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+    if (!userId) {
+      throw new AppError("User not found", 400);
     }
-    return {
-      id: row.id,
-      postGroup: row.post_group,
-      publishDateIso: row.publish_date,
-      content: row.content ?? "",
-      media,
-      socialPlatformLabel
+    const row = await this.postsRepository.insertComposerComment({
+      organizationId,
+      postId,
+      userId,
+      content: trimmed
+    });
+    await this._invalidatePostPreviewCaches([postId]);
+    return row;
+  }
+  /**
+   * Loads provider-native insights for one published post (`posts.release_id`).
+   * Returns `{ missing: true }` when the worker could not map the live network object (`release_id === "missing"`).
+   */
+  async checkPostAnalytics(params) {
+    const { authUserId, organizationId, postId, dateWindowDays } = params;
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const post = await this.postsRepository.getPostById(postId);
+    if (!post || post.organization_id !== organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    if (!post.release_id) {
+      return [];
+    }
+    if (post.release_id === "missing") {
+      return { missing: true };
+    }
+    if (!post.integration_id) {
+      return [];
+    }
+    const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
+    if (!integrationRow || (integrationRow.type ?? "").toLowerCase() !== "social") {
+      return [];
+    }
+    const provider = this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+    if (!provider?.postAnalytics) {
+      return [];
+    }
+    const postAnalyticsFn = provider.postAnalytics;
+    const cacheKeyId = `post:${postId}`;
+    const cached = await this.integrationService.getCachedIntegrationPayload(
+      organizationId,
+      cacheKeyId,
+      String(dateWindowDays)
+    );
+    if (cached != null) {
+      return cached;
+    }
+    const runPostAnalytics = async (forceRefresh) => {
+      const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
+        force: forceRefresh,
+        provider
+      });
+      if (!row) {
+        return [];
+      }
+      return postAnalyticsFn(row.internal_id, row.token, post.release_id, dateWindowDays);
     };
+    try {
+      const data = await runPostAnalytics(false);
+      await this.integrationService.setCachedIntegrationPayload(
+        organizationId,
+        cacheKeyId,
+        String(dateWindowDays),
+        data,
+        POST_ANALYTICS_CACHE_TTL_SEC
+      );
+      return data;
+    } catch (e) {
+      if (e instanceof ProviderAccessTokenExpiredError) {
+        try {
+          const data = await runPostAnalytics(true);
+          await this.integrationService.setCachedIntegrationPayload(
+            organizationId,
+            cacheKeyId,
+            String(dateWindowDays),
+            data,
+            POST_ANALYTICS_CACHE_TTL_SEC
+          );
+          return data;
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    }
+  }
+  /** Candidate thumbnails when analytics cannot map until the user picks the matching published asset. */
+  async getMissingPublishCandidates(params) {
+    const { authUserId, organizationId, postId } = params;
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const post = await this.postsRepository.getPostById(postId);
+    if (!post || post.organization_id !== organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    if (!post.integration_id || post.release_id !== "missing") {
+      return [];
+    }
+    const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
+    if (!integrationRow) {
+      return [];
+    }
+    const provider = this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+    if (!provider?.missing) {
+      return [];
+    }
+    const missingFn = provider.missing;
+    const runMissing = async (forceRefresh) => {
+      const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
+        force: forceRefresh,
+        provider
+      });
+      if (!row) {
+        return [];
+      }
+      return missingFn(row.internal_id, row.token);
+    };
+    try {
+      return await runMissing(false);
+    } catch (e) {
+      if (e instanceof ProviderAccessTokenExpiredError) {
+        try {
+          return await runMissing(true);
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    }
+  }
+  async updatePostReleaseId(params) {
+    const { authUserId, organizationId, postId, releaseId } = params;
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const post = await this.postsRepository.getPostById(postId);
+    if (!post || post.organization_id !== organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    const trimmed = releaseId.trim();
+    if (!trimmed.length) {
+      throw new AppError("releaseId is required", 400);
+    }
+    const updated = await this.postsRepository.updateReleaseIdIfMissing(postId, organizationId, trimmed);
+    if (!updated) {
+      throw new AppError("Post cannot be linked", 400);
+    }
+    await this._invalidatePostAnalyticsCaches(organizationId, postId);
+    await this._invalidatePostMutationCaches({
+      organizationId,
+      postGroup: post.post_group,
+      postIds: [postId]
+    });
+  }
+  /** Invalidate cached post-level analytics for all date windows for this row. */
+  async _invalidatePostAnalyticsCaches(organizationId, postId) {
+    if (!this.cacheInvalidator) return;
+    const pattern = `integration:${organizationId}:post:${postId}:*`;
+    await this.cacheInvalidator.invalidatePattern(pattern);
+  }
+  /**
+   * Ensures a valid access token before calling Graph-backed provider methods.
+   * On failed refresh, soft-deletes the channel.
+   */
+  async ensureFreshSocialToken(integrationRow, organizationId, options) {
+    const exp = integrationRow.token_expiration ? dayjs5__default.default(integrationRow.token_expiration) : null;
+    const expired = !exp || !exp.isValid() || exp.isBefore(dayjs5__default.default());
+    const provider = options?.provider ?? this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+    if (options?.force || expired) {
+      const refreshed = await this.refreshIntegrationService.refresh(integrationRow);
+      if (!refreshed || !refreshed.accessToken) {
+        const removed = await this.integrationService.softDeleteChannel(
+          organizationId,
+          integrationRow.id,
+          integrationRow.internal_id
+        );
+        if (removed) {
+          logger.warn({
+            msg: "[PostsService] Removed channel after failed token refresh",
+            organizationId,
+            integrationId: integrationRow.id
+          });
+        }
+        return null;
+      }
+      integrationRow.token = refreshed.accessToken;
+      if (provider?.refreshWait) {
+        await sleepMs3(1e4);
+      }
+    }
+    return integrationRow;
   }
   async deletePostGroup(postGroup, authUserId, organizationId) {
     const rows = await this.postsRepository.listPostsByGroup(postGroup);
@@ -10460,6 +12508,33 @@ var PostsService = class {
     const ids = rows.map((r) => r.id);
     await this.postsRepository.deleteTagAssignmentsForPostIds(ids);
     await this.postsRepository.softDeletePostsByGroup(postGroup);
+    await this._invalidatePostMutationCaches({
+      organizationId: orgId,
+      postGroup,
+      postIds: ids
+    });
+  }
+  /**
+   * Programmatic delete (org API key auth).
+   * Ensures group belongs to the org derived from the API key.
+   */
+  async deletePostGroupProgrammatic(postGroup, organizationId) {
+    const rows = await this.postsRepository.listPostsByGroup(postGroup);
+    if (!rows.length) {
+      throw new AppError("Post group not found", 404);
+    }
+    const orgId = rows[0].organization_id;
+    if (orgId !== organizationId) {
+      throw new AppError("Post group does not belong to that workspace", 400);
+    }
+    const ids = rows.map((r) => r.id);
+    await this.postsRepository.deleteTagAssignmentsForPostIds(ids);
+    await this.postsRepository.softDeletePostsByGroup(postGroup);
+    await this._invalidatePostMutationCaches({
+      organizationId: orgId,
+      postGroup,
+      postIds: ids
+    });
   }
   async updatePostGroup(input) {
     const {
@@ -10491,6 +12566,7 @@ var PostsService = class {
       postGroup,
       body,
       bodiesByIntegrationId,
+      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
       media,
       integrationIds,
       isGlobal,
@@ -10502,12 +12578,218 @@ var PostsService = class {
     });
     const oldIds = existing.map((r) => r.id);
     await this.postsRepository.deleteTagAssignmentsForPostIds(oldIds);
+    await this.postsRepository.softDeleteThreadRepliesByPostIds(oldIds);
     await this.postsRepository.softDeletePostsByGroup(postGroup);
     const inserted = await this.postsRepository.insertPostGroup(toInsert);
     await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+    await this.persistThreadRepliesFromProviderSettings({
+      organizationId,
+      authUserId,
+      posts: inserted,
+      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null
+    });
     const out = { postGroup, posts: inserted };
     void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
+    await this._invalidatePostMutationCaches({
+      organizationId,
+      postGroup,
+      postIds: [.../* @__PURE__ */ new Set([...oldIds, ...inserted.map((p) => p.id)])]
+    });
     return out;
+  }
+  /**
+   * Programmatic update (org API key auth).
+   * Ensures group belongs to the org derived from the API key; skips membership checks.
+   */
+  async updatePostGroupProgrammatic(input) {
+    const {
+      postGroup,
+      organizationId,
+      body,
+      bodiesByIntegrationId,
+      media,
+      integrationIds,
+      isGlobal,
+      scheduledAtIso,
+      repeatInterval,
+      tagNames,
+      status
+    } = input;
+    const existing = await this.postsRepository.listPostsByGroup(postGroup);
+    if (!existing.length) throw new AppError("Post group not found", 404);
+    const orgId = existing[0].organization_id;
+    if (orgId !== organizationId) {
+      throw new AppError("Post group does not belong to that workspace", 400);
+    }
+    const alignedNext = new Date(scheduledAtIso);
+    const nextPublishIso = Number.isNaN(alignedNext.getTime()) ? null : alignedNext.toISOString();
+    const alreadyAtThatSlot = nextPublishIso != null && new Date(existing[0].publish_date).getTime() === new Date(nextPublishIso).getTime();
+    const allowTakenSlot = status === "scheduled" && alreadyAtThatSlot;
+    const { toInsert, tagIds } = await this.buildPostGroupInsert({
+      organizationId,
+      authUserId: null,
+      postGroup,
+      body,
+      bodiesByIntegrationId: bodiesByIntegrationId ?? null,
+      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
+      media: media ?? null,
+      integrationIds,
+      isGlobal,
+      scheduledAtIso,
+      repeatInterval,
+      tagNames,
+      status,
+      allowTakenSlot,
+      skipMembershipCheck: true
+    });
+    const oldIds = existing.map((r) => r.id);
+    await this.postsRepository.deleteTagAssignmentsForPostIds(oldIds);
+    await this.postsRepository.softDeleteThreadRepliesByPostIds(oldIds);
+    await this.postsRepository.softDeletePostsByGroup(postGroup);
+    const inserted = await this.postsRepository.insertPostGroup(toInsert);
+    await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
+    await this.persistThreadRepliesFromProviderSettings({
+      organizationId,
+      authUserId: null,
+      posts: inserted,
+      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null
+    });
+    const out = { postGroup, posts: inserted };
+    void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
+    await this._invalidatePostMutationCaches({
+      organizationId,
+      postGroup,
+      postIds: [.../* @__PURE__ */ new Set([...oldIds, ...inserted.map((p) => p.id)])]
+    });
+    return out;
+  }
+  /**
+   * Invalidate tags list + calendar lists for an organization (tag CRUD or indirect tag changes).
+   */
+  async _invalidateOrganizationPostsListCaches(params) {
+    const { organizationId } = params;
+    const invalidateWithInvalidator = async () => {
+      await this.cacheInvalidator.invalidateKey(tagsListCacheKey(organizationId));
+      await invalidatePostsCalendarListCachesForOrganization(
+        organizationId,
+        this.cacheInvalidator,
+        void 0
+      );
+      logger.debug({ msg: "Invalidated organization posts list caches", organizationId });
+    };
+    if (this.cacheInvalidator) {
+      try {
+        await invalidateWithInvalidator();
+      } catch (error) {
+        logger.error({
+          msg: "Error invalidating organization posts list caches",
+          organizationId,
+          error: String(error)
+        });
+      }
+      return;
+    }
+    if (this.cache) {
+      try {
+        await this.cache.del(tagsListCacheKey(organizationId));
+        await invalidatePostsCalendarListCachesForOrganization(organizationId, void 0, this.cache);
+      } catch (error) {
+        logger.error({
+          msg: "Error deleting organization posts list cache keys",
+          organizationId,
+          error: String(error)
+        });
+      }
+    }
+  }
+  /** Invalidate public preview caches for given post row ids (e.g. after composer comment insert). */
+  async _invalidatePostPreviewCaches(postIds) {
+    if (postIds.length === 0) return;
+    const invalidateWithInvalidator = async () => {
+      for (const id of postIds) {
+        await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS12.POSTS_PREVIEW}:${id}`);
+      }
+    };
+    if (this.cacheInvalidator) {
+      try {
+        await invalidateWithInvalidator();
+      } catch (error) {
+        logger.error({
+          msg: "Error invalidating post preview caches",
+          postIdsCount: postIds.length,
+          error: String(error)
+        });
+      }
+      return;
+    }
+    if (this.cache) {
+      try {
+        for (const id of postIds) {
+          await this.cache.del(`${CACHE_KEYS12.POSTS_PREVIEW}:${id}`);
+        }
+      } catch (error) {
+        logger.error({
+          msg: "Error deleting post preview cache keys",
+          postIdsCount: postIds.length,
+          error: String(error)
+        });
+      }
+    }
+  }
+  /**
+   * Invalidate group detail, previews, calendar, and tags list after post create/update/delete.
+   */
+  async _invalidatePostMutationCaches(params) {
+    const { organizationId, postGroup, postIds } = params;
+    const invalidateWithInvalidator = async () => {
+      await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS12.POSTS_GROUP}:${postGroup}`);
+      for (const id of postIds) {
+        await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS12.POSTS_PREVIEW}:${id}`);
+      }
+      await invalidatePostsCalendarListCachesForOrganization(
+        organizationId,
+        this.cacheInvalidator,
+        void 0
+      );
+      await this.cacheInvalidator.invalidateKey(tagsListCacheKey(organizationId));
+      await this.cacheInvalidator.invalidateEntity(CACHE_KEYS12.POSTS, postGroup);
+      logger.debug({
+        msg: "Invalidated post mutation caches",
+        organizationId,
+        postGroup,
+        postIdsCount: postIds.length
+      });
+    };
+    if (this.cacheInvalidator) {
+      try {
+        await invalidateWithInvalidator();
+      } catch (error) {
+        logger.error({
+          msg: "Error invalidating post mutation caches",
+          organizationId,
+          postGroup,
+          error: String(error)
+        });
+      }
+      return;
+    }
+    if (this.cache) {
+      try {
+        await this.cache.del(`${CACHE_KEYS12.POSTS_GROUP}:${postGroup}`);
+        for (const id of postIds) {
+          await this.cache.del(`${CACHE_KEYS12.POSTS_PREVIEW}:${id}`);
+        }
+        await invalidatePostsCalendarListCachesForOrganization(organizationId, void 0, this.cache);
+        await this.cache.del(tagsListCacheKey(organizationId));
+      } catch (error) {
+        logger.error({
+          msg: "Error deleting post mutation cache keys",
+          organizationId,
+          postGroup,
+          error: String(error)
+        });
+      }
+    }
   }
   /**
    * When `scheduledSocialPost` uses BullMQ, enqueue a delayed Flowcraft run for this group ).
@@ -10574,6 +12856,47 @@ var PostsService = class {
     }
     return ids;
   }
+  async persistThreadRepliesFromProviderSettings(params) {
+    const { organizationId, authUserId = null, posts, providerSettingsByIntegrationId } = params;
+    if (!providerSettingsByIntegrationId) return;
+    let createdByUserId = null;
+    if (authUserId && authUserId.trim().length > 0) {
+      const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+      createdByUserId = userId ?? null;
+    }
+    const integrations = await this.integrationService.listByOrganization(organizationId);
+    const providerByIntegrationId = new Map(
+      integrations.map((i) => [i.id, (i.provider_identifier ?? "").trim().toLowerCase()])
+    );
+    const rows = [];
+    for (const post of posts) {
+      const integrationId = post.integration_id;
+      if (!integrationId) continue;
+      const settings = providerSettingsByIntegrationId[integrationId];
+      if (!settings) continue;
+      const pid = providerByIntegrationId.get(integrationId) ?? "";
+      const drafts = extractFollowUpRepliesFromProviderSettingsObject(settings, pid);
+      for (const r of drafts) {
+        const content = r.message.trim();
+        if (!content) continue;
+        rows.push({
+          organization_id: organizationId,
+          post_id: post.id,
+          integration_id: integrationId,
+          content,
+          delay_seconds: Math.max(0, Math.floor(r.delaySeconds)),
+          state: "QUEUE",
+          release_id: null,
+          release_url: null,
+          error: null,
+          deleted_at: null,
+          created_by_user_id: createdByUserId
+        });
+      }
+    }
+    if (rows.length === 0) return;
+    await this.postsRepository.insertThreadReplies(rows);
+  }
 };
 
 // services/MediaService.ts
@@ -10598,6 +12921,521 @@ var MediaService = class {
   }
   saveMediaInformation(organizationId, dto) {
     return this._mediaRepository.saveMediaInformation(organizationId, dto);
+  }
+};
+
+// errors/SignatureError.ts
+var SignatureNotFoundError = class extends AppError {
+  constructor(signatureId) {
+    super(`Signature not found: ${signatureId}`, 404);
+    this.name = "SignatureNotFoundError";
+  }
+};
+
+// services/SignatureService.ts
+init_Logger();
+var CACHE_KEYS13 = {
+  /** Full key = `${SIGNATURE_LIST_BYORGID}:${organizationId}` */
+  SIGNATURE_LIST_BYORGID: "signature:list:byOrgId"
+};
+var SIGNATURE_CACHE_TTL_SEC = 300;
+function signaturesListCacheKey(organizationId) {
+  return `${CACHE_KEYS13.SIGNATURE_LIST_BYORGID}:${organizationId}`;
+}
+var SignatureService = class {
+  constructor(signatureRepository2, integrationConnectionService2, cache, cacheInvalidator) {
+    this.signatureRepository = signatureRepository2;
+    this.integrationConnectionService = integrationConnectionService2;
+    this.cache = cache;
+    this.cacheInvalidator = cacheInvalidator;
+  }
+  async listForOrganization(authUserId, organizationId) {
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const cacheKey = signaturesListCacheKey(organizationId);
+    const factory = async () => await this.signatureRepository.listByOrganization(organizationId);
+    if (this.cache) {
+      return this.cache.getOrSet(cacheKey, factory, SIGNATURE_CACHE_TTL_SEC);
+    }
+    return factory();
+  }
+  async getById(authUserId, signatureId) {
+    const row = await this.signatureRepository.findById(signatureId);
+    if (!row) return null;
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, row.organization_id);
+    return row;
+  }
+  async create(authUserId, input) {
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
+    if (input.isDefault) {
+      await this.signatureRepository.clearDefaultForOrganization(input.organizationId);
+    }
+    const row = await this.signatureRepository.insert({
+      organizationId: input.organizationId,
+      title: input.title,
+      content: input.content,
+      isDefault: input.isDefault
+    });
+    await this._invalidateSignatureRelatedCaches({ organizationId: input.organizationId });
+    return row.id;
+  }
+  async update(authUserId, signatureId, input) {
+    const existing = await this.signatureRepository.findById(signatureId);
+    if (!existing) {
+      throw new SignatureNotFoundError(signatureId);
+    }
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, existing.organization_id);
+    if (input.isDefault === true) {
+      await this.signatureRepository.clearDefaultForOrganization(existing.organization_id);
+    }
+    const row = await this.signatureRepository.update({
+      signatureId,
+      organizationId: existing.organization_id,
+      title: input.title,
+      content: input.content,
+      isDefault: input.isDefault
+    });
+    if (!row) {
+      throw new SignatureNotFoundError(signatureId);
+    }
+    await this._invalidateSignatureRelatedCaches({ organizationId: existing.organization_id });
+    return row.id;
+  }
+  async delete(authUserId, signatureId) {
+    const existing = await this.signatureRepository.findById(signatureId);
+    if (!existing) {
+      throw new SignatureNotFoundError(signatureId);
+    }
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, existing.organization_id);
+    const ok = await this.signatureRepository.delete(signatureId, existing.organization_id);
+    if (!ok) {
+      throw new SignatureNotFoundError(signatureId);
+    }
+    await this._invalidateSignatureRelatedCaches({ organizationId: existing.organization_id });
+  }
+  async _invalidateSignatureRelatedCaches(params) {
+    const { organizationId } = params;
+    const listKey = signaturesListCacheKey(organizationId);
+    if (this.cacheInvalidator) {
+      try {
+        await this.cacheInvalidator.invalidateKey(listKey);
+        return;
+      } catch (error) {
+        logger.error({
+          msg: "Error invalidating signature caches",
+          organizationId,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+    if (this.cache) {
+      try {
+        await this.cache.del(listKey);
+      } catch (error) {
+        logger.error({
+          msg: "Error deleting signature caches (fallback)",
+          organizationId,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+  }
+};
+
+// errors/SetError.ts
+var SetNotFoundError = class extends AppError {
+  constructor(setId) {
+    super(`Set not found: ${setId}`, 404);
+    this.name = "SetNotFoundError";
+  }
+};
+
+// services/SetsService.ts
+init_Logger();
+var CACHE_KEYS14 = {
+  /** Full key = `${SET_LIST_BYORGID}:${organizationId}` */
+  SET_LIST_BYORGID: "sets:list:byOrgId",
+  /** Full key = `${SET_BY_SETID}:${setId}` */
+  SET_BY_SETID: "sets:bySetId"
+};
+var SETS_CACHE_TTL_SEC = 300;
+function setsListCacheKey(organizationId) {
+  return `${CACHE_KEYS14.SET_LIST_BYORGID}:${organizationId}`;
+}
+function setByIdCacheKey(setId) {
+  return `${CACHE_KEYS14.SET_BY_SETID}:${setId}`;
+}
+var SetsService = class {
+  constructor(setsRepository2, integrationConnectionService2, cache, cacheInvalidator) {
+    this.setsRepository = setsRepository2;
+    this.integrationConnectionService = integrationConnectionService2;
+    this.cache = cache;
+    this.cacheInvalidator = cacheInvalidator;
+  }
+  async listForOrganization(authUserId, organizationId) {
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    const cacheKey = setsListCacheKey(organizationId);
+    const factory = async () => await this.setsRepository.listByOrganization(organizationId);
+    if (this.cache) {
+      return this.cache.getOrSet(cacheKey, factory, SETS_CACHE_TTL_SEC);
+    }
+    return factory();
+  }
+  async upsert(authUserId, organizationId, body) {
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+    if (body.id) {
+      const existing = await this.setsRepository.findById(body.id);
+      if (existing && existing.organization_id === organizationId) {
+        const updated = await this.setsRepository.update({
+          setId: body.id,
+          organizationId,
+          name: body.name,
+          content: body.content
+        });
+        await this._invalidateSetRelatedCaches({ organizationId, setId: body.id });
+        return { id: updated?.id ?? body.id };
+      }
+    }
+    const row = await this.setsRepository.insert({
+      organizationId,
+      name: body.name,
+      content: body.content
+    });
+    await this._invalidateSetRelatedCaches({ organizationId });
+    return { id: row.id };
+  }
+  async getByIdForMember(authUserId, setId) {
+    const cacheKey = setByIdCacheKey(setId);
+    const factory = async () => await this.setsRepository.findById(setId);
+    const row = this.cache ? await this.cache.getOrSet(cacheKey, factory, SETS_CACHE_TTL_SEC) : await factory();
+    if (!row) return null;
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, row.organization_id);
+    return row;
+  }
+  async delete(authUserId, setId) {
+    const existing = await this.setsRepository.findById(setId);
+    if (!existing) {
+      throw new SetNotFoundError(setId);
+    }
+    await this.integrationConnectionService.assertOrganizationMember(authUserId, existing.organization_id);
+    const ok = await this.setsRepository.delete(setId, existing.organization_id);
+    if (!ok) {
+      throw new SetNotFoundError(setId);
+    }
+    await this._invalidateSetRelatedCaches({ organizationId: existing.organization_id, setId });
+  }
+  async _invalidateSetRelatedCaches(params) {
+    const { organizationId, setId } = params;
+    const listKey = setsListCacheKey(organizationId);
+    const keysToDrop = [listKey];
+    if (setId) keysToDrop.push(setByIdCacheKey(setId));
+    if (this.cacheInvalidator) {
+      try {
+        for (const key of keysToDrop) {
+          await this.cacheInvalidator.invalidateKey(key);
+        }
+        return;
+      } catch (error) {
+        logger.error({
+          msg: "Error invalidating sets caches",
+          organizationId,
+          setId: setId ?? void 0,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+    if (this.cache) {
+      try {
+        for (const key of keysToDrop) {
+          await this.cache.del(key);
+        }
+      } catch (error) {
+        logger.error({
+          msg: "Error deleting sets caches (fallback)",
+          organizationId,
+          setId: setId ?? void 0,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+  }
+};
+var AnalyticsService = class {
+  constructor(integrations, manager, refreshIntegrationService2) {
+    this.integrations = integrations;
+    this.manager = manager;
+    this.refreshIntegrationService = refreshIntegrationService2;
+  }
+  async getIntegrationAnalytics(params) {
+    const { authUserId, organizationId, integrationId, date, assertOrganizationMember } = params;
+    await assertOrganizationMember(authUserId, organizationId);
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row) {
+      throw new AppError("Integration not found", 404);
+    }
+    if ((row.type ?? "").toLowerCase() !== "social") {
+      return [];
+    }
+    const provider = this.manager.getSocialIntegration(row.provider_identifier);
+    if (!provider?.analytics) {
+      return [];
+    }
+    const exp = row.token_expiration ? dayjs5__default.default(row.token_expiration) : null;
+    if (exp && exp.isValid() && exp.isBefore(dayjs5__default.default())) {
+      const refreshed = await this.refreshIntegrationService.refresh(row);
+      if (!refreshed || !refreshed.accessToken) {
+        return [];
+      }
+      row.token = refreshed.accessToken;
+    }
+    const cached = await this.integrations.getCachedIntegrationPayload(
+      organizationId,
+      integrationId,
+      String(date)
+    );
+    if (cached) {
+      return cached;
+    }
+    const data = await provider.analytics(row.internal_id, row.token, date).catch(() => []);
+    await this.integrations.setCachedIntegrationPayload(organizationId, integrationId, String(date), data);
+    return data;
+  }
+};
+function hashProgrammaticToken(rawToken, pepper) {
+  const token = String(rawToken ?? "").trim();
+  const p = String(pepper ?? "").trim();
+  const hex = crypto__default.default.createHmac("sha256", p).update(token, "utf8").digest("hex");
+  return `hmac_sha256:${hex}`;
+}
+function hashProgrammaticTokenCandidates(rawToken, pepper) {
+  const token = String(rawToken ?? "").trim();
+  const p = String(pepper ?? "").trim();
+  const v2 = hashProgrammaticToken(token, p);
+  const legacy = crypto__default.default.createHash("sha256").update(`${token}:${p}`).digest("hex");
+  return [v2, legacy];
+}
+function timingSafeEqualHexOrPrefixed(a, b) {
+  const aa = String(a ?? "");
+  const bb = String(b ?? "");
+  if (aa.length !== bb.length) return false;
+  const ba = Buffer.from(aa, "utf8");
+  const bbuff = Buffer.from(bb, "utf8");
+  return crypto__default.default.timingSafeEqual(ba, bbuff);
+}
+
+// services/OauthAppService.ts
+init_GlobalConfig();
+function assertValidUrl(url, errorMsg) {
+  try {
+    new URL(url);
+  } catch {
+    throw new AppError(errorMsg, 400);
+  }
+}
+var OauthAppService = class {
+  constructor(oauthAppRepository2, organizationRepository2) {
+    this.oauthAppRepository = oauthAppRepository2;
+    this.organizationRepository = organizationRepository2;
+  }
+  async resolveAuthUserToUserId(authUserId) {
+    const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+    if (!userId) throw new AppError("User not found", 404);
+    return userId;
+  }
+  async assertOrgAdmin(authUserId, organizationId) {
+    const userId = await this.resolveAuthUserToUserId(authUserId);
+    const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
+    if (!membership || membership.disabled) throw new AppError("Workspace not found", 404);
+    if (membership.role !== "admin" && membership.role !== "superadmin") {
+      throw new AppError("Only admins can manage OAuth apps", 403);
+    }
+    return { userId };
+  }
+  async listApps(authUserId, organizationId) {
+    await this.assertOrgAdmin(authUserId, organizationId);
+    return this.oauthAppRepository.listAppsByOrganization(organizationId);
+  }
+  async getApp(authUserId, organizationId) {
+    await this.assertOrgAdmin(authUserId, organizationId);
+    const app2 = await this.oauthAppRepository.getAppByOrganizationId(organizationId);
+    return app2 ?? false;
+  }
+  /**
+   * Create an OAuth app (admin-only). Returns the raw clientSecret exactly once.
+   */
+  async createApp(authUserId, input) {
+    const { userId } = await this.assertOrgAdmin(authUserId, input.organizationId);
+    const existing = await this.oauthAppRepository.getAppByOrganizationId(input.organizationId);
+    if (existing) {
+      throw new AppError("You can only have one OAuth application per organization", 400);
+    }
+    const name = input.name.trim();
+    if (!name) throw new AppError("Name is required", 400);
+    const redirectUrl = input.redirectUrl.trim();
+    if (!redirectUrl) throw new AppError("Redirect URL is required", 400);
+    assertValidUrl(redirectUrl, "Redirect URL is invalid");
+    const secretKey = config.auth?.programmaticTokenSecret ?? "";
+    if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
+    const clientId = `opo_${makeId(32)}`;
+    const clientSecret = `opo_${makeId(48)}`;
+    const clientSecretHash = hashProgrammaticToken(clientSecret, secretKey);
+    const app2 = await this.oauthAppRepository.createApp({
+      organizationId: input.organizationId,
+      createdByUserId: userId,
+      name,
+      description: input.description ?? null,
+      pictureId: input.pictureId ?? null,
+      redirectUrl,
+      clientId,
+      clientSecretHash
+    });
+    return { app: app2, clientId, clientSecret };
+  }
+  async updateApp(authUserId, input) {
+    await this.assertOrgAdmin(authUserId, input.organizationId);
+    if (input.redirectUrl !== void 0) {
+      const redirectUrl = input.redirectUrl.trim();
+      if (!redirectUrl) throw new AppError("Redirect URL is invalid", 400);
+      assertValidUrl(redirectUrl, "Redirect URL is invalid");
+    }
+    return this.oauthAppRepository.updateApp({
+      organizationId: input.organizationId,
+      oauthAppId: input.oauthAppId,
+      name: input.name?.trim(),
+      description: input.description,
+      pictureId: input.pictureId,
+      redirectUrl: input.redirectUrl?.trim()
+    });
+  }
+  async rotateSecret(authUserId, input) {
+    await this.assertOrgAdmin(authUserId, input.organizationId);
+    const secretKey = config.auth?.programmaticTokenSecret ?? "";
+    if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
+    const newSecret = `opo_${makeId(48)}`;
+    const clientSecretHash = hashProgrammaticToken(newSecret, secretKey);
+    await this.oauthAppRepository.updateClientSecretHash({
+      organizationId: input.organizationId,
+      oauthAppId: input.oauthAppId,
+      clientSecretHash
+    });
+    return { clientSecret: newSecret };
+  }
+  async deleteApp(authUserId, input) {
+    await this.assertOrgAdmin(authUserId, input.organizationId);
+    await this.oauthAppRepository.revokeAllForApp(input.oauthAppId);
+    await this.oauthAppRepository.deleteApp(input.organizationId, input.oauthAppId);
+  }
+  /**
+   * Programmatic access token verification for `/public/*` (OAuth2 access token).
+   */
+  async verifyProgrammaticToken(rawToken) {
+    const secretKey = config.auth?.programmaticTokenSecret ?? "";
+    if (!secretKey.trim()) return null;
+    const [v2, legacy] = hashProgrammaticTokenCandidates(rawToken, secretKey);
+    const authz = await this.oauthAppRepository.findActiveAuthorizationByAccessTokenHash(v2) ?? await this.oauthAppRepository.findActiveAuthorizationByAccessTokenHash(legacy);
+    if (!authz) return null;
+    return { organizationId: authz.organization_id, oauthAppId: authz.oauth_app_id, tokenId: authz.id };
+  }
+};
+
+// services/OauthService.ts
+init_GlobalConfig();
+var OauthService = class {
+  constructor(oauthAppRepository2, organizationRepository2) {
+    this.oauthAppRepository = oauthAppRepository2;
+    this.organizationRepository = organizationRepository2;
+  }
+  mustGetSecretKey() {
+    const secretKey = config.auth?.programmaticTokenSecret ?? "";
+    if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
+    return secretKey;
+  }
+  async resolveAuthUserToUserId(authUserId) {
+    const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+    if (!userId) throw new AppError("User not found", 404);
+    return userId;
+  }
+  async validateAuthorizationRequest(clientId) {
+    const app2 = await this.oauthAppRepository.findActiveAppByClientId(clientId);
+    if (!app2) throw new AppError("Invalid client_id", 400);
+    return app2;
+  }
+  async approveOrDeny(params) {
+    const app2 = await this.validateAuthorizationRequest(params.clientId);
+    const userId = await this.resolveAuthUserToUserId(params.authUserId);
+    const { membership } = await this.organizationRepository.findMembership(userId, params.organizationId);
+    if (!membership || membership.disabled) throw new AppError("Workspace not found", 404);
+    if (app2.organization_id !== params.organizationId) throw new AppError("Invalid organization", 400);
+    if (params.action === "deny") {
+      const redirectUrl2 = new URL(app2.redirect_url);
+      redirectUrl2.searchParams.set("error", "access_denied");
+      if (params.state?.trim()) redirectUrl2.searchParams.set("state", params.state);
+      return { redirect: redirectUrl2.toString() };
+    }
+    const code = `opo_${makeId(32)}`;
+    const secretKey = this.mustGetSecretKey();
+    const codeHash = hashProgrammaticToken(code, secretKey);
+    const expiresAtIso = new Date(Date.now() + 10 * 60 * 1e3).toISOString();
+    const authz = await this.oauthAppRepository.upsertAuthorization({
+      oauthAppId: app2.id,
+      userId,
+      organizationId: params.organizationId
+    });
+    await this.oauthAppRepository.setAuthorizationCode({
+      authorizationId: authz.id,
+      codeHash,
+      expiresAtIso
+    });
+    const redirectUrl = new URL(app2.redirect_url);
+    redirectUrl.searchParams.set("code", code);
+    if (params.state?.trim()) redirectUrl.searchParams.set("state", params.state);
+    return { redirect: redirectUrl.toString() };
+  }
+  async exchangeCodeForToken(params) {
+    const app2 = await this.oauthAppRepository.findActiveAppByClientId(params.clientId);
+    if (!app2) throw new AppError("invalid_client", 401);
+    const secretKey = this.mustGetSecretKey();
+    const providedSecretHash = hashProgrammaticToken(params.clientSecret, secretKey);
+    const legacyProvidedSecretHash = hashProgrammaticTokenCandidates(params.clientSecret, secretKey)[1];
+    const stored = app2.client_secret_hash;
+    const matches = stored.startsWith("hmac_sha256:") ? timingSafeEqualHexOrPrefixed(providedSecretHash, stored) : timingSafeEqualHexOrPrefixed(legacyProvidedSecretHash, stored);
+    if (!matches) {
+      throw new AppError("invalid_client", 401);
+    }
+    const [codeHashV2, codeHashLegacy] = hashProgrammaticTokenCandidates(params.code, secretKey);
+    const authz = await this.oauthAppRepository.findAuthorizationByCodeHash(codeHashV2) ?? await this.oauthAppRepository.findAuthorizationByCodeHash(codeHashLegacy);
+    if (!authz || authz.oauth_app_id !== app2.id) {
+      throw new AppError("invalid_grant", 400);
+    }
+    if (!authz.code_expires_at || /* @__PURE__ */ new Date() > new Date(authz.code_expires_at)) {
+      throw new AppError("invalid_grant", 400);
+    }
+    const accessToken = `opo_${makeId(48)}`;
+    const accessTokenHash = hashProgrammaticToken(accessToken, secretKey);
+    const exchanged = await this.oauthAppRepository.exchangeCodeForAccessToken({
+      oauthAppId: app2.id,
+      organizationId: authz.organization_id,
+      codeHash: authz.authorization_code_hash ?? codeHashV2,
+      accessTokenHash
+    });
+    if (!exchanged) {
+      throw new AppError("invalid_grant", 400);
+    }
+    return { organizationId: exchanged.organization_id, access_token: accessToken, token_type: "bearer" };
+  }
+  async getOrgByOAuthToken(rawAccessToken) {
+    const secretKey = config.auth?.programmaticTokenSecret ?? "";
+    if (!secretKey.trim()) return null;
+    const hash = hashProgrammaticToken(rawAccessToken, secretKey);
+    return this.oauthAppRepository.findActiveAuthorizationByAccessTokenHash(hash);
+  }
+  async getApprovedApps(authUserId) {
+    const userId = await this.resolveAuthUserToUserId(authUserId);
+    return this.oauthAppRepository.listApprovedAuthorizationsByUserId(userId);
+  }
+  async revokeApp(authUserId, authorizationId) {
+    const userId = await this.resolveAuthUserToUserId(authUserId);
+    await this.oauthAppRepository.revokeAuthorizationByIdAndUserId({ authorizationId, userId });
+    return { success: true };
   }
 };
 
@@ -10669,7 +13507,26 @@ var integrationService = new IntegrationService(
   cacheServiceConnection,
   cacheInvalidationServiceConnection
 );
+var plugService = new PlugService(
+  plugRepository,
+  integrationRepository,
+  cacheServiceConnection,
+  cacheInvalidationServiceConnection
+);
 var integrationConnectionService = new IntegrationConnectionService(
+  integrationService,
+  plugService,
+  organizationRepository,
+  integrationManager,
+  refreshIntegrationService,
+  cacheServiceConnection,
+  cacheInvalidationServiceConnection
+);
+var oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository);
+var oauthService = new OauthService(oauthAppRepository, organizationRepository);
+var postsService = new PostsService(
+  postsRepository,
+  integrationConnectionService,
   integrationService,
   organizationRepository,
   integrationManager,
@@ -10677,14 +13534,24 @@ var integrationConnectionService = new IntegrationConnectionService(
   cacheServiceConnection,
   cacheInvalidationServiceConnection
 );
-var postsService = new PostsService(
-  postsRepository,
-  integrationConnectionService,
-  integrationService,
-  organizationRepository,
-  integrationManager
-);
 var mediaService = new MediaService(mediaRepository);
+var signatureService = new SignatureService(
+  signatureRepository,
+  integrationConnectionService,
+  cacheServiceConnection,
+  cacheInvalidationServiceConnection
+);
+var setsService = new SetsService(
+  setsRepository,
+  integrationConnectionService,
+  cacheServiceConnection,
+  cacheInvalidationServiceConnection
+);
+var analyticsService = new AnalyticsService(
+  integrationService,
+  integrationManager,
+  refreshIntegrationService
+);
 
 // utils/generateBlogRSSFeed.ts
 async function generateBlogRSSFeed(posts) {
@@ -11633,6 +14500,57 @@ var MediaController = class {
     }
   };
   /**
+   * Programmatic upload (`POST {api.prefix}/public/upload`). Organization from API key / OAuth app token.
+   * Multipart field name: `file` (same as `/media/upload-server` for session users).
+   */
+  uploadProgrammatic = async (req, res, next) => {
+    try {
+      const organization = req.organization;
+      if (!organization?.id?.trim()) {
+        throw new UserValidationError("Organization required");
+      }
+      if (!req.file) {
+        throw new UserValidationError("Media file is required");
+      }
+      const raw = req.file;
+      let mimetype = (raw.mimetype ?? "").trim();
+      if (!mimetype) {
+        const ext = (raw.originalname ?? "").split(".").pop()?.toLowerCase() ?? "";
+        const map = {
+          png: "image/png",
+          jpg: "image/jpeg",
+          jpeg: "image/jpeg",
+          gif: "image/gif",
+          webp: "image/webp"
+        };
+        mimetype = map[ext] || "application/octet-stream";
+      }
+      const file = { ...raw, mimetype };
+      const organizationId = organization.id;
+      const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+      const saved = await this.mediaService.saveFile({
+        organizationId,
+        name: filePath.split("/").pop() ?? filePath,
+        path: filePath,
+        originalName: file.originalname,
+        fileSize: file.size ?? 0,
+        type: file.mimetype?.startsWith("video/") ? "video" : "image"
+      });
+      res.status(200).json({
+        success: true,
+        data: {
+          filePath: saved.path,
+          originalName: file.originalname,
+          ...saved.publicUrl ? { publicUrl: saved.publicUrl } : publicUrl ? { publicUrl } : {},
+          id: saved.id
+        },
+        message: "Media uploaded successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
    * Upload via multipart field `file`. If `preventSave=true`, return only `{ path }` for compatibility.
    */
   uploadSimple = async (req, res, next) => {
@@ -12044,6 +14962,17 @@ var IntegrationController = class {
       next(error);
     }
   };
+  /** POST /integrations/social-connect/:integration (no-auth callback variant; organization resolved from OAuth state cache). */
+  connectSocialMediaNoAuth = async (req, res, next) => {
+    try {
+      const { integration } = req.params;
+      const body = req.body;
+      const data = await this.integrationConnectionService.connectSocialMediaNoAuth(integration, body);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
   /** POST /integrations/:id/time?organizationId= */
   setTime = async (req, res, next) => {
     try {
@@ -12121,6 +15050,129 @@ var IntegrationController = class {
         organizationId,
         integrationId,
         body
+      );
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /integrations/public/provider/:id/connect — no-auth completion using OAuth state cache. */
+  saveProviderPageNoAuth = async (req, res, next) => {
+    try {
+      const integrationId = req.params.id;
+      const body = req.body;
+      const data = await this.integrationConnectionService.saveProviderPageNoAuth(integrationId, body);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /integrations/plug/list — global plug catalog (threshold-style rules). */
+  getPlugCatalog = async (_req, res, next) => {
+    try {
+      const data = this.integrationConnectionService.getPlugCatalog();
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /integrations/internal-plugs/:providerIdentifier?organizationId= */
+  getInternalPlugDefinitions = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const providerIdentifier = req.params.providerIdentifier;
+      const data = await this.integrationConnectionService.getInternalPlugDefinitions(
+        authUserId,
+        organizationId,
+        providerIdentifier
+      );
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /integrations/:integrationId/plugs?organizationId= */
+  listIntegrationPlugs = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const integrationId = req.params.integrationId;
+      const plugs = await this.integrationConnectionService.listIntegrationPlugs(
+        authUserId,
+        organizationId,
+        integrationId
+      );
+      res.status(200).json({ success: true, data: { plugs } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /integrations/:integrationId/plugs?organizationId= */
+  upsertIntegrationPlug = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const integrationId = req.params.integrationId;
+      const body = req.body;
+      const data = await this.integrationConnectionService.upsertIntegrationPlug(
+        authUserId,
+        organizationId,
+        integrationId,
+        body
+      );
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** PUT /integrations/plugs/:plugId/activate */
+  setIntegrationPlugActivated = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const plugId = req.params.plugId;
+      const { organizationId, activated } = req.body;
+      const data = await this.integrationConnectionService.setIntegrationPlugActivated(
+        authUserId,
+        organizationId,
+        plugId,
+        activated
+      );
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** DELETE /integrations/plugs/:plugId?organizationId= */
+  deleteIntegrationPlug = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const organizationId = req.query.organizationId;
+      const plugId = req.params.plugId;
+      const data = await this.integrationConnectionService.deleteIntegrationPlug(
+        authUserId,
+        organizationId,
+        plugId
       );
       res.status(200).json({ success: true, data });
     } catch (error) {
@@ -12340,6 +15392,7 @@ var PostsController = class {
         scheduledAtIso: b.scheduledAt,
         repeatInterval: b.repeatInterval ?? null,
         tagNames: b.tagNames ?? [],
+        providerSettingsByIntegrationId: b.providerSettingsByIntegrationId ?? null,
         status: b.status
       });
       res.status(200).json({
@@ -12348,6 +15401,29 @@ var PostsController = class {
           postGroup: result.postGroup,
           posts: PostDTOMapper.toDTOCollection(result.posts)
         }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  createComposerComment = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const postId = req.params.postId;
+      const { organizationId, comment } = req.body;
+      const row = await this.postsService.createComposerComment({
+        organizationId,
+        authUserId,
+        postId,
+        comment
+      });
+      res.status(201).json({
+        success: true,
+        data: { comment: PostDTOMapper.toPostCommentDTO(row) }
       });
     } catch (error) {
       next(error);
@@ -12412,6 +15488,15 @@ var PostsController = class {
       next(error);
     }
   };
+  getPublicComments = async (req, res, next) => {
+    try {
+      const postId = req.params.postId;
+      const comments = await this.postsService.getPublicComments(postId);
+      res.status(200).json({ comments: PostDTOMapper.toPostCommentDTOCollection(comments) });
+    } catch (error) {
+      next(error);
+    }
+  };
   updatePostGroup = async (req, res, next) => {
     try {
       const authReq = req;
@@ -12433,6 +15518,7 @@ var PostsController = class {
         scheduledAtIso: b.scheduledAt,
         repeatInterval: b.repeatInterval ?? null,
         tagNames: b.tagNames ?? [],
+        providerSettingsByIntegrationId: b.providerSettingsByIntegrationId ?? null,
         status: b.status
       });
       res.status(200).json({
@@ -12461,6 +15547,344 @@ var PostsController = class {
       next(error);
     }
   };
+  getMissingPublishCandidates = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const postId = req.params.postId;
+      const organizationId = req.query.organizationId;
+      const items = await this.postsService.getMissingPublishCandidates({
+        authUserId,
+        organizationId,
+        postId
+      });
+      res.status(200).json({ success: true, data: { items } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  updatePostReleaseId = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const postId = req.params.postId;
+      const { organizationId, releaseId } = req.body;
+      await this.postsService.updatePostReleaseId({
+        authUserId,
+        organizationId,
+        postId,
+        releaseId
+      });
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// controllers/PublicPostsController.ts
+var PublicPostsController = class {
+  constructor(postsService2) {
+    this.postsService = postsService2;
+  }
+  /** GET /public/posts/list?start=...&end=...&integrationIds=... */
+  listPosts = async (req, res, next) => {
+    try {
+      const organizationId = req.organization.id;
+      const q = req.query;
+      const integrationIds = typeof q.integrationIds === "string" && q.integrationIds.trim().length > 0 ? q.integrationIds.split(",").map((s) => s.trim()).filter(Boolean) : null;
+      const rows = await this.postsService.listPostsForCalendarProgrammatic({
+        organizationId,
+        startIso: q.start,
+        endIso: q.end,
+        integrationIds
+      });
+      res.status(200).json({ success: true, data: { posts: PostDTOMapper.toDTOCollection(rows) } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /public/posts */
+  createPost = async (req, res, next) => {
+    try {
+      const organizationId = req.organization.id;
+      const b = req.body;
+      const result = await this.postsService.createPostProgrammatic({
+        organizationId,
+        body: b.body ?? "",
+        bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
+        media: (b.media ?? null)?.map((m) => ({ id: m.id, path: m.path })) ?? null,
+        integrationIds: b.integrationIds ?? [],
+        isGlobal: b.isGlobal ?? true,
+        scheduledAtIso: b.scheduledAt,
+        repeatInterval: b.repeatInterval ?? null,
+        tagNames: b.tagNames ?? [],
+        providerSettingsByIntegrationId: b.providerSettingsByIntegrationId ?? null,
+        status: b.status
+      });
+      res.status(200).json({
+        success: true,
+        data: {
+          postGroup: result.postGroup,
+          posts: PostDTOMapper.toDTOCollection(result.posts)
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /public/posts/group/:postGroup */
+  getPostGroup = async (req, res, next) => {
+    try {
+      const organizationId = req.organization.id;
+      const postGroup = req.params.postGroup;
+      const data = await this.postsService.getPostGroupProgrammatic(postGroup, organizationId);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** PUT /public/posts/group/:postGroup */
+  updatePostGroup = async (req, res, next) => {
+    try {
+      const organizationId = req.organization.id;
+      const postGroup = req.params.postGroup;
+      const b = req.body;
+      const result = await this.postsService.updatePostGroupProgrammatic({
+        postGroup,
+        organizationId,
+        body: b.body ?? "",
+        bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
+        media: (b.media ?? null)?.map((m) => ({ id: m.id, path: m.path })) ?? null,
+        integrationIds: b.integrationIds ?? [],
+        isGlobal: b.isGlobal ?? true,
+        scheduledAtIso: b.scheduledAt,
+        repeatInterval: b.repeatInterval ?? null,
+        tagNames: b.tagNames ?? [],
+        providerSettingsByIntegrationId: b.providerSettingsByIntegrationId ?? null,
+        status: b.status
+      });
+      res.status(200).json({
+        success: true,
+        data: {
+          postGroup: result.postGroup,
+          posts: PostDTOMapper.toDTOCollection(result.posts)
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** DELETE /public/posts/group/:postGroup */
+  deletePostGroup = async (req, res, next) => {
+    try {
+      const organizationId = req.organization.id;
+      const postGroup = req.params.postGroup;
+      await this.postsService.deletePostGroupProgrammatic(postGroup, organizationId);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// controllers/OauthAppController.ts
+var OauthAppController = class {
+  constructor(oauthAppService2) {
+    this.oauthAppService = oauthAppService2;
+  }
+  /** GET /oauth-apps?organizationId=... */
+  listApps = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const organizationId = req.query.organizationId;
+      const data = await this.oauthAppService.listApps(authUserId, organizationId);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /oauth-apps/app?organizationId=... */
+  getApp = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const organizationId = req.query.organizationId;
+      const data = await this.oauthAppService.getApp(authUserId, organizationId);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /oauth-apps */
+  createApp = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const b = req.body;
+      const created = await this.oauthAppService.createApp(authUserId, {
+        organizationId: b.organizationId,
+        name: b.name,
+        description: b.description ?? null,
+        pictureId: b.pictureId ?? null,
+        redirectUrl: b.redirectUrl
+      });
+      res.status(201).json({ success: true, data: { ...created.app, clientId: created.clientId, clientSecret: created.clientSecret } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** PUT /oauth-apps */
+  updateApp = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const b = req.body;
+      const data = await this.oauthAppService.updateApp(authUserId, {
+        organizationId: b.organizationId,
+        oauthAppId: b.oauthAppId,
+        name: b.name,
+        description: b.description,
+        pictureId: b.pictureId,
+        redirectUrl: b.redirectUrl
+      });
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** DELETE /oauth-apps/:oauthAppId?organizationId=... */
+  deleteApp = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const oauthAppId = req.params.oauthAppId;
+      const organizationId = req.query.organizationId;
+      await this.oauthAppService.deleteApp(authUserId, { organizationId, oauthAppId });
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /oauth-apps/rotate-secret */
+  rotateSecret = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const b = req.body;
+      const data = await this.oauthAppService.rotateSecret(authUserId, b);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// controllers/OauthController.ts
+var OauthController = class {
+  constructor(oauthService2) {
+    this.oauthService = oauthService2;
+  }
+  /**
+   * OAuth2 authorize (public): validate client_id and return app metadata.
+   */
+  authorize = async (req, res, next) => {
+    try {
+      const q = req.query;
+      const app2 = await this.oauthService.validateAuthorizationRequest(q.client_id);
+      res.status(200).json({
+        app: {
+          name: app2.name,
+          description: app2.description,
+          pictureId: app2.picture_id,
+          clientId: app2.client_id,
+          redirectUrl: app2.redirect_url
+        },
+        state: q.state
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * OAuth2 approve/deny (requires user JWT).
+   */
+  approve = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const b = req.body;
+      const out = await this.oauthService.approveOrDeny({
+        authUserId,
+        clientId: b.client_id,
+        organizationId: b.organizationId,
+        state: b.state,
+        action: b.action
+      });
+      res.status(200).json(out);
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * OAuth2 token endpoint (public).
+   */
+  token = async (req, res, next) => {
+    try {
+      const b = req.body;
+      if (b.grant_type !== "authorization_code") {
+        return res.status(400).json({ error: "unsupported_grant_type" });
+      }
+      const out = await this.oauthService.exchangeCodeForToken({
+        code: b.code,
+        clientId: b.client_id,
+        clientSecret: b.client_secret
+      });
+      res.status(200).json(out);
+    } catch (error) {
+      next(error);
+    }
+  };
+  // to do : move to Approved-apps controller
+  /** GET /oauth/approved-apps (requires user JWT) */
+  approvedApps = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const data = await this.oauthService.getApprovedApps(authUserId);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /oauth/revoke (requires user JWT) */
+  revoke = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const b = req.body;
+      const out = await this.oauthService.revokeApp(authUserId, b.authorizationId);
+      res.status(200).json(out);
+    } catch (error) {
+      next(error);
+    }
+  };
 };
 
 // controllers/ThirdPartyController.ts
@@ -12483,6 +15907,249 @@ var ThirdPartyController = class {
   };
 };
 
+// utils/dtos/SignatureDTO.ts
+function toSignatureDTO(row) {
+  return {
+    id: row.id,
+    title: row.title ?? "",
+    content: row.content ?? "",
+    isDefault: row.is_default === true,
+    createdAt: row.created_at ?? "",
+    updatedAt: row.updated_at ?? ""
+  };
+}
+function toSignatureDTOCollection(rows) {
+  return (rows ?? []).map(toSignatureDTO);
+}
+
+// controllers/SignatureController.ts
+var SignatureController = class {
+  constructor(signatureService2) {
+    this.signatureService = signatureService2;
+  }
+  /** GET /signatures?organizationId= — list signatures for a workspace (must be member). */
+  listForOrganization = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const { organizationId } = req.query;
+      const rows = await this.signatureService.listForOrganization(authUserId, organizationId);
+      res.status(200).json({ success: true, data: toSignatureDTOCollection(rows) });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /signatures/:id — get one signature (must be member of owning org). */
+  getById = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const { id } = req.params;
+      const row = await this.signatureService.getById(authUserId, id);
+      res.status(200).json({ success: true, data: row ? toSignatureDTO(row) : null });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /signatures — create signature in a workspace. */
+  create = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const body = req.body;
+      const id = await this.signatureService.create(authUserId, {
+        organizationId: body.organizationId,
+        title: body.title,
+        content: body.content,
+        isDefault: body.isDefault === true
+      });
+      res.status(201).json({
+        success: true,
+        data: { id },
+        message: "Signature created successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** PATCH /signatures/:id — update signature (must be member of owning org). */
+  update = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const { id } = req.params;
+      const body = req.body;
+      const outId = await this.signatureService.update(authUserId, id, {
+        title: body.title,
+        content: body.content,
+        isDefault: body.isDefault
+      });
+      res.status(200).json({
+        success: true,
+        data: { id: outId },
+        message: "Signature updated successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** DELETE /signatures/:id */
+  deleteById = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const { id } = req.params;
+      await this.signatureService.delete(authUserId, id);
+      res.status(200).json({ success: true, message: "Signature deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// utils/dtos/SetDTO.ts
+function toSetDTO(row) {
+  return {
+    id: row.id,
+    organizationId: row.organization_id ?? "",
+    name: row.name ?? "",
+    content: row.content ?? "",
+    createdAt: row.created_at ?? "",
+    updatedAt: row.updated_at ?? ""
+  };
+}
+function toSetDTOCollection(rows) {
+  return (rows ?? []).map(toSetDTO);
+}
+
+// controllers/SetsController.ts
+var SetsController = class {
+  constructor(setsService2) {
+    this.setsService = setsService2;
+  }
+  /** GET /sets?organizationId= */
+  listForOrganization = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const { organizationId } = req.query;
+      const rows = await this.setsService.listForOrganization(authUserId, organizationId);
+      res.status(200).json({ success: true, data: toSetDTOCollection(rows) });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** POST /sets — create or update when id belongs to workspace */
+  upsert = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const body = req.body;
+      const out = await this.setsService.upsert(authUserId, body.organizationId, {
+        id: body.id,
+        name: body.name,
+        content: body.content
+      });
+      res.status(200).json({
+        success: true,
+        data: out,
+        message: body.id ? "Set updated successfully" : "Set created successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** DELETE /sets/:id */
+  deleteById = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const { id } = req.params;
+      await this.setsService.delete(authUserId, id);
+      res.status(200).json({ success: true, message: "Set deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /sets/:id */
+  getById = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+      const { id } = req.params;
+      const row = await this.setsService.getByIdForMember(authUserId, id);
+      res.status(200).json({ success: true, data: row ? toSetDTO(row) : null });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// controllers/AnalyticsController.ts
+var AnalyticsController = class {
+  constructor(analyticsService2, integrationConnectionService2, postsService2) {
+    this.analyticsService = analyticsService2;
+    this.integrationConnectionService = integrationConnectionService2;
+    this.postsService = postsService2;
+  }
+  /** GET /analytics/post/:postId?organizationId=&date= */
+  getPostAnalytics = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const postId = req.params.postId;
+      const q = req.query;
+      const date = Number(q.date);
+      const data = await this.postsService.checkPostAnalytics({
+        authUserId,
+        organizationId: q.organizationId,
+        postId,
+        dateWindowDays: date
+      });
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /analytics/:integrationId?organizationId=&date= */
+  getIntegrationAnalytics = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const integrationId = req.params.integrationId;
+      const q = req.query;
+      const date = Number(q.date);
+      const data = await this.analyticsService.getIntegrationAnalytics({
+        authUserId,
+        organizationId: q.organizationId,
+        integrationId,
+        date,
+        assertOrganizationMember: this.integrationConnectionService.assertOrganizationMember.bind(
+          this.integrationConnectionService
+        )
+      });
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
 // connections/upload/upload.factory.ts
 init_GlobalConfig();
 
@@ -12497,8 +16164,8 @@ function safeJoin(base, p) {
   return out;
 }
 function buildPublicUrl(relativePath) {
-  const server3 = config.server;
-  const origin = String(server3.frontendDomainUrl ?? server3.backendDomainUrl ?? "").trim().replace(/\/+$/, "");
+  const server2 = config.server;
+  const origin = String(server2.frontendDomainUrl ?? server2.backendDomainUrl ?? "").trim().replace(/\/+$/, "");
   if (!origin) return null;
   return `${origin}/uploads/${relativePath.replace(/^\/+/, "")}`;
 }
@@ -12600,7 +16267,13 @@ var integrationController = new IntegrationController(integrationConnectionServi
 var publicIntegrationController = new PublicIntegrationController(integrationConnectionService);
 var notificationController = new NotificationController(notificationService);
 var postsController = new PostsController(postsService);
+var publicPostsController = new PublicPostsController(postsService);
+var oauthAppController = new OauthAppController(oauthAppService);
+var oauthController = new OauthController(oauthService);
 var thirdPartyController = new ThirdPartyController();
+var signatureController = new SignatureController(signatureService);
+var setsController = new SetsController(setsService);
+var analyticsController = new AnalyticsController(analyticsService, integrationConnectionService, postsService);
 
 // errors/RequestError.ts
 var RequestError = class extends Error {
@@ -14067,6 +17740,13 @@ var validateSaveProviderPage = validateRequest({
   params: saveProviderPageParamsSchema,
   body: saveProviderPageBodySchema
 });
+var saveProviderPageNoAuthBodySchema = zod.z.object({
+  state: zod.z.string().min(1, "state is required")
+}).passthrough();
+var validateSaveProviderPageNoAuth = validateRequest({
+  params: saveProviderPageParamsSchema,
+  body: saveProviderPageNoAuthBodySchema
+});
 var integrationCustomersQuerySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id")
 });
@@ -14092,6 +17772,64 @@ var validateIntegrationGroup = validateRequest({
   params: integrationGroupParamsSchema,
   body: integrationGroupBodySchema
 });
+
+// routes/integrationApi/NoAuthRoutes.ts
+var integrationNoAuthRouter = express.Router();
+integrationNoAuthRouter.get("/", integrationController.getAllIntegrations);
+integrationNoAuthRouter.post(
+  "/social-connect/:integration",
+  validateSocialConnectBody,
+  integrationController.connectSocialMediaNoAuth
+);
+integrationNoAuthRouter.post(
+  "/public/provider/:id/connect",
+  validateSaveProviderPageNoAuth,
+  integrationController.saveProviderPageNoAuth
+);
+var integrationPlugProviderParamsSchema = zod.z.object({
+  providerIdentifier: zod.z.string().min(1, "providerIdentifier is required")
+});
+var integrationPlugIntegrationParamsSchema = zod.z.object({
+  integrationId: zod.z.string().uuid("Invalid integration id")
+});
+var integrationPlugUpsertBodySchema = zod.z.object({
+  func: zod.z.string().min(1, "func is required"),
+  fields: zod.z.array(
+    zod.z.object({
+      name: zod.z.string().min(1),
+      value: zod.z.string()
+    })
+  ),
+  plugId: zod.z.string().uuid("Invalid plug id").optional()
+});
+var integrationPlugActivateParamsSchema = zod.z.object({
+  plugId: zod.z.string().uuid("Invalid plug id")
+});
+var integrationPlugActivateBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  activated: zod.z.boolean()
+});
+var validateIntegrationInternalPlugsRequest = validateRequest({
+  query: integrationOrganizationQuerySchema,
+  params: integrationPlugProviderParamsSchema
+});
+var validateIntegrationPlugsListRequest = validateRequest({
+  query: integrationOrganizationQuerySchema,
+  params: integrationPlugIntegrationParamsSchema
+});
+var validateIntegrationPlugsUpsertRequest = validateRequest({
+  query: integrationOrganizationQuerySchema,
+  params: integrationPlugIntegrationParamsSchema,
+  body: integrationPlugUpsertBodySchema
+});
+var validateIntegrationPlugActivateRequest = validateRequest({
+  params: integrationPlugActivateParamsSchema,
+  body: integrationPlugActivateBodySchema
+});
+var validateIntegrationPlugDeleteRequest = validateRequest({
+  query: integrationOrganizationQuerySchema,
+  params: integrationPlugActivateParamsSchema
+});
 var integrationTimeBodySchema = zod.z.object({
   time: zod.z.array(zod.z.object({ time: zod.z.number() })).min(1)
 });
@@ -14103,66 +17841,111 @@ var validateIntegrationTimeRequest = validateRequest({
   body: integrationTimeBodySchema
 });
 
-// routes/integrations/sessionRoutes.ts
-var sessionIntegrationsRouter = express.Router();
+// routes/integrationApi/SessionRoutes.ts
+var integrationSessionRouter = express.Router();
 var auth2 = requireFullAuth(supabase);
-sessionIntegrationsRouter.get("/", integrationController.getAllIntegrations);
-sessionIntegrationsRouter.use(auth2);
-sessionIntegrationsRouter.post(
+integrationSessionRouter.use(auth2);
+integrationSessionRouter.get("/plug/list", integrationController.getPlugCatalog);
+integrationSessionRouter.get(
+  "/internal-plugs/:providerIdentifier",
+  validateIntegrationInternalPlugsRequest,
+  integrationController.getInternalPlugDefinitions
+);
+integrationSessionRouter.put(
+  "/plugs/:plugId/activate",
+  validateIntegrationPlugActivateRequest,
+  integrationController.setIntegrationPlugActivated
+);
+integrationSessionRouter.delete(
+  "/plugs/:plugId",
+  validateIntegrationPlugDeleteRequest,
+  integrationController.deleteIntegrationPlug
+);
+integrationSessionRouter.get(
+  "/:integrationId/plugs",
+  validateIntegrationPlugsListRequest,
+  integrationController.listIntegrationPlugs
+);
+integrationSessionRouter.post(
+  "/:integrationId/plugs",
+  validateIntegrationPlugsUpsertRequest,
+  integrationController.upsertIntegrationPlug
+);
+integrationSessionRouter.post(
   "/provider/:id/connect",
   validateSaveProviderPage,
   integrationController.saveProviderPage
 );
-sessionIntegrationsRouter.get("/list", validateIntegrationOrganizationQuery, integrationController.getIntegrationList);
-sessionIntegrationsRouter.get(
+integrationSessionRouter.get("/list", validateIntegrationOrganizationQuery, integrationController.getIntegrationList);
+integrationSessionRouter.get(
   "/customers",
   validateIntegrationCustomersQuery,
   integrationController.getChannelCustomers
 );
-sessionIntegrationsRouter.post(
+integrationSessionRouter.post(
   "/customers",
   validateIntegrationCreateCustomerBody,
   integrationController.createChannelCustomer
 );
-sessionIntegrationsRouter.put(
+integrationSessionRouter.put(
   "/:id/group",
   validateIntegrationGroup,
   integrationController.assignChannelCustomer
 );
-sessionIntegrationsRouter.post(
+integrationSessionRouter.post(
   "/:id/time",
   validateIntegrationTimeRequest,
   integrationController.setTime
 );
-sessionIntegrationsRouter.get(
+integrationSessionRouter.get(
   "/social/:integration",
   validateIntegrationOrganizationQuery,
   integrationController.getIntegrationUrl
 );
-sessionIntegrationsRouter.post(
+integrationSessionRouter.post(
   "/social-connect/:integration",
   validateSocialConnectBody,
   integrationController.connectSocialMedia
 );
-sessionIntegrationsRouter.post("/disable", validateIntegrationOrgAndIdBody, integrationController.disable);
-sessionIntegrationsRouter.post("/enable", validateIntegrationOrgAndIdBody, integrationController.enable);
-sessionIntegrationsRouter.delete("/", validateIntegrationOrgAndIdBody, integrationController.deleteChannel);
+integrationSessionRouter.post("/disable", validateIntegrationOrgAndIdBody, integrationController.disable);
+integrationSessionRouter.post("/enable", validateIntegrationOrgAndIdBody, integrationController.enable);
+integrationSessionRouter.delete("/", validateIntegrationOrgAndIdBody, integrationController.deleteChannel);
 
-// middlewares/organizationApiKey.ts
-function requireOrganizationApiKey(repository) {
+// routes/integrationApi/index.ts
+var integrationsRouter = express.Router();
+integrationsRouter.use("/", integrationNoAuthRouter);
+integrationsRouter.use("/", integrationSessionRouter);
+
+// middlewares/programmaticAuth.ts
+function parseRawToken(req) {
+  const raw = req.headers.authorization ?? req.headers.Authorization;
+  if (!raw?.trim()) return null;
+  const key = raw.startsWith("Bearer ") ? raw.slice(7).trim() : raw.trim();
+  return key || null;
+}
+function requireProgrammaticAuth(params) {
   return async (req, res, next) => {
-    const raw = req.headers.authorization ?? req.headers.Authorization;
-    if (!raw?.trim()) {
-      res.status(401).json({ msg: "No API key provided" });
-      return;
-    }
-    const key = raw.startsWith("Bearer ") ? raw.slice(7).trim() : raw.trim();
-    if (!key) {
+    const token = parseRawToken(req);
+    if (!token) {
       res.status(401).json({ msg: "No API key provided" });
       return;
     }
     try {
-      const org = await repository.findOrganizationByApiKey(key);
+      const verified = await params.oauthAppService.verifyProgrammaticToken(token);
+      if (verified) {
+        const { organization } = await params.organizationRepository.findOrganizationById(
+          verified.organizationId
+        );
+        if (!organization) {
+          res.status(401).json({ msg: "Invalid API key" });
+          return;
+        }
+        req.organization = organization;
+        req.oauthApp = { id: verified.oauthAppId, tokenId: verified.tokenId };
+        next();
+        return;
+      }
+      const org = await params.organizationRepository.findOrganizationByApiKey(token);
       if (!org) {
         res.status(401).json({ msg: "Invalid API key" });
         return;
@@ -14181,9 +17964,9 @@ var validatePublicSocialOAuthQuery = validateRequest({
   query: publicSocialOAuthQuerySchema
 });
 
-// routes/publicApi/integrationRoutes.ts
+// routes/publicApi/IntegrationRoutes.ts
 var publicIntegrationRouter = express.Router();
-var apiKeyAuth = requireOrganizationApiKey(organizationRepository);
+var apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
 publicIntegrationRouter.get("/is-connected", apiKeyAuth, publicIntegrationController.isConnected);
 publicIntegrationRouter.get("/integrations", apiKeyAuth, publicIntegrationController.listIntegrations);
 publicIntegrationRouter.get(
@@ -14193,6 +17976,189 @@ publicIntegrationRouter.get(
   publicIntegrationController.getIntegrationUrl
 );
 publicIntegrationRouter.delete("/integrations/:id", apiKeyAuth, publicIntegrationController.deleteChannel);
+var upload3 = multer__default.default({
+  storage: multer__default.default.memoryStorage(),
+  limits: { fileSize: MAX_MEDIA_UPLOAD_BYTES }
+});
+var publicMediaUploadRouter = express.Router();
+var apiKeyAuth2 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+publicMediaUploadRouter.post("/upload", apiKeyAuth2, upload3.single("file"), mediaController.uploadProgrammatic);
+var postOrganizationQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var validatePostOrganizationQuery = validateRequest({
+  query: postOrganizationQuerySchema
+});
+var listPostsQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  start: zod.z.string().min(1, "Start is required"),
+  end: zod.z.string().min(1, "End is required"),
+  /**
+   * Optional comma-separated integration ids to filter calendar data.
+   * When omitted, all integrations (including ungrouped) are returned.
+   */
+  integrationIds: zod.z.string().optional()
+});
+var validateListPostsQuery = validateRequest({
+  query: listPostsQuerySchema
+});
+var postGroupParamsSchema = zod.z.object({
+  postGroup: zod.z.string().uuid("Invalid post group id")
+});
+var validatePostGroupParams = validateRequest({
+  params: postGroupParamsSchema
+});
+var postPreviewParamsSchema = zod.z.object({
+  postId: zod.z.string().uuid("Invalid post id")
+});
+var validatePostPreviewParams = validateRequest({
+  params: postPreviewParamsSchema
+});
+var publicPostCommentsParamsSchema = zod.z.object({
+  postId: zod.z.string().uuid("Invalid post id")
+});
+var validatePublicPostCommentsParams = validateRequest({
+  params: publicPostCommentsParamsSchema
+});
+var createComposerCommentParamsSchema = zod.z.object({
+  postId: zod.z.string().uuid("Invalid post id")
+});
+var createComposerCommentBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  comment: zod.z.string().trim().min(1, "Comment is required").max(1e4)
+});
+var validateCreateComposerComment = validateRequest({
+  params: createComposerCommentParamsSchema,
+  body: createComposerCommentBodySchema
+});
+var repeatIntervalEnum = zod.z.enum([
+  "day",
+  "two_days",
+  "three_days",
+  "four_days",
+  "five_days",
+  "six_days",
+  "week",
+  "two_weeks",
+  "month"
+]);
+var mediaItemSchema = zod.z.object({
+  id: zod.z.string().min(1).max(200),
+  path: zod.z.string().min(1).max(2e3),
+  bucket: zod.z.enum([DATABASE_NAMES.BLOG_IMAGES, COMPOSER_MEDIA_BUCKET_NAME]).optional()
+});
+var createPostBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  body: zod.z.string().max(5e4).optional(),
+  /**
+   * Optional per-channel body overrides (customize mode).
+   * Keys are integration IDs; values are the body content to use for that integration.
+   */
+  bodiesByIntegrationId: zod.z.record(zod.z.string().uuid(), zod.z.string().max(5e4)).optional(),
+  /** Attached images (storage paths in `blog_images`); persisted as JSON in `posts.image`. */
+  media: zod.z.array(mediaItemSchema).max(20).optional(),
+  integrationIds: zod.z.array(zod.z.string().uuid()).optional(),
+  isGlobal: zod.z.boolean().optional(),
+  scheduledAt: zod.z.string().min(1, "Schedule time is required"),
+  repeatInterval: zod.z.union([repeatIntervalEnum, zod.z.null()]).optional(),
+  tagNames: zod.z.array(zod.z.string().max(120)).max(50).optional(),
+  /**
+   * Per-channel provider settings (e.g. Threads thread finisher).
+   * Keys are integration IDs; values are provider-defined objects.
+   */
+  providerSettingsByIntegrationId: zod.z.record(zod.z.string().uuid(), zod.z.record(zod.z.string(), zod.z.unknown())).optional(),
+  status: zod.z.enum(["draft", "scheduled"])
+});
+var validateCreatePostBody = validateRequest({
+  body: createPostBodySchema
+});
+var updatePostGroupBodySchema = createPostBodySchema.omit({ organizationId: true }).extend({
+  organizationId: zod.z.string().uuid("Invalid organization id").optional()
+});
+var validateUpdatePostGroupBody = validateRequest({
+  params: postGroupParamsSchema,
+  body: updatePostGroupBodySchema
+});
+var createPostTagBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  name: zod.z.string().trim().min(1, "Name is required").max(120),
+  color: zod.z.string().trim().regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a #RRGGBB hex value").optional()
+});
+var validateCreatePostTagBody = validateRequest({
+  body: createPostTagBodySchema
+});
+var deletePostTagParamsSchema = zod.z.object({
+  tagId: zod.z.string().uuid("Invalid tag id")
+});
+var validateDeletePostTag = validateRequest({
+  params: deletePostTagParamsSchema,
+  query: postOrganizationQuerySchema
+});
+var validateDeletePostGroup = validateRequest({
+  params: postGroupParamsSchema,
+  query: zod.z.object({
+    organizationId: zod.z.string().uuid("Invalid organization id").optional()
+  })
+});
+var postIdParamsSchema = zod.z.object({
+  postId: zod.z.string().uuid("Invalid post id")
+});
+var validatePostMissingQuery = validateRequest({
+  params: postIdParamsSchema,
+  query: postOrganizationQuerySchema
+});
+var updatePostReleaseIdBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  releaseId: zod.z.string().trim().min(1, "releaseId is required")
+});
+var validateUpdatePostReleaseId = validateRequest({
+  params: postIdParamsSchema,
+  body: updatePostReleaseIdBodySchema
+});
+
+// data/schemas/publicPostsSchemas.ts
+var publicListPostsQuerySchema = listPostsQuerySchema.omit({ organizationId: true });
+var validatePublicListPostsQuery = validateRequest({
+  query: publicListPostsQuerySchema
+});
+var publicCreatePostBodySchema = createPostBodySchema.omit({ organizationId: true });
+var validatePublicCreatePostBody = validateRequest({
+  body: publicCreatePostBodySchema
+});
+var validatePublicPostGroupParams = validateRequest({
+  params: postGroupParamsSchema
+});
+var publicUpdatePostGroupBodySchema = updatePostGroupBodySchema.omit({ organizationId: true });
+var validatePublicUpdatePostGroupBody = validateRequest({
+  params: postGroupParamsSchema,
+  body: publicUpdatePostGroupBodySchema
+});
+
+// routes/publicApi/PostRoutes.ts
+var publicPostRouter = express.Router();
+var apiKeyAuth3 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+publicPostRouter.get("/:postId/comments", validatePublicPostCommentsParams, postsController.getPublicComments);
+publicPostRouter.get("/list", apiKeyAuth3, validatePublicListPostsQuery, publicPostsController.listPosts);
+publicPostRouter.post("/", apiKeyAuth3, validatePublicCreatePostBody, publicPostsController.createPost);
+publicPostRouter.get("/group/:postGroup", apiKeyAuth3, validatePublicPostGroupParams, publicPostsController.getPostGroup);
+publicPostRouter.put(
+  "/group/:postGroup",
+  apiKeyAuth3,
+  validatePublicUpdatePostGroupBody,
+  publicPostsController.updatePostGroup
+);
+publicPostRouter.delete(
+  "/group/:postGroup",
+  apiKeyAuth3,
+  validatePublicPostGroupParams,
+  publicPostsController.deletePostGroup
+);
+
+// routes/publicApi/index.ts
+var publicApiRouter = express.Router();
+publicApiRouter.use("/", publicIntegrationRouter);
+publicApiRouter.use("/", publicMediaUploadRouter);
+publicApiRouter.use("/posts", publicPostRouter);
 var notificationOrganizationQuerySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id")
 });
@@ -14232,103 +18198,6 @@ notificationRouter.get(
   parseNotificationPaginatedQuery,
   notificationController.paginated
 );
-var postOrganizationQuerySchema = zod.z.object({
-  organizationId: zod.z.string().uuid("Invalid organization id")
-});
-var validatePostOrganizationQuery = validateRequest({
-  query: postOrganizationQuerySchema
-});
-var listPostsQuerySchema = zod.z.object({
-  organizationId: zod.z.string().uuid("Invalid organization id"),
-  start: zod.z.string().min(1, "Start is required"),
-  end: zod.z.string().min(1, "End is required"),
-  /**
-   * Optional comma-separated integration ids to filter calendar data.
-   * When omitted, all integrations (including ungrouped) are returned.
-   */
-  integrationIds: zod.z.string().optional()
-});
-var validateListPostsQuery = validateRequest({
-  query: listPostsQuerySchema
-});
-var postGroupParamsSchema = zod.z.object({
-  postGroup: zod.z.string().uuid("Invalid post group id")
-});
-var validatePostGroupParams = validateRequest({
-  params: postGroupParamsSchema
-});
-var postPreviewParamsSchema = zod.z.object({
-  postId: zod.z.string().uuid("Invalid post id")
-});
-var validatePostPreviewParams = validateRequest({
-  params: postPreviewParamsSchema
-});
-var repeatIntervalEnum = zod.z.enum([
-  "day",
-  "two_days",
-  "three_days",
-  "four_days",
-  "five_days",
-  "six_days",
-  "week",
-  "two_weeks",
-  "month"
-]);
-var mediaItemSchema = zod.z.object({
-  id: zod.z.string().min(1).max(200),
-  path: zod.z.string().min(1).max(2e3),
-  bucket: zod.z.enum([DATABASE_NAMES.BLOG_IMAGES, COMPOSER_MEDIA_BUCKET_NAME]).optional()
-});
-var createPostBodySchema = zod.z.object({
-  organizationId: zod.z.string().uuid("Invalid organization id"),
-  body: zod.z.string().max(5e4).optional(),
-  /**
-   * Optional per-channel body overrides (customize mode).
-   * Keys are integration IDs; values are the body content to use for that integration.
-   */
-  bodiesByIntegrationId: zod.z.record(zod.z.string().uuid(), zod.z.string().max(5e4)).optional(),
-  /** Attached images (storage paths in `blog_images`); persisted as JSON in `posts.image`. */
-  media: zod.z.array(mediaItemSchema).max(20).optional(),
-  integrationIds: zod.z.array(zod.z.string().uuid()).optional(),
-  isGlobal: zod.z.boolean().optional(),
-  scheduledAt: zod.z.string().min(1, "Schedule time is required"),
-  repeatInterval: zod.z.union([repeatIntervalEnum, zod.z.null()]).optional(),
-  tagNames: zod.z.array(zod.z.string().max(120)).max(50).optional(),
-  status: zod.z.enum(["draft", "scheduled"])
-});
-var validateCreatePostBody = validateRequest({
-  body: createPostBodySchema
-});
-var updatePostGroupBodySchema = createPostBodySchema.omit({ organizationId: true }).extend({
-  organizationId: zod.z.string().uuid("Invalid organization id").optional()
-});
-var validateUpdatePostGroupBody = validateRequest({
-  params: postGroupParamsSchema,
-  body: updatePostGroupBodySchema
-});
-var createPostTagBodySchema = zod.z.object({
-  organizationId: zod.z.string().uuid("Invalid organization id"),
-  name: zod.z.string().trim().min(1, "Name is required").max(120),
-  color: zod.z.string().trim().regex(/^#[0-9A-Fa-f]{6}$/, "Color must be a #RRGGBB hex value").optional()
-});
-var validateCreatePostTagBody = validateRequest({
-  body: createPostTagBodySchema
-});
-var deletePostTagParamsSchema = zod.z.object({
-  tagId: zod.z.string().uuid("Invalid tag id")
-});
-var validateDeletePostTag = validateRequest({
-  params: deletePostTagParamsSchema,
-  query: postOrganizationQuerySchema
-});
-var validateDeletePostGroup = validateRequest({
-  params: postGroupParamsSchema,
-  query: zod.z.object({
-    organizationId: zod.z.string().uuid("Invalid organization id").optional()
-  })
-});
-
-// routes/PostRoutes.ts
 var postRouter = express.Router();
 var auth4 = requireFullAuth(supabase);
 postRouter.get("/find-slot", auth4, validatePostOrganizationQuery, postsController.findSlot);
@@ -14337,6 +18206,7 @@ postRouter.post("/tags", auth4, validateCreatePostTagBody, postsController.creat
 postRouter.delete("/tags/:tagId", auth4, validateDeletePostTag, postsController.deleteTag);
 postRouter.get("/list", auth4, validateListPostsQuery, postsController.listPosts);
 postRouter.post("/", auth4, validateCreatePostBody, postsController.createPost);
+postRouter.post("/:postId/comments", auth4, validateCreateComposerComment, postsController.createComposerComment);
 postRouter.get("/preview/:postId", validatePostPreviewParams, postsController.getPostPreview);
 postRouter.get(
   "/group/:postGroup/debug-export",
@@ -14347,10 +18217,200 @@ postRouter.get(
 postRouter.get("/group/:postGroup", auth4, validatePostGroupParams, postsController.getPostGroup);
 postRouter.put("/group/:postGroup", auth4, validateUpdatePostGroupBody, postsController.updatePostGroup);
 postRouter.delete("/group/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
+postRouter.get("/:postId/missing", auth4, validatePostMissingQuery, postsController.getMissingPublishCandidates);
+postRouter.put("/:postId/release-id", auth4, validateUpdatePostReleaseId, postsController.updatePostReleaseId);
 postRouter.delete("/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
 var authWithRoles8 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
 var thirdPartyRouter = express.Router();
 thirdPartyRouter.get("/for-media", authWithRoles8, validateMediaOrganizationQuery, thirdPartyController.listForMedia);
+var signatureIdParamSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid signature id")
+});
+var listSignaturesQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var createSignatureBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  title: zod.z.string().min(1, "Title is required").max(80, "Title is too long").trim(),
+  content: zod.z.string().min(1, "Content is required").max(500, "Signature is too long").trim(),
+  isDefault: zod.z.boolean().optional()
+});
+var updateSignatureBodySchema = zod.z.object({
+  title: zod.z.string().min(1, "Title is required").max(80, "Title is too long").trim().optional(),
+  content: zod.z.string().min(1, "Content is required").max(500, "Signature is too long").trim().optional(),
+  isDefault: zod.z.boolean().optional()
+});
+
+// routes/SignatureRoute.ts
+var signatureRouter = express.Router();
+var auth5 = requireFullAuth(supabase);
+signatureRouter.get(
+  "/",
+  auth5,
+  validateRequest({ query: listSignaturesQuerySchema }),
+  signatureController.listForOrganization
+);
+signatureRouter.get("/:id", auth5, validateRequest({ params: signatureIdParamSchema }), signatureController.getById);
+signatureRouter.post("/", auth5, validateRequest({ body: createSignatureBodySchema }), signatureController.create);
+signatureRouter.patch(
+  "/:id",
+  auth5,
+  validateRequest({ params: signatureIdParamSchema, body: updateSignatureBodySchema }),
+  signatureController.update
+);
+signatureRouter.delete(
+  "/:id",
+  auth5,
+  validateRequest({ params: signatureIdParamSchema }),
+  signatureController.deleteById
+);
+var setIdParamSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid set id")
+});
+var listSetsQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var upsertSetBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  id: zod.z.string().uuid("Invalid set id").optional(),
+  name: zod.z.string().min(1, "Name is required").max(200, "Name is too long").trim(),
+  content: zod.z.string().min(1, "Content is required").max(5e5, "Content is too large")
+});
+
+// routes/SetsRoute.ts
+var setsRouter = express.Router();
+var auth6 = requireFullAuth(supabase);
+setsRouter.get("/", auth6, validateRequest({ query: listSetsQuerySchema }), setsController.listForOrganization);
+setsRouter.post("/", auth6, validateRequest({ body: upsertSetBodySchema }), setsController.upsert);
+setsRouter.get("/:id", auth6, validateRequest({ params: setIdParamSchema }), setsController.getById);
+setsRouter.delete("/:id", auth6, validateRequest({ params: setIdParamSchema }), setsController.deleteById);
+var integrationAnalyticsParamsSchema = zod.z.object({
+  integrationId: zod.z.string().uuid("Invalid integration id")
+});
+var integrationAnalyticsQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  date: zod.z.string().refine((v) => {
+    const n = Number(v);
+    return Number.isFinite(n) && [7, 30, 90].includes(n);
+  }, "Invalid date window")
+});
+var validateIntegrationAnalyticsRequest = validateRequest({
+  params: integrationAnalyticsParamsSchema,
+  query: integrationAnalyticsQuerySchema
+});
+var postAnalyticsParamsSchema = zod.z.object({
+  postId: zod.z.string().uuid("Invalid post id")
+});
+var postAnalyticsQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  date: zod.z.string().refine((v) => {
+    const n = Number(v);
+    return Number.isFinite(n) && [7, 30, 90].includes(n);
+  }, "Invalid date window")
+});
+var validatePostAnalyticsRequest = validateRequest({
+  params: postAnalyticsParamsSchema,
+  query: postAnalyticsQuerySchema
+});
+
+// routes/AnalyticsRoute.ts
+var analyticsRouter = express.Router();
+var auth7 = requireFullAuth(supabase);
+analyticsRouter.use(auth7);
+analyticsRouter.get("/post/:postId", validatePostAnalyticsRequest, analyticsController.getPostAnalytics);
+analyticsRouter.get("/:integrationId", validateIntegrationAnalyticsRequest, analyticsController.getIntegrationAnalytics);
+var oauthAppOrganizationQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var validateOauthAppOrganizationQuery = validateRequest({
+  query: oauthAppOrganizationQuerySchema
+});
+var createOauthAppBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  name: zod.z.string().min(1, "Name is required").max(120).trim(),
+  description: zod.z.string().max(2e3).trim().optional(),
+  pictureId: zod.z.string().uuid("Invalid picture id").optional(),
+  redirectUrl: zod.z.string().min(1, "Redirect URL is required").max(2e3).trim()
+});
+var validateCreateOauthApp = validateRequest({
+  body: createOauthAppBodySchema
+});
+var oauthAppIdParamSchema = zod.z.object({
+  oauthAppId: zod.z.string().uuid("Invalid oauth app id")
+});
+var deleteOauthAppParamsSchema = oauthAppIdParamSchema;
+var validateDeleteOauthApp = validateRequest({
+  params: deleteOauthAppParamsSchema,
+  query: oauthAppOrganizationQuerySchema
+});
+var updateOauthAppBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  oauthAppId: zod.z.string().uuid("Invalid oauth app id"),
+  name: zod.z.string().min(1).max(120).trim().optional(),
+  description: zod.z.string().max(2e3).trim().nullable().optional(),
+  pictureId: zod.z.string().uuid("Invalid picture id").nullable().optional(),
+  redirectUrl: zod.z.string().min(1).max(2e3).trim().optional()
+});
+var validateUpdateOauthApp = validateRequest({
+  body: updateOauthAppBodySchema
+});
+var rotateOauthSecretBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  oauthAppId: zod.z.string().uuid("Invalid oauth app id")
+});
+var validateRotateOauthSecret = validateRequest({
+  body: rotateOauthSecretBodySchema
+});
+
+// routes/OauthAppRoute.ts
+var oauthAppRouter = express.Router();
+var auth8 = requireFullAuth(supabase);
+oauthAppRouter.get("/", auth8, validateOauthAppOrganizationQuery, oauthAppController.listApps);
+oauthAppRouter.get("/app", auth8, validateOauthAppOrganizationQuery, oauthAppController.getApp);
+oauthAppRouter.post("/", auth8, validateCreateOauthApp, oauthAppController.createApp);
+oauthAppRouter.put("/", auth8, validateUpdateOauthApp, oauthAppController.updateApp);
+oauthAppRouter.delete("/:oauthAppId", auth8, validateDeleteOauthApp, oauthAppController.deleteApp);
+oauthAppRouter.post("/rotate-secret", auth8, validateRotateOauthSecret, oauthAppController.rotateSecret);
+var oauthAuthorizeQuerySchema = zod.z.object({
+  client_id: zod.z.string().min(1, "client_id is required"),
+  state: zod.z.string().optional()
+});
+var validateOauthAuthorizeQuery = validateRequest({
+  query: oauthAuthorizeQuerySchema
+});
+var oauthTokenBodySchema = zod.z.object({
+  grant_type: zod.z.literal("authorization_code"),
+  client_id: zod.z.string().min(1, "client_id is required"),
+  client_secret: zod.z.string().min(1, "client_secret is required"),
+  code: zod.z.string().min(1, "code is required")
+});
+var validateOauthTokenBody = validateRequest({
+  body: oauthTokenBodySchema
+});
+var oauthApproveBodySchema = zod.z.object({
+  client_id: zod.z.string().min(1, "client_id is required"),
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  state: zod.z.string().optional(),
+  action: zod.z.enum(["approve", "deny"])
+});
+var validateOauthApproveBody = validateRequest({
+  body: oauthApproveBodySchema
+});
+var oauthRevokeBodySchema = zod.z.object({
+  authorizationId: zod.z.string().uuid("Invalid authorization id")
+});
+var validateOauthRevokeBody = validateRequest({
+  body: oauthRevokeBodySchema
+});
+
+// routes/OauthRoute.ts
+var oauthRouter = express.Router();
+var auth9 = requireFullAuth(supabase);
+oauthRouter.get("/authorize", validateOauthAuthorizeQuery, oauthController.authorize);
+oauthRouter.post("/authorize", auth9, validateOauthApproveBody, oauthController.approve);
+oauthRouter.post("/token", validateOauthTokenBody, oauthController.token);
+oauthRouter.get("/approved-apps", auth9, oauthController.approvedApps);
+oauthRouter.post("/revoke", auth9, validateOauthRevokeBody, oauthController.revoke);
 init_Logger();
 function normalizeLeadingSlash(p) {
   const s = p.trim();
@@ -14363,12 +18423,12 @@ function joinUrlPath(a, b) {
   if (left === "/") return `/${right}`;
   return `${left}/${right}`;
 }
-function getBullBoardPathLayout(config3) {
-  const admin = config3.admin?.bullBoard;
+function getBullBoardPathLayout(config2) {
+  const admin = config2.admin?.bullBoard;
   if (admin?.enabled !== true) {
     return null;
   }
-  const api = config3.api?.prefix ?? "/api/v1";
+  const api = config2.api?.prefix ?? "/api/v1";
   const apiPrefix = normalizeLeadingSlash(api);
   const configuredPath = normalizeLeadingSlash(String(admin?.path ?? "/admin-queues"));
   const fullPath = configuredPath.startsWith(apiPrefix) ? configuredPath : joinUrlPath(apiPrefix, configuredPath);
@@ -14404,8 +18464,8 @@ function bullBoardSessionCookieAttributes(req, cookiePath, maxAge) {
   }
   return { httpOnly: true, secure: false, sameSite: "lax", path: cookiePath, maxAge };
 }
-function registerBullBoardSessionRoutes(apiRouter, config3) {
-  const layout = getBullBoardPathLayout(config3);
+function registerBullBoardSessionRoutes(apiRouter, config2) {
+  const layout = getBullBoardPathLayout(config2);
   if (!layout) {
     return;
   }
@@ -14433,9 +18493,9 @@ function registerBullBoardSessionRoutes(apiRouter, config3) {
   apiRouter.use("/admin/bull-board/session", session);
   logger.info({ msg: "[BullBoard] Session cookie routes mounted", cookiePath, sessionBase: "/admin/bull-board/session" });
 }
-function registerBullBoardRoutes(apiRouter, config3) {
-  const bullBoardEnabled = config3.admin?.bullBoard?.enabled === true;
-  const layout = getBullBoardPathLayout(config3);
+function registerBullBoardRoutes(apiRouter, config2) {
+  const bullBoardEnabled = config2.admin?.bullBoard?.enabled === true;
+  const layout = getBullBoardPathLayout(config2);
   if (!layout) {
     if (!bullBoardEnabled) {
       logger.info({ msg: "[BullBoard] Disabled (set BULL_BOARD_ENABLED=true to enable)" });
@@ -14443,7 +18503,7 @@ function registerBullBoardRoutes(apiRouter, config3) {
     return;
   }
   const { fullPath, mountPath } = layout;
-  const bullmq$1 = config3.bullmq ?? {};
+  const bullmq$1 = config2.bullmq ?? {};
   const queueNames = [
     bullmq$1.integrationRefresh?.queueName,
     bullmq$1.notificationEmail?.queueName,
@@ -14471,14 +18531,14 @@ function registerBullBoardRoutes(apiRouter, config3) {
 
 // routes/index.ts
 init_Logger();
-async function mountAllRoutes(app2, config3) {
-  const api = config3.api;
+async function mountAllRoutes(app2, config2) {
+  const api = config2.api;
   const prefix = api?.prefix ?? "/api/v1";
   const apiRouter = express__default.default.Router();
   apiRouter.use("/auth", authRouter);
   apiRouter.use("/users", userRouter);
-  registerBullBoardSessionRoutes(apiRouter, config3);
-  registerBullBoardRoutes(apiRouter, config3);
+  registerBullBoardSessionRoutes(apiRouter, config2);
+  registerBullBoardRoutes(apiRouter, config2);
   apiRouter.use("/admin", adminRouter);
   apiRouter.use("/company", companyRouter);
   apiRouter.use("/settings", settingsRouter);
@@ -14487,11 +18547,16 @@ async function mountAllRoutes(app2, config3) {
   apiRouter.use("/blog-system", blogRouter);
   apiRouter.use("/image", imageRouter);
   apiRouter.use("/media", mediaRouter);
-  apiRouter.use("/integrations", sessionIntegrationsRouter);
-  apiRouter.use("/public", publicIntegrationRouter);
+  apiRouter.use("/integrations", integrationsRouter);
+  apiRouter.use("/public", publicApiRouter);
   apiRouter.use("/notifications", notificationRouter);
   apiRouter.use("/posts", postRouter);
   apiRouter.use("/third-parties", thirdPartyRouter);
+  apiRouter.use("/signatures", signatureRouter);
+  apiRouter.use("/sets", setsRouter);
+  apiRouter.use("/analytics", analyticsRouter);
+  apiRouter.use("/oauth-apps", oauthAppRouter);
+  apiRouter.use("/oauth", oauthRouter);
   app2.use(prefix, apiRouter);
   logger.info({
     msg: "[Routes] Mounted",
@@ -14510,7 +18575,12 @@ async function mountAllRoutes(app2, config3) {
     integrationsProgrammatic: `${prefix}/public`,
     notifications: `${prefix}/notifications`,
     posts: `${prefix}/posts`,
-    thirdParties: `${prefix}/third-parties`
+    thirdParties: `${prefix}/third-parties`,
+    signatures: `${prefix}/signatures`,
+    sets: `${prefix}/sets`,
+    analytics: `${prefix}/analytics`,
+    oauthApps: `${prefix}/oauth-apps`,
+    oauth: `${prefix}/oauth`
   });
   return true;
 }
@@ -14778,19 +18848,25 @@ function shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact) {
   if (req.method === "GET" && routePath === "/integrations") {
     return true;
   }
+  if (req.method === "POST" && /^\/integrations\/social-connect\/[^/]+$/.test(routePath)) {
+    return true;
+  }
+  if (req.method === "POST" && /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(routePath)) {
+    return true;
+  }
   return false;
 }
-function configureCoreMiddleware(app2, config3, supabase2) {
+function configureCoreMiddleware(app2, config2, supabase2) {
   logger.info({ msg: "[Setup] Configuring core middleware..." });
   applyRateLimiting(app2);
   app2.use((req, res, next) => {
     if (req._skipJsonParsing) return next();
-    const limit = config3.server?.bodyLimit ?? "10mb";
+    const limit = config2.server?.bodyLimit ?? "10mb";
     return express__default.default.json({ limit })(req, res, next);
   });
   app2.use((req, res, next) => {
     if (req._skipJsonParsing) return next();
-    const limit = config3.server?.bodyLimit ?? "10mb";
+    const limit = config2.server?.bodyLimit ?? "10mb";
     return express__default.default.urlencoded({ extended: true, limit })(req, res, next);
   });
   app2.use(cookieParser__default.default());
@@ -14804,9 +18880,9 @@ function configureCoreMiddleware(app2, config3, supabase2) {
       throw new Error("Supabase client not provided for auth middleware");
     }
     const authMiddleware = requireFullAuth(supabase2);
-    const rawPrefix = config3.api?.prefix ?? "/api/v1";
+    const rawPrefix = config2.api?.prefix ?? "/api/v1";
     const apiPrefix = rawPrefix.replace(/\/+$/, "") || "/";
-    const publicPaths = ["/auth", "/company", "/feedback", "/public", "/posts/preview"];
+    const publicPaths = ["/auth", "/company", "/feedback", "/public", "/oauth", "/posts/preview"];
     const publicPathsExact = [
       "/blog-system/posts",
       "/blog-system/rss",
@@ -14928,7 +19004,7 @@ app.use((req, res, next) => {
   ensureAppInitialized().then(() => next()).catch((e) => next(e));
 });
 async function createApp() {
-  const { config: config3 } = await Promise.resolve().then(() => (init_GlobalConfig(), GlobalConfig_exports));
+  const { config: config2 } = await Promise.resolve().then(() => (init_GlobalConfig(), GlobalConfig_exports));
   try {
     checkConfigIsValid();
   } catch (error) {
@@ -14952,8 +19028,8 @@ async function createApp() {
     if (req._skipJsonParsing) return next();
     return express.json()(req, res, next);
   });
-  configureCoreMiddleware(app, config3, supabase);
-  const storageCfg = config3.storage;
+  configureCoreMiddleware(app, config2, supabase);
+  const storageCfg = config2.storage;
   if (storageCfg?.provider === "local" && storageCfg.local?.uploadDirectory) {
     app.use("/uploads", express__default.default.static(storageCfg.local.uploadDirectory));
     logger.info({
@@ -14962,12 +19038,12 @@ async function createApp() {
     });
   }
   try {
-    const isProduction = config3.server.nodeEnv === "production";
+    const isProduction = config2.server.nodeEnv === "production";
     const currentDir = process.cwd();
     const manifestPath = path__default.default.join(currentDir, "static", "routes-manifest.json");
     const sitemapMiddleware = generateSitemapMiddleware({
       supabaseClient: supabaseServiceClientConnection,
-      baseURL: config3.server.frontendDomainUrl ?? "http://localhost:5173",
+      baseURL: config2.server.frontendDomainUrl ?? "http://localhost:5173",
       routesPath: isProduction ? void 0 : path__default.default.join(currentDir, "../web/src/routes"),
       routesManifestPath: isProduction ? manifestPath : void 0
     });
@@ -14994,7 +19070,7 @@ async function createApp() {
   app.get("/debug-sentry", function mainHandler(_req, res) {
     throw new Error("My first Sentry error!");
   });
-  const mounted = await mountAllRoutes(app, config3);
+  const mounted = await mountAllRoutes(app, config2);
   if (!mounted) {
     logger.error({ msg: "[Setup] Failed to mount API routes" });
     throw new Error("Failed to mount API routes");
@@ -15018,8 +19094,8 @@ if (!isRunningOnVercel()) {
     if (process.env.JEST_WORKER_ID) {
       return;
     }
-    const server3 = http__default.default.createServer({ maxHeaderSize: 64 * 1024 }, configuredApp);
-    server3.listen(port, () => {
+    const server2 = http__default.default.createServer({ maxHeaderSize: 64 * 1024 }, configuredApp);
+    server2.listen(port, () => {
       logger.info({ msg: "[server] Server is running", port });
     });
   }).catch((error) => {

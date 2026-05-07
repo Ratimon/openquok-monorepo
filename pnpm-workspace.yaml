@@ -3,6 +3,7 @@
 # would require a third package or inverting imports without losing Vercel/backend runtime resolution.
 packages:
   - 'agent'
+  - 'agent/server'
   - 'common'
   - 'backend'
   - 'orchestrator'

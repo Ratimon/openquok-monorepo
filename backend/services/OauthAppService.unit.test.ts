@@ -33,8 +33,8 @@ function baseAppRow(overrides: Partial<OauthAppLike> = {}): OauthAppLike {
         description: null,
         picture_id: null,
         redirect_url: "https://app.example.com/callback",
-        client_id: `opo_${faker.string.alphanumeric(24)}`,
-        client_secret_hash: hashProgrammaticToken("opo_clientsecret", secretKey),
+        client_id: `oqc_${faker.string.alphanumeric(24)}`,
+        client_secret_hash: hashProgrammaticToken("oqs_clientsecret", secretKey),
         deleted_at: null,
         created_at: now,
         updated_at: now,
@@ -159,7 +159,7 @@ describe("OauthAppService", () => {
             ).rejects.toMatchObject({ statusCode: 400 });
         });
 
-        it("creates app with hashed client secret and opo_ ids", async () => {
+        it("creates app with hashed client secret and oqc_/oqs_ ids", async () => {
             oauthRepo.getAppByOrganizationId.mockResolvedValue(null);
             const created = baseAppRow();
             oauthRepo.createApp.mockResolvedValue(created);
@@ -171,8 +171,8 @@ describe("OauthAppService", () => {
                 redirectUrl: "https://example.com/oauth/callback",
             });
 
-            expect(result.clientId).toMatch(/^opo_/);
-            expect(result.clientSecret).toMatch(/^opo_/);
+            expect(result.clientId).toMatch(/^oqc_/);
+            expect(result.clientSecret).toMatch(/^oqs_/);
             expect(oauthRepo.createApp).toHaveBeenCalledWith(
                 expect.objectContaining({
                     organizationId: orgId,

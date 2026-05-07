@@ -1,10 +1,12 @@
-<h1>Openquok NodeJS SDK!</h1>
+<h1>Openquok NodeJS SDK</h1>
 
 - [What is it for](#what-is-it-for)
 - [Quickstart](#quickstart)
 
 >[!NOTE]
 > This package is a lightweight Node.js client for Openquok’s **programmatic API** (`/api/v1/public/*`). You authenticate using an **API key** (or OAuth app token) in the `Authorization` header. You can find the full  backend codebase at [`Openquok 's bakend`](https://github.com/Ratimon/openquok-monorepo/tree/main/backend)
+
+---
 
 ## What Is It For
 
@@ -16,6 +18,8 @@
 - Manage programmatic integrations (list, connect URL, delete)
 
 It’s intentionally small: just a typed wrapper around the HTTP endpoints.
+
+---
 
 ## Quickstart
 

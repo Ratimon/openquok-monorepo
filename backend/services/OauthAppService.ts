@@ -71,8 +71,9 @@ export class OauthAppService {
         const secretKey = (config.auth as { programmaticTokenSecret?: string })?.programmaticTokenSecret ?? "";
         if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
 
-        const clientId = `opo_${makeId(32)}`;
-        const clientSecret = `opo_${makeId(48)}`;
+        // Distinct prefixes, so secrets/codes/tokens are visually distinguishable.
+        const clientId = `oqc_${makeId(32)}`;
+        const clientSecret = `oqs_${makeId(48)}`;
         const clientSecretHash = hashProgrammaticToken(clientSecret, secretKey);
 
         const app = await this.oauthAppRepository.createApp({
@@ -116,7 +117,7 @@ export class OauthAppService {
         await this.assertOrgAdmin(authUserId, input.organizationId);
         const secretKey = (config.auth as { programmaticTokenSecret?: string })?.programmaticTokenSecret ?? "";
         if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
-        const newSecret = `opo_${makeId(48)}`;
+        const newSecret = `oqs_${makeId(48)}`;
         const clientSecretHash = hashProgrammaticToken(newSecret, secretKey);
         await this.oauthAppRepository.updateClientSecretHash({
             organizationId: input.organizationId,

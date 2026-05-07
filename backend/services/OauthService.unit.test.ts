@@ -32,8 +32,8 @@ function oauthApp(overrides: Partial<OauthAppLike> = {}): OauthAppLike {
         description: null,
         picture_id: null,
         redirect_url: "https://client.example.com/callback",
-        client_id: "opo_clientidunit",
-        client_secret_hash: hashProgrammaticToken("opo_unit_client_secret", secretKey),
+        client_id: "oqc_clientidunit",
+        client_secret_hash: hashProgrammaticToken("oqs_unit_client_secret", secretKey),
         deleted_at: null,
         created_at: now,
         updated_at: now,
@@ -185,7 +185,7 @@ describe("OauthService", () => {
             });
 
             const u = new URL(redirect);
-            expect(u.searchParams.get("code")).toMatch(/^opo_/);
+            expect(u.searchParams.get("code")).toMatch(/^oqo_/);
             expect(u.searchParams.get("state")).toBe("state-123");
         });
     });
@@ -217,7 +217,7 @@ describe("OauthService", () => {
         });
 
         it("throws invalid_grant when authorization row is missing", async () => {
-            const clientSecret = "opo_unit_client_secret";
+            const clientSecret = "oqs_unit_client_secret";
             const app = oauthApp({
                 client_secret_hash: hashProgrammaticToken(clientSecret, secretKey),
             });
@@ -235,8 +235,8 @@ describe("OauthService", () => {
         });
 
         it("throws invalid_grant when code is expired", async () => {
-            const clientSecret = "opo_unit_client_secret";
-            const code = "opo_auth_code";
+            const clientSecret = "oqs_unit_client_secret";
+            const code = "oqo_auth_code";
             const codeHashV2 = hashProgrammaticToken(code, secretKey);
             const app = oauthApp({
                 client_secret_hash: hashProgrammaticToken(clientSecret, secretKey),
@@ -267,8 +267,8 @@ describe("OauthService", () => {
         });
 
         it("returns bearer access_token when exchange succeeds", async () => {
-            const clientSecret = "opo_unit_client_secret";
-            const code = "opo_auth_code_ok";
+            const clientSecret = "oqs_unit_client_secret";
+            const code = "oqo_auth_code_ok";
             const codeHashV2 = hashProgrammaticToken(code, secretKey);
             const app = oauthApp({
                 client_secret_hash: hashProgrammaticToken(clientSecret, secretKey),

@@ -1,6 +1,8 @@
-# OpenQuok monorepo
+<h1>OpenQuok monorepo</h1>
 
 **OpenQuok** is a controlled content pipeline that sits on top of your AI tools like **OpenClaw**—turning high-volume generation into high-quality output with a structured review + scheduling flow.
+
+
 
 ### Links
 
@@ -15,6 +17,7 @@
 - [Developer guidelines](https://www.openquok.com/docs/developer-guidelines)
 - [Security guidelines](https://www.openquok.com/docs/developer-guidelines/security)
 
+---
 
 ### Prerequisites
 
@@ -24,6 +27,8 @@
 ```bash
 corepack enable
 ```
+
+---
 
 ### Tech stack
 

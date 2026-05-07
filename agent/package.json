@@ -8,6 +8,8 @@
   },
   "scripts": {
     "build": "tsup",
+    "dev": "tsx watch src/index.ts -- --help",
+    "start": "node dist/index.js",
     "publish:manual": "pnpm run build && pnpm publish --access public",
     "prepublishOnly": "pnpm run build"
   },
@@ -20,6 +22,7 @@
     "SKILL.md",
     "LICENSE"
   ],
+  "type": "module",
   "keywords": [
     "openquok",
     "ai",
@@ -49,6 +52,22 @@
     "url": "https://github.com/Ratimon"
   },
   "license": "AGPL-3.0",
-  "repository": "github:Ratimon/openquok-monorepo/agent",
-  "packageManager": "pnpm@10.30.3"
+  "repository": {
+    "type": "git",
+    "url": "github:Ratimon/openquok-monorepo/agent"
+  },
+  "packageManager": "pnpm@10.30.3",
+  "dependencies": {
+    "form-data": "^4.0.4",
+    "node-fetch": "^3.3.2",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/form-data": "^2.5.2",
+    "@types/node": "^25.6.0",
+    "@types/yargs": "^17.0.33",
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.3"
+  }
 }

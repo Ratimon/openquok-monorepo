@@ -52,7 +52,7 @@ export class OauthService {
             return { redirect: redirectUrl.toString() };
         }
 
-        const code = `opo_${makeId(32)}`;
+        const code = `oqo_${makeId(32)}`;
         const secretKey = this.mustGetSecretKey();
         const codeHash = hashProgrammaticToken(code, secretKey);
         const expiresAtIso = new Date(Date.now() + 10 * 60 * 1000).toISOString();
@@ -106,6 +106,7 @@ export class OauthService {
             throw new AppError("invalid_grant", 400);
         }
 
+        // Access tokens stay on the `opo_` convention for backwards compatibility with existing clients.
         const accessToken = `opo_${makeId(48)}`;
         const accessTokenHash = hashProgrammaticToken(accessToken, secretKey);
         const exchanged = await this.oauthAppRepository.exchangeCodeForAccessToken({

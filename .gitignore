@@ -10,8 +10,6 @@
 # /backend/integrations/providers/*.js
 /common/dist
 /orchestrator/dist
-/sdk/dist
-/sdk/node_modules
 
 # Dotenv / env (never commit secrets; keep example files)
 .env
