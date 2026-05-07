@@ -1,6 +1,6 @@
 {
-  "name": "@openquok/node",
-  "version": "0.0.6",
+  "name": "@openquok/node-sdk",
+  "version": "1.0.0",
   "description": "The Openquok programmatic API SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,9 +13,13 @@
     "access": "public"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "keywords": [
+    "openquok",
+    "sdk",
     "agentic social media",
     "social media",
     "scheduling tool",
@@ -26,7 +30,7 @@
     "url": "https://github.com/Ratimon"
   },
   "license": "AGPL-3.0",
-  "repository": "github:Ratimon/openquok-monorepo",
+  "repository": "github:Ratimon/openquok-monorepo/sdk",
   "dependencies": {},
   "devDependencies": {
     "@types/node": "^25.6.0",

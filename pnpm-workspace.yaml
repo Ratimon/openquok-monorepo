@@ -2,6 +2,7 @@
 # pnpm reports a cyclic workspace dependency; installs still succeed. Breaking the cycle
 # would require a third package or inverting imports without losing Vercel/backend runtime resolution.
 packages:
+  - 'agent'
   - 'common'
   - 'backend'
   - 'orchestrator'

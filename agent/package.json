@@ -1,0 +1,54 @@
+{
+  "name": "@openquok/auto-cli",
+  "version": "0.0.1",
+  "description": "Openquok CLI for the social media scheduling API.",
+  "main": "dist/index.js",
+  "bin": {
+    "openquok": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "publish:manual": "pnpm run build && pnpm publish --access public",
+    "prepublishOnly": "pnpm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "SKILL.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "openquok",
+    "ai",
+    "ai-agent",
+    "agent-teams",
+    "agent-harness",
+    "cli",
+    "claude-cowork",
+    "claude-code",
+    "social-media",
+    "scheduling",
+    "automation",
+    "ai-agent",
+    "command-line",
+    "twitter",
+    "x",
+    "threads",
+    "linkedin",
+    "facebook",
+    "instagram",
+    "tiktok",
+    "youtube",
+    "reddit"
+  ],
+  "author": {
+    "name": "Rati Montreewat",
+    "url": "https://github.com/Ratimon"
+  },
+  "license": "AGPL-3.0",
+  "repository": "github:Ratimon/openquok-monorepo/agent",
+  "packageManager": "pnpm@10.30.3"
+}
