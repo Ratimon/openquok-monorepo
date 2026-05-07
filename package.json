@@ -61,7 +61,9 @@
     "railway:env:sync:scheduled-social-post:prod": "pnpm --filter openquok-orchestrator railway:env:sync:scheduled-social-post:prod",
     "railway:deploy:integration-refresh": "cross-env RAILPACK_CONFIG_FILE=orchestrator/railpack.integration-refresh.json railway up",
     "railway:deploy:notification-email": "cross-env RAILPACK_CONFIG_FILE=orchestrator/railpack.notification-email.json railway up",
-    "railway:deploy:scheduled-social-post": "cross-env RAILPACK_CONFIG_FILE=orchestrator/railpack.scheduled-social-post.json railway up"
+    "railway:deploy:scheduled-social-post": "cross-env RAILPACK_CONFIG_FILE=orchestrator/railpack.scheduled-social-post.json railway up",
+    "---------------------- PUBLISH (SDK) ----------------------": "",
+    "publish:sdk": "pnpm --filter sdk publish"
   },
   "keywords": [],
   "author": "Rati Montreewat",
