@@ -30,10 +30,19 @@
 			<Dialog.Description>{description}</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="mt-4 flex flex-wrap gap-2">
-			<Button type="button" variant="primary" onclick={onConfirm}>
+			<Button
+				type="button"
+				variant="red"
+				onclick={onConfirm}
+			>
 				{confirmLabel}</Button>
-			<Button type="button" variant="secondary" onclick={onCancel}>
-				{cancelLabel}</Button>
+			<Button
+				type="button"
+				variant="ghost"
+				onclick={onCancel}
+			>
+				{cancelLabel}
+			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

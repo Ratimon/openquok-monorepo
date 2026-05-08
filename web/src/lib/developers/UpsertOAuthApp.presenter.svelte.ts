@@ -14,6 +14,8 @@ export type OauthAppViewModel = {
 	name: string;
 	description: string | null;
 	pictureId: string | null;
+	picturePublicUrl: string | null;
+	pictureThumbnailPublicUrl: string | null;
 	redirectUrl: string;
 	clientId: string;
 	createdAt: string;
@@ -27,6 +29,8 @@ function toOauthAppVm(pm: OauthAppProgrammerModel): OauthAppViewModel {
 		name: pm.name,
 		description: pm.description,
 		pictureId: pm.pictureId,
+		picturePublicUrl: pm.picturePublicUrl,
+		pictureThumbnailPublicUrl: pm.pictureThumbnailPublicUrl,
 		redirectUrl: pm.redirectUrl,
 		clientId: pm.clientId,
 		createdAt: pm.createdAt,

@@ -85,7 +85,8 @@
 				{/each}
 				<div class="flex justify-end gap-2 pt-2">
 					<Button type="button" variant="outline" onclick={onClose}>
-						Cancel</Button>
+						Cancel
+					</Button>
 					<Button type="submit" variant="primary">
 						Save
 					</Button>

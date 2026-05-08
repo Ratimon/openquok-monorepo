@@ -264,7 +264,7 @@
 		<div class="mt-6 flex flex-wrap justify-end gap-3">
 			<Button
 				type="button"
-				variant="primary"
+				variant="ghost"
 				disabled={busy}
 				onclick={cancelDelete}
 			>

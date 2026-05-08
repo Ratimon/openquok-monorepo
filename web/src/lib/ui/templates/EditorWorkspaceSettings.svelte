@@ -466,7 +466,10 @@
 			</createWorkspaceForm.Field>
 			<Dialog.Footer>
 				<Dialog.Close>
-					<Button type="button" variant="outline">
+					<Button
+						type="button"
+						variant="ghost"
+					>
 						Cancel
 					</Button>
 				</Dialog.Close>

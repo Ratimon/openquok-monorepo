@@ -337,7 +337,7 @@
 				</div>
 
 				<Button
-					variant="ghost"
+					variant="outline"
 					href={calendarPath}
 					class="gap-2"
 				>

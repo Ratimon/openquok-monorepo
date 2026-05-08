@@ -57,7 +57,13 @@
 					Remove
 				{/if}
 			</Button>
-			<Button type="button" variant="secondary" onclick={onCancel} disabled={busy} class="min-w-[120px]">
+			<Button
+				type="button"
+				variant="ghost"
+				onclick={onCancel}
+				disabled={busy}
+				class="min-w-[120px]"
+			>
 				Cancel
 			</Button>
 		</div>

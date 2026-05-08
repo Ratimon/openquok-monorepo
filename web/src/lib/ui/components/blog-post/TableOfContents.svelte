@@ -2,9 +2,10 @@
 	import { parseHeadersFromHTMLString } from '$lib/blogs/utils';
 	import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { cn } from '$lib/ui/helpers/common';
+	import { url } from '$lib/utils/path';
+
 	import * as Breadcrumb from '$lib/ui/breadcrumb';
 	import ScrollLink from '$lib/ui/nav-bars/ScrollLink.svelte';
-	import { url } from '$lib/utils/path';
 
 	// /blog
 	const rootPathPublicBlog = getRootPathPublicBlog();

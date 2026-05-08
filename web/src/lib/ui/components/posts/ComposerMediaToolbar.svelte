@@ -295,7 +295,12 @@
 			</Dropzone>
 
 			<Dialog.Footer>
-				<Button type="button" variant="ghost" disabled={uploadBusy} onclick={() => (deviceAttachOpen = false)}>
+				<Button
+					type="button"
+					variant="ghost"
+					disabled={uploadBusy}
+					onclick={() => (deviceAttachOpen = false)}
+				>
 					Cancel
 				</Button>
 			</Dialog.Footer>

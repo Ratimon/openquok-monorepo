@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker";
 import type { OauthAppLike } from "../repositories/OauthAppRepository";
 import type { OauthAppRepository } from "../repositories/OauthAppRepository";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { MediaRepository } from "../repositories/MediaRepository";
 import { hashProgrammaticToken } from "../utils/tokenHash";
 
 /** Mutable so tests can simulate missing `SECURITY_SECRET` / JWT fallback */
@@ -71,14 +72,22 @@ function createMockOrgRepo(): jest.Mocked<Pick<OrganizationRepository, "findUser
     } as unknown as jest.Mocked<Pick<OrganizationRepository, "findUserIdByAuthId" | "findMembership">>;
 }
 
+function createMockMediaRepo(): jest.Mocked<Pick<MediaRepository, "getMediaById">> {
+    return {
+        getMediaById: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<Pick<MediaRepository, "getMediaById">>;
+}
+
 describe("OauthAppService", () => {
     let oauthRepo: jest.Mocked<OauthAppRepository>;
     let orgRepo: jest.Mocked<Pick<OrganizationRepository, "findUserIdByAuthId" | "findMembership">>;
+    let mediaRepo: jest.Mocked<Pick<MediaRepository, "getMediaById">>;
 
     beforeEach(() => {
         oauthAuthConfig.programmaticTokenSecret = "oauth-unit-test-secret-fixed-for-hashing";
         oauthRepo = createMockOauthRepo();
         orgRepo = createMockOrgRepo();
+        mediaRepo = createMockMediaRepo();
         orgRepo.findUserIdByAuthId.mockResolvedValue({ userId, error: null });
         orgRepo.findMembership.mockResolvedValue({
             membership: {
@@ -108,7 +117,11 @@ describe("OauthAppService", () => {
                 },
                 error: null,
             });
-            const service = new OauthAppService(oauthRepo, orgRepo as unknown as OrganizationRepository);
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
             await expect(
                 service.createApp(authUserId, {
                     organizationId: orgId,
@@ -121,7 +134,11 @@ describe("OauthAppService", () => {
 
         it("throws 400 when organization already has an OAuth app", async () => {
             oauthRepo.getAppByOrganizationId.mockResolvedValue(baseAppRow());
-            const service = new OauthAppService(oauthRepo, orgRepo as unknown as OrganizationRepository);
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
             await expect(
                 service.createApp(authUserId, {
                     organizationId: orgId,
@@ -137,7 +154,11 @@ describe("OauthAppService", () => {
 
         it("throws 400 when name is empty", async () => {
             oauthRepo.getAppByOrganizationId.mockResolvedValue(null);
-            const service = new OauthAppService(oauthRepo, orgRepo as unknown as OrganizationRepository);
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
             await expect(
                 service.createApp(authUserId, {
                     organizationId: orgId,
@@ -149,7 +170,11 @@ describe("OauthAppService", () => {
 
         it("throws 400 when redirect URL is invalid", async () => {
             oauthRepo.getAppByOrganizationId.mockResolvedValue(null);
-            const service = new OauthAppService(oauthRepo, orgRepo as unknown as OrganizationRepository);
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
             await expect(
                 service.createApp(authUserId, {
                     organizationId: orgId,
@@ -164,7 +189,11 @@ describe("OauthAppService", () => {
             const created = baseAppRow();
             oauthRepo.createApp.mockResolvedValue(created);
 
-            const service = new OauthAppService(oauthRepo, orgRepo as unknown as OrganizationRepository);
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
             const result = await service.createApp(authUserId, {
                 organizationId: orgId,
                 name: "My App",
@@ -191,7 +220,11 @@ describe("OauthAppService", () => {
             oauthRepo.getAppByOrganizationId.mockResolvedValue(null);
             oauthAuthConfig.programmaticTokenSecret = "";
 
-            const service = new OauthAppService(oauthRepo, orgRepo as unknown as OrganizationRepository);
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
             await expect(
                 service.createApp(authUserId, {
                     organizationId: orgId,
@@ -205,7 +238,11 @@ describe("OauthAppService", () => {
     describe("verifyProgrammaticToken", () => {
         it("returns null when secret is empty", async () => {
             oauthAuthConfig.programmaticTokenSecret = "";
-            const service = new OauthAppService(oauthRepo, orgRepo as unknown as OrganizationRepository);
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
             expect(await service.verifyProgrammaticToken("opo_any")).toBeNull();
             expect(oauthRepo.findActiveAuthorizationByAccessTokenHash).not.toHaveBeenCalled();
         });
@@ -233,7 +270,11 @@ describe("OauthAppService", () => {
                 return null;
             });
 
-            const service = new OauthAppService(oauthRepo, orgRepo as unknown as OrganizationRepository);
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
             const out = await service.verifyProgrammaticToken(raw);
             expect(out).toEqual({
                 organizationId: orgId,
@@ -245,7 +286,11 @@ describe("OauthAppService", () => {
 
     describe("deleteApp", () => {
         it("revokes authorizations then soft-deletes app", async () => {
-            const service = new OauthAppService(oauthRepo, orgRepo as unknown as OrganizationRepository);
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
             await service.deleteApp(authUserId, { organizationId: orgId, oauthAppId });
 
             expect(oauthRepo.revokeAllForApp).toHaveBeenCalledWith(oauthAppId);

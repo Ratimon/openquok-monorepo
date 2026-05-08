@@ -18,6 +18,9 @@ export interface OauthAppWireDto {
 	name: string;
 	description: string | null;
 	picture_id: string | null;
+	/** Resolved server-side from workspace media (same derivation as media library `publicUrl`). */
+	picture_public_url?: string | null;
+	picture_thumbnail_public_url?: string | null;
 	redirect_url: string;
 	client_id: string;
 	created_at: string;
@@ -54,6 +57,8 @@ export interface OauthAppProgrammerModel {
 	name: string;
 	description: string | null;
 	pictureId: string | null;
+	picturePublicUrl: string | null;
+	pictureThumbnailPublicUrl: string | null;
 	redirectUrl: string;
 	clientId: string;
 	createdAt: string;
@@ -67,6 +72,8 @@ export function toOauthAppPm(dto: OauthAppWireDto): OauthAppProgrammerModel {
 		name: dto.name,
 		description: dto.description ?? null,
 		pictureId: dto.picture_id ?? null,
+		picturePublicUrl: dto.picture_public_url ?? null,
+		pictureThumbnailPublicUrl: dto.picture_thumbnail_public_url ?? null,
 		redirectUrl: dto.redirect_url,
 		clientId: dto.client_id,
 		createdAt: dto.created_at,

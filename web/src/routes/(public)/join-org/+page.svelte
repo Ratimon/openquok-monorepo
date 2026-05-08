@@ -118,7 +118,11 @@
 							Accept invite
 						{/if}
 					</Button>
-					<Button href={accountUrl} variant="ghost" class="border border-base-300 text-base-content">
+					<Button
+						href={accountUrl}
+						variant="ghost"
+						class="border border-base-300 text-base-content"
+					>
 						Cancel
 					</Button>
 				{/if}

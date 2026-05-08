@@ -468,13 +468,19 @@
 				</li>
 			{/each}
 		</ul>
-		<Button class="mt-6" variant="ghost" onclick={() => cancelInstagramBusinessPicker()}>
-			Cancel</Button>
+		<Button
+			class="mt-6"
+			variant="ghost"
+			onclick={() => cancelInstagramBusinessPicker()}
+		>
+			Cancel
+		</Button>
 	</div>
 {:else if oauthAnonymousSuccess}
 	<div class="mx-auto max-w-lg px-4 py-10">
 		<h1 class="text-xl font-semibold text-base-content">
-			Channel connected</h1>
+			Channel connected
+		</h1>
 		<p class="mt-2 text-sm text-base-content/70">
 			Your account is linked. Sign in to open your workspace and manage channels.
 		</p>

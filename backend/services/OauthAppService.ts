@@ -1,5 +1,6 @@
 import type { OauthAppRepository, OauthAppLike } from "../repositories/OauthAppRepository";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import { publicUrlForObjectKey, type MediaRepository } from "../repositories/MediaRepository";
 import { AppError } from "../errors/AppError";
 import { makeId } from "../utils/make.is";
 import { hashProgrammaticToken, hashProgrammaticTokenCandidates } from "../utils/tokenHash";
@@ -13,10 +14,17 @@ function assertValidUrl(url: string, errorMsg: string): void {
     }
 }
 
+/** Row returned from APIs so clients can render OAuth app icons without guessing R2 vs `/uploads`. */
+export type OauthAppApiPayload = OauthAppLike & {
+    picture_public_url: string | null;
+    picture_thumbnail_public_url: string | null;
+};
+
 export class OauthAppService {
     constructor(
         private readonly oauthAppRepository: OauthAppRepository,
-        private readonly organizationRepository: OrganizationRepository
+        private readonly organizationRepository: OrganizationRepository,
+        private readonly mediaRepository: MediaRepository
     ) {}
 
     private async resolveAuthUserToUserId(authUserId: string): Promise<string> {
@@ -35,16 +43,33 @@ export class OauthAppService {
         return { userId };
     }
 
-    async listApps(authUserId: string, organizationId: string): Promise<OauthAppLike[]> {
+    async listApps(authUserId: string, organizationId: string): Promise<OauthAppApiPayload[]> {
         // members can list; keep it strict (admin-only) for now.
         await this.assertOrgAdmin(authUserId, organizationId);
-        return this.oauthAppRepository.listAppsByOrganization(organizationId);
+        const apps = await this.oauthAppRepository.listAppsByOrganization(organizationId);
+        return Promise.all(apps.map((a) => this.enrichAppWithPicturePublicUrls(a, organizationId)));
     }
 
-    async getApp(authUserId: string, organizationId: string): Promise<OauthAppLike | false> {
+    async getApp(authUserId: string, organizationId: string): Promise<OauthAppApiPayload | false> {
         await this.assertOrgAdmin(authUserId, organizationId);
         const app = await this.oauthAppRepository.getAppByOrganizationId(organizationId);
-        return app ?? false;
+        if (!app) return false;
+        return this.enrichAppWithPicturePublicUrls(app, organizationId);
+    }
+
+    private async enrichAppWithPicturePublicUrls(app: OauthAppLike, organizationId: string): Promise<OauthAppApiPayload> {
+        if (!app.picture_id) {
+            return { ...app, picture_public_url: null, picture_thumbnail_public_url: null };
+        }
+        const media = await this.mediaRepository.getMediaById(organizationId, app.picture_id);
+        if (!media || media.deleted_at) {
+            return { ...app, picture_public_url: null, picture_thumbnail_public_url: null };
+        }
+        return {
+            ...app,
+            picture_public_url: publicUrlForObjectKey(media.path),
+            picture_thumbnail_public_url: media.thumbnail ? publicUrlForObjectKey(media.thumbnail) : null,
+        };
     }
 
     /**
@@ -56,7 +81,7 @@ export class OauthAppService {
         description?: string | null;
         redirectUrl: string;
         pictureId?: string | null;
-    }): Promise<{ app: OauthAppLike; clientId: string; clientSecret: string }> {
+    }): Promise<{ app: OauthAppApiPayload; clientId: string; clientSecret: string }> {
         const { userId } = await this.assertOrgAdmin(authUserId, input.organizationId);
         const existing = await this.oauthAppRepository.getAppByOrganizationId(input.organizationId);
         if (existing) {
@@ -86,7 +111,8 @@ export class OauthAppService {
             clientId,
             clientSecretHash,
         });
-        return { app, clientId, clientSecret };
+        const enriched = await this.enrichAppWithPicturePublicUrls(app, input.organizationId);
+        return { app: enriched, clientId, clientSecret };
     }
 
     async updateApp(authUserId: string, input: {
@@ -96,14 +122,14 @@ export class OauthAppService {
         description?: string | null;
         pictureId?: string | null;
         redirectUrl?: string;
-    }): Promise<OauthAppLike | null> {
+    }): Promise<OauthAppApiPayload | null> {
         await this.assertOrgAdmin(authUserId, input.organizationId);
         if (input.redirectUrl !== undefined) {
             const redirectUrl = input.redirectUrl.trim();
             if (!redirectUrl) throw new AppError("Redirect URL is invalid", 400);
             assertValidUrl(redirectUrl, "Redirect URL is invalid");
         }
-        return this.oauthAppRepository.updateApp({
+        const updated = await this.oauthAppRepository.updateApp({
             organizationId: input.organizationId,
             oauthAppId: input.oauthAppId,
             name: input.name?.trim(),
@@ -111,6 +137,8 @@ export class OauthAppService {
             pictureId: input.pictureId,
             redirectUrl: input.redirectUrl?.trim(),
         });
+        if (!updated) return null;
+        return this.enrichAppWithPicturePublicUrls(updated, input.organizationId);
     }
 
     async rotateSecret(authUserId: string, input: { organizationId: string; oauthAppId: string }): Promise<{ clientSecret: string }> {

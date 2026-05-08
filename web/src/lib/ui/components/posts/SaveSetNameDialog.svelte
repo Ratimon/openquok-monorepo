@@ -57,10 +57,18 @@
 				/>
 			</div>
 			<Dialog.Footer class="mt-2 flex flex-wrap gap-2">
-				<Button type="submit" variant="primary" disabled={busy || !name.trim()}>
+				<Button
+					type="submit"
+					variant="primary"
+					disabled={busy || !name.trim()}
+				>
 					Save
 				</Button>
-				<Button type="button" variant="secondary" disabled={busy} onclick={() => onCancel()}>
+				<Button
+					type="button"
+					variant="ghost"
+					disabled={busy} onclick={() => onCancel()}
+				>
 					Cancel
 				</Button>
 			</Dialog.Footer>

@@ -135,7 +135,11 @@
 				</form.Field>
 			</CardContent>
 			<CardFooter class="flex flex-col gap-3 sm:flex-row sm:justify-end">
-				<Button href={accountSettingsUrl} variant="ghost" class="order-2 sm:order-1">
+				<Button
+					href={accountSettingsUrl}
+					variant="ghost"
+					class="order-2 sm:order-1"
+				>
 					Cancel
 				</Button>
 				<form.Subscribe

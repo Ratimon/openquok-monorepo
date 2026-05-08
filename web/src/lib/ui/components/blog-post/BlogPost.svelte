@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
 	import type { PublicBlogMutationResultViewModel } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
 	import type { BlogPostCommentViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 	import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 
+	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
 	import { syncBlogHeadingIds } from '$lib/blogs/utils';
@@ -231,7 +230,6 @@
 						{submittingComment}
 					/>
 				</div>
-
 				<PostNavigation previousLink={previousLink} nextLink={nextLink} class="mt-4" />
 			</div>
 

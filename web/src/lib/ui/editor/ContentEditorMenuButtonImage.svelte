@@ -80,8 +80,12 @@
 	</Button>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>Add image</Dialog.Title>
-		<Dialog.Description>Upload to blog storage.</Dialog.Description>
+			<Dialog.Title>
+				Add image
+			</Dialog.Title>
+		<Dialog.Description>
+			Upload to blog storage.
+		</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="w-full space-y-3 pt-1">
@@ -94,16 +98,26 @@
 			/>
 			{#if selectedFile}
 				<p class="text-xs text-base-content/70">
-					Selected: {selectedFile.name}</p>
+					Selected: {selectedFile.name}
+				</p>
 			{/if}
 			<p class="text-xs text-base-content/70">
 				This inserts a local preview now. The file uploads only when you click Update/Create.
 			</p>
 			<div class="flex justify-end gap-2">
-				<Button type="button" variant="outline" onclick={() => closeDialog()}>
-					Cancel</Button>
-				<Button type="button" onclick={insertSelectedFileAsPreview}>
-					Insert preview</Button>
+				<Button
+					type="button"
+					variant="ghost"
+					onclick={() => closeDialog()}
+				>
+					Cancel
+				</Button>
+				<Button
+					type="button"
+					onclick={insertSelectedFileAsPreview}
+				>
+					Insert preview
+				</Button>
 			</div>
 		</div>
 	</Dialog.Content>

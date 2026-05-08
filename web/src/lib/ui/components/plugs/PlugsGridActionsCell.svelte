@@ -15,8 +15,9 @@
 </script>
 
 <div class="flex flex-wrap items-center gap-1">
-	<Button type="button"
-		variant="outline"
+	<Button
+		type="button"
+		variant="secondary"
 		size="sm"
 		class="h-8 px-2 text-xs"
 		onclick={() => actions?.openEdit(vm())}

@@ -116,12 +116,18 @@
 							{@const draftValues = fieldDefaults(def)}
 							<div class="border-base-300 bg-base-100/30 mt-4 rounded-lg border border-dashed p-4">
 								<div class="mb-3 text-xs font-medium text-base-content/55">
-									New rule</div>
+									New rule
+								</div>
 								<form
 									class="space-y-4"
 									onsubmit={(e) => {
 										e.preventDefault();
-										const fd = new FormData(e.currentTarget);
+										const form = e.currentTarget;
+										if (!form.checkValidity()) {
+											form.reportValidity();
+											return;
+										}
+										const fd = new FormData(form);
 										const next: Record<string, string> = {};
 										for (const f of def.fields) {
 											next[f.name] = String(fd.get(f.name) ?? '');
@@ -144,6 +150,8 @@
 												<input
 													name={f.name}
 													type={f.type === 'number' ? 'number' : 'text'}
+													min={f.type === 'number' ? '0' : undefined}
+													step={f.type === 'number' ? '1' : undefined}
 													class="border-base-300 bg-base-100 text-base-content w-full rounded-md border px-3 py-2 text-sm"
 													placeholder={f.placeholder}
 													value={draftValues[f.name] ?? ''}
@@ -154,13 +162,17 @@
 									<div class="flex flex-wrap justify-end gap-2">
 										<Button
 											type="button"
-											variant="outline"
+											variant="ghost"
 											onclick={() => onPendingNewForMethodChange(null)}
 										>
 											Cancel
 										</Button>
-										<Button type="submit" variant="primary">
-											Save rule</Button>
+										<Button
+											type="submit"
+											variant="primary"
+										>
+											Save rule
+									</Button>
 									</div>
 								</form>
 							</div>
@@ -168,7 +180,7 @@
 
 						<Button
 							type="button"
-							variant="outline"
+							variant="primary"
 							class="mt-4 w-full sm:w-auto"
 							disabled={pendingNewForMethod === def.methodName}
 							onclick={() => onPendingNewForMethodChange(def.methodName)}

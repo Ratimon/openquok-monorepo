@@ -106,11 +106,14 @@
 			{/if}
 
 			<DialogFooter>
-				<Button variant="outline" onclick={() => (open = false)}>
+				<Button
+					variant="ghost"
+					onclick={() => (open = false)}
+				>
 					Cancel
 				</Button>
 				<Button
-					variant="warning"
+					variant="primary"
 					onclick={onSubmit}
 					disabled={
 						!data ||

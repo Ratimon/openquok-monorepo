@@ -54,7 +54,7 @@
 					{#snippet child({ props })}
 						<Button
 							{...props}
-							variant="outline"
+							variant="secondary"
 							size="sm"
 							disabled={isLiked || submittingLike}
 							class={cn(

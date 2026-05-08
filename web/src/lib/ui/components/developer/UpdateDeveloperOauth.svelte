@@ -189,7 +189,9 @@
 					</div>
 				</div>
 				<div>
-					<label class="text-sm font-medium" for="oauth-create-redirect">Redirect URL *</label>
+					<label class="text-sm font-medium" for="oauth-create-redirect">
+						Redirect URL *
+					</label>
 					<input
 						id="oauth-create-redirect"
 						class="input input-bordered mt-1 w-full bg-base-100"
@@ -218,7 +220,9 @@
 						<h3 class="text-base font-semibold">
 							OAuth application
 						</h3>
-						<p class="text-sm text-base-content/70">Shown on the user consent screen.</p>
+						<p class="text-sm text-base-content/70">
+							Shown on the user consent screen.
+						</p>
 					</div>
 					<Button
 						variant="outline"
@@ -249,11 +253,19 @@
 							></textarea>
 						</div>
 						<div>
-							<span class="text-sm font-medium">Profile image</span>
+							<span class="text-sm font-medium">
+								Profile image
+							</span>
 							<div class="mt-2 flex flex-wrap items-center gap-3">
 								{#if formPicturePreviewUrl}
 									<img
 										src={formPicturePreviewUrl}
+										alt=""
+										class="size-12 rounded-full object-cover"
+									/>
+								{:else if app.pictureThumbnailPublicUrl || app.picturePublicUrl}
+									<img
+										src={app.pictureThumbnailPublicUrl ?? app.picturePublicUrl ?? ''}
 										alt=""
 										class="size-12 rounded-full object-cover"
 									/>
@@ -272,7 +284,11 @@
 									Choose image
 								</Button>
 								{#if formPictureId}
-									<Button variant="ghost" type="button" onclick={() => onClearPicture()}>
+									<Button
+										variant="warning"
+										type="button"
+										onclick={() => onClearPicture()
+									}>
 										Remove
 									</Button>
 								{/if}
@@ -294,15 +310,26 @@
 							>
 								Save
 							</Button>
-							<Button variant="outline" onclick={() => onCancelEdit()}>Cancel</Button>
+							<Button
+								variant="ghost"
+								onclick={() => onCancelEdit()}
+							>
+								Cancel
+							</Button>
 						</div>
 					</div>
 				{:else}
 					<div class="mt-4 flex flex-col gap-4">
 						<div class="flex items-center gap-3">
-							{#if app.pictureId}
+							{#if app.pictureThumbnailPublicUrl || app.picturePublicUrl}
+								<img
+									src={app.pictureThumbnailPublicUrl ?? app.picturePublicUrl ?? ''}
+									alt=""
+									class="size-12 shrink-0 rounded-full object-cover"
+								/>
+							{:else if app.pictureId}
 								<div
-									class="flex size-12 items-center justify-center rounded-full bg-base-300 text-xs text-base-content/60"
+									class="flex size-12 shrink-0 items-center justify-center rounded-full bg-base-300 text-xs text-base-content/60"
 									title="App icon (media library)"
 								>
 									Icon

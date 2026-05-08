@@ -319,10 +319,19 @@
 			</div>
 
 			<Dialog.Footer class="gap-2 sm:justify-end">
-				<Button type="button" variant="ghost" disabled={busy} onclick={() => (editOpen = false)}>
+				<Button
+					type="button"
+					variant="ghost"
+					disabled={busy}
+					onclick={() => (editOpen = false)
+				}>
 					Cancel
 				</Button>
-				<Button type="submit" variant="primary" disabled={busy || !selected?.id}>
+				<Button
+					type="submit"
+					variant="primary"
+					disabled={busy || !selected?.id}
+				>
 					{busy ? 'Saving…' : 'Save'}
 				</Button>
 			</Dialog.Footer>

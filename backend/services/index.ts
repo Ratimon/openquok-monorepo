@@ -126,7 +126,7 @@ export const integrationConnectionService = new IntegrationConnectionService(
     cacheInvalidationServiceConnection
 );
 
-export const oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository);
+export const oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository, mediaRepository);
 export const oauthService = new OauthService(oauthAppRepository, organizationRepository);
 export const postsService = new PostsService(
     postsRepository,

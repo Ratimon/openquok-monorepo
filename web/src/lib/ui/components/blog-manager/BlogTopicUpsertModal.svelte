@@ -198,7 +198,11 @@
 			</div>
 
 			<DialogFooter>
-				<Button variant="outline" type="button" onclick={() => (dialogOpen = false)} disabled={submitting}>
+				<Button
+					variant="ghost"
+					type="button"
+					onclick={() => (dialogOpen = false)
+				} disabled={submitting}>
 					Cancel
 				</Button>
 				<Button type="submit" disabled={submitting}>

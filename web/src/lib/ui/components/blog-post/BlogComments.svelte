@@ -107,9 +107,8 @@
 				{#if !isReply}
 					<div class="flex items-center gap-2">
 						<Button
-							variant="ghost"
+							variant="primary"
 							size="sm"
-							class="text-base-content/60"
 							onclick={() => (replyingTo = c)}
 						>
 							Reply
@@ -188,13 +187,19 @@
 							<a href={signInHref} class="link link-primary">Sign in</a> to comment.
 						</p>
 					{/if}
-					<span class="text-xs italic text-base-content/50">{commentContent.length}/{maxLength}</span>
+					<span class="text-xs italic text-base-content/50">
+						{commentContent.length}/{maxLength}
+					</span>
 					{#if replyingTo}
-						<Button variant="secondary" onclick={handleCancelReply}>
-							Cancel</Button>
+						<Button
+							variant="ghost"
+							onclick={handleCancelReply}
+						>
+							Cancel
+						</Button>
 					{/if}
 					<Button
-						variant="outline"
+						variant="primary"
 						class="ml-2"
 						disabled={
 							!isLoggedIn ||
