@@ -51,7 +51,7 @@ For BullMQ-backed workflows, run the worker processes from <code>orchestrator/</
 
 <CardGrid>
 <LinkCard title="Backend orchestrator workflows" description="BullMQ transport, workers, and clearing stale Flowcraft runs in Redis" href="/docs/developer-guidelines/orchestrator-workflows" />
-<LinkCard title="Orchestrator workers" description="Env, Railway deploy notes, and worker-related scripts" href="/docs/configuration-worker" />
+<LinkCard title="Configuration - Worker" description="Env, Railway deploy notes, and worker-related scripts" href="/docs/configuration-worker" />
 </CardGrid>
 
 ## Next steps

@@ -2,7 +2,7 @@
 title: Development environment
 description: Run Openquok's backend and web apps locally, execute tests, database scripts, and deployment commands.
 order: 0
-lastUpdated: 2026-04-24
+lastUpdated: 2026-05-08
 ---
 
 <script>
@@ -126,7 +126,7 @@ Run the <strong>backend API</strong> before the web app so local pages can call 
 </Callout>
 
 <Callout type="note" title="HTTPS on localhost">
-<p>The web dev server serves <strong>HTTPS</strong> at <code>https://localhost:5173</code>. Keep <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> and the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on that exact origin, and follow <a href="/docs/configuration-web/environment#https-local-development-and-the-api-base-url">Environment variables → HTTPS local development and the API base URL</a> so API calls and auth cookies stay same-origin.</p>
+<p>The web dev server serves <strong>HTTPS</strong> at <code>https://localhost:5173</code>. Keep <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> and the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on that exact origin, and follow <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit env) → HTTPS local development and the API base URL</a> so API calls and auth cookies stay same-origin.</p>
 </Callout>
 
 You can work from the **monorepo root** (using `web:*` and `pnpm --filter ./web …` scripts) or **change into `web/`** and run package scripts there.
@@ -189,7 +189,64 @@ If you use <code>CACHE_PROVIDER=redis</code>, run Redis locally or use a managed
 - Local Docker: <a href="/docs/configuration-backend/docker">Docker (local services)</a>
 - Full Redis config: <a href="/docs/configuration-backend/redis">Redis cache</a>
 
-**Workflow-style jobs** (e.g. integration refresh orchestration) run **in the API process** via Flowcraft (<Badge text="backend/flowcraft/" variant="path" />); there is no separate worker script in this repo.
+**Workflow-style jobs** can run in the API process (Flowcraft), but the repo also ships **long-running workers** under <Badge text="orchestrator/" variant="path" /> for BullMQ-backed queues. See the worker section below if you enable BullMQ transport.
+
+### Optional worker processes (BullMQ / orchestrator)
+
+If you configure orchestrator flows to use BullMQ, the API enqueues jobs to Redis and **separate worker processes** execute them.
+
+<Callout type="note" title="When you need this">
+Enable workers when you want long-running background work (for example scheduled social post publishing) to run outside the API process. In production, run workers on an always-on host (see <a href="/docs/configuration-worker">Configuration - Worker</a>).
+</Callout>
+
+**Run local Redis (BullMQ)** — quickest path is Docker Compose:
+
+```bash
+# From repo root
+docker compose -f infra/docker-compose.yml up -d redis
+```
+
+**Start a worker locally** — each worker is its own process:
+
+```bash
+# From repo root
+pnpm orchestrator:dev:worker:integration-refresh-bullmq
+pnpm orchestrator:dev:worker:notification-email-bullmq
+pnpm orchestrator:dev:worker:scheduled-social-post-bullmq
+```
+
+Worker env and Redis queue details live in <a href="/docs/configuration-worker/docker">Configuration → Worker → Docker (local Redis)</a>.
+
+### Optional CLI auth server (device flow)
+
+The CLI auth server (<Badge text="agent/server" variant="path" />) implements the OAuth2 device flow used by <code>openquok auth:login</code>. Most developers can use the hosted server by default, but you can run it locally for end-to-end testing.
+
+<Callout type="note" title="Auth server docs">
+See <a href="/docs/configuration-agent">Configuration - Agent</a> for env vars, hosted vs self-host, and callback URL details.
+</Callout>
+
+
+- Creating / rotating client ID + secret (operator/admin): <a href="/docs/admin/oauth-server">Admin — OAuth Server</a>
+
+**Run local Postgres (auth server state)** — the auth server stores device-flow state in Postgres. A local Docker service is provided:
+
+```bash
+# From repo root
+docker compose -f infra/docker-compose.yml up -d postgres
+```
+
+Then set <Badge text="DATABASE_URL" variant="envBackend" /> in <Badge text="agent/server/.env.development.local" variant="envFile" /> to match (defaults to <code>postgresql://openquok:openquok@localhost:5432/openquok_cli_auth</code>).
+
+**Run the CLI auth server locally**:
+
+```bash
+# From repo root
+pnpm agent-server:dev
+```
+
+Once running, you can point the CLI at it by setting <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> (or passing <code>--authServer</code> to <code>openquok auth:login</code>).
+
+Auth server env details (including <Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, and OAuth client keys) live in <a href="/docs/configuration-agent#environment-variables">Configuration → Agent → Environment variables</a>.
 
 ### Deployment
 
@@ -217,6 +274,8 @@ pnpm vercel:deploy:web
 
 <CardGrid>
 <LinkCard title="Production deployment" description="Backend and web on Vercel, env and optional Redis" href="/docs/installation/production-deployment" />
+<LinkCard title="Configuration - Agent" description="CLI auth server (device flow) env and deployment" href="/docs/configuration-agent" />
+<LinkCard title="Configuration - Worker" description="Redis/BullMQ workers, Bull Board, and Railway" href="/docs/configuration-worker" />
 <LinkCard title="Project architecture" description="Monorepo layout, key directories, and how the stack fits together" href="/docs/getting-started/architecture" />
 <LinkCard title="Vercel" description="Vercel CLI and project settings detail" href="/docs/installation/vercel" />
 </CardGrid>

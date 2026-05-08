@@ -35,7 +35,7 @@ CLI                        Auth Server                    Openquok
 | `OPENQUOK_OAUTH_CLIENT_ID` | Yes | - | OAuth app client ID (prefix: `oqc_...`) |
 | `OPENQUOK_OAUTH_CLIENT_SECRET` | Yes | - | OAuth app client secret (prefix: `oqs_...`) |
 | `PORT` | No | `3111` | Server port |
-| `SERVER_URL` | No | `http://localhost:{PORT}` | Public URL of this server (used for generating links) |
+| `SERVER_URL` | No | `http://localhost:{PORT}` | Public origin of this server (no trailing slash), used for links and OAuth `redirect_uri`. For the hosted CLI auth service, use `https://cli-auth.openquok.com`. |
 | `OPENQUOK_FRONTEND_URL` | No | `https://www.openquok.com` | Openquok web URL hosting the OAuth approval UI |
 | `OPENQUOK_API_URL` | No | `https://api.openquok.com` | Openquok API base URL (token exchange uses `/api/v1/oauth/token`) |
 | `OPENQUOK_AUTHORIZE_PATH` | No | `/oauth/authorize` | Frontend path that must implement OAuth approve UX |
@@ -47,8 +47,10 @@ CLI                        Auth Server                    Openquok
 Create an OAuth app and set the callback URL to:
 
 ```
-https://your-server-domain.com/device/callback
+https://cli-auth.openquok.com/device/callback
 ```
+
+(Self-hosters: use your own `SERVER_URL` instead, e.g. `https://auth.example.com/device/callback`.)
 
 ### 2. Set up Postgres
 
@@ -60,7 +62,7 @@ Create a database. The server auto-creates the `device_requests` table on startu
 export DATABASE_URL="postgresql://user:password@localhost:5432/openquok_cli_auth"
 export OPENQUOK_OAUTH_CLIENT_ID="oqc_..."
 export OPENQUOK_OAUTH_CLIENT_SECRET="oqs_..."
-export SERVER_URL="https://your-server-domain.com"
+export SERVER_URL="https://cli-auth.openquok.com"
 ```
 
 ### 4. Run
@@ -71,6 +73,23 @@ pnpm install
 pnpm dev
 curl http://localhost:3111/health
 ```
+
+## Deployment
+
+Any platform that runs Node.js and can reach Postgres works (Railway, Fly.io, Render, a VPS, etc.). The process is stateless aside from Postgres, so you can run **multiple instances behind a load balancer** as long as they share the same `DATABASE_URL` and the same `SERVER_URL` (and OAuth client credentials). No sticky sessions are required: device-flow state lives in Postgres.
+
+For **serverless (Vercel)** this repo includes `vercel.json` and `api/[[...slug]].ts`. Public routes stay at the root (`/health`, `/device/*`); rewrites send them to the function under `/api`. Set `SERVER_URL` to your deployment’s public origin (for example `https://your-project.vercel.app` or `https://cli-auth.openquok.com`). Use a managed Postgres with pooling (for example Neon, Supabase, or Vercel Postgres) and a connection string suited to serverless concurrency.
+
+**Monorepo:** In the Vercel project, set **Root Directory** to `agent/server`. `vercel.json` uses an `installCommand` that runs `pnpm install` from the repository root with a workspace filter so dependencies resolve.
+
+**Deploy from your machine:**
+
+```bash
+chmod +x scripts/deploy-vercel.sh
+./scripts/deploy-vercel.sh --prod
+```
+
+(or run `vercel` / `vercel --prod` from `agent/server` after `vercel link`.)
 
 ## Endpoints
 
@@ -101,7 +120,8 @@ CREATE TABLE device_requests (
 
 Rows are deleted after the CLI retrieves the token, or on next access if expired (15 minutes).
 
-## Current limitation (Openquok web UX)
+
+## todo check again (Openquok web UX)
 
 This server redirects the user to:
 

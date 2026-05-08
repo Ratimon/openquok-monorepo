@@ -1,5 +1,5 @@
 ---
-title: Backend orchestrator workflows
+title: Orchestrator workflows
 description: How OpenQuok uses Flowcraft for integration refresh, notification email, and scheduled social posts—in-process or on BullMQ workers.
 order: 3
 lastUpdated: 2026-04-24
@@ -66,7 +66,7 @@ With <code>transport: bullmq</code> in <code>backend/config/orchestratorFlows.ts
 
 For integration refresh, that improves durability across API deploys, but each <code>tick</code> still performs a long in-node sleep while a worker job is active (see Flowcraft pause/sleep guidance). Tune BullMQ concurrency and monitor queue depth accordingly.
 
-Managed Redis (for example <DocsExternalLink href="https://redis.io/">Redis</DocsExternalLink> Cloud) works the same as for cache: set <code>REDIS_*</code> and optionally <code>REDIS_BULLMQ_DB</code>; see <a href="/docs/configuration-backend/redis/">Redis cache</a>. Workers must use the **same** Redis as the API. Env and deployment: <a href="/docs/configuration-worker">Orchestrator workers</a>.
+Managed Redis (for example <DocsExternalLink href="https://redis.io/">Redis</DocsExternalLink> Cloud) works the same as for cache: set <code>REDIS_*</code> and optionally <code>REDIS_BULLMQ_DB</code>; see <a href="/docs/configuration-backend/redis/">Redis cache</a>. Workers must use the **same** Redis as the API. Env and deployment: <a href="/docs/configuration-worker">Configuration - Worker</a>.
 
 ## Configuration
 
@@ -132,7 +132,7 @@ Also, the <code>@flowcraft/bullmq-adapter</code> version used in this repo curre
 
 ## Further reading
 
-- <a href="/docs/configuration-worker">Orchestrator workers</a> — env vars, production scripts, dotenv resolution
+- <a href="/docs/configuration-worker">Configuration - Worker</a> — env vars, production scripts, dotenv resolution
 - <a href="/docs/installation/railway">Railway Deployment</a> — persistent services, CLI, <code>railway.toml</code>
 - <DocsExternalLink href="https://flowcraft.js.org/guide/fluent">Fluent API</DocsExternalLink>
 - <DocsExternalLink href="https://flowcraft.js.org/guide/pausing">Pausing and sleep nodes</DocsExternalLink> (this workflow uses an imperative delay inside <code>tick</code> because the wait length comes from the database at runtime)

@@ -46,6 +46,17 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
 - **Prefer `Badge`** with the **`text`** prop for env-style identifiers (see **Badges** above). If you cannot use `Badge`, use **HTML**: `<code>NODE&#95;ENV</code>`, `<code>BACKEND&#95;DOMAIN&#95;URL</code>`, or `&#42;` for a literal `*` (e.g. <code>REDIS&#95;&#42;</code> for “REDIS_*”).
 - Inside **`<Callout>`**, use **`Badge`** or the same HTML `<code>` pattern when Markdown is not parsed.
 
+## Curly-brace placeholders (MDsveX / Svelte parsing)
+
+- Do **not** render placeholders like `{SERVER_URL}` inline using patterns that can be re-parsed as Svelte expressions and break builds or runtime, such as:
+  - `<code>&lbrace;SERVER_URL&rbrace;/device/callback</code>`
+  - `<code>{`{SERVER_URL}/device/callback`}</code>`
+  - `<code>{"{SERVER_URL}/device/callback"}</code>`
+  - Any inline `<code>{...}</code>` intended to show literal `{...}` placeholders
+- Prefer one of these safe options:
+  - Use a fenced **`text`** block for the literal placeholder string (best for URLs / redirect URIs).
+  - Or restructure the sentence to avoid curly braces entirely (e.g. use `<Badge text="SERVER_URL" variant="envBackend" />` plus the literal suffix `/device/callback`).
+
 ## Callouts vs GitHub alerts
 
 - Do **not** paste GitHub `> [!WARNING]` / `> [!IMPORTANT]` blocks into MDX; they are not rendered as UI components here.
@@ -112,6 +123,14 @@ Edit `web/src/data/docs.ts` and `web/src/lib/docs/constants/config.ts` with your
 ```
 
 - **Long or sensitive notes** inside a step (e.g. “do not run this build locally”) can sit in **`<Callout type="warning">`** (or `danger` / `note` as appropriate) **immediately under** that step’s `###` heading, before the next step heading. Use **plain text** in the `title` attribute (no HTML tags inside `title="..."`).
+
+## Configuration docs: env before steps
+
+- For **configuration pages** that include both an **environment variable reference** and a **setup procedure**, put the env section **before** the `<Steps>` block. This matches pages like `web/src/content/docs/social-integration/threads.md` and keeps readers from jumping away mid-flow to find required keys.
+- Recommended order:
+  - `## Overview`
+  - `## Environment variables` (or `## Backend environment` / `## Web environment`)
+  - `## Common setup steps` (wrapped in `<Steps>…</Steps>`)
 
 ## Fenced code blocks: shell commands vs everything else
 

@@ -243,7 +243,7 @@ FRONTEND_DOMAIN_URL=https://localhost:5173
 
 <h2 id="web-environment-variables">Web environment variables</h2>
 
-Set these in <Badge text="web/.env.development.local" variant="envFile" /> (or your production web env). Restart Vite after changes. See also <a href="/docs/configuration-web/environment">Environment variables</a>.
+Set these in <Badge text="web/.env.development.local" variant="envFile" /> (or your production web env). Restart Vite after changes. See also <a href="/docs/configuration-web/vite">Vite (SvelteKit env)</a>.
 
 **Do not confuse** backend <Badge text="STORAGE_PROVIDER" variant="envBackend" /> <code>r2</code> (where the API stores objects) with browser upload mode <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=direct" variant="envWeb" /> (how the client sends bytes).
 
@@ -269,5 +269,5 @@ VITE_MEDIA_LIBRARY_UPLOAD=local
 
 <CardGrid>
 <LinkCard title="Configuration - Backend (index)" description="Env overview, Supabase, and related services" href="/docs/configuration-backend" />
-<LinkCard title="Web environment" description="Vite variables and frontend origin alignment" href="/docs/configuration-web/environment" />
+<LinkCard title="Vite (SvelteKit env)" description="Vite variables and frontend origin alignment" href="/docs/configuration-web/vite" />
 </CardGrid>

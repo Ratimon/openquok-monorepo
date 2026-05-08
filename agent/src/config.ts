@@ -8,8 +8,10 @@ export type OpenquokConfig = {
   authServerUrl: string;
 };
 
+/** Public device-flow auth server (hosted). Override with `OPENQUOK_AUTH_SERVER` for local or self-hosted. */
+export const OPENQUOK_DEFAULT_AUTH_SERVER = "https://cli-auth.openquok.com";
+
 const DEFAULT_API_URL = "https://api.openquok.com";
-const DEFAULT_AUTH_SERVER_URL = "http://localhost:3111";
 
 function getEnv(name: string): string | undefined {
   const v = process.env[name];
@@ -20,7 +22,7 @@ export function getConfig(): OpenquokConfig {
   // Prefer explicit env vars, but fall back to an on-disk credentials file for local convenience.
   const apiUrl = getEnv("OPENQUOK_API_URL") ?? DEFAULT_API_URL;
   const apiKey = getEnv("OPENQUOK_API_KEY") ?? null;
-  const authServerUrl = getEnv("OPENQUOK_AUTH_SERVER") ?? DEFAULT_AUTH_SERVER_URL;
+  const authServerUrl = getEnv("OPENQUOK_AUTH_SERVER") ?? OPENQUOK_DEFAULT_AUTH_SERVER;
   return { apiUrl, apiKey, authServerUrl };
 }
 

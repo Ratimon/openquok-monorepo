@@ -42,7 +42,7 @@ openquok auth:login
 
 This uses a **device flow** via an auth helper server (see `agent/server`). The CLI will print a one-time code and a verification URL, then poll until the user completes authorization. The resulting access token is stored in `~/.openquok/credentials.json`.
 
-**Custom auth server (self-host or hosted):**
+By default the CLI uses the hosted device-flow server at `https://cli-auth.openquok.com`. For **local development** of `agent/server`, point the CLI at your machine:
 
 ```bash
 export OPENQUOK_AUTH_SERVER="http://localhost:3111"
@@ -112,7 +112,7 @@ Upload returns JSON including `data.filePath` and `data.id`, which you can pass 
 |----------|----------|---------|-------------|
 | `OPENQUOK_API_KEY` | No* | - | Programmatic API key / token (Bearer) |
 | `OPENQUOK_API_URL` | No | `https://api.openquok.com` | Base URL (the CLI calls `{OPENQUOK_API_URL}/api/v1/...`) |
-| `OPENQUOK_AUTH_SERVER` | No | `http://localhost:3111` | OAuth2 device flow auth server base URL (`/device/*`) |
+| `OPENQUOK_AUTH_SERVER` | No | `https://cli-auth.openquok.com` | OAuth2 device flow auth server origin (paths `/device/*`, `/health`). Use `http://localhost:3111` when running `agent/server` locally. |
 
 *Either `OPENQUOK_API_KEY` or `openquok auth:login` (stored credentials) is required for authenticated commands.
 

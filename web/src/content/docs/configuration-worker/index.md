@@ -1,8 +1,8 @@
 ---
-title: Orchestrator workers
-description: Getting Started to Environment and deployment for orchestrator processes, plus the admin queue dashboard.
+title: Configuration - Worker
+description: Environment and deployment for orchestrator worker processes (BullMQ, Redis, Docker, Railway), plus the admin queue dashboard.
 order: 0
-lastUpdated: 2026-04-27
+lastUpdated: 2026-05-08
 ---
 
 <script>
@@ -27,29 +27,30 @@ Super admins can inspect and **manage BullMQ jobs** (pause / resume queues, open
 
 ## What to configure
 
-- **Redis** — Same <Badge text="REDIS_*" variant="envBackend" /> (and optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />) as the API. See <a href="/docs/configuration-backend/redis">Redis cache</a>.
+- **Redis** — Same <Badge text="REDIS_*" variant="envBackend" /> (and optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />) as the API. See <a href="/docs/configuration-backend/redis">Redis cache</a> and <a href="/docs/configuration-worker/redis">Redis & queues</a>.
 - **Supabase** — <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" />, <Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" />, <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" /> for server-side tables.
 - **Storage (scheduled social post publishing)** — If you publish posts with media (for example Threads image posts), workers must be able to build a **public HTTPS URL** for uploaded objects. Set <Badge text="STORAGE_PROVIDER" variant="envBackend" /> (typically <code>r2</code>) and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (your public bucket hostname, no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
 - **Per worker** — Provider OAuth secrets for **integration refresh**; email provider keys for **notification email**; the same **provider or channel** credentials the API would use to publish for **scheduled social** posts. A short template lives in the repo at <Badge text="orchestrator/.env.production.example" variant="path" />.
 
-## Pages in this section
+## Guides
 
 <CardGrid>
-<LinkCard title="Local development (workers + Redis)" description="Run Redis locally, start workers, and use redis-cli to monitor/clear queues safely" href="/docs/configuration-worker/development-environment" />
-<LinkCard title="Production deployment (workers)" description="Build/start commands, Railway services, and redis-cli operations for queues in production" href="/docs/configuration-worker/production-deployment" />
+<LinkCard title="Docker (local Redis)" description="Compose Redis, local REDIS_*, and dev worker scripts" href="/docs/configuration-worker/docker" />
+<LinkCard title="Redis & queues" description="redis-cli for BullMQ locally and in production" href="/docs/configuration-worker/redis" />
+<LinkCard title="Railway (workers)" description="Build/start commands, deploy flow, and stopping a service" href="/docs/configuration-worker/railway" />
 </CardGrid>
 
 <Callout type="note" title="Minimal secret surface">
 You only need to inject variables the worker path actually uses; you do not have to duplicate the entire API <Badge text=".env" variant="envFile" />. See <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/orchestrator/README.md">orchestrator/README.md</DocsExternalLink> in the repo for the full tables.
 </Callout>
 
-## Further reading
+## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Web environment variables" description="VITE_API_BASE_URL and same-origin /api in development" href="/docs/configuration-web/environment" />
-<LinkCard title="Railway (workers)" description="CLI, build/start commands, and persistent services" href="/docs/installation/railway" />
+<LinkCard title="Vite (SvelteKit env)" description="VITE_API_BASE_URL and same-origin /api in development" href="/docs/configuration-web/vite" />
+<LinkCard title="Railway (installation)" description="CLI, build/start commands, and persistent services" href="/docs/installation/railway" />
 <LinkCard title="Orchestrator workflows" description="Flowcraft, BullMQ transport, and behavior" href="/docs/developer-guidelines/orchestrator-workflows" />
-<LinkCard title="Redis" description="REDIS_* shared with cache and BullMQ" href="/docs/configuration-backend/redis" />
+<LinkCard title="Redis cache" description="REDIS_* shared with cache and BullMQ" href="/docs/configuration-backend/redis" />
 <LinkCard title="RBAC" description="Super admin, roles, and permissions" href="/docs/developer-guidelines/rbac" />
 <LinkCard title="Production deployment" description="Vercel API + optional worker hosts" href="/docs/installation/production-deployment" />
 </CardGrid>

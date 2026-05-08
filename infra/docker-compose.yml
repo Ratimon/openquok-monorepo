@@ -7,5 +7,17 @@ services:
       - redis-data:/data
     command: ["redis-server", "--appendonly", "yes"]
 
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: openquok_cli_auth
+      POSTGRES_USER: openquok
+      POSTGRES_PASSWORD: openquok
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
 volumes:
   redis-data:
+  postgres-data:

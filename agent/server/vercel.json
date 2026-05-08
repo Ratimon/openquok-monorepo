@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile --filter @openquok/cli-auth-server...",
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/api/$1" }],
+  "functions": {
+    "api/[[...slug]].ts": {
+      "maxDuration": 30
+    }
+  }
+}

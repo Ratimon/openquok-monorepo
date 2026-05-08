@@ -11,14 +11,14 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 This guide covers **orchestrator worker** deployments on **Railway**: always-on processes that consume **BullMQ** queues while your **API** may live on **Vercel** (or another host).
 
-Railway treats these as <DocsExternalLink href="https://docs.railway.com/services#persistent-services">persistent services</DocsExternalLink> (containers that keep running). See also <a href="/docs/configuration-worker">Orchestrator workers</a> for env vars and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a> for when to use <code>bullmq</code> transport.
+Railway treats these as <DocsExternalLink href="https://docs.railway.com/services#persistent-services">persistent services</DocsExternalLink> (containers that keep running). See also <a href="/docs/configuration-worker">Configuration - Worker</a> for env vars and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a> for when to use <code>bullmq</code> transport.
 
 ## Prerequisites
 
 - Railway account and <DocsExternalLink href="https://docs.railway.com/develop/cli">Railway CLI</DocsExternalLink> on your <code>PATH</code>. This guide uses the global <code>railway</code> command.
 - Worker environment variables set on each Railway service (applies to **dashboard deploys** and **CLI deploys**):
   - <Badge text="REDIS_*" variant="envBackend" /> (shared with your API). See <a href="/docs/configuration-backend/redis">Redis cache</a>.
-  - Supabase keys (at minimum <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> and <Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" />; in production also <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" />). See <a href="/docs/configuration-worker">Orchestrator workers</a>.
+  - Supabase keys (at minimum <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> and <Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" />; in production also <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" />). See <a href="/docs/configuration-worker">Configuration - Worker</a>.
   - Storage public URL for media publishing (recommended if you schedule posts with images/videos): <Badge text="STORAGE_PROVIDER" variant="envBackend" /> and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
   - <code>RAILPACK_CONFIG_FILE</code> set per worker service (see “Set variables per worker service” below).
 
@@ -49,7 +49,7 @@ Use the same repository as the monorepo. Configure <DocsExternalLink href="https
 
 ### Set variables per worker service
 
-Set <Badge text="NODE_ENV=production" variant="envRuntime" />, Redis, Supabase, and any provider/email keys from <a href="/docs/configuration-worker">Orchestrator workers</a>.
+Set <Badge text="NODE_ENV=production" variant="envRuntime" />, Redis, Supabase, and any provider/email keys from <a href="/docs/configuration-worker">Configuration - Worker</a>.
 
 <Callout type="tip" title="Railpack config">
 Set <code>RAILPACK_CONFIG_FILE</code> (per service) to one of: <code>railpack.integration-refresh.json</code>, <code>railpack.notification-email.json</code>, or <code>railpack.scheduled-social-post.json</code> (dashboard or <code>railway variables set</code> after <code>railway service</code>).
@@ -173,7 +173,7 @@ To deploy multiple workers from one project, link the CLI to a service, run <cod
 ## Related
 
 <CardGrid>
-<LinkCard title="Orchestrator workers (config)" description="Env tables and script reference" href="/docs/configuration-worker" />
+<LinkCard title="Configuration - Worker" description="Env tables and script reference" href="/docs/configuration-worker" />
 <LinkCard title="Production deployment" description="Vercel API and overall production picture" href="/docs/installation/production-deployment" />
 <LinkCard title="Orchestrator workflows" description="Flowcraft, queues, and transport flags" href="/docs/developer-guidelines/orchestrator-workflows" />
 </CardGrid>

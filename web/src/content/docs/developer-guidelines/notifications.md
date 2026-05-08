@@ -1,5 +1,5 @@
 ---
-title: Notifications (in-app + email)
+title: Notifications
 description: How OpenQuok creates in-app notifications and sends notification emails (immediate vs digest), including BullMQ worker setup and troubleshooting.
 order: 4
 lastUpdated: 2026-04-25
@@ -68,7 +68,7 @@ Notification email digest + BullMQ transport require Redis.
 docker compose -f infra/docker-compose.yml up -d redis
 ```
 
-See <a href="/docs/configuration-worker">Orchestrator workers</a> for the recommended local Redis settings.
+See <a href="/docs/configuration-worker/docker">Docker (local Redis)</a> for the recommended local Redis settings.
 
 ### Choose transport (BullMQ vs in-process)
 
@@ -103,7 +103,7 @@ pnpm orchestrator:dev:worker:notification-email-bullmq
 
 <CardGrid>
 <LinkCard title="Orchestrator workflows" description="Flowcraft + BullMQ overview for refresh, email, scheduled posts" href="/docs/developer-guidelines/orchestrator-workflows" />
-<LinkCard title="Orchestrator workers" description="Worker env + local/prod start commands" href="/docs/configuration-worker" />
+<LinkCard title="Configuration - Worker" description="Worker env + Docker, Redis, Railway, and scripts" href="/docs/configuration-worker" />
 <LinkCard title="Resend - Email Setup" description="Email provider + local inbox configuration" href="/docs/configuration-backend/resend" />
 <LinkCard title="Redis cache" description="REDIS_* config shared by cache and BullMQ" href="/docs/configuration-backend/redis" />
 </CardGrid>

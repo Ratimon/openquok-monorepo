@@ -1,8 +1,8 @@
 ---
-title: Environment variables
-description: Configure VITE's values for API base URL, Supabase, Stripe, and analytics for Openquok.
-order: 1
-lastUpdated: 2026-04-14
+title: Vite (SvelteKit env)
+description: Configure VITE_* variables for the SvelteKit web app—API base URL, Supabase, Stripe, analytics, and the HTTPS dev proxy.
+order: 0.5
+lastUpdated: 2026-05-08
 ---
 
 <script>
@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-At runtime, the web app uses Vite environment variables in the <Badge text="VITE_*" variant="envWeb" /> family (public keys exposed to the browser).
+The **web** app is built with **SvelteKit on Vite**. At runtime it reads public env vars in the <Badge text="VITE_*" variant="envWeb" /> family from <Badge text="web/.env.*" variant="envFile" /> (Vite loads these at dev and build time).
 
 When you change values in <Badge text="web/.env.development.local" variant="envFile" /> or <Badge text="web/.env.production.local" variant="envFile" />, restart the web dev server or rebuild so Vite can load the new values.
 
@@ -80,7 +80,7 @@ Do not hard-code secrets in the source code. Use <Badge text="web/.env.developme
 <CardGrid>
 <LinkCard title="Production deployment" description="Canonical FRONTEND_DOMAIN_URL, CORS, and redeploy notes" href="/docs/installation/production-deployment" />
 <LinkCard title="Configuration - Backend" description="FRONTEND_DOMAIN_URL and OAuth redirect construction" href="/docs/configuration-backend" />
+<LinkCard title="Config defaults" description="CONFIG_SCHEMA_* and fallbacks beyond Vite env" href="/docs/configuration-web/config-defaults" />
 <LinkCard title="PWA configuration" description="Edit web-config.json for app name and icon metadata" href="/docs/configuration-web/pwa" />
 <LinkCard title="Configuration - Web" description="Back to the web configuration hub" href="/docs/configuration-web" />
 </CardGrid>
-

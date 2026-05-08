@@ -129,7 +129,7 @@ https://YOUR_FRONTEND_DOMAIN
 
 <Badge text="/api/v1/auth/oauth/google/callback" variant="path" />
 
-  - Local development when the browser hits the API on the <strong>same origin</strong> as the web app (recommended with this repo’s HTTPS dev server; see <a href="/docs/configuration-web/environment#https-local-development-and-the-api-base-url">Web environment variables</a>):
+  - Local development when the browser hits the API on the <strong>same origin</strong> as the web app (recommended with this repo’s HTTPS dev server; see <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit env)</a>):
 
 ```txt
 https://localhost:5173/api/v1/auth/oauth/google/callback

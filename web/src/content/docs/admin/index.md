@@ -2,7 +2,7 @@
 title: Roles Overview
 description: Grtting Started to Super admin access and post-deployment setup in Openquok.
 order: 0
-lastUpdated: 2026-03-31
+lastUpdated: 2026-05-08
 ---
 
 <script>
@@ -15,6 +15,7 @@ Guides for using tools for different **admin** roles and how to grant the roles 
 
 <CardGrid>
 <LinkCard title="Super admin (first operator)" description="Sign up, then promote your user in Supabase — do this after config and deployment" href="/docs/admin/super-admin" />
+<LinkCard title="OAuth apps (client ID & secret)" description="Create and rotate OAuth apps; set redirect URL for hosted vs self-hosted auth servers" href="/docs/admin/oauth-server" />
 <LinkCard title="Security secrets" description="Set SECURITY_SECRET for invite links and OAuth2 hashing" href="/docs/admin/security-secrets" />
 </CardGrid>
 

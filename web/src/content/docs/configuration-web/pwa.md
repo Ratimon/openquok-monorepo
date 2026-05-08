@@ -1,8 +1,8 @@
 ---
-title: PWA configuration
+title: PWA Metadata
 description: Configure Openquok's app name/title/description and icon metadata in web-config.json.
-order: 2
-lastUpdated: 2026-03-30
+order: 3
+lastUpdated: 2026-05-08
 ---
 
 <script>
@@ -56,7 +56,7 @@ Icon paths in `web-config.json` are resolved relative to the web project layout,
 ## Related configuration
 
 <CardGrid>
-<LinkCard title="Environment variables" description="VITE_* values for API/Supabase/Stripe/analytics" href="/docs/configuration-web/environment" />
+<LinkCard title="Vite (SvelteKit env)" description="VITE_* values for API/Supabase/Stripe/analytics" href="/docs/configuration-web/vite" />
 <LinkCard title="Configuration - Web" description="Back to the web configuration hub" href="/docs/configuration-web" />
 </CardGrid>
 

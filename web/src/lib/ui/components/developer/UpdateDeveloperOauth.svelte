@@ -4,6 +4,7 @@
 	import type { OauthAppViewModel } from '$lib/developers/UpsertOAuthApp.presenter.svelte';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 
@@ -115,12 +116,20 @@
 		<div class="rounded-xl border border-base-300 bg-base-200 p-6">
 			<div class="flex flex-wrap items-start justify-between gap-4">
 				<div>
-					<h3 class="text-base font-semibold">OAuth application</h3>
+					<h3 class="text-base font-semibold">
+						OAuth application
+					</h3>
 					<p class="text-sm text-base-content/70">
 						One OAuth app per workspace. You’ll get a client ID and secret for the authorization code flow.
 					</p>
 				</div>
-				<a class="btn btn-outline btn-sm" href="/docs">Docs</a>
+				<Button
+					variant="ghost"
+					size="sm"
+					href="/docs/developer-guidelines/oauth2-authentication"
+				>
+					Read more ..
+				</Button>
 			</div>
 			<div class="mt-6">
 				<Button variant="primary" disabled={!canManageApps} onclick={() => onStartCreate()}>
@@ -130,7 +139,9 @@
 		</div>
 	{:else if creating && !appVm}
 		<div class="rounded-xl border border-base-300 bg-base-200 p-6">
-			<h3 class="text-base font-semibold">Create OAuth app</h3>
+			<h3 class="text-base font-semibold">
+				Create OAuth app
+			</h3>
 			<p class="mt-1 text-sm text-base-content/70">
 				The client secret is shown only once. Store it securely on your server.
 			</p>
@@ -204,10 +215,17 @@
 			<div class="rounded-xl border border-base-300 bg-base-200 p-6">
 				<div class="flex flex-wrap items-start justify-between gap-4">
 					<div>
-						<h3 class="text-base font-semibold">OAuth application</h3>
+						<h3 class="text-base font-semibold">
+							OAuth application
+						</h3>
 						<p class="text-sm text-base-content/70">Shown on the user consent screen.</p>
 					</div>
-					<a class="btn btn-outline btn-sm" href="/docs">Docs</a>
+					<Button
+						variant="outline"
+						size="sm"
+						href="/docs/developer-guidelines/oauth2-authentication">
+						Docs
+					</Button>
 				</div>
 
 				{#if editing}
@@ -304,8 +322,12 @@
 							</div>
 						</div>
 						<div>
-							<p class="text-sm font-medium text-base-content/80">Redirect URL</p>
-							<p class="text-sm">{app.redirectUrl}</p>
+							<p class="text-sm font-medium text-base-content/80">
+								Redirect URL
+							</p>
+							<p class="text-sm">
+								{app.redirectUrl}
+							</p>
 						</div>
 						<Button variant="outline" disabled={!canManageApps} onclick={() => onStartEdit()}>
 							Edit app
@@ -319,20 +341,36 @@
 					<h3 class="text-base font-semibold">Credentials</h3>
 					<div class="mt-4 space-y-4">
 						<div>
-							<p class="text-sm font-medium text-base-content/80">Client ID</p>
-							<div class="mt-1 rounded-lg border border-base-300 bg-base-100 p-3 font-mono text-sm break-all">
-								{app.clientId}
-							</div>
+							<p class="text-sm font-medium text-base-content/80">
+								Client ID
+							</p>
+							<CopyBlock
+								text={app.clientId}
+								boxClass="mt-1 rounded-lg border border-base-300 p-3"
+								background="bg-base-100"
+								copiedBackground="bg-success/10"
+								class="font-mono text-sm break-all"
+								copiedColor="text-success"
+							/>
 						</div>
 						<div>
 							<p class="text-sm font-medium text-base-content/80">Client secret</p>
-							<div class="mt-1 rounded-lg border border-base-300 bg-base-100 p-3 font-mono text-sm break-all">
-								{#if plaintextClientSecret}
-									{plaintextClientSecret}
-								{:else}
-									<span class="text-base-content/60">Secret is only shown when you create the app or rotate it.</span>
-								{/if}
-							</div>
+							{#if plaintextClientSecret}
+								<CopyBlock
+									text={plaintextClientSecret}
+									boxClass="mt-1 rounded-lg border border-base-300 p-3"
+									background="bg-base-100"
+									copiedBackground="bg-success/10"
+									class="font-mono text-sm break-all"
+									copiedColor="text-success"
+								/>
+							{:else}
+								<div class="mt-1 rounded-lg border border-base-300 bg-base-100 p-3 text-sm">
+									<span class="text-base-content/60">
+										Secret is only shown when you create the app or rotate it.
+									</span>
+								</div>
+							{/if}
 						</div>
 						<div class="flex flex-wrap gap-2">
 							<Button variant="outline" onclick={() => app.clientId && onCopy(app.clientId)}>Copy client ID</Button>
@@ -352,8 +390,7 @@
 								Rotate secret
 							</Button>
 							<Button
-								variant="outline"
-								class="border-error/50 text-error hover:bg-error/10"
+								variant="warning"
 								disabled={!canManageApps}
 								onclick={() => onRequestDeleteApp()}
 							>

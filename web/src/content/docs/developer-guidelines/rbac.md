@@ -1,5 +1,5 @@
 ---
-title: RBAC (roles & permissions)
+title: RBAC
 description: Openquok's app-level roles/permissions and the recommended backend integration patterns.
 order: 2
 lastUpdated: 2026-03-30

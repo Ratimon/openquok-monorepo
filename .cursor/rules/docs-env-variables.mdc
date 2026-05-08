@@ -1,25 +1,27 @@
 ---
-description: When adding or changing env vars — update .env*.example templates and web docs (configuration-web / configuration-backend); Badge variants; bump lastUpdated
-globs: ["backend/.env*.example", "web/.env*.example", "backend/config/GlobalConfig.ts", "web/src/lib/config/constants/config.ts"]
+description: When adding or changing env vars — update .env*.example templates and web docs (configuration-web / configuration-backend / configuration-agent); Badge variants; bump lastUpdated
+globs: ["backend/.env*.example", "web/.env*.example", "agent/server/.env*.example", "backend/config/GlobalConfig.ts", "web/src/lib/config/constants/config.ts"]
 alwaysApply: false
 ---
 
 # Documentation updates for new environment variables
 
-Apply whenever you **add, rename, or remove** an environment variable used by the **web** or **backend**, or when you wire a new var into `GlobalConfig` / `config.ts`.
+Apply whenever you **add, rename, or remove** an environment variable used by the **web**, **backend**, or **CLI auth server** (`agent/server`), or when you wire a new var into `GlobalConfig` / `config.ts`.
 
 ## 1. Always update the checked-in templates
 
 - **Backend**: add the variable (and a one-line comment if the file uses section comments) to `backend/.env.development.example`.
 - **Web (Vite)**: add variables in the `VITE_*` family to `web/.env.development.example` (only client/build-time vars belong here; use the `VITE_` prefix per Vite rules).
+- **CLI auth server**: extend `agent/server/.env.production.example` (and `SERVER.md` if you maintain the table there).
 
 Do not ship a new env key in code without documenting it in the matching example file.
 
 ## 2. Update the docs site (not only README)
 
-- **Web (`VITE_*`)**: extend `web/src/content/docs/configuration-web/environment.md` — list new keys with `<Badge text="..." variant="envWeb" />`, and add a short note if the var drives UI defaults (e.g. support email).
-- **Web config defaults**: if `web/src/lib/config/constants/config.ts` reads a new `VITE_*` for a schema default, also update `web/src/content/docs/configuration-web/config-defaults.md` (env → fallback sentence).
+- **Web (`VITE_*`)**: extend `web/src/content/docs/configuration-web/vite.md` — list new keys with `<Badge text="..." variant="envWeb" />`, and add a short note if the var drives UI defaults (e.g. support email).
+- **Web config defaults**: if `web/src/lib/config/constants/config.ts` reads a new `VITE_*` for a schema default, also update `web/src/content/docs/configuration-web/config-defaults.md` (env → fallback sentence). For **marketing / SEO schema** fields (`CONFIG_SCHEMA_MARKETING`), update `web/src/content/docs/configuration-web/seo.md` when you add or rename keys there.
 - **Backend**: add or extend the relevant page under `web/src/content/docs/configuration-backend/` — often `configuration-backend/index.md` for broadly used vars, or a **feature guide** (e.g. `resend.md`, `redis.md`, `supabase.md`) when the var is domain-specific.
+- **CLI auth server**: extend `web/src/content/docs/configuration-agent/environment.md` (and keep `agent/server/SERVER.md` aligned if it remains the canonical table).
 
 ## 3. Housekeeping on touched doc pages
 
@@ -30,6 +32,7 @@ Do not ship a new env key in code without documenting it in the matching example
 
 - [ ] `backend/.env.development.example` (if backend reads it)
 - [ ] `web/.env.development.example` (if web/Vite reads it)
-- [ ] `configuration-web/environment.md` and/or `config-defaults.md` (web)
+- [ ] `configuration-web/vite.md` and/or `config-defaults.md` / `seo.md` (web)
 - [ ] `configuration-backend/...` page (backend)
+- [ ] `configuration-agent/environment.md` (CLI auth server, if `agent/server` reads it)
 - [ ] `lastUpdated` on edited docs

@@ -1,8 +1,8 @@
 ---
 title: Config defaults
-description: How the Openquok web app derives default values from Vite env and fallbacks.
+description: How the Openquok web app derives default values from Vite env and fallbacks (backend URL, company, landing, navigation).
 order: 2
-lastUpdated: 2026-04-14
+lastUpdated: 2026-05-08
 ---
 
 <script>
@@ -30,7 +30,7 @@ Some defaults are resolved from Vite env first, then fall back to a safe constan
 
 Examples:
 
-- **API base URL** — if <Badge text="VITE_API_BASE_URL" variant="envWeb" /> is set in <Badge text=".env" variant="envFile" />, that value is used as the origin for API requests. If it is <strong>not</strong> set and Vite is in <strong>development</strong> mode, the default is an <strong>empty</strong> base so requests use same-origin paths such as <code>/api/v1/...</code> (required for HTTPS local dev; see <a href="/docs/configuration-web/environment#https-local-development-and-the-api-base-url">Environment variables → HTTPS local development</a>). In non-dev builds when the variable is still unset, the fallback is <Badge text="http://localhost:3000" variant="new" />.
+- **API base URL** — if <Badge text="VITE_API_BASE_URL" variant="envWeb" /> is set in <Badge text=".env" variant="envFile" />, that value is used as the origin for API requests. If it is <strong>not</strong> set and Vite is in <strong>development</strong> mode, the default is an <strong>empty</strong> base so requests use same-origin paths such as <code>/api/v1/...</code> (required for HTTPS local dev; see <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit env) → HTTPS local development</a>). In non-dev builds when the variable is still unset, the fallback is <Badge text="http://localhost:3000" variant="new" />.
 
 <Callout type="note" title="Vite env changes require restart/rebuild">
 When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web dev server or rebuild so Vite picks them up.
@@ -42,7 +42,7 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
 
 - **What it controls**: where the web app sends API requests.
 - **Common changes**:
-  - <strong>Local HTTPS</strong> — leave <Badge text="VITE_API_BASE_URL" variant="envWeb" /> unset so the dev server proxies <code>/api</code> to the API (see environment guide).
+  - <strong>Local HTTPS</strong> — leave <Badge text="VITE_API_BASE_URL" variant="envWeb" /> unset so the dev server proxies <code>/api</code> to the API (see <a href="/docs/configuration-web/vite">Vite (SvelteKit env)</a>).
   - <strong>Explicit origin</strong> — set <Badge text="VITE_API_BASE_URL" variant="envWeb" /> when you need a fixed API URL (for example production or a custom port).
   - Point production web → production API (via your hosting env/secret injection)
 
@@ -56,14 +56,6 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
   - **Legal name / VAT / address** (`LEGAL_NAME`, `VAT_ID`, `COMPANY_ADDRESS`)
 - **Where it appears** (examples): About page and legal pages. Secret admin email sending uses <Badge text="SITE_NAME" variant="envBackend" /> + <Badge text="SENDER_EMAIL_ADDRESS" variant="envBackend" /> on the backend; the email manager may still show the schema support email as read-only context.
 
-### `CONFIG_SCHEMA_MARKETING`
-
-- **What it controls**: SEO defaults and social links.
-- **Common changes**:
-  - **Meta title & description** (`META_TITLE`, `META_DESCRIPTION`)
-  - **Meta keywords** (`META_KEYWORDS`)
-  - **Social links** (`SOCIAL_LINKS_*`)
-
 ### `CONFIG_SCHEMA_LANDING_PAGE`
 
 - **What it controls**: default public home/landing page copy and toggles.
@@ -75,14 +67,17 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
 
 <code>config.ts</code> also exports navigation/footer link constants (for example <Badge text="PUBLIC_NAVBAR_LINKS" variant="default" /> and <Badge text="PUBLIC_FOOTER_LINKS" variant="default" />). These are not env-driven; they’re static defaults used by the public layout.
 
+Meta tags, keywords, and social links live under <Badge text="CONFIG_SCHEMA_MARKETING" variant="path" /> — see <a href="/docs/configuration-web/seo">SEO & marketing defaults</a>.
+
 <Callout type="tip" title="Defaults vs stored config">
-If your backend provides stored company/marketing configuration, pages typically prefer the stored values and fall back to these schema defaults when a field is missing.
+If your backend provides stored company or marketing configuration, pages typically prefer the stored values and fall back to these schema defaults when a field is missing.
 </Callout>
 
 ## Related configuration
 
 <CardGrid>
-<LinkCard title="Environment variables" description="VITE_* values for API/Supabase/Stripe/analytics" href="/docs/configuration-web/environment" />
+<LinkCard title="Vite (SvelteKit env)" description="VITE_* values for API/Supabase/Stripe/analytics" href="/docs/configuration-web/vite" />
+<LinkCard title="SEO & marketing defaults" description="Meta tags and social links in CONFIG_SCHEMA_MARKETING" href="/docs/configuration-web/seo" />
 <LinkCard title="Configuration - Web" description="Back to the web configuration hub" href="/docs/configuration-web" />
 </CardGrid>
 

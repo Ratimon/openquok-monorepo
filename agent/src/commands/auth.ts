@@ -1,10 +1,16 @@
 import type { Argv } from "yargs";
+import type { CommandContext, RegisterCommands } from "./types";
 
-import { deleteCredentialsFile, getConfig, writeCredentialsFile } from "../config";
+import {
+  deleteCredentialsFile,
+  // Default Configuration Values
+  getConfig,
+  OPENQUOK_DEFAULT_AUTH_SERVER,
+  writeCredentialsFile
+} from "../config";
 import { requestJson } from "../http";
 import { printJson } from "../output";
 
-import type { CommandContext, RegisterCommands } from "./types";
 import { requireArg } from "./utils";
 
 async function sleep(ms: number): Promise<void> {
@@ -24,7 +30,7 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           })
           .option("authServer", {
             type: "string",
-            describe: "Auth server base URL (defaults to OPENQUOK_AUTH_SERVER or http://localhost:3111)",
+            describe: `Auth server base URL (defaults to OPENQUOK_AUTH_SERVER or ${OPENQUOK_DEFAULT_AUTH_SERVER})`,
           }),
       async (args: any) => {
         // Option 2: API key

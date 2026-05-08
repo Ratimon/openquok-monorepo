@@ -1,0 +1,7 @@
+node_modules
+dist
+
+# Dotenv files (keep checked-in examples)
+.env*.local
+
+.vercel

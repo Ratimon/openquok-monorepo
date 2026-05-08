@@ -11,7 +11,7 @@
     "outDir": "dist",
     "types": ["node"]
   },
-  "include": ["index.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["index.ts", "app.ts"],
+  "exclude": ["dist", "node_modules", "api"]
 }
 

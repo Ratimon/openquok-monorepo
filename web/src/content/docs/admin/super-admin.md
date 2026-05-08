@@ -1,5 +1,5 @@
 ---
-title: Super admin (first operator)
+title: First setup
 description: After deployment — sign up, verify email, then set super admin access in Supabase.
 order: 1
 lastUpdated: 2026-03-31
