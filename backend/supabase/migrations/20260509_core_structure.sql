@@ -1981,6 +1981,184 @@ WITH CHECK (
 -- ---------------------------
 
 
+-- Module: oauth, File: 399_20260509_repair_after_remote_schema_drop.sql
+-- ---------------------------
+-- MODULE NAME: OAuth Apps
+-- MODULE DATE: 20260509
+-- MODULE SCOPE: Repair (tables + indexes + rlsgrants)
+-- ---------------------------
+-- Idempotent repair if `oauth_apps` / `oauth_authorizations` were dropped or had
+-- privileges revoked by mistake (e.g. an erroneous remote-schema migration).
+-- Safe on databases where OAuth tables already exist (IF NOT EXISTS / DROP POLICY IF EXISTS).
+
+
+
+CREATE TABLE IF NOT EXISTS public.oauth_apps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    picture_id UUID REFERENCES public.media(id) ON DELETE SET NULL,
+    redirect_url TEXT NOT NULL,
+    client_id TEXT NOT NULL,
+    client_secret_hash TEXT NOT NULL,
+    deleted_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+COMMENT ON TABLE public.oauth_apps IS 'OAuth applications for third-party access; scoped to an organization.';
+COMMENT ON COLUMN public.oauth_apps.redirect_url IS 'OAuth redirect/callback URL registered by the app owner.';
+
+CREATE TABLE IF NOT EXISTS public.oauth_authorizations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    oauth_app_id UUID NOT NULL REFERENCES public.oauth_apps(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    access_token_hash TEXT,
+    authorization_code_hash TEXT,
+    code_expires_at TIMESTAMPTZ,
+    revoked_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    CONSTRAINT uq_oauth_authorizations_app_user_org UNIQUE (oauth_app_id, user_id, organization_id)
+);
+
+COMMENT ON TABLE public.oauth_authorizations IS 'OAuth2 authorizations: issued codes and access tokens for a user+org per app. Raw secrets are not stored.';
+COMMENT ON COLUMN public.oauth_authorizations.authorization_code_hash IS 'SHA-256 hash (plus server pepper) of issued authorization code.';
+COMMENT ON COLUMN public.oauth_authorizations.access_token_hash IS 'SHA-256 hash (plus server pepper) of issued access token.';
+
+CREATE INDEX IF NOT EXISTS idx_oauth_apps_org_id ON public.oauth_apps(organization_id);
+CREATE INDEX IF NOT EXISTS idx_oauth_apps_created_by_user_id ON public.oauth_apps(created_by_user_id);
+CREATE INDEX IF NOT EXISTS idx_oauth_apps_deleted_at ON public.oauth_apps(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_oauth_apps_client_id ON public.oauth_apps(client_id);
+CREATE INDEX IF NOT EXISTS idx_oauth_apps_client_id ON public.oauth_apps(client_id);
+
+CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_oauth_app_id ON public.oauth_authorizations(oauth_app_id);
+CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_user_id ON public.oauth_authorizations(user_id);
+CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_org_id ON public.oauth_authorizations(organization_id);
+CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_revoked_at ON public.oauth_authorizations(revoked_at);
+CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_access_token_hash ON public.oauth_authorizations(access_token_hash);
+CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_authorization_code_hash ON public.oauth_authorizations(authorization_code_hash);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.oauth_apps TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.oauth_apps TO service_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.oauth_authorizations TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.oauth_authorizations TO service_role;
+
+ALTER TABLE public.oauth_apps ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Members can view oauth apps" ON public.oauth_apps;
+CREATE POLICY "Members can view oauth apps"
+ON public.oauth_apps
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = oauth_apps.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Admins can manage oauth apps" ON public.oauth_apps;
+CREATE POLICY "Admins can manage oauth apps"
+ON public.oauth_apps
+AS PERMISSIVE
+FOR ALL
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = oauth_apps.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+          AND uo.role IN ('admin', 'superadmin')
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1
+        FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = oauth_apps.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+          AND uo.role IN ('admin', 'superadmin')
+    )
+);
+
+ALTER TABLE public.oauth_authorizations ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Members can view oauth authorizations" ON public.oauth_authorizations;
+CREATE POLICY "Members can view oauth authorizations"
+ON public.oauth_authorizations
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = oauth_authorizations.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Users can manage own oauth authorizations" ON public.oauth_authorizations;
+DROP POLICY IF EXISTS "Users can insert own oauth authorizations" ON public.oauth_authorizations;
+CREATE POLICY "Users can insert own oauth authorizations"
+ON public.oauth_authorizations
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1
+        FROM public.users u
+        WHERE u.id = oauth_authorizations.user_id
+          AND u.auth_id = auth.uid()
+    )
+);
+
+DROP POLICY IF EXISTS "Users can update own oauth authorizations" ON public.oauth_authorizations;
+CREATE POLICY "Users can update own oauth authorizations"
+ON public.oauth_authorizations
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM public.users u
+        WHERE u.id = oauth_authorizations.user_id
+          AND u.auth_id = auth.uid()
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1
+        FROM public.users u
+        WHERE u.id = oauth_authorizations.user_id
+          AND u.auth_id = auth.uid()
+    )
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: customer, File: 301_20260412_rlsgrants.sql
 -- ---------------------------
 -- MODULE NAME: customer

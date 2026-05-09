@@ -207,7 +207,11 @@
 					>
 						Create
 					</Button>
-					<Button variant="outline" onclick={() => onCancelCreate()}>Cancel</Button>
+					<Button
+						variant="ghost"
+						onclick={() => onCancelCreate()}>
+						Cancel
+					</Button>
 				</div>
 			</div>
 		</div>
@@ -280,7 +284,10 @@
 										?
 									</div>
 								{/if}
-								<Button variant="outline" type="button" onclick={() => onOpenMediaPicker()}>
+								<Button
+									variant="secondary"
+									type="button" onclick={() => onOpenMediaPicker()}
+								>
 									Choose image
 								</Button>
 								{#if formPictureId}

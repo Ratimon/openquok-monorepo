@@ -17,7 +17,18 @@
 		portalProps,
 		children,
 		class: className,
-		...restProps
+		/* Command.Root-only — must not be forwarded to Dialog.Root */
+		label,
+		shouldFilter,
+		filter,
+		onStateChange,
+		onValueChange,
+		loop,
+		vimBindings,
+		disablePointerSelection,
+		disableInitialScroll,
+		columns,
+		...dialogRest
 	}: WithoutChildrenOrChild<DialogRootProps> &
 		WithoutChildrenOrChild<CommandRootProps> & {
 			portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DialogPortal>>;
@@ -29,7 +40,7 @@
 		} = $props();
 </script>
 
-<Dialog.Root bind:open {...restProps}>
+<Dialog.Root bind:open {...dialogRest}>
 	<Dialog.Header class="sr-only">
 		<Dialog.Title>{title}</Dialog.Title>
 		<Dialog.Description>{description}</Dialog.Description>
@@ -42,6 +53,21 @@
 		{showCloseButton}
 		{portalProps}
 	>
-		<Command {...restProps} bind:value bind:ref {children} />
+		<Command
+			{...dialogRest}
+			bind:value
+			bind:ref
+			{label}
+			{shouldFilter}
+			{filter}
+			{onStateChange}
+			{onValueChange}
+			{loop}
+			{vimBindings}
+			{disablePointerSelection}
+			{disableInitialScroll}
+			{columns}
+			{children}
+		/>
 	</Dialog.Content>
 </Dialog.Root>

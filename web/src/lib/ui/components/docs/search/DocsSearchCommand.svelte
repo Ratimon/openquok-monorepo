@@ -24,6 +24,9 @@
 
 	async function loadPagefind() {
 		if (pagefind) return;
+		// Pagefind index is generated at build time and served from `/pagefind/*`.
+		// In dev, it won't exist, so skip loading to avoid noisy 404s.
+		if (import.meta.env.DEV) return;
 		try {
 			const pagefindUrl = `${window.location.origin}/pagefind/pagefind.js`;
 			/* Vite cannot analyze import(variable). Svelte may drop @vite-ignore on import(); use runtime indirection. */
@@ -39,6 +42,51 @@
 	}
 
 	let debounceTimer: ReturnType<typeof setTimeout>;
+
+	function flattenNavForSearch(sections: NavItem[]) {
+		const rows: { href: string; title: string; sectionTitle: string }[] = [];
+		function walk(nodes: NavItem[] | undefined, sectionTitle: string) {
+			if (!nodes) return;
+			for (const node of nodes) {
+				if (node.href) {
+					rows.push({ href: node.href, title: node.title, sectionTitle });
+				}
+				if (node.items?.length) walk(node.items, sectionTitle);
+			}
+		}
+		for (const section of sections) {
+			const heading = section.title;
+			if (section.href) {
+				rows.push({ href: section.href, title: section.title, sectionTitle: heading });
+			}
+			walk(section.items, heading);
+		}
+		return rows;
+	}
+
+	const fallbackResults = $derived.by(() => {
+		const q = query.trim().toLowerCase();
+		if (q.length < 2) return [] as PagefindResult[];
+		const rows = flattenNavForSearch(navigation);
+		return rows
+			.filter(
+				(r) =>
+					r.title.toLowerCase().includes(q) || r.sectionTitle.toLowerCase().includes(q)
+			)
+			.slice(0, 8)
+			.map((r) => ({
+				url: r.href,
+				meta: { title: r.title },
+				excerpt: r.sectionTitle
+			}));
+	});
+
+	const displayResults = $derived.by(() => {
+		if (searching) return [];
+		if (searchResults.length > 0) return searchResults;
+		if (query.trim().length < 2) return [];
+		return fallbackResults;
+	});
 
 	$effect(() => {
 		const q = query;
@@ -114,7 +162,15 @@
 	</kbd>
 </Button>
 
-<Command.Dialog bind:open title="Search documentation" description="Find a docs page">
+<Command.Dialog
+	bind:open
+	title="Search documentation"
+	description="Find a docs page"
+	shouldFilter={false}
+	onStateChange={(state) => {
+		query = state.search;
+	}}
+>
 	<Command.Input placeholder="Search documentation…" bind:value={query} />
 	<Command.List>
 		<Command.Empty>
@@ -127,9 +183,9 @@
 			{/if}
 		</Command.Empty>
 
-		{#if searchResults.length > 0}
+		{#if displayResults.length > 0}
 			<Command.Group heading="Results">
-				{#each searchResults as result (result.url)}
+				{#each displayResults as result (result.url)}
 					<Command.Item onSelect={() => navigate(result.url)}>
 						<AbstractIcon name={icons.FileText.name} class="shrink-0" width="16" height="16" />
 						<div class="flex min-w-0 flex-col gap-0.5 overflow-hidden">
@@ -143,7 +199,7 @@
 					</Command.Item>
 				{/each}
 			</Command.Group>
-		{:else if !query}
+		{:else if !query.trim()}
 			{#each navigation as section (section.title)}
 				<Command.Group heading={section.title}>
 					{#each section.items ?? [] as item (item.title)}

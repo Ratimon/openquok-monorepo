@@ -23,6 +23,14 @@
     "@vercel/node": "^5.1.1",
     "tsx": "^4.20.5",
     "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "glob": "^13.0.0",
+      "mkdirp": "^1.0.4",
+      "uuid": "^8.3.2",
+      "node-domexception": "^2.0.2"
+    }
   }
 }
 

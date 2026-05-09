@@ -22,13 +22,12 @@ var fs = require('fs/promises');
 var zod = require('zod');
 var fs2 = require('fs');
 var multer = require('multer');
-var api = require('@bull-board/api');
-var bullMQAdapter = require('@bull-board/api/bullMQAdapter');
-var express$1 = require('@bull-board/express');
 var bullmq = require('bullmq');
+var module$1 = require('module');
 var cookieParser = require('cookie-parser');
 var rateLimit = require('express-rate-limit');
 
+var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
 function _interopNamespace(e) {
@@ -189,14 +188,14 @@ var init_Logger = __esm({
 // config/loadBackendDotenv.cjs
 var require_loadBackendDotenv = __commonJS({
   "config/loadBackendDotenv.cjs"(exports$1, module) {
-    var path5 = __require("path");
+    var path6 = __require("path");
     var fs3 = __require("fs");
     var dotenv = __require("dotenv");
     var BACKEND_PACKAGE_NAME = "backend";
     function resolveBackendPackageRoot() {
       let dir = __dirname;
       for (let i = 0; i < 25; i++) {
-        const pkgPath = path5.join(dir, "package.json");
+        const pkgPath = path6.join(dir, "package.json");
         if (fs3.existsSync(pkgPath)) {
           try {
             const pkg = JSON.parse(fs3.readFileSync(pkgPath, "utf8"));
@@ -206,7 +205,7 @@ var require_loadBackendDotenv = __commonJS({
           } catch {
           }
         }
-        const parent = path5.dirname(dir);
+        const parent = path6.dirname(dir);
         if (parent === dir) {
           break;
         }
@@ -221,8 +220,8 @@ var require_loadBackendDotenv = __commonJS({
       const override = forceOverride || env !== "production";
       const underJest = String(process.env.JEST_WORKER_ID ?? "").length > 0;
       const overrideLocal = underJest ? false : override;
-      dotenv.config({ path: path5.join(root, `.env.${env}.local`), override: overrideLocal });
-      dotenv.config({ path: path5.join(root, ".env"), override: false });
+      dotenv.config({ path: path6.join(root, `.env.${env}.local`), override: overrideLocal });
+      dotenv.config({ path: path6.join(root, ".env"), override: false });
     }
     module.exports = { loadBackendDotenv: loadBackendDotenv2 };
   }
@@ -4333,7 +4332,7 @@ var OrganizationRepository = class {
     this.supabase = supabase2;
   }
   async generateApiKey() {
-    return `opo_${makeId(48)}`;
+    return `opk_${makeId(48)}`;
   }
   /** Find public.users.id by auth_id (Supabase auth user id).
    *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
@@ -5650,9 +5649,9 @@ var StorageR2Repository = class {
     }
     return this.client;
   }
-  async downloadObject(path5) {
+  async downloadObject(path6) {
     const r2 = this.assertClient();
-    const { buffer, contentType } = await r2.getObjectBuffer(path5);
+    const { buffer, contentType } = await r2.getObjectBuffer(path6);
     const data = new Blob([new Uint8Array(buffer)], { type: contentType });
     return { data, error: null };
   }
@@ -5700,8 +5699,8 @@ function publicUrlForObjectKey(key) {
   if (!base) return null;
   return `${base}/${key.replace(/^\/+/, "")}`;
 }
-function mediaKindForPath(path5) {
-  const ext = path5.split(".").pop()?.toLowerCase() ?? "";
+function mediaKindForPath(path6) {
+  const ext = path6.split(".").pop()?.toLowerCase() ?? "";
   if (["png", "jpg", "jpeg", "gif", "webp", "svg", "avif"].includes(ext)) return "image";
   if (["mp4", "mov", "webm", "m4v", "mpeg"].includes(ext)) return "video";
   if (["mp3", "wav", "ogg", "m4a", "aac"].includes(ext)) return "audio";
@@ -5793,10 +5792,10 @@ var MediaRepository = class {
     }
     return data ?? null;
   }
-  async getMediaByPath(organizationId, path5) {
+  async getMediaByPath(organizationId, path6) {
     const { data, error } = await this.supabase.from(TABLE_MEDIA).select(
       "id, name, original_name, path, virtual_path, organization_id, created_at, updated_at, deleted_at, file_size, type, thumbnail, alt, thumbnail_timestamp"
-    ).eq("organization_id", organizationId).eq("path", path5).is("deleted_at", null).maybeSingle();
+    ).eq("organization_id", organizationId).eq("path", path6).is("deleted_at", null).maybeSingle();
     if (error) {
       throw new DatabaseError(`Failed to fetch media: ${error.message}`, {
         cause: error,
@@ -5853,8 +5852,8 @@ var StorageSupabaseRepository = class {
     const { data } = this.supabaseServiceClient.storage.from(databaseName).getPublicUrl(imageUrl);
     return data.publicUrl;
   }
-  async downloadImage(databaseName, path5) {
-    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).download(path5);
+  async downloadImage(databaseName, path6) {
+    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).download(path6);
     if (error) {
       const rawMsg = error.message;
       const msg = (typeof rawMsg === "string" ? rawMsg : JSON.stringify(rawMsg ?? error) || "Unknown storage error").toLowerCase();
@@ -5885,8 +5884,8 @@ var StorageSupabaseRepository = class {
     }
     return filePath;
   }
-  async deleteImage(databaseName, path5) {
-    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).remove([path5]);
+  async deleteImage(databaseName, path6) {
+    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).remove([path6]);
     if (error) {
       throw new DatabaseError(`Error in deleteImage: ${databaseName} with message ${error.message}`, {
         cause: error,
@@ -9103,8 +9102,8 @@ var POLL_MAX_ROUNDS = 60;
 function sleepMs(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-function mediaExtFromUrlOrKey(path5) {
-  const raw = String(path5 || "").trim();
+function mediaExtFromUrlOrKey(path6) {
+  const raw = String(path6 || "").trim();
   if (!raw) return "";
   try {
     const u = new URL(raw);
@@ -9133,8 +9132,8 @@ function extractComposerMedia(settings) {
   }
   return [];
 }
-function resolvePublicMediaUrl(path5) {
-  const raw = path5.trim();
+function resolvePublicMediaUrl(path6) {
+  const raw = path6.trim();
   if (!raw) throw new Error("Media path is empty");
   assertInstagramSupportedMedia(raw);
   if (raw.startsWith("http://") || raw.startsWith("https://")) {
@@ -9789,8 +9788,8 @@ var InstagramStandaloneProvider = class {
 init_GlobalConfig();
 init_Logger();
 var GRAPH2 = "https://graph.threads.net/v1.0";
-function mediaExtFromUrlOrKey2(path5) {
-  const raw = String(path5 || "").trim();
+function mediaExtFromUrlOrKey2(path6) {
+  const raw = String(path6 || "").trim();
   if (!raw) return "";
   try {
     const u = new URL(raw);
@@ -10044,8 +10043,8 @@ var ThreadsProvider = class {
   /**
    * Composer media stores an object key (R2) in `path`. Threads needs a public HTTPS URL in `image_url` / `video_url`
    */
-  resolvePublicMediaUrl(path5) {
-    const raw = path5.trim();
+  resolvePublicMediaUrl(path6) {
+    const raw = path6.trim();
     if (!raw) {
       throw new Error("Media path is empty");
     }
@@ -12913,8 +12912,8 @@ var MediaService = class {
   getMediaById(organizationId, id) {
     return this._mediaRepository.getMediaById(organizationId, id);
   }
-  getMediaByPath(organizationId, path5) {
-    return this._mediaRepository.getMediaByPath(organizationId, path5);
+  getMediaByPath(organizationId, path6) {
+    return this._mediaRepository.getMediaByPath(organizationId, path6);
   }
   softDeleteMedia(organizationId, id) {
     return this._mediaRepository.softDeleteMedia(organizationId, id);
@@ -13232,9 +13231,10 @@ function assertValidUrl(url, errorMsg) {
   }
 }
 var OauthAppService = class {
-  constructor(oauthAppRepository2, organizationRepository2) {
+  constructor(oauthAppRepository2, organizationRepository2, mediaRepository2) {
     this.oauthAppRepository = oauthAppRepository2;
     this.organizationRepository = organizationRepository2;
+    this.mediaRepository = mediaRepository2;
   }
   async resolveAuthUserToUserId(authUserId) {
     const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
@@ -13252,12 +13252,28 @@ var OauthAppService = class {
   }
   async listApps(authUserId, organizationId) {
     await this.assertOrgAdmin(authUserId, organizationId);
-    return this.oauthAppRepository.listAppsByOrganization(organizationId);
+    const apps = await this.oauthAppRepository.listAppsByOrganization(organizationId);
+    return Promise.all(apps.map((a) => this.enrichAppWithPicturePublicUrls(a, organizationId)));
   }
   async getApp(authUserId, organizationId) {
     await this.assertOrgAdmin(authUserId, organizationId);
     const app2 = await this.oauthAppRepository.getAppByOrganizationId(organizationId);
-    return app2 ?? false;
+    if (!app2) return false;
+    return this.enrichAppWithPicturePublicUrls(app2, organizationId);
+  }
+  async enrichAppWithPicturePublicUrls(app2, organizationId) {
+    if (!app2.picture_id) {
+      return { ...app2, picture_public_url: null, picture_thumbnail_public_url: null };
+    }
+    const media = await this.mediaRepository.getMediaById(organizationId, app2.picture_id);
+    if (!media || media.deleted_at) {
+      return { ...app2, picture_public_url: null, picture_thumbnail_public_url: null };
+    }
+    return {
+      ...app2,
+      picture_public_url: publicUrlForObjectKey(media.path),
+      picture_thumbnail_public_url: media.thumbnail ? publicUrlForObjectKey(media.thumbnail) : null
+    };
   }
   /**
    * Create an OAuth app (admin-only). Returns the raw clientSecret exactly once.
@@ -13275,8 +13291,8 @@ var OauthAppService = class {
     assertValidUrl(redirectUrl, "Redirect URL is invalid");
     const secretKey = config.auth?.programmaticTokenSecret ?? "";
     if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
-    const clientId = `opo_${makeId(32)}`;
-    const clientSecret = `opo_${makeId(48)}`;
+    const clientId = `oqc_${makeId(32)}`;
+    const clientSecret = `oqs_${makeId(48)}`;
     const clientSecretHash = hashProgrammaticToken(clientSecret, secretKey);
     const app2 = await this.oauthAppRepository.createApp({
       organizationId: input.organizationId,
@@ -13288,7 +13304,8 @@ var OauthAppService = class {
       clientId,
       clientSecretHash
     });
-    return { app: app2, clientId, clientSecret };
+    const enriched = await this.enrichAppWithPicturePublicUrls(app2, input.organizationId);
+    return { app: enriched, clientId, clientSecret };
   }
   async updateApp(authUserId, input) {
     await this.assertOrgAdmin(authUserId, input.organizationId);
@@ -13297,7 +13314,7 @@ var OauthAppService = class {
       if (!redirectUrl) throw new AppError("Redirect URL is invalid", 400);
       assertValidUrl(redirectUrl, "Redirect URL is invalid");
     }
-    return this.oauthAppRepository.updateApp({
+    const updated = await this.oauthAppRepository.updateApp({
       organizationId: input.organizationId,
       oauthAppId: input.oauthAppId,
       name: input.name?.trim(),
@@ -13305,12 +13322,14 @@ var OauthAppService = class {
       pictureId: input.pictureId,
       redirectUrl: input.redirectUrl?.trim()
     });
+    if (!updated) return null;
+    return this.enrichAppWithPicturePublicUrls(updated, input.organizationId);
   }
   async rotateSecret(authUserId, input) {
     await this.assertOrgAdmin(authUserId, input.organizationId);
     const secretKey = config.auth?.programmaticTokenSecret ?? "";
     if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
-    const newSecret = `opo_${makeId(48)}`;
+    const newSecret = `oqs_${makeId(48)}`;
     const clientSecretHash = hashProgrammaticToken(newSecret, secretKey);
     await this.oauthAppRepository.updateClientSecretHash({
       organizationId: input.organizationId,
@@ -13371,7 +13390,7 @@ var OauthService = class {
       if (params.state?.trim()) redirectUrl2.searchParams.set("state", params.state);
       return { redirect: redirectUrl2.toString() };
     }
-    const code = `opo_${makeId(32)}`;
+    const code = `oqo_${makeId(32)}`;
     const secretKey = this.mustGetSecretKey();
     const codeHash = hashProgrammaticToken(code, secretKey);
     const expiresAtIso = new Date(Date.now() + 10 * 60 * 1e3).toISOString();
@@ -13522,7 +13541,7 @@ var integrationConnectionService = new IntegrationConnectionService(
   cacheServiceConnection,
   cacheInvalidationServiceConnection
 );
-var oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository);
+var oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository, mediaRepository);
 var oauthService = new OauthService(oauthAppRepository, organizationRepository);
 var postsService = new PostsService(
   postsRepository,
@@ -16216,14 +16235,14 @@ var R2Storage = class {
     await this.storageR2Repository.putObject(key, params.buffer, params.contentType);
     return { path: key, publicUrl: publicUrlForObjectKey(key) };
   }
-  async downloadObject(path5) {
-    const { data } = await this.storageR2Repository.downloadObject(path5);
+  async downloadObject(path6) {
+    const { data } = await this.storageR2Repository.downloadObject(path6);
     const buffer = data instanceof Buffer ? data : Buffer.from(await data.arrayBuffer());
     const contentType = data.type ?? "application/octet-stream";
     return { buffer, contentType };
   }
-  async deleteObject(path5) {
-    await this.storageR2Repository.deleteObject(path5);
+  async deleteObject(path6) {
+    await this.storageR2Repository.deleteObject(path6);
   }
 };
 
@@ -18412,6 +18431,19 @@ oauthRouter.post("/token", validateOauthTokenBody, oauthController.token);
 oauthRouter.get("/approved-apps", auth9, oauthController.approvedApps);
 oauthRouter.post("/revoke", auth9, validateOauthRevokeBody, oauthController.revoke);
 init_Logger();
+function resolveBullBoardUiBasePath() {
+  try {
+    const localRequire = module$1.createRequire((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('[[...path]].js', document.baseURI).href)));
+    const uiPackageJsonPath = localRequire.resolve("@bull-board/ui/package.json");
+    return path__default.default.dirname(uiPackageJsonPath);
+  } catch (error) {
+    logger.error({
+      msg: "[BullBoard] Failed to resolve @bull-board/ui package; dashboard will not mount",
+      error: error instanceof Error ? error.message : String(error)
+    });
+    return null;
+  }
+}
 function normalizeLeadingSlash(p) {
   const s = p.trim();
   if (!s) return "/";
@@ -18493,7 +18525,7 @@ function registerBullBoardSessionRoutes(apiRouter, config2) {
   apiRouter.use("/admin/bull-board/session", session);
   logger.info({ msg: "[BullBoard] Session cookie routes mounted", cookiePath, sessionBase: "/admin/bull-board/session" });
 }
-function registerBullBoardRoutes(apiRouter, config2) {
+async function registerBullBoardRoutes(apiRouter, config2) {
   const bullBoardEnabled = config2.admin?.bullBoard?.enabled === true;
   const layout = getBullBoardPathLayout(config2);
   if (!layout) {
@@ -18514,19 +18546,41 @@ function registerBullBoardRoutes(apiRouter, config2) {
     logger.warn({ msg: "[BullBoard] No BullMQ queues configured; not mounting", fullPath });
     return;
   }
-  const serverAdapter = new express$1.ExpressAdapter();
-  serverAdapter.setBasePath(fullPath);
-  const connection = getQueueRedisConnectionOptions();
-  const queues = uniqueQueueNames.map((name) => new bullMQAdapter.BullMQAdapter(new bullmq.Queue(name, { connection })));
-  api.createBullBoard({
-    queues,
-    serverAdapter
-  });
-  const boardRouter = express__default.default.Router();
-  const authWithRoles9 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
-  boardRouter.use(authWithRoles9, requireSuperAdmin, serverAdapter.getRouter());
-  apiRouter.use(mountPath, boardRouter);
-  logger.info({ msg: "[BullBoard] Mounted (super admin only)", publicUrl: fullPath, mountPath, queues: uniqueQueueNames });
+  const uiBasePath = resolveBullBoardUiBasePath();
+  if (!uiBasePath) {
+    return;
+  }
+  try {
+    const [{ createBullBoard }, { BullMQAdapter }, { ExpressAdapter }] = await Promise.all([
+      import('@bull-board/api'),
+      import('@bull-board/api/bullMQAdapter'),
+      import('@bull-board/express')
+    ]);
+    const serverAdapter = new ExpressAdapter();
+    serverAdapter.setBasePath(fullPath);
+    const connection = getQueueRedisConnectionOptions();
+    const queues = uniqueQueueNames.map((name) => new BullMQAdapter(new bullmq.Queue(name, { connection })));
+    createBullBoard({
+      queues,
+      serverAdapter,
+      options: { uiBasePath, uiConfig: {} }
+    });
+    const boardRouter = express__default.default.Router();
+    const authWithRoles9 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+    boardRouter.use(authWithRoles9, requireSuperAdmin, serverAdapter.getRouter());
+    apiRouter.use(mountPath, boardRouter);
+    logger.info({
+      msg: "[BullBoard] Mounted (super admin only)",
+      publicUrl: fullPath,
+      mountPath,
+      queues: uniqueQueueNames
+    });
+  } catch (error) {
+    logger.error({
+      msg: "[BullBoard] Failed to mount dashboard (non-fatal)",
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
 }
 
 // routes/index.ts
@@ -18537,8 +18591,15 @@ async function mountAllRoutes(app2, config2) {
   const apiRouter = express__default.default.Router();
   apiRouter.use("/auth", authRouter);
   apiRouter.use("/users", userRouter);
-  registerBullBoardSessionRoutes(apiRouter, config2);
-  registerBullBoardRoutes(apiRouter, config2);
+  try {
+    registerBullBoardSessionRoutes(apiRouter, config2);
+    await registerBullBoardRoutes(apiRouter, config2);
+  } catch (error) {
+    logger.error({
+      msg: "[Routes] Bull Board setup failed (non-fatal); dashboard will not be available",
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
   apiRouter.use("/admin", adminRouter);
   apiRouter.use("/company", companyRouter);
   apiRouter.use("/settings", settingsRouter);
@@ -18767,10 +18828,10 @@ var globalLimiter = createRateLimiter({
   ...config.rateLimit.global,
   skip: (req) => {
     if (shouldSkipRateLimit()) return true;
-    const path5 = req.path;
+    const path6 = req.path;
     const originalUrl = req.originalUrl || req.url;
-    const isWebhook = path5.includes("/webhooks/") || originalUrl.includes("/webhooks/");
-    const isBypass = path5 === "/health" || path5.startsWith("/health") || path5 === "/sitemap.xml" || path5.startsWith("/sitemap.xml");
+    const isWebhook = path6.includes("/webhooks/") || originalUrl.includes("/webhooks/");
+    const isBypass = path6 === "/health" || path6.startsWith("/health") || path6 === "/sitemap.xml" || path6.startsWith("/sitemap.xml");
     return isWebhook || isBypass;
   }
 });

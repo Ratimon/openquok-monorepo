@@ -2,7 +2,7 @@
 title: Production deployment
 description: Production setup for the OpenQuok web, backend, optional CLI auth server, and optional orchestrator workers.
 order: 1
-lastUpdated: 2026-05-08
+lastUpdated: 2026-05-09
 ---
 
 <script>
@@ -51,6 +51,33 @@ pnpm vercel:deploy:agent-server:prod
 ```
 
 After deploy, configure OAuth redirect URIs, webhooks, and any third-party dashboards to use your production API URL.
+
+## Deploy orchestrator workers (Railway)
+
+Workers are required when you configure BullMQ transports . Use <a href="/docs/configuration-worker/railway">Configuration → Worker → Railway (workers)</a> for the full CLI flow and service management details.
+
+From the repository root, set up / deploy one persistent service per worker:
+
+```bash
+# One-time: create services + set production env vars
+pnpm railway:setup:integration-refresh
+pnpm railway:setup:notification-email
+pnpm railway:setup:scheduled-social-post
+```
+
+```bash
+# Update env (safe to re-run)
+pnpm railway:env:sync:integration-refresh:prod
+pnpm railway:env:sync:notification-email:prod
+pnpm railway:env:sync:scheduled-social-post:prod
+```
+
+```bash
+# Deploy each worker (Railway CLI must be linked to the target service)
+pnpm railway:deploy:integration-refresh
+pnpm railway:deploy:notification-email
+pnpm railway:deploy:scheduled-social-post
+```
 
 ## Next steps
 

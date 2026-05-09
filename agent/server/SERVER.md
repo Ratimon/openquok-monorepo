@@ -78,9 +78,19 @@ curl http://localhost:3111/health
 
 Any platform that runs Node.js and can reach Postgres works (Railway, Fly.io, Render, a VPS, etc.). The process is stateless aside from Postgres, so you can run **multiple instances behind a load balancer** as long as they share the same `DATABASE_URL` and the same `SERVER_URL` (and OAuth client credentials). No sticky sessions are required: device-flow state lives in Postgres.
 
-For **serverless (Vercel)** this repo includes `vercel.json` and `api/[[...slug]].ts`. Public routes stay at the root (`/health`, `/device/*`); rewrites send them to the function under `/api`. Set `SERVER_URL` to your deployment’s public origin (for example `https://your-project.vercel.app` or `https://cli-auth.openquok.com`). Use a managed Postgres with pooling (for example Neon, Supabase, or Vercel Postgres) and a connection string suited to serverless concurrency.
+For **serverless (Vercel)** this repo includes `vercel.json` and `api/[...slug].ts` (catch-all handler). `maxDuration` is set via `export const config` in that file (not `vercel.json` `functions` globs, which are easy to misconfigure with dynamic segment names). Deploy the CLI auth server with **`pnpm vercel:deploy:agent-server`** (same pattern as backend/web: monorepo root cwd + `agent/server/vercel.json`) or set the Vercel project **Root Directory** to `agent/server` for Git deployments. There is no `vercel.agent-server.json` at the repo root: unlike backend or web, this app has no top-level `api/` when Root Directory is empty. Public routes stay at the root (`/health`, `/device/*`); rewrites send them to the function under `/api`. Set `SERVER_URL` to your deployment’s public origin (for example `https://your-project.vercel.app` or `https://cli-auth.openquok.com`). Use a managed Postgres with pooling (for example Neon, Supabase, or Vercel Postgres) and a connection string suited to serverless concurrency.
 
-**Monorepo:** In the Vercel project, set **Root Directory** to `agent/server`. `vercel.json` uses an `installCommand` that runs `pnpm install` from the repository root with a workspace filter so dependencies resolve.
+**Monorepo / Vercel:** Set **Root Directory** to `agent/server`. The build uses a **standalone** `pnpm install --ignore-workspace` in this package only (not `pnpm install` at the monorepo root), so the installer does not load the full workspace graph — this avoids **out-of-memory** failures on the default Vercel builder. Runtime is still only this service; other workspace packages are not bundled.
+
+After changing `agent/server/package.json` dependencies, regenerate and commit a standalone lockfile for reproducible installs:
+
+```bash
+pnpm agent-server:sync-standalone-lockfile
+```
+
+When `agent/server/pnpm-lock.yaml` is present, Vercel uses `--frozen-lockfile`; otherwise it resolves from `package.json` ranges.
+
+The local CLI may sit on **“Building…”** while Vercel runs install + `buildCommand` + serverless bundling remotely — that is normal; open the **Inspect** link from the CLI output for live build logs.
 
 **Deploy from your machine:**
 

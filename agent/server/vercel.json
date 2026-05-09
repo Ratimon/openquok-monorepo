@@ -1,10 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile --filter @openquok/cli-auth-server...",
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/api/$1" }],
-  "functions": {
-    "api/[[...slug]].ts": {
-      "maxDuration": 30
-    }
-  }
+  "framework": null,
+  "installCommand": "sh -c \"if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile --ignore-workspace --config.child-concurrency=1 --config.network-concurrency=1; else pnpm install --ignore-workspace --config.child-concurrency=1 --config.network-concurrency=1; fi\"",
+  "buildCommand": "pnpm run build",
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/api/$1" }]
 }

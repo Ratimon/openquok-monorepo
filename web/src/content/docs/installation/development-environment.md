@@ -2,7 +2,7 @@
 title: Development environment
 description: Run Openquok's backend and web apps locally, execute tests, database scripts, and deployment commands.
 order: 0
-lastUpdated: 2026-05-08
+lastUpdated: 2026-05-09
 ---
 
 <script>
@@ -221,14 +221,14 @@ Worker env and Redis queue details live in <a href="/docs/configuration-worker/d
 
 The CLI auth server (<Badge text="agent/server" variant="path" />) implements the OAuth2 device flow used by <code>openquok auth:login</code>. Most developers can use the hosted server by default, but you can run it locally for end-to-end testing.
 
-<Callout type="note" title="Auth server docs">
-See <a href="/docs/configuration-agent">Configuration - Agent</a> for env vars, hosted vs self-host, and callback URL details.
+<Callout type="note" title="CLI and auth server docs">
+<p>Use <a href="/docs/cli">CLI</a> and <a href="/docs/cli/authentication">CLI authentication</a> to install the CLI, run <code>openquok auth:login</code>, and set <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" />. Server-side env (<Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, OAuth keys) is covered under <a href="/docs/configuration-agent">Configuration - Agent</a>.</p>
 </Callout>
 
 
 - Creating / rotating client ID + secret (operator/admin): <a href="/docs/admin/oauth-server">Admin — OAuth Server</a>
 
-**Run local Postgres (auth server state)** — the auth server stores device-flow state in Postgres. A local Docker service is provided:
+**Run local Postgres (auth server state)** — the auth server stores device-flow state in Postgres:
 
 ```bash
 # From repo root
@@ -244,9 +244,28 @@ Then set <Badge text="DATABASE_URL" variant="envBackend" /> in <Badge text="agen
 pnpm agent-server:dev
 ```
 
-Once running, you can point the CLI at it by setting <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> (or passing <code>--authServer</code> to <code>openquok auth:login</code>).
+Once running, point the CLI at it via <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <code>--authServer</code> — see <a href="/docs/cli/authentication">CLI authentication</a>.
 
-Auth server env details (including <Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, and OAuth client keys) live in <a href="/docs/configuration-agent#environment-variables">Configuration → Agent → Environment variables</a>.
+
+### Running the CLI from the monorepo (unpublished)
+
+Published installs use the global <code>openquok</code> command — see <a href="/docs/cli">CLI</a>. If <Badge text="@openquok/auto-cli" variant="experimental" /> is **not** installed from npm yet, build the CLI package and run the compiled entrypoint **from the repository root**:
+
+```bash
+pnpm --filter ./agent build
+node agent/dist/index.js auth:login --authServer http://localhost:3111
+```
+
+Same flow using the package <code>start</code> script (arguments after <code>--</code> are forwarded to the CLI):
+
+```bash
+pnpm --filter ./agent build
+pnpm --filter ./agent start -- auth:login --authServer http://localhost:3111
+```
+
+<Callout type="note" title="Local auth server">
+<p>Run the CLI auth server (<Badge text="agent/server" variant="path" />) so <Badge text="http://localhost:3111" variant="default" /> is reachable — from the repo root, <code>pnpm agent-server:dev</code> is typical. Match your OAuth app callback to <Badge text="http://localhost:3111/device/callback" variant="default" /> and keep <Badge text="SERVER_URL" variant="envBackend" /> aligned — see <a href="/docs/configuration-agent#environment-variables">Configuration → Agent → Environment variables</a>.</p>
+</Callout>
 
 ### Deployment
 
@@ -274,7 +293,8 @@ pnpm vercel:deploy:web
 
 <CardGrid>
 <LinkCard title="Production deployment" description="Backend and web on Vercel, env and optional Redis" href="/docs/installation/production-deployment" />
-<LinkCard title="Configuration - Agent" description="CLI auth server (device flow) env and deployment" href="/docs/configuration-agent" />
+<LinkCard title="CLI" description="Install the CLI, authentication, and programmatic commands" href="/docs/cli" />
+<LinkCard title="Configuration - Agent" description="Deploy and configure the CLI auth server (agent/server)" href="/docs/configuration-agent" />
 <LinkCard title="Configuration - Worker" description="Redis/BullMQ workers, Bull Board, and Railway" href="/docs/configuration-worker" />
 <LinkCard title="Project architecture" description="Monorepo layout, key directories, and how the stack fits together" href="/docs/getting-started/architecture" />
 <LinkCard title="Vercel" description="Vercel CLI and project settings detail" href="/docs/installation/vercel" />

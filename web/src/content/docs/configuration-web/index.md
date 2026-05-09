@@ -13,7 +13,7 @@ import { Badge, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/comp
 
 The **web** (Vite + SvelteKit) is configured from:
 
-- <Badge text="web/.env.*" variant="envFile" /> environment files (Vite reads these at build/dev time)
+- <Badge text="web/.env.*" variant="envFile" /> environment files
 - <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/web-config.json"><Badge text="web/src/web-config.json" variant="path" /></DocsExternalLink> for PWA metadata
 
 Any change to environment values requires restarting your dev server or rebuilding the web app so Vite can pick up the new settings. Local HTTPS and how <Badge text="VITE_API_BASE_URL" variant="envWeb" /> interacts with the dev proxy are documented under <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit env)</a>.

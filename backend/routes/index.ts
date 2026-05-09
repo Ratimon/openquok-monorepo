@@ -43,8 +43,20 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     apiRouter.use("/users", userRouter);
     // Bull Board must mount before the generic `/admin` router, otherwise a path like `/admin/queues`
     // is handled only by `AdminRoute` (as `/queues` on the admin router) and the dashboard is never hit.
-    registerBullBoardSessionRoutes(apiRouter, config);
-    registerBullBoardRoutes(apiRouter, config);
+    //
+    // Setup is wrapped so it can never break the API: if Bull Board fails (e.g. `@bull-board/ui`
+    // missing on Vercel due to its eval'd `require.resolve`), `createApp()` would otherwise throw and
+    // every request — including OPTIONS preflight — would 500 without CORS headers, surfacing in the
+    // browser as a CORS error rather than the real cause.
+    try {
+        registerBullBoardSessionRoutes(apiRouter, config);
+        await registerBullBoardRoutes(apiRouter, config);
+    } catch (error) {
+        logger.error({
+            msg: "[Routes] Bull Board setup failed (non-fatal); dashboard will not be available",
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
     apiRouter.use("/admin", adminRouter);
     apiRouter.use("/company", companyRouter);
     apiRouter.use("/settings", settingsRouter);

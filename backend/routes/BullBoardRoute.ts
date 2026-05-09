@@ -1,9 +1,8 @@
 import type { ConfigObject } from "../config/GlobalConfig";
-import { createBullBoard } from "@bull-board/api";
-import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
-import { ExpressAdapter } from "@bull-board/express";
 import { Queue } from "bullmq";
 import express, { type Request, type Response, type Router } from "express";
+import { createRequire } from "node:module";
+import path from "node:path";
 
 import { supabaseAnonClient } from "../connections/index";
 import { getQueueRedisConnectionOptions } from "../connections/bullmq/createQueueIoredis";
@@ -15,6 +14,28 @@ import {
 } from "../middlewares/authenticateUser";
 import { rbacRepository, userRepository } from "../repositories/index";
 import { logger } from "../utils/Logger";
+
+/**
+ * `@bull-board/api` runs `require.resolve('@bull-board/ui/package.json')` at **module load** time.
+ * A static `import` of this package therefore crashes app startup (500 on every route, including
+ * auth) when `@bull-board/ui` is absent from a serverless bundle (Vercel NFT, Lambda prune, etc.).
+ *
+ * We only `import()` `@bull-board/*` after `resolveBullBoardUiBasePath()` succeeds, and we pass
+ * `uiBasePath` into `createBullBoard` so the dashboard can still work when load-time resolution is fragile.
+ */
+function resolveBullBoardUiBasePath(): string | null {
+    try {
+        const localRequire = createRequire(import.meta.url);
+        const uiPackageJsonPath = localRequire.resolve("@bull-board/ui/package.json");
+        return path.dirname(uiPackageJsonPath);
+    } catch (error) {
+        logger.error({
+            msg: "[BullBoard] Failed to resolve @bull-board/ui package; dashboard will not mount",
+            error: error instanceof Error ? error.message : String(error),
+        });
+        return null;
+    }
+}
 
 function normalizeLeadingSlash(p: string): string {
     const s = p.trim();
@@ -142,8 +163,12 @@ export function registerBullBoardSessionRoutes(apiRouter: Router, config: Config
  *
  * Mounted under the normal API prefix (default `/api/v1`) so it uses the same global Bearer auth
  * (`middlewares/core.ts`) and can enforce RBAC via `requireSuperAdmin` like `routes/AdminRoute.ts`.
+ *
+ * Any setup failure is caught and logged as non-fatal: a broken dashboard must never take down the
+ * core API surface (sign-in, etc.). Vercel cold-start failures used to surface as 500s on every
+ * route — including OPTIONS preflight — which the browser then rejects with a CORS error.
  */
-export function registerBullBoardRoutes(apiRouter: Router, config: ConfigObject): void {
+export async function registerBullBoardRoutes(apiRouter: Router, config: ConfigObject): Promise<void> {
     const bullBoardEnabled = (config.admin as { bullBoard?: { enabled?: boolean } } | undefined)?.bullBoard?.enabled === true;
     const layout = getBullBoardPathLayout(config);
     if (!layout) {
@@ -172,22 +197,46 @@ export function registerBullBoardRoutes(apiRouter: Router, config: ConfigObject)
         return;
     }
 
-    const serverAdapter = new ExpressAdapter();
-    serverAdapter.setBasePath(fullPath);
+    const uiBasePath = resolveBullBoardUiBasePath();
+    if (!uiBasePath) {
+        return;
+    }
 
-    const connection = getQueueRedisConnectionOptions();
-    const queues = uniqueQueueNames.map((name) => new BullMQAdapter(new Queue(name, { connection })));
+    try {
+        const [{ createBullBoard }, { BullMQAdapter }, { ExpressAdapter }] = await Promise.all([
+            import("@bull-board/api"),
+            import("@bull-board/api/bullMQAdapter"),
+            import("@bull-board/express"),
+        ]);
 
-    createBullBoard({
-        queues,
-        serverAdapter,
-    });
+        const serverAdapter = new ExpressAdapter();
+        serverAdapter.setBasePath(fullPath);
 
-    const boardRouter = express.Router();
-    const authWithRoles = requireFullAuthWithRoles(supabaseAnonClient, userRepository, rbacRepository);
+        const connection = getQueueRedisConnectionOptions();
+        const queues = uniqueQueueNames.map((name) => new BullMQAdapter(new Queue(name, { connection })));
 
-    boardRouter.use(authWithRoles, requireSuperAdmin, serverAdapter.getRouter());
-    apiRouter.use(mountPath, boardRouter);
+        createBullBoard({
+            queues,
+            serverAdapter,
+            options: { uiBasePath, uiConfig: {} },
+        });
 
-    logger.info({ msg: "[BullBoard] Mounted (super admin only)", publicUrl: fullPath, mountPath, queues: uniqueQueueNames });
+        const boardRouter = express.Router();
+        const authWithRoles = requireFullAuthWithRoles(supabaseAnonClient, userRepository, rbacRepository);
+
+        boardRouter.use(authWithRoles, requireSuperAdmin, serverAdapter.getRouter());
+        apiRouter.use(mountPath, boardRouter);
+
+        logger.info({
+            msg: "[BullBoard] Mounted (super admin only)",
+            publicUrl: fullPath,
+            mountPath,
+            queues: uniqueQueueNames,
+        });
+    } catch (error) {
+        logger.error({
+            msg: "[BullBoard] Failed to mount dashboard (non-fatal)",
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
 }
