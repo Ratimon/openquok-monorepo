@@ -78,11 +78,13 @@ curl http://localhost:3111/health
 
 Any platform that runs Node.js and can reach Postgres works (Railway, Fly.io, Render, a VPS, etc.). The process is stateless aside from Postgres, so you can run **multiple instances behind a load balancer** as long as they share the same `DATABASE_URL` and the same `SERVER_URL` (and OAuth client credentials). No sticky sessions are required: device-flow state lives in Postgres.
 
-For **serverless (Vercel)** this repo includes `vercel.json` and `api/[...slug].ts` (catch-all handler). `maxDuration` is set via `export const config` in that file (not `vercel.json` `functions` globs, which are easy to misconfigure with dynamic segment names). Deploy the CLI auth server with **`pnpm vercel:deploy:agent-server`** (same pattern as backend/web: monorepo root cwd + `agent/server/vercel.json`) or set the Vercel project **Root Directory** to `agent/server` for Git deployments. There is no `vercel.agent-server.json` at the repo root: unlike backend or web, this app has no top-level `api/` when Root Directory is empty. Public routes stay at the root (`/health`, `/device/*`); rewrites send them to the function under `/api`. Set `SERVER_URL` to your deployment’s public origin (for example `https://your-project.vercel.app` or `https://cli-auth.openquok.com`). Use a managed Postgres with pooling (for example Neon, Supabase, or Vercel Postgres) and a connection string suited to serverless concurrency.
+For **serverless (Vercel)** this repo includes `vercel.json` plus **`api/[slug].ts`** (e.g. `/api/health`) and **`api/device/[slug].ts`** (e.g. `/api/device/callback`). Vercel’s filesystem routing matches **one dynamic segment per file**; a single catch-all under `/api` did not reliably invoke Node for multi-segment paths in production. `vercel.json` sets **`outputDirectory`** to **`public`**; the build step creates an empty placeholder there after `tsc` — same idea as the backend: there is no real static site; do **not** add **`public/index.html`** or static files will shadow API routes. `maxDuration` is set via `export const config` in that file (not `vercel.json` `functions` globs, which are easy to misconfigure with dynamic segment names).
 
-**Monorepo / Vercel:** Set **Root Directory** to `agent/server`. The build uses a **standalone** `pnpm install --ignore-workspace` in this package only (not `pnpm install` at the monorepo root), so the installer does not load the full workspace graph — this avoids **out-of-memory** failures on the default Vercel builder. Runtime is still only this service; other workspace packages are not bundled.
+**Monorepo / Vercel:** In the Vercel project, set **Root Directory** to **`agent/server`**. Install is **`pnpm install --frozen-lockfile --ignore-workspace`** (standalone package only — avoids a full monorepo install on the builder). Link the CLI once from that directory: **`cd agent/server && npx vercel link`**. Deploy from the repo root with **`pnpm vercel:deploy:agent-server`** or **`pnpm vercel:deploy:agent-server:prod`** — the script runs the Vercel CLI with **`cwd` `agent/server`**, so it picks up `vercel.json` and `.vercel/project.json` in one place. You can also run **`npx vercel`** / **`npx vercel --prod`** directly inside **`agent/server`** after linking.
 
-After changing `agent/server/package.json` dependencies, regenerate and commit a standalone lockfile for reproducible installs:
+Public routes stay at the root (`/health`, `/device/*`); rewrites send them to the function under `/api`. Set `SERVER_URL` to your deployment’s public origin (for example `https://your-project.vercel.app` or `https://cli-auth.openquok.com`). Use a managed Postgres with pooling (for example Neon, Supabase, or Vercel Postgres) and a connection string suited to serverless concurrency.
+
+After changing `agent/server/package.json` dependencies, regenerate and commit the standalone lockfile:
 
 ```bash
 pnpm agent-server:sync-standalone-lockfile
@@ -92,14 +94,7 @@ When `agent/server/pnpm-lock.yaml` is present, Vercel uses `--frozen-lockfile`; 
 
 The local CLI may sit on **“Building…”** while Vercel runs install + `buildCommand` + serverless bundling remotely — that is normal; open the **Inspect** link from the CLI output for live build logs.
 
-**Deploy from your machine:**
-
-```bash
-chmod +x scripts/deploy-vercel.sh
-./scripts/deploy-vercel.sh --prod
-```
-
-(or run `vercel` / `vercel --prod` from `agent/server` after `vercel link`.)
+Run **`pnpm agent-server:build`** locally before deploy if you want a fast TypeScript check; it is no longer part of the deploy script (the remote build still runs `tsc`).
 
 ## Endpoints
 

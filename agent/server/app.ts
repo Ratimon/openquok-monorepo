@@ -14,6 +14,9 @@ const AUTHORIZE_PATH = process.env.OPENQUOK_AUTHORIZE_PATH || "/oauth/authorize"
 export const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
 const DATABASE_URL = process.env.DATABASE_URL!;
 
+/** Same idea as backend root JSON (`backend/app.ts`); keep in sync with `agent/server/package.json`. */
+const SERVICE_VERSION = "0.0.1";
+
 if (!CLIENT_ID || !CLIENT_SECRET) {
   // eslint-disable-next-line no-console
   console.error("OPENQUOK_OAUTH_CLIENT_ID and OPENQUOK_OAUTH_CLIENT_SECRET are required");
@@ -345,6 +348,13 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
       await handleDeviceToken(req, res);
     } else if (pathname === "/health") {
       json(res, 200, { status: "ok" });
+    } else if (method === "GET" && pathname === "/") {
+      json(res, 200, {
+        success: true,
+        message: "API is running",
+        version: SERVICE_VERSION,
+        health: "/health",
+      });
     } else {
       json(res, 404, { error: "not_found" });
     }

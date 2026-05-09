@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { ensureInitialized, handleRequest } from "../app.js";
+import { ensureInitialized, handleRequest } from "../../app.js";
 
-/** Vercel Node serverless — avoid vercel.json `functions` globs (they do not match dynamic filenames like `[...slug].ts` reliably). */
+/** `/api/device/:slug` — multi-segment public URLs rewrite here (e.g. `/device/callback` → `/api/device/callback`). */
 export const config = {
   maxDuration: 30,
 };

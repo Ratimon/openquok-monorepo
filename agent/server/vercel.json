@@ -1,7 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
   "framework": null,
-  "installCommand": "sh -c \"if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile --ignore-workspace --config.child-concurrency=1 --config.network-concurrency=1; else pnpm install --ignore-workspace --config.child-concurrency=1 --config.network-concurrency=1; fi\"",
-  "buildCommand": "pnpm run build",
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/api/$1" }]
+  "outputDirectory": "public",
+  "installCommand": "pnpm install --frozen-lockfile --ignore-workspace",
+  "buildCommand": "pnpm run build && mkdir -p public && printf '%s\\n' 'empty' > public/.output-dir-placeholder",
+  "rewrites": [
+    { "source": "/", "destination": "/api" },
+    { "source": "/api/", "destination": "/api" },
+    { "source": "/((?!api/).*)", "destination": "/api/$1" }
+  ]
 }
