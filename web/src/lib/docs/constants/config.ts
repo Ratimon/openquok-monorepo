@@ -1,4 +1,4 @@
-import type { DocsConfig } from '$lib/docs/types';
+import type { DocsConfig, DocsTabDefinition, SidebarSection } from '$lib/docs/types';
 import type { IconName } from '$data/icons';
 
 import { icons } from '$data/icons';
@@ -29,26 +29,34 @@ export type DocsSidebarSection = {
 	items?: { label: string; href: string }[];
 };
 
-export const docsSidebar: DocsSidebarSection[] = [
+/** CLI & programmatic usage — default `/docs` landing. Order: left tab → middle → right in the header. */
+export const docsSidebarCli: DocsSidebarSection[] = [
+	{
+		label: 'Get Started',
+		icon: icons.Braces.name,
+		autogenerate: { directory: 'cli' }
+	}
+];
+
+export const docsSidebarPublicApi: DocsSidebarSection[] = [
+	{
+		label: 'Public API',
+		icon: icons.Code.name,
+		autogenerate: { directory: 'public-api' }
+	}
+];
+
+/** Self-hosting, contributing, and deeper product setup. */
+export const docsSidebarLearnMore: DocsSidebarSection[] = [
 	{
 		label: 'Getting Started',
 		icon: icons.Rocket.name,
 		autogenerate: { directory: 'getting-started' }
 	},
 	{
-		label: 'Public API',
-		icon: icons.Code.name,
-		autogenerate: { directory: 'public-api' }
-	},
-	{
 		label: 'Installation',
 		icon: icons.Terminal.name,
 		autogenerate: { directory: 'installation' }
-	},
-	{
-		label: 'CLI',
-		icon: icons.Braces.name,
-		autogenerate: { directory: 'cli' }
 	},
 	{
 		label: 'Backend Setup',
@@ -92,9 +100,19 @@ export const docsSidebar: DocsSidebarSection[] = [
 	}
 ];
 
+export const docsTabs: DocsTabDefinition[] = [
+	{ id: 'cli', label: 'CLI', sidebar: docsSidebarCli },
+	{ id: 'public-api', label: 'Public API', sidebar: docsSidebarPublicApi },
+	{ id: 'learn-more', label: 'Learn more', sidebar: docsSidebarLearnMore }
+];
+
+/** Flattened sidebar order for ordering pages (prev/next fallbacks, llms.txt, etc.). */
+export const docsSidebarMerged: SidebarSection[] = docsTabs.flatMap((t) => t.sidebar);
+
 export const docsConfig: DocsConfig = {
 	site: docsSite,
-	sidebar: docsSidebar,
+	sidebar: docsSidebarMerged,
+	tabs: docsTabs,
 	toc: {
 		minDepth: 2,
 		maxDepth: 3

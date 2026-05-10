@@ -11,17 +11,17 @@ export function entries() {
 }
 
 export const load: PageLoad = ({ params }) => {
-	const doc = getDoc('', params.lang);
-	if (!doc) throw error(404, 'Documentation index not found');
+	const doc = getDoc('cli', params.lang);
+	if (!doc) throw error(404, 'CLI documentation not found');
 
-	const { prev, next } = getPrevNext('', params.lang);
+	const { prev, next } = getPrevNext('cli', params.lang);
 
 	return {
 		meta: doc.meta,
-		slug: '',
+		slug: 'cli',
 		locale: params.lang,
 		prev,
 		next,
-		rawContent: getRawContent('', params.lang)
+		rawContent: getRawContent('cli', params.lang)
 	};
 };

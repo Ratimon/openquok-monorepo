@@ -21,10 +21,18 @@
 
 	let {
 		navigation = [],
+		searchNavigation = navigation,
+		tabLabel = 'Documentation',
 		socialLinks = [],
 		ref = $bindable(null),
 		...restProps
-	}: ComponentProps<typeof Sidebar.Root> & { navigation?: NavItem[]; socialLinks?: SocialLink[] } = $props();
+	}: ComponentProps<typeof Sidebar.Root> & {
+		navigation?: NavItem[];
+		/** Full docs nav for search (all tabs). */
+		searchNavigation?: NavItem[];
+		tabLabel?: string;
+		socialLinks?: SocialLink[];
+	} = $props();
 
 	function isActive(href: string | undefined): boolean {
 		if (!href) return false;
@@ -108,7 +116,7 @@
 	<Sidebar.Content>
 		<Sidebar.Group>
 			<Sidebar.GroupLabel>
-				Documentation
+				{tabLabel}
 			</Sidebar.GroupLabel>
 			<Sidebar.Menu>
 				{#each navigation as section (section.title)}
@@ -168,7 +176,7 @@
 	</Sidebar.Content>
 	<Sidebar.Footer class="border-base-300 mt-auto shrink-0 border-t p-3">
 		<div class="mb-2 w-full">
-			<DocsSearchCommand {navigation} />
+			<DocsSearchCommand navigation={searchNavigation} />
 		</div>
 		<div class="flex flex-wrap items-center gap-0.5">
 			<Tooltip.Provider delayDuration={200}>

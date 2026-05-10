@@ -97,26 +97,31 @@
 
 <DropdownMenu.Root>
 	<div
-		class="border-base-300 bg-base-100/80 text-base-content/90 hover:border-base-content/20 inline-flex shrink-0 items-stretch overflow-hidden rounded-lg border text-sm shadow-sm"
+		class="border-primary/25 bg-gradient-to-r from-primary via-primary/90 to-primary/70 text-primary-content hover:border-primary/35 inline-flex shrink-0 items-stretch overflow-hidden rounded-lg border text-sm shadow-sm transition-colors"
 	>
 		<button
 			type="button"
-			class="hover:bg-base-200/80 inline-flex items-center gap-2 px-3 py-2 transition-colors"
+			class="hover:bg-primary-content/10 inline-flex items-center gap-2 px-3 py-2 transition-colors"
 			aria-label="Copy page as Markdown"
 			onclick={() => void copyMarkdown()}
 		>
-			<AbstractIcon name={icons.Copy.name} class="size-4 shrink-0" width="16" height="16" />
+			<AbstractIcon
+				name={icons.Copy.name}
+				class="size-4 shrink-0 text-primary-content"
+				width="16"
+				height="16"
+			/>
 			<span class="hidden sm:inline">Copy page</span>
 		</button>
-		<div class="bg-base-300 w-px shrink-0 self-stretch opacity-60" aria-hidden="true"></div>
+		<div class="bg-primary-content/25 w-px shrink-0 self-stretch" aria-hidden="true"></div>
 		<DropdownMenu.Trigger
 			class={cn(
-				'hover:bg-base-200/80 inline-flex items-center justify-center px-2 transition-colors',
-				'outline-none focus-visible:ring-2 focus-visible:ring-primary'
+				'text-primary-content hover:bg-primary-content/10 inline-flex items-center justify-center px-2 transition-colors',
+				'outline-none focus-visible:ring-2 focus-visible:ring-primary-content focus-visible:ring-offset-2 focus-visible:ring-offset-base-100'
 			)}
 			aria-label="More copy and share options"
 		>
-			<AbstractIcon name={icons.ChevronDown.name} class="size-4" width="16" height="16" />
+			<AbstractIcon name={icons.ChevronDown.name} class="size-4 text-primary-content" width="16" height="16" />
 		</DropdownMenu.Trigger>
 	</div>
 

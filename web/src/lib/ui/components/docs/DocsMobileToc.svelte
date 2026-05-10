@@ -4,7 +4,7 @@
 
 	import { icons } from '$data/icons';
 
-	let open = $state(false);
+	let open = $state(true);
 
 	function handleClick(id: string) {
 		const el = document.getElementById(id);
@@ -17,7 +17,7 @@
 </script>
 
 {#if toc.items.length > 0}
-	<div class="border-base-300 bg-base-200/50 mb-6 rounded-lg border lg:hidden">
+	<div class="border-base-300 bg-base-200/50 mb-6 rounded-lg border md:hidden">
 		<button
 			type="button"
 			onclick={() => (open = !open)}

@@ -13,6 +13,12 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 
 <Badge text="@openquok/auto-cli" variant="experimental" /> is the programmatic CLI for the Openquok scheduling API — built for automation and AI agents. It wraps the public API so you can schedule posts, manage integrations, and upload media from shell scripts; command output is JSON.
 
+## Explore documentation
+
+<CardGrid>
+<LinkCard title="Public API" description="REST endpoints and OAuth used by the CLI and integrations" href="/docs/public-api" />
+<LinkCard title="Learn more" description="Install, self-host, backend, workers, CLI auth, and contributor guides" href="/docs/getting-started" />
+</CardGrid>
 
 ## Installation
 
@@ -125,7 +131,6 @@ openquok posts:delete-group <postGroupUuid>
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Public API" description="HTTP API used by the CLI" href="/docs/public-api" />
 <LinkCard title="Installation" description="Local and production setup across the monorepo" href="/docs/installation" />
 <LinkCard title="Development environment" description="Optional local CLI auth server and repo scripts" href="/docs/installation/development-environment" />
 <LinkCard title="Configuration - Backend" description="API and OAuth environment variables" href="/docs/configuration-backend" />

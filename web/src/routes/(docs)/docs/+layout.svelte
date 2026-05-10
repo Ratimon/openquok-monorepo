@@ -2,20 +2,25 @@
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
 	import { page } from '$app/state';
-	import type { DocMeta } from '$lib/docs/types';
+	import type { DocMeta, DocsTabDefinition } from '$lib/docs/types';
 	import { isOpenapiReferenceChrome } from '$lib/docs/utils/openapi-docs-layout';
 	import DocsHeader from '$lib/ui/components/docs/layout/DocsHeader.svelte';
 	import DocsSidebarLeft from '$lib/ui/components/docs/layout/DocsSidebarLeft.svelte';
 	import DocsSidebarRight from '$lib/ui/components/docs/layout/DocsSidebarRight.svelte';
 	import * as Sidebar from '$lib/ui/sidebar-main/index.js';
 	import { ensureDefaultTheme } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
-	import { docsSite } from '$lib/docs/constants/config';
+	import { docsSite } from '$lib/docs/constants';
 
 	type Props = { data: LayoutData; children: import('svelte').Snippet };
 
 	let { data, children }: Props = $props();
 
 	let navigation = $derived(data.navigation);
+	let navigationSearchIndex = $derived(data.navigationSearchIndex ?? data.navigation);
+	let tabLabel = $derived(
+		data.docsTabs?.find((t: DocsTabDefinition) => t.id === data.activeDocsTabId)?.label ??
+			'Documentation'
+	);
 
 	let docMeta = $derived(page.data.meta as DocMeta | undefined);
 	let showDocsRightSidebar = $derived(!isOpenapiReferenceChrome(docMeta));
@@ -43,15 +48,20 @@
 	Skip to content
 </a>
 <Sidebar.Provider>
-	<DocsSidebarLeft {navigation} {socialLinks} />
+	<DocsSidebarLeft {navigation} searchNavigation={navigationSearchIndex} {tabLabel} {socialLinks} />
 	<!-- Do not set overflow-x-* here: any non-visible overflow on an ancestor breaks position:sticky for the API docs rail -->
 	<Sidebar.Inset class="min-w-0 flex-1">
-		<DocsHeader {socialLinks} />
+		<DocsHeader
+			{socialLinks}
+			docsTabs={data.docsTabs ?? []}
+			activeDocsTabId={data.activeDocsTabId}
+			locale={data.locale}
+		/>
 		<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4 p-4">
 			{@render children()}
 		</div>
 	</Sidebar.Inset>
 	{#if showDocsRightSidebar}
-		<DocsSidebarRight {navigation} />
+		<DocsSidebarRight navigation={navigationSearchIndex} />
 	{/if}
 </Sidebar.Provider>

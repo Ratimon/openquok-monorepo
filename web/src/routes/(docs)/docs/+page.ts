@@ -4,16 +4,16 @@ import { error } from '@sveltejs/kit';
 export const prerender = true;
 
 export function load() {
-	const doc = getDoc('');
-	if (!doc) throw error(404, 'Documentation index not found');
+	const doc = getDoc('cli');
+	if (!doc) throw error(404, 'CLI documentation not found');
 
-	const { prev, next } = getPrevNext('');
+	const { prev, next } = getPrevNext('cli');
 
 	return {
 		meta: doc.meta,
-		slug: '',
+		slug: 'cli',
 		prev,
 		next,
-		rawContent: getRawContent('')
+		rawContent: getRawContent('cli')
 	};
 }
