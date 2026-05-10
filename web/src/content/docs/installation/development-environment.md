@@ -235,7 +235,7 @@ The CLI auth server (<Badge text="agent/server" variant="path" />) implements th
 docker compose -f infra/docker-compose.yml up -d postgres
 ```
 
-Then set <Badge text="DATABASE_URL" variant="envBackend" /> in <Badge text="agent/server/.env.development.local" variant="envFile" /> to match (defaults to <code>postgresql://openquok:openquok@localhost:5432/openquok_cli_auth</code>).
+Then set <Badge text="DATABASE_URL" variant="envBackend" /> in <Badge text="agent/server/.env.development.local" variant="envBackend" /> to match (defaults to <code>postgresql://openquok:openquok@localhost:5432/openquok_cli_auth</code>).
 
 **Run the CLI auth server locally**:
 

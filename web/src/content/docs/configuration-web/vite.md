@@ -11,9 +11,9 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-The **web** app is built with **SvelteKit on Vite**. At runtime it reads public env vars in the <Badge text="VITE_*" variant="envWeb" /> family from <Badge text="web/.env.*" variant="envFile" /> (Vite loads these at dev and build time).
+The **web** app is built with **SvelteKit on Vite**. At runtime it reads public env vars in the <Badge text="VITE_*" variant="envWeb" /> family from <Badge text="web/.env.*" variant="envWeb" /> (Vite loads these at dev and build time).
 
-When you change values in <Badge text="web/.env.development.local" variant="envFile" /> or <Badge text="web/.env.production.local" variant="envFile" />, restart the web dev server or rebuild so Vite can load the new values.
+When you change values in <Badge text="web/.env.development.local" variant="envWeb" /> or <Badge text="web/.env.production.local" variant="envWeb" />, restart the web dev server or rebuild so Vite can load the new values.
 
 ## Steps
 
@@ -21,11 +21,11 @@ When you change values in <Badge text="web/.env.development.local" variant="envF
 
 ### Copy the development env template
 
-Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="envFile" /></DocsExternalLink> to <Badge text="web/.env.development.local" variant="envFile" />.
+Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="envWeb" /></DocsExternalLink> to <Badge text="web/.env.development.local" variant="envWeb" />.
 
 ### Set required variables
 
-Set these in <Badge text="web/.env.development.local" variant="envFile" /> (values from your backend, Supabase, Stripe, and analytics setup):
+Set these in <Badge text="web/.env.development.local" variant="envWeb" /> (values from your backend, Supabase, Stripe, and analytics setup):
 
 ```bash
 VITE_API_BASE_URL=
@@ -47,15 +47,15 @@ The web dev server in this repo uses <strong>HTTPS</strong> on <code>https://loc
 
 <Callout type="warning">
 <p>Do not point VITE_API_BASE_URL at http://localhost:3000 when the app runs on HTTPS. If <Badge text="VITE_API_BASE_URL" variant="envWeb" /> is set to <code>http://localhost:3000</code> while you open the app on <code>https://localhost:5173</code>, the scheme differs and the browser treats that as a different site: refresh cookies may not be sent and Google sign-in can loop or fail.</p>
-<p>For local HTTPS, <strong>omit</strong> <Badge text="VITE_API_BASE_URL" variant="envWeb" /> from <Badge text="web/.env.development.local" variant="envFile" /> (or set it to an empty value). The web app then uses a relative API base so requests go to <code>https://localhost:5173/api/...</code>.</p>
+<p>For local HTTPS, <strong>omit</strong> <Badge text="VITE_API_BASE_URL" variant="envWeb" /> from <Badge text="web/.env.development.local" variant="envWeb" /> (or set it to an empty value). The web app then uses a relative API base so requests go to <code>https://localhost:5173/api/...</code>.</p>
 </Callout>
 
-In development, <Badge text="web/src/hooks.server.ts" variant="path" /> forwards <code>/api/*</code> to the process listening on <code>http://localhost:3000</code> (see <Badge text="web/vite.config.ts" variant="path" /> for the same target). Optional override: set <code>DEV_BACKEND_PROXY_TARGET</code> in <Badge text="web/.env.development.local" variant="envFile" /> if the API is not on port 3000.
+In development, <Badge text="web/src/hooks.server.ts" variant="path" /> forwards <code>/api/*</code> to the process listening on <code>http://localhost:3000</code> (see <Badge text="web/vite.config.ts" variant="path" /> for the same target). Optional override: set <code>DEV_BACKEND_PROXY_TARGET</code> in <Badge text="web/.env.development.local" variant="envWeb" /> if the API is not on port 3000.
 
 
 ### Set production env values
 
-For deployment, ensure <Badge text="web/.env.production.local" variant="envFile" /> (or your host’s production env) sets the same key names with production values. Double-check <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> against <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the API before you register OAuth redirect URIs in external dashboards.
+For deployment, ensure <Badge text="web/.env.production.local" variant="envWeb" /> (or your host’s production env) sets the same key names with production values. Double-check <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> against <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the API before you register OAuth redirect URIs in external dashboards.
 
 Stripe price IDs for your plans:
 
@@ -72,7 +72,7 @@ VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_LIFETIME_PACK=
 </Steps>
 
 <Callout type="note" title="Tip: keep secrets in env files">
-Do not hard-code secrets in the source code. Use <Badge text="web/.env.development.local" variant="envFile" /> (and production equivalents) for secrets; commit only templates such as <Badge text="web/.env.development.example" variant="envFile" />.
+Do not hard-code secrets in the source code. Use <Badge text="web/.env.development.local" variant="envWeb" /> (and production equivalents) for secrets; commit only templates such as <Badge text="web/.env.development.example" variant="envWeb" />.
 </Callout>
 
 ## Related configuration

@@ -41,7 +41,7 @@ Super admins can inspect and **manage BullMQ jobs** (pause / resume queues, open
 </CardGrid>
 
 <Callout type="note" title="Minimal secret surface">
-You only need to inject variables the worker path actually uses; you do not have to duplicate the entire API <Badge text=".env" variant="envFile" />. See <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/orchestrator/README.md">orchestrator/README.md</DocsExternalLink> in the repo for the full tables.
+You only need to inject variables the worker path actually uses; you do not have to duplicate the entire API <Badge text=".env" variant="envBackend" />. See <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/orchestrator/README.md">orchestrator/README.md</DocsExternalLink> in the repo for the full tables.
 </Callout>
 
 ## Related Section(s)

@@ -44,7 +44,7 @@ All rate limiting can be disabled by setting <Badge text="RATE_LIMIT_ENABLED" va
 
 ## Example (development)
 
-Copy <Badge text="backend/.env.development.example" variant="envFile" /> to <Badge text="backend/.env.development.local" variant="envFile" /> and adjust:
+Copy <Badge text="backend/.env.development.example" variant="envBackend" /> to <Badge text="backend/.env.development.local" variant="envBackend" /> and adjust:
 
 ```bash
 RATE_LIMIT_ENABLED=true

@@ -13,7 +13,7 @@ import { Badge, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/comp
 
 The **web** (Vite + SvelteKit) is configured from:
 
-- <Badge text="web/.env.*" variant="envFile" /> environment files
+- <Badge text="web/.env.*" variant="envWeb" /> environment files
 - <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/web-config.json"><Badge text="web/src/web-config.json" variant="path" /></DocsExternalLink> for PWA metadata
 
 Any change to environment values requires restarting your dev server or rebuilding the web app so Vite can pick up the new settings. Local HTTPS and how <Badge text="VITE_API_BASE_URL" variant="envWeb" /> interacts with the dev proxy are documented under <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit env)</a>.
@@ -24,11 +24,11 @@ Any change to environment values requires restarting your dev server or rebuildi
 
 ### Configure your web env files
 
-Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="envFile" /></DocsExternalLink> to <Badge text="web/.env.development.local" variant="envFile" /> and fill in values (see the Vite env guide below).
+Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="envWeb" /></DocsExternalLink> to <Badge text="web/.env.development.local" variant="envWeb" /> and fill in values (see the Vite env guide below).
 
 ### Set production env values
 
-Maintain <Badge text="web/.env.production.local" variant="envFile" /> and set matching production values for your deployment. Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the same canonical origin as the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> so OAuth redirect URIs stay consistent (see <a href="/docs/configuration-web/vite">Vite (SvelteKit env)</a> and <a href="/docs/installation/production-deployment">Production deployment</a>).
+Maintain <Badge text="web/.env.production.local" variant="envWeb" /> and set matching production values for your deployment. Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the same canonical origin as the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> so OAuth redirect URIs stay consistent (see <a href="/docs/configuration-web/vite">Vite (SvelteKit env)</a> and <a href="/docs/installation/production-deployment">Production deployment</a>).
 
 ### Update PWA settings
 

@@ -6,7 +6,7 @@ lastUpdated: 2026-05-09
 ---
 
 <script>
-import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -16,13 +16,22 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 ## Installation
 
+<Tabs items={["npm", "pnpm"]}>
+<TabItem label="npm">
+
 ```bash
 npm install -g @openquok/auto-cli
 ```
 
+</TabItem>
+<TabItem label="pnpm">
+
 ```bash
 pnpm add -g @openquok/auto-cli
 ```
+
+</TabItem>
+</Tabs>
 
 Verify the install:
 

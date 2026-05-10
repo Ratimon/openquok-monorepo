@@ -64,7 +64,7 @@ Copy these values for the backend:
 
 ### Add backend keys
 
-Set the R2 credentials in <Badge text="backend/.env.development.local" variant="envFile" /> (or your production secret store). Use <Badge text="STORAGE_R2_REGION" variant="envBackend" /> = <code>APAC</code>.
+Set the R2 credentials in <Badge text="backend/.env.development.local" variant="envBackend" /> (or your production secret store). Use <Badge text="STORAGE_R2_REGION" variant="envBackend" /> = <code>APAC</code>.
 
 ```bash
 STORAGE_PROVIDER=r2
@@ -100,7 +100,7 @@ Set both apps to the same public origin (no trailing slash):
 VITE_STORAGE_R2_PUBLIC_BASE_URL=https://customdomain.com
 ```
 
-Use <Badge text="backend/.env.development.local" variant="envFile" /> for the backend value and <Badge text="web/.env.development.local" variant="envFile" /> for the web value. Restart both the backend and Vite after changes.
+Use <Badge text="backend/.env.development.local" variant="envBackend" /> for the backend value and <Badge text="web/.env.development.local" variant="envBackend" /> for the web value. Restart both the backend and Vite after changes.
 
 ### Web uploader (account media library)
 
@@ -203,7 +203,7 @@ Avatars and blog inline images continue to use **Supabase Storage** (<Badge text
 
 ## Backend environment variables
 
-Set these in <Badge text="backend/.env.development.local" variant="envFile" /> (or your host secret store). Restart the API after changes.
+Set these in <Badge text="backend/.env.development.local" variant="envBackend" /> (or your host secret store). Restart the API after changes.
 
 ### R2 (`STORAGE_PROVIDER=r2`)
 
@@ -243,7 +243,7 @@ FRONTEND_DOMAIN_URL=https://localhost:5173
 
 <h2 id="web-environment-variables">Web environment variables</h2>
 
-Set these in <Badge text="web/.env.development.local" variant="envFile" /> (or your production web env). Restart Vite after changes. See also <a href="/docs/configuration-web/vite">Vite (SvelteKit env)</a>.
+Set these in <Badge text="web/.env.development.local" variant="envBackend" /> (or your production web env). Restart Vite after changes. See also <a href="/docs/configuration-web/vite">Vite (SvelteKit env)</a>.
 
 **Do not confuse** backend <Badge text="STORAGE_PROVIDER" variant="envBackend" /> <code>r2</code> (where the API stores objects) with browser upload mode <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=direct" variant="envWeb" /> (how the client sends bytes).
 

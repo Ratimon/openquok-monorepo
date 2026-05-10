@@ -34,7 +34,7 @@ Openquok reads credentials only through <DocsExternalLink href="https://github.c
 - <Badge text="INSTAGRAM_APP_ID" variant="envBackend" />
 - <Badge text="INSTAGRAM_APP_SECRET" variant="envBackend" />
 
-Copy from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></DocsExternalLink> into <Badge text="backend/.env.development.local" variant="envFile" />, then restart the backend.
+Copy from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envBackend" /></DocsExternalLink> into <Badge text="backend/.env.development.local" variant="envBackend" />, then restart the backend.
 
 The frontend base URL used in OAuth redirect URIs comes from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (default <Badge text="http://localhost:5173" variant="new" /> for local Vite). For non-HTTPS local URLs, the backend uses the same HTTPS relay pattern as other Meta integrations (see the Threads doc).
 

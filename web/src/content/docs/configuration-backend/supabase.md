@@ -26,7 +26,7 @@ Create a project in the <DocsExternalLink href="https://supabase.com/dashboard">
 
 ### Collect API keys
 
-From the project settings, collect the Supabase URL + keys and set them in your backend env file (start from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></DocsExternalLink>).
+From the project settings, collect the Supabase URL + keys and set them in your backend env file (start from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envBackend" /></DocsExternalLink>).
 
 Common variables include:
 

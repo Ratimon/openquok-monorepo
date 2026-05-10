@@ -28,7 +28,7 @@ docker compose -f infra/docker-compose.yml up -d redis
 
 ### Point backend + workers at the local Redis
 
-Edit <Badge text="backend/.env.development.local" variant="envFile" />:
+Edit <Badge text="backend/.env.development.local" variant="envBackend" />:
 
 ```bash
 NODE_ENV=development

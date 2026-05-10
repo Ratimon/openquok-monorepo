@@ -26,7 +26,7 @@ Openquok reads Threads credentials only through <DocsExternalLink href="https://
 - <Badge text="THREADS_APP_ID" variant="envBackend" /> — **Threads App ID** from the Meta app dashboard  
 - <Badge text="THREADS_APP_SECRET" variant="envBackend" /> — **Threads App Secret** (treat as confidential)
 
-Copy from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></DocsExternalLink> into <Badge text="backend/.env.development.local" variant="envFile" />, fill values, then **restart** the backend process.
+Copy from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envBackend" /></DocsExternalLink> into <Badge text="backend/.env.development.local" variant="envBackend" />, fill values, then **restart** the backend process.
 
 The frontend base URL used for OAuth redirects comes from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (default <Badge text="http://localhost:5173" variant="new" /> for local Vite).
 

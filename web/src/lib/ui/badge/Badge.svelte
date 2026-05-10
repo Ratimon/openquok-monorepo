@@ -5,17 +5,17 @@
         base: "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-base-300 px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-primary/40 focus-visible:border-primary focus-visible:ring-[3px] aria-invalid:ring-error/20 aria-invalid:border-error [&>svg]:pointer-events-none [&>svg]:size-3",
         variants: {
             variant: {
-            default: "bg-primary text-primary-content hover:bg-primary/90 border-transparent",
-            secondary: "bg-secondary text-secondary-content hover:bg-secondary/90 border-transparent",
-            warning: "bg-warning text-warning-content hover:bg-warning/90 border-transparent",
-            outline: "bg-transparent text-base-content hover:bg-base-200",
-            yellow: "bg-warning text-warning-content hover:bg-warning/90 border-transparent",
-            blue: "bg-info text-info-content hover:bg-info/90 border-transparent",
-            green: "bg-success text-success-content hover:bg-success/90 border-transparent",
-            red: "bg-error text-error-content hover:bg-error/90 border-transparent",
-            gray: "bg-neutral text-neutral-content hover:bg-neutral/90 border-transparent",
-            purple: "bg-accent text-accent-content hover:bg-accent/90 border-transparent",
-            pink: "bg-accent text-accent-content hover:bg-accent/90 border-transparent",
+                default: "bg-primary text-primary-content hover:bg-primary/90 border-transparent",
+                secondary: "bg-secondary text-secondary-content hover:bg-secondary/90 border-transparent",
+                accent: "bg-accent text-accent-content hover:bg-accent/90 border-transparent",
+                warning: "bg-warning text-warning-content hover:bg-warning/90 border-transparent",
+                outline: "bg-transparent text-base-content hover:bg-base-200",
+                blue: "bg-info text-info-content hover:bg-info/90 border-transparent",
+                green: "bg-success text-success-content hover:bg-success/90 border-transparent",
+                red: "bg-error text-error-content hover:bg-error/90 border-transparent",
+                gray: "bg-neutral text-neutral-content hover:bg-neutral/90 border-transparent",
+                /** Secondary labels (e.g. doc path chips). DaisyUI does not exposes base-100/200/300 only and bg-base-content/30also works */
+                muted: "bg-base-content/30 text-base-content border-base-content/25 hover:bg-base-content/60",
             },
         },
         defaultVariants: {

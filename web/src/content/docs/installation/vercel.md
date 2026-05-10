@@ -51,9 +51,9 @@ This reads <Badge text="backend/.env.production.local" variant="path" /> and ups
 
 <Callout type="warning">
 <ul class="mt-2 list-disc space-y-1 pl-5">
-<li>Set <Badge text="FRONTEND_DOMAIN_URL" variant="envCors" /> <strong>without a trailing slash</strong> (for example <Badge text="https://www.openquok.com" variant="new" />, not <Badge text="https://www.openquok.com/" variant="deprecated" />).</li>
-<li>Set the web project's <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>same</strong> canonical origin string as <Badge text="FRONTEND_DOMAIN_URL" variant="envCors" /> so Meta and other OAuth flows receive redirect URIs that match what you register in their dashboards (see <a href="/docs/installation/production-deployment">Production deployment</a>).</li>
-<li>Include both apex and <code>www</code> in <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envCors" /> (example: <Badge text="https://openquok.com,https://www.openquok.com" variant="new" />) when visitors may hit either hostname, even if OAuth uses only one canonical host.</li>
+<li>Set <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> <strong>without a trailing slash</strong> (for example <Badge text="https://www.openquok.com" variant="new" />, not <Badge text="https://www.openquok.com/" variant="deprecated" />).</li>
+<li>Set the web project's <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the <strong>same</strong> canonical origin string as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> so Meta and other OAuth flows receive redirect URIs that match what you register in their dashboards (see <a href="/docs/installation/production-deployment">Production deployment</a>).</li>
+<li>Include both apex and <code>www</code> in <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envBackend" /> (example: <Badge text="https://openquok.com,https://www.openquok.com" variant="new" />) when visitors may hit either hostname, even if OAuth uses only one canonical host.</li>
 <li>Keep the web app's <Badge text="VITE_API_BASE_URL" variant="envWeb" /> pointing to the same backend origin used by <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />.</li>
 </ul>
 <p class="mt-3">If these do not match, browser preflight for auth endpoints (such as <Badge text="/api/v1/auth/refresh" variant="path" />) can fail with a CORS error.</p>
@@ -112,7 +112,7 @@ and connect the same repository.
 
 ### Set environment variables
 
-Set **Environment Variables** to match production (same keys as <Badge text="web/.env.production.local" variant="envFile" />): <Badge text="VITE_API_BASE_URL" variant="envWeb" /> (your deployed backend), <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />, <Badge text="VITE_PUBLIC_SUPABASE_*" variant="envWeb" /> (prefix), Stripe and analytics keys as needed.
+Set **Environment Variables** to match production (same keys as <Badge text="web/.env.production.local" variant="envWeb" />): <Badge text="VITE_API_BASE_URL" variant="envWeb" /> (your deployed backend), <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />, <Badge text="VITE_PUBLIC_SUPABASE_*" variant="envWeb" /> (prefix), Stripe and analytics keys as needed.
 
 ### Deploy
 
@@ -159,7 +159,7 @@ npx vercel link
 
 ### Environment variables
 
-Maintain production values in <Badge text="agent/server/.env.production.local" variant="envFile" /> (gitignored), matching <Badge text="agent/server/.env.production.example" variant="envFile" />. Sync into Vercel from the **repository root**:
+Maintain production values in <Badge text="agent/server/.env.production.local" variant="envBackend" /> (gitignored), matching <Badge text="agent/server/.env.production.example" variant="envBackend" />. Sync into Vercel from the **repository root**:
 
 ```bash
 pnpm vercel:env:sync:agent-server:prod

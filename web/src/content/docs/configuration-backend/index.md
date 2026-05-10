@@ -13,9 +13,9 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 The **backend** reads its runtime settings from **environment variables**, and you also configure your **Supabase** project in the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> (database, authentication, API keys, and related project settings).
 
-An example file with the most commonly used settings is checked in at <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></DocsExternalLink>. Copy it to <Badge text="backend/.env.development.local" variant="envFile" /> under <Badge text="backend/" variant="path" /> (the example header explains load order and how it relates to <Badge text="backend/.env" variant="path" />). Use that local file for secrets and overrides you do not commit.
+An example file with the most commonly used settings is checked in at <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envBackend" /></DocsExternalLink>. Copy it to <Badge text="backend/.env.development.local" variant="envBackend" /> under <Badge text="backend/" variant="path" /> (the example header explains load order and how it relates to <Badge text="backend/.env" variant="path" />). Use that local file for secrets and overrides you do not commit.
 
-For **production**, follow the same naming convention: maintain <Badge text="backend/.env.production.local" variant="envFile" /> (or inject the same keys from your host’s secret store). In local development, keep <Badge text="NODE_ENV" variant="envRuntime" /> set to **development**; for deployment, use **production**.
+For **production**, follow the same naming convention: maintain <Badge text="backend/.env.production.local" variant="envBackend" /> (or inject the same keys from your host’s secret store). In local development, keep <Badge text="NODE_ENV" variant="envRuntime" /> set to **development**; for deployment, use **production**.
 
 ```bash
 NODE_ENV=development
@@ -34,7 +34,7 @@ FRONTEND_DOMAIN_URL=https://localhost:5173
 
 ### Start with the example env file
 
-Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></DocsExternalLink> to <Badge text="backend/.env.development.local" variant="envFile" /> and fill in values. Restart the backend after changes.
+Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envBackend" /></DocsExternalLink> to <Badge text="backend/.env.development.local" variant="envBackend" /> and fill in values. Restart the backend after changes.
 
 ### Configure Supabase in the dashboard
 

@@ -56,6 +56,11 @@ export const docsSidebar: DocsSidebarSection[] = [
 		autogenerate: { directory: 'configuration-backend' }
 	},
 	{
+		label: 'Frontend Setup',
+		icon: icons.Settings.name,
+		autogenerate: { directory: 'configuration-web' }
+	},
+	{
 		label: 'Workers Setup',
 		icon: icons.Activity.name,
 		autogenerate: { directory: 'configuration-worker' }
@@ -64,11 +69,6 @@ export const docsSidebar: DocsSidebarSection[] = [
 		label: 'CLI Auth Setup',
 		icon: icons.Lock.name,
 		autogenerate: { directory: 'configuration-agent' }
-	},
-	{
-		label: 'Frontend Setup',
-		icon: icons.Settings.name,
-		autogenerate: { directory: 'configuration-web' }
 	},
 	{
 		label: 'Admin Roles',

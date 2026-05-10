@@ -11,7 +11,7 @@ import { Badge, CardGrid, LinkCard, FileTree } from '$lib/ui/components/docs/mdx
 
 ## Overview
 
-The repository is a **pnpm monorepo**: the root holds the workspace manifest, shared tooling, and top-level packages. **Data and files go through Supabase** (Postgres for relational data, **Supabase Storage** for objects when the product needs them).
+The repository is a **pnpm monorepo**: the root holds the workspace manifest, shared tooling, and top-level packages.
 
 The customer-facing **SvelteKit** app lives in <Badge text="web/" variant="path" />. It serves the marketing site, authenticated product UI, and the **`/docs`** documentation area. The docs runtime (content loading, navigation, search) lives under <Badge text="web/src/lib/docs/" variant="path" />.
 
@@ -34,19 +34,23 @@ Repository layout at the root:
 
 - LICENSE
 - README.md
+- agent/
+  - server/
 - backend/
 - common/
 - orchestrator/
+- web/
+- sdk/
+- scripts/
 - package.json
 - pnpm-workspace.yaml
-- scripts/
-- web/
+
 
 </FileTree>
 
 - <Badge text="backend/" variant="path" /> — Supabase project assets (migrations, RLS, modules) and the Express API that talks to **Supabase** (database + auth patterns, and **Storage** where applicable).
 - <Badge text="common/" variant="path" /> — Shared workspace package (`openquok-common`): types and small utilities imported by <Badge text="backend/" variant="path" /> and <Badge text="orchestrator/" variant="path" /> (for example notification email types).
-- <Badge text="orchestrator/" variant="path" /> — Workspace package (`openquok-orchestrator`): Flowcraft blueprints, BullMQ adapters, **long-running worker** entrypoints, and enqueue helpers used from the API when distributed transport is enabled. See [Orchestrator workflows](/docs/developer-guidelines/orchestrator-workflows), [Configuration - Worker](/docs/configuration-worker), and [Railway (workers)](/docs/installation/railway).
+- <Badge text="orchestrator/" variant="path" /> — Workspace package (`openquok-orchestrator`): Flowcraft blueprints, BullMQ adapters, **long-running worker** entrypoints, and enqueue helpers used from the API when distributed transport is enabled. See <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>, <a href="/docs/configuration-worker">Configuration - Worker</a>, and <a href="/docs/configuration-worker/railway">Railway (workers)</a>.
 - <Badge text="scripts/" variant="path" /> — Monorepo automation (build, codegen, migration aggregation, etc.).
 - <Badge text="web/" variant="path" /> — SvelteKit frontend; public static files live under <Badge text="web/static/" variant="path" />.
 

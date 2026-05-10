@@ -12,7 +12,7 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 ## Prerequisites
 
 - **Node.js** 24.x or higher
-- **Corepack** — enables the pinned **pnpm** version and avoids Node’s `url.parse` deprecation during installs. Run `corepack enable`. The repo pins **pnpm** via the root `packageManager` field (e.g. `pnpm@10.30.3`) so installs stay consistent and avoid mixed-tooling issues.
+- **Corepack** — enables the pinned **pnpm** version. Run `corepack enable`. The repo pins **pnpm** via the root `packageManager` field (e.g. `pnpm@10.30.3`) so installs stay consistent and avoid mixed-tooling issues.
 - A **Supabase** account (for backend / local development against the project)
 
 ```bash

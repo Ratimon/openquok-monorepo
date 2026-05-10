@@ -44,7 +44,7 @@ If Neon offers multiple strings, prefer a pooled/serverless-friendly option for 
 
 ### Set DATABASE_URL in production
 
-Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.production.example"><Badge text="agent/server/.env.production.example" variant="envFile" /></DocsExternalLink> to <Badge text="agent/server/.env.production.local" variant="envFile" /> (gitignored), then set:
+Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.production.example"><Badge text="agent/server/.env.production.example" variant="envBackend" /></DocsExternalLink> to <Badge text="agent/server/.env.production.local" variant="envBackend" /> (gitignored), then set:
 
 ```bash
 DATABASE_URL="postgresql://<user>:<password>@<host>/<database>?sslmode=require"

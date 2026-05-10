@@ -20,7 +20,7 @@ Workers can only safely point at **one running Redis instance** at a time. To av
 docker compose -f infra/docker-compose.yml up -d redis
 ```
 
-Then set (or confirm) the local Redis settings in <Badge text="backend/.env.development.local" variant="envFile" />:
+Then set (or confirm) the local Redis settings in <Badge text="backend/.env.development.local" variant="envBackend" />:
 
 ```bash
 NODE_ENV=development

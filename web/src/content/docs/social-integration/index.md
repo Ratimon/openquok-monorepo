@@ -16,7 +16,7 @@ Openquok connects **social channels** through the **backend** integration layer:
 The flow matches common **OAuth-based social tools**: you register apps with each platform, set redirect URIs, and store client IDs and secrets in env—**never** in client-side code or the repo.
 
 <Callout type="danger" title="Secrets">
-Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other provider secrets. Use <Badge text="backend/.env.development.local" variant="envFile" /> (or your host’s secret store in production).
+Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other provider secrets. Use <Badge text="backend/.env.development.local" variant="envBackend" /> (or your host’s secret store in production).
 </Callout>
 
 ## Guides

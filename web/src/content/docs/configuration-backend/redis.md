@@ -45,7 +45,7 @@ docker compose -f infra/docker-compose.yml up -d redis
 docker compose -f infra/docker-compose.yml down
 ```
 
-<p>Then configure <Badge text="backend/.env.development.local" variant="envFile" /> to point at Docker:</p>
+<p>Then configure <Badge text="backend/.env.development.local" variant="envBackend" /> to point at Docker:</p>
 
 ```bash
 CACHE_PROVIDER=redis
@@ -61,7 +61,7 @@ REDIS_BULLMQ_DB=0
 
 ### Set the backend env variables
 
-Edit <Badge text="backend/.env.development.local" variant="envFile" /> (or your production env). A typical Redis-backed setup looks like this (use your provider’s host, port, and password — do not commit real secrets):
+Edit <Badge text="backend/.env.development.local" variant="envBackend" /> (or your production env). A typical Redis-backed setup looks like this (use your provider’s host, port, and password — do not commit real secrets):
 
 ```bash
 # -----------------------------------------------------------------------------

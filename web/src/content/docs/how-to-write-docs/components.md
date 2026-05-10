@@ -133,9 +133,8 @@ Use **`Badge`** from `$lib/ui/components/docs/mdx/index.js` for short labels in 
 
 - **Backend env** (no <Badge text="VITE_" variant="envWeb" /> prefix): <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />
 - **Web / Vite env**: <Badge text="VITE_API_BASE_URL" variant="envWeb" />
-- **CORS / origins**: <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envCors" />
 - **Runtime / platform**: <Badge text="VERCEL" variant="envRuntime" />
-- **Env files**: <Badge text="backend/.env.development.local" variant="envFile" />
+- **Env files**: <Badge text="backend/.env.development.local" variant="envBackend" />
 - **Repo paths & routes** (often nested in DocsExternalLink to GitHub): <Badge text="backend/vercel.json" variant="path" />
 - **URL examples** (prefer / avoid): <Badge text="https://example.com" variant="new" /> vs <Badge text="https://example.com/" variant="deprecated" />; use the same **new** variant for local dev bases such as <Badge text="http://localhost:5173" variant="new" /> or <Badge text="http://localhost:3000" variant="new" />
 

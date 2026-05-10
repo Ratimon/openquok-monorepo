@@ -14,9 +14,9 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 The **CLI auth server** (<Badge text="agent/server" variant="path" />) implements OAuth2 **device flow** so the Openquok CLI can obtain tokens without embedding OAuth client secrets in the CLI; short-lived state lives in **Postgres**, and token exchange is proxied to the **Openquok API**.
 
 
-For **local development**, copy the development template to <Badge text="agent/server/.env.development.local" variant="envFile" /> (gitignored). For **production** deploys and Vercel env sync, copy the production template to <Badge text="agent/server/.env.production.local" variant="envFile" /> .
+For **local development**, copy the development template to <Badge text="agent/server/.env.development.local" variant="envBackend" /> (gitignored). For **production** deploys and Vercel env sync, copy the production template to <Badge text="agent/server/.env.production.local" variant="envBackend" /> .
 
-In local development, keep <Badge text="NODE_ENV" variant="envRuntime" /> set to **development** unless you intentionally mimic production. On Vercel, the platform injects configuration at runtime.
+In local development, keep <Badge text="NODE_ENV" variant="envBackend" /> set to **development** unless you intentionally mimic production. On Vercel, the platform injects configuration at runtime.
 
 ```bash
 NODE_ENV=development
@@ -37,7 +37,7 @@ Request paths, polling, and the <Badge text="device_requests" variant="default" 
 
 ## Environment variables
 
-When running locally, values are loaded from <Badge text="agent/server/.env.development.local" variant="envFile" /> or <Badge text="agent/server/.env.production.local" variant="envFile" /> as described above.
+When running locally, values are loaded from <Badge text="agent/server/.env.development.local" variant="envBackend" /> or <Badge text="agent/server/.env.production.local" variant="envBackend" /> as described above.
 
 ### Required
 
@@ -99,7 +99,7 @@ Self-hosters substitute their real <Badge text="SERVER_URL" variant="envBackend"
 
 ### Start with the example env file
 
-Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.development.example"><Badge text="agent/server/.env.development.example" variant="envFile" /></DocsExternalLink> to <Badge text="agent/server/.env.development.local" variant="envFile" /> for local work, or <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.production.example"><Badge text="agent/server/.env.production.example" variant="envFile" /></DocsExternalLink> to <Badge text="agent/server/.env.production.local" variant="envFile" /> for production / Vercel sync. Set <Badge text="DATABASE_URL" variant="envBackend" />, OAuth client ID and secret, and <Badge text="SERVER_URL" variant="envBackend" /> to <strong>your</strong> deployment (if you fork or self-host, do not leave upstream Openquok production URLs unless that is literally your service). Restart the server after changes. Full reference: <a href="#environment-variables">Environment variables</a>.
+Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.development.example"><Badge text="agent/server/.env.development.example" variant="envBackend" /></DocsExternalLink> to <Badge text="agent/server/.env.development.local" variant="envBackend" /> for local work, or <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.production.example"><Badge text="agent/server/.env.production.example" variant="envBackend" /></DocsExternalLink> to <Badge text="agent/server/.env.production.local" variant="envBackend" /> for production / Vercel sync. Set <Badge text="DATABASE_URL" variant="envBackend" />, OAuth client ID and secret, and <Badge text="SERVER_URL" variant="envBackend" /> to <strong>your</strong> deployment (if you fork or self-host, do not leave upstream Openquok production URLs unless that is literally your service). Restart the server after changes. Full reference: <a href="#environment-variables">Environment variables</a>.
 
 ### Register the OAuth callback
 
