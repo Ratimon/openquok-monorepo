@@ -129,6 +129,23 @@ describe("OauthService", () => {
             expect(u.searchParams.get("error")).toBe("access_denied");
             expect(u.searchParams.get("state")).toBe("xyz");
             expect(oauthRepo.upsertAuthorization).not.toHaveBeenCalled();
+            expect(orgRepo.findMembership).not.toHaveBeenCalled();
+        });
+
+        it("returns access_denied on deny without organizationId (no workspace membership lookup)", async () => {
+            const app = oauthApp();
+            oauthRepo.findActiveAppByClientId.mockResolvedValue(app);
+            const service = new OauthService(oauthRepo, orgRepo as unknown as OrganizationRepository);
+
+            const { redirect } = await service.approveOrDeny({
+                authUserId,
+                clientId: app.client_id,
+                action: "deny",
+                state: "dev",
+            });
+
+            expect(new URL(redirect).searchParams.get("error")).toBe("access_denied");
+            expect(orgRepo.findMembership).not.toHaveBeenCalled();
         });
 
         it("throws when app organization does not match requested organization", async () => {

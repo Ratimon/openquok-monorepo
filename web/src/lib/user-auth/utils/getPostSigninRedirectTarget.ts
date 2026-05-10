@@ -1,7 +1,7 @@
 import { route } from '$lib/utils/path';
 
 /**
- * Resolves a safe in-app path after sign-in from `redirectURL` query, or returns `defaultPath`.
+ * Resolves a safe in-app path after sign-in from `redirectURL` (preferred) or legacy `returnTo` query, or returns `defaultPath`.
  */
 export function getPostSigninRedirectTarget(
 	searchParams: URLSearchParams,
@@ -27,7 +27,7 @@ export function getPostSigninRedirectTarget(
 		return route(pathname) === '/';
 	}
 
-	const redirectParam = searchParams.get('redirectURL');
+	const redirectParam = searchParams.get('redirectURL') ?? searchParams.get('returnTo');
 	if (redirectParam) {
 		const validated = validateRedirectURL(redirectParam);
 		if (validated) return isLandingPath(validated) ? defaultPath : validated;

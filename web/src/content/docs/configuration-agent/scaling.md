@@ -1,17 +1,17 @@
 ---
 title: Scaling & Postgres
 description: Run multiple CLI auth server instances—shared DATABASE_URL and SERVER_URL, no sticky sessions, and pooled Postgres on Vercel.
-order: 2
-lastUpdated: 2026-05-08
+order: 3
+lastUpdated: 2026-05-09
 ---
 
 <script>
-import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
-The CLI auth server is **stateless at the process layer**: device-flow state lives in **Postgres** (<Badge text="device_requests" variant="default" /> table, auto-created on startup — see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/SERVER.md"><Badge text="agent/server/SERVER.md" variant="path" /></DocsExternalLink>). That means **horizontal scaling** is safe when every instance shares the same database and the same public configuration.
+The CLI auth server is **stateless at the process layer**: device-flow state lives in **Postgres** (<Badge text="device_requests" variant="default" /> table, auto-created on startup — see <a href="/docs/configuration-agent/architecture#postgres-state-model">Auth server architecture → Postgres state model</a>). That means **horizontal scaling** is safe when every instance shares the same database and the same public configuration.
 
 ## Multiple instances
 

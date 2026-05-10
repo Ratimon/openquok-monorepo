@@ -22,12 +22,22 @@ export const validateOauthTokenBody: RequestHandler = validateRequest({
     body: oauthTokenBodySchema,
 });
 
-export const oauthApproveBodySchema = z.object({
-    client_id: z.string().min(1, "client_id is required"),
-    organizationId: z.string().uuid("Invalid organization id"),
-    state: z.string().optional(),
-    action: z.enum(["approve", "deny"]),
-});
+export const oauthApproveBodySchema = z
+    .object({
+        client_id: z.string().min(1, "client_id is required"),
+        organizationId: z.string().uuid("Invalid organization id").optional(),
+        state: z.string().optional(),
+        action: z.enum(["approve", "deny"]),
+    })
+    .superRefine((val, ctx) => {
+        if (val.action === "approve" && !val.organizationId?.trim()) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "organizationId is required for approve",
+                path: ["organizationId"],
+            });
+        }
+    });
 
 export const validateOauthApproveBody: RequestHandler = validateRequest({
     body: oauthApproveBodySchema,

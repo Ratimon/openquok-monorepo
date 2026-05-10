@@ -42,7 +42,7 @@ export class OauthController {
 
             const b = req.body as {
                 client_id: string;
-                organizationId: string;
+                organizationId?: string;
                 state?: string;
                 action: "approve" | "deny";
             };

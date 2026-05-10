@@ -104,7 +104,6 @@ openquok posts:update-group <postGroupUuid> --json '{"scheduledAt":"...","status
 openquok posts:delete-group <postGroupUuid>
 ```
 
-For more examples and development commands (<code>pnpm --filter ./agent …</code>), see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/README.md"><Badge text="agent/README.md" variant="path" /></DocsExternalLink>.
 
 ## Guides
 

@@ -46,7 +46,7 @@ When running locally, values are loaded from <Badge text="agent/server/.env.deve
 - <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" /> — OAuth app client ID (prefix <code>oqc_...</code>).
 - <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" /> — OAuth app secret (prefix <code>oqs_...</code>).
 
-### SERVER_URL (production vs local)
+### SERVER_URL (prod vs local)
 
 - <Badge text="SERVER_URL" variant="envBackend" /> — Public origin of **this** service **with no trailing slash**. Used for verification links and OAuth <Badge text="redirect_uri" variant="default" />.
 

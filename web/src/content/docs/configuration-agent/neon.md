@@ -1,7 +1,7 @@
 ---
 title: Neon Postgres
 description: Create a Neon Postgres project and wire its connection string into the Openquok CLI auth server (agent/server) DATABASE_URL.
-order: 30
+order: 2
 lastUpdated: 2026-05-09
 ---
 
@@ -67,4 +67,4 @@ On startup, the server will auto-create the `device_requests` table if it does n
 ## Links
 
 - <DocsExternalLink href="https://console.neon.tech/">Neon Console</DocsExternalLink>
-- <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/SERVER.md"><Badge text="agent/server/SERVER.md" variant="path" /></DocsExternalLink>
+- <a href="/docs/configuration-agent">Configuration - Agent</a> (env vars) · <a href="/docs/configuration-agent/architecture">Auth server architecture</a>

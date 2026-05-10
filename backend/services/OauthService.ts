@@ -32,18 +32,11 @@ export class OauthService {
     async approveOrDeny(params: {
         authUserId: string;
         clientId: string;
-        organizationId: string;
+        organizationId?: string;
         state?: string;
         action: "approve" | "deny";
     }): Promise<{ redirect: string }> {
         const app = await this.validateAuthorizationRequest(params.clientId);
-
-        // Ensure user is a member of the org they’re authorizing for.
-        const userId = await this.resolveAuthUserToUserId(params.authUserId);
-        const { membership } = await this.organizationRepository.findMembership(userId, params.organizationId);
-        if (!membership || membership.disabled) throw new AppError("Workspace not found", 404);
-
-        if (app.organization_id !== params.organizationId) throw new AppError("Invalid organization", 400);
 
         if (params.action === "deny") {
             const redirectUrl = new URL(app.redirect_url);
@@ -51,6 +44,16 @@ export class OauthService {
             if (params.state?.trim()) redirectUrl.searchParams.set("state", params.state);
             return { redirect: redirectUrl.toString() };
         }
+
+        const organizationId = params.organizationId?.trim();
+        if (!organizationId) throw new AppError("organizationId is required", 400);
+
+        // Ensure user is a member of the org they’re authorizing for.
+        const userId = await this.resolveAuthUserToUserId(params.authUserId);
+        const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
+        if (!membership || membership.disabled) throw new AppError("Workspace not found", 404);
+
+        if (app.organization_id !== organizationId) throw new AppError("Invalid organization", 400);
 
         const code = `oqo_${makeId(32)}`;
         const secretKey = this.mustGetSecretKey();
@@ -60,7 +63,7 @@ export class OauthService {
         const authz = await this.oauthAppRepository.upsertAuthorization({
             oauthAppId: app.id,
             userId,
-            organizationId: params.organizationId,
+            organizationId,
         });
         await this.oauthAppRepository.setAuthorizationCode({
             authorizationId: authz.id,
