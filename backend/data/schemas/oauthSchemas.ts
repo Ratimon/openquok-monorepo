@@ -43,11 +43,3 @@ export const validateOauthApproveBody: RequestHandler = validateRequest({
     body: oauthApproveBodySchema,
 });
 
-export const oauthRevokeBodySchema = z.object({
-    authorizationId: z.string().uuid("Invalid authorization id"),
-});
-
-export const validateOauthRevokeBody: RequestHandler = validateRequest({
-    body: oauthRevokeBodySchema,
-});
-

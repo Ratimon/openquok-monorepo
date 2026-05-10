@@ -127,7 +127,7 @@ export const integrationConnectionService = new IntegrationConnectionService(
 );
 
 export const oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository, mediaRepository);
-export const oauthService = new OauthService(oauthAppRepository, organizationRepository);
+export const oauthService = new OauthService(oauthAppRepository, organizationRepository, mediaRepository);
 export const postsService = new PostsService(
     postsRepository,
     integrationConnectionService,

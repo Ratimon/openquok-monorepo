@@ -92,7 +92,7 @@
 
 		<div class="flex flex-col gap-2">
 			<label class="text-sm font-medium text-base-content" for="editor-metric-tz">
-				Timezone
+				Your current timezone
 			</label>
 			<select
 				id="editor-metric-tz"
@@ -102,7 +102,8 @@
 			>
 				{#each tzOptions as opt (opt.value)}
 					<option value={opt.value}>
-						{opt.label}</option>
+						{opt.label}
+					</option>
 				{/each}
 			</select>
 		</div>

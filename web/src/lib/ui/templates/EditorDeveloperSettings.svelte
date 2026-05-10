@@ -106,14 +106,23 @@
 
 <div class="space-y-6">
 	<div class="flex items-center justify-between gap-3">
-		<div>
-			<p class="text-sm text-base-content/70">Use your API Key to automate your own account.</p>
-			<p class="text-sm text-base-content/70">
-				If you’re building a product that schedules posts on behalf of other users, use OAuth Apps.
-			</p>
+		<div class="min-w-0 flex-1">
+			{#if developerTab === 'access'}
+				<p class="text-sm text-base-content/70">
+					Use your API Key to automate your own account.
+				</p>
+				<p class="text-sm text-base-content/70">
+					If you’re building a product that schedules posts on behalf of other users, use OAuth Apps.
+				</p>
+			{:else if developerTab === 'apps'}
+				<p class="text-sm text-base-content/70">
+					Create an OAuth app so other users can authorize your product to act on their workspace through
+					Openquok. After OAuth2 completes, your server receives a token you can use like an API key on public endpoints.
+				</p>
+			{/if}
 		</div>
 
-		<div class="inline-flex rounded-full bg-base-200 p-1">
+		<div class="inline-flex shrink-0 rounded-full bg-base-200 p-1">
 			<button
 				type="button"
 				class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${

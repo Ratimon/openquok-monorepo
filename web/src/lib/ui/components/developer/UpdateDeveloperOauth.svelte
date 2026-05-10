@@ -99,11 +99,6 @@
 </script>
 
 <div class="space-y-6">
-	<p class="text-sm text-base-content/70">
-		Create an OAuth app so other users can authorize your product to act on their workspace through Openquok. After
-		OAuth2 completes, your server receives a token you can use like an API key on public endpoints.
-	</p>
-
 	{#if loadForbidden}
 		<div class="rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm text-base-content">
 			{forbiddenMessage || 'Only workspace admins can manage OAuth applications.'}
@@ -229,9 +224,10 @@
 						</p>
 					</div>
 					<Button
-						variant="outline"
+						variant="ghost"
 						size="sm"
-						href="/docs/developer-guidelines/oauth2-authentication">
+						href="/docs/developer-guidelines/oauth2-authentication"
+					>
 						Docs
 					</Button>
 				</div>
@@ -363,7 +359,11 @@
 								{app.redirectUrl}
 							</p>
 						</div>
-						<Button variant="outline" disabled={!canManageApps} onclick={() => onStartEdit()}>
+						<Button
+							variant="primary"
+							disabled={!canManageApps}
+							onclick={() => onStartEdit()}
+						>
 							Edit app
 						</Button>
 					</div>
@@ -407,24 +407,28 @@
 							{/if}
 						</div>
 						<div class="flex flex-wrap gap-2">
-							<Button variant="outline" onclick={() => app.clientId && onCopy(app.clientId)}>Copy client ID</Button>
+							<Button
+								variant="primary"
+								onclick={() => app.clientId && onCopy(app.clientId)}>
+								Copy client ID
+							</Button>
 							{#if plaintextClientSecret}
 								<Button
-									variant="outline"
+									variant="secondary"
 									onclick={() => plaintextClientSecret && onCopy(plaintextClientSecret)}
 								>
 									Copy secret
 								</Button>
 							{/if}
 							<Button
-								variant="outline"
+								variant="warning"
 								disabled={!canManageApps}
 								onclick={() => onRequestRotateSecret()}
 							>
 								Rotate secret
 							</Button>
 							<Button
-								variant="warning"
+								variant="red"
 								disabled={!canManageApps}
 								onclick={() => onRequestDeleteApp()}
 							>

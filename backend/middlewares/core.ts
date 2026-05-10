@@ -108,7 +108,7 @@ function configureCoreMiddleware(app: Express, config: ConfigObject, supabase: S
         const authMiddleware = requireFullAuth(supabase);
         const rawPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
         const apiPrefix = rawPrefix.replace(/\/+$/, "") || "/";
-        // to do: check if we can refactor
+        //  : check if we can refactor
         const publicPaths = ["/auth", "/company", "/feedback", "/public", "/oauth", "/posts/preview"];
         const publicPathsExact = [
             "/blog-system/posts",

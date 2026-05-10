@@ -1,14 +1,32 @@
-import type { OauthAppLike, OauthAuthorizationLike, OauthAppRepository } from "../repositories/OauthAppRepository";
+import type {
+    OauthAppLike,
+    OauthAppPublicLike,
+    OauthAuthorizationLike,
+    OauthAppRepository,
+} from "../repositories/OauthAppRepository";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { MediaRepository } from "../repositories/MediaRepository";
+import { publicUrlForObjectKey } from "../repositories/MediaRepository";
 import { AppError } from "../errors/AppError";
 import { config } from "../config/GlobalConfig";
 import { makeId } from "../utils/make.is";
 import { hashProgrammaticToken, hashProgrammaticTokenCandidates, timingSafeEqualHexOrPrefixed } from "../utils/tokenHash";
 
+/** API row for approved third-party OAuth apps (authorization + public app metadata + picture URLs). */
+export type ApprovedAuthorizationApiItem = OauthAuthorizationLike & {
+    oauth_app:
+        | (OauthAppPublicLike & {
+              picture_public_url: string | null;
+              picture_thumbnail_public_url: string | null;
+          })
+        | null;
+};
+
 export class OauthService {
     constructor(
         private readonly oauthAppRepository: OauthAppRepository,
-        private readonly organizationRepository: OrganizationRepository
+        private readonly organizationRepository: OrganizationRepository,
+        private readonly mediaRepository: MediaRepository
     ) {}
 
     private mustGetSecretKey(): string {
@@ -132,9 +150,32 @@ export class OauthService {
         return this.oauthAppRepository.findActiveAuthorizationByAccessTokenHash(hash);
     }
 
-    async getApprovedApps(authUserId: string): Promise<OauthAuthorizationLike[]> {
+    private async enrichOauthAppPublicForApi(
+        app: OauthAppPublicLike
+    ): Promise<NonNullable<ApprovedAuthorizationApiItem["oauth_app"]>> {
+        if (!app.picture_id) {
+            return { ...app, picture_public_url: null, picture_thumbnail_public_url: null };
+        }
+        const media = await this.mediaRepository.getMediaById(app.organization_id, app.picture_id);
+        if (!media || media.deleted_at) {
+            return { ...app, picture_public_url: null, picture_thumbnail_public_url: null };
+        }
+        return {
+            ...app,
+            picture_public_url: publicUrlForObjectKey(media.path),
+            picture_thumbnail_public_url: media.thumbnail ? publicUrlForObjectKey(media.thumbnail) : null,
+        };
+    }
+
+    async getApprovedApps(authUserId: string): Promise<ApprovedAuthorizationApiItem[]> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
-        return this.oauthAppRepository.listApprovedAuthorizationsByUserId(userId);
+        const rows = await this.oauthAppRepository.listApprovedAuthorizationsByUserId(userId);
+        return Promise.all(
+            rows.map(async (row) => ({
+                ...row,
+                oauth_app: row.oauth_app ? await this.enrichOauthAppPublicForApi(row.oauth_app) : null,
+            }))
+        );
     }
 
     async revokeApp(authUserId: string, authorizationId: string): Promise<{ success: true }> {

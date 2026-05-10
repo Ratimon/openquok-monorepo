@@ -25,11 +25,10 @@
 	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
 
 	type AppSettingsSectionId =
-		| 'global'
+		| 'timezone'
 		| 'workspace'
 		| 'profile'
 		| 'signature'
-		| 'webhooks'
 		| 'templates'
 		| 'developers'
 		| 'approved-apps';
@@ -84,19 +83,18 @@
 	];
 
 	const SETTINGS_NAV: SettingsNavItem<AppSettingsSectionId>[] = [
-		{ id: 'global', label: 'Global Settings' },
+		{ id: 'timezone', label: 'Timezone' },
 		{ id: 'workspace', label: 'Workspace' },
 		{ id: 'profile', label: 'Profile' },
 		{ id: 'developers', label: 'Developers' },
 		{ id: 'approved-apps', label: 'Approved Apps' },
 		{ id: 'signature', label: 'Signatures' },
-		{ id: 'webhooks', label: 'Webhooks' },
 	];
 
 	function setSettingsSidebarContext() {
 		const currentSection = $derived((page.url.searchParams.get('section') as AppSettingsSectionId) || 'global');
 		const sectionTitle = $derived(
-			SETTINGS_NAV.find((item) => item.id === currentSection)?.label ?? 'Global Settings'
+			SETTINGS_NAV.find((item) => item.id === currentSection)?.label ?? 'Timezone'
 		);
 		const basePath = $derived(page.url.pathname);
 

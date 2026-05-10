@@ -110,6 +110,11 @@ When a presenter returns clean values (`null` / `[]`) instead of unions, prefer 
 - **`Get*Presenter`**: `await repo.get…` → **`listPm`** → map to **`Vm`** in `Get*` methods (e.g. `loadAdminCommentsVm`).
 - **Routes / `$lib/ui`**: consume **`*Vm`** for list props. **Which presenter holds the array** (page vs feature) → **web-page-presenter-conventions**.
 
+### Reference: Approved Apps (repository PM → feature presenter ViewModel)
+
+- **Repository** (`web/src/lib/settings/ApprovedApps.repository.svelte.ts`): HTTP **`ListApprovedAppsResponseDto`** / wire rows stay **non-exported** `interface` types; map to **`ApprovedAuthorizationProgrammerModel`** / **`ApprovedOauthAppProgrammerModel`** (camelCase). **`list()`** returns **`ListApprovedAppsProgrammerModel`** (`{ ok: true; items: … } | { ok: false; message }`). **`revoke()`** returns **`RevokeApprovedAppMutationProgrammerModel`** (`{ ok: true } | { ok: false; message }`) — still a PM-layer discriminant at the repository boundary even when the success branch carries no payload.
+- **Feature presenter** (`web/src/lib/settings/ApprovedAppsSettings.presenter.svelte.ts`): bind **`await repo.list()`** to **`listPm`**, **`await repo.revoke(…)`** to **`revokePm`**; map each **`ApprovedAuthorizationProgrammerModel`** to **`ApprovedAppRowViewModel`** via **`toApprovedAppRowViewModel`**. Expose **`itemsVm: ApprovedAppRowViewModel[]`** to **`EditorApprovedAppsSettings.svelte`** (type uses the **`ViewModel`** suffix; the field name **`itemsVm`** is the common array shorthand).
+
 ## Presenter split: `Get*` vs feature presenters vs page presenters
 
 - **`Get*.presenter.svelte.ts`**: **no** `$state`; constructor-injected repos; methods return **`*Vm`** or a **discriminated aggregate result** (never raw PM to components). Instantiate in **feature `index.ts`**, inject into **page presenters**; routes do not construct `Get*` directly.

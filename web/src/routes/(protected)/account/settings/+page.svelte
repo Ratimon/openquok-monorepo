@@ -17,6 +17,7 @@
 	import EditorAccountSettings from '$lib/ui/templates/EditorAccountSettings.svelte';
 	import EditorDeveloperSettings from '$lib/ui/templates/EditorDeveloperSettings.svelte';
 	import EditorMetric from '$lib/ui/templates/EditorMetric.svelte';
+	import EditorApprovedAppsSettings from '$lib/ui/templates/EditorApprovedAppsSettings.svelte';
 	import EditorSignatureSettings from '$lib/ui/templates/EditorSignatureSettings.svelte';
 	import EditorWorkspaceSettings from '$lib/ui/templates/EditorWorkspaceSettings.svelte';
 	import SidebarSecondary from '$lib/ui/templates/SidebarSecondary.svelte';
@@ -30,6 +31,7 @@
 	const accountPresenter = pagePresenter.accountPresenter;
 	const workspacePresenter = pagePresenter.workspacePresenter;
 	const developersPresenter = pagePresenter.developersPresenter;
+	const approvedAppsPresenter = pagePresenter.approvedAppsPresenter;
 
 	const currentProfileVm = $derived(accountPresenter.profileVm);
 	const loadingProfile = $derived(accountPresenter.loadingProfile);
@@ -113,10 +115,23 @@
 	});
 
 	$effect(() => {
+		if (currentSection === 'approved-apps') {
+			void approvedAppsPresenter.load();
+		}
+	});
+
+	$effect(() => {
 		if (!upsertOauthAppsPresenter.showToastMessage) return;
 		if (upsertOauthAppsPresenter.toastIsError) toast.error(upsertOauthAppsPresenter.toastMessage);
 		else toast.success(upsertOauthAppsPresenter.toastMessage);
 		upsertOauthAppsPresenter.showToastMessage = false;
+	});
+
+	$effect(() => {
+		if (!approvedAppsPresenter.showToastMessage) return;
+		if (approvedAppsPresenter.toastIsError) toast.error(approvedAppsPresenter.toastMessage);
+		else toast.success(approvedAppsPresenter.toastMessage);
+		approvedAppsPresenter.showToastMessage = false;
 	});
 
 	async function handleUpdateProfileDetails(updates: {
@@ -251,6 +266,13 @@
 			onOauthSelectMediaItem={(vm) => upsertOauthAppsPresenter.selectMediaItem(vm)}
 			onCopy={copyToClipboard}
 			bind:developerTab
+		/>
+	{:else if currentSection === 'approved-apps'}
+		<EditorApprovedAppsSettings
+			status={approvedAppsPresenter.status}
+			itemsVm={approvedAppsPresenter.itemsVm}
+			revokingAuthorizationId={approvedAppsPresenter.revokingAuthorizationId}
+			onRevoke={(id) => approvedAppsPresenter.revoke(id)}
 		/>
 	{:else}
 		<div

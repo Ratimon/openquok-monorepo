@@ -125,7 +125,6 @@ export class RefreshIntegrationService {
     private async informAboutRefreshError(integration: IntegrationLike): Promise<void> {
         if (!this.notificationService) return;
 
-        // to do: Check message again
         const subject = "Integration needs attention";
         const prettyProvider = integration.provider_identifier;
         const name = integration.name || "integration";

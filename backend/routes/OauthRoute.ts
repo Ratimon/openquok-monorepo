@@ -5,7 +5,6 @@ import { oauthController } from "../controllers/index.js";
 import {
     validateOauthApproveBody,
     validateOauthAuthorizeQuery,
-    validateOauthRevokeBody,
     validateOauthTokenBody,
 } from "../data/schemas/oauthSchemas";
 
@@ -17,8 +16,6 @@ const auth = requireFullAuth(supabaseAnonClient);
 oauthRouter.get("/authorize", validateOauthAuthorizeQuery, oauthController.authorize);
 oauthRouter.post("/authorize", auth, validateOauthApproveBody, oauthController.approve);
 oauthRouter.post("/token", validateOauthTokenBody, oauthController.token);
-oauthRouter.get("/approved-apps", auth, oauthController.approvedApps);
-oauthRouter.post("/revoke", auth, validateOauthRevokeBody, oauthController.revoke);
 
 export { oauthRouter };
 

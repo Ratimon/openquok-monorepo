@@ -78,33 +78,5 @@ export class OauthController {
             next(error);
         }
     };
-
-    // to do : move to Approved-apps controller
-    /** GET /oauth/approved-apps (requires user JWT) */
-    approvedApps = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const authReq = req as AuthenticatedRequest;
-            const authUserId = authReq.user?.id;
-            if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
-            const data = await this.oauthService.getApprovedApps(authUserId);
-            res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    /** POST /oauth/revoke (requires user JWT) */
-    revoke = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const authReq = req as AuthenticatedRequest;
-            const authUserId = authReq.user?.id;
-            if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
-            const b = req.body as { authorizationId: string };
-            const out = await this.oauthService.revokeApp(authUserId, b.authorizationId);
-            res.status(200).json(out);
-        } catch (error) {
-            next(error);
-        }
-    };
 }
 

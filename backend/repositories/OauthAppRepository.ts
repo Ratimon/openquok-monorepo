@@ -29,6 +29,16 @@ export type OauthAuthorizationLike = {
     updated_at: string;
 };
 
+/** OAuth app fields safe to expose when listing user-approved authorizations (no secret hash). */
+export type OauthAppPublicLike = Pick<
+    OauthAppLike,
+    "id" | "organization_id" | "name" | "description" | "picture_id" | "redirect_url" | "client_id" | "created_at" | "updated_at"
+>;
+
+export type OauthAuthorizationWithPublicAppLike = OauthAuthorizationLike & {
+    oauth_app: OauthAppPublicLike | null;
+};
+
 const TABLE_APPS = "oauth_apps";
 const TABLE_AUTHS = "oauth_authorizations";
 
@@ -208,8 +218,8 @@ export class OauthAppRepository {
         return (data as OauthAuthorizationLike | null) ?? null;
     }
 
-    async listApprovedAuthorizationsByUserId(userId: string): Promise<OauthAuthorizationLike[]> {
-        const { data, error } = await this.supabase
+    async listApprovedAuthorizationsByUserId(userId: string): Promise<OauthAuthorizationWithPublicAppLike[]> {
+        const { data: auths, error } = await this.supabase
             .from(TABLE_AUTHS)
             .select("*")
             .eq("user_id", userId)
@@ -223,7 +233,26 @@ export class OauthAppRepository {
                 resource: { type: "table", name: TABLE_AUTHS },
             });
         }
-        return (data ?? []) as OauthAuthorizationLike[];
+        const rows = (auths ?? []) as OauthAuthorizationLike[];
+        if (rows.length === 0) return [];
+
+        const appIds = [...new Set(rows.map((r) => r.oauth_app_id))];
+        const { data: apps, error: appsError } = await this.supabase
+            .from(TABLE_APPS)
+            .select("id, organization_id, name, description, picture_id, redirect_url, client_id, created_at, updated_at")
+            .in("id", appIds);
+        if (appsError) {
+            throw new DatabaseError("Failed to load oauth apps for authorizations", {
+                cause: appsError as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_APPS },
+            });
+        }
+        const byId = new Map((apps ?? []).map((a) => [a.id as string, a as OauthAppPublicLike]));
+        return rows.map((auth) => ({
+            ...auth,
+            oauth_app: byId.get(auth.oauth_app_id) ?? null,
+        }));
     }
 
     async revokeAuthorizationByIdAndUserId(params: { authorizationId: string; userId: string }): Promise<void> {

@@ -390,4 +390,16 @@ describe("User Account Setting E2E", () => {
             ).toBe(true);
         });
     });
+
+    describe("Managing OAuth apps approved by the current user", () => {
+        it("unauthenticated client cannot list approved OAuth authorizations", async () => {
+            const res = await supertest(app).get(`${usersPath}/me/approved-apps`);
+            expect(res.status).toBe(401);
+        });
+
+        it("unauthenticated client cannot revoke an OAuth authorization by id", async () => {
+            const res = await supertest(app).delete(`${usersPath}/me/approved-apps/${uuidv4()}`);
+            expect(res.status).toBe(401);
+        });
+    });
 });

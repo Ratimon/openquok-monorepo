@@ -948,8 +948,6 @@ export class BlogRepository {
 	}
 }
 
-// to do : refacto this
-
 /**
  * Creates a path string for a topic, showing its position in the hierarchy.
  * Example: "Parent > Child > Grandchild"
