@@ -2,6 +2,7 @@
 title: Built-in Components
 description: Documentation components you can use directly in your markdown files.
 order: 3
+lastUpdated: 2026-05-10
 ---
 
 <script>
@@ -162,3 +163,21 @@ Display directory structures:
       - content.ts
 
 </FileTree>
+
+## API request / response panels
+
+This repo ships **`RequestExample`** and **`ResponseExample`** cards (similar to common docs-site patterns) plus **`OpenApiOperationExamples`**, which loads **`GET /api/v1/openapi.json`** and fills curl + JSON from the **`openapi:`** frontmatter line. **`OpenApiPlayground`** renders the full try-it UI from the same spec.
+
+Pages with **`openapi`** in YAML get a **desktop split layout** from **`DocsDocRenderer`**: the **endpoint bar** (method, URL, **Try it**) sits in the **main column** under the page title, with **request/response** code panels in the **right rail**. The **left nav** shows a compact **HTTP method badge** for those pages, and the **right “Search / On this page” sidebar** is hidden so the examples rail is the only right column. To keep the **standard** docs chrome (right sidebar + no method badge) on a page that still declares **`openapi`** for the split + playground, add **`docsLayout: standard`** to the frontmatter.
+
+**`ParamField`** (same idea as [Mintlify’s fields](https://www.mintlify.com/docs/components/fields)) shows the parameter name, **type** and **location** pills, **required**, and description. **`OpenApiDocSplit`** **auto-injects** **Authorizations** (when OpenAPI **`security`** requires your API key), plus **path**, **query**, and **header** parameters from the operation’s **`parameters`** array—use **`ParamField`** in Markdown only for extra narrative the spec does not carry.
+
+To drop the same three blocks into a single column (e.g. custom MDX), use **`OpenApiOperationExamples`**:
+
+```svelte
+<script>
+	import { OpenApiOperationExamples } from '$lib/ui/components/docs/mdx/index.js';
+</script>
+
+<OpenApiOperationExamples operation="GET /public/social/{integration}" />
+```

@@ -7,11 +7,12 @@
 	import { icons } from '$data/icons';
 
 	import { cn } from '$lib/ui/helpers/common';
+	import { docsConfig } from '$lib/docs/constants';
+	import { docsHttpMethodBadgeClass } from '$lib/docs/utils/openapi-docs-layout';
 
 	import * as Collapsible from '$lib/ui/collapsible/index.js';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/ui/sidebar-main/index.js';
-	import { docsConfig } from '$lib/docs/constants';
 	import { sidebarMenuButtonVariants } from '$lib/ui/sidebar-main/sidebar-menu-button-variants';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SocialLinks, { type SocialLink } from '$lib/ui/components/docs/nav/DocsSocialLinks.svelte';
@@ -132,12 +133,26 @@
 							</Collapsible.Trigger>
 							<Collapsible.Content>
 								<Sidebar.MenuSub>
-									{#each section.items ?? [] as item (item.title)}
+									{#each section.items ?? [] as item (item.href ?? item.title)}
 										<Sidebar.MenuSubItem>
 											<Sidebar.MenuSubButton isActive={isActive(item.href)}>
 												{#snippet child({ props })}
-													<a href={item.href ?? '#'} {...props}>
-														<span>{item.title}</span>
+													<a
+														href={item.href ?? '#'}
+														{...props}
+														class={cn(
+															'flex min-w-0 items-center gap-2',
+															props.class as string | undefined
+														)}
+													>
+														{#if item.httpMethod}
+															<span
+																class={cn(
+																	'badge badge-sm shrink-0',
+																	docsHttpMethodBadgeClass(item.httpMethod)
+																)}>{item.httpMethod}</span>
+														{/if}
+														<span class="min-w-0 flex-1 truncate">{item.title}</span>
 													</a>
 												{/snippet}
 											</Sidebar.MenuSubButton>

@@ -10,11 +10,10 @@
       "openquok-orchestrator": ["./types/openquok-orchestrator.d.ts"]
     }
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "types/swagger-modules.d.ts"],
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.d.ts",
     "**/*.test.ts",
     "handler/**",
     "tsup.config.ts"

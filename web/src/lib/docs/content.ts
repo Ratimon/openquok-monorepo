@@ -73,7 +73,9 @@ function buildDocs(
 				description: meta?.description ?? '',
 				order: meta?.order,
 				sidebar: meta?.sidebar,
-				lastUpdated: meta?.lastUpdated
+				lastUpdated: meta?.lastUpdated,
+				openapi: meta?.openapi,
+				docsLayout: meta?.docsLayout
 			},
 			loadContent: async (): Promise<Component> => {
 				const mod = await loader();

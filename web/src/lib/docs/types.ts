@@ -1,6 +1,9 @@
 import type { IconName } from '$data/icons';
 import type { Component } from 'svelte';
 
+/** Controls docs chrome for pages with `openapi` frontmatter. Default is `reference` (method badge in nav, no right search/TOC rail). */
+export type DocsLayoutMode = 'reference' | 'standard';
+
 export interface DocMeta {
 	title: string;
 	description: string;
@@ -8,6 +11,13 @@ export interface DocMeta {
 	sidebar?: { label?: string };
 	draft?: boolean;
 	lastUpdated?: string;
+	/** When set (e.g. `POST /integrations/foo`), the doc page loads examples + playground from `GET /api/v1/openapi.json`. */
+	openapi?: string;
+	/**
+	 * Only applies when `openapi` is set. `reference` (default): HTTP badge in the left nav, hide the right “Search / On this page” sidebar.
+	 * `standard`: same chrome as non-OpenAPI pages (right sidebar + no HTTP badge).
+	 */
+	docsLayout?: DocsLayoutMode;
 }
 
 export interface DocFile {
@@ -30,6 +40,8 @@ export interface NavItem {
 	order?: number;
 	isActive?: boolean;
 	iconName?: IconName;
+	/** Compact HTTP verb for OpenAPI reference pages (left sidebar), e.g. `GET`, `POST`, `DEL`. */
+	httpMethod?: string;
 }
 
 export interface SiteConfig {

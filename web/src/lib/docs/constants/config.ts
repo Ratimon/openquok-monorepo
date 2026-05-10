@@ -61,7 +61,7 @@ export const docsSidebar: DocsSidebarSection[] = [
 		autogenerate: { directory: 'configuration-worker' }
 	},
 	{
-		label: 'CLI auth server',
+		label: 'CLI Auth Setup',
 		icon: icons.Lock.name,
 		autogenerate: { directory: 'configuration-agent' }
 	},

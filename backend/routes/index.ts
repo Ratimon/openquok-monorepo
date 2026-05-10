@@ -22,6 +22,7 @@ import { analyticsRouter } from "./AnalyticsRoute.js";
 import { oauthAppRouter } from "./OauthAppRoute.js";
 import { oauthRouter } from "./OauthRoute.js";
 import { registerBullBoardRoutes, registerBullBoardSessionRoutes } from "./BullBoardRoute.js";
+import { mountOpenApiDocs } from "../swagger/mountOpenApiDocs.js";
 import { logger } from "../utils/Logger";
 
 /**
@@ -38,6 +39,8 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     const api = config.api as { prefix?: string } | undefined;
     const prefix = api?.prefix ?? "/api/v1";
     const apiRouter = express.Router();
+
+    mountOpenApiDocs(apiRouter);
 
     apiRouter.use("/auth", authRouter);
     apiRouter.use("/users", userRouter);

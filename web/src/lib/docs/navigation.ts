@@ -2,6 +2,7 @@ import type { NavItem } from '$lib/docs/types';
 
 import { docsConfig } from '$lib/docs/constants';
 import { getAllDocs, getDocsByDirectory } from '$lib/docs/content';
+import { httpMethodBadgeLabel } from '$lib/docs/utils/openapi-docs-layout';
 
 export function generateNavigation(locale?: string): NavItem[] {
 	const nav: NavItem[] = [];
@@ -12,7 +13,8 @@ export function generateNavigation(locale?: string): NavItem[] {
 			const items: NavItem[] = docs.map((doc) => ({
 				title: doc.meta.sidebar?.label ?? doc.meta.title,
 				href: doc.href,
-				order: doc.meta.order
+				order: doc.meta.order,
+				httpMethod: httpMethodBadgeLabel(doc.meta)
 			}));
 
 			items.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));

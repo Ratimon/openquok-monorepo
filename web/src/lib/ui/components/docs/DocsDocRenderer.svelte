@@ -2,8 +2,16 @@
 	import type { Component } from 'svelte';
 	import type { DocMeta } from '$lib/docs/types';
 
+	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import { setContext } from 'svelte';
+
+	import { DOCS_PLAYGROUND, type DocsPlaygroundContext } from '$lib/docs/docs-playground-context';
+
 	import { toc } from '$lib/docs/utils/toc-state.svelte';
 	import { docsConfig } from '$lib/docs/constants';
+	import { calculateReadingTime } from '$lib/docs/utils/reading-time';
 	import { icons } from '$data/icons';
 
 	import DocsMobileToc from '$lib/ui/components/docs/DocsMobileToc.svelte';
@@ -12,7 +20,8 @@
 	import DocsCopyUrl from '$lib/ui/components/docs/nav/DocsCopyUrl.svelte';
 	import DocsPageFeedback from '$lib/ui/components/docs/nav/DocsPageFeedback.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { calculateReadingTime } from '$lib/docs/utils/reading-time';
+	import OpenApiDocSplit from '$lib/ui/components/docs/OpenApiDocSplit.svelte';
+	import OpenApiPlaygroundModal from '$lib/ui/components/docs/OpenApiPlaygroundModal.svelte';
 
 	let {
 		meta,
@@ -29,8 +38,30 @@
 	} = $props();
 
 	let readingTime = $derived(rawContent ? calculateReadingTime(rawContent) : '');
+	let hasOpenapi = $derived(Boolean(meta.openapi?.trim()));
+	let playgroundOpen = $derived(page.url.searchParams.get('playground') === 'open');
+	let playgroundModalOpen = $state(false);
 
 	let contentEl: HTMLDivElement | undefined = $state();
+
+	function stripPlaygroundQuery() {
+		if (!browser) return;
+		const u = new URL(page.url.href);
+		if (!u.searchParams.has('playground')) return;
+		u.searchParams.delete('playground');
+		void goto(`${u.pathname}${u.search}${u.hash}`, { replaceState: true, noScroll: true });
+	}
+
+	function openPlaygroundModal() {
+		playgroundModalOpen = true;
+		const u = new URL(page.url.href);
+		u.searchParams.set('playground', 'open');
+		void goto(`${u.pathname}${u.search}${u.hash}`, { replaceState: false, noScroll: true });
+	}
+
+	setContext<DocsPlaygroundContext>(DOCS_PLAYGROUND, {
+		open: openPlaygroundModal
+	});
 
 	let editUrl = $derived.by(() => {
 		const github = docsConfig.site.social?.github;
@@ -113,7 +144,7 @@
 	}
 
 	$effect(() => {
-		contentEl;
+		void contentEl;
 
 		const timer = setTimeout(() => {
 			if (contentEl) enhanceContent(contentEl);
@@ -124,11 +155,17 @@
 			toc.clear();
 		};
 	});
+
+	$effect(() => {
+		if (playgroundOpen && hasOpenapi) {
+			playgroundModalOpen = true;
+		}
+	});
 </script>
 
 <article
 	id="doc-content"
-	class="doc-content mx-auto min-w-0 w-full max-w-4xl"
+	class="doc-content mx-auto min-w-0 w-full {hasOpenapi ? 'max-w-[min(100%,85rem)]' : 'max-w-4xl'}"
 	data-pagefind-body
 >
 	<header class="mb-8">
@@ -159,16 +196,30 @@
 		<p class="text-base-content/60 px-1 py-10 text-sm">
 			Loading article…</p>
 	{:then Content}
-		<div
-			class="prose max-w-none min-w-0 break-words text-base-content prose-headings:text-base-content prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-base-content/20 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 prose-hr:border-base-300 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto"
-			bind:this={contentEl}
-		>
-			<Content />
-		</div>
+		{#if hasOpenapi}
+			<OpenApiDocSplit operation={(meta.openapi ?? '').trim()} bind:contentEl>
+				<Content />
+			</OpenApiDocSplit>
+		{:else}
+			<div
+				class="prose min-w-0 max-w-none break-words text-base-content prose-headings:text-base-content prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-base-content/20 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 prose-hr:border-base-300 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+				bind:this={contentEl}
+			>
+				<Content />
+			</div>
+		{/if}
 	{:catch}
 		<p class="text-error px-1 py-6 text-sm">
 			Could not load this article.</p>
 	{/await}
+
+	{#if hasOpenapi}
+		<OpenApiPlaygroundModal
+			bind:open={playgroundModalOpen}
+			operation={(meta.openapi ?? '').trim()}
+			onClose={stripPlaygroundQuery}
+		/>
+	{/if}
 
 	<footer class="border-base-300 mt-12 border-t pt-6">
 		{#if meta.lastUpdated}

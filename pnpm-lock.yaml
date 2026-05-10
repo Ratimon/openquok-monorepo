@@ -39,9 +39,6 @@ importers:
         specifier: ^18.0.0
         version: 18.0.0
     devDependencies:
-      '@types/form-data':
-        specifier: ^2.5.2
-        version: 2.5.2
       '@types/node':
         specifier: ^25.6.0
         version: 25.6.0
@@ -3538,10 +3535,6 @@ packages:
 
   '@types/express@5.0.6':
     resolution: {integrity: sha512-sKYVuV7Sv9fbPIt/442koC7+IIwK5olP1KWeD88e/idgoJqDm3JV/YUiPwkoKK92ylff2MGxSz1CSjsXelx0YA==}
-
-  '@types/form-data@2.5.2':
-    resolution: {integrity: sha512-tfmcyHn1Pp9YHAO5r40+UuZUPAZbUEgqTel3EuEKpmF9hPkXgR4l41853raliXnb4gwyPNoQOfvgGGlHN5WSog==}
-    deprecated: This is a stub types definition. form-data provides its own type definitions, so you do not need this installed.
 
   '@types/graceful-fs@4.1.9':
     resolution: {integrity: sha512-olP3sd1qOEe5dXTSaFvQG+02VdRXcdytWLAZsAq1PecU8uqQAhkrnbli7DagjtXKW/Bl7YJbUsa8MPcuc8LHEQ==}
@@ -11131,10 +11124,6 @@ snapshots:
       '@types/body-parser': 1.19.6
       '@types/express-serve-static-core': 5.1.1
       '@types/serve-static': 2.2.0
-
-  '@types/form-data@2.5.2':
-    dependencies:
-      form-data: 4.0.5
 
   '@types/graceful-fs@4.1.9':
     dependencies:

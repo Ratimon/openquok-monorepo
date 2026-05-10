@@ -1,5 +1,7 @@
 import type { DocMeta } from '$lib/docs/types';
 
+import { normalizeDocsLayout } from '$lib/docs/utils/openapi-docs-layout';
+
 /** Minimal YAML subset for docs frontmatter (title, order, nested `sidebar.label`, etc.). */
 function unquote(s: string): string {
 	const t = s.trim();
@@ -30,7 +32,7 @@ function parseFrontmatterBlock(block: string): Record<string, unknown> {
 		const trimmed = rest.trim();
 
 		if (key === 'sidebar' && trimmed === '') {
-			const sub = /^  (\w+):\s*(.*)$/.exec(lines[i + 1] ?? '');
+			const sub = /^\s{2}(\w+):\s*(.*)$/.exec(lines[i + 1] ?? '');
 			if (sub?.[1] === 'label') {
 				result.sidebar = { label: unquote(sub[2].trim()) };
 				i++;
@@ -66,6 +68,8 @@ export function docMetaFromRawSource(raw: string): DocMeta {
 				? { label: String((sidebarRaw as { label?: unknown }).label ?? '') }
 				: undefined,
 		draft: data.draft === true,
-		lastUpdated: typeof data.lastUpdated === 'string' ? data.lastUpdated : undefined
+		lastUpdated: typeof data.lastUpdated === 'string' ? data.lastUpdated : undefined,
+		openapi: typeof data.openapi === 'string' ? data.openapi : undefined,
+		docsLayout: normalizeDocsLayout(data.docsLayout)
 	};
 }

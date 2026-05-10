@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
+	import { page } from '$app/state';
+	import type { DocMeta } from '$lib/docs/types';
+	import { isOpenapiReferenceChrome } from '$lib/docs/utils/openapi-docs-layout';
 	import DocsHeader from '$lib/ui/components/docs/layout/DocsHeader.svelte';
 	import DocsSidebarLeft from '$lib/ui/components/docs/layout/DocsSidebarLeft.svelte';
 	import DocsSidebarRight from '$lib/ui/components/docs/layout/DocsSidebarRight.svelte';
@@ -13,6 +16,9 @@
 	let { data, children }: Props = $props();
 
 	let navigation = $derived(data.navigation);
+
+	let docMeta = $derived(page.data.meta as DocMeta | undefined);
+	let showDocsRightSidebar = $derived(!isOpenapiReferenceChrome(docMeta));
 
 	const socialLinks = $derived.by(() => {
 		const out: { platform: string; url: string; label?: string }[] = [];
@@ -38,11 +44,14 @@
 </a>
 <Sidebar.Provider>
 	<DocsSidebarLeft {navigation} {socialLinks} />
-	<Sidebar.Inset class="min-w-0 flex-1 overflow-x-hidden">
+	<!-- Do not set overflow-x-* here: any non-visible overflow on an ancestor breaks position:sticky for the API docs rail -->
+	<Sidebar.Inset class="min-w-0 flex-1">
 		<DocsHeader {socialLinks} />
 		<div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4 p-4">
 			{@render children()}
 		</div>
 	</Sidebar.Inset>
-	<DocsSidebarRight {navigation} />
+	{#if showDocsRightSidebar}
+		<DocsSidebarRight {navigation} />
+	{/if}
 </Sidebar.Provider>

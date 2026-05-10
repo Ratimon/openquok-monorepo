@@ -6,14 +6,14 @@ lastUpdated: 2026-04-07
 ---
 
 <script>
-import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, CardGrid, LinkCard, FileTree } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
 The repository is a **pnpm monorepo**: the root holds the workspace manifest, shared tooling, and top-level packages. **Data and files go through Supabase** (Postgres for relational data, **Supabase Storage** for objects when the product needs them).
 
-The customer-facing **SvelteKit** app lives in **`web/`**. It serves the marketing site, authenticated product UI, and the **`/docs`** documentation area. The docs runtime (content loading, navigation, search) lives under `web/src/lib/docs/`.
+The customer-facing **SvelteKit** app lives in <Badge text="web/" variant="path" />. It serves the marketing site, authenticated product UI, and the **`/docs`** documentation area. The docs runtime (content loading, navigation, search) lives under <Badge text="web/src/lib/docs/" variant="path" />.
 
 ## Tech stack
 
@@ -30,105 +30,110 @@ The customer-facing **SvelteKit** app lives in **`web/`**. It serves the marketi
 
 Repository layout at the root:
 
-```text
-.
-├── LICENSE
-├── README.md
-├── backend
-├── common
-├── orchestrator
-├── package.json
-├── pnpm-workspace.yaml
-├── scripts
-└── web
-```
+<FileTree>
 
-- **`backend/`** — Supabase project assets (migrations, RLS, modules) and the Express API that talks to **Supabase** (database + auth patterns, and **Storage** where applicable).
-- **`common/`** — Shared workspace package (`openquok-common`): types and small utilities imported by **backend** and **orchestrator** (for example notification email types).
-- **`orchestrator/`** — Workspace package (`openquok-orchestrator`): Flowcraft blueprints, BullMQ adapters, **long-running worker** entrypoints, and enqueue helpers used from the API when distributed transport is enabled. See [Orchestrator workflows](/docs/developer-guidelines/orchestrator-workflows), [Configuration - Worker](/docs/configuration-worker), and [Railway (workers)](/docs/installation/railway).
-- **`scripts/`** — Monorepo automation (build, codegen, migration aggregation, etc.).
-- **`web/`** — SvelteKit frontend; public static files live under `web/static/`.
+- LICENSE
+- README.md
+- backend/
+- common/
+- orchestrator/
+- package.json
+- pnpm-workspace.yaml
+- scripts/
+- web/
+
+</FileTree>
+
+- <Badge text="backend/" variant="path" /> — Supabase project assets (migrations, RLS, modules) and the Express API that talks to **Supabase** (database + auth patterns, and **Storage** where applicable).
+- <Badge text="common/" variant="path" /> — Shared workspace package (`openquok-common`): types and small utilities imported by <Badge text="backend/" variant="path" /> and <Badge text="orchestrator/" variant="path" /> (for example notification email types).
+- <Badge text="orchestrator/" variant="path" /> — Workspace package (`openquok-orchestrator`): Flowcraft blueprints, BullMQ adapters, **long-running worker** entrypoints, and enqueue helpers used from the API when distributed transport is enabled. See [Orchestrator workflows](/docs/developer-guidelines/orchestrator-workflows), [Configuration - Worker](/docs/configuration-worker), and [Railway (workers)](/docs/installation/railway).
+- <Badge text="scripts/" variant="path" /> — Monorepo automation (build, codegen, migration aggregation, etc.).
+- <Badge text="web/" variant="path" /> — SvelteKit frontend; public static files live under <Badge text="web/static/" variant="path" />.
 
 ## Key Directories
 
-### `backend/`
+### <Badge text="backend/" variant="path" />
 
-Backend code and the **Supabase** project live together under `backend/`:
+Backend code and the **Supabase** project live together under <Badge text="backend/" variant="path" />:
 
-```
-backend/
-├── api
-├── handler
-├── app.ts
-├── config
-├── connections
-├── controllers
-├── data
-├── emails
-├── errors
-├── middlewares
-├── repositories
-├── routes
-├── scripts
-├── services
-├── supabase
-├── tests
-├── types
-└── utils
-```
+<FileTree>
 
-- **`api/`** and **`handler/`** — HTTP entrypoints shaped for **Vercel** (serverless-style functions and the handler surface that connects routing to your app). Use them as the deployment shell; keep business rules in **services** and data access in **repositories**.
-- **`services/`** — Domain orchestration and use-cases; this layer is also where **caching** belongs when you need to reuse or shorten expensive work across requests (in-memory, keyed stores, or upstream cache semantics—depending on what you wire in). Services may call **`openquok-orchestrator`** to enqueue Flowcraft runs or use **in-process** orchestration when `config/orchestratorFlows.ts` keeps transport on `in_process`.
-- **`supabase/`** — Database source of truth: modular SQL under `db/` (tables, RLS, functions, seeds), migrations, and config targeting **Supabase Postgres**.
-- **`repositories/`**, **`controllers/`**, **`routes/`** — Persistence adapters, request/response handling, and route tables; prefer Supabase clients and SQL in migrations over ad hoc SQL in the web app.
-- **`middlewares/`**, **`errors/`**, **`connections/`**, **`config/`**, **`types/`**, **`utils/`**, **`data/`** — Cross-cutting behavior, Supabase/client wiring, shared types, helpers, and supporting data fixtures or reference payloads.
-- **`emails/`** — Transactional templates and send flows.
-- **`scripts/`** and **`tests/`** — One-off backend scripts and automated tests.
+- backend/
+  - api/
+  - handler/
+  - app.ts
+  - config/
+  - connections/
+  - controllers/
+  - data/
+  - emails/
+  - errors/
+  - middlewares/
+  - repositories/
+  - routes/
+  - scripts/
+  - services/
+  - supabase/
+  - tests/
+  - types/
+  - utils/
+
+</FileTree>
+
+- <Badge text="api/" variant="path" /> and <Badge text="handler/" variant="path" /> — HTTP entrypoints shaped for **Vercel** (serverless-style functions and the handler surface that connects routing to your app). Use them as the deployment shell; keep business rules in <Badge text="services/" variant="path" /> and data access in <Badge text="repositories/" variant="path" />.
+- <Badge text="services/" variant="path" /> — Domain orchestration and use-cases; this layer is also where **caching** belongs when you need to reuse or shorten expensive work across requests (in-memory, keyed stores, or upstream cache semantics—depending on what you wire in). Services may call **`openquok-orchestrator`** to enqueue Flowcraft runs or use **in-process** orchestration when `config/orchestratorFlows.ts` keeps transport on `in_process`.
+- <Badge text="supabase/" variant="path" /> — Database source of truth: modular SQL under <Badge text="db/" variant="path" /> (tables, RLS, functions, seeds), migrations, and config targeting **Supabase Postgres**.
+- <Badge text="repositories/" variant="path" />, <Badge text="controllers/" variant="path" />, <Badge text="routes/" variant="path" /> — Persistence adapters, request/response handling, and route tables; prefer Supabase clients and SQL in migrations over ad hoc SQL in the web app.
+- <Badge text="middlewares/" variant="path" />, <Badge text="errors/" variant="path" />, <Badge text="connections/" variant="path" />, <Badge text="config/" variant="path" />, <Badge text="types/" variant="path" />, <Badge text="utils/" variant="path" />, <Badge text="data/" variant="path" /> — Cross-cutting behavior, Supabase/client wiring, shared types, helpers, and supporting data fixtures or reference payloads.
+- <Badge text="emails/" variant="path" /> — Transactional templates and send flows.
+- <Badge text="scripts/" variant="path" /> and <Badge text="tests/" variant="path" /> — One-off backend scripts and automated tests.
 - **Storage** — User or system files go through **Supabase Storage** (buckets and policies live with the rest of the backend), not a separate blob store reached only from the frontend.
 
 Root-level config files for this package are listed under **Configuration Files** → **Backend** below.
 
-### `web/`
+### <Badge text="web/" variant="path" />
 
 The SvelteKit app root:
 
-```text
-web/
-├── package.json
-├── web-config.json
-├── static
-└── src
-    ├── content/                # docs markdown (see Document Directories)
-    ├── data/
-    │   ├── docs.ts             # docs site + sidebar config consumed by $lib/docs
-    │   └── icons.ts            # icon registry for AbstractIcon / MDX
-    ├── lib/
-    │   ├── area-admin/         # admin-area page presenters + wiring
-    │   ├── area-protected/     # signed-in app: settings, account, …
-    │   ├── area-public/        # marketing / public blog presenters
-    │   ├── core/               # HttpGateway, shared infra, cross-cutting presenters
-    │   ├── ui/                 # design-system components (DaisyUI + Tailwind)
-    │   └── …                   # feature modules: account, blog, user-auth, docs, …
-    ├── params/
-    ├── routes/
-    │   ├── (auth)/             # sign-in, sign-up, password flows
-    │   ├── (docs)/             # /docs layout + localized slugs
-    │   ├── (legal)/            # policy pages
-    │   ├── (protected)/        # authenticated product + editor surfaces
-    │   ├── (public)/           # landing, public blog, …
-    │   └── …                   # root +layout, feeds, robots.txt, sitemap, …
-    ├── styles/
-    └── tests/
-```
+<FileTree>
 
-- **`src/routes/`** — File-based routing. **Route groups** `(public)`, `(auth)`, `(protected)`, `(docs)`, `(legal)` share layouts and auth boundaries without affecting the URL prefix. Pages stay thin: compose UI, own or call **page presenters**, and avoid direct **repository** or **gateway** imports (see **Presenters, repositories, and tests**).
-- **`src/data/`** — Small **typed registries and config** imported from `$data/…` (e.g. **`docs.ts`**, **`icons.ts`**). Keeps sidebar and icon keys out of feature modules.
-- **`src/lib/core/`** — **Infrastructure**: HTTP **`HttpGateway`**, cookies, shared presenters that sit next to I/O. DTOs from the API are parsed here and in repositories, not in `.svelte` files.
-- **`src/lib/area-admin`**, **`area-protected`**, **`area-public/`** — **Page-level presenters** and exports for each surface: admin console, signed-in app, and public/marketing. Routes import singletons from these indexes instead of pulling every feature presenter separately.
-- **`src/lib/ui/`** — Reusable **UI primitives and composites** (buttons, dialogs, docs chrome, **DaisyUI**-styled patterns). Feature routes pass view models and callbacks into these components; children under `$lib/ui` do not import **`area-*`** page presenters.
+- web/
+  - package.json
+  - web-config.json
+  - static/
+  - src/
+    - content/
+    - data/
+      - docs.ts
+      - icons.ts
+    - lib/
+      - area-admin/
+      - area-protected/
+      - area-public/
+      - core/
+      - ui/
+      - …
+    - params/
+    - routes/
+      - (auth)/
+      - (docs)/
+      - (legal)/
+      - (protected)/
+      - (public)/
+      - …
+    - styles/
+    - tests/
+
+</FileTree>
+
+- <Badge text="src/routes/" variant="path" /> — File-based routing. **Route groups** `(public)`, `(auth)`, `(protected)`, `(docs)`, `(legal)` share layouts and auth boundaries without affecting the URL prefix. Pages stay thin: compose UI, own or call **page presenters**, and avoid direct **repository** or **gateway** imports (see **Presenters, repositories, and tests**).
+- <Badge text="src/data/" variant="path" /> — Small **typed registries and config** imported from `$data/…` (e.g. **`docs.ts`**, **`icons.ts`**). Keeps sidebar and icon keys out of feature modules.
+- <Badge text="src/lib/core/" variant="path" /> — **Infrastructure**: HTTP **`HttpGateway`**, cookies, shared presenters that sit next to I/O. DTOs from the API are parsed here and in repositories, not in `.svelte` files.
+- <Badge text="src/lib/area-admin/" variant="path" />, <Badge text="src/lib/area-protected/" variant="path" />, <Badge text="src/lib/area-public/" variant="path" /> — **Page-level presenters** and exports for each surface: admin console, signed-in app, and public/marketing. Routes import singletons from these indexes instead of pulling every feature presenter separately.
+- <Badge text="src/lib/ui/" variant="path" /> — Reusable **UI primitives and composites** (buttons, dialogs, docs chrome, **DaisyUI**-styled patterns). Feature routes pass view models and callbacks into these components; children under `$lib/ui` do not import **`area-*`** page presenters.
 - **Theming (DaisyUI)** — Styling favors **semantic DaisyUI + Tailwind** tokens (`bg-base-100`, `text-base-content`, `border-base-300`, `primary`, `data-theme`, etc.) so **light and dark** (and theme presets like **forest** on docs) swap via CSS variables instead of hand-maintained color pairs per component.
-- **`src/content/`** — Markdown sources for the in-app docs site.
-- **`static/`** — Public assets (favicon, PWA icons, README images).
+- <Badge text="src/content/" variant="path" /> — Markdown sources for the in-app docs site.
+- <Badge text="static/" variant="path" /> — Public assets (favicon, PWA icons, README images).
 - **Full tooling list** — **Configuration Files** → **Web** below.
 
 #### Presenters, repositories, and tests
@@ -137,10 +142,10 @@ We keep **Svelte** focused on layout and inputs, and push behavior into layers y
 
 | Layer | Role | Typical files |
 |-------|------|----------------|
-| **UI (Svelte)** | Render view models; forward user actions via callbacks. Parent routes own the **page presenter**; children avoid importing repositories or gateways. | `*.svelte` under `routes/` and `$lib/ui/` |
+| **UI (Svelte)** | Render view models; forward user actions via callbacks. Parent routes own the **page presenter**; children avoid importing repositories or gateways. | `*.svelte` under <Badge text="routes/" variant="path" /> and <Badge text="$lib/ui/" variant="path" /> |
 | **Presenter** | View-specific state (status, toasts, `*Vm`), actions that call repositories. No `goto`, no direct gateway usage. | `*.presenter.svelte.ts` |
 | **Repository** | Domain state as **programmer models**; maps DTOs ↔ domain; calls the gateway. | `*.repository.svelte.ts` |
-| **Gateway / infrastructure** | HTTP and other I/O; DTOs at the boundary. | `$lib/core/` (e.g. `HttpGateway`) |
+| **Gateway / infrastructure** | HTTP and other I/O; DTOs at the boundary. | <Badge text="$lib/core/" variant="path" /> (e.g. `HttpGateway`) |
 
 **Why separate repository and presenter?** Repositories encode **business rules and data shape** (what the app believes is true). Presenters encode **how a screen behaves** (loading, errors, which `*Vm` the template sees). Splitting them means you can **unit test** presenters with a stubbed repository and **unit test** repositories with a stubbed gateway—asserting on state and return values instead of rendering components or running end-to-end tests for every branch. That matches the goal: *test view-model and domain behavior, not the DOM*.
 
@@ -148,51 +153,53 @@ We keep **Svelte** focused on layout and inputs, and push behavior into layers y
 
 ## Document Directories
 
-The sections below describe structure **inside `web/`** (paths are relative to that folder unless noted).
+The sections below describe structure **inside** <Badge text="web/" variant="path" /> (paths are relative to that folder unless noted).
 
-### `src/content/docs/`
+### <Badge text="src/content/docs/" variant="path" />
 
-This is where in-app documentation markdown lives. Each `.md` file becomes a page; URLs follow the folder path. Sidebar sections are declared in **`$lib/docs/constants/config.ts`** (`autogenerate.directory` must match these folder names).
+This is where in-app documentation markdown lives. Each `.md` file becomes a page; URLs follow the folder path. Sidebar sections are declared in <Badge text="$lib/docs/constants/config.ts" variant="path" /> (`autogenerate.directory` must match these folder names).
 
-```text
-src/content/docs/
-├── index.md                    # /docs
-├── developer-guidelines/
-│   └── index.md                # /docs/developer-guidelines/
-├── getting-started/
-│   ├── index.md                # /docs/getting-started/
-│   ├── architecture.md         # /docs/getting-started/architecture
-│   └── quick-start.md          # /docs/getting-started/quick-start
-└── how-to-write-docs/
-    ├── index.md                # /docs/how-to-write-docs/
-    ├── configuration.md        # /docs/how-to-write-docs/configuration
-    ├── writing-content.md      # /docs/how-to-write-docs/writing-content
-    ├── components.md           # /docs/how-to-write-docs/components
-    └── versioning.md           # /docs/how-to-write-docs/versioning
-```
+<FileTree>
 
-### `src/lib/docs/`
+- src/content/docs/
+  - index.md
+  - developer-guidelines/
+    - index.md
+  - getting-started/
+    - index.md
+    - architecture.md
+    - quick-start.md
+  - how-to-write-docs/
+    - index.md
+    - configuration.md
+    - writing-content.md
+    - components.md
+    - versioning.md
+
+</FileTree>
+
+### <Badge text="src/lib/docs/" variant="path" />
 
 The documentation engine:
 
-- **`constants/config.ts`** — Defines docs site metadata, sidebar, i18n, and assembles `docsConfig`
-- **`content.ts`** — Content loader that discovers and parses markdown files
-- **`navigation.ts`** — Generates sidebar navigation from the file structure
-- **`types.ts`** — TypeScript types for docs, navigation, and config
-- **`utils/toc-state.svelte.ts`** — Table of contents state management
+- <Badge text="constants/config.ts" variant="path" /> — Defines docs site metadata, sidebar, i18n, and assembles `docsConfig`
+- <Badge text="content.ts" variant="path" /> — Content loader that discovers and parses markdown files
+- <Badge text="navigation.ts" variant="path" /> — Generates sidebar navigation from the file structure
+- <Badge text="types.ts" variant="path" /> — TypeScript types for docs, navigation, and config
+- <Badge text="utils/toc-state.svelte.ts" variant="path" /> — Table of contents state management
 
-### `src/lib/ui/components/docs/`
+### <Badge text="src/lib/ui/components/docs/" variant="path" />
 
 Documentation UI (layouts, MDX helpers, search, nav):
 
-- **`layout/`** — Header, footers, sidebars
-- **`nav/`** — Breadcrumbs, keyboard nav, social links
-- **`search/`** — Command palette search
-- **`mdx/`** — Callout, tabs, cards, and other markdown components
+- <Badge text="layout/" variant="path" /> — Header, footers, sidebars
+- <Badge text="nav/" variant="path" /> — Breadcrumbs, keyboard nav, social links
+- <Badge text="search/" variant="path" /> — Command palette search
+- <Badge text="mdx/" variant="path" /> — Callout, tabs, cards, and other markdown components
 
 ## Configuration Files
 
-Paths below are relative to each package root (`backend/`, `web/`, `common/`, or `orchestrator/` where noted).
+Paths below are relative to each package root (<Badge text="backend/" variant="path" />, <Badge text="web/" variant="path" />, <Badge text="common/" variant="path" />, or <Badge text="orchestrator/" variant="path" /> where noted).
 
 ### Backend
 

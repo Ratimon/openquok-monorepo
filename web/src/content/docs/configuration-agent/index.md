@@ -15,7 +15,7 @@ The **CLI auth server** (<Badge text="agent/server" variant="path" />) reads its
 
 **Any change** to environment variables requires **restarting** the local Node process (or **redeploying** / syncing secrets on Vercel) so new values are loaded.
 
-Templates are checked in at <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.development.example"><Badge text="agent/server/.env.development.example" variant="envFile" /></DocsExternalLink> and <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.production.example"><Badge text="agent/server/.env.production.example" variant="envFile" /></DocsExternalLink>. For **local development**, copy the development template to <Badge text="agent/server/.env.development.local" variant="envFile" /> (gitignored). For **production** deploys and Vercel env sync, copy the production template to <Badge text="agent/server/.env.production.local" variant="envFile" /> or inject the same keys from your host’s secret store — see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/index.ts"><Badge text="agent/server/index.ts" variant="path" /></DocsExternalLink> for how <Badge text=".env.development.local" variant="envFile" /> vs <Badge text=".env.production.local" variant="envFile" /> is chosen.
+For **local development**, copy the development template to <Badge text="agent/server/.env.development.local" variant="envFile" /> (gitignored). For **production** deploys and Vercel env sync, copy the production template to <Badge text="agent/server/.env.production.local" variant="envFile" /> or inject the same keys from your host’s secret store — see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/index.ts"><Badge text="agent/server/index.ts" variant="path" /></DocsExternalLink> for how <Badge text=".env.development.local" variant="envFile" /> vs <Badge text=".env.production.local" variant="envFile" /> is chosen.
 
 In local development, keep <Badge text="NODE_ENV" variant="envRuntime" /> set to **development** unless you intentionally mimic production. On Vercel, the platform injects configuration at runtime.
 
@@ -38,7 +38,7 @@ Request paths, polling, and the <Badge text="device_requests" variant="default" 
 
 ## Environment variables
 
-When running locally, values are loaded from <Badge text="agent/server/.env.development.local" variant="envFile" /> or <Badge text="agent/server/.env.production.local" variant="envFile" /> as described above (and from <Badge text="agent/server/.env.production.local" variant="envFile" /> when you sync to Vercel).
+When running locally, values are loaded from <Badge text="agent/server/.env.development.local" variant="envFile" /> or <Badge text="agent/server/.env.production.local" variant="envFile" /> as described above.
 
 ### Required
 
