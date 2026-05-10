@@ -41,14 +41,14 @@ pnpm backend:test:integration
 pnpm backend:test:e2e
 ```
 
-<Callout type="note" title="Optional: third-party connectivity smoke tests (opt-in)">
-<p>Some integration tests are designed to verify connectivity to managed third-party services (for example Cloudflare R2 or managed Redis). These tests are <strong>disabled by default</strong> to avoid accidental calls to production services during everyday local development or CI.</p>
-<p>To enable them, set the opt-in flags below when running the test file:</p>
+<Callout type="note" title="Optional: connectivity smoke tests">
+<p>Some integration tests are designed to verify connectivity for third-party services (for example R2 or Redis). These tests are <strong>disabled by default</strong> to avoid accidental calls to production.</p>
+<p>To enable them, set the flags below when running the test:</p>
 <ul>
   <li><Badge text="THIRD_PARTY_TESTS_REDIS=true" variant="envBackend" /></li>
   <li><Badge text="THIRD_PARTY_TESTS_R2=true" variant="envBackend" /></li>
 </ul>
-<p>Run the third-party suite directly (recommended) instead of the full integration folder:</p>
+<p>Run the third-party suite directly (recommended):</p>
 </Callout>
 
 ```bash
@@ -249,7 +249,7 @@ Once running, point the CLI at it via <Badge text="OPENQUOK_AUTH_SERVER" variant
 
 ### Running the CLI from the monorepo (unpublished)
 
-Published installs use the global <code>openquok</code> command — see <a href="/docs/cli">CLI</a>. If <Badge text="@openquok/auto-cli" variant="experimental" /> is **not** installed from npm yet, build the CLI package and run the compiled entrypoint **from the repository root**:
+Published installs use the global <code>openquok</code> command — see <a href="/docs/cli">CLI</a>. If <Badge text="@openquok/auto-cli" variant="experimental" /> is **not** installed from npm yet, build the CLI package and run the compiled **from the repository root**:
 
 ```bash
 pnpm --filter ./agent build

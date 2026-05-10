@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-The **backend** reads its runtime settings from **environment variables**, and you also configure your **Supabase** project in the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> (database, authentication, API keys, and related project settings). **Any change** to environment variables requires **restarting** the backend process so the new values are loaded.
+The **backend** reads its runtime settings from **environment variables**, and you also configure your **Supabase** project in the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> (database, authentication, API keys, and related project settings).
 
 An example file with the most commonly used settings is checked in at <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envFile" /></DocsExternalLink>. Copy it to <Badge text="backend/.env.development.local" variant="envFile" /> under <Badge text="backend/" variant="path" /> (the example header explains load order and how it relates to <Badge text="backend/.env" variant="path" />). Use that local file for secrets and overrides you do not commit.
 

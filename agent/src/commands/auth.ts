@@ -51,14 +51,6 @@ function assertVerificationUriSafe(authServerBase: string, verificationUri: stri
   }
 }
 
-function shouldOpenBrowser(): boolean {
-  const no = process.env.NO_BROWSER;
-  if (no === "1" || no === "true") return false;
-  const b = process.env.BROWSER;
-  if (b === "none" || b === "false") return false;
-  return true;
-}
-
 async function waitForEnter(prompt: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const rl = readline.createInterface({ input: stdinStream, output: stderrStream, terminal: true });
@@ -179,28 +171,20 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             `Visit ${code.verification_uri} and enter code ${code.user_code}\n` +
               `(or use the link after you press Enter — the code will be filled in automatically)\n`
           );
-          if (!shouldOpenBrowser()) {
-            stderrStream.write(`\nBrowser launch disabled (NO_BROWSER or BROWSER=none). Open manually:\n${verificationUriComplete}\n`);
-          }
 
-          if (interactive) {
-            const prompt = shouldOpenBrowser()
-              ? "\nPress [ENTER] to open the browser "
-              : "\nPress [ENTER] to continue ";
-            await waitForEnter(prompt);
-            if (shouldOpenBrowser()) {
-              try {
-                await open(verificationUriComplete, { wait: false });
-              } catch {
-                stderrStream.write(`Could not open browser. Open manually:\n${verificationUriComplete}\n`);
-              }
-            }
-          } else if (shouldOpenBrowser()) {
+          const tryOpenBrowser = async (): Promise<void> => {
             try {
               await open(verificationUriComplete, { wait: false });
             } catch {
               stderrStream.write(`Could not open browser. Open manually:\n${verificationUriComplete}\n`);
             }
+          };
+
+          if (interactive) {
+            await waitForEnter("\nPress [ENTER] to open the browser ");
+            await tryOpenBrowser();
+          } else {
+            await tryOpenBrowser();
           }
 
           stderrStream.write("\nWaiting for authentication…\n");
