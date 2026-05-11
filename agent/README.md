@@ -11,7 +11,7 @@
 - Create and schedule posts via the programmatic API
 - List posts and manage post groups
 - Upload media for use in posts
-- List programmatic integrations (channel IDs for use with `posts:create`)
+- List programmatic integrations and trigger provider-specific tools (e.g. fetch subreddits, pages, playlists)
 
 
 ## Quickstart
@@ -77,9 +77,13 @@ openquok auth:logout
 
 ```bash
 openquok integrations:list
+openquok integrations:settings <id>
+openquok integrations:trigger <id> <method> [--data '<json>']
 ```
 
-Connecting new channels (OAuth) is done from the web UI; the CLI consumes the resulting integration IDs.
+- `integrations:settings` returns the provider's rules, max post length, settings schema, and the list of allow-listed `tools` you can invoke via `integrations:trigger`.
+- `integrations:trigger` dispatches a single allow-listed provider method (e.g. `getSubreddits`). The `--data` payload, when present, must be a JSON object; its shape is provider-specific (see the `dataSchema` field of the corresponding tool in `integrations:settings`).
+- Connecting new channels (OAuth) is done from the web UI; the CLI consumes the resulting integration IDs.
 
 ### Posts
 

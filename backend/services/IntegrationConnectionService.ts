@@ -19,6 +19,7 @@ import { IntegrationManager } from "../integrations/integrationManager";
 import { UserNotFoundError } from "../errors/UserError";
 import { OrganizationNotFoundError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
+import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
 import { logger } from "../utils/Logger";
 
 /** Domain-scoped cache key builders for short-lived OAuth state (`login:`, `organization:`, `refresh:`, etc.). */
@@ -58,6 +59,26 @@ function postingTimesForTimezone(timezone?: number): string {
         return JSON.stringify([{ time: 120 }, { time: 400 }, { time: 700 }]);
     }
     return JSON.stringify([{ time: 560 - timezone }, { time: 850 - timezone }, { time: 1140 - timezone }]);
+}
+
+/** `integrations.additional_settings` is a JSON-encoded array; defensive parse so a malformed value doesn't 500. */
+function parseAdditionalSettings(raw: string | null | undefined): Array<Record<string, unknown>> {
+    if (!raw) return [];
+    try {
+        const parsed: unknown = JSON.parse(raw);
+        return Array.isArray(parsed) ? (parsed as Array<Record<string, unknown>>) : [];
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * Some providers (e.g. X paid tier) gate higher limits behind a "Verified" toggle stored in
+ * `additional_settings`. Mirrors upstream `additionalSettings.find(p => p.title === 'Verified')?.value`.
+ */
+function isVerifiedFromAdditionalSettings(settings: Array<Record<string, unknown>>): boolean {
+    const verified = settings.find((s) => s?.title === "Verified")?.value;
+    return verified === true;
 }
 
 /**
@@ -279,6 +300,121 @@ export class IntegrationConnectionService {
         const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
         if (!deleted) {
             throw new AppError("Integration not found", 404);
+        }
+    }
+
+    /**
+     * Shape returned by `GET /public/integration-settings/:id`.
+     *
+     * - `rules` — provider-specific natural-language constraints (see {@link SocialProvider.rules}).
+     * - `maxLength` — character cap for posts on this channel, taking the channel’s stored
+     *   `additional_settings` into account when the provider’s `maxLength` is settings-dependent.
+     * - `settings` — provider settings schema when {@link SocialProvider.settingsSchema} is implemented;
+     *   the literal `"No additional settings required"` otherwise.
+     * - `tools` — allow-listed methods invocable via `POST /public/integration-trigger/:id`.
+     */
+    async getIntegrationSettings(
+        organizationId: string,
+        integrationId: string
+    ): Promise<{
+        output: {
+            rules: string;
+            maxLength: number;
+            settings: unknown;
+            tools: Array<{ methodName: string; description: string; dataSchema?: unknown }>;
+        };
+    }> {
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) {
+            throw new AppError("Integration not found", 404);
+        }
+
+        const provider = this.manager.getSocialIntegration(row.provider_identifier);
+        if (!provider) {
+            return {
+                output: { rules: "", maxLength: 0, settings: {}, tools: [] },
+            };
+        }
+
+        const parsedAdditionalSettings = parseAdditionalSettings(row.additional_settings);
+        const verified = isVerifiedFromAdditionalSettings(parsedAdditionalSettings);
+        const settings = provider.settingsSchema ? provider.settingsSchema() : "No additional settings required";
+
+        return {
+            output: {
+                rules: this.manager.getAllRulesDescription()[provider.identifier] ?? "",
+                maxLength: provider.maxLength(verified),
+                settings,
+                tools: this.manager.getAllTools()[provider.identifier] ?? [],
+            },
+        };
+    }
+
+    /**
+     * Invoke an allow-listed provider method (registered via {@link SocialProvider.tools})
+     * for the integration `id`. Retries once after refreshing the access token if the provider
+     * surfaces {@link ProviderAccessTokenExpiredError}; if the refresh fails, the channel is
+     * soft-deleted and a 401 is raised — matching the upstream "disconnect on expired token"
+     * behavior.
+     */
+    async triggerIntegrationTool(
+        organizationId: string,
+        integrationId: string,
+        methodName: string,
+        data: Record<string, unknown>
+    ): Promise<{ output: unknown }> {
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) {
+            throw new AppError("Integration not found", 404);
+        }
+
+        const provider = this.manager.getSocialIntegration(row.provider_identifier);
+        if (!provider) {
+            throw new AppError("Integration provider not found", 404);
+        }
+
+        const tools = provider.tools?.() ?? [];
+        const toolSpec = tools.find((t) => t.methodName === methodName);
+        const fn = (provider as unknown as Record<string, unknown>)[methodName];
+        if (!toolSpec || typeof fn !== "function") {
+            throw new AppError("Tool not found", 404);
+        }
+
+        const invoke = async (working: IntegrationLike): Promise<unknown> => {
+            return await (fn as (token: string, data: Record<string, unknown>, internalId: string, integration: IntegrationLike) => Promise<unknown>).call(
+                provider,
+                working.token,
+                data ?? {},
+                working.internal_id,
+                working
+            );
+        };
+
+        try {
+            const result = await invoke(row);
+            return { output: result };
+        } catch (err) {
+            if (!(err instanceof ProviderAccessTokenExpiredError)) {
+                throw err;
+            }
+
+            const refreshed = await this.refreshIntegrationService.refresh(row);
+            if (!refreshed || !refreshed.accessToken) {
+                await this.integrations
+                    .softDeleteChannel(row.organization_id, row.id, row.internal_id)
+                    .catch((softDeleteErr) => {
+                        logger.warn({
+                            msg: "Channel soft-delete after failed refresh raised",
+                            integrationId: row.id,
+                            organizationId: row.organization_id,
+                            error: softDeleteErr instanceof Error ? softDeleteErr.message : String(softDeleteErr),
+                        });
+                    });
+                throw new AppError("Channel disconnected due to expired token", 401);
+            }
+
+            const result = await invoke({ ...row, token: refreshed.accessToken });
+            return { output: result };
         }
     }
 

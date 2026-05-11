@@ -24,6 +24,26 @@ export class OpenquokApi {
     return await requestJson({ url: this.url("/public/integrations"), apiKey: this.cfg.apiKey });
   }
 
+  async getIntegrationSettings(id: string): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/integration-settings/${encodeURIComponent(id)}`),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
+  async triggerIntegrationTool(
+    id: string,
+    methodName: string,
+    data: Record<string, unknown>
+  ): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/integration-trigger/${encodeURIComponent(id)}`),
+      apiKey: this.cfg.apiKey,
+      method: "POST",
+      body: { methodName, data },
+    });
+  }
+
   async listPosts(params: { start: string; end: string; integrationIds?: string }): Promise<unknown> {
     const u = new URL(this.url("/public/posts/list"));
     u.searchParams.set("start", params.start);

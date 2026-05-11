@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "cli": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts -- --help",
     "start": "node dist/index.js",
     "publish:manual": "pnpm run build && pnpm publish --access public",

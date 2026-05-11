@@ -3,7 +3,26 @@ import { fileURLToPath } from "url";
 
 import swaggerJSDoc from "swagger-jsdoc";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+/**
+ * Returns this module's `import.meta.url` at runtime without exposing `import.meta` to a CommonJS
+ * TypeScript compile pass (e.g. ts-jest), which rejects the syntax with TS1343. In production
+ * the file is emitted as ESM and direct `eval` runs inside this module's scope, so `import.meta.url`
+ * resolves; under CJS test transpilation `eval` throws a SyntaxError and we fall back to a path
+ * derived from `process.cwd()` so the spec still loads against the source tree.
+ */
+function readImportMetaUrl(): string | null {
+    try {
+        return eval("import.meta.url") as string;
+    } catch {
+        return null;
+    }
+}
+
+const moduleUrl = readImportMetaUrl();
+/** Renamed from `__dirname` to avoid colliding with Node's CJS wrapper binding when ts-jest emits CommonJS. */
+const swaggerDir = moduleUrl
+    ? path.dirname(fileURLToPath(moduleUrl))
+    : path.join(process.cwd(), "swagger");
 
 const swaggerDefinition = {
     openapi: "3.0.3",
@@ -29,8 +48,8 @@ const swaggerDefinition = {
 };
 
 /** `tsx` loads `.ts` docs; Node loads emitted `.js` from `dist/swagger/jsdoc/`. */
-const jsdocExt = import.meta.url.endsWith(".ts") ? "ts" : "js";
-const jsdocGlobs = [path.join(__dirname, "jsdoc", `*.${jsdocExt}`)];
+const jsdocExt = (moduleUrl ?? "").endsWith(".ts") ? "ts" : "js";
+const jsdocGlobs = [path.join(swaggerDir, "jsdoc", `*.${jsdocExt}`)];
 
 const options = {
     definition: swaggerDefinition,

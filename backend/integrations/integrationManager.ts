@@ -128,4 +128,31 @@ export class IntegrationManager {
     getAllPlugs(): ProviderPlugsCatalogDto[] {
         return this.listGlobalPlugCatalog().plugs;
     }
+
+    /**
+     * Provider tool registry keyed by identifier. Each entry lists allow-listed
+     * methods that {@link IntegrationConnectionService.triggerIntegrationTool}
+     * may dispatch to over the public API. Providers without a `tools()`
+     * accessor contribute an empty array.
+     */
+    getAllTools(): Record<string, Array<{ methodName: string; description: string; dataSchema?: unknown }>> {
+        const out: Record<string, Array<{ methodName: string; description: string; dataSchema?: unknown }>> = {};
+        for (const p of socialIntegrationList) {
+            out[p.identifier] = p.tools?.() ?? [];
+        }
+        return out;
+    }
+
+    /**
+     * Provider rules description keyed by identifier (free-form text exposed by
+     * `GET /public/integration-settings/:id`). Providers without `rules` map
+     * to an empty string.
+     */
+    getAllRulesDescription(): Record<string, string> {
+        const out: Record<string, string> = {};
+        for (const p of socialIntegrationList) {
+            out[p.identifier] = p.rules ?? "";
+        }
+        return out;
+    }
 }

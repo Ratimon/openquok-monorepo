@@ -16,6 +16,21 @@ import { rbacRepository, userRepository } from "../repositories/index";
 import { logger } from "../utils/Logger";
 
 /**
+ * Returns this module's `import.meta.url` at runtime without exposing the `import.meta` syntax
+ * to a CommonJS TypeScript compile pass (e.g. ts-jest), which rejects it with TS1343. In production
+ * the file is emitted as ESM and the direct `eval` runs inside this module's scope so
+ * `import.meta.url` resolves normally; under CJS test transpilation the inner string is a
+ * SyntaxError at eval time and the surrounding `try/catch` falls back to `null`.
+ */
+function readImportMetaUrl(): string | null {
+    try {
+        return eval("import.meta.url") as string;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * `@bull-board/api` runs `require.resolve('@bull-board/ui/package.json')` at **module load** time.
  * A static `import` of this package therefore crashes app startup (500 on every route, including
  * auth) when `@bull-board/ui` is absent from a serverless bundle (Vercel NFT, Lambda prune, etc.).
@@ -25,7 +40,9 @@ import { logger } from "../utils/Logger";
  */
 function resolveBullBoardUiBasePath(): string | null {
     try {
-        const localRequire = createRequire(import.meta.url);
+        const metaUrl = readImportMetaUrl();
+        if (!metaUrl) return null;
+        const localRequire = createRequire(metaUrl);
         const uiPackageJsonPath = localRequire.resolve("@bull-board/ui/package.json");
         return path.dirname(uiPackageJsonPath);
     } catch (error) {

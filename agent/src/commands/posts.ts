@@ -3,7 +3,7 @@ import type { Argv } from "yargs";
 import { printJson } from "../output";
 
 import type { CommandContext, RegisterCommands } from "./types";
-import { parseJsonMaybe, requireArg, toArrayFromCsv } from "./utils";
+import { parseJsonMaybe, requireArg, runCommand, toArrayFromCsv } from "./utils";
 
 export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandContext) => {
   return y
@@ -17,15 +17,25 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           .option("integrationIds", {
             type: "string",
             describe: "Optional comma-separated integration UUIDs to filter by",
-          }),
+          })
+          .example(
+            '$0 posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z"',
+            "List posts scheduled in January 2026 across all connected channels"
+          )
+          .example(
+            '$0 posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z" --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b,9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e"',
+            "Filter to a subset of channels (CSV of integration UUIDs)"
+          ),
       async (args: any) => {
-        const api = await ctx.buildApi();
-        const out = await api.listPosts({
-          start: requireArg("start", args.start),
-          end: requireArg("end", args.end),
-          integrationIds: typeof args.integrationIds === "string" ? args.integrationIds : undefined,
+        await runCommand("posts:list", async () => {
+          const api = await ctx.buildApi();
+          const out = await api.listPosts({
+            start: requireArg("start", args.start),
+            end: requireArg("end", args.end),
+            integrationIds: typeof args.integrationIds === "string" ? args.integrationIds : undefined,
+          });
+          printJson(out);
         });
-        printJson(out);
       }
     )
     .command(
@@ -54,45 +64,75 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             describe: 'JSON object: {"<integrationUuid>":{...provider settings...}}',
           })
           .option("tagNames", { type: "string", describe: "Comma-separated tags" })
-          .option("repeatInterval", { type: "string", describe: "Repeat interval (backend enum)" }),
+          .option("repeatInterval", { type: "string", describe: "Repeat interval (backend enum)" })
+          .example(
+            '$0 posts:create --scheduledAt "2026-01-01T12:00:00Z" --body "Hello from Openquok" --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"',
+            "Simplest case: same body to one channel at a specific time"
+          )
+          .example(
+            '$0 posts:create --scheduledAt "2026-01-01T12:00:00Z" --status draft --body "Draft me" --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"',
+            "Save as a draft instead of scheduling"
+          )
+          .example(
+            '$0 posts:create --scheduledAt "2026-01-01T12:00:00Z" --integrationIds "uuid-a,uuid-b" --bodiesByIntegrationId \'{"uuid-a":"Caption for A","uuid-b":"Caption for B"}\'',
+            "Different body per channel (keys are integration UUIDs)"
+          )
+          .example(
+            '$0 posts:create --scheduledAt "2026-01-01T12:00:00Z" --body "With media" --integrationIds "uuid-a" --media \'[{"id":"media-uuid","path":"uploads/2026/01/img.png"}]\'',
+            "Attach media (use `openquok upload` first to get `id` + `path`)"
+          ),
       async (args: any) => {
-        const api = await ctx.buildApi();
+        await runCommand("posts:create", async () => {
+          const api = await ctx.buildApi();
 
-        const media = parseJsonMaybe(args.media, "media");
-        const bodiesByIntegrationId = parseJsonMaybe(args.bodiesByIntegrationId, "bodiesByIntegrationId");
-        const providerSettingsByIntegrationId = parseJsonMaybe(
-          args.providerSettingsByIntegrationId,
-          "providerSettingsByIntegrationId"
-        );
+          const media = parseJsonMaybe(args.media, "media");
+          const bodiesByIntegrationId = parseJsonMaybe(args.bodiesByIntegrationId, "bodiesByIntegrationId");
+          const providerSettingsByIntegrationId = parseJsonMaybe(
+            args.providerSettingsByIntegrationId,
+            "providerSettingsByIntegrationId"
+          );
 
-        const payload = {
-          scheduledAt: requireArg("scheduledAt", args.scheduledAt),
-          status: args.status,
-          ...(typeof args.body === "string" && args.body.trim() ? { body: args.body } : {}),
-          ...(toArrayFromCsv(args.integrationIds) ? { integrationIds: toArrayFromCsv(args.integrationIds) } : {}),
-          ...(Array.isArray(media) ? { media } : {}),
-          ...(bodiesByIntegrationId && typeof bodiesByIntegrationId === "object" ? { bodiesByIntegrationId } : {}),
-          ...(providerSettingsByIntegrationId && typeof providerSettingsByIntegrationId === "object"
-            ? { providerSettingsByIntegrationId }
-            : {}),
-          ...(toArrayFromCsv(args.tagNames) ? { tagNames: toArrayFromCsv(args.tagNames) } : {}),
-          ...(typeof args.repeatInterval === "string" && args.repeatInterval.trim()
-            ? { repeatInterval: args.repeatInterval.trim() }
-            : {}),
-        };
+          const payload = {
+            scheduledAt: requireArg("scheduledAt", args.scheduledAt),
+            status: args.status,
+            ...(typeof args.body === "string" && args.body.trim() ? { body: args.body } : {}),
+            ...(toArrayFromCsv(args.integrationIds) ? { integrationIds: toArrayFromCsv(args.integrationIds) } : {}),
+            ...(Array.isArray(media) ? { media } : {}),
+            ...(bodiesByIntegrationId && typeof bodiesByIntegrationId === "object" ? { bodiesByIntegrationId } : {}),
+            ...(providerSettingsByIntegrationId && typeof providerSettingsByIntegrationId === "object"
+              ? { providerSettingsByIntegrationId }
+              : {}),
+            ...(toArrayFromCsv(args.tagNames) ? { tagNames: toArrayFromCsv(args.tagNames) } : {}),
+            ...(typeof args.repeatInterval === "string" && args.repeatInterval.trim()
+              ? { repeatInterval: args.repeatInterval.trim() }
+              : {}),
+          };
 
-        const out = await api.createPost(payload);
-        printJson(out);
+          const out = await api.createPost(payload);
+          printJson(out);
+        });
       }
     )
     .command(
       "posts:group <postGroup>",
       "Get a post group (UUID)",
-      (yy: Argv) => yy.positional("postGroup", { type: "string", demandOption: true }),
+      (yy: Argv) =>
+        yy
+          .positional("postGroup", {
+            type: "string",
+            demandOption: true,
+            describe: "Post group UUID (returned by `posts:create` and visible in `posts:list`)",
+          })
+          .example(
+            "$0 posts:group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d",
+            "Fetch a single post group by UUID"
+          ),
       async (args: any) => {
-        const api = await ctx.buildApi();
-        const out = await api.getPostGroup(requireArg("postGroup", args.postGroup));
-        printJson(out);
+        await runCommand("posts:group", async () => {
+          const api = await ctx.buildApi();
+          const out = await api.getPostGroup(requireArg("postGroup", args.postGroup));
+          printJson(out);
+        });
       }
     )
     .command(
@@ -100,24 +140,50 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
       "Update a post group (same payload shape as create, except organizationId is never allowed)",
       (yy: Argv) =>
         yy
-          .positional("postGroup", { type: "string", demandOption: true })
-          .option("json", { type: "string", demandOption: true, describe: "Full JSON payload string" }),
+          .positional("postGroup", {
+            type: "string",
+            demandOption: true,
+            describe: "Post group UUID to update",
+          })
+          .option("json", { type: "string", demandOption: true, describe: "Full JSON payload string" })
+          .example(
+            '$0 posts:update-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --json \'{"status":"draft"}\'',
+            "Move a scheduled group back to draft"
+          )
+          .example(
+            '$0 posts:update-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --json \'{"scheduledAt":"2026-02-15T09:00:00Z","status":"scheduled"}\'',
+            "Reschedule a group to a new time"
+          ),
       async (args: any) => {
-        const api = await ctx.buildApi();
-        const payload = parseJsonMaybe(args.json, "json");
-        if (!payload || typeof payload !== "object") throw new Error("json must be an object");
-        const out = await api.updatePostGroup(requireArg("postGroup", args.postGroup), payload);
-        printJson(out);
+        await runCommand("posts:update-group", async () => {
+          const api = await ctx.buildApi();
+          const payload = parseJsonMaybe(args.json, "json");
+          if (!payload || typeof payload !== "object") throw new Error("json must be an object");
+          const out = await api.updatePostGroup(requireArg("postGroup", args.postGroup), payload);
+          printJson(out);
+        });
       }
     )
     .command(
       "posts:delete-group <postGroup>",
       "Delete a post group (UUID)",
-      (yy: Argv) => yy.positional("postGroup", { type: "string", demandOption: true }),
+      (yy: Argv) =>
+        yy
+          .positional("postGroup", {
+            type: "string",
+            demandOption: true,
+            describe: "Post group UUID to delete",
+          })
+          .example(
+            "$0 posts:delete-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d",
+            "Delete a post group (cancels scheduling if not yet published)"
+          ),
       async (args: any) => {
-        const api = await ctx.buildApi();
-        const out = await api.deletePostGroup(requireArg("postGroup", args.postGroup));
-        printJson(out);
+        await runCommand("posts:delete-group", async () => {
+          const api = await ctx.buildApi();
+          const out = await api.deletePostGroup(requireArg("postGroup", args.postGroup));
+          printJson(out);
+        });
       }
     );
 };

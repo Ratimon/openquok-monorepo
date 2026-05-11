@@ -25,3 +25,19 @@ export function toArrayFromCsv(input: unknown): string[] | undefined {
   return parts.length ? parts : undefined;
 }
 
+/**
+ * Tags any thrown error with the originating command name so the global error
+ * handler (`printErrorJson`) can surface which command failed. Keeps handlers
+ * free of per-call try/catch boilerplate while preserving the JSON-first contract.
+ */
+export async function runCommand<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    if (err instanceof Error && typeof (err as any).operation !== "string") {
+      (err as any).operation = operation;
+    }
+    throw err;
+  }
+}
+

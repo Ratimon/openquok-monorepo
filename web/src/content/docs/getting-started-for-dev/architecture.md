@@ -175,8 +175,10 @@ This is where in-app documentation markdown lives. Each `.md` file becomes a pag
   - getting-started-for-public-api/
     - index.md
   - apis-integrations/
+    - index.md
     - connect.md
-    - social-connect-callback.md
+    - integration-settings.md
+    - integration-trigger.md
   - getting-started-for-dev/
     - index.md
     - architecture.md

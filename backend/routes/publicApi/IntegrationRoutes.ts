@@ -2,7 +2,11 @@ import { Router } from "express";
 import { publicIntegrationController } from "../../controllers/index";
 import { organizationRepository } from "../../repositories/index";
 import { requireProgrammaticAuth } from "../../middlewares/programmaticAuth";
-import { validatePublicSocialOAuthQuery } from "../../data/schemas/publicIntegrationsSchemas";
+import {
+    validatePublicIntegrationIdParams,
+    validatePublicIntegrationTriggerRequest,
+    validatePublicSocialOAuthQuery,
+} from "../../data/schemas/publicIntegrationsSchemas";
 import { oauthAppService } from "../../services/index";
 
 type PublicIntegrationRouter = ReturnType<typeof Router>;
@@ -27,5 +31,17 @@ publicIntegrationRouter.get(
     publicIntegrationController.getIntegrationUrl
 );
 publicIntegrationRouter.delete("/integrations/:id", apiKeyAuth, publicIntegrationController.deleteChannel);
+publicIntegrationRouter.get(
+    "/integration-settings/:id",
+    apiKeyAuth,
+    validatePublicIntegrationIdParams,
+    publicIntegrationController.getIntegrationSettings
+);
+publicIntegrationRouter.post(
+    "/integration-trigger/:id",
+    apiKeyAuth,
+    validatePublicIntegrationTriggerRequest,
+    publicIntegrationController.triggerIntegration
+);
 
 export { publicIntegrationRouter };

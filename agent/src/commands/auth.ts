@@ -14,7 +14,7 @@ import {
 import { requestJson } from "../http";
 import { printJson } from "../output";
 
-import { requireArg } from "./utils";
+import { requireArg, runCommand } from "./utils";
 
 async function sleep(ms: number): Promise<void> {
   await new Promise((r) => setTimeout(r, ms));
@@ -133,86 +133,119 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             default: false,
             describe:
               "Emit machine-readable JSON for device flow (initial payload + result). Use in scripts; default is interactive (instructions on stderr).",
-          }),
+          })
+          .example("$0 auth:login", "Interactive OAuth2 device flow (opens a browser)")
+          .example(
+            "$0 auth:login --json",
+            "Device flow with machine-readable JSON on stdout (for CI/automation)"
+          )
+          .example(
+            '$0 auth:login --apiKey "opo_..."',
+            "Skip OAuth and store a programmatic API key directly"
+          )
+          .example(
+            "$0 auth:login --authServer http://localhost:3111",
+            "Point at a local agent/server during development"
+          ),
       async (args: any) => {
-        // Option 2: API key
-        if (typeof args.apiKey === "string" && args.apiKey.trim()) {
-          await writeCredentialsFile({ apiKey: requireArg("apiKey", args.apiKey) });
-          printJson({ success: true });
-          return;
-        }
-
-        // Option 1: OAuth2 device flow
-        const cfg = getConfig();
-        const authServer =
-          typeof args.authServer === "string" && args.authServer.trim() ? args.authServer.trim() : cfg.authServerUrl;
-        const base = authServer.replace(/\/+$/, "");
-
-        const code = await requestJson<DeviceCodeResponse>({ url: `${base}/device/code`, method: "POST" });
-
-        assertVerificationUriSafe(base, code.verification_uri);
-        const verificationUriComplete = buildVerificationUriComplete(code.verification_uri, code.user_code);
-
-        const jsonMode = Boolean(args.json);
-        const interactive = !jsonMode && stdinStream.isTTY;
-
-        if (jsonMode) {
-          printJson({
-            success: true,
-            device_code: code.device_code,
-            user_code: code.user_code,
-            verification_uri: code.verification_uri,
-            verification_uri_complete: verificationUriComplete,
-            expires_in: code.expires_in,
-            interval: code.interval,
-          });
-        } else {
-          stderrStream.write(
-            `Visit ${code.verification_uri} and enter code ${code.user_code}\n` +
-              `(or use the link after you press Enter — the code will be filled in automatically)\n`
-          );
-
-          const tryOpenBrowser = async (): Promise<void> => {
-            try {
-              await open(verificationUriComplete, { wait: false });
-            } catch {
-              stderrStream.write(`Could not open browser. Open manually:\n${verificationUriComplete}\n`);
-            }
-          };
-
-          if (interactive) {
-            await waitForEnter("\nPress [ENTER] to open the browser ");
-            await tryOpenBrowser();
-          } else {
-            await tryOpenBrowser();
+        await runCommand("auth:login", async () => {
+          // Option 2: API key
+          if (typeof args.apiKey === "string" && args.apiKey.trim()) {
+            await writeCredentialsFile({ apiKey: requireArg("apiKey", args.apiKey) });
+            printJson({ success: true });
+            return;
           }
 
-          stderrStream.write("\nWaiting for authentication…\n");
+          // Option 1: OAuth2 device flow
+          const cfg = getConfig();
+          const authServer =
+            typeof args.authServer === "string" && args.authServer.trim() ? args.authServer.trim() : cfg.authServerUrl;
+          const base = authServer.replace(/\/+$/, "");
+
+          const code = await requestJson<DeviceCodeResponse>({ url: `${base}/device/code`, method: "POST" });
+
+          assertVerificationUriSafe(base, code.verification_uri);
+          const verificationUriComplete = buildVerificationUriComplete(code.verification_uri, code.user_code);
+
+          const jsonMode = Boolean(args.json);
+          const interactive = !jsonMode && stdinStream.isTTY;
+
+          if (jsonMode) {
+            printJson({
+              success: true,
+              device_code: code.device_code,
+              user_code: code.user_code,
+              verification_uri: code.verification_uri,
+              verification_uri_complete: verificationUriComplete,
+              expires_in: code.expires_in,
+              interval: code.interval,
+            });
+          } else {
+            stderrStream.write(
+              `Visit ${code.verification_uri} and enter code ${code.user_code}\n` +
+                `(or use the link after you press Enter — the code will be filled in automatically)\n`
+            );
+
+            const tryOpenBrowser = async (): Promise<void> => {
+              try {
+                await open(verificationUriComplete, { wait: false });
+              } catch {
+                stderrStream.write(`Could not open browser. Open manually:\n${verificationUriComplete}\n`);
+              }
+            };
+
+            if (interactive) {
+              await waitForEnter("\nPress [ENTER] to open the browser ");
+              await tryOpenBrowser();
+            } else {
+              await tryOpenBrowser();
+            }
+
+            stderrStream.write("\nWaiting for authentication…\n");
+
+            const deadlineMs = Date.now() + code.expires_in * 1000;
+            const token = await pollDeviceToken(base, code.device_code, code, deadlineMs);
+
+            await writeCredentialsFile({ apiKey: token.access_token });
+            printJson({ success: true, stored: true, organization_id: token.organization_id, api_url: token.api_url });
+            return;
+          }
 
           const deadlineMs = Date.now() + code.expires_in * 1000;
           const token = await pollDeviceToken(base, code.device_code, code, deadlineMs);
 
-          await writeCredentialsFile({ apiKey: token.access_token });
-          printJson({ success: true, stored: true, organization_id: token.organization_id, api_url: token.api_url });
-          return;
-        }
-
-        const deadlineMs = Date.now() + code.expires_in * 1000;
-        const token = await pollDeviceToken(base, code.device_code, code, deadlineMs);
-
-        if (token?.access_token) {
-          await writeCredentialsFile({ apiKey: token.access_token });
-          printJson({ success: true, stored: true, organization_id: token.organization_id, api_url: token.api_url });
-        }
+          if (token?.access_token) {
+            await writeCredentialsFile({ apiKey: token.access_token });
+            printJson({ success: true, stored: true, organization_id: token.organization_id, api_url: token.api_url });
+          }
+        });
       }
     )
-    .command("auth:logout", "Remove stored credentials", () => {}, async () => {
-      await deleteCredentialsFile();
-      printJson({ success: true });
-    })
-    .command("auth:status", "Check auth status by calling /public/is-connected", () => {}, async () => {
-      const api = await ctx.buildApi();
-      const out = await api.isConnected();
-      printJson(out);
-    });
+    .command(
+      "auth:logout",
+      "Remove stored credentials",
+      (yy: Argv) => yy.example("$0 auth:logout", "Delete the credentials file at ~/.openquok/credentials.json"),
+      async () => {
+        await runCommand("auth:logout", async () => {
+          await deleteCredentialsFile();
+          printJson({ success: true });
+        });
+      }
+    )
+    .command(
+      "auth:status",
+      "Check auth status by calling /public/is-connected",
+      (yy: Argv) =>
+        yy.example(
+          "$0 auth:status",
+          "Verify the stored token (or OPENQUOK_API_KEY) is accepted by the API"
+        ),
+      async () => {
+        await runCommand("auth:status", async () => {
+          const api = await ctx.buildApi();
+          const out = await api.isConnected();
+          printJson(out);
+        });
+      }
+    );
 };

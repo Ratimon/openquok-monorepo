@@ -183,4 +183,29 @@ export interface SocialProvider extends IAuthenticator, ISocialMediaIntegration 
 
     /** Post-compose plugs (delayed reply on same channel); omit when unsupported. */
     internalPlugCatalog?: () => InternalPlugCatalogEntryDto[];
+
+    /**
+     * Natural-language description of provider-specific rules, surfaced by
+     * `GET /public/integration-settings/:id`. Free-form text intended for
+     * downstream agents/LLMs that need to know constraints (e.g. character
+     * limits, allowed media types, posting cadence).
+     */
+    rules?: string;
+
+    /**
+     * Allow-listed methods on the provider that can be invoked via
+     * `POST /public/integration-trigger/:id`. The `methodName` must match a
+     * public method on the provider class with the signature
+     * `(accessToken, data, internalId, integration) => Promise<unknown>`.
+     * Omit (or return `[]`) to forbid all trigger invocations.
+     */
+    tools?: () => Array<{ methodName: string; description: string; dataSchema?: unknown }>;
+
+    /**
+     * Optional per-provider settings schema returned by
+     * `GET /public/integration-settings/:id`. Shape is provider-defined (e.g.
+     * a JSON-schema object); when omitted the endpoint returns the literal
+     * `"No additional settings required"`.
+     */
+    settingsSchema?: () => unknown;
 }

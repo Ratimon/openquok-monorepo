@@ -15,6 +15,7 @@ import { IntegrationManager } from "../integrations/integrationManager";
 import { UserNotFoundError } from "../errors/UserError";
 import { OrganizationNotFoundError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
+import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
 
 const orgId = faker.string.uuid();
 const authUserId = faker.string.uuid();
@@ -177,6 +178,8 @@ function createMockManager(provider: SocialProvider): jest.Mocked<
         | "listGlobalPlugCatalog"
         | "getInternalPlugDefinitionsForProvider"
         | "validatePlugFieldsAgainstCatalog"
+        | "getAllTools"
+        | "getAllRulesDescription"
     >
 > {
     const livePlugCatalog = new IntegrationManager();
@@ -190,6 +193,8 @@ function createMockManager(provider: SocialProvider): jest.Mocked<
         validatePlugFieldsAgainstCatalog: jest.fn((params) =>
             livePlugCatalog.validatePlugFieldsAgainstCatalog(params)
         ),
+        getAllTools: jest.fn(() => ({ [provider.identifier]: provider.tools?.() ?? [] })),
+        getAllRulesDescription: jest.fn(() => ({ [provider.identifier]: provider.rules ?? "" })),
     };
 }
 
@@ -198,7 +203,7 @@ describe("IntegrationConnectionService", () => {
     let plugs: ReturnType<typeof createMockPlugService>;
     let orgRepo: ReturnType<typeof createMockOrgRepo>;
     let manager: ReturnType<typeof createMockManager>;
-    let refresh: jest.Mocked<Pick<RefreshIntegrationService, "startRefreshWorkflow">>;
+    let refresh: jest.Mocked<Pick<RefreshIntegrationService, "startRefreshWorkflow" | "refresh">>;
     let cache: ReturnType<typeof createMockCache>;
     let cacheInvalidator: jest.Mocked<Pick<CacheInvalidationService, "invalidateKey">>;
 
@@ -208,7 +213,10 @@ describe("IntegrationConnectionService", () => {
         orgRepo = createMockOrgRepo();
         cache = createMockCache();
         cacheInvalidator = { invalidateKey: jest.fn().mockResolvedValue(true) };
-        refresh = { startRefreshWorkflow: jest.fn().mockResolvedValue(true) };
+        refresh = {
+            startRefreshWorkflow: jest.fn().mockResolvedValue(true),
+            refresh: jest.fn().mockResolvedValue(false),
+        };
         manager = createMockManager(createMockProvider());
     });
 
@@ -326,6 +334,172 @@ describe("IntegrationConnectionService", () => {
             integrations.softDeleteChannel.mockResolvedValue(true);
             await service().publicDeleteChannel(orgId, integrationId);
             expect(integrations.softDeleteChannel).toHaveBeenCalledWith(orgId, integrationId, row.internal_id);
+        });
+    });
+
+    describe("getIntegrationSettings", () => {
+        it("throws 404 when integration row is missing", async () => {
+            integrations.getById.mockResolvedValue(null);
+            await expect(service().getIntegrationSettings(orgId, integrationId)).rejects.toMatchObject({
+                statusCode: 404,
+            });
+        });
+
+        it("returns provider rules/maxLength/tools and the literal 'No additional settings required' when no schema is provided", async () => {
+            const provider = createMockProvider({
+                rules: "Threads constraints",
+                tools: () => [{ methodName: "getThings", description: "List things" }],
+                maxLength: () => 500,
+            });
+            manager = createMockManager(provider);
+            integrations.getById.mockResolvedValue(sampleRow());
+
+            const out = await service().getIntegrationSettings(orgId, integrationId);
+
+            expect(out).toEqual({
+                output: {
+                    rules: "Threads constraints",
+                    maxLength: 500,
+                    settings: "No additional settings required",
+                    tools: [{ methodName: "getThings", description: "List things" }],
+                },
+            });
+        });
+
+        it("returns provider settingsSchema() output when defined", async () => {
+            const settings = { fields: [{ name: "subreddit", type: "text" }] };
+            const provider = createMockProvider({
+                tools: () => [],
+                settingsSchema: () => settings,
+            });
+            manager = createMockManager(provider);
+            integrations.getById.mockResolvedValue(sampleRow());
+
+            const out = await service().getIntegrationSettings(orgId, integrationId);
+
+            expect(out.output.settings).toEqual(settings);
+        });
+
+        it("passes the 'Verified' flag from additional_settings into provider.maxLength", async () => {
+            const maxLength = jest.fn().mockReturnValue(25_000);
+            const provider = createMockProvider({ maxLength });
+            manager = createMockManager(provider);
+            integrations.getById.mockResolvedValue(
+                sampleRow({ additional_settings: JSON.stringify([{ title: "Verified", value: true }]) })
+            );
+
+            await service().getIntegrationSettings(orgId, integrationId);
+
+            expect(maxLength).toHaveBeenCalledWith(true);
+        });
+
+        it("returns an empty shape when the provider is no longer registered", async () => {
+            integrations.getById.mockResolvedValue(sampleRow({ provider_identifier: "unknown-provider" }));
+            const out = await service().getIntegrationSettings(orgId, integrationId);
+            expect(out).toEqual({ output: { rules: "", maxLength: 0, settings: {}, tools: [] } });
+        });
+    });
+
+    describe("triggerIntegrationTool", () => {
+        const methodName = "getThings";
+
+        function providerWithTool(impl: jest.Mock): SocialProvider {
+            const provider = createMockProvider({
+                tools: () => [{ methodName, description: "List things" }],
+            });
+            (provider as unknown as Record<string, unknown>)[methodName] = impl;
+            return provider;
+        }
+
+        it("throws 404 when integration row is missing", async () => {
+            integrations.getById.mockResolvedValue(null);
+            await expect(
+                service().triggerIntegrationTool(orgId, integrationId, methodName, {})
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("throws 404 when methodName is not allow-listed by the provider's tools()", async () => {
+            const provider = createMockProvider({ tools: () => [] });
+            (provider as unknown as Record<string, unknown>)[methodName] = jest.fn();
+            manager = createMockManager(provider);
+            integrations.getById.mockResolvedValue(sampleRow());
+
+            await expect(
+                service().triggerIntegrationTool(orgId, integrationId, methodName, {})
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("throws 404 when the named method is allow-listed but missing on the provider instance", async () => {
+            const provider = createMockProvider({
+                tools: () => [{ methodName, description: "List things" }],
+            });
+            manager = createMockManager(provider);
+            integrations.getById.mockResolvedValue(sampleRow());
+
+            await expect(
+                service().triggerIntegrationTool(orgId, integrationId, methodName, {})
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("calls provider[methodName](token, data, internalId, integration) and returns its output", async () => {
+            const impl = jest.fn().mockResolvedValue([{ id: "r/programming" }]);
+            const provider = providerWithTool(impl);
+            manager = createMockManager(provider);
+            const row = sampleRow({ token: "live-token" });
+            integrations.getById.mockResolvedValue(row);
+
+            const out = await service().triggerIntegrationTool(orgId, integrationId, methodName, { q: "p" });
+
+            expect(impl).toHaveBeenCalledWith("live-token", { q: "p" }, row.internal_id, row);
+            expect(out).toEqual({ output: [{ id: "r/programming" }] });
+        });
+
+        it("retries once after refreshing when the provider raises ProviderAccessTokenExpiredError", async () => {
+            const impl = jest
+                .fn()
+                .mockRejectedValueOnce(new ProviderAccessTokenExpiredError())
+                .mockResolvedValueOnce({ ok: true });
+            const provider = providerWithTool(impl);
+            manager = createMockManager(provider);
+            integrations.getById.mockResolvedValue(sampleRow({ token: "expired" }));
+            refresh.refresh.mockResolvedValue({
+                ...defaultOAuthUser,
+                accessToken: "fresh-token",
+            });
+
+            const out = await service().triggerIntegrationTool(orgId, integrationId, methodName, {});
+
+            expect(impl).toHaveBeenCalledTimes(2);
+            expect(impl.mock.calls[1][0]).toBe("fresh-token");
+            expect(out).toEqual({ output: { ok: true } });
+        });
+
+        it("soft-deletes the channel and raises 401 when refresh fails after an expired-token error", async () => {
+            const impl = jest.fn().mockRejectedValue(new ProviderAccessTokenExpiredError());
+            const provider = providerWithTool(impl);
+            manager = createMockManager(provider);
+            const row = sampleRow({ token: "expired" });
+            integrations.getById.mockResolvedValue(row);
+            refresh.refresh.mockResolvedValue(false);
+            integrations.softDeleteChannel.mockResolvedValue(true);
+
+            await expect(
+                service().triggerIntegrationTool(orgId, integrationId, methodName, {})
+            ).rejects.toMatchObject({ statusCode: 401 });
+
+            expect(integrations.softDeleteChannel).toHaveBeenCalledWith(orgId, row.id, row.internal_id);
+        });
+
+        it("does not catch non-token errors thrown by the provider method", async () => {
+            const impl = jest.fn().mockRejectedValue(new Error("boom"));
+            const provider = providerWithTool(impl);
+            manager = createMockManager(provider);
+            integrations.getById.mockResolvedValue(sampleRow());
+
+            await expect(
+                service().triggerIntegrationTool(orgId, integrationId, methodName, {})
+            ).rejects.toMatchObject({ message: "boom" });
+            expect(refresh.refresh).not.toHaveBeenCalled();
         });
     });
 

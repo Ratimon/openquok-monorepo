@@ -32,6 +32,7 @@ export const supabaseServiceClientConnection = new Proxy({} as SupabaseClient<Da
 export const cacheServiceConnection = cacheService;
 export const cacheInvalidationServiceConnection = cacheInvalidationService;
 export { Sentry } from "./sentry/index";
+export { countPublicApiRequest } from "./sentry/metrics";
 export { cacheService, cacheInvalidationService } from "./cache";
 export { createQueueIoredisClient, getQueueRedisConnectionOptions } from "./bullmq";
 export { R2StorageClient, isR2ConnectionReady, type R2ConnectionConfig } from "./R2StorageClient";

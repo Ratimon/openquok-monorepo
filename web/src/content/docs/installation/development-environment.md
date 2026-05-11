@@ -2,7 +2,7 @@
 title: Development environment
 description: Run Openquok's backend and web apps locally, execute tests, database scripts, and deployment commands.
 order: 0
-lastUpdated: 2026-05-09
+lastUpdated: 2026-05-11
 ---
 
 <script>
@@ -249,19 +249,39 @@ Once running, point the CLI at it via <Badge text="OPENQUOK_AUTH_SERVER" variant
 
 ### Running the CLI from the monorepo (unpublished)
 
-Published installs use the global <code>openquok</code> command — see <a href="/docs/getting-started-for-cli">CLI</a>. If <Badge text="@openquok/auto-cli" variant="experimental" /> is **not** installed from npm yet, build the CLI package and run the compiled **from the repository root**:
+Published installs use the global <code>openquok</code> command — see <a href="/docs/getting-started-for-cli">CLI</a>. If <Badge text="@openquok/auto-cli" variant="experimental" /> is **not** installed from npm yet, three monorepo-local paths are available. Pick based on whether you want to skip the build step:
+
+<Callout type="note" title="The pnpm `--` separator">
+<p>pnpm consumes flags it recognizes (<code>--help</code>, <code>--filter</code>, <code>--recursive</code>, …) <strong>before</strong> running your script. To forward arguments to the underlying command, put a bare <code>--</code> between the pnpm script name and your arguments. Without it, <code>pnpm --filter ./agent cli --help</code> prints pnpm's help, not the CLI's.</p>
+</Callout>
+
+**Run from source (recommended for daily dev)** — uses the <code>cli</code> script (`tsx src/index.ts`); no build needed, picks up source changes on every invocation:
+
+```bash
+pnpm --filter ./agent cli -- --help
+pnpm --filter ./agent cli -- integrations:trigger --help
+pnpm --filter ./agent cli -- auth:login --authServer http://localhost:3111
+```
+
+Per-command <code>--help</code> shows the <code>Examples:</code> section with copy-pasteable invocations for non-obvious payloads (JSON `--data`, ISO timestamps, etc.).
+
+**Run the compiled binary** — useful when you want to confirm the published bundle behaves the same:
 
 ```bash
 pnpm --filter ./agent build
 node agent/dist/index.js auth:login --authServer http://localhost:3111
 ```
 
-Same flow using the package <code>start</code> script (arguments after <code>--</code> are forwarded to the CLI):
+**Run the compiled binary via the `start` script** — same end result, slightly tidier:
 
 ```bash
 pnpm --filter ./agent build
 pnpm --filter ./agent start -- auth:login --authServer http://localhost:3111
 ```
+
+<Callout type="note" title="Iterating on yargs definitions">
+<p>If you're changing positional descriptions or <code>.example()</code> calls in <Badge text="agent/src/commands/" variant="path" />, run <code>pnpm --filter ./agent dev</code> — it watches the source and re-prints <code>--help</code> on every save, which is the fastest feedback loop for tweaking help text.</p>
+</Callout>
 
 <Callout type="note" title="Local auth server">
 <p>Run the CLI auth server (<Badge text="agent/server" variant="path" />) so <Badge text="http://localhost:3111" variant="default" /> is reachable — from the repo root, <code>pnpm agent-server:dev</code> is typical. Match your OAuth app callback to <Badge text="http://localhost:3111/device/callback" variant="default" /> and keep <Badge text="SERVER_URL" variant="envBackend" /> aligned — see <a href="/docs/configuration-agent#environment-variables">Configuration → Agent → Environment variables</a>.</p>

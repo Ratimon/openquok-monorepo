@@ -10,6 +10,7 @@ export function printErrorJson(err: unknown): void {
       error: {
         name: err.name,
         message: err.message,
+        ...(typeof anyErr.operation === "string" ? { operation: anyErr.operation } : {}),
         ...(typeof anyErr.status === "number" ? { status: anyErr.status } : {}),
         ...(anyErr.body !== undefined ? { body: anyErr.body } : {}),
       },
