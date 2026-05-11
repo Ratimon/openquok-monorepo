@@ -42,11 +42,11 @@ async function requestSignup(
 describe("Authentication Lifecycle E2E Tests", () => {
     const supabaseConfig = config.supabase as {
         supabaseUrl: string;
-        supabaseServiceRoleKey?: string;
+        supabaseSecretKey?: string;
     };
     const adminSupabase = createClient(
         supabaseConfig.supabaseUrl,
-        supabaseConfig.supabaseServiceRoleKey!
+        supabaseConfig.supabaseSecretKey!
     );
     const userHelper = new UserTestHelper();
 

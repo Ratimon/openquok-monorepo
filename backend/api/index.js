@@ -446,23 +446,20 @@ var init_GlobalConfig = __esm({
         // fromAddress: getEnv("EMAIL_FROM_ADDRESS", "noreply@example.com"),
       },
       /**
-       * Supabase keys. The new format (`sb_publishable_…` / `sb_secret_…`) is preferred
-       * once your project has rotated; the legacy JWT `anon` / `service_role` keys are
-       * kept as fallbacks so local `supabase start` stacks (which still emit JWT-based
-       * keys) and unmigrated cloud projects keep working. See
-       * https://github.com/orgs/supabase/discussions/29260 and
-       * https://supabase.com/docs/guides/getting-started/api-keys for migration details.
+       * Supabase API keys. Uses the new key format (`sb_publishable_…` / `sb_secret_…`) only;
+       * see https://github.com/orgs/supabase/discussions/29260 and
+       * https://supabase.com/docs/guides/getting-started/api-keys.
+       *
+       * Local development requires Supabase CLI **2.45+** (September 2025), which prints
+       * `Publishable key` and `Secret key` in `supabase status -o env`
+       * (https://github.com/supabase/cli/pull/4167).
        */
       supabase: {
         supabaseUrl: getEnv("PUBLIC_SUPABASE_URL", ""),
-        /** New publishable key (`sb_publishable_…`). Replaces the anon JWT when set. */
+        /** Publishable key (`sb_publishable_…`). Safe to expose in public clients. */
         supabasePublishableKey: getEnv("PUBLIC_SUPABASE_PUBLISHABLE_KEY", ""),
-        /** Legacy JWT anon key. Kept as a fallback for unmigrated projects and local `supabase start`. */
-        supabaseAnonKey: getEnv("PUBLIC_SUPABASE_ANON_KEY", ""),
-        /** New secret key (`sb_secret_…`). Replaces the service_role JWT when set. Server-side only. */
-        supabaseSecretKey: getEnv("SUPABASE_SECRET_KEY", ""),
-        /** Legacy JWT service_role key. Kept as a fallback for unmigrated projects and local `supabase start`. */
-        supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY", "")
+        /** Secret key (`sb_secret_…`). Server-side only — bypasses RLS. */
+        supabaseSecretKey: getEnv("SUPABASE_SECRET_KEY", "")
       },
       /**
        * S3-compatible object storage (Cloudflare R2) for `/api/v1/media/*` (user-owned composer objects).
@@ -643,14 +640,10 @@ init_GlobalConfig();
 init_Logger();
 var supabaseConfig = config.supabase;
 function getSupabaseClientKey() {
-  const publishable = (supabaseConfig.supabasePublishableKey ?? "").trim() || (process.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "").trim();
-  if (publishable) return publishable;
-  return (supabaseConfig.supabaseAnonKey ?? "").trim() || (process.env.PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
+  return (supabaseConfig.supabasePublishableKey ?? "").trim() || (process.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "").trim();
 }
 function getSupabaseServerKey() {
-  const secret = (supabaseConfig.supabaseSecretKey ?? "").trim() || (process.env.SUPABASE_SECRET_KEY ?? "").trim();
-  if (secret) return secret;
-  return (supabaseConfig.supabaseServiceRoleKey ?? "").trim() || (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+  return (supabaseConfig.supabaseSecretKey ?? "").trim() || (process.env.SUPABASE_SECRET_KEY ?? "").trim();
 }
 var serverConfig = config.server;
 function getSiteKey(hostname) {
@@ -691,7 +684,7 @@ function getSupabaseAnonClient() {
     }
     if (!key) {
       throw new Error(
-        "PUBLIC_SUPABASE_PUBLISHABLE_KEY or PUBLIC_SUPABASE_ANON_KEY (or config.supabase.supabasePublishableKey / supabaseAnonKey) is required"
+        "PUBLIC_SUPABASE_PUBLISHABLE_KEY (or config.supabase.supabasePublishableKey) is required"
       );
     }
     supabaseAnonSingleton = supabaseJs.createClient(url, key);
@@ -715,23 +708,23 @@ function createSupabaseServiceClient() {
     if (!supabaseKey) {
       if (config.server.nodeEnv === "production") {
         throw new Error(
-          "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY (or config.supabase.supabaseSecretKey / supabaseServiceRoleKey) is required in production"
+          "SUPABASE_SECRET_KEY (or config.supabase.supabaseSecretKey) is required in production"
         );
       }
       const isJest = process.env.JEST_WORKER_ID !== void 0;
       if (isJest || process.env.NODE_ENV === "test") {
         supabaseKey = getSupabaseClientKey();
         logger.warn({
-          msg: "Using client (publishable/anon) key for Supabase under Jest or NODE_ENV=test (set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY for integration tests against a real DB)."
+          msg: "Using publishable key for Supabase under Jest or NODE_ENV=test (set SUPABASE_SECRET_KEY for integration tests against a real DB)."
         });
       } else if (process.env.NODE_ENV === "development") {
         throw new Error(
-          "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY is required for the API process. The publishable/anon key cannot access server-side tables (for example notifications and memberships)."
+          "SUPABASE_SECRET_KEY is required for the API process. The publishable key cannot access server-side tables (for example notifications and memberships)."
         );
       } else {
         supabaseKey = getSupabaseClientKey();
         logger.warn({
-          msg: "Using client (publishable/anon) key for Supabase service client: many repository queries will fail. Set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY."
+          msg: "Using publishable key for Supabase service client: many repository queries will fail. Set SUPABASE_SECRET_KEY."
         });
       }
     }

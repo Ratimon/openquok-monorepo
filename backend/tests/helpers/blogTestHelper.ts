@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { config } from "../../config/GlobalConfig";
 
-const supabaseConfig = config.supabase as { supabaseUrl: string; supabaseServiceRoleKey?: string };
+const supabaseConfig = config.supabase as { supabaseUrl: string; supabaseSecretKey?: string };
 
 /** Default topic ID used for blog post integration tests when using ensureTopicExists. */
 export const DEFAULT_BLOG_TOPIC_ID = "d5f7a000-0000-4000-a000-000000000004";
@@ -28,9 +28,9 @@ export class BlogTestHelper {
             this.adminSupabase = adminSupabase;
         } else {
             const url = supabaseConfig.supabaseUrl;
-            const key = supabaseConfig.supabaseServiceRoleKey;
+            const key = supabaseConfig.supabaseSecretKey;
             if (!url || !key) {
-                throw new Error("Supabase URL and service role key required for BlogTestHelper");
+                throw new Error("Supabase URL and secret key required for BlogTestHelper");
             }
             this.adminSupabase = createClient(url, key);
         }

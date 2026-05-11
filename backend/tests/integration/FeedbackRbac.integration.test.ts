@@ -24,11 +24,11 @@ const PASSWORD = "Test1234!";
 describe("Feedback RBAC", () => {
     const supabaseConfig = config.supabase as {
         supabaseUrl: string;
-        supabaseServiceRoleKey?: string;
+        supabaseSecretKey?: string;
     };
     const adminSupabase = createClient(
         supabaseConfig.supabaseUrl,
-        supabaseConfig.supabaseServiceRoleKey!
+        supabaseConfig.supabaseSecretKey!
     ) as SupabaseClient;
     const userHelper = new UserTestHelper();
 

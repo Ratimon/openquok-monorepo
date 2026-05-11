@@ -34,8 +34,8 @@ After the stack is up, print connection variables in shell-friendly form:
 supabase status -o env
 ```
 
-<Callout type="note" title="Local stacks still use legacy JWT keys">
-The local <code>supabase start</code> stack continues to emit JWT-based <Badge text="ANON_KEY" variant="envBackend" /> and <Badge text="SERVICE_ROLE_KEY" variant="envBackend" /> values. Set them in <Badge text="backend/.env.development.local" variant="envBackend" /> as <Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" /> and <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" />. The backend prefers the new <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" /> / <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> when present and falls back to these legacy values — see <a href="/docs/configuration-backend/supabase">Supabase</a>.
+<Callout type="note" title="Supabase CLI 2.45+ required">
+Local <code>supabase start</code> emits the new key format (<strong>Publishable key</strong> / <strong>Secret key</strong>) from CLI <strong>2.45+</strong> only. Set them in <Badge text="backend/.env.development.local" variant="envBackend" /> as <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" /> and <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" />. If <code>supabase status</code> still prints <code>anon key</code> / <code>service&#95;role key</code>, upgrade the CLI (e.g. <code>brew upgrade supabase</code>). See <a href="/docs/configuration-backend/supabase">Supabase</a>.
 </Callout>
 
 ### Reset DB to current migrations

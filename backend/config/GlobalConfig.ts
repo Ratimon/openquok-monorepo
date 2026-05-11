@@ -164,23 +164,20 @@ export const config: ConfigObject = {
     },
 
     /**
-     * Supabase keys. The new format (`sb_publishable_…` / `sb_secret_…`) is preferred
-     * once your project has rotated; the legacy JWT `anon` / `service_role` keys are
-     * kept as fallbacks so local `supabase start` stacks (which still emit JWT-based
-     * keys) and unmigrated cloud projects keep working. See
-     * https://github.com/orgs/supabase/discussions/29260 and
-     * https://supabase.com/docs/guides/getting-started/api-keys for migration details.
+     * Supabase API keys. Uses the new key format (`sb_publishable_…` / `sb_secret_…`) only;
+     * see https://github.com/orgs/supabase/discussions/29260 and
+     * https://supabase.com/docs/guides/getting-started/api-keys.
+     *
+     * Local development requires Supabase CLI **2.45+** (September 2025), which prints
+     * `Publishable key` and `Secret key` in `supabase status -o env`
+     * (https://github.com/supabase/cli/pull/4167).
      */
     supabase: {
         supabaseUrl: getEnv("PUBLIC_SUPABASE_URL", ""),
-        /** New publishable key (`sb_publishable_…`). Replaces the anon JWT when set. */
+        /** Publishable key (`sb_publishable_…`). Safe to expose in public clients. */
         supabasePublishableKey: getEnv("PUBLIC_SUPABASE_PUBLISHABLE_KEY", ""),
-        /** Legacy JWT anon key. Kept as a fallback for unmigrated projects and local `supabase start`. */
-        supabaseAnonKey: getEnv("PUBLIC_SUPABASE_ANON_KEY", ""),
-        /** New secret key (`sb_secret_…`). Replaces the service_role JWT when set. Server-side only. */
+        /** Secret key (`sb_secret_…`). Server-side only — bypasses RLS. */
         supabaseSecretKey: getEnv("SUPABASE_SECRET_KEY", ""),
-        /** Legacy JWT service_role key. Kept as a fallback for unmigrated projects and local `supabase start`. */
-        supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY", ""),
     },
 
     /**

@@ -15,7 +15,7 @@ Orchestrator workers are long-running processes and should run on an **always-on
 
 Workers must share the same **Supabase** and **Redis** credentials as the API:
 
-- <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> plus either the new key format (preferred: <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" /> + <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" />) or the legacy JWT keys (<Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" /> + <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" />). See <a href="/docs/configuration-backend/supabase">Supabase</a> for the migration plan.
+- <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" />, <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" />, and <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> . Legacy JWT keys are not accepted; see <a href="/docs/configuration-backend/supabase">Supabase</a>.
 - <Badge text="REDIS_*" variant="envBackend" />, <Badge text="REDIS_TLS" variant="envBackend" />, <Badge text="REDIS_TLS_REJECT_UNAUTHORIZED" variant="envBackend" />, and (optionally) <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />
 
 Queue inspection and destructive Redis operations belong on <a href="/docs/configuration-worker/redis">Redis & queues</a>.

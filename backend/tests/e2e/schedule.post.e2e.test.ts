@@ -13,6 +13,7 @@ import {
     type ScheduledPostsRepository,
 } from "openquok-orchestrator/activities/scheduledSocialPostActivities.js";
 import { IntegrationManager } from "../../integrations/integrationManager.js";
+import { ThreadsProvider } from "../../integrations/providers/threadsProvider.js";
 import { integrationRepository, postsRepository } from "../../repositories/index.js";
 import type { RefreshIntegrationService } from "../../services/RefreshIntegrationService.js";
 
@@ -66,8 +67,8 @@ function normalizeThreadReplyRows(
     }));
 }
 
-const supabaseConfig = config.supabase as { supabaseUrl?: string; supabaseServiceRoleKey?: string };
-const hasSupabaseE2E = Boolean(supabaseConfig.supabaseUrl?.trim() && supabaseConfig.supabaseServiceRoleKey?.trim());
+const supabaseConfig = config.supabase as { supabaseUrl?: string; supabaseSecretKey?: string };
+const hasSupabaseE2E = Boolean(supabaseConfig.supabaseUrl?.trim() && supabaseConfig.supabaseSecretKey?.trim());
 
 describe("Scheduling a post for social channels", () => {
     let adminSupabase: SupabaseClient;
@@ -76,6 +77,15 @@ describe("Scheduling a post for social channels", () => {
     let getVerificationTokenSpy: jest.SpyInstance;
     let verificationToken: string;
     let emailSendSpy: jest.SpyInstance;
+    /**
+     * `ThreadsProvider.analytics()` does a real `fetch("https://graph.threads.net/...")` against
+     * the test's fake `e2e-test-token`. Meta's Graph API can answer with a JSON error (handled by
+     * AnalyticsService's `.catch(() => [])`) or just reset the TCP connection, which surfaces as
+     * `read ECONNRESET` on supertest's socket. Stub the provider so the analytics endpoint is
+     * deterministic and never leaves the process. The publish path is already stubbed via the
+     * synthetic `integrationManagerStub` further down.
+     */
+    let threadsAnalyticsSpy: jest.SpyInstance;
 
     let prevScheduledEnabled: boolean;
     let prevScheduledTransport: string;
@@ -86,10 +96,13 @@ describe("Scheduling a post for social channels", () => {
             .spyOn(EmailService.prototype, "generateVerificationToken")
             .mockImplementation(() => verificationToken);
         emailSendSpy = jest.spyOn(EmailService.prototype, "send").mockResolvedValue(undefined);
+        threadsAnalyticsSpy = jest
+            .spyOn(ThreadsProvider.prototype, "analytics")
+            .mockResolvedValue([]);
         if (hasSupabaseE2E) {
             adminSupabase = createClient(
                 supabaseConfig.supabaseUrl!,
-                supabaseConfig.supabaseServiceRoleKey!
+                supabaseConfig.supabaseSecretKey!
             ) as SupabaseClient;
             userHelper = new UserTestHelper();
         }
@@ -98,6 +111,7 @@ describe("Scheduling a post for social channels", () => {
     afterAll(() => {
         getVerificationTokenSpy?.mockRestore();
         emailSendSpy?.mockRestore();
+        threadsAnalyticsSpy?.mockRestore();
     });
 
     afterEach(async () => {

@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { faker } from "@faker-js/faker";
 import { config } from "../../config/GlobalConfig";
 
-const supabaseConfig = config.supabase as { supabaseUrl: string; supabaseServiceRoleKey?: string };
+const supabaseConfig = config.supabase as { supabaseUrl: string; supabaseSecretKey?: string };
 
 export class UserTestHelper {
     private adminSupabase: SupabaseClient;
@@ -11,9 +11,9 @@ export class UserTestHelper {
 
     constructor() {
         const url = supabaseConfig.supabaseUrl;
-        const key = supabaseConfig.supabaseServiceRoleKey;
+        const key = supabaseConfig.supabaseSecretKey;
         if (!url || !key) {
-            throw new Error("Supabase URL and service role key required for UserTestHelper");
+            throw new Error("Supabase URL and secret key required for UserTestHelper");
         }
         this.adminSupabase = createClient(url, key);
     }

@@ -12,7 +12,7 @@ import { Badge, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js'
 ## Rules (non-negotiable)
 
 1. **NEVER** use the service client in client-side code.
-2. **NEVER** expose <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> (new format) or the legacy <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" /> to the client. Both grant elevated, RLS-bypassing access and must only live in backend env vars. See <a href="/docs/configuration-backend/supabase">Supabase</a> for the key migration.
+2. **NEVER** expose <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" />to the client. It grants elevated, RLS-bypassing access and must only live in backend env vars. See <a href="/docs/configuration-backend/supabase">Supabase</a>.
 3. Use RLS policies for data access control.
 4. Always use the appropriate client for the context:
    - **Browser Client:** Public data only

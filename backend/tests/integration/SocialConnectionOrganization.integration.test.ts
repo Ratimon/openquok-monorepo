@@ -34,11 +34,11 @@ const itIfThreadsOAuth = threadsOAuthConfigured ? it : it.skip;
 describe("Social connection (organization programmatic API)", () => {
     const supabaseConfig = config.supabase as {
         supabaseUrl: string;
-        supabaseServiceRoleKey?: string;
+        supabaseSecretKey?: string;
     };
     const adminSupabase = createClient(
         supabaseConfig.supabaseUrl,
-        supabaseConfig.supabaseServiceRoleKey!
+        supabaseConfig.supabaseSecretKey!
     ) as SupabaseClient;
     const userHelper = new UserTestHelper();
 

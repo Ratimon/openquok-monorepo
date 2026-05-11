@@ -16,8 +16,8 @@ const settingsPath = `${apiPrefix}/settings`;
 const postsPath = `${apiPrefix}/posts`;
 const publicPostsPath = `${apiPrefix}/public/posts`;
 
-const supabaseConfig = config.supabase as { supabaseUrl?: string; supabaseServiceRoleKey?: string };
-const hasSupabaseE2E = Boolean(supabaseConfig.supabaseUrl?.trim() && supabaseConfig.supabaseServiceRoleKey?.trim());
+const supabaseConfig = config.supabase as { supabaseUrl?: string; supabaseSecretKey?: string };
+const hasSupabaseE2E = Boolean(supabaseConfig.supabaseUrl?.trim() && supabaseConfig.supabaseSecretKey?.trim());
 
 describe("Programmatic posts API", () => {
     let adminSupabase: SupabaseClient;
@@ -37,7 +37,7 @@ describe("Programmatic posts API", () => {
         if (hasSupabaseE2E) {
             adminSupabase = createClient(
                 supabaseConfig.supabaseUrl!,
-                supabaseConfig.supabaseServiceRoleKey!
+                supabaseConfig.supabaseSecretKey!
             ) as SupabaseClient;
             userHelper = new UserTestHelper();
         }

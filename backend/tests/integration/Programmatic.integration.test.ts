@@ -27,11 +27,11 @@ const publicProgrammaticBase = `${apiPrefix}/public`;
 describe("Programmatic API (per-channel endpoints)", () => {
     const supabaseConfig = config.supabase as {
         supabaseUrl: string;
-        supabaseServiceRoleKey?: string;
+        supabaseSecretKey?: string;
     };
     const adminSupabase = createClient(
         supabaseConfig.supabaseUrl,
-        supabaseConfig.supabaseServiceRoleKey!
+        supabaseConfig.supabaseSecretKey!
     ) as SupabaseClient;
     const userHelper = new UserTestHelper();
 

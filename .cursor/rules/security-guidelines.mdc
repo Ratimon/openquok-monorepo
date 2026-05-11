@@ -1,5 +1,5 @@
 ---
-description: Security — no service client in client code, no SUPABASE_SECRET_KEY / SUPABASE_SERVICE_ROLE_KEY on client, RLS, correct Supabase client per context, rate limit config, SSR state rules (no authenticationRepository in server load, ssr = false for protected routes)
+description: Security — no service client in client code, no SUPABASE_SECRET_KEY on client, RLS, correct Supabase client per context, rate limit config, SSR state rules (no authenticationRepository in server load, ssr = false for protected routes)
 globs: ["web/**/*", "backend/**/*.ts"]
 alwaysApply: false
 ---
@@ -11,7 +11,7 @@ Follow these rules in both backend and web code.
 ## 1. Supabase clients
 
 - **NEVER** use the service client in client-side code (browser / SvelteKit client).
-- **NEVER** expose elevated Supabase keys to the client (env vars, bundles, or API responses). This covers both the new `SUPABASE_SECRET_KEY` (`sb_secret_…`) and the legacy `SUPABASE_SERVICE_ROLE_KEY` JWT — both bypass RLS. See [Upcoming changes to Supabase API Keys](https://github.com/orgs/supabase/discussions/29260) and the [Supabase config docs](../../web/src/content/docs/configuration-backend/supabase.md) for the migration plan.
+- **NEVER** expose `SUPABASE_SECRET_KEY` (`sb_secret_…`) to the client (env vars, bundles, or API responses). It bypasses RLS. Legacy `service_role` / `anon` JWT keys are not used in this codebase — see [Supabase config docs](../../web/src/content/docs/configuration-backend/supabase.md) and [Upcoming changes to Supabase API Keys](https://github.com/orgs/supabase/discussions/29260).
 - Use RLS policies for data access control.
 - Always use the appropriate client for the context:
   - **Browser Client:** Public data only

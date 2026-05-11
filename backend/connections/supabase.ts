@@ -12,43 +12,31 @@ import { logger } from "../utils/Logger";
 
 const supabaseConfig = config.supabase as {
     supabaseUrl: string;
-    /** New publishable key (`sb_publishable_…`); preferred over the legacy anon JWT. */
+    /** Publishable key (`sb_publishable_…`); safe to expose in public clients. */
     supabasePublishableKey?: string;
-    /** Legacy anon JWT; still emitted by local `supabase start` and unmigrated projects. */
-    supabaseAnonKey: string;
-    /** New secret key (`sb_secret_…`); preferred over the legacy service_role JWT. */
+    /** Secret key (`sb_secret_…`); server-side only — bypasses RLS. */
     supabaseSecretKey?: string;
-    /** Legacy service_role JWT; still emitted by local `supabase start` and unmigrated projects. */
-    supabaseServiceRoleKey?: string;
 };
 
 /**
- * Prefer the new publishable key (`sb_publishable_…`); fall back to the legacy anon JWT.
- * `process.env.*` is also consulted so cold-start codepaths that bypass GlobalConfig still resolve a key.
+ * Returns the publishable key (`sb_publishable_…`). `process.env` is also consulted so
+ * cold-start codepaths that bypass GlobalConfig still resolve a key.
  */
 function getSupabaseClientKey(): string {
-    const publishable =
-        (supabaseConfig.supabasePublishableKey ?? "").trim() ||
-        (process.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "").trim();
-    if (publishable) return publishable;
     return (
-        (supabaseConfig.supabaseAnonKey ?? "").trim() ||
-        (process.env.PUBLIC_SUPABASE_ANON_KEY ?? "").trim()
+        (supabaseConfig.supabasePublishableKey ?? "").trim() ||
+        (process.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "").trim()
     );
 }
 
 /**
- * Prefer the new secret key (`sb_secret_…`); fall back to the legacy `service_role` JWT.
- * `process.env.*` is also consulted so cold-start codepaths that bypass GlobalConfig still resolve a key.
+ * Returns the secret key (`sb_secret_…`). `process.env` is also consulted so cold-start
+ * codepaths that bypass GlobalConfig still resolve a key.
  */
 function getSupabaseServerKey(): string {
-    const secret =
-        (supabaseConfig.supabaseSecretKey ?? "").trim() ||
-        (process.env.SUPABASE_SECRET_KEY ?? "").trim();
-    if (secret) return secret;
     return (
-        (supabaseConfig.supabaseServiceRoleKey ?? "").trim() ||
-        (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim()
+        (supabaseConfig.supabaseSecretKey ?? "").trim() ||
+        (process.env.SUPABASE_SECRET_KEY ?? "").trim()
     );
 }
 
@@ -103,7 +91,7 @@ function getSupabaseAnonClient(): SupabaseClient<Database> {
         }
         if (!key) {
             throw new Error(
-                "PUBLIC_SUPABASE_PUBLISHABLE_KEY or PUBLIC_SUPABASE_ANON_KEY (or config.supabase.supabasePublishableKey / supabaseAnonKey) is required"
+                "PUBLIC_SUPABASE_PUBLISHABLE_KEY (or config.supabase.supabasePublishableKey) is required"
             );
         }
         supabaseAnonSingleton = createClient<Database>(url, key);
@@ -131,7 +119,7 @@ export function createSupabaseServiceClient(): SupabaseClient<Database> {
         if (!supabaseKey) {
             if ((config.server as { nodeEnv?: string }).nodeEnv === "production") {
                 throw new Error(
-                    "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY (or config.supabase.supabaseSecretKey / supabaseServiceRoleKey) is required in production"
+                    "SUPABASE_SECRET_KEY (or config.supabase.supabaseSecretKey) is required in production"
                 );
             }
             const isJest = process.env.JEST_WORKER_ID !== undefined;
@@ -139,16 +127,16 @@ export function createSupabaseServiceClient(): SupabaseClient<Database> {
             if (isJest || process.env.NODE_ENV === "test") {
                 supabaseKey = getSupabaseClientKey();
                 logger.warn({
-                    msg: "Using client (publishable/anon) key for Supabase under Jest or NODE_ENV=test (set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY for integration tests against a real DB).",
+                    msg: "Using publishable key for Supabase under Jest or NODE_ENV=test (set SUPABASE_SECRET_KEY for integration tests against a real DB).",
                 });
             } else if (process.env.NODE_ENV === "development") {
                 throw new Error(
-                    "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY is required for the API process. The publishable/anon key cannot access server-side tables (for example notifications and memberships)."
+                    "SUPABASE_SECRET_KEY is required for the API process. The publishable key cannot access server-side tables (for example notifications and memberships)."
                 );
             } else {
                 supabaseKey = getSupabaseClientKey();
                 logger.warn({
-                    msg: "Using client (publishable/anon) key for Supabase service client: many repository queries will fail. Set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY.",
+                    msg: "Using publishable key for Supabase service client: many repository queries will fail. Set SUPABASE_SECRET_KEY.",
                 });
             }
         }

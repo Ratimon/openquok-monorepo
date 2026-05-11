@@ -15,9 +15,9 @@ const settingsPath = `${apiPrefix}/settings`;
 const oauthAppsPath = `${apiPrefix}/oauth-apps`;
 const publicProgrammaticBase = `${apiPrefix}/public`;
 
-const supabaseConfig = config.supabase as { supabaseUrl?: string; supabaseServiceRoleKey?: string };
+const supabaseConfig = config.supabase as { supabaseUrl?: string; supabaseSecretKey?: string };
 const hasSupabaseIntegration = Boolean(
-    supabaseConfig.supabaseUrl?.trim() && supabaseConfig.supabaseServiceRoleKey?.trim()
+    supabaseConfig.supabaseUrl?.trim() && supabaseConfig.supabaseSecretKey?.trim()
 );
 
 describe("OAuth Apps (JWT-managed) + programmatic token auth", () => {
@@ -38,7 +38,7 @@ describe("OAuth Apps (JWT-managed) + programmatic token auth", () => {
         if (hasSupabaseIntegration) {
             adminSupabase = createClient(
                 supabaseConfig.supabaseUrl!,
-                supabaseConfig.supabaseServiceRoleKey!
+                supabaseConfig.supabaseSecretKey!
             ) as SupabaseClient;
             userHelper = new UserTestHelper();
         }

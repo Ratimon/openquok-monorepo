@@ -77,11 +77,11 @@ async function getFirstOrgId(accessToken: string): Promise<string> {
 describe("User Account Setting E2E", () => {
     const supabaseConfig = config.supabase as {
         supabaseUrl: string;
-        supabaseServiceRoleKey?: string;
+        supabaseSecretKey?: string;
     };
     const adminSupabase = createClient(
         supabaseConfig.supabaseUrl,
-        supabaseConfig.supabaseServiceRoleKey!
+        supabaseConfig.supabaseSecretKey!
     );
     const userHelper = new UserTestHelper();
 
