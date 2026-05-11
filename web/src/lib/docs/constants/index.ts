@@ -5,6 +5,7 @@ export {
 	docsSidebarMerged,
 	docsSidebarPublicApi,
 	docsSidebarCli,
+	docsSidebarWidthCss,
 	docsSite,
 	docsTabs
 } from '$lib/docs/constants/config';

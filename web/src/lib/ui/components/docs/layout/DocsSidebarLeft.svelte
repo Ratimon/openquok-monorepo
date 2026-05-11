@@ -143,24 +143,27 @@
 								<Sidebar.MenuSub>
 									{#each section.items ?? [] as item (item.href ?? item.title)}
 										<Sidebar.MenuSubItem>
-											<Sidebar.MenuSubButton isActive={isActive(item.href)}>
+											<Sidebar.MenuSubButton
+												class="min-h-8 !h-auto items-start py-1.5 [&>span:last-child]:whitespace-normal [&>span:last-child]:break-words [&>span:last-child]:overflow-visible [&>span:last-child]:text-xs [&>span:last-child]:leading-snug"
+												isActive={isActive(item.href)}
+											>
 												{#snippet child({ props })}
 													<a
 														href={item.href ?? '#'}
 														{...props}
 														class={cn(
-															'flex min-w-0 items-center gap-2',
+															'flex min-w-0 items-start gap-2',
 															props.class as string | undefined
 														)}
 													>
 														{#if item.httpMethod}
 															<span
 																class={cn(
-																	'badge badge-sm shrink-0',
+																	'badge badge-sm mt-0.5 shrink-0',
 																	docsHttpMethodBadgeClass(item.httpMethod)
 																)}>{item.httpMethod}</span>
 														{/if}
-														<span class="min-w-0 flex-1 truncate">{item.title}</span>
+														<span class="min-w-0 flex-1">{item.title}</span>
 													</a>
 												{/snippet}
 											</Sidebar.MenuSubButton>

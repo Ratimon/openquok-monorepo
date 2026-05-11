@@ -9,7 +9,7 @@
 	import DocsSidebarRight from '$lib/ui/components/docs/layout/DocsSidebarRight.svelte';
 	import * as Sidebar from '$lib/ui/sidebar-main/index.js';
 	import { ensureDefaultTheme } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
-	import { docsSite } from '$lib/docs/constants';
+	import { docsSite, docsSidebarWidthCss } from '$lib/docs/constants';
 
 	type Props = { data: LayoutData; children: import('svelte').Snippet };
 
@@ -47,7 +47,7 @@
 >
 	Skip to content
 </a>
-<Sidebar.Provider>
+<Sidebar.Provider style={docsSidebarWidthCss}>
 	<DocsSidebarLeft {navigation} searchNavigation={navigationSearchIndex} {tabLabel} {socialLinks} />
 	<!-- Do not set overflow-x-* here: any non-visible overflow on an ancestor breaks position:sticky for the API docs rail -->
 	<Sidebar.Inset class="min-w-0 flex-1">

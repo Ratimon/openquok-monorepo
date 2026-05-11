@@ -1,6 +1,6 @@
 ---
 title: Overview - CLI
-description: Install the Openquok CLI, authenticate, and call the programmatic scheduling API from your terminal or automation.
+description: Install and automate social media content pipeline using the Openquok CLI from your terminal.
 order: 0
 lastUpdated: 2026-05-09
 ---
@@ -11,13 +11,13 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 
 ## Overview
 
-<Badge text="@openquok/auto-cli" variant="experimental" /> is the programmatic CLI for the Openquok scheduling API — built for automation and AI agents. It wraps the public API so you can schedule posts, manage integrations, and upload media from shell scripts; command output is JSON.
+<Badge text="@openquok/auto-cli" variant="experimental" /> is the programmatic CLI for the Openquok scheduling API — built for automation and AI agents. It wraps the <a href="/docs/getting-started-for-public-api">public API</a> so you can schedule posts, manage integrations, and upload media from shell scripts.
 
-## Explore documentation
+## Explore More ?
 
 <CardGrid>
 <LinkCard title="Public API" description="REST endpoints and OAuth used by the CLI and integrations" href="/docs/getting-started-for-public-api" />
-<LinkCard title="Learn more" description="Install, self-host, backend, workers, CLI auth, and contributor guides" href="/docs/getting-started-for-dev" />
+<LinkCard title="Learn more" description="Want to understand More?" />
 </CardGrid>
 
 ## Installation

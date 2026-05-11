@@ -1,6 +1,6 @@
 ---
 title: Vercel
-description: Deploy Openquok's Application to Vercel — backend, web, and CLI auth server.
+description: Deploy Openquok's Application on Vercel — backend, web, and CLI auth server.
 order: 2
 lastUpdated: 2026-05-08
 ---

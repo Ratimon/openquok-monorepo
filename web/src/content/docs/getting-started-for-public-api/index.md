@@ -1,6 +1,6 @@
 ---
 title: Overview - Public API
-description: Getting Started automate your Social Scheduling with Openquok 's public api.
+description: Getting started to automate your Social Scheduling with Openquok 's public api.
 order: 0
 lastUpdated: 2026-05-11
 ---

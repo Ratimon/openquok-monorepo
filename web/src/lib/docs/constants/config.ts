@@ -3,6 +3,9 @@ import type { IconName } from '$data/icons';
 
 import { icons } from '$data/icons';
 
+/** Overrides `Sidebar.Provider` default (`16rem`) so API-style nav labels (method badge + title) fit. */
+export const docsSidebarWidthCss = '--sidebar-width: 20rem';
+
 export const docsSite = {
 	title: 'OpenQuok Documentation',
 	description: 'Developer Reference',
@@ -79,7 +82,7 @@ export const docsSidebarLearnMore: DocsSidebarSection[] = [
 		autogenerate: { directory: 'configuration-worker' }
 	},
 	{
-		label: 'CLI Auth Setup',
+		label: 'CLI Auth Server Setup',
 		icon: icons.Lock.name,
 		autogenerate: { directory: 'configuration-agent' }
 	},
