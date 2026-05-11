@@ -25,6 +25,17 @@ Verify the CLI is available:
 openquok --help
 ```
 
+
+## Publish via Github
+
+```bash
+git add .
+git commit -m "cli-v0.0.2"
+git push -u origin main
+git tag cli-v0.0.2
+git push origin cli-v0.0.2
+```
+
 ## Publishing checklist
 
 ### Before first publish

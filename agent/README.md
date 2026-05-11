@@ -16,13 +16,15 @@
 
 ## Quickstart
 
-**Programmatic CLI for the Openquok scheduling API** — designed for automation and AI agents. All command output is JSON.
+**Programmatic CLI for the Openquok scheduling API** — designed for automation and AI agents.
 
 This package lives in this monorepo under `agent/` and is published as `@openquok/auto-cli`.
 
 ---
 
 ## Install
+
+Requires **Node.js 20.19+** (or 22.12+, or 23+). Older versions may install with warnings or fail at runtime.
 
 ```bash
 npm install -g @openquok/auto-cli

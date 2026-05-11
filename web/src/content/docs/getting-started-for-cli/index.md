@@ -22,6 +22,8 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 
 ## Installation
 
+Requires **Node.js 20.19+** (or 22.12+, or 23+). Older versions may install with warnings or fail at runtime.
+
 <Tabs items={["npm", "pnpm"]}>
 <TabItem label="npm">
 
