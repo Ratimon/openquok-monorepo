@@ -30,10 +30,10 @@ openquok --help
 
 ```bash
 git add .
-git commit -m "cli-v0.0.3"
+git commit -m "cli-v0.0.4"
 git push -u origin main
-git tag cli-v0.0.3
-git push origin cli-v0.0.3
+git tag cli-v0.0.4
+git push origin cli-v0.0.4
 ```
 
 ## Publishing checklist
@@ -92,12 +92,12 @@ npm install -g @openquok/auto-cli
 openquok --help
 ```
 
-## Publish via GitHub tags (not wired for `agent` yet)
+## Publish via GitHub tags
 
-The repo workflow at `.github/workflows/release.yml` currently publishes:
+The workflow at `.github/workflows/release.yml` publishes:
 
-- tags `sdk-vX.Y.Z` -> `./sdk`
-- tags `cli-vX.Y.Z` -> `./apps/cli`
+- tags `sdk-vX.Y.Z` → `./sdk`
+- tags `cli-vX.Y.Z` → `./agent` (`pnpm run publish:cli:build` then `pnpm --filter ./agent publish`)
 
-So tagging `cli-v...` **will not** publish `./agent` unless the workflow is updated (e.g., add an `agent_publish` job that runs `pnpm --filter ./agent publish` on `agent-vX.Y.Z` tags, or repoint the existing `cli_publish` job to `./agent`).
+Push a new tag after merging these fixes (for example `cli-v0.0.4`) if a previous `cli-v0.0.3` run failed before publish.
 

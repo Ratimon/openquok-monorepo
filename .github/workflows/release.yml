@@ -54,9 +54,9 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - run: pnpm install
-      - run: pnpm run build:cli
+      - run: pnpm run publish:cli:build
 
       - name: Publish cli to npm
-        run: pnpm --filter ./apps/cli publish --access public --no-git-checks
+        run: pnpm --filter ./agent publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
