@@ -36,7 +36,7 @@ import Openquok from "@openquok/node";
 
 const openquok = new Openquok("YOUR_API_KEY", {
   // optional (defaults shown)
-  baseUrl: "https://api.openquok.com/", //"http://localhost:3000"
+  baseUrl: "https://api.openquok.com",
   apiPrefix: "/api/v1",
 });
 
@@ -44,7 +44,7 @@ const openquok = new Openquok("YOUR_API_KEY", {
 const uploaded = await openquok.upload(fileBuffer, "png");
 
 // Create a scheduled post
-await openquok.createPost({
+await openquok.post({
   scheduledAt: new Date().toISOString(),
   status: "scheduled",
   body: "Hello from Openquok SDK",
@@ -55,16 +55,13 @@ await openquok.createPost({
 The available methods are:
 
 - `upload(file: Buffer, extension: string)` - Upload media via `POST {apiPrefix}/public/upload`
-- `createPost(body: PublicCreatePostDto)` - Create/schedule posts via `POST {apiPrefix}/public/posts`
-- `listPosts(filters: PublicListPostsQueryDto)` - List posts via `GET {apiPrefix}/public/posts/list`
+- `post(body: PublicCreatePostDto)` - Create/schedule posts via `POST {apiPrefix}/public/posts`
+- `postList(filters: PublicListPostsQueryDto)` - List posts via `GET {apiPrefix}/public/posts/list`
 - `getPostGroup(postGroup: string)` - Get a post group via `GET {apiPrefix}/public/posts/group/:postGroup`
 - `updatePostGroup(postGroup: string, body: PublicUpdatePostGroupDto)` - Update a post group via `PUT {apiPrefix}/public/posts/group/:postGroup`
 - `deletePostGroup(postGroup: string)` - Delete a post group via `DELETE {apiPrefix}/public/posts/group/:postGroup`
 - `integrations()` - Get a list of connected channels via `GET {apiPrefix}/public/integrations`
-- `isConnected()` - Check connectivity via `GET {apiPrefix}/public/is-connected`
-- `getIntegrationOauthUrl(integrationIdentifier: string, refresh?: string)` - Get an OAuth URL via `GET {apiPrefix}/public/social/:integrationIdentifier`
 - `deleteIntegrationChannel(id: string)` - Delete a connected channel via `DELETE {apiPrefix}/public/integrations/:id`
-- `getPublicPostComments(postId: string)` - Anonymous comments via `GET {apiPrefix}/public/posts/:postId/comments`
 
 Alternatively you can use the API with curl — check out our [docs](https://www.openquok.com/docs/getting-started-for-public-api).
 

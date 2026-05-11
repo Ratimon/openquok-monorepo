@@ -1,6 +1,6 @@
 ---
 title: Overview - Getting Started
-description: Getting Started to Openquok's project layout and a quick guide for contributor/maintainer.
+description: Getting Started to Openquok's project layout and a quick guide for contributor/maintainer or those who are running a self-hosted Openquok instance.
 order: 0
 ---
 

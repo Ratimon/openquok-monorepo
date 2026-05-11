@@ -24,19 +24,6 @@ export class OpenquokApi {
     return await requestJson({ url: this.url("/public/integrations"), apiKey: this.cfg.apiKey });
   }
 
-  async getIntegrationOAuthUrl(integration: string): Promise<unknown> {
-    const u = new URL(this.url(`/public/social/${encodeURIComponent(integration)}`));
-    return await requestJson({ url: u.toString(), apiKey: this.cfg.apiKey });
-  }
-
-  async deleteIntegration(id: string): Promise<unknown> {
-    return await requestJson({
-      url: this.url(`/public/integrations/${encodeURIComponent(id)}`),
-      apiKey: this.cfg.apiKey,
-      method: "DELETE",
-    });
-  }
-
   async listPosts(params: { start: string; end: string; integrationIds?: string }): Promise<unknown> {
     const u = new URL(this.url("/public/posts/list"));
     u.searchParams.set("start", params.start);

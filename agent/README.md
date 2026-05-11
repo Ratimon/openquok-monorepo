@@ -11,7 +11,7 @@
 - Create and schedule posts via the programmatic API
 - List posts and manage post groups
 - Upload media for use in posts
-- Manage programmatic integrations (list, generate OAuth/connect URLs, delete)
+- List programmatic integrations (channel IDs for use with `posts:create`)
 
 
 ## Quickstart
@@ -57,7 +57,6 @@ openquok auth:login
 
 ```bash
 export OPENQUOK_API_KEY="opo_..."
-export OPENQUOK_API_URL="https://api.openquok.com" # optional
 ```
 
 #### Store credentials locally
@@ -78,9 +77,9 @@ openquok auth:logout
 
 ```bash
 openquok integrations:list
-openquok integrations:oauth-url <integration>
-openquok integrations:delete <id>
 ```
+
+Connecting new channels (OAuth) is done from the web UI; the CLI consumes the resulting integration IDs.
 
 ### Posts
 

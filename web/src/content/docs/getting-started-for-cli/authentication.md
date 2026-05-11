@@ -26,12 +26,18 @@ Run:
 openquok auth:login
 ```
 
-By default the CLI uses an **interactive** device flow (similar to tools like the Vercel CLI):
+By default the CLI uses an **interactive** device flow:
 
-1. **Terminal** — Shows the verification URL, your **user code**, and prompts you to press **Enter** to open the browser. The opened link includes a `code` query parameter so the verification page can pre-fill the code (you do not need to paste it manually).
-2. **Browser** — Complete device verification on the CLI auth server, then continue to the Openquok web app’s **Authorize application** screen. If you are not signed in, use **Sign in**; after authentication you are returned to the authorize URL (via the <code>redirectURL</code> query on sign-in) so you can pick a **workspace** and choose **Authorize** or **Deny**.
-3. **Terminal** — The CLI prints <code>Waiting for authentication…</code> on stderr while it polls the auth server. On success it writes **only the final result as JSON to stdout** (for example <code>success</code> and <code>stored: true</code>).
+1. **Terminal** — Shows the verification URL, your **user code**, and prompts you to press **Enter** to open the browser. The opened link includes a `code` query parameter so the verification page can pre-fill the code (no need to paste it manually).
+2. **Browser** — Complete device verification on the CLI auth server, then continue to the Openquok web app’s **Authorize application** screen. If you are not signed in, use **Sign in**; after authentication you are returned to the authorize URL, so you can pick a **workspace** and choose **Authorize** or **Deny**.
+3. **Terminal** — When success, it writes **only the final result as JSON**.
 4. **Credentials** — Stored for later commands (default <code>~/.openquok/credentials.json</code>).
+
+### Headless use (no browser launch)
+
+Interactive <code>auth:login</code> tries to open a browser after you press Enter (or immediately when stdin is not a TTY). If that fails, the CLI prints the full link on stderr.
+
+For SSH, CI, or any flow where you must not rely on <code>open()</code>, use <code>openquok auth:login --json</code>: the first JSON object includes <code>verification_uri</code> and <code>verification_uri_complete</code>, and the CLI never launches a browser.
 
 ### Machine-readable output (<code>--json</code>)
 
@@ -43,11 +49,7 @@ openquok auth:login --json
 
 This prints an initial JSON object (including <code>device_code</code>, <code>user_code</code>, <code>verification_uri</code>, <code>verification_uri_complete</code>, <code>expires_in</code>, and <code>interval</code>), then polls until completion and prints a second JSON object when credentials are stored—similar to the historical CLI behavior.
 
-### Headless use (no browser launch)
 
-Interactive <code>auth:login</code> tries to open a browser after you press Enter (or immediately when stdin is not a TTY). If that fails, the CLI prints the full link on stderr.
-
-For SSH, CI, or any flow where you must not rely on <code>open()</code>, use <code>openquok auth:login --json</code>: the first JSON object includes <code>verification_uri</code> and <code>verification_uri_complete</code>, and the CLI never launches a browser.
 
 **Other auth commands:**
 
@@ -107,7 +109,7 @@ These variables apply to the **CLI process** (your shell, CI job, or agent), not
 | --- | --- | --- | --- |
 | <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> | No* | — | Bearer token for the programmatic API |
 | <Badge text="OPENQUOK_API_URL" variant="envBackend" /> | No | <Badge text="https://api.openquok.com" variant="new" /> | API origin; requests use paths under <code>/api/v1/</code> |
-| <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> | No | <Badge text="https://cli-auth.openquok.com" variant="new" /> | Origin of the device-flow auth server (<code>/device/*</code>, <code>/health</code>). Use <Badge text="http://localhost:3111" variant="default" /> when running <Badge text="agent/server" variant="path" /> locally |
+| <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> | No | <Badge text="https://cli-auth.openquok.com" variant="new" /> | Origin of the device-flow auth server. Use <Badge text="http://localhost:3111" variant="default" /> when running <Badge text="agent/server" variant="path" /> locally |
 
 *Either <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> or successful <code>openquok auth:login</code> (stored credentials) is required for authenticated commands.
 

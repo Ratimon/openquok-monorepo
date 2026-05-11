@@ -157,11 +157,25 @@
 		toc.extractHeadings(container);
 	}
 
+	function scrollToHashFromUrl() {
+		if (!browser) return;
+		const raw = page.url.hash;
+		if (!raw || raw.length <= 1) return;
+		const id = decodeURIComponent(raw.slice(1));
+		requestAnimationFrame(() => {
+			document.getElementById(id)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+		});
+	}
+
 	$effect(() => {
 		void contentEl;
+		void page.url.hash;
 
 		const timer = setTimeout(() => {
-			if (contentEl) enhanceContent(contentEl);
+			if (contentEl) {
+				enhanceContent(contentEl);
+				scrollToHashFromUrl();
+			}
 		}, 0);
 
 		return () => {

@@ -29,7 +29,7 @@ export class PublicIntegrationController {
         }
     };
 
-    /** GET /public/social/:integration — OAuth URL (same responsibility as reference `getIntegrationUrl`). */
+    /** GET /public/social/:integration — returns the OAuth authorization URL for the given provider. */
     getIntegrationUrl = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const organizationId = (req as ProgrammaticAuthRequest).organization!.id;

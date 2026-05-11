@@ -28,7 +28,7 @@ export default class Openquok {
         private readonly apiKey: string,
         options: OpenquokClientOptions = {}
     ) {
-        const baseUrl = (options.baseUrl ?? "http://localhost:3000").replace(/\/+$/g, "");
+        const baseUrl = (options.baseUrl ?? "https://api.openquok.com").replace(/\/+$/g, "");
         const apiPrefix = options.apiPrefix ?? "/api/v1";
         this.apiRoot = `${baseUrl}${apiPrefix}`;
     }
@@ -66,7 +66,7 @@ export default class Openquok {
         });
     }
 
-    async createPost(body: PublicCreatePostDto) {
+    async post(body: PublicCreatePostDto) {
         return await this.json(`${this.apiRoot}/public/posts`, {
             method: "POST",
             headers: {
@@ -77,7 +77,7 @@ export default class Openquok {
         });
     }
 
-    async listPosts(filters: PublicListPostsQueryDto) {
+    async postList(filters: PublicListPostsQueryDto) {
         return await this.json(`${this.apiRoot}/public/posts/list?${toQueryString(filters as Record<string, unknown>)}`, {
             method: "GET",
             headers: {
@@ -128,47 +128,12 @@ export default class Openquok {
         });
     }
 
-    async isConnected() {
-        return await this.json(`${this.apiRoot}/public/is-connected`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: this.apiKey,
-            },
-        });
-    }
-
-    async getIntegrationOauthUrl(integrationIdentifier: string, refresh?: string) {
-        const qs = toQueryString({ refresh });
-        const url = `${this.apiRoot}/public/social/${integrationIdentifier}${qs ? `?${qs}` : ""}`;
-        return await this.json(url, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: this.apiKey,
-            },
-        });
-    }
-
     async deleteIntegrationChannel(id: string) {
         return await this.json(`${this.apiRoot}/public/integrations/${id}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: this.apiKey,
-            },
-        });
-    }
-
-    /**
-     * Anonymous endpoint (no API key required).
-     * Included for parity with the backend's public comment surface.
-     */
-    async getPublicPostComments(postId: string) {
-        return await this.json(`${this.apiRoot}/public/posts/${postId}/comments`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
             },
         });
     }
