@@ -90,7 +90,7 @@ function buildDocs(
 /**
  * Order pages for prev/next and flat listings: sidebar section order first,
  * then `meta.order` within each section. (Global `order` alone interleaves
- * unrelated sections, e.g. getting-started and how-to-write-docs both using 1.)
+ * unrelated sections, e.g. getting-started-for-dev and how-to-write-docs both using 1.)
  */
 function orderDocsBySidebar(docs: DocPage[]): DocPage[] {
 	const used = new Set<string>();

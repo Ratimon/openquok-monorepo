@@ -16,7 +16,7 @@ The **web** (Vite + SvelteKit) is configured from:
 - <Badge text="web/.env.*" variant="envWeb" /> environment files
 - <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/web-config.json"><Badge text="web/src/web-config.json" variant="path" /></DocsExternalLink> for PWA metadata
 
-Any change to environment values requires restarting your dev server or rebuilding the web app so Vite can pick up the new settings. Local HTTPS and how <Badge text="VITE_API_BASE_URL" variant="envWeb" /> interacts with the dev proxy are documented under <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit env)</a>.
+Any change to environment values requires restarting your dev server or rebuilding the web app so Vite can pick up the new settings. Local HTTPS and how <Badge text="VITE_API_BASE_URL" variant="envWeb" /> interacts with the dev proxy are documented under <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit)</a>.
 
 ## Common setup steps
 
@@ -28,7 +28,7 @@ Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/m
 
 ### Set production env values
 
-Maintain <Badge text="web/.env.production.local" variant="envWeb" /> and set matching production values for your deployment. Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the same canonical origin as the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> so OAuth redirect URIs stay consistent (see <a href="/docs/configuration-web/vite">Vite (SvelteKit env)</a> and <a href="/docs/installation/production-deployment">Production deployment</a>).
+Maintain <Badge text="web/.env.production.local" variant="envWeb" /> and set matching production values for your deployment. Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the same canonical origin as the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> so OAuth redirect URIs stay consistent (see <a href="/docs/configuration-web/vite">Vite (SvelteKit)</a> and <a href="/docs/installation/production-deployment">Production deployment</a>).
 
 ### Update PWA settings
 
@@ -39,7 +39,7 @@ Edit <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/m
 ## Guides
 
 <CardGrid>
-<LinkCard title="Vite (SvelteKit env)" description="VITE_* variables, HTTPS dev server, and API proxy" href="/docs/configuration-web/vite" />
+<LinkCard title="Vite (SvelteKit)" description="VITE_* variables, HTTPS dev server, and API proxy" href="/docs/configuration-web/vite" />
 <LinkCard title="SEO & marketing defaults" description="Meta tags, keywords, and social links (CONFIG_SCHEMA_MARKETING)" href="/docs/configuration-web/seo" />
 <LinkCard title="Config defaults" description="Backend URL, company, landing, and navigation schema defaults" href="/docs/configuration-web/config-defaults" />
 <LinkCard title="PWA configuration" description="Edit web-config.json for app name and icon metadata" href="/docs/configuration-web/pwa" />

@@ -17,9 +17,17 @@ Aquí es donde vive tu documentación. Cada archivo `.md` se convierte en una p�
 ```text
 src/content/docs/
 ├── index.md                    # /docs
-├── getting-started/
-│   ├── installation.md         # /docs/getting-started/installation
-│   └── project-structure.md    # /docs/getting-started/project-structure
+├── getting-started-for-dev/
+│   ├── installation.md         # /docs/getting-started-for-dev/installation
+│   └── project-structure.md    # /docs/getting-started-for-dev/project-structure
+└── how-to-write-docs/
+    ├── configuration.md
+    └── writing-content.md
+
+src/content/docs-es/
+├── getting-started-for-dev/    # /docs/es/getting-started-for-dev/...
+│   ├── installation.md
+│   └── project-structure.md
 └── how-to-write-docs/
     ├── configuration.md        # /docs/es/how-to-write-docs/configuration
     └── writing-content.md      # /docs/es/how-to-write-docs/writing-content

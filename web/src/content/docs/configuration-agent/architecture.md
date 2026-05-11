@@ -88,8 +88,8 @@ CREATE TABLE device_requests (
 ## Next steps
 
 <CardGrid>
-<LinkCard title="CLI" description="Install the Openquok CLI and command overview" href="/docs/cli" />
-<LinkCard title="CLI authentication" description="Device login, OPENQUOK_AUTH_SERVER, and API keys" href="/docs/cli/authentication" />
+<LinkCard title="CLI" description="Install the Openquok CLI and command overview" href="/docs/getting-started-for-cli" />
+<LinkCard title="CLI authentication" description="Device login, OPENQUOK_AUTH_SERVER, and API keys" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="Configuration - Agent" description="Deploy the auth server: env vars, SERVER_URL, callbacks" href="/docs/configuration-agent" />
 <LinkCard title="Scaling & Postgres" description="Multi-instance notes and serverless Postgres pooling" href="/docs/configuration-agent/scaling" />
 <LinkCard title="Vercel (installation)" description="Deploy the CLI auth server on Vercel" href="/docs/installation/vercel#cli-auth-server-on-vercel" />

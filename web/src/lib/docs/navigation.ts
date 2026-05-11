@@ -76,14 +76,29 @@ export function getDocsTabIdFromPathname(pathname: string): DocsDocTabId {
 	const rest = parts.slice(1);
 
 	if (rest.length === 0) return 'cli';
-	if (rest[0] === 'public-api') return 'public-api';
-	if (rest[0] === 'cli') return 'cli';
+	if (
+		rest[0] === 'getting-started-for-public-api' ||
+		rest[0] === 'apis-integrations'
+	)
+		return 'public-api';
+	if (rest[0] === 'getting-started-for-cli') return 'cli';
 	return 'learn-more';
 }
 
 export function getDocsTabIdFromSlug(slug: string): DocsDocTabId {
-	if (!slug || slug === 'cli' || slug.startsWith('cli/')) return 'cli';
-	if (slug === 'public-api' || slug.startsWith('public-api/')) return 'public-api';
+	if (
+		!slug ||
+		slug === 'getting-started-for-cli' ||
+		slug.startsWith('getting-started-for-cli/')
+	)
+		return 'cli';
+	if (
+		slug === 'getting-started-for-public-api' ||
+		slug.startsWith('getting-started-for-public-api/') ||
+		slug === 'apis-integrations' ||
+		slug.startsWith('apis-integrations/')
+	)
+		return 'public-api';
 	return 'learn-more';
 }
 
@@ -101,9 +116,9 @@ export function docsTabHref(tabId: DocsDocTabId, locale?: string): string {
 		case 'cli':
 			return base;
 		case 'public-api':
-			return `${base}/public-api`;
+			return `${base}/getting-started-for-public-api`;
 		case 'learn-more':
-			return `${base}/getting-started`;
+			return `${base}/getting-started-for-dev`;
 	}
 }
 

@@ -15,9 +15,9 @@ Looking to edit or extend this documentation? Check out the <a href="/docs/how-t
 # Getting Started
 
 <CardGrid>
-<LinkCard title="Project Architecture" description="Learn the project 's layout and architecture" href="/docs/getting-started/architecture" />
+<LinkCard title="Project Architecture" description="Learn the project 's layout and architecture" href="/docs/getting-started-for-dev/architecture" />
 
-<LinkCard title="Quick Start" description="Get started with OpenQuak Installation" href="/docs/getting-started/quick-start" />
+<LinkCard title="Quick Start" description="Get started with OpenQuak Installation" href="/docs/getting-started-for-dev/quick-start" />
 </CardGrid>
 
 ## Related Section(s)

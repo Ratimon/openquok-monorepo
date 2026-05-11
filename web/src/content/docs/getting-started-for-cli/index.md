@@ -16,8 +16,8 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 ## Explore documentation
 
 <CardGrid>
-<LinkCard title="Public API" description="REST endpoints and OAuth used by the CLI and integrations" href="/docs/public-api" />
-<LinkCard title="Learn more" description="Install, self-host, backend, workers, CLI auth, and contributor guides" href="/docs/getting-started" />
+<LinkCard title="Public API" description="REST endpoints and OAuth used by the CLI and integrations" href="/docs/getting-started-for-public-api" />
+<LinkCard title="Learn more" description="Install, self-host, backend, workers, CLI auth, and contributor guides" href="/docs/getting-started-for-dev" />
 </CardGrid>
 
 ## Installation
@@ -47,7 +47,7 @@ openquok --help
 
 ## Authentication
 
-Use **OAuth2 device flow** (recommended) so you never embed client secrets in the CLI, or set an **API key** for CI and scripts. Full variable reference and self-hosted auth options are on <a href="/docs/cli/authentication">CLI authentication</a>.
+Use **OAuth2 device flow** (recommended) so you never embed client secrets in the CLI, or set an **API key** for CI and scripts. Full variable reference and self-hosted auth options are on <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.
 
 **OAuth2 (device flow)** — prints a one-time code, browser approval, then stores credentials (default <code>~/.openquok/credentials.json</code>):
 
@@ -62,10 +62,10 @@ openquok auth:status
 openquok auth:logout
 ```
 
-**API key (environment variable)** — see <a href="/docs/cli/authentication#api-key">API key</a> on the authentication page.
+**API key (environment variable)** — see <a href="/docs/getting-started-for-cli/authentication#api-key">API key</a> on the authentication page.
 
 <Callout type="note" title="CLI auth server">
-<p>Device login talks to an auth helper service (default <Badge text="https://cli-auth.openquok.com" variant="new" />). If you <strong>deploy your own</strong> auth server, configure it under <a href="/docs/configuration-agent">Configuration - Agent</a> and point the CLI at it with <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <code>--authServer</code> — see <a href="/docs/cli/authentication#environment-variables">CLI authentication → Environment variables</a>.</p>
+<p>Device login talks to an auth helper service (default <Badge text="https://cli-auth.openquok.com" variant="new" />). If you <strong>deploy your own</strong> auth server, configure it under <a href="/docs/configuration-agent">Configuration - Agent</a> and point the CLI at it with <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <code>--authServer</code> — see <a href="/docs/getting-started-for-cli/authentication#environment-variables">CLI authentication → Environment variables</a>.</p>
 </Callout>
 
 ## Quick start
@@ -123,7 +123,7 @@ openquok posts:delete-group <postGroupUuid>
 ## Guides
 
 <CardGrid>
-<LinkCard title="CLI authentication" description="OAuth device flow, API key, OPENQUOK_* variables, and custom auth server URL" href="/docs/cli/authentication" />
+<LinkCard title="CLI authentication" description="OAuth device flow, API key, OPENQUOK_* variables, and custom auth server URL" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="Configuration - Agent" description="Deploy the CLI auth server (env vars, SERVER_URL, callbacks, Vercel)" href="/docs/configuration-agent" />
 <LinkCard title="Auth server architecture" description="Device flow, endpoints, and Postgres state" href="/docs/configuration-agent/architecture" />
 </CardGrid>

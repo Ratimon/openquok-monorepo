@@ -8,8 +8,8 @@
 
 - [Website](https://www.openquok.com)
 - [Developer's Documentations](https://www.openquok.com/docs)
-- [Getting started](https://www.openquok.com/docs/getting-started)
-- [Architecture](https://www.openquok.com/docs/getting-started/architecture)
+- [Getting started](https://www.openquok.com/docs/getting-started-for-dev)
+- [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture)
 - [Installation](https://www.openquok.com/docs/installation)
 - [Backend configuration](https://www.openquok.com/docs/configuration-backend)
 - [Frontend configuration](https://www.openquok.com/docs/configuration-web)
@@ -46,7 +46,7 @@ corepack enable
 
 ### Quick start
 
-To have the project up and running, please follow the [Quick Start Guide](https://www.openquok.com/docs/getting-started/quick-start).
+To have the project up and running, please follow the [Quick Start Guide](https://www.openquok.com/docs/getting-started-for-dev/quick-start).
 
 
 ### License

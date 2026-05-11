@@ -14,8 +14,8 @@ import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTre
 <CardGrid>
 <LinkCard title="Production deployment" description="Vercel API and web, Redis, optional BullMQ workers" href="/docs/installation/production-deployment" />
 <LinkCard title="Development environment" description="Local development commands" href="/docs/installation/development-environment" />
-<LinkCard title="Vercel" description="Vercel-focused deployment detail for backend and web" href="/docs/installation/vercel" />
-<LinkCard title="Railway (workers)" description="Always-on orchestrator worker services and CLI" href="/docs/installation/railway" />
+<LinkCard title="Vercel" description="Vercel deployment detail for backend and web" href="/docs/installation/vercel" />
+<LinkCard title="Railway (workers)" description="Railway deployment detail for Always-on orchestrator worker services" href="/docs/installation/railway" />
 </CardGrid>
 
 ## Related Section(s)

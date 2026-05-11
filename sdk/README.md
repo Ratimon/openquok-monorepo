@@ -66,7 +66,7 @@ The available methods are:
 - `deleteIntegrationChannel(id: string)` - Delete a connected channel via `DELETE {apiPrefix}/public/integrations/:id`
 - `getPublicPostComments(postId: string)` - Anonymous comments via `GET {apiPrefix}/public/posts/:postId/comments`
 
-Alternatively you can use the API with curl — check out our [docs](https://www.openquok.com/docs/public-api).
+Alternatively you can use the API with curl — check out our [docs](https://www.openquok.com/docs/getting-started-for-public-api).
 
 
 

@@ -12,6 +12,7 @@
 	import { toc } from '$lib/docs/utils/toc-state.svelte';
 	import { docsConfig } from '$lib/docs/constants';
 	import { calculateReadingTime } from '$lib/docs/utils/reading-time';
+	import { stringToSlug } from '$lib/ui/helpers/common';
 	import { icons } from '$data/icons';
 
 	import DocsMobileToc from '$lib/ui/components/docs/DocsMobileToc.svelte';
@@ -72,17 +73,30 @@
 
 	function enhanceContent(container: HTMLElement) {
 		const headings = container.querySelectorAll<HTMLElement>('h2, h3, h4, h5, h6');
+		const usedIds = new Set<string>();
+
+		/** Same title (or duplicate markdown `id`) twice must not share one DOM id — breaks TOC keys and `getElementById`. */
+		function takeUniqueId(baseRaw: string): string {
+			const base = (baseRaw || 'heading').replace(/(^-|-$)/g, '') || 'heading';
+			let id = base;
+			let n = 2;
+			while (usedIds.has(id)) {
+				id = `${base}-${n}`;
+				n += 1;
+			}
+			usedIds.add(id);
+			return id;
+		}
+
 		for (const heading of headings) {
 			// Alert / Callout titles use <h5> (AlertTitle); do not add TOC anchor "#" to those.
 			if (heading.closest('[role="alert"]')) continue;
-			if (!heading.id) {
-				heading.id =
-					heading.textContent
-						?.trim()
-						.toLowerCase()
-						.replace(/[^a-z0-9]+/g, '-')
-						.replace(/(^-|-$)/g, '') ?? '';
-			}
+
+			const text = heading.textContent?.trim() ?? '';
+			const fromText = stringToSlug(text) || 'heading';
+			const base = heading.id?.trim() ? heading.id.trim() : fromText;
+			heading.id = takeUniqueId(base);
+
 			if (!heading.querySelector('.anchor-link')) {
 				heading.classList.add('group', 'relative');
 				const anchor = document.createElement('a');

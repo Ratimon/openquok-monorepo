@@ -126,7 +126,7 @@ If you run **your own** Openquok deployment and want a dedicated device-flow ser
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="CLI overview" description="Install, quick start, and command overview" href="/docs/cli" />
+<LinkCard title="CLI overview" description="Install, quick start, and command overview" href="/docs/getting-started-for-cli" />
 <LinkCard title="Admin — OAuth apps" description="Create OAuth client ID and secret; redirect URLs" href="/docs/admin/oauth-server" />
 <LinkCard title="Configuration - Backend" description="API base URL and OAuth alignment with the web app" href="/docs/configuration-backend" />
 </CardGrid>

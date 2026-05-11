@@ -32,7 +32,7 @@ If your backend provides stored marketing configuration, pages typically prefer 
 ## Related configuration
 
 <CardGrid>
-<LinkCard title="Vite (SvelteKit env)" description="VITE_* variables for API, Supabase, Stripe, and analytics" href="/docs/configuration-web/vite" />
+<LinkCard title="Vite (SvelteKit)" description="VITE_* variables for API, Supabase, Stripe, and analytics" href="/docs/configuration-web/vite" />
 <LinkCard title="Config defaults" description="Backend URL, company, landing page, and navigation defaults" href="/docs/configuration-web/config-defaults" />
 <LinkCard title="Configuration - Web" description="Back to the web configuration hub" href="/docs/configuration-web" />
 </CardGrid>

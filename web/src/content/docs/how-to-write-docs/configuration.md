@@ -23,7 +23,7 @@ export const docsConfig: DocsConfig = {
   sidebar: [
     {
       label: 'Getting Started',
-      autogenerate: { directory: 'getting-started' }
+      autogenerate: { directory: 'getting-started-for-dev' }
     },
     {
       label: 'How to write docs',
@@ -46,11 +46,11 @@ Use `autogenerate` to build sidebar sections from a directory:
 ```typescript
 {
   label: 'Getting Started',
-  autogenerate: { directory: 'getting-started' }
+  autogenerate: { directory: 'getting-started-for-dev' }
 }
 ```
 
-This will scan `src/content/docs/getting-started/` and create nav items for each `.md` file.
+This will scan `src/content/docs/getting-started-for-dev/` and create nav items for each `.md` file.
 
 ### Manual Sections
 

@@ -148,8 +148,8 @@ Display directory structures:
   - content/
     - docs/
       - index.md
-      - getting-started/
-        - installation.md
+      - getting-started-for-dev/
+        - quick-start.md
       - how-to-write-docs/
         - configuration.md
   - lib/

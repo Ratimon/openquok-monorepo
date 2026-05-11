@@ -31,5 +31,5 @@ Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other p
 <CardGrid>
 <LinkCard title="Backend configuration" description="Env files, Supabase, Redis, and service keys" href="/docs/configuration-backend" />
 <LinkCard title="Frontend configuration" description="Vite env and PWA" href="/docs/configuration-web" />
-<LinkCard title="Getting started" description="Stack overview and architecture" href="/docs/getting-started" />
+<LinkCard title="Getting started" description="Stack overview and architecture" href="/docs/getting-started-for-dev" />
 </CardGrid>

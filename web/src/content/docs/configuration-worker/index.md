@@ -47,7 +47,7 @@ You only need to inject variables the worker path actually uses; you do not have
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Vite (SvelteKit env)" description="VITE_API_BASE_URL and same-origin /api in development" href="/docs/configuration-web/vite" />
+<LinkCard title="Vite (SvelteKit)" description="VITE_API_BASE_URL and same-origin /api in development" href="/docs/configuration-web/vite" />
 <LinkCard title="Railway (installation)" description="CLI, build/start commands, and persistent services" href="/docs/installation/railway" />
 <LinkCard title="Orchestrator workflows" description="Flowcraft, BullMQ transport, and behavior" href="/docs/developer-guidelines/orchestrator-workflows" />
 <LinkCard title="Redis cache" description="REDIS_* shared with cache and BullMQ" href="/docs/configuration-backend/redis" />

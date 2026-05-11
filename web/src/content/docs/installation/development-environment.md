@@ -10,7 +10,7 @@ import { Badge, Callout, Tabs, TabItem, CardGrid, LinkCard } from '$lib/ui/compo
 </script>
 
 <Callout type="warning">
-Use this page once prerequisites (see <a href="/docs/getting-started/quick-start">Quick start</a>) and <a href="/docs/configuration-backend">backend</a> / <a href="/docs/configuration-web">web</a> configurations are in place. The sections below assume you run commands from the <strong>repository root</strong> unless noted.
+Use this page once prerequisites (see <a href="/docs/getting-started-for-dev/quick-start">Quick start</a>) and <a href="/docs/configuration-backend">backend</a> / <a href="/docs/configuration-web">web</a> configurations are in place. The sections below assume you run commands from the <strong>repository root</strong> unless noted.
 </Callout>
 
 ### Backend local development
@@ -126,7 +126,7 @@ Run the <strong>backend API</strong> before the web app so local pages can call 
 </Callout>
 
 <Callout type="note" title="HTTPS on localhost">
-<p>The web dev server serves <strong>HTTPS</strong> at <code>https://localhost:5173</code>. Keep <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> and the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on that exact origin, and follow <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit env) → HTTPS local development and the API base URL</a> so API calls and auth cookies stay same-origin.</p>
+<p>The web dev server serves <strong>HTTPS</strong> at <code>https://localhost:5173</code>. Keep <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> and the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on that exact origin, and follow <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit) → HTTPS local development and the API base URL</a> so API calls and auth cookies stay same-origin.</p>
 </Callout>
 
 You can work from the **monorepo root** (using `web:*` and `pnpm --filter ./web …` scripts) or **change into `web/`** and run package scripts there.
@@ -222,7 +222,7 @@ Worker env and Redis queue details live in <a href="/docs/configuration-worker/d
 The CLI auth server (<Badge text="agent/server" variant="path" />) implements the OAuth2 device flow used by <code>openquok auth:login</code>. Most developers can use the hosted server by default, but you can run it locally for end-to-end testing.
 
 <Callout type="note" title="CLI and auth server docs">
-<p>Use <a href="/docs/cli">CLI</a> and <a href="/docs/cli/authentication">CLI authentication</a> to install the CLI, run <code>openquok auth:login</code>, and set <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" />. Server-side env (<Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, OAuth keys) is covered under <a href="/docs/configuration-agent">Configuration - Agent</a>.</p>
+<p>Use <a href="/docs/getting-started-for-cli">CLI</a> and <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a> to install the CLI, run <code>openquok auth:login</code>, and set <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" />. Server-side env (<Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, OAuth keys) is covered under <a href="/docs/configuration-agent">Configuration - Agent</a>.</p>
 </Callout>
 
 
@@ -244,12 +244,12 @@ Then set <Badge text="DATABASE_URL" variant="envBackend" /> in <Badge text="agen
 pnpm agent-server:dev
 ```
 
-Once running, point the CLI at it via <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <code>--authServer</code> — see <a href="/docs/cli/authentication">CLI authentication</a>.
+Once running, point the CLI at it via <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <code>--authServer</code> — see <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.
 
 
 ### Running the CLI from the monorepo (unpublished)
 
-Published installs use the global <code>openquok</code> command — see <a href="/docs/cli">CLI</a>. If <Badge text="@openquok/auto-cli" variant="experimental" /> is **not** installed from npm yet, build the CLI package and run the compiled **from the repository root**:
+Published installs use the global <code>openquok</code> command — see <a href="/docs/getting-started-for-cli">CLI</a>. If <Badge text="@openquok/auto-cli" variant="experimental" /> is **not** installed from npm yet, build the CLI package and run the compiled **from the repository root**:
 
 ```bash
 pnpm --filter ./agent build
@@ -292,10 +292,11 @@ pnpm vercel:deploy:web
 ## Next Steps
 
 <CardGrid>
-<LinkCard title="Production deployment" description="Backend and web on Vercel, env and optional Redis" href="/docs/installation/production-deployment" />
-<LinkCard title="CLI" description="Install the CLI, authentication, and programmatic commands" href="/docs/cli" />
-<LinkCard title="Configuration - Agent" description="Deploy and configure the CLI auth server (agent/server)" href="/docs/configuration-agent" />
-<LinkCard title="Configuration - Worker" description="Redis/BullMQ workers, Bull Board, and Railway" href="/docs/configuration-worker" />
-<LinkCard title="Project architecture" description="Monorepo layout, key directories, and how the stack fits together" href="/docs/getting-started/architecture" />
-<LinkCard title="Vercel" description="Vercel CLI and project settings detail" href="/docs/installation/vercel" />
+<LinkCard title="Production deployment" description="Full production sequence: backend and web env, CORS, Vercel deploy commands from this page" href="/docs/installation/production-deployment" />
+<LinkCard title="Configuration - Backend" description="Database migrations, pg_cron, Redis cache, and production-linked Supabase commands referenced above" href="/docs/configuration-backend" />
+<LinkCard title="Vite & web env" description="HTTPS on localhost, Vite variables, and aligning the API base URL with the backend" href="/docs/configuration-web/vite" />
+<LinkCard title="Docker (local services)" description="Redis and Postgres via Compose—matches the optional Redis, worker, and auth-server sections" href="/docs/configuration-backend/docker" />
+<LinkCard title="Configuration - Agent" description="CLI auth server env, OAuth callbacks, and `SERVER_URL` for local device flow" href="/docs/configuration-agent" />
+<LinkCard title="Configuration - Worker" description="BullMQ workers, orchestrator processes, and Redis queues beyond the API" href="/docs/configuration-worker" />
+<LinkCard title="Admin — OAuth Server" description="Create or rotate OAuth client ID and secret for the device-flow auth server" href="/docs/admin/oauth-server" />
 </CardGrid>

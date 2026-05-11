@@ -22,7 +22,7 @@ export const docsConfig: DocsConfig = {
   sidebar: [
     {
       label: 'Inicio Rápido',
-      autogenerate: { directory: 'getting-started' }
+      autogenerate: { directory: 'getting-started-for-dev' }
     },
     {
       label: 'How to write docs',
@@ -45,11 +45,11 @@ Usa `autogenerate` para construir secciones del sidebar desde un directorio:
 ```typescript
 {
   label: 'Inicio Rápido',
-  autogenerate: { directory: 'getting-started' }
+  autogenerate: { directory: 'getting-started-for-dev' }
 }
 ```
 
-Esto escaneará `src/content/docs/getting-started/` y creará elementos de navegación para cada archivo `.md`.
+Esto escaneará `src/content/docs-es/getting-started-for-dev/` (contenido en español bajo `docs-<locale>/`) y creará elementos de navegación para cada archivo `.md`.
 
 ### Secciones Manuales
 

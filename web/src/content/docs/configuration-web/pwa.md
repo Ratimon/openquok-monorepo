@@ -56,7 +56,7 @@ Icon paths in `web-config.json` are resolved relative to the web project layout,
 ## Related configuration
 
 <CardGrid>
-<LinkCard title="Vite (SvelteKit env)" description="VITE_* values for API/Supabase/Stripe/analytics" href="/docs/configuration-web/vite" />
+<LinkCard title="Vite (SvelteKit)" description="VITE_* values for API/Supabase/Stripe/analytics" href="/docs/configuration-web/vite" />
 <LinkCard title="Configuration - Web" description="Back to the web configuration hub" href="/docs/configuration-web" />
 </CardGrid>
 

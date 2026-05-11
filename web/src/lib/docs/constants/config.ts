@@ -34,15 +34,20 @@ export const docsSidebarCli: DocsSidebarSection[] = [
 	{
 		label: 'Get Started',
 		icon: icons.Braces.name,
-		autogenerate: { directory: 'cli' }
+		autogenerate: { directory: 'getting-started-for-cli' }
 	}
 ];
 
 export const docsSidebarPublicApi: DocsSidebarSection[] = [
 	{
-		label: 'Public API',
+		label: 'Getting Started',
 		icon: icons.Code.name,
-		autogenerate: { directory: 'public-api' }
+		autogenerate: { directory: 'getting-started-for-public-api' }
+	},
+	{
+		label: 'Integrations',
+		icon: icons.Link.name,
+		autogenerate: { directory: 'apis-integrations' }
 	}
 ];
 
@@ -51,7 +56,7 @@ export const docsSidebarLearnMore: DocsSidebarSection[] = [
 	{
 		label: 'Getting Started',
 		icon: icons.Rocket.name,
-		autogenerate: { directory: 'getting-started' }
+		autogenerate: { directory: 'getting-started-for-dev' }
 	},
 	{
 		label: 'Installation',

@@ -169,7 +169,15 @@ This is where in-app documentation markdown lives. Each `.md` file becomes a pag
   - index.md
   - developer-guidelines/
     - index.md
-  - getting-started/
+  - getting-started-for-cli/
+    - index.md
+    - authentication.md
+  - getting-started-for-public-api/
+    - index.md
+  - apis-integrations/
+    - connect.md
+    - social-connect-callback.md
+  - getting-started-for-dev/
     - index.md
     - architecture.md
     - quick-start.md
@@ -229,6 +237,5 @@ Paths below are relative to each package root (<Badge text="backend/" variant="p
 ## Next Steps
 
 <CardGrid>
-<LinkCard title="Quick Start" description="Get started with OpenQuok installation" href="/docs/getting-started/quick-start" />
-<LinkCard title="Orchestrator workflows" description="Refresh supervisor, Flowcraft layout, and env toggles" href="/docs/developer-guidelines/orchestrator-workflows" />
+<LinkCard title="Quick Start" description="Get started with OpenQuok installation" href="/docs/getting-started-for-dev/quick-start" />
 </CardGrid>

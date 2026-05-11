@@ -11,17 +11,17 @@ export function entries() {
 }
 
 export const load: PageLoad = ({ params }) => {
-	const doc = getDoc('cli', params.lang);
+	const doc = getDoc('getting-started-for-cli', params.lang);
 	if (!doc) throw error(404, 'CLI documentation not found');
 
-	const { prev, next } = getPrevNext('cli', params.lang);
+	const { prev, next } = getPrevNext('getting-started-for-cli', params.lang);
 
 	return {
 		meta: doc.meta,
-		slug: 'cli',
+		slug: 'getting-started-for-cli',
 		locale: params.lang,
 		prev,
 		next,
-		rawContent: getRawContent('cli', params.lang)
+		rawContent: getRawContent('getting-started-for-cli', params.lang)
 	};
 };

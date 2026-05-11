@@ -30,7 +30,7 @@ DATABASE_URL=postgresql://openquok:openquok@localhost:5432/openquok_cli_auth
 </Callout>
 
 <Callout type="note" title="Who this page is for">
-<p><strong>Deployers</strong> configuring this service: set <Badge text="SERVER_URL" variant="envBackend" /> to <strong>your</strong> public origin (for example self-hosted <code>https://auth.yourcompany.com</code>, or local <Badge text="http://localhost:3111" variant="default" />). <Badge text="https://cli-auth.openquok.com" variant="new" /> is only the URL for <strong>Openquok’s hosted production</strong> auth server — do not copy it into your env when you deploy your own instance. <strong>CLI users</strong> — install, <code>openquok auth:login</code>, API keys — see <a href="/docs/cli">CLI</a> and <a href="/docs/cli/authentication">CLI authentication</a>.</p>
+<p><strong>Deployers</strong> configuring this service: set <Badge text="SERVER_URL" variant="envBackend" /> to <strong>your</strong> public origin (for example self-hosted <code>https://auth.yourcompany.com</code>, or local <Badge text="http://localhost:3111" variant="default" />). <Badge text="https://cli-auth.openquok.com" variant="new" /> is only the URL for <strong>Openquok’s hosted production</strong> auth server — do not copy it into your env when you deploy your own instance. <strong>CLI users</strong> — install, <code>openquok auth:login</code>, API keys — see <a href="/docs/getting-started-for-cli">CLI</a> and <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
 </Callout>
 
 Request paths, polling, and the <Badge text="device_requests" variant="default" /> table are explained in <a href="/docs/configuration-agent/architecture">Auth server architecture</a>.
@@ -122,10 +122,10 @@ Use a **separate** Vercel project with **Root Directory** <Badge text="agent/ser
 ## Guides
 
 <CardGrid>
-<LinkCard title="CLI" description="Install the Openquok CLI, quick start, and command overview" href="/docs/cli" />
-<LinkCard title="CLI authentication" description="OPENQUOK_AUTH_SERVER, device login, and API keys for CLI users" href="/docs/cli/authentication" />
+<LinkCard title="CLI" description="Install the Openquok CLI, quick start, and command overview" href="/docs/getting-started-for-cli" />
+<LinkCard title="CLI authentication" description="OPENQUOK_AUTH_SERVER, device login, and API keys for CLI users" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="Auth server architecture" description="Request flow, endpoints, and Postgres state for device flow" href="/docs/configuration-agent/architecture" />
-<LinkCard title="Neon Postgres" description="Create a Neon project and set DATABASE_URL for agent/server" href="/docs/configuration-agent/neon" />
+<LinkCard title="Neon Postgres" description="Create and configure a Neon database for agent server" href="/docs/configuration-agent/neon" />
 <LinkCard title="Admin: OAuth apps" description="Create/rotate client ID & secret; redirect URL for hosted vs self-hosted" href="/docs/admin/oauth-server" />
 <LinkCard title="Vercel deployment" description="Separate project, env sync, deploy scripts, and callback URL" href="/docs/installation/vercel#cli-auth-server-on-vercel" />
 <LinkCard title="Scaling & Postgres" description="Multi-instance auth server, pooled DB, and serverless notes" href="/docs/configuration-agent/scaling" />
@@ -134,7 +134,7 @@ Use a **separate** Vercel project with **Root Directory** <Badge text="agent/ser
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="CLI authentication" description="How CLI users point at a custom auth server" href="/docs/cli/authentication" />
+<LinkCard title="CLI authentication" description="How CLI users point at a custom auth server" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="Production deployment" description="Secrets, Vercel projects for backend and web, optional workers" href="/docs/installation/production-deployment" />
 <LinkCard title="Vercel" description="Root directory, CLI deploy scripts, and linking" href="/docs/installation/vercel" />
 <LinkCard title="Configuration - Backend" description="API and OAuth environment variables" href="/docs/configuration-backend" />

@@ -81,12 +81,12 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </CardGrid>
 ```
 
-- **`href`** values use the site’s docs path prefix only: **`/docs/<slug>`** (e.g. `/docs/configuration-backend`, `/docs/getting-started/quick-start`). Slugs follow `web/src/content/docs/**` paths (`installation/...` → `/docs/installation/...` with the same casing as on disk).
+- **`href`** values use the site’s docs path prefix only: **`/docs/<slug>`** (e.g. `/docs/configuration-backend`, `/docs/getting-started-for-dev/quick-start`). Slugs follow `web/src/content/docs/**` paths (`installation/...` → `/docs/installation/...` with the same casing as on disk).
 - Reuse **titles and descriptions** that already appear on other pages (e.g. quick-start’s configuration cards) so the UX stays consistent.
 
 ### Main section index pages: “Related Section(s)”
 
-- For **top-level section index pages** (the `index.md` at a section root such as `getting-started/`, `installation/`, `configuration-backend/`, `configuration-web/`), add a bottom section named **`## Related Section(s)`**.
+- For **top-level section index pages** (the `index.md` at a section root such as `getting-started-for-dev/`, `installation/`, `configuration-backend/`, `configuration-web/`), add a bottom section named **`## Related Section(s)`**.
 - Use **`CardGrid`** + **`LinkCard`** to point readers to the **next** or **related** top-level areas (for example linking `Getting Started` → `/docs/installation`, config hubs → `/docs/installation` and `/docs/developer-guidelines`).
 - **Do not** add this block to **subpages** inside a section unless they truly need cross-section navigation; prefer small “Related configuration” blocks only when helpful.
 

@@ -56,7 +56,7 @@ https://YOUR-FRONTEND-DOMAIN/integration/oauth/instagram-standalone
 ```
 
 <Callout type="note" title="YOUR-FRONTEND-DOMAIN must match the backend env">
-<p>Substitute the hostname from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (scheme + host, no trailing slash). <code>www</code> and apex are different—register in Meta the same origin the API sends in <code>redirect_uri</code>. Align with <a href="/docs/configuration-backend">Configuration - Backend</a> and <a href="/docs/configuration-web/vite">Vite (SvelteKit env)</a>.</p>
+<p>Substitute the hostname from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (scheme + host, no trailing slash). <code>www</code> and apex are different—register in Meta the same origin the API sends in <code>redirect_uri</code>. Align with <a href="/docs/configuration-backend">Configuration - Backend</a> and <a href="/docs/configuration-web/vite">Vite (SvelteKit)</a>.</p>
 </Callout>
 
 For local HTTPS (or relay) examples, mirror the pattern used for Threads in <DocsExternalLink href="/docs/social-integration/threads">Meta Threads</DocsExternalLink>.

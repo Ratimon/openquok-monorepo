@@ -104,7 +104,7 @@ OpenGraph, Twitter cards, datos estructurados JSON-LD y sitemap auto-generado.
 Usa link cards para navegación:
 
 <CardGrid>
-<LinkCard title="Instalación" description="Comienza con la plantilla" href="/docs/es/getting-started/installation" />
+<LinkCard title="Instalación" description="Comienza con la plantilla" href="/docs/es/getting-started-for-dev/installation" />
 <LinkCard title="Configuración" description="Personaliza tu sitio de docs" href="/docs/es/how-to-write-docs/configuration" />
 </CardGrid>
 
@@ -122,8 +122,8 @@ Muestra estructuras de directorios:
   - content/
     - docs/
       - index.md
-      - getting-started/
-        - installation.md
+      - getting-started-for-dev/
+        - quick-start.md
       - how-to-write-docs/
         - configuration.md
   - lib/

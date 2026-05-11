@@ -26,7 +26,7 @@ This project is set up for **Vercel** as the primary host for the **backend** (E
 - Mirror the same **variable names** as in <Badge text="backend/config/GlobalConfig.ts" variant="path" /> (via `getEnv` / `getEnvBoolean` / `getEnvNumber`).
 - **Public site origin:** set the **same** canonical HTTPS origin on the **backend** as <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> and on the **web** build as <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> (no trailing slash after the host, for example <Badge text="https://www.openquok.com" variant="new" />). Pick one hostname for “the product” (<code>www</code> or apex) and use it — OAuth redirect URIs are built only from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />, and providers such as Meta require an **exact** string match in their dashboards.
 - **CORS:** include apex and <code>www</code> in <Badge text="ALLOWED_FRONTEND_ORIGINS" variant="envBackend" /> when both hostnames serve traffic, even though OAuth uses a single canonical origin above. Align <Badge text="VITE_API_BASE_URL" variant="envWeb" /> with <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> (same public API origin in production).
-- **Local HTTPS dev** differs: the web app can use an empty <Badge text="VITE_API_BASE_URL" variant="envWeb" /> and same-origin <code>/api</code> through the dev server. See <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit env)</a>.
+- **Local HTTPS dev** differs: the web app can use an empty <Badge text="VITE_API_BASE_URL" variant="envWeb" /> and same-origin <code>/api</code> through the dev server. See <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit)</a>.
 - **Media publishing (Threads, etc.)**: for posts with media stored as object keys, set <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> so workers can build public HTTPS URLs for Meta to fetch. See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
 
 <Callout type="warning">
@@ -82,12 +82,10 @@ pnpm railway:deploy:scheduled-social-post
 ## Next steps
 
 <CardGrid>
-<LinkCard title="Vercel" description="Root directory, build, and environment variables" href="/docs/installation/vercel" />
-<LinkCard title="Railway (workers)" description="Long-running BullMQ workers, CLI, and monorepo build" href="/docs/installation/railway" />
-<LinkCard title="Configuration - Agent" description="CLI auth server env, Vercel deploy, and scaling" href="/docs/configuration-agent" />
-<LinkCard title="Configuration - Worker" description="Docker, Redis, Railway, and worker scripts" href="/docs/configuration-worker" />
-<LinkCard title="Development environment" description="Local API, web, tests, and DB scripts" href="/docs/installation/development-environment" />
-<LinkCard title="Backend configuration" description="Env keys aligned with GlobalConfig" href="/docs/configuration-backend" />
-<LinkCard title="Vite (SvelteKit env)" description="VITE_FRONTEND_DOMAIN_URL and matching FRONTEND_DOMAIN_URL" href="/docs/configuration-web/vite" />
-<LinkCard title="Frontend configuration" description="Web app configuration hub" href="/docs/configuration-web" />
+<LinkCard title="Vercel" description="Separate projects for backend, web, and agent/server—matches the deploy and env sync commands above" href="/docs/installation/vercel" />
+<LinkCard title="Railway (orchestrator workers)" description="CLI linking, env sync, and deploy scripts for BullMQ workers—referenced in the workers section" href="/docs/configuration-worker/railway" />
+<LinkCard title="Configuration - Agent" description="CLI auth server secrets, Vercel root directory, and production OAuth callbacks" href="/docs/configuration-agent" />
+<LinkCard title="Configuration - Worker" description="Redis for BullMQ, worker processes, and Railway alongside the API" href="/docs/configuration-worker" />
+<LinkCard title="Configuration - Backend" description="GlobalConfig env vars, Redis, Supabase, and R2 public URLs for worker media links" href="/docs/configuration-backend" />
+<LinkCard title="Vite (SvelteKit)" description="Canonical `VITE_FRONTEND_DOMAIN_URL`, API base URL, and CORS alignment with the backend" href="/docs/configuration-web/vite" />
 </CardGrid>

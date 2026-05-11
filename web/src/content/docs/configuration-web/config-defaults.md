@@ -30,7 +30,7 @@ Some defaults are resolved from Vite env first, then fall back to a safe constan
 
 Examples:
 
-- **API base URL** — if <Badge text="VITE_API_BASE_URL" variant="envWeb" /> is set in <Badge text=".env.development.local" variant="envWeb" />, that value is used as the origin for API requests. If it is <strong>not</strong> set and Vite is in <strong>development</strong> mode, the default is an <strong>empty</strong> base so requests use same-origin paths such as <code>/api/v1/...</code> (required for HTTPS local dev; see <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit env) → HTTPS local development</a>). In non-dev builds when the variable is still unset, the fallback is <Badge text="http://localhost:3000" variant="new" />.
+- **API base URL** — if <Badge text="VITE_API_BASE_URL" variant="envWeb" /> is set in <Badge text=".env.development.local" variant="envWeb" />, that value is used as the origin for API requests. If it is <strong>not</strong> set and Vite is in <strong>development</strong> mode, the default is an <strong>empty</strong> base so requests use same-origin paths such as <code>/api/v1/...</code> (required for HTTPS local dev; see <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit) → HTTPS local development</a>). In non-dev builds when the variable is still unset, the fallback is <Badge text="http://localhost:3000" variant="new" />.
 
 <Callout type="note" title="Vite env changes require restart/rebuild">
 When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web dev server or rebuild so Vite picks them up.
@@ -42,7 +42,7 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
 
 - **What it controls**: where the web app sends API requests.
 - **Common changes**:
-  - <strong>Local HTTPS</strong> — leave <Badge text="VITE_API_BASE_URL" variant="envWeb" /> unset so the dev server proxies <code>/api</code> to the API (see <a href="/docs/configuration-web/vite">Vite (SvelteKit env)</a>).
+  - <strong>Local HTTPS</strong> — leave <Badge text="VITE_API_BASE_URL" variant="envWeb" /> unset so the dev server proxies <code>/api</code> to the API (see <a href="/docs/configuration-web/vite">Vite (SvelteKit)</a>).
   - <strong>Explicit origin</strong> — set <Badge text="VITE_API_BASE_URL" variant="envWeb" /> when you need a fixed API URL (for example production or a custom port).
   - Point production web → production API (via your hosting env/secret injection)
 
@@ -76,7 +76,7 @@ If your backend provides stored company or marketing configuration, pages typica
 ## Related configuration
 
 <CardGrid>
-<LinkCard title="Vite (SvelteKit env)" description="VITE_* values for API/Supabase/Stripe/analytics" href="/docs/configuration-web/vite" />
+<LinkCard title="Vite (SvelteKit)" description="VITE_* values for API/Supabase/Stripe/analytics" href="/docs/configuration-web/vite" />
 <LinkCard title="SEO & marketing defaults" description="Meta tags and social links in CONFIG_SCHEMA_MARKETING" href="/docs/configuration-web/seo" />
 <LinkCard title="Configuration - Web" description="Back to the web configuration hub" href="/docs/configuration-web" />
 </CardGrid>
