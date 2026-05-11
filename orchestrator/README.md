@@ -22,8 +22,10 @@ All expect **Redis** at `REDIS_*` (and optional `REDIS_BULLMQ_DB`), matching the
 |----------|--------|
 | `NODE_ENV` | Use `production` in deployed workers. |
 | `PUBLIC_SUPABASE_URL` | Required for repository / service clients. |
-| `PUBLIC_SUPABASE_ANON_KEY` | Required (service client falls back only in test/Jest). |
-| `SUPABASE_SERVICE_ROLE_KEY` | Required in production for server-side tables used by refresh, notifications, and scheduled posts. |
+| `PUBLIC_SUPABASE_PUBLISHABLE_KEY` | New key format (`sb_publishable_…`). Preferred over the legacy anon JWT once the project has been migrated (see [Upcoming changes to Supabase API Keys](https://github.com/orgs/supabase/discussions/29260)). |
+| `PUBLIC_SUPABASE_ANON_KEY` | Legacy JWT fallback. Still emitted by local `supabase start` stacks and unmigrated cloud projects; required when `PUBLIC_SUPABASE_PUBLISHABLE_KEY` is not set. |
+| `SUPABASE_SECRET_KEY` | New key format (`sb_secret_…`). Preferred elevated server key for production. Server-side only. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Legacy service_role JWT. Fallback when `SUPABASE_SECRET_KEY` is not set; required in production for server-side tables used by refresh, notifications, and scheduled posts. |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`, `REDIS_BULLMQ_DB` | Match the API’s queue/cache Redis; defaults exist for local Redis. |
 | `BULLMQ_WORKER_LOCK_DURATION_MS` | Optional. Flowcraft jobs use this as BullMQ `lockDuration` (default **600000** ms = 10 min). The upstream `@flowcraft/bullmq-adapter` did not set this; BullMQ’s **30s** default can cause `Error: could not renew lock for job …` when a node runs longer (OAuth refresh, slow HTTP). |
 

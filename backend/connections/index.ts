@@ -14,8 +14,9 @@ export function getSupabaseServiceClient(): SupabaseClient<Database> {
 }
 
 /**
- * Anon Supabase client (PUBLIC_SUPABASE_ANON_KEY). Use for `auth.getUser(jwt)` in middleware only;
- * database access uses {@link supabaseServiceClientConnection} (service role).
+ * Anon / publishable Supabase client (uses PUBLIC_SUPABASE_PUBLISHABLE_KEY when set, otherwise
+ * the legacy PUBLIC_SUPABASE_ANON_KEY). Use for `auth.getUser(jwt)` in middleware only; database
+ * access uses {@link supabaseServiceClientConnection} (secret / service_role).
  */
 export { supabaseAnonClient };
 

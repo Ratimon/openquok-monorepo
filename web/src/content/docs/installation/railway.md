@@ -2,7 +2,7 @@
 title: Railway
 description: Deploy long-running BullMQ worker services on Railway with the monorepo build and Railway CLI.
 order: 3
-lastUpdated: 2026-04-27
+lastUpdated: 2026-05-11
 ---
 
 <script>
@@ -18,7 +18,7 @@ Railway treats these as <DocsExternalLink href="https://docs.railway.com/service
 - Railway account and <DocsExternalLink href="https://docs.railway.com/develop/cli">Railway CLI</DocsExternalLink> on your <code>PATH</code>. This guide uses the global <code>railway</code> command.
 - Worker environment variables set on each Railway service (applies to **dashboard deploys** and **CLI deploys**):
   - <Badge text="REDIS_*" variant="envBackend" /> (shared with your API). See <a href="/docs/configuration-backend/redis">Redis cache</a>.
-  - Supabase keys (at minimum <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> and <Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" />; in production also <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" />). See <a href="/docs/configuration-worker">Configuration - Worker</a>.
+  - Supabase keys — at minimum <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> plus a client key, plus an elevated server key in production. Prefer the new key format (<Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" /> + <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" />) for migrated projects; the legacy <Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" /> + <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" /> still work as a fallback. See <a href="/docs/configuration-backend/supabase">Supabase</a> and <a href="/docs/configuration-worker">Configuration - Worker</a>.
   - Storage public URL for media publishing (recommended if you schedule posts with images/videos): <Badge text="STORAGE_PROVIDER" variant="envBackend" /> and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
   - <code>RAILPACK_CONFIG_FILE</code> set per worker service (see “Set variables per worker service” below).
 

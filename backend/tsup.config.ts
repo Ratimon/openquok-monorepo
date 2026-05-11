@@ -61,6 +61,27 @@ export default defineConfig({
 	treeshake: true,
 	sourcemap: false,
 	tsconfig: "tsconfig.json",
+	/**
+	 * Lets ESM-only helpers (e.g. `readImportMetaUrl`) gate on a bundler-substituted constant so
+	 * esbuild can dead-code-eliminate their `eval("import.meta.url")` fallback inside this CJS
+	 * bundle. tsc and ts-jest leave the expression as a normal `process.env` read at runtime
+	 * (undefined -> falsy), preserving the ESM/CJS-test code paths unchanged.
+	 */
+	env: {
+		__TSUP_BUNDLE__: "true",
+	},
+	/**
+	 * esbuild's `direct-eval` warning is emitted during parsing, before define-based dead-code
+	 * elimination runs. We've verified the `eval("import.meta.url")` call is removed from the
+	 * emitted CJS bundle (it lives behind a `process.env.__TSUP_BUNDLE__` gate that resolves to
+	 * `true` here), so silencing the parser-side warning is safe and not a real risk.
+	 */
+	esbuildOptions(options) {
+		options.logOverride = {
+			...(options.logOverride ?? {}),
+			"direct-eval": "silent",
+		};
+	},
 	banner: {
 		js: "/* Bundled by tsup for Vercel */",
 	},

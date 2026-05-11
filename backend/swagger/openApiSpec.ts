@@ -5,12 +5,19 @@ import swaggerJSDoc from "swagger-jsdoc";
 
 /**
  * Returns this module's `import.meta.url` at runtime without exposing `import.meta` to a CommonJS
- * TypeScript compile pass (e.g. ts-jest), which rejects the syntax with TS1343. In production
- * the file is emitted as ESM and direct `eval` runs inside this module's scope, so `import.meta.url`
- * resolves; under CJS test transpilation `eval` throws a SyntaxError and we fall back to a path
- * derived from `process.cwd()` so the spec still loads against the source tree.
+ * TypeScript compile pass (e.g. ts-jest), which rejects the syntax with TS1343. In the tsc-emitted
+ * ESM build, direct `eval` runs in this module's scope, so `import.meta.url` resolves; under CJS
+ * test transpilation `eval` throws a SyntaxError and we fall back to a path derived from
+ * `process.cwd()` so the spec still loads against the source tree.
+ *
+ * The tsup-bundled Vercel handler has neither `import.meta.url` nor the on-disk `swagger/jsdoc`
+ * tree, so we short-circuit to `null` via a bundler-substituted sentinel. esbuild dead-code-
+ * eliminates the `eval` branch in that build, which also silences its direct-eval warning.
  */
 function readImportMetaUrl(): string | null {
+    if (process.env.__TSUP_BUNDLE__) {
+        return null;
+    }
     try {
         return eval("import.meta.url") as string;
     } catch {

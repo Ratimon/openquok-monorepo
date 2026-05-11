@@ -3,6 +3,7 @@ import { runVercelEnvSync } from "./vercelSyncEnvCore.mjs";
 /** Always use Vercel `--sensitive` for these keys (align with backend env examples). */
 const ALWAYS_SENSITIVE_KEYS = new Set([
   "THREADS_APP_SECRET",
+  "SUPABASE_SECRET_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
   "SECURITY_SECRET",
   "AWS_SECRET_ACCESS_KEY",

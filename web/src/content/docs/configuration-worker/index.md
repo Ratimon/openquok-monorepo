@@ -2,7 +2,7 @@
 title: Configuration - Worker
 description: Environment and deployment for orchestrator worker processes (BullMQ, Redis, Docker, Railway), plus the admin queue dashboard.
 order: 0
-lastUpdated: 2026-05-08
+lastUpdated: 2026-05-11
 ---
 
 <script>
@@ -28,7 +28,7 @@ Super admins can inspect and **manage BullMQ jobs** (pause / resume queues, open
 ## What to configure
 
 - **Redis** — Same <Badge text="REDIS_*" variant="envBackend" /> (and optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />) as the API. See <a href="/docs/configuration-backend/redis">Redis cache</a> and <a href="/docs/configuration-worker/redis">Redis & queues</a>.
-- **Supabase** — <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" />, <Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" />, <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" /> for server-side tables.
+- **Supabase** — <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> plus either the new key format (preferred: <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" /> + <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" />) or the legacy JWT keys (<Badge text="PUBLIC_SUPABASE_ANON_KEY" variant="envBackend" /> + <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" />) for server-side tables. See <a href="/docs/configuration-backend/supabase">Supabase</a> for the migration plan.
 - **Storage (scheduled social post publishing)** — If you publish posts with media (for example Threads image posts), workers must be able to build a **public HTTPS URL** for uploaded objects. Set <Badge text="STORAGE_PROVIDER" variant="envBackend" /> (typically <code>r2</code>) and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (your public bucket hostname, no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
 - **Per worker** — Provider OAuth secrets for **integration refresh**; email provider keys for **notification email**; the same **provider or channel** credentials the API would use to publish for **scheduled social** posts. A short template lives in the repo at <Badge text="orchestrator/.env.production.example" variant="path" />.
 

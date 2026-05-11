@@ -163,9 +163,23 @@ export const config: ConfigObject = {
         // fromAddress: getEnv("EMAIL_FROM_ADDRESS", "noreply@example.com"),
     },
 
+    /**
+     * Supabase keys. The new format (`sb_publishable_…` / `sb_secret_…`) is preferred
+     * once your project has rotated; the legacy JWT `anon` / `service_role` keys are
+     * kept as fallbacks so local `supabase start` stacks (which still emit JWT-based
+     * keys) and unmigrated cloud projects keep working. See
+     * https://github.com/orgs/supabase/discussions/29260 and
+     * https://supabase.com/docs/guides/getting-started/api-keys for migration details.
+     */
     supabase: {
         supabaseUrl: getEnv("PUBLIC_SUPABASE_URL", ""),
+        /** New publishable key (`sb_publishable_…`). Replaces the anon JWT when set. */
+        supabasePublishableKey: getEnv("PUBLIC_SUPABASE_PUBLISHABLE_KEY", ""),
+        /** Legacy JWT anon key. Kept as a fallback for unmigrated projects and local `supabase start`. */
         supabaseAnonKey: getEnv("PUBLIC_SUPABASE_ANON_KEY", ""),
+        /** New secret key (`sb_secret_…`). Replaces the service_role JWT when set. Server-side only. */
+        supabaseSecretKey: getEnv("SUPABASE_SECRET_KEY", ""),
+        /** Legacy JWT service_role key. Kept as a fallback for unmigrated projects and local `supabase start`. */
         supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY", ""),
     },
 

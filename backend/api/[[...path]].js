@@ -24,10 +24,12 @@ var fs2 = require('fs');
 var multer = require('multer');
 var bullmq = require('bullmq');
 var module$1 = require('module');
+var swaggerUi = require('swagger-ui-express');
+var url = require('url');
+var swaggerJSDoc = require('swagger-jsdoc');
 var cookieParser = require('cookie-parser');
 var rateLimit = require('express-rate-limit');
 
-var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
 function _interopNamespace(e) {
@@ -62,6 +64,8 @@ var https__default = /*#__PURE__*/_interopDefault(https);
 var fs__default = /*#__PURE__*/_interopDefault(fs);
 var fs2__default = /*#__PURE__*/_interopDefault(fs2);
 var multer__default = /*#__PURE__*/_interopDefault(multer);
+var swaggerUi__default = /*#__PURE__*/_interopDefault(swaggerUi);
+var swaggerJSDoc__default = /*#__PURE__*/_interopDefault(swaggerJSDoc);
 var cookieParser__default = /*#__PURE__*/_interopDefault(cookieParser);
 var rateLimit__default = /*#__PURE__*/_interopDefault(rateLimit);
 
@@ -188,14 +192,14 @@ var init_Logger = __esm({
 // config/loadBackendDotenv.cjs
 var require_loadBackendDotenv = __commonJS({
   "config/loadBackendDotenv.cjs"(exports$1, module) {
-    var path6 = __require("path");
+    var path7 = __require("path");
     var fs3 = __require("fs");
     var dotenv = __require("dotenv");
     var BACKEND_PACKAGE_NAME = "backend";
     function resolveBackendPackageRoot() {
       let dir = __dirname;
       for (let i = 0; i < 25; i++) {
-        const pkgPath = path6.join(dir, "package.json");
+        const pkgPath = path7.join(dir, "package.json");
         if (fs3.existsSync(pkgPath)) {
           try {
             const pkg = JSON.parse(fs3.readFileSync(pkgPath, "utf8"));
@@ -205,7 +209,7 @@ var require_loadBackendDotenv = __commonJS({
           } catch {
           }
         }
-        const parent = path6.dirname(dir);
+        const parent = path7.dirname(dir);
         if (parent === dir) {
           break;
         }
@@ -220,8 +224,8 @@ var require_loadBackendDotenv = __commonJS({
       const override = forceOverride || env !== "production";
       const underJest = String(process.env.JEST_WORKER_ID ?? "").length > 0;
       const overrideLocal = underJest ? false : override;
-      dotenv.config({ path: path6.join(root, `.env.${env}.local`), override: overrideLocal });
-      dotenv.config({ path: path6.join(root, ".env"), override: false });
+      dotenv.config({ path: path7.join(root, `.env.${env}.local`), override: overrideLocal });
+      dotenv.config({ path: path7.join(root, ".env"), override: false });
     }
     module.exports = { loadBackendDotenv: loadBackendDotenv2 };
   }
@@ -441,9 +445,23 @@ var init_GlobalConfig = __esm({
         // fromName: getEnv("EMAIL_FROM_NAME", "Openquok"),
         // fromAddress: getEnv("EMAIL_FROM_ADDRESS", "noreply@example.com"),
       },
+      /**
+       * Supabase keys. The new format (`sb_publishable_…` / `sb_secret_…`) is preferred
+       * once your project has rotated; the legacy JWT `anon` / `service_role` keys are
+       * kept as fallbacks so local `supabase start` stacks (which still emit JWT-based
+       * keys) and unmigrated cloud projects keep working. See
+       * https://github.com/orgs/supabase/discussions/29260 and
+       * https://supabase.com/docs/guides/getting-started/api-keys for migration details.
+       */
       supabase: {
         supabaseUrl: getEnv("PUBLIC_SUPABASE_URL", ""),
+        /** New publishable key (`sb_publishable_…`). Replaces the anon JWT when set. */
+        supabasePublishableKey: getEnv("PUBLIC_SUPABASE_PUBLISHABLE_KEY", ""),
+        /** Legacy JWT anon key. Kept as a fallback for unmigrated projects and local `supabase start`. */
         supabaseAnonKey: getEnv("PUBLIC_SUPABASE_ANON_KEY", ""),
+        /** New secret key (`sb_secret_…`). Replaces the service_role JWT when set. Server-side only. */
+        supabaseSecretKey: getEnv("SUPABASE_SECRET_KEY", ""),
+        /** Legacy JWT service_role key. Kept as a fallback for unmigrated projects and local `supabase start`. */
         supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY", "")
       },
       /**
@@ -624,6 +642,16 @@ init_apiPrefix();
 init_GlobalConfig();
 init_Logger();
 var supabaseConfig = config.supabase;
+function getSupabaseClientKey() {
+  const publishable = (supabaseConfig.supabasePublishableKey ?? "").trim() || (process.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "").trim();
+  if (publishable) return publishable;
+  return (supabaseConfig.supabaseAnonKey ?? "").trim() || (process.env.PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
+}
+function getSupabaseServerKey() {
+  const secret = (supabaseConfig.supabaseSecretKey ?? "").trim() || (process.env.SUPABASE_SECRET_KEY ?? "").trim();
+  if (secret) return secret;
+  return (supabaseConfig.supabaseServiceRoleKey ?? "").trim() || (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+}
 var serverConfig = config.server;
 function getSiteKey(hostname) {
   const h = hostname.toLowerCase();
@@ -657,12 +685,14 @@ var supabaseAnonSingleton;
 function getSupabaseAnonClient() {
   if (!supabaseAnonSingleton) {
     const url = (supabaseConfig.supabaseUrl ?? "").trim();
-    const key = (supabaseConfig.supabaseAnonKey ?? "").trim();
+    const key = getSupabaseClientKey();
     if (!url) {
       throw new Error("PUBLIC_SUPABASE_URL (or config.supabase.supabaseUrl) is required");
     }
     if (!key) {
-      throw new Error("PUBLIC_SUPABASE_ANON_KEY (or config.supabase.supabaseAnonKey) is required");
+      throw new Error(
+        "PUBLIC_SUPABASE_PUBLISHABLE_KEY or PUBLIC_SUPABASE_ANON_KEY (or config.supabase.supabasePublishableKey / supabaseAnonKey) is required"
+      );
     }
     supabaseAnonSingleton = supabaseJs.createClient(url, key);
   }
@@ -681,29 +711,27 @@ var supabase = new Proxy({}, {
 function createSupabaseServiceClient() {
   try {
     const supabaseUrl = supabaseConfig.supabaseUrl;
-    const fromConfig = supabaseConfig.supabaseServiceRoleKey?.trim() ?? "";
-    const fromEnv = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "";
-    let supabaseKey = fromConfig || fromEnv;
+    let supabaseKey = getSupabaseServerKey();
     if (!supabaseKey) {
       if (config.server.nodeEnv === "production") {
         throw new Error(
-          "SUPABASE_SERVICE_ROLE_KEY (or config.supabase.supabaseServiceRoleKey) is required in production"
+          "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY (or config.supabase.supabaseSecretKey / supabaseServiceRoleKey) is required in production"
         );
       }
       const isJest = process.env.JEST_WORKER_ID !== void 0;
       if (isJest || process.env.NODE_ENV === "test") {
-        supabaseKey = supabaseConfig.supabaseAnonKey;
+        supabaseKey = getSupabaseClientKey();
         logger.warn({
-          msg: "Using anon key for Supabase under Jest or NODE_ENV=test (set SUPABASE_SERVICE_ROLE_KEY for integration tests against a real DB)."
+          msg: "Using client (publishable/anon) key for Supabase under Jest or NODE_ENV=test (set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY for integration tests against a real DB)."
         });
       } else if (process.env.NODE_ENV === "development") {
         throw new Error(
-          "SUPABASE_SERVICE_ROLE_KEY is required for the API process. The anon key cannot access server-side tables (for example notifications and memberships)."
+          "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY is required for the API process. The publishable/anon key cannot access server-side tables (for example notifications and memberships)."
         );
       } else {
-        supabaseKey = supabaseConfig.supabaseAnonKey;
+        supabaseKey = getSupabaseClientKey();
         logger.warn({
-          msg: "Using anon key for Supabase service client: many repository queries will fail. Set SUPABASE_SERVICE_ROLE_KEY."
+          msg: "Using client (publishable/anon) key for Supabase service client: many repository queries will fail. Set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY."
         });
       }
     }
@@ -739,13 +767,13 @@ var createSupabaseRLSClient = ({ req, res }) => {
       if (res.headersSent) return;
       const isProduction = serverConfig.nodeEnv === "production";
       const sameSite = getSameSiteValue();
-      cookiesToSet.forEach(({ name, value, options: options2 }) => {
+      cookiesToSet.forEach(({ name, value, options: options3 }) => {
         const mergedOptions = {
           path: "/",
           httpOnly: true,
           secure: isProduction,
           sameSite,
-          ...options2 ?? {},
+          ...options3 ?? {},
           // Never allow downstream options to weaken these in production.
           ...isProduction ? { httpOnly: true, secure: true, sameSite } : {}
         };
@@ -753,12 +781,8 @@ var createSupabaseRLSClient = ({ req, res }) => {
       });
     }
   };
-  const options = { cookies };
-  return ssr.createServerClient(
-    supabaseConfig.supabaseUrl,
-    supabaseConfig.supabaseAnonKey,
-    options
-  );
+  const options2 = { cookies };
+  return ssr.createServerClient(supabaseConfig.supabaseUrl, getSupabaseClientKey(), options2);
 };
 
 // connections/cache/index.ts
@@ -771,22 +795,22 @@ init_Logger();
 // errors/CacheError.ts
 var CacheError = class extends Error {
   statusCode;
-  constructor(message = "Cache operation failed", options) {
+  constructor(message = "Cache operation failed", options2) {
     super(message);
     this.name = "CacheError";
-    this.statusCode = options?.statusCode ?? 500;
-    if (options?.cause) this.cause = options.cause;
+    this.statusCode = options2?.statusCode ?? 500;
+    if (options2?.cause) this.cause = options2.cause;
   }
 };
 var CacheConnectionError = class extends CacheError {
-  constructor(message = "Failed to connect to cache", options) {
-    super(message, { ...options, statusCode: 503 });
+  constructor(message = "Failed to connect to cache", options2) {
+    super(message, { ...options2, statusCode: 503 });
     this.name = "CacheConnectionError";
   }
 };
 var CacheOperationError = class extends CacheError {
-  constructor(message = "Cache operation failed", options) {
-    super(message, { ...options, statusCode: 500 });
+  constructor(message = "Cache operation failed", options2) {
+    super(message, { ...options2, statusCode: 500 });
     this.name = "CacheOperationError";
   }
 };
@@ -799,15 +823,15 @@ var CacheService = class {
   logHits;
   logMisses;
   enabled;
-  constructor(provider, options = {}) {
+  constructor(provider, options2 = {}) {
     if (!provider) {
       throw new CacheConnectionError("Cache provider is required");
     }
     this.provider = provider;
-    this.defaultTTL = options.defaultTTL ?? DEFAULT_TTL_SEC;
-    this.logHits = options.logHits ?? true;
-    this.logMisses = options.logMisses ?? true;
-    this.enabled = options.enabled ?? true;
+    this.defaultTTL = options2.defaultTTL ?? DEFAULT_TTL_SEC;
+    this.logHits = options2.logHits ?? true;
+    this.logMisses = options2.logMisses ?? true;
+    this.enabled = options2.enabled ?? true;
   }
   async get(key) {
     if (!this.enabled) return null;
@@ -870,9 +894,9 @@ var CacheService = class {
     if (!this.enabled) return factory();
     if (!key) throw new CacheOperationError("Cache key is required");
     if (typeof factory !== "function") throw new CacheOperationError("Factory must be a function");
-    const cached = await this.get(key);
-    if (cached !== null && cached !== void 0) {
-      return cached;
+    const cached2 = await this.get(key);
+    if (cached2 !== null && cached2 !== void 0) {
+      return cached2;
     }
     const value = await factory();
     if (value !== null && value !== void 0) {
@@ -993,9 +1017,9 @@ var MemoryCacheProvider = class {
   cache = /* @__PURE__ */ new Map();
   defaultTTL;
   enablePatterns;
-  constructor(options = {}) {
-    this.defaultTTL = options.ttl ?? 300;
-    this.enablePatterns = options.enablePatterns ?? true;
+  constructor(options2 = {}) {
+    this.defaultTTL = options2.ttl ?? 300;
+    this.enablePatterns = options2.enablePatterns ?? true;
     logger.info({
       msg: "[Cache] Memory cache provider initialized",
       defaultTTL: this.defaultTTL
@@ -1054,18 +1078,18 @@ var RedisCacheProvider = class {
   options;
   client = null;
   isConnected = false;
-  constructor(options = {}) {
+  constructor(options2 = {}) {
     this.options = {
-      host: options.host ?? "localhost",
-      port: options.port ?? 6379,
-      password: options.password,
-      db: options.db ?? 0,
-      prefix: options.prefix ?? "app:cache:",
-      tls: options.tls === true,
-      tlsRejectUnauthorized: options.tlsRejectUnauthorized !== false,
-      enableOfflineQueue: options.enableOfflineQueue !== false,
-      useScan: options.useScan !== false,
-      maxReconnectAttempts: options.maxReconnectAttempts ?? 10
+      host: options2.host ?? "localhost",
+      port: options2.port ?? 6379,
+      password: options2.password,
+      db: options2.db ?? 0,
+      prefix: options2.prefix ?? "app:cache:",
+      tls: options2.tls === true,
+      tlsRejectUnauthorized: options2.tlsRejectUnauthorized !== false,
+      enableOfflineQueue: options2.enableOfflineQueue !== false,
+      useScan: options2.useScan !== false,
+      maxReconnectAttempts: options2.maxReconnectAttempts ?? 10
     };
     this.connect();
   }
@@ -1375,6 +1399,16 @@ if (dsn && sentryEnabled && !Sentry__namespace.isInitialized()) {
   console.log("[Sentry] DSN present but SENTRY_ENABLED=false; events will not be sent.");
 }
 
+// connections/sentry/metrics.ts
+var METRIC_NAME = "public_api-request";
+function countPublicApiRequest(route) {
+  try {
+    const metrics = Sentry__namespace.metrics;
+    metrics?.increment?.(METRIC_NAME, 1, { tags: { route } });
+  } catch {
+  }
+}
+
 // connections/bullmq/createQueueIoredis.ts
 init_GlobalConfig();
 init_Logger();
@@ -1578,21 +1612,21 @@ var AuthError = class extends Error {
   isOperational;
   metadata;
   cause;
-  constructor(message, statusCode = 400, options = {}) {
+  constructor(message, statusCode = 400, options2 = {}) {
     super(message);
     this.statusCode = statusCode;
     this.status = "fail";
     this.isOperational = true;
     this.metadata = { error: "auth", errorType: "AUTH_ERROR" };
-    this.cause = options.cause ?? null;
+    this.cause = options2.cause ?? null;
     Error.captureStackTrace(this, this.constructor);
   }
 };
 var AuthValidationError = class extends AuthError {
-  constructor(message = "Invalid auth data", options = {}) {
-    super(message, 400, options);
+  constructor(message = "Invalid auth data", options2 = {}) {
+    super(message, 400, options2);
     this.name = "AuthValidationError";
-    this.metadata = { ...this.metadata, ...options.metadata };
+    this.metadata = { ...this.metadata, ...options2.metadata };
   }
 };
 var InvalidCredentialsError = class extends AuthError {
@@ -1626,10 +1660,10 @@ var NotVerifiedUserError = class extends AuthError {
   }
 };
 var AuthNotFoundError = class extends AuthError {
-  constructor(identifier = "", options = {}) {
+  constructor(identifier = "", options2 = {}) {
     const message = identifier ? `Auth entity not found: ${identifier}` : "Auth entity not found";
     super(message, 404);
-    this.metadata = { ...this.metadata, ...options.metadata };
+    this.metadata = { ...this.metadata, ...options2.metadata };
     this.name = "AuthNotFoundError";
   }
 };
@@ -1658,10 +1692,10 @@ var PermissionError = class extends AuthError {
 // errors/InfraError.ts
 var ValidationError = class extends Error {
   statusCode = 400;
-  constructor(message, options) {
+  constructor(message, options2) {
     super(message);
     this.name = "ValidationError";
-    if (options?.cause) this.cause = options.cause;
+    if (options2?.cause) this.cause = options2.cause;
   }
 };
 var InfraError = class extends Error {
@@ -1669,36 +1703,36 @@ var InfraError = class extends Error {
   component;
   operation;
   cause;
-  constructor(message, options = {}) {
+  constructor(message, options2 = {}) {
     super(message);
     this.name = "InfraError";
-    this.statusCode = options.statusCode ?? 500;
-    this.component = options.component ?? "infrastructure";
-    this.operation = options.operation;
-    this.cause = options.cause;
+    this.statusCode = options2.statusCode ?? 500;
+    this.component = options2.component ?? "infrastructure";
+    this.operation = options2.operation;
+    this.cause = options2.cause;
   }
 };
 var DatabaseError = class extends Error {
   statusCode;
   metadata;
-  constructor(message, options = {}) {
+  constructor(message, options2 = {}) {
     super(message);
     this.name = "DatabaseError";
-    this.statusCode = options.statusCode ?? 500;
+    this.statusCode = options2.statusCode ?? 500;
     this.metadata = {
-      cause: options.cause,
-      operation: options.operation,
-      resource: options.resource,
-      entityType: options.entityType,
-      ...options.metadata
+      cause: options2.cause,
+      operation: options2.operation,
+      resource: options2.resource,
+      entityType: options2.entityType,
+      ...options2.metadata
     };
   }
 };
 var DatabaseEntityNotFoundError = class extends DatabaseError {
-  constructor(entityType, identifier, options) {
+  constructor(entityType, identifier, options2) {
     super(`Entity not found: ${entityType}`, {
       statusCode: 404,
-      entityType: options?.entityType ?? entityType,
+      entityType: options2?.entityType ?? entityType,
       metadata: { identifier }
     });
     this.name = "DatabaseEntityNotFoundError";
@@ -1901,13 +1935,13 @@ var AuthUserDTOMapper = class {
    * Map DB user + optional auth user to AuthUserDTO for API responses.
    * Use for sign-in and sign-up responses so the frontend receives a consistent user shape.
    */
-  static toDTO(dbUser, authUser, options) {
+  static toDTO(dbUser, authUser, options2) {
     const id = dbUser?.id ?? authUser?.id ?? null;
     const email = dbUser?.email ?? authUser?.email ?? "";
     const fullName = dbUser?.full_name ?? authUser?.user_metadata?.full_name ?? email;
     const username = email;
     const isEmailVerified = dbUser?.is_email_verified != null ? Boolean(dbUser.is_email_verified) : false;
-    const roles = options?.roles ?? [];
+    const roles = options2?.roles ?? [];
     return {
       id: id ?? null,
       email,
@@ -2653,14 +2687,14 @@ var AppError = class extends Error {
   isOperational = true;
   metadata;
   cause;
-  constructor(message, statusCode, options = {}) {
+  constructor(message, statusCode, options2 = {}) {
     super(message);
     this.name = "AppError";
     this.statusCode = statusCode;
-    this.metadata = options.metadata ?? {};
-    this.cause = options.cause ?? null;
-    if (options.errorCode) {
-      this.metadata.errorCode = options.errorCode;
+    this.metadata = options2.metadata ?? {};
+    this.cause = options2.cause ?? null;
+    if (options2.errorCode) {
+      this.metadata.errorCode = options2.errorCode;
     }
     Object.setPrototypeOf(this, new.target.prototype);
     Error.captureStackTrace?.(this, this.constructor);
@@ -2669,8 +2703,8 @@ var AppError = class extends Error {
 
 // errors/UserError.ts
 var UserError = class extends AppError {
-  constructor(message, statusCode, options = {}) {
-    super(message, statusCode, { ...options, errorCode: options.errorCode ?? "USER_ERROR" });
+  constructor(message, statusCode, options2 = {}) {
+    super(message, statusCode, { ...options2, errorCode: options2.errorCode ?? "USER_ERROR" });
     this.name = "UserError";
   }
 };
@@ -3009,8 +3043,8 @@ var CompanyController = class {
 
 // errors/OrganizationError.ts
 var OrganizationError = class extends AppError {
-  constructor(message, statusCode, options = {}) {
-    super(message, statusCode, { ...options, errorCode: options.errorCode ?? "ORGANIZATION_ERROR" });
+  constructor(message, statusCode, options2 = {}) {
+    super(message, statusCode, { ...options2, errorCode: options2.errorCode ?? "ORGANIZATION_ERROR" });
     this.name = "OrganizationError";
   }
 };
@@ -3319,8 +3353,8 @@ var VALID_ROLES = ["editor", "support", "admin"];
 
 // errors/RoleError.ts
 var RoleValidationError = class extends AppError {
-  constructor(message, options = {}) {
-    super(message, 400, { ...options, errorCode: "ROLE_VALIDATION" });
+  constructor(message, options2 = {}) {
+    super(message, 400, { ...options2, errorCode: "ROLE_VALIDATION" });
     this.name = "RoleValidationError";
   }
 };
@@ -3783,16 +3817,16 @@ var BlogDTOMapper = {
     return rows.map((r) => BlogDTOMapper.toAdminBlogActivityDTO(r));
   }
 };
-function buildPublishedBlogCacheKey(options, prefix = "blog:published:blog") {
-  const limit = options.limit ?? 10;
-  const skipId = options.skipId ?? "none";
-  const skip = options.skip ?? 0;
-  const searchTerm = options.searchTerm ?? "none";
-  const topicId = options.topicId ?? "none";
-  const sortBy = options.sortByKey ?? "default";
-  const sortOrder = options.sortByOrder ? "asc" : "desc";
-  const range = options.range ? `start:${options.range.start}:end:${options.range.end}` : "none";
-  const authorId = options.authorId ?? "none";
+function buildPublishedBlogCacheKey(options2, prefix = "blog:published:blog") {
+  const limit = options2.limit ?? 10;
+  const skipId = options2.skipId ?? "none";
+  const skip = options2.skip ?? 0;
+  const searchTerm = options2.searchTerm ?? "none";
+  const topicId = options2.topicId ?? "none";
+  const sortBy = options2.sortByKey ?? "default";
+  const sortOrder = options2.sortByOrder ? "asc" : "desc";
+  const range = options2.range ? `start:${options2.range.start}:end:${options2.range.end}` : "none";
+  const authorId = options2.authorId ?? "none";
   return [
     prefix,
     `limit:${limit}`,
@@ -3806,13 +3840,13 @@ function buildPublishedBlogCacheKey(options, prefix = "blog:published:blog") {
     `authorId:${authorId}`
   ].join(":");
 }
-function buildAdminBlogCacheKey(options, prefix = "blog:admin:list") {
-  const limit = options.limit ?? 10;
-  const searchTerm = options.searchTerm ?? "none";
-  const topicId = options.topicId ?? "none";
-  const sortBy = options.sortByKey ?? "default";
-  const sortOrder = options.sortByOrder ? "asc" : "desc";
-  const range = options.range ? `start:${options.range.start}:end:${options.range.end}` : "none";
+function buildAdminBlogCacheKey(options2, prefix = "blog:admin:list") {
+  const limit = options2.limit ?? 10;
+  const searchTerm = options2.searchTerm ?? "none";
+  const topicId = options2.topicId ?? "none";
+  const sortBy = options2.sortByKey ?? "default";
+  const sortOrder = options2.sortByOrder ? "asc" : "desc";
+  const range = options2.range ? `start:${options2.range.start}:end:${options2.range.end}` : "none";
   return [
     prefix,
     `limit:${limit}`,
@@ -3823,12 +3857,12 @@ function buildAdminBlogCacheKey(options, prefix = "blog:admin:list") {
     `range:${range}`
   ].join(":");
 }
-function buildAdminBlogCommentsCacheKey(options, prefix = "blog:admin:comments:list") {
-  const limit = options.limit ?? 10;
-  const searchTerm = options.searchTerm ?? "none";
-  const sortBy = options.sortByKey ?? "default";
-  const sortOrder = options.sortByOrder ? "asc" : "desc";
-  const range = options.range ? `start:${options.range.start}:end:${options.range.end}` : "none";
+function buildAdminBlogCommentsCacheKey(options2, prefix = "blog:admin:comments:list") {
+  const limit = options2.limit ?? 10;
+  const searchTerm = options2.searchTerm ?? "none";
+  const sortBy = options2.sortByKey ?? "default";
+  const sortOrder = options2.sortByOrder ? "asc" : "desc";
+  const range = options2.range ? `start:${options2.range.start}:end:${options2.range.end}` : "none";
   return [
     prefix,
     `limit:${limit}`,
@@ -3838,13 +3872,13 @@ function buildAdminBlogCommentsCacheKey(options, prefix = "blog:admin:comments:l
     `range:${range}`
   ].join(":");
 }
-function buildAdminBlogActivitiesCacheKey(options, prefix = "blog:admin:activities:list") {
-  const limit = options.limit ?? 10;
-  const sortBy = options.sortByKey ?? "default";
-  const sortOrder = options.sortByOrder ? "asc" : "desc";
-  const range = options.range ? `start:${options.range.start}:end:${options.range.end}` : "none";
-  const postId = options.post_id ?? "none";
-  const activityType = options.activity_type ?? "none";
+function buildAdminBlogActivitiesCacheKey(options2, prefix = "blog:admin:activities:list") {
+  const limit = options2.limit ?? 10;
+  const sortBy = options2.sortByKey ?? "default";
+  const sortOrder = options2.sortByOrder ? "asc" : "desc";
+  const range = options2.range ? `start:${options2.range.start}:end:${options2.range.end}` : "none";
+  const postId = options2.post_id ?? "none";
+  const activityType = options2.activity_type ?? "none";
   return [
     prefix,
     `limit:${limit}`,
@@ -4931,7 +4965,7 @@ var BlogRepository = class {
   /**
    * Returns published and approved blog posts with optional filters (topicId, searchTerm, authorId, sort, range/skip/limit).
    */
-  async findPublishedBlogPosts(options) {
+  async findPublishedBlogPosts(options2) {
     const {
       limit = 10,
       skipId,
@@ -4942,7 +4976,7 @@ var BlogRepository = class {
       sortByOrder,
       range,
       authorId
-    } = options;
+    } = options2;
     let query = this.supabase.from(TABLE_NAME_BLOG_POSTS).select(SELECT_BLOG_POST, { count: "exact" }).match({
       is_user_published: true,
       is_admin_approved: true
@@ -4982,7 +5016,7 @@ var BlogRepository = class {
    * Returns all blog posts for admin listing (no published/approved filter).
    * Supports topicId, searchTerm, limit, range, sortByKey (default created_at), sortByOrder.
    */
-  async findAdminBlogPosts(options) {
+  async findAdminBlogPosts(options2) {
     const {
       limit = 10,
       searchTerm,
@@ -4990,7 +5024,7 @@ var BlogRepository = class {
       sortByKey,
       sortByOrder,
       range
-    } = options;
+    } = options2;
     let query = this.supabase.from(TABLE_NAME_BLOG_POSTS).select(SELECT_BLOG_POST, { count: "exact" });
     if (topicId && topicId !== "all") {
       query = query.eq("topic_id", topicId);
@@ -5388,14 +5422,14 @@ var BlogRepository = class {
    * Returns all blog comments for admin listing (no approved filter).
    * Ported from template getAdminBlogComments. Supports searchTerm, limit, range, sortByKey (default created_at), sortByOrder.
    */
-  async findAdminBlogComments(options) {
+  async findAdminBlogComments(options2) {
     const {
       limit = 10,
       searchTerm,
       sortByKey,
       sortByOrder,
       range
-    } = options;
+    } = options2;
     let query = this.supabase.from(TABLE_NAME_BLOG_COMMENTS).select(SELECT_BLOG_COMMENT_ADMIN, { count: "exact" });
     if (searchTerm) {
       query = query.ilike("content", `%${searchTerm}%`);
@@ -5574,7 +5608,7 @@ var BlogRepository = class {
    * Returns all blog activities for admin listing. Supports post_id, activity_type, limit, range, sortByKey (default created_at), sortByOrder.
    * Ported from template getAdminBlogActivities. Cache tag: BLOG_ACTIVITIES_CACHE (invalidate pattern blog:admin:activities:list:*).
    */
-  async findAdminBlogActivities(options) {
+  async findAdminBlogActivities(options2) {
     const {
       limit = 10,
       sortByKey,
@@ -5582,7 +5616,7 @@ var BlogRepository = class {
       range,
       post_id,
       activity_type
-    } = options;
+    } = options2;
     let query = this.supabase.from(TABLE_NAME_BLOG_ACTIVITIES).select(SELECT_BLOG_ACTIVITY, { count: "exact" });
     if (post_id) {
       query = query.eq("post_id", post_id);
@@ -5649,9 +5683,9 @@ var StorageR2Repository = class {
     }
     return this.client;
   }
-  async downloadObject(path6) {
+  async downloadObject(path7) {
     const r2 = this.assertClient();
-    const { buffer, contentType } = await r2.getObjectBuffer(path6);
+    const { buffer, contentType } = await r2.getObjectBuffer(path7);
     const data = new Blob([new Uint8Array(buffer)], { type: contentType });
     return { data, error: null };
   }
@@ -5699,8 +5733,8 @@ function publicUrlForObjectKey(key) {
   if (!base) return null;
   return `${base}/${key.replace(/^\/+/, "")}`;
 }
-function mediaKindForPath(path6) {
-  const ext = path6.split(".").pop()?.toLowerCase() ?? "";
+function mediaKindForPath(path7) {
+  const ext = path7.split(".").pop()?.toLowerCase() ?? "";
   if (["png", "jpg", "jpeg", "gif", "webp", "svg", "avif"].includes(ext)) return "image";
   if (["mp4", "mov", "webm", "m4v", "mpeg"].includes(ext)) return "video";
   if (["mp3", "wav", "ogg", "m4a", "aac"].includes(ext)) return "audio";
@@ -5792,10 +5826,10 @@ var MediaRepository = class {
     }
     return data ?? null;
   }
-  async getMediaByPath(organizationId, path6) {
+  async getMediaByPath(organizationId, path7) {
     const { data, error } = await this.supabase.from(TABLE_MEDIA).select(
       "id, name, original_name, path, virtual_path, organization_id, created_at, updated_at, deleted_at, file_size, type, thumbnail, alt, thumbnail_timestamp"
-    ).eq("organization_id", organizationId).eq("path", path6).is("deleted_at", null).maybeSingle();
+    ).eq("organization_id", organizationId).eq("path", path7).is("deleted_at", null).maybeSingle();
     if (error) {
       throw new DatabaseError(`Failed to fetch media: ${error.message}`, {
         cause: error,
@@ -5852,8 +5886,8 @@ var StorageSupabaseRepository = class {
     const { data } = this.supabaseServiceClient.storage.from(databaseName).getPublicUrl(imageUrl);
     return data.publicUrl;
   }
-  async downloadImage(databaseName, path6) {
-    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).download(path6);
+  async downloadImage(databaseName, path7) {
+    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).download(path7);
     if (error) {
       const rawMsg = error.message;
       const msg = (typeof rawMsg === "string" ? rawMsg : JSON.stringify(rawMsg ?? error) || "Unknown storage error").toLowerCase();
@@ -5884,8 +5918,8 @@ var StorageSupabaseRepository = class {
     }
     return filePath;
   }
-  async deleteImage(databaseName, path6) {
-    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).remove([path6]);
+  async deleteImage(databaseName, path7) {
+    const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).remove([path7]);
     if (error) {
       throw new DatabaseError(`Error in deleteImage: ${databaseName} with message ${error.message}`, {
         cause: error,
@@ -6990,7 +7024,7 @@ var OauthAppRepository = class {
     return data ?? null;
   }
   async listApprovedAuthorizationsByUserId(userId) {
-    const { data, error } = await this.supabase.from(TABLE_AUTHS).select("*").eq("user_id", userId).is("revoked_at", null).not("access_token_hash", "is", null).order("created_at", { ascending: false });
+    const { data: auths, error } = await this.supabase.from(TABLE_AUTHS).select("*").eq("user_id", userId).is("revoked_at", null).not("access_token_hash", "is", null).order("created_at", { ascending: false });
     if (error) {
       throw new DatabaseError("Failed to list approved oauth authorizations", {
         cause: error,
@@ -6998,7 +7032,22 @@ var OauthAppRepository = class {
         resource: { type: "table", name: TABLE_AUTHS }
       });
     }
-    return data ?? [];
+    const rows = auths ?? [];
+    if (rows.length === 0) return [];
+    const appIds = [...new Set(rows.map((r) => r.oauth_app_id))];
+    const { data: apps, error: appsError } = await this.supabase.from(TABLE_APPS).select("id, organization_id, name, description, picture_id, redirect_url, client_id, created_at, updated_at").in("id", appIds);
+    if (appsError) {
+      throw new DatabaseError("Failed to load oauth apps for authorizations", {
+        cause: appsError,
+        operation: "select",
+        resource: { type: "table", name: TABLE_APPS }
+      });
+    }
+    const byId = new Map((apps ?? []).map((a) => [a.id, a]));
+    return rows.map((auth10) => ({
+      ...auth10,
+      oauth_app: byId.get(auth10.oauth_app_id) ?? null
+    }));
   }
   async revokeAuthorizationByIdAndUserId(params) {
     const now = (/* @__PURE__ */ new Date()).toISOString();
@@ -7207,7 +7256,7 @@ var AuthenticationService = class {
     const apiPrefix = apiConfig.prefix ?? "/api/v1";
     return new URL(`${backendOrigin}${apiPrefix}/auth/oauth/${provider}/callback`).toString();
   }
-  async getOAuthSignInUrl(provider, context, options = {}) {
+  async getOAuthSignInUrl(provider, context, options2 = {}) {
     const supabaseRLSClient = this.createRLSClient(context);
     const redirectTo = this.buildBackendOAuthCallbackUrl(provider);
     const { data, error } = await supabaseRLSClient.auth.signInWithOAuth({
@@ -7234,7 +7283,7 @@ var AuthenticationService = class {
       user: data.user
     };
   }
-  async refreshToken(refreshToken, options = {}) {
+  async refreshToken(refreshToken, options2 = {}) {
     logger.debug({ msg: "Refreshing access token" });
     if (!refreshToken) {
       throw new AuthValidationError("Refresh token is required");
@@ -7264,15 +7313,15 @@ var AuthenticationService = class {
       if (dbTokenValidated) {
         await this.rotateRefreshToken(refreshToken, newToken, {
           userId: data.user.id,
-          ipAddress: options.ipAddress,
-          userAgent: options.userAgent
+          ipAddress: options2.ipAddress,
+          userAgent: options2.userAgent
         });
       } else {
         await this.refreshTokenRepository.createToken({
           userId: data.user.id,
           token: newToken,
-          ipAddress: options.ipAddress ?? null,
-          userAgent: options.userAgent ?? null
+          ipAddress: options2.ipAddress ?? null,
+          userAgent: options2.userAgent ?? null
         });
       }
     }
@@ -7323,17 +7372,17 @@ var AuthenticationService = class {
       throw new AuthError(`Failed to revoke refresh token: ${err.message}`, 500, { cause: err });
     }
   }
-  async rotateRefreshToken(oldToken, newToken, options) {
-    if (!oldToken || !newToken || !options.userId) {
+  async rotateRefreshToken(oldToken, newToken, options2) {
+    if (!oldToken || !newToken || !options2.userId) {
       throw new AuthValidationError("Old token, new token, and user ID are required for token rotation");
     }
     try {
       await this.refreshTokenRepository.revokeToken(oldToken, newToken);
       return await this.refreshTokenRepository.createToken({
-        userId: options.userId,
+        userId: options2.userId,
         token: newToken,
-        ipAddress: options.ipAddress,
-        userAgent: options.userAgent
+        ipAddress: options2.ipAddress,
+        userAgent: options2.userAgent
       });
     } catch (err) {
       logger.error({ msg: "Failed to rotate refresh token", error: err.message });
@@ -7344,12 +7393,12 @@ var AuthenticationService = class {
    * Generate a recovery link/OTP for password reset without sending Supabase's built-in email.
    * Use the returned token in your own email template; the same token is used with verifyOtp(email, token, 'recovery').
    */
-  async generateRecoveryLink(email, options = {}) {
+  async generateRecoveryLink(email, options2 = {}) {
     const normalizedEmail = normalizeEmail(email);
     const { data, error } = await this.supabaseServiceClient.auth.admin.generateLink({
       type: "recovery",
       email: normalizedEmail,
-      options: { redirectTo: options.redirectTo }
+      options: { redirectTo: options2.redirectTo }
     });
     if (error) {
       return { token: "", error: { message: error.message, code: error.code ?? void 0 } };
@@ -7545,8 +7594,8 @@ var resendConfig = config.resend;
 var EmailService = class {
   transporter = null;
   isEnabled;
-  constructor(options) {
-    this.isEnabled = options?.isEnabled ?? emailConfig?.enabled ?? false;
+  constructor(options2) {
+    this.isEnabled = options2?.isEnabled ?? emailConfig?.enabled ?? false;
     if (!this.isEnabled) return;
     const isProduction = serverConfig5?.nodeEnv === "production";
     const createResendSmtpTransport = () => nodemailer__default.default.createTransport({
@@ -7637,14 +7686,14 @@ var EmailService = class {
    * Send a plain (non-template) email using the same transport path as transactional templates.
    * This keeps sender identity + transport consistent for deliverability.
    */
-  async sendPlain(options) {
+  async sendPlain(options2) {
     if (!this.isEnabled) {
       throw new AppError("Email is disabled", 503);
     }
     if (!this.transporter) {
       throw new AppError("Email transport is not configured", 503);
     }
-    if (!options.text && !options.html) {
+    if (!options2.text && !options2.html) {
       throw new AppError("Provide at least one of text or html", 400);
     }
     try {
@@ -7653,15 +7702,15 @@ var EmailService = class {
           name: basicConfig?.siteName ?? "Openquok",
           address: basicConfig?.senderEmailAddress ?? "noreply@example.com"
         },
-        to: options.to,
-        subject: options.subject,
-        ...options.text ? { text: options.text } : {},
-        ...options.html ? { html: options.html } : {},
-        ...options.replyTo ? { replyTo: options.replyTo } : {},
-        ...options.headers ? { headers: options.headers } : {}
+        to: options2.to,
+        subject: options2.subject,
+        ...options2.text ? { text: options2.text } : {},
+        ...options2.html ? { html: options2.html } : {},
+        ...options2.replyTo ? { replyTo: options2.replyTo } : {},
+        ...options2.headers ? { headers: options2.headers } : {}
       });
     } catch (err) {
-      logger.error({ msg: "Email send failed", to: options.to, err });
+      logger.error({ msg: "Email send failed", to: options2.to, err });
       throw err;
     }
   }
@@ -8489,17 +8538,17 @@ var BlogService = class {
   /**
    * Get published blog posts with filters (limit, skipId, skip, searchTerm, topicId, sortByKey, sortByOrder, range, authorId).
    */
-  async getPublishedBlogPosts(options) {
+  async getPublishedBlogPosts(options2) {
     const normalizedOptions = {
-      limit: options.limit ?? 10,
-      skipId: options.skipId ?? null,
-      skip: options.skip ?? 0,
-      searchTerm: options.searchTerm ?? null,
-      topicId: options.topicId ?? null,
-      sortByKey: options.sortByKey ?? "published_at",
-      sortByOrder: options.sortByOrder ?? false,
-      range: options.range ?? null,
-      authorId: options.authorId ?? null
+      limit: options2.limit ?? 10,
+      skipId: options2.skipId ?? null,
+      skip: options2.skip ?? 0,
+      searchTerm: options2.searchTerm ?? null,
+      topicId: options2.topicId ?? null,
+      sortByKey: options2.sortByKey ?? "published_at",
+      sortByOrder: options2.sortByOrder ?? false,
+      range: options2.range ?? null,
+      authorId: options2.authorId ?? null
     };
     const cacheKey = buildPublishedBlogCacheKey(normalizedOptions, CACHE_KEYS7.BLOG_PUBLISHED);
     const factory = async () => {
@@ -8516,14 +8565,14 @@ var BlogService = class {
    * Get all blog posts for admin listing (no published/approved filter).
    * Cached per options (same TTL as published); invalidated on blog create/update via pattern blog:admin:list:*.
    */
-  async getAdminBlogPosts(options) {
+  async getAdminBlogPosts(options2) {
     const normalizedOptions = {
-      limit: options.limit ?? 10,
-      searchTerm: options.searchTerm ?? null,
-      topicId: options.topicId ?? null,
-      sortByKey: options.sortByKey ?? "created_at",
-      sortByOrder: options.sortByOrder ?? false,
-      range: options.range ?? null
+      limit: options2.limit ?? 10,
+      searchTerm: options2.searchTerm ?? null,
+      topicId: options2.topicId ?? null,
+      sortByKey: options2.sortByKey ?? "created_at",
+      sortByOrder: options2.sortByOrder ?? false,
+      range: options2.range ?? null
     };
     const cacheKey = buildAdminBlogCacheKey(normalizedOptions, CACHE_KEYS7.BLOG_ADMIN_LIST);
     const factory = async () => {
@@ -8540,13 +8589,13 @@ var BlogService = class {
    * Get all blog comments for admin listing (no approved filter).
    * Cached per options; invalidated on comment create/update/approve via pattern blog:admin:comments:list:*.
    */
-  async getAdminBlogComments(options) {
+  async getAdminBlogComments(options2) {
     const normalizedOptions = {
-      limit: options.limit ?? 10,
-      searchTerm: options.searchTerm ?? null,
-      sortByKey: options.sortByKey ?? "created_at",
-      sortByOrder: options.sortByOrder ?? false,
-      range: options.range ?? null
+      limit: options2.limit ?? 10,
+      searchTerm: options2.searchTerm ?? null,
+      sortByKey: options2.sortByKey ?? "created_at",
+      sortByOrder: options2.sortByOrder ?? false,
+      range: options2.range ?? null
     };
     const cacheKey = buildAdminBlogCommentsCacheKey(normalizedOptions, CACHE_KEYS7.BLOG_ADMIN_COMMENTS_LIST);
     const factory = async () => {
@@ -8563,14 +8612,14 @@ var BlogService = class {
    * Get all blog activities for admin listing. Cached per options; tag BLOG_ACTIVITIES_CACHE.
    * Invalidated on any trackBlogActivity (pattern blog:admin:activities:list:*).
    */
-  async getAdminBlogActivities(options) {
+  async getAdminBlogActivities(options2) {
     const normalizedOptions = {
-      limit: options.limit ?? 10,
-      sortByKey: options.sortByKey ?? "created_at",
-      sortByOrder: options.sortByOrder ?? false,
-      range: options.range ?? null,
-      post_id: options.post_id ?? null,
-      activity_type: options.activity_type ?? null
+      limit: options2.limit ?? 10,
+      sortByKey: options2.sortByKey ?? "created_at",
+      sortByOrder: options2.sortByOrder ?? false,
+      range: options2.range ?? null,
+      post_id: options2.post_id ?? null,
+      activity_type: options2.activity_type ?? null
     };
     const cacheKey = buildAdminBlogActivitiesCacheKey(
       normalizedOptions,
@@ -9102,8 +9151,8 @@ var POLL_MAX_ROUNDS = 60;
 function sleepMs(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-function mediaExtFromUrlOrKey(path6) {
-  const raw = String(path6 || "").trim();
+function mediaExtFromUrlOrKey(path7) {
+  const raw = String(path7 || "").trim();
   if (!raw) return "";
   try {
     const u = new URL(raw);
@@ -9132,8 +9181,8 @@ function extractComposerMedia(settings) {
   }
   return [];
 }
-function resolvePublicMediaUrl(path6) {
-  const raw = path6.trim();
+function resolvePublicMediaUrl(path7) {
+  const raw = path7.trim();
   if (!raw) throw new Error("Media path is empty");
   assertInstagramSupportedMedia(raw);
   if (raw.startsWith("http://") || raw.startsWith("https://")) {
@@ -9788,8 +9837,8 @@ var InstagramStandaloneProvider = class {
 init_GlobalConfig();
 init_Logger();
 var GRAPH2 = "https://graph.threads.net/v1.0";
-function mediaExtFromUrlOrKey2(path6) {
-  const raw = String(path6 || "").trim();
+function mediaExtFromUrlOrKey2(path7) {
+  const raw = String(path7 || "").trim();
   if (!raw) return "";
   try {
     const u = new URL(raw);
@@ -10043,8 +10092,8 @@ var ThreadsProvider = class {
   /**
    * Composer media stores an object key (R2) in `path`. Threads needs a public HTTPS URL in `image_url` / `video_url`
    */
-  resolvePublicMediaUrl(path6) {
-    const raw = path6.trim();
+  resolvePublicMediaUrl(path7) {
+    const raw = path7.trim();
     if (!raw) {
       throw new Error("Media path is empty");
     }
@@ -10397,6 +10446,31 @@ var IntegrationManager = class {
   /** Channel-level global plugs for integrations catalog UI. */
   getAllPlugs() {
     return this.listGlobalPlugCatalog().plugs;
+  }
+  /**
+   * Provider tool registry keyed by identifier. Each entry lists allow-listed
+   * methods that {@link IntegrationConnectionService.triggerIntegrationTool}
+   * may dispatch to over the public API. Providers without a `tools()`
+   * accessor contribute an empty array.
+   */
+  getAllTools() {
+    const out = {};
+    for (const p of socialIntegrationList) {
+      out[p.identifier] = p.tools?.() ?? [];
+    }
+    return out;
+  }
+  /**
+   * Provider rules description keyed by identifier (free-form text exposed by
+   * `GET /public/integration-settings/:id`). Providers without `rules` map
+   * to an empty string.
+   */
+  getAllRulesDescription() {
+    const out = {};
+    for (const p of socialIntegrationList) {
+      out[p.identifier] = p.rules ?? "";
+    }
+    return out;
   }
 };
 
@@ -10796,6 +10870,19 @@ function postingTimesForTimezone(timezone) {
   }
   return JSON.stringify([{ time: 560 - timezone }, { time: 850 - timezone }, { time: 1140 - timezone }]);
 }
+function parseAdditionalSettings(raw) {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+function isVerifiedFromAdditionalSettings(settings) {
+  const verified = settings.find((s) => s?.title === "Verified")?.value;
+  return verified === true;
+}
 var IntegrationConnectionService = class {
   constructor(integrations, plugs, organizationRepository2, manager, refreshIntegrationService2, cache, cacheInvalidator) {
     this.integrations = integrations;
@@ -10961,6 +11048,93 @@ var IntegrationConnectionService = class {
     const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
     if (!deleted) {
       throw new AppError("Integration not found", 404);
+    }
+  }
+  /**
+   * Shape returned by `GET /public/integration-settings/:id`.
+   *
+   * - `rules` — provider-specific natural-language constraints (see {@link SocialProvider.rules}).
+   * - `maxLength` — character cap for posts on this channel, taking the channel’s stored
+   *   `additional_settings` into account when the provider’s `maxLength` is settings-dependent.
+   * - `settings` — provider settings schema when {@link SocialProvider.settingsSchema} is implemented;
+   *   the literal `"No additional settings required"` otherwise.
+   * - `tools` — allow-listed methods invocable via `POST /public/integration-trigger/:id`.
+   */
+  async getIntegrationSettings(organizationId, integrationId) {
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row) {
+      throw new AppError("Integration not found", 404);
+    }
+    const provider = this.manager.getSocialIntegration(row.provider_identifier);
+    if (!provider) {
+      return {
+        output: { rules: "", maxLength: 0, settings: {}, tools: [] }
+      };
+    }
+    const parsedAdditionalSettings = parseAdditionalSettings(row.additional_settings);
+    const verified = isVerifiedFromAdditionalSettings(parsedAdditionalSettings);
+    const settings = provider.settingsSchema ? provider.settingsSchema() : "No additional settings required";
+    return {
+      output: {
+        rules: this.manager.getAllRulesDescription()[provider.identifier] ?? "",
+        maxLength: provider.maxLength(verified),
+        settings,
+        tools: this.manager.getAllTools()[provider.identifier] ?? []
+      }
+    };
+  }
+  /**
+   * Invoke an allow-listed provider method (registered via {@link SocialProvider.tools})
+   * for the integration `id`. Retries once after refreshing the access token if the provider
+   * surfaces {@link ProviderAccessTokenExpiredError}; if the refresh fails, the channel is
+   * soft-deleted and a 401 is raised — matching the upstream "disconnect on expired token"
+   * behavior.
+   */
+  async triggerIntegrationTool(organizationId, integrationId, methodName, data) {
+    const row = await this.integrations.getById(organizationId, integrationId);
+    if (!row) {
+      throw new AppError("Integration not found", 404);
+    }
+    const provider = this.manager.getSocialIntegration(row.provider_identifier);
+    if (!provider) {
+      throw new AppError("Integration provider not found", 404);
+    }
+    const tools = provider.tools?.() ?? [];
+    const toolSpec = tools.find((t) => t.methodName === methodName);
+    const fn = provider[methodName];
+    if (!toolSpec || typeof fn !== "function") {
+      throw new AppError("Tool not found", 404);
+    }
+    const invoke = async (working) => {
+      return await fn.call(
+        provider,
+        working.token,
+        data ?? {},
+        working.internal_id,
+        working
+      );
+    };
+    try {
+      const result = await invoke(row);
+      return { output: result };
+    } catch (err) {
+      if (!(err instanceof ProviderAccessTokenExpiredError)) {
+        throw err;
+      }
+      const refreshed = await this.refreshIntegrationService.refresh(row);
+      if (!refreshed || !refreshed.accessToken) {
+        await this.integrations.softDeleteChannel(row.organization_id, row.id, row.internal_id).catch((softDeleteErr) => {
+          logger.warn({
+            msg: "Channel soft-delete after failed refresh raised",
+            integrationId: row.id,
+            organizationId: row.organization_id,
+            error: softDeleteErr instanceof Error ? softDeleteErr.message : String(softDeleteErr)
+          });
+        });
+        throw new AppError("Channel disconnected due to expired token", 401);
+      }
+      const result = await invoke({ ...row, token: refreshed.accessToken });
+      return { output: result };
     }
   }
   async connectSocialMediaInternal(authUserId, integration, body) {
@@ -12344,13 +12518,13 @@ var PostsService = class {
     }
     const postAnalyticsFn = provider.postAnalytics;
     const cacheKeyId = `post:${postId}`;
-    const cached = await this.integrationService.getCachedIntegrationPayload(
+    const cached2 = await this.integrationService.getCachedIntegrationPayload(
       organizationId,
       cacheKeyId,
       String(dateWindowDays)
     );
-    if (cached != null) {
-      return cached;
+    if (cached2 != null) {
+      return cached2;
     }
     const runPostAnalytics = async (forceRefresh) => {
       const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
@@ -12466,11 +12640,11 @@ var PostsService = class {
    * Ensures a valid access token before calling Graph-backed provider methods.
    * On failed refresh, soft-deletes the channel.
    */
-  async ensureFreshSocialToken(integrationRow, organizationId, options) {
+  async ensureFreshSocialToken(integrationRow, organizationId, options2) {
     const exp = integrationRow.token_expiration ? dayjs5__default.default(integrationRow.token_expiration) : null;
     const expired = !exp || !exp.isValid() || exp.isBefore(dayjs5__default.default());
-    const provider = options?.provider ?? this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
-    if (options?.force || expired) {
+    const provider = options2?.provider ?? this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+    if (options2?.force || expired) {
       const refreshed = await this.refreshIntegrationService.refresh(integrationRow);
       if (!refreshed || !refreshed.accessToken) {
         const removed = await this.integrationService.softDeleteChannel(
@@ -12912,8 +13086,8 @@ var MediaService = class {
   getMediaById(organizationId, id) {
     return this._mediaRepository.getMediaById(organizationId, id);
   }
-  getMediaByPath(organizationId, path6) {
-    return this._mediaRepository.getMediaByPath(organizationId, path6);
+  getMediaByPath(organizationId, path7) {
+    return this._mediaRepository.getMediaByPath(organizationId, path7);
   }
   softDeleteMedia(organizationId, id) {
     return this._mediaRepository.softDeleteMedia(organizationId, id);
@@ -13186,13 +13360,13 @@ var AnalyticsService = class {
       }
       row.token = refreshed.accessToken;
     }
-    const cached = await this.integrations.getCachedIntegrationPayload(
+    const cached2 = await this.integrations.getCachedIntegrationPayload(
       organizationId,
       integrationId,
       String(date)
     );
-    if (cached) {
-      return cached;
+    if (cached2) {
+      return cached2;
     }
     const data = await provider.analytics(row.internal_id, row.token, date).catch(() => []);
     await this.integrations.setCachedIntegrationPayload(organizationId, integrationId, String(date), data);
@@ -13359,9 +13533,10 @@ var OauthAppService = class {
 // services/OauthService.ts
 init_GlobalConfig();
 var OauthService = class {
-  constructor(oauthAppRepository2, organizationRepository2) {
+  constructor(oauthAppRepository2, organizationRepository2, mediaRepository2) {
     this.oauthAppRepository = oauthAppRepository2;
     this.organizationRepository = organizationRepository2;
+    this.mediaRepository = mediaRepository2;
   }
   mustGetSecretKey() {
     const secretKey = config.auth?.programmaticTokenSecret ?? "";
@@ -13380,16 +13555,18 @@ var OauthService = class {
   }
   async approveOrDeny(params) {
     const app2 = await this.validateAuthorizationRequest(params.clientId);
-    const userId = await this.resolveAuthUserToUserId(params.authUserId);
-    const { membership } = await this.organizationRepository.findMembership(userId, params.organizationId);
-    if (!membership || membership.disabled) throw new AppError("Workspace not found", 404);
-    if (app2.organization_id !== params.organizationId) throw new AppError("Invalid organization", 400);
     if (params.action === "deny") {
       const redirectUrl2 = new URL(app2.redirect_url);
       redirectUrl2.searchParams.set("error", "access_denied");
       if (params.state?.trim()) redirectUrl2.searchParams.set("state", params.state);
       return { redirect: redirectUrl2.toString() };
     }
+    const organizationId = params.organizationId?.trim();
+    if (!organizationId) throw new AppError("organizationId is required", 400);
+    const userId = await this.resolveAuthUserToUserId(params.authUserId);
+    const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
+    if (!membership || membership.disabled) throw new AppError("Workspace not found", 404);
+    if (app2.organization_id !== organizationId) throw new AppError("Invalid organization", 400);
     const code = `oqo_${makeId(32)}`;
     const secretKey = this.mustGetSecretKey();
     const codeHash = hashProgrammaticToken(code, secretKey);
@@ -13397,7 +13574,7 @@ var OauthService = class {
     const authz = await this.oauthAppRepository.upsertAuthorization({
       oauthAppId: app2.id,
       userId,
-      organizationId: params.organizationId
+      organizationId
     });
     await this.oauthAppRepository.setAuthorizationCode({
       authorizationId: authz.id,
@@ -13447,9 +13624,29 @@ var OauthService = class {
     const hash = hashProgrammaticToken(rawAccessToken, secretKey);
     return this.oauthAppRepository.findActiveAuthorizationByAccessTokenHash(hash);
   }
+  async enrichOauthAppPublicForApi(app2) {
+    if (!app2.picture_id) {
+      return { ...app2, picture_public_url: null, picture_thumbnail_public_url: null };
+    }
+    const media = await this.mediaRepository.getMediaById(app2.organization_id, app2.picture_id);
+    if (!media || media.deleted_at) {
+      return { ...app2, picture_public_url: null, picture_thumbnail_public_url: null };
+    }
+    return {
+      ...app2,
+      picture_public_url: publicUrlForObjectKey(media.path),
+      picture_thumbnail_public_url: media.thumbnail ? publicUrlForObjectKey(media.thumbnail) : null
+    };
+  }
   async getApprovedApps(authUserId) {
     const userId = await this.resolveAuthUserToUserId(authUserId);
-    return this.oauthAppRepository.listApprovedAuthorizationsByUserId(userId);
+    const rows = await this.oauthAppRepository.listApprovedAuthorizationsByUserId(userId);
+    return Promise.all(
+      rows.map(async (row) => ({
+        ...row,
+        oauth_app: row.oauth_app ? await this.enrichOauthAppPublicForApi(row.oauth_app) : null
+      }))
+    );
   }
   async revokeApp(authUserId, authorizationId) {
     const userId = await this.resolveAuthUserToUserId(authUserId);
@@ -13542,7 +13739,7 @@ var integrationConnectionService = new IntegrationConnectionService(
   cacheInvalidationServiceConnection
 );
 var oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository, mediaRepository);
-var oauthService = new OauthService(oauthAppRepository, organizationRepository);
+var oauthService = new OauthService(oauthAppRepository, organizationRepository, mediaRepository);
 var postsService = new PostsService(
   postsRepository,
   integrationConnectionService,
@@ -15208,6 +15405,7 @@ var PublicIntegrationController = class {
   /** GET /public/is-connected (under API prefix, e.g. /api/v1/public/is-connected) */
   isConnected = async (_req, res, next) => {
     try {
+      countPublicApiRequest("is-connected");
       res.status(200).json({ connected: true });
     } catch (error) {
       next(error);
@@ -15216,6 +15414,7 @@ var PublicIntegrationController = class {
   /** GET /public/integrations */
   listIntegrations = async (req, res, next) => {
     try {
+      countPublicApiRequest("integrations");
       const organizationId = req.organization.id;
       const data = await this.integrationConnectionService.publicListIntegrations(organizationId);
       res.status(200).json(data);
@@ -15223,9 +15422,10 @@ var PublicIntegrationController = class {
       next(error);
     }
   };
-  /** GET /public/social/:integration — OAuth URL (same responsibility as reference `getIntegrationUrl`). */
+  /** GET /public/social/:integration — returns the OAuth authorization URL for the given provider. */
   getIntegrationUrl = async (req, res, next) => {
     try {
+      countPublicApiRequest("social");
       const organizationId = req.organization.id;
       const { integration } = req.params;
       const q = req.query;
@@ -15240,10 +15440,48 @@ var PublicIntegrationController = class {
   /** DELETE /public/integrations/:id */
   deleteChannel = async (req, res, next) => {
     try {
+      countPublicApiRequest("integrations-delete");
       const organizationId = req.organization.id;
       const { id } = req.params;
       await this.integrationConnectionService.publicDeleteChannel(organizationId, id);
       res.status(200).json({ id });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * GET /public/integration-settings/:id — provider rules, max-length, settings schema,
+   * and the allow-listed tools that {@link triggerIntegration} accepts.
+   */
+  getIntegrationSettings = async (req, res, next) => {
+    try {
+      countPublicApiRequest("integration-settings");
+      const organizationId = req.organization.id;
+      const { id } = req.params;
+      const data = await this.integrationConnectionService.getIntegrationSettings(organizationId, id);
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
+   * POST /public/integration-trigger/:id — invoke an allow-listed provider method by `methodName`,
+   * retrying once after a refresh-token round trip if the provider raises
+   * {@link ProviderAccessTokenExpiredError}.
+   */
+  triggerIntegration = async (req, res, next) => {
+    try {
+      countPublicApiRequest("integration-trigger");
+      const organizationId = req.organization.id;
+      const { id } = req.params;
+      const { methodName, data } = req.body;
+      const result = await this.integrationConnectionService.triggerIntegrationTool(
+        organizationId,
+        id,
+        methodName,
+        data ?? {}
+      );
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -15878,9 +16116,15 @@ var OauthController = class {
       next(error);
     }
   };
-  // to do : move to Approved-apps controller
-  /** GET /oauth/approved-apps (requires user JWT) */
-  approvedApps = async (req, res, next) => {
+};
+
+// controllers/ApprovedAppsController.ts
+var ApprovedAppsController = class {
+  constructor(oauthService2) {
+    this.oauthService = oauthService2;
+  }
+  /** GET /users/me/approved-apps (requires user JWT) */
+  list = async (req, res, next) => {
     try {
       const authReq = req;
       const authUserId = authReq.user?.id;
@@ -15891,14 +16135,14 @@ var OauthController = class {
       next(error);
     }
   };
-  /** POST /oauth/revoke (requires user JWT) */
+  /** DELETE /users/me/approved-apps/:id (requires user JWT) */
   revoke = async (req, res, next) => {
     try {
       const authReq = req;
       const authUserId = authReq.user?.id;
       if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
-      const b = req.body;
-      const out = await this.oauthService.revokeApp(authUserId, b.authorizationId);
+      const { id } = req.params;
+      const out = await this.oauthService.revokeApp(authUserId, id);
       res.status(200).json(out);
     } catch (error) {
       next(error);
@@ -16235,14 +16479,14 @@ var R2Storage = class {
     await this.storageR2Repository.putObject(key, params.buffer, params.contentType);
     return { path: key, publicUrl: publicUrlForObjectKey(key) };
   }
-  async downloadObject(path6) {
-    const { data } = await this.storageR2Repository.downloadObject(path6);
+  async downloadObject(path7) {
+    const { data } = await this.storageR2Repository.downloadObject(path7);
     const buffer = data instanceof Buffer ? data : Buffer.from(await data.arrayBuffer());
     const contentType = data.type ?? "application/octet-stream";
     return { buffer, contentType };
   }
-  async deleteObject(path6) {
-    await this.storageR2Repository.deleteObject(path6);
+  async deleteObject(path7) {
+    await this.storageR2Repository.deleteObject(path7);
   }
 };
 
@@ -16289,6 +16533,7 @@ var postsController = new PostsController(postsService);
 var publicPostsController = new PublicPostsController(postsService);
 var oauthAppController = new OauthAppController(oauthAppService);
 var oauthController = new OauthController(oauthService);
+var approvedAppsController = new ApprovedAppsController(oauthService);
 var thirdPartyController = new ThirdPartyController();
 var signatureController = new SignatureController(signatureService);
 var setsController = new SetsController(setsService);
@@ -16443,6 +16688,12 @@ var validateUpdateProfileRequest = validateRequest({
 });
 var validateUpdatePasswordMeRequest = validateRequest({
   body: updatePasswordBodySchema
+});
+var approvedAppAuthorizationIdParamSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid authorization id")
+});
+var validateApprovedAppAuthorizationIdParam = validateRequest({
+  params: approvedAppAuthorizationIdParamSchema
 });
 
 // middlewares/authenticateUser.ts
@@ -16682,6 +16933,13 @@ userRouter.get("/me", authWithRoles, userController.getProfile);
 userRouter.patch("/me", authWithRoles, validateUpdateProfileRequest, userController.updateProfile);
 userRouter.put("/me/password", authWithRoles, validateUpdatePasswordMeRequest, userController.updatePasswordMe);
 userRouter.post("/me/request-change-password", authWithRoles, userController.requestChangePasswordEmail);
+userRouter.get("/me/approved-apps", authWithRoles, approvedAppsController.list);
+userRouter.delete(
+  "/me/approved-apps/:id",
+  authWithRoles,
+  validateApprovedAppAuthorizationIdParam,
+  approvedAppsController.revoke
+);
 userRouter.get("/:userId/roles", authWithRoles, requireAdmin, rbacController.getUserRoles);
 userRouter.post(
   "/:userId/roles/:role",
@@ -17058,8 +17316,8 @@ async function fetchPublishedPostSlugs(supabase2) {
   }
   return rows;
 }
-async function generateSitemapUrls(options) {
-  const { supabaseClient, routesPath, routesManifestPath } = options;
+async function generateSitemapUrls(options2) {
+  const { supabaseClient, routesPath, routesManifestPath } = options2;
   const urls = [];
   urls.push({
     url: "/",
@@ -17180,11 +17438,11 @@ function toSitemapXml(urls, baseURL) {
 ${urlEntries}
 </urlset>`;
 }
-function generateSitemapMiddleware(options) {
-  const { baseURL } = options;
+function generateSitemapMiddleware(options2) {
+  const { baseURL } = options2;
   return async (_req, res) => {
     try {
-      const urls = await generateSitemapUrls(options);
+      const urls = await generateSitemapUrls(options2);
       const xml = toSitemapXml(urls, baseURL);
       logger.info({ msg: "Sitemap generated", urlCount: urls.length });
       res.type("application/xml").send(xml);
@@ -17372,13 +17630,13 @@ feedbackRouter.patch("/:feedbackId", authWithRoles4, requireSupport, feedbackCon
 
 // middlewares/resourceAuth.ts
 init_Logger();
-function authorizeResource(options) {
+function authorizeResource(options2) {
   const {
     resourceType,
     paramName = "id",
     action = "read",
     getResourceOwner
-  } = options;
+  } = options2;
   return async (req, _res, next) => {
     try {
       if (!req.user?.publicId) {
@@ -17982,6 +18240,20 @@ var publicSocialOAuthQuerySchema = zod.z.object({
 var validatePublicSocialOAuthQuery = validateRequest({
   query: publicSocialOAuthQuerySchema
 });
+var publicIntegrationIdParamsSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid integration id")
+});
+var validatePublicIntegrationIdParams = validateRequest({
+  params: publicIntegrationIdParamsSchema
+});
+var publicIntegrationTriggerBodySchema = zod.z.object({
+  methodName: zod.z.string().min(1, "methodName is required"),
+  data: zod.z.record(zod.z.string(), zod.z.unknown()).optional()
+});
+var validatePublicIntegrationTriggerRequest = validateRequest({
+  params: publicIntegrationIdParamsSchema,
+  body: publicIntegrationTriggerBodySchema
+});
 
 // routes/publicApi/IntegrationRoutes.ts
 var publicIntegrationRouter = express.Router();
@@ -17995,6 +18267,18 @@ publicIntegrationRouter.get(
   publicIntegrationController.getIntegrationUrl
 );
 publicIntegrationRouter.delete("/integrations/:id", apiKeyAuth, publicIntegrationController.deleteChannel);
+publicIntegrationRouter.get(
+  "/integration-settings/:id",
+  apiKeyAuth,
+  validatePublicIntegrationIdParams,
+  publicIntegrationController.getIntegrationSettings
+);
+publicIntegrationRouter.post(
+  "/integration-trigger/:id",
+  apiKeyAuth,
+  validatePublicIntegrationTriggerRequest,
+  publicIntegrationController.triggerIntegration
+);
 var upload3 = multer__default.default({
   storage: multer__default.default.memoryStorage(),
   limits: { fileSize: MAX_MEDIA_UPLOAD_BYTES }
@@ -18408,18 +18692,20 @@ var validateOauthTokenBody = validateRequest({
 });
 var oauthApproveBodySchema = zod.z.object({
   client_id: zod.z.string().min(1, "client_id is required"),
-  organizationId: zod.z.string().uuid("Invalid organization id"),
+  organizationId: zod.z.string().uuid("Invalid organization id").optional(),
   state: zod.z.string().optional(),
   action: zod.z.enum(["approve", "deny"])
+}).superRefine((val, ctx) => {
+  if (val.action === "approve" && !val.organizationId?.trim()) {
+    ctx.addIssue({
+      code: zod.z.ZodIssueCode.custom,
+      message: "organizationId is required for approve",
+      path: ["organizationId"]
+    });
+  }
 });
 var validateOauthApproveBody = validateRequest({
   body: oauthApproveBodySchema
-});
-var oauthRevokeBodySchema = zod.z.object({
-  authorizationId: zod.z.string().uuid("Invalid authorization id")
-});
-var validateOauthRevokeBody = validateRequest({
-  body: oauthRevokeBodySchema
 });
 
 // routes/OauthRoute.ts
@@ -18428,12 +18714,17 @@ var auth9 = requireFullAuth(supabase);
 oauthRouter.get("/authorize", validateOauthAuthorizeQuery, oauthController.authorize);
 oauthRouter.post("/authorize", auth9, validateOauthApproveBody, oauthController.approve);
 oauthRouter.post("/token", validateOauthTokenBody, oauthController.token);
-oauthRouter.get("/approved-apps", auth9, oauthController.approvedApps);
-oauthRouter.post("/revoke", auth9, validateOauthRevokeBody, oauthController.revoke);
 init_Logger();
+function readImportMetaUrl() {
+  {
+    return null;
+  }
+}
 function resolveBullBoardUiBasePath() {
   try {
-    const localRequire = module$1.createRequire((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('[[...path]].js', document.baseURI).href)));
+    const metaUrl = readImportMetaUrl();
+    if (!metaUrl) return null;
+    const localRequire = module$1.createRequire(metaUrl);
     const uiPackageJsonPath = localRequire.resolve("@bull-board/ui/package.json");
     return path__default.default.dirname(uiPackageJsonPath);
   } catch (error) {
@@ -18583,12 +18874,70 @@ async function registerBullBoardRoutes(apiRouter, config2) {
   }
 }
 
+// swagger/mountOpenApiDocs.ts
+init_Logger();
+function readImportMetaUrl2() {
+  {
+    return null;
+  }
+}
+var moduleUrl = readImportMetaUrl2();
+var swaggerDir = moduleUrl ? path__default.default.dirname(url.fileURLToPath(moduleUrl)) : path__default.default.join(process.cwd(), "swagger");
+var swaggerDefinition = {
+  openapi: "3.0.3",
+  info: {
+    title: "OpenQuok API",
+    version: "1.0.0",
+    description: "REST API. Extend by adding `@openapi` YAML blocks in `backend/swagger/jsdoc/*.doc.ts` (swagger-jsdoc merges them at startup)."
+  },
+  tags: [{ name: "Integrations", description: "Channels and providers" }],
+  servers: [{ url: "/api/v1", description: "API v1 (same origin as this spec when using the Vite dev proxy)" }],
+  components: {
+    securitySchemes: {
+      ApiKeyAuth: {
+        type: "apiKey",
+        in: "header",
+        name: "Authorization",
+        description: "Organization API key (same value you use in the OpenAPI playground)."
+      }
+    }
+  },
+  /** Default for operations that omit `security` (protected). Public routes set `security: []` in their `@openapi` block. */
+  security: [{ ApiKeyAuth: [] }]
+};
+var jsdocExt = (moduleUrl ?? "").endsWith(".ts") ? "ts" : "js";
+var jsdocGlobs = [path__default.default.join(swaggerDir, "jsdoc", `*.${jsdocExt}`)];
+var options = {
+  definition: swaggerDefinition,
+  apis: jsdocGlobs
+};
+var cached;
+function getOpenApiSpec() {
+  cached ??= swaggerJSDoc__default.default(options);
+  return cached;
+}
+
+// swagger/mountOpenApiDocs.ts
+function mountOpenApiDocs(apiRouter) {
+  const spec = getOpenApiSpec();
+  apiRouter.get("/openapi.json", (_req, res) => {
+    res.status(200).type("application/json").send(spec);
+  });
+  apiRouter.use("/docs", swaggerUi__default.default.serve, swaggerUi__default.default.setup(spec, { customSiteTitle: "OpenQuok API \u2014 Swagger UI" }));
+  logger.info({
+    msg: "[Routes] OpenAPI",
+    openapiJson: "/openapi.json",
+    swaggerUi: "/docs"
+  });
+}
+
 // routes/index.ts
 init_Logger();
 async function mountAllRoutes(app2, config2) {
   const api = config2.api;
   const prefix = api?.prefix ?? "/api/v1";
   const apiRouter = express__default.default.Router();
+  mountOpenApiDocs(apiRouter);
   apiRouter.use("/auth", authRouter);
   apiRouter.use("/users", userRouter);
   try {
@@ -18787,36 +19136,36 @@ function errorHandler(err, _req, res, _next) {
 // middlewares/rateLimit.ts
 init_GlobalConfig();
 init_Logger();
-var createRateLimiter = (options) => {
+var createRateLimiter = (options2) => {
   let skipFunction;
-  if (options.skip !== void 0) {
-    if (typeof options.skip === "boolean") {
-      skipFunction = () => options.skip;
+  if (options2.skip !== void 0) {
+    if (typeof options2.skip === "boolean") {
+      skipFunction = () => options2.skip;
     } else {
-      skipFunction = options.skip;
+      skipFunction = options2.skip;
     }
   }
   return rateLimit__default.default({
-    handler: (req, res, _next, options2) => {
+    handler: (req, res, _next, options3) => {
       logger.warn({
         msg: "Rate limit reached",
         path: req.path,
         method: req.method,
         ip: req.ip,
-        limit: options2.max,
-        windowMs: options2.windowMs
+        limit: options3.max,
+        windowMs: options3.windowMs
       });
       res.status(429).json({
         status: "error",
         message: "Too many requests, please try again later.",
-        retryAfter: Math.ceil(options2.windowMs / 1e3)
+        retryAfter: Math.ceil(options3.windowMs / 1e3)
       });
     },
-    standardHeaders: options.standardHeaders,
-    legacyHeaders: options.legacyHeaders,
-    windowMs: options.windowMs,
-    max: options.max,
-    message: options.message,
+    standardHeaders: options2.standardHeaders,
+    legacyHeaders: options2.legacyHeaders,
+    windowMs: options2.windowMs,
+    max: options2.max,
+    message: options2.message,
     skip: skipFunction
   });
 };
@@ -18828,10 +19177,10 @@ var globalLimiter = createRateLimiter({
   ...config.rateLimit.global,
   skip: (req) => {
     if (shouldSkipRateLimit()) return true;
-    const path6 = req.path;
+    const path7 = req.path;
     const originalUrl = req.originalUrl || req.url;
-    const isWebhook = path6.includes("/webhooks/") || originalUrl.includes("/webhooks/");
-    const isBypass = path6 === "/health" || path6.startsWith("/health") || path6 === "/sitemap.xml" || path6.startsWith("/sitemap.xml");
+    const isWebhook = path7.includes("/webhooks/") || originalUrl.includes("/webhooks/");
+    const isBypass = path7 === "/health" || path7.startsWith("/health") || path7 === "/sitemap.xml" || path7.startsWith("/sitemap.xml");
     return isWebhook || isBypass;
   }
 });
@@ -18943,13 +19292,14 @@ function configureCoreMiddleware(app2, config2, supabase2) {
     const authMiddleware = requireFullAuth(supabase2);
     const rawPrefix = config2.api?.prefix ?? "/api/v1";
     const apiPrefix = rawPrefix.replace(/\/+$/, "") || "/";
-    const publicPaths = ["/auth", "/company", "/feedback", "/public", "/oauth", "/posts/preview"];
+    const publicPaths = ["/auth", "/company", "/feedback", "/public", "/oauth", "/posts/preview", "/docs"];
     const publicPathsExact = [
       "/blog-system/posts",
       "/blog-system/rss",
       "/blog-system/authors",
       "/blog-system/topics",
-      "/blog-system/topics/active"
+      "/blog-system/topics/active",
+      "/openapi.json"
     ];
     const bypassPaths = ["/health", "/sitemap.xml"];
     app2.use((req, res, next) => {

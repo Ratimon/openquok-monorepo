@@ -2,7 +2,7 @@
 title: Security guidelines
 description: Openquok's Service key rules, RLS guidance, rate limiting, and SSR state-management safety.
 order: 1
-lastUpdated: 2026-03-30
+lastUpdated: 2026-05-11
 ---
 
 <script>
@@ -12,7 +12,7 @@ import { Badge, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js'
 ## Rules (non-negotiable)
 
 1. **NEVER** use the service client in client-side code.
-2. **NEVER** expose <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" /> to the client.
+2. **NEVER** expose <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> (new format) or the legacy <Badge text="SUPABASE_SERVICE_ROLE_KEY" variant="envBackend" /> to the client. Both grant elevated, RLS-bypassing access and must only live in backend env vars. See <a href="/docs/configuration-backend/supabase">Supabase</a> for the key migration.
 3. Use RLS policies for data access control.
 4. Always use the appropriate client for the context:
    - **Browser Client:** Public data only
