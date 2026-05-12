@@ -1,5 +1,5 @@
 /**
- * Provider-native insights for one published post ({@link routes/publicApi/AnalyticsRoutes.ts}).
+ * Platform-native insights for one published post ({@link routes/publicApi/AnalyticsRoutes.ts}).
  *
  * Returns the published row's metric series for the requested window
  * (7 / 30 / 90 days). If the worker could not link this OpenQuok row to a
@@ -16,7 +16,7 @@
  *       - Analytics
  *     summary: Per-post analytics (API key)
  *     description: >-
- *       Provider-native metrics for the post row. Returns an empty array for
+ *       Platform-native metrics for the post row. Returns an empty array for
  *       unsupported providers or unpublished rows, and `data: { missing: true }`
  *       when the worker could not link the OpenQuok row to a live provider object.
  *     parameters:

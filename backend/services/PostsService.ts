@@ -957,7 +957,7 @@ export class PostsService {
     }
 
     /**
-     * Loads provider-native insights for one published post (`posts.release_id`).
+     * Loads platform-native insights for one published post (`posts.release_id`).
      * Returns `{ missing: true }` when the worker could not map the live network object (`release_id === "missing"`).
      */
     async checkPostAnalytics(params: {

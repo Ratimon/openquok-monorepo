@@ -12,7 +12,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 ## Endpoints
 
 <CardGrid>
-<LinkCard title="Platform Analytics" description="Provider-native time-series metrics (followers, impressions, etc.) for one connected channel" href="/docs/apis-analytics/platform" />
+<LinkCard title="Platform Analytics" description="Platform-native time-series metrics (followers, impressions, etc.) for one connected channel" href="/docs/apis-analytics/platform" />
 <LinkCard title="Post Analytics" description="Per-post insights for a published row, returning `{ missing: true }` when the worker could not link the live provider object" href="/docs/apis-analytics/post" />
 </CardGrid>
 

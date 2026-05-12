@@ -48,7 +48,7 @@
  *                         properties:
  *                           id:
  *                             type: string
- *                             description: Provider-native id (e.g. Threads media id).
+ *                             description: Platform-native id (e.g. Threads media id).
  *                           url:
  *                             type: string
  *                             description: Preview URL of the published asset.

@@ -14,7 +14,7 @@
  *       - Posts
  *     summary: Link a published release id (API key)
  *     description: >-
- *       Manually associates the OpenQuok post row with the provider-native id
+ *       Manually associates the OpenQuok post row with the platform-native id
  *       returned by the social platform (e.g. Threads media id, X tweet id).
  *       Only succeeds while the row still has `release_id === "missing"`.
  *     parameters:
@@ -35,7 +35,7 @@
  *             properties:
  *               releaseId:
  *                 type: string
- *                 description: Provider-native id (non-empty). Picked from `GET /public/posts/{postId}/missing`.
+ *                 description: Platform-native id (non-empty). Picked from `GET /public/posts/{postId}/missing`.
  *           example:
  *             releaseId: '18000000000000001'
  *     responses:

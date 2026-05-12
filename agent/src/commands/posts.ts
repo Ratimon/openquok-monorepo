@@ -279,7 +279,7 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             type: "string",
             demandOption: true,
             describe:
-              "Provider-native release id (from `posts:missing`), e.g. a TikTok video id or Threads post id",
+              "Platform-native release id (from `posts:missing`), e.g. a TikTok video id or Threads post id",
           })
           .example(
             '$0 posts:connect 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --releaseId "7321456789012345678"',

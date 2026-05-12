@@ -117,7 +117,7 @@ openquok analytics:platform <integrationId> [--days 7|30|90]
 openquok analytics:post <postId> [--days 7|30|90]
 ```
 
-- `analytics:platform` returns provider-native metrics for a connected channel (followers, impressions, engagement, …).
+- `analytics:platform` returns platform-native metrics for a connected channel (followers, impressions, engagement, …).
 - `analytics:post` returns per-post metrics (likes, comments, shares, …) for a **published** post. Drafts/queued posts return `[]`.
 - The `--days` window is one of `7`, `30`, or `90` (default `7`); the backend will reject any other value.
 

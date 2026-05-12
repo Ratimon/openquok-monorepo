@@ -1,7 +1,7 @@
 /**
  * Platform analytics for a connected channel ({@link routes/publicApi/AnalyticsRoutes.ts}).
  *
- * Returns provider-native time-series metrics (followers, impressions, etc.)
+ * Returns platform-native time-series metrics (followers, impressions, etc.)
  * for the requested window (7 / 30 / 90 days). Results are cached per
  * `(organizationId, integrationId, date)` triple.
  * Backed by {@link services/AnalyticsService.getIntegrationAnalyticsProgrammatic}.
@@ -14,7 +14,7 @@
  *       - Analytics
  *     summary: Platform analytics (API key)
  *     description: >-
- *       Provider-native series for the channel. The response shape mirrors
+ *       Platform-native series for the channel. The response shape mirrors
  *       what the provider exposes — each series has a label and an array of
  *       `{ total, date }` points. Non-social or unsupported integrations
  *       return an empty array.

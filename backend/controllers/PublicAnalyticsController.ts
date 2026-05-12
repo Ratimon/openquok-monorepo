@@ -34,7 +34,7 @@ export class PublicAnalyticsController {
         }
     };
 
-    /** GET /public/analytics/post/:postId?date=7|30|90 — provider-native insights for one published post row. */
+    /** GET /public/analytics/post/:postId?date=7|30|90 — platform-native insights for one published post row. */
     getPostAnalytics = async (req: Request, res: Response, next: NextFunction) => {
         try {
             countPublicApiRequest("analytics-post");

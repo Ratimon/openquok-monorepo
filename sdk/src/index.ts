@@ -187,7 +187,7 @@ export default class Openquok {
         });
     }
 
-    /** Manually link a published row to a provider-native id (e.g. Threads media id). */
+    /** Manually link a published row to a platform-native id (e.g. Threads media id). */
     async updateReleaseId(postId: string, releaseId: string) {
         return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}/release-id`, {
             method: "PUT",
