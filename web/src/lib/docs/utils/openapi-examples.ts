@@ -52,9 +52,49 @@ export type OasDoc = {
 			string,
 			{ type?: string; in?: string; name?: string; description?: string }
 		>;
+		schemas?: Record<string, unknown>;
 	};
 	security?: Record<string, string[]>[];
 };
+
+type OasSchemaLike = {
+	$ref?: string;
+	type?: string;
+	format?: string;
+	description?: string;
+	deprecated?: boolean;
+	default?: JsonValue;
+	example?: JsonValue;
+	enum?: JsonValue[];
+	properties?: Record<string, unknown>;
+	required?: string[];
+	items?: unknown;
+	additionalProperties?: unknown;
+	oneOf?: unknown[];
+	anyOf?: unknown[];
+	allOf?: unknown[];
+	nullable?: boolean;
+};
+
+/**
+ * Resolve a single `$ref` against `components.schemas`. Returns the schema unchanged
+ * when it is already an inline schema. Guards against cycles by short-circuiting on
+ * already-visited refs.
+ */
+function resolveRef(spec: OasDoc | null | undefined, schema: unknown, seen: Set<string> = new Set()): OasSchemaLike | null {
+	if (!schema || typeof schema !== 'object') return null;
+	const s = schema as OasSchemaLike;
+	const ref = s.$ref;
+	if (typeof ref === 'string' && ref.length > 0) {
+		if (seen.has(ref)) return null;
+		seen.add(ref);
+		const m = /^#\/components\/schemas\/(.+)$/.exec(ref);
+		if (!m || !spec?.components?.schemas) return null;
+		const next = spec.components.schemas[m[1]!];
+		return resolveRef(spec, next, seen);
+	}
+	return s;
+}
 
 export function parseOpenapiOperationLine(line: string): { method: string; path: string } | null {
 	const t = line.trim();
@@ -85,53 +125,104 @@ export function fillPathExample(path: string): string {
 }
 
 /** Resolve example JSON from OpenAPI 3 `content.*` (media type object). */
-function pickExampleFromMedia(media: {
-	example?: JsonValue;
-	examples?: Record<string, { value?: JsonValue }>;
-	schema?: unknown;
-}): JsonValue | null {
+function pickExampleFromMedia(
+	spec: OasDoc | null,
+	media: {
+		example?: JsonValue;
+		examples?: Record<string, { value?: JsonValue }>;
+		schema?: unknown;
+	}
+): JsonValue | null {
 	if (media.example !== undefined) return media.example as JsonValue;
 	const firstEx = Object.values(media.examples ?? {})[0];
 	if (firstEx?.value !== undefined) return firstEx.value as JsonValue;
 
-	const schema = media.schema;
-	if (schema && typeof schema === 'object' && schema !== null && 'example' in schema) {
-		const ex = (schema as { example?: JsonValue }).example;
-		if (ex !== undefined) return ex;
-	}
+	const resolved = resolveRef(spec, media.schema);
+	if (resolved?.example !== undefined) return resolved.example;
 
-	return syntheticExampleFromResponseSchema(schema);
+	return syntheticExampleFromSchema(spec, media.schema, 0);
 }
 
-/** Last resort: tiny object from `schema.properties` so docs never show an empty rail when a schema exists. */
-function syntheticExampleFromResponseSchema(schema: unknown): JsonValue | null {
-	if (!schema || typeof schema !== 'object') return null;
-	const s = schema as {
-		type?: string;
-		properties?: Record<string, { type?: string; example?: JsonValue }>;
-	};
-	if (s.type !== 'object' || !s.properties) return null;
-	const out: Record<string, JsonValue> = {};
-	for (const [key, prop] of Object.entries(s.properties)) {
-		if (prop && typeof prop === 'object' && prop.example !== undefined) {
-			out[key] = prop.example as JsonValue;
-			continue;
+/**
+ * Best-effort synthetic example so the rail never shows an empty placeholder.
+ * Resolves `$ref`, walks `type: array` into `items`, and recurses into nested objects
+ * (capped at {@link MAX_SYNTH_DEPTH}).
+ */
+const MAX_SYNTH_DEPTH = 5;
+
+function syntheticExampleFromSchema(spec: OasDoc | null, raw: unknown, depth: number): JsonValue | null {
+	const s = resolveRef(spec, raw);
+	if (!s) return null;
+	if (s.example !== undefined) return s.example;
+	if (Array.isArray(s.enum) && s.enum.length > 0) return s.enum[0] as JsonValue;
+	if (s.default !== undefined) return s.default;
+	if (depth > MAX_SYNTH_DEPTH) {
+		if (s.type === 'array') return [];
+		if (s.type === 'object') return {};
+		return null;
+	}
+
+	if (s.type === 'array') {
+		const itemEx = syntheticExampleFromSchema(spec, s.items, depth + 1);
+		return itemEx === null ? [] : [itemEx];
+	}
+
+	if (s.type === 'object' || s.properties) {
+		const out: Record<string, JsonValue> = {};
+		for (const [key, prop] of Object.entries(s.properties ?? {})) {
+			const v = syntheticExampleFromProperty(spec, key, prop, depth + 1);
+			if (v !== undefined) out[key] = v;
 		}
-		const t = prop?.type;
-		if (t === 'string')
-			out[key] =
-				key.toLowerCase() === 'url'
-					? 'https://oauth.example.com/authorize?…'
-					: '…';
-		else if (t === 'number' || t === 'integer') out[key] = 0;
-		else if (t === 'boolean') out[key] = false;
-		else if (t === 'array') out[key] = [];
-		else if (t === 'object') out[key] = {};
+		if (Object.keys(out).length > 0) return out;
+		return s.type === 'object' ? {} : null;
 	}
-	return Object.keys(out).length > 0 ? (out as JsonValue) : null;
+
+	return primitiveSampleFromSchema(s);
 }
 
-export function pickJsonExample(op: OasOperation | null, status = '200'): JsonValue | null {
+function syntheticExampleFromProperty(
+	spec: OasDoc | null,
+	key: string,
+	raw: unknown,
+	depth: number
+): JsonValue | undefined {
+	const resolved = resolveRef(spec, raw);
+	if (!resolved) return undefined;
+	if (resolved.example !== undefined) return resolved.example;
+	if (Array.isArray(resolved.enum) && resolved.enum.length > 0) return resolved.enum[0] as JsonValue;
+	if (resolved.default !== undefined) return resolved.default;
+
+	if (resolved.type === 'array') {
+		const itemEx = syntheticExampleFromSchema(spec, resolved.items, depth + 1);
+		return itemEx === null ? [] : [itemEx];
+	}
+	if (resolved.type === 'object' || resolved.properties) {
+		const nested = syntheticExampleFromSchema(spec, resolved, depth);
+		return nested ?? {};
+	}
+	return primitiveSampleFromSchema(resolved, key);
+}
+
+function primitiveSampleFromSchema(s: OasSchemaLike, key?: string): JsonValue {
+	const t = s.type;
+	if (t === 'string') {
+		if (s.format === 'date-time') return new Date().toISOString();
+		if (s.format === 'date') return new Date().toISOString().slice(0, 10);
+		if (s.format === 'uuid') return '00000000-0000-0000-0000-000000000000';
+		if (s.format === 'email') return 'user@example.com';
+		if (s.format === 'uri' || s.format === 'url' || key?.toLowerCase() === 'url') {
+			return 'https://example.com/path';
+		}
+		return '…';
+	}
+	if (t === 'integer' || t === 'number') return 0;
+	if (t === 'boolean') return false;
+	if (t === 'array') return [];
+	if (t === 'object') return {};
+	return null;
+}
+
+export function pickJsonExample(spec: OasDoc | null, op: OasOperation | null, status = '200'): JsonValue | null {
 	const rawResponses = op?.responses as Record<string, { content?: Record<string, unknown> }> | undefined;
 	const response = rawResponses?.[status] ?? rawResponses?.[String(Number(status))];
 	if (!response?.content) return null;
@@ -144,7 +235,7 @@ export function pickJsonExample(op: OasOperation | null, status = '200'): JsonVa
 		  }
 		| undefined;
 	if (!appJson) return null;
-	return pickExampleFromMedia(appJson);
+	return pickExampleFromMedia(spec, appJson);
 }
 
 export function buildCurlSample(opts: {
@@ -242,6 +333,11 @@ export type OpenapiDocsResponsePayload = {
 	exampleJsonByStatus: Record<string, string>;
 };
 
+export type OpenapiDocsBodyPayload = {
+	contentType: string;
+	fields: DocsResponseFieldItem[];
+};
+
 export type OpenapiDocsOperationPayload = {
 	reqTitle: string;
 	curl: string;
@@ -251,6 +347,7 @@ export type OpenapiDocsOperationPayload = {
 	apiPath: string;
 	serverDisplay: string;
 	params: OpenapiDocsParamPayload;
+	body: OpenapiDocsBodyPayload | null;
 	responseDocs: OpenapiDocsResponsePayload | null;
 };
 
@@ -278,55 +375,88 @@ function sortResponseStatusCodes(codes: string[]): string[] {
 	});
 }
 
-function jsonSchemaPropertyType(prop: unknown): string {
-	if (!prop || typeof prop !== 'object') return 'unknown';
-	const p = prop as {
-		type?: string;
-		items?: { type?: string };
-		format?: string;
-	};
+function jsonSchemaPropertyType(spec: OasDoc | null, prop: unknown): string {
+	const p = resolveRef(spec, prop);
+	if (!p) return 'unknown';
 	if (p.type === 'array') {
-		const it = p.items?.type;
-		return `${typeof it === 'string' ? it : 'unknown'}[]`;
+		const item = resolveRef(spec, p.items);
+		const it = typeof item?.type === 'string' ? item.type : 'unknown';
+		return `${it}[]`;
 	}
 	if (typeof p.type === 'string') {
 		if (p.format) return `${p.type} (${p.format})`;
 		return p.type;
 	}
+	if (p.properties) return 'object';
+	if (Array.isArray(p.oneOf) || Array.isArray(p.anyOf) || Array.isArray(p.allOf)) return 'object';
 	return 'unknown';
 }
 
-function objectSchemaToResponseFields(schema: unknown): DocsResponseFieldItem[] {
-	if (!schema || typeof schema !== 'object') return [];
-	const s = schema as {
-		type?: string;
-		properties?: Record<string, unknown>;
-		required?: string[];
-	};
-	if (s.type !== 'object' || !s.properties) return [];
-	const req = new Set(s.required ?? []);
-	const out: DocsResponseFieldItem[] = [];
-	for (const [key, prop] of Object.entries(s.properties)) {
-		if (!prop || typeof prop !== 'object') continue;
-		const po = prop as {
-			description?: string;
-			deprecated?: boolean;
-			default?: unknown;
-		};
-		out.push({
-			name: key,
-			type: jsonSchemaPropertyType(prop),
-			required: req.has(key),
-			deprecated: po.deprecated === true,
-			description: typeof po.description === 'string' ? po.description.trim() || undefined : undefined,
-			default: po.default
-		});
+/**
+ * Flatten an OpenAPI response/request schema into a list of {@link DocsResponseFieldItem}.
+ *
+ * - Resolves `$ref` against `components.schemas`.
+ * - Walks nested objects with dotted names (e.g. `data.posts`).
+ * - Walks arrays with `parent[].child` notation so docs show the item shape.
+ * - Caps recursion at {@link MAX_FIELD_DEPTH} to avoid runaway cycles.
+ */
+const MAX_FIELD_DEPTH = 4;
+
+function schemaToFlatRows(
+	spec: OasDoc | null,
+	raw: unknown,
+	prefix: string,
+	depth: number,
+	out: DocsResponseFieldItem[]
+): void {
+	if (depth > MAX_FIELD_DEPTH) return;
+	const s = resolveRef(spec, raw);
+	if (!s) return;
+
+	if (s.type === 'array' || (!s.type && s.items)) {
+		const childPrefix = prefix ? `${prefix}[]` : '[]';
+		schemaToFlatRows(spec, s.items, childPrefix, depth + 1, out);
+		return;
 	}
+
+	if (s.type === 'object' || s.properties) {
+		const req = new Set(s.required ?? []);
+		for (const [key, prop] of Object.entries(s.properties ?? {})) {
+			const resolved = resolveRef(spec, prop);
+			if (!resolved) continue;
+			const name = prefix ? `${prefix}.${key}` : key;
+			out.push({
+				name,
+				type: jsonSchemaPropertyType(spec, resolved),
+				required: req.has(key),
+				deprecated: resolved.deprecated === true,
+				description:
+					typeof resolved.description === 'string'
+						? resolved.description.trim() || undefined
+						: undefined,
+				default: resolved.default
+			});
+
+			if (resolved.type === 'object' || resolved.properties) {
+				schemaToFlatRows(spec, resolved, name, depth + 1, out);
+			} else if (resolved.type === 'array' || resolved.items) {
+				schemaToFlatRows(spec, resolved.items, `${name}[]`, depth + 1, out);
+			}
+		}
+	}
+}
+
+function flattenSchemaToResponseFields(spec: OasDoc | null, schema: unknown): DocsResponseFieldItem[] {
+	const out: DocsResponseFieldItem[] = [];
+	schemaToFlatRows(spec, schema, '', 0, out);
 	return out;
 }
 
 /** Main-column Response section + JSON examples per status for the docs rail. */
-export function buildDocsResponsePayload(op: OasOperation | null): OpenapiDocsResponsePayload | null {
+export function buildDocsResponsePayload(
+	spec: OasDoc | null,
+	op: OasOperation | null
+): OpenapiDocsResponsePayload | null {
 	if (!op?.responses) return null;
 	const variants: OpenapiDocsResponseVariant[] = [];
 	const exampleJsonByStatus: Record<string, string> = {};
@@ -335,7 +465,7 @@ export function buildDocsResponsePayload(op: OasOperation | null): OpenapiDocsRe
 		const content = resp.content;
 		const jsonMime = content?.['application/json'] ?? content?.['application/problem+json'];
 		const hasSchema = Boolean(jsonMime?.schema);
-		const fields = hasSchema ? objectSchemaToResponseFields(jsonMime!.schema) : [];
+		const fields = hasSchema ? flattenSchemaToResponseFields(spec, jsonMime!.schema) : [];
 		if (fields.length === 0 && !desc) continue;
 
 		const contentType = hasSchema
@@ -346,7 +476,7 @@ export function buildDocsResponsePayload(op: OasOperation | null): OpenapiDocsRe
 
 		variants.push({ status, description: desc || undefined, contentType, fields });
 
-		const ex = pickJsonExample(op, status);
+		const ex = pickJsonExample(spec, op, status);
 		if (ex !== null) {
 			exampleJsonByStatus[status] = stringifyJsonExample(ex);
 		} else if (desc) {
@@ -360,6 +490,26 @@ export function buildDocsResponsePayload(op: OasOperation | null): OpenapiDocsRe
 	const order = sortResponseStatusCodes(variants.map((v) => v.status));
 	variants.sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
 	return { variants, exampleJsonByStatus };
+}
+
+/**
+ * Extract body parameter rows from `requestBody` for the main column.
+ * Resolves `$ref`, drills into nested objects and array items.
+ */
+export function buildDocsBodyFields(spec: OasDoc | null, op: OasOperation | null): DocsResponseFieldItem[] {
+	const media =
+		op?.requestBody?.content?.['application/json'] ??
+		op?.requestBody?.content?.['multipart/form-data'];
+	if (!media?.schema) return [];
+	return flattenSchemaToResponseFields(spec, media.schema);
+}
+
+export function bodyContentType(op: OasOperation | null): string | null {
+	const ct = op?.requestBody?.content;
+	if (!ct) return null;
+	if (ct['application/json']) return 'application/json';
+	if (ct['multipart/form-data']) return 'multipart/form-data';
+	return Object.keys(ct)[0] ?? null;
 }
 
 /** Shared loader for docs rails / playground (single network shape). */
@@ -394,11 +544,16 @@ export async function fetchOpenapiOperationForDocs(
 		apiKeyHeader: useAuth,
 		apiKeyHeaderName: getApiKeyHeaderName(spec)
 	});
-	const responseDocs = buildDocsResponsePayload(opNode);
+	const responseDocs = buildDocsResponsePayload(spec, opNode);
 	const primaryStatus =
 		responseDocs && responseDocs.variants.length > 0 ? responseDocs.variants[0]!.status : '200';
-	const ex = pickJsonExample(opNode, primaryStatus);
+	const ex = pickJsonExample(spec, opNode, primaryStatus);
 	const jsonPretty = stringifyJsonExample(ex);
+
+	const bodyFields = buildDocsBodyFields(spec, opNode);
+	const bodyCt = bodyContentType(opNode);
+	const body: OpenapiDocsBodyPayload | null =
+		bodyFields.length > 0 && bodyCt ? { contentType: bodyCt, fields: bodyFields } : null;
 
 	return {
 		ok: true,
@@ -411,6 +566,7 @@ export async function fetchOpenapiOperationForDocs(
 			apiPath: parsed.path,
 			serverDisplay,
 			params: buildDocsParamPayload(spec, opNode),
+			body,
 			responseDocs
 		}
 	};

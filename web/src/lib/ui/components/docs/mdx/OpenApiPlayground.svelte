@@ -63,7 +63,7 @@
 	let apiKeyHeaderName = $derived(spec ? getApiKeyHeaderName(spec) : null);
 	let wantsAuth = $derived(spec ? operationRequiresApiKey(spec, opNode) : false);
 	let grouped = $derived(groupOperationParameters(opNode));
-	let exampleJson = $derived(stringifymaybe(pickJsonExample(opNode, '200')));
+	let exampleJson = $derived(stringifymaybe(pickJsonExample(spec, opNode, '200')));
 	let liveCurl = $derived.by(() => {
 		const origin = page.url.origin;
 		return buildLiveCurlSample({

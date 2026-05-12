@@ -1,16 +1,13 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import type { OpenapiDocsParamPayload, OpenapiDocsBodyPayload, OpenapiDocsResponsePayload } from '$lib/docs/utils/openapi-examples';
 
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { getContext } from 'svelte';
 
 	import { DOCS_PLAYGROUND, type DocsPlaygroundContext } from '$lib/docs/docs-playground-context';
-	import {
-		fetchOpenapiOperationForDocs,
-		type OpenapiDocsParamPayload,
-		type OpenapiDocsResponsePayload
-	} from '$lib/docs/utils/openapi-examples';
+	import { fetchOpenapiOperationForDocs} from '$lib/docs/utils/openapi-examples';
 
 	import ApiEndpointTryItBar from '$lib/ui/components/docs/mdx/ApiEndpointTryItBar.svelte';
 	import ParamField from '$lib/ui/components/docs/mdx/ParamField.svelte';
@@ -41,6 +38,7 @@
 	let apiPath = $state('');
 	let serverDisplay = $state('');
 	let paramPayload = $state<OpenapiDocsParamPayload | null>(null);
+	let bodyPayload = $state<OpenapiDocsBodyPayload | null>(null);
 	let responseDocs = $state<OpenapiDocsResponsePayload | null>(null);
 	let selectedResponseStatus = $state('200');
 
@@ -59,6 +57,7 @@
 		loading = true;
 		errorText = null;
 		paramPayload = null;
+		bodyPayload = null;
 		responseDocs = null;
 		selectedResponseStatus = '200';
 
@@ -74,6 +73,7 @@
 				apiPath = '';
 				serverDisplay = '';
 				paramPayload = null;
+				bodyPayload = null;
 				responseDocs = null;
 			} else {
 				errorText = null;
@@ -85,6 +85,7 @@
 				apiPath = p.apiPath;
 				serverDisplay = p.serverDisplay;
 				paramPayload = p.params;
+				bodyPayload = p.body;
 				responseDocs = p.responseDocs;
 				selectedResponseStatus = p.status;
 			}
@@ -215,6 +216,35 @@
 							</div>
 						</div>
 					{/if}
+				</div>
+			{/if}
+
+			{#if bodyPayload && bodyPayload.fields.length > 0}
+				<div class="not-prose max-w-3xl space-y-4">
+					<div
+						class="border-base-300 flex flex-wrap items-end justify-between gap-3 border-b pb-3"
+					>
+						<h2 class="text-base-content scroll-mt-28 text-xl font-bold tracking-tight">
+							Body parameters
+						</h2>
+						<code
+							class="text-base-content/80 bg-base-200/60 rounded-md px-2 py-1 font-mono text-xs"
+							>{bodyPayload.contentType}</code
+						>
+					</div>
+					<div class="divide-y divide-base-200">
+						{#each bodyPayload.fields as row (`body-${row.name}`)}
+							<ParamField
+								path={row.name}
+								type={row.type}
+								location="body"
+								required={row.required}
+								deprecated={row.deprecated}
+								default={row.default}
+								description={row.description}
+							/>
+						{/each}
+					</div>
 				</div>
 			{/if}
 

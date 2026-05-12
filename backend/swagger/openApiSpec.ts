@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -38,7 +39,11 @@ const swaggerDefinition = {
         version: "1.0.0",
         description: "REST API. Extend by adding `@openapi` YAML blocks in `backend/swagger/jsdoc/*.doc.ts` (swagger-jsdoc merges them at startup).",
     },
-    tags: [{ name: "Integrations", description: "Channels and providers" }],
+    tags: [
+        { name: "Integrations", description: "Channels and providers" },
+        { name: "Posts", description: "Post groups and per-channel post rows" },
+        { name: "Uploads", description: "Media uploads consumed by the Posts API" },
+    ],
     servers: [{ url: "/api/v1", description: "API v1 (same origin as this spec when using the Vite dev proxy)" }],
     components: {
         securitySchemes: {
@@ -54,9 +59,38 @@ const swaggerDefinition = {
     security: [{ ApiKeyAuth: [] }],
 };
 
-/** `tsx` loads `.ts` docs; Node loads emitted `.js` from `dist/swagger/jsdoc/`. */
-const jsdocExt = (moduleUrl ?? "").endsWith(".ts") ? "ts" : "js";
-const jsdocGlobs = [path.join(swaggerDir, "jsdoc", `*.${jsdocExt}`)];
+/**
+ * `tsx` loads `.ts` docs from source; Node loads emitted `.js` from `dist/swagger/jsdoc/`.
+ *
+ * Prefer the module URL hint when available, otherwise (e.g. tsx ≥ 4.x running under
+ * the CJS loader, where `eval("import.meta.url")` throws and we fall through to
+ * `process.cwd()`) probe the resolved `jsdoc/` directory: TS source if any `.ts` exists,
+ * otherwise JS. Falls back to `["ts", "js"]` if neither lookup succeeds so we still
+ * try both shapes before giving up.
+ */
+function resolveJsdocExt(): "ts" | "js" | Array<"ts" | "js"> {
+    const fromUrl = (moduleUrl ?? "").toLowerCase();
+    if (fromUrl.endsWith(".ts")) return "ts";
+    if (fromUrl.endsWith(".js") || fromUrl.endsWith(".mjs") || fromUrl.endsWith(".cjs")) return "js";
+
+    const jsdocDir = path.join(swaggerDir, "jsdoc");
+    try {
+        const entries = fs.readdirSync(jsdocDir);
+        const hasTs = entries.some((e) => e.endsWith(".ts") && !e.endsWith(".d.ts"));
+        const hasJs = entries.some((e) => e.endsWith(".js"));
+        if (hasTs && !hasJs) return "ts";
+        if (hasJs && !hasTs) return "js";
+        if (hasTs && hasJs) return "ts";
+    } catch {
+        // ignore — fall through to dual-glob below
+    }
+    return ["ts", "js"];
+}
+
+const jsdocExt = resolveJsdocExt();
+const jsdocGlobs = (Array.isArray(jsdocExt) ? jsdocExt : [jsdocExt]).map((ext) =>
+    path.join(swaggerDir, "jsdoc", `*.${ext}`),
+);
 
 const options = {
     definition: swaggerDefinition,

@@ -23,7 +23,7 @@ export function docsHttpMethodBadgeClass(method: string): string {
 		case 'GET':
 			return 'badge-success border-0 text-[0.65rem] font-semibold uppercase';
 		case 'POST':
-			return 'badge-primary border-0 text-[0.65rem] font-semibold uppercase';
+			return 'badge-info border-0 text-[0.65rem] font-semibold uppercase';
 		case 'PUT':
 		case 'PATCH':
 			return 'badge-warning border-0 text-[0.65rem] font-semibold uppercase';
