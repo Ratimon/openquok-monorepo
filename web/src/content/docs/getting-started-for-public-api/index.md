@@ -49,20 +49,14 @@ The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Bad
 <p>A <strong>30 requests per hour</strong> limit applies to all endpoints. This does not mean you can only post 30 times per hour — each API call counts as one request, so <strong>schedule multiple posts in a single request</strong> (for example a multi-channel post group) to maximize throughput.</p>
 </Callout>
 
-## Terminology
-
-<Callout type="note" title="Channel vs integration">
-<p>The Openquok UI/dashboard uses the term <strong>channel</strong>, while the API and SDK use <strong>integration</strong>. They refer to the same thing — a single connected social account inside a workspace.</p>
-</Callout>
-
-## Supported platforms
+## Supported social channels
 
 Openquok currently ships with **3 social provider integrations**: **Meta Threads** and **Instagram** in two flavors (Business and Standalone). Each connected channel goes through the same <Badge text="POST /api/v1/public/posts" variant="default" /> endpoint — provider-specific tuning lives under <code>providerSettingsByIntegrationId</code> keyed by the channel's UUID.
 
-For provider identifiers, per-channel settings, and copy-paste API examples, see the dedicated <a href="/docs/getting-started-for-public-api/support-platforms">Supported platforms</a> page.
+For per-channel settings, and copy-paste API examples — plus the **channel vs integration** terminology used across the dashboard and API — see the dedicated <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a> page.
 
 <CardGrid>
-<LinkCard title="Supported platforms" description="Provider identifiers, per-channel settings (Threads, Instagram), and curl/JSON examples for each platform we ship today" href="/docs/getting-started-for-public-api/support-platforms" />
+<LinkCard title="Supported social channels" description="Provider identifiers, per-channel settings (Threads, Instagram), and curl/JSON examples for each platform we ship today" href="/docs/getting-started-for-public-api/supported-social-channels" />
 </CardGrid>
 
 ## Generate Output
@@ -127,7 +121,7 @@ For the full method list (`upload`, `post`, `postList`, `getPostGroup`, `updateP
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Supported platforms" description="Per-provider settings and copy-paste API examples for Threads and Instagram" href="/docs/getting-started-for-public-api/support-platforms" />
+<LinkCard title="Supported social channels" description="Per-provider settings and copy-paste API examples for Threads and Instagram" href="/docs/getting-started-for-public-api/supported-social-channels" />
 <LinkCard title="Integrations APIs" description="Programmatic endpoints for connecting channels and triggering provider tools — what the SDK wraps" href="/docs/apis-integrations" />
 <LinkCard title="CLI" description="Same public API surface, available as openquok auth/posts/integrations commands" href="/docs/getting-started-for-cli" />
 </CardGrid>

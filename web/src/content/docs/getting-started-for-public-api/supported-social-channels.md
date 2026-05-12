@@ -1,6 +1,6 @@
 ---
-title: Supported platforms
-description: Providers Openquok currently supports — Meta Threads and Instagram (Business + Standalone) — plus the per-channel settings shape.
+title: Supported social channels
+description: Social channels Openquok currently supports — Meta Threads and Instagram (Business + Standalone) — plus the per-channel settings shape behind the public API.
 order: 1
 lastUpdated: 2026-05-12
 ---
@@ -8,6 +8,12 @@ lastUpdated: 2026-05-12
 <script>
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
+
+## Terminology
+
+<Callout type="note" title="Channel vs integration">
+<p>The Openquok UI/dashboard uses the term <strong>channel</strong>, while the API and SDK use <strong>integration</strong>. They refer to the same thing — a single connected social account inside a workspace.</p>
+</Callout>
 
 ## Overview
 
