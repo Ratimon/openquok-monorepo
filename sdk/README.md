@@ -10,7 +10,7 @@
 
 ## What Is It For
 
-`@openquok/node` helps you automate Openquok 's social scheduling  from Node.js:
+`@openquok/node-sdk` helps you automate Openquok 's social scheduling  from Node.js:
 
 - Create/schedule posts via the programmatic API
 - List posts / manage post groups
@@ -26,13 +26,13 @@ It’s intentionally small: just a typed wrapper around the HTTP endpoints.
 ### Installation
 
 ```bash
-npm install @openquok/node
+npm install @openquok/node-sdk
 ```
 
 ### Quick Guide
 
 ```ts
-import Openquok from "@openquok/node";
+import Openquok from "@openquok/node-sdk";
 
 const openquok = new Openquok("YOUR_API_KEY", {
   // optional (defaults shown)

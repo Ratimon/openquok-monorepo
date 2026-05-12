@@ -16,11 +16,12 @@ function stripNpmRunArgvPassthrough(args: string[]): string[] {
 
 async function buildApi(): Promise<OpenquokApi> {
   const base = getConfig();
-  if (!base.apiKey) {
-    const creds = await readCredentialsFile();
-    if (creds?.apiKey) {
-      return new OpenquokApi({ ...base, apiKey: creds.apiKey });
-    }
+  // Stored credentials (from `openquok auth:login`) take priority over `OPENQUOK_API_KEY`,
+  // an active OAuth2 session is not silently
+  // overridden by an env var left in the shell.
+  const creds = await readCredentialsFile();
+  if (creds?.apiKey) {
+    return new OpenquokApi({ ...base, apiKey: creds.apiKey });
   }
   return new OpenquokApi(base);
 }

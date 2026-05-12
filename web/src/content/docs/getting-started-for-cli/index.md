@@ -74,15 +74,11 @@ export OPENQUOK_API_KEY="opo_..."
 ```
 
 <Callout type="tip">
-Add the env to <Badge text="~/.bashrc" variant="path" />, <Badge text="~/.zshrc" variant="path" />, etc to Shell profile, so the env variable persists across sessions.
+Add the env to <Badge text="~/.bashrc" variant="path" />, or <Badge text="~/.zshrc" variant="path" />, etc to Shell profile, so the env variable persists across sessions.
 </Callout>
 
 <Callout type="warning">
-<Badge text="OPENQUOK_API_KEY" variant="envBackend" /> always takes precedence over stored credentials.
-</Callout>
-
-<Callout type="warning">
-OAuth2 credentials take priority over the API key.
+Stored OAuth2 credentials take priority over <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> when both are present. Run <code>openquok auth:logout</code> to clear them if you want the env var to be used.
 </Callout>
 
 

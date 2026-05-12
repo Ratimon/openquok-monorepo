@@ -67,7 +67,7 @@ openquok auth:status
 openquok auth:logout
 ```
 
-> **Note:** `OPENQUOK_API_KEY` always takes precedence over stored credentials.
+> **Note:** Stored credentials (from `openquok auth:login`) take priority over `OPENQUOK_API_KEY` when both are present. Run `openquok auth:logout` to clear them if you want the env var to be used.
 
 ---
 

@@ -9,7 +9,7 @@ lastUpdated: 2026-04-07
 import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTree } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-# Installation
+## Installation
 
 <CardGrid>
 <LinkCard title="Production deployment" description="Vercel API and web, Redis, optional BullMQ workers" href="/docs/installation/production-deployment" />

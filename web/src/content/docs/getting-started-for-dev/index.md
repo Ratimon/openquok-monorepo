@@ -12,7 +12,7 @@ import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTre
 Looking to edit or extend this documentation? Check out the <a href="/docs/how-to-write-docs">How to write docs</a> documentation.
 </Callout>
 
-# Getting Started
+## Start here !!
 
 <CardGrid>
 <LinkCard title="Project Architecture" description="Learn the project 's layout and architecture" href="/docs/getting-started-for-dev/architecture" />
