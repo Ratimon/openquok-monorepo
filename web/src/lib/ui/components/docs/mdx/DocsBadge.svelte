@@ -14,7 +14,8 @@
 			| 'envBackend'
 			| 'envWeb'
 			| 'envRuntime'
-			| 'path';
+			| 'path'
+			| 'param';
 	} = $props();
 
 	const variantMap = {
@@ -25,7 +26,8 @@
 		envBackend: { uiVariant: 'blue' as const, class: '' },
 		envWeb: { uiVariant: 'accent' as const, class: '' },
 		envRuntime: { uiVariant: 'gray' as const, class: '' },
-		path: { uiVariant: 'muted' as const, class: '' }
+		path: { uiVariant: 'muted' as const, class: '' },
+		param: { uiVariant: 'secondary' as const, class: '' }
 	} as const;
 
 	let current = $derived(variantMap[variant]);
