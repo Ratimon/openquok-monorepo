@@ -31,3 +31,30 @@ export const validatePublicUpdatePostGroupBody: RequestHandler = validateRequest
     body: publicUpdatePostGroupBodySchema,
 });
 
+/** `:postId` UUID param for single-post endpoints (delete/missing/release-id/analytics). */
+export const publicPostIdParamsSchema = z.object({
+    postId: z.string().uuid("Invalid post id"),
+});
+
+export const validatePublicPostIdParams: RequestHandler = validateRequest({
+    params: publicPostIdParamsSchema,
+});
+
+/** Optional `:integrationId` UUID param for `find-slot` (no id means "use all org integrations"). */
+export const publicFindSlotParamsSchema = z.object({
+    integrationId: z.string().uuid("Invalid integration id").optional(),
+});
+
+export const validatePublicFindSlotParams: RequestHandler = validateRequest({
+    params: publicFindSlotParamsSchema,
+});
+
+export const publicUpdateReleaseIdBodySchema = z.object({
+    releaseId: z.string().min(1, "releaseId is required"),
+});
+
+export const validatePublicUpdateReleaseIdRequest: RequestHandler = validateRequest({
+    params: publicPostIdParamsSchema,
+    body: publicUpdateReleaseIdBodySchema,
+});
+

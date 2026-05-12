@@ -231,8 +231,24 @@ export class PostsService {
 
     async findFreeSlot(organizationId: string, authUserId: string): Promise<string> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        return this._findFreeSlotForOrganization(organizationId, null);
+    }
 
-        const integrations = await this.integrationService.listByOrganization(organizationId);
+    /**
+     * Programmatic find-slot (org API key auth) for `{api.prefix}/public/posts/find-slot/:integrationId?`.
+     * When `integrationId` is provided, only that channel's `posting_times` contribute to the candidate list;
+     * otherwise all of the organization's integrations are considered (same as session UX).
+     */
+    async findFreeSlotProgrammatic(organizationId: string, integrationId?: string | null): Promise<string> {
+        return this._findFreeSlotForOrganization(organizationId, integrationId ?? null);
+    }
+
+    private async _findFreeSlotForOrganization(
+        organizationId: string,
+        integrationId: string | null
+    ): Promise<string> {
+        const all = await this.integrationService.listByOrganization(organizationId);
+        const integrations = integrationId ? all.filter((i) => i.id === integrationId) : all;
         const minutes = [
             ...new Set(
                 integrations
@@ -1208,6 +1224,196 @@ export class PostsService {
             postGroup,
             postIds: ids,
         });
+    }
+
+    /**
+     * Programmatic single-post delete (`DELETE {api.prefix}/public/posts/:postId`).
+     * (a post row never publishes in isolation; the group is the schedule unit).
+     */
+    async deletePostByIdProgrammatic(postId: string, organizationId: string): Promise<{ postGroup: string }> {
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+        await this.deletePostGroupProgrammatic(post.post_group, organizationId);
+        return { postGroup: post.post_group };
+    }
+
+    /**
+     * Programmatic candidates for `GET {api.prefix}/public/posts/:postId/missing` (org API key auth).
+     * Same return shape as {@link getMissingPublishCandidates} but skips membership checks.
+     */
+    async getMissingPublishCandidatesProgrammatic(params: {
+        organizationId: string;
+        postId: string;
+    }): Promise<{ id: string; url: string }[]> {
+        const { organizationId, postId } = params;
+
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+        if (!post.integration_id || post.release_id !== "missing") {
+            return [];
+        }
+
+        const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
+        if (!integrationRow) {
+            return [];
+        }
+
+        const provider = this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+        if (!provider?.missing) {
+            return [];
+        }
+        const missingFn = provider.missing;
+
+        const runMissing = async (forceRefresh: boolean): Promise<{ id: string; url: string }[]> => {
+            const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
+                force: forceRefresh,
+                provider,
+            });
+            if (!row) {
+                return [];
+            }
+            return missingFn(row.internal_id, row.token);
+        };
+
+        try {
+            return await runMissing(false);
+        } catch (e) {
+            if (e instanceof ProviderAccessTokenExpiredError) {
+                try {
+                    return await runMissing(true);
+                } catch {
+                    return [];
+                }
+            }
+            return [];
+        }
+    }
+
+    /**
+     * Programmatic release-id update (`PUT {api.prefix}/public/posts/:postId/release-id`).
+     * Same semantics as {@link updatePostReleaseId} without membership checks.
+     */
+    async updatePostReleaseIdProgrammatic(params: {
+        organizationId: string;
+        postId: string;
+        releaseId: string;
+    }): Promise<void> {
+        const { organizationId, postId, releaseId } = params;
+
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+
+        const trimmed = releaseId.trim();
+        if (!trimmed.length) {
+            throw new AppError("releaseId is required", 400);
+        }
+
+        const updated = await this.postsRepository.updateReleaseIdIfMissing(postId, organizationId, trimmed);
+        if (!updated) {
+            throw new AppError("Post cannot be linked", 400);
+        }
+
+        await this._invalidatePostAnalyticsCaches(organizationId, postId);
+
+        await this._invalidatePostMutationCaches({
+            organizationId,
+            postGroup: post.post_group,
+            postIds: [postId],
+        });
+    }
+
+    /**
+     * Programmatic post analytics (`GET {api.prefix}/public/analytics/post/:postId`).
+     * Same provider-driven flow as {@link checkPostAnalytics} but skips membership checks.
+     */
+    async checkPostAnalyticsProgrammatic(params: {
+        organizationId: string;
+        postId: string;
+        dateWindowDays: number;
+    }): Promise<AnalyticsData[] | { missing: true }> {
+        const { organizationId, postId, dateWindowDays } = params;
+
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+
+        if (!post.release_id) {
+            return [];
+        }
+        if (post.release_id === "missing") {
+            return { missing: true };
+        }
+        if (!post.integration_id) {
+            return [];
+        }
+
+        const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
+        if (!integrationRow || (integrationRow.type ?? "").toLowerCase() !== "social") {
+            return [];
+        }
+
+        const provider = this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+        if (!provider?.postAnalytics) {
+            return [];
+        }
+        const postAnalyticsFn = provider.postAnalytics;
+
+        const cacheKeyId = `post:${postId}`;
+        const cached = await this.integrationService.getCachedIntegrationPayload(
+            organizationId,
+            cacheKeyId,
+            String(dateWindowDays)
+        );
+        if (cached != null) {
+            return cached as AnalyticsData[];
+        }
+
+        const runPostAnalytics = async (forceRefresh: boolean): Promise<AnalyticsData[]> => {
+            const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
+                force: forceRefresh,
+                provider,
+            });
+            if (!row) {
+                return [];
+            }
+            return postAnalyticsFn(row.internal_id, row.token, post.release_id!, dateWindowDays);
+        };
+
+        try {
+            const data = await runPostAnalytics(false);
+            await this.integrationService.setCachedIntegrationPayload(
+                organizationId,
+                cacheKeyId,
+                String(dateWindowDays),
+                data as unknown[],
+                POST_ANALYTICS_CACHE_TTL_SEC
+            );
+            return data;
+        } catch (e) {
+            if (e instanceof ProviderAccessTokenExpiredError) {
+                try {
+                    const data = await runPostAnalytics(true);
+                    await this.integrationService.setCachedIntegrationPayload(
+                        organizationId,
+                        cacheKeyId,
+                        String(dateWindowDays),
+                        data as unknown[],
+                        POST_ANALYTICS_CACHE_TTL_SEC
+                    );
+                    return data;
+                } catch {
+                    return [];
+                }
+            }
+            return [];
+        }
     }
 
     async updatePostGroup(input: Omit<CreatePostInput, "organizationId"> & { postGroup: string; organizationId?: string | null }): Promise<{

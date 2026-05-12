@@ -124,6 +124,8 @@ For the full method list (`upload`, `post`, `postList`, `getPostGroup`, `updateP
 <LinkCard title="Supported social channels" description="Per-provider settings and copy-paste API examples for Threads and Instagram" href="/docs/getting-started-for-public-api/supported-social-channels" />
 <LinkCard title="Integrations APIs" description="Programmatic endpoints for connecting channels and triggering provider tools — what the SDK wraps" href="/docs/apis-integrations" />
 <LinkCard title="Posts APIs" description="Schedule, list, update, and delete post groups against your connected channels" href="/docs/apis-posts" />
+<LinkCard title="Analytics APIs" description="Platform and per-post insights backed by each provider's native analytics" href="/docs/apis-analytics" />
+<LinkCard title="Notifications APIs" description="Paginated in-app notification history scoped to your workspace" href="/docs/apis-notifications" />
 <LinkCard title="Uploads APIs" description="Upload media that you attach to scheduled posts" href="/docs/apis-uploads" />
 <LinkCard title="CLI" description="Same public API surface, available as openquok auth/posts/integrations commands" href="/docs/getting-started-for-cli" />
 </CardGrid>

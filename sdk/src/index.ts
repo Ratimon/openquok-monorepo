@@ -137,5 +137,106 @@ export default class Openquok {
             },
         });
     }
+
+    /**
+     * Upload media from a public URL. Server-side fetches the resource and stores it
+     * just like `upload(file, extension)`; returns the same `MediaUploadResponse`.
+     */
+    async uploadFromUrl(url: string) {
+        return await this.json(`${this.apiRoot}/public/upload-from-url`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.apiKey,
+            },
+            body: JSON.stringify({ url }),
+        });
+    }
+
+    /** Suggest next free schedule slot. Optional `integrationId` limits to a single channel's posting times. */
+    async findSlot(integrationId?: string) {
+        const suffix = integrationId ? `/${encodeURIComponent(integrationId)}` : "";
+        return await this.json(`${this.apiRoot}/public/posts/find-slot${suffix}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.apiKey,
+            },
+        });
+    }
+
+    /** Delete a single post by row id (soft-deletes the whole post group). */
+    async deletePost(postId: string) {
+        return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.apiKey,
+            },
+        });
+    }
+
+    /** Provider-side candidate ids/URLs when a published row has `release_id === "missing"`. */
+    async getMissingContent(postId: string) {
+        return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}/missing`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.apiKey,
+            },
+        });
+    }
+
+    /** Manually link a published row to a provider-native id (e.g. Threads media id). */
+    async updateReleaseId(postId: string, releaseId: string) {
+        return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}/release-id`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.apiKey,
+            },
+            body: JSON.stringify({ releaseId }),
+        });
+    }
+
+    /** Platform analytics for one channel over the given window (`7`, `30`, or `90` days). */
+    async getIntegrationAnalytics(integrationId: string, date: 7 | 30 | 90) {
+        return await this.json(
+            `${this.apiRoot}/public/analytics/${encodeURIComponent(integrationId)}?date=${date}`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: this.apiKey,
+                },
+            }
+        );
+    }
+
+    /** Per-post analytics over the given window. Returns `{ missing: true }` envelope when unlinked. */
+    async getPostAnalytics(postId: string, date: 7 | 30 | 90) {
+        return await this.json(
+            `${this.apiRoot}/public/analytics/post/${encodeURIComponent(postId)}?date=${date}`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: this.apiKey,
+                },
+            }
+        );
+    }
+
+    /** Paginated in-app notifications (page size 100). `page` is zero-based. */
+    async listNotifications(page = 0) {
+        const qs = page > 0 ? `?page=${page}` : "";
+        return await this.json(`${this.apiRoot}/public/notifications${qs}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.apiKey,
+            },
+        });
+    }
 }
 

@@ -277,6 +277,90 @@ export class MediaController {
     };
 
     /**
+     * Programmatic URL upload (`POST {api.prefix}/public/upload-from-url`). Organization from API key.
+     * Fetches the URL server-side, infers a mime type, and stores it through {@link uploadToStorage}
+     * just like the multipart `POST /public/upload` route.
+     */
+    uploadProgrammaticFromUrl = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const organization = (req as ProgrammaticAuthRequest).organization;
+            if (!organization?.id?.trim()) {
+                throw new UserValidationError("Organization required");
+            }
+
+            const url = typeof (req.body as any)?.url === "string" ? String((req.body as any).url).trim() : "";
+            if (!url) {
+                throw new UserValidationError("url is required");
+            }
+            try {
+                const parsed = new URL(url);
+                if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+                    throw new UserValidationError("Only http(s) URLs are supported");
+                }
+            } catch {
+                throw new UserValidationError("Invalid URL");
+            }
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new UserValidationError(`Failed to fetch URL (${response.status})`);
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            const headerType = (response.headers.get("content-type") ?? "").split(";")[0]?.trim() ?? "";
+            const pathPart = url.split("?")[0] ?? "";
+            const ext = pathPart.includes(".") ? pathPart.split(".").pop()!.toLowerCase() : "";
+            const extToMime: Record<string, string> = {
+                png: "image/png",
+                jpg: "image/jpeg",
+                jpeg: "image/jpeg",
+                gif: "image/gif",
+                webp: "image/webp",
+                mp4: "video/mp4",
+                mov: "video/quicktime",
+                webm: "video/webm",
+                pdf: "application/pdf",
+            };
+            const mimetype = (headerType || extToMime[ext] || "image/jpeg").toLowerCase();
+            const finalExt =
+                ext ||
+                (mimetype === "image/jpeg"
+                    ? "jpg"
+                    : mimetype.startsWith("image/") || mimetype.startsWith("video/")
+                      ? mimetype.split("/")[1]!
+                      : "bin");
+
+            const file = { buffer, originalname: `upload.${finalExt}`, mimetype };
+
+            const organizationId = organization.id;
+            const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+
+            const saved = await this.mediaService.saveFile({
+                organizationId,
+                name: filePath.split("/").pop() ?? filePath,
+                path: filePath,
+                originalName: file.originalname,
+                fileSize: buffer.length,
+                type: file.mimetype.startsWith("video/") ? "video" : "image",
+            });
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    filePath: saved.path,
+                    originalName: file.originalname,
+                    ...(saved.publicUrl ? { publicUrl: saved.publicUrl } : publicUrl ? { publicUrl } : {}),
+                    id: saved.id,
+                },
+                message: "Media uploaded successfully",
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
      * Programmatic upload (`POST {api.prefix}/public/upload`). Organization from API key / OAuth app token.
      * Multipart field name: `file` (same as `/media/upload-server` for session users).
      */

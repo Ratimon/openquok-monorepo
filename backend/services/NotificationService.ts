@@ -62,6 +62,17 @@ export class NotificationService {
     }
 
     /**
+     * Programmatic paginated notifications (`GET {api.prefix}/public/notifications`).
+     * Mirrors {@link getNotificationsPaginated} but skips the auth-user membership check
+     * because the organization is derived from the API key.
+     */
+    async getNotificationsPaginatedProgrammatic(organizationId: string, page: number) {
+        const limit = 100;
+        const batch = await this.notificationRepository.listPaginated(organizationId, page, limit);
+        return { ...batch, page, limit };
+    }
+
+    /**
      * Persist an in-app notification and optionally notify members by email (immediate or digest queue).
      * Digest entries are flushed by the notification-email BullMQ worker on an interval.
      */

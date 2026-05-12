@@ -236,4 +236,255 @@ describe("MediaController", () => {
             expect(next).toHaveBeenCalledTimes(1);
         });
     });
+
+    describe("uploadProgrammatic", () => {
+        function programmaticRequest(overrides: Partial<{ file: unknown; orgId: string | null }> = {}): Request {
+            return {
+                file: overrides.file ?? undefined,
+                organization: overrides.orgId === null ? undefined : { id: overrides.orgId ?? "org-1" },
+            } as unknown as Request;
+        }
+
+        it("requires an organization on the request (programmatic auth)", async () => {
+            const req = programmaticRequest({
+                file: { buffer: Buffer.from([1]), originalname: "a.png", mimetype: "image/png" },
+                orgId: null,
+            });
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammatic(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(uploadProvider.uploadFile).not.toHaveBeenCalled();
+        });
+
+        it("rejects when no multipart file is attached", async () => {
+            const req = programmaticRequest({ orgId: "org-1" });
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammatic(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(uploadProvider.uploadFile).not.toHaveBeenCalled();
+        });
+
+        it("uploads the multipart file and returns the saved media envelope", async () => {
+            uploadProvider.uploadFile.mockResolvedValue({
+                path: "org-1/abc.png",
+                publicUrl: "https://cdn.example.com/org-1/abc.png",
+            } as any);
+            mediaService.saveFile.mockResolvedValue({
+                id: "media-1",
+                path: "org-1/abc.png",
+                publicUrl: "https://cdn.example.com/org-1/abc.png",
+            });
+
+            const req = programmaticRequest({
+                file: { buffer: Buffer.from([1, 2, 3]), originalname: "logo.png", mimetype: "image/png" },
+                orgId: "org-1",
+            });
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammatic(req, res, next);
+
+            expect(uploadProvider.uploadFile).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    organizationId: "org-1",
+                    contentType: "image/png",
+                    originalName: "logo.png",
+                })
+            );
+            expect(mediaService.saveFile).toHaveBeenCalledWith(
+                expect.objectContaining({ organizationId: "org-1", type: "image", originalName: "logo.png" })
+            );
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    message: "Media uploaded successfully",
+                    data: expect.objectContaining({
+                        id: "media-1",
+                        filePath: "org-1/abc.png",
+                        originalName: "logo.png",
+                        publicUrl: "https://cdn.example.com/org-1/abc.png",
+                    }),
+                })
+            );
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it("falls back to an extension-derived mime when multer left mimetype empty", async () => {
+            uploadProvider.uploadFile.mockResolvedValue({ path: "org-1/clip.mp4", publicUrl: null } as any);
+            mediaService.saveFile.mockResolvedValue({ id: "media-2", path: "org-1/clip.mp4", publicUrl: null });
+
+            const req = programmaticRequest({
+                file: { buffer: Buffer.from([9]), originalname: "clip.mp4", mimetype: "" },
+                orgId: "org-1",
+            });
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammatic(req, res, next);
+
+            // No mp4 entry in the extension map → defaults to `application/octet-stream`, which is rejected
+            // by the mime allow-list, so the request is forwarded as a UserValidationError.
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(uploadProvider.uploadFile).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("uploadProgrammaticFromUrl", () => {
+        let fetchSpy: jest.SpyInstance;
+
+        function fromUrlRequest(body: unknown, orgId: string | null = "org-1"): Request {
+            return {
+                body,
+                organization: orgId === null ? undefined : { id: orgId },
+            } as unknown as Request;
+        }
+
+        function mockFetchResponse(opts: {
+            ok?: boolean;
+            status?: number;
+            contentType?: string | null;
+            body?: Uint8Array;
+        }): unknown {
+            const buf = opts.body ?? new Uint8Array([0xff, 0xd8, 0xff]);
+            return {
+                ok: opts.ok ?? true,
+                status: opts.status ?? 200,
+                arrayBuffer: jest.fn().mockResolvedValue(buf.buffer.slice(0)),
+                headers: { get: jest.fn().mockReturnValue(opts.contentType ?? null) },
+            };
+        }
+
+        beforeEach(() => {
+            fetchSpy = jest.spyOn(globalThis, "fetch" as never);
+        });
+
+        afterEach(() => {
+            fetchSpy.mockRestore();
+        });
+
+        it("requires an organization on the request", async () => {
+            const req = fromUrlRequest({ url: "https://example.com/a.png" }, null);
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticFromUrl(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(fetchSpy).not.toHaveBeenCalled();
+        });
+
+        it("rejects an empty body", async () => {
+            const req = fromUrlRequest({});
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticFromUrl(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(fetchSpy).not.toHaveBeenCalled();
+        });
+
+        it("rejects a malformed URL string", async () => {
+            const req = fromUrlRequest({ url: "not-a-url" });
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticFromUrl(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(fetchSpy).not.toHaveBeenCalled();
+        });
+
+        it("rejects non-http(s) schemes such as ftp:", async () => {
+            const req = fromUrlRequest({ url: "ftp://example.com/a.png" });
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticFromUrl(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(fetchSpy).not.toHaveBeenCalled();
+        });
+
+        it("forwards an error when fetch returns a non-2xx response", async () => {
+            fetchSpy.mockResolvedValue(mockFetchResponse({ ok: false, status: 404 }) as never);
+
+            const req = fromUrlRequest({ url: "https://example.com/missing.png" });
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticFromUrl(req, res, next);
+
+            expect(fetchSpy).toHaveBeenCalledWith("https://example.com/missing.png");
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(uploadProvider.uploadFile).not.toHaveBeenCalled();
+        });
+
+        it("uses the response Content-Type header to derive mime and saves the media", async () => {
+            fetchSpy.mockResolvedValue(
+                mockFetchResponse({ contentType: "image/png", body: new Uint8Array([1, 2, 3, 4]) }) as never
+            );
+            uploadProvider.uploadFile.mockResolvedValue({ path: "org-1/upload.png", publicUrl: null } as any);
+            mediaService.saveFile.mockResolvedValue({ id: "media-3", path: "org-1/upload.png", publicUrl: null });
+
+            const req = fromUrlRequest({ url: "https://example.com/banner.png" });
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticFromUrl(req, res, next);
+
+            expect(uploadProvider.uploadFile).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    organizationId: "org-1",
+                    contentType: "image/png",
+                    originalName: "upload.png",
+                })
+            );
+            expect(mediaService.saveFile).toHaveBeenCalledWith(
+                expect.objectContaining({ organizationId: "org-1", type: "image", fileSize: 4 })
+            );
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    data: expect.objectContaining({
+                        id: "media-3",
+                        filePath: "org-1/upload.png",
+                        originalName: "upload.png",
+                    }),
+                })
+            );
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it("falls back to the URL extension when the response omits Content-Type", async () => {
+            fetchSpy.mockResolvedValue(
+                mockFetchResponse({ contentType: null, body: new Uint8Array([1]) }) as never
+            );
+            uploadProvider.uploadFile.mockResolvedValue({ path: "org-1/upload.mp4", publicUrl: null } as any);
+            mediaService.saveFile.mockResolvedValue({ id: "media-4", path: "org-1/upload.mp4", publicUrl: null });
+
+            const req = fromUrlRequest({ url: "https://example.com/clip.mp4?signed=true" });
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticFromUrl(req, res, next);
+
+            expect(uploadProvider.uploadFile).toHaveBeenCalledWith(
+                expect.objectContaining({ contentType: "video/mp4", originalName: "upload.mp4" })
+            );
+            expect(mediaService.saveFile).toHaveBeenCalledWith(
+                expect.objectContaining({ type: "video", originalName: "upload.mp4" })
+            );
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(next).not.toHaveBeenCalled();
+        });
+    });
 });

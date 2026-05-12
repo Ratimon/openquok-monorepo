@@ -14,9 +14,13 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <CardGrid>
 <LinkCard title="List Posts" description="Return calendar rows in an ISO date window, optionally filtered by channel UUID" href="/docs/apis-posts/list" />
 <LinkCard title="Create Post" description="Create a draft or scheduled post group with one row per selected channel" href="/docs/apis-posts/create" />
+<LinkCard title="Find Slot" description="Suggest the next free posting slot for the workspace (or one specific channel)" href="/docs/apis-posts/find-slot" />
 <LinkCard title="Get Post Group" description="Fetch the edit-mode payload for a post group (body, per-channel overrides, media, provider settings)" href="/docs/apis-posts/get-group" />
 <LinkCard title="Update Post Group" description="Atomically replace the rows in a post group — add/remove channels, change schedule, edit content" href="/docs/apis-posts/update-group" />
+<LinkCard title="Delete Post" description="Delete a single post by row id (soft-deletes the whole post group it belongs to)" href="/docs/apis-posts/delete" />
 <LinkCard title="Delete Post Group" description="Soft-delete every row in a post group so it stops publishing and disappears from List Posts" href="/docs/apis-posts/delete-group" />
+<LinkCard title="Missing Content" description="List provider-side candidate ids when the worker could not link a published row" href="/docs/apis-posts/missing" />
+<LinkCard title="Update Release ID" description="Manually link a post row to a provider-native id when worker auto-link failed" href="/docs/apis-posts/release-id" />
 </CardGrid>
 
 <Callout type="note" title="Terminology">
@@ -42,5 +46,6 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <CardGrid>
 <LinkCard title="Integrations APIs" description="Connect, list, delete, and inspect the channels referenced in `integrationIds`" href="/docs/apis-integrations" />
 <LinkCard title="Uploads APIs" description="Upload media that you pass back as `media[]` when creating or updating a post group" href="/docs/apis-uploads" />
+<LinkCard title="Analytics APIs" description="Per-post analytics for the rows returned by List Posts" href="/docs/apis-analytics" />
 <LinkCard title="Public API" description="Authentication, base URL, payload wizard, and SDK quick start" href="/docs/getting-started-for-public-api" />
 </CardGrid>

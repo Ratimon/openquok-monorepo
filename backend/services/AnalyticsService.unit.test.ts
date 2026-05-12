@@ -238,4 +238,90 @@ describe("AnalyticsService", () => {
             );
         });
     });
+
+    describe("getIntegrationAnalyticsProgrammatic", () => {
+        const programmaticParams = () => ({ organizationId, integrationId, date: dateWindowDays });
+
+        it("does not require an assertOrganizationMember callback (API-key auth scopes the org)", async () => {
+            const row = createIntegrationRow();
+            mocks.integrations.getById.mockResolvedValue(row);
+            const analyticsFn = jest.fn().mockResolvedValue(sampleAnalytics);
+            mocks.manager.getSocialIntegration.mockReturnValue({
+                identifier: "threads",
+                analytics: analyticsFn,
+            } as unknown as SocialProvider);
+            mocks.integrations.getCachedIntegrationPayload.mockResolvedValue(null);
+
+            const out = await service(mocks).getIntegrationAnalyticsProgrammatic(programmaticParams());
+
+            expect(out).toEqual(sampleAnalytics);
+            expect(analyticsFn).toHaveBeenCalledWith(row.internal_id, row.token, dateWindowDays);
+        });
+
+        it("throws AppError 404 when integration row is missing", async () => {
+            mocks.integrations.getById.mockResolvedValue(null);
+
+            await expect(
+                service(mocks).getIntegrationAnalyticsProgrammatic(programmaticParams())
+            ).rejects.toMatchObject({
+                name: "AppError",
+                message: "Integration not found",
+                statusCode: 404,
+            });
+        });
+
+        it("returns empty array when integration type is not social", async () => {
+            mocks.integrations.getById.mockResolvedValue(createIntegrationRow({ type: "article" }));
+
+            const out = await service(mocks).getIntegrationAnalyticsProgrammatic(programmaticParams());
+
+            expect(out).toEqual([]);
+            expect(mocks.manager.getSocialIntegration).not.toHaveBeenCalled();
+        });
+
+        it("returns empty array when provider has no analytics implementation", async () => {
+            mocks.integrations.getById.mockResolvedValue(createIntegrationRow());
+            mocks.manager.getSocialIntegration.mockReturnValue({
+                identifier: "threads",
+            } as unknown as SocialProvider);
+
+            const out = await service(mocks).getIntegrationAnalyticsProgrammatic(programmaticParams());
+
+            expect(out).toEqual([]);
+            expect(mocks.integrations.getCachedIntegrationPayload).not.toHaveBeenCalled();
+        });
+
+        it("returns cached payload without calling provider.analytics when cache hits", async () => {
+            mocks.integrations.getById.mockResolvedValue(createIntegrationRow());
+            const analyticsFn = jest.fn().mockResolvedValue(sampleAnalytics);
+            mocks.manager.getSocialIntegration.mockReturnValue({
+                identifier: "threads",
+                analytics: analyticsFn,
+            } as unknown as SocialProvider);
+            mocks.integrations.getCachedIntegrationPayload.mockResolvedValue(sampleAnalytics);
+
+            const out = await service(mocks).getIntegrationAnalyticsProgrammatic(programmaticParams());
+
+            expect(out).toEqual(sampleAnalytics);
+            expect(analyticsFn).not.toHaveBeenCalled();
+            expect(mocks.integrations.setCachedIntegrationPayload).not.toHaveBeenCalled();
+        });
+
+        it("returns empty array when token is expired and refresh yields no access token", async () => {
+            const row = createIntegrationRow({
+                token_expiration: dayjs().subtract(1, "hour").toISOString(),
+            });
+            mocks.integrations.getById.mockResolvedValue(row);
+            mocks.manager.getSocialIntegration.mockReturnValue({
+                identifier: "threads",
+                analytics: jest.fn(),
+            } as unknown as SocialProvider);
+            mocks.refreshIntegrationService.refresh.mockResolvedValue(false);
+
+            const out = await service(mocks).getIntegrationAnalyticsProgrammatic(programmaticParams());
+
+            expect(out).toEqual([]);
+            expect(mocks.integrations.getCachedIntegrationPayload).not.toHaveBeenCalled();
+        });
+    });
 });

@@ -11,6 +11,15 @@ export const validateMediaOrganizationQuery: RequestHandler = validateRequest({
     query: mediaOrganizationQuerySchema,
 });
 
+/** Body schema for `POST {api.prefix}/public/upload-from-url` — programmatic URL-based media upload. */
+export const publicUploadFromUrlBodySchema = z.object({
+    url: z.string().url("Invalid URL").max(2048, "URL is too long"),
+});
+
+export const validatePublicUploadFromUrlBody: RequestHandler = validateRequest({
+    body: publicUploadFromUrlBodySchema,
+});
+
 export const saveMediaInformationBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     id: z.string().uuid("Invalid media id"),

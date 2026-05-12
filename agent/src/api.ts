@@ -80,6 +80,63 @@ export class OpenquokApi {
     });
   }
 
+  async findSlot(integrationId?: string): Promise<unknown> {
+    const suffix = integrationId ? `/${encodeURIComponent(integrationId)}` : "";
+    return await requestJson({ url: this.url(`/public/posts/find-slot${suffix}`), apiKey: this.cfg.apiKey });
+  }
+
+  async deletePost(postId: string): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/posts/${encodeURIComponent(postId)}`),
+      apiKey: this.cfg.apiKey,
+      method: "DELETE",
+    });
+  }
+
+  async getMissingContent(postId: string): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/posts/${encodeURIComponent(postId)}/missing`),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
+  async updateReleaseId(postId: string, releaseId: string): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/posts/${encodeURIComponent(postId)}/release-id`),
+      apiKey: this.cfg.apiKey,
+      method: "PUT",
+      body: { releaseId },
+    });
+  }
+
+  async getIntegrationAnalytics(integrationId: string, date: 7 | 30 | 90): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/analytics/${encodeURIComponent(integrationId)}?date=${date}`),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
+  async getPostAnalytics(postId: string, date: 7 | 30 | 90): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/analytics/post/${encodeURIComponent(postId)}?date=${date}`),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
+  async listNotifications(page = 0): Promise<unknown> {
+    const qs = page > 0 ? `?page=${page}` : "";
+    return await requestJson({ url: this.url(`/public/notifications${qs}`), apiKey: this.cfg.apiKey });
+  }
+
+  async uploadFromUrl(urlToFetch: string): Promise<unknown> {
+    return await requestJson({
+      url: this.url("/public/upload-from-url"),
+      apiKey: this.cfg.apiKey,
+      method: "POST",
+      body: { url: urlToFetch },
+    });
+  }
+
   async uploadFile(filePath: string): Promise<unknown> {
     if (!this.cfg.apiKey) {
       throw new Error("Not authenticated: set OPENQUOK_API_KEY or run `openquok auth:login`");

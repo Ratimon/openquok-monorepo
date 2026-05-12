@@ -96,6 +96,7 @@ type PostsRepoMock = jest.Mocked<
         | "listCommentsByPostId"
         | "insertComposerComment"
         | "listThreadRepliesByPostId"
+        | "updateReleaseIdIfMissing"
     >
 >;
 
@@ -120,6 +121,7 @@ function createPostsRepoMock(): PostsRepoMock {
         listCommentsByPostId: jest.fn(),
         insertComposerComment: jest.fn(),
         listThreadRepliesByPostId: jest.fn().mockResolvedValue([]),
+        updateReleaseIdIfMissing: jest.fn(),
     };
 }
 
@@ -1675,6 +1677,432 @@ describe("PostsService", () => {
             expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${existingA.id}`);
             expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${insertedRow.id}`);
             expect(invalidateEntity).toHaveBeenCalledWith("posts", postGroup);
+        });
+    });
+
+    describe("findFreeSlotProgrammatic", () => {
+        it("returns first free slot ISO without asserting organization membership", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, posting_times: JSON.stringify([{ time: 60 }]) },
+            ] as any);
+            postsRepo.hasQueueSlotTaken.mockResolvedValue(false);
+
+            const iso = await service().findFreeSlotProgrammatic(orgId);
+
+            // Programmatic auth: org is derived from the API key, so no member check is required.
+            expect(integrationConnection.assertOrganizationMember).not.toHaveBeenCalled();
+            expect(postsRepo.hasQueueSlotTaken).toHaveBeenCalledWith(orgId, iso);
+            expect(new Date(iso).getTime()).toBeGreaterThan(0);
+        });
+
+        it("filters posting times to a single integration when an integrationId is provided", async () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, posting_times: JSON.stringify([{ time: 60 }]) },
+                {
+                    id: otherIntegrationId,
+                    // Other channel's slots should NOT be considered when the caller targets `integrationId`.
+                    posting_times: JSON.stringify([{ time: 30 }, { time: 90 }]),
+                },
+            ] as any);
+            postsRepo.hasQueueSlotTaken.mockResolvedValue(false);
+
+            try {
+                const iso = await service().findFreeSlotProgrammatic(orgId, integrationId);
+                expect(iso).toBe("2026-01-01T01:00:00.000Z");
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it("returns a valid ISO when the organization has no posting times configured (fallback to now)", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, posting_times: null },
+            ] as any);
+
+            const iso = await service().findFreeSlotProgrammatic(orgId);
+
+            expect(postsRepo.hasQueueSlotTaken).not.toHaveBeenCalled();
+            expect(Number.isNaN(new Date(iso).getTime())).toBe(false);
+        });
+    });
+
+    describe("deletePostByIdProgrammatic", () => {
+        it("throws 404 when the post is not found", async () => {
+            postsRepo.getPostById.mockResolvedValue(null);
+
+            await expect(
+                service().deletePostByIdProgrammatic(faker.string.uuid(), orgId)
+            ).rejects.toMatchObject({ statusCode: 404 });
+            expect(postsRepo.softDeletePostsByGroup).not.toHaveBeenCalled();
+        });
+
+        it("throws 404 when the post belongs to a different organization", async () => {
+            const postId = faker.string.uuid();
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({ id: postId, organization_id: faker.string.uuid() })
+            );
+
+            await expect(
+                service().deletePostByIdProgrammatic(postId, orgId)
+            ).rejects.toMatchObject({ statusCode: 404 });
+            expect(postsRepo.softDeletePostsByGroup).not.toHaveBeenCalled();
+        });
+
+        it("soft-deletes the whole post group when post exists in the org and returns the group id", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = "group-prog-1";
+            const post = socialPostRow({
+                id: postId,
+                organization_id: orgId,
+                post_group: postGroup,
+            });
+            postsRepo.getPostById.mockResolvedValue(post);
+
+            const siblingId = faker.string.uuid();
+            postsRepo.listPostsByGroup.mockResolvedValue([
+                post,
+                socialPostRow({ id: siblingId, organization_id: orgId, post_group: postGroup }),
+            ]);
+
+            const out = await service().deletePostByIdProgrammatic(postId, orgId);
+
+            expect(out).toEqual({ postGroup });
+            expect(integrationConnection.assertOrganizationMember).not.toHaveBeenCalled();
+            expect(postsRepo.deleteTagAssignmentsForPostIds).toHaveBeenCalledWith([postId, siblingId]);
+            expect(postsRepo.softDeletePostsByGroup).toHaveBeenCalledWith(postGroup);
+        });
+    });
+
+    describe("getMissingPublishCandidatesProgrammatic", () => {
+        const postId = faker.string.uuid();
+
+        it("throws 404 when the post does not exist", async () => {
+            postsRepo.getPostById.mockResolvedValue(null);
+
+            await expect(
+                service().getMissingPublishCandidatesProgrammatic({ organizationId: orgId, postId })
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("throws 404 when the post belongs to a different organization", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({ id: postId, organization_id: faker.string.uuid() })
+            );
+
+            await expect(
+                service().getMissingPublishCandidatesProgrammatic({ organizationId: orgId, postId })
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("returns [] when post.release_id is not 'missing'", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    integration_id: integrationId,
+                    release_id: "rel-published-1",
+                })
+            );
+
+            const out = await service().getMissingPublishCandidatesProgrammatic({
+                organizationId: orgId,
+                postId,
+            });
+
+            expect(out).toEqual([]);
+            expect(integrationService.getById).not.toHaveBeenCalled();
+        });
+
+        it("returns [] when the missing-state post has no associated integration channel", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    integration_id: null,
+                    release_id: "missing",
+                })
+            );
+
+            const out = await service().getMissingPublishCandidatesProgrammatic({
+                organizationId: orgId,
+                postId,
+            });
+
+            expect(out).toEqual([]);
+            expect(integrationService.getById).not.toHaveBeenCalled();
+        });
+
+        it("returns [] when the channel row cannot be fetched", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    integration_id: integrationId,
+                    release_id: "missing",
+                })
+            );
+            integrationService.getById.mockResolvedValue(null as unknown as IntegrationLike);
+
+            const out = await service().getMissingPublishCandidatesProgrammatic({
+                organizationId: orgId,
+                postId,
+            });
+
+            expect(out).toEqual([]);
+        });
+    });
+
+    describe("updatePostReleaseIdProgrammatic", () => {
+        const postId = faker.string.uuid();
+        const postGroup = "group-rel-1";
+
+        it("throws 404 when the post does not exist", async () => {
+            postsRepo.getPostById.mockResolvedValue(null);
+
+            await expect(
+                service().updatePostReleaseIdProgrammatic({
+                    organizationId: orgId,
+                    postId,
+                    releaseId: "rel-1",
+                })
+            ).rejects.toMatchObject({ statusCode: 404 });
+            expect(postsRepo.updateReleaseIdIfMissing).not.toHaveBeenCalled();
+        });
+
+        it("throws 404 when the post belongs to a different organization", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({ id: postId, organization_id: faker.string.uuid() })
+            );
+
+            await expect(
+                service().updatePostReleaseIdProgrammatic({
+                    organizationId: orgId,
+                    postId,
+                    releaseId: "rel-1",
+                })
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("throws 400 when releaseId is blank after trimming", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({ id: postId, organization_id: orgId, release_id: "missing" })
+            );
+
+            await expect(
+                service().updatePostReleaseIdProgrammatic({
+                    organizationId: orgId,
+                    postId,
+                    releaseId: "   ",
+                })
+            ).rejects.toMatchObject({ statusCode: 400, message: "releaseId is required" });
+            expect(postsRepo.updateReleaseIdIfMissing).not.toHaveBeenCalled();
+        });
+
+        it("throws 400 when the repository refuses the update (e.g. post is not in 'missing' state)", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    post_group: postGroup,
+                    release_id: "rel-already-set",
+                })
+            );
+            postsRepo.updateReleaseIdIfMissing.mockResolvedValue(false);
+
+            await expect(
+                service().updatePostReleaseIdProgrammatic({
+                    organizationId: orgId,
+                    postId,
+                    releaseId: "rel-2",
+                })
+            ).rejects.toMatchObject({ statusCode: 400, message: "Post cannot be linked" });
+        });
+
+        it("updates release id and invalidates analytics + mutation caches", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    post_group: postGroup,
+                    release_id: "missing",
+                })
+            );
+            postsRepo.updateReleaseIdIfMissing.mockResolvedValue(true);
+
+            const invalidateKey = jest.fn().mockResolvedValue(true);
+            const invalidatePattern = jest.fn().mockResolvedValue(true);
+            const invalidateEntity = jest.fn().mockResolvedValue(true);
+
+            await service(undefined, {
+                invalidateKey,
+                invalidatePattern,
+                invalidateEntity,
+            }).updatePostReleaseIdProgrammatic({
+                organizationId: orgId,
+                postId,
+                releaseId: "  rel-123  ",
+            });
+
+            expect(postsRepo.updateReleaseIdIfMissing).toHaveBeenCalledWith(postId, orgId, "rel-123");
+            expect(invalidatePattern).toHaveBeenCalledWith(`integration:${orgId}:post:${postId}:*`);
+            expect(invalidatePattern).toHaveBeenCalledWith(`posts:calendar:list:${orgId}:*`);
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:group:${postGroup}`);
+            expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${postId}`);
+            expect(invalidateEntity).toHaveBeenCalledWith("posts", postGroup);
+        });
+    });
+
+    describe("checkPostAnalyticsProgrammatic", () => {
+        const postId = faker.string.uuid();
+        const dateWindowDays = 7;
+
+        it("throws 404 when the post does not exist", async () => {
+            postsRepo.getPostById.mockResolvedValue(null);
+
+            await expect(
+                service().checkPostAnalyticsProgrammatic({
+                    organizationId: orgId,
+                    postId,
+                    dateWindowDays,
+                })
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("throws 404 when the post belongs to a different organization", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({ id: postId, organization_id: faker.string.uuid() })
+            );
+
+            await expect(
+                service().checkPostAnalyticsProgrammatic({
+                    organizationId: orgId,
+                    postId,
+                    dateWindowDays,
+                })
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("returns [] when the post has not been published yet (no release_id)", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    integration_id: integrationId,
+                    release_id: null,
+                })
+            );
+
+            const out = await service().checkPostAnalyticsProgrammatic({
+                organizationId: orgId,
+                postId,
+                dateWindowDays,
+            });
+
+            expect(out).toEqual([]);
+            expect(integrationService.getById).not.toHaveBeenCalled();
+        });
+
+        it("returns { missing: true } when the worker could not map the released asset", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    integration_id: integrationId,
+                    release_id: "missing",
+                })
+            );
+
+            const out = await service().checkPostAnalyticsProgrammatic({
+                organizationId: orgId,
+                postId,
+                dateWindowDays,
+            });
+
+            expect(out).toEqual({ missing: true });
+            expect(integrationService.getById).not.toHaveBeenCalled();
+        });
+
+        it("returns [] when the post has no integration channel", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    integration_id: null,
+                    release_id: "rel-1",
+                })
+            );
+
+            const out = await service().checkPostAnalyticsProgrammatic({
+                organizationId: orgId,
+                postId,
+                dateWindowDays,
+            });
+
+            expect(out).toEqual([]);
+            expect(integrationService.getById).not.toHaveBeenCalled();
+        });
+
+        it("returns [] when the integration row is not of type 'social'", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    integration_id: integrationId,
+                    release_id: "rel-1",
+                })
+            );
+            integrationService.getById.mockResolvedValue({
+                id: integrationId,
+                provider_identifier: "threads",
+                type: "article",
+            } as unknown as IntegrationLike);
+
+            const out = await service().checkPostAnalyticsProgrammatic({
+                organizationId: orgId,
+                postId,
+                dateWindowDays,
+            });
+
+            expect(out).toEqual([]);
+            expect(integrationService.getCachedIntegrationPayload).not.toHaveBeenCalled();
+        });
+
+        it("returns cached payload without invoking the provider when cache hits", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    integration_id: integrationId,
+                    release_id: "rel-1",
+                })
+            );
+            integrationService.getById.mockResolvedValue({
+                id: integrationId,
+                provider_identifier: "threads",
+                type: "social",
+                token_expiration: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+            } as unknown as IntegrationLike);
+            integrationService.getCachedIntegrationPayload.mockResolvedValue([
+                { label: "Likes", data: [{ total: "5", date: "2026-01-01" }], percentageChange: 0 },
+            ]);
+
+            const out = await service().checkPostAnalyticsProgrammatic({
+                organizationId: orgId,
+                postId,
+                dateWindowDays,
+            });
+
+            expect(integrationService.getCachedIntegrationPayload).toHaveBeenCalledWith(
+                orgId,
+                `post:${postId}`,
+                String(dateWindowDays)
+            );
+            expect(out).toEqual([
+                { label: "Likes", data: [{ total: "5", date: "2026-01-01" }], percentageChange: 0 },
+            ]);
+            expect(integrationService.setCachedIntegrationPayload).not.toHaveBeenCalled();
         });
     });
 });

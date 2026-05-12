@@ -42,6 +42,8 @@ const swaggerDefinition = {
     tags: [
         { name: "Integrations", description: "Channels and providers" },
         { name: "Posts", description: "Post groups and per-channel post rows" },
+        { name: "Analytics", description: "Platform and per-post provider insights" },
+        { name: "Notifications", description: "Paginated in-app notification history" },
         { name: "Uploads", description: "Media uploads consumed by the Posts API" },
     ],
     servers: [{ url: "/api/v1", description: "API v1 (same origin as this spec when using the Vite dev proxy)" }],

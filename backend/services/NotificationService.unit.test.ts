@@ -202,6 +202,47 @@ describe("NotificationService", () => {
         });
     });
 
+    describe("getNotificationsPaginatedProgrammatic", () => {
+        it("returns batch with page and limit 100 without touching auth-user mappings", async () => {
+            const page = 3;
+            const batch = {
+                notifications: [
+                    {
+                        id: faker.string.uuid(),
+                        created_at: faker.date.recent().toISOString(),
+                        content: faker.lorem.sentence(),
+                        link: null,
+                    },
+                ],
+                total: 1,
+                hasMore: false,
+            };
+            notificationRepo.listPaginated.mockResolvedValue(batch);
+
+            const result = await service().getNotificationsPaginatedProgrammatic(organizationId, page);
+
+            expect(result).toEqual({ ...batch, page, limit: 100 });
+            expect(notificationRepo.listPaginated).toHaveBeenCalledWith(organizationId, page, 100);
+            // Programmatic auth: org is derived from the API key, so no session-user lookup is needed.
+            expect(orgRepo.findUserIdByAuthId).not.toHaveBeenCalled();
+            expect(orgRepo.findMembership).not.toHaveBeenCalled();
+        });
+
+        it("uses limit 100 regardless of the requested page", async () => {
+            notificationRepo.listPaginated.mockResolvedValue({
+                notifications: [],
+                total: 0,
+                hasMore: false,
+            });
+
+            await service().getNotificationsPaginatedProgrammatic(organizationId, 7);
+            await service().getNotificationsPaginatedProgrammatic(organizationId, 42);
+
+            expect(notificationRepo.listPaginated).toHaveBeenNthCalledWith(1, organizationId, 7, 100);
+            expect(notificationRepo.listPaginated).toHaveBeenNthCalledWith(2, organizationId, 42, 100);
+        });
+    });
+
     describe("inAppNotification", () => {
         const subject = faker.lorem.words(3);
         const message = faker.lorem.paragraph();

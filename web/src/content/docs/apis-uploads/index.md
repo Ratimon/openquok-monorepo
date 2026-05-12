@@ -13,6 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 <CardGrid>
 <LinkCard title="Upload File" description="Multipart upload (field name `file`) for images, video, audio, and PDF — returns the media id and storage path" href="/docs/apis-uploads/upload" />
+<LinkCard title="Upload from URL" description="Server-side fetches a public URL and stores it — same return shape as Upload File" href="/docs/apis-uploads/upload-from-url" />
 </CardGrid>
 
 <Callout type="note" title="How uploads chain into posts">

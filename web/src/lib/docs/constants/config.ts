@@ -58,6 +58,16 @@ export const docsSidebarPublicApi: DocsSidebarSection[] = [
 		autogenerate: { directory: 'apis-posts' }
 	},
 	{
+		label: 'Analytics',
+		icon: icons.Activity.name,
+		autogenerate: { directory: 'apis-analytics' }
+	},
+	{
+		label: 'Notifications',
+		icon: icons.Bell.name,
+		autogenerate: { directory: 'apis-notifications' }
+	},
+	{
 		label: 'Uploads',
 		icon: icons.Image.name,
 		autogenerate: { directory: 'apis-uploads' }

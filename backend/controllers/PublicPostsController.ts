@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import type { ProgrammaticAuthRequest } from "../middlewares/programmaticAuth";
 import type { PostsService, RepeatIntervalKey } from "../services/PostsService";
 import { PostDTOMapper } from "../utils/dtos/PostDTO";
+import { countPublicApiRequest } from "../connections/index";
 
 /**
  * Programmatic posts API: organization resolved from API key (`{api.prefix}/public/posts/*`).
@@ -9,6 +10,69 @@ import { PostDTOMapper } from "../utils/dtos/PostDTO";
  */
 export class PublicPostsController {
     constructor(private readonly postsService: PostsService) {}
+
+    /** GET /public/posts/find-slot/:integrationId? — next free schedule slot for the organization. */
+    findSlot = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("posts-find-slot");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const integrationId =
+                typeof (req.params as { integrationId?: string }).integrationId === "string"
+                    ? (req.params as { integrationId?: string }).integrationId
+                    : null;
+            const date = await this.postsService.findFreeSlotProgrammatic(organizationId, integrationId);
+            res.status(200).json({ success: true, data: { date } });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** DELETE /public/posts/:postId — soft-deletes the whole post group the row belongs to. */
+    deletePostById = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("posts-delete");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const postId = (req.params as { postId: string }).postId;
+            const result = await this.postsService.deletePostByIdProgrammatic(postId, organizationId);
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /public/posts/:postId/missing — candidate published assets for `release_id = "missing"` rows. */
+    getMissingContent = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("posts-missing");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const postId = (req.params as { postId: string }).postId;
+            const items = await this.postsService.getMissingPublishCandidatesProgrammatic({
+                organizationId,
+                postId,
+            });
+            res.status(200).json({ success: true, data: { items } });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** PUT /public/posts/:postId/release-id — manually link a published release id when worker mapping failed. */
+    updateReleaseId = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("posts-release-id");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const postId = (req.params as { postId: string }).postId;
+            const { releaseId } = req.body as { releaseId: string };
+            await this.postsService.updatePostReleaseIdProgrammatic({
+                organizationId,
+                postId,
+                releaseId,
+            });
+            res.status(200).json({ success: true });
+        } catch (error) {
+            next(error);
+        }
+    };
 
     /** GET /public/posts/list?start=...&end=...&integrationIds=... */
     listPosts = async (req: Request, res: Response, next: NextFunction) => {

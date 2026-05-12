@@ -24,6 +24,29 @@ export class AnalyticsService {
 
         await assertOrganizationMember(authUserId, organizationId);
 
+        return this._fetchIntegrationAnalytics({ organizationId, integrationId, date });
+    }
+
+    /**
+     * Programmatic platform analytics (`GET {api.prefix}/public/analytics/:integrationId`).
+     * Same provider-driven flow as {@link getIntegrationAnalytics} but skips membership checks
+     * because the organization is derived from the API key.
+     */
+    async getIntegrationAnalyticsProgrammatic(params: {
+        organizationId: string;
+        integrationId: string;
+        date: number;
+    }): Promise<AnalyticsData[]> {
+        return this._fetchIntegrationAnalytics(params);
+    }
+
+    private async _fetchIntegrationAnalytics(params: {
+        organizationId: string;
+        integrationId: string;
+        date: number;
+    }): Promise<AnalyticsData[]> {
+        const { organizationId, integrationId, date } = params;
+
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row) {
             throw new AppError("Integration not found", 404);
