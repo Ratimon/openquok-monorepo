@@ -9,13 +9,76 @@ lastUpdated: 2026-05-11
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-## Start Integrating
+
+## Authentication
+
+There are two ways to authenticate with the Openquok public API. In both cases the token is sent in the <Badge text="Authorization" variant="default" /> header and currently uses the <Badge text="opo_" variant="default" /> prefix.
+
+### API key
+
+Get your workspace API key from <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />, then reveal and copy it from the **API Key** panel. Send it on every request:
+
+```bash
+curl -H "Authorization: opo_your_api_key" https://api.openquok.com/api/v1/public/integrations
+```
+
+API keys belong to a **workspace (organization)** and act with that workspace's permissions. We may rotate from the same panel ounce in a while.
+
+### OAuth2 access token
+
+If you are building an app for other Openquok users, use the <a href="/docs/developer-guidelines/oauth2-authentication">OAuth2 Authorization Code flow</a> to obtain tokens that act on behalf of users. The returned <Badge text="access_token" variant="default" /> is sent the same way as an API key:
+
+```bash
+curl -H "Authorization: opo_your_oauth_token" https://api.openquok.com/api/v1/public/integrations
+```
+
+OAuth tokens are scoped to the **organization the user authorized** — not to the developer who built the app — so the same endpoint returns different data depending on which token is used.
+
+## Base URL
+
+| Environment | Base URL |
+| --- | --- |
+| Openquok Cloud | <Badge text="https://api.openquok.com/api/v1/public" variant="new" /> |
+| Self-hosted | Your <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> origin + <Badge text="/api/v1/public" variant="path" /> |
+
+The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Badge text="API_PREFIX" variant="envBackend" />.
+
+## Rate limits
+
+<Callout type="warning" title="30 requests per hour">
+<p>A <strong>30 requests per hour</strong> limit applies to all endpoints. This does not mean you can only post 30 times per hour — each API call counts as one request, so <strong>schedule multiple posts in a single request</strong> (for example a multi-channel post group) to maximize throughput.</p>
+</Callout>
+
+## Terminology
+
+<Callout type="note" title="Channel vs integration">
+<p>The Openquok UI/dashboard uses the term <strong>channel</strong>, while the API and SDK use <strong>integration</strong>. They refer to the same thing — a single connected social account inside a workspace.</p>
+</Callout>
+
+## Supported platforms
+
+Openquok currently ships with **3 social provider integrations**: **Meta Threads** and **Instagram** in two flavors (Business and Standalone). Each connected channel goes through the same <Badge text="POST /api/v1/public/posts" variant="default" /> endpoint — provider-specific tuning lives under <code>providerSettingsByIntegrationId</code> keyed by the channel's UUID.
+
+For provider identifiers, per-channel settings, and copy-paste API examples, see the dedicated <a href="/docs/getting-started-for-public-api/support-platforms">Supported platforms</a> page.
+
+<CardGrid>
+<LinkCard title="Supported platforms" description="Provider identifiers, per-channel settings (Threads, Instagram), and curl/JSON examples for each platform we ship today" href="/docs/getting-started-for-public-api/support-platforms" />
+</CardGrid>
+
+## Generate Output
+
+Skip hand-writing JSON — open the <a href="/account/payload-wizard">Payload Wizard</a> instead.
+
+
+![Wizard Payload Generator](/docs/getting-started-for-public-api/wizard-payload.webp)
+
+
+It's the same post composer you already use in the Openquok app, but the schedule buttons are swapped for <Badge text="Copy scheduled payload" variant="new" /> and <Badge text="Copy draft payload" variant="default" />, so you can drop the result straight into a <Badge text="POST /api/v1/public/posts" variant="default" /> request body.
+
+## Start Integrating with SDK
 
 <Badge text="@openquok/node-sdk" variant="experimental" /> is a small, typed Node.js wrapper around Openquok's programmatic API (<Badge text="/api/v1/public" variant="default" />). Use it to schedule posts, manage post groups, upload media, and inspect connected channels from any Node.js script or backend.
 
-<Callout type="note" title="Authentication">
-<p>Pass an organization <strong>API key</strong> (or OAuth app token) as the first argument to the <code>Openquok</code> constructor — it is sent as the <Badge text="Authorization" variant="default" /> header on every request.
-</Callout>
 
 ### Installation
 
@@ -24,6 +87,10 @@ npm install @openquok/node-sdk
 ```
 
 ### Quick guide
+
+<Callout type="note" title="Authentication">
+<p>Pass an organization <strong>API key</strong> (or OAuth app token) as the first argument to the <code>Openquok</code> constructor — it is sent as the <Badge text="Authorization" variant="default" /> header on every request.
+</Callout>
 
 ```ts
 import Openquok from '@openquok/node-sdk';
@@ -60,6 +127,7 @@ For the full method list (`upload`, `post`, `postList`, `getPostGroup`, `updateP
 ## Related Section(s)
 
 <CardGrid>
+<LinkCard title="Supported platforms" description="Per-provider settings and copy-paste API examples for Threads and Instagram" href="/docs/getting-started-for-public-api/support-platforms" />
 <LinkCard title="Integrations APIs" description="Programmatic endpoints for connecting channels and triggering provider tools — what the SDK wraps" href="/docs/apis-integrations" />
 <LinkCard title="CLI" description="Same public API surface, available as openquok auth/posts/integrations commands" href="/docs/getting-started-for-cli" />
 </CardGrid>
