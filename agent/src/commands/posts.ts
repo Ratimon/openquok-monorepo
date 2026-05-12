@@ -185,6 +185,116 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           printJson(out);
         });
       }
+    )
+    .command(
+      "posts:find-slot [integrationId]",
+      "Find the next available publishing slot for the workspace (or a single channel)",
+      (yy: Argv) =>
+        yy
+          .positional("integrationId", {
+            type: "string",
+            describe:
+              "Optional integration UUID. When provided, only that channel's posting_times contribute to the candidate slots.",
+          })
+          .example(
+            "$0 posts:find-slot",
+            "Next free slot considering posting_times across every connected channel"
+          )
+          .example(
+            "$0 posts:find-slot 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b",
+            "Next free slot using only one channel's posting_times"
+          ),
+      async (args: any) => {
+        await runCommand("posts:find-slot", async () => {
+          const api = await ctx.buildApi();
+          const integrationId =
+            typeof args.integrationId === "string" && args.integrationId.trim()
+              ? args.integrationId.trim()
+              : undefined;
+          const out = await api.findSlot(integrationId);
+          printJson(out);
+        });
+      }
+    )
+    .command(
+      "posts:delete <postId>",
+      "Soft-delete a single post (also deletes the post's group — a row never publishes in isolation)",
+      (yy: Argv) =>
+        yy
+          .positional("postId", {
+            type: "string",
+            demandOption: true,
+            describe: "Post UUID (from `openquok posts:list`)",
+          })
+          .example(
+            "$0 posts:delete 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d",
+            "Cancel a scheduled post (and any siblings in the same group)"
+          ),
+      async (args: any) => {
+        await runCommand("posts:delete", async () => {
+          const api = await ctx.buildApi();
+          const out = await api.deletePost(requireArg("postId", args.postId));
+          printJson(out);
+        });
+      }
+    )
+    .command(
+      "posts:missing <postId>",
+      "List provider-side candidates for a published post whose release_id is 'missing'",
+      (yy: Argv) =>
+        yy
+          .positional("postId", {
+            type: "string",
+            demandOption: true,
+            describe: "Post UUID (must have release_id === 'missing')",
+          })
+          .example(
+            "$0 posts:missing 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d",
+            "Fetch candidate IDs/thumbnails so you can pick the matching published asset"
+          )
+          .example(
+            "$0 posts:missing 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d | jq '.[] | {id, url}'",
+            "Flatten the candidate list with jq"
+          ),
+      async (args: any) => {
+        await runCommand("posts:missing", async () => {
+          const api = await ctx.buildApi();
+          const out = await api.getMissingContent(requireArg("postId", args.postId));
+          printJson(out);
+        });
+      }
+    )
+    .command(
+      "posts:connect <postId>",
+      "Connect a 'missing' post to its real provider release id (unlocks per-post analytics)",
+      (yy: Argv) =>
+        yy
+          .positional("postId", {
+            type: "string",
+            demandOption: true,
+            describe: "Post UUID whose release_id is currently 'missing'",
+          })
+          .option("releaseId", {
+            alias: "r",
+            type: "string",
+            demandOption: true,
+            describe:
+              "Provider-native release id (from `posts:missing`), e.g. a TikTok video id or Threads post id",
+          })
+          .example(
+            '$0 posts:connect 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --releaseId "7321456789012345678"',
+            "Link a post to its published asset on the provider"
+          ),
+      async (args: any) => {
+        await runCommand("posts:connect", async () => {
+          const api = await ctx.buildApi();
+          const out = await api.updateReleaseId(
+            requireArg("postId", args.postId),
+            requireArg("releaseId", args.releaseId)
+          );
+          printJson(out);
+        });
+      }
     );
 };
 
