@@ -8,6 +8,7 @@
 
 	import { cn } from '$lib/ui/helpers/common';
 	import { docsConfig } from '$lib/docs/constants';
+	import { getDocsTabIdFromPathname } from '$lib/docs/navigation';
 	import { docsHttpMethodBadgeClass } from '$lib/docs/utils/openapi-docs-layout';
 
 	import * as Collapsible from '$lib/ui/collapsible/index.js';
@@ -42,6 +43,9 @@
 	function sectionHasActive(section: NavItem): boolean {
 		return section.items?.some((item) => isActive(item.href)) ?? false;
 	}
+
+	/** Expand every sidebar section when the active page is inside the Public API tab (`/docs/getting-started-for-public-api` or `/docs/apis-*`) so the full API surface is browsable. */
+	let expandAllSections = $derived(getDocsTabIdFromPathname(page.url.pathname) === 'public-api');
 </script>
 
 <Sidebar.Root
@@ -121,7 +125,10 @@
 			<Sidebar.Menu>
 				{#each navigation as section (section.title)}
 					<Sidebar.MenuItem>
-						<Collapsible.Root open={sectionHasActive(section)} class="group/collapsible w-full">
+						<Collapsible.Root
+							open={expandAllSections || sectionHasActive(section)}
+							class="group/collapsible w-full"
+						>
 							<Collapsible.Trigger
 								class={cn(
 									sidebarMenuButtonVariants({ size: 'default' }),
