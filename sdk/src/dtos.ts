@@ -14,6 +14,11 @@ export type PublicListPostsQueryDto = {
      * When omitted, all integrations (including ungrouped) are returned.
      */
     integrationIds?: string;
+    /**
+     * Optional channel group id (`integration_customers.id` for the workspace).
+     * When set, only posts whose channel belongs to that group are returned.
+     */
+    customerGroupId?: string;
 };
 
 export type PublicCreatePostMediaItemDto = {

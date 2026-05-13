@@ -17,7 +17,10 @@
  *       Returns the calendar rows visible to the API key's organization within
  *       the `start..end` ISO range. Pass `integrationIds` as a comma-separated
  *       list of channel UUIDs to narrow the result; omit to include every
- *       channel (and ungrouped posts).
+ *       channel (and ungrouped posts). Pass `customerGroupId` as the UUID of an
+ *       `integration_customers` row to restrict to integrations assigned to
+ *       that channel group; if `integrationIds` is also set, the result is the
+ *       intersection.
  *     parameters:
  *       - in: query
  *         name: start
@@ -42,6 +45,14 @@
  *         schema:
  *           type: string
  *         example: '1f9a4f3a-3b2c-4f4a-9d8e-7a3f6b1c8e22,2c8b5e4a-5a4b-4f7d-8e2c-9b3f1c4d5e22'
+ *       - in: query
+ *         name: customerGroupId
+ *         required: false
+ *         description: Optional channel-group UUID (`integration_customers.id`). Restricts to integrations with that `customer_id`. Combined with `integrationIds` as intersection.
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         example: '7b2c9d1e-4a3f-4e5b-8c7d-1a2b3c4d5e6f'
  *     responses:
  *       '200':
  *         description: Posts (one DTO per row, multi-channel groups appear as separate rows sharing `postGroup`).

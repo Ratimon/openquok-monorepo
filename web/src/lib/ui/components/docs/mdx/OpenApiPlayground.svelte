@@ -8,7 +8,7 @@
 		defaultPathPlaceholder,
 		defaultServerUrl,
 		getApiKeyHeaderName,
-		getOperation,
+		resolveOpenapiOperationNode,
 		groupOperationParameters,
 		operationRequiresApiKey,
 		jsonBodyExampleOrEmpty,
@@ -152,7 +152,7 @@
 				if (cancelled) return;
 
 				spec = nextSpec;
-				const nextOp = getOperation(nextSpec, parsed.method, parsed.path);
+				const nextOp = resolveOpenapiOperationNode(nextSpec, parsed.method, parsed.path);
 				resetFromOperation(parsed, nextSpec, nextOp);
 			} catch (e) {
 				if (!cancelled) {

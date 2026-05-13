@@ -38,6 +38,16 @@ export const docsSidebarCli: DocsSidebarSection[] = [
 		label: 'Get Started',
 		icon: icons.Braces.name,
 		autogenerate: { directory: 'getting-started-for-cli' }
+	},
+	{
+		label: 'Usage',
+		icon: icons.Terminal.name,
+		autogenerate: { directory: 'cli-usages' }
+	},
+	{
+		label: 'Examples',
+		icon: icons.Sparkles.name,
+		autogenerate: { directory: 'cli-examples' }
 	}
 ];
 

@@ -934,6 +934,93 @@ describe("PostsService", () => {
         });
     });
 
+    describe("listPostsForCalendarProgrammatic", () => {
+        const startIso = new Date("2030-06-01T00:00:00.000Z").toISOString();
+        const endIso = new Date("2030-06-02T00:00:00.000Z").toISOString();
+        const customerGroupId = faker.string.uuid();
+
+        it("returns empty without calling repository when customerGroupId matches no integrations", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, customer_id: null } as IntegrationLike,
+            ]);
+
+            const out = await service().listPostsForCalendarProgrammatic({
+                organizationId: orgId,
+                startIso,
+                endIso,
+                customerGroupId,
+            });
+
+            expect(out).toEqual([]);
+            expect(postsRepo.listPostsByOrganizationAndDateRange).not.toHaveBeenCalled();
+        });
+
+        it("narrows to integrations for customerGroupId before listing", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, customer_id: customerGroupId } as IntegrationLike,
+                { id: otherIntegrationId, customer_id: customerGroupId } as IntegrationLike,
+            ]);
+            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue([]);
+
+            await service().listPostsForCalendarProgrammatic({
+                organizationId: orgId,
+                startIso,
+                endIso,
+                customerGroupId,
+            });
+
+            expect(integrationService.listByOrganization).toHaveBeenCalledWith(orgId);
+            expect(postsRepo.listPostsByOrganizationAndDateRange).toHaveBeenCalledWith({
+                organizationId: orgId,
+                startIso,
+                endIso,
+                integrationIds: expect.arrayContaining([integrationId, otherIntegrationId]),
+            });
+            const passed = postsRepo.listPostsByOrganizationAndDateRange.mock.calls[0][0].integrationIds as string[];
+            expect(passed).toHaveLength(2);
+        });
+
+        it("intersects integrationIds with customer integrations", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, customer_id: customerGroupId } as IntegrationLike,
+                { id: otherIntegrationId, customer_id: customerGroupId } as IntegrationLike,
+            ]);
+            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue([]);
+
+            await service().listPostsForCalendarProgrammatic({
+                organizationId: orgId,
+                startIso,
+                endIso,
+                customerGroupId,
+                integrationIds: [otherIntegrationId],
+            });
+
+            expect(postsRepo.listPostsByOrganizationAndDateRange).toHaveBeenCalledWith({
+                organizationId: orgId,
+                startIso,
+                endIso,
+                integrationIds: [otherIntegrationId],
+            });
+        });
+
+        it("returns empty when integrationIds and customerGroupId do not intersect", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, customer_id: customerGroupId } as IntegrationLike,
+            ]);
+
+            const out = await service().listPostsForCalendarProgrammatic({
+                organizationId: orgId,
+                startIso,
+                endIso,
+                customerGroupId,
+                integrationIds: [otherIntegrationId],
+            });
+
+            expect(out).toEqual([]);
+            expect(postsRepo.listPostsByOrganizationAndDateRange).not.toHaveBeenCalled();
+        });
+    });
+
     describe("getPostGroup", () => {
         it("throws 404 when group has no posts", async () => {
             postsRepo.listPostsByGroup.mockResolvedValue([]);

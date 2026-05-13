@@ -280,6 +280,11 @@ export class PostsService {
         return addMinutes(tomorrowStart, minutes[0]!).toISOString();
     }
 
+    private async listIntegrationIdsForCustomerGroup(organizationId: string, customerGroupId: string): Promise<string[]> {
+        const all = await this.integrationService.listByOrganization(organizationId);
+        return all.filter((i) => i.customer_id === customerGroupId).map((i) => i.id);
+    }
+
     async listTags(organizationId: string, authUserId: string) {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
         const cacheKey = tagsListCacheKey(organizationId);
@@ -586,8 +591,11 @@ export class PostsService {
         startIso: string;
         endIso: string;
         integrationIds?: string[] | null;
+        /** When set, narrows to integrations whose `customer_id` matches this `integration_customers.id`. */
+        customerGroupId?: string | null;
     }): Promise<SocialPostLike[]> {
-        const { organizationId, startIso, endIso, integrationIds } = params;
+        const { organizationId, startIso, endIso, customerGroupId } = params;
+        let integrationIds: string[] | null | undefined = params.integrationIds ?? null;
 
         const start = new Date(startIso);
         const end = new Date(endIso);
@@ -596,6 +604,22 @@ export class PostsService {
         }
         if (start.getTime() > end.getTime()) {
             throw new AppError("Start must be before end", 400);
+        }
+
+        if (customerGroupId) {
+            const idsForCustomer = await this.listIntegrationIdsForCustomerGroup(organizationId, customerGroupId);
+            if (idsForCustomer.length === 0) {
+                return [];
+            }
+            if (integrationIds && integrationIds.length > 0) {
+                const allowed = new Set(idsForCustomer);
+                integrationIds = integrationIds.filter((id) => allowed.has(id));
+                if (integrationIds.length === 0) {
+                    return [];
+                }
+            } else {
+                integrationIds = idsForCustomer;
+            }
         }
 
         const startIsoNorm = start.toISOString();

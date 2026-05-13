@@ -2,7 +2,7 @@
 title: Overview - CLI
 description: Install and automate social media content pipeline using the Openquok CLI from your terminal.
 order: 0
-lastUpdated: 2026-05-09
+lastUpdated: 2026-05-12
 ---
 
 <script>
@@ -96,6 +96,10 @@ export OPENQUOK_API_URL="https://api.yourserver.com"
 
 ## Quick start
 
+<Callout type="note">
+All commands output as a JSON, so that it is easier for the CLI to use in scripts and automation pipelines.
+</Callout>
+
 **List your connected social media channels or accounts:**
 
 ```bash
@@ -118,10 +122,10 @@ openquok posts:create \
 openquok upload ./image.png
 ```
 
-**List your scheudled posts:**
+**List your scheduled posts** (defaults to ±30 local calendar days from today when you omit dates):
 
 ```bash
-openquok integrations:list
+openquok posts:list
 ```
 
 ## Commands (overview)
@@ -145,6 +149,7 @@ openquok integrations:trigger <id> <method> [--data '<json>']
 **Posts**
 
 ```bash
+openquok posts:list
 openquok posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z"
 openquok posts:group <postGroupUuid>
 openquok posts:update-group <postGroupUuid> --json '{"scheduledAt":"...","status":"draft"}'
@@ -155,8 +160,9 @@ openquok posts:delete-group <postGroupUuid>
 ## Explore More ?
 
 <CardGrid>
+<LinkCard title="CLI Usage" description="Command-by-command reference" href="/docs/cli-usages" />
+<LinkCard title="CLI Examples" description="e.g. Meta Threads and Instagram (Business / Standalone)" href="/docs/cli-examples" />
 <LinkCard title="Public API" description="REST endpoints and OAuth used by the CLI and integrations" href="/docs/getting-started-for-public-api" />
-<LinkCard title="Learn more" description="Want to understand More?" />
 </CardGrid>
 
 ## Related Section(s)

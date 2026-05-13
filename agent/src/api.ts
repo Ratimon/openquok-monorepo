@@ -44,11 +44,18 @@ export class OpenquokApi {
     });
   }
 
-  async listPosts(params: { start: string; end: string; integrationIds?: string }): Promise<unknown> {
+  async listPosts(params: {
+    start: string;
+    end: string;
+    integrationIds?: string;
+    /** `integration_customers.id` (channel group) for this workspace. */
+    customerGroupId?: string;
+  }): Promise<unknown> {
     const u = new URL(this.url("/public/posts/list"));
     u.searchParams.set("start", params.start);
     u.searchParams.set("end", params.end);
     if (params.integrationIds) u.searchParams.set("integrationIds", params.integrationIds);
+    if (params.customerGroupId) u.searchParams.set("customerGroupId", params.customerGroupId);
     return await requestJson({ url: u.toString(), apiKey: this.cfg.apiKey });
   }
 

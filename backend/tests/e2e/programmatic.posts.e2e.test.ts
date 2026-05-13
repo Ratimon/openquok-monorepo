@@ -171,6 +171,18 @@ describe("Programmatic posts API", () => {
             expect(listRes.status).toBe(200);
             expect(listRes.body?.success).toBe(true);
             expect(Array.isArray(listRes.body?.data?.posts)).toBe(true);
+
+            const listByCustomer = await supertest(app)
+                .get(`${publicPostsPath}/list`)
+                .query({
+                    start: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+                    end: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                    customerGroupId: faker.string.uuid(),
+                })
+                .set("Authorization", `Bearer ${apiKey}`);
+            expect(listByCustomer.status).toBe(200);
+            expect(listByCustomer.body?.success).toBe(true);
+            expect(listByCustomer.body?.data?.posts).toEqual([]);
         }
     );
 

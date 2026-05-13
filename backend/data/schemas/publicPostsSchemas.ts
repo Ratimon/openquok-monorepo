@@ -8,7 +8,13 @@ import { createPostBodySchema, listPostsQuerySchema, postGroupParamsSchema, upda
  * Organization id is derived from the API key and MUST NOT be supplied by callers.
  */
 
-export const publicListPostsQuerySchema = listPostsQuerySchema.omit({ organizationId: true });
+export const publicListPostsQuerySchema = listPostsQuerySchema.omit({ organizationId: true }).extend({
+    /**
+     * Optional `integration_customers.id` for this workspace. When set, only posts whose
+     * `integration_id` belongs to a channel assigned to that channel group are returned.
+     */
+    customerGroupId: z.string().uuid("Invalid customer group id").optional(),
+});
 
 export const validatePublicListPostsQuery: RequestHandler = validateRequest({
     query: publicListPostsQuerySchema,

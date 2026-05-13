@@ -14,6 +14,11 @@ type PublicListPostsQueryDto = {
      * When omitted, all integrations (including ungrouped) are returned.
      */
     integrationIds?: string;
+    /**
+     * Optional channel group id (`integration_customers.id` for the workspace).
+     * When set, only posts whose channel belongs to that group are returned.
+     */
+    customerGroupId?: string;
 };
 type PublicCreatePostMediaItemDto = {
     id: string;
@@ -57,20 +62,32 @@ declare class Openquok {
      * Field name `file`; organization is inferred from the API key.
      */
     upload(file: Buffer, extension: string): Promise<unknown>;
-    createPost(body: PublicCreatePostDto): Promise<unknown>;
-    listPosts(filters: PublicListPostsQueryDto): Promise<unknown>;
+    post(body: PublicCreatePostDto): Promise<unknown>;
+    postList(filters: PublicListPostsQueryDto): Promise<unknown>;
     getPostGroup(postGroup: string): Promise<unknown>;
     updatePostGroup(postGroup: string, body: PublicUpdatePostGroupDto): Promise<unknown>;
     deletePostGroup(postGroup: string): Promise<unknown>;
     integrations(): Promise<unknown>;
-    isConnected(): Promise<unknown>;
-    getIntegrationOauthUrl(integrationIdentifier: string, refresh?: string): Promise<unknown>;
     deleteIntegrationChannel(id: string): Promise<unknown>;
     /**
-     * Anonymous endpoint (no API key required).
-     * Included for parity with the backend's public comment surface.
+     * Upload media from a public URL. Server-side fetches the resource and stores it
+     * just like `upload(file, extension)`; returns the same `MediaUploadResponse`.
      */
-    getPublicPostComments(postId: string): Promise<unknown>;
+    uploadFromUrl(url: string): Promise<unknown>;
+    /** Suggest next free schedule slot. Optional `integrationId` limits to a single channel's posting times. */
+    findSlot(integrationId?: string): Promise<unknown>;
+    /** Delete a single post by row id (soft-deletes the whole post group). */
+    deletePost(postId: string): Promise<unknown>;
+    /** Provider-side candidate ids/URLs when a published row has `release_id === "missing"`. */
+    getMissingContent(postId: string): Promise<unknown>;
+    /** Manually link a published row to a platform-native id (e.g. Threads media id). */
+    updateReleaseId(postId: string, releaseId: string): Promise<unknown>;
+    /** Platform analytics for one channel over the given window (`7`, `30`, or `90` days). */
+    getIntegrationAnalytics(integrationId: string, date: 7 | 30 | 90): Promise<unknown>;
+    /** Per-post analytics over the given window. Returns `{ missing: true }` envelope when unlinked. */
+    getPostAnalytics(postId: string, date: 7 | 30 | 90): Promise<unknown>;
+    /** Paginated in-app notifications (page size 100). `page` is zero-based. */
+    listNotifications(page?: number): Promise<unknown>;
 }
 
 export { type OpenquokClientOptions, Openquok as default };

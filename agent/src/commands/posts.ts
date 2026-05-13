@@ -5,19 +5,41 @@ import { printJson } from "../output";
 import type { CommandContext, RegisterCommands } from "./types";
 import { parseJsonMaybe, requireArg, runCommand, toArrayFromCsv } from "./utils";
 
+/** ISO timestamp for local calendar date ± `dayDelta` from right now (same clock time, JS local TZ). */
+function localCalendarDaysFromNowIso(dayDelta: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + dayDelta);
+  return d.toISOString();
+}
+
 export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandContext) => {
   return y
     .command(
       "posts:list",
-      "List posts in a date range (required: start, end)",
+      "List posts in a date range (defaults: ±30 local calendar days from today when --start/--end are omitted)",
       (yy: Argv) =>
         yy
-          .option("start", { type: "string", demandOption: true, describe: "Start ISO timestamp" })
-          .option("end", { type: "string", demandOption: true, describe: "End ISO timestamp" })
+          .option("start", {
+            type: "string",
+            describe: "Start ISO timestamp. Default: 30 local calendar days before today.",
+          })
+          .option("end", {
+            type: "string",
+            describe: "End ISO timestamp. Default: 30 local calendar days after today.",
+          })
           .option("integrationIds", {
             type: "string",
             describe: "Optional comma-separated integration UUIDs to filter by",
           })
+          .option("customerGroupId", {
+            type: "string",
+            describe:
+              "Optional channel-group UUID (`integration_customers.id`): only posts on integrations assigned to that group",
+          })
+          .example(
+            "$0 posts:list",
+            "List posts in the default window (today − 30 local calendar days through today + 30)"
+          )
           .example(
             '$0 posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z"',
             "List posts scheduled in January 2026 across all connected channels"
@@ -25,14 +47,32 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           .example(
             '$0 posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z" --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b,9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e"',
             "Filter to a subset of channels (CSV of integration UUIDs)"
+          )
+          .example(
+            "$0 posts:list --customerGroupId 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b",
+            "Only posts for integrations assigned to that channel group (still uses default date window unless you pass --start/--end)"
           ),
       async (args: any) => {
         await runCommand("posts:list", async () => {
           const api = await ctx.buildApi();
+
+          const start =
+            typeof args.start === "string" && args.start.trim()
+              ? args.start.trim()
+              : localCalendarDaysFromNowIso(-30);
+          const end =
+            typeof args.end === "string" && args.end.trim()
+              ? args.end.trim()
+              : localCalendarDaysFromNowIso(30);
+
           const out = await api.listPosts({
-            start: requireArg("start", args.start),
-            end: requireArg("end", args.end),
+            start,
+            end,
             integrationIds: typeof args.integrationIds === "string" ? args.integrationIds : undefined,
+            customerGroupId:
+              typeof args.customerGroupId === "string" && args.customerGroupId.trim()
+                ? args.customerGroupId.trim()
+                : undefined,
           });
           printJson(out);
         });
@@ -253,7 +293,7 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             "Fetch candidate IDs/thumbnails so you can pick the matching published asset"
           )
           .example(
-            "$0 posts:missing 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d | jq '.[] | {id, url}'",
+            "$0 posts:missing 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d | jq '.data.items[] | {id, url}'",
             "Flatten the candidate list with jq"
           ),
       async (args: any) => {

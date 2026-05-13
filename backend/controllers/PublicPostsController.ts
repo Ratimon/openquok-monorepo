@@ -74,11 +74,11 @@ export class PublicPostsController {
         }
     };
 
-    /** GET /public/posts/list?start=...&end=...&integrationIds=... */
+    /** GET /public/posts/list?start=...&end=...&integrationIds=...&customerGroupId=... */
     listPosts = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
-            const q = req.query as { start: string; end: string; integrationIds?: string };
+            const q = req.query as { start: string; end: string; integrationIds?: string; customerGroupId?: string };
             const integrationIds =
                 typeof q.integrationIds === "string" && q.integrationIds.trim().length > 0
                     ? q.integrationIds
@@ -87,11 +87,17 @@ export class PublicPostsController {
                           .filter(Boolean)
                     : null;
 
+            const customerGroupId =
+                typeof q.customerGroupId === "string" && q.customerGroupId.trim().length > 0
+                    ? q.customerGroupId.trim()
+                    : undefined;
+
             const rows = await this.postsService.listPostsForCalendarProgrammatic({
                 organizationId,
                 startIso: q.start,
                 endIso: q.end,
                 integrationIds,
+                customerGroupId,
             });
 
             res.status(200).json({ success: true, data: { posts: PostDTOMapper.toDTOCollection(rows) } });

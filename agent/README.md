@@ -88,6 +88,7 @@ openquok integrations:trigger <id> <method> [--data '<json>']
 ### Posts
 
 ```bash
+openquok posts:list
 openquok posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z"
 
 openquok posts:create \
@@ -106,6 +107,7 @@ openquok posts:missing <postId>
 openquok posts:connect <postId> --releaseId <providerReleaseId>
 ```
 
+- `posts:list` without flags defaults to 30 local calendar days before today through 30 local calendar days after today (JavaScript `Date` local rules, then ISO UTC on the wire). Pass `--start` and `--end` for an explicit window; use `--integrationIds <csv>` and/or `--customerGroupId <channel-group-uuid>` (`integration_customers.id`) to narrow channels.
 - `posts:find-slot` returns the next free ISO timestamp considering connected channels' posting_times. Pass an integration UUID to scope to a single channel.
 - `posts:delete` removes a single post (and the post group it belongs to — a row never publishes in isolation).
 - `posts:missing` and `posts:connect` are the workflow for posts whose `release_id` came back as `"missing"`: list provider-side candidates with `posts:missing`, then link the matching id with `posts:connect --releaseId <id>` to unlock per-post analytics.

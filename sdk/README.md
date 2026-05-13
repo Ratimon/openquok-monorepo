@@ -56,7 +56,7 @@ The available methods are:
 
 - `upload(file: Buffer, extension: string)` - Upload media via `POST {apiPrefix}/public/upload`
 - `post(body: PublicCreatePostDto)` - Create/schedule posts via `POST {apiPrefix}/public/posts`
-- `postList(filters: PublicListPostsQueryDto)` - List posts via `GET {apiPrefix}/public/posts/list`
+- `postList(filters: PublicListPostsQueryDto)` — List posts via `GET {apiPrefix}/public/posts/list` (`start`, `end`, optional `integrationIds`, optional `customerGroupId` channel-group UUID).
 - `getPostGroup(postGroup: string)` - Get a post group via `GET {apiPrefix}/public/posts/group/:postGroup`
 - `updatePostGroup(postGroup: string, body: PublicUpdatePostGroupDto)` - Update a post group via `PUT {apiPrefix}/public/posts/group/:postGroup`
 - `deletePostGroup(postGroup: string)` - Delete a post group via `DELETE {apiPrefix}/public/posts/group/:postGroup`

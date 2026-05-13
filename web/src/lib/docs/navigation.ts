@@ -81,7 +81,11 @@ export function getDocsTabIdFromPathname(pathname: string): DocsDocTabId {
 		(typeof rest[0] === 'string' && rest[0].startsWith('apis-'))
 	)
 		return 'public-api';
-	if (rest[0] === 'getting-started-for-cli') return 'cli';
+	if (
+		rest[0] === 'getting-started-for-cli' ||
+		(typeof rest[0] === 'string' && rest[0].startsWith('cli-'))
+	)
+		return 'cli';
 	return 'learn-more';
 }
 
@@ -89,7 +93,8 @@ export function getDocsTabIdFromSlug(slug: string): DocsDocTabId {
 	if (
 		!slug ||
 		slug === 'getting-started-for-cli' ||
-		slug.startsWith('getting-started-for-cli/')
+		slug.startsWith('getting-started-for-cli/') ||
+		slug.startsWith('cli-')
 	)
 		return 'cli';
 	if (

@@ -7,7 +7,7 @@ export type OasParameter = {
 	required?: boolean;
 	deprecated?: boolean;
 	description?: string;
-	schema?: { type?: string; example?: JsonValue; default?: JsonValue; items?: { type?: string } };
+	schema?: { type?: string; format?: string; example?: JsonValue; default?: JsonValue; items?: { type?: string } };
 	example?: JsonValue;
 };
 
@@ -113,6 +113,40 @@ export function getOperation(
 ): OasOperation | null {
 	const op = spec.paths?.[path]?.[method.toLowerCase()];
 	return op ?? null;
+}
+
+/**
+ * Ensures docs/playground list query params when `openapi.json` predates a field (e.g. dev proxy on an older backend).
+ */
+function applyDocsParameterSupplements(
+	op: OasOperation | null,
+	method: string,
+	path: string
+): OasOperation | null {
+	if (!op) return null;
+	const m = method.trim().toUpperCase();
+	const p = path.trim();
+	if (m !== 'GET' || p !== '/public/posts/list') return op;
+
+	const params = [...(op.parameters ?? [])].filter((q) => q.name !== 'customerId');
+	if (params.some((q) => q.name === 'customerGroupId')) {
+		return { ...op, parameters: params };
+	}
+
+	params.push({
+		name: 'customerGroupId',
+		in: 'query',
+		required: false,
+		description:
+			'Optional channel-group UUID (`integration_customers.id`). Restricts to integrations assigned to that group. Combined with `integrationIds` as intersection.',
+		schema: { type: 'string', format: 'uuid' },
+	});
+	return { ...op, parameters: params };
+}
+
+/** Operation node with docs-only parameter supplements. */
+export function resolveOpenapiOperationNode(spec: OasDoc, method: string, path: string): OasOperation | null {
+	return applyDocsParameterSupplements(getOperation(spec, method, path), method, path);
 }
 
 /** Placeholder values for curl samples (readable, copy-paste friendly). */
@@ -532,7 +566,7 @@ export async function fetchOpenapiOperationForDocs(
 		return { ok: false, error: e instanceof Error ? e.message : String(e) };
 	}
 
-	const opNode = getOperation(spec, parsed.method, parsed.path);
+	const opNode = resolveOpenapiOperationNode(spec, parsed.method, parsed.path);
 	const server = defaultServerUrl(spec);
 	const serverDisplay = stripServerUrlForDisplay(server);
 	const useAuth = operationRequiresApiKey(spec, opNode);
@@ -634,7 +668,11 @@ function openapiParamType(p: OasParameter): string {
 		const it = s.items?.type;
 		return `${typeof it === 'string' ? it : 'string'}[]`;
 	}
-	if (typeof t === 'string') return t;
+	if (typeof t === 'string') {
+		const fmt = typeof (s as { format?: string }).format === 'string' ? (s as { format: string }).format : '';
+		if (t === 'string' && fmt === 'uuid') return 'string (uuid)';
+		return t;
+	}
 	return 'string';
 }
 
