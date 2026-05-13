@@ -110,10 +110,9 @@ openquok integrations:list
 
 ```bash
 openquok posts:create \
-  --scheduledAt "2026-01-01T12:00:00Z" \
-  --status scheduled \
-  --body "Hello from Openquok" \
-  --integrationIds "uuid1,uuid2"
+  -s "2026-01-01T12:00:00Z" \
+  -c "Hello from Openquok" \
+  -i "uuid1,uuid2"
 ```
 
 **Upload media** (use returned paths/IDs in <code>posts:create</code>):

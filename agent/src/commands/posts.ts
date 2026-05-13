@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import type { Argv } from "yargs";
 
 import { printJson } from "../output";
@@ -12,6 +13,124 @@ function localCalendarDaysFromNowIso(dayDelta: number): string {
   return d.toISOString();
 }
 
+function randomMediaId(): string {
+  return Math.random().toString(36).slice(2, 11);
+}
+
+/** yargs may leave repeated flags as string | string[] */
+function toStringList(v: unknown): string[] {
+  if (v === undefined || v === null) return [];
+  if (Array.isArray(v)) {
+    return v.flatMap((x) => (typeof x === "string" && x.trim() ? [x.trim()] : []));
+  }
+  if (typeof v === "string" && v.trim()) return [v.trim()];
+  return [];
+}
+
+/**
+ *  `-m`: comma-separated paths/URLs per flag; or a JSON array string
+ * `[{"id":"…","path":"…"}]` (repeat `-m` for per-segment media like upstream).
+ */
+function buildMediaFromArgs(mediaArg: unknown): { id: string; path: string }[] {
+  const rows = toStringList(mediaArg);
+  const out: { id: string; path: string }[] = [];
+  for (const row of rows) {
+    const t = row.trim();
+    if (t.startsWith("[") && t.endsWith("]")) {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(t);
+      } catch {
+        throw new Error("media: invalid JSON array");
+      }
+      if (!Array.isArray(parsed)) throw new Error("media: JSON must be an array of {id, path}");
+      for (const item of parsed) {
+        if (!item || typeof item !== "object") continue;
+        const id = (item as { id?: unknown }).id;
+        const path = (item as { path?: unknown }).path;
+        if (typeof id === "string" && id && typeof path === "string" && path) {
+          out.push({ id, path });
+        }
+      }
+    } else {
+      for (const part of t.split(",").map((s) => s.trim()).filter(Boolean)) {
+        out.push({ id: randomMediaId(), path: part });
+      }
+    }
+  }
+  return out;
+}
+
+function resolveCreateStatus(args: { status?: unknown; type?: unknown }): "draft" | "scheduled" {
+  const raw = args.status ?? args.type;
+  if (raw === "draft") return "draft";
+  if (raw === "schedule" || raw === "scheduled") return "scheduled";
+  return "scheduled";
+}
+
+function readCreatePayloadFromJsonFile(path: string): Record<string, unknown> {
+  if (!fs.existsSync(path)) {
+    throw new Error(`json file not found: ${path}`);
+  }
+  const text = fs.readFileSync(path, "utf8");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch (e: any) {
+    throw new Error(`json file: invalid JSON (${e?.message ?? e})`);
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("json file: root must be a JSON object (same shape as POST /public/posts)");
+  }
+  const o = { ...(parsed as Record<string, unknown>) };
+  delete o.organizationId;
+  return o;
+}
+
+function mergeProviderSettingsForIntegrations(args: {
+  integrationIds: string[];
+  contentSegments: string[];
+  delayMs: number;
+  settingsJson?: unknown;
+  explicitByIntegration?: unknown;
+}): Record<string, Record<string, unknown>> | undefined {
+  const { integrationIds, contentSegments, delayMs, settingsJson, explicitByIntegration } = args;
+
+  let base: Record<string, Record<string, unknown>> = {};
+  if (explicitByIntegration && typeof explicitByIntegration === "object" && !Array.isArray(explicitByIntegration)) {
+    for (const [k, v] of Object.entries(explicitByIntegration as Record<string, unknown>)) {
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        base[k] = { ...(v as Record<string, unknown>) };
+      }
+    }
+  }
+
+  const parsedSettings =
+    settingsJson && typeof settingsJson === "object" && !Array.isArray(settingsJson)
+      ? (settingsJson as Record<string, unknown>)
+      : undefined;
+
+  if (parsedSettings) {
+    for (const id of integrationIds) {
+      base[id] = { ...(base[id] ?? {}), ...parsedSettings };
+    }
+  }
+
+  if (contentSegments.length > 1) {
+    const gapMs = Number.isFinite(delayMs) && delayMs >= 0 ? delayMs : 5000;
+    const gapSec = Math.max(1, Math.floor(gapMs / 1000));
+    const replies = contentSegments.slice(1).map((message, idx) => ({
+      message,
+      delaySeconds: gapSec * (idx + 1),
+    }));
+    for (const id of integrationIds) {
+      base[id] = { ...(base[id] ?? {}), replies };
+    }
+  }
+
+  return Object.keys(base).length ? base : undefined;
+}
+
 export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandContext) => {
   return y
     .command(
@@ -20,18 +139,22 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
       (yy: Argv) =>
         yy
           .option("start", {
+            alias: "startDate",
             type: "string",
             describe: "Start ISO timestamp. Default: 30 local calendar days before today.",
           })
           .option("end", {
+            alias: "endDate",
             type: "string",
             describe: "End ISO timestamp. Default: 30 local calendar days after today.",
           })
           .option("integrationIds", {
+            alias: "i",
             type: "string",
             describe: "Optional comma-separated integration UUIDs to filter by",
           })
           .option("customerGroupId", {
+            alias: "customer",
             type: "string",
             describe:
               "Optional channel-group UUID (`integration_customers.id`): only posts on integrations assigned to that group",
@@ -41,29 +164,30 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             "List posts in the default window (today − 30 local calendar days through today + 30)"
           )
           .example(
-            '$0 posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z"',
-            "List posts scheduled in January 2026 across all connected channels"
+            '$0 posts:list --startDate "2026-01-01T00:00:00Z" --endDate "2026-02-01T00:00:00Z"',
+            "Same as --start / --end (alternate flag names)"
           )
           .example(
             '$0 posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z" --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b,9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e"',
             "Filter to a subset of channels (CSV of integration UUIDs)"
           )
           .example(
-            "$0 posts:list --customerGroupId 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b",
-            "Only posts for integrations assigned to that channel group (still uses default date window unless you pass --start/--end)"
+            "$0 posts:list --customer 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b",
+            "Alias for --customerGroupId (still uses default date window unless you pass --start/--end)"
           ),
       async (args: any) => {
         await runCommand("posts:list", async () => {
           const api = await ctx.buildApi();
 
+          const startRaw = args.start ?? args.startDate;
+          const endRaw = args.end ?? args.endDate;
+
           const start =
-            typeof args.start === "string" && args.start.trim()
-              ? args.start.trim()
+            typeof startRaw === "string" && startRaw.trim()
+              ? startRaw.trim()
               : localCalendarDaysFromNowIso(-30);
           const end =
-            typeof args.end === "string" && args.end.trim()
-              ? args.end.trim()
-              : localCalendarDaysFromNowIso(30);
+            typeof endRaw === "string" && endRaw.trim() ? endRaw.trim() : localCalendarDaysFromNowIso(30);
 
           const out = await api.listPosts({
             start,
@@ -72,7 +196,9 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             customerGroupId:
               typeof args.customerGroupId === "string" && args.customerGroupId.trim()
                 ? args.customerGroupId.trim()
-                : undefined,
+                : typeof args.customer === "string" && args.customer.trim()
+                  ? args.customer.trim()
+                  : undefined,
           });
           printJson(out);
         });
@@ -83,17 +209,43 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
       "Create a scheduled/draft post group",
       (yy: Argv) =>
         yy
-          .option("scheduledAt", { type: "string", demandOption: true, describe: "ISO timestamp" })
-          .option("status", { type: "string", choices: ["draft", "scheduled"] as const, default: "scheduled" })
-          .option("body", { type: "string", describe: "Default body (used unless bodiesByIntegrationId is provided)" })
-          .option("integrationIds", {
+          .option("scheduledAt", {
+            alias: ["s", "date"],
             type: "string",
-            describe: "Comma-separated integration UUIDs",
+            describe: "ISO timestamp (required unless --json). Shorthand: -s / --date",
+          })
+          .option("status", {
+            type: "string",
+            choices: ["draft", "scheduled"] as const,
+            describe: "draft | scheduled (Openquok API). Default: scheduled",
+          })
+          .option("type", {
+            alias: "t",
+            type: "string",
+            choices: ["draft", "schedule", "scheduled"] as const,
+            describe: 'Short form: draft | schedule (maps to API "scheduled")',
+          })
+          .option("body", {
+            type: "string",
+            describe: "Default body (used unless bodiesByIntegrationId is provided). Prefer -c for short form.",
+          })
+          .option("content", {
+            alias: "c",
+            type: "string",
+            array: true,
+            describe: "Post body; repeat for thread segments (maps to provider replies when supported)",
+          })
+          .option("integrationIds", {
+            alias: ["i", "integrations"],
+            type: "string",
+            describe: "Comma-separated integration UUIDs (required unless --json)",
           })
           .option("media", {
+            alias: "m",
             type: "string",
+            array: true,
             describe:
-              'JSON array of media items: [{"id":"...","path":"...","bucket":"...optional"}]. Use `openquok upload` to get filePath/id.',
+              "Comma-separated storage paths or URLs per flag, or JSON array [{id,path}] from upload; repeat -m to pair with repeated -c",
           })
           .option("bodiesByIntegrationId", {
             type: "string",
@@ -103,45 +255,141 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             type: "string",
             describe: 'JSON object: {"<integrationUuid>":{...provider settings...}}',
           })
+          .option("settings", {
+            type: "string",
+            describe:
+              "Platform-specific settings JSON; merged into each selected integration's provider settings",
+          })
           .option("tagNames", { type: "string", describe: "Comma-separated tags" })
           .option("repeatInterval", { type: "string", describe: "Repeat interval (backend enum)" })
+          .option("delay", {
+            alias: "d",
+            type: "number",
+            describe:
+              "Milliseconds between thread segments when using multiple -c (default 5000). Maps to reply delaySeconds.",
+          })
+          .option("json", {
+            alias: "j",
+            type: "string",
+            describe: "Path to JSON file with full POST /public/posts body (skips other flags)",
+          })
+          .check((argv) => {
+            const jsonPath =
+              typeof argv.json === "string" && argv.json.trim()
+                ? argv.json.trim()
+                : typeof argv.j === "string" && argv.j.trim()
+                  ? argv.j.trim()
+                  : undefined;
+            if (jsonPath) return true;
+
+            const date = argv.scheduledAt ?? argv.date ?? argv.s;
+            if (typeof date !== "string" || !date.trim()) {
+              throw new Error("scheduledAt is required (use -s / --date / --scheduledAt) unless using --json");
+            }
+            const ints = argv.integrationIds ?? argv.integrations ?? argv.i;
+            if (typeof ints !== "string" || !ints.trim()) {
+              throw new Error("integrations are required (use -i / --integrations / --integrationIds) unless using --json");
+            }
+            const contents = toStringList(argv.content);
+            const body = typeof argv.body === "string" ? argv.body.trim() : "";
+            if (!body && contents.length === 0) {
+              throw new Error("body or content (-c) is required unless using --json");
+            }
+            return true;
+          })
           .example(
-            '$0 posts:create --scheduledAt "2026-01-01T12:00:00Z" --body "Hello from Openquok" --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"',
-            "Simplest case: same body to one channel at a specific time"
+            '$0 posts:create -c "Hello from Openquok" -s "2026-01-01T12:00:00Z" -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"',
+            "Short flags (-c -s -i) equivalent to --body --scheduledAt --integrationIds"
           )
           .example(
-            '$0 posts:create --scheduledAt "2026-01-01T12:00:00Z" --status draft --body "Draft me" --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"',
-            "Save as a draft instead of scheduling"
+            '$0 posts:create -c "Draft me" -s "2026-01-01T12:00:00Z" -t draft -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"',
+            "type=draft maps to API status draft"
           )
           .example(
             '$0 posts:create --scheduledAt "2026-01-01T12:00:00Z" --integrationIds "uuid-a,uuid-b" --bodiesByIntegrationId \'{"uuid-a":"Caption for A","uuid-b":"Caption for B"}\'',
-            "Different body per channel (keys are integration UUIDs)"
+            "Long-form flags still supported"
           )
           .example(
-            '$0 posts:create --scheduledAt "2026-01-01T12:00:00Z" --body "With media" --integrationIds "uuid-a" --media \'[{"id":"media-uuid","path":"uploads/2026/01/img.png"}]\'',
-            "Attach media (use `openquok upload` first to get `id` + `path`)"
-          ),
+            '$0 posts:create -c "With media" -s "2026-01-01T12:00:00Z" -i "uuid-a" -m "uploads/2026/01/img.png"',
+            "Bare paths/URLs get a client-generated media id; prefer upload JSON for production"
+          )
+          .example(
+            '$0 posts:create -c "1/3" -c "2/3" -c "3/3" -d 60000 -s "2026-01-01T12:00:00Z" -i "$THREADS_ID"',
+            "Repeated -c builds provider replies (delay in ms between segments; default 5000)"
+          )
+          .example("$0 posts:create --json ./post.json", "Full payload from JSON file (Openquok POST /public/posts shape)"),
       async (args: any) => {
         await runCommand("posts:create", async () => {
           const api = await ctx.buildApi();
 
-          const media = parseJsonMaybe(args.media, "media");
+          const jsonPath =
+            typeof args.json === "string" && args.json.trim()
+              ? args.json.trim()
+              : typeof args.j === "string" && args.j.trim()
+                ? args.j.trim()
+                : undefined;
+
+          if (jsonPath) {
+            const payload = readCreatePayloadFromJsonFile(jsonPath);
+            const out = await api.createPost(payload);
+            printJson(out);
+            return;
+          }
+
+          const segments = toStringList(args.content);
+          const hasBody = typeof args.body === "string" && args.body.trim();
+          const bodyText =
+            segments.length > 1
+              ? segments[0]!
+              : segments.length === 1
+                ? segments[0]!
+                : hasBody
+                  ? String(args.body).trim()
+                  : "";
+
+          const integrationCsv =
+            typeof args.integrationIds === "string" && args.integrationIds.trim()
+              ? args.integrationIds.trim()
+              : typeof args.integrations === "string" && args.integrations.trim()
+                ? args.integrations.trim()
+                : "";
+          const integrationIds = toArrayFromCsv(integrationCsv) ?? [];
+
+          const scheduledAt = requireArg(
+            "scheduledAt",
+            args.scheduledAt ?? args.date ?? args.s
+          );
+
+          const status = resolveCreateStatus(args);
+
+          const media = buildMediaFromArgs(args.media);
           const bodiesByIntegrationId = parseJsonMaybe(args.bodiesByIntegrationId, "bodiesByIntegrationId");
           const providerSettingsByIntegrationId = parseJsonMaybe(
             args.providerSettingsByIntegrationId,
             "providerSettingsByIntegrationId"
           );
+          const settingsParsed = parseJsonMaybe(args.settings, "settings");
 
-          const payload = {
-            scheduledAt: requireArg("scheduledAt", args.scheduledAt),
-            status: args.status,
-            ...(typeof args.body === "string" && args.body.trim() ? { body: args.body } : {}),
-            ...(toArrayFromCsv(args.integrationIds) ? { integrationIds: toArrayFromCsv(args.integrationIds) } : {}),
-            ...(Array.isArray(media) ? { media } : {}),
-            ...(bodiesByIntegrationId && typeof bodiesByIntegrationId === "object" ? { bodiesByIntegrationId } : {}),
-            ...(providerSettingsByIntegrationId && typeof providerSettingsByIntegrationId === "object"
-              ? { providerSettingsByIntegrationId }
+          const delayMs = typeof args.delay === "number" && !Number.isNaN(args.delay) ? args.delay : 5000;
+
+          const mergedProvider = mergeProviderSettingsForIntegrations({
+            integrationIds,
+            contentSegments: segments.length ? segments : [bodyText],
+            delayMs,
+            settingsJson: settingsParsed,
+            explicitByIntegration: providerSettingsByIntegrationId,
+          });
+
+          const payload: Record<string, unknown> = {
+            scheduledAt,
+            status,
+            ...(bodyText ? { body: bodyText } : {}),
+            ...(integrationIds.length ? { integrationIds } : {}),
+            ...(media.length ? { media } : {}),
+            ...(bodiesByIntegrationId && typeof bodiesByIntegrationId === "object"
+              ? { bodiesByIntegrationId }
               : {}),
+            ...(mergedProvider ? { providerSettingsByIntegrationId: mergedProvider } : {}),
             ...(toArrayFromCsv(args.tagNames) ? { tagNames: toArrayFromCsv(args.tagNames) } : {}),
             ...(typeof args.repeatInterval === "string" && args.repeatInterval.trim()
               ? { repeatInterval: args.repeatInterval.trim() }
@@ -285,26 +533,23 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             describe: "Post UUID whose release_id is currently 'missing'",
           })
           .option("releaseId", {
-            alias: "r",
+            alias: ["r", "release-id"],
             type: "string",
             demandOption: true,
             describe:
               "Platform-native release id (from `posts:missing`), e.g. a TikTok video id or Threads post id",
           })
           .example(
-            '$0 posts:connect 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --releaseId "7321456789012345678"',
-            "Link a post to its published asset on the provider"
+            '$0 posts:connect 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --release-id "7321456789012345678"',
+            "Kebab-case --release-id (same as --releaseId / -r)"
           ),
       async (args: any) => {
         await runCommand("posts:connect", async () => {
           const api = await ctx.buildApi();
-          const out = await api.updateReleaseId(
-            requireArg("postId", args.postId),
-            requireArg("releaseId", args.releaseId)
-          );
+          const rid = args.releaseId ?? args["release-id"];
+          const out = await api.updateReleaseId(requireArg("postId", args.postId), requireArg("releaseId", rid));
           printJson(out);
         });
       }
     );
 };
-

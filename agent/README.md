@@ -92,10 +92,9 @@ openquok posts:list
 openquok posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z"
 
 openquok posts:create \
-  --scheduledAt "2026-01-01T12:00:00Z" \
-  --status scheduled \
-  --body "Hello from Openquok" \
-  --integrationIds "uuid1,uuid2"
+  -c "Hello from Openquok" \
+  -s "2026-01-01T12:00:00Z" \
+  -i "uuid1,uuid2"
 
 openquok posts:group <postGroupUuid>
 openquok posts:update-group <postGroupUuid> --json '{"scheduledAt":"...","status":"draft"}'
@@ -103,12 +102,12 @@ openquok posts:delete-group <postGroupUuid>
 
 openquok posts:delete <postId>
 openquok posts:missing <postId>
-openquok posts:connect <postId> --releaseId <providerReleaseId>
+openquok posts:connect <postId> --release-id <providerReleaseId>
 ```
 
-- `posts:list` without flags defaults to 30 local calendar days before today through 30 local calendar days after today (JavaScript `Date` local rules, then ISO UTC on the wire). Pass `--start` and `--end` for an explicit window; use `--integrationIds <csv>` and/or `--customerGroupId <channel-group-uuid>` (`integration_customers.id`) to narrow channels.
+- `posts:list` without flags defaults to 30 local calendar days before today through 30 local calendar days after today (JavaScript `Date` local rules, then ISO UTC on the wire). Pass `--start` / `--end` or `--startDate` / `--endDate`; use `-i` / `--integrations` / `--integrationIds <csv>` and/or `--customer` / `--customerGroupId` (`integration_customers.id`) to narrow channels.
 - `posts:delete` removes a single post (and the post group it belongs to — a row never publishes in isolation).
-- `posts:missing` and `posts:connect` are the workflow for posts whose `release_id` came back as `"missing"`: list provider-side candidates with `posts:missing`, then link the matching id with `posts:connect --releaseId <id>` to unlock per-post analytics.
+- `posts:missing` and `posts:connect` are the workflow for posts whose `release_id` came back as `"missing"`: list provider-side candidates with `posts:missing`, then link the matching id with `posts:connect --release-id <id>` (or `--releaseId` / `-r`) to unlock per-post analytics.
 
 ### Analytics
 

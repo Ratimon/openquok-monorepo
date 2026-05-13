@@ -24,7 +24,7 @@ openquok upload ./image.png
 3) **Create a post**:
 
 ```bash
-openquok posts:create --scheduledAt "2026-01-01T12:00:00Z" --status scheduled --body "..." --integrationIds "uuid1,uuid2"
+openquok posts:create -s "2026-01-01T12:00:00Z" -c "..." -i "uuid1,uuid2"
 ```
 
 4) **Inspect or modify** a post group:

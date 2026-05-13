@@ -1,0 +1,48 @@
+---
+description: How to add or change the openquok CLI (yargs, agent/src/api.ts, JSON output, docs). Apply when editing agent/ or CLI-related docs.
+globs: ["agent/**/*.ts", "agent/**/*.md", "web/src/content/docs/cli-*/**/*.md", "web/src/content/docs/getting-started-for-cli/**/*.md"]
+alwaysApply: false
+---
+
+# Agent CLI (`openquok`)
+
+The programmatic CLI lives in `agent/`, published as `@openquok/auto-cli`. It targets automation and agents: **stdout is JSON** for machine parsing; errors go through the shared JSON error printer.
+
+## Layout
+
+- **Entry** — `agent/src/index.ts`: `scriptName("openquok")`, `.strict()`, `.fail` → `printErrorJson`, `stripNpmRunArgvPassthrough` so `pnpm … cli -- <args>` works (leading `--` would otherwise confuse yargs).
+- **HTTP client** — `agent/src/api.ts` (`OpenquokApi`): JSON helpers and multipart where needed. Only add methods for routes the CLI actually calls (see `public-api-surface-sync`).
+- **Commands** — `agent/src/commands/*.ts`: each file exports `registerXCommands: RegisterCommands` chaining `.command(...)` onto the shared `Argv`.
+- **Registration** — `agent/src/commands/index.ts` calls each `register*` in a stable order; new domains get a new module plus one line here.
+- **Shared types** — `agent/src/commands/types.ts` (`CommandContext`, `RegisterCommands`).
+- **Helpers** — `agent/src/commands/utils.ts` (`runCommand`, `requireArg`, `parseJsonMaybe`, `toArrayFromCsv`, …). Wrap handlers in `runCommand("<name>", async () => { … })` so failures carry the command name.
+
+## Yargs conventions
+
+- **Command names** — Use `group:verb` (e.g. `posts:create`, `integrations:list`). Match what users type; keep names stable once shipped.
+- **Examples** — Use `$0` in `.example()` strings so help text shows the correct binary name.
+- **Validation** — Prefer `.check((argv) => { … })` when rules involve multiple flags (e.g. “`--json` path OR (`--scheduledAt` + integrations + body)”). Avoid impossible combinations of `demandOption` on mutually exclusive paths.
+- **Aliases** — Offer short flags (`-c`, `-s`, `-i`, …) **and** long names that align with the public API / SDK where it helps scripts and docs stay consistent.
+- **Types** — Use explicit `choices` for enums that map to the API (e.g. `draft` | `scheduled`). If the CLI accepts a synonym (e.g. `schedule` → `scheduled`), normalize in the handler, not in the API request.
+- **Arrays** — For “repeat this flag” behavior, use `type: "string", array: true` (or equivalent) and normalize to `string[]` in code; document pairing order in `describe` / examples.
+- **Kebab-case options** — When matching common CLI spelling (e.g. `--release-id`), expose alongside camelCase if yargs normalizes; read both in the handler if needed.
+
+## Behavior and UX
+
+- **Output** — Success paths should `printJson(…)` only; do not mix prose and JSON on stdout.
+- **Side effects** — Auth and uploads are the main exceptions; still end with JSON when possible.
+- **Config** — Respect `getConfig()`, credentials precedence (`readCredentialsFile` vs `OPENQUOK_API_KEY`), and `OPENQUOK_API_URL` as implemented in `agent/src/config.ts` and `index.ts`.
+
+## Docs that mention the CLI
+
+- **Paths** — `web/src/content/docs/cli-usages/`, `cli-examples/`, `getting-started-for-cli/`, and `agent/README.md` / `agent/SKILL.md`.
+- **MDX** — Follow `docs-conventions`. Inside HTML tables and `<Badge text="…">`, avoid **curly/smart quotes** and avoid **nested `"` inside attributes** that confuse the Svelte/MDX compiler. Prefer splitting labels (`<Badge text="-m" />` + `<Badge text="--media" />`) or describe JSON shapes in prose with separate `<code>` spans instead of a single `[{"id","path"}]`-style literal in one cell.
+- **Neutrality** — Follow `source-project-neutrality`: do not name or link other products as the “source” of the CLI design; describe flags and behavior in first-party terms.
+
+## Checklist when adding a command
+
+1. Implement handler in the right `agent/src/commands/<domain>.ts` (or new file + `index.ts` import).
+2. Add or extend `OpenquokApi` only if this command calls a new HTTP surface.
+3. Add `.example()` lines for the common cases.
+4. Update `agent/README.md` (and smoke-test lists in `development-environment.md` if they enumerate commands).
+5. Update on-site CLI docs under `web/src/content/docs/cli-*/` when user-facing flags or workflows change.
