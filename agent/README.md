@@ -165,6 +165,18 @@ pnpm --filter ./agent dev     # tsx watch: re-prints --help on every save
 pnpm --filter ./agent build   # produces dist/index.js (the published bin)
 ```
 
+### Unit tests (Vitest)
+
+Pure CLI helpers (for example `posts.logic.ts`) are covered with **`pnpm --filter ./agent test:unit`** (from the repo root **`pnpm agent:test:unit`**). `agent/run-vitest.mjs` runs **`node web/node_modules/vitest/vitest.mjs`** (not a nested `pnpm exec vitest`), so `agent/` does not add its own `vitest` dependency and avoids pnpm deadlocks when tests are started via `pnpm agent:test`. Use **`pnpm --filter ./agent test:watch`** during development.
+
+### End-to-end CLI tests (Vitest)
+
+Scenario files live under **`agent/tests/e2e/`** and use the suffix **`*.e2e.test.ts`**. Name them by surface and command (for example **`threads.create-post.e2e.test.ts`**). Each test builds an `argv` array that matches what a user would type after `openquok`, runs **`node agent/dist/index.js`** against a local mock HTTP server, and asserts on the recorded request body and JSON stdout. That matches the usual pattern for Node CLI integration tests (spawn `node` on the entry script; see [this CLI test helper gist](https://gist.github.com/zorrodg/c349cf54a3f6d0a9ba62e0f4066f31cb) for the interactive stdin variant).
+
+If **`agent/dist/index.js`** is missing, the harness runs **`tsup` once** via `node agent/node_modules/tsup/dist/cli-default.js` (stdio discarded so it does not fight Vitest’s worker stdio). The CLI subprocess uses **async `spawn`** with stdin ignored — **`spawnSync` in a Vitest worker hung** in practice, and a piped stdin can block CLIs that read `/dev/stdin`.
+
+From the repo root: **`pnpm agent:test:e2e`** (e2e only) or **`pnpm agent:test`** (unit + e2e).
+
 ### Run the CLI without installing
 
 ```bash

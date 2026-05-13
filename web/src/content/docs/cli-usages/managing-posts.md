@@ -2,7 +2,7 @@
 title: Managing Posts
 description: Create, list, delete, and reconnect Openquok posts from the command line.
 order: 1
-lastUpdated: 2026-05-14
+lastUpdated: 2026-05-13
 ---
 
 <script>
@@ -14,7 +14,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 The `posts:*` commands wrap the <a href="/docs/apis-posts">Posts APIs</a>. They drive every step of the publishing lifecycle: pick channels and a schedule time, create a post group, iterate on it, then delete it or reconnect it to its provider-native id once it is published.
 
 <Callout type="note" title="Post groups vs. post rows">
-<p>A <strong>post group</strong> is the multi-channel composition the UI calls a post; <Badge text="posts:group" variant="default" /> and <Badge text="posts:update-group" variant="default" /> operate on the group UUID returned by <Badge text="posts:create" variant="default" />. A <strong>post row</strong> is one channel inside that group (<Badge text="posts:delete" variant="default" />, <Badge text="posts:missing" variant="default" />, <Badge text="posts:connect" variant="default" /> use the row UUID from <Badge text="posts:list" variant="default" />).</p>
+<p>A <strong>post group</strong> is the multi-channel composition the UI calls a post; <Badge text="posts:group" variant="default" /> and <Badge text="posts:update-group" variant="default" /> operate on the group id returned by <Badge text="posts:create" variant="default" />. A <strong>post row</strong> is one channel inside that group (<Badge text="posts:delete" variant="default" />, <Badge text="posts:missing" variant="default" />, <Badge text="posts:connect" variant="default" /> use the id from <Badge text="posts:list" variant="default" />).</p>
 </Callout>
 
 ## Create a post
@@ -34,7 +34,7 @@ openquok posts:create \
 | <Badge text="-s" variant="default" /> <Badge text="--date" variant="default" /> | Schedule time (ISO-8601, required unless <Badge text="-j" variant="default" />). Same as <Badge text="--scheduledAt" variant="default" />. |
 | <Badge text="-t" variant="default" /> <Badge text="--type" variant="default" /> | <code>schedule</code> (default) or <code>draft</code> — maps to API <code>scheduled</code> / <code>draft</code>. Long form: <Badge text="--status" variant="default" /> <code>scheduled</code> \| <code>draft</code>. |
 | <Badge text="-i" variant="default" /> <Badge text="--integrations" variant="default" /> | Comma-separated channel UUIDs (required unless <Badge text="-j" variant="default" />). Same as <Badge text="--integrationIds" variant="default" />. |
-| <Badge text="-m" variant="default" /> <Badge text="--media" variant="default" /> | Comma-separated storage paths or URLs per flag (the CLI supplies a placeholder media id when you did not run upload). Prefer a JSON array of upload objects with <code>id</code> and <code>path</code> from <a href="/docs/cli-usages/media-upload"><code>openquok upload</code></a>. Repeat <code>-m</code> to align with repeated <code>-c</code>. |
+| <Badge text="-m" variant="default" /> <Badge text="--media" variant="default" /> | Comma-separated storage paths or URLs per flag (the CLI supplies a placeholder media id when you did not run upload). Values from repeated <code>-m</code> are merged into the root post's <code>media</code> list. Prefer upload JSON; for attachments on individual follow-up lines use <a href="/docs/cli-examples/threads">Threads examples</a> or <Badge text="-j" variant="default" />. |
 | <Badge text="-d" variant="default" /> <Badge text="--delay" variant="default" /> | Milliseconds between segments when using multiple <code>-c</code> (default <code>5000</code>); converted to reply <code>delaySeconds</code>. |
 | <Badge text="--settings" variant="default" /> | Platform-specific settings JSON; merged into each selected integration. |
 | <Badge text="-j" variant="default" /> <Badge text="--json" variant="default" /> | Path to a JSON file whose root object is the full <Badge text="POST /public/posts" variant="default" /> body (skips other flags). |
@@ -79,8 +79,41 @@ openquok posts:create \
   --media "[${MEDIA}]"
 ```
 
+### Threads and follow-up comments
+
+Pass <Badge text="-c" variant="default" /> more than once to build a **chain of messages**: the first becomes the main <code>body</code>; each extra <Badge text="-c" variant="default" /> becomes a scheduled follow-up in <code>replies</code> (with <code>message</code> and <code>delaySeconds</code>).
+
+Providers that support that shape (for example Threads) are covered in depth on <a href="/docs/cli-examples/threads">CLI Examples → Threads</a>.
+
+You can still repeat <Badge text="-m" variant="default" /> for paths or upload JSON blobs; the CLI **collects them into one root-level <code>media</code> array** on the post. If a follow-up line needs its **own** media, build <code>providerSettingsByIntegrationId</code> by hand, use <Badge text="-j" variant="default" /> with a full JSON body, or follow the jq recipes on the Threads page.
+
+```bash
+openquok posts:create \
+  -c "Thread 1/3" -m "image1.jpg" \
+  -c "Thread 2/3" -m "image2.jpg" \
+  -c "Thread 3/3" \
+  -s "2026-01-15T10:00:00Z" \
+  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
+```
+
+Use <Badge text="-d" variant="default" /> to set the gap **in milliseconds** between consecutive follow-ups (default <code>5000</code> when omitted).
+
+```bash
+openquok posts:create \
+  -c "First segment" \
+  -c "Second segment" \
+  -c "Third segment" \
+  -s "2026-01-15T10:00:00Z" \
+  -d 2000 \
+  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
+```
+
+<Callout type="note" title="One integration id for scripted threads">
+<p>The shorthand above assumes a <strong>single</strong> channel UUID in <code>-i</code> so the follow-up <code>replies</code> map cleanly. For multiple channels in one command, the same <code>replies</code> payload is merged into each integration's provider settings — only use that when it matches how you want every platform to behave.</p>
+</Callout>
+
 <Callout type="warning" title="Per-platform media rules">
-<p>Instagram requires at least one attachment for <code>scheduled</code> posts; Threads accepts text-only. Each provider has its own per-call validation — surface them up-front with <a href="/docs/cli-usages/integrations">`openquok integrations:settings`</a> before you script a batch.</p>
+<p>Instagram requires at least one attachment for <code>scheduled</code> posts; Threads accepts text-only. Each provider has its own validation — Check with <a href="/docs/cli-usages/integrations">`openquok integrations:settings`</a> before you script a batch.</p>
 </Callout>
 
 ## List posts

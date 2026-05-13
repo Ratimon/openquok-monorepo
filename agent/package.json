@@ -12,6 +12,10 @@
     "cli": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts -- --help",
     "start": "node dist/index.js",
+    "test": "node ./run-vitest.mjs",
+    "test:unit": "node ./run-vitest.mjs run src",
+    "test:e2e": "node ./run-vitest.mjs run tests/e2e",
+    "test:watch": "node ./run-vitest.mjs --watch",
     "publish:manual": "pnpm run build && pnpm publish --access public",
     "prepublishOnly": "pnpm run build"
   },
@@ -68,6 +72,7 @@
     "yargs": "^18.0.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.3.0",
     "@types/node": "^25.6.0",
     "@types/yargs": "^17.0.33",
     "tsup": "^8.5.1",
