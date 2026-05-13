@@ -58,6 +58,12 @@ export function resolveCreateStatus(args: { status?: unknown; type?: unknown }):
   return "scheduled";
 }
 
+/**
+ * Load a create-post payload from disk for `posts:create --json`.
+ * Root object must match `POST /public/posts` (e.g. `scheduledAt`, `status`, optional
+ * `body`, `integrationIds`, `bodiesByIntegrationId`, `media`,
+ * `providerSettingsByIntegrationId`, …). `organizationId` is removed if present.
+ */
 export function readCreatePayloadFromJsonFile(path: string): Record<string, unknown> {
   if (!fs.existsSync(path)) {
     throw new Error(`json file not found: ${path}`);
@@ -78,6 +84,12 @@ export function readCreatePayloadFromJsonFile(path: string): Record<string, unkn
   return o;
 }
 
+/**
+ * Builds `providerSettingsByIntegrationId` from CLI flags.
+ * Merge order per selected integration id: (1) `--providerSettingsByIntegrationId`
+ * entries, (2) `--settings` merged on top, (3) when multiple `-c` segments exist,
+ * a `replies` array is merged last (overwrites an existing `replies` key).
+ */
 export function mergeProviderSettingsForIntegrations(args: {
   integrationIds: string[];
   contentSegments: string[];

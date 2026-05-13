@@ -118,6 +118,17 @@ describe("mergeProviderSettingsForIntegrations", () => {
     });
     expect(out![intId]).toEqual({ bar: true });
   });
+
+  it("merges --settings on top of explicit providerSettings (same key: settings wins)", () => {
+    const out = mergeProviderSettingsForIntegrations({
+      integrationIds: [intId],
+      contentSegments: ["x"],
+      delayMs: 0,
+      explicitByIntegration: { [intId]: { bar: 1, keep: true } },
+      settingsJson: { bar: 2 },
+    });
+    expect(out![intId]).toEqual({ bar: 2, keep: true });
+  });
 });
 
 describe("readCreatePayloadFromJsonFile", () => {

@@ -205,6 +205,14 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             '$0 posts:create -c "1/3" -c "2/3" -c "3/3" -d 60000 -s "2026-01-01T12:00:00Z" -i "$THREADS_ID"',
             "Repeated -c builds provider replies (delay in ms between segments; default 5000)"
           )
+          .example(
+            '$0 posts:create -c "Same copy everywhere" -s "2026-01-01T12:00:00Z" -i "uuid-a,uuid-b,uuid-c"',
+            "Comma-separated -i publishes one body to multiple channels"
+          )
+          .example(
+            '$0 posts:create -c "Hello" -s "2026-01-01T12:00:00Z" -i "$ID" --settings \'{"customField":true}\'',
+            "Platform JSON merged into providerSettingsByIntegrationId for each -i"
+          )
           .example("$0 posts:create --json ./post.json", "Full payload from JSON file (Openquok POST /public/posts shape)"),
       async (args: any) => {
         await runCommand("posts:create", async () => {

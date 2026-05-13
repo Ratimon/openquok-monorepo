@@ -33,7 +33,7 @@ openquok posts:create \
 | <Badge text="-c" variant="default" /> <Badge text="--content" variant="default" /> | Post body. Repeat for thread-style segments; extra segments map to provider <code>replies</code> when supported (see <a href="/docs/cli-examples/threads">Threads examples</a>). Long form: <Badge text="--body" variant="default" />. |
 | <Badge text="-s" variant="default" /> <Badge text="--date" variant="default" /> | Schedule time (ISO-8601, required unless <Badge text="-j" variant="default" />). Same as <Badge text="--scheduledAt" variant="default" />. |
 | <Badge text="-t" variant="default" /> <Badge text="--type" variant="default" /> | <code>schedule</code> (default) or <code>draft</code> — maps to API <code>scheduled</code> / <code>draft</code>. Long form: <Badge text="--status" variant="default" /> <code>scheduled</code> \| <code>draft</code>. |
-| <Badge text="-i" variant="default" /> <Badge text="--integrations" variant="default" /> | Comma-separated channel UUIDs (required unless <Badge text="-j" variant="default" />). Same as <Badge text="--integrationIds" variant="default" />. |
+| <Badge text="-i" variant="default" /> <Badge text="--integrations" variant="default" /> | Comma-separated channel ids (required unless <Badge text="-j" variant="default" />). Same as <Badge text="--integrationIds" variant="default" />. |
 | <Badge text="-m" variant="default" /> <Badge text="--media" variant="default" /> | Comma-separated storage paths or URLs per flag (the CLI supplies a placeholder media id when you did not run upload). Values from repeated <code>-m</code> are merged into the root post's <code>media</code> list. Prefer upload JSON; for attachments on individual follow-up lines use <a href="/docs/cli-examples/threads">Threads examples</a> or <Badge text="-j" variant="default" />. |
 | <Badge text="-d" variant="default" /> <Badge text="--delay" variant="default" /> | Milliseconds between segments when using multiple <code>-c</code> (default <code>5000</code>); converted to reply <code>delaySeconds</code>. |
 | <Badge text="--settings" variant="default" /> | Platform-specific settings JSON; merged into each selected integration. |
@@ -116,6 +116,72 @@ openquok posts:create \
 <p>Instagram requires at least one attachment for <code>scheduled</code> posts; Threads accepts text-only. Each provider has its own validation — Check with <a href="/docs/cli-usages/integrations">`openquok integrations:settings`</a> before you script a batch.</p>
 </Callout>
 
+### Multi-channel post (same body)
+
+Send one canonical <Badge text="--body" variant="default" /> / <Badge text="-c" variant="default" /> to every channel by listing several integration ids in a single comma-separated <Badge text="-i" variant="default" /> argument (same wire shape as <code>integrationIds: string[]</code> on <Badge text="POST /public/posts" variant="default" />).
+
+```bash
+openquok posts:create \
+  -c "Posting everywhere!" \
+  -s "2026-01-15T12:00:00Z" \
+  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b,9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e,a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+```
+
+When channels need different copy, use <Badge text="--bodiesByIntegrationId" variant="default" /> (see above) instead of relying on a single body.
+
+### Platform-specific settings
+
+Some providers expect extra fields (post type, subreddit, thread replies, and so on). The CLI accepts a JSON object with <Badge text="--settings" variant="default" /> and merges it into <code>providerSettingsByIntegrationId</code> for **each** integration UUID you passed with <Badge text="-i" variant="default" />. Deeper per-channel control lives in <Badge text="--providerSettingsByIntegrationId" variant="default" />; keys from <Badge text="--settings" variant="default" /> override the same keys from that map when both are present.
+
+```bash
+openquok posts:create \
+  -c "Check out this discussion" \
+  -s "2026-01-15T12:00:00Z" \
+  --settings '{"subreddit":[{"value":{"subreddit":"programming","title":"My Post","type":"text"}}]}' \
+  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
+```
+
+Discover valid shapes with <a href="/docs/cli-usages/integrations"><code>openquok integrations:settings &lt;integration-uuid&gt;</code></a> and the <a href="/docs/cli-usages/integrations">Integrations</a> CLI page.
+
+### Create from a JSON file
+
+For posts with detailed platform-specific content (large <code>providerSettingsByIntegrationId</code>, many tags, or bodies per channel), use the <a href="/account/payload-wizard">Payload Wizard</a> to build the request and copy a JSON body:
+
+```bash
+openquok posts:create --json post.json
+```
+
+Example <code>post.json</code> (placeholders only — replace ids and timestamps with values from your workspace):
+
+```json
+{
+  "scheduledAt": "2026-01-15T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Short default caption when a channel has no override.",
+  "integrationIds": [
+    "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b",
+    "9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e"
+  ],
+  "bodiesByIntegrationId": {
+    "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b": "Short version for channel A.",
+    "9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e": "Longer version for channel B."
+  },
+  "providerSettingsByIntegrationId": {
+    "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b": {
+      "replies": [{ "message": "Follow-up only on this channel", "delaySeconds": 60 }]
+    },
+    "9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e": {
+      "__type": "instagram"
+    }
+  },
+  "tagNames": ["launch-week"]
+}
+```
+
+<Callout type="note" title="JSON is the public API, not provider-specific">
+<p>The file mirrors <code>PublicCreatePostDto</code> in the SDK: an <code>integrationIds</code> array, optional <code>body</code> / <code>bodiesByIntegrationId</code> / <code>media</code> / <code>providerSettingsByIntegrationId</code>, plus <code>scheduledAt</code> and <code>status</code>. There is no separate nested <code>posts</code> array keyed by provider name in this endpoint.</p>
+</Callout>
+
 ## List posts
 
 
@@ -140,7 +206,7 @@ Same window with the long names: <Badge text="--start" variant="default" /> / <B
 </Callout>
 
 
-Filter to specific channels by passing a comma-separated list of integration UUIDs:
+Filter to specific channels by passing a comma-separated list of integration ids:
 
 ```bash
 openquok posts:list \
@@ -184,8 +250,8 @@ The CLI prints the API envelope, for example:
   "success": true,
   "data": {
     "items": [
-      { "id": "7321456789012345678", "url": "https://example.com/preview-cover.jpeg" },
-      { "id": "7321456789012345679", "url": "https://example.com/preview-cover-2.jpeg" }
+      { "id": "example-provider-release-id", "url": "https://example.com/preview-cover.jpeg" },
+      { "id": "example-provider-release-id-alt", "url": "https://example.com/preview-cover-2.jpeg" }
     ]
   }
 }
@@ -199,13 +265,11 @@ openquok posts:missing <post-row-uuid> | jq '.data.items[] | {id, url}'
 
 ### Connect a post
 
-After you pick the matching provider id from the list above:
+After you pick the matching provider id from the list above, connect the row:
 
 ```bash
-openquok posts:connect <post-row-uuid> --release-id "7321456789012345678"
+openquok posts:connect <post-row-uuid> --release-id "example-provider-release-id"
 ```
-
-<p>That maps to <Badge text="Connect post release id" variant="default" /> in the public API. Send a JSON body with a single string field named <code>releaseId</code> (same value you pass as <code>--release-id</code> or <code>--releaseId</code> on the CLI). The service only accepts the update while the row is still in the missing state (see <code>updateReleaseIdIfMissing</code> in the backend). Details are in <a href="/docs/apis-posts/release-id">Update release ID</a>.</p>
 
 ### Full workflow
 
@@ -220,7 +284,7 @@ openquok posts:list \
 openquok posts:missing POST_ROW_UUID | jq '.data.items'
 
 # 3. Link the correct provider id
-openquok posts:connect POST_ROW_UUID --release-id "7321456789012345678"
+openquok posts:connect POST_ROW_UUID --release-id "example-provider-release-id"
 
 # 4. Confirm per-post analytics resolve (pick a window the CLI accepts)
 openquok analytics:post POST_ROW_UUID --days 7
@@ -278,7 +342,7 @@ openquok posts:group "$GROUP"
 ## Related
 
 <CardGrid>
-<LinkCard title="Integrations" description="Discover channel UUIDs, max post lengths, and tools that build the `--settings` payload" href="/docs/cli-usages/integrations" />
+<LinkCard title="Integrations" description="Discover channel ids, max post lengths, and tools that build the `--settings` payload" href="/docs/cli-usages/integrations" />
 <LinkCard title="Media Upload" description="Produce the `data.id` and `data.filePath` you pass to `--media`" href="/docs/cli-usages/media-upload" />
 <LinkCard title="Analytics" description="Per-post analytics once a `release_id` is linked" href="/docs/cli-usages/analytics" />
 <LinkCard title="Posts APIs" description="Underlying REST endpoints used by every `posts:*` command" href="/docs/apis-posts" />
