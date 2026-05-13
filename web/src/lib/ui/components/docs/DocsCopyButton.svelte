@@ -7,10 +7,11 @@
 		docsPagePath
 	} from '$lib/docs/utils/doc-share-urls';
 	import { cn } from '$lib/ui/helpers/common';
-	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import { toast } from '$lib/ui/sonner';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { icons } from '$data/icons';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 
 	let {
 		rawContent = '',

@@ -2,12 +2,12 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { docsConfig } from '$lib/docs/constants';
+	import { cn } from '$lib/ui/helpers/common';
 	import { icons } from '$data/icons';
 
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { cn } from '$lib/ui/helpers/common';
 
 	let { variant = 'header' }: { variant?: 'header' | 'sidebar' } = $props();
 

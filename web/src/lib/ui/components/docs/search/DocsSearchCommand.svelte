@@ -200,9 +200,9 @@
 				{/each}
 			</Command.Group>
 		{:else if !query.trim()}
-			{#each navigation as section (section.title)}
+			{#each navigation as section, sectionIndex (sectionIndex)}
 				<Command.Group heading={section.title}>
-					{#each section.items ?? [] as item (item.title)}
+					{#each section.items ?? [] as item, itemIndex (item.href ?? `${sectionIndex}-${itemIndex}`)}
 						{#if item.href}
 							<Command.Item onSelect={() => navigate(item.href ?? '')}>
 								<AbstractIcon name={icons.FileText.name} width="16" height="16" />
