@@ -1,6 +1,6 @@
 ---
 title: Instagram
-description: End-to-end Openquok CLI recipes for Instagram (Business and Standalone) — feed posts, auto-detected reels, carousels, and scheduled reply chains.
+description: Openquok CLI examples for Instagram (Business and Standalone) — feed posts, auto-detected reels, carousels, and scheduled reply chains.
 order: 2
 lastUpdated: 2026-05-12
 ---
@@ -19,7 +19,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 | Reel / carousel detection | Auto (1 video → Reel, &gt;1 image → carousel) | Auto |
 | OAuth setup | <a href="/docs/social-integration/instagram">Instagram</a> | <a href="/docs/social-integration/instagram">Instagram</a> |
 
-Both providers expose the **same CLI surface** — the only difference is which integration UUID you target. Capture the UUID from `integrations:list`:
+Both providers expose the **same CLI surface** — the only difference is which integration UUID you target. Capture the UUID from <Badge text="integrations:list" variant="param" />:
 
 ```bash
 INSTAGRAM_ID=$(openquok integrations:list \
@@ -116,7 +116,7 @@ openquok posts:create \
 
 ## Scheduled reply chain
 
-`providerSettings.instagram.replies[]` carries follow-up replies that publish from the same account after the root post. Pass them on `posts:create` with `--providerSettingsByIntegrationId`:
+<Badge text="providerSettings.instagram.replies[]" variant="param" /> carries follow-up replies that publish from the same account after the root post. Pass them on <Badge text="posts:create" variant="param" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
 
 ```bash
 openquok posts:create \
@@ -141,7 +141,7 @@ openquok posts:create \
 ```
 
 <Callout type="note" title="Reply chain limits">
-<p>The provider caps reply chains at 25 entries and silently drops any reply whose <code>message</code> is empty after trimming. <code>delaySeconds</code> is floored to a non-negative integer; the first reply is gated on the root post's <code>release_id</code> resolving (not <code>missing</code>).</p>
+<p>The provider caps reply chains at 25 entries and silently drops any reply whose <Badge text="message" variant="param" /> is empty after trimming. <Badge text="delaySeconds" variant="param" /> is floored to a non-negative integer; the first reply is gated on the root post's <Badge text="release_id" variant="param" /> resolving (not <Badge text="missing" variant="default" />).</p>
 </Callout>
 
 ## Cross-post to Threads in a single command
@@ -190,7 +190,7 @@ openquok analytics:post <post-id> -d 30 \
 
 ## Limitations of the public API today
 
-The Instagram provider supports stories, trial reels, collaborator tags, and graduation strategies, but the corresponding flags (e.g. <code>post_type=story</code>, <code>is_trial_reel</code>, <code>collaborators[]</code>) currently live in the web composer settings and are **not** writable through the public API. Until they are surfaced as first-class fields on `posts:create`:
+The Instagram provider supports stories, trial reels, collaborator tags, and graduation strategies, but the corresponding flags (e.g. <Badge text="post_type=story" variant="param" />, <Badge text="is_trial_reel" variant="param" />, <Badge text="collaborators[]" variant="param" />) currently live in the web settings and are **not** writable through the public API. Until they are surfaced as first-class fields on <Badge text="posts:create" variant="param" />:
 
 - **Stories** — schedule from the web UI.
 - **Trial reels / collaborators** — same.
@@ -199,8 +199,8 @@ The Instagram provider supports stories, trial reels, collaborator tags, and gra
 ## Related
 
 <CardGrid>
-<LinkCard title="Instagram setup" description="Meta for Developers app, OAuth redirect, scopes, and tester roles for both Business and Standalone" href="/docs/social-integration/instagram" />
-<LinkCard title="Managing Posts" description="Generic flag reference for `posts:create`, including media and per-channel overrides" href="/docs/cli-usages/managing-posts" />
-<LinkCard title="Media Upload" description="Upload local files or mirror a public URL to produce the `-m` / `--media` payload" href="/docs/cli-usages/media-upload" />
-<LinkCard title="Analytics" description="Look-back windows, response shape, and `jq` recipes" href="/docs/cli-usages/analytics" />
+<LinkCard title="Instagram setup" description="Configure the Meta app, OAuth redirects, scopes, and tester roles for Business or Standalone" href="/docs/social-integration/instagram" />
+<LinkCard title="Managing Posts" description="Create, list, and schedule posts with attachments and per-channel overrides" href="/docs/cli-usages/managing-posts" />
+<LinkCard title="Media Upload" description="Upload from disk or mirror a public URL before attaching media to a post" href="/docs/cli-usages/media-upload" />
+<LinkCard title="Analytics" description="Review channel and post performance after content goes live" href="/docs/cli-usages/analytics" />
 </CardGrid>

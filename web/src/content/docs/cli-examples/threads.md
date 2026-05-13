@@ -1,6 +1,6 @@
 ---
 title: Meta Threads
-description: End-to-end Openquok CLI recipes for Meta Threads — single posts, reply chains, the missing release_id reconciliation flow, and per-post analytics.
+description: Openquok CLI examples for Meta Threads — single posts, reply chains, the missing release_id reconciliation flow, and per-post analytics.
 order: 1
 lastUpdated: 2026-05-12
 ---
@@ -54,7 +54,7 @@ openquok posts:create \
 
 ## Scheduled reply chain (thread + follow-ups)
 
-`providerSettings.threads.replies[]` carries follow-up replies that publish from the same account a fixed number of seconds after the root post. Pass them on `posts:create` with `--providerSettingsByIntegrationId`:
+<Badge text="providerSettings.threads.replies[]" variant="param" /> carries follow-up replies that publish from the same account a fixed number of seconds after the root post. Pass them on <Badge text="posts:create" variant="default" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
 
 ```bash
 openquok posts:create \
@@ -75,7 +75,7 @@ openquok posts:create \
 
 ### Add a "finisher" reply
 
-Enable a closing reply (e.g. "Thanks for reading!") by toggling `providerSettings.threads.enabled` and providing a message:
+Enable a closing reply (e.g. "Thanks for reading!") by toggling <Badge text="providerSettings.threads.enabled" variant="param" /> and providing a message:
 
 ```bash
 openquok posts:create \
@@ -97,7 +97,7 @@ openquok posts:create \
 
 ### Delayed engagement reply
 
-`providerSettings.threads.internalEngagementPlug` schedules a same-account engagement reply (a self-comment that boosts engagement signals) some seconds after publish:
+<Badge text="providerSettings.threads.internalEngagementPlug" variant="param" /> schedules a same-account engagement reply (a self-comment that boosts engagement signals) some seconds after publish:
 
 ```bash
 openquok posts:create \
@@ -119,7 +119,7 @@ openquok posts:create \
 
 ## Reconnect a "missing" Threads post
 
-Threads occasionally fails to return a `release_id` immediately after publish; Openquok stores it as <Badge text="missing" variant="default" /> and per-post analytics stay locked until you link the real id manually.
+Threads occasionally fails to return a <Badge text="release_id" variant="param" /> immediately after publish; Openquok stores it as <Badge text="missing" variant="param" /> and per-post analytics stay locked until you link the real id manually.
 
 ```bash
 POST_ID=$(openquok posts:list \
@@ -154,7 +154,8 @@ openquok analytics:post <post-id> -d 30 \
 ## Related
 
 <CardGrid>
-<LinkCard title="Meta Threads setup" description="Meta for Developers app, OAuth redirect, scopes, and tester roles" href="/docs/social-integration/threads" />
-<LinkCard title="Managing Posts" description="Generic flag reference for `posts:create` and the reconcile workflow" href="/docs/cli-usages/managing-posts" />
-<LinkCard title="Analytics" description="Look-back windows, response shape, and `jq` recipes" href="/docs/cli-usages/analytics" />
+<LinkCard title="Meta Threads setup" description="Configure the Meta app, OAuth redirects, scopes, and tester roles" href="/docs/social-integration/threads" />
+<LinkCard title="Managing Posts" description="Create, list, and schedule posts with the full flag reference" href="/docs/cli-usages/managing-posts" />
+<LinkCard title="Media Upload" description="Upload from disk or mirror a public URL before attaching a single image or video" href="/docs/cli-usages/media-upload" />
+<LinkCard title="Analytics" description="Review channel and post performance after content goes live" href="/docs/cli-usages/analytics" />
 </CardGrid>

@@ -121,7 +121,7 @@ Per-file size is capped by <Badge text="MAX_MEDIA_UPLOAD_BYTES" variant="envBack
 ## Related
 
 <CardGrid>
-<LinkCard title="Managing Posts" description="Reference uploaded `id` + `filePath` from `-m` / `--media` in `posts:create`" href="/docs/cli-usages/managing-posts" />
-<LinkCard title="CLI Examples — Instagram" description="End-to-end recipes that combine `upload` with platform settings (reels, carousels, stories)" href="/docs/cli-examples/instagram" />
-<LinkCard title="Uploads APIs" description="Underlying REST endpoints used by `upload` and `upload-from-url`" href="/docs/apis-uploads" />
+<LinkCard title="Managing Posts" description="Use returned upload ids and paths when you create or schedule posts" href="/docs/cli-usages/managing-posts" />
+<LinkCard title="CLI Examples — Instagram" description="Walk through reels, carousels, and stories once media is on disk or mirrored" href="/docs/cli-examples/instagram" />
+<LinkCard title="Uploads APIs" description="Call the API for the same file and URL copy workflows as the CLI" href="/docs/apis-uploads" />
 </CardGrid>

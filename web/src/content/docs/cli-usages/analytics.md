@@ -161,7 +161,8 @@ jq -s '
 ## Related
 
 <CardGrid>
-<LinkCard title="Managing Posts" description="Use `posts:connect` to unlock per-post analytics for `missing` rows" href="/docs/cli-usages/managing-posts" />
-<LinkCard title="Integrations" description="Discover channel UUIDs that feed `analytics:platform`" href="/docs/cli-usages/integrations" />
-<LinkCard title="Analytics APIs" description="Underlying REST endpoints used by every `analytics:*` command" href="/docs/apis-analytics" />
+<LinkCard title="Managing Posts" description="Create, list, and delete posts using the channel IDs from Integrations" href="/docs/cli-usages/managing-posts" />
+<LinkCard title="Integrations" description="Discover the channel IDs behind each analytics query" href="/docs/cli-usages/integrations" />
+<LinkCard title="Analytics APIs" description="Call the API for the same metrics and breakdowns as the CLI" href="/docs/apis-analytics" />
+<LinkCard title="Social integrations" description="Connect accounts with OAuth before you automate them from the terminal" href="/docs/social-integration" />
 </CardGrid>
