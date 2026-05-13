@@ -23,7 +23,7 @@ type PublicPostRouter = ReturnType<typeof Router>;
  *
  * NOTE: order matters — static segments (`/list`, `/group/...`, `/find-slot/...`) and
  * suffix routes (`/:postId/missing`, `/:postId/release-id`) are registered **before**
- * `DELETE /:postId` so Express does not greedily match the catch-all.
+ * `GET /:postId` and `DELETE /:postId` so Express does not greedily match the catch-all.
  */
 const publicPostRouter: PublicPostRouter = Router();
 const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
@@ -63,6 +63,12 @@ publicPostRouter.put(
     apiKeyAuth,
     validatePublicUpdateReleaseIdRequest,
     publicPostsController.updateReleaseId
+);
+publicPostRouter.get(
+    "/:postId",
+    apiKeyAuth,
+    validatePublicPostIdParams,
+    publicPostsController.getPostByIdSummary
 );
 publicPostRouter.delete(
     "/:postId",

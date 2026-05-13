@@ -55,3 +55,9 @@ export type PublicCreatePostDto = {
 
 export type PublicUpdatePostGroupDto = PublicCreatePostDto;
 
+/** `GET /public/posts/{postId}` — row id and parent post group (programmatic API). */
+export type PublicPostSummaryDto = {
+    id: string;
+    postGroup: string;
+};
+

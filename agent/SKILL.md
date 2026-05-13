@@ -31,6 +31,7 @@ openquok posts:create -s "2026-01-01T12:00:00Z" -c "..." -i "uuid1,uuid2"
 
 ```bash
 openquok posts:group <postGroupUuid>
+openquok posts:status <postRowUuid> --status draft
 openquok posts:update-group <postGroupUuid> --json '{"scheduledAt":"...","status":"draft"}'
 ```
 

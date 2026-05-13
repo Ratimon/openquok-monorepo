@@ -1,6 +1,6 @@
 ---
 title: Managing Posts
-description: Create, list, delete, and reconnect Openquok posts from the command line.
+description: Create, list, delete, and reconnect Openquok posts/post group from the command line.
 order: 1
 lastUpdated: 2026-05-13
 ---
@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Overview
 
-The `posts:*` commands wrap the <a href="/docs/apis-posts">Posts APIs</a>. They drive every step of the publishing lifecycle: pick channels and a schedule time, create a post group, iterate on it, then delete it or reconnect it to its provider-native id once it is published.
+The <Badge text="posts:*" variant="default" /> commands wrap the <a href="/docs/apis-posts">Posts APIs</a>. They drive every step of the publishing lifecycle: pick channels and a schedule time, create a post group, iterate on it, then delete it or reconnect it to its provider-native id once it is published.
 
 <Callout type="note" title="Post groups vs. post rows">
 <p>A <strong>post group</strong> is the multi-channel composition the UI calls a post; <Badge text="posts:group" variant="default" /> and <Badge text="posts:update-group" variant="default" /> operate on the group id returned by <Badge text="posts:create" variant="default" />. A <strong>post row</strong> is one channel inside that group (<Badge text="posts:delete" variant="default" />, <Badge text="posts:missing" variant="default" />, <Badge text="posts:connect" variant="default" /> use the id from <Badge text="posts:list" variant="default" />).</p>
@@ -19,7 +19,7 @@ The `posts:*` commands wrap the <a href="/docs/apis-posts">Posts APIs</a>. They 
 
 ## Create a post
 
-The simplest case: one channel, one body, one scheduled timestamp. You can use short flags (<code>-c</code>, <code>-s</code>, <code>-i</code>, …) or the long names that match <Badge text="POST /public/posts" variant="default" />.
+The simplest case: one channel, one body, one scheduled timestamp. You can use short flags (<code>-c</code>, <code>-s</code>, <code>-i</code>, …) or the long names that match <Badge text="POST /public/posts" variant="path" />.
 
 ```bash
 openquok posts:create \
@@ -30,18 +30,18 @@ openquok posts:create \
 
 | Flag | Description |
 | --- | --- |
-| <Badge text="-c" variant="default" /> <Badge text="--content" variant="default" /> | Post body. Repeat for thread-style segments; extra segments map to provider <code>replies</code> when supported (see <a href="/docs/cli-examples/threads">Threads examples</a>). Long form: <Badge text="--body" variant="default" />. |
-| <Badge text="-s" variant="default" /> <Badge text="--date" variant="default" /> | Schedule time (ISO-8601, required unless <Badge text="-j" variant="default" />). Same as <Badge text="--scheduledAt" variant="default" />. |
-| <Badge text="-t" variant="default" /> <Badge text="--type" variant="default" /> | <code>schedule</code> (default) or <code>draft</code> — maps to API <code>scheduled</code> / <code>draft</code>. Long form: <Badge text="--status" variant="default" /> <code>scheduled</code> \| <code>draft</code>. |
-| <Badge text="-i" variant="default" /> <Badge text="--integrations" variant="default" /> | Comma-separated channel ids (required unless <Badge text="-j" variant="default" />). Same as <Badge text="--integrationIds" variant="default" />. |
-| <Badge text="-m" variant="default" /> <Badge text="--media" variant="default" /> | Comma-separated storage paths or URLs per flag (the CLI supplies a placeholder media id when you did not run upload). Values from repeated <code>-m</code> are merged into the root post's <code>media</code> list. Prefer upload JSON; for attachments on individual follow-up lines use <a href="/docs/cli-examples/threads">Threads examples</a> or <Badge text="-j" variant="default" />. |
-| <Badge text="-d" variant="default" /> <Badge text="--delay" variant="default" /> | Milliseconds between segments when using multiple <code>-c</code> (default <code>5000</code>); converted to reply <code>delaySeconds</code>. |
-| <Badge text="--settings" variant="default" /> | Platform-specific settings JSON; merged into each selected integration. |
-| <Badge text="-j" variant="default" /> <Badge text="--json" variant="default" /> | Path to a JSON file whose root object is the full <Badge text="POST /public/posts" variant="default" /> body (skips other flags). |
-| <Badge text="--bodiesByIntegrationId" variant="default" /> | JSON object keyed by integration UUID; each value is the per-channel body override. |
-| <Badge text="--providerSettingsByIntegrationId" variant="default" /> | JSON map of provider-specific settings (see <a href="/docs/cli-examples">CLI Examples</a>). |
-| <Badge text="--tagNames" variant="default" /> | Comma-separated workspace tag names. |
-| <Badge text="--repeatInterval" variant="default" /> | Backend repeat enum (e.g. <code>weekly</code>). |
+| <Badge text="-c" variant="param" /> <Badge text="--content" variant="param" /> | Post body. Repeat for thread-style segments; extra segments map to provider <code>replies</code> when supported (see <a href="/docs/cli-examples/threads">Threads examples</a>). Long form: <Badge text="--body" variant="param" />. |
+| <Badge text="-s" variant="param" /> <Badge text="--date" variant="param" /> | Schedule time (ISO-8601, required unless <Badge text="-j" variant="param" />). Same as <Badge text="--scheduledAt" variant="param" />. |
+| <Badge text="-t" variant="param" /> <Badge text="--type" variant="param" /> | <code>schedule</code> (default) or <code>draft</code> — maps to API <code>scheduled</code> / <code>draft</code>. Long form: <Badge text="--status" variant="param" /> <code>scheduled</code> \| <code>draft</code>. |
+| <Badge text="-i" variant="param" /> <Badge text="--integrations" variant="param" /> | Comma-separated channel ids (required unless <Badge text="-j" variant="param" />). Same as <Badge text="--integrationIds" variant="param" />. |
+| <Badge text="-m" variant="param" /> <Badge text="--media" variant="param" /> | Comma-separated storage paths or URLs per flag (the CLI supplies a placeholder media id when you did not run upload). Values from repeated <code>-m</code> are merged into the root post's <code>media</code> list. Prefer upload JSON; for attachments on individual follow-up lines use <a href="/docs/cli-examples/threads">Threads examples</a> or <Badge text="-j" variant="param" />. |
+| <Badge text="-d" variant="param" /> <Badge text="--delay" variant="param" /> | Milliseconds between segments when using multiple <code>-c</code> (default <code>5000</code>); converted to reply <code>delaySeconds</code>. |
+| <Badge text="--settings" variant="param" /> | Platform-specific settings JSON; merged into each selected integration. |
+| <Badge text="-j" variant="param" /> <Badge text="--json" variant="param" /> | Path to a JSON file whose root object is the full <Badge text="POST /public/posts" variant="path" /> body (skips other flags). |
+| <Badge text="--bodiesByIntegrationId" variant="param" /> | JSON object keyed by integration UUID; each value is the per-channel body override. |
+| <Badge text="--providerSettingsByIntegrationId" variant="param" /> | JSON map of provider-specific settings (see <a href="/docs/cli-examples">CLI Examples</a>). |
+| <Badge text="--tagNames" variant="param" /> | Comma-separated workspace tag names. |
+| <Badge text="--repeatInterval" variant="param" /> | Backend repeat enum (e.g. <code>weekly</code>). |
 
 ### Draft instead of scheduling
 
@@ -81,11 +81,11 @@ openquok posts:create \
 
 ### Threads and follow-up comments
 
-Pass <Badge text="-c" variant="default" /> more than once to build a **chain of messages**: the first becomes the main <code>body</code>; each extra <Badge text="-c" variant="default" /> becomes a scheduled follow-up in <code>replies</code> (with <code>message</code> and <code>delaySeconds</code>).
+Pass <Badge text="-c" variant="param" /> more than once to build a **chain of messages**: the first becomes the main <code>body</code>; each extra <Badge text="-c" variant="param" /> becomes a scheduled follow-up in <code>replies</code> (with <code>message</code> and <code>delaySeconds</code>).
 
 Providers that support that shape (for example Threads) are covered in depth on <a href="/docs/cli-examples/threads">CLI Examples → Threads</a>.
 
-You can still repeat <Badge text="-m" variant="default" /> for paths or upload JSON blobs; the CLI **collects them into one root-level <code>media</code> array** on the post. If a follow-up line needs its **own** media, build <code>providerSettingsByIntegrationId</code> by hand, use <Badge text="-j" variant="default" /> with a full JSON body, or follow the jq recipes on the Threads page.
+You can still repeat <Badge text="-m" variant="param" /> for paths or upload JSON blobs; the CLI **collects them into one root-level <code>media</code> array** on the post. If a follow-up line needs its **own** media, build <code>providerSettingsByIntegrationId</code> by hand, use <Badge text="-j" variant="param" /> with a full JSON body, or follow the jq recipes on the Threads page.
 
 ```bash
 openquok posts:create \
@@ -96,7 +96,7 @@ openquok posts:create \
   -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
 ```
 
-Use <Badge text="-d" variant="default" /> to set the gap **in milliseconds** between consecutive follow-ups (default <code>5000</code> when omitted).
+Use <Badge text="-d" variant="param" /> to set the gap **in milliseconds** between consecutive follow-ups (default <code>5000</code> when omitted).
 
 ```bash
 openquok posts:create \
@@ -118,7 +118,7 @@ openquok posts:create \
 
 ### Multi-channel post (same body)
 
-Send one canonical <Badge text="--body" variant="default" /> / <Badge text="-c" variant="default" /> to every channel by listing several integration ids in a single comma-separated <Badge text="-i" variant="default" /> argument (same wire shape as <code>integrationIds: string[]</code> on <Badge text="POST /public/posts" variant="default" />).
+Send one canonical <Badge text="--body" variant="param" /> / <Badge text="-c" variant="param" /> to every channel by listing several integration ids in a single comma-separated <Badge text="-i" variant="param" /> argument (same wire shape as <code>integrationIds: string[]</code> on <Badge text="POST /public/posts" variant="path" />).
 
 ```bash
 openquok posts:create \
@@ -127,11 +127,11 @@ openquok posts:create \
   -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b,9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e,a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 ```
 
-When channels need different copy, use <Badge text="--bodiesByIntegrationId" variant="default" /> (see above) instead of relying on a single body.
+When channels need different copy, use <Badge text="--bodiesByIntegrationId" variant="param" /> (see above) instead of relying on a single body.
 
 ### Platform-specific settings
 
-Some providers expect extra fields (post type, subreddit, thread replies, and so on). The CLI accepts a JSON object with <Badge text="--settings" variant="default" /> and merges it into <code>providerSettingsByIntegrationId</code> for **each** integration UUID you passed with <Badge text="-i" variant="default" />. Deeper per-channel control lives in <Badge text="--providerSettingsByIntegrationId" variant="default" />; keys from <Badge text="--settings" variant="default" /> override the same keys from that map when both are present.
+Some providers expect extra fields (post type, subreddit, thread replies, and so on). The CLI accepts a JSON object with <Badge text="--settings" variant="param" /> and merges it into <code>providerSettingsByIntegrationId</code> for **each** integration id you passed with <Badge text="-i" variant="param" />. Deeper per-channel control lives in <Badge text="--providerSettingsByIntegrationId" variant="param" />; keys from <Badge text="--settings" variant="param" /> override the same keys from that map when both are present.
 
 ```bash
 openquok posts:create \
@@ -199,10 +199,10 @@ openquok posts:list \
   --endDate "2026-02-01T00:00:00Z"
 ```
 
-Same window with the long names: <Badge text="--start" variant="default" /> / <Badge text="--end" variant="default" />.
+Same window with the long names: <Badge text="--start" variant="param" /> / <Badge text="--end" variant="param" />.
 
 <Callout type="note" title="Defaults live in the CLI, not the API">
-<p><Badge text="GET /public/posts/list" variant="default" /> requires <code>start</code> and <code>end</code>. The CLI fills omitted flags with ±30 local calendar days from today (ISO UTC on the wire). Optional <code>customerGroupId</code> narrows by channel group. SDK and raw HTTP clients must send both dates; see <a href="/docs/apis-posts/list">List Posts</a>.</p>
+<p><Badge text="GET /public/posts/list" variant="path" /> requires <code>start</code> and <code>end</code>. The CLI fills omitted flags with ±30 local calendar days from today (ISO UTC on the wire). Optional <code>customerGroupId</code> narrows by channel group. SDK and raw HTTP clients must send both dates; see <a href="/docs/apis-posts/list">List Posts</a>.</p>
 </Callout>
 
 
@@ -217,13 +217,13 @@ openquok posts:list \
 
 ### List posts (Filter by customer group)
 
-Use the channel-group UUID from your workspace (row id in <code>integration_customers</code>; assign integrations to groups in the dashboard). The CLI sends it as the <code>customerGroupId</code> query parameter on <Badge text="GET /public/posts/list" variant="default" />.
+Use the channel-group id from your workspace (row id in <code>integration_customers</code>; assign integrations to groups in the dashboard). The CLI sends it as the <code>customerGroupId</code> query parameter on <Badge text="GET /public/posts/list" variant="path" />.
 
 ```bash
 openquok posts:list --customer 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b
 ```
 
-<p>Alias for <Badge text="--customerGroupId" variant="default" /> (channel-group UUID).</p>
+<p>Alias for <Badge text="--customerGroupId" variant="param" /> (channel-group id).</p>
 
 You can combine <code>--customerGroupId</code> with <code>--integrationIds</code>: only integrations that belong to **both** the group and the CSV are queried.
 
@@ -290,35 +290,66 @@ openquok posts:connect POST_ROW_UUID --release-id "example-provider-release-id"
 openquok analytics:post POST_ROW_UUID --days 7
 ```
 
-## Fetch, update, and delete a post group
+## Update, and delete a post
+
+### Changing post status
+
+Move a post between <code>draft</code> and <code>scheduled</code> **without changing its publish date**. Pass any **post row** id from <Badge text="posts:list" variant="default" /> (the <code>id</code> field — the same identifier you use for <Badge text="posts:delete" variant="default" />).
 
 ```bash
-openquok posts:group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d
+openquok posts:status <post-id> --status draft
+openquok posts:status <post-id> --status schedule
 ```
 
-Update accepts the same JSON shape as `posts:create` (minus `organizationId`). Use it to **reschedule**, **flip draft &harr; scheduled**, or **swap the channel list**:
+| Flag | Description |
+| --- | --- |
+| <Badge text="--status" variant="param" /> <Badge text="-s" variant="param" /> | <code>draft</code> — moves a scheduled group back to draft and **terminates** any in-flight publishing workflow, so it will not publish until you promote it again. <code>schedule</code> or <code>scheduled</code> — promotes a draft into the publishing queue and **(re)starts** the workflow so it publishes at the **stored** time. |
+
+Use this when you want to pause a scheduled post without deleting it, or hand a draft to the scheduler once it is ready.
+
+### Deleting posts
 
 ```bash
-openquok posts:update-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d \
+openquok posts:delete <post-id>
+```
+
+Soft-deletes the **post row** you name and the **whole post group** it belongs to (a row never publishes in isolation).
+
+
+## Fetch, update, and delete a post group
+
+These commands use the **post group** id.
+
+### Get a post group
+
+```bash
+openquok posts:group <post-group-uuid>
+```
+
+For status-only changes, prefer <a href="#changing-post-status">Changing post status</a> above instead of hand-authoring JSON.
+
+### Update a post group
+
+Update by hand when you need arbitrary edits (new <code>scheduledAt</code>, different channels, new media). It might be easiest to copy from <Badge text="posts:group" variant="default" /> output or the <a href="/account/payload-wizard">Payload Wizard</a>):
+
+```bash
+openquok posts:update-group <post-group-uuid> \
   --json '{"scheduledAt":"2026-02-15T09:00:00Z","status":"scheduled"}'
 ```
 
 ```bash
-openquok posts:update-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d \
-  --json '{"status":"draft"}'
+openquok posts:update-group <post-group-uuid> \
+  --json '{"scheduledAt":"2026-02-15T09:00:00Z","status":"draft"}'
 ```
 
-Delete the whole group:
+### Delete a post group
+
+To remove an entire group by id without listing rows first, use <Badge text="posts:delete-group" variant="default" /> with the group id from <Badge text="posts:create" variant="default" />.
 
 ```bash
-openquok posts:delete-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d
+openquok posts:delete-group <post-group-uuid>
 ```
 
-Delete a single row (also soft-deletes its group — a post never publishes in isolation):
-
-```bash
-openquok posts:delete 5b6c7d8e-9f01-2a3b-4c5d-6e7f8a9b0c1d
-```
 
 
 ## End-to-end workflow
@@ -342,8 +373,8 @@ openquok posts:group "$GROUP"
 ## Related
 
 <CardGrid>
-<LinkCard title="Integrations" description="Discover channel ids, max post lengths, and tools that build the `--settings` payload" href="/docs/cli-usages/integrations" />
-<LinkCard title="Media Upload" description="Produce the `data.id` and `data.filePath` you pass to `--media`" href="/docs/cli-usages/media-upload" />
-<LinkCard title="Analytics" description="Per-post analytics once a `release_id` is linked" href="/docs/cli-usages/analytics" />
-<LinkCard title="Posts APIs" description="Underlying REST endpoints used by every `posts:*` command" href="/docs/apis-posts" />
+<LinkCard title="Integrations" description="Connect accounts, find integration IDs, and dynamic options for each channel" href="/docs/cli-usages/integrations" />
+<LinkCard title="Media Upload" description="Upload images or files from your machine and attach them when you create or schedule posts" href="/docs/cli-usages/media-upload" />
+<LinkCard title="Analytics" description="Review how published posts performed after they go live" href="/docs/cli-usages/analytics" />
+<LinkCard title="Posts APIs" description="Call the API for the same create, update, and list workflows as the CLI" href="/docs/apis-posts" />
 </CardGrid>

@@ -70,6 +70,13 @@ export class OpenquokApi {
     });
   }
 
+  async getPost(postId: string): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/posts/${encodeURIComponent(postId)}`),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
   async updatePostGroup(postGroup: string, body: unknown): Promise<unknown> {
     return await requestJson({
       url: this.url(`/public/posts/group/${encodeURIComponent(postGroup)}`),

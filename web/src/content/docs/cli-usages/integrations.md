@@ -101,7 +101,7 @@ openquok posts:create \
 
 ## Disconnecting a channel
 
-<p>The CLI does not currently expose an <code>integrations:delete</code> verb. Disconnect a channel from the Integrations page in the web UI, or call the underlying <Badge text={"DELETE /public/integrations/{id}"} variant="default" /> endpoint via the SDK — see <a href="/docs/apis-integrations/delete">Delete Channel</a>.</p>
+<p>The CLI does not currently expose an <code>integrations:delete</code> verb. Disconnect a channel from the Integrations page in the web UI, or call the underlying <Badge text={"DELETE /public/integrations/{id}"} variant="path" /> endpoint via the SDK — see <a href="/docs/apis-integrations/delete">Delete Channel</a>.</p>
 
 <Callout type="warning" title="Removing a channel is destructive">
 <p>Once an integration row is deleted, any <code>scheduled</code> post that targeted it fails at publish time with <code>integration_not_found</code>. Cancel impacted post groups with <a href="/docs/cli-usages/managing-posts">`openquok posts:delete-group`</a> first.</p>

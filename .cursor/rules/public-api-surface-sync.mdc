@@ -1,6 +1,6 @@
 ---
 description: When public API routes change, keep Swagger JSDoc, SDK, and docs (apis-* folders + sidebar config) in sync; update the agent CLI only for routes the openquok commands expose.
-globs: ["backend/routes/publicApi/**/*.ts", "backend/swagger/**/*.ts", "sdk/src/**/*.ts", "agent/src/**/*.ts", "web/src/content/docs/apis-*/**/*.md", "web/src/lib/docs/constants/config.ts"]
+globs: ["backend/routes/publicApi/**/*.ts", "backend/swagger/**/*.ts", "sdk/src/**/*.ts", "agent/src/**/*.ts", "agent/tests/e2e/**/*.ts", "web/src/content/docs/apis-*/**/*.md", "web/src/lib/docs/constants/config.ts"]
 alwaysApply: false
 ---
 
@@ -14,6 +14,8 @@ alwaysApply: false
 | Node SDK | `sdk/src/index.ts`, `sdk/src/dtos.ts` | `@openquok/sdk` programmatic client |
 | Agent / CLI | `agent/src/api.ts` (+ `commands/`) | Subset of routes exposed as `openquok` commands |
 | Docs site | `web/src/content/docs/apis-<domain>/*.md`, `web/src/lib/docs/constants/config.ts` | `/docs/apis-*` reference pages and sidebar |
+
+**Do not confuse layers:** `backend/swagger/jsdoc/*.doc.ts` files are **OpenAPI JSDoc sources only** (merged into `/api/v1/openapi.json`). They are **not** Vitest specs. Agent tests live under `agent/src/**/*.test.ts` (unit) and `agent/tests/e2e/**/*.e2e.test.ts` (e2e), with e2e filenames like `threads.schedule.post.e2e.test.ts` — see `agent-cli.mdc`.
 
 ## 1. Swagger JSDoc (`backend/swagger/`)
 
@@ -88,13 +90,13 @@ When you touch `backend/routes/publicApi/**`:
 
 1. **Swagger JSDoc** — add/update `backend/swagger/jsdoc/<domain>.<topic>.doc.ts` with `operationId`, `tags`, schemas, and `example`s. Register a new tag in `backend/swagger/openApiSpec.ts` if needed.
 2. **SDK** — add/update the method on `Openquok` (`sdk/src/index.ts`) and any new DTOs (`sdk/src/dtos.ts`).
-3. **Agent** — only if the CLI exposes this operation: add/update the method on `OpenquokApi` (`agent/src/api.ts`) and the yargs command under `agent/src/commands/`. Skip when the route is SDK- or docs-only.
+3. **Agent** — only if the CLI exposes this operation: add/update the method on `OpenquokApi` (`agent/src/api.ts`) and the yargs command under `agent/src/commands/`. Skip when the route is SDK- or docs-only. Cover new deterministic helpers with `agent/src/**/*.test.ts`; add or extend `agent/tests/e2e/**/*.e2e.test.ts` when you need a full CLI subprocess assertion (see `agent-cli.mdc`).
 4. **Docs page** — add/update `web/src/content/docs/apis-<domain>/<endpoint>.md` with `openapi: '<METHOD> /path'` frontmatter, and the `index.md` `CardGrid`.
 5. **Sidebar** — only when introducing a new `apis-<domain>/` directory: add a section to `docsSidebarPublicApi` in `web/src/lib/docs/constants/config.ts`.
 6. **Verify** — hit `GET /api/v1/openapi.json` (backend dev) and load the docs page locally; confirm the rendered example, headers, query/body params, and response fields all match the route.
 
 ## Do not
 
-- Add a public route without a matching `*.doc.ts` — the docs page will render with empty schema rows and no JSON example.
+- Add a public route without a matching OpenAPI JSDoc module under `backend/swagger/jsdoc/` (typically `*.doc.ts`) — the docs page will render with empty schema rows and no JSON example.
 - Change a path or rename a parameter without updating the SDK method and the `openapi: '<METHOD> /path'` frontmatter — slugs are how the docs page finds the operation. Also update `OpenquokApi` / CLI commands **when** this route is wrapped by the agent.
 - Hand-roll a markdown body for an `apis-*` page. The Svelte renderer drives the entire body from the OpenAPI spec; extra content gets overridden / ignored.

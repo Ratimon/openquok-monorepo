@@ -13,8 +13,8 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 Two commands wrap the <a href="/docs/apis-uploads">Uploads APIs</a>:
 
-- <Badge text="upload" variant="default" /> — multipart upload of a **local** file.
-- <Badge text="upload-from-url" variant="default" /> — instructs the backend to fetch a **public** http(s) URL and store it.
+- <Badge text="upload" variant="param" /> — multipart upload of a **local** file.
+- <Badge text="upload-from-url" variant="param" /> — instructs the backend to fetch a **public** http(s) URL and store it.
 
 Both return the same JSON envelope so downstream code (especially `posts:create --media`) is identical regardless of the source.
 

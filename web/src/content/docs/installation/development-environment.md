@@ -290,6 +290,7 @@ pnpm --filter ./agent cli -- --help
 pnpm --filter ./agent cli -- analytics:platform --help
 pnpm --filter ./agent cli -- analytics:post --help
 pnpm --filter ./agent cli -- notifications:list --help
+pnpm --filter ./agent cli -- posts:status --help
 pnpm --filter ./agent cli -- posts:delete --help
 pnpm --filter ./agent cli -- posts:missing --help
 pnpm --filter ./agent cli -- posts:connect --help

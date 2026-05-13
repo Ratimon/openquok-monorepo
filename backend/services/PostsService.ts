@@ -1264,6 +1264,18 @@ export class PostsService {
     }
 
     /**
+     * Programmatic row lookup for `GET {api.prefix}/public/posts/:postId` (org API key auth).
+     * Returns ids so clients can route to `GET/PUT /public/posts/group/{postGroup}` without listing the calendar.
+     */
+    async getPostSummaryProgrammatic(postId: string, organizationId: string): Promise<{ id: string; postGroup: string }> {
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+        return { id: post.id, postGroup: post.post_group };
+    }
+
+    /**
      * Programmatic candidates for `GET {api.prefix}/public/posts/:postId/missing` (org API key auth).
      * Same return shape as {@link getMissingPublishCandidates} but skips membership checks.
      */

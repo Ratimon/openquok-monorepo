@@ -97,6 +97,8 @@ openquok posts:create \
   -i "uuid1,uuid2"
 
 openquok posts:group <postGroupUuid>
+openquok posts:status <postRowUuid> --status draft
+openquok posts:status <postRowUuid> -s schedule
 openquok posts:update-group <postGroupUuid> --json '{"scheduledAt":"...","status":"draft"}'
 openquok posts:delete-group <postGroupUuid>
 
@@ -106,6 +108,7 @@ openquok posts:connect <postId> --release-id <providerReleaseId>
 ```
 
 - `posts:list` without flags defaults to 30 local calendar days before today through 30 local calendar days after today (JavaScript `Date` local rules, then ISO UTC on the wire). Pass `--start` / `--end` or `--startDate` / `--endDate`; use `-i` / `--integrations` / `--integrationIds <csv>` and/or `--customer` / `--customerGroupId` (`integration_customers.id`) to narrow channels.
+- `posts:status` takes a **post row** id from `posts:list` (same as `posts:delete`), resolves the parent group, and flips `draft` ↔ `scheduled` at the same stored publish time (convenience over hand-building `posts:update-group --json`).
 - `posts:delete` removes a single post (and the post group it belongs to — a row never publishes in isolation).
 - `posts:missing` and `posts:connect` are the workflow for posts whose `release_id` came back as `"missing"`: list provider-side candidates with `posts:missing`, then link the matching id with `posts:connect --release-id <id>` (or `--releaseId` / `-r`) to unlock per-post analytics.
 
@@ -171,7 +174,7 @@ Pure CLI helpers (for example `posts.logic.ts`) are covered with **`pnpm --filte
 
 ### End-to-end CLI tests (Vitest)
 
-Scenario files live under **`agent/tests/e2e/`** and use the suffix **`*.e2e.test.ts`**. Name them by surface and command (for example **`threads.create-post.e2e.test.ts`**). Each test builds an `argv` array that matches what a user would type after `openquok`, runs **`node agent/dist/index.js`** against a local mock HTTP server, and asserts on the recorded request body and JSON stdout. That matches the usual pattern for Node CLI integration tests (spawn `node` on the entry script; see [this CLI test helper gist](https://gist.github.com/zorrodg/c349cf54a3f6d0a9ba62e0f4066f31cb) for the interactive stdin variant).
+Scenario files live under **`agent/tests/e2e/`** and use the suffix **`*.e2e.test.ts`**. Name them by surface and command (for example **`threads.schedule.post.e2e.test.ts`**). Each test builds an `argv` array that matches what a user would type after `openquok`, runs **`node agent/dist/index.js`** against a local mock HTTP server, and asserts on the recorded request body and JSON stdout. That matches the usual pattern for Node CLI integration tests (spawn `node` on the entry script; see [this CLI test helper gist](https://gist.github.com/zorrodg/c349cf54a3f6d0a9ba62e0f4066f31cb) for the interactive stdin variant).
 
 If **`agent/dist/index.js`** is missing, the harness runs **`tsup` once** via `node agent/node_modules/tsup/dist/cli-default.js` (stdio discarded so it does not fight Vitest’s worker stdio). The CLI subprocess uses **async `spawn`** with stdin ignored — **`spawnSync` in a Vitest worker hung** in practice, and a piped stdin can block CLIs that read `/dev/stdin`.
 
@@ -204,6 +207,7 @@ pnpm --filter ./agent cli -- --help
 pnpm --filter ./agent cli -- analytics:platform --help
 pnpm --filter ./agent cli -- analytics:post --help
 pnpm --filter ./agent cli -- notifications:list --help
+pnpm --filter ./agent cli -- posts:status --help
 pnpm --filter ./agent cli -- posts:delete --help
 pnpm --filter ./agent cli -- posts:missing --help
 pnpm --filter ./agent cli -- posts:connect --help

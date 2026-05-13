@@ -1862,6 +1862,45 @@ describe("PostsService", () => {
         });
     });
 
+    describe("getPostSummaryProgrammatic", () => {
+        it("throws 404 when the post is not found", async () => {
+            postsRepo.getPostById.mockResolvedValue(null);
+
+            await expect(
+                service().getPostSummaryProgrammatic(faker.string.uuid(), orgId)
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("throws 404 when the post belongs to a different organization", async () => {
+            const postId = faker.string.uuid();
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({ id: postId, organization_id: faker.string.uuid() })
+            );
+
+            await expect(service().getPostSummaryProgrammatic(postId, orgId)).rejects.toMatchObject({
+                statusCode: 404,
+            });
+        });
+
+        it("returns id and postGroup when the post exists in the org", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = "group-summary-1";
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({
+                    id: postId,
+                    organization_id: orgId,
+                    post_group: postGroup,
+                })
+            );
+
+            const out = await service().getPostSummaryProgrammatic(postId, orgId);
+
+            expect(out).toEqual({ id: postId, postGroup });
+            expect(postsRepo.getPostById).toHaveBeenCalledWith(postId);
+            expect(postsRepo.softDeletePostsByGroup).not.toHaveBeenCalled();
+        });
+    });
+
     describe("getMissingPublishCandidatesProgrammatic", () => {
         const postId = faker.string.uuid();
 

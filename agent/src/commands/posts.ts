@@ -6,7 +6,11 @@ import type { CommandContext, RegisterCommands } from "./types";
 import { parseJsonMaybe, requireArg, runCommand, toArrayFromCsv } from "./utils";
 import {
   buildMediaFromArgs,
+  buildUpdatePostGroupBodyFromGetData,
+  getDataObjectFromApiEnvelope,
+  getPostGroupFromSummaryEnvelope,
   mergeProviderSettingsForIntegrations,
+  parsePostsStatusFlag,
   readCreatePayloadFromJsonFile,
   resolveCreateStatus,
   toStringList,
@@ -321,7 +325,7 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
     )
     .command(
       "posts:update-group <postGroup>",
-      "Update a post group (same payload shape as create, except organizationId is never allowed)",
+      "Update a post group (PUT body matches create: at least scheduledAt + status; usually copy from posts:group or use posts:status to flip draft/scheduled only)",
       (yy: Argv) =>
         yy
           .positional("postGroup", {
@@ -331,8 +335,8 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           })
           .option("json", { type: "string", demandOption: true, describe: "Full JSON payload string" })
           .example(
-            '$0 posts:update-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --json \'{"status":"draft"}\'',
-            "Move a scheduled group back to draft"
+            '$0 posts:update-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --json \'{"scheduledAt":"2026-02-15T09:00:00Z","status":"draft"}\'',
+            "Move a scheduled group back to draft (PUT requires scheduledAt + status with the full shape)"
           )
           .example(
             '$0 posts:update-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --json \'{"scheduledAt":"2026-02-15T09:00:00Z","status":"scheduled"}\'',
@@ -344,6 +348,46 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           const payload = parseJsonMaybe(args.json, "json");
           if (!payload || typeof payload !== "object") throw new Error("json must be an object");
           const out = await api.updatePostGroup(requireArg("postGroup", args.postGroup), payload);
+          printJson(out);
+        });
+      }
+    )
+    .command(
+      "posts:status <postId>",
+      "Flip a post group between draft and scheduled without changing its stored publish time (resolve row → group, GET group, PUT)",
+      (yy: Argv) =>
+        yy
+          .positional("postId", {
+            type: "string",
+            demandOption: true,
+            describe: "Post row UUID from `posts:list` (any row in the group); same id style as `posts:delete`",
+          })
+          .option("status", {
+            alias: "s",
+            type: "string",
+            demandOption: true,
+            choices: ["draft", "schedule", "scheduled"] as const,
+            describe: 'draft | schedule (synonym for API "scheduled") | scheduled',
+          })
+          .example(
+            "$0 posts:status 5b6c7d8e-9f01-2a3b-4c5d-6e7f8a9b0c1d --status draft",
+            "Pause the group that row belongs to (terminates publishing workflow; keeps stored publish time)"
+          )
+          .example(
+            "$0 posts:status 5b6c7d8e-9f01-2a3b-4c5d-6e7f8a9b0c1d -s schedule",
+            "Promote draft to scheduled at the existing publish time (re)queues publishing"
+          ),
+      async (args: any) => {
+        await runCommand("posts:status", async () => {
+          const api = await ctx.buildApi();
+          const postId = requireArg("postId", args.postId);
+          const summaryRaw = await api.getPost(postId);
+          const postGroup = getPostGroupFromSummaryEnvelope(summaryRaw);
+          const raw = await api.getPostGroup(postGroup);
+          const data = getDataObjectFromApiEnvelope(raw);
+          const next = parsePostsStatusFlag(args.status ?? args.s);
+          const putBody = buildUpdatePostGroupBodyFromGetData(data, next);
+          const out = await api.updatePostGroup(postGroup, putBody);
           printJson(out);
         });
       }

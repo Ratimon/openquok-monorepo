@@ -21,7 +21,7 @@ openquok notifications:list --page 2
 
 | Flag | Description |
 | --- | --- |
-| <Badge text="--page" variant="default" /> | Zero-based page index. Defaults to <code>0</code> (most recent 100 entries). |
+| <Badge text="--page" variant="param" /> | Zero-based page index. Defaults to <code>0</code> (most recent 100 entries). |
 
 ## Response shape
 

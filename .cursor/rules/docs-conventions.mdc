@@ -33,10 +33,11 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
   - **`envBackend`** — backend package env (typically no `VITE_` prefix): blue.
   - **`envWeb`** — web / `VITE_*` env: purple. In prose, prefer **`<Badge text="VITE_*" variant="envWeb" />`** (or a specific key) instead of backticks around `VITE_*` / `VITE_` so the label stays visible and MDsveX does not treat `_` as emphasis.
   - **`envRuntime`** — platform flags such as `VERCEL`, `NODE_ENV`, and deployment selectors like `RAILPACK_CONFIG_FILE`: gray.
-  - **`path`** — repo-relative paths, route paths, folder names: outline (use inside **`ExternalLink`** for GitHub file links when you want a chip instead of `<code>`).
+  - **`path`** — repo-relative paths, folder names, and **HTTP route literals** shown as one chip (e.g. `GET /public/posts/list`, `POST /public/posts`, `DELETE /public/integrations/{id}`): outline/muted. Prefer **`path`** over **`default`** when the label is clearly a URL path or REST line, including in **`web/src/content/docs/cli-usages/`** when tying the CLI to the public API.
+  - **`param`** — **CLI flags and long options** (`-c`, `--integrationIds`, `--days`, `-d`), **camelCase JSON / query field names** when shown as chips (e.g. `providerSettingsByIntegrationId`), and **small discrete CLI tokens** in usage lists (e.g. allowed **`--days`** values `7` / `30` / `90`, or top-level verbs like **`upload`** / **`upload-from-url`** on the media CLI page). Use **`param`** so “things you type after the binary” stay visually distinct from command names.
 - **Examples**: **`new`** (green) vs **`deprecated`** (red) for **preferred vs discouraged URL shapes** (e.g. with vs without a trailing slash). **`experimental`** (yellow) works well for **npm package names** (e.g. `@sveltejs/adapter-vercel`) when linked to upstream docs.
-- **`default`** — generic keys (e.g. `buildCommand`, `installCommand`) when they are not env vars.
-- **UI labels** (dashboard buttons, provider names, wizard steps): prefer **`Badge`** with **`default`**, **`new`** (positive actions like Save / Enable), **`path`** (navigation crumbs or literal paths), or **`experimental`** (third-party package names per above)—keeps emphasis visible without fragile `**bold**` in MDX.
+- **`default`** — generic keys (e.g. `buildCommand`, `installCommand`) when they are not env vars, and **namespaced CLI command names** (`posts:create`, `posts:list`, `analytics:post`, `integrations:list`). Use **`default`** for those; use **`param`** for their **flags** in the same table or sentence.
+- **UI labels** (dashboard buttons, provider names, wizard steps): prefer **`Badge`** with **`default`**, **`new`** (positive actions like Save / Enable), **`path`** (navigation crumbs, REST lines, repo paths), **`param`** (CLI flags / field chips in technical docs), or **`experimental`** (third-party package names per above)—keeps emphasis visible without fragile `**bold**` in MDX.
 
 ## Underscores and `*` in environment variable names (MDsveX)
 
@@ -94,7 +95,7 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
   - Wrapping the sentence in an explicit **`<p>...</p>`**, and
   - Inserting explicit spaces with **`{' '}`** between text and components (or between two components), **or**
   - Moving the content to a **bullet list** / **Callout** with fewer inline chips.
-- Prefer **`<code>…</code>`** for short literals (JSON keys, package names in prose, shell snippets) when **badges would make the sentence hard to scan**; reserve **`Badge`** for env vars, paths you link to GitHub, and semantic chips (`new` / `deprecated` / `envWeb`, etc.).
+- Prefer **`<code>…</code>`** for short literals (JSON keys, package names in prose, shell snippets) when **badges would make the sentence hard to scan**; reserve **`Badge`** for env vars, **`path`** / **`param`** / **`default`** per the **Badges** section (GitHub-linked paths, REST lines, CLI flags, `group:verb` commands), and semantic chips (`new` / `deprecated` / `envWeb`, etc.).
 
 ## Numbered procedures (`Steps`)
 
@@ -143,6 +144,7 @@ Edit `web/src/data/docs.ts` and `web/src/lib/docs/constants/config.ts` with your
 
 - Do **not** document runnable commands only in a **Markdown table** (`| Command | Description |`). Use the same pattern as **`web/src/content/docs/installation/development-environment.md`** (Deployment section): a **bold lead-in** with an em dash and short explanation, then a **` ```bash `** fenced block with the command.
 - Example (see **`web/src/content/docs/installation/vercel.md`**): write `**Deploy backend to Vercel (preview)** — invokes the Vercel CLI with backend/ as the working directory.`, a blank line, then a fenced **`bash`** block containing `pnpm vercel:deploy:backend` (no table of command vs description).
+- When **`web/src/content/docs/cli-usages/`** pages use **`Badge`** in flag tables or inline next to **` ```bash `** blocks, follow the **Badges** section: **`param`** for flags/options, **`path`** for `METHOD /public/...` route lines, **`default`** for `group:verb` command names (see **`web/src/content/docs/cli-usages/managing-posts.md`**).
 
 ## Front matter
 

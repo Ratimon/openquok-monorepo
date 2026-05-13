@@ -17,7 +17,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 - <Badge text="analytics:post" variant="default" /> — per-post metrics (likes, comments, shares, …) for a **published** post.
 
 <Callout type="note" title="Allowed windows">
-<p>The backend rejects anything outside <Badge text="7" variant="default" />, <Badge text="30" variant="default" />, and <Badge text="90" variant="default" />. The CLI validates this client-side so you get a clear error instead of a generic HTTP 400.</p>
+<p>The backend rejects anything outside <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, and <Badge text="90" variant="param" />. The CLI validates this client-side so you get a clear error instead of a generic HTTP 400.</p>
 </Callout>
 
 ## Platform analytics
@@ -31,7 +31,7 @@ openquok analytics:platform 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b -d 90
 | Flag | Description |
 | --- | --- |
 | <code>&lt;id&gt;</code> (positional) | Integration channel UUID from <a href="/docs/cli-usages/integrations">`openquok integrations:list`</a>. |
-| <Badge text="--days" variant="default" /> (alias <Badge text="-d" variant="default" />) | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
+| <Badge text="--days" variant="param" /> (alias <Badge text="-d" variant="param" />) | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
 
 The response is an array of metric series, each with daily data points and a `percentageChange` summary:
 
@@ -96,7 +96,7 @@ openquok analytics:post 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --days 30
 | Flag | Description |
 | --- | --- |
 | <code>&lt;id&gt;</code> (positional) | Post row UUID (from <a href="/docs/cli-usages/managing-posts">`openquok posts:list`</a>). |
-| <Badge text="--days" variant="default" /> (alias <Badge text="-d" variant="default" />) | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
+| <Badge text="--days" variant="param" /> (alias <Badge text="-d" variant="param" />) | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
 
 Response shape mirrors `analytics:platform`. Common metrics:
 

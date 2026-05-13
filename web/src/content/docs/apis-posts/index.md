@@ -16,6 +16,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <LinkCard title="Create Post" description="Create a draft or scheduled post group with one row per selected channel" href="/docs/apis-posts/create" />
 <LinkCard title="Find Slot" description="Suggest the next free posting slot for the workspace (or one specific channel)" href="/docs/apis-posts/find-slot" />
 <LinkCard title="Get Post Group" description="Fetch the edit-mode payload for a post group (body, per-channel overrides, media, provider settings)" href="/docs/apis-posts/get-group" />
+<LinkCard title="Get Post (row summary)" description="Resolve a list row UUID to its parent postGroup for group-scoped calls" href="/docs/apis-posts/get-post" />
 <LinkCard title="Update Post Group" description="Atomically replace the rows in a post group — add/remove channels, change schedule, edit content" href="/docs/apis-posts/update-group" />
 <LinkCard title="Delete Post" description="Delete a single post by row id (soft-deletes the whole post group it belongs to)" href="/docs/apis-posts/delete" />
 <LinkCard title="Delete Post Group" description="Soft-delete every row in a post group so it stops publishing and disappears from List Posts" href="/docs/apis-posts/delete-group" />

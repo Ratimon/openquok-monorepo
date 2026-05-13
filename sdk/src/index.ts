@@ -1,4 +1,4 @@
-import type { PublicCreatePostDto, PublicListPostsQueryDto, PublicUpdatePostGroupDto } from "./dtos";
+import type { PublicCreatePostDto, PublicListPostsQueryDto, PublicPostSummaryDto, PublicUpdatePostGroupDto } from "./dtos";
 
 function toQueryString(obj: Record<string, unknown>): string {
     const params = new URLSearchParams();
@@ -89,6 +89,17 @@ export default class Openquok {
 
     async getPostGroup(postGroup: string) {
         return await this.json(`${this.apiRoot}/public/posts/group/${postGroup}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.apiKey,
+            },
+        });
+    }
+
+    /** Row id and parent `postGroup` (for routing to group-scoped endpoints). */
+    async getPost(postId: string): Promise<{ success: boolean; data: PublicPostSummaryDto }> {
+        return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",

@@ -27,6 +27,19 @@ export class PublicPostsController {
         }
     };
 
+    /** GET /public/posts/:postId — row id and parent post group (for routing to group endpoints). */
+    getPostByIdSummary = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("posts-get");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const postId = (req.params as { postId: string }).postId;
+            const data = await this.postsService.getPostSummaryProgrammatic(postId, organizationId);
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** DELETE /public/posts/:postId — soft-deletes the whole post group the row belongs to. */
     deletePostById = async (req: Request, res: Response, next: NextFunction) => {
         try {
