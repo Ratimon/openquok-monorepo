@@ -74,8 +74,6 @@ declare class Openquok {
      * just like `upload(file, extension)`; returns the same `MediaUploadResponse`.
      */
     uploadFromUrl(url: string): Promise<unknown>;
-    /** Suggest next free schedule slot. Optional `integrationId` limits to a single channel's posting times. */
-    findSlot(integrationId?: string): Promise<unknown>;
     /** Delete a single post by row id (soft-deletes the whole post group). */
     deletePost(postId: string): Promise<unknown>;
     /** Provider-side candidate ids/URLs when a published row has `release_id === "missing"`. */

@@ -101,14 +101,12 @@ openquok posts:group <postGroupUuid>
 openquok posts:update-group <postGroupUuid> --json '{"scheduledAt":"...","status":"draft"}'
 openquok posts:delete-group <postGroupUuid>
 
-openquok posts:find-slot [integrationId]
 openquok posts:delete <postId>
 openquok posts:missing <postId>
 openquok posts:connect <postId> --releaseId <providerReleaseId>
 ```
 
 - `posts:list` without flags defaults to 30 local calendar days before today through 30 local calendar days after today (JavaScript `Date` local rules, then ISO UTC on the wire). Pass `--start` and `--end` for an explicit window; use `--integrationIds <csv>` and/or `--customerGroupId <channel-group-uuid>` (`integration_customers.id`) to narrow channels.
-- `posts:find-slot` returns the next free ISO timestamp considering connected channels' posting_times. Pass an integration UUID to scope to a single channel.
 - `posts:delete` removes a single post (and the post group it belongs to — a row never publishes in isolation).
 - `posts:missing` and `posts:connect` are the workflow for posts whose `release_id` came back as `"missing"`: list provider-side candidates with `posts:missing`, then link the matching id with `posts:connect --releaseId <id>` to unlock per-post analytics.
 
@@ -195,7 +193,6 @@ pnpm --filter ./agent cli -- --help
 pnpm --filter ./agent cli -- analytics:platform --help
 pnpm --filter ./agent cli -- analytics:post --help
 pnpm --filter ./agent cli -- notifications:list --help
-pnpm --filter ./agent cli -- posts:find-slot --help
 pnpm --filter ./agent cli -- posts:delete --help
 pnpm --filter ./agent cli -- posts:missing --help
 pnpm --filter ./agent cli -- posts:connect --help
@@ -208,7 +205,6 @@ For a connectivity smoke (requires a valid API key or stored credentials):
 # 3. Confirm auth + workspace plumbing end-to-end
 pnpm --filter ./agent cli -- auth:status
 pnpm --filter ./agent cli -- integrations:list | jq '.[] | {id, identifier}'
-pnpm --filter ./agent cli -- posts:find-slot
 pnpm --filter ./agent cli -- notifications:list --page 0 | jq '.total'
 ```
 

@@ -153,18 +153,6 @@ export default class Openquok {
         });
     }
 
-    /** Suggest next free schedule slot. Optional `integrationId` limits to a single channel's posting times. */
-    async findSlot(integrationId?: string) {
-        const suffix = integrationId ? `/${encodeURIComponent(integrationId)}` : "";
-        return await this.json(`${this.apiRoot}/public/posts/find-slot${suffix}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: this.apiKey,
-            },
-        });
-    }
-
     /** Delete a single post by row id (soft-deletes the whole post group). */
     async deletePost(postId: string) {
         return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}`, {

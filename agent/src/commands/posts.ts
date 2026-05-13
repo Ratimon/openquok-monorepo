@@ -227,36 +227,6 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
       }
     )
     .command(
-      "posts:find-slot [integrationId]",
-      "Find the next available publishing slot for the workspace (or a single channel)",
-      (yy: Argv) =>
-        yy
-          .positional("integrationId", {
-            type: "string",
-            describe:
-              "Optional integration UUID. When provided, only that channel's posting_times contribute to the candidate slots.",
-          })
-          .example(
-            "$0 posts:find-slot",
-            "Next free slot considering posting_times across every connected channel"
-          )
-          .example(
-            "$0 posts:find-slot 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b",
-            "Next free slot using only one channel's posting_times"
-          ),
-      async (args: any) => {
-        await runCommand("posts:find-slot", async () => {
-          const api = await ctx.buildApi();
-          const integrationId =
-            typeof args.integrationId === "string" && args.integrationId.trim()
-              ? args.integrationId.trim()
-              : undefined;
-          const out = await api.findSlot(integrationId);
-          printJson(out);
-        });
-      }
-    )
-    .command(
       "posts:delete <postId>",
       "Soft-delete a single post (also deletes the post's group — a row never publishes in isolation)",
       (yy: Argv) =>

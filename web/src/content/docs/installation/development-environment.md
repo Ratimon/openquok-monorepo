@@ -290,7 +290,6 @@ pnpm --filter ./agent cli -- --help
 pnpm --filter ./agent cli -- analytics:platform --help
 pnpm --filter ./agent cli -- analytics:post --help
 pnpm --filter ./agent cli -- notifications:list --help
-pnpm --filter ./agent cli -- posts:find-slot --help
 pnpm --filter ./agent cli -- posts:delete --help
 pnpm --filter ./agent cli -- posts:missing --help
 pnpm --filter ./agent cli -- posts:connect --help
@@ -302,7 +301,6 @@ pnpm --filter ./agent cli -- upload-from-url --help
 ```bash
 pnpm --filter ./agent cli -- auth:status
 pnpm --filter ./agent cli -- integrations:list | jq '.[] | {id, identifier}'
-pnpm --filter ./agent cli -- posts:find-slot
 pnpm --filter ./agent cli -- notifications:list --page 0 | jq '.total'
 ```
 

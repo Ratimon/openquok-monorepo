@@ -87,11 +87,6 @@ export class OpenquokApi {
     });
   }
 
-  async findSlot(integrationId?: string): Promise<unknown> {
-    const suffix = integrationId ? `/${encodeURIComponent(integrationId)}` : "";
-    return await requestJson({ url: this.url(`/public/posts/find-slot${suffix}`), apiKey: this.cfg.apiKey });
-  }
-
   async deletePost(postId: string): Promise<unknown> {
     return await requestJson({
       url: this.url(`/public/posts/${encodeURIComponent(postId)}`),

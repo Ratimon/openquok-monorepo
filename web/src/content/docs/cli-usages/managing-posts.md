@@ -1,6 +1,6 @@
 ---
 title: Managing Posts
-description: Create, list, find slots for, delete, and reconnect Openquok posts from the command line.
+description: Create, list, delete, and reconnect Openquok posts from the command line.
 order: 1
 lastUpdated: 2026-05-14
 ---
@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Overview
 
-The `posts:*` commands wrap the <a href="/docs/apis-posts">Posts APIs</a>. They drive every step of the publishing lifecycle: pick channels and a slot, create a post group, iterate on it, then delete it or reconnect it to its provider-native id once it is published.
+The `posts:*` commands wrap the <a href="/docs/apis-posts">Posts APIs</a>. They drive every step of the publishing lifecycle: pick channels and a schedule time, create a post group, iterate on it, then delete it or reconnect it to its provider-native id once it is published.
 
 <Callout type="note" title="Post groups vs. post rows">
 <p>A <strong>post group</strong> is the multi-channel composition the UI calls a post; <Badge text="posts:group" variant="default" /> and <Badge text="posts:update-group" variant="default" /> operate on the group UUID returned by <Badge text="posts:create" variant="default" />. A <strong>post row</strong> is one channel inside that group (<Badge text="posts:delete" variant="default" />, <Badge text="posts:missing" variant="default" />, <Badge text="posts:connect" variant="default" /> use the row UUID from <Badge text="posts:list" variant="default" />).</p>
@@ -31,7 +31,7 @@ openquok posts:create \
 
 | Flag | Description |
 | --- | --- |
-| <Badge text="--scheduledAt" variant="default" /> | ISO-8601 timestamp (required). Use <Badge text="posts:find-slot" variant="default" /> to discover a free slot. |
+| <Badge text="--scheduledAt" variant="default" /> | ISO-8601 timestamp (required). |
 | <Badge text="--status" variant="default" /> | <code>scheduled</code> (default) enqueues for publishing; <code>draft</code> persists without enqueuing. |
 | <Badge text="--body" variant="default" /> | Default body used unless <code>bodiesByIntegrationId</code> overrides it. |
 | <Badge text="--integrationIds" variant="default" /> | Comma-separated channel UUIDs. |
@@ -51,7 +51,7 @@ openquok posts:create \
   --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
 ```
 
-### Different body per channel
+### Post for Different body per channel
 
 Pass `--bodiesByIntegrationId` to customize each row; the canonical `--body` becomes a fallback:
 
@@ -63,7 +63,7 @@ openquok posts:create \
   --bodiesByIntegrationId '{"uuid-threads":"Threads-only caption","uuid-instagram":"Instagram-only caption #photography"}'
 ```
 
-### Attach media
+### Post and Attach media
 
 Upload the asset first (returns `data.id` and `data.path`), then pass them back as JSON:
 
@@ -80,25 +80,6 @@ openquok posts:create \
 <Callout type="warning" title="Per-platform media rules">
 <p>Instagram requires at least one attachment for <code>scheduled</code> posts; Threads accepts text-only. Each provider has its own per-call validation — surface them up-front with <a href="/docs/cli-usages/integrations">`openquok integrations:settings`</a> before you script a batch.</p>
 </Callout>
-
-## Find the next free slot
-
-`posts:find-slot` returns the next ISO timestamp that satisfies the workspace's `posting_times` constraints. Useful as a `--scheduledAt` source.
-
-```bash
-openquok posts:find-slot
-openquok posts:find-slot 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b
-```
-
-Pipe it into `posts:create` so the slot is honoured per-channel:
-
-```bash
-SLOT=$(openquok posts:find-slot 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b | jq -r '.slot')
-openquok posts:create \
-  --scheduledAt "$SLOT" \
-  --body "Posted at the next free slot" \
-  --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
-```
 
 ## List posts
 
@@ -242,14 +223,12 @@ openquok posts:delete 5b6c7d8e-9f01-2a3b-4c5d-6e7f8a9b0c1d
 ```bash
 INTEGRATION_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="threads") | .id')
 
-SLOT=$(openquok posts:find-slot "$INTEGRATION_ID" | jq -r '.slot')
-
 MEDIA=$(openquok upload ./hero.png | jq -c '{id: .data.id, path: .data.filePath}')
 
 GROUP=$(openquok posts:create \
-  --scheduledAt "$SLOT" \
+  --scheduledAt "2026-01-20T15:00:00Z" \
   --status scheduled \
-  --body "Auto-scheduled with media" \
+  --body "Scheduled with media" \
   --integrationIds "$INTEGRATION_ID" \
   --media "[${MEDIA}]" \
   | jq -r '.postGroup')

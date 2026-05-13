@@ -15,6 +15,7 @@
     "backend:dev": "pnpm --filter ./backend dev",
     "agent-server:dev": "pnpm --filter @openquok/cli-auth-server dev",
     "agent-server:build": "pnpm --filter @openquok/cli-auth-server build",
+    "agent:build": "pnpm --filter ./agent build",
     "backend:lint": "pnpm --filter ./backend lint",
     "backend:test:unit": "pnpm --filter ./backend test:unit",
     "backend:test:integration": "pnpm --filter ./backend test:integration",
