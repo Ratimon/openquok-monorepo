@@ -27,10 +27,10 @@ THREADS_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="thre
 
 ```bash
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --status scheduled \
-  --body "Hello Threads!" \
-  --integrationIds "$THREADS_ID"
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Hello Threads!" \
+  -i "$THREADS_ID"
 ```
 
 ## Post with media
@@ -41,10 +41,11 @@ Threads accepts at most one image or video per post. Upload the asset and pass t
 MEDIA=$(openquok upload ./hero.png | jq -c '[{id: .data.id, path: .data.filePath}]')
 
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "Launch day. 🚀" \
-  --integrationIds "$THREADS_ID" \
-  --media "$MEDIA"
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Launch day. 🚀" \
+  -i "$THREADS_ID" \
+  -m "$MEDIA"
 ```
 
 <Callout type="tip" title="500-character truncation is silent">
@@ -57,9 +58,9 @@ openquok posts:create \
 
 ```bash
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "Thread 1/3: Why we built Openquok" \
-  --integrationIds "$THREADS_ID" \
+  -s "2026-01-15T10:00:00Z" \
+  -c "Thread 1/3: Why we built Openquok" \
+  -i "$THREADS_ID" \
   --providerSettingsByIntegrationId "$(jq -nc --arg id "$THREADS_ID" '
     {
       ($id): {
@@ -78,9 +79,9 @@ Enable a closing reply (e.g. "Thanks for reading!") by toggling `providerSetting
 
 ```bash
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "Thread 1/2: A short story" \
-  --integrationIds "$THREADS_ID" \
+  -s "2026-01-15T10:00:00Z" \
+  -c "Thread 1/2: A short story" \
+  -i "$THREADS_ID" \
   --providerSettingsByIntegrationId "$(jq -nc --arg id "$THREADS_ID" '
     {
       ($id): {
@@ -100,9 +101,9 @@ openquok posts:create \
 
 ```bash
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "Big announcement! 🧵" \
-  --integrationIds "$THREADS_ID" \
+  -s "2026-01-15T10:00:00Z" \
+  -c "Big announcement! 🧵" \
+  -i "$THREADS_ID" \
   --providerSettingsByIntegrationId "$(jq -nc --arg id "$THREADS_ID" '
     {
       ($id): {
@@ -133,7 +134,7 @@ POST_ID=$(openquok posts:list \
 
 openquok posts:missing "$POST_ID" | jq '.[] | {id, url}'
 
-openquok posts:connect "$POST_ID" --releaseId "7321456789012345678"
+openquok posts:connect "$POST_ID" -r "7321456789012345678"
 
 openquok analytics:post "$POST_ID" -d 7
 ```
@@ -146,7 +147,7 @@ openquok analytics:platform "$THREADS_ID" -d 30 \
 ```
 
 ```bash
-openquok analytics:post 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d -d 30 \
+openquok analytics:post <post-id> -d 30 \
   | jq '.[] | {label, latest: .data[-1].total}'
 ```
 

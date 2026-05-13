@@ -263,7 +263,7 @@ pnpm --filter ./agent cli -- integrations:trigger --help
 pnpm --filter ./agent cli -- auth:login --authServer http://localhost:3111
 ```
 
-Per-command <code>--help</code> shows the <code>Examples:</code> section with copy-pasteable invocations for non-obvious payloads (JSON `--data`, ISO timestamps, etc.).
+Per-command <code>--help</code> shows the <code>Examples:</code> section with copy-pasteable invocations for non-obvious payloads (JSON `-d`, ISO timestamps, etc.).
 
 **Run the compiled binary** — useful when you want to confirm the published bundle behaves the same:
 

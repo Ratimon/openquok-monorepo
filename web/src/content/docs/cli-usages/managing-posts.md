@@ -25,7 +25,7 @@ The simplest case: one channel, one body, one scheduled timestamp. You can use s
 openquok posts:create \
   -c "Hello from Openquok" \
   -s "2026-01-15T12:00:00Z" \
-  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
+  -i "<integration-id>"
 ```
 
 | Flag | Description |
@@ -50,7 +50,7 @@ openquok posts:create \
   -c "Review before publishing" \
   -s "2026-01-15T12:00:00Z" \
   -t draft \
-  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
+  -i "<integration-id>"
 ```
 
 ### Post for Different Body per Channel
@@ -60,9 +60,9 @@ Pass `--bodiesByIntegrationId` to customize each row; the canonical `--body` bec
 ```bash
 openquok posts:create \
   -s "2026-01-15T12:00:00Z" \
-  -i "uuid-threads,uuid-instagram" \
-  --body "Fallback body" \
-  --bodiesByIntegrationId '{"uuid-threads":"Threads-only caption","uuid-instagram":"Instagram-only caption #photography"}'
+  -i "<threads-integration-id>,<instagram-integration-id>" \
+  -c "Fallback body" \
+  --bodiesByIntegrationId '{"<threads-integration-id>":"Threads-only caption","<instagram-integration-id>":"Instagram-only caption #photography"}'
 ```
 
 ### Post and Attach media
@@ -75,8 +75,8 @@ MEDIA=$(openquok upload ./photo.jpg | jq -c '{id: .data.id, path: .data.filePath
 openquok posts:create \
   -s "2026-01-15T12:00:00Z" \
   -c "Check this out!" \
-  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b" \
-  --media "[${MEDIA}]"
+  -i "<integration-id>" \
+  -m "[${MEDIA}]"
 ```
 
 ### Threads and follow-up comments
@@ -93,7 +93,7 @@ openquok posts:create \
   -c "Thread 2/3" -m "image2.jpg" \
   -c "Thread 3/3" \
   -s "2026-01-15T10:00:00Z" \
-  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
+  -i "<integration-id>"
 ```
 
 Use <Badge text="-d" variant="param" /> to set the gap **in milliseconds** between consecutive follow-ups (default <code>5000</code> when omitted).
@@ -105,7 +105,7 @@ openquok posts:create \
   -c "Third segment" \
   -s "2026-01-15T10:00:00Z" \
   -d 2000 \
-  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
+  -i "<integration-id>"
 ```
 
 <Callout type="note" title="One integration id for scripted threads">
@@ -124,7 +124,7 @@ Send one canonical <Badge text="--body" variant="param" /> / <Badge text="-c" va
 openquok posts:create \
   -c "Posting everywhere!" \
   -s "2026-01-15T12:00:00Z" \
-  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b,9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e,a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  -i "<integration-id-1>,<integration-id-2>,<integration-id-3>"
 ```
 
 When channels need different copy, use <Badge text="--bodiesByIntegrationId" variant="param" /> (see above) instead of relying on a single body.
@@ -138,17 +138,17 @@ openquok posts:create \
   -c "Check out this discussion" \
   -s "2026-01-15T12:00:00Z" \
   --settings '{"subreddit":[{"value":{"subreddit":"programming","title":"My Post","type":"text"}}]}' \
-  -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"
+  -i "<integration-id>"
 ```
 
-Discover valid shapes with <a href="/docs/cli-usages/integrations"><code>openquok integrations:settings &lt;integration-uuid&gt;</code></a> and the <a href="/docs/cli-usages/integrations">Integrations</a> CLI page.
+Discover valid shapes with <a href="/docs/cli-usages/integrations"><code>openquok integrations:settings &lt;integration-id&gt;</code></a> and the <a href="/docs/cli-usages/integrations">Integrations</a> CLI page.
 
 ### Create from a JSON file
 
 For posts with detailed platform-specific content (large <code>providerSettingsByIntegrationId</code>, many tags, or bodies per channel), use the <a href="/account/payload-wizard">Payload Wizard</a> to build the request and copy a JSON body:
 
 ```bash
-openquok posts:create --json post.json
+openquok posts:create -j post.json
 ```
 
 Example <code>post.json</code> (placeholders only — replace ids and timestamps with values from your workspace):
@@ -159,18 +159,18 @@ Example <code>post.json</code> (placeholders only — replace ids and timestamps
   "status": "scheduled",
   "body": "Short default caption when a channel has no override.",
   "integrationIds": [
-    "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b",
-    "9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e"
+    "<integration-id-1>",
+    "<integration-id-2>"
   ],
   "bodiesByIntegrationId": {
-    "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b": "Short version for channel A.",
-    "9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e": "Longer version for channel B."
+    "<integration-id-1>": "Short version for channel A.",
+    "<integration-id-2>": "Longer version for channel B."
   },
   "providerSettingsByIntegrationId": {
-    "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b": {
+    "<integration-id-1>": {
       "replies": [{ "message": "Follow-up only on this channel", "delaySeconds": 60 }]
     },
-    "9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e": {
+    "<integration-id-2>": {
       "__type": "instagram"
     }
   },
@@ -195,8 +195,8 @@ Override the window with explicit ISO timestamps:
 
 ```bash
 openquok posts:list \
-  --startDate "2026-01-01T00:00:00Z" \
-  --endDate "2026-02-01T00:00:00Z"
+  --start "2026-01-01T00:00:00Z" \
+  --end "2026-02-01T00:00:00Z"
 ```
 
 Same window with the long names: <Badge text="--start" variant="param" /> / <Badge text="--end" variant="param" />.
@@ -212,7 +212,7 @@ Filter to specific channels by passing a comma-separated list of integration ids
 openquok posts:list \
   --start "2026-01-01T00:00:00Z" \
   --end "2026-02-01T00:00:00Z" \
-  --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b,9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e"
+  -i "<integration-id-1>,<integration-id-2>"
 ```
 
 ### List posts (Filter by customer group)
@@ -220,12 +220,12 @@ openquok posts:list \
 Use the channel-group id from your workspace (row id in <code>integration_customers</code>; assign integrations to groups in the dashboard). The CLI sends it as the <code>customerGroupId</code> query parameter on <Badge text="GET /public/posts/list" variant="path" />.
 
 ```bash
-openquok posts:list --customer 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b
+openquok posts:list --customer <customer-group-id>
 ```
 
 <p>Alias for <Badge text="--customerGroupId" variant="param" /> (channel-group id).</p>
 
-You can combine <code>--customerGroupId</code> with <code>--integrationIds</code>: only integrations that belong to **both** the group and the CSV are queried.
+You can combine <code>--customerGroupId</code> with <code>-i</code> / <code>--integrationIds</code>: only integrations that belong to **both** the group and the CSV are queried.
 
 To find post rows whose provider id could not be mapped yet (database column <code>release_id</code> is the string <code>missing</code>; JSON responses use <code>releaseId</code>), see <a href="#connecting-missing-posts">Connecting missing posts</a>.
 
@@ -240,7 +240,7 @@ Some platforms do not return a stable published asset id right away. The worker 
 ### List available content
 
 ```bash
-openquok posts:missing <post-row-uuid>
+openquok posts:missing <post-id>
 ```
 
 The CLI prints the API envelope, for example:
@@ -260,7 +260,7 @@ The CLI prints the API envelope, for example:
 Narrow to id and preview URL:
 
 ```bash
-openquok posts:missing <post-row-uuid> | jq '.data.items[] | {id, url}'
+openquok posts:missing <post-id> | jq '.data.items[] | {id, url}'
 ```
 
 ### Connect a post
@@ -268,7 +268,7 @@ openquok posts:missing <post-row-uuid> | jq '.data.items[] | {id, url}'
 After you pick the matching provider id from the list above, connect the row:
 
 ```bash
-openquok posts:connect <post-row-uuid> --release-id "example-provider-release-id"
+openquok posts:connect <post-id> -r "example-provider-release-id"
 ```
 
 ### Full workflow
@@ -280,14 +280,14 @@ openquok posts:list \
   --end "2026-02-01T00:00:00Z" \
   | jq '.data.posts[] | select(.releaseId == "missing") | {id, content, integrationId}'
 
-# 2. Ask the provider for recent candidates (replace POST_ROW_UUID)
-openquok posts:missing POST_ROW_UUID | jq '.data.items'
+# 2. Ask the provider for recent candidates (replace <post-id>)
+openquok posts:missing <post-id> | jq '.data.items'
 
 # 3. Link the correct provider id
-openquok posts:connect POST_ROW_UUID --release-id "example-provider-release-id"
+openquok posts:connect <post-id> -r "example-provider-release-id"
 
 # 4. Confirm per-post analytics resolve (pick a window the CLI accepts)
-openquok analytics:post POST_ROW_UUID --days 7
+openquok analytics:post <post-id> -d 7
 ```
 
 ## Update, and delete a post
@@ -297,13 +297,13 @@ openquok analytics:post POST_ROW_UUID --days 7
 Move a post between <code>draft</code> and <code>scheduled</code> **without changing its publish date**. Pass any **post row** id from <Badge text="posts:list" variant="default" /> (the <code>id</code> field — the same identifier you use for <Badge text="posts:delete" variant="default" />).
 
 ```bash
-openquok posts:status <post-id> --status draft
-openquok posts:status <post-id> --status schedule
+openquok posts:status <post-id> -s draft
+openquok posts:status <post-id> -s schedule
 ```
 
 | Flag | Description |
 | --- | --- |
-| <Badge text="--status" variant="param" /> <Badge text="-s" variant="param" /> | <code>draft</code> — moves a scheduled group back to draft and **terminates** any in-flight publishing workflow, so it will not publish until you promote it again. <code>schedule</code> or <code>scheduled</code> — promotes a draft into the publishing queue and **(re)starts** the workflow so it publishes at the **stored** time. |
+| <Badge text="-s" variant="param" /> <Badge text="--status" variant="param" /> | <code>draft</code> — moves a scheduled group back to draft and **terminates** any in-flight publishing workflow, so it will not publish until you promote it again. <code>schedule</code> or <code>scheduled</code> — promotes a draft into the publishing queue and **(re)starts** the workflow so it publishes at the **stored** time. |
 
 Use this when you want to pause a scheduled post without deleting it, or hand a draft to the scheduler once it is ready.
 
@@ -323,7 +323,7 @@ These commands use the **post group** id.
 ### Get a post group
 
 ```bash
-openquok posts:group <post-group-uuid>
+openquok posts:group <post-group-id>
 ```
 
 For status-only changes, prefer <a href="#changing-post-status">Changing post status</a> above instead of hand-authoring JSON.
@@ -333,12 +333,12 @@ For status-only changes, prefer <a href="#changing-post-status">Changing post st
 Update by hand when you need arbitrary edits (new <code>scheduledAt</code>, different channels, new media). It might be easiest to copy from <Badge text="posts:group" variant="default" /> output or the <a href="/account/payload-wizard">Payload Wizard</a>):
 
 ```bash
-openquok posts:update-group <post-group-uuid> \
+openquok posts:update-group <post-group-id> \
   --json '{"scheduledAt":"2026-02-15T09:00:00Z","status":"scheduled"}'
 ```
 
 ```bash
-openquok posts:update-group <post-group-uuid> \
+openquok posts:update-group <post-group-id> \
   --json '{"scheduledAt":"2026-02-15T09:00:00Z","status":"draft"}'
 ```
 
@@ -347,7 +347,7 @@ openquok posts:update-group <post-group-uuid> \
 To remove an entire group by id without listing rows first, use <Badge text="posts:delete-group" variant="default" /> with the group id from <Badge text="posts:create" variant="default" />.
 
 ```bash
-openquok posts:delete-group <post-group-uuid>
+openquok posts:delete-group <post-group-id>
 ```
 
 
@@ -364,7 +364,7 @@ GROUP=$(openquok posts:create \
   -t schedule \
   -c "Scheduled with media" \
   -i "$INTEGRATION_ID" \
-  --media "[${MEDIA}]" \
+  -m "[${MEDIA}]" \
   | jq -r '.postGroup')
 
 openquok posts:group "$GROUP"

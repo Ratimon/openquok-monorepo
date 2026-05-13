@@ -16,7 +16,7 @@ Two commands wrap the <a href="/docs/apis-uploads">Uploads APIs</a>:
 - <Badge text="upload" variant="param" /> — multipart upload of a **local** file.
 - <Badge text="upload-from-url" variant="param" /> — instructs the backend to fetch a **public** http(s) URL and store it.
 
-Both return the same JSON envelope so downstream code (especially `posts:create --media`) is identical regardless of the source.
+Both return the same JSON envelope so downstream code (especially `posts:create -m`) is identical regardless of the source.
 
 <Callout type="warning" title="Why uploads are mandatory">
 <p>Most providers (Instagram, Threads, TikTok, YouTube, …) require the asset to live on a verified URL controlled by Openquok. External links — even <code>https://</code> — are rejected at publish time. Upload first, then pass the returned <code>data.id</code> and <code>data.filePath</code> to <code>posts:create</code>.</p>
@@ -71,11 +71,11 @@ MEDIA_ID=$(echo "$RESULT" | jq -r '.data.id')
 MEDIA_PATH=$(echo "$RESULT" | jq -r '.data.filePath')
 
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --status scheduled \
-  --body "Check out this photo!" \
-  --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b" \
-  --media "[{\"id\":\"${MEDIA_ID}\",\"path\":\"${MEDIA_PATH}\"}]"
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Check out this photo!" \
+  -i "<integration-id>" \
+  -m "[{\"id\":\"${MEDIA_ID}\",\"path\":\"${MEDIA_PATH}\"}]"
 ```
 
 Or, more compactly, build the media JSON in one `jq` step:
@@ -84,10 +84,11 @@ Or, more compactly, build the media JSON in one `jq` step:
 MEDIA=$(openquok upload ./photo.jpg | jq -c '[{id: .data.id, path: .data.filePath}]')
 
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "Check out this photo!" \
-  --integrationIds "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b" \
-  --media "$MEDIA"
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Check out this photo!" \
+  -i "<integration-id>" \
+  -m "$MEDIA"
 ```
 
 ## Supported file types
@@ -104,7 +105,7 @@ Per-file size is capped by <Badge text="MAX_MEDIA_UPLOAD_BYTES" variant="envBack
 ## Related
 
 <CardGrid>
-<LinkCard title="Managing Posts" description="Reference uploaded `id` + `filePath` from `--media` in `posts:create`" href="/docs/cli-usages/managing-posts" />
+<LinkCard title="Managing Posts" description="Reference uploaded `id` + `filePath` from `-m` / `--media` in `posts:create`" href="/docs/cli-usages/managing-posts" />
 <LinkCard title="CLI Examples — Instagram" description="End-to-end recipes that combine `upload` with platform settings (reels, carousels, stories)" href="/docs/cli-examples/instagram" />
 <LinkCard title="Uploads APIs" description="Underlying REST endpoints used by `upload` and `upload-from-url`" href="/docs/apis-uploads" />
 </CardGrid>

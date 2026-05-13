@@ -23,15 +23,15 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 ## Platform analytics
 
 ```bash
-openquok analytics:platform 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b
-openquok analytics:platform 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b --days 30
-openquok analytics:platform 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b -d 90
+openquok analytics:platform <integration-id>
+openquok analytics:platform <integration-id> -d 30
+openquok analytics:platform <integration-id> -d 90
 ```
 
 | Flag | Description |
 | --- | --- |
-| <code>&lt;id&gt;</code> (positional) | Integration channel UUID from <a href="/docs/cli-usages/integrations">`openquok integrations:list`</a>. |
-| <Badge text="--days" variant="param" /> (alias <Badge text="-d" variant="param" />) | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
+| <code>&lt;integration-id&gt;</code> (positional) | Integration channel UUID from <a href="/docs/cli-usages/integrations">`openquok integrations:list`</a>. |
+| <Badge text="-d" variant="param" /> (alias <Badge text="--days" variant="param" />) | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
 
 The response is an array of metric series, each with daily data points and a `percentageChange` summary:
 
@@ -65,14 +65,14 @@ The response is an array of metric series, each with daily data points and a `pe
 Extract just the followers series:
 
 ```bash
-openquok analytics:platform 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b -d 30 \
+openquok analytics:platform <integration-id> -d 30 \
   | jq '.[] | select(.label=="Followers")'
 ```
 
 Show only the percentage change for every metric:
 
 ```bash
-openquok analytics:platform 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b \
+openquok analytics:platform <integration-id> \
   | jq '.[] | {label, percentageChange}'
 ```
 
@@ -89,14 +89,14 @@ done
 ## Post analytics
 
 ```bash
-openquok analytics:post 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d
-openquok analytics:post 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --days 30
+openquok analytics:post <post-id>
+openquok analytics:post <post-id> -d 30
 ```
 
 | Flag | Description |
 | --- | --- |
-| <code>&lt;id&gt;</code> (positional) | Post row UUID (from <a href="/docs/cli-usages/managing-posts">`openquok posts:list`</a>). |
-| <Badge text="--days" variant="param" /> (alias <Badge text="-d" variant="param" />) | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
+| <code>&lt;post-id&gt;</code> (positional) | Post row UUID (from <a href="/docs/cli-usages/managing-posts">`openquok posts:list`</a>). |
+| <Badge text="-d" variant="param" /> (alias <Badge text="--days" variant="param" />) | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
 
 Response shape mirrors `analytics:platform`. Common metrics:
 
@@ -130,15 +130,15 @@ Response shape mirrors `analytics:platform`. Common metrics:
 Get just the latest total for each metric:
 
 ```bash
-openquok analytics:post 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d -d 30 \
+openquok analytics:post <post-id> -d 30 \
   | jq '.[] | {label, latest: .data[-1].total}'
 ```
 
 Diff a row's metrics before and after a campaign:
 
 ```bash
-openquok analytics:post 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d -d 7  > before.json
-openquok analytics:post 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d -d 30 > after.json
+openquok analytics:post <post-id> -d 7  > before.json
+openquok analytics:post <post-id> -d 30 > after.json
 jq -s '
   [.[0], .[1]]
   | map([.[] | {label, total: (.data[-1].total | tonumber)}])

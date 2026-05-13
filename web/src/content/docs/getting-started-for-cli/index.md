@@ -142,7 +142,7 @@ openquok auth:logout
 ```bash
 openquok integrations:list
 openquok integrations:settings <id>
-openquok integrations:trigger <id> <method> [--data '<json>']
+openquok integrations:trigger <id> <method> [-d '<json>']
 ```
 
 **Posts**

@@ -43,15 +43,15 @@ Instagram requires at least one attachment, so always upload first:
 MEDIA=$(openquok upload ./photo.jpg | jq -c '[{id: .data.id, path: .data.filePath}]')
 
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --status scheduled \
-  --body "Beautiful day! #photography" \
-  --integrationIds "$INSTAGRAM_ID" \
-  --media "$MEDIA"
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Beautiful day! #photography" \
+  -i "$INSTAGRAM_ID" \
+  -m "$MEDIA"
 ```
 
 <Callout type="warning" title="Scheduled posts need media">
-<p>The Instagram provider rejects <code>scheduled</code> posts with zero attachments at validation time. Save as <Badge text="--status draft" variant="default" /> if you want to compose a caption first and attach the asset later from the web UI.</p>
+<p>The Instagram provider rejects <code>scheduled</code> posts with zero attachments at validation time. Save as <Badge text="-t draft" variant="param" /> if you want to compose a caption first and attach the asset later from the web UI.</p>
 </Callout>
 
 ## Reel (single video)
@@ -62,10 +62,11 @@ A single video attachment is automatically published as a Reel:
 MEDIA=$(openquok upload ./reel.mp4 | jq -c '[{id: .data.id, path: .data.filePath}]')
 
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "New reel — drop a 🔥 if you like it!" \
-  --integrationIds "$INSTAGRAM_ID" \
-  --media "$MEDIA"
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "New reel — drop a 🔥 if you like it!" \
+  -i "$INSTAGRAM_ID" \
+  -m "$MEDIA"
 ```
 
 <Callout type="note" title="MP4 only">
@@ -74,7 +75,7 @@ openquok posts:create \
 
 ## Carousel (multi-image)
 
-Pass more than one image and the provider publishes a carousel. The single `--body` is used as the carousel caption:
+Pass more than one image and the provider publishes a carousel. The single <Badge text="-c" variant="param" /> caption is used for the carousel:
 
 ```bash
 MEDIA=$(jq -nc \
@@ -91,10 +92,11 @@ MEDIA=$(jq -nc \
   ]')
 
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "Three sides of the same story 1/3 → 3/3" \
-  --integrationIds "$INSTAGRAM_ID" \
-  --media "$MEDIA"
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Three sides of the same story 1/3 → 3/3" \
+  -i "$INSTAGRAM_ID" \
+  -m "$MEDIA"
 ```
 
 Or, more idiomatically, loop over a directory and build the JSON in one pass:
@@ -105,10 +107,11 @@ MEDIA=$(for f in ./slides/*.jpg; do
 done | jq -s .)
 
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "Slides from today's talk" \
-  --integrationIds "$INSTAGRAM_ID" \
-  --media "$MEDIA"
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Slides from today's talk" \
+  -i "$INSTAGRAM_ID" \
+  -m "$MEDIA"
 ```
 
 ## Scheduled reply chain
@@ -117,10 +120,11 @@ openquok posts:create \
 
 ```bash
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "Caption first, context in the replies 👇" \
-  --integrationIds "$INSTAGRAM_ID" \
-  --media "$MEDIA" \
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Caption first, context in the replies 👇" \
+  -i "$INSTAGRAM_ID" \
+  -m "$MEDIA" \
   --providerSettingsByIntegrationId "$(jq -nc --arg id "$INSTAGRAM_ID" '
     {
       ($id): {
@@ -142,24 +146,26 @@ openquok posts:create \
 
 ## Cross-post to Threads in a single command
 
-Both providers accept the same `--body` and `--media`. Pass both integration UUIDs to fan out:
+Both providers accept the same <Badge text="-c" variant="param" /> caption and <Badge text="-m" variant="param" /> payload. Pass both integration UUIDs to fan out:
 
 ```bash
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "Same post, two networks" \
-  --integrationIds "$INSTAGRAM_ID,$THREADS_ID" \
-  --media "$MEDIA"
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Same post, two networks" \
+  -i "$INSTAGRAM_ID,$THREADS_ID" \
+  -m "$MEDIA"
 ```
 
 Override the caption per channel if Threads needs a shorter version:
 
 ```bash
 openquok posts:create \
-  --scheduledAt "2026-01-15T10:00:00Z" \
-  --body "Fallback caption" \
-  --integrationIds "$INSTAGRAM_ID,$THREADS_ID" \
-  --media "$MEDIA" \
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Fallback caption" \
+  -i "$INSTAGRAM_ID,$THREADS_ID" \
+  -m "$MEDIA" \
   --bodiesByIntegrationId "$(jq -nc \
     --arg ig "$INSTAGRAM_ID" \
     --arg th "$THREADS_ID" '
@@ -178,7 +184,7 @@ openquok analytics:platform "$INSTAGRAM_ID" -d 30 \
 ```
 
 ```bash
-openquok analytics:post 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d -d 30 \
+openquok analytics:post <post-id> -d 30 \
   | jq '.[] | {label, latest: .data[-1].total}'
 ```
 
@@ -195,6 +201,6 @@ The Instagram provider supports stories, trial reels, collaborator tags, and gra
 <CardGrid>
 <LinkCard title="Instagram setup" description="Meta for Developers app, OAuth redirect, scopes, and tester roles for both Business and Standalone" href="/docs/social-integration/instagram" />
 <LinkCard title="Managing Posts" description="Generic flag reference for `posts:create`, including media and per-channel overrides" href="/docs/cli-usages/managing-posts" />
-<LinkCard title="Media Upload" description="Upload local files or mirror a public URL to produce the `--media` payload" href="/docs/cli-usages/media-upload" />
+<LinkCard title="Media Upload" description="Upload local files or mirror a public URL to produce the `-m` / `--media` payload" href="/docs/cli-usages/media-upload" />
 <LinkCard title="Analytics" description="Look-back windows, response shape, and `jq` recipes" href="/docs/cli-usages/analytics" />
 </CardGrid>

@@ -24,7 +24,7 @@ Operational recipes for the `openquok` CLI grouped by command verb. For one-off 
 ## Conventions used in these pages
 
 - All commands print **machine-readable JSON**, so every example can be piped through <code>jq</code>.
-- Where examples show <code>4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b</code> or <code>8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d</code>, substitute a real integration / post UUID from <code>openquok integrations:list</code> or <code>openquok posts:list</code>.
+- Sample IDs in command examples use **kebab-case angle-bracket placeholders** — <code>&lt;integration-id&gt;</code>, <code>&lt;post-id&gt;</code> (post row), <code>&lt;post-group-id&gt;</code>, <code>&lt;media-id&gt;</code>, <code>&lt;customer-group-id&gt;</code>, <code>&lt;notification-id&gt;</code>. Substitute real UUIDs from <code>openquok integrations:list</code>, <code>openquok posts:list</code>, or the response of <code>openquok upload</code> before running. When an example needs two distinct ids of the same kind, the suffix form is used: <code>&lt;integration-id-1&gt;</code>, <code>&lt;integration-id-2&gt;</code> (or descriptive variants like <code>&lt;threads-integration-id&gt;</code>).
 - ISO-8601 timestamps with an explicit <Badge text="Z" variant="default" /> (UTC) or offset are required — the backend rejects timezone-less strings.
 - Authentication is shared across every command (stored credentials, then <Badge text="OPENQUOK_API_KEY" variant="envBackend" />). Cover this once on <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.
 

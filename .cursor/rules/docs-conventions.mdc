@@ -145,6 +145,22 @@ Edit `web/src/data/docs.ts` and `web/src/lib/docs/constants/config.ts` with your
 - Do **not** document runnable commands only in a **Markdown table** (`| Command | Description |`). Use the same pattern as **`web/src/content/docs/installation/development-environment.md`** (Deployment section): a **bold lead-in** with an em dash and short explanation, then a **` ```bash `** fenced block with the command.
 - Example (see **`web/src/content/docs/installation/vercel.md`**): write `**Deploy backend to Vercel (preview)** — invokes the Vercel CLI with backend/ as the working directory.`, a blank line, then a fenced **`bash`** block containing `pnpm vercel:deploy:backend` (no table of command vs description).
 - When **`web/src/content/docs/cli-usages/`** pages use **`Badge`** in flag tables or inline next to **` ```bash `** blocks, follow the **Badges** section: **`param`** for flags/options, **`path`** for `METHOD /public/...` route lines, **`default`** for `group:verb` command names (see **`web/src/content/docs/cli-usages/managing-posts.md`**).
+- In **` ```bash `** blocks under **`web/src/content/docs/cli-usages/`** and **`web/src/content/docs/cli-examples/`**, prefer **defined short flags** over long **`--camelCase`** in copy-paste examples (e.g. **`posts:create`**: `-s`, `-c`, `-i`, `-m`, `-t schedule` / `-t draft`, `-j`; **`posts:list`**: **`--start`** / **`--end`** and `-i`; **`posts:status`**: `-s`; **`posts:connect`**: `-r`; **`analytics:*`**: `-d`; **`integrations:trigger`**: `-d` for payload). **Exception**: **`posts:update-group`** only documents **`--json`** (no `-j` alias in the CLI). Flag tables may still pair shorthands with long API-aligned names (`--integrationIds`, `--scheduledAt`, …).
+
+## Sample IDs in CLI command and JSON examples
+
+- In **`web/src/content/docs/cli-usages/`** and **`web/src/content/docs/cli-examples/`** pages, use **kebab-case angle-bracket placeholders** wherever the reader must substitute a value (positional args, `-i` / `--integrationIds` quotes, JSON file keys / values, shell variable assignments, in-prose code spans). Do **not** paste a literal-looking UUID into those positions — even a clearly fake string like `4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b` invites copy-paste mistakes.
+- **Canonical placeholders** (use exactly these names so cross-page examples stay consistent):
+  - **`<integration-id>`** — channel UUID from `openquok integrations:list` (positional for `integrations:settings`, `integrations:trigger`, `analytics:platform`; CSV value for `-i` / `--integrationIds`).
+  - **`<post-id>`** — post row UUID from `openquok posts:list` (positional for `posts:status`, `posts:delete`, `posts:missing`, `posts:connect`, `analytics:post`).
+  - **`<post-group-id>`** — post group UUID returned by `posts:create` and surfaced as `postGroup` on list responses (positional for `posts:group`, `posts:update-group`, `posts:delete-group`).
+  - **`<media-id>`** — media UUID returned by `openquok upload` / `upload-from-url`.
+  - **`<customer-group-id>`** — channel-group UUID for `--customer` / `--customerGroupId`.
+  - **`<notification-id>`** — notification UUID.
+- **Multiple ids of the same kind** in one example (e.g. a comma-separated `integrationIds` value, or a `bodiesByIntegrationId` JSON object with several keys) should use **numeric suffixes** — **`<integration-id-1>`**, **`<integration-id-2>`** — or a **descriptive variant** like **`<threads-integration-id>`** / **`<instagram-integration-id>`** when the channel identity is what the example is teaching.
+- For **flag tables** that document positionals, prefer the specific placeholder (`<code>&lt;integration-id&gt;</code>`, `<code>&lt;post-id&gt;</code>`) over the generic `<code>&lt;id&gt;</code>` so the table row and the fenced example use the same token.
+- **Keep illustrative literal UUIDs only in server response samples** — the body of a JSON `data` / `notifications` / `items` block that shows what the API returns. These document response shape and never ask the reader to retype a value (examples: `data.id` in `openquok upload`'s response, `notifications[].id` and `link` URLs in `notifications:list`).
+- The **conventions block** on **`web/src/content/docs/cli-usages/index.md`** should reference these placeholders by name rather than concrete UUIDs.
 
 ## Front matter
 

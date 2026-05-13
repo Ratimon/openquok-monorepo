@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Overview
 
-`integrations:*` wraps the <a href="/docs/apis-integrations">Integrations APIs</a>. Use it to enumerate the channels your API key has access to, inspect what each provider supports, and dispatch one-off tool calls (e.g. fetch followers, list boards) without leaving the CLI.
+The <Badge text="integrations:*" variant="default" />  wraps the <a href="/docs/apis-integrations">Integrations APIs</a>. Use it to enumerate the connected channels, inspect what each provider supports, and dispatch one-off tool calls (e.g. fetch followers, list boards).
 
 <Callout type="note" title="OAuth happens in the web UI">
 <p>Connecting a brand-new channel still goes through the web app's OAuth flow (see <a href="/docs/social-integration">Social integrations</a>). Once connected, every other operation — listing, inspecting settings, triggering provider tools, deleting — is available from the CLI.</p>
@@ -36,7 +36,7 @@ openquok integrations:list | jq '.[] | select(.identifier=="threads")'
 openquok integrations:list | jq '.[] | select(.identifier | startswith("instagram"))'
 ```
 
-Capture an integration UUID into a shell variable for later commands:
+Capture an integration id into a shell variable for later commands:
 
 ```bash
 INTEGRATION_ID=$(openquok integrations:list \
@@ -45,41 +45,47 @@ INTEGRATION_ID=$(openquok integrations:list \
 
 ## Inspect a channel's settings
 
-`integrations:settings` returns the **rules**, **max post length**, **settings schema**, and the list of allow-listed **tools** the channel exposes. Run it before scripting a new platform so you know which `--settings` keys to send to `posts:create`.
+The <Badge text="integrations:settings" variant="default" /> returns the **rules**, **max post length**, **settings schema**, and the list of allow-listed **tools** the channel exposes.
+
 
 ```bash
-openquok integrations:settings 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b
+openquok integrations:settings <integration-id>
 ```
+
+<Callout type="tip">
+Run it before scripting a new platform so you know which `--settings` keys to send to `posts:create`.
+</Callout>
+
 
 Show only the tool list (the input for `integrations:trigger`):
 
 ```bash
-openquok integrations:settings 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b \
+openquok integrations:settings <integration-id> \
   | jq .output.tools
 ```
 
 Show the maximum content length the provider accepts:
 
 ```bash
-openquok integrations:settings 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b \
+openquok integrations:settings <integration-id> \
   | jq '.output.maxLength'
 ```
 
 <Callout type="tip" title="Settings schema first">
-<p>Each <code>output.tools[]</code> entry has a <code>methodName</code> (the second positional for <code>integrations:trigger</code>) and a <code>dataSchema</code> describing the JSON object it expects in <code>--data</code>. Validate your payload against that schema locally before scripting it into a loop.</p>
+<p>Each <code>output.tools[]</code> entry has a <code>methodName</code> (the second positional for <code>integrations:trigger</code>) and a <code>dataSchema</code> describing the JSON object it expects in <Badge text="-d" variant="param" />. Validate your payload against that schema locally before scripting it into a loop.</p>
 </Callout>
 
 ## Trigger a provider tool
 
-`integrations:trigger` dispatches a single allow-listed provider method on a connected channel. Pass JSON input with `--data` (alias `-d`).
+The <Badge text="integrations:trigger" variant="default" /> dispatches a single allow-listed provider method on a connected channel. Pass JSON input with <Badge text="-d" variant="param" /> (alias <Badge text="--data" variant="param" />).
 
 ```bash
-openquok integrations:trigger 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b getThings
-openquok integrations:trigger 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b searchThings \
-  --data '{"query":"openquok"}'
+openquok integrations:trigger <integration-id> getThings
+openquok integrations:trigger <integration-id> searchThings \
+  -d '{"query":"openquok"}'
 ```
 
-The response shape is provider-specific. Most tools return a top-level <code>output</code> array of entries that expose <code>id</code>, <code>value</code>, and <code>name</code> fields you can feed back into `posts:create --providerSettingsByIntegrationId`.
+The response shape is provider-specific. Most tools return a top-level <Badge text="output" variant="param" /> array of entries that expose <Badge text="id" variant="param" />, <Badge text="value" variant="param" />, and <Badge text="name" variant="param" /> fields you can feed back into <Badge text="posts:create" variant="default" /> <Badge text="--providerSettingsByIntegrationId" variant="param" />.
 
 ## Discovery workflow
 
@@ -94,24 +100,24 @@ openquok integrations:settings "$INTEGRATION_ID" | jq '{maxLength: .output.maxLe
 openquok integrations:trigger "$INTEGRATION_ID" getThings | jq '.output[0:3]'
 
 openquok posts:create \
-  --scheduledAt "2026-01-15T12:00:00Z" \
-  --body "Hello, world!" \
-  --integrationIds "$INTEGRATION_ID"
+  -s "2026-01-15T12:00:00Z" \
+  -c "Hello, world!" \
+  -i "$INTEGRATION_ID"
 ```
 
 ## Disconnecting a channel
 
-<p>The CLI does not currently expose an <code>integrations:delete</code> verb. Disconnect a channel from the Integrations page in the web UI, or call the underlying <Badge text={"DELETE /public/integrations/{id}"} variant="path" /> endpoint via the SDK — see <a href="/docs/apis-integrations/delete">Delete Channel</a>.</p>
+<p>The CLI does not currently expose an <Badge text="integrations:delete" variant="default" /> dueto accidental delete by AI. Disconnect a channel from the web UI, or call the underlying <Badge text={"DELETE /public/integrations/{id}"} variant="path" /> endpoint via the SDK — see <a href="/docs/apis-integrations/delete">Delete Channel</a>.</p>
 
 <Callout type="warning" title="Removing a channel is destructive">
-<p>Once an integration row is deleted, any <code>scheduled</code> post that targeted it fails at publish time with <code>integration_not_found</code>. Cancel impacted post groups with <a href="/docs/cli-usages/managing-posts">`openquok posts:delete-group`</a> first.</p>
+<p>Once an integration row is deleted, any <code>scheduled</code> post that targeted it fails at publish time with <code>integration_not_found</code>.
 </Callout>
 
 ## Related
 
 <CardGrid>
-<LinkCard title="Managing Posts" description="Use integration UUIDs from `integrations:list` as `--integrationIds`" href="/docs/cli-usages/managing-posts" />
-<LinkCard title="Analytics" description="Run `analytics:platform` against the same integration UUIDs" href="/docs/cli-usages/analytics" />
-<LinkCard title="Integrations APIs" description="Underlying REST endpoints used by every `integrations:*` command" href="/docs/apis-integrations" />
-<LinkCard title="Social integrations" description="One-time OAuth setup for each provider (Meta Threads, Instagram, …)" href="/docs/social-integration" />
+<LinkCard title="Managing Posts" description="Create, list, and delete posts using the channel IDs you discover here" href="/docs/cli-usages/managing-posts" />
+<LinkCard title="Analytics" description="Review channel and post performance after content goes live" href="/docs/cli-usages/analytics" />
+<LinkCard title="Integrations APIs" description="Call the API for the same list, settings, and tool workflows as the CLI" href="/docs/apis-integrations" />
+<LinkCard title="Social integrations" description="Connect accounts with OAuth before you automate them from the terminal" href="/docs/social-integration" />
 </CardGrid>
