@@ -6,17 +6,17 @@ lastUpdated: 2026-05-12
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard, Tabs, TabItem } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
-Two commands wrap the <a href="/docs/apis-uploads">Uploads APIs</a>:
+The <Badge text="upload" variant="param" /> and <Badge text="upload-from-url" variant="param" /> commands wrap the <a href="/docs/apis-uploads">Uploads APIs</a>:
 
-- <Badge text="upload" variant="param" /> — multipart upload of a **local** file.
-- <Badge text="upload-from-url" variant="param" /> — instructs the backend to fetch a **public** http(s) URL and store it.
+- <Badge text="upload" variant="param" /> — multipart upload of a local file.
+- <Badge text="upload-from-url" variant="param" /> — instructs the backend to fetch a public http(s) URL and store it.
 
-Both return the same JSON envelope so downstream code (especially `posts:create -m`) is identical regardless of the source.
+Both return the same JSON envelope so downstream code (especially <Badge text="posts:create" variant="default" /> <Badge text="-m" variant="param" />) is identical regardless of the source.
 
 <Callout type="warning" title="Why uploads are mandatory">
 <p>Most providers (Instagram, Threads, TikTok, YouTube, …) require the asset to live on a verified URL controlled by Openquok. External links — even <code>https://</code> — are rejected at publish time. Upload first, then pass the returned <code>data.id</code> and <code>data.filePath</code> to <code>posts:create</code>.</p>
@@ -31,7 +31,7 @@ openquok upload /tmp/clip.mp4
 
 | Argument | Description |
 | --- | --- |
-| <code>&lt;filePath&gt;</code> (positional) | Local path to the media file (image, video, audio, PDF, …). |
+| <Badge text="<filePath>" variant="param" /> (positional) | Local path to the media file (image, video, audio, PDF, …). |
 
 ### Response shape
 
@@ -48,7 +48,7 @@ openquok upload /tmp/clip.mp4
 }
 ```
 
-`data.publicUrl` is only present when the workspace's storage provider exposes a public URL. The pair you need for `posts:create` is `data.id` + `data.filePath`.
+<p><Badge text="data.publicUrl" variant="param" />{' '}is only present when the workspace's storage provider exposes a public URL. The pair you need for{' '}<Badge text="posts:create" variant="param" />{' '}is{' '}<Badge text="data.id" variant="param" />{' '}+{' '}<Badge text="data.filePath" variant="param" />.</p>
 
 ## Upload from a public URL
 
@@ -57,7 +57,7 @@ openquok upload-from-url "https://cdn.example.com/banner.png"
 openquok upload-from-url "https://cdn.example.com/clip.mp4"
 ```
 
-The backend fetches the URL server-side, derives the MIME type from the response `Content-Type` (or the URL extension when the header is generic), and stores the bytes in the same media bucket as `openquok upload`. The response shape is identical, so any script that consumes `upload` works unchanged against `upload-from-url`.
+<p>The backend fetches the URL server-side, derives the MIME type from the response <Badge text="Content-Type" variant="param" /> (or the URL extension when the header is generic), and stores the bytes in the same media bucket as <Badge text="openquok upload" variant="param" />. The response shape is identical, so any script that consumes <Badge text="upload" variant="default" /> works unchanged against <Badge text="upload-from-url" variant="default" />.</p>
 
 <Callout type="note" title="Only http(s)">
 <p>The backend validates the URL up front and rejects any scheme other than <code>http:</code> / <code>https:</code>. Authentication, redirects, and request bodies are not supported — host the asset on a publicly reachable URL or use <code>openquok upload</code> for files behind auth.</p>
@@ -93,12 +93,28 @@ openquok posts:create \
 
 ## Supported file types
 
-| Category | Extensions |
-| --- | --- |
-| Images | <code>png</code>, <code>jpg</code> / <code>jpeg</code>, <code>gif</code>, <code>webp</code>, <code>svg</code>, <code>bmp</code>, <code>ico</code> |
-| Videos | <code>mp4</code>, <code>mov</code>, <code>avi</code>, <code>mkv</code>, <code>webm</code>, <code>flv</code>, <code>wmv</code>, <code>m4v</code>, <code>mpeg</code>, <code>3gp</code> |
-| Audio  | <code>mp3</code>, <code>wav</code>, <code>ogg</code>, <code>aac</code>, <code>flac</code>, <code>m4a</code> |
-| Documents | <code>pdf</code>, <code>doc</code>, <code>docx</code> |
+<Tabs items={["Images", "Videos", "Audio", "Documents"]}>
+<TabItem label="Images">
+
+<p><code>png</code>, <code>jpg</code> / <code>jpeg</code>, <code>gif</code>, <code>webp</code>, <code>svg</code>, <code>bmp</code>, <code>ico</code></p>
+
+</TabItem>
+<TabItem label="Videos">
+
+<p><code>mp4</code>, <code>mov</code>, <code>avi</code>, <code>mkv</code>, <code>webm</code>, <code>flv</code>, <code>wmv</code>, <code>m4v</code>, <code>mpeg</code>, <code>3gp</code></p>
+
+</TabItem>
+<TabItem label="Audio">
+
+<p><code>mp3</code>, <code>wav</code>, <code>ogg</code>, <code>aac</code>, <code>flac</code>, <code>m4a</code></p>
+
+</TabItem>
+<TabItem label="Documents">
+
+<p><code>pdf</code>, <code>doc</code>, <code>docx</code></p>
+
+</TabItem>
+</Tabs>
 
 Per-file size is capped by <Badge text="MAX_MEDIA_UPLOAD_BYTES" variant="envBackend" /> on the backend.
 

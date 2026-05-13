@@ -11,13 +11,13 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Overview
 
-`analytics:*` wraps the <a href="/docs/apis-analytics">Analytics APIs</a>. Two commands cover the supported windows:
+The <Badge text="analytics:*" variant="default" /> wraps the <a href="/docs/apis-analytics">Analytics APIs</a>. Two commands cover the supported windows:
 
 - <Badge text="analytics:platform" variant="default" /> — channel-level metrics (followers, impressions, engagement, …).
 - <Badge text="analytics:post" variant="default" /> — per-post metrics (likes, comments, shares, …) for a **published** post.
 
 <Callout type="note" title="Allowed windows">
-<p>The backend rejects anything outside <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, and <Badge text="90" variant="param" />. The CLI validates this client-side so you get a clear error instead of a generic HTTP 400.</p>
+<p>The backend rejects anything outside <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, and <Badge text="90" variant="param" />.</p>
 </Callout>
 
 ## Platform analytics
@@ -30,10 +30,9 @@ openquok analytics:platform <integration-id> -d 90
 
 | Flag | Description |
 | --- | --- |
-| <code>&lt;integration-id&gt;</code> (positional) | Integration channel UUID from <a href="/docs/cli-usages/integrations">`openquok integrations:list`</a>. |
-| <Badge text="-d" variant="param" /> (alias <Badge text="--days" variant="param" />) | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
+| <Badge text="-d" variant="param" /> <Badge text="--days" variant="param" /> | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
 
-The response is an array of metric series, each with daily data points and a `percentageChange` summary:
+The response is an array of metric series, each with daily data points and a <Badge text="percentageChange" variant="param" /> summary:
 
 ```json
 [
@@ -56,8 +55,8 @@ The response is an array of metric series, each with daily data points and a `pe
 ]
 ```
 
-<Callout type="tip" title="Metrics vary by provider">
-<p>Meta Threads exposes followers, views, likes, replies, reposts, and quotes; Instagram exposes followers, impressions, reach, profile views, and website clicks. Fetch <code>integrations:settings</code> first if you need the canonical metric list for a provider.</p>
+<Callout type="tip">
+<p>Metrics vary by provider. Meta Threads, for example, exposes followers, views, likes, replies, reposts, and quotes; Instagram exposes followers, impressions, reach, profile views, and website clicks. Fetch <Badge text="integrations:settings" variant="param" /> first if you need the canonical metric list for a provider.</p>
 </Callout>
 
 ### Scripting examples
@@ -95,8 +94,7 @@ openquok analytics:post <post-id> -d 30
 
 | Flag | Description |
 | --- | --- |
-| <code>&lt;post-id&gt;</code> (positional) | Post row UUID (from <a href="/docs/cli-usages/managing-posts">`openquok posts:list`</a>). |
-| <Badge text="-d" variant="param" /> (alias <Badge text="--days" variant="param" />) | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
+| <Badge text="-d" variant="param" /> <Badge text="--days" variant="param" /> | Look-back window. One of <code>7</code> (default), <code>30</code>, or <code>90</code>. |
 
 Response shape mirrors `analytics:platform`. Common metrics:
 
@@ -121,11 +119,25 @@ Response shape mirrors `analytics:platform`. Common metrics:
 ]
 ```
 
-<Callout type="warning" title="Drafts and queued posts return an empty array">
-<p>Per-post analytics are only available for posts that have been published. Drafts, queued rows, and rows whose <code>release_id</code> is still <Badge text="missing" variant="default" /> all resolve to <code>[]</code>. Reconnect missing rows with <a href="/docs/cli-usages/managing-posts">`openquok posts:connect`</a> to unlock analytics.</p>
+<Callout type="warning">
+<p>Drafts and queued posts return an empty array. Per-post analytics are only available for posts that have been published. Drafts, queued rows, and rows whose <Badge text="release_id" variant="param" /> is still <Badge text="missing" variant="default" /> all resolve to <code>[]</code>. Reconnect missing rows with <a href="/docs/cli-usages/managing-posts">`openquok posts:connect`</a> to unlock analytics.</p>
 </Callout>
 
 ### Scripting examples
+
+Filter to a single metric label (e.g. just `Likes`):
+
+```bash
+openquok analytics:post <post-id> -d 30 \
+  | jq '.[] | select(.label=="Likes")'
+```
+
+Show only the percentage change for every post metric:
+
+```bash
+openquok analytics:post <post-id> \
+  | jq '.[] | {label, percentageChange}'
+```
 
 Get just the latest total for each metric:
 
