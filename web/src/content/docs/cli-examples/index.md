@@ -24,7 +24,7 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each pa
 
 ## Conventions used in these pages
 
-- Where examples show <Badge text="$THREADS_ID" variant="default" /> or <Badge text="$INSTAGRAM_ID" variant="default" />, populate them with an integration UUID from <code>openquok integrations:list</code>:
+- Where examples show <Badge text="$THREADS_ID" variant="param" /> or <Badge text="$INSTAGRAM_ID" variant="param" />, populate them with an integration UUID from <Badge text="openquok integrations:list" variant="default" />
 
 ```bash
 THREADS_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="threads") | .id')

@@ -2,7 +2,7 @@
 title: Project Architecture
 description: OpenQuok's architecture — project layout and key files for the social scheduler.
 order: 1
-lastUpdated: 2026-04-07
+lastUpdated: 2026-05-13
 ---
 
 <script>
@@ -13,7 +13,7 @@ import { Badge, CardGrid, LinkCard, FileTree } from '$lib/ui/components/docs/mdx
 
 The repository is a **pnpm monorepo**: the root holds the workspace manifest, shared tooling, and top-level packages.
 
-The customer-facing **SvelteKit** app lives in <Badge text="web/" variant="path" />. It serves the marketing site, authenticated product UI, and the **`/docs`** documentation area. The docs runtime (content loading, navigation, search) lives under <Badge text="web/src/lib/docs/" variant="path" />.
+The customer-facing **SvelteKit** app lives in <Badge text="web/" variant="path" />. It serves the marketing site, and authenticated product UI. The docs runtime (content loading, navigation, search) lives under <Badge text="web/src/lib/docs/" variant="path" />.
 
 ## Tech stack
 

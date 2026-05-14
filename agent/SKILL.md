@@ -1,37 +1,11 @@
-## Openquok CLI skill (`openquok`)
+---
+name: openquok-core
+description: Openquok is an agentic skills to automate social content creation. It includes draft, schedue, publish and approve content
+homepage: https://www.npmjs.com/package/@openquok/auto-cli
+metadata: {"openclaw":{"emoji":"📮","requires":{"bins":[],"env":[]}}}
+---
 
-Use this CLI when you need to interact with Openquok programmatically (integrations, posts, uploads). **All output is JSON**, so it’s friendly for agent workflows.
+# Hello World Skill
 
-### Setup
-
-- Set `OPENQUOK_API_KEY` (preferred), or store it with `openquok auth:login --apiKey "..."`.
-- Optionally set `OPENQUOK_API_URL` (defaults to `https://api.openquok.com`).
-
-### Common agent workflow
-
-1) **List integrations** (discover available channels):
-
-```bash
-openquok integrations:list
-```
-
-2) **Upload media** (if needed) and capture returned `data.filePath` and `data.id`:
-
-```bash
-openquok upload ./image.png
-```
-
-3) **Create a post**:
-
-```bash
-openquok posts:create -s "2026-01-01T12:00:00Z" -c "..." -i "uuid1,uuid2"
-```
-
-4) **Inspect or modify** a post group:
-
-```bash
-openquok posts:group <postGroupUuid>
-openquok posts:status <postRowUuid> --status draft
-openquok posts:update-group <postGroupUuid> --json '{"scheduledAt":"...","status":"draft"}'
-```
-
+When the user asks for a greeting, use the `echo` tool to say
+"Hello from your custom skill!".

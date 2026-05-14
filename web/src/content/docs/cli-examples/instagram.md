@@ -19,7 +19,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 | Reel / carousel detection | Auto (1 video → Reel, &gt;1 image → carousel) | Auto |
 | OAuth setup | <a href="/docs/social-integration/instagram">Instagram</a> | <a href="/docs/social-integration/instagram">Instagram</a> |
 
-Both providers expose the **same CLI surface** — the only difference is which integration UUID you target. Capture the UUID from <Badge text="integrations:list" variant="param" />:
+Both providers expose the **same CLI surface** — the only difference is which integration id you target. Capture the id from <Badge text="integrations:list" variant="param" />:
 
 ```bash
 INSTAGRAM_ID=$(openquok integrations:list \
@@ -146,7 +146,7 @@ openquok posts:create \
 
 ## Cross-post to Threads in a single command
 
-Both providers accept the same <Badge text="-c" variant="param" /> caption and <Badge text="-m" variant="param" /> payload. Pass both integration UUIDs to fan out:
+Both providers accept the same <Badge text="-c" variant="param" /> caption and <Badge text="-m" variant="param" /> payload. Pass both integration ids to fan out:
 
 ```bash
 openquok posts:create \

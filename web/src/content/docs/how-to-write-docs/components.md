@@ -129,13 +129,13 @@ Use **`Badge`** from `$lib/ui/components/docs/mdx/index.js` for short labels in 
 
 **Release / status:** <Badge text="New" variant="new" /> <Badge text="Experimental" variant="experimental" /> <Badge text="Deprecated" variant="deprecated" /> <Badge text="v1.0.0" />
 
-**Docs semantics** (pick variants so readers can scan by color — see `web/src/content/docs/installation/vercel.md`):
+**Docs semantics** (pick variants so readers can scan by color — see `web/src/content/docs/installation/vercel.md`). **`Badge`** is `DocsBadge.svelte`; **`variant`** must be one of: **`default`**, **`new`**, **`deprecated`**, **`experimental`**, **`envBackend`**, **`envWeb`**, **`envRuntime`**, **`path`**, **`param`**.
 
 - **Backend env** (no <Badge text="VITE_" variant="envWeb" /> prefix): <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />
 - **Web / Vite env**: <Badge text="VITE_API_BASE_URL" variant="envWeb" />
 - **Runtime / platform**: <Badge text="VERCEL" variant="envRuntime" />
-- **Env files**: <Badge text="backend/.env.development.local" variant="envBackend" />
-- **Repo paths & routes** (often nested in DocsExternalLink to GitHub): <Badge text="backend/vercel.json" variant="path" />
+- **Repo paths, env filenames, routes** (often nested in DocsExternalLink to GitHub): <Badge text="backend/.env.development.local" variant="path" /> <Badge text="backend/vercel.json" variant="path" />
+- **CLI flags, query keys, path params** (when not using ParamField): <Badge text="--dry-run" variant="param" /> <Badge text="page" variant="param" />
 - **URL examples** (prefer / avoid): <Badge text="https://example.com" variant="new" /> vs <Badge text="https://example.com/" variant="deprecated" />; use the same **new** variant for local dev bases such as <Badge text="http://localhost:5173" variant="new" /> or <Badge text="http://localhost:3000" variant="new" />
 
 ## File Tree

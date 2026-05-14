@@ -7,15 +7,14 @@
 ### Links
 
 - [Website](https://www.openquok.com)
-- [Developer's Documentations](https://www.openquok.com/docs)
-- [Getting started](https://www.openquok.com/docs/getting-started-for-dev)
+- [Doc for Agent Users](https://www.openquok.com/docs)
+- [Doc For Contributors/mainteners](https://www.openquok.com/docs/getting-started-for-dev)
+- [Doc Public API](https://localhost:5173/docs/getting-started-for-public-api)
 - [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture)
 - [Installation](https://www.openquok.com/docs/installation)
-- [Backend configuration](https://www.openquok.com/docs/configuration-backend)
-- [Frontend configuration](https://www.openquok.com/docs/configuration-web)
-- [Vercel deployment](https://www.openquok.com/docs/installation/vercel)
-- [Developer guidelines](https://www.openquok.com/docs/developer-guidelines)
-- [Security guidelines](https://www.openquok.com/docs/developer-guidelines/security)
+- [Developer Guidelines](https://www.openquok.com/docs/developer-guidelines)
+- [Security Guidelines](https://www.openquok.com/docs/developer-guidelines/security)
+- [Documentation Contribution Guidelines](how-to-write-docs)
 
 ---
 

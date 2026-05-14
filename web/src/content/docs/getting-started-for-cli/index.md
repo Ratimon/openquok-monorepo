@@ -1,5 +1,5 @@
 ---
-title: Overview - CLI
+title: Get Started to use CLI
 description: Install and automate social media content pipeline using the Openquok CLI from your terminal.
 order: 0
 lastUpdated: 2026-05-12
@@ -10,6 +10,14 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 </script>
 
 ## Overview
+
+<Callout type="warning">
+<p>For your AI agent to work best with Openquok, install the skill by running:</p>
+<pre class="my-3 max-w-full rounded-lg bg-base-200/80 p-3 text-sm"><code>npx skills add Ratimon/openquok-monorepo</code></pre>
+<p>Alternatively, install only the CLI skill by path and id (useful once this repository ships more than one skill):</p>
+<pre class="my-3 max-w-full rounded-lg bg-base-200/80 p-3 text-sm"><code>npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core</code></pre>
+<p>Or open <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/SKILL.md">the skill on GitHub</DocsExternalLink> (<code>agent/SKILL.md</code>).</p>
+</Callout>
 
 <Badge text="@openquok/auto-cli" variant="experimental" /> is the programmatic CLI for the Openquok scheduling API — built for automation and AI agents. It wraps the <a href="/docs/getting-started-for-public-api">public API</a> so you can schedule posts, manage integrations, and upload media from shell scripts.
 

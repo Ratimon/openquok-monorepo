@@ -58,7 +58,9 @@
 	<Alert variant={current.variant} class="flex flex-row items-start gap-3 {current.class}">
 		<AbstractIcon name={current.icon} class="size-4 shrink-0" width="16" height="16" />
 		<AlertTitle class={current.titleClass}>{title ?? current.label}</AlertTitle>
-		<AlertDescription class={current.descriptionLinkClass}>
+		<AlertDescription
+			class="{current.descriptionLinkClass} min-w-0 flex-1 basis-0 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:whitespace-pre-wrap [&_pre]:[overflow-wrap:anywhere]"
+		>
 			{@render children()}
 		</AlertDescription>
 	</Alert>

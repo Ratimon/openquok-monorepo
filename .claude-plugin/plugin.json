@@ -1,0 +1,21 @@
+{
+  "name": "openquok",
+  "version": "0.0.4",
+  "description": "Openquok CLI skill for the social media scheduling API — integrations, posts, uploads, analytics (JSON output for agents).",
+  "author": {
+    "name": "Rati Montreewat",
+    "url": "https://github.com/Ratimon"
+  },
+  "homepage": "https://github.com/Ratimon/openquok-monorepo/tree/main/agent#readme",
+  "repository": "https://github.com/Ratimon/openquok-monorepo",
+  "license": "AGPL-3.0",
+  "skills": ["./agent"],
+  "keywords": [
+    "openquok",
+    "social-media",
+    "scheduling",
+    "automation",
+    "ai-agent",
+    "cli"
+  ]
+}
