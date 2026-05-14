@@ -7,8 +7,8 @@ import { DatabaseError } from "../errors/InfraError";
 const TABLE_POSTS = "posts";
 const TABLE_TAGS = "post_tags";
 const TABLE_POSTS_TAGS = "post_tag_assignments";
-/** Composer comments on `posts` rows */
-const TABLE_COMMENTS = "comments";
+/** Composer internal comments on `posts` rows (`public.post_internal_comments`). */
+const TABLE_POST_INTERNAL_COMMENTS = "post_internal_comments";
 /** Thread replies on social posts (follow-ups) */
 const TABLE_THREAD_REPLIES = "post_thread_replies";
 
@@ -364,7 +364,7 @@ export class PostsRepository {
     /** Lists non-deleted comments for a composer post row (`posts.id`). */
     async listCommentsByPostId(postId: string): Promise<PostCommentLike[]> {
         const { data, error } = await this.supabase
-            .from(TABLE_COMMENTS)
+            .from(TABLE_POST_INTERNAL_COMMENTS)
             .select("id, post_id, organization_id, user_id, content, created_at, updated_at, deleted_at")
             .eq("post_id", postId)
             .is("deleted_at", null)
@@ -374,7 +374,7 @@ export class PostsRepository {
             throw new DatabaseError(`Failed to load post comments: ${error.message}`, {
                 cause: error,
                 operation: "select",
-                resource: { type: "table", name: TABLE_COMMENTS },
+                resource: { type: "table", name: TABLE_POST_INTERNAL_COMMENTS },
             });
         }
         return (data ?? []) as PostCommentLike[];
@@ -389,7 +389,7 @@ export class PostsRepository {
     }): Promise<PostCommentLike> {
         const now = new Date().toISOString();
         const { data, error } = await this.supabase
-            .from(TABLE_COMMENTS)
+            .from(TABLE_POST_INTERNAL_COMMENTS)
             .insert({
                 organization_id: input.organizationId,
                 post_id: input.postId,
@@ -406,7 +406,7 @@ export class PostsRepository {
             throw new DatabaseError(`Failed to insert composer comment: ${error?.message ?? "no row"}`, {
                 cause: error ?? undefined,
                 operation: "insert",
-                resource: { type: "table", name: TABLE_COMMENTS },
+                resource: { type: "table", name: TABLE_POST_INTERNAL_COMMENTS },
             });
         }
         return data as PostCommentLike;

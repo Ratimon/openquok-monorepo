@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS public.posts (
     created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL
 );
 
-COMMENT ON TABLE public.posts IS 'One row per target integration; use post_group to tie a composer session (Post model shape). Child composer comments live in public.comments (post_id → posts.id); distinct from blog_comments.';
+COMMENT ON TABLE public.posts IS 'One row per target integration; use post_group to tie a composer session (Post model shape). Child composer comments live in public.post_internal_comments (post_id → posts.id); distinct from blog_comments.';
 COMMENT ON COLUMN public.posts.post_group IS 'Same value for all rows created in one compose action (maps Post.group).';
 COMMENT ON COLUMN public.posts.settings IS 'JSON string; may include isGlobal and other provider options (maps Post.settings).';
 COMMENT ON COLUMN public.posts.interval_in_days IS 'Repeat cadence in days when applicable (maps Post.intervalInDays).';

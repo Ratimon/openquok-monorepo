@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS public.post_thread_replies (
     deleted_at TIMESTAMPTZ
 );
 
-COMMENT ON TABLE public.post_thread_replies IS 'Follow-up thread replies for scheduled social posts; published after the main post. Distinct from public.comments which are composer/preview comments.';
+COMMENT ON TABLE public.post_thread_replies IS 'Follow-up thread replies for scheduled social posts; published after the main post. Distinct from public.post_internal_comments which are composer/preview comments.';
 COMMENT ON COLUMN public.post_thread_replies.delay_seconds IS 'Delay (seconds) before posting this reply after the previous item.';
 COMMENT ON COLUMN public.post_thread_replies.state IS 'Publish state for this reply row (QUEUE/PUBLISHED/ERROR).';
 

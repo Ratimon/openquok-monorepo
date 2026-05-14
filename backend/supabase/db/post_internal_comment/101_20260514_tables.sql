@@ -1,6 +1,6 @@
 -- ---------------------------
--- MODULE NAME: comment
--- MODULE DATE: 20260413
+-- MODULE NAME: post_internal_comment
+-- MODULE DATE: 20260514
 -- MODULE SCOPE: Tables
 -- ---------------------------
 -- Composer / preview comments on scheduled posts (internal discussion).
@@ -8,7 +8,7 @@
 BEGIN;
 
 -- FKs: organizations — db/organization; users — db/user-management; posts — db/post. Distinct from blog_comments.
-CREATE TABLE IF NOT EXISTS public.comments (
+CREATE TABLE IF NOT EXISTS public.post_internal_comments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     content TEXT NOT NULL,
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
@@ -19,11 +19,10 @@ CREATE TABLE IF NOT EXISTS public.comments (
     deleted_at TIMESTAMPTZ
 );
 
-COMMENT ON TABLE public.comments IS 'Comments on posts (internal discussion). Indexes in db/comment/201_20260413_indexes.sql; RLS in db/comment/301_20260413_rlsgrants.sql.';
+COMMENT ON TABLE public.post_internal_comments IS 'Internal composer/preview comments on posts. Indexes in db/post_internal_comment/201_20260514_indexes.sql; RLS in db/post_internal_comment/301_20260514_rlsgrants.sql.';
 
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------
 
 COMMIT;
-

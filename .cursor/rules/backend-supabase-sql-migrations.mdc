@@ -12,8 +12,8 @@ alwaysApply: false
   - Example modules: `user-management`, `user-auth`, `config`, etc.
 - **Do not hand-author files in** `backend/supabase/migrations/`.
   - That folder is **generated** by the aggregation scripts:
-    - `npm run db:aggregate-migrations-all`
-    - `npm run db:aggregate-migrations-single <module>`
+  - `npm run db:aggregate-migrations-all`
+  - `npm run db:aggregate-migrations-single <module>`
 
 ## File naming
 

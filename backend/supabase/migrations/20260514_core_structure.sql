@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
-COMMENT ON TABLE public.users IS 'Core identity row (auth.users link). Referenced by user_organizations and tenant-scoped tables such as public.comments (composer post comments; FK user_id — defined in post module).';
+COMMENT ON TABLE public.users IS 'Core identity row (auth.users link). Referenced by user_organizations and tenant-scoped tables such as public.post_internal_comments (composer post comments; FK user_id — defined in post module).';
 
 ALTER TABLE public.users
     ADD COLUMN IF NOT EXISTS last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL;
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS public.organizations (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
-COMMENT ON TABLE public.organizations IS 'Organizations (workspaces/tenants). Tenant key for org-scoped rows (e.g. public.posts.organization_id, public.comments.organization_id).';
+COMMENT ON TABLE public.organizations IS 'Organizations (workspaces/tenants). Tenant key for org-scoped rows (e.g. public.posts.organization_id, public.post_internal_comments.organization_id).';
 COMMENT ON COLUMN public.organizations.api_key IS 'Optional API key for programmatic access';
 
 -- ---------------------------
@@ -483,7 +483,7 @@ CREATE TABLE IF NOT EXISTS public.posts (
     created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL
 );
 
-COMMENT ON TABLE public.posts IS 'One row per target integration; use post_group to tie a composer session (Post model shape). Child composer comments live in public.comments (post_id → posts.id); distinct from blog_comments.';
+COMMENT ON TABLE public.posts IS 'One row per target integration; use post_group to tie a composer session (Post model shape). Child composer comments live in public.post_internal_comments (post_id → posts.id); distinct from blog_comments.';
 COMMENT ON COLUMN public.posts.post_group IS 'Same value for all rows created in one compose action (maps Post.group).';
 COMMENT ON COLUMN public.posts.settings IS 'JSON string; may include isGlobal and other provider options (maps Post.settings).';
 COMMENT ON COLUMN public.posts.interval_in_days IS 'Repeat cadence in days when applicable (maps Post.intervalInDays).';
@@ -531,7 +531,7 @@ CREATE TABLE IF NOT EXISTS public.post_thread_replies (
     deleted_at TIMESTAMPTZ
 );
 
-COMMENT ON TABLE public.post_thread_replies IS 'Follow-up thread replies for scheduled social posts; published after the main post. Distinct from public.comments which are composer/preview comments.';
+COMMENT ON TABLE public.post_thread_replies IS 'Follow-up thread replies for scheduled social posts; published after the main post. Distinct from public.post_internal_comments which are composer/preview comments.';
 COMMENT ON COLUMN public.post_thread_replies.delay_seconds IS 'Delay (seconds) before posting this reply after the previous item.';
 COMMENT ON COLUMN public.post_thread_replies.state IS 'Publish state for this reply row (QUEUE/PUBLISHED/ERROR).';
 
@@ -540,10 +540,10 @@ COMMENT ON COLUMN public.post_thread_replies.state IS 'Publish state for this re
 -- ---------------------------
 
 
--- Module: comment, File: 101_20260413_tables.sql
+-- Module: post_internal_comment, File: 101_20260514_tables.sql
 -- ---------------------------
--- MODULE NAME: comment
--- MODULE DATE: 20260413
+-- MODULE NAME: post_internal_comment
+-- MODULE DATE: 20260514
 -- MODULE SCOPE: Tables
 -- ---------------------------
 -- Composer / preview comments on scheduled posts (internal discussion).
@@ -551,7 +551,7 @@ COMMENT ON COLUMN public.post_thread_replies.state IS 'Publish state for this re
 
 
 -- FKs: organizations — db/organization; users — db/user-management; posts — db/post. Distinct from blog_comments.
-CREATE TABLE IF NOT EXISTS public.comments (
+CREATE TABLE IF NOT EXISTS public.post_internal_comments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     content TEXT NOT NULL,
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
@@ -562,7 +562,7 @@ CREATE TABLE IF NOT EXISTS public.comments (
     deleted_at TIMESTAMPTZ
 );
 
-COMMENT ON TABLE public.comments IS 'Comments on composer posts (internal discussion). Indexes in db/comment/201_20260413_indexes.sql; RLS in db/comment/301_20260413_rlsgrants.sql.';
+COMMENT ON TABLE public.post_internal_comments IS 'Internal composer/preview comments on posts. Indexes in db/post_internal_comment/201_20260514_indexes.sql; RLS in db/post_internal_comment/301_20260514_rlsgrants.sql.';
 
 -- ---------------------------
 -- END OF FILE
@@ -1070,21 +1070,21 @@ CREATE INDEX IF NOT EXISTS idx_post_thread_replies_created_at ON public.post_thr
 -- ---------------------------
 
 
--- Module: comment, File: 201_20260413_indexes.sql
+-- Module: post_internal_comment, File: 201_20260514_indexes.sql
 -- ---------------------------
--- MODULE NAME: comment
--- MODULE DATE: 20260413
+-- MODULE NAME: post_internal_comment
+-- MODULE DATE: 20260514
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
 
 
--- public.comments (composer / preview comments)
-CREATE INDEX IF NOT EXISTS idx_comments_created_at ON public.comments(created_at);
-CREATE INDEX IF NOT EXISTS idx_comments_organization_id ON public.comments(organization_id);
-CREATE INDEX IF NOT EXISTS idx_comments_user_id ON public.comments(user_id);
-CREATE INDEX IF NOT EXISTS idx_comments_post_id ON public.comments(post_id);
-CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON public.comments(deleted_at);
+-- public.post_internal_comments (composer / preview comments)
+CREATE INDEX IF NOT EXISTS idx_post_internal_comments_created_at ON public.post_internal_comments(created_at);
+CREATE INDEX IF NOT EXISTS idx_post_internal_comments_organization_id ON public.post_internal_comments(organization_id);
+CREATE INDEX IF NOT EXISTS idx_post_internal_comments_user_id ON public.post_internal_comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_post_internal_comments_post_id ON public.post_internal_comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_internal_comments_deleted_at ON public.post_internal_comments(deleted_at);
 
 -- ---------------------------
 -- END OF FILE
@@ -1981,184 +1981,6 @@ WITH CHECK (
 -- ---------------------------
 
 
--- Module: oauth, File: 399_20260509_repair_after_remote_schema_drop.sql
--- ---------------------------
--- MODULE NAME: OAuth Apps
--- MODULE DATE: 20260509
--- MODULE SCOPE: Repair (tables + indexes + rlsgrants)
--- ---------------------------
--- Idempotent repair if `oauth_apps` / `oauth_authorizations` were dropped or had
--- privileges revoked by mistake (e.g. an erroneous remote-schema migration).
--- Safe on databases where OAuth tables already exist (IF NOT EXISTS / DROP POLICY IF EXISTS).
-
-
-
-CREATE TABLE IF NOT EXISTS public.oauth_apps (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-    created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    picture_id UUID REFERENCES public.media(id) ON DELETE SET NULL,
-    redirect_url TEXT NOT NULL,
-    client_id TEXT NOT NULL,
-    client_secret_hash TEXT NOT NULL,
-    deleted_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
-);
-
-COMMENT ON TABLE public.oauth_apps IS 'OAuth applications for third-party access; scoped to an organization.';
-COMMENT ON COLUMN public.oauth_apps.redirect_url IS 'OAuth redirect/callback URL registered by the app owner.';
-
-CREATE TABLE IF NOT EXISTS public.oauth_authorizations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    oauth_app_id UUID NOT NULL REFERENCES public.oauth_apps(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-    access_token_hash TEXT,
-    authorization_code_hash TEXT,
-    code_expires_at TIMESTAMPTZ,
-    revoked_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    CONSTRAINT uq_oauth_authorizations_app_user_org UNIQUE (oauth_app_id, user_id, organization_id)
-);
-
-COMMENT ON TABLE public.oauth_authorizations IS 'OAuth2 authorizations: issued codes and access tokens for a user+org per app. Raw secrets are not stored.';
-COMMENT ON COLUMN public.oauth_authorizations.authorization_code_hash IS 'SHA-256 hash (plus server pepper) of issued authorization code.';
-COMMENT ON COLUMN public.oauth_authorizations.access_token_hash IS 'SHA-256 hash (plus server pepper) of issued access token.';
-
-CREATE INDEX IF NOT EXISTS idx_oauth_apps_org_id ON public.oauth_apps(organization_id);
-CREATE INDEX IF NOT EXISTS idx_oauth_apps_created_by_user_id ON public.oauth_apps(created_by_user_id);
-CREATE INDEX IF NOT EXISTS idx_oauth_apps_deleted_at ON public.oauth_apps(deleted_at);
-CREATE UNIQUE INDEX IF NOT EXISTS uq_oauth_apps_client_id ON public.oauth_apps(client_id);
-CREATE INDEX IF NOT EXISTS idx_oauth_apps_client_id ON public.oauth_apps(client_id);
-
-CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_oauth_app_id ON public.oauth_authorizations(oauth_app_id);
-CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_user_id ON public.oauth_authorizations(user_id);
-CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_org_id ON public.oauth_authorizations(organization_id);
-CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_revoked_at ON public.oauth_authorizations(revoked_at);
-CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_access_token_hash ON public.oauth_authorizations(access_token_hash);
-CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_authorization_code_hash ON public.oauth_authorizations(authorization_code_hash);
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.oauth_apps TO authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.oauth_apps TO service_role;
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.oauth_authorizations TO authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.oauth_authorizations TO service_role;
-
-ALTER TABLE public.oauth_apps ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Members can view oauth apps" ON public.oauth_apps;
-CREATE POLICY "Members can view oauth apps"
-ON public.oauth_apps
-AS PERMISSIVE
-FOR SELECT
-TO authenticated
-USING (
-    EXISTS (
-        SELECT 1
-        FROM public.user_organizations uo
-        JOIN public.users u ON u.id = uo.user_id
-        WHERE uo.organization_id = oauth_apps.organization_id
-          AND u.auth_id = auth.uid()
-          AND uo.disabled = FALSE
-    )
-);
-
-DROP POLICY IF EXISTS "Admins can manage oauth apps" ON public.oauth_apps;
-CREATE POLICY "Admins can manage oauth apps"
-ON public.oauth_apps
-AS PERMISSIVE
-FOR ALL
-TO authenticated
-USING (
-    EXISTS (
-        SELECT 1
-        FROM public.user_organizations uo
-        JOIN public.users u ON u.id = uo.user_id
-        WHERE uo.organization_id = oauth_apps.organization_id
-          AND u.auth_id = auth.uid()
-          AND uo.disabled = FALSE
-          AND uo.role IN ('admin', 'superadmin')
-    )
-)
-WITH CHECK (
-    EXISTS (
-        SELECT 1
-        FROM public.user_organizations uo
-        JOIN public.users u ON u.id = uo.user_id
-        WHERE uo.organization_id = oauth_apps.organization_id
-          AND u.auth_id = auth.uid()
-          AND uo.disabled = FALSE
-          AND uo.role IN ('admin', 'superadmin')
-    )
-);
-
-ALTER TABLE public.oauth_authorizations ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Members can view oauth authorizations" ON public.oauth_authorizations;
-CREATE POLICY "Members can view oauth authorizations"
-ON public.oauth_authorizations
-AS PERMISSIVE
-FOR SELECT
-TO authenticated
-USING (
-    EXISTS (
-        SELECT 1
-        FROM public.user_organizations uo
-        JOIN public.users u ON u.id = uo.user_id
-        WHERE uo.organization_id = oauth_authorizations.organization_id
-          AND u.auth_id = auth.uid()
-          AND uo.disabled = FALSE
-    )
-);
-
-DROP POLICY IF EXISTS "Users can manage own oauth authorizations" ON public.oauth_authorizations;
-DROP POLICY IF EXISTS "Users can insert own oauth authorizations" ON public.oauth_authorizations;
-CREATE POLICY "Users can insert own oauth authorizations"
-ON public.oauth_authorizations
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK (
-    EXISTS (
-        SELECT 1
-        FROM public.users u
-        WHERE u.id = oauth_authorizations.user_id
-          AND u.auth_id = auth.uid()
-    )
-);
-
-DROP POLICY IF EXISTS "Users can update own oauth authorizations" ON public.oauth_authorizations;
-CREATE POLICY "Users can update own oauth authorizations"
-ON public.oauth_authorizations
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING (
-    EXISTS (
-        SELECT 1
-        FROM public.users u
-        WHERE u.id = oauth_authorizations.user_id
-          AND u.auth_id = auth.uid()
-    )
-)
-WITH CHECK (
-    EXISTS (
-        SELECT 1
-        FROM public.users u
-        WHERE u.id = oauth_authorizations.user_id
-          AND u.auth_id = auth.uid()
-    )
-);
-
--- ---------------------------
--- END OF FILE
--- ---------------------------
-
-
 -- Module: customer, File: 301_20260412_rlsgrants.sql
 -- ---------------------------
 -- MODULE NAME: customer
@@ -2716,25 +2538,25 @@ USING (
 -- ---------------------------
 
 
--- Module: comment, File: 301_20260413_rlsgrants.sql
+-- Module: post_internal_comment, File: 301_20260514_rlsgrants.sql
 -- ---------------------------
--- MODULE NAME: comment
--- MODULE DATE: 20260413
+-- MODULE NAME: post_internal_comment
+-- MODULE DATE: 20260514
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 -- API uses service_role; RLS limits direct authenticated access.
 
 
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.comments TO authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.comments TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_internal_comments TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_internal_comments TO service_role;
 
-ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.post_internal_comments ENABLE ROW LEVEL SECURITY;
 
--- comments (composer post comments; organization_id scope)
-DROP POLICY IF EXISTS "Members can view composer comments" ON public.comments;
+-- post_internal_comments (composer post comments; organization_id scope)
+DROP POLICY IF EXISTS "Members can view composer comments" ON public.post_internal_comments;
 CREATE POLICY "Members can view composer comments"
-ON public.comments
+ON public.post_internal_comments
 AS PERMISSIVE
 FOR SELECT
 TO authenticated
@@ -2742,15 +2564,15 @@ USING (
     EXISTS (
         SELECT 1 FROM public.user_organizations uo
         JOIN public.users u ON u.id = uo.user_id
-        WHERE uo.organization_id = comments.organization_id
+        WHERE uo.organization_id = post_internal_comments.organization_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
 );
 
-DROP POLICY IF EXISTS "Members can insert composer comments" ON public.comments;
+DROP POLICY IF EXISTS "Members can insert composer comments" ON public.post_internal_comments;
 CREATE POLICY "Members can insert composer comments"
-ON public.comments
+ON public.post_internal_comments
 AS PERMISSIVE
 FOR INSERT
 TO authenticated
@@ -2758,15 +2580,15 @@ WITH CHECK (
     EXISTS (
         SELECT 1 FROM public.user_organizations uo
         JOIN public.users u ON u.id = uo.user_id
-        WHERE uo.organization_id = comments.organization_id
+        WHERE uo.organization_id = post_internal_comments.organization_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
 );
 
-DROP POLICY IF EXISTS "Members can update composer comments" ON public.comments;
+DROP POLICY IF EXISTS "Members can update composer comments" ON public.post_internal_comments;
 CREATE POLICY "Members can update composer comments"
-ON public.comments
+ON public.post_internal_comments
 AS PERMISSIVE
 FOR UPDATE
 TO authenticated
@@ -2774,7 +2596,7 @@ USING (
     EXISTS (
         SELECT 1 FROM public.user_organizations uo
         JOIN public.users u ON u.id = uo.user_id
-        WHERE uo.organization_id = comments.organization_id
+        WHERE uo.organization_id = post_internal_comments.organization_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
@@ -2783,15 +2605,15 @@ WITH CHECK (
     EXISTS (
         SELECT 1 FROM public.user_organizations uo
         JOIN public.users u ON u.id = uo.user_id
-        WHERE uo.organization_id = comments.organization_id
+        WHERE uo.organization_id = post_internal_comments.organization_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )
 );
 
-DROP POLICY IF EXISTS "Members can delete composer comments" ON public.comments;
+DROP POLICY IF EXISTS "Members can delete composer comments" ON public.post_internal_comments;
 CREATE POLICY "Members can delete composer comments"
-ON public.comments
+ON public.post_internal_comments
 AS PERMISSIVE
 FOR DELETE
 TO authenticated
@@ -2799,7 +2621,7 @@ USING (
     EXISTS (
         SELECT 1 FROM public.user_organizations uo
         JOIN public.users u ON u.id = uo.user_id
-        WHERE uo.organization_id = comments.organization_id
+        WHERE uo.organization_id = post_internal_comments.organization_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
     )

@@ -40,7 +40,7 @@ export interface PostTagLike {
     updated_at: string;
 }
 
-/** Raw row shape from Supabase `public.comments` (composer posts, not blog_comments). */
+/** Raw row shape from Supabase `public.post_internal_comments` (composer posts, not blog_comments). */
 export interface PostCommentLike {
     id: string;
     post_id: string;

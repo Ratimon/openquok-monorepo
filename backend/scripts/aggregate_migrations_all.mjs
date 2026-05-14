@@ -109,7 +109,7 @@ const aggregateMigrations = async () => {
       // plug: after integration (`plugs.integration_id` → `integrations`).
       plug: 7,
       "post": 8,
-      comment: 9,
+      post_internal_comment: 9,
       rbac: 10,
       config: 11,
       feedback: 12,
