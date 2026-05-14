@@ -45,7 +45,7 @@ function createCacheProvider(): CacheProvider {
     if (shouldUseRedis) {
         if (isProduction && providerName !== "redis") {
             logger.warn({
-                msg: "[Cache] Forcing Redis cache provider in production for OAuth state durability",
+                msg: "[Cache] Forcing Redis cache provider in production for OAuth state durability (set CACHE_PROVIDER=redis to match runtime and silence this)",
                 provider: providerName,
             });
         }

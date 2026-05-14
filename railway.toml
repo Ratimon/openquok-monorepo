@@ -21,7 +21,8 @@
 # Config-as-code reference: https://docs.railway.com/reference/config-as-code
 
 [build]
-buildCommand = "pnpm install --prod=false && pnpm railway:orchestrator:build"
+# Backend `tsc` needs a larger heap on constrained builders (Railpack defaults can OOM).
+buildCommand = "export NODE_OPTIONS=--max-old-space-size=8192 && pnpm install --prod=false && pnpm railway:orchestrator:build"
 
 [deploy]
 restartPolicyType = "ON_FAILURE"

@@ -60,7 +60,7 @@
     "vercel:deploy:agent-server": "node scripts/vercelDeployAgentServer.mjs",
     "vercel:deploy:agent-server:prod": "node scripts/vercelDeployAgentServer.mjs --prod",
     "---------------------- RAILWAY (orchestrator workers) ----------------------": "",
-    "railway:orchestrator:build": "pnpm orchestrator:build:deps",
+    "railway:orchestrator:build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 pnpm orchestrator:build:deps",
     "railway:orchestrator:start:integration-refresh": "pnpm orchestrator:start:worker:integration-refresh-bullmq",
     "railway:orchestrator:start:notification-email": "pnpm orchestrator:start:worker:notification-email-bullmq",
     "railway:orchestrator:start:scheduled-social-post": "pnpm orchestrator:start:worker:scheduled-social-post-bullmq",

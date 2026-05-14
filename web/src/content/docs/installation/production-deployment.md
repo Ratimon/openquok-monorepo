@@ -56,6 +56,10 @@ After deploy, configure OAuth redirect URIs, webhooks, and any third-party dashb
 
 Workers are required when you configure BullMQ transports . Use <a href="/docs/configuration-worker/railway">Configuration → Worker → Railway (workers)</a> for the full CLI flow and service management details.
 
+<Callout type="warning">
+When deploying multiple workers, you must run <code>railway service</code> to select the correct Railway service. The deploy scripts (<code>pnpm railway:deploy:…</code>) run <code>railway up</code> and will deploy to the <strong>currently linked</strong> service—if you forget to switch, you may deploy the wrong worker to the wrong service.
+</Callout>
+
 From the repository root, set up / deploy one persistent service per worker:
 
 ```bash
