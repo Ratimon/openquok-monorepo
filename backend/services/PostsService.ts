@@ -1130,7 +1130,7 @@ export class PostsService {
         organizationId: string;
         postId: string;
         releaseId: string;
-    }): Promise<void> {
+    }): Promise<{ id: string; releaseId: string }> {
         const { authUserId, organizationId, postId, releaseId } = params;
 
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
@@ -1157,6 +1157,8 @@ export class PostsService {
             postGroup: post.post_group,
             postIds: [postId],
         });
+
+        return { id: postId, releaseId: trimmed };
     }
 
     /** Invalidate cached post-level analytics for all date windows for this row. */
@@ -1337,7 +1339,7 @@ export class PostsService {
         organizationId: string;
         postId: string;
         releaseId: string;
-    }): Promise<void> {
+    }): Promise<{ id: string; releaseId: string }> {
         const { organizationId, postId, releaseId } = params;
 
         const post = await this.postsRepository.getPostById(postId);
@@ -1362,6 +1364,8 @@ export class PostsService {
             postGroup: post.post_group,
             postIds: [postId],
         });
+
+        return { id: postId, releaseId: trimmed };
     }
 
     /**

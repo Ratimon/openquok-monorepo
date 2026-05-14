@@ -76,12 +76,12 @@ export class PublicPostsController {
             const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
             const postId = (req.params as { postId: string }).postId;
             const { releaseId } = req.body as { releaseId: string };
-            await this.postsService.updatePostReleaseIdProgrammatic({
+            const data = await this.postsService.updatePostReleaseIdProgrammatic({
                 organizationId,
                 postId,
                 releaseId,
             });
-            res.status(200).json({ success: true });
+            res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);
         }

@@ -45,12 +45,26 @@
  *           application/json:
  *             schema:
  *               type: object
- *               required: [success]
+ *               required: [success, data]
  *               properties:
  *                 success:
  *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   required: [id, releaseId]
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                       description: Post row UUID (same as path `postId`).
+ *                     releaseId:
+ *                       type: string
+ *                       description: Linked platform-native id (trimmed from the request body).
  *             example:
  *               success: true
+ *               data:
+ *                 id: '5b3c1d2e-9a3f-4e6b-bb12-2c0a5f1a90a1'
+ *                 releaseId: '18000000000000001'
  *       '400':
  *         description: releaseId missing, or row cannot be linked (already published).
  *       '401':

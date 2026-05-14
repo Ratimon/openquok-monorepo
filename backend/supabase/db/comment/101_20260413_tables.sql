@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS public.comments (
     deleted_at TIMESTAMPTZ
 );
 
-COMMENT ON TABLE public.comments IS 'Comments on composer posts (internal discussion). Indexes in db/comment/201_20260413_indexes.sql; RLS in db/comment/301_20260413_rlsgrants.sql.';
+COMMENT ON TABLE public.comments IS 'Comments on posts (internal discussion). Indexes in db/comment/201_20260413_indexes.sql; RLS in db/comment/301_20260413_rlsgrants.sql.';
 
 -- ---------------------------
 -- END OF FILE

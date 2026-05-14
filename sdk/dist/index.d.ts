@@ -41,6 +41,16 @@ type PublicCreatePostDto = {
     status: "draft" | "scheduled";
 };
 type PublicUpdatePostGroupDto = PublicCreatePostDto;
+/** `GET /public/posts/{postId}` — row id and parent post group (programmatic API). */
+type PublicPostSummaryDto = {
+    id: string;
+    postGroup: string;
+};
+/** `PUT /public/posts/{postId}/release-id` — `data` payload after a successful link (programmatic API). */
+type PublicUpdatePostReleaseIdDataDto = {
+    id: string;
+    releaseId: string;
+};
 
 type OpenquokClientOptions = {
     /**
@@ -65,6 +75,11 @@ declare class Openquok {
     post(body: PublicCreatePostDto): Promise<unknown>;
     postList(filters: PublicListPostsQueryDto): Promise<unknown>;
     getPostGroup(postGroup: string): Promise<unknown>;
+    /** Row id and parent `postGroup` (for routing to group-scoped endpoints). */
+    getPost(postId: string): Promise<{
+        success: boolean;
+        data: PublicPostSummaryDto;
+    }>;
     updatePostGroup(postGroup: string, body: PublicUpdatePostGroupDto): Promise<unknown>;
     deletePostGroup(postGroup: string): Promise<unknown>;
     integrations(): Promise<unknown>;
@@ -79,7 +94,10 @@ declare class Openquok {
     /** Provider-side candidate ids/URLs when a published row has `release_id === "missing"`. */
     getMissingContent(postId: string): Promise<unknown>;
     /** Manually link a published row to a platform-native id (e.g. Threads media id). */
-    updateReleaseId(postId: string, releaseId: string): Promise<unknown>;
+    updateReleaseId(postId: string, releaseId: string): Promise<{
+        success: boolean;
+        data: PublicUpdatePostReleaseIdDataDto;
+    }>;
     /** Platform analytics for one channel over the given window (`7`, `30`, or `90` days). */
     getIntegrationAnalytics(integrationId: string, date: 7 | 30 | 90): Promise<unknown>;
     /** Per-post analytics over the given window. Returns `{ missing: true }` envelope when unlinked. */

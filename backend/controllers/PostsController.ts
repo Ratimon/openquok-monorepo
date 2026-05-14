@@ -335,13 +335,13 @@ export class PostsController {
             }
             const postId = (req.params as { postId: string }).postId;
             const { organizationId, releaseId } = req.body as { organizationId: string; releaseId: string };
-            await this.postsService.updatePostReleaseId({
+            const data = await this.postsService.updatePostReleaseId({
                 authUserId,
                 organizationId,
                 postId,
                 releaseId,
             });
-            res.status(200).json({ success: true });
+            res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);
         }

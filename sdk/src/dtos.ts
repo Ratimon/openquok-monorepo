@@ -61,3 +61,9 @@ export type PublicPostSummaryDto = {
     postGroup: string;
 };
 
+/** `PUT /public/posts/{postId}/release-id` — `data` payload after a successful link (programmatic API). */
+export type PublicUpdatePostReleaseIdDataDto = {
+    id: string;
+    releaseId: string;
+};
+

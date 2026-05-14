@@ -210,6 +210,7 @@ export type GetMissingPublishCandidatesResponseDto = {
 
 export type UpdatePostReleaseIdResponseDto = {
 	success?: boolean;
+	data?: { id?: string; releaseId?: string };
 };
 
 export type RepeatIntervalKey =

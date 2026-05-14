@@ -1,4 +1,10 @@
-import type { PublicCreatePostDto, PublicListPostsQueryDto, PublicPostSummaryDto, PublicUpdatePostGroupDto } from "./dtos";
+import type {
+    PublicCreatePostDto,
+    PublicListPostsQueryDto,
+    PublicPostSummaryDto,
+    PublicUpdatePostGroupDto,
+    PublicUpdatePostReleaseIdDataDto,
+} from "./dtos";
 
 function toQueryString(obj: Record<string, unknown>): string {
     const params = new URLSearchParams();
@@ -188,14 +194,17 @@ export default class Openquok {
 
     /** Manually link a published row to a platform-native id (e.g. Threads media id). */
     async updateReleaseId(postId: string, releaseId: string) {
-        return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}/release-id`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: this.apiKey,
-            },
-            body: JSON.stringify({ releaseId }),
-        });
+        return await this.json<{ success: boolean; data: PublicUpdatePostReleaseIdDataDto }>(
+            `${this.apiRoot}/public/posts/${encodeURIComponent(postId)}/release-id`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: this.apiKey,
+                },
+                body: JSON.stringify({ releaseId }),
+            }
+        );
     }
 
     /** Platform analytics for one channel over the given window (`7`, `30`, or `90` days). */

@@ -2061,7 +2061,7 @@ describe("PostsService", () => {
             const invalidatePattern = jest.fn().mockResolvedValue(true);
             const invalidateEntity = jest.fn().mockResolvedValue(true);
 
-            await service(undefined, {
+            const out = await service(undefined, {
                 invalidateKey,
                 invalidatePattern,
                 invalidateEntity,
@@ -2071,6 +2071,7 @@ describe("PostsService", () => {
                 releaseId: "  rel-123  ",
             });
 
+            expect(out).toEqual({ id: postId, releaseId: "rel-123" });
             expect(postsRepo.updateReleaseIdIfMissing).toHaveBeenCalledWith(postId, orgId, "rel-123");
             expect(invalidatePattern).toHaveBeenCalledWith(`integration:${orgId}:post:${postId}:*`);
             expect(invalidatePattern).toHaveBeenCalledWith(`posts:calendar:list:${orgId}:*`);

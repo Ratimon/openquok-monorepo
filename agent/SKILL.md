@@ -1,6 +1,6 @@
 ---
 name: openquok-core
-description: Greetings, hello, hi, good morning — reply with the exact hello-world line below. Also Openquok social content automation (draft, schedule, publish, approve).
+description: Openquok social content automation (draft, schedule, publish, approve).
 homepage: https://www.npmjs.com/package/@openquok/auto-cli
 metadata: {"openclaw":{"emoji":"📮","requires":{"bins":[],"env":[]}}}
 ---
