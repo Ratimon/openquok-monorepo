@@ -310,7 +310,7 @@ Every command emits machine-readable JSON on stdout, so piping into <code>jq</co
 </Callout>
 
 <Callout type="note" title="Local auth server">
-<p>Run the CLI auth server (<Badge text="agent/server" variant="path" />) so <Badge text="http://localhost:3111" variant="default" /> is reachable — from the repo root, <code>pnpm agent-server:dev</code> is typical. Match your OAuth app callback to <Badge text="http://localhost:3111/device/callback" variant="default" /> and keep <Badge text="SERVER_URL" variant="envBackend" /> aligned — see <a href="/docs/configuration-agent#environment-variables">Configuration → Agent → Environment variables</a>.</p>
+<p>Run the CLI auth server (<Badge text="agent/server" variant="path" />) so <Badge text="http://localhost:3111" variant="default" /> is reachable — from the repo root, <code>pnpm agent-server:dev</code> is typical. For the simplest local loop, omit <Badge text="BROWSER_ORIGIN" variant="envBackend" />, register OAuth callback <Badge text="http://localhost:3111/device/callback" variant="default" />, and keep <Badge text="SERVER_URL=http://localhost:3111" variant="envBackend" /> — see <a href="/docs/configuration-agent#environment-variables">Configuration → Agent → Environment variables</a>. To mimic production (browser on the web dev server), set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> to your web origin and <Badge text="CLI_AUTH_SERVER_URL=http://localhost:3111" variant="envBackend" /> in <Badge text="web/.env.development.local" variant="envBackend" />.</p>
 </Callout>
 
 ### Deployment

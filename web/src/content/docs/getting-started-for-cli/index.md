@@ -2,7 +2,7 @@
 title: Introduction to Openquok CLI
 description: An CLI-first tool for AI agents. Give your agents the Openquok CLI to schedule posts, manage integrations, and upload media purely from the terminal.
 order: 0
-lastUpdated: 2026-05-12
+lastUpdated: 2026-05-15
 ---
 
 <script>
@@ -98,8 +98,8 @@ If you’re running your own self-hosted openquok backend, point the CLI to your
 export OPENQUOK_API_URL="https://api.yourserver.com"
 ```
 
-<Callout type="note" title="CLI auth server">
-<p>Device login talks to an auth helper service (default <Badge text="https://cli-auth.openquok.com" variant="new" />). If you <strong>deploy your own</strong> auth server, configure it under <a href="/docs/configuration-agent">Configuration - Agent</a> and point the CLI at it with <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <code>--authServer</code> — see <a href="/docs/getting-started-for-cli/authentication#environment-variables">CLI authentication → Environment variables</a>.</p>
+<Callout type="note" title="CLI device login">
+<p><code>openquok auth:login</code> calls the device-flow <strong>API</strong> at <Badge text="https://cli-auth.openquok.com" variant="new" /> (override with <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" />). Your browser opens <Badge text="https://www.openquok.com/cli/device/verify" variant="new" /> to enter the code — not the <code>cli-auth</code> host. Self-hosted operators: see <a href="/docs/configuration-agent">Configuration - Agent</a> and <a href="/docs/getting-started-for-cli/authentication#which-auth-server-does-the-cli-use">CLI authentication</a>.</p>
 </Callout>
 
 ## Quick start

@@ -2,7 +2,7 @@
 title: Configuration - Agent
 description: Deploy and configure the CLI auth server environment variables for production and local development.
 order: 0
-lastUpdated: 2026-05-10
+lastUpdated: 2026-05-15
 ---
 
 <script>
@@ -13,8 +13,16 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 The **CLI auth server** (<Badge text="agent/server" variant="path" />) implements OAuth2 **device flow** so the Openquok CLI can obtain tokens without embedding OAuth client secrets in the CLI; short-lived state lives in **Postgres**, and token exchange is proxied to the **Openquok API**.
 
+In **Openquok production**, the flow is split across **two Vercel projects** in the same monorepo:
 
-For **local development**, copy the development template to <Badge text="agent/server/.env.development.local" variant="envBackend" /> (gitignored). For **production** deploys and Vercel env sync, copy the production template to <Badge text="agent/server/.env.production.local" variant="envBackend" /> .
+| Role | Package | Host | Examples |
+| --- | --- | --- | --- |
+| **API** (CLI polling, token exchange) | <Badge text="agent/server" variant="path" /> | <Badge text="cli-auth.openquok.com" variant="new" /> | <Badge text="POST /device/code" variant="path" />, <Badge text="POST /device/token" variant="path" /> |
+| **Browser** (code entry, OAuth callback) | <Badge text="web" variant="path" /> | <Badge text="www.openquok.com" variant="new" /> | <Badge text="GET /cli/device/verify" variant="path" />, <Badge text="GET /cli/device/callback" variant="path" /> |
+
+The auth server sets <Badge text="BROWSER_ORIGIN" variant="envBackend" /> so <Badge text="verification_uri" variant="default" /> and the OAuth <Badge text="redirect_uri" variant="default" /> point at the web app; the web app proxies those steps to the auth server using <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> (see <a href="/docs/configuration-web">Configuration - Web</a>).
+
+For **local development**, copy the development template to <Badge text="agent/server/.env.development.local" variant="envBackend" /> (gitignored). For **production** deploys and Vercel env sync, copy the production template to <Badge text="agent/server/.env.production.local" variant="envBackend" />.
 
 In local development, keep <Badge text="NODE_ENV" variant="envBackend" /> set to **development** unless you intentionally mimic production. On Vercel, the platform injects configuration at runtime.
 
@@ -25,12 +33,17 @@ DATABASE_URL=postgresql://openquok:openquok@localhost:5432/openquok_cli_auth
 ```
 
 <Callout type="warning">
-<p><Badge text="SERVER_URL" variant="envBackend" /> must be the <strong>exact</strong> public origin of <strong>your</strong> deployed auth server: correct scheme (<code>http</code> vs <code>https</code>), host, and <strong>no trailing slash</strong>. It is used to build verification links and the OAuth redirect/callback.</p>
-<p>The redirect URI you register on the OAuth app must match <strong>that same origin</strong> plus <code>/device/callback</code>. <strong>Openquok’s own production deployment</strong> uses <Badge text="https://cli-auth.openquok.com/device/callback" variant="new" /> — that value is <strong>not</strong> for a fork or self-hosted install unless your service is literally served at that host. For local work use <Badge text="http://localhost:3111/device/callback" variant="default" />. A mismatch produces authorization or redirect errors.</p>
+<p><Badge text="SERVER_URL" variant="envBackend" /> is the <strong>API origin</strong> the CLI calls (<Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> defaults to this in production). Use the correct scheme (<code>http</code> vs <code>https</code>), host, and <strong>no trailing slash</strong>.</p>
+<p>The OAuth app <strong>redirect / callback URL</strong> must match where the browser lands after approval — not necessarily the same host as <Badge text="SERVER_URL" variant="envBackend" />:</p>
+<ul class="mt-2 list-disc pl-5 space-y-1">
+<li><strong>Openquok production</strong> — register <Badge text="https://www.openquok.com/cli/device/callback" variant="new" /> (web app). Set <Badge text="BROWSER_ORIGIN=https://www.openquok.com" variant="envBackend" /> on the auth server and <Badge text="CLI_AUTH_SERVER_URL=https://cli-auth.openquok.com" variant="envBackend" /> on the web app.</li>
+<li><strong>Local (auth server only)</strong> — leave <Badge text="BROWSER_ORIGIN" variant="envBackend" /> unset so browser steps stay on <Badge text="http://localhost:3111/device/verify" variant="default" /> and <Badge text="http://localhost:3111/device/callback" variant="default" />.</li>
+<li><strong>Self-hosted</strong> — set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> to your web origin and register <Badge text="BROWSER_ORIGIN/cli/device/callback" variant="path" /> on the OAuth app, or use a single host (omit <Badge text="BROWSER_ORIGIN" variant="envBackend" />) and register <Badge text="SERVER_URL/device/callback" variant="path" />.</li>
+</ul>
 </Callout>
 
 <Callout type="note" title="Who this page is for">
-<p><strong>Deployers</strong> configuring this service: set <Badge text="SERVER_URL" variant="envBackend" /> to <strong>your</strong> public origin (for example self-hosted <code>https://auth.yourcompany.com</code>, or local <Badge text="http://localhost:3111" variant="default" />). <Badge text="https://cli-auth.openquok.com" variant="new" /> is only the URL for <strong>Openquok’s hosted production</strong> auth server — do not copy it into your env when you deploy your own instance. <strong>CLI users</strong> — install, <code>openquok auth:login</code>, API keys — see <a href="/docs/getting-started-for-cli">CLI</a> and <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
+<p><strong>Deployers</strong> configure <Badge text="agent/server" variant="path" /> and (for production) deploy <Badge text="web" variant="path" /> with matching env. <strong>CLI users</strong> — install, <code>openquok auth:login</code>, API keys — see <a href="/docs/getting-started-for-cli">CLI</a> and <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
 </Callout>
 
 Request paths, polling, and the <Badge text="device_requests" variant="default" /> table are explained in <a href="/docs/configuration-agent/architecture">Auth server architecture</a>.
@@ -39,38 +52,42 @@ Request paths, polling, and the <Badge text="device_requests" variant="default" 
 
 When running locally, values are loaded from <Badge text="agent/server/.env.development.local" variant="envBackend" /> or <Badge text="agent/server/.env.production.local" variant="envBackend" /> as described above.
 
+Templates: <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.development.example"><Badge text="agent/server/.env.development.example" variant="envBackend" /></DocsExternalLink>, <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.production.example"><Badge text="agent/server/.env.production.example" variant="envBackend" /></DocsExternalLink>.
+
 ### Required
 
 - <Badge text="DATABASE_URL" variant="envBackend" /> — Postgres connection string. The server auto-creates the <code>device_requests</code> table on startup.
 - <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" /> — OAuth app client ID (prefix <code>oqc_...</code>).
 - <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" /> — OAuth app secret (prefix <code>oqs_...</code>).
 
-### SERVER_URL (prod vs local)
+### SERVER_URL (API origin)
 
-- <Badge text="SERVER_URL" variant="envBackend" /> — Public origin of **this** service **with no trailing slash**. Used for verification links and OAuth <Badge text="redirect_uri" variant="default" />.
+- <Badge text="SERVER_URL" variant="envBackend" /> — Public origin of the **auth server API** (no trailing slash). The CLI uses this as <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" />.
 
-Set it based on where the auth server is running:
+**Openquok production (reference):**
 
-- **Openquok production (reference deployment)** — example only; use this shape only if you operate the service at this exact host:
-  - <Badge text="SERVER_URL=https://cli-auth.openquok.com" variant="new" />
-  - Register this callback URL on the OAuth app for that deployment:
+- <Badge text="SERVER_URL=https://cli-auth.openquok.com" variant="new" />
 
-```text
-https://cli-auth.openquok.com/device/callback
-```
+**Local development:**
 
-<Callout type="warning" title="Forks and self-hosted deploys">
-<p>If you fork the repo or deploy your own auth server, set <Badge text="SERVER_URL" variant="envBackend" /> and the OAuth callback to <strong>your</strong> domain (for example <code>https://cli-auth.your-org.vercel.app</code>), not OpenQuok’s production host unless you intentionally proxy or reuse it.</p>
+- <Badge text="SERVER_URL=http://localhost:3111" variant="default" />
+
+### BROWSER_ORIGIN (browser steps)
+
+- <Badge text="BROWSER_ORIGIN" variant="envBackend" /> — Public origin where users open device login in the browser (no trailing slash). When set and different from <Badge text="SERVER_URL" variant="envBackend" />, the auth server returns <Badge text="verification_uri" variant="default" /> under <Badge text="/cli/device/verify" variant="path" /> on this host and uses <Badge text="/cli/device/callback" variant="path" /> for OAuth <Badge text="redirect_uri" variant="default" />.
+
+**Openquok production:**
+
+- <Badge text="BROWSER_ORIGIN=https://www.openquok.com" variant="new" />
+- OAuth app callback: <Badge text="https://www.openquok.com/cli/device/callback" variant="new" />
+- Deploy <Badge text="web" variant="path" /> with <Badge text="CLI_AUTH_SERVER_URL=https://cli-auth.openquok.com" variant="envBackend" /> — see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.production.example"><Badge text="web/.env.production.example" variant="envBackend" /></DocsExternalLink>.
+
+**Local (single host):** omit <Badge text="BROWSER_ORIGIN" variant="envBackend" /> (defaults to <Badge text="SERVER_URL" variant="envBackend" />). Register <Badge text="http://localhost:3111/device/callback" variant="default" /> on the OAuth app.
+
+<Callout type="warning" title="Self-hosted deployment">
+<p>If you deploy your own stack, set <Badge text="SERVER_URL" variant="envBackend" />, <Badge text="BROWSER_ORIGIN" variant="envBackend" />, and the OAuth callback to <strong>your</strong> domains — do not copy Openquok production URLs unless those hosts are literally yours.</p>
 <p class="mt-2">See <a href="/docs/installation/vercel#cli-auth-server-on-vercel">Installation → Vercel → CLI auth server on Vercel</a>.</p>
 </Callout>
-
-- **Local development** (default port):
-  - <Badge text="SERVER_URL=http://localhost:3111" variant="default" />
-  - Register this callback URL on the OAuth app:
-
-```text
-http://localhost:3111/device/callback
-```
 
 ### Optional
 
@@ -83,37 +100,46 @@ http://localhost:3111/device/callback
 From <Badge text="agent/server" variant="path" />, run <code>pnpm dev</code> and hit <code>http://localhost:3111/health</code> once env vars are set. For local Postgres, run <code>docker compose -f infra/docker-compose.yml up -d postgres</code>.
 </Callout>
 
-### OAuth callback URL
-
-Set your OAuth app’s redirect / callback to:
-
-```text
-SERVER_URL/device/callback
-```
-
-Self-hosters substitute their real <Badge text="SERVER_URL" variant="envBackend" /> (for example <code>https://auth.example.com/device/callback</code>).
-
 ## Common setup steps
 
 <Steps>
 
 ### Start with the example env file
 
-Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.development.example"><Badge text="agent/server/.env.development.example" variant="envBackend" /></DocsExternalLink> to <Badge text="agent/server/.env.development.local" variant="envBackend" /> for local work, or <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/server/.env.production.example"><Badge text="agent/server/.env.production.example" variant="envBackend" /></DocsExternalLink> to <Badge text="agent/server/.env.production.local" variant="envBackend" /> for production / Vercel sync. Set <Badge text="DATABASE_URL" variant="envBackend" />, OAuth client ID and secret, and <Badge text="SERVER_URL" variant="envBackend" /> to <strong>your</strong> deployment (if you fork or self-host, do not leave upstream Openquok production URLs unless that is literally your service). Restart the server after changes. Full reference: <a href="#environment-variables">Environment variables</a>.
+Copy <Badge text="agent/server/.env.development.example" variant="envBackend" /> or <Badge text="agent/server/.env.production.example" variant="envBackend" /> to the matching <Badge text="*.local" variant="envBackend" /> file. Set <Badge text="DATABASE_URL" variant="envBackend" />, OAuth client ID and secret, and <Badge text="SERVER_URL" variant="envBackend" />. For production on Openquok, also set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> and configure <Badge text="web/.env.production.local" variant="envBackend" /> with <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" />. Restart after changes.
 
 ### Register the OAuth callback
 
-In your OAuth app, set the callback URL to:
+In your OAuth app, set the callback URL:
 
-```text
-SERVER_URL/device/callback
+- **Openquok production:** <Badge text="https://www.openquok.com/cli/device/callback" variant="new" />
+- **Local (auth server only):** <Badge text="http://localhost:3111/device/callback" variant="default" />
+- **Self-hosted (split web + API):** <Badge text="BROWSER_ORIGIN/cli/device/callback" variant="path" />
+- **Self-hosted (single host):** <Badge text="SERVER_URL/device/callback" variant="path" />
+
+### Deploy
+
+**Auth server** — separate Vercel project, **Root Directory** <Badge text="agent/server" variant="path" />:
+
+```bash
+pnpm vercel:env:sync:agent-server:prod
+pnpm vercel:deploy:agent-server:prod
 ```
 
-Use your real public origin for <code>SERVER_URL</code> (no trailing slash). Openquok’s production deployment registers <Badge text="https://cli-auth.openquok.com/device/callback" variant="new" />; a self-hosted example is <code>https://your-auth-host.example.com/device/callback</code>.
+**Web app** (production browser routes) — deploy the <Badge text="web" variant="path" /> project and sync <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" />:
 
-### Deploy (Vercel)
+```bash
+pnpm vercel:env:sync:web:prod
+pnpm vercel:deploy:web:prod
+```
 
-Use a **separate** Vercel project with **Root Directory** <Badge text="agent/server" variant="path" />, sync secrets, then deploy from the repo root — see <a href="/docs/installation/vercel#cli-auth-server-on-vercel">Installation → Vercel → CLI auth server on Vercel</a>.
+Or both from the repo root:
+
+```bash
+pnpm vercel:deploy:cli-device-flow:prod
+```
+
+See <a href="/docs/installation/vercel#cli-auth-server-on-vercel">Installation → Vercel → CLI auth server on Vercel</a>.
 
 </Steps>
 
@@ -125,6 +151,7 @@ Use a **separate** Vercel project with **Root Directory** <Badge text="agent/ser
 <LinkCard title="CLI" description="Install the Openquok CLI, quick start, and command overview" href="/docs/getting-started-for-cli" />
 <LinkCard title="CLI authentication" description="OPENQUOK_AUTH_SERVER, device login, and API keys for CLI users" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="Auth server architecture" description="Request flow, endpoints, and Postgres state for device flow" href="/docs/configuration-agent/architecture" />
+<LinkCard title="Configuration - Web" description="CLI_AUTH_SERVER_URL and web production env" href="/docs/configuration-web" />
 <LinkCard title="Neon Postgres" description="Create and configure a Neon database for agent server" href="/docs/configuration-agent/neon" />
 <LinkCard title="Admin: OAuth apps" description="Create/rotate client ID & secret; redirect URL for hosted vs self-hosted" href="/docs/admin/oauth-server" />
 <LinkCard title="Vercel deployment" description="Separate project, env sync, deploy scripts, and callback URL" href="/docs/installation/vercel#cli-auth-server-on-vercel" />

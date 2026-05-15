@@ -193,16 +193,16 @@ var init_Logger = __esm({
 var require_loadBackendDotenv = __commonJS({
   "config/loadBackendDotenv.cjs"(exports$1, module) {
     var path7 = __require("path");
-    var fs3 = __require("fs");
+    var fs4 = __require("fs");
     var dotenv = __require("dotenv");
     var BACKEND_PACKAGE_NAME = "backend";
     function resolveBackendPackageRoot() {
       let dir = __dirname;
       for (let i = 0; i < 25; i++) {
         const pkgPath = path7.join(dir, "package.json");
-        if (fs3.existsSync(pkgPath)) {
+        if (fs4.existsSync(pkgPath)) {
           try {
-            const pkg = JSON.parse(fs3.readFileSync(pkgPath, "utf8"));
+            const pkg = JSON.parse(fs4.readFileSync(pkgPath, "utf8"));
             if (pkg.name === BACKEND_PACKAGE_NAME) {
               return dir;
             }
@@ -1293,7 +1293,7 @@ function createCacheProvider() {
   if (shouldUseRedis) {
     if (isProduction && providerName !== "redis") {
       logger.warn({
-        msg: "[Cache] Forcing Redis cache provider in production for OAuth state durability",
+        msg: "[Cache] Forcing Redis cache provider in production for OAuth state durability (set CACHE_PROVIDER=redis to match runtime and silence this)",
         provider: providerName
       });
     }
@@ -6304,7 +6304,7 @@ var NotificationRepository = class {
 var TABLE_POSTS = "posts";
 var TABLE_TAGS = "post_tags";
 var TABLE_POSTS_TAGS = "post_tag_assignments";
-var TABLE_COMMENTS = "comments";
+var TABLE_POST_INTERNAL_COMMENTS = "post_internal_comments";
 var TABLE_THREAD_REPLIES = "post_thread_replies";
 var PostsRepository = class {
   constructor(supabase2) {
@@ -6550,12 +6550,12 @@ var PostsRepository = class {
   }
   /** Lists non-deleted comments for a composer post row (`posts.id`). */
   async listCommentsByPostId(postId) {
-    const { data, error } = await this.supabase.from(TABLE_COMMENTS).select("id, post_id, organization_id, user_id, content, created_at, updated_at, deleted_at").eq("post_id", postId).is("deleted_at", null).order("created_at", { ascending: true });
+    const { data, error } = await this.supabase.from(TABLE_POST_INTERNAL_COMMENTS).select("id, post_id, organization_id, user_id, content, created_at, updated_at, deleted_at").eq("post_id", postId).is("deleted_at", null).order("created_at", { ascending: true });
     if (error) {
       throw new DatabaseError(`Failed to load post comments: ${error.message}`, {
         cause: error,
         operation: "select",
-        resource: { type: "table", name: TABLE_COMMENTS }
+        resource: { type: "table", name: TABLE_POST_INTERNAL_COMMENTS }
       });
     }
     return data ?? [];
@@ -6563,7 +6563,7 @@ var PostsRepository = class {
   /** Inserts a composer comment on `posts.id`. */
   async insertComposerComment(input) {
     const now = (/* @__PURE__ */ new Date()).toISOString();
-    const { data, error } = await this.supabase.from(TABLE_COMMENTS).insert({
+    const { data, error } = await this.supabase.from(TABLE_POST_INTERNAL_COMMENTS).insert({
       organization_id: input.organizationId,
       post_id: input.postId,
       user_id: input.userId,
@@ -6576,7 +6576,7 @@ var PostsRepository = class {
       throw new DatabaseError(`Failed to insert composer comment: ${error?.message ?? "no row"}`, {
         cause: error ?? void 0,
         operation: "insert",
-        resource: { type: "table", name: TABLE_COMMENTS }
+        resource: { type: "table", name: TABLE_POST_INTERNAL_COMMENTS }
       });
     }
     return data;
@@ -11520,6 +11520,16 @@ var NotificationService = class {
     return { ...batch, page, limit };
   }
   /**
+   * Programmatic paginated notifications (`GET {api.prefix}/public/notifications`).
+   * Mirrors {@link getNotificationsPaginated} but skips the auth-user membership check
+   * because the organization is derived from the API key.
+   */
+  async getNotificationsPaginatedProgrammatic(organizationId, page) {
+    const limit = 100;
+    const batch = await this.notificationRepository.listPaginated(organizationId, page, limit);
+    return { ...batch, page, limit };
+  }
+  /**
    * Persist an in-app notification and optionally notify members by email (immediate or digest queue).
    * Digest entries are flushed by the notification-email BullMQ worker on an interval.
    */
@@ -11958,7 +11968,19 @@ var PostsService = class {
   }
   async findFreeSlot(organizationId, authUserId) {
     await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
-    const integrations = await this.integrationService.listByOrganization(organizationId);
+    return this._findFreeSlotForOrganization(organizationId, null);
+  }
+  /**
+   * Programmatic find-slot (org API key auth) for `{api.prefix}/public/posts/find-slot/:integrationId?`.
+   * When `integrationId` is provided, only that channel's `posting_times` contribute to the candidate list;
+   * otherwise all of the organization's integrations are considered (same as session UX).
+   */
+  async findFreeSlotProgrammatic(organizationId, integrationId) {
+    return this._findFreeSlotForOrganization(organizationId, integrationId ?? null);
+  }
+  async _findFreeSlotForOrganization(organizationId, integrationId) {
+    const all = await this.integrationService.listByOrganization(organizationId);
+    const integrations = integrationId ? all.filter((i) => i.id === integrationId) : all;
     const minutes = [
       ...new Set(
         integrations.flatMap((i) => parsePostingTimesMinutes(i.posting_times)).filter((n) => Number.isFinite(n))
@@ -11980,6 +12002,10 @@ var PostsService = class {
     }
     const tomorrowStart = new Date(dayStartUtcIso(new Date(now + 24 * 60 * 60 * 1e3)));
     return addMinutes(tomorrowStart, minutes[0]).toISOString();
+  }
+  async listIntegrationIdsForCustomerGroup(organizationId, customerGroupId) {
+    const all = await this.integrationService.listByOrganization(organizationId);
+    return all.filter((i) => i.customer_id === customerGroupId).map((i) => i.id);
   }
   async listTags(organizationId, authUserId) {
     await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
@@ -12213,7 +12239,8 @@ var PostsService = class {
    * Matches `listPostsForCalendar` behavior but skips membership checks.
    */
   async listPostsForCalendarProgrammatic(params) {
-    const { organizationId, startIso, endIso, integrationIds } = params;
+    const { organizationId, startIso, endIso, customerGroupId } = params;
+    let integrationIds = params.integrationIds ?? null;
     const start = new Date(startIso);
     const end = new Date(endIso);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
@@ -12221,6 +12248,21 @@ var PostsService = class {
     }
     if (start.getTime() > end.getTime()) {
       throw new AppError("Start must be before end", 400);
+    }
+    if (customerGroupId) {
+      const idsForCustomer = await this.listIntegrationIdsForCustomerGroup(organizationId, customerGroupId);
+      if (idsForCustomer.length === 0) {
+        return [];
+      }
+      if (integrationIds && integrationIds.length > 0) {
+        const allowed = new Set(idsForCustomer);
+        integrationIds = integrationIds.filter((id) => allowed.has(id));
+        if (integrationIds.length === 0) {
+          return [];
+        }
+      } else {
+        integrationIds = idsForCustomer;
+      }
     }
     const startIsoNorm = start.toISOString();
     const endIsoNorm = end.toISOString();
@@ -12242,6 +12284,9 @@ var PostsService = class {
     }
     return factory();
   }
+  /**
+   * Load post-group details for edit mode (JWT session).
+   */
   async getPostGroup(postGroup, authUserId) {
     const rows = await this.postsRepository.listPostsByGroup(postGroup);
     if (!rows.length) {
@@ -12257,16 +12302,15 @@ var PostsService = class {
     return factory();
   }
   /**
-   * Programmatic post-group details for `{api.prefix}/public/posts/group/:postGroup`.
-   * Ensures the post group belongs to the organization resolved from the API key.
+   * Same payload as {@link getPostGroup} when the workspace is already proven by API key scope
+   * (used by programmatic status flip — there is no `GET /public/posts/group/*`).
    */
-  async getPostGroupProgrammatic(postGroup, organizationId) {
+  async loadPostGroupDetailsForOrganization(postGroup, organizationId) {
     const rows = await this.postsRepository.listPostsByGroup(postGroup);
     if (!rows.length) {
       throw new AppError("Post group not found", 404);
     }
-    const orgId = rows[0].organization_id;
-    if (orgId !== organizationId) {
+    if (rows[0].organization_id !== organizationId) {
       throw new AppError("Post group does not belong to that workspace", 400);
     }
     const cacheKey = `${CACHE_KEYS12.POSTS_GROUP}:${postGroup}`;
@@ -12275,6 +12319,34 @@ var PostsService = class {
       return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
     }
     return factory();
+  }
+  /**
+   * Programmatic draft ↔ scheduled flip (`PUT {api.prefix}/public/posts/:postId/status`).
+   * Loads the post group via the row id and reapplies the same payload with a new `status`
+   * (no public `GET/PUT /public/posts/group/*` — full group edits stay session/UI only).
+   */
+  async flipPostGroupStatusByPostIdProgrammatic(postId, organizationId, status) {
+    const post = await this.postsRepository.getPostById(postId);
+    if (!post || post.organization_id !== organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    const details = await this.loadPostGroupDetailsForOrganization(post.post_group, organizationId);
+    return await this.replacePostGroupRows({
+      postGroup: details.postGroup,
+      organizationIdHint: organizationId,
+      authUserId: null,
+      skipMembershipCheck: true,
+      body: details.body,
+      bodiesByIntegrationId: details.bodiesByIntegrationId && Object.keys(details.bodiesByIntegrationId).length > 0 ? details.bodiesByIntegrationId : null,
+      media: details.media?.length ? details.media : null,
+      integrationIds: details.integrationIds,
+      isGlobal: details.isGlobal,
+      scheduledAtIso: details.publishDateIso,
+      repeatInterval: details.repeatInterval ?? null,
+      tagNames: details.tagNames,
+      providerSettingsByIntegrationId: details.providerSettingsByIntegrationId ?? null,
+      status
+    });
   }
   async buildPostGroupDetails(postGroup, rows) {
     const organizationId = rows[0].organization_id;
@@ -12482,7 +12554,7 @@ var PostsService = class {
     return row;
   }
   /**
-   * Loads provider-native insights for one published post (`posts.release_id`).
+   * Loads platform-native insights for one published post (`posts.release_id`).
    * Returns `{ missing: true }` when the worker could not map the live network object (`release_id === "missing"`).
    */
   async checkPostAnalytics(params) {
@@ -12622,6 +12694,7 @@ var PostsService = class {
       postGroup: post.post_group,
       postIds: [postId]
     });
+    return { id: postId, releaseId: trimmed };
   }
   /** Invalidate cached post-level analytics for all date windows for this row. */
   async _invalidatePostAnalyticsCaches(organizationId, postId) {
@@ -12661,6 +12734,9 @@ var PostsService = class {
     }
     return integrationRow;
   }
+  /**
+   * Soft-delete every row in a post group (JWT session).
+   */
   async deletePostGroup(postGroup, authUserId, organizationId) {
     const rows = await this.postsRepository.listPostsByGroup(postGroup);
     if (!rows.length) {
@@ -12681,10 +12757,10 @@ var PostsService = class {
     });
   }
   /**
-   * Programmatic delete (org API key auth).
-   * Ensures group belongs to the org derived from the API key.
+   * Soft-delete a post group when the workspace is already proven by API key scope
+   * (`DELETE {api.prefix}/public/posts/:postId` — no JWT).
    */
-  async deletePostGroupProgrammatic(postGroup, organizationId) {
+  async softDeletePostGroupForOrganization(postGroup, organizationId) {
     const rows = await this.postsRepository.listPostsByGroup(postGroup);
     if (!rows.length) {
       throw new AppError("Post group not found", 404);
@@ -12702,37 +12778,206 @@ var PostsService = class {
       postIds: ids
     });
   }
+  /**
+   * Programmatic single-post delete (`DELETE {api.prefix}/public/posts/:postId`).
+   * (a post row never publishes in isolation; the group is the schedule unit).
+   */
+  async deletePostByIdProgrammatic(postId, organizationId) {
+    const post = await this.postsRepository.getPostById(postId);
+    if (!post || post.organization_id !== organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    await this.softDeletePostGroupForOrganization(post.post_group, organizationId);
+    return { postId: post.id, postGroup: post.post_group };
+  }
+  /**
+   * Programmatic row lookup for `GET {api.prefix}/public/posts/:postId` (org API key auth).
+   * Returns the row id and parent `postGroup` for correlation with list responses.
+   */
+  async getPostSummaryProgrammatic(postId, organizationId) {
+    const post = await this.postsRepository.getPostById(postId);
+    if (!post || post.organization_id !== organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    return { id: post.id, postGroup: post.post_group };
+  }
+  /**
+   * Programmatic candidates for `GET {api.prefix}/public/posts/:postId/missing` (org API key auth).
+   * Same return shape as {@link getMissingPublishCandidates} but skips membership checks.
+   */
+  async getMissingPublishCandidatesProgrammatic(params) {
+    const { organizationId, postId } = params;
+    const post = await this.postsRepository.getPostById(postId);
+    if (!post || post.organization_id !== organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    if (!post.integration_id || post.release_id !== "missing") {
+      return [];
+    }
+    const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
+    if (!integrationRow) {
+      return [];
+    }
+    const provider = this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+    if (!provider?.missing) {
+      return [];
+    }
+    const missingFn = provider.missing;
+    const runMissing = async (forceRefresh) => {
+      const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
+        force: forceRefresh,
+        provider
+      });
+      if (!row) {
+        return [];
+      }
+      return missingFn(row.internal_id, row.token);
+    };
+    try {
+      return await runMissing(false);
+    } catch (e) {
+      if (e instanceof ProviderAccessTokenExpiredError) {
+        try {
+          return await runMissing(true);
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    }
+  }
+  /**
+   * Programmatic release-id update (`PUT {api.prefix}/public/posts/:postId/release-id`).
+   * Same semantics as {@link updatePostReleaseId} without membership checks.
+   */
+  async updatePostReleaseIdProgrammatic(params) {
+    const { organizationId, postId, releaseId } = params;
+    const post = await this.postsRepository.getPostById(postId);
+    if (!post || post.organization_id !== organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    const trimmed = releaseId.trim();
+    if (!trimmed.length) {
+      throw new AppError("releaseId is required", 400);
+    }
+    const updated = await this.postsRepository.updateReleaseIdIfMissing(postId, organizationId, trimmed);
+    if (!updated) {
+      throw new AppError("Post cannot be linked", 400);
+    }
+    await this._invalidatePostAnalyticsCaches(organizationId, postId);
+    await this._invalidatePostMutationCaches({
+      organizationId,
+      postGroup: post.post_group,
+      postIds: [postId]
+    });
+    return { id: postId, releaseId: trimmed };
+  }
+  /**
+   * Programmatic post analytics (`GET {api.prefix}/public/analytics/post/:postId`).
+   * Same provider-driven flow as {@link checkPostAnalytics} but skips membership checks.
+   */
+  async checkPostAnalyticsProgrammatic(params) {
+    const { organizationId, postId, dateWindowDays } = params;
+    const post = await this.postsRepository.getPostById(postId);
+    if (!post || post.organization_id !== organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    if (!post.release_id) {
+      return [];
+    }
+    if (post.release_id === "missing") {
+      return { missing: true };
+    }
+    if (!post.integration_id) {
+      return [];
+    }
+    const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
+    if (!integrationRow || (integrationRow.type ?? "").toLowerCase() !== "social") {
+      return [];
+    }
+    const provider = this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
+    if (!provider?.postAnalytics) {
+      return [];
+    }
+    const postAnalyticsFn = provider.postAnalytics;
+    const cacheKeyId = `post:${postId}`;
+    const cached2 = await this.integrationService.getCachedIntegrationPayload(
+      organizationId,
+      cacheKeyId,
+      String(dateWindowDays)
+    );
+    if (cached2 != null) {
+      return cached2;
+    }
+    const runPostAnalytics = async (forceRefresh) => {
+      const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
+        force: forceRefresh,
+        provider
+      });
+      if (!row) {
+        return [];
+      }
+      return postAnalyticsFn(row.internal_id, row.token, post.release_id, dateWindowDays);
+    };
+    try {
+      const data = await runPostAnalytics(false);
+      await this.integrationService.setCachedIntegrationPayload(
+        organizationId,
+        cacheKeyId,
+        String(dateWindowDays),
+        data,
+        POST_ANALYTICS_CACHE_TTL_SEC
+      );
+      return data;
+    } catch (e) {
+      if (e instanceof ProviderAccessTokenExpiredError) {
+        try {
+          const data = await runPostAnalytics(true);
+          await this.integrationService.setCachedIntegrationPayload(
+            organizationId,
+            cacheKeyId,
+            String(dateWindowDays),
+            data,
+            POST_ANALYTICS_CACHE_TTL_SEC
+          );
+          return data;
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    }
+  }
   async updatePostGroup(input) {
+    return this.replacePostGroupRows({
+      postGroup: input.postGroup,
+      organizationIdHint: input.organizationId,
+      authUserId: input.authUserId,
+      skipMembershipCheck: false,
+      body: input.body,
+      bodiesByIntegrationId: input.bodiesByIntegrationId ?? null,
+      media: input.media ?? null,
+      integrationIds: input.integrationIds,
+      isGlobal: input.isGlobal,
+      scheduledAtIso: input.scheduledAtIso,
+      repeatInterval: input.repeatInterval,
+      tagNames: input.tagNames,
+      status: input.status,
+      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null
+    });
+  }
+  /**
+   * Replace all rows in a post group (same group id). Session vs API-key scope is controlled by
+   * `skipMembershipCheck` / `authUserId` — only {@link updatePostGroup} and programmatic flip use this.
+   */
+  async replacePostGroupRows(params) {
     const {
       postGroup,
+      organizationIdHint: callerOrgId,
       authUserId,
+      skipMembershipCheck,
       body,
       bodiesByIntegrationId,
-      media,
-      integrationIds,
-      isGlobal,
-      scheduledAtIso,
-      repeatInterval,
-      tagNames,
-      status
-    } = input;
-    const existing = await this.postsRepository.listPostsByGroup(postGroup);
-    if (!existing.length) throw new AppError("Post group not found", 404);
-    const organizationId = existing[0].organization_id;
-    if (input.organizationId && input.organizationId !== organizationId) {
-      throw new AppError("Post group does not belong to that workspace", 400);
-    }
-    const alignedNext = new Date(scheduledAtIso);
-    const nextPublishIso = Number.isNaN(alignedNext.getTime()) ? null : alignedNext.toISOString();
-    const alreadyAtThatSlot = nextPublishIso != null && new Date(existing[0].publish_date).getTime() === new Date(nextPublishIso).getTime();
-    const allowTakenSlot = status === "scheduled" && alreadyAtThatSlot;
-    const { toInsert, tagIds } = await this.buildPostGroupInsert({
-      organizationId,
-      authUserId,
-      postGroup,
-      body,
-      bodiesByIntegrationId,
-      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
       media,
       integrationIds,
       isGlobal,
@@ -12740,51 +12985,12 @@ var PostsService = class {
       repeatInterval,
       tagNames,
       status,
-      allowTakenSlot
-    });
-    const oldIds = existing.map((r) => r.id);
-    await this.postsRepository.deleteTagAssignmentsForPostIds(oldIds);
-    await this.postsRepository.softDeleteThreadRepliesByPostIds(oldIds);
-    await this.postsRepository.softDeletePostsByGroup(postGroup);
-    const inserted = await this.postsRepository.insertPostGroup(toInsert);
-    await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
-    await this.persistThreadRepliesFromProviderSettings({
-      organizationId,
-      authUserId,
-      posts: inserted,
-      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null
-    });
-    const out = { postGroup, posts: inserted };
-    void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
-    await this._invalidatePostMutationCaches({
-      organizationId,
-      postGroup,
-      postIds: [.../* @__PURE__ */ new Set([...oldIds, ...inserted.map((p) => p.id)])]
-    });
-    return out;
-  }
-  /**
-   * Programmatic update (org API key auth).
-   * Ensures group belongs to the org derived from the API key; skips membership checks.
-   */
-  async updatePostGroupProgrammatic(input) {
-    const {
-      postGroup,
-      organizationId,
-      body,
-      bodiesByIntegrationId,
-      media,
-      integrationIds,
-      isGlobal,
-      scheduledAtIso,
-      repeatInterval,
-      tagNames,
-      status
-    } = input;
+      providerSettingsByIntegrationId
+    } = params;
     const existing = await this.postsRepository.listPostsByGroup(postGroup);
     if (!existing.length) throw new AppError("Post group not found", 404);
-    const orgId = existing[0].organization_id;
-    if (orgId !== organizationId) {
+    const organizationId = existing[0].organization_id;
+    if (callerOrgId && callerOrgId !== organizationId) {
       throw new AppError("Post group does not belong to that workspace", 400);
     }
     const alignedNext = new Date(scheduledAtIso);
@@ -12793,11 +12999,11 @@ var PostsService = class {
     const allowTakenSlot = status === "scheduled" && alreadyAtThatSlot;
     const { toInsert, tagIds } = await this.buildPostGroupInsert({
       organizationId,
-      authUserId: null,
+      authUserId,
       postGroup,
       body,
       bodiesByIntegrationId: bodiesByIntegrationId ?? null,
-      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
+      providerSettingsByIntegrationId: providerSettingsByIntegrationId ?? null,
       media: media ?? null,
       integrationIds,
       isGlobal,
@@ -12806,7 +13012,7 @@ var PostsService = class {
       tagNames,
       status,
       allowTakenSlot,
-      skipMembershipCheck: true
+      skipMembershipCheck
     });
     const oldIds = existing.map((r) => r.id);
     await this.postsRepository.deleteTagAssignmentsForPostIds(oldIds);
@@ -12816,9 +13022,9 @@ var PostsService = class {
     await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
     await this.persistThreadRepliesFromProviderSettings({
       organizationId,
-      authUserId: null,
+      authUserId,
       posts: inserted,
-      providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null
+      providerSettingsByIntegrationId: providerSettingsByIntegrationId ?? null
     });
     const out = { postGroup, posts: inserted };
     void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
@@ -13334,6 +13540,18 @@ var AnalyticsService = class {
   async getIntegrationAnalytics(params) {
     const { authUserId, organizationId, integrationId, date, assertOrganizationMember } = params;
     await assertOrganizationMember(authUserId, organizationId);
+    return this._fetchIntegrationAnalytics({ organizationId, integrationId, date });
+  }
+  /**
+   * Programmatic platform analytics (`GET {api.prefix}/public/analytics/:integrationId`).
+   * Same provider-driven flow as {@link getIntegrationAnalytics} but skips membership checks
+   * because the organization is derived from the API key.
+   */
+  async getIntegrationAnalyticsProgrammatic(params) {
+    return this._fetchIntegrationAnalytics(params);
+  }
+  async _fetchIntegrationAnalytics(params) {
+    const { organizationId, integrationId, date } = params;
     const row = await this.integrations.getById(organizationId, integrationId);
     if (!row) {
       throw new AppError("Integration not found", 404);
@@ -14709,6 +14927,76 @@ var MediaController = class {
     }
   };
   /**
+   * Programmatic URL upload (`POST {api.prefix}/public/upload-from-url`). Organization from API key.
+   * Fetches the URL server-side, infers a mime type, and stores it through {@link uploadToStorage}
+   * just like the multipart `POST /public/upload` route.
+   */
+  uploadProgrammaticFromUrl = async (req, res, next) => {
+    try {
+      const organization = req.organization;
+      if (!organization?.id?.trim()) {
+        throw new UserValidationError("Organization required");
+      }
+      const url = typeof req.body?.url === "string" ? String(req.body.url).trim() : "";
+      if (!url) {
+        throw new UserValidationError("url is required");
+      }
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+          throw new UserValidationError("Only http(s) URLs are supported");
+        }
+      } catch {
+        throw new UserValidationError("Invalid URL");
+      }
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new UserValidationError(`Failed to fetch URL (${response.status})`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const headerType = (response.headers.get("content-type") ?? "").split(";")[0]?.trim() ?? "";
+      const pathPart = url.split("?")[0] ?? "";
+      const ext = pathPart.includes(".") ? pathPart.split(".").pop().toLowerCase() : "";
+      const extToMime = {
+        png: "image/png",
+        jpg: "image/jpeg",
+        jpeg: "image/jpeg",
+        gif: "image/gif",
+        webp: "image/webp",
+        mp4: "video/mp4",
+        mov: "video/quicktime",
+        webm: "video/webm",
+        pdf: "application/pdf"
+      };
+      const mimetype = (headerType || extToMime[ext] || "image/jpeg").toLowerCase();
+      const finalExt = ext || (mimetype === "image/jpeg" ? "jpg" : mimetype.startsWith("image/") || mimetype.startsWith("video/") ? mimetype.split("/")[1] : "bin");
+      const file = { buffer, originalname: `upload.${finalExt}`, mimetype };
+      const organizationId = organization.id;
+      const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+      const saved = await this.mediaService.saveFile({
+        organizationId,
+        name: filePath.split("/").pop() ?? filePath,
+        path: filePath,
+        originalName: file.originalname,
+        fileSize: buffer.length,
+        type: file.mimetype.startsWith("video/") ? "video" : "image"
+      });
+      res.status(200).json({
+        success: true,
+        data: {
+          filePath: saved.path,
+          originalName: file.originalname,
+          ...saved.publicUrl ? { publicUrl: saved.publicUrl } : publicUrl ? { publicUrl } : {},
+          id: saved.id
+        },
+        message: "Media uploaded successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /**
    * Programmatic upload (`POST {api.prefix}/public/upload`). Organization from API key / OAuth app token.
    * Multipart field name: `file` (same as `/media/upload-server` for session users).
    */
@@ -15555,6 +15843,26 @@ var NotificationController = class {
   };
 };
 
+// controllers/PublicNotificationController.ts
+var PublicNotificationController = class {
+  constructor(notificationService2) {
+    this.notificationService = notificationService2;
+  }
+  /** GET /public/notifications?page=N — paginated in-app history (does not advance the read cursor). */
+  list = async (req, res, next) => {
+    try {
+      countPublicApiRequest("notifications-list");
+      const organizationId = req.organization.id;
+      const rawPage = req.query.page;
+      const page = Number.isFinite(Number(rawPage)) ? Math.max(0, Math.trunc(Number(rawPage))) : 0;
+      const data = await this.notificationService.getNotificationsPaginatedProgrammatic(organizationId, page);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
 // controllers/PostsController.ts
 var PostsController = class {
   constructor(postsService2) {
@@ -15825,13 +16133,13 @@ var PostsController = class {
       }
       const postId = req.params.postId;
       const { organizationId, releaseId } = req.body;
-      await this.postsService.updatePostReleaseId({
+      const data = await this.postsService.updatePostReleaseId({
         authUserId,
         organizationId,
         postId,
         releaseId
       });
-      res.status(200).json({ success: true });
+      res.status(200).json({ success: true, data });
     } catch (error) {
       next(error);
     }
@@ -15843,17 +16151,111 @@ var PublicPostsController = class {
   constructor(postsService2) {
     this.postsService = postsService2;
   }
-  /** GET /public/posts/list?start=...&end=...&integrationIds=... */
+  /** GET /public/posts/find-slot/:integrationId? — next free schedule slot for the organization. */
+  findSlot = async (req, res, next) => {
+    try {
+      countPublicApiRequest("posts-find-slot");
+      const organizationId = req.organization.id;
+      const integrationId = typeof req.params.integrationId === "string" ? req.params.integrationId : null;
+      const date = await this.postsService.findFreeSlotProgrammatic(organizationId, integrationId);
+      res.status(200).json({ success: true, data: { date } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /public/posts/:postId — row id and parent post group (for correlation with list responses). */
+  getPostByIdSummary = async (req, res, next) => {
+    try {
+      countPublicApiRequest("posts-get");
+      const organizationId = req.organization.id;
+      const postId = req.params.postId;
+      const data = await this.postsService.getPostSummaryProgrammatic(postId, organizationId);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** DELETE /public/posts/:postId — soft-deletes the whole post group; returns the row id and group id. */
+  deletePostById = async (req, res, next) => {
+    try {
+      countPublicApiRequest("posts-delete");
+      const organizationId = req.organization.id;
+      const postId = req.params.postId;
+      const result = await this.postsService.deletePostByIdProgrammatic(postId, organizationId);
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /public/posts/:postId/missing — candidate published assets for `release_id = "missing"` rows. */
+  getMissingContent = async (req, res, next) => {
+    try {
+      countPublicApiRequest("posts-missing");
+      const organizationId = req.organization.id;
+      const postId = req.params.postId;
+      const items = await this.postsService.getMissingPublishCandidatesProgrammatic({
+        organizationId,
+        postId
+      });
+      res.status(200).json({ success: true, data: { items } });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** PUT /public/posts/:postId/release-id — manually link a published release id when worker mapping failed. */
+  updateReleaseId = async (req, res, next) => {
+    try {
+      countPublicApiRequest("posts-release-id");
+      const organizationId = req.organization.id;
+      const postId = req.params.postId;
+      const { releaseId } = req.body;
+      const data = await this.postsService.updatePostReleaseIdProgrammatic({
+        organizationId,
+        postId,
+        releaseId
+      });
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** PUT /public/posts/:postId/status — flip draft ↔ scheduled at the stored publish time (no public group CRUD). */
+  flipPostStatus = async (req, res, next) => {
+    try {
+      countPublicApiRequest("posts-flip-status");
+      const organizationId = req.organization.id;
+      const postId = req.params.postId;
+      const raw = req.body.status;
+      const status = raw === "draft" ? "draft" : "scheduled";
+      const result = await this.postsService.flipPostGroupStatusByPostIdProgrammatic(
+        postId,
+        organizationId,
+        status
+      );
+      res.status(200).json({
+        success: true,
+        data: {
+          postGroup: result.postGroup,
+          posts: PostDTOMapper.toDTOCollection(result.posts)
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  /** GET /public/posts/list?start=...&end=...&integrationIds=...&customerGroupId=... */
   listPosts = async (req, res, next) => {
     try {
       const organizationId = req.organization.id;
       const q = req.query;
       const integrationIds = typeof q.integrationIds === "string" && q.integrationIds.trim().length > 0 ? q.integrationIds.split(",").map((s) => s.trim()).filter(Boolean) : null;
+      const customerGroupId = typeof q.customerGroupId === "string" && q.customerGroupId.trim().length > 0 ? q.customerGroupId.trim() : void 0;
       const rows = await this.postsService.listPostsForCalendarProgrammatic({
         organizationId,
         startIso: q.start,
         endIso: q.end,
-        integrationIds
+        integrationIds,
+        customerGroupId
       });
       res.status(200).json({ success: true, data: { posts: PostDTOMapper.toDTOCollection(rows) } });
     } catch (error) {
@@ -15889,55 +16291,44 @@ var PublicPostsController = class {
       next(error);
     }
   };
-  /** GET /public/posts/group/:postGroup */
-  getPostGroup = async (req, res, next) => {
+};
+
+// controllers/PublicAnalyticsController.ts
+var PublicAnalyticsController = class {
+  constructor(analyticsService2, postsService2) {
+    this.analyticsService = analyticsService2;
+    this.postsService = postsService2;
+  }
+  /** GET /public/analytics/:integrationId?date=7|30|90 — platform-wide insights for a channel. */
+  getIntegrationAnalytics = async (req, res, next) => {
     try {
+      countPublicApiRequest("analytics-integration");
       const organizationId = req.organization.id;
-      const postGroup = req.params.postGroup;
-      const data = await this.postsService.getPostGroupProgrammatic(postGroup, organizationId);
+      const integrationId = req.params.integrationId;
+      const date = Number(req.query.date);
+      const data = await this.analyticsService.getIntegrationAnalyticsProgrammatic({
+        organizationId,
+        integrationId,
+        date
+      });
       res.status(200).json({ success: true, data });
     } catch (error) {
       next(error);
     }
   };
-  /** PUT /public/posts/group/:postGroup */
-  updatePostGroup = async (req, res, next) => {
+  /** GET /public/analytics/post/:postId?date=7|30|90 — platform-native insights for one published post row. */
+  getPostAnalytics = async (req, res, next) => {
     try {
+      countPublicApiRequest("analytics-post");
       const organizationId = req.organization.id;
-      const postGroup = req.params.postGroup;
-      const b = req.body;
-      const result = await this.postsService.updatePostGroupProgrammatic({
-        postGroup,
+      const postId = req.params.postId;
+      const date = Number(req.query.date);
+      const data = await this.postsService.checkPostAnalyticsProgrammatic({
         organizationId,
-        body: b.body ?? "",
-        bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
-        media: (b.media ?? null)?.map((m) => ({ id: m.id, path: m.path })) ?? null,
-        integrationIds: b.integrationIds ?? [],
-        isGlobal: b.isGlobal ?? true,
-        scheduledAtIso: b.scheduledAt,
-        repeatInterval: b.repeatInterval ?? null,
-        tagNames: b.tagNames ?? [],
-        providerSettingsByIntegrationId: b.providerSettingsByIntegrationId ?? null,
-        status: b.status
+        postId,
+        dateWindowDays: date
       });
-      res.status(200).json({
-        success: true,
-        data: {
-          postGroup: result.postGroup,
-          posts: PostDTOMapper.toDTOCollection(result.posts)
-        }
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-  /** DELETE /public/posts/group/:postGroup */
-  deletePostGroup = async (req, res, next) => {
-    try {
-      const organizationId = req.organization.id;
-      const postGroup = req.params.postGroup;
-      await this.postsService.deletePostGroupProgrammatic(postGroup, organizationId);
-      res.status(200).json({ success: true });
+      res.status(200).json({ success: true, data });
     } catch (error) {
       next(error);
     }
@@ -16522,8 +16913,10 @@ var emailController = new EmailController(emailService);
 var integrationController = new IntegrationController(integrationConnectionService, integrationManager);
 var publicIntegrationController = new PublicIntegrationController(integrationConnectionService);
 var notificationController = new NotificationController(notificationService);
+var publicNotificationController = new PublicNotificationController(notificationService);
 var postsController = new PostsController(postsService);
 var publicPostsController = new PublicPostsController(postsService);
+var publicAnalyticsController = new PublicAnalyticsController(analyticsService, postsService);
 var oauthAppController = new OauthAppController(oauthAppService);
 var oauthController = new OauthController(oauthService);
 var approvedAppsController = new ApprovedAppsController(oauthService);
@@ -17928,6 +18321,12 @@ var mediaOrganizationQuerySchema = zod.z.object({
 var validateMediaOrganizationQuery = validateRequest({
   query: mediaOrganizationQuerySchema
 });
+var publicUploadFromUrlBodySchema = zod.z.object({
+  url: zod.z.string().url("Invalid URL").max(2048, "URL is too long")
+});
+var validatePublicUploadFromUrlBody = validateRequest({
+  body: publicUploadFromUrlBodySchema
+});
 var saveMediaInformationBodySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id"),
   id: zod.z.string().uuid("Invalid media id"),
@@ -18227,6 +18626,46 @@ function requireProgrammaticAuth(params) {
     }
   };
 }
+var dateWindowSchema = zod.z.string().refine((v) => {
+  const n = Number(v);
+  return Number.isFinite(n) && [7, 30, 90].includes(n);
+}, "Invalid date window (use 7, 30, or 90)");
+var publicIntegrationAnalyticsParamsSchema = zod.z.object({
+  integrationId: zod.z.string().uuid("Invalid integration id")
+});
+var publicIntegrationAnalyticsQuerySchema = zod.z.object({
+  date: dateWindowSchema
+});
+var validatePublicIntegrationAnalyticsRequest = validateRequest({
+  params: publicIntegrationAnalyticsParamsSchema,
+  query: publicIntegrationAnalyticsQuerySchema
+});
+var publicPostAnalyticsParamsSchema = zod.z.object({
+  postId: zod.z.string().uuid("Invalid post id")
+});
+var publicPostAnalyticsQuerySchema = zod.z.object({
+  date: dateWindowSchema
+});
+var validatePublicPostAnalyticsRequest = validateRequest({
+  params: publicPostAnalyticsParamsSchema,
+  query: publicPostAnalyticsQuerySchema
+});
+
+// routes/publicApi/AnalyticsRoutes.ts
+var publicAnalyticsRouter = express.Router();
+var apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+publicAnalyticsRouter.get(
+  "/post/:postId",
+  apiKeyAuth,
+  validatePublicPostAnalyticsRequest,
+  publicAnalyticsController.getPostAnalytics
+);
+publicAnalyticsRouter.get(
+  "/:integrationId",
+  apiKeyAuth,
+  validatePublicIntegrationAnalyticsRequest,
+  publicAnalyticsController.getIntegrationAnalytics
+);
 var publicSocialOAuthQuerySchema = zod.z.object({
   refresh: zod.z.string().uuid().optional()
 });
@@ -18250,25 +18689,25 @@ var validatePublicIntegrationTriggerRequest = validateRequest({
 
 // routes/publicApi/IntegrationRoutes.ts
 var publicIntegrationRouter = express.Router();
-var apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
-publicIntegrationRouter.get("/is-connected", apiKeyAuth, publicIntegrationController.isConnected);
-publicIntegrationRouter.get("/integrations", apiKeyAuth, publicIntegrationController.listIntegrations);
+var apiKeyAuth2 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+publicIntegrationRouter.get("/is-connected", apiKeyAuth2, publicIntegrationController.isConnected);
+publicIntegrationRouter.get("/integrations", apiKeyAuth2, publicIntegrationController.listIntegrations);
 publicIntegrationRouter.get(
   "/social/:integration",
-  apiKeyAuth,
+  apiKeyAuth2,
   validatePublicSocialOAuthQuery,
   publicIntegrationController.getIntegrationUrl
 );
-publicIntegrationRouter.delete("/integrations/:id", apiKeyAuth, publicIntegrationController.deleteChannel);
+publicIntegrationRouter.delete("/integrations/:id", apiKeyAuth2, publicIntegrationController.deleteChannel);
 publicIntegrationRouter.get(
   "/integration-settings/:id",
-  apiKeyAuth,
+  apiKeyAuth2,
   validatePublicIntegrationIdParams,
   publicIntegrationController.getIntegrationSettings
 );
 publicIntegrationRouter.post(
   "/integration-trigger/:id",
-  apiKeyAuth,
+  apiKeyAuth2,
   validatePublicIntegrationTriggerRequest,
   publicIntegrationController.triggerIntegration
 );
@@ -18277,8 +18716,35 @@ var upload3 = multer__default.default({
   limits: { fileSize: MAX_MEDIA_UPLOAD_BYTES }
 });
 var publicMediaUploadRouter = express.Router();
-var apiKeyAuth2 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
-publicMediaUploadRouter.post("/upload", apiKeyAuth2, upload3.single("file"), mediaController.uploadProgrammatic);
+var apiKeyAuth3 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+publicMediaUploadRouter.post(
+  "/upload",
+  apiKeyAuth3,
+  upload3.single("file"),
+  mediaController.uploadProgrammatic
+);
+publicMediaUploadRouter.post(
+  "/upload-from-url",
+  apiKeyAuth3,
+  validatePublicUploadFromUrlBody,
+  mediaController.uploadProgrammaticFromUrl
+);
+var publicListNotificationsQuerySchema = zod.z.object({
+  page: zod.z.string().optional().refine((v) => v === void 0 || Number.isFinite(Number(v)) && Number(v) >= 0, "Invalid page")
+});
+var validatePublicListNotificationsQuery = validateRequest({
+  query: publicListNotificationsQuerySchema
+});
+
+// routes/publicApi/NotificationRoutes.ts
+var publicNotificationRouter = express.Router();
+var apiKeyAuth4 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+publicNotificationRouter.get(
+  "/notifications",
+  apiKeyAuth4,
+  validatePublicListNotificationsQuery,
+  publicNotificationController.list
+);
 var postOrganizationQuerySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id")
 });
@@ -18411,9 +18877,13 @@ var validateUpdatePostReleaseId = validateRequest({
   params: postIdParamsSchema,
   body: updatePostReleaseIdBodySchema
 });
-
-// data/schemas/publicPostsSchemas.ts
-var publicListPostsQuerySchema = listPostsQuerySchema.omit({ organizationId: true });
+var publicListPostsQuerySchema = listPostsQuerySchema.omit({ organizationId: true }).extend({
+  /**
+   * Optional `integration_customers.id` for this workspace. When set, only posts whose
+   * `integration_id` belongs to a channel assigned to that channel group are returned.
+   */
+  customerGroupId: zod.z.string().uuid("Invalid customer group id").optional()
+});
 var validatePublicListPostsQuery = validateRequest({
   query: publicListPostsQuerySchema
 });
@@ -18421,40 +18891,86 @@ var publicCreatePostBodySchema = createPostBodySchema.omit({ organizationId: tru
 var validatePublicCreatePostBody = validateRequest({
   body: publicCreatePostBodySchema
 });
-var validatePublicPostGroupParams = validateRequest({
-  params: postGroupParamsSchema
+var publicPostIdParamsSchema = zod.z.object({
+  postId: zod.z.string().uuid("Invalid post id")
 });
-var publicUpdatePostGroupBodySchema = updatePostGroupBodySchema.omit({ organizationId: true });
-var validatePublicUpdatePostGroupBody = validateRequest({
-  params: postGroupParamsSchema,
-  body: publicUpdatePostGroupBodySchema
+var validatePublicPostIdParams = validateRequest({
+  params: publicPostIdParamsSchema
+});
+var publicFlipPostStatusBodySchema = zod.z.object({
+  status: zod.z.enum(["draft", "schedule", "scheduled"], {
+    errorMap: () => ({ message: "status must be draft, schedule, or scheduled" })
+  })
+});
+var validatePublicFlipPostStatusRequest = validateRequest({
+  params: publicPostIdParamsSchema,
+  body: publicFlipPostStatusBodySchema
+});
+var publicFindSlotParamsSchema = zod.z.object({
+  integrationId: zod.z.string().uuid("Invalid integration id").optional()
+});
+var validatePublicFindSlotParams = validateRequest({
+  params: publicFindSlotParamsSchema
+});
+var publicUpdateReleaseIdBodySchema = zod.z.object({
+  releaseId: zod.z.string().min(1, "releaseId is required")
+});
+var validatePublicUpdateReleaseIdRequest = validateRequest({
+  params: publicPostIdParamsSchema,
+  body: publicUpdateReleaseIdBodySchema
 });
 
 // routes/publicApi/PostRoutes.ts
 var publicPostRouter = express.Router();
-var apiKeyAuth3 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+var apiKeyAuth5 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
 publicPostRouter.get("/:postId/comments", validatePublicPostCommentsParams, postsController.getPublicComments);
-publicPostRouter.get("/list", apiKeyAuth3, validatePublicListPostsQuery, publicPostsController.listPosts);
-publicPostRouter.post("/", apiKeyAuth3, validatePublicCreatePostBody, publicPostsController.createPost);
-publicPostRouter.get("/group/:postGroup", apiKeyAuth3, validatePublicPostGroupParams, publicPostsController.getPostGroup);
+publicPostRouter.get("/list", apiKeyAuth5, validatePublicListPostsQuery, publicPostsController.listPosts);
+publicPostRouter.get("/find-slot", apiKeyAuth5, publicPostsController.findSlot);
+publicPostRouter.get(
+  "/find-slot/:integrationId",
+  apiKeyAuth5,
+  validatePublicFindSlotParams,
+  publicPostsController.findSlot
+);
+publicPostRouter.post("/", apiKeyAuth5, validatePublicCreatePostBody, publicPostsController.createPost);
 publicPostRouter.put(
-  "/group/:postGroup",
-  apiKeyAuth3,
-  validatePublicUpdatePostGroupBody,
-  publicPostsController.updatePostGroup
+  "/:postId/status",
+  apiKeyAuth5,
+  validatePublicFlipPostStatusRequest,
+  publicPostsController.flipPostStatus
+);
+publicPostRouter.get(
+  "/:postId/missing",
+  apiKeyAuth5,
+  validatePublicPostIdParams,
+  publicPostsController.getMissingContent
+);
+publicPostRouter.put(
+  "/:postId/release-id",
+  apiKeyAuth5,
+  validatePublicUpdateReleaseIdRequest,
+  publicPostsController.updateReleaseId
+);
+publicPostRouter.get(
+  "/:postId",
+  apiKeyAuth5,
+  validatePublicPostIdParams,
+  publicPostsController.getPostByIdSummary
 );
 publicPostRouter.delete(
-  "/group/:postGroup",
-  apiKeyAuth3,
-  validatePublicPostGroupParams,
-  publicPostsController.deletePostGroup
+  "/:postId",
+  apiKeyAuth5,
+  validatePublicPostIdParams,
+  publicPostsController.deletePostById
 );
 
 // routes/publicApi/index.ts
 var publicApiRouter = express.Router();
 publicApiRouter.use("/", publicIntegrationRouter);
 publicApiRouter.use("/", publicMediaUploadRouter);
+publicApiRouter.use("/", publicNotificationRouter);
 publicApiRouter.use("/posts", publicPostRouter);
+publicApiRouter.use("/analytics", publicAnalyticsRouter);
 var notificationOrganizationQuerySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id")
 });
@@ -18883,7 +19399,13 @@ var swaggerDefinition = {
     version: "1.0.0",
     description: "REST API. Extend by adding `@openapi` YAML blocks in `backend/swagger/jsdoc/*.doc.ts` (swagger-jsdoc merges them at startup)."
   },
-  tags: [{ name: "Integrations", description: "Channels and providers" }],
+  tags: [
+    { name: "Integrations", description: "Channels and providers" },
+    { name: "Posts", description: "Post groups and per-channel post rows" },
+    { name: "Analytics", description: "Platform and per-post provider insights" },
+    { name: "Notifications", description: "Paginated in-app notification history" },
+    { name: "Uploads", description: "Media uploads consumed by the Posts API" }
+  ],
   servers: [{ url: "/api/v1", description: "API v1 (same origin as this spec when using the Vite dev proxy)" }],
   components: {
     securitySchemes: {
@@ -18898,8 +19420,26 @@ var swaggerDefinition = {
   /** Default for operations that omit `security` (protected). Public routes set `security: []` in their `@openapi` block. */
   security: [{ ApiKeyAuth: [] }]
 };
-var jsdocExt = (moduleUrl ?? "").endsWith(".ts") ? "ts" : "js";
-var jsdocGlobs = [path__default.default.join(swaggerDir, "jsdoc", `*.${jsdocExt}`)];
+function resolveJsdocExt() {
+  const fromUrl = (moduleUrl ?? "").toLowerCase();
+  if (fromUrl.endsWith(".ts")) return "ts";
+  if (fromUrl.endsWith(".js") || fromUrl.endsWith(".mjs") || fromUrl.endsWith(".cjs")) return "js";
+  const jsdocDir = path__default.default.join(swaggerDir, "jsdoc");
+  try {
+    const entries = fs2__default.default.readdirSync(jsdocDir);
+    const hasTs = entries.some((e) => e.endsWith(".ts") && !e.endsWith(".d.ts"));
+    const hasJs = entries.some((e) => e.endsWith(".js"));
+    if (hasTs && !hasJs) return "ts";
+    if (hasJs && !hasTs) return "js";
+    if (hasTs && hasJs) return "ts";
+  } catch {
+  }
+  return ["ts", "js"];
+}
+var jsdocExt = resolveJsdocExt();
+var jsdocGlobs = (Array.isArray(jsdocExt) ? jsdocExt : [jsdocExt]).map(
+  (ext) => path__default.default.join(swaggerDir, "jsdoc", `*.${ext}`)
+);
 var options = {
   definition: swaggerDefinition,
   apis: jsdocGlobs

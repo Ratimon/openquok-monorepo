@@ -2,7 +2,7 @@
 title: CLI authentication
 description: Setup OAuth2 (interactive terminal) authentication for Openquok CLI.
 order: 1
-lastUpdated: 2026-05-09
+lastUpdated: 2026-05-15
 ---
 
 <script>
@@ -29,7 +29,7 @@ openquok auth:login
 By default the CLI uses an **interactive** device flow:
 
 1. **Terminal** — Shows the verification URL, your **user code**, and prompts you to press **Enter** to open the browser. The opened link includes a `code` query parameter so the verification page can pre-fill the code (no need to paste it manually).
-2. **Browser** — Complete device verification on the CLI auth server, then continue to the Openquok web app’s **Authorize application** screen. If you are not signed in, use **Sign in**; after authentication you are returned to the authorize URL, so you can pick a **workspace** and choose **Authorize** or **Deny**.
+2. **Browser** — On Openquok’s hosted stack this is <Badge text="https://www.openquok.com/cli/device/verify" variant="new" /> (not <Badge text="cli-auth.openquok.com" variant="default" />). Submit the code, then continue to the Openquok web app’s **Authorize application** screen. If you are not signed in, use **Sign in**; after authentication you are returned to the authorize URL, so you can pick a **workspace** and choose **Authorize** or **Deny**.
 3. **Terminal** — When success, it writes **only the final result as JSON**.
 4. **Credentials** — Stored for later commands (default <Badge text="~/.openquok/credentials.json" variant="path" />).
 
@@ -64,13 +64,17 @@ openquok auth:logout
 
 ### Which auth server does the CLI use?
 
-By default, <Badge text="openquok auth:login" variant="default" /> uses the **hosted** device-flow server:
+The CLI talks to the device-flow **API** at:
 
-- <Badge text="https://cli-auth.openquok.com" variant="new" />
+- <Badge text="https://cli-auth.openquok.com" variant="new" /> (default <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" />)
 
-You can point the CLI at **your own** deployed auth server (for self-hosted Openquok or local development of <Badge text="agent/server" variant="path" />):
+That origin serves <Badge text="POST /device/code" variant="path" /> and <Badge text="POST /device/token" variant="path" />. The **browser** step uses a different URL returned in <Badge text="verification_uri" variant="default" />:
 
-- **Environment variable:** set <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> to the server **origin** (no trailing slash).
+- **Hosted Openquok:** <Badge text="https://www.openquok.com/cli/device/verify" variant="new" />
+
+You can point the CLI API at **your own** deployed auth server (self-hosted Openquok or local development of <Badge text="agent/server" variant="path" />):
+
+- **Environment variable:** set <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> to the server **API origin** (no trailing slash).
 - **Per run:** pass <Badge text="--authServer" variant="default" /> to <Badge text="openquok auth:login" variant="default" />.
 
 ```bash
@@ -82,10 +86,10 @@ openquok auth:login
 openquok auth:login --authServer "https://auth.example.com"
 ```
 
-For **local** auth server development, the default listen URL is <Badge text="http://localhost:3111" variant="default" /> — see <a href="/docs/installation/development-environment#optional-cli-auth-server-device-flow">Development environment</a> and <a href="/docs/configuration-agent">Configuration - Agent</a>.
+For **local** auth server development, the default API URL is <Badge text="http://localhost:3111" variant="default" />. With only the auth server running (no web proxy), the browser opens <Badge text="http://localhost:3111/device/verify" variant="default" />. To test the production-style split locally, run the web dev server, set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> on the auth server, and set <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> on web — see <a href="/docs/installation/development-environment#optional-cli-auth-server-device-flow">Development environment</a> and <a href="/docs/configuration-agent">Configuration - Agent</a>.
 
 <Callout type="note" title="Operators: deploy the auth server">
-<p>Environment variables for <strong>running</strong> the auth server (<Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, OAuth client keys, etc.) are documented under <a href="/docs/configuration-agent">Configuration - Agent</a>, not on this page.</p>
+<p>Environment variables for <strong>running</strong> the auth server (<Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, <Badge text="BROWSER_ORIGIN" variant="envBackend" />, OAuth client keys) and the web app (<Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" />) are documented under <a href="/docs/configuration-agent">Configuration - Agent</a> and <a href="/docs/configuration-web">Configuration - Web</a>, not on this page.</p>
 </Callout>
 
 ## API key
@@ -113,7 +117,7 @@ These variables apply to the **CLI process** (your shell, CI job, or agent), not
 | --- | --- | --- | --- |
 | <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> | No* | — | Bearer token for the programmatic API |
 | <Badge text="OPENQUOK_API_URL" variant="envBackend" /> | No | <Badge text="https://api.openquok.com" variant="new" /> | API origin; requests use paths under <Badge text="/api/v1/" variant="path" /> |
-| <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> | No | <Badge text="https://cli-auth.openquok.com" variant="new" /> | Origin of the device-flow auth server. Use <Badge text="http://localhost:3111" variant="default" /> when running <Badge text="agent/server" variant="path" /> locally |
+| <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> | No | <Badge text="https://cli-auth.openquok.com" variant="new" /> | **API origin** for device flow (<Badge text="/device/code" variant="path" />, <Badge text="/device/token" variant="path" />). Browser URLs come from the server’s <Badge text="verification_uri" variant="default" />. Use <Badge text="http://localhost:3111" variant="default" /> when running <Badge text="agent/server" variant="path" /> locally. |
 
 *Either <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> or successful <Badge text="openquok auth:login" variant="default" /> (stored credentials) is required for authenticated commands.
 
@@ -121,7 +125,13 @@ These variables apply to the **CLI process** (your shell, CI job, or agent), not
 
 You do **not** need to self-host the auth server to use the CLI with Openquok’s hosted stack — the defaults above are enough.
 
-If you run **your own** Openquok deployment and want a dedicated device-flow service, deploy <Badge text="agent/server" variant="path" />, register <Badge text="SERVER_URL/device/callback" variant="path" /> on your OAuth app, and set <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> in the CLI to that public origin.
+If you run **your own** Openquok deployment and want a dedicated device-flow service:
+
+1. Deploy <Badge text="agent/server" variant="path" /> and set <Badge text="SERVER_URL" variant="envBackend" /> to your API host.
+2. Set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> to your web origin (or omit it to serve browser steps on the same host as the API).
+3. Deploy <Badge text="web" variant="path" /> with <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> when using split hosts.
+4. Register the OAuth callback on your OAuth app — <Badge text="BROWSER_ORIGIN/cli/device/callback" variant="path" /> when split, or <Badge text="SERVER_URL/device/callback" variant="path" /> on a single host.
+5. Set <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> in the CLI to your API origin.
 
 ### Clone the repository
 
@@ -132,7 +142,7 @@ git clone https://github.com/Ratimon/openquok-monorepo.git
 cd openquok-monorepo
 ```
 
-Next, configure environment variables (<Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" />, <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />) and register the OAuth callback — see <a href="/docs/configuration-agent">Configuration - Agent</a> for the full reference.
+Next, configure environment variables (<Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" />, <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, <Badge text="BROWSER_ORIGIN" variant="envBackend" />) and register the OAuth callback — see <a href="/docs/configuration-agent">Configuration - Agent</a> for the full reference.
 
 ### Deployment
 
@@ -140,20 +150,30 @@ Deploy anywhere that runs Node.js and can reach a Postgres database — Vercel, 
 
 All device-flow state lives in Postgres, so the process itself holds no state and scales horizontally. Put multiple replicas behind a load balancer when you need more throughput — see <a href="/docs/configuration-agent/scaling">Scaling & Postgres</a>.
 
-For **Vercel** (the path with the most tooling in this monorepo), link a separate Vercel project with **Root Directory** <Badge text="agent/server" variant="path" />, then run the deploy scripts from the repo root:
+For **Vercel** (the path with the most tooling in this monorepo), use **two** projects when mirroring Openquok production:
 
 ```bash
+# Auth server API (agent/server)
 pnpm vercel:env:sync:agent-server:prod
-pnpm vercel:deploy:agent-server
 pnpm vercel:deploy:agent-server:prod
+
+# Web browser routes (/cli/device/*)
+pnpm vercel:env:sync:web:prod
+pnpm vercel:deploy:web:prod
+```
+
+Or:
+
+```bash
+pnpm vercel:deploy:cli-device-flow:prod
 ```
 
 
 ### More for Step-by-step Deployment Guides
 
 <CardGrid>
-<LinkCard title="Configuration - Agent" description="production vs local Env vars, and deploy steps" href="/docs/configuration-agent" />
-<LinkCard title="Auth server architecture" description="Endpoints and Postgres device flow state" href="/docs/configuration-agent/architecture" />
+<LinkCard title="Configuration - Agent" description="production vs local env vars, BROWSER_ORIGIN, and deploy steps" href="/docs/configuration-agent" />
+<LinkCard title="Auth server architecture" description="Split topology, endpoints, and Postgres device flow state" href="/docs/configuration-agent/architecture" />
 <LinkCard title="Vercel — CLI auth server" description="Deploy on Vercel" href="/docs/installation/vercel#cli-auth-server-on-vercel" />
 </CardGrid>
 

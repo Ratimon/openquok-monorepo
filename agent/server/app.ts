@@ -12,7 +12,15 @@ const FRONTEND_URL = process.env.OPENQUOK_FRONTEND_URL || "https://www.openquok.
 const API_URL = process.env.OPENQUOK_API_URL || "https://api.openquok.com";
 const AUTHORIZE_PATH = process.env.OPENQUOK_AUTHORIZE_PATH || "/oauth/authorize";
 export const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
+/** User-facing origin for browser steps (verify/callback). Defaults to SERVER_URL for local-only dev. */
+export const BROWSER_ORIGIN = (process.env.BROWSER_ORIGIN || SERVER_URL).replace(/\/+$/, "");
 const DATABASE_URL = process.env.DATABASE_URL!;
+
+export function deviceBrowserPath(segment: "verify" | "callback"): string {
+  const serverOrigin = SERVER_URL.replace(/\/+$/, "");
+  const prefix = BROWSER_ORIGIN !== serverOrigin ? "/cli" : "";
+  return `${BROWSER_ORIGIN}${prefix}/device/${segment}`;
+}
 
 /** Same idea as backend root JSON (`backend/app.ts`); keep in sync with `agent/server/package.json`. */
 const SERVICE_VERSION = "0.0.1";
@@ -110,9 +118,16 @@ function json(res: ServerResponse, status: number, data: unknown) {
 }
 
 function html(res: ServerResponse, status: number, body: string) {
-  res.writeHead(status, { "Content-Type": "text/html" });
-  res.end(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Openquok CLI Auth</title>
-<style>:root{--color-primary:oklch(68.628% 0.185 148.958);--color-primary-content:oklch(0% 0 0)}*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0a;color:#fff}.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:48px;max-width:520px;text-align:center}h2{margin-bottom:16px;font-size:24px}p{color:#a0a0a0;margin-bottom:24px;line-height:1.5}.btn{display:inline-block;background:var(--color-primary);color:var(--color-primary-content);text-decoration:none;padding:12px 32px;border-radius:9999px;font-size:16px;font-weight:500;border:none;cursor:pointer;transition:filter .15s ease}.btn:hover{filter:brightness(.92)}.success{color:#22c55e}.error{color:#ef4444}input{font-family:monospace;font-size:24px;text-align:center;padding:12px 24px;border-radius:8px;border:1px solid #333;background:#1a1a2e;color:#fff;letter-spacing:4px;width:260px;margin-bottom:24px;text-transform:uppercase}input:focus{outline:2px solid color-mix(in oklab,var(--color-primary) 65%,transparent);outline-offset:2px;border-color:color-mix(in oklab,var(--color-primary) 45%,transparent)}</style></head><body><div class="card">${body}</div></body></html>`);
+  const homeUrl = FRONTEND_URL.replace(/\/+$/, "");
+  res.writeHead(status, {
+    "Content-Type": "text/html; charset=utf-8",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+  });
+  res.end(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Openquok CLI Authorization</title>
+<meta name="description" content="Authorize the official Openquok command-line tool on your computer.">
+<link rel="canonical" href="${escapeHtml(homeUrl)}">
+<style>:root{--color-primary:oklch(68.628% 0.185 148.958);--color-primary-content:oklch(0% 0 0)}*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0a;color:#fff;padding:24px}.brand{margin-bottom:8px;font-size:14px;color:#737373}.brand a{color:#a0a0a0;text-decoration:none}.brand a:hover{color:#fff}.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:48px;max-width:520px;text-align:center}h2{margin-bottom:16px;font-size:24px}p{color:#a0a0a0;margin-bottom:24px;line-height:1.5}.btn{display:inline-block;background:var(--color-primary);color:var(--color-primary-content);text-decoration:none;padding:12px 32px;border-radius:9999px;font-size:16px;font-weight:500;border:none;cursor:pointer;transition:filter .15s ease}.btn:hover{filter:brightness(.92)}.success{color:#22c55e}.error{color:#ef4444}input{font-family:monospace;font-size:24px;text-align:center;padding:12px 24px;border-radius:8px;border:1px solid #333;background:#1a1a2e;color:#fff;letter-spacing:4px;width:260px;margin-bottom:24px;text-transform:uppercase}input:focus{outline:2px solid color-mix(in oklab,var(--color-primary) 65%,transparent);outline-offset:2px;border-color:color-mix(in oklab,var(--color-primary) 45%,transparent)}</style></head><body><div class="card"><p class="brand"><a href="${escapeHtml(homeUrl)}" rel="noopener">openquok.com</a></p>${body}</div></body></html>`);
 }
 
 async function parseBody(req: IncomingMessage): Promise<string> {
@@ -143,7 +158,7 @@ async function handleDeviceCode(_req: IncomingMessage, res: ServerResponse) {
   json(res, 200, {
     device_code: deviceCode,
     user_code: userCode,
-    verification_uri: `${SERVER_URL}/device/verify`,
+    verification_uri: deviceBrowserPath("verify"),
     expires_in: EXPIRY_MINUTES * 60,
     interval: POLL_INTERVAL_S,
   });
@@ -153,14 +168,14 @@ async function handleDeviceCode(_req: IncomingMessage, res: ServerResponse) {
 function handleVerifyPage(req: IncomingMessage, res: ServerResponse) {
   const url = new URL(req.url || "/", SERVER_URL);
   const prefilled = escapeHtml(url.searchParams.get("code") || "");
-  const verifySubmitUrl = `${SERVER_URL.replace(/\/+$/, "")}/device/verify`;
+  const verifySubmitUrl = deviceBrowserPath("verify");
 
   html(
     res,
     200,
     `
     <h2>Openquok CLI Authorization</h2>
-    <p>Enter the code shown in your terminal:</p>
+    <p>Authorize the Openquok CLI on your computer. Enter the code shown in your terminal:</p>
     <form method="POST" action="${escapeHtml(verifySubmitUrl)}">
       <input type="text" name="user_code" value="${prefilled}" placeholder="XXXX-XXXX" maxlength="9" autofocus required>
       <br>
@@ -200,7 +215,7 @@ async function handleVerifySubmit(req: IncomingMessage, res: ServerResponse) {
 
   const deviceCode = result.rows[0].device_code as string;
 
-  const callbackUrl = `${SERVER_URL}/device/callback`;
+  const callbackUrl = deviceBrowserPath("callback");
   const authorizeUrl =
     `${FRONTEND_URL.replace(/\/+$/, "")}${AUTHORIZE_PATH}` +
     `?client_id=${encodeURIComponent(CLIENT_ID)}` +

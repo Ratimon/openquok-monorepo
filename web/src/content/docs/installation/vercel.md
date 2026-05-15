@@ -165,9 +165,18 @@ Maintain production values in <Badge text="agent/server/.env.production.local" v
 pnpm vercel:env:sync:agent-server:prod
 ```
 
-Required keys include <Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" />, <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" />, and <Badge text="SERVER_URL" variant="envBackend" /> (your live HTTPS origin, no trailing slash).
+Required keys include <Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" />, <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" /> (API origin, e.g. <Badge text="https://cli-auth.openquok.com" variant="new" />, no trailing slash), and <Badge text="BROWSER_ORIGIN" variant="envBackend" /> (web origin for browser steps, e.g. <Badge text="https://www.openquok.com" variant="new" />).
 
-### Deploy
+### Deploy web browser routes
+
+The <Badge text="/cli/device/*" variant="path" /> pages live in the **web** project. Copy <Badge text="web/.env.production.example" variant="envBackend" /> to <Badge text="web/.env.production.local" variant="envBackend" />, set <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> to your auth server API origin, sync, and deploy:
+
+```bash
+pnpm vercel:env:sync:web:prod
+pnpm vercel:deploy:web:prod
+```
+
+### Deploy auth server API
 
 ```bash
 pnpm vercel:deploy:agent-server
@@ -177,10 +186,16 @@ pnpm vercel:deploy:agent-server
 pnpm vercel:deploy:agent-server:prod
 ```
 
-After deploy, set <Badge text="SERVER_URL" variant="envBackend" /> to the deployment URL or custom domain and register on your Openquok OAuth app:
+Or both projects:
 
 ```bash
-SERVER_URL/device/callback
+pnpm vercel:deploy:cli-device-flow:prod
+```
+
+Register on your Openquok OAuth app (Openquok production reference):
+
+```text
+https://www.openquok.com/cli/device/callback
 ```
 
 </Steps>
@@ -193,11 +208,7 @@ Add each domain in the Vercel project (**Settings → Domains**), create the DNS
 
 - **Backend:** <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />, <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (and ensure CORS allows the frontend origin).
 - **Web:** <Badge text="VITE_API_BASE_URL" variant="envWeb" />, <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />.
-- **CLI auth server (if deployed):** <Badge text="SERVER_URL" variant="envBackend" /> for the public origin you attach; update the Openquok OAuth app callback when the hostname changes:
-
-```bash
-SERVER_URL/device/callback
-```
+- **CLI auth server (if deployed):** <Badge text="SERVER_URL" variant="envBackend" /> for the API host; <Badge text="BROWSER_ORIGIN" variant="envBackend" /> for browser URLs. Update the OAuth app callback when the web hostname changes (Openquok production: <Badge text="https://www.openquok.com/cli/device/callback" variant="new" />).
 
 ## Next steps
 

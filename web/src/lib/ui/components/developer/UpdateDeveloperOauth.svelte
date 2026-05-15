@@ -3,9 +3,12 @@
 	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { OauthAppViewModel } from '$lib/developers/UpsertOAuthApp.presenter.svelte';
 
+	import { icons } from '$data/icons';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
 	import * as Dialog from '$lib/ui/dialog';
+	import { Dropzone } from '$lib/ui/dropzone';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 
 	type Props = {
@@ -29,6 +32,7 @@
 
 		mediaPickerOpen: boolean;
 		mediaPickerLoading: boolean;
+		mediaPickerUploadBusy: boolean;
 		mediaPickerItemsVm: MediaLibraryItemViewModel[];
 
 		confirmRotateOpen: boolean;
@@ -54,6 +58,7 @@
 
 		onSetMediaPickerOpen: (open: boolean) => void;
 		onSelectMediaItem: (vm: MediaLibraryItemViewModel) => void;
+		onUploadMediaPickerFiles: (files: FileList | null) => void | Promise<void>;
 
 		onCopy: (text: string) => void | Promise<void>;
 	};
@@ -75,6 +80,7 @@
 		plaintextClientSecret,
 		mediaPickerOpen = $bindable(false),
 		mediaPickerLoading,
+		mediaPickerUploadBusy,
 		mediaPickerItemsVm,
 		confirmRotateOpen = $bindable(false),
 		confirmDeleteOpen = $bindable(false),
@@ -94,8 +100,11 @@
 		onCancelDeleteConfirm,
 		onSetMediaPickerOpen,
 		onSelectMediaItem,
+		onUploadMediaPickerFiles,
 		onCopy
 	}: Props = $props();
+
+	const mediaPickerBusy = $derived(mediaPickerLoading || mediaPickerUploadBusy);
 </script>
 
 <div class="space-y-6">
@@ -443,21 +452,59 @@
 </div>
 
 <Dialog.Root open={mediaPickerOpen} onOpenChange={(o: boolean) => onSetMediaPickerOpen(o)}>
-	<Dialog.Content class="max-h-[85vh] max-w-2xl overflow-y-auto">
+	<Dialog.Content
+		class="max-h-[85vh] max-w-2xl gap-5 overflow-y-auto"
+		showCloseButton={!mediaPickerUploadBusy}
+		onOpenAutoFocus={(e) => e.preventDefault()}
+	>
 		<Dialog.Header>
 			<Dialog.Title>Choose image</Dialog.Title>
-			<Dialog.Description>Pick an image from this workspace’s media library.</Dialog.Description>
+			<Dialog.Description class="text-base-content/75 text-sm">
+				Upload a new image or pick one from this workspace’s media library.
+			</Dialog.Description>
 		</Dialog.Header>
-		{#if mediaPickerLoading}
-			<p class="py-8 text-center text-sm text-base-content/70">Loading…</p>
-		{:else if mediaPickerItemsVm.length === 0}
-			<p class="py-8 text-center text-sm text-base-content/70">No images yet. Upload some in Media Library first.</p>
-		{:else}
-			<div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
+
+		<Dropzone
+			accept="image/*"
+			multiple
+			disabled={mediaPickerBusy}
+			class="border-primary/25 hover:border-primary/40 bg-base-200/50 h-40 min-h-36 cursor-pointer border-dashed disabled:cursor-not-allowed disabled:opacity-50"
+			onChange={(e) => {
+				const t = e.currentTarget as HTMLInputElement;
+				void onUploadMediaPickerFiles(t.files);
+				t.value = '';
+			}}
+			onDrop={(e) => {
+				const list = e.dataTransfer?.files ?? null;
+				if (list?.length) void onUploadMediaPickerFiles(list);
+			}}
+		>
+			<div class="text-base-content/80 pointer-events-none flex flex-col items-center gap-2 px-4 text-center">
+				{#if mediaPickerUploadBusy}
+					<span class="loading loading-spinner loading-lg text-primary"></span>
+					<span class="text-sm font-medium">Uploading…</span>
+				{:else}
+					<span class="relative inline-flex size-10 items-center justify-center text-primary">
+						<AbstractIcon name={icons.Image.name} class="size-10" width="40" height="40" />
+					</span>
+					<div class="space-y-0.5">
+						<p class="text-sm font-medium">Drop an image here</p>
+						<p class="text-base-content/60 text-xs">or click to browse</p>
+					</div>
+				{/if}
+			</div>
+		</Dropzone>
+
+		{#if mediaPickerLoading && mediaPickerItemsVm.length === 0}
+			<p class="text-center text-sm text-base-content/70">Loading library…</p>
+		{:else if mediaPickerItemsVm.length > 0}
+			<p class="text-xs font-medium text-base-content/70">Or choose from library</p>
+			<div class="grid max-h-64 grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-4">
 				{#each mediaPickerItemsVm as item (item.id)}
 					<button
 						type="button"
-						class="overflow-hidden rounded-lg border border-base-300 bg-base-100 hover:ring-2 hover:ring-primary"
+						class="overflow-hidden rounded-lg border border-base-300 bg-base-100 hover:ring-2 hover:ring-primary disabled:opacity-50"
+						disabled={mediaPickerBusy}
 						onclick={() => onSelectMediaItem(item)}
 					>
 						<img
@@ -468,6 +515,10 @@
 					</button>
 				{/each}
 			</div>
+		{:else if !mediaPickerLoading}
+			<p class="text-center text-xs text-base-content/60">
+				No images in the library yet — upload above to add one.
+			</p>
 		{/if}
 	</Dialog.Content>
 </Dialog.Root>

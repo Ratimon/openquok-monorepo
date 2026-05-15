@@ -47,20 +47,27 @@ Store the secret in your server-side secret manager / env, not in the browser or
 
 The redirect URL must match the server that will receive the OAuth callback.
 
-### Hosted CLI auth server (Openquok-operated)
+### Hosted CLI device flow (Openquok-operated)
 
-If the hosted device-flow auth server is deployed at <Badge text="https://cli-auth.openquok.com" variant="new" />, create the OAuth app with:
+Openquok production splits the device flow:
+
+- **CLI API:** <Badge text="https://cli-auth.openquok.com" variant="new" /> (<Badge text="SERVER_URL" variant="envBackend" />)
+- **Browser:** <Badge text="https://www.openquok.com/cli/device/verify" variant="new" /> and callback below
+
+Create the OAuth app with this redirect URL:
 
 ```text
-https://cli-auth.openquok.com/device/callback
+https://www.openquok.com/cli/device/callback
 ```
 
 Then set the auth server env vars:
 
 - <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" />
 - <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" />
+- <Badge text="SERVER_URL=https://cli-auth.openquok.com" variant="envBackend" />
+- <Badge text="BROWSER_ORIGIN=https://www.openquok.com" variant="envBackend" />
 
-These belong in the **auth server** environment (for example `agent/server/.env.production.local` synced to Vercel), not in the CLI.
+Also set <Badge text="CLI_AUTH_SERVER_URL=https://cli-auth.openquok.com" variant="envBackend" /> on the **web** Vercel project. These belong in server env (synced from <Badge text="agent/server/.env.production.local" variant="envBackend" /> and <Badge text="web/.env.production.local" variant="envBackend" />), not in the CLI.
 
 <Callout type="note" title="CLI users do not need the secret">
 CLI users run <code>openquok auth:login</code> and never see the OAuth client secret. The secret lives only on the auth server.
@@ -80,15 +87,19 @@ For the auth server configuration details, see <a href="/docs/configuration-agen
 
 #### Redirect URL examples (self-hosted)
 
-- **Production** (public domain):
+- **Production** (split web + API, recommended):
 
 ```text
-https://cli-auth.openquok.com/device/callback
+https://your-web.example.com/cli/device/callback
 ```
 
-- Replace <Badge text="cli-auth.openquok.com" variant="default" /> with your own auth server hostname when self-hosting.
+- **Production** (single host — browser and API on same origin):
 
-- **Local development** (default local server):
+```text
+https://auth.example.com/device/callback
+```
+
+- **Local development** (auth server only, default):
 
 ```text
 http://localhost:3111/device/callback

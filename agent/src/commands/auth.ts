@@ -26,7 +26,19 @@ function buildVerificationUriComplete(verificationUri: string, userCode: string)
   return u.toString();
 }
 
-/** Ensure we only open URLs from the configured auth server origin and avoid HTTP downgrade outside localhost. */
+function isLocalHostname(hostname: string): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1" || hostname === "[::1]";
+}
+
+function isTrustedOpenquokBrowserOrigin(verifyUrl: URL): boolean {
+  const host = verifyUrl.hostname;
+  const onOpenquok =
+    host === "openquok.com" || host.endsWith(".openquok.com") || isLocalHostname(host);
+  if (!onOpenquok) return false;
+  return verifyUrl.pathname === "/cli/device/verify" || verifyUrl.pathname === "/device/verify";
+}
+
+/** Ensure verification_uri is from the auth server or a trusted Openquok browser origin; block HTTP downgrade outside localhost. */
 function assertVerificationUriSafe(authServerBase: string, verificationUri: string): void {
   let baseUrl: URL;
   let verifyUrl: URL;
@@ -37,18 +49,19 @@ function assertVerificationUriSafe(authServerBase: string, verificationUri: stri
     throw new Error("Invalid auth server base URL or verification_uri from server");
   }
 
-  if (verifyUrl.origin !== baseUrl.origin) {
-    throw new Error(
-      `Auth server returned verification_uri on ${verifyUrl.origin}, expected ${baseUrl.origin}; refusing to continue (misconfiguration or unexpected redirect).`
-    );
-  }
-
   const host = verifyUrl.hostname;
-  const isLocal =
-    host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "[::1]";
+  const isLocal = isLocalHostname(host);
   if (verifyUrl.protocol !== "https:" && !isLocal) {
     throw new Error("verification_uri must use https unless the host is localhost or 127.0.0.1");
   }
+
+  if (verifyUrl.origin === baseUrl.origin) return;
+
+  if (isTrustedOpenquokBrowserOrigin(verifyUrl)) return;
+
+  throw new Error(
+    `Auth server returned verification_uri on ${verifyUrl.origin}, expected ${baseUrl.origin} or a trusted Openquok browser origin; refusing to continue (misconfiguration or unexpected redirect).`
+  );
 }
 
 async function waitForEnter(prompt: string): Promise<void> {
@@ -206,7 +219,10 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             const deadlineMs = Date.now() + code.expires_in * 1000;
             const token = await pollDeviceToken(base, code.device_code, code, deadlineMs);
 
-            await writeCredentialsFile({ apiKey: token.access_token });
+            await writeCredentialsFile({
+              apiKey: token.access_token,
+              ...(token.api_url ? { apiUrl: token.api_url } : {}),
+            });
             printJson({ success: true, stored: true, organization_id: token.organization_id, api_url: token.api_url });
             return;
           }
@@ -215,7 +231,10 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           const token = await pollDeviceToken(base, code.device_code, code, deadlineMs);
 
           if (token?.access_token) {
-            await writeCredentialsFile({ apiKey: token.access_token });
+            await writeCredentialsFile({
+              apiKey: token.access_token,
+              ...(token.api_url ? { apiUrl: token.api_url } : {}),
+            });
             printJson({ success: true, stored: true, organization_id: token.organization_id, api_url: token.api_url });
           }
         });

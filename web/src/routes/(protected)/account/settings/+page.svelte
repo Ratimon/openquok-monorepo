@@ -245,6 +245,7 @@
 			oauthPlaintextClientSecret={upsertOauthAppsPresenter.plaintextClientSecret}
 			bind:oauthMediaPickerOpen={upsertOauthAppsPresenter.mediaPickerOpen}
 			oauthMediaPickerLoading={upsertOauthAppsPresenter.mediaPickerLoading}
+			oauthMediaPickerUploadBusy={upsertOauthAppsPresenter.mediaPickerUploadBusy}
 			oauthMediaPickerItemsVm={upsertOauthAppsPresenter.mediaPickerItemsVm}
 			bind:oauthConfirmRotateOpen={upsertOauthAppsPresenter.confirmRotateOpen}
 			bind:oauthConfirmDeleteOpen={upsertOauthAppsPresenter.confirmDeleteOpen}
@@ -264,6 +265,7 @@
 			onOauthCancelDeleteConfirm={() => upsertOauthAppsPresenter.cancelDeleteConfirm()}
 			onOauthSetMediaPickerOpen={(o) => upsertOauthAppsPresenter.setMediaPickerOpen(o)}
 			onOauthSelectMediaItem={(vm) => upsertOauthAppsPresenter.selectMediaItem(vm)}
+			onOauthUploadMediaPickerFiles={(files) => upsertOauthAppsPresenter.uploadMediaPickerFiles(files)}
 			onCopy={copyToClipboard}
 			bind:developerTab
 		/>

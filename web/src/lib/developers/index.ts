@@ -1,7 +1,7 @@
 import type { OAuthAppsConfig } from '$lib/developers/OAuthApps.repository.svelte';
 
 import { httpGateway } from '$lib/core/index';
-import { getMediaPresenter } from '$lib/medias';
+import { getMediaPresenter, mediaRepository } from '$lib/medias';
 import { workspaceSettingsPresenter } from '$lib/settings';
 import { OAuthAppsRepository } from '$lib/developers/OAuthApps.repository.svelte';
 import { UpsertOAuthAppsPresenter } from '$lib/developers/UpsertOAuthApp.presenter.svelte';
@@ -23,7 +23,8 @@ export const oauthAppsRepository = new OAuthAppsRepository(httpGateway, oauthApp
 export const upsertOauthAppsPresenter = new UpsertOAuthAppsPresenter(
 	oauthAppsRepository,
 	workspaceSettingsPresenter,
-	getMediaPresenter
+	getMediaPresenter,
+	mediaRepository
 );
 
 export { OAuthAppsRepository, toOauthAppPm } from '$lib/developers/OAuthApps.repository.svelte';

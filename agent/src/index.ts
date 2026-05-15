@@ -2,7 +2,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 import { OpenquokApi } from "./api";
-import { getConfig, readCredentialsFile } from "./config";
+import { resolveOpenquokConfig } from "./config";
 import { printErrorJson } from "./output";
 import { registerAllCommands } from "./commands";
 
@@ -15,15 +15,10 @@ function stripNpmRunArgvPassthrough(args: string[]): string[] {
 }
 
 async function buildApi(): Promise<OpenquokApi> {
-  const base = getConfig();
-  // Stored credentials (from `openquok auth:login`) take priority over `OPENQUOK_API_KEY`,
-  // an active OAuth2 session is not silently
-  // overridden by an env var left in the shell.
-  const creds = await readCredentialsFile();
-  if (creds?.apiKey) {
-    return new OpenquokApi({ ...base, apiKey: creds.apiKey });
-  }
-  return new OpenquokApi(base);
+  // Stored credentials (from `openquok auth:login`) take priority over `OPENQUOK_API_KEY` so an
+  // active OAuth2 session is not silently overridden by an env var left in the shell. `api_url`
+  // from device login is persisted when `OPENQUOK_API_URL` is unset (typical local dev).
+  return new OpenquokApi(await resolveOpenquokConfig());
 }
 
 async function main(): Promise<void> {
@@ -31,22 +26,25 @@ async function main(): Promise<void> {
 
   const cliArgs = stripNpmRunArgvPassthrough(hideBin(process.argv));
 
-  await registerAllCommands(
+  const cli = registerAllCommands(
     yargs(cliArgs)
       .scriptName("openquok")
       .strict()
       .fail((msg: string, err: Error | undefined, y: any) => {
-        if (err) {
-          printErrorJson(err);
-          return;
-        }
+        if (err) return;
         printErrorJson(new Error(msg || y.help()));
       }),
     ctx
   )
     .demandCommand(1)
-    .help()
-    .parseAsync();
+    .help();
+
+  if (cliArgs.length === 0) {
+    cli.showHelp("log");
+    return;
+  }
+
+  await cli.parseAsync();
 }
 
 main().catch((err) => {

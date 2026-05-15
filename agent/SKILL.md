@@ -53,11 +53,40 @@ Before doing anything else, check auth status:
 openquok auth:status
 ```
 
-If not authenticated, either:
-1. **OAuth2 (device flow):** `openquok auth:login`
-2. **API Key:** `export OPENQUOK_API_KEY=your_api_key` (or `openquok auth:login --apiKey "…"` to store in `~/.openquok/credentials.json`)
+If not authenticated, choose one path:
 
-**Do NOT proceed with any other commands until authentication is confirmed.**
+### Prefer API key for OpenClaw, Telegram, and other headless agents
+
+**Recommended for agents** (no browser on the host, no device-flow polling):
+
+```bash
+export OPENQUOK_API_KEY=opo_your_key_here
+# or persist:
+openquok auth:login --apiKey "opo_…"
+```
+
+Create the key in the [Openquok dashboard](https://www.openquok.com/) (signed-in workspace → developer / API settings).
+
+### OAuth2 device flow (interactive or remote browser)
+
+Use when the user can complete a browser step on **phone or desktop** while the CLI (or agent) keeps polling.
+
+**Agents: never invent a verification URL or user code.** Run the real command and use only values from its output:
+
+```bash
+openquok auth:login --json
+```
+
+The first JSON object includes `verification_uri_complete` (link with `?code=` prefilled). Give the user **that exact link** — not a bare `/device/verify` URL and not a made-up code.
+
+**What the user does in the browser (two steps):**
+
+1. **CLI device login** (production: `https://www.openquok.com/cli/device/verify` — API stays on `https://cli-auth.openquok.com`) — Open the prefilled link (or enter the code from the CLI output) and click **Continue**. If you see *"Invalid or expired code"*, the code was never registered, already used, or expired (~15 minutes) — **start a new** `openquok auth:login` on the machine that is polling; pre-login at [openquok.com](https://www.openquok.com/) does **not** fix this step.
+2. **Openquok web app** ([openquok.com](https://www.openquok.com/)) — After the code is accepted, the browser redirects here. **Sign in** if prompted (mobile is fine), pick the workspace, then **Authorize** the CLI application. You can close the tab when you see success; the CLI finishes polling automatically.
+
+For a normal terminal session, `openquok auth:login` (without `--json`) is enough.
+
+**Do NOT proceed with any other commands until authentication is confirmed** (`openquok auth:status` succeeds).
 
 ---
 
@@ -108,21 +137,26 @@ openquok posts:connect <post-id> --release-id "<provider-release-id>"
 
 ### Authentication
 
-**Option 1: OAuth2 (recommended)**
+**Option 1: API key (recommended for agents / OpenClaw / CI)**
 
 ```bash
-openquok auth:login
+export OPENQUOK_API_KEY=opo_your_api_key_here
+openquok auth:login --apiKey "opo_…"   # optional: write ~/.openquok/credentials.json
+openquok auth:status
+```
+
+**Option 2: OAuth2 device flow**
+
+```bash
+openquok auth:login              # interactive terminal
+openquok auth:login --json       # machine-readable; use in OpenClaw / automation
 openquok auth:status
 openquok auth:logout
 ```
 
 Device-flow tokens are stored in `~/.openquok/credentials.json`. **Stored credentials take priority over `OPENQUOK_API_KEY`** when both are set; run `auth:logout` if you need the env var to win.
 
-**Option 2: API key**
-
-```bash
-export OPENQUOK_API_KEY=your_api_key_here
-```
+See [Authentication Required](#-authentication-required) for the full browser flow and troubleshooting *Invalid or expired code*.
 
 **Optional overrides**
 
@@ -502,18 +536,19 @@ External media CLIs can still fit upstream of `upload-from-url` when their outpu
 
 ## Common gotchas
 
-1. **Not authenticated** — Run `openquok auth:login` or export `OPENQUOK_API_KEY` before API commands.
-2. **Wrong integration UUID** — Refresh with `integrations:list`; IDs are per workspace.
-3. **Settings mismatch** — Check `integrations:settings`  for required fields.
-4. **Media skipped upload** — Rule 2: every `-m` / JSON `media[]` entry needs `id` + `path` from `upload` / `upload-from-url`.
-5. **Shell JSON quoting** — Prefer single quotes around JSON literals: `--settings '{"post_type":"post"}'`.
-6. **Missing schedule** — Flag-based `posts:create` requires `-s` unless `--json` supplies `scheduledAt`.
-7. **Unknown tool** — `integrations:trigger` only runs methods listed under `output.tools`.
-8. **Character limits** — Read `output.maxLength` from `integrations:settings`.
-9. **Provider gaps** — `output.tools` may be empty for a Meta channel until a method is allow-listed; do not assume a tool exists without checking `integrations:settings`.
-10. **Thread delay units** — `-d` on `posts:create` is **milliseconds**, not minutes.
-11. **Analytics window** — Only `7`, `30`, or `90` days.
-12. **Env vs disk credentials** — Stored login wins over `OPENQUOK_API_KEY` until `auth:logout`.
+1. **Not authenticated** — Run `openquok auth:login` or export `OPENQUOK_API_KEY` before API commands. For OpenClaw/Telegram, prefer an API key; for OAuth, run `auth:login --json` and share only `verification_uri_complete` from stdout (never fabricate codes).
+2. **OAuth "Invalid or expired code"** — The user code is missing from the auth server (expired ~15m, typo, or agent invented the link). Re-run `openquok auth:login` while the CLI polls; use the prefilled `verification_uri_complete` URL. Signing in at openquok.com alone does not validate the device code — that happens only after step 1 succeeds and the browser redirects to openquok.com.
+3. **Wrong integration UUID** — Refresh with `integrations:list`; IDs are per workspace.
+4. **Settings mismatch** — Check `integrations:settings`  for required fields.
+5. **Media skipped upload** — Rule 2: every `-m` / JSON `media[]` entry needs `id` + `path` from `upload` / `upload-from-url`.
+6. **Shell JSON quoting** — Prefer single quotes around JSON literals: `--settings '{"post_type":"post"}'`.
+7. **Missing schedule** — Flag-based `posts:create` requires `-s` unless `--json` supplies `scheduledAt`.
+8. **Unknown tool** — `integrations:trigger` only runs methods listed under `output.tools`.
+9. **Character limits** — Read `output.maxLength` from `integrations:settings`.
+10. **Provider gaps** — `output.tools` may be empty for a Meta channel until a method is allow-listed; do not assume a tool exists without checking `integrations:settings`.
+11. **Thread delay units** — `-d` on `posts:create` is **milliseconds**, not minutes.
+12. **Analytics window** — Only `7`, `30`, or `90` days.
+13. **Env vs disk credentials** — Stored login wins over `OPENQUOK_API_KEY` until `auth:logout`.
 
 ---
 

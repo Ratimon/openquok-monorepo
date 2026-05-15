@@ -30,6 +30,7 @@
 		oauthPlaintextClientSecret: string | null;
 		oauthMediaPickerOpen: boolean;
 		oauthMediaPickerLoading: boolean;
+		oauthMediaPickerUploadBusy: boolean;
 		oauthMediaPickerItemsVm: MediaLibraryItemViewModel[];
 		oauthConfirmRotateOpen: boolean;
 		oauthConfirmDeleteOpen: boolean;
@@ -50,6 +51,7 @@
 		onOauthCancelDeleteConfirm: () => void;
 		onOauthSetMediaPickerOpen: (open: boolean) => void;
 		onOauthSelectMediaItem: (vm: MediaLibraryItemViewModel) => void;
+		onOauthUploadMediaPickerFiles: (files: FileList | null) => void | Promise<void>;
 
 		onCopy: (text: string) => void | Promise<void>;
 		developerTab?: 'access' | 'apps';
@@ -79,6 +81,7 @@
 		oauthPlaintextClientSecret,
 		oauthMediaPickerOpen = $bindable(false),
 		oauthMediaPickerLoading,
+		oauthMediaPickerUploadBusy,
 		oauthMediaPickerItemsVm,
 		oauthConfirmRotateOpen = $bindable(false),
 		oauthConfirmDeleteOpen = $bindable(false),
@@ -99,6 +102,7 @@
 		onOauthCancelDeleteConfirm,
 		onOauthSetMediaPickerOpen,
 		onOauthSelectMediaItem,
+		onOauthUploadMediaPickerFiles,
 		onCopy,
 		developerTab = $bindable<'access' | 'apps'>('access')
 	}: Props = $props();
@@ -171,6 +175,7 @@
 			plaintextClientSecret={oauthPlaintextClientSecret}
 			bind:mediaPickerOpen={oauthMediaPickerOpen}
 			mediaPickerLoading={oauthMediaPickerLoading}
+			mediaPickerUploadBusy={oauthMediaPickerUploadBusy}
 			mediaPickerItemsVm={oauthMediaPickerItemsVm}
 			bind:confirmRotateOpen={oauthConfirmRotateOpen}
 			bind:confirmDeleteOpen={oauthConfirmDeleteOpen}
@@ -190,6 +195,7 @@
 			onCancelDeleteConfirm={onOauthCancelDeleteConfirm}
 			onSetMediaPickerOpen={onOauthSetMediaPickerOpen}
 			onSelectMediaItem={onOauthSelectMediaItem}
+			onUploadMediaPickerFiles={onOauthUploadMediaPickerFiles}
 			onCopy={onCopy}
 		/>
 	{/if}

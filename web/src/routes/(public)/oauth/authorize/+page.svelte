@@ -24,6 +24,22 @@
 		page.data?.authStatus === AuthStatus.AUTHENTICATED || page.data?.authStatus === 'authenticated'
 	);
 
+	const authChecking = $derived(
+		page.data?.authStatus === AuthStatus.UNKNOWN ||
+			page.data?.authStatus === AuthStatus.CHECKING ||
+			page.data?.authStatus === 'unknown' ||
+			page.data?.authStatus === 'checking'
+	);
+
+	/** True until auth is known and the OAuth app metadata request has finished. */
+	const isPreparing = $derived(
+		Boolean(clientId) &&
+			responseType === 'code' &&
+			!errorMessage &&
+			!app &&
+			(authChecking || loading)
+	);
+
 	type AuthorizeGetResponse = {
 		app: {
 			name: string;
@@ -89,7 +105,21 @@
 				}
 			}
 		} catch (err) {
-			errorMessage = err instanceof Error ? err.message : 'Failed to load authorization request.';
+			if (err instanceof ApiError) {
+				const body = err.data as { message?: string; error?: { message?: string } } | undefined;
+				const apiMsg = body?.message ?? body?.error?.message;
+				if (apiMsg === 'Invalid client_id') {
+					errorMessage =
+						'This OAuth application is not registered for the API your browser is using. ' +
+						'For local CLI auth: sign in on the same Supabase project as backend/.env.development.local, ' +
+						'create a developer OAuth app with callback http://localhost:3111/device/callback, ' +
+						'and set OPENQUOK_OAUTH_CLIENT_ID / OPENQUOK_OAUTH_CLIENT_SECRET in agent/server/.env.development.local.';
+				} else {
+					errorMessage = apiMsg ?? err.message;
+				}
+			} else {
+				errorMessage = err instanceof Error ? err.message : 'Failed to load authorization request.';
+			}
 			app = null;
 		} finally {
 			loading = false;
@@ -152,14 +182,10 @@
 	}
 
 	$effect(() => {
-		const authStatus = page.data?.authStatus;
-		if (!clientId || responseType !== 'code') return;
-		if (
-			authStatus === AuthStatus.UNKNOWN ||
-			authStatus === AuthStatus.CHECKING ||
-			authStatus === 'unknown' ||
-			authStatus === 'checking'
-		) {
+		if (!clientId || authChecking) return;
+		if (responseType !== 'code') {
+			errorMessage = 'Only response_type=code is supported';
+			app = null;
 			return;
 		}
 		void loadOAuthAuthorizePage();
@@ -172,18 +198,41 @@
 
 <div class="mx-auto max-w-xl py-10">
 	<div class="rounded-lg border border-base-300 bg-base-100 p-6">
-		<img src={url('/icon.svg')} alt="" width="48" height="48" class="mb-4 h-12 w-12" />
-		<h1 class="text-lg font-semibold text-base-content">Authorize application</h1>
+		{#if isPreparing}
+			<div
+				class="flex min-h-[220px] flex-col items-center justify-center gap-4 py-6 text-center"
+				role="status"
+				aria-live="polite"
+				aria-busy="true"
+			>
+				<img src={url('/icon.svg')} alt="" width="48" height="48" class="h-12 w-12 opacity-80" />
+				<span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
+				<div class="space-y-2">
+					<h1 class="text-lg font-semibold text-base-content">Please wait</h1>
+					<p class="max-w-sm text-sm text-base-content/70">
+						{#if authChecking}
+							Checking your session…
+						{:else}
+							Loading this authorization request…
+						{/if}
+					</p>
+					<p class="text-base-content/55 max-w-sm text-xs">
+						The approve screen will appear here in a moment. You can keep this tab open until you
+						finish — then return to your terminal or CLI.
+					</p>
+				</div>
+			</div>
+		{:else}
+			<img src={url('/icon.svg')} alt="" width="48" height="48" class="mb-4 h-12 w-12" />
+			<h1 class="text-lg font-semibold text-base-content">Authorize application</h1>
 
-		{#if !clientId}
+			{#if !clientId}
 			<p class="mt-2 text-sm text-base-content/70">
 				Missing <span class="font-mono">client_id</span>. This link is not a valid OAuth authorization request.
 			</p>
 			<p class="mt-4">
 				<a class="link link-primary" href={accountHref}>Back to account</a>
 			</p>
-		{:else if loading}
-			<p class="mt-2 text-sm text-base-content/70">Loading authorization request…</p>
 		{:else if errorMessage}
 			<div class="mt-4 rounded-lg border border-error/40 bg-error/10 p-3 text-sm text-base-content">
 				{errorMessage}
@@ -255,6 +304,7 @@
 		{:else}
 			<p class="mt-2 text-sm text-base-content/70">Invalid authorization request.</p>
 			<p class="mt-4"><a class="link link-primary" href={accountHref}>Back to account</a></p>
+		{/if}
 		{/if}
 	</div>
 </div>

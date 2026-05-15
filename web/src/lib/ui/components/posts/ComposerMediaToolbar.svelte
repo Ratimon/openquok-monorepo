@@ -256,7 +256,9 @@
 			onOpenAutoFocus={(e) => e.preventDefault()}
 		>
 			<Dialog.Header>
-				<Dialog.Title>Add images</Dialog.Title>
+				<Dialog.Title>
+					Add images
+				</Dialog.Title>
 				<Dialog.Description class="text-base-content/75 text-sm">
 					Drag and drop images here, or click the area to browse. Files upload as soon as they are added;
 					you do not need to save the set first.

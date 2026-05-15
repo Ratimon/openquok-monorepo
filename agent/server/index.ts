@@ -18,7 +18,8 @@ async function start() {
   loadEnv();
 
   // Important: `app.ts` reads env at module load time, so import it only after dotenv.
-  const { ensureInitialized, handleRequest, PORT, SERVER_URL, startCleanupInterval } = await import("./app.js");
+  const { ensureInitialized, deviceBrowserPath, handleRequest, PORT, SERVER_URL, startCleanupInterval } =
+    await import("./app.js");
   await ensureInitialized();
 
   if (!process.env.VERCEL) {
@@ -33,7 +34,7 @@ async function start() {
     // eslint-disable-next-line no-console
     console.log(`Openquok CLI auth server running on ${SERVER_URL}`);
     // eslint-disable-next-line no-console
-    console.log(`OAuth callback URL (configure in Openquok OAuth App): ${SERVER_URL}/device/callback`);
+    console.log(`OAuth callback URL (configure in Openquok OAuth App): ${deviceBrowserPath("callback")}`);
   });
 }
 

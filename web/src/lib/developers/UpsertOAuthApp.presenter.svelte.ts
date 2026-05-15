@@ -1,6 +1,7 @@
 import type { OAuthAppsRepository, OauthAppProgrammerModel } from '$lib/developers/OAuthApps.repository.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import type { GetMediaPresenter, MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
+import type { MediaRepository } from '$lib/medias/Media.repository.svelte';
 
 export enum OAuthAppsPresenterStatus {
 	IDLE = 'IDLE',
@@ -59,6 +60,7 @@ export class UpsertOAuthAppsPresenter {
 
 	public mediaPickerOpen = $state(false);
 	public mediaPickerLoading = $state(false);
+	public mediaPickerUploadBusy = $state(false);
 	public mediaPickerItemsVm = $state<MediaLibraryItemViewModel[]>([]);
 
 	public confirmRotateOpen = $state(false);
@@ -73,7 +75,8 @@ export class UpsertOAuthAppsPresenter {
 	constructor(
 		private readonly oauthAppsRepository: OAuthAppsRepository,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
-		private readonly getMediaPresenter: GetMediaPresenter
+		private readonly getMediaPresenter: GetMediaPresenter,
+		private readonly mediaRepository: MediaRepository
 	) {}
 
 	get currentOrganizationId(): string | null {
@@ -167,13 +170,69 @@ export class UpsertOAuthAppsPresenter {
 		const orgId = this.currentOrganizationId;
 		if (!orgId) return;
 		this.mediaPickerOpen = true;
+		await this.refreshMediaPickerItems();
+	}
+
+	private async refreshMediaPickerItems(): Promise<void> {
+		const orgId = this.currentOrganizationId;
+		if (!orgId) {
+			this.mediaPickerItemsVm = [];
+			return;
+		}
 		this.mediaPickerLoading = true;
-		this.mediaPickerItemsVm = [];
 		try {
 			const listVm = await this.getMediaPresenter.loadMediaLibraryListVm(orgId, 1, 60);
 			this.mediaPickerItemsVm = listVm.results.filter((m) => m.kind === 'image');
 		} finally {
 			this.mediaPickerLoading = false;
+		}
+	}
+
+	public async uploadMediaPickerFiles(files: FileList | null): Promise<void> {
+		const orgId = this.currentOrganizationId;
+		if (!orgId) {
+			this.pushToast('Select a workspace first.', true);
+			return;
+		}
+		if (!files?.length) return;
+
+		const imageFiles = Array.from(files).filter((f) => f.type.startsWith('image/'));
+		if (!imageFiles.length) {
+			this.pushToast('Upload images only.', true);
+			return;
+		}
+
+		this.mediaPickerUploadBusy = true;
+		try {
+			let lastPath: string | null = null;
+			for (const file of imageFiles) {
+				const result = await this.mediaRepository.uploadMedia(file, orgId);
+				if (!result.success) {
+					this.pushToast(result.message ?? 'Upload failed.', true);
+					return;
+				}
+				lastPath = result.data.filePath;
+			}
+
+			await this.refreshMediaPickerItems();
+
+			if (imageFiles.length === 1 && lastPath) {
+				const match = this.mediaPickerItemsVm.find(
+					(m) => m.path === lastPath || m.virtualPath === lastPath
+				);
+				if (match) {
+					this.selectMediaItem(match);
+					this.pushToast('Image uploaded and selected.', false);
+					return;
+				}
+			}
+
+			this.pushToast(
+				imageFiles.length === 1 ? 'Image uploaded.' : `${imageFiles.length} images uploaded.`,
+				false
+			);
+		} finally {
+			this.mediaPickerUploadBusy = false;
 		}
 	}
 

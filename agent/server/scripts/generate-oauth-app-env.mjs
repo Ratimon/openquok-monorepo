@@ -75,7 +75,7 @@ async function main() {
   const orgId = readArg("organizationId") ?? process.env.OPENQUOK_ORGANIZATION_ID;
 
   const redirectUrl =
-    readArg("redirectUrl") ?? process.env.OPENQUOK_OAUTH_REDIRECT_URL ?? "https://cli-auth.openquok.com/device/callback";
+    readArg("redirectUrl") ?? process.env.OPENQUOK_OAUTH_REDIRECT_URL ?? "https://www.openquok.com/cli/device/callback";
   const name = readArg("name") ?? process.env.OPENQUOK_OAUTH_APP_NAME ?? "Openquok CLI Auth Server";
 
   const rotate = hasFlag("rotate");

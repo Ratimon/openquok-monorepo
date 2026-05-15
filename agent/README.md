@@ -42,7 +42,7 @@ pnpm add -g @openquok/auto-cli
 openquok auth:login
 ```
 
-This uses a **device flow** via an auth helper server (see `agent/server`). The CLI will print a one-time code and a verification URL, then poll until the user completes authorization. The resulting access token is stored in `~/.openquok/credentials.json`.
+This uses a **device flow** via an auth helper server (see `agent/server`). The CLI will print a one-time code and a verification URL, then poll until the user completes authorization. The resulting access token and API base URL (when returned by the auth server) are stored in `~/.openquok/credentials.json`.
 
 By default the CLI uses the hosted device-flow server at `https://cli-auth.openquok.com`. For **local development** of `agent/server`, point the CLI at your machine:
 
