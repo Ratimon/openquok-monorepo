@@ -37,7 +37,8 @@ async function main(): Promise<void> {
     ctx
   )
     .demandCommand(1)
-    .help();
+    // Global `--help` / `-h`: customize the Options table text with `.help(optionName, description)` (yargs).
+    .help("help", "Show command list and options");
 
   if (cliArgs.length === 0) {
     cli.showHelp("log");

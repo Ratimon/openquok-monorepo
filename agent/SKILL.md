@@ -67,7 +67,7 @@ openquok auth:login --apiKey "opo_…"
 
 Create the key in the [Openquok dashboard](https://www.openquok.com/) (signed-in workspace → developer / API settings).
 
-### OAuth2 device flow (interactive or remote browser)
+### OAuth2 device flow (remote browser; use `--json` from agents)
 
 Use when the user can complete a browser step on **phone or desktop** while the CLI (or agent) keeps polling.
 
@@ -81,10 +81,10 @@ The first JSON object includes `verification_uri_complete` (link with `?code=` p
 
 **What the user does in the browser (two steps):**
 
-1. **CLI device login** (production: `https://www.openquok.com/cli/device/verify` — API stays on `https://cli-auth.openquok.com`) — Open the prefilled link (or enter the code from the CLI output) and click **Continue**. If you see *"Invalid or expired code"*, the code was never registered, already used, or expired (~15 minutes) — **start a new** `openquok auth:login` on the machine that is polling; pre-login at [openquok.com](https://www.openquok.com/) does **not** fix this step.
+1. **CLI device login** (production: `https://www.openquok.com/cli/device/verify` — API stays on `https://cli-auth.openquok.com`) — Open the prefilled link (or enter the code from the CLI output) and click **Continue**. If you see *"Invalid or expired code"*, the code was never registered, already used, or expired (~15 minutes) — **start a new** `openquok auth:login --json` on the machine that is polling; pre-login at [openquok.com](https://www.openquok.com/) does **not** fix this step.
 2. **Openquok web app** ([openquok.com](https://www.openquok.com/)) — After the code is accepted, the browser redirects here. **Sign in** if prompted (mobile is fine), pick the workspace, then **Authorize** the CLI application. You can close the tab when you see success; the CLI finishes polling automatically.
 
-For a normal terminal session, `openquok auth:login` (without `--json`) is enough.
+For a human at a local terminal only, `openquok auth:login` without `--json` is optional convenience — agents must use `--json` or an API key (see Essential Commands).
 
 **Do NOT proceed with any other commands until authentication is confirmed** (`openquok auth:status` succeeds).
 
@@ -105,7 +105,7 @@ The fundamental pattern for using the Openquok CLI (`openquok` from `@openquok/a
 ```bash
 # 1. Authenticate
 openquok auth:status
-# If not authenticated: openquok auth:login
+# If not authenticated (agents): openquok auth:login --json  # or API key above
 
 # 2. Discover
 openquok integrations:list
@@ -147,12 +147,14 @@ openquok auth:status
 
 **Option 2: OAuth2 device flow**
 
+**Agents (OpenClaw, Hermes, CI, SSH, any non-interactive host):** use `--json` only — it prints the device payload and polling result on stdout, does not open a browser on the agent machine, and matches what you must forward to the user (see [Authentication Required](#-authentication-required))
 ```bash
-openquok auth:login              # interactive terminal
-openquok auth:login --json       # machine-readable; use in OpenClaw / automation
+openquok auth:login --json
 openquok auth:status
 openquok auth:logout
 ```
+
+**Humans on a local machine with a TTY:** you may use `openquok auth:login` without `--json` (instructions on stderr; optional browser open after Enter). Do **not** suggest bare interactive login for remote agents — they should use `--json` or an API key.
 
 Device-flow tokens are stored in `~/.openquok/credentials.json`. **Stored credentials take priority over `OPENQUOK_API_KEY`** when both are set; run `auth:logout` if you need the env var to win.
 
@@ -536,8 +538,8 @@ External media CLIs can still fit upstream of `upload-from-url` when their outpu
 
 ## Common gotchas
 
-1. **Not authenticated** — Run `openquok auth:login` or export `OPENQUOK_API_KEY` before API commands. For OpenClaw/Telegram, prefer an API key; for OAuth, run `auth:login --json` and share only `verification_uri_complete` from stdout (never fabricate codes).
-2. **OAuth "Invalid or expired code"** — The user code is missing from the auth server (expired ~15m, typo, or agent invented the link). Re-run `openquok auth:login` while the CLI polls; use the prefilled `verification_uri_complete` URL. Signing in at openquok.com alone does not validate the device code — that happens only after step 1 succeeds and the browser redirects to openquok.com.
+1. **Not authenticated** — Run `openquok auth:login --json` (or export `OPENQUOK_API_KEY`) before API commands. For OpenClaw/Telegram, prefer an API key; for OAuth, share only `verification_uri_complete` from stdout (never fabricate codes).
+2. **OAuth "Invalid or expired code"** — The user code is missing from the auth server (expired ~15m, typo, or agent invented the link). Re-run `openquok auth:login --json` while the CLI polls; use the prefilled `verification_uri_complete` URL. Signing in at openquok.com alone does not validate the device code — that happens only after step 1 succeeds and the browser redirects to openquok.com.
 3. **Wrong integration UUID** — Refresh with `integrations:list`; IDs are per workspace.
 4. **Settings mismatch** — Check `integrations:settings`  for required fields.
 5. **Media skipped upload** — Rule 2: every `-m` / JSON `media[]` entry needs `id` + `path` from `upload` / `upload-from-url`.
@@ -555,9 +557,9 @@ External media CLIs can still fit upstream of `upload-from-url` when their outpu
 ## Quick reference
 
 ```bash
-# Authenticate first
+# Authenticate first (agents: --json or API key; humans locally may omit --json)
 openquok auth:status
-openquok auth:login
+openquok auth:login --json
 openquok auth:logout
 export OPENQUOK_API_KEY=opo_...
 

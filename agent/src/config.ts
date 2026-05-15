@@ -16,16 +16,27 @@ export type StoredCredentials = {
 /** Public device-flow auth server (hosted). Override with `OPENQUOK_AUTH_SERVER` for local or self-hosted. */
 export const OPENQUOK_DEFAULT_AUTH_SERVER = "https://cli-auth.openquok.com";
 
-const DEFAULT_API_URL = "https://api.openquok.com";
+/** Public API origin (hosted). Override with `OPENQUOK_API_URL` for local or self-hosted. */
+export const OPENQUOK_DEFAULT_API_URL = "https://api.openquok.com";
 
 function getEnv(name: string): string | undefined {
   const v = process.env[name];
   return typeof v === "string" && v.trim() ? v.trim() : undefined;
 }
 
+/** Exposed for `config:show` (which API URL source wins). */
+export function readOpenquokApiUrlEnv(): string | undefined {
+  return getEnv("OPENQUOK_API_URL");
+}
+
+/** Exposed for `config:show` (which auth server URL source wins). */
+export function readOpenquokAuthServerEnv(): string | undefined {
+  return getEnv("OPENQUOK_AUTH_SERVER");
+}
+
 export function getConfig(): OpenquokConfig {
   // Prefer explicit env vars, but fall back to an on-disk credentials file for local convenience.
-  const apiUrl = getEnv("OPENQUOK_API_URL") ?? DEFAULT_API_URL;
+  const apiUrl = getEnv("OPENQUOK_API_URL") ?? OPENQUOK_DEFAULT_API_URL;
   const apiKey = getEnv("OPENQUOK_API_KEY") ?? null;
   const authServerUrl = getEnv("OPENQUOK_AUTH_SERVER") ?? OPENQUOK_DEFAULT_AUTH_SERVER;
   return { apiUrl, apiKey, authServerUrl };

@@ -73,6 +73,14 @@ openquok auth:logout
 
 ## Commands
 
+### Config
+
+```bash
+openquok config:show
+```
+
+- Prints resolved `api_url` and `auth_server_url`, whether you match **hosted Openquok** (`deployment`: `openquok_cloud`) or a **custom / self-hosted** setup (`deployment`: `custom`), and where each value came from (`environment`, `credentials_file`, or `default`). Does not print secrets.
+
 ### Integrations
 
 ```bash
@@ -189,10 +197,11 @@ pnpm --filter ./agent start -- --help
 After adding or renaming commands, run these to confirm every group is wired into `registerAllCommands`:
 
 ```bash
-# 1. Top-level `--help` should list auth, integrations, posts, analytics, upload, and upload-from-url verbs
+# 1. Top-level `--help` should list config, auth, integrations, posts, analytics, upload, and upload-from-url verbs
 pnpm --filter ./agent cli -- --help
 
 # 2. Each command should respond to `--help` with its yargs `Examples:` block
+pnpm --filter ./agent cli -- config:show --help
 pnpm --filter ./agent cli -- analytics:platform --help
 pnpm --filter ./agent cli -- analytics:post --help
 pnpm --filter ./agent cli -- posts:status --help

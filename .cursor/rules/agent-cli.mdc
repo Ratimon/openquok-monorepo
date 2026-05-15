@@ -10,7 +10,7 @@ The programmatic CLI lives in `agent/`, published as `@openquok/auto-cli`. It ta
 
 ## Layout
 
-- **Entry** — `agent/src/index.ts`: `scriptName("openquok")`, `.strict()`, `.fail` → `printErrorJson`, `stripNpmRunArgvPassthrough` so `pnpm … cli -- <args>` works (leading `--` would otherwise confuse yargs).
+- **Entry** — `agent/src/index.ts`: `scriptName("openquok")`, `.strict()`, `.fail` → `printErrorJson`, `stripNpmRunArgvPassthrough` so `pnpm … cli -- <args>` works (leading `--` would otherwise confuse yargs). Global `--help` text uses `.help("help", "…")` (second argument is the description yargs prints in the Options table).
 - **HTTP client** — `agent/src/api.ts` (`OpenquokApi`): JSON helpers and multipart where needed. Only add methods for routes the CLI actually calls (see `public-api-surface-sync`).
 - **Commands** — `agent/src/commands/*.ts`: each file exports `registerXCommands: RegisterCommands` chaining `.command(...)` onto the shared `Argv`.
 - **Registration** — `agent/src/commands/index.ts` calls each `register*` in a stable order; new domains get a new module plus one line here.
