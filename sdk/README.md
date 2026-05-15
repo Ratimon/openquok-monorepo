@@ -13,7 +13,7 @@
 `@openquok/node-sdk` helps you automate Openquok 's social scheduling  from Node.js:
 
 - Create/schedule posts via the programmatic API
-- List posts / manage post groups
+- List posts and flip draft ↔ scheduled (`flipPostStatus`) without full group CRUD over the public API
 - Upload media (multipart) for use in posts
 - Manage programmatic integrations (list, connect URL, delete)
 
@@ -52,16 +52,21 @@ await openquok.post({
 });
 ```
 
-The available methods are:
+The available methods include:
 
-- `upload(file: Buffer, extension: string)` - Upload media via `POST {apiPrefix}/public/upload`
-- `post(body: PublicCreatePostDto)` - Create/schedule posts via `POST {apiPrefix}/public/posts`
-- `postList(filters: PublicListPostsQueryDto)` — List posts via `GET {apiPrefix}/public/posts/list` (`start`, `end`, optional `integrationIds`, optional `customerGroupId` channel-group UUID).
-- `getPostGroup(postGroup: string)` - Get a post group via `GET {apiPrefix}/public/posts/group/:postGroup`
-- `updatePostGroup(postGroup: string, body: PublicUpdatePostGroupDto)` - Update a post group via `PUT {apiPrefix}/public/posts/group/:postGroup`
-- `deletePostGroup(postGroup: string)` - Delete a post group via `DELETE {apiPrefix}/public/posts/group/:postGroup`
-- `integrations()` - Get a list of connected channels via `GET {apiPrefix}/public/integrations`
-- `deleteIntegrationChannel(id: string)` - Delete a connected channel via `DELETE {apiPrefix}/public/integrations/:id`
+- `upload(file: Buffer, extension: string)` — `POST {apiPrefix}/public/upload`
+- `uploadFromUrl(url: string)` — `POST {apiPrefix}/public/upload-from-url`
+- `post(body: PublicCreatePostDto)` — `POST {apiPrefix}/public/posts`
+- `postList(filters: PublicListPostsQueryDto)` — `GET {apiPrefix}/public/posts/list`
+- `getPost(postId: string)` — `GET {apiPrefix}/public/posts/:postId` (row id + parent `postGroup`)
+- `flipPostStatus(postId: string, body: PublicFlipPostStatusDto)` — `PUT {apiPrefix}/public/posts/:postId/status`
+- `deletePost(postId: string)` — `DELETE {apiPrefix}/public/posts/:postId` (`data.postId`, `data.postGroup`)
+- `getMissingContent(postId: string)` — `GET {apiPrefix}/public/posts/:postId/missing`
+- `updateReleaseId(postId: string, releaseId: string)` — `PUT {apiPrefix}/public/posts/:postId/release-id`
+- `getIntegrationAnalytics(integrationId, date)` / `getPostAnalytics(postId, date)` — analytics
+- `listNotifications(page?)` — notifications
+- `integrations()` — `GET {apiPrefix}/public/integrations`
+- `deleteIntegrationChannel(id: string)` — `DELETE {apiPrefix}/public/integrations/:id`
 
 Alternatively you can use the API with curl — check out our [docs](https://www.openquok.com/docs/getting-started-for-public-api).
 

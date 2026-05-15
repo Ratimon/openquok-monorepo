@@ -152,14 +152,16 @@ describe("Programmatic posts API", () => {
             expect(createRes.body?.success).toBe(true);
             const postGroup = createRes.body?.data?.postGroup as string;
             expect(postGroup).toBeDefined();
+            const postId = createRes.body?.data?.posts?.[0]?.id as string;
+            expect(postId).toBeDefined();
 
-            const groupRes = await supertest(app)
-                .get(`${publicPostsPath}/group/${postGroup}`)
+            const summaryRes = await supertest(app)
+                .get(`${publicPostsPath}/${postId}`)
                 .set("Authorization", `Bearer ${apiKey}`);
-            expect(groupRes.status).toBe(200);
-            expect(groupRes.body?.success).toBe(true);
-            expect(groupRes.body?.data?.postGroup).toBe(postGroup);
-            expect(groupRes.body?.data?.organizationId).toBe(orgId);
+            expect(summaryRes.status).toBe(200);
+            expect(summaryRes.body?.success).toBe(true);
+            expect(summaryRes.body?.data?.postGroup).toBe(postGroup);
+            expect(summaryRes.body?.data?.id).toBe(postId);
 
             const listRes = await supertest(app)
                 .get(`${publicPostsPath}/list`)
@@ -238,12 +240,13 @@ describe("Programmatic posts API", () => {
                 .set("Authorization", `Bearer ${apiKey}`);
             expect(deleteRes.status).toBe(200);
             expect(deleteRes.body?.success).toBe(true);
+            expect(deleteRes.body?.data?.postId).toBe(postId);
             expect(deleteRes.body?.data?.postGroup).toBe(postGroup);
 
-            const groupAfter = await supertest(app)
-                .get(`${publicPostsPath}/group/${postGroup}`)
+            const summaryAfter = await supertest(app)
+                .get(`${publicPostsPath}/${postId}`)
                 .set("Authorization", `Bearer ${apiKey}`);
-            expect(groupAfter.status).toBe(404);
+            expect(summaryAfter.status).toBe(404);
         }
     );
 

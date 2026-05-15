@@ -6,10 +6,9 @@ import { requireProgrammaticAuth } from "../../middlewares/programmaticAuth";
 import {
     validatePublicCreatePostBody,
     validatePublicFindSlotParams,
+    validatePublicFlipPostStatusRequest,
     validatePublicListPostsQuery,
-    validatePublicPostGroupParams,
     validatePublicPostIdParams,
-    validatePublicUpdatePostGroupBody,
     validatePublicUpdateReleaseIdRequest,
 } from "../../data/schemas/publicPostsSchemas";
 import { oauthAppService } from "../../services/index";
@@ -21,8 +20,8 @@ type PublicPostRouter = ReturnType<typeof Router>;
  * - Anonymous: `GET /:postId/comments`
  * - Programmatic auth: OAuth app token (hashed) with a legacy fallback org api_key
  *
- * NOTE: order matters — static segments (`/list`, `/group/...`, `/find-slot/...`) and
- * suffix routes (`/:postId/missing`, `/:postId/release-id`) are registered **before**
+ * NOTE: order matters — static segments (`/list`, `/find-slot/...`) and
+ * suffix routes (`/:postId/status`, `/:postId/missing`, `/:postId/release-id`) are registered **before**
  * `GET /:postId` and `DELETE /:postId` so Express does not greedily match the catch-all.
  */
 const publicPostRouter: PublicPostRouter = Router();
@@ -39,18 +38,11 @@ publicPostRouter.get(
     publicPostsController.findSlot
 );
 publicPostRouter.post("/", apiKeyAuth, validatePublicCreatePostBody, publicPostsController.createPost);
-publicPostRouter.get("/group/:postGroup", apiKeyAuth, validatePublicPostGroupParams, publicPostsController.getPostGroup);
 publicPostRouter.put(
-    "/group/:postGroup",
+    "/:postId/status",
     apiKeyAuth,
-    validatePublicUpdatePostGroupBody,
-    publicPostsController.updatePostGroup
-);
-publicPostRouter.delete(
-    "/group/:postGroup",
-    apiKeyAuth,
-    validatePublicPostGroupParams,
-    publicPostsController.deletePostGroup
+    validatePublicFlipPostStatusRequest,
+    publicPostsController.flipPostStatus
 );
 publicPostRouter.get(
     "/:postId/missing",

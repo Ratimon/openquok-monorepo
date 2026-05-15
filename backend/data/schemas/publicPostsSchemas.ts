@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { RequestHandler } from "express";
 import { validateRequest } from "../../middlewares/validateRequest";
-import { createPostBodySchema, listPostsQuerySchema, postGroupParamsSchema, updatePostGroupBodySchema } from "./postSchemas";
+import { createPostBodySchema, listPostsQuerySchema } from "./postSchemas";
 
 /**
  * Programmatic posts API schemas (`{api.prefix}/public/posts/*`).
@@ -26,24 +26,24 @@ export const validatePublicCreatePostBody: RequestHandler = validateRequest({
     body: publicCreatePostBodySchema,
 });
 
-export const validatePublicPostGroupParams: RequestHandler = validateRequest({
-    params: postGroupParamsSchema,
-});
-
-export const publicUpdatePostGroupBodySchema = updatePostGroupBodySchema.omit({ organizationId: true });
-
-export const validatePublicUpdatePostGroupBody: RequestHandler = validateRequest({
-    params: postGroupParamsSchema,
-    body: publicUpdatePostGroupBodySchema,
-});
-
-/** `:postId` UUID param for single-post endpoints (delete/missing/release-id/analytics). */
+/** `:postId` UUID param for single-post endpoints (delete/missing/release-id/status). */
 export const publicPostIdParamsSchema = z.object({
     postId: z.string().uuid("Invalid post id"),
 });
 
 export const validatePublicPostIdParams: RequestHandler = validateRequest({
     params: publicPostIdParamsSchema,
+});
+
+export const publicFlipPostStatusBodySchema = z.object({
+    status: z.enum(["draft", "schedule", "scheduled"], {
+        errorMap: () => ({ message: "status must be draft, schedule, or scheduled" }),
+    }),
+});
+
+export const validatePublicFlipPostStatusRequest: RequestHandler = validateRequest({
+    params: publicPostIdParamsSchema,
+    body: publicFlipPostStatusBodySchema,
 });
 
 /** Optional `:integrationId` UUID param for `find-slot` (no id means "use all org integrations"). */

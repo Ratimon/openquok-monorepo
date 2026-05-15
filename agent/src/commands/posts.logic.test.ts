@@ -5,32 +5,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildMediaFromArgs,
-  buildUpdatePostGroupBodyFromGetData,
-  getDataObjectFromApiEnvelope,
-  getPostGroupFromSummaryEnvelope,
   mergeProviderSettingsForIntegrations,
   parsePostsStatusFlag,
   readCreatePayloadFromJsonFile,
   resolveCreateStatus,
   toStringList,
 } from "./posts.logic";
-
-describe("getPostGroupFromSummaryEnvelope", () => {
-  it("reads postGroup from success envelope", () => {
-    expect(
-      getPostGroupFromSummaryEnvelope({
-        success: true,
-        data: { id: "a", postGroup: "8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d" },
-      })
-    ).toBe("8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d");
-  });
-
-  it("throws when postGroup missing", () => {
-    expect(() =>
-      getPostGroupFromSummaryEnvelope({ success: true, data: { id: "a" } })
-    ).toThrow(/post summary missing postGroup/);
-  });
-});
 
 describe("toStringList", () => {
   it("returns empty for undefined", () => {
@@ -198,63 +178,5 @@ describe("parsePostsStatusFlag", () => {
     expect(() => parsePostsStatusFlag(undefined)).toThrow(/status is required/);
     expect(() => parsePostsStatusFlag("")).toThrow(/status is required/);
     expect(() => parsePostsStatusFlag("queued")).toThrow(/invalid status/);
-  });
-});
-
-describe("getDataObjectFromApiEnvelope", () => {
-  it("returns data when success", () => {
-    expect(getDataObjectFromApiEnvelope({ success: true, data: { a: 1 } })).toEqual({ a: 1 });
-  });
-
-  it("throws when success false or missing data", () => {
-    expect(() => getDataObjectFromApiEnvelope({ success: false })).toThrow(/success: false/);
-    expect(() => getDataObjectFromApiEnvelope({ success: true })).toThrow(/missing data/);
-  });
-});
-
-describe("buildUpdatePostGroupBodyFromGetData", () => {
-  const base = {
-    publishDateIso: "2026-02-01T12:00:00.000Z",
-    integrationIds: ["4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"],
-    body: "hello",
-    isGlobal: true,
-    tagNames: ["t1"],
-    repeatInterval: null as string | null,
-  };
-
-  it("maps publishDateIso to scheduledAt and sets status", () => {
-    expect(buildUpdatePostGroupBodyFromGetData(base, "draft")).toMatchObject({
-      scheduledAt: "2026-02-01T12:00:00.000Z",
-      status: "draft",
-      body: "hello",
-      integrationIds: base.integrationIds,
-      isGlobal: true,
-      tagNames: ["t1"],
-      repeatInterval: null,
-    });
-  });
-
-  it("includes optional fields when present", () => {
-    const out = buildUpdatePostGroupBodyFromGetData(
-      {
-        ...base,
-        bodiesByIntegrationId: { "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b": "x" },
-        media: [{ id: "m1", path: "p1" }],
-        providerSettingsByIntegrationId: { "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b": { replies: [] } },
-      },
-      "scheduled"
-    );
-    expect(out.media).toEqual([{ id: "m1", path: "p1" }]);
-    expect(out.bodiesByIntegrationId).toEqual({ "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b": "x" });
-    expect(out.providerSettingsByIntegrationId).toBeDefined();
-  });
-
-  it("throws without publishDateIso or integrationIds", () => {
-    expect(() => buildUpdatePostGroupBodyFromGetData({ ...base, publishDateIso: "" }, "draft")).toThrow(
-      /publishDateIso/
-    );
-    expect(() => buildUpdatePostGroupBodyFromGetData({ ...base, integrationIds: [] }, "draft")).toThrow(
-      /integrationIds/
-    );
   });
 });

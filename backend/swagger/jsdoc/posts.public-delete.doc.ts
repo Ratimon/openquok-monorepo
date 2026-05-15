@@ -3,7 +3,7 @@
  *
  * - **GET** — {@link services/PostsService.getPostSummaryProgrammatic} returns the row id and parent `postGroup`.
  * - **DELETE** — looks up `post_group` and forwards to
- *   {@link services/PostsService.deletePostGroupProgrammatic} (the whole group is soft-deleted).
+ *   {@link services/PostsService.deletePostGroup} (the whole group is soft-deleted).
  *
  * @openapi
  * /public/posts/{postId}:
@@ -13,8 +13,10 @@
  *       - Posts
  *     summary: Get post row summary (API key)
  *     description: >-
- *       Resolves a calendar row UUID to its parent `postGroup` UUID. Use this before
- *       group-scoped updates when you only know a row id from `GET /public/posts/list`.
+ *       Resolves a calendar row UUID to its parent `postGroup` UUID. Use this to
+ *       correlate list rows with the group id shown in the workspace. For
+ *       `draft` ↔ `scheduled` toggles via API key, call `PUT /public/posts/{postId}/status`
+ *       with the same row id instead of session-only group routes.
  *     parameters:
  *       - in: path
  *         name: postId
@@ -83,14 +85,20 @@
  *                   type: boolean
  *                 data:
  *                   type: object
- *                   required: [postGroup]
+ *                   required: [postId, postGroup]
  *                   properties:
+ *                     postId:
+ *                       type: string
+ *                       format: uuid
+ *                       description: The row id passed in the path (same id from `GET /public/posts/list`).
  *                     postGroup:
  *                       type: string
  *                       format: uuid
+ *                       description: Parent post group that was soft-deleted.
  *             example:
  *               success: true
  *               data:
+ *                 postId: 5b6c7d8e-9f01-2a3b-4c5d-6e7f8a9b0c1d
  *                 postGroup: 3c6b87f4-90b6-4a8a-9d8e-1bf6dca10aef
  *       '401':
  *         description: Missing or invalid API key.

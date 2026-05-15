@@ -17,7 +17,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 </CardGrid>
 
 <Callout type="note" title="How uploads chain into posts">
-<p>Upload an asset first, keep the returned <code>id</code> and <code>path</code>, then pass them as <code>media: [{ id, path }]</code> inside the <Badge text="POST /public/posts" variant="default" /> body (or the <Badge text={"PUT /public/posts/group/{postGroup}"} variant="default" /> body).</p>
+<p>Upload an asset first, keep the returned <code>id</code> and <code>path</code>, then pass them as <code>media: [{ id, path }]</code> inside the <Badge text="POST /public/posts" variant="default" /> body.</p>
 </Callout>
 
 ## Constraints

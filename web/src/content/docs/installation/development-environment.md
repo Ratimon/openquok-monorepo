@@ -282,14 +282,12 @@ pnpm --filter ./agent start -- auth:login --authServer http://localhost:3111
 **Smoke-test the CLI surface** — after adding or renaming commands under <Badge text="agent/src/commands/" variant="path" />, verify every group is wired into <code>registerAllCommands</code> and responds to <code>--help</code>:
 
 ```bash
-# 1. Top-level groups: should list integrations, posts, analytics, notifications,
-#    upload, upload-from-url, and auth verbs
+# 1. Top-level --help: should list auth, integrations, posts, analytics, upload, upload-from-url
 pnpm --filter ./agent cli -- --help
 
-# 2. Each group must respond to --help with its yargs Examples: block
+# 2. Each command must respond to --help with its yargs Examples: block
 pnpm --filter ./agent cli -- analytics:platform --help
 pnpm --filter ./agent cli -- analytics:post --help
-pnpm --filter ./agent cli -- notifications:list --help
 pnpm --filter ./agent cli -- posts:status --help
 pnpm --filter ./agent cli -- posts:delete --help
 pnpm --filter ./agent cli -- posts:missing --help
@@ -302,7 +300,7 @@ pnpm --filter ./agent cli -- upload-from-url --help
 ```bash
 pnpm --filter ./agent cli -- auth:status
 pnpm --filter ./agent cli -- integrations:list | jq '.[] | {id, identifier}'
-pnpm --filter ./agent cli -- notifications:list --page 0 | jq '.total'
+pnpm --filter ./agent cli -- posts:list | jq '.success, (.data.posts | type)'
 ```
 
 Every command emits machine-readable JSON on stdout, so piping into <code>jq</code> is the recommended way to assert on shape during smoke runs and CI.

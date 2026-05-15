@@ -63,34 +63,14 @@ export class OpenquokApi {
     return await requestJson({ url: this.url("/public/posts"), apiKey: this.cfg.apiKey, method: "POST", body });
   }
 
-  async getPostGroup(postGroup: string): Promise<unknown> {
-    return await requestJson({
-      url: this.url(`/public/posts/group/${encodeURIComponent(postGroup)}`),
-      apiKey: this.cfg.apiKey,
-    });
-  }
 
-  async getPost(postId: string): Promise<unknown> {
+  async flipPostStatus(postId: string, status: "draft" | "scheduled"): Promise<unknown> {
+    const body = status === "draft" ? { status: "draft" as const } : { status: "scheduled" as const };
     return await requestJson({
-      url: this.url(`/public/posts/${encodeURIComponent(postId)}`),
-      apiKey: this.cfg.apiKey,
-    });
-  }
-
-  async updatePostGroup(postGroup: string, body: unknown): Promise<unknown> {
-    return await requestJson({
-      url: this.url(`/public/posts/group/${encodeURIComponent(postGroup)}`),
+      url: this.url(`/public/posts/${encodeURIComponent(postId)}/status`),
       apiKey: this.cfg.apiKey,
       method: "PUT",
       body,
-    });
-  }
-
-  async deletePostGroup(postGroup: string): Promise<unknown> {
-    return await requestJson({
-      url: this.url(`/public/posts/group/${encodeURIComponent(postGroup)}`),
-      apiKey: this.cfg.apiKey,
-      method: "DELETE",
     });
   }
 
@@ -130,11 +110,6 @@ export class OpenquokApi {
       url: this.url(`/public/analytics/post/${encodeURIComponent(postId)}?date=${date}`),
       apiKey: this.cfg.apiKey,
     });
-  }
-
-  async listNotifications(page = 0): Promise<unknown> {
-    const qs = page > 0 ? `?page=${page}` : "";
-    return await requestJson({ url: this.url(`/public/notifications${qs}`), apiKey: this.cfg.apiKey });
   }
 
   async uploadFromUrl(urlToFetch: string): Promise<unknown> {

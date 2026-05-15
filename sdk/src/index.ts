@@ -1,8 +1,9 @@
 import type {
     PublicCreatePostDto,
+    PublicDeletePostDataDto,
+    PublicFlipPostStatusDto,
     PublicListPostsQueryDto,
     PublicPostSummaryDto,
-    PublicUpdatePostGroupDto,
     PublicUpdatePostReleaseIdDataDto,
 } from "./dtos";
 
@@ -93,17 +94,7 @@ export default class Openquok {
         });
     }
 
-    async getPostGroup(postGroup: string) {
-        return await this.json(`${this.apiRoot}/public/posts/group/${postGroup}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: this.apiKey,
-            },
-        });
-    }
-
-    /** Row id and parent `postGroup` (for routing to group-scoped endpoints). */
+    /** Row id and parent `postGroup` (for correlating list rows with the workspace). */
     async getPost(postId: string): Promise<{ success: boolean; data: PublicPostSummaryDto }> {
         return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}`, {
             method: "GET",
@@ -114,24 +105,18 @@ export default class Openquok {
         });
     }
 
-    async updatePostGroup(postGroup: string, body: PublicUpdatePostGroupDto) {
-        return await this.json(`${this.apiRoot}/public/posts/group/${postGroup}`, {
+    /**
+     * Flip the post group that `postId` belongs to between `draft` and `scheduled`
+     * at the stored publish time (`PUT {apiPrefix}/public/posts/:postId/status`).
+     */
+    async flipPostStatus(postId: string, body: PublicFlipPostStatusDto) {
+        return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}/status`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: this.apiKey,
             },
             body: JSON.stringify(body),
-        });
-    }
-
-    async deletePostGroup(postGroup: string) {
-        return await this.json(`${this.apiRoot}/public/posts/group/${postGroup}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: this.apiKey,
-            },
         });
     }
 
@@ -171,7 +156,7 @@ export default class Openquok {
     }
 
     /** Delete a single post by row id (soft-deletes the whole post group). */
-    async deletePost(postId: string) {
+    async deletePost(postId: string): Promise<{ success: boolean; data: PublicDeletePostDataDto }> {
         return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}`, {
             method: "DELETE",
             headers: {

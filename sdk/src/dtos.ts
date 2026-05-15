@@ -53,11 +53,20 @@ export type PublicCreatePostDto = {
     status: "draft" | "scheduled";
 };
 
-export type PublicUpdatePostGroupDto = PublicCreatePostDto;
+/** `PUT /public/posts/{postId}/status` — body uses `schedule` as a synonym for `scheduled`. */
+export type PublicFlipPostStatusDto = {
+    status: "draft" | "schedule" | "scheduled";
+};
 
 /** `GET /public/posts/{postId}` — row id and parent post group (programmatic API). */
 export type PublicPostSummaryDto = {
     id: string;
+    postGroup: string;
+};
+
+/** `DELETE /public/posts/{postId}` — deleted row id and parent post group (programmatic API). */
+export type PublicDeletePostDataDto = {
+    postId: string;
     postGroup: string;
 };
 

@@ -6,10 +6,10 @@
 
 ## What Is It For
 
-`@openquok/auto-cli` is a **Programmatic CLI for the Openquok scheduling API** — designed for automation and AI agents. It is to automate social media posting, manage scheduled content, and upload media via the Openquok API across the social platforms you’ve connected to Openquok (e.g. Twitter/X, LinkedIn, Reddit, YouTube, TikTok, Instagram, Facebook, and more).
+`@openquok/auto-cli` is a **Programmatic CLI for the Openquok scheduling API** — designed for automation and AI agents. It is to automate social media posting, manage scheduled content, and upload media via the Openquok API across the social platforms you’ve connected to Openquok (e.g. Twitter/X and Instagram, Facebook).
 
 - Create and schedule posts via the programmatic API
-- List posts and manage post groups
+- List posts and flip draft ↔ scheduled (`posts:status`)
 - Upload media for use in posts
 - List programmatic integrations and trigger provider-specific tools (e.g. fetch subreddits, pages, playlists)
 
@@ -96,11 +96,8 @@ openquok posts:create \
   -s "2026-01-01T12:00:00Z" \
   -i "uuid1,uuid2"
 
-openquok posts:group <postGroupUuid>
-openquok posts:status <postRowUuid> --status draft
-openquok posts:status <postRowUuid> -s schedule
-openquok posts:update-group <postGroupUuid> --json '{"scheduledAt":"...","status":"draft"}'
-openquok posts:delete-group <postGroupUuid>
+openquok posts:status <post-id> --status draft
+openquok posts:status <post-id> -s schedule
 
 openquok posts:delete <postId>
 openquok posts:missing <postId>
@@ -108,7 +105,7 @@ openquok posts:connect <postId> --release-id <providerReleaseId>
 ```
 
 - `posts:list` without flags defaults to 30 local calendar days before today through 30 local calendar days after today (JavaScript `Date` local rules, then ISO UTC on the wire). Pass `--start` / `--end` or `--startDate` / `--endDate`; use `-i` / `--integrations` / `--integrationIds <csv>` and/or `--customer` / `--customerGroupId` (`integration_customers.id`) to narrow channels.
-- `posts:status` takes a **post row** id from `posts:list` (same as `posts:delete`), resolves the parent group, and flips `draft` ↔ `scheduled` at the same stored publish time (convenience over hand-building `posts:update-group --json`).
+- `posts:status` takes a **post row** id from `posts:list` (same as `posts:delete`) and flips `draft` ↔ `scheduled` at the same stored publish time via `PUT /public/posts/{postId}/status`.
 - `posts:delete` removes a single post (and the post group it belongs to — a row never publishes in isolation).
 - `posts:missing` and `posts:connect` are the workflow for posts whose `release_id` came back as `"missing"`: list provider-side candidates with `posts:missing`, then link the matching id with `posts:connect --release-id <id>` (or `--releaseId` / `-r`) to unlock per-post analytics.
 
@@ -122,14 +119,6 @@ openquok analytics:post <postId> [--days 7|30|90]
 - `analytics:platform` returns platform-native metrics for a connected channel (followers, impressions, engagement, …).
 - `analytics:post` returns per-post metrics (likes, comments, shares, …) for a **published** post. Drafts/queued posts return `[]`.
 - The `--days` window is one of `7`, `30`, or `90` (default `7`); the backend will reject any other value.
-
-### Notifications
-
-```bash
-openquok notifications:list [--page <n>]
-```
-
-Paginated in-app notification history for the workspace (100 entries per page, zero-based `--page`).
 
 ### Media upload
 
@@ -200,13 +189,12 @@ pnpm --filter ./agent start -- --help
 After adding or renaming commands, run these to confirm every group is wired into `registerAllCommands`:
 
 ```bash
-# 1. Top-level groups should list `analytics`, `notifications`, and the new posts:* / upload-from-url verbs
+# 1. Top-level `--help` should list auth, integrations, posts, analytics, upload, and upload-from-url verbs
 pnpm --filter ./agent cli -- --help
 
-# 2. Each group must respond to `--help` with its yargs `Examples:` block
+# 2. Each command should respond to `--help` with its yargs `Examples:` block
 pnpm --filter ./agent cli -- analytics:platform --help
 pnpm --filter ./agent cli -- analytics:post --help
-pnpm --filter ./agent cli -- notifications:list --help
 pnpm --filter ./agent cli -- posts:status --help
 pnpm --filter ./agent cli -- posts:delete --help
 pnpm --filter ./agent cli -- posts:missing --help
@@ -220,7 +208,7 @@ For a connectivity smoke (requires a valid API key or stored credentials):
 # 3. Confirm auth + workspace plumbing end-to-end
 pnpm --filter ./agent cli -- auth:status
 pnpm --filter ./agent cli -- integrations:list | jq '.[] | {id, identifier}'
-pnpm --filter ./agent cli -- notifications:list --page 0 | jq '.total'
+pnpm --filter ./agent cli -- posts:list | jq '.success, (.data.posts | type)'
 ```
 
 Each command emits machine-readable JSON on stdout, so piping into `jq` is the recommended way to assert on shape during smoke runs and CI.

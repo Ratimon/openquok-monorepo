@@ -27,7 +27,7 @@ export class PublicPostsController {
         }
     };
 
-    /** GET /public/posts/:postId — row id and parent post group (for routing to group endpoints). */
+    /** GET /public/posts/:postId — row id and parent post group (for correlation with list responses). */
     getPostByIdSummary = async (req: Request, res: Response, next: NextFunction) => {
         try {
             countPublicApiRequest("posts-get");
@@ -40,7 +40,7 @@ export class PublicPostsController {
         }
     };
 
-    /** DELETE /public/posts/:postId — soft-deletes the whole post group the row belongs to. */
+    /** DELETE /public/posts/:postId — soft-deletes the whole post group; returns the row id and group id. */
     deletePostById = async (req: Request, res: Response, next: NextFunction) => {
         try {
             countPublicApiRequest("posts-delete");
@@ -82,6 +82,31 @@ export class PublicPostsController {
                 releaseId,
             });
             res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** PUT /public/posts/:postId/status — flip draft ↔ scheduled at the stored publish time (no public group CRUD). */
+    flipPostStatus = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("posts-flip-status");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const postId = (req.params as { postId: string }).postId;
+            const raw = (req.body as { status: "draft" | "schedule" | "scheduled" }).status;
+            const status: "draft" | "scheduled" = raw === "draft" ? "draft" : "scheduled";
+            const result = await this.postsService.flipPostGroupStatusByPostIdProgrammatic(
+                postId,
+                organizationId,
+                status
+            );
+            res.status(200).json({
+                success: true,
+                data: {
+                    postGroup: result.postGroup,
+                    posts: PostDTOMapper.toDTOCollection(result.posts),
+                },
+            });
         } catch (error) {
             next(error);
         }
@@ -161,74 +186,4 @@ export class PublicPostsController {
             next(error);
         }
     };
-
-    /** GET /public/posts/group/:postGroup */
-    getPostGroup = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
-            const postGroup = (req.params as { postGroup: string }).postGroup;
-            const data = await this.postsService.getPostGroupProgrammatic(postGroup, organizationId);
-            res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    /** PUT /public/posts/group/:postGroup */
-    updatePostGroup = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
-            const postGroup = (req.params as { postGroup: string }).postGroup;
-            const b = req.body as {
-                body?: string;
-                bodiesByIntegrationId?: Record<string, string>;
-                media?: { id: string; path: string; bucket?: string }[];
-                integrationIds?: string[];
-                isGlobal?: boolean;
-                scheduledAt: string;
-                repeatInterval?: string | null;
-                tagNames?: string[];
-                providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
-                status: "draft" | "scheduled";
-            };
-
-            const result = await this.postsService.updatePostGroupProgrammatic({
-                postGroup,
-                organizationId,
-                body: b.body ?? "",
-                bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
-                media: (b.media ?? null)?.map((m) => ({ id: m.id, path: m.path })) ?? null,
-                integrationIds: b.integrationIds ?? [],
-                isGlobal: b.isGlobal ?? true,
-                scheduledAtIso: b.scheduledAt,
-                repeatInterval: (b.repeatInterval ?? null) as RepeatIntervalKey | null,
-                tagNames: b.tagNames ?? [],
-                providerSettingsByIntegrationId: b.providerSettingsByIntegrationId ?? null,
-                status: b.status,
-            });
-
-            res.status(200).json({
-                success: true,
-                data: {
-                    postGroup: result.postGroup,
-                    posts: PostDTOMapper.toDTOCollection(result.posts),
-                },
-            });
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    /** DELETE /public/posts/group/:postGroup */
-    deletePostGroup = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
-            const postGroup = (req.params as { postGroup: string }).postGroup;
-            await this.postsService.deletePostGroupProgrammatic(postGroup, organizationId);
-            res.status(200).json({ success: true });
-        } catch (error) {
-            next(error);
-        }
-    };
 }
-

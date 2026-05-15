@@ -6,9 +6,6 @@ import type { CommandContext, RegisterCommands } from "./types";
 import { parseJsonMaybe, requireArg, runCommand, toArrayFromCsv } from "./utils";
 import {
   buildMediaFromArgs,
-  buildUpdatePostGroupBodyFromGetData,
-  getDataObjectFromApiEnvelope,
-  getPostGroupFromSummaryEnvelope,
   mergeProviderSettingsForIntegrations,
   parsePostsStatusFlag,
   readCreatePayloadFromJsonFile,
@@ -302,59 +299,8 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
       }
     )
     .command(
-      "posts:group <postGroup>",
-      "Get a post group (UUID)",
-      (yy: Argv) =>
-        yy
-          .positional("postGroup", {
-            type: "string",
-            demandOption: true,
-            describe: "Post group UUID (returned by `posts:create` and visible in `posts:list`)",
-          })
-          .example(
-            "$0 posts:group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d",
-            "Fetch a single post group by UUID"
-          ),
-      async (args: any) => {
-        await runCommand("posts:group", async () => {
-          const api = await ctx.buildApi();
-          const out = await api.getPostGroup(requireArg("postGroup", args.postGroup));
-          printJson(out);
-        });
-      }
-    )
-    .command(
-      "posts:update-group <postGroup>",
-      "Update a post group (PUT body matches create: at least scheduledAt + status; usually copy from posts:group or use posts:status to flip draft/scheduled only)",
-      (yy: Argv) =>
-        yy
-          .positional("postGroup", {
-            type: "string",
-            demandOption: true,
-            describe: "Post group UUID to update",
-          })
-          .option("json", { type: "string", demandOption: true, describe: "Full JSON payload string" })
-          .example(
-            '$0 posts:update-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --json \'{"scheduledAt":"2026-02-15T09:00:00Z","status":"draft"}\'',
-            "Move a scheduled group back to draft (PUT requires scheduledAt + status with the full shape)"
-          )
-          .example(
-            '$0 posts:update-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d --json \'{"scheduledAt":"2026-02-15T09:00:00Z","status":"scheduled"}\'',
-            "Reschedule a group to a new time"
-          ),
-      async (args: any) => {
-        await runCommand("posts:update-group", async () => {
-          const api = await ctx.buildApi();
-          const payload = parseJsonMaybe(args.json, "json");
-          if (!payload || typeof payload !== "object") throw new Error("json must be an object");
-          const out = await api.updatePostGroup(requireArg("postGroup", args.postGroup), payload);
-          printJson(out);
-        });
-      }
-    )
-    .command(
       "posts:status <postId>",
-      "Flip a post group between draft and scheduled without changing its stored publish time (resolve row → group, GET group, PUT)",
+      "Flip a post group between draft and scheduled without changing its stored publish time (PUT /public/posts/:postId/status)",
       (yy: Argv) =>
         yy
           .positional("postId", {
@@ -381,35 +327,8 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
         await runCommand("posts:status", async () => {
           const api = await ctx.buildApi();
           const postId = requireArg("postId", args.postId);
-          const summaryRaw = await api.getPost(postId);
-          const postGroup = getPostGroupFromSummaryEnvelope(summaryRaw);
-          const raw = await api.getPostGroup(postGroup);
-          const data = getDataObjectFromApiEnvelope(raw);
           const next = parsePostsStatusFlag(args.status ?? args.s);
-          const putBody = buildUpdatePostGroupBodyFromGetData(data, next);
-          const out = await api.updatePostGroup(postGroup, putBody);
-          printJson(out);
-        });
-      }
-    )
-    .command(
-      "posts:delete-group <postGroup>",
-      "Delete a post group (UUID)",
-      (yy: Argv) =>
-        yy
-          .positional("postGroup", {
-            type: "string",
-            demandOption: true,
-            describe: "Post group UUID to delete",
-          })
-          .example(
-            "$0 posts:delete-group 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d",
-            "Delete a post group (cancels scheduling if not yet published)"
-          ),
-      async (args: any) => {
-        await runCommand("posts:delete-group", async () => {
-          const api = await ctx.buildApi();
-          const out = await api.deletePostGroup(requireArg("postGroup", args.postGroup));
+          const out = await api.flipPostStatus(postId, next);
           printJson(out);
         });
       }

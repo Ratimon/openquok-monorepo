@@ -158,9 +158,8 @@ openquok integrations:trigger <id> <method> [-d '<json>']
 ```bash
 openquok posts:list
 openquok posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z"
-openquok posts:group <postGroupUuid>
-openquok posts:update-group <postGroupUuid> --json '{"scheduledAt":"...","status":"draft"}'
-openquok posts:delete-group <postGroupUuid>
+openquok posts:status <post-id> -s draft
+openquok posts:delete <post-id>
 ```
 
 

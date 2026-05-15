@@ -21,7 +21,7 @@ alwaysApply: false
 
 For every public route handler, one `@openapi` block must exist in `backend/swagger/jsdoc/`. The frontend renders examples and field tables from this spec, so missing/empty schemas show up as `{"_note": "No JSON example in OpenAPI for this response."}` and empty `ParamField` / `ResponseField` rows.
 
-- **One file per operation**, named `<domain>.<topic>.doc.ts` (e.g. `integrations.public-list.doc.ts`, `posts.public-group-update.doc.ts`, `uploads.public-upload.doc.ts`). End the file with `export {};` so it stays a module.
+- **One file per operation**, named `<domain>.<topic>.doc.ts` (e.g. `integrations.public-list.doc.ts`, `posts.public-post-flip-status.doc.ts`, `uploads.public-upload.doc.ts`). End the file with `export {};` so it stays a module.
 - The block must declare:
   - `operationId` (camelCase, stable — SDKs / search rely on it).
   - `tags: [<Tag>]` matching one of the tags registered in `backend/swagger/openApiSpec.ts` (`Integrations`, `Posts`, `Uploads`, …). **Add the tag there first** if you introduce a new section.
@@ -51,7 +51,7 @@ Reference: `backend/swagger/jsdoc/integrations.public-list.doc.ts`, `backend/swa
 
 Public API reference pages live under `web/src/content/docs/apis-<domain>/` (e.g. `apis-integrations`, `apis-posts`, `apis-uploads`). Each page is a thin Markdown file whose body is auto-rendered from the OpenAPI spec by `OpenApiDocSplit.svelte`.
 
-- **One markdown file per operation**, named after the action (`list.md`, `create.md`, `delete.md`, `get-group.md`, …).
+- **One markdown file per operation**, named after the action (`list.md`, `create.md`, `delete.md`, `flip-status.md`, …).
 - Frontmatter must include:
 
 ```yaml

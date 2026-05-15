@@ -112,7 +112,7 @@
  *                     postGroup:
  *                       type: string
  *                       format: uuid
- *                       description: The new post-group id (use it for `/public/posts/group/{postGroup}` calls).
+ *                       description: The new post-group id (correlates rows in `GET /public/posts/list`; full group edits are session/UI only).
  *                     posts:
  *                       type: array
  *                       items:

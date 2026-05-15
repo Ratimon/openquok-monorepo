@@ -647,6 +647,9 @@ export class PostsService {
         return factory();
     }
 
+    /**
+     * Load post-group details for edit mode (JWT session).
+     */
     async getPostGroup(postGroup: string, authUserId: string): Promise<PostGroupDetails> {
         const rows = await this.postsRepository.listPostsByGroup(postGroup);
         if (!rows.length) {
@@ -666,16 +669,15 @@ export class PostsService {
     }
 
     /**
-     * Programmatic post-group details for `{api.prefix}/public/posts/group/:postGroup`.
-     * Ensures the post group belongs to the organization resolved from the API key.
+     * Same payload as {@link getPostGroup} when the workspace is already proven by API key scope
+     * (used by programmatic status flip — there is no `GET /public/posts/group/*`).
      */
-    async getPostGroupProgrammatic(postGroup: string, organizationId: string): Promise<PostGroupDetails> {
+    private async loadPostGroupDetailsForOrganization(postGroup: string, organizationId: string): Promise<PostGroupDetails> {
         const rows = await this.postsRepository.listPostsByGroup(postGroup);
         if (!rows.length) {
             throw new AppError("Post group not found", 404);
         }
-        const orgId = rows[0]!.organization_id;
-        if (orgId !== organizationId) {
+        if (rows[0]!.organization_id !== organizationId) {
             throw new AppError("Post group does not belong to that workspace", 400);
         }
         const cacheKey = `${CACHE_KEYS.POSTS_GROUP}:${postGroup}`;
@@ -684,6 +686,42 @@ export class PostsService {
             return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
         }
         return factory();
+    }
+
+    /**
+     * Programmatic draft ↔ scheduled flip (`PUT {api.prefix}/public/posts/:postId/status`).
+     * Loads the post group via the row id and reapplies the same payload with a new `status`
+     * (no public `GET/PUT /public/posts/group/*` — full group edits stay session/UI only).
+     */
+    async flipPostGroupStatusByPostIdProgrammatic(
+        postId: string,
+        organizationId: string,
+        status: "draft" | "scheduled"
+    ): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+        const details = await this.loadPostGroupDetailsForOrganization(post.post_group, organizationId);
+        return await this.replacePostGroupRows({
+            postGroup: details.postGroup,
+            organizationIdHint: organizationId,
+            authUserId: null,
+            skipMembershipCheck: true,
+            body: details.body,
+            bodiesByIntegrationId:
+                details.bodiesByIntegrationId && Object.keys(details.bodiesByIntegrationId).length > 0
+                    ? details.bodiesByIntegrationId
+                    : null,
+            media: details.media?.length ? details.media : null,
+            integrationIds: details.integrationIds,
+            isGlobal: details.isGlobal,
+            scheduledAtIso: details.publishDateIso,
+            repeatInterval: details.repeatInterval ?? null,
+            tagNames: details.tagNames,
+            providerSettingsByIntegrationId: details.providerSettingsByIntegrationId ?? null,
+            status,
+        });
     }
 
     private async buildPostGroupDetails(postGroup: string, rows: SocialPostLike[]): Promise<PostGroupDetails> {
@@ -1209,6 +1247,9 @@ export class PostsService {
         return integrationRow;
     }
 
+    /**
+     * Soft-delete every row in a post group (JWT session).
+     */
     async deletePostGroup(postGroup: string, authUserId: string, organizationId?: string | null): Promise<void> {
         const rows = await this.postsRepository.listPostsByGroup(postGroup);
         if (!rows.length) {
@@ -1230,10 +1271,10 @@ export class PostsService {
     }
 
     /**
-     * Programmatic delete (org API key auth).
-     * Ensures group belongs to the org derived from the API key.
+     * Soft-delete a post group when the workspace is already proven by API key scope
+     * (`DELETE {api.prefix}/public/posts/:postId` — no JWT).
      */
-    async deletePostGroupProgrammatic(postGroup: string, organizationId: string): Promise<void> {
+    private async softDeletePostGroupForOrganization(postGroup: string, organizationId: string): Promise<void> {
         const rows = await this.postsRepository.listPostsByGroup(postGroup);
         if (!rows.length) {
             throw new AppError("Post group not found", 404);
@@ -1256,18 +1297,21 @@ export class PostsService {
      * Programmatic single-post delete (`DELETE {api.prefix}/public/posts/:postId`).
      * (a post row never publishes in isolation; the group is the schedule unit).
      */
-    async deletePostByIdProgrammatic(postId: string, organizationId: string): Promise<{ postGroup: string }> {
+    async deletePostByIdProgrammatic(
+        postId: string,
+        organizationId: string
+    ): Promise<{ postId: string; postGroup: string }> {
         const post = await this.postsRepository.getPostById(postId);
         if (!post || post.organization_id !== organizationId) {
             throw new AppError("Post not found", 404);
         }
-        await this.deletePostGroupProgrammatic(post.post_group, organizationId);
-        return { postGroup: post.post_group };
+        await this.softDeletePostGroupForOrganization(post.post_group, organizationId);
+        return { postId: post.id, postGroup: post.post_group };
     }
 
     /**
      * Programmatic row lookup for `GET {api.prefix}/public/posts/:postId` (org API key auth).
-     * Returns ids so clients can route to `GET/PUT /public/posts/group/{postGroup}` without listing the calendar.
+     * Returns the row id and parent `postGroup` for correlation with list responses.
      */
     async getPostSummaryProgrammatic(postId: string, organizationId: string): Promise<{ id: string; postGroup: string }> {
         const post = await this.postsRepository.getPostById(postId);
@@ -1460,9 +1504,49 @@ export class PostsService {
         postGroup: string;
         posts: SocialPostLike[];
     }> {
+        return this.replacePostGroupRows({
+            postGroup: input.postGroup,
+            organizationIdHint: input.organizationId,
+            authUserId: input.authUserId,
+            skipMembershipCheck: false,
+            body: input.body,
+            bodiesByIntegrationId: input.bodiesByIntegrationId ?? null,
+            media: input.media ?? null,
+            integrationIds: input.integrationIds,
+            isGlobal: input.isGlobal,
+            scheduledAtIso: input.scheduledAtIso,
+            repeatInterval: input.repeatInterval,
+            tagNames: input.tagNames,
+            status: input.status,
+            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
+        });
+    }
+
+    /**
+     * Replace all rows in a post group (same group id). Session vs API-key scope is controlled by
+     * `skipMembershipCheck` / `authUserId` — only {@link updatePostGroup} and programmatic flip use this.
+     */
+    private async replacePostGroupRows(params: {
+        postGroup: string;
+        organizationIdHint?: string | null;
+        authUserId: string | null;
+        skipMembershipCheck: boolean;
+        body: string;
+        bodiesByIntegrationId?: Record<string, string> | null;
+        media?: PostMediaItemInput[] | null;
+        integrationIds: string[];
+        isGlobal: boolean;
+        scheduledAtIso: string;
+        repeatInterval: RepeatIntervalKey | null;
+        tagNames: string[];
+        status: "draft" | "scheduled";
+        providerSettingsByIntegrationId?: Record<string, Record<string, unknown>> | null;
+    }): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
         const {
             postGroup,
+            organizationIdHint: callerOrgId,
             authUserId,
+            skipMembershipCheck,
             body,
             bodiesByIntegrationId,
             media,
@@ -1472,12 +1556,14 @@ export class PostsService {
             repeatInterval,
             tagNames,
             status,
-        } = input;
+            providerSettingsByIntegrationId,
+        } = params;
 
         const existing = await this.postsRepository.listPostsByGroup(postGroup);
         if (!existing.length) throw new AppError("Post group not found", 404);
         const organizationId = existing[0]!.organization_id;
-        if (input.organizationId && input.organizationId !== organizationId) {
+
+        if (callerOrgId && callerOrgId !== organizationId) {
             throw new AppError("Post group does not belong to that workspace", 400);
         }
 
@@ -1496,9 +1582,9 @@ export class PostsService {
             authUserId,
             postGroup,
             body,
-            bodiesByIntegrationId,
-            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
-            media,
+            bodiesByIntegrationId: bodiesByIntegrationId ?? null,
+            providerSettingsByIntegrationId: providerSettingsByIntegrationId ?? null,
+            media: media ?? null,
             integrationIds,
             isGlobal,
             scheduledAtIso,
@@ -1506,6 +1592,7 @@ export class PostsService {
             tagNames,
             status,
             allowTakenSlot,
+            skipMembershipCheck,
         });
 
         // Delete old tag links & rows; then reinsert with the same group id.
@@ -1520,84 +1607,7 @@ export class PostsService {
             organizationId,
             authUserId,
             posts: inserted,
-            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
-        });
-        const out = { postGroup, posts: inserted };
-        void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
-        await this._invalidatePostMutationCaches({
-            organizationId,
-            postGroup,
-            postIds: [...new Set([...oldIds, ...inserted.map((p) => p.id)])],
-        });
-        return out;
-    }
-
-    /**
-     * Programmatic update (org API key auth).
-     * Ensures group belongs to the org derived from the API key; skips membership checks.
-     */
-    async updatePostGroupProgrammatic(input: Omit<CreatePostProgrammaticInput, "organizationId"> & { postGroup: string; organizationId: string }): Promise<{
-        postGroup: string;
-        posts: SocialPostLike[];
-    }> {
-        const {
-            postGroup,
-            organizationId,
-            body,
-            bodiesByIntegrationId,
-            media,
-            integrationIds,
-            isGlobal,
-            scheduledAtIso,
-            repeatInterval,
-            tagNames,
-            status,
-        } = input;
-
-        const existing = await this.postsRepository.listPostsByGroup(postGroup);
-        if (!existing.length) throw new AppError("Post group not found", 404);
-        const orgId = existing[0]!.organization_id;
-        if (orgId !== organizationId) {
-            throw new AppError("Post group does not belong to that workspace", 400);
-        }
-
-        const alignedNext = new Date(scheduledAtIso);
-        const nextPublishIso = Number.isNaN(alignedNext.getTime()) ? null : alignedNext.toISOString();
-        const alreadyAtThatSlot =
-            nextPublishIso != null &&
-            new Date(existing[0]!.publish_date).getTime() === new Date(nextPublishIso).getTime();
-        const allowTakenSlot = status === "scheduled" && alreadyAtThatSlot;
-
-        const { toInsert, tagIds } = await this.buildPostGroupInsert({
-            organizationId,
-            authUserId: null,
-            postGroup,
-            body,
-            bodiesByIntegrationId: bodiesByIntegrationId ?? null,
-            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
-            media: media ?? null,
-            integrationIds,
-            isGlobal,
-            scheduledAtIso,
-            repeatInterval,
-            tagNames,
-            status,
-            allowTakenSlot,
-            skipMembershipCheck: true,
-        });
-
-        const oldIds = existing.map((r) => r.id);
-        await this.postsRepository.deleteTagAssignmentsForPostIds(oldIds);
-        await this.postsRepository.softDeleteThreadRepliesByPostIds(oldIds);
-        await this.postsRepository.softDeletePostsByGroup(postGroup);
-
-        const inserted = await this.postsRepository.insertPostGroup(toInsert);
-        await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
-        await this.persistThreadRepliesFromProviderSettings({
-            organizationId,
-            authUserId: null,
-            posts: inserted,
-            providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
+            providerSettingsByIntegrationId: providerSettingsByIntegrationId ?? null,
         });
         const out = { postGroup, posts: inserted };
         void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);

@@ -1837,7 +1837,7 @@ describe("PostsService", () => {
             expect(postsRepo.softDeletePostsByGroup).not.toHaveBeenCalled();
         });
 
-        it("soft-deletes the whole post group when post exists in the org and returns the group id", async () => {
+        it("soft-deletes the whole post group when post exists in the org and returns postId and postGroup", async () => {
             const postId = faker.string.uuid();
             const postGroup = "group-prog-1";
             const post = socialPostRow({
@@ -1855,7 +1855,7 @@ describe("PostsService", () => {
 
             const out = await service().deletePostByIdProgrammatic(postId, orgId);
 
-            expect(out).toEqual({ postGroup });
+            expect(out).toEqual({ postId, postGroup });
             expect(integrationConnection.assertOrganizationMember).not.toHaveBeenCalled();
             expect(postsRepo.deleteTagAssignmentsForPostIds).toHaveBeenCalledWith([postId, siblingId]);
             expect(postsRepo.softDeletePostsByGroup).toHaveBeenCalledWith(postGroup);

@@ -40,7 +40,10 @@ type PublicCreatePostDto = {
     providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
     status: "draft" | "scheduled";
 };
-type PublicUpdatePostGroupDto = PublicCreatePostDto;
+/** `PUT /public/posts/{postId}/status` — body uses `schedule` as a synonym for `scheduled`. */
+type PublicFlipPostStatusDto = {
+    status: "draft" | "schedule" | "scheduled";
+};
 /** `GET /public/posts/{postId}` — row id and parent post group (programmatic API). */
 type PublicPostSummaryDto = {
     id: string;
@@ -74,14 +77,16 @@ declare class Openquok {
     upload(file: Buffer, extension: string): Promise<unknown>;
     post(body: PublicCreatePostDto): Promise<unknown>;
     postList(filters: PublicListPostsQueryDto): Promise<unknown>;
-    getPostGroup(postGroup: string): Promise<unknown>;
-    /** Row id and parent `postGroup` (for routing to group-scoped endpoints). */
+    /** Row id and parent `postGroup` (for correlating list rows with the workspace). */
     getPost(postId: string): Promise<{
         success: boolean;
         data: PublicPostSummaryDto;
     }>;
-    updatePostGroup(postGroup: string, body: PublicUpdatePostGroupDto): Promise<unknown>;
-    deletePostGroup(postGroup: string): Promise<unknown>;
+    /**
+     * Flip the post group that `postId` belongs to between `draft` and `scheduled`
+     * at the stored publish time (`PUT {apiPrefix}/public/posts/:postId/status`).
+     */
+    flipPostStatus(postId: string, body: PublicFlipPostStatusDto): Promise<unknown>;
     integrations(): Promise<unknown>;
     deleteIntegrationChannel(id: string): Promise<unknown>;
     /**

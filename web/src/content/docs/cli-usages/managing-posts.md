@@ -14,7 +14,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 The <Badge text="posts:*" variant="default" /> commands wrap the <a href="/docs/apis-posts">Posts APIs</a>. They drive every step of the publishing lifecycle: pick channels and a schedule time, create a post group, iterate on it, then delete it or reconnect it to its provider-native id once it is published.
 
 <Callout type="note" title="Post groups vs. post rows">
-<p>A <strong>post group</strong> is the multi-channel composition the UI calls a post; <Badge text="posts:group" variant="default" /> and <Badge text="posts:update-group" variant="default" /> operate on the group id returned by <Badge text="posts:create" variant="default" />. A <strong>post row</strong> is one channel inside that group (<Badge text="posts:delete" variant="default" />, <Badge text="posts:missing" variant="default" />, <Badge text="posts:connect" variant="default" /> use the id from <Badge text="posts:list" variant="default" />).</p>
+<p>A <strong>post group</strong> is the multi-channel composition the UI calls a post; its id is returned as <code>postGroup</code> from <Badge text="posts:create" variant="default" /> and on list rows. Full <strong>get / update / delete group</strong> over HTTP is for the signed-in app only — use the workspace or session <code>/posts/group/…</code> APIs. The CLI uses <strong>post row</strong> ids from <Badge text="posts:list" variant="default" /> for <Badge text="posts:status" variant="default" />, <Badge text="posts:delete" variant="default" />, <Badge text="posts:missing" variant="default" />, and <Badge text="posts:connect" variant="default" />.</p>
 </Callout>
 
 ## Create a post
@@ -201,7 +201,7 @@ openquok posts:list \
 
 Same window with the long names: <Badge text="--start" variant="param" /> / <Badge text="--end" variant="param" />.
 
-<Callout type="note" title="Defaults live in the CLI, not the API">
+<Callout type="note" title="Defaults in CLI">
 <p><Badge text="GET /public/posts/list" variant="path" /> requires <code>start</code> and <code>end</code>. The CLI fills omitted flags with ±30 local calendar days from today (ISO UTC on the wire). Optional <code>customerGroupId</code> narrows by channel group. SDK and raw HTTP clients must send both dates; see <a href="/docs/apis-posts/list">List Posts</a>.</p>
 </Callout>
 
@@ -313,43 +313,7 @@ Use this when you want to pause a scheduled post without deleting it, or hand a 
 openquok posts:delete <post-id>
 ```
 
-Soft-deletes the **post row** you name and the **whole post group** it belongs to (a row never publishes in isolation).
-
-
-## Fetch, update, and delete a post group
-
-These commands use the **post group** id.
-
-### Get a post group
-
-```bash
-openquok posts:group <post-group-id>
-```
-
-For status-only changes, prefer <a href="#changing-post-status">Changing post status</a> above instead of hand-authoring JSON.
-
-### Update a post group
-
-Update by hand when you need arbitrary edits (new <code>scheduledAt</code>, different channels, new media). It might be easiest to copy from <Badge text="posts:group" variant="default" /> output or the <a href="/account/payload-wizard">Payload Wizard</a>):
-
-```bash
-openquok posts:update-group <post-group-id> \
-  --json '{"scheduledAt":"2026-02-15T09:00:00Z","status":"scheduled"}'
-```
-
-```bash
-openquok posts:update-group <post-group-id> \
-  --json '{"scheduledAt":"2026-02-15T09:00:00Z","status":"draft"}'
-```
-
-### Delete a post group
-
-To remove an entire group by id without listing rows first, use <Badge text="posts:delete-group" variant="default" /> with the group id from <Badge text="posts:create" variant="default" />.
-
-```bash
-openquok posts:delete-group <post-group-id>
-```
-
+Soft-deletes the **post row** you name and the **whole post group** it belongs to (a row never publishes in isolation). To target a group by id alone, use the workspace; the public API deletes by row id (`DELETE /public/posts/{postId}`).
 
 
 ## End-to-end workflow
@@ -359,15 +323,15 @@ INTEGRATION_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="
 
 MEDIA=$(openquok upload ./hero.png | jq -c '{id: .data.id, path: .data.filePath}')
 
-GROUP=$(openquok posts:create \
+POST_ID=$(openquok posts:create \
   -s "2026-01-20T15:00:00Z" \
   -t schedule \
   -c "Scheduled with media" \
   -i "$INTEGRATION_ID" \
   -m "[${MEDIA}]" \
-  | jq -r '.postGroup')
+  | jq -r '.data.posts[0].id')
 
-openquok posts:group "$GROUP"
+openquok posts:status "$POST_ID" -s draft
 ```
 
 ## Related
