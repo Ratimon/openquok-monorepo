@@ -13,17 +13,27 @@ const localizedLoaders = import.meta.glob<DocFile>('/src/content/docs-*/**/*.{md
 	eager: false
 });
 
-const rawModules = import.meta.glob<string>('/src/content/docs/**/*.{md,svx}', {
+/** Lazy raw sources — `eager: true` would inline every doc into the client bundle (~10MB+). */
+const rawLoaders = import.meta.glob<string>('/src/content/docs/**/*.{md,svx}', {
 	query: '?raw',
-	eager: true,
+	eager: false,
 	import: 'default'
 });
 
-const rawLocalizedModules = import.meta.glob<string>('/src/content/docs-*/**/*.{md,svx}', {
+const rawLocalizedLoaders = import.meta.glob<string>('/src/content/docs-*/**/*.{md,svx}', {
 	query: '?raw',
-	eager: true,
+	eager: false,
 	import: 'default'
 });
+
+const defaultLocale = () => docsConfig.i18n?.defaultLocale ?? 'en';
+
+function localeCacheKey(locale: string | undefined): string {
+	return !locale || locale === defaultLocale() ? defaultLocale() : locale;
+}
+
+const resolvedRegistry = new Map<string, DocPage[]>();
+const inflightRegistry = new Map<string, Promise<DocPage[]>>();
 
 function slugFromPath(path: string, prefix: string): string {
 	return path
@@ -32,23 +42,25 @@ function slugFromPath(path: string, prefix: string): string {
 		.replace(/(?:^|\/)index$/, '');
 }
 
-/** Align lazy loader paths with `?raw` glob keys (strip query differences). */
-function metaByPathFromRaw(
+async function metaByPathFromRawLoaders(
 	loaders: Record<string, () => Promise<DocFile>>,
-	rawGlob: Record<string, string>
-): Record<string, DocMeta> {
-	const rawByNorm = new Map<string, string>();
-	for (const [globKey, text] of Object.entries(rawGlob)) {
-		rawByNorm.set(normalizeGlobKey(globKey).replace(/\\/g, '/'), text);
+	rawGlob: Record<string, () => Promise<string>>
+): Promise<Record<string, DocMeta>> {
+	const rawByNorm = new Map<string, () => Promise<string>>();
+	for (const [globKey, load] of Object.entries(rawGlob)) {
+		rawByNorm.set(normalizeGlobKey(globKey).replace(/\\/g, '/'), load);
 	}
 
 	const out: Record<string, DocMeta> = {};
-	for (const path of Object.keys(loaders)) {
-		const norm = normalizeGlobKey(path).replace(/\\/g, '/');
-		const raw = rawByNorm.get(norm);
-		if (raw === undefined) continue;
-		out[path] = docMetaFromRawSource(raw);
-	}
+	await Promise.all(
+		Object.keys(loaders).map(async (path) => {
+			const norm = normalizeGlobKey(path).replace(/\\/g, '/');
+			const loadRaw = rawByNorm.get(norm);
+			if (!loadRaw) return;
+			const raw = await loadRaw();
+			out[path] = docMetaFromRawSource(raw);
+		})
+	);
 	return out;
 }
 
@@ -124,30 +136,67 @@ function orderDocsBySidebar(docs: DocPage[]): DocPage[] {
 	return ordered;
 }
 
-export function getAllDocs(locale?: string): DocPage[] {
-	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
+async function buildDocsForLocale(locale?: string): Promise<DocPage[]> {
+	const def = defaultLocale();
 
-	if (!locale || locale === defaultLocale) {
-		return buildDocs(
-			contentLoaders,
-			metaByPathFromRaw(contentLoaders, rawModules),
-			'/src/content/docs/',
-			'/docs'
-		);
+	if (!locale || locale === def) {
+		const metaByPath = await metaByPathFromRawLoaders(contentLoaders, rawLoaders);
+		return buildDocs(contentLoaders, metaByPath, '/src/content/docs/', '/docs');
 	}
 
 	const prefix = `/src/content/docs-${locale}/`;
 	const filteredLoaders: Record<string, () => Promise<DocFile>> = {};
-	const filteredRaw: Record<string, string> = {};
+	const filteredRaw: Record<string, () => Promise<string>> = {};
 
 	for (const [path, load] of Object.entries(localizedLoaders)) {
 		if (path.startsWith(prefix)) filteredLoaders[path] = load;
 	}
-	for (const [path, text] of Object.entries(rawLocalizedModules)) {
-		if (path.startsWith(prefix)) filteredRaw[path] = text;
+	for (const [path, load] of Object.entries(rawLocalizedLoaders)) {
+		if (path.startsWith(prefix)) filteredRaw[path] = load;
 	}
 
-	return buildDocs(filteredLoaders, metaByPathFromRaw(filteredLoaders, filteredRaw), prefix, `/docs/${locale}`);
+	const metaByPath = await metaByPathFromRawLoaders(filteredLoaders, filteredRaw);
+	return buildDocs(filteredLoaders, metaByPath, prefix, `/docs/${locale}`);
+}
+
+/**
+ * Loads doc metadata + nav ordering for one locale into memory. Call from docs layouts (and
+ * prerender `entries()` / server routes) before `getAllDocs` / `getDoc`.
+ */
+export async function preloadDocsRegistry(locale?: string): Promise<void> {
+	const key = localeCacheKey(locale);
+	if (resolvedRegistry.has(key)) return;
+
+	let p = inflightRegistry.get(key);
+	if (!p) {
+		p = (async () => {
+			const docs = await buildDocsForLocale(locale);
+			resolvedRegistry.set(key, docs);
+			inflightRegistry.delete(key);
+			return docs;
+		})();
+		inflightRegistry.set(key, p);
+	}
+	await p;
+}
+
+/** Preload every configured locale (RSS, llms, sitemap merge, etc.). */
+export async function preloadAllDocLocales(): Promise<void> {
+	const locales = docsConfig.i18n?.locales ?? [{ code: 'en', label: 'English' }];
+	await Promise.all(
+		locales.map((l) => preloadDocsRegistry(l.code === defaultLocale() ? undefined : l.code))
+	);
+}
+
+export function getAllDocs(locale?: string): DocPage[] {
+	const key = localeCacheKey(locale);
+	const docs = resolvedRegistry.get(key);
+	if (!docs) {
+		throw new Error(
+			`Docs registry not loaded for locale "${key}". Await preloadDocsRegistry() from a parent load or server handler first.`
+		);
+	}
+	return docs;
 }
 
 export function getDoc(slug: string, locale?: string): DocPage | undefined {
@@ -164,11 +213,8 @@ function normalizeGlobKey(p: string): string {
  * Candidate paths for a doc slug. Section roots use `dir/index.md` (URL slug is `dir`, not `dir/index`).
  */
 function rawPathCandidates(slug: string, locale: string | undefined): string[] {
-	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
-	const localized = Boolean(locale && locale !== defaultLocale);
-	const root = localized
-		? `/src/content/docs-${locale}`
-		: '/src/content/docs';
+	const localized = Boolean(locale && locale !== defaultLocale());
+	const root = localized ? `/src/content/docs-${locale}` : '/src/content/docs';
 
 	if (!slug) {
 		return [`${root}/index.md`, `${root}/index.svx`];
@@ -182,49 +228,39 @@ function rawPathCandidates(slug: string, locale: string | undefined): string[] {
 	];
 }
 
-/**
- * Resolve raw file text when direct `/src/content/...` keys miss (Vite glob keys can differ).
- */
-function findRawByPathSuffix(
-	modules: Record<string, string>,
+async function findRawByPathSuffix(
+	modules: Record<string, () => Promise<string>>,
 	slug: string,
 	locale: string | undefined
-): string {
-	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
-	const dir = locale && locale !== defaultLocale ? `docs-${locale}` : 'docs';
+): Promise<string | undefined> {
+	const dir = locale && locale !== defaultLocale() ? `docs-${locale}` : 'docs';
 
 	const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 	const dirRe = escapeRegExp(dir);
 	const slugRe = escapeRegExp(slug);
 	const matcher = slug
 		? new RegExp(
-				// Matches:
-				// - .../docs-<locale>/<slug>.md
-				// - .../docs-<locale>/<slug>.svx
-				// - .../docs-<locale>/<slug>/index.md
-				// - .../docs-<locale>/<slug>/index.svx
 				`(?:^|/)${dirRe}/${slugRe}(?:\\.(?:md|svx)|/(?:index\\.(?:md|svx)))$`
 			)
 		: new RegExp(`(?:^|/)${dirRe}/index\\.(?:md|svx)$`);
 
-	for (const [path, raw] of Object.entries(modules)) {
+	for (const [path, load] of Object.entries(modules)) {
 		const n = normalizeGlobKey(path);
-		if (matcher.test(n)) return raw;
+		if (matcher.test(n)) return await load();
 	}
-	return '';
+	return undefined;
 }
 
-export function getRawContent(slug: string, locale?: string): string {
-	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
-	const localized = Boolean(locale && locale !== defaultLocale);
-	const modules = localized ? rawLocalizedModules : rawModules;
+export async function getRawContent(slug: string, locale?: string): Promise<string> {
+	const localized = Boolean(locale && locale !== defaultLocale());
+	const modules = localized ? rawLocalizedLoaders : rawLoaders;
 
 	for (const p of rawPathCandidates(slug, locale)) {
-		const direct = modules[p] ?? modules[p.replace(/^\//, '')];
-		if (direct) return direct;
+		const load = modules[p] ?? modules[p.replace(/^\//, '')];
+		if (load) return await load();
 	}
 
-	return findRawByPathSuffix(modules, slug, locale);
+	return (await findRawByPathSuffix(modules, slug, locale)) ?? '';
 }
 
 export function getDocsByDirectory(directory: string, locale?: string): DocPage[] {
@@ -233,16 +269,20 @@ export function getDocsByDirectory(directory: string, locale?: string): DocPage[
 	);
 }
 
-/** All published doc pages per locale (for sitemaps, RSS, llms.txt). */
-export function eachLocaleDocPages(): {
-	locale: string;
-	localeLabel: string;
-	pages: DocPage[];
-}[] {
+/** All published doc pages per locale (for sitemaps, RSS, llms.txt). Await `preloadAllDocLocales()` first unless each caller already did. */
+export async function eachLocaleDocPages(): Promise<
+	{
+		locale: string;
+		localeLabel: string;
+		pages: DocPage[];
+	}[]
+> {
+	await preloadAllDocLocales();
 	const locales = docsConfig.i18n?.locales ?? [{ code: 'en', label: 'English' }];
+	const def = defaultLocale();
 	return locales.map((l) => ({
 		locale: l.code,
 		localeLabel: l.label,
-		pages: getAllDocs(l.code)
+		pages: getAllDocs(l.code === def ? undefined : l.code)
 	}));
 }

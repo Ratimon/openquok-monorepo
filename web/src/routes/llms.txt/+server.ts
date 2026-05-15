@@ -45,7 +45,9 @@ export const GET: RequestHandler = async ({ url }) => {
 	lines.push(`Blog feed (RSS): ${blogRss}`);
 	lines.push('');
 
-	for (const { locale, localeLabel, pages } of eachLocaleDocPages()) {
+	const localePages = await eachLocaleDocPages();
+
+	for (const { locale, localeLabel, pages } of localePages) {
 		lines.push(`## ${localeLabel} (${locale})`);
 		lines.push('');
 

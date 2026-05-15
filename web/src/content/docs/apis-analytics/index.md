@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 <CardGrid>
 <LinkCard title="Platform Analytics" description="Platform-native time-series metrics (followers, impressions, etc.) for one connected channel" href="/docs/apis-analytics/platform" />
-<LinkCard title="Post Analytics" description="Per-post insights for a published row, returning `{ missing: true }` when the worker could not link the live provider object" href="/docs/apis-analytics/post" />
+<LinkCard title="Post Analytics" description="Per-post insights for a published row" href="/docs/apis-analytics/post" />
 </CardGrid>
 
 <Callout type="note" title="Date window">
@@ -24,9 +24,9 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 When `GET /public/analytics/post/{postId}` returns `{ "data": { "missing": true } }`, the scheduled-publish worker could not map the OpenQuok row to a live provider object. Recover by:
 
-1. Calling <Badge text={"GET /public/posts/{postId}/missing"} variant="default" /> to fetch candidate ids and preview URLs from the provider.
+1. Calling `GET /public/posts/{postId}/missing` to fetch candidate ids and preview URLs from the provider.
 2. Identifying the one that matches your post.
-3. Calling <Badge text={"PUT /public/posts/{postId}/release-id"} variant="default" /> with the chosen id.
+3. Calling `PUT /public/posts/{postId}/release-id` variant="default" /> with the chosen id.
 4. Re-running the analytics query — subsequent calls return the metric series instead of `missing`.
 
 ## Related Section(s)

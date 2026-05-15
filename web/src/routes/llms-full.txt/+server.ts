@@ -33,14 +33,14 @@ function orderedSectionKeys(grouped: Map<string, DocPage[]>): string[] {
 	return keys;
 }
 
-function emitSectionDocs(
+async function emitSectionDocs(
 	lines: string[],
 	siteUrl: string,
 	section: string,
 	entries: DocPage[],
 	locale: string,
 	introduceSection: boolean
-): void {
+): Promise<void> {
 	if (introduceSection && section !== '_root') {
 		lines.push('---');
 		lines.push('');
@@ -49,7 +49,7 @@ function emitSectionDocs(
 	}
 	entries.sort((a, b) => (a.meta.order ?? 999) - (b.meta.order ?? 999));
 	for (const doc of entries) {
-		const raw = getRawContent(doc.slug, locale);
+		const raw = await getRawContent(doc.slug, locale);
 		const { content } = parseFrontmatterAndContent(raw);
 		lines.push(`## ${doc.meta.title}`);
 		lines.push(`URL: ${siteUrl}${doc.href}`);
@@ -72,7 +72,9 @@ export const GET: RequestHandler = async ({ url }) => {
 	lines.push(`Source: ${siteUrl}`);
 	lines.push('');
 
-	for (const { locale, localeLabel, pages } of eachLocaleDocPages()) {
+	const localePages = await eachLocaleDocPages();
+
+	for (const { locale, localeLabel, pages } of localePages) {
 		lines.push('---');
 		lines.push('');
 		lines.push(`# ${localeLabel} (${locale})`);
@@ -80,12 +82,12 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		const grouped = groupBySection(pages);
 		const root = grouped.get('_root') ?? [];
-		emitSectionDocs(lines, siteUrl, '_root', root, locale, false);
+		await emitSectionDocs(lines, siteUrl, '_root', root, locale, false);
 
 		for (const section of orderedSectionKeys(grouped)) {
 			const entries = grouped.get(section);
 			if (!entries?.length) continue;
-			emitSectionDocs(lines, siteUrl, section, entries, locale, true);
+			await emitSectionDocs(lines, siteUrl, section, entries, locale, true);
 		}
 	}
 

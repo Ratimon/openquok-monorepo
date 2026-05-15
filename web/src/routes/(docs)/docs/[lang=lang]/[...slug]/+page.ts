@@ -1,16 +1,24 @@
-import { docsConfig, getAllDocs, getDoc, getPrevNext, getRawContent } from '$lib/docs/index';
+import {
+	docsConfig,
+	getAllDocs,
+	getDoc,
+	getPrevNext,
+	getRawContent,
+	preloadDocsRegistry
+} from '$lib/docs/index';
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
 export const prerender = true;
 
-export function entries() {
+export async function entries() {
 	const locales = docsConfig.i18n?.locales ?? [];
 	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
 	const results: { lang: string; slug: string }[] = [];
 
 	for (const locale of locales) {
 		if (locale.code === defaultLocale) continue;
+		await preloadDocsRegistry(locale.code);
 		const docs = getAllDocs(locale.code);
 		for (const doc of docs) {
 			if (doc.slug) {
@@ -22,7 +30,8 @@ export function entries() {
 	return results;
 }
 
-export const load: PageLoad = ({ params }) => {
+export const load: PageLoad = async ({ params }) => {
+	await preloadDocsRegistry(params.lang);
 	const doc = getDoc(params.slug, params.lang);
 	if (!doc) throw error(404, `Page not found: ${params.slug}`);
 
@@ -34,6 +43,6 @@ export const load: PageLoad = ({ params }) => {
 		locale: params.lang,
 		prev,
 		next,
-		rawContent: getRawContent(params.slug, params.lang)
+		rawContent: await getRawContent(params.slug, params.lang)
 	};
 };

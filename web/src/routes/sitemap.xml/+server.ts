@@ -31,7 +31,7 @@ export async function GET({
 			throw new Error(`Backend sitemap returned ${response.status}: ${response.statusText}`);
 		}
 
-		const sitemap = mergeDocsUrlsIntoUrlset(await response.text(), siteUrl);
+		const sitemap = await mergeDocsUrlsIntoUrlset(await response.text(), siteUrl);
 
 		return new Response(sitemap, {
 			headers: {
@@ -52,7 +52,7 @@ export async function GET({
     </url>
 </urlset>`;
 
-		const merged = mergeDocsUrlsIntoUrlset(fallbackSitemap, siteUrl);
+		const merged = await mergeDocsUrlsIntoUrlset(fallbackSitemap, siteUrl);
 
 		return new Response(merged, {
 			status: 200,

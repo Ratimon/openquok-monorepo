@@ -82,7 +82,7 @@ npm view @openquok/node-sdk
 
 Test installation:
 ```bash
-npm install -g  @openquok/node-sdk
+npm install -g @openquok/node-sdk
 ```
 
 ## Using from Monorepo Root

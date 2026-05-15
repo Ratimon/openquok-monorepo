@@ -1,6 +1,6 @@
 ---
-title: Get Started to use CLI
-description: Install and automate social media content pipeline using the Openquok CLI from your terminal.
+title: Introduction to Openquok CLI
+description: An opensource CLI-first tool for AI agents. Give your agents the Openquok CLI to schedule posts, manage integrations, and upload media purely from the terminal.
 order: 0
 lastUpdated: 2026-05-12
 ---

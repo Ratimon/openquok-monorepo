@@ -10,13 +10,17 @@ function extractLocs(xml: string): Set<string> {
 }
 
 /** Append documentation URLs before `</urlset>`; skips locs already present. */
-export function mergeDocsUrlsIntoUrlset(backendXml: string, siteOrigin: string): string {
+export async function mergeDocsUrlsIntoUrlset(
+	backendXml: string,
+	siteOrigin: string
+): Promise<string> {
 	const trimmedOrigin = siteOrigin.replace(/\/$/, '');
 	const existing = extractLocs(backendXml);
 	const today = new Date().toISOString().slice(0, 10);
 	const blocks: string[] = [];
 
-	for (const { pages } of eachLocaleDocPages()) {
+	const localePages = await eachLocaleDocPages();
+	for (const { pages } of localePages) {
 		for (const doc of pages) {
 			const pathPart = doc.href.startsWith('/') ? doc.href : `/${doc.href}`;
 			const loc = `${trimmedOrigin}${pathPart}`;

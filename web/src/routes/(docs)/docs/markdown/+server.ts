@@ -6,8 +6,8 @@ import type { RequestHandler } from './$types';
 
 export const prerender = true;
 
-export const GET: RequestHandler = () => {
-	const raw = getRawContent('');
+export const GET: RequestHandler = async () => {
+	const raw = await getRawContent('');
 	if (!raw) throw error(404, 'Not found');
 	return new Response(raw, {
 		headers: markdownResourceHeaders

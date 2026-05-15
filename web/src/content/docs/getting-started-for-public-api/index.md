@@ -83,7 +83,7 @@ npm install @openquok/node-sdk
 ### Quick guide
 
 <Callout type="note" title="Authentication">
-<p>Pass an organization <strong>API key</strong> (or OAuth app token) as the first argument to the <code>Openquok</code> constructor — it is sent as the <Badge text="Authorization" variant="default" /> header on every request.
+<p>Pass an organization <strong>API key</strong> (or OAuth app token) as the first argument to the <code>Openquok</code> constructor — it is sent as the <Badge text="Authorization" variant="default" /> header on every request.</p>
 </Callout>
 
 ```ts

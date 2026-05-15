@@ -6,7 +6,7 @@ import type { RequestHandler } from './$types';
 
 export const prerender = true;
 
-export const GET: RequestHandler = ({ url }) => {
+export const GET: RequestHandler = async ({ url }) => {
 	const siteUrl = resolvePublicSiteUrl(url);
 	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
 	const siteTitle = docsConfig.site.title;
@@ -15,7 +15,8 @@ export const GET: RequestHandler = ({ url }) => {
 	const channelDescription = `${siteDescription} Blog posts: ${blogRssUrl}`;
 
 	const items: string[] = [];
-	for (const { locale, localeLabel, pages } of eachLocaleDocPages()) {
+	const localePages = await eachLocaleDocPages();
+	for (const { locale, localeLabel, pages } of localePages) {
 		for (const doc of pages) {
 			const titleSuffix = locale !== defaultLocale ? ` (${localeLabel})` : '';
 			const link = `${siteUrl}${doc.href.startsWith('/') ? doc.href : `/${doc.href}`}`;

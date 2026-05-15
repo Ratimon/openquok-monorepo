@@ -1,9 +1,10 @@
-import { getDoc, getPrevNext, getRawContent } from '$lib/docs/index';
+import { getDoc, getPrevNext, getRawContent, preloadDocsRegistry } from '$lib/docs/index';
 import { error } from '@sveltejs/kit';
 
 export const prerender = true;
 
-export function load() {
+export async function load() {
+	await preloadDocsRegistry(undefined);
 	const doc = getDoc('getting-started-for-cli');
 	if (!doc) throw error(404, 'CLI documentation not found');
 
@@ -14,6 +15,6 @@ export function load() {
 		slug: 'getting-started-for-cli',
 		prev,
 		next,
-		rawContent: getRawContent('getting-started-for-cli')
+		rawContent: await getRawContent('getting-started-for-cli')
 	};
 }

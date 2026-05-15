@@ -1,5 +1,13 @@
 export { docsConfig, docsTabs } from '$lib/docs/constants';
-export { getAllDocs, getDoc, getDocsByDirectory, getRawContent } from '$lib/docs/content';
+export {
+	eachLocaleDocPages,
+	getAllDocs,
+	getDoc,
+	getDocsByDirectory,
+	getRawContent,
+	preloadAllDocLocales,
+	preloadDocsRegistry
+} from '$lib/docs/content';
 export {
 	docsTabHref,
 	generateNavigationFromSidebar,
