@@ -1,6 +1,6 @@
 <h1>OpenQuok monorepo</h1>
 
-**Your AI-ready social media scheduling workspace**
+**Your AI-ready social media scheduling workspace**. It helps individuals or teams to run many social accounts at scale (especially as AI multiplies output) with an automation pipeline—draft, schedule, and publish—plus review and approval workflows so humans give final sign-off before anything goes live
 
 **OpenQuok** — a forkable, self-hosted alternative to closed SaaS schedulers (Buffer, Hypefury, and similar "post later" stacks) when you want publishing power without renting your whole workflow.
 
