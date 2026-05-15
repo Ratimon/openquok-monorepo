@@ -30,10 +30,10 @@ openquok --help
 
 ```bash
 git add .
-git commit -m "cli-v0.0.4"
+git commit -m "cli-v0.0.5"
 git push -u origin main
-git tag cli-v0.0.4
-git push origin cli-v0.0.4
+git tag cli-v0.0.5
+git push origin cli-v0.0.5
 ```
 
 ## Publishing checklist
