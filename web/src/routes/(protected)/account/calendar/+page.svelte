@@ -57,6 +57,8 @@
 
 	let actionsOpen = $state(false);
 	let actionsPostGroup = $state<string | null>(null);
+	/** Pre-selected slot when creating from the calendar (touch / compact layout). */
+	let actionsCreateAtIso = $state<string | null>(null);
 	/** When set, Preview / Statistics target this row id inside the `post_group` (multi-channel). */
 	let actionsFocusPostId = $state<string | null>(null);
 	/** When set, Post actions header shows this channel only (avatar + per-channel body). */
@@ -193,9 +195,17 @@
 	}
 
 	// --- Post group actions modal ---
-	function openActionsForPostGroup(postGroup: string, focusPostId?: string, focusIntegrationId?: string) {
-		if (!postGroup) return;
-		actionsPostGroup = postGroup;
+	function openActionsForPostGroup(
+		postGroup: string | null,
+		focusPostId?: string,
+		focusIntegrationId?: string,
+		createAtIso?: string
+	) {
+		const pg = postGroup?.trim() || null;
+		const slotIso = createAtIso?.trim() || null;
+		if (!pg && !slotIso) return;
+		actionsPostGroup = pg;
+		actionsCreateAtIso = slotIso;
 		actionsFocusPostId = focusPostId?.trim() || null;
 		actionsFocusIntegrationId = focusIntegrationId?.trim() || null;
 		actionsOpen = true;
@@ -204,6 +214,7 @@
 	function closeActions() {
 		actionsOpen = false;
 		actionsPostGroup = null;
+		actionsCreateAtIso = null;
 		actionsFocusPostId = null;
 		actionsFocusIntegrationId = null;
 		actionsBusy = false;
@@ -299,7 +310,7 @@
 	});
 </script>
 
-<div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm space-y-6">
+<div class="min-w-0 max-w-full overflow-x-hidden rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm space-y-6 sm:p-6">
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="space-y-1">
 			<div class="flex items-center gap-3">
@@ -385,7 +396,7 @@
 		{/if}
 	</section>
 
-	<section class="space-y-3">
+	<section class="min-w-0 max-w-full space-y-3">
 		<h3 class="text-lg font-semibold text-base-content">
 			Scheduled posts</h3>
 		{#if workspaceId && connectedChannelsVm.length > 0}
@@ -411,6 +422,7 @@
 <ShowPostActionsModal
 	open={actionsOpen}
 	postGroup={actionsPostGroup}
+	createAtIso={actionsCreateAtIso}
 	focusPostId={actionsFocusPostId}
 	focusIntegrationId={actionsFocusIntegrationId}
 	busy={actionsBusy}
@@ -422,6 +434,10 @@
 	onCopy={copyPostGroupText}
 	onDelete={deletePostGroup}
 	onPreview={() => void previewPostGroup()}
+	onCreatePost={(iso) => {
+		closeActions();
+		void openCreatePostForCurrentScopeAtIso(iso);
+	}}
 	onStatistics={(postId) => {
 		statisticsPostId = postId;
 		statisticsOpen = true;

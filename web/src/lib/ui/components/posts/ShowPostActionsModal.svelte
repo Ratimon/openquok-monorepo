@@ -8,6 +8,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Dialog from '$lib/ui/dialog';
+	import { Separator } from '$lib/ui/separator';
 
 	export type Props = {
 		open: boolean;
@@ -30,6 +31,9 @@
 		onDelete: () => Promise<void> | void;
 		onPreview?: () => void;
 		onStatistics?: (postId: string) => void;
+		/** When set, show a separate "create in this slot" action (mobile / touch calendar). */
+		createAtIso?: string | null;
+		onCreatePost?: (iso: string) => void;
 	};
 
 	let {
@@ -46,8 +50,19 @@
 		onCopy,
 		onDelete,
 		onPreview,
-		onStatistics
+		onStatistics,
+		createAtIso = null,
+		onCreatePost
 	}: Props = $props();
+
+	const hasExistingPost = $derived(Boolean(postGroup?.trim()));
+	const hasCreateSlot = $derived(Boolean(createAtIso?.trim() && onCreatePost));
+
+	const createSlotLabel = $derived.by(() => {
+		const iso = String(createAtIso ?? '').trim();
+		if (!iso) return { date: '', time: '' };
+		return formatLocalDateTime(iso);
+	});
 
 	type HeaderChannelVm = {
 		integrationId: string;
@@ -166,17 +181,28 @@
 	<Dialog.Content class="max-w-sm p-0" showCloseButton={true}>
 		<div class="border-b border-base-300 px-4 py-3">
 			<div class="text-base font-semibold text-base-content">
-				Post actions</div>
+				{hasExistingPost ? 'Post actions' : 'Schedule slot'}
+			</div>
 
-			{#if headerLoading}
+			{#if hasCreateSlot && !hasExistingPost}
+				<div class="mt-1 text-xs text-base-content/60">
+					{#if createSlotLabel.date || createSlotLabel.time}
+						{createSlotLabel.date}{createSlotLabel.time ? ` · ${createSlotLabel.time}` : ''}
+					{:else}
+						Pick a time on the calendar
+					{/if}
+				</div>
+			{/if}
+
+			{#if headerLoading && hasExistingPost}
 				<div class="mt-2 flex items-center gap-2 text-xs text-base-content/60">
 					<AbstractIcon name={icons.LoaderCircle.name} class="h-3.5 w-3.5 animate-spin" width="14" height="14" />
 					Loading post…
 				</div>
-			{:else if headerError}
+			{:else if headerError && hasExistingPost}
 				<div class="mt-2 text-xs text-error">
 					{headerError}</div>
-			{:else if summary}
+			{:else if summary && hasExistingPost}
 				{@const dt = formatLocalDateTime(summary.publishDateIso)}
 				{@const chs = summary.channels ?? []}
 				{@const maxAvatars = 4}
@@ -258,6 +284,37 @@
 		</div>
 
 		<div class="p-2">
+			{#if hasCreateSlot}
+				<p class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-base-content/50 uppercase">
+					New post in this slot
+				</p>
+				<button
+					type="button"
+					class="hover:bg-primary/15 flex w-full items-center gap-2 rounded px-3 py-2 text-sm font-medium text-start text-primary outline-none disabled:opacity-50"
+					disabled={busy}
+					onclick={() => {
+						const iso = String(createAtIso ?? '').trim();
+						if (!iso) return;
+						onClose();
+						onCreatePost?.(iso);
+					}}
+				>
+					<AbstractIcon name={icons.Plus.name} class="size-4 shrink-0" width="16" height="16" />
+					Create post
+					{#if createSlotLabel.time}
+						<span class="ms-auto text-xs font-normal text-base-content/55">{createSlotLabel.time}</span>
+					{/if}
+				</button>
+			{/if}
+
+			{#if hasCreateSlot && hasExistingPost}
+				<Separator class="my-2" />
+				<p class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-base-content/50 uppercase">
+					This scheduled post
+				</p>
+			{/if}
+
+			{#if hasExistingPost}
 			<button
 				type="button"
 				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
@@ -327,7 +384,7 @@
 				Statistics
 			</button>
 
-			<div class="bg-base-300 my-2 h-px w-full"></div>
+			<Separator class="my-2" />
 
 			<button
 				type="button"
@@ -338,6 +395,7 @@
 				<AbstractIcon name={icons.Trash.name} class="size-4 shrink-0" width="16" height="16" />
 				Delete
 			</button>
+			{/if}
 		</div>
 	</Dialog.Content>
 </Dialog.Root>

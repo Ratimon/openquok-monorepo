@@ -22,7 +22,14 @@ import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
  * and `CalendarItem` invoke it reliably.
  */
 let editPostGroupHandler: ((postGroup: string) => void) | null = null;
-let openActionsForPostGroupHandler: ((postGroup: string, focusPostId?: string, focusIntegrationId?: string) => void) | null = null;
+let openActionsForPostGroupHandler:
+	| ((
+			postGroup: string | null,
+			focusPostId?: string,
+			focusIntegrationId?: string,
+			createAtIso?: string
+	  ) => void)
+	| null = null;
 let refreshCalendarHandler: (() => void) | null = null;
 
 export function registerEditPostGroupHandler(next: ((postGroup: string) => void) | null): void {
@@ -35,7 +42,14 @@ export function triggerEditPostGroup(postGroup: string): void {
 }
 
 export function registerOpenActionsForPostGroupHandler(
-	next: ((postGroup: string, focusPostId?: string, focusIntegrationId?: string) => void) | null
+	next:
+		| ((
+				postGroup: string | null,
+				focusPostId?: string,
+				focusIntegrationId?: string,
+				createAtIso?: string
+		  ) => void)
+		| null
 ): void {
 	openActionsForPostGroupHandler = next;
 }
@@ -43,10 +57,16 @@ export function registerOpenActionsForPostGroupHandler(
 export function triggerOpenActionsForPostGroup(
 	postGroup: string,
 	focusPostId?: string,
-	focusIntegrationId?: string
+	focusIntegrationId?: string,
+	createAtIso?: string
 ): void {
 	if (!postGroup) return;
-	openActionsForPostGroupHandler?.(postGroup, focusPostId, focusIntegrationId);
+	openActionsForPostGroupHandler?.(postGroup, focusPostId, focusIntegrationId, createAtIso);
+}
+
+export function triggerOpenSlotActions(createAtIso: string): void {
+	if (!createAtIso) return;
+	openActionsForPostGroupHandler?.(null, undefined, undefined, createAtIso);
 }
 
 export function registerRefreshCalendarHandler(next: (() => void) | null): void {

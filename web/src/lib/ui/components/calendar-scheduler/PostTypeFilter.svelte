@@ -89,7 +89,7 @@
 <div class="relative" data-post-type-filter-root>
 	<button
 		type="button"
-		class="border-base-300 bg-base-100/60 hover:bg-base-100 inline-flex max-w-[min(100%,280px)] items-center gap-2 rounded-lg border px-3 py-2 text-sm text-base-content/80 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+		class="border-base-300 bg-base-100/60 hover:bg-base-100 inline-flex max-w-full min-w-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm text-base-content/80 outline-none focus-visible:ring-2 focus-visible:ring-primary sm:max-w-[min(100%,280px)]"
 		aria-haspopup="menu"
 		aria-expanded={open}
 		onclick={() => (open = !open)}

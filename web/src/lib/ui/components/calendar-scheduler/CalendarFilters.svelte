@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte';
 
 	import type { CalendarGranularityViewModel, CalendarLayoutModeViewModel } from '$lib/posts';
-	
+
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -32,25 +32,32 @@
 	}: Props = $props();
 </script>
 
-<div class="flex flex-wrap items-center justify-between gap-3">
-	<div class="flex items-center gap-2">
-		<div class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100">
+<div class="flex min-w-0 w-full max-w-full flex-col gap-3">
+	<div class="flex min-w-0 flex-wrap items-center gap-2">
+		<div class="inline-flex min-w-0 max-w-full shrink overflow-hidden rounded-lg border border-base-300 bg-base-100">
 			<Button type="button" variant="ghost" class="rounded-none" onclick={onPrev} aria-label="Previous">
 				<AbstractIcon name={icons.ChevronLeft.name} class="size-4" width="16" height="16" />
 			</Button>
-			<div class="px-3 py-2 text-sm font-medium text-base-content/80 min-w-[220px] text-center">
+			<div
+				class="min-w-0 max-w-[min(100%,12rem)] truncate px-2 py-2 text-center text-sm font-medium text-base-content/80 sm:max-w-none sm:min-w-[220px] sm:px-3 sm:whitespace-nowrap"
+			>
 				{label}
 			</div>
 			<Button type="button" variant="ghost" class="rounded-none" onclick={onNext} aria-label="Next">
 				<AbstractIcon name={icons.ChevronRight.name} class="size-4" width="16" height="16" />
 			</Button>
 		</div>
-		<Button type="button" variant="outline" onclick={onToday}>
+		<Button type="button" variant="outline" class="shrink-0" onclick={onToday}>
 			Today</Button>
-		{@render groupFilter?.()}
 	</div>
 
-	<div class="flex flex-wrap items-center gap-2">
+	{#if groupFilter}
+		<div class="flex min-w-0 w-full max-w-full flex-wrap items-center gap-2">
+			{@render groupFilter()}
+		</div>
+	{/if}
+
+	<div class="flex flex-wrap items-center gap-2 sm:justify-end">
 		<div class="inline-flex rounded-lg border border-base-300 bg-base-100 p-1">
 			<Button
 				type="button"

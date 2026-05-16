@@ -45,7 +45,12 @@
 		refreshKey?: string | number;
 		onTargetedChannelsChange?: (channels: ChannelViewModel[]) => void;
 		onEditPostGroup?: (postGroup: string) => void;
-		openActionsForPostGroup?: (postGroup: string, focusPostId?: string, focusIntegrationId?: string) => void;
+		openActionsForPostGroup?: (
+			postGroup: string | null,
+			focusPostId?: string,
+			focusIntegrationId?: string,
+			createAtIso?: string
+		) => void;
 		onCreatePostAtIso?: (iso: string) => void;
 		onRefresh?: () => void;
 	} = $props();
@@ -205,7 +210,7 @@
 	}
 </script>
 
-<div class="space-y-3">
+<div class="min-w-0 max-w-full space-y-3">
 	<CalendarFilters
 		granularity={scheduledPostsVm.granularity}
 		layoutMode={scheduledPostsVm.layoutMode}

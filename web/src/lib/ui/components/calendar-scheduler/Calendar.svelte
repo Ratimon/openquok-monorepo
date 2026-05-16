@@ -18,7 +18,8 @@
 		registerEditPostGroupHandler,
 		registerOpenActionsForPostGroupHandler,
 		registerRefreshCalendarHandler,
-		triggerOpenActionsForPostGroup
+		triggerOpenActionsForPostGroup,
+		triggerOpenSlotActions
 	} from '$lib/posts/Scheduler.presenter.svelte';
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
@@ -46,7 +47,12 @@
 		events: CalendarEventExternal[];
 		backgroundEvents?: BackgroundEvent[];
 		onEditPostGroup?: (postGroup: string) => void;
-		openActionsForPostGroup?: (postGroup: string, focusPostId?: string, focusIntegrationId?: string) => void;
+		openActionsForPostGroup?: (
+			postGroup: string | null,
+			focusPostId?: string,
+			focusIntegrationId?: string,
+			createAtIso?: string
+		) => void;
 		onCreatePostAtIso?: (iso: string) => void;
 		onRefresh?: () => void;
 	};
@@ -101,6 +107,55 @@
 		return d;
 	}
 
+	function prefersCompactCalendarActions(): boolean {
+		if (typeof window === 'undefined') return false;
+		return window.matchMedia('(pointer: coarse), (max-width: 640px)').matches;
+	}
+
+	function clampScheduledZonedDateTime(dt: Temporal.ZonedDateTime): Temporal.ZonedDateTime | null {
+		const now = Temporal.Now.zonedDateTimeISO('UTC');
+		const min = now.add({ minutes: 5 });
+		const cellEnd = dt.add({ hours: 1 });
+		if (Temporal.ZonedDateTime.compare(cellEnd, now) <= 0) return null;
+
+		let scheduled = dt.with({ minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
+		if (Temporal.ZonedDateTime.compare(scheduled, min) < 0) {
+			scheduled = min.with({ second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
+		}
+		if (Temporal.ZonedDateTime.compare(scheduled, now) <= 0) return null;
+		return scheduled;
+	}
+
+	function scheduledIsoFromTimeGridDay(dayEl: HTMLElement, clientY: number): string | null {
+		const dateStr = dayEl.getAttribute('data-time-grid-date') ?? '';
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+
+		const rect = dayEl.getBoundingClientRect();
+		const y = clientY - rect.top;
+		const frac = Math.min(1, Math.max(0, y / rect.height));
+		const minutes = Math.floor(frac * 24 * 60);
+		const hour = Math.min(23, Math.max(0, Math.floor(minutes / 60)));
+		const dt = Temporal.ZonedDateTime.from(`${dateStr}T${String(hour).padStart(2, '0')}:00:00+00:00[UTC]`);
+		const scheduled = clampScheduledZonedDateTime(dt);
+		return scheduled ? scheduled.toInstant().toString() : null;
+	}
+
+	function openSlotActionsFromCalendar(iso: string, postGroup?: string, focusPostId?: string, focusIntegrationId?: string): void {
+		if (prefersCompactCalendarActions()) {
+			if (postGroup) {
+				openActionsForPostGroup?.(postGroup, focusPostId, focusIntegrationId, iso);
+				return;
+			}
+			triggerOpenSlotActions(iso);
+			return;
+		}
+		if (postGroup) {
+			openActionsForPostGroup?.(postGroup, focusPostId, focusIntegrationId);
+			return;
+		}
+		openCreatePostAtIsoFromCalendar(iso);
+	}
+
 	function selectedPlainDateFromProps(): Temporal.PlainDate {
 		if (/^\d{4}-\d{2}-\d{2}$/.test(rangeStartDate)) {
 			return Temporal.PlainDate.from(rangeStartDate);
@@ -125,16 +180,11 @@
 						// Ignore the "date passed" shaded background.
 						if (target?.closest?.('.sx__time-grid-background-event')) return;
 
-						const now = Temporal.Now.zonedDateTimeISO('UTC');
-						const min = now.add({ minutes: 5 });
-
-						// Start of clicked cell hour (UTC), but never earlier than now + 5 minutes.
-						let scheduled = dt.with({ minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
-						if (Temporal.ZonedDateTime.compare(scheduled, min) < 0) {
-							scheduled = min.with({ second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
-						}
-						if (Temporal.ZonedDateTime.compare(scheduled, now) <= 0) return;
-						openCreatePostAtIsoFromCalendar(scheduled.toInstant().toString());
+						const scheduled = clampScheduledZonedDateTime(
+							dt.with({ minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 })
+						);
+						if (!scheduled) return;
+						openSlotActionsFromCalendar(scheduled.toInstant().toString());
 					}
 				}
 			},
@@ -433,7 +483,13 @@
 				ev.stopPropagation();
 				const focusId = String(chip?.dataset?.postId ?? '').trim();
 				const focusInt = String(chip?.dataset?.integrationId ?? '').trim();
-				openActionsForPostGroup?.(postGroup, focusId || undefined, focusInt || undefined);
+				const dayEl = chip?.closest?.('.sx__time-grid-day') as HTMLElement | null;
+				const slotIso = dayEl ? scheduledIsoFromTimeGridDay(dayEl, ev.clientY) : null;
+				if (prefersCompactCalendarActions() && slotIso) {
+					openActionsForPostGroup?.(postGroup, focusId || undefined, focusInt || undefined, slotIso);
+				} else {
+					openActionsForPostGroup?.(postGroup, focusId || undefined, focusInt || undefined);
+				}
 			}
 		};
 
@@ -704,6 +760,9 @@
 	  Scoped overrides keep internal stacking order while staying below the dialog layer.
 	*/
 	.schedule-x-calendar-host {
+		max-width: 100%;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
 		--sx-z-index-week-header: 10;
 		--sx-z-index-event-modal: 20;
 		--sx-calendar-header-popup-z-index: 15;
@@ -760,6 +819,25 @@
 	.schedule-x-calendar-host :global(.sx-svelte-calendar-wrapper) {
 		width: 100%;
 		height: min(900px, 78vh);
+	}
+
+	@media (max-width: 640px) {
+		.schedule-x-calendar-host :global(.sx__week-grid),
+		.schedule-x-calendar-host :global(.sx__time-grid) {
+			min-width: 36rem;
+		}
+
+		.schedule-x-calendar-host :global(.sx__time-grid-day) {
+			min-width: 3.25rem;
+		}
+
+		.schedule-x-calendar-host :global(.sx__week-grid__day) {
+			min-width: 3.25rem;
+		}
+
+		.schedule-x-calendar-host :global(.oq-calendar-item) {
+			min-width: 2.75rem;
+		}
 	}
 
 	.oq-create-strip {
