@@ -306,6 +306,22 @@ export const config: ConfigObject = {
         },
     },
 
+    /**
+     * Long-running BullMQ workers (`orchestrator/worker/*`): health HTTP and observability.
+     * Health port: host `PORT` (Railway) when set, else `ORCHESTRATOR_WORKER_HEALTH_PORT`, else `3091`.
+     * Set `ORCHESTRATOR_WORKER_HEALTH_PORT=0` to disable the listener.
+     */
+    orchestratorWorker: {
+        healthPort: (() => {
+            const disable = getEnvNumber("ORCHESTRATOR_WORKER_HEALTH_PORT", -1);
+            if (disable === 0) return 0;
+            const hostPort = getEnvNumber("PORT", 0);
+            if (hostPort > 0) return hostPort;
+            if (disable > 0) return disable;
+            return 3091;
+        })(),
+    },
+
     /** Rate limiting. When enabled, applies global and auth-specific limits. */
     rateLimit: {
         enabled: getEnv("RATE_LIMIT_ENABLED", "true") !== "false",

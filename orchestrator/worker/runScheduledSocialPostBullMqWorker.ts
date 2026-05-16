@@ -4,6 +4,7 @@
  *
  * Run: pnpm worker:scheduled-social-post-bullmq
  */
+import { bootstrapOrchestratorWorker } from "./bootstrapOrchestratorWorker.js";
 import { config } from "backend/config/GlobalConfig.js";
 import { cacheInvalidationServiceConnection, cacheServiceConnection } from "backend/connections/index.js";
 import {
@@ -32,6 +33,14 @@ import { logger } from "backend/utils/Logger.js";
 import { runMissingScheduledPostRescan } from "../flows/missingScheduledPostReconciliation.js";
 import { startFlowcraftBullMqReconciliationTimer } from "./flowcraftBullMqReconciliationTimer.js";
 import { enqueueScheduledSocialPostDistributedRun } from "../adapters/flowcraft-bullmq/scheduled-social-post/enqueueScheduledSocialPostDistributedRun.js";
+
+const scheduledSocialPostQueueName =
+    (config.bullmq as { scheduledSocialPost?: { queueName?: string } }).scheduledSocialPost?.queueName ??
+    "scheduled-social-post";
+const { stopHealthServer, flushSentry } = bootstrapOrchestratorWorker({
+    label: "scheduled-social-post",
+    queueName: scheduledSocialPostQueueName,
+});
 
 const transport = (config.bullmq as { scheduledSocialPost?: { transport?: string } }).scheduledSocialPost?.transport;
 if (transport !== "bullmq") {
@@ -138,10 +147,9 @@ if (rescanEveryMs && rescanEveryMs > 0) {
         void runMissingScheduledPostRescan();
     }, rescanEveryMs);
 }
-const queueName = (config.bullmq as { scheduledSocialPost?: { queueName?: string } }).scheduledSocialPost?.queueName ?? "scheduled-social-post";
 logger.info({
     msg: "[Worker] Flowcraft BullMQ adapter listening for scheduled social post workflows",
-    queueName,
+    queueName: scheduledSocialPostQueueName,
     missingPostRescanIntervalMs: rescanEveryMs ?? 0,
 });
 
@@ -150,6 +158,7 @@ async function shutdown(signal: string): Promise<void> {
     flowcraftReconciler.stop();
     if (missingPostInterval) clearInterval(missingPostInterval);
     try {
+        await stopHealthServer();
         await adapter.close();
         await redis.quit();
     } catch (err) {
@@ -158,6 +167,7 @@ async function shutdown(signal: string): Promise<void> {
             error: err instanceof Error ? err.message : String(err),
         });
     }
+    await flushSentry();
     process.exit(0);
 }
 

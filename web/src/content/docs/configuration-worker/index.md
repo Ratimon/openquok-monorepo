@@ -2,7 +2,7 @@
 title: Configuration - Worker
 description: Environment and deployment for orchestrator worker processes (BullMQ, Redis, Docker, Railway), plus the admin queue dashboard.
 order: 0
-lastUpdated: 2026-05-11
+lastUpdated: 2026-05-16
 ---
 
 <script>
@@ -31,6 +31,7 @@ Super admins can inspect and **manage BullMQ jobs** (pause / resume queues, open
 - **Supabase** — <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" />, <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" />, and <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> for server-side tables. Legacy JWT keys are not accepted; see <a href="/docs/configuration-backend/supabase">Supabase</a>.
 - **Storage (scheduled social post publishing)** — If you publish posts with media (for example Threads image posts), workers must be able to build a **public HTTPS URL** for uploaded objects. Set <Badge text="STORAGE_PROVIDER" variant="envBackend" /> (typically <code>r2</code>) and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (your public bucket hostname, no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
 - **Per worker** — Provider OAuth secrets for **integration refresh**; email provider keys for **notification email**; the same **provider or channel** credentials the API would use to publish for **scheduled social** posts. A short template lives in the repo at <Badge text="orchestrator/.env.production.example" variant="path" />.
+- **Health & errors** — Each worker exposes <code>GET /health</code> and <code>GET /health/status</code> (Redis PING + optional queue depth). Port: host <Badge text="PORT" variant="envBackend" /> on Railway, else <Badge text="ORCHESTRATOR_WORKER_HEALTH_PORT" variant="envBackend" /> (default <code>3091</code>; set <code>0</code> to disable). Optional <Badge text="SENTRY_DSN" variant="envBackend" /> / <Badge text="SENTRY_ENABLED" variant="envBackend" /> match the API so worker crashes reach Sentry (tag <code>openquok.worker</code>).
 
 ## Guides
 

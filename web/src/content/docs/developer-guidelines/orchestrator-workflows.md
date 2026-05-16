@@ -2,7 +2,7 @@
 title: Orchestrator workflows
 description: How OpenQuok uses Flowcraft for integration refresh, notification email, and scheduled social posts—in-process or on BullMQ workers.
 order: 3
-lastUpdated: 2026-04-24
+lastUpdated: 2026-05-16
 ---
 
 <script>
@@ -74,18 +74,19 @@ Managed Redis (for example <DocsExternalLink href="https://redis.io/">Redis</Doc
 - **Jest**: <code>JEST_WORKER_ID</code> forces the integration-refresh supervisor off regardless of <code>integrationRefresh.enabled</code>. To test the supervisor, mock <code>config</code> or reload modules with different <code>orchestratorFlows</code> settings.
 - **Elsewhere**: toggle <code>integrationRefresh.enabled</code> and other flow flags in code for the deployment profile you want (or split config by environment in that file).
 
-## Testing
 
-- **Unit (integration refresh)**: <code>orchestrator/flows/refreshTokenWorkflow.unit.test.ts</code> drives <code>runRefreshTokenOrchestration</code> with mocked activities and chunked sleep so cases finish fast. It also demonstrates <DocsExternalLink href="https://flowcraft.js.org/guide/testing">Flowcraft testing utilities</DocsExternalLink>: <code>InMemoryEventLogger</code> (pass <code>eventBus</code> into the runner), <code>runWithTrace</code>, and <code>createStepper</code> from <code>flowcraft/testing</code>. <code>orchestrator/flows/refreshTokenWorkflow.bullmq.unit.test.ts</code> runs with <code>jest.bullmq.config.js</code> (env for <code>ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT</code> is not reset). For replay/CLI-style inspection against persisted events, see <DocsExternalLink href="https://flowcraft.js.org/guide/time-travel">time-travel debugging</DocsExternalLink> and the <DocsExternalLink href="https://flowcraft.js.org/guide/cli">CLI tool</DocsExternalLink>—those need a persistent event store, not just unit mocks.
-- **Unit (notification email)**: <code>orchestrator/flows/notificationEmailWorkflow.unit.test.ts</code>
-- **Unit (scheduled social)**: <code>orchestrator/flows/scheduledSocialPostWorkflow.unit.test.ts</code> (in-process Flowcraft and mock enqueue for the BullMQ branch in one Jest run); <code>orchestrator/flows/missingScheduledPostReconciliation.unit.test.ts</code> for the DB rescan helper.
-- **Conventions**: Repository guidance for workflow tests (Jest + <code>flowcraft/testing</code>, Faker, when to mock <code>config</code> vs call the runner directly) lives in the backend test-suites Cursor rule (<code>.cursor/rules/backend-test-suites.mdc</code>, section on orchestrator workflows).
+## Worker health and Sentry
+
+Each <code>*BullMqWorker</code> bootstraps via <code>orchestrator/worker/bootstrapOrchestratorWorker.ts</code>:
+
+- **HTTP** — <code>GET /health</code> and <code>GET /health/status</code> return JSON with <code>status</code>, <code>worker</code>, <code>redis</code>, <code>uptimeSeconds</code>, and optional BullMQ queue counts. Use these URLs for uptime monitors (Railway health checks, Better Stack, etc.). Port resolution: host <Badge text="PORT" variant="envBackend" /> when set, else <Badge text="ORCHESTRATOR_WORKER_HEALTH_PORT" variant="envBackend" /> (default <code>3091</code>); <code>0</code> disables the listener.
+- **Sentry** — Workers import the same <code>backend/connections/sentry</code> module as the API. Set <Badge text="SENTRY_DSN" variant="envBackend" /> on worker services; uncaught errors are tagged <code>openquok.worker</code> and <code>openquok.worker.queue</code>.
 
 ## BullMQ reconciliation (Flowcraft adapter)
 
 The <DocsExternalLink href="https://flowcraft.js.org/guide/adapters/bullmq#reconciliation">BullMQ adapter guide</DocsExternalLink> describes <code>createBullMQReconciler</code>: it scans Redis keys that hold workflow state, treats runs idle longer than a threshold as **stalled**, and **re-enqueues** the appropriate next jobs so a worker can continue. That is aimed at production reliability when jobs or workers disappear between steps.
 
-<Callout type="note" title="What OpenQuok does">
+<Callout type="note">
 Each <code>*BullMqWorker</code> in <code>orchestrator/worker/</code> starts a **timer** that runs the Flowcraft adapter reconciler on the **same** Redis <code>connection</code> as the long-lived <code>adapter</code> (see <code>orchestrator/worker/flowcraftBullMqReconciliationTimer.ts</code>). Intervals and stall thresholds come from <code>config.bullmq.flowcraft</code> in <code>backend/config/GlobalConfig.ts</code> (sourced from <code>orchestratorFlows</code> defaults). <strong>Integration refresh</strong> benefits when workflow state is in Redis but <strong>no</strong> BullMQ job is driving the next <code>executeNode</code>—not when one job is still running for hours on a single worker. <strong>Scheduled social</strong> and <strong>notification email</strong> workers use the same pattern for their queues.
 </Callout>
 
@@ -110,7 +111,7 @@ It loads dotenv the same way workers do (via <code>backend/config/loadBackendDot
 - <code>backend/.env.production.local</code> when <code>NODE_ENV=production</code>
 - injected environment variables in production hosts (Railway, Fly, etc.)
 
-<Callout type="note" title="Worker env files vs this script">
+<Callout type="note" title="Worker env files">
 The Railway worker setup/sync scripts in the repo root (<code>railway:setup:*</code>, <code>railway:env:sync:*</code>) intentionally read from <code>orchestrator/.env.production.local</code> (see the <code>--env-file</code> flag in <code>package.json</code>), because those commands are managing <em>orchestrator</em> services.
 
 This <code>script:clear-flowcraft-runs</code> helper is a dev/admin script that imports backend config and therefore loads dotenv via <code>backend/config/loadBackendDotenv.cjs</code>.
@@ -124,7 +125,7 @@ This deletes Redis keys for the selected blueprint (<code>workflow:state:*</code
 
 The same <DocsExternalLink href="https://flowcraft.js.org/guide/adapters/bullmq#webhook-endpoints">guide</DocsExternalLink> describes wiring **HTTP routes** so external systems can POST payloads that resume workflows using Flowcraft **webhook** nodes (<code>Flow.createWebhook()</code> / wait-for-callback style graphs).
 
-<Callout type="note" title="Applicability here">
+<Callout type="note">
 The integration refresh workflow is only <code>begin</code> → loop <code>tick</code> → <code>finished</code>; it does <strong>not</strong> use webhook nodes, so <strong>this feature does not apply</strong> to the current refresh supervisor. It would matter only if you add another blueprint that pauses on a webhook.
 
 Also, the <code>@flowcraft/bullmq-adapter</code> version used in this repo currently implements <code>registerWebhookEndpoint</code> by <strong>throwing</strong> (“not implemented”), so the guide’s webhook flow is <strong>not usable</strong> with the stock adapter here until upstream adds it or you provide a custom integration.

@@ -26,6 +26,8 @@ All expect **Redis** at `REDIS_*` (and optional `REDIS_BULLMQ_DB`), matching the
 | `SUPABASE_SECRET_KEY` | New secret key (`sb_secret_…`). Server-side only. Required in production for tables used by refresh, notifications, and scheduled posts. Legacy `service_role` JWT is not accepted. |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`, `REDIS_BULLMQ_DB` | Match the API’s queue/cache Redis; defaults exist for local Redis. |
 | `BULLMQ_WORKER_LOCK_DURATION_MS` | Optional. Flowcraft jobs use this as BullMQ `lockDuration` (default **600000** ms = 10 min). The upstream `@flowcraft/bullmq-adapter` did not set this; BullMQ’s **30s** default can cause `Error: could not renew lock for job …` when a node runs longer (OAuth refresh, slow HTTP). |
+| `ORCHESTRATOR_WORKER_HEALTH_PORT` | Optional. HTTP port for `GET /health` and `GET /health/status` (Redis PING + queue depth). Railway/host **`PORT`** wins when set; else this var; else **3091**. Set **`0`** to disable. |
+| `SENTRY_DSN`, `SENTRY_ENABLED` | Optional. Same as the API; workers initialize Sentry on boot and report uncaught errors. Tag: `openquok.worker`. |
 
 **Integration refresh worker only**
 
@@ -66,6 +68,7 @@ Env files are loaded from the **`backend` package directory** (resolved from the
 | `pnpm test:unit:notification-email-workflow` | `flows/notificationEmailWorkflow.unit.test.ts` |
 | `pnpm test:unit:scheduled-social-post-workflow` | `flows/scheduledSocialPostWorkflow.unit.test.ts` (in-process Flowcraft and BullMQ enqueue paths, without a second Jest config). |
 | `pnpm test:unit:missing-scheduled-post-reconciliation` | `flows/missingScheduledPostReconciliation.unit.test.ts` |
+| `pnpm test:unit` (includes) | `worker/workerHealthServer.unit.test.ts` |
 
 ## Production deployment (separate from serverless API)
 
@@ -130,6 +133,8 @@ Local scripts use `tsx` and `NODE_ENV=development`; production uses **`node`** o
 
 ## Operational notes
 
+- **Health checks** — Each worker serves `GET /health` and `GET /health/status` (200 when Redis is reachable; 500 otherwise). Point uptime monitors at your worker URL (on Railway, use the service’s public URL and the injected `PORT`). Response includes `worker`, `queueName`, `uptimeSeconds`, and BullMQ job counts when configured.
+- **Sentry** — Workers load `backend/connections/sentry` on startup. Set `SENTRY_DSN` on worker services to capture uncaught exceptions and unhandled rejections (tagged `openquok.worker`).
 - **Flowcraft BullMQ reconciler** (stalled / dropped jobs) runs in **each** `*BullMqWorker` with shared thresholds from `config.bullmq.flowcraft` (see [Flowcraft docs](https://flowcraft.js.org/guide/adapters/bullmq#reconciliation)).
 - **Integration refresh** ticks can **sleep until access-token expiry** (see `nodes/refreshTokenNodes.ts` and `sleepChunked.ts`). Validate BullMQ **lock / stalled** settings if jobs run longer than default worker visibility windows.
 - **Notification digest** flush interval: `orchestratorFlows.notificationEmail.digestFlushIntervalMs` (passed through `config.bullmq.notificationEmail`).

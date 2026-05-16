@@ -4,6 +4,7 @@
  *
  * Run: pnpm worker:notification-email-bullmq (from backend/)
  */
+import { bootstrapOrchestratorWorker } from "./bootstrapOrchestratorWorker.js";
 import { config } from "backend/config/GlobalConfig.js";
 import { createNotificationEmailBullMqAdapter } from "../adapters/flowcraft-bullmq/notification/createNotificationEmailBullMqAdapter.js";
 import { executeNotificationDigestFlush } from "../flows/notificationDigestFlushExecution.js";
@@ -25,6 +26,10 @@ const emailCfg = config.email as { enabled?: boolean } | undefined;
 const queueName = bullmqConfig.notificationEmail?.queueName ?? "notification-email";
 const digestEveryMs = bullmqConfig.notificationEmail?.digestFlushIntervalMs ?? 300_000;
 const sendPlainMinIntervalMs = bullmqConfig.notificationEmail?.sendPlainMinIntervalMs ?? 700;
+const { stopHealthServer, flushSentry } = bootstrapOrchestratorWorker({
+    label: "notification-email",
+    queueName,
+});
 
 const emailService = new EmailService({
     isEnabled: emailCfg?.enabled ?? false,
@@ -63,6 +68,7 @@ async function shutdown(signal: string): Promise<void> {
     flowcraftReconciler.stop();
     clearInterval(digestInterval);
     try {
+        await stopHealthServer();
         await adapter.close();
         await redis.quit();
     } catch (err) {
@@ -71,6 +77,7 @@ async function shutdown(signal: string): Promise<void> {
             error: err instanceof Error ? err.message : String(err),
         });
     }
+    await flushSentry();
     process.exit(0);
 }
 

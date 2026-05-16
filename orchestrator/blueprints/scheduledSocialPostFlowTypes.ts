@@ -2,7 +2,7 @@
  * Context + dependencies for the scheduled social post Flowcraft run (BullMQ worker).
  */
 export const SCHEDULED_SOCIAL_POST_BLUEPRINT_ID = "scheduled-social-post" as const;
-export const SCHEDULED_SOCIAL_POST_BLUEPRINT_VERSION = "1.0.1" as const;
+export const SCHEDULED_SOCIAL_POST_BLUEPRINT_VERSION = "1.0.0" as const;
 
 export type ScheduledSocialPostTodo =
     | {
