@@ -12,6 +12,7 @@ import {
     notificationRepository,
     organizationRepository,
     postsRepository,
+    storageSupabaseRepository,
     userRepository,
 } from "backend/repositories/index.js";
 import { invalidatePostsCalendarListCachesForOrganization } from "backend/services/PostsService.js";
@@ -57,6 +58,7 @@ const integrationManager = new IntegrationManager();
 const refreshIntegrationService = new RefreshIntegrationService(
     integrationRepository,
     integrationManager,
+    storageSupabaseRepository,
     notificationService
 );
 

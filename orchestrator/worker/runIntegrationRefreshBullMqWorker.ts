@@ -6,7 +6,13 @@
  * Run: pnpm worker:integration-refresh-bullmq (from backend/)
  */
 import { config } from "backend/config/GlobalConfig.js";
-import { integrationRepository, notificationRepository, organizationRepository, userRepository } from "backend/repositories/index.js";
+import {
+    integrationRepository,
+    notificationRepository,
+    organizationRepository,
+    storageSupabaseRepository,
+    userRepository,
+} from "backend/repositories/index.js";
 import { EmailService } from "backend/services/EmailService.js";
 import { NotificationService } from "backend/services/NotificationService.js";
 import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
@@ -39,7 +45,12 @@ const notificationService = new NotificationService(
 );
 
 const integrationManager = new IntegrationManager();
-const refreshIntegrationService = new RefreshIntegrationService(integrationRepository, integrationManager, notificationService);
+const refreshIntegrationService = new RefreshIntegrationService(
+    integrationRepository,
+    integrationManager,
+    storageSupabaseRepository,
+    notificationService
+);
 
 const { adapter, redis } = createIntegrationRefreshBullMqAdapter({
     integrationRepository,

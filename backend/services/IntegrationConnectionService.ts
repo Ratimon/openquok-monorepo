@@ -1,6 +1,7 @@
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseRepository";
 import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { RefreshIntegrationService } from "./RefreshIntegrationService";
 import type {
@@ -20,6 +21,7 @@ import { UserNotFoundError } from "../errors/UserError";
 import { OrganizationNotFoundError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
+import { resolveIntegrationPictureForStorage } from "../utils/mirrorIntegrationProfilePicture";
 import { logger } from "../utils/Logger";
 
 /** Domain-scoped cache key builders for short-lived OAuth state (`login:`, `organization:`, `refresh:`, etc.). */
@@ -92,6 +94,7 @@ export class IntegrationConnectionService {
         private readonly organizationRepository: OrganizationRepository,
         private readonly manager: IntegrationManager,
         private readonly refreshIntegrationService: RefreshIntegrationService,
+        private readonly storageRepository: StorageSupabaseRepository,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService
     ) {}
@@ -500,11 +503,19 @@ export class IntegrationConnectionService {
         const tz = Number.parseInt(body.timezone, 10);
         const postingTimes = postingTimesForTimezone(Number.isNaN(tz) ? undefined : tz);
 
+        const storedPicture = await resolveIntegrationPictureForStorage({
+            storageRepository: this.storageRepository,
+            organizationId,
+            internalId: String(id),
+            picture: picture || null,
+            resolveFreshRemoteUrl: async () => picture || null,
+        });
+
         const row = await this.integrations.upsertIntegration({
             organizationId,
             internalId: String(id),
             name: validName.trim(),
-            picture: picture || null,
+            picture: storedPicture,
             providerIdentifier: integration,
             integrationType: "social",
             token: accessToken,

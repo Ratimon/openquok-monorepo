@@ -50,6 +50,13 @@ export const MAX_IMAGE_UPLOAD_BYTES = 4 * 1024 * 1024;
  * Instagram `profile_picture_url` often resolves to `*.cdninstagram.com`, which may 403 when hotlinked.
  * Those URLs must be fetched via {@link ImageRepository.fetchExternalProxiedImageBlob} (authenticated).
  */
+/** Mirrored integration avatars in the `avatars` bucket (`integration-profiles/...`). */
+export const INTEGRATION_PROFILE_STORAGE_PREFIX = 'integration-profiles';
+
+export function isIntegrationProfileStoragePath(url: string | null | undefined): boolean {
+	return typeof url === 'string' && url.startsWith(`${INTEGRATION_PROFILE_STORAGE_PREFIX}/`);
+}
+
 export function instagramProfilePictureNeedsAuthenticatedProxy(url: string): boolean {
 	try {
 		const u = new URL(url);

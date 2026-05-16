@@ -86,6 +86,25 @@ export class StorageSupabaseRepository {
         return filePath;
     }
 
+    /** Upsert mirrored integration profile photo (`integration-profiles/...` in avatars bucket). */
+    async uploadIntegrationProfilePicture(
+        objectPath: string,
+        buffer: Buffer,
+        contentType: string
+    ): Promise<{ error: null | { message: string } }> {
+        const { error } = await this.supabaseServiceClient.storage
+            .from(DATABASE_NAMES.AVATARS)
+            .upload(objectPath, buffer, {
+                contentType,
+                upsert: true,
+            });
+
+        if (error) {
+            return { error: { message: error.message } };
+        }
+        return { error: null };
+    }
+
     async deleteImage(
         databaseName: DatabaseName,
         path: string

@@ -1,10 +1,12 @@
 import type { IntegrationRepository } from "../repositories/IntegrationRepository";
+import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseRepository";
 import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { NotificationService } from "./NotificationService";
 import type { AuthTokenDetails, SocialProvider } from "../integrations/social.integrations.interface";
 
 import { config } from "../config/GlobalConfig";
 import { IntegrationManager } from "../integrations/integrationManager";
+import { resolveIntegrationPictureForStorage } from "../utils/mirrorIntegrationProfilePicture";
 import { logger } from "../utils/Logger";
 
 /** Token refresh orchestration; long-running refresh timing runs as an in-process Flowcraft loop under `orchestrator/`. */
@@ -12,6 +14,7 @@ export class RefreshIntegrationService {
     constructor(
         private readonly integrationRepository: IntegrationRepository,
         private readonly integrationManager: IntegrationManager,
+        private readonly storageRepository: StorageSupabaseRepository,
         private readonly notificationService?: NotificationService
     ) {}
 
@@ -26,11 +29,22 @@ export class RefreshIntegrationService {
             return false;
         }
 
+        const picture =
+            refresh.picture?.trim() ?
+                await resolveIntegrationPictureForStorage({
+                    storageRepository: this.storageRepository,
+                    organizationId: integration.organization_id,
+                    internalId: integration.internal_id,
+                    picture: refresh.picture,
+                    resolveFreshRemoteUrl: async () => refresh.picture,
+                })
+            :   integration.picture;
+
         await this.integrationRepository.upsertIntegration({
             organizationId: integration.organization_id,
             internalId: integration.internal_id,
             name: integration.name,
-            picture: integration.picture,
+            picture,
             providerIdentifier: integration.provider_identifier,
             integrationType: integration.type === "article" ? "article" : "social",
             token: refresh.accessToken,

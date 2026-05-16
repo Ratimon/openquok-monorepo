@@ -2,7 +2,10 @@
 	import type { IconName } from '$data/icons';
 
 	import { imageRepository } from '$lib/core';
-	import { instagramProfilePictureNeedsAuthenticatedProxy } from '$lib/core/Image.repository.svelte';
+	import {
+		instagramProfilePictureNeedsAuthenticatedProxy,
+		isIntegrationProfileStoragePath
+	} from '$lib/core/Image.repository.svelte';
 
 	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
 
@@ -24,25 +27,11 @@
 			resolvedSrc = null;
 			return;
 		}
-		if (!/^https?:\/\//i.test(raw)) {
-			resolvedSrc = raw;
-			return;
-		}
-		if (!instagramProfilePictureNeedsAuthenticatedProxy(raw)) {
-			resolvedSrc = raw;
-			return;
-		}
 
 		let cancelled = false;
 		let blobObjectUrl: string | null = null;
 
-		void (async () => {
-			const blob = await imageRepository.fetchExternalProxiedImageBlob(raw);
-			if (cancelled) return;
-			if (!blob) {
-				resolvedSrc = null;
-				return;
-			}
+		const setBlobSrc = (blob: Blob) => {
 			const u = URL.createObjectURL(blob);
 			if (cancelled) {
 				URL.revokeObjectURL(u);
@@ -50,7 +39,33 @@
 			}
 			blobObjectUrl = u;
 			resolvedSrc = u;
-		})();
+		};
+
+		if (isIntegrationProfileStoragePath(raw)) {
+			void (async () => {
+				const result = await imageRepository.getImageBlobByUrl('avatars', raw);
+				if (cancelled) return;
+				if (!result?.blob) {
+					resolvedSrc = null;
+					return;
+				}
+				setBlobSrc(result.blob);
+			})();
+		} else if (!/^https?:\/\//i.test(raw)) {
+			resolvedSrc = raw;
+		} else if (!instagramProfilePictureNeedsAuthenticatedProxy(raw)) {
+			resolvedSrc = raw;
+		} else {
+			void (async () => {
+				const blob = await imageRepository.fetchExternalProxiedImageBlob(raw);
+				if (cancelled) return;
+				if (!blob) {
+					resolvedSrc = null;
+					return;
+				}
+				setBlobSrc(blob);
+			})();
+		}
 
 		return () => {
 			cancelled = true;

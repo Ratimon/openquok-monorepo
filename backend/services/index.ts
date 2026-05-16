@@ -15,6 +15,7 @@ import {
     signatureRepository,
     setsRepository,
     oauthAppRepository,
+    storageSupabaseRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -67,6 +68,7 @@ export const notificationService = new NotificationService(
 export const refreshIntegrationService = new RefreshIntegrationService(
     integrationRepository,
     integrationManager,
+    storageSupabaseRepository,
     notificationService
 );
 export const authenticationService = new AuthenticationService(
@@ -122,6 +124,7 @@ export const integrationConnectionService = new IntegrationConnectionService(
     organizationRepository,
     integrationManager,
     refreshIntegrationService,
+    storageSupabaseRepository,
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );

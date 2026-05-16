@@ -1,30 +1,10 @@
 ---
 name: openquok-core
 description: >-
-  Openquok helps individuals or teams run many social accounts at scale with automation,
-  drafts, scheduling, and human approval. Use when driving the `openquok` CLI (`@openquok/auto-cli`).
-  Requires a globally installed CLI on the host (≥ 0.0.6 for hosted device login): run
-  `npm install -g @openquok/auto-cli@latest` before other commands. Installing this skill via
-  `npx skills add` only updates skill markdown — it does not install or upgrade the `openquok` binary;
-  restarting OpenClaw or the gateway does not change `openquok --version`.
+  Openquok CLI (0.0.6) helps individuals or teams run many social accounts at scale with automation,
+  drafts, scheduling, and human approval. Use when driving the `openquok` CLI (`@openquok/auto-cli`). Requires a globally installed CLI on the host (≥ 0.0.6 for hosted device login).
 homepage: https://www.npmjs.com/package/@openquok/auto-cli
 metadata: {"openclaw":{"emoji":"📮","requires":{"bins":["openquok"],"env":[]}}}
----
-
-## Skill vs `openquok` binary (read first)
-
-| Action | What it updates |
-|--------|------------------|
-| `npx skills add …/agent --skill openquok-core` | This skill under `.agents/skills/` (instructions only) |
-| `npm install -g @openquok/auto-cli@latest` | The **`openquok`** command on the machine |
-
-**If `openquok --version` shows anything below 0.0.6** after adding the skill, the npm global package was never upgraded. Run **`npm install -g @openquok/auto-cli@latest`** (or `@0.0.6`) in the **same environment** where the agent runs shell commands, then verify again. Restarting the gateway alone does not bump the CLI.
-
-npm release: https://www.npmjs.com/package/@openquok/auto-cli
-openquok github: https://github.com/Ratimon/openquok-monorepo/
-openquok cli github: https://github.com/Ratimon/openquok-monorepo/tree/main/agent
-official website: https://www.openquok.com/
-
 ---
 
 | Property | Value |
@@ -35,9 +15,11 @@ official website: https://www.openquok.com/
 
 ---
 
-## ⚠️ Two Hard Rules (Read First)
+## ⚠️ Three Hard Rules (Read First)
 
-**Rule 0 — Correct global CLI before any `openquok` command.** This skill never installs the binary. On Docker, OpenClaw, or any fresh host, run `npm install -g @openquok/auto-cli@latest` (or `@0.0.6`), then `openquok --version` (expect **≥ 0.0.6** for `https://cli-auth.openquok.com` + `www.openquok.com` device verify). Do not assume `npx skills add` or a gateway restart updated npm globals.
+**Rule 0 — Global CLI (once per new chat session).** This skill never installs the binary; `npx skills add` only copies these instructions under `.agents/skills/` and does **not** bump the global `openquok` on the host (nor does restarting the gateway). **Only at the start of a new chat session** — not before every `openquok` call — run `openquok --version` once, tell the user the version reported. Ask whether they want to upgrade to the **latest** `@openquok/auto-cli`; if yes, run `npm install -g @openquok/auto-cli@latest` in the environment the agent uses for shell commands, then `openquok --version` again.
+
+**Links:** [npm `@openquok/auto-cli`](https://www.npmjs.com/package/@openquok/auto-cli) · [monorepo](https://github.com/Ratimon/openquok-monorepo/) · [CLI package](https://github.com/Ratimon/openquok-monorepo/tree/main/agent) · [openquok.com](https://www.openquok.com/)
 
 **Rule 1 — Authenticate before anything.** All `@openquok/auto-cli` (`openquok`) commands that call the API fail without valid credentials.
 
@@ -55,7 +37,7 @@ If you see `-m "something.jpg"` anywhere below, treat it as shorthand for "the `
 
 ## ⚠️ Authentication Required
 
-**You MUST authenticate before running any `openquok` command that hits the API.** Those calls fail without valid credentials. Confirm **Rule 0** (global CLI **≥ 0.0.6**) first — older binaries error on hosted device-flow `verification_uri` even when the auth server is correct.
+**You MUST authenticate before running any `openquok` command that hits the API.** All commands fail without valid credentials.(see Rule 0: check version **once** at session start, not before every command).
 
 Before doing anything else, check auth status:
 ```bash
@@ -64,9 +46,8 @@ openquok auth:status
 
 If not authenticated, choose one path:
 
-### Prefer API key for OpenClaw, Telegram, and other headless agents
+### API Key:
 
-**Recommended for agents** (no browser on the host, no device-flow polling):
 
 ```bash
 export OPENQUOK_API_KEY=opo_your_key_here
@@ -90,10 +71,7 @@ The first JSON object includes `verification_uri_complete` (link with `?code=` p
 
 **What the user does in the browser (two steps):**
 
-1. **CLI device login** (production: `https://www.openquok.com/cli/device/verify` — API stays on `https://cli-auth.openquok.com`) — Open the prefilled link (or enter the code from the CLI output) and click **Continue**. If you see *"Invalid or expired code"*, the code was never registered, already used, or expired (~15 minutes) — **start a new** `openquok auth:login --json` on the machine that is polling; pre-login at [openquok.com](https://www.openquok.com/) does **not** fix this step.
-2. **Openquok web app** ([openquok.com](https://www.openquok.com/)) — After the code is accepted, the browser redirects here. **Sign in** if prompted (mobile is fine), pick the workspace, then **Authorize** the CLI application. You can close the tab when you see success; the CLI finishes polling automatically.
 
-For a human at a local terminal only, `openquok auth:login` without `--json` is optional convenience — agents must use `--json` or an API key (see Essential Commands).
 
 **Do NOT proceed with any other commands until authentication is confirmed** (`openquok auth:status` succeeds).
 
@@ -106,7 +84,7 @@ The fundamental pattern for using the Openquok CLI (`openquok` from `@openquok/a
 1. **Authenticate** — Verify or set up authentication (see above).
 2. **Discover** — List integrations and read each channel’s rules, limits, and allow-listed tools.
 3. **Fetch** — Call `integrations:trigger` when a provider exposes dynamic data (playlists, pages, etc.).
-4. **Prepare** — Upload media (`upload` / `upload-from-url`) when the post needs images or video.
+4. **Prepare** — Upload media (`upload` / `upload-from-url`) when the post needs images or video. In chat agents (Telegram, OpenClaw, etc.), if the user wants an image but has not given you a file on the host or a direct `https://` image URL for `upload-from-url`, **ask them for the file or a direct image URL** before creating the post with `-m`.
 5. **Post** — Create posts and flip status (`posts:create`, `posts:status`).
 6. **Analyze** — Use `analytics:platform` and `analytics:post` with a `7` / `30` / `90` day window.
 7. **Resolve** — If per-post analytics indicates a missing provider release id, run `posts:missing`, then `posts:connect --release-id`.
@@ -283,6 +261,8 @@ openquok upload-from-url "https://cdn.example.com/banner.png"
 
 Supported formats follow the backend upload policy (images, video, audio, documents — see product docs). Responses include **`data.id`** and **`data.path` or `data.filePath`**; build `[{id, path}]` for `-m`.
 
+After **`openquok upload`**, sanity-check stdout with `jq` (fail closed if `id` or path is missing). Remote images must use **`openquok upload-from-url`** so the API mirrors bytes into your workspace (Rule 2); do not paste bare CDN URLs into `-m`.
+
 ---
 
 ## Common patterns
@@ -342,6 +322,28 @@ openquok posts:create \
   -d 60000 \
   -i "<integration-uuid>"
 ```
+
+### Pattern 3b: X-style thread (one image per segment; as guardrails)
+
+Same CLI shape as Pattern 3: **every** segment that needs a picture must use media from a **real** `openquok upload` (or `upload-from-url`) result — never a bare filename.
+
+```bash
+INTRO=$(openquok upload ./intro.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+P1=$(openquok upload ./point1.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+P2=$(openquok upload ./point2.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+OUTRO=$(openquok upload ./outro.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+
+openquok posts:create \
+  -c "Thread starter (1/4)" -m "$INTRO" \
+  -c "Point one (2/4)" -m "$P1" \
+  -c "Point two (3/4)" -m "$P2" \
+  -c "Conclusion (4/4)" -m "$OUTRO" \
+  -s "2026-01-01T12:00:00Z" \
+  -d 2000 \
+  -i "<integration-uuid>"
+```
+
+Use the integration UUID for the channel you are posting to (`integrations:list`). If the user only described images in chat without providing files or URLs, stop and collect assets first (see **Prepare** in Core Workflow).
 
 ### Pattern 4: Campaign via JSON file
 
@@ -490,11 +492,25 @@ Always prefer `jq` that tolerates `path` vs `filePath`.
 
 Always run `openquok integrations:settings <uuid>` for the exact JSON your workspace expects. The snippets below are illustrative.
 
-### Threads (X) (text-first)
+### Threads (Meta)
+
+**Text-only:**
 
 ```bash
 openquok posts:create \
   -c "Launch post" \
+  -s "2026-01-01T12:00:00Z" \
+  -i "<threads-uuid>"
+```
+
+**With image (Rule 2):** At publish time the backend turns each stored object key into a **public `https://` URL** and Meta’s servers **fetch** that URL for the Threads media container. Prefer **JPEG or PNG**; **SVG is rejected** in `threadsProvider` (`assertThreadsSupportedMedia`).
+
+```bash
+test -f ./hero.jpg && test -s ./hero.jpg
+IMAGE=$(openquok upload ./hero.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+openquok posts:create \
+  -c "Shipped today 🚀" \
+  -m "$IMAGE" \
   -s "2026-01-01T12:00:00Z" \
   -i "<threads-uuid>"
 ```
@@ -545,6 +561,19 @@ External media CLIs can still fit upstream of `upload-from-url` when their outpu
 
 ---
 
+## Supporting resources
+
+**In this repo (agent / CLI):**
+
+- [agent/README.md](./README.md) — Command reference, media flags, `posts:status`, e2e test naming.
+
+
+**Threads publish behavior (server implementation):**
+
+- [`backend/integrations/providers/threadsProvider.ts`](../backend/integrations/providers/threadsProvider.ts) — How media is resolved to public URLs (`resolvePublicMediaUrl`), reachability checks, **SVG blocked**, `createSingleMediaContent` / carousel / `threads_publish` Graph calls, and error formatting. When debugging “unknown” Meta errors, confirm the public URL returns **non-empty** image bytes (not `Content-Length: 0`).
+
+---
+
 ## Common gotchas
 
 1. **Not authenticated** — Run `openquok auth:login --json` (or export `OPENQUOK_API_KEY`) before API commands. For OpenClaw/Telegram, prefer an API key; for OAuth, share only `verification_uri_complete` from stdout (never fabricate codes).
@@ -552,15 +581,17 @@ External media CLIs can still fit upstream of `upload-from-url` when their outpu
 3. **Wrong integration UUID** — Refresh with `integrations:list`; IDs are per workspace.
 4. **Settings mismatch** — Check `integrations:settings`  for required fields.
 5. **Media skipped upload** — Rule 2: every `-m` / JSON `media[]` entry needs `id` + `path` from `upload` / `upload-from-url`.
-6. **Shell JSON quoting** — Prefer single quotes around JSON literals: `--settings '{"post_type":"post"}'`.
-7. **Missing schedule** — Flag-based `posts:create` requires `-s` unless `--json` supplies `scheduledAt`.
-8. **Unknown tool** — `integrations:trigger` only runs methods listed under `output.tools`.
-9. **Character limits** — Read `output.maxLength` from `integrations:settings`.
-10. **Provider gaps** — `output.tools` may be empty for a Meta channel until a method is allow-listed; do not assume a tool exists without checking `integrations:settings`.
-11. **Thread delay units** — `-d` on `posts:create` is **milliseconds**, not minutes.
-12. **Analytics window** — Only `7`, `30`, or `90` days.
-13. **Env vs disk credentials** — Stored login wins over `OPENQUOK_API_KEY` until `auth:logout`.
-14. **Stale global CLI** — If `auth:login` fails with *verification_uri … expected cli-auth.openquok.com*, upgrade: `npm install -g @openquok/auto-cli@latest` (need **≥ 0.0.6** for `www.openquok.com` verify URLs). `npx skills add` and gateway restarts do **not** change `openquok --version`; reinstall the npm package on the agent host.
+6. **Chat said “with an image” but no file arrived** — Do not schedule with `-m` until you have a file or direct image URL (see **Prepare** in Core Workflow). Empty or placeholder uploads break Threads (and other providers) at publish time.
+7. **Upload succeeded but object is empty** — If publish fails with vague Threads / Graph errors, curl the logged public media URL: **`Content-Length: 0`** means storage has no bytes (bad upload source or agent wrote an empty file). Fix the asset and re-upload.
+8. **Shell JSON quoting** — Prefer single quotes around JSON literals: `--settings '{"post_type":"post"}'`.
+9. **Missing schedule** — Flag-based `posts:create` requires `-s` unless `--json` supplies `scheduledAt`.
+10. **Unknown tool** — `integrations:trigger` only runs methods listed under `output.tools`.
+11. **Character limits** — Read `output.maxLength` from `integrations:settings`.
+12. **Provider gaps** — `output.tools` may be empty for a Meta channel until a method is allow-listed; do not assume a tool exists without checking `integrations:settings`.
+13. **Thread delay units** — `-d` on `posts:create` is **milliseconds**, not minutes.
+14. **Analytics window** — Only `7`, `30`, or `90` days.
+15. **Env vs disk credentials** — Stored login wins over `OPENQUOK_API_KEY` until `auth:logout`.
+16. **Stale global CLI** — If `auth:login` fails with *verification_uri … expected cli-auth.openquok.com*, upgrade: `npm install -g @openquok/auto-cli@latest` (need **≥ 0.0.6** for `www.openquok.com` verify URLs). `npx skills add` and gateway restarts do **not** change `openquok --version`; reinstall the npm package on the agent host.
 
 ---
 

@@ -204,6 +204,7 @@ describe("IntegrationConnectionService", () => {
     let orgRepo: ReturnType<typeof createMockOrgRepo>;
     let manager: ReturnType<typeof createMockManager>;
     let refresh: jest.Mocked<Pick<RefreshIntegrationService, "startRefreshWorkflow" | "refresh">>;
+    let storageRepository: { uploadIntegrationProfilePicture: jest.Mock };
     let cache: ReturnType<typeof createMockCache>;
     let cacheInvalidator: jest.Mocked<Pick<CacheInvalidationService, "invalidateKey">>;
 
@@ -216,6 +217,9 @@ describe("IntegrationConnectionService", () => {
         refresh = {
             startRefreshWorkflow: jest.fn().mockResolvedValue(true),
             refresh: jest.fn().mockResolvedValue(false),
+        };
+        storageRepository = {
+            uploadIntegrationProfilePicture: jest.fn().mockResolvedValue({ error: null }),
         };
         manager = createMockManager(createMockProvider());
     });
@@ -233,6 +237,7 @@ describe("IntegrationConnectionService", () => {
             orgRepo as unknown as OrganizationRepository,
             manager as unknown as IntegrationManager,
             refresh as unknown as RefreshIntegrationService,
+            storageRepository as never,
             resolvedCache,
             resolvedInvalidator
         );
@@ -568,6 +573,7 @@ describe("IntegrationConnectionService", () => {
                 orgRepo as unknown as OrganizationRepository,
                 manager as unknown as IntegrationManager,
                 refresh as unknown as RefreshIntegrationService,
+                storageRepository as never,
                 cache as unknown as CacheService,
                 undefined
             );

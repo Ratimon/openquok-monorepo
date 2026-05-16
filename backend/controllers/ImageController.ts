@@ -7,23 +7,14 @@ import https from "https";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
 import { UserValidationError } from "../errors/UserError";
 import { isSupabaseImageBucketName } from "../repositories/StorageSupabaseRepository";
+import { isAllowedExternalImageHost } from "../utils/allowedExternalImageHosts";
+import {
+    ExternalImageFetchError,
+    fetchAllowlistedExternalImage,
+} from "../utils/externalImageFetch";
 
 export class ImageController {
     constructor(private readonly storageRepository: StorageSupabaseRepository) {}
-
-    private isAllowedExternalImageHost(hostname: string): boolean {
-        const h = hostname.toLowerCase();
-        // Strict allowlist to avoid SSRF / open proxy risks.
-        // The Instagram Graph `profile_picture_url` commonly resolves to `scontent-*.cdninstagram.com`.
-        return (
-            h === "cdninstagram.com" ||
-            h.endsWith(".cdninstagram.com") ||
-            h === "fbcdn.net" ||
-            h.endsWith(".fbcdn.net") ||
-            h === "platform-lookaside.fbsbx.com" ||
-            h.endsWith(".fbsbx.com")
-        );
-    }
 
     getByUrl = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -131,55 +122,23 @@ export class ImageController {
             if (!["http:", "https:"].includes(imageUrl.protocol)) {
                 throw new UserValidationError("Invalid URL protocol. Only HTTP and HTTPS are allowed.");
             }
-            if (!this.isAllowedExternalImageHost(imageUrl.hostname)) {
+            if (!isAllowedExternalImageHost(imageUrl.hostname)) {
                 throw new UserValidationError("URL host is not allowed");
             }
 
-            const httpModule = imageUrl.protocol === "https:" ? https : http;
+            const { buffer, contentType } = await fetchAllowlistedExternalImage(url);
 
-            await new Promise<void>((resolve, reject) => {
-                const request = httpModule.get(
-                    url,
-                    {
-                        headers: {
-                            // Some CDNs return 403 for missing/unknown UA.
-                            "User-Agent":
-                                "Mozilla/5.0 (compatible; OpenquokPublicImageProxy/1.0)",
-                            Accept: "image/*,*/*;q=0.8",
-                        },
-                        timeout: 10000,
-                    },
-                    (response) => {
-                        if (response.statusCode && response.statusCode >= 400) {
-                            reject(
-                                new Error(
-                                    `Failed to fetch image: ${response.statusCode} ${response.statusMessage}`
-                                )
-                            );
-                            return;
-                        }
-
-                        const contentType = response.headers["content-type"];
-                        if (!contentType || !contentType.startsWith("image/")) {
-                            reject(new UserValidationError("URL does not point to a valid image"));
-                            return;
-                        }
-
-                        res.set("Content-Type", contentType);
-                        // Cache at CDN/browser for a short time; these URLs can rotate.
-                        res.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
-                        response.pipe(res);
-                        response.on("end", () => resolve());
-                    }
-                );
-
-                request.on("error", (error) => reject(error));
-                request.on("timeout", () => {
-                    request.destroy();
-                    reject(new Error("Request timeout"));
-                });
-            });
+            res.set("Content-Type", contentType);
+            // Cache at CDN/browser for a short time; these URLs can rotate.
+            res.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+            res.send(buffer);
         } catch (error) {
+            if (error instanceof ExternalImageFetchError) {
+                const err = new Error(error.message);
+                (err as Error & { statusCode?: number }).statusCode = error.statusCode;
+                next(err);
+                return;
+            }
             next(error);
         }
     };

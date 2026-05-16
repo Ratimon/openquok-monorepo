@@ -6,6 +6,7 @@
 	import { socialProviderIcon } from '$data/social-providers';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	
 	type SlotSummaryItem = {
 		postId?: string;
@@ -159,7 +160,11 @@
 				{:else}
 					<div class="relative h-4 w-4 shrink-0">
 						{#if ev.channel?.picture}
-							<img src={ev.channel.picture} alt="" class="h-4 w-4 rounded object-cover" />
+							<IntegrationChannelPicture
+								profilePictureUrl={ev.channel.picture}
+								fallbackIcon={socialProviderIcon(providerBadgeIcon ?? 'threads')}
+								class="h-4 w-4 rounded object-cover"
+							/>
 						{:else}
 							<div class="h-4 w-4 rounded bg-primary-content/20"></div>
 						{/if}
@@ -224,7 +229,11 @@
 				<div class="flex shrink-0 items-center gap-1">
 					<div class="relative h-4 w-4 shrink-0">
 						{#if ev.channel?.picture}
-							<img src={ev.channel.picture} alt="" class="h-4 w-4 rounded object-cover" />
+							<IntegrationChannelPicture
+								profilePictureUrl={ev.channel.picture}
+								fallbackIcon={socialProviderIcon(providerBadgeIcon ?? 'threads')}
+								class="h-4 w-4 rounded object-cover"
+							/>
 						{:else}
 							<div class="h-4 w-4 rounded bg-primary-content/20"></div>
 						{/if}
