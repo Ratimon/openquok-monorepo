@@ -1,40 +1,43 @@
 ---
 name: openquok-core
-description: Openquok is a tool to helps individuals or teams to run many social accounts at scale (especially as AI multiplies output) with an automation pipeline—draft, schedule, and publish—plus review and approval workflows so humans give final sign-off before anything goes live.
+description: >-
+  Openquok helps individuals or teams run many social accounts at scale with automation,
+  drafts, scheduling, and human approval. Use when driving the `openquok` CLI (`@openquok/auto-cli`).
+  Requires a globally installed CLI on the host (≥ 0.0.6 for hosted device login): run
+  `npm install -g @openquok/auto-cli@latest` before other commands. Installing this skill via
+  `npx skills add` only updates skill markdown — it does not install or upgrade the `openquok` binary;
+  restarting OpenClaw or the gateway does not change `openquok --version`.
 homepage: https://www.npmjs.com/package/@openquok/auto-cli
-metadata: {"openclaw":{"emoji":"📮","requires":{"bins":[],"env":[]}}}
+metadata: {"openclaw":{"emoji":"📮","requires":{"bins":["openquok"],"env":[]}}}
 ---
 
-## Install @openquok/auto-cli (required version)
+## Skill vs `openquok` binary (read first)
 
+| Action | What it updates |
+|--------|------------------|
+| `npx skills add …/agent --skill openquok-core` | This skill under `.agents/skills/` (instructions only) |
+| `npm install -g @openquok/auto-cli@latest` | The **`openquok`** command on the machine |
 
-```bash
-npm install -g @openquok/auto-cli@latest
-# or pin to the repo release line (keep in sync with agent/package.json "version"):
-npm install -g @openquok/auto-cli@0.0.6
-
-openquok --version   # expect >= 0.0.6 for production device login
-```
-
-```bash
-pnpm install -g @openquok/auto-cli@latest
-```
+**If `openquok --version` shows anything below 0.0.6** after adding the skill, the npm global package was never upgraded. Run **`npm install -g @openquok/auto-cli@latest`** (or `@0.0.6`) in the **same environment** where the agent runs shell commands, then verify again. Restarting the gateway alone does not bump the CLI.
 
 npm release: https://www.npmjs.com/package/@openquok/auto-cli
 openquok github: https://github.com/Ratimon/openquok-monorepo/
 openquok cli github: https://github.com/Ratimon/openquok-monorepo/tree/main/agent
 official website: https://www.openquok.com/
+
 ---
 
 | Property | Value |
 |----------|-------|
 | **name** | openquok |
-| **description** | AI-ready social scheduling: human approval in the dashboard, CLI-first `@openquok/auto-cli` for agents (posts, integrations, media), and a draft-to-publish pipeline that complements autonomous agent stacks eg. OpenClaw. |
+| **description** | AI-ready social scheduling: CLI-first `@openquok/auto-cli` (install **≥ 0.0.6** globally — skills do not upgrade npm), posts, integrations, media; complements stacks like OpenClaw. |
 | **allowed-tools** | Bash(openquok:*) |
 
 ---
 
 ## ⚠️ Two Hard Rules (Read First)
+
+**Rule 0 — Correct global CLI before any `openquok` command.** This skill never installs the binary. On Docker, OpenClaw, or any fresh host, run `npm install -g @openquok/auto-cli@latest` (or `@0.0.6`), then `openquok --version` (expect **≥ 0.0.6** for `https://cli-auth.openquok.com` + `www.openquok.com` device verify). Do not assume `npx skills add` or a gateway restart updated npm globals.
 
 **Rule 1 — Authenticate before anything.** All `@openquok/auto-cli` (`openquok`) commands that call the API fail without valid credentials.
 
@@ -52,7 +55,7 @@ If you see `-m "something.jpg"` anywhere below, treat it as shorthand for "the `
 
 ## ⚠️ Authentication Required
 
-**You MUST authenticate before running any `openquok` command that hits the API.** Those calls fail without valid credentials.
+**You MUST authenticate before running any `openquok` command that hits the API.** Those calls fail without valid credentials. Confirm **Rule 0** (global CLI **≥ 0.0.6**) first — older binaries error on hosted device-flow `verification_uri` even when the auth server is correct.
 
 Before doing anything else, check auth status:
 ```bash
@@ -557,7 +560,7 @@ External media CLIs can still fit upstream of `upload-from-url` when their outpu
 11. **Thread delay units** — `-d` on `posts:create` is **milliseconds**, not minutes.
 12. **Analytics window** — Only `7`, `30`, or `90` days.
 13. **Env vs disk credentials** — Stored login wins over `OPENQUOK_API_KEY` until `auth:logout`.
-14. **Stale global CLI** — If `auth:login` fails with *verification_uri … expected cli-auth.openquok.com*, upgrade: `npm install -g @openquok/auto-cli@latest` (need **≥ 0.0.6** for `www.openquok.com` verify URLs). Re-run `openquok --version` after install.
+14. **Stale global CLI** — If `auth:login` fails with *verification_uri … expected cli-auth.openquok.com*, upgrade: `npm install -g @openquok/auto-cli@latest` (need **≥ 0.0.6** for `www.openquok.com` verify URLs). `npx skills add` and gateway restarts do **not** change `openquok --version`; reinstall the npm package on the agent host.
 
 ---
 
