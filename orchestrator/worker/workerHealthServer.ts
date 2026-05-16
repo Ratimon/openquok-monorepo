@@ -80,7 +80,7 @@ export async function buildHealthPayload(options: WorkerHealthServerOptions): Pr
 }
 
 /**
- * Minimal HTTP server for uptime monitors: `GET /health` and `GET /health/status` (Postiz-compatible path).
+ * Minimal HTTP server for uptime monitors: `GET /health` and `GET /health/status`.
  * Disabled when `ORCHESTRATOR_WORKER_HEALTH_PORT=0`.
  */
 export function startWorkerHealthServer(options: WorkerHealthServerOptions): {
