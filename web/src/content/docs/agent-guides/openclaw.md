@@ -32,17 +32,15 @@ If your deployment uses a different mount path, use the directory where OpenClaw
 
 ### Install the openquok-core skill
 
-The skill lives under <Badge text="agent/skills/openquok-core/" variant="path" /> in the monorepo — not the repository root.
+The skill file lives at <Badge text="agent/skills/openquok-core/SKILL.md" variant="path" /> in the monorepo. The <code>npx skills add</code> source must be the <strong>agent</strong> package root (<Badge text=".../tree/main/agent" variant="path" />), not <Badge text=".../agent/skills" variant="path" />.
 
-```bash
-npx skills add \
-  https://github.com/Ratimon/openquok-monorepo/tree/main/agent/skills \
-  --skill openquok-core
-```
+<Callout type="warning">
+<p>Paste the command below as a <strong>single line</strong> (do not press Enter after <code>npx skills add</code>).</p>
+<pre class="my-3 max-w-full rounded-lg bg-base-200/80 p-3 text-sm break-all whitespace-pre-wrap"><code>npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core -y</code></pre>
+<p><code>-y</code> skips install prompts on headless hosts (Railway shell, OpenClaw container). Without <code>-y</code>, choose <strong>Project</strong> scope and <strong>Symlink</strong> when asked.</p>
+</Callout>
 
-When prompted, choose **project** scope and **symlink** (recommended) so OpenClaw agents pick up <Badge text="openquok-core" variant="default" />.
-
-You should see something like <Badge text="./.agents/skills/openquok-core" variant="path" /> in the install summary.
+You should see <Badge text="./.agents/skills/openquok-core" variant="path" /> in the install summary.
 
 ### Install or upgrade the global CLI
 
@@ -107,6 +105,10 @@ Then open a shell in the Railway service, <code>cd /data/workspace</code>, and c
 - For posting with images in chat, the user must provide a file on the host or a direct <code>https://</code> image URL for <Badge text="upload-from-url" variant="default" />; ask before calling <Badge text="posts:create" variant="default" /> with media.
 
 ## Troubleshooting
+
+<Callout type="danger" title="Missing required argument: source">
+<p>You pasted <code>npx skills add</code> on one line and the GitHub URL on the next (or used <Badge text=".../agent/skills" variant="path" /> as the source). Run the <strong>one-line</strong> command from the install step above. The working source is <Badge text="https://github.com/Ratimon/openquok-monorepo/tree/main/agent" variant="new" /> with <Badge text="--skill openquok-core" variant="param" /> on the same line.</p>
+</Callout>
 
 <Callout type="danger" title="Verification Url Mismatch">
 <p>If <Badge text="auth:login --json" variant="default" /> fails because <Badge text="verification_uri" variant="param" /> is on <Badge text="www.openquok.com" variant="new" /> but the CLI expected <Badge text="cli-auth.openquok.com" variant="new" />, upgrade the global package (<code>npm install -g @openquok/auto-cli@latest</code>). That check was fixed in <strong>0.0.6+</strong>.</p>

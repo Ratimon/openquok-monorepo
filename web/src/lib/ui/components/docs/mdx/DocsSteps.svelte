@@ -50,7 +50,7 @@
 			iconCol.appendChild(circle);
 
 			const content = document.createElement('div');
-			content.className = `grow ${isLast ? '' : 'pb-8'}`;
+			content.className = `grow min-w-0 ${isLast ? '' : 'pb-8'} [&_.shiki]:max-w-full [&_pre]:min-w-0`;
 
 			for (const node of group) {
 				if (node.matches('h3, h4')) {
