@@ -366,6 +366,9 @@ importers:
       '@shikijs/transformers':
         specifier: ^4.0.2
         version: 4.0.2
+      '@svar-ui/svelte-core':
+        specifier: ^2.5.3
+        version: 2.5.3
       '@svar-ui/svelte-filter':
         specifier: ^2.5.0
         version: 2.5.0
@@ -3024,6 +3027,9 @@ packages:
   '@svar-ui/core-locales@2.5.1':
     resolution: {integrity: sha512-3VYDf/zdFVPKb8Zyf6u5IjM089WGOtNswPG8KT4KZNEoWiVIHblCJp1uXfzHERTFikNSVjllaT44S7M9nOhRsw==}
 
+  '@svar-ui/core-locales@2.5.3':
+    resolution: {integrity: sha512-qJhdIPiiLDO0qsyFrTc7YIkBU1nM3we7zn+uCiaNFVZ4+mvVMWDTYhYvwrrsxltL/E26at5SXB8CVVngQCUqKA==}
+
   '@svar-ui/filter-locales@2.5.0':
     resolution: {integrity: sha512-3SuoJoKRAQ2RGRf/KhYd5FSNsNfCGcgT1YMz9nxaeRHLaFXYb+ny5scmOiLoAfvz3oygXtrPYzU0BA0q1Hb7uw==}
 
@@ -3045,6 +3051,9 @@ packages:
   '@svar-ui/lib-dom@0.12.1':
     resolution: {integrity: sha512-srvDleQqR6stBBDijCgzDHMFTTffI6sv3XCpNPKmurrnE83L1MDNqezqg6j3+0dUVPd4AAEGOez2DvK6byblTQ==}
 
+  '@svar-ui/lib-dom@0.12.2':
+    resolution: {integrity: sha512-tV9sJ7Xpedxf1dttTc8I190eqlP0UsassUw48uW3JuEQR0G3IRfmH53/X+mYEooc7bcpZDkzYukWEqJeEq9UlQ==}
+
   '@svar-ui/lib-state@1.9.6':
     resolution: {integrity: sha512-twoHa8wZvzdxtES68s6Wnp4Xi1WivScNaFFK6sJ6WDgqVYOzJw0ZhVVrdwHQgieLITTKl/DYh/U3nuqtMetKYw==}
 
@@ -3056,6 +3065,9 @@ packages:
 
   '@svar-ui/svelte-core@2.5.1':
     resolution: {integrity: sha512-snXNEYhWkg+7JQmhsS3xnN6UozfTj8+cQadKl3dsUyh3328F6NZZpKbUkXNArK95+OcueJZUXyExkDWv1NqmDA==}
+
+  '@svar-ui/svelte-core@2.5.3':
+    resolution: {integrity: sha512-5yQPnvgDRPdknHA4YtDwBOC2fuFiXFpuAdViIbfreaNtEGz1XVONj7V8jEC31ADS3a/xEltJD+AW23gMMDUQUA==}
 
   '@svar-ui/svelte-filter@2.5.0':
     resolution: {integrity: sha512-iVmVMPZSopSm//MwMi6uuXbR699ajT9bNsAJxYWNiWuSj1deKEMDz0t5Lm+h7TUYNvYoX9nYe379ZUN8tqc7Qw==}
@@ -10587,6 +10599,8 @@ snapshots:
 
   '@svar-ui/core-locales@2.5.1': {}
 
+  '@svar-ui/core-locales@2.5.3': {}
+
   '@svar-ui/filter-locales@2.5.0': {}
 
   '@svar-ui/filter-store@2.5.0':
@@ -10610,6 +10624,8 @@ snapshots:
 
   '@svar-ui/lib-dom@0.12.1': {}
 
+  '@svar-ui/lib-dom@0.12.2': {}
+
   '@svar-ui/lib-state@1.9.6': {}
 
   '@svar-ui/lib-svelte@0.5.2':
@@ -10626,6 +10642,12 @@ snapshots:
     dependencies:
       '@svar-ui/core-locales': 2.5.1
       '@svar-ui/lib-dom': 0.12.1
+      '@svar-ui/lib-svelte': 0.5.2
+
+  '@svar-ui/svelte-core@2.5.3':
+    dependencies:
+      '@svar-ui/core-locales': 2.5.3
+      '@svar-ui/lib-dom': 0.12.2
       '@svar-ui/lib-svelte': 0.5.2
 
   '@svar-ui/svelte-filter@2.5.0':

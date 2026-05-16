@@ -20,6 +20,7 @@
 	import { plugsGridActionsKey } from '$lib/ui/components/plugs/plugsGridContext';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
+	import { Pager, Willow as CoreWillow } from '@svar-ui/svelte-core';
 	import { FilterBuilder, Willow as FilterWillow } from '@svar-ui/svelte-filter';
 	import { Willow, Grid, Tooltip } from '@svar-ui/svelte-grid';
 
@@ -124,6 +125,23 @@
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
 	const plugRulesRowsVm = $derived(gridPresenter.plugRulesRowsVm);
+
+	const PLUGS_GRID_PAGE_SIZE = 25;
+
+	let plugsGridPage = $state(1);
+	let plugsGridPageSize = $state(PLUGS_GRID_PAGE_SIZE);
+
+	const plugsGridFilteredRowsVm = $derived.by(() => {
+		const filter = createPlugGridTableFilter(filterPresenter.value);
+		return plugRulesRowsVm.filter(filter);
+	});
+
+	const plugsGridPagedRowsVm = $derived.by(() => {
+		const from = (plugsGridPage - 1) * plugsGridPageSize;
+		const to = Math.min(from + plugsGridPageSize, plugsGridFilteredRowsVm.length);
+		return plugsGridFilteredRowsVm.slice(from, to);
+	});
+
 	const loading = $derived(pagePresenter.loading);
 	const supportedChannelsVm = $derived(pagePresenter.supportedChannelsVm);
 	const channelIndexForModal = $derived(pagePresenter.channelIndexForModal);
@@ -176,13 +194,19 @@
 		void pagePresenter.syncWorkspaceAndCatalog();
 	});
 
-	/** Re-apply FilterBuilder predicate after grid API wiring or row reload. */
 	$effect(() => {
 		void plugRulesRowsVm;
 		void filterPresenter.value;
-		const api = plugsGridApi;
-		if (!api) return;
-		api.exec('filter-rows', { filter: createPlugGridTableFilter(filterPresenter.value) });
+		void plugsGridPageSize;
+		plugsGridPage = 1;
+	});
+
+	$effect(() => {
+		const total = plugsGridFilteredRowsVm.length;
+		const pageCount = Math.max(1, Math.ceil(total / plugsGridPageSize) || 1);
+		if (plugsGridPage > pageCount) {
+			plugsGridPage = pageCount;
+		}
 	});
 
 	$effect(() => {
@@ -401,7 +425,7 @@
 				</div>
 			{/if}
 			<div
-				class="svar-grid-host--fit-content border-base-300 min-h-[200px] min-w-0 w-full overflow-x-auto border-b {plugRulesRowsVm.length <= 80
+				class="svar-grid-host--fit-content border-base-300 min-h-[200px] min-w-0 w-full overflow-x-auto {plugsGridFilteredRowsVm.length <= 80
 					? 'svar-grid-host--body-auto-height'
 					: ''}"
 				bind:this={plugsGridHostEl}
@@ -409,7 +433,7 @@
 				<Willow fonts={false}>
 					<Tooltip api={plugsGridApi}>
 						<Grid
-							data={plugRulesRowsVm}
+							data={plugsGridPagedRowsVm}
 							columns={plugGridColumnsForHost}
 							sizes={plugGridSizesForHost}
 							autoRowHeight={plugsGridAutoRowHeight}
@@ -423,6 +447,17 @@
 					</Tooltip>
 				</Willow>
 			</div>
+
+			<div class="svar-grid-pager border-base-300 border-t px-3 py-2">
+				<CoreWillow fonts={false}>
+					<Pager
+						total={plugsGridFilteredRowsVm.length}
+						bind:pageSize={plugsGridPageSize}
+						bind:value={plugsGridPage}
+					/>
+				</CoreWillow>
+			</div>
+
 			{#if !plugRulesRowsVm.length}
 				<p class="text-base-content/60 p-6 text-sm">
 					No plug rules yet. Use <span class="font-medium text-base-content">Add Global rule</span> to choose a plug type and
@@ -554,5 +589,72 @@
 		height: 100%;
 		font-size: 16px;
 		line-height: 1;
+	}
+
+	/* Pager: bridge SVAR Willow vars to DaisyUI (same pattern as dashboard channels grid). */
+	.svar-grid-pager :global(.wx-willow-theme),
+	.svar-grid-pager :global(.wx-willow-dark-theme) {
+		--wx-color-font: var(--color-base-content);
+		--wx-color-font-alt: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+		--wx-color-font-disabled: color-mix(in oklab, var(--color-base-content) 38%, transparent);
+		--wx-color-link: var(--color-primary);
+
+		--wx-background: transparent;
+		--wx-background-alt: var(--color-base-200);
+		--wx-background-hover: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-200));
+
+		--wx-border: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent);
+		--wx-icon-color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+
+		--wx-input-font-color: var(--color-base-content);
+		--wx-input-background: var(--color-base-100);
+		--wx-input-border: 1px solid color-mix(in oklab, var(--color-base-content) 18%, transparent);
+		--wx-input-border-focus: 1px solid var(--color-primary);
+		--wx-input-placeholder-color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+
+		height: auto !important;
+		background: transparent;
+	}
+
+	.svar-grid-pager :global(.wx-pager) {
+		padding: 0;
+		justify-content: space-between;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: var(--color-base-content);
+	}
+
+	.svar-grid-pager :global(.wx-pager .wx-left),
+	.svar-grid-pager :global(.wx-pager .wx-center),
+	.svar-grid-pager :global(.wx-pager .wx-right) {
+		color: var(--color-base-content);
+	}
+
+	.svar-grid-pager :global(.wx-pager .wx-right) {
+		color: color-mix(in oklab, var(--color-base-content) 68%, transparent);
+	}
+
+	.svar-grid-pager :global(.wx-pager input) {
+		background: var(--color-base-100);
+		border-color: color-mix(in oklab, var(--color-base-content) 18%, transparent);
+		color: var(--color-base-content);
+	}
+
+	.svar-grid-pager :global(.wx-pager input:focus) {
+		border-color: var(--color-primary);
+	}
+
+	.svar-grid-pager :global(.wx-pager .wx-icon) {
+		color: var(--color-base-content);
+	}
+
+	.svar-grid-pager :global(.wx-pager .wx-icon:hover) {
+		background-color: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-200));
+	}
+
+	.svar-grid-pager :global(.wx-pager .wx-icon.wx-disabled) {
+		color: color-mix(in oklab, var(--color-base-content) 35%, transparent);
 	}
 </style>

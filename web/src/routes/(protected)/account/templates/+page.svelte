@@ -18,6 +18,7 @@
 	import { setsGridActionsKey } from '$lib/ui/components/sets/setsGridContext';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
+	import { Pager, Willow as CoreWillow } from '@svar-ui/svelte-core';
 	import { FilterBuilder, Willow as FilterWillow } from '@svar-ui/svelte-filter';
 	import { Willow, Grid, Tooltip } from '@svar-ui/svelte-grid';
 
@@ -130,6 +131,23 @@
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
 	const setsGridRowsVm = $derived(gridPresenter.setsGridRowsVm);
+
+	const SETS_GRID_PAGE_SIZE = 25;
+
+	let setsGridPage = $state(1);
+	let setsGridPageSize = $state(SETS_GRID_PAGE_SIZE);
+
+	const setsGridFilteredRowsVm = $derived.by(() => {
+		const filter = createSetGridTableFilter(filterPresenter.value);
+		return setsGridRowsVm.filter(filter);
+	});
+
+	const setsGridPagedRowsVm = $derived.by(() => {
+		const from = (setsGridPage - 1) * setsGridPageSize;
+		const to = Math.min(from + setsGridPageSize, setsGridFilteredRowsVm.length);
+		return setsGridFilteredRowsVm.slice(from, to);
+	});
+
 	const loading = $derived(gridPresenter.loading);
 
 	/**
@@ -196,13 +214,19 @@
 		return () => clearTimeout(id);
 	});
 
-	/** Re-apply FilterBuilder predicate after grid API wiring or row reload (mirrors SVAR FilterBuilder demos). */
 	$effect(() => {
 		void setsGridRowsVm;
 		void filterPresenter.value;
-		const api = setsGridApi;
-		if (!api) return;
-		api.exec('filter-rows', { filter: createSetGridTableFilter(filterPresenter.value) });
+		void setsGridPageSize;
+		setsGridPage = 1;
+	});
+
+	$effect(() => {
+		const total = setsGridFilteredRowsVm.length;
+		const pageCount = Math.max(1, Math.ceil(total / setsGridPageSize) || 1);
+		if (setsGridPage > pageCount) {
+			setsGridPage = pageCount;
+		}
 	});
 </script>
 
@@ -336,13 +360,15 @@
 				</div>
 			{/if}
 			<div
-				class="svar-grid-host--fit-content svar-grid-host--body-auto-height border-base-300 min-h-[200px] min-w-0 w-full max-w-full border-b"
+				class="svar-grid-host--fit-content border-base-300 min-h-[200px] min-w-0 w-full max-w-full overflow-x-auto {setsGridFilteredRowsVm.length <= 80
+					? 'svar-grid-host--body-auto-height'
+					: ''}"
 				bind:this={setsGridHostEl}
 			>
 				<Willow fonts={false}>
 					<Tooltip api={setsGridApi}>
 						<Grid
-							data={setsGridRowsVm}
+							data={setsGridPagedRowsVm}
 							columns={setsGridColumnsForHost}
 							sizes={setsGridSizesForHost}
 							autoRowHeight={true}
@@ -356,9 +382,20 @@
 					</Tooltip>
 				</Willow>
 			</div>
+
+			<div class="svar-grid-pager border-base-300 border-t px-3 py-2">
+				<CoreWillow fonts={false}>
+					<Pager
+						total={setsGridFilteredRowsVm.length}
+						bind:pageSize={setsGridPageSize}
+						bind:value={setsGridPage}
+					/>
+				</CoreWillow>
+			</div>
+
 			{#if !setsGridRowsVm.length}
 				<p class="text-base-content/60 p-6 text-sm">
-					No templates yet. Use <span class="text-base-content font-medium">Add a set</span> to create one.
+					No templates yet. Use <span class="text-base-content font-medium">Add a template</span> to create one.
 				</p>
 			{/if}
 		</div>
@@ -520,5 +557,72 @@
 
 	.sets-filter-builder :global(.wx-rule .wx-menu-icon:hover) {
 		background: color-mix(in oklab, var(--color-base-content) 7%, var(--color-base-100));
+	}
+
+	/* Pager: bridge SVAR Willow vars to DaisyUI (same pattern as dashboard channels grid). */
+	.svar-grid-pager :global(.wx-willow-theme),
+	.svar-grid-pager :global(.wx-willow-dark-theme) {
+		--wx-color-font: var(--color-base-content);
+		--wx-color-font-alt: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+		--wx-color-font-disabled: color-mix(in oklab, var(--color-base-content) 38%, transparent);
+		--wx-color-link: var(--color-primary);
+
+		--wx-background: transparent;
+		--wx-background-alt: var(--color-base-200);
+		--wx-background-hover: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-200));
+
+		--wx-border: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent);
+		--wx-icon-color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+
+		--wx-input-font-color: var(--color-base-content);
+		--wx-input-background: var(--color-base-100);
+		--wx-input-border: 1px solid color-mix(in oklab, var(--color-base-content) 18%, transparent);
+		--wx-input-border-focus: 1px solid var(--color-primary);
+		--wx-input-placeholder-color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+
+		height: auto !important;
+		background: transparent;
+	}
+
+	.svar-grid-pager :global(.wx-pager) {
+		padding: 0;
+		justify-content: space-between;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: var(--color-base-content);
+	}
+
+	.svar-grid-pager :global(.wx-pager .wx-left),
+	.svar-grid-pager :global(.wx-pager .wx-center),
+	.svar-grid-pager :global(.wx-pager .wx-right) {
+		color: var(--color-base-content);
+	}
+
+	.svar-grid-pager :global(.wx-pager .wx-right) {
+		color: color-mix(in oklab, var(--color-base-content) 68%, transparent);
+	}
+
+	.svar-grid-pager :global(.wx-pager input) {
+		background: var(--color-base-100);
+		border-color: color-mix(in oklab, var(--color-base-content) 18%, transparent);
+		color: var(--color-base-content);
+	}
+
+	.svar-grid-pager :global(.wx-pager input:focus) {
+		border-color: var(--color-primary);
+	}
+
+	.svar-grid-pager :global(.wx-pager .wx-icon) {
+		color: var(--color-base-content);
+	}
+
+	.svar-grid-pager :global(.wx-pager .wx-icon:hover) {
+		background-color: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-200));
+	}
+
+	.svar-grid-pager :global(.wx-pager .wx-icon.wx-disabled) {
+		color: color-mix(in oklab, var(--color-base-content) 35%, transparent);
 	}
 </style>

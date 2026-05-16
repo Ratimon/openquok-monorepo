@@ -46,6 +46,7 @@
 		dashboardChannelsGridActionsKey,
 		type DashboardChannelsGridActions
 	} from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
+	import { Pager, Willow as CoreWillow } from '@svar-ui/svelte-core';
 	import { FilterBuilder, Willow as FilterWillow } from '@svar-ui/svelte-filter';
 	import { Willow, Grid, Tooltip } from '@svar-ui/svelte-grid';
 
@@ -79,6 +80,22 @@
 	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
 	const connectedChannelCountVm = $derived(connectedChannelsVm.length);
 	const dashboardChannelTableRowsVm = $derived(channelsGridPresenter.dashboardChannelTableRowsVm);
+
+	const DASHBOARD_CHANNELS_GRID_PAGE_SIZE = 25;
+
+	let channelsGridPage = $state(1);
+	let channelsGridPageSize = $state(DASHBOARD_CHANNELS_GRID_PAGE_SIZE);
+
+	const channelsGridFilteredRowsVm = $derived.by(() => {
+		const filter = createDashboardChannelsGridTableFilter(channelsFilterPresenter.value);
+		return dashboardChannelTableRowsVm.filter(filter);
+	});
+
+	const channelsGridPagedRowsVm = $derived.by(() => {
+		const from = (channelsGridPage - 1) * channelsGridPageSize;
+		const to = Math.min(from + channelsGridPageSize, channelsGridFilteredRowsVm.length);
+		return channelsGridFilteredRowsVm.slice(from, to);
+	});
 
 	let channelsLayoutMode = $state<DashboardChannelsLayoutModeViewModel>('chips');
 
@@ -325,11 +342,16 @@
 	$effect(() => {
 		void dashboardChannelTableRowsVm;
 		void channelsFilterPresenter.value;
-		const api = channelsGridApi;
-		if (!api) return;
-		api.exec('filter-rows', {
-			filter: createDashboardChannelsGridTableFilter(channelsFilterPresenter.value)
-		});
+		void channelsGridPageSize;
+		channelsGridPage = 1;
+	});
+
+	$effect(() => {
+		const total = channelsGridFilteredRowsVm.length;
+		const pageCount = Math.max(1, Math.ceil(total / channelsGridPageSize) || 1);
+		if (channelsGridPage > pageCount) {
+			channelsGridPage = pageCount;
+		}
 	});
 
 	/**
@@ -754,7 +776,7 @@
 				</div>
 
 				<div
-					class="svar-grid-host--fit-content min-h-[200px] min-w-0 w-full overflow-x-auto {dashboardChannelTableRowsVm.length <= 80
+					class="svar-grid-host--fit-content min-h-[200px] min-w-0 w-full overflow-x-auto {channelsGridFilteredRowsVm.length <= 80
 						? 'svar-grid-host--body-auto-height'
 						: ''}"
 					bind:this={channelsGridHostEl}
@@ -762,7 +784,7 @@
 					<Willow fonts={false}>
 						<Tooltip api={channelsGridApi}>
 							<Grid
-								data={dashboardChannelTableRowsVm}
+								data={channelsGridPagedRowsVm}
 								columns={channelsGridColumnsForHost}
 								sizes={channelsGridSizesForHost}
 								autoRowHeight={channelsGridAutoRowHeight}
@@ -775,6 +797,16 @@
 							/>
 						</Tooltip>
 					</Willow>
+				</div>
+
+				<div class="channels-grid-pager border-t border-base-300 px-3 py-2">
+					<CoreWillow fonts={false}>
+						<Pager
+							total={channelsGridFilteredRowsVm.length}
+							bind:pageSize={channelsGridPageSize}
+							bind:value={channelsGridPage}
+						/>
+					</CoreWillow>
 				</div>
 			</div>
 		{:else}
@@ -1076,5 +1108,72 @@
 		height: 100%;
 		font-size: 16px;
 		line-height: 1;
+	}
+
+	/* Pager: bridge SVAR Willow vars to DaisyUI (same pattern as grid above). */
+	.channels-grid-pager :global(.wx-willow-theme),
+	.channels-grid-pager :global(.wx-willow-dark-theme) {
+		--wx-color-font: var(--color-base-content);
+		--wx-color-font-alt: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+		--wx-color-font-disabled: color-mix(in oklab, var(--color-base-content) 38%, transparent);
+		--wx-color-link: var(--color-primary);
+
+		--wx-background: transparent;
+		--wx-background-alt: var(--color-base-200);
+		--wx-background-hover: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-200));
+
+		--wx-border: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent);
+		--wx-icon-color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+
+		--wx-input-font-color: var(--color-base-content);
+		--wx-input-background: var(--color-base-100);
+		--wx-input-border: 1px solid color-mix(in oklab, var(--color-base-content) 18%, transparent);
+		--wx-input-border-focus: 1px solid var(--color-primary);
+		--wx-input-placeholder-color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+
+		height: auto !important;
+		background: transparent;
+	}
+
+	.channels-grid-pager :global(.wx-pager) {
+		padding: 0;
+		justify-content: space-between;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: var(--color-base-content);
+	}
+
+	.channels-grid-pager :global(.wx-pager .wx-left),
+	.channels-grid-pager :global(.wx-pager .wx-center),
+	.channels-grid-pager :global(.wx-pager .wx-right) {
+		color: var(--color-base-content);
+	}
+
+	.channels-grid-pager :global(.wx-pager .wx-right) {
+		color: color-mix(in oklab, var(--color-base-content) 68%, transparent);
+	}
+
+	.channels-grid-pager :global(.wx-pager input) {
+		background: var(--color-base-100);
+		border-color: color-mix(in oklab, var(--color-base-content) 18%, transparent);
+		color: var(--color-base-content);
+	}
+
+	.channels-grid-pager :global(.wx-pager input:focus) {
+		border-color: var(--color-primary);
+	}
+
+	.channels-grid-pager :global(.wx-pager .wx-icon) {
+		color: var(--color-base-content);
+	}
+
+	.channels-grid-pager :global(.wx-pager .wx-icon:hover) {
+		background-color: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-200));
+	}
+
+	.channels-grid-pager :global(.wx-pager .wx-icon.wx-disabled) {
+		color: color-mix(in oklab, var(--color-base-content) 35%, transparent);
 	}
 </style>
