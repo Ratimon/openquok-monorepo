@@ -16,8 +16,8 @@
 	import PostTypeFilter from './PostTypeFilter.svelte';
 	import CalendarFilters from '$lib/ui/components/calendar-scheduler/CalendarFilters.svelte';
 
-	import Calendar from '$lib/ui/components/calendar-scheduler/Calendar.svelte';
-	import ListView from './ListView.svelte';
+	import CalendarView from '$lib/ui/components/calendar-scheduler/CalendarView.svelte';
+	import ListView from '$lib/ui/components/calendar-scheduler/ListView.svelte';
 
 	type BackgroundEvent = {
 		start: Temporal.PlainDate | Temporal.ZonedDateTime;
@@ -259,7 +259,7 @@
 			onOpenPostGroup={openActionsForPostGroup}
 		/>
 	{:else}
-		<Calendar
+		<CalendarView
 			{display}
 			rangeStartDate={scheduledPostsVm.rangeStartDate}
 			events={scheduledPostsVm.events}

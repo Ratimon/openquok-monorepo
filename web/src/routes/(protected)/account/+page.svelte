@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type {
-		CreateSocialPostChannelViewModel,
-		DashboardPlatformChannelRowViewModel
+	import type { CreateSocialPostChannelViewModel, DashboardPlatformChannelRowViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import {
+		buildChannelGroupSectionsVm,
+		buildPlatformChannelRowsVm,
 	} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
 
@@ -41,6 +42,41 @@
 	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);
 
+	/**
+	 * Preview many chips per platform (12 Threads + 12 Instagram). Dev-only; set to `false` before commit.
+	 * Reload `/account` after toggling.
+	 */
+	const MOCK_MANY_CONNECTED_CHANNELS = import.meta.env.DEV && true;
+
+	function buildMockSocialChannel(
+		identifier: 'threads' | 'instagram-business',
+		index: number
+	): CreateSocialPostChannelViewModel {
+		const label = identifier === 'threads' ? 'Threads' : 'Instagram';
+		const handle = identifier === 'threads' ? `threads_user_${index}` : `ig_user_${index}`;
+		const id = `mock-${identifier}-${index}`;
+		return {
+			id,
+			internalId: id,
+			name: `@${handle}`,
+			identifier,
+			picture: null,
+			type: 'social',
+			disabled: false,
+			inBetweenSteps: false,
+			refreshNeeded: false,
+			schedulable: true,
+			unschedulableReason: null,
+			group: null,
+			postingTimes: []
+		};
+	}
+
+	const mockManyConnectedChannelsVm: CreateSocialPostChannelViewModel[] = [
+		...Array.from({ length: 12 }, (_, i) => buildMockSocialChannel('threads', i + 1)),
+		...Array.from({ length: 12 }, (_, i) => buildMockSocialChannel('instagram-business', i + 1))
+	];
+
 	type Props = {
 		data: PageData;
 	};
@@ -54,10 +90,24 @@
 	const accountRoot = $derived(accountPath);
 	const accountSettingsWorkspaceHref = $derived(url(`${accountRoot}/settings?section=workspace`));
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
-	const platformChannelRowsUngrouped = $derived(protectedDashboardPagePresenter.platformChannelRowsUngrouped);
-	const channelGroupSections = $derived(protectedDashboardPagePresenter.channelGroupSections);
-	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
-	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
+	const listStatus = $derived(
+		MOCK_MANY_CONNECTED_CHANNELS ? ('ready' as const) : protectedDashboardPagePresenter.listStatus
+	);
+	const connectedChannelsVm = $derived(
+		MOCK_MANY_CONNECTED_CHANNELS
+			? mockManyConnectedChannelsVm
+			: protectedDashboardPagePresenter.connectedChannelsVm
+	);
+	const platformChannelRowsUngrouped = $derived(
+		MOCK_MANY_CONNECTED_CHANNELS
+			? buildPlatformChannelRowsVm(connectedChannelsVm)
+			: protectedDashboardPagePresenter.platformChannelRowsUngrouped
+	);
+	const channelGroupSections = $derived(
+		MOCK_MANY_CONNECTED_CHANNELS
+			? buildChannelGroupSectionsVm(connectedChannelsVm)
+			: protectedDashboardPagePresenter.channelGroupSections
+	);
 	const connectedChannelCountVm = $derived(connectedChannelsVm.length);
 
 	/** Same integration `identifier` with two or more social connections (different accounts). */
@@ -464,6 +514,18 @@
 				/>
 			</div>
 		</div>
+
+		{#if MOCK_MANY_CONNECTED_CHANNELS}
+			<Alert variant="info" class="mt-3 text-sm">
+				<AlertTitle>Dev preview: many connected channels</AlertTitle>
+				<AlertDescription>
+					Showing 12 mock Threads and 12 mock Instagram accounts. Set
+					<code class="text-xs">MOCK_MANY_CONNECTED_CHANNELS</code> to
+					<code class="text-xs">false</code> in
+					<code class="text-xs">account/+page.svelte</code> to use real data.
+				</AlertDescription>
+			</Alert>
+		{/if}
 
 		{#if showSamePlatformMultiChannelAlert}
 			<Alert

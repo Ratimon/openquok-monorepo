@@ -325,7 +325,8 @@
 				</h1>
 			</div>
 			<p class="text-base-content/70 text-sm">
-				View and manage scheduled posts for this workspace.</p>
+				View and manage scheduled posts for this workspace.
+			</p>
 		</div>
 		<div class="flex items-center gap-2">
 			<Button

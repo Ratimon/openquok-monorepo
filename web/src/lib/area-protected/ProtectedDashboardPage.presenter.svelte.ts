@@ -151,7 +151,7 @@ const DASHBOARD_PLATFORM_ROW_ORDER: readonly string[] = [
 	'tiktok'
 ];
 
-function buildPlatformChannelRowsVm(
+export function buildPlatformChannelRowsVm(
 	channels: readonly CreateSocialPostChannelViewModel[]
 ): DashboardPlatformChannelRowViewModel[] {
 	const map = new Map<string, CreateSocialPostChannelViewModel[]>();
@@ -180,7 +180,7 @@ function buildPlatformChannelRowsVm(
 
 type ChannelGroupAcc = WorkspaceChannelGroupViewModel & { items: CreateSocialPostChannelViewModel[] };
 
-function buildChannelGroupSectionsVm(
+export function buildChannelGroupSectionsVm(
 	channels: readonly CreateSocialPostChannelViewModel[]
 ): DashboardChannelGroupViewModel[] {
 	const map = new Map<string, ChannelGroupAcc>();
