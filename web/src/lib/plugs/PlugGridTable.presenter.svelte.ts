@@ -52,6 +52,7 @@ const PLUG_GRID_WIDE_DEFAULTS: PlugGridVis = {
  * Wired from {@link ProtectedPlugsPagePresenter} like {@link SetGridTablePresenter} on templates.
  */
 export class PlugGridTablePresenter {
+	
 	plugRulesRowsVm = $state<PlugRuleTableRowViewModel[]>([]);
 
 	constructor(

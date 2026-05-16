@@ -9,9 +9,7 @@
 
 	const actions = getContext<PlugsGridActions>(plugsGridActionsKey);
 
-	function vm(): PlugRuleTableRowViewModel {
-		return row as unknown as PlugRuleTableRowViewModel;
-	}
+	const rowVm = $derived(row as unknown as PlugRuleTableRowViewModel);
 </script>
 
 <div class="flex flex-wrap items-center gap-1">
@@ -20,7 +18,7 @@
 		variant="secondary"
 		size="sm"
 		class="h-8 px-2 text-xs"
-		onclick={() => actions?.openEdit(vm())}
+		onclick={() => actions?.openEdit(rowVm)}
 	>
 		Edit
 	</Button>
@@ -29,7 +27,7 @@
 		variant="red"
 		size="sm"
 		class="h-8 px-2 text-xs"
-		onclick={() => void actions?.remove(vm())}
+		onclick={() => void actions?.remove(rowVm)}
 	>
 		Delete
 	</Button>

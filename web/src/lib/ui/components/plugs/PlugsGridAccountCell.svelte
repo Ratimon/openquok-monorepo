@@ -8,13 +8,13 @@
 
 	let { row }: ICellProps = $props();
 
-	const vm = $derived(row as unknown as PlugRuleTableRowViewModel);
+	const rowVm = $derived(row as unknown as PlugRuleTableRowViewModel);
 </script>
 
 <div class="flex min-w-0 items-start gap-1.5 py-0.5">
 	<div class="relative h-8 w-8 shrink-0 rounded-md ring-2 ring-base-100">
 		<ImageWithFallback
-			src={vm.channelPicture ?? ''}
+			src={rowVm.channelPicture ?? ''}
 			alt=""
 			fallbackIcon={icons.User1.name}
 			class="border-base-300 h-8 w-8 rounded-md border object-cover"
@@ -24,7 +24,7 @@
 			aria-hidden="true"
 		>
 			<AbstractIcon
-				name={socialProviderIcon(String(vm.platformKey ?? ''))}
+				name={socialProviderIcon(String(rowVm.platformKey ?? ''))}
 				class="size-3"
 				width="12"
 				height="12"
@@ -33,10 +33,10 @@
 	</div>
 	<div class="text-base-content min-w-0 flex-1">
 		<div class="truncate text-sm font-medium">
-			{vm.channelName || '—'}
+			{rowVm.channelName || '—'}
 		</div>
 		<div class="text-base-content/60 truncate text-xs">
-			{vm.platformLabel || '—'}
+			{rowVm.platformLabel || '—'}
 		</div>
 	</div>
 </div>

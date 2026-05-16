@@ -11,9 +11,7 @@
 
 	const actions = getContext<PlugsGridActions>(plugsGridActionsKey);
 
-	function vm(): PlugRuleTableRowViewModel {
-		return row as unknown as PlugRuleTableRowViewModel;
-	}
+	const rowVm = $derived(row as unknown as PlugRuleTableRowViewModel);
 </script>
 
 <label class="flex cursor-pointer items-center gap-2">
@@ -21,7 +19,7 @@
 		Active
 	</span>
 	<Switch
-		checked={vm().activated === true}
-		onchange={(e) => void actions?.toggleActive(vm(), e.currentTarget.checked)}
+		checked={rowVm.activated === true}
+		onchange={(e) => void actions?.toggleActive(rowVm, e.currentTarget.checked)}
 	/>
 </label>

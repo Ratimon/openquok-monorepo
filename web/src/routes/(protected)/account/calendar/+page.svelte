@@ -42,6 +42,9 @@
 
 	const calendarPresenter = protectedCalendarPagePresenter;
 
+	/** Stable ref for composer `bind:` chain (`calendarPresenter.createSocialPostPresenter`). */
+	let createSocialPostModalPresenter = $state.raw(calendarPresenter.createSocialPostPresenter);
+
 	// --- Modal / sheet open state ---
 	let createSocialPostOpen = $state(false);
 
@@ -142,7 +145,7 @@
 		if (!oid) return;
 		const picked = await chooseSetSnapshotForWorkspace();
 		if (picked === undefined) return;
-		calendarPresenter.createSocialPostPresenter.prepareOpen({
+		createSocialPostModalPresenter.prepareOpen({
 			...resultVm.options,
 			preselectScheduledAtIso,
 			setSnapshot: picked ?? null
@@ -155,7 +158,7 @@
 			toast.error('Select a workspace first.');
 			return;
 		}
-		calendarPresenter.createSocialPostPresenter.prepareEdit(postGroup);
+		createSocialPostModalPresenter.prepareEdit(postGroup);
 		createSocialPostOpen = true;
 	}
 
@@ -164,7 +167,7 @@
 			toast.error('Select a workspace first.');
 			return;
 		}
-		calendarPresenter.createSocialPostPresenter.prepareDuplicate(postGroup);
+		createSocialPostModalPresenter.prepareDuplicate(postGroup);
 		createSocialPostOpen = true;
 	}
 
@@ -459,7 +462,7 @@
 
 <CreateSocialPostModal
 	bind:open={createSocialPostOpen}
-	bind:presenter={calendarPresenter.createSocialPostPresenter}
+	bind:presenter={createSocialPostModalPresenter}
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}

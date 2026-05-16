@@ -4,6 +4,8 @@ import type {
 } from '$lib/integrations/Integrations.repository.svelte';
 import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
+import type { DashboardChannelsGridFilterBuilderPresenter } from '$lib/area-protected/DashboardChannelsGridFilterBuilder.presenter.svelte';
+import type { DashboardChannelsGridTablePresenter } from '$lib/area-protected/DashboardChannelsGridTable.presenter.svelte';
 
 import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 import { absoluteUrl, route, url } from '$lib/utils/path';
@@ -216,6 +218,9 @@ export type DashboardPostConnectQueryViewModel =
 	| { handled: false }
 	| { handled: true; successToastMessage?: string };
 
+/** Connected channels section layout on the account dashboard. */
+export type DashboardChannelsLayoutModeViewModel = 'chips' | 'table';
+
 /**
  * Account `/account` dashboard: workspace channels, channel groups, post-connect query handling, OAuth continue URLs.
  */
@@ -248,8 +253,15 @@ export class ProtectedDashboardPagePresenter {
 	constructor(
 		private readonly integrationsRepository: IntegrationsRepository,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
-		readonly createSocialPostPresenter: CreateSocialPostPresenter
+		readonly createSocialPostPresenter: CreateSocialPostPresenter,
+		readonly channelsGridTable: DashboardChannelsGridTablePresenter,
+		readonly channelsGridFilterBuilder: DashboardChannelsGridFilterBuilderPresenter
 	) {}
+
+	/** Rebuild SVAR grid rows from {@link connectedChannelsVm} (table layout). */
+	refreshDashboardChannelsGrid(): void {
+		this.channelsGridTable.refreshRowsFromChannels(this.connectedChannelsVm);
+	}
 
 	// --- OAuth continue URLs (optional `oauthReturnTo` for calendar/analytics) ---
 	/**
@@ -311,6 +323,7 @@ export class ProtectedDashboardPagePresenter {
 			this.listStatus = 'idle';
 			this.channelGroupsVm = [];
 			this.channelGroupsStatus = 'idle';
+			this.channelsGridTable.resetForNoWorkspace();
 			return;
 		}
 		this.listStatus = 'loading';
@@ -318,11 +331,13 @@ export class ProtectedDashboardPagePresenter {
 			const rows = await this.integrationsRepository.listConnectedIntegrations(orgId);
 			this.connectedChannelsVm = rows.map(toCreateSocialPostChannelViewModel);
 			this.listStatus = 'ready';
+			this.refreshDashboardChannelsGrid();
 		} catch {
 			this.listStatus = 'error';
 			this.connectedChannelsVm = [];
 			this.channelGroupsVm = [];
 			this.channelGroupsStatus = 'error';
+			this.channelsGridTable.resetForNoWorkspace();
 		}
 	}
 
@@ -515,6 +530,7 @@ export class ProtectedDashboardPagePresenter {
 			{ ...prev, group },
 			...this.connectedChannelsVm.slice(idx + 1)
 		];
+		this.refreshDashboardChannelsGrid();
 	}
 
 	private _patchIntegrationPostingTimes(integrationId: string, slots: PostingTimeSlotViewModel[]): void {
@@ -527,5 +543,6 @@ export class ProtectedDashboardPagePresenter {
 			{ ...prev, postingTimes: sorted },
 			...this.connectedChannelsVm.slice(idx + 1)
 		];
+		this.refreshDashboardChannelsGrid();
 	}
 }
