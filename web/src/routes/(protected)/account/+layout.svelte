@@ -92,7 +92,7 @@
 	];
 
 	function setSettingsSidebarContext() {
-		const currentSection = $derived((page.url.searchParams.get('section') as AppSettingsSectionId) || 'global');
+		const currentSection = $derived((page.url.searchParams.get('section') as AppSettingsSectionId) || 'timezone');
 		const sectionTitle = $derived(
 			SETTINGS_NAV.find((item) => item.id === currentSection)?.label ?? 'Timezone'
 		);

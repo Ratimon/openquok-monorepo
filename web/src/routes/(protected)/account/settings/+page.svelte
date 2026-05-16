@@ -24,7 +24,7 @@
 	
 	
 	const ctx = getContext<SettingsSidebarContext>(SETTINGS_SIDEBAR_KEY);
-	const currentSection = $derived(ctx?.getCurrentSection() ?? 'global');
+	const currentSection = $derived(ctx?.getCurrentSection() ?? 'timezone');
 	const sectionTitle = $derived(ctx?.getSectionTitle() ?? 'Global Settings');
 
 	const pagePresenter = protectedSettingsPagePresenter;
@@ -178,7 +178,7 @@
 	}
 </script>
 <SidebarSecondary>
-	{#if currentSection === 'global'}
+	{#if currentSection === 'timezone'}
 		<EditorMetric />
 	{:else if currentSection === 'profile'}
 		<EditorAccountSettings
