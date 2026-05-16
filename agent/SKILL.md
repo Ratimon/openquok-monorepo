@@ -5,13 +5,19 @@ homepage: https://www.npmjs.com/package/@openquok/auto-cli
 metadata: {"openclaw":{"emoji":"📮","requires":{"bins":[],"env":[]}}}
 ---
 
-## Install @openquok/auto-cli package if it doesn't exist
+## Install @openquok/auto-cli (required version)
 
 
 ```bash
-npm install -g @openquok/auto-cli
-# or
-pnpm install -g @openquok/auto-cli
+npm install -g @openquok/auto-cli@latest
+# or pin to the repo release line (keep in sync with agent/package.json "version"):
+npm install -g @openquok/auto-cli@0.0.6
+
+openquok --version   # expect >= 0.0.6 for production device login
+```
+
+```bash
+pnpm install -g @openquok/auto-cli@latest
 ```
 
 npm release: https://www.npmjs.com/package/@openquok/auto-cli
@@ -551,6 +557,7 @@ External media CLIs can still fit upstream of `upload-from-url` when their outpu
 11. **Thread delay units** — `-d` on `posts:create` is **milliseconds**, not minutes.
 12. **Analytics window** — Only `7`, `30`, or `90` days.
 13. **Env vs disk credentials** — Stored login wins over `OPENQUOK_API_KEY` until `auth:logout`.
+14. **Stale global CLI** — If `auth:login` fails with *verification_uri … expected cli-auth.openquok.com*, upgrade: `npm install -g @openquok/auto-cli@latest` (need **≥ 0.0.6** for `www.openquok.com` verify URLs). Re-run `openquok --version` after install.
 
 ---
 

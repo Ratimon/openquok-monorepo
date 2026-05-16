@@ -16,6 +16,13 @@ export const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
 export const BROWSER_ORIGIN = (process.env.BROWSER_ORIGIN || SERVER_URL).replace(/\/+$/, "");
 const DATABASE_URL = process.env.DATABASE_URL!;
 
+/** Signed-in app entry; keep aligned with web `getRootPathAccount()` (`account`). */
+const ACCOUNT_DASHBOARD_PATH = "/account";
+
+function accountDashboardUrl(): string {
+  return `${FRONTEND_URL.replace(/\/+$/, "")}${ACCOUNT_DASHBOARD_PATH}`;
+}
+
 export function deviceBrowserPath(segment: "verify" | "callback"): string {
   const serverOrigin = SERVER_URL.replace(/\/+$/, "");
   const prefix = BROWSER_ORIGIN !== serverOrigin ? "/cli" : "";
@@ -287,7 +294,13 @@ async function handleOAuthCallback(req: IncomingMessage, res: ServerResponse) {
       [tokenData.access_token, API_URL, tokenData.organizationId || null, state]
     );
 
-    html(res, 200, '<h2 class="success">Authorization successful!</h2><p>You can close this window and return to your terminal.</p>');
+    html(
+      res,
+      200,
+      '<h2 class="success">Authorization successful!</h2>' +
+        "<p>You can close this window and return to your terminal, or continue in the web app.</p>" +
+        `<p><a class="btn" href="${escapeHtml(accountDashboardUrl())}" rel="noopener noreferrer">Go to dashboard</a></p>`
+    );
   } catch (err: any) {
     html(res, 500, `<h2 class="error">Error</h2><p>${escapeHtml(err.message)}</p>`);
   }

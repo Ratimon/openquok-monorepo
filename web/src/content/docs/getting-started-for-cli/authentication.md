@@ -2,7 +2,7 @@
 title: CLI authentication
 description: Setup OAuth2 (interactive terminal) authentication for Openquok CLI.
 order: 1
-lastUpdated: 2026-05-15
+lastUpdated: 2026-05-16
 ---
 
 <script>
@@ -28,7 +28,7 @@ openquok auth:login
 
 By default the CLI uses an **interactive** device flow:
 
-1. **Terminal** — Shows the verification URL, your **user code**, and prompts you to press **Enter** to open the browser. The opened link includes a `code` query parameter so the verification page can pre-fill the code (no need to paste it manually).
+1. **Terminal** — Shows the verification URL, your **user code**, and prompts you to press **Enter** to open the browser. The opened link includes a <Badge text="code" variant="param" /> query parameter so the verification page can pre-fill the code (no need to paste it manually).
 2. **Browser** — On Openquok’s hosted stack this is <Badge text="https://www.openquok.com/cli/device/verify" variant="new" /> (not <Badge text="cli-auth.openquok.com" variant="default" />). Submit the code, then continue to the Openquok web app’s **Authorize application** screen. If you are not signed in, use **Sign in**; after authentication you are returned to the authorize URL, so you can pick a **workspace** and choose **Authorize** or **Deny**.
 3. **Terminal** — When success, it writes **only the final result as JSON**.
 4. **Credentials** — Stored for later commands (default <Badge text="~/.openquok/credentials.json" variant="path" />).
@@ -37,7 +37,7 @@ By default the CLI uses an **interactive** device flow:
 
 OAuth2 device flow always needs **a** browser somewhere to complete authorization — it doesn't have to be on the CLI's machine. The CLI's job is just to print the verification URL and poll until you authorize it.
 
-Interactive <Badge text="auth:login" variant="default" /> always prints the verification URL and user code, then tries to open a browser **on the CLI's machine** (after you press Enter when stdin is a TTY, otherwise immediately). If <Badge text="open()" variant="default" /> fails, the CLI re-prints the URL so you can open it manually.
+Interactive <Badge text="auth:login" variant="default" /> always prints the verification URL and user code, then tries to open a browser **on the CLI's machine**. If <Badge text="open()" variant="default" /> fails, the CLI re-prints the URL so you can open it manually.
 
 For SSH, CI, or any flow where you don't want the CLI to call <Badge text="open()" variant="default" />, use <Badge text="auth:login --json" variant="default" />: the first JSON object on stdout includes <Badge text="verification_uri" variant="default" /> and <Badge text="verification_uri_complete" variant="default" />, and the CLI never launches a browser. Open the link in any browser (your laptop, phone, etc.) to complete authorization — the CLI keeps polling until you do.
 
@@ -88,7 +88,7 @@ openquok auth:login --authServer "https://auth.example.com"
 
 For **local** auth server development, the default API URL is <Badge text="http://localhost:3111" variant="default" />. With only the auth server running (no web proxy), the browser opens <Badge text="http://localhost:3111/device/verify" variant="default" />. To test the production-style split locally, run the web dev server, set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> on the auth server, and set <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> on web — see <a href="/docs/installation/development-environment#optional-cli-auth-server-device-flow">Development environment</a> and <a href="/docs/configuration-agent">Configuration - Agent</a>.
 
-<Callout type="note" title="Operators: deploy the auth server">
+<Callout type="note" title="Deploy the auth server">
 <p>Environment variables for <strong>running</strong> the auth server (<Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, <Badge text="BROWSER_ORIGIN" variant="envBackend" />, OAuth client keys) and the web app (<Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" />) are documented under <a href="/docs/configuration-agent">Configuration - Agent</a> and <a href="/docs/configuration-web">Configuration - Web</a>, not on this page.</p>
 </Callout>
 
@@ -120,6 +120,42 @@ These variables apply to the **CLI process** (your shell, CI job, or agent), not
 | <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> | No | <Badge text="https://cli-auth.openquok.com" variant="new" /> | **API origin** for device flow (<Badge text="/device/code" variant="path" />, <Badge text="/device/token" variant="path" />). Browser URLs come from the server’s <Badge text="verification_uri" variant="default" />. Use <Badge text="http://localhost:3111" variant="default" /> when running <Badge text="agent/server" variant="path" /> locally. |
 
 *Either <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> or successful <Badge text="openquok auth:login" variant="default" /> (stored credentials) is required for authenticated commands.
+
+## Switching between production and local / self-hosted
+
+The CLI resolves **two origins** for every run:
+
+1. **API** — <Badge text="OPENQUOK_API_URL" variant="envBackend" />, then (if unset) <Badge text="apiUrl" variant="default" /> from <Badge text="~/.openquok/credentials.json" variant="path" /> after device login, then the hosted default <Badge text="https://api.openquok.com" variant="new" />.
+2. **Device-flow API** — <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> only; if unset, the default is <Badge text="https://cli-auth.openquok.com" variant="new" />.
+
+Use <Badge text="openquok config:show" variant="default" /> to print the **resolved** URLs, whether you match **hosted Openquok** (<Badge text="openquok_cloud" variant="param" />) or a **custom** setup, and whether each value came from <Badge text="environment" variant="param" />, <Badge text="credentials_file" variant="param" />, or <Badge text="default" variant="param" />.
+
+### Back to hosted Openquok (production defaults)
+
+1. In the **current shell**, clear overrides you set for local development:
+   ```bash
+   unset OPENQUOK_AUTH_SERVER
+   unset OPENQUOK_API_URL
+   ```
+2. If you added the same <Badge text="export" variant="param" /> lines to <Badge text="~/.zshrc" variant="path" />, <Badge text="~/.bashrc" variant="path" />, or similar, **remove or comment them** so new terminals also get defaults.
+3. Run <Badge text="openquok config:show" variant="default" /> — you should see the hosted API and auth origins and <Badge text="deployment" variant="param" />: <Badge text="openquok_cloud" variant="param" />.
+4. If you still use **OAuth stored credentials** from a local stack, run <Badge text="openquok auth:logout" variant="default" /> and <Badge text="openquok auth:login" variant="default" /> again **without** <Badge text="--authServer" variant="default" /> and without <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> set, so the token and stored <Badge text="apiUrl" variant="default" /> match production.
+
+<Callout type="note" title="Logout does not change environment variables">
+<p><Badge text="openquok auth:logout" variant="default" /> deletes <Badge text="~/.openquok/credentials.json" variant="path" /> only. It does <strong>not</strong> unset <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <Badge text="OPENQUOK_API_URL" variant="envBackend" />. If <Badge text="config:show" variant="default" /> shows <Badge text="auth_server_url_source" variant="param" />: <Badge text="environment" variant="param" /> but you expected production, your shell still has a dev <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> — use <Badge text="unset" variant="param" /> (above) or fix your profile.</p>
+</Callout>
+
+### Point the CLI at local or self-hosted again
+
+Set the same variables (and optionally pass <Badge text="--authServer" variant="default" /> on <Badge text="auth:login" variant="default" /> for a one-off):
+
+```bash
+export OPENQUOK_AUTH_SERVER="http://localhost:3111"
+export OPENQUOK_API_URL="http://localhost:3000"
+openquok auth:login
+```
+
+After device login, the CLI may persist <Badge text="apiUrl" variant="default" /> in <Badge text="credentials.json" variant="path" />; <Badge text="OPENQUOK_API_URL" variant="envBackend" /> still wins when set. Confirm with <Badge text="openquok config:show" variant="default" />.
 
 ## Self-hosting the auth server
 
