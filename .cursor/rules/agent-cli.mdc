@@ -48,7 +48,7 @@ The programmatic CLI lives in `agent/`, published as `@openquok/auto-cli`. It ta
 
 ## Docs that mention the CLI
 
-- **Paths** — `web/src/content/docs/cli-usages/`, `cli-examples/`, `getting-started-for-cli/`, and `agent/README.md` / `agent/SKILL.md`.
+- **Paths** — `web/src/content/docs/cli-usages/`, `cli-examples/`, `getting-started-for-cli/`, and `agent/README.md` / `agent/skills/*/SKILL.md`.
 - **MDX** — Follow `docs-conventions`. Inside HTML tables and `<Badge text="…">`, avoid **curly/smart quotes** and avoid **nested `"` inside attributes** that confuse the Svelte/MDX compiler. Prefer splitting labels (`<Badge text="-m" />` + `<Badge text="--media" />`) or describe JSON shapes in prose with separate `<code>` spans instead of a single `[{"id","path"}]`-style literal in one cell.
 - **Neutrality** — Follow `source-project-neutrality`: do not name or link other products as the “source” of the CLI design; describe flags and behavior in first-party terms.
 

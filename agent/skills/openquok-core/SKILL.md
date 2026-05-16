@@ -1,7 +1,7 @@
 ---
 name: openquok-core
 description: >-
-  Openquok CLI (0.0.6) helps individuals or teams run many social accounts at scale with automation,
+  16/5/26:2 - Openquok CLI (0.0.6) helps individuals or teams run many social accounts at scale with automation,
   drafts, scheduling, and human approval. Use when driving the `openquok` CLI (`@openquok/auto-cli`). Requires a globally installed CLI on the host (≥ 0.0.6 for hosted device login).
 homepage: https://www.npmjs.com/package/@openquok/auto-cli
 metadata: {"openclaw":{"emoji":"📮","requires":{"bins":["openquok"],"env":[]}}}

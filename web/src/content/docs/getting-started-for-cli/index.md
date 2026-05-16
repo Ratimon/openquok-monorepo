@@ -12,11 +12,11 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 ## Overview
 
 <Callout type="warning">
-<p>For your AI agent to work best with Openquok, install the skill by running:</p>
-<pre class="my-3 max-w-full rounded-lg bg-base-200/80 p-3 text-sm"><code>npx skills add Ratimon/openquok-monorepo</code></pre>
-<p>Alternatively, install only the CLI skill by path and id (useful once this repository ships more than one skill):</p>
+<p>For your AI agent to work best with Openquok, install the <strong>openquok-core</strong> skill (lives under <code>agent/skills/</code> in this repo, not the monorepo root):</p>
 <pre class="my-3 max-w-full rounded-lg bg-base-200/80 p-3 text-sm"><code>npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core</code></pre>
-<p>Or open <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/SKILL.md">the skill on GitHub</DocsExternalLink> (<code>agent/SKILL.md</code>).</p>
+<p>That updates agent instructions only — it does <strong>not</strong> install or upgrade the <code>openquok</code> CLI. After adding the skill, run <code>npm install -g @openquok/auto-cli@latest</code> on the same host and check <code>openquok --version</code> (need <strong>≥ 0.0.6</strong> for hosted device login).</p>
+<p>On <strong>OpenClaw</strong> (Docker, Telegram), <code>cd</code> to your workspace first (often <code>/data/workspace</code>) — see <a href="/docs/agent-guides/openclaw">OpenClaw agent guide</a>.</p>
+<p>Or open <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/skills/openquok-core/SKILL.md">the skill on GitHub</DocsExternalLink> (<code>agent/skills/openquok-core/SKILL.md</code>).</p>
 </Callout>
 
 <Badge text="@openquok/auto-cli" variant="experimental" /> is the programmatic CLI for the Openquok scheduling API — built for automation and AI agents. It wraps the <a href="/docs/getting-started-for-public-api">public API</a> so you can schedule posts, manage integrations, and upload media from shell scripts.

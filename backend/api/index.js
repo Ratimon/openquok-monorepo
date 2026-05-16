@@ -5911,6 +5911,17 @@ var StorageSupabaseRepository = class {
     }
     return filePath;
   }
+  /** Upsert mirrored integration profile photo (`integration-profiles/...` in avatars bucket). */
+  async uploadIntegrationProfilePicture(objectPath, buffer, contentType) {
+    const { error } = await this.supabaseServiceClient.storage.from(DATABASE_NAMES.AVATARS).upload(objectPath, buffer, {
+      contentType,
+      upsert: true
+    });
+    if (error) {
+      return { error: { message: error.message } };
+    }
+    return { error: null };
+  }
   async deleteImage(databaseName, path7) {
     const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).remove([path7]);
     if (error) {
@@ -10469,11 +10480,187 @@ var IntegrationManager = class {
 
 // services/RefreshIntegrationService.ts
 init_GlobalConfig();
+
+// utils/allowedExternalImageHosts.ts
+function isAllowedExternalImageHost(hostname) {
+  const h = hostname.toLowerCase();
+  return h === "cdninstagram.com" || h.endsWith(".cdninstagram.com") || h === "fbcdn.net" || h.endsWith(".fbcdn.net") || h === "platform-lookaside.fbsbx.com" || h.endsWith(".fbsbx.com");
+}
+function isExternalCdnProfilePictureUrl(url) {
+  try {
+    return isAllowedExternalImageHost(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
+
+// utils/externalImageFetch.ts
+var FETCH_TIMEOUT_MS = 15e3;
+function externalCdnImageRequestHeaders(remoteUrl) {
+  let referer = "https://www.instagram.com/";
+  try {
+    const host = new URL(remoteUrl).hostname.toLowerCase();
+    if (host.includes("threads")) {
+      referer = "https://www.threads.net/";
+    }
+  } catch {
+  }
+  return {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    Referer: referer
+  };
+}
+var ExternalImageFetchError = class extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+    this.name = "ExternalImageFetchError";
+  }
+};
+async function fetchAllowlistedExternalImage(remoteUrl) {
+  const parsed = new URL(remoteUrl);
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    throw new ExternalImageFetchError("Invalid URL protocol. Only HTTP and HTTPS are allowed.", 400);
+  }
+  if (!isAllowedExternalImageHost(parsed.hostname)) {
+    throw new ExternalImageFetchError("URL host is not allowed", 400);
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetch(remoteUrl, {
+      method: "GET",
+      redirect: "follow",
+      headers: externalCdnImageRequestHeaders(remoteUrl),
+      signal: controller.signal
+    });
+    if (!response.ok) {
+      throw new ExternalImageFetchError(
+        `Failed to fetch image: ${response.status} ${response.statusText}`,
+        response.status === 403 || response.status === 404 ? response.status : 502
+      );
+    }
+    const contentType = (response.headers.get("content-type") ?? "").split(";")[0]?.trim() ?? "";
+    if (!contentType.startsWith("image/")) {
+      throw new ExternalImageFetchError("URL does not point to a valid image", 400);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    return { buffer: Buffer.from(arrayBuffer), contentType };
+  } catch (error) {
+    if (error instanceof ExternalImageFetchError) {
+      throw error;
+    }
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new ExternalImageFetchError("Request timeout", 504);
+    }
+    throw new ExternalImageFetchError(
+      error instanceof Error ? error.message : "Failed to fetch image",
+      502
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// utils/mirrorIntegrationProfilePicture.ts
+init_Logger();
+var INTEGRATION_PROFILE_STORAGE_PREFIX = "integration-profiles";
+function integrationProfileStoragePath(organizationId, internalId) {
+  const safeOrg = organizationId.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeInternal = internalId.replace(/[^a-zA-Z0-9_-]/g, "_");
+  return `${INTEGRATION_PROFILE_STORAGE_PREFIX}/${safeOrg}/${safeInternal}.jpg`;
+}
+function isIntegrationProfileStoragePath(picture) {
+  return typeof picture === "string" && picture.startsWith(`${INTEGRATION_PROFILE_STORAGE_PREFIX}/`);
+}
+function contentTypeToExtension(contentType) {
+  const normalized = contentType.toLowerCase();
+  if (normalized.includes("png")) return "png";
+  if (normalized.includes("webp")) return "webp";
+  if (normalized.includes("gif")) return "gif";
+  return "jpg";
+}
+async function mirrorIntegrationProfilePicture(params) {
+  const { storageRepository, organizationId, internalId } = params;
+  let remoteUrl = typeof params.remoteUrl === "string" ? params.remoteUrl.trim() : "";
+  if (!remoteUrl || !isExternalCdnProfilePictureUrl(remoteUrl)) {
+    return null;
+  }
+  const tryFetch = async (url) => {
+    try {
+      return await fetchAllowlistedExternalImage(url);
+    } catch {
+      return null;
+    }
+  };
+  let fetched = await tryFetch(remoteUrl);
+  if (!fetched && params.resolveFreshRemoteUrl) {
+    const fresh = (await params.resolveFreshRemoteUrl())?.trim();
+    if (fresh && fresh !== remoteUrl && isExternalCdnProfilePictureUrl(fresh)) {
+      remoteUrl = fresh;
+      fetched = await tryFetch(remoteUrl);
+    }
+  }
+  if (!fetched) {
+    logger.debug({
+      msg: "integration profile picture mirror skipped (CDN fetch failed)",
+      organizationId,
+      internalId
+    });
+    return null;
+  }
+  const ext = contentTypeToExtension(fetched.contentType);
+  const basePath = integrationProfileStoragePath(organizationId, internalId);
+  const objectPath = ext === "jpg" ? basePath : basePath.replace(/\.jpg$/, `.${ext}`);
+  try {
+    const { error } = await storageRepository.uploadIntegrationProfilePicture(
+      objectPath,
+      fetched.buffer,
+      fetched.contentType
+    );
+    if (error) {
+      logger.debug({
+        msg: "integration profile picture mirror upload failed",
+        organizationId,
+        internalId,
+        error: error.message
+      });
+      return null;
+    }
+    return objectPath;
+  } catch (err) {
+    logger.debug({
+      msg: "integration profile picture mirror upload threw",
+      organizationId,
+      internalId,
+      error: err instanceof Error ? err.message : String(err)
+    });
+    return null;
+  }
+}
+async function resolveIntegrationPictureForStorage(params) {
+  const raw = typeof params.picture === "string" ? params.picture.trim() : "";
+  if (!raw) return null;
+  if (isIntegrationProfileStoragePath(raw)) return raw;
+  const mirrored = await mirrorIntegrationProfilePicture({
+    storageRepository: params.storageRepository,
+    organizationId: params.organizationId,
+    internalId: params.internalId,
+    remoteUrl: raw,
+    resolveFreshRemoteUrl: params.resolveFreshRemoteUrl
+  });
+  return mirrored ?? raw;
+}
+
+// services/RefreshIntegrationService.ts
 init_Logger();
 var RefreshIntegrationService = class {
-  constructor(integrationRepository2, integrationManager2, notificationService2) {
+  constructor(integrationRepository2, integrationManager2, storageRepository, notificationService2) {
     this.integrationRepository = integrationRepository2;
     this.integrationManager = integrationManager2;
+    this.storageRepository = storageRepository;
     this.notificationService = notificationService2;
   }
   async refresh(integration) {
@@ -10485,11 +10672,18 @@ var RefreshIntegrationService = class {
     if (!refresh) {
       return false;
     }
+    const picture = refresh.picture?.trim() ? await resolveIntegrationPictureForStorage({
+      storageRepository: this.storageRepository,
+      organizationId: integration.organization_id,
+      internalId: integration.internal_id,
+      picture: refresh.picture,
+      resolveFreshRemoteUrl: async () => refresh.picture
+    }) : integration.picture;
     await this.integrationRepository.upsertIntegration({
       organizationId: integration.organization_id,
       internalId: integration.internal_id,
       name: integration.name,
-      picture: integration.picture,
+      picture,
       providerIdentifier: integration.provider_identifier,
       integrationType: integration.type === "article" ? "article" : "social",
       token: refresh.accessToken,
@@ -10877,12 +11071,13 @@ function isVerifiedFromAdditionalSettings(settings) {
   return verified === true;
 }
 var IntegrationConnectionService = class {
-  constructor(integrations, plugs, organizationRepository2, manager, refreshIntegrationService2, cache, cacheInvalidator) {
+  constructor(integrations, plugs, organizationRepository2, manager, refreshIntegrationService2, storageRepository, cache, cacheInvalidator) {
     this.integrations = integrations;
     this.plugs = plugs;
     this.organizationRepository = organizationRepository2;
     this.manager = manager;
     this.refreshIntegrationService = refreshIntegrationService2;
+    this.storageRepository = storageRepository;
     this.cache = cache;
     this.cacheInvalidator = cacheInvalidator;
   }
@@ -11187,11 +11382,18 @@ var IntegrationConnectionService = class {
     }
     const tz = Number.parseInt(body.timezone, 10);
     const postingTimes = postingTimesForTimezone(Number.isNaN(tz) ? void 0 : tz);
+    const storedPicture = await resolveIntegrationPictureForStorage({
+      storageRepository: this.storageRepository,
+      organizationId,
+      internalId: String(id),
+      picture: picture || null,
+      resolveFreshRemoteUrl: async () => picture || null
+    });
     const row = await this.integrations.upsertIntegration({
       organizationId,
       internalId: String(id),
       name: validName.trim(),
-      picture: picture || null,
+      picture: storedPicture,
       providerIdentifier: integration,
       integrationType: "social",
       token: accessToken,
@@ -13891,6 +14093,7 @@ var notificationService = new NotificationService(
 var refreshIntegrationService = new RefreshIntegrationService(
   integrationRepository,
   integrationManager,
+  storageSupabaseRepository,
   notificationService
 );
 var authenticationService = new AuthenticationService(
@@ -13946,6 +14149,7 @@ var integrationConnectionService = new IntegrationConnectionService(
   organizationRepository,
   integrationManager,
   refreshIntegrationService,
+  storageSupabaseRepository,
   cacheServiceConnection,
   cacheInvalidationServiceConnection
 );
@@ -14523,10 +14727,6 @@ var ImageController = class {
   constructor(storageRepository) {
     this.storageRepository = storageRepository;
   }
-  isAllowedExternalImageHost(hostname) {
-    const h = hostname.toLowerCase();
-    return h === "cdninstagram.com" || h.endsWith(".cdninstagram.com") || h === "fbcdn.net" || h.endsWith(".fbcdn.net") || h === "platform-lookaside.fbsbx.com" || h.endsWith(".fbsbx.com");
-  }
   getByUrl = async (req, res, next) => {
     try {
       const { databaseName, imageUrl } = req.query;
@@ -14615,48 +14815,20 @@ var ImageController = class {
       if (!["http:", "https:"].includes(imageUrl.protocol)) {
         throw new UserValidationError("Invalid URL protocol. Only HTTP and HTTPS are allowed.");
       }
-      if (!this.isAllowedExternalImageHost(imageUrl.hostname)) {
+      if (!isAllowedExternalImageHost(imageUrl.hostname)) {
         throw new UserValidationError("URL host is not allowed");
       }
-      const httpModule = imageUrl.protocol === "https:" ? https__default.default : http__default.default;
-      await new Promise((resolve, reject) => {
-        const request = httpModule.get(
-          url,
-          {
-            headers: {
-              // Some CDNs return 403 for missing/unknown UA.
-              "User-Agent": "Mozilla/5.0 (compatible; OpenquokPublicImageProxy/1.0)",
-              Accept: "image/*,*/*;q=0.8"
-            },
-            timeout: 1e4
-          },
-          (response) => {
-            if (response.statusCode && response.statusCode >= 400) {
-              reject(
-                new Error(
-                  `Failed to fetch image: ${response.statusCode} ${response.statusMessage}`
-                )
-              );
-              return;
-            }
-            const contentType = response.headers["content-type"];
-            if (!contentType || !contentType.startsWith("image/")) {
-              reject(new UserValidationError("URL does not point to a valid image"));
-              return;
-            }
-            res.set("Content-Type", contentType);
-            res.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
-            response.pipe(res);
-            response.on("end", () => resolve());
-          }
-        );
-        request.on("error", (error) => reject(error));
-        request.on("timeout", () => {
-          request.destroy();
-          reject(new Error("Request timeout"));
-        });
-      });
+      const { buffer, contentType } = await fetchAllowlistedExternalImage(url);
+      res.set("Content-Type", contentType);
+      res.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+      res.send(buffer);
     } catch (error) {
+      if (error instanceof ExternalImageFetchError) {
+        const err = new Error(error.message);
+        err.statusCode = error.statusCode;
+        next(err);
+        return;
+      }
       next(error);
     }
   };

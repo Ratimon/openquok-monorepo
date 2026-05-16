@@ -1,10 +1,10 @@
 ---
-description: Meta-guidance for the Openquok OpenClaw skill. Authoritative instructions live in agent/SKILL.md — apply when editing that skill or this rule.
-globs: ["agent/SKILL.md", ".cursor/rules/agent-skill.mdc"]
+description: Meta-guidance for the Openquok OpenClaw skill. Authoritative instructions live in agent/skills/openquok-core/SKILL.md — apply when editing that skill or this rule.
+globs: ["agent/skills/**/SKILL.md", ".cursor/rules/agent-skill.mdc"]
 alwaysApply: false
 ---
 
-**Source of truth:** `agent/SKILL.md` — installable OpenClaw skill (`openquok-core`): hard rules, auth, media, workflows, and links. Edit `SKILL.md` when changing what agents should do with the CLI; keep this rule file for Cursor-only best practices.
+**Source of truth:** `agent/skills/openquok-core/SKILL.md` — installable OpenClaw skill (`openquok-core`): hard rules, auth, media, workflows, and links. Edit that file when changing what agents should do with the CLI; keep this rule file for Cursor-only best practices.
 
 ## Best practices
 

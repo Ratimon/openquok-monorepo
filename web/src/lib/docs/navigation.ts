@@ -51,6 +51,17 @@ export function getNavigation(locale?: string): NavItem[] {
 	return generateNavigation(locale);
 }
 
+/** First path segment or full slug under `/docs` that belongs to the CLI tab. */
+function isCliDocsPath(segmentOrSlug: string): boolean {
+	return (
+		segmentOrSlug === 'getting-started-for-cli' ||
+		segmentOrSlug.startsWith('getting-started-for-cli/') ||
+		segmentOrSlug === 'agent-guides' ||
+		segmentOrSlug.startsWith('agent-guides/') ||
+		segmentOrSlug.startsWith('cli-')
+	);
+}
+
 export function stripDocsLocaleFromPathname(pathname: string): string {
 	const parts = pathname.split('/').filter(Boolean);
 	if (parts[0] !== 'docs') return pathname;
@@ -81,22 +92,12 @@ export function getDocsTabIdFromPathname(pathname: string): DocsDocTabId {
 		(typeof rest[0] === 'string' && rest[0].startsWith('apis-'))
 	)
 		return 'public-api';
-	if (
-		rest[0] === 'getting-started-for-cli' ||
-		(typeof rest[0] === 'string' && rest[0].startsWith('cli-'))
-	)
-		return 'cli';
+	if (typeof rest[0] === 'string' && isCliDocsPath(rest[0])) return 'cli';
 	return 'learn-more';
 }
 
 export function getDocsTabIdFromSlug(slug: string): DocsDocTabId {
-	if (
-		!slug ||
-		slug === 'getting-started-for-cli' ||
-		slug.startsWith('getting-started-for-cli/') ||
-		slug.startsWith('cli-')
-	)
-		return 'cli';
+	if (!slug || isCliDocsPath(slug)) return 'cli';
 	if (
 		slug === 'getting-started-for-public-api' ||
 		slug.startsWith('getting-started-for-public-api/') ||

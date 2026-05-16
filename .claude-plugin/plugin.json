@@ -9,7 +9,7 @@
   "homepage": "https://github.com/Ratimon/openquok-monorepo/tree/main/agent#readme",
   "repository": "https://github.com/Ratimon/openquok-monorepo",
   "license": "AGPL-3.0",
-  "skills": ["./agent"],
+  "skills": ["./agent/skills"],
   "keywords": [
     "openquok",
     "social-media",

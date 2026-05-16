@@ -45,10 +45,16 @@ export const docsSidebarCli: DocsSidebarSection[] = [
 		autogenerate: { directory: 'cli-usages' }
 	},
 	{
-		label: 'Examples',
+		label: 'CLI Examples',
 		icon: icons.Sparkles.name,
 		autogenerate: { directory: 'cli-examples' }
+	},
+	{
+		label: 'Agent Guides',
+		icon: icons.Lock.name,
+		autogenerate: { directory: 'agent-guides' }
 	}
+	
 ];
 
 export const docsSidebarPublicApi: DocsSidebarSection[] = [
