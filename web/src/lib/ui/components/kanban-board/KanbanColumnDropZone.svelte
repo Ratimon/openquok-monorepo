@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { PostKanbanColumnId } from './kanbanTypes';
+	import type { PostKanbanColumnId } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 	import { canMoveKanbanCard, parseKanbanCardDrag, type KanbanCardDragPayload } from './kanbanDnd';
 
 	type Props = {
@@ -9,10 +9,20 @@
 		activeDrag: KanbanCardDragPayload | null;
 		onDragOverColumn: (columnId: PostKanbanColumnId | null) => void;
 		onDropOnColumn: (columnId: PostKanbanColumnId, payload: KanbanCardDragPayload) => void;
+		/** Bind scroll viewport for column infinite scroll (`IntersectionObserver` root). */
+		viewportRef?: HTMLDivElement | null;
 		children: Snippet;
 	};
 
-	let { columnId, isDragOver, activeDrag, onDragOverColumn, onDropOnColumn, children }: Props = $props();
+	let {
+		columnId,
+		isDragOver,
+		activeDrag,
+		onDragOverColumn,
+		onDropOnColumn,
+		viewportRef = $bindable<HTMLDivElement | null>(null),
+		children
+	}: Props = $props();
 
 	let dropActive = $state(false);
 
@@ -60,6 +70,7 @@
 
 <!-- capture so drops on cards still hit the column target -->
 <div
+	bind:this={viewportRef}
 	class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-md transition-colors {isHighlighted
 		? highlightClasses
 		: ''}"

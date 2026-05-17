@@ -1,12 +1,17 @@
 <script lang="ts">
 	import type {
+		PostKanbanColumnCountsViewModel,
+		PostKanbanColumnId,
+		PostKanbanColumnOptionViewModel,
 		PostKanbanColumnsViewModel,
-		PostKanbanMoveCardResultViewModel
+		PostKanbanMoveCardResultViewModel,
+		PostKanbanSourceFilter,
+		PostKanbanSourceFilterOptionViewModel,
+		PostKanbanTimeFilter,
+		PostKanbanTimeFilterOptionViewModel
 	} from '$lib/posts/PostKanbanBoard.presenter.svelte';
-	import type { PostKanbanColumnId, PostKanbanSourceFilter } from '$lib/ui/components/kanban-board/kanbanTypes';
 	import type { KanbanCardDragPayload } from '$lib/ui/components/kanban-board/kanbanDnd';
 
-	import { POST_KANBAN_COLUMNS } from './kanbanTypes';
 	import KanbanColumn from './KanbanColumn.svelte';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -20,11 +25,17 @@
 
 	type Props = {
 		columnsVm: PostKanbanColumnsViewModel;
+		columnCountsVm: PostKanbanColumnCountsViewModel;
+		columnOptions: readonly PostKanbanColumnOptionViewModel[];
+		sourceFilterOptions: readonly PostKanbanSourceFilterOptionViewModel[];
+		timeFilterOptions: readonly PostKanbanTimeFilterOptionViewModel[];
 		sourceFilter: PostKanbanSourceFilter;
+		timeFilter: PostKanbanTimeFilter;
 		status: 'idle' | 'loading' | 'ready' | 'error';
 		error: string | null;
 		movingPostGroup: string | null;
 		onSourceFilterChange: (next: PostKanbanSourceFilter) => void;
+		onTimeFilterChange: (next: PostKanbanTimeFilter) => void;
 		onMoveCardToColumn: (
 			payload: KanbanCardDragPayload,
 			targetColumn: PostKanbanColumnId
@@ -36,11 +47,17 @@
 
 	let {
 		columnsVm,
+		columnCountsVm,
+		columnOptions,
+		sourceFilterOptions,
+		timeFilterOptions,
 		sourceFilter,
+		timeFilter,
 		status,
 		error,
 		movingPostGroup,
 		onSourceFilterChange,
+		onTimeFilterChange,
 		onMoveCardToColumn,
 		onToggleReviewed,
 		onNoteChange,
@@ -76,7 +93,7 @@
 </script>
 
 <section class="mt-8" aria-labelledby="post-kanban-heading">
-	<div class="flex flex-wrap items-center justify-between gap-3">
+	<div class="flex flex-col gap-3">
 		<div>
 			<h2 id="post-kanban-heading" class="text-lg font-semibold text-base-content">
 				Post approval board
@@ -86,27 +103,43 @@
 				use the menu on a card for edit, preview, and delete; double-click the review note to edit.
 			</p>
 		</div>
-		<div
-			class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
-			role="group"
-			aria-label="Filter by source"
-		>
-			{#each [
-				{ id: 'all' as const, label: 'All' },
-				{ id: 'agent' as const, label: 'Agent (AI)' },
-				{ id: 'human' as const, label: 'Human' }
-			] as opt}
-				<Button
-					type="button"
-					variant={sourceFilter === opt.id ? 'secondary' : 'ghost'}
-					size="sm"
-					class="rounded-none px-3"
-					aria-pressed={sourceFilter === opt.id}
-					onclick={() => onSourceFilterChange(opt.id)}
-				>
-					{opt.label}
-				</Button>
-			{/each}
+		<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+			<div
+				class="inline-flex max-w-full overflow-x-auto rounded-lg border border-base-300 bg-base-100"
+				role="group"
+				aria-label="Filter by publish date"
+			>
+				{#each timeFilterOptions as opt (opt.id)}
+					<Button
+						type="button"
+						variant={timeFilter === opt.id ? 'secondary' : 'ghost'}
+						size="sm"
+						class="shrink-0 rounded-none px-3"
+						aria-pressed={timeFilter === opt.id}
+						onclick={() => onTimeFilterChange(opt.id)}
+					>
+						{opt.label}
+					</Button>
+				{/each}
+			</div>
+			<div
+				class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
+				role="group"
+				aria-label="Filter by source"
+			>
+				{#each sourceFilterOptions as opt (opt.id)}
+					<Button
+						type="button"
+						variant={sourceFilter === opt.id ? 'secondary' : 'ghost'}
+						size="sm"
+						class="rounded-none px-3"
+						aria-pressed={sourceFilter === opt.id}
+						onclick={() => onSourceFilterChange(opt.id)}
+					>
+						{opt.label}
+					</Button>
+				{/each}
+			</div>
 		</div>
 	</div>
 
@@ -116,11 +149,12 @@
 		<p class="mt-4 text-sm text-error">{error}</p>
 	{:else}
 		<div class="mt-4 flex gap-3 overflow-x-auto pb-2">
-			{#each POST_KANBAN_COLUMNS as col}
+			{#each columnOptions as col (col.id)}
 				<KanbanColumn
 					columnId={col.id}
 					title={col.title}
 					cardsVm={columnsVm[col.id]}
+					countVm={columnCountsVm[col.id]}
 					{movingPostGroup}
 					{activeDrag}
 					isDragOver={dragOverColumnId === col.id}

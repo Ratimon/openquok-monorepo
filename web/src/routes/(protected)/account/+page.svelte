@@ -90,7 +90,12 @@
 	});
 
 	const postKanbanColumnsVm = $derived(postKanbanBoard.columnsVm);
+	const postKanbanColumnCountsVm = $derived(postKanbanBoard.columnCountsVm);
+	const postKanbanColumnOptions = $derived(postKanbanBoard.columnOptions);
+	const postKanbanSourceFilterOptions = $derived(postKanbanBoard.sourceFilterOptions);
+	const postKanbanTimeFilterOptions = $derived(postKanbanBoard.timeFilterOptions);
 	const postKanbanSourceFilter = $derived(postKanbanBoard.sourceFilter);
+	const postKanbanTimeFilter = $derived(postKanbanBoard.timeFilter);
 	const postKanbanStatus = $derived(postKanbanBoard.status);
 	const postKanbanError = $derived(postKanbanBoard.error);
 	const postKanbanMovingPostGroup = $derived(postKanbanBoard.movingPostGroup);
@@ -677,11 +682,17 @@
 
 	<PostKanbanBoard
 		columnsVm={postKanbanColumnsVm}
+		columnCountsVm={postKanbanColumnCountsVm}
+		columnOptions={postKanbanColumnOptions}
+		sourceFilterOptions={postKanbanSourceFilterOptions}
+		timeFilterOptions={postKanbanTimeFilterOptions}
 		sourceFilter={postKanbanSourceFilter}
+		timeFilter={postKanbanTimeFilter}
 		status={postKanbanStatus}
 		error={postKanbanError}
 		movingPostGroup={postKanbanMovingPostGroup}
 		onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
+		onTimeFilterChange={(next) => postKanbanBoard.setTimeFilter(next)}
 		onMoveCardToColumn={(payload, column) => postKanbanBoard.moveCardToColumn(payload, column)}
 		onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}
 		onNoteChange={(id, note) => void postKanbanBoard.updateNote(id, note)}

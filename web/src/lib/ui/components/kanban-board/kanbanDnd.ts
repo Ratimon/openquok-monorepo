@@ -1,4 +1,4 @@
-import type { PostKanbanColumnId } from './kanbanTypes';
+import type { PostKanbanColumnId } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 
 export const KANBAN_CARD_DRAG_MIME = 'application/x-openquok-kanban-card';
 

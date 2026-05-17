@@ -80,7 +80,19 @@ export { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presenter.s
 export type {
 	PostKanbanCardViewModel,
 	PostKanbanChannelSlotViewModel,
+	PostKanbanColumnCountViewModel,
+	PostKanbanColumnCountsViewModel,
+	PostKanbanColumnId,
 	PostKanbanColumnsViewModel,
-	PostKanbanMoveCardResultViewModel
+	PostKanbanMoveCardResultViewModel,
+	PostKanbanSourceFilter,
+	PostKanbanSourceFilterOptionViewModel,
+	PostKanbanTimeFilter,
+	PostKanbanTimeFilterOptionViewModel
+} from '$lib/posts/PostKanbanBoard.presenter.svelte';
+export {
+	POST_KANBAN_COLUMNS,
+	POST_KANBAN_SOURCE_FILTER_OPTIONS,
+	POST_KANBAN_TIME_FILTER_OPTIONS
 } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 export { socialProviderIcon, socialProviderIconByIdentifier } from '$data/social-providers';

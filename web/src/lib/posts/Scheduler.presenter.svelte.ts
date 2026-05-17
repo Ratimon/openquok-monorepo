@@ -216,6 +216,10 @@ export class SchedulerPresenter {
 		createInitialScheduledPostsCalendarViewModel()
 	);
 
+	/** Unfiltered posts for the last successful range + integration fetch (post-type filter is client-side). */
+	private cachedPostsPm: CalendarPostRowViewModel[] = [];
+	private cachedChannelById = new Map<string, ChannelViewModel>();
+
 	constructor(
 		private readonly postsRepository: PostsRepository,
 		private readonly getScheduledPostsPresenter: GetScheduledPostsPresenter
@@ -233,6 +237,8 @@ export class SchedulerPresenter {
 	}
 
 	resetCalendarUiState(): void {
+		this.cachedPostsPm = [];
+		this.cachedChannelById = new Map();
 		this._patchScheduledPostsCalendarVm(createInitialScheduledPostsCalendarViewModel());
 	}
 
@@ -475,6 +481,151 @@ export class SchedulerPresenter {
 			allPostStates: next.allPostStates,
 			selectedPostStates: next.selectedPostStates
 		});
+		this.reapplyPostTypeFilterFromCache();
+	}
+
+	private filterPostsByPostType(posts: readonly CalendarPostRowViewModel[]): CalendarPostRowViewModel[] {
+		const { allPostStates, selectedPostStates } = this.scheduledPostsCalendarVm;
+		const stateSet = allPostStates
+			? null
+			: new Set(selectedPostStates.map((s) => String(s).toUpperCase()).filter(Boolean));
+		if (!stateSet || stateSet.size === 0) return [...posts];
+		return posts.filter((rowVm) => calendarRowMatchesPostTypeFilters(rowVm, stateSet));
+	}
+
+	private reapplyPostTypeFilterFromCache(): void {
+		if (!this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) return;
+		const filtered = this.filterPostsByPostType(this.cachedPostsPm);
+		const events = this.buildCalendarEventsFromPosts(filtered, this.cachedChannelById);
+		this._patchScheduledPostsCalendarVm({ events });
+	}
+
+	private buildCalendarEventsFromPosts(
+		posts: readonly CalendarPostRowViewModel[],
+		channelById: Map<string, ChannelViewModel>
+	): CalendarEventExternal[] {
+		const bucketMinutes = 30;
+		const visualMinutes = 30;
+		const bucketed = new Map<string, CalendarEventExternal>();
+		const nowMs = Date.now();
+		const publishMs = (iso: string): number => {
+			const ms = Date.parse(iso);
+			return Number.isFinite(ms) ? ms : Number.NaN;
+		};
+		for (const p of posts) {
+			if (typeof p.publishDate !== 'string' || p.publishDate.length === 0) continue;
+			const zdt = this.isoToUtcZdt(p.publishDate);
+			const roundedMinute = Math.floor(zdt.minute / bucketMinutes) * bucketMinutes;
+			const bucketStart = zdt.with({
+				minute: roundedMinute,
+				second: 0,
+				millisecond: 0,
+				microsecond: 0,
+				nanosecond: 0
+			});
+			const key = `${bucketStart.toPlainDate().toString()}|${bucketStart.hour}:${bucketStart.minute}`;
+
+			const existing = bucketed.get(key);
+			if (existing) {
+				(existing as any).posts = [...((((existing as any).posts as any[]) ?? []) as any[]), p];
+				(existing as any).slotSummary = [
+					...((((existing as any).slotSummary as any[]) ?? []) as any[]),
+					{
+						postId: (p as any).id ?? '',
+						postGroup: (p as any).postGroup ?? '',
+						integrationId: (p as any).integrationId ?? '',
+						state: typeof (p as any).state === 'string' ? (p as any).state : '',
+						publishDate: (p as any).publishDate ?? '',
+						content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
+						channelPicture: (p as any).integrationId
+							? (channelById.get((p as any).integrationId)?.picture ?? '')
+							: '',
+						channelName: (p as any).integrationId
+							? (channelById.get((p as any).integrationId)?.name ?? '')
+							: '',
+						channelIdentifier: (p as any).integrationId
+							? (channelById.get((p as any).integrationId)?.identifier ?? '')
+							: ''
+					}
+				];
+				continue;
+			}
+
+			const end = bucketStart.add({ minutes: Math.max(bucketMinutes, visualMinutes) });
+			const channel = p.integrationId ? channelById.get(p.integrationId) : null;
+			const title = channel ? channel.name : 'Draft';
+			bucketed.set(key, {
+				id: p.id,
+				title,
+				start: bucketStart,
+				end,
+				channel,
+				post: p,
+				posts: [p],
+				slotSummary: [
+					{
+						postId: (p as any).id ?? '',
+						postGroup: (p as any).postGroup ?? '',
+						integrationId: (p as any).integrationId ?? '',
+						state: typeof (p as any).state === 'string' ? (p as any).state : '',
+						publishDate: (p as any).publishDate ?? '',
+						content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
+						channelPicture: channel?.picture ?? '',
+						channelName: channel?.name ?? '',
+						channelIdentifier: channel?.identifier ?? ''
+					}
+				]
+			} as any);
+		}
+
+		for (const ev of bucketed.values()) {
+			const bucketPosts = (ev as any).posts as CalendarPostRowViewModel[] | undefined;
+			if (!Array.isArray(bucketPosts) || bucketPosts.length === 0) continue;
+			const sorted = bucketPosts
+				.slice()
+				.map((row) => ({
+					p: row,
+					ms: typeof row.publishDate === 'string' ? publishMs(row.publishDate) : Number.NaN
+				}))
+				.filter((x) => Number.isFinite(x.ms))
+				.sort((a, b) => a.ms - b.ms);
+			if (sorted.length === 0) continue;
+
+			const nextFuture = sorted.find((x) => x.ms >= nowMs);
+			const representative = (nextFuture ?? sorted[sorted.length - 1]!)!.p;
+			(ev as any).post = representative;
+
+			const repChannel = representative.integrationId
+				? channelById.get(representative.integrationId)
+				: null;
+			(ev as any).channel = repChannel;
+			(ev as any).title = repChannel ? repChannel.name : 'Draft';
+
+			const summary = ((ev as any).slotSummary as any[]) ?? [];
+			if (Array.isArray(summary) && summary.length > 1) {
+				const repId = String((representative as any).id ?? '');
+				const sortedSummary = summary
+					.slice()
+					.map((s) => ({
+						s,
+						ms: typeof s?.publishDate === 'string' ? publishMs(s.publishDate) : Number.NaN
+					}))
+					.sort((a, b) => {
+						const aIsRep = repId.length > 0 && String(a.s?.postId ?? '') === repId;
+						const bIsRep = repId.length > 0 && String(b.s?.postId ?? '') === repId;
+						if (aIsRep && !bIsRep) return -1;
+						if (!aIsRep && bIsRep) return 1;
+						if (Number.isFinite(a.ms) && Number.isFinite(b.ms)) return a.ms - b.ms;
+						if (Number.isFinite(a.ms)) return -1;
+						if (Number.isFinite(b.ms)) return 1;
+						return 0;
+					})
+					.map((x) => x.s);
+				(ev as any).slotSummary = sortedSummary;
+			}
+		}
+
+		return Array.from(bucketed.values());
 	}
 
 	setSocialPlatformFilter(next: SocialPlatformFilterVm): void {
@@ -551,14 +702,8 @@ export class SchedulerPresenter {
 		refreshKey: string | number;
 	}): Promise<{ ok: true } | { ok: false; error: string }> {
 		const { startDate, endDate, organizationId, channels, refreshKey } = params;
-		const {
-			allGroups,
-			selectedGroupIds,
-			allSocialPlatforms,
-			selectedSocialPlatformIdentifiers,
-			allPostStates,
-			selectedPostStates
-		} = this.scheduledPostsCalendarVm;
+		const { allGroups, selectedGroupIds, allSocialPlatforms, selectedSocialPlatformIdentifiers } =
+			this.scheduledPostsCalendarVm;
 
 		const filt = this.deriveIntegrationFilter(
 			channels,
@@ -567,11 +712,6 @@ export class SchedulerPresenter {
 			allSocialPlatforms,
 			selectedSocialPlatformIdentifiers
 		);
-		const statesKey = allPostStates
-			? 'allStates'
-			: selectedPostStates.length
-				? [...selectedPostStates].map((s) => s.toUpperCase()).sort().join(',')
-				: 'noneStates';
 		const platformsKey = allSocialPlatforms
 			? 'allPlatforms'
 			: selectedSocialPlatformIdentifiers.length
@@ -582,12 +722,14 @@ export class SchedulerPresenter {
 						.join(',')
 				: 'nonePlatforms';
 		if (filt.kind === 'none') {
-			const noneKey = `none|${startDate}|${endDate}|${refreshKey}|${statesKey}|${platformsKey}`;
+			const noneKey = `none|${startDate}|${endDate}|${refreshKey}|${platformsKey}`;
 			if (noneKey === this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) {
 				this._maybePatchRange(startDate, endDate);
 				return { ok: true };
 			}
 			this._maybePatchRange(startDate, endDate);
+			this.cachedPostsPm = [];
+			this.cachedChannelById = new Map();
 			this._patchScheduledPostsCalendarVm({
 				events: [],
 				lastSuccessfulPostsKey: noneKey
@@ -597,7 +739,7 @@ export class SchedulerPresenter {
 
 		const integrationIds = filt.kind === 'all' ? null : filt.integrationIds;
 		const idsKey = integrationIds?.length ? [...integrationIds].sort().join(',') : 'all';
-		const requestKey = `${refreshKey}|${startDate}|${endDate}|${idsKey}|${statesKey}|${platformsKey}`;
+		const requestKey = `${refreshKey}|${startDate}|${endDate}|${idsKey}|${platformsKey}`;
 		if (requestKey === this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) {
 			this._maybePatchRange(startDate, endDate);
 			return { ok: true };
@@ -621,143 +763,16 @@ export class SchedulerPresenter {
 			});
 
 			if (!listPostsPmResult.ok) {
+				this.cachedPostsPm = [];
+				this.cachedChannelById = new Map();
 				this._patchScheduledPostsCalendarVm({ events: [], lastSuccessfulPostsKey: '', loading: false });
 				return { ok: false, error: listPostsPmResult.error };
 			}
 
-			const stateSet = allPostStates
-				? null
-				: new Set(selectedPostStates.map((s) => String(s).toUpperCase()).filter(Boolean));
-			const posts =
-				stateSet && stateSet.size > 0
-					? listPostsPmResult.posts.filter((rowVm) =>
-							calendarRowMatchesPostTypeFilters(rowVm as CalendarPostRowViewModel, stateSet)
-						)
-					: listPostsPmResult.posts;
-
-			/**
-			 * Schedule‑X enforces a minimum event chip height in the time grid. When two posts are only a
-			 * couple minutes apart, their chips can visually overlap.
-			 *
-			 * We group posts into 15‑minute buckets per day, so very close posts render as a single chip
-			 * with a "+N" indicator. The longer bucket makes each chip tall enough to show the avatar + text
-			 * without hiding inside the time-grid min-height constraints.
-			 */
-			// Bucket posts into half-hour slots to prevent near-adjacent chips from overlapping
-			// while still showing avatar + preview content reliably.
-			const bucketMinutes = 30;
-			const visualMinutes = 30;
-			const bucketed = new Map<string, CalendarEventExternal>();
-			const nowMs = Date.now();
-			const publishMs = (iso: string): number => {
-				const ms = Date.parse(iso);
-				return Number.isFinite(ms) ? ms : Number.NaN;
-			};
-			for (const p of posts) {
-				if (typeof p.publishDate !== 'string' || p.publishDate.length === 0) continue;
-				const zdt = this.isoToUtcZdt(p.publishDate);
-				const roundedMinute = Math.floor(zdt.minute / bucketMinutes) * bucketMinutes;
-				const bucketStart = zdt.with({
-					minute: roundedMinute,
-					second: 0,
-					millisecond: 0,
-					microsecond: 0,
-					nanosecond: 0
-				});
-				const key = `${bucketStart.toPlainDate().toString()}|${bucketStart.hour}:${bucketStart.minute}`;
-
-				const existing = bucketed.get(key);
-				if (existing) {
-					(existing as any).posts = [...((((existing as any).posts as any[]) ?? []) as any[]), p];
-					(existing as any).slotSummary = [
-						...((((existing as any).slotSummary as any[]) ?? []) as any[]),
-						{
-							postId: (p as any).id ?? '',
-							postGroup: (p as any).postGroup ?? '',
-							integrationId: (p as any).integrationId ?? '',
-							state: typeof (p as any).state === 'string' ? (p as any).state : '',
-							publishDate: (p as any).publishDate ?? '',
-							content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
-							channelPicture: (p as any).integrationId ? channelById.get((p as any).integrationId)?.picture ?? '' : '',
-							channelName: (p as any).integrationId ? channelById.get((p as any).integrationId)?.name ?? '' : '',
-							channelIdentifier: (p as any).integrationId
-								? channelById.get((p as any).integrationId)?.identifier ?? ''
-								: ''
-						}
-					];
-					continue;
-				}
-
-				const end = bucketStart.add({ minutes: Math.max(bucketMinutes, visualMinutes) });
-				const channel = p.integrationId ? channelById.get(p.integrationId) : null;
-				const title = channel ? channel.name : 'Draft';
-				bucketed.set(key, {
-					id: p.id,
-					title,
-					start: bucketStart,
-					end,
-					channel,
-					post: p,
-					posts: [p],
-					slotSummary: [
-						{
-							postId: (p as any).id ?? '',
-							postGroup: (p as any).postGroup ?? '',
-							integrationId: (p as any).integrationId ?? '',
-							state: typeof (p as any).state === 'string' ? (p as any).state : '',
-							publishDate: (p as any).publishDate ?? '',
-							content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
-							channelPicture: channel?.picture ?? '',
-							channelName: channel?.name ?? '',
-							channelIdentifier: channel?.identifier ?? ''
-						}
-					]
-				} as any);
-			}
-
-			// Choose a stable "representative" post for the bucket so the chip shows the upcoming post
-			// when a bucket contains both past + future posts.
-			for (const ev of bucketed.values()) {
-				const posts = (ev as any).posts as CalendarPostRowViewModel[] | undefined;
-				if (!Array.isArray(posts) || posts.length === 0) continue;
-				const sorted = posts
-					.slice()
-					.map((p) => ({ p, ms: typeof p.publishDate === 'string' ? publishMs(p.publishDate) : Number.NaN }))
-					.filter((x) => Number.isFinite(x.ms))
-					.sort((a, b) => a.ms - b.ms);
-				if (sorted.length === 0) continue;
-
-				const nextFuture = sorted.find((x) => x.ms >= nowMs);
-				const representative = (nextFuture ?? sorted[sorted.length - 1]!)!.p;
-				(ev as any).post = representative;
-
-				const repChannel = representative.integrationId ? channelById.get(representative.integrationId) : null;
-				(ev as any).channel = repChannel;
-				(ev as any).title = repChannel ? repChannel.name : 'Draft';
-
-				// Ensure the slot summary order matches what the chip shows (upcoming-first).
-				const summary = ((ev as any).slotSummary as any[]) ?? [];
-				if (Array.isArray(summary) && summary.length > 1) {
-					const repId = String((representative as any).id ?? '');
-					const sortedSummary = summary
-						.slice()
-						.map((s) => ({ s, ms: typeof s?.publishDate === 'string' ? publishMs(s.publishDate) : Number.NaN }))
-						.sort((a, b) => {
-							const aIsRep = repId.length > 0 && String(a.s?.postId ?? '') === repId;
-							const bIsRep = repId.length > 0 && String(b.s?.postId ?? '') === repId;
-							if (aIsRep && !bIsRep) return -1;
-							if (!aIsRep && bIsRep) return 1;
-							if (Number.isFinite(a.ms) && Number.isFinite(b.ms)) return a.ms - b.ms;
-							if (Number.isFinite(a.ms)) return -1;
-							if (Number.isFinite(b.ms)) return 1;
-							return 0;
-						})
-						.map((x) => x.s);
-					(ev as any).slotSummary = sortedSummary;
-				}
-			}
-
-			const normalizedEvents: CalendarEventExternal[] = Array.from(bucketed.values());
+			this.cachedPostsPm = listPostsPmResult.posts;
+			this.cachedChannelById = channelById;
+			const filtered = this.filterPostsByPostType(this.cachedPostsPm);
+			const normalizedEvents = this.buildCalendarEventsFromPosts(filtered, channelById);
 
 			this._patchScheduledPostsCalendarVm({
 				lastSuccessfulPostsKey: requestKey,

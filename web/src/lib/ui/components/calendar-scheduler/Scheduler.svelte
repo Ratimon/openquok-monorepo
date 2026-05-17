@@ -129,8 +129,6 @@
 			s.selectedGroupIds.slice().sort().join(','),
 			String(s.allSocialPlatforms),
 			s.selectedSocialPlatformIdentifiers.slice().sort().join(','),
-			String(s.allPostStates),
-			s.selectedPostStates.slice().map((x) => String(x).toUpperCase()).sort().join(','),
 			s.granularity,
 			s.layoutMode,
 			channels.map((c) => c.id).sort().join(',')

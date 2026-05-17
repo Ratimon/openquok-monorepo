@@ -4,13 +4,95 @@ import type {
 	GetScheduledPostsPresenter
 } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type { PostsRepository, PostRowProgrammerModel } from '$lib/posts/Post.repository.svelte';
-import type { PostKanbanColumnId, PostKanbanSourceFilter } from '$lib/ui/components/kanban-board/kanbanTypes';
 import {
 	canMoveKanbanCard,
 	columnToApiStatus,
 	type KanbanCardDragPayload
 } from '$lib/ui/components/kanban-board/kanbanDnd';
 import dayjs from 'dayjs';
+
+/** Kanban column keys mapped from `posts.state`. */
+export type PostKanbanColumnId = 'draft' | 'scheduled' | 'published';
+
+export const POST_KANBAN_COLUMNS = [
+	{ id: 'draft', title: 'Drafted posts' },
+	{ id: 'scheduled', title: 'Scheduled posts' },
+	{ id: 'published', title: 'Published posts' }
+] as const satisfies readonly { id: PostKanbanColumnId; title: string }[];
+
+export type PostKanbanColumnOptionViewModel = (typeof POST_KANBAN_COLUMNS)[number];
+
+export type PostKanbanSourceFilter = 'all' | 'agent' | 'human';
+
+export type PostKanbanTimeFilter =
+	| 'all'
+	| 'all-past'
+	| 'past-30-days'
+	| 'all-upcoming'
+	| 'next-week'
+	| 'next-30-days';
+
+export type PostKanbanColumnCountViewModel = {
+	visible: number;
+	total: number;
+};
+
+export type PostKanbanTimeFilterOptionViewModel = {
+	id: PostKanbanTimeFilter;
+	label: string;
+};
+
+export const POST_KANBAN_TIME_FILTER_OPTIONS: PostKanbanTimeFilterOptionViewModel[] = [
+	{ id: 'all', label: 'All' },
+	{ id: 'all-past', label: 'All Past' },
+	{ id: 'past-30-days', label: 'Past 30 Days' },
+	{ id: 'all-upcoming', label: 'All Upcoming' },
+	{ id: 'next-week', label: 'Next Week' },
+	{ id: 'next-30-days', label: 'Next 30 Days' }
+];
+
+function parseKanbanPublishMs(publishDateIso: string): number {
+	const ms = Date.parse(publishDateIso);
+	return Number.isFinite(ms) ? ms : Number.NaN;
+}
+
+/** Posts without a valid publish time behave like upcoming (calendar list view). */
+function isKanbanUpcomingPublishDate(publishDateIso: string, nowMs = Date.now()): boolean {
+	const ms = parseKanbanPublishMs(publishDateIso);
+	if (!Number.isFinite(ms)) return true;
+	return ms >= nowMs;
+}
+
+function matchesKanbanTimeFilter(
+	publishDateIso: string,
+	filter: PostKanbanTimeFilter,
+	nowMs = Date.now()
+): boolean {
+	if (filter === 'all') return true;
+
+	const ms = parseKanbanPublishMs(publishDateIso);
+	const now = dayjs(nowMs);
+
+	if (filter === 'all-past') {
+		return Number.isFinite(ms) && ms < nowMs;
+	}
+	if (filter === 'past-30-days') {
+		if (!Number.isFinite(ms) || ms >= nowMs) return false;
+		return ms >= now.subtract(30, 'day').startOf('day').valueOf();
+	}
+	if (filter === 'all-upcoming') {
+		return isKanbanUpcomingPublishDate(publishDateIso, nowMs);
+	}
+	if (filter === 'next-week') {
+		if (!Number.isFinite(ms) || ms < nowMs) return false;
+		return ms < now.add(7, 'day').endOf('day').valueOf();
+	}
+	if (filter === 'next-30-days') {
+		if (!Number.isFinite(ms) || ms < nowMs) return false;
+		return ms < now.add(30, 'day').endOf('day').valueOf();
+	}
+	return true;
+}
 
 export type PostKanbanChannelSlotViewModel = {
 	integrationId: string;
@@ -40,6 +122,8 @@ export type PostKanbanCardViewModel = {
 
 export type PostKanbanColumnsViewModel = Record<PostKanbanColumnId, PostKanbanCardViewModel[]>;
 
+export type PostKanbanColumnCountsViewModel = Record<PostKanbanColumnId, PostKanbanColumnCountViewModel>;
+
 export type PostKanbanDeletePostGroupResultViewModel = { ok: true } | { ok: false; error: string };
 
 export type PostKanbanCopyPostGroupJsonResultViewModel =
@@ -50,8 +134,39 @@ export type PostKanbanMoveCardResultViewModel =
 	| { ok: true; targetColumn: PostKanbanColumnId }
 	| { ok: false; error: string };
 
-const KANBAN_LOOKBACK_DAYS = 90;
-const KANBAN_LOOKAHEAD_DAYS = 90;
+export type PostKanbanSourceFilterOptionViewModel = {
+	id: PostKanbanSourceFilter;
+	label: string;
+};
+
+export const POST_KANBAN_SOURCE_FILTER_OPTIONS: PostKanbanSourceFilterOptionViewModel[] = [
+	{ id: 'all', label: 'All' },
+	{ id: 'agent', label: 'Agent (AI)' },
+	{ id: 'human', label: 'Human' }
+];
+
+/** Single fetch window on load; time/source filters apply client-side only. */
+const KANBAN_BOARD_LOOKBACK_DAYS = 730;
+const KANBAN_BOARD_LOOKAHEAD_DAYS = 730;
+
+function filterCardsBySource(
+	cardsVm: readonly PostKanbanCardViewModel[],
+	sourceFilter: PostKanbanSourceFilter
+): PostKanbanCardViewModel[] {
+	return cardsVm.filter((card) => {
+		if (sourceFilter === 'agent') return card.isAgentEdited;
+		if (sourceFilter === 'human') return !card.isAgentEdited;
+		return true;
+	});
+}
+
+function filterCardsByTime(
+	cardsVm: readonly PostKanbanCardViewModel[],
+	timeFilter: PostKanbanTimeFilter
+): PostKanbanCardViewModel[] {
+	if (timeFilter === 'all') return [...cardsVm];
+	return cardsVm.filter((card) => matchesKanbanTimeFilter(card.publishDateIso, timeFilter));
+}
 
 function stateToColumn(state: string): PostKanbanColumnId | null {
 	if (state === 'DRAFT') return 'draft';
@@ -145,7 +260,12 @@ function columnsVmFromCards(cardsVm: readonly PostKanbanCardViewModel[]): PostKa
 }
 
 export class PostKanbanBoardPresenter {
+	readonly columnOptions = POST_KANBAN_COLUMNS;
+	readonly sourceFilterOptions = POST_KANBAN_SOURCE_FILTER_OPTIONS;
+	readonly timeFilterOptions = POST_KANBAN_TIME_FILTER_OPTIONS;
+
 	sourceFilter = $state<PostKanbanSourceFilter>('all');
+	timeFilter = $state<PostKanbanTimeFilter>('all');
 	status = $state<'idle' | 'loading' | 'ready' | 'error'>('idle');
 	error = $state<string | null>(null);
 	movingPostGroup = $state<string | null>(null);
@@ -154,13 +274,30 @@ export class PostKanbanBoardPresenter {
 	cardsVm = $state<PostKanbanCardViewModel[]>([]);
 
 	columnsVm = $derived.by((): PostKanbanColumnsViewModel => {
-		// Same rule as the AI badge on the card (`isAgentEdited`), not agent-origin / Edited badge.
-		const filtered = this.cardsVm.filter((card) => {
-			if (this.sourceFilter === 'agent') return card.isAgentEdited;
-			if (this.sourceFilter === 'human') return !card.isAgentEdited;
-			return true;
-		});
+		const sourceFiltered = filterCardsBySource(this.cardsVm, this.sourceFilter);
+		const filtered = filterCardsByTime(sourceFiltered, this.timeFilter);
 		return columnsVmFromCards(filtered);
+	});
+
+	columnCountsVm = $derived.by((): PostKanbanColumnCountsViewModel => {
+		const sourceFiltered = filterCardsBySource(this.cardsVm, this.sourceFilter);
+		const timeFiltered = filterCardsByTime(sourceFiltered, this.timeFilter);
+		const totalColumns = columnsVmFromCards(sourceFiltered);
+		const visibleColumns = columnsVmFromCards(timeFiltered);
+		return {
+			draft: {
+				visible: visibleColumns.draft.length,
+				total: totalColumns.draft.length
+			},
+			scheduled: {
+				visible: visibleColumns.scheduled.length,
+				total: totalColumns.scheduled.length
+			},
+			published: {
+				visible: visibleColumns.published.length,
+				total: totalColumns.published.length
+			}
+		};
 	});
 
 	private organizationId = $state<string | null>(null);
@@ -212,6 +349,19 @@ export class PostKanbanBoardPresenter {
 		this.sourceFilter = next;
 	}
 
+	setTimeFilter(next: PostKanbanTimeFilter) {
+		this.timeFilter = next;
+	}
+
+	private listPostsIsoRange(): { startIso: string; endIso: string } {
+		const startIso = dayjs()
+			.subtract(KANBAN_BOARD_LOOKBACK_DAYS, 'day')
+			.startOf('day')
+			.toISOString();
+		const endIso = dayjs().add(KANBAN_BOARD_LOOKAHEAD_DAYS, 'day').endOf('day').toISOString();
+		return { startIso, endIso };
+	}
+
 	async load(organizationId: string | null | undefined): Promise<void> {
 		if (!organizationId) {
 			this.organizationId = null;
@@ -224,9 +374,7 @@ export class PostKanbanBoardPresenter {
 		this.status = 'loading';
 		this.error = null;
 
-		const startIso = dayjs().subtract(KANBAN_LOOKBACK_DAYS, 'day').startOf('day').toISOString();
-		const endIso = dayjs().add(KANBAN_LOOKAHEAD_DAYS, 'day').endOf('day').toISOString();
-
+		const { startIso, endIso } = this.listPostsIsoRange();
 		const resultPm = await this.postsRepository.listPosts({
 			organizationId,
 			startIso,
