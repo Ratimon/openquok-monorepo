@@ -255,6 +255,9 @@ export class PostsRepository {
                 error: null,
                 deleted_at: null,
                 created_by_user_id: r.created_by_user_id ?? null,
+                note: r.note ?? null,
+                is_agent_edited: r.is_agent_edited ?? false,
+                is_reviewed: false,
             }));
 
         const inserted = await this.insertPostGroup(toInsert);
@@ -593,6 +596,41 @@ export class PostsRepository {
             });
         }
         return (data?.length ?? 0) > 0;
+    }
+
+    /**
+     * Updates kanban review fields for every row in the post group (keeps siblings in sync).
+     */
+    async updatePostGroupReviewFields(
+        postGroup: string,
+        organizationId: string,
+        fields: {
+            note?: string | null;
+            isAgentEdited?: boolean;
+            isReviewed?: boolean;
+        }
+    ): Promise<SocialPostLike[]> {
+        const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+        if (fields.note !== undefined) patch.note = fields.note;
+        if (fields.isAgentEdited !== undefined) patch.is_agent_edited = fields.isAgentEdited;
+        if (fields.isReviewed !== undefined) patch.is_reviewed = fields.isReviewed;
+
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .update(patch)
+            .eq("post_group", postGroup)
+            .eq("organization_id", organizationId)
+            .is("deleted_at", null)
+            .select("*");
+
+        if (error) {
+            throw new DatabaseError(`Failed to update post review fields: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return (data ?? []) as SocialPostLike[];
     }
 
     async listTagsForPostIds(postIds: string[]): Promise<PostTagLike[]> {

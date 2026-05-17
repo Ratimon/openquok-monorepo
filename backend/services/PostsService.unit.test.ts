@@ -53,6 +53,9 @@ function socialPostRow(overrides: Partial<SocialPostLike> = {}): SocialPostLike 
         error: null,
         deleted_at: null,
         created_by_user_id: null,
+        note: null,
+        is_agent_edited: false,
+        is_reviewed: false,
         created_at: now,
         updated_at: now,
         ...overrides,
@@ -97,6 +100,7 @@ type PostsRepoMock = jest.Mocked<
         | "insertComposerComment"
         | "listThreadRepliesByPostId"
         | "updateReleaseIdIfMissing"
+        | "updatePostGroupReviewFields"
     >
 >;
 
@@ -122,6 +126,7 @@ function createPostsRepoMock(): PostsRepoMock {
         insertComposerComment: jest.fn(),
         listThreadRepliesByPostId: jest.fn().mockResolvedValue([]),
         updateReleaseIdIfMissing: jest.fn(),
+        updatePostGroupReviewFields: jest.fn(),
     };
 }
 
@@ -522,6 +527,9 @@ describe("PostsService", () => {
             expect(rows[0].state).toBe("DRAFT");
             expect(rows[0].interval_in_days).toBe(7);
             expect(rows[0].settings).toBe(JSON.stringify({ isGlobal: false, repeatInterval: "week" }));
+            expect(rows[0].note).toBeNull();
+            expect(rows[0].is_agent_edited).toBe(false);
+            expect(rows[0].is_reviewed).toBe(false);
             expect(out.postGroup).toBe("post-group-uuid");
             expect(out.posts).toEqual(inserted);
             expect(postsRepo.linkTagsToPosts).toHaveBeenCalledWith(
@@ -560,6 +568,9 @@ describe("PostsService", () => {
             expect(ids.has(otherIntegrationId)).toBe(true);
             expect(postsRepo.findTagByOrgAndName).toHaveBeenCalled();
             expect(postsRepo.linkTagsToPosts).toHaveBeenCalled();
+            expect(rows.every((r) => r.note === null)).toBe(true);
+            expect(rows.every((r) => r.is_agent_edited === false)).toBe(true);
+            expect(rows.every((r) => r.is_reviewed === false)).toBe(true);
         });
 
         it("applies bodiesByIntegrationId overrides per channel when provided", async () => {
@@ -1707,6 +1718,51 @@ describe("PostsService", () => {
             expect(out).toEqual({ postGroup, posts: [insertedRow] });
         });
 
+        it("preserves review note and reviewed flag and clears is_agent_edited on human update", async () => {
+            const postGroup = faker.string.uuid();
+            const scheduledAtIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            const dbFormattedPublishDate = "2030-06-15T12:00:00+00:00";
+            const existingA = socialPostRow({
+                id: faker.string.uuid(),
+                post_group: postGroup,
+                organization_id: orgId,
+                integration_id: integrationId,
+                state: "QUEUE",
+                publish_date: dbFormattedPublishDate,
+                note: "Check hashtags",
+                is_agent_edited: true,
+                is_reviewed: true,
+            });
+            postsRepo.listPostsByGroup.mockResolvedValue([existingA]);
+            postsRepo.hasQueueSlotTaken.mockResolvedValue(true);
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+            ]);
+            postsRepo.insertPostGroup.mockResolvedValue([existingA]);
+            postsRepo.linkTagsToPosts.mockResolvedValue(undefined);
+            postsRepo.deleteTagAssignmentsForPostIds.mockResolvedValue(undefined);
+            postsRepo.softDeletePostsByGroup.mockResolvedValue([]);
+
+            await service().updatePostGroup({
+                postGroup,
+                organizationId: orgId,
+                authUserId,
+                body: "updated",
+                integrationIds: [integrationId],
+                isGlobal: true,
+                scheduledAtIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "scheduled",
+            });
+
+            const inserted = postsRepo.insertPostGroup.mock.calls[0][0];
+            expect(inserted).toHaveLength(1);
+            expect(inserted[0].note).toBe("Check hashtags");
+            expect(inserted[0].is_agent_edited).toBe(false);
+            expect(inserted[0].is_reviewed).toBe(true);
+        });
+
         it("invalidates previews for old and new row ids when cacheInvalidator provided", async () => {
             const postGroup = faker.string.uuid();
             const scheduledAtIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
@@ -1764,6 +1820,180 @@ describe("PostsService", () => {
             expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${existingA.id}`);
             expect(invalidateKey).toHaveBeenCalledWith(`posts:preview:${insertedRow.id}`);
             expect(invalidateEntity).toHaveBeenCalledWith("posts", postGroup);
+        });
+    });
+
+    describe("createPostProgrammatic", () => {
+        const scheduledIso = "2030-06-15T12:07:33.000Z";
+
+        beforeEach(() => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+            ]);
+            postsRepo.newPostGroup.mockReturnValue("post-group-prog");
+            postsRepo.hasQueueSlotTaken.mockResolvedValue(false);
+            postsRepo.findTagByOrgAndName.mockResolvedValue(null);
+            postsRepo.insertTag.mockImplementation(async (_org, name) => tagRow({ name }));
+        });
+
+        it("sets is_agent_edited when isAgent is true or omitted", async () => {
+            postsRepo.insertPostGroup.mockResolvedValue([socialPostRow({ is_agent_edited: true })]);
+
+            await service().createPostProgrammatic({
+                organizationId: orgId,
+                body: "from agent",
+                integrationIds: [integrationId],
+                isGlobal: true,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "scheduled",
+            });
+
+            const rows = postsRepo.insertPostGroup.mock.calls[0][0];
+            expect(rows).toHaveLength(1);
+            expect(rows[0].note).toBeNull();
+            expect(rows[0].is_agent_edited).toBe(true);
+            expect(rows[0].is_reviewed).toBe(false);
+            expect(integrationConnection.assertOrganizationMember).not.toHaveBeenCalled();
+        });
+
+        it("clears is_agent_edited when isAgent is false", async () => {
+            postsRepo.insertPostGroup.mockResolvedValue([socialPostRow({ is_agent_edited: false })]);
+
+            await service().createPostProgrammatic({
+                organizationId: orgId,
+                isAgent: false,
+                body: "manual api",
+                integrationIds: [integrationId],
+                isGlobal: true,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "draft",
+            });
+
+            const rows = postsRepo.insertPostGroup.mock.calls[0][0];
+            expect(rows).toHaveLength(1);
+            expect(rows[0].note).toBeNull();
+            expect(rows[0].is_agent_edited).toBe(false);
+            expect(rows[0].is_reviewed).toBe(false);
+        });
+    });
+
+    describe("updatePostReviewTodo", () => {
+        const postId = faker.string.uuid();
+        const postGroup = "group-review-human";
+
+        it("throws 404 when post is missing or not in workspace", async () => {
+            postsRepo.getPostById.mockResolvedValue(null);
+
+            await expect(
+                service().updatePostReviewTodo({
+                    organizationId: orgId,
+                    authUserId,
+                    postId,
+                    isReviewed: true,
+                })
+            ).rejects.toMatchObject({ statusCode: 404 });
+            expect(postsRepo.updatePostGroupReviewFields).not.toHaveBeenCalled();
+        });
+
+        it("updates note and reviewed flag and clears is_agent_edited for the whole group", async () => {
+            const post = socialPostRow({
+                id: postId,
+                organization_id: orgId,
+                post_group: postGroup,
+                is_agent_edited: true,
+            });
+            const updated = [
+                socialPostRow({
+                    id: postId,
+                    post_group: postGroup,
+                    note: "Approved copy",
+                    is_agent_edited: false,
+                    is_reviewed: true,
+                }),
+            ];
+            postsRepo.getPostById.mockResolvedValue(post);
+            postsRepo.updatePostGroupReviewFields.mockResolvedValue(updated);
+
+            const out = await service().updatePostReviewTodo({
+                organizationId: orgId,
+                authUserId,
+                postId,
+                note: "Approved copy",
+                isReviewed: true,
+            });
+
+            expect(integrationConnection.assertOrganizationMember).toHaveBeenCalledWith(authUserId, orgId);
+            expect(postsRepo.updatePostGroupReviewFields).toHaveBeenCalledWith(postGroup, orgId, {
+                note: "Approved copy",
+                isReviewed: true,
+                isAgentEdited: false,
+            });
+            expect(out).toEqual(updated);
+        });
+    });
+
+    describe("updatePostReviewTodoProgrammatic", () => {
+        const postId = faker.string.uuid();
+        const postGroup = "group-review-agent";
+
+        it("throws 404 when post is not in the organization", async () => {
+            postsRepo.getPostById.mockResolvedValue(
+                socialPostRow({ id: postId, organization_id: faker.string.uuid() })
+            );
+
+            await expect(
+                service().updatePostReviewTodoProgrammatic({
+                    organizationId: orgId,
+                    postId,
+                    note: "todo",
+                    isAgent: true,
+                })
+            ).rejects.toMatchObject({ statusCode: 404 });
+        });
+
+        it("sets is_agent_edited when isAgent is true", async () => {
+            const post = socialPostRow({ id: postId, organization_id: orgId, post_group: postGroup });
+            const updated = [socialPostRow({ id: postId, post_group: postGroup, is_agent_edited: true, note: "todo" })];
+            postsRepo.getPostById.mockResolvedValue(post);
+            postsRepo.updatePostGroupReviewFields.mockResolvedValue(updated);
+
+            const out = await service().updatePostReviewTodoProgrammatic({
+                organizationId: orgId,
+                postId,
+                note: "todo",
+                isAgent: true,
+            });
+
+            expect(postsRepo.updatePostGroupReviewFields).toHaveBeenCalledWith(postGroup, orgId, {
+                note: "todo",
+                isAgentEdited: true,
+            });
+            expect(out).toEqual(updated);
+            expect(integrationConnection.assertOrganizationMember).not.toHaveBeenCalled();
+        });
+
+        it("clears is_agent_edited when isAgent is omitted or false", async () => {
+            const post = socialPostRow({ id: postId, organization_id: orgId, post_group: postGroup });
+            const updated = [
+                socialPostRow({ id: postId, post_group: postGroup, is_agent_edited: false, is_reviewed: true }),
+            ];
+            postsRepo.getPostById.mockResolvedValue(post);
+            postsRepo.updatePostGroupReviewFields.mockResolvedValue(updated);
+
+            await service().updatePostReviewTodoProgrammatic({
+                organizationId: orgId,
+                postId,
+                isReviewed: true,
+            });
+
+            expect(postsRepo.updatePostGroupReviewFields).toHaveBeenCalledWith(postGroup, orgId, {
+                isReviewed: true,
+                isAgentEdited: false,
+            });
         });
     });
 

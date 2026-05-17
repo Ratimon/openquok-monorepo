@@ -173,3 +173,16 @@ export const validateUpdatePostReleaseId: RequestHandler = validateRequest({
     params: postIdParamsSchema,
     body: updatePostReleaseIdBodySchema,
 });
+
+export const updatePostReviewTodoBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    note: z.string().max(2000).nullable().optional(),
+    isReviewed: z.boolean().optional(),
+});
+
+export const validateUpdatePostReviewTodo: RequestHandler = validateRequest({
+    params: postIdParamsSchema,
+    body: updatePostReviewTodoBodySchema,
+});
+
+export type validateUpdatePostReviewTodoHandler = typeof validateUpdatePostReviewTodo;

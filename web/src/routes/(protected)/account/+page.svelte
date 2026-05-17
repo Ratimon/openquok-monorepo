@@ -17,7 +17,8 @@
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 
 	// --- Area & integrations ---
-	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
+	import { getRootPathAccount, postKanbanBoardPresenter, protectedDashboardPagePresenter } from '$lib/area-protected';
+	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
@@ -74,6 +75,10 @@
 	const accountRoot = $derived(accountPath);
 	const accountSettingsWorkspaceHref = $derived(url(`${accountRoot}/settings?section=workspace`));
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
+
+	$effect(() => {
+		void postKanbanBoardPresenter.load(workspaceId);
+	});
 	const platformChannelRowsUngrouped = $derived(protectedDashboardPagePresenter.platformChannelRowsUngrouped);
 	const channelGroupSections = $derived(protectedDashboardPagePresenter.channelGroupSections);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
@@ -576,6 +581,8 @@
 			</div>
 		</dl>
 	{/if}
+
+	<PostKanbanBoard presenter={postKanbanBoardPresenter} />
 
 	<section class="mt-8">
 		<div class="flex flex-wrap items-center justify-between gap-3">

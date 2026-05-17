@@ -88,6 +88,12 @@
  *                 type: string
  *                 enum: [draft, scheduled]
  *                 description: '`draft` persists without enqueuing; `scheduled` schedules at `scheduledAt`.'
+ *               isAgent:
+ *                 type: boolean
+ *                 default: true
+ *                 description: >-
+ *                   When true or omitted, sets `isAgentEdited` for kanban review. The CLI sends `true`.
+ *                   Dashboard session creates never use this field.
  *           example:
  *             scheduledAt: '2026-05-14T10:00:00.000Z'
  *             status: scheduled

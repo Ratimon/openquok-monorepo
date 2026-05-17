@@ -10,6 +10,7 @@ import {
     validatePublicListPostsQuery,
     validatePublicPostIdParams,
     validatePublicUpdateReleaseIdRequest,
+    validatePublicUpdatePostReviewTodoRequest,
 } from "../../data/schemas/publicPostsSchemas";
 import { oauthAppService } from "../../services/index";
 
@@ -38,6 +39,12 @@ publicPostRouter.get(
     publicPostsController.findSlot
 );
 publicPostRouter.post("/", apiKeyAuth, validatePublicCreatePostBody, publicPostsController.createPost);
+publicPostRouter.put(
+    "/:postId/review-todo",
+    apiKeyAuth,
+    validatePublicUpdatePostReviewTodoRequest,
+    publicPostsController.updatePostReviewTodo
+);
 publicPostRouter.put(
     "/:postId/status",
     apiKeyAuth,

@@ -5,6 +5,7 @@ import type {
     PublicListPostsQueryDto,
     PublicPostSummaryDto,
     PublicUpdatePostReleaseIdDataDto,
+    PublicUpdatePostReviewTodoDto,
 } from "./dtos";
 
 function toQueryString(obj: Record<string, unknown>): string {
@@ -111,6 +112,18 @@ export default class Openquok {
      */
     async flipPostStatus(postId: string, body: PublicFlipPostStatusDto) {
         return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}/status`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.apiKey,
+            },
+            body: JSON.stringify(body),
+        });
+    }
+
+    /** Update kanban review note / reviewed flag (`PUT /public/posts/:postId/review-todo`). */
+    async updatePostReviewTodo(postId: string, body: PublicUpdatePostReviewTodoDto) {
+        return await this.json(`${this.apiRoot}/public/posts/${encodeURIComponent(postId)}/review-todo`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

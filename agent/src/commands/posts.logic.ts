@@ -95,6 +95,11 @@ export function readCreatePayloadFromJsonFile(path: string): Record<string, unkn
   return o;
 }
 
+/** CLI/agent creates always flag posts for human review on the kanban board. */
+export function withAgentCreatePayload(payload: Record<string, unknown>): Record<string, unknown> {
+  return { ...payload, isAgent: true };
+}
+
 /**
  * Builds `providerSettingsByIntegrationId` from CLI flags.
  * Merge order per selected integration id: (1) `--providerSettingsByIntegrationId`

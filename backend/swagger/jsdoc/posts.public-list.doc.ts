@@ -172,6 +172,16 @@
  *           type: string
  *           format: uuid
  *           nullable: true
+ *         note:
+ *           type: string
+ *           nullable: true
+ *           description: Kanban review checklist text.
+ *         isAgentEdited:
+ *           type: boolean
+ *           description: True when last touched via CLI/agent.
+ *         isReviewed:
+ *           type: boolean
+ *           description: Human marked the review todo complete.
  *         createdAt:
  *           type: string
  *           format: date-time

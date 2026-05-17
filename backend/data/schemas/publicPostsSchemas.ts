@@ -20,7 +20,13 @@ export const validatePublicListPostsQuery: RequestHandler = validateRequest({
     query: publicListPostsQuerySchema,
 });
 
-export const publicCreatePostBodySchema = createPostBodySchema.omit({ organizationId: true });
+export const publicCreatePostBodySchema = createPostBodySchema.omit({ organizationId: true }).extend({
+    /**
+     * When true (default for API-key creates), rows are flagged `isAgentEdited` for the kanban board.
+     * The dashboard session API never accepts this — human creates always clear the flag server-side.
+     */
+    isAgent: z.boolean().optional(),
+});
 
 export const validatePublicCreatePostBody: RequestHandler = validateRequest({
     body: publicCreatePostBodySchema,
@@ -62,5 +68,17 @@ export const publicUpdateReleaseIdBodySchema = z.object({
 export const validatePublicUpdateReleaseIdRequest: RequestHandler = validateRequest({
     params: publicPostIdParamsSchema,
     body: publicUpdateReleaseIdBodySchema,
+});
+
+export const publicUpdatePostReviewTodoBodySchema = z.object({
+    note: z.string().max(2000).nullable().optional(),
+    isReviewed: z.boolean().optional(),
+    /** When true (CLI/agent), keeps `isAgentEdited` on the post group. Dashboard calls omit or set false. */
+    isAgent: z.boolean().optional(),
+});
+
+export const validatePublicUpdatePostReviewTodoRequest: RequestHandler = validateRequest({
+    params: publicPostIdParamsSchema,
+    body: publicUpdatePostReviewTodoBodySchema,
 });
 

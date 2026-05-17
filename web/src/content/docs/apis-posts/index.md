@@ -20,6 +20,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <LinkCard title="Delete Post" description="Delete a single post by row id (soft-deletes the whole post group it belongs to)" href="/docs/apis-posts/delete" />
 <LinkCard title="Missing Content" description="List provider-side candidate ids when the worker could not link a published row" href="/docs/apis-posts/missing" />
 <LinkCard title="Update Release ID" description="Manually link a post row to a provider-native id when worker auto-link failed" href="/docs/apis-posts/release-id" />
+<LinkCard title="Update Review Todo" description="Set kanban review note and mark reviewed" href="/docs/apis-posts/review-todo" />
 </CardGrid>
 
 <Callout type="note" title="Terminology">

@@ -190,7 +190,10 @@ export type CreatePostInput = {
  * Programmatic post creation input (organization API key auth).
  * No auth user is available; `created_by_user_id` is stored as null.
  */
-export type CreatePostProgrammaticInput = Omit<CreatePostInput, "authUserId">;
+export type CreatePostProgrammaticInput = Omit<CreatePostInput, "authUserId"> & {
+    /** When true or omitted on `POST /public/posts`, sets `is_agent_edited`. CLI should send `true`. */
+    isAgent?: boolean;
+};
 
 export type PostGroupDetails = {
     postGroup: string;
@@ -350,6 +353,12 @@ export class PostsService {
          * Only safe when the caller is already scoped to `organizationId` by the API key.
          */
         skipMembershipCheck?: boolean;
+        /** When set, applied to every inserted row (create/replace). */
+        reviewFields?: {
+            note?: string | null;
+            isAgentEdited?: boolean;
+            isReviewed?: boolean;
+        };
     }): Promise<{ postGroup: string; toInsert: SocialPostInsert[]; tagIds: string[] }> {
         const {
             organizationId,
@@ -367,7 +376,12 @@ export class PostsService {
             status,
             allowTakenSlot = false,
             skipMembershipCheck = false,
+            reviewFields,
         } = input;
+
+        const reviewNote = reviewFields?.note ?? null;
+        const reviewIsAgentEdited = reviewFields?.isAgentEdited ?? false;
+        const reviewIsReviewed = reviewFields?.isReviewed ?? false;
 
         if (!skipMembershipCheck) {
             if (!authUserId) {
@@ -453,6 +467,9 @@ export class PostsService {
             error: null,
             deleted_at: null,
             created_by_user_id: createdByUserId,
+            note: reviewNote,
+            is_agent_edited: reviewIsAgentEdited,
+            is_reviewed: reviewIsReviewed,
         };
 
         let toInsert: SocialPostInsert[];
@@ -481,7 +498,12 @@ export class PostsService {
         posts: SocialPostLike[];
     }> {
         const postGroup = this.postsRepository.newPostGroup();
-        const { toInsert, tagIds } = await this.buildPostGroupInsert({ ...input, postGroup, skipMembershipCheck: false });
+        const { toInsert, tagIds } = await this.buildPostGroupInsert({
+            ...input,
+            postGroup,
+            skipMembershipCheck: false,
+            reviewFields: { note: null, isAgentEdited: false, isReviewed: false },
+        });
         const inserted = await this.postsRepository.insertPostGroup(toInsert);
         await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
         await this.persistThreadRepliesFromProviderSettings({
@@ -513,6 +535,11 @@ export class PostsService {
             ...input,
             postGroup,
             skipMembershipCheck: true,
+            reviewFields: {
+                note: null,
+                isAgentEdited: input.isAgent !== false,
+                isReviewed: false,
+            },
         });
         const inserted = await this.postsRepository.insertPostGroup(toInsert);
         await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
@@ -708,6 +735,11 @@ export class PostsService {
             organizationIdHint: organizationId,
             authUserId: null,
             skipMembershipCheck: true,
+            reviewFields: {
+                note: post.note,
+                isReviewed: post.is_reviewed,
+                isAgentEdited: post.is_agent_edited,
+            },
             body: details.body,
             bodiesByIntegrationId:
                 details.bodiesByIntegrationId && Object.keys(details.bodiesByIntegrationId).length > 0
@@ -1322,6 +1354,62 @@ export class PostsService {
     }
 
     /**
+     * Dashboard kanban: human updates review todo (clears `is_agent_edited`).
+     */
+    async updatePostReviewTodo(input: {
+        organizationId: string;
+        authUserId: string;
+        postId: string;
+        note?: string | null;
+        isReviewed?: boolean;
+    }): Promise<SocialPostLike[]> {
+        await this.integrationConnectionService.assertOrganizationMember(input.authUserId, input.organizationId);
+        const post = await this.postsRepository.getPostById(input.postId);
+        if (!post || post.organization_id !== input.organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+        const rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+            ...(input.note !== undefined ? { note: input.note } : {}),
+            ...(input.isReviewed !== undefined ? { isReviewed: input.isReviewed } : {}),
+            isAgentEdited: false,
+        });
+        await this._invalidatePostMutationCaches({
+            organizationId: input.organizationId,
+            postGroup: post.post_group,
+            postIds: rows.map((r) => r.id),
+        });
+        return rows;
+    }
+
+    /**
+     * Programmatic kanban review todo (`PUT /public/posts/:postId/review-todo`).
+     * Agent calls pass `isAgent: true` so rows stay flagged as agent-edited.
+     */
+    async updatePostReviewTodoProgrammatic(input: {
+        organizationId: string;
+        postId: string;
+        note?: string | null;
+        isReviewed?: boolean;
+        isAgent?: boolean;
+    }): Promise<SocialPostLike[]> {
+        const post = await this.postsRepository.getPostById(input.postId);
+        if (!post || post.organization_id !== input.organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+        const rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+            ...(input.note !== undefined ? { note: input.note } : {}),
+            ...(input.isReviewed !== undefined ? { isReviewed: input.isReviewed } : {}),
+            isAgentEdited: input.isAgent === true,
+        });
+        await this._invalidatePostMutationCaches({
+            organizationId: input.organizationId,
+            postGroup: post.post_group,
+            postIds: rows.map((r) => r.id),
+        });
+        return rows;
+    }
+
+    /**
      * Programmatic candidates for `GET {api.prefix}/public/posts/:postId/missing` (org API key auth).
      * Same return shape as {@link getMissingPublishCandidates} but skips membership checks.
      */
@@ -1504,11 +1592,18 @@ export class PostsService {
         postGroup: string;
         posts: SocialPostLike[];
     }> {
+        const existing = await this.postsRepository.listPostsByGroup(input.postGroup);
+        const preserved = existing[0];
         return this.replacePostGroupRows({
             postGroup: input.postGroup,
             organizationIdHint: input.organizationId,
             authUserId: input.authUserId,
             skipMembershipCheck: false,
+            reviewFields: {
+                note: preserved?.note ?? null,
+                isReviewed: preserved?.is_reviewed ?? false,
+                isAgentEdited: false,
+            },
             body: input.body,
             bodiesByIntegrationId: input.bodiesByIntegrationId ?? null,
             media: input.media ?? null,
@@ -1541,12 +1636,18 @@ export class PostsService {
         tagNames: string[];
         status: "draft" | "scheduled";
         providerSettingsByIntegrationId?: Record<string, Record<string, unknown>> | null;
+        reviewFields?: {
+            note?: string | null;
+            isAgentEdited?: boolean;
+            isReviewed?: boolean;
+        };
     }): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
         const {
             postGroup,
             organizationIdHint: callerOrgId,
             authUserId,
             skipMembershipCheck,
+            reviewFields,
             body,
             bodiesByIntegrationId,
             media,
@@ -1593,6 +1694,7 @@ export class PostsService {
             status,
             allowTakenSlot,
             skipMembershipCheck,
+            reviewFields,
         });
 
         // Delete old tag links & rows; then reinsert with the same group id.

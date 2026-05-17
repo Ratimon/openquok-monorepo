@@ -51,6 +51,8 @@ export type PublicCreatePostDto = {
     tagNames?: string[];
     providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
     status: "draft" | "scheduled";
+    /** When true or omitted, sets `isAgentEdited` (CLI/agent). Omit on dashboard session creates. */
+    isAgent?: boolean;
 };
 
 /** `PUT /public/posts/{postId}/status` — body uses `schedule` as a synonym for `scheduled`. */
@@ -74,5 +76,13 @@ export type PublicDeletePostDataDto = {
 export type PublicUpdatePostReleaseIdDataDto = {
     id: string;
     releaseId: string;
+};
+
+/** `PUT /public/posts/{postId}/review-todo` — kanban review note / reviewed flag (programmatic API). */
+export type PublicUpdatePostReviewTodoDto = {
+    note?: string | null;
+    isReviewed?: boolean;
+    /** When true (CLI/agent), keeps `isAgentEdited` on the post group. */
+    isAgent?: boolean;
 };
 

@@ -346,4 +346,30 @@ export class PostsController {
             next(error);
         }
     };
+
+    updatePostReviewTodo = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postId = (req.params as { postId: string }).postId;
+            const body = req.body as { organizationId: string; note?: string | null; isReviewed?: boolean };
+            const rows = await this.postsService.updatePostReviewTodo({
+                authUserId,
+                organizationId: body.organizationId,
+                postId,
+                note: body.note,
+                isReviewed: body.isReviewed,
+            });
+            res.status(200).json({
+                success: true,
+                data: { posts: PostDTOMapper.toDTOCollection(rows) },
+                message: "Post review updated successfully",
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
 }

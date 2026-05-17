@@ -15,6 +15,7 @@ import {
     validateUpdatePostGroupBody,
     validatePostMissingQuery,
     validateUpdatePostReleaseId,
+    validateUpdatePostReviewTodo,
 } from "../data/schemas/postSchemas";
 
 type PostRouter = ReturnType<typeof Router>;
@@ -41,6 +42,7 @@ postRouter.put("/group/:postGroup", auth, validateUpdatePostGroupBody, postsCont
 postRouter.delete("/group/:postGroup", auth, validateDeletePostGroup, postsController.deletePostGroup);
 postRouter.get("/:postId/missing", auth, validatePostMissingQuery, postsController.getMissingPublishCandidates);
 postRouter.put("/:postId/release-id", auth, validateUpdatePostReleaseId, postsController.updatePostReleaseId);
+postRouter.put("/:postId/review-todo", auth, validateUpdatePostReviewTodo, postsController.updatePostReviewTodo);
 postRouter.delete("/:postGroup", auth, validateDeletePostGroup, postsController.deletePostGroup);
 
 export { postRouter };

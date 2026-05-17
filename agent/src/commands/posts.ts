@@ -9,6 +9,7 @@ import {
   mergeProviderSettingsForIntegrations,
   parsePostsStatusFlag,
   readCreatePayloadFromJsonFile,
+  withAgentCreatePayload,
   resolveCreateStatus,
   toStringList,
 } from "./posts.logic";
@@ -227,7 +228,7 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
                 : undefined;
 
           if (jsonPath) {
-            const payload = readCreatePayloadFromJsonFile(jsonPath);
+            const payload = withAgentCreatePayload(readCreatePayloadFromJsonFile(jsonPath));
             const out = await api.createPost(payload);
             printJson(out);
             return;
@@ -278,6 +279,7 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           });
 
           const payload: Record<string, unknown> = {
+            isAgent: true,
             scheduledAt,
             status,
             ...(bodyText ? { body: bodyText } : {}),
@@ -294,6 +296,41 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           };
 
           const out = await api.createPost(payload);
+          printJson(out);
+        });
+      }
+    )
+    .command(
+      "posts:review-todo <postId>",
+      "Update kanban review note and reviewed flag (PUT /public/posts/:postId/review-todo)",
+      (yy: Argv) =>
+        yy
+          .positional("postId", {
+            type: "string",
+            demandOption: true,
+            describe: "Post row UUID from `posts:list`",
+          })
+          .option("note", {
+            type: "string",
+            describe: "Review checklist text (omit to leave unchanged)",
+          })
+          .option("reviewed", {
+            type: "boolean",
+            describe: "Mark the review todo complete",
+          })
+          .example(
+            "$0 posts:review-todo 5b6c7d8e-9f01-2a3b-4c5d-6e7f8a9b0c1d --note 'Check CTA link'",
+            "Set agent review note (keeps isAgentEdited true)"
+          ),
+      async (args: any) => {
+        await runCommand("posts:review-todo", async () => {
+          const api = await ctx.buildApi();
+          const postId = requireArg("postId", args.postId);
+          const body: Record<string, unknown> = { isAgent: true };
+          if (typeof args.note === "string") body.note = args.note;
+          if (args.reviewed === true) body.isReviewed = true;
+          if (args.reviewed === false) body.isReviewed = false;
+          const out = await api.updatePostReviewTodo(postId, body);
           printJson(out);
         });
       }

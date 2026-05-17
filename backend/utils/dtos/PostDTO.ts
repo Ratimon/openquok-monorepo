@@ -25,6 +25,9 @@ export interface SocialPostLike {
     error: string | null;
     deleted_at: string | null;
     created_by_user_id: string | null;
+    note: string | null;
+    is_agent_edited: boolean;
+    is_reviewed: boolean;
     created_at: string;
     updated_at: string;
 }
@@ -260,6 +263,9 @@ export interface SocialPostDTO {
     error: string | null;
     deletedAt: string | null;
     createdByUserId: string | null;
+    note: string | null;
+    isAgentEdited: boolean;
+    isReviewed: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -343,6 +349,9 @@ export const PostDTOMapper = {
             error: row.error,
             deletedAt: row.deleted_at,
             createdByUserId: row.created_by_user_id,
+            note: row.note,
+            isAgentEdited: row.is_agent_edited,
+            isReviewed: row.is_reviewed,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
         };

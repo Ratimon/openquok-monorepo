@@ -87,6 +87,29 @@ export class PublicPostsController {
         }
     };
 
+    /** PUT /public/posts/:postId/review-todo — update kanban review note / reviewed flag (agent or human). */
+    updatePostReviewTodo = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("posts-review-todo");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const postId = (req.params as { postId: string }).postId;
+            const body = req.body as { note?: string | null; isReviewed?: boolean; isAgent?: boolean };
+            const rows = await this.postsService.updatePostReviewTodoProgrammatic({
+                organizationId,
+                postId,
+                note: body.note,
+                isReviewed: body.isReviewed,
+                isAgent: body.isAgent,
+            });
+            res.status(200).json({
+                success: true,
+                data: { posts: PostDTOMapper.toDTOCollection(rows) },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** PUT /public/posts/:postId/status — flip draft ↔ scheduled at the stored publish time (no public group CRUD). */
     flipPostStatus = async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -159,10 +182,12 @@ export class PublicPostsController {
                 tagNames?: string[];
                 providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
                 status: "draft" | "scheduled";
+                isAgent?: boolean;
             };
 
             const result = await this.postsService.createPostProgrammatic({
                 organizationId,
+                isAgent: b.isAgent,
                 body: b.body ?? "",
                 bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
                 media: (b.media ?? null)?.map((m) => ({ id: m.id, path: m.path })) ?? null,

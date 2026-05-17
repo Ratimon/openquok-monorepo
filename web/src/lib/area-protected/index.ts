@@ -21,6 +21,7 @@ import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
 import { getMediaPresenter, mediaRepository } from '$lib/medias';
 import { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
+import { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 import { getScheduledPostsPresenter, postsRepository } from '$lib/posts';
 import { SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
 import { getNotificationPresenter, notificationRepository } from '$lib/notifications';
@@ -88,6 +89,8 @@ const createSocialPostPresenter = new CreateSocialPostPresenter(
 
 const dashboardChannelsGridTable = new DashboardChannelsGridTablePresenter();
 const dashboardChannelsGridFilterBuilder = new DashboardChannelsGridFilterBuilderPresenter();
+
+const postKanbanBoardPresenter = new PostKanbanBoardPresenter(postsRepository);
 
 const protectedDashboardPagePresenter = new ProtectedDashboardPagePresenter(
 	integrationsRepository,
@@ -170,4 +173,5 @@ export {
 	mediaLibraryMediaModalPresenter,
 	schedulerPresenter,
 	signatureSettingPresenter,
+	postKanbanBoardPresenter,
 };

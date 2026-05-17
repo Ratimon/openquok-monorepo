@@ -92,6 +92,9 @@ export type PostRowProgrammerModel = {
 	/** Composer repeat key when applicable (`posts.settings.repeatInterval`). */
 	repeatInterval?: RepeatIntervalKey | null;
 	error?: string | null;
+	note?: string | null;
+	isAgentEdited?: boolean;
+	isReviewed?: boolean;
 };
 
 export type CreatePostResponseDto = {
@@ -261,6 +264,7 @@ export interface PostsConfig {
 		deletePostGroup: string;
 		missingPublishCandidates: (postId: string) => string;
 		updatePostReleaseId: (postId: string) => string;
+		updatePostReviewTodo: (postId: string) => string;
 	};
 }
 
@@ -580,6 +584,30 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not connect post.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not connect post.');
+		}
+	}
+
+	async updatePostReviewTodo(params: {
+		postId: string;
+		organizationId: string;
+		note?: string | null;
+		isReviewed?: boolean;
+	}): Promise<{ ok: true; posts: PostRowProgrammerModel[] } | { ok: false; error: string }> {
+		try {
+			const body: Record<string, unknown> = { organizationId: params.organizationId };
+			if (params.note !== undefined) body.note = params.note;
+			if (params.isReviewed !== undefined) body.isReviewed = params.isReviewed;
+			const { ok, data: dto } = await this.httpGateway.put<ListPostsResponseDto>(
+				this.config.endpoints.updatePostReviewTodo(params.postId),
+				body,
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true && Array.isArray(dto.data?.posts)) {
+				return { ok: true, posts: dto.data.posts };
+			}
+			return { ok: false, error: 'Could not update review.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not update review.');
 		}
 	}
 

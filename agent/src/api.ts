@@ -64,6 +64,18 @@ export class OpenquokApi {
   }
 
 
+  async updatePostReviewTodo(
+    postId: string,
+    body: { note?: string | null; isReviewed?: boolean; isAgent?: boolean }
+  ): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/posts/${encodeURIComponent(postId)}/review-todo`),
+      apiKey: this.cfg.apiKey,
+      method: "PUT",
+      body,
+    });
+  }
+
   async flipPostStatus(postId: string, status: "draft" | "scheduled"): Promise<unknown> {
     const body = status === "draft" ? { status: "draft" as const } : { status: "scheduled" as const };
     return await requestJson({

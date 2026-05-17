@@ -2,11 +2,11 @@
 title: Development environment
 description: Run Openquok's agent, backend, workers and web apps locally, execute tests, database scripts, and deployment commands.
 order: 0
-lastUpdated: 2026-05-12
+lastUpdated: 2026-05-16
 ---
 
 <script>
-import { Badge, Callout, Tabs, TabItem, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, Tabs, TabItem, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 <Callout type="warning">
@@ -17,7 +17,7 @@ Use this page once prerequisites (see <a href="/docs/getting-started-for-dev/qui
 
 You can work from the **monorepo root** (using scripts defined in the root `package.json` that delegate to `backend/`) or **change into `backend/`** and run the same scripts locally. Pick one style and stick with it.
 
-<Callout type="note" title="Cron jobs (expired refresh tokens)">
+<Callout type="note" title="Cron jobs">
 Some backend features rely on scheduled jobs backed by <code>pg&#95;cron</code> on Supabase.
 For example, the `user-auth` module periodically removes expired rows from `public.refresh_tokens` (every Saturday at **3:30 AM GMT**).
 If you deploy to Supabase Cloud and cron is not enabled, those jobs won’t run even if migrations are pushed.
@@ -41,7 +41,7 @@ pnpm backend:test:integration
 pnpm backend:test:e2e
 ```
 
-<Callout type="note" title="Optional: connectivity smoke tests">
+<Callout type="note" title="Smoke tests">
 <p>Some integration tests are designed to verify connectivity for third-party services (for example R2 or Redis). These tests are <strong>disabled by default</strong> to avoid accidental calls to production.</p>
 <p>To enable them, set the flags below when running the test:</p>
 <ul>
@@ -298,12 +298,141 @@ pnpm --filter ./agent cli -- upload-from-url --help
 **Connectivity smoke** — requires a valid API key or stored credentials. Confirms auth + workspace plumbing end-to-end against a running backend:
 
 ```bash
-pnpm --filter ./agent cli -- auth:status
-pnpm --filter ./agent cli -- integrations:list | jq '.[] | {id, identifier}'
-pnpm --filter ./agent cli -- posts:list | jq '.success, (.data.posts | type)'
+pnpm -s --filter ./agent cli -- auth:status
+pnpm -s --filter ./agent cli -- integrations:list | jq '.[] | {id, identifier}'
+pnpm -s --filter ./agent cli -- posts:list | jq '.success, (.data.posts | type)'
 ```
 
 Every command emits machine-readable JSON on stdout, so piping into <code>jq</code> is the recommended way to assert on shape during smoke runs and CI.
+
+<Callout type="note" title="Piping to jq from pnpm">
+<p>When you run <code>pnpm --filter ./agent cli -- … | jq …</code>, pnpm may print script lifecycle lines (lines starting with <code>&gt;</code>) to <strong>stdout</strong> before the CLI JSON. That breaks <code>jq</code> and can surface a Node <code>EPIPE</code> after <code>jq</code> exits. Use <strong><code>pnpm -s</code></strong> (silent) for piped examples, or run without a pipe first to inspect raw output:</p>
+</Callout>
+
+```bash
+pnpm -s --filter ./agent cli -- integrations:list
+```
+
+### Smoke-test post kanban review (CLI + web)
+
+Use this flow to seed **agent-edited drafts** with the CLI and exercise the **kanban review board** on the account page . The CLI always sends <Badge text="isAgent: true" variant="param" /> on <Badge text="posts:create" variant="default" />; human actions in the dashboard clear <Badge text="is_agent_edited" variant="param" /> when you mark a post reviewed or schedule it from the UI.
+
+<Callout type="note" title="Database columns">
+<p>The <code>posts</code> table needs <Badge text="note" variant="param" />, <Badge text="is_agent_edited" variant="param" />, and <Badge text="is_reviewed" variant="param" /> (see post migrations under <Badge text="backend/supabase/db/post/" variant="path" />).
+</Callout>
+
+<Steps>
+
+### Start the API and web app
+
+In separate terminals from the repository root:
+
+```bash
+pnpm backend:dev
+pnpm web:dev
+```
+
+Sign in at <Badge text="https://localhost:5173" variant="default" /> with the same workspace you will use for CLI credentials.
+
+### Point the CLI at your local API
+
+The CLI defaults to the hosted API unless overridden. For local smoke runs:
+
+```bash
+export OPENQUOK_API_URL=http://localhost:3000
+```
+
+Use the same origin your web app uses for API calls if you proxy through another host (see <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">HTTPS local development and the API base URL</a>). Set this <strong>before</strong> <Badge text="auth:login --apiKey" variant="default" /> so the CLI does not call the hosted API with a local-only key.
+
+### Authenticate the CLI
+
+**API key (fastest)** — copy a programmatic key from **Settings** in the dashboard, then store it:
+
+```bash
+pnpm -s --filter ./agent cli -- auth:login --apiKey "opo_your_key_here"
+```
+
+**Or** export <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> for the session (run <Badge text="auth:logout" variant="default" /> first if <Badge text="~/.openquok/credentials.json" variant="path" /> already exists — stored credentials take priority over env).
+
+**OAuth device flow** — requires the local auth server (<code>pnpm agent-server:dev</code>) and the same <Badge text="--authServer" variant="param" /> pattern as above:
+
+```bash
+pnpm --filter ./agent cli -- auth:login --authServer http://localhost:3111
+```
+
+Confirm connectivity:
+
+```bash
+pnpm --filter ./agent cli -- auth:status
+```
+
+### List channels and create an agent draft
+
+Resolve an integration UUID, then create a **draft** (lands in the kanban **Drafted** column with the agent flag set):
+
+```bash
+pnpm -s --filter ./agent cli -- integrations:list | jq '.[] | {id, identifier}'
+```
+
+Alternatively, print it via terminal:
+
+```bash
+pnpm -s --filter ./agent cli -- integrations:list
+```
+
+If you see <code>"success": false</code> and <code>401</code>, re-run <Badge text="auth:login --apiKey" variant="default" /> after <Badge text="OPENQUOK_API_URL" variant="envBackend" /> is set, or run <Badge text="auth:logout" variant="default" /> when stale <Badge text="~/.openquok/credentials.json" variant="path" /> points at the wrong API.
+
+Set variables from the list output (replace the placeholder, or capture the first channel id):
+
+```bash
+export INTEGRATION_ID="<integration-id>"
+export SCHEDULED_AT="$(node -e "const d=new Date(Date.now()+864e5); d.setUTCHours(12,0,0,0); process.stdout.write(d.toISOString())")"
+echo "INTEGRATION_ID=$INTEGRATION_ID"
+echo "SCHEDULED_AT=$SCHEDULED_AT"
+```
+
+<Callout type="warning" title="Multiline shell commands">
+<p>Every continued line must end with <code>\</code> (no spaces after it). If you paste the <code>posts:create</code> block without backslashes, only the first line runs and yargs reports <code>scheduledAt is required</code>.</p>
+</Callout>
+
+Create the draft (one line — safe to copy; use <Badge text="--scheduledAt" variant="param" /> so the schedule time is unambiguous):
+
+```bash
+pnpm -s --filter ./agent cli -- posts:create -c "Kanban review smoke test" --scheduledAt "$SCHEDULED_AT" -i "$INTEGRATION_ID" -t draft
+```
+
+Inspect the response:
+
+```bash
+pnpm -s --filter ./agent cli -- posts:create -c "Kanban review smoke test" --scheduledAt "$SCHEDULED_AT" -i "$INTEGRATION_ID" -t draft | jq '{postGroup: .data.postGroup, postId: .data.posts[0].id, isAgentEdited: .data.posts[0].isAgentEdited, state: .data.posts[0].state}'
+```
+
+Expect <Badge text="isAgentEdited: true" variant="param" /> and <Badge text="state: DRAFT" variant="param" /> in the response.
+
+See <a href="/docs/cli-usages/managing-posts">CLI — Managing posts</a> and <a href="/docs/apis-posts/review-todo">Update Review Todo</a> for flag and API details.
+
+### Exercise the kanban in the browser
+
+1. Open **Account** (kanban below your profile).
+2. Set the filter to **Agent** (not Human).
+3. Find the card under **Drafted**.
+4. As a human: edit the **review note**, check **reviewed**, then schedule or publish from the dashboard — the card should move columns and no longer show as agent-edited after review.
+
+<Callout type="tip" title="Agent vs human review paths">
+<p><Badge text="posts:review-todo" variant="default" /> via the CLI is for the <strong>programmatic</strong> path (keeps <Badge text="isAgentEdited" variant="param" /> true). The dashboard uses session <Badge text="PUT /api/v1/posts/:postId/review-todo" variant="path" /> and clears the agent flag when a human marks review complete — that is what this UI smoke test validates.</p>
+</Callout>
+
+### Optional: backend e2e
+
+The repository includes an automated flow that creates via the real CLI bundle and asserts review + schedule over HTTP:
+
+```bash
+pnpm --filter ./backend test:e2e:post-review
+```
+
+Requires Supabase E2E env (same as other backend e2e suites). See <Badge text="backend/tests/e2e/post.review.e2e.test.ts" variant="path" />.
+
+</Steps>
 
 <Callout type="note" title="Iterating on yargs definitions">
 <p>If you're changing positional descriptions or <code>.example()</code> calls in <Badge text="agent/src/commands/" variant="path" />, run <code>pnpm --filter ./agent dev</code> — it watches the source and re-prints <code>--help</code> on every save, which is the fastest feedback loop for tweaking help text.</p>
@@ -345,4 +474,6 @@ pnpm vercel:deploy:web
 <LinkCard title="Configuration - Agent" description="CLI auth server env, OAuth callbacks, and `SERVER_URL` for local device flow" href="/docs/configuration-agent" />
 <LinkCard title="Configuration - Worker" description="BullMQ workers, orchestrator processes, and Redis queues beyond the API" href="/docs/configuration-worker" />
 <LinkCard title="Admin — OAuth Server" description="Create or rotate OAuth client ID and secret for the device-flow auth server" href="/docs/admin/oauth-server" />
+<LinkCard title="CLI — Managing posts" description="Managing posts via agents with CLI" />
+<LinkCard title="Update Review Todo" description="Public and session review-todo endpoints for kanban note and reviewed flag" href="/docs/apis-posts/review-todo" />
 </CardGrid>

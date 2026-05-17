@@ -43,6 +43,9 @@ CREATE TABLE IF NOT EXISTS public.posts (
     image TEXT,
     interval_in_days INT,
     error TEXT,
+    note TEXT,
+    is_agent_edited BOOLEAN NOT NULL DEFAULT FALSE,
+    is_reviewed BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
@@ -54,6 +57,9 @@ COMMENT ON COLUMN public.posts.post_group IS 'Same value for all rows created in
 COMMENT ON COLUMN public.posts.settings IS 'JSON string; may include isGlobal and other provider options (maps Post.settings).';
 COMMENT ON COLUMN public.posts.interval_in_days IS 'Repeat cadence in days when applicable (maps Post.intervalInDays).';
 COMMENT ON COLUMN public.posts.created_by_user_id IS 'Optional audit field; not in reference Post model.';
+COMMENT ON COLUMN public.posts.note IS 'Optional review checklist text shown on the account kanban board.';
+COMMENT ON COLUMN public.posts.is_agent_edited IS 'True when last touched via CLI/agent; cleared when a human reviews from the dashboard.';
+COMMENT ON COLUMN public.posts.is_reviewed IS 'Human marked the review todo complete on the kanban board.';
 
 CREATE TABLE IF NOT EXISTS public.post_tag_assignments (
     post_id TEXT NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
