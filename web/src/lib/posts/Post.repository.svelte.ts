@@ -97,6 +97,10 @@ export type PostRowProgrammerModel = {
 	createdByUserId?: string | null;
 	isAgentEdited?: boolean;
 	isReviewed?: boolean;
+	/** From list/flip API — resolved `integrations` row (includes soft-deleted). */
+	channelName?: string | null;
+	channelPictureUrl?: string | null;
+	providerIdentifier?: string | null;
 };
 
 export type CreatePostResponseDto = {
@@ -109,8 +113,31 @@ export type CreatePostResponseDto = {
 
 export type ListPostsResponseDto = {
 	success?: boolean;
-	data?: { posts?: PostRowProgrammerModel[] };
+	data?: {
+		posts?: (PostRowProgrammerModel & {
+			integration_id?: string | null;
+			channel_name?: string | null;
+			channel_picture_url?: string | null;
+			provider_identifier?: string | null;
+		})[];
+	};
 };
+
+/** API rows may use camelCase or legacy snake_case field names. */
+function normalizePostRowFromApi(
+	raw: PostRowProgrammerModel & {
+		integration_id?: string | null;
+		channel_name?: string | null;
+		channel_picture_url?: string | null;
+		provider_identifier?: string | null;
+	}
+): PostRowProgrammerModel {
+	const integrationId = raw.integrationId ?? raw.integration_id ?? null;
+	const channelName = raw.channelName ?? raw.channel_name ?? null;
+	const channelPictureUrl = raw.channelPictureUrl ?? raw.channel_picture_url ?? null;
+	const providerIdentifier = raw.providerIdentifier ?? raw.provider_identifier ?? null;
+	return { ...raw, integrationId, channelName, channelPictureUrl, providerIdentifier };
+}
 
 export type PostGroupDetailsProgrammerModel = {
 	postGroup: string;
@@ -408,7 +435,7 @@ export class PostsRepository {
 				{ withCredentials: true }
 			);
 			if (ok && dto?.success === true && Array.isArray(dto.data?.posts)) {
-				return { ok: true, posts: dto.data.posts };
+				return { ok: true, posts: dto.data.posts.map(normalizePostRowFromApi) };
 			}
 			return { ok: false, error: 'Could not load scheduled posts.' };
 		} catch (error) {
@@ -602,7 +629,7 @@ export class PostsRepository {
 				{ withCredentials: true }
 			);
 			if (ok && dto?.success === true && Array.isArray(dto.data?.posts)) {
-				return { ok: true, posts: dto.data.posts };
+				return { ok: true, posts: dto.data.posts.map(normalizePostRowFromApi) };
 			}
 			return { ok: false, error: 'Could not update post status.' };
 		} catch (error) {
@@ -626,7 +653,7 @@ export class PostsRepository {
 				{ withCredentials: true }
 			);
 			if (ok && dto?.success === true && Array.isArray(dto.data?.posts)) {
-				return { ok: true, posts: dto.data.posts };
+				return { ok: true, posts: dto.data.posts.map(normalizePostRowFromApi) };
 			}
 			return { ok: false, error: 'Could not update review.' };
 		} catch (error) {

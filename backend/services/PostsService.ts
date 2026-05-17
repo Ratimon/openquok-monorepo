@@ -11,8 +11,10 @@ import type {
     RepeatIntervalKey,
     PostCommentLike,
     PostThreadReplyLike,
+    SocialPostDTO,
     SocialPostLike,
 } from "../utils/dtos/PostDTO";
+import { PostDTOMapper } from "../utils/dtos/PostDTO";
 import type { AnalyticsData, SocialProvider } from "../integrations/social.integrations.interface";
 import type { RefreshIntegrationService } from "./RefreshIntegrationService";
 import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
@@ -674,6 +676,38 @@ export class PostsService {
             return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
         }
         return factory();
+    }
+
+    /** Active + soft-deleted integrations referenced by post rows (kanban/calendar channel labels). */
+    async integrationLookupForPostRows(
+        organizationId: string,
+        rows: SocialPostLike[]
+    ): Promise<Map<string, IntegrationLike>> {
+        const ids = [
+            ...new Set(
+                rows
+                    .map((r) => r.integration_id)
+                    .filter((id): id is string => typeof id === "string" && Boolean(id))
+            ),
+        ];
+        if (ids.length === 0) return new Map();
+
+        const active = await this.integrationService.listByOrganization(organizationId);
+        const byId = new Map(active.map((i) => [i.id, i]));
+        for (const id of ids) {
+            if (byId.has(id)) continue;
+            const deleted = await this.integrationService.getByIdIncludeDeleted(organizationId, id);
+            if (deleted) byId.set(id, deleted);
+        }
+        return byId;
+    }
+
+    async toPostDtosWithChannelMetadata(
+        organizationId: string,
+        rows: SocialPostLike[]
+    ): Promise<SocialPostDTO[]> {
+        const integrationById = await this.integrationLookupForPostRows(organizationId, rows);
+        return PostDTOMapper.toDTOCollection(rows, integrationById);
     }
 
     /**

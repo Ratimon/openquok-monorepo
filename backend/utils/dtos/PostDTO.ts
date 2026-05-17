@@ -1,3 +1,5 @@
+import type { IntegrationLike } from "./IntegrationDTO";
+
 /** DB enum column `posts.state`. */
 export type PostStateDb = "QUEUE" | "PUBLISHED" | "ERROR" | "DRAFT";
 
@@ -268,6 +270,10 @@ export interface SocialPostDTO {
     isReviewed: boolean;
     createdAt: string;
     updatedAt: string;
+    /** Resolved from `integrations` for calendar/kanban display (includes soft-deleted channels). */
+    channelName?: string | null;
+    channelPictureUrl?: string | null;
+    providerIdentifier?: string | null;
 }
 
 export interface PostTagDTO {
@@ -327,8 +333,16 @@ export interface PostThreadReplyDTO {
 }
 
 export const PostDTOMapper = {
-    toDTO(row: SocialPostLike | null | undefined): SocialPostDTO | null {
+    toDTO(
+        row: SocialPostLike | null | undefined,
+        integration?: IntegrationLike | null
+    ): SocialPostDTO | null {
         if (row == null) return null;
+        const channelName = integration?.name?.trim() ? integration.name.trim() : null;
+        const channelPictureUrl = integration?.picture?.trim() ? integration.picture.trim() : null;
+        const providerIdentifier = integration?.provider_identifier?.trim()
+            ? integration.provider_identifier.trim()
+            : null;
         return {
             id: row.id,
             state: row.state,
@@ -354,12 +368,26 @@ export const PostDTOMapper = {
             isReviewed: row.is_reviewed,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
+            ...(integration
+                ? {
+                      channelName,
+                      channelPictureUrl,
+                      providerIdentifier,
+                  }
+                : {}),
         };
     },
 
-    toDTOCollection(rows: SocialPostLike[]): SocialPostDTO[] {
+    toDTOCollection(
+        rows: SocialPostLike[],
+        integrationById?: Map<string, IntegrationLike>
+    ): SocialPostDTO[] {
         if (!Array.isArray(rows)) return [];
-        return rows.map((r) => PostDTOMapper.toDTO(r)!).filter(Boolean);
+        return rows
+            .map((r) =>
+                PostDTOMapper.toDTO(r, r.integration_id ? integrationById?.get(r.integration_id) ?? null : null)
+            )
+            .filter(Boolean) as SocialPostDTO[];
     },
 
     toPostTagDTO(row: PostTagLike | null | undefined): PostTagDTO | null {

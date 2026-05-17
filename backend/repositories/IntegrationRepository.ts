@@ -140,6 +140,25 @@ export class IntegrationRepository {
         return rows[0] ?? null;
     }
 
+    /** Includes soft-deleted rows — for displaying channel labels on historical posts. */
+    async getByIdIncludeDeleted(organizationId: string, id: string): Promise<IntegrationLike | null> {
+        const { data, error } = await this.supabase
+            .from(TABLE)
+            .select("*")
+            .eq("organization_id", organizationId)
+            .eq("id", id)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Failed to load integration", {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE },
+            });
+        }
+        return (data as IntegrationLike | null) ?? null;
+    }
+
     async upsertIntegration(params: {
         organizationId: string;
         internalId: string;

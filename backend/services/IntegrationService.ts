@@ -82,6 +82,10 @@ export class IntegrationService {
         return this.integrationRepository.getById(organizationId, id);
     }
 
+    getByIdIncludeDeleted(organizationId: string, id: string) {
+        return this.integrationRepository.getByIdIncludeDeleted(organizationId, id);
+    }
+
     async updateIntegrationById(
         organizationId: string,
         integrationId: string,

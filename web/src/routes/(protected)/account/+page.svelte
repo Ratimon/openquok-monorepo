@@ -86,7 +86,9 @@
 	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
 
 	$effect(() => {
-		postKanbanBoard.setChannels(connectedChannelsVm);
+		const orgId = workspaceId;
+		if (!orgId || listStatus !== 'ready') return;
+		postKanbanBoard.setChannels(orgId, connectedChannelsVm);
 	});
 
 	const postKanbanColumnsVm = $derived(postKanbanBoard.columnsVm);

@@ -183,7 +183,8 @@ export class PostsController {
                 integrationIds,
             });
 
-            res.status(200).json({ success: true, data: { posts: PostDTOMapper.toDTOCollection(rows) } });
+            const posts = await this.postsService.toPostDtosWithChannelMetadata(q.organizationId, rows);
+            res.status(200).json({ success: true, data: { posts } });
         } catch (error) {
             next(error);
         }
@@ -365,11 +366,15 @@ export class PostsController {
                 authUserId,
                 skipMembershipCheck: false,
             });
+            const posts = await this.postsService.toPostDtosWithChannelMetadata(
+                body.organizationId,
+                result.posts
+            );
             res.status(200).json({
                 success: true,
                 data: {
                     postGroup: result.postGroup,
-                    posts: PostDTOMapper.toDTOCollection(result.posts),
+                    posts,
                 },
             });
         } catch (error) {
@@ -393,9 +398,10 @@ export class PostsController {
                 note: body.note,
                 isReviewed: body.isReviewed,
             });
+            const posts = await this.postsService.toPostDtosWithChannelMetadata(body.organizationId, rows);
             res.status(200).json({
                 success: true,
-                data: { posts: PostDTOMapper.toDTOCollection(rows) },
+                data: { posts },
                 message: "Post review updated successfully",
             });
         } catch (error) {

@@ -192,9 +192,91 @@ function formatPublishTimeLabel(publishDateIso: string): string {
 	return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+const PLATFORM_CHANNEL_LABELS = new Set([
+	'threads',
+	'instagram',
+	'instagram-business',
+	'instagram-standalone',
+	'facebook',
+	'x',
+	'youtube',
+	'tiktok',
+	'generic'
+]);
+
+function isProfileChannelDisplayName(name: string, identifier: string): boolean {
+	const trimmed = name.trim();
+	if (!trimmed) return false;
+	const lower = trimmed.toLowerCase();
+	if (PLATFORM_CHANNEL_LABELS.has(lower)) return false;
+	if (identifier && lower === identifier.trim().toLowerCase()) return false;
+	return true;
+}
+
+function channelSlotFromChannel(
+	integrationId: string,
+	ch: CreateSocialPostChannelViewModel
+): PostKanbanChannelSlotViewModel {
+	return {
+		integrationId,
+		picture: ch.picture,
+		name: ch.name,
+		identifier: ch.identifier
+	};
+}
+
+function channelSlotFromPostRow(
+	integrationId: string,
+	row: PostRowProgrammerModel | undefined
+): PostKanbanChannelSlotViewModel | null {
+	if (!row) return null;
+	const identifier = row.providerIdentifier?.trim() || 'generic';
+	const nameRaw = row.channelName?.trim() ?? '';
+	const name = isProfileChannelDisplayName(nameRaw, identifier) ? nameRaw : '';
+	const picture = row.channelPictureUrl?.trim() || null;
+	if (!name && !picture) return null;
+	return { integrationId, picture, name, identifier };
+}
+
+function resolveChannelSlot(
+	integrationId: string,
+	groupRows: PostRowProgrammerModel[],
+	channelById: Map<string, CreateSocialPostChannelViewModel>,
+	channelSnapshotById: Map<string, PostKanbanChannelSlotViewModel>
+): PostKanbanChannelSlotViewModel {
+	const row = groupRows.find((r) => r.integrationId === integrationId);
+	const fromApi = channelSlotFromPostRow(integrationId, row);
+	if (fromApi?.name || fromApi?.picture) return fromApi;
+
+	const ch = channelById.get(integrationId);
+	if (ch && (ch.picture || isProfileChannelDisplayName(ch.name, ch.identifier))) {
+		return channelSlotFromChannel(integrationId, ch);
+	}
+
+	const snapshot = channelSnapshotById.get(integrationId);
+	if (
+		snapshot &&
+		(snapshot.picture || isProfileChannelDisplayName(snapshot.name, snapshot.identifier))
+	) {
+		return snapshot;
+	}
+
+	if (ch) return channelSlotFromChannel(integrationId, ch);
+	if (fromApi) return fromApi;
+	if (snapshot) return snapshot;
+
+	return {
+		integrationId,
+		picture: null,
+		name: '',
+		identifier: row?.providerIdentifier?.trim() || 'generic'
+	};
+}
+
 function toCardsVm(
 	listPm: PostRowProgrammerModel[],
-	channelById: Map<string, CreateSocialPostChannelViewModel>
+	channelById: Map<string, CreateSocialPostChannelViewModel>,
+	channelSnapshotById: Map<string, PostKanbanChannelSlotViewModel>
 ): PostKanbanCardViewModel[] {
 	const byGroup = new Map<string, PostRowProgrammerModel[]>();
 	for (const row of listPm) {
@@ -216,15 +298,9 @@ function toCardsVm(
 				groupRows.map((r) => r.integrationId).filter((id): id is string => Boolean(id))
 			)
 		];
-		const channelSlots: PostKanbanChannelSlotViewModel[] = integrationIds.map((integrationId) => {
-			const ch = channelById.get(integrationId);
-			return {
-				integrationId,
-				picture: ch?.picture ?? null,
-				name: ch?.name ?? '',
-				identifier: ch?.identifier ?? 'threads'
-			};
-		});
+		const channelSlots: PostKanbanChannelSlotViewModel[] = integrationIds.map((integrationId) =>
+			resolveChannelSlot(integrationId, groupRows, channelById, channelSnapshotById)
+		);
 		const primaryChannelName = channelSlots[0]?.name ?? '';
 		const previewCount = Math.min(channelSlots.length, 3);
 		cards.push({
@@ -302,6 +378,9 @@ export class PostKanbanBoardPresenter {
 
 	private organizationId = $state<string | null>(null);
 	private listPm = $state<PostRowProgrammerModel[]>([]);
+	/** Last-known channel labels per workspace (survives channel list reload / workspace switch). */
+	private channelSnapshotsByOrg = new Map<string, Map<string, PostKanbanChannelSlotViewModel>>();
+	private loadSeq = 0;
 
 	constructor(
 		private readonly postsRepository: PostsRepository,
@@ -340,9 +419,12 @@ export class PostKanbanBoardPresenter {
 		return { ok: true };
 	}
 
-	setChannels(next: readonly CreateSocialPostChannelViewModel[]) {
+	setChannels(organizationId: string, next: readonly CreateSocialPostChannelViewModel[]) {
 		this.channels = next;
-		this.rebuildCardsVm();
+		this.rememberChannelSnapshots(organizationId, next);
+		if (organizationId === this.organizationId) {
+			this.rebuildCardsVm();
+		}
 	}
 
 	setSourceFilter(next: PostKanbanSourceFilter) {
@@ -363,12 +445,17 @@ export class PostKanbanBoardPresenter {
 	}
 
 	async load(organizationId: string | null | undefined): Promise<void> {
+		const seq = ++this.loadSeq;
 		if (!organizationId) {
 			this.organizationId = null;
 			this.listPm = [];
 			this.cardsVm = [];
 			this.status = 'ready';
 			return;
+		}
+		if (organizationId !== this.organizationId) {
+			this.listPm = [];
+			this.cardsVm = [];
 		}
 		this.organizationId = organizationId;
 		this.status = 'loading';
@@ -380,6 +467,8 @@ export class PostKanbanBoardPresenter {
 			startIso,
 			endIso
 		});
+
+		if (seq !== this.loadSeq) return;
 
 		if (!resultPm.ok) {
 			this.status = 'error';
@@ -395,17 +484,35 @@ export class PostKanbanBoardPresenter {
 	}
 
 	async refresh(): Promise<void> {
-		const org = this.organizationId;
-		this.organizationId = null;
-		await this.load(org);
+		await this.load(this.organizationId);
 	}
 
 	private channelById(): Map<string, CreateSocialPostChannelViewModel> {
 		return new Map(this.channels.map((c) => [c.id, c]));
 	}
 
+	private channelSnapshotById(): Map<string, PostKanbanChannelSlotViewModel> {
+		const orgId = this.organizationId;
+		if (!orgId) return new Map();
+		return this.channelSnapshotsByOrg.get(orgId) ?? new Map();
+	}
+
+	private rememberChannelSnapshots(
+		organizationId: string,
+		channels: readonly CreateSocialPostChannelViewModel[]
+	): void {
+		let snapshots = this.channelSnapshotsByOrg.get(organizationId);
+		if (!snapshots) {
+			snapshots = new Map();
+			this.channelSnapshotsByOrg.set(organizationId, snapshots);
+		}
+		for (const ch of channels) {
+			snapshots.set(ch.id, channelSlotFromChannel(ch.id, ch));
+		}
+	}
+
 	private rebuildCardsVm() {
-		this.cardsVm = toCardsVm(this.listPm, this.channelById());
+		this.cardsVm = toCardsVm(this.listPm, this.channelById(), this.channelSnapshotById());
 	}
 
 	private patchListPm(postId: string, patch: Partial<PostRowProgrammerModel>) {
