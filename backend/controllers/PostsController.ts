@@ -347,6 +347,36 @@ export class PostsController {
         }
     };
 
+    /** PUT /posts/:postId/status — flip draft ↔ scheduled at the stored publish time (kanban / CLI parity). */
+    flipPostStatus = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postId = (req.params as { postId: string }).postId;
+            const body = req.body as { organizationId: string; status: "draft" | "schedule" | "scheduled" };
+            const status: "draft" | "scheduled" = body.status === "draft" ? "draft" : "scheduled";
+            const result = await this.postsService.flipPostGroupStatusByPostId({
+                postId,
+                organizationId: body.organizationId,
+                status,
+                authUserId,
+                skipMembershipCheck: false,
+            });
+            res.status(200).json({
+                success: true,
+                data: {
+                    postGroup: result.postGroup,
+                    posts: PostDTOMapper.toDTOCollection(result.posts),
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     updatePostReviewTodo = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;

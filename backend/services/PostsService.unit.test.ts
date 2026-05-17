@@ -81,6 +81,8 @@ type PostsRepoMock = jest.Mocked<
     Pick<
         PostsRepository,
         | "hasQueueSlotTaken"
+        | "hasQueueSlotTakenExcludingPostGroup"
+        | "updatePostGroupState"
         | "listTagsByOrganization"
         | "insertTag"
         | "findTagByOrgAndName"
@@ -107,6 +109,8 @@ type PostsRepoMock = jest.Mocked<
 function createPostsRepoMock(): PostsRepoMock {
     return {
         hasQueueSlotTaken: jest.fn(),
+        hasQueueSlotTakenExcludingPostGroup: jest.fn(),
+        updatePostGroupState: jest.fn(),
         listTagsByOrganization: jest.fn(),
         insertTag: jest.fn(),
         findTagByOrgAndName: jest.fn(),
@@ -1661,6 +1665,28 @@ describe("PostsService", () => {
             ).rejects.toMatchObject({ statusCode: 400 });
         });
 
+        it("throws 400 when any row in the group is published or failed", async () => {
+            const postGroup = faker.string.uuid();
+            postsRepo.listPostsByGroup.mockResolvedValue([
+                socialPostRow({ post_group: postGroup, organization_id: orgId, state: "PUBLISHED" }),
+            ]);
+            await expect(
+                service().updatePostGroup({
+                    postGroup,
+                    organizationId: orgId,
+                    authUserId,
+                    body: "x",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: new Date().toISOString(),
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "draft",
+                })
+            ).rejects.toMatchObject({ statusCode: 400, message: "Cannot edit a published or failed post group" });
+            expect(postsRepo.softDeletePostsByGroup).not.toHaveBeenCalled();
+        });
+
         it("allows keeping the same scheduled slot even if repository would report it as taken", async () => {
             const postGroup = faker.string.uuid();
             const scheduledAtIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
@@ -1856,6 +1882,31 @@ describe("PostsService", () => {
             expect(rows[0].is_agent_edited).toBe(true);
             expect(rows[0].is_reviewed).toBe(false);
             expect(integrationConnection.assertOrganizationMember).not.toHaveBeenCalled();
+        });
+
+        it("stores note on create when provided", async () => {
+            const agentNote = "Verify CTA before publish";
+            postsRepo.insertPostGroup.mockResolvedValue([
+                socialPostRow({ is_agent_edited: true, note: agentNote }),
+            ]);
+
+            await service().createPostProgrammatic({
+                organizationId: orgId,
+                isAgent: true,
+                note: agentNote,
+                body: "draft with todo",
+                integrationIds: [integrationId],
+                isGlobal: true,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "draft",
+            });
+
+            const rows = postsRepo.insertPostGroup.mock.calls[0][0];
+            expect(rows[0].note).toBe(agentNote);
+            expect(rows[0].is_agent_edited).toBe(true);
+            expect(rows[0].is_reviewed).toBe(false);
         });
 
         it("clears is_agent_edited when isAgent is false", async () => {
@@ -2460,6 +2511,100 @@ describe("PostsService", () => {
                 { label: "Likes", data: [{ total: "5", date: "2026-01-01" }], percentageChange: 0 },
             ]);
             expect(integrationService.setCachedIntegrationPayload).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("flipPostGroupStatusByPostId", () => {
+        it("updates state in place without replacePostGroupRows (draft → scheduled)", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const publish = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            const draftRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "DRAFT",
+                publish_date: publish,
+                integration_id: integrationId,
+                is_agent_edited: true,
+                note: "review me",
+            });
+            const queuedRow = { ...draftRow, state: "QUEUE" as const, is_agent_edited: false };
+
+            postsRepo.getPostById.mockResolvedValue(draftRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([draftRow]);
+            postsRepo.hasQueueSlotTakenExcludingPostGroup.mockResolvedValue(false);
+            postsRepo.updatePostGroupState.mockResolvedValue([{ ...draftRow, state: "QUEUE" }]);
+            postsRepo.updatePostGroupReviewFields.mockResolvedValue([queuedRow]);
+
+            const out = await service().flipPostGroupStatusByPostId({
+                postId,
+                organizationId: orgId,
+                status: "scheduled",
+                authUserId,
+                skipMembershipCheck: false,
+            });
+
+            expect(out.postGroup).toBe(postGroup);
+            expect(out.posts).toEqual([queuedRow]);
+            expect(postsRepo.updatePostGroupState).toHaveBeenCalledWith(postGroup, orgId, "QUEUE");
+            expect(postsRepo.updatePostGroupReviewFields).toHaveBeenCalledWith(postGroup, orgId, {
+                isAgentEdited: false,
+            });
+            expect(postsRepo.softDeletePostsByGroup).not.toHaveBeenCalled();
+            expect(postsRepo.insertPostGroup).not.toHaveBeenCalled();
+        });
+
+        it("does not clear is_agent_edited on programmatic flip", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const draftRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "DRAFT",
+                integration_id: integrationId,
+                is_agent_edited: true,
+            });
+            const queuedRow = { ...draftRow, state: "QUEUE" as const, is_agent_edited: true };
+
+            postsRepo.getPostById.mockResolvedValue(draftRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([draftRow]);
+            postsRepo.hasQueueSlotTakenExcludingPostGroup.mockResolvedValue(false);
+            postsRepo.updatePostGroupState.mockResolvedValue([queuedRow]);
+
+            await service().flipPostGroupStatusByPostId({
+                postId,
+                organizationId: orgId,
+                status: "scheduled",
+                authUserId: null,
+                skipMembershipCheck: true,
+            });
+
+            expect(postsRepo.updatePostGroupReviewFields).not.toHaveBeenCalled();
+        });
+
+        it("is idempotent when the group is already in the target state", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const queuedRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "QUEUE",
+                integration_id: integrationId,
+            });
+
+            postsRepo.getPostById.mockResolvedValue(queuedRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([queuedRow]);
+
+            const out = await service().flipPostGroupStatusByPostId({
+                postId,
+                organizationId: orgId,
+                status: "scheduled",
+                authUserId,
+                skipMembershipCheck: false,
+            });
+
+            expect(out.posts).toEqual([queuedRow]);
+            expect(postsRepo.updatePostGroupState).not.toHaveBeenCalled();
         });
     });
 });

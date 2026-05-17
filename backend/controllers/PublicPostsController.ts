@@ -183,11 +183,13 @@ export class PublicPostsController {
                 providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
                 status: "draft" | "scheduled";
                 isAgent?: boolean;
+                note?: string | null;
             };
 
             const result = await this.postsService.createPostProgrammatic({
                 organizationId,
                 isAgent: b.isAgent,
+                note: b.note,
                 body: b.body ?? "",
                 bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
                 media: (b.media ?? null)?.map((m) => ({ id: m.id, path: m.path })) ?? null,

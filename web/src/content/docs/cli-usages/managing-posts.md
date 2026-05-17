@@ -2,7 +2,7 @@
 title: Managing Posts
 description: Create, list, delete, and reconnect Openquok posts/post group from the command line.
 order: 1
-lastUpdated: 2026-05-13
+lastUpdated: 2026-05-16
 ---
 
 <script>
@@ -42,6 +42,7 @@ openquok posts:create \
 | <Badge text="--providerSettingsByIntegrationId" variant="param" /> | JSON map of provider-specific settings (see <a href="/docs/cli-examples">CLI Examples</a>). |
 | <Badge text="--tagNames" variant="param" /> | Comma-separated workspace tag names. |
 | <Badge text="--repeatInterval" variant="param" /> | Backend repeat enum (e.g. <code>weekly</code>). |
+| <Badge text="-n" variant="param" /> <Badge text="--note" variant="param" /> | Human review checklist / todo for the account kanban (agent creates only; max 2000 chars). Same field as <Badge text="posts:review-todo" variant="default" />. |
 
 ### Draft instead of scheduling
 
@@ -52,6 +53,21 @@ openquok posts:create \
   -t draft \
   -i "<integration-id>"
 ```
+
+### Agent draft with a human review todo
+
+When an AI agent creates a draft for a human to approve, pass <Badge text="--note" variant="param" /> so the checklist appears on the account kanban (filter **Agent**). The CLI always sets <Badge text="isAgent: true" variant="param" /> on create. Update the note later with <Badge text="posts:review-todo" variant="default" />; humans clear the agent flag when they mark reviewed in the dashboard.
+
+```bash
+openquok posts:create \
+  -c "Launch week announcement" \
+  -s "2026-01-15T12:00:00Z" \
+  -t draft \
+  -i "<integration-id>" \
+  --note "Confirm CTA URL and UTM params before scheduling"
+```
+
+See <a href="/docs/apis-posts/review-todo">Update Review Todo</a> and <a href="/docs/installation/development-environment#smoke-test-post-kanban-review-cli--web">Development environment → Kanban smoke test</a>.
 
 ### Post for Different Body per Channel
 

@@ -7,6 +7,7 @@
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import { Separator } from '$lib/ui/separator';
 
@@ -217,15 +218,11 @@
 									class="relative h-9 w-9 shrink-0 rounded-md ring-2 ring-base-100"
 									style={`z-index:${10 - i}`}
 								>
-									{#if ch.channelPicture}
-										<img src={ch.channelPicture} alt="" class="h-9 w-9 rounded-md object-cover" />
-									{:else}
-										<div
-											class="flex h-9 w-9 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60"
-										>
-											{(ch.channelName || 'CH').slice(0, 2).toUpperCase()}
-										</div>
-									{/if}
+									<IntegrationChannelPicture
+										profilePictureUrl={ch.channelPicture}
+										fallbackIcon={iconName}
+										class="h-9 w-9 rounded-md object-cover"
+									/>
 									{#if ch.channelIdentifier}
 										<span
 											class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"

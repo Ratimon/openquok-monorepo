@@ -120,7 +120,18 @@ openquok integrations:list
 openquok posts:create \
   -s "2026-01-01T12:00:00Z" \
   -c "Hello from Openquok" \
-  -i "uuid1,uuid2"
+  -i "<integration-id-1>,<integration-id-2>"
+```
+
+**Create an agent draft with a review todo** (shown on the account kanban for humans):
+
+```bash
+openquok posts:create \
+  -c "Draft for human review" \
+  -s "2026-01-01T12:00:00Z" \
+  -t draft \
+  -i "<integration-id>" \
+  --note "Verify links and hashtags before scheduling"
 ```
 
 **Upload media** (use returned paths/IDs in <code>posts:create</code>):
@@ -156,6 +167,8 @@ openquok integrations:trigger <id> <method> [-d '<json>']
 **Posts**
 
 ```bash
+openquok posts:create -c "…" -s "2026-01-01T12:00:00Z" -t draft -i "<integration-id>" --note "Human checklist"
+openquok posts:review-todo <post-id> --note "Updated checklist"
 openquok posts:list
 openquok posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z"
 openquok posts:status <post-id> -s draft

@@ -26,6 +26,8 @@ export const publicCreatePostBodySchema = createPostBodySchema.omit({ organizati
      * The dashboard session API never accepts this — human creates always clear the flag server-side.
      */
     isAgent: z.boolean().optional(),
+    /** Optional human review checklist shown on the kanban board (agent/CLI creates). */
+    note: z.string().max(2000).nullable().optional(),
 });
 
 export const validatePublicCreatePostBody: RequestHandler = validateRequest({

@@ -83,15 +83,31 @@ export class PostsRepository {
     }
 
     async hasQueueSlotTaken(organizationId: string, publishDateIso: string): Promise<boolean> {
-        const { data, error } = await this.supabase
+        return this.hasQueueSlotTakenExcludingPostGroup(organizationId, publishDateIso, null);
+    }
+
+    /**
+     * Whether another post group already occupies a `QUEUE` slot at `publishDateIso`.
+     * Pass `excludePostGroup` when flipping an existing group at the same time (in-place status update).
+     */
+    async hasQueueSlotTakenExcludingPostGroup(
+        organizationId: string,
+        publishDateIso: string,
+        excludePostGroup: string | null
+    ): Promise<boolean> {
+        let query = this.supabase
             .from(TABLE_POSTS)
             .select("id")
             .eq("organization_id", organizationId)
             .eq("state", "QUEUE")
             .eq("publish_date", publishDateIso)
-            .is("deleted_at", null)
-            .limit(1)
-            .maybeSingle();
+            .is("deleted_at", null);
+
+        if (excludePostGroup) {
+            query = query.neq("post_group", excludePostGroup);
+        }
+
+        const { data, error } = await query.limit(1).maybeSingle();
 
         if (error) {
             throw new DatabaseError(`Failed to check schedule slot: ${error.message}`, {
@@ -596,6 +612,32 @@ export class PostsRepository {
             });
         }
         return (data?.length ?? 0) > 0;
+    }
+
+    /**
+     * Updates draft vs scheduled state for every row in the post group (keeps siblings in sync).
+     */
+    async updatePostGroupState(
+        postGroup: string,
+        organizationId: string,
+        state: PostStateDb
+    ): Promise<SocialPostLike[]> {
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .update({ state, updated_at: new Date().toISOString() })
+            .eq("post_group", postGroup)
+            .eq("organization_id", organizationId)
+            .is("deleted_at", null)
+            .select("*");
+
+        if (error) {
+            throw new DatabaseError(`Failed to update post group state: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return (data ?? []) as SocialPostLike[];
     }
 
     /**

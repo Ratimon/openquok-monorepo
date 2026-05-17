@@ -193,6 +193,8 @@ export type CreatePostInput = {
 export type CreatePostProgrammaticInput = Omit<CreatePostInput, "authUserId"> & {
     /** When true or omitted on `POST /public/posts`, sets `is_agent_edited`. CLI should send `true`. */
     isAgent?: boolean;
+    /** Optional kanban review checklist for humans (stored on every row in the group). */
+    note?: string | null;
 };
 
 export type PostGroupDetails = {
@@ -536,7 +538,7 @@ export class PostsService {
             postGroup,
             skipMembershipCheck: true,
             reviewFields: {
-                note: null,
+                note: input.note ?? null,
                 isAgentEdited: input.isAgent !== false,
                 isReviewed: false,
             },
@@ -725,35 +727,83 @@ export class PostsService {
         organizationId: string,
         status: "draft" | "scheduled"
     ): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
-        const post = await this.postsRepository.getPostById(postId);
-        if (!post || post.organization_id !== organizationId) {
-            throw new AppError("Post not found", 404);
-        }
-        const details = await this.loadPostGroupDetailsForOrganization(post.post_group, organizationId);
-        return await this.replacePostGroupRows({
-            postGroup: details.postGroup,
-            organizationIdHint: organizationId,
+        return await this.flipPostGroupStatusByPostId({
+            postId,
+            organizationId,
+            status,
             authUserId: null,
             skipMembershipCheck: true,
-            reviewFields: {
-                note: post.note,
-                isReviewed: post.is_reviewed,
-                isAgentEdited: post.is_agent_edited,
-            },
-            body: details.body,
-            bodiesByIntegrationId:
-                details.bodiesByIntegrationId && Object.keys(details.bodiesByIntegrationId).length > 0
-                    ? details.bodiesByIntegrationId
-                    : null,
-            media: details.media?.length ? details.media : null,
-            integrationIds: details.integrationIds,
-            isGlobal: details.isGlobal,
-            scheduledAtIso: details.publishDateIso,
-            repeatInterval: details.repeatInterval ?? null,
-            tagNames: details.tagNames,
-            providerSettingsByIntegrationId: details.providerSettingsByIntegrationId ?? null,
-            status,
         });
+    }
+
+    /**
+     * Session/UI draft ↔ scheduled flip (`PUT {api.prefix}/posts/:postId/status`).
+     * Same behavior as programmatic flip: keeps stored publish time, toggles draft vs queue.
+     */
+    async flipPostGroupStatusByPostId(input: {
+        postId: string;
+        organizationId: string;
+        status: "draft" | "scheduled";
+        authUserId: string | null;
+        skipMembershipCheck: boolean;
+    }): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
+        const post = await this.postsRepository.getPostById(input.postId);
+        if (!post || post.organization_id !== input.organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+
+        const rows = await this.postsRepository.listPostsByGroup(post.post_group);
+        if (!rows.length) {
+            throw new AppError("Post group not found", 404);
+        }
+
+        const targetState: PostStateDb = input.status === "draft" ? "DRAFT" : "QUEUE";
+        if (rows.every((r) => r.state === targetState)) {
+            return { postGroup: post.post_group, posts: rows };
+        }
+
+        if (rows.some((r) => r.state === "PUBLISHED" || r.state === "ERROR")) {
+            throw new AppError("Cannot change status of a published or failed post", 400);
+        }
+
+        const publishDateRaw = rows[0]!.publish_date;
+        if (Number.isNaN(new Date(publishDateRaw).getTime())) {
+            throw new AppError("Invalid schedule time", 400);
+        }
+
+        if (input.status === "scheduled") {
+            const hasChannel = rows.some((r) => r.integration_id != null);
+            if (!hasChannel) {
+                throw new AppError("Select at least one channel to schedule", 400);
+            }
+            const taken = await this.postsRepository.hasQueueSlotTakenExcludingPostGroup(
+                input.organizationId,
+                publishDateRaw,
+                post.post_group
+            );
+            if (taken) {
+                throw new AppError("That time slot is already taken; pick another.", 409);
+            }
+        }
+
+        let updated = await this.postsRepository.updatePostGroupState(
+            post.post_group,
+            input.organizationId,
+            targetState
+        );
+        // Session/kanban flips are human approval actions — clear the AI flag (CLI/public API flip keeps it).
+        if (input.authUserId && !input.skipMembershipCheck) {
+            updated = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+                isAgentEdited: false,
+            });
+        }
+        void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, updated, input.status);
+        await this._invalidatePostMutationCaches({
+            organizationId: input.organizationId,
+            postGroup: post.post_group,
+            postIds: updated.map((p) => p.id),
+        });
+        return { postGroup: post.post_group, posts: updated };
     }
 
     private async buildPostGroupDetails(postGroup: string, rows: SocialPostLike[]): Promise<PostGroupDetails> {
@@ -1618,8 +1668,9 @@ export class PostsService {
     }
 
     /**
-     * Replace all rows in a post group (same group id). Session vs API-key scope is controlled by
-     * `skipMembershipCheck` / `authUserId` — only {@link updatePostGroup} and programmatic flip use this.
+     * Replace all rows in a post group (same group id) — soft-delete siblings and insert fresh rows
+     * with new ids. Used only by {@link updatePostGroup} when the composer changes content, channels,
+     * tags, or schedule time. Draft ↔ scheduled toggles use {@link flipPostGroupStatusByPostId} instead.
      */
     private async replacePostGroupRows(params: {
         postGroup: string;
@@ -1663,6 +1714,10 @@ export class PostsService {
         const existing = await this.postsRepository.listPostsByGroup(postGroup);
         if (!existing.length) throw new AppError("Post group not found", 404);
         const organizationId = existing[0]!.organization_id;
+
+        if (existing.some((r) => r.state === "PUBLISHED" || r.state === "ERROR")) {
+            throw new AppError("Cannot edit a published or failed post group", 400);
+        }
 
         if (callerOrgId && callerOrgId !== organizationId) {
             throw new AppError("Post group does not belong to that workspace", 400);

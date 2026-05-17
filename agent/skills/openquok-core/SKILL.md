@@ -85,7 +85,7 @@ The fundamental pattern for using the Openquok CLI (`openquok` from `@openquok/a
 2. **Discover** — List integrations and read each channel’s rules, limits, and allow-listed tools.
 3. **Fetch** — Call `integrations:trigger` when a provider exposes dynamic data (playlists, pages, etc.).
 4. **Prepare** — Upload media (`upload` / `upload-from-url`) when the post needs images or video. In chat agents (Telegram, OpenClaw, etc.), if the user wants an image but has not given you a file on the host or a direct `https://` image URL for `upload-from-url`, **ask them for the file or a direct image URL** before creating the post with `-m`.
-5. **Post** — Create posts and flip status (`posts:create`, `posts:status`).
+5. **Post** — Create posts and flip status (`posts:create`, `posts:status`). For human-in-the-loop approval, use `-t draft` and `--note` (kanban review todo); update later with `posts:review-todo`.
 6. **Analyze** — Use `analytics:platform` and `analytics:post` with a `7` / `30` / `90` day window.
 7. **Resolve** — If per-post analytics indicates a missing provider release id, run `posts:missing`, then `posts:connect --release-id`.
 
@@ -174,6 +174,9 @@ openquok posts:create -c "Content" -s "2026-01-01T12:00:00Z" -i "<integration-uu
 
 # Draft
 openquok posts:create -c "Content" -s "2026-01-01T12:00:00Z" -t draft -i "<integration-uuid>"
+
+# Draft + human review todo (CLI sets isAgent automatically)
+openquok posts:create -c "Content" -s "2026-01-01T12:00:00Z" -t draft -i "<integration-uuid>" --note "Verify CTA, add collaboration or add music before scheduling"
 
 # Post with media (upload each file first — Rule 2)
 MEDIA=$(jq -s 'add' \
@@ -461,6 +464,7 @@ Repeated `-c` builds the root `body` (first segment) plus threaded `replies` in 
 ### Dates
 
 - Schedule / create: `-s` / `--scheduledAt` — ISO-8601 string (required for flag-based `posts:create`).
+- todo note: `-n` / `--note` on `posts:create` (optional human checklist on agent drafts); `posts:review-todo <postId> --note` to update later. Humans mark reviewed in the web app (session API), not via CLI.
 - List: `--start` / `--end` (aliases `--startDate` / `--endDate`).
 - Defaults for `posts:list`: ±30 **local calendar** days from today, serialized to ISO timestamps.
 
@@ -619,6 +623,8 @@ openquok posts:create -c "text" -s "2026-01-01T12:00:00Z" -t draft -i "<uuid>"
 openquok posts:create -c "text" -s "2026-01-01T12:00:00Z" -i "<uuid>" -m "$(openquok upload ./img.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')"
 openquok posts:create -c "main" -c "reply" -s "2026-01-01T12:00:00Z" -i "<uuid>"
 openquok posts:create --json ./post.json
+openquok posts:review-todo <post-id> --note "Updated checklist for human"
+openquok posts:review-todo <post-id> --reviewed true   # CLI keeps isAgentEdited true; dashboard review checkbox clears it
 
 # Management
 openquok posts:list

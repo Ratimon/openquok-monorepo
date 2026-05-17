@@ -398,13 +398,13 @@ echo "SCHEDULED_AT=$SCHEDULED_AT"
 Create the draft (one line — safe to copy; use <Badge text="--scheduledAt" variant="param" /> so the schedule time is unambiguous):
 
 ```bash
-pnpm -s --filter ./agent cli -- posts:create -c "Kanban review smoke test" --scheduledAt "$SCHEDULED_AT" -i "$INTEGRATION_ID" -t draft
+pnpm -s --filter ./agent cli -- posts:create -c "Kanban review smoke test" --scheduledAt "$SCHEDULED_AT" -i "$INTEGRATION_ID" -t draft --note "Confirm CTA link before scheduling"
 ```
 
 Inspect the response:
 
 ```bash
-pnpm -s --filter ./agent cli -- posts:create -c "Kanban review smoke test" --scheduledAt "$SCHEDULED_AT" -i "$INTEGRATION_ID" -t draft | jq '{postGroup: .data.postGroup, postId: .data.posts[0].id, isAgentEdited: .data.posts[0].isAgentEdited, state: .data.posts[0].state}'
+pnpm -s --filter ./agent cli -- posts:create -c "Kanban review smoke test" --scheduledAt "$SCHEDULED_AT" -i "$INTEGRATION_ID" -t draft --note "Confirm CTA link before scheduling" | jq '{postGroup: .data.postGroup, postId: .data.posts[0].id, isAgentEdited: .data.posts[0].isAgentEdited, note: .data.posts[0].note, state: .data.posts[0].state}'
 ```
 
 Expect <Badge text="isAgentEdited: true" variant="param" /> and <Badge text="state: DRAFT" variant="param" /> in the response.

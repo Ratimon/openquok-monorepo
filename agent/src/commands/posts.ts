@@ -151,6 +151,12 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
               "Platform-specific settings JSON; merged into each selected integration's provider settings",
           })
           .option("tagNames", { type: "string", describe: "Comma-separated tags" })
+          .option("note", {
+            alias: "n",
+            type: "string",
+            describe:
+              "Human review checklist / todo for the kanban board (stored on agent-created drafts; use posts:review-todo to update later)",
+          })
           .option("repeatInterval", { type: "string", describe: "Repeat interval (backend enum)" })
           .option("delay", {
             alias: "d",
@@ -194,6 +200,10 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           .example(
             '$0 posts:create -c "Draft me" -s "2026-01-01T12:00:00Z" -t draft -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"',
             "type=draft maps to API status draft"
+          )
+          .example(
+            '$0 posts:create -c "Draft for review" -s "2026-01-01T12:00:00Z" -t draft -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b" --note "Verify CTA link before scheduling"',
+            "Attach a kanban review todo for humans"
           )
           .example(
             '$0 posts:create --scheduledAt "2026-01-01T12:00:00Z" --integrationIds "uuid-a,uuid-b" --bodiesByIntegrationId \'{"uuid-a":"Caption for A","uuid-b":"Caption for B"}\'',
@@ -293,6 +303,7 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             ...(typeof args.repeatInterval === "string" && args.repeatInterval.trim()
               ? { repeatInterval: args.repeatInterval.trim() }
               : {}),
+            ...(typeof args.note === "string" && args.note.trim() ? { note: args.note.trim() } : {}),
           };
 
           const out = await api.createPost(payload);
@@ -321,6 +332,10 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           .example(
             "$0 posts:review-todo 5b6c7d8e-9f01-2a3b-4c5d-6e7f8a9b0c1d --note 'Check CTA link'",
             "Set agent review note (keeps isAgentEdited true)"
+          )
+          .example(
+            "$0 posts:review-todo 5b6c7d8e-9f01-2a3b-4c5d-6e7f8a9b0c1d --reviewed true",
+            "Mark reviewed via CLI (keeps isAgentEdited true; dashboard checkbox clears it)"
           ),
       async (args: any) => {
         await runCommand("posts:review-todo", async () => {

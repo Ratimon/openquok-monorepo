@@ -22,7 +22,8 @@ const postsConfig: PostsConfig = {
 		deletePostGroup: `${base}/group`,
 		missingPublishCandidates: (postId: string) => `${base}/${encodeURIComponent(postId)}/missing`,
 		updatePostReleaseId: (postId: string) => `${base}/${encodeURIComponent(postId)}/release-id`,
-		updatePostReviewTodo: (postId: string) => `${base}/${encodeURIComponent(postId)}/review-todo`
+		updatePostReviewTodo: (postId: string) => `${base}/${encodeURIComponent(postId)}/review-todo`,
+		flipPostStatus: (postId: string) => `${base}/${encodeURIComponent(postId)}/status`
 	}
 };
 
@@ -76,5 +77,9 @@ export type {
 } from '$lib/posts/Scheduler.presenter.svelte';
 export { CALENDAR_UNGROUPED_SENTINEL, SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
 export { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presenter.svelte';
-export type { PostKanbanCardViewModel, PostKanbanColumnsViewModel } from '$lib/posts/PostKanbanBoard.presenter.svelte';
+export type {
+	PostKanbanCardViewModel,
+	PostKanbanChannelSlotViewModel,
+	PostKanbanColumnsViewModel
+} from '$lib/posts/PostKanbanBoard.presenter.svelte';
 export { socialProviderIcon, socialProviderIconByIdentifier } from '$data/social-providers';

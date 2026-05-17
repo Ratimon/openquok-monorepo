@@ -35,7 +35,6 @@
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import StatisticsModal from '$lib/ui/components/platform-analytics/StatisticsModal.svelte';
 
-
 	// /account
 	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);

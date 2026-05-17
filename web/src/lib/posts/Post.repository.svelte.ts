@@ -93,6 +93,8 @@ export type PostRowProgrammerModel = {
 	repeatInterval?: RepeatIntervalKey | null;
 	error?: string | null;
 	note?: string | null;
+	/** Null when the post was created via CLI/agent (`posts.created_by_user_id`). */
+	createdByUserId?: string | null;
 	isAgentEdited?: boolean;
 	isReviewed?: boolean;
 };
@@ -265,6 +267,7 @@ export interface PostsConfig {
 		missingPublishCandidates: (postId: string) => string;
 		updatePostReleaseId: (postId: string) => string;
 		updatePostReviewTodo: (postId: string) => string;
+		flipPostStatus: (postId: string) => string;
 	};
 }
 
@@ -584,6 +587,26 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not connect post.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not connect post.');
+		}
+	}
+
+	async flipPostStatus(params: {
+		postId: string;
+		organizationId: string;
+		status: 'draft' | 'scheduled';
+	}): Promise<{ ok: true; posts: PostRowProgrammerModel[] } | { ok: false; error: string }> {
+		try {
+			const { ok, data: dto } = await this.httpGateway.put<ListPostsResponseDto>(
+				this.config.endpoints.flipPostStatus(params.postId),
+				{ organizationId: params.organizationId, status: params.status },
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true && Array.isArray(dto.data?.posts)) {
+				return { ok: true, posts: dto.data.posts };
+			}
+			return { ok: false, error: 'Could not update post status.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not update post status.');
 		}
 	}
 

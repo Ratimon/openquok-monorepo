@@ -186,3 +186,15 @@ export const validateUpdatePostReviewTodo: RequestHandler = validateRequest({
 });
 
 export type validateUpdatePostReviewTodoHandler = typeof validateUpdatePostReviewTodo;
+
+export const flipPostStatusBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    status: z.enum(["draft", "schedule", "scheduled"], {
+        errorMap: () => ({ message: "status must be draft, schedule, or scheduled" }),
+    }),
+});
+
+export const validateFlipPostStatus: RequestHandler = validateRequest({
+    params: postIdParamsSchema,
+    body: flipPostStatusBodySchema,
+});

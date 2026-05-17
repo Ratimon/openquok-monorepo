@@ -1,6 +1,19 @@
+import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type { PostsRepository, PostRowProgrammerModel } from '$lib/posts/Post.repository.svelte';
 import type { PostKanbanColumnId, PostKanbanSourceFilter } from '$lib/ui/components/kanban-board/kanbanTypes';
+import {
+	canMoveKanbanCard,
+	columnToApiStatus,
+	type KanbanCardDragPayload
+} from '$lib/ui/components/kanban-board/kanbanDnd';
 import dayjs from 'dayjs';
+
+export type PostKanbanChannelSlotViewModel = {
+	integrationId: string;
+	picture: string | null;
+	name: string;
+	identifier: string;
+};
 
 export type PostKanbanCardViewModel = {
 	postId: string;
@@ -8,7 +21,15 @@ export type PostKanbanCardViewModel = {
 	column: PostKanbanColumnId;
 	contentPreview: string;
 	publishLabel: string;
+	publishTimeLabel: string;
+	statusLabel: string;
+	publishDateIso: string;
 	note: string | null;
+	channelSlots: PostKanbanChannelSlotViewModel[];
+	hiddenChannelCount: number;
+	primaryChannelName: string;
+	/** Agent/CLI-created posts have no dashboard author id. */
+	isAgentOrigin: boolean;
 	isAgentEdited: boolean;
 	isReviewed: boolean;
 };
@@ -30,7 +51,22 @@ function stripHtmlPreview(content: string): string {
 	return text.length > 160 ? `${text.slice(0, 157)}…` : text;
 }
 
-function groupRowsToCards(rows: PostRowProgrammerModel[]): PostKanbanCardViewModel[] {
+function columnStatusLabel(column: PostKanbanColumnId): string {
+	if (column === 'draft') return 'Draft';
+	if (column === 'scheduled') return 'Scheduled';
+	return 'Published';
+}
+
+function formatPublishTimeLabel(publishDateIso: string): string {
+	const ms = Date.parse(publishDateIso);
+	if (!Number.isFinite(ms)) return '';
+	return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function groupRowsToCards(
+	rows: PostRowProgrammerModel[],
+	channelById: Map<string, CreateSocialPostChannelViewModel>
+): PostKanbanCardViewModel[] {
 	const byGroup = new Map<string, PostRowProgrammerModel[]>();
 	for (const row of rows) {
 		const list = byGroup.get(row.postGroup) ?? [];
@@ -46,13 +82,36 @@ function groupRowsToCards(rows: PostRowProgrammerModel[]): PostKanbanCardViewMod
 
 		const content =
 			groupRows.find((r) => r.content?.trim())?.content?.trim() ?? rep.content?.trim() ?? '';
+		const integrationIds = [
+			...new Set(
+				groupRows.map((r) => r.integrationId).filter((id): id is string => Boolean(id))
+			)
+		];
+		const channelSlots: PostKanbanChannelSlotViewModel[] = integrationIds.map((integrationId) => {
+			const ch = channelById.get(integrationId);
+			return {
+				integrationId,
+				picture: ch?.picture ?? null,
+				name: ch?.name ?? '',
+				identifier: ch?.identifier ?? 'threads'
+			};
+		});
+		const primaryChannelName = channelSlots[0]?.name ?? '';
+		const previewCount = Math.min(channelSlots.length, 3);
 		cards.push({
 			postId: rep.id,
 			postGroup,
 			column,
 			contentPreview: stripHtmlPreview(content),
 			publishLabel: dayjs(rep.publishDate).format('MMM D, YYYY h:mm A'),
+			publishTimeLabel: formatPublishTimeLabel(rep.publishDate),
+			statusLabel: columnStatusLabel(column),
+			publishDateIso: rep.publishDate,
 			note: rep.note ?? null,
+			channelSlots,
+			hiddenChannelCount: Math.max(0, channelSlots.length - previewCount),
+			primaryChannelName,
+			isAgentOrigin: rep.createdByUserId == null,
 			isAgentEdited: rep.isAgentEdited ?? false,
 			isReviewed: rep.isReviewed ?? false
 		});
@@ -64,20 +123,28 @@ export class PostKanbanBoardPresenter {
 	sourceFilter = $state<PostKanbanSourceFilter>('all');
 	status = $state<'idle' | 'loading' | 'ready' | 'error'>('idle');
 	error = $state<string | null>(null);
+	movingPostGroup = $state<string | null>(null);
 
 	private rows = $state<PostRowProgrammerModel[]>([]);
 	private organizationId = $state<string | null>(null);
+	channels = $state<readonly CreateSocialPostChannelViewModel[]>([]);
 
 	constructor(private readonly postsRepository: PostsRepository) {}
 
+	setChannels(next: readonly CreateSocialPostChannelViewModel[]) {
+		this.channels = next;
+	}
+
 	columnsVm = $derived.by((): PostKanbanColumnsViewModel => {
+		const channelById = new Map(this.channels.map((c) => [c.id, c]));
+		// Same rule as the AI badge on the card (`isAgentEdited`), not agent-origin / Edited badge.
 		const filtered = this.rows.filter((row) => {
-			const agent = row.isAgentEdited ?? false;
-			if (this.sourceFilter === 'agent') return agent;
-			if (this.sourceFilter === 'human') return !agent;
+			const isAi = row.isAgentEdited ?? false;
+			if (this.sourceFilter === 'agent') return isAi;
+			if (this.sourceFilter === 'human') return !isAi;
 			return true;
 		});
-		const cards = groupRowsToCards(filtered);
+		const cards = groupRowsToCards(filtered, channelById);
 		const empty: PostKanbanColumnsViewModel = { draft: [], scheduled: [], published: [] };
 		for (const card of cards) {
 			empty[card.column].push(card);
@@ -154,6 +221,66 @@ export class PostKanbanBoardPresenter {
 			return;
 		}
 		this.applyRowsFromUpdate(result.posts);
+	}
+
+	private findCardByPostGroup(postGroup: string): PostKanbanCardViewModel | undefined {
+		for (const col of Object.values(this.columnsVm)) {
+			const match = col.find((c) => c.postGroup === postGroup);
+			if (match) return match;
+		}
+		return undefined;
+	}
+
+	/** Draft ↔ scheduled via session `PUT /posts/:postId/status` (same as CLI `posts:status`). */
+	async moveCardToColumn(
+		payload: KanbanCardDragPayload,
+		targetColumn: PostKanbanColumnId
+	): Promise<void> {
+		const org = this.organizationId;
+		if (!org) return;
+		if (!canMoveKanbanCard(payload.sourceColumn, targetColumn)) {
+			this.error =
+				targetColumn === 'published' || payload.sourceColumn === 'published'
+					? 'Published posts cannot be moved on the board.'
+					: 'This column change is not allowed.';
+			return;
+		}
+
+		const targetStatus = columnToApiStatus(targetColumn);
+		if (!targetStatus) return;
+
+		const card = this.findCardByPostGroup(payload.postGroup);
+		const postId = card?.postId ?? payload.postId;
+		if (!postId) return;
+
+		const targetState = targetStatus === 'draft' ? 'DRAFT' : 'QUEUE';
+		const prevRows = this.rows.filter((r) => r.postGroup === payload.postGroup);
+
+		this.movingPostGroup = payload.postGroup;
+		this.error = null;
+		this.patchLocal(postId, { state: targetState, isAgentEdited: false });
+
+		const result = await this.postsRepository.flipPostStatus({
+			organizationId: org,
+			postId,
+			status: targetStatus
+		});
+		this.movingPostGroup = null;
+		if (!result.ok) {
+			this.rows = [
+				...this.rows.filter((r) => r.postGroup !== payload.postGroup),
+				...prevRows
+			];
+			this.error = result.error;
+			return;
+		}
+		this.mergeRowsFromFlip(result.posts);
+	}
+
+	private mergeRowsFromFlip(updated: PostRowProgrammerModel[]) {
+		if (updated.length === 0) return;
+		const group = updated[0]!.postGroup;
+		this.rows = [...this.rows.filter((r) => r.postGroup !== group), ...updated];
 	}
 
 	async updateNote(postId: string, note: string): Promise<void> {

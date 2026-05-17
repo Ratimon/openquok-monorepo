@@ -17,12 +17,17 @@
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 
 	// --- Area & integrations ---
-	import { getRootPathAccount, postKanbanBoardPresenter, protectedDashboardPagePresenter } from '$lib/area-protected';
+	import {
+		getRootPathAccount,
+		postKanbanBoardPresenter,
+		protectedDashboardPagePresenter
+	} from '$lib/area-protected';
 	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
+	import { postsRepository } from '$lib/posts';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
-	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
 
 	// --- Feedback ---
 	import { toast } from '$lib/ui/sonner';
@@ -43,6 +48,7 @@
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import ShowChannelActionsModal from '$lib/ui/components/posts/ShowChannelActionsModal.svelte';
+	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
 	import {
 		dashboardChannelsGridActionsKey,
 		type DashboardChannelsGridActions
@@ -182,6 +188,11 @@
 
 	let createSocialPostOpen = $state(false);
 
+	let kanbanActionsOpen = $state(false);
+	let kanbanActionsPostGroup = $state<string | null>(null);
+	let kanbanActionsFocusPostId = $state<string | null>(null);
+	let kanbanActionsBusy = $state(false);
+
 	let setPickOpen = $state(false);
 	let setPickRowsVm = $state<SetRowViewModel[]>([]);
 	let setPickFinish: ((v: SetSnapshotViewModel | null | undefined) => void) | null = null;
@@ -245,6 +256,84 @@
 			setSnapshot: picked ?? null
 		});
 		createSocialPostOpen = true;
+	}
+
+	function openKanbanPostActions(payload: { postGroup: string; postId: string }) {
+		kanbanActionsPostGroup = payload.postGroup;
+		kanbanActionsFocusPostId = payload.postId;
+		kanbanActionsOpen = true;
+	}
+
+	function closeKanbanPostActions() {
+		kanbanActionsOpen = false;
+		kanbanActionsPostGroup = null;
+		kanbanActionsFocusPostId = null;
+		kanbanActionsBusy = false;
+	}
+
+	function openEditKanbanPostGroup(postGroup: string) {
+		if (!workspaceId) {
+			toast.error('Create or select a workspace first.');
+			return;
+		}
+		createSocialPostModalPresenter.prepareEdit(postGroup);
+		createSocialPostOpen = true;
+	}
+
+	function duplicateKanbanPostGroup(postGroup: string) {
+		if (!workspaceId) {
+			toast.error('Create or select a workspace first.');
+			return;
+		}
+		createSocialPostModalPresenter.prepareDuplicate(postGroup);
+		createSocialPostOpen = true;
+	}
+
+	async function copyKanbanPostGroupText() {
+		const pg = kanbanActionsPostGroup;
+		if (!pg) return;
+		kanbanActionsBusy = true;
+		try {
+			const result = await postsRepository.getPostGroup(pg);
+			if (!result.ok) {
+				toast.warning('Failed to copy post data.');
+				return;
+			}
+			await navigator.clipboard.writeText(JSON.stringify(result.group, null, 2));
+			toast.success('Post JSON copied to clipboard.');
+		} catch {
+			toast.warning('Failed to copy post data.');
+		} finally {
+			kanbanActionsBusy = false;
+		}
+	}
+
+	async function deleteKanbanPostGroup() {
+		const pg = kanbanActionsPostGroup;
+		if (!pg) return;
+		if (!confirm('Delete this post?')) return;
+		kanbanActionsBusy = true;
+		try {
+			const result = await postsRepository.deletePostGroup(pg);
+			if (result.ok) {
+				toast.success('Post deleted.');
+				closeKanbanPostActions();
+				void postKanbanBoardPresenter.refresh();
+				return;
+			}
+			toast.error(result.error);
+		} finally {
+			kanbanActionsBusy = false;
+		}
+	}
+
+	async function previewKanbanPostGroup() {
+		const id = kanbanActionsFocusPostId?.trim();
+		if (!id) {
+			toast.error('Could not preview this post.');
+			return;
+		}
+		window.open(`/p/${id}?share=true`, '_blank');
 	}
 
 	function goToCalendar(groupId: string | null) {
@@ -582,7 +671,11 @@
 		</dl>
 	{/if}
 
-	<PostKanbanBoard presenter={postKanbanBoardPresenter} />
+	<PostKanbanBoard
+		presenter={postKanbanBoardPresenter}
+		channels={connectedChannelsVm}
+		onOpenPostActions={openKanbanPostActions}
+	/>
 
 	<section class="mt-8">
 		<div class="flex flex-wrap items-center justify-between gap-3">
@@ -966,13 +1059,31 @@
 	integration={timeTableForVm}
 />
 
+<ShowPostActionsModal
+	open={kanbanActionsOpen}
+	postGroup={kanbanActionsPostGroup}
+	focusPostId={kanbanActionsFocusPostId}
+	busy={kanbanActionsBusy}
+	channels={connectedChannelsVm}
+	loadPostGroup={(pg) => postsRepository.getPostGroup(pg)}
+	onClose={closeKanbanPostActions}
+	onEdit={openEditKanbanPostGroup}
+	onDuplicate={duplicateKanbanPostGroup}
+	onCopy={copyKanbanPostGroupText}
+	onDelete={deleteKanbanPostGroup}
+	onPreview={() => void previewKanbanPostGroup()}
+/>
+
 <CreateSocialPostModal
 	bind:open={createSocialPostOpen}
 	bind:presenter={createSocialPostModalPresenter}
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}
-	onScheduled={() => goToCalendar(null)}
+	onScheduled={() => {
+		void postKanbanBoardPresenter.refresh();
+		goToCalendar(null);
+	}}
 />
 
 <OnBoardingModal

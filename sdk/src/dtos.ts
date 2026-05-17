@@ -53,6 +53,8 @@ export type PublicCreatePostDto = {
     status: "draft" | "scheduled";
     /** When true or omitted, sets `isAgentEdited` (CLI/agent). Omit on dashboard session creates. */
     isAgent?: boolean;
+    /** Optional kanban review checklist for humans (agent/CLI creates). */
+    note?: string | null;
 };
 
 /** `PUT /public/posts/{postId}/status` — body uses `schedule` as a synonym for `scheduled`. */

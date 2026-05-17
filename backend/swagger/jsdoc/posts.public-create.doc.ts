@@ -94,6 +94,13 @@
  *                 description: >-
  *                   When true or omitted, sets `isAgentEdited` for kanban review. The CLI sends `true`.
  *                   Dashboard session creates never use this field.
+ *               note:
+ *                 type: string
+ *                 maxLength: 2000
+ *                 nullable: true
+ *                 description: >-
+ *                   Optional human review checklist for the kanban board (agent/CLI creates).
+ *                   Shown on drafts until a human updates review fields in the dashboard.
  *           example:
  *             scheduledAt: '2026-05-14T10:00:00.000Z'
  *             status: scheduled
