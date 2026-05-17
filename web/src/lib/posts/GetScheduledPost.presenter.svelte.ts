@@ -2,6 +2,8 @@ import type {
 	PostingTimeSlotViewModel,
 	WorkspaceChannelGroupViewModel
 } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
+import { isProfileChannelDisplayName } from '$data/social-providers';
 import { publicUrlForMediaStorageKey } from '$lib/medias/utils/publicMediaObjectUrl';
 import type {
 	PostCommentProgrammerModel,
@@ -11,6 +13,96 @@ import type {
 	PostRowProgrammerModel,
 	PostsRepository
 } from '$lib/posts/Post.repository.svelte';
+
+/** Resolved channel label + avatar for a post row (kanban, calendar, modals). */
+export type PostChannelDisplayViewModel = {
+	integrationId: string;
+	picture: string | null;
+	name: string;
+	identifier: string;
+};
+
+export type PostChannelRowSourceViewModel = {
+	integrationId?: string | null;
+	channelName?: string | null;
+	channelPictureUrl?: string | null;
+	providerIdentifier?: string | null;
+};
+
+export function channelDisplayFromPostRow(
+	integrationId: string,
+	row: PostChannelRowSourceViewModel | undefined
+): PostChannelDisplayViewModel | null {
+	if (!row) return null;
+	const identifier = row.providerIdentifier?.trim() || 'generic';
+	const nameRaw = row.channelName?.trim() ?? '';
+	const name = isProfileChannelDisplayName(nameRaw, identifier) ? nameRaw : '';
+	const picture = row.channelPictureUrl?.trim() || null;
+	if (!name && !picture) return null;
+	return { integrationId, picture, name, identifier };
+}
+
+export function resolvePostChannelDisplay(
+	integrationId: string,
+	row: PostChannelRowSourceViewModel | undefined,
+	channelById: Map<string, CreateSocialPostChannelViewModel>
+): PostChannelDisplayViewModel {
+	const fromApi = channelDisplayFromPostRow(integrationId, row);
+	if (fromApi?.name || fromApi?.picture) return fromApi;
+
+	const ch = channelById.get(integrationId);
+	if (ch && (ch.picture || isProfileChannelDisplayName(ch.name, ch.identifier))) {
+		return {
+			integrationId,
+			picture: ch.picture,
+			name: isProfileChannelDisplayName(ch.name, ch.identifier) ? ch.name : '',
+			identifier: ch.identifier
+		};
+	}
+
+	if (ch) {
+		return {
+			integrationId,
+			picture: ch.picture,
+			name: ch.name,
+			identifier: ch.identifier
+		};
+	}
+
+	if (fromApi) return fromApi;
+
+	return {
+		integrationId,
+		picture: null,
+		name: '',
+		identifier: row?.providerIdentifier?.trim() || 'generic'
+	};
+}
+
+/** Minimal channel VM for calendar chips when the integration is not in the connected list. */
+export function channelVmFromDisplay(
+	display: PostChannelDisplayViewModel,
+	channelById: Map<string, CreateSocialPostChannelViewModel>
+): CreateSocialPostChannelViewModel | null {
+	const existing = channelById.get(display.integrationId);
+	if (existing) return existing;
+	if (!display.name && !display.picture) return null;
+	return {
+		id: display.integrationId,
+		internalId: '',
+		name: display.name,
+		identifier: display.identifier,
+		picture: display.picture,
+		type: 'social',
+		disabled: false,
+		inBetweenSteps: false,
+		refreshNeeded: false,
+		schedulable: true,
+		unschedulableReason: null,
+		group: null,
+		postingTimes: []
+	};
+}
 
 export interface CalendarPostRowViewModel {
 	id: string;
@@ -23,6 +115,10 @@ export interface CalendarPostRowViewModel {
 	intervalInDays?: number | null;
 	repeatInterval?: string | null;
 	error?: string | null;
+	/** From list/flip API — resolved `integrations` row (includes soft-deleted). */
+	channelName?: string | null;
+	channelPictureUrl?: string | null;
+	providerIdentifier?: string | null;
 }
 
 export interface PostGroupDetailsViewModel {

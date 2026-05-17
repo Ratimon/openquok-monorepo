@@ -62,7 +62,14 @@ export type { PostCommentViewModel } from '$lib/posts/GetScheduledPost.presenter
 export type {
 	CalendarPostRowViewModel,
 	GetPostGroupResultViewModel,
+	PostChannelDisplayViewModel,
+	PostChannelRowSourceViewModel,
 	PostGroupDetailsViewModel
+} from '$lib/posts/GetScheduledPost.presenter.svelte';
+export {
+	channelDisplayFromPostRow,
+	channelVmFromDisplay,
+	resolvePostChannelDisplay
 } from '$lib/posts/GetScheduledPost.presenter.svelte';
 export type {
 	CalendarDisplayViewModel,

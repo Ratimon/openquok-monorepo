@@ -907,6 +907,7 @@
 	focusPostId={kanbanActionsFocusPostId}
 	busy={kanbanActionsBusy}
 	channels={connectedChannelsVm}
+	channelLookupPosts={postKanbanBoard.postsForChannelLookup}
 	loadPostGroup={(pg) => postKanbanBoard.getPostGroup(pg)}
 	onClose={closeKanbanPostActions}
 	onEdit={openEditKanbanPostGroup}

@@ -14,6 +14,7 @@ import type {
 } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
+import { channelVmFromDisplay, resolvePostChannelDisplay } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 /**
@@ -219,6 +220,11 @@ export class SchedulerPresenter {
 	/** Unfiltered posts for the last successful range + integration fetch (post-type filter is client-side). */
 	private cachedPostsPm: CalendarPostRowViewModel[] = [];
 	private cachedChannelById = new Map<string, ChannelViewModel>();
+
+	/** Posts from the latest calendar fetch — used to resolve channel labels in modals. */
+	get postsForChannelLookup(): readonly CalendarPostRowViewModel[] {
+		return this.cachedPostsPm;
+	}
 
 	constructor(
 		private readonly postsRepository: PostsRepository,
@@ -500,6 +506,27 @@ export class SchedulerPresenter {
 		this._patchScheduledPostsCalendarVm({ events });
 	}
 
+	private slotSummaryEntry(
+		p: CalendarPostRowViewModel,
+		channelById: Map<string, ChannelViewModel>
+	) {
+		const integrationId = p.integrationId ?? '';
+		const display = integrationId
+			? resolvePostChannelDisplay(integrationId, p, channelById)
+			: { integrationId: '', picture: null, name: '', identifier: 'generic' };
+		return {
+			postId: p.id ?? '',
+			postGroup: p.postGroup ?? '',
+			integrationId,
+			state: typeof p.state === 'string' ? p.state : '',
+			publishDate: p.publishDate ?? '',
+			content: stripHtmlToPlainText(String(p.content ?? '')).slice(0, 140),
+			channelPicture: display.picture ?? '',
+			channelName: display.name,
+			channelIdentifier: display.identifier
+		};
+	}
+
 	private buildCalendarEventsFromPosts(
 		posts: readonly CalendarPostRowViewModel[],
 		channelById: Map<string, ChannelViewModel>
@@ -530,30 +557,17 @@ export class SchedulerPresenter {
 				(existing as any).posts = [...((((existing as any).posts as any[]) ?? []) as any[]), p];
 				(existing as any).slotSummary = [
 					...((((existing as any).slotSummary as any[]) ?? []) as any[]),
-					{
-						postId: (p as any).id ?? '',
-						postGroup: (p as any).postGroup ?? '',
-						integrationId: (p as any).integrationId ?? '',
-						state: typeof (p as any).state === 'string' ? (p as any).state : '',
-						publishDate: (p as any).publishDate ?? '',
-						content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
-						channelPicture: (p as any).integrationId
-							? (channelById.get((p as any).integrationId)?.picture ?? '')
-							: '',
-						channelName: (p as any).integrationId
-							? (channelById.get((p as any).integrationId)?.name ?? '')
-							: '',
-						channelIdentifier: (p as any).integrationId
-							? (channelById.get((p as any).integrationId)?.identifier ?? '')
-							: ''
-					}
+					this.slotSummaryEntry(p, channelById)
 				];
 				continue;
 			}
 
 			const end = bucketStart.add({ minutes: Math.max(bucketMinutes, visualMinutes) });
-			const channel = p.integrationId ? channelById.get(p.integrationId) : null;
-			const title = channel ? channel.name : 'Draft';
+			const display = p.integrationId
+				? resolvePostChannelDisplay(p.integrationId, p, channelById)
+				: null;
+			const channel = display ? channelVmFromDisplay(display, channelById) : null;
+			const title = display?.name || 'Draft';
 			bucketed.set(key, {
 				id: p.id,
 				title,
@@ -562,19 +576,7 @@ export class SchedulerPresenter {
 				channel,
 				post: p,
 				posts: [p],
-				slotSummary: [
-					{
-						postId: (p as any).id ?? '',
-						postGroup: (p as any).postGroup ?? '',
-						integrationId: (p as any).integrationId ?? '',
-						state: typeof (p as any).state === 'string' ? (p as any).state : '',
-						publishDate: (p as any).publishDate ?? '',
-						content: stripHtmlToPlainText(String((p as any).content ?? '')).slice(0, 140),
-						channelPicture: channel?.picture ?? '',
-						channelName: channel?.name ?? '',
-						channelIdentifier: channel?.identifier ?? ''
-					}
-				]
+				slotSummary: [this.slotSummaryEntry(p, channelById)]
 			} as any);
 		}
 
@@ -595,11 +597,11 @@ export class SchedulerPresenter {
 			const representative = (nextFuture ?? sorted[sorted.length - 1]!)!.p;
 			(ev as any).post = representative;
 
-			const repChannel = representative.integrationId
-				? channelById.get(representative.integrationId)
+			const repDisplay = representative.integrationId
+				? resolvePostChannelDisplay(representative.integrationId, representative, channelById)
 				: null;
-			(ev as any).channel = repChannel;
-			(ev as any).title = repChannel ? repChannel.name : 'Draft';
+			(ev as any).channel = repDisplay ? channelVmFromDisplay(repDisplay, channelById) : null;
+			(ev as any).title = repDisplay?.name || 'Draft';
 
 			const summary = ((ev as any).slotSummary as any[]) ?? [];
 			if (Array.isArray(summary) && summary.length > 1) {

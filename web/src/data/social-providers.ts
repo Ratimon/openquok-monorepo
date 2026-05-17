@@ -44,6 +44,34 @@ export function socialProviderDisplayLabel(identifier: string): string {
 		.join(' ');
 }
 
+/** Lowercase provider slugs + catalog display names — not profile @handles. */
+function socialProviderPlatformLabelSet(): Set<string> {
+	const labels = new Set<string>();
+	for (const [id, display] of Object.entries(socialProviderDisplayNameByIdentifier)) {
+		labels.add(id.toLowerCase());
+		labels.add(display.toLowerCase());
+	}
+	labels.add('generic');
+	return labels;
+}
+
+const SOCIAL_PROVIDER_PLATFORM_LABELS = socialProviderPlatformLabelSet();
+
+/** True when `name` is a platform slug/label (e.g. `threads`, `Threads`), not a connected profile name. */
+export function isSocialProviderPlatformLabel(name: string, identifier?: string): boolean {
+	const trimmed = name.trim();
+	if (!trimmed) return false;
+	const lower = trimmed.toLowerCase();
+	if (SOCIAL_PROVIDER_PLATFORM_LABELS.has(lower)) return true;
+	const id = identifier?.trim().toLowerCase();
+	if (id && lower === id) return true;
+	return false;
+}
+
+export function isProfileChannelDisplayName(name: string, identifier: string): boolean {
+	return !isSocialProviderPlatformLabel(name, identifier);
+}
+
 /** Single grapheme for plain-text tooltips / summaries by integration `identifier`. */
 export function socialProviderEmoji(identifier: string): string {
 	const key = identifier.trim();

@@ -430,6 +430,7 @@
 	focusIntegrationId={actionsFocusIntegrationId}
 	busy={actionsBusy}
 	channels={connectedChannelsVm}
+	channelLookupPosts={calendarPresenter.schedulerPresenter.postsForChannelLookup}
 	loadPostGroup={(pg) => calendarPresenter.schedulerPresenter.getPostGroup(pg)}
 	onClose={closeActions}
 	onEdit={openEditPostGroup}

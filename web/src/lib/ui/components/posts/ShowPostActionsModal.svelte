@@ -1,6 +1,10 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-	import type { PostGroupDetailsViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
+	import type {
+		CalendarPostRowViewModel,
+		PostGroupDetailsViewModel
+	} from '$lib/posts/GetScheduledPost.presenter.svelte';
+	import { resolvePostChannelDisplay } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
@@ -20,6 +24,8 @@
 		focusIntegrationId?: string | null;
 		busy: boolean;
 		channels: readonly CreateSocialPostChannelViewModel[];
+		/** Optional post rows from calendar/kanban list (carry API channel metadata). */
+		channelLookupPosts?: readonly CalendarPostRowViewModel[];
 		loadPostGroup: (
 			postGroup: string
 		) => Promise<
@@ -44,6 +50,7 @@
 		focusIntegrationId = null,
 		busy,
 		channels,
+		channelLookupPosts = [],
 		loadPostGroup,
 		onClose,
 		onEdit,
@@ -130,19 +137,23 @@
 					return;
 				}
 				const g = resultVm.group;
+				const focusPid = String(focusPostId ?? '').trim();
 				const ids = Array.isArray(g.integrationIds) ? [...new Set(g.integrationIds.filter(Boolean))] : [];
+				const channelById = new Map(channels.map((c) => [c.id, c]));
 				const strip: HeaderChannelVm[] = ids.map((integrationId) => {
-					const ch = channels.find((x: CreateSocialPostChannelViewModel) => x.id === integrationId);
+					const row =
+						channelLookupPosts.find((p) => p.integrationId === integrationId) ??
+						(focusPid ? channelLookupPosts.find((p) => p.id === focusPid) : undefined);
+					const display = resolvePostChannelDisplay(integrationId, row, channelById);
 					return {
 						integrationId,
-						channelPicture: ch?.picture ?? undefined,
-						channelName: ch?.name ?? undefined,
-						channelIdentifier: ch?.identifier ?? undefined
+						channelPicture: display.picture ?? undefined,
+						channelName: display.name || undefined,
+						channelIdentifier: display.identifier
 					};
 				});
 				const postIdsRaw = Array.isArray(g.postIds) ? g.postIds.filter(Boolean) : [];
 				const integrationIdsRaw = Array.isArray(g.integrationIds) ? g.integrationIds.filter(Boolean) : [];
-				const focusPid = String(focusPostId ?? '').trim();
 				let focusInt = String(focusIntegrationId ?? '').trim();
 				if (!focusInt && focusPid && postIdsRaw.length === integrationIdsRaw.length) {
 					const ix = postIdsRaw.indexOf(focusPid);

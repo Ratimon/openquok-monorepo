@@ -1,4 +1,9 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import { isProfileChannelDisplayName } from '$data/social-providers';
+import {
+	channelDisplayFromPostRow,
+	resolvePostChannelDisplay
+} from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type {
 	GetPostGroupResultViewModel,
 	GetScheduledPostsPresenter
@@ -192,50 +197,30 @@ function formatPublishTimeLabel(publishDateIso: string): string {
 	return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-const PLATFORM_CHANNEL_LABELS = new Set([
-	'threads',
-	'instagram',
-	'instagram-business',
-	'instagram-standalone',
-	'facebook',
-	'x',
-	'youtube',
-	'tiktok',
-	'generic'
-]);
-
-function isProfileChannelDisplayName(name: string, identifier: string): boolean {
-	const trimmed = name.trim();
-	if (!trimmed) return false;
-	const lower = trimmed.toLowerCase();
-	if (PLATFORM_CHANNEL_LABELS.has(lower)) return false;
-	if (identifier && lower === identifier.trim().toLowerCase()) return false;
-	return true;
+function displayToChannelSlot(display: {
+	integrationId: string;
+	picture: string | null;
+	name: string;
+	identifier: string;
+}): PostKanbanChannelSlotViewModel {
+	return {
+		integrationId: display.integrationId,
+		picture: display.picture,
+		name: display.name,
+		identifier: display.identifier
+	};
 }
 
 function channelSlotFromChannel(
 	integrationId: string,
 	ch: CreateSocialPostChannelViewModel
 ): PostKanbanChannelSlotViewModel {
-	return {
+	return displayToChannelSlot({
 		integrationId,
 		picture: ch.picture,
 		name: ch.name,
 		identifier: ch.identifier
-	};
-}
-
-function channelSlotFromPostRow(
-	integrationId: string,
-	row: PostRowProgrammerModel | undefined
-): PostKanbanChannelSlotViewModel | null {
-	if (!row) return null;
-	const identifier = row.providerIdentifier?.trim() || 'generic';
-	const nameRaw = row.channelName?.trim() ?? '';
-	const name = isProfileChannelDisplayName(nameRaw, identifier) ? nameRaw : '';
-	const picture = row.channelPictureUrl?.trim() || null;
-	if (!name && !picture) return null;
-	return { integrationId, picture, name, identifier };
+	});
 }
 
 function resolveChannelSlot(
@@ -245,13 +230,9 @@ function resolveChannelSlot(
 	channelSnapshotById: Map<string, PostKanbanChannelSlotViewModel>
 ): PostKanbanChannelSlotViewModel {
 	const row = groupRows.find((r) => r.integrationId === integrationId);
-	const fromApi = channelSlotFromPostRow(integrationId, row);
-	if (fromApi?.name || fromApi?.picture) return fromApi;
-
-	const ch = channelById.get(integrationId);
-	if (ch && (ch.picture || isProfileChannelDisplayName(ch.name, ch.identifier))) {
-		return channelSlotFromChannel(integrationId, ch);
-	}
+	const resolved = resolvePostChannelDisplay(integrationId, row, channelById);
+	const fromApi = channelDisplayFromPostRow(integrationId, row);
+	if (fromApi?.name || fromApi?.picture) return displayToChannelSlot(fromApi);
 
 	const snapshot = channelSnapshotById.get(integrationId);
 	if (
@@ -261,16 +242,12 @@ function resolveChannelSlot(
 		return snapshot;
 	}
 
+	const ch = channelById.get(integrationId);
 	if (ch) return channelSlotFromChannel(integrationId, ch);
-	if (fromApi) return fromApi;
+	if (fromApi) return displayToChannelSlot(fromApi);
 	if (snapshot) return snapshot;
 
-	return {
-		integrationId,
-		picture: null,
-		name: '',
-		identifier: row?.providerIdentifier?.trim() || 'generic'
-	};
+	return displayToChannelSlot(resolved);
 }
 
 function toCardsVm(
@@ -378,6 +355,11 @@ export class PostKanbanBoardPresenter {
 
 	private organizationId = $state<string | null>(null);
 	private listPm = $state<PostRowProgrammerModel[]>([]);
+
+	/** Loaded post rows (include API channel metadata for modals). */
+	get postsForChannelLookup(): readonly PostRowProgrammerModel[] {
+		return this.listPm;
+	}
 	/** Last-known channel labels per workspace (survives channel list reload / workspace switch). */
 	private channelSnapshotsByOrg = new Map<string, Map<string, PostKanbanChannelSlotViewModel>>();
 	private loadSeq = 0;
