@@ -1,5 +1,5 @@
-import type { DashboardChannelTableRowViewModel } from '$lib/area-protected/DashboardChannelsGridTable.presenter.svelte';
-import { DASHBOARD_CHANNEL_UNGROUPED_GROUP_LABEL } from '$lib/area-protected/DashboardChannelsGridTable.presenter.svelte';
+import type { DashboardChannelTableRowViewModel } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
+import { DASHBOARD_CHANNEL_UNGROUPED_GROUP_LABEL } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
 
 import { textFilterHandler } from '$lib/plugs/PlugGridFilterBuilder.presenter.svelte';
 

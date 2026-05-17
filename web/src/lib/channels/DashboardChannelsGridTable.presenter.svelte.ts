@@ -1,7 +1,6 @@
 import type { IColumn } from '@svar-ui/svelte-grid';
 
-import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-
+import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
 import { socialProviderDisplayLabel } from '$data/social-providers';
 
 import DashboardChannelsGridAccountCell from '$lib/ui/components/dashboard-channels/DashboardChannelsGridAccountCell.svelte';
@@ -75,8 +74,7 @@ function toDashboardChannelTableRowViewModel(
 /**
  * SVAR grid table for account dashboard connected channels (table layout mode).
  *
- * Source channel list lives on {@link ProtectedDashboardPagePresenter.connectedChannelsVm}
- * (same role as {@link ProtectedPlugsPagePresenter.channelsVm}). This presenter only owns grid row VMs.
+ * Source channel list is owned by the page presenter (`connectedChannelsVm`). This presenter only owns grid row VMs.
  */
 export class DashboardChannelsGridTablePresenter {
 	/** Grid rows — analogue of {@link PlugGridTablePresenter.plugRulesRowsVm}. */

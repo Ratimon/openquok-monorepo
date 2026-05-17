@@ -3,10 +3,9 @@
 	import type { IApi } from '@svar-ui/svelte-grid';
 	import type {
 		CreateSocialPostChannelViewModel,
-		DashboardChannelsLayoutModeViewModel,
-		DashboardPlatformChannelRowViewModel
-	} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-	import type{ DashboardChannelsGridActions} from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
+		DashboardChannelsLayoutModeViewModel
+	} from '$lib/channels';
+	import type { DashboardChannelsGridActions } from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
 	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
 
 	// --- App / routing ---
@@ -18,19 +17,16 @@
 
 	// --- Area & integrations ---
 	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
-	import { createDashboardChannelsGridTableFilter } from '$lib/area-protected/DashboardChannelsGridFilterBuilder.presenter.svelte';
+	import { createDashboardChannelsGridTableFilter } from '$lib/channels/DashboardChannelsGridFilterBuilder.presenter.svelte';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { workspaceSettingsPresenter } from '$lib/settings';
-	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
 
 	// --- Feedback ---
 	import { toast } from '$lib/ui/sonner';
 
 	// --- Data / icons ---
 	import { icons } from '$data/icons';
-	import { socialProviderDisplayLabel, socialProviderIcon } from '$data/social-providers';
-
 	// --- UI ---
 	import { Alert, AlertDescription, AlertTitle } from '$lib/ui/alert';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -38,17 +34,15 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import SetPickerDialog from '$lib/ui/components/posts/SetPickerDialog.svelte';
-	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import ShowChannelActionsModal from '$lib/ui/components/posts/ShowChannelActionsModal.svelte';
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
 	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
-	import { dashboardChannelsGridActionsKey} from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
-	import { Pager, Willow as CoreWillow } from '@svar-ui/svelte-core';
-	import { FilterBuilder, Willow as FilterWillow } from '@svar-ui/svelte-filter';
-	import { Willow, Grid, Tooltip } from '@svar-ui/svelte-grid';
+	import { dashboardChannelsGridActionsKey } from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
+	import DashboardChannelsChipsLayout from '$lib/ui/components/dashboard-channels/DashboardChannelsChipsLayout.svelte';
+	import DashboardChannelsGridLayout from '$lib/ui/components/dashboard-channels/DashboardChannelsGridLayout.svelte';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -585,64 +579,6 @@
 </script>
 
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
-	{#snippet platformChannelRows(rows: DashboardPlatformChannelRowViewModel[])}
-		<div class="divide-y divide-base-300">
-			{#each rows as row (row.identifier)}
-				<div class="flex w-full flex-wrap items-center gap-3 py-4 first:pt-1">
-					<div
-						class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-base-200/70 text-base-content"
-						aria-hidden="true"
-					>
-						<AbstractIcon
-							name={socialProviderIcon(row.identifier)}
-							class="size-6"
-							width="24"
-							height="24"
-						/>
-					</div>
-					<ul class="flex min-w-0 flex-1 list-none flex-wrap gap-2 p-0">
-						{#each row.items as integration (integration.id)}
-							<li class="min-w-0">
-								<IntegrationMenu
-									variant="chip"
-									{integration}
-									workspaceId={workspaceId!}
-									providerIcon={socialProviderIcon}
-									continueSetupHref={(i) => protectedDashboardPagePresenter.continueSetupHref(i)}
-									onCreatePost={() => openCreatePost(integration.id)}
-
-									onMoveToGroup={openMoveGroupModal}
-									onEditTimeSlots={openTimeTableModal}
-									onSetDisabled={handleSetChannelDisabled}
-									onRemove={handleRemoveChannel}
-								/>
-							</li>
-						{/each}
-					</ul>
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						class="shrink-0 gap-1.5 border-base-300"
-						aria-label={`Add another ${socialProviderDisplayLabel(row.identifier)} connection`}
-						onclick={() => startAddAnotherChannel(row.identifier)}
-					>
-						<span class="inline-flex items-center gap-1.5" aria-hidden="true">
-							<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
-							Add more
-							<AbstractIcon
-								name={socialProviderIcon(row.identifier)}
-								class="h-4 w-4"
-								width="16"
-								height="16"
-							/>
-						</span>
-					</Button>
-				</div>
-			{/each}
-		</div>
-	{/snippet}
-
 	<div class="flex items-center gap-3">
 		<AbstractIcon
 			name={icons.Gauge.name}
@@ -837,231 +773,49 @@
 				</p>
 			</div>
 		{:else if channelsLayoutMode === 'table'}
-			<p class="mt-4 text-sm text-base-content/70">
-				To add a channel to a group, open its menu and select
-				<span class="font-medium text-base-content">Move / add to group</span>.
-			</p>
-			<div class="mt-3 rounded-xl border border-base-300 bg-base-100 shadow-sm">
-				<div class="border-b border-base-300 px-3 py-3">
-					{#if channelsFilterPresenter.hasAnyRule}
-						<p class="mb-2 text-xs font-medium tracking-wide text-base-content/70 uppercase">
-							Filters
-						</p>
-					{/if}
-					<div class="flex min-w-0 items-end justify-end gap-2">
-						<div
-							class="channels-filter-builder min-h-0 min-w-0 flex-1 justify-end overflow-y-visible"
-							class:channels-filter-builder--empty={!channelsFilterPresenter.hasAnyRule}
-							class:overflow-x-auto={channelsFilterPresenter.hasAnyRule}
-						>
-							<FilterWillow fonts={false}>
-								<FilterBuilder
-									value={channelsFilterPresenter.value}
-									fields={channelsFilterPresenter.fields}
-									options={channelsFilterPresenter.buildOptions(dashboardChannelTableRowsVm)}
-									type="line"
-									init={(api: unknown) => channelsFilterPresenter.initFilterBuilderApi(api)}
-									onchange={(ev: { value: { glue: 'and' | 'or'; rules: unknown[] } }) =>
-										channelsFilterPresenter.applyChange(ev)}
-								/>
-							</FilterWillow>
-						</div>
-						<div class="relative shrink-0">
-							<Button
-								type="button"
-								variant="secondary"
-								class="h-9 gap-2 whitespace-nowrap"
-								onclick={() => channelsFilterPresenter.toggleAddFilterMenu()}
-								disabled={!channelsFilterPresenter.addableFieldOptions.length || !channelsFilterPresenter.isReady}
-							>
-								<AbstractIcon name={icons.ListFilterPlus.name} class="size-4 shrink-0" width="16" height="16" />
-								Add filters
-								<AbstractIcon name={icons.ChevronDown.name} class="size-4 shrink-0 opacity-80" width="16" height="16" />
-							</Button>
-							{#if channelsFilterPresenter.addFilterMenuOpen}
-								<div
-									class="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-lg"
-								>
-									{#each channelsFilterPresenter.addableFieldOptions as opt (opt.id)}
-										<button
-											type="button"
-											class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-base-content hover:bg-base-200"
-											onclick={() => channelsFilterPresenter.addFilterForField(opt.id)}
-										>
-											<span class="truncate">{opt.label}</span>
-										</button>
-									{/each}
-								</div>
-							{/if}
-						</div>
-					</div>
-				</div>
-
-				<div
-					class="svar-grid-host--fit-content min-h-[200px] min-w-0 w-full overflow-x-auto {channelsGridFilteredRowsVm.length <= 80
-						? 'svar-grid-host--body-auto-height'
-						: ''}"
-					bind:this={channelsGridHostEl}
-				>
-					<Willow fonts={false}>
-						<Tooltip api={channelsGridApi}>
-							<Grid
-								data={channelsGridPagedRowsVm}
-								columns={channelsGridColumnsForHost}
-								sizes={channelsGridSizesForHost}
-								autoRowHeight={channelsGridAutoRowHeight}
-								cellStyle={channelsGridPresenter.dashboardChannelsGridCellStyle}
-								select={false}
-								header={true}
-								init={(api: IApi) => {
-									channelsGridApi = api;
-								}}
-							/>
-						</Tooltip>
-					</Willow>
-				</div>
-
-				<div class="channels-grid-pager border-t border-base-300 px-3 py-2">
-					<CoreWillow fonts={false}>
-						<Pager
-							total={channelsGridFilteredRowsVm.length}
-							bind:pageSize={channelsGridPageSize}
-							bind:value={channelsGridPage}
-						/>
-					</CoreWillow>
-				</div>
-			</div>
-		{:else}
-			{#if channelGroupSections.length > 0}
-				<div class="mt-4 space-y-2">
-					<h4 class="text-sm font-semibold text-base-content/80">
-						Grouped accounts/channels
-					</h4>
-					{#each channelGroupSections as group (group.id)}
-						<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={groupDetailsOpen[group.id]}>
-							<summary
-								class="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden"
-							>
-								<AbstractIcon
-									name={icons.ChevronRight.name}
-									class="size-4 shrink-0 text-base-content/70 transition-transform duration-200 {groupDetailsOpen[group.id]
-										? 'rotate-90'
-										: ''}"
-									width="16"
-									height="16"
-								/>
-								<span class="min-w-0 flex-1 truncate font-medium text-base-content">{group.name}</span>
-								<Button
-									type="button"
-									size="sm"
-									variant="secondary"
-									class="shrink-0"
-									onclick={(e: MouseEvent) => {
-										e.preventDefault();
-										e.stopPropagation();
-										openCreatePostForGroup(group.id);
-									}}
-								>
-									Create Post for {group.name}
-								</Button>
-								<Button
-									type="button"
-									size="sm"
-									variant="outline"
-									class="shrink-0 gap-1.5"
-									onclick={(e: MouseEvent) => {
-										e.preventDefault();
-										e.stopPropagation();
-										goToCalendar(group.id);
-									}}
-								>
-									<AbstractIcon
-										name={icons.CalendarClock.name}
-										class="h-4 w-4"
-										width="16"
-										height="16"
-									/>
-									Calendar
-								</Button>
-							</summary>
-							<div class="border-t border-base-300 px-3 py-3">
-								{@render platformChannelRows(group.platformRows)}
-							</div>
-						</details>
-					{/each}
-				</div>
-			{/if}
-			{#if platformChannelRowsUngrouped.length > 0}
-				<div class="mt-4 space-y-2">
-					<div class="flex flex-wrap items-center justify-between gap-2">
-						<h4 class="text-sm font-semibold text-base-content/80">
-							Ungrouped accounts/channels
-						</h4>
-						<div class="flex flex-wrap items-center justify-end gap-2">
-							<Button
-								type="button"
-								size="sm"
-								variant="primary"
-								class="shrink-0 gap-1.5"
-								onclick={(e: MouseEvent) => {
-									e.preventDefault();
-									e.stopPropagation();
-									openCreatePost(null);
-								}}
-							>
-								<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
-								Create Post
-							</Button>
-							<Button
-								type="button"
-								size="sm"
-								variant="outline"
-								class="shrink-0 gap-1.5"
-								onclick={(e: MouseEvent) => {
-									e.preventDefault();
-									e.stopPropagation();
-									goToCalendar(CALENDAR_UNGROUPED_SENTINEL);
-								}}
-							>
-								<AbstractIcon
-									name={icons.CalendarClock.name}
-									class="h-4 w-4"
-									width="16"
-									height="16"
-								/>
-								Calendar
-							</Button>
-						</div>
-					</div>
-					<p class="text-sm text-base-content/70">
-						To add a channel to a group, open its menu and select <span class="font-medium text-base-content">Move / add to group</span>.
-					</p>
-					{#if channelGroupSections.length === 0}
-						<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={ungroupedDetailsOpen}>
-							<summary
-								class="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden"
-							>
-								<AbstractIcon
-									name={icons.ChevronRight.name}
-									class="size-4 shrink-0 text-base-content/70 transition-transform duration-200 {ungroupedDetailsOpen
-										? 'rotate-90'
-										: ''}"
-									width="16"
-									height="16"
-								/>
-								<span class="font-medium text-base-content">Channels</span>
-							</summary>
-							<div class="border-t border-base-300 px-3 py-3">
-								{@render platformChannelRows(platformChannelRowsUngrouped)}
-							</div>
-						</details>
-					{:else}
-						<div class="rounded-lg border border-base-300 bg-base-200/40 px-3 py-3">
-							{@render platformChannelRows(platformChannelRowsUngrouped)}
-						</div>
-					{/if}
-				</div>
-			{/if}
+			<DashboardChannelsGridLayout
+				filteredRowCount={channelsGridFilteredRowsVm.length}
+				pagedRowsVm={channelsGridPagedRowsVm}
+				filterValue={channelsFilterPresenter.value}
+				filterFields={channelsFilterPresenter.fields}
+				filterHasAnyRule={channelsFilterPresenter.hasAnyRule}
+				filterIsReady={channelsFilterPresenter.isReady}
+				filterAddMenuOpen={channelsFilterPresenter.addFilterMenuOpen}
+				filterAddableFieldOptions={channelsFilterPresenter.addableFieldOptions}
+				filterOptions={channelsFilterPresenter.buildOptions(dashboardChannelTableRowsVm)}
+				gridColumns={channelsGridColumnsForHost}
+				gridSizes={channelsGridSizesForHost}
+				gridAutoRowHeight={channelsGridAutoRowHeight}
+				gridCellStyle={channelsGridPresenter.dashboardChannelsGridCellStyle}
+				bind:gridHostEl={channelsGridHostEl}
+				bind:gridPage={channelsGridPage}
+				bind:gridPageSize={channelsGridPageSize}
+				onFilterInit={(api) => channelsFilterPresenter.initFilterBuilderApi(api)}
+				onFilterChange={(ev) => channelsFilterPresenter.applyChange(ev)}
+				onFilterToggleAddMenu={() => channelsFilterPresenter.toggleAddFilterMenu()}
+				onFilterAddField={(fieldId) => channelsFilterPresenter.addFilterForField(fieldId)}
+				onGridInit={(api) => {
+					channelsGridApi = api;
+				}}
+			/>
+		{:else if workspaceId}
+			<DashboardChannelsChipsLayout
+				{channelGroupSections}
+				{platformChannelRowsUngrouped}
+				bind:groupDetailsOpen
+				bind:ungroupedDetailsOpen
+				workspaceId={workspaceId}
+				continueSetupHref={(i) => pagePresenter.continueSetupHref(i)}
+				onCreatePostForGroup={openCreatePostForGroup}
+				onCreatePost={openCreatePost}
+				onGoToCalendar={goToCalendar}
+				onCreatePostForChannel={(id) => openCreatePost(id)}
+				onMoveToGroup={openMoveGroupModal}
+				onEditTimeSlots={openTimeTableModal}
+				onSetDisabled={handleSetChannelDisabled}
+				onRemove={handleRemoveChannel}
+				onAddAnotherChannel={startAddAnotherChannel}
+			/>
 		{/if}
 	</section>
 </div>
@@ -1134,186 +888,3 @@
 	onRemove={handleRemoveChannel}
 />
 
-<style>
-	:global(.svar-grid-host--fit-content .wx-area),
-	:global(.svar-grid-host--fit-content .wx-grid) {
-		height: auto;
-	}
-
-	:global(.svar-grid-host--fit-content .wx-table-box) {
-		height: auto;
-		overflow: visible;
-	}
-
-	:global(.svar-grid-host--fit-content .wx-scroll) {
-		flex: none;
-		overflow-x: auto !important;
-		overflow-y: visible !important;
-	}
-
-	:global(.svar-grid-host--body-auto-height .wx-body) {
-		height: auto !important;
-		overflow: visible;
-	}
-
-	:global(.wx-grid .wx-row.wx-autoheight .wx-cell) {
-		align-items: flex-start;
-		padding-block: 0.35rem;
-	}
-
-	.svar-grid-host--fit-content :global(.wx-willow-theme),
-	.svar-grid-host--fit-content :global(.wx-willow-dark-theme) {
-		--wx-color-font: var(--color-base-content);
-		--wx-background: var(--color-base-100);
-		--wx-background-alt: var(--color-base-200);
-		--wx-border: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent);
-
-		--wx-table-border: var(--wx-border);
-		--wx-table-header-border: var(--wx-border);
-		--wx-table-header-cell-border: var(--wx-border);
-		--wx-table-footer-cell-border: var(--wx-border);
-		--wx-table-cell-border: var(--wx-border);
-
-		--wx-table-header-background: color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-100));
-		--wx-table-select-background: color-mix(in oklab, var(--color-primary) 22%, var(--color-base-100));
-		--wx-table-select-focus-background: color-mix(in oklab, var(--color-primary) 28%, var(--color-base-100));
-		--wx-table-select-color: var(--color-base-content);
-		--wx-table-select-border: inset 3px 0 var(--color-primary);
-		--wx-table-fixed-column-right-border: 3px solid
-			color-mix(in oklab, var(--color-base-content) 14%, transparent);
-
-		--wx-table-editor-dropdown-border: var(--wx-border);
-		--wx-table-editor-dropdown-shadow: 0 10px 30px
-			color-mix(in oklab, var(--color-base-content) 18%, transparent);
-	}
-
-	.channels-filter-builder :global(.wx-willow-theme),
-	.channels-filter-builder :global(.wx-willow-dark-theme) {
-		--wx-filter-or-background: var(--color-primary);
-		--wx-filter-or-font-color: var(--color-primary-content);
-		--wx-filter-and-background: var(--color-accent);
-		--wx-filter-and-font-color: var(--color-accent-content);
-	}
-
-	.channels-filter-builder {
-		display: flex;
-		justify-content: flex-end;
-	}
-
-	.channels-filter-builder :global(.wx-group.wx-line) {
-		justify-content: flex-end;
-		flex-wrap: wrap;
-	}
-
-	.channels-filter-builder--empty {
-		flex: 0 0 0;
-		width: 0;
-		max-width: 0;
-		min-height: 0;
-		max-height: 0;
-		overflow: visible;
-		opacity: 0;
-		pointer-events: none;
-	}
-
-	.channels-filter-builder--empty :global(.wx-rule) {
-		pointer-events: auto;
-	}
-
-	.channels-filter-builder--empty :global(.wx-group.wx-line),
-	.channels-filter-builder--empty :global(.wx-willow-theme) {
-		background: transparent;
-		padding: 0;
-	}
-
-	.channels-filter-builder :global(.wx-toolbar.wx-line .wx-button) {
-		display: none;
-	}
-
-	.channels-filter-builder :global(.wx-rule .wx-menu-icon) {
-		opacity: 1;
-		background: var(--color-base-100);
-		color: var(--color-base-content);
-		border: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent);
-		box-shadow: 0 1px 0 color-mix(in oklab, var(--color-base-content) 10%, transparent);
-		font-style: normal;
-	}
-
-	.channels-filter-builder :global(.wx-rule .wx-menu-icon::before) {
-		content: '⋮';
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-		font-size: 16px;
-		line-height: 1;
-	}
-
-	/* Pager: bridge SVAR Willow vars to DaisyUI (same pattern as grid above). */
-	.channels-grid-pager :global(.wx-willow-theme),
-	.channels-grid-pager :global(.wx-willow-dark-theme) {
-		--wx-color-font: var(--color-base-content);
-		--wx-color-font-alt: color-mix(in oklab, var(--color-base-content) 62%, transparent);
-		--wx-color-font-disabled: color-mix(in oklab, var(--color-base-content) 38%, transparent);
-		--wx-color-link: var(--color-primary);
-
-		--wx-background: transparent;
-		--wx-background-alt: var(--color-base-200);
-		--wx-background-hover: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-200));
-
-		--wx-border: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent);
-		--wx-icon-color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
-
-		--wx-input-font-color: var(--color-base-content);
-		--wx-input-background: var(--color-base-100);
-		--wx-input-border: 1px solid color-mix(in oklab, var(--color-base-content) 18%, transparent);
-		--wx-input-border-focus: 1px solid var(--color-primary);
-		--wx-input-placeholder-color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
-
-		height: auto !important;
-		background: transparent;
-	}
-
-	.channels-grid-pager :global(.wx-pager) {
-		padding: 0;
-		justify-content: space-between;
-		gap: 0.75rem;
-		flex-wrap: wrap;
-		font-size: 0.875rem;
-		line-height: 1.25rem;
-		color: var(--color-base-content);
-	}
-
-	.channels-grid-pager :global(.wx-pager .wx-left),
-	.channels-grid-pager :global(.wx-pager .wx-center),
-	.channels-grid-pager :global(.wx-pager .wx-right) {
-		color: var(--color-base-content);
-	}
-
-	.channels-grid-pager :global(.wx-pager .wx-right) {
-		color: color-mix(in oklab, var(--color-base-content) 68%, transparent);
-	}
-
-	.channels-grid-pager :global(.wx-pager input) {
-		background: var(--color-base-100);
-		border-color: color-mix(in oklab, var(--color-base-content) 18%, transparent);
-		color: var(--color-base-content);
-	}
-
-	.channels-grid-pager :global(.wx-pager input:focus) {
-		border-color: var(--color-primary);
-	}
-
-	.channels-grid-pager :global(.wx-pager .wx-icon) {
-		color: var(--color-base-content);
-	}
-
-	.channels-grid-pager :global(.wx-pager .wx-icon:hover) {
-		background-color: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-200));
-	}
-
-	.channels-grid-pager :global(.wx-pager .wx-icon.wx-disabled) {
-		color: color-mix(in oklab, var(--color-base-content) 35%, transparent);
-	}
-</style>

@@ -2,7 +2,7 @@
 	import type { ICellProps } from '@svar-ui/svelte-grid';
 	import { getContext } from 'svelte';
 
-	import type { DashboardChannelTableRowViewModel } from '$lib/area-protected/DashboardChannelsGridTable.presenter.svelte';
+	import type { DashboardChannelTableRowViewModel } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
 
 	import {
 		dashboardChannelsGridActionsKey,

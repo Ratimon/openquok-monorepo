@@ -41,8 +41,11 @@ import { getPlugPresenter, upsertGlobalPlugPresenter, plugRepository } from '$li
 import { PlugGridTablePresenter } from '$lib/plugs/PlugGridTable.presenter.svelte';
 import { PlugGridFilterBuilderPresenter } from '$lib/plugs/PlugGridFilterBuilder.presenter.svelte';
 import { SetGridFilterBuilderPresenter } from '$lib/sets/SetGridFilterBuilder.presenter.svelte';
-import { DashboardChannelsGridTablePresenter } from '$lib/area-protected/DashboardChannelsGridTable.presenter.svelte';
-import { DashboardChannelsGridFilterBuilderPresenter } from '$lib/area-protected/DashboardChannelsGridFilterBuilder.presenter.svelte';
+import {
+	DashboardChannelsGridFilterBuilderPresenter,
+	DashboardChannelsGridTablePresenter,
+	getChannelPresenter
+} from '$lib/channels';
 
 const developersSettingsPresenter = new DevelopersSettingsPresenter(settingsRepository, workspaceSettingsPresenter);
 
@@ -98,7 +101,8 @@ const protectedDashboardPagePresenter = new ProtectedDashboardPagePresenter(
 	createSocialPostPresenter,
 	postKanbanBoardPresenter,
 	dashboardChannelsGridTable,
-	dashboardChannelsGridFilterBuilder
+	dashboardChannelsGridFilterBuilder,
+	getChannelPresenter
 );
 
 const protectedCalendarPagePresenter = new ProtectedCalendarPagePresenter(
@@ -120,7 +124,8 @@ const protectedAnalyticsPagePresenter = new ProtectedAnalyticsPagePresenter(
 const protectedPayloadWizardPagePresenter = new ProtectedPayloadWizardPagePresenter(
 	integrationsRepository,
 	workspaceSettingsPresenter,
-	createSocialPostPresenter
+	createSocialPostPresenter,
+	getChannelPresenter
 );
 
 const plugGridTable = new PlugGridTablePresenter(getPlugPresenter, plugRepository);

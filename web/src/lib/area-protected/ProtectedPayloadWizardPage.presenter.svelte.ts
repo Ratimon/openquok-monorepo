@@ -1,49 +1,10 @@
 import type { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
 import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
-import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-
-import { parsePostingTimeSlots } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-
-function toCreateSocialPostChannelViewModelFromIntegrationPm(pm: {
-	id: string;
-	internalId: string;
-	name: string;
-	identifier: string;
-	picture: string | null;
-	type: string;
-	disabled: boolean;
-	inBetweenSteps: boolean;
-	refreshNeeded: boolean;
-	group?: { id: string; name: string } | null;
-	time?: unknown;
-}): CreateSocialPostChannelViewModel {
-	const disabled = pm.disabled;
-	const inBetweenSteps = pm.inBetweenSteps;
-	const refreshNeeded = pm.refreshNeeded;
-	const schedulable = !disabled && !inBetweenSteps && !refreshNeeded;
-	const unschedulableReason = (() => {
-		if (disabled) return 'This channel is disabled.';
-		if (inBetweenSteps) return 'Finish connecting this channel first.';
-		if (refreshNeeded) return 'Reconnect this channel first.';
-		return null;
-	})();
-	return {
-		id: pm.id,
-		internalId: pm.internalId,
-		name: pm.name,
-		identifier: pm.identifier,
-		picture: pm.picture,
-		type: pm.type,
-		disabled,
-		inBetweenSteps,
-		refreshNeeded,
-		schedulable,
-		unschedulableReason,
-		group: pm.group ?? null,
-		postingTimes: parsePostingTimeSlots(pm.time)
-	};
-}
+import type {
+	CreateSocialPostChannelViewModel,
+	GetChannelPresenter
+} from '$lib/channels/GetChannel.presenter.svelte';
 
 export type PayloadWizardChannelsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -62,7 +23,8 @@ export class ProtectedPayloadWizardPagePresenter {
 	constructor(
 		private readonly integrationsRepository: IntegrationsRepository,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
-		readonly createSocialPostPresenter: CreateSocialPostPresenter
+		readonly createSocialPostPresenter: CreateSocialPostPresenter,
+		private readonly getChannelPresenter: GetChannelPresenter
 	) {}
 
 	/**
@@ -81,7 +43,9 @@ export class ProtectedPayloadWizardPagePresenter {
 			this.listStatus = 'loading';
 			try {
 				const rowsPm = await this.integrationsRepository.listConnectedIntegrations(orgId);
-				this.connectedChannelsVm = rowsPm.map(toCreateSocialPostChannelViewModelFromIntegrationPm);
+				this.connectedChannelsVm = rowsPm.map((pm) =>
+					this.getChannelPresenter.toCreateSocialPostChannelViewModel(pm)
+				);
 				this.listStatus = 'ready';
 			} catch {
 				this.connectedChannelsVm = [];

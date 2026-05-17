@@ -1,4 +1,4 @@
-import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
 
 export const dashboardChannelsGridActionsKey = Symbol('dashboardChannelsGridActions');
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ICellProps } from '@svar-ui/svelte-grid';
-	import type { DashboardChannelTableRowViewModel } from '$lib/area-protected/DashboardChannelsGridTable.presenter.svelte';
+	import type { DashboardChannelTableRowViewModel } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
 
 	import { socialProviderIcon } from '$data/social-providers';
 
