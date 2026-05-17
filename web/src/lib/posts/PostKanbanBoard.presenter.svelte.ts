@@ -190,9 +190,16 @@ export class PostKanbanBoardPresenter {
 	}
 
 	async deletePostGroup(postGroup: string): Promise<PostKanbanDeletePostGroupResultViewModel> {
+		const prevListPm = this.listPm.filter((r) => r.postGroup === postGroup);
+		this.listPm = this.listPm.filter((r) => r.postGroup !== postGroup);
+		this.rebuildCardsVm();
+
 		const resultPm = await this.postsRepository.deletePostGroup(postGroup);
-		if (!resultPm.ok) return { ok: false, error: resultPm.error };
-		await this.refresh();
+		if (!resultPm.ok) {
+			this.listPm = [...this.listPm, ...prevListPm];
+			this.rebuildCardsVm();
+			return { ok: false, error: resultPm.error };
+		}
 		return { ok: true };
 	}
 
