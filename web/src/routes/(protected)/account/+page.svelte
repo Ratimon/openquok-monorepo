@@ -682,7 +682,7 @@
 		error={postKanbanError}
 		movingPostGroup={postKanbanMovingPostGroup}
 		onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
-		onMoveCardToColumn={(payload, column) => void postKanbanBoard.moveCardToColumn(payload, column)}
+		onMoveCardToColumn={(payload, column) => postKanbanBoard.moveCardToColumn(payload, column)}
 		onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}
 		onNoteChange={(id, note) => void postKanbanBoard.updateNote(id, note)}
 		onOpenPostActions={openKanbanPostActions}

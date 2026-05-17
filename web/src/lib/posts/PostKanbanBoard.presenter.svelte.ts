@@ -46,6 +46,10 @@ export type PostKanbanCopyPostGroupJsonResultViewModel =
 	| { ok: true; json: string }
 	| { ok: false; error: string };
 
+export type PostKanbanMoveCardResultViewModel =
+	| { ok: true; targetColumn: PostKanbanColumnId }
+	| { ok: false; error: string };
+
 const KANBAN_LOOKBACK_DAYS = 90;
 const KANBAN_LOOKAHEAD_DAYS = 90;
 
@@ -285,29 +289,36 @@ export class PostKanbanBoardPresenter {
 	async moveCardToColumn(
 		payload: KanbanCardDragPayload,
 		targetColumn: PostKanbanColumnId
-	): Promise<void> {
+	): Promise<PostKanbanMoveCardResultViewModel> {
 		const org = this.organizationId;
-		if (!org) return;
+		if (!org) {
+			return { ok: false, error: 'Create or select a workspace first.' };
+		}
 		if (!canMoveKanbanCard(payload.sourceColumn, targetColumn)) {
-			this.error =
-				targetColumn === 'published' || payload.sourceColumn === 'published'
-					? 'Published posts cannot be moved on the board.'
-					: 'This column change is not allowed.';
-			return;
+			return {
+				ok: false,
+				error:
+					targetColumn === 'published' || payload.sourceColumn === 'published'
+						? 'Published posts cannot be moved on the board.'
+						: 'This column change is not allowed.'
+			};
 		}
 
 		const targetStatus = columnToApiStatus(targetColumn);
-		if (!targetStatus) return;
+		if (!targetStatus) {
+			return { ok: false, error: 'This column change is not allowed.' };
+		}
 
 		const cardVm = this.findCardVmByPostGroup(payload.postGroup);
 		const postId = cardVm?.postId ?? payload.postId;
-		if (!postId) return;
+		if (!postId) {
+			return { ok: false, error: 'Could not find post to move.' };
+		}
 
 		const targetState = targetStatus === 'draft' ? 'DRAFT' : 'QUEUE';
 		const prevListPm = this.listPm.filter((r) => r.postGroup === payload.postGroup);
 
 		this.movingPostGroup = payload.postGroup;
-		this.error = null;
 		this.patchListPm(postId, { state: targetState, isAgentEdited: false });
 
 		const resultPm = await this.postsRepository.flipPostStatus({
@@ -322,10 +333,10 @@ export class PostKanbanBoardPresenter {
 				...prevListPm
 			];
 			this.rebuildCardsVm();
-			this.error = resultPm.error;
-			return;
+			return { ok: false, error: resultPm.error };
 		}
 		this.mergeListPmFromFlip(resultPm.posts);
+		return { ok: true, targetColumn };
 	}
 
 	private mergeListPmFromFlip(updated: PostRowProgrammerModel[]) {

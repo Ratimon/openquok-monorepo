@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type {
-		PostKanbanColumnsViewModel
+		PostKanbanColumnsViewModel,
+		PostKanbanMoveCardResultViewModel
 	} from '$lib/posts/PostKanbanBoard.presenter.svelte';
 	import type { PostKanbanColumnId, PostKanbanSourceFilter } from '$lib/ui/components/kanban-board/kanbanTypes';
 	import type { KanbanCardDragPayload } from '$lib/ui/components/kanban-board/kanbanDnd';
@@ -9,6 +10,13 @@
 	import KanbanColumn from './KanbanColumn.svelte';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import { toast } from '$lib/ui/sonner';
+
+	function moveTargetColumnLabel(columnId: PostKanbanColumnId): string {
+		if (columnId === 'draft') return 'Draft';
+		if (columnId === 'scheduled') return 'Scheduled';
+		return 'Published';
+	}
 
 	type Props = {
 		columnsVm: PostKanbanColumnsViewModel;
@@ -17,7 +25,10 @@
 		error: string | null;
 		movingPostGroup: string | null;
 		onSourceFilterChange: (next: PostKanbanSourceFilter) => void;
-		onMoveCardToColumn: (payload: KanbanCardDragPayload, targetColumn: PostKanbanColumnId) => void;
+		onMoveCardToColumn: (
+			payload: KanbanCardDragPayload,
+			targetColumn: PostKanbanColumnId
+		) => Promise<PostKanbanMoveCardResultViewModel>;
 		onToggleReviewed: (postId: string, isReviewed: boolean) => void;
 		onNoteChange: (postId: string, note: string) => void;
 		onOpenPostActions?: (payload: { postGroup: string; postId: string }) => void;
@@ -52,10 +63,15 @@
 		dragOverColumnId = null;
 	}
 
-	function handleDropOnColumn(columnId: PostKanbanColumnId, payload: KanbanCardDragPayload) {
+	async function handleDropOnColumn(columnId: PostKanbanColumnId, payload: KanbanCardDragPayload) {
 		dragOverColumnId = null;
 		activeDrag = null;
-		onMoveCardToColumn(payload, columnId);
+		const result = await onMoveCardToColumn(payload, columnId);
+		if (result.ok) {
+			toast.success(`Post moved to ${moveTargetColumnLabel(result.targetColumn)}.`);
+		} else {
+			toast.error(result.error);
+		}
 	}
 </script>
 

@@ -80,6 +80,7 @@ export { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presenter.s
 export type {
 	PostKanbanCardViewModel,
 	PostKanbanChannelSlotViewModel,
-	PostKanbanColumnsViewModel
+	PostKanbanColumnsViewModel,
+	PostKanbanMoveCardResultViewModel
 } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 export { socialProviderIcon, socialProviderIconByIdentifier } from '$data/social-providers';
