@@ -268,13 +268,11 @@ export class OrganizationService {
         params: { name: string; description?: string | null }
     ): Promise<OrganizationLike> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
-        const { organization, error } = await this.organizationRepository.createOrganization(params);
-        if (error) throw error as Error;
-        await this.organizationRepository.addMember({
+        const { organization, error } = await this.organizationRepository.createOrganization({
+            ...params,
             userId,
-            organizationId: organization.id,
-            role: "superadmin",
         });
+        if (error) throw error as Error;
         await this._invalidateOrganizationRelatedCaches({ authUserId });
         return organization;
     }

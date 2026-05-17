@@ -238,12 +238,11 @@ describe("OrganizationService", () => {
     });
 
     describe("createOrganization", () => {
-        it("creates org and adds current user as superadmin", async () => {
+        it("creates org with founding user as superadmin via repository", async () => {
             (orgRepo.createOrganization as jest.Mock).mockResolvedValue({
                 organization: orgRow,
                 error: null,
             });
-            (orgRepo.addMember as jest.Mock).mockResolvedValue({ membership: membershipRow, error: null });
             const service = new OrganizationService(orgRepo, userRepo);
             const result = await service.createOrganization(authUserId, {
                 name: orgName,
@@ -251,11 +250,12 @@ describe("OrganizationService", () => {
             });
             expect(result.id).toBe(orgId);
             expect(result.name).toBe(orgName);
-            expect(orgRepo.addMember).toHaveBeenCalledWith({
+            expect(orgRepo.createOrganization).toHaveBeenCalledWith({
+                name: orgName,
+                description: orgDescription,
                 userId,
-                organizationId: orgId,
-                role: "superadmin",
             });
+            expect(orgRepo.addMember).not.toHaveBeenCalled();
         });
 
         it("invalidates cache after create", async () => {
@@ -263,7 +263,6 @@ describe("OrganizationService", () => {
                 organization: orgRow,
                 error: null,
             });
-            (orgRepo.addMember as jest.Mock).mockResolvedValue({ membership: membershipRow, error: null });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
             const service = new OrganizationService(orgRepo, userRepo, undefined, undefined, {
@@ -282,12 +281,15 @@ describe("OrganizationService", () => {
                 organization: orgRow,
                 error: null,
             });
-            (orgRepo.addMember as jest.Mock).mockResolvedValue({ membership: membershipRow, error: null });
             const service = new OrganizationService(orgRepo, userRepo);
             const result = await service.createDefaultOrganizationForNewUser(authUserId, { name: inputName });
             expect(result).not.toBeNull();
             expect(result!.name).toBe(orgName);
-            expect(orgRepo.createOrganization).toHaveBeenCalledWith({ name: inputName, description: null });
+            expect(orgRepo.createOrganization).toHaveBeenCalledWith({
+                name: inputName,
+                description: null,
+                userId,
+            });
         });
 
         it("uses default name when name is empty", async () => {
@@ -295,10 +297,13 @@ describe("OrganizationService", () => {
                 organization: orgRow,
                 error: null,
             });
-            (orgRepo.addMember as jest.Mock).mockResolvedValue({ membership: membershipRow, error: null });
             const service = new OrganizationService(orgRepo, userRepo);
             await service.createDefaultOrganizationForNewUser(authUserId);
-            expect(orgRepo.createOrganization).toHaveBeenCalledWith({ name: "My Organization", description: null });
+            expect(orgRepo.createOrganization).toHaveBeenCalledWith({
+                name: "My Organization",
+                description: null,
+                userId,
+            });
         });
 
         it("returns null when createOrganization throws", async () => {

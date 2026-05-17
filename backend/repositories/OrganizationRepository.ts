@@ -161,22 +161,36 @@ export class OrganizationRepository {
         return { membership: data as UserOrganizationLike | null, error: null };
     }
 
-    /** Create organization and optionally add first member. */
+    /**
+     * Create organization and add founding user as superadmin via SECURITY DEFINER RPC
+     * (bypasses RLS; required when the Supabase client is not service_role).
+     */
     async createOrganization(params: {
         name: string;
         description?: string | null;
+        userId: string;
     }): Promise<{ organization: OrganizationLike; error: unknown }> {
-        const { data, error } = await this.supabase
-            .from(ORGS_TABLE)
-            .insert({
-                name: params.name,
-                description: params.description ?? null,
-                api_key: await this.generateApiKey(),
-                updated_at: new Date().toISOString(),
-            })
-            .select(ORG_SELECT)
-            .single();
-        return { organization: data as OrganizationLike, error };
+        const apiKey = await this.generateApiKey();
+        const { data, error } = await this.supabase.rpc(
+            "internal_create_organization_with_owner" as never,
+            {
+                p_user_id: params.userId,
+                p_name: params.name,
+                p_description: params.description ?? null,
+                p_api_key: apiKey,
+            } as never
+        );
+        if (error) {
+            return { organization: null as unknown as OrganizationLike, error };
+        }
+        const row = Array.isArray(data) ? data[0] : data;
+        if (!row) {
+            return {
+                organization: null as unknown as OrganizationLike,
+                error: new Error("Failed to create workspace."),
+            };
+        }
+        return { organization: row as OrganizationLike, error: null };
     }
 
     /** Ensure an organization has an API key; writes only when `api_key` is null. */
