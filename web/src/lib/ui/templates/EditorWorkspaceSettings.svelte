@@ -2,17 +2,20 @@
 	import {
 		workspaceCreateFormSchema,
 		workspaceInviteMemberFormSchema,
+		workspaceUpdateFormSchema,
 		type PendingInviteViewModel,
 		type TeamMemberViewModel,
 		type WorkspaceCardViewModel
 	} from '$lib/settings';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
-	
+
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import UpdateWorkspaceModal from '$lib/ui/components/settings/UpdateWorkspaceModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
+	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import * as Field from '$lib/ui/field';
 
 	type Props = {
@@ -23,6 +26,7 @@
 		canInviteInCurrentWorkspace: boolean;
 		loadingWorkspaces: boolean;
 		createSubmitting: boolean;
+		updateSubmitting: boolean;
 		leavingWorkspace: boolean;
 		loadingTeam: boolean;
 		inviting: boolean;
@@ -30,6 +34,10 @@
 		acceptingInviteId: string | null;
 		onSwitchWorkspace: (workspaceId: string) => void;
 		onCreateWorkspace: (name: string) => Promise<{ success: boolean; message: string }>;
+		onUpdateWorkspace: (
+			workspaceId: string,
+			params: { name: string; description: string | null }
+		) => Promise<{ success: boolean; message: string }>;
 		onLeaveWorkspace: (workspaceId: string) => Promise<{ success: boolean; message: string }>;
 		onInviteMember: (params: {
 			email: string;
@@ -48,6 +56,7 @@
 		canInviteInCurrentWorkspace,
 		loadingWorkspaces,
 		createSubmitting,
+		updateSubmitting,
 		leavingWorkspace,
 		loadingTeam,
 		inviting,
@@ -55,6 +64,7 @@
 		acceptingInviteId,
 		onSwitchWorkspace,
 		onCreateWorkspace,
+		onUpdateWorkspace,
 		onLeaveWorkspace,
 		onInviteMember,
 		onAcceptPendingInvite,
@@ -65,7 +75,8 @@
 
 	let createDialogOpen = $state(false);
 	let inviteDialogOpen = $state(false);
-	let openMenuOrgId = $state<string | null>(null);
+	let editWorkspaceModalOpen = $state(false);
+	let editingWorkspaceId = $state<string | null>(null);
 
 	const createWorkspaceForm = createForm(() => ({
 		defaultValues: {
@@ -78,6 +89,31 @@
 			const result = await onCreateWorkspace(value.workspaceName);
 			if (result.success) {
 				createDialogOpen = false;
+			} else {
+				toast.error(result.message);
+			}
+		}
+	}));
+
+	const updateWorkspaceForm = createForm(() => ({
+		defaultValues: {
+			workspaceName: '',
+			workspaceDescription: ''
+		},
+		validators: {
+			onChange: workspaceUpdateFormSchema
+		},
+		onSubmit: async ({ value }) => {
+			const workspaceId = editingWorkspaceId;
+			if (!workspaceId) return;
+			const description = value.workspaceDescription.trim();
+			const result = await onUpdateWorkspace(workspaceId, {
+				name: value.workspaceName,
+				description: description === '' ? null : description
+			});
+			if (result.success) {
+				editWorkspaceModalOpen = false;
+				editingWorkspaceId = null;
 			} else {
 				toast.error(result.message);
 			}
@@ -107,6 +143,10 @@
 			}
 		}
 	}));
+
+	function canEditWorkspace(role: 'user' | 'admin' | 'superadmin'): boolean {
+		return role === 'admin' || role === 'superadmin';
+	}
 
 	function roleDisplayLabel(role: 'user' | 'admin' | 'superadmin'): string {
 		switch (role) {
@@ -188,13 +228,37 @@
 		await onAcceptPendingInvite(inviteId);
 	}
 
+	function openEditWorkspaceModal(org: WorkspaceCardViewModel) {
+		if (!canEditWorkspace(org.workspaceRole)) return;
+		editingWorkspaceId = org.id;
+		updateWorkspaceForm.setFieldValue('workspaceName', org.name);
+		updateWorkspaceForm.setFieldValue('workspaceDescription', org.description ?? '');
+		editWorkspaceModalOpen = true;
+	}
+
+	function handleUpdateWorkspaceFormSubmit(e: Event) {
+		e.preventDefault();
+		e.stopPropagation();
+		if (
+			updateWorkspaceForm.state.errors &&
+			updateWorkspaceForm.state.errors.length > 0 &&
+			updateWorkspaceForm.state.errors[0]
+		) {
+			Object.entries(
+				updateWorkspaceForm.state.errors[0] as Record<string, Array<{ message?: string }>>
+			).forEach(([, errors]) => {
+				errors.forEach((err) => toast.error(err?.message ?? 'Invalid field'));
+			});
+			return;
+		}
+		updateWorkspaceForm.handleSubmit();
+	}
+
 	function copyWorkspaceId(workspaceId: string) {
 		onCopyWorkspaceId(workspaceId);
-		openMenuOrgId = null;
 	}
 
 	async function leaveWorkspace(workspaceId: string) {
-		openMenuOrgId = null;
 		const result = await onLeaveWorkspace(workspaceId);
 		if (!result.success) toast.error(result.message);
 	}
@@ -202,18 +266,6 @@
 	function switchWorkspace(workspaceId: string) {
 		onSwitchWorkspace(workspaceId);
 	}
-
-	$effect(() => {
-		if (!openMenuOrgId) return;
-		function onDocClick(e: MouseEvent) {
-			const t = e.target as Node;
-			if (!document.querySelector('[data-workspace-menu]')?.contains(t)) {
-				openMenuOrgId = null;
-			}
-		}
-		setTimeout(() => document.addEventListener('click', onDocClick), 0);
-		return () => document.removeEventListener('click', onDocClick);
-	});
 </script>
 
 <!-- All Workspaces -->
@@ -254,6 +306,11 @@
 						<p class="mt-1 text-sm text-base-content/70">
 							{org.subtitle}
 						</p>
+						{#if org.description}
+							<p class="mt-0.5 line-clamp-2 text-xs text-base-content/60">
+								{org.description}
+							</p>
+						{/if}
 					</div>
 					<div class="flex items-center gap-2 shrink-0">
 						{#if currentWorkspaceId === org.id}
@@ -273,49 +330,37 @@
 								Switch
 							</Button>
 						{/if}
-						<div class="relative" data-workspace-menu>
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon"
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger
+								class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-base-300 bg-base-100 text-sm font-medium text-base-content shadow-sm outline-none hover:bg-base-content/10 focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50"
 								aria-label="Workspace options"
-								aria-expanded={openMenuOrgId === org.id}
-								aria-haspopup="true"
-								onclick={() => openMenuOrgId = openMenuOrgId === org.id ? null : org.id}
+								disabled={leavingWorkspace}
 							>
 								<AbstractIcon name={icons.Cog.name} width="16" height="16" focusable="false" />
-							</Button>
-							{#if openMenuOrgId === org.id}
-								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<div
-									class="absolute right-0 top-full z-10 mt-1 min-w-[180px] rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
-									role="menu"
-									tabindex="-1"
-									onclick={(e) => e.stopPropagation()}
-									onkeydown={(e) => e.key === 'Escape' && (openMenuOrgId = null)}
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content align="end" sideOffset={6} class="min-w-[180px]">
+								{#if canEditWorkspace(org.workspaceRole)}
+									<DropdownMenu.Item
+										disabled={updateSubmitting}
+										onclick={() => openEditWorkspaceModal(org)}
+									>
+										<AbstractIcon name={icons.Pencil.name} width="16" height="16" focusable="false" />
+										Edit workspace
+									</DropdownMenu.Item>
+								{/if}
+								<DropdownMenu.Item onclick={() => copyWorkspaceId(org.id)}>
+									<AbstractIcon name={icons.Copy.name} width="16" height="16" focusable="false" />
+									Copy Workspace ID
+								</DropdownMenu.Item>
+								<DropdownMenu.Item
+									variant="destructive"
+									disabled={leavingWorkspace}
+									onclick={() => leaveWorkspace(org.id)}
 								>
-									<button
-										type="button"
-										role="menuitem"
-										class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-base-content hover:bg-base-200"
-										onclick={() => copyWorkspaceId(org.id)}
-									>
-										<AbstractIcon name={icons.Copy.name} width="16" height="16" focusable="false" />
-										Copy Workspace ID
-									</button>
-									<button
-										type="button"
-										role="menuitem"
-										class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-error hover:bg-error/10"
-										onclick={() => leaveWorkspace(org.id)}
-										disabled={leavingWorkspace}
-									>
-										<span aria-hidden="true">→</span>
-										Leave Workspace
-									</button>
-								</div>
-							{/if}
-						</div>
+									Leave Workspace
+								</DropdownMenu.Item>
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
 					</div>
 				</div>
 			{/each}
@@ -347,8 +392,12 @@
 			{:else}
 				{#each teamMembersVm as member (member.id)}
 					<div class="flex items-center justify-between gap-4">
-						<span class="text-sm font-medium text-base-content">{member.displayName}</span>
-						<span class="text-sm text-base-content/70">{roleDisplayLabel(member.workspaceRole)}</span>
+						<span class="text-sm font-medium text-base-content">
+							{member.displayName}
+						</span>
+						<span class="text-sm text-base-content/70">
+							{roleDisplayLabel(member.workspaceRole)}
+						</span>
 					</div>
 				{/each}
 			{/if}
@@ -587,3 +636,9 @@
 		</form>
 	</Dialog.Content>
 </Dialog.Root>
+
+<UpdateWorkspaceModal
+	bind:open={editWorkspaceModalOpen}
+	form={updateWorkspaceForm}
+	onSubmit={handleUpdateWorkspaceFormSubmit}
+/>

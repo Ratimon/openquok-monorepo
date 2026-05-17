@@ -232,14 +232,53 @@ export class SettingsRepository {
 		description?: string | null;
 	}): Promise<OrganizationProgrammerModel | null> {
 		try {
+			const body: { name: string; description?: string } = { name: params.name.trim() };
+			const description = params.description?.trim();
+			if (description) body.description = description;
+
 			const { ok, data: createOrganizationDto } = await this.httpGateway.request<CreateOrganizationResponseDto>({
 				method: HttpMethod.POST,
 				url: this.config.endpoints.create,
-				data: { name: params.name.trim(), description: params.description ?? null },
+				data: body,
 				withCredentials: true
 			});
 			if (ok && createOrganizationDto?.success && createOrganizationDto.data) {
 				return toOrganizationPm(createOrganizationDto.data);
+			}
+			return null;
+		} catch {
+			return null;
+		}
+	}
+
+	public async updateOrganization(
+		organizationId: string,
+		params: { name: string; description: string | null }
+	): Promise<OrganizationProgrammerModel | null> {
+		try {
+			const body: { name: string; description: string | null } = {
+				name: params.name.trim(),
+				description: params.description?.trim() ? params.description.trim() : null
+			};
+			const { ok, data: updateOrganizationDto } = await this.httpGateway.request<CreateOrganizationResponseDto>({
+				method: HttpMethod.PATCH,
+				url: this.config.endpoints.update(organizationId),
+				data: body,
+				withCredentials: true
+			});
+			if (ok && updateOrganizationDto?.success && updateOrganizationDto.data) {
+				const updated = toOrganizationPm(updateOrganizationDto.data);
+				this.organizationsPm = this.organizationsPm.map((o) =>
+					o.id === organizationId
+						? {
+								...o,
+								name: updated.name,
+								description: updated.description,
+								updatedAt: updated.updatedAt
+							}
+						: o
+				);
+				return updated;
 			}
 			return null;
 		} catch {

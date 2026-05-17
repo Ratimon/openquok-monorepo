@@ -1,7 +1,12 @@
 import type { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
+import type { SettingsRepository } from '$lib/settings/Settings.repository.svelte';
 import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 import type { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
+import {
+	GetDashboardWorkspacesPresenter,
+	type DashboardWorkspaceCardViewModel
+} from '$lib/area-protected/GetDashboardWorkspaces.presenter.svelte';
 import type { DashboardChannelsGridFilterBuilderPresenter } from '$lib/channels/DashboardChannelsGridFilterBuilder.presenter.svelte';
 import type { DashboardChannelsGridTablePresenter } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
 import type {
@@ -34,6 +39,16 @@ export type DashboardPostConnectQueryViewModel =
 	| { handled: false }
 	| { handled: true; successToastMessage?: string };
 
+export type { DashboardWorkspaceCardViewModel } from '$lib/area-protected/GetDashboardWorkspaces.presenter.svelte';
+
+type MyWorkspacesLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
+
+type DashboardCurrentUserSnapshot = {
+	id?: string | null;
+	email?: string | null;
+	fullName?: string | null;
+};
+
 /**
  * Account `/account` dashboard: workspace channels, channel groups, post-connect query handling, OAuth continue URLs.
  */
@@ -45,8 +60,12 @@ export class ProtectedDashboardPagePresenter {
 	channelGroupsStatus = $state<ChannelGroupsLoadStatus>('idle');
 	showOnboardingWelcome = $state(false);
 
+	myWorkspacesCardsVm = $state<DashboardWorkspaceCardViewModel[]>([]);
+	myWorkspacesStatus = $state<MyWorkspacesLoadStatus>('idle');
+
 	/** Coalesces overlapping list + channel-group loads (same navigation tick, post-connect, etc.). */
 	private dashboardListsInflight: Promise<void> | null = null;
+	private myWorkspacesInflight: Promise<void> | null = null;
 
 	// --- Derived rows for menus / sections (built from connectedChannelsVm) ---
 	/** Grouped by integration `type` for dashboard menus. */
@@ -73,12 +92,14 @@ export class ProtectedDashboardPagePresenter {
 
 	constructor(
 		private readonly integrationsRepository: IntegrationsRepository,
+		private readonly settingsRepository: SettingsRepository,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
 		readonly createSocialPostPresenter: CreateSocialPostPresenter,
 		readonly postKanbanBoardPresenter: PostKanbanBoardPresenter,
 		readonly channelsGridTable: DashboardChannelsGridTablePresenter,
 		readonly channelsGridFilterBuilder: DashboardChannelsGridFilterBuilderPresenter,
-		private readonly getChannelPresenter: GetChannelPresenter
+		private readonly getChannelPresenter: GetChannelPresenter,
+		private readonly getDashboardWorkspacesPresenter: GetDashboardWorkspacesPresenter
 	) {}
 
 	/** Rebuild SVAR grid rows from {@link connectedChannelsVm} (table layout). */
@@ -119,6 +140,51 @@ export class ProtectedDashboardPagePresenter {
 	 * Loads integrations list and channel groups for the current workspace in one coordinated pass.
 	 * Prefer this over separate `loadConnectedIntegrations` / `loadChannelGroups` from UI to avoid duplicate HTTP.
 	 */
+	/**
+	 * Loads team + social channels for every workspace the user belongs to (account dashboard cards).
+	 */
+	async loadMyWorkspacesOverview(currentUser: DashboardCurrentUserSnapshot | null): Promise<void> {
+		const workspaces = this.workspaceSettingsPresenter.workspacesVm;
+		if (workspaces.length === 0) {
+			this.myWorkspacesCardsVm = [];
+			this.myWorkspacesStatus = 'ready';
+			return;
+		}
+		if (this.myWorkspacesInflight) return this.myWorkspacesInflight;
+		const currentWorkspaceId = this.workspaceSettingsPresenter.currentWorkspaceId;
+		this.myWorkspacesStatus = 'loading';
+		this.myWorkspacesInflight = (async () => {
+			try {
+				const cards = await Promise.all(
+					workspaces.map(async (workspace) => {
+						const [membersPm, integrationsPm] = await Promise.all([
+							this.settingsRepository.getTeam(workspace.id),
+							this.integrationsRepository.listConnectedIntegrations(workspace.id)
+						]);
+						return this.getDashboardWorkspacesPresenter.toWorkspaceCardVm({
+							workspace,
+							membersPm,
+							integrationsPm,
+							currentUser,
+							isCurrent: workspace.id === currentWorkspaceId,
+							getChannelPresenter: this.getChannelPresenter
+						});
+					})
+				);
+				this.myWorkspacesCardsVm = cards;
+				this.myWorkspacesStatus = 'ready';
+			} catch {
+				this.myWorkspacesCardsVm = [];
+				this.myWorkspacesStatus = 'error';
+			}
+		})();
+		try {
+			await this.myWorkspacesInflight;
+		} finally {
+			this.myWorkspacesInflight = null;
+		}
+	}
+
 	async loadDashboardLists(): Promise<void> {
 		if (this.dashboardListsInflight) return this.dashboardListsInflight;
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;

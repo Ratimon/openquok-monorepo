@@ -10,6 +10,7 @@ export {
 import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus } from './ProtectedSettingsPage.presenter.svelte';
 import { ProtectedLayoutPagePresenter } from '$lib/area-protected/ProtectedLayoutPage.presenter.svelte';
 import { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import { GetDashboardWorkspacesPresenter } from '$lib/area-protected/GetDashboardWorkspaces.presenter.svelte';
 import { ProtectedCalendarPagePresenter } from '$lib/area-protected/ProtectedCalendarPage.presenter.svelte';
 import { ProtectedMediaPagePresenter } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
 import { ProtectedAnalyticsPagePresenter } from '$lib/area-protected/ProtectedAnalyticsPage.presenter.svelte';
@@ -95,14 +96,18 @@ const dashboardChannelsGridFilterBuilder = new DashboardChannelsGridFilterBuilde
 
 const postKanbanBoardPresenter = new PostKanbanBoardPresenter(postsRepository, getScheduledPostsPresenter);
 
+const getDashboardWorkspacesPresenter = new GetDashboardWorkspacesPresenter();
+
 const protectedDashboardPagePresenter = new ProtectedDashboardPagePresenter(
 	integrationsRepository,
+	settingsRepository,
 	workspaceSettingsPresenter,
 	createSocialPostPresenter,
 	postKanbanBoardPresenter,
 	dashboardChannelsGridTable,
 	dashboardChannelsGridFilterBuilder,
-	getChannelPresenter
+	getChannelPresenter,
+	getDashboardWorkspacesPresenter
 );
 
 const protectedCalendarPagePresenter = new ProtectedCalendarPagePresenter(

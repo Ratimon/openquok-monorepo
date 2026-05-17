@@ -16,7 +16,12 @@
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 
 	// --- Area & integrations ---
-	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
+	import {
+		getRootPathAccount,
+		protectedDashboardPagePresenter,
+		protectedSettingsPagePresenter,
+		WorkspaceSettingsStatus
+	} from '$lib/area-protected';
 	import { createDashboardChannelsGridTableFilter } from '$lib/channels/DashboardChannelsGridFilterBuilder.presenter.svelte';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
@@ -43,6 +48,7 @@
 	import { dashboardChannelsGridActionsKey } from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
 	import DashboardChannelsChipsLayout from '$lib/ui/components/dashboard-channels/DashboardChannelsChipsLayout.svelte';
 	import DashboardChannelsGridLayout from '$lib/ui/components/dashboard-channels/DashboardChannelsGridLayout.svelte';
+	import DashboardMyWorkspaces from '$lib/ui/components/dashboard-workspaces/DashboardMyWorkspaces.svelte';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -94,6 +100,23 @@
 	const postKanbanError = $derived(postKanbanBoard.error);
 	const postKanbanMovingPostGroup = $derived(postKanbanBoard.movingPostGroup);
 	const connectedChannelCountVm = $derived(connectedChannelsVm.length);
+	const myWorkspacesCardsVm = $derived(pagePresenter.myWorkspacesCardsVm);
+	const myWorkspacesStatus = $derived(pagePresenter.myWorkspacesStatus);
+	const workspacesVm = $derived(workspaceSettingsPresenter.workspacesVm);
+	const myWorkspacesTotalCount = $derived(workspacesVm.length);
+	const creatingWorkspace = $derived(
+		workspaceSettingsPresenter.status === WorkspaceSettingsStatus.CREATING
+	);
+	const currentWorkspaceSocialChannelCount = $derived.by(() => {
+		if (myWorkspacesStatus === 'ready') {
+			const current = myWorkspacesCardsVm.find((c) => c.isCurrent);
+			if (current) return current.socialChannelCount;
+		}
+		return connectedChannelsVm.filter((c) => (c.type ?? '').toLowerCase() === 'social').length;
+	});
+	const showPostKanbanBoard = $derived(
+		Boolean(workspaceId) && currentWorkspaceSocialChannelCount > 0
+	);
 	const dashboardChannelTableRowsVm = $derived(channelsGridPresenter.dashboardChannelTableRowsVm);
 
 	const DASHBOARD_CHANNELS_GRID_PAGE_SIZE = 25;
@@ -576,6 +599,50 @@
 		if (!orgId) return;
 		void protectedDashboardPagePresenter.loadDashboardLists();
 	});
+
+	$effect(() => {
+		const workspaceIdsKey = workspacesVm.map((w) => w.id).join(',');
+		void workspaceIdsKey;
+		void pagePresenter.loadMyWorkspacesOverview(currentUser);
+	});
+
+	$effect(() => {
+		const activeId = workspaceId;
+		const cards = pagePresenter.myWorkspacesCardsVm;
+		if (!cards.length || !activeId) return;
+		let changed = false;
+		const next = cards.map((card) => {
+			const isCurrent = card.id === activeId;
+			if (card.isCurrent === isCurrent) return card;
+			changed = true;
+			return { ...card, isCurrent };
+		});
+		if (changed) pagePresenter.myWorkspacesCardsVm = next;
+	});
+
+	function handleSwitchWorkspace(nextWorkspaceId: string) {
+		workspaceSettingsPresenter.switchWorkspace(nextWorkspaceId);
+	}
+
+	function handleOpenWorkspaceSettings(targetWorkspaceId: string) {
+		if (targetWorkspaceId !== workspaceId) {
+			workspaceSettingsPresenter.switchWorkspace(targetWorkspaceId);
+		}
+		void goto(accountSettingsWorkspaceHref);
+	}
+
+	async function handleCreateWorkspace(name: string) {
+		const result = await protectedSettingsPagePresenter.createWorkspace(name);
+		if (result.success) {
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
+		}
+		return result;
+	}
+
+	$effect(() => {
+		if (listStatus !== 'ready' || !workspaceId) return;
+		void pagePresenter.loadMyWorkspacesOverview(currentUser);
+	});
 </script>
 
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
@@ -590,50 +657,47 @@
 			Account dashboard
 		</h1>
 	</div>
-	<p class="mt-2 text-base-content/80">
-		Welcome to your account. Connect channels for the selected workspace and manage them here.
-	</p>
-	{#if currentUser}
-		<dl class="mt-6 grid gap-2 text-sm sm:grid-cols-2">
-			<div class="contents">
-				<dt class="font-medium text-base-content/70">
-					Email</dt>
-				<dd class="text-base-content">
-					{currentUser.email}</dd>
-			</div>
-			<div class="contents">
-				<dt class="font-medium text-base-content/70">
-					Full name</dt>
-				<dd class="text-base-content">
-					{currentUser.fullName ?? '—'}</dd>
-			</div>
-			<div class="contents">
-				<dt class="font-medium text-base-content/70">
-					Username</dt>
-				<dd class="text-base-content">
-					{currentUser.username ?? '—'}</dd>
-			</div>
-		</dl>
+	{#if listStatus === 'ready' && connectedChannelCountVm === 0}
+		<p class="mt-2 text-base-content/80">
+			Welcome{currentUser?.fullName ? `, ${currentUser.fullName}` : ''}! Connect channels for the
+			selected workspace to start scheduling posts and manage them here.
+		</p>
+	{:else if showPostKanbanBoard}
+		<p class="mt-2 text-base-content/80">
+			{currentUser?.fullName ? `${currentUser.fullName}, pick` : 'Pick'} up where you left off — move
+			posts through Draft, Scheduled, and Published for your connected channels.
+		</p>
 	{/if}
-
-	<PostKanbanBoard
-		columnsVm={postKanbanColumnsVm}
-		columnCountsVm={postKanbanColumnCountsVm}
-		columnOptions={postKanbanColumnOptions}
-		sourceFilterOptions={postKanbanSourceFilterOptions}
-		timeFilterOptions={postKanbanTimeFilterOptions}
-		sourceFilter={postKanbanSourceFilter}
-		timeFilter={postKanbanTimeFilter}
-		status={postKanbanStatus}
-		error={postKanbanError}
-		movingPostGroup={postKanbanMovingPostGroup}
-		onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
-		onTimeFilterChange={(next) => postKanbanBoard.setTimeFilter(next)}
-		onMoveCardToColumn={(payload, column) => postKanbanBoard.moveCardToColumn(payload, column)}
-		onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}
-		onNoteChange={(id, note) => void postKanbanBoard.updateNote(id, note)}
-		onOpenPostActions={openKanbanPostActions}
+	<DashboardMyWorkspaces
+		cards={myWorkspacesCardsVm}
+		status={myWorkspacesStatus}
+		totalCount={myWorkspacesTotalCount}
+		creatingWorkspace={creatingWorkspace}
+		onSwitchWorkspace={handleSwitchWorkspace}
+		onOpenWorkspaceSettings={handleOpenWorkspaceSettings}
+		onCreateWorkspace={handleCreateWorkspace}
 	/>
+
+	{#if showPostKanbanBoard}
+		<PostKanbanBoard
+			columnsVm={postKanbanColumnsVm}
+			columnCountsVm={postKanbanColumnCountsVm}
+			columnOptions={postKanbanColumnOptions}
+			sourceFilterOptions={postKanbanSourceFilterOptions}
+			timeFilterOptions={postKanbanTimeFilterOptions}
+			sourceFilter={postKanbanSourceFilter}
+			timeFilter={postKanbanTimeFilter}
+			status={postKanbanStatus}
+			error={postKanbanError}
+			movingPostGroup={postKanbanMovingPostGroup}
+			onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
+			onTimeFilterChange={(next) => postKanbanBoard.setTimeFilter(next)}
+			onMoveCardToColumn={(payload, column) => postKanbanBoard.moveCardToColumn(payload, column)}
+			onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}
+			onNoteChange={(id, note) => void postKanbanBoard.updateNote(id, note)}
+			onOpenPostActions={openKanbanPostActions}
+		/>
+	{/if}
 
 	<section class="mt-8">
 		<div class="flex flex-wrap items-center justify-between gap-3">

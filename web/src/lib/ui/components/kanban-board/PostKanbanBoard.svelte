@@ -96,7 +96,7 @@
 	<div class="flex flex-col gap-3">
 		<div>
 			<h2 id="post-kanban-heading" class="text-lg font-semibold text-base-content">
-				Ongoing Tasks
+				On-going Tasks
 			</h2>
 			<p class="mt-1 text-sm text-base-content/70">
 				Review AI-generated and manual posts before they go live. Drag between Drafted and Scheduled;

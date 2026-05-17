@@ -5,6 +5,7 @@ import { authenticationRepository } from '$lib/user-auth/index';
 export interface WorkspaceCardViewModel {
 	id: string;
 	name: string;
+	description: string | null;
 	subtitle: string;
 	workspaceRole: 'user' | 'admin' | 'superadmin';
 	disabled: boolean;
@@ -24,6 +25,7 @@ export class GetWorkspacePresenter {
 		return {
 			id: pm.id,
 			name: pm.name,
+			description: pm.description ?? null,
 			subtitle: `${pm.memberCount} ${memberLabel}`,
 			workspaceRole: pm.workspaceRole,
 			disabled: pm.disabled

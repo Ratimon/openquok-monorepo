@@ -22,7 +22,6 @@
 	import EditorWorkspaceSettings from '$lib/ui/templates/EditorWorkspaceSettings.svelte';
 	import SidebarSecondary from '$lib/ui/templates/SidebarSecondary.svelte';
 	
-	
 	const ctx = getContext<SettingsSidebarContext>(SETTINGS_SIDEBAR_KEY);
 	const currentSection = $derived(ctx?.getCurrentSection() ?? 'timezone');
 	const sectionTitle = $derived(ctx?.getSectionTitle() ?? 'Global Settings');
@@ -43,6 +42,7 @@
 	const canInviteInCurrentWorkspace = $derived(workspacePresenter.canInviteInCurrentWorkspace);
 	const loadingWorkspaces = $derived(workspacePresenter.status === WorkspaceSettingsStatus.LOADING);
 	const createSubmitting = $derived(workspacePresenter.status === WorkspaceSettingsStatus.CREATING);
+	const updateSubmitting = $derived(workspacePresenter.status === WorkspaceSettingsStatus.UPDATING);
 	const leavingWorkspace = $derived(workspacePresenter.status === WorkspaceSettingsStatus.LEAVING);
 	const loadingTeam = $derived(workspacePresenter.status === WorkspaceSettingsStatus.LOADING_TEAM);
 	const inviting = $derived(workspacePresenter.status === WorkspaceSettingsStatus.INVITING);
@@ -154,6 +154,13 @@
 		return pagePresenter.createWorkspace(name);
 	}
 
+	async function handleUpdateWorkspace(
+		workspaceId: string,
+		params: { name: string; description: string | null }
+	) {
+		return pagePresenter.updateWorkspace(workspaceId, params);
+	}
+
 	async function handleLeaveWorkspace(workspaceId: string) {
 		return pagePresenter.leaveWorkspace(workspaceId);
 	}
@@ -209,6 +216,7 @@
 			canInviteInCurrentWorkspace={canInviteInCurrentWorkspace}
 			loadingWorkspaces={loadingWorkspaces}
 			createSubmitting={createSubmitting}
+			updateSubmitting={updateSubmitting}
 			leavingWorkspace={leavingWorkspace}
 			loadingTeam={loadingTeam}
 			inviting={inviting}
@@ -216,6 +224,7 @@
 			acceptingInviteId={acceptingInviteId}
 			onSwitchWorkspace={handleSwitchWorkspace}
 			onCreateWorkspace={handleCreateWorkspace}
+			onUpdateWorkspace={handleUpdateWorkspace}
 			onLeaveWorkspace={handleLeaveWorkspace}
 			onInviteMember={handleInviteMember}
 			onAcceptPendingInvite={handleAcceptPendingInvite}

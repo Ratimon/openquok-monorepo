@@ -70,6 +70,13 @@ export class ProtectedSettingsPagePresenter {
 		return this.workspaceSettingsPresenter.createWorkspace(name);
 	}
 
+	updateWorkspace(
+		workspaceId: string,
+		params: { name: string; description: string | null }
+	): Promise<{ success: boolean; message: string }> {
+		return this.workspaceSettingsPresenter.updateWorkspace(workspaceId, params);
+	}
+
 	leaveWorkspace(workspaceId: string): Promise<{ success: boolean; message: string }> {
 		return this.workspaceSettingsPresenter.leaveWorkspace(workspaceId);
 	}

@@ -46,6 +46,7 @@ export enum WorkspaceSettingsStatus {
 	LOADING = 'LOADING',
 	CREATING = 'CREATING',
 	LEAVING = 'LEAVING',
+	UPDATING = 'UPDATING',
 	LOADING_TEAM = 'LOADING_TEAM',
 	INVITING = 'INVITING',
 	VALIDATING_INVITE = 'VALIDATING_INVITE',
@@ -93,6 +94,10 @@ export class WorkspaceSettingsPresenter {
 		return this.currentWorkspaceRole === 'admin' || this.currentWorkspaceRole === 'superadmin';
 	}
 
+	public canEditWorkspace(workspaceRole: 'user' | 'admin' | 'superadmin'): boolean {
+		return workspaceRole === 'admin' || workspaceRole === 'superadmin';
+	}
+
 	public async load(options?: { includeTeam?: boolean }): Promise<void> {
 		if (this.loadInflight) return this.loadInflight;
 		const includeTeam = options?.includeTeam !== false;
@@ -134,6 +139,44 @@ export class WorkspaceSettingsPresenter {
 		this.toastMessage = 'Switched workspace.';
 		this.toastIsError = false;
 		this.showToastMessage = true;
+	}
+
+	public async updateWorkspace(
+		workspaceId: string,
+		params: { name: string; description: string | null }
+	): Promise<{ success: boolean; message: string }> {
+		const workspace = this.workspacesVm.find((w) => w.id === workspaceId);
+		if (!workspace) {
+			return { success: false, message: 'Workspace not found.' };
+		}
+		if (!this.canEditWorkspace(workspace.workspaceRole)) {
+			const msg = 'Only workspace admins can edit workspace details.';
+			this.toastMessage = msg;
+			this.toastIsError = true;
+			this.showToastMessage = true;
+			return { success: false, message: msg };
+		}
+		this.status = WorkspaceSettingsStatus.UPDATING;
+		try {
+			const updatedPm = await this.settingsRepository.updateOrganization(workspaceId, params);
+			if (!updatedPm) {
+				const msg = 'Failed to update workspace. Please try again.';
+				this.toastMessage = msg;
+				this.toastIsError = true;
+				this.showToastMessage = true;
+				return { success: false, message: msg };
+			}
+			this.workspacesVm = this.settingsRepository.organizationsPm.map((o) =>
+				this.getWorkspacePresenter.toCardVm(o)
+			);
+			this.updateCurrentWorkspaceRole();
+			this.toastMessage = 'Workspace updated.';
+			this.toastIsError = false;
+			this.showToastMessage = true;
+			return { success: true, message: 'Workspace updated.' };
+		} finally {
+			this.status = WorkspaceSettingsStatus.IDLE;
+		}
 	}
 
 	public async createWorkspace(defaultName = 'My Workspace'): Promise<{ success: boolean; message: string }> {

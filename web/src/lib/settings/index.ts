@@ -64,8 +64,10 @@ export { WorkspaceSettingsPresenter, WorkspaceSettingsStatus } from '$lib/settin
 export type { WorkspaceCardViewModel, TeamMemberViewModel, PendingInviteViewModel } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 export {
 	workspaceCreateFormSchema,
+	workspaceUpdateFormSchema,
 	workspaceInviteMemberFormSchema,
 	type WorkspaceCreateFormSchemaType,
+	type WorkspaceUpdateFormSchemaType,
 	type WorkspaceInviteMemberFormSchemaType
 } from '$lib/settings/settings.types';
 

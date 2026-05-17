@@ -6,7 +6,7 @@ const workspaceMembershipRoleSchema = z.enum(["user", "admin", "superadmin"]);
 
 export const createOrganizationBodySchema = z.object({
     name: z.string().min(1, "Name is required").max(256).trim(),
-    description: z.string().max(2000).trim().optional(),
+    description: z.string().max(2000).trim().nullish(),
 });
 
 export const updateOrganizationBodySchema = z.object({
