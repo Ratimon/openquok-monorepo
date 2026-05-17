@@ -3,6 +3,7 @@ import type {
 	IntegrationsRepository
 } from '$lib/integrations/Integrations.repository.svelte';
 import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
+import type { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import type { DashboardChannelsGridFilterBuilderPresenter } from '$lib/area-protected/DashboardChannelsGridFilterBuilder.presenter.svelte';
 import type { DashboardChannelsGridTablePresenter } from '$lib/area-protected/DashboardChannelsGridTable.presenter.svelte';
@@ -254,6 +255,7 @@ export class ProtectedDashboardPagePresenter {
 		private readonly integrationsRepository: IntegrationsRepository,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
 		readonly createSocialPostPresenter: CreateSocialPostPresenter,
+		readonly postKanbanBoardPresenter: PostKanbanBoardPresenter,
 		readonly channelsGridTable: DashboardChannelsGridTablePresenter,
 		readonly channelsGridFilterBuilder: DashboardChannelsGridFilterBuilderPresenter
 	) {}

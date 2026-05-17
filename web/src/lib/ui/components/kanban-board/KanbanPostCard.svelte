@@ -7,7 +7,7 @@
 	import { KANBAN_CARD_DRAG_MIME, serializeKanbanCardDrag } from '$lib/ui/components/kanban-board/kanbanDnd';
 
 	type Props = {
-		card: PostKanbanCardViewModel;
+		cardVm: PostKanbanCardViewModel;
 		isMoving: boolean;
 		onDragStart: (payload: import('./kanbanDnd').KanbanCardDragPayload) => void;
 		onDragEnd: () => void;
@@ -16,24 +16,24 @@
 		onOpenActions?: (payload: { postGroup: string; postId: string }) => void;
 	};
 
-	let { card, isMoving, onDragStart, onDragEnd, onToggleReviewed, onNoteChange, onOpenActions }: Props =
+	let { cardVm, isMoving, onDragStart, onDragEnd, onToggleReviewed, onNoteChange, onOpenActions }: Props =
 		$props();
 
 	let noteDraft = $state('');
 	let isEditingNote = $state(false);
 	let noteAreaEl = $state<HTMLTextAreaElement | null>(null);
 
-	const isDraggable = $derived(card.column !== 'published' && !isEditingNote);
-	const multiChannels = $derived(card.channelSlots.length > 1);
-	const previewSlots = $derived(card.channelSlots.slice(0, 3));
+	const isDraggable = $derived(cardVm.column !== 'published' && !isEditingNote);
+	const multiChannels = $derived(cardVm.channelSlots.length > 1);
+	const previewSlots = $derived(cardVm.channelSlots.slice(0, 3));
 	const showEditedBadge = $derived(
-		!card.isAgentEdited &&
-			(Boolean(card.note?.trim()) || card.isReviewed || card.isAgentOrigin)
+		!cardVm.isAgentEdited &&
+			(Boolean(cardVm.note?.trim()) || cardVm.isReviewed || cardVm.isAgentOrigin)
 	);
 
 	$effect(() => {
 		if (!isEditingNote) {
-			noteDraft = card.note ?? '';
+			noteDraft = cardVm.note ?? '';
 		}
 	});
 
@@ -45,14 +45,14 @@
 
 	function commitNote() {
 		const trimmed = noteDraft.trim();
-		if (trimmed !== (card.note ?? '').trim()) {
-			onNoteChange(card.postId, trimmed);
+		if (trimmed !== (cardVm.note ?? '').trim()) {
+			onNoteChange(cardVm.postId, trimmed);
 		}
 		isEditingNote = false;
 	}
 
 	function cancelNoteEdit() {
-		noteDraft = card.note ?? '';
+		noteDraft = cardVm.note ?? '';
 		isEditingNote = false;
 	}
 
@@ -68,9 +68,9 @@
 
 	function dragPayload() {
 		return {
-			postId: card.postId,
-			postGroup: card.postGroup,
-			sourceColumn: card.column
+			postId: cardVm.postId,
+			postGroup: cardVm.postGroup,
+			sourceColumn: cardVm.column
 		};
 	}
 
@@ -95,21 +95,21 @@
 	}
 
 	function openNoteEditor() {
-		if (card.column === 'published') return;
+		if (cardVm.column === 'published') return;
 		isEditingNote = true;
 	}
 
 	function openActions(e: MouseEvent) {
 		e.stopPropagation();
-		onOpenActions?.({ postGroup: card.postGroup, postId: card.postId });
+		onOpenActions?.({ postGroup: cardVm.postGroup, postId: cardVm.postId });
 	}
 </script>
 
 <article
 	class="group relative flex flex-col overflow-hidden rounded-[10px] border border-base-300 bg-base-100 shadow-sm transition-opacity"
 	class:opacity-50={isMoving}
-	class:ring-2={card.isAgentEdited && !card.isReviewed}
-	class:ring-warning={card.isAgentEdited && !card.isReviewed}
+	class:ring-2={cardVm.isAgentEdited && !cardVm.isReviewed}
+	class:ring-warning={cardVm.isAgentEdited && !cardVm.isReviewed}
 	draggable={isDraggable}
 	class:cursor-grab={isDraggable}
 	class:active:cursor-grabbing={isDraggable}
@@ -136,8 +136,8 @@
 						</div>
 					{/each}
 				</div>
-			{:else if card.channelSlots[0]}
-				{@const slot = card.channelSlots[0]}
+			{:else if cardVm.channelSlots[0]}
+				{@const slot = cardVm.channelSlots[0]}
 				<div class="relative h-7 w-7 shrink-0">
 					<IntegrationChannelPicture
 						profilePictureUrl={slot.picture}
@@ -160,13 +160,13 @@
 				<div class="h-7 w-7 shrink-0 rounded-md bg-primary-content/20"></div>
 			{/if}
 
-			<span class="min-w-0 truncate font-medium">{card.statusLabel}</span>
+			<span class="min-w-0 truncate font-medium">{cardVm.statusLabel}</span>
 
-			{#if card.hiddenChannelCount > 0}
+			{#if cardVm.hiddenChannelCount > 0}
 				<span
 					class="shrink-0 rounded bg-primary-content/20 px-1 py-px text-[9px] font-semibold"
 				>
-					+{card.hiddenChannelCount}
+					+{cardVm.hiddenChannelCount}
 				</span>
 			{/if}
 		</div>
@@ -187,10 +187,10 @@
 	<div class="flex min-w-0 flex-col gap-1.5 p-2">
 		<div class="flex items-start justify-between gap-1.5">
 			<p class="line-clamp-2 min-w-0 flex-1 text-xs font-medium text-base-content select-none">
-				{#if card.column === 'draft'}<span class="text-base-content/55">Draft: </span>{/if}
-				{card.contentPreview || '—'}
+				{#if cardVm.column === 'draft'}<span class="text-base-content/55">Draft: </span>{/if}
+				{cardVm.contentPreview || '—'}
 			</p>
-			{#if card.isAgentEdited}
+			{#if cardVm.isAgentEdited}
 				<span class="badge badge-warning badge-xs shrink-0">AI</span>
 			{:else if showEditedBadge}
 				<span class="badge badge-info badge-xs shrink-0">Edited</span>
@@ -198,8 +198,8 @@
 		</div>
 
 		<p class="truncate text-[10px] text-base-content/60 select-none">
-			{card.primaryChannelName || 'No channel'}{card.publishTimeLabel
-				? ` @ ${card.publishTimeLabel}`
+			{cardVm.primaryChannelName || 'No channel'}{cardVm.publishTimeLabel
+				? ` @ ${cardVm.publishTimeLabel}`
 				: ''}
 		</p>
 
@@ -208,9 +208,9 @@
 				<input
 					type="checkbox"
 					class="checkbox checkbox-primary checkbox-xs rounded-sm"
-					checked={card.isReviewed}
-					disabled={card.column === 'published'}
-					onchange={(e) => onToggleReviewed(card.postId, e.currentTarget.checked)}
+					checked={cardVm.isReviewed}
+					disabled={cardVm.column === 'published'}
+					onchange={(e) => onToggleReviewed(cardVm.postId, e.currentTarget.checked)}
 				/>
 				<span class="text-[10px] leading-none text-base-content/70">Reviewed</span>
 			</label>
@@ -239,10 +239,10 @@
 						}
 					}}
 				>
-					{#if card.note?.trim()}
+					{#if cardVm.note?.trim()}
 						<span class="text-base-content/50">Note:</span>
-						{card.note}
-					{:else if card.column !== 'published'}
+						{cardVm.note}
+					{:else if cardVm.column !== 'published'}
 						<span class="text-base-content/40">Double-click to add review note…</span>
 					{/if}
 				</div>

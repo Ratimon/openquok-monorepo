@@ -90,12 +90,13 @@ const createSocialPostPresenter = new CreateSocialPostPresenter(
 const dashboardChannelsGridTable = new DashboardChannelsGridTablePresenter();
 const dashboardChannelsGridFilterBuilder = new DashboardChannelsGridFilterBuilderPresenter();
 
-const postKanbanBoardPresenter = new PostKanbanBoardPresenter(postsRepository);
+const postKanbanBoardPresenter = new PostKanbanBoardPresenter(postsRepository, getScheduledPostsPresenter);
 
 const protectedDashboardPagePresenter = new ProtectedDashboardPagePresenter(
 	integrationsRepository,
 	workspaceSettingsPresenter,
 	createSocialPostPresenter,
+	postKanbanBoardPresenter,
 	dashboardChannelsGridTable,
 	dashboardChannelsGridFilterBuilder
 );
@@ -172,6 +173,5 @@ export {
 	composerMediaModalPresenter,
 	mediaLibraryMediaModalPresenter,
 	schedulerPresenter,
-	signatureSettingPresenter,
-	postKanbanBoardPresenter,
+	signatureSettingPresenter
 };

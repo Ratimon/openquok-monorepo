@@ -1,6 +1,7 @@
 <script lang="ts">
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-	import type { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presenter.svelte';
+	import type {
+		PostKanbanColumnsViewModel
+	} from '$lib/posts/PostKanbanBoard.presenter.svelte';
 	import type { PostKanbanColumnId, PostKanbanSourceFilter } from '$lib/ui/components/kanban-board/kanbanTypes';
 	import type { KanbanCardDragPayload } from '$lib/ui/components/kanban-board/kanbanDnd';
 
@@ -10,29 +11,33 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = {
-		presenter: PostKanbanBoardPresenter;
-		channels?: readonly CreateSocialPostChannelViewModel[];
+		columnsVm: PostKanbanColumnsViewModel;
+		sourceFilter: PostKanbanSourceFilter;
+		status: 'idle' | 'loading' | 'ready' | 'error';
+		error: string | null;
+		movingPostGroup: string | null;
+		onSourceFilterChange: (next: PostKanbanSourceFilter) => void;
+		onMoveCardToColumn: (payload: KanbanCardDragPayload, targetColumn: PostKanbanColumnId) => void;
+		onToggleReviewed: (postId: string, isReviewed: boolean) => void;
+		onNoteChange: (postId: string, note: string) => void;
 		onOpenPostActions?: (payload: { postGroup: string; postId: string }) => void;
 	};
 
-	let { presenter, channels = [], onOpenPostActions }: Props = $props();
-
-	$effect(() => {
-		presenter.setChannels(channels);
-	});
+	let {
+		columnsVm,
+		sourceFilter,
+		status,
+		error,
+		movingPostGroup,
+		onSourceFilterChange,
+		onMoveCardToColumn,
+		onToggleReviewed,
+		onNoteChange,
+		onOpenPostActions
+	}: Props = $props();
 
 	let dragOverColumnId = $state<PostKanbanColumnId | null>(null);
 	let activeDrag = $state<KanbanCardDragPayload | null>(null);
-
-	const sourceFilter = $derived(presenter.sourceFilter);
-	const status = $derived(presenter.status);
-	const columns = $derived(presenter.columnsVm);
-	const error = $derived(presenter.error);
-	const movingPostGroup = $derived(presenter.movingPostGroup);
-
-	function setFilter(next: PostKanbanSourceFilter) {
-		presenter.setSourceFilter(next);
-	}
 
 	function handleDragOverColumn(columnId: PostKanbanColumnId | null) {
 		dragOverColumnId = columnId;
@@ -50,7 +55,7 @@
 	function handleDropOnColumn(columnId: PostKanbanColumnId, payload: KanbanCardDragPayload) {
 		dragOverColumnId = null;
 		activeDrag = null;
-		void presenter.moveCardToColumn(payload, columnId);
+		onMoveCardToColumn(payload, columnId);
 	}
 </script>
 
@@ -81,7 +86,7 @@
 					size="sm"
 					class="rounded-none px-3"
 					aria-pressed={sourceFilter === opt.id}
-					onclick={() => setFilter(opt.id)}
+					onclick={() => onSourceFilterChange(opt.id)}
 				>
 					{opt.label}
 				</Button>
@@ -99,7 +104,7 @@
 				<KanbanColumn
 					columnId={col.id}
 					title={col.title}
-					cards={columns[col.id]}
+					cardsVm={columnsVm[col.id]}
 					{movingPostGroup}
 					{activeDrag}
 					isDragOver={dragOverColumnId === col.id}
@@ -108,8 +113,8 @@
 					onDragEnd={handleCardDragEnd}
 					onDragOverColumn={handleDragOverColumn}
 					onDropOnColumn={handleDropOnColumn}
-					onToggleReviewed={(id, checked) => presenter.toggleReviewed(id, checked)}
-					onNoteChange={(id, note) => presenter.updateNote(id, note)}
+					{onToggleReviewed}
+					{onNoteChange}
 				/>
 			{/each}
 		</div>

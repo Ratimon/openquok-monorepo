@@ -9,7 +9,7 @@
 	type Props = {
 		columnId: PostKanbanColumnId;
 		title: string;
-		cards: PostKanbanCardViewModel[];
+		cardsVm: PostKanbanCardViewModel[];
 		movingPostGroup: string | null;
 		isDragOver: boolean;
 		activeDrag: KanbanCardDragPayload | null;
@@ -25,7 +25,7 @@
 	let {
 		columnId,
 		title,
-		cards,
+		cardsVm,
 		movingPostGroup,
 		isDragOver,
 		activeDrag,
@@ -50,19 +50,21 @@
 <section class="flex min-h-[280px] min-w-[220px] flex-1 flex-col rounded-lg border border-base-300 bg-base-200/60 p-3">
 	<header class="mb-3 flex shrink-0 items-center justify-between gap-2 border-b border-base-300 pb-2">
 		<h3 class="text-sm font-semibold text-base-content">{title}</h3>
-		<span class="badge badge-ghost badge-sm">{cards.length}</span>
+		<span class="badge badge-ghost badge-sm">
+			{cardsVm.length}
+		</span>
 	</header>
 
 	<KanbanColumnDropZone {columnId} {isDragOver} {activeDrag} {onDragOverColumn} {onDropOnColumn}>
-		{#if cards.length === 0}
+		{#if cardsVm.length === 0}
 			<p class="py-6 text-center text-xs text-base-content/50">
 				{dropHint}
 			</p>
 		{:else}
-			{#each cards as card (card.postGroup)}
+			{#each cardsVm as cardVm (cardVm.postGroup)}
 				<KanbanPostCard
-					{card}
-					isMoving={movingPostGroup === card.postGroup}
+					{cardVm}
+					isMoving={movingPostGroup === cardVm.postGroup}
 					{onDragStart}
 					{onDragEnd}
 					{onToggleReviewed}

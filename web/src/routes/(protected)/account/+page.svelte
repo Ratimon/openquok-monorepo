@@ -6,7 +6,7 @@
 		DashboardChannelsLayoutModeViewModel,
 		DashboardPlatformChannelRowViewModel
 	} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-	import { createDashboardChannelsGridTableFilter } from '$lib/area-protected/DashboardChannelsGridFilterBuilder.presenter.svelte';
+	import type{ DashboardChannelsGridActions} from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
 	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
 
 	// --- App / routing ---
@@ -17,13 +17,8 @@
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 
 	// --- Area & integrations ---
-	import {
-		getRootPathAccount,
-		postKanbanBoardPresenter,
-		protectedDashboardPagePresenter
-	} from '$lib/area-protected';
-	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
-	import { postsRepository } from '$lib/posts';
+	import { getRootPathAccount, protectedDashboardPagePresenter } from '$lib/area-protected';
+	import { createDashboardChannelsGridTableFilter } from '$lib/area-protected/DashboardChannelsGridFilterBuilder.presenter.svelte';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -49,10 +44,8 @@
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import ShowChannelActionsModal from '$lib/ui/components/posts/ShowChannelActionsModal.svelte';
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
-	import {
-		dashboardChannelsGridActionsKey,
-		type DashboardChannelsGridActions
-	} from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
+	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
+	import { dashboardChannelsGridActionsKey} from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
 	import { Pager, Willow as CoreWillow } from '@svar-ui/svelte-core';
 	import { FilterBuilder, Willow as FilterWillow } from '@svar-ui/svelte-filter';
 	import { Willow, Grid, Tooltip } from '@svar-ui/svelte-grid';
@@ -62,6 +55,7 @@
 	const accountPath = route(rootPathAccount);
 
 	const pagePresenter = protectedDashboardPagePresenter;
+	const postKanbanBoard = pagePresenter.postKanbanBoardPresenter;
 	const channelsGridPresenter = pagePresenter.channelsGridTable;
 	const channelsFilterPresenter = pagePresenter.channelsGridFilterBuilder;
 
@@ -83,12 +77,23 @@
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
 	$effect(() => {
-		void postKanbanBoardPresenter.load(workspaceId);
+		void postKanbanBoard.load(workspaceId);
 	});
+
 	const platformChannelRowsUngrouped = $derived(protectedDashboardPagePresenter.platformChannelRowsUngrouped);
 	const channelGroupSections = $derived(protectedDashboardPagePresenter.channelGroupSections);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
 	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
+
+	$effect(() => {
+		postKanbanBoard.setChannels(connectedChannelsVm);
+	});
+
+	const postKanbanColumnsVm = $derived(postKanbanBoard.columnsVm);
+	const postKanbanSourceFilter = $derived(postKanbanBoard.sourceFilter);
+	const postKanbanStatus = $derived(postKanbanBoard.status);
+	const postKanbanError = $derived(postKanbanBoard.error);
+	const postKanbanMovingPostGroup = $derived(postKanbanBoard.movingPostGroup);
 	const connectedChannelCountVm = $derived(connectedChannelsVm.length);
 	const dashboardChannelTableRowsVm = $derived(channelsGridPresenter.dashboardChannelTableRowsVm);
 
@@ -294,12 +299,12 @@
 		if (!pg) return;
 		kanbanActionsBusy = true;
 		try {
-			const result = await postsRepository.getPostGroup(pg);
-			if (!result.ok) {
+			const resultVm = await postKanbanBoard.loadPostGroupJson(pg);
+			if (!resultVm.ok) {
 				toast.warning('Failed to copy post data.');
 				return;
 			}
-			await navigator.clipboard.writeText(JSON.stringify(result.group, null, 2));
+			await navigator.clipboard.writeText(resultVm.json);
 			toast.success('Post JSON copied to clipboard.');
 		} catch {
 			toast.warning('Failed to copy post data.');
@@ -314,14 +319,13 @@
 		if (!confirm('Delete this post?')) return;
 		kanbanActionsBusy = true;
 		try {
-			const result = await postsRepository.deletePostGroup(pg);
-			if (result.ok) {
+			const resultVm = await postKanbanBoard.deletePostGroup(pg);
+			if (resultVm.ok) {
 				toast.success('Post deleted.');
 				closeKanbanPostActions();
-				void postKanbanBoardPresenter.refresh();
 				return;
 			}
-			toast.error(result.error);
+			toast.error(resultVm.error);
 		} finally {
 			kanbanActionsBusy = false;
 		}
@@ -672,8 +676,15 @@
 	{/if}
 
 	<PostKanbanBoard
-		presenter={postKanbanBoardPresenter}
-		channels={connectedChannelsVm}
+		columnsVm={postKanbanColumnsVm}
+		sourceFilter={postKanbanSourceFilter}
+		status={postKanbanStatus}
+		error={postKanbanError}
+		movingPostGroup={postKanbanMovingPostGroup}
+		onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
+		onMoveCardToColumn={(payload, column) => void postKanbanBoard.moveCardToColumn(payload, column)}
+		onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}
+		onNoteChange={(id, note) => void postKanbanBoard.updateNote(id, note)}
 		onOpenPostActions={openKanbanPostActions}
 	/>
 
@@ -1065,7 +1076,7 @@
 	focusPostId={kanbanActionsFocusPostId}
 	busy={kanbanActionsBusy}
 	channels={connectedChannelsVm}
-	loadPostGroup={(pg) => postsRepository.getPostGroup(pg)}
+	loadPostGroup={(pg) => postKanbanBoard.getPostGroup(pg)}
 	onClose={closeKanbanPostActions}
 	onEdit={openEditKanbanPostGroup}
 	onDuplicate={duplicateKanbanPostGroup}
@@ -1081,7 +1092,7 @@
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}
 	onScheduled={() => {
-		void postKanbanBoardPresenter.refresh();
+		void postKanbanBoard.refresh();
 		goToCalendar(null);
 	}}
 />

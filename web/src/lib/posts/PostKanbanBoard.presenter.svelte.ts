@@ -1,4 +1,8 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import type {
+	GetPostGroupResultViewModel,
+	GetScheduledPostsPresenter
+} from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type { PostsRepository, PostRowProgrammerModel } from '$lib/posts/Post.repository.svelte';
 import type { PostKanbanColumnId, PostKanbanSourceFilter } from '$lib/ui/components/kanban-board/kanbanTypes';
 import {
@@ -36,6 +40,12 @@ export type PostKanbanCardViewModel = {
 
 export type PostKanbanColumnsViewModel = Record<PostKanbanColumnId, PostKanbanCardViewModel[]>;
 
+export type PostKanbanDeletePostGroupResultViewModel = { ok: true } | { ok: false; error: string };
+
+export type PostKanbanCopyPostGroupJsonResultViewModel =
+	| { ok: true; json: string }
+	| { ok: false; error: string };
+
 const KANBAN_LOOKBACK_DAYS = 90;
 const KANBAN_LOOKAHEAD_DAYS = 90;
 
@@ -63,12 +73,12 @@ function formatPublishTimeLabel(publishDateIso: string): string {
 	return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-function groupRowsToCards(
-	rows: PostRowProgrammerModel[],
+function toCardsVm(
+	listPm: PostRowProgrammerModel[],
 	channelById: Map<string, CreateSocialPostChannelViewModel>
 ): PostKanbanCardViewModel[] {
 	const byGroup = new Map<string, PostRowProgrammerModel[]>();
-	for (const row of rows) {
+	for (const row of listPm) {
 		const list = byGroup.get(row.postGroup) ?? [];
 		list.push(row);
 		byGroup.set(row.postGroup, list);
@@ -119,41 +129,73 @@ function groupRowsToCards(
 	return cards;
 }
 
+function columnsVmFromCards(cardsVm: readonly PostKanbanCardViewModel[]): PostKanbanColumnsViewModel {
+	const columns: PostKanbanColumnsViewModel = { draft: [], scheduled: [], published: [] };
+	for (const card of cardsVm) {
+		columns[card.column].push(card);
+	}
+	for (const col of Object.keys(columns) as PostKanbanColumnId[]) {
+		columns[col].sort((a, b) => a.publishLabel.localeCompare(b.publishLabel));
+	}
+	return columns;
+}
+
 export class PostKanbanBoardPresenter {
 	sourceFilter = $state<PostKanbanSourceFilter>('all');
 	status = $state<'idle' | 'loading' | 'ready' | 'error'>('idle');
 	error = $state<string | null>(null);
 	movingPostGroup = $state<string | null>(null);
-
-	private rows = $state<PostRowProgrammerModel[]>([]);
-	private organizationId = $state<string | null>(null);
 	channels = $state<readonly CreateSocialPostChannelViewModel[]>([]);
 
-	constructor(private readonly postsRepository: PostsRepository) {}
+	cardsVm = $state<PostKanbanCardViewModel[]>([]);
+
+	columnsVm = $derived.by((): PostKanbanColumnsViewModel => {
+		// Same rule as the AI badge on the card (`isAgentEdited`), not agent-origin / Edited badge.
+		const filtered = this.cardsVm.filter((card) => {
+			if (this.sourceFilter === 'agent') return card.isAgentEdited;
+			if (this.sourceFilter === 'human') return !card.isAgentEdited;
+			return true;
+		});
+		return columnsVmFromCards(filtered);
+	});
+
+	private organizationId = $state<string | null>(null);
+	private listPm = $state<PostRowProgrammerModel[]>([]);
+
+	constructor(
+		private readonly postsRepository: PostsRepository,
+		private readonly getScheduledPostsPresenter: GetScheduledPostsPresenter
+	) {}
+
+	getPostGroup(postGroup: string): Promise<GetPostGroupResultViewModel> {
+		return (async () => {
+			try {
+				const group = await this.getScheduledPostsPresenter.loadPostGroupDetailsVm(postGroup);
+				if (!group) return { ok: false, error: 'Could not load post.' };
+				return { ok: true, group };
+			} catch {
+				return { ok: false, error: 'Could not load post.' };
+			}
+		})();
+	}
+
+	async loadPostGroupJson(postGroup: string): Promise<PostKanbanCopyPostGroupJsonResultViewModel> {
+		const resultVm = await this.getPostGroup(postGroup);
+		if (!resultVm.ok) return { ok: false, error: resultVm.error };
+		return { ok: true, json: JSON.stringify(resultVm.group, null, 2) };
+	}
+
+	async deletePostGroup(postGroup: string): Promise<PostKanbanDeletePostGroupResultViewModel> {
+		const resultPm = await this.postsRepository.deletePostGroup(postGroup);
+		if (!resultPm.ok) return { ok: false, error: resultPm.error };
+		await this.refresh();
+		return { ok: true };
+	}
 
 	setChannels(next: readonly CreateSocialPostChannelViewModel[]) {
 		this.channels = next;
+		this.rebuildCardsVm();
 	}
-
-	columnsVm = $derived.by((): PostKanbanColumnsViewModel => {
-		const channelById = new Map(this.channels.map((c) => [c.id, c]));
-		// Same rule as the AI badge on the card (`isAgentEdited`), not agent-origin / Edited badge.
-		const filtered = this.rows.filter((row) => {
-			const isAi = row.isAgentEdited ?? false;
-			if (this.sourceFilter === 'agent') return isAi;
-			if (this.sourceFilter === 'human') return !isAi;
-			return true;
-		});
-		const cards = groupRowsToCards(filtered, channelById);
-		const empty: PostKanbanColumnsViewModel = { draft: [], scheduled: [], published: [] };
-		for (const card of cards) {
-			empty[card.column].push(card);
-		}
-		for (const col of Object.keys(empty) as PostKanbanColumnId[]) {
-			empty[col].sort((a, b) => a.publishLabel.localeCompare(b.publishLabel));
-		}
-		return empty;
-	});
 
 	setSourceFilter(next: PostKanbanSourceFilter) {
 		this.sourceFilter = next;
@@ -162,7 +204,8 @@ export class PostKanbanBoardPresenter {
 	async load(organizationId: string | null | undefined): Promise<void> {
 		if (!organizationId) {
 			this.organizationId = null;
-			this.rows = [];
+			this.listPm = [];
+			this.cardsVm = [];
 			this.status = 'ready';
 			return;
 		}
@@ -173,20 +216,22 @@ export class PostKanbanBoardPresenter {
 		const startIso = dayjs().subtract(KANBAN_LOOKBACK_DAYS, 'day').startOf('day').toISOString();
 		const endIso = dayjs().add(KANBAN_LOOKAHEAD_DAYS, 'day').endOf('day').toISOString();
 
-		const result = await this.postsRepository.listPosts({
+		const resultPm = await this.postsRepository.listPosts({
 			organizationId,
 			startIso,
 			endIso
 		});
 
-		if (!result.ok) {
+		if (!resultPm.ok) {
 			this.status = 'error';
-			this.error = result.error;
-			this.rows = [];
+			this.error = resultPm.error;
+			this.listPm = [];
+			this.cardsVm = [];
 			return;
 		}
 
-		this.rows = result.posts;
+		this.listPm = resultPm.posts;
+		this.rebuildCardsVm();
 		this.status = 'ready';
 	}
 
@@ -196,39 +241,44 @@ export class PostKanbanBoardPresenter {
 		await this.load(org);
 	}
 
-	private patchLocal(postId: string, patch: Partial<PostRowProgrammerModel>) {
-		const rep = this.rows.find((r) => r.id === postId);
+	private channelById(): Map<string, CreateSocialPostChannelViewModel> {
+		return new Map(this.channels.map((c) => [c.id, c]));
+	}
+
+	private rebuildCardsVm() {
+		this.cardsVm = toCardsVm(this.listPm, this.channelById());
+	}
+
+	private patchListPm(postId: string, patch: Partial<PostRowProgrammerModel>) {
+		const rep = this.listPm.find((r) => r.id === postId);
 		if (!rep) return;
 		const group = rep.postGroup;
-		this.rows = this.rows.map((r) =>
+		this.listPm = this.listPm.map((r) =>
 			r.postGroup === group ? { ...r, ...patch, id: r.id } : r
 		);
+		this.rebuildCardsVm();
 	}
 
 	async toggleReviewed(postId: string, isReviewed: boolean): Promise<void> {
 		const org = this.organizationId;
 		if (!org) return;
-		const prev = this.rows.find((r) => r.id === postId);
-		this.patchLocal(postId, { isReviewed, isAgentEdited: false });
-		const result = await this.postsRepository.updatePostReviewTodo({
+		const prev = this.listPm.find((r) => r.id === postId);
+		this.patchListPm(postId, { isReviewed, isAgentEdited: false });
+		const resultPm = await this.postsRepository.updatePostReviewTodo({
 			organizationId: org,
 			postId,
 			isReviewed
 		});
-		if (!result.ok) {
-			if (prev) this.patchLocal(postId, { isReviewed: prev.isReviewed, isAgentEdited: prev.isAgentEdited });
-			this.error = result.error;
+		if (!resultPm.ok) {
+			if (prev) this.patchListPm(postId, { isReviewed: prev.isReviewed, isAgentEdited: prev.isAgentEdited });
+			this.error = resultPm.error;
 			return;
 		}
-		this.applyRowsFromUpdate(result.posts);
+		this.applyListPmFromUpdate(resultPm.posts);
 	}
 
-	private findCardByPostGroup(postGroup: string): PostKanbanCardViewModel | undefined {
-		for (const col of Object.values(this.columnsVm)) {
-			const match = col.find((c) => c.postGroup === postGroup);
-			if (match) return match;
-		}
-		return undefined;
+	private findCardVmByPostGroup(postGroup: string): PostKanbanCardViewModel | undefined {
+		return this.cardsVm.find((c) => c.postGroup === postGroup);
 	}
 
 	/** Draft ↔ scheduled via session `PUT /posts/:postId/status` (same as CLI `posts:status`). */
@@ -249,63 +299,65 @@ export class PostKanbanBoardPresenter {
 		const targetStatus = columnToApiStatus(targetColumn);
 		if (!targetStatus) return;
 
-		const card = this.findCardByPostGroup(payload.postGroup);
-		const postId = card?.postId ?? payload.postId;
+		const cardVm = this.findCardVmByPostGroup(payload.postGroup);
+		const postId = cardVm?.postId ?? payload.postId;
 		if (!postId) return;
 
 		const targetState = targetStatus === 'draft' ? 'DRAFT' : 'QUEUE';
-		const prevRows = this.rows.filter((r) => r.postGroup === payload.postGroup);
+		const prevListPm = this.listPm.filter((r) => r.postGroup === payload.postGroup);
 
 		this.movingPostGroup = payload.postGroup;
 		this.error = null;
-		this.patchLocal(postId, { state: targetState, isAgentEdited: false });
+		this.patchListPm(postId, { state: targetState, isAgentEdited: false });
 
-		const result = await this.postsRepository.flipPostStatus({
+		const resultPm = await this.postsRepository.flipPostStatus({
 			organizationId: org,
 			postId,
 			status: targetStatus
 		});
 		this.movingPostGroup = null;
-		if (!result.ok) {
-			this.rows = [
-				...this.rows.filter((r) => r.postGroup !== payload.postGroup),
-				...prevRows
+		if (!resultPm.ok) {
+			this.listPm = [
+				...this.listPm.filter((r) => r.postGroup !== payload.postGroup),
+				...prevListPm
 			];
-			this.error = result.error;
+			this.rebuildCardsVm();
+			this.error = resultPm.error;
 			return;
 		}
-		this.mergeRowsFromFlip(result.posts);
+		this.mergeListPmFromFlip(resultPm.posts);
 	}
 
-	private mergeRowsFromFlip(updated: PostRowProgrammerModel[]) {
+	private mergeListPmFromFlip(updated: PostRowProgrammerModel[]) {
 		if (updated.length === 0) return;
 		const group = updated[0]!.postGroup;
-		this.rows = [...this.rows.filter((r) => r.postGroup !== group), ...updated];
+		this.listPm = [...this.listPm.filter((r) => r.postGroup !== group), ...updated];
+		this.rebuildCardsVm();
 	}
 
 	async updateNote(postId: string, note: string): Promise<void> {
 		const org = this.organizationId;
 		if (!org) return;
-		const prev = this.rows.find((r) => r.id === postId);
-		this.patchLocal(postId, { note: note || null, isAgentEdited: false });
-		const result = await this.postsRepository.updatePostReviewTodo({
+		const prev = this.listPm.find((r) => r.id === postId);
+		this.patchListPm(postId, { note: note || null, isAgentEdited: false });
+		const resultPm = await this.postsRepository.updatePostReviewTodo({
 			organizationId: org,
 			postId,
 			note: note || null
 		});
-		if (!result.ok) {
-			if (prev) this.patchLocal(postId, { note: prev.note ?? null, isAgentEdited: prev.isAgentEdited });
-			this.error = result.error;
+		if (!resultPm.ok) {
+			if (prev) this.patchListPm(postId, { note: prev.note ?? null, isAgentEdited: prev.isAgentEdited });
+			this.error = resultPm.error;
 			return;
 		}
-		this.applyRowsFromUpdate(result.posts);
+		this.applyListPmFromUpdate(resultPm.posts);
 	}
 
-	private applyRowsFromUpdate(updated: PostRowProgrammerModel[]) {
+	private applyListPmFromUpdate(updated: PostRowProgrammerModel[]) {
 		if (updated.length === 0) return;
 		const group = updated[0]!.postGroup;
 		const patch = updated[0]!;
-		this.rows = this.rows.map((r) =>
+		this.listPm = this.listPm.map((r) =>
 			r.postGroup === group
 				? {
 						...r,
@@ -315,5 +367,6 @@ export class PostKanbanBoardPresenter {
 					}
 				: r
 		);
+		this.rebuildCardsVm();
 	}
 }
