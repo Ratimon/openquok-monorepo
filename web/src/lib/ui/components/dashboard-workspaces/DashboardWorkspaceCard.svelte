@@ -269,7 +269,7 @@
 		buttonIconName={icons.ArrowRight.name}
 		buttonText="Switch workspace"
 		modalTitle="Switch workspace"
-		modalDescription={`You are about to open "${card.name}". Your dashboard, channels, and scheduled posts will reflect that workspace.`}
+		modalDescription={`You are about to open "${card.name}". Your dashboard, channels, posts, your API keys will reflect that workspace.`}
 		modalVerficationWithAnswer={false}
 	/>
 {/if}

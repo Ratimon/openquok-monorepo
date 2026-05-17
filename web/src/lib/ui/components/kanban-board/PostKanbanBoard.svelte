@@ -14,6 +14,7 @@
 
 	import KanbanColumn from './KanbanColumn.svelte';
 
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { toast } from '$lib/ui/sonner';
 
@@ -136,7 +137,19 @@
 						aria-pressed={sourceFilter === opt.id}
 						onclick={() => onSourceFilterChange(opt.id)}
 					>
-						{opt.label}
+						<span class="inline-flex items-center gap-1.5">
+							{#if opt.iconName}
+								<span class="badge badge-primary badge-xs shrink-0 border-0 p-0.5">
+									<AbstractIcon
+										name={opt.iconName}
+										class="size-3"
+										width="12"
+										height="12"
+									/>
+								</span>
+							{/if}
+							{opt.label}
+						</span>
 					</Button>
 				{/each}
 			</div>

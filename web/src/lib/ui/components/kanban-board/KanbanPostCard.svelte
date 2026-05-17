@@ -2,6 +2,7 @@
 	import type { PostKanbanCardViewModel } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
+	
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import { KANBAN_CARD_DRAG_MIME, serializeKanbanCardDrag } from '$lib/ui/components/kanban-board/kanbanDnd';
@@ -191,9 +192,13 @@
 				{cardVm.contentPreview || '—'}
 			</p>
 			{#if cardVm.isAgentEdited}
-				<span class="badge badge-warning badge-xs shrink-0">AI</span>
+				<span class="badge badge-primary badge-xs shrink-0 border-0 p-0.5" title="AI-generated">
+					<AbstractIcon name={icons.Bot.name} class="size-3" width="12" height="12" />
+				</span>
 			{:else if showEditedBadge}
-				<span class="badge badge-info badge-xs shrink-0">Edited</span>
+				<span class="badge badge-primary badge-xs shrink-0 border-0 p-0.5" title="Human-edited">
+					<AbstractIcon name={icons.UserRoundPen.name} class="size-3" width="12" height="12" />
+				</span>
 			{/if}
 		</div>
 

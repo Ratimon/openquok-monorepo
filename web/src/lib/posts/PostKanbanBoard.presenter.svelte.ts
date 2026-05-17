@@ -1,3 +1,4 @@
+import { icons, type IconName } from '$data/icons';
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import { isProfileChannelDisplayName } from '$data/social-providers';
 import {
@@ -142,12 +143,13 @@ export type PostKanbanMoveCardResultViewModel =
 export type PostKanbanSourceFilterOptionViewModel = {
 	id: PostKanbanSourceFilter;
 	label: string;
+	iconName?: IconName;
 };
 
 export const POST_KANBAN_SOURCE_FILTER_OPTIONS: PostKanbanSourceFilterOptionViewModel[] = [
 	{ id: 'all', label: 'All' },
-	{ id: 'agent', label: 'Agent (AI)' },
-	{ id: 'human', label: 'Human' }
+	{ id: 'agent', label: 'Agent', iconName: icons.Bot.name },
+	{ id: 'human', label: 'Human', iconName: icons.UserRoundPen.name }
 ];
 
 /** Single fetch window on load; time/source filters apply client-side only. */
