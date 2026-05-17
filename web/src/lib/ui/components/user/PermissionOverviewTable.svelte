@@ -7,7 +7,7 @@
 		assignPermissionToRolePresenter,
 		removePermissionFromRolePresenter
 	} from '$lib/rbac/index';
-	import ActionVerificationModal from '$lib/ui/templates/ActionVerificationModal.svelte';
+	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 	import { CardContent } from '$lib/ui/card';
 	import {
 		Root as Select,

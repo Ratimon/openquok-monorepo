@@ -5,9 +5,15 @@
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AddProvider from '$lib/ui/components/posts/AddProvider.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+
+	type SwitchWorkspaceModalData = {
+		workspaceId: string;
+		workspaceName: string;
+	};
 
 	type Props = {
 		card: DashboardWorkspaceCardViewModel;
@@ -39,18 +45,42 @@
 	const hasSocialChannels = $derived(card.socialChannelCount > 0);
 	const showAddChannel = $derived(card.isCurrent && !hasSocialChannels);
 
+	let switchModalOpen = $state(false);
+
+	const switchWorkspaceModalData = $derived<SwitchWorkspaceModalData>({
+		workspaceId: card.id,
+		workspaceName: card.name
+	});
+
+	function requestSwitchWorkspace(e?: Event) {
+		e?.stopPropagation();
+		if (card.isCurrent || !onSwitchWorkspace) return;
+		switchModalOpen = true;
+	}
+
+	async function executeSwitchWorkspace(
+		data: unknown
+	): Promise<{ success: boolean; message: string }> {
+		if (!onSwitchWorkspace) {
+			return { success: false, message: 'Unable to switch workspace.' };
+		}
+		const { workspaceId, workspaceName } = data as SwitchWorkspaceModalData;
+		onSwitchWorkspace(workspaceId);
+		return { success: true, message: `Switched to ${workspaceName}` };
+	}
+
 	function handleCardClick(e: MouseEvent) {
 		if (card.isCurrent || !onSwitchWorkspace) return;
 		const target = e.target;
 		if (target instanceof Element && target.closest('[data-workspace-card-action]')) return;
-		onSwitchWorkspace(card.id);
+		requestSwitchWorkspace();
 	}
 
 	function handleCardKeydown(e: KeyboardEvent) {
 		if (card.isCurrent || !onSwitchWorkspace) return;
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault();
-			onSwitchWorkspace(card.id);
+			requestSwitchWorkspace();
 		}
 	}
 
@@ -195,7 +225,7 @@
 					{/each}
 				</div>
 				<span class="min-w-0 flex-1 truncate text-xs text-base-content/70">
-					Connected profiles
+					Connected Channels
 				</span>
 				{#if card.hiddenChannelCount > 0}
 					<div
@@ -217,14 +247,11 @@
 				{:else if !card.isCurrent && onSwitchWorkspace}
 					<Button
 						type="button"
-						variant="outline"
+						variant="warning"
 						size="sm"
 						class="shrink-0"
 						data-workspace-card-action
-						onclick={(e) => {
-							stopCardActivation(e);
-							onSwitchWorkspace(card.id);
-						}}
+						onclick={requestSwitchWorkspace}
 					>
 						Switch workspace
 					</Button>
@@ -233,3 +260,16 @@
 		{/if}
 	</div>
 </article>
+
+{#if onSwitchWorkspace && !card.isCurrent}
+	<ActionVerificationModal
+		data={switchWorkspaceModalData}
+		bind:open={switchModalOpen}
+		executionFunction={executeSwitchWorkspace}
+		buttonIconName={icons.ArrowRight.name}
+		buttonText="Switch workspace"
+		modalTitle="Switch workspace"
+		modalDescription={`You are about to open "${card.name}". Your dashboard, channels, and scheduled posts will reflect that workspace.`}
+		modalVerficationWithAnswer={false}
+	/>
+{/if}

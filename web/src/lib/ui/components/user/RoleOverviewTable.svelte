@@ -5,7 +5,7 @@
 	import { icons } from '$data/icons';
 	import { assignRolePresenter, removeRolePresenter } from '$lib/rbac/index';
 	import { createPagination } from '$lib/ui/helpers/createPagination.svelte';
-	import ActionVerificationModal from '$lib/ui/templates/ActionVerificationModal.svelte';
+	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 	import { CardContent, CardFooter } from '$lib/ui/card';
 	import FormattedISODate from '$lib/ui/components/FormattedISODate.svelte';
 	import { Pagination } from '$lib/ui/pagination';

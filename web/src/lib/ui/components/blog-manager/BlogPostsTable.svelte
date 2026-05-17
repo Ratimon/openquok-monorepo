@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { icons } from '$data/icons';
 	import { deleteBlogPostVerificationPresenter } from '$lib/blogs';
-	import ActionVerificationModal from '$lib/ui/templates/ActionVerificationModal.svelte';
+	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { CardContent, CardFooter } from '$lib/ui/card';
 	import { createPagination } from '$lib/ui/helpers/createPagination.svelte';
