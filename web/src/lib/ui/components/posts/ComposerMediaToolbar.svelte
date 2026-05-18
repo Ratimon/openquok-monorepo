@@ -42,6 +42,7 @@
 		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
 		uploadUid: string;
+		publishDateIso?: string | null;
 		/** Workspace whose shared signatures are listed. */
 		organizationId?: string | null;
 		/** Wired from create-post presenter; keeps the repository out of this component. */
@@ -64,6 +65,7 @@
 		items = $bindable([]),
 		disabled = false,
 		uploadUid,
+		publishDateIso = null,
 		organizationId = null,
 		loadSignaturesVmForComposer = undefined,
 		onInsertSignature = undefined,
@@ -89,7 +91,7 @@
 		if (!files?.length || disabled || uploadBusy || !uploadUid) return false;
 		uploadBusy = true;
 		try {
-			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid);
+			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid, { publishDateIso });
 			if (!batch.ok) {
 				toast.error(batch.message);
 				return false;

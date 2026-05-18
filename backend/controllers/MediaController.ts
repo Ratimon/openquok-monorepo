@@ -7,10 +7,26 @@ import type { IUploadProvider } from "../connections/upload/upload.interface";
 
 import { publicUrlForObjectKey } from "../repositories/MediaRepository";
 import { makeId } from "../utils/make.is";
+import { buildMediaTreeEntities } from "../utils/mediaTreeBuilder";
 
 import { AuthError } from "../errors/AuthError";
 import { UserValidationError } from "../errors/UserError";
-import { MAX_MEDIA_UPLOAD_BYTES } from "openquok-common";
+import {
+    MAX_MEDIA_UPLOAD_BYTES,
+    mediaVirtualPathFromFileManagerTarget,
+    normalizeMediaVirtualPath,
+    parseMediaFileManagerId,
+} from "openquok-common";
+
+function readVirtualPath(body: unknown): string | undefined {
+    const raw =
+        typeof (body as any)?.virtualPath === "string"
+            ? String((body as any).virtualPath)
+            : typeof (body as any)?.virtual_path === "string"
+              ? String((body as any).virtual_path)
+              : "";
+    return raw.trim() ? normalizeMediaVirtualPath(raw) : undefined;
+}
 
 function isAllowedMediaMime(mimetype: string): boolean {
     const m = mimetype.toLowerCase();
@@ -79,6 +95,109 @@ export class MediaController {
         }
     };
 
+    tree = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const organizationId = typeof req.query.organizationId === "string" ? req.query.organizationId : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId query parameter is required");
+            }
+
+            const items = await this.mediaService.listAllMedia(organizationId);
+            const usedBytes = items.reduce((sum, row) => sum + (row.size ?? 0), 0);
+            const files = buildMediaTreeEntities(items);
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    files,
+                    drive: {
+                        used: usedBytes,
+                        total: Math.max(usedBytes, 5_368_709_120),
+                    },
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    move = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId is required");
+            }
+
+            const ids = Array.isArray(req.body?.ids) ? (req.body.ids as unknown[]) : [];
+            const targetRaw = typeof req.body?.target === "string" ? String(req.body.target) : "";
+            if (!ids.length || !targetRaw.trim()) {
+                throw new UserValidationError("ids and target are required");
+            }
+
+            const targetVirtualPath = mediaVirtualPathFromFileManagerTarget(targetRaw);
+            const updates: { id: string; virtualPath: string }[] = [];
+            for (const rawId of ids) {
+                const idStr = String(rawId ?? "");
+                const parsed = parseMediaFileManagerId(idStr);
+                if (!parsed) continue;
+                updates.push({ id: parsed.mediaId, virtualPath: targetVirtualPath });
+            }
+
+            if (!updates.length) {
+                throw new UserValidationError("No movable files in selection");
+            }
+
+            const moved = await this.mediaService.updateVirtualPaths(organizationId, updates);
+            res.status(200).json({ success: true, data: { moved } });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    rename = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId is required");
+            }
+
+            const fileManagerId = typeof req.body?.id === "string" ? String(req.body.id) : "";
+            const name = typeof req.body?.name === "string" ? String(req.body.name).trim() : "";
+            if (!fileManagerId || !name) {
+                throw new UserValidationError("id and name are required");
+            }
+
+            const parsed = parseMediaFileManagerId(fileManagerId);
+            if (!parsed) {
+                throw new UserValidationError("Invalid file id");
+            }
+
+            const ok = await this.mediaService.renameMediaDisplayName(organizationId, parsed.mediaId, name);
+            if (!ok) {
+                throw new UserValidationError("Media not found");
+            }
+
+            res.status(200).json({ success: true });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /**
      * Upload user media to R2. Field name: `mediaFile` (multipart).
      * Auth user id prefixes the object key so objects stay scoped to the uploading user.
@@ -105,6 +224,7 @@ export class MediaController {
                 organizationId,
                 name: filePath.split("/").pop() ?? filePath,
                 path: filePath,
+                virtualPath: readVirtualPath(req.body),
                 originalName: file.originalname,
                 fileSize: (file as any).size ?? 0,
                 type: file.mimetype?.startsWith("video/") ? "video" : "image",
@@ -210,6 +330,7 @@ export class MediaController {
                     organizationId,
                     name: key.split("/").pop() ?? key,
                     path: key,
+                    virtualPath: readVirtualPath(req.body),
                     originalName: originalName ?? null,
                     fileSize: Number((req.body as any)?.file?.size ?? 0) || 0,
                     type:
@@ -256,6 +377,7 @@ export class MediaController {
                 organizationId,
                 name: filePath.split("/").pop() ?? filePath,
                 path: filePath,
+                virtualPath: readVirtualPath(req.body),
                 originalName: file.originalname,
                 fileSize: (file as any).size ?? 0,
                 type: file.mimetype?.startsWith("video/") ? "video" : "image",
@@ -340,6 +462,7 @@ export class MediaController {
                 organizationId,
                 name: filePath.split("/").pop() ?? filePath,
                 path: filePath,
+                virtualPath: readVirtualPath(req.body),
                 originalName: file.originalname,
                 fileSize: buffer.length,
                 type: file.mimetype.startsWith("video/") ? "video" : "image",
@@ -396,6 +519,7 @@ export class MediaController {
                 organizationId,
                 name: filePath.split("/").pop() ?? filePath,
                 path: filePath,
+                virtualPath: readVirtualPath(req.body),
                 originalName: file.originalname,
                 fileSize: (file as any).size ?? 0,
                 type: file.mimetype?.startsWith("video/") ? "video" : "image",
@@ -461,6 +585,7 @@ export class MediaController {
                 organizationId,
                 name: filePath.split("/").pop() ?? filePath,
                 path: filePath,
+                virtualPath: readVirtualPath(req.body),
                 originalName: file.originalname,
                 fileSize: (file as any).size ?? 0,
                 type: file.mimetype?.startsWith("video/") ? "video" : "image",
@@ -564,6 +689,7 @@ export class MediaController {
                 organizationId,
                 name: name.split("/").pop() ?? name,
                 path: name,
+                virtualPath: readVirtualPath(req.body),
                 originalName: originalName ?? null,
                 fileSize: Number(req.body?.fileSize ?? 0) || 0,
                 type: typeof req.body?.type === "string" ? String(req.body.type) : undefined,

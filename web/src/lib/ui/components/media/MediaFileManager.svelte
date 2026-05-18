@@ -1,0 +1,308 @@
+<script lang="ts">
+	import type { IApi, IEntity, IFileMenuOption, IParsedEntity, TContextMenuType } from '@svar-ui/svelte-filemanager';
+	import type { MediaFileManagerDriveVm } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
+
+	import { Filemanager, Willow } from '@svar-ui/svelte-filemanager';
+
+	import MediaFileManagerViewControls from '$lib/ui/components/media/MediaFileManagerViewControls.svelte';
+
+	interface MediaFileManagerProps {
+		data: IEntity[];
+		drive: MediaFileManagerDriveVm;
+		loading?: boolean;
+		readonly?: boolean;
+		onInit?: (api: IApi) => void;
+		menuOptions?: (mode: TContextMenuType, item?: IParsedEntity) => IFileMenuOption[];
+		onPathChange?: () => void;
+		onDeleteFiles?: (ids: string[]) => void | Promise<void>;
+		onMoveFiles?: (ids: string[], target: string) => void | Promise<boolean>;
+		onRenameFile?: (id: string, name: string) => void | Promise<boolean>;
+		onOpenFile?: (id: string) => void;
+	}
+
+	let {
+		data = [],
+		drive,
+		loading = false,
+		readonly = false,
+		onInit,
+		menuOptions,
+		onPathChange,
+		onDeleteFiles,
+		onMoveFiles,
+		onRenameFile,
+		onOpenFile
+	}: MediaFileManagerProps = $props();
+
+	let fileManagerApi = $state<IApi | null>(null);
+
+	function wireApi(api: IApi) {
+		fileManagerApi = api;
+		api.intercept('copy-files', () => false);
+		api.intercept('create-file', (ev: { file?: { type?: string } }) => {
+			if (ev?.file?.type === 'folder') return false;
+		});
+
+		api.on('set-path', () => {
+			onPathChange?.();
+		});
+
+		api.on('delete-files', async (ev: { ids?: string[] }) => {
+			const ids = ev?.ids ?? [];
+			if (ids.length) await onDeleteFiles?.(ids);
+		});
+
+		api.on('move-files', async (ev: { ids?: string[]; target?: string }) => {
+			const ids = ev?.ids ?? [];
+			const target = ev?.target ?? '';
+			if (ids.length && target) {
+				const ok = await onMoveFiles?.(ids, target);
+				if (!ok) return false;
+			}
+		});
+
+		api.on('rename-file', async (ev: { id?: string; name?: string }) => {
+			const id = ev?.id ?? '';
+			const name = ev?.name ?? '';
+			if (id && name) {
+				const ok = await onRenameFile?.(id, name);
+				if (!ok) return false;
+			}
+		});
+
+		api.on('open-file', (ev: { id?: string }) => {
+			const id = ev?.id ?? '';
+			if (id) onOpenFile?.(id);
+		});
+
+		api.on('download-file', (ev: { id?: string }) => {
+			const file = api.getFile(ev?.id ?? '');
+			const url = (file as { publicUrl?: string } | null)?.publicUrl;
+			if (url && typeof document !== 'undefined') {
+				const a = document.createElement('a');
+				a.href = url;
+				a.target = '_blank';
+				a.rel = 'noopener noreferrer';
+				a.download = '';
+				document.body.appendChild(a);
+				a.click();
+				a.remove();
+			}
+		});
+
+		onInit?.(api);
+	}
+
+	function previewUrl(file: IParsedEntity & { publicUrl?: string; kind?: string }, _w: number, _h: number) {
+		if (file.type !== 'file') return null;
+		const url = file.publicUrl;
+		if (!url) return null;
+		if (file.kind === 'image' || file.kind === 'video') return url;
+		return null;
+	}
+</script>
+
+<div
+	class="media-file-manager-host relative min-h-[min(72vh,720px)] overflow-hidden"
+	aria-busy={loading}
+>
+	{#if loading}
+		<div
+			class="bg-base-100/60 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-[1px]"
+			role="status"
+		>
+			<span class="loading loading-spinner loading-lg text-primary"></span>
+		</div>
+	{/if}
+
+	<Willow fonts={false}>
+		<Filemanager
+			{data}
+			{drive}
+			mode="cards"
+			preview={true}
+			{readonly}
+			{menuOptions}
+			previews={previewUrl}
+			init={wireApi}
+		/>
+	</Willow>
+
+	{#if fileManagerApi}
+		<div class="media-file-manager-view-controls">
+			<MediaFileManagerViewControls api={fileManagerApi} />
+		</div>
+	{/if}
+</div>
+
+<style>
+	/*
+	  SVAR Willow ships fixed light greys/blues. This app themes via `html[data-theme]` (DaisyUI),
+	  so bridge File Manager tokens to semantic colors (same approach as dashboard SVAR grids).
+	*/
+	.media-file-manager-host :global(.wx-willow-theme) {
+		--wx-font-family: inherit;
+		color: var(--color-base-content);
+
+		--wx-color-primary: var(--color-primary);
+		--wx-color-primary-selected: color-mix(in oklab, var(--color-primary) 24%, var(--color-base-100));
+		--wx-color-primary-font: var(--color-primary-content);
+		--wx-color-secondary-font: var(--color-primary);
+		--wx-color-secondary-border: var(--color-primary);
+		--wx-color-secondary-border-disabled: color-mix(in oklab, var(--color-base-content) 28%, transparent);
+		--wx-color-secondary-hover: color-mix(in oklab, var(--color-primary) 12%, transparent);
+
+		--wx-color-font: var(--color-base-content);
+		--wx-color-font-alt: color-mix(in oklab, var(--color-base-content) 58%, transparent);
+		--wx-color-font-disabled: color-mix(in oklab, var(--color-base-content) 36%, transparent);
+		--wx-color-link: var(--color-primary);
+
+		--wx-background: var(--color-base-100);
+		--wx-background-alt: var(--color-base-200);
+		--wx-background-hover: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-200));
+		--wx-color-disabled: var(--color-base-200);
+		--wx-color-disabled-alt: color-mix(in oklab, var(--color-base-content) 10%, var(--color-base-200));
+
+		--wx-icon-color: color-mix(in oklab, var(--color-base-content) 52%, transparent);
+		--wx-border: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent);
+		--wx-border-medium: 1px solid color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-300));
+		--wx-border-radius: 0.5rem;
+		--wx-radius-major: 0.75rem;
+		--wx-box-shadow: none;
+		--wx-shadow-light: none;
+		--wx-shadow-medium: none;
+
+		--wx-input-font-color: var(--color-base-content);
+		--wx-input-background: var(--color-base-100);
+		--wx-input-border: 1px solid color-mix(in oklab, var(--color-base-content) 16%, transparent);
+		--wx-input-border-focus: 1px solid var(--color-primary);
+		--wx-input-placeholder-color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+
+		--wx-button-font-color: var(--color-base-content);
+		--wx-button-background: var(--color-base-200);
+		--wx-button-pressed: color-mix(in oklab, var(--color-base-content) 14%, var(--color-base-300));
+		--wx-button-primary-pressed: color-mix(in oklab, var(--color-primary) 82%, black);
+		--wx-button-box-shadow: none;
+		--wx-button-primary-box-shadow: none;
+
+		--wx-segmented-background: var(--color-base-200);
+		--wx-segmented-background-hover: color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-200));
+
+		--wx-fm-background: transparent;
+		--wx-fm-box-shadow: none;
+		--wx-fm-select-background: color-mix(in oklab, var(--color-primary) 20%, var(--color-base-100));
+		--wx-fm-grid-border: var(--wx-border);
+		--wx-fm-grid-header-color: color-mix(in oklab, var(--color-base-content) 6%, var(--color-base-100));
+		--wx-fm-button-font-color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+		--wx-fm-progress-bar-color: color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-200));
+		--wx-fm-toolbar-height: 3.25rem;
+	}
+
+	.media-file-manager-host :global(.wx-filemanager) {
+		min-height: min(72vh, 720px);
+		background: transparent;
+	}
+
+	.media-file-manager-host :global(.wx-toolbar .wx-right) {
+		visibility: hidden;
+		pointer-events: none;
+	}
+
+	.media-file-manager-view-controls {
+		position: absolute;
+		top: 0;
+		right: 0.75rem;
+		z-index: 6;
+		display: flex;
+		align-items: center;
+		height: var(--wx-fm-toolbar-height, 3.25rem);
+		pointer-events: none;
+	}
+
+	.media-file-manager-view-controls :global(*) {
+		pointer-events: auto;
+	}
+
+	.media-file-manager-host :global(.wx-sidebar .wx-wrapper),
+	.media-file-manager-host :global(.wx-toolbar),
+	.media-file-manager-host :global(.wx-breadcrumbs),
+	.media-file-manager-host :global(.wx-content-wrapper),
+	.media-file-manager-host :global(.wx-info .wx-preview),
+	.media-file-manager-host :global(.wx-info .wx-info-panel),
+	.media-file-manager-host :global(.wx-info .wx-no-info-panel) {
+		border: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent);
+		box-shadow: none;
+	}
+
+	.media-file-manager-host :global(.wx-sidebar .wx-wrapper),
+	.media-file-manager-host :global(.wx-content-wrapper),
+	.media-file-manager-host :global(.wx-info .wx-preview),
+	.media-file-manager-host :global(.wx-info .wx-info-panel),
+	.media-file-manager-host :global(.wx-info .wx-no-info-panel) {
+		border-radius: var(--wx-radius-major);
+		background-color: var(--color-base-100);
+	}
+
+	.media-file-manager-host :global(.wx-toolbar),
+	.media-file-manager-host :global(.wx-breadcrumbs) {
+		border-radius: var(--wx-radius-major) var(--wx-radius-major) 0 0;
+	}
+
+	.media-file-manager-host :global(.wx-toolbar .wx-name),
+	.media-file-manager-host :global(.wx-breadcrumbs .wx-item),
+	.media-file-manager-host :global(.wx-folder .wx-name),
+	.media-file-manager-host :global(.wx-cards .wx-item .wx-name),
+	.media-file-manager-host :global(.wx-info .wx-title),
+	.media-file-manager-host :global(.wx-info .wx-list .wx-name),
+	.media-file-manager-host :global(.wx-info .wx-list .wx-value),
+	.media-file-manager-host :global(.wx-drive p) {
+		color: var(--color-base-content);
+	}
+
+	.media-file-manager-host :global(.wx-cards .wx-item) {
+		background-color: var(--color-base-100);
+		border: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
+		box-shadow: none;
+	}
+
+	.media-file-manager-host :global(.wx-cards .wx-item.wx-selected) {
+		outline: 2px solid var(--color-primary);
+		outline-offset: 0;
+	}
+
+	.media-file-manager-host :global(.wx-cards .wx-item .wx-type) {
+		color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+	}
+
+	.media-file-manager-host :global(.wx-not-found-text),
+	.media-file-manager-host :global(.wx-no-info) {
+		color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+	}
+
+	.media-file-manager-host :global(.wx-back) {
+		color: var(--color-primary);
+	}
+
+	.media-file-manager-host :global(.wx-content-wrapper) {
+		margin-top: 0.5rem;
+	}
+
+	/* Sidebar tree: leaf folders use a placeholder; parents use a chevron — same column width */
+	.media-file-manager-host :global(.wx-sidebar .wx-tree .wx-toggle),
+	.media-file-manager-host :global(.wx-sidebar .wx-tree .wx-toggle-placeholder) {
+		width: 1.5rem;
+		min-width: 1.5rem;
+		max-width: 1.5rem;
+		flex-shrink: 0;
+		margin-right: 0 !important;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box;
+	}
+
+	.media-file-manager-host :global(.wx-sidebar .wx-tree .wx-toggle) {
+		font-size: 1.5rem;
+		line-height: 1;
+	}
+</style>

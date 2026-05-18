@@ -1,6 +1,7 @@
 import { config } from "../config/GlobalConfig";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { MediaLike } from "../utils/dtos/MediaDTO";
+import { normalizeMediaVirtualPath, resolveMediaVirtualPath } from "openquok-common";
 
 import { DatabaseError } from "../errors/InfraError";
 
@@ -113,7 +114,7 @@ export class MediaRepository {
         const results: MediaListItemDto[] = rows.map((row) => ({
             id: row.id,
             path: row.path,
-            virtualPath: row.virtual_path ?? "/",
+            virtualPath: resolveMediaVirtualPath(row.virtual_path),
             name: row.original_name || row.name,
             size: row.file_size ?? 0,
             lastModified: row.updated_at ?? null,
@@ -143,7 +144,7 @@ export class MediaRepository {
             name: params.name,
             original_name: params.originalName ?? null,
             path: params.path,
-            virtual_path: params.virtualPath ?? "/",
+            virtual_path: normalizeMediaVirtualPath(params.virtualPath),
             file_size: params.fileSize ?? 0,
             type: params.type ?? "image",
             created_at: now,
@@ -259,5 +260,97 @@ export class MediaRepository {
 
         const row = data as { id: string; path: string };
         return { id: row.id, path: row.path, publicUrl: publicUrlForObjectKey(row.path) };
+    }
+
+    async listAllMedia(organizationId: string): Promise<MediaListItemDto[]> {
+        const { data, error } = await this.supabase
+            .from(TABLE_MEDIA)
+            .select(
+                "id, name, original_name, path, virtual_path, organization_id, created_at, updated_at, deleted_at, file_size, type, thumbnail, alt, thumbnail_timestamp"
+            )
+            .eq("organization_id", organizationId)
+            .is("deleted_at", null)
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            throw new DatabaseError(`Failed to list media tree: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_MEDIA },
+            });
+        }
+
+        const rows = (data ?? []) as MediaLike[];
+        return rows.map((row) => ({
+            id: row.id,
+            path: row.path,
+            virtualPath: resolveMediaVirtualPath(row.virtual_path),
+            name: row.original_name || row.name,
+            size: row.file_size ?? 0,
+            lastModified: row.updated_at ?? null,
+            publicUrl: publicUrlForObjectKey(row.path),
+            kind: mediaKindForPath(row.path),
+            alt: row.alt ?? null,
+            thumbnail: row.thumbnail ?? null,
+            thumbnailPublicUrl: row.thumbnail ? publicUrlForObjectKey(row.thumbnail) : null,
+            thumbnailTimestamp: row.thumbnail_timestamp ?? null,
+        }));
+    }
+
+    async updateVirtualPaths(
+        organizationId: string,
+        updates: { id: string; virtualPath: string }[]
+    ): Promise<number> {
+        if (!updates.length) return 0;
+        const now = new Date().toISOString();
+        let changed = 0;
+        for (const row of updates) {
+            const { data, error } = await this.supabase
+                .from(TABLE_MEDIA)
+                .update({
+                    virtual_path: normalizeMediaVirtualPath(row.virtualPath),
+                    updated_at: now,
+                })
+                .eq("organization_id", organizationId)
+                .eq("id", row.id)
+                .is("deleted_at", null)
+                .select("id")
+                .maybeSingle();
+
+            if (error) {
+                throw new DatabaseError(`Failed to move media: ${error.message}`, {
+                    cause: error,
+                    operation: "update",
+                    resource: { type: "table", name: TABLE_MEDIA },
+                });
+            }
+            if (data) changed += 1;
+        }
+        return changed;
+    }
+
+    async renameMediaDisplayName(
+        organizationId: string,
+        id: string,
+        originalName: string
+    ): Promise<boolean> {
+        const now = new Date().toISOString();
+        const { data, error } = await this.supabase
+            .from(TABLE_MEDIA)
+            .update({ original_name: originalName, updated_at: now })
+            .eq("organization_id", organizationId)
+            .eq("id", id)
+            .is("deleted_at", null)
+            .select("id")
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError(`Failed to rename media: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_MEDIA },
+            });
+        }
+        return data != null;
     }
 }

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS public.media (
 
 COMMENT ON TABLE public.media IS 'Workspace media records that reference objects stored in external object storage.';
 COMMENT ON COLUMN public.media.path IS 'Public URL or object key returned by storage; used to retrieve the file.';
-COMMENT ON COLUMN public.media.virtual_path IS 'Virtual folder path within the workspace (UI-only). Does not affect object storage keys.';
+COMMENT ON COLUMN public.media.virtual_path IS 'Virtual folder path within the workspace (UI-only). Convention: /General for library uploads; /Posts/YYYY-MM-DD or /Posts/unscheduled for composer uploads.';
 COMMENT ON COLUMN public.media.type IS 'Logical media type label (e.g. image, video).';
 
 -- ---------------------------

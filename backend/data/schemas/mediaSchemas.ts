@@ -57,3 +57,23 @@ export const validateMultipartEndpoint: RequestHandler = validateRequest({
     body: multipartBodySchema,
 });
 
+export const mediaMoveBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    ids: z.array(z.string().min(1)).min(1),
+    target: z.string().min(1).max(512),
+});
+
+export const validateMediaMoveBody: RequestHandler = validateRequest({
+    body: mediaMoveBodySchema,
+});
+
+export const mediaRenameBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    id: z.string().min(1).max(512),
+    name: z.string().trim().min(1).max(256),
+});
+
+export const validateMediaRenameBody: RequestHandler = validateRequest({
+    body: mediaRenameBodySchema,
+});
+

@@ -40,6 +40,7 @@ export type IconName =
     | "CircleCheck"
     | "CircleX"
     | "Code"
+    | "Columns2"
     | "Cog"
     | "Cookie"
     | "Copy"
@@ -59,6 +60,7 @@ export type IconName =
     | "Github"
     | "Globe"
     | "Google"
+    | "Grid2x2"
     | "Hash"
     | "Heading1"
     | "Heading2"
@@ -81,6 +83,7 @@ export type IconName =
     | "Light"
     | "Link"
     | "List"
+    | "ListAlignJustify"
     | "ListOrdered"
     | "ListFilterPlus"
     | "ListPlus"
@@ -394,6 +397,11 @@ export const icons: Record<IconName, IconEntry> = {
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-icon lucide-code"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>`
     },
+    Columns2: {
+        name: "Columns2",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-columns2-icon lucide-columns-2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/></svg>`
+    },
     Cog: {
         name: "Cog",
         box: 24,
@@ -513,6 +521,11 @@ export const icons: Record<IconName, IconEntry> = {
       ></path>
       <path fill="none" d="M0 0h48v48H0z"></path>
     </svg>`
+    },
+    Grid2x2: {
+        name: "Grid2x2",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-grid2x2-icon lucide-grid-2x2"><path d="M12 3v18"/><path d="M3 12h18"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`
     },
     Hash: {
         name: "Hash",
@@ -655,6 +668,11 @@ export const icons: Record<IconName, IconEntry> = {
         name: "List",
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-icon lucide-list"><path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/></svg>`
+    },
+    ListAlignJustify: {
+        name: "ListAlignJustify",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-text-align-justify-icon lucide-text-align-justify"><path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h18"/></svg>`
     },
     ListOrdered: {
         name: "ListOrdered",

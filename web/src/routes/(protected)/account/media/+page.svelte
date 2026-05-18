@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { ProtectedMediaPagePresenterMediaSettingsVmPublic } from '$lib/area-protected';
-	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { onDestroy, onMount } from 'svelte';
+
+	import { getMenuOptions, type IFileMenuOption } from '@svar-ui/svelte-filemanager';
 
 	import { mediaLibraryMediaModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
 	import { formatBytes, maxMediaUploadShortLabel } from '$lib/medias';
@@ -15,12 +16,11 @@
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import MediaBox from '$lib/ui/components/media/MediaBox.svelte';
+	import MediaFileManager from '$lib/ui/components/media/MediaFileManager.svelte';
 	import MediaLibraryToolbar from '$lib/ui/components/media/MediaLibraryToolbar.svelte';
 	import MediaLibraryUploadOverlay from '$lib/ui/components/media/MediaLibraryUploadOverlay.svelte';
 	import MediaSettings from '$lib/ui/components/media/MediaSettings.svelte';
 	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
-	import PaginationComposite from '$lib/ui/pagination/pagination-composite.svelte';
 
 	interface MediaLibraryPageProps {
 		data: PageData;
@@ -39,17 +39,15 @@
 	const p = protectedMediaPagePresenter as typeof protectedMediaPagePresenter &
 		ProtectedMediaPagePresenterMediaSettingsVmPublic;
 
-	const mediaItemsVm = $derived(p.mediaItemsVm);
+	const fileManagerData = $derived(p.fileManagerData);
+	const drive = $derived(p.drive);
 	const loading = $derived(p.loading);
-	const currentPage = $derived(p.pagination.currentPage);
-	const totalPages = $derived(p.totalPages);
-	const totalItems = $derived(p.totalItems);
-	const itemsPerPage = $derived(p.pagination.itemsPerPage);
 	const organizationId = $derived(p.organizationId);
+	const workspaceName = $derived(p.currentWorkspaceName);
+	const uploadVirtualPath = $derived(p.uploadVirtualPath);
 	const uploadLimitLabel = maxMediaUploadShortLabel();
 	const uploadBusy = $derived(uploadPhase !== 'idle');
 
-	let dragOver = $state(false);
 	let uppy = $state.raw<ReturnType<typeof createAccountMediaUppy> | null>(null);
 
 	function isSupportedUpload(file: File): boolean {
@@ -87,13 +85,44 @@
 		p.onDesignAdded();
 	}
 
-	onMount(() => {
-		void p.loadMedia(1);
+	function buildMenuOptions(
+		mode: Parameters<typeof p.buildMenuOptions>[1],
+		item?: Parameters<typeof p.buildMenuOptions>[2]
+	): IFileMenuOption[] {
+		const defaults = getMenuOptions(mode).map((opt) => ({
+			...opt,
+			hotkey: opt.hotkey ?? ''
+		})) as IFileMenuOption[];
+		return p.buildMenuOptions(defaults, mode, item);
+	}
 
+	async function onDeleteFiles(ids: string[]) {
+		await p.handleDeleteFiles(ids);
+		toast.success(ids.length === 1 ? 'File deleted.' : `${ids.length} files deleted.`);
+	}
+
+	async function onMoveFiles(ids: string[], target: string): Promise<boolean> {
+		const ok = await p.handleMoveFiles(ids, target);
+		if (!ok) toast.error('Could not move files.');
+		return ok;
+	}
+
+	async function onRenameFile(id: string, name: string): Promise<boolean> {
+		const ok = await p.handleRenameFile(id, name);
+		if (!ok) toast.error('Could not rename file.');
+		return ok;
+	}
+
+	function onOpenFile(id: string) {
+		if (p.openSettingsForFileManagerId(id)) return;
+	}
+
+	onMount(() => {
 		const instance = createAccountMediaUppy({
 			getAccessToken: () => authenticationRepository.getToken(),
 			onUploadError: (err) => toast.error(err.message || 'Upload failed.'),
-			getOrganizationId: () => workspaceSettingsPresenter.currentWorkspaceId ?? ''
+			getOrganizationId: () => workspaceSettingsPresenter.currentWorkspaceId ?? '',
+			getVirtualPath: () => protectedMediaPagePresenter.uploadVirtualPath
 		});
 		uppy = instance;
 		if (organizationId) instance.setMeta({ organizationId });
@@ -154,7 +183,7 @@
 
 	$effect(() => {
 		if (!uppy || !organizationId) return;
-		uppy.setMeta({ organizationId });
+		uppy.setMeta({ organizationId, virtualPath: uploadVirtualPath });
 	});
 </script>
 
@@ -171,12 +200,18 @@
 						width="32"
 						height="32"
 					/>
-					<h1 class="text-2xl font-semibold text-base-content">
-						Media Library
-					</h1>
+					<div>
+						<h1 class="text-2xl font-semibold text-base-content">Media Library</h1>
+						<p class="text-sm text-base-content/65">{workspaceName}</p>
+					</div>
 				</div>
-				<p class="mt-1 text-sm text-base-content/70">
-					Select or upload media files. Maximum {uploadLimitLabel} per file.
+				<p class="mt-2 text-sm text-base-content/70">
+					Browse folders, upload, and manage workspace medias. Maximum {uploadLimitLabel} per file.
+					{#if uploadVirtualPath}
+						<span class="text-base-content/55 block pt-1 text-xs">
+							Uploads/Designs go to <span class="font-medium text-base-content/80">{uploadVirtualPath}</span>
+						</span>
+					{/if}
 				</p>
 			</div>
 			<MediaLibraryToolbar
@@ -184,45 +219,30 @@
 				{uploadBusy}
 				onFilesSelected={queueFilesForUpload}
 				onDesignClick={() => (designOpen = true)}
-				onImported={() => void p.loadMedia(currentPage)}
+				onImported={() => void p.loadTree()}
 			/>
 		</div>
 
-		<p class="text-base-content/75 mb-4 max-w-2xl text-sm">
-			Drag files here or use <span class="font-medium text-base-content">Upload</span> above (maximum {uploadLimitLabel} per file).
-		</p>
-
-		<MediaBox
-			{mediaItemsVm}
-			{loading}
-			{organizationId}
-			{uploadLimitLabel}
-			{uploadBusy}
-			onQueueFiles={queueFilesForUpload}
-			onSetDragOver={(v) => {
-				dragOver = v;
-			}}
-			onOpenSettings={(mediaVm: MediaLibraryItemViewModel) => p.openMediaSettings(mediaVm)}
-			onReload={() => p.loadMedia(currentPage)}
-			deleteMedia={(mediaVm) => p.deleteLibraryItem(mediaVm)}
-			{dragOver}
-		/>
+		{#if !organizationId}
+			<p class="text-base-content/70 rounded-xl border border-dashed border-base-300/80 bg-base-200/30 px-4 py-8 text-center text-sm">
+				Select a workspace to manage media.
+			</p>
+		{:else}
+			<MediaFileManager
+				data={fileManagerData}
+				{drive}
+				{loading}
+				readonly={uploadBusy}
+				menuOptions={buildMenuOptions}
+				onInit={(api) => p.registerFileManagerApi(api)}
+				onPathChange={() => p.onFileManagerPathChanged()}
+				onDeleteFiles={onDeleteFiles}
+				onMoveFiles={onMoveFiles}
+				onRenameFile={onRenameFile}
+				onOpenFile={onOpenFile}
+			/>
+		{/if}
 	</div>
-
-	{#if totalItems > 0 && totalPages > 1}
-		<PaginationComposite
-			itemsPerPage={itemsPerPage}
-			totalItems={totalItems}
-			currentPage={currentPage}
-			totalPages={totalPages}
-			setItemsPerPage={p.setItemsPerPageAndReload.bind(p)}
-			setCurrentPage={p.setCurrentPage.bind(p)}
-			paginateFrontFF={p.paginateFrontFF.bind(p)}
-			paginateBackFF={p.paginateBackFF.bind(p)}
-			nameOfItems="media files"
-			pageSizeOptions={[12, 24, 48, 96]}
-		/>
-	{/if}
 </div>
 
 <MediaGenerationModal
@@ -248,6 +268,6 @@
 	organizationId={organizationId}
 	uploadSimple={(args) => p.uploadMediaSimple(args)}
 	saveInformation={(args) => p.saveMediaInformation(args)}
-	onSaved={() => void p.loadMedia(currentPage)}
+	onSaved={() => void p.loadTree()}
 	onClose={() => p.clearSettingsMediaVm()}
 />

@@ -1,5 +1,9 @@
 <script lang="ts">
 	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
+	import { icons } from '$data/icons';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import CopyStyleButton from './controls/CopyStyleButton.svelte';
 	import DuplicateButton from './controls/DuplicateButton.svelte';
 	// import GroupButton from './controls/GroupButton.svelte';
@@ -10,9 +14,6 @@
 	import PositionPicker from './controls/PositionPicker.svelte';
 	import RemoveButton from './controls/RemoveButton.svelte';
 	import TextToolbar from './controls/TextToolbar.svelte';
-	import { icons } from '$data/icons';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = {
 		disabled?: boolean;

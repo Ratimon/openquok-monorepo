@@ -6,8 +6,11 @@ import { MediaRepository } from './Media.repository.svelte';
 const mediaConfig: MediaConfig = {
 	endpoints: {
 		list: '/api/v1/media',
+		tree: '/api/v1/media/tree',
 		upload: '/api/v1/media/upload',
 		delete: '/api/v1/media/delete',
+		move: '/api/v1/media/move',
+		rename: '/api/v1/media/rename',
 		uploadSimple: '/api/v1/media/upload-simple',
 		saveInformation: '/api/v1/media/information'
 	}
@@ -27,7 +30,17 @@ export type {
 	UploadSimpleViewModel
 } from './GetMedia.presenter.svelte';
 export { GetMediaPresenter } from './GetMedia.presenter.svelte';
-export { maxMediaUploadShortLabel } from 'openquok-common';
+export {
+	maxMediaUploadShortLabel,
+	MEDIA_VIRTUAL_GENERAL,
+	MEDIA_VIRTUAL_POSTS,
+	MEDIA_VIRTUAL_POSTS_UNSCHEDULED,
+	normalizeMediaVirtualPath,
+	mediaVirtualPathForComposerUpload,
+	mediaFileManagerId,
+	parseMediaFileManagerId,
+	mediaVirtualPathFromFileManagerTarget
+} from 'openquok-common';
 export {
 	resolveMediaLibraryUploadMode,
 	type MediaLibraryUploadMode

@@ -4,14 +4,14 @@
 	import { formatBytes, publicUrlForMediaStorageKey } from '$lib/medias';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
+	import { cn } from '$lib/ui/helpers/common';
 
-	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import { buttonVariants } from '$lib/ui/buttons/Button.svelte';
 	import { Dropzone } from '$lib/ui/dropzone';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import { cn } from '$lib/ui/helpers/common';
-	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Dialog from '$lib/ui/dialog';
+	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
 
 	type Props = {
 		mediaItemsVm: MediaLibraryItemViewModel[];
@@ -151,7 +151,6 @@
 				{#each mediaItemsVm as mediaVm (mediaVm.id)}
 					<MultiMedia
 						{mediaVm}
-						{organizationId}
 						onOpen={openPreview}
 						onDelete={openDeleteConfirm}
 						onSettings={onOpenSettings}

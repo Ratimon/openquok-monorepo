@@ -66,6 +66,8 @@ export type AccountMediaUppyOptions = {
 	onUploadError?: (error: Error) => void;
 	/** Resolved on each API call (workspace may load after mount). */
 	getOrganizationId: () => string;
+	/** Virtual folder for new uploads (active File Manager directory). */
+	getVirtualPath?: () => string;
 	/**
 	 * Upload strategy; defaults to {@link resolveMediaLibraryUploadMode} (`VITE_MEDIA_LIBRARY_UPLOAD`).
 	 */
@@ -90,6 +92,11 @@ export function createAccountMediaUppy(options: AccountMediaUppyOptions): Uppy {
 	// Threads/Meta rejects SVG media fetches. Convert SVG → PNG at ingestion time so downstream
 	// providers always see a supported raster format (and so the stored object key isn't .svg).
 	uppy.on('file-added', async (file) => {
+		const virtualPath = options.getVirtualPath?.();
+		if (virtualPath?.trim()) {
+			uppy.setFileMeta(file.id, { ...(file.meta ?? {}), virtualPath });
+		}
+
 		const type = String(file.type ?? '').toLowerCase();
 		const name = String(file.name ?? '').toLowerCase();
 		const isSvg = type.includes('svg') || name.endsWith('.svg');
@@ -125,6 +132,7 @@ export function createAccountMediaUppy(options: AccountMediaUppyOptions): Uppy {
 		mode,
 		getAccessToken: options.getAccessToken,
 		getOrganizationId: options.getOrganizationId,
+		getVirtualPath: options.getVirtualPath,
 		transloadit: options.transloadit
 	});
 

@@ -41,4 +41,16 @@ export class MediaService {
     ): Promise<{ id: string; path: string; publicUrl: string | null }> {
         return this._mediaRepository.saveMediaInformation(organizationId, dto);
     }
+
+    listAllMedia(organizationId: string) {
+        return this._mediaRepository.listAllMedia(organizationId);
+    }
+
+    updateVirtualPaths(organizationId: string, updates: { id: string; virtualPath: string }[]) {
+        return this._mediaRepository.updateVirtualPaths(organizationId, updates);
+    }
+
+    renameMediaDisplayName(organizationId: string, id: string, originalName: string) {
+        return this._mediaRepository.renameMediaDisplayName(organizationId, id, originalName);
+    }
 }

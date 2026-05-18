@@ -1,6 +1,6 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import { ApiError } from '$lib/core/HttpGateway';
-import { mediaRepository } from '$lib/medias';
+import { mediaRepository, mediaVirtualPathForComposerUpload } from '$lib/medias';
 
 /** One image attached to a social post (R2 / user media paths from `/api/v1/media/*`). */
 export type PostMediaProgrammerModel = {
@@ -15,7 +15,8 @@ export type PostMediaProgrammerModel = {
  */
 export async function uploadSocialPostComposerMediaFiles(
 	files: FileList,
-	uploadUid: string
+	uploadUid: string,
+	options?: { publishDateIso?: string | null }
 ): Promise<
 	{ ok: true; items: PostMediaProgrammerModel[] } | { ok: false; message: string }
 > {
@@ -23,9 +24,10 @@ export async function uploadSocialPostComposerMediaFiles(
 	if (!list.length) {
 		return { ok: false, message: 'Add image files only.' };
 	}
+	const virtualPath = mediaVirtualPathForComposerUpload(options?.publishDateIso);
 	const items: PostMediaProgrammerModel[] = [];
 	for (const file of list) {
-		const result = await mediaRepository.uploadMedia(file, uploadUid);
+		const result = await mediaRepository.uploadMedia(file, uploadUid, virtualPath);
 		if (result.success && result.data.filePath) {
 			items.push({ id: crypto.randomUUID(), path: result.data.filePath, bucket: 'social_media' });
 		} else {

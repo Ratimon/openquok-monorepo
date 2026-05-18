@@ -21,6 +21,7 @@
 		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
 		uploadUid?: string;
+		publishDateIso?: string | null;
 		commentsMode?: LaunchProviderCommentsMode;
 	};
 
@@ -29,11 +30,11 @@
 		onOpen,
 		onDelete,
 		onSettings,
-		organizationId = '',
 		deleting = false,
 		items = $bindable([]),
 		disabled = false,
 		uploadUid = '',
+		publishDateIso = null,
 		commentsMode = true
 	}: Props = $props();
 
@@ -79,7 +80,7 @@
 		if (!files?.length || disabled || uploadBusy || !uploadUid) return;
 		uploadBusy = true;
 		try {
-			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid);
+			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid, { publishDateIso });
 			if (!batch.ok) {
 				toast.error(batch.message);
 				return;

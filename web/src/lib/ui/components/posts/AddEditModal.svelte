@@ -20,6 +20,7 @@
 	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
 	import ThreadRepliesEditor from '$lib/ui/components/posts/thread/ThreadRepliesEditor.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
+	import { datetimeLocalToIso } from '$lib/utils/postingSchedulePreferences';
 
 	type Mode = 'global' | 'custom';
 
@@ -126,6 +127,10 @@
 		previewProviderSettings = {},
 		contentSetAuthoringNetworkLock = false
 	}: Props = $props();
+
+	const publishDateIso = $derived(
+		scheduledPostDatetimeLocal?.trim() ? datetimeLocalToIso(scheduledPostDatetimeLocal) : null
+	);
 
 	/** Channel shown in the preview: custom focus, or exactly one selected target in global mode. */
 	const previewChannel = $derived.by(() => {
@@ -251,6 +256,7 @@
 				bind:body
 				bind:postMediaItems
 				{uploadUid}
+				{publishDateIso}
 				organizationId={organizationId}
 				{loadSignaturesVmForComposer}
 				{busy}

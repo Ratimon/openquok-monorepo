@@ -9,6 +9,8 @@ import {
     validateMediaOrganizationQuery,
     validateSaveMediaInformationBody,
     validateMultipartEndpoint,
+    validateMediaMoveBody,
+    validateMediaRenameBody,
 } from "../data/schemas/mediaSchemas";
 
 const upload = multer({
@@ -30,6 +32,12 @@ const mediaRouter: MediaRouter = Router();
  * Editor-only restriction would block account holders without the editor role (see account media library).
  */
 mediaRouter.get("/", authWithRoles, validateMediaOrganizationQuery, mediaController.list);
+
+mediaRouter.get("/tree", authWithRoles, validateMediaOrganizationQuery, mediaController.tree);
+
+mediaRouter.post("/move", authWithRoles, validateMediaMoveBody, mediaController.move);
+
+mediaRouter.post("/rename", authWithRoles, validateMediaRenameBody, mediaController.rename);
 
 mediaRouter.post("/upload", authWithRoles, upload.single("mediaFile"), mediaController.upload);
 

@@ -1,11 +1,30 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import { MAX_MEDIA_UPLOAD_BYTES, maxMediaUploadShortLabel } from 'openquok-common';
 
+export interface MediaFileTreeEntityProgrammerModel {
+	id: string;
+	type: 'file' | 'folder';
+	size?: number;
+	date?: string;
+	lazy?: boolean;
+	mediaId?: string;
+	publicUrl?: string | null;
+	kind?: MediaLibraryItemProgrammerModel['kind'];
+}
+
+export interface MediaTreeProgrammerModel {
+	files: MediaFileTreeEntityProgrammerModel[];
+	drive: { used: number; total: number };
+}
+
 export interface MediaConfig {
 	endpoints: {
 		list: string;
+		tree: string;
 		upload: string;
 		delete: string;
+		move: string;
+		rename: string;
 		uploadSimple: string;
 		saveInformation: string;
 	};
@@ -129,7 +148,87 @@ export class MediaRepository {
 		}
 	}
 
-	public async uploadMedia(file: File, organizationId: string): Promise<MediaUploadProgrammerModel> {
+	public async listMediaTree(organizationId: string): Promise<MediaTreeProgrammerModel | null> {
+		try {
+			const { data: dto, ok } = await this.httpGateway.get<{
+				success: boolean;
+				data?: MediaTreeProgrammerModel;
+			}>(this.config.endpoints.tree, { organizationId }, { withCredentials: true });
+
+			if (ok && dto?.data) {
+				return dto.data;
+			}
+			return null;
+		} catch {
+			return null;
+		}
+	}
+
+	public async moveMedia(params: {
+		organizationId: string;
+		ids: string[];
+		target: string;
+	}): Promise<{ success: boolean; message: string; moved?: number }> {
+		try {
+			const { data: moveDto, ok } = await this.httpGateway.post<{
+				success: boolean;
+				data?: { moved?: number };
+				message?: string;
+			}>(
+				this.config.endpoints.move,
+				{
+					organizationId: params.organizationId,
+					ids: params.ids,
+					target: params.target
+				},
+				{ withCredentials: true }
+			);
+
+			if (ok && moveDto?.success) {
+				return { success: true, message: 'Moved.', moved: moveDto.data?.moved };
+			}
+			return { success: false, message: moveDto?.message || 'Could not move files.' };
+		} catch (error) {
+			return {
+				success: false,
+				message: error instanceof Error ? error.message : 'Could not move files.'
+			};
+		}
+	}
+
+	public async renameMedia(params: {
+		organizationId: string;
+		id: string;
+		name: string;
+	}): Promise<{ success: boolean; message: string }> {
+		try {
+			const { data: renameDto, ok } = await this.httpGateway.post<{ success: boolean; message?: string }>(
+				this.config.endpoints.rename,
+				{
+					organizationId: params.organizationId,
+					id: params.id,
+					name: params.name
+				},
+				{ withCredentials: true }
+			);
+
+			if (ok && renameDto?.success) {
+				return { success: true, message: 'Renamed.' };
+			}
+			return { success: false, message: renameDto?.message || 'Could not rename file.' };
+		} catch (error) {
+			return {
+				success: false,
+				message: error instanceof Error ? error.message : 'Could not rename file.'
+			};
+		}
+	}
+
+	public async uploadMedia(
+		file: File,
+		organizationId: string,
+		virtualPath?: string
+	): Promise<MediaUploadProgrammerModel> {
 		if (file.size > MAX_MEDIA_UPLOAD_BYTES) {
 			return {
 				success: false,
@@ -142,6 +241,9 @@ export class MediaRepository {
 			const formData = new FormData();
 			formData.append('mediaFile', file);
 			formData.append('organizationId', organizationId);
+			if (virtualPath?.trim()) {
+				formData.append('virtualPath', virtualPath);
+			}
 
 			const { data: dto, ok } = await this.httpGateway.post<MediaUploadResponseDto>(
 				this.config.endpoints.upload,

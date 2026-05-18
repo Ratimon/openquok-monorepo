@@ -41,6 +41,8 @@
 		postMediaItems?: PostMediaProgrammerModel[];
 		/** Auth uid for multipart upload field; storage path uses JWT on the server. */
 		uploadUid?: string;
+		/** Scheduled publish time (ISO) — selects the media library folder for composer uploads. */
+		publishDateIso?: string | null;
 		/** Current workspace for org-scoped signatures in the toolbar. */
 		organizationId?: string | null;
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
@@ -77,6 +79,7 @@
 		confirmBannerRightAction = false,
 		postMediaItems = $bindable<PostMediaProgrammerModel[]>([]),
 		uploadUid = '',
+		publishDateIso = null,
 		organizationId = null,
 		loadSignaturesVmForComposer = undefined,
 		composerMode = 'global',
@@ -203,6 +206,7 @@
 					bind:items={postMediaItems}
 					disabled={busy}
 					{uploadUid}
+					{publishDateIso}
 					{organizationId}
 					{loadSignaturesVmForComposer}
 					textarea={composerTextarea}
@@ -224,6 +228,7 @@
 				bind:items={postMediaItems}
 				disabled={busy}
 				{uploadUid}
+				{publishDateIso}
 				{commentsMode}
 			/>
 		</div>

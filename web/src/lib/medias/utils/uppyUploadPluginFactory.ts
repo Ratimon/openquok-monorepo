@@ -54,6 +54,7 @@ export type UploadPluginFactoryOptions = {
 	getAccessToken: () => string | null;
 	/** Read on each request so uploads work after workspace loads (avoid mount-time empty string). */
 	getOrganizationId: () => string;
+	getVirtualPath?: () => string;
 	transloadit?: { key: string; templateId: string };
 };
 
@@ -93,6 +94,7 @@ export function getUppyUploadPlugin(options: UploadPluginFactoryOptions): {
 				endpoint: apiUrl('/api/v1/media/upload-server'),
 				withCredentials: true,
 				fieldName: 'file',
+				metaFields: ['organizationId', 'virtualPath'],
 				headers: () => {
 					const token = options.getAccessToken();
 					return token ? { Authorization: `Bearer ${token}` } : {};
@@ -108,6 +110,7 @@ export function getUppyUploadPlugin(options: UploadPluginFactoryOptions): {
 				endpoint: apiUrl('/api/v1/media/upload'),
 				withCredentials: true,
 				fieldName: 'mediaFile',
+				metaFields: ['organizationId', 'virtualPath'],
 				headers: () => {
 					const token = options.getAccessToken();
 					return token ? { Authorization: `Bearer ${token}` } : {};
@@ -123,11 +126,13 @@ export function getUppyUploadPlugin(options: UploadPluginFactoryOptions): {
 			shouldUseMultipart: (_file: any) => true,
 			createMultipartUpload: async (file: any) => {
 				const token = options.getAccessToken();
+				const virtualPath = options.getVirtualPath?.();
 				const dto = await postJson({
 					path: '/api/v1/media/create-multipart-upload',
 					token,
 					body: {
 						organizationId: options.getOrganizationId(),
+						...(virtualPath?.trim() ? { virtualPath } : {}),
 						file: { name: file.name, size: file.size, type: file.type },
 						contentType: file.type || 'application/octet-stream',
 						fileHash: ''
@@ -165,11 +170,13 @@ export function getUppyUploadPlugin(options: UploadPluginFactoryOptions): {
 			},
 			completeMultipartUpload: async (file: any, p: any) => {
 				const token = options.getAccessToken();
+				const virtualPath = options.getVirtualPath?.();
 				const dto = await postJson({
 					path: '/api/v1/media/complete-multipart-upload',
 					token,
 					body: {
 						organizationId: options.getOrganizationId(),
+						...(virtualPath?.trim() ? { virtualPath } : {}),
 						key: p.key,
 						uploadId: p.uploadId,
 						parts: p.parts,
