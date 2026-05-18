@@ -29,6 +29,11 @@ openquok auth:status
 openquok auth:logout
 ```
 
+- **Agents:** `--json` only on headless hosts; forward `verification_uri_complete` from stdout — never fabricate codes or URLs.
+- **Humans with TTY:** `openquok auth:login` without `--json` is fine locally.
+- **Invalid or expired code:** Re-run `auth:login --json` while the CLI polls; use a fresh prefilled link (~15 min). Signing in at openquok.com alone does not complete device flow.
+- **Stale CLI:** If verify host errors mention `cli-auth.openquok.com`, upgrade to `@openquok/auto-cli@latest` (≥ 0.0.6).
+
 ## Integrations
 
 ```bash

@@ -11,8 +11,10 @@ alwaysApply: false
 - **`SKILL.md`** — Hard rules, auth, core workflow, patterns, gotchas, quick reference. Keep it focused; link out instead of duplicating long examples.
 - **`resources/*.md`** — Deeper material agents can load on demand:
   - `command-reference.md` — CLI commands, flags, env vars (not `agent/README.md`; skill install path has no sibling README).
+  - `patterns.md` — extended workflows (campaign JSON, batching, retries).
   - `threads-examples.md`, `instagram-standalone-examples.md`, `instagram-business-examples.md` — platform-specific `posts:create` / integration examples.
   - `threads-publish.md` — server publish behavior summarized in markdown (never link to `.ts` / backend paths from the skill).
+- **`SKILL.md` tone** — imperative, short tables and bullets; no tutorial prose; shell-safety rules for untrusted input; defer command lists and long bash to `resources/`.
 - **Links:** Only reference markdown under this skill directory (or stable external URLs in the front matter). Do not link to monorepo source files (TypeScript, tests, etc.) from skill content; summarize behavior in a new `resources/*.md` file instead.
 
 ## Best practices
