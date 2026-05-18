@@ -96,6 +96,7 @@ export type PostKanbanCardViewModel = {
 	contentPreview: string;
 	publishLabel: string;
 	publishTimeLabel: string;
+	relativePublishLabel: string;
 	statusLabel: string;
 	publishDateIso: string;
 	note: string | null;
@@ -178,6 +179,46 @@ function formatPublishScheduleLabel(publishDateIso: string): string {
 	const ms = parseKanbanPublishMs(publishDateIso);
 	if (!Number.isFinite(ms)) return '';
 	return dayjs(ms).format('MMM D, h:mm A');
+}
+
+/** Relative countdown from now to publish time, e.g. `(in 5 hrs)` or `(3 hrs ago)`. */
+export function formatKanbanRelativePublishLabel(
+	publishDateIso: string,
+	nowMs = Date.now()
+): string {
+	const ms = parseKanbanPublishMs(publishDateIso);
+	if (!Number.isFinite(ms)) return '';
+
+	const diffMs = ms - nowMs;
+	const absDiffMs = Math.abs(diffMs);
+	const isFuture = diffMs > 0;
+
+	const minuteMs = 60_000;
+	const hourMs = 60 * minuteMs;
+	const dayMs = 24 * hourMs;
+
+	if (absDiffMs < minuteMs) {
+		return isFuture ? '(in <1 min)' : '(just now)';
+	}
+
+	if (absDiffMs < hourMs) {
+		const mins = Math.round(absDiffMs / minuteMs);
+		return isFuture
+			? `(in ${mins} min${mins === 1 ? '' : 's'})`
+			: `(${mins} min${mins === 1 ? '' : 's'} ago)`;
+	}
+
+	if (absDiffMs < dayMs) {
+		const hrs = Math.round(absDiffMs / hourMs);
+		return isFuture
+			? `(in ${hrs} hr${hrs === 1 ? '' : 's'})`
+			: `(${hrs} hr${hrs === 1 ? '' : 's'} ago)`;
+	}
+
+	const days = Math.round(absDiffMs / dayMs);
+	return isFuture
+		? `(in ${days} day${days === 1 ? '' : 's'})`
+		: `(${days} day${days === 1 ? '' : 's'} ago)`;
 }
 
 function displayToChannelSlot(display: {
@@ -270,6 +311,7 @@ function toCardsVm(
 			contentPreview: stripHtmlPreview(content),
 			publishLabel: dayjs(rep.publishDate).format('MMM D, YYYY h:mm A'),
 			publishTimeLabel: formatPublishScheduleLabel(rep.publishDate),
+			relativePublishLabel: formatKanbanRelativePublishLabel(rep.publishDate),
 			statusLabel: columnStatusLabel(column),
 			publishDateIso: rep.publishDate,
 			note: rep.note ?? null,

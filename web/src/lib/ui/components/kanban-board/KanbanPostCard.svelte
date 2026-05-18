@@ -205,7 +205,7 @@
 		<p class="truncate text-[10px] text-base-content/60 select-none">
 			{cardVm.primaryChannelName || 'No channel'}{cardVm.publishTimeLabel
 				? ` @ ${cardVm.publishTimeLabel}`
-				: ''}
+				: ''}{cardVm.relativePublishLabel ? ` ${cardVm.relativePublishLabel}` : ''}
 		</p>
 
 		<div class="border-t border-base-300/80 pt-1.5" data-no-dnd="true">
