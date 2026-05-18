@@ -30,13 +30,7 @@ export type PostKanbanColumnOptionViewModel = (typeof POST_KANBAN_COLUMNS)[numbe
 
 export type PostKanbanSourceFilter = 'all' | 'agent' | 'human';
 
-export type PostKanbanTimeFilter =
-	| 'all'
-	| 'all-past'
-	| 'past-30-days'
-	| 'all-upcoming'
-	| 'next-week'
-	| 'next-30-days';
+export type PostKanbanTimeFilter = 'all-upcoming' | 'next-week' | 'next-30-days';
 
 export type PostKanbanColumnCountViewModel = {
 	visible: number;
@@ -49,9 +43,6 @@ export type PostKanbanTimeFilterOptionViewModel = {
 };
 
 export const POST_KANBAN_TIME_FILTER_OPTIONS: PostKanbanTimeFilterOptionViewModel[] = [
-	{ id: 'all', label: 'All' },
-	{ id: 'all-past', label: 'All Past' },
-	{ id: 'past-30-days', label: 'Past 30 Days' },
 	{ id: 'all-upcoming', label: 'All Upcoming' },
 	{ id: 'next-week', label: 'Next Week' },
 	{ id: 'next-30-days', label: 'Next 30 Days' }
@@ -74,18 +65,9 @@ function matchesKanbanTimeFilter(
 	filter: PostKanbanTimeFilter,
 	nowMs = Date.now()
 ): boolean {
-	if (filter === 'all') return true;
-
 	const ms = parseKanbanPublishMs(publishDateIso);
 	const now = dayjs(nowMs);
 
-	if (filter === 'all-past') {
-		return Number.isFinite(ms) && ms < nowMs;
-	}
-	if (filter === 'past-30-days') {
-		if (!Number.isFinite(ms) || ms >= nowMs) return false;
-		return ms >= now.subtract(30, 'day').startOf('day').valueOf();
-	}
 	if (filter === 'all-upcoming') {
 		return isKanbanUpcomingPublishDate(publishDateIso, nowMs);
 	}
@@ -171,7 +153,6 @@ function filterCardsByTime(
 	cardsVm: readonly PostKanbanCardViewModel[],
 	timeFilter: PostKanbanTimeFilter
 ): PostKanbanCardViewModel[] {
-	if (timeFilter === 'all') return [...cardsVm];
 	return cardsVm.filter((card) => matchesKanbanTimeFilter(card.publishDateIso, timeFilter));
 }
 
@@ -193,10 +174,10 @@ function columnStatusLabel(column: PostKanbanColumnId): string {
 	return 'Published';
 }
 
-function formatPublishTimeLabel(publishDateIso: string): string {
-	const ms = Date.parse(publishDateIso);
+function formatPublishScheduleLabel(publishDateIso: string): string {
+	const ms = parseKanbanPublishMs(publishDateIso);
 	if (!Number.isFinite(ms)) return '';
-	return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+	return dayjs(ms).format('MMM D, h:mm A');
 }
 
 function displayToChannelSlot(display: {
@@ -288,7 +269,7 @@ function toCardsVm(
 			column,
 			contentPreview: stripHtmlPreview(content),
 			publishLabel: dayjs(rep.publishDate).format('MMM D, YYYY h:mm A'),
-			publishTimeLabel: formatPublishTimeLabel(rep.publishDate),
+			publishTimeLabel: formatPublishScheduleLabel(rep.publishDate),
 			statusLabel: columnStatusLabel(column),
 			publishDateIso: rep.publishDate,
 			note: rep.note ?? null,
@@ -320,7 +301,7 @@ export class PostKanbanBoardPresenter {
 	readonly timeFilterOptions = POST_KANBAN_TIME_FILTER_OPTIONS;
 
 	sourceFilter = $state<PostKanbanSourceFilter>('all');
-	timeFilter = $state<PostKanbanTimeFilter>('all');
+	timeFilter = $state<PostKanbanTimeFilter>('all-upcoming');
 	status = $state<'idle' | 'loading' | 'ready' | 'error'>('idle');
 	error = $state<string | null>(null);
 	movingPostGroup = $state<string | null>(null);

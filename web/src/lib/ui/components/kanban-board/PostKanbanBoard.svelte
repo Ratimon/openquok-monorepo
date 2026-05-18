@@ -12,6 +12,8 @@
 	} from '$lib/posts/PostKanbanBoard.presenter.svelte';
 	import type { KanbanCardDragPayload } from '$lib/ui/components/kanban-board/kanbanDnd';
 
+	import { icons } from '$data/icons';
+
 	import KanbanColumn from './KanbanColumn.svelte';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -44,6 +46,7 @@
 		onToggleReviewed: (postId: string, isReviewed: boolean) => void;
 		onNoteChange: (postId: string, note: string) => void;
 		onOpenPostActions?: (payload: { postGroup: string; postId: string }) => void;
+		calendarHref: string;
 	};
 
 	let {
@@ -62,7 +65,8 @@
 		onMoveCardToColumn,
 		onToggleReviewed,
 		onNoteChange,
-		onOpenPostActions
+		onOpenPostActions,
+		calendarHref
 	}: Props = $props();
 
 	let dragOverColumnId = $state<PostKanbanColumnId | null>(null);
@@ -105,23 +109,40 @@
 			</p>
 		</div>
 		<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-			<div
-				class="inline-flex max-w-full overflow-x-auto rounded-lg border border-base-300 bg-base-100"
-				role="group"
-				aria-label="Filter by publish date"
-			>
-				{#each timeFilterOptions as opt (opt.id)}
-					<Button
-						type="button"
-						variant={timeFilter === opt.id ? 'secondary' : 'ghost'}
-						size="sm"
-						class="shrink-0 rounded-none px-3"
-						aria-pressed={timeFilter === opt.id}
-						onclick={() => onTimeFilterChange(opt.id)}
-					>
-						{opt.label}
-					</Button>
-				{/each}
+			<div class="flex max-w-full flex-wrap items-center gap-2">
+				<div
+					class="inline-flex max-w-full overflow-x-auto rounded-lg border border-base-300 bg-base-100"
+					role="group"
+					aria-label="Filter by publish date"
+				>
+					{#each timeFilterOptions as opt (opt.id)}
+						<Button
+							type="button"
+							variant={timeFilter === opt.id ? 'secondary' : 'ghost'}
+							size="sm"
+							class="shrink-0 rounded-none px-3"
+							aria-pressed={timeFilter === opt.id}
+							onclick={() => onTimeFilterChange(opt.id)}
+						>
+							{opt.label}
+						</Button>
+					{/each}
+				</div>
+				<Button
+					href={calendarHref}
+					variant="outline"
+					size="sm"
+					class="shrink-0 gap-1.5"
+					aria-label="View past posts in calendar"
+				>
+					<AbstractIcon
+						name={icons.CalendarClock.name}
+						class="size-4"
+						width="16"
+						height="16"
+					/>
+					Past posts
+				</Button>
 			</div>
 			<div
 				class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"

@@ -18,6 +18,7 @@
 	// --- Area & integrations ---
 	import {
 		getRootPathAccount,
+		getRootPathCalendar,
 		protectedDashboardPagePresenter,
 		protectedSettingsPagePresenter,
 		WorkspaceSettingsStatus
@@ -54,6 +55,10 @@
 	// /account
 	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);
+
+	// /account/calendar
+	const rootPathCalendar = getRootPathCalendar();
+	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
 
 	const pagePresenter = protectedDashboardPagePresenter;
 	const postKanbanBoard = pagePresenter.postKanbanBoardPresenter;
@@ -706,6 +711,7 @@
 			status={postKanbanStatus}
 			error={postKanbanError}
 			movingPostGroup={postKanbanMovingPostGroup}
+			calendarHref={calendarPath}
 			onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
 			onTimeFilterChange={(next) => postKanbanBoard.setTimeFilter(next)}
 			onMoveCardToColumn={(payload, column) => postKanbanBoard.moveCardToColumn(payload, column)}
