@@ -13,7 +13,7 @@
 
     import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Dialog from '$lib/ui/dialog';
-	import Button from '$lib/ui/buttons/Button.svelte';
+	import Button, { type ButtonSize, type ButtonVariant } from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	// /account
@@ -37,6 +37,11 @@
 		iconOnlyTooltip?: string;
 		/** After at least one channel exists, Add Channel / invite use secondary instead of primary. */
 		hasConnectedChannels?: boolean;
+		/** When set, overrides the variant derived from {@link hasConnectedChannels}. */
+		buttonVariant?: ButtonVariant;
+		buttonSize?: ButtonSize;
+		buttonClass?: string;
+		iconClass?: string;
 	};
 
 	let {
@@ -46,10 +51,17 @@
 		invite = false,
 		iconOnly = false,
 		iconOnlyTooltip,
-		hasConnectedChannels = false
+		hasConnectedChannels = false,
+		buttonVariant,
+		buttonSize,
+		buttonClass,
+		iconClass
 	}: Props = $props();
 
-	const channelButtonVariant = $derived(hasConnectedChannels ? 'secondary' : 'primary');
+	const channelButtonVariant = $derived(
+		buttonVariant ?? (hasConnectedChannels ? 'secondary' : 'primary')
+	);
+	const triggerIconClass = $derived(iconClass ?? 'h-4 w-4');
 
 	let open = $state(false);
 	let loading = $state(false);
@@ -164,15 +176,23 @@
 			</Button>
 		{/if}
 	{:else}
-		<Button
-			class="gap-2"
-			type="button"
-			variant={channelButtonVariant}
-			onclick={() => (open = true)}
-		>
-			<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
-			{buttonLabel}
-		</Button>
+		<span class="inline-flex shrink-0">
+			<Button
+				class={cn('gap-2', buttonClass)}
+				type="button"
+				variant={channelButtonVariant}
+				size={buttonSize}
+				onclick={() => (open = true)}
+			>
+				<AbstractIcon
+					name={icons.Plus.name}
+					class={triggerIconClass}
+					width="14"
+					height="14"
+				/>
+				{buttonLabel}
+			</Button>
+		</span>
 	{/if}
 	<Dialog.Content
 		class={cn(

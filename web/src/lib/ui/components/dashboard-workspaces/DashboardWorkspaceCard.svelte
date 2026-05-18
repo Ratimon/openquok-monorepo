@@ -51,7 +51,6 @@
 	});
 
 	const hasSocialChannels = $derived(card.socialChannelCount > 0);
-	const showAddChannel = $derived(card.isCurrent && !hasSocialChannels);
 
 	let switchModalOpen = $state(false);
 
@@ -119,30 +118,6 @@
 					<p class="mt-1 text-xs font-medium text-primary">
 						{card.roleLabel}
 					</p>
-					<div class="mt-2 flex flex-wrap items-center gap-1.5">
-						<Button
-							type="button"
-							variant="primary"
-							size="sm"
-							class="h-7 gap-1 px-2 text-xs"
-							disabled={!card.isCurrent}
-							onclick={handleDeveloperOAuthClick}
-						>
-							<AbstractIcon name={icons.Bot.name} class="size-3.5" width="14" height="14" />
-							OAuth Secrets
-						</Button>
-						<Button
-							type="button"
-							variant="secondary"
-							size="sm"
-							class="h-7 gap-1 px-2 text-xs"
-							disabled={!card.isCurrent}
-							onclick={handleDeveloperApiKeyClick}
-						>
-							<AbstractIcon name={icons.Lock.name} class="size-3.5" width="14" height="14" />
-							API key
-						</Button>
-					</div>
 				</div>
 				<div class="flex shrink-0 flex-col items-end gap-1.5">
 					{#if card.isCurrent}
@@ -164,6 +139,41 @@
 						Settings
 					</Button>
 				</div>
+			</div>
+			<div class="mt-2 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
+				<Button
+					type="button"
+					variant="primary"
+					size="sm"
+					class="h-7 shrink-0 gap-1 px-2 text-xs"
+					disabled={!card.isCurrent}
+					onclick={handleDeveloperOAuthClick}
+				>
+					<AbstractIcon name={icons.Bot.name} class="size-3.5" width="14" height="14" />
+					OAuth Secrets
+				</Button>
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					class="h-7 shrink-0 gap-1 px-2 text-xs"
+					disabled={!card.isCurrent}
+					onclick={handleDeveloperApiKeyClick}
+				>
+					<AbstractIcon name={icons.Lock.name} class="size-3.5" width="14" height="14" />
+					API key
+				</Button>
+				{#if card.isCurrent}
+					<span class="inline-flex shrink-0" data-workspace-card-action>
+						<AddProvider
+							buttonLabel="Add channel"
+							buttonVariant="secondary"
+							buttonSize="sm"
+							buttonClass="h-7 shrink-0 gap-1 px-2 text-xs"
+							iconClass="size-3.5"
+						/>
+					</span>
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -252,11 +262,7 @@
 				<p class="text-xs text-base-content/50">
 					No connected channels
 				</p>
-				{#if showAddChannel}
-					<div class="shrink-0" data-workspace-card-action>
-						<AddProvider buttonLabel="Add channel" hasConnectedChannels={false} />
-					</div>
-				{:else if !card.isCurrent && onSwitchWorkspace}
+				{#if !card.isCurrent && onSwitchWorkspace}
 					<Button
 						type="button"
 						variant="warning"

@@ -192,11 +192,11 @@
 				{cardVm.contentPreview || '—'}
 			</p>
 			{#if cardVm.isAgentEdited}
-				<span class="badge badge-primary badge-xs shrink-0 border-0 p-0.5" title="AI-generated">
+				<span class="badge badge-secondary badge-xs shrink-0 border-0 p-0.5" title="AI-generated">
 					<AbstractIcon name={icons.Bot.name} class="size-3" width="12" height="12" />
 				</span>
 			{:else if showEditedBadge}
-				<span class="badge badge-primary badge-xs shrink-0 border-0 p-0.5" title="Human-edited">
+				<span class="badge badge-secondary badge-xs shrink-0 border-0 p-0.5" title="Human-edited">
 					<AbstractIcon name={icons.UserRoundPen.name} class="size-3" width="12" height="12" />
 				</span>
 			{/if}

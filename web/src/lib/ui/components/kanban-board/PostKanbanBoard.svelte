@@ -139,7 +139,7 @@
 					>
 						<span class="inline-flex items-center gap-1.5">
 							{#if opt.iconName}
-								<span class="badge badge-primary badge-xs shrink-0 border-0 p-0.5">
+								<span class="badge badge-secondary badge-xs shrink-0 border-0 p-0.5">
 									<AbstractIcon
 										name={opt.iconName}
 										class="size-3"
