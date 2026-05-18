@@ -17,8 +17,8 @@
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import MediaBox from '$lib/ui/components/media/MediaBox.svelte';
 	import MediaFileManager from '$lib/ui/components/media/MediaFileManager.svelte';
+	import MediaGallery from '$lib/ui/components/media/MediaGallery.svelte';
 	import MediaFileManagerViewControls, {
 		type MediaLibraryLayout
 	} from '$lib/ui/components/media/MediaFileManagerViewControls.svelte';
@@ -259,7 +259,7 @@
 				Select a workspace to manage media.
 			</p>
 		{:else if libraryLayout === 'gallery'}
-			<MediaBox
+			<MediaGallery
 				{mediaItemsVm}
 				{loading}
 				{organizationId}
