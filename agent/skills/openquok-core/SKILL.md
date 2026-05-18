@@ -1,10 +1,10 @@
 ---
 name: openquok-core
 description: >-
-  18/5/26:3 - Schedule and publish social posts via the Openquok CLI (`openquok`, package `@openquok/auto-cli`).
+  18/5/26:4 - Schedule and publish social posts via the Openquok CLI (`openquok`, package `@openquok/auto-cli`).
   Use for auth, integrations, media upload, posts, analytics, and agent drafts with human review.
 homepage: https://www.npmjs.com/package/@openquok/auto-cli
-metadata: {"openclaw":{"emoji":"📮","requires":{"bins":["openquok"],"env":[]}}}
+metadata: {"openclaw":{"emoji":"📮","always":true,"requires":{"bins":["openquok"],"env":[]}}}
 ---
 
 <!-- SPDX-FileCopyrightText: 2026 Rati Montreewat -->
@@ -20,12 +20,27 @@ metadata: {"openclaw":{"emoji":"📮","requires":{"bins":["openquok"],"env":[]}}
 
 ## ⚠️ Hard Rules (Read First)
 
-**0 — Session bootstrap (once per chat).** Skills do not install or upgrade the binary. At the **start of each new chat only** (not before every command):
+**0 — Session opening (once per new chat).** Applies on the **first assistant turn** after `/new`, a new Telegram/chat thread, or any “new session started” system notice. Skills do not install or upgrade the binary. **Do not** send a persona greeting (no Atlas, clawbot name, or workspace `SOUL.md` / `IDENTITY.md` voice) before bootstrap completes.
 
-1. Run `openquok --version`, tell the user the version, and offer `npm install -g @openquok/auto-cli@latest` if they want an upgrade; re-run `--version` after install.
-2. Run `openquok auth:status`.
-   - **If authenticated** (`connected: true`): run `openquok auth:workspace` and tell the user the **workspace name** from `workspace.name`.
-   - **If not authenticated**: start **device OAuth** with `openquok auth:login --json`, give the user **`verification_uri_complete` from stdout only**, wait until `auth:status` succeeds, then run `auth:workspace` and report the workspace name. If device login fails or the user cannot complete the browser step, offer the **API key** path (`OPENQUOK_API_KEY` or `auth:login --apiKey`).
+**Run shell first, then one short reply.** Before any other user-visible text on that turn, run:
+
+```bash
+openquok --version
+npm view @openquok/auto-cli version 2>/dev/null || true
+openquok auth:status
+```
+
+If `auth:status` prints `"connected": true`, also run `openquok auth:workspace`.
+
+**First message template (one paragraph, plain tone).** Start with: *Hi, I am the Openquok bot.* In the **same** message, include:
+
+- Installed CLI version from `openquok --version`.
+- Whether it matches the latest from `npm view @openquok/auto-cli version`. If they differ (or `npm view` failed), say it is not the latest and ask whether to run `npm install -g @openquok/auto-cli@latest` (do not upgrade unless the user agrees).
+- Auth: if connected, state that you are authenticated and give **`workspace.name`** from `auth:workspace`; if not connected, say you are not authenticated yet and offer device OAuth (`openquok auth:login --json` → user opens `verification_uri_complete` from stdout only) or API key (`OPENQUOK_API_KEY` / `auth:login --apiKey`).
+
+Example (connected, outdated CLI): *Hi, I am the Openquok bot. Openquok CLI is 0.0.6; latest on npm is 0.0.7 — want me to run `npm install -g @openquok/auto-cli@latest`? You are authenticated; workspace is Acme Marketing.*
+
+Skip this block on later turns unless the user asks for version/auth again or a command fails with auth errors.
 
 **Links:** [npm `@openquok/auto-cli`](https://www.npmjs.com/package/@openquok/auto-cli) · [monorepo](https://github.com/Ratimon/openquok-monorepo/) · [CLI package](https://github.com/Ratimon/openquok-monorepo/tree/main/agent) · [openquok.com](https://www.openquok.com/)
 
@@ -71,7 +86,7 @@ Details: [resources/command-reference.md](./resources/command-reference.md#authe
 
 | Step | Action |
 |------|--------|
-| 1 | Session bootstrap (Rule 0): version, auth, workspace name |
+| 1 | Session opening (Rule 0): shell version/auth check, then one Openquok-bot greeting |
 | 2 | `openquok integrations:list` → `integrations:settings <uuid>` per channel |
 | 3 | `integrations:trigger <uuid> <method> -d '{}'` when `output.tools` requires it |
 | 4 | `upload` / `upload-from-url` for media; ask user for file or direct image URL if missing in chat |
