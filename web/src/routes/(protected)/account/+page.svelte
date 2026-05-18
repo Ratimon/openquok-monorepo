@@ -626,10 +626,7 @@
 		workspaceSettingsPresenter.switchWorkspace(nextWorkspaceId);
 	}
 
-	function handleOpenWorkspaceSettings(targetWorkspaceId: string) {
-		if (targetWorkspaceId !== workspaceId) {
-			workspaceSettingsPresenter.switchWorkspace(targetWorkspaceId);
-		}
+	function handleOpenWorkspaceSettings(_targetWorkspaceId: string) {
 		void goto(accountSettingsWorkspaceHref);
 	}
 

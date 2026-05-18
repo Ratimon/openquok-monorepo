@@ -69,43 +69,15 @@
 		return { success: true, message: `Switched to ${workspaceName}` };
 	}
 
-	function handleCardClick(e: MouseEvent) {
-		if (card.isCurrent || !onSwitchWorkspace) return;
-		const target = e.target;
-		if (target instanceof Element && target.closest('[data-workspace-card-action]')) return;
-		requestSwitchWorkspace();
-	}
-
-	function handleCardKeydown(e: KeyboardEvent) {
-		if (card.isCurrent || !onSwitchWorkspace) return;
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			requestSwitchWorkspace();
-		}
-	}
-
-	function stopCardActivation(e: Event) {
-		e.stopPropagation();
-	}
-
-	function handleSettingsClick(e: Event) {
-		stopCardActivation(e);
+	function handleSettingsClick() {
 		onOpenWorkspaceSettings?.(card.id);
 	}
 </script>
 
-<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <article
 	class="flex h-full flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm transition-colors {card.isCurrent
 		? 'ring-2 ring-primary/40'
-		: onSwitchWorkspace
-			? 'cursor-pointer hover:border-primary/40'
-			: ''}"
-	role={onSwitchWorkspace && !card.isCurrent ? 'button' : undefined}
-	tabindex={onSwitchWorkspace && !card.isCurrent ? 0 : undefined}
-	onclick={handleCardClick}
-	onkeydown={handleCardKeydown}
-	aria-label={onSwitchWorkspace && !card.isCurrent ? `Switch to workspace ${card.name}` : undefined}
+		: ''}"
 >
 	<div class="flex items-start gap-3 p-4 pb-3">
 		<div
@@ -145,7 +117,7 @@
 						variant="ghost"
 						size="sm"
 						class="h-7 gap-1 px-2 text-xs"
-						data-workspace-card-action
+						disabled={!card.isCurrent}
 						onclick={handleSettingsClick}
 					>
 						<AbstractIcon name={icons.Cog.name} class="size-3.5" width="14" height="14" />
