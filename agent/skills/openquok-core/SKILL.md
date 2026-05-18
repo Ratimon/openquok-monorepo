@@ -1,7 +1,7 @@
 ---
 name: openquok-core
 description: >-
-  18/5/26:3 - Schedule and publish social posts via the Openquok CLI (`openquok`, package `@openquok/auto-cli` ≥ 0.0.6).
+  18/5/26:3 - Schedule and publish social posts via the Openquok CLI (`openquok`, package `@openquok/auto-cli`).
   Use for auth, integrations, media upload, posts, analytics, and agent drafts with human review.
 homepage: https://www.npmjs.com/package/@openquok/auto-cli
 metadata: {"openclaw":{"emoji":"📮","requires":{"bins":["openquok"],"env":[]}}}
@@ -13,7 +13,7 @@ metadata: {"openclaw":{"emoji":"📮","requires":{"bins":["openquok"],"env":[]}}
 | Property | Value |
 |----------|-------|
 | **name** | openquok |
-| **description** | AI-ready social scheduling: CLI-first `@openquok/auto-cli` (install **≥ 0.0.6** globally — skills do not upgrade npm), posts, integrations, media; complements stacks like OpenClaw. |
+| **description** | AI-ready social scheduling: CLI-first `@openquok/auto-cli` (install globally — skills do not upgrade npm), posts, integrations, media; complements stacks like OpenClaw. |
 | **allowed-tools** | Bash(openquok:*) |
 
 ---
@@ -146,4 +146,4 @@ Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 | Thread timing wrong | `-d` is **milliseconds**, not minutes |
 | Analytics rejected | `-d` must be **7**, **30**, or **90** |
 | Env key ignored | `auth:logout` if disk credentials exist |
-| Old CLI / wrong verify host | `npm install -g @openquok/auto-cli@latest` (≥ 0.0.6); skills install does not upgrade npm |
+| Old CLI / wrong verify host | `npm install -g @openquok/auto-cli@latest`; skills install does not upgrade npm |
