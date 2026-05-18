@@ -20,6 +20,13 @@ export class OpenquokApi {
     return await requestJson({ url: this.url("/public/is-connected"), apiKey: this.cfg.apiKey });
   }
 
+  async getWorkspace(): Promise<{ workspace: { id: string; name: string } }> {
+    return await requestJson({
+      url: this.url("/public/workspace"),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
   async listIntegrations(): Promise<unknown> {
     return await requestJson({ url: this.url("/public/integrations"), apiKey: this.cfg.apiKey });
   }

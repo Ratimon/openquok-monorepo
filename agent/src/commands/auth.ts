@@ -266,5 +266,21 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           printJson(out);
         });
       }
+    )
+    .command(
+      "auth:workspace",
+      "Show the workspace bound to the current API credentials",
+      (yy: Argv) =>
+        yy.example(
+          "$0 auth:workspace",
+          "Print workspace id and name for the authenticated organization"
+        ),
+      async () => {
+        await runCommand("auth:workspace", async () => {
+          const api = await ctx.buildApi();
+          const out = await api.getWorkspace();
+          printJson(out);
+        });
+      }
     );
 };

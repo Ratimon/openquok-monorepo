@@ -23,6 +23,7 @@ const publicIntegrationRouter: PublicIntegrationRouter = Router();
 const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
 
 publicIntegrationRouter.get("/is-connected", apiKeyAuth, publicIntegrationController.isConnected);
+publicIntegrationRouter.get("/workspace", apiKeyAuth, publicIntegrationController.getWorkspace);
 publicIntegrationRouter.get("/integrations", apiKeyAuth, publicIntegrationController.listIntegrations);
 publicIntegrationRouter.get(
     "/social/:integration",

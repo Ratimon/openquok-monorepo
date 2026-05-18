@@ -25,6 +25,22 @@ export class PublicIntegrationController {
         }
     };
 
+    /** GET /public/workspace — workspace resolved from the programmatic API key */
+    getWorkspace = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("workspace");
+            const organization = (req as ProgrammaticAuthRequest).organization!;
+            res.status(200).json({
+                workspace: {
+                    id: organization.id,
+                    name: organization.name,
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** GET /public/integrations */
     listIntegrations = async (req: Request, res: Response, next: NextFunction) => {
         try {

@@ -1,7 +1,7 @@
 ---
 name: openquok-core
 description: >-
-  18/5/26:2 - Schedule and publish social posts via the Openquok CLI (`openquok`, package `@openquok/auto-cli` ≥ 0.0.6).
+  18/5/26:3 - Schedule and publish social posts via the Openquok CLI (`openquok`, package `@openquok/auto-cli` ≥ 0.0.6).
   Use for auth, integrations, media upload, posts, analytics, and agent drafts with human review.
 homepage: https://www.npmjs.com/package/@openquok/auto-cli
 metadata: {"openclaw":{"emoji":"📮","requires":{"bins":["openquok"],"env":[]}}}
@@ -20,9 +20,16 @@ metadata: {"openclaw":{"emoji":"📮","requires":{"bins":["openquok"],"env":[]}}
 
 ## ⚠️ Hard Rules (Read First)
 
-**0 — CLI version (once per chat).** Skills do not install or upgrade the binary. At session start only: `openquok --version`, report it, offer `npm install -g @openquok/auto-cli@latest` if the user wants an upgrade, then re-check. Do not repeat before every command.
+**0 — Session bootstrap (once per chat).** Skills do not install or upgrade the binary. At the **start of each new chat only** (not before every command):
 
-**1 — Auth first.** API commands fail without credentials. Run `openquok auth:status` before anything else.
+1. Run `openquok --version`, tell the user the version, and offer `npm install -g @openquok/auto-cli@latest` if they want an upgrade; re-run `--version` after install.
+2. Run `openquok auth:status`.
+   - **If authenticated** (`connected: true`): run `openquok auth:workspace` and tell the user the **workspace name** from `workspace.name`.
+   - **If not authenticated**: start **device OAuth** with `openquok auth:login --json`, give the user **`verification_uri_complete` from stdout only**, wait until `auth:status` succeeds, then run `auth:workspace` and report the workspace name. If device login fails or the user cannot complete the browser step, offer the **API key** path (`OPENQUOK_API_KEY` or `auth:login --apiKey`).
+
+**Links:** [npm `@openquok/auto-cli`](https://www.npmjs.com/package/@openquok/auto-cli) · [monorepo](https://github.com/Ratimon/openquok-monorepo/) · [CLI package](https://github.com/Ratimon/openquok-monorepo/tree/main/agent) · [openquok.com](https://www.openquok.com/)
+
+**1 — Auth before API work.** Any command that calls the API needs valid credentials. After bootstrap, re-check only when a command fails with auth errors.
 
 **2 — Media via workspace upload.** Every `-m` / `--media` / JSON `media[]` entry must be `{id, path}` from `openquok upload` or `openquok upload-from-url`. Never pass raw local paths or bare CDN URLs.
 
@@ -37,18 +44,18 @@ Verify upload stdout with `jq` (require `id` and `path`/`filePath`). Remote asse
 
 ## Authentication
 
-| Path | When |
-|------|------|
-| API key | Agents, CI, OpenClaw — `export OPENQUOK_API_KEY=opo_…` or `openquok auth:login --apiKey "opo_…"` |
-| Device OAuth | User can open a link on phone/desktop — **`openquok auth:login --json` only** on non-interactive hosts |
+| Order | Path | Use |
+|-------|------|-----|
+| 1 | **Device OAuth** | `openquok auth:login --json` on agents/CI/SSH — user opens `verification_uri_complete` on phone or desktop |
+| 2 | **API key** | If device flow fails or user prefers keys: `export OPENQUOK_API_KEY=opo_…` or `openquok auth:login --apiKey "opo_…"` |
 
 - Keys: [Openquok dashboard](https://www.openquok.com/) → developer / API settings.
-- Device flow: use **`verification_uri_complete` from CLI stdout only** — never invent URLs or codes.
-- Wait until `openquok auth:status` succeeds before other commands.
+- Never invent verification URLs or user codes — only values from `auth:login --json` stdout.
 - `~/.openquok/credentials.json` wins over `OPENQUOK_API_KEY` until `auth:logout`.
+- Workspace context: `openquok auth:workspace` → `{ workspace: { id, name } }`.
 - Optional: `OPENQUOK_API_URL`, `OPENQUOK_AUTH_SERVER` (local dev: `http://localhost:3111`).
 
-Details and troubleshooting: [resources/command-reference.md](./resources/command-reference.md#authentication).
+Details: [resources/command-reference.md](./resources/command-reference.md#authentication).
 
 ---
 
@@ -64,7 +71,7 @@ Details and troubleshooting: [resources/command-reference.md](./resources/comman
 
 | Step | Action |
 |------|--------|
-| 1 | `openquok auth:status` (login if needed) |
+| 1 | Session bootstrap (Rule 0): version, auth, workspace name |
 | 2 | `openquok integrations:list` → `integrations:settings <uuid>` per channel |
 | 3 | `integrations:trigger <uuid> <method> -d '{}'` when `output.tools` requires it |
 | 4 | `upload` / `upload-from-url` for media; ask user for file or direct image URL if missing in chat |
@@ -100,7 +107,7 @@ openquok posts:create --json ./post.json
 - `--settings` merges into `providerSettingsByIntegrationId` for each `-i` UUID.
 - Repeated `-c` (+ optional `-m`, `-d` in **milliseconds**) builds threaded segments — see [resources/command-reference.md](./resources/command-reference.md#media-flags--m----media).
 
-Command surface (list, status, analytics, env): [resources/command-reference.md](./resources/command-reference.md).
+Command surface: [resources/command-reference.md](./resources/command-reference.md).
 
 ---
 
@@ -114,7 +121,7 @@ Run `integrations:settings` before platform-specific flags.
 | Instagram Login | `instagram-standalone` | [instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) |
 | Instagram Page | `instagram-business` | [instagram-business-examples.md](./resources/instagram-business-examples.md) |
 
-Threads publish failures (public URL, SVG, empty object): [threads-publish.md](./resources/threads-publish.md).
+Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 
 ---
 
@@ -128,7 +135,7 @@ Threads publish failures (public URL, SVG, empty object): [threads-publish.md](.
 
 | Symptom | Fix |
 |---------|-----|
-| API 401 / auth errors | `auth:login --json` or API key; never fake device URLs |
+| API 401 / auth errors | Device OAuth first (`auth:login --json`); then API key; never fake device URLs |
 | Invalid or expired device code | Re-run `auth:login --json`; use fresh `verification_uri_complete` (~15 min) |
 | Wrong channel | Re-fetch UUID from `integrations:list` |
 | Media rejected at publish | Rule 2: upload first; for Threads see [threads-publish.md](./resources/threads-publish.md) |

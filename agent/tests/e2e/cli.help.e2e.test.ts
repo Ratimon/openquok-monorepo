@@ -12,6 +12,7 @@ describe("openquok CLI help", () => {
     expect(status).toBe(0);
     expect(stdout).toContain("openquok <command>");
     expect(stdout).toContain("Commands:");
+    expect(stdout).toContain("auth:workspace");
     expect(stdout).not.toContain('"success": false');
   });
 });

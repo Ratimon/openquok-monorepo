@@ -64,6 +64,7 @@ export OPENQUOK_API_KEY="opo_..."
 ```bash
 openquok auth:login --apiKey "your_token"
 openquok auth:status
+openquok auth:workspace
 openquok auth:logout
 ```
 

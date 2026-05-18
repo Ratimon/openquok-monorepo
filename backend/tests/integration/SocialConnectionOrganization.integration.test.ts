@@ -184,6 +184,25 @@ describe("Social connection (organization programmatic API)", () => {
             expect(res.body).toEqual({ connected: true });
         });
 
+        it("returns workspace id and name for a valid programmatic key", async () => {
+            const { apiKey, orgId } = await createWorkspaceWithProgrammaticApiKey();
+
+            const res = await supertest(app)
+                .get(`${publicProgrammaticBase}/workspace`)
+                .set("Authorization", apiKey);
+
+            expect(res.status).toBe(200);
+            expect(res.body?.workspace?.id).toBe(orgId);
+            expect(typeof res.body?.workspace?.name).toBe("string");
+            expect(res.body.workspace.name.length).toBeGreaterThan(0);
+        });
+
+        it("returns 401 for workspace when no API key is sent", async () => {
+            const res = await supertest(app).get(`${publicProgrammaticBase}/workspace`);
+            expect(res.status).toBe(401);
+            expect(res.body?.msg).toBe("No API key provided");
+        });
+
         it("returns 401 for channel list when no API key is sent", async () => {
             const res = await supertest(app).get(`${publicProgrammaticBase}/integrations`);
             expect(res.status).toBe(401);
