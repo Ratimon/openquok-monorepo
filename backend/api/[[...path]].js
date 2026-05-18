@@ -581,6 +581,21 @@ var init_GlobalConfig = __esm({
           })()
         }
       },
+      /**
+       * Long-running BullMQ workers (`orchestrator/worker/*`): health HTTP and observability.
+       * Health port: host `PORT` (Railway) when set, else `ORCHESTRATOR_WORKER_HEALTH_PORT`, else `3091`.
+       * Set `ORCHESTRATOR_WORKER_HEALTH_PORT=0` to disable the listener.
+       */
+      orchestratorWorker: {
+        healthPort: (() => {
+          const disable = getEnvNumber("ORCHESTRATOR_WORKER_HEALTH_PORT", -1);
+          if (disable === 0) return 0;
+          const hostPort = getEnvNumber("PORT", 0);
+          if (hostPort > 0) return hostPort;
+          if (disable > 0) return disable;
+          return 3091;
+        })()
+      },
       /** Rate limiting. When enabled, applies global and auth-specific limits. */
       rateLimit: {
         enabled: getEnv("RATE_LIMIT_ENABLED", "true") !== "false",
@@ -1627,6 +1642,13 @@ var InvalidCredentialsError = class extends AuthError {
     super(message, 401);
     this.name = "InvalidCredentialsError";
     this.metadata.errorType = "INVALID_CREDENTIALS_ERROR";
+  }
+};
+var OAuthSignInRequiredError = class extends AuthError {
+  constructor(message) {
+    super(message, 401);
+    this.name = "OAuthSignInRequiredError";
+    this.metadata.errorType = "OAUTH_SIGN_IN_REQUIRED_ERROR";
   }
 };
 var TokenError = class extends AuthError {
@@ -4454,15 +4476,32 @@ var OrganizationRepository = class {
     }
     return { membership: data, error: null };
   }
-  /** Create organization and optionally add first member. */
+  /**
+   * Create organization and add founding user as superadmin via SECURITY DEFINER RPC
+   * (bypasses RLS; required when the Supabase client is not service_role).
+   */
   async createOrganization(params) {
-    const { data, error } = await this.supabase.from(ORGS_TABLE).insert({
-      name: params.name,
-      description: params.description ?? null,
-      api_key: await this.generateApiKey(),
-      updated_at: (/* @__PURE__ */ new Date()).toISOString()
-    }).select(ORG_SELECT).single();
-    return { organization: data, error };
+    const apiKey = await this.generateApiKey();
+    const { data, error } = await this.supabase.rpc(
+      "internal_create_organization_with_owner",
+      {
+        p_user_id: params.userId,
+        p_name: params.name,
+        p_description: params.description ?? null,
+        p_api_key: apiKey
+      }
+    );
+    if (error) {
+      return { organization: null, error };
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) {
+      return {
+        organization: null,
+        error: new Error("Failed to create workspace.")
+      };
+    }
+    return { organization: row, error: null };
   }
   /** Ensure an organization has an API key; writes only when `api_key` is null. */
   async ensureApiKeyForOrganization(organizationId) {
@@ -6036,6 +6075,18 @@ var IntegrationRepository = class {
     const rows = data ?? [];
     return rows[0] ?? null;
   }
+  /** Includes soft-deleted rows — for displaying channel labels on historical posts. */
+  async getByIdIncludeDeleted(organizationId, id) {
+    const { data, error } = await this.supabase.from(TABLE2).select("*").eq("organization_id", organizationId).eq("id", id).maybeSingle();
+    if (error) {
+      throw new DatabaseError("Failed to load integration", {
+        cause: error,
+        operation: "select",
+        resource: { type: "table", name: TABLE2 }
+      });
+    }
+    return data ?? null;
+  }
   async upsertIntegration(params) {
     const tokenExpiration = params.expiresInSeconds != null && params.expiresInSeconds > 0 ? new Date(Date.now() + params.expiresInSeconds * 1e3).toISOString() : null;
     const row = {
@@ -6365,7 +6416,18 @@ var PostsRepository = class {
     return [...byGroup.values()];
   }
   async hasQueueSlotTaken(organizationId, publishDateIso) {
-    const { data, error } = await this.supabase.from(TABLE_POSTS).select("id").eq("organization_id", organizationId).eq("state", "QUEUE").eq("publish_date", publishDateIso).is("deleted_at", null).limit(1).maybeSingle();
+    return this.hasQueueSlotTakenExcludingPostGroup(organizationId, publishDateIso, null);
+  }
+  /**
+   * Whether another post group already occupies a `QUEUE` slot at `publishDateIso`.
+   * Pass `excludePostGroup` when flipping an existing group at the same time (in-place status update).
+   */
+  async hasQueueSlotTakenExcludingPostGroup(organizationId, publishDateIso, excludePostGroup) {
+    let query = this.supabase.from(TABLE_POSTS).select("id").eq("organization_id", organizationId).eq("state", "QUEUE").eq("publish_date", publishDateIso).is("deleted_at", null);
+    if (excludePostGroup) {
+      query = query.neq("post_group", excludePostGroup);
+    }
+    const { data, error } = await query.limit(1).maybeSingle();
     if (error) {
       throw new DatabaseError(`Failed to check schedule slot: ${error.message}`, {
         cause: error,
@@ -6487,7 +6549,10 @@ var PostsRepository = class {
       interval_in_days: r.interval_in_days ?? null,
       error: null,
       deleted_at: null,
-      created_by_user_id: r.created_by_user_id ?? null
+      created_by_user_id: r.created_by_user_id ?? null,
+      note: r.note ?? null,
+      is_agent_edited: r.is_agent_edited ?? false,
+      is_reviewed: false
     }));
     const inserted = await this.insertPostGroup(toInsert);
     const sourceIds = rows.map((r) => r.id);
@@ -6724,6 +6789,38 @@ var PostsRepository = class {
       });
     }
     return (data?.length ?? 0) > 0;
+  }
+  /**
+   * Updates draft vs scheduled state for every row in the post group (keeps siblings in sync).
+   */
+  async updatePostGroupState(postGroup, organizationId, state) {
+    const { data, error } = await this.supabase.from(TABLE_POSTS).update({ state, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("post_group", postGroup).eq("organization_id", organizationId).is("deleted_at", null).select("*");
+    if (error) {
+      throw new DatabaseError(`Failed to update post group state: ${error.message}`, {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    return data ?? [];
+  }
+  /**
+   * Updates kanban review fields for every row in the post group (keeps siblings in sync).
+   */
+  async updatePostGroupReviewFields(postGroup, organizationId, fields) {
+    const patch = { updated_at: (/* @__PURE__ */ new Date()).toISOString() };
+    if (fields.note !== void 0) patch.note = fields.note;
+    if (fields.isAgentEdited !== void 0) patch.is_agent_edited = fields.isAgentEdited;
+    if (fields.isReviewed !== void 0) patch.is_reviewed = fields.isReviewed;
+    const { data, error } = await this.supabase.from(TABLE_POSTS).update(patch).eq("post_group", postGroup).eq("organization_id", organizationId).is("deleted_at", null).select("*");
+    if (error) {
+      throw new DatabaseError(`Failed to update post review fields: ${error.message}`, {
+        cause: error,
+        operation: "update",
+        resource: { type: "table", name: TABLE_POSTS }
+      });
+    }
+    return data ?? [];
   }
   async listTagsForPostIds(postIds) {
     if (postIds.length === 0) return [];
@@ -7192,6 +7289,14 @@ var oauthAppRepository = new OauthAppRepository(supabaseServiceClientConnection)
 // services/AuthenticationService.ts
 init_Logger();
 init_GlobalConfig();
+function oauthProviderDisplayName(provider) {
+  const key = provider.trim().toLowerCase();
+  const known = {
+    google: "Google",
+    github: "GitHub"
+  };
+  return known[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
+}
 var AuthenticationService = class {
   constructor(supabaseServiceClient, refreshTokenRepository2, userRepository2, userService2) {
     this.supabaseServiceClient = supabaseServiceClient;
@@ -7208,6 +7313,13 @@ var AuthenticationService = class {
       password
     });
     if (error) {
+      const { userData: existingUser } = await this.userRepository.findFullUserByEmail(normalizedEmail);
+      if (existingUser?.provider) {
+        const providerLabel = oauthProviderDisplayName(existingUser.provider);
+        throw new OAuthSignInRequiredError(
+          `This account uses ${providerLabel} sign-in. Please continue with ${providerLabel}.`
+        );
+      }
       throw new InvalidCredentialsError("Invalid credentials");
     }
     const { userData: dbUser } = await this.userRepository.findFullUserByEmail(normalizedEmail);
@@ -8186,13 +8298,11 @@ var OrganizationService = class {
   /** Create organization and add the current user as superadmin. Returns row; controller maps to DTO. */
   async createOrganization(authUserId, params) {
     const userId = await this.resolveAuthUserToUserId(authUserId);
-    const { organization, error } = await this.organizationRepository.createOrganization(params);
-    if (error) throw error;
-    await this.organizationRepository.addMember({
-      userId,
-      organizationId: organization.id,
-      role: "superadmin"
+    const { organization, error } = await this.organizationRepository.createOrganization({
+      ...params,
+      userId
     });
+    if (error) throw error;
     await this._invalidateOrganizationRelatedCaches({ authUserId });
     return organization;
   }
@@ -10825,6 +10935,9 @@ var IntegrationService = class {
   getById(organizationId, id) {
     return this.integrationRepository.getById(organizationId, id);
   }
+  getByIdIncludeDeleted(organizationId, id) {
+    return this.integrationRepository.getByIdIncludeDeleted(organizationId, id);
+  }
   async updateIntegrationById(organizationId, integrationId, params) {
     const result = await this.integrationRepository.updateIntegrationById(organizationId, integrationId, params);
     await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
@@ -11975,8 +12088,11 @@ function parsePostImageColumn(image) {
   }
 }
 var PostDTOMapper = {
-  toDTO(row) {
+  toDTO(row, integration) {
     if (row == null) return null;
+    const channelName = integration?.name?.trim() ? integration.name.trim() : null;
+    const channelPictureUrl = integration?.picture?.trim() ? integration.picture.trim() : null;
+    const providerIdentifier = integration?.provider_identifier?.trim() ? integration.provider_identifier.trim() : null;
     return {
       id: row.id,
       state: row.state,
@@ -11997,13 +12113,23 @@ var PostDTOMapper = {
       error: row.error,
       deletedAt: row.deleted_at,
       createdByUserId: row.created_by_user_id,
+      note: row.note,
+      isAgentEdited: row.is_agent_edited,
+      isReviewed: row.is_reviewed,
       createdAt: row.created_at,
-      updatedAt: row.updated_at
+      updatedAt: row.updated_at,
+      ...integration ? {
+        channelName,
+        channelPictureUrl,
+        providerIdentifier
+      } : {}
     };
   },
-  toDTOCollection(rows) {
+  toDTOCollection(rows, integrationById) {
     if (!Array.isArray(rows)) return [];
-    return rows.map((r) => PostDTOMapper.toDTO(r)).filter(Boolean);
+    return rows.map(
+      (r) => PostDTOMapper.toDTO(r, r.integration_id ? integrationById?.get(r.integration_id) ?? null : null)
+    ).filter(Boolean);
   },
   toPostTagDTO(row) {
     if (row == null) return null;
@@ -12062,8 +12188,6 @@ var PostDTOMapper = {
     return rows.map((r) => PostDTOMapper.toPostThreadReplyDTO(r)).filter(Boolean);
   }
 };
-
-// services/PostsService.ts
 init_GlobalConfig();
 init_Logger();
 var DEFAULT_TAG_COLOR = "#6366f1";
@@ -12265,8 +12389,12 @@ var PostsService = class {
       tagNames,
       status,
       allowTakenSlot = false,
-      skipMembershipCheck = false
+      skipMembershipCheck = false,
+      reviewFields
     } = input;
+    const reviewNote = reviewFields?.note ?? null;
+    const reviewIsAgentEdited = reviewFields?.isAgentEdited ?? false;
+    const reviewIsReviewed = reviewFields?.isReviewed ?? false;
     if (!skipMembershipCheck) {
       if (!authUserId) {
         throw new AppError("Not authenticated", 401);
@@ -12334,7 +12462,10 @@ var PostsService = class {
       interval_in_days: intervalDays,
       error: null,
       deleted_at: null,
-      created_by_user_id: createdByUserId
+      created_by_user_id: createdByUserId,
+      note: reviewNote,
+      is_agent_edited: reviewIsAgentEdited,
+      is_reviewed: reviewIsReviewed
     };
     let toInsert;
     if (uniqueIds.length === 0) {
@@ -12354,7 +12485,12 @@ var PostsService = class {
   }
   async createPost(input) {
     const postGroup = this.postsRepository.newPostGroup();
-    const { toInsert, tagIds } = await this.buildPostGroupInsert({ ...input, postGroup, skipMembershipCheck: false });
+    const { toInsert, tagIds } = await this.buildPostGroupInsert({
+      ...input,
+      postGroup,
+      skipMembershipCheck: false,
+      reviewFields: { note: null, isAgentEdited: false, isReviewed: false }
+    });
     const inserted = await this.postsRepository.insertPostGroup(toInsert);
     await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
     await this.persistThreadRepliesFromProviderSettings({
@@ -12381,7 +12517,12 @@ var PostsService = class {
     const { toInsert, tagIds } = await this.buildPostGroupInsert({
       ...input,
       postGroup,
-      skipMembershipCheck: true
+      skipMembershipCheck: true,
+      reviewFields: {
+        note: input.note ?? null,
+        isAgentEdited: input.isAgent !== false,
+        isReviewed: false
+      }
     });
     const inserted = await this.postsRepository.insertPostGroup(toInsert);
     await this.postsRepository.linkTagsToPosts(inserted.map((p) => p.id), tagIds);
@@ -12486,6 +12627,27 @@ var PostsService = class {
     }
     return factory();
   }
+  /** Active + soft-deleted integrations referenced by post rows (kanban/calendar channel labels). */
+  async integrationLookupForPostRows(organizationId, rows) {
+    const ids = [
+      ...new Set(
+        rows.map((r) => r.integration_id).filter((id) => typeof id === "string" && Boolean(id))
+      )
+    ];
+    if (ids.length === 0) return /* @__PURE__ */ new Map();
+    const active = await this.integrationService.listByOrganization(organizationId);
+    const byId = new Map(active.map((i) => [i.id, i]));
+    for (const id of ids) {
+      if (byId.has(id)) continue;
+      const deleted = await this.integrationService.getByIdIncludeDeleted(organizationId, id);
+      if (deleted) byId.set(id, deleted);
+    }
+    return byId;
+  }
+  async toPostDtosWithChannelMetadata(organizationId, rows) {
+    const integrationById = await this.integrationLookupForPostRows(organizationId, rows);
+    return PostDTOMapper.toDTOCollection(rows, integrationById);
+  }
   /**
    * Load post-group details for edit mode (JWT session).
    */
@@ -12528,27 +12690,69 @@ var PostsService = class {
    * (no public `GET/PUT /public/posts/group/*` — full group edits stay session/UI only).
    */
   async flipPostGroupStatusByPostIdProgrammatic(postId, organizationId, status) {
-    const post = await this.postsRepository.getPostById(postId);
-    if (!post || post.organization_id !== organizationId) {
+    return await this.flipPostGroupStatusByPostId({
+      postId,
+      organizationId,
+      status,
+      authUserId: null,
+      skipMembershipCheck: true
+    });
+  }
+  /**
+   * Session/UI draft ↔ scheduled flip (`PUT {api.prefix}/posts/:postId/status`).
+   * Same behavior as programmatic flip: keeps stored publish time, toggles draft vs queue.
+   */
+  async flipPostGroupStatusByPostId(input) {
+    const post = await this.postsRepository.getPostById(input.postId);
+    if (!post || post.organization_id !== input.organizationId) {
       throw new AppError("Post not found", 404);
     }
-    const details = await this.loadPostGroupDetailsForOrganization(post.post_group, organizationId);
-    return await this.replacePostGroupRows({
-      postGroup: details.postGroup,
-      organizationIdHint: organizationId,
-      authUserId: null,
-      skipMembershipCheck: true,
-      body: details.body,
-      bodiesByIntegrationId: details.bodiesByIntegrationId && Object.keys(details.bodiesByIntegrationId).length > 0 ? details.bodiesByIntegrationId : null,
-      media: details.media?.length ? details.media : null,
-      integrationIds: details.integrationIds,
-      isGlobal: details.isGlobal,
-      scheduledAtIso: details.publishDateIso,
-      repeatInterval: details.repeatInterval ?? null,
-      tagNames: details.tagNames,
-      providerSettingsByIntegrationId: details.providerSettingsByIntegrationId ?? null,
-      status
+    const rows = await this.postsRepository.listPostsByGroup(post.post_group);
+    if (!rows.length) {
+      throw new AppError("Post group not found", 404);
+    }
+    const targetState = input.status === "draft" ? "DRAFT" : "QUEUE";
+    if (rows.every((r) => r.state === targetState)) {
+      return { postGroup: post.post_group, posts: rows };
+    }
+    if (rows.some((r) => r.state === "PUBLISHED" || r.state === "ERROR")) {
+      throw new AppError("Cannot change status of a published or failed post", 400);
+    }
+    const publishDateRaw = rows[0].publish_date;
+    if (Number.isNaN(new Date(publishDateRaw).getTime())) {
+      throw new AppError("Invalid schedule time", 400);
+    }
+    if (input.status === "scheduled") {
+      const hasChannel = rows.some((r) => r.integration_id != null);
+      if (!hasChannel) {
+        throw new AppError("Select at least one channel to schedule", 400);
+      }
+      const taken = await this.postsRepository.hasQueueSlotTakenExcludingPostGroup(
+        input.organizationId,
+        publishDateRaw,
+        post.post_group
+      );
+      if (taken) {
+        throw new AppError("That time slot is already taken; pick another.", 409);
+      }
+    }
+    let updated = await this.postsRepository.updatePostGroupState(
+      post.post_group,
+      input.organizationId,
+      targetState
+    );
+    if (input.authUserId && !input.skipMembershipCheck) {
+      updated = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+        isAgentEdited: false
+      });
+    }
+    void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, updated, input.status);
+    await this._invalidatePostMutationCaches({
+      organizationId: input.organizationId,
+      postGroup: post.post_group,
+      postIds: updated.map((p) => p.id)
     });
+    return { postGroup: post.post_group, posts: updated };
   }
   async buildPostGroupDetails(postGroup, rows) {
     const organizationId = rows[0].organization_id;
@@ -13004,6 +13208,48 @@ var PostsService = class {
     return { id: post.id, postGroup: post.post_group };
   }
   /**
+   * Dashboard kanban: human updates review todo (clears `is_agent_edited`).
+   */
+  async updatePostReviewTodo(input) {
+    await this.integrationConnectionService.assertOrganizationMember(input.authUserId, input.organizationId);
+    const post = await this.postsRepository.getPostById(input.postId);
+    if (!post || post.organization_id !== input.organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    const rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+      ...input.note !== void 0 ? { note: input.note } : {},
+      ...input.isReviewed !== void 0 ? { isReviewed: input.isReviewed } : {},
+      isAgentEdited: false
+    });
+    await this._invalidatePostMutationCaches({
+      organizationId: input.organizationId,
+      postGroup: post.post_group,
+      postIds: rows.map((r) => r.id)
+    });
+    return rows;
+  }
+  /**
+   * Programmatic kanban review todo (`PUT /public/posts/:postId/review-todo`).
+   * Agent calls pass `isAgent: true` so rows stay flagged as agent-edited.
+   */
+  async updatePostReviewTodoProgrammatic(input) {
+    const post = await this.postsRepository.getPostById(input.postId);
+    if (!post || post.organization_id !== input.organizationId) {
+      throw new AppError("Post not found", 404);
+    }
+    const rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+      ...input.note !== void 0 ? { note: input.note } : {},
+      ...input.isReviewed !== void 0 ? { isReviewed: input.isReviewed } : {},
+      isAgentEdited: input.isAgent === true
+    });
+    await this._invalidatePostMutationCaches({
+      organizationId: input.organizationId,
+      postGroup: post.post_group,
+      postIds: rows.map((r) => r.id)
+    });
+    return rows;
+  }
+  /**
    * Programmatic candidates for `GET {api.prefix}/public/posts/:postId/missing` (org API key auth).
    * Same return shape as {@link getMissingPublishCandidates} but skips membership checks.
    */
@@ -13151,11 +13397,18 @@ var PostsService = class {
     }
   }
   async updatePostGroup(input) {
+    const existing = await this.postsRepository.listPostsByGroup(input.postGroup);
+    const preserved = existing[0];
     return this.replacePostGroupRows({
       postGroup: input.postGroup,
       organizationIdHint: input.organizationId,
       authUserId: input.authUserId,
       skipMembershipCheck: false,
+      reviewFields: {
+        note: preserved?.note ?? null,
+        isReviewed: preserved?.is_reviewed ?? false,
+        isAgentEdited: false
+      },
       body: input.body,
       bodiesByIntegrationId: input.bodiesByIntegrationId ?? null,
       media: input.media ?? null,
@@ -13169,8 +13422,9 @@ var PostsService = class {
     });
   }
   /**
-   * Replace all rows in a post group (same group id). Session vs API-key scope is controlled by
-   * `skipMembershipCheck` / `authUserId` — only {@link updatePostGroup} and programmatic flip use this.
+   * Replace all rows in a post group (same group id) — soft-delete siblings and insert fresh rows
+   * with new ids. Used only by {@link updatePostGroup} when the composer changes content, channels,
+   * tags, or schedule time. Draft ↔ scheduled toggles use {@link flipPostGroupStatusByPostId} instead.
    */
   async replacePostGroupRows(params) {
     const {
@@ -13178,6 +13432,7 @@ var PostsService = class {
       organizationIdHint: callerOrgId,
       authUserId,
       skipMembershipCheck,
+      reviewFields,
       body,
       bodiesByIntegrationId,
       media,
@@ -13192,6 +13447,9 @@ var PostsService = class {
     const existing = await this.postsRepository.listPostsByGroup(postGroup);
     if (!existing.length) throw new AppError("Post group not found", 404);
     const organizationId = existing[0].organization_id;
+    if (existing.some((r) => r.state === "PUBLISHED" || r.state === "ERROR")) {
+      throw new AppError("Cannot edit a published or failed post group", 400);
+    }
     if (callerOrgId && callerOrgId !== organizationId) {
       throw new AppError("Post group does not belong to that workspace", 400);
     }
@@ -13214,7 +13472,8 @@ var PostsService = class {
       tagNames,
       status,
       allowTakenSlot,
-      skipMembershipCheck
+      skipMembershipCheck,
+      reviewFields
     });
     const oldIds = existing.map((r) => r.id);
     await this.postsRepository.deleteTagAssignmentsForPostIds(oldIds);
@@ -15864,6 +16123,21 @@ var PublicIntegrationController = class {
       next(error);
     }
   };
+  /** GET /public/workspace — workspace resolved from the programmatic API key */
+  getWorkspace = async (req, res, next) => {
+    try {
+      countPublicApiRequest("workspace");
+      const organization = req.organization;
+      res.status(200).json({
+        workspace: {
+          id: organization.id,
+          name: organization.name
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
   /** GET /public/integrations */
   listIntegrations = async (req, res, next) => {
     try {
@@ -16175,7 +16449,8 @@ var PostsController = class {
         endIso: q.end,
         integrationIds
       });
-      res.status(200).json({ success: true, data: { posts: PostDTOMapper.toDTOCollection(rows) } });
+      const posts = await this.postsService.toPostDtosWithChannelMetadata(q.organizationId, rows);
+      res.status(200).json({ success: true, data: { posts } });
     } catch (error) {
       next(error);
     }
@@ -16316,6 +16591,65 @@ var PostsController = class {
       next(error);
     }
   };
+  /** PUT /posts/:postId/status — flip draft ↔ scheduled at the stored publish time (kanban / CLI parity). */
+  flipPostStatus = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const postId = req.params.postId;
+      const body = req.body;
+      const status = body.status === "draft" ? "draft" : "scheduled";
+      const result = await this.postsService.flipPostGroupStatusByPostId({
+        postId,
+        organizationId: body.organizationId,
+        status,
+        authUserId,
+        skipMembershipCheck: false
+      });
+      const posts = await this.postsService.toPostDtosWithChannelMetadata(
+        body.organizationId,
+        result.posts
+      );
+      res.status(200).json({
+        success: true,
+        data: {
+          postGroup: result.postGroup,
+          posts
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  updatePostReviewTodo = async (req, res, next) => {
+    try {
+      const authReq = req;
+      const authUserId = authReq.user?.id;
+      if (!authUserId) {
+        return next(new UserAuthorizationError("Not authenticated"));
+      }
+      const postId = req.params.postId;
+      const body = req.body;
+      const rows = await this.postsService.updatePostReviewTodo({
+        authUserId,
+        organizationId: body.organizationId,
+        postId,
+        note: body.note,
+        isReviewed: body.isReviewed
+      });
+      const posts = await this.postsService.toPostDtosWithChannelMetadata(body.organizationId, rows);
+      res.status(200).json({
+        success: true,
+        data: { posts },
+        message: "Post review updated successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 };
 
 // controllers/PublicPostsController.ts
@@ -16391,6 +16725,28 @@ var PublicPostsController = class {
       next(error);
     }
   };
+  /** PUT /public/posts/:postId/review-todo — update kanban review note / reviewed flag (agent or human). */
+  updatePostReviewTodo = async (req, res, next) => {
+    try {
+      countPublicApiRequest("posts-review-todo");
+      const organizationId = req.organization.id;
+      const postId = req.params.postId;
+      const body = req.body;
+      const rows = await this.postsService.updatePostReviewTodoProgrammatic({
+        organizationId,
+        postId,
+        note: body.note,
+        isReviewed: body.isReviewed,
+        isAgent: body.isAgent
+      });
+      res.status(200).json({
+        success: true,
+        data: { posts: PostDTOMapper.toDTOCollection(rows) }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
   /** PUT /public/posts/:postId/status — flip draft ↔ scheduled at the stored publish time (no public group CRUD). */
   flipPostStatus = async (req, res, next) => {
     try {
@@ -16441,6 +16797,8 @@ var PublicPostsController = class {
       const b = req.body;
       const result = await this.postsService.createPostProgrammatic({
         organizationId,
+        isAgent: b.isAgent,
+        note: b.note,
         body: b.body ?? "",
         bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
         media: (b.media ?? null)?.map((m) => ({ id: m.id, path: m.path })) ?? null,
@@ -18036,7 +18394,7 @@ companyRouter.get("/config", configSchemas_default.validateGetModuleConfigQuery,
 var workspaceMembershipRoleSchema = zod.z.enum(["user", "admin", "superadmin"]);
 var createOrganizationBodySchema = zod.z.object({
   name: zod.z.string().min(1, "Name is required").max(256).trim(),
-  description: zod.z.string().max(2e3).trim().optional()
+  description: zod.z.string().max(2e3).trim().nullish()
 });
 var updateOrganizationBodySchema = zod.z.object({
   name: zod.z.string().min(1).max(256).trim().optional(),
@@ -18863,6 +19221,7 @@ var validatePublicIntegrationTriggerRequest = validateRequest({
 var publicIntegrationRouter = express.Router();
 var apiKeyAuth2 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
 publicIntegrationRouter.get("/is-connected", apiKeyAuth2, publicIntegrationController.isConnected);
+publicIntegrationRouter.get("/workspace", apiKeyAuth2, publicIntegrationController.getWorkspace);
 publicIntegrationRouter.get("/integrations", apiKeyAuth2, publicIntegrationController.listIntegrations);
 publicIntegrationRouter.get(
   "/social/:integration",
@@ -19049,6 +19408,25 @@ var validateUpdatePostReleaseId = validateRequest({
   params: postIdParamsSchema,
   body: updatePostReleaseIdBodySchema
 });
+var updatePostReviewTodoBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  note: zod.z.string().max(2e3).nullable().optional(),
+  isReviewed: zod.z.boolean().optional()
+});
+var validateUpdatePostReviewTodo = validateRequest({
+  params: postIdParamsSchema,
+  body: updatePostReviewTodoBodySchema
+});
+var flipPostStatusBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  status: zod.z.enum(["draft", "schedule", "scheduled"], {
+    errorMap: () => ({ message: "status must be draft, schedule, or scheduled" })
+  })
+});
+var validateFlipPostStatus = validateRequest({
+  params: postIdParamsSchema,
+  body: flipPostStatusBodySchema
+});
 var publicListPostsQuerySchema = listPostsQuerySchema.omit({ organizationId: true }).extend({
   /**
    * Optional `integration_customers.id` for this workspace. When set, only posts whose
@@ -19059,7 +19437,15 @@ var publicListPostsQuerySchema = listPostsQuerySchema.omit({ organizationId: tru
 var validatePublicListPostsQuery = validateRequest({
   query: publicListPostsQuerySchema
 });
-var publicCreatePostBodySchema = createPostBodySchema.omit({ organizationId: true });
+var publicCreatePostBodySchema = createPostBodySchema.omit({ organizationId: true }).extend({
+  /**
+   * When true (default for API-key creates), rows are flagged `isAgentEdited` for the kanban board.
+   * The dashboard session API never accepts this — human creates always clear the flag server-side.
+   */
+  isAgent: zod.z.boolean().optional(),
+  /** Optional human review checklist shown on the kanban board (agent/CLI creates). */
+  note: zod.z.string().max(2e3).nullable().optional()
+});
 var validatePublicCreatePostBody = validateRequest({
   body: publicCreatePostBodySchema
 });
@@ -19091,6 +19477,16 @@ var validatePublicUpdateReleaseIdRequest = validateRequest({
   params: publicPostIdParamsSchema,
   body: publicUpdateReleaseIdBodySchema
 });
+var publicUpdatePostReviewTodoBodySchema = zod.z.object({
+  note: zod.z.string().max(2e3).nullable().optional(),
+  isReviewed: zod.z.boolean().optional(),
+  /** When true (CLI/agent), keeps `isAgentEdited` on the post group. Dashboard calls omit or set false. */
+  isAgent: zod.z.boolean().optional()
+});
+var validatePublicUpdatePostReviewTodoRequest = validateRequest({
+  params: publicPostIdParamsSchema,
+  body: publicUpdatePostReviewTodoBodySchema
+});
 
 // routes/publicApi/PostRoutes.ts
 var publicPostRouter = express.Router();
@@ -19105,6 +19501,12 @@ publicPostRouter.get(
   publicPostsController.findSlot
 );
 publicPostRouter.post("/", apiKeyAuth5, validatePublicCreatePostBody, publicPostsController.createPost);
+publicPostRouter.put(
+  "/:postId/review-todo",
+  apiKeyAuth5,
+  validatePublicUpdatePostReviewTodoRequest,
+  publicPostsController.updatePostReviewTodo
+);
 publicPostRouter.put(
   "/:postId/status",
   apiKeyAuth5,
@@ -19203,6 +19605,8 @@ postRouter.put("/group/:postGroup", auth4, validateUpdatePostGroupBody, postsCon
 postRouter.delete("/group/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
 postRouter.get("/:postId/missing", auth4, validatePostMissingQuery, postsController.getMissingPublishCandidates);
 postRouter.put("/:postId/release-id", auth4, validateUpdatePostReleaseId, postsController.updatePostReleaseId);
+postRouter.put("/:postId/status", auth4, validateFlipPostStatus, postsController.flipPostStatus);
+postRouter.put("/:postId/review-todo", auth4, validateUpdatePostReviewTodo, postsController.updatePostReviewTodo);
 postRouter.delete("/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
 var authWithRoles8 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
 var thirdPartyRouter = express.Router();

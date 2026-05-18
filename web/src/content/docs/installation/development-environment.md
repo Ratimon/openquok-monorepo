@@ -318,7 +318,7 @@ pnpm -s --filter ./agent cli -- integrations:list
 Use this flow to seed **agent-edited drafts** with the CLI and exercise the **kanban review board** on the account page . The CLI always sends <Badge text="isAgent: true" variant="param" /> on <Badge text="posts:create" variant="default" />; human actions in the dashboard clear <Badge text="is_agent_edited" variant="param" /> when you mark a post reviewed or schedule it from the UI.
 
 <Callout type="note" title="Database columns">
-<p>The <code>posts</code> table needs <Badge text="note" variant="param" />, <Badge text="is_agent_edited" variant="param" />, and <Badge text="is_reviewed" variant="param" /> (see post migrations under <Badge text="backend/supabase/db/post/" variant="path" />).
+<p>The <code>posts</code> table needs <Badge text="note" variant="param" />, <Badge text="is_agent_edited" variant="param" />, and <Badge text="is_reviewed" variant="param" /> (see post migrations under <Badge text="backend/supabase/db/post/" variant="path" />).</p>
 </Callout>
 
 <Steps>
