@@ -11,6 +11,8 @@
 		creatingWorkspace?: boolean;
 		onSwitchWorkspace?: (workspaceId: string) => void;
 		onOpenWorkspaceSettings?: (workspaceId: string) => void;
+		onOpenDeveloperOAuth?: (workspaceId: string) => void;
+		onOpenDeveloperApiKey?: (workspaceId: string) => void;
 		onCreateWorkspace: (name: string) => Promise<{ success: boolean; message: string }>;
 	};
 
@@ -21,6 +23,8 @@
 		creatingWorkspace = false,
 		onSwitchWorkspace,
 		onOpenWorkspaceSettings,
+		onOpenDeveloperOAuth,
+		onOpenDeveloperApiKey,
 		onCreateWorkspace
 	}: Props = $props();
 
@@ -73,6 +77,8 @@
 						{index}
 						{onSwitchWorkspace}
 						{onOpenWorkspaceSettings}
+						{onOpenDeveloperOAuth}
+						{onOpenDeveloperApiKey}
 					/>
 				{/each}
 				<DashboardCreateWorkspaceCard creating={creatingWorkspace} {onCreateWorkspace} />

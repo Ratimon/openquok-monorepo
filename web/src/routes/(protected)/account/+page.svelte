@@ -26,6 +26,7 @@
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
 
 	// --- Feedback ---
 	import { toast } from '$lib/ui/sonner';
@@ -74,6 +75,12 @@
 	// --- Workspace + dashboard VMs ---
 	const accountRoot = $derived(accountPath);
 	const accountSettingsWorkspaceHref = $derived(url(`${accountRoot}/settings?section=workspace`));
+	const accountSettingsDeveloperOAuthHref = $derived(
+		url(`${accountRoot}/settings?${buildAccountSettingsSearchParams('developers', { developerTab: 'apps' })}`)
+	);
+	const accountSettingsDeveloperApiKeyHref = $derived(
+		url(`${accountRoot}/settings?${buildAccountSettingsSearchParams('developers')}`)
+	);
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
 	$effect(() => {
@@ -630,6 +637,14 @@
 		void goto(accountSettingsWorkspaceHref);
 	}
 
+	function handleOpenDeveloperOAuth(_targetWorkspaceId: string) {
+		void goto(accountSettingsDeveloperOAuthHref);
+	}
+
+	function handleOpenDeveloperApiKey(_targetWorkspaceId: string) {
+		void goto(accountSettingsDeveloperApiKeyHref);
+	}
+
 	async function handleCreateWorkspace(name: string) {
 		const result = await protectedSettingsPagePresenter.createWorkspace(name);
 		if (result.success) {
@@ -674,6 +689,8 @@
 		creatingWorkspace={creatingWorkspace}
 		onSwitchWorkspace={handleSwitchWorkspace}
 		onOpenWorkspaceSettings={handleOpenWorkspaceSettings}
+		onOpenDeveloperOAuth={handleOpenDeveloperOAuth}
+		onOpenDeveloperApiKey={handleOpenDeveloperApiKey}
 		onCreateWorkspace={handleCreateWorkspace}
 	/>
 

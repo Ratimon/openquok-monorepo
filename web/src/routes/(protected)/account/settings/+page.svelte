@@ -1,8 +1,15 @@
 <script lang="ts">
 	import type { SettingsSidebarContext } from '$lib/ui/sidebar-main/types';
+	import type { DeveloperSettingsTabId } from '$lib/settings/utils/buildAccountSettingsSearch';
 
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { getContext } from 'svelte';
 	import { toast } from '$lib/ui/sonner';
+	import {
+		buildAccountSettingsSearchParams,
+		parseDeveloperSettingsTab
+	} from '$lib/settings/utils/buildAccountSettingsSearch';
 	import { SETTINGS_SIDEBAR_KEY } from '$lib/ui/templates/sidebar-secondary-context';
 	import {
 		protectedSettingsPagePresenter,
@@ -69,7 +76,22 @@
 	const developerCanRotate = $derived(developersPresenter.canRotateApiKey);
 	const developerRotating = $derived(developersPresenter.status === DevelopersSettingsStatus.ROTATING);
 
-	let developerTab = $state<'access' | 'apps'>('access');
+	const developerTab = $derived.by((): DeveloperSettingsTabId => {
+		if (currentSection !== 'developers') return 'access';
+		return parseDeveloperSettingsTab(page.url.searchParams.get('tab'));
+	});
+
+	function setDeveloperTab(next: DeveloperSettingsTabId) {
+		if (currentSection !== 'developers') return;
+		const search = buildAccountSettingsSearchParams('developers', {
+			developerTab: next === 'apps' ? 'apps' : undefined
+		});
+		const nextHref = `${page.url.pathname}?${search}`;
+		const currentHref = `${page.url.pathname}${page.url.search}`;
+		if (nextHref !== currentHref) {
+			void goto(nextHref, { replaceState: true, keepFocus: true, noScroll: true });
+		}
+	}
 
 	async function copyToClipboard(text: string) {
 		try {
@@ -276,7 +298,8 @@
 			onOauthSelectMediaItem={(vm) => upsertOauthAppsPresenter.selectMediaItem(vm)}
 			onOauthUploadMediaPickerFiles={(files) => upsertOauthAppsPresenter.uploadMediaPickerFiles(files)}
 			onCopy={copyToClipboard}
-			bind:developerTab
+			{developerTab}
+			onDeveloperTabChange={setDeveloperTab}
 		/>
 	{:else if currentSection === 'approved-apps'}
 		<EditorApprovedAppsSettings

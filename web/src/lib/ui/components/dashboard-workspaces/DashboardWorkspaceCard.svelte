@@ -20,10 +20,18 @@
 		index: number;
 		onSwitchWorkspace?: (workspaceId: string) => void;
 		onOpenWorkspaceSettings?: (workspaceId: string) => void;
+		onOpenDeveloperOAuth?: (workspaceId: string) => void;
+		onOpenDeveloperApiKey?: (workspaceId: string) => void;
 	};
 
-	let { card, index, onSwitchWorkspace, onOpenWorkspaceSettings }: Props =
-		$props();
+	let {
+		card,
+		index,
+		onSwitchWorkspace,
+		onOpenWorkspaceSettings,
+		onOpenDeveloperOAuth,
+		onOpenDeveloperApiKey
+	}: Props = $props();
 
 	const workspaceInitial = $derived((card.name || 'W').trim().slice(0, 1).toUpperCase());
 	const iconTone = $derived.by(() => {
@@ -72,6 +80,14 @@
 	function handleSettingsClick() {
 		onOpenWorkspaceSettings?.(card.id);
 	}
+
+	function handleDeveloperOAuthClick() {
+		onOpenDeveloperOAuth?.(card.id);
+	}
+
+	function handleDeveloperApiKeyClick() {
+		onOpenDeveloperApiKey?.(card.id);
+	}
 </script>
 
 <article
@@ -103,6 +119,30 @@
 					<p class="mt-1 text-xs font-medium text-primary">
 						{card.roleLabel}
 					</p>
+					<div class="mt-2 flex flex-wrap items-center gap-1.5">
+						<Button
+							type="button"
+							variant="primary"
+							size="sm"
+							class="h-7 gap-1 px-2 text-xs"
+							disabled={!card.isCurrent}
+							onclick={handleDeveloperOAuthClick}
+						>
+							<AbstractIcon name={icons.Bot.name} class="size-3.5" width="14" height="14" />
+							OAuth Secrets
+						</Button>
+						<Button
+							type="button"
+							variant="secondary"
+							size="sm"
+							class="h-7 gap-1 px-2 text-xs"
+							disabled={!card.isCurrent}
+							onclick={handleDeveloperApiKeyClick}
+						>
+							<AbstractIcon name={icons.Lock.name} class="size-3.5" width="14" height="14" />
+							API key
+						</Button>
+					</div>
 				</div>
 				<div class="flex shrink-0 flex-col items-end gap-1.5">
 					{#if card.isCurrent}

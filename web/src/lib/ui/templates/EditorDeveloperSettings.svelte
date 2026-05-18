@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
+	import type { DeveloperSettingsTabId } from '$lib/settings/utils/buildAccountSettingsSearch';
 	import { OAuthAppsPresenterStatus } from '$lib/developers/UpsertOAuthApp.presenter.svelte';
 	import type { OauthAppViewModel } from '$lib/developers/UpsertOAuthApp.presenter.svelte';
 
@@ -54,7 +55,8 @@
 		onOauthUploadMediaPickerFiles: (files: FileList | null) => void | Promise<void>;
 
 		onCopy: (text: string) => void | Promise<void>;
-		developerTab?: 'access' | 'apps';
+		developerTab: DeveloperSettingsTabId;
+		onDeveloperTabChange: (tab: DeveloperSettingsTabId) => void;
 	};
 
 	let {
@@ -104,7 +106,8 @@
 		onOauthSelectMediaItem,
 		onOauthUploadMediaPickerFiles,
 		onCopy,
-		developerTab = $bindable<'access' | 'apps'>('access')
+		developerTab,
+		onDeveloperTabChange
 	}: Props = $props();
 </script>
 
@@ -132,7 +135,7 @@
 				class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
 					developerTab === 'access' ? 'bg-primary text-primary-content' : 'text-base-content/70 hover:bg-base-300/50'
 				}`}
-				onclick={() => (developerTab = 'access')}
+				onclick={() => onDeveloperTabChange('access')}
 			>
 				Access
 			</button>
@@ -141,7 +144,7 @@
 				class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
 					developerTab === 'apps' ? 'bg-primary text-primary-content' : 'text-base-content/70 hover:bg-base-300/50'
 				}`}
-				onclick={() => (developerTab = 'apps')}
+				onclick={() => onDeveloperTabChange('apps')}
 			>
 				Apps
 			</button>
