@@ -222,3 +222,14 @@ pnpm --filter ./agent cli -- posts:list | jq '.success, (.data.posts | type)'
 
 Each command emits machine-readable JSON on stdout, so piping into `jq` is the recommended way to assert on shape during smoke runs and CI.
 
+---
+
+## License
+
+| Component | License |
+|-----------|---------|
+| CLI source and compiled `dist/` (`@openquok/auto-cli`) | [AGPL-3.0-or-later](LICENSE) |
+| `skills/` (agent skill definitions) | [MIT](skills/LICENSE) |
+
+The npm package ships both: use AGPL terms for the CLI binary; use MIT for files under `skills/` when copying or redistributing skill content only.
+

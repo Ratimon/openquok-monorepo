@@ -7,6 +7,9 @@ homepage: https://www.npmjs.com/package/@openquok/auto-cli
 metadata: {"openclaw":{"emoji":"📮","requires":{"bins":["openquok"],"env":[]}}}
 ---
 
+<!-- SPDX-FileCopyrightText: 2026 Rati Montreewat -->
+<!-- SPDX-License-Identifier: MIT -->
+
 | Property | Value |
 |----------|-------|
 | **name** | openquok |

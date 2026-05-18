@@ -55,4 +55,9 @@ To have the project up and running, please follow the [Quick Start Guide](https:
 
 ### License
 
-This repository's source code is available under the [AGPL-3.0 license](LICENSE).
+| Path | License |
+|------|---------|
+| Repository default (`backend/`, `web/`, `orchestrator/`, `sdk/`, `agent/src/`, …) | [AGPL-3.0-or-later](LICENSE) |
+| `agent/skills/` | [MIT](agent/skills/LICENSE) |
+
+Compiled CLI code published as [`@openquok/auto-cli`](https://www.npmjs.com/package/@openquok/auto-cli) is AGPL-3.0-or-later. Agent skills under `agent/skills/` are MIT so they can be copied into other agent setups without AGPL obligations on the skill text alone.

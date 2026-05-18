@@ -29,7 +29,7 @@
     "name": "Rati Montreewat",
     "url": "https://github.com/Ratimon"
   },
-  "license": "AGPL-3.0",
+  "license": "AGPL-3.0-or-later",
   "repository": "github:Ratimon/openquok-monorepo/sdk",
   "dependencies": {},
   "devDependencies": {
