@@ -1,10 +1,19 @@
 ---
 description: Meta-guidance for the Openquok OpenClaw skill. Authoritative instructions live in agent/skills/openquok-core/SKILL.md — apply when editing that skill or this rule.
-globs: ["agent/skills/**/SKILL.md", ".cursor/rules/agent-skill.mdc"]
+globs: ["agent/skills/**/SKILL.md", "agent/skills/**/resources/**/*.md", ".cursor/rules/agent-skill.mdc"]
 alwaysApply: false
 ---
 
 **Source of truth:** `agent/skills/openquok-core/SKILL.md` — installable OpenClaw skill (`openquok-core`): hard rules, auth, media, workflows, and links. Edit that file when changing what agents should do with the CLI; keep this rule file for Cursor-only best practices.
+
+## Skill layout
+
+- **`SKILL.md`** — Hard rules, auth, core workflow, patterns, gotchas, quick reference. Keep it focused; link out instead of duplicating long examples.
+- **`resources/*.md`** — Deeper material agents can load on demand:
+  - `command-reference.md` — CLI commands, flags, env vars (not `agent/README.md`; skill install path has no sibling README).
+  - `threads-examples.md`, `instagram-standalone-examples.md`, `instagram-business-examples.md` — platform-specific `posts:create` / integration examples.
+  - `threads-publish.md` — server publish behavior summarized in markdown (never link to `.ts` / backend paths from the skill).
+- **Links:** Only reference markdown under this skill directory (or stable external URLs in the front matter). Do not link to monorepo source files (TypeScript, tests, etc.) from skill content; summarize behavior in a new `resources/*.md` file instead.
 
 ## Best practices
 

@@ -187,7 +187,7 @@ MEDIA=$(jq -s 'add' \
   <(openquok upload ./img2.jpg | jq '[{id: .data.id, path: (.data.path // .data.filePath)}]'))
 openquok posts:create -c "Content" -m "$MEDIA" -s "2026-01-01T12:00:00Z" -i "<integration-uuid>"
 
-# Thread-style body (repeated -c); optional repeated -m pairs with leading segments (see `agent/README.md`)
+# Thread-style body (repeated -c); optional repeated -m pairs with leading segments (see [command-reference.md](./resources/command-reference.md))
 MAIN=$(openquok upload ./main.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
 C1=$(openquok upload ./comment1.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
 openquok posts:create \
@@ -462,7 +462,7 @@ Authoritative field names for a channel come from `integrations:settings` and th
 
 ### Threading and media
 
-Repeated `-c` builds the root `body` (first segment) plus threaded `replies` in provider settings. Media for those segments is supplied via repeated `-m` / JSON `media` as documented in `agent/README.md` and covered by CLI tests under `agent/tests/e2e/`.
+Repeated `-c` builds the root `body` (first segment) plus threaded `replies` in provider settings. Media for those segments is supplied via repeated `-m` / JSON `media` as documented in [command-reference.md](./resources/command-reference.md).
 
 ### Dates
 
@@ -497,66 +497,12 @@ Always prefer `jq` that tolerates `path` vs `filePath`.
 
 ## Platform-specific examples
 
-Always run `openquok integrations:settings <uuid>` for the exact JSON your workspace expects. The snippets below are illustrative.
+Always run `openquok integrations:settings <uuid>` for the exact JSON your workspace expects. Detailed snippets live under `resources/` (markdown only — do not link to TypeScript or other source files from the skill):
 
-### Threads (Meta)
-
-**Text-only:**
-
-```bash
-openquok posts:create \
-  -c "Launch post" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "<threads-uuid>"
-```
-
-**With image (Rule 2):** At publish time the backend turns each stored object key into a **public `https://` URL** and Meta’s servers **fetch** that URL for the Threads media container. Prefer **JPEG or PNG**; **SVG is rejected** in `threadsProvider` (`assertThreadsSupportedMedia`).
-
-```bash
-test -f ./hero.jpg && test -s ./hero.jpg
-IMAGE=$(openquok upload ./hero.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-openquok posts:create \
-  -c "Shipped today 🚀" \
-  -m "$IMAGE" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "<threads-uuid>"
-```
-
-### Instagram — standalone (`instagram-standalone`)
-
-Use the integration UUID whose `identifier` is `instagram-standalone` (Instagram Login product).
-
-```bash
-IMAGE=$(openquok upload ./image.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-openquok posts:create \
-  -c "Caption #hashtag" \
-  -s "2026-01-01T12:00:00Z" \
-  --settings '{"post_type":"post"}' \
-  -m "$IMAGE" \
-  -i "<instagram-standalone-uuid>"
-
-STORY=$(openquok upload ./story.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-openquok posts:create \
-  -c "" \
-  -s "2026-01-01T12:00:00Z" \
-  --settings '{"post_type":"story"}' \
-  -m "$STORY" \
-  -i "<instagram-standalone-uuid>"
-```
-
-### Instagram — business (`instagram-business`)
-
-Use the integration UUID whose `identifier` is `instagram-business` (Page-linked professional account). Confirm `post_type` and other keys with `integrations:settings` for that row.
-
-```bash
-IMAGE=$(openquok upload ./image.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-openquok posts:create \
-  -c "Caption #hashtag" \
-  -s "2026-01-01T12:00:00Z" \
-  --settings '{"post_type":"post"}' \
-  -m "$IMAGE" \
-  -i "<instagram-business-uuid>"
-```
+- [resources/threads-examples.md](./resources/threads-examples.md) — Threads text, image, multi-segment threads, tool discovery.
+- [resources/instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) — Instagram Login feed and story.
+- [resources/instagram-business-examples.md](./resources/instagram-business-examples.md) — Page-linked professional account.
+- [resources/threads-publish.md](./resources/threads-publish.md) — How media URLs are resolved and published server-side (debugging Meta errors).
 
 ---
 
@@ -570,14 +516,13 @@ External media CLIs can still fit upstream of `upload-from-url` when their outpu
 
 ## Supporting resources
 
-**In this repo (agent / CLI):**
+Markdown references for agents (paths relative to this skill directory):
 
-- [agent/README.md](./README.md) — Command reference, media flags, `posts:status`, e2e test naming.
-
-
-**Threads publish behavior (server implementation):**
-
-- [`backend/integrations/providers/threadsProvider.ts`](../backend/integrations/providers/threadsProvider.ts) — How media is resolved to public URLs (`resolvePublicMediaUrl`), reachability checks, **SVG blocked**, `createSingleMediaContent` / carousel / `threads_publish` Graph calls, and error formatting. When debugging “unknown” Meta errors, confirm the public URL returns **non-empty** image bytes (not `Content-Length: 0`).
+- [resources/command-reference.md](./resources/command-reference.md) — Full command surface: env vars, `posts:status`, media flags, threading, analytics.
+- [resources/threads-examples.md](./resources/threads-examples.md) — Threads CLI examples.
+- [resources/instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) — Instagram standalone examples.
+- [resources/instagram-business-examples.md](./resources/instagram-business-examples.md) — Instagram business examples.
+- [resources/threads-publish.md](./resources/threads-publish.md) — Threads server publish behavior (public URLs, SVG, reachability, Graph flow).
 
 ---
 
