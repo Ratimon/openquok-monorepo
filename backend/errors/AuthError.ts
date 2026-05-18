@@ -36,6 +36,15 @@ export class InvalidCredentialsError extends AuthError {
     }
 }
 
+/** Thrown when the user must sign in via an OAuth provider instead of email/password. */
+export class OAuthSignInRequiredError extends AuthError {
+    constructor(message: string) {
+        super(message, 401);
+        this.name = "OAuthSignInRequiredError";
+        this.metadata.errorType = "OAUTH_SIGN_IN_REQUIRED_ERROR";
+    }
+}
+
 export class MissingVerificationTokenError extends AuthError {
     constructor(message = "Missing token") {
         super(message, 400);

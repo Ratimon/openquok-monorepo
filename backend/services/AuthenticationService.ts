@@ -10,6 +10,7 @@ import {
     AuthError,
     AuthValidationError,
     InvalidCredentialsError,
+    OAuthSignInRequiredError,
     MissingUserIdError,
     NotVerifiedUserError,
     AuthNotFoundError,
@@ -24,6 +25,15 @@ import { logger } from "../utils/Logger";
 import { config } from "../config/GlobalConfig";
 
 export type AuthenticatedRequest = Request & { user?: { id: string } };
+
+function oauthProviderDisplayName(provider: string): string {
+    const key = provider.trim().toLowerCase();
+    const known: Record<string, string> = {
+        google: "Google",
+        github: "GitHub",
+    };
+    return known[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
+}
 
 export class AuthenticationService {
     constructor(
@@ -54,6 +64,13 @@ export class AuthenticationService {
         });
 
         if (error) {
+            const { userData: existingUser } = await this.userRepository.findFullUserByEmail(normalizedEmail);
+            if (existingUser?.provider) {
+                const providerLabel = oauthProviderDisplayName(existingUser.provider);
+                throw new OAuthSignInRequiredError(
+                    `This account uses ${providerLabel} sign-in. Please continue with ${providerLabel}.`
+                );
+            }
             throw new InvalidCredentialsError("Invalid credentials");
         }
 

@@ -146,6 +146,8 @@ RETURNS TABLE(
     is_email_verified BOOLEAN,
     email_verification_token TEXT,
     email_verification_token_expires TIMESTAMPTZ,
+    provider TEXT,
+    provider_id TEXT,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 )
@@ -157,6 +159,7 @@ BEGIN
     RETURN QUERY
     SELECT u.id, u.auth_id, u.email, u.full_name, u.is_email_verified,
            u.email_verification_token, u.email_verification_token_expires,
+           u.provider, u.provider_id,
            u.created_at, u.updated_at
     FROM public.users u
     WHERE u.email = LOWER(TRIM(p_email))
