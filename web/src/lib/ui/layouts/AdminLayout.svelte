@@ -12,6 +12,7 @@
 	import { SignoutStatus } from '$lib/user-auth/Signout.presenter.svelte';
 	import { feedbackPresenter } from '$lib/feedbacks';
 	import { FeedbackStatus } from '$lib/feedbacks/Feedback.presenter.svelte';
+	import { workspaceSettingsPresenter, WorkspaceSettingsStatus } from '$lib/settings';
 	import { getRootPathEditorArea } from '$lib/area-admin/constants/getRootPathEditorArea';
 	import { getRootPathSecretAdminArea } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathAdminArea } from '$lib/area-admin/constants/getRootPathAdminArea';
@@ -41,8 +42,6 @@
 		editorDockNotificationHref?: string;
 		/** Editor dock: unread count badge on the notifications icon */
 		editorDockNotificationBadge?: number;
-		/** Editor dock: e.g. blog topics (defaults to `#`). */
-		editorDockNewTemplateHref?: string;
 		/** Editor header dock: bell opens this preview panel instead of navigating. */
 		notificationsDockPreview?: DockNotificationsPreview;
 	};
@@ -54,7 +53,6 @@
 		mainLinks,
 		editorDockNotificationHref = '#',
 		editorDockNotificationBadge = 0,
-		editorDockNewTemplateHref = '#',
 		notificationsDockPreview
 	}: Props = $props();
 
@@ -71,6 +69,23 @@
 	let currentUserName = $derived(
 		(currentUser?.fullName ?? currentUser?.email ?? null)?.split(/\s+/)[0] ?? null
 	);
+
+	const headerWorkspaces = $derived(workspaceSettingsPresenter.workspacesVm);
+	const headerCurrentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
+	const headerWorkspacesLoading = $derived(
+		workspaceSettingsPresenter.status === WorkspaceSettingsStatus.LOADING &&
+			headerWorkspaces.length === 0
+	);
+
+	function handleHeaderSwitchWorkspace(workspaceId: string) {
+		workspaceSettingsPresenter.switchWorkspace(workspaceId);
+	}
+
+	$effect(() => {
+		if (!currentUser) return;
+		if (headerWorkspaces.length > 0) return;
+		void workspaceSettingsPresenter.load({ includeTeam: false });
+	});
 
 	let feedbackDescription = $state('');
 	let feedbackOpen = $state(false);
@@ -128,12 +143,6 @@
 					...(editorDockNotificationBadge > 0 ? { badge: editorDockNotificationBadge } : {})
 				},
 		{
-			title: 'New Template',
-			href: editorDockNewTemplateHref,
-			iconName: icons.LayoutTemplate.name,
-			ariaLabel: 'New Template'
-		},
-		{
 			title: 'Account',
 			iconName: icons.Account.name,
 			ariaLabel: 'Account',
@@ -177,6 +186,10 @@
 	companyName={companyNameVm}
 	{dockItems}
 	{mainLinks}
+	workspaces={headerWorkspaces}
+	currentWorkspaceId={headerCurrentWorkspaceId}
+	workspacesLoading={headerWorkspacesLoading}
+	onSwitchWorkspace={handleHeaderSwitchWorkspace}
 	showEditorAreaButton={canSeeEditorArea}
 	{editorAreaHref}
 	showAdminAreaButton={canSeeAdminArea}

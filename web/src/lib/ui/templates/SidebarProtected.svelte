@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import type { SidebarLinkItem } from '$lib/ui/sidebar-expandable/types';
 	import type { DockItem } from '$lib/ui/floating-dock/types';
+	import type { WorkspaceCardViewModel } from '$lib/settings/GetWorkspace.presenter.svelte';
 	import { page } from '$app/state';
 	import { route, isParentRoute, isSameRoute, url } from '$lib/utils/path';
 
@@ -12,6 +13,10 @@
 	type Props = {
 		children: Snippet;
 		companyName?: string;
+		workspaces?: WorkspaceCardViewModel[];
+		currentWorkspaceId?: string | null;
+		workspacesLoading?: boolean;
+		onSwitchWorkspace?: (workspaceId: string) => void;
 		showEditorAreaButton?: boolean;
 		editorAreaHref?: string;
 		showAdminAreaButton?: boolean;
@@ -31,6 +36,10 @@
 	let {
 		children,
 		companyName = 'Openquok',
+		workspaces = [],
+		currentWorkspaceId = null,
+		workspacesLoading = false,
+		onSwitchWorkspace,
 		showEditorAreaButton = false,
 		editorAreaHref = '/editor/feedback-manager',
 		showAdminAreaButton = false,
@@ -127,6 +136,10 @@
 	<main class="flex-1 flex flex-col min-w-0 min-h-0">
 		<HeaderProtected
 			{dockItems}
+			{workspaces}
+			{currentWorkspaceId}
+			workspacesLoading={workspacesLoading}
+			{onSwitchWorkspace}
 			{showEditorAreaButton}
 			{editorAreaHref}
 			{showAdminAreaButton}

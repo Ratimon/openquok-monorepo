@@ -666,7 +666,7 @@
 		</p>
 	{:else if showPostKanbanBoard}
 		<p class="mt-2 text-base-content/80">
-			{currentUser?.fullName ? `${currentUser.fullName}, pick` : 'Pick'} up where you left off — move
+			Hi! {currentUser?.fullName ? `${currentUser.fullName}, pick` : 'Pick'} up where you left off — move
 			posts through Draft, Scheduled, and Published for your connected channels.
 		</p>
 	{/if}

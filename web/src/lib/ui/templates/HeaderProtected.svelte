@@ -1,15 +1,22 @@
 <script lang="ts">
 	import type { DockItem } from '$lib/ui/floating-dock/types';
-	
+	import type { WorkspaceCardViewModel } from '$lib/settings/GetWorkspace.presenter.svelte';
+
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import * as Tooltip from '$lib/ui/tooltip';
-	import FloatingDockDesktop from '$lib/ui/floating-dock/FloatingDockDesktop.svelte';
 	import DockCustomSlot from '$lib/ui/floating-dock/DockCustomSlot.svelte';
-	import ThemeSwitcher from '$lib/ui/daisyui/ThemeSwitcher.svelte';
+	import HeaderWorkspaceSwitcher from '$lib/ui/components/dashboard-workspaces/HeaderWorkspaceSwitcher.svelte';
 	import FeedbackPopoverForm from '$lib/ui/components/feedback/FeedbackPopoverForm.svelte';
+	import FloatingDockDesktop from '$lib/ui/floating-dock/FloatingDockDesktop.svelte';
+	import ThemeSwitcher from '$lib/ui/daisyui/ThemeSwitcher.svelte';
+	import * as Tooltip from '$lib/ui/tooltip';
 
 	type Props = {
 		dockItems: DockItem[];
+
+		workspaces?: WorkspaceCardViewModel[];
+		currentWorkspaceId?: string | null;
+		workspacesLoading?: boolean;
+		onSwitchWorkspace?: (workspaceId: string) => void;
 
 		showEditorAreaButton?: boolean;
 		editorAreaHref?: string;
@@ -27,6 +34,10 @@
 
 	let {
 		dockItems,
+		workspaces = [],
+		currentWorkspaceId = null,
+		workspacesLoading = false,
+		onSwitchWorkspace,
 		showEditorAreaButton = false,
 		editorAreaHref = '/editor/feedback-manager',
 		showAdminAreaButton = false,
@@ -66,6 +77,13 @@
 			</Button>
 		{/if}
 		
+		<HeaderWorkspaceSwitcher
+			{workspaces}
+			{currentWorkspaceId}
+			loading={workspacesLoading}
+			{onSwitchWorkspace}
+		/>
+
 		<Button variant="ghost" size="sm" class="hidden sm:inline-flex" href="/docs">
 			Docs
 		</Button>

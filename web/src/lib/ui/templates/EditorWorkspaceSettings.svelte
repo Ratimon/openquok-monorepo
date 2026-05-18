@@ -268,7 +268,6 @@
 	}
 </script>
 
-<!-- All Workspaces -->
 <section
 	class="rounded-lg border border-base-300 bg-base-200 shadow-sm overflow-hidden"
 	aria-labelledby="workspaces-heading"

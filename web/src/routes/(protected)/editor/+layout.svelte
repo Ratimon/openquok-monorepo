@@ -9,7 +9,6 @@
 	import { icons } from '$data/icons';
 	import { url } from '$lib/utils/path';
 	import { getRootPathEditorArea, getRootPathEditorFeedbackManager } from '$lib/area-admin/constants/getRootPathEditorArea';
-	import { getRootPathSecretAdminBlogManagerTopics } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { protectedLayoutPagePresenter } from '$lib/area-protected';
 	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
@@ -21,10 +20,6 @@
 	// /editor/feedback-manager
 	const rootPathEditorFeedbackManager = getRootPathEditorFeedbackManager();
 	const editorFeedbackManagerHref = url(rootPathEditorFeedbackManager);
-
-	// /secret-admin/blog-manager/topics
-	const rootPathSecretAdminBlogManagerTopics = getRootPathSecretAdminBlogManagerTopics();
-	const editorNewTemplateHref = $derived(url(rootPathSecretAdminBlogManagerTopics));
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -70,7 +65,6 @@
 	mainLinks={navLinks}
 	notificationsDockPreview={notificationsDockPreview}
 	editorDockNotificationBadge={protectedLayoutPagePresenter.editorDockNotificationUnreadCount}
-	editorDockNewTemplateHref={editorNewTemplateHref}
 >
 	{@render children?.()}
 </AdminLayout>
