@@ -61,6 +61,7 @@ export type IconName =
     | "Globe"
     | "Google"
     | "Grid2x2"
+    | "Grid3x3"
     | "Hash"
     | "Heading1"
     | "Heading2"
@@ -526,6 +527,11 @@ export const icons: Record<IconName, IconEntry> = {
         name: "Grid2x2",
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-grid2x2-icon lucide-grid-2x2"><path d="M12 3v18"/><path d="M3 12h18"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`
+    },
+    Grid3x3: {
+        name: "Grid3x3",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-grid3x3-icon lucide-grid-3x3"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>`
     },
     Hash: {
         name: "Hash",

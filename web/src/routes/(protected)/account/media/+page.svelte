@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { ProtectedMediaPagePresenterMediaSettingsVmPublic } from '$lib/area-protected';
+	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { onDestroy, onMount } from 'svelte';
@@ -16,11 +17,16 @@
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import MediaBox from '$lib/ui/components/media/MediaBox.svelte';
 	import MediaFileManager from '$lib/ui/components/media/MediaFileManager.svelte';
+	import MediaFileManagerViewControls, {
+		type MediaLibraryLayout
+	} from '$lib/ui/components/media/MediaFileManagerViewControls.svelte';
 	import MediaLibraryToolbar from '$lib/ui/components/media/MediaLibraryToolbar.svelte';
 	import MediaLibraryUploadOverlay from '$lib/ui/components/media/MediaLibraryUploadOverlay.svelte';
 	import MediaSettings from '$lib/ui/components/media/MediaSettings.svelte';
 	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
+	import PaginationComposite from '$lib/ui/pagination/pagination-composite.svelte';
 
 	interface MediaLibraryPageProps {
 		data: PageData;
@@ -35,6 +41,8 @@
 	let barPercent = $state(0);
 	let uploadDetailLine = $state('');
 	let designOpen = $state(false);
+	let libraryLayout = $state<MediaLibraryLayout>('cards');
+	let dragOver = $state(false);
 
 	const p = protectedMediaPagePresenter as typeof protectedMediaPagePresenter &
 		ProtectedMediaPagePresenterMediaSettingsVmPublic;
@@ -42,11 +50,20 @@
 	const fileManagerData = $derived(p.fileManagerData);
 	const drive = $derived(p.drive);
 	const loading = $derived(p.loading);
+	const mediaItemsVm = $derived(p.mediaItemsVm);
+	const currentPage = $derived(p.pagination.currentPage);
+	const totalPages = $derived(p.totalPages);
+	const totalItems = $derived(p.totalItems);
+	const itemsPerPage = $derived(p.pagination.itemsPerPage);
 	const organizationId = $derived(p.organizationId);
 	const workspaceName = $derived(p.currentWorkspaceName);
 	const uploadVirtualPath = $derived(p.uploadVirtualPath);
+	const fileManagerApi = $derived(p.fileManagerApi);
 	const uploadLimitLabel = maxMediaUploadShortLabel();
 	const uploadBusy = $derived(uploadPhase !== 'idle');
+	const fileManagerMode = $derived(
+		libraryLayout === 'gallery' ? 'cards' : libraryLayout
+	);
 
 	let uppy = $state.raw<ReturnType<typeof createAccountMediaUppy> | null>(null);
 
@@ -185,6 +202,11 @@
 		if (!uppy || !organizationId) return;
 		uppy.setMeta({ organizationId, virtualPath: uploadVirtualPath });
 	});
+
+	$effect(() => {
+		if (libraryLayout !== 'gallery' || !organizationId) return;
+		void p.loadMedia(currentPage);
+	});
 </script>
 
 <MediaLibraryUploadOverlay {uploadBusy} {uploadPhase} {barPercent} {uploadDetailLine} />
@@ -207,30 +229,71 @@
 				</div>
 				<p class="mt-2 text-sm text-base-content/70">
 					Browse folders, upload, and manage workspace medias. Maximum {uploadLimitLabel} per file.
-					{#if uploadVirtualPath}
+					{#if uploadVirtualPath && libraryLayout !== 'gallery'}
 						<span class="text-base-content/55 block pt-1 text-xs">
 							Uploads/Designs go to <span class="font-medium text-base-content/80">{uploadVirtualPath}</span>
 						</span>
 					{/if}
 				</p>
 			</div>
-			<MediaLibraryToolbar
-				{organizationId}
-				{uploadBusy}
-				onFilesSelected={queueFilesForUpload}
-				onDesignClick={() => (designOpen = true)}
-				onImported={() => void p.loadTree()}
-			/>
+			<div class="flex flex-wrap items-center justify-end gap-3">
+				{#if organizationId}
+					<MediaFileManagerViewControls
+						layout={libraryLayout}
+						onLayoutChange={(layout) => (libraryLayout = layout)}
+						api={fileManagerApi}
+					/>
+				{/if}
+				<MediaLibraryToolbar
+					{organizationId}
+					{uploadBusy}
+					onFilesSelected={queueFilesForUpload}
+					onDesignClick={() => (designOpen = true)}
+					onImported={() => p.reloadFromFirstPage()}
+				/>
+			</div>
 		</div>
 
 		{#if !organizationId}
 			<p class="text-base-content/70 rounded-xl border border-dashed border-base-300/80 bg-base-200/30 px-4 py-8 text-center text-sm">
 				Select a workspace to manage media.
 			</p>
+		{:else if libraryLayout === 'gallery'}
+			<MediaBox
+				{mediaItemsVm}
+				{loading}
+				{organizationId}
+				{uploadLimitLabel}
+				{uploadBusy}
+				onQueueFiles={queueFilesForUpload}
+				onSetDragOver={(v) => {
+					dragOver = v;
+				}}
+				onOpenSettings={(mediaVm: MediaLibraryItemViewModel) => p.openMediaSettings(mediaVm)}
+				onReload={() => void p.reloadFromFirstPage()}
+				deleteMedia={(mediaVm) => p.deleteLibraryItem(mediaVm)}
+				{dragOver}
+			/>
+			{#if totalPages > 1}
+				<PaginationComposite
+					class="mt-5"
+					itemsPerPage={itemsPerPage}
+					totalItems={totalItems}
+					currentPage={currentPage}
+					totalPages={totalPages}
+					setItemsPerPage={p.setItemsPerPageAndReload.bind(p)}
+					setCurrentPage={p.setCurrentPage.bind(p)}
+					paginateFrontFF={p.paginateFrontFF.bind(p)}
+					paginateBackFF={p.paginateBackFF.bind(p)}
+					nameOfItems="media files"
+					pageSizeOptions={[12, 24, 48, 96]}
+				/>
+			{/if}
 		{:else}
 			<MediaFileManager
 				data={fileManagerData}
 				{drive}
+				mode={fileManagerMode}
 				{loading}
 				readonly={uploadBusy}
 				menuOptions={buildMenuOptions}
@@ -268,6 +331,6 @@
 	organizationId={organizationId}
 	uploadSimple={(args) => p.uploadMediaSimple(args)}
 	saveInformation={(args) => p.saveMediaInformation(args)}
-	onSaved={() => void p.loadTree()}
+	onSaved={() => p.reloadFromFirstPage()}
 	onClose={() => p.clearSettingsMediaVm()}
 />

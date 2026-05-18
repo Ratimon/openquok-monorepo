@@ -35,7 +35,8 @@
 				variant="red"
 				onclick={onConfirm}
 			>
-				{confirmLabel}</Button>
+				{confirmLabel}
+			</Button>
 			<Button
 				type="button"
 				variant="ghost"

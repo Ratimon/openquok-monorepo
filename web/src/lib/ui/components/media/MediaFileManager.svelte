@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { IApi, IEntity, IFileMenuOption, IParsedEntity, TContextMenuType } from '@svar-ui/svelte-filemanager';
 	import type { MediaFileManagerDriveVm } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
+	import type { MediaLibraryLayout } from '$lib/ui/components/media/MediaFileManagerViewControls.svelte';
 
 	import { Filemanager, Willow } from '@svar-ui/svelte-filemanager';
-
-	import MediaFileManagerViewControls from '$lib/ui/components/media/MediaFileManagerViewControls.svelte';
 
 	interface MediaFileManagerProps {
 		data: IEntity[];
 		drive: MediaFileManagerDriveVm;
+		mode?: Exclude<MediaLibraryLayout, 'gallery'>;
 		loading?: boolean;
 		readonly?: boolean;
 		onInit?: (api: IApi) => void;
@@ -23,6 +23,7 @@
 	let {
 		data = [],
 		drive,
+		mode = 'cards',
 		loading = false,
 		readonly = false,
 		onInit,
@@ -34,10 +35,7 @@
 		onOpenFile
 	}: MediaFileManagerProps = $props();
 
-	let fileManagerApi = $state<IApi | null>(null);
-
 	function wireApi(api: IApi) {
-		fileManagerApi = api;
 		api.intercept('copy-files', () => false);
 		api.intercept('create-file', (ev: { file?: { type?: string } }) => {
 			if (ev?.file?.type === 'folder') return false;
@@ -119,7 +117,7 @@
 		<Filemanager
 			{data}
 			{drive}
-			mode="cards"
+			{mode}
 			preview={true}
 			{readonly}
 			{menuOptions}
@@ -127,12 +125,6 @@
 			init={wireApi}
 		/>
 	</Willow>
-
-	{#if fileManagerApi}
-		<div class="media-file-manager-view-controls">
-			<MediaFileManagerViewControls api={fileManagerApi} />
-		</div>
-	{/if}
 </div>
 
 <style>
@@ -206,21 +198,6 @@
 	.media-file-manager-host :global(.wx-toolbar .wx-right) {
 		visibility: hidden;
 		pointer-events: none;
-	}
-
-	.media-file-manager-view-controls {
-		position: absolute;
-		top: 0;
-		right: 0.75rem;
-		z-index: 6;
-		display: flex;
-		align-items: center;
-		height: var(--wx-fm-toolbar-height, 3.25rem);
-		pointer-events: none;
-	}
-
-	.media-file-manager-view-controls :global(*) {
-		pointer-events: auto;
 	}
 
 	.media-file-manager-host :global(.wx-sidebar .wx-wrapper),

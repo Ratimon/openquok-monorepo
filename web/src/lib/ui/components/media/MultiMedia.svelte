@@ -278,9 +278,13 @@
 			{#if noDrag}
 				<span>Adding another attachment isn’t supported for the selected network(s).</span>
 			{:else if dragOver}
-				<span class="text-primary font-medium">Drop images here to attach</span>
+				<span class="text-primary font-medium">
+					Drop images here to attach
+				</span>
 			{:else}
-				<span>Drag and drop images here, or use the icons on the editor.</span>
+				<span>
+					Drag and drop images here, or use the icons on the editor.
+				</span>
 			{/if}
 		</div>
 	</div>
