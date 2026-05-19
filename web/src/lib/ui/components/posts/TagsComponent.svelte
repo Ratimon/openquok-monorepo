@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PostTagProgrammerModel } from '$lib/posts';
+	import type { PostTagViewModel } from '$lib/posts';
 	import { icons } from '$data/icons';
 	import * as Dialog from '$lib/ui/dialog';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -7,17 +7,17 @@
 	import ColorPicker from '$lib/ui/color-picker/ColorPicker.svelte';
 
 	type Props = {
-		tagList: PostTagProgrammerModel[];
+		tagsVm: PostTagViewModel[];
 		selectedTagNames: string[];
 		busy?: boolean;
 		onToggleTag: (name: string) => void;
 		onAddTag: (name?: string, color?: string) => void | Promise<void>;
 		/** When set, unselected tags show a delete control that opens the confirmation dialog. */
-		onDeleteTag?: (tag: PostTagProgrammerModel) => void | Promise<void>;
+		onDeleteTag?: (tag: PostTagViewModel) => void | Promise<void>;
 	};
 
 	let {
-		tagList,
+		tagsVm,
 		selectedTagNames,
 		busy = false,
 		onToggleTag,
@@ -32,11 +32,11 @@
 
 	let addName = $state('');
 	let addColor = $state('#942828');
-	let pendingDelete = $state<PostTagProgrammerModel | null>(null);
+	let pendingDelete = $state<PostTagViewModel | null>(null);
 
 	const selectedTags = $derived.by(() =>
 		selectedTagNames
-			.map((name) => tagList.find((t) => t.name === name) ?? { id: name, name })
+			.map((name) => tagsVm.find((t) => t.name === name) ?? { id: name, name })
 			.filter(Boolean)
 	);
 
@@ -79,7 +79,7 @@
 		}
 	}
 
-	function requestDeleteTag(tag: PostTagProgrammerModel, e: MouseEvent) {
+	function requestDeleteTag(tag: PostTagViewModel, e: MouseEvent) {
 		e.stopPropagation();
 		e.preventDefault();
 		if (!onDeleteTag) return;
@@ -147,7 +147,7 @@
 			role="menu"
 		>
 			<div class="max-h-[260px] overflow-y-auto">
-				{#each tagList as t (t.id)}
+				{#each tagsVm as t (t.id)}
 					<div class="hover:bg-base-200 group flex w-full items-center gap-1 rounded-md px-1 py-1">
 						<button
 							type="button"

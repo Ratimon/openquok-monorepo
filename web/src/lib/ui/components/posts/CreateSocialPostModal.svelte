@@ -155,7 +155,7 @@
 					loadSignaturesVmForComposer={presenter.loadSignaturesVmForComposer}
 					socialChannels={presenter.baseSocialChannelsVm}
 					bind:body={presenter.editorBody}
-					bind:postMediaItems={presenter.postMediaItems}
+					bind:postMediaItems={presenter.postMediaItemsVm}
 					uploadUid={uploadUid}
 					organizationId={workspaceId}
 					busy={presenter.busy}
@@ -194,7 +194,7 @@
 					onProviderSettingsChange={presenter.updateFocusedProviderSettings.bind(presenter)}
 					settingsDisabled={presenter.busy}
 					threadReplies={presenter.contentSetAuthoringActive
-						? presenter.sharedFollowUpReplies
+						? presenter.sharedFollowUpRepliesVm
 						: presenter.getThreadFollowUpRepliesForEditor()}
 					onChangeThreadReplies={(next) => {
 						if (presenter.contentSetAuthoringActive) {
@@ -213,7 +213,7 @@
 
 			<div class="sticky bottom-0 z-10 shrink-0 pb-[env(safe-area-inset-bottom)]">
 				<ManageModal
-					tagList={presenter.tagList}
+					tagsVm={presenter.tagsVm}
 					selectedTagNames={presenter.selectedTagNames}
 					repeatInterval={presenter.repeatInterval}
 					{repeatOptions}

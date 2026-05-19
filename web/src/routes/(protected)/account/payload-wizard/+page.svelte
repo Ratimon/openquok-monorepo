@@ -192,7 +192,7 @@
 							loadSignaturesVmForComposer={composerPresenter.loadSignaturesVmForComposer}
 							socialChannels={composerPresenter.baseSocialChannelsVm}
 							bind:body={composerPresenter.editorBody}
-							bind:postMediaItems={composerPresenter.postMediaItems}
+							bind:postMediaItems={composerPresenter.postMediaItemsVm}
 							uploadUid={workspaceId ?? ''}
 							organizationId={workspaceId}
 							busy={composerPresenter.busy}
@@ -249,7 +249,7 @@
 					</div>
 					<div class="sticky bottom-0 z-10 shrink-0 pb-[env(safe-area-inset-bottom)]">
 						<ManageModal
-							tagList={composerPresenter.tagList}
+							tagsVm={composerPresenter.tagsVm}
 							selectedTagNames={composerPresenter.selectedTagNames}
 							repeatInterval={composerPresenter.repeatInterval}
 							{repeatOptions}

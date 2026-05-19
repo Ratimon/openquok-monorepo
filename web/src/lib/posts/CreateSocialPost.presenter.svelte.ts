@@ -95,7 +95,7 @@ export class CreateSocialPostPresenter {
 
 	private pendingOpen = createEmptyPendingOpenState();
 	private lastLoadedEditKey: string | null = null;
-	private tagListCache: { workspaceId: string; loadedAtMs: number } | null = null;
+	private tagsVmCache: { workspaceId: string; loadedAtMs: number } | null = null;
 	private signaturesCache: { organizationId: string; items: SignatureViewModel[]; loadedAtMs: number } | null = null;
 	private readonly signaturesCacheTtlMs = 30_000;
 
@@ -132,15 +132,15 @@ export class CreateSocialPostPresenter {
 	scheduledLocal = $state('');
 	repeatInterval = $state<RepeatIntervalKey | null>(null);
 	selectedTagNames = $state<string[]>([]);
-	tagList = $state<PostTagViewModel[]>([]);
-	postMediaItems = $state<PostMediaViewModel[]>([]);
+	tagsVm = $state<PostTagViewModel[]>([]);
+	postMediaItemsVm = $state<PostMediaViewModel[]>([]);
 	busy = $state(false);
 	confirmCloseOpen = $state(false);
 	initialSnapshot = $state('');
 	contentSetAuthoringActive = $state(false);
 	editingSetId = $state<string | null>(null);
 	editingSetName = $state<string>('');
-	sharedFollowUpReplies = $state<SetSharedFollowUpReplyViewModel[]>([]);
+	sharedFollowUpRepliesVm = $state<SetSharedFollowUpReplyViewModel[]>([]);
 
 	// --- Derived view models ---
 
@@ -169,7 +169,7 @@ export class CreateSocialPostPresenter {
 	previewText = $derived(stripHtmlToPlainText(this.editorBody));
 	charCount = $derived(this.previewText.length);
 	previewMediaUrls = $derived(
-		this.scheduledPostsPresenter.toPostMediaPreviewUrlsVm(this.postMediaItems)
+		this.scheduledPostsPresenter.toPostMediaPreviewUrlsVm(this.postMediaItemsVm)
 	);
 
 	primaryLabel = $derived(
@@ -184,7 +184,7 @@ export class CreateSocialPostPresenter {
 		computeScheduleValidationError({
 			selectedIds: this.selectedIds,
 			baseSocialChannelsVm: this.baseSocialChannelsVm,
-			postMediaItems: this.postMediaItems,
+			postMediaItems: this.postMediaItemsVm,
 			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
 		})
 	);
@@ -386,8 +386,8 @@ export class CreateSocialPostPresenter {
 				toast.message('Add at least one Threads or Instagram channel to use follow-up comments.');
 				return false;
 			}
-			this.sharedFollowUpReplies = [
-				...this.sharedFollowUpReplies,
+			this.sharedFollowUpRepliesVm = [
+				...this.sharedFollowUpRepliesVm,
 				{ id: crypto.randomUUID(), message: '', delaySeconds: 0 }
 			];
 			return true;
@@ -417,7 +417,7 @@ export class CreateSocialPostPresenter {
 	}
 
 	setSharedFollowUpRepliesForSetAuthoring(next: SetSharedFollowUpReplyViewModel[]): void {
-		this.sharedFollowUpReplies = next;
+		this.sharedFollowUpRepliesVm = next;
 	}
 
 	listThreadFollowUpSupportedIntegrationIds(): string[] {
@@ -583,7 +583,7 @@ export class CreateSocialPostPresenter {
 		try {
 			const createTagPmResult = await this.postsRepository.createTag(this.workspaceIdForSession, t, c);
 			if (createTagPmResult.ok) {
-				this.tagList = [...this.tagList.filter((x) => x.id !== createTagPmResult.tag.id), createTagPmResult.tag];
+				this.tagsVm = [...this.tagsVm.filter((x) => x.id !== createTagPmResult.tag.id), createTagPmResult.tag];
 				if (!this.selectedTagNames.includes(createTagPmResult.tag.name)) {
 					this.selectedTagNames = [...this.selectedTagNames, createTagPmResult.tag.name];
 				}
@@ -602,7 +602,7 @@ export class CreateSocialPostPresenter {
 		try {
 			const deleteTagPmResult = await this.postsRepository.deleteTag(this.workspaceIdForSession, tag.id);
 			if (deleteTagPmResult.ok) {
-				this.tagList = this.tagList.filter((x) => x.id !== tag.id);
+				this.tagsVm = this.tagsVm.filter((x) => x.id !== tag.id);
 				this.selectedTagNames = this.selectedTagNames.filter((n) => n !== tag.name);
 				toast.success('Tag deleted.');
 			} else {
@@ -642,7 +642,7 @@ export class CreateSocialPostPresenter {
 		}
 		const content = validateComposerContent({
 			editorBody: this.editorBody,
-			postMediaItems: this.postMediaItems,
+			postMediaItems: this.postMediaItemsVm,
 			minimumCharacters: this.minimumCharacters,
 			softCharLimit: this.softCharLimit
 		});
@@ -691,7 +691,7 @@ export class CreateSocialPostPresenter {
 		}
 		const content = validateComposerContent({
 			editorBody: this.editorBody,
-			postMediaItems: this.postMediaItems,
+			postMediaItems: this.postMediaItemsVm,
 			minimumCharacters: this.minimumCharacters,
 			softCharLimit: this.softCharLimit
 		});
@@ -742,14 +742,14 @@ export class CreateSocialPostPresenter {
 		if (this.contentSetAuthoringActive) {
 			providerCopy = syncSharedFollowUpsToProviderSettingsForSetAuthoring({
 				base: providerCopy,
-				sharedFollowUpReplies: this.sharedFollowUpReplies,
+				sharedFollowUpReplies: this.sharedFollowUpRepliesVm,
 				selectedIds: this.selectedIds,
 				baseSocialChannelsVm: this.baseSocialChannelsVm
 			});
 		}
 		const shared =
-			this.contentSetAuthoringActive && this.sharedFollowUpReplies.length > 0
-				? (JSON.parse(JSON.stringify(this.sharedFollowUpReplies)) as SetSharedFollowUpReplyViewModel[])
+			this.contentSetAuthoringActive && this.sharedFollowUpRepliesVm.length > 0
+				? (JSON.parse(JSON.stringify(this.sharedFollowUpRepliesVm)) as SetSharedFollowUpReplyViewModel[])
 				: undefined;
 		return {
 			selectedIntegrationIds: [...this.selectedIds],
@@ -760,7 +760,7 @@ export class CreateSocialPostPresenter {
 			bodiesByIntegrationId: { ...this.bodiesByIntegrationId },
 			providerSettingsByIntegrationId: providerCopy,
 			...(shared && shared.length > 0 ? { sharedFollowUpReplies: shared } : {}),
-			postMediaItems: [...this.postMediaItems],
+			postMediaItems: [...this.postMediaItemsVm],
 			selectedTagNames: [...this.selectedTagNames],
 			repeatInterval: this.repeatInterval
 		};
@@ -779,7 +779,7 @@ export class CreateSocialPostPresenter {
 		this.persistEditorBody();
 		const plain = stripHtmlToPlainText(this.editorBody);
 		const hasText = plain.length > 0;
-		const hasMedia = this.postMediaItems.length > 0;
+		const hasMedia = this.postMediaItemsVm.length > 0;
 		if (!hasText && !hasMedia) {
 			toast.error('Write something or attach media before saving a set.');
 			return false;
@@ -817,13 +817,13 @@ export class CreateSocialPostPresenter {
 			globalBody: this.globalBody,
 			bodiesByIntegrationId: this.bodiesByIntegrationId,
 			editorBody: this.editorBody,
-			postMediaItems: this.postMediaItems,
+			postMediaItems: this.postMediaItemsVm,
 			selectedIds: this.selectedIds,
 			scheduledLocal: this.scheduledLocal,
 			repeatInterval: this.repeatInterval,
 			selectedTagNames: this.selectedTagNames,
 			contentSetAuthoringActive: this.contentSetAuthoringActive,
-			sharedFollowUpReplies: this.sharedFollowUpReplies
+			sharedFollowUpReplies: this.sharedFollowUpRepliesVm
 		};
 	}
 
@@ -839,7 +839,7 @@ export class CreateSocialPostPresenter {
 			focusedIntegrationId: this.focusedIntegrationId,
 			editorBody: this.editorBody,
 			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId,
-			postMediaItems: this.postMediaItems,
+			postMediaItems: this.postMediaItemsVm,
 			selectedIds: this.selectedIds,
 			scheduledLocal: this.scheduledLocal,
 			repeatInterval: this.repeatInterval,
@@ -865,9 +865,9 @@ export class CreateSocialPostPresenter {
 		this.globalBody = '';
 		this.bodiesByIntegrationId = {};
 		this.editorBody = '';
-		this.postMediaItems = [];
+		this.postMediaItemsVm = [];
 		this.providerSettingsByIntegrationId = {};
-		this.sharedFollowUpReplies = [];
+		this.sharedFollowUpRepliesVm = [];
 
 		this.selectedIds = [];
 		this.selectedGroupId = null;
@@ -929,18 +929,18 @@ export class CreateSocialPostPresenter {
 		if (this.contentSetAuthoringActive) {
 			const sfr = snapshot.sharedFollowUpReplies;
 			if (Array.isArray(sfr) && sfr.length > 0) {
-				this.sharedFollowUpReplies = JSON.parse(JSON.stringify(sfr)) as SetSharedFollowUpReplyViewModel[];
+				this.sharedFollowUpRepliesVm = JSON.parse(JSON.stringify(sfr)) as SetSharedFollowUpReplyViewModel[];
 			} else {
-				this.sharedFollowUpReplies = legacySharedRepliesFromProviderSnapshot({
+				this.sharedFollowUpRepliesVm = legacySharedRepliesFromProviderSnapshot({
 					snapshot,
 					okIntegrationIds: okIds,
 					baseSocialChannelsVm: this.baseSocialChannelsVm
 				});
 			}
 		} else {
-			this.sharedFollowUpReplies = [];
+			this.sharedFollowUpRepliesVm = [];
 		}
-		this.postMediaItems = Array.isArray(snapshot.postMediaItems) ? [...snapshot.postMediaItems] : [];
+		this.postMediaItemsVm = Array.isArray(snapshot.postMediaItems) ? [...snapshot.postMediaItems] : [];
 		this.selectedTagNames = [...(snapshot.selectedTagNames ?? [])];
 		this.repeatInterval = snapshot.repeatInterval ?? null;
 
@@ -992,7 +992,7 @@ export class CreateSocialPostPresenter {
 			this.globalBody = '';
 			this.bodiesByIntegrationId = {};
 			this.editorBody = '';
-			this.postMediaItems = [];
+			this.postMediaItemsVm = [];
 		} finally {
 			this.busy = false;
 		}
@@ -1025,7 +1025,7 @@ export class CreateSocialPostPresenter {
 			this.lastLoadedEditKey = editKey;
 			this.repeatInterval = g.repeatInterval ?? null;
 			this.selectedTagNames = Array.isArray(g.tagNames) ? g.tagNames : [];
-			this.postMediaItems = Array.isArray(g.media) ? g.media : [];
+			this.postMediaItemsVm = Array.isArray(g.media) ? g.media : [];
 			this.scheduledLocal = isoToDatetimeLocalValue(g.publishDateIso);
 
 			const allowed = new Set(this.baseSocialChannelsVm.map((c) => c.id));
@@ -1061,13 +1061,13 @@ export class CreateSocialPostPresenter {
 	private async ensureTagListLoaded(workspaceId: string): Promise<void> {
 		const now = Date.now();
 		const freshForMs = 30_000;
-		if (this.tagListCache?.workspaceId === workspaceId && now - this.tagListCache.loadedAtMs < freshForMs) {
+		if (this.tagsVmCache?.workspaceId === workspaceId && now - this.tagsVmCache.loadedAtMs < freshForMs) {
 			return;
 		}
 		const tags = await this.postsRepository.listTags(workspaceId);
 		if (tags.ok) {
-			this.tagList = tags.tags;
-			this.tagListCache = { workspaceId, loadedAtMs: now };
+			this.tagsVm = tags.tags;
+			this.tagsVmCache = { workspaceId, loadedAtMs: now };
 		} else {
 			toast.error(tags.error);
 		}

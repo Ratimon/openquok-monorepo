@@ -527,7 +527,7 @@ export class SetGridTablePresenter {
 		await this.dashboardPagePresenter.createSocialPostPresenter.loadWorkspaceTagsIfNeeded(organizationId);
 		const rowsVm = await this.getSetPresenter.loadSetsListVm(organizationId);
 		const channelLookup = this._channelLookup();
-		const tagLookup = this.dashboardPagePresenter.createSocialPostPresenter.tagList;
+		const tagLookup = this.dashboardPagePresenter.createSocialPostPresenter.tagsVm;
 		const rows = rowsVm.map((r) => this.toGridRowVm(r, channelLookup, tagLookup));
 		this.setsGridRowsVm = sortSetGridRows(rows);
 	}

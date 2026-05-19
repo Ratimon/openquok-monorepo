@@ -1,18 +1,18 @@
 <script lang="ts">
-	import type { PostTagProgrammerModel, RepeatIntervalKey } from '$lib/posts';
+	import type { PostTagViewModel, RepeatIntervalKey } from '$lib/posts';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { icons } from '$data/icons';
-	import DatePicker from './DatePicker.svelte';
-	import RepeatComponent from './RepeatComponent.svelte';
-	import TagsComponent from './TagsComponent.svelte';
+	import DatePicker from '$lib/ui/components/posts/DatePicker.svelte';
+	import RepeatComponent from '$lib/ui/components/posts/RepeatComponent.svelte';
+	import TagsComponent from '$lib/ui/components/posts/TagsComponent.svelte';
 
 	type RepeatOption = { value: RepeatIntervalKey; label: string };
 
 	type FooterVariant = 'schedulePost' | 'contentSet';
 
 	type Props = {
-		tagList: PostTagProgrammerModel[];
+		tagsVm: PostTagViewModel[];
 		selectedTagNames: string[];
 		repeatInterval: RepeatIntervalKey | null;
 		repeatOptions: RepeatOption[];
@@ -23,7 +23,7 @@
 		scheduleDisabled?: boolean;
 		onToggleTag: (name: string) => void;
 		onAddTag: (name?: string, color?: string) => void | Promise<void>;
-		onDeleteTag?: (tag: PostTagProgrammerModel) => void | Promise<void>;
+		onDeleteTag?: (tag: PostTagViewModel) => void | Promise<void>;
 		onRepeatChange: (value: RepeatIntervalKey | null) => void;
 		onDeletePost?: () => void | Promise<void>;
 		onSaveDraft: () => void | Promise<void>;
@@ -34,7 +34,7 @@
 	};
 
 	let {
-		tagList,
+		tagsVm,
 		selectedTagNames,
 		repeatInterval,
 		repeatOptions,
@@ -61,7 +61,7 @@
 >
 	<div class="flex min-w-0 flex-wrap items-center gap-2">
 		<TagsComponent
-			{tagList}
+			{tagsVm}
 			{selectedTagNames}
 			{busy}
 			onToggleTag={onToggleTag}
