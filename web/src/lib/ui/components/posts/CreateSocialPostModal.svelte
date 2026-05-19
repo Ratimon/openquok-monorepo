@@ -149,7 +149,7 @@
 				<AddEditModal
 					stockPhotosVm={presenter.stockPhotosVm}
 					designTemplatesVm={presenter.designTemplatesVm}
-					fetchPolotnoTemplateListPage={presenter.fetchPolotnoTemplateListPage.bind(presenter)}
+					fetchPolotnoTemplateListPage={presenter.fetchPolotnoTemplateListPage}
 					backgroundPanelVm={presenter.backgroundPanelVm}
 					exportCanvasToMedia={presenter.exportCanvasToMedia}
 					loadSignaturesVmForComposer={presenter.loadSignaturesVmForComposer}
