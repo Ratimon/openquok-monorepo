@@ -22,6 +22,8 @@
 		uploadUid?: string;
 		/** Called after successfully scheduling a post. */
 		onScheduled?: () => void;
+		/** Called after successfully saving a draft (does not run for schedule/delete). */
+		onDraftSaved?: () => void;
 		/** Close after saving a reusable set from workspace settings. */
 		closeComposerAfterSaveSet?: boolean;
 		/** Notify listeners after a reusable set was persisted. */
@@ -35,6 +37,7 @@
 		connectedChannels,
 		uploadUid = '',
 		onScheduled,
+		onDraftSaved,
 		closeComposerAfterSaveSet = false,
 		onContentSetSaved = undefined
 	}: CreateSocialPostModalProps = $props();
@@ -88,6 +91,7 @@
 	async function saveAsDraft() {
 		if (await presenter.saveAsDraft()) {
 			open = false;
+			onDraftSaved?.();
 		}
 	}
 

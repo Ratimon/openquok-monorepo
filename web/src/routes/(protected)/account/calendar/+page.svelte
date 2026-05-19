@@ -484,6 +484,7 @@
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}
 	onScheduled={() => calendarPresenter.bumpCalendarRefresh()}
+	onDraftSaved={() => calendarPresenter.bumpCalendarRefresh()}
 />
 
 <SetPickerDialog
