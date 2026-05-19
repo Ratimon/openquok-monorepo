@@ -49,6 +49,18 @@ export function mediaFileManagerId(
 	return `${folder}/${mediaId}__${safe}`;
 }
 
+/** User-facing file label from a file-manager id (`{folder}/{uuid}__{displayName}`). */
+export function mediaFileManagerDisplayNameFromId(id: string): string {
+	const normalized = String(id ?? "").replace(/\\/g, "/");
+	const lastSlash = normalized.lastIndexOf("/");
+	const filePart = lastSlash >= 0 ? normalized.slice(lastSlash + 1) : normalized;
+	const sep = filePart.indexOf("__");
+	if (sep > 0 && UUID_RE.test(filePart.slice(0, sep))) {
+		return filePart.slice(sep + 2);
+	}
+	return filePart;
+}
+
 export function parseMediaFileManagerId(
 	id: string
 ): { mediaId: string; virtualPath: string } | null {

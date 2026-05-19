@@ -3,6 +3,8 @@
 	import type { MediaFileManagerDriveVm } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
 	import type { MediaLibraryLayout } from '$lib/ui/components/media/MediaFileManagerViewControls.svelte';
 
+	import { mediaFileManagerDisplayNameFromId } from 'openquok-common';
+
 	import { Filemanager, Willow } from '@svar-ui/svelte-filemanager';
 
 	interface MediaFileManagerProps {
@@ -35,7 +37,38 @@
 		onOpenFile
 	}: MediaFileManagerProps = $props();
 
+	let fmApi = $state<IApi | null>(null);
+
+	function displayNameForEntity(row: IEntity): string {
+		if (typeof row.displayName === 'string' && row.displayName.trim()) {
+			return row.displayName.trim();
+		}
+		return mediaFileManagerDisplayNameFromId(String(row.id ?? ''));
+	}
+
+	function applyTreeDisplayNames(api: IApi, rows: IEntity[]): void {
+		const tree = api.getState().data;
+		let changed = false;
+
+		for (const row of rows) {
+			if (row.type !== 'file') continue;
+			const displayName = displayNameForEntity(row);
+			if (!displayName) continue;
+
+			const node = tree.byId(row.id);
+			if (node && node.name !== displayName) {
+				tree.update(row.id, { name: displayName });
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			api.getStores().data.setState({ data: tree });
+		}
+	}
+
 	function wireApi(api: IApi) {
+		fmApi = api;
 		api.intercept('copy-files', () => false);
 		api.intercept('create-file', (ev: { file?: { type?: string } }) => {
 			if (ev?.file?.type === 'folder') return false;
@@ -59,13 +92,14 @@
 			}
 		});
 
-		api.on('rename-file', async (ev: { id?: string; name?: string }) => {
+		// Block SVAR's built-in rename: it rewrites ids as `parent/name.ext`, which does not match
+		// our `…/{mediaId}__{displayName}` ids and leaves stale selection after we reload the tree.
+		api.intercept('rename-file', async (ev: { id?: string; name?: string }) => {
 			const id = ev?.id ?? '';
 			const name = ev?.name ?? '';
-			if (id && name) {
-				const ok = await onRenameFile?.(id, name);
-				if (!ok) return false;
-			}
+			if (!id || !name) return false;
+			await onRenameFile?.(id, name);
+			return false;
 		});
 
 		api.on('open-file', (ev: { id?: string }) => {
@@ -89,7 +123,15 @@
 		});
 
 		onInit?.(api);
+		applyTreeDisplayNames(api, data);
 	}
+
+	$effect(() => {
+		const api = fmApi;
+		const rows = data;
+		if (!api || !rows.length) return;
+		applyTreeDisplayNames(api, rows);
+	});
 
 	function previewUrl(file: IParsedEntity & { publicUrl?: string; kind?: string }, _w: number, _h: number) {
 		if (file.type !== 'file') return null;

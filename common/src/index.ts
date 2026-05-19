@@ -11,6 +11,7 @@ export {
 	resolveMediaVirtualPath,
 	mediaVirtualPathForComposerUpload,
 	mediaFileManagerId,
+	mediaFileManagerDisplayNameFromId,
 	parseMediaFileManagerId,
 	mediaVirtualPathFromFileManagerTarget,
 } from "./mediaVirtualPaths";

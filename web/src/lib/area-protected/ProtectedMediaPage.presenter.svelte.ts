@@ -23,6 +23,7 @@ import type {
 
 import {
 	MEDIA_VIRTUAL_GENERAL,
+	mediaFileManagerId,
 	mediaVirtualPathFromFileManagerTarget,
 	normalizeMediaVirtualPath,
 	parseMediaFileManagerId
@@ -45,6 +46,7 @@ function treeEntityToVm(row: MediaFileTreeEntityProgrammerModel): IEntity {
 		...(row.date ? { date: new Date(row.date) } : {}),
 		...(row.lazy ? { lazy: true } : {}),
 		...(row.mediaId ? { mediaId: row.mediaId } : {}),
+		...(row.displayName ? { displayName: row.displayName } : {}),
 		...(row.publicUrl ? { publicUrl: row.publicUrl } : {}),
 		...(row.kind ? { kind: row.kind } : {})
 	};
@@ -101,6 +103,16 @@ export class ProtectedMediaPagePresenter {
 	registerFileManagerApi(api: IApi): void {
 		this.fileManagerApiState = api;
 		this.syncUploadFolderFromApi();
+	}
+
+	private clearFileManagerSelection(): void {
+		const api = this.fileManagerApiState;
+		if (!api) return;
+		try {
+			api.exec('select-file', { id: '' });
+		} catch {
+			// ignore
+		}
 	}
 
 	private syncUploadFolderFromApi(): void {
@@ -161,6 +173,7 @@ export class ProtectedMediaPagePresenter {
 	}
 
 	async loadTree(): Promise<void> {
+		this.clearFileManagerSelection();
 		this.loading = true;
 		try {
 			const organizationId = this.organizationId;
@@ -306,13 +319,24 @@ export class ProtectedMediaPagePresenter {
 		const organizationId = this.organizationId;
 		if (!organizationId) return false;
 
+		const parsed = parseMediaFileManagerId(fileManagerId);
 		const result = await this.mediaRepository.renameMedia({
 			organizationId,
 			id: fileManagerId,
 			name
 		});
 		if (result.success) {
+			const nextId = parsed
+				? mediaFileManagerId(parsed.virtualPath, parsed.mediaId, name)
+				: null;
 			await this.loadTree();
+			if (nextId && this.fileManagerApiState) {
+				try {
+					this.fileManagerApiState.exec('select-file', { id: nextId });
+				} catch {
+					// ignore
+				}
+			}
 		}
 		return result.success;
 	}

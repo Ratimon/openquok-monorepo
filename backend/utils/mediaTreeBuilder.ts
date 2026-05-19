@@ -16,6 +16,8 @@ export type MediaTreeFileEntity = {
     date?: Date;
     lazy?: boolean;
     mediaId?: string;
+    /** User-facing label (SVAR derives `name` from `id`, which includes the media uuid). */
+    displayName?: string;
     publicUrl?: string | null;
     kind?: MediaListItemDto["kind"];
 };
@@ -69,6 +71,7 @@ export function buildMediaTreeEntities(items: MediaListItemDto[]): MediaTreeFile
             size: item.size,
             date,
             mediaId: item.id,
+            displayName,
             publicUrl: item.publicUrl,
             kind: item.kind,
         });

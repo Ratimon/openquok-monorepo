@@ -8,6 +8,7 @@ export interface MediaFileTreeEntityProgrammerModel {
 	date?: string;
 	lazy?: boolean;
 	mediaId?: string;
+	displayName?: string;
 	publicUrl?: string | null;
 	kind?: MediaLibraryItemProgrammerModel['kind'];
 }
