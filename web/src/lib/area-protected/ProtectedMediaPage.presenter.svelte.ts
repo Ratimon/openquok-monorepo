@@ -297,7 +297,7 @@ export class ProtectedMediaPagePresenter {
 		mode: TContextMenuType,
 		item?: IParsedEntity
 	): IFileMenuOption[] {
-		const blocked = new Set(['create-file']);
+		const blocked = new Set(['create-file', 'add-file']);
 		let options = defaultOptions.filter((opt) => !blocked.has(String(opt.id ?? '')));
 
 		if (mode === 'file' && item?.type === 'file') {

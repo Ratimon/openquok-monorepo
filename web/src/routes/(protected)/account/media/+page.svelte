@@ -66,7 +66,6 @@
 	);
 
 	let uppy = $state.raw<ReturnType<typeof createAccountMediaUppy> | null>(null);
-	let sidebarFileInput = $state.raw<HTMLInputElement | null>(null);
 
 	function isSupportedUpload(file: File): boolean {
 		return ACCEPTED_MEDIA_TYPES.some((prefix) => file.type.startsWith(prefix));
@@ -156,17 +155,6 @@
 		if (p.openSettingsForFileManagerId(id)) return;
 	}
 
-	function openSidebarFilePicker(): void {
-		if (uploadBusy || !organizationId) return;
-		sidebarFileInput?.click();
-	}
-
-	function onSidebarFileInputChange(e: Event): void {
-		const input = e.currentTarget as HTMLInputElement;
-		queueFilesForUpload(input.files);
-		input.value = '';
-	}
-
 	async function onCreateFile(ev: {
 		file?: { type?: string; name?: string; file?: File | Blob };
 		parent?: string;
@@ -193,11 +181,6 @@
 			const ok = await p.createVirtualFolder(String(file.name ?? ''), String(parent ?? '/'));
 			if (ok) toast.success('Folder created.');
 			else toast.error('Could not create folder.');
-			return;
-		}
-
-		if (file.type === 'file') {
-			openSidebarFilePicker();
 		}
 	}
 
@@ -359,16 +342,6 @@
 				/>
 			{/if}
 		{:else}
-			<input
-				bind:this={sidebarFileInput}
-				type="file"
-				accept={ACCEPTED_MEDIA_TYPES.map((t) => `${t}*`).join(',')}
-				multiple
-				class="sr-only"
-				aria-hidden="true"
-				tabindex={-1}
-				onchange={onSidebarFileInputChange}
-			/>
 			<MediaFileManager
 				data={fileManagerData}
 				{drive}
