@@ -54,6 +54,7 @@ describe("MediaController", () => {
             saveMediaInformation: jest.fn(),
             listAllMedia: jest.fn(),
             updateVirtualPaths: jest.fn(),
+            duplicateMedia: jest.fn(),
             renameMediaDisplayName: jest.fn(),
         } as unknown as jest.Mocked<MediaService>;
 
@@ -275,6 +276,40 @@ describe("MediaController", () => {
             ]);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith({ success: true, data: { moved: 1 } });
+            expect(next).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("copy", () => {
+        it("requires authentication", async () => {
+            const req = {
+                body: { organizationId: ORG_ID, ids: [fileManagerId()], target: "/Posts" },
+            } as unknown as Request;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.copy(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(mediaService.duplicateMedia).not.toHaveBeenCalled();
+        });
+
+        it("duplicates media for valid file manager ids", async () => {
+            const id = fileManagerId("/General", "clip.mp4");
+            mediaService.duplicateMedia.mockResolvedValue(1);
+
+            const req = {
+                body: { organizationId: ORG_ID, ids: [id], target: "/Posts" },
+                user: AUTH_USER,
+            } as unknown as Request;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.copy(req, res, next);
+
+            expect(mediaService.duplicateMedia).toHaveBeenCalledWith(ORG_ID, [MEDIA_ID], "/Posts");
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({ success: true, data: { copied: 1 } });
             expect(next).not.toHaveBeenCalled();
         });
     });

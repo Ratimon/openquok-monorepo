@@ -17,6 +17,7 @@
 		menuOptions?: (mode: TContextMenuType, item?: IParsedEntity) => IFileMenuOption[];
 		onPathChange?: () => void;
 		onDeleteFiles?: (ids: string[]) => void | Promise<void>;
+		onCopyFiles?: (ids: string[], target: string) => void | Promise<boolean>;
 		onMoveFiles?: (ids: string[], target: string) => void | Promise<boolean>;
 		onRenameFile?: (id: string, name: string) => void | Promise<boolean>;
 		onOpenFile?: (id: string) => void;
@@ -32,6 +33,7 @@
 		menuOptions,
 		onPathChange,
 		onDeleteFiles,
+		onCopyFiles,
 		onMoveFiles,
 		onRenameFile,
 		onOpenFile
@@ -69,7 +71,6 @@
 
 	function wireApi(api: IApi) {
 		fmApi = api;
-		api.intercept('copy-files', () => false);
 		api.intercept('create-file', (ev: { file?: { type?: string } }) => {
 			if (ev?.file?.type === 'folder') return false;
 		});
@@ -83,13 +84,23 @@
 			if (ids.length) await onDeleteFiles?.(ids);
 		});
 
-		api.on('move-files', async (ev: { ids?: string[]; target?: string }) => {
+		// Block SVAR's client-side copy/move: ids use `{folder}/{mediaId}__{name}`, not `parent/name.ext`.
+		api.intercept('copy-files', async (ev: { ids?: string[]; target?: string }) => {
 			const ids = ev?.ids ?? [];
 			const target = ev?.target ?? '';
 			if (ids.length && target) {
-				const ok = await onMoveFiles?.(ids, target);
-				if (!ok) return false;
+				await onCopyFiles?.(ids, target);
 			}
+			return false;
+		});
+
+		api.intercept('move-files', async (ev: { ids?: string[]; target?: string }) => {
+			const ids = ev?.ids ?? [];
+			const target = ev?.target ?? '';
+			if (ids.length && target) {
+				await onMoveFiles?.(ids, target);
+			}
+			return false;
 		});
 
 		// Block SVAR's built-in rename: it rewrites ids as `parent/name.ext`, which does not match

@@ -10,6 +10,7 @@ const mediaConfig: MediaConfig = {
 		upload: '/api/v1/media/upload',
 		delete: '/api/v1/media/delete',
 		move: '/api/v1/media/move',
+		copy: '/api/v1/media/copy',
 		rename: '/api/v1/media/rename',
 		uploadSimple: '/api/v1/media/upload-simple',
 		saveInformation: '/api/v1/media/information'

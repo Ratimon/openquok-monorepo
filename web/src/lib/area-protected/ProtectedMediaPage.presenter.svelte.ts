@@ -269,15 +269,23 @@ export class ProtectedMediaPagePresenter {
 		mode: TContextMenuType,
 		item?: IParsedEntity
 	): IFileMenuOption[] {
-		const blocked = new Set(['copy-files', 'create-file']);
+		const blocked = new Set(['create-file']);
 		let options = defaultOptions.filter((opt) => !blocked.has(String(opt.id ?? '')));
 
 		if (mode === 'file' && item?.type === 'file') {
 			const parsed = parseMediaFileManagerId(String(item.id ?? ''));
 			if (parsed && this.mediaById.has(parsed.mediaId)) {
+				const fileManagerId = String(item.id ?? '');
 				options = [
 					...options,
-					{ id: 'media-settings', text: 'Media settings', hotkey: '' }
+					{
+						id: 'media-settings',
+						text: 'Media settings',
+						hotkey: '',
+						handler: () => {
+							this.openSettingsForFileManagerId(fileManagerId);
+						}
+					}
 				];
 			}
 		}
@@ -297,6 +305,22 @@ export class ProtectedMediaPagePresenter {
 			await this.deleteLibraryItem(vm);
 		}
 		await this.loadTree();
+	}
+
+	async handleCopyFiles(ids: string[], target: string): Promise<boolean> {
+		const organizationId = this.organizationId;
+		if (!organizationId) return false;
+
+		const targetPath = mediaVirtualPathFromFileManagerTarget(target);
+		const result = await this.mediaRepository.copyMedia({
+			organizationId,
+			ids,
+			target: targetPath
+		});
+		if (result.success) {
+			await this.loadTree();
+		}
+		return result.success;
 	}
 
 	async handleMoveFiles(ids: string[], target: string): Promise<boolean> {

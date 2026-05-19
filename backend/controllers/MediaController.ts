@@ -164,6 +164,48 @@ export class MediaController {
         }
     };
 
+    copy = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId is required");
+            }
+
+            const ids = Array.isArray(req.body?.ids) ? (req.body.ids as unknown[]) : [];
+            const targetRaw = typeof req.body?.target === "string" ? String(req.body.target) : "";
+            if (!ids.length || !targetRaw.trim()) {
+                throw new UserValidationError("ids and target are required");
+            }
+
+            const targetVirtualPath = mediaVirtualPathFromFileManagerTarget(targetRaw);
+            const mediaIds: string[] = [];
+            for (const rawId of ids) {
+                const idStr = String(rawId ?? "");
+                const parsed = parseMediaFileManagerId(idStr);
+                if (!parsed) continue;
+                mediaIds.push(parsed.mediaId);
+            }
+
+            if (!mediaIds.length) {
+                throw new UserValidationError("No copyable files in selection");
+            }
+
+            const copied = await this.mediaService.duplicateMedia(
+                organizationId,
+                mediaIds,
+                targetVirtualPath
+            );
+            res.status(200).json({ success: true, data: { copied } });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     rename = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const authUser = (req as AuthenticatedRequest).user;

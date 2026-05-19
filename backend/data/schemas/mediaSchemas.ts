@@ -67,6 +67,12 @@ export const validateMediaMoveBody: RequestHandler = validateRequest({
     body: mediaMoveBodySchema,
 });
 
+export const mediaCopyBodySchema = mediaMoveBodySchema;
+
+export const validateMediaCopyBody: RequestHandler = validateRequest({
+    body: mediaCopyBodySchema,
+});
+
 export const mediaRenameBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     id: z.string().min(1).max(512),

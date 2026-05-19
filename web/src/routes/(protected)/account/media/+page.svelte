@@ -118,6 +118,13 @@
 		toast.success(ids.length === 1 ? 'File deleted.' : `${ids.length} files deleted.`);
 	}
 
+	async function onCopyFiles(ids: string[], target: string): Promise<boolean> {
+		const ok = await p.handleCopyFiles(ids, target);
+		if (!ok) toast.error('Could not copy files.');
+		else toast.success(ids.length === 1 ? 'File copied.' : `${ids.length} files copied.`);
+		return ok;
+	}
+
 	async function onMoveFiles(ids: string[], target: string): Promise<boolean> {
 		const ok = await p.handleMoveFiles(ids, target);
 		if (!ok) toast.error('Could not move files.');
@@ -300,6 +307,7 @@
 				onInit={(api) => p.registerFileManagerApi(api)}
 				onPathChange={() => p.onFileManagerPathChanged()}
 				onDeleteFiles={onDeleteFiles}
+				onCopyFiles={onCopyFiles}
 				onMoveFiles={onMoveFiles}
 				onRenameFile={onRenameFile}
 				onOpenFile={onOpenFile}

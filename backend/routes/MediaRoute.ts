@@ -10,6 +10,7 @@ import {
     validateSaveMediaInformationBody,
     validateMultipartEndpoint,
     validateMediaMoveBody,
+    validateMediaCopyBody,
     validateMediaRenameBody,
 } from "../data/schemas/mediaSchemas";
 
@@ -36,6 +37,8 @@ mediaRouter.get("/", authWithRoles, validateMediaOrganizationQuery, mediaControl
 mediaRouter.get("/tree", authWithRoles, validateMediaOrganizationQuery, mediaController.tree);
 
 mediaRouter.post("/move", authWithRoles, validateMediaMoveBody, mediaController.move);
+
+mediaRouter.post("/copy", authWithRoles, validateMediaCopyBody, mediaController.copy);
 
 mediaRouter.post("/rename", authWithRoles, validateMediaRenameBody, mediaController.rename);
 

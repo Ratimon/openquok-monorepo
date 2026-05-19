@@ -297,6 +297,51 @@ export class MediaRepository {
         }));
     }
 
+    async duplicateMedia(
+        organizationId: string,
+        sourceIds: string[],
+        targetVirtualPath: string
+    ): Promise<number> {
+        const target = normalizeMediaVirtualPath(targetVirtualPath);
+        const now = new Date().toISOString();
+        let copied = 0;
+
+        for (const mediaId of sourceIds) {
+            const source = await this.getMediaById(organizationId, mediaId);
+            if (!source) continue;
+
+            const { data, error } = await this.supabase
+                .from(TABLE_MEDIA)
+                .insert({
+                    organization_id: organizationId,
+                    name: source.name,
+                    original_name: source.original_name ?? null,
+                    path: source.path,
+                    virtual_path: target,
+                    file_size: source.file_size ?? 0,
+                    type: source.type ?? "image",
+                    thumbnail: source.thumbnail ?? null,
+                    alt: source.alt ?? null,
+                    thumbnail_timestamp: source.thumbnail_timestamp ?? null,
+                    created_at: now,
+                    updated_at: now,
+                })
+                .select("id")
+                .maybeSingle();
+
+            if (error) {
+                throw new DatabaseError(`Failed to copy media: ${error.message}`, {
+                    cause: error,
+                    operation: "insert",
+                    resource: { type: "table", name: TABLE_MEDIA },
+                });
+            }
+            if (data) copied += 1;
+        }
+
+        return copied;
+    }
+
     async updateVirtualPaths(
         organizationId: string,
         updates: { id: string; virtualPath: string }[]

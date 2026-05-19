@@ -25,6 +25,7 @@ export interface MediaConfig {
 		upload: string;
 		delete: string;
 		move: string;
+		copy: string;
 		rename: string;
 		uploadSimple: string;
 		saveInformation: string;
@@ -162,6 +163,38 @@ export class MediaRepository {
 			return null;
 		} catch {
 			return null;
+		}
+	}
+
+	public async copyMedia(params: {
+		organizationId: string;
+		ids: string[];
+		target: string;
+	}): Promise<{ success: boolean; message: string; copied?: number }> {
+		try {
+			const { data: copyDto, ok } = await this.httpGateway.post<{
+				success: boolean;
+				data?: { copied?: number };
+				message?: string;
+			}>(
+				this.config.endpoints.copy,
+				{
+					organizationId: params.organizationId,
+					ids: params.ids,
+					target: params.target
+				},
+				{ withCredentials: true }
+			);
+
+			if (ok && copyDto?.success) {
+				return { success: true, message: 'Copied.', copied: copyDto.data?.copied };
+			}
+			return { success: false, message: copyDto?.message || 'Could not copy files.' };
+		} catch (error) {
+			return {
+				success: false,
+				message: error instanceof Error ? error.message : 'Could not copy files.'
+			};
 		}
 	}
 

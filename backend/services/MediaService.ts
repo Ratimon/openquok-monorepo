@@ -50,6 +50,10 @@ export class MediaService {
         return this._mediaRepository.updateVirtualPaths(organizationId, updates);
     }
 
+    duplicateMedia(organizationId: string, sourceIds: string[], targetVirtualPath: string) {
+        return this._mediaRepository.duplicateMedia(organizationId, sourceIds, targetVirtualPath);
+    }
+
     renameMediaDisplayName(organizationId: string, id: string, originalName: string) {
         return this._mediaRepository.renameMediaDisplayName(organizationId, id, originalName);
     }
