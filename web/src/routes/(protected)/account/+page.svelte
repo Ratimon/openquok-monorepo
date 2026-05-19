@@ -105,6 +105,12 @@
 		postKanbanBoard.setChannels(orgId, connectedChannelsVm);
 	});
 
+	$effect(() => {
+		const orgId = workspaceId;
+		if (!orgId) return;
+		void createSocialPostModalPresenter.loadWorkspaceTagsIfNeeded(orgId);
+	});
+
 	const postKanbanColumnsVm = $derived(postKanbanBoard.columnsVm);
 	const postKanbanColumnCountsVm = $derived(postKanbanBoard.columnCountsVm);
 	const postKanbanColumnOptions = $derived(postKanbanBoard.columnOptions);
@@ -118,6 +124,13 @@
 	const postKanbanSelectedSocialPlatformIdentifiers = $derived(
 		postKanbanBoard.selectedSocialPlatformIdentifiers
 	);
+	const postKanbanAllTags = $derived(postKanbanBoard.allTags);
+	const postKanbanSelectedTagNames = $derived(postKanbanBoard.selectedTagNames);
+	const workspaceTagsVm = $derived(createSocialPostModalPresenter.tagsVm);
+	const postKanbanPostsForTagFilter = $derived(postKanbanBoard.postsForChannelLookup);
+	$effect(() => {
+		postKanbanBoard.populateAllTagSelectionWhenEmpty(workspaceTagsVm, postKanbanPostsForTagFilter);
+	});
 	const postKanbanStatus = $derived(postKanbanBoard.status);
 	const postKanbanError = $derived(postKanbanBoard.error);
 	const postKanbanMovingPostGroup = $derived(postKanbanBoard.movingPostGroup);
@@ -722,6 +735,10 @@
 			selectedGroupIds={postKanbanSelectedGroupIds}
 			allSocialPlatforms={postKanbanAllSocialPlatforms}
 			selectedSocialPlatformIdentifiers={postKanbanSelectedSocialPlatformIdentifiers}
+			allTags={postKanbanAllTags}
+			selectedTagNames={postKanbanSelectedTagNames}
+			tagsVm={workspaceTagsVm}
+			kanbanPosts={postKanbanPostsForTagFilter}
 			columnsVm={postKanbanColumnsVm}
 			columnCountsVm={postKanbanColumnCountsVm}
 			columnOptions={postKanbanColumnOptions}
@@ -735,6 +752,7 @@
 			calendarHref={calendarPath}
 			onGroupFilterChange={(next) => postKanbanBoard.setGroupFilter(next)}
 			onSocialPlatformFilterChange={(next) => postKanbanBoard.setSocialPlatformFilter(next)}
+			onTagFilterChange={(next) => postKanbanBoard.setTagFilter(next)}
 			onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
 			onTimeFilterChange={(next) => postKanbanBoard.setTimeFilter(next)}
 			onMoveCardToColumn={(payload, column) => postKanbanBoard.moveCardToColumn(payload, column)}

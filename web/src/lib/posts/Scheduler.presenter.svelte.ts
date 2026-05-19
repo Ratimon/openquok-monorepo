@@ -14,6 +14,7 @@ import {
 	type ChannelViewModel,
 	type DebugExportPostGroupResult,
 	type PostStateFilterVm,
+	type PostTagFilterVm,
 	type ScheduledPostsCalendarViewModel,
 	type SocialPlatformFilterVm
 } from '$lib/posts/scheduler.types';
@@ -21,6 +22,7 @@ import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts/scheduler.types';
 import { deriveIntegrationFilter } from '$lib/posts/utils/schedulerIntegrationFilter';
 import { buildCalendarEventsFromPosts } from '$lib/posts/utils/schedulerCalendarEvents';
 import { filterPostsByPostType } from '$lib/posts/utils/schedulerPostTypeFilter';
+import { filterPostsByTags } from '$lib/posts/utils/postTagFilter';
 import {
 	labelForRange,
 	rangeForGranularity,
@@ -38,6 +40,7 @@ export type {
 	ChannelViewModel,
 	DebugExportPostGroupResult,
 	PostStateFilterVm,
+	PostTagFilterVm,
 	ScheduledPostsCalendarViewModel,
 	SocialPlatformFilterVm
 } from '$lib/posts/scheduler.types';
@@ -147,7 +150,7 @@ export class SchedulerPresenter {
 		if (!pg || !this.cachedPostsVm.some((p) => p.postGroup === pg)) return;
 
 		this.cachedPostsVm = this.cachedPostsVm.filter((p) => p.postGroup !== pg);
-		this.applyPostTypeFilterToCache();
+		this.applyClientFiltersToCache();
 		this.patchVm({ lastSuccessfulPostsKey: '' });
 	}
 
@@ -198,6 +201,27 @@ export class SchedulerPresenter {
 		});
 	}
 
+	populateAllTagSelectionWhenEmpty(
+		tagsVm: readonly { name: string }[],
+		posts: readonly { tagNames?: string[] }[] = this.cachedPostsVm
+	): void {
+		const vm = this.scheduledPostsCalendarVm;
+		if (!vm.allTags || vm.selectedTagNames.length) return;
+		const names = new Set<string>();
+		for (const t of tagsVm) {
+			const name = String(t.name ?? '').trim();
+			if (name) names.add(name);
+		}
+		for (const p of posts) {
+			for (const raw of p.tagNames ?? []) {
+				const name = String(raw ?? '').trim();
+				if (name) names.add(name);
+			}
+		}
+		if (names.size === 0) return;
+		this.patchVm({ selectedTagNames: [...names].sort((a, b) => a.localeCompare(b)) });
+	}
+
 	populateAllSocialPlatformSelectionWhenEmpty(channels: ChannelViewModel[]): void {
 		const vm = this.scheduledPostsCalendarVm;
 		if (!vm.allSocialPlatforms || !channels.length || vm.selectedSocialPlatformIdentifiers.length) {
@@ -239,7 +263,15 @@ export class SchedulerPresenter {
 			allPostStates: next.allPostStates,
 			selectedPostStates: next.selectedPostStates
 		});
-		this.applyPostTypeFilterToCache();
+		this.applyClientFiltersToCache();
+	}
+
+	setTagFilter(next: PostTagFilterVm): void {
+		this.patchVm({
+			allTags: next.allTags,
+			selectedTagNames: next.selectedTagNames
+		});
+		this.applyClientFiltersToCache();
 	}
 
 	setSocialPlatformFilter(next: SocialPlatformFilterVm): void {
@@ -335,6 +367,7 @@ export class SchedulerPresenter {
 
 			this.cachedPostsVm = result.postsVm;
 			this.cachedChannelById = channelById;
+			this.populateAllTagSelectionWhenEmpty([], this.cachedPostsVm);
 			const events = this.buildEventsFromCache();
 
 			this.patchVm({
@@ -378,16 +411,18 @@ export class SchedulerPresenter {
 	}
 
 	private buildEventsFromCache() {
-		const { allPostStates, selectedPostStates } = this.scheduledPostsCalendarVm;
-		const filtered = filterPostsByPostType(
+		const { allPostStates, selectedPostStates, allTags, selectedTagNames } =
+			this.scheduledPostsCalendarVm;
+		let filtered = filterPostsByPostType(
 			this.cachedPostsVm,
 			allPostStates,
 			selectedPostStates
 		);
+		filtered = filterPostsByTags(filtered, allTags, selectedTagNames);
 		return buildCalendarEventsFromPosts(filtered, this.cachedChannelById);
 	}
 
-	private applyPostTypeFilterToCache(): void {
+	private applyClientFiltersToCache(): void {
 		if (!this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) return;
 		this.patchVm({ events: this.buildEventsFromCache() });
 	}

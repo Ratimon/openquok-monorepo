@@ -21,6 +21,7 @@ import {
 	kanbanColumnStatusLabel,
 	stateToKanbanColumn
 } from '$lib/posts/utils/postKanbanBoardFormat';
+import { matchesTagFilters } from '$lib/posts/utils/postTagFilter';
 import { matchesKanbanTimeFilter } from '$lib/posts/utils/postKanbanBoardTimeFilter';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';
 import dayjs from 'dayjs';
@@ -48,6 +49,19 @@ export function filterKanbanCardsByIntegration(
 	return cardsVm.filter((card) =>
 		card.channelSlots.some((slot) => allowed.has(slot.integrationId))
 	);
+}
+
+export function filterKanbanCardsByTags(
+	cardsVm: readonly PostKanbanCardViewModel[],
+	allTags: boolean,
+	selectedTagNames: string[]
+): PostKanbanCardViewModel[] {
+	if (allTags) return [...cardsVm];
+	const selected = new Set(
+		selectedTagNames.map((n) => String(n ?? '').trim().toLowerCase()).filter(Boolean)
+	);
+	if (selected.size === 0) return [...cardsVm];
+	return cardsVm.filter((card) => matchesTagFilters(card.tagNames, selected));
 }
 
 export function filterKanbanCardsBySource(
@@ -189,6 +203,9 @@ export function buildKanbanCardsVm(
 				groupRows.map((r) => r.integrationId).filter((id): id is string => Boolean(id))
 			)
 		];
+		const tagNames = [
+			...new Set(groupRows.flatMap((r) => r.tagNames ?? []).map((n) => String(n).trim()).filter(Boolean))
+		].sort((a, b) => a.localeCompare(b));
 		const channelSlots = integrationIds.map((integrationId) =>
 			resolveChannelSlot(integrationId, groupRows, channelById, channelSnapshotById)
 		);
@@ -212,7 +229,8 @@ export function buildKanbanCardsVm(
 			hiddenChannelCount: Math.max(0, channelSlots.length - previewCount),
 			primaryChannelName: channelSlots[0]?.name ?? '',
 			isAgentEdited: rep.isAgentEdited ?? false,
-			isReviewed: rep.isReviewed ?? false
+			isReviewed: rep.isReviewed ?? false,
+			tagNames
 		});
 	}
 	return cards;

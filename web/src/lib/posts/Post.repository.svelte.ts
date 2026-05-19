@@ -103,6 +103,8 @@ export type PostRowProgrammerModel = {
 	channelName?: string | null;
 	channelPictureUrl?: string | null;
 	providerIdentifier?: string | null;
+	/** Workspace tag names on this post row (list/flip API). */
+	tagNames?: string[];
 };
 
 export type CreatePostResponseDto = {

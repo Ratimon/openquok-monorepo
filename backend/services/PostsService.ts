@@ -707,7 +707,11 @@ export class PostsService {
         rows: SocialPostLike[]
     ): Promise<SocialPostDTO[]> {
         const integrationById = await this.integrationLookupForPostRows(organizationId, rows);
-        return PostDTOMapper.toDTOCollection(rows, integrationById);
+        const tagNamesByPostId = await this.postsRepository.listTagNamesByPostIds(rows.map((r) => r.id));
+        return PostDTOMapper.toDTOCollection(rows, integrationById).map((dto) => ({
+            ...dto,
+            tagNames: tagNamesByPostId.get(dto.id) ?? [],
+        }));
     }
 
     /**

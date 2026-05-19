@@ -79,6 +79,7 @@ export type {
 	CalendarSchedulerFiltersViewModel,
 	ChannelViewModel,
 	PostStateFilterVm,
+	PostTagFilterVm,
 	ScheduledPostsCalendarViewModel,
 	SocialPlatformFilterVm
 } from '$lib/posts/Scheduler.presenter.svelte';

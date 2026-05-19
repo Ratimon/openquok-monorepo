@@ -119,6 +119,7 @@ export interface CalendarPostRowViewModel {
 	channelName?: string | null;
 	channelPictureUrl?: string | null;
 	providerIdentifier?: string | null;
+	tagNames?: string[];
 }
 
 export interface PostGroupDetailsViewModel {

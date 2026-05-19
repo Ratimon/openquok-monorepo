@@ -1,10 +1,13 @@
 <script lang="ts">
 	import type {
+		CalendarPostRowViewModel,
 		ChannelViewModel,
 		PostKanbanSourceFilter,
 		PostKanbanSourceFilterOptionViewModel,
 		PostKanbanTimeFilter,
 		PostKanbanTimeFilterOptionViewModel,
+		PostTagFilterVm,
+		PostTagViewModel,
 		SocialPlatformFilterVm
 	} from '$lib/posts';
 
@@ -12,6 +15,7 @@
 
 	import ChannelGroupFilter from '$lib/ui/components/filters/ChannelGroupFilter.svelte';
 	import ChannelKindFilter from '$lib/ui/components/filters/ChannelKindFilter.svelte';
+	import TagFilter from '$lib/ui/components/filters/TagFilter.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
@@ -21,6 +25,10 @@
 		selectedGroupIds: string[];
 		allSocialPlatforms: boolean;
 		selectedSocialPlatformIdentifiers: string[];
+		allTags: boolean;
+		selectedTagNames: string[];
+		tagsVm: PostTagViewModel[];
+		kanbanPosts: readonly Pick<CalendarPostRowViewModel, 'tagNames'>[];
 		timeFilterOptions: readonly PostKanbanTimeFilterOptionViewModel[];
 		timeFilter: PostKanbanTimeFilter;
 		sourceFilterOptions: readonly PostKanbanSourceFilterOptionViewModel[];
@@ -28,6 +36,7 @@
 		calendarHref: string;
 		onGroupFilterChange: (next: { allGroups: boolean; selectedGroupIds: string[] }) => void;
 		onSocialPlatformFilterChange: (next: SocialPlatformFilterVm) => void;
+		onTagFilterChange: (next: PostTagFilterVm) => void;
 		onTimeFilterChange: (next: PostKanbanTimeFilter) => void;
 		onSourceFilterChange: (next: PostKanbanSourceFilter) => void;
 	};
@@ -38,6 +47,10 @@
 		selectedGroupIds,
 		allSocialPlatforms,
 		selectedSocialPlatformIdentifiers,
+		allTags,
+		selectedTagNames,
+		tagsVm,
+		kanbanPosts,
 		timeFilterOptions,
 		timeFilter,
 		sourceFilterOptions,
@@ -45,6 +58,7 @@
 		calendarHref,
 		onGroupFilterChange,
 		onSocialPlatformFilterChange,
+		onTagFilterChange,
 		onTimeFilterChange,
 		onSourceFilterChange
 	}: Props = $props();
@@ -77,6 +91,13 @@
 				onChange={onSocialPlatformFilterChange}
 			/>
 		{/if}
+		<TagFilter
+			{tagsVm}
+			posts={kanbanPosts}
+			{allTags}
+			{selectedTagNames}
+			onChange={onTagFilterChange}
+		/>
 	</div>
 
 	<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">

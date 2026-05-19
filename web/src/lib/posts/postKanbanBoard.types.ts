@@ -62,6 +62,7 @@ export type PostKanbanCardViewModel = {
 	primaryChannelName: string;
 	isAgentEdited: boolean;
 	isReviewed: boolean;
+	tagNames: string[];
 };
 
 export type PostKanbanColumnsViewModel = Record<PostKanbanColumnId, PostKanbanCardViewModel[]>;

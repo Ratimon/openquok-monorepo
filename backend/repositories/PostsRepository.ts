@@ -708,4 +708,66 @@ export class PostsRepository {
         }
         return (tags ?? []) as PostTagLike[];
     }
+
+    /** Tag names keyed by `posts.id` (for calendar/kanban list responses). */
+    async listTagNamesByPostIds(postIds: string[]): Promise<Map<string, string[]>> {
+        const out = new Map<string, string[]>();
+        if (postIds.length === 0) return out;
+
+        const { data: links, error: linksErr } = await this.supabase
+            .from(TABLE_POSTS_TAGS)
+            .select("post_id, tag_id")
+            .in("post_id", postIds);
+
+        if (linksErr) {
+            throw new DatabaseError(`Failed to load tag assignments: ${linksErr.message}`, {
+                cause: linksErr,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS_TAGS },
+            });
+        }
+
+        const linkRows = (links ?? []) as { post_id?: string; tag_id?: string }[];
+        const tagIds = [...new Set(linkRows.map((r) => String(r.tag_id ?? "")).filter(Boolean))];
+        if (tagIds.length === 0) return out;
+
+        const { data: tags, error: tagsErr } = await this.supabase
+            .from(TABLE_TAGS)
+            .select("id, name")
+            .in("id", tagIds)
+            .is("deleted_at", null);
+
+        if (tagsErr) {
+            throw new DatabaseError(`Failed to load tags: ${tagsErr.message}`, {
+                cause: tagsErr,
+                operation: "select",
+                resource: { type: "table", name: TABLE_TAGS },
+            });
+        }
+
+        const nameById = new Map<string, string>();
+        for (const t of (tags ?? []) as { id?: string; name?: string }[]) {
+            const id = String(t.id ?? "").trim();
+            const name = String(t.name ?? "").trim();
+            if (id && name) nameById.set(id, name);
+        }
+
+        for (const row of linkRows) {
+            const postId = String(row.post_id ?? "").trim();
+            const tagId = String(row.tag_id ?? "").trim();
+            const name = nameById.get(tagId);
+            if (!postId || !name) continue;
+            const list = out.get(postId) ?? [];
+            if (!list.includes(name)) list.push(name);
+            out.set(postId, list);
+        }
+
+        for (const [postId, names] of out) {
+            out.set(
+                postId,
+                [...names].sort((a, b) => a.localeCompare(b))
+            );
+        }
+        return out;
+    }
 }

@@ -5,6 +5,8 @@
 		CalendarLayoutModeViewModel,
 		ChannelViewModel,
 		PostStateFilterVm,
+		PostTagFilterVm,
+		PostTagViewModel,
 		SchedulerPresenter,
 		SocialPlatformFilterVm
 	} from '$lib/posts';
@@ -13,7 +15,8 @@
 
 	import ChannelGroupFilter from '$lib/ui/components/filters/ChannelGroupFilter.svelte';
 	import ChannelKindFilter from '$lib/ui/components/filters/ChannelKindFilter.svelte';
-	import PostTypeFilter from './PostTypeFilter.svelte';
+	import TagFilter from '$lib/ui/components/filters/TagFilter.svelte';
+	import PostTypeFilter from '$lib/ui/components/calendar-scheduler/PostTypeFilter.svelte';
 	import CalendarFilters from '$lib/ui/components/calendar-scheduler/CalendarFilters.svelte';
 
 	import CalendarView from '$lib/ui/components/calendar-scheduler/CalendarView.svelte';
@@ -30,6 +33,7 @@
 		presenter,
 		organizationId,
 		channels,
+		tagsVm = [],
 		groupId = null,
 		refreshKey = 0,
 		onTargetedChannelsChange,
@@ -41,6 +45,7 @@
 		presenter: SchedulerPresenter;
 		organizationId: string;
 		channels: ChannelViewModel[];
+		tagsVm?: PostTagViewModel[];
 		groupId?: string | null;
 		refreshKey?: string | number;
 		onTargetedChannelsChange?: (channels: ChannelViewModel[]) => void;
@@ -114,6 +119,10 @@
 		presenter.populateAllSocialPlatformSelectionWhenEmpty(channels);
 	});
 
+	$effect(() => {
+		presenter.populateAllTagSelectionWhenEmpty(tagsVm, presenter.postsForChannelLookup);
+	});
+
 	/**
 	 * Primitive reload fingerprint — when only `events` / `loading` / `lastSuccessfulPostsKey` change,
 	 * this string stays equal so the load `$effect` does not run again (avoids `effect_update_depth_exceeded`).
@@ -182,6 +191,12 @@
 		presenter.setSocialPlatformFilter(next);
 	}
 
+	function onTagFilterChange(next: PostTagFilterVm) {
+		presenter.setTagFilter(next);
+	}
+
+	const calendarPostsForTagFilter = $derived(presenter.postsForChannelLookup);
+
 	const hasDistinctSocialPlatforms = $derived.by(() => {
 		const ids = new Set<string>();
 		for (const c of channels) {
@@ -241,6 +256,13 @@
 					allPostStates={scheduledPostsVm.allPostStates}
 					selectedPostStates={scheduledPostsVm.selectedPostStates}
 					onChange={onPostTypeFilterChange}
+				/>
+				<TagFilter
+					{tagsVm}
+					posts={calendarPostsForTagFilter}
+					allTags={scheduledPostsVm.allTags}
+					selectedTagNames={scheduledPostsVm.selectedTagNames}
+					onChange={onTagFilterChange}
 				/>
 			</div>
 		{/snippet}

@@ -76,6 +76,7 @@
 	const accountRoot = accountPath;
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
+	const workspaceTagsVm = $derived(createSocialPostModalPresenter.tagsVm);
 	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
 	const channelsLoadPending = $derived(listStatus === 'idle' || listStatus === 'loading');
 
@@ -99,6 +100,12 @@
 	});
 
 	const groupId = $derived(page.url.searchParams.get('groupId'));
+
+	$effect(() => {
+		const orgId = workspaceId;
+		if (!orgId) return;
+		void createSocialPostModalPresenter.loadWorkspaceTagsIfNeeded(orgId);
+	});
 
 	// --- Navigation & composer ---
 	function goBackToAccount() {
@@ -414,6 +421,7 @@
 				presenter={calendarPresenter.schedulerPresenter}
 				organizationId={workspaceId}
 				channels={connectedChannelsVm}
+				tagsVm={workspaceTagsVm}
 				groupId={groupId}
 				refreshKey={calendarRefreshKey}
 				onTargetedChannelsChange={(chs) => calendarPresenter.setTargetedChannels(chs)}

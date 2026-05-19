@@ -274,6 +274,8 @@ export interface SocialPostDTO {
     channelName?: string | null;
     channelPictureUrl?: string | null;
     providerIdentifier?: string | null;
+    /** Workspace tag names assigned to this post row. */
+    tagNames?: string[];
 }
 
 export interface PostTagDTO {

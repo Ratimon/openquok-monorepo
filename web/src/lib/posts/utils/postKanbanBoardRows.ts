@@ -19,7 +19,8 @@ export function toPostKanbanRowVm(pm: PostRowProgrammerModel): PostKanbanRowView
 		providerIdentifier: pm.providerIdentifier,
 		note: pm.note ?? null,
 		isAgentEdited: pm.isAgentEdited ?? false,
-		isReviewed: pm.isReviewed ?? false
+		isReviewed: pm.isReviewed ?? false,
+		tagNames: Array.isArray(pm.tagNames) ? pm.tagNames : []
 	};
 }
 

@@ -42,6 +42,12 @@ export type SocialPlatformFilterVm = {
 	selectedSocialPlatformIdentifiers: string[];
 };
 
+/** Post tag checkbox filter (calendar / kanban toolbar). */
+export type PostTagFilterVm = {
+	allTags: boolean;
+	selectedTagNames: string[];
+};
+
 /** Scheduled-posts calendar surface: toolbar, date range, channel-group scope, fetch status, grid events. */
 export type ScheduledPostsCalendarViewModel = {
 	granularity: CalendarGranularityViewModel;
@@ -53,6 +59,8 @@ export type ScheduledPostsCalendarViewModel = {
 	selectedSocialPlatformIdentifiers: string[];
 	allPostStates: boolean;
 	selectedPostStates: string[];
+	allTags: boolean;
+	selectedTagNames: string[];
 	rangeStartDate: string;
 	rangeEndDate: string;
 	loading: boolean;
@@ -95,6 +103,8 @@ export function createInitialScheduledPostsCalendarViewModel(): ScheduledPostsCa
 		selectedSocialPlatformIdentifiers: [],
 		allPostStates: true,
 		selectedPostStates: [],
+		allTags: true,
+		selectedTagNames: [],
 		rangeStartDate: '',
 		rangeEndDate: '',
 		loading: false,

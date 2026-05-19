@@ -1,5 +1,11 @@
 <script lang="ts">
-	import type { ChannelViewModel, SocialPlatformFilterVm } from '$lib/posts';
+	import type {
+		CalendarPostRowViewModel,
+		ChannelViewModel,
+		PostTagFilterVm,
+		PostTagViewModel,
+		SocialPlatformFilterVm
+	} from '$lib/posts';
 	import type {
 		PostKanbanColumnCountsViewModel,
 		PostKanbanColumnId,
@@ -30,6 +36,10 @@
 		selectedGroupIds: string[];
 		allSocialPlatforms: boolean;
 		selectedSocialPlatformIdentifiers: string[];
+		allTags: boolean;
+		selectedTagNames: string[];
+		tagsVm: PostTagViewModel[];
+		kanbanPosts: readonly Pick<CalendarPostRowViewModel, 'tagNames'>[];
 		columnsVm: PostKanbanColumnsViewModel;
 		columnCountsVm: PostKanbanColumnCountsViewModel;
 		columnOptions: readonly PostKanbanColumnOptionViewModel[];
@@ -42,6 +52,7 @@
 		movingPostGroup: string | null;
 		onGroupFilterChange: (next: { allGroups: boolean; selectedGroupIds: string[] }) => void;
 		onSocialPlatformFilterChange: (next: SocialPlatformFilterVm) => void;
+		onTagFilterChange: (next: PostTagFilterVm) => void;
 		onSourceFilterChange: (next: PostKanbanSourceFilter) => void;
 		onTimeFilterChange: (next: PostKanbanTimeFilter) => void;
 		onMoveCardToColumn: (
@@ -61,6 +72,10 @@
 		selectedGroupIds,
 		allSocialPlatforms,
 		selectedSocialPlatformIdentifiers,
+		allTags,
+		selectedTagNames,
+		tagsVm,
+		kanbanPosts,
 		columnsVm,
 		columnCountsVm,
 		columnOptions,
@@ -73,6 +88,7 @@
 		movingPostGroup,
 		onGroupFilterChange,
 		onSocialPlatformFilterChange,
+		onTagFilterChange,
 		onSourceFilterChange,
 		onTimeFilterChange,
 		onMoveCardToColumn,
@@ -128,6 +144,10 @@
 			{selectedGroupIds}
 			{allSocialPlatforms}
 			{selectedSocialPlatformIdentifiers}
+			{allTags}
+			{selectedTagNames}
+			{tagsVm}
+			{kanbanPosts}
 			{timeFilterOptions}
 			{timeFilter}
 			{sourceFilterOptions}
@@ -135,6 +155,7 @@
 			{calendarHref}
 			{onGroupFilterChange}
 			{onSocialPlatformFilterChange}
+			{onTagFilterChange}
 			{onTimeFilterChange}
 			{onSourceFilterChange}
 		/>

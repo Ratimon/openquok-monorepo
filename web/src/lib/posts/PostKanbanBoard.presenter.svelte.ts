@@ -6,7 +6,7 @@ import type {
 import type { PostsRepository } from '$lib/posts/Post.repository.svelte';
 import type { SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
 import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts/scheduler.types';
-import type { SocialPlatformFilterVm } from '$lib/posts/scheduler.types';
+import type { PostTagFilterVm, SocialPlatformFilterVm } from '$lib/posts/scheduler.types';
 import {
 	KANBAN_BOARD_LOOKAHEAD_DAYS,
 	KANBAN_BOARD_LOOKBACK_DAYS,
@@ -32,6 +32,7 @@ import {
 	channelSlotFromChannel,
 	filterKanbanCardsByIntegration,
 	filterKanbanCardsBySource,
+	filterKanbanCardsByTags,
 	groupKanbanCardsIntoColumns
 } from '$lib/posts/utils/postKanbanBoardCards';
 import { toPostKanbanRowsVm } from '$lib/posts/utils/postKanbanBoardRows';
@@ -79,6 +80,8 @@ export class PostKanbanBoardPresenter {
 	selectedGroupIds = $state<string[]>([]);
 	allSocialPlatforms = $state(true);
 	selectedSocialPlatformIdentifiers = $state<string[]>([]);
+	allTags = $state(true);
+	selectedTagNames = $state<string[]>([]);
 	status = $state<'idle' | 'loading' | 'ready' | 'error'>('idle');
 	error = $state<string | null>(null);
 	movingPostGroup = $state<string | null>(null);
@@ -94,7 +97,12 @@ export class PostKanbanBoardPresenter {
 			this.allSocialPlatforms,
 			this.selectedSocialPlatformIdentifiers
 		);
-		return filterKanbanCardsBySource(integrationFiltered, this.sourceFilter);
+		const tagFiltered = filterKanbanCardsByTags(
+			integrationFiltered,
+			this.allTags,
+			this.selectedTagNames
+		);
+		return filterKanbanCardsBySource(tagFiltered, this.sourceFilter);
 	});
 
 	columnsVm = $derived.by((): PostKanbanColumnsViewModel =>
@@ -174,6 +182,11 @@ export class PostKanbanBoardPresenter {
 		this.selectedSocialPlatformIdentifiers = next.selectedSocialPlatformIdentifiers;
 	}
 
+	setTagFilter(next: PostTagFilterVm): void {
+		this.allTags = next.allTags;
+		this.selectedTagNames = next.selectedTagNames;
+	}
+
 	setSourceFilter(next: PostKanbanSourceFilter) {
 		this.sourceFilter = next;
 	}
@@ -218,6 +231,7 @@ export class PostKanbanBoardPresenter {
 
 		this.listVm = toPostKanbanRowsVm(resultPm.posts);
 		this.rebuildCardsVm();
+		this.populateAllTagSelectionWhenEmpty([], this.listVm);
 		this.status = 'ready';
 	}
 
@@ -290,6 +304,28 @@ export class PostKanbanBoardPresenter {
 		this.selectedGroupIds = [];
 		this.allSocialPlatforms = true;
 		this.selectedSocialPlatformIdentifiers = [];
+		this.allTags = true;
+		this.selectedTagNames = [];
+	}
+
+	populateAllTagSelectionWhenEmpty(
+		tagsVm: readonly { name: string }[],
+		posts: readonly { tagNames?: string[] }[] = this.listVm
+	): void {
+		if (!this.allTags || this.selectedTagNames.length) return;
+		const names = new Set<string>();
+		for (const t of tagsVm) {
+			const name = String(t.name ?? '').trim();
+			if (name) names.add(name);
+		}
+		for (const p of posts) {
+			for (const raw of p.tagNames ?? []) {
+				const name = String(raw ?? '').trim();
+				if (name) names.add(name);
+			}
+		}
+		if (names.size === 0) return;
+		this.selectedTagNames = [...names].sort((a, b) => a.localeCompare(b));
 	}
 
 	private populateAllSocialPlatformSelectionWhenEmpty(
