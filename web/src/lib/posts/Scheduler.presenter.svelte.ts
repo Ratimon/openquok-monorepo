@@ -1,226 +1,81 @@
 import 'temporal-polyfill/global';
 
-import type { CalendarEventExternal } from '@schedule-x/calendar';
-import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-import type {
-	DebugExportPostGroupProgrammerModel,
-	PostUpsertProgrammerModel,
-	PostsRepository
-} from '$lib/posts/Post.repository.svelte';
+import type { PostUpsertProgrammerModel, PostsRepository } from '$lib/posts/Post.repository.svelte';
 import type {
 	CalendarPostRowViewModel,
 	GetPostGroupResultViewModel
 } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
-import { channelVmFromDisplay, resolvePostChannelDisplay } from '$lib/posts/GetScheduledPost.presenter.svelte';
-import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
+import {
+	createInitialScheduledPostsCalendarViewModel,
+	type CalendarGranularityViewModel,
+	type CalendarLayoutModeViewModel,
+	type ChannelViewModel,
+	type DebugExportPostGroupResult,
+	type PostStateFilterVm,
+	type ScheduledPostsCalendarViewModel,
+	type SocialPlatformFilterVm
+} from '$lib/posts/scheduler.types';
+import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts/scheduler.types';
+import { deriveIntegrationFilter } from '$lib/posts/utils/schedulerIntegrationFilter';
+import { buildCalendarEventsFromPosts } from '$lib/posts/utils/schedulerCalendarEvents';
+import { filterPostsByPostType } from '$lib/posts/utils/schedulerPostTypeFilter';
+import {
+	labelForRange,
+	rangeForGranularity,
+	shiftRange,
+	temporalToUtcYyyyMmDd,
+	todayUtcYyyyMmDd
+} from '$lib/posts/utils/schedulerCalendarDates';
 
-/**
- * Schedule‑X can mount event components outside the parent Svelte component tree (portal),
- * which breaks `setContext/getContext`. This tiny bus lets `Calendar` register an edit handler
- * and `CalendarItem` invoke it reliably.
- */
-let editPostGroupHandler: ((postGroup: string) => void) | null = null;
-let openActionsForPostGroupHandler:
-	| ((
-			postGroup: string | null,
-			focusPostId?: string,
-			focusIntegrationId?: string,
-			createAtIso?: string
-	  ) => void)
-	| null = null;
-let refreshCalendarHandler: (() => void) | null = null;
+export type {
+	CalendarDisplayViewModel,
+	CalendarGranularityViewModel,
+	CalendarIntegrationFilterViewModel,
+	CalendarLayoutModeViewModel,
+	CalendarSchedulerFiltersViewModel,
+	ChannelViewModel,
+	DebugExportPostGroupResult,
+	PostStateFilterVm,
+	ScheduledPostsCalendarViewModel,
+	SocialPlatformFilterVm
+} from '$lib/posts/scheduler.types';
+export { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts/scheduler.types';
+export {
+	registerEditPostGroupHandler,
+	registerOpenActionsForPostGroupHandler,
+	registerRefreshCalendarHandler,
+	triggerEditPostGroup,
+	triggerOpenActionsForPostGroup,
+	triggerOpenSlotActions,
+	triggerRefreshCalendar
+} from '$lib/posts/schedulerCalendarHandlers';
 
-export function registerEditPostGroupHandler(next: ((postGroup: string) => void) | null): void {
-	editPostGroupHandler = next;
-}
-
-export function triggerEditPostGroup(postGroup: string): void {
-	if (!postGroup) return;
-	editPostGroupHandler?.(postGroup);
-}
-
-export function registerOpenActionsForPostGroupHandler(
-	next:
-		| ((
-				postGroup: string | null,
-				focusPostId?: string,
-				focusIntegrationId?: string,
-				createAtIso?: string
-		  ) => void)
-		| null
-): void {
-	openActionsForPostGroupHandler = next;
-}
-
-export function triggerOpenActionsForPostGroup(
-	postGroup: string,
-	focusPostId?: string,
-	focusIntegrationId?: string,
-	createAtIso?: string
-): void {
-	if (!postGroup) return;
-	openActionsForPostGroupHandler?.(postGroup, focusPostId, focusIntegrationId, createAtIso);
-}
-
-export function triggerOpenSlotActions(createAtIso: string): void {
-	if (!createAtIso) return;
-	openActionsForPostGroupHandler?.(null, undefined, undefined, createAtIso);
-}
-
-export function registerRefreshCalendarHandler(next: (() => void) | null): void {
-	refreshCalendarHandler = next;
-}
-
-export function triggerRefreshCalendar(): void {
-	refreshCalendarHandler?.();
-}
-
-export type CalendarDisplayViewModel = 'day' | 'week' | 'month' | 'list';
-
-/** Day / week / month scope for the calendar toolbar. */
-export type CalendarGranularityViewModel = 'day' | 'week' | 'month';
-
-/** Grid views vs list view for the scheduler toolbar. */
-export type CalendarLayoutModeViewModel = 'calendar' | 'list';
-
-export type CalendarSchedulerFiltersViewModel = {
-	display: CalendarDisplayViewModel;
-	/** Inclusive start (YYYY-MM-DD). */
-	startDate: string;
-	/** Inclusive end (YYYY-MM-DD). */
-	endDate: string;
-	groupId: string | null;
-};
-
-export type ChannelViewModel = CreateSocialPostChannelViewModel;
-
-/** Checkbox id for channels that are not in any workspace channel group. */
-export const CALENDAR_UNGROUPED_SENTINEL = '__ungrouped__';
-
-export type CalendarIntegrationFilterViewModel =
-	| { kind: 'all' }
-	| { kind: 'integrations'; integrationIds: string[] }
-	| { kind: 'none' };
-
-/** Post state checkbox filter (calendar toolbar). */
-export type PostStateFilterVm = {
-	allPostStates: boolean;
-	selectedPostStates: string[];
-};
-
-/** Social platform checkbox filter (calendar toolbar). */
-export type SocialPlatformFilterVm = {
-	allSocialPlatforms: boolean;
-	selectedSocialPlatformIdentifiers: string[];
-};
-
-/** Scheduled-posts calendar surface: toolbar, date range, channel-group scope, fetch status, grid events. */
-export type ScheduledPostsCalendarViewModel = {
-	granularity: CalendarGranularityViewModel;
-	layoutMode: CalendarLayoutModeViewModel;
-	allGroups: boolean;
-	selectedGroupIds: string[];
-	/** When false, calendar loads only integrations whose `identifier` is in {@link selectedSocialPlatformIdentifiers}. */
-	allSocialPlatforms: boolean;
-	selectedSocialPlatformIdentifiers: string[];
-	allPostStates: boolean;
-	selectedPostStates: string[];
-	rangeStartDate: string;
-	rangeEndDate: string;
-	loading: boolean;
-	lastSuccessfulPostsKey: string;
-	prevUrlGroupId: string | null | undefined;
-	events: CalendarEventExternal[];
-};
-
-export type DebugExportPostGroupResult =
-	| { ok: true; data: DebugExportPostGroupProgrammerModel }
-	| { ok: false; error: string };
-
-function createInitialScheduledPostsCalendarViewModel(): ScheduledPostsCalendarViewModel {
-	return {
-		granularity: 'week',
-		layoutMode: 'calendar',
-		allGroups: true,
-		selectedGroupIds: [],
-		allSocialPlatforms: true,
-		selectedSocialPlatformIdentifiers: [],
-		allPostStates: true,
-		selectedPostStates: [],
-		rangeStartDate: '',
-		rangeEndDate: '',
-		loading: false,
-		lastSuccessfulPostsKey: '',
-		prevUrlGroupId: undefined,
-		events: []
-	};
-}
-
-/** DB-backed post states in the “Post types” menu (`REPEATING` is synthetic — not `posts.state`). */
-const CALENDAR_DB_POST_STATES = new Set(['QUEUE', 'DRAFT', 'PUBLISHED', 'ERROR']);
-const CALENDAR_FILTER_REPEATING = 'REPEATING';
-
-/** Repeating row: positive `intervalInDays` or non-empty composer `repeatInterval`. */
-function isRepeating(rowVm: CalendarPostRowViewModel): boolean {
-	const rawDays = rowVm.intervalInDays ?? null;
-	const days =
-		typeof rawDays === 'number'
-			? rawDays
-			: rawDays == null
-				? Number.NaN
-				: Number(rawDays);
-	const intervalOk = Number.isFinite(days) && Math.floor(days) > 0;
-
-	const key = rowVm.repeatInterval;
-	const repeatKeyOk =
-		key != null &&
-		String(key).trim().length > 0 &&
-		String(key).trim().toLowerCase() !== 'null';
-
-	return intervalOk || repeatKeyOk;
+function buildPlatformsCacheKey(
+	allSocialPlatforms: boolean,
+	selectedSocialPlatformIdentifiers: string[]
+): string {
+	if (allSocialPlatforms) return 'allPlatforms';
+	if (!selectedSocialPlatformIdentifiers.length) return 'nonePlatforms';
+	return [...selectedSocialPlatformIdentifiers]
+		.map((s) => String(s ?? '').trim())
+		.filter(Boolean)
+		.sort()
+		.join(',');
 }
 
 /**
- * Calendar “Post types” filter:
- * - REPEATING on → only repeating rows (∩ selected DB states when any).
- * - REPEATING off + ≥1 DB state → exclude repeating rows.
- * - REPEATING only → repeating rows in any DB state.
- */
-function calendarRowMatchesPostTypeFilters(rowVm: CalendarPostRowViewModel, selectedFilters: Set<string>): boolean {
-	const selected = new Set(
-		[...selectedFilters].map((s) => String(s ?? '').trim().toUpperCase()).filter(Boolean)
-	);
-
-	const repeatingOn = selected.has(CALENDAR_FILTER_REPEATING);
-	const dbFilters = [...selected].filter((t) => CALENDAR_DB_POST_STATES.has(t));
-	const rowState = String(rowVm.state ?? '').trim().toUpperCase();
-
-	const stateOk = dbFilters.length === 0 || dbFilters.includes(rowState);
-	const isRep = isRepeating(rowVm);
-
-	let repeatOk = true;
-	if (repeatingOn) repeatOk = isRep;
-	else if (dbFilters.length > 0) repeatOk = !isRep;
-
-	return stateOk && repeatOk;
-}
-
-/**
- * Scheduled-post calendar / Schedule‑X wiring: integration filtering, Temporal helpers,
+ * Scheduled-post calendar: toolbar state, date ranges, integration filters, and Schedule-X events.
  */
 export class SchedulerPresenter {
-	/** Reactive UI bundle for browsing scheduled posts in the calendar (Schedule‑X). */
 	scheduledPostsCalendarVm = $state<ScheduledPostsCalendarViewModel>(
 		createInitialScheduledPostsCalendarViewModel()
 	);
 
-	/** Unfiltered posts for the last successful range + integration fetch (post-type filter is client-side). */
 	private cachedPostsVm: CalendarPostRowViewModel[] = [];
 	private cachedChannelById = new Map<string, ChannelViewModel>();
 
-	/** Posts from the latest calendar fetch — used to resolve channel labels in modals. */
 	get postsForChannelLookup(): readonly CalendarPostRowViewModel[] {
 		return this.cachedPostsVm;
 	}
@@ -230,92 +85,70 @@ export class SchedulerPresenter {
 		private readonly getScheduledPostsPresenter: GetScheduledPostsPresenter
 	) {}
 
-	private _patchScheduledPostsCalendarVm(partial: Partial<ScheduledPostsCalendarViewModel>): void {
+	private patchVm(partial: Partial<ScheduledPostsCalendarViewModel>): void {
 		this.scheduledPostsCalendarVm = { ...this.scheduledPostsCalendarVm, ...partial };
 	}
 
-	/** Avoid replacing `scheduledPostsCalendarVm` when dates are unchanged — prevents `$effect` reload loops in the Scheduler. */
-	private _maybePatchRange(startDate: string, endDate: string): void {
+	/** Avoid replacing the VM when dates are unchanged — prevents `$effect` reload loops in the Scheduler. */
+	private maybePatchRange(startDate: string, endDate: string): void {
 		const { rangeStartDate, rangeEndDate } = this.scheduledPostsCalendarVm;
 		if (startDate === rangeStartDate && endDate === rangeEndDate) return;
-		this._patchScheduledPostsCalendarVm({ rangeStartDate: startDate, rangeEndDate: endDate });
+		this.patchVm({ rangeStartDate: startDate, rangeEndDate: endDate });
 	}
 
 	resetCalendarUiState(): void {
 		this.cachedPostsVm = [];
 		this.cachedChannelById = new Map();
-		this._patchScheduledPostsCalendarVm(createInitialScheduledPostsCalendarViewModel());
+		this.patchVm(createInitialScheduledPostsCalendarViewModel());
 	}
 
-	listPosts(
-		params: {
-			organizationId: string;
-			startIso: string;
-			endIso: string;
-			integrationIds?: string[] | null;
+	async listPosts(params: {
+		organizationId: string;
+		startIso: string;
+		endIso: string;
+		integrationIds?: string[] | null;
+	}): Promise<{ ok: true; postsVm: CalendarPostRowViewModel[] } | { ok: false; error: string }> {
+		try {
+			const postsVm = await this.getScheduledPostsPresenter.loadCalendarPostsVm(params);
+			return { ok: true, postsVm };
+		} catch {
+			return { ok: false, error: 'Could not load posts.' };
 		}
-	): Promise<
-		| { ok: true; posts: CalendarPostRowViewModel[] }
-		| { ok: false; error: string }
-	> {
-		return (async () => {
-			try {
-				const posts = await this.getScheduledPostsPresenter.loadCalendarPostsVm(params);
-				return { ok: true, posts };
-			} catch {
-				return { ok: false, error: 'Could not load posts.' };
-			}
-		})();
 	}
 
-	getPostGroup(
-		postGroup: string
-	): Promise<GetPostGroupResultViewModel> {
-		return (async () => {
-			try {
-				const group = await this.getScheduledPostsPresenter.loadPostGroupDetailsVm(postGroup);
-				if (!group) return { ok: false, error: 'Could not load post.' };
-				return { ok: true, group };
-			} catch {
-				return { ok: false, error: 'Could not load post.' };
-			}
-		})();
+	async getPostGroup(postGroup: string): Promise<GetPostGroupResultViewModel> {
+		try {
+			const group = await this.getScheduledPostsPresenter.loadPostGroupDetailsVm(postGroup);
+			if (!group) return { ok: false, error: 'Could not load post.' };
+			return { ok: true, group };
+		} catch {
+			return { ok: false, error: 'Could not load post.' };
+		}
 	}
 
-	debugExportPostGroup(
-		postGroup: string
-	): Promise<DebugExportPostGroupResult> {
+	debugExportPostGroup(postGroup: string): Promise<DebugExportPostGroupResult> {
 		return this.postsRepository.debugExportPostGroup(postGroup);
 	}
 
-	deletePostGroup(postGroup: string): Promise<PostUpsertProgrammerModel> {
-		return (async () => {
-			const resultPm = await this.postsRepository.deletePostGroup(postGroup);
-			if (resultPm.ok) {
-				this.evictPostGroupFromCache(postGroup);
-			}
-			return resultPm;
-		})();
+	async deletePostGroup(postGroup: string): Promise<PostUpsertProgrammerModel> {
+		const resultPm = await this.postsRepository.deletePostGroup(postGroup);
+		if (resultPm.ok) {
+			this.evictPostGroupFromCache(postGroup);
+		}
+		return resultPm;
 	}
 
 	/**
 	 * Remove a soft-deleted post group from the in-memory calendar cache.
-	 * Clears {@link ScheduledPostsCalendarViewModel.lastSuccessfulPostsKey} so the next
-	 * range load refetches instead of reusing stale events (e.g. after kanban delete).
+	 * Clears `lastSuccessfulPostsKey` so the next range load refetches instead of reusing stale events.
 	 */
 	evictPostGroupFromCache(postGroup: string): void {
 		const pg = postGroup?.trim();
-		if (!pg) return;
-		if (!this.cachedPostsVm.some((p) => p.postGroup === pg)) {
-			return;
-		}
+		if (!pg || !this.cachedPostsVm.some((p) => p.postGroup === pg)) return;
+
 		this.cachedPostsVm = this.cachedPostsVm.filter((p) => p.postGroup !== pg);
-		const filtered = this.filterPostsByPostType(this.cachedPostsVm);
-		const events = this.buildCalendarEventsFromPosts(filtered, this.cachedChannelById);
-		this._patchScheduledPostsCalendarVm({
-			events,
-			lastSuccessfulPostsKey: ''
-		});
+		this.applyPostTypeFilterToCache();
+		this.patchVm({ lastSuccessfulPostsKey: '' });
 	}
 
 	deriveIntegrationFilter(
@@ -324,127 +157,27 @@ export class SchedulerPresenter {
 		selectedGroupIds: string[],
 		allSocialPlatforms: boolean,
 		selectedSocialPlatformIdentifiers: string[]
-	): CalendarIntegrationFilterViewModel {
-		const normalizePid = (s: string) => String(s ?? '').trim();
-
-		function integrationIdsMatchingPlatforms(ids: string[]): string[] {
-			if (allSocialPlatforms) return ids;
-			const ps = new Set(
-				selectedSocialPlatformIdentifiers.map(normalizePid).filter(Boolean)
-			);
-			if (ps.size === 0) return [];
-			const idSet = new Set(ids);
-			return channels
-				.filter((c) => idSet.has(c.id) && ps.has(normalizePid(c.identifier)))
-				.map((c) => c.id);
-		}
-
-		if (allGroups) {
-			if (!allSocialPlatforms) {
-				const ps = new Set(
-					selectedSocialPlatformIdentifiers.map(normalizePid).filter(Boolean)
-				);
-				if (ps.size === 0) return { kind: 'none' };
-				const integrationIds = channels
-					.filter((c) => ps.has(normalizePid(c.identifier)))
-					.map((c) => c.id);
-				if (integrationIds.length === 0) return { kind: 'none' };
-				return { kind: 'integrations', integrationIds };
-			}
-			return { kind: 'all' };
-		}
-
-		const selected = new Set(selectedGroupIds);
-		const integrationIds: string[] = [];
-		for (const c of channels) {
-			const gid = c.group?.id;
-			if (gid && selected.has(gid)) integrationIds.push(c.id);
-			if (!gid && selected.has(CALENDAR_UNGROUPED_SENTINEL)) integrationIds.push(c.id);
-		}
-		if (integrationIds.length === 0) return { kind: 'none' };
-
-		const narrowed = integrationIdsMatchingPlatforms(integrationIds);
-		if (narrowed.length === 0) return { kind: 'none' };
-		return { kind: 'integrations', integrationIds: narrowed };
+	) {
+		return deriveIntegrationFilter(
+			channels,
+			allGroups,
+			selectedGroupIds,
+			allSocialPlatforms,
+			selectedSocialPlatformIdentifiers
+		);
 	}
 
 	isoToUtcZdt(iso: string): Temporal.ZonedDateTime {
-		const instant = Temporal.Instant.from(iso);
-		return instant.toZonedDateTimeISO('UTC');
+		return Temporal.Instant.from(iso).toZonedDateTimeISO('UTC');
 	}
 
 	temporalToUtcYyyyMmDd(x: unknown): string {
-		if (typeof x === 'string') {
-			if (/^\d{4}-\d{2}-\d{2}$/.test(x)) return x;
-			const m = /^(\d{4}-\d{2}-\d{2})/.exec(x);
-			if (m) return m[1]!;
-			return x;
-		}
-		if (!x || typeof x !== 'object') return '';
-
-		try {
-			const zdt = Temporal.ZonedDateTime.from(x as Temporal.ZonedDateTime);
-			return zdt.toInstant().toZonedDateTimeISO('UTC').toPlainDate().toString();
-		} catch {
-			// fall through
-		}
-
-		try {
-			return Temporal.PlainDate.from(x as Temporal.PlainDate).toString();
-		} catch {
-			return '';
-		}
-	}
-
-	private yyyyMmDd(d: Date): string {
-		const pad = (n: number) => String(n).padStart(2, '0');
-		return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-	}
-
-	private today(): string {
-		return this.yyyyMmDd(new Date());
-	}
-
-	private startOfIsoWeek(dateStr: string): string {
-		const d = new Date(`${dateStr}T00:00:00Z`);
-		const day = d.getUTCDay() === 0 ? 7 : d.getUTCDay();
-		d.setUTCDate(d.getUTCDate() - (day - 1));
-		return this.yyyyMmDd(d);
-	}
-
-	private endOfIsoWeek(dateStr: string): string {
-		const d = new Date(`${this.startOfIsoWeek(dateStr)}T00:00:00Z`);
-		d.setUTCDate(d.getUTCDate() + 6);
-		return this.yyyyMmDd(d);
-	}
-
-	private startOfMonth(dateStr: string): string {
-		const d = new Date(`${dateStr}T00:00:00Z`);
-		const first = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
-		return this.yyyyMmDd(first);
-	}
-
-	private endOfMonth(dateStr: string): string {
-		const d = new Date(`${dateStr}T00:00:00Z`);
-		const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0));
-		return this.yyyyMmDd(last);
+		return temporalToUtcYyyyMmDd(x);
 	}
 
 	setInitialRangeForGranularity(next: CalendarGranularityViewModel): void {
-		const base = this.today();
-		let rangeStartDate: string;
-		let rangeEndDate: string;
-		if (next === 'day') {
-			rangeStartDate = base;
-			rangeEndDate = base;
-		} else if (next === 'week') {
-			rangeStartDate = this.startOfIsoWeek(base);
-			rangeEndDate = this.endOfIsoWeek(base);
-		} else {
-			rangeStartDate = this.startOfMonth(base);
-			rangeEndDate = this.endOfMonth(base);
-		}
-		this._patchScheduledPostsCalendarVm({ granularity: next, rangeStartDate, rangeEndDate });
+		const range = rangeForGranularity(next, todayUtcYyyyMmDd());
+		this.patchVm({ granularity: next, ...range });
 	}
 
 	ensureRangeInitialized(): void {
@@ -457,7 +190,7 @@ export class SchedulerPresenter {
 	applyGroupIdFromUrl(groupId: string | null): void {
 		const g = groupId ?? null;
 		if (this.scheduledPostsCalendarVm.prevUrlGroupId === g) return;
-		this._patchScheduledPostsCalendarVm({
+		this.patchVm({
 			prevUrlGroupId: g,
 			...(g
 				? { allGroups: false, selectedGroupIds: [g] }
@@ -465,27 +198,21 @@ export class SchedulerPresenter {
 		});
 	}
 
-	/**
-	 * When "All groups" is active, keep selection populated so the UI can render badges
-	 * and allow unchecking a single group without first switching modes.
-	 */
 	populateAllSocialPlatformSelectionWhenEmpty(channels: ChannelViewModel[]): void {
-		if (!this.scheduledPostsCalendarVm.allSocialPlatforms) return;
-		if (!channels.length) return;
-		if (this.scheduledPostsCalendarVm.selectedSocialPlatformIdentifiers.length) return;
-		const ids = new Set<string>();
-		for (const c of channels) {
-			const id = String(c.identifier ?? '').trim();
-			if (id) ids.add(id);
+		const vm = this.scheduledPostsCalendarVm;
+		if (!vm.allSocialPlatforms || !channels.length || vm.selectedSocialPlatformIdentifiers.length) {
+			return;
 		}
-		const sorted = [...ids].sort((a, b) => a.localeCompare(b));
-		this._patchScheduledPostsCalendarVm({ selectedSocialPlatformIdentifiers: sorted });
+		const ids = [...new Set(channels.map((c) => String(c.identifier ?? '').trim()).filter(Boolean))].sort(
+			(a, b) => a.localeCompare(b)
+		);
+		this.patchVm({ selectedSocialPlatformIdentifiers: ids });
 	}
 
 	populateAllGroupSelectionWhenEmpty(channels: ChannelViewModel[]): void {
-		if (!this.scheduledPostsCalendarVm.allGroups) return;
-		if (!channels.length) return;
-		if (this.scheduledPostsCalendarVm.selectedGroupIds.length) return;
+		const vm = this.scheduledPostsCalendarVm;
+		if (!vm.allGroups || !channels.length || vm.selectedGroupIds.length) return;
+
 		const ids: string[] = [];
 		const seen = new Set<string>();
 		let hasUngrouped = false;
@@ -500,163 +227,23 @@ export class SchedulerPresenter {
 		}
 		ids.sort((a, b) => a.localeCompare(b));
 		if (hasUngrouped) ids.push(CALENDAR_UNGROUPED_SENTINEL);
-		this._patchScheduledPostsCalendarVm({ selectedGroupIds: ids });
+		this.patchVm({ selectedGroupIds: ids });
 	}
 
 	setGroupFilter(next: { allGroups: boolean; selectedGroupIds: string[] }): void {
-		this._patchScheduledPostsCalendarVm({ allGroups: next.allGroups, selectedGroupIds: next.selectedGroupIds });
+		this.patchVm({ allGroups: next.allGroups, selectedGroupIds: next.selectedGroupIds });
 	}
 
 	setPostStateFilter(next: PostStateFilterVm): void {
-		this._patchScheduledPostsCalendarVm({
+		this.patchVm({
 			allPostStates: next.allPostStates,
 			selectedPostStates: next.selectedPostStates
 		});
-		this.reapplyPostTypeFilterFromCache();
-	}
-
-	private filterPostsByPostType(posts: readonly CalendarPostRowViewModel[]): CalendarPostRowViewModel[] {
-		const { allPostStates, selectedPostStates } = this.scheduledPostsCalendarVm;
-		const stateSet = allPostStates
-			? null
-			: new Set(selectedPostStates.map((s) => String(s).toUpperCase()).filter(Boolean));
-		if (!stateSet || stateSet.size === 0) return [...posts];
-		return posts.filter((rowVm) => calendarRowMatchesPostTypeFilters(rowVm, stateSet));
-	}
-
-	private reapplyPostTypeFilterFromCache(): void {
-		if (!this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) return;
-		const filtered = this.filterPostsByPostType(this.cachedPostsVm);
-		const events = this.buildCalendarEventsFromPosts(filtered, this.cachedChannelById);
-		this._patchScheduledPostsCalendarVm({ events });
-	}
-
-	private slotSummaryEntry(
-		p: CalendarPostRowViewModel,
-		channelById: Map<string, ChannelViewModel>
-	) {
-		const integrationId = p.integrationId ?? '';
-		const display = integrationId
-			? resolvePostChannelDisplay(integrationId, p, channelById)
-			: { integrationId: '', picture: null, name: '', identifier: 'generic' };
-		return {
-			postId: p.id ?? '',
-			postGroup: p.postGroup ?? '',
-			integrationId,
-			state: typeof p.state === 'string' ? p.state : '',
-			publishDate: p.publishDate ?? '',
-			content: stripHtmlToPlainText(String(p.content ?? '')).slice(0, 140),
-			channelPicture: display.picture ?? '',
-			channelName: display.name,
-			channelIdentifier: display.identifier
-		};
-	}
-
-	private buildCalendarEventsFromPosts(
-		posts: readonly CalendarPostRowViewModel[],
-		channelById: Map<string, ChannelViewModel>
-	): CalendarEventExternal[] {
-		const bucketMinutes = 30;
-		const visualMinutes = 30;
-		const bucketed = new Map<string, CalendarEventExternal>();
-		const nowMs = Date.now();
-		const publishMs = (iso: string): number => {
-			const ms = Date.parse(iso);
-			return Number.isFinite(ms) ? ms : Number.NaN;
-		};
-		for (const p of posts) {
-			if (typeof p.publishDate !== 'string' || p.publishDate.length === 0) continue;
-			const zdt = this.isoToUtcZdt(p.publishDate);
-			const roundedMinute = Math.floor(zdt.minute / bucketMinutes) * bucketMinutes;
-			const bucketStart = zdt.with({
-				minute: roundedMinute,
-				second: 0,
-				millisecond: 0,
-				microsecond: 0,
-				nanosecond: 0
-			});
-			const key = `${bucketStart.toPlainDate().toString()}|${bucketStart.hour}:${bucketStart.minute}`;
-
-			const existing = bucketed.get(key);
-			if (existing) {
-				(existing as any).posts = [...((((existing as any).posts as any[]) ?? []) as any[]), p];
-				(existing as any).slotSummary = [
-					...((((existing as any).slotSummary as any[]) ?? []) as any[]),
-					this.slotSummaryEntry(p, channelById)
-				];
-				continue;
-			}
-
-			const end = bucketStart.add({ minutes: Math.max(bucketMinutes, visualMinutes) });
-			const display = p.integrationId
-				? resolvePostChannelDisplay(p.integrationId, p, channelById)
-				: null;
-			const channel = display ? channelVmFromDisplay(display, channelById) : null;
-			const title = display?.name || 'Draft';
-			bucketed.set(key, {
-				id: p.id,
-				title,
-				start: bucketStart,
-				end,
-				channel,
-				post: p,
-				posts: [p],
-				slotSummary: [this.slotSummaryEntry(p, channelById)]
-			} as any);
-		}
-
-		for (const ev of bucketed.values()) {
-			const bucketPosts = (ev as any).posts as CalendarPostRowViewModel[] | undefined;
-			if (!Array.isArray(bucketPosts) || bucketPosts.length === 0) continue;
-			const sorted = bucketPosts
-				.slice()
-				.map((row) => ({
-					p: row,
-					ms: typeof row.publishDate === 'string' ? publishMs(row.publishDate) : Number.NaN
-				}))
-				.filter((x) => Number.isFinite(x.ms))
-				.sort((a, b) => a.ms - b.ms);
-			if (sorted.length === 0) continue;
-
-			const nextFuture = sorted.find((x) => x.ms >= nowMs);
-			const representative = (nextFuture ?? sorted[sorted.length - 1]!)!.p;
-			(ev as any).post = representative;
-
-			const repDisplay = representative.integrationId
-				? resolvePostChannelDisplay(representative.integrationId, representative, channelById)
-				: null;
-			(ev as any).channel = repDisplay ? channelVmFromDisplay(repDisplay, channelById) : null;
-			(ev as any).title = repDisplay?.name || 'Draft';
-
-			const summary = ((ev as any).slotSummary as any[]) ?? [];
-			if (Array.isArray(summary) && summary.length > 1) {
-				const repId = String((representative as any).id ?? '');
-				const sortedSummary = summary
-					.slice()
-					.map((s) => ({
-						s,
-						ms: typeof s?.publishDate === 'string' ? publishMs(s.publishDate) : Number.NaN
-					}))
-					.sort((a, b) => {
-						const aIsRep = repId.length > 0 && String(a.s?.postId ?? '') === repId;
-						const bIsRep = repId.length > 0 && String(b.s?.postId ?? '') === repId;
-						if (aIsRep && !bIsRep) return -1;
-						if (!aIsRep && bIsRep) return 1;
-						if (Number.isFinite(a.ms) && Number.isFinite(b.ms)) return a.ms - b.ms;
-						if (Number.isFinite(a.ms)) return -1;
-						if (Number.isFinite(b.ms)) return 1;
-						return 0;
-					})
-					.map((x) => x.s);
-				(ev as any).slotSummary = sortedSummary;
-			}
-		}
-
-		return Array.from(bucketed.values());
+		this.applyPostTypeFilterToCache();
 	}
 
 	setSocialPlatformFilter(next: SocialPlatformFilterVm): void {
-		this._patchScheduledPostsCalendarVm({
+		this.patchVm({
 			allSocialPlatforms: next.allSocialPlatforms,
 			selectedSocialPlatformIdentifiers: next.selectedSocialPlatformIdentifiers
 		});
@@ -667,7 +254,7 @@ export class SchedulerPresenter {
 	}
 
 	setLayoutMode(next: CalendarLayoutModeViewModel): void {
-		this._patchScheduledPostsCalendarVm({ layoutMode: next });
+		this.patchVm({ layoutMode: next });
 	}
 
 	goToday(): void {
@@ -677,50 +264,14 @@ export class SchedulerPresenter {
 	shiftRange(delta: number): void {
 		const { rangeStartDate, granularity } = this.scheduledPostsCalendarVm;
 		if (!rangeStartDate) return;
-		const start = new Date(`${rangeStartDate}T00:00:00Z`);
-		if (granularity === 'day') {
-			start.setUTCDate(start.getUTCDate() + delta);
-			const d = this.yyyyMmDd(start);
-			this._patchScheduledPostsCalendarVm({ rangeStartDate: d, rangeEndDate: d });
-			return;
-		}
-		if (granularity === 'week') {
-			start.setUTCDate(start.getUTCDate() + delta * 7);
-			const base = this.yyyyMmDd(start);
-			this._patchScheduledPostsCalendarVm({
-				rangeStartDate: this.startOfIsoWeek(base),
-				rangeEndDate: this.endOfIsoWeek(base)
-			});
-			return;
-		}
-		start.setUTCMonth(start.getUTCMonth() + delta);
-		const base = this.yyyyMmDd(start);
-		this._patchScheduledPostsCalendarVm({
-			rangeStartDate: this.startOfMonth(base),
-			rangeEndDate: this.endOfMonth(base)
-		});
+		this.patchVm(shiftRange(granularity, rangeStartDate, delta));
 	}
 
 	labelForRange(): string {
 		const { rangeStartDate, rangeEndDate, granularity } = this.scheduledPostsCalendarVm;
-		if (!rangeStartDate || !rangeEndDate) return '';
-		const fmt = (yyyyMmDdStr: string) => {
-			const [y, m, d] = yyyyMmDdStr.split('-').map((x) => Number(x));
-			if (!y || !m || !d) return yyyyMmDdStr;
-			const mm = String(m).padStart(2, '0');
-			const dd = String(d).padStart(2, '0');
-			return `${mm}/${dd}/${y}`;
-		};
-
-		if (granularity === 'month') return rangeStartDate.slice(0, 7);
-		if (granularity === 'day') return fmt(rangeStartDate);
-		return `${fmt(rangeStartDate)} → ${fmt(rangeEndDate)}`;
+		return labelForRange(granularity, rangeStartDate, rangeEndDate);
 	}
 
-	/**
-	 * Loads scheduled posts for the current range and integration filter; updates {@link scheduledPostsCalendarVm}
-	 * `events`, `loading`, and `lastSuccessfulPostsKey`.
-	 */
 	async syncRangeAndLoadPosts(params: {
 		startDate: string;
 		endDate: string;
@@ -729,87 +280,72 @@ export class SchedulerPresenter {
 		refreshKey: string | number;
 	}): Promise<{ ok: true } | { ok: false; error: string }> {
 		const { startDate, endDate, organizationId, channels, refreshKey } = params;
-		const { allGroups, selectedGroupIds, allSocialPlatforms, selectedSocialPlatformIdentifiers } =
-			this.scheduledPostsCalendarVm;
-
-		const filt = this.deriveIntegrationFilter(
-			channels,
-			allGroups,
-			selectedGroupIds,
-			allSocialPlatforms,
-			selectedSocialPlatformIdentifiers
+		const vm = this.scheduledPostsCalendarVm;
+		const platformsKey = buildPlatformsCacheKey(
+			vm.allSocialPlatforms,
+			vm.selectedSocialPlatformIdentifiers
 		);
-		const platformsKey = allSocialPlatforms
-			? 'allPlatforms'
-			: selectedSocialPlatformIdentifiers.length
-				? [...selectedSocialPlatformIdentifiers]
-						.map((s) => String(s ?? '').trim())
-						.filter(Boolean)
-						.sort()
-						.join(',')
-				: 'nonePlatforms';
-		if (filt.kind === 'none') {
-			const noneKey = `none|${startDate}|${endDate}|${refreshKey}|${platformsKey}`;
-			if (noneKey === this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) {
-				this._maybePatchRange(startDate, endDate);
-				return { ok: true };
-			}
-			this._maybePatchRange(startDate, endDate);
-			this.cachedPostsVm = [];
-			this.cachedChannelById = new Map();
-			this._patchScheduledPostsCalendarVm({
-				events: [],
-				lastSuccessfulPostsKey: noneKey
-			});
-			return { ok: true };
+
+		const integrationFilter = this.deriveIntegrationFilter(
+			channels,
+			vm.allGroups,
+			vm.selectedGroupIds,
+			vm.allSocialPlatforms,
+			vm.selectedSocialPlatformIdentifiers
+		);
+
+		if (integrationFilter.kind === 'none') {
+			return this.finishWithCachedKey(
+				`none|${startDate}|${endDate}|${refreshKey}|${platformsKey}`,
+				startDate,
+				endDate,
+				() => {
+					this.cachedPostsVm = [];
+					this.cachedChannelById = new Map();
+					this.patchVm({ events: [] });
+				}
+			);
 		}
 
-		const integrationIds = filt.kind === 'all' ? null : filt.integrationIds;
+		const integrationIds =
+			integrationFilter.kind === 'all' ? null : integrationFilter.integrationIds;
 		const idsKey = integrationIds?.length ? [...integrationIds].sort().join(',') : 'all';
 		const requestKey = `${refreshKey}|${startDate}|${endDate}|${idsKey}|${platformsKey}`;
-		if (requestKey === this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) {
-			this._maybePatchRange(startDate, endDate);
+
+		if (requestKey === vm.lastSuccessfulPostsKey) {
+			this.maybePatchRange(startDate, endDate);
 			return { ok: true };
 		}
 
-		const channelById = new Map<string, ChannelViewModel>();
-		for (const c of channels) channelById.set(c.id, c);
+		const channelById = new Map(channels.map((c) => [c.id, c] as const));
+		this.maybePatchRange(startDate, endDate);
+		this.patchVm({ loading: true });
 
-		this._maybePatchRange(startDate, endDate);
-
-		this._patchScheduledPostsCalendarVm({ loading: true });
 		try {
 			const startIso = new Date(`${startDate}T00:00:00.000Z`).toISOString();
 			const endIso = new Date(`${endDate}T23:59:59.999Z`).toISOString();
+			const result = await this.listPosts({ organizationId, startIso, endIso, integrationIds });
 
-			const listPostsPmResult = await this.listPosts({
-				organizationId,
-				startIso,
-				endIso,
-				integrationIds
-			});
-
-			if (!listPostsPmResult.ok) {
+			if (!result.ok) {
 				this.cachedPostsVm = [];
 				this.cachedChannelById = new Map();
-				this._patchScheduledPostsCalendarVm({ events: [], lastSuccessfulPostsKey: '', loading: false });
-				return { ok: false, error: listPostsPmResult.error };
+				this.patchVm({ events: [], lastSuccessfulPostsKey: '', loading: false });
+				return { ok: false, error: result.error };
 			}
 
-			this.cachedPostsVm = listPostsPmResult.posts;
+			this.cachedPostsVm = result.postsVm;
 			this.cachedChannelById = channelById;
-			const filtered = this.filterPostsByPostType(this.cachedPostsVm);
-			const normalizedEvents = this.buildCalendarEventsFromPosts(filtered, channelById);
+			const events = this.buildEventsFromCache();
 
-			this._patchScheduledPostsCalendarVm({
+			this.patchVm({
 				lastSuccessfulPostsKey: requestKey,
-				events: normalizedEvents,
+				events,
 				loading: false
 			});
 			return { ok: true };
 		} finally {
 			if (this.scheduledPostsCalendarVm.loading) {
-				this._patchScheduledPostsCalendarVm({ loading: false });
+				this.patchVm({ loading: false });
 			}
 		}
 	}
@@ -825,5 +361,34 @@ export class SchedulerPresenter {
 			endDate: rangeEndDate,
 			...params
 		});
+	}
+
+	private finishWithCachedKey(
+		cacheKey: string,
+		startDate: string,
+		endDate: string,
+		onMiss: () => void
+	): { ok: true } {
+		this.maybePatchRange(startDate, endDate);
+		if (cacheKey !== this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) {
+			onMiss();
+			this.patchVm({ lastSuccessfulPostsKey: cacheKey });
+		}
+		return { ok: true };
+	}
+
+	private buildEventsFromCache() {
+		const { allPostStates, selectedPostStates } = this.scheduledPostsCalendarVm;
+		const filtered = filterPostsByPostType(
+			this.cachedPostsVm,
+			allPostStates,
+			selectedPostStates
+		);
+		return buildCalendarEventsFromPosts(filtered, this.cachedChannelById);
+	}
+
+	private applyPostTypeFilterToCache(): void {
+		if (!this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) return;
+		this.patchVm({ events: this.buildEventsFromCache() });
 	}
 }
