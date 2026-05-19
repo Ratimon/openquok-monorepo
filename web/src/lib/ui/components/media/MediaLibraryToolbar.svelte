@@ -2,7 +2,7 @@
 	import { icons } from '$data/icons';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import DeviceImageAttachDialog from '$lib/ui/components/media/DeviceImageAttachDialog.svelte';
+	import DeviceMediaAttachModal from '$lib/ui/components/media/DeviceMediaAttachModal.svelte';
 	import GlyphDesignEditor from '$lib/ui/components/posts/GlyphDesignEditor.svelte';
 	import ThirdPartyMediaLibrary from '$lib/ui/components/third-parties/ThirdPartyMediaLibrary.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -35,7 +35,7 @@
 		Upload
 	</Button>
 
-	<DeviceImageAttachDialog
+	<DeviceMediaAttachModal
 		bind:open={attachOpen}
 		disabled={uploadBusy}
 		{uploadBusy}

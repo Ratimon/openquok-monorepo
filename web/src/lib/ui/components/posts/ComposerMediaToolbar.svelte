@@ -18,8 +18,8 @@
 	import GlyphEmojiPicker from '$lib/ui/components/posts/GlyphEmojiPicker.svelte';
 	import GlyphItalicText from '$lib/ui/components/posts/GlyphItalicText.svelte';
 	import GlyphUText from '$lib/ui/components/posts/GlyphUText.svelte';
-	import ComposerMediaLibraryDialog from '$lib/ui/components/media/ComposerMediaLibraryDialog.svelte';
-	import DeviceImageAttachDialog from '$lib/ui/components/media/DeviceImageAttachDialog.svelte';
+	import MediaLibraryModal from '$lib/ui/components/media/MediaLibraryModal.svelte';
+	import DeviceMediaAttachModal from '$lib/ui/components/media/DeviceMediaAttachModal.svelte';
 	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
 	import ComposerMediaTooltip, {
 		composeTooltipTriggerClick
@@ -275,14 +275,14 @@
 		</ComposerMediaTooltip>
 	</Tooltip.Provider>
 
-	<DeviceImageAttachDialog
+	<DeviceMediaAttachModal
 		bind:open={deviceAttachOpen}
 		disabled={disabled || uploadBusy || mediaLocked}
 		{uploadBusy}
 		onFilesSelected={ingestFilesFromAttachDialog}
 	/>
 
-	<ComposerMediaLibraryDialog
+	<MediaLibraryModal
 		bind:open={libraryOpen}
 		{organizationId}
 		disabled={disabled || uploadBusy}
