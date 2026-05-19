@@ -7,6 +7,14 @@ import type {
 	UploadSimpleProgrammerModel
 } from '$lib/medias/Media.repository.svelte';
 
+import {
+	MEDIA_VIRTUAL_GENERAL,
+	MEDIA_VIRTUAL_POSTS,
+	normalizeMediaVirtualPath
+} from 'openquok-common';
+
+import { collectFolderPathsFromTree } from '$lib/medias/utils/mediaVirtualFolderBrowse';
+
 /** View model for a row / tile in the media library UI. */
 export interface MediaLibraryItemViewModel {
 	id: string;
@@ -45,7 +53,15 @@ export type UploadSimpleViewModel =
 	| { success: true; path: string; publicUrl?: string | null }
 	| { success: false; message: string };
 
+/** Images + folder paths for the composer media picker modal. */
+export interface MediaPickerBrowseViewModel {
+	images: MediaLibraryItemViewModel[];
+	folderPaths: string[];
+}
+
 export class GetMediaPresenter {
+	private static readonly PICKER_LIST_PAGE_SIZE = 100;
+
 	constructor(private readonly mediaRepository: MediaRepository) {}
 
 	public async loadMediaLibraryListVm(
@@ -55,6 +71,51 @@ export class GetMediaPresenter {
 	): Promise<MediaListViewModel> {
 		const listPm = await this.mediaRepository.listMedia(organizationId, page, pageSize);
 		return this.toMediaListVm(listPm);
+	}
+
+	/** Tree + all image pages for folder browse/search in {@link MediaLibraryModal}. */
+	public async loadMediaPickerBrowseVm(organizationId: string): Promise<MediaPickerBrowseViewModel> {
+		const orgId = organizationId.trim();
+		if (!orgId) {
+			return { images: [], folderPaths: [MEDIA_VIRTUAL_GENERAL] };
+		}
+
+		const [treePm, images] = await Promise.all([
+			this.mediaRepository.listMediaTree(orgId),
+			this.loadAllImageLibraryItemsVm(orgId)
+		]);
+
+		const fromTree = treePm ? collectFolderPathsFromTree(treePm.files) : [];
+		const merged = new Set<string>([
+			MEDIA_VIRTUAL_GENERAL,
+			MEDIA_VIRTUAL_POSTS,
+			...fromTree
+		]);
+		for (const item of images) {
+			merged.add(normalizeMediaVirtualPath(item.virtualPath));
+		}
+
+		return {
+			images,
+			folderPaths: [...merged].sort((a, b) => a.localeCompare(b))
+		};
+	}
+
+	private async loadAllImageLibraryItemsVm(organizationId: string): Promise<MediaLibraryItemViewModel[]> {
+		const pageSize = GetMediaPresenter.PICKER_LIST_PAGE_SIZE;
+		const first = await this.loadMediaLibraryListVm(organizationId, 1, pageSize);
+		const rows = first.results.filter((m) => m.kind === 'image');
+		if (first.pages <= 1) return rows;
+
+		const rest = await Promise.all(
+			Array.from({ length: first.pages - 1 }, (_, index) =>
+				this.loadMediaLibraryListVm(organizationId, index + 2, pageSize)
+			)
+		);
+		for (const page of rest) {
+			rows.push(...page.results.filter((m) => m.kind === 'image'));
+		}
+		return rows;
 	}
 
 	public toMediaLibraryItemVm(pm: MediaLibraryItemProgrammerModel): MediaLibraryItemViewModel {

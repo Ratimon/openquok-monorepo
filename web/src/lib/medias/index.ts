@@ -29,6 +29,7 @@ export type {
 	MediaDeleteViewModel,
 	MediaLibraryItemViewModel,
 	MediaListViewModel,
+	MediaPickerBrowseViewModel,
 	SaveMediaInformationViewModel,
 	UploadSimpleViewModel
 } from './GetMedia.presenter.svelte';
