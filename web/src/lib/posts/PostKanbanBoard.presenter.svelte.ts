@@ -26,9 +26,9 @@ import {
 import {
 	buildKanbanCardsVm,
 	buildKanbanColumnCounts,
+	buildKanbanColumnsWithTimeFilter,
 	channelSlotFromChannel,
 	filterKanbanCardsBySource,
-	filterKanbanCardsByTime,
 	groupKanbanCardsIntoColumns
 } from '$lib/posts/utils/postKanbanBoardCards';
 import { toPostKanbanRowsVm } from '$lib/posts/utils/postKanbanBoardRows';
@@ -79,13 +79,16 @@ export class PostKanbanBoardPresenter {
 	cardsVm = $state<PostKanbanCardViewModel[]>([]);
 
 	columnsVm = $derived.by((): PostKanbanColumnsViewModel =>
-		groupKanbanCardsIntoColumns(this.filteredCards(this.timeFilter))
+		buildKanbanColumnsWithTimeFilter(
+			filterKanbanCardsBySource(this.cardsVm, this.sourceFilter),
+			this.timeFilter
+		)
 	);
 
 	columnCountsVm = $derived.by((): PostKanbanColumnCountsViewModel => {
 		const sourceFiltered = filterKanbanCardsBySource(this.cardsVm, this.sourceFilter);
 		return buildKanbanColumnCounts(
-			groupKanbanCardsIntoColumns(filterKanbanCardsByTime(sourceFiltered, this.timeFilter)),
+			buildKanbanColumnsWithTimeFilter(sourceFiltered, this.timeFilter),
 			groupKanbanCardsIntoColumns(sourceFiltered)
 		);
 	});
@@ -251,11 +254,6 @@ export class PostKanbanBoardPresenter {
 		}
 		this.replacePostGroupRows(payload.postGroup, toPostKanbanRowsVm(resultPm.posts));
 		return { ok: true, targetColumn };
-	}
-
-	private filteredCards(timeFilter = this.timeFilter): PostKanbanCardViewModel[] {
-		const sourceFiltered = filterKanbanCardsBySource(this.cardsVm, this.sourceFilter);
-		return filterKanbanCardsByTime(sourceFiltered, timeFilter);
 	}
 
 	private listPostsIsoRange(): { startIso: string; endIso: string } {

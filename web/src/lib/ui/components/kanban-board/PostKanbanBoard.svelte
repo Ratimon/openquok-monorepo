@@ -46,6 +46,7 @@
 		onToggleReviewed: (postId: string, isReviewed: boolean) => void;
 		onNoteChange: (postId: string, note: string) => void;
 		onOpenPostActions?: (payload: { postGroup: string; postId: string }) => void;
+		onEditPost?: (postGroup: string) => void;
 		calendarHref: string;
 	};
 
@@ -66,6 +67,7 @@
 		onToggleReviewed,
 		onNoteChange,
 		onOpenPostActions,
+		onEditPost,
 		calendarHref
 	}: Props = $props();
 
@@ -105,7 +107,7 @@
 			</h2>
 			<p class="mt-1 text-sm text-base-content/70">
 				Review AI-generated and manual posts before they go live. Drag between Drafted and Scheduled;
-				use the menu on a card for edit, preview, and delete; double-click the review note to edit.
+				double-click post text to edit content, the menu for more actions, or double-click the review note.
 			</p>
 		</div>
 		<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
@@ -193,6 +195,7 @@
 					{activeDrag}
 					isDragOver={dragOverColumnId === col.id}
 					{onOpenPostActions}
+					{onEditPost}
 					onDragStart={handleCardDragStart}
 					onDragEnd={handleCardDragEnd}
 					onDragOverColumn={handleDragOverColumn}

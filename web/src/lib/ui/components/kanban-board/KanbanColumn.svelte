@@ -8,8 +8,10 @@
 
 	import KanbanColumnDropZone from './KanbanColumnDropZone.svelte';
 	import KanbanPostCard from './KanbanPostCard.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 
-	const KANBAN_COLUMN_PAGE_SIZE = 24;
+	/** Cards per column page — sized so review + note fit without clipping. */
+	const KANBAN_COLUMN_PAGE_SIZE = 4;
 
 	type Props = {
 		columnId: PostKanbanColumnId;
@@ -26,6 +28,7 @@
 		onToggleReviewed: (postId: string, isReviewed: boolean) => void;
 		onNoteChange: (postId: string, note: string) => void;
 		onOpenPostActions?: (payload: { postGroup: string; postId: string }) => void;
+		onEditPost?: (postGroup: string) => void;
 	};
 
 	let {
@@ -42,15 +45,25 @@
 		onDropOnColumn,
 		onToggleReviewed,
 		onNoteChange,
-		onOpenPostActions
+		onOpenPostActions,
+		onEditPost
 	}: Props = $props();
 
-	let visibleCount = $state(KANBAN_COLUMN_PAGE_SIZE);
+	let pageIndex = $state(0);
 	let scrollViewport = $state<HTMLDivElement | null>(null);
-	let loadSentinel = $state<HTMLDivElement | null>(null);
 
-	const visibleCardsVm = $derived(cardsVm.slice(0, visibleCount));
-	const hasMoreCards = $derived(visibleCount < cardsVm.length);
+	const pageCount = $derived(Math.max(1, Math.ceil(cardsVm.length / KANBAN_COLUMN_PAGE_SIZE)));
+	const safePageIndex = $derived(Math.min(pageIndex, pageCount - 1));
+	const pageStart = $derived(safePageIndex * KANBAN_COLUMN_PAGE_SIZE);
+	const visibleCardsVm = $derived(
+		cardsVm.slice(pageStart, pageStart + KANBAN_COLUMN_PAGE_SIZE)
+	);
+	const showPagination = $derived(cardsVm.length > KANBAN_COLUMN_PAGE_SIZE);
+	const rangeLabel = $derived(
+		cardsVm.length === 0
+			? ''
+			: `${pageStart + 1}–${Math.min(pageStart + KANBAN_COLUMN_PAGE_SIZE, cardsVm.length)} of ${cardsVm.length}`
+	);
 
 	const countLabel = $derived(
 		countVm.visible === countVm.total
@@ -68,25 +81,24 @@
 
 	$effect(() => {
 		cardsVm;
-		visibleCount = KANBAN_COLUMN_PAGE_SIZE;
+		pageIndex = 0;
 	});
 
 	$effect(() => {
-		const el = loadSentinel;
-		const root = scrollViewport;
-		if (!el || !root || !hasMoreCards) return;
-		const observer = new IntersectionObserver(
-			(entries) => {
-				for (const entry of entries) {
-					if (!entry.isIntersecting) continue;
-					visibleCount = Math.min(visibleCount + KANBAN_COLUMN_PAGE_SIZE, cardsVm.length);
-				}
-			},
-			{ root, rootMargin: '120px', threshold: 0 }
-		);
-		observer.observe(el);
-		return () => observer.disconnect();
+		if (pageIndex !== safePageIndex) {
+			pageIndex = safePageIndex;
+		}
 	});
+
+	function goToPrevPage() {
+		pageIndex = Math.max(0, safePageIndex - 1);
+		scrollViewport?.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
+	function goToNextPage() {
+		pageIndex = Math.min(pageCount - 1, safePageIndex + 1);
+		scrollViewport?.scrollTo({ top: 0, behavior: 'smooth' });
+	}
 </script>
 
 <section
@@ -121,12 +133,45 @@
 					{onToggleReviewed}
 					{onNoteChange}
 					onOpenActions={onOpenPostActions}
+					{onEditPost}
 				/>
 			{/each}
-			{#if hasMoreCards}
-				<div bind:this={loadSentinel} class="h-1 shrink-0" aria-hidden="true"></div>
-				<p class="py-2 text-center text-xs text-base-content/50">Scroll for more posts…</p>
-			{/if}
 		{/if}
 	</KanbanColumnDropZone>
+
+	{#if showPagination}
+		<footer
+			class="mt-2 flex shrink-0 items-center justify-between gap-2 border-t border-base-300 pt-2"
+			aria-label="Column pagination"
+		>
+			<span class="text-[10px] tabular-nums text-base-content/60">{rangeLabel}</span>
+			<div class="flex items-center gap-1">
+				<Button
+					type="button"
+					variant="ghost"
+					size="xs"
+					class="h-7 min-h-7 px-2"
+					disabled={safePageIndex <= 0}
+					aria-label="Previous page"
+					onclick={goToPrevPage}
+				>
+					Prev
+				</Button>
+				<span class="text-[10px] tabular-nums text-base-content/50">
+					{safePageIndex + 1}/{pageCount}
+				</span>
+				<Button
+					type="button"
+					variant="ghost"
+					size="xs"
+					class="h-7 min-h-7 px-2"
+					disabled={safePageIndex >= pageCount - 1}
+					aria-label="Next page"
+					onclick={goToNextPage}
+				>
+					Next
+				</Button>
+			</div>
+		</footer>
+	{/if}
 </section>

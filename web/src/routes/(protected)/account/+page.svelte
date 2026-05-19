@@ -728,6 +728,7 @@
 			onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}
 			onNoteChange={(id, note) => void postKanbanBoard.updateNote(id, note)}
 			onOpenPostActions={openKanbanPostActions}
+			onEditPost={openEditKanbanPostGroup}
 		/>
 	{/if}
 

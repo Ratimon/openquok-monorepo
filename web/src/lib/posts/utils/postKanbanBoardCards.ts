@@ -72,6 +72,20 @@ export function buildKanbanColumnCounts(
 	};
 }
 
+/** Drafts stay visible regardless of publish-date window; scheduled/published respect the time filter. */
+export function buildKanbanColumnsWithTimeFilter(
+	cardsVm: readonly PostKanbanCardViewModel[],
+	timeFilter: PostKanbanTimeFilter
+): PostKanbanColumnsViewModel {
+	const allColumns = groupKanbanCardsIntoColumns(cardsVm);
+	const timeFiltered = groupKanbanCardsIntoColumns(filterKanbanCardsByTime(cardsVm, timeFilter));
+	return {
+		draft: allColumns.draft,
+		scheduled: timeFiltered.scheduled,
+		published: timeFiltered.published
+	};
+}
+
 function channelSlotFromDisplay(display: {
 	integrationId: string;
 	picture: string | null;

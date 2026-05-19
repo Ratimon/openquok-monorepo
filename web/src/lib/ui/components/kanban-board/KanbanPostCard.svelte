@@ -15,10 +15,19 @@
 		onToggleReviewed: (postId: string, isReviewed: boolean) => void;
 		onNoteChange: (postId: string, note: string) => void;
 		onOpenActions?: (payload: { postGroup: string; postId: string }) => void;
+		onEditPost?: (postGroup: string) => void;
 	};
 
-	let { cardVm, isMoving, onDragStart, onDragEnd, onToggleReviewed, onNoteChange, onOpenActions }: Props =
-		$props();
+	let {
+		cardVm,
+		isMoving,
+		onDragStart,
+		onDragEnd,
+		onToggleReviewed,
+		onNoteChange,
+		onOpenActions,
+		onEditPost
+	}: Props = $props();
 
 	let noteDraft = $state('');
 	let isEditingNote = $state(false);
@@ -104,10 +113,15 @@
 		e.stopPropagation();
 		onOpenActions?.({ postGroup: cardVm.postGroup, postId: cardVm.postId });
 	}
+
+	function openPostEditor() {
+		if (cardVm.column === 'published' || !onEditPost) return;
+		onEditPost(cardVm.postGroup);
+	}
 </script>
 
 <article
-	class="group relative flex flex-col overflow-hidden rounded-[10px] border border-base-300 bg-base-100 shadow-sm transition-opacity"
+	class="group relative flex flex-col rounded-[10px] border border-base-300 bg-base-100 shadow-sm transition-opacity"
 	class:opacity-50={isMoving}
 	class:ring-2={cardVm.isAgentEdited && !cardVm.isReviewed}
 	class:ring-warning={cardVm.isAgentEdited && !cardVm.isReviewed}
@@ -187,10 +201,25 @@
 
 	<div class="flex min-w-0 flex-col gap-1.5 p-2">
 		<div class="flex items-start justify-between gap-1.5">
-			<p class="line-clamp-2 min-w-0 flex-1 text-xs font-medium text-base-content select-none">
-				{#if cardVm.column === 'draft'}<span class="text-base-content/55">Draft: </span>{/if}
-				{cardVm.contentPreview || '—'}
-			</p>
+			{#if onEditPost && cardVm.column !== 'published'}
+				<button
+					type="button"
+					class="min-w-0 flex-1 cursor-pointer text-left text-xs font-medium text-base-content select-none hover:text-primary"
+					aria-label="Edit post content"
+					ondblclick={openPostEditor}
+					onclick={(e) => {
+						if (e.detail === 0) openPostEditor();
+					}}
+				>
+					{#if cardVm.column === 'draft'}<span class="text-base-content/55">Draft: </span>{/if}
+					{cardVm.contentPreview || '—'}
+				</button>
+			{:else}
+				<p class="min-w-0 flex-1 text-xs font-medium text-base-content select-none">
+					{#if cardVm.column === 'draft'}<span class="text-base-content/55">Draft: </span>{/if}
+					{cardVm.contentPreview || '—'}
+				</p>
+			{/if}
 			{#if cardVm.isAgentEdited}
 				<span class="badge badge-secondary badge-xs shrink-0 border-0 p-0.5" title="AI-generated">
 					<AbstractIcon name={icons.Bot.name} class="size-3" width="12" height="12" />
@@ -233,7 +262,7 @@
 			{:else}
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
-					class="mt-1 line-clamp-2 min-h-[1.25rem] cursor-text rounded px-1 py-0.5 text-[10px] leading-snug text-base-content/80 hover:bg-base-200/60"
+					class="mt-1 min-h-[1.25rem] cursor-text rounded px-1 py-0.5 text-[10px] leading-snug whitespace-pre-wrap break-words text-base-content/80 hover:bg-base-200/60"
 					role="button"
 					tabindex="0"
 					ondblclick={openNoteEditor}
