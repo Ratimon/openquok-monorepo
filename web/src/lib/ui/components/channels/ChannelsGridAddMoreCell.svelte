@@ -10,13 +10,13 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import {
-		dashboardChannelsGridActionsKey,
-		type DashboardChannelsGridActions
-	} from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
+		channelsGridActionsKey,
+		type ChannelsGridActions
+	} from '$lib/ui/components/channels/channelsGridContext';
 
 	let { row }: ICellProps = $props();
 
-	const actions = getContext<DashboardChannelsGridActions>(dashboardChannelsGridActionsKey);
+	const actions = getContext<ChannelsGridActions>(channelsGridActionsKey);
 
 	const rowVm = $derived(row as unknown as DashboardChannelTableRowViewModel);
 	const platformKey = $derived(rowVm.platformKey);

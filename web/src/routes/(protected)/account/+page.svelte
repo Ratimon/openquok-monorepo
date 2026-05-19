@@ -5,7 +5,7 @@
 		CreateSocialPostChannelViewModel,
 		DashboardChannelsLayoutModeViewModel
 	} from '$lib/channels';
-	import type { DashboardChannelsGridActions } from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
+	import type { ChannelsGridActions } from '$lib/ui/components/channels/channelsGridContext';
 	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
 
 	// --- App / routing ---
@@ -49,10 +49,10 @@
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
-	import { dashboardChannelsGridActionsKey } from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
-	import DashboardChannelsChipsLayout from '$lib/ui/components/dashboard-channels/DashboardChannelsChipsLayout.svelte';
-	import DashboardChannelsGridLayout from '$lib/ui/components/dashboard-channels/DashboardChannelsGridLayout.svelte';
-	import DashboardMyWorkspaces from '$lib/ui/components/dashboard-workspaces/DashboardMyWorkspaces.svelte';
+	import { channelsGridActionsKey } from '$lib/ui/components/channels/channelsGridContext';
+	import ChannelsChipsLayout from '$lib/ui/components/channels/ChannelsChipsLayout.svelte';
+	import ChannelsGridLayout from '$lib/ui/components/channels/ChannelsGridLayout.svelte';
+	import MyWorkspaces from '$lib/ui/components/workspaces/MyWorkspaces.svelte';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -579,13 +579,13 @@
 		void goto(absoluteUrl(`${connectPath}?${qs}`));
 	}
 
-	setContext(dashboardChannelsGridActionsKey, {
+	setContext(channelsGridActionsKey, {
 		openActions: (integration: CreateSocialPostChannelViewModel) => {
 			channelActionsFor = integration;
 			channelActionsOpen = true;
 		},
 		addMoreChannel: startAddAnotherChannel
-	} satisfies DashboardChannelsGridActions);
+	} satisfies ChannelsGridActions);
 
 	async function handleRemoveChannel(id: string): Promise<boolean> {
 		const resultVm = await protectedDashboardPagePresenter.removeChannel(id);
@@ -703,7 +703,7 @@
 			posts through Draft, Scheduled, and Published for your connected channels.
 		</p>
 	{/if}
-	<DashboardMyWorkspaces
+	<MyWorkspaces
 		cards={myWorkspacesCardsVm}
 		status={myWorkspacesStatus}
 		totalCount={myWorkspacesTotalCount}
@@ -883,7 +883,7 @@
 				</p>
 			</div>
 		{:else if channelsLayoutMode === 'table'}
-			<DashboardChannelsGridLayout
+			<ChannelsGridLayout
 				filteredRowCount={channelsGridFilteredRowsVm.length}
 				pagedRowsVm={channelsGridPagedRowsVm}
 				filterValue={channelsFilterPresenter.value}
@@ -909,7 +909,7 @@
 				}}
 			/>
 		{:else if workspaceId}
-			<DashboardChannelsChipsLayout
+			<ChannelsChipsLayout
 				{channelGroupSections}
 				{platformChannelRowsUngrouped}
 				bind:groupDetailsOpen

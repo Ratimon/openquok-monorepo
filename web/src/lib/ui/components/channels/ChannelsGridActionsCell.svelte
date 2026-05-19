@@ -5,14 +5,14 @@
 	import type { DashboardChannelTableRowViewModel } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
 
 	import {
-		dashboardChannelsGridActionsKey,
-		type DashboardChannelsGridActions
-	} from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
+		channelsGridActionsKey,
+		type ChannelsGridActions
+	} from '$lib/ui/components/channels/channelsGridContext';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
 	let { row }: ICellProps = $props();
 
-	const actions = getContext<DashboardChannelsGridActions>(dashboardChannelsGridActionsKey);
+	const actions = getContext<ChannelsGridActions>(channelsGridActionsKey);
 
 	const rowVm = $derived(row as unknown as DashboardChannelTableRowViewModel);
 </script>

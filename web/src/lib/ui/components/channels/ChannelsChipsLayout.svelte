@@ -10,7 +10,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import DashboardPlatformChannelRows from '$lib/ui/components/dashboard-channels/DashboardPlatformChannelRows.svelte';
+	import PlatformChannelRows from '$lib/ui/components/channels/PlatformChannelRows.svelte';
 
 	type Props = {
 		channelGroupSections: DashboardChannelGroupViewModel[];
@@ -102,7 +102,7 @@
 					</Button>
 				</summary>
 				<div class="border-t border-base-300 px-3 py-3">
-					<DashboardPlatformChannelRows
+					<PlatformChannelRows
 						rows={group.platformRows}
 						{workspaceId}
 						{continueSetupHref}
@@ -180,7 +180,7 @@
 					<span class="font-medium text-base-content">Channels</span>
 				</summary>
 				<div class="border-t border-base-300 px-3 py-3">
-					<DashboardPlatformChannelRows
+					<PlatformChannelRows
 						rows={platformChannelRowsUngrouped}
 						{workspaceId}
 						{continueSetupHref}
@@ -195,7 +195,7 @@
 			</details>
 		{:else}
 			<div class="rounded-lg border border-base-300 bg-base-200/40 px-3 py-3">
-				<DashboardPlatformChannelRows
+				<PlatformChannelRows
 					rows={platformChannelRowsUngrouped}
 					{workspaceId}
 					{continueSetupHref}

@@ -3,10 +3,10 @@ import type { IColumn } from '@svar-ui/svelte-grid';
 import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
 import { socialProviderDisplayLabel } from '$data/social-providers';
 
-import DashboardChannelsGridAccountCell from '$lib/ui/components/dashboard-channels/DashboardChannelsGridAccountCell.svelte';
-import DashboardChannelsGridActionsCell from '$lib/ui/components/dashboard-channels/DashboardChannelsGridActionsCell.svelte';
-import DashboardChannelsGridAddMoreCell from '$lib/ui/components/dashboard-channels/DashboardChannelsGridAddMoreCell.svelte';
-import DashboardChannelsGridStatusCell from '$lib/ui/components/dashboard-channels/DashboardChannelsGridStatusCell.svelte';
+import ChannelsGridAccountCell from '$lib/ui/components/channels/ChannelsGridAccountCell.svelte';
+import ChannelsGridActionsCell from '$lib/ui/components/channels/ChannelsGridActionsCell.svelte';
+import ChannelsGridAddMoreCell from '$lib/ui/components/channels/ChannelsGridAddMoreCell.svelte';
+import ChannelsGridStatusCell from '$lib/ui/components/channels/ChannelsGridStatusCell.svelte';
 
 /** Display label when a channel has no workspace group (table + filters). */
 export const DASHBOARD_CHANNEL_UNGROUPED_GROUP_LABEL = 'ungrouped';
@@ -108,7 +108,7 @@ export class DashboardChannelsGridTablePresenter {
 				id: 'channelAccount',
 				header: vis.accountHeader,
 				width: vis.accountWidth,
-				cell: DashboardChannelsGridAccountCell,
+				cell: ChannelsGridAccountCell,
 				tooltip: (row: unknown) => this.accountTooltipPlainText(row)
 			},
 			{
@@ -127,21 +127,21 @@ export class DashboardChannelsGridTablePresenter {
 				id: 'statusDisplay',
 				header: 'Status',
 				width: vis.statusWidth,
-				cell: DashboardChannelsGridStatusCell,
+				cell: ChannelsGridStatusCell,
 				tooltip: false
 			},
 			{
 				id: 'actions',
 				header: 'Actions',
 				width: vis.actionsWidthPx,
-				cell: DashboardChannelsGridActionsCell,
+				cell: ChannelsGridActionsCell,
 				tooltip: false
 			},
 			{
 				id: 'addMore',
 				header: 'Add Channels',
 				width: vis.addMoreWidthPx,
-				cell: DashboardChannelsGridAddMoreCell,
+				cell: ChannelsGridAddMoreCell,
 				tooltip: false
 			}
 		] as unknown as IColumn[];

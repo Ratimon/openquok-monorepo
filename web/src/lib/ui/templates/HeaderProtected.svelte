@@ -4,7 +4,7 @@
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DockCustomSlot from '$lib/ui/floating-dock/DockCustomSlot.svelte';
-	import HeaderWorkspaceSwitcher from '$lib/ui/components/dashboard-workspaces/HeaderWorkspaceSwitcher.svelte';
+	import HeaderWorkspaceSwitcher from '$lib/ui/components/workspaces/HeaderWorkspaceSwitcher.svelte';
 	import FeedbackPopoverForm from '$lib/ui/components/feedback/FeedbackPopoverForm.svelte';
 	import FloatingDockDesktop from '$lib/ui/floating-dock/FloatingDockDesktop.svelte';
 	import ThemeSwitcher from '$lib/ui/daisyui/ThemeSwitcher.svelte';

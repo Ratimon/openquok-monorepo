@@ -1,8 +1,8 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
 
-export const dashboardChannelsGridActionsKey = Symbol('dashboardChannelsGridActions');
+export const channelsGridActionsKey = Symbol('channelsGridActions');
 
-export type DashboardChannelsGridActions = {
+export type ChannelsGridActions = {
 	openActions: (integration: CreateSocialPostChannelViewModel) => void;
 	addMoreChannel: (platformIdentifier: string) => void;
 };

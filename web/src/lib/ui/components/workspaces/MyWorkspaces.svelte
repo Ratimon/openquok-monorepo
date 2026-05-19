@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { DashboardWorkspaceCardViewModel } from '$lib/area-protected/GetDashboardWorkspaces.presenter.svelte';
 
-	import DashboardWorkspaceCard from '$lib/ui/components/dashboard-workspaces/DashboardWorkspaceCard.svelte';
-	import DashboardCreateWorkspaceCard from '$lib/ui/components/dashboard-workspaces/DashboardCreateWorkspaceCard.svelte';
+	import WorkspaceCard from '$lib/ui/components/workspaces/WorkspaceCard.svelte';
+	import CreateWorkspaceCard from '$lib/ui/components/workspaces/CreateWorkspaceCard.svelte';
 
 	type Props = {
 		cards: DashboardWorkspaceCardViewModel[];
@@ -57,7 +57,7 @@
 				Could not load workspace details. Refresh the page to try again.
 			</p>
 			<div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-				<DashboardCreateWorkspaceCard creating={creatingWorkspace} {onCreateWorkspace} />
+				<CreateWorkspaceCard creating={creatingWorkspace} {onCreateWorkspace} />
 			</div>
 		{:else if showWorkspaceGrid}
 			{#if status === 'error'}
@@ -72,7 +72,7 @@
 			{/if}
 			<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
 				{#each cards as card, index (card.id)}
-					<DashboardWorkspaceCard
+					<WorkspaceCard
 						{card}
 						{index}
 						{onSwitchWorkspace}
@@ -81,7 +81,7 @@
 						{onOpenDeveloperApiKey}
 					/>
 				{/each}
-				<DashboardCreateWorkspaceCard creating={creatingWorkspace} {onCreateWorkspace} />
+				<CreateWorkspaceCard creating={creatingWorkspace} {onCreateWorkspace} />
 			</div>
 		{/if}
 	</div>
