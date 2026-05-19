@@ -230,6 +230,13 @@
 		--wx-fm-button-font-color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
 		--wx-fm-progress-bar-color: color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-200));
 		--wx-fm-toolbar-height: 3.25rem;
+
+		/* Modals (delete confirm, rename prompt): match DaisyUI semantic colors */
+		--wx-modal-header-font-color: var(--color-base-content);
+		--wx-modal-background: var(--color-base-100);
+		--wx-modal-border: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent);
+		--wx-modal-backdrop: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+		--wx-color-danger: rgb(239 68 68);
 	}
 
 	.media-file-manager-host :global(.wx-filemanager) {
@@ -323,5 +330,33 @@
 	.media-file-manager-host :global(.wx-sidebar .wx-tree .wx-toggle) {
 		font-size: 1.5rem;
 		line-height: 1;
+	}
+
+	.media-file-manager-host :global(.wx-modal .wx-header) {
+		color: var(--color-base-content);
+	}
+
+	.media-file-manager-host :global(.wx-modal .wx-list li) {
+		color: var(--color-base-content);
+	}
+
+	/* Delete confirm only (modal with file list): OK matches Button variant="red" */
+	.media-file-manager-host :global(.wx-modal:has(.wx-list) .wx-button.wx-primary) {
+		background-color: color-mix(in oklab, rgb(239 68 68) 10%, transparent);
+		border: 1px solid color-mix(in oklab, rgb(239 68 68) 20%, transparent);
+		color: rgb(220 38 38);
+		box-shadow: none;
+	}
+
+	.media-file-manager-host :global(.wx-modal:has(.wx-list) .wx-button.wx-primary:hover:not(:disabled)) {
+		background-image: none;
+		background-color: color-mix(in oklab, rgb(239 68 68) 20%, transparent);
+	}
+
+	.media-file-manager-host :global(.wx-modal:has(.wx-list) .wx-button.wx-primary.wx-pressed:not(:disabled)),
+	.media-file-manager-host
+		:global(.wx-modal:has(.wx-list) .wx-button.wx-primary.wx-pressed:hover:not(:disabled)) {
+		background-color: color-mix(in oklab, rgb(239 68 68) 28%, transparent);
+		box-shadow: none;
 	}
 </style>
