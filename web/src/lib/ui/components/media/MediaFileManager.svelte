@@ -18,6 +18,7 @@
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import PaginationComposite from '$lib/ui/pagination/pagination-composite.svelte';
 
 	interface MediaFileManagerProps {
 		data: IEntity[];
@@ -58,8 +59,12 @@
 
 	let fmApi = $state<IApi | null>(null);
 	let hostEl = $state<HTMLDivElement | null>(null);
+	let folderPage = $state(1);
+	let folderItemsPerPage = $state(12);
 
 	const EMPTY_PREVIEW_SLOT = 'data-media-empty-preview';
+	const FOLDER_PAGINATION_HIDDEN = 'data-media-pagination-hidden';
+	const FOLDER_PAGE_SIZE_OPTIONS = [12, 24, 48, 96] as const;
 	const CARD_FOLDER_SLOT = 'data-media-card-folder-icon';
 	let emptyPreviewCleanup: (() => void) | null = null;
 	const cardFolderCleanups = new Map<Element, () => void>();
@@ -192,6 +197,134 @@
 	function scheduleDecorationSync(): void {
 		scheduleEmptyPreviewSync();
 		void syncFolderIcons();
+		scheduleFolderPagination();
+	}
+
+	function folderPaginationEnabled(viewMode: string | undefined): boolean {
+		return viewMode === 'cards' || viewMode === 'panels';
+	}
+
+	const folderTotalItems = $derived.by(() => {
+		if (!folderPaginationEnabled(mode)) return 0;
+		const api = fmApi;
+		if (!api) return 0;
+		try {
+			const state = api.getState();
+			if (!folderPaginationEnabled(state.mode)) return 0;
+			const panel = state.panels?.[state.activePanel ?? 0];
+			return panel?._files?.length ?? 0;
+		} catch {
+			return 0;
+		}
+	});
+
+	const folderTotalPages = $derived(
+		Math.max(1, Math.ceil(folderTotalItems / Math.max(folderItemsPerPage, 1)))
+	);
+
+	const showFolderPagination = $derived(
+		folderPaginationEnabled(mode) && folderTotalPages > 1
+	);
+
+	function resetFolderPage(): void {
+		folderPage = 1;
+	}
+
+	function setFolderCurrentPage(page: number): void {
+		if (page < 1 || page === folderPage) return;
+		folderPage = page;
+		scheduleFolderPagination();
+	}
+
+	function setFolderItemsPerPage(size: number): void {
+		if (size === folderItemsPerPage) return;
+		folderItemsPerPage = size;
+		resetFolderPage();
+		scheduleFolderPagination();
+	}
+
+	function paginateFolderFrontFF(): void {
+		setFolderCurrentPage(folderTotalPages);
+	}
+
+	function paginateFolderBackFF(): void {
+		setFolderCurrentPage(1);
+	}
+
+	function clearFolderPaginationVisibility(root: ParentNode): void {
+		for (const el of root.querySelectorAll(`[${FOLDER_PAGINATION_HIDDEN}]`)) {
+			el.removeAttribute(FOLDER_PAGINATION_HIDDEN);
+		}
+	}
+
+	async function applyFolderListPagination(): Promise<void> {
+		await tick();
+		if (!hostEl || !fmApi) return;
+
+		let state;
+		try {
+			state = fmApi.getState();
+		} catch {
+			return;
+		}
+
+		if (!folderPaginationEnabled(state.mode)) {
+			clearFolderPaginationVisibility(hostEl);
+			return;
+		}
+
+		const panelIndex = state.activePanel ?? 0;
+		const panel = state.panels?.[panelIndex];
+		const fileCount = panel?._files?.length ?? 0;
+		if (fileCount === 0) {
+			clearFolderPaginationVisibility(hostEl);
+			return;
+		}
+
+		const totalPages = Math.max(1, Math.ceil(fileCount / Math.max(folderItemsPerPage, 1)));
+		if (totalPages <= 1) {
+			clearFolderPaginationVisibility(hostEl);
+			return;
+		}
+
+		const page = Math.min(Math.max(folderPage, 1), totalPages);
+		const start = (page - 1) * folderItemsPerPage;
+		const end = start + folderItemsPerPage;
+		const path = panel?.path ?? '/';
+		const hasBackLink = path !== '/' && state.mode !== 'search';
+
+		if (state.mode === 'cards') {
+			const cards = hostEl.querySelectorAll('.wx-cards .wx-item');
+			cards.forEach((el, index) => {
+				if (index < start || index >= end) {
+					el.setAttribute(FOLDER_PAGINATION_HIDDEN, '');
+				} else {
+					el.removeAttribute(FOLDER_PAGINATION_HIDDEN);
+				}
+			});
+			return;
+		}
+
+		const panelEl = hostEl.querySelector(`.wx-panels > .wx-item[data-panel="${panelIndex}"]`);
+		if (!panelEl) return;
+
+		const rows = panelEl.querySelectorAll('.wx-body .wx-row');
+		rows.forEach((row, rowIndex) => {
+			if (hasBackLink && rowIndex === 0) {
+				row.removeAttribute(FOLDER_PAGINATION_HIDDEN);
+				return;
+			}
+			const fileIndex = hasBackLink ? rowIndex - 1 : rowIndex;
+			if (fileIndex < start || fileIndex >= end) {
+				row.setAttribute(FOLDER_PAGINATION_HIDDEN, '');
+			} else {
+				row.removeAttribute(FOLDER_PAGINATION_HIDDEN);
+			}
+		});
+	}
+
+	function scheduleFolderPagination(): void {
+		void applyFolderListPagination();
 	}
 
 	function displayNameForEntity(row: IEntity): string {
@@ -233,9 +366,17 @@
 		});
 
 		api.on('set-path', () => {
+			resetFolderPage();
 			onPathChange?.();
 			scheduleDecorationSync();
 		});
+
+		api.on('set-active-panel', () => {
+			resetFolderPage();
+			scheduleDecorationSync();
+		});
+
+		api.on('sort-files', scheduleDecorationSync);
 
 		api.intercept('delete-files', async (ev: { ids?: string[] }) => {
 			const ids = ev?.ids ?? [];
@@ -294,7 +435,10 @@
 
 		api.on('select-file', scheduleDecorationSync);
 		api.on('show-preview', scheduleDecorationSync);
-		api.on('set-mode', scheduleDecorationSync);
+		api.on('set-mode', () => {
+			resetFolderPage();
+			scheduleDecorationSync();
+		});
 
 		onInit?.(api);
 		applyTreeDisplayNames(api, data);
@@ -319,10 +463,31 @@
 	});
 
 	$effect(() => {
+		mode;
+		resetFolderPage();
+	});
+
+	$effect(() => {
 		fmApi;
 		data;
 		mode;
 		scheduleDecorationSync();
+	});
+
+	$effect(() => {
+		if (!folderPaginationEnabled(mode)) return;
+		folderPage;
+		folderItemsPerPage;
+		folderTotalItems;
+		fmApi;
+		data;
+		scheduleFolderPagination();
+	});
+
+	$effect(() => {
+		if (folderPage > folderTotalPages) {
+			folderPage = folderTotalPages;
+		}
 	});
 
 	onDestroy(() => {
@@ -345,11 +510,12 @@
 	}
 </script>
 
-<div
-	bind:this={hostEl}
-	class="media-file-manager-host relative min-h-[min(72vh,720px)] overflow-hidden"
-	aria-busy={loading}
->
+<div class="media-file-manager flex min-h-[min(72vh,720px)] flex-col">
+	<div
+		bind:this={hostEl}
+		class="media-file-manager-host relative min-h-[min(72vh,720px)] flex-1 overflow-hidden"
+		aria-busy={loading}
+	>
 	{#if loading}
 		<div
 			class="bg-base-100/60 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-[1px]"
@@ -372,6 +538,23 @@
 			init={wireApi}
 		/>
 	</Willow>
+	</div>
+
+	{#if showFolderPagination}
+		<PaginationComposite
+			class="mt-4 shrink-0"
+			itemsPerPage={folderItemsPerPage}
+			totalItems={folderTotalItems}
+			currentPage={folderPage}
+			totalPages={folderTotalPages}
+			setItemsPerPage={setFolderItemsPerPage}
+			setCurrentPage={setFolderCurrentPage}
+			paginateFrontFF={paginateFolderFrontFF}
+			paginateBackFF={paginateFolderBackFF}
+			nameOfItems="items"
+			pageSizeOptions={[...FOLDER_PAGE_SIZE_OPTIONS]}
+		/>
+	{/if}
 </div>
 
 <style>
@@ -446,7 +629,29 @@
 
 	.media-file-manager-host :global(.wx-filemanager) {
 		min-height: min(72vh, 720px);
+		height: 100%;
 		background: transparent;
+	}
+
+	.media-file-manager-host :global([data-media-pagination-hidden]) {
+		display: none !important;
+	}
+
+	/*
+	  Card/table lists are clipped when the upload drop area keeps a fixed height. Cap it and
+	  scroll so every folder/file in the current directory stays reachable.
+	*/
+	.media-file-manager-host :global(.wx-content .wx-wrapper > .wx-upload-area),
+	.media-file-manager-host :global(.wx-list > .wx-upload-area),
+	.media-file-manager-host :global(.wx-panels .wx-wrapper > .wx-upload-area) {
+		max-height: calc(min(72vh, 720px) - 11rem);
+		overflow-y: auto !important;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.media-file-manager-host :global(.wx-cards) {
+		height: auto !important;
+		overflow: visible;
 	}
 
 	.media-file-manager-host :global(.wx-toolbar .wx-right) {
