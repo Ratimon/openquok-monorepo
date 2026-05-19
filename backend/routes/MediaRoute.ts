@@ -12,6 +12,8 @@ import {
     validateMediaMoveBody,
     validateMediaCopyBody,
     validateMediaRenameBody,
+    validateMediaCreateFolderBody,
+    validateMediaDeleteFolderBody,
 } from "../data/schemas/mediaSchemas";
 
 const upload = multer({
@@ -41,6 +43,10 @@ mediaRouter.post("/move", authWithRoles, validateMediaMoveBody, mediaController.
 mediaRouter.post("/copy", authWithRoles, validateMediaCopyBody, mediaController.copy);
 
 mediaRouter.post("/rename", authWithRoles, validateMediaRenameBody, mediaController.rename);
+
+mediaRouter.post("/folder", authWithRoles, validateMediaCreateFolderBody, mediaController.createFolder);
+
+mediaRouter.delete("/folder", authWithRoles, validateMediaDeleteFolderBody, mediaController.deleteFolder);
 
 mediaRouter.post("/upload", authWithRoles, upload.single("mediaFile"), mediaController.upload);
 

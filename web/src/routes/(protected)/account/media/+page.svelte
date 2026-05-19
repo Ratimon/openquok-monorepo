@@ -66,6 +66,7 @@
 	);
 
 	let uppy = $state.raw<ReturnType<typeof createAccountMediaUppy> | null>(null);
+	let sidebarFileInput = $state.raw<HTMLInputElement | null>(null);
 
 	function isSupportedUpload(file: File): boolean {
 		return ACCEPTED_MEDIA_TYPES.some((prefix) => file.type.startsWith(prefix));
@@ -114,8 +115,22 @@
 	}
 
 	async function onDeleteFiles(ids: string[]) {
-		await p.handleDeleteFiles(ids);
-		toast.success(ids.length === 1 ? 'File deleted.' : `${ids.length} files deleted.`);
+		const result = await p.handleDeleteFiles(ids);
+		if (result.errors.length) {
+			toast.error(result.errors[0]);
+		}
+		const total = result.filesDeleted + result.foldersDeleted;
+		if (total === 0) {
+			if (!result.errors.length) toast.error('Nothing was deleted.');
+			return;
+		}
+		if (result.foldersDeleted && !result.filesDeleted) {
+			toast.success(result.foldersDeleted === 1 ? 'Folder deleted.' : `${result.foldersDeleted} folders deleted.`);
+		} else if (result.filesDeleted && !result.foldersDeleted) {
+			toast.success(result.filesDeleted === 1 ? 'File deleted.' : `${result.filesDeleted} files deleted.`);
+		} else {
+			toast.success(`${total} items deleted.`);
+		}
 	}
 
 	async function onCopyFiles(ids: string[], target: string): Promise<boolean> {
@@ -139,6 +154,51 @@
 
 	function onOpenFile(id: string) {
 		if (p.openSettingsForFileManagerId(id)) return;
+	}
+
+	function openSidebarFilePicker(): void {
+		if (uploadBusy || !organizationId) return;
+		sidebarFileInput?.click();
+	}
+
+	function onSidebarFileInputChange(e: Event): void {
+		const input = e.currentTarget as HTMLInputElement;
+		queueFilesForUpload(input.files);
+		input.value = '';
+	}
+
+	async function onCreateFile(ev: {
+		file?: { type?: string; name?: string; file?: File | Blob };
+		parent?: string;
+	}) {
+		const file = ev?.file;
+		if (!file) return;
+
+		const blob = file.file;
+		if (blob instanceof Blob) {
+			const uploadFile =
+				blob instanceof File
+					? blob
+					: new File([blob], file.name ?? 'upload', {
+							type: blob.type || 'application/octet-stream'
+						});
+			const list = new DataTransfer();
+			list.items.add(uploadFile);
+			queueFilesForUpload(list.files);
+			return;
+		}
+
+		if (file.type === 'folder') {
+			const parent = ev.parent ?? uploadVirtualPath ?? fileManagerApi?.getState().panels?.[0]?.path;
+			const ok = await p.createVirtualFolder(String(file.name ?? ''), String(parent ?? '/'));
+			if (ok) toast.success('Folder created.');
+			else toast.error('Could not create folder.');
+			return;
+		}
+
+		if (file.type === 'file') {
+			openSidebarFilePicker();
+		}
 	}
 
 	onMount(() => {
@@ -235,10 +295,12 @@
 					</div>
 				</div>
 				<p class="mt-2 text-sm text-base-content/70">
-					Browse folders, upload, and manage workspace medias. Maximum {uploadLimitLabel} per file.
+					Browse folders, upload, and manage workspace media. Maximum {uploadLimitLabel} per file.
 					{#if uploadVirtualPath && libraryLayout !== 'gallery'}
 						<span class="text-base-content/55 block pt-1 text-xs">
-							Uploads/Designs go to <span class="font-medium text-base-content/80">{uploadVirtualPath}</span>
+							Uploads and designs save to
+							<span class="font-medium text-base-content/80">{uploadVirtualPath}</span>
+							(the folder you have open). You can move them to another folder later.
 						</span>
 					{/if}
 				</p>
@@ -297,6 +359,16 @@
 				/>
 			{/if}
 		{:else}
+			<input
+				bind:this={sidebarFileInput}
+				type="file"
+				accept={ACCEPTED_MEDIA_TYPES.map((t) => `${t}*`).join(',')}
+				multiple
+				class="sr-only"
+				aria-hidden="true"
+				tabindex={-1}
+				onchange={onSidebarFileInputChange}
+			/>
 			<MediaFileManager
 				data={fileManagerData}
 				{drive}
@@ -311,6 +383,7 @@
 				onMoveFiles={onMoveFiles}
 				onRenameFile={onRenameFile}
 				onOpenFile={onOpenFile}
+				onCreateFile={onCreateFile}
 			/>
 		{/if}
 	</div>

@@ -235,8 +235,33 @@ CREATE TABLE IF NOT EXISTS public.media (
 
 COMMENT ON TABLE public.media IS 'Workspace media records that reference objects stored in external object storage.';
 COMMENT ON COLUMN public.media.path IS 'Public URL or object key returned by storage; used to retrieve the file.';
-COMMENT ON COLUMN public.media.virtual_path IS 'Virtual folder path within the workspace (UI-only). Does not affect object storage keys.';
+COMMENT ON COLUMN public.media.virtual_path IS 'Virtual folder path within the workspace (UI-only). Convention: /General for library uploads; /Posts/YYYY-MM-DD or /Posts/unscheduled for composer uploads.';
 COMMENT ON COLUMN public.media.type IS 'Logical media type label (e.g. image, video).';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: media, File: 103_20260519_tables.sql
+-- ---------------------------
+-- MODULE NAME: media
+-- MODULE DATE: 20260519
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+
+
+CREATE TABLE IF NOT EXISTS public.media_virtual_folders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    path TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT media_virtual_folders_org_path_unique UNIQUE (organization_id, path)
+);
+
+COMMENT ON TABLE public.media_virtual_folders IS 'Empty virtual folders for the workspace media library (paths without media rows yet).';
+COMMENT ON COLUMN public.media_virtual_folders.path IS 'Normalized virtual path (leading slash, no trailing slash), e.g. /General/Assets.';
 
 -- ---------------------------
 -- END OF FILE
@@ -1842,6 +1867,94 @@ USING (
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------
+
+
+-- Module: media, File: 303_20260519_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: media
+-- MODULE DATE: 20260519
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+
+
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.media_virtual_folders TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.media_virtual_folders TO service_role;
+
+ALTER TABLE public.media_virtual_folders ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Members can view media virtual folders" ON public.media_virtual_folders;
+CREATE POLICY "Members can view media virtual folders"
+ON public.media_virtual_folders
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = media_virtual_folders.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert media virtual folders" ON public.media_virtual_folders;
+CREATE POLICY "Members can insert media virtual folders"
+ON public.media_virtual_folders
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = media_virtual_folders.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update media virtual folders" ON public.media_virtual_folders;
+CREATE POLICY "Members can update media virtual folders"
+ON public.media_virtual_folders
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = media_virtual_folders.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = media_virtual_folders.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete media virtual folders" ON public.media_virtual_folders;
+CREATE POLICY "Members can delete media virtual folders"
+ON public.media_virtual_folders
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = media_virtual_folders.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
 
 
 -- Module: oauth, File: 301_20260505_rlsgrants.sql

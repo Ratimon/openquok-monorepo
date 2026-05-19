@@ -12,6 +12,8 @@ import type { MediaListItemDto } from "../repositories/MediaRepository";
 export type MediaTreeFileEntity = {
     id: string;
     type: "file" | "folder";
+    /** Folder segment label; files use `displayName` instead. */
+    name?: string;
     size?: number;
     date?: Date;
     lazy?: boolean;
@@ -23,9 +25,12 @@ export type MediaTreeFileEntity = {
 };
 
 function folderEntity(id: string, lazy = false): MediaTreeFileEntity {
+    const slash = id.lastIndexOf("/");
+    const name = slash >= 0 ? id.slice(slash + 1) : id;
     return {
         id,
         type: "folder",
+        name,
         date: new Date(),
         ...(lazy ? { lazy: true } : {}),
     };
@@ -46,8 +51,17 @@ const DEFAULT_FOLDERS = [
 ];
 
 /** Build a flat SVAR File Manager `data` array from workspace media rows. */
-export function buildMediaTreeEntities(items: MediaListItemDto[]): MediaTreeFileEntity[] {
+export function buildMediaTreeEntities(
+    items: MediaListItemDto[],
+    extraFolderPaths: string[] = []
+): MediaTreeFileEntity[] {
     const folderPaths = new Set<string>(DEFAULT_FOLDERS);
+
+    for (const rawPath of extraFolderPaths) {
+        const normalized = normalizeMediaVirtualPath(rawPath);
+        const parts = normalized.split("/").filter(Boolean);
+        ensureFolderPath(parts, folderPaths);
+    }
 
     for (const item of items) {
         const vp = resolveMediaVirtualPath(item.virtualPath);

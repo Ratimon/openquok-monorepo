@@ -1,7 +1,11 @@
 import { config } from "../config/GlobalConfig";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { MediaLike } from "../utils/dtos/MediaDTO";
-import { normalizeMediaVirtualPath, resolveMediaVirtualPath } from "openquok-common";
+import {
+    isProtectedMediaVirtualFolder,
+    normalizeMediaVirtualPath,
+    resolveMediaVirtualPath,
+} from "openquok-common";
 
 import { DatabaseError } from "../errors/InfraError";
 
@@ -54,6 +58,15 @@ export function mediaKindForPath(path: string): MediaListItemDto["kind"] {
 }
 
 const TABLE_MEDIA = "media";
+const TABLE_MEDIA_VIRTUAL_FOLDERS = "media_virtual_folders";
+
+function isMissingVirtualFoldersTable(error: { code?: string; message?: string } | null): boolean {
+    if (!error) return false;
+    const code = String(error.code ?? "");
+    if (code === "PGRST205" || code === "42P01") return true;
+    const msg = String(error.message ?? "").toLowerCase();
+    return msg.includes("media_virtual_folders") && msg.includes("schema cache");
+}
 
 export type SaveMediaInformationDto = {
     id: string;
@@ -372,6 +385,117 @@ export class MediaRepository {
             if (data) changed += 1;
         }
         return changed;
+    }
+
+    async listVirtualFolderPaths(organizationId: string): Promise<string[]> {
+        const { data, error } = await this.supabase
+            .from(TABLE_MEDIA_VIRTUAL_FOLDERS)
+            .select("path")
+            .eq("organization_id", organizationId)
+            .order("path", { ascending: true });
+
+        if (error) {
+            if (isMissingVirtualFoldersTable(error)) {
+                return [];
+            }
+            throw new DatabaseError(`Failed to list virtual folders: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_MEDIA_VIRTUAL_FOLDERS },
+            });
+        }
+
+        return (data ?? []).map((row) => normalizeMediaVirtualPath(String((row as { path: string }).path)));
+    }
+
+    async createVirtualFolder(organizationId: string, path: string): Promise<boolean> {
+        const normalized = normalizeMediaVirtualPath(path);
+        const { data, error } = await this.supabase
+            .from(TABLE_MEDIA_VIRTUAL_FOLDERS)
+            .insert({ organization_id: organizationId, path: normalized })
+            .select("id")
+            .maybeSingle();
+
+        if (error) {
+            if (error.code === "23505") {
+                return true;
+            }
+            if (isMissingVirtualFoldersTable(error)) {
+                return false;
+            }
+            throw new DatabaseError(`Failed to create virtual folder: ${error.message}`, {
+                cause: error,
+                operation: "insert",
+                resource: { type: "table", name: TABLE_MEDIA_VIRTUAL_FOLDERS },
+            });
+        }
+        return data != null;
+    }
+
+    async deleteVirtualFolder(
+        organizationId: string,
+        path: string
+    ): Promise<{ deleted: boolean; message: string }> {
+        const normalized = normalizeMediaVirtualPath(path);
+
+        if (isProtectedMediaVirtualFolder(normalized)) {
+            return { deleted: false, message: "This folder cannot be deleted." };
+        }
+
+        const { data: mediaRows, error: mediaError } = await this.supabase
+            .from(TABLE_MEDIA)
+            .select("virtual_path")
+            .eq("organization_id", organizationId)
+            .is("deleted_at", null);
+
+        if (mediaError) {
+            throw new DatabaseError(`Failed to check folder contents: ${mediaError.message}`, {
+                cause: mediaError,
+                operation: "select",
+                resource: { type: "table", name: TABLE_MEDIA },
+            });
+        }
+
+        const hasMedia = (mediaRows ?? []).some((row) => {
+            const vp = resolveMediaVirtualPath(String((row as { virtual_path: string }).virtual_path));
+            return vp === normalized || vp.startsWith(`${normalized}/`);
+        });
+        if (hasMedia) {
+            return { deleted: false, message: "Remove or move files out of this folder first." };
+        }
+
+        const childFolders = await this.listVirtualFolderPaths(organizationId);
+        const hasChildFolder = childFolders.some(
+            (folderPath) => folderPath !== normalized && folderPath.startsWith(`${normalized}/`)
+        );
+        if (hasChildFolder) {
+            return { deleted: false, message: "Delete subfolders inside this folder first." };
+        }
+
+        const { data, error } = await this.supabase
+            .from(TABLE_MEDIA_VIRTUAL_FOLDERS)
+            .delete()
+            .eq("organization_id", organizationId)
+            .eq("path", normalized)
+            .select("id")
+            .maybeSingle();
+
+        if (error) {
+            if (isMissingVirtualFoldersTable(error)) {
+                return { deleted: false, message: "Custom folders are not available yet." };
+            }
+            throw new DatabaseError(`Failed to delete virtual folder: ${error.message}`, {
+                cause: error,
+                operation: "delete",
+                resource: { type: "table", name: TABLE_MEDIA_VIRTUAL_FOLDERS },
+            });
+        }
+
+        if (!data) {
+            return { deleted: false, message: "Folder not found or cannot be deleted." };
+        }
+
+        return { deleted: true, message: "Folder deleted." };
     }
 
     async renameMediaDisplayName(

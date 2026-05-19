@@ -12,6 +12,8 @@ const mediaConfig: MediaConfig = {
 		move: '/api/v1/media/move',
 		copy: '/api/v1/media/copy',
 		rename: '/api/v1/media/rename',
+		createFolder: '/api/v1/media/folder',
+		deleteFolder: '/api/v1/media/folder',
 		uploadSimple: '/api/v1/media/upload-simple',
 		saveInformation: '/api/v1/media/information'
 	}
@@ -40,6 +42,7 @@ export {
 	mediaVirtualPathForComposerUpload,
 	mediaFileManagerId,
 	parseMediaFileManagerId,
+	isMediaFileManagerFolderId,
 	mediaVirtualPathFromFileManagerTarget
 } from 'openquok-common';
 export {

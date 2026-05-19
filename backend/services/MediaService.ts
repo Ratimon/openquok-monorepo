@@ -57,4 +57,16 @@ export class MediaService {
     renameMediaDisplayName(organizationId: string, id: string, originalName: string) {
         return this._mediaRepository.renameMediaDisplayName(organizationId, id, originalName);
     }
+
+    listVirtualFolderPaths(organizationId: string) {
+        return this._mediaRepository.listVirtualFolderPaths(organizationId);
+    }
+
+    createVirtualFolder(organizationId: string, path: string) {
+        return this._mediaRepository.createVirtualFolder(organizationId, path);
+    }
+
+    deleteVirtualFolder(organizationId: string, path: string) {
+        return this._mediaRepository.deleteVirtualFolder(organizationId, path);
+    }
 }

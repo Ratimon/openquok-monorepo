@@ -108,8 +108,9 @@ export class MediaController {
             }
 
             const items = await this.mediaService.listAllMedia(organizationId);
+            const virtualFolders = await this.mediaService.listVirtualFolderPaths(organizationId);
             const usedBytes = items.reduce((sum, row) => sum + (row.size ?? 0), 0);
-            const files = buildMediaTreeEntities(items);
+            const files = buildMediaTreeEntities(items, virtualFolders);
 
             res.status(200).json({
                 success: true,
@@ -121,6 +122,71 @@ export class MediaController {
                     },
                 },
             });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    deleteFolder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId is required");
+            }
+
+            const pathRaw = typeof req.body?.path === "string" ? String(req.body.path) : "";
+            if (!pathRaw.trim()) {
+                throw new UserValidationError("path is required");
+            }
+
+            const path = normalizeMediaVirtualPath(pathRaw);
+            const result = await this.mediaService.deleteVirtualFolder(organizationId, path);
+            if (!result.deleted) {
+                throw new UserValidationError(result.message);
+            }
+
+            res.status(200).json({ success: true, data: { path } });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    createFolder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const organizationId = typeof req.body?.organizationId === "string" ? String(req.body.organizationId) : "";
+            if (!organizationId.trim()) {
+                throw new UserValidationError("organizationId is required");
+            }
+
+            const parentRaw = typeof req.body?.parent === "string" ? String(req.body.parent) : "";
+            const nameRaw = typeof req.body?.name === "string" ? String(req.body.name).trim() : "";
+            if (!nameRaw) {
+                throw new UserValidationError("name is required");
+            }
+            if (/[/\\]/.test(nameRaw)) {
+                throw new UserValidationError("Folder name cannot contain slashes");
+            }
+
+            const parent = normalizeMediaVirtualPath(parentRaw || "/");
+            const path = normalizeMediaVirtualPath(`${parent}/${nameRaw}`);
+
+            const created = await this.mediaService.createVirtualFolder(organizationId, path);
+            if (!created) {
+                throw new UserValidationError(
+                    "Custom folders are not available until the media_virtual_folders migration is applied."
+                );
+            }
+            res.status(200).json({ success: true, data: { path } });
         } catch (error) {
             next(error);
         }

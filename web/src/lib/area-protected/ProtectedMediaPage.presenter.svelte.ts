@@ -26,8 +26,15 @@ import {
 	mediaFileManagerId,
 	mediaVirtualPathFromFileManagerTarget,
 	normalizeMediaVirtualPath,
-	parseMediaFileManagerId
+	parseMediaFileManagerId,
+	isMediaFileManagerFolderId
 } from 'openquok-common';
+
+export type MediaDeleteFilesResult = {
+	filesDeleted: number;
+	foldersDeleted: number;
+	errors: string[];
+};
 
 const DEFAULT_PAGE_SIZE = 24;
 
@@ -42,6 +49,7 @@ function treeEntityToVm(row: MediaFileTreeEntityProgrammerModel): IEntity {
 	return {
 		id: row.id,
 		type: row.type,
+		...(row.name ? { name: row.name } : {}),
 		...(row.size != null ? { size: row.size } : {}),
 		...(row.date ? { date: new Date(row.date) } : {}),
 		...(row.lazy ? { lazy: true } : {}),
@@ -77,6 +85,7 @@ export class ProtectedMediaPagePresenter {
 	uploadVirtualPath = $state(MEDIA_VIRTUAL_GENERAL);
 
 	private fileManagerApiState = $state<IApi | null>(null);
+	private pendingFileManagerPath = $state<string | null>(null);
 	private mediaById = $state<Map<string, MediaLibraryItemViewModel>>(new Map());
 	private lastLoadedOrganizationId = $state('');
 
@@ -103,6 +112,25 @@ export class ProtectedMediaPagePresenter {
 	registerFileManagerApi(api: IApi): void {
 		this.fileManagerApiState = api;
 		this.syncUploadFolderFromApi();
+		this.applyPendingFileManagerPath();
+	}
+
+	private applyPendingFileManagerPath(): void {
+		const api = this.fileManagerApiState;
+		const path = this.pendingFileManagerPath;
+		if (!api || !path) return;
+		try {
+			api.exec('set-path', { id: path });
+			this.pendingFileManagerPath = null;
+		} catch {
+			// ignore
+		}
+	}
+
+	private focusFileManagerPath(path: string): void {
+		const normalized = normalizeMediaVirtualPath(path);
+		this.pendingFileManagerPath = normalized;
+		this.applyPendingFileManagerPath();
 	}
 
 	private clearFileManagerSelection(): void {
@@ -293,18 +321,51 @@ export class ProtectedMediaPagePresenter {
 		return options;
 	}
 
-	async handleDeleteFiles(ids: string[]): Promise<void> {
+	async handleDeleteFiles(ids: string[]): Promise<MediaDeleteFilesResult> {
 		const organizationId = this.organizationId;
-		if (!organizationId) return;
+		if (!organizationId) {
+			return { filesDeleted: 0, foldersDeleted: 0, errors: ['Select a workspace first.'] };
+		}
+
+		let filesDeleted = 0;
+		let foldersDeleted = 0;
+		const errors: string[] = [];
 
 		for (const fileManagerId of ids) {
+			if (isMediaFileManagerFolderId(fileManagerId)) {
+				const path = mediaVirtualPathFromFileManagerTarget(fileManagerId);
+				const result = await this.mediaRepository.deleteVirtualFolder({ organizationId, path });
+				if (result.success) {
+					foldersDeleted += 1;
+				} else {
+					errors.push(result.message);
+				}
+				continue;
+			}
+
 			const parsed = parseMediaFileManagerId(fileManagerId);
-			if (!parsed) continue;
+			if (!parsed) {
+				errors.push('Could not delete this item.');
+				continue;
+			}
 			const vm = this.mediaById.get(parsed.mediaId);
-			if (!vm) continue;
-			await this.deleteLibraryItem(vm);
+			if (!vm) {
+				errors.push('Could not delete this file.');
+				continue;
+			}
+			const deleted = await this.deleteLibraryItem(vm);
+			if (deleted.success) {
+				filesDeleted += 1;
+			} else if (deleted.message) {
+				errors.push(deleted.message);
+			}
 		}
-		await this.loadTree();
+
+		if (filesDeleted > 0 || foldersDeleted > 0) {
+			await this.loadTree();
+		}
+
+		return { filesDeleted, foldersDeleted, errors };
 	}
 
 	async handleCopyFiles(ids: string[], target: string): Promise<boolean> {
@@ -335,6 +396,27 @@ export class ProtectedMediaPagePresenter {
 		});
 		if (result.success) {
 			await this.loadTree();
+		}
+		return result.success;
+	}
+
+	async createVirtualFolder(name: string, parentPath: string): Promise<boolean> {
+		const organizationId = this.organizationId;
+		if (!organizationId) return false;
+
+		const trimmed = name.trim();
+		if (!trimmed) return false;
+
+		const parent = mediaVirtualPathFromFileManagerTarget(parentPath);
+
+		const result = await this.mediaRepository.createVirtualFolder({
+			organizationId,
+			parent,
+			name: trimmed
+		});
+		if (result.success) {
+			await this.loadTree();
+			this.focusFileManagerPath(parent);
 		}
 		return result.success;
 	}

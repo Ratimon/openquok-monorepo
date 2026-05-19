@@ -26,6 +26,10 @@
 		onMoveFiles?: (ids: string[], target: string) => void | Promise<boolean>;
 		onRenameFile?: (id: string, name: string) => void | Promise<boolean>;
 		onOpenFile?: (id: string) => void;
+		onCreateFile?: (ev: {
+			file?: { type?: string; name?: string; file?: File | Blob };
+			parent?: string;
+		}) => void | Promise<void>;
 	}
 
 	let {
@@ -41,7 +45,8 @@
 		onCopyFiles,
 		onMoveFiles,
 		onRenameFile,
-		onOpenFile
+		onOpenFile,
+		onCreateFile
 	}: MediaFileManagerProps = $props();
 
 	let fmApi = $state<IApi | null>(null);
@@ -212,8 +217,12 @@
 
 	function wireApi(api: IApi) {
 		fmApi = api;
-		api.intercept('create-file', (ev: { file?: { type?: string } }) => {
-			if (ev?.file?.type === 'folder') return false;
+		api.intercept('create-file', async (ev: {
+			file?: { type?: string; name?: string; file?: File | Blob };
+			parent?: string;
+		}) => {
+			await onCreateFile?.(ev);
+			return false;
 		});
 
 		api.on('set-path', () => {
@@ -221,9 +230,10 @@
 			scheduleDecorationSync();
 		});
 
-		api.on('delete-files', async (ev: { ids?: string[] }) => {
+		api.intercept('delete-files', async (ev: { ids?: string[] }) => {
 			const ids = ev?.ids ?? [];
 			if (ids.length) await onDeleteFiles?.(ids);
+			return false;
 		});
 
 		// Block SVAR's client-side copy/move: ids use `{folder}/{mediaId}__{name}`, not `parent/name.ext`.
@@ -288,6 +298,16 @@
 		const api = fmApi;
 		const rows = data;
 		if (!api || !rows.length) return;
+
+		const state = api.getState();
+		api.getStores().data.init({
+			data: rows,
+			mode: state.mode,
+			drive: state.drive,
+			preview: state.preview,
+			panels: state.panels,
+			activePanel: state.activePanel
+		});
 		applyTreeDisplayNames(api, rows);
 	});
 

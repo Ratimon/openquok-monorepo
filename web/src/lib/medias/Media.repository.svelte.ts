@@ -4,6 +4,7 @@ import { MAX_MEDIA_UPLOAD_BYTES, maxMediaUploadShortLabel } from 'openquok-commo
 export interface MediaFileTreeEntityProgrammerModel {
 	id: string;
 	type: 'file' | 'folder';
+	name?: string;
 	size?: number;
 	date?: string;
 	lazy?: boolean;
@@ -27,6 +28,8 @@ export interface MediaConfig {
 		move: string;
 		copy: string;
 		rename: string;
+		createFolder: string;
+		deleteFolder: string;
 		uploadSimple: string;
 		saveInformation: string;
 	};
@@ -226,6 +229,66 @@ export class MediaRepository {
 			return {
 				success: false,
 				message: error instanceof Error ? error.message : 'Could not move files.'
+			};
+		}
+	}
+
+	public async deleteVirtualFolder(params: {
+		organizationId: string;
+		path: string;
+	}): Promise<{ success: boolean; message: string }> {
+		try {
+			const { data: deleteDto, ok } = await this.httpGateway.delete<{
+				success: boolean;
+				message?: string;
+			}>(this.config.endpoints.deleteFolder, {
+				data: {
+					organizationId: params.organizationId,
+					path: params.path
+				},
+				withCredentials: true
+			});
+
+			if (ok && deleteDto?.success) {
+				return { success: true, message: 'Folder deleted.' };
+			}
+			return { success: false, message: deleteDto?.message || 'Could not delete folder.' };
+		} catch (error) {
+			return {
+				success: false,
+				message: error instanceof Error ? error.message : 'Could not delete folder.'
+			};
+		}
+	}
+
+	public async createVirtualFolder(params: {
+		organizationId: string;
+		parent: string;
+		name: string;
+	}): Promise<{ success: boolean; message: string; path?: string }> {
+		try {
+			const { data: createDto, ok } = await this.httpGateway.post<{
+				success: boolean;
+				data?: { path?: string };
+				message?: string;
+			}>(
+				this.config.endpoints.createFolder,
+				{
+					organizationId: params.organizationId,
+					parent: params.parent,
+					name: params.name
+				},
+				{ withCredentials: true }
+			);
+
+			if (ok && createDto?.success) {
+				return { success: true, message: 'Folder created.', path: createDto.data?.path };
+			}
+			return { success: false, message: createDto?.message || 'Could not create folder.' };
+		} catch (error) {
+			return {
+				success: false,
+				message: error instanceof Error ? error.message : 'Could not create folder.'
 			};
 		}
 	}

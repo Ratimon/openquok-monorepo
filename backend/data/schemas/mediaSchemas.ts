@@ -83,3 +83,22 @@ export const validateMediaRenameBody: RequestHandler = validateRequest({
     body: mediaRenameBodySchema,
 });
 
+export const mediaCreateFolderBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    parent: z.string().min(1).max(512).optional(),
+    name: z.string().trim().min(1).max(128),
+});
+
+export const validateMediaCreateFolderBody: RequestHandler = validateRequest({
+    body: mediaCreateFolderBodySchema,
+});
+
+export const mediaDeleteFolderBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    path: z.string().min(1).max(512),
+});
+
+export const validateMediaDeleteFolderBody: RequestHandler = validateRequest({
+    body: mediaDeleteFolderBodySchema,
+});
+

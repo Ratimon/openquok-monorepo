@@ -7,6 +7,13 @@ export const MEDIA_VIRTUAL_POSTS = "/Posts";
 /** Composer uploads when no publish date is set yet. */
 export const MEDIA_VIRTUAL_POSTS_UNSCHEDULED = "/Posts/unscheduled";
 
+/** Built-in library folders that cannot be removed from the tree. */
+export const MEDIA_VIRTUAL_PROTECTED_FOLDERS = [
+	MEDIA_VIRTUAL_GENERAL,
+	MEDIA_VIRTUAL_POSTS,
+	MEDIA_VIRTUAL_POSTS_UNSCHEDULED
+] as const;
+
 const UUID_RE =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -74,6 +81,22 @@ export function parseMediaFileManagerId(
 	const mediaId = filePart.slice(0, sep);
 	if (!UUID_RE.test(mediaId)) return null;
 	return { mediaId, virtualPath };
+}
+
+/** True when the file-manager id is a folder path (not a `{folder}/{uuid}__{name}` file id). */
+export function isMediaFileManagerFolderId(id: string): boolean {
+	if (parseMediaFileManagerId(id)) return false;
+	const normalized = String(id ?? "")
+		.trim()
+		.replace(/\\/g, "/");
+	if (!normalized || normalized === "/") return false;
+	return normalized.startsWith("/");
+}
+
+/** Whether a normalized virtual path is a built-in folder that must not be deleted. */
+export function isProtectedMediaVirtualFolder(path: string): boolean {
+	const normalized = normalizeMediaVirtualPath(path);
+	return (MEDIA_VIRTUAL_PROTECTED_FOLDERS as readonly string[]).includes(normalized);
 }
 
 /** Target folder id from a SVAR folder path or file id. */
