@@ -92,14 +92,15 @@ export type {
 	PostKanbanColumnId,
 	PostKanbanColumnsViewModel,
 	PostKanbanMoveCardResultViewModel,
+	PostKanbanRowViewModel,
 	PostKanbanSourceFilter,
 	PostKanbanSourceFilterOptionViewModel,
 	PostKanbanTimeFilter,
 	PostKanbanTimeFilterOptionViewModel
-} from '$lib/posts/PostKanbanBoard.presenter.svelte';
+} from '$lib/posts/postKanbanBoard.types';
 export {
 	POST_KANBAN_COLUMNS,
 	POST_KANBAN_SOURCE_FILTER_OPTIONS,
 	POST_KANBAN_TIME_FILTER_OPTIONS
-} from '$lib/posts/PostKanbanBoard.presenter.svelte';
+} from '$lib/posts/postKanbanBoard.types';
 export { socialProviderIcon, socialProviderIconByIdentifier } from '$data/social-providers';
