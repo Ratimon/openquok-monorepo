@@ -46,6 +46,7 @@
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import ShowChannelActionsModal from '$lib/ui/components/posts/ShowChannelActionsModal.svelte';
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
+	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
 	import { dashboardChannelsGridActionsKey } from '$lib/ui/components/dashboard-channels/dashboardChannelsGridContext';
 	import DashboardChannelsChipsLayout from '$lib/ui/components/dashboard-channels/DashboardChannelsChipsLayout.svelte';
@@ -233,6 +234,7 @@
 	let kanbanActionsPostGroup = $state<string | null>(null);
 	let kanbanActionsFocusPostId = $state<string | null>(null);
 	let kanbanActionsBusy = $state(false);
+	let kanbanDeleteConfirmOpen = $state(false);
 
 	let setPickOpen = $state(false);
 	let setPickRowsVm = $state<SetRowViewModel[]>([]);
@@ -310,6 +312,7 @@
 		kanbanActionsPostGroup = null;
 		kanbanActionsFocusPostId = null;
 		kanbanActionsBusy = false;
+		kanbanDeleteConfirmOpen = false;
 	}
 
 	function openEditKanbanPostGroup(postGroup: string) {
@@ -349,10 +352,15 @@
 		}
 	}
 
-	async function deleteKanbanPostGroup() {
+	function requestDeleteKanbanPostGroup() {
+		if (!kanbanActionsPostGroup) return;
+		kanbanDeleteConfirmOpen = true;
+	}
+
+	async function confirmDeleteKanbanPostGroup() {
 		const pg = kanbanActionsPostGroup;
 		if (!pg) return;
-		if (!confirm('Delete this post?')) return;
+		kanbanDeleteConfirmOpen = false;
 		kanbanActionsBusy = true;
 		try {
 			const resultVm = await postKanbanBoard.deletePostGroup(pg);
@@ -933,8 +941,18 @@
 	onEdit={openEditKanbanPostGroup}
 	onDuplicate={duplicateKanbanPostGroup}
 	onCopy={copyKanbanPostGroupText}
-	onDelete={deleteKanbanPostGroup}
+	onDelete={requestDeleteKanbanPostGroup}
 	onPreview={() => void previewKanbanPostGroup()}
+/>
+
+<DeleteModal
+	bind:open={kanbanDeleteConfirmOpen}
+	title="Are you sure?"
+	description="Are you sure you want to delete this post?"
+	confirmLabel="Yes, delete it!"
+	cancelLabel="No, cancel!"
+	onConfirm={() => void confirmDeleteKanbanPostGroup()}
+	onCancel={() => (kanbanDeleteConfirmOpen = false)}
 />
 
 <CreateSocialPostModal

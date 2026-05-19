@@ -247,6 +247,7 @@
 	onCancel={() => (saveSetNameOpen = false)}
 />
 
+
 <Deletemodal
 	bind:open={presenter.confirmCloseOpen}
 	onConfirm={confirmClose}

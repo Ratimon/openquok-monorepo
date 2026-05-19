@@ -6,12 +6,12 @@
 	import { toast } from '$lib/ui/sonner';
 	import { cn } from '$lib/ui/helpers/common';
 
-	import Button from '$lib/ui/buttons/Button.svelte';
 	import { buttonVariants } from '$lib/ui/buttons/Button.svelte';
 	import { Dropzone } from '$lib/ui/dropzone';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
+	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 
 	type Props = {
 		mediaItemsVm: MediaLibraryItemViewModel[];
@@ -222,46 +222,27 @@
 	{/if}
 </div>
 
-<Dialog.Root
-	bind:open={deleteConfirmOpen}
-	onOpenChange={(open) => {
-		if (!open && !deletingPath) {
-			deleteTarget = null;
-		}
-	}}
->
-	<Dialog.Content class="max-w-md" showCloseButton={!deletingPath}>
-		{#if deleteTarget}
-			<Dialog.Header>
-				<Dialog.Title>Are you sure?</Dialog.Title>
-				<Dialog.Description class="text-base-content/80">
-					{deleteConfirmationCopy(deleteTarget)}
-					<span class="mt-2 block truncate text-sm font-medium text-base-content" title={deleteTarget.name}>
-						{deleteTarget.name}
-					</span>
-				</Dialog.Description>
-			</Dialog.Header>
-			<Dialog.Footer class="gap-2 sm:justify-end">
-				<Button type="button" variant="ghost" onclick={closeDeleteConfirm} disabled={Boolean(deletingPath)}>
-					No, cancel!
-				</Button>
-				<Button
-					type="button"
-					variant="ghost"
-					class="border-0 bg-primary text-primary-content hover:bg-primary/90"
-					disabled={Boolean(deletingPath)}
-					onclick={() => void confirmDelete()}
-				>
-					{#if deletingPath}
-						<AbstractIcon name={icons.LoaderCircle.name} class="size-4 animate-spin" width="16" height="16" />
-					{:else}
-						Yes, delete it!
-					{/if}
-				</Button>
-			</Dialog.Footer>
-		{/if}
-	</Dialog.Content>
-</Dialog.Root>
+{#if deleteTarget}
+	<DeleteModal
+		bind:open={deleteConfirmOpen}
+		title="Are you sure?"
+		description={deleteConfirmationCopy(deleteTarget)}
+		itemName={deleteTarget.name}
+		confirmLabel="Yes, delete it!"
+		cancelLabel="No, cancel!"
+		loading={Boolean(deletingPath)}
+		contentClass="max-w-md"
+		confirmVariant="red"
+		cancelFirst
+		onOpenChange={(open) => {
+			if (!open && !deletingPath) {
+				deleteTarget = null;
+			}
+		}}
+		onConfirm={() => void confirmDelete()}
+		onCancel={closeDeleteConfirm}
+	/>
+{/if}
 
 <Dialog.Root bind:open={previewOpen}>
 	<Dialog.Content class="w-[min(96vw,72rem)] max-w-[min(96vw,72rem)] p-0">

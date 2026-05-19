@@ -31,6 +31,7 @@
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import SetPickerDialog from '$lib/ui/components/posts/SetPickerDialog.svelte';
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
+	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import StatisticsModal from '$lib/ui/components/platform-analytics/StatisticsModal.svelte';
@@ -66,6 +67,7 @@
 	/** When set, Post actions header shows this channel only (avatar + per-channel body). */
 	let actionsFocusIntegrationId = $state<string | null>(null);
 	let actionsBusy = $state(false);
+	let actionsDeleteConfirmOpen = $state(false);
 
 	let statisticsOpen = $state(false);
 	let statisticsPostId = $state<string | null>(null);
@@ -220,6 +222,7 @@
 		actionsFocusPostId = null;
 		actionsFocusIntegrationId = null;
 		actionsBusy = false;
+		actionsDeleteConfirmOpen = false;
 	}
 
 	async function copyPostGroupText() {
@@ -241,11 +244,15 @@
 		}
 	}
 
-	async function deletePostGroup() {
+	function requestDeletePostGroup() {
+		if (!actionsPostGroup) return;
+		actionsDeleteConfirmOpen = true;
+	}
+
+	async function confirmDeletePostGroup() {
 		const pg = actionsPostGroup;
 		if (!pg) return;
-		const ok = confirm('Delete this post?');
-		if (!ok) return;
+		actionsDeleteConfirmOpen = false;
 		actionsBusy = true;
 		try {
 			const resultVm = await calendarPresenter.schedulerPresenter.deletePostGroup(pg);
@@ -436,7 +443,7 @@
 	onEdit={openEditPostGroup}
 	onDuplicate={duplicatePostGroup}
 	onCopy={copyPostGroupText}
-	onDelete={deletePostGroup}
+	onDelete={requestDeletePostGroup}
 	onPreview={() => void previewPostGroup()}
 	onCreatePost={(iso) => {
 		closeActions();
@@ -446,6 +453,16 @@
 		statisticsPostId = postId;
 		statisticsOpen = true;
 	}}
+/>
+
+<DeleteModal
+	bind:open={actionsDeleteConfirmOpen}
+	title="Are you sure?"
+	description="Are you sure you want to delete this post?"
+	confirmLabel="Yes, delete it!"
+	cancelLabel="No, cancel!"
+	onConfirm={() => void confirmDeletePostGroup()}
+	onCancel={() => (actionsDeleteConfirmOpen = false)}
 />
 
 <StatisticsModal

@@ -82,7 +82,7 @@
 				<Button
 					type="button"
 					variant="ghost"
-					class="text-error hover:bg-error/10"
+					class="gap-1.5 text-error hover:bg-error/10"
 					disabled={busy}
 					onclick={() => void onDeletePost?.()}
 				>
