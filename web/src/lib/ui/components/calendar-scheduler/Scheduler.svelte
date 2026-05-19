@@ -11,8 +11,8 @@
 
 	import { toast } from '$lib/ui/sonner';
 
-	import CalendarGroupFilter from '$lib/ui/components/calendar-scheduler/CalendarGroupFilter.svelte';
-	import SocialChannelFilter from '$lib/ui/components/calendar-scheduler/SocialChannelFilter.svelte';
+	import ChannelGroupFilter from '$lib/ui/components/filters/ChannelGroupFilter.svelte';
+	import ChannelKindFilter from '$lib/ui/components/filters/ChannelKindFilter.svelte';
 	import PostTypeFilter from './PostTypeFilter.svelte';
 	import CalendarFilters from '$lib/ui/components/calendar-scheduler/CalendarFilters.svelte';
 
@@ -222,7 +222,7 @@
 		{#snippet groupFilter()}
 			<div class="flex flex-wrap items-center gap-2">
 				{#if channels.length > 0}
-					<CalendarGroupFilter
+					<ChannelGroupFilter
 						{channels}
 						allGroups={scheduledPostsVm.allGroups}
 						selectedGroupIds={scheduledPostsVm.selectedGroupIds}
@@ -230,7 +230,7 @@
 					/>
 				{/if}
 				{#if hasDistinctSocialPlatforms}
-					<SocialChannelFilter
+					<ChannelKindFilter
 						{channels}
 						allSocialPlatforms={scheduledPostsVm.allSocialPlatforms}
 						selectedSocialPlatformIdentifiers={scheduledPostsVm.selectedSocialPlatformIdentifiers}

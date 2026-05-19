@@ -24,7 +24,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
-	import SocialChannelFilter from '$lib/ui/components/calendar-scheduler/SocialChannelFilter.svelte';
+	import ChannelKindFilter from '$lib/ui/components/filters/ChannelKindFilter.svelte';
 	import RenderAnalyticsGrid from '$lib/ui/components/platform-analytics/RenderAnalyticsGrid.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
 
@@ -170,7 +170,7 @@
 				<h3 class="text-lg font-semibold text-base-content">
 					Targeted channels</h3>
 				<div class="flex flex-wrap items-center justify-end gap-2">
-					<SocialChannelFilter
+					<ChannelKindFilter
 						channels={connectedChannelsVm}
 						allSocialPlatforms={analyticsPresenter.platformFilterVm.allSocialPlatforms}
 						selectedSocialPlatformIdentifiers={

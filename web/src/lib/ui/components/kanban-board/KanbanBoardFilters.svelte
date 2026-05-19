@@ -10,8 +10,8 @@
 
 	import { icons } from '$data/icons';
 
-	import CalendarGroupFilter from '$lib/ui/components/calendar-scheduler/CalendarGroupFilter.svelte';
-	import SocialChannelFilter from '$lib/ui/components/calendar-scheduler/SocialChannelFilter.svelte';
+	import ChannelGroupFilter from '$lib/ui/components/filters/ChannelGroupFilter.svelte';
+	import ChannelKindFilter from '$lib/ui/components/filters/ChannelKindFilter.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
@@ -62,7 +62,7 @@
 <div class="flex flex-col gap-2">
 	<div class="flex min-w-0 w-full max-w-full flex-wrap items-center gap-2">
 		{#if channels.length > 0}
-			<CalendarGroupFilter
+			<ChannelGroupFilter
 				{channels}
 				{allGroups}
 				{selectedGroupIds}
@@ -70,7 +70,7 @@
 			/>
 		{/if}
 		{#if hasDistinctSocialPlatforms}
-			<SocialChannelFilter
+			<ChannelKindFilter
 				{channels}
 				{allSocialPlatforms}
 				{selectedSocialPlatformIdentifiers}
