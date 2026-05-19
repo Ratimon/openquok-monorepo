@@ -18,14 +18,12 @@
 	import GlyphEmojiPicker from '$lib/ui/components/posts/GlyphEmojiPicker.svelte';
 	import GlyphItalicText from '$lib/ui/components/posts/GlyphItalicText.svelte';
 	import GlyphUText from '$lib/ui/components/posts/GlyphUText.svelte';
+	import DeviceImageAttachDialog from '$lib/ui/components/media/DeviceImageAttachDialog.svelte';
 	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
 	import ComposerMediaTooltip, {
 		composeTooltipTriggerClick
 	} from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
-	import * as Dialog from '$lib/ui/dialog';
-	import { Dropzone } from '$lib/ui/dropzone';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { toast } from '$lib/ui/sonner';
@@ -251,65 +249,12 @@
 		</ComposerMediaTooltip>
 	</Tooltip.Provider>
 
-	<Dialog.Root bind:open={deviceAttachOpen}>
-		<Dialog.Content
-			class="max-w-md gap-5"
-			showCloseButton={!uploadBusy}
-			onOpenAutoFocus={(e) => e.preventDefault()}
-		>
-			<Dialog.Header>
-				<Dialog.Title>
-					Add images
-				</Dialog.Title>
-				<Dialog.Description class="text-base-content/75 text-sm">
-					Drag and drop images here, or click the area to browse. Files upload as soon as they are added;
-					you do not need to save the set first.
-				</Dialog.Description>
-			</Dialog.Header>
-
-			<Dropzone
-				accept="image/*"
-				multiple
-				disabled={disabled || uploadBusy || mediaLocked}
-				class="border-primary/25 hover:border-primary/40 bg-base-200/50 h-52 min-h-48 cursor-pointer border-dashed disabled:cursor-not-allowed disabled:opacity-50"
-				onChange={(e) => {
-					const t = e.currentTarget as HTMLInputElement;
-					void ingestFilesFromAttachDialog(t.files);
-					t.value = '';
-				}}
-				onDrop={(e) => {
-					const list = e.dataTransfer?.files ?? null;
-					if (list?.length) void ingestFilesFromAttachDialog(list);
-				}}
-			>
-				<div class="text-base-content/80 pointer-events-none flex flex-col items-center gap-3 px-4 text-center">
-					{#if uploadBusy}
-						<span class="loading loading-spinner loading-lg text-primary"></span>
-						<span class="text-sm font-medium">Uploading…</span>
-					{:else}
-						<span class="relative inline-flex size-12 items-center justify-center text-primary">
-							<AbstractIcon name={icons.Image.name} class="size-12" width="48" height="48" />
-						</span>
-						<div class="space-y-1">
-							<p class="text-sm font-medium">Drop images here</p>
-							<p class="text-base-content/60 text-xs">or click to choose from your device</p>
-						</div>
-					{/if}
-				</div>
-			</Dropzone>
-
-			<Dialog.Footer>
-				<Button
-					type="button"
-					variant="ghost"
-					disabled={uploadBusy}
-					onclick={() => (deviceAttachOpen = false)}
-				>
-					Cancel
-				</Button>
-			</Dialog.Footer>
-		</Dialog.Content>
-	</Dialog.Root>
+	<DeviceImageAttachDialog
+		bind:open={deviceAttachOpen}
+		disabled={disabled || uploadBusy || mediaLocked}
+		{uploadBusy}
+		onFilesSelected={ingestFilesFromAttachDialog}
+	/>
 
 	<!-- 8–9: parity placeholders (not wired yet) -->
 	<!-- <button type="button" class={iconBtn} disabled aria-label="AI image (coming soon)" title="Coming soon">

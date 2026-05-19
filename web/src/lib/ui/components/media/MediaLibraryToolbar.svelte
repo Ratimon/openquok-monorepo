@@ -2,6 +2,7 @@
 	import { icons } from '$data/icons';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import DeviceImageAttachDialog from '$lib/ui/components/media/DeviceImageAttachDialog.svelte';
 	import GlyphDesignEditor from '$lib/ui/components/posts/GlyphDesignEditor.svelte';
 	import ThirdPartyMediaLibrary from '$lib/ui/components/third-parties/ThirdPartyMediaLibrary.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -16,25 +17,16 @@
 
 	let { organizationId, uploadBusy, onFilesSelected, onDesignClick, onImported }: Props = $props();
 
-	let fileInput = $state.raw<HTMLInputElement | null>(null);
+	let attachOpen = $state(false);
 
-	function onInputChange(e: Event): void {
-		const el = e.currentTarget as HTMLInputElement;
-		onFilesSelected(el.files);
-		el.value = '';
+	function handleAttachFiles(files: FileList) {
+		onFilesSelected(files);
+		attachOpen = false;
 	}
 </script>
 
 <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-	<input
-		bind:this={fileInput}
-		type="file"
-		accept="image/*,video/*"
-		multiple
-		class="hidden"
-		onchange={onInputChange}
-	/>
-	<Button type="button" class="gap-2" onclick={() => fileInput?.click()} disabled={uploadBusy}>
+	<Button type="button" class="gap-2" disabled={uploadBusy} onclick={() => (attachOpen = true)}>
 		{#if uploadBusy}
 			<AbstractIcon name={icons.LoaderCircle.name} class="size-4 animate-spin" width="16" height="16" />
 		{:else}
@@ -42,6 +34,18 @@
 		{/if}
 		Upload
 	</Button>
+
+	<DeviceImageAttachDialog
+		bind:open={attachOpen}
+		disabled={uploadBusy}
+		{uploadBusy}
+		accept="image/*,video/*"
+		title="Upload media"
+		description="Drag and drop images or videos here, or click the area to browse. Files upload as soon as they are added."
+		dropTitle="Drop images or videos here"
+		onFilesSelected={handleAttachFiles}
+	/>
+
 	<Button
 		type="button"
 		variant="secondary"
