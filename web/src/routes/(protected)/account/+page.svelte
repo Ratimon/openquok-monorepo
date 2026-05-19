@@ -112,6 +112,12 @@
 	const postKanbanTimeFilterOptions = $derived(postKanbanBoard.timeFilterOptions);
 	const postKanbanSourceFilter = $derived(postKanbanBoard.sourceFilter);
 	const postKanbanTimeFilter = $derived(postKanbanBoard.timeFilter);
+	const postKanbanAllGroups = $derived(postKanbanBoard.allGroups);
+	const postKanbanSelectedGroupIds = $derived(postKanbanBoard.selectedGroupIds);
+	const postKanbanAllSocialPlatforms = $derived(postKanbanBoard.allSocialPlatforms);
+	const postKanbanSelectedSocialPlatformIdentifiers = $derived(
+		postKanbanBoard.selectedSocialPlatformIdentifiers
+	);
 	const postKanbanStatus = $derived(postKanbanBoard.status);
 	const postKanbanError = $derived(postKanbanBoard.error);
 	const postKanbanMovingPostGroup = $derived(postKanbanBoard.movingPostGroup);
@@ -711,6 +717,11 @@
 
 	{#if showPostKanbanBoard}
 		<PostKanbanBoard
+			channels={connectedChannelsVm}
+			allGroups={postKanbanAllGroups}
+			selectedGroupIds={postKanbanSelectedGroupIds}
+			allSocialPlatforms={postKanbanAllSocialPlatforms}
+			selectedSocialPlatformIdentifiers={postKanbanSelectedSocialPlatformIdentifiers}
 			columnsVm={postKanbanColumnsVm}
 			columnCountsVm={postKanbanColumnCountsVm}
 			columnOptions={postKanbanColumnOptions}
@@ -722,6 +733,8 @@
 			error={postKanbanError}
 			movingPostGroup={postKanbanMovingPostGroup}
 			calendarHref={calendarPath}
+			onGroupFilterChange={(next) => postKanbanBoard.setGroupFilter(next)}
+			onSocialPlatformFilterChange={(next) => postKanbanBoard.setSocialPlatformFilter(next)}
 			onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
 			onTimeFilterChange={(next) => postKanbanBoard.setTimeFilter(next)}
 			onMoveCardToColumn={(payload, column) => postKanbanBoard.moveCardToColumn(payload, column)}

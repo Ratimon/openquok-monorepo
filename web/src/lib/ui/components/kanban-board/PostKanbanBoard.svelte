@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { ChannelViewModel, SocialPlatformFilterVm } from '$lib/posts';
 	import type {
 		PostKanbanColumnCountsViewModel,
 		PostKanbanColumnId,
@@ -24,6 +25,11 @@
 	}
 
 	type Props = {
+		channels: ChannelViewModel[];
+		allGroups: boolean;
+		selectedGroupIds: string[];
+		allSocialPlatforms: boolean;
+		selectedSocialPlatformIdentifiers: string[];
 		columnsVm: PostKanbanColumnsViewModel;
 		columnCountsVm: PostKanbanColumnCountsViewModel;
 		columnOptions: readonly PostKanbanColumnOptionViewModel[];
@@ -34,6 +40,8 @@
 		status: 'idle' | 'loading' | 'ready' | 'error';
 		error: string | null;
 		movingPostGroup: string | null;
+		onGroupFilterChange: (next: { allGroups: boolean; selectedGroupIds: string[] }) => void;
+		onSocialPlatformFilterChange: (next: SocialPlatformFilterVm) => void;
 		onSourceFilterChange: (next: PostKanbanSourceFilter) => void;
 		onTimeFilterChange: (next: PostKanbanTimeFilter) => void;
 		onMoveCardToColumn: (
@@ -48,6 +56,11 @@
 	};
 
 	let {
+		channels,
+		allGroups,
+		selectedGroupIds,
+		allSocialPlatforms,
+		selectedSocialPlatformIdentifiers,
 		columnsVm,
 		columnCountsVm,
 		columnOptions,
@@ -58,6 +71,8 @@
 		status,
 		error,
 		movingPostGroup,
+		onGroupFilterChange,
+		onSocialPlatformFilterChange,
 		onSourceFilterChange,
 		onTimeFilterChange,
 		onMoveCardToColumn,
@@ -108,11 +123,18 @@
 			</p>
 		</div>
 		<KanbanBoardFilters
+			{channels}
+			{allGroups}
+			{selectedGroupIds}
+			{allSocialPlatforms}
+			{selectedSocialPlatformIdentifiers}
 			{timeFilterOptions}
 			{timeFilter}
 			{sourceFilterOptions}
 			{sourceFilter}
 			{calendarHref}
+			{onGroupFilterChange}
+			{onSocialPlatformFilterChange}
 			{onTimeFilterChange}
 			{onSourceFilterChange}
 		/>

@@ -1,4 +1,6 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import type { ChannelViewModel } from '$lib/posts/scheduler.types';
+import { deriveIntegrationFilter } from '$lib/posts/utils/schedulerIntegrationFilter';
 import { isProfileChannelDisplayName } from '$data/social-providers';
 import {
 	channelDisplayFromPostRow,
@@ -24,6 +26,29 @@ import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFro
 import dayjs from 'dayjs';
 
 const CONTENT_PREVIEW_MAX_CHARS = 160;
+
+export function filterKanbanCardsByIntegration(
+	cardsVm: readonly PostKanbanCardViewModel[],
+	channels: readonly ChannelViewModel[],
+	allGroups: boolean,
+	selectedGroupIds: string[],
+	allSocialPlatforms: boolean,
+	selectedSocialPlatformIdentifiers: string[]
+): PostKanbanCardViewModel[] {
+	const integrationFilter = deriveIntegrationFilter(
+		[...channels],
+		allGroups,
+		selectedGroupIds,
+		allSocialPlatforms,
+		selectedSocialPlatformIdentifiers
+	);
+	if (integrationFilter.kind === 'all') return [...cardsVm];
+	if (integrationFilter.kind === 'none') return [];
+	const allowed = new Set(integrationFilter.integrationIds);
+	return cardsVm.filter((card) =>
+		card.channelSlots.some((slot) => allowed.has(slot.integrationId))
+	);
+}
 
 export function filterKanbanCardsBySource(
 	cardsVm: readonly PostKanbanCardViewModel[],

@@ -5,6 +5,8 @@ import type {
 } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type { PostsRepository } from '$lib/posts/Post.repository.svelte';
 import type { SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
+import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts/scheduler.types';
+import type { SocialPlatformFilterVm } from '$lib/posts/scheduler.types';
 import {
 	KANBAN_BOARD_LOOKAHEAD_DAYS,
 	KANBAN_BOARD_LOOKBACK_DAYS,
@@ -28,6 +30,7 @@ import {
 	buildKanbanColumnCounts,
 	buildKanbanColumnsWithTimeFilter,
 	channelSlotFromChannel,
+	filterKanbanCardsByIntegration,
 	filterKanbanCardsBySource,
 	groupKanbanCardsIntoColumns
 } from '$lib/posts/utils/postKanbanBoardCards';
@@ -72,26 +75,38 @@ export class PostKanbanBoardPresenter {
 
 	sourceFilter = $state<PostKanbanSourceFilter>('all');
 	timeFilter = $state<PostKanbanTimeFilter>('all-upcoming');
+	allGroups = $state(true);
+	selectedGroupIds = $state<string[]>([]);
+	allSocialPlatforms = $state(true);
+	selectedSocialPlatformIdentifiers = $state<string[]>([]);
 	status = $state<'idle' | 'loading' | 'ready' | 'error'>('idle');
 	error = $state<string | null>(null);
 	movingPostGroup = $state<string | null>(null);
 	channels = $state<readonly CreateSocialPostChannelViewModel[]>([]);
 	cardsVm = $state<PostKanbanCardViewModel[]>([]);
 
+	private filteredCardsVm = $derived.by(() => {
+		const integrationFiltered = filterKanbanCardsByIntegration(
+			this.cardsVm,
+			this.channels,
+			this.allGroups,
+			this.selectedGroupIds,
+			this.allSocialPlatforms,
+			this.selectedSocialPlatformIdentifiers
+		);
+		return filterKanbanCardsBySource(integrationFiltered, this.sourceFilter);
+	});
+
 	columnsVm = $derived.by((): PostKanbanColumnsViewModel =>
-		buildKanbanColumnsWithTimeFilter(
-			filterKanbanCardsBySource(this.cardsVm, this.sourceFilter),
-			this.timeFilter
-		)
+		buildKanbanColumnsWithTimeFilter(this.filteredCardsVm, this.timeFilter)
 	);
 
-	columnCountsVm = $derived.by((): PostKanbanColumnCountsViewModel => {
-		const sourceFiltered = filterKanbanCardsBySource(this.cardsVm, this.sourceFilter);
-		return buildKanbanColumnCounts(
-			buildKanbanColumnsWithTimeFilter(sourceFiltered, this.timeFilter),
-			groupKanbanCardsIntoColumns(sourceFiltered)
-		);
-	});
+	columnCountsVm = $derived.by((): PostKanbanColumnCountsViewModel =>
+		buildKanbanColumnCounts(
+			buildKanbanColumnsWithTimeFilter(this.filteredCardsVm, this.timeFilter),
+			groupKanbanCardsIntoColumns(this.filteredCardsVm)
+		)
+	);
 
 	private organizationId = $state<string | null>(null);
 	private listVm = $state<PostKanbanRowViewModel[]>([]);
@@ -142,9 +157,21 @@ export class PostKanbanBoardPresenter {
 	setChannels(organizationId: string, next: readonly CreateSocialPostChannelViewModel[]) {
 		this.channels = next;
 		this.rememberChannelSnapshots(organizationId, next);
+		this.populateAllGroupSelectionWhenEmpty(next);
+		this.populateAllSocialPlatformSelectionWhenEmpty(next);
 		if (organizationId === this.organizationId) {
 			this.rebuildCardsVm();
 		}
+	}
+
+	setGroupFilter(next: { allGroups: boolean; selectedGroupIds: string[] }): void {
+		this.allGroups = next.allGroups;
+		this.selectedGroupIds = next.selectedGroupIds;
+	}
+
+	setSocialPlatformFilter(next: SocialPlatformFilterVm): void {
+		this.allSocialPlatforms = next.allSocialPlatforms;
+		this.selectedSocialPlatformIdentifiers = next.selectedSocialPlatformIdentifiers;
 	}
 
 	setSourceFilter(next: PostKanbanSourceFilter) {
@@ -161,12 +188,14 @@ export class PostKanbanBoardPresenter {
 			this.organizationId = null;
 			this.listVm = [];
 			this.cardsVm = [];
+			this.resetIntegrationFilters();
 			this.status = 'ready';
 			return;
 		}
 		if (organizationId !== this.organizationId) {
 			this.listVm = [];
 			this.cardsVm = [];
+			this.resetIntegrationFilters();
 		}
 		this.organizationId = organizationId;
 		this.status = 'loading';
@@ -254,6 +283,51 @@ export class PostKanbanBoardPresenter {
 		}
 		this.replacePostGroupRows(payload.postGroup, toPostKanbanRowsVm(resultPm.posts));
 		return { ok: true, targetColumn };
+	}
+
+	private resetIntegrationFilters(): void {
+		this.allGroups = true;
+		this.selectedGroupIds = [];
+		this.allSocialPlatforms = true;
+		this.selectedSocialPlatformIdentifiers = [];
+	}
+
+	private populateAllSocialPlatformSelectionWhenEmpty(
+		channels: readonly CreateSocialPostChannelViewModel[]
+	): void {
+		if (
+			!this.allSocialPlatforms ||
+			!channels.length ||
+			this.selectedSocialPlatformIdentifiers.length
+		) {
+			return;
+		}
+		const ids = [
+			...new Set(channels.map((c) => String(c.identifier ?? '').trim()).filter(Boolean))
+		].sort((a, b) => a.localeCompare(b));
+		this.selectedSocialPlatformIdentifiers = ids;
+	}
+
+	private populateAllGroupSelectionWhenEmpty(
+		channels: readonly CreateSocialPostChannelViewModel[]
+	): void {
+		if (!this.allGroups || !channels.length || this.selectedGroupIds.length) return;
+
+		const ids: string[] = [];
+		const seen = new Set<string>();
+		let hasUngrouped = false;
+		for (const c of channels) {
+			if (!c.group?.id) {
+				hasUngrouped = true;
+				continue;
+			}
+			if (seen.has(c.group.id)) continue;
+			seen.add(c.group.id);
+			ids.push(c.group.id);
+		}
+		ids.sort((a, b) => a.localeCompare(b));
+		if (hasUngrouped) ids.push(CALENDAR_UNGROUPED_SENTINEL);
+		this.selectedGroupIds = ids;
 	}
 
 	private listPostsIsoRange(): { startIso: string; endIso: string } {
