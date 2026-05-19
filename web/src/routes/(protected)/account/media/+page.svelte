@@ -9,7 +9,7 @@
 	import { getMenuOptions, type IFileMenuOption } from '@svar-ui/svelte-filemanager';
 
 	import { mediaLibraryMediaModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
-	import { formatBytes, maxMediaUploadShortLabel } from '$lib/medias';
+	import { formatBytes, maxMediaUploadShortLabel, normalizeMediaVirtualPath } from '$lib/medias';
 	import { createAccountMediaUppy } from '$lib/medias/utils/accountMediaUppy';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -69,6 +69,14 @@
 
 	function isSupportedUpload(file: File): boolean {
 		return ACCEPTED_MEDIA_TYPES.some((prefix) => file.type.startsWith(prefix));
+	}
+
+	function uploadSuccessToastMessage(fileCount: number, virtualPath: string | null | undefined): string {
+		const destination = normalizeMediaVirtualPath(virtualPath);
+		if (fileCount === 1) {
+			return `Media uploaded to ${destination}.`;
+		}
+		return `${fileCount} files uploaded to ${destination}.`;
 	}
 
 	function queueFilesForUpload(fileList: FileList | null): void {
@@ -226,7 +234,11 @@
 			const ok = successful.length;
 			if (ok > 0) {
 				p.reloadFromFirstPage();
-				toast.success(ok === 1 ? 'Media uploaded.' : `${ok} files uploaded.`);
+				const destinationPath =
+					(successful[0]?.meta as { virtualPath?: string } | undefined)?.virtualPath ??
+					(instance.getState().meta as { virtualPath?: string } | undefined)?.virtualPath ??
+					p.uploadVirtualPath;
+				toast.success(uploadSuccessToastMessage(ok, destinationPath));
 			}
 			if (failed.length) {
 				toast.error('One or more uploads failed.');
