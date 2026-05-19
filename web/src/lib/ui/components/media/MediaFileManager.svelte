@@ -1,11 +1,18 @@
 <script lang="ts">
-	import type { IApi, IEntity, IFileMenuOption, IParsedEntity, TContextMenuType } from '@svar-ui/svelte-filemanager';
+	import type {
+		IApi,
+		IEntity,
+		IExtraInfo,
+		IFileMenuOption,
+		IParsedEntity,
+		TContextMenuType
+	} from '@svar-ui/svelte-filemanager';
 	import type { MediaFileManagerDriveVm } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
 	import type { MediaLibraryLayout } from '$lib/ui/components/media/MediaFileManagerViewControls.svelte';
 
 	import { mount, onDestroy, tick, unmount } from 'svelte';
 
-	import { mediaFileManagerDisplayNameFromId } from 'openquok-common';
+	import { mediaFileManagerDisplayNameFromId, parseMediaFileManagerId } from 'openquok-common';
 
 	import { Filemanager, Willow } from '@svar-ui/svelte-filemanager';
 
@@ -329,6 +336,13 @@
 		if (file.kind === 'image' || file.kind === 'video') return url;
 		return null;
 	}
+
+	function extraInfoForFile(file: IParsedEntity): IExtraInfo | null {
+		if (file.type !== 'file') return null;
+		const parsed = parseMediaFileManagerId(String(file.id ?? ''));
+		if (!parsed) return null;
+		return { Folder: parsed.virtualPath } as unknown as IExtraInfo;
+	}
 </script>
 
 <div
@@ -354,6 +368,7 @@
 			{readonly}
 			{menuOptions}
 			previews={previewUrl}
+			extraInfo={extraInfoForFile}
 			init={wireApi}
 		/>
 	</Willow>

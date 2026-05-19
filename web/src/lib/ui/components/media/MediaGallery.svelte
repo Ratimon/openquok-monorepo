@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { MediaDeleteViewModel, MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 
-	import { formatBytes, publicUrlForMediaStorageKey } from '$lib/medias';
+	import { formatBytes, normalizeMediaVirtualPath, publicUrlForMediaStorageKey } from '$lib/medias';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 	import { cn } from '$lib/ui/helpers/common';
@@ -67,6 +67,10 @@
 	let previewOpen = $state(false);
 	let previewItem = $state<MediaLibraryItemViewModel | null>(null);
 	let previewUrl = $state('');
+
+	const previewFolderPath = $derived(
+		previewItem ? normalizeMediaVirtualPath(previewItem.virtualPath) : ''
+	);
 
 	function deleteConfirmationCopy(mediaVm: MediaLibraryItemViewModel): string {
 		if (mediaVm.kind === 'video') return 'Are you sure you want to delete this video?';
@@ -249,6 +253,9 @@
 		{#if previewItem}
 			<div class="border-b border-base-300 px-6 py-4">
 				<Dialog.Title class="truncate text-lg font-semibold">{previewItem.name}</Dialog.Title>
+				<p class="mt-1 truncate font-mono text-xs text-base-content/55" title={previewFolderPath}>
+					{previewFolderPath}
+				</p>
 				<div class="mt-1 text-sm text-base-content/65">
 					{previewItem.kind} · {formatBytes(previewItem.size)}
 				</div>
