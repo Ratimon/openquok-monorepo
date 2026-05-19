@@ -139,7 +139,6 @@
 					{:then { default: DesignMediaWorkspace }}
 						<DesignMediaWorkspace
 							disabled={disabled || busy}
-							{useMediaLabel}
 							designSeed={designSeed}
 							{composerMode}
 							{focusedProviderIdentifier}
@@ -148,7 +147,6 @@
 							{fetchPolotnoTemplateListPage}
 							{backgroundPanelVm}
 							onCanvasReady={(api) => (canvasApi = api)}
-							onUseMedia={() => void exportCanvasToPost()}
 						/>
 					{:catch}
 						<p class="text-error px-2 py-8 text-center text-sm">
@@ -164,6 +162,7 @@
 			<Button
 				type="button"
 				variant="primary"
+				class="gap-1.5"
 				disabled={disabled || busy || !canvasApi}
 				onclick={() => void exportCanvasToPost()}
 			>

@@ -119,18 +119,6 @@
 		onchange={onFileInput}
 	/>
 
-	<Button
-		type="button"
-		variant="primary"
-		size="default"
-		class="w-full shrink-0"
-		disabled={busy || loading}
-		onclick={() => uploadInput?.click()}
-	>
-		<AbstractIcon name={icons.SquarePlus.name} class="mr-2 size-4 shrink-0" width="16" height="16" />
-		Upload from device
-	</Button>
-
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="border-base-300 hover:border-primary/40 flex min-h-[120px] shrink-0 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center text-sm transition-colors"

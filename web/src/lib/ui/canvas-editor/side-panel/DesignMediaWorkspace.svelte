@@ -12,9 +12,6 @@
 		onCanvasReady?: (
 			api: import('$lib/ui/canvas-editor/canvas/konvaCanvasApi').KonvaCanvasApi | null
 		) => void;
-		onUseMedia?: () => void;
-		/** Primary action label on the canvas toolbar (mirrored in the host dialog footer when used there). */
-		useMediaLabel?: string;
 		/**
 		 * Bumps each time the host design dialog opens so aspect ratio resets from composer context
 		 * (global → General default aspect; custom → first format for the focused channel’s platform).
@@ -72,8 +69,6 @@
 	let {
 		disabled = false,
 		onCanvasReady,
-		onUseMedia,
-		useMediaLabel = 'Use this media',
 		designSeed = 0,
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
@@ -263,8 +258,6 @@
 			canUndo={historyUi.canUndo}
 			canRedo={historyUi.canRedo}
 			selection={selectionState}
-			{useMediaLabel}
-			onUseMedia={() => onUseMedia?.()}
 		/>
 		<div class="border-base-300 text-base-content/65 border-b px-2 py-2 sm:px-3">
 			<p class="text-[11px] leading-snug sm:text-xs">

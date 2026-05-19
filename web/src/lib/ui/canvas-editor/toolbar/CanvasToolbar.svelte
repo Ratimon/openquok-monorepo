@@ -1,12 +1,8 @@
 <script lang="ts">
 	import type { CanvasSelectionState, KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-	import { icons } from '$data/icons';
 
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
 	import CopyStyleButton from './controls/CopyStyleButton.svelte';
 	import DuplicateButton from './controls/DuplicateButton.svelte';
-	// import GroupButton from './controls/GroupButton.svelte';
 	import HelpToolbarButton from './controls/HelpToolbarButton.svelte';
 	import HistoryButtons from './controls/HistoryButtons.svelte';
 	import LockButton from './controls/LockButton.svelte';
@@ -21,9 +17,6 @@
 		canUndo: boolean;
 		canRedo: boolean;
 		selection: CanvasSelectionState;
-		onUseMedia?: () => void;
-		/** Label for the primary export / attach action (e.g. composer vs. media library). */
-		useMediaLabel?: string;
 	};
 
 	let {
@@ -31,9 +24,7 @@
 		canvasApi,
 		canUndo,
 		canRedo,
-		selection,
-		onUseMedia,
-		useMediaLabel = 'Use this media'
+		selection
 	}: Props = $props();
 </script>
 
@@ -53,16 +44,4 @@
 	<RemoveButton {disabled} {canvasApi} {selection} />
 	<CopyStyleButton {disabled} {canvasApi} />
 	<HelpToolbarButton {disabled} {canvasApi} />
-	<span class="flex-1"></span>
-	<Button
-		type="button"
-		variant="primary"
-		size="sm"
-		class="gap-1.5"
-		disabled={disabled || !canvasApi}
-		onclick={() => onUseMedia?.()}
-	>
-		<AbstractIcon name={icons.Save.name} class="size-4" width="16" height="16" />
-		{useMediaLabel}
-	</Button>
 </div>
