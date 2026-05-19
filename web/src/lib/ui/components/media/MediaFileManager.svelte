@@ -684,6 +684,31 @@
 		border-radius: var(--wx-radius-major) var(--wx-radius-major) 0 0;
 	}
 
+	/* Willow runs with fonts={false}, so wxi-angle-right glyphs are empty 38px boxes — use text chevrons. */
+	.media-file-manager-host :global(.wx-breadcrumbs > i.wx-icon.wxi-angle-right) {
+		display: none;
+	}
+
+	.media-file-manager-host :global(.wx-breadcrumbs) {
+		gap: 0.375rem;
+	}
+
+	.media-file-manager-host :global(.wx-breadcrumbs .wx-item) {
+		font-size: 1rem;
+		line-height: 1.5rem;
+	}
+
+	/* ~ .wx-item: refresh wrapper is also a div, so :first-of-type wrongly prefixes the root crumb */
+	.media-file-manager-host :global(.wx-breadcrumbs .wx-item ~ .wx-item::before) {
+		content: '›';
+		margin-inline: 0.625rem 1rem;
+		color: color-mix(in oklab, var(--color-base-content) 35%, transparent);
+		font-size: 1rem;
+		line-height: 1.5rem;
+		user-select: none;
+		pointer-events: none;
+	}
+
 	.media-file-manager-host :global(.wx-toolbar .wx-name),
 	.media-file-manager-host :global(.wx-breadcrumbs .wx-item),
 	.media-file-manager-host :global(.wx-folder .wx-name),
