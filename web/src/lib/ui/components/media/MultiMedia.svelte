@@ -266,7 +266,7 @@
 		{/if}
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="border-base-300/80 text-base-content/50 flex min-h-[2.25rem] flex-wrap items-center gap-2 border-t pt-2 text-[11px]"
+			class="border-base-300/80 flex min-h-10 flex-wrap items-center gap-2.5 border-t px-0.5 pt-2.5 text-sm leading-relaxed text-base-content/70"
 			ondragover={(e) => {
 				e.preventDefault();
 				if (noDrag) return;
@@ -276,12 +276,20 @@
 			ondrop={onDropZoneDrop}
 		>
 			{#if noDrag}
-				<span>Adding another attachment isn’t supported for the selected network(s).</span>
+				<span class="text-base-content/60">
+					Adding another attachment isn’t supported for the selected network(s).
+				</span>
 			{:else if dragOver}
-				<span class="text-primary font-medium">
+				<span class="text-primary shrink-0" aria-hidden="true">
+					<AbstractIcon name={icons.Image.name} class="size-8" width="32" height="32" />
+				</span>
+				<span class="text-primary font-semibold">
 					Drop images here to attach
 				</span>
 			{:else}
+				<span class="text-primary shrink-0" aria-hidden="true">
+					<AbstractIcon name={icons.Image.name} class="size-8" width="32" height="32" />
+				</span>
 				<span>
 					Drag and drop images here, or use the icons on the editor.
 				</span>
