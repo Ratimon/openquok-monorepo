@@ -18,6 +18,7 @@
 	import GlyphEmojiPicker from '$lib/ui/components/posts/GlyphEmojiPicker.svelte';
 	import GlyphItalicText from '$lib/ui/components/posts/GlyphItalicText.svelte';
 	import GlyphUText from '$lib/ui/components/posts/GlyphUText.svelte';
+	import ComposerMediaLibraryDialog from '$lib/ui/components/media/ComposerMediaLibraryDialog.svelte';
 	import DeviceImageAttachDialog from '$lib/ui/components/media/DeviceImageAttachDialog.svelte';
 	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
 	import ComposerMediaTooltip, {
@@ -79,6 +80,7 @@
 	let uploadBusy = $state(false);
 	let designOpen = $state(false);
 	let deviceAttachOpen = $state(false);
+	let libraryOpen = $state(false);
 	const mediaLocked = $derived(commentsMode === 'no-media' && items.length > 0);
 	let signatureOpen = $state(false);
 	const iconBtn =
@@ -116,6 +118,13 @@
 			items = [...items, ...added];
 		}
 	}
+
+	function onAttachFromLibrary(added: PostMediaProgrammerModel[]) {
+		if (!added.length || mediaLocked) return;
+		items = [...items, ...added];
+	}
+
+	const attachedMediaPaths = $derived(items.map((m) => m.path));
 
 	function insertSignatureFromModal(text: string) {
 		const trimmed = (text ?? '').trim();
@@ -174,7 +183,24 @@
 				</button>
 			{/snippet}
 		</ComposerMediaTooltip>
-		<!-- 2: design / canvas modal -->
+		<!-- 2: workspace media library -->
+		<ComposerMediaTooltip label="Attach images from your media library">
+			{#snippet trigger({ props })}
+				<button
+					{...props}
+					type="button"
+					class={iconBtn}
+					disabled={disabled || uploadBusy || mediaLocked || !organizationId?.trim()}
+					onclick={composeTooltipTriggerClick(props, () => {
+						libraryOpen = true;
+					})}
+					aria-label="Attach images from media library"
+				>
+					<AbstractIcon name={icons.Images.name} class="size-6" width="24" height="24" />
+				</button>
+			{/snippet}
+		</ComposerMediaTooltip>
+		<!-- 3: design / canvas modal -->
 		<ComposerMediaTooltip label="Open the design editor to create or edit visuals">
 			{#snippet trigger({ props })}
 				<button
@@ -192,7 +218,7 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 
-		<!-- 3: signatures modal -->
+		<!-- 4: signatures modal -->
 		<ComposerMediaTooltip label="Insert a saved workspace signature">
 			{#snippet trigger({ props })}
 				<button
@@ -218,7 +244,7 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 
-		<!-- 4–7: inline text styling (selection-based) -->
+		<!-- 5–8: inline text styling (selection-based) -->
 		<ComposerMediaTooltip label="Underline the selected text">
 			{#snippet trigger({ props })}
 				<span {...props} class="inline-flex">
@@ -254,6 +280,15 @@
 		disabled={disabled || uploadBusy || mediaLocked}
 		{uploadBusy}
 		onFilesSelected={ingestFilesFromAttachDialog}
+	/>
+
+	<ComposerMediaLibraryDialog
+		bind:open={libraryOpen}
+		{organizationId}
+		disabled={disabled || uploadBusy}
+		{mediaLocked}
+		attachedPaths={attachedMediaPaths}
+		onAttach={onAttachFromLibrary}
 	/>
 
 	<!-- 8–9: parity placeholders (not wired yet) -->
