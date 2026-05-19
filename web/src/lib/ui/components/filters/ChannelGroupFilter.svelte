@@ -5,6 +5,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { Badge } from '$lib/ui/badge';
 	import { Checkbox } from '$lib/ui/checkbox';
+	import * as Popover from '$lib/ui/popover';
 
 	type ChannelGroup = { id: string; name: string };
 
@@ -51,10 +52,6 @@
 		return `${n} groups`;
 	});
 
-	function close() {
-		open = false;
-	}
-
 	function setAllGroups(next: boolean) {
 		if (next) {
 			onChange({ allGroups: true, selectedGroupIds: allIds });
@@ -89,116 +86,102 @@
 			.filter((x) => Boolean(x.label));
 	});
 
-	$effect(() => {
-		if (!open) return;
-		if (typeof window === 'undefined') return;
-		const handler = (e: MouseEvent) => {
-			const el = e.target as HTMLElement | null;
-			if (!el) return;
-			if (el.closest('[data-calendar-group-filter-root]')) return;
-			close();
-		};
-		window.addEventListener('click', handler, true);
-		return () => window.removeEventListener('click', handler, true);
-	});
 </script>
 
-<div class="relative" data-calendar-group-filter-root>
-	<button
+<Popover.Root bind:open>
+	<Popover.Trigger
 		type="button"
 		class="border-base-300 bg-base-100/60 hover:bg-base-100 inline-flex max-w-full min-w-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm text-base-content/80 outline-none focus-visible:ring-2 focus-visible:ring-primary sm:max-w-[min(100%,280px)]"
-		aria-haspopup="menu"
-		aria-expanded={open}
-		onclick={() => (open = !open)}
 	>
 		<AbstractIcon name={icons.User1.name} class="size-4 shrink-0" width="16" height="16" />
 		<span class="min-w-0 truncate">{summary}</span>
 		<AbstractIcon name={icons.ChevronDown.name} class="size-4 shrink-0" width="16" height="16" />
-	</button>
+	</Popover.Trigger>
 
-	{#if open}
-		<div
-			class="border-base-300 bg-base-100 absolute left-0 z-[60] mt-2 w-[min(calc(100vw-2rem),320px)] rounded-lg border p-3 shadow-xl sm:left-auto sm:right-0"
-			role="menu"
-		>
-			<p class="px-1 pb-2 text-xs font-semibold text-base-content/60">
-				Channel groups</p>
+	<Popover.Content
+		align="start"
+		side="bottom"
+		sideOffset={8}
+		collisionPadding={16}
+		class="w-[min(calc(100vw-2rem),320px)] p-3 shadow-xl"
+	>
+		<p class="px-1 pb-2 text-xs font-semibold text-base-content/60">
+			Channel groups</p>
 
-			<div class="flex items-center justify-between gap-2 px-1 pb-2">
-				<label class="flex cursor-pointer items-center gap-2 rounded-md">
-					<Checkbox checked={allGroups} onCheckedChange={() => setAllGroups(!allGroups)} />
-					<span class="text-sm leading-snug">All groups</span>
-				</label>
+		<div class="flex items-center justify-between gap-2 px-1 pb-2">
+			<label class="flex cursor-pointer items-center gap-2 rounded-md">
+				<Checkbox checked={allGroups} onCheckedChange={() => setAllGroups(!allGroups)} />
+				<span class="text-sm leading-snug">All groups</span>
+			</label>
 
-				{#if selectedGroupIds.length > 0}
-					<button
-						type="button"
-						class="text-xs font-medium text-base-content/70 underline-offset-2 hover:underline"
-						onclick={() => onChange({ allGroups: false, selectedGroupIds: [] })}
-					>
-						Clear
-					</button>
-				{/if}
-			</div>
-
-			{#if selectedBadges.length > 0}
-				<div class="flex flex-wrap gap-2 px-1 pb-2">
-					{#each selectedBadges as b (b.id)}
-						<Badge variant="secondary" class="rounded-full">
-							{b.label}
-							<button
-								type="button"
-								class="ml-1 outline-none focus-visible:ring-2 focus-visible:ring-primary"
-								aria-label={`Remove ${b.label}`}
-								onclick={() => {
-									if (allGroups) {
-										onChange({
-											allGroups: false,
-											selectedGroupIds: allIds.filter((x) => x !== b.id)
-										});
-									} else {
-										removeSelectedId(b.id);
-									}
-								}}
-							>
-								<AbstractIcon name={icons.X2.name} width="10" height="10" />
-							</button>
-						</Badge>
-					{/each}
-				</div>
+			{#if selectedGroupIds.length > 0}
+				<button
+					type="button"
+					class="text-xs font-medium text-base-content/70 underline-offset-2 hover:underline"
+					onclick={() => onChange({ allGroups: false, selectedGroupIds: [] })}
+				>
+					Clear
+				</button>
 			{/if}
-
-			<div class="divider my-1"></div>
-
-			<div class="max-h-[min(50vh,280px)] space-y-1 overflow-y-auto">
-				{#each groups as g (g.id)}
-					<label class="hover:bg-base-200 flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 {!allGroups && selectedGroupIds.includes(g.id) ? 'bg-base-200/80' : ''}">
-						<Checkbox
-							checked={effectiveSelectedIds.includes(g.id)}
-							onCheckedChange={() => {
-								if (allGroups) onChange({ allGroups: false, selectedGroupIds: allIds.filter((x) => x !== g.id) });
-								else toggleGroupId(g.id);
-							}}
-							class="mt-0.5"
-						/>
-						<span class="text-sm leading-snug">{g.name}</span>
-					</label>
-				{/each}
-
-				{#if hasUngrouped}
-					<label class="hover:bg-base-200 flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 {!allGroups && selectedGroupIds.includes(CALENDAR_UNGROUPED_SENTINEL) ? 'bg-base-200/80' : ''}">
-						<Checkbox
-							checked={effectiveSelectedIds.includes(CALENDAR_UNGROUPED_SENTINEL)}
-							onCheckedChange={() => {
-								if (allGroups) onChange({ allGroups: false, selectedGroupIds: allIds.filter((x) => x !== CALENDAR_UNGROUPED_SENTINEL) });
-								else toggleGroupId(CALENDAR_UNGROUPED_SENTINEL);
-							}}
-							class="mt-0.5"
-						/>
-						<span class="text-sm leading-snug">Ungrouped channels</span>
-					</label>
-				{/if}
-			</div>
 		</div>
-	{/if}
-</div>
+
+		{#if selectedBadges.length > 0}
+			<div class="flex flex-wrap gap-2 px-1 pb-2">
+				{#each selectedBadges as b (b.id)}
+					<Badge variant="secondary" class="rounded-full">
+						{b.label}
+						<button
+							type="button"
+							class="ml-1 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+							aria-label={`Remove ${b.label}`}
+							onclick={() => {
+								if (allGroups) {
+									onChange({
+										allGroups: false,
+										selectedGroupIds: allIds.filter((x) => x !== b.id)
+									});
+								} else {
+									removeSelectedId(b.id);
+								}
+							}}
+						>
+							<AbstractIcon name={icons.X2.name} width="10" height="10" />
+						</button>
+					</Badge>
+				{/each}
+			</div>
+		{/if}
+
+		<div class="divider my-1"></div>
+
+		<div class="max-h-[min(50vh,280px)] space-y-1 overflow-y-auto">
+			{#each groups as g (g.id)}
+				<label class="hover:bg-base-200 flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 {!allGroups && selectedGroupIds.includes(g.id) ? 'bg-base-200/80' : ''}">
+					<Checkbox
+						checked={effectiveSelectedIds.includes(g.id)}
+						onCheckedChange={() => {
+							if (allGroups) onChange({ allGroups: false, selectedGroupIds: allIds.filter((x) => x !== g.id) });
+							else toggleGroupId(g.id);
+						}}
+						class="mt-0.5"
+					/>
+					<span class="text-sm leading-snug">{g.name}</span>
+				</label>
+			{/each}
+
+			{#if hasUngrouped}
+				<label class="hover:bg-base-200 flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 {!allGroups && selectedGroupIds.includes(CALENDAR_UNGROUPED_SENTINEL) ? 'bg-base-200/80' : ''}">
+					<Checkbox
+						checked={effectiveSelectedIds.includes(CALENDAR_UNGROUPED_SENTINEL)}
+						onCheckedChange={() => {
+							if (allGroups) onChange({ allGroups: false, selectedGroupIds: allIds.filter((x) => x !== CALENDAR_UNGROUPED_SENTINEL) });
+							else toggleGroupId(CALENDAR_UNGROUPED_SENTINEL);
+						}}
+						class="mt-0.5"
+					/>
+					<span class="text-sm leading-snug">Ungrouped channels</span>
+				</label>
+			{/if}
+		</div>
+	</Popover.Content>
+</Popover.Root>
