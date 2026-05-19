@@ -4,8 +4,6 @@ import type { CalendarPostRowViewModel } from '$lib/posts/GetScheduledPost.prese
 /** One post row in the kanban list (calendar row fields + review/todo metadata). */
 export interface PostKanbanRowViewModel extends CalendarPostRowViewModel {
 	note?: string | null;
-	/** Null when the post was created via CLI/agent (`posts.created_by_user_id`). */
-	createdByUserId?: string | null;
 	isAgentEdited?: boolean;
 	isReviewed?: boolean;
 }
@@ -62,8 +60,6 @@ export type PostKanbanCardViewModel = {
 	channelSlots: PostKanbanChannelSlotViewModel[];
 	hiddenChannelCount: number;
 	primaryChannelName: string;
-	/** Agent/CLI-created posts have no dashboard author id. */
-	isAgentOrigin: boolean;
 	isAgentEdited: boolean;
 	isReviewed: boolean;
 };

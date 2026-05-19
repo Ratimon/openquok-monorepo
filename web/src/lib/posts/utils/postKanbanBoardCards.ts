@@ -186,7 +186,6 @@ export function buildKanbanCardsVm(
 			channelSlots,
 			hiddenChannelCount: Math.max(0, channelSlots.length - previewCount),
 			primaryChannelName: channelSlots[0]?.name ?? '',
-			isAgentOrigin: rep.createdByUserId == null,
 			isAgentEdited: rep.isAgentEdited ?? false,
 			isReviewed: rep.isReviewed ?? false
 		});

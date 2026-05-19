@@ -36,10 +36,8 @@
 	const isDraggable = $derived(cardVm.column !== 'published' && !isEditingNote);
 	const multiChannels = $derived(cardVm.channelSlots.length > 1);
 	const previewSlots = $derived(cardVm.channelSlots.slice(0, 3));
-	const showEditedBadge = $derived(
-		!cardVm.isAgentEdited &&
-			(Boolean(cardVm.note?.trim()) || cardVm.isReviewed || cardVm.isAgentOrigin)
-	);
+	/** Human badge: any post not flagged agent-edited (dashboard/calendar creates and human-reviewed agent drafts). */
+	const showHumanBadge = $derived(!cardVm.isAgentEdited);
 
 	$effect(() => {
 		if (!isEditingNote) {
@@ -224,8 +222,8 @@
 				<span class="badge badge-secondary badge-xs shrink-0 border-0 p-0.5" title="AI-generated">
 					<AbstractIcon name={icons.Bot.name} class="size-3" width="12" height="12" />
 				</span>
-			{:else if showEditedBadge}
-				<span class="badge badge-secondary badge-xs shrink-0 border-0 p-0.5" title="Human-edited">
+			{:else if showHumanBadge}
+				<span class="badge badge-secondary badge-xs shrink-0 border-0 p-0.5" title="Human">
 					<AbstractIcon name={icons.UserRoundPen.name} class="size-3" width="12" height="12" />
 				</span>
 			{/if}

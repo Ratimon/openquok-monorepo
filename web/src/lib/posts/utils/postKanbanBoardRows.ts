@@ -18,7 +18,6 @@ export function toPostKanbanRowVm(pm: PostRowProgrammerModel): PostKanbanRowView
 		channelPictureUrl: pm.channelPictureUrl,
 		providerIdentifier: pm.providerIdentifier,
 		note: pm.note ?? null,
-		createdByUserId: pm.createdByUserId ?? null,
 		isAgentEdited: pm.isAgentEdited ?? false,
 		isReviewed: pm.isReviewed ?? false
 	};
