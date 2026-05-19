@@ -3,9 +3,14 @@
 	import type { MediaFileManagerDriveVm } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
 	import type { MediaLibraryLayout } from '$lib/ui/components/media/MediaFileManagerViewControls.svelte';
 
+	import { mount, onDestroy, tick, unmount } from 'svelte';
+
 	import { mediaFileManagerDisplayNameFromId } from 'openquok-common';
 
 	import { Filemanager, Willow } from '@svar-ui/svelte-filemanager';
+
+	import { icons } from '$data/icons';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	interface MediaFileManagerProps {
 		data: IEntity[];
@@ -40,6 +45,142 @@
 	}: MediaFileManagerProps = $props();
 
 	let fmApi = $state<IApi | null>(null);
+	let hostEl = $state<HTMLDivElement | null>(null);
+
+	const EMPTY_PREVIEW_SLOT = 'data-media-empty-preview';
+	const CARD_FOLDER_SLOT = 'data-media-card-folder-icon';
+	let emptyPreviewCleanup: (() => void) | null = null;
+	const cardFolderCleanups = new Map<Element, () => void>();
+
+	function teardownEmptyPreview(): void {
+		emptyPreviewCleanup?.();
+		emptyPreviewCleanup = null;
+	}
+
+	function teardownCardFolderIcons(): void {
+		for (const cleanup of cardFolderCleanups.values()) cleanup();
+		cardFolderCleanups.clear();
+	}
+
+	function teardownDecorations(): void {
+		teardownEmptyPreview();
+		teardownCardFolderIcons();
+	}
+
+	function mountFolderIcon(
+		target: HTMLElement,
+		className: string,
+		size: string
+	): () => void {
+		const slot = document.createElement('div');
+		slot.setAttribute(CARD_FOLDER_SLOT, '');
+		slot.className = className;
+		target.appendChild(slot);
+
+		const mounted = mount(AbstractIcon, {
+			target: slot,
+			props: {
+				name: icons.FolderInput.name,
+				class: 'shrink-0',
+				width: size,
+				height: size
+			}
+		});
+
+		return () => {
+			unmount(mounted);
+			slot.remove();
+		};
+	}
+
+	async function syncEmptyPreview(): Promise<void> {
+		await tick();
+		if (!hostEl) return;
+
+		const wrapper = hostEl.querySelector('.wx-no-info-wrapper');
+		if (!wrapper) {
+			teardownEmptyPreview();
+			return;
+		}
+
+		if (wrapper.querySelector(`[${EMPTY_PREVIEW_SLOT}]`)) return;
+
+		const slot = document.createElement('div');
+		slot.setAttribute(EMPTY_PREVIEW_SLOT, '');
+		slot.className =
+			'pointer-events-none flex min-h-[120px] items-center justify-center text-base-content/35';
+		wrapper.insertBefore(slot, wrapper.firstChild);
+
+		const mounted = mount(AbstractIcon, {
+			target: slot,
+			props: {
+				name: icons.MousePointerClickIcon.name,
+				class: 'size-[120px]',
+				width: '120',
+				height: '120'
+			}
+		});
+
+		emptyPreviewCleanup = () => {
+			unmount(mounted);
+			slot.remove();
+		};
+	}
+
+	function scheduleEmptyPreviewSync(): void {
+		void syncEmptyPreview();
+	}
+
+	async function syncFolderIcons(): Promise<void> {
+		await tick();
+		if (!hostEl) {
+			teardownCardFolderIcons();
+			return;
+		}
+
+		const activeTargets = new Set<Element>();
+		const folderIconTargets: Array<{ selector: string; className: string; size: string }> = [
+			{
+				selector: '.wx-info .wx-preview .wx-icon-wrapper:has(i.wxi-folder)',
+				className:
+					'pointer-events-none flex min-h-[120px] flex-1 items-center justify-center text-primary/35',
+				size: '96'
+			}
+		];
+
+		if (fmApi?.getState().mode === 'cards') {
+			folderIconTargets.unshift({
+				selector: '.wx-cards .wx-item:has(.wx-folder-name) .wx-preview',
+				className:
+					'pointer-events-none flex flex-1 items-center justify-center text-primary/35',
+				size: '72'
+			});
+		}
+
+		for (const { selector, className, size } of folderIconTargets) {
+			for (const target of hostEl.querySelectorAll(selector)) {
+				activeTargets.add(target);
+				if (target.querySelector(`[${CARD_FOLDER_SLOT}]`)) continue;
+
+				cardFolderCleanups.set(
+					target,
+					mountFolderIcon(target as HTMLElement, className, size)
+				);
+			}
+		}
+
+		for (const [target, cleanup] of cardFolderCleanups) {
+			if (!activeTargets.has(target)) {
+				cleanup();
+				cardFolderCleanups.delete(target);
+			}
+		}
+	}
+
+	function scheduleDecorationSync(): void {
+		scheduleEmptyPreviewSync();
+		void syncFolderIcons();
+	}
 
 	function displayNameForEntity(row: IEntity): string {
 		if (typeof row.displayName === 'string' && row.displayName.trim()) {
@@ -77,6 +218,7 @@
 
 		api.on('set-path', () => {
 			onPathChange?.();
+			scheduleDecorationSync();
 		});
 
 		api.on('delete-files', async (ev: { ids?: string[] }) => {
@@ -133,8 +275,13 @@
 			}
 		});
 
+		api.on('select-file', scheduleDecorationSync);
+		api.on('show-preview', scheduleDecorationSync);
+		api.on('set-mode', scheduleDecorationSync);
+
 		onInit?.(api);
 		applyTreeDisplayNames(api, data);
+		scheduleDecorationSync();
 	}
 
 	$effect(() => {
@@ -142,6 +289,17 @@
 		const rows = data;
 		if (!api || !rows.length) return;
 		applyTreeDisplayNames(api, rows);
+	});
+
+	$effect(() => {
+		fmApi;
+		data;
+		mode;
+		scheduleDecorationSync();
+	});
+
+	onDestroy(() => {
+		teardownDecorations();
 	});
 
 	function previewUrl(file: IParsedEntity & { publicUrl?: string; kind?: string }, _w: number, _h: number) {
@@ -154,6 +312,7 @@
 </script>
 
 <div
+	bind:this={hostEl}
 	class="media-file-manager-host relative min-h-[min(72vh,720px)] overflow-hidden"
 	aria-busy={loading}
 >
@@ -311,9 +470,25 @@
 		color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
 	}
 
+	.media-file-manager-host :global(.wx-cards .wx-item:has(.wx-folder-name) .wx-preview) {
+		background: color-mix(in oklab, var(--color-primary) 6%, var(--color-base-200));
+	}
+
+	.media-file-manager-host :global(.wx-cards .wx-item.wx-selected:has(.wx-folder-name) .wx-preview) {
+		background: color-mix(in oklab, var(--color-primary) 12%, var(--color-base-200));
+	}
+
+	.media-file-manager-host :global(.wx-cards .wx-item:has(.wx-folder-name) .wx-preview > i) {
+		display: none;
+	}
+
 	.media-file-manager-host :global(.wx-not-found-text),
 	.media-file-manager-host :global(.wx-no-info) {
 		color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+	}
+
+	.media-file-manager-host :global(.wx-no-info .wx-icon-wrapper) {
+		display: none;
 	}
 
 	.media-file-manager-host :global(.wx-back) {
@@ -322,6 +497,57 @@
 
 	.media-file-manager-host :global(.wx-content-wrapper) {
 		margin-top: 0.5rem;
+	}
+
+	.media-file-manager-host :global(.wx-info) {
+		display: flex;
+		min-height: 0;
+	}
+
+	/* SVAR uses fixed 60/40 heights + extra padding/margins; switch to flex so metadata is not clipped. */
+	.media-file-manager-host :global(.wx-info > .wx-wrapper) {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		height: 100%;
+		padding-bottom: 0;
+		overflow-y: auto;
+	}
+
+	.media-file-manager-host :global(.wx-info .wx-preview) {
+		flex: 0 1 auto;
+		height: auto;
+		min-height: 9rem;
+		max-height: min(48%, 16rem);
+		margin-bottom: 0.625rem;
+	}
+
+	.media-file-manager-host :global(.wx-info .wx-preview:has(.wx-icon-wrapper i.wxi-folder)) {
+		min-height: 8rem;
+		max-height: 12rem;
+	}
+
+	.media-file-manager-host :global(.wx-info .wx-info-panel) {
+		flex: 0 0 auto;
+		height: auto;
+		min-height: fit-content;
+	}
+
+	.media-file-manager-host :global(.wx-info .wx-list) {
+		max-height: none;
+		overflow: visible;
+	}
+
+	.media-file-manager-host :global(.wx-info .wx-list .wx-value) {
+		overflow-wrap: anywhere;
+	}
+
+	.media-file-manager-host :global(.wx-info .wx-preview .wx-icon-wrapper) {
+		background: color-mix(in oklab, var(--color-primary) 6%, var(--color-base-200));
+	}
+
+	.media-file-manager-host :global(.wx-info .wx-preview .wx-icon-wrapper > i.wxi-folder) {
+		display: none;
 	}
 
 	/* Sidebar tree: leaf folders use a placeholder; parents use a chevron — same column width */
