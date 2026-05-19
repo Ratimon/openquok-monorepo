@@ -1,7 +1,6 @@
 import 'temporal-polyfill/global';
 
 import type { CalendarEventExternal } from '@schedule-x/calendar';
-
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
 import type {
 	DebugExportPostGroupProgrammerModel,
@@ -218,12 +217,12 @@ export class SchedulerPresenter {
 	);
 
 	/** Unfiltered posts for the last successful range + integration fetch (post-type filter is client-side). */
-	private cachedPostsPm: CalendarPostRowViewModel[] = [];
+	private cachedPostsVm: CalendarPostRowViewModel[] = [];
 	private cachedChannelById = new Map<string, ChannelViewModel>();
 
 	/** Posts from the latest calendar fetch — used to resolve channel labels in modals. */
 	get postsForChannelLookup(): readonly CalendarPostRowViewModel[] {
-		return this.cachedPostsPm;
+		return this.cachedPostsVm;
 	}
 
 	constructor(
@@ -243,7 +242,7 @@ export class SchedulerPresenter {
 	}
 
 	resetCalendarUiState(): void {
-		this.cachedPostsPm = [];
+		this.cachedPostsVm = [];
 		this.cachedChannelById = new Map();
 		this._patchScheduledPostsCalendarVm(createInitialScheduledPostsCalendarViewModel());
 	}
@@ -290,7 +289,33 @@ export class SchedulerPresenter {
 	}
 
 	deletePostGroup(postGroup: string): Promise<PostUpsertProgrammerModel> {
-		return this.postsRepository.deletePostGroup(postGroup);
+		return (async () => {
+			const resultPm = await this.postsRepository.deletePostGroup(postGroup);
+			if (resultPm.ok) {
+				this.evictPostGroupFromCache(postGroup);
+			}
+			return resultPm;
+		})();
+	}
+
+	/**
+	 * Remove a soft-deleted post group from the in-memory calendar cache.
+	 * Clears {@link ScheduledPostsCalendarViewModel.lastSuccessfulPostsKey} so the next
+	 * range load refetches instead of reusing stale events (e.g. after kanban delete).
+	 */
+	evictPostGroupFromCache(postGroup: string): void {
+		const pg = postGroup?.trim();
+		if (!pg) return;
+		if (!this.cachedPostsVm.some((p) => p.postGroup === pg)) {
+			return;
+		}
+		this.cachedPostsVm = this.cachedPostsVm.filter((p) => p.postGroup !== pg);
+		const filtered = this.filterPostsByPostType(this.cachedPostsVm);
+		const events = this.buildCalendarEventsFromPosts(filtered, this.cachedChannelById);
+		this._patchScheduledPostsCalendarVm({
+			events,
+			lastSuccessfulPostsKey: ''
+		});
 	}
 
 	deriveIntegrationFilter(
@@ -501,7 +526,7 @@ export class SchedulerPresenter {
 
 	private reapplyPostTypeFilterFromCache(): void {
 		if (!this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) return;
-		const filtered = this.filterPostsByPostType(this.cachedPostsPm);
+		const filtered = this.filterPostsByPostType(this.cachedPostsVm);
 		const events = this.buildCalendarEventsFromPosts(filtered, this.cachedChannelById);
 		this._patchScheduledPostsCalendarVm({ events });
 	}
@@ -730,7 +755,7 @@ export class SchedulerPresenter {
 				return { ok: true };
 			}
 			this._maybePatchRange(startDate, endDate);
-			this.cachedPostsPm = [];
+			this.cachedPostsVm = [];
 			this.cachedChannelById = new Map();
 			this._patchScheduledPostsCalendarVm({
 				events: [],
@@ -765,15 +790,15 @@ export class SchedulerPresenter {
 			});
 
 			if (!listPostsPmResult.ok) {
-				this.cachedPostsPm = [];
+				this.cachedPostsVm = [];
 				this.cachedChannelById = new Map();
 				this._patchScheduledPostsCalendarVm({ events: [], lastSuccessfulPostsKey: '', loading: false });
 				return { ok: false, error: listPostsPmResult.error };
 			}
 
-			this.cachedPostsPm = listPostsPmResult.posts;
+			this.cachedPostsVm = listPostsPmResult.posts;
 			this.cachedChannelById = channelById;
-			const filtered = this.filterPostsByPostType(this.cachedPostsPm);
+			const filtered = this.filterPostsByPostType(this.cachedPostsVm);
 			const normalizedEvents = this.buildCalendarEventsFromPosts(filtered, channelById);
 
 			this._patchScheduledPostsCalendarVm({

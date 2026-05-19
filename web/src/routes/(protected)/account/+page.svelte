@@ -19,6 +19,7 @@
 	import {
 		getRootPathAccount,
 		getRootPathCalendar,
+		protectedCalendarPagePresenter,
 		protectedDashboardPagePresenter,
 		protectedSettingsPagePresenter,
 		WorkspaceSettingsStatus
@@ -366,6 +367,7 @@
 			const resultVm = await postKanbanBoard.deletePostGroup(pg);
 			if (resultVm.ok) {
 				toast.success('Post deleted.');
+				protectedCalendarPagePresenter.bumpCalendarRefresh();
 				closeKanbanPostActions();
 				return;
 			}

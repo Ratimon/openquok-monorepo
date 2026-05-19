@@ -7,6 +7,7 @@ import type {
 	GenerateMediaModalPresenter
 } from '$lib/canvas';
 import type { GetScheduledPostsPresenter } from '$lib/posts/GetScheduledPost.presenter.svelte';
+import type { SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
 import type {
 	PostMediaViewModel,
 	PostTagViewModel,
@@ -128,7 +129,8 @@ export class CreateSocialPostPresenter {
 		private readonly mediaModalPresenter: GenerateMediaModalPresenter,
 		private readonly getSignaturesPresenter: GetSignaturesPresenter,
 		scheduledPostsPresenter: GetScheduledPostsPresenter,
-		private readonly upsertSetPresenter: UpsertSetPresenter
+		private readonly upsertSetPresenter: UpsertSetPresenter,
+		private readonly schedulerPresenter: SchedulerPresenter
 	) {
 		this.scheduledPostsPresenter = scheduledPostsPresenter;
 	}
@@ -1411,6 +1413,7 @@ export class CreateSocialPostPresenter {
 		try {
 			const deletePostGroupPmResult = await this.postsRepository.deletePostGroup(postGroup);
 			if (deletePostGroupPmResult.ok) {
+				this.schedulerPresenter.evictPostGroupFromCache(postGroup);
 				toast.success('Post deleted.');
 				return true;
 			}

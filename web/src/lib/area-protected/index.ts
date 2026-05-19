@@ -88,13 +88,18 @@ const createSocialPostPresenter = new CreateSocialPostPresenter(
 	composerMediaModalPresenter,
 	getSignaturesPresenter,
 	getScheduledPostsPresenter,
-	upsertSetPresenter
+	upsertSetPresenter,
+	schedulerPresenter
 );
 
 const dashboardChannelsGridTable = new DashboardChannelsGridTablePresenter();
 const dashboardChannelsGridFilterBuilder = new DashboardChannelsGridFilterBuilderPresenter();
 
-const postKanbanBoardPresenter = new PostKanbanBoardPresenter(postsRepository, getScheduledPostsPresenter);
+const postKanbanBoardPresenter = new PostKanbanBoardPresenter(
+	postsRepository,
+	getScheduledPostsPresenter,
+	schedulerPresenter
+);
 
 const getDashboardWorkspacesPresenter = new GetDashboardWorkspacesPresenter();
 

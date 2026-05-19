@@ -248,7 +248,8 @@
 
 	{#if scheduledPostsVm.loading}
 		<div class="text-sm text-base-content/70">
-			Loading scheduled posts…</div>
+			Loading scheduled posts…
+		</div>
 	{/if}
 
 	{#if display === 'list'}

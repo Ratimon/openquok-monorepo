@@ -10,6 +10,7 @@ import type {
 	GetScheduledPostsPresenter
 } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type { PostsRepository, PostRowProgrammerModel } from '$lib/posts/Post.repository.svelte';
+import type { SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
 import {
 	canMoveKanbanCard,
 	columnToApiStatus,
@@ -391,7 +392,8 @@ export class PostKanbanBoardPresenter {
 
 	constructor(
 		private readonly postsRepository: PostsRepository,
-		private readonly getScheduledPostsPresenter: GetScheduledPostsPresenter
+		private readonly getScheduledPostsPresenter: GetScheduledPostsPresenter,
+		private readonly schedulerPresenter: SchedulerPresenter
 	) {}
 
 	getPostGroup(postGroup: string): Promise<GetPostGroupResultViewModel> {
@@ -423,6 +425,7 @@ export class PostKanbanBoardPresenter {
 			this.rebuildCardsVm();
 			return { ok: false, error: resultPm.error };
 		}
+		this.schedulerPresenter.evictPostGroupFromCache(postGroup);
 		return { ok: true };
 	}
 
