@@ -43,6 +43,7 @@ import { AnalyticsService } from "./AnalyticsService";
 import { OauthAppService } from "./OauthAppService";
 import { OauthService } from "./OauthService";
 import { SubscriptionService } from "./SubscriptionService";
+import { UserSessionService } from "./UserSessionService";
 import { PermissionsService } from "./PermissionsService";
 import { StripeService } from "./StripeService";
 import { config } from "../config/GlobalConfig";
@@ -120,6 +121,12 @@ export const permissionsService = new PermissionsService(
     subscriptionService,
     integrationService,
     organizationRepository
+);
+export const userSessionService = new UserSessionService(
+    organizationRepository,
+    permissionsService,
+    subscriptionService,
+    subscriptionRepository
 );
 export const integrationConnectionService = new IntegrationConnectionService(
     integrationService,

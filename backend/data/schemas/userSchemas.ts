@@ -41,6 +41,15 @@ export const updateProfileBodySchema = z
         { message: "At least one of fullName, avatarUrl, or websiteUrl is required." }
     );
 
+/** Optional active workspace for GET /users/me session fields. */
+export const getMeQuerySchema = z.object({
+    organizationId: z.string().uuid("organizationId must be a valid UUID").optional(),
+});
+
+export const validateGetMeRequest: RequestHandler = validateRequest({
+    query: getMeQuerySchema,
+});
+
 export const validateUpdateProfileRequest: RequestHandler = validateRequest({
     body: updateProfileBodySchema,
 });
@@ -50,5 +59,6 @@ export const validateUpdatePasswordMeRequest: RequestHandler = validateRequest({
     body: updatePasswordBodySchema,
 });
 
+export type ValidateGetMeRequestHandler = typeof validateGetMeRequest;
 export type ValidateUpdateProfileRequestHandler = typeof validateUpdateProfileRequest;
 export type ValidateUpdatePasswordMeRequestHandler = typeof validateUpdatePasswordMeRequest;

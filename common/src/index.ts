@@ -1,3 +1,4 @@
+export type { UserMeWorkspaceRole, UserMeWorkspaceSession } from './user/meSession';
 export type { DigestQueueEntry, NotificationEmailType } from "./notificationEmailTypes";
 export {
 	MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND,

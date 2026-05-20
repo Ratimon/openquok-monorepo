@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { userController, rbacController, approvedAppsController } from "../controllers/index";
 import {
+    validateGetMeRequest,
     validateUpdateProfileRequest,
     validateUpdatePasswordMeRequest,
 } from "../data/schemas/userSchemas";
@@ -24,7 +25,7 @@ const authWithRoles = requireFullAuthWithRoles(
 const requireManageRoles = requirePermission("users.manage_roles");
 
 // --- Current user (must be before /:userId to avoid "me" being captured)
-userRouter.get("/me", authWithRoles, userController.getProfile);
+userRouter.get("/me", authWithRoles, validateGetMeRequest, userController.getProfile);
 userRouter.patch("/me", authWithRoles, validateUpdateProfileRequest, userController.updateProfile);
 userRouter.put("/me/password", authWithRoles, validateUpdatePasswordMeRequest, userController.updatePasswordMe);
 userRouter.post("/me/request-change-password", authWithRoles, userController.requestChangePasswordEmail);

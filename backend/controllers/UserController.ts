@@ -4,9 +4,11 @@ import type { UserService } from "../services/UserService";
 import type { EmailService } from "../services/EmailService";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
 import type {
+    ValidateGetMeRequestHandler,
     ValidateUpdateProfileRequestHandler,
-    ValidateUpdatePasswordMeRequestHandler
+    ValidateUpdatePasswordMeRequestHandler,
 } from "../data/schemas/userSchemas";
+import type { UserSessionService } from "../services/UserSessionService";
 import { UserNotFoundError, UserAuthorizationError } from "../errors/UserError";
 import { ValidationError, InfraError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
@@ -20,13 +22,15 @@ export class UserController {
     constructor(
         private readonly userService: UserService,
         private readonly authenticationService: AuthenticationService,
-        private readonly emailService: EmailService
+        private readonly emailService: EmailService,
+        private readonly userSessionService: UserSessionService
     ) {}
 
     /**
-     * GET /users/me - return the authenticated user's profile.
+     * GET /users/me — profile (+ optional workspace session when `organizationId` query is set).
+     * Session field names match protected-shell bootstrap (`orgId`, `tier`, `totalChannels`, `role`, …).
      */
-    getProfile = async (req: Request, res: Response, next: NextFunction) => {
+    getProfile: ValidateGetMeRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;
             const authUserId = authReq.user?.id;
@@ -40,13 +44,26 @@ export class UserController {
             }
 
             const dto = toUserDTO(profile);
+            const isSuperAdmin = authReq.user?.isSuperAdmin ?? false;
+            const organizationId = (req.query as { organizationId?: string }).organizationId?.trim();
+
+            const data: Record<string, unknown> = {
+                ...dto,
+                roles: authReq.user?.roles ?? [],
+                isSuperAdmin,
+                /** Alias used by legacy shell UIs (`admin` ≈ platform super-admin). */
+                admin: isSuperAdmin,
+                impersonate: Boolean(req.cookies?.impersonate ?? req.headers.impersonate),
+            };
+
+            if (organizationId) {
+                const session = await this.userSessionService.getWorkspaceSession(authUserId, organizationId);
+                Object.assign(data, session);
+            }
+
             res.status(200).json({
                 success: true,
-                data: {
-                    ...dto,
-                    roles: authReq.user?.roles ?? [],
-                    isSuperAdmin: authReq.user?.isSuperAdmin ?? false,
-                },
+                data,
             });
         } catch (error) {
             next(error);

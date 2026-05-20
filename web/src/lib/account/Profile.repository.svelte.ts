@@ -1,5 +1,6 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import { ApiError, HttpMethod } from '$lib/core/HttpGateway';
+import type { UserMeWorkspaceSession } from 'openquok-common';
 
 export interface AccountConfig {
 	endpoints: {
@@ -21,9 +22,18 @@ export interface UserProfileDto {
 	websiteUrl: string | null;
 }
 
+/** GET /users/me payload (profile; optional workspace session when `organizationId` query is set). */
+export type GetMeDataDto = UserProfileDto & {
+	roles?: string[];
+	isSuperAdmin?: boolean;
+	/** Platform super-admin (legacy shell alias). */
+	admin?: boolean;
+	impersonate?: boolean;
+} & Partial<UserMeWorkspaceSession>;
+
 export interface GetProfileResponseDto {
 	success: boolean;
-	data: UserProfileDto;
+	data: GetMeDataDto;
 	message?: string;
 }
 
@@ -88,10 +98,17 @@ export class ProfileRepository {
 		private readonly config: AccountConfig
 	) {}
 
-	public async getProfile(fetchFn?: typeof globalThis.fetch): Promise<UserProfileProgrammerModel | null> {
+	public async getProfile(
+		options?: { organizationId?: string; fetch?: typeof globalThis.fetch }
+	): Promise<UserProfileProgrammerModel | null> {
+		const fetchFn = options?.fetch;
+		const query =
+			options?.organizationId?.trim() ?
+				{ organizationId: options.organizationId.trim() }
+			:	undefined;
 		try {
 			const { ok, data: getProfileDto } =
-				await this.httpGateway.get<GetProfileResponseDto>(this.config.endpoints.me, undefined, {
+				await this.httpGateway.get<GetProfileResponseDto>(this.config.endpoints.me, query, {
 					withCredentials: true,
 					...(fetchFn && { fetch: fetchFn })
 				});

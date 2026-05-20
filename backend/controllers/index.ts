@@ -48,6 +48,7 @@ import {
     signatureService,
     setsService,
     analyticsService,
+    userSessionService,
 } from "../services/index";
 import { subscriptionRepository } from "../repositories/index";
 import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
@@ -61,7 +62,12 @@ export const authController = new AuthController(
     organizationService,
     rbacService
 );
-export const userController = new UserController(userService, authenticationService, emailService);
+export const userController = new UserController(
+    userService,
+    authenticationService,
+    emailService,
+    userSessionService
+);
 export const companyController = new CompanyController(companyService, marketingService);
 export const settingsController = new SettingsController(organizationService);
 export const rbacController = new RbacController(rbacService, userRepository);
