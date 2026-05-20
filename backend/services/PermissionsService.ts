@@ -163,6 +163,39 @@ export class PermissionsService {
     }
 
     /**
+     * Before creating another workspace for the user — uses the highest `workspaces` limit among
+     * organizations they already belong to. Tiers with `workspaces: 0` (FREE) skip enforcement so
+     * signup can still provision the default organization.
+     */
+    async assertCanCreateWorkspace(authUserId: string): Promise<void> {
+        if (!this.subscriptionService.billingEnabled()) return;
+
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+        if (!userId) return;
+
+        const { organizations } = await this.organizationRepository.findOrganizationsByUserId(userId);
+        const currentCount = organizations.length;
+
+        let workspaceCap = 0;
+        for (const org of organizations) {
+            const { limits } = await this.getTierAndLimits(org.id);
+            workspaceCap = Math.max(workspaceCap, limits.workspaces);
+        }
+
+        if (workspaceCap < 1) return;
+
+        if (currentCount >= workspaceCap) {
+            throw new SubscriptionError(
+                workspaceCap === 1
+                    ? "Your plan includes one workspace. Upgrade to add more."
+                    : `Your plan allows up to ${workspaceCap} workspaces. Upgrade to add more.`,
+                SubscriptionSection.WORKSPACES,
+                this.billingUrl()
+            );
+        }
+    }
+
+    /**
      * Before persisting a new social channel — respects {@link planLimitsForTier} `channel_per_workspace`.
      * Reconnecting the same provider account (same `internalId`) does not consume an extra slot.
      */

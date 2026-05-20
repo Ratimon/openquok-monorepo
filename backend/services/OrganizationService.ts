@@ -274,6 +274,7 @@ export class OrganizationService {
         authUserId: string,
         params: { name: string; description?: string | null }
     ): Promise<OrganizationLike> {
+        await this.permissionsService?.assertCanCreateWorkspace(authUserId);
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { organization, error } = await this.organizationRepository.createOrganization({
             ...params,

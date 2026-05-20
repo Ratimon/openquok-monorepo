@@ -104,7 +104,9 @@ For integration tests that assert **rejection at a plan or policy boundary** (40
 
 **When direct DB seed is OK:** Seeding via service-role Supabase is fine for arrange when no HTTP route exists or setup would be huge; the pivot step should still use app services or routes when they mirror enforcement (see §5).
 
-Reference: `backend/tests/integration/Plan.solo.integration.test.ts` (SOLO channel cap: catalog anchor → seed → `listByOrganization` length → `assertConnectSocialChannelAllowed` rejects new id, allows existing `internal_id`).
+Reference: `backend/tests/integration/Plan.solo.integration.test.ts` (SOLO channel cap: catalog anchor → `seedSocialIntegrations` / `attachSoloSubscription` from `integrationTestHelper` → `listByOrganization` length → policy assertions).
+
+**Shared helpers** (`backend/tests/helpers/integrationTestHelper.ts`): `attachOrganizationSubscription`, `attachSoloSubscription`, `insertTestSocialIntegration`, `seedSocialIntegrations` — use for subscription rows and connected-channel setup instead of duplicating insert payloads in each suite.
 
 ## 7. Flowcraft orchestrator workflows (unit)
 

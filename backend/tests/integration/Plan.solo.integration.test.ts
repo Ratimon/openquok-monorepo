@@ -8,6 +8,7 @@ import { config } from "../../config/GlobalConfig";
 import { SubscriptionError } from "../../errors/SubscriptionError";
 import { EmailService } from "../../services/EmailService";
 import { integrationService, permissionsService, subscriptionService } from "../../services/index";
+import { attachSoloSubscription, seedSocialIntegrations } from "../helpers/integrationTestHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 import { planLimitsForTier } from "openquok-common";
@@ -27,6 +28,7 @@ const describeIfSupabase =
 
 /**
  * SOLO tier caps from the shared plan catalog (`planLimitsForTier("SOLO")`):
+ * - one workspace per billing account (`workspaces: 1`)
  * - one workspace seat (no additional team members / invites beyond the owner)
  * - limited connected channels per workspace
  *
@@ -106,22 +108,35 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         return orgId;
     }
 
-    async function attachSoloSubscription(organizationId: string): Promise<void> {
-        const { error } = await adminSupabase.from("organization_subscriptions").upsert(
-            {
-                organization_id: organizationId,
-                subscription_tier: "SOLO",
-                period: "MONTHLY",
-                identifier: `test_checkout_${uuidv4()}`,
-                cancel_at: null,
-                total_channels: 0,
-                is_lifetime: false,
-                deleted_at: null,
-            },
-            { onConflict: "organization_id" }
-        );
-        expect(error).toBeNull();
-    }
+    it("blocks creating a second workspace when SOLO workspaces cap is 1", async () => {
+        const soloLimits = planLimitsForTier("SOLO");
+        const workspaceCap = soloLimits.workspaces;
+        expect(workspaceCap).toBe(1);
+
+        const payload = userHelper.setupTestUser1();
+        const { accessToken } = await signupVerifyAndSignIn(payload);
+        const orgId = await firstOrganizationId(accessToken);
+        await attachSoloSubscription(adminSupabase, orgId);
+
+        const listRes = await supertest(app).get(settingsPath).set("Authorization", `Bearer ${accessToken}`);
+        expect(listRes.status).toBe(200);
+        expect(listRes.body?.data).toHaveLength(workspaceCap);
+
+        const createRes = await supertest(app)
+            .post(settingsPath)
+            .set("Authorization", `Bearer ${accessToken}`)
+            .send({ name: "Second workspace", description: null });
+
+        expect(createRes.status).toBe(402);
+        expect(createRes.body?.success).toBe(false);
+        expect(createRes.body?.error?.section).toBe("workspaces");
+
+        const listAfterRes = await supertest(app)
+            .get(settingsPath)
+            .set("Authorization", `Bearer ${accessToken}`);
+        expect(listAfterRes.status).toBe(200);
+        expect(listAfterRes.body?.data).toHaveLength(workspaceCap);
+    });
 
     itIfInviteSigning(
         "returns error when a SOLO workspace admin tries to invite another member (single seat)",
@@ -129,7 +144,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
             const payload = userHelper.setupTestUser1();
             const { accessToken } = await signupVerifyAndSignIn(payload);
             const orgId = await firstOrganizationId(accessToken);
-            await attachSoloSubscription(orgId);
+            await attachSoloSubscription(adminSupabase, orgId);
 
             const inviteeEmail = `invitee-${uuidv4()}@test.com`.toLowerCase();
             const res = await supertest(app)
@@ -155,35 +170,13 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const payload = userHelper.setupTestUser1();
         const { accessToken } = await signupVerifyAndSignIn(payload);
         const orgId = await firstOrganizationId(accessToken);
-        await attachSoloSubscription(orgId);
+        await attachSoloSubscription(adminSupabase, orgId);
 
-        const now = new Date().toISOString();
-        const seedRows = Array.from({ length: channelCap }, (_, i) => ({
-            organization_id: orgId,
-            internal_id: `solo-cap-test-${i}`,
-            name: `Test channel ${i}`,
-            picture: null,
-            provider_identifier: "threads",
-            type: "social",
+        const { internalIds } = await seedSocialIntegrations(adminSupabase, orgId, {
+            count: channelCap, // 15 channels
+            internalIdPrefix: "solo-cap-test",
             token: "test-token",
-            disabled: false,
-            token_expiration: null,
-            refresh_token: null,
-            profile: null,
-            deleted_at: null,
-            created_at: now,
-            updated_at: now,
-            in_between_steps: false,
-            refresh_needed: false,
-            posting_times: "[{\"time\":120},{\"time\":400},{\"time\":700}]",
-            custom_instance_details: null,
-            customer_id: null,
-            root_internal_id: `solo-cap-test-${i}`,
-            additional_settings: "[]",
-        }));
-
-        const { error: insertErr } = await adminSupabase.from("integrations").insert(seedRows);
-        expect(insertErr).toBeNull();
+        });
 
         const connectedChannels = await integrationService.listByOrganization(orgId);
         expect(connectedChannels).toHaveLength(channelCap);
@@ -193,7 +186,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         ).rejects.toBeInstanceOf(SubscriptionError);
 
         await expect(
-            permissionsService.assertConnectSocialChannelAllowed(orgId, "solo-cap-test-0")
+            permissionsService.assertConnectSocialChannelAllowed(orgId, internalIds[0]!)
         ).resolves.toBeUndefined();
     });
 });
