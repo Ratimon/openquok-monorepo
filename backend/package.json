@@ -40,6 +40,7 @@
     "test:integration:config": "cross-env NODE_ENV=development jest tests/integration/Config.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:feedback-rbac": "cross-env NODE_ENV=development jest tests/integration/FeedbackRbac.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:blog-rbac": "cross-env NODE_ENV=development jest tests/integration/BlogRbac.integration.test.ts --runInBand --verbose --no-coverage",
+    "test:integration:plan:solo": "cross-env NODE_ENV=development jest tests/integration/Plan.solo.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:third-parties:r2": "cross-env THIRD_PARTY_TESTS_R2=true NODE_ENV=development jest tests/integration/ThirdParties.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:third-parties:redis": "cross-env THIRD_PARTY_TESTS_REDIS=true NODE_ENV=development jest tests/integration/ThirdParties.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:third-parties:prod": "cross-env DOTENV_OVERRIDE=true NODE_ENV=production jest tests/integration/ThirdParties.integration.test.ts --runInBand --verbose --no-coverage",

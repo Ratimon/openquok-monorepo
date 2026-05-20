@@ -13,6 +13,7 @@ import type { IntegrationTimeDto } from "../data/schemas/integrationTimeSchemas"
 import type { IntegrationService } from "./IntegrationService";
 import type { PlugService } from "./PlugService";
 import type { PlugUpsertBodyDto } from "../utils/dtos/PlugDTO";
+import type { PermissionsService } from "./PermissionsService";
 
 import dayjs from "dayjs";
 import { IntegrationManager } from "../integrations/integrationManager";
@@ -96,7 +97,8 @@ export class IntegrationConnectionService {
         private readonly refreshIntegrationService: RefreshIntegrationService,
         private readonly storageRepository: StorageSupabaseRepository,
         private readonly cache?: CacheService,
-        private readonly cacheInvalidator?: CacheInvalidationService
+        private readonly cacheInvalidator?: CacheInvalidationService,
+        private readonly permissionsService?: PermissionsService
     ) {}
 
     private requireCache(): CacheService {
@@ -510,6 +512,8 @@ export class IntegrationConnectionService {
             picture: picture || null,
             resolveFreshRemoteUrl: async () => picture || null,
         });
+
+        await this.permissionsService?.assertConnectSocialChannelAllowed(organizationId, String(id));
 
         const row = await this.integrations.upsertIntegration({
             organizationId,

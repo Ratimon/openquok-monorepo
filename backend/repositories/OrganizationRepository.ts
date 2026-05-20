@@ -448,6 +448,25 @@ export class OrganizationRepository {
         return { error };
     }
 
+    /** Count pending (not yet expired) invites for a workspace — used for plan seat caps. */
+    async countPendingInvitesByOrganization(organizationId: string): Promise<number> {
+        const now = new Date().toISOString();
+        const { count, error } = await this.supabase
+            .from(INVITES_TABLE)
+            .select("id", { count: "exact", head: true })
+            .eq("organization_id", organizationId)
+            .gt("expires_at", now);
+
+        if (error) {
+            throw new DatabaseError("Failed to count pending organization invites", {
+                cause: error as unknown as Error,
+                operation: "countPendingInvitesByOrganization",
+                resource: { type: "table", name: INVITES_TABLE },
+            });
+        }
+        return count ?? 0;
+    }
+
     /** Active members with email and per-user notification email preferences. */
     async listMembersForNotificationEmails(organizationId: string): Promise<
         Array<{

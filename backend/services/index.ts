@@ -81,13 +81,6 @@ export const authenticationService = new AuthenticationService(
     userRepository,
     userService
 );
-export const organizationService = new OrganizationService(
-    organizationRepository,
-    userRepository,
-    emailService,
-    cacheServiceConnection,
-    cacheInvalidationServiceConnection
-);
 export const companyService = new CompanyService(configRepository, cacheServiceConnection);
 export const marketingService = new MarketingService(configRepository, cacheServiceConnection);
 export const rbacService = new RbacService(
@@ -122,6 +115,12 @@ export const plugService = new PlugService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
+export const subscriptionService = new SubscriptionService(subscriptionRepository, mediaRepository);
+export const permissionsService = new PermissionsService(
+    subscriptionService,
+    integrationService,
+    organizationRepository
+);
 export const integrationConnectionService = new IntegrationConnectionService(
     integrationService,
     plugService,
@@ -130,7 +129,17 @@ export const integrationConnectionService = new IntegrationConnectionService(
     refreshIntegrationService,
     storageSupabaseRepository,
     cacheServiceConnection,
-    cacheInvalidationServiceConnection
+    cacheInvalidationServiceConnection,
+    permissionsService
+);
+
+export const organizationService = new OrganizationService(
+    organizationRepository,
+    userRepository,
+    emailService,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection,
+    permissionsService
 );
 
 export const oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository, mediaRepository);
@@ -145,8 +154,6 @@ export const postsService = new PostsService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
-export const subscriptionService = new SubscriptionService(subscriptionRepository, mediaRepository);
-export const permissionsService = new PermissionsService(subscriptionService);
 export const stripeService = new StripeService(
     subscriptionRepository,
     subscriptionService,

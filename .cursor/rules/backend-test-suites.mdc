@@ -1,5 +1,5 @@
 ---
-description: Test suite patterns — RBAC/user setup, Faker, Flowcraft workflow unit tests, data cleanup
+description: Test suite patterns — RBAC/user setup, Faker, anchor-before-failure, Flowcraft workflow unit tests, data cleanup
 globs: ["backend/supabase/db/**/*.sql", "backend/tests/helpers/**/*.ts", "backend/tests/integration/**/*.ts", "backend/tests/e2e/**/*.ts", "backend/**/*.unit.test.ts", "orchestrator/**/*.ts"]
 alwaysApply: false
 ---
@@ -90,7 +90,23 @@ When an operation is exposed by an HTTP route, **use supertest to call that rout
 
 Reference: `backend/tests/integration/BlogRbac.integration.test.ts` (comment approve via PATCH, post state/slug via GET `/posts/:id`, no direct blog_comments/blog_posts mutation or read where a route exists).
 
-## 6. Flowcraft orchestrator workflows (unit)
+## 6. Anchor (pivot) state before limit and failure assertions
+
+For integration tests that assert **rejection at a plan or policy boundary** (402 subscription errors, 403 forbidden, “at capacity” behavior), **establish and assert the precondition first**, then assert the failure. Without that anchor, a passing “blocked” assertion can hide a broken setup (empty table, wrong tier, seed insert failed).
+
+**Pattern (three beats):**
+
+1. **Anchor on the contract** — Assert the limit from the shared catalog or config the code under test uses (e.g. `planLimitsForTier("SOLO").channel_per_workspace` and `expect(channelCap).toBe(15)`). Tie magic numbers to `openquok-common` / `GlobalConfig`, not only to test-local constants.
+2. **Arrange to the boundary** — Seed or call APIs until the workspace is **at** the cap (e.g. insert `channelCap` integration rows, attach a `SOLO` `organization_subscriptions` row, spy `billingEnabled()` when enforcement is gated on Stripe config).
+3. **Pivot (verify state)** — Read back through the **same path production uses** before the negative assertion (e.g. `integrationService.listByOrganization(orgId)` then `expect(connectedChannels).toHaveLength(channelCap)`). Only after that passes, assert the new action is rejected and, when relevant, that an allowed edge case still succeeds (e.g. reconnecting an existing `internal_id` does not count as a new channel).
+
+**Negative vs positive in one test:** After the pivot, assert **failure** for the over-limit case, then **success** for the in-bounds case (reconnect, same-seat user, etc.) so the policy is not “always deny.”
+
+**When direct DB seed is OK:** Seeding via service-role Supabase is fine for arrange when no HTTP route exists or setup would be huge; the pivot step should still use app services or routes when they mirror enforcement (see §5).
+
+Reference: `backend/tests/integration/Plan.solo.integration.test.ts` (SOLO channel cap: catalog anchor → seed → `listByOrganization` length → `assertConnectSocialChannelAllowed` rejects new id, allows existing `internal_id`).
+
+## 7. Flowcraft orchestrator workflows (unit)
 
 Long-running supervisors under `orchestrator/flows/` are tested with **Jest** by calling the exported runner (e.g. `runRefreshTokenOrchestration`) and **mocking** slow or external pieces—same spirit as other unit suites: no real Redis, no real sleep for hours.
 
