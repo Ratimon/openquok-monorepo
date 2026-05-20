@@ -35,7 +35,10 @@ export type {
 } from './GetMedia.presenter.svelte';
 export { GetMediaPresenter } from './GetMedia.presenter.svelte';
 export {
+	mediaUploadLimitsHint,
 	maxMediaUploadShortLabel,
+	validateMediaFileUploadSize,
+	validateMediaUploadSessionSize,
 	MEDIA_VIRTUAL_GENERAL,
 	MEDIA_VIRTUAL_POSTS,
 	MEDIA_VIRTUAL_POSTS_UNSCHEDULED,

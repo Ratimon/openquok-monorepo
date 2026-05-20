@@ -3,6 +3,7 @@ import { mediaFileManagerId } from "openquok-common";
 
 import type { StorageR2Repository } from "../repositories/StorageR2Repository";
 import type { MediaService } from "../services/MediaService";
+import type { SubscriptionService } from "../services/SubscriptionService";
 import type { IUploadProvider } from "../connections/upload/upload.interface";
 
 import { MediaController } from "./MediaController";
@@ -29,6 +30,7 @@ describe("MediaController", () => {
     let storageR2Repository: jest.Mocked<StorageR2Repository>;
     let controller: MediaController;
     let mediaService: jest.Mocked<MediaService>;
+    let subscriptionService: jest.Mocked<SubscriptionService>;
     let uploadProvider: jest.Mocked<IUploadProvider>;
 
     beforeEach(() => {
@@ -53,10 +55,16 @@ describe("MediaController", () => {
             softDeleteMedia: jest.fn(),
             saveMediaInformation: jest.fn(),
             listAllMedia: jest.fn(),
+            listVirtualFolderPaths: jest.fn().mockResolvedValue([]),
             updateVirtualPaths: jest.fn(),
             duplicateMedia: jest.fn(),
             renameMediaDisplayName: jest.fn(),
         } as unknown as jest.Mocked<MediaService>;
+
+        subscriptionService = {
+            getWorkspaceDriveUsage: jest.fn().mockResolvedValue({ used: 1024, total: 5_368_709_120, tier: "SOLO" }),
+            assertMediaStorageAvailable: jest.fn().mockResolvedValue(undefined),
+        } as unknown as jest.Mocked<SubscriptionService>;
 
         uploadProvider = {
             uploadFile: jest.fn(),
@@ -65,7 +73,12 @@ describe("MediaController", () => {
             supportsMultipart: true,
         } as unknown as jest.Mocked<IUploadProvider>;
 
-        controller = new MediaController(mediaService, storageR2Repository, uploadProvider);
+        controller = new MediaController(
+            mediaService,
+            subscriptionService,
+            storageR2Repository,
+            uploadProvider
+        );
     });
 
     describe("list", () => {
@@ -478,6 +491,26 @@ describe("MediaController", () => {
 
             expect(next).toHaveBeenCalledTimes(1);
             expect(uploadProvider.uploadFile).not.toHaveBeenCalled();
+        });
+
+        it("rejects images larger than the backend per-file cap", async () => {
+            const req = {
+                file: {
+                    buffer: Buffer.alloc(11 * 1024 * 1024),
+                    originalname: "big.png",
+                    mimetype: "image/png",
+                },
+                body: { organizationId: ORG_ID },
+                user: AUTH_USER,
+            } as unknown as Request;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.upload(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(uploadProvider.uploadFile).not.toHaveBeenCalled();
+            expect(subscriptionService.assertMediaStorageAvailable).not.toHaveBeenCalled();
         });
     });
 

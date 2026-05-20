@@ -5,6 +5,7 @@ import { AuthError } from "../errors/AuthError";
 import { InfraError, ValidationError, DatabaseError } from "../errors/InfraError";
 import { RequestError } from "../errors/RequestError";
 import { AppError } from "../errors/AppError";
+import { SubscriptionError } from "../errors/SubscriptionError";
 
 /**
  * Global error handler. Handles known error types (RequestError, AuthError, InfraError)
@@ -51,6 +52,19 @@ export function errorHandler(
                 type: err.name,
                 message: err.message,
                 ...err.metadata,
+            },
+        });
+        return;
+    }
+
+    if (err instanceof SubscriptionError) {
+        res.status(err.statusCode).json({
+            success: false,
+            message: err.message,
+            error: {
+                type: err.name,
+                section: err.section,
+                url: err.billingUrl,
             },
         });
         return;

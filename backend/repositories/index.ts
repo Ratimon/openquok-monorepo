@@ -18,6 +18,7 @@ import { PostsRepository } from "./PostsRepository";
 import { SignatureRepository } from "./SignatureRepository";
 import { SetsRepository } from "./SetsRepository";
 import { OauthAppRepository } from "./OauthAppRepository";
+import { SubscriptionRepository } from "./SubscriptionRepository";
 
 export const refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
 export const userRepository = new UserRepository(supabaseServiceClientConnection);
@@ -55,6 +56,7 @@ export const postsRepository = new PostsRepository(supabaseServiceClientConnecti
 export const signatureRepository = new SignatureRepository(supabaseServiceClientConnection);
 export const setsRepository = new SetsRepository(supabaseServiceClientConnection);
 export const oauthAppRepository = new OauthAppRepository(supabaseServiceClientConnection);
+export const subscriptionRepository = new SubscriptionRepository(supabaseServiceClientConnection);
 
 export { RefreshTokenRepository } from "./RefreshTokenRepository";
 export { UserRepository } from "./UserRepository";
@@ -80,3 +82,8 @@ export { PostsRepository } from "./PostsRepository";
 export { SignatureRepository } from "./SignatureRepository";
 export { SetsRepository } from "./SetsRepository";
 export { OauthAppRepository } from "./OauthAppRepository";
+export {
+    SubscriptionRepository,
+    type OrganizationBillingRow,
+    type OrganizationSubscriptionRow,
+} from "./SubscriptionRepository";

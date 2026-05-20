@@ -109,7 +109,16 @@ function configureCoreMiddleware(app: Express, config: ConfigObject, supabase: S
         const rawPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
         const apiPrefix = rawPrefix.replace(/\/+$/, "") || "/";
         //  : check if we can refactor
-        const publicPaths = ["/auth", "/company", "/feedback", "/public", "/oauth", "/posts/preview", "/docs"];
+        const publicPaths = [
+            "/auth",
+            "/company",
+            "/feedback",
+            "/public",
+            "/oauth",
+            "/posts/preview",
+            "/docs",
+            "/billing/webhooks",
+        ];
         const publicPathsExact = [
             "/blog-system/posts",
             "/blog-system/rss",

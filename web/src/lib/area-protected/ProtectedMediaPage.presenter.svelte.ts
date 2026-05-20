@@ -22,6 +22,7 @@ import type {
 } from '@svar-ui/svelte-filemanager';
 
 import {
+	DEFAULT_MEDIA_STORAGE_QUOTA_BYTES,
 	MEDIA_VIRTUAL_GENERAL,
 	mediaFileManagerId,
 	mediaVirtualPathFromFileManagerTarget,
@@ -74,7 +75,7 @@ export class ProtectedMediaPagePresenter {
 	readonly pagination = createRemotePagination({ initialItemsPerPage: DEFAULT_PAGE_SIZE });
 
 	fileManagerData = $state<IEntity[]>([]);
-	drive = $state<MediaFileManagerDriveVm>({ used: 0, total: 5_368_709_120 });
+	drive = $state<MediaFileManagerDriveVm>({ used: 0, total: DEFAULT_MEDIA_STORAGE_QUOTA_BYTES });
 	loading = $state(true);
 	mediaItemsVm = $state<MediaLibraryItemViewModel[]>([]);
 	totalPages = $state(1);
@@ -189,7 +190,7 @@ export class ProtectedMediaPagePresenter {
 			this.totalItems = 0;
 			this.totalPages = 1;
 			this.pagination.resetToFirstPage();
-			this.drive = { used: 0, total: 5_368_709_120 };
+			this.drive = { used: 0, total: DEFAULT_MEDIA_STORAGE_QUOTA_BYTES };
 			return;
 		}
 		if (orgId === this.lastLoadedOrganizationId) return;

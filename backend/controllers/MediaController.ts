@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import type { StorageR2Repository } from "../repositories/StorageR2Repository";
 import type { MediaService } from "../services/MediaService";
+import type { SubscriptionService } from "../services/SubscriptionService";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
 import type { ProgrammaticAuthRequest } from "../middlewares/programmaticAuth";
 import type { IUploadProvider } from "../connections/upload/upload.interface";
@@ -16,6 +17,7 @@ import {
     mediaVirtualPathFromFileManagerTarget,
     normalizeMediaVirtualPath,
     parseMediaFileManagerId,
+    validateMediaFileUploadSize,
 } from "openquok-common";
 
 function readVirtualPath(body: unknown): string | undefined {
@@ -41,6 +43,7 @@ function isAllowedMediaMime(mimetype: string): boolean {
 export class MediaController {
     constructor(
         private readonly mediaService: MediaService,
+        private readonly subscriptionService: SubscriptionService,
         private readonly storageR2Repository: StorageR2Repository,
         private readonly uploadProvider: IUploadProvider
     ) {}
@@ -54,6 +57,14 @@ export class MediaController {
         if (!isAllowedMediaMime(file.mimetype || "")) {
             throw new UserValidationError("Unsupported media type");
         }
+
+        const size = file.buffer.length;
+        const uploadSizeError = validateMediaFileUploadSize(size, file.mimetype || "", "backend");
+        if (uploadSizeError) {
+            throw new UserValidationError(uploadSizeError);
+        }
+
+        await this.subscriptionService.assertMediaStorageAvailable(organizationId, size);
 
         const out = await this.uploadProvider.uploadFile({
             organizationId,
@@ -109,17 +120,14 @@ export class MediaController {
 
             const items = await this.mediaService.listAllMedia(organizationId);
             const virtualFolders = await this.mediaService.listVirtualFolderPaths(organizationId);
-            const usedBytes = items.reduce((sum, row) => sum + (row.size ?? 0), 0);
+            const drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId);
             const files = buildMediaTreeEntities(items, virtualFolders);
 
             res.status(200).json({
                 success: true,
                 data: {
                     files,
-                    drive: {
-                        used: usedBytes,
-                        total: Math.max(usedBytes, 5_368_709_120),
-                    },
+                    drive: { used: drive.used, total: drive.total },
                 },
             });
         } catch (error) {
@@ -421,6 +429,18 @@ export class MediaController {
             if (endpoint === "complete-multipart-upload") {
                 const key = String((req.body as any)?.key ?? "");
                 const uploadId = String((req.body as any)?.uploadId ?? "");
+                const contentType = String((req.body as any)?.contentType ?? "");
+                const fileSize = Number((req.body as any)?.file?.size ?? 0) || 0;
+                const uploadSizeError = validateMediaFileUploadSize(
+                    fileSize,
+                    contentType || "application/octet-stream",
+                    "backend"
+                );
+                if (uploadSizeError) {
+                    throw new UserValidationError(uploadSizeError);
+                }
+                await this.subscriptionService.assertMediaStorageAvailable(organizationId, fileSize);
+
                 const parts = Array.isArray((req.body as any)?.parts) ? (req.body as any).parts : [];
                 const completed = await this.storageR2Repository.completeMultipartUpload({
                     key,

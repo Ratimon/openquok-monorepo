@@ -198,8 +198,8 @@
 					<h3 class="text-xl font-bold tracking-tight text-base-content">
 						No media uploaded yet</h3>
 					<p class="max-w-md text-sm text-base-content/60">
-						Get started by uploading images or videos, or drag and drop files here. Maximum {uploadLimitLabel} per
-						file.
+						Get started by uploading images or videos, or drag and drop files here. {uploadLimitLabel}; 1 GB max per
+						batch.
 					</p>
 					<span
 						class={cn(

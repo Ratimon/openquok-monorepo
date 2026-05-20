@@ -1,4 +1,5 @@
 import { getEnv, getEnvTrimmed, getEnvNumber, getEnvBoolean } from "./envHelper";
+import { loadStripePriceIds } from "./stripePriceConfig";
 import { DEFAULT_API_PREFIX, normalizeApiPrefix } from "./apiPrefix";
 import { logger } from "../utils/Logger";
 import * as loadBackendDotenvCjs from "./loadBackendDotenv.cjs";
@@ -348,6 +349,15 @@ export const config: ConfigObject = {
         },
     },
 
+    /** Stripe billing (workspace subscriptions). */
+    stripe: {
+        publishableKey: getEnvTrimmed("STRIPE_PUBLISHABLE_KEY", ""),
+        secretKey: getEnvTrimmed("STRIPE_SECRET_KEY", ""),
+        webhookSecret: getEnvTrimmed("STRIPE_WEBHOOK_SECRET", ""),
+        /** Pre-created Stripe Price ids (`price_…`) per tier and cadence; see stripePriceEnvKey in openquok-common. */
+        priceIds: loadStripePriceIds(),
+    },
+
     /** Social integration OAuth (per-provider secrets). */
     integrations: {
         threads: {
@@ -371,3 +381,19 @@ export const config: ConfigObject = {
 
 const server = config.server as { nodeEnv?: string };
 logger.info({ msg: "[Config] Loaded", env: server?.nodeEnv });
+
+const stripeCfg = config.stripe as { webhookSecret?: string; secretKey?: string } | undefined;
+if (server?.nodeEnv === "development" && stripeCfg?.secretKey?.trim()) {
+    const wh = stripeCfg.webhookSecret?.trim() ?? "";
+    if (wh) {
+        logger.info({
+            msg: "[Stripe] STRIPE_WEBHOOK_SECRET loaded (must match current `stripe listen` session)",
+            secretPrefix: `${wh.slice(0, 12)}…`,
+            secretLength: wh.length,
+        });
+    } else {
+        logger.warn({
+            msg: "[Stripe] STRIPE_SECRET_KEY is set but STRIPE_WEBHOOK_SECRET is empty; webhooks will fail signature verification",
+        });
+    }
+}

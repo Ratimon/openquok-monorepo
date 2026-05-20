@@ -102,20 +102,21 @@ const aggregateMigrations = async () => {
       "user-management": 0,
       "user-auth": 1,
       "organization": 2,
-      "media": 3,
-      "oauth": 4,
-      "customer": 5,
-      "integration": 6,
+      billing: 3,
+      "media": 4,
+      "oauth": 5,
+      "customer": 6,
+      "integration": 7,
       // plug: after integration (`plugs.integration_id` → `integrations`).
-      plug: 7,
-      "post": 8,
-      post_internal_comment: 9,
-      rbac: 10,
-      config: 11,
-      feedback: 12,
-      blog: 13,
-      notification: 14,
-      sets: 15
+      plug: 8,
+      "post": 9,
+      post_internal_comment: 10,
+      rbac: 11,
+      config: 12,
+      feedback: 13,
+      blog: 14,
+      notification: 15,
+      sets: 16
     }
     const moduleOrder = (name) => (MODULE_ORDER[name] ?? 99)
 

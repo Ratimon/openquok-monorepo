@@ -1,5 +1,5 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
-import { MAX_MEDIA_UPLOAD_BYTES, maxMediaUploadShortLabel } from 'openquok-common';
+import { validateMediaFileUploadSize } from 'openquok-common';
 
 export interface MediaFileTreeEntityProgrammerModel {
 	id: string;
@@ -35,7 +35,7 @@ export interface MediaConfig {
 	};
 }
 
-export { MAX_MEDIA_UPLOAD_BYTES };
+export { MAX_MEDIA_UPLOAD_BYTES, MAX_MEDIA_VIDEO_UPLOAD_BYTES } from 'openquok-common';
 
 export interface MediaUploadResponseDto {
 	success: boolean;
@@ -326,12 +326,9 @@ export class MediaRepository {
 		organizationId: string,
 		virtualPath?: string
 	): Promise<MediaUploadProgrammerModel> {
-		if (file.size > MAX_MEDIA_UPLOAD_BYTES) {
-			return {
-				success: false,
-				data: { filePath: '' },
-				message: `Media must be ${maxMediaUploadShortLabel()} or smaller (file is ${(file.size / (1024 * 1024)).toFixed(1)} MB).`
-			};
+		const sizeError = validateMediaFileUploadSize(file.size, file.type, 'frontend');
+		if (sizeError) {
+			return { success: false, data: { filePath: '' }, message: sizeError };
 		}
 
 		try {
@@ -414,6 +411,17 @@ export class MediaRepository {
 		filename: string;
 		preventSave: boolean;
 	}): Promise<UploadSimpleProgrammerModel> {
+		const mime =
+			params.file instanceof File
+				? params.file.type
+				: params.filename.toLowerCase().endsWith('.mp4')
+					? 'video/mp4'
+					: 'image/png';
+		const sizeError = validateMediaFileUploadSize(params.file.size, mime, 'frontend');
+		if (sizeError) {
+			return { success: false, message: sizeError };
+		}
+
 		try {
 			const formData = new FormData();
 			formData.append('file', params.file, params.filename);

@@ -7,7 +7,7 @@ import type { Express } from "express";
 import { Sentry } from "./connections/index";
 
 import http from "http";
-import express, { json } from "express";
+import express from "express";
 import path from "path";
 import helmet from "helmet";
 import cors from "cors";
@@ -16,6 +16,7 @@ import { supabaseAnonClient, supabaseServiceClientConnection } from "./connectio
 import { mountAllRoutes } from "./routes/index";
 import { errorHandler } from "./controllers/ErrorController";
 import { configureCoreMiddleware } from "./middlewares/core";
+import { stripeWebhookRawBodyMiddleware } from "./middlewares/stripeWebhookRawBody";
 import { generateSitemapMiddleware } from "./middlewares/generateSitemap";
 import { logger } from "./utils/Logger";
 import { config } from "./config/GlobalConfig";
@@ -148,10 +149,17 @@ async function createApp(): Promise<Express> {
     app.use(cors(corsOptions));
     app.options("/{*path}", cors(corsOptions) as RequestHandler);
 
-    app.use((req: Request & { _skipJsonParsing?: boolean }, res: Response, next: NextFunction) => {
-        if (req._skipJsonParsing) return next();
-        return json()(req, res, next);
-    });
+    const apiPrefix = String((config.api as { prefix?: string }).prefix ?? "/api/v1").replace(/\/+$/, "");
+
+    const bodyLimit = String((config.server as { bodyLimit?: string })?.bodyLimit ?? "10mb");
+    app.post(
+        `${apiPrefix}/billing/webhooks/stripe`,
+        ...stripeWebhookRawBodyMiddleware(bodyLimit),
+        async (req, res, next) => {
+            const { stripeWebhookController } = await import("./controllers/index.js");
+            return stripeWebhookController.handle(req, res, next);
+        }
+    );
 
     configureCoreMiddleware(app, config as ConfigObject, supabaseAnonClient);
 

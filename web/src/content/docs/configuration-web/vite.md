@@ -32,6 +32,14 @@ VITE_API_BASE_URL=
 VITE_FRONTEND_DOMAIN_URL=
 VITE_PUBLIC_SUPABASE_URL=
 VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_MONTHLY=
+VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_YEARLY=
+VITE_PUBLIC_STRIPE_PRICE_ID_CREATOR_MONTHLY=
+VITE_PUBLIC_STRIPE_PRICE_ID_CREATOR_YEARLY=
+VITE_PUBLIC_STRIPE_PRICE_ID_TEAM_MONTHLY=
+VITE_PUBLIC_STRIPE_PRICE_ID_TEAM_YEARLY=
+VITE_PUBLIC_STRIPE_PRICE_ID_ULTIMATE_MONTHLY=
+VITE_PUBLIC_STRIPE_PRICE_ID_ULTIMATE_YEARLY=
 VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID=
 ```
 
@@ -57,17 +65,7 @@ In development, <Badge text="web/src/hooks.server.ts" variant="path" /> forwards
 
 For deployment, ensure <Badge text="web/.env.production.local" variant="envWeb" /> (or your host’s production env) sets the same key names with production values. Double-check <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> against <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the API before you register OAuth redirect URIs in external dashboards.
 
-Stripe price IDs for your plans:
-
-```bash
-VITE_PUBLIC_STRIPE_PRICE_ID_LITE_PLAN=
-VITE_PUBLIC_STRIPE_PRICE_ID_BASIC_PLAN=
-VITE_PUBLIC_STRIPE_PRICE_ID_STARTER_PACK=
-VITE_PUBLIC_STRIPE_PRICE_ID_GROWTH_PACK=
-VITE_PUBLIC_STRIPE_PRICE_ID_PROFESSIONAL_PACK=
-VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_1_YEAR_PACK=
-VITE_PUBLIC_STRIPE_PRICE_ID_PAGE_LIFETIME_PACK=
-```
+Stripe subscription price ids are configured on the **web** (`VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_MONTHLY`, and so on). See <a href="/docs/configuration-backend/stripe">Stripe billing</a>.
 
 </Steps>
 

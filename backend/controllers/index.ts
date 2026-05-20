@@ -7,6 +7,8 @@ import { FeedbackController } from "./FeedbackController";
 import { BlogController } from "./BlogController";
 import { ImageController } from "./ImageController";
 import { MediaController, MAX_MEDIA_UPLOAD_BYTES } from "./MediaController";
+import { BillingController } from "./BillingController";
+import { StripeWebhookController } from "./StripeWebhookController";
 import { ConfigController } from "./ConfigController";
 import { EmailController } from "./EmailController";
 import { IntegrationController } from "./IntegrationController";
@@ -41,10 +43,13 @@ import {
     oauthAppService,
     oauthService,
     mediaService,
+    subscriptionService,
+    stripeService,
     signatureService,
     setsService,
     analyticsService,
 } from "../services/index";
+import { subscriptionRepository } from "../repositories/index";
 import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
 import { UploadFactory } from "../connections/upload/upload.factory";
 
@@ -65,9 +70,16 @@ export const blogController = new BlogController(blogService);
 export const imageController = new ImageController(storageSupabaseRepository);
 export const mediaController = new MediaController(
     mediaService,
+    subscriptionService,
     storageR2Repository,
     UploadFactory.createStorage(storageR2Repository)
 );
+export const billingController = new BillingController(
+    subscriptionService,
+    stripeService,
+    subscriptionRepository
+);
+export const stripeWebhookController = new StripeWebhookController(stripeService);
 export { MAX_MEDIA_UPLOAD_BYTES };
 export const configController = new ConfigController(configService);
 export const emailController = new EmailController(emailService);

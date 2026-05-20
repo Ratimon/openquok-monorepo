@@ -16,6 +16,7 @@ import {
     setsRepository,
     oauthAppRepository,
     storageSupabaseRepository,
+    subscriptionRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -41,6 +42,9 @@ import { SetsService } from "./SetsService";
 import { AnalyticsService } from "./AnalyticsService";
 import { OauthAppService } from "./OauthAppService";
 import { OauthService } from "./OauthService";
+import { SubscriptionService } from "./SubscriptionService";
+import { PermissionsService } from "./PermissionsService";
+import { StripeService } from "./StripeService";
 import { config } from "../config/GlobalConfig";
 
 export const integrationManager = new IntegrationManager();
@@ -141,6 +145,13 @@ export const postsService = new PostsService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
+export const subscriptionService = new SubscriptionService(subscriptionRepository, mediaRepository);
+export const permissionsService = new PermissionsService(subscriptionService);
+export const stripeService = new StripeService(
+    subscriptionRepository,
+    subscriptionService,
+    organizationRepository
+);
 export const mediaService = new MediaService(mediaRepository);
 export const signatureService = new SignatureService(
     signatureRepository,
@@ -182,3 +193,6 @@ export { MediaService } from "./MediaService";
 export { SignatureService } from "./SignatureService";
 export { SetsService } from "./SetsService";
 export { AnalyticsService } from "./AnalyticsService";
+export { SubscriptionService } from "./SubscriptionService";
+export { PermissionsService } from "./PermissionsService";
+export { StripeService } from "./StripeService";

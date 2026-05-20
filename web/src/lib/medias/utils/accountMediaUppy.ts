@@ -2,7 +2,7 @@ import Uppy from '@uppy/core';
 import Compressor from '@uppy/compressor';
 
 import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
-import { MAX_MEDIA_UPLOAD_BYTES } from '$lib/medias';
+import { attachMediaUploadRestrictions } from '$lib/medias/utils/mediaUploadRestrictions';
 import { normalizeApiBaseUrl } from '$lib/utils/path';
 import {
 	getUppyUploadPlugin,
@@ -82,12 +82,10 @@ export type AccountMediaUppyOptions = {
 export function createAccountMediaUppy(options: AccountMediaUppyOptions): Uppy {
 	const uppy = new Uppy({
 		id: 'account-media-library',
-		autoProceed: true,
-		restrictions: {
-			maxFileSize: MAX_MEDIA_UPLOAD_BYTES,
-			allowedFileTypes: ['image/*', 'video/*']
-		}
+		autoProceed: true
 	});
+
+	attachMediaUploadRestrictions(uppy, (message) => options.onUploadError?.(new Error(message)));
 
 	// Threads/Meta rejects SVG media fetches. Convert SVG → PNG at ingestion time so downstream
 	// providers always see a supported raster format (and so the stored object key isn't .svg).

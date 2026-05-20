@@ -9,8 +9,9 @@
 	import { getMenuOptions, type IFileMenuOption } from '@svar-ui/svelte-filemanager';
 
 	import { mediaLibraryMediaModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
-	import { formatBytes, maxMediaUploadShortLabel, normalizeMediaVirtualPath } from '$lib/medias';
+	import { formatBytes, mediaUploadLimitsHint, normalizeMediaVirtualPath } from '$lib/medias';
 	import { createAccountMediaUppy } from '$lib/medias/utils/accountMediaUppy';
+	import { validateFilesForMediaUpload } from '$lib/medias/utils/mediaUploadRestrictions';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { toast } from '$lib/ui/sonner';
@@ -59,7 +60,7 @@
 	const workspaceName = $derived(p.currentWorkspaceName);
 	const uploadVirtualPath = $derived(p.uploadVirtualPath);
 	const fileManagerApi = $derived(p.fileManagerApi);
-	const uploadLimitLabel = maxMediaUploadShortLabel();
+	const uploadLimitLabel = mediaUploadLimitsHint();
 	const uploadBusy = $derived(uploadPhase !== 'idle');
 	const fileManagerMode = $derived(
 		libraryLayout === 'gallery' ? 'cards' : libraryLayout
@@ -86,9 +87,14 @@
 			return;
 		}
 
-		const files = Array.from(fileList).filter(isSupportedUpload);
-		if (!files.length) {
+		const supported = Array.from(fileList).filter(isSupportedUpload);
+		if (!supported.length) {
 			toast.error('Upload images or videos only.');
+			return;
+		}
+
+		const files = validateFilesForMediaUpload(supported, (message) => toast.error(message));
+		if (!files.length) {
 			return;
 		}
 

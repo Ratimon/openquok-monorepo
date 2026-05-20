@@ -19,6 +19,7 @@ import { thirdPartyRouter } from "./ThirdPartyRoute.js";
 import { signatureRouter } from "./SignatureRoute.js";
 import { setsRouter } from "./SetsRoute.js";
 import { analyticsRouter } from "./AnalyticsRoute.js";
+import { billingRouter } from "./BillingRoute.js";
 import { oauthAppRouter } from "./OauthAppRoute.js";
 import { oauthRouter } from "./OauthRoute.js";
 import { registerBullBoardRoutes, registerBullBoardSessionRoutes } from "./BullBoardRoute.js";
@@ -76,6 +77,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     apiRouter.use("/signatures", signatureRouter);
     apiRouter.use("/sets", setsRouter);
     apiRouter.use("/analytics", analyticsRouter);
+    apiRouter.use("/billing", billingRouter);
     apiRouter.use("/oauth-apps", oauthAppRouter);
     apiRouter.use("/oauth", oauthRouter);
     app.use(prefix, apiRouter);
@@ -101,6 +103,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
         signatures: `${prefix}/signatures`,
         sets: `${prefix}/sets`,
         analytics: `${prefix}/analytics`,
+        billing: `${prefix}/billing`,
         oauthApps: `${prefix}/oauth-apps`,
         oauth: `${prefix}/oauth`,
     });
