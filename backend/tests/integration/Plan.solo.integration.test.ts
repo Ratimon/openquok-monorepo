@@ -224,7 +224,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 0)).resolves.toBeUndefined();
     });
 
-    it("returns 402 when creating a scheduled post via API at the SOLO posts_per_month cap", async () => {
+    it("blocks scheduling when creating a scheduled exceed the limit cap", async () => {
         const soloLimits = planLimitsForTier("SOLO");
         const postsCap = soloLimits.posts_per_month;
         expect(postsCap).toBe(500);
