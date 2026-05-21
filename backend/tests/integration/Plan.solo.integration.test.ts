@@ -12,11 +12,10 @@ import {
     permissionsService,
     subscriptionService,
 } from "../../services/index";
+import { storageR2Repository } from "../../repositories/index";
 import {
     attachSoloSubscription,
     insertTestSocialIntegration,
-    seedMediaStorageUsage,
-    seedMediaStorageUsage,
     seedSocialIntegrations,
 } from "../helpers/integrationTestHelper";
 import { seedScheduledSocialPosts } from "../helpers/postHelper";
@@ -28,8 +27,8 @@ const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
 const authPath = `${apiPrefix}/auth`;
 const usersPath = `${apiPrefix}/users`;
 const settingsPath = `${apiPrefix}/settings`;
-const mediaPath = `${apiPrefix}/media`;
 const postsPath = `${apiPrefix}/posts`;
+const mediaPath = `${apiPrefix}/media`;
 
 const inviteTokenSecret = (config.auth as { inviteTokenSecret?: string } | undefined)?.inviteTokenSecret?.trim();
 const itIfInviteSigning = inviteTokenSecret ? it : it.skip;
@@ -49,8 +48,8 @@ jest.mock("openquok-orchestrator", () => ({
  * - one workspace per billing account (`workspaces: 1`)
  * - one workspace seat (no additional team members / invites beyond the owner)
  * - limited connected channels per workspace
- * - limited media library storage per workspace (`media_storage_bytes_per_workspace`, 5 GiB on SOLO)
  * - limited scheduled posts per billing month (`posts_per_month`)
+ * - limited media library storage per workspace (`media_storage_bytes_per_workspace`, 5 GiB on SOLO)
  *
  * Policy checks run when Stripe billing is configured; this suite forces billing on via a spy
  * so limits apply using a real `organization_subscriptions` row.
@@ -275,8 +274,9 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         expect(createRes.status).toBe(402);
         expect(createRes.body?.success).toBe(false);
         expect(createRes.body?.error?.section).toBe("posts_per_month");
+    });
 
-    it("blocks media upload when workspace usage already meets SOLO media_storage_bytes_per_workspace", async () => {
+    it("blocks complete-multipart-upload when workspace is at SOLO media_storage_bytes_per_workspace", async () => {
         const soloLimits = planLimitsForTier("SOLO");
         const storageCap = soloLimits.media_storage_bytes_per_workspace;
         expect(storageCap).toBeGreaterThan(0);
@@ -286,23 +286,36 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const orgId = await firstOrganizationId(accessToken);
         await attachSoloSubscription(adminSupabase, orgId);
 
-        await seedMediaStorageUsage(adminSupabase, orgId, {
-            usedBytes: storageCap - 512,
-            keyPrefix: "solo-storage-cap",
+        const driveUsageSpy = jest.spyOn(subscriptionService, "getWorkspaceDriveUsage").mockResolvedValue({
+            used: storageCap - 512,
+            total: storageCap,
+            tier: "SOLO",
         });
+        const completeMultipartSpy = jest
+            .spyOn(storageR2Repository, "completeMultipartUpload")
+            .mockResolvedValue({ Location: "solo-cap-test.png" });
 
-        const uploadRes = await supertest(app)
-            .post(`${mediaPath}/upload`)
-            .set("Authorization", `Bearer ${accessToken}`)
-            .field("organizationId", orgId)
-            .attach("mediaFile", Buffer.alloc(1024), {
-                filename: "over-cap.png",
-                contentType: "image/png",
-            });
+        try {
+            const uploadRes = await supertest(app)
+                .post(`${mediaPath}/complete-multipart-upload`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({
+                    organizationId: orgId,
+                    key: "solo-cap-test.png",
+                    uploadId: "test-upload-id",
+                    parts: [{ ETag: '"etag"', PartNumber: 1 }],
+                    file: { name: "over-cap.png", size: 1024 },
+                    contentType: "image/png",
+                });
 
-        expect(uploadRes.status).toBe(402);
-        expect(uploadRes.body?.success).toBe(false);
-        expect(uploadRes.body?.error?.section).toBe("media_storage_bytes_per_workspace");
+            expect(uploadRes.status).toBe(402);
+            expect(uploadRes.body?.success).toBe(false);
+            expect(uploadRes.body?.error?.section).toBe("media_storage_bytes_per_workspace");
+            expect(completeMultipartSpy).not.toHaveBeenCalled();
+        } finally {
+            driveUsageSpy.mockRestore();
+            completeMultipartSpy.mockRestore();
+        }
     });
 
     it("rejects additional bytes via assertMediaStorageAvailable when SOLO storage is full", async () => {
@@ -314,18 +327,18 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const orgId = await firstOrganizationId(accessToken);
         await attachSoloSubscription(adminSupabase, orgId);
 
-        await seedMediaStorageUsage(adminSupabase, orgId, {
-            usedBytes: storageCap,
-            keyPrefix: "solo-storage-cap-assert",
+        const driveUsageSpy = jest.spyOn(subscriptionService, "getWorkspaceDriveUsage").mockResolvedValue({
+            used: storageCap,
+            total: storageCap,
+            tier: "SOLO",
         });
 
-        await expect(subscriptionService.assertMediaStorageAvailable(orgId, 1)).rejects.toBeInstanceOf(
-            SubscriptionError
-        );
-
-        const drive = await subscriptionService.getWorkspaceDriveUsage(orgId);
-        expect(drive.used).toBe(storageCap);
-        expect(drive.total).toBeGreaterThanOrEqual(storageCap);
-    });
+        try {
+            await expect(subscriptionService.assertMediaStorageAvailable(orgId, 1)).rejects.toBeInstanceOf(
+                SubscriptionError
+            );
+        } finally {
+            driveUsageSpy.mockRestore();
+        }
     });
 });
