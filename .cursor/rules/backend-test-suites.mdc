@@ -1,5 +1,5 @@
 ---
-description: Test suite patterns — RBAC/user setup, Faker, anchor-before-failure, Flowcraft workflow unit tests, data cleanup
+description: Test suite patterns — RBAC/user setup, Faker, anchor-before-failure, HTTP integration mocks (supertest), Flowcraft workflow unit tests, data cleanup
 globs: ["backend/supabase/db/**/*.sql", "backend/tests/helpers/**/*.ts", "backend/tests/integration/**/*.ts", "backend/tests/e2e/**/*.ts", "backend/**/*.unit.test.ts", "orchestrator/**/*.ts"]
 alwaysApply: false
 ---
@@ -106,14 +106,47 @@ For integration tests that assert **rejection at a plan or policy boundary** (40
 
 Reference: `backend/tests/integration/Plan.solo.integration.test.ts` (SOLO channel cap: catalog anchor → `seedSocialIntegrations` / `attachSoloSubscription` from `integrationTestHelper` → `listByOrganization` length → policy assertions).
 
-**Shared helpers** (`backend/tests/helpers/integrationTestHelper.ts`): `attachOrganizationSubscription`, `attachSoloSubscription`, `insertTestSocialIntegration`, `seedSocialIntegrations` — use for subscription rows and connected-channel setup instead of duplicating insert payloads in each suite.
+**Shared helpers** (`backend/tests/helpers/integrationTestHelper.ts`): `attachOrganizationSubscription`, `attachSoloSubscription`, `insertTestSocialIntegration`, `seedSocialIntegrations`, `seedSocialConnectOAuthState`, `stubInMemorySocialConnectCache` — use for subscription rows, connected-channel setup, and OAuth `social-connect` tests instead of duplicating insert payloads in each suite.
 
-## 7. Flowcraft orchestrator workflows (unit)
+## 7. Mocking externals for HTTP integration tests (supertest)
+
+Integration tests that hit **real routes** via `supertest(app)` still **mock outbound boundaries** the suite cannot or should not run (OAuth token exchange, shared Redis OAuth state, object storage, usage meters). This is **not** “mock HTTP”: the request goes through Express, auth middleware, validation, controllers, and services.
+
+### Do
+
+- **Call the real route** with `supertest(app)`, JWT / API key headers, and bodies the validators accept (see §5).
+- **Assert the client contract** on failures: e.g. `expect(res.status).toBe(402)`, `expect(res.body?.success).toBe(false)`, `expect(res.body?.error?.section).toBe("channel_per_workspace")` (same shape as `ErrorController` for `SubscriptionError`).
+- **Mock only what sits outside the policy under test**, for example:
+  - **OAuth / provider** — `jest.spyOn(integrationManager, "getSocialIntegration")` returning a minimal `SocialProvider` whose `authenticate` resolves to a chosen `id` (`internal_id`). Use separate mock implementations for “new account” (should hit cap) vs “reconnect” (existing `internal_id`, should succeed at cap).
+  - **Short-lived OAuth cache** — `stubInMemorySocialConnectCache()` from `integrationTestHelper` (spies `cacheServiceConnection` `get`/`set`/`del` into a per-test `Map`). Pair with `seedSocialConnectOAuthState(cache, orgId, state)` so `POST /integrations/social-connect/:integration` does not depend on Redis or leftover keys. Call `restore()` in a `finally` block after the HTTP calls.
+  - **Storage / usage** — e.g. `jest.spyOn(subscriptionService, "getWorkspaceDriveUsage")` and `jest.spyOn(storageR2Repository, "completeMultipartUpload")` so a cap test does not fill real buckets; assert the downstream call was **not** invoked when blocked.
+  - **Billing gate** — `jest.spyOn(subscriptionService, "billingEnabled").mockReturnValue(true)` when limits are enforced only with Stripe configured.
+- **Combine with §6** — anchor catalog limit, seed to the boundary, pivot (read back via app service or GET), then HTTP negative, then HTTP (or service) positive edge case when policy allows it (e.g. reconnect at channel cap returns **200** because the same `internal_id` is not a new slot; add a one-line comment when that surprises readers).
+- **Optional thin guard assertion** before HTTP when the edge case is easy to miss (e.g. `permissionsService.assertX(orgId, 0)` no-op, or reconnect allowed on `assertConnectSocialChannelAllowed`). Prefer **one test** with guard + HTTP rather than two tests that duplicate the same cap scenario.
+
+### Do not
+
+- **Do not** mock `supertest`, Express, or route handlers to fake a 402/403 — that would not prove wiring.
+- **Do not** `cacheServiceConnection.flush()` (or flush shared Redis) in suite `afterEach` — it affects other tests and processes. Rely on `stubInMemorySocialConnectCache().restore()` or TTL + unique `state` UUIDs when using the real cache.
+- **Do not** duplicate a full HTTP OAuth pipeline in every cap test when a **direct service call** to the guard is enough — use HTTP when the route adds value (status/body, auth, validation). Use service-only for a single guard with no meaningful HTTP shortcut; use HTTP + mocks when the route is the product path (e.g. `POST /posts` schedule, `POST …/complete-multipart-upload`, `POST …/social-connect/…`).
+
+### OAuth `social-connect` checklist
+
+1. `stubInMemorySocialConnectCache()` before seeding state.
+2. `seedSocialConnectOAuthState(cacheServiceConnection, orgId, state)` with a unique `state` per request.
+3. Spy `getSocialIntegration` for the provider slug (e.g. `threads`).
+4. Spy `refreshIntegrationService.startRefreshWorkflow` if the connect path would enqueue work.
+5. `POST` with `{ state, code, timezone }` and `Authorization: Bearer <accessToken>`.
+6. `restore()` all spies in `finally`.
+
+Reference: `backend/tests/integration/Plan.solo.integration.test.ts` (SOLO channel cap: guard reconnect edge case → `social-connect` 402 for new `internal_id` → `social-connect` 200 for reconnect; posts cap via `POST /posts`; media cap via `complete-multipart-upload` + usage/R2 spies).
+
+## 8. Flowcraft orchestrator workflows (unit)
 
 Long-running supervisors under `orchestrator/flows/` are tested with **Jest** by calling the exported runner (e.g. `runRefreshTokenOrchestration`) and **mocking** slow or external pieces—same spirit as other unit suites: no real Redis, no real sleep for hours.
 
 - **Entry point**: Prefer testing `runRefreshTokenOrchestration` (or the next flow’s public runner) so transport branching (`in_process` vs `bullmq`) and `FlowRuntime` wiring stay covered. Mock `../activities/…` and `../sleepChunked` (or equivalent) so ticks complete quickly.
-- **Faker**: Use `@faker-js/faker` for `organizationId` / `integrationId` and mock integration rows (see §4).
+- **Faker**: Use `@faker-js/faker` for `organizationId` / `integrationId` and mock integration rows (see §4). HTTP integration suites use the same rule for user/org payloads; boundary mocks are spies/stubs, not Faker (see §7).
 - **Optional event bus**: `runRefreshTokenOrchestration(..., { eventBus })` accepts an `IEventBus` from `flowcraft`. In tests, pass `new InMemoryEventLogger()` from `flowcraft/testing` and assert on `workflow:start`, `workflow:finish`, `node:start`, etc.
 - **Framework helpers** (`flowcraft/testing`): `runWithTrace(runtime, blueprint, initialState, { functionRegistry })` for end-to-end graph runs with traces on failure; `createStepper(runtime, blueprint, functionRegistry, initialState)` to step the graph and assert intermediate status. Use the same `createRefreshTokenFlowBuilder()` (or sibling) as production for blueprint + `getFunctionRegistry()`.
 - **Jest resolution**: `flowcraft/testing` is mapped in `backend/jest.config.js` (`^flowcraft/testing$` → `node_modules/flowcraft/dist/testing/index.mjs`) alongside `flowcraft` → `dist/index.mjs`. Keep these in sync if the package layout changes.

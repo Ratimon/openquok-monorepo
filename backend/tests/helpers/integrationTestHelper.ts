@@ -3,6 +3,8 @@ import { faker } from "@faker-js/faker";
 import type { PaidSubscriptionTier, SubscriptionPeriod } from "openquok-common";
 import { v4 as uuidv4 } from "uuid";
 
+import { cacheServiceConnection } from "../../connections/index";
+
 const DEFAULT_POSTING_TIMES = '[{"time":120},{"time":400},{"time":700}]';
 
 export type InsertTestSocialIntegrationOptions = {
@@ -153,4 +155,49 @@ export async function seedSocialIntegrations(
         throw new Error(`seedSocialIntegrations failed: ${error.message}`);
     }
     return { internalIds };
+}
+
+/** TTL for OAuth state keys used by `POST /integrations/social-connect/:integration`. */
+export const SOCIAL_CONNECT_OAUTH_STATE_TTL_SEC = 3600;
+
+/**
+ * Primes in-memory (or configured) cache with OAuth state required before `social-connect`.
+ * Keys match {@link IntegrationConnectionService} `CACHE_KEYS.oauth`.
+ */
+export async function seedSocialConnectOAuthState(
+    cache: { set(key: string, value: unknown, ttl?: number): Promise<boolean> },
+    organizationId: string,
+    state: string,
+    options?: { codeVerifier?: string }
+): Promise<void> {
+    const verifier = options?.codeVerifier ?? "test-verifier";
+    await cache.set(`login:${state}`, verifier, SOCIAL_CONNECT_OAUTH_STATE_TTL_SEC);
+    await cache.set(`organization:${state}`, organizationId, SOCIAL_CONNECT_OAUTH_STATE_TTL_SEC);
+}
+
+/**
+ * Forces OAuth state through an in-process map so `social-connect` tests do not depend on Redis.
+ * Restores {@link cacheServiceConnection} spies when `restore()` is called.
+ */
+export function stubInMemorySocialConnectCache(): { restore: () => void } {
+    const store = new Map<string, unknown>();
+    const getSpy = jest.spyOn(cacheServiceConnection, "get").mockImplementation(async (key: string) => {
+        return store.has(key) ? store.get(key)! : null;
+    });
+    const setSpy = jest.spyOn(cacheServiceConnection, "set").mockImplementation(async (key, value) => {
+        store.set(key, value);
+        return true;
+    });
+    const delSpy = jest.spyOn(cacheServiceConnection, "del").mockImplementation(async (key) => {
+        store.delete(key);
+        return true;
+    });
+
+    return {
+        restore: () => {
+            getSpy.mockRestore();
+            setSpy.mockRestore();
+            delSpy.mockRestore();
+        },
+    };
 }

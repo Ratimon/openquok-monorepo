@@ -8,15 +8,21 @@ import { config } from "../../config/GlobalConfig";
 import { SubscriptionError } from "../../errors/SubscriptionError";
 import { EmailService } from "../../services/EmailService";
 import {
+    integrationManager,
     integrationService,
     permissionsService,
+    refreshIntegrationService,
     subscriptionService,
 } from "../../services/index";
 import { storageR2Repository } from "../../repositories/index";
+import type { AuthTokenDetails, SocialProvider } from "../../integrations/social.integrations.interface";
+import { cacheServiceConnection } from "../../connections/index";
 import {
     attachSoloSubscription,
     insertTestSocialIntegration,
+    seedSocialConnectOAuthState,
     seedSocialIntegrations,
+    stubInMemorySocialConnectCache,
 } from "../helpers/integrationTestHelper";
 import { seedScheduledSocialPosts } from "../helpers/postHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
@@ -29,6 +35,8 @@ const usersPath = `${apiPrefix}/users`;
 const settingsPath = `${apiPrefix}/settings`;
 const postsPath = `${apiPrefix}/posts`;
 const mediaPath = `${apiPrefix}/media`;
+const integrationsPath = `${apiPrefix}/integrations`;
+const SOCIAL_CONNECT_PROVIDER = "threads";
 
 const inviteTokenSecret = (config.auth as { inviteTokenSecret?: string } | undefined)?.inviteTokenSecret?.trim();
 const itIfInviteSigning = inviteTokenSecret ? it : it.skip;
@@ -181,7 +189,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         }
     );
 
-    it("blocks a new social channel when the workspace already has SOLO channel_per_workspace connections", async () => {
+    it("blocks a new social channel when the workspace is at SOLO channel_per_workspace cap", async () => {
         const soloLimits = planLimitsForTier("SOLO");
         const channelCap = soloLimits.channel_per_workspace;
         expect(channelCap).toBe(15);
@@ -192,7 +200,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         await attachSoloSubscription(adminSupabase, orgId);
 
         const { internalIds } = await seedSocialIntegrations(adminSupabase, orgId, {
-            count: channelCap, // 15 channels
+            count: channelCap,
             internalIdPrefix: "solo-cap-test",
             token: "test-token",
         });
@@ -204,34 +212,96 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
             permissionsService.assertConnectSocialChannelAllowed(orgId, "brand-new-internal-id")
         ).rejects.toBeInstanceOf(SubscriptionError);
 
+        // Cap blocks new provider accounts only; same internal_id is a reconnect (token refresh), not a 16th slot.
         await expect(
             permissionsService.assertConnectSocialChannelAllowed(orgId, internalIds[0]!)
         ).resolves.toBeUndefined();
-    });
 
-    it("blocks scheduling another post when the workspace already has SOLO posts_per_month rows", async () => {
-        const soloLimits = planLimitsForTier("SOLO");
-        const postsCap = soloLimits.posts_per_month;
-        expect(postsCap).toBe(500);
-
-        const payload = userHelper.setupTestUser1();
-        const { accessToken } = await signupVerifyAndSignIn(payload);
-        const orgId = await firstOrganizationId(accessToken);
-        await attachSoloSubscription(adminSupabase, orgId);
-
-        await seedScheduledSocialPosts(adminSupabase, orgId, {
-            count: postsCap,
-            postGroupPrefix: "solo-posts-cap",
+        const mockAuthDetails = (internalId: string, name: string): AuthTokenDetails => ({
+            id: internalId,
+            accessToken: "mock-access-token",
+            refreshToken: "mock-refresh-token",
+            expiresIn: 3600,
+            name,
+            username: "mock-user",
+            additionalSettings: [],
         });
-
-        await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 1)).rejects.toBeInstanceOf(
-            SubscriptionError
+        const mockAuthenticate = jest.fn(
+            async (_params: { code: string; codeVerifier: string; refresh?: string }) =>
+                mockAuthDetails("brand-new-internal-id", "Blocked channel")
         );
+        const getSocialIntegrationSpy = jest
+            .spyOn(integrationManager, "getSocialIntegration")
+            .mockImplementation((identifier: string) => {
+                if (identifier !== SOCIAL_CONNECT_PROVIDER) return undefined;
+                return {
+                    identifier: SOCIAL_CONNECT_PROVIDER,
+                    name: "Threads",
+                    editor: "normal",
+                    isBetweenSteps: false,
+                    scopes: [],
+                    maxLength: () => 10_000,
+                    authenticate: mockAuthenticate,
+                } as unknown as SocialProvider;
+            });
+        const refreshWorkflowSpy = jest
+            .spyOn(refreshIntegrationService, "startRefreshWorkflow")
+            .mockResolvedValue(false);
+        const oauthCacheStub = stubInMemorySocialConnectCache();
 
-        await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 0)).resolves.toBeUndefined();
+        try {
+            const blockedState = `solo-cap-blocked-${uuidv4()}`;
+            await seedSocialConnectOAuthState(cacheServiceConnection, orgId, blockedState);
+
+            const blockedRes = await supertest(app)
+                .post(`${integrationsPath}/social-connect/${SOCIAL_CONNECT_PROVIDER}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({
+                    state: blockedState,
+                    code: "mock-oauth-code",
+                    timezone: "0",
+                });
+
+            expect(blockedRes.status).toBe(402);
+            expect(blockedRes.body?.success).toBe(false);
+            expect(blockedRes.body?.error?.section).toBe("channel_per_workspace");
+            expect(mockAuthenticate).toHaveBeenCalledTimes(1);
+
+            const afterBlocked = await integrationService.listByOrganization(orgId);
+            expect(afterBlocked).toHaveLength(channelCap);
+
+            // At cap, social-connect still returns 200 when OAuth resolves to an existing internal_id (upsert, not a new channel).
+            mockAuthenticate.mockImplementation(async () =>
+                mockAuthDetails(internalIds[0]!, "Reconnect channel")
+            );
+
+            const reconnectState = `solo-cap-reconnect-${uuidv4()}`;
+            await seedSocialConnectOAuthState(cacheServiceConnection, orgId, reconnectState);
+
+            const reconnectRes = await supertest(app)
+                .post(`${integrationsPath}/social-connect/${SOCIAL_CONNECT_PROVIDER}`)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({
+                    state: reconnectState,
+                    code: "mock-oauth-code",
+                    timezone: "0",
+                });
+
+            expect(reconnectRes.status).toBe(200);
+            expect(reconnectRes.body?.success).toBe(true);
+            expect(reconnectRes.body?.data?.internalId).toBe(internalIds[0]);
+            expect(mockAuthenticate).toHaveBeenCalledTimes(2);
+
+            const afterReconnect = await integrationService.listByOrganization(orgId);
+            expect(afterReconnect).toHaveLength(channelCap); // reconnect must not increase connected count
+        } finally {
+            oauthCacheStub.restore();
+            getSocialIntegrationSpy.mockRestore();
+            refreshWorkflowSpy.mockRestore();
+        }
     });
 
-    it("blocks scheduling when creating a scheduled exceed the limit cap", async () => {
+    it("blocks scheduling another post when the workspace is at SOLO posts_per_month cap", async () => {
         const soloLimits = planLimitsForTier("SOLO");
         const postsCap = soloLimits.posts_per_month;
         expect(postsCap).toBe(500);
@@ -249,6 +319,8 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
             count: postsCap,
             postGroupPrefix: "solo-posts-cap-api",
         });
+
+        await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 0)).resolves.toBeUndefined();
 
         const findSlot = await supertest(app)
             .get(`${postsPath}/find-slot`)
