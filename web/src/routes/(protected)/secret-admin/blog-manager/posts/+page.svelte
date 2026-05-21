@@ -79,7 +79,7 @@
 			<h1 class="text-xl font-semibold text-base-content">
 				Posts</h1>
 			<p class="text-sm text-base-content/70">
-				Manage blog posts. Super admin only.</p>
+				Manage blog posts. Platform admin only.</p>
 		</div>
 
 		<div class="flex items-center gap-2">

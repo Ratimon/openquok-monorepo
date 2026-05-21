@@ -77,7 +77,7 @@ export interface RefreshTokenResponseDto {
 			username?: string;
 			isEmailVerified?: boolean;
 			roles?: string[];
-			isSuperAdmin?: boolean;
+			isPlatformAdmin?: boolean;
 		};
 	};
 	message: string;
@@ -105,7 +105,7 @@ export interface BasicUserAuthProgrammerModel {
 	username?: string;
 	isEmailVerified?: boolean;
 	roles?: string[];
-	isSuperAdmin?: boolean;
+	isPlatformAdmin?: boolean;
 }
 
 export interface AuthProgrammerModel {
@@ -311,14 +311,14 @@ export class AuthenticationRepository {
 					username: user.username ?? user.email,
 					isEmailVerified: user.isEmailVerified,
 					roles: user.roles ?? [],
-					isSuperAdmin: user.isSuperAdmin
+					isPlatformAdmin: user.isPlatformAdmin
 				};
 				this.storeToken(accessToken);
 				this.storeUser(userModel);
 				this.currentUser = userModel;
 				this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
 				this.setupTokenRefresh();
-				// Fetch full profile (e.g. isSuperAdmin, roles) so header buttons show without refresh
+				// Fetch full profile (e.g. isPlatformAdmin, roles) so header buttons show without refresh
 				try {
 					await this.fetchCurrentUser();
 				} catch {
@@ -554,7 +554,7 @@ export class AuthenticationRepository {
 						username: user.username ?? user.email ?? undefined,
 						isEmailVerified: user.isEmailVerified,
 						roles: user.roles ?? [],
-						isSuperAdmin: user.isSuperAdmin ?? false
+						isPlatformAdmin: user.isPlatformAdmin ?? false
 					};
 					this.storeUser(userModel);
 					this.currentUser = userModel;
@@ -583,7 +583,7 @@ export class AuthenticationRepository {
 				username?: string | null;
 				isEmailVerified?: boolean;
 				roles?: string[];
-				isSuperAdmin?: boolean;
+				isPlatformAdmin?: boolean;
 			};
 		}>(
 			meUrl,
@@ -601,7 +601,7 @@ export class AuthenticationRepository {
 			username: d.username ?? d.email ?? undefined,
 			isEmailVerified: d.isEmailVerified,
 			roles: d.roles ?? [],
-			isSuperAdmin: d.isSuperAdmin ?? false
+			isPlatformAdmin: d.isPlatformAdmin ?? false
 		};
 		this.storeUser(userModel);
 		this.currentUser = userModel;

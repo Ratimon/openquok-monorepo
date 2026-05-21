@@ -10,7 +10,7 @@ export const load: PageLoad = async ({ parent, url }) => {
 	const { isLoggedIn: accurateIsLoggedIn, currentUser } = parentData;
 
 	const roles = currentUser && 'roles' in currentUser ? currentUser.roles : [];
-	const isSuperAdmin = currentUser?.isSuperAdmin || false;
+	const isPlatformAdmin = currentUser?.isPlatformAdmin || false;
 	const isAdmin = roles?.includes('admin') || false;
 	const isEditor = roles?.includes('editor') || false;
 
@@ -34,7 +34,7 @@ export const load: PageLoad = async ({ parent, url }) => {
 		pageMetaTags,
 		isLoggedIn: accurateIsLoggedIn,
 		currentUser,
-		isSuperAdmin,
+		isPlatformAdmin,
 		isAdmin,
 		isEditor
 	};

@@ -19,7 +19,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		};
 
 		const roles = currentUser && 'roles' in currentUser ? currentUser.roles : [];
-		const isSuperAdmin = currentUser?.isSuperAdmin || false;
+		const isPlatformAdmin = currentUser?.isPlatformAdmin || false;
 		const isAdmin = roles?.includes('admin') || false;
 		const isEditor = roles?.includes('editor') || false;
 
@@ -27,7 +27,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: serverData.pageMetaTags,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,
-			isSuperAdmin,
+			isPlatformAdmin,
 			isAdmin,
 			isEditor,
 			companyInformationPm: serverData.companyInformationPm,
@@ -37,7 +37,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 	}
 
 	const roles = currentUser && 'roles' in currentUser ? currentUser.roles : [];
-	const isSuperAdmin = currentUser?.isSuperAdmin || false;
+	const isPlatformAdmin = currentUser?.isPlatformAdmin || false;
 	const isAdmin = roles?.includes('admin') || false;
 	const isEditor = roles?.includes('editor') || false;
 
@@ -45,7 +45,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		...data,
 		isLoggedIn: accurateIsLoggedIn,
 		currentUser,
-		isSuperAdmin,
+		isPlatformAdmin,
 		isAdmin,
 		isEditor
 	};

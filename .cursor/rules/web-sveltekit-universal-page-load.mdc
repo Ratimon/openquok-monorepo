@@ -12,11 +12,11 @@ Use this pattern for `web/**/+page.ts` when the route has a `+page.server.ts` an
 
 1. **`await parent()` first** — Read layout chain data before branching.
 2. **Rename from parent** — `const { isLoggedIn: accurateIsLoggedIn, currentUser } = parentData;`
-3. **Role helpers** (for UI / authorization checks): derive `roles`, `isSuperAdmin`, `isAdmin`, `isEditor` from `currentUser` the same way in both branches (e.g. `currentUser && 'roles' in currentUser ? currentUser.roles : []`, then `roles?.includes('admin')`, etc.).
+3. **Role helpers** (for UI / authorization checks): derive `roles`, `isPlatformAdmin`, `isAdmin`, `isEditor` from `currentUser` the same way in both branches (e.g. `currentUser && 'roles' in currentUser ? currentUser.roles : []`, then `roles?.includes('admin')`, etc.).
 4. **Client branch** — `if (browser && data) { ... }`:
    - Cast `data` to an object that lists **every field** returned by `+page.server.ts` for this route (plus merged layout fields if the page relies on them). Prefer concrete types from `$lib/...` for view models and arrays so `+page.svelte` and `svelte-check` do not see `unknown`.
-   - Return an **explicit object**: server fields from the cast + `isLoggedIn: accurateIsLoggedIn`, `currentUser`, `isSuperAdmin`, `isAdmin`, `isEditor`. Do not rely on `...data` alone on the client if you need a stable, documented merge.
-5. **Server / fallback branch** — `return { ...data, isLoggedIn: accurateIsLoggedIn, currentUser, isSuperAdmin, isAdmin, isEditor };`
+   - Return an **explicit object**: server fields from the cast + `isLoggedIn: accurateIsLoggedIn`, `currentUser`, `isPlatformAdmin`, `isAdmin`, `isEditor`. Do not rely on `...data` alone on the client if you need a stable, documented merge.
+5. **Server / fallback branch** — `return { ...data, isLoggedIn: accurateIsLoggedIn, currentUser, isPlatformAdmin, isAdmin, isEditor };`
 
 ## Imports and typing
 

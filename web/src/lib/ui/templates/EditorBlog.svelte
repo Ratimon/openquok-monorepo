@@ -19,7 +19,7 @@
 		initialValues: Partial<BlogPostFormSchemaType>;
 		topicChoices: TopicChoice[];
 		userId: string;
-		isSuperAdmin: boolean;
+		isPlatformAdmin: boolean;
 		isSubmitting: boolean;
 		slugDisplay?: string;
 		noPostFound?: boolean;
@@ -31,7 +31,7 @@
 		initialValues,
 		topicChoices,
 		userId,
-		isSuperAdmin,
+		isPlatformAdmin,
 		isSubmitting,
 		slugDisplay = '',
 		noPostFound = false,
@@ -158,7 +158,7 @@
 			</div>
 		</div>
 
-		{#if isSuperAdmin}
+		{#if isPlatformAdmin}
 			<section class="space-y-4">
 				<div class="mb-4">
 					<h3 class="text-xl font-bold text-base-content">

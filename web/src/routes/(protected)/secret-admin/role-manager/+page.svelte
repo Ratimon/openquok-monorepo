@@ -5,10 +5,10 @@
 	import { adminRoleManagerPagePresenter } from '$lib/area-admin';
 	import RoleOverviewTable from '$lib/ui/components/user/RoleOverviewTable.svelte';
 
-	type Props = { data: { isSuperAdmin?: boolean } };
+	type Props = { data: { isPlatformAdmin?: boolean } };
 
 	let { data }: Props = $props();
-	let isSuperAdmin = $derived(data.isSuperAdmin ?? false);
+	let isPlatformAdmin = $derived(data.isPlatformAdmin ?? false);
 
 	let usersVm = $derived(adminRoleManagerPagePresenter.allUsersToManageVm);
 	let showToastMessage = $derived(adminRoleManagerPagePresenter.showToastMessage);
@@ -46,14 +46,14 @@
 		<h1 class="text-xl font-semibold text-base-content">
 			Role manager</h1>
 		<p class="text-sm text-base-content/70 mt-1">
-			Manage user roles. Assign or remove editor and admin roles. Super admin only.
+			Manage user roles. Assign or remove editor and admin roles. Platform admin only.
 		</p>
 	</div>
 
 	<div class="mt-4">
 		<RoleOverviewTable
 			usersVm={usersVm}
-			isCurrentAdminSuperAdmin={isSuperAdmin}
+			isCurrentAdminPlatformAdmin={isPlatformAdmin}
 			onRoleAssigned={handleRoleAssigned}
 			onRoleRemoved={handleRoleRemoved}
 		/>

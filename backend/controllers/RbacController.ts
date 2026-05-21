@@ -31,8 +31,8 @@ export class RbacController {
             const assignedBy = await this.getPublicUserIdFromAuth(authUserId);
             const validatedRole = RbacService.validateRole(role.trim());
 
-            const isSuperAdmin = await this.rbacService.isSuperAdmin(assignedBy);
-            const result = isSuperAdmin
+            const isPlatformAdmin = await this.rbacService.isPlatformAdmin(assignedBy);
+            const result = isPlatformAdmin
                 ? await this.rbacService.assignRoleBySuperAdmin(userId, validatedRole, assignedBy)
                 : await this.rbacService.assignRoleByAdmin(userId, validatedRole, assignedBy);
 

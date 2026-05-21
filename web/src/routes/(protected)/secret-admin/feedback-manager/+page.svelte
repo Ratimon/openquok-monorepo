@@ -43,7 +43,7 @@
 			<h1 class="text-xl font-semibold text-base-content">
 				Feedback manager</h1>
 			<p class="text-sm text-base-content/70">
-				Manage incoming feedback. Super admin only.
+				Manage incoming feedback. Platform admin only.
 			</p>
 		</div>
 

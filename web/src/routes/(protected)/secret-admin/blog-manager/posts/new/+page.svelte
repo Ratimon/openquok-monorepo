@@ -19,7 +19,7 @@
 	type Props = { data: PageData };
 
 	let { data }: Props = $props();
-	let isSuperAdmin = $derived(data.isSuperAdmin ?? false);
+	let isPlatformAdmin = $derived(data.isPlatformAdmin ?? false);
 	let userId = $derived(page.data.currentUser?.id ?? '');
 
 	let initialized = $state(false);
@@ -92,7 +92,7 @@
 				initialValues={formDefaults}
 				topicChoices={topicChoices}
 				userId={userId}
-				isSuperAdmin={isSuperAdmin}
+				isPlatformAdmin={isPlatformAdmin}
 				isSubmitting={adminBlogNewPostPagePresenter.submitting}
 				slugDisplay={slugDisplay}
 				noPostFound={false}

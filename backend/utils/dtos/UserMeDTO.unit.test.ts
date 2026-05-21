@@ -11,7 +11,7 @@ describe("UserMeDTO", () => {
         it("maps workspace roles to uppercase session roles", () => {
             expect(workspaceRoleToUserMeRole("user")).toBe("USER");
             expect(workspaceRoleToUserMeRole("admin")).toBe("ADMIN");
-            expect(workspaceRoleToUserMeRole("superadmin")).toBe("SUPERADMIN");
+            expect(workspaceRoleToUserMeRole("owner")).toBe("OWNER");
         });
     });
 

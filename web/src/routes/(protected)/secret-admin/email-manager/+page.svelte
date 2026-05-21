@@ -8,10 +8,10 @@
 	import { Pagination } from '$lib/ui/pagination';
 	import { CardContent, CardFooter } from '$lib/ui/card';
 
-	type Props = { data: { isSuperAdmin?: boolean } };
+	type Props = { data: { isPlatformAdmin?: boolean } };
 
 	let { data }: Props = $props();
-	let isSuperAdmin = $derived(data.isSuperAdmin ?? false);
+	let isPlatformAdmin = $derived(data.isPlatformAdmin ?? false);
 
 	let receivedEmails = $derived(adminEmailManagerPagePresenter.receivedEmails);
 
@@ -109,14 +109,14 @@
 			Email manager</h1>
 		<p class="text-sm text-base-content/70 mt-1">
 			List received mail via Resend, open a message, and send a plain-text reply. Requires
-			<code class="text-xs bg-base-300 px-1 rounded">RESEND_SECRET_KEY</code> on the API. Super admin
+			<code class="text-xs bg-base-300 px-1 rounded">RESEND_SECRET_KEY</code> on the API. Platform admin
 			only.
 		</p>
 	</div>
 
-	{#if !isSuperAdmin}
+	{#if !isPlatformAdmin}
 		<div class="alert alert-warning mt-4 text-sm">
-			You need super admin access to use this tool. Requests will be denied by the API.
+			You need platform admin access to use this tool. Requests will be denied by the API.
 		</div>
 	{/if}
 

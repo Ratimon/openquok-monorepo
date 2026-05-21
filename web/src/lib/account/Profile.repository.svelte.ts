@@ -25,9 +25,7 @@ export interface UserProfileDto {
 /** GET /users/me payload (profile; optional workspace session when `organizationId` query is set). */
 export type GetMeDataDto = UserProfileDto & {
 	roles?: string[];
-	isSuperAdmin?: boolean;
-	/** Platform super-admin (legacy shell alias). */
-	admin?: boolean;
+	isPlatformAdmin?: boolean;
 	impersonate?: boolean;
 } & Partial<UserMeWorkspaceSession>;
 

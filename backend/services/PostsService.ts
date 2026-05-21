@@ -33,6 +33,7 @@ import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
 import { config } from "../config/GlobalConfig";
 import { logger } from "../utils/Logger";
+import type { PermissionsService } from "./PermissionsService";
 
 const DEFAULT_TAG_COLOR = "#6366f1";
 
@@ -233,7 +234,8 @@ export class PostsService {
         private readonly integrationManager: IntegrationManager,
         private readonly refreshIntegrationService: RefreshIntegrationService,
         private readonly cache?: CacheService,
-        private readonly cacheInvalidator?: CacheInvalidationService
+        private readonly cacheInvalidator?: CacheInvalidationService,
+        private readonly permissionsService?: PermissionsService
     ) {}
 
     async findFreeSlot(organizationId: string, authUserId: string): Promise<string> {
@@ -492,6 +494,10 @@ export class PostsService {
                     providerSettings: providerSettingsByIntegrationId?.[integrationId] ?? null,
                 }),
             }));
+        }
+
+        if (state === "QUEUE") {
+            await this.permissionsService?.assertPostsPerMonthAllowed(organizationId, toInsert.length);
         }
 
         return { postGroup, toInsert, tagIds };
@@ -821,6 +827,13 @@ export class PostsService {
             );
             if (taken) {
                 throw new AppError("That time slot is already taken; pick another.", 409);
+            }
+            const draftRows = rows.filter((r) => r.state === "DRAFT" && r.deleted_at == null);
+            if (draftRows.length > 0) {
+                await this.permissionsService?.assertPostsPerMonthAllowed(
+                    input.organizationId,
+                    draftRows.length
+                );
             }
         }
 

@@ -8,7 +8,7 @@ export interface FullUsersWithRolesResponseDto {
 			id: string;
 			email: string;
 			roles: AppRole[];
-			isSuperAdmin?: boolean;
+			isPlatformAdmin?: boolean;
 			createdAt?: string;
 		}>;
 	};
@@ -19,7 +19,7 @@ export interface FullUserProgrammerModelWithRoles {
 	id: string;
 	email: string;
 	roles: AppRole[];
-	isSuperAdmin: boolean;
+	isPlatformAdmin: boolean;
 	createdAt: string;
 }
 
@@ -48,7 +48,7 @@ export class UserRepository {
 					id: u.id,
 					email: u.email ?? '',
 					roles: Array.isArray(u.roles) ? u.roles : [],
-					isSuperAdmin: u.isSuperAdmin ?? false,
+					isPlatformAdmin: u.isPlatformAdmin ?? false,
 					createdAt: u.createdAt ?? ''
 				}));
 			}

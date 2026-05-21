@@ -44,15 +44,13 @@ export class UserController {
             }
 
             const dto = toUserDTO(profile);
-            const isSuperAdmin = authReq.user?.isSuperAdmin ?? false;
+            const isPlatformAdmin = authReq.user?.isPlatformAdmin ?? false;
             const organizationId = (req.query as { organizationId?: string }).organizationId?.trim();
 
             const data: Record<string, unknown> = {
                 ...dto,
                 roles: authReq.user?.roles ?? [],
-                isSuperAdmin,
-                /** Alias used by legacy shell UIs (`admin` ≈ platform super-admin). */
-                admin: isSuperAdmin,
+                isPlatformAdmin,
                 impersonate: Boolean(req.cookies?.impersonate ?? req.headers.impersonate),
             };
 

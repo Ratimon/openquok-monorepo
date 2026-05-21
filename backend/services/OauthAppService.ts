@@ -37,7 +37,7 @@ export class OauthAppService {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) throw new AppError("Workspace not found", 404);
-        if (membership.role !== "admin" && membership.role !== "superadmin") {
+        if (membership.role !== "admin" && membership.role !== "owner") {
             throw new AppError("Only admins can manage OAuth apps", 403);
         }
         return { userId };

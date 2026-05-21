@@ -18,7 +18,7 @@ import { OrganizationInviteEmailTemplate } from "../emails/OrganizationInviteEma
 import dayjs from "dayjs";
 import { logger } from "../utils/Logger";
 
-const ROLE_LEVEL: Record<string, number> = { user: 0, admin: 1, superadmin: 2 };
+const ROLE_LEVEL: Record<string, number> = { user: 0, admin: 1, owner: 2 };
 
 /** Domain-scoped cache key prefixes. */
 const CACHE_KEYS = {
@@ -269,7 +269,7 @@ export class OrganizationService {
         return factory();
     }
 
-    /** Create organization and add the current user as superadmin. Returns row; controller maps to DTO. */
+    /** Create organization and add the current user as owner. Returns row; controller maps to DTO. */
     async createOrganization(
         authUserId: string,
         params: { name: string; description?: string | null }
@@ -287,7 +287,7 @@ export class OrganizationService {
 
     /**
      * Create a default organization for a newly registered user (createOrgAndUser-style).
-     * Used at signup and OAuth registration so the user has one org and is superadmin.
+     * Used at signup and OAuth registration so the user has one org and is owner.
      * Returns the created org row or null on failure (caller should not fail signup).
      */
     async createDefaultOrganizationForNewUser(
@@ -309,7 +309,7 @@ export class OrganizationService {
         }
     }
 
-    /** Update organization; requires admin or superadmin. Returns row; controller maps to DTO. */
+    /** Update organization; requires admin or owner. Returns row; controller maps to DTO. */
     async updateOrganization(
         authUserId: string,
         organizationId: string,
@@ -346,7 +346,7 @@ export class OrganizationService {
         return members;
     }
 
-    /** Add a team member; requires admin or superadmin. Returns added member row; controller maps to DTO. */
+    /** Add a team member; requires admin or owner. Returns added member row; controller maps to DTO. */
     async addTeamMember(
         authUserId: string,
         organizationId: string,
@@ -375,7 +375,7 @@ export class OrganizationService {
         return added ?? { ...newMembership, email: null, full_name: null };
     }
 
-    /** Remove a team member; requires admin/superadmin (and cannot remove higher role) or self-remove. */
+    /** Remove a team member; requires admin/owner (and cannot remove higher role) or self-remove. */
     async removeTeamMember(
         authUserId: string,
         organizationId: string,
@@ -417,22 +417,22 @@ export class OrganizationService {
         await this._invalidateOrganizationRelatedCaches({ authUserId, organizationId });
     }
 
-    /** Delete organization; requires superadmin. */
+    /** Delete organization; requires owner. */
     async deleteOrganization(authUserId: string, organizationId: string): Promise<void> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) {
             throw new OrganizationNotFoundError(organizationId);
         }
-        if (membership.role !== "superadmin") {
-            throw new OrganizationForbiddenError("Only the organization superadmin can delete it");
+        if (membership.role !== "owner") {
+            throw new OrganizationForbiddenError("Only the organization owner can delete it");
         }
         const { error } = await this.organizationRepository.deleteOrganization(organizationId);
         if (error) throw error as Error;
         await this._invalidateOrganizationRelatedCaches({ authUserId, organizationId });
     }
 
-    /** Rotate API key; requires admin or superadmin. Returns row; controller maps to DTO. */
+    /** Rotate API key; requires admin or owner. Returns row; controller maps to DTO. */
     async rotateApiKey(authUserId: string, organizationId: string): Promise<OrganizationLike> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);

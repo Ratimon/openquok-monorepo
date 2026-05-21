@@ -67,7 +67,7 @@ export class SettingsController {
         }
     };
 
-    /** POST /settings — create organization and add current user as superadmin. */
+    /** POST /settings — create organization and add current user as owner. */
     create: ValidateCreateOrganizationRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;
@@ -87,7 +87,7 @@ export class SettingsController {
         }
     };
 
-    /** PATCH /settings/:id — update organization (admin/superadmin only). */
+    /** PATCH /settings/:id — update organization (admin/owner only). */
     update: ValidateUpdateOrganizationRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;
@@ -125,7 +125,7 @@ export class SettingsController {
         }
     };
 
-    /** POST /settings/:id/team — add team member (admin/superadmin only). */
+    /** POST /settings/:id/team — add team member (admin/owner only). */
     addTeamMember: ValidateAddTeamMemberRequestHandler = async (
         req: Request,
         res: Response,
@@ -140,7 +140,7 @@ export class SettingsController {
             const organizationId = (req.params as { id: string }).id;
             const { userId, workspaceRole } = req.body as {
                 userId: string;
-                workspaceRole: "user" | "admin" | "superadmin";
+                workspaceRole: "user" | "admin" | "owner";
             };
             const row = await this.organizationService.addTeamMember(authUserId, organizationId, {
                 userId,
@@ -169,7 +169,7 @@ export class SettingsController {
         }
     };
 
-    /** DELETE /settings/:id — delete organization (superadmin only). */
+    /** DELETE /settings/:id — delete organization (owner only). */
     deleteById = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;
@@ -185,7 +185,7 @@ export class SettingsController {
         }
     };
 
-    /** POST /settings/:id/rotate-api-key — rotate API key (admin/superadmin only). */
+    /** POST /settings/:id/rotate-api-key — rotate API key (admin/owner only). */
     rotateApiKey = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;
@@ -202,7 +202,7 @@ export class SettingsController {
         }
     };
 
-    /** POST /settings/:id/invite — invite team member by email (admin/superadmin only). */
+    /** POST /settings/:id/invite — invite team member by email (admin/owner only). */
     inviteTeamMember: ValidateInviteTeamMemberRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;

@@ -88,7 +88,7 @@ describe("Blog RBAC", () => {
         };
 
         const superAdmin = await userHelper.createVerifiedUserWithAuthAndDatabase(superAdminData, {
-            isSuperAdmin: true,
+            isPlatformAdmin: true,
             isEmailVerified: true,
         });
         const editor = await userHelper.createVerifiedUserWithAuthAndDatabase(editorData, {

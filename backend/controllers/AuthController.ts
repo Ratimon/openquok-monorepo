@@ -555,7 +555,7 @@ export class AuthController {
                           const rolesResult = publicId
                               ? await this.rbacService.getUserRoles(publicId)
                               : { roles: [] as string[] };
-                          const isSuperAdmin = publicId ? await this.rbacService.isSuperAdmin(publicId) : false;
+                          const isPlatformAdmin = publicId ? await this.rbacService.isPlatformAdmin(publicId) : false;
 
                           return userData
                               ? {
@@ -565,7 +565,7 @@ export class AuthController {
                                     username: userData.email,
                                     isEmailVerified: userData.is_email_verified === true,
                                     roles: rolesResult.roles,
-                                    isSuperAdmin,
+                                    isPlatformAdmin,
                                 }
                               : null;
                       })()

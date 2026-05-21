@@ -16,7 +16,7 @@ const ORG_SELECT = "id, name, description, api_key, created_at, updated_at";
 const USER_ORG_SELECT =
     "id, user_id, organization_id, role, disabled, created_at, updated_at";
 
-export type WorkspaceMembershipRole = "user" | "admin" | "superadmin";
+export type WorkspaceMembershipRole = "user" | "admin" | "owner";
 // Backward-compat alias (internal). Prefer WorkspaceMembershipRole.
 export type OrgRole = WorkspaceMembershipRole;
 
@@ -162,7 +162,7 @@ export class OrganizationRepository {
     }
 
     /**
-     * Create organization and add founding user as superadmin via SECURITY DEFINER RPC
+     * Create organization and add founding user as owner via SECURITY DEFINER RPC
      * (bypasses RLS; required when the Supabase client is not service_role).
      */
     async createOrganization(params: {

@@ -57,8 +57,8 @@ export class RbacService {
 
     async removeRole(userId: string, role: AppRole, removedBy: string): Promise<boolean> {
         if (role === "admin") {
-            const isSuperAdmin = await this.rbacRepository.isSuperAdmin(removedBy);
-            if (!isSuperAdmin) {
+            const isPlatformAdmin = await this.rbacRepository.isPlatformAdmin(removedBy);
+            if (!isPlatformAdmin) {
                 throw new RoleValidationError(
                     "Admins cannot remove the admin role. Only super admins can remove admin roles."
                 );
@@ -123,8 +123,8 @@ export class RbacService {
     }
 
     /** Check if the given user (public.users.id) is a super admin. */
-    async isSuperAdmin(publicUserId: string): Promise<boolean> {
-        return this.rbacRepository.isSuperAdmin(publicUserId);
+    async isPlatformAdmin(publicUserId: string): Promise<boolean> {
+        return this.rbacRepository.isPlatformAdmin(publicUserId);
     }
 
     /**

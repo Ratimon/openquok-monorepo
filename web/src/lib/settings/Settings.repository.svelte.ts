@@ -33,7 +33,7 @@ export interface OrganizationWithRoleDto {
 	apiKey: string | null;
 	createdAt: string;
 	updatedAt: string;
-	workspaceRole: 'user' | 'admin' | 'superadmin';
+	workspaceRole: 'user' | 'admin' | 'owner';
 	disabled: boolean;
 	memberCount: number;
 }
@@ -69,7 +69,7 @@ export interface TeamMemberDto {
 	id: string;
 	userId: string;
 	organizationId: string;
-	workspaceRole: 'user' | 'admin' | 'superadmin';
+	workspaceRole: 'user' | 'admin' | 'owner';
 	disabled: boolean;
 	email: string | null;
 	fullName: string | null;
@@ -128,7 +128,7 @@ export interface OrganizationProgrammerModel {
 }
 
 export interface OrganizationWithRoleProgrammerModel extends OrganizationProgrammerModel {
-	workspaceRole: 'user' | 'admin' | 'superadmin';
+	workspaceRole: 'user' | 'admin' | 'owner';
 	disabled: boolean;
 	memberCount: number;
 }
@@ -137,7 +137,7 @@ export interface TeamMemberProgrammerModel {
 	id: string;
 	userId: string;
 	organizationId: string;
-	workspaceRole: 'user' | 'admin' | 'superadmin';
+	workspaceRole: 'user' | 'admin' | 'owner';
 	disabled: boolean;
 	email: string | null;
 	fullName: string | null;

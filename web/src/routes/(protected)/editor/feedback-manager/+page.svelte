@@ -13,12 +13,12 @@
 	const rootPathAdminArea = getRootPathAdminArea();
 	const adminAreaPath = route(rootPathAdminArea);
 
-	type Props = { data: { isSuperAdmin?: boolean } };
+	type Props = { data: { isPlatformAdmin?: boolean } };
 
 	let { data }: Props = $props();
 
-	let isSuperAdmin = $derived(data.isSuperAdmin ?? false);
-	let canSeeAdminArea = $derived(isSuperAdmin);
+	let isPlatformAdmin = $derived(data.isPlatformAdmin ?? false);
+	let canSeeAdminArea = $derived(isPlatformAdmin);
 	let adminAreaHref = $derived(absoluteUrl(adminAreaPath));
 
 	let showHandled = $state(true);

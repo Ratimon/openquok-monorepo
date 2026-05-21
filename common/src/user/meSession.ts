@@ -2,7 +2,7 @@ import type { PlanLimits } from '../subscription/pricing.js';
 import type { SubscriptionTier } from '../subscription/types.js';
 
 /** Workspace membership role in uppercase (session bootstrap / shell UI). */
-export type UserMeWorkspaceRole = 'USER' | 'ADMIN' | 'SUPERADMIN';
+export type UserMeWorkspaceRole = 'USER' | 'ADMIN' | 'OWNER';
 
 /**
  * Workspace session fields returned by `GET /users/me?organizationId=…`.

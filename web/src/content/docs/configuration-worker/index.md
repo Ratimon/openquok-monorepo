@@ -17,11 +17,11 @@ Deploy workers on an **always-on** host (for example <a href="/docs/installation
 
 ## Queue dashboard (Bull Board)
 
-Super admins can inspect and **manage BullMQ jobs** (pause / resume queues, open jobs, retry, clean, and related controls) from the **web** using <DocsExternalLink href="https://github.com/felixmosh/bull-board">Bull Board</DocsExternalLink> embedded on the <strong>Queue dashboard</strong> page. The **API** mounts the same UI under a configurable path and the **browser** loads it in an iframe so subresource and XHR calls can be authenticated (see below).
+Platform admins can inspect and **manage BullMQ jobs** (pause / resume queues, open jobs, retry, clean, and related controls) from the **web** using <DocsExternalLink href="https://github.com/felixmosh/bull-board">Bull Board</DocsExternalLink> embedded on the <strong>Queue dashboard</strong> page. The **API** mounts the same UI under a configurable path and the **browser** loads it in an iframe so subresource and XHR calls can be authenticated (see below).
 
 ### Who can use it
 
-- You must be signed in and have the <strong>super admin</strong> role; see <a href="/docs/developer-guidelines/rbac">RBAC</a> for how roles are modeled. Admin-only API routes use the same auth surface.
+- You must be signed in and have the <strong>platform admin</strong> role; see <a href="/docs/developer-guidelines/rbac">RBAC</a> for how roles are modeled. Admin-only API routes use the same auth surface.
 - In the app, open the protected area: <code>/secret-admin</code> → <strong>Queue dashboard</strong> in the sidebar (or the same link on the super-admin index).
 
 
@@ -52,6 +52,6 @@ You only need to inject variables the worker path actually uses; you do not have
 <LinkCard title="Railway (installation)" description="CLI, build/start commands, and persistent services" href="/docs/installation/railway" />
 <LinkCard title="Orchestrator workflows" description="Flowcraft, BullMQ transport, and behavior" href="/docs/developer-guidelines/orchestrator-workflows" />
 <LinkCard title="Redis cache" description="REDIS_* shared with cache and BullMQ" href="/docs/configuration-backend/redis" />
-<LinkCard title="RBAC" description="Super admin, roles, and permissions" href="/docs/developer-guidelines/rbac" />
+<LinkCard title="RBAC" description="Platform admin, roles, and permissions" href="/docs/developer-guidelines/rbac" />
 <LinkCard title="Production deployment" description="Vercel API + optional worker hosts" href="/docs/installation/production-deployment" />
 </CardGrid>

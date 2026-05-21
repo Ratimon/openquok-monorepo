@@ -50,7 +50,7 @@ export interface OrganizationDTO {
  * Organization with the current user's role (for list/detail).
  */
 export interface OrganizationWithRoleDTO extends OrganizationDTO {
-    workspaceRole: "user" | "admin" | "superadmin";
+    workspaceRole: "user" | "admin" | "owner";
     disabled: boolean;
     memberCount: number;
 }
@@ -62,7 +62,7 @@ export interface OrganizationMemberDTO {
     id: string;
     userId: string;
     organizationId: string;
-    workspaceRole: "user" | "admin" | "superadmin";
+    workspaceRole: "user" | "admin" | "owner";
     disabled: boolean;
     email: string | null;
     fullName: string | null;
@@ -108,7 +108,7 @@ export function toOrganizationWithRoleDTO(
     const dto = toOrganizationDTO(org)!;
     return {
         ...dto,
-        workspaceRole: membership.role as "user" | "admin" | "superadmin",
+        workspaceRole: membership.role as "user" | "admin" | "owner",
         disabled: membership.disabled,
         memberCount,
     };
@@ -122,7 +122,7 @@ export function toOrganizationMemberDTO(
         id: uo.id,
         userId: uo.user_id,
         organizationId: uo.organization_id,
-        workspaceRole: uo.role as "user" | "admin" | "superadmin",
+        workspaceRole: uo.role as "user" | "admin" | "owner",
         disabled: uo.disabled,
         email: user?.email ?? null,
         fullName: user?.full_name ?? null,

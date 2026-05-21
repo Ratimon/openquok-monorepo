@@ -43,7 +43,7 @@ USING (
     )
 );
 
--- Only org members with admin or superadmin can update
+-- Only org members with admin or owner can update
 DROP POLICY IF EXISTS "Admins can update organization" ON public.organizations;
 CREATE POLICY "Admins can update organization"
 ON public.organizations
@@ -57,7 +57,7 @@ USING (
         WHERE uo.organization_id = organizations.id
           AND u.auth_id = auth.uid()
           AND (uo.disabled = FALSE)
-          AND uo.role IN ('admin', 'superadmin')
+          AND uo.role IN ('admin', 'owner')
     )
 )
 WITH CHECK (
@@ -67,7 +67,7 @@ WITH CHECK (
         WHERE uo.organization_id = organizations.id
           AND u.auth_id = auth.uid()
           AND (uo.disabled = FALSE)
-          AND uo.role IN ('admin', 'superadmin')
+          AND uo.role IN ('admin', 'owner')
     )
 );
 
@@ -80,7 +80,7 @@ FOR INSERT
 TO authenticated
 WITH CHECK (true);
 
--- Only superadmin members can delete (optional; we may disallow delete in app)
+-- Only owner members can delete (optional; we may disallow delete in app)
 DROP POLICY IF EXISTS "Superadmin can delete organization" ON public.organizations;
 CREATE POLICY "Superadmin can delete organization"
 ON public.organizations
@@ -94,7 +94,7 @@ USING (
         WHERE uo.organization_id = organizations.id
           AND u.auth_id = auth.uid()
           AND (uo.disabled = FALSE)
-          AND uo.role = 'superadmin'
+          AND uo.role = 'owner'
     )
 );
 
@@ -121,7 +121,7 @@ USING (
     )
 );
 
--- Admins/superadmins can insert (add member) into user_organizations
+-- Admins/owners can insert (add member) into user_organizations
 DROP POLICY IF EXISTS "Admins can add team member" ON public.user_organizations;
 CREATE POLICY "Admins can add team member"
 ON public.user_organizations
@@ -135,11 +135,11 @@ WITH CHECK (
         WHERE self.organization_id = user_organizations.organization_id
           AND u.auth_id = auth.uid()
           AND (self.disabled = FALSE)
-          AND self.role IN ('admin', 'superadmin')
+          AND self.role IN ('admin', 'owner')
     )
 );
 
--- Admins can update (e.g. role, disabled) for non-superadmin members; users can update own disabled
+-- Admins can update (e.g. role, disabled) for non-owner members; users can update own disabled
 DROP POLICY IF EXISTS "Admins can update membership" ON public.user_organizations;
 CREATE POLICY "Admins can update membership"
 ON public.user_organizations
@@ -153,7 +153,7 @@ USING (
         WHERE self.organization_id = user_organizations.organization_id
           AND u.auth_id = auth.uid()
           AND (self.disabled = FALSE)
-          AND self.role IN ('admin', 'superadmin')
+          AND self.role IN ('admin', 'owner')
     )
 )
 WITH CHECK (
@@ -163,7 +163,7 @@ WITH CHECK (
         WHERE self.organization_id = user_organizations.organization_id
           AND u.auth_id = auth.uid()
           AND (self.disabled = FALSE)
-          AND self.role IN ('admin', 'superadmin')
+          AND self.role IN ('admin', 'owner')
     )
 );
 
@@ -185,7 +185,7 @@ USING (
         WHERE self.organization_id = user_organizations.organization_id
           AND u.auth_id = auth.uid()
           AND (self.disabled = FALSE)
-          AND self.role IN ('admin', 'superadmin')
+          AND self.role IN ('admin', 'owner')
     )
 );
 
@@ -210,7 +210,7 @@ USING (
     )
 );
 
--- Admins/superadmins of the org can create invites (send invitation)
+-- Admins/owners of the org can create invites (send invitation)
 DROP POLICY IF EXISTS "Admins can create invite" ON public.organization_invites;
 CREATE POLICY "Admins can create invite"
 ON public.organization_invites
@@ -224,7 +224,7 @@ WITH CHECK (
         WHERE uo.organization_id = organization_invites.organization_id
           AND u.auth_id = auth.uid()
           AND (uo.disabled = FALSE)
-          AND uo.role IN ('admin', 'superadmin')
+          AND uo.role IN ('admin', 'owner')
     )
 );
 

@@ -144,14 +144,14 @@
 		}
 	}));
 
-	function canEditWorkspace(role: 'user' | 'admin' | 'superadmin'): boolean {
-		return role === 'admin' || role === 'superadmin';
+	function canEditWorkspace(role: 'user' | 'admin' | 'owner'): boolean {
+		return role === 'admin' || role === 'owner';
 	}
 
-	function roleDisplayLabel(role: 'user' | 'admin' | 'superadmin'): string {
+	function roleDisplayLabel(role: 'user' | 'admin' | 'owner'): string {
 		switch (role) {
-			case 'superadmin':
-				return 'Super Admin';
+			case 'owner':
+				return 'Owner';
 			case 'admin':
 				return 'Admin';
 			default:
@@ -444,7 +444,7 @@
 							{invite.organizationName}
 						</p>
 						<p class="text-xs text-base-content/70">
-							{roleDisplayLabel(invite.role as 'user' | 'admin' | 'superadmin')}
+							{roleDisplayLabel(invite.role as 'user' | 'admin' | 'owner')}
 							{#if formatInviteExpiry(invite.expiresAt)}
 								<span class="ml-2">· {formatInviteExpiry(invite.expiresAt)}</span>
 							{/if}

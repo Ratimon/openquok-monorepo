@@ -79,10 +79,10 @@ export function authorizeResource(options: ResourceAuthOptions) {
             }
 
             const isOwner = userId === resourceOwnerId;
-            const isSuperAdmin = req.user.isSuperAdmin === true;
+            const isPlatformAdmin = req.user.isPlatformAdmin === true;
             const hasEditor = req.user.roles?.includes("editor") === true;
             const hasAdmin = req.user.roles?.includes("admin") === true;
-            const canAccessAsRole = isSuperAdmin || hasAdmin || hasEditor;
+            const canAccessAsRole = isPlatformAdmin || hasAdmin || hasEditor;
 
             if (isOwner) {
                 next();
@@ -92,7 +92,7 @@ export function authorizeResource(options: ResourceAuthOptions) {
                 next();
                 return;
             }
-            if (action !== "read" && isSuperAdmin) {
+            if (action !== "read" && isPlatformAdmin) {
                 next();
                 return;
             }

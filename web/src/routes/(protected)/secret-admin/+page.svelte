@@ -48,7 +48,7 @@
 
 <div class="p-4 md:p-6">
 	<h1 class="text-xl font-semibold text-base-content">
-		Super admin</h1>
+		Platform admin</h1>
 	<p class="text-sm text-base-content/70 mt-1">
 		Manage feedback, roles, users, and blog from the sidebar.
 	</p>

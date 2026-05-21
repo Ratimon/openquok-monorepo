@@ -33,7 +33,7 @@
 			<h1 class="text-xl font-semibold text-base-content">
 				Topics</h1>
 			<p class="text-sm text-base-content/70">
-				Manage blog topic hierarchy. Super admin only.</p>
+				Manage blog topic hierarchy. Platform admin only.</p>
 		</div>
 	</div>
 

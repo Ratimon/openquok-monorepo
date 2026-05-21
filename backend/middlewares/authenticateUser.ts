@@ -24,7 +24,7 @@ export interface AuthenticatedRequest extends Request {
         email?: string;
         roles?: AppRole[];
         permissions?: AppPermission[];
-        isSuperAdmin?: boolean;
+        isPlatformAdmin?: boolean;
     };
 }
 
@@ -137,7 +137,7 @@ export function requireFullAuthWithRoles(
                 rbacRepository.getUserRoles(publicId),
                 rbacRepository.getUserPermissions(publicId),
             ]);
-            const isSuperAdmin = await rbacRepository.isSuperAdmin(publicId);
+            const isPlatformAdmin = await rbacRepository.isPlatformAdmin(publicId);
 
             (req as AuthenticatedRequest).user = {
                 id: authId,
@@ -145,7 +145,7 @@ export function requireFullAuthWithRoles(
                 email: data.user.email ?? undefined,
                 roles: rolesResult.roles,
                 permissions: permissionsResult.permissions,
-                isSuperAdmin,
+                isPlatformAdmin,
             };
             next();
         } catch (err) {
@@ -201,7 +201,7 @@ export function optionalAuthWithRoles(
                 rbacRepository.getUserRoles(publicId),
                 rbacRepository.getUserPermissions(publicId),
             ]);
-            const isSuperAdmin = await rbacRepository.isSuperAdmin(publicId);
+            const isPlatformAdmin = await rbacRepository.isPlatformAdmin(publicId);
 
             (req as AuthenticatedRequest).user = {
                 id: authId,
@@ -209,7 +209,7 @@ export function optionalAuthWithRoles(
                 email: data.user.email ?? undefined,
                 roles: rolesResult.roles,
                 permissions: permissionsResult.permissions,
-                isSuperAdmin,
+                isPlatformAdmin,
             };
             next();
         } catch {
@@ -226,7 +226,7 @@ export function requireEditor(req: AuthenticatedRequest, _res: Response, next: N
     }
     const hasEditor = req.user.roles?.includes("editor");
     const hasAdmin = req.user.roles?.includes("admin");
-    if (!req.user.isSuperAdmin && !hasAdmin && !hasEditor) {
+    if (!req.user.isPlatformAdmin && !hasAdmin && !hasEditor) {
         next(new PermissionError("editor"));
         return;
     }
@@ -241,7 +241,7 @@ export function requireSupport(req: AuthenticatedRequest, _res: Response, next: 
     }
     const hasSupport = req.user.roles?.includes("support");
     const hasAdmin = req.user.roles?.includes("admin");
-    if (!req.user.isSuperAdmin && !hasAdmin && !hasSupport) {
+    if (!req.user.isPlatformAdmin && !hasAdmin && !hasSupport) {
         next(new PermissionError("support"));
         return;
     }
@@ -255,27 +255,27 @@ export function requireAdmin(req: AuthenticatedRequest, _res: Response, next: Ne
         return;
     }
     const hasAdmin = req.user.roles?.includes("admin");
-    if (!req.user.isSuperAdmin && !hasAdmin) {
+    if (!req.user.isPlatformAdmin && !hasAdmin) {
         next(new PermissionError("admin"));
         return;
     }
     next();
 }
 
-/** Require super admin (is_super_admin = true) only. */
-export function requireSuperAdmin(req: AuthenticatedRequest, _res: Response, next: NextFunction): void {
+/** Require platform admin (`users.is_super_admin = true`) only. */
+export function requirePlatformAdmin(req: AuthenticatedRequest, _res: Response, next: NextFunction): void {
     if (!req.user?.id) {
         next(new TokenError("Authentication required"));
         return;
     }
-    if (!req.user.isSuperAdmin) {
+    if (!req.user.isPlatformAdmin) {
         next(new PermissionError("super_admin"));
         return;
     }
     next();
 }
 
-/** Factory: require a specific role (or super admin). */
+/** Factory: require a specific app role (or platform admin). */
 export function requireRole(role: AppRole) {
     return (req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {
         if (!req.user?.id) {
@@ -283,7 +283,7 @@ export function requireRole(role: AppRole) {
             return;
         }
         const hasRole = req.user.roles?.includes(role);
-        if (!req.user.isSuperAdmin && !hasRole) {
+        if (!req.user.isPlatformAdmin && !hasRole) {
             next(new PermissionError(role));
             return;
         }
@@ -291,14 +291,14 @@ export function requireRole(role: AppRole) {
     };
 }
 
-/** Factory: require a specific permission (super admin bypasses). */
+/** Factory: require a specific permission (platform admin bypasses). */
 export function requirePermission(permission: AppPermission) {
     return (req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {
         if (!req.user?.id) {
             next(new TokenError("Authentication required"));
             return;
         }
-        if (req.user.isSuperAdmin) {
+        if (req.user.isPlatformAdmin) {
             next();
             return;
         }
@@ -316,14 +316,14 @@ export function requirePermission(permission: AppPermission) {
     };
 }
 
-/** Factory: require any of the given permissions (super admin bypasses). */
+/** Factory: require any of the given permissions (platform admin bypasses). */
 export function requireAnyPermission(permissions: AppPermission[]) {
     return (req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {
         if (!req.user?.id) {
             next(new TokenError("Authentication required"));
             return;
         }
-        if (req.user.isSuperAdmin) {
+        if (req.user.isPlatformAdmin) {
             next();
             return;
         }

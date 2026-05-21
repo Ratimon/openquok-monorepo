@@ -7,7 +7,7 @@ export interface WorkspaceCardViewModel {
 	name: string;
 	description: string | null;
 	subtitle: string;
-	workspaceRole: 'user' | 'admin' | 'superadmin';
+	workspaceRole: 'user' | 'admin' | 'owner';
 	disabled: boolean;
 }
 

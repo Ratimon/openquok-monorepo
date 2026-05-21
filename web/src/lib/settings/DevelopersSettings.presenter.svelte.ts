@@ -31,7 +31,7 @@ export class DevelopersSettingsPresenter {
 
 	get canRotateApiKey(): boolean {
 		const role = this.workspaceSettingsPresenter.currentWorkspaceRole;
-		return role === 'admin' || role === 'superadmin';
+		return role === 'admin' || role === 'owner';
 	}
 
 	public setApiKeyVisible(visible: boolean) {

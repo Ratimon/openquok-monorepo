@@ -68,7 +68,7 @@ export class StripeService {
         }
 
         const { members } = await this.organizationRepository.getTeam(organizationId);
-        const lead = members.find((m) => m.role === "superadmin") ?? members[0];
+        const lead = members.find((m) => m.role === "owner") ?? members[0];
         const rawEmail = lead?.email?.trim();
         const email =
             rawEmail && rawEmail.includes("@")

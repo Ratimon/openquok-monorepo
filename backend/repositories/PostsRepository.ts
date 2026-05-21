@@ -119,6 +119,29 @@ export class PostsRepository {
         return data != null;
     }
 
+    /**
+     * Rows that count toward the monthly post cap: active `QUEUE` rows and all `PUBLISHED` rows
+     * with `publish_date` on or after `fromDate`.
+     */
+    async countPostsFromDay(organizationId: string, fromDate: Date): Promise<number> {
+        const fromIso = fromDate.toISOString();
+        const { count, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .select("id", { count: "exact", head: true })
+            .eq("organization_id", organizationId)
+            .gte("publish_date", fromIso)
+            .or("and(deleted_at.is.null,state.eq.QUEUE),state.eq.PUBLISHED");
+
+        if (error) {
+            throw new DatabaseError(`Failed to count posts for plan limit: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return count ?? 0;
+    }
+
     async listTagsByOrganization(organizationId: string): Promise<PostTagLike[]> {
         const { data, error } = await this.supabase
             .from(TABLE_TAGS)

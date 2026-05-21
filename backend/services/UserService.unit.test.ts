@@ -141,7 +141,7 @@ describe("UserService", () => {
                 id: userId,
                 email,
                 roles: [],
-                isSuperAdmin: false,
+                isPlatformAdmin: false,
                 createdAt,
             });
             expect(userRepo.findAllForAdmin).toHaveBeenCalled();
@@ -174,7 +174,7 @@ describe("UserService", () => {
                     id: userId,
                     email,
                     roles: ["editor"] as const,
-                    isSuperAdmin: false,
+                    isPlatformAdmin: false,
                     createdAt,
                 },
             ];

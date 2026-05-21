@@ -52,7 +52,7 @@
 			<h1 class="text-xl font-semibold text-base-content">
 				Comments</h1>
 			<p class="text-sm text-base-content/70">
-				Moderate blog comments. Super admin only.</p>
+				Moderate blog comments. Platform admin only.</p>
 		</div>
 	</div>
 

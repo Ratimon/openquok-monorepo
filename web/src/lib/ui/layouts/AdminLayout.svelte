@@ -58,12 +58,12 @@
 
 	// Prefer layout data; fall back to auth repository so header buttons update immediately after sign-in (no refresh needed)
 	let currentUser = $derived(currentUserProp ?? authenticationRepository.currentUser ?? null);
-	let isSuperAdmin = $derived((currentUser as any)?.isSuperAdmin === true);
+	let isPlatformAdmin = $derived((currentUser as any)?.isPlatformAdmin === true);
 	let isEditor = $derived((currentUser?.roles ?? []).includes('editor'));
 	let isAdmin = $derived((currentUser?.roles ?? []).includes('admin'));
 
-	let canSeeEditorArea = $derived(isEditor || isSuperAdmin);
-	let canSeeAdminArea = $derived(isAdmin || isSuperAdmin);
+	let canSeeEditorArea = $derived(isEditor || isPlatformAdmin);
+	let canSeeAdminArea = $derived(isAdmin || isPlatformAdmin);
 
 	let companyNameVm = $derived(companyName ?? 'Openquok');
 	let currentUserName = $derived(
@@ -194,7 +194,7 @@
 	{editorAreaHref}
 	showAdminAreaButton={canSeeAdminArea}
 	{adminAreaHref}
-	showSecretAdminAreaButton={isSuperAdmin}
+	showSecretAdminAreaButton={isPlatformAdmin}
 	{secretAdminAreaHref}
 	bind:feedbackDescription
 	bind:feedbackOpen

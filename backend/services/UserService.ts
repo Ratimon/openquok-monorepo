@@ -11,7 +11,7 @@ export type FullUserWithRolesItem = {
     id: string;
     email: string;
     roles: AppRole[];
-    isSuperAdmin: boolean;
+    isPlatformAdmin: boolean;
     createdAt: string;
 };
 
@@ -82,7 +82,7 @@ export class UserService {
                     id: u.id,
                     email: u.email ?? "",
                     roles: [],
-                    isSuperAdmin: u.is_super_admin,
+                    isPlatformAdmin: u.is_super_admin,
                     createdAt: u.created_at,
                 }));
             }
@@ -93,7 +93,7 @@ export class UserService {
                     id: u.id,
                     email: u.email ?? "",
                     roles,
-                    isSuperAdmin: u.is_super_admin,
+                    isPlatformAdmin: u.is_super_admin,
                     createdAt: u.created_at,
                 });
             }

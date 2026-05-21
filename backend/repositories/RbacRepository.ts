@@ -167,7 +167,7 @@ export class RbacRepository {
     }
 
     /** Check if user (public.users.id) is super admin. */
-    async isSuperAdmin(publicUserId: string): Promise<boolean> {
+    async isPlatformAdmin(publicUserId: string): Promise<boolean> {
         const { data, error } = await this.supabase
             .from("users")
             .select("is_super_admin")

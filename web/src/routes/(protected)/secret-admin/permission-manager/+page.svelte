@@ -42,7 +42,7 @@
 		<h1 class="text-xl font-semibold text-base-content">
 			Permission manager</h1>
 		<p class="text-sm text-base-content/70 mt-1">
-			Manage role permissions. Assign or remove permissions from editor and admin roles. Super admin only.
+			Manage role permissions. Assign or remove permissions from editor and admin roles. Platform admin only.
 		</p>
 	</div>
 

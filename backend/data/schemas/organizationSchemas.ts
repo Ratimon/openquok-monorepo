@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { RequestHandler } from "express";
 import { validateRequest } from "../../middlewares/validateRequest";
 
-const workspaceMembershipRoleSchema = z.enum(["user", "admin", "superadmin"]);
+const workspaceMembershipRoleSchema = z.enum(["user", "admin", "owner"]);
 
 export const createOrganizationBodySchema = z.object({
     name: z.string().min(1, "Name is required").max(256).trim(),

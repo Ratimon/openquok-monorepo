@@ -120,7 +120,8 @@ export const subscriptionService = new SubscriptionService(subscriptionRepositor
 export const permissionsService = new PermissionsService(
     subscriptionService,
     integrationService,
-    organizationRepository
+    organizationRepository,
+    postsRepository
 );
 export const userSessionService = new UserSessionService(
     organizationRepository,
@@ -159,7 +160,8 @@ export const postsService = new PostsService(
     integrationManager,
     refreshIntegrationService,
     cacheServiceConnection,
-    cacheInvalidationServiceConnection
+    cacheInvalidationServiceConnection,
+    permissionsService
 );
 export const stripeService = new StripeService(
     subscriptionRepository,

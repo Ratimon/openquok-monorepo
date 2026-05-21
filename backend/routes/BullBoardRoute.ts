@@ -10,7 +10,7 @@ import {
     BULL_BOARD_ACCESS_COOKIE_NAME,
     parseBearerToken,
     requireFullAuthWithRoles,
-    requireSuperAdmin,
+    requirePlatformAdmin,
 } from "../middlewares/authenticateUser";
 import { rbacRepository, userRepository } from "../repositories/index";
 import { logger } from "../utils/Logger";
@@ -176,8 +176,8 @@ export function registerBullBoardSessionRoutes(apiRouter: Router, config: Config
     };
 
     const session = express.Router();
-    session.post("/", authWithRoles, requireSuperAdmin, setSession);
-    session.post("/clear", authWithRoles, requireSuperAdmin, clearSession);
+    session.post("/", authWithRoles, requirePlatformAdmin, setSession);
+    session.post("/clear", authWithRoles, requirePlatformAdmin, clearSession);
     apiRouter.use("/admin/bull-board/session", session);
 
     logger.info({ msg: "[BullBoard] Session cookie routes mounted", cookiePath, sessionBase: "/admin/bull-board/session" });
@@ -187,7 +187,7 @@ export function registerBullBoardSessionRoutes(apiRouter: Router, config: Config
  * Bull Board (BullMQ) dashboard routes.
  *
  * Mounted under the normal API prefix (default `/api/v1`) so it uses the same global Bearer auth
- * (`middlewares/core.ts`) and can enforce RBAC via `requireSuperAdmin` like `routes/AdminRoute.ts`.
+ * (`middlewares/core.ts`) and can enforce RBAC via `requirePlatformAdmin` like `routes/AdminRoute.ts`.
  *
  * Any setup failure is caught and logged as non-fatal: a broken dashboard must never take down the
  * core API surface (sign-in, etc.). Vercel cold-start failures used to surface as 500s on every
@@ -249,7 +249,7 @@ export async function registerBullBoardRoutes(apiRouter: Router, config: ConfigO
         const boardRouter = express.Router();
         const authWithRoles = requireFullAuthWithRoles(supabaseAnonClient, userRepository, rbacRepository);
 
-        boardRouter.use(authWithRoles, requireSuperAdmin, serverAdapter.getRouter());
+        boardRouter.use(authWithRoles, requirePlatformAdmin, serverAdapter.getRouter());
         apiRouter.use(mountPath, boardRouter);
 
         logger.info({

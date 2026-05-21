@@ -144,7 +144,7 @@ COMMENT ON COLUMN public.users.provider_id IS 'Provider-specific user id';
 -- ---------------------------
 
 DO $$ BEGIN
-    CREATE TYPE public.workspace_membership_role AS ENUM ('user', 'admin', 'superadmin');
+    CREATE TYPE public.workspace_membership_role AS ENUM ('user', 'admin', 'owner');
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS public.user_organizations (
 );
 
 COMMENT ON TABLE public.user_organizations IS 'Junction: users belong to organizations with a role';
-COMMENT ON COLUMN public.user_organizations.role IS 'workspace_membership_role (user | admin | superadmin)';
+COMMENT ON COLUMN public.user_organizations.role IS 'workspace_membership_role (user | admin | owner)';
 COMMENT ON COLUMN public.user_organizations.disabled IS 'When true, membership is inactive';
 
 -- ---------------------------
@@ -205,6 +205,70 @@ COMMENT ON TABLE public.organization_invites IS 'Pending workspace invites (by e
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------
+
+
+-- Module: organization, File: 104_20260520_workspace_role_owner.sql
+-- ---------------------------
+-- MODULE NAME: Organization
+-- MODULE DATE: 20260520
+-- MODULE SCOPE: Rename workspace role owner → owner
+-- ---------------------------
+
+
+
+DO $$ BEGIN
+    ALTER TYPE public.workspace_membership_role ADD VALUE 'owner';
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
+
+UPDATE public.user_organizations
+SET role = 'owner'::public.workspace_membership_role
+WHERE role = 'owner'::public.workspace_membership_role;
+
+CREATE OR REPLACE FUNCTION public.is_active_admin_or_owner_of_org(p_organization_id uuid, p_auth_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.user_organizations uo
+    JOIN public.users u ON u.id = uo.user_id
+    WHERE uo.organization_id = p_organization_id
+      AND u.auth_id = p_auth_id
+      AND uo.disabled = FALSE
+      AND uo.role IN ('admin', 'owner')
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_active_owner_of_org(p_organization_id uuid, p_auth_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.user_organizations uo
+    JOIN public.users u ON u.id = uo.user_id
+    WHERE uo.organization_id = p_organization_id
+      AND u.auth_id = p_auth_id
+      AND uo.disabled = FALSE
+      AND uo.role = 'owner'
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO service_role;
+
+COMMENT ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) IS 'RLS helper: admin or owner membership (bypasses RLS inside).';
+COMMENT ON FUNCTION public.is_active_owner_of_org(uuid, uuid) IS 'RLS helper: owner membership (bypasses RLS inside).';
 
 
 -- Module: billing, File: 101_20260519_tables.sql
@@ -1627,7 +1691,7 @@ USING (
     )
 );
 
--- Only org members with admin or superadmin can update
+-- Only org members with admin or owner can update
 DROP POLICY IF EXISTS "Admins can update organization" ON public.organizations;
 CREATE POLICY "Admins can update organization"
 ON public.organizations
@@ -1641,7 +1705,7 @@ USING (
         WHERE uo.organization_id = organizations.id
           AND u.auth_id = auth.uid()
           AND (uo.disabled = FALSE)
-          AND uo.role IN ('admin', 'superadmin')
+          AND uo.role IN ('admin', 'owner')
     )
 )
 WITH CHECK (
@@ -1651,7 +1715,7 @@ WITH CHECK (
         WHERE uo.organization_id = organizations.id
           AND u.auth_id = auth.uid()
           AND (uo.disabled = FALSE)
-          AND uo.role IN ('admin', 'superadmin')
+          AND uo.role IN ('admin', 'owner')
     )
 );
 
@@ -1664,7 +1728,7 @@ FOR INSERT
 TO authenticated
 WITH CHECK (true);
 
--- Only superadmin members can delete (optional; we may disallow delete in app)
+-- Only owner members can delete (optional; we may disallow delete in app)
 DROP POLICY IF EXISTS "Superadmin can delete organization" ON public.organizations;
 CREATE POLICY "Superadmin can delete organization"
 ON public.organizations
@@ -1678,7 +1742,7 @@ USING (
         WHERE uo.organization_id = organizations.id
           AND u.auth_id = auth.uid()
           AND (uo.disabled = FALSE)
-          AND uo.role = 'superadmin'
+          AND uo.role = 'owner'
     )
 );
 
@@ -1705,7 +1769,7 @@ USING (
     )
 );
 
--- Admins/superadmins can insert (add member) into user_organizations
+-- Admins/owners can insert (add member) into user_organizations
 DROP POLICY IF EXISTS "Admins can add team member" ON public.user_organizations;
 CREATE POLICY "Admins can add team member"
 ON public.user_organizations
@@ -1719,11 +1783,11 @@ WITH CHECK (
         WHERE self.organization_id = user_organizations.organization_id
           AND u.auth_id = auth.uid()
           AND (self.disabled = FALSE)
-          AND self.role IN ('admin', 'superadmin')
+          AND self.role IN ('admin', 'owner')
     )
 );
 
--- Admins can update (e.g. role, disabled) for non-superadmin members; users can update own disabled
+-- Admins can update (e.g. role, disabled) for non-owner members; users can update own disabled
 DROP POLICY IF EXISTS "Admins can update membership" ON public.user_organizations;
 CREATE POLICY "Admins can update membership"
 ON public.user_organizations
@@ -1737,7 +1801,7 @@ USING (
         WHERE self.organization_id = user_organizations.organization_id
           AND u.auth_id = auth.uid()
           AND (self.disabled = FALSE)
-          AND self.role IN ('admin', 'superadmin')
+          AND self.role IN ('admin', 'owner')
     )
 )
 WITH CHECK (
@@ -1747,7 +1811,7 @@ WITH CHECK (
         WHERE self.organization_id = user_organizations.organization_id
           AND u.auth_id = auth.uid()
           AND (self.disabled = FALSE)
-          AND self.role IN ('admin', 'superadmin')
+          AND self.role IN ('admin', 'owner')
     )
 );
 
@@ -1769,7 +1833,7 @@ USING (
         WHERE self.organization_id = user_organizations.organization_id
           AND u.auth_id = auth.uid()
           AND (self.disabled = FALSE)
-          AND self.role IN ('admin', 'superadmin')
+          AND self.role IN ('admin', 'owner')
     )
 );
 
@@ -1794,7 +1858,7 @@ USING (
     )
 );
 
--- Admins/superadmins of the org can create invites (send invitation)
+-- Admins/owners of the org can create invites (send invitation)
 DROP POLICY IF EXISTS "Admins can create invite" ON public.organization_invites;
 CREATE POLICY "Admins can create invite"
 ON public.organization_invites
@@ -1808,7 +1872,7 @@ WITH CHECK (
         WHERE uo.organization_id = organization_invites.organization_id
           AND u.auth_id = auth.uid()
           AND (uo.disabled = FALSE)
-          AND uo.role IN ('admin', 'superadmin')
+          AND uo.role IN ('admin', 'owner')
     )
 );
 
@@ -2103,7 +2167,7 @@ USING (
         WHERE uo.organization_id = oauth_apps.organization_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
-          AND uo.role IN ('admin', 'superadmin')
+          AND uo.role IN ('admin', 'owner')
     )
 )
 WITH CHECK (
@@ -2114,7 +2178,7 @@ WITH CHECK (
         WHERE uo.organization_id = oauth_apps.organization_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
-          AND uo.role IN ('admin', 'superadmin')
+          AND uo.role IN ('admin', 'owner')
     )
 );
 
@@ -3877,7 +3941,7 @@ AS $$
   );
 $$;
 
-CREATE OR REPLACE FUNCTION public.is_active_admin_or_superadmin_of_org(p_organization_id uuid, p_auth_id uuid)
+CREATE OR REPLACE FUNCTION public.is_active_admin_or_owner_of_org(p_organization_id uuid, p_auth_id uuid)
 RETURNS boolean
 LANGUAGE sql
 SECURITY DEFINER
@@ -3891,11 +3955,11 @@ AS $$
     WHERE uo.organization_id = p_organization_id
       AND u.auth_id = p_auth_id
       AND uo.disabled = FALSE
-      AND uo.role IN ('admin', 'superadmin')
+      AND uo.role IN ('admin', 'owner')
   );
 $$;
 
-CREATE OR REPLACE FUNCTION public.is_active_superadmin_of_org(p_organization_id uuid, p_auth_id uuid)
+CREATE OR REPLACE FUNCTION public.is_active_owner_of_org(p_organization_id uuid, p_auth_id uuid)
 RETURNS boolean
 LANGUAGE sql
 SECURITY DEFINER
@@ -3909,20 +3973,20 @@ AS $$
     WHERE uo.organization_id = p_organization_id
       AND u.auth_id = p_auth_id
       AND uo.disabled = FALSE
-      AND uo.role = 'superadmin'
+      AND uo.role = 'owner'
   );
 $$;
 
 GRANT EXECUTE ON FUNCTION public.is_active_member_of_org(uuid, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_active_member_of_org(uuid, uuid) TO service_role;
-GRANT EXECUTE ON FUNCTION public.is_active_admin_or_superadmin_of_org(uuid, uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.is_active_admin_or_superadmin_of_org(uuid, uuid) TO service_role;
-GRANT EXECUTE ON FUNCTION public.is_active_superadmin_of_org(uuid, uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.is_active_superadmin_of_org(uuid, uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO service_role;
 
 COMMENT ON FUNCTION public.is_active_member_of_org(uuid, uuid) IS 'RLS helper: non-disabled membership in organization (bypasses RLS inside).';
-COMMENT ON FUNCTION public.is_active_admin_or_superadmin_of_org(uuid, uuid) IS 'RLS helper: admin or superadmin membership (bypasses RLS inside).';
-COMMENT ON FUNCTION public.is_active_superadmin_of_org(uuid, uuid) IS 'RLS helper: superadmin membership (bypasses RLS inside).';
+COMMENT ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) IS 'RLS helper: admin or owner membership (bypasses RLS inside).';
+COMMENT ON FUNCTION public.is_active_owner_of_org(uuid, uuid) IS 'RLS helper: owner membership (bypasses RLS inside).';
 
 -- ---------------------------
 -- RLS: organizations (replace policies to use helpers)
@@ -3942,16 +4006,16 @@ ON public.organizations
 AS PERMISSIVE
 FOR UPDATE
 TO authenticated
-USING (public.is_active_admin_or_superadmin_of_org(organizations.id, auth.uid()))
-WITH CHECK (public.is_active_admin_or_superadmin_of_org(organizations.id, auth.uid()));
+USING (public.is_active_admin_or_owner_of_org(organizations.id, auth.uid()))
+WITH CHECK (public.is_active_admin_or_owner_of_org(organizations.id, auth.uid()));
 
-DROP POLICY IF EXISTS "Superadmin can delete organization" ON public.organizations;
-CREATE POLICY "Superadmin can delete organization"
+DROP POLICY IF EXISTS "Owner can delete organization" ON public.organizations;
+CREATE POLICY "Owner can delete organization"
 ON public.organizations
 AS PERMISSIVE
 FOR DELETE
 TO authenticated
-USING (public.is_active_superadmin_of_org(organizations.id, auth.uid()));
+USING (public.is_active_owner_of_org(organizations.id, auth.uid()));
 
 -- ---------------------------
 -- RLS: user_organizations (replace policies to use helpers)
@@ -3971,7 +4035,7 @@ ON public.user_organizations
 AS PERMISSIVE
 FOR INSERT
 TO authenticated
-WITH CHECK (public.is_active_admin_or_superadmin_of_org(user_organizations.organization_id, auth.uid()));
+WITH CHECK (public.is_active_admin_or_owner_of_org(user_organizations.organization_id, auth.uid()));
 
 DROP POLICY IF EXISTS "Founder can join new organization" ON public.user_organizations;
 CREATE POLICY "Founder can join new organization"
@@ -3985,7 +4049,7 @@ WITH CHECK (
         WHERE u.id = user_organizations.user_id
           AND u.auth_id = auth.uid()
     )
-    AND user_organizations.role = 'superadmin'
+    AND user_organizations.role = 'owner'
     AND NOT EXISTS (
         SELECT 1 FROM public.user_organizations uo
         WHERE uo.organization_id = user_organizations.organization_id
@@ -3998,8 +4062,8 @@ ON public.user_organizations
 AS PERMISSIVE
 FOR UPDATE
 TO authenticated
-USING (public.is_active_admin_or_superadmin_of_org(user_organizations.organization_id, auth.uid()))
-WITH CHECK (public.is_active_admin_or_superadmin_of_org(user_organizations.organization_id, auth.uid()));
+USING (public.is_active_admin_or_owner_of_org(user_organizations.organization_id, auth.uid()))
+WITH CHECK (public.is_active_admin_or_owner_of_org(user_organizations.organization_id, auth.uid()));
 
 DROP POLICY IF EXISTS "Admins or self can delete membership" ON public.user_organizations;
 CREATE POLICY "Admins or self can delete membership"
@@ -4012,7 +4076,7 @@ USING (
         SELECT 1 FROM public.users u
         WHERE u.id = user_organizations.user_id AND u.auth_id = auth.uid()
     )
-    OR public.is_active_admin_or_superadmin_of_org(user_organizations.organization_id, auth.uid())
+    OR public.is_active_admin_or_owner_of_org(user_organizations.organization_id, auth.uid())
 );
 
 -- ---------------------------
@@ -4025,7 +4089,7 @@ ON public.organization_invites
 AS PERMISSIVE
 FOR INSERT
 TO authenticated
-WITH CHECK (public.is_active_admin_or_superadmin_of_org(organization_invites.organization_id, auth.uid()));
+WITH CHECK (public.is_active_admin_or_owner_of_org(organization_invites.organization_id, auth.uid()));
 
 -- ---------------------------
 -- Backend RPC helpers (API performance)
@@ -4125,7 +4189,7 @@ BEGIN
     RETURNING organizations.id INTO v_org_id;
 
     INSERT INTO public.user_organizations (user_id, organization_id, role, disabled, updated_at)
-    VALUES (p_user_id, v_org_id, 'superadmin', FALSE, NOW());
+    VALUES (p_user_id, v_org_id, 'owner', FALSE, NOW());
 
     RETURN QUERY
     SELECT o.id, o.name, o.description, o.api_key, o.created_at, o.updated_at
@@ -4138,7 +4202,7 @@ REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text
 GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text) TO service_role;
 
 COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text) IS
-    'Create organization and add founding user as superadmin (bypasses RLS); API service_role only.';
+    'Create organization and add founding user as owner (bypasses RLS); API service_role only.';
 
 
 -- Module: customer, File: 401_20260412_functions.sql

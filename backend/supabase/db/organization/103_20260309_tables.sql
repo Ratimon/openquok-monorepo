@@ -13,7 +13,7 @@ BEGIN;
 -- ---------------------------
 
 DO $$ BEGIN
-    CREATE TYPE public.workspace_membership_role AS ENUM ('user', 'admin', 'superadmin');
+    CREATE TYPE public.workspace_membership_role AS ENUM ('user', 'admin', 'owner');
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS public.user_organizations (
 );
 
 COMMENT ON TABLE public.user_organizations IS 'Junction: users belong to organizations with a role';
-COMMENT ON COLUMN public.user_organizations.role IS 'workspace_membership_role (user | admin | superadmin)';
+COMMENT ON COLUMN public.user_organizations.role IS 'workspace_membership_role (user | admin | owner)';
 COMMENT ON COLUMN public.user_organizations.disabled IS 'When true, membership is inactive';
 
 -- ---------------------------

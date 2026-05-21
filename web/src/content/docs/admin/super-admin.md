@@ -1,6 +1,6 @@
 ---
 title: First setup
-description: After deployment — sign up, verify email, then set super admin access in Supabase.
+description: After deployment — sign up, verify email, then set platform admin access in Supabase.
 order: 1
 lastUpdated: 2026-03-31
 ---
@@ -27,9 +27,9 @@ Open your **frontend** in the browser — for example <Badge text="http://localh
 
 In the navbar, choose **Sign up** and complete registration with your email and password. Finish **email verification** using the code or link your setup sends (depends on Supabase Auth and backend email configuration).
 
-### Promote your user to super admin
+### Promote your user to platform admin
 
-The admin entry points may appear in the UI, but **super-admin routes** require <code>is_super_admin</code> on your user.
+The admin entry points may appear in the UI, but **secret-admin routes** require <code>is_super_admin</code> on your user.
 
 Open the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> → your project → <Badge text="Table Editor" variant="path" /> → the <Badge text="users" variant="default" /> table (or the table where your app stores <Badge text="public.users" variant="path" />). Find the row for your account and set <Badge text="is_super_admin" variant="envBackend" /> from <Badge text="FALSE" variant="deprecated" /> to <Badge text="TRUE" variant="new" />, then save.
 

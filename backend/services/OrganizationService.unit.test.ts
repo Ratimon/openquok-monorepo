@@ -238,7 +238,7 @@ describe("OrganizationService", () => {
     });
 
     describe("createOrganization", () => {
-        it("creates org with founding user as superadmin via repository", async () => {
+        it("creates org with founding user as owner via repository", async () => {
             (orgRepo.createOrganization as jest.Mock).mockResolvedValue({
                 organization: orgRow,
                 error: null,
@@ -470,7 +470,7 @@ describe("OrganizationService", () => {
                     error: null,
                 })
                 .mockResolvedValueOnce({
-                    membership: { ...membershipRow, user_id: otherUserId, role: "superadmin" },
+                    membership: { ...membershipRow, user_id: otherUserId, role: "owner" },
                     error: null,
                 });
             const service = new OrganizationService(orgRepo, userRepo);
@@ -481,9 +481,9 @@ describe("OrganizationService", () => {
     });
 
     describe("deleteOrganization", () => {
-        it("deletes when user is superadmin", async () => {
+        it("deletes when user is owner", async () => {
             (orgRepo.findMembership as jest.Mock).mockResolvedValue({
-                membership: { ...membershipRow, role: "superadmin" },
+                membership: { ...membershipRow, role: "owner" },
                 error: null,
             });
             (orgRepo.deleteOrganization as jest.Mock).mockResolvedValue({ error: null });
@@ -492,14 +492,14 @@ describe("OrganizationService", () => {
             expect(orgRepo.deleteOrganization).toHaveBeenCalledWith(orgId);
         });
 
-        it("throws OrganizationForbiddenError when user is not superadmin", async () => {
+        it("throws OrganizationForbiddenError when user is not owner", async () => {
             (orgRepo.findMembership as jest.Mock).mockResolvedValue({
                 membership: { ...membershipRow, role: "admin" },
                 error: null,
             });
             const service = new OrganizationService(orgRepo, userRepo);
             await expect(service.deleteOrganization(authUserId, orgId)).rejects.toThrow(
-                /Only the organization superadmin can delete it/
+                /Only the organization owner can delete it/
             );
         });
     });

@@ -22,7 +22,7 @@ export interface DashboardWorkspaceCardViewModel {
 	id: string;
 	name: string;
 	description: string | null;
-	workspaceRole: 'user' | 'admin' | 'superadmin';
+	workspaceRole: 'user' | 'admin' | 'owner';
 	roleLabel: string;
 	userFullName: string;
 	userEmail: string;
@@ -41,10 +41,10 @@ type CurrentUserSnapshot = {
 	fullName?: string | null;
 };
 
-export function workspaceRoleDisplayLabel(role: 'user' | 'admin' | 'superadmin'): string {
+export function workspaceRoleDisplayLabel(role: 'user' | 'admin' | 'owner'): string {
 	switch (role) {
-		case 'superadmin':
-			return 'Super Admin';
+		case 'owner':
+			return 'Owner';
 		case 'admin':
 			return 'Admin';
 		default:

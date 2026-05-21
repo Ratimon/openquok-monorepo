@@ -20,7 +20,7 @@ function createMockRbacRepo(): jest.Mocked<RbacRepository> {
         getPermissionsForRole: jest.fn(),
         assignPermissionToRole: jest.fn(),
         removePermissionFromRole: jest.fn(),
-        isSuperAdmin: jest.fn(),
+        isPlatformAdmin: jest.fn(),
     } as unknown as jest.Mocked<RbacRepository>;
 }
 
@@ -155,7 +155,7 @@ describe("RbacService", () => {
 
     describe("removeRole", () => {
         it("allows super admin to remove admin role", async () => {
-            repo.isSuperAdmin.mockResolvedValue(true);
+            repo.isPlatformAdmin.mockResolvedValue(true);
             repo.removeRole.mockResolvedValue(true);
             const service = new RbacService(repo);
             await service.removeRole(userId, "admin", superAdminId);
@@ -163,7 +163,7 @@ describe("RbacService", () => {
         });
 
         it("throws when non-super-admin tries to remove admin role", async () => {
-            repo.isSuperAdmin.mockResolvedValue(false);
+            repo.isPlatformAdmin.mockResolvedValue(false);
             const service = new RbacService(repo);
             await expect(
                 service.removeRole(userId, "admin", adminUserId)
@@ -172,7 +172,7 @@ describe("RbacService", () => {
         });
 
         it("invalidates cache after remove", async () => {
-            repo.isSuperAdmin.mockResolvedValue(false);
+            repo.isPlatformAdmin.mockResolvedValue(false);
             repo.removeRole.mockResolvedValue(true);
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);

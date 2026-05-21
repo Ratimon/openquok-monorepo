@@ -91,7 +91,7 @@ export class UserTestHelper {
             password: string;
             fullName: string;
         },
-        options: { isSuperAdmin?: boolean; isEmailVerified?: boolean } = {}
+        options: { isPlatformAdmin?: boolean; isEmailVerified?: boolean } = {}
     ): Promise<{ id: string; email: string; password: string; fullName: string; publicId: string }> {
         const { data: created, error: createErr } = await this.adminSupabase.auth.admin.createUser({
             id: userData.id,
@@ -133,9 +133,9 @@ export class UserTestHelper {
             throw new Error(`Failed to ensure public.users row for test user: ${upsertErr.message}`);
         }
 
-        const isSuperAdmin = options.isSuperAdmin === true;
+        const isPlatformAdmin = options.isPlatformAdmin === true;
         const updatePayload: { is_super_admin: boolean; is_email_verified?: boolean } = {
-            is_super_admin: isSuperAdmin,
+            is_super_admin: isPlatformAdmin,
         };
         if (options.isEmailVerified === true) updatePayload.is_email_verified = true;
         const { data: updated, error } = await this.adminSupabase
@@ -146,9 +146,9 @@ export class UserTestHelper {
             .single();
         if (error) throw new Error(`Failed to update test user flags: ${error.message}`);
         if (!updated) throw new Error("No row updated for test user (trigger may not have created public.users)");
-        if (updated.is_super_admin !== isSuperAdmin) {
+        if (updated.is_super_admin !== isPlatformAdmin) {
             throw new Error(
-                `Test user is_super_admin mismatch: expected ${isSuperAdmin}, got ${updated.is_super_admin}`
+                `Test user is_super_admin mismatch: expected ${isPlatformAdmin}, got ${updated.is_super_admin}`
             );
         }
 

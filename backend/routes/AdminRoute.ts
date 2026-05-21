@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { configController, emailController, userController } from "../controllers/index";
-import { requireFullAuthWithRoles, requireSuperAdmin } from "../middlewares/authenticateUser";
+import { requireFullAuthWithRoles, requirePlatformAdmin } from "../middlewares/authenticateUser";
 import { createListReceivedEmailsParser } from "../middlewares/queryParsers";
 import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
@@ -19,13 +19,13 @@ const authWithRoles = requireFullAuthWithRoles(
 
 // --- Super-admin only: list users with roles (for role manager)
 // REST: GET collection resource "admin's users" (with roles)
-adminRouter.get("/users", authWithRoles, requireSuperAdmin, userController.getFullUsersWithRoles);
+adminRouter.get("/users", authWithRoles, requirePlatformAdmin, userController.getFullUsersWithRoles);
 
 // --- Super-admin only: read/update module configs
 adminRouter.get(
     "/config",
     authWithRoles,
-    requireSuperAdmin,
+    requirePlatformAdmin,
     configSchemas.validateGetModuleConfigQuery,
     configController.getModuleConfig
 );
@@ -33,7 +33,7 @@ adminRouter.get(
 adminRouter.put(
     "/config",
     authWithRoles,
-    requireSuperAdmin,
+    requirePlatformAdmin,
     configSchemas.validateUpdateModuleConfigRequest,
     configController.updateModuleConfig
 );
@@ -42,7 +42,7 @@ adminRouter.put(
 adminRouter.post(
     "/emails/send",
     authWithRoles,
-    requireSuperAdmin,
+    requirePlatformAdmin,
     emailSchemas.validateSendEmailBody,
     emailController.sendEmail
 );
@@ -51,7 +51,7 @@ adminRouter.post(
 adminRouter.get(
     "/emails/receiving",
     authWithRoles,
-    requireSuperAdmin,
+    requirePlatformAdmin,
     emailSchemas.validateListReceivedEmailsQuery,
     parseListReceivedEmailsQuery,
     emailController.listReceivedEmails
@@ -59,7 +59,7 @@ adminRouter.get(
 adminRouter.get(
     "/emails/receiving/:id",
     authWithRoles,
-    requireSuperAdmin,
+    requirePlatformAdmin,
     emailSchemas.validateGetReceivedEmailParams,
     emailController.getReceivedEmail
 );

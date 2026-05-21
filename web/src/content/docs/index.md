@@ -48,7 +48,7 @@ Performance feeds back into your pipeline — so next week’s content gets bett
 
 <LinkCard title="Frontend Setup" description="Vite env, PWA, and defaults for the web app" href="/docs/configuration-web/" />
 
-<LinkCard title="Admin Roles" description="Super admin access and role-based permissions" href="/docs/admin/" />
+<LinkCard title="Admin Roles" description="Platform admin access and role-based permissions" href="/docs/admin/" />
 
 <LinkCard title="Social integrations" description="Meta Threads OAuth, env vars, redirect URIs, and Meta dashboard" href="/docs/social-integration/" />
 

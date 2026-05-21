@@ -5,10 +5,10 @@
 	import { authenticationRepository } from '$lib/user-auth';
 	import { normalizeApiBaseUrl } from '$lib/utils/path';
 
-	type Props = { data: { isSuperAdmin?: boolean } };
+	type Props = { data: { isPlatformAdmin?: boolean } };
 
 	let { data }: Props = $props();
-	let isSuperAdmin = $derived(data.isSuperAdmin ?? false);
+	let isPlatformAdmin = $derived(data.isPlatformAdmin ?? false);
 
 	/** Public Bull Board path (must match API `BULL_BOARD_PATH` under the API prefix). */
 	const defaultBullBoardPath = '/api/v1/admin-queues';
@@ -102,7 +102,7 @@
 		});
 		if (!sessionRes.ok) {
 			loadState = 'error';
-			loadError = `Failed to start Bull Board session (${sessionRes.status} ${sessionRes.statusText}). Is BULL_BOARD_ENABLED=true, and is your user a super admin?`;
+			loadError = `Failed to start Bull Board session (${sessionRes.status} ${sessionRes.statusText}). Is BULL_BOARD_ENABLED=true, and is your user a platform admin?`;
 			return;
 		}
 
@@ -136,9 +136,9 @@
 		</p>
 	</div>
 
-	{#if !isSuperAdmin}
+	{#if !isPlatformAdmin}
 		<div class="alert alert-warning text-sm">
-			Super admin only.</div>
+			Platform admin only.</div>
 	{/if}
 
 	{#if loadState === 'loading' || loadState === 'idle'}

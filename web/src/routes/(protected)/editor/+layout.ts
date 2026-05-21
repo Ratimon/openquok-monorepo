@@ -10,9 +10,9 @@ export const load: LayoutLoad = async ({ parent }) => {
 	const roles = currentUser?.roles ?? [];
 	const isEditor = Array.isArray(roles) && roles.includes('editor');
 	const isAdmin = Array.isArray(roles) && roles.includes('admin');
-	const isSuperAdmin = (currentUser as any)?.isSuperAdmin === true;
+	const isPlatformAdmin = (currentUser as any)?.isPlatformAdmin === true;
 
-	if (!isEditor && !isSuperAdmin) {
+	if (!isEditor && !isPlatformAdmin) {
 		throw redirect(302, '/');
 	}
 
@@ -20,7 +20,7 @@ export const load: LayoutLoad = async ({ parent }) => {
 		...parentData,
 		isEditor,
 		isAdmin,
-		isSuperAdmin
+		isPlatformAdmin
 	};
 };
 

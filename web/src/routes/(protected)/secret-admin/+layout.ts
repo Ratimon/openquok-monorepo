@@ -6,14 +6,14 @@ export const ssr = false;
 export const load: LayoutLoad = async ({ parent }) => {
 	const parentData = await parent();
 	const currentUser = (parentData as App.LayoutData)?.currentUser ?? null;
-	const isSuperAdmin = (currentUser as { isSuperAdmin?: boolean })?.isSuperAdmin === true;
+	const isPlatformAdmin = (currentUser as { isPlatformAdmin?: boolean })?.isPlatformAdmin === true;
 
-	if (!isSuperAdmin) {
+	if (!isPlatformAdmin) {
 		throw redirect(302, '/');
 	}
 
 	return {
 		...parentData,
-		isSuperAdmin
+		isPlatformAdmin
 	};
 };

@@ -120,11 +120,11 @@ describe("Authentication Lifecycle E2E Tests", () => {
             expect(Array.isArray(listRes.body.data)).toBe(true);
             expect(listRes.body.data.length).toBeGreaterThanOrEqual(1);
             const defaultOrg =
-                listRes.body.data.find((o: { workspaceRole?: string }) => o.workspaceRole === "superadmin") ??
+                listRes.body.data.find((o: { workspaceRole?: string }) => o.workspaceRole === "owner") ??
                 listRes.body.data[0];
             expect(defaultOrg).toMatchObject({
                 name: fullName,
-                workspaceRole: "superadmin",
+                workspaceRole: "owner",
             });
             expect(defaultOrg.id).toBeDefined();
         });

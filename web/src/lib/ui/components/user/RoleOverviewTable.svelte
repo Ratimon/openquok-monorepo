@@ -18,26 +18,26 @@
 
 	type Props = {
 		usersVm: ExtendedFullUserViewModel[];
-		isCurrentAdminSuperAdmin?: boolean;
+		isCurrentAdminPlatformAdmin?: boolean;
 		onRoleAssigned: (userId: string, role: AppRole) => void;
 		onRoleRemoved: (userId: string, role: AppRole) => void;
 	};
 
 	let {
 		usersVm,
-		isCurrentAdminSuperAdmin = false,
+		isCurrentAdminPlatformAdmin = false,
 		onRoleAssigned,
 		onRoleRemoved
 	}: Props = $props();
 
-	let usersWithoutSuperAdmin = $derived(usersVm.filter((u) => !u.isSuperAdmin));
+	let usersWithoutPlatformAdmin = $derived(usersVm.filter((u) => !u.isPlatformAdmin));
 
-	let availableRoles: AppRole[] = $derived(isCurrentAdminSuperAdmin ? ['editor', 'admin'] : ['editor']);
+	let availableRoles: AppRole[] = $derived(isCurrentAdminPlatformAdmin ? ['editor', 'admin'] : ['editor']);
 
 	let pagination = $derived(
 		createPagination({
 			initialItemsPerPage: 10,
-			initialData: usersWithoutSuperAdmin,
+			initialData: usersWithoutPlatformAdmin,
 			searchField: 'email'
 		})
 	);

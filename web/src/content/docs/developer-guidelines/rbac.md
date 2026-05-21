@@ -18,8 +18,8 @@ There is no JWT auth hook; the app resolves <Badge text="public.users.id" varian
 ## Roles
 
 - **Editor** — Can view and manage feedback; can view role/permission data. Use case: content moderators or support.
-- **Admin** — All editor permissions plus <Badge text="users.manage_roles" variant="default" /> (assign/remove roles). Only **super admins** can assign/remove the **admin** role; admins can assign/remove only the **editor** role (enforced in <Badge text="RbacService" variant="default" /> and DB RPCs). Use case: platform admins.
-- **Super Admin** — Not a role; a flag on <Badge text="public.users" variant="path" /> (<Badge text="is_super_admin=true" variant="default" />). Bypasses permission checks and can assign/remove any role.
+- **Admin** — All editor permissions plus <Badge text="users.manage_roles" variant="default" /> (assign/remove roles). Only **platform admins** can assign/remove the **admin** role; admins can assign/remove only the **editor** role (enforced in <Badge text="RbacService" variant="default" /> and DB RPCs). Use case: platform admins.
+- **Platform admin** — Not a role; a flag on <Badge text="public.users" variant="path" /> (<Badge text="is_super_admin=true" variant="default" />). Bypasses permission checks and can assign/remove any role.
 
 ## Backend integration
 
@@ -36,7 +36,7 @@ Use <Badge text="requireFullAuthWithRoles(supabase, userRepository, rbacReposito
 - <Badge text="roles" variant="default" />
 - <Badge text="permissions" variant="default" />
 - <Badge text="publicId" variant="default" />
-- <Badge text="isSuperAdmin" variant="default" />
+- <Badge text="isPlatformAdmin" variant="default" />
 
 Use <Badge text="requireFullAuth" variant="default" /> only when the route does not need role/permission resolution.
 
@@ -44,11 +44,11 @@ Use <Badge text="requireFullAuth" variant="default" /> only when the route does 
 
 Use role/permission middlewares after <Badge text="requireFullAuthWithRoles" variant="default" />:
 
-- <Badge text="requireEditor" variant="default" /> — editor, admin, or super_admin
-- <Badge text="requireAdmin" variant="default" /> — admin or super_admin
-- <Badge text="requireSuperAdmin" variant="default" /> — super_admin only
-- <Badge text="requireRole('editor')" variant="default" /> — that role or super_admin
-- <Badge text="requirePermission('feedback.view')" variant="default" /> — that permission (super_admin bypasses)
+- <Badge text="requireEditor" variant="default" /> — editor, admin app role, or platform admin
+- <Badge text="requireAdmin" variant="default" /> — admin app role or platform admin
+- <Badge text="requirePlatformAdmin" variant="default" /> — platform admin only
+- <Badge text="requireRole('editor')" variant="default" /> — that app role or platform admin
+- <Badge text="requirePermission('feedback.view')" variant="default" /> — that permission (platform admin bypasses)
 - <Badge text="requireAnyPermission([...])" variant="default" /> — at least one permission
 
 </Steps>

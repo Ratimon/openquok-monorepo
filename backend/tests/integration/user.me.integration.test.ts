@@ -110,10 +110,10 @@ describeIfSupabase("GET /users/me workspace session (integration)", () => {
         expect(data?.tier).toBe("SOLO");
         expect(data?.tierPlan?.channel_per_workspace).toBe(soloLimits.channel_per_workspace);
         expect(data?.totalChannels).toBe(soloLimits.channel_per_workspace);
-        expect(data?.role).toBe("SUPERADMIN");
+        expect(data?.role).toBe("OWNER");
         expect(data?.billingEnabled).toBe(true);
         expect(typeof data?.publicApi).toBe("string");
-        expect(data?.admin).toBe(false);
+        expect(data?.isPlatformAdmin).toBe(false);
         expect(data?.impersonate).toBe(false);
     });
 

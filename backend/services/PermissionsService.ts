@@ -1,9 +1,11 @@
+import dayjs from "dayjs";
 import {
     planLimitsForTier,
     pricing,
     type SubscriptionPolicy,
     SubscriptionSection,
     type SubscriptionTier,
+    UNLIMITED_POSTS_PER_MONTH,
 } from "openquok-common";
 import { SubscriptionError } from "../errors/SubscriptionError";
 import { config } from "../config/GlobalConfig";
@@ -11,14 +13,16 @@ import type { SubscriptionService } from "./SubscriptionService";
 import type { OrganizationSubscriptionRow } from "../repositories/SubscriptionRepository";
 import type { IntegrationService } from "./IntegrationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { PostsRepository } from "../repositories/PostsRepository";
 
-export type WorkspaceMembershipRole = "user" | "admin" | "superadmin";
+export type WorkspaceMembershipRole = "user" | "admin" | "owner";
 
 export class PermissionsService {
     constructor(
         private readonly subscriptionService: SubscriptionService,
         private readonly integrationService: IntegrationService,
-        private readonly organizationRepository: OrganizationRepository
+        private readonly organizationRepository: OrganizationRepository,
+        private readonly postsRepository: PostsRepository
     ) {}
 
     private billingUrl(): string {
@@ -56,7 +60,7 @@ export class PermissionsService {
 
         for (const [, section] of policies) {
             if (section === SubscriptionSection.ADMIN) {
-                if (workspaceRole !== "admin" && workspaceRole !== "superadmin") {
+                if (workspaceRole !== "admin" && workspaceRole !== "owner") {
                     throw new SubscriptionError(
                         "Workspace admin access is required.",
                         section,
@@ -106,6 +110,52 @@ export class PermissionsService {
             }
 
             // CHANNEL_PER_WORKSPACE, POSTS_PER_MONTH, WORKSPACES: enforced at dedicated entry points.
+        }
+    }
+
+    private postsBillingPeriodStart(
+        subscription: OrganizationSubscriptionRow | null,
+        organizationCreatedAt: string
+    ): Date {
+        const anchor = subscription?.created_at ?? organizationCreatedAt;
+        const created = dayjs(anchor);
+        const monthsPast = Math.abs(created.diff(dayjs(), "month"));
+        return created.add(monthsPast, "month").toDate();
+    }
+
+    /**
+     * Before scheduling new post rows (`QUEUE` / `PUBLISHED` toward the monthly cap).
+     * Pass `rowsToAdd` as the number of post rows about to be inserted or flipped to `QUEUE`.
+     */
+    async assertPostsPerMonthAllowed(organizationId: string, rowsToAdd = 1): Promise<void> {
+        if (!this.subscriptionService.billingEnabled()) return;
+        if (rowsToAdd < 1) return;
+
+        const { limits, subscription } = await this.getTierAndLimits(organizationId);
+        const cap = limits.posts_per_month;
+        if (cap >= UNLIMITED_POSTS_PER_MONTH) return;
+
+        if (cap < 1) {
+            throw new SubscriptionError(
+                "Scheduled posts are not included on your current plan.",
+                SubscriptionSection.POSTS_PER_MONTH,
+                this.billingUrl()
+            );
+        }
+
+        const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
+        const periodStart = this.postsBillingPeriodStart(
+            subscription,
+            organization?.created_at ?? new Date().toISOString()
+        );
+        const count = await this.postsRepository.countPostsFromDay(organizationId, periodStart);
+
+        if (count + rowsToAdd > cap) {
+            throw new SubscriptionError(
+                `Your plan allows up to ${cap} scheduled posts per billing month. Upgrade to schedule more.`,
+                SubscriptionSection.POSTS_PER_MONTH,
+                this.billingUrl()
+            );
         }
     }
 

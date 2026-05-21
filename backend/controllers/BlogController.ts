@@ -32,11 +32,11 @@ export class BlogController {
                 return;
             }
             // Editor, Admin, or SuperAdmin have access (route); only SuperAdmin can auto-approve (Listing-style)
-            const isSuperAdmin = authReq.user?.isSuperAdmin === true;
+            const isPlatformAdmin = authReq.user?.isPlatformAdmin === true;
             const result = await this.blogService.createBlogPost(
                 req.body as BlogPostCreateSchemaType,
                 userId,
-                isSuperAdmin
+                isPlatformAdmin
             );
             res.status(201).json({
                 success: true,
@@ -55,10 +55,10 @@ export class BlogController {
                 res.status(401).json({ error: "Authentication required" });
                 return;
             }
-            const isSuperAdmin = authReq.user?.isSuperAdmin === true;
+            const isPlatformAdmin = authReq.user?.isPlatformAdmin === true;
             const id = (req.params as { id: string }).id;
             const post = { ...(req.body as BlogPostUpdateSchemaType), id } as BlogPostUpdateSchemaType;
-            const result = await this.blogService.updateBlogPost(post, isSuperAdmin);
+            const result = await this.blogService.updateBlogPost(post, isPlatformAdmin);
             res.status(200).json({
                 success: true,
                 data: { id: result.id },

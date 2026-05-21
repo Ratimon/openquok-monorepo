@@ -9,8 +9,8 @@ export const DEV_SESSION_TOTAL_CHANNELS = 10_000;
 
 export function workspaceRoleToUserMeRole(role: WorkspaceMembershipRole): UserMeWorkspaceRole {
 	switch (role) {
-		case "superadmin":
-			return "SUPERADMIN";
+		case "owner":
+			return "OWNER";
 		case "admin":
 			return "ADMIN";
 		default:
@@ -45,7 +45,7 @@ export function resolveSessionPublicApiKey(params: {
 	apiKey: string | null;
 }): string {
 	const isWorkspaceAdmin =
-		params.workspaceRole === "admin" || params.workspaceRole === "superadmin";
+		params.workspaceRole === "admin" || params.workspaceRole === "owner";
 	if (!isWorkspaceAdmin || !params.planAllowsPublicApi) {
 		return "";
 	}

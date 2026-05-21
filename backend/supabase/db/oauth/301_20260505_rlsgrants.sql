@@ -55,7 +55,7 @@ USING (
         WHERE uo.organization_id = oauth_apps.organization_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
-          AND uo.role IN ('admin', 'superadmin')
+          AND uo.role IN ('admin', 'owner')
     )
 )
 WITH CHECK (
@@ -66,7 +66,7 @@ WITH CHECK (
         WHERE uo.organization_id = oauth_apps.organization_id
           AND u.auth_id = auth.uid()
           AND uo.disabled = FALSE
-          AND uo.role IN ('admin', 'superadmin')
+          AND uo.role IN ('admin', 'owner')
     )
 );
 

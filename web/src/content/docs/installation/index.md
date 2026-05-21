@@ -24,5 +24,5 @@ import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTre
 <LinkCard title="Backend configuration" description="Env files and variables for the backend / Supabase workspace" href="/docs/configuration-backend" />
 <LinkCard title="Configuration - Worker" description="Worker env, Docker, Redis, Railway, and scripts" href="/docs/configuration-worker" />
 <LinkCard title="Frontend configuration" description="Environment variables for the SvelteKit app in web/" href="/docs/configuration-web" />
-<LinkCard title="Admin" description="Super admin setup after deployment" href="/docs/admin/super-admin" />
+<LinkCard title="Admin" description="Platform admin setup after deployment" href="/docs/admin/super-admin" />
 </CardGrid>

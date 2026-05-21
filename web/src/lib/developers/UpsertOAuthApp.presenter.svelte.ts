@@ -85,7 +85,7 @@ export class UpsertOAuthAppsPresenter {
 
 	get canManageApps(): boolean {
 		const role = this.workspaceSettingsPresenter.currentWorkspaceRole;
-		return role === 'admin' || role === 'superadmin';
+		return role === 'admin' || role === 'owner';
 	}
 
 	get isLoading(): boolean {

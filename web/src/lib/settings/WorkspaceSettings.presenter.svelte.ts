@@ -9,7 +9,7 @@ export interface TeamMemberViewModel {
 	id: string;
 	userId: string;
 	displayName: string;
-	workspaceRole: 'user' | 'admin' | 'superadmin';
+	workspaceRole: 'user' | 'admin' | 'owner';
 }
 
 export interface PendingInviteViewModel {
@@ -22,8 +22,8 @@ export interface PendingInviteViewModel {
 
 function toTeamMemberVm(pm: TeamMemberProgrammerModel): TeamMemberViewModel {
 	const displayName = pm.fullName?.trim() || pm.email || 'Unknown';
-	const roleLabel: Record<string, 'user' | 'admin' | 'superadmin'> = {
-		superadmin: 'superadmin',
+	const roleLabel: Record<string, 'user' | 'admin' | 'owner'> = {
+		owner: 'owner',
 		admin: 'admin',
 		user: 'user'
 	};
@@ -63,7 +63,7 @@ export class WorkspaceSettingsPresenter {
 	public currentWorkspaceId = $state<string | null>(null);
 	public teamMembersVm = $state<TeamMemberViewModel[]>([]);
 
-	public currentWorkspaceRole = $state<'user' | 'admin' | 'superadmin' | null>(null);
+	public currentWorkspaceRole = $state<'user' | 'admin' | 'owner' | null>(null);
 
 	public pendingInvitesVm = $state<PendingInviteViewModel[]>([]);
 	public loadingPendingInvites = $state(false);
@@ -91,11 +91,11 @@ export class WorkspaceSettingsPresenter {
 	}
 
 	public get canInviteInCurrentWorkspace(): boolean {
-		return this.currentWorkspaceRole === 'admin' || this.currentWorkspaceRole === 'superadmin';
+		return this.currentWorkspaceRole === 'admin' || this.currentWorkspaceRole === 'owner';
 	}
 
-	public canEditWorkspace(workspaceRole: 'user' | 'admin' | 'superadmin'): boolean {
-		return workspaceRole === 'admin' || workspaceRole === 'superadmin';
+	public canEditWorkspace(workspaceRole: 'user' | 'admin' | 'owner'): boolean {
+		return workspaceRole === 'admin' || workspaceRole === 'owner';
 	}
 
 	public async load(options?: { includeTeam?: boolean }): Promise<void> {

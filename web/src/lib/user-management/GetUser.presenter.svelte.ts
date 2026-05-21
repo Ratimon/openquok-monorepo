@@ -5,7 +5,7 @@ export interface ExtendedFullUserViewModel {
 	id: string;
 	email: string;
 	roles: AppRole[];
-	isSuperAdmin: boolean;
+	isPlatformAdmin: boolean;
 	createdAt: string;
 }
 
@@ -18,7 +18,7 @@ export class GetUserPresenter {
 			id: u.id,
 			email: u.email,
 			roles: u.roles,
-			isSuperAdmin: u.isSuperAdmin,
+			isPlatformAdmin: u.isPlatformAdmin,
 			createdAt: u.createdAt
 		}));
 	}

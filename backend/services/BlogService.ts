@@ -340,11 +340,11 @@ export class BlogService {
     async createBlogPost(
         post: BlogPostCreateSchemaType,
         userId: string,
-        isSuperAdmin: boolean
+        isPlatformAdmin: boolean
     ): Promise<{ id: string; title: string; slug: string; isAdminApproved: boolean; isUserApproved: boolean }> {
         const slug = stringToSlug(post.title);
         const isUserApproved = post.is_user_published === true;
-        const isAdminApproved = isSuperAdmin && isUserApproved;
+        const isAdminApproved = isPlatformAdmin && isUserApproved;
         const createPayload: BlogPostCreateSchemaType = {
             ...post,
             is_user_published: isUserApproved,
@@ -377,10 +377,10 @@ export class BlogService {
      */
     async updateBlogPost(
         post: BlogPostUpdateSchemaType,
-        isSuperAdmin: boolean
+        isPlatformAdmin: boolean
     ): Promise<{ id: string; title: string; slug: string; isAdminApproved: boolean; isUserApproved: boolean }> {
         const isUserApproved = post.is_user_published === true;
-        const isAdminApproved = isSuperAdmin && isUserApproved;
+        const isAdminApproved = isPlatformAdmin && isUserApproved;
         const slug = stringToSlug(post.title);
         const updatePayload: BlogPostUpdateSchemaType = {
             ...post,
