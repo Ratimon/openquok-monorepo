@@ -5,6 +5,7 @@ import type { SubscriptionService } from "../services/SubscriptionService";
 import type { StripeService } from "../services/StripeService";
 import type { SubscriptionRepository } from "../repositories/SubscriptionRepository";
 import { UserValidationError } from "../errors/UserError";
+import { resolveActiveOrganizationId } from "../utils/resolveActiveOrganizationId";
 
 export class BillingController {
     constructor(
@@ -39,47 +40,12 @@ export class BillingController {
         }
     };
 
+    /** GET /billing, /billing/current — full billing context for active workspace. */
     getCurrent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const organizationId = String(req.query.organizationId ?? "");
-            if (!organizationId.trim()) {
-                throw new UserValidationError("organizationId query parameter is required");
-            }
-
-            const subscription = await this.subscriptionService.getSubscriptionByOrganizationId(
-                organizationId
-            );
-            const tier = this.subscriptionService.resolveTier(subscription);
-            const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
-            const drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId);
-            const billing = await this.subscriptionRepository.getOrganizationBilling(organizationId);
-
-            res.status(200).json({
-                success: true,
-                data: {
-                    tier,
-                    billingEnabled: this.subscriptionService.billingEnabled(),
-                    subscription,
-                    limits: {
-                        mediaStorageBytesPerWorkspace: limits.media_storage_bytes_per_workspace,
-                        channelPerWorkspace: limits.channel_per_workspace,
-                        postsPerMonth: limits.posts_per_month,
-                        workspaces: limits.workspaces,
-                        teamMembersPerWorkspace: limits.team_members_per_workspace,
-                        sharePostPreview: limits.share_post_preview,
-                        communityFeatures: limits.community_features,
-                        publicApi: limits.public_api,
-                    },
-                    drive,
-                    billing: billing
-                        ? {
-                              allowTrial: billing.allow_trial,
-                              isTrialing: billing.is_trialing,
-                              hasStripeCustomer: Boolean(billing.stripe_customer_id),
-                          }
-                        : null,
-                },
-            });
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
+            const data = await this.buildCurrentBillingData(organizationId);
+            res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);
         }
@@ -93,19 +59,25 @@ export class BillingController {
             }
 
             const body = req.body as {
-                organizationId: string;
+                organizationId?: string;
                 period: "MONTHLY" | "YEARLY";
                 billing: "SOLO" | "CREATOR" | "TEAM" | "ULTIMATE";
                 stripePriceId: string;
             };
 
-            const orgBilling = await this.subscriptionRepository.getOrganizationBilling(body.organizationId);
+            const organizationId =
+                body.organizationId?.trim() || resolveActiveOrganizationId(req, { required: true });
+            if (!organizationId) {
+                throw new UserValidationError("organizationId is required");
+            }
+
+            const orgBilling = await this.subscriptionRepository.getOrganizationBilling(organizationId);
             if (!orgBilling) {
                 throw new UserValidationError("Organization not found");
             }
 
             const result = await this.stripeService.subscribe({
-                organizationId: body.organizationId,
+                organizationId,
                 userId: authUser.publicId ?? authUser.id,
                 body: {
                     period: body.period,
@@ -123,10 +95,7 @@ export class BillingController {
 
     portal = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const organizationId = String(req.query.organizationId ?? "");
-            if (!organizationId.trim()) {
-                throw new UserValidationError("organizationId query parameter is required");
-            }
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
             const url = await this.stripeService.createBillingPortalSession(organizationId);
             res.status(200).json({ success: true, data: { portal: url } });
         } catch (error) {
@@ -136,10 +105,10 @@ export class BillingController {
 
     checkCheckout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const organizationId = String(req.query.organizationId ?? "");
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
             const id = String(req.params.id ?? "");
-            if (!organizationId.trim() || !id.trim()) {
-                throw new UserValidationError("organizationId and checkout id are required");
+            if (!id.trim()) {
+                throw new UserValidationError("checkout id is required");
             }
             const status = await this.subscriptionService.checkCheckoutStatus(organizationId, id);
             res.status(200).json({ success: true, data: { status } });
@@ -147,4 +116,36 @@ export class BillingController {
             next(error);
         }
     };
+
+    async buildCurrentBillingData(organizationId: string) {
+        const subscription = await this.subscriptionService.getSubscriptionByOrganizationId(organizationId);
+        const tier = this.subscriptionService.resolveTier(subscription);
+        const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
+        const drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId);
+        const billing = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+
+        return {
+            tier,
+            billingEnabled: this.subscriptionService.billingEnabled(),
+            subscription,
+            limits: {
+                mediaStorageBytesPerWorkspace: limits.media_storage_bytes_per_workspace,
+                channelPerWorkspace: limits.channel_per_workspace,
+                postsPerMonth: limits.posts_per_month,
+                workspaces: limits.workspaces,
+                teamMembersPerWorkspace: limits.team_members_per_workspace,
+                sharePostPreview: limits.share_post_preview,
+                communityFeatures: limits.community_features,
+                publicApi: limits.public_api,
+            },
+            drive,
+            billing: billing
+                ? {
+                      allowTrial: billing.allow_trial,
+                      isTrialing: billing.is_trialing,
+                      hasStripeCustomer: Boolean(billing.stripe_customer_id),
+                  }
+                : null,
+        };
+    }
 }

@@ -27,6 +27,7 @@ import { config } from "../config/GlobalConfig";
 import { logger } from "../utils/Logger";
 import { normalizeEmail } from "../utils/helper";
 import { AuthUserDTOMapper } from "../utils/dtos/AuthUserDTO";
+import { clearWorkspaceSessionCookies } from "../utils/sessionCookies";
 
 const serverConfig = config.server as {
     nodeEnv?: string;
@@ -514,6 +515,7 @@ export class AuthController {
                 }
             }
             res.clearCookie("refreshToken");
+            clearWorkspaceSessionCookies(res);
             await this.authenticationService.signOut({ req, res });
             logger.info({ msg: "User signed out" });
             res.status(200).json({ success: true, message: "Signed out successfully" });

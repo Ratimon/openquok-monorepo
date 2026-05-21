@@ -5,7 +5,9 @@ import { UNLIMITED_POSTS_PER_MONTH } from 'openquok-common';
 export interface BillingConfig {
 	endpoints: {
 		plans: string;
+		/** Full billing context; uses `showorg` cookie when query is omitted. */
 		current: string;
+		root: string;
 		subscribe: string;
 		portal: string;
 		checkCheckout: (id: string) => string;
@@ -70,11 +72,12 @@ export class BillingRepository {
 		return { plans: [], billingEnabled: false };
 	}
 
-	async getCurrent(organizationId: string): Promise<BillingCurrentDto | null> {
+	async getCurrent(organizationId?: string): Promise<BillingCurrentDto | null> {
+		const query = organizationId?.trim() ? { organizationId: organizationId.trim() } : undefined;
 		const { data: dto, ok } = await this.httpGateway.get<{
 			success: boolean;
 			data?: BillingCurrentDto & { billingEnabled?: boolean };
-		}>(this.config.endpoints.current, { organizationId }, { withCredentials: true });
+		}>(this.config.endpoints.current, query, { withCredentials: true });
 
 		if (ok && dto?.data) {
 			return {

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const billingSubscribeBodySchema = z.object({
-    organizationId: z.string().uuid("organizationId must be a valid UUID"),
+    organizationId: z.string().uuid("organizationId must be a valid UUID").optional(),
     period: z.enum(["MONTHLY", "YEARLY"]),
     billing: z.enum(["SOLO", "CREATOR", "TEAM", "ULTIMATE"]),
     stripePriceId: z
@@ -11,7 +11,7 @@ export const billingSubscribeBodySchema = z.object({
 });
 
 export const billingOrganizationQuerySchema = z.object({
-    organizationId: z.string().uuid("organizationId must be a valid UUID"),
+    organizationId: z.string().uuid("organizationId must be a valid UUID").optional(),
 });
 
 export function validateBillingSubscribeBody(

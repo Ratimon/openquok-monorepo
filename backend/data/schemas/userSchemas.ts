@@ -62,3 +62,23 @@ export const validateUpdatePasswordMeRequest: RequestHandler = validateRequest({
 export type ValidateGetMeRequestHandler = typeof validateGetMeRequest;
 export type ValidateUpdateProfileRequestHandler = typeof validateUpdateProfileRequest;
 export type ValidateUpdatePasswordMeRequestHandler = typeof validateUpdatePasswordMeRequest;
+
+export const changeOrganizationBodySchema = z.object({
+    id: z.string().uuid("id must be a valid organization UUID"),
+});
+
+export const joinOrganizationBodySchema = z.object({
+    /** Signed invite token; optional when `joinOrg` cookie is set. */
+    org: z.string().min(1).optional(),
+});
+
+export const validateChangeOrganizationRequest: RequestHandler = validateRequest({
+    body: changeOrganizationBodySchema,
+});
+
+export const validateJoinOrganizationRequest: RequestHandler = validateRequest({
+    body: joinOrganizationBodySchema,
+});
+
+export type ValidateChangeOrganizationRequestHandler = typeof validateChangeOrganizationRequest;
+export type ValidateJoinOrganizationRequestHandler = typeof validateJoinOrganizationRequest;

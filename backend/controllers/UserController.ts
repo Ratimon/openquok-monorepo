@@ -9,12 +9,25 @@ import type {
     ValidateUpdatePasswordMeRequestHandler,
 } from "../data/schemas/userSchemas";
 import type { UserSessionService } from "../services/UserSessionService";
+import type { OrganizationService } from "../services/OrganizationService";
+import type { SubscriptionService } from "../services/SubscriptionService";
 import { UserNotFoundError, UserAuthorizationError } from "../errors/UserError";
 import { ValidationError, InfraError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 import { ChangePasswordEmailTemplate } from "../emails/ChangePasswordEmailTemplate";
 import { config } from "../config/GlobalConfig";
 import { toUserDTO } from "../utils/dtos/UserDTO";
+import { resolveActiveOrganizationId } from "../utils/resolveActiveOrganizationId";
+import {
+    readJoinOrganizationToken,
+    setActiveOrganizationCookie,
+    clearJoinOrganizationCookie,
+} from "../utils/sessionCookies";
+import { toOrganizationWithRoleDTO } from "../utils/dtos/OrganizationDTO";
+import type {
+    ValidateChangeOrganizationRequestHandler,
+    ValidateJoinOrganizationRequestHandler,
+} from "../data/schemas/userSchemas";
 
 const serverConfig = config.server as { frontendDomainUrl?: string };
 
@@ -23,11 +36,13 @@ export class UserController {
         private readonly userService: UserService,
         private readonly authenticationService: AuthenticationService,
         private readonly emailService: EmailService,
-        private readonly userSessionService: UserSessionService
+        private readonly userSessionService: UserSessionService,
+        private readonly organizationService: OrganizationService,
+        private readonly subscriptionService: SubscriptionService
     ) {}
 
     /**
-     * GET /users/me — profile (+ optional workspace session when `organizationId` query is set).
+     * GET /users/me — profile (+ workspace session when `organizationId` query or `showorg` cookie is set).
      * Session field names match protected-shell bootstrap (`orgId`, `tier`, `totalChannels`, `role`, …).
      */
     getProfile: ValidateGetMeRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -45,7 +60,7 @@ export class UserController {
 
             const dto = toUserDTO(profile);
             const isPlatformAdmin = authReq.user?.isPlatformAdmin ?? false;
-            const organizationId = (req.query as { organizationId?: string }).organizationId?.trim();
+            const organizationId = resolveActiveOrganizationId(req);
 
             const data: Record<string, unknown> = {
                 ...dto,
@@ -194,6 +209,102 @@ export class UserController {
             res.status(200).json({
                 success: true,
                 message: "If an account exists for this email, you will receive a link to change your password.",
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /users/organizations — workspaces for the authenticated user (non-disabled memberships). */
+    listOrganizations = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const list = await this.organizationService.listMyOrganizations(authUserId);
+            const membershipByOrg = new Map(list.memberships.map((m) => [m.organizationId, m]));
+            const data = list.organizations
+                .filter((org) => {
+                    const m = membershipByOrg.get(org.id);
+                    return m && !m.disabled;
+                })
+                .map((org) =>
+                    toOrganizationWithRoleDTO(
+                        org,
+                        membershipByOrg.get(org.id) ?? { role: "user", disabled: false },
+                        list.memberCounts[org.id] ?? 0
+                    )
+                );
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** POST /users/change-org — set active workspace cookie (`showorg`). */
+    changeOrganization: ValidateChangeOrganizationRequestHandler = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const { id } = req.body as { id: string };
+            const membership = await this.organizationService.getOrganizationById(authUserId, id);
+            if (!membership) {
+                return next(new UserAuthorizationError("You do not have access to this workspace"));
+            }
+            setActiveOrganizationCookie(res, id);
+            res.status(200).json({ success: true, data: { id } });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
+     * POST /users/join-org — accept invite from body `org` or `joinOrg` cookie (signed invite token).
+     * On success sets `showorg` to the joined workspace and clears the invite cookie.
+     */
+    joinOrganization: ValidateJoinOrganizationRequestHandler = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const body = req.body as { org?: string };
+            const token = readJoinOrganizationToken(req, body.org);
+            if (!token) {
+                res.status(200).json({ success: true, data: { id: null } });
+                return;
+            }
+            const result = await this.organizationService.joinOrganizationByToken(authUserId, token);
+            clearJoinOrganizationCookie(res);
+            setActiveOrganizationCookie(res, result.organizationId);
+            res.status(200).json({ success: true, data: { id: result.organizationId } });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /users/subscription — subscription row for active workspace (query or `showorg` cookie). */
+    getSubscription = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
+            const subscription = await this.subscriptionService.getSubscriptionByOrganizationId(organizationId);
+            res.status(200).json({
+                success: true,
+                data: { subscription: subscription ?? undefined },
             });
         } catch (error) {
             next(error);

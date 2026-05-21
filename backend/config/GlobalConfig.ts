@@ -134,7 +134,13 @@ export const config: ConfigObject = {
             return unique;
         })(),
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"],
+        allowedHeaders: (() => {
+            const base = ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"];
+            if (getEnvBoolean("NOT_SECURED", false)) {
+                base.push("showorg", "joinOrg", "impersonate");
+            }
+            return base;
+        })(),
         credentials: true,
         maxAge: 86400,
     },

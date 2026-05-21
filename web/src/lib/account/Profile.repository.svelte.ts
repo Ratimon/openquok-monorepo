@@ -7,6 +7,10 @@ export interface AccountConfig {
 		me: string;
 		mePassword: string;
 		meRequestChangePassword: string;
+		organizations: string;
+		changeOrg: string;
+		joinOrg: string;
+		subscription: string;
 	};
 }
 
@@ -95,6 +99,42 @@ export class ProfileRepository {
 		private readonly httpGateway: HttpGateway,
 		private readonly config: AccountConfig
 	) {}
+
+	/** POST /users/change-org — sets `showorg` cookie for cookie-aware /users/me and /billing routes. */
+	public async changeOrganization(organizationId: string): Promise<{ success: boolean; id?: string }> {
+		try {
+			const { ok, data: changeOrgDto } = await this.httpGateway.post<{
+				success: boolean;
+				data?: { id?: string };
+			}>(this.config.endpoints.changeOrg, { id: organizationId }, { withCredentials: true });
+			if (ok && changeOrgDto?.success && changeOrgDto.data?.id) {
+				return { success: true, id: changeOrgDto.data.id };
+			}
+			return { success: false };
+		} catch {
+			return { success: false };
+		}
+	}
+
+	/** POST /users/join-org — body `org` invite token (or `joinOrg` cookie). */
+	public async joinOrganization(token?: string): Promise<{ success: boolean; organizationId: string | null }> {
+		try {
+			const { ok, data: joinOrgDto } = await this.httpGateway.post<{
+				success: boolean;
+				data?: { id?: string | null };
+			}>(
+				this.config.endpoints.joinOrg,
+				token?.trim() ? { org: token.trim() } : {},
+				{ withCredentials: true }
+			);
+			if (ok && joinOrgDto?.success) {
+				return { success: true, organizationId: joinOrgDto.data?.id ?? null };
+			}
+			return { success: false, organizationId: null };
+		} catch {
+			return { success: false, organizationId: null };
+		}
+	}
 
 	public async getProfile(
 		options?: { organizationId?: string; fetch?: typeof globalThis.fetch }

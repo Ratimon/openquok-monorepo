@@ -7,6 +7,7 @@ const billingConfig: BillingConfig = {
 	endpoints: {
 		plans: '/api/v1/billing/plans',
 		current: '/api/v1/billing/current',
+		root: '/api/v1/billing',
 		subscribe: '/api/v1/billing/subscribe',
 		portal: '/api/v1/billing/portal',
 		checkCheckout: (id) => `/api/v1/billing/check/${encodeURIComponent(id)}`

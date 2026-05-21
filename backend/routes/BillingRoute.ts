@@ -17,6 +17,9 @@ const authWithRoles = requireFullAuthWithRoles(
 const billingRouter: ExpressRouter = Router();
 
 billingRouter.get("/plans", billingController.getPlans);
+/** Active workspace from `showorg` cookie or `organizationId` query (aligned with legacy GET /billing). */
+billingRouter.get("/", authWithRoles, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/subscription", authWithRoles, validateBillingOrganizationQuery, billingController.getCurrent);
 billingRouter.get("/current", authWithRoles, validateBillingOrganizationQuery, billingController.getCurrent);
 billingRouter.post(
     "/subscribe",

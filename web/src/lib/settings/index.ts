@@ -42,7 +42,8 @@ export const approvedAppsSettingsPresenter = new ApprovedAppsSettingsPresenter(a
 export const getWorkspacePresenter = new GetWorkspacePresenter(settingsRepository, profileRepository);
 export const workspaceSettingsPresenter = new WorkspaceSettingsPresenter(
 	settingsRepository,
-	getWorkspacePresenter
+	getWorkspacePresenter,
+	profileRepository
 );
 
 export { SettingsRepository } from '$lib/settings/Settings.repository.svelte';

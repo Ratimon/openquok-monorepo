@@ -4,6 +4,8 @@ import {
     validateGetMeRequest,
     validateUpdateProfileRequest,
     validateUpdatePasswordMeRequest,
+    validateChangeOrganizationRequest,
+    validateJoinOrganizationRequest,
 } from "../data/schemas/userSchemas";
 import { validateApprovedAppAuthorizationIdParam } from "../data/schemas/approvedAppsSchemas";
 import {
@@ -29,6 +31,11 @@ userRouter.get("/me", authWithRoles, validateGetMeRequest, userController.getPro
 userRouter.patch("/me", authWithRoles, validateUpdateProfileRequest, userController.updateProfile);
 userRouter.put("/me/password", authWithRoles, validateUpdatePasswordMeRequest, userController.updatePasswordMe);
 userRouter.post("/me/request-change-password", authWithRoles, userController.requestChangePasswordEmail);
+
+userRouter.get("/organizations", authWithRoles, userController.listOrganizations);
+userRouter.get("/subscription", authWithRoles, userController.getSubscription);
+userRouter.post("/change-org", authWithRoles, validateChangeOrganizationRequest, userController.changeOrganization);
+userRouter.post("/join-org", authWithRoles, validateJoinOrganizationRequest, userController.joinOrganization);
 
 userRouter.get("/me/approved-apps", authWithRoles, approvedAppsController.list);
 userRouter.delete(

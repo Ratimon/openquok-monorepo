@@ -8,7 +8,11 @@ const accountConfig: AccountConfig = {
 	endpoints: {
 		me: '/api/v1/users/me',
 		mePassword: '/api/v1/users/me/password',
-		meRequestChangePassword: '/api/v1/users/me/request-change-password'
+		meRequestChangePassword: '/api/v1/users/me/request-change-password',
+		organizations: '/api/v1/users/organizations',
+		changeOrg: '/api/v1/users/change-org',
+		joinOrg: '/api/v1/users/join-org',
+		subscription: '/api/v1/users/subscription'
 	}
 };
 

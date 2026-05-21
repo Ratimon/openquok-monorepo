@@ -263,8 +263,9 @@
 		if (!result.success) toast.error(result.message);
 	}
 
-	function switchWorkspace(workspaceId: string) {
-		onSwitchWorkspace(workspaceId);
+	function switchWorkspace(org: WorkspaceCardViewModel) {
+		onSwitchWorkspace(org.id);
+		toast.success(`Switched to ${org.name}`);
 	}
 </script>
 
@@ -323,7 +324,7 @@
 							<Button
 								type="button"
 								variant="ghost"
-								onclick={() => switchWorkspace(org.id)}
+								onclick={() => switchWorkspace(org)}
 								disabled={leavingWorkspace}
 							>
 								Switch

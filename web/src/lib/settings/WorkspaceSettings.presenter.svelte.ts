@@ -1,3 +1,4 @@
+import type { ProfileRepository } from '$lib/account/Profile.repository.svelte';
 import type { SettingsRepository } from '$lib/settings/Settings.repository.svelte';
 import type { TeamMemberProgrammerModel } from '$lib/settings/Settings.repository.svelte';
 import {
@@ -82,7 +83,8 @@ export class WorkspaceSettingsPresenter {
 
 	constructor(
 		private readonly settingsRepository: SettingsRepository,
-		private readonly getWorkspacePresenter: GetWorkspacePresenter
+		private readonly getWorkspacePresenter: GetWorkspacePresenter,
+		private readonly profileRepository: ProfileRepository
 	) {}
 
 	private updateCurrentWorkspaceRole() {
@@ -115,6 +117,9 @@ export class WorkspaceSettingsPresenter {
 				}
 				if (this.workspacesVm.length > 0 && !this.currentWorkspaceId) {
 					this.currentWorkspaceId = this.workspacesVm[0]?.id ?? null;
+					if (this.currentWorkspaceId) {
+						void this.profileRepository.changeOrganization(this.currentWorkspaceId);
+					}
 				}
 				this.updateCurrentWorkspaceRole();
 				if (includeTeam && this.currentWorkspaceId) {
@@ -131,14 +136,12 @@ export class WorkspaceSettingsPresenter {
 		}
 	}
 
-	public switchWorkspace(workspaceId: string) {
+	public async switchWorkspace(workspaceId: string) {
 		this.currentWorkspaceId = workspaceId;
 		this.teamMembersVm = [];
 		this.updateCurrentWorkspaceRole();
-		this.loadTeam(workspaceId);
-		this.toastMessage = 'Switched workspace.';
-		this.toastIsError = false;
-		this.showToastMessage = true;
+		void this.profileRepository.changeOrganization(workspaceId);
+		await this.loadTeam(workspaceId);
 	}
 
 	public async updateWorkspace(
@@ -337,6 +340,12 @@ export class WorkspaceSettingsPresenter {
 		this.joinByTokenError = null;
 		this.status = WorkspaceSettingsStatus.JOINING_BY_TOKEN;
 		try {
+			const joinPm = await this.profileRepository.joinOrganization(token);
+			if (joinPm.success && joinPm.organizationId) {
+				this.currentWorkspaceId = joinPm.organizationId;
+				await this.load();
+				return { success: true, message: '' };
+			}
 			const resultPm = await this.settingsRepository.joinByToken(token);
 			if (resultPm.success) {
 				return { success: true, message: '' };
