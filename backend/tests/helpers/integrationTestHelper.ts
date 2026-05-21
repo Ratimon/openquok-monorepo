@@ -30,6 +30,13 @@ export type SeedSocialIntegrationsOptions = {
     token?: string;
 };
 
+export type SeedMediaStorageUsageOptions = {
+    /** Sum of `file_size` for seeded rows (simulates workspace drive usage). */
+    usedBytes: number;
+    /** Prefix for object keys and display names. */
+    keyPrefix?: string;
+};
+
 function buildTestSocialIntegrationInsertRow(params: {
     organizationId: string;
     internalId: string;
@@ -153,4 +160,42 @@ export async function seedSocialIntegrations(
         throw new Error(`seedSocialIntegrations failed: ${error.message}`);
     }
     return { internalIds };
+}
+
+/** Postgres `media.file_size` is INT4; SOLO quota (5 GiB) must be split across rows. */
+const MEDIA_FILE_SIZE_INT_MAX = 2_147_483_647;
+
+/**
+ * Inserts minimal `media` rows whose combined `file_size` simulates workspace drive usage.
+ */
+export async function seedMediaStorageUsage(
+    adminSupabase: SupabaseClient,
+    organizationId: string,
+    options: SeedMediaStorageUsageOptions
+): Promise<void> {
+    const prefix = options.keyPrefix ?? "test-media-storage";
+    const rows: Record<string, unknown>[] = [];
+    let remaining = options.usedBytes;
+    let index = 0;
+
+    while (remaining > 0) {
+        const chunk = Math.min(remaining, MEDIA_FILE_SIZE_INT_MAX);
+        const path = `${prefix}/${uuidv4()}-${index}.bin`;
+        rows.push({
+            organization_id: organizationId,
+            name: path.split("/").pop() ?? path,
+            original_name: `${prefix}-${index}.bin`,
+            path,
+            virtual_path: "/General",
+            file_size: chunk,
+            type: "image",
+        });
+        remaining -= chunk;
+        index += 1;
+    }
+
+    const { error } = await adminSupabase.from("media").insert(rows);
+    if (error) {
+        throw new Error(`seedMediaStorageUsage failed: ${error.message}`);
+    }
 }

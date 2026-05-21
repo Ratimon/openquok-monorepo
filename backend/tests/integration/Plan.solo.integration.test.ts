@@ -7,10 +7,16 @@ import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { SubscriptionError } from "../../errors/SubscriptionError";
 import { EmailService } from "../../services/EmailService";
-import { integrationService, permissionsService, subscriptionService } from "../../services/index";
+import {
+    integrationService,
+    permissionsService,
+    subscriptionService,
+} from "../../services/index";
 import {
     attachSoloSubscription,
     insertTestSocialIntegration,
+    seedMediaStorageUsage,
+    seedMediaStorageUsage,
     seedSocialIntegrations,
 } from "../helpers/integrationTestHelper";
 import { seedScheduledSocialPosts } from "../helpers/postHelper";
@@ -22,6 +28,7 @@ const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
 const authPath = `${apiPrefix}/auth`;
 const usersPath = `${apiPrefix}/users`;
 const settingsPath = `${apiPrefix}/settings`;
+const mediaPath = `${apiPrefix}/media`;
 const postsPath = `${apiPrefix}/posts`;
 
 const inviteTokenSecret = (config.auth as { inviteTokenSecret?: string } | undefined)?.inviteTokenSecret?.trim();
@@ -42,6 +49,7 @@ jest.mock("openquok-orchestrator", () => ({
  * - one workspace per billing account (`workspaces: 1`)
  * - one workspace seat (no additional team members / invites beyond the owner)
  * - limited connected channels per workspace
+ * - limited media library storage per workspace (`media_storage_bytes_per_workspace`, 5 GiB on SOLO)
  * - limited scheduled posts per billing month (`posts_per_month`)
  *
  * Policy checks run when Stripe billing is configured; this suite forces billing on via a spy
@@ -267,5 +275,57 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         expect(createRes.status).toBe(402);
         expect(createRes.body?.success).toBe(false);
         expect(createRes.body?.error?.section).toBe("posts_per_month");
+
+    it("blocks media upload when workspace usage already meets SOLO media_storage_bytes_per_workspace", async () => {
+        const soloLimits = planLimitsForTier("SOLO");
+        const storageCap = soloLimits.media_storage_bytes_per_workspace;
+        expect(storageCap).toBeGreaterThan(0);
+
+        const payload = userHelper.setupTestUser1();
+        const { accessToken } = await signupVerifyAndSignIn(payload);
+        const orgId = await firstOrganizationId(accessToken);
+        await attachSoloSubscription(adminSupabase, orgId);
+
+        await seedMediaStorageUsage(adminSupabase, orgId, {
+            usedBytes: storageCap - 512,
+            keyPrefix: "solo-storage-cap",
+        });
+
+        const uploadRes = await supertest(app)
+            .post(`${mediaPath}/upload`)
+            .set("Authorization", `Bearer ${accessToken}`)
+            .field("organizationId", orgId)
+            .attach("mediaFile", Buffer.alloc(1024), {
+                filename: "over-cap.png",
+                contentType: "image/png",
+            });
+
+        expect(uploadRes.status).toBe(402);
+        expect(uploadRes.body?.success).toBe(false);
+        expect(uploadRes.body?.error?.section).toBe("media_storage_bytes_per_workspace");
+    });
+
+    it("rejects additional bytes via assertMediaStorageAvailable when SOLO storage is full", async () => {
+        const soloLimits = planLimitsForTier("SOLO");
+        const storageCap = soloLimits.media_storage_bytes_per_workspace;
+
+        const payload = userHelper.setupTestUser1();
+        const { accessToken } = await signupVerifyAndSignIn(payload);
+        const orgId = await firstOrganizationId(accessToken);
+        await attachSoloSubscription(adminSupabase, orgId);
+
+        await seedMediaStorageUsage(adminSupabase, orgId, {
+            usedBytes: storageCap,
+            keyPrefix: "solo-storage-cap-assert",
+        });
+
+        await expect(subscriptionService.assertMediaStorageAvailable(orgId, 1)).rejects.toBeInstanceOf(
+            SubscriptionError
+        );
+
+        const drive = await subscriptionService.getWorkspaceDriveUsage(orgId);
+        expect(drive.used).toBe(storageCap);
+        expect(drive.total).toBeGreaterThanOrEqual(storageCap);
+    });
     });
 });
