@@ -1,5 +1,5 @@
-import type { BlogPostLike } from "./dtos/BlogDTO";
-import { companyService, marketingService } from "../services";
+import type { BlogPostLike } from "../dtos/BlogDTO";
+import { companyService, marketingService } from "../../services";
 
 export type BlogFeedFormat = "rss" | "atom" | "json";
 

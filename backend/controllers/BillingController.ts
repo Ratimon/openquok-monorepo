@@ -5,7 +5,7 @@ import type { SubscriptionService } from "../services/SubscriptionService";
 import type { StripeService } from "../services/StripeService";
 import type { SubscriptionRepository } from "../repositories/SubscriptionRepository";
 import { UserValidationError } from "../errors/UserError";
-import { resolveActiveOrganizationId } from "../utils/resolveActiveOrganizationId";
+import { resolveActiveOrganizationId } from "../utils/session/resolveActiveOrganizationId";
 
 export class BillingController {
     constructor(

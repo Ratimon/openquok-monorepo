@@ -22,7 +22,7 @@ import { UserNotFoundError } from "../errors/UserError";
 import { OrganizationNotFoundError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
-import { resolveIntegrationPictureForStorage } from "../utils/mirrorIntegrationProfilePicture";
+import { resolveIntegrationPictureForStorage } from "../utils/images/mirrorIntegrationProfilePicture";
 import { logger } from "../utils/Logger";
 
 /** Domain-scoped cache key builders for short-lived OAuth state (`login:`, `organization:`, `refresh:`, etc.). */

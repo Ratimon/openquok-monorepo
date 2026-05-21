@@ -17,12 +17,12 @@ import { logger } from "../utils/Logger";
 import { ChangePasswordEmailTemplate } from "../emails/ChangePasswordEmailTemplate";
 import { config } from "../config/GlobalConfig";
 import { toUserDTO } from "../utils/dtos/UserDTO";
-import { resolveActiveOrganizationId } from "../utils/resolveActiveOrganizationId";
+import { resolveActiveOrganizationId } from "../utils/session/resolveActiveOrganizationId";
 import {
     readJoinOrganizationToken,
     setActiveOrganizationCookie,
     clearJoinOrganizationCookie,
-} from "../utils/sessionCookies";
+} from "../utils/session/sessionCookies";
 import { toOrganizationWithRoleDTO } from "../utils/dtos/OrganizationDTO";
 import type {
     ValidateChangeOrganizationRequestHandler,

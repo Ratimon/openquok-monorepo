@@ -1,5 +1,5 @@
 import type { CookieOptions, Request, Response } from "express";
-import { config } from "../config/GlobalConfig";
+import { config } from "../../config/GlobalConfig";
 
 /** Active workspace id (original: `showorg`). */
 export const ACTIVE_ORGANIZATION_COOKIE = "showorg";

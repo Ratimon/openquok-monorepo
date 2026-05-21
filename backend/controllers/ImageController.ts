@@ -7,11 +7,11 @@ import https from "https";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
 import { UserValidationError } from "../errors/UserError";
 import { isSupabaseImageBucketName } from "../repositories/StorageSupabaseRepository";
-import { isAllowedExternalImageHost } from "../utils/allowedExternalImageHosts";
+import { isAllowedExternalImageHost } from "../utils/images/allowedExternalImageHosts";
 import {
     ExternalImageFetchError,
     fetchAllowlistedExternalImage,
-} from "../utils/externalImageFetch";
+} from "../utils/images/externalImageFetch";
 
 export class ImageController {
     constructor(private readonly storageRepository: StorageSupabaseRepository) {}

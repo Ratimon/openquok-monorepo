@@ -1,7 +1,7 @@
-import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseRepository";
+import type { StorageSupabaseRepository } from "../../repositories/StorageSupabaseRepository";
 import { isExternalCdnProfilePictureUrl } from "./allowedExternalImageHosts";
 import { fetchAllowlistedExternalImage } from "./externalImageFetch";
-import { logger } from "./Logger";
+import { logger } from "../Logger";
 
 /** Storage object key prefix in the `avatars` bucket for mirrored integration profile photos. */
 export const INTEGRATION_PROFILE_STORAGE_PREFIX = "integration-profiles";

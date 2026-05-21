@@ -9,8 +9,8 @@ import type { MediaRepository } from "../repositories/MediaRepository";
 import { publicUrlForObjectKey } from "../repositories/MediaRepository";
 import { AppError } from "../errors/AppError";
 import { config } from "../config/GlobalConfig";
-import { makeId } from "../utils/make.is";
-import { hashProgrammaticToken, hashProgrammaticTokenCandidates, timingSafeEqualHexOrPrefixed } from "../utils/tokenHash";
+import { makeId } from "../utils/ids/makeId";
+import { hashProgrammaticToken, hashProgrammaticTokenCandidates, timingSafeEqualHexOrPrefixed } from "../utils/auth/tokenHash";
 
 /** API row for approved third-party OAuth apps (authorization + public app metadata + picture URLs). */
 export type ApprovedAuthorizationApiItem = OauthAuthorizationLike & {

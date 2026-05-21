@@ -22,7 +22,7 @@ import type {
     BlogCommentUpdateSchemaType,
 } from "../data/schemas/blogSchemas";
 import { ValidationError } from "../errors/InfraError";
-import { stringToSlug } from "../utils/slug";
+import { stringToSlug } from "../utils/blog/slug";
 
 const topicId = faker.string.uuid();
 const postId = faker.string.uuid();

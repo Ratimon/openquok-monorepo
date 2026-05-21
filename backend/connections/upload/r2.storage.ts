@@ -2,7 +2,7 @@ import path from "node:path";
 
 import type { StorageR2Repository } from "../../repositories/StorageR2Repository";
 import { publicUrlForObjectKey } from "../../repositories/MediaRepository";
-import { makeId } from "../../utils/make.is";
+import { makeId } from "../../utils/ids/makeId";
 import type { IUploadProvider, UploadResult } from "./upload.interface";
 
 export class R2Storage implements IUploadProvider {

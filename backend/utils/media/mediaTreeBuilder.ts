@@ -7,7 +7,7 @@ import {
     resolveMediaVirtualPath,
 } from "openquok-common";
 
-import type { MediaListItemDto } from "../repositories/MediaRepository";
+import type { MediaListItemDto } from "../../repositories/MediaRepository";
 
 export type MediaTreeFileEntity = {
     id: string;

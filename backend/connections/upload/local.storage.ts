@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import { config } from "../../config/GlobalConfig";
-import { makeId } from "../../utils/make.is";
+import { makeId } from "../../utils/ids/makeId";
 import { DatabaseError } from "../../errors/InfraError";
 import type { IUploadProvider, UploadResult } from "./upload.interface";
 

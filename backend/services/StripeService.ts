@@ -12,7 +12,7 @@ import {
     type StripePriceIdMap,
 } from "../config/stripePriceConfig";
 import { UserValidationError } from "../errors/UserError";
-import { makeId } from "../utils/make.is";
+import { makeId } from "../utils/ids/makeId";
 import type { SubscriptionRepository } from "../repositories/SubscriptionRepository";
 import type { SubscriptionService } from "./SubscriptionService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";

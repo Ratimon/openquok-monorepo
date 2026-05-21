@@ -17,7 +17,7 @@ import type {
 } from "../middlewares/queryParsers";
 import { BlogService } from "../services/BlogService";
 import { BlogDTOMapper } from "../utils/dtos/BlogDTO";
-import { generateBlogRSSFeed } from "../utils/generateBlogRSSFeed";
+import { generateBlogRSSFeed } from "../utils/blog/generateBlogRSSFeed";
 import { ValidationError, DatabaseEntityNotFoundError } from "../errors/InfraError";
 
 export class BlogController {

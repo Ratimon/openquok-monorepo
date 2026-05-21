@@ -24,7 +24,7 @@ import type { BlogActivityLike, BlogPostLike } from "../utils/dtos/BlogDTO";
 
 import { DatabaseError, DatabaseEntityNotFoundError, ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
-import { stringToSlug } from "../utils/slug";
+import { stringToSlug } from "../utils/blog/slug";
 
 const RPC_GET_PUBLISHED_BLOG_AUTHORS = "get_published_blog_authors";
 const RPC_GET_ACTIVE_BLOG_TOPICS = "get_active_blog_topics";

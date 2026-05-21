@@ -11,14 +11,14 @@ import type { GlobalPlugCatalogEntryDto, InternalPlugCatalogEntryDto } from "../
 
 import dayjs from "dayjs";
 import { config } from "../../config/GlobalConfig";
-import { makeId } from "../../utils/make.is";
+import { makeId } from "../../utils/ids/makeId";
 import { publicUrlForObjectKey } from "../../repositories/MediaRepository";
 import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
 import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackPath";
 import { ProviderAccessTokenExpiredError } from "../../errors/ProviderIntegrationErrors";
 import { throwIfMetaGraphInvalidAccessToken } from "../../errors/metaGraphTokenError";
 import { logger } from "../../utils/Logger";
-import { htmlToPlainText } from "../../utils/htmlToPlain";
+import { htmlToPlainText } from "../../utils/content/htmlToPlain";
 
 type ThreadsMediaItem = { path: string; bucket?: string };
 type ThreadsSettingsWithMedia = { media?: { items?: ThreadsMediaItem[] } | ThreadsMediaItem[] };

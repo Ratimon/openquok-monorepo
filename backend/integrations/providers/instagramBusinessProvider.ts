@@ -18,7 +18,7 @@ import { publishInstagramGraphFeedPost } from "./instagramGraphContentPublish";
 import dayjs from "dayjs";
 import { config } from "../../config/GlobalConfig";
 import { AppError } from "../../errors/AppError";
-import { makeId } from "../../utils/make.is";
+import { makeId } from "../../utils/ids/makeId";
 import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
 import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackPath";
 

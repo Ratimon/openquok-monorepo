@@ -1,5 +1,5 @@
 import type { Request } from "express";
-import { UserValidationError } from "../errors/UserError";
+import { UserValidationError } from "../../errors/UserError";
 import { readActiveOrganizationId } from "./sessionCookies";
 
 /**

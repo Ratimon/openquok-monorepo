@@ -31,7 +31,7 @@ import {
     blogCommentUpdateSchema,
     blogCommentIdParamSchema,
 } from "../data/schemas/blogSchemas";
-import { isValidUUID } from "../utils/helper";
+import { isValidUUID } from "../utils/validation/uuid";
 
 type BlogRouter = ReturnType<typeof Router>;
 

@@ -1,5 +1,5 @@
 import { ValidationError } from "../../errors/InfraError";
-import { isValidUUID } from "../helper";
+import { isValidUUID } from "../validation/uuid";
 
 /**
  * Value object for blog post identifier (UUID).

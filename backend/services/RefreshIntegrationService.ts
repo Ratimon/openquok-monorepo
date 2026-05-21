@@ -6,7 +6,7 @@ import type { AuthTokenDetails, SocialProvider } from "../integrations/social.in
 
 import { config } from "../config/GlobalConfig";
 import { IntegrationManager } from "../integrations/integrationManager";
-import { resolveIntegrationPictureForStorage } from "../utils/mirrorIntegrationProfilePicture";
+import { resolveIntegrationPictureForStorage } from "../utils/images/mirrorIntegrationProfilePicture";
 import { logger } from "../utils/Logger";
 
 /** Token refresh orchestration; long-running refresh timing runs as an in-process Flowcraft loop under `orchestrator/`. */

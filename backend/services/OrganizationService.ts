@@ -12,7 +12,7 @@ import type { PermissionsService } from "./PermissionsService";
 
 import { OrganizationNotFoundError, OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError } from "../errors/UserError";
-import { signInviteToken, verifyInviteToken } from "../utils/inviteToken";
+import { signInviteToken, verifyInviteToken } from "../utils/auth/inviteToken";
 import { config } from "../config/GlobalConfig";
 import { OrganizationInviteEmailTemplate } from "../emails/OrganizationInviteEmailTemplate";
 import dayjs from "dayjs";

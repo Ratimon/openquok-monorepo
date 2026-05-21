@@ -6,7 +6,7 @@ import type {
     UserOrganizationLike,
 } from "../utils/dtos/OrganizationDTO";
 import { DatabaseError } from "../errors/InfraError";
-import { makeId } from "../utils/make.is";
+import { makeId } from "../utils/ids/makeId";
 
 const ORGS_TABLE = "organizations";
 const USER_ORGS_TABLE = "user_organizations";

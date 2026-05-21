@@ -3,7 +3,7 @@ import type { OauthAppLike } from "../repositories/OauthAppRepository";
 import type { OauthAppRepository } from "../repositories/OauthAppRepository";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { MediaRepository } from "../repositories/MediaRepository";
-import { hashProgrammaticToken } from "../utils/tokenHash";
+import { hashProgrammaticToken } from "../utils/auth/tokenHash";
 
 const oauthAuthConfig = { programmaticTokenSecret: "oauth-service-unit-test-secret-key" };
 

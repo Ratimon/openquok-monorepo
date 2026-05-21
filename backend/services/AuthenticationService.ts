@@ -20,7 +20,7 @@ import {
 import { UserAuthorizationError } from "../errors/UserError";
 import { UserNotFoundError } from "../errors/UserError";
 import { ValidationError, DatabaseEntityNotFoundError } from "../errors/InfraError";
-import { normalizeEmail } from "../utils/helper";
+import { normalizeEmail } from "../utils/validation/email";
 import { logger } from "../utils/Logger";
 import { config } from "../config/GlobalConfig";
 

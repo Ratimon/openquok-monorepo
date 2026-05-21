@@ -5,7 +5,7 @@ import supertest from "supertest";
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
-import { ACTIVE_ORGANIZATION_COOKIE } from "../../utils/sessionCookies";
+import { ACTIVE_ORGANIZATION_COOKIE } from "../../utils/session/sessionCookies";
 import { attachSoloSubscription } from "../helpers/integrationTestHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";

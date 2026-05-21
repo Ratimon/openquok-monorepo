@@ -25,9 +25,9 @@ import { WelcomeEmailTemplate } from "../emails/WelcomeEmailTemplate";
 import { ResetPasswordEmailTemplate } from "../emails/ResetPasswordEmailTemplate";
 import { config } from "../config/GlobalConfig";
 import { logger } from "../utils/Logger";
-import { normalizeEmail } from "../utils/helper";
+import { normalizeEmail } from "../utils/validation/email";
 import { AuthUserDTOMapper } from "../utils/dtos/AuthUserDTO";
-import { clearWorkspaceSessionCookies } from "../utils/sessionCookies";
+import { clearWorkspaceSessionCookies } from "../utils/session/sessionCookies";
 
 const serverConfig = config.server as {
     nodeEnv?: string;

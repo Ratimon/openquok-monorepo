@@ -7,8 +7,8 @@ import type { ProgrammaticAuthRequest } from "../middlewares/programmaticAuth";
 import type { IUploadProvider } from "../connections/upload/upload.interface";
 
 import { publicUrlForObjectKey } from "../repositories/MediaRepository";
-import { makeId } from "../utils/make.is";
-import { buildMediaTreeEntities } from "../utils/mediaTreeBuilder";
+import { makeId } from "../utils/ids/makeId";
+import { buildMediaTreeEntities } from "../utils/media/mediaTreeBuilder";
 
 import { AuthError } from "../errors/AuthError";
 import { UserValidationError } from "../errors/UserError";

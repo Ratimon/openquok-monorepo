@@ -30,7 +30,7 @@ import {
     buildAdminBlogActivitiesCacheKey,
     type BlogPostLike,
 } from "../utils/dtos/BlogDTO";
-import { stringToSlug } from "../utils/slug";
+import { stringToSlug } from "../utils/blog/slug";
 import { ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 import { BlogPostId } from "../utils/valueObjects/BlogPostId";
