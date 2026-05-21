@@ -1,30 +1,8 @@
-import type { PaidSubscriptionTier, SubscriptionTier } from './types.js';
+import type { PaidSubscriptionTier, PlanLimits, PricingMap, SubscriptionTier } from './types.js';
 import { PAID_SUBSCRIPTION_TIERS } from './types.js';
 
 /** Use 1_000_000 for “unlimited” post scheduling caps in enforcement. */
 export const UNLIMITED_POSTS_PER_MONTH = 1_000_000;
-
-export interface PlanLimits {
-	current: SubscriptionTier;
-	month_price: number;
-	year_price: number;
-	/** Workspaces (organizations) allowed on the billing account. */
-	workspaces: number;
-	/** Connected social accounts (channels) allowed per workspace. */
-	channel_per_workspace: number;
-	posts_per_month: number;
-	/** Team member seats per workspace (workspace membership). */
-	team_members_per_workspace: number;
-	/** Shareable post preview links. */
-	share_post_preview: boolean;
-	/** Blog comments, skill listing, and similar community surfaces. */
-	community_features: boolean;
-	public_api: boolean;
-	/** Total media library storage per workspace in bytes. */
-	media_storage_bytes_per_workspace: number;
-}
-
-export type PricingMap = Record<SubscriptionTier, PlanLimits>;
 
 const GIB = 1024 ** 3;
 

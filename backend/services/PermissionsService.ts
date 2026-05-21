@@ -109,6 +109,14 @@ export class PermissionsService {
                 );
             }
 
+            if (section === SubscriptionSection.COMMUNITY_FEATURES && !limits.community_features) {
+                throw new SubscriptionError(
+                    "Community features are not included on your current plan.",
+                    section,
+                    this.billingUrl()
+                );
+            }
+
             // CHANNEL_PER_WORKSPACE, POSTS_PER_MONTH, WORKSPACES: enforced at dedicated entry points.
         }
     }

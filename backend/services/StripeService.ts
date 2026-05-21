@@ -1,6 +1,8 @@
 import type Stripe from "stripe";
+import groupBy from "lodash/groupBy";
 import {
     isPaidSubscriptionTier,
+    PAID_SUBSCRIPTION_TIERS,
     pricing,
     type PaidSubscriptionTier,
     type SubscriptionPeriod,
@@ -24,6 +26,20 @@ export interface BillingSubscribeBody {
     billing: PaidSubscriptionTier;
     stripePriceId: string;
 }
+
+/** Live or catalog price row grouped by Stripe recurring interval (`month` / `year`). */
+export interface SubscriptionTierPriceRow {
+    name: string;
+    recurring: string;
+    price: number;
+}
+
+export type SubscriptionTiersPackages = Record<string, SubscriptionTierPriceRow[]>;
+
+const STRIPE_PRICE_LOOKUP_KEYS = PAID_SUBSCRIPTION_TIERS.flatMap((tier) => [
+    `${tier.toLowerCase()}_monthly`,
+    `${tier.toLowerCase()}_yearly`,
+]);
 
 export class StripeService {
     constructor(
@@ -88,6 +104,99 @@ export class StripeService {
 
     private stripePriceIds(): StripePriceIdMap {
         return (config.stripe as { priceIds?: StripePriceIdMap }).priceIds ?? ({} as StripePriceIdMap);
+    }
+
+    private billingEnabled(): boolean {
+        const stripeCfg = config.stripe as { publishableKey?: string } | undefined;
+        return Boolean(stripeCfg?.publishableKey?.trim());
+    }
+
+    private packagesFromCatalog(): SubscriptionTiersPackages {
+        const rows: SubscriptionTierPriceRow[] = PAID_SUBSCRIPTION_TIERS.flatMap((tier) => {
+            const plan = pricing[tier];
+            return [
+                { name: tier, recurring: "month", price: plan.month_price },
+                { name: tier, recurring: "year", price: plan.year_price },
+            ];
+        });
+        return groupBy(rows, "recurring");
+    }
+
+    private stripePriceAmountUsd(price: Stripe.Price): number {
+        const tiered = price.tiers?.[0]?.unit_amount;
+        if (tiered != null) return tiered / 100;
+        return (price.unit_amount ?? 0) / 100;
+    }
+
+    private mapStripePricesToPackages(prices: Stripe.Price[]): SubscriptionTiersPackages {
+        const rows: SubscriptionTierPriceRow[] = [];
+        for (const p of prices) {
+            const interval = p.recurring?.interval;
+            if (!interval) continue;
+            const product = p.product;
+            const name =
+                typeof product === "object" && product && "name" in product
+                    ? String(product.name ?? "")
+                    : "";
+            if (!name) continue;
+            rows.push({
+                name,
+                recurring: interval,
+                price: this.stripePriceAmountUsd(p),
+            });
+        }
+        return groupBy(rows, "recurring");
+    }
+
+    private async fetchConfiguredStripePrices(): Promise<Stripe.Price[]> {
+        const stripe = getStripeClient();
+        const ids: string[] = [];
+        const priceIds = this.stripePriceIds();
+        for (const tier of PAID_SUBSCRIPTION_TIERS) {
+            const monthly = configuredStripePriceId(priceIds, tier, "MONTHLY");
+            const yearly = configuredStripePriceId(priceIds, tier, "YEARLY");
+            if (monthly) ids.push(monthly);
+            if (yearly) ids.push(yearly);
+        }
+        const uniqueIds = [...new Set(ids)];
+        const prices = await Promise.all(
+            uniqueIds.map((id) =>
+                stripe.prices.retrieve(id, { expand: ["product"] })
+            )
+        );
+        return prices.filter((p) => p.active);
+    }
+
+    /**
+     * Active Stripe prices grouped by billing interval (`month` / `year`).
+     * Uses Dashboard lookup keys when present, else configured price ids, else the plan catalog.
+     */
+    async getPackages(): Promise<SubscriptionTiersPackages> {
+        if (!this.billingEnabled()) {
+            return this.packagesFromCatalog();
+        }
+
+        try {
+            const stripe = getStripeClient();
+            const listed = await stripe.prices.list({
+                active: true,
+                expand: ["data.tiers", "data.product"],
+                lookup_keys: [...STRIPE_PRICE_LOOKUP_KEYS],
+                limit: 100,
+            });
+            if (listed.data.length > 0) {
+                return this.mapStripePricesToPackages(listed.data);
+            }
+
+            const configured = await this.fetchConfiguredStripePrices();
+            if (configured.length > 0) {
+                return this.mapStripePricesToPackages(configured);
+            }
+        } catch {
+            /* Stripe unavailable — fall back to catalog amounts */
+        }
+
+        return this.packagesFromCatalog();
     }
 
     /** Prefer price id from the web app; optional backend env fallback; then auto-create. */

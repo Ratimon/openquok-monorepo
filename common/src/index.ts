@@ -17,15 +17,19 @@ export {
 export type {
 	AuthorizationAction,
 	PaidSubscriptionTier,
+	PlanCapabilityKey,
+	PlanLimits,
+	PricingMap,
 	SubscriptionPeriod,
 	SubscriptionPolicy,
 	SubscriptionTier,
 } from './subscription/types';
 export {
 	PAID_SUBSCRIPTION_TIERS,
+	SUBSCRIPTION_PERIODS,
+	SUBSCRIPTION_TIERS,
 	SubscriptionSection,
 } from './subscription/types';
-export type { PlanLimits, PricingMap } from './subscription/pricing';
 export {
 	DEFAULT_MEDIA_STORAGE_QUOTA_BYTES,
 	UNLIMITED_POSTS_PER_MONTH,

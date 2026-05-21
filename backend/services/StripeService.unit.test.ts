@@ -41,6 +41,7 @@ jest.mock("../config/GlobalConfig", () => ({
     config: {
         server: { frontendDomainUrl: "https://app.example.com/" },
         stripe: {
+            publishableKey: "pk_test",
             webhookSecret: "whsec_test",
             priceIds: {
                 SOLO: { monthly: "price_solo_monthly", yearly: "price_solo_yearly" },
@@ -429,6 +430,85 @@ describe("StripeService", () => {
             config.stripe.discountCouponId = "";
             await expect(service().checkDiscountEligible(customerId)).resolves.toBe(false);
             config.stripe.discountCouponId = "coupon_retention";
+        });
+    });
+
+    describe("getPackages", () => {
+        it("returns catalog prices grouped by interval when billing is disabled", async () => {
+            const { config } = jest.requireMock("../config/GlobalConfig") as {
+                config: { stripe: { publishableKey?: string } };
+            };
+            config.stripe.publishableKey = "";
+            await expect(service().getPackages()).resolves.toEqual({
+                month: [
+                    { name: "SOLO", recurring: "month", price: pricing.SOLO.month_price },
+                    { name: "CREATOR", recurring: "month", price: pricing.CREATOR.month_price },
+                    { name: "TEAM", recurring: "month", price: pricing.TEAM.month_price },
+                    { name: "ULTIMATE", recurring: "month", price: pricing.ULTIMATE.month_price },
+                ],
+                year: [
+                    { name: "SOLO", recurring: "year", price: pricing.SOLO.year_price },
+                    { name: "CREATOR", recurring: "year", price: pricing.CREATOR.year_price },
+                    { name: "TEAM", recurring: "year", price: pricing.TEAM.year_price },
+                    { name: "ULTIMATE", recurring: "year", price: pricing.ULTIMATE.year_price },
+                ],
+            });
+            config.stripe.publishableKey = "pk_test";
+        });
+
+        it("maps Stripe lookup-key prices when billing is enabled", async () => {
+            mockStripe.prices.list.mockResolvedValue({
+                data: [
+                    {
+                        active: true,
+                        product: { name: "SOLO" },
+                        recurring: { interval: "month" },
+                        unit_amount: 2900,
+                    },
+                    {
+                        active: true,
+                        product: { name: "SOLO" },
+                        recurring: { interval: "year" },
+                        unit_amount: 27800,
+                    },
+                ],
+            });
+            await expect(service().getPackages()).resolves.toEqual({
+                month: [{ name: "SOLO", recurring: "month", price: 29 }],
+                year: [{ name: "SOLO", recurring: "year", price: 278 }],
+            });
+            expect(mockStripe.prices.list).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    lookup_keys: expect.arrayContaining(["solo_monthly", "ultimate_yearly"]),
+                })
+            );
+        });
+
+        it("falls back to configured price ids when lookup keys return no rows", async () => {
+            mockStripe.prices.list.mockResolvedValue({ data: [] });
+            mockStripe.prices.retrieve.mockImplementation(async (id: string) => {
+                if (id === "price_solo_monthly") {
+                    return {
+                        id,
+                        active: true,
+                        product: { name: "SOLO" },
+                        recurring: { interval: "month" },
+                        unit_amount: 2900,
+                    };
+                }
+                return {
+                    id,
+                    active: true,
+                    product: { name: "SOLO" },
+                    recurring: { interval: "year" },
+                    unit_amount: 27800,
+                };
+            });
+            await expect(service().getPackages()).resolves.toEqual({
+                month: [{ name: "SOLO", recurring: "month", price: 29 }],
+                year: [{ name: "SOLO", recurring: "year", price: 278 }],
+            });
+            expect(mockStripe.prices.retrieve).toHaveBeenCalled();
         });
     });
 

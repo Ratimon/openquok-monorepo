@@ -11,6 +11,7 @@ import type {
 import type { UserSessionService } from "../services/UserSessionService";
 import type { OrganizationService } from "../services/OrganizationService";
 import type { SubscriptionService } from "../services/SubscriptionService";
+import type { StripeService } from "../services/StripeService";
 import { UserNotFoundError, UserAuthorizationError } from "../errors/UserError";
 import { ValidationError, InfraError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
@@ -38,7 +39,8 @@ export class UserController {
         private readonly emailService: EmailService,
         private readonly userSessionService: UserSessionService,
         private readonly organizationService: OrganizationService,
-        private readonly subscriptionService: SubscriptionService
+        private readonly subscriptionService: SubscriptionService,
+        private readonly stripeService: StripeService
     ) {}
 
     /**
@@ -306,6 +308,16 @@ export class UserController {
                 success: true,
                 data: { subscription: subscription ?? undefined },
             });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /users/subscription/tiers — Stripe prices grouped by interval (`month` / `year`). */
+    getSubscriptionTiers = async (_req: Request, res: Response, next: NextFunction) => {
+        try {
+            const tiers = await this.stripeService.getPackages();
+            res.status(200).json({ success: true, data: tiers });
         } catch (error) {
             next(error);
         }

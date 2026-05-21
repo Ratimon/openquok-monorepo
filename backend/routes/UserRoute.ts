@@ -33,6 +33,7 @@ userRouter.put("/me/password", authWithRoles, validateUpdatePasswordMeRequest, u
 userRouter.post("/me/request-change-password", authWithRoles, userController.requestChangePasswordEmail);
 
 userRouter.get("/organizations", authWithRoles, userController.listOrganizations);
+userRouter.get("/subscription/tiers", authWithRoles, userController.getSubscriptionTiers);
 userRouter.get("/subscription", authWithRoles, userController.getSubscription);
 userRouter.post("/change-org", authWithRoles, validateChangeOrganizationRequest, userController.changeOrganization);
 userRouter.post("/join-org", authWithRoles, validateJoinOrganizationRequest, userController.joinOrganization);

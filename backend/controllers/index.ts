@@ -68,7 +68,8 @@ export const userController = new UserController(
     emailService,
     userSessionService,
     organizationService,
-    subscriptionService
+    subscriptionService,
+    stripeService
 );
 export const companyController = new CompanyController(companyService, marketingService);
 export const settingsController = new SettingsController(organizationService);
