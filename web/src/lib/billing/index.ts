@@ -9,8 +9,15 @@ const billingConfig: BillingConfig = {
 		current: '/api/v1/billing/current',
 		root: '/api/v1/billing',
 		subscribe: '/api/v1/billing/subscribe',
+		embedded: '/api/v1/billing/embedded',
 		portal: '/api/v1/billing/portal',
-		checkCheckout: (id) => `/api/v1/billing/check/${encodeURIComponent(id)}`
+		checkCheckout: (id) => `/api/v1/billing/check/${encodeURIComponent(id)}`,
+		checkDiscount: '/api/v1/billing/check-discount',
+		applyDiscount: '/api/v1/billing/apply-discount',
+		finishTrial: '/api/v1/billing/finish-trial',
+		isTrialFinished: '/api/v1/billing/is-trial-finished',
+		prorate: '/api/v1/billing/prorate',
+		cancel: '/api/v1/billing/cancel'
 	}
 };
 

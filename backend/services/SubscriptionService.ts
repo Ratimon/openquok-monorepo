@@ -113,11 +113,20 @@ export class SubscriptionService {
         await this.subscriptionRepository.softDeleteByStripeCustomerId(customerId);
     }
 
-    async checkCheckoutStatus(organizationId: string, identifier: string): Promise<0 | 1 | 2> {
-        const row = await this.subscriptionRepository.checkSubscriptionByIdentifier(
-            organizationId,
-            identifier
-        );
-        return row ? 2 : 0;
+    async grantPaidSubscriptionForAdmin(params: {
+        organizationId: string;
+        subscriptionTier: PaidSubscriptionTier;
+        period?: SubscriptionPeriod;
+    }): Promise<OrganizationSubscriptionRow> {
+        const limits = pricing[params.subscriptionTier];
+        return this.subscriptionRepository.createOrUpdateSubscription({
+            organizationId: params.organizationId,
+            isTrialing: false,
+            identifier: `admin-${Date.now()}`,
+            subscriptionTier: params.subscriptionTier,
+            period: params.period ?? "MONTHLY",
+            totalChannels: limits.channel_per_workspace,
+            cancelAt: null,
+        });
     }
 }

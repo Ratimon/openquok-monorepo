@@ -9,8 +9,15 @@ export interface BillingConfig {
 		current: string;
 		root: string;
 		subscribe: string;
+		embedded: string;
 		portal: string;
 		checkCheckout: (id: string) => string;
+		checkDiscount: string;
+		applyDiscount: string;
+		finishTrial: string;
+		isTrialFinished: string;
+		prorate: string;
+		cancel: string;
 	};
 }
 
@@ -133,5 +140,63 @@ export class BillingRepository {
 
 		if (ok && dto?.data?.status != null) return dto.data.status;
 		return 0;
+	}
+
+	async checkDiscountOffer(organizationId: string): Promise<string | false> {
+		const { data: dto, ok } = await this.httpGateway.get<{
+			success: boolean;
+			data?: { offerCoupon: string | false };
+		}>(this.config.endpoints.checkDiscount, { organizationId }, { withCredentials: true });
+
+		if (ok && dto?.data?.offerCoupon) return dto.data.offerCoupon;
+		return false;
+	}
+
+	async applyRetentionDiscount(organizationId: string): Promise<boolean> {
+		const { data: dto, ok } = await this.httpGateway.post<{
+			success: boolean;
+			data?: { applied: boolean };
+		}>(this.config.endpoints.applyDiscount, { organizationId }, { withCredentials: true });
+
+		return Boolean(ok && dto?.data?.applied);
+	}
+
+	async previewProration(params: {
+		organizationId: string;
+		billing: PaidSubscriptionTier;
+		period: SubscriptionPeriod;
+	}): Promise<number> {
+		const { data: dto, ok } = await this.httpGateway.post<{
+			success: boolean;
+			data?: { price: number };
+		}>(
+			this.config.endpoints.prorate,
+			{
+				organizationId: params.organizationId,
+				billing: params.billing,
+				period: params.period
+			},
+			{ withCredentials: true }
+		);
+
+		if (ok && dto?.data?.price != null) return dto.data.price;
+		return 0;
+	}
+
+	async cancelSubscription(params: {
+		organizationId: string;
+		feedback?: string;
+	}): Promise<{ id: string; cancelAt?: string } | null> {
+		const { data: dto, ok } = await this.httpGateway.post<{
+			success: boolean;
+			data?: { id: string; cancelAt?: string };
+		}>(
+			this.config.endpoints.cancel,
+			{ organizationId: params.organizationId, feedback: params.feedback },
+			{ withCredentials: true }
+		);
+
+		if (ok && dto?.data) return dto.data;
+		return null;
 	}
 }

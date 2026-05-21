@@ -85,7 +85,8 @@ export const mediaController = new MediaController(
 export const billingController = new BillingController(
     subscriptionService,
     stripeService,
-    subscriptionRepository
+    subscriptionRepository,
+    emailService
 );
 export const stripeWebhookController = new StripeWebhookController(stripeService);
 export { MAX_MEDIA_UPLOAD_BYTES };

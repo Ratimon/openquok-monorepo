@@ -254,6 +254,333 @@ export class StripeService {
         return session.url;
     }
 
+    /**
+     * Poll checkout completion after redirect.
+     * 0 = pending, 1 = payment failed / canceled, 2 = subscription active in DB.
+     */
+    async checkCheckoutStatus(organizationId: string, checkoutId: string): Promise<0 | 1 | 2> {
+        const row = await this.subscriptionRepository.checkSubscriptionByIdentifier(
+            organizationId,
+            checkoutId
+        );
+        if (row) return 2;
+
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        const customerId = org?.stripe_customer_id;
+        if (!customerId) return 0;
+
+        const stripe = getStripeClient();
+        const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 20 });
+        if (subs.data.length === 0) return 0;
+
+        const match = subs.data.find((s) => s.metadata?.uniqueId === checkoutId);
+        if (match?.canceled_at) return 1;
+        return 0;
+    }
+
+    async checkDiscountEligible(customerId: string | null | undefined): Promise<boolean> {
+        const couponId = (config.stripe as { discountCouponId?: string }).discountCouponId?.trim();
+        if (!couponId || !customerId) return false;
+
+        const stripe = getStripeClient();
+        const charges = await stripe.charges.list({ customer: customerId, limit: 1 });
+        if (!charges.data.some((c) => c.amount > 1000)) return false;
+
+        const subs = await stripe.subscriptions.list({
+            customer: customerId,
+            status: "all",
+            expand: ["data.discounts"],
+            limit: 10,
+        });
+        const active = subs.data.find((s) => s.status === "active" || s.status === "trialing");
+        if (!active) return false;
+
+        const interval = active.items.data[0]?.price?.recurring?.interval;
+        if (interval === "year") return false;
+        const discounts = active.discounts ?? [];
+        if (discounts.length > 0) return false;
+
+        return true;
+    }
+
+    async applyRetentionDiscount(customerId: string): Promise<boolean> {
+        const couponId = (config.stripe as { discountCouponId?: string }).discountCouponId?.trim();
+        if (!couponId) return false;
+        const eligible = await this.checkDiscountEligible(customerId);
+        if (!eligible) return false;
+
+        const stripe = getStripeClient();
+        const subs = await stripe.subscriptions.list({
+            customer: customerId,
+            status: "all",
+            limit: 10,
+        });
+        const active = subs.data.find((s) => s.status === "active" || s.status === "trialing");
+        if (!active) return false;
+
+        await stripe.subscriptions.update(active.id, {
+            discounts: [{ coupon: couponId }],
+        });
+        return true;
+    }
+
+    async finishTrial(customerId: string | null | undefined): Promise<void> {
+        if (!customerId) return;
+        const stripe = getStripeClient();
+        const subs = (await stripe.subscriptions.list({ customer: customerId, limit: 20 })).data.filter(
+            (s) => s.status === "trialing"
+        );
+        if (!subs[0]?.id) return;
+        const updated = await stripe.subscriptions.update(subs[0].id, { trial_end: "now" });
+        await this.syncSubscriptionFromStripe(updated);
+        const org = await this.subscriptionRepository.getOrganizationByStripeCustomerId(customerId);
+        if (org) await this.subscriptionRepository.setTrialing(org.id, false);
+    }
+
+    async previewProration(
+        organizationId: string,
+        body: Pick<BillingSubscribeBody, "billing" | "period">
+    ): Promise<{ price: number }> {
+        const customer = await this.createOrGetCustomer(organizationId);
+        const priceId = await this.resolvePriceId(body.billing, body.period);
+        const stripe = getStripeClient();
+        const prorationDate = Math.floor(Date.now() / 1000);
+
+        const subs = await stripe.subscriptions.list({ customer, status: "all", limit: 20 });
+        const current = subs.data.find((s) => s.status === "active" || s.status === "trialing");
+        if (!current?.items.data[0]?.id) return { price: 0 };
+
+        try {
+            const preview = await stripe.invoices.createPreview({
+                customer,
+                subscription: current.id,
+                subscription_details: {
+                    proration_behavior: "create_prorations",
+                    billing_cycle_anchor: "now",
+                    items: [
+                        {
+                            id: current.items.data[0].id,
+                            price: priceId,
+                            quantity: 1,
+                        },
+                    ],
+                    proration_date: prorationDate,
+                },
+            });
+            return {
+                price: preview.amount_remaining ? preview.amount_remaining / 100 : 0,
+            };
+        } catch {
+            return { price: 0 };
+        }
+    }
+
+    async setSubscriptionCancelAtPeriodEnd(organizationId: string): Promise<{
+        id: string;
+        cancelAt?: Date;
+    }> {
+        const customer = await this.createOrGetCustomer(organizationId);
+        const stripe = getStripeClient();
+        const uniqueId = makeId(10);
+
+        const subs = (
+            await stripe.subscriptions.list({
+                customer,
+                status: "all",
+                expand: ["data.latest_invoice"],
+                limit: 20,
+            })
+        ).data.filter((s) => s.status !== "canceled");
+
+        const sub = subs[0];
+        if (!sub) {
+            throw new UserValidationError("No active subscription found");
+        }
+
+        if (sub.cancel_at_period_end) {
+            const updated = await stripe.subscriptions.update(sub.id, {
+                cancel_at_period_end: false,
+                metadata: { service: STRIPE_SERVICE_METADATA, uniqueId },
+            });
+            return {
+                id: uniqueId,
+                cancelAt: updated.cancel_at ? new Date(updated.cancel_at * 1000) : undefined,
+            };
+        }
+
+        const latestInvoice = sub.latest_invoice as Stripe.Invoice | null;
+        const hasFailedPayment =
+            sub.status === "past_due" ||
+            latestInvoice?.status === "open" ||
+            latestInvoice?.status === "uncollectible";
+
+        if (hasFailedPayment) {
+            await stripe.subscriptions.cancel(sub.id);
+            await this.subscriptionService.deleteSubscriptionForCustomer(customer);
+            return { id: uniqueId, cancelAt: new Date() };
+        }
+
+        const updated = await stripe.subscriptions.update(sub.id, {
+            cancel_at_period_end: true,
+            metadata: { service: STRIPE_SERVICE_METADATA, uniqueId },
+        });
+        return {
+            id: uniqueId,
+            cancelAt: updated.cancel_at ? new Date(updated.cancel_at * 1000) : undefined,
+        };
+    }
+
+    async createEmbeddedCheckout(params: {
+        organizationId: string;
+        userId: string;
+        body: BillingSubscribeBody;
+        allowTrial: boolean;
+    }): Promise<{ clientSecret?: string }> {
+        const customer = await this.createOrGetCustomer(params.organizationId);
+        const uniqueId = makeId(12);
+        const priceId = await this.resolvePriceId(
+            params.body.billing,
+            params.body.period,
+            params.body.stripePriceId
+        );
+        const frontend = this.frontendUrl();
+        const stripe = getStripeClient();
+
+        const session = await stripe.checkout.sessions.create({
+            ui_mode: "elements",
+            mode: "subscription",
+            customer,
+            line_items: [{ price: priceId, quantity: 1 }],
+            return_url: `${frontend}/account/billing?checkout=${uniqueId}`,
+            subscription_data: {
+                ...(params.allowTrial ? { trial_period_days: 7 } : {}),
+                metadata: {
+                    service: STRIPE_SERVICE_METADATA,
+                    billing: params.body.billing,
+                    period: params.body.period,
+                    uniqueId,
+                    userId: params.userId,
+                    organizationId: params.organizationId,
+                },
+            },
+            metadata: {
+                service: STRIPE_SERVICE_METADATA,
+                uniqueId,
+                organizationId: params.organizationId,
+            },
+        });
+
+        return { clientSecret: session.client_secret ?? undefined };
+    }
+
+    async listCharges(organizationId: string): Promise<
+        Array<{
+            id: string;
+            amount: number;
+            currency: string;
+            created: number;
+            status: string;
+            refunded: boolean;
+            amount_refunded: number;
+            description: string | null;
+            receipt_url: string | null;
+            invoice: string | null;
+            invoice_pdf: string | null;
+        }>
+    > {
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org?.stripe_customer_id) return [];
+
+        const stripe = getStripeClient();
+        const charges = await stripe.charges.list({ customer: org.stripe_customer_id, limit: 100 });
+        const chargeList = charges.data
+            .filter((c) => c.status === "succeeded")
+            .map((charge) => {
+                const invoiceRef = (charge as Stripe.Charge & {
+                    invoice?: string | Stripe.Invoice | null;
+                }).invoice;
+                return {
+                    id: charge.id,
+                    amount: charge.amount,
+                    currency: charge.currency,
+                    created: charge.created,
+                    status: charge.status,
+                    refunded: charge.refunded,
+                    amount_refunded: charge.amount_refunded,
+                    description: charge.description,
+                    receipt_url: charge.receipt_url ?? null,
+                    invoice:
+                        typeof invoiceRef === "string"
+                            ? invoiceRef
+                            : (invoiceRef as Stripe.Invoice | null)?.id ?? null,
+                };
+            });
+
+        const invoiceIds = chargeList
+            .map((c) => c.invoice)
+            .filter((id): id is string => Boolean(id));
+        const invoicePdfMap: Record<string, string> = {};
+        for (const invoiceId of invoiceIds) {
+            try {
+                const inv = await stripe.invoices.retrieve(invoiceId);
+                if (inv.invoice_pdf) invoicePdfMap[invoiceId] = inv.invoice_pdf;
+            } catch {
+                /* ignore */
+            }
+        }
+
+        return chargeList.map((charge) => ({
+            ...charge,
+            invoice_pdf:
+                charge.invoice && invoicePdfMap[charge.invoice]
+                    ? invoicePdfMap[charge.invoice]
+                    : null,
+        }));
+    }
+
+    async refundCharges(
+        organizationId: string,
+        chargeIds: string[]
+    ): Promise<{ refunded: string[]; failed: string[] }> {
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org?.stripe_customer_id) {
+            throw new UserValidationError("No payment customer found for this organization");
+        }
+
+        const stripe = getStripeClient();
+        const refunded: string[] = [];
+        const failed: string[] = [];
+        for (const chargeId of chargeIds) {
+            try {
+                await stripe.refunds.create({ charge: chargeId });
+                refunded.push(chargeId);
+            } catch {
+                failed.push(chargeId);
+            }
+        }
+        return { refunded, failed };
+    }
+
+    async cancelSubscriptionImmediately(organizationId: string): Promise<{ cancelled: true }> {
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org?.stripe_customer_id) {
+            throw new UserValidationError("No payment customer found for this organization");
+        }
+
+        const stripe = getStripeClient();
+        const subs = (
+            await stripe.subscriptions.list({ customer: org.stripe_customer_id, status: "all", limit: 20 })
+        ).data.filter((s) => s.status !== "canceled");
+
+        if (!subs.length) {
+            throw new UserValidationError("No active subscription found");
+        }
+
+        await stripe.subscriptions.cancel(subs[0].id);
+        await this.subscriptionService.deleteSubscriptionForCustomer(org.stripe_customer_id);
+        return { cancelled: true };
+    }
+
     private tierFromMetadata(metadata: Stripe.Metadata | null | undefined): PaidSubscriptionTier | null {
         const billing = metadata?.billing;
         if (typeof billing === "string" && isPaidSubscriptionTier(billing)) {
