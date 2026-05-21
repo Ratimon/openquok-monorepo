@@ -4,11 +4,18 @@ import { v4 as uuidv4 } from "uuid";
 import supertest from "supertest";
 import { faker } from "@faker-js/faker";
 
+import type { OrganizationSubscriptionRow } from "../../repositories/SubscriptionRepository";
+
+import { planLimitsForTier } from "openquok-common";
+
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
+import { permissionsService, subscriptionService } from "../../services/index";
 import { UserTestHelper } from "../helpers/userTestHelper";
+import { activateWorkspace } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
+import { ACTIVE_ORGANIZATION_COOKIE } from "../../utils/session/sessionCookies";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
 const authPath = `${apiPrefix}/auth`;
@@ -37,7 +44,6 @@ async function requestSignup(
     return res;
 }
 
-/** Sign up, verify email, sign in; returns access token for the user. */
 async function signUpVerifyAndSignIn(
     payload: SignupPayload,
     verificationToken: string,
@@ -59,6 +65,34 @@ async function signUpVerifyAndSignIn(
     expect(signInRes.status).toBe(200);
     expect(signInRes.body.data?.accessToken).toBeDefined();
     return signInRes.body.data.accessToken;
+}
+
+function mockTeamSubscriptionRow(organizationId: string): OrganizationSubscriptionRow {
+    const teamLimits = planLimitsForTier("TEAM");
+    const createdAt = new Date().toISOString();
+    return {
+        id: uuidv4(),
+        organization_id: organizationId,
+        subscription_tier: "TEAM",
+        period: "MONTHLY",
+        identifier: "test_e2e_team_stub",
+        cancel_at: null,
+        total_channels: teamLimits.channel_per_workspace,
+        is_lifetime: false,
+        created_at: createdAt,
+        updated_at: createdAt,
+        deleted_at: null,
+    };
+}
+
+/** TEAM-tier limits with enough seats for multi-member invite flows in this suite. */
+function stubTeamPlanLimitsForInvites(): jest.SpyInstance {
+    const limits = { ...planLimitsForTier("TEAM"), team_members_per_workspace: 6 };
+    return jest.spyOn(permissionsService, "getTierAndLimits").mockImplementation(async (orgId) => ({
+        tier: "TEAM",
+        limits,
+        subscription: mockTeamSubscriptionRow(orgId),
+    }));
 }
 
 /** GET /settings and return the first organization id (e.g. default org after signup). */
@@ -254,6 +288,18 @@ describe("User Account Setting E2E", () => {
 
     describe("Workspace membership: inviting members", () => {
         const password = "Test1234!";
+        let billingEnabledSpy: jest.SpyInstance;
+        let tierLimitsSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            billingEnabledSpy = jest.spyOn(subscriptionService, "billingEnabled").mockReturnValue(true);
+            tierLimitsSpy = stubTeamPlanLimitsForInvites();
+        });
+
+        afterEach(() => {
+            billingEnabledSpy?.mockRestore();
+            tierLimitsSpy?.mockRestore();
+        });
 
         it("owner can invite a user by email as admin; invitee signs up, accepts invite, and appears in team as admin", async () => {
             const ownerEmail = testUser.email;
@@ -266,10 +312,12 @@ describe("User Account Setting E2E", () => {
                 userHelper
             );
             const orgId = await getFirstOrgId(ownerToken);
+            await activateWorkspace(ownerToken, orgId);
 
             const inviteRes = await supertest(app)
-                .post(`${settingsPath}/${orgId}/invite`)
+                .post(`${settingsPath}/team`)
                 .set("Authorization", `Bearer ${ownerToken}`)
+                .set("Cookie", [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`])
                 .send({ email: inviteeEmail, workspaceRole: "admin", sendEmail: false });
             expect(inviteRes.status).toBe(200);
             expect(inviteRes.body.success).toBe(true);
@@ -302,8 +350,9 @@ describe("User Account Setting E2E", () => {
             expect(acceptRes.body.data?.workspaceRole).toBe("admin");
 
             const teamRes = await supertest(app)
-                .get(`${settingsPath}/${orgId}/team`)
-                .set("Authorization", `Bearer ${ownerToken}`);
+                .get(`${settingsPath}/team`)
+                .set("Authorization", `Bearer ${ownerToken}`)
+                .set("Cookie", [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`]);
             expect(teamRes.status).toBe(200);
             expect(Array.isArray(teamRes.body.data)).toBe(true);
             const inviteeMember = teamRes.body.data.find(
@@ -325,10 +374,12 @@ describe("User Account Setting E2E", () => {
                 userHelper
             );
             const orgId = await getFirstOrgId(ownerToken);
+            await activateWorkspace(ownerToken, orgId);
 
             const ownerInviteRes = await supertest(app)
-                .post(`${settingsPath}/${orgId}/invite`)
+                .post(`${settingsPath}/team`)
                 .set("Authorization", `Bearer ${ownerToken}`)
+                .set("Cookie", [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`])
                 .send({ email: adminEmail, workspaceRole: "admin", sendEmail: false });
             expect(ownerInviteRes.status).toBe(200);
             const adminToken = await signUpVerifyAndSignIn(
@@ -348,10 +399,12 @@ describe("User Account Setting E2E", () => {
             await supertest(app)
                 .post(`${settingsPath}/invites/${adminInvite.id}/accept`)
                 .set("Authorization", `Bearer ${adminToken}`);
+            await activateWorkspace(adminToken, orgId);
 
             const inviteRes = await supertest(app)
-                .post(`${settingsPath}/${orgId}/invite`)
+                .post(`${settingsPath}/team`)
                 .set("Authorization", `Bearer ${adminToken}`)
+                .set("Cookie", [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`])
                 .send({ email: memberEmail, workspaceRole: "user", sendEmail: false });
             expect(inviteRes.status).toBe(200);
             expect(inviteRes.body.success).toBe(true);
@@ -377,8 +430,9 @@ describe("User Account Setting E2E", () => {
             expect(memberAccept.body.data?.workspaceRole).toBe("user");
 
             const teamRes = await supertest(app)
-                .get(`${settingsPath}/${orgId}/team`)
-                .set("Authorization", `Bearer ${adminToken}`);
+                .get(`${settingsPath}/team`)
+                .set("Authorization", `Bearer ${adminToken}`)
+                .set("Cookie", [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`]);
             expect(teamRes.status).toBe(200);
             const members = teamRes.body.data as { email?: string; workspaceRole?: string }[];
             expect(

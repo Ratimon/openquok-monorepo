@@ -1,13 +1,14 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@supabase/supabase-js";
 import supertest from "supertest";
 
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
-import { subscriptionService } from "../../services/index";
-import { attachSoloSubscription } from "../helpers/integrationTestHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
+import {
+    prepareSoloWorkspace,
+    restoreSoloWorkspaceSpies,
+    type SoloWorkspaceSpies,
+} from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 import { planLimitsForTier } from "openquok-common";
 
@@ -22,13 +23,12 @@ const describeIfSupabase =
     supabaseUrl && supabaseSecretKey ? describe : describe.skip;
 
 describeIfSupabase("GET /users/me workspace session (integration)", () => {
-    const adminSupabase = createClient(supabaseUrl!, supabaseSecretKey!) as SupabaseClient;
     const userHelper = new UserTestHelper();
 
     let getVerificationTokenSpy: jest.SpyInstance;
     let verificationToken: string;
     let emailSendSpy: jest.SpyInstance;
-    let billingEnabledSpy: jest.SpyInstance;
+    let soloWorkspaceSpies: SoloWorkspaceSpies;
 
     beforeAll(() => {
         verificationToken = generateRandomVerificationToken();
@@ -44,11 +44,11 @@ describeIfSupabase("GET /users/me workspace session (integration)", () => {
     });
 
     beforeEach(() => {
-        billingEnabledSpy = jest.spyOn(subscriptionService, "billingEnabled").mockReturnValue(true);
+        soloWorkspaceSpies = prepareSoloWorkspace();
     });
 
     afterEach(async () => {
-        billingEnabledSpy?.mockRestore();
+        restoreSoloWorkspaceSpies(soloWorkspaceSpies);
         await userHelper.cleanAllStoredUsers();
     });
 
@@ -94,8 +94,6 @@ describeIfSupabase("GET /users/me workspace session (integration)", () => {
         expect(listRes.status).toBe(200);
         const orgId = listRes.body?.data?.[0]?.id as string;
         expect(orgId).toBeDefined();
-
-        await attachSoloSubscription(adminSupabase, orgId);
 
         const soloLimits = planLimitsForTier("SOLO");
 

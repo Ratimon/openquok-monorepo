@@ -17,8 +17,8 @@ import {
 import { storageR2Repository } from "../../repositories/index";
 import type { AuthTokenDetails, SocialProvider } from "../../integrations/social.integrations.interface";
 import { cacheServiceConnection } from "../../connections/index";
+import { ACTIVE_ORGANIZATION_COOKIE } from "../../utils/session/sessionCookies";
 import {
-    attachSoloSubscription,
     insertTestSocialIntegration,
     seedSocialConnectOAuthState,
     seedSocialIntegrations,
@@ -26,6 +26,7 @@ import {
 } from "../helpers/integrationTestHelper";
 import { seedScheduledSocialPosts } from "../helpers/postHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
+import { activateWorkspace, stubBillingEnabled, stubSoloPlanLimits } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 import { planLimitsForTier } from "openquok-common";
 
@@ -59,8 +60,8 @@ jest.mock("openquok-orchestrator", () => ({
  * - limited scheduled posts per billing month (`posts_per_month`)
  * - limited media library storage per workspace (`media_storage_bytes_per_workspace`, 5 GiB on SOLO)
  *
- * Policy checks run when Stripe billing is configured; this suite forces billing on via a spy
- * so limits apply using a real `organization_subscriptions` row.
+ * Policy checks run when Stripe billing is configured; this suite forces billing on and stubs
+ * `permissionsService.getTierAndLimits` to SOLO. Team invite uses POST /settings/team + `showorg` cookie.
  */
 describeIfSupabase("SOLO plan subscription limits (integration)", () => {
     const adminSupabase = createClient(supabaseUrl!, supabaseSecretKey!) as SupabaseClient;
@@ -85,7 +86,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
     });
 
     beforeEach(() => {
-        billingEnabledSpy = jest.spyOn(subscriptionService, "billingEnabled").mockReturnValue(true);
+        billingEnabledSpy = stubBillingEnabled();
     });
 
     afterEach(async () => {
@@ -143,26 +144,32 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const payload = userHelper.setupTestUser1();
         const { accessToken } = await signupVerifyAndSignIn(payload);
         const orgId = await firstOrganizationId(accessToken);
-        await attachSoloSubscription(adminSupabase, orgId);
+        const tierLimitsSpy = stubSoloPlanLimits();
 
-        const listRes = await supertest(app).get(settingsPath).set("Authorization", `Bearer ${accessToken}`);
-        expect(listRes.status).toBe(200);
-        expect(listRes.body?.data).toHaveLength(workspaceCap);
+        try {
+            const listRes = await supertest(app)
+                .get(settingsPath)
+                .set("Authorization", `Bearer ${accessToken}`);
+            expect(listRes.status).toBe(200);
+            expect(listRes.body?.data).toHaveLength(workspaceCap);
 
-        const createRes = await supertest(app)
-            .post(settingsPath)
-            .set("Authorization", `Bearer ${accessToken}`)
-            .send({ name: "Second workspace", description: null });
+            const createRes = await supertest(app)
+                .post(settingsPath)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({ name: "Second workspace", description: null });
 
-        expect(createRes.status).toBe(402);
-        expect(createRes.body?.success).toBe(false);
-        expect(createRes.body?.error?.section).toBe("workspaces");
+            expect(createRes.status).toBe(402);
+            expect(createRes.body?.success).toBe(false);
+            expect(createRes.body?.error?.section).toBe("workspaces");
 
-        const listAfterRes = await supertest(app)
-            .get(settingsPath)
-            .set("Authorization", `Bearer ${accessToken}`);
-        expect(listAfterRes.status).toBe(200);
-        expect(listAfterRes.body?.data).toHaveLength(workspaceCap);
+            const listAfterRes = await supertest(app)
+                .get(settingsPath)
+                .set("Authorization", `Bearer ${accessToken}`);
+            expect(listAfterRes.status).toBe(200);
+            expect(listAfterRes.body?.data).toHaveLength(workspaceCap);
+        } finally {
+            tierLimitsSpy.mockRestore();
+        }
     });
 
     itIfInviteSigning(
@@ -171,21 +178,27 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
             const payload = userHelper.setupTestUser1();
             const { accessToken } = await signupVerifyAndSignIn(payload);
             const orgId = await firstOrganizationId(accessToken);
-            await attachSoloSubscription(adminSupabase, orgId);
+            const tierLimitsSpy = stubSoloPlanLimits();
 
-            const inviteeEmail = `invitee-${uuidv4()}@test.com`.toLowerCase();
-            const res = await supertest(app)
-                .post(`${settingsPath}/${orgId}/invite`)
-                .set("Authorization", `Bearer ${accessToken}`)
-                .send({
-                    email: inviteeEmail,
-                    workspaceRole: "user",
-                    sendEmail: false,
-                });
+            try {
+                await activateWorkspace(accessToken, orgId);
+                const inviteeEmail = `invitee-${uuidv4()}@test.com`.toLowerCase();
+                const res = await supertest(app)
+                    .post(`${settingsPath}/team`)
+                    .set("Authorization", `Bearer ${accessToken}`)
+                    .set("Cookie", [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`])
+                    .send({
+                        email: inviteeEmail,
+                        workspaceRole: "user",
+                        sendEmail: false,
+                    });
 
-            expect(res.status).toBe(402);
-            expect(res.body?.success).toBe(false);
-            expect(res.body?.error?.section).toBe("team_members_per_workspace");
+                expect(res.status).toBe(402);
+                expect(res.body?.success).toBe(false);
+                expect(res.body?.error?.section).toBe("team_members_per_workspace");
+            } finally {
+                tierLimitsSpy.mockRestore();
+            }
         }
     );
 
@@ -197,7 +210,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const payload = userHelper.setupTestUser1();
         const { accessToken } = await signupVerifyAndSignIn(payload);
         const orgId = await firstOrganizationId(accessToken);
-        await attachSoloSubscription(adminSupabase, orgId);
+        const tierLimitsSpy = stubSoloPlanLimits();
 
         const { internalIds } = await seedSocialIntegrations(adminSupabase, orgId, {
             count: channelCap,
@@ -295,6 +308,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
             const afterReconnect = await integrationService.listByOrganization(orgId);
             expect(afterReconnect).toHaveLength(channelCap); // reconnect must not increase connected count
         } finally {
+            tierLimitsSpy.mockRestore();
             oauthCacheStub.restore();
             getSocialIntegrationSpy.mockRestore();
             refreshWorkflowSpy.mockRestore();
@@ -309,43 +323,49 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const payload = userHelper.setupTestUser1();
         const { accessToken } = await signupVerifyAndSignIn(payload);
         const orgId = await firstOrganizationId(accessToken);
-        await attachSoloSubscription(adminSupabase, orgId);
+        const tierLimitsSpy = stubSoloPlanLimits();
 
-        const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId, {
-            internalId: "solo-posts-cap-channel",
-        });
-
-        await seedScheduledSocialPosts(adminSupabase, orgId, {
-            count: postsCap,
-            postGroupPrefix: "solo-posts-cap-api",
-        });
-
-        await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 0)).resolves.toBeUndefined();
-
-        const findSlot = await supertest(app)
-            .get(`${postsPath}/find-slot`)
-            .query({ organizationId: orgId })
-            .set("Authorization", `Bearer ${accessToken}`);
-        expect(findSlot.status).toBe(200);
-        const scheduledAt = findSlot.body?.data?.date as string;
-        expect(scheduledAt).toBeDefined();
-
-        const createRes = await supertest(app)
-            .post(postsPath)
-            .set("Authorization", `Bearer ${accessToken}`)
-            .send({
-                organizationId: orgId,
-                body: "Should exceed monthly post cap",
-                integrationIds: [integrationId],
-                isGlobal: true,
-                scheduledAt,
-                tagNames: [],
-                status: "scheduled",
+        try {
+            const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId, {
+                internalId: "solo-posts-cap-channel",
             });
 
-        expect(createRes.status).toBe(402);
-        expect(createRes.body?.success).toBe(false);
-        expect(createRes.body?.error?.section).toBe("posts_per_month");
+            await seedScheduledSocialPosts(adminSupabase, orgId, {
+                count: postsCap,
+                postGroupPrefix: "solo-posts-cap-api",
+            });
+
+            await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 1)).rejects.toBeInstanceOf(
+                SubscriptionError
+            );
+
+            const findSlot = await supertest(app)
+                .get(`${postsPath}/find-slot`)
+                .query({ organizationId: orgId })
+                .set("Authorization", `Bearer ${accessToken}`);
+            expect(findSlot.status).toBe(200);
+            const scheduledAt = findSlot.body?.data?.date as string;
+            expect(scheduledAt).toBeDefined();
+
+            const createRes = await supertest(app)
+                .post(postsPath)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({
+                    organizationId: orgId,
+                    body: "Should exceed monthly post cap",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAt,
+                    tagNames: [],
+                    status: "scheduled",
+                });
+
+            expect(createRes.status).toBe(402);
+            expect(createRes.body?.success).toBe(false);
+            expect(createRes.body?.error?.section).toBe("posts_per_month");
+        } finally {
+            tierLimitsSpy.mockRestore();
+        }
     });
 
     it("blocks complete-multipart-upload when workspace is at SOLO media_storage_bytes_per_workspace", async () => {
@@ -356,7 +376,6 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const payload = userHelper.setupTestUser1();
         const { accessToken } = await signupVerifyAndSignIn(payload);
         const orgId = await firstOrganizationId(accessToken);
-        await attachSoloSubscription(adminSupabase, orgId);
 
         const driveUsageSpy = jest.spyOn(subscriptionService, "getWorkspaceDriveUsage").mockResolvedValue({
             used: storageCap - 512,
@@ -397,7 +416,6 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const payload = userHelper.setupTestUser1();
         const { accessToken } = await signupVerifyAndSignIn(payload);
         const orgId = await firstOrganizationId(accessToken);
-        await attachSoloSubscription(adminSupabase, orgId);
 
         const driveUsageSpy = jest.spyOn(subscriptionService, "getWorkspaceDriveUsage").mockResolvedValue({
             used: storageCap,

@@ -1,13 +1,16 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@supabase/supabase-js";
 import supertest from "supertest";
 
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
 import { ACTIVE_ORGANIZATION_COOKIE } from "../../utils/session/sessionCookies";
-import { attachSoloSubscription } from "../helpers/integrationTestHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
+import {
+    activateWorkspace,
+    prepareSoloWorkspace,
+    restoreSoloWorkspaceSpies,
+    type SoloWorkspaceSpies,
+} from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
@@ -21,12 +24,12 @@ const describeIfSupabase =
     supabaseUrl && supabaseSecretKey ? describe : describe.skip;
 
 describeIfSupabase("User workspace cookies (integration)", () => {
-    const adminSupabase = createClient(supabaseUrl!, supabaseSecretKey!) as SupabaseClient;
     const userHelper = new UserTestHelper();
 
     let getVerificationTokenSpy: jest.SpyInstance;
     let verificationToken: string;
     let emailSendSpy: jest.SpyInstance;
+    let soloWorkspaceSpies: SoloWorkspaceSpies;
 
     beforeAll(() => {
         verificationToken = generateRandomVerificationToken();
@@ -41,7 +44,12 @@ describeIfSupabase("User workspace cookies (integration)", () => {
         emailSendSpy?.mockRestore();
     });
 
+    beforeEach(() => {
+        soloWorkspaceSpies = prepareSoloWorkspace();
+    });
+
     afterEach(async () => {
+        restoreSoloWorkspaceSpies(soloWorkspaceSpies);
         await userHelper.cleanAllStoredUsers();
     });
 
@@ -75,12 +83,7 @@ describeIfSupabase("User workspace cookies (integration)", () => {
         const orgId = orgsRes.body?.data?.[0]?.id as string;
         expect(orgId).toBeDefined();
 
-        await attachSoloSubscription(adminSupabase, orgId);
-
-        await supertest(app)
-            .post(`${usersPath}/change-org`)
-            .set("Authorization", `Bearer ${accessToken}`)
-            .send({ id: orgId });
+        await activateWorkspace(accessToken, orgId);
 
         const meRes = await supertest(app)
             .get(`${usersPath}/me`)
@@ -120,13 +123,7 @@ describeIfSupabase("User workspace cookies (integration)", () => {
             .set("Authorization", `Bearer ${accessToken}`);
         const orgId = orgsRes.body?.data?.[0]?.id as string;
 
-        await attachSoloSubscription(adminSupabase, orgId);
-
-        const changeRes = await supertest(app)
-            .post(`${usersPath}/change-org`)
-            .set("Authorization", `Bearer ${accessToken}`)
-            .send({ id: orgId });
-        expect(changeRes.status).toBe(200);
+        await activateWorkspace(accessToken, orgId);
 
         const cookieHeader = `${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`;
 

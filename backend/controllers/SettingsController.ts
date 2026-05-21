@@ -10,6 +10,7 @@ import type {
 } from "../data/schemas/organizationSchemas";
 import { OrganizationNotFoundError } from "../errors/OrganizationError";
 import { UserAuthorizationError } from "../errors/UserError";
+import { resolveActiveOrganizationId } from "../utils/session/resolveActiveOrganizationId";
 import {
     toOrganizationWithRoleDTO,
     toOrganizationDTO,
@@ -103,6 +104,50 @@ export class SettingsController {
             });
             const org = toOrganizationDTO(row)!;
             res.status(200).json({ success: true, data: org });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /settings/team — team for active workspace (`showorg` cookie). */
+    getTeamForActiveWorkspace = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
+            const rows = await this.organizationService.getTeam(authUserId, organizationId);
+            const members = rows.map((m) => toOrganizationMemberDTO(m, { email: m.email, full_name: m.full_name }));
+            res.status(200).json({ success: true, data: members });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** POST /settings/team — invite by email for active workspace (`showorg` cookie). */
+    inviteTeamMemberForActiveWorkspace: ValidateInviteTeamMemberRequestHandler = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
+            const { email, workspaceRole, sendEmail } = req.body as {
+                email: string;
+                workspaceRole: "user" | "admin";
+                sendEmail: boolean;
+            };
+            const result = await this.organizationService.inviteTeamMemberByEmail(authUserId, organizationId, {
+                email,
+                workspaceRole,
+                sendEmail,
+            });
+            res.status(200).json({ success: true, data: result });
         } catch (error) {
             next(error);
         }

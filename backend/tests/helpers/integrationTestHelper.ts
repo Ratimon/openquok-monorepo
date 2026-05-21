@@ -1,7 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { faker } from "@faker-js/faker";
-import type { PaidSubscriptionTier, SubscriptionPeriod } from "openquok-common";
-import { v4 as uuidv4 } from "uuid";
 
 import { cacheServiceConnection } from "../../connections/index";
 
@@ -14,14 +12,6 @@ export type InsertTestSocialIntegrationOptions = {
     name?: string;
     providerIdentifier?: string;
     token?: string;
-};
-
-export type AttachOrganizationSubscriptionOptions = {
-    tier: PaidSubscriptionTier;
-    period?: SubscriptionPeriod;
-    identifier?: string;
-    totalChannels?: number;
-    isLifetime?: boolean;
 };
 
 export type SeedSocialIntegrationsOptions = {
@@ -92,40 +82,6 @@ export async function insertTestSocialIntegration(
         throw new Error(`insertTestSocialIntegration failed: ${error.message}`);
     }
     return { integrationId };
-}
-
-/**
- * Upserts a paid `organization_subscriptions` row for plan-limit integration tests.
- */
-export async function attachOrganizationSubscription(
-    adminSupabase: SupabaseClient,
-    organizationId: string,
-    options: AttachOrganizationSubscriptionOptions
-): Promise<void> {
-    const { error } = await adminSupabase.from("organization_subscriptions").upsert(
-        {
-            organization_id: organizationId,
-            subscription_tier: options.tier,
-            period: options.period ?? "MONTHLY",
-            identifier: options.identifier ?? `test_checkout_${uuidv4()}`,
-            cancel_at: null,
-            total_channels: options.totalChannels ?? 0,
-            is_lifetime: options.isLifetime ?? false,
-            deleted_at: null,
-        },
-        { onConflict: "organization_id" }
-    );
-    if (error) {
-        throw new Error(`attachOrganizationSubscription failed: ${error.message}`);
-    }
-}
-
-/** Convenience wrapper for SOLO-tier subscription rows. */
-export async function attachSoloSubscription(
-    adminSupabase: SupabaseClient,
-    organizationId: string
-): Promise<void> {
-    await attachOrganizationSubscription(adminSupabase, organizationId, { tier: "SOLO" });
 }
 
 /**

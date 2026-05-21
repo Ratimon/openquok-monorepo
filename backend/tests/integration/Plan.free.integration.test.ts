@@ -22,7 +22,9 @@ import {
     seedSocialConnectOAuthState,
     stubInMemorySocialConnectCache,
 } from "../helpers/integrationTestHelper";
+import { ACTIVE_ORGANIZATION_COOKIE } from "../../utils/session/sessionCookies";
 import { UserTestHelper } from "../helpers/userTestHelper";
+import { activateWorkspace } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 import { DEFAULT_MEDIA_STORAGE_QUOTA_BYTES, planLimitsForTier } from "openquok-common";
 
@@ -162,11 +164,13 @@ describeIfSupabase("FREE plan subscription limits (integration)", () => {
             const payload = userHelper.setupTestUser1();
             const { accessToken } = await signupVerifyAndSignIn(payload);
             const orgId = await firstOrganizationId(accessToken);
+            await activateWorkspace(accessToken, orgId);
 
             const inviteeEmail = `invitee-${uuidv4()}@test.com`.toLowerCase();
             const res = await supertest(app)
-                .post(`${settingsPath}/${orgId}/invite`)
+                .post(`${settingsPath}/team`)
                 .set("Authorization", `Bearer ${accessToken}`)
+                .set("Cookie", [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`])
                 .send({
                     email: inviteeEmail,
                     workspaceRole: "user",

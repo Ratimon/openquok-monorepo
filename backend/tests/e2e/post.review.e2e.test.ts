@@ -5,11 +5,14 @@ import os from "node:os";
 import path from "node:path";
 import supertest from "supertest";
 
+import type { SoloWorkspaceSpies } from "../helpers/workspaceTestHelper";
+
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
 import { insertTestSocialIntegration } from "../helpers/integrationTestHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
+import { prepareSoloWorkspace, restoreSoloWorkspaceSpies } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 import { startE2eHttpServer } from "./helpers/e2e-http-server";
 import { runOpenquokCli } from "./helpers/run-openquok-cli";
@@ -46,6 +49,7 @@ describe("Post kanban review (agent and human)", () => {
     let getVerificationTokenSpy: jest.SpyInstance;
     let verificationToken: string;
     let emailSendSpy: jest.SpyInstance;
+    let soloWorkspaceSpies: SoloWorkspaceSpies | undefined;
 
     let prevScheduledEnabled: boolean;
     let prevScheduledTransport: string;
@@ -72,6 +76,8 @@ describe("Post kanban review (agent and human)", () => {
     });
 
     afterEach(async () => {
+        restoreSoloWorkspaceSpies(soloWorkspaceSpies);
+        soloWorkspaceSpies = undefined;
         const bull = config as {
             bullmq: { scheduledSocialPost: { enabled: boolean; transport: string } };
         };
@@ -83,6 +89,9 @@ describe("Post kanban review (agent and human)", () => {
     });
 
     beforeEach(() => {
+        if (hasSupabaseE2E) {
+            soloWorkspaceSpies = prepareSoloWorkspace();
+        }
         const bull = config as {
             bullmq: { scheduledSocialPost: { enabled: boolean; transport: string } };
         };

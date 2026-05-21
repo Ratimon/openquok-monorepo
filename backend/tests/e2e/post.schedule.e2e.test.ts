@@ -2,20 +2,21 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { faker } from "@faker-js/faker";
 import supertest from "supertest";
 
+import type { SoloWorkspaceSpies } from "../helpers/workspaceTestHelper";
+import type { RefreshIntegrationService } from "../../services/RefreshIntegrationService.js";
+import type{ ScheduledPostsRepository } from "openquok-orchestrator/activities/scheduledSocialPostActivities.js";
+
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
 import { insertTestSocialIntegration } from "../helpers/integrationTestHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
+import { prepareSoloWorkspace, restoreSoloWorkspaceSpies } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
-import {
-    createPublishScheduledGroupHandler,
-    type ScheduledPostsRepository,
-} from "openquok-orchestrator/activities/scheduledSocialPostActivities.js";
+import { createPublishScheduledGroupHandler } from "openquok-orchestrator/activities/scheduledSocialPostActivities.js";
 import { IntegrationManager } from "../../integrations/integrationManager.js";
 import { ThreadsProvider } from "../../integrations/providers/threadsProvider.js";
 import { integrationRepository, postsRepository } from "../../repositories/index.js";
-import type { RefreshIntegrationService } from "../../services/RefreshIntegrationService.js";
 
 jest.mock("openquok-orchestrator", () => ({
     __esModule: true,
@@ -86,6 +87,7 @@ describe("Scheduling a post for social channels", () => {
      * synthetic `integrationManagerStub` further down.
      */
     let threadsAnalyticsSpy: jest.SpyInstance;
+    let soloWorkspaceSpies: SoloWorkspaceSpies | undefined;
 
     let prevScheduledEnabled: boolean;
     let prevScheduledTransport: string;
@@ -115,6 +117,8 @@ describe("Scheduling a post for social channels", () => {
     });
 
     afterEach(async () => {
+        restoreSoloWorkspaceSpies(soloWorkspaceSpies);
+        soloWorkspaceSpies = undefined;
         const bull = config as {
             bullmq: { scheduledSocialPost: { enabled: boolean; transport: string } };
         };
@@ -127,6 +131,9 @@ describe("Scheduling a post for social channels", () => {
     });
 
     beforeEach(() => {
+        if (hasSupabaseE2E) {
+            soloWorkspaceSpies = prepareSoloWorkspace();
+        }
         const bull = config as {
             bullmq: { scheduledSocialPost: { enabled: boolean; transport: string } };
         };

@@ -12,8 +12,11 @@ export interface SettingsConfig {
 		update: (id: string) => string;
 		delete: (id: string) => string;
 		rotateApiKey: (id: string) => string;
-		getTeam: (id: string) => string;
-		invite: (id: string) => string;
+		/** Active workspace (`showorg` cookie). */
+		getTeam: string;
+		inviteTeamMember: string;
+		getTeamById: (id: string) => string;
+		inviteByOrganizationId: (id: string) => string;
 		removeTeamMember: (orgId: string, userId: string) => string;
 		listPendingInvites: string;
 		acceptPendingInvite: (id: string) => string;
@@ -336,10 +339,10 @@ export class SettingsRepository {
 		}
 	}
 
-	public async getTeam(organizationId: string): Promise<TeamMemberProgrammerModel[]> {
+	public async getTeam(_organizationId: string): Promise<TeamMemberProgrammerModel[]> {
 		try {
 			const { ok, data: getTeamDto } = await this.httpGateway.get<GetTeamResponseDto>(
-				this.config.endpoints.getTeam(organizationId),
+				this.config.endpoints.getTeam,
 				undefined,
 				{ withCredentials: true }
 			);
@@ -353,14 +356,14 @@ export class SettingsRepository {
 	}
 
 	public async inviteTeamMember(
-		organizationId: string,
+		_organizationId: string,
 		params: { email: string; role?: 'user' | 'admin'; sendEmail?: boolean }
 	): Promise<InviteTeamMemberProgrammerModel> {
 		try {
 			const { data: inviteTeamMemberDto, ok } =
 				await this.httpGateway.request<InviteTeamMemberResponseDto>({
 					method: HttpMethod.POST,
-					url: this.config.endpoints.invite(organizationId),
+					url: this.config.endpoints.inviteTeamMember,
 					data: {
 						email: params.email.trim(),
 						workspaceRole: params.role ?? 'user',
