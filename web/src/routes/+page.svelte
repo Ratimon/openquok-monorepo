@@ -14,8 +14,6 @@
 	let { data }: Props = $props();
 
 	let isLoggedIn = $derived((data as App.HomePageData)?.isLoggedIn ?? false);
-	let currentUser = $derived((data as App.HomePageData)?.currentUser ?? null);
-	// let currentUserId = $derived(currentUser?.id ?? undefined);
 	let navbarDesktopLinks = $derived(
 		(data as App.HomePageData)?.navbarDesktopLinks ?? (page.data as App.HomePageData)?.navbarDesktopLinks ?? []
 	);

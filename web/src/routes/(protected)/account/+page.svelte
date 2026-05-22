@@ -517,6 +517,7 @@
 		}
 	});
 
+	
 	/**
 	 * Onboarding wizard (`OnBoardingModal`): wide modal, step 1 uses a 9-column grid on large screens.
 	 * It opens from the `$effect` below when there are no connected channels and onboarding is not
