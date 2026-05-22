@@ -247,6 +247,44 @@ describe("StripeService", () => {
             });
             await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toBe(1);
         });
+
+        it("syncs and returns 2 when Stripe subscription is active but not yet in DB", async () => {
+            (subscriptionRepo.checkSubscriptionByIdentifier as jest.Mock)
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce({ id: faker.string.uuid() });
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                name: "Acme",
+                stripe_customer_id: customerId,
+                allow_trial: false,
+                is_trialing: false,
+            });
+            const activeSub = stripeSubscription({
+                metadata: { uniqueId: checkoutId, service: "openquok", billing: "SOLO", organizationId },
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [activeSub] });
+
+            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toBe(2);
+            expect(subscriptionService.createOrUpdateFromStripe).toHaveBeenCalled();
+        });
+
+        it("returns 0 when Stripe subscription is active but sync does not persist", async () => {
+            (subscriptionRepo.checkSubscriptionByIdentifier as jest.Mock).mockResolvedValue(null);
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                name: "Acme",
+                stripe_customer_id: customerId,
+                allow_trial: false,
+                is_trialing: false,
+            });
+            const activeSub = stripeSubscription({
+                metadata: { uniqueId: checkoutId, service: "other", billing: "SOLO", organizationId },
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [activeSub] });
+
+            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toBe(0);
+            expect(subscriptionService.createOrUpdateFromStripe).not.toHaveBeenCalled();
+        });
     });
 
     describe("syncSubscriptionFromStripe", () => {

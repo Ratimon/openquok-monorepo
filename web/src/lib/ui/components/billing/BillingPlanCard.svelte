@@ -53,10 +53,14 @@
 <div
 	class="flex flex-1 flex-col gap-4 rounded border border-base-300 bg-base-100 p-6 max-lg:items-center max-lg:text-center"
 >
-	<div class="text-lg font-medium uppercase tracking-wide">{tierDisplayName(tier)}</div>
+	<div class="text-lg font-medium uppercase tracking-wide">
+		{tierDisplayName(tier)}
+	</div>
 
 	<div class="flex items-center gap-0.5 text-4xl font-semibold">
-		<span>${price}</span>
+		<span>
+			${price}
+		</span>
 		<span class="text-sm font-normal text-base-content/60">{periodLabel}</span>
 	</div>
 
@@ -74,6 +78,7 @@
 				{buttonLabel}
 			</Button>
 		{/if}
+		
 		{#if showProrate}
 			<BillingProrateHint {tier} {period} {previewProrate} />
 		{/if}

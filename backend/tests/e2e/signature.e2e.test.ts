@@ -1,7 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@supabase/supabase-js";
 import supertest from "supertest";
 
 import { app } from "../../app";
@@ -23,16 +21,11 @@ interface SignupPayload {
 
 async function requestSignup(
     payload: SignupPayload,
-    adminSupabase: SupabaseClient,
     userHelper: UserTestHelper
 ) {
     const res = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-    if (res.body?.success && res.body?.data?.session?.accessToken) {
-        const token = res.body.data.session.accessToken;
-        const {
-            data: { user },
-        } = await adminSupabase.auth.getUser(token);
-        if (user?.id) userHelper.trackUser(user.id);
+    if (res.status === 201) {
+        await userHelper.trackUserAfterSignUp(res, payload.email);
     }
     return res;
 }
@@ -40,10 +33,9 @@ async function requestSignup(
 async function signUpVerifyAndSignIn(
     payload: SignupPayload,
     verificationToken: string,
-    adminSupabase: SupabaseClient,
     userHelper: UserTestHelper
 ): Promise<string> {
-    const signupRes = await requestSignup(payload, adminSupabase, userHelper);
+    const signupRes = await requestSignup(payload, userHelper);
     expect(signupRes.status).toBe(201);
 
     const verifyRes = await supertest(app).get(
@@ -72,14 +64,6 @@ async function getFirstOrgId(accessToken: string): Promise<string> {
 }
 
 describe("Signatures E2E", () => {
-    const supabaseConfig = config.supabase as {
-        supabaseUrl: string;
-        supabaseSecretKey?: string;
-    };
-    const adminSupabase = createClient(
-        supabaseConfig.supabaseUrl,
-        supabaseConfig.supabaseSecretKey!
-    );
     const userHelper = new UserTestHelper();
 
     let testUser: { email: string; password: string; fullName: string };
@@ -97,8 +81,7 @@ describe("Signatures E2E", () => {
 
     afterAll(async () => {
         getVerificationTokenSpy?.mockRestore();
-        await userHelper.cleanAllStoredUsers();
-        await userHelper.cleanTestUsersByEmailPattern();
+        await userHelper.cleanAll();
     });
 
     beforeEach(() => {
@@ -106,7 +89,7 @@ describe("Signatures E2E", () => {
     });
 
     afterEach(async () => {
-        await userHelper.cleanAllStoredUsers();
+        await userHelper.cleanAll();
     });
 
     it("unauthenticated requests are rejected", async () => {
@@ -118,7 +101,6 @@ describe("Signatures E2E", () => {
         const accessToken = await signUpVerifyAndSignIn(
             { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
             verificationToken,
-            adminSupabase,
             userHelper
         );
 

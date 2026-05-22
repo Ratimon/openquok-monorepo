@@ -5,6 +5,7 @@ import supertest from "supertest";
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
+import type { UserTestHelper } from "./userTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
@@ -32,8 +33,8 @@ export type SignupPayload = {
  * multiple test users share the suite (token lookup is by hash only).
  */
 export async function signupVerifyAndGetWorkspace(
-    adminSupabase: SupabaseClient,
-    userHelper: { trackUser: (id: string) => void },
+    _adminSupabase: SupabaseClient,
+    userHelper: UserTestHelper,
     payload: SignupPayload
 ): Promise<{ accessToken: string; orgId: string }> {
     const signupVerificationToken = generateRandomVerificationToken();
@@ -42,17 +43,14 @@ export async function signupVerifyAndGetWorkspace(
     );
 
     const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-    if (signupRes.body?.data?.session?.accessToken) {
-        const token = signupRes.body.data.session.accessToken;
-        const { data } = await adminSupabase.auth.getUser(token);
-        if (data?.user?.id) userHelper.trackUser(data.user.id);
-    }
     expect(signupRes.status).toBe(201);
+    await userHelper.trackUserAfterSignUp(signupRes, payload.email);
 
     const verifyRes = await supertest(app).get(
         `${authPath}/verify-signup?token=${signupVerificationToken}&email=${encodeURIComponent(payload.email)}`
     );
     expect(verifyRes.status).toBe(200);
+    await userHelper.trackUserByEmail(payload.email);
 
     const signInRes = await supertest(app).post(`${authPath}/sign-in`).send({
         email: payload.email,
@@ -78,7 +76,7 @@ export async function signupVerifyAndGetWorkspace(
  */
 export async function provisionLegacyOrgApiKey(
     adminSupabase: SupabaseClient,
-    userHelper: { trackUser: (id: string) => void },
+    userHelper: UserTestHelper,
     payload: SignupPayload
 ): Promise<ProgrammaticAuthFixture> {
     const { accessToken, orgId } = await signupVerifyAndGetWorkspace(
@@ -110,7 +108,7 @@ export async function provisionLegacyOrgApiKey(
  */
 export async function provisionOAuthAppAccessToken(
     adminSupabase: SupabaseClient,
-    userHelper: { trackUser: (id: string) => void },
+    userHelper: UserTestHelper,
     payload: SignupPayload
 ): Promise<ProgrammaticAuthFixture> {
     const { accessToken, orgId } = await signupVerifyAndGetWorkspace(

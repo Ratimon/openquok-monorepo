@@ -1,9 +1,17 @@
 import type { NextFunction, Request, Response } from "express";
-import { pricing, type PaidSubscriptionTier } from "openquok-common";
+import {
+    DEFAULT_MEDIA_STORAGE_QUOTA_BYTES,
+    pricing,
+    type PaidSubscriptionTier,
+    type SubscriptionTier,
+} from "openquok-common";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
 import type { SubscriptionService } from "../services/SubscriptionService";
 import type { StripeService } from "../services/StripeService";
-import type { SubscriptionRepository } from "../repositories/SubscriptionRepository";
+import type {
+    OrganizationSubscriptionRow,
+    SubscriptionRepository,
+} from "../repositories/SubscriptionRepository";
 import type { EmailService } from "../services/EmailService";
 import { UserValidationError } from "../errors/UserError";
 import { resolveActiveOrganizationId } from "../utils/session/resolveActiveOrganizationId";
@@ -346,11 +354,54 @@ export class BillingController {
     };
 
     async buildCurrentBillingData(organizationId: string) {
-        const subscription = await this.subscriptionService.getSubscriptionByOrganizationId(organizationId);
+        let subscription: OrganizationSubscriptionRow | null = null;
+        try {
+            subscription = await this.subscriptionService.getSubscriptionByOrganizationId(organizationId);
+        } catch (error) {
+            logger.error({
+                msg: "buildCurrentBillingData: subscription lookup failed",
+                organizationId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
+
         const tier = this.subscriptionService.resolveTier(subscription);
         const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
-        const drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId);
-        const billing = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        let drive: { used: number; total: number; tier: SubscriptionTier };
+        try {
+            drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId);
+        } catch (error) {
+            logger.warn({
+                msg: "buildCurrentBillingData: drive usage unavailable",
+                organizationId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+            const total =
+                limits.media_storage_bytes_per_workspace || DEFAULT_MEDIA_STORAGE_QUOTA_BYTES;
+            drive = { used: 0, total, tier };
+        }
+
+        let billing: {
+            allowTrial: boolean;
+            isTrialing: boolean;
+            hasStripeCustomer: boolean;
+        } | null = null;
+        try {
+            const orgBilling = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+            billing = orgBilling
+                ? {
+                      allowTrial: orgBilling.allow_trial,
+                      isTrialing: orgBilling.is_trialing,
+                      hasStripeCustomer: Boolean(orgBilling.stripe_customer_id),
+                  }
+                : null;
+        } catch (error) {
+            logger.warn({
+                msg: "buildCurrentBillingData: organization billing lookup failed",
+                organizationId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
 
         return {
             tier,
@@ -367,13 +418,7 @@ export class BillingController {
                 publicApi: limits.public_api,
             },
             drive,
-            billing: billing
-                ? {
-                      allowTrial: billing.allow_trial,
-                      isTrialing: billing.is_trialing,
-                      hasStripeCustomer: Boolean(billing.stripe_customer_id),
-                  }
-                : null,
+            billing,
         };
     }
 }

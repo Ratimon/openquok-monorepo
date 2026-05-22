@@ -20,9 +20,13 @@
 	let showFinishTrial = $state(false);
 
 	const subscription = $derived(pagePresenter.currentVm?.subscription ?? null);
+	const currentTier = $derived(subscription?.tier ?? pagePresenter.currentVm?.tier ?? null);
 	const cancelAt = $derived(subscription?.cancelAt ?? null);
 	const subscriptionPeriod = $derived(subscription?.period ?? null);
-	const isFreeTier = $derived((pagePresenter.currentVm?.tier ?? 'FREE') === 'FREE');
+	const hasActiveSubscription = $derived(
+		Boolean(subscription?.id) || (currentTier !== null && currentTier !== 'FREE')
+	);
+	const isFreeTier = $derived((currentTier ?? 'FREE') === 'FREE');
 	const allowTrial = $derived(pagePresenter.currentVm?.billing?.allowTrial ?? false);
 
 	onMount(() => {
@@ -35,10 +39,20 @@
 				period = loadedPeriod;
 			}
 			if (checkoutId) {
-				void pagePresenter.pollCheckout(checkoutId).then(() => {
-					pagePresenter.onPurchaseComplete();
-					void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
-					toast.success('Subscription updated.');
+				void pagePresenter.pollCheckout(checkoutId).then((confirmed) => {
+					const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
+					if (loadedPeriod) {
+						period = loadedPeriod;
+					}
+					if (confirmed) {
+						pagePresenter.onPurchaseComplete();
+						void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
+						toast.success('Subscription updated.');
+					} else {
+						toast.error(
+							'We could not confirm your subscription yet. Refresh the page in a moment.'
+						);
+					}
 				});
 			}
 		});
@@ -74,10 +88,10 @@
 			<BillingPlansSection
 				plansVm={pagePresenter.plansVm}
 				bind:period
-				currentTier={subscription?.tier ?? pagePresenter.currentVm?.tier ?? null}
+				{currentTier}
 				{subscriptionPeriod}
 				{cancelAt}
-				hasActiveSubscription={Boolean(subscription?.id)}
+				{hasActiveSubscription}
 				checkoutBusy={pagePresenter.billingPresenter.checkoutBusy}
 				{allowTrial}
 				{isFreeTier}

@@ -48,7 +48,14 @@ export class BillingPresenter {
 				return;
 			}
 			if (resultPm?.updated) {
-				await this.reloadPricing?.();
+				try {
+					await this.reloadPricing?.();
+					toast.success('Subscription updated.');
+				} catch {
+					toast.error(
+						'Subscription changed, but billing details failed to refresh. Reload the page.'
+					);
+				}
 			}
 		} finally {
 			this.checkoutBusy = false;
@@ -62,13 +69,36 @@ export class BillingPresenter {
 		if (portalUrl) window.location.href = portalUrl;
 	}
 
-	async pollCheckout(checkoutId: string): Promise<void> {
+	async pollCheckout(checkoutId: string): Promise<boolean> {
 		const organizationId = this.organizationId;
-		if (!organizationId || !checkoutId) return;
-		const status = await this.billingRepository.checkCheckout(organizationId, checkoutId);
-		if (status === 2) {
-			await this.reloadPricing?.();
+		if (!organizationId || !checkoutId) return false;
+
+		for (let attempt = 0; attempt < 30; attempt++) {
+			let status = 0;
+			try {
+				status = await this.billingRepository.checkCheckout(organizationId, checkoutId);
+			} catch {
+				await new Promise((resolve) => setTimeout(resolve, 2000));
+				continue;
+			}
+			if (status === 2) {
+				try {
+					await this.reloadPricing?.();
+					return true;
+				} catch {
+					return false;
+				}
+			}
+			if (status === 1) return false;
+			await new Promise((resolve) => setTimeout(resolve, 2000));
 		}
+
+		try {
+			await this.reloadPricing?.();
+		} catch {
+			// best-effort refresh after polling timeout
+		}
+		return false;
 	}
 
 	async previewProration(

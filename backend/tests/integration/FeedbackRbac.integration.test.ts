@@ -8,6 +8,10 @@ import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
 import { UserTestHelper } from "../helpers/userTestHelper";
+import {
+    cleanupIntegrationTestUsers,
+    signupVerifyAndSignIn as sharedSignupVerifyAndSignIn,
+} from "../helpers/integrationAuthTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
@@ -48,7 +52,8 @@ describe("Feedback RBAC", () => {
         emailSendSpy = jest.spyOn(EmailService.prototype, "send").mockResolvedValue(undefined);
     });
 
-    afterAll(() => {
+    afterAll(async () => {
+        await userHelper.cleanAll();
         getVerificationTokenSpy?.mockRestore();
         emailSendSpy?.mockRestore();
     });
@@ -83,7 +88,7 @@ describe("Feedback RBAC", () => {
                 // ignore
             }
         }
-        await userHelper.cleanAllStoredUsers();
+        await cleanupIntegrationTestUsers(userHelper);
     });
 
     async function signupVerifyAndSignIn(payload: {
@@ -91,26 +96,13 @@ describe("Feedback RBAC", () => {
         password: string;
         fullName: string;
     }): Promise<{ accessToken: string; publicId: string }> {
-        const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-        if (signupRes.body?.data?.session?.accessToken) {
-            const token = signupRes.body.data.session.accessToken;
-            const { data } = await adminSupabase.auth.getUser(token);
-            if (data?.user?.id) userHelper.trackUser(data.user.id);
-        }
-        expect(signupRes.status).toBe(201);
-
-        const verifyRes = await supertest(app).get(
-            `${authPath}/verify-signup?token=${verificationToken}&email=${encodeURIComponent(payload.email)}`
+        const { accessToken } = await sharedSignupVerifyAndSignIn(
+            app,
+            userHelper,
+            authPath,
+            verificationToken,
+            payload
         );
-        expect(verifyRes.status).toBe(200);
-
-        const signInRes = await supertest(app).post(`${authPath}/sign-in`).send({
-            email: payload.email,
-            password: payload.password,
-        });
-        expect(signInRes.status).toBe(200);
-        const accessToken = signInRes.body.data?.accessToken ?? signInRes.body.data?.session?.accessToken;
-        expect(accessToken).toBeDefined();
 
         const meRes = await supertest(app)
             .get(`${usersPath}/me`)

@@ -32,7 +32,7 @@ export const billingPresenter = new BillingPresenter(billingRepository, workspac
 export { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
 export {
 	GetPricingPresenter,
-	buildPlanFeatureLines,
+	buildPlanFeatureLinesVm,
 	tierDisplayName,
 	type BillingCurrentViewModel,
 	type BillingPlanViewModel,

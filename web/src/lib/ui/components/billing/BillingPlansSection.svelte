@@ -39,10 +39,10 @@
 
 	/** Highlighted plan when the toggle matches the subscription billing cadence. */
 	const currentPackage = $derived.by((): PaidSubscriptionTier | '' => {
-		if (!hasActiveSubscription || !subscriptionPeriod || !currentTier || currentTier === 'FREE') {
+		if (!hasActiveSubscription || !currentTier || currentTier === 'FREE') {
 			return '';
 		}
-		if (period !== subscriptionPeriod) return '';
+		if (subscriptionPeriod && period !== subscriptionPeriod) return '';
 		return currentTier as PaidSubscriptionTier;
 	});
 </script>

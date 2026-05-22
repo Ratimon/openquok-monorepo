@@ -44,14 +44,14 @@ function perWorkspaceLabel(count: number, singular: string, plural: string): str
 	return count === 1 ? `1 ${singular} per workspace` : `${count} ${plural} per workspace`;
 }
 
-export function buildPlanFeatureLines(plan: BillingPlanProgrammerModel): PlanFeatureLineViewModel[] {
-	const lines: PlanFeatureLineViewModel[] = [];
+export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanFeatureLineViewModel[] {
+	const linesVm: PlanFeatureLineViewModel[] = [];
 	if (plan.workspaces > 1) {
-		lines.push({ label: `${plan.workspaces} workspaces` });
+		linesVm.push({ label: `${plan.workspaces} workspaces` });
 	}
 
 	const channelTotal = plan.channelPerWorkspace * plan.workspaces;
-	lines.push({
+	linesVm.push({
 		label: channelTotal === 1 ? '1 channel' : `Total ${channelTotal} channels`,
 		tooltip:
 			plan.workspaces > 1
@@ -59,26 +59,26 @@ export function buildPlanFeatureLines(plan: BillingPlanProgrammerModel): PlanFea
 				: undefined
 	});
 
-	lines.push({ label: `${formatPostsPerMonthLimit(plan.postsPerMonth)} posts per month` });
+	linesVm.push({ label: `${formatPostsPerMonthLimit(plan.postsPerMonth)} posts per month` });
 
 	const teamTotal = plan.teamMembersPerWorkspace * plan.workspaces;
 	if (teamTotal > 1) {
-		lines.push({
+		linesVm.push({
 			label: `Total ${teamTotal} team members`,
 			tooltip: perWorkspaceLabel(plan.teamMembersPerWorkspace, 'member', 'members')
 		});
 	}
 
 	if (plan.sharePostPreview) {
-		lines.push({ label: 'Shareable post preview links' });
+		linesVm.push({ label: 'Shareable post preview links' });
 	}
 
 	if (plan.publicApi) {
-		lines.push({ label: 'Public API access' });
+		linesVm.push({ label: 'Public API access' });
 	}
 
 	const storageTotalBytes = plan.mediaStorageBytesPerWorkspace * plan.workspaces;
-	lines.push({
+	linesVm.push({
 		label: `Total ${formatBytes(storageTotalBytes)} cloud storage`,
 		tooltip:
 			plan.workspaces > 1
@@ -86,7 +86,7 @@ export function buildPlanFeatureLines(plan: BillingPlanProgrammerModel): PlanFea
 				: undefined
 	});
 
-	return lines;
+	return linesVm;
 }
 
 export function tierDisplayName(tier: string): string {
@@ -103,7 +103,7 @@ export class GetPricingPresenter {
 	public toBillingPlanVm(pm: BillingPlanProgrammerModel): BillingPlanViewModel {
 		return {
 			...pm,
-			featureLines: buildPlanFeatureLines(pm)
+			featureLines: buildPlanFeatureLinesVm(pm)
 		};
 	}
 
@@ -147,10 +147,16 @@ export class GetPricingPresenter {
 		if (!orgId) {
 			return { plansVm, currentVm: null, billingEnabled: listPm.billingEnabled };
 		}
-		const currentPm = await this.billingRepository.getCurrent(orgId);
+		let currentVm: BillingCurrentViewModel | null = null;
+		try {
+			const currentPm = await this.billingRepository.getCurrent(orgId);
+			currentVm = currentPm ? this.toBillingCurrentVm(currentPm) : null;
+		} catch {
+			// Plans still render when workspace billing context is temporarily unavailable.
+		}
 		return {
 			plansVm,
-			currentVm: currentPm ? this.toBillingCurrentVm(currentPm) : null,
+			currentVm,
 			billingEnabled: listPm.billingEnabled
 		};
 	}

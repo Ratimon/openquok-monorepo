@@ -4,6 +4,10 @@ import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
 import { ACTIVE_ORGANIZATION_COOKIE } from "../../utils/session/sessionCookies";
+import {
+    cleanupIntegrationTestUsers,
+    signupVerifyAndSignIn,
+} from "../helpers/integrationAuthTestHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
 import {
     activateWorkspace,
@@ -39,7 +43,8 @@ describeIfSupabase("User workspace cookies (integration)", () => {
         emailSendSpy = jest.spyOn(EmailService.prototype, "send").mockResolvedValue(undefined);
     });
 
-    afterAll(() => {
+    afterAll(async () => {
+        await userHelper.cleanAll();
         getVerificationTokenSpy?.mockRestore();
         emailSendSpy?.mockRestore();
     });
@@ -50,31 +55,21 @@ describeIfSupabase("User workspace cookies (integration)", () => {
 
     afterEach(async () => {
         restoreSoloWorkspaceSpies(soloWorkspaceSpies);
-        await userHelper.cleanAllStoredUsers();
+        await cleanupIntegrationTestUsers(userHelper);
     });
 
-    async function signupVerifyAndSignIn(): Promise<{ accessToken: string }> {
-        const payload = userHelper.setupTestUser1();
-        const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-        expect(signupRes.status).toBe(201);
-
-        const verifyRes = await supertest(app).get(
-            `${authPath}/verify-signup?token=${verificationToken}&email=${encodeURIComponent(payload.email)}`
+    async function signUpAndGetToken(): Promise<{ accessToken: string }> {
+        const { accessToken } = await signupVerifyAndSignIn(
+            app,
+            userHelper,
+            authPath,
+            verificationToken
         );
-        expect(verifyRes.status).toBe(200);
-
-        const signInRes = await supertest(app).post(`${authPath}/sign-in`).send({
-            email: payload.email,
-            password: payload.password,
-        });
-        expect(signInRes.status).toBe(200);
-        const accessToken = signInRes.body.data?.accessToken ?? signInRes.body.data?.session?.accessToken;
-        expect(accessToken).toBeDefined();
-        return { accessToken: accessToken as string };
+        return { accessToken };
     }
 
     it("GET /users/me returns session fields when showorg cookie is set", async () => {
-        const { accessToken } = await signupVerifyAndSignIn();
+        const { accessToken } = await signUpAndGetToken();
 
         const orgsRes = await supertest(app)
             .get(`${usersPath}/organizations`)
@@ -96,7 +91,7 @@ describeIfSupabase("User workspace cookies (integration)", () => {
     });
 
     it("POST /users/change-org sets showorg cookie", async () => {
-        const { accessToken } = await signupVerifyAndSignIn();
+        const { accessToken } = await signUpAndGetToken();
 
         const orgsRes = await supertest(app)
             .get(`${usersPath}/organizations`)
@@ -116,7 +111,7 @@ describeIfSupabase("User workspace cookies (integration)", () => {
     });
 
     it("GET /users/subscription and GET /billing use showorg cookie", async () => {
-        const { accessToken } = await signupVerifyAndSignIn();
+        const { accessToken } = await signUpAndGetToken();
 
         const orgsRes = await supertest(app)
             .get(`${usersPath}/organizations`)
@@ -142,9 +137,8 @@ describeIfSupabase("User workspace cookies (integration)", () => {
             .get(`${billingPath}/current`)
             .query({ organizationId: orgId })
             .set("Authorization", `Bearer ${accessToken}`);
-        expect(billingWithQueryRes.status).toBe(billingRes.status);
-        if (billingRes.status === 200) {
-            expect(billingRes.body?.data?.tier).toBe("SOLO");
-        }
+        expect(billingRes.status).toBe(200);
+        expect(billingWithQueryRes.status).toBe(200);
+        expect(billingRes.body?.data?.tier).toBe("SOLO");
     });
 });

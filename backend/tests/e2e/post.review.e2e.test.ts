@@ -70,9 +70,12 @@ describe("Post kanban review (agent and human)", () => {
         }
     });
 
-    afterAll(() => {
+    afterAll(async () => {
         getVerificationTokenSpy?.mockRestore();
         emailSendSpy?.mockRestore();
+        if (userHelper) {
+            await userHelper.cleanAll();
+        }
     });
 
     afterEach(async () => {
@@ -84,7 +87,7 @@ describe("Post kanban review (agent and human)", () => {
         bull.bullmq.scheduledSocialPost.enabled = prevScheduledEnabled;
         bull.bullmq.scheduledSocialPost.transport = prevScheduledTransport;
         if (userHelper) {
-            await userHelper.cleanAllStoredUsers();
+            await userHelper.cleanAll();
         }
     });
 
@@ -107,12 +110,8 @@ describe("Post kanban review (agent and human)", () => {
         fullName: string;
     }): Promise<{ accessToken: string; orgId: string; apiKey: string }> {
         const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-        if (signupRes.body?.data?.session?.accessToken) {
-            const token = signupRes.body.data.session.accessToken;
-            const { data } = await adminSupabase.auth.getUser(token);
-            if (data?.user?.id) userHelper.trackUser(data.user.id);
-        }
         expect(signupRes.status).toBe(201);
+        await userHelper.trackUserAfterSignUp(signupRes, payload.email);
 
         const verifyRes = await supertest(app).get(
             `${authPath}/verify-signup?token=${verificationToken}&email=${encodeURIComponent(payload.email)}`

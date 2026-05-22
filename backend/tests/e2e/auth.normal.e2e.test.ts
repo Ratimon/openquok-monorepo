@@ -1,5 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";
 import supertest from "supertest";
 import { faker } from "@faker-js/faker";
@@ -25,29 +23,16 @@ interface SignupPayload {
 
 async function requestSignup(
     payload: SignupPayload,
-    adminSupabase: SupabaseClient,
     userHelper: UserTestHelper
 ) {
     const res = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-    if (res.body?.success && res.body?.data?.session?.accessToken) {
-        const token = res.body.data.session.accessToken;
-        const {
-            data: { user },
-        } = await adminSupabase.auth.getUser(token);
-        if (user?.id) userHelper.trackUser(user.id);
+    if (res.status === 201) {
+        await userHelper.trackUserAfterSignUp(res, payload.email);
     }
     return res;
 }
 
 describe("Authentication Lifecycle E2E Tests", () => {
-    const supabaseConfig = config.supabase as {
-        supabaseUrl: string;
-        supabaseSecretKey?: string;
-    };
-    const adminSupabase = createClient(
-        supabaseConfig.supabaseUrl,
-        supabaseConfig.supabaseSecretKey!
-    );
     const userHelper = new UserTestHelper();
 
     let testUser: { email: string; password: string; fullName: string };
@@ -72,7 +57,7 @@ describe("Authentication Lifecycle E2E Tests", () => {
     });
 
     afterEach(async () => {
-        await userHelper.cleanAllStoredUsers();
+        await userHelper.cleanAll();
     });
 
     describe("User Signup Flow", () => {
@@ -99,7 +84,7 @@ describe("Authentication Lifecycle E2E Tests", () => {
                 fullName,
             };
 
-            const res = await requestSignup(signupData, adminSupabase, userHelper);
+            const res = await requestSignup(signupData, userHelper);
 
             expect(res.status).toBe(201);
             expect(res.body.success).toBe(true);
@@ -136,7 +121,7 @@ describe("Authentication Lifecycle E2E Tests", () => {
                 fullName: faker.person.fullName(),
             };
 
-            const first = await requestSignup(signupData, adminSupabase, userHelper);
+            const first = await requestSignup(signupData, userHelper);
             expect(first.status).toBe(201);
             expect(first.body.success).toBe(true);
 
@@ -147,7 +132,7 @@ describe("Authentication Lifecycle E2E Tests", () => {
             expect(verifyRes.status).toBe(200);
             expect(verifyRes.body.success).toBe(true);
 
-            const second = await requestSignup(signupData, adminSupabase, userHelper);
+            const second = await requestSignup(signupData, userHelper);
             expect(second.status).toBe(409);
             expect(second.body.success).toBe(false);
 
@@ -166,7 +151,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
                     password: "Test1234!",
                     fullName: faker.person.fullName(),
                 },
-                adminSupabase,
                 userHelper
             );
 
@@ -206,7 +190,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
                     password: testUser.password,
                     fullName: testUser.fullName,
                 },
-                adminSupabase,
                 userHelper
             );
         });
@@ -273,7 +256,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
                     password: testUser.password,
                     fullName: testUser.fullName,
                 },
-                adminSupabase,
                 userHelper
             );
 
@@ -328,7 +310,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
                     password: testUser.password,
                     fullName: testUser.fullName,
                 },
-                adminSupabase,
                 userHelper
             );
 
@@ -375,7 +356,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
         it("user can confirm email with valid token and then sign in", async () => {
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
 
@@ -423,7 +403,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
         it("confirming again with same token after verification returns 400 (token was consumed)", async () => {
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
 
@@ -461,7 +440,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
         it("valid link redirects to frontend verify page with token and email", async () => {
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
 
@@ -480,7 +458,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
         it("link for already verified user redirects to sign-up", async () => {
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
             await supertest(app).get(
@@ -541,7 +518,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
         it("valid token and matching email for unverified user returns valid", async () => {
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
 
@@ -586,7 +562,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
         it("email that does not match token returns invalid", async () => {
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
 
@@ -602,7 +577,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
         it("already verified user returns invalid (token was consumed so not found)", async () => {
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
             await supertest(app).get(
@@ -637,7 +611,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
         it("unverified user can request a new verification email", async () => {
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
 
@@ -653,7 +626,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
         it("already verified user gets generic success (no information leak)", async () => {
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
             await supertest(app).get(
@@ -719,7 +691,6 @@ describe("Authentication Lifecycle E2E Tests", () => {
             capturedRecoveryCode = undefined;
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
             await supertest(app).get(

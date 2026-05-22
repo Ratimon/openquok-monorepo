@@ -110,10 +110,13 @@ describe("Scheduling a post for social channels", () => {
         }
     });
 
-    afterAll(() => {
+    afterAll(async () => {
         getVerificationTokenSpy?.mockRestore();
         emailSendSpy?.mockRestore();
         threadsAnalyticsSpy?.mockRestore();
+        if (userHelper) {
+            await userHelper.cleanAll();
+        }
     });
 
     afterEach(async () => {
@@ -125,7 +128,7 @@ describe("Scheduling a post for social channels", () => {
         bull.bullmq.scheduledSocialPost.enabled = prevScheduledEnabled;
         bull.bullmq.scheduledSocialPost.transport = prevScheduledTransport;
         if (userHelper) {
-            await userHelper.cleanAllStoredUsers();
+            await userHelper.cleanAll();
         }
         mockRunScheduledSocialPost.mockClear();
     });
@@ -149,12 +152,8 @@ describe("Scheduling a post for social channels", () => {
         fullName: string;
     }): Promise<{ accessToken: string; orgId: string }> {
         const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-        if (signupRes.body?.data?.session?.accessToken) {
-            const token = signupRes.body.data.session.accessToken;
-            const { data } = await adminSupabase.auth.getUser(token);
-            if (data?.user?.id) userHelper.trackUser(data.user.id);
-        }
         expect(signupRes.status).toBe(201);
+        await userHelper.trackUserAfterSignUp(signupRes, payload.email);
 
         const verifyRes = await supertest(app).get(
             `${authPath}/verify-signup?token=${verificationToken}&email=${encodeURIComponent(payload.email)}`

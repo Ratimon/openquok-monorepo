@@ -15,6 +15,7 @@ import {
 } from "../config/stripePriceConfig";
 import { UserValidationError } from "../errors/UserError";
 import { makeId } from "../utils/ids/makeId";
+import { logger } from "../utils/Logger";
 import type { SubscriptionRepository } from "../repositories/SubscriptionRepository";
 import type { SubscriptionService } from "./SubscriptionService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
@@ -384,6 +385,23 @@ export class StripeService {
 
         const match = subs.data.find((s) => s.metadata?.uniqueId === checkoutId);
         if (match?.canceled_at) return 1;
+        if (match && (match.status === "active" || match.status === "trialing")) {
+            try {
+                await this.syncSubscriptionFromStripe(match);
+            } catch (error) {
+                logger.warn({
+                    msg: "checkCheckoutStatus: failed to sync subscription from Stripe",
+                    organizationId,
+                    checkoutId,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            }
+            const synced = await this.subscriptionRepository.checkSubscriptionByIdentifier(
+                organizationId,
+                checkoutId
+            );
+            if (synced) return 2;
+        }
         return 0;
     }
 

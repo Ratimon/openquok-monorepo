@@ -20,6 +20,8 @@ export class ProtectedBillingPagePresenter {
 	currentVm = $state<BillingCurrentViewModel | null>(null);
 	billingEnabled = $state(false);
 
+	private loadInFlight: Promise<void> | null = null;
+
 	constructor(
 		private readonly getPricingPresenter: GetPricingPresenter,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
@@ -33,6 +35,16 @@ export class ProtectedBillingPagePresenter {
 	}
 
 	async load(): Promise<void> {
+		if (this.loadInFlight) {
+			return this.loadInFlight;
+		}
+		this.loadInFlight = this.loadInternal().finally(() => {
+			this.loadInFlight = null;
+		});
+		return this.loadInFlight;
+	}
+
+	private async loadInternal(): Promise<void> {
 		this.loading = true;
 		try {
 			const orgId = this.organizationId;
@@ -47,7 +59,7 @@ export class ProtectedBillingPagePresenter {
 		}
 	}
 
-	pollCheckout(checkoutId: string): Promise<void> {
+	pollCheckout(checkoutId: string): Promise<boolean> {
 		return this.billingPresenter.pollCheckout(checkoutId);
 	}
 

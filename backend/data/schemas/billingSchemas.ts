@@ -65,7 +65,6 @@ export function validateBillingOrganizationQuery(
         });
         return;
     }
-    (req as { query: z.infer<typeof billingOrganizationQuerySchema> }).query = parsed.data;
     next();
 }
 

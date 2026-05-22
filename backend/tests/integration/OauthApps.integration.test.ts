@@ -1,4 +1,3 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { faker } from "@faker-js/faker";
 import supertest from "supertest";
 
@@ -6,6 +5,10 @@ import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
 import { UserTestHelper } from "../helpers/userTestHelper";
+import {
+    cleanupIntegrationTestUsers,
+    signupVerifyAndSignIn as sharedSignupVerifyAndSignIn,
+} from "../helpers/integrationAuthTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
@@ -21,7 +24,6 @@ const hasSupabaseIntegration = Boolean(
 );
 
 describe("OAuth Apps (JWT-managed) + programmatic token auth", () => {
-    let adminSupabase: SupabaseClient;
     let userHelper: UserTestHelper;
 
     let getVerificationTokenSpy: jest.SpyInstance;
@@ -36,22 +38,21 @@ describe("OAuth Apps (JWT-managed) + programmatic token auth", () => {
         emailSendSpy = jest.spyOn(EmailService.prototype, "send").mockResolvedValue(undefined);
 
         if (hasSupabaseIntegration) {
-            adminSupabase = createClient(
-                supabaseConfig.supabaseUrl!,
-                supabaseConfig.supabaseSecretKey!
-            ) as SupabaseClient;
             userHelper = new UserTestHelper();
         }
     });
 
-    afterAll(() => {
+    afterAll(async () => {
+        if (userHelper) {
+            await userHelper.cleanAll();
+        }
         getVerificationTokenSpy?.mockRestore();
         emailSendSpy?.mockRestore();
     });
 
     afterEach(async () => {
         if (userHelper) {
-            await userHelper.cleanAllStoredUsers();
+            await cleanupIntegrationTestUsers(userHelper);
         }
     });
 
@@ -60,26 +61,13 @@ describe("OAuth Apps (JWT-managed) + programmatic token auth", () => {
         password: string;
         fullName: string;
     }): Promise<{ accessToken: string; orgId: string }> {
-        const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-        if (signupRes.body?.data?.session?.accessToken) {
-            const token = signupRes.body.data.session.accessToken;
-            const { data } = await adminSupabase.auth.getUser(token);
-            if (data?.user?.id) userHelper.trackUser(data.user.id);
-        }
-        expect(signupRes.status).toBe(201);
-
-        const verifyRes = await supertest(app).get(
-            `${authPath}/verify-signup?token=${verificationToken}&email=${encodeURIComponent(payload.email)}`
+        const { accessToken } = await sharedSignupVerifyAndSignIn(
+            app,
+            userHelper,
+            authPath,
+            verificationToken,
+            payload
         );
-        expect(verifyRes.status).toBe(200);
-
-        const signInRes = await supertest(app).post(`${authPath}/sign-in`).send({
-            email: payload.email,
-            password: payload.password,
-        });
-        expect(signInRes.status).toBe(200);
-        const accessToken = signInRes.body.data?.accessToken ?? signInRes.body.data?.session?.accessToken;
-        expect(accessToken).toBeDefined();
 
         const meRes = await supertest(app)
             .get(`${usersPath}/me`)
@@ -88,12 +76,12 @@ describe("OAuth Apps (JWT-managed) + programmatic token auth", () => {
 
         const listRes = await supertest(app)
             .get(settingsPath)
-            .set("Authorization", `Bearer ${accessToken as string}`);
+            .set("Authorization", `Bearer ${accessToken}`);
         expect(listRes.status).toBe(200);
         const orgId = listRes.body?.data?.[0]?.id as string;
         expect(orgId).toBeDefined();
 
-        return { accessToken: accessToken as string, orgId };
+        return { accessToken, orgId };
     }
 
     (hasSupabaseIntegration ? it : it.skip)("admin can create oauth app, approve, exchange code, and use access token on /public/is-connected", async () => {

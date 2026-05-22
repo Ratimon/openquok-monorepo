@@ -1,5 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";
 import supertest from "supertest";
 import { faker } from "@faker-js/faker";
@@ -30,16 +28,11 @@ interface SignupPayload {
 
 async function requestSignup(
     payload: SignupPayload,
-    adminSupabase: SupabaseClient,
     userHelper: UserTestHelper
 ) {
     const res = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-    if (res.body?.success && res.body?.data?.session?.accessToken) {
-        const token = res.body.data.session.accessToken;
-        const {
-            data: { user },
-        } = await adminSupabase.auth.getUser(token);
-        if (user?.id) userHelper.trackUser(user.id);
+    if (res.status === 201) {
+        await userHelper.trackUserAfterSignUp(res, payload.email);
     }
     return res;
 }
@@ -47,10 +40,9 @@ async function requestSignup(
 async function signUpVerifyAndSignIn(
     payload: SignupPayload,
     verificationToken: string,
-    adminSupabase: SupabaseClient,
     userHelper: UserTestHelper
 ): Promise<string> {
-    const signupRes = await requestSignup(payload, adminSupabase, userHelper);
+    const signupRes = await requestSignup(payload, userHelper);
     expect(signupRes.status).toBe(201);
 
     const verifyRes = await supertest(app).get(
@@ -109,14 +101,6 @@ async function getFirstOrgId(accessToken: string): Promise<string> {
 }
 
 describe("User Account Setting E2E", () => {
-    const supabaseConfig = config.supabase as {
-        supabaseUrl: string;
-        supabaseSecretKey?: string;
-    };
-    const adminSupabase = createClient(
-        supabaseConfig.supabaseUrl,
-        supabaseConfig.supabaseSecretKey!
-    );
     const userHelper = new UserTestHelper();
 
     let testUser: { email: string; password: string; fullName: string };
@@ -134,8 +118,7 @@ describe("User Account Setting E2E", () => {
 
     afterAll(async () => {
         getVerificationTokenSpy?.mockRestore();
-        await userHelper.cleanAllStoredUsers();
-        await userHelper.cleanTestUsersByEmailPattern();
+        await userHelper.cleanAll();
     });
 
     beforeEach(() => {
@@ -143,7 +126,7 @@ describe("User Account Setting E2E", () => {
     });
 
     afterEach(async () => {
-        await userHelper.cleanAllStoredUsers();
+        await userHelper.cleanAll();
     });
 
     describe("Viewing own profile (current user)", () => {
@@ -164,7 +147,6 @@ describe("User Account Setting E2E", () => {
         it("authenticated user can fetch their profile with email and fullName", async () => {
             await requestSignup(
                 { email: testUser.email, password: testUser.password, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
 
@@ -205,7 +187,6 @@ describe("User Account Setting E2E", () => {
             originalPassword = testUser.password;
             await requestSignup(
                 { email: testUser.email, password: originalPassword, fullName: testUser.fullName },
-                adminSupabase,
                 userHelper
             );
 
@@ -308,7 +289,6 @@ describe("User Account Setting E2E", () => {
             const ownerToken = await signUpVerifyAndSignIn(
                 { email: ownerEmail, password: testUser.password, fullName: testUser.fullName },
                 verificationToken,
-                adminSupabase,
                 userHelper
             );
             const orgId = await getFirstOrgId(ownerToken);
@@ -326,7 +306,6 @@ describe("User Account Setting E2E", () => {
             const inviteeToken = await signUpVerifyAndSignIn(
                 { email: inviteeEmail, password, fullName: faker.person.fullName() },
                 verificationToken,
-                adminSupabase,
                 userHelper
             );
 
@@ -370,7 +349,6 @@ describe("User Account Setting E2E", () => {
             const ownerToken = await signUpVerifyAndSignIn(
                 { email: ownerEmail, password: testUser.password, fullName: faker.person.fullName() },
                 verificationToken,
-                adminSupabase,
                 userHelper
             );
             const orgId = await getFirstOrgId(ownerToken);
@@ -385,7 +363,6 @@ describe("User Account Setting E2E", () => {
             const adminToken = await signUpVerifyAndSignIn(
                 { email: adminEmail, password, fullName: faker.person.fullName() },
                 verificationToken,
-                adminSupabase,
                 userHelper
             );
             const adminPending = await supertest(app)
@@ -412,7 +389,6 @@ describe("User Account Setting E2E", () => {
             const memberToken = await signUpVerifyAndSignIn(
                 { email: memberEmail, password, fullName: faker.person.fullName() },
                 verificationToken,
-                adminSupabase,
                 userHelper
             );
             const memberPending = await supertest(app)

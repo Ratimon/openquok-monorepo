@@ -81,9 +81,12 @@ describe("Programmatic posts API (public /posts)", () => {
         }
     });
 
-    afterAll(() => {
+    afterAll(async () => {
         getVerificationTokenSpy?.mockRestore();
         emailSendSpy?.mockRestore();
+        if (userHelper) {
+            await userHelper.cleanAll();
+        }
     });
 
     beforeEach(() => {
@@ -96,7 +99,7 @@ describe("Programmatic posts API (public /posts)", () => {
         restoreSoloWorkspaceSpies(soloWorkspaceSpies);
         soloWorkspaceSpies = undefined;
         if (userHelper) {
-            await userHelper.cleanAllStoredUsers();
+            await userHelper.cleanAll();
         }
     });
 
@@ -118,11 +121,10 @@ describe("Programmatic posts API (public /posts)", () => {
             const payload = userHelper.setupTestUser1();
             const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
             expect(signupRes.status).toBe(201);
+            await userHelper.trackUserAfterSignUp(signupRes, payload.email);
             const accessToken =
                 signupRes.body.data?.accessToken ?? signupRes.body.data?.session?.accessToken;
             expect(accessToken).toBeDefined();
-            const { data } = await adminSupabase.auth.getUser(accessToken as string);
-            if (data?.user?.id) userHelper.trackUser(data.user.id);
 
             const res = await supertest(app)
                 .get(`${publicPostsPath}/list`)

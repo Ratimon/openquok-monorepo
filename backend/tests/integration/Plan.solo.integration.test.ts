@@ -26,6 +26,10 @@ import {
 } from "../helpers/integrationTestHelper";
 import { seedScheduledSocialPosts } from "../helpers/postHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
+import {
+    cleanupIntegrationTestUsers,
+    signupVerifyAndSignIn as sharedSignupVerifyAndSignIn,
+} from "../helpers/integrationAuthTestHelper";
 import { activateWorkspace, stubBillingEnabled, stubSoloPlanLimits } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 import { planLimitsForTier } from "openquok-common";
@@ -80,7 +84,8 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         emailSendSpy = jest.spyOn(EmailService.prototype, "send").mockResolvedValue(undefined);
     });
 
-    afterAll(() => {
+    afterAll(async () => {
+        await userHelper.cleanAll();
         getVerificationTokenSpy?.mockRestore();
         emailSendSpy?.mockRestore();
     });
@@ -91,7 +96,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
 
     afterEach(async () => {
         billingEnabledSpy?.mockRestore();
-        await userHelper.cleanAllStoredUsers();
+        await cleanupIntegrationTestUsers(userHelper);
     });
 
     async function signupVerifyAndSignIn(payload: {
@@ -99,33 +104,20 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         password: string;
         fullName: string;
     }): Promise<{ accessToken: string }> {
-        const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-        if (signupRes.body?.data?.session?.accessToken) {
-            const token = signupRes.body.data.session.accessToken;
-            const { data } = await adminSupabase.auth.getUser(token);
-            if (data?.user?.id) userHelper.trackUser(data.user.id);
-        }
-        expect(signupRes.status).toBe(201);
-
-        const verifyRes = await supertest(app).get(
-            `${authPath}/verify-signup?token=${verificationToken}&email=${encodeURIComponent(payload.email)}`
+        const { accessToken } = await sharedSignupVerifyAndSignIn(
+            app,
+            userHelper,
+            authPath,
+            verificationToken,
+            payload
         );
-        expect(verifyRes.status).toBe(200);
-
-        const signInRes = await supertest(app).post(`${authPath}/sign-in`).send({
-            email: payload.email,
-            password: payload.password,
-        });
-        expect(signInRes.status).toBe(200);
-        const accessToken = signInRes.body.data?.accessToken ?? signInRes.body.data?.session?.accessToken;
-        expect(accessToken).toBeDefined();
 
         const meRes = await supertest(app)
             .get(`${usersPath}/me`)
             .set("Authorization", `Bearer ${accessToken}`);
         expect(meRes.status).toBe(200);
 
-        return { accessToken: accessToken as string };
+        return { accessToken };
     }
 
     async function firstOrganizationId(accessToken: string): Promise<string> {

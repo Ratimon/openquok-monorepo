@@ -159,6 +159,56 @@ export class UserTestHelper {
         this.createdUserIds.push(userId);
     }
 
+    /** Track a user created via POST /auth/sign-up (session token, body id, or email lookup). */
+    async trackUserAfterSignUp(
+        signupRes: {
+            body?: {
+                data?: {
+                    session?: { accessToken?: string };
+                    user?: { id?: string };
+                };
+            };
+        },
+        email: string
+    ): Promise<void> {
+        const sessionToken = signupRes.body?.data?.session?.accessToken;
+        if (sessionToken) {
+            try {
+                const { data } = await this.adminSupabase.auth.getUser(sessionToken);
+                if (data?.user?.id) {
+                    this.trackUser(data.user.id);
+                    return;
+                }
+            } catch {
+                // fall through
+            }
+        }
+
+        const userIdFromBody = signupRes.body?.data?.user?.id;
+        if (typeof userIdFromBody === "string" && userIdFromBody) {
+            this.trackUser(userIdFromBody);
+            return;
+        }
+
+        await this.trackUserByEmail(email);
+    }
+
+    async trackUserByEmail(email: string): Promise<void> {
+        const normalized = email.trim().toLowerCase();
+        if (!normalized) return;
+        try {
+            const { data: row } = await this.adminSupabase
+                .from("users")
+                .select("id, auth_id")
+                .eq("email", normalized)
+                .maybeSingle();
+            const authId = row?.auth_id ?? row?.id;
+            if (authId) this.trackUser(authId);
+        } catch {
+            // ignore
+        }
+    }
+
     async cleanAllStoredUsers(): Promise<void> {
         if (!this.createdUserIds.length) return;
         const authIds = Array.from(new Set(this.createdUserIds.filter(Boolean)));

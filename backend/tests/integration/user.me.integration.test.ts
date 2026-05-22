@@ -3,6 +3,10 @@ import supertest from "supertest";
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
+import {
+    cleanupIntegrationTestUsers,
+    signupVerifyAndSignIn,
+} from "../helpers/integrationAuthTestHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
 import {
     prepareSoloWorkspace,
@@ -38,7 +42,8 @@ describeIfSupabase("GET /users/me workspace session (integration)", () => {
         emailSendSpy = jest.spyOn(EmailService.prototype, "send").mockResolvedValue(undefined);
     });
 
-    afterAll(() => {
+    afterAll(async () => {
+        await userHelper.cleanAll();
         getVerificationTokenSpy?.mockRestore();
         emailSendSpy?.mockRestore();
     });
@@ -49,31 +54,21 @@ describeIfSupabase("GET /users/me workspace session (integration)", () => {
 
     afterEach(async () => {
         restoreSoloWorkspaceSpies(soloWorkspaceSpies);
-        await userHelper.cleanAllStoredUsers();
+        await cleanupIntegrationTestUsers(userHelper);
     });
 
-    async function signupVerifyAndSignIn(): Promise<{ accessToken: string }> {
-        const payload = userHelper.setupTestUser1();
-        const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
-        expect(signupRes.status).toBe(201);
-
-        const verifyRes = await supertest(app).get(
-            `${authPath}/verify-signup?token=${verificationToken}&email=${encodeURIComponent(payload.email)}`
+    async function signUpAndGetToken(): Promise<{ accessToken: string }> {
+        const { accessToken } = await signupVerifyAndSignIn(
+            app,
+            userHelper,
+            authPath,
+            verificationToken
         );
-        expect(verifyRes.status).toBe(200);
-
-        const signInRes = await supertest(app).post(`${authPath}/sign-in`).send({
-            email: payload.email,
-            password: payload.password,
-        });
-        expect(signInRes.status).toBe(200);
-        const accessToken = signInRes.body.data?.accessToken ?? signInRes.body.data?.session?.accessToken;
-        expect(accessToken).toBeDefined();
-        return { accessToken: accessToken as string };
+        return { accessToken };
     }
 
     it("returns profile only when organizationId is omitted", async () => {
-        const { accessToken } = await signupVerifyAndSignIn();
+        const { accessToken } = await signUpAndGetToken();
 
         const res = await supertest(app)
             .get(`${usersPath}/me`)
@@ -86,7 +81,7 @@ describeIfSupabase("GET /users/me workspace session (integration)", () => {
     });
 
     it("returns session fields when organizationId is provided", async () => {
-        const { accessToken } = await signupVerifyAndSignIn();
+        const { accessToken } = await signUpAndGetToken();
 
         const listRes = await supertest(app)
             .get(settingsPath)
@@ -116,7 +111,7 @@ describeIfSupabase("GET /users/me workspace session (integration)", () => {
     });
 
     it("rejects invalid organizationId query", async () => {
-        const { accessToken } = await signupVerifyAndSignIn();
+        const { accessToken } = await signUpAndGetToken();
 
         const res = await supertest(app)
             .get(`${usersPath}/me`)
