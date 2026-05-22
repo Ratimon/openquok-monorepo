@@ -1,10 +1,12 @@
 import type { LayoutLoad } from './$types';
 import { browser } from '$app/environment';
+import { initPostHog } from '$lib/product-analytics/posthog.client';
 import { getRootPathSignin, getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
 
 export const load: LayoutLoad = async ({ data, depends, fetch, url }) => {
 	if (browser) {
+		initPostHog();
 		// Fallback: if Supabase redirects back to the frontend Site URL with `?code=...`,
 		// forward to the backend callback so it can exchange the code and set cookies.
 		// Scoped to a few routes so other `code` query uses are not hijacked.

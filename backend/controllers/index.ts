@@ -45,11 +45,13 @@ import {
     mediaService,
     subscriptionService,
     stripeService,
+    trackService,
     signatureService,
     setsService,
     analyticsService,
     userSessionService,
 } from "../services/index";
+import { TrackController } from "./TrackController";
 import { subscriptionRepository } from "../repositories/index";
 import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
 import { UploadFactory } from "../connections/upload/upload.factory";
@@ -72,6 +74,7 @@ export const userController = new UserController(
     stripeService
 );
 export const companyController = new CompanyController(companyService, marketingService);
+export const trackController = new TrackController(trackService);
 export const settingsController = new SettingsController(organizationService);
 export const rbacController = new RbacController(rbacService, userRepository);
 export const feedbackController = new FeedbackController(feedbackService);

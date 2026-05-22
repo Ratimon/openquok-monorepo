@@ -2,6 +2,7 @@
 	import { SignupStatus } from '$lib/user-auth/Signup.presenter.svelte';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
+	import { ConversionTrackEvent, fireProductEvent, trackConversion } from '$lib/product-analytics';
 	import { signupFormFieldsSchema, signupFormSchema, signupPresenter } from '$lib/user-auth/index';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
@@ -57,6 +58,10 @@
 			lastEmail = value.email;
 			try {
 				await signupPresenter.signup(value.fullName, value.email, value.password);
+				if (signupPresenter.status === SignupStatus.SUBMITTED) {
+					fireProductEvent('register');
+					await trackConversion(ConversionTrackEvent.CompleteRegistration);
+				}
 				if (signupPresenter.showToastMessage) {
 					if (signupPresenter.status === SignupStatus.SUBMITTED) {
 						toast.success(signupPresenter.toastMessage);

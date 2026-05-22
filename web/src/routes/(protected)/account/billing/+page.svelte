@@ -7,6 +7,7 @@
 		formatPostsPerMonthLimit,
 		type BillingPlanDto
 	} from '$lib/billing';
+	import { ConversionTrackEvent, fireProductEvent, trackConversion } from '$lib/product-analytics';
 	import { formatBytes } from '$lib/medias';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { toast } from '$lib/ui/sonner';
@@ -25,11 +26,22 @@
 		void p.load().then(() => {
 			if (checkoutId) {
 				void p.pollCheckout(checkoutId).then(() => {
+					fireProductEvent('purchase');
+					void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
 					toast.success('Subscription updated.');
 				});
 			}
 		});
 	});
+
+	async function subscribeWithTracking(tier: PaidSubscriptionTier): Promise<void> {
+		const price = planPrice(tier);
+		await trackConversion(ConversionTrackEvent.InitiateCheckout, {
+			authenticated: true,
+			additional: { value: price }
+		});
+		await p.subscribe(tier, period);
+	}
 
 	$effect(() => {
 		organizationId;
@@ -164,7 +176,7 @@
 								type="button"
 								class="btn btn-primary btn-sm mt-4"
 								disabled={p.checkoutBusy || p.current?.tier === tier}
-								onclick={() => void p.subscribe(tier, period)}
+								onclick={() => void subscribeWithTracking(tier)}
 							>
 								{p.current?.tier === tier ? 'Current plan' : 'Subscribe'}
 							</button>

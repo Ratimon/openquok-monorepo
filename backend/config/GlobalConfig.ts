@@ -355,6 +355,12 @@ export const config: ConfigObject = {
         },
     },
 
+    /** Product analytics (Meta Conversions API). */
+    marketing: {
+        facebookPixelId: getEnvTrimmed("FACEBOOK_PIXEL_ID", ""),
+        facebookPixelAccessToken: getEnvTrimmed("FACEBOOK_PIXEL_ACCESS_TOKEN", ""),
+    },
+
     /** Stripe billing (workspace subscriptions). */
     stripe: {
         publishableKey: getEnvTrimmed("STRIPE_PUBLISHABLE_KEY", ""),

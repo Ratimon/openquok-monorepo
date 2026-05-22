@@ -10,7 +10,7 @@
       "openquok-orchestrator": ["./types/openquok-orchestrator.d.ts"]
     }
   },
-  "include": ["**/*.ts", "types/swagger-modules.d.ts"],
+  "include": ["**/*.ts", "**/*.d.ts", "types/swagger-modules.d.ts"],
   "exclude": [
     "node_modules",
     "dist",

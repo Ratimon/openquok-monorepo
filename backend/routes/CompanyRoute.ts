@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { companyController, configController } from "../controllers/index";
+import { companyController, configController, trackController } from "../controllers/index";
+import { validateTrackEventRequest } from "../data/schemas/trackSchemas";
 import {
     createConfigPropertiesParser,
     createCombinedConfigPropertiesParser,
@@ -27,5 +28,8 @@ companyRouter.get(
  * Used by the public landing page SSR; does not require a user session.
  */
 companyRouter.get("/config", configSchemas.validateGetModuleConfigQuery, configController.getPublicModuleConfig);
+
+/** Anonymous conversion tracking (Meta CAPI); sets `track` / `fbclid` cookies when needed. */
+companyRouter.post("/t", validateTrackEventRequest, trackController.trackPublic);
 
 export { companyRouter };

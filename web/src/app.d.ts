@@ -8,6 +8,7 @@ declare global {
 		dataLayer: IArguments[];
 		/* eslint-disable @typescript-eslint/no-explicit-any */
 		gtag?: (...args: any[]) => void;
+		fbq?: (...args: any[]) => void;
 	}
 
 	namespace App {

@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { userController, rbacController, approvedAppsController } from "../controllers/index";
+import { userController, rbacController, approvedAppsController, trackController } from "../controllers/index";
+import { validateTrackEventRequest } from "../data/schemas/trackSchemas";
 import {
     validateGetMeRequest,
     validateUpdateProfileRequest,
@@ -37,6 +38,9 @@ userRouter.get("/subscription/tiers", authWithRoles, userController.getSubscript
 userRouter.get("/subscription", authWithRoles, userController.getSubscription);
 userRouter.post("/change-org", authWithRoles, validateChangeOrganizationRequest, userController.changeOrganization);
 userRouter.post("/join-org", authWithRoles, validateJoinOrganizationRequest, userController.joinOrganization);
+
+/** Authenticated conversion tracking (Meta CAPI). */
+userRouter.post("/t", authWithRoles, validateTrackEventRequest, trackController.trackAuthenticated);
 
 userRouter.get("/me/approved-apps", authWithRoles, approvedAppsController.list);
 userRouter.delete(

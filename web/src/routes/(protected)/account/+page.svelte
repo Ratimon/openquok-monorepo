@@ -31,6 +31,7 @@
 	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
 
 	// --- Feedback ---
+	import { fireProductEvent } from '$lib/product-analytics';
 	import { toast } from '$lib/ui/sonner';
 
 	// --- Data / icons ---
@@ -517,7 +518,7 @@
 		}
 	});
 
-	
+
 	/**
 	 * Onboarding wizard (`OnBoardingModal`): wide modal, step 1 uses a 9-column grid on large screens.
 	 * It opens from the `$effect` below when there are no connected channels and onboarding is not
@@ -628,8 +629,13 @@
 		const onboarding = u.searchParams.get('onboarding');
 		if (!added && !msg && onboarding !== 'true') return;
 		void protectedDashboardPagePresenter.handlePostConnectQuery(u, goto).then((r) => {
-			if (r.handled && r.successToastMessage) {
-				toast.success(r.successToastMessage);
+			if (r.handled) {
+				if (added) {
+					fireProductEvent('channel_added', undefined, currentUser);
+				}
+				if (r.successToastMessage) {
+					toast.success(r.successToastMessage);
+				}
 			}
 		});
 	});

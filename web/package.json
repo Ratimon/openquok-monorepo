@@ -57,6 +57,7 @@
 		"nanoid": "^5.1.9",
 		"openquok-common": "workspace:*",
 		"parse5": "^8.0.0",
+		"posthog-js": "^1.375.0",
 		"preact": "^10.29.1",
 		"schema-dts": "^2.0.0",
 		"shiki": "^4.0.2",

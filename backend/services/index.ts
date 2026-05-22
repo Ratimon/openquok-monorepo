@@ -46,6 +46,7 @@ import { SubscriptionService } from "./SubscriptionService";
 import { UserSessionService } from "./UserSessionService";
 import { PermissionsService } from "./PermissionsService";
 import { StripeService } from "./StripeService";
+import { TrackService } from "./TrackService";
 import { config } from "../config/GlobalConfig";
 
 export const integrationManager = new IntegrationManager();
@@ -168,6 +169,7 @@ export const stripeService = new StripeService(
     subscriptionService,
     organizationRepository
 );
+export const trackService = new TrackService();
 export const mediaService = new MediaService(mediaRepository);
 export const signatureService = new SignatureService(
     signatureRepository,
@@ -212,3 +214,4 @@ export { AnalyticsService } from "./AnalyticsService";
 export { SubscriptionService } from "./SubscriptionService";
 export { PermissionsService } from "./PermissionsService";
 export { StripeService } from "./StripeService";
+export { TrackService } from "./TrackService";

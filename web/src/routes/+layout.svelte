@@ -7,9 +7,14 @@
 	import { Toaster } from '$lib/ui/sonner';
 	import { MetaTags, deepMerge } from 'svelte-meta-tags';
 	import '../app.postcss';
+	
 	import { page } from '$app/state';
 	import CookieConsentBanner from '$lib/ui/cookie/CookieConsentBanner.svelte';
+	import FacebookPixel from '$lib/product-analytics/FacebookPixel.svelte';
 	import GoogleAnalytics from '$lib/product-analytics/GoogleAnalytics.svelte';
+	import { identifyPostHogUser } from '$lib/product-analytics/posthog.client';
+	import PostHogPageview from '$lib/product-analytics/PostHogPageview.svelte';
+	import UtmAttribution from '$lib/product-analytics/UtmAttribution.svelte';
 	import { THEME_STORAGE_KEY } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
 
 	type Props = {
@@ -33,6 +38,16 @@
 	let MEASUREMENT_ID = import.meta.env.VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID;
 
 	let authStatus = $derived((data as App.LayoutData)?.authStatus ?? AuthStatus.UNAUTHENTICATED);
+	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? null);
+
+	$effect(() => {
+		if (!browser || !currentUser?.id) return;
+		identifyPostHogUser({
+			id: currentUser.id,
+			email: currentUser.email,
+			name: currentUser.fullName
+		});
+	});
 	let oauthCodeRedirectPending = $derived(
 		Boolean((data as App.LayoutData)?.oauthCodeRedirectPending)
 	);
@@ -63,6 +78,9 @@
 </script>
 
 <GoogleAnalytics {MEASUREMENT_ID} />
+<PostHogPageview />
+<UtmAttribution />
+<FacebookPixel />
 <MetaTags {...metaTags} />
 <svelte:head>
 	<link rel="icon" href="/pwa/favicon.svg" type="image/svg+xml" />
