@@ -35,8 +35,16 @@ export interface BillingPlanDto {
 	publicApi: boolean;
 }
 
+export interface BillingSubscriptionDto {
+	id: string;
+	tier: PaidSubscriptionTier;
+	period: SubscriptionPeriod;
+	cancelAt: string | null;
+}
+
 export interface BillingCurrentDto {
 	tier: SubscriptionTier;
+	subscription: BillingSubscriptionDto | null;
 	drive: { used: number; total: number };
 	limits: {
 		mediaStorageBytesPerWorkspace: number;
@@ -54,6 +62,31 @@ export interface BillingCurrentDto {
 		hasStripeCustomer: boolean;
 	} | null;
 	billingEnabled: boolean;
+}
+
+/** Raw GET /billing/current payload before subscription field normalization. */
+interface BillingCurrentApiData {
+	tier: SubscriptionTier;
+	subscription: Record<string, unknown> | null;
+	drive: BillingCurrentDto['drive'];
+	limits: BillingCurrentDto['limits'];
+	billing: BillingCurrentDto['billing'];
+	billingEnabled?: boolean;
+}
+
+function mapBillingSubscription(raw: Record<string, unknown> | null | undefined): BillingSubscriptionDto | null {
+	if (!raw || typeof raw !== 'object') return null;
+	const tier = (raw.subscription_tier ?? raw.subscriptionTier) as PaidSubscriptionTier | undefined;
+	const period = raw.period as SubscriptionPeriod | undefined;
+	const id = raw.id;
+	if (!tier || !period || typeof id !== 'string') return null;
+	const cancelAt = (raw.cancel_at ?? raw.cancelAt) as string | null | undefined;
+	return {
+		id,
+		tier,
+		period,
+		cancelAt: cancelAt ?? null
+	};
 }
 
 export function formatPostsPerMonthLimit(n: number): string {
@@ -83,12 +116,14 @@ export class BillingRepository {
 		const query = organizationId?.trim() ? { organizationId: organizationId.trim() } : undefined;
 		const { data: dto, ok } = await this.httpGateway.get<{
 			success: boolean;
-			data?: BillingCurrentDto & { billingEnabled?: boolean };
+			data?: BillingCurrentApiData;
 		}>(this.config.endpoints.current, query, { withCredentials: true });
 
 		if (ok && dto?.data) {
+			const subscription = mapBillingSubscription(dto.data.subscription);
 			return {
 				tier: dto.data.tier,
+				subscription,
 				drive: dto.data.drive,
 				limits: dto.data.limits,
 				billing: dto.data.billing,
@@ -181,6 +216,23 @@ export class BillingRepository {
 
 		if (ok && dto?.data?.price != null) return dto.data.price;
 		return 0;
+	}
+
+	async finishTrial(organizationId: string): Promise<boolean> {
+		const { data: dto, ok } = await this.httpGateway.post<{
+			success: boolean;
+		}>(this.config.endpoints.finishTrial, { organizationId }, { withCredentials: true });
+
+		return Boolean(ok && dto?.success);
+	}
+
+	async isTrialFinished(organizationId: string): Promise<boolean> {
+		const { data: dto, ok } = await this.httpGateway.get<{
+			success: boolean;
+			data?: { finished: boolean };
+		}>(this.config.endpoints.isTrialFinished, { organizationId }, { withCredentials: true });
+
+		return Boolean(ok && dto?.data?.finished);
 	}
 
 	async cancelSubscription(params: {

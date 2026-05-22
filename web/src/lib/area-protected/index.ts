@@ -17,6 +17,8 @@ import { ProtectedAnalyticsPagePresenter } from '$lib/area-protected/ProtectedAn
 import { ProtectedPlugsPagePresenter } from '$lib/area-protected/ProtectedPlugsPage.presenter.svelte';
 import { ProtectedTemplatesPagePresenter } from '$lib/area-protected/ProtectedTemplatesPage.presenter.svelte';
 import { ProtectedPayloadWizardPagePresenter } from '$lib/area-protected/ProtectedPayloadWizardPage.presenter.svelte';
+import { ProtectedBillingPagePresenter } from '$lib/area-protected/ProtectedBillingPage.presenter.svelte';
+import { billingPresenter } from '$lib/billing';
 import { GenerateMediaModalPresenter } from '$lib/canvas';
 import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
@@ -153,6 +155,8 @@ const protectedPlugsPagePresenter = new ProtectedPlugsPagePresenter(
 const setGridTable = new SetGridTablePresenter(getSetPresenter, protectedDashboardPagePresenter);
 const setGridFilterBuilder = new SetGridFilterBuilderPresenter();
 
+const protectedBillingPagePresenter = new ProtectedBillingPagePresenter(billingPresenter);
+
 const protectedTemplatesPagePresenter = new ProtectedTemplatesPagePresenter(
 	workspaceSettingsPresenter,
 	getSetPresenter,
@@ -180,6 +184,8 @@ export {
 	protectedPlugsPagePresenter,
 	ProtectedTemplatesPagePresenter,
 	protectedTemplatesPagePresenter,
+	ProtectedBillingPagePresenter,
+	protectedBillingPagePresenter,
 	ProtectedMediaPagePresenter,
 	protectedMediaPagePresenter,
 	ProtectedPayloadWizardPagePresenter,

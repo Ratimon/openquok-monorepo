@@ -88,4 +88,46 @@ export class BillingPresenter {
 			await this.load();
 		}
 	}
+
+	async previewProration(
+		organizationId: string,
+		tier: PaidSubscriptionTier,
+		period: SubscriptionPeriod
+	): Promise<number> {
+		return this.billingRepository.previewProration({
+			organizationId,
+			billing: tier,
+			period
+		});
+	}
+
+	async finishTrial(): Promise<void> {
+		const organizationId = this.organizationId;
+		if (!organizationId) return;
+		await this.billingRepository.finishTrial(organizationId);
+	}
+
+	async pollTrialFinished(): Promise<boolean> {
+		const organizationId = this.organizationId;
+		if (!organizationId) return false;
+		return this.billingRepository.isTrialFinished(organizationId);
+	}
+
+	async reactivateSubscription(): Promise<void> {
+		const organizationId = this.organizationId;
+		if (!organizationId) return;
+		this.checkoutBusy = true;
+		try {
+			const result = await this.billingRepository.cancelSubscription({
+				organizationId,
+				feedback: ''
+			});
+			if (result) {
+				toast.success('Subscription reactivated successfully');
+				await this.load();
+			}
+		} finally {
+			this.checkoutBusy = false;
+		}
+	}
 }

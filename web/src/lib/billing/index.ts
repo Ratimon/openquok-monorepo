@@ -28,6 +28,7 @@ export { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
 export {
 	formatPostsPerMonthLimit,
 	type BillingCurrentDto,
-	type BillingPlanDto
+	type BillingPlanDto,
+	type BillingSubscriptionDto
 } from '$lib/billing/Billing.repository.svelte';
 export { stripePriceIdForTier, STRIPE_PUBLISHABLE_KEY } from '$lib/billing/constants/config';
