@@ -22,23 +22,31 @@
 					width="24"
 					height="24"
 				/>
-				{#if feature.tooltip}
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							{#snippet child({ props: triggerProps })}
-								<span
-									{...triggerProps}
-									class="cursor-help underline decoration-dotted decoration-base-content/40 underline-offset-2"
-								>
-									{feature.label}
-								</span>
-							{/snippet}
-						</Tooltip.Trigger>
-						<Tooltip.Content side="top" sideOffset={8}>{feature.tooltip}</Tooltip.Content>
-					</Tooltip.Root>
-				{:else}
+				<div class="flex items-center gap-1.5">
 					<span>{feature.label}</span>
-				{/if}
+					{#if feature.tooltip}
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								{#snippet child({ props: triggerProps })}
+									{@const { class: tipClass, ...tipRest } = triggerProps}
+									<span
+										{...tipRest}
+										class={`inline-flex shrink-0 ${String(tipClass ?? '')} cursor-help text-base-content/50`}
+										aria-label="More info"
+									>
+										<AbstractIcon
+											name={icons.Info.name}
+											class="size-4"
+											width="16"
+											height="16"
+										/>
+									</span>
+								{/snippet}
+							</Tooltip.Trigger>
+							<Tooltip.Content side="top" sideOffset={8}>{feature.tooltip}</Tooltip.Content>
+						</Tooltip.Root>
+					{/if}
+				</div>
 			</div>
 		{/each}
 	</div>

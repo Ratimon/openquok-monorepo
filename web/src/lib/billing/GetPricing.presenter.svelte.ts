@@ -52,7 +52,7 @@ export function buildPlanFeatureLines(plan: BillingPlanProgrammerModel): PlanFea
 
 	const channelTotal = plan.channelPerWorkspace * plan.workspaces;
 	lines.push({
-		label: channelTotal === 1 ? '1 channel' : `${channelTotal} channels`,
+		label: channelTotal === 1 ? '1 channel' : `Total ${channelTotal} channels`,
 		tooltip:
 			plan.workspaces > 1
 				? perWorkspaceLabel(plan.channelPerWorkspace, 'channel', 'channels')
@@ -64,7 +64,7 @@ export function buildPlanFeatureLines(plan: BillingPlanProgrammerModel): PlanFea
 	const teamTotal = plan.teamMembersPerWorkspace * plan.workspaces;
 	if (teamTotal > 1) {
 		lines.push({
-			label: `total of ${teamTotal} team members`,
+			label: `Total ${teamTotal} team members`,
 			tooltip: perWorkspaceLabel(plan.teamMembersPerWorkspace, 'member', 'members')
 		});
 	}
@@ -79,9 +79,11 @@ export function buildPlanFeatureLines(plan: BillingPlanProgrammerModel): PlanFea
 
 	const storageTotalBytes = plan.mediaStorageBytesPerWorkspace * plan.workspaces;
 	lines.push({
-		label: `${formatBytes(plan.mediaStorageBytesPerWorkspace)} cloud storage per workspace`,
+		label: `Total ${formatBytes(storageTotalBytes)} cloud storage`,
 		tooltip:
-			plan.workspaces > 1 ? `total of ${formatBytes(storageTotalBytes)}` : undefined
+			plan.workspaces > 1
+				? `${formatBytes(plan.mediaStorageBytesPerWorkspace)} cloud storage per workspace`
+				: undefined
 	});
 
 	return lines;
