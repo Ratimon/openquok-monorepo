@@ -1,5 +1,5 @@
 <script lang="ts">
-	import BillingFaqSection from '$lib/ui/components/billing/BillingFaqSection.svelte';
+	import BillingFaqAccordion from '$lib/ui/components/billing/BillingFaqAccordion.svelte';
 
 	type Props = {
 		allowTrial?: boolean;
@@ -44,6 +44,6 @@
 
 <div class="mb-10 mt-12 flex flex-col gap-6">
 	{#each items as item, index (index)}
-		<BillingFaqSection title={item.title} description={item.description} />
+		<BillingFaqAccordion title={item.title} description={item.description} />
 	{/each}
 </div>
