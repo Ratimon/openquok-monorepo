@@ -21,7 +21,8 @@ export interface BillingConfig {
 	};
 }
 
-export interface BillingPlanDto {
+/** Wire tier row from GET /billing/plans (camelCase after gateway). */
+interface BillingPlanWireDto {
 	tier: SubscriptionTier;
 	monthPrice: number;
 	yearPrice: number;
@@ -35,16 +36,35 @@ export interface BillingPlanDto {
 	publicApi: boolean;
 }
 
-export interface BillingSubscriptionDto {
+interface ListBillingPlansResponseDto {
+	success: boolean;
+	data?: { tiers: BillingPlanWireDto[]; billingEnabled: boolean };
+}
+
+export interface BillingPlanProgrammerModel {
+	tier: SubscriptionTier;
+	monthPrice: number;
+	yearPrice: number;
+	mediaStorageBytesPerWorkspace: number;
+	channelPerWorkspace: number;
+	postsPerMonth: number;
+	workspaces: number;
+	teamMembersPerWorkspace: number;
+	sharePostPreview: boolean;
+	communityFeatures: boolean;
+	publicApi: boolean;
+}
+
+export interface BillingSubscriptionProgrammerModel {
 	id: string;
 	tier: PaidSubscriptionTier;
 	period: SubscriptionPeriod;
 	cancelAt: string | null;
 }
 
-export interface BillingCurrentDto {
+export interface BillingCurrentProgrammerModel {
 	tier: SubscriptionTier;
-	subscription: BillingSubscriptionDto | null;
+	subscription: BillingSubscriptionProgrammerModel | null;
 	drive: { used: number; total: number };
 	limits: {
 		mediaStorageBytesPerWorkspace: number;
@@ -64,17 +84,33 @@ export interface BillingCurrentDto {
 	billingEnabled: boolean;
 }
 
+export type ListBillingPlansProgrammerModel = {
+	plans: BillingPlanProgrammerModel[];
+	billingEnabled: boolean;
+};
+
 /** Raw GET /billing/current payload before subscription field normalization. */
 interface BillingCurrentApiData {
 	tier: SubscriptionTier;
 	subscription: Record<string, unknown> | null;
-	drive: BillingCurrentDto['drive'];
-	limits: BillingCurrentDto['limits'];
-	billing: BillingCurrentDto['billing'];
+	drive: BillingCurrentProgrammerModel['drive'];
+	limits: BillingCurrentProgrammerModel['limits'];
+	billing: BillingCurrentProgrammerModel['billing'];
 	billingEnabled?: boolean;
 }
 
-function mapBillingSubscription(raw: Record<string, unknown> | null | undefined): BillingSubscriptionDto | null {
+interface BillingCurrentResponseDto {
+	success: boolean;
+	data?: BillingCurrentApiData;
+}
+
+function toBillingPlanPm(dto: BillingPlanWireDto): BillingPlanProgrammerModel {
+	return { ...dto };
+}
+
+function mapBillingSubscription(
+	raw: Record<string, unknown> | null | undefined
+): BillingSubscriptionProgrammerModel | null {
 	if (!raw || typeof raw !== 'object') return null;
 	const tier = (raw.subscription_tier ?? raw.subscriptionTier) as PaidSubscriptionTier | undefined;
 	const period = raw.period as SubscriptionPeriod | undefined;
@@ -100,34 +136,40 @@ export class BillingRepository {
 		private readonly config: BillingConfig
 	) {}
 
-	async listPlans(): Promise<{ plans: BillingPlanDto[]; billingEnabled: boolean }> {
-		const { data: dto, ok } = await this.httpGateway.get<{
-			success: boolean;
-			data?: { tiers: BillingPlanDto[]; billingEnabled: boolean };
-		}>(this.config.endpoints.plans, undefined, { withCredentials: true });
+	async listPlans(): Promise<ListBillingPlansProgrammerModel> {
+		const { data: listPlansDto, ok } = await this.httpGateway.get<ListBillingPlansResponseDto>(
+			this.config.endpoints.plans,
+			undefined,
+			{ withCredentials: true }
+		);
 
-		if (ok && dto?.data) {
-			return { plans: dto.data.tiers ?? [], billingEnabled: dto.data.billingEnabled ?? false };
+		if (ok && listPlansDto?.data) {
+			const tiers = listPlansDto.data.tiers ?? [];
+			return {
+				plans: tiers.map(toBillingPlanPm),
+				billingEnabled: listPlansDto.data.billingEnabled ?? false
+			};
 		}
 		return { plans: [], billingEnabled: false };
 	}
 
-	async getCurrent(organizationId?: string): Promise<BillingCurrentDto | null> {
+	async getCurrent(organizationId?: string): Promise<BillingCurrentProgrammerModel | null> {
 		const query = organizationId?.trim() ? { organizationId: organizationId.trim() } : undefined;
-		const { data: dto, ok } = await this.httpGateway.get<{
-			success: boolean;
-			data?: BillingCurrentApiData;
-		}>(this.config.endpoints.current, query, { withCredentials: true });
+		const { data: currentDto, ok } = await this.httpGateway.get<BillingCurrentResponseDto>(
+			this.config.endpoints.current,
+			query,
+			{ withCredentials: true }
+		);
 
-		if (ok && dto?.data) {
-			const subscription = mapBillingSubscription(dto.data.subscription);
+		if (ok && currentDto?.data) {
+			const subscription = mapBillingSubscription(currentDto.data.subscription);
 			return {
-				tier: dto.data.tier,
+				tier: currentDto.data.tier,
 				subscription,
-				drive: dto.data.drive,
-				limits: dto.data.limits,
-				billing: dto.data.billing,
-				billingEnabled: dto.data.billingEnabled ?? false
+				drive: currentDto.data.drive,
+				limits: currentDto.data.limits,
+				billing: currentDto.data.billing,
+				billingEnabled: currentDto.data.billingEnabled ?? false
 			};
 		}
 		return null;
@@ -139,7 +181,7 @@ export class BillingRepository {
 		period: SubscriptionPeriod;
 		stripePriceId: string;
 	}): Promise<{ url?: string; updated?: boolean } | null> {
-		const { data: dto, ok } = await this.httpGateway.post<{
+		const { data: subscribeDto, ok } = await this.httpGateway.post<{
 			success: boolean;
 			data?: { url?: string; updated?: boolean };
 		}>(
@@ -153,47 +195,47 @@ export class BillingRepository {
 			{ withCredentials: true }
 		);
 
-		if (ok && dto?.data) return dto.data;
+		if (ok && subscribeDto?.data) return subscribeDto.data;
 		return null;
 	}
 
 	async getPortalUrl(organizationId: string): Promise<string | null> {
-		const { data: dto, ok } = await this.httpGateway.get<{
+		const { data: portalDto, ok } = await this.httpGateway.get<{
 			success: boolean;
 			data?: { portal: string };
 		}>(this.config.endpoints.portal, { organizationId }, { withCredentials: true });
 
-		if (ok && dto?.data?.portal) return dto.data.portal;
+		if (ok && portalDto?.data?.portal) return portalDto.data.portal;
 		return null;
 	}
 
 	async checkCheckout(organizationId: string, checkoutId: string): Promise<number> {
-		const { data: dto, ok } = await this.httpGateway.get<{
+		const { data: checkCheckoutDto, ok } = await this.httpGateway.get<{
 			success: boolean;
 			data?: { status: number };
 		}>(this.config.endpoints.checkCheckout(checkoutId), { organizationId }, { withCredentials: true });
 
-		if (ok && dto?.data?.status != null) return dto.data.status;
+		if (ok && checkCheckoutDto?.data?.status != null) return checkCheckoutDto.data.status;
 		return 0;
 	}
 
 	async checkDiscountOffer(organizationId: string): Promise<string | false> {
-		const { data: dto, ok } = await this.httpGateway.get<{
+		const { data: checkDiscountDto, ok } = await this.httpGateway.get<{
 			success: boolean;
 			data?: { offerCoupon: string | false };
 		}>(this.config.endpoints.checkDiscount, { organizationId }, { withCredentials: true });
 
-		if (ok && dto?.data?.offerCoupon) return dto.data.offerCoupon;
+		if (ok && checkDiscountDto?.data?.offerCoupon) return checkDiscountDto.data.offerCoupon;
 		return false;
 	}
 
 	async applyRetentionDiscount(organizationId: string): Promise<boolean> {
-		const { data: dto, ok } = await this.httpGateway.post<{
+		const { data: applyDiscountDto, ok } = await this.httpGateway.post<{
 			success: boolean;
 			data?: { applied: boolean };
 		}>(this.config.endpoints.applyDiscount, { organizationId }, { withCredentials: true });
 
-		return Boolean(ok && dto?.data?.applied);
+		return Boolean(ok && applyDiscountDto?.data?.applied);
 	}
 
 	async previewProration(params: {
@@ -201,7 +243,7 @@ export class BillingRepository {
 		billing: PaidSubscriptionTier;
 		period: SubscriptionPeriod;
 	}): Promise<number> {
-		const { data: dto, ok } = await this.httpGateway.post<{
+		const { data: prorateDto, ok } = await this.httpGateway.post<{
 			success: boolean;
 			data?: { price: number };
 		}>(
@@ -214,32 +256,32 @@ export class BillingRepository {
 			{ withCredentials: true }
 		);
 
-		if (ok && dto?.data?.price != null) return dto.data.price;
+		if (ok && prorateDto?.data?.price != null) return prorateDto.data.price;
 		return 0;
 	}
 
 	async finishTrial(organizationId: string): Promise<boolean> {
-		const { data: dto, ok } = await this.httpGateway.post<{
+		const { data: finishTrialDto, ok } = await this.httpGateway.post<{
 			success: boolean;
 		}>(this.config.endpoints.finishTrial, { organizationId }, { withCredentials: true });
 
-		return Boolean(ok && dto?.success);
+		return Boolean(ok && finishTrialDto?.success);
 	}
 
 	async isTrialFinished(organizationId: string): Promise<boolean> {
-		const { data: dto, ok } = await this.httpGateway.get<{
+		const { data: isTrialFinishedDto, ok } = await this.httpGateway.get<{
 			success: boolean;
 			data?: { finished: boolean };
 		}>(this.config.endpoints.isTrialFinished, { organizationId }, { withCredentials: true });
 
-		return Boolean(ok && dto?.data?.finished);
+		return Boolean(ok && isTrialFinishedDto?.data?.finished);
 	}
 
 	async cancelSubscription(params: {
 		organizationId: string;
 		feedback?: string;
 	}): Promise<{ id: string; cancelAt?: string } | null> {
-		const { data: dto, ok } = await this.httpGateway.post<{
+		const { data: cancelDto, ok } = await this.httpGateway.post<{
 			success: boolean;
 			data?: { id: string; cancelAt?: string };
 		}>(
@@ -248,7 +290,7 @@ export class BillingRepository {
 			{ withCredentials: true }
 		);
 
-		if (ok && dto?.data) return dto.data;
+		if (ok && cancelDto?.data) return cancelDto.data;
 		return null;
 	}
 }

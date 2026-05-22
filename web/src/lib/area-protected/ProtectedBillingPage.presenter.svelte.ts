@@ -1,22 +1,50 @@
 import type { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
+import type {
+	BillingCurrentViewModel,
+	BillingPlanViewModel,
+	GetPricingPresenter
+} from '$lib/billing/GetPricing.presenter.svelte';
 import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
+import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
 import { ConversionTrackEvent, fireProductEvent, trackConversion } from '$lib/product-analytics';
 import { authenticationRepository } from '$lib/user-auth/index';
 
 /**
- * Page presenter for account billing: delegates checkout and portal to {@link BillingPresenter}
- * and wires product analytics on subscribe.
+ * Page presenter for account billing: loads pricing via {@link GetPricingPresenter},
+ * delegates checkout and portal to {@link BillingPresenter}, and wires product analytics on subscribe.
  */
 export class ProtectedBillingPagePresenter {
-	constructor(private readonly billingPresenter: BillingPresenter) {}
+	loading = $state(true);
+	plansVm = $state<BillingPlanViewModel[]>([]);
+	currentVm = $state<BillingCurrentViewModel | null>(null);
+	billingEnabled = $state(false);
 
-	get billing(): BillingPresenter {
-		return this.billingPresenter;
+	constructor(
+		private readonly getPricingPresenter: GetPricingPresenter,
+		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
+		readonly billingPresenter: BillingPresenter
+	) {
+		this.billingPresenter.bindReloadPricing(() => this.load());
 	}
 
-	load(): Promise<void> {
-		return this.billingPresenter.load();
+	get organizationId(): string {
+		return this.workspaceSettingsPresenter.currentWorkspaceId ?? '';
+	}
+
+	async load(): Promise<void> {
+		this.loading = true;
+		try {
+			const orgId = this.organizationId;
+			const pricingVm = await this.getPricingPresenter.loadBillingPricingVmStateless(
+				orgId || undefined
+			);
+			this.plansVm = pricingVm.plansVm;
+			this.currentVm = pricingVm.currentVm;
+			this.billingEnabled = pricingVm.billingEnabled;
+		} finally {
+			this.loading = false;
+		}
 	}
 
 	pollCheckout(checkoutId: string): Promise<void> {
@@ -32,14 +60,14 @@ export class ProtectedBillingPagePresenter {
 	}
 
 	previewProration(tier: PaidSubscriptionTier, period: SubscriptionPeriod): Promise<number> {
-		const organizationId = this.billingPresenter.organizationId;
+		const organizationId = this.organizationId;
 		if (!organizationId) return Promise.resolve(0);
 		return this.billingPresenter.previewProration(organizationId, tier, period);
 	}
 
 	async subscribeWithTracking(tier: PaidSubscriptionTier, period: SubscriptionPeriod): Promise<void> {
-		const plan = this.billingPresenter.plans.find((row) => row.tier === tier);
-		const price = plan ? (period === 'MONTHLY' ? plan.monthPrice : plan.yearPrice) : 0;
+		const planVm = this.plansVm.find((row) => row.tier === tier);
+		const price = planVm ? (period === 'MONTHLY' ? planVm.monthPrice : planVm.yearPrice) : 0;
 		await trackConversion(ConversionTrackEvent.InitiateCheckout, {
 			authenticated: true,
 			additional: { value: price }

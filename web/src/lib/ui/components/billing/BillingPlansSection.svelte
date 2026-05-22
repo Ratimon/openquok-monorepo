@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { BillingPlanDto } from '$lib/billing';
+	import type { BillingPlanViewModel } from '$lib/billing';
 	import type { PaidSubscriptionTier, SubscriptionPeriod, SubscriptionTier } from 'openquok-common';
 
 	import BillingPeriodToggle from '$lib/ui/components/billing/BillingPeriodToggle.svelte';
 	import BillingPlanCard from '$lib/ui/components/billing/BillingPlanCard.svelte';
 
 	type Props = {
-		plans: BillingPlanDto[];
+		plansVm: BillingPlanViewModel[];
 		period: SubscriptionPeriod;
 		currentTier: SubscriptionTier | null;
 		subscriptionPeriod: SubscriptionPeriod | null;
@@ -21,7 +21,7 @@
 	};
 
 	let {
-		plans,
+		plansVm,
 		period = $bindable(),
 		currentTier,
 		subscriptionPeriod,
@@ -35,7 +35,7 @@
 		onReactivate
 	}: Props = $props();
 
-	const paidPlans = $derived(plans.filter((plan) => plan.tier !== 'FREE'));
+	const paidPlansVm = $derived(plansVm.filter((plan) => plan.tier !== 'FREE'));
 
 	/** Highlighted plan when the toggle matches the subscription billing cadence. */
 	const currentPackage = $derived.by((): PaidSubscriptionTier | '' => {
@@ -59,9 +59,9 @@
 	</div>
 
 	<div class="flex gap-4 max-lg:flex-col max-lg:text-center">
-		{#each paidPlans as plan (plan.tier)}
+		{#each paidPlansVm as planVm (planVm.tier)}
 			<BillingPlanCard
-				{plan}
+				{planVm}
 				{period}
 				{currentPackage}
 				{cancelAt}

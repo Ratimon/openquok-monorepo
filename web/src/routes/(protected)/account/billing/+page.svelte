@@ -11,7 +11,6 @@
 	import { BillingFaq, BillingPlansSection, FinishTrial } from '$lib/ui/components/billing';
 
 	const pagePresenter = protectedBillingPagePresenter;
-	const p = pagePresenter.billing;
 
 	const organizationId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 	const checkoutId = $derived(page.url.searchParams.get('checkout'));
@@ -20,18 +19,18 @@
 	let period = $state<'MONTHLY' | 'YEARLY'>('MONTHLY');
 	let showFinishTrial = $state(false);
 
-	const subscription = $derived(p.current?.subscription ?? null);
+	const subscription = $derived(pagePresenter.currentVm?.subscription ?? null);
 	const cancelAt = $derived(subscription?.cancelAt ?? null);
 	const subscriptionPeriod = $derived(subscription?.period ?? null);
-	const isFreeTier = $derived((p.current?.tier ?? 'FREE') === 'FREE');
-	const allowTrial = $derived(p.current?.billing?.allowTrial ?? false);
+	const isFreeTier = $derived((pagePresenter.currentVm?.tier ?? 'FREE') === 'FREE');
+	const allowTrial = $derived(pagePresenter.currentVm?.billing?.allowTrial ?? false);
 
 	onMount(() => {
 		if (finishTrialQuery) {
 			showFinishTrial = true;
 		}
 		void pagePresenter.load().then(() => {
-			const loadedPeriod = p.current?.subscription?.period;
+			const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
 			if (loadedPeriod) {
 				period = loadedPeriod;
 			}
@@ -48,7 +47,7 @@
 	$effect(() => {
 		organizationId;
 		void pagePresenter.load().then(() => {
-			const loadedPeriod = p.current?.subscription?.period;
+			const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
 			if (loadedPeriod) {
 				period = loadedPeriod;
 			}
@@ -57,14 +56,14 @@
 </script>
 
 <div class="flex flex-1 flex-col gap-4 p-5">
-	{#if p.loading}
+	{#if pagePresenter.loading}
 		<div class="flex justify-center py-16">
 			<span class="loading loading-spinner loading-lg text-primary"></span>
 		</div>
 	{:else if !organizationId}
 		<p class="text-base-content/70 text-sm">Select a workspace to view billing.</p>
 	{:else}
-		{#if !p.billingEnabled}
+		{#if !pagePresenter.billingEnabled}
 			<div class="alert alert-info">
 				<span>
 					Stripe billing is not configured. Set backend <code>STRIPE_*</code> keys and price ids
@@ -73,13 +72,13 @@
 			</div>
 		{:else}
 			<BillingPlansSection
-				plans={p.plans}
+				plansVm={pagePresenter.plansVm}
 				bind:period
-				currentTier={subscription?.tier ?? p.current?.tier ?? null}
+				currentTier={subscription?.tier ?? pagePresenter.currentVm?.tier ?? null}
 				{subscriptionPeriod}
 				{cancelAt}
 				hasActiveSubscription={Boolean(subscription?.id)}
-				checkoutBusy={p.checkoutBusy}
+				checkoutBusy={pagePresenter.billingPresenter.checkoutBusy}
 				{allowTrial}
 				{isFreeTier}
 				previewProrate={(tier, billingPeriod) =>
@@ -88,12 +87,12 @@
 				onReactivate={() => void pagePresenter.reactivateSubscription()}
 			/>
 
-			{#if p.current?.billing?.hasStripeCustomer}
+			{#if pagePresenter.currentVm?.billing?.hasStripeCustomer}
 				<div class="mt-5 flex flex-wrap justify-center gap-2.5">
 					<Button
 						variant="primary"
 						size="default"
-						disabled={p.checkoutBusy}
+						disabled={pagePresenter.billingPresenter.checkoutBusy}
 						onclick={() => void pagePresenter.openPortal()}
 					>
 						Update payment method / invoices history

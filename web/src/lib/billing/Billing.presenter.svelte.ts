@@ -1,44 +1,26 @@
-import type {
-	BillingCurrentDto,
-	BillingPlanDto,
-	BillingRepository
-} from '$lib/billing/Billing.repository.svelte';
+import type { BillingRepository } from '$lib/billing/Billing.repository.svelte';
 import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
+import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
 import { stripePriceIdForTier } from '$lib/billing/constants/config';
-import { workspaceSettingsPresenter } from '$lib/settings';
 import { toast } from '$lib/ui/sonner';
 
 export class BillingPresenter {
-	loading = $state(true);
-	plans = $state<BillingPlanDto[]>([]);
-	current = $state<BillingCurrentDto | null>(null);
-	billingEnabled = $state(false);
 	checkoutBusy = $state(false);
 
-	constructor(private readonly billingRepository: BillingRepository) {}
+	private reloadPricing: (() => Promise<void>) | null = null;
 
-	get organizationId(): string {
-		return workspaceSettingsPresenter.currentWorkspaceId ?? '';
+	constructor(
+		private readonly billingRepository: BillingRepository,
+		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter
+	) {}
+
+	bindReloadPricing(reload: () => Promise<void>): void {
+		this.reloadPricing = reload;
 	}
 
-	async load(): Promise<void> {
-		this.loading = true;
-		try {
-			const [{ plans, billingEnabled }, orgId] = await Promise.all([
-				this.billingRepository.listPlans(),
-				Promise.resolve(this.organizationId)
-			]);
-			this.plans = plans;
-			this.billingEnabled = billingEnabled;
-			if (orgId) {
-				this.current = await this.billingRepository.getCurrent(orgId);
-			} else {
-				this.current = null;
-			}
-		} finally {
-			this.loading = false;
-		}
+	get organizationId(): string {
+		return this.workspaceSettingsPresenter.currentWorkspaceId ?? '';
 	}
 
 	async subscribe(tier: PaidSubscriptionTier, period: SubscriptionPeriod): Promise<void> {
@@ -55,18 +37,18 @@ export class BillingPresenter {
 
 		this.checkoutBusy = true;
 		try {
-			const result = await this.billingRepository.subscribe({
+			const resultPm = await this.billingRepository.subscribe({
 				organizationId,
 				billing: tier,
 				period,
 				stripePriceId
 			});
-			if (result?.url) {
-				window.location.href = result.url;
+			if (resultPm?.url) {
+				window.location.href = resultPm.url;
 				return;
 			}
-			if (result?.updated) {
-				await this.load();
+			if (resultPm?.updated) {
+				await this.reloadPricing?.();
 			}
 		} finally {
 			this.checkoutBusy = false;
@@ -76,8 +58,8 @@ export class BillingPresenter {
 	async openPortal(): Promise<void> {
 		const organizationId = this.organizationId;
 		if (!organizationId) return;
-		const url = await this.billingRepository.getPortalUrl(organizationId);
-		if (url) window.location.href = url;
+		const portalUrl = await this.billingRepository.getPortalUrl(organizationId);
+		if (portalUrl) window.location.href = portalUrl;
 	}
 
 	async pollCheckout(checkoutId: string): Promise<void> {
@@ -85,7 +67,7 @@ export class BillingPresenter {
 		if (!organizationId || !checkoutId) return;
 		const status = await this.billingRepository.checkCheckout(organizationId, checkoutId);
 		if (status === 2) {
-			await this.load();
+			await this.reloadPricing?.();
 		}
 	}
 
@@ -118,13 +100,13 @@ export class BillingPresenter {
 		if (!organizationId) return;
 		this.checkoutBusy = true;
 		try {
-			const result = await this.billingRepository.cancelSubscription({
+			const resultPm = await this.billingRepository.cancelSubscription({
 				organizationId,
 				feedback: ''
 			});
-			if (result) {
+			if (resultPm) {
 				toast.success('Subscription reactivated successfully');
-				await this.load();
+				await this.reloadPricing?.();
 			}
 		} finally {
 			this.checkoutBusy = false;

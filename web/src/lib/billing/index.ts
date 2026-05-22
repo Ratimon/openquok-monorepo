@@ -2,6 +2,8 @@ import { httpGateway } from '$lib/core/index';
 import type { BillingConfig } from '$lib/billing/Billing.repository.svelte';
 import { BillingRepository } from '$lib/billing/Billing.repository.svelte';
 import { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
+import { GetPricingPresenter } from '$lib/billing/GetPricing.presenter.svelte';
+import { workspaceSettingsPresenter } from '$lib/settings';
 
 const billingConfig: BillingConfig = {
 	endpoints: {
@@ -22,13 +24,27 @@ const billingConfig: BillingConfig = {
 };
 
 export const billingRepository = new BillingRepository(httpGateway, billingConfig);
-export const billingPresenter = new BillingPresenter(billingRepository);
+
+export const getPricingPresenter = new GetPricingPresenter(billingRepository);
+
+export const billingPresenter = new BillingPresenter(billingRepository, workspaceSettingsPresenter);
 
 export { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
 export {
+	GetPricingPresenter,
+	buildPlanFeatureLines,
+	tierDisplayName,
+	type BillingCurrentViewModel,
+	type BillingPlanViewModel,
+	type BillingPricingViewModel,
+	type BillingSubscriptionViewModel,
+	type PlanFeatureLineViewModel
+} from '$lib/billing/GetPricing.presenter.svelte';
+export {
 	formatPostsPerMonthLimit,
-	type BillingCurrentDto,
-	type BillingPlanDto,
-	type BillingSubscriptionDto
+	type BillingCurrentProgrammerModel,
+	type BillingPlanProgrammerModel,
+	type BillingSubscriptionProgrammerModel,
+	type ListBillingPlansProgrammerModel
 } from '$lib/billing/Billing.repository.svelte';
 export { stripePriceIdForTier, STRIPE_PUBLISHABLE_KEY } from '$lib/billing/constants/config';

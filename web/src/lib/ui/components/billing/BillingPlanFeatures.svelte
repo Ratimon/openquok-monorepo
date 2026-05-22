@@ -1,23 +1,20 @@
 <script lang="ts">
-	import type { BillingPlanDto } from '$lib/billing';
+	import type { BillingPlanViewModel } from '$lib/billing';
 	import { icons } from '$data/icons';
-	import { buildPlanFeatureLines } from '$lib/ui/components/billing/buildPlanFeatureLines';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	type Props = {
-		plan: BillingPlanDto;
+		planVm: BillingPlanViewModel;
 	};
 
-	let { plan }: Props = $props();
-
-	const features = $derived(buildPlanFeatureLines(plan));
+	let { planVm }: Props = $props();
 </script>
 
 <Tooltip.Provider delayDuration={200}>
 	<div class="flex flex-col justify-center gap-2.5 text-base text-base-content/80">
-		{#each features as feature (feature.label)}
+		{#each planVm.featureLines as feature (feature.label)}
 			<div class="flex gap-5 max-lg:justify-center">
 				<AbstractIcon
 					name={icons.CircleCheck.name}

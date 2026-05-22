@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { BillingPlanDto } from '$lib/billing';
+	import type { BillingPlanViewModel } from '$lib/billing';
 	import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
 
+	import { tierDisplayName } from '$lib/billing';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import BillingPlanFeatures from '$lib/ui/components/billing/BillingPlanFeatures.svelte';
 	import BillingProrateHint from '$lib/ui/components/billing/BillingProrateHint.svelte';
-	import { tierDisplayName } from '$lib/ui/components/billing/buildPlanFeatureLines';
 
 	type Props = {
-		plan: BillingPlanDto;
+		planVm: BillingPlanViewModel;
 		period: SubscriptionPeriod;
 		currentPackage: PaidSubscriptionTier | '';
 		cancelAt: string | null;
@@ -22,7 +22,7 @@
 	};
 
 	let {
-		plan,
+		planVm,
 		period,
 		currentPackage,
 		cancelAt,
@@ -35,10 +35,10 @@
 		onReactivate
 	}: Props = $props();
 
-	const tier = $derived(plan.tier as PaidSubscriptionTier);
+	const tier = $derived(planVm.tier as PaidSubscriptionTier);
 	const isCurrent = $derived(currentPackage === tier);
 	const showReactivate = $derived(isCurrent && Boolean(cancelAt));
-	const price = $derived(period === 'YEARLY' ? plan.yearPrice : plan.monthPrice);
+	const price = $derived(period === 'YEARLY' ? planVm.yearPrice : planVm.monthPrice);
 	const periodLabel = $derived(period === 'YEARLY' ? '/year' : '/month');
 	const showProrate = $derived(hasActiveSubscription && !isCurrent && !showReactivate);
 
@@ -79,5 +79,5 @@
 		{/if}
 	</div>
 
-	<BillingPlanFeatures {plan} />
+	<BillingPlanFeatures {planVm} />
 </div>
