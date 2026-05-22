@@ -15,7 +15,7 @@
 <Tooltip.Provider delayDuration={200}>
 	<div class="flex flex-col justify-center gap-2.5 text-base text-base-content/80">
 		{#each planVm.featureLines as feature (feature.label)}
-			<div class="flex gap-5 max-lg:justify-center">
+			<div class="flex gap-5">
 				<AbstractIcon
 					name={icons.CircleCheck.name}
 					class="shrink-0 text-[#06ff00]"

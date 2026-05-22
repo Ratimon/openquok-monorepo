@@ -51,7 +51,7 @@
 </script>
 
 <div
-	class="flex flex-1 flex-col gap-4 rounded border border-base-300 bg-base-100 p-6 max-lg:items-center max-lg:text-center"
+	class="flex flex-1 flex-col gap-4 rounded border border-base-300 bg-base-100 p-6 max-lg:items-stretch max-lg:text-left"
 >
 	<div class="text-lg font-medium uppercase tracking-wide">
 		{tierDisplayName(tier)}
@@ -64,7 +64,7 @@
 		<span class="text-sm font-normal text-base-content/60">{periodLabel}</span>
 	</div>
 
-	<div class="flex flex-wrap items-start gap-2.5 text-sm max-lg:justify-center">
+	<div class="flex flex-wrap items-start gap-2.5 text-sm">
 		{#if showReactivate}
 			<Button variant="primary" disabled={checkoutBusy} onclick={onReactivate}>
 				{buttonLabel}
@@ -78,7 +78,7 @@
 				{buttonLabel}
 			</Button>
 		{/if}
-		
+
 		{#if showProrate}
 			<BillingProrateHint {tier} {period} {previewProrate} />
 		{/if}
