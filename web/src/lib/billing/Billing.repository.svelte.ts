@@ -209,14 +209,22 @@ export class BillingRepository {
 		return null;
 	}
 
-	async checkCheckout(organizationId: string, checkoutId: string): Promise<number> {
+	async checkCheckout(
+		organizationId: string,
+		checkoutId: string
+	): Promise<{ status: number; organizationId?: string }> {
 		const { data: checkCheckoutDto, ok } = await this.httpGateway.get<{
 			success: boolean;
-			data?: { status: number };
+			data?: { status: number; organizationId?: string };
 		}>(this.config.endpoints.checkCheckout(checkoutId), { organizationId }, { withCredentials: true });
 
-		if (ok && checkCheckoutDto?.data?.status != null) return checkCheckoutDto.data.status;
-		return 0;
+		if (ok && checkCheckoutDto?.data?.status != null) {
+			return {
+				status: checkCheckoutDto.data.status,
+				organizationId: checkCheckoutDto.data.organizationId
+			};
+		}
+		return { status: 0 };
 	}
 
 	async checkDiscountOffer(organizationId: string): Promise<string | false> {

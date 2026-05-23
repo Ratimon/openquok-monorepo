@@ -1,7 +1,12 @@
 import { z } from "zod";
 
+const optionalOrganizationId = z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().uuid("organizationId must be a valid UUID").optional()
+);
+
 export const billingSubscribeBodySchema = z.object({
-    organizationId: z.string().uuid("organizationId must be a valid UUID").optional(),
+    organizationId: optionalOrganizationId,
     period: z.enum(["MONTHLY", "YEARLY"]),
     billing: z.enum(["SOLO", "CREATOR", "TEAM", "ULTIMATE"]),
     stripePriceId: z

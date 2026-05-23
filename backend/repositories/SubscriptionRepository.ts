@@ -101,6 +101,22 @@ export class SubscriptionRepository {
         }
     }
 
+    /** Clears a stale Stripe customer link (e.g. customer deleted in the Dashboard). */
+    async clearStripeCustomerId(organizationId: string): Promise<void> {
+        const { error } = await this.supabase
+            .from(ORGS_TABLE)
+            .update({ stripe_customer_id: null, updated_at: new Date().toISOString() })
+            .eq("id", organizationId);
+
+        if (error) {
+            throw new DatabaseError("Failed to clear Stripe customer id", {
+                cause: error as unknown as Error,
+                operation: "clearStripeCustomerId",
+                resource: { type: "table", name: ORGS_TABLE },
+            });
+        }
+    }
+
     async setTrialing(organizationId: string, isTrialing: boolean): Promise<void> {
         const { error } = await this.supabase
             .from(ORGS_TABLE)
@@ -114,6 +130,30 @@ export class SubscriptionRepository {
                 resource: { type: "table", name: ORGS_TABLE },
             });
         }
+    }
+
+    /** Checkout correlation id (`?checkout=` / Stripe metadata.uniqueId), any workspace. */
+    async getSubscriptionByIdentifier(identifier: string): Promise<OrganizationSubscriptionRow | null> {
+        const trimmed = identifier.trim();
+        if (!trimmed) return null;
+
+        const { data, error } = await this.supabase
+            .from(SUBSCRIPTIONS_TABLE)
+            .select(
+                "id, organization_id, subscription_tier, period, identifier, cancel_at, total_channels, is_lifetime, created_at, updated_at, deleted_at"
+            )
+            .eq("identifier", trimmed)
+            .is("deleted_at", null)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Failed to load subscription by identifier", {
+                cause: error as unknown as Error,
+                operation: "getSubscriptionByIdentifier",
+                resource: { type: "table", name: SUBSCRIPTIONS_TABLE },
+            });
+        }
+        return (data as OrganizationSubscriptionRow | null) ?? null;
     }
 
     async checkSubscriptionByIdentifier(

@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import type Stripe from "stripe";
+import Stripe from "stripe";
 import { faker } from "@faker-js/faker";
 import { pricing } from "openquok-common";
 
@@ -18,15 +18,16 @@ const priceId = "price_solo_monthly";
 const mockConstructEvent = jest.fn();
 const mockStripe = {
     webhooks: { constructEvent: mockConstructEvent },
-    customers: { create: jest.fn() },
+    customers: { create: jest.fn(), retrieve: jest.fn() },
     prices: { retrieve: jest.fn(), list: jest.fn(), create: jest.fn() },
     products: { list: jest.fn(), create: jest.fn() },
     subscriptions: {
         list: jest.fn(),
+        retrieve: jest.fn(),
         update: jest.fn(),
         cancel: jest.fn(),
     },
-    checkout: { sessions: { create: jest.fn() } },
+    checkout: { sessions: { create: jest.fn(), list: jest.fn() } },
     billingPortal: { sessions: { create: jest.fn() } },
     charges: { list: jest.fn() },
     invoices: { retrieve: jest.fn(), createPreview: jest.fn() },
@@ -62,8 +63,10 @@ function createMockSubscriptionRepo(): jest.Mocked<SubscriptionRepository> {
     return {
         getOrganizationBilling: jest.fn(),
         updateStripeCustomerId: jest.fn(),
+        clearStripeCustomerId: jest.fn(),
         getSubscriptionByOrganizationId: jest.fn(),
         checkSubscriptionByIdentifier: jest.fn(),
+        getSubscriptionByIdentifier: jest.fn(),
         getOrganizationByStripeCustomerId: jest.fn(),
         setTrialing: jest.fn(),
     } as unknown as jest.Mocked<SubscriptionRepository>;
@@ -119,7 +122,10 @@ describe("StripeService", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockStripe.customers.retrieve.mockResolvedValue({ id: customerId, deleted: false });
+        mockStripe.checkout.sessions.list.mockResolvedValue({ data: [] });
         subscriptionRepo = createMockSubscriptionRepo();
+        (subscriptionRepo.getSubscriptionByIdentifier as jest.Mock).mockResolvedValue(null);
         subscriptionService = createMockSubscriptionService();
         organizationRepo = createMockOrganizationRepo();
     });
@@ -179,8 +185,38 @@ describe("StripeService", () => {
                 allow_trial: false,
                 is_trialing: false,
             });
+            mockStripe.customers.retrieve.mockResolvedValue({ id: customerId, deleted: false });
             await expect(service().createOrGetCustomer(organizationId)).resolves.toBe(customerId);
             expect(mockStripe.customers.create).not.toHaveBeenCalled();
+        });
+
+        it("recreates customer when the stored Stripe customer was deleted in the Dashboard", async () => {
+            const staleId = "cus_deleted_test";
+            const newId = "cus_new_test";
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                name: "Acme",
+                stripe_customer_id: staleId,
+                allow_trial: false,
+                is_trialing: false,
+            });
+            (organizationRepo.getTeam as jest.Mock).mockResolvedValue({
+                members: [{ role: "owner", email: "owner@example.com" }],
+            });
+            mockStripe.customers.retrieve.mockRejectedValue(
+                Stripe.errors.StripeInvalidRequestError.generate({
+                    type: "invalid_request_error",
+                    message: `No such customer: '${staleId}'`,
+                    code: "resource_missing",
+                })
+            );
+            mockStripe.customers.create.mockResolvedValue({ id: newId });
+            await expect(service().createOrGetCustomer(organizationId)).resolves.toBe(newId);
+            expect(subscriptionRepo.clearStripeCustomerId).toHaveBeenCalledWith(organizationId);
+            expect(subscriptionRepo.updateStripeCustomerId).toHaveBeenCalledWith(
+                organizationId,
+                newId
+            );
         });
 
         it("creates a Stripe customer from the workspace owner email", async () => {
@@ -210,10 +246,14 @@ describe("StripeService", () => {
 
     describe("checkCheckoutStatus", () => {
         it("returns 2 when subscription row exists for checkout id", async () => {
-            (subscriptionRepo.checkSubscriptionByIdentifier as jest.Mock).mockResolvedValue({
+            (subscriptionRepo.getSubscriptionByIdentifier as jest.Mock).mockResolvedValue({
                 id: faker.string.uuid(),
+                organization_id: organizationId,
             });
-            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toBe(2);
+            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toEqual({
+                status: 2,
+                organizationId,
+            });
         });
 
         it("returns 0 when no Stripe customer is linked", async () => {
@@ -225,7 +265,9 @@ describe("StripeService", () => {
                 allow_trial: false,
                 is_trialing: false,
             });
-            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toBe(0);
+            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toEqual({
+                status: 0,
+            });
         });
 
         it("returns 1 when matching subscription was canceled", async () => {
@@ -245,11 +287,39 @@ describe("StripeService", () => {
                     },
                 ],
             });
-            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toBe(1);
+            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toEqual({
+                status: 1,
+            });
         });
 
         it("syncs and returns 2 when Stripe subscription is active but not yet in DB", async () => {
-            (subscriptionRepo.checkSubscriptionByIdentifier as jest.Mock)
+            (subscriptionRepo.checkSubscriptionByIdentifier as jest.Mock).mockResolvedValue(null);
+            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock)
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce({ id: faker.string.uuid() });
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                name: "Acme",
+                stripe_customer_id: customerId,
+                allow_trial: false,
+                is_trialing: false,
+            });
+            mockStripe.checkout.sessions.list.mockResolvedValue({ data: [] });
+            const activeSub = stripeSubscription({
+                metadata: { uniqueId: checkoutId, service: "openquok", billing: "SOLO", organizationId },
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [activeSub] });
+
+            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toEqual({
+                status: 2,
+                organizationId,
+            });
+            expect(subscriptionService.createOrUpdateFromStripe).toHaveBeenCalled();
+        });
+
+        it("syncs from a paid Checkout session when subscription metadata lacks uniqueId", async () => {
+            (subscriptionRepo.checkSubscriptionByIdentifier as jest.Mock).mockResolvedValue(null);
+            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock)
                 .mockResolvedValueOnce(null)
                 .mockResolvedValueOnce({ id: faker.string.uuid() });
             (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
@@ -260,16 +330,40 @@ describe("StripeService", () => {
                 is_trialing: false,
             });
             const activeSub = stripeSubscription({
-                metadata: { uniqueId: checkoutId, service: "openquok", billing: "SOLO", organizationId },
+                metadata: { service: "openquok", billing: "SOLO", organizationId },
             });
-            mockStripe.subscriptions.list.mockResolvedValue({ data: [activeSub] });
+            mockStripe.checkout.sessions.list.mockResolvedValue({
+                data: [
+                    {
+                        id: "cs_test",
+                        metadata: {
+                            uniqueId: checkoutId,
+                            service: "openquok",
+                            billing: "SOLO",
+                            period: "MONTHLY",
+                            organizationId,
+                        },
+                        payment_status: "paid",
+                        status: "complete",
+                        subscription: activeSub.id,
+                    },
+                ],
+            });
+            mockStripe.subscriptions.retrieve.mockResolvedValue(activeSub);
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [] });
 
-            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toBe(2);
-            expect(subscriptionService.createOrUpdateFromStripe).toHaveBeenCalled();
+            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toEqual({
+                status: 2,
+                organizationId,
+            });
+            expect(subscriptionService.createOrUpdateFromStripe).toHaveBeenCalledWith(
+                expect.objectContaining({ identifier: checkoutId })
+            );
         });
 
         it("returns 0 when Stripe subscription is active but sync does not persist", async () => {
             (subscriptionRepo.checkSubscriptionByIdentifier as jest.Mock).mockResolvedValue(null);
+            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockResolvedValue(null);
             (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
                 id: organizationId,
                 name: "Acme",
@@ -277,12 +371,15 @@ describe("StripeService", () => {
                 allow_trial: false,
                 is_trialing: false,
             });
+            mockStripe.checkout.sessions.list.mockResolvedValue({ data: [] });
             const activeSub = stripeSubscription({
                 metadata: { uniqueId: checkoutId, service: "other", billing: "SOLO", organizationId },
             });
             mockStripe.subscriptions.list.mockResolvedValue({ data: [activeSub] });
 
-            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toBe(0);
+            await expect(service().checkCheckoutStatus(organizationId, checkoutId)).resolves.toEqual({
+                status: 0,
+            });
             expect(subscriptionService.createOrUpdateFromStripe).not.toHaveBeenCalled();
         });
     });
@@ -398,6 +495,31 @@ describe("StripeService", () => {
             );
         });
 
+        it("updates an existing Stripe subscription even when the DB row is missing", async () => {
+            mockStripe.subscriptions.list.mockResolvedValue({
+                data: [
+                    stripeSubscription({
+                        items: {
+                            object: "list",
+                            data: [{ id: "si_existing", price: { id: priceId } }],
+                            has_more: false,
+                            url: "/v1/subscription_items",
+                        },
+                    } as Partial<Stripe.Subscription>),
+                ],
+            });
+            mockStripe.subscriptions.update.mockResolvedValue(stripeSubscription());
+            const result = await service().subscribe({
+                organizationId,
+                userId,
+                body: { period: "MONTHLY", billing: "SOLO", stripePriceId: priceId },
+                allowTrial: false,
+            });
+            expect(result).toEqual({ updated: true });
+            expect(mockStripe.checkout.sessions.create).not.toHaveBeenCalled();
+            expect(mockStripe.subscriptions.update).toHaveBeenCalled();
+        });
+
         it("rejects client price ids that do not match plan pricing", async () => {
             mockStripe.prices.retrieve.mockResolvedValue({
                 active: true,
@@ -428,6 +550,24 @@ describe("StripeService", () => {
             await expect(
                 service().previewProration(organizationId, { billing: "SOLO", period: "MONTHLY" })
             ).resolves.toEqual({ price: 0 });
+        });
+
+        it("does not auto-create Stripe products when backend price id is missing", async () => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                name: "Acme",
+                stripe_customer_id: customerId,
+                allow_trial: false,
+                is_trialing: false,
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({
+                data: [stripeSubscription()],
+            });
+            await expect(
+                service().previewProration(organizationId, { billing: "CREATOR", period: "MONTHLY" })
+            ).rejects.toBeInstanceOf(UserValidationError);
+            expect(mockStripe.products.create).not.toHaveBeenCalled();
+            expect(mockStripe.prices.create).not.toHaveBeenCalled();
         });
     });
 

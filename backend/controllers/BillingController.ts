@@ -160,13 +160,13 @@ export class BillingController {
 
     checkCheckout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
+            const organizationId = resolveActiveOrganizationId(req) ?? "";
             const id = String(req.params.id ?? "");
             if (!id.trim()) {
                 throw new UserValidationError("checkout id is required");
             }
-            const status = await this.stripeService.checkCheckoutStatus(organizationId, id);
-            res.status(200).json({ success: true, data: { status } });
+            const poll = await this.stripeService.checkCheckoutStatus(organizationId, id);
+            res.status(200).json({ success: true, data: poll });
         } catch (error) {
             next(error);
         }

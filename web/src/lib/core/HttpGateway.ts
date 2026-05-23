@@ -49,6 +49,24 @@ export interface ApiResponse<T = unknown> {
 /**
  * API error
  */
+/** User-facing message from a failed API response body. */
+export function messageFromApiError(error: unknown, fallback: string): string {
+	if (error instanceof ApiError && typeof error.data === 'object' && error.data !== null) {
+		const body = error.data as Record<string, unknown>;
+		if (typeof body.message === 'string' && body.message.trim()) {
+			return body.message;
+		}
+		const nested = body.error;
+		if (typeof nested === 'object' && nested !== null && 'message' in nested) {
+			const nestedMessage = (nested as { message?: unknown }).message;
+			if (typeof nestedMessage === 'string' && nestedMessage.trim()) {
+				return nestedMessage;
+			}
+		}
+	}
+	return fallback;
+}
+
 export class ApiError extends Error {
 	public status: number;
 	public statusText: string;

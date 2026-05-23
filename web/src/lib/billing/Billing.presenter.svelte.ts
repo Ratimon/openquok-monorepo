@@ -3,6 +3,7 @@ import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
 import { stripePriceIdForTier } from '$lib/billing/constants/config';
+import { ApiError, messageFromApiError } from '$lib/core/HttpGateway';
 import { toast } from '$lib/ui/sonner';
 
 export class BillingPresenter {
@@ -56,6 +57,16 @@ export class BillingPresenter {
 						'Subscription changed, but billing details failed to refresh. Reload the page.'
 					);
 				}
+				return;
+			}
+			toast.error('Checkout could not be started. Try again or contact support.');
+		} catch (error) {
+			if (error instanceof ApiError) {
+				toast.error(
+					messageFromApiError(error, 'Checkout failed. Check your plan and Stripe configuration.')
+				);
+			} else {
+				toast.error('Checkout failed. Try again.');
 			}
 		} finally {
 			this.checkoutBusy = false;
@@ -70,26 +81,30 @@ export class BillingPresenter {
 	}
 
 	async pollCheckout(checkoutId: string): Promise<boolean> {
-		const organizationId = this.organizationId;
-		if (!organizationId || !checkoutId) return false;
+		if (!checkoutId) return false;
 
 		for (let attempt = 0; attempt < 30; attempt++) {
-			let status = 0;
+			const workspaceId = this.organizationId;
+			let poll = { status: 0, organizationId: undefined as string | undefined };
 			try {
-				status = await this.billingRepository.checkCheckout(organizationId, checkoutId);
+				poll = await this.billingRepository.checkCheckout(workspaceId, checkoutId);
 			} catch {
 				await new Promise((resolve) => setTimeout(resolve, 2000));
 				continue;
 			}
-			if (status === 2) {
+			if (poll.status === 2) {
+				const confirmedOrgId = poll.organizationId?.trim();
+				if (confirmedOrgId && confirmedOrgId !== workspaceId) {
+					await this.workspaceSettingsPresenter.switchWorkspace(confirmedOrgId);
+				}
 				try {
 					await this.reloadPricing?.();
-					return true;
 				} catch {
-					return false;
+					// Subscription is confirmed; UI refresh can fail without failing the poll.
 				}
+				return true;
 			}
-			if (status === 1) return false;
+			if (poll.status === 1) return false;
 			await new Promise((resolve) => setTimeout(resolve, 2000));
 		}
 

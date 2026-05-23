@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 
 	import { ConversionTrackEvent, trackConversion } from '$lib/product-analytics';
@@ -39,6 +40,17 @@
 				period = loadedPeriod;
 			}
 			if (checkoutId) {
+				const tierAfterLoad = pagePresenter.currentVm?.tier ?? 'FREE';
+				const alreadyActive =
+					Boolean(pagePresenter.currentVm?.subscription?.id) ||
+					(tierAfterLoad !== 'FREE' && tierAfterLoad !== null);
+				if (alreadyActive) {
+					pagePresenter.onPurchaseComplete();
+					void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
+					toast.success('Subscription updated.');
+					replaceState('/account/billing', {});
+					return;
+				}
 				void pagePresenter.pollCheckout(checkoutId).then((confirmed) => {
 					const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
 					if (loadedPeriod) {
@@ -48,6 +60,7 @@
 						pagePresenter.onPurchaseComplete();
 						void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
 						toast.success('Subscription updated.');
+						replaceState('/account/billing', {});
 					} else {
 						toast.error(
 							'We could not confirm your subscription yet. Refresh the page in a moment.'
