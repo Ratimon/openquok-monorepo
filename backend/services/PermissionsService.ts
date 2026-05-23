@@ -6,6 +6,7 @@ import {
     SubscriptionSection,
     type SubscriptionTier,
     UNLIMITED_POSTS_PER_MONTH,
+    UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
 } from "openquok-common";
 import { SubscriptionError } from "../errors/SubscriptionError";
 import { config } from "../config/GlobalConfig";
@@ -194,6 +195,7 @@ export class PermissionsService {
                 this.billingUrl()
             );
         }
+        if (cap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE) return;
 
         const [memberCounts, pendingInvites] = await Promise.all([
             this.organizationRepository.getMemberCounts([organizationId]),
@@ -225,6 +227,7 @@ export class PermissionsService {
                 this.billingUrl()
             );
         }
+        if (cap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE) return;
 
         const memberCounts = await this.organizationRepository.getMemberCounts([organizationId]);
         const members = memberCounts[organizationId] ?? 0;

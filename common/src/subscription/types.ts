@@ -30,7 +30,7 @@ export interface PlanLimits {
 	/** Connected social accounts (channels) allowed per workspace. */
 	channel_per_workspace: number;
 	posts_per_month: number;
-	/** Team member seats per workspace (workspace membership). */
+	/** Team member seats per workspace; {@link UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE} means unlimited. */
 	team_members_per_workspace: number;
 	/** Shareable post preview links. */
 	share_post_preview: boolean;

@@ -41,11 +41,9 @@
 </script>
 
 {#if loading}
-	<div class="pt-3">
-		<span class="loading loading-spinner loading-sm text-primary"></span>
-	</div>
+	<span class="loading loading-spinner loading-xs text-primary"></span>
 {:else if price !== false}
-	<div class="pt-3 text-xs text-base-content/70">
-		(Pay Today ${(price < 0 ? 0 : price).toFixed(1)})
-	</div>
+	<span class="text-xs font-normal text-base-content/70">
+		(Pay Today ${(price < 0 ? 0 : price).toFixed(0)})
+	</span>
 {/if}

@@ -33,8 +33,11 @@ export {
 export {
 	DEFAULT_MEDIA_STORAGE_QUOTA_BYTES,
 	UNLIMITED_POSTS_PER_MONTH,
+	UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
+	accountTeamMemberSeatTotal,
 	gbToBytes,
 	isPaidSubscriptionTier,
+	isUnlimitedTeamMembersPerWorkspace,
 	planLimitsForTier,
 	pricing,
 } from './subscription/pricing';

@@ -5,7 +5,12 @@ import type {
 	BillingSubscriptionProgrammerModel
 } from '$lib/billing/Billing.repository.svelte';
 import { formatPostsPerMonthLimit } from '$lib/billing/Billing.repository.svelte';
-import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
+import {
+	accountTeamMemberSeatTotal,
+	isUnlimitedTeamMembersPerWorkspace,
+	type PaidSubscriptionTier,
+	type SubscriptionPeriod
+} from 'openquok-common';
 
 import { formatBytes } from '$lib/medias';
 
@@ -61,12 +66,16 @@ export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanF
 
 	linesVm.push({ label: `${formatPostsPerMonthLimit(plan.postsPerMonth)} posts per month` });
 
-	const teamTotal = plan.teamMembersPerWorkspace * plan.workspaces;
-	if (teamTotal > 1) {
-		linesVm.push({
-			label: `Total ${teamTotal} team members`,
-			tooltip: perWorkspaceLabel(plan.teamMembersPerWorkspace, 'member', 'members')
-		});
+	if (isUnlimitedTeamMembersPerWorkspace(plan.teamMembersPerWorkspace)) {
+		linesVm.push({ label: 'Unlimited team members' });
+	} else {
+		const teamTotal = accountTeamMemberSeatTotal(plan.workspaces, plan.teamMembersPerWorkspace);
+		if (teamTotal > 1) {
+			linesVm.push({
+				label: `Total ${teamTotal} team members`,
+				tooltip: perWorkspaceLabel(plan.teamMembersPerWorkspace, 'member', 'members')
+			});
+		}
 	}
 
 	if (plan.sharePostPreview) {

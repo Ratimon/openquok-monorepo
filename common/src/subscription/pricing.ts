@@ -4,6 +4,24 @@ import { PAID_SUBSCRIPTION_TIERS } from './types.js';
 /** Use 1_000_000 for “unlimited” post scheduling caps in enforcement. */
 export const UNLIMITED_POSTS_PER_MONTH = 1_000_000;
 
+/** Use 1_000_000 for “unlimited” team member seats per workspace in enforcement and UI. */
+export const UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE = 1_000_000;
+
+export function isUnlimitedTeamMembersPerWorkspace(cap: number): boolean {
+	return cap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE;
+}
+
+/** Total team member seats on the account (all workspaces). */
+export function accountTeamMemberSeatTotal(
+	workspaces: number,
+	teamMembersPerWorkspace: number
+): number {
+	if (isUnlimitedTeamMembersPerWorkspace(teamMembersPerWorkspace)) {
+		return Number.POSITIVE_INFINITY;
+	}
+	return teamMembersPerWorkspace * workspaces;
+}
+
 const GIB = 1024 ** 3;
 
 export const gbToBytes = (gb: number): number => Math.round(gb * GIB);
@@ -55,7 +73,7 @@ export const pricing: PricingMap = {
 		workspaces: 2,
 		channel_per_workspace: 20, // total of 40 channels
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
-		team_members_per_workspace: 1, // total of 2 team members 
+		team_members_per_workspace: 3, // total of 6 team members 
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,
@@ -68,7 +86,7 @@ export const pricing: PricingMap = {
 		workspaces: 3,
 		channel_per_workspace: 25, // total of 75 channels
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
-		team_members_per_workspace: 2, // total of 6 team members
+		team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,
@@ -76,12 +94,12 @@ export const pricing: PricingMap = {
 	},
 	ULTIMATE: {
 		current: 'ULTIMATE',
-		month_price: 99,
-		year_price: 950,
-		workspaces: 5,
-		channel_per_workspace: 40, // total of 200 channels
+		month_price: 129,
+		year_price: 1238,
+		workspaces: 10,
+		channel_per_workspace: 30, // total of 300 channels
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
-		team_members_per_workspace: 2,  // total of 10 team members
+		team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,

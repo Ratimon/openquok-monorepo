@@ -100,14 +100,15 @@
 		{tierDisplayName(tier)}
 	</div>
 
-	<div class="flex items-center gap-0.5 text-4xl font-semibold">
-		<span>
-			${price}
-		</span>
+	<div class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5">
+		<span class="text-4xl font-semibold">${price}</span>
 		<span class="text-sm font-normal text-base-content/60">{periodLabel}</span>
+		{#if showProrate}
+			<BillingProrateHint tier={tier as PaidSubscriptionTier} {period} {previewProrate} />
+		{/if}
 	</div>
 
-	<div class="flex flex-wrap items-start gap-2.5 text-sm">
+	<div class="text-sm">
 		<Button
 			variant={cancelFromFreeCard ? 'red' : 'primary'}
 			disabled={buttonDisabled}
@@ -115,10 +116,6 @@
 		>
 			{buttonLabel}
 		</Button>
-
-		{#if showProrate}
-			<BillingProrateHint tier={tier as PaidSubscriptionTier} {period} {previewProrate} />
-		{/if}
 	</div>
 
 	<BillingPlanFeatures {planVm} />

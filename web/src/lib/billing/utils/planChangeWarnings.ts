@@ -1,11 +1,12 @@
 import type { BillingPlanViewModel } from '$lib/billing/GetPricing.presenter.svelte';
+import { accountTeamMemberSeatTotal } from 'openquok-common';
 
 export const TEAM_MEMBER_DOWNGRADE_MESSAGE =
 	'Your team members will be removed from this workspace.';
 
 /** Total team member seats included in the plan (across all workspaces on the account). */
 export function totalTeamMemberSeats(plan: BillingPlanViewModel): number {
-	return plan.teamMembersPerWorkspace * plan.workspaces;
+	return accountTeamMemberSeatTotal(plan.workspaces, plan.teamMembersPerWorkspace);
 }
 
 /** True when the target plan allows fewer team seats than the current plan (and current has multi-seat). */
