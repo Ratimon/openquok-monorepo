@@ -30,12 +30,18 @@ export class PermissionsService {
         return `${frontend.replace(/\/+$/, "")}/account/billing`;
     }
 
-    async getTierAndLimits(organizationId: string): Promise<{
+    async getTierAndLimits(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<{
         tier: SubscriptionTier;
         limits: (typeof pricing)[SubscriptionTier];
         subscription: OrganizationSubscriptionRow | null;
     }> {
-        const subscription = await this.subscriptionService.getSubscriptionByOrganizationId(organizationId);
+        const subscription = await this.subscriptionService.getEffectiveSubscription(
+            organizationId,
+            authUserId
+        );
         const tier = this.subscriptionService.resolveTier(subscription);
         return {
             tier,
@@ -51,12 +57,13 @@ export class PermissionsService {
     async assertPolicies(
         organizationId: string,
         workspaceRole: WorkspaceMembershipRole,
-        policies: SubscriptionPolicy[]
+        policies: SubscriptionPolicy[],
+        authUserId?: string
     ): Promise<void> {
         if (policies.length === 0) return;
         if (!this.subscriptionService.billingEnabled()) return;
 
-        const { limits } = await this.getTierAndLimits(organizationId);
+        const { limits } = await this.getTierAndLimits(organizationId, authUserId);
 
         for (const [, section] of policies) {
             if (section === SubscriptionSection.ADMIN) {
@@ -71,7 +78,10 @@ export class PermissionsService {
             }
 
             if (section === SubscriptionSection.MEDIA_STORAGE_BYTES_PER_WORKSPACE) {
-                const drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId);
+                const drive = await this.subscriptionService.getWorkspaceDriveUsage(
+                    organizationId,
+                    authUserId
+                );
                 if (drive.used >= drive.total) {
                     throw new SubscriptionError(
                         "Workspace media storage limit reached. Upgrade your plan or delete files.",
@@ -135,11 +145,15 @@ export class PermissionsService {
      * Before scheduling new post rows (`QUEUE` / `PUBLISHED` toward the monthly cap).
      * Pass `rowsToAdd` as the number of post rows about to be inserted or flipped to `QUEUE`.
      */
-    async assertPostsPerMonthAllowed(organizationId: string, rowsToAdd = 1): Promise<void> {
+    async assertPostsPerMonthAllowed(
+        organizationId: string,
+        rowsToAdd = 1,
+        authUserId?: string
+    ): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
         if (rowsToAdd < 1) return;
 
-        const { limits, subscription } = await this.getTierAndLimits(organizationId);
+        const { limits, subscription } = await this.getTierAndLimits(organizationId, authUserId);
         const cap = limits.posts_per_month;
         if (cap >= UNLIMITED_POSTS_PER_MONTH) return;
 
@@ -168,10 +182,10 @@ export class PermissionsService {
     }
 
     /** Before creating a pending email invite — members + pending invites must stay under the seat cap. */
-    async assertTeamInviteCapacity(organizationId: string): Promise<void> {
+    async assertTeamInviteCapacity(organizationId: string, authUserId?: string): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
 
-        const { limits } = await this.getTierAndLimits(organizationId);
+        const { limits } = await this.getTierAndLimits(organizationId, authUserId);
         const cap = limits.team_members_per_workspace;
         if (cap < 1) {
             throw new SubscriptionError(
@@ -196,10 +210,13 @@ export class PermissionsService {
     }
 
     /** Before adding a new member (invite accept / join link) — active members must be under the seat cap. */
-    async assertWorkspaceHasSeatForNewMember(organizationId: string): Promise<void> {
+    async assertWorkspaceHasSeatForNewMember(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
 
-        const { limits } = await this.getTierAndLimits(organizationId);
+        const { limits } = await this.getTierAndLimits(organizationId, authUserId);
         const cap = limits.team_members_per_workspace;
         if (cap < 1) {
             throw new SubscriptionError(
@@ -236,7 +253,7 @@ export class PermissionsService {
 
         let workspaceCap = 0;
         for (const org of organizations) {
-            const { limits } = await this.getTierAndLimits(org.id);
+            const { limits } = await this.getTierAndLimits(org.id, authUserId);
             workspaceCap = Math.max(workspaceCap, limits.workspaces);
         }
 
@@ -257,10 +274,14 @@ export class PermissionsService {
      * Before persisting a new social channel — respects {@link planLimitsForTier} `channel_per_workspace`.
      * Reconnecting the same provider account (same `internalId`) does not consume an extra slot.
      */
-    async assertConnectSocialChannelAllowed(organizationId: string, newAccountInternalId: string): Promise<void> {
+    async assertConnectSocialChannelAllowed(
+        organizationId: string,
+        newAccountInternalId: string,
+        authUserId?: string
+    ): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
 
-        const { limits } = await this.getTierAndLimits(organizationId);
+        const { limits } = await this.getTierAndLimits(organizationId, authUserId);
         const cap = limits.channel_per_workspace;
         if (cap < 1) {
             throw new SubscriptionError(

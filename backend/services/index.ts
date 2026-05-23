@@ -117,7 +117,11 @@ export const plugService = new PlugService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
-export const subscriptionService = new SubscriptionService(subscriptionRepository, mediaRepository);
+export const subscriptionService = new SubscriptionService(
+    subscriptionRepository,
+    mediaRepository,
+    organizationRepository
+);
 export const permissionsService = new PermissionsService(
     subscriptionService,
     integrationService,

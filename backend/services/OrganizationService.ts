@@ -51,7 +51,7 @@ export class OrganizationService {
 
         if (this.getRoleLevel(membership.role) < 1) throw new OrganizationForbiddenError("Only admins can invite team members");
 
-        await this.permissionsService?.assertTeamInviteCapacity(organizationId);
+        await this.permissionsService?.assertTeamInviteCapacity(organizationId, authUserId);
 
         const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
         if (!organization) throw new OrganizationNotFoundError(organizationId);
@@ -107,7 +107,10 @@ export class OrganizationService {
         if (existing && !existing.disabled) {
             return { organizationId: payload.organizationId, workspaceRole: payload.workspaceRole };
         }
-        await this.permissionsService?.assertWorkspaceHasSeatForNewMember(payload.organizationId);
+        await this.permissionsService?.assertWorkspaceHasSeatForNewMember(
+            payload.organizationId,
+            authUserId
+        );
         const { error } = await this.organizationRepository.addMember({
             userId,
             organizationId: payload.organizationId,
@@ -169,7 +172,10 @@ export class OrganizationService {
             await this._invalidateOrganizationRelatedCaches({ authUserId });
             return { organizationId: invite.organization_id, workspaceRole: invite.role as "user" | "admin" };
         }
-        await this.permissionsService?.assertWorkspaceHasSeatForNewMember(invite.organization_id);
+        await this.permissionsService?.assertWorkspaceHasSeatForNewMember(
+            invite.organization_id,
+            authUserId
+        );
         const { error } = await this.organizationRepository.addMember({
             userId,
             organizationId: invite.organization_id,

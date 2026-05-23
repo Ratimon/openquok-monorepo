@@ -497,7 +497,11 @@ export class PostsService {
         }
 
         if (state === "QUEUE") {
-            await this.permissionsService?.assertPostsPerMonthAllowed(organizationId, toInsert.length);
+            await this.permissionsService?.assertPostsPerMonthAllowed(
+                organizationId,
+                toInsert.length,
+                authUserId ?? undefined
+            );
         }
 
         return { postGroup, toInsert, tagIds };
@@ -832,7 +836,8 @@ export class PostsService {
             if (draftRows.length > 0) {
                 await this.permissionsService?.assertPostsPerMonthAllowed(
                     input.organizationId,
-                    draftRows.length
+                    draftRows.length,
+                    input.authUserId ?? undefined
                 );
             }
         }

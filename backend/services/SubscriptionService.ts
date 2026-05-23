@@ -7,6 +7,7 @@ import {
     type SubscriptionTier,
 } from "openquok-common";
 import type { MediaRepository } from "../repositories/MediaRepository";
+import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type {
     OrganizationSubscriptionRow,
     SubscriptionRepository,
@@ -24,7 +25,8 @@ export interface WorkspaceDriveUsage {
 export class SubscriptionService {
     constructor(
         private readonly subscriptionRepository: SubscriptionRepository,
-        private readonly mediaRepository: MediaRepository
+        private readonly mediaRepository: MediaRepository,
+        private readonly organizationRepository: OrganizationRepository
     ) {}
 
     billingEnabled(): boolean {
@@ -36,6 +38,44 @@ export class SubscriptionService {
         organizationId: string
     ): Promise<OrganizationSubscriptionRow | null> {
         return this.subscriptionRepository.getSubscriptionByOrganizationId(organizationId);
+    }
+
+    /**
+     * Resolves the paid subscription that applies to a workspace.
+     * When the workspace has no row, inherits from another workspace on the same billing account
+     * (all non-disabled memberships for the user), if the account is within the plan workspace cap.
+     */
+    async getEffectiveSubscription(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<OrganizationSubscriptionRow | null> {
+        const direct = await this.subscriptionRepository.getSubscriptionByOrganizationId(organizationId);
+        if (direct) return direct;
+        if (!authUserId?.trim() || !this.billingEnabled()) return null;
+
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId.trim());
+        if (!userId) return null;
+
+        const { organizations } = await this.organizationRepository.findOrganizationsByUserId(userId);
+        if (!organizations.some((org) => org.id === organizationId)) return null;
+
+        let best: OrganizationSubscriptionRow | null = null;
+        let bestWorkspaceCap = -1;
+
+        for (const org of organizations) {
+            const sub = await this.subscriptionRepository.getSubscriptionByOrganizationId(org.id);
+            if (!sub) continue;
+            const cap = planLimitsForTier(sub.subscription_tier).workspaces;
+            if (cap > bestWorkspaceCap) {
+                bestWorkspaceCap = cap;
+                best = sub;
+            }
+        }
+
+        if (!best || bestWorkspaceCap < 1) return null;
+        if (organizations.length > bestWorkspaceCap) return null;
+
+        return best;
     }
 
     resolveTier(subscription: OrganizationSubscriptionRow | null): SubscriptionTier {
@@ -54,17 +94,19 @@ export class SubscriptionService {
         return planLimitsForTier(this.resolveTier(subscription));
     }
 
-    async getMediaStorageQuotaBytes(organizationId: string): Promise<number> {
-        const subscription = await this.subscriptionRepository.getSubscriptionByOrganizationId(
-            organizationId
-        );
+    async getMediaStorageQuotaBytes(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<number> {
+        const subscription = await this.getEffectiveSubscription(organizationId, authUserId);
         return this.getPlanLimitsForOrganization(subscription).media_storage_bytes_per_workspace;
     }
 
-    async getWorkspaceDriveUsage(organizationId: string): Promise<WorkspaceDriveUsage> {
-        const subscription = await this.subscriptionRepository.getSubscriptionByOrganizationId(
-            organizationId
-        );
+    async getWorkspaceDriveUsage(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<WorkspaceDriveUsage> {
+        const subscription = await this.getEffectiveSubscription(organizationId, authUserId);
         const tier = this.resolveTier(subscription);
         const total =
             planLimitsForTier(tier).media_storage_bytes_per_workspace || DEFAULT_MEDIA_STORAGE_QUOTA_BYTES;
@@ -77,8 +119,12 @@ export class SubscriptionService {
         };
     }
 
-    async assertMediaStorageAvailable(organizationId: string, additionalBytes: number): Promise<void> {
-        const { used, total } = await this.getWorkspaceDriveUsage(organizationId);
+    async assertMediaStorageAvailable(
+        organizationId: string,
+        additionalBytes: number,
+        authUserId?: string
+    ): Promise<void> {
+        const { used, total } = await this.getWorkspaceDriveUsage(organizationId, authUserId);
         if (used + additionalBytes > total) {
             const frontend = (config.server as { frontendDomainUrl?: string }).frontendDomainUrl ?? "";
             throw new SubscriptionError(

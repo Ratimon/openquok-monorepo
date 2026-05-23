@@ -9,6 +9,7 @@ import {
 
 // import { SubscriptionError } from "../errors/SubscriptionError";
 import type { MediaRepository } from "../repositories/MediaRepository";
+import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type {
     OrganizationSubscriptionRow,
     SubscriptionRepository,
@@ -23,6 +24,9 @@ jest.mock("../config/GlobalConfig", () => ({
 }));
 
 const organizationId = faker.string.uuid();
+const billingOrganizationId = faker.string.uuid();
+const authUserId = faker.string.uuid();
+const userId = faker.string.uuid();
 
 function subscriptionRow(
     tier: PaidSubscriptionTier = "SOLO",
@@ -59,18 +63,45 @@ function createMockMediaRepo(): jest.Mocked<MediaRepository> {
     } as unknown as jest.Mocked<MediaRepository>;
 }
 
+function createMockOrganizationRepo(): jest.Mocked<
+    Pick<OrganizationRepository, "findUserIdByAuthId" | "findOrganizationsByUserId">
+> {
+    return {
+        findUserIdByAuthId: jest.fn(),
+        findOrganizationsByUserId: jest.fn(),
+    };
+}
+
+function createService(
+    subscriptionRepo: jest.Mocked<SubscriptionRepository>,
+    mediaRepo: jest.Mocked<MediaRepository>,
+    organizationRepo: jest.Mocked<
+        Pick<OrganizationRepository, "findUserIdByAuthId" | "findOrganizationsByUserId">
+    >
+): SubscriptionService {
+    return new SubscriptionService(
+        subscriptionRepo,
+        mediaRepo,
+        organizationRepo as unknown as OrganizationRepository
+    );
+}
+
 describe("SubscriptionService", () => {
     let subscriptionRepo: jest.Mocked<SubscriptionRepository>;
     let mediaRepo: jest.Mocked<MediaRepository>;
+    let organizationRepo: jest.Mocked<
+        Pick<OrganizationRepository, "findUserIdByAuthId" | "findOrganizationsByUserId">
+    >;
 
     beforeEach(() => {
         subscriptionRepo = createMockSubscriptionRepo();
         mediaRepo = createMockMediaRepo();
+        organizationRepo = createMockOrganizationRepo();
     });
 
     describe("billingEnabled", () => {
         it("returns true when Stripe publishable key is configured", () => {
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             expect(service.billingEnabled()).toBe(true);
         });
 
@@ -79,15 +110,61 @@ describe("SubscriptionService", () => {
                 config: { stripe: { publishableKey?: string } };
             };
             config.stripe.publishableKey = "";
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             expect(service.billingEnabled()).toBe(false);
             config.stripe.publishableKey = "pk_test_123";
         });
     });
 
+    describe("getEffectiveSubscription", () => {
+        it("returns the workspace subscription when present", async () => {
+            const row = subscriptionRow("TEAM", { organization_id: organizationId });
+            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockResolvedValue(row);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            await expect(service.getEffectiveSubscription(organizationId, authUserId)).resolves.toBe(row);
+            expect(organizationRepo.findUserIdByAuthId).not.toHaveBeenCalled();
+        });
+
+        it("inherits the account subscription for another workspace within the plan cap", async () => {
+            const billingRow = subscriptionRow("TEAM", { organization_id: billingOrganizationId });
+            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockImplementation(
+                async (orgId: string) => (orgId === billingOrganizationId ? billingRow : null)
+            );
+            (organizationRepo.findUserIdByAuthId as jest.Mock).mockResolvedValue({ userId, error: null });
+            (organizationRepo.findOrganizationsByUserId as jest.Mock).mockResolvedValue({
+                organizations: [{ id: billingOrganizationId }, { id: organizationId }],
+                memberships: [],
+                error: null,
+            });
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            await expect(service.getEffectiveSubscription(organizationId, authUserId)).resolves.toBe(
+                billingRow
+            );
+        });
+
+        it("returns null when the account exceeds the plan workspace cap", async () => {
+            const billingRow = subscriptionRow("SOLO", { organization_id: billingOrganizationId });
+            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockImplementation(
+                async (orgId: string) => (orgId === billingOrganizationId ? billingRow : null)
+            );
+            (organizationRepo.findUserIdByAuthId as jest.Mock).mockResolvedValue({ userId, error: null });
+            (organizationRepo.findOrganizationsByUserId as jest.Mock).mockResolvedValue({
+                organizations: [
+                    { id: billingOrganizationId },
+                    { id: organizationId },
+                    { id: faker.string.uuid() },
+                ],
+                memberships: [],
+                error: null,
+            });
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            await expect(service.getEffectiveSubscription(organizationId, authUserId)).resolves.toBeNull();
+        });
+    });
+
     describe("resolveTier", () => {
         it("uses subscription tier when present", () => {
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             expect(service.resolveTier(subscriptionRow("TEAM"))).toBe("TEAM");
         });
 
@@ -96,20 +173,20 @@ describe("SubscriptionService", () => {
                 config: { stripe: { publishableKey?: string } };
             };
             config.stripe.publishableKey = "";
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             expect(service.resolveTier(null)).toBe("CREATOR");
             config.stripe.publishableKey = "pk_test_123";
         });
 
         it("returns FREE when billing is enabled and no subscription", () => {
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             expect(service.resolveTier(null)).toBe("FREE");
         });
     });
 
     describe("getPlanLimitsForOrganization", () => {
         it("returns limits for the resolved tier", () => {
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             const limits = service.getPlanLimitsForOrganization(subscriptionRow("ULTIMATE"));
             expect(limits).toEqual(pricing.ULTIMATE);
         });
@@ -120,7 +197,7 @@ describe("SubscriptionService", () => {
             (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockResolvedValue(
                 subscriptionRow("SOLO")
             );
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             await expect(service.getMediaStorageQuotaBytes(organizationId)).resolves.toBe(
                 pricing.SOLO.media_storage_bytes_per_workspace
             );
@@ -137,7 +214,7 @@ describe("SubscriptionService", () => {
                 { size: 2500 },
                 { size: undefined },
             ]);
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             const usage = await service.getWorkspaceDriveUsage(organizationId);
             expect(usage.used).toBe(3500);
             expect(usage.tier).toBe("SOLO");
@@ -150,7 +227,7 @@ describe("SubscriptionService", () => {
                 subscriptionRow("SOLO")
             );
             (mediaRepo.listAllMedia as jest.Mock).mockResolvedValue([{ size: quota + 1 }]);
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             const usage = await service.getWorkspaceDriveUsage(organizationId);
             expect(usage.total).toBe(quota + 1);
         });
@@ -162,7 +239,7 @@ describe("SubscriptionService", () => {
             config.stripe.publishableKey = "";
             (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockResolvedValue(null);
             (mediaRepo.listAllMedia as jest.Mock).mockResolvedValue([]);
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             const usage = await service.getWorkspaceDriveUsage(organizationId);
             expect(usage.tier).toBe("CREATOR");
             expect(usage.total).toBe(DEFAULT_MEDIA_STORAGE_QUOTA_BYTES);
@@ -177,7 +254,7 @@ describe("SubscriptionService", () => {
                 subscriptionRow("SOLO")
             );
             (mediaRepo.listAllMedia as jest.Mock).mockResolvedValue([{ size: quota }]);
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             await expect(service.assertMediaStorageAvailable(organizationId, 1)).rejects.toMatchObject({
                 name: "SubscriptionError",
                 statusCode: 402,
@@ -191,7 +268,7 @@ describe("SubscriptionService", () => {
                 subscriptionRow("SOLO")
             );
             (mediaRepo.listAllMedia as jest.Mock).mockResolvedValue([{ size: 100 }]);
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             await expect(
                 service.assertMediaStorageAvailable(organizationId, 100)
             ).resolves.toBeUndefined();
@@ -202,7 +279,7 @@ describe("SubscriptionService", () => {
         it("delegates to the subscription repository", async () => {
             const row = subscriptionRow("CREATOR");
             (subscriptionRepo.createOrUpdateSubscription as jest.Mock).mockResolvedValue(row);
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             const result = await service.createOrUpdateFromStripe({
                 organizationId,
                 isTrialing: true,
@@ -228,7 +305,7 @@ describe("SubscriptionService", () => {
     describe("deleteSubscriptionForCustomer", () => {
         it("soft-deletes by Stripe customer id", async () => {
             const customerId = "cus_test";
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             await service.deleteSubscriptionForCustomer(customerId);
             expect(subscriptionRepo.softDeleteByStripeCustomerId).toHaveBeenCalledWith(customerId);
         });
@@ -238,7 +315,7 @@ describe("SubscriptionService", () => {
         it("creates a paid subscription with plan channel limits", async () => {
             const row = subscriptionRow("TEAM", { period: "YEARLY" });
             (subscriptionRepo.createOrUpdateSubscription as jest.Mock).mockResolvedValue(row);
-            const service = new SubscriptionService(subscriptionRepo, mediaRepo);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             const result = await service.grantPaidSubscriptionForAdmin({
                 organizationId,
                 subscriptionTier: "TEAM",

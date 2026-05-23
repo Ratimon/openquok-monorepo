@@ -50,9 +50,10 @@ export class MediaController {
 
     private async uploadToStorage(params: {
         organizationId: string;
+        authUserId?: string;
         file: { buffer: Buffer; originalname: string; mimetype: string };
     }): Promise<{ filePath: string; publicUrl: string | null }> {
-        const { organizationId, file } = params;
+        const { organizationId, authUserId, file } = params;
 
         if (!isAllowedMediaMime(file.mimetype || "")) {
             throw new UserValidationError("Unsupported media type");
@@ -64,7 +65,7 @@ export class MediaController {
             throw new UserValidationError(uploadSizeError);
         }
 
-        await this.subscriptionService.assertMediaStorageAvailable(organizationId, size);
+        await this.subscriptionService.assertMediaStorageAvailable(organizationId, size, authUserId);
 
         const out = await this.uploadProvider.uploadFile({
             organizationId,
@@ -74,6 +75,10 @@ export class MediaController {
         });
 
         return { filePath: out.path, publicUrl: out.publicUrl ?? publicUrlForObjectKey(out.path) };
+    }
+
+    private authUserIdFromRequest(req: Request): string | undefined {
+        return (req as AuthenticatedRequest).user?.id;
     }
 
     list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -334,7 +339,11 @@ export class MediaController {
             }
 
             const file = req.file as { buffer: Buffer; originalname: string; mimetype: string };
-            const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+            const { filePath, publicUrl } = await this.uploadToStorage({
+                organizationId,
+                authUserId: this.authUserIdFromRequest(req),
+                file
+            });
 
             const saved = await this.mediaService.saveFile({
                 organizationId,
@@ -439,7 +448,11 @@ export class MediaController {
                 if (uploadSizeError) {
                     throw new UserValidationError(uploadSizeError);
                 }
-                await this.subscriptionService.assertMediaStorageAvailable(organizationId, fileSize);
+                await this.subscriptionService.assertMediaStorageAvailable(
+                    organizationId,
+                    fileSize,
+                    this.authUserIdFromRequest(req)
+                );
 
                 const parts = Array.isArray((req.body as any)?.parts) ? (req.body as any).parts : [];
                 const completed = await this.storageR2Repository.completeMultipartUpload({
@@ -499,7 +512,11 @@ export class MediaController {
                 throw new UserValidationError("organizationId is required");
             }
 
-            const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+            const { filePath, publicUrl } = await this.uploadToStorage({
+                organizationId,
+                authUserId: this.authUserIdFromRequest(req),
+                file
+            });
 
             const saved = await this.mediaService.saveFile({
                 organizationId,
@@ -584,7 +601,11 @@ export class MediaController {
             const file = { buffer, originalname: `upload.${finalExt}`, mimetype };
 
             const organizationId = organization.id;
-            const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+            const { filePath, publicUrl } = await this.uploadToStorage({
+                organizationId,
+                authUserId: this.authUserIdFromRequest(req),
+                file
+            });
 
             const saved = await this.mediaService.saveFile({
                 organizationId,
@@ -641,7 +662,11 @@ export class MediaController {
             const file = { ...raw, mimetype };
 
             const organizationId = organization.id;
-            const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+            const { filePath, publicUrl } = await this.uploadToStorage({
+                organizationId,
+                authUserId: this.authUserIdFromRequest(req),
+                file
+            });
 
             const saved = await this.mediaService.saveFile({
                 organizationId,
@@ -694,7 +719,11 @@ export class MediaController {
                 throw new UserValidationError("organizationId is required");
             }
 
-            const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+            const { filePath, publicUrl } = await this.uploadToStorage({
+                organizationId,
+                authUserId: this.authUserIdFromRequest(req),
+                file
+            });
 
             if (preventSave) {
                 res.status(200).json({

@@ -303,7 +303,11 @@ export class UserController {
     getSubscription = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const organizationId = resolveActiveOrganizationId(req, { required: true })!;
-            const subscription = await this.subscriptionService.getSubscriptionByOrganizationId(organizationId);
+            const authUserId = (req as AuthenticatedRequest).user?.id;
+            const subscription = await this.subscriptionService.getEffectiveSubscription(
+                organizationId,
+                authUserId
+            );
             res.status(200).json({
                 success: true,
                 data: { subscription: subscription ?? undefined },

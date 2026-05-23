@@ -57,7 +57,8 @@ export class BillingController {
     getCurrent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const organizationId = resolveActiveOrganizationId(req, { required: true })!;
-            const data = await this.buildCurrentBillingData(organizationId);
+            const authUserId = (req as AuthenticatedRequest).user?.id;
+            const data = await this.buildCurrentBillingData(organizationId, authUserId);
             res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);
@@ -353,10 +354,13 @@ export class BillingController {
         }
     };
 
-    async buildCurrentBillingData(organizationId: string) {
+    async buildCurrentBillingData(organizationId: string, authUserId?: string) {
         let subscription: OrganizationSubscriptionRow | null = null;
         try {
-            subscription = await this.subscriptionService.getSubscriptionByOrganizationId(organizationId);
+            subscription = await this.subscriptionService.getEffectiveSubscription(
+                organizationId,
+                authUserId
+            );
         } catch (error) {
             logger.error({
                 msg: "buildCurrentBillingData: subscription lookup failed",
@@ -367,9 +371,10 @@ export class BillingController {
 
         const tier = this.subscriptionService.resolveTier(subscription);
         const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
+        const billingOrganizationId = subscription?.organization_id ?? organizationId;
         let drive: { used: number; total: number; tier: SubscriptionTier };
         try {
-            drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId);
+            drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId, authUserId);
         } catch (error) {
             logger.warn({
                 msg: "buildCurrentBillingData: drive usage unavailable",
@@ -387,7 +392,8 @@ export class BillingController {
             hasStripeCustomer: boolean;
         } | null = null;
         try {
-            const orgBilling = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+            const orgBilling =
+                await this.subscriptionRepository.getOrganizationBilling(billingOrganizationId);
             billing = orgBilling
                 ? {
                       allowTrial: orgBilling.allow_trial,
@@ -398,7 +404,7 @@ export class BillingController {
         } catch (error) {
             logger.warn({
                 msg: "buildCurrentBillingData: organization billing lookup failed",
-                organizationId,
+                organizationId: billingOrganizationId,
                 error: error instanceof Error ? error.message : String(error),
             });
         }

@@ -513,7 +513,11 @@ export class IntegrationConnectionService {
             resolveFreshRemoteUrl: async () => picture || null,
         });
 
-        await this.permissionsService?.assertConnectSocialChannelAllowed(organizationId, String(id));
+        await this.permissionsService?.assertConnectSocialChannelAllowed(
+            organizationId,
+            String(id),
+            authUserId ?? undefined
+        );
 
         const row = await this.integrations.upsertIntegration({
             organizationId,
