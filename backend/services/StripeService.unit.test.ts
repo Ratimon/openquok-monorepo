@@ -74,11 +74,15 @@ function createMockSubscriptionRepo(): jest.Mocked<SubscriptionRepository> {
 }
 
 function createMockSubscriptionService(): jest.Mocked<
-    Pick<SubscriptionService, "createOrUpdateFromStripe" | "deleteSubscriptionForCustomer">
+    Pick<
+        SubscriptionService,
+        "createOrUpdateFromStripe" | "deleteSubscriptionForCustomer" | "getEffectiveSubscription"
+    >
 > {
     return {
         createOrUpdateFromStripe: jest.fn().mockResolvedValue(undefined),
         deleteSubscriptionForCustomer: jest.fn().mockResolvedValue(undefined),
+        getEffectiveSubscription: jest.fn().mockResolvedValue(null),
     };
 }
 
@@ -531,6 +535,38 @@ describe("StripeService", () => {
             expect(mockStripe.subscriptions.update).toHaveBeenCalled();
         });
 
+        it("returns billing portal URL when in-place subscription update fails", async () => {
+            mockStripe.subscriptions.list.mockResolvedValue({
+                data: [
+                    stripeSubscription({
+                        items: {
+                            object: "list",
+                            data: [{ id: "si_existing", price: { id: priceId } }],
+                            has_more: false,
+                            url: "/v1/subscription_items",
+                        },
+                    } as Partial<Stripe.Subscription>),
+                ],
+            });
+            mockStripe.subscriptions.update.mockRejectedValue(new Error("Your card was declined."));
+            mockStripe.billingPortal.sessions.create.mockResolvedValue({
+                url: "https://billing.stripe.com/portal",
+            });
+            (userRepo.findFullUserByUserId as jest.Mock).mockResolvedValue({
+                userData: { full_name: "Jane Owner", email: "owner@example.com" },
+            });
+
+            const result = await service().subscribe({
+                organizationId,
+                userId,
+                body: { period: "MONTHLY", billing: "SOLO", stripePriceId: priceId },
+                allowTrial: false,
+            });
+
+            expect(result).toEqual({ portal: "https://billing.stripe.com/portal" });
+            expect(mockStripe.checkout.sessions.create).not.toHaveBeenCalled();
+        });
+
         it("rejects client price ids that do not match plan pricing", async () => {
             mockStripe.prices.retrieve.mockResolvedValue({
                 active: true,
@@ -545,6 +581,148 @@ describe("StripeService", () => {
                     allowTrial: false,
                 })
             ).rejects.toBeInstanceOf(UserValidationError);
+        });
+    });
+
+    describe("reactivateSubscription", () => {
+        beforeEach(() => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                name: "Acme",
+                stripe_customer_id: customerId,
+                allow_trial: false,
+                is_trialing: false,
+            });
+            (subscriptionService.getEffectiveSubscription as jest.Mock).mockImplementation(
+                async (orgId: string) =>
+                    (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock)(orgId)
+            );
+        });
+
+        it("clears cancel_at_period_end on the scheduled subscription and syncs DB", async () => {
+            const scheduled = stripeSubscription({
+                cancel_at_period_end: true,
+                cancel_at: 1_800_000_000,
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [scheduled] });
+            mockStripe.subscriptions.update.mockResolvedValue(
+                stripeSubscription({ cancel_at_period_end: false, cancel_at: null })
+            );
+
+            const result = await service().reactivateSubscription(organizationId);
+
+            expect(result.id).toBe(checkoutId);
+            expect(mockStripe.subscriptions.update).toHaveBeenCalledWith(
+                scheduled.id,
+                expect.objectContaining({ cancel_at_period_end: false })
+            );
+            expect(subscriptionService.createOrUpdateFromStripe).toHaveBeenCalledWith(
+                expect.objectContaining({ organizationId, cancelAt: null })
+            );
+        });
+
+        it("uses the effective subscription row from another workspace on the same account", async () => {
+            const billingOrgId = faker.string.uuid();
+            const scheduled = stripeSubscription({
+                cancel_at_period_end: true,
+                cancel_at: 1_800_000_000,
+            });
+            (subscriptionService.getEffectiveSubscription as jest.Mock).mockResolvedValue({
+                id: faker.string.uuid(),
+                organization_id: billingOrgId,
+                subscription_tier: "TEAM",
+                period: "MONTHLY",
+                identifier: checkoutId,
+                cancel_at: new Date(1_800_000_000 * 1000).toISOString(),
+                total_channels: pricing.TEAM.channel_per_workspace,
+                is_lifetime: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                deleted_at: null,
+            });
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockImplementation(
+                async (orgId: string) => ({
+                    id: orgId,
+                    name: "Acme",
+                    stripe_customer_id: customerId,
+                    allow_trial: false,
+                    is_trialing: false,
+                })
+            );
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [scheduled] });
+            mockStripe.subscriptions.update.mockResolvedValue(
+                stripeSubscription({ cancel_at_period_end: false, cancel_at: null })
+            );
+
+            await service().reactivateSubscription(organizationId, userId);
+
+            expect(subscriptionService.getEffectiveSubscription).toHaveBeenCalledWith(
+                organizationId,
+                userId
+            );
+            expect(subscriptionRepo.getOrganizationBilling).toHaveBeenCalledWith(billingOrgId);
+            expect(mockStripe.subscriptions.update).toHaveBeenCalled();
+        });
+
+        it("reactivates an open subscription when DB has cancel_at but Stripe is not flagged", async () => {
+            const active = stripeSubscription({ cancel_at_period_end: false, cancel_at: null });
+            (subscriptionService.getEffectiveSubscription as jest.Mock).mockResolvedValue({
+                id: faker.string.uuid(),
+                organization_id: organizationId,
+                subscription_tier: "SOLO",
+                period: "MONTHLY",
+                identifier: checkoutId,
+                cancel_at: new Date(1_800_000_000 * 1000).toISOString(),
+                total_channels: pricing.SOLO.channel_per_workspace,
+                is_lifetime: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                deleted_at: null,
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [active] });
+            mockStripe.subscriptions.update.mockResolvedValue(active);
+
+            await service().reactivateSubscription(organizationId);
+
+            expect(mockStripe.subscriptions.update).toHaveBeenCalledWith(
+                active.id,
+                expect.objectContaining({ cancel_at_period_end: false })
+            );
+            expect(subscriptionService.createOrUpdateFromStripe).toHaveBeenCalled();
+        });
+
+        it("clears stale cancel_at in DB when Stripe has no open subscription", async () => {
+            (subscriptionService.getEffectiveSubscription as jest.Mock).mockResolvedValue({
+                id: faker.string.uuid(),
+                organization_id: organizationId,
+                subscription_tier: "SOLO",
+                period: "MONTHLY",
+                identifier: checkoutId,
+                cancel_at: new Date(1_800_000_000 * 1000).toISOString(),
+                total_channels: pricing.SOLO.channel_per_workspace,
+                is_lifetime: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                deleted_at: null,
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [] });
+
+            const result = await service().reactivateSubscription(organizationId);
+
+            expect(result.id).toBe(checkoutId);
+            expect(mockStripe.subscriptions.update).not.toHaveBeenCalled();
+            expect(subscriptionService.createOrUpdateFromStripe).toHaveBeenCalledWith(
+                expect.objectContaining({ organizationId, cancelAt: null })
+            );
+        });
+
+        it("throws when neither Stripe nor DB indicates a scheduled cancellation", async () => {
+            (subscriptionService.getEffectiveSubscription as jest.Mock).mockResolvedValue(null);
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [] });
+
+            await expect(service().reactivateSubscription(organizationId)).rejects.toThrow(
+                "No subscription scheduled for cancellation was found"
+            );
         });
     });
 

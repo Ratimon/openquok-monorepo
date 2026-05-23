@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { PaidSubscriptionTier } from 'openquok-common';
+
 	import { onMount } from 'svelte';
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
@@ -7,6 +9,7 @@
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { protectedBillingPagePresenter } from '$lib/area-protected';
 	import { toast } from '$lib/ui/sonner';
+	import { formatSubscriptionCancelDate } from '$lib/ui/helpers/formatters';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import {
@@ -29,6 +32,10 @@
 	let showCancelConfirmDialog = $state(false);
 	let showRetentionDialog = $state(false);
 	let showFeedbackDialog = $state(false);
+	let showSubscribeConfirmDialog = $state(false);
+	let showPaymentPortalDialog = $state(false);
+	let pendingSubscribeTier = $state<PaidSubscriptionTier | null>(null);
+	let paymentPortalUrl = $state<string | null>(null);
 
 	const subscription = $derived(pagePresenter.currentVm?.subscription ?? null);
 	const currentTier = $derived(subscription?.tier ?? pagePresenter.currentVm?.tier ?? null);
@@ -37,16 +44,66 @@
 	const hasActiveSubscription = $derived(
 		Boolean(subscription?.id) || (currentTier !== null && currentTier !== 'FREE')
 	);
-	const isFreeTier = $derived((currentTier ?? 'FREE') === 'FREE');
+	const userOnFreeTier = $derived((currentTier ?? 'FREE') === 'FREE');
 	const allowTrial = $derived(pagePresenter.currentVm?.billing?.allowTrial ?? false);
 	const checkoutBusy = $derived(pagePresenter.billingPresenter.checkoutBusy);
+	const hasSubscriptionRecord = $derived(Boolean(subscription?.id));
+	const checkoutEnabled = $derived(pagePresenter.billingEnabled);
 	const canCancelSubscription = $derived(
-		hasActiveSubscription && !cancelAt && pagePresenter.billingEnabled
+		checkoutEnabled && hasActiveSubscription && !cancelAt
 	);
+
+	const cancelConfirmDescription = $derived.by(() => {
+		const base = 'Are you sure you want to cancel your subscription?';
+		const warning = pagePresenter.cancelTeamMemberDowngradeWarning();
+		return warning ? `${base} ${warning}` : base;
+	});
+
+	const subscribeConfirmDescription = $derived.by(() => {
+		const tier = pendingSubscribeTier;
+		if (!tier) return '';
+		const warning = pagePresenter.teamMemberDowngradeWarningForTier(tier);
+		return warning ?? 'Continue with this plan change?';
+	});
 
 	function startCancelSubscription(): void {
 		if (!canCancelSubscription) return;
 		showCancelConfirmDialog = true;
+	}
+
+	function requestSubscribe(tier: PaidSubscriptionTier): void {
+		if (!checkoutEnabled || checkoutBusy) return;
+		const warning = pagePresenter.teamMemberDowngradeWarningForTier(tier);
+		if (warning) {
+			pendingSubscribeTier = tier;
+			showSubscribeConfirmDialog = true;
+			return;
+		}
+		void runSubscribe(tier);
+	}
+
+	async function runSubscribe(tier: PaidSubscriptionTier): Promise<void> {
+		const portalUrl = await pagePresenter.subscribeWithTracking(tier, period);
+		if (portalUrl) {
+			paymentPortalUrl = portalUrl;
+			showPaymentPortalDialog = true;
+		}
+	}
+
+	async function confirmSubscribe(): Promise<void> {
+		const tier = pendingSubscribeTier;
+		showSubscribeConfirmDialog = false;
+		pendingSubscribeTier = null;
+		if (!tier) return;
+		await runSubscribe(tier);
+	}
+
+	function openPaymentPortal(): void {
+		if (paymentPortalUrl) {
+			window.open(paymentPortalUrl, '_blank', 'noopener,noreferrer');
+		}
+		showPaymentPortalDialog = false;
+		paymentPortalUrl = null;
 	}
 
 	async function proceedAfterCancelConfirm(): Promise<void> {
@@ -136,71 +193,77 @@
 			<span class="loading loading-spinner loading-lg text-primary"></span>
 		</div>
 	{:else if !organizationId}
-		<p class="text-base-content/70 text-sm">Select a workspace to view billing.</p>
+		<div
+			class="flex flex-col gap-2 rounded-lg border border-base-300 bg-base-100 p-6 text-sm text-base-content/80"
+			role="status"
+		>
+			<p class="font-medium text-base-content">Select a workspace</p>
+			<p>Choose a workspace from the header switcher to view plans, manage billing, and checkout.</p>
+		</div>
 	{:else}
-		{#if !pagePresenter.billingEnabled}
+		{#if !checkoutEnabled}
 			<div class="alert alert-info">
 				<span>
-					Stripe billing is not configured. Set backend <code>STRIPE_*</code> keys and price ids
-					to enable checkout.
+					Stripe billing is not configured for this environment. Set backend <code>STRIPE_*</code>
+					keys and web <code>VITE_PUBLIC_STRIPE_PRICE_ID_*</code> variables to enable checkout. Plans
+					below are shown for reference only.
 				</span>
 			</div>
-		{:else}
-			<BillingPlansSection
-				plansVm={pagePresenter.plansVm}
-				bind:period
-				{currentTier}
-				{subscriptionPeriod}
-				{cancelAt}
-				{hasActiveSubscription}
-				{checkoutBusy}
-				{allowTrial}
-				{isFreeTier}
-				previewProrate={(tier, billingPeriod) =>
-					pagePresenter.previewProration(tier, billingPeriod)}
-				onSubscribe={(tier) => void pagePresenter.subscribeWithTracking(tier, period)}
-				onReactivate={() => void pagePresenter.reactivateSubscription()}
-			/>
-
-			{#if subscription?.id}
-				<div class="mt-5 flex flex-wrap justify-center gap-2.5">
-					{#if pagePresenter.currentVm?.billing?.hasStripeCustomer}
-						<Button
-							variant="primary"
-							size="default"
-							disabled={checkoutBusy}
-							onclick={() => void pagePresenter.openPortal()}
-						>
-							Update payment method / invoices history
-						</Button>
-					{/if}
-					{#if canCancelSubscription}
-						<Button
-							variant="red"
-							size="default"
-							disabled={checkoutBusy}
-							onclick={startCancelSubscription}
-						>
-							Cancel subscription
-						</Button>
-					{/if}
-				</div>
-			{/if}
-
-			{#if cancelAt}
-				<p class="text-center text-sm text-base-content/70">
-					Your subscription will be canceled at
-					{new Date(cancelAt).toLocaleDateString(undefined, {
-						day: 'numeric',
-						month: 'short',
-						year: 'numeric'
-					})}.
-					You will not be charged again after that date.
-				</p>
-			{/if}
-
-			<BillingFaq {allowTrial} />
 		{/if}
+
+		<BillingPlansSection
+			plansVm={pagePresenter.plansVm}
+			bind:period
+			{currentTier}
+			{subscriptionPeriod}
+			{cancelAt}
+			{hasActiveSubscription}
+			{hasSubscriptionRecord}
+			{checkoutEnabled}
+			{checkoutBusy}
+			{allowTrial}
+			{userOnFreeTier}
+			previewProrate={(tier, billingPeriod) =>
+				pagePresenter.previewProration(tier, billingPeriod)}
+			onSubscribe={requestSubscribe}
+			onReactivate={() => void pagePresenter.reactivateSubscription()}
+			onCancelSubscription={startCancelSubscription}
+		/>
+
+		{#if checkoutEnabled && hasSubscriptionRecord}
+			<div class="mt-5 flex flex-wrap justify-center gap-2.5">
+				{#if pagePresenter.currentVm?.billing?.hasStripeCustomer}
+					<Button
+						variant="primary"
+						size="default"
+						disabled={checkoutBusy}
+						onclick={() => void pagePresenter.openPortal()}
+					>
+						Update payment method / invoices history
+					</Button>
+				{/if}
+				{#if canCancelSubscription}
+					<Button
+						variant="red"
+						size="default"
+						disabled={checkoutBusy}
+						onclick={startCancelSubscription}
+					>
+						Cancel subscription
+					</Button>
+				{/if}
+			</div>
+		{/if}
+
+		{#if cancelAt}
+			<p class="text-center text-sm text-base-content/70">
+				Your subscription will be canceled at {formatSubscriptionCancelDate(cancelAt)}.
+				<br />
+				You will not be charged again after that date.
+			</p>
+		{/if}
+
+		<BillingFaq {allowTrial} />
 	{/if}
 
 	{#if showFinishTrial}
@@ -216,13 +279,43 @@
 	<DeleteModal
 		bind:open={showCancelConfirmDialog}
 		title="Cancel subscription"
-		description="Are you sure you want to cancel your subscription?"
+		description={cancelConfirmDescription}
 		confirmLabel="Yes, cancel"
 		cancelLabel="Cancel"
 		loading={checkoutBusy}
 		onConfirm={() => void proceedAfterCancelConfirm()}
 		onCancel={() => {
 			showCancelConfirmDialog = false;
+		}}
+	/>
+
+	<DeleteModal
+		bind:open={showSubscribeConfirmDialog}
+		title="Change plan"
+		description={subscribeConfirmDescription}
+		confirmLabel="Yes, continue"
+		cancelLabel="Cancel"
+		confirmVariant="primary"
+		loading={checkoutBusy}
+		onConfirm={() => void confirmSubscribe()}
+		onCancel={() => {
+			showSubscribeConfirmDialog = false;
+			pendingSubscribeTier = null;
+		}}
+	/>
+
+	<DeleteModal
+		bind:open={showPaymentPortalDialog}
+		title="Payment method required"
+		description="We could not charge your card for this plan change. Update your payment method in the billing portal, then try again."
+		confirmLabel="Update"
+		cancelLabel="Cancel"
+		confirmVariant="primary"
+		loading={checkoutBusy}
+		onConfirm={openPaymentPortal}
+		onCancel={() => {
+			showPaymentPortalDialog = false;
+			paymentPortalUrl = null;
 		}}
 	/>
 

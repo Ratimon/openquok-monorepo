@@ -24,16 +24,20 @@ export class BillingPresenter {
 		return this.workspaceSettingsPresenter.currentWorkspaceId ?? '';
 	}
 
-	async subscribe(tier: PaidSubscriptionTier, period: SubscriptionPeriod): Promise<void> {
+	/** @returns Billing portal URL when in-place upgrade needs a payment method update. */
+	async subscribe(
+		tier: PaidSubscriptionTier,
+		period: SubscriptionPeriod
+	): Promise<string | undefined> {
 		const organizationId = this.organizationId;
-		if (!organizationId) return;
+		if (!organizationId) return undefined;
 
 		const stripePriceId = stripePriceIdForTier(tier, period);
 		if (!stripePriceId) {
 			toast.error(
 				`Stripe price is not configured for ${tier} (${period.toLowerCase()}). Add VITE_PUBLIC_STRIPE_PRICE_ID_${tier}_${period} to your web env.`
 			);
-			return;
+			return undefined;
 		}
 
 		this.checkoutBusy = true;
@@ -46,7 +50,10 @@ export class BillingPresenter {
 			});
 			if (resultPm?.url) {
 				window.location.href = resultPm.url;
-				return;
+				return undefined;
+			}
+			if (resultPm?.portal) {
+				return resultPm.portal;
 			}
 			if (resultPm?.updated) {
 				try {
@@ -57,9 +64,10 @@ export class BillingPresenter {
 						'Subscription changed, but billing details failed to refresh. Reload the page.'
 					);
 				}
-				return;
+				return undefined;
 			}
 			toast.error('Checkout could not be started. Try again or contact support.');
+			return undefined;
 		} catch (error) {
 			if (error instanceof ApiError) {
 				toast.error(
@@ -68,6 +76,7 @@ export class BillingPresenter {
 			} else {
 				toast.error('Checkout failed. Try again.');
 			}
+			return undefined;
 		} finally {
 			this.checkoutBusy = false;
 		}
@@ -85,7 +94,7 @@ export class BillingPresenter {
 
 		for (let attempt = 0; attempt < 30; attempt++) {
 			const workspaceId = this.organizationId;
-			let poll = { status: 0, organizationId: undefined as string | undefined };
+			let poll: { status: number; organizationId?: string } = { status: 0 };
 			try {
 				poll = await this.billingRepository.checkCheckout(workspaceId, checkoutId);
 			} catch {
@@ -152,6 +161,19 @@ export class BillingPresenter {
 			if (resultPm) {
 				toast.success('Subscription reactivated successfully');
 				await this.reloadPricing?.();
+				return;
+			}
+			toast.error('Could not reactivate your subscription. Try again or contact support.');
+		} catch (error) {
+			if (error instanceof ApiError) {
+				toast.error(
+					messageFromApiError(
+						error,
+						'Could not reactivate your subscription. Refresh the page or contact support.'
+					)
+				);
+			} else {
+				toast.error('Could not reactivate your subscription. Try again.');
 			}
 		} finally {
 			this.checkoutBusy = false;

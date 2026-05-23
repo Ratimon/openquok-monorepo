@@ -295,7 +295,13 @@ export class BillingController {
                     });
             }
 
-            const result = await this.stripeService.setSubscriptionCancelAtPeriodEnd(organizationId);
+            const result =
+                feedback.length > 0
+                    ? await this.stripeService.setSubscriptionCancelAtPeriodEnd(
+                          organizationId,
+                          authUser?.id
+                      )
+                    : await this.stripeService.reactivateSubscription(organizationId, authUser?.id);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
             next(error);

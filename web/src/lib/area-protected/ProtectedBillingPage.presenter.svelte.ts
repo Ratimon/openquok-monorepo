@@ -4,9 +4,10 @@ import type {
 	BillingPlanViewModel,
 	GetPricingPresenter
 } from '$lib/billing/GetPricing.presenter.svelte';
-import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
+import type { PaidSubscriptionTier, SubscriptionPeriod, SubscriptionTier } from 'openquok-common';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
+import { teamMemberDowngradeWarning } from '$lib/billing/utils/planChangeWarnings';
 import { ConversionTrackEvent, fireProductEvent, trackConversion } from '$lib/product-analytics';
 import { authenticationRepository } from '$lib/user-auth/index';
 
@@ -77,14 +78,35 @@ export class ProtectedBillingPagePresenter {
 		return this.billingPresenter.previewProration(organizationId, tier, period);
 	}
 
-	async subscribeWithTracking(tier: PaidSubscriptionTier, period: SubscriptionPeriod): Promise<void> {
+	private currentPaidPlanVm(): BillingPlanViewModel | undefined {
+		const tier: SubscriptionTier | null | undefined =
+			this.currentVm?.subscription?.tier ?? this.currentVm?.tier;
+		if (!tier || tier === 'FREE') return undefined;
+		return this.plansVm.find((row) => row.tier === tier);
+	}
+
+	teamMemberDowngradeWarningForTier(targetTier: PaidSubscriptionTier): string | null {
+		const targetPlan = this.plansVm.find((row) => row.tier === targetTier);
+		return teamMemberDowngradeWarning(targetPlan, this.currentPaidPlanVm());
+	}
+
+	cancelTeamMemberDowngradeWarning(): string | null {
+		const freePlan = this.plansVm.find((row) => row.tier === 'FREE');
+		return teamMemberDowngradeWarning(freePlan, this.currentPaidPlanVm());
+	}
+
+	/** @returns Stripe billing portal URL when payment method must be updated in-place. */
+	async subscribeWithTracking(
+		tier: PaidSubscriptionTier,
+		period: SubscriptionPeriod
+	): Promise<string | undefined> {
 		const planVm = this.plansVm.find((row) => row.tier === tier);
 		const price = planVm ? (period === 'MONTHLY' ? planVm.monthPrice : planVm.yearPrice) : 0;
 		await trackConversion(ConversionTrackEvent.InitiateCheckout, {
 			authenticated: true,
 			additional: { value: price }
 		});
-		await this.billingPresenter.subscribe(tier, period);
+		return this.billingPresenter.subscribe(tier, period);
 	}
 
 	onPurchaseComplete(): void {

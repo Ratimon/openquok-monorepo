@@ -48,3 +48,8 @@ export {
 	type ListBillingPlansProgrammerModel
 } from '$lib/billing/Billing.repository.svelte';
 export { stripePriceIdForTier, STRIPE_PUBLISHABLE_KEY } from '$lib/billing/constants/config';
+export {
+	teamMemberDowngradeWarning,
+	wouldRemoveTeamMembers,
+	TEAM_MEMBER_DOWNGRADE_MESSAGE
+} from '$lib/billing/utils/planChangeWarnings';

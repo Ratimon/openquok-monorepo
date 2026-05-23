@@ -180,10 +180,10 @@ export class BillingRepository {
 		billing: PaidSubscriptionTier;
 		period: SubscriptionPeriod;
 		stripePriceId: string;
-	}): Promise<{ url?: string; updated?: boolean } | null> {
+	}): Promise<{ url?: string; updated?: boolean; portal?: string } | null> {
 		const { data: subscribeDto, ok } = await this.httpGateway.post<{
 			success: boolean;
-			data?: { url?: string; updated?: boolean };
+			data?: { url?: string; updated?: boolean; portal?: string };
 		}>(
 			this.config.endpoints.subscribe,
 			{

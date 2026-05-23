@@ -12,12 +12,15 @@
 		subscriptionPeriod: SubscriptionPeriod | null;
 		cancelAt: string | null;
 		hasActiveSubscription: boolean;
+		hasSubscriptionRecord: boolean;
+		checkoutEnabled: boolean;
 		checkoutBusy: boolean;
 		allowTrial: boolean;
-		isFreeTier: boolean;
+		userOnFreeTier: boolean;
 		previewProrate: (tier: PaidSubscriptionTier, period: SubscriptionPeriod) => Promise<number>;
 		onSubscribe: (tier: PaidSubscriptionTier) => void;
 		onReactivate: () => void;
+		onCancelSubscription?: () => void;
 	};
 
 	let {
@@ -27,15 +30,16 @@
 		subscriptionPeriod,
 		cancelAt,
 		hasActiveSubscription,
+		hasSubscriptionRecord,
+		checkoutEnabled,
 		checkoutBusy,
 		allowTrial,
-		isFreeTier,
+		userOnFreeTier,
 		previewProrate,
 		onSubscribe,
-		onReactivate
+		onReactivate,
+		onCancelSubscription
 	}: Props = $props();
-
-	const paidPlansVm = $derived(plansVm.filter((plan) => plan.tier !== 'FREE'));
 
 	/** Highlighted plan when the toggle matches the subscription billing cadence. */
 	const currentPackage = $derived.by((): PaidSubscriptionTier | '' => {
@@ -59,19 +63,23 @@
 	</div>
 
 	<div class="flex gap-4 max-lg:flex-col max-lg:text-center">
-		{#each paidPlansVm as planVm (planVm.tier)}
+		{#each plansVm as planVm (planVm.tier)}
 			<BillingPlanCard
 				{planVm}
 				{period}
+				{currentTier}
 				{currentPackage}
 				{cancelAt}
 				{hasActiveSubscription}
+				{hasSubscriptionRecord}
+				{checkoutEnabled}
 				{checkoutBusy}
 				{allowTrial}
-				{isFreeTier}
+				{userOnFreeTier}
 				{previewProrate}
 				{onSubscribe}
 				{onReactivate}
+				{onCancelSubscription}
 			/>
 		{/each}
 	</div>

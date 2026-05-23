@@ -16,7 +16,10 @@ import {
 import { UserValidationError } from "../errors/UserError";
 import { makeId } from "../utils/ids/makeId";
 import { logger } from "../utils/Logger";
-import type { SubscriptionRepository } from "../repositories/SubscriptionRepository";
+import type {
+    OrganizationSubscriptionRow,
+    SubscriptionRepository,
+} from "../repositories/SubscriptionRepository";
 import type { SubscriptionService } from "./SubscriptionService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { UserRepository } from "../repositories/UserRepository";
@@ -392,7 +395,7 @@ export class StripeService {
         userId: string;
         body: BillingSubscribeBody;
         allowTrial: boolean;
-    }): Promise<{ url?: string; clientSecret?: string; updated?: boolean }> {
+    }): Promise<{ url?: string; clientSecret?: string; updated?: boolean; portal?: string }> {
         const customer = await this.createOrGetCustomer(params.organizationId);
         const uniqueId = makeId(12);
         const priceId = await this.resolvePriceId(
@@ -420,20 +423,35 @@ export class StripeService {
                         "This Stripe subscription cannot be changed automatically. Use the billing portal or contact support."
                     );
                 }
-                const updated = await stripe.subscriptions.update(current.id, {
-                    items: [{ id: itemId, price: priceId }],
-                    proration_behavior: "create_prorations",
-                    metadata: {
-                        service: STRIPE_SERVICE_METADATA,
-                        billing: params.body.billing,
-                        period: params.body.period,
-                        uniqueId,
-                        userId: params.userId,
-                        organizationId: params.organizationId,
-                    },
-                });
-                await this.syncSubscriptionFromStripe(updated);
-                return { updated: true };
+                try {
+                    const updated = await stripe.subscriptions.update(current.id, {
+                        items: [{ id: itemId, price: priceId }],
+                        proration_behavior: "create_prorations",
+                        metadata: {
+                            service: STRIPE_SERVICE_METADATA,
+                            billing: params.body.billing,
+                            period: params.body.period,
+                            uniqueId,
+                            userId: params.userId,
+                            organizationId: params.organizationId,
+                        },
+                    });
+                    await this.syncSubscriptionFromStripe(updated);
+                    return { updated: true };
+                } catch (updateError) {
+                    try {
+                        const portal = await this.createBillingPortalSession(
+                            params.organizationId,
+                            params.userId
+                        );
+                        return { portal };
+                    } catch {
+                        if (updateError instanceof UserValidationError) {
+                            throw updateError;
+                        }
+                        this.rethrowStripeAsValidation(updateError);
+                    }
+                }
             }
 
             if (!frontend) {
@@ -695,37 +713,151 @@ export class StripeService {
         }
     }
 
-    async setSubscriptionCancelAtPeriodEnd(organizationId: string): Promise<{
+    private resolveCancelAtFromStripe(subscription: Stripe.Subscription): string | null {
+        if (subscription.cancel_at) {
+            return new Date(subscription.cancel_at * 1000).toISOString();
+        }
+        const periodEnd = (subscription as Stripe.Subscription & { current_period_end?: number })
+            .current_period_end;
+        if (subscription.cancel_at_period_end && periodEnd) {
+            return new Date(periodEnd * 1000).toISOString();
+        }
+        return null;
+    }
+
+    private async listOpenStripeSubscriptions(customer: string): Promise<Stripe.Subscription[]> {
+        const stripe = getStripeClient();
+        const { data } = await stripe.subscriptions.list({
+            customer,
+            status: "all",
+            expand: ["data.latest_invoice"],
+            limit: 20,
+        });
+        return data.filter(
+            (s) => s.status !== "canceled" && s.status !== "incomplete_expired"
+        );
+    }
+
+    private isBillableStripeStatus(status: Stripe.Subscription.Status): boolean {
+        return status === "active" || status === "trialing" || status === "past_due";
+    }
+
+    private pickSubscriptionScheduledToCancel(
+        subs: Stripe.Subscription[]
+    ): Stripe.Subscription | undefined {
+        return subs.find(
+            (s) =>
+                this.isBillableStripeStatus(s.status) &&
+                (s.cancel_at_period_end || s.cancel_at != null)
+        );
+    }
+
+    private pickOpenBillableSubscription(
+        subs: Stripe.Subscription[]
+    ): Stripe.Subscription | undefined {
+        return subs.find((s) => this.isBillableStripeStatus(s.status));
+    }
+
+    private hasScheduledCancellationInDb(
+        dbRow: OrganizationSubscriptionRow | null | undefined
+    ): boolean {
+        return Boolean(dbRow?.cancel_at?.trim());
+    }
+
+    /** Matches billing UI: subscription may live on another workspace in the same account. */
+    private async resolveBillingSubscription(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<{ billingOrgId: string; dbRow: OrganizationSubscriptionRow | null }> {
+        const dbRow = await this.subscriptionService.getEffectiveSubscription(
+            organizationId,
+            authUserId
+        );
+        return {
+            billingOrgId: dbRow?.organization_id ?? organizationId,
+            dbRow,
+        };
+    }
+
+    private async clearSubscriptionCancelAtInDb(
+        billingOrgId: string,
+        dbRow: OrganizationSubscriptionRow
+    ): Promise<void> {
+        const tier = dbRow.subscription_tier;
+        if (!isPaidSubscriptionTier(tier)) return;
+
+        const org = await this.subscriptionRepository.getOrganizationBilling(billingOrgId);
+        await this.subscriptionService.createOrUpdateFromStripe({
+            organizationId: billingOrgId,
+            isTrialing: Boolean(org?.is_trialing),
+            identifier: dbRow.identifier?.trim() || dbRow.id,
+            subscriptionTier: tier,
+            period: dbRow.period as SubscriptionPeriod,
+            totalChannels:
+                dbRow.total_channels ?? pricing[tier].channel_per_workspace,
+            cancelAt: null,
+        });
+    }
+
+    async reactivateSubscription(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<{
         id: string;
         cancelAt?: Date;
     }> {
-        const customer = await this.createOrGetCustomer(organizationId);
+        const { billingOrgId, dbRow } = await this.resolveBillingSubscription(
+            organizationId,
+            authUserId
+        );
+        const customer = await this.createOrGetCustomer(billingOrgId);
+        const uniqueId = makeId(10);
+        const stripe = getStripeClient();
+        const openSubs = await this.listOpenStripeSubscriptions(customer);
+        const dbScheduled = this.hasScheduledCancellationInDb(dbRow);
+
+        const sub =
+            this.pickSubscriptionScheduledToCancel(openSubs) ??
+            (dbScheduled ? this.pickOpenBillableSubscription(openSubs) : undefined);
+
+        if (!sub) {
+            if (dbScheduled && dbRow) {
+                await this.clearSubscriptionCancelAtInDb(billingOrgId, dbRow);
+                return { id: uniqueId };
+            }
+            throw new UserValidationError(
+                "No subscription scheduled for cancellation was found. Refresh the page or contact support."
+            );
+        }
+
+        const updated = await stripe.subscriptions.update(sub.id, {
+            cancel_at_period_end: false,
+            metadata: { ...sub.metadata, service: STRIPE_SERVICE_METADATA, uniqueId },
+        });
+        await this.syncSubscriptionFromStripe(updated);
+        const cancelAtIso = this.resolveCancelAtFromStripe(updated);
+        return {
+            id: uniqueId,
+            cancelAt: cancelAtIso ? new Date(cancelAtIso) : undefined,
+        };
+    }
+
+    async setSubscriptionCancelAtPeriodEnd(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<{
+        id: string;
+        cancelAt?: Date;
+    }> {
+        const { billingOrgId } = await this.resolveBillingSubscription(organizationId, authUserId);
+        const customer = await this.createOrGetCustomer(billingOrgId);
         const stripe = getStripeClient();
         const uniqueId = makeId(10);
 
-        const subs = (
-            await stripe.subscriptions.list({
-                customer,
-                status: "all",
-                expand: ["data.latest_invoice"],
-                limit: 20,
-            })
-        ).data.filter((s) => s.status !== "canceled");
-
-        const sub = subs[0];
+        const subs = await this.listOpenStripeSubscriptions(customer);
+        const sub = this.pickOpenBillableSubscription(subs);
         if (!sub) {
             throw new UserValidationError("No active subscription found");
-        }
-
-        if (sub.cancel_at_period_end) {
-            const updated = await stripe.subscriptions.update(sub.id, {
-                cancel_at_period_end: false,
-                metadata: { service: STRIPE_SERVICE_METADATA, uniqueId },
-            });
-            return {
-                id: uniqueId,
-                cancelAt: updated.cancel_at ? new Date(updated.cancel_at * 1000) : undefined,
-            };
         }
 
         const latestInvoice = sub.latest_invoice as Stripe.Invoice | null;
@@ -744,9 +876,11 @@ export class StripeService {
             cancel_at_period_end: true,
             metadata: { service: STRIPE_SERVICE_METADATA, uniqueId },
         });
+        await this.syncSubscriptionFromStripe(updated);
+        const cancelAtIso = this.resolveCancelAtFromStripe(updated);
         return {
             id: uniqueId,
-            cancelAt: updated.cancel_at ? new Date(updated.cancel_at * 1000) : undefined,
+            cancelAt: cancelAtIso ? new Date(cancelAtIso) : undefined,
         };
     }
 
@@ -936,9 +1070,7 @@ export class StripeService {
             typeof metadata.uniqueId === "string" ? metadata.uniqueId : subscription.id;
         const period = this.periodFromMetadata(metadata);
         const isTrialing = subscription.status === "trialing";
-        const cancelAt = subscription.cancel_at
-            ? new Date(subscription.cancel_at * 1000).toISOString()
-            : null;
+        const cancelAt = this.resolveCancelAtFromStripe(subscription);
 
         await this.subscriptionService.createOrUpdateFromStripe({
             organizationId,
