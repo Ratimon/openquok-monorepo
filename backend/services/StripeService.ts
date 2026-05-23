@@ -19,6 +19,7 @@ import { logger } from "../utils/Logger";
 import type { SubscriptionRepository } from "../repositories/SubscriptionRepository";
 import type { SubscriptionService } from "./SubscriptionService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { UserRepository } from "../repositories/UserRepository";
 
 const STRIPE_SERVICE_METADATA = "openquok";
 
@@ -52,7 +53,8 @@ export class StripeService {
     constructor(
         private readonly subscriptionRepository: SubscriptionRepository,
         private readonly subscriptionService: SubscriptionService,
-        private readonly organizationRepository: OrganizationRepository
+        private readonly organizationRepository: OrganizationRepository,
+        private readonly userRepository: UserRepository
     ) {}
 
     private frontendUrl(): string {
@@ -96,23 +98,64 @@ export class StripeService {
         }
     }
 
-    private async createStripeCustomerForOrganization(
+    private normalizeBillingEmail(rawEmail: string | null | undefined): string {
+        const raw = rawEmail?.trim();
+        if (!raw) return "billing@openquok.local";
+        if (raw.includes("@")) return raw;
+        return `${raw}@billing.local`;
+    }
+
+    private billingDisplayName(fullName: string | null | undefined, fallback: string): string {
+        const name = fullName?.trim();
+        return name || fallback;
+    }
+
+    /** Billing contact name/email for Stripe Customer (portal + checkout). */
+    private async resolveBillingContact(
         organizationId: string,
-        org: { name: string }
-    ): Promise<string> {
+        authUserId?: string
+    ): Promise<{ name: string; email: string }> {
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        const orgName = org?.name?.trim() || "Workspace";
+
+        const authId = authUserId?.trim();
+        if (authId) {
+            const { userData } = await this.userRepository.findFullUserByUserId(authId);
+            if (userData) {
+                return {
+                    name: this.billingDisplayName(userData.full_name, orgName),
+                    email: this.normalizeBillingEmail(userData.email),
+                };
+            }
+        }
+
         const { members } = await this.organizationRepository.getTeam(organizationId);
         const lead = members.find((m) => m.role === "owner") ?? members[0];
-        const rawEmail = lead?.email?.trim();
-        const email =
-            rawEmail && rawEmail.includes("@")
-                ? rawEmail
-                : rawEmail
-                  ? `${rawEmail}@billing.local`
-                  : "billing@openquok.local";
+        return {
+            name: this.billingDisplayName(lead?.full_name, orgName),
+            email: this.normalizeBillingEmail(lead?.email),
+        };
+    }
+
+    private async syncStripeCustomerProfile(
+        customerId: string,
+        contact: { name: string; email: string }
+    ): Promise<void> {
+        await getStripeClient().customers.update(customerId, {
+            name: contact.name,
+            email: contact.email,
+        });
+    }
+
+    private async createStripeCustomerForOrganization(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<string> {
+        const contact = await this.resolveBillingContact(organizationId, authUserId);
 
         const customer = await getStripeClient().customers.create({
-            email,
-            name: org.name,
+            email: contact.email,
+            name: contact.name,
             metadata: { organizationId, service: STRIPE_SERVICE_METADATA },
         });
         await this.subscriptionRepository.updateStripeCustomerId(organizationId, customer.id);
@@ -153,7 +196,7 @@ export class StripeService {
             }
         }
 
-        return this.createStripeCustomerForOrganization(organizationId, org);
+        return this.createStripeCustomerForOrganization(organizationId);
     }
 
     private stripePriceIds(): StripePriceIdMap {
@@ -432,8 +475,10 @@ export class StripeService {
         }
     }
 
-    async createBillingPortalSession(organizationId: string): Promise<string> {
+    async createBillingPortalSession(organizationId: string, authUserId?: string): Promise<string> {
         const customer = await this.createOrGetCustomer(organizationId);
+        const contact = await this.resolveBillingContact(organizationId, authUserId);
+        await this.syncStripeCustomerProfile(customer, contact);
         const session = await getStripeClient().billingPortal.sessions.create({
             customer,
             return_url: `${this.frontendUrl()}/account/billing`,

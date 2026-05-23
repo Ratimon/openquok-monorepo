@@ -9,7 +9,14 @@
 	import { toast } from '$lib/ui/sonner';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import { BillingFaq, BillingPlansSection, FinishTrial } from '$lib/ui/components/billing';
+	import {
+		BillingCancelFeedbackDialog,
+		BillingCancelRetentionDialog,
+		BillingFaq,
+		BillingPlansSection,
+		FinishTrial
+	} from '$lib/ui/components/billing';
+	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 
 	const pagePresenter = protectedBillingPagePresenter;
 
@@ -19,6 +26,9 @@
 
 	let period = $state<'MONTHLY' | 'YEARLY'>('MONTHLY');
 	let showFinishTrial = $state(false);
+	let showCancelConfirmDialog = $state(false);
+	let showRetentionDialog = $state(false);
+	let showFeedbackDialog = $state(false);
 
 	const subscription = $derived(pagePresenter.currentVm?.subscription ?? null);
 	const currentTier = $derived(subscription?.tier ?? pagePresenter.currentVm?.tier ?? null);
@@ -29,6 +39,44 @@
 	);
 	const isFreeTier = $derived((currentTier ?? 'FREE') === 'FREE');
 	const allowTrial = $derived(pagePresenter.currentVm?.billing?.allowTrial ?? false);
+	const checkoutBusy = $derived(pagePresenter.billingPresenter.checkoutBusy);
+	const canCancelSubscription = $derived(
+		hasActiveSubscription && !cancelAt && pagePresenter.billingEnabled
+	);
+
+	function startCancelSubscription(): void {
+		if (!canCancelSubscription) return;
+		showCancelConfirmDialog = true;
+	}
+
+	async function proceedAfterCancelConfirm(): Promise<void> {
+		showCancelConfirmDialog = false;
+		const hasOffer = await pagePresenter.checkRetentionOffer();
+		if (hasOffer) {
+			showRetentionDialog = true;
+			return;
+		}
+		showFeedbackDialog = true;
+	}
+
+	async function onAcceptRetentionDiscount(): Promise<void> {
+		const applied = await pagePresenter.applyRetentionDiscount();
+		if (applied) {
+			showRetentionDialog = false;
+		}
+	}
+
+	function onContinueToCancelFeedback(): void {
+		showRetentionDialog = false;
+		showFeedbackDialog = true;
+	}
+
+	async function onSubmitCancelFeedback(feedback: string): Promise<void> {
+		const canceled = await pagePresenter.cancelWithFeedback(feedback);
+		if (canceled) {
+			showFeedbackDialog = false;
+		}
+	}
 
 	onMount(() => {
 		if (finishTrialQuery) {
@@ -105,7 +153,7 @@
 				{subscriptionPeriod}
 				{cancelAt}
 				{hasActiveSubscription}
-				checkoutBusy={pagePresenter.billingPresenter.checkoutBusy}
+				{checkoutBusy}
 				{allowTrial}
 				{isFreeTier}
 				previewProrate={(tier, billingPeriod) =>
@@ -114,16 +162,28 @@
 				onReactivate={() => void pagePresenter.reactivateSubscription()}
 			/>
 
-			{#if pagePresenter.currentVm?.billing?.hasStripeCustomer}
+			{#if subscription?.id}
 				<div class="mt-5 flex flex-wrap justify-center gap-2.5">
-					<Button
-						variant="primary"
-						size="default"
-						disabled={pagePresenter.billingPresenter.checkoutBusy}
-						onclick={() => void pagePresenter.openPortal()}
-					>
-						Update payment method / invoices history
-					</Button>
+					{#if pagePresenter.currentVm?.billing?.hasStripeCustomer}
+						<Button
+							variant="primary"
+							size="default"
+							disabled={checkoutBusy}
+							onclick={() => void pagePresenter.openPortal()}
+						>
+							Update payment method / invoices history
+						</Button>
+					{/if}
+					{#if canCancelSubscription}
+						<Button
+							variant="red"
+							size="default"
+							disabled={checkoutBusy}
+							onclick={startCancelSubscription}
+						>
+							Cancel subscription
+						</Button>
+					{/if}
 				</div>
 			{/if}
 
@@ -152,4 +212,36 @@
 			onPollFinished={() => pagePresenter.pollTrialFinished()}
 		/>
 	{/if}
+
+	<DeleteModal
+		bind:open={showCancelConfirmDialog}
+		title="Cancel subscription"
+		description="Are you sure you want to cancel your subscription?"
+		confirmLabel="Yes, cancel"
+		cancelLabel="Cancel"
+		loading={checkoutBusy}
+		onConfirm={() => void proceedAfterCancelConfirm()}
+		onCancel={() => {
+			showCancelConfirmDialog = false;
+		}}
+	/>
+
+	<BillingCancelRetentionDialog
+		bind:open={showRetentionDialog}
+		busy={checkoutBusy}
+		onOpenChange={(open) => {
+			showRetentionDialog = open;
+		}}
+		onAcceptDiscount={onAcceptRetentionDiscount}
+		onContinueCancel={onContinueToCancelFeedback}
+	/>
+
+	<BillingCancelFeedbackDialog
+		bind:open={showFeedbackDialog}
+		busy={checkoutBusy}
+		onOpenChange={(open) => {
+			showFeedbackDialog = open;
+		}}
+		onSubmit={onSubmitCancelFeedback}
+	/>
 </div>

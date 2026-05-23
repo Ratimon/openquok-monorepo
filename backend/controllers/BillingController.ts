@@ -152,7 +152,11 @@ export class BillingController {
     portal = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const organizationId = resolveActiveOrganizationId(req, { required: true })!;
-            const url = await this.stripeService.createBillingPortalSession(organizationId);
+            const authUserId = (req as AuthenticatedRequest).user?.id;
+            const url = await this.stripeService.createBillingPortalSession(
+                organizationId,
+                authUserId
+            );
             res.status(200).json({ success: true, data: { portal: url } });
         } catch (error) {
             next(error);

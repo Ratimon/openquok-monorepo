@@ -6,6 +6,7 @@ import { pricing } from "openquok-common";
 import { UserValidationError } from "../errors/UserError";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { SubscriptionRepository } from "../repositories/SubscriptionRepository";
+import type { UserRepository } from "../repositories/UserRepository";
 import type { SubscriptionService } from "./SubscriptionService";
 import { StripeService } from "./StripeService";
 
@@ -18,7 +19,7 @@ const priceId = "price_solo_monthly";
 const mockConstructEvent = jest.fn();
 const mockStripe = {
     webhooks: { constructEvent: mockConstructEvent },
-    customers: { create: jest.fn(), retrieve: jest.fn() },
+    customers: { create: jest.fn(), retrieve: jest.fn(), update: jest.fn() },
     prices: { retrieve: jest.fn(), list: jest.fn(), create: jest.fn() },
     products: { list: jest.fn(), create: jest.fn() },
     subscriptions: {
@@ -87,6 +88,12 @@ function createMockOrganizationRepo(): jest.Mocked<OrganizationRepository> {
     } as unknown as jest.Mocked<OrganizationRepository>;
 }
 
+function createMockUserRepo(): jest.Mocked<Pick<UserRepository, "findFullUserByUserId">> {
+    return {
+        findFullUserByUserId: jest.fn(),
+    };
+}
+
 function stripeSubscription(overrides: Partial<Stripe.Subscription> = {}): Stripe.Subscription {
     return {
         id: "sub_test",
@@ -119,22 +126,26 @@ describe("StripeService", () => {
     let subscriptionRepo: jest.Mocked<SubscriptionRepository>;
     let subscriptionService: ReturnType<typeof createMockSubscriptionService>;
     let organizationRepo: jest.Mocked<OrganizationRepository>;
+    let userRepo: jest.Mocked<Pick<UserRepository, "findFullUserByUserId">>;
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockStripe.customers.retrieve.mockResolvedValue({ id: customerId, deleted: false });
+        mockStripe.customers.update.mockResolvedValue({ id: customerId });
         mockStripe.checkout.sessions.list.mockResolvedValue({ data: [] });
         subscriptionRepo = createMockSubscriptionRepo();
         (subscriptionRepo.getSubscriptionByIdentifier as jest.Mock).mockResolvedValue(null);
         subscriptionService = createMockSubscriptionService();
         organizationRepo = createMockOrganizationRepo();
+        userRepo = createMockUserRepo();
     });
 
     function service(): StripeService {
         return new StripeService(
             subscriptionRepo,
             subscriptionService as unknown as SubscriptionService,
-            organizationRepo
+            organizationRepo,
+            userRepo as unknown as UserRepository
         );
     }
 
@@ -228,13 +239,13 @@ describe("StripeService", () => {
                 is_trialing: false,
             });
             (organizationRepo.getTeam as jest.Mock).mockResolvedValue({
-                members: [{ role: "owner", email: "owner@example.com" }],
+                members: [{ role: "owner", email: "owner@example.com", full_name: "Jane Owner" }],
             });
             mockStripe.customers.create.mockResolvedValue({ id: customerId });
             await expect(service().createOrGetCustomer(organizationId)).resolves.toBe(customerId);
             expect(mockStripe.customers.create).toHaveBeenCalledWith({
                 email: "owner@example.com",
-                name: "Acme",
+                name: "Jane Owner",
                 metadata: { organizationId, service: "openquok" },
             });
             expect(subscriptionRepo.updateStripeCustomerId).toHaveBeenCalledWith(
@@ -699,12 +710,25 @@ describe("StripeService", () => {
                 allow_trial: false,
                 is_trialing: false,
             });
+            (userRepo.findFullUserByUserId as jest.Mock).mockResolvedValue({
+                userData: {
+                    id: faker.string.uuid(),
+                    auth_id: userId,
+                    email: "member@example.com",
+                    full_name: "Alex Member",
+                },
+                userError: null,
+            });
             mockStripe.billingPortal.sessions.create.mockResolvedValue({
                 url: "https://billing.stripe.com/session",
             });
-            await expect(service().createBillingPortalSession(organizationId)).resolves.toBe(
-                "https://billing.stripe.com/session"
-            );
+            await expect(
+                service().createBillingPortalSession(organizationId, userId)
+            ).resolves.toBe("https://billing.stripe.com/session");
+            expect(mockStripe.customers.update).toHaveBeenCalledWith(customerId, {
+                name: "Alex Member",
+                email: "member@example.com",
+            });
             expect(mockStripe.billingPortal.sessions.create).toHaveBeenCalledWith({
                 customer: customerId,
                 return_url: "https://app.example.com/account/billing",

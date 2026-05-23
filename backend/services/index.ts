@@ -171,7 +171,8 @@ export const postsService = new PostsService(
 export const stripeService = new StripeService(
     subscriptionRepository,
     subscriptionService,
-    organizationRepository
+    organizationRepository,
+    userRepository
 );
 export const trackService = new TrackService();
 export const mediaService = new MediaService(mediaRepository);

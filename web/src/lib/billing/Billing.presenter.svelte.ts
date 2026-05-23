@@ -157,4 +157,54 @@ export class BillingPresenter {
 			this.checkoutBusy = false;
 		}
 	}
+
+	async checkRetentionOffer(): Promise<boolean> {
+		const organizationId = this.organizationId;
+		if (!organizationId) return false;
+		const offer = await this.billingRepository.checkDiscountOffer(organizationId);
+		return Boolean(offer);
+	}
+
+	async applyRetentionDiscount(): Promise<boolean> {
+		const organizationId = this.organizationId;
+		if (!organizationId) return false;
+		this.checkoutBusy = true;
+		try {
+			const applied = await this.billingRepository.applyRetentionDiscount(organizationId);
+			if (applied) {
+				toast.success('50% discount applied successfully');
+				await this.reloadPricing?.();
+				return true;
+			}
+			toast.error('Could not apply the retention discount.');
+			return false;
+		} finally {
+			this.checkoutBusy = false;
+		}
+	}
+
+	async cancelWithFeedback(feedback: string): Promise<boolean> {
+		const organizationId = this.organizationId;
+		if (!organizationId) return false;
+		this.checkoutBusy = true;
+		try {
+			const resultPm = await this.billingRepository.cancelSubscription({
+				organizationId,
+				feedback: feedback.trim()
+			});
+			if (resultPm) {
+				if (resultPm.cancelAt) {
+					toast.success('Subscription set to cancel at period end.');
+				} else {
+					toast.success('Subscription canceled.');
+				}
+				await this.reloadPricing?.();
+				return true;
+			}
+			toast.error('Could not cancel your subscription. Try again or contact support.');
+			return false;
+		} finally {
+			this.checkoutBusy = false;
+		}
+	}
 }

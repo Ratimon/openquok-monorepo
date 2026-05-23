@@ -98,4 +98,16 @@ export class ProtectedBillingPagePresenter {
 	pollTrialFinished(): Promise<boolean> {
 		return this.billingPresenter.pollTrialFinished();
 	}
+
+	checkRetentionOffer(): Promise<boolean> {
+		return this.billingPresenter.checkRetentionOffer();
+	}
+
+	applyRetentionDiscount(): Promise<boolean> {
+		return this.billingPresenter.applyRetentionDiscount();
+	}
+
+	cancelWithFeedback(feedback: string): Promise<boolean> {
+		return this.billingPresenter.cancelWithFeedback(feedback);
+	}
 }
