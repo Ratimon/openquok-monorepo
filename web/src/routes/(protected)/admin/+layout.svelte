@@ -6,7 +6,7 @@
 	import { browser } from '$app/environment';
 	import { afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
+	import ProtectedLayout from '$lib/ui/layouts/ProtectedLayout.svelte';
 	import { url } from '$lib/utils/path';
 	import { protectedLayoutPagePresenter } from '$lib/area-protected';
 	import {
@@ -68,7 +68,7 @@
 	afterNavigate(refreshDockBadge);
 </script>
 
-<AdminLayout
+<ProtectedLayout
 	{currentUser}
 	companyName={companyNameVm}
 	mainLinks={navLinks}
@@ -76,4 +76,4 @@
 	editorDockNotificationBadge={protectedLayoutPagePresenter.editorDockNotificationUnreadCount}
 >
 	{@render children?.()}
-</AdminLayout>
+</ProtectedLayout>

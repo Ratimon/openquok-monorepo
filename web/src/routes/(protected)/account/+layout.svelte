@@ -22,7 +22,7 @@
 	import { route } from '$lib/utils/path';
 	import { SETTINGS_SIDEBAR_KEY } from '$lib/ui/templates/sidebar-secondary-context';
 	
-	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
+	import ProtectedLayout from '$lib/ui/layouts/ProtectedLayout.svelte';
 
 	type AppSettingsSectionId =
 		| 'timezone'
@@ -125,7 +125,7 @@
 	afterNavigate(refreshDockBadge);
 </script>
 
-<AdminLayout
+<ProtectedLayout
 	{currentUser}
 	companyName={companyNameVm}
 	mainLinks={mainLinks}
@@ -133,5 +133,5 @@
 	editorDockNotificationBadge={protectedLayoutPagePresenter.editorDockNotificationUnreadCount}
 >
 	{@render children?.()}
-</AdminLayout>
+</ProtectedLayout>
 

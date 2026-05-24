@@ -175,6 +175,34 @@ export class BillingRepository {
 		return null;
 	}
 
+	async createEmbeddedCheckout(params: {
+		organizationId: string;
+		billing: PaidSubscriptionTier;
+		period: SubscriptionPeriod;
+		stripePriceId: string;
+	}): Promise<{ clientSecret?: string } | null> {
+		const { data: embeddedDto, ok } = await this.httpGateway.post<{
+			success: boolean;
+			data?: { clientSecret?: string; client_secret?: string };
+			message?: string;
+		}>(
+			this.config.endpoints.embedded,
+			{
+				organizationId: params.organizationId,
+				billing: params.billing,
+				period: params.period,
+				stripePriceId: params.stripePriceId
+			},
+			{ withCredentials: true }
+		);
+
+		if (!ok || !embeddedDto?.data) return null;
+
+		const payload = embeddedDto.data;
+		const clientSecret = (payload.clientSecret ?? payload.client_secret)?.trim();
+		return clientSecret ? { clientSecret } : null;
+	}
+
 	async subscribe(params: {
 		organizationId: string;
 		billing: PaidSubscriptionTier;

@@ -20,7 +20,7 @@
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { icons } from '$data/icons';
-	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
+	import ProtectedLayout from '$lib/ui/layouts/ProtectedLayout.svelte';
 
 	// /secret-admin
 	const rootPathSecretAdminArea = getRootPathSecretAdminArea();
@@ -98,7 +98,7 @@
 	afterNavigate(refreshDockBadge);
 </script>
 
-<AdminLayout
+<ProtectedLayout
 	{currentUser}
 	companyName={companyNameVm}
 	mainLinks={secretAdminLinks}
@@ -106,4 +106,4 @@
 	editorDockNotificationBadge={protectedLayoutPagePresenter.editorDockNotificationUnreadCount}
 >
 	{@render children?.()}
-</AdminLayout>
+</ProtectedLayout>

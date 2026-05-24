@@ -2,6 +2,7 @@ import { httpGateway } from '$lib/core/index';
 import type { BillingConfig } from '$lib/billing/Billing.repository.svelte';
 import { BillingRepository } from '$lib/billing/Billing.repository.svelte';
 import { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
+import { FirstBillingGatePresenter } from '$lib/billing/FirstBillingGate.presenter.svelte';
 import { GetPricingPresenter } from '$lib/billing/GetPricing.presenter.svelte';
 import { workspaceSettingsPresenter } from '$lib/settings';
 
@@ -29,7 +30,13 @@ export const getPricingPresenter = new GetPricingPresenter(billingRepository);
 
 export const billingPresenter = new BillingPresenter(billingRepository, workspaceSettingsPresenter);
 
+export const firstBillingGatePresenter = new FirstBillingGatePresenter(
+	getPricingPresenter,
+	workspaceSettingsPresenter
+);
+
 export { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
+export { FirstBillingGatePresenter } from '$lib/billing/FirstBillingGate.presenter.svelte';
 export {
 	GetPricingPresenter,
 	buildPlanFeatureLinesVm,

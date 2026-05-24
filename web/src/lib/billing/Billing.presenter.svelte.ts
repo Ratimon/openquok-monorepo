@@ -2,7 +2,7 @@ import type { BillingRepository } from '$lib/billing/Billing.repository.svelte';
 import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
-import { stripePriceIdForTier } from '$lib/billing/constants/config';
+import { stripePriceIdForTier, STRIPE_PUBLISHABLE_KEY } from '$lib/billing/constants/config';
 import { ApiError, messageFromApiError } from '$lib/core/HttpGateway';
 import { toast } from '$lib/ui/sonner';
 
@@ -22,6 +22,57 @@ export class BillingPresenter {
 
 	get organizationId(): string {
 		return this.workspaceSettingsPresenter.currentWorkspaceId ?? '';
+	}
+
+	async loadEmbeddedCheckoutSecret(
+		tier: PaidSubscriptionTier,
+		period: SubscriptionPeriod
+	): Promise<{ clientSecret: string | null; errorMessage: string | null }> {
+		const organizationId = this.organizationId;
+		if (!organizationId) {
+			return { clientSecret: null, errorMessage: null };
+		}
+
+		const stripePriceId = stripePriceIdForTier(tier, period);
+		if (!stripePriceId) {
+			const message = `Stripe price is not configured for ${tier} (${period.toLowerCase()}). Add VITE_PUBLIC_STRIPE_PRICE_ID_${tier}_${period} to your web env.`;
+			toast.error(message);
+			return { clientSecret: null, errorMessage: message };
+		}
+
+		if (!STRIPE_PUBLISHABLE_KEY) {
+			const message =
+				'VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY is not configured in the web environment.';
+			toast.error(message);
+			return { clientSecret: null, errorMessage: message };
+		}
+
+		try {
+			const result = await this.billingRepository.createEmbeddedCheckout({
+				organizationId,
+				billing: tier,
+				period,
+				stripePriceId
+			});
+			const clientSecret = result?.clientSecret?.trim() ?? null;
+			if (!clientSecret) {
+				const message =
+					'Checkout session did not return a client secret. Confirm backend Stripe keys and FRONTEND_DOMAIN_URL.';
+				toast.error(message);
+				return { clientSecret: null, errorMessage: message };
+			}
+			return { clientSecret, errorMessage: null };
+		} catch (error) {
+			const message =
+				error instanceof ApiError
+					? messageFromApiError(
+							error,
+							'Could not start embedded checkout. Try again or contact support.'
+						)
+					: 'Could not start embedded checkout. Try again.';
+			toast.error(message);
+			return { clientSecret: null, errorMessage: message };
+		}
 	}
 
 	/** @returns Billing portal URL when in-place upgrade needs a payment method update. */
@@ -192,7 +243,8 @@ export class BillingPresenter {
 		if (!organizationId) return false;
 		this.checkoutBusy = true;
 		try {
-			const applied = await this.billingRepository.applyRetentionDiscount(organizationId);
+			const applied = await this.billingRepository
+				.applyRetentionDiscount(organizationId);
 			if (applied) {
 				toast.success('50% discount applied successfully');
 				await this.reloadPricing?.();

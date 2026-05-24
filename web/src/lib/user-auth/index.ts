@@ -59,4 +59,5 @@ export { getPostSigninRedirectTarget } from '$lib/user-auth/utils/getPostSigninR
 export { authStatusModel, authenticationRepository, signinPresenter, signupPresenter, signoutPresenter, verifyEmailPresenter, resetPasswordPresenter };
 export { AuthStatus } from '$lib/user-auth/AuthStatus.model.svelte';
 export { ResetPasswordStatus } from '$lib/user-auth/ResetPassword.presenter.svelte';
+export { SignoutStatus } from '$lib/user-auth/Signout.presenter.svelte';
 export type { BasicUserAuthProgrammerModel } from '$lib/user-auth/Authentication.repository.svelte';

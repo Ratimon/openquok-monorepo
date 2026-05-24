@@ -898,33 +898,52 @@ export class StripeService {
             params.body.stripePriceId
         );
         const frontend = this.frontendUrl();
-        const stripe = getStripeClient();
+        if (!frontend) {
+            throw new UserValidationError(
+                "FRONTEND_DOMAIN_URL is not configured. Set it in the backend env for checkout redirect URLs."
+            );
+        }
 
-        const session = await stripe.checkout.sessions.create({
-            ui_mode: "elements",
-            mode: "subscription",
-            customer,
-            line_items: [{ price: priceId, quantity: 1 }],
-            return_url: `${frontend}/account/billing?checkout=${uniqueId}`,
-            subscription_data: {
-                ...(params.allowTrial ? { trial_period_days: 7 } : {}),
+        try {
+            const stripe = getStripeClient();
+            const session = await stripe.checkout.sessions.create({
+                // Custom Payment Element checkout (initCheckoutElementsSdk on the web app).
+                ui_mode: "elements",
+                mode: "subscription",
+                customer,
+                line_items: [{ price: priceId, quantity: 1 }],
+                return_url: `${frontend}/account/billing?checkout=${uniqueId}`,
+                subscription_data: {
+                    ...(params.allowTrial ? { trial_period_days: 7 } : {}),
+                    metadata: {
+                        service: STRIPE_SERVICE_METADATA,
+                        billing: params.body.billing,
+                        period: params.body.period,
+                        uniqueId,
+                        userId: params.userId,
+                        organizationId: params.organizationId,
+                    },
+                },
                 metadata: {
                     service: STRIPE_SERVICE_METADATA,
-                    billing: params.body.billing,
-                    period: params.body.period,
                     uniqueId,
-                    userId: params.userId,
                     organizationId: params.organizationId,
                 },
-            },
-            metadata: {
-                service: STRIPE_SERVICE_METADATA,
-                uniqueId,
-                organizationId: params.organizationId,
-            },
-        });
+            });
 
-        return { clientSecret: session.client_secret ?? undefined };
+            const clientSecret = session.client_secret?.trim();
+            if (!clientSecret) {
+                throw new UserValidationError(
+                    "Stripe did not return a checkout client secret. Confirm your Stripe API version supports ui_mode elements."
+                );
+            }
+            return { clientSecret };
+        } catch (error) {
+            if (error instanceof UserValidationError) {
+                throw error;
+            }
+            this.rethrowStripeAsValidation(error);
+        }
     }
 
     async listCharges(organizationId: string): Promise<

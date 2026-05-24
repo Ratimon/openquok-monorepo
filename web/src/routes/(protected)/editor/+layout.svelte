@@ -11,7 +11,7 @@
 	import { getRootPathEditorArea, getRootPathEditorFeedbackManager } from '$lib/area-admin/constants/getRootPathEditorArea';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { protectedLayoutPagePresenter } from '$lib/area-protected';
-	import AdminLayout from '$lib/ui/layouts/AdminLayout.svelte';
+	import ProtectedLayout from '$lib/ui/layouts/ProtectedLayout.svelte';
 
 	// /editor
 	const rootPathEditorArea = getRootPathEditorArea();
@@ -59,7 +59,7 @@
 	afterNavigate(refreshDockBadge);
 </script>
 
-<AdminLayout
+<ProtectedLayout
 	{currentUser}
 	companyName={companyNameVm}
 	mainLinks={navLinks}
@@ -67,4 +67,4 @@
 	editorDockNotificationBadge={protectedLayoutPagePresenter.editorDockNotificationUnreadCount}
 >
 	{@render children?.()}
-</AdminLayout>
+</ProtectedLayout>
