@@ -365,6 +365,16 @@ export class BillingController {
     };
 
     async buildCurrentBillingData(organizationId: string, authUserId?: string) {
+        try {
+            await this.stripeService.reconcileSubscriptionWithStripe(organizationId, authUserId);
+        } catch (error) {
+            logger.warn({
+                msg: "buildCurrentBillingData: Stripe reconciliation failed",
+                organizationId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
+
         let subscription: OrganizationSubscriptionRow | null = null;
         try {
             subscription = await this.subscriptionService.getEffectiveSubscription(

@@ -453,6 +453,10 @@ describe("StripeService", () => {
         });
 
         it("deletes local subscription on subscription.deleted", async () => {
+            (subscriptionRepo.getOrganizationByStripeCustomerId as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                stripe_customer_id: customerId,
+            });
             const event = {
                 type: "customer.subscription.deleted",
                 data: { object: { customer: customerId, metadata: { service: "openquok" } } },
@@ -461,6 +465,101 @@ describe("StripeService", () => {
             expect(subscriptionService.deleteSubscriptionForCustomer).toHaveBeenCalledWith(
                 customerId
             );
+        });
+
+        it("deletes local subscription on subscription.deleted without openquok metadata", async () => {
+            (subscriptionRepo.getOrganizationByStripeCustomerId as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                stripe_customer_id: customerId,
+            });
+            const event = {
+                type: "customer.subscription.deleted",
+                data: { object: { customer: customerId, metadata: { service: "other" } } },
+            } as unknown as Stripe.Event;
+            await service().handleWebhookEvent(event);
+            expect(subscriptionService.deleteSubscriptionForCustomer).toHaveBeenCalledWith(
+                customerId
+            );
+            expect(subscriptionService.createOrUpdateFromStripe).not.toHaveBeenCalled();
+        });
+
+        it("ignores subscription.deleted when customer is unknown locally", async () => {
+            (subscriptionRepo.getOrganizationByStripeCustomerId as jest.Mock).mockResolvedValue(
+                null
+            );
+            const event = {
+                type: "customer.subscription.deleted",
+                data: { object: { customer: customerId } },
+            } as unknown as Stripe.Event;
+            await service().handleWebhookEvent(event);
+            expect(subscriptionService.deleteSubscriptionForCustomer).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("reconcileSubscriptionWithStripe", () => {
+        const dbRow = {
+            id: faker.string.uuid(),
+            organization_id: organizationId,
+            subscription_tier: "SOLO" as const,
+            period: "MONTHLY" as const,
+            identifier: checkoutId,
+            cancel_at: null,
+            total_channels: pricing.SOLO.channel_per_workspace,
+            is_lifetime: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            deleted_at: null,
+        };
+
+        beforeEach(() => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                name: "Acme",
+                stripe_customer_id: customerId,
+                allow_trial: false,
+                is_trialing: false,
+            });
+            (subscriptionService.getEffectiveSubscription as jest.Mock).mockResolvedValue(dbRow);
+        });
+
+        it("soft-deletes DB row when Stripe has no open openquok subscription", async () => {
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [] });
+
+            await service().reconcileSubscriptionWithStripe(organizationId);
+
+            expect(subscriptionService.deleteSubscriptionForCustomer).toHaveBeenCalledWith(
+                customerId
+            );
+            expect(subscriptionService.createOrUpdateFromStripe).not.toHaveBeenCalled();
+        });
+
+        it("syncs cancel_at from Stripe when subscription is scheduled to cancel", async () => {
+            const scheduled = stripeSubscription({
+                cancel_at_period_end: true,
+                cancel_at: 1_800_000_000,
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [scheduled] });
+
+            await service().reconcileSubscriptionWithStripe(organizationId);
+
+            expect(subscriptionService.createOrUpdateFromStripe).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    organizationId,
+                    cancelAt: new Date(1_800_000_000 * 1000).toISOString(),
+                })
+            );
+            expect(subscriptionService.deleteSubscriptionForCustomer).not.toHaveBeenCalled();
+        });
+
+        it("skips reconcile for lifetime subscriptions", async () => {
+            (subscriptionService.getEffectiveSubscription as jest.Mock).mockResolvedValue({
+                ...dbRow,
+                is_lifetime: true,
+            });
+
+            await service().reconcileSubscriptionWithStripe(organizationId);
+
+            expect(mockStripe.subscriptions.list).not.toHaveBeenCalled();
         });
     });
 

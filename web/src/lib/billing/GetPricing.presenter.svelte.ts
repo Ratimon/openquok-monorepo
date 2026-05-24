@@ -103,7 +103,7 @@ export function tierDisplayName(tier: string): string {
 	if (tier === 'SOLO') return 'Solo';
 	if (tier === 'CREATOR') return 'Creator';
 	if (tier === 'TEAM') return 'Team';
-	if (tier === 'ULTIMATE') return 'Ultimate Pro';
+	if (tier === 'ULTIMATE') return 'Ultimate';
 	return tier;
 }
 

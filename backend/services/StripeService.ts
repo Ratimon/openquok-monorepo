@@ -758,6 +758,17 @@ export class StripeService {
         return subs.find((s) => this.isBillableStripeStatus(s.status));
     }
 
+    private pickOpenQuokSubscription(
+        subs: Stripe.Subscription[]
+    ): Stripe.Subscription | undefined {
+        return subs.find(
+            (s) =>
+                this.isBillableStripeStatus(s.status) &&
+                s.metadata?.service === STRIPE_SERVICE_METADATA &&
+                this.tierFromMetadata(s.metadata) != null
+        );
+    }
+
     private hasScheduledCancellationInDb(
         dbRow: OrganizationSubscriptionRow | null | undefined
     ): boolean {
@@ -1066,6 +1077,43 @@ export class StripeService {
         return metadata?.period === "YEARLY" ? "YEARLY" : "MONTHLY";
     }
 
+    /**
+     * Aligns the local subscription row with Stripe (e.g. after Dashboard cancel or missed webhooks).
+     * Soft-deletes the DB row when the customer has no open billable openquok subscription.
+     */
+    async reconcileSubscriptionWithStripe(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<void> {
+        const { billingOrgId, dbRow } = await this.resolveBillingSubscription(
+            organizationId,
+            authUserId
+        );
+        const org = await this.subscriptionRepository.getOrganizationBilling(billingOrgId);
+        const customerId = org?.stripe_customer_id?.trim();
+        if (!customerId || dbRow?.is_lifetime) return;
+
+        try {
+            const openSubs = await this.listOpenStripeSubscriptions(customerId);
+            const quokSub = this.pickOpenQuokSubscription(openSubs);
+
+            if (quokSub) {
+                await this.syncSubscriptionFromStripe(quokSub);
+                return;
+            }
+
+            if (dbRow) {
+                await this.subscriptionService.deleteSubscriptionForCustomer(customerId);
+            }
+        } catch (error) {
+            logger.warn({
+                msg: "reconcileSubscriptionWithStripe failed",
+                organizationId: billingOrgId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
+    }
+
     async syncSubscriptionFromStripe(
         subscription: Stripe.Subscription,
         metadataOverrides?: Stripe.Metadata
@@ -1103,6 +1151,20 @@ export class StripeService {
     }
 
     async handleWebhookEvent(event: Stripe.Event): Promise<void> {
+        if (event.type === "customer.subscription.deleted") {
+            const sub = event.data.object as Stripe.Subscription;
+            const customerId =
+                typeof sub.customer === "string" ? sub.customer : sub.customer?.id;
+            if (!customerId) return;
+
+            const org =
+                await this.subscriptionRepository.getOrganizationByStripeCustomerId(customerId);
+            if (org) {
+                await this.subscriptionService.deleteSubscriptionForCustomer(customerId);
+            }
+            return;
+        }
+
         const objectMeta =
             event.data.object && typeof event.data.object === "object"
                 ? (event.data.object as { metadata?: Stripe.Metadata }).metadata
@@ -1120,15 +1182,6 @@ export class StripeService {
             case "customer.subscription.updated": {
                 const sub = event.data.object as Stripe.Subscription;
                 await this.syncSubscriptionFromStripe(sub);
-                break;
-            }
-            case "customer.subscription.deleted": {
-                const sub = event.data.object as Stripe.Subscription;
-                const customerId =
-                    typeof sub.customer === "string" ? sub.customer : sub.customer?.id;
-                if (customerId) {
-                    await this.subscriptionService.deleteSubscriptionForCustomer(customerId);
-                }
                 break;
             }
             default:

@@ -95,7 +95,11 @@ export class ProtectedBillingPagePresenter {
 		return teamMemberDowngradeWarning(freePlan, this.currentPaidPlanVm());
 	}
 
-	/** @returns Stripe billing portal URL when payment method must be updated in-place. */
+	/**
+	 * Plan checkout and changes (POST /billing/subscribe): hosted redirect for new subscribers,
+	 * in-place Stripe update when a subscription already exists. Embedded checkout lives on FirstBilling only.
+	 * @returns Stripe billing portal URL when payment method must be updated in-place.
+	 */
 	async subscribeWithTracking(
 		tier: PaidSubscriptionTier,
 		period: SubscriptionPeriod
