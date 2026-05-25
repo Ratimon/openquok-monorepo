@@ -5,6 +5,15 @@ import { DatabaseError } from "../errors/InfraError";
 const SUBSCRIPTIONS_TABLE = "organization_subscriptions";
 const ORGS_TABLE = "organizations";
 
+function supabaseErrorMetadata(error: { code?: string; message?: string; details?: string; hint?: string }) {
+    return {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+    };
+}
+
 export interface OrganizationSubscriptionRow {
     id: string;
     organization_id: string;
@@ -190,6 +199,7 @@ export class SubscriptionRepository {
         cancelAt: string | null;
         isLifetime?: boolean;
     }): Promise<OrganizationSubscriptionRow> {
+
         const now = new Date().toISOString();
         const row = {
             organization_id: params.organizationId,
@@ -212,10 +222,16 @@ export class SubscriptionRepository {
             .single();
 
         if (error) {
+            const pg = error as { code?: string; message?: string; details?: string; hint?: string };
             throw new DatabaseError("Failed to upsert organization subscription", {
                 cause: error as unknown as Error,
                 operation: "createOrUpdateSubscription",
                 resource: { type: "table", name: SUBSCRIPTIONS_TABLE },
+                metadata: {
+                    organizationId: params.organizationId,
+                    subscriptionTier: params.subscriptionTier,
+                    ...supabaseErrorMetadata(pg),
+                },
             });
         }
 

@@ -27,4 +27,12 @@ CREATE POLICY organization_subscriptions_select_member
 GRANT SELECT ON public.organization_subscriptions TO authenticated;
 GRANT ALL ON public.organization_subscriptions TO service_role;
 
+DROP POLICY IF EXISTS organization_subscriptions_service_role_all ON public.organization_subscriptions;
+CREATE POLICY organization_subscriptions_service_role_all
+    ON public.organization_subscriptions
+    FOR ALL
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
 COMMIT;

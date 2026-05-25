@@ -60,9 +60,19 @@ jest.mock("../utils/ids/makeId", () => ({
     makeId: jest.fn(() => checkoutId),
 }));
 
+function defaultOrganizationBilling() {
+    return {
+        id: organizationId,
+        name: "Test Org",
+        stripe_customer_id: customerId,
+        allow_trial: true,
+        is_trialing: false,
+    };
+}
+
 function createMockSubscriptionRepo(): jest.Mocked<SubscriptionRepository> {
     return {
-        getOrganizationBilling: jest.fn(),
+        getOrganizationBilling: jest.fn().mockResolvedValue(defaultOrganizationBilling()),
         updateStripeCustomerId: jest.fn(),
         clearStripeCustomerId: jest.fn(),
         getSubscriptionByOrganizationId: jest.fn(),
@@ -411,6 +421,12 @@ describe("StripeService", () => {
             await service().syncSubscriptionFromStripe(
                 stripeSubscription({ metadata: { service: "openquok", billing: "INVALID" } })
             );
+            expect(subscriptionService.createOrUpdateFromStripe).not.toHaveBeenCalled();
+        });
+
+        it("skips upsert when organization is missing locally", async () => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue(null);
+            await service().syncSubscriptionFromStripe(stripeSubscription());
             expect(subscriptionService.createOrUpdateFromStripe).not.toHaveBeenCalled();
         });
 
