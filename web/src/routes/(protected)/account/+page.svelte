@@ -612,30 +612,35 @@
 		soloUpgradeNoticeDismissed = readHomeNoticeDismissed('solo-upgrade', orgId);
 	});
 
-	const showNoChannelsNotice = $derived(
-		Boolean(workspaceId) &&
+	/** At most one home notice; no connected channels wins over upgrade and invite. */
+	const activeHomeNotice = $derived.by((): 'no-channels' | 'solo-upgrade' | 'invite-team' | null => {
+		if (!workspaceId) return null;
+		if (
 			listStatus === 'ready' &&
 			connectedChannelCountVm === 0 &&
 			!noChannelsNoticeDismissed
-	);
-
-	const showSoloUpgradeNotice = $derived(
-		Boolean(workspaceId) &&
+		) {
+			return 'no-channels';
+		}
+		if (
 			isSoloPlanVm &&
 			myWorkspacesStatus === 'ready' &&
 			currentWorkspaceCardVm != null &&
 			(myWorkspacesTotalCount <= 1 || currentWorkspaceMemberCountVm <= 1) &&
 			!soloUpgradeNoticeDismissed
-	);
-
-	const showInviteTeamNotice = $derived(
-		Boolean(workspaceId) &&
-			!showSoloUpgradeNotice &&
+		) {
+			return 'solo-upgrade';
+		}
+		if (
 			myWorkspacesStatus === 'ready' &&
 			currentWorkspaceCardVm != null &&
 			currentWorkspaceMemberCountVm === 1 &&
 			!inviteTeamNoticeDismissed
-	);
+		) {
+			return 'invite-team';
+		}
+		return null;
+	});
 
 	// --- Onboarding visibility (welcome flag + first-empty-workspace auto-open) ---
 	$effect(() => {
@@ -786,9 +791,9 @@
 </script>
 
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
-	{#if showNoChannelsNotice || showSoloUpgradeNotice || showInviteTeamNotice}
-		<div class="mb-6 flex flex-col gap-3">
-			{#if showNoChannelsNotice}
+	{#if activeHomeNotice}
+		<div class="mb-6">
+			{#if activeHomeNotice === 'no-channels'}
 				<HomeAccountNoticeBanner
 					iconName={icons.Info.name}
 					tone="neutral"
@@ -822,9 +827,7 @@
 						</Button>
 					{/snippet}
 				</HomeAccountNoticeBanner>
-			{/if}
-
-			{#if showSoloUpgradeNotice}
+			{:else if activeHomeNotice === 'solo-upgrade'}
 				<HomeAccountNoticeBanner
 					iconName={icons.Sparkles.name}
 					tone="upgrade"
@@ -847,9 +850,7 @@
 						</Button>
 					{/snippet}
 				</HomeAccountNoticeBanner>
-			{/if}
-
-			{#if showInviteTeamNotice}
+			{:else if activeHomeNotice === 'invite-team'}
 				<HomeAccountNoticeBanner
 					iconName={icons.Users.name}
 					tone="neutral"
