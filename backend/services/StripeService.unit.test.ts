@@ -613,6 +613,7 @@ describe("StripeService", () => {
                     mode: "subscription",
                     customer: customerId,
                     subscription_data: expect.objectContaining({
+                        // trial_period_days is in days - eg 7 days
                         trial_period_days: 7,
                         metadata: expect.objectContaining({
                             service: "openquok",
@@ -872,6 +873,48 @@ describe("StripeService", () => {
             ).rejects.toBeInstanceOf(UserValidationError);
             expect(mockStripe.products.create).not.toHaveBeenCalled();
             expect(mockStripe.prices.create).not.toHaveBeenCalled();
+        });
+
+        it("returns amount_due from Stripe preview without billing_cycle_anchor now", async () => {
+            const { config } = jest.requireMock("../config/GlobalConfig") as {
+                config: { stripe: { priceIds: { CREATOR: { monthly: string } } } };
+            };
+            config.stripe.priceIds.CREATOR.monthly = "price_creator_monthly";
+
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                name: "Acme",
+                stripe_customer_id: customerId,
+                allow_trial: false,
+                is_trialing: false,
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({
+                data: [stripeSubscription()],
+            });
+            mockStripe.prices.retrieve.mockResolvedValue({
+                active: true,
+                id: "price_creator_monthly",
+                recurring: { interval: "month" },
+            });
+            mockStripe.invoices.createPreview.mockResolvedValue({
+                amount_due: 1250,
+                amount_remaining: 1250,
+            });
+
+            await expect(
+                service().previewProration(organizationId, { billing: "CREATOR", period: "MONTHLY" })
+            ).resolves.toEqual({ price: 12.5 });
+
+            const previewArgs = mockStripe.invoices.createPreview.mock.calls[0]?.[0] as {
+                subscription_details?: Record<string, unknown>;
+            };
+            expect(previewArgs.subscription_details).toMatchObject({
+                proration_behavior: "create_prorations",
+                proration_date: expect.any(Number),
+            });
+            expect(previewArgs.subscription_details).not.toHaveProperty("billing_cycle_anchor");
+
+            config.stripe.priceIds.CREATOR.monthly = "";
         });
     });
 

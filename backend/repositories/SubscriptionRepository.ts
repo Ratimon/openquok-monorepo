@@ -199,44 +199,54 @@ export class SubscriptionRepository {
         cancelAt: string | null;
         isLifetime?: boolean;
     }): Promise<OrganizationSubscriptionRow> {
+        const organizationId = params.organizationId.trim();
+        if (!organizationId) {
+            throw new DatabaseError("organizationId is required to upsert organization subscription", {
+                operation: "createOrUpdateSubscription",
+                resource: { type: "table", name: SUBSCRIPTIONS_TABLE },
+            });
+        }
 
-        const now = new Date().toISOString();
-        const row = {
-            organization_id: params.organizationId,
-            subscription_tier: params.subscriptionTier,
-            period: params.period,
-            identifier: params.identifier,
-            cancel_at: params.cancelAt,
-            channels_per_workspace: params.channelsPerWorkspace,
-            is_lifetime: params.isLifetime ?? false,
-            updated_at: now,
-            deleted_at: null,
-        };
-
-        const { data, error } = await this.supabase
-            .from(SUBSCRIPTIONS_TABLE)
-            .upsert(row, { onConflict: "organization_id" })
-            .select(
-                "id, organization_id, subscription_tier, period, identifier, cancel_at, channels_per_workspace, is_lifetime, created_at, updated_at, deleted_at"
-            )
-            .single();
+        const { data, error } = await this.supabase.rpc(
+            "internal_upsert_organization_subscription" as never,
+            {
+                p_organization_id: organizationId,
+                p_subscription_tier: params.subscriptionTier,
+                p_period: params.period,
+                p_identifier: params.identifier,
+                p_cancel_at: params.cancelAt,
+                p_channels_per_workspace: params.channelsPerWorkspace,
+                p_is_lifetime: params.isLifetime ?? false,
+                p_is_trialing: params.isTrialing,
+            }
+        );
 
         if (error) {
             const pg = error as { code?: string; message?: string; details?: string; hint?: string };
             throw new DatabaseError("Failed to upsert organization subscription", {
                 cause: error as unknown as Error,
                 operation: "createOrUpdateSubscription",
-                resource: { type: "table", name: SUBSCRIPTIONS_TABLE },
+                resource: { type: "function", name: "internal_upsert_organization_subscription" },
                 metadata: {
-                    organizationId: params.organizationId,
+                    organizationId,
                     subscriptionTier: params.subscriptionTier,
                     ...supabaseErrorMetadata(pg),
                 },
             });
         }
 
-        await this.setTrialing(params.organizationId, params.isTrialing);
-        return data as OrganizationSubscriptionRow;
+        const rows = (Array.isArray(data) ? data : data ? [data] : []) as OrganizationSubscriptionRow[];
+        const row = rows[0];
+        if (!row) {
+            throw new DatabaseError("Failed to upsert organization subscription", {
+                cause: new Error("RPC returned no row"),
+                operation: "createOrUpdateSubscription",
+                resource: { type: "function", name: "internal_upsert_organization_subscription" },
+                metadata: { organizationId },
+            });
+        }
+
+        return row;
     }
 
     async softDeleteByOrganizationId(organizationId: string): Promise<void> {

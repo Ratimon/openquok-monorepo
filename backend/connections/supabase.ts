@@ -40,6 +40,21 @@ function getSupabaseServerKey(): string {
     );
 }
 
+/** Reject publishable/anon keys — they are subject to RLS and break webhook billing sync. */
+function assertIsSupabaseSecretKey(key: string): void {
+    const trimmed = key.trim();
+    if (!trimmed) {
+        throw new Error(
+            "SUPABASE_SECRET_KEY is required for the API process (sb_secret_… from `supabase status -o env`)."
+        );
+    }
+    if (trimmed.startsWith("sb_publishable_")) {
+        throw new Error(
+            "SUPABASE_SECRET_KEY must be the secret key (sb_secret_…), not PUBLIC_SUPABASE_PUBLISHABLE_KEY."
+        );
+    }
+}
+
 const serverConfig = config.server as {
     nodeEnv?: string;
     frontendDomainUrl?: string;
@@ -117,28 +132,19 @@ export function createSupabaseServiceClient(): SupabaseClient<Database> {
         let supabaseKey = getSupabaseServerKey();
 
         if (!supabaseKey) {
-            if ((config.server as { nodeEnv?: string }).nodeEnv === "production") {
-                throw new Error(
-                    "SUPABASE_SECRET_KEY (or config.supabase.supabaseSecretKey) is required in production"
-                );
-            }
             const isJest = process.env.JEST_WORKER_ID !== undefined;
-            // jest.env-setup sets NODE_ENV=test; unit scripts may use NODE_ENV=development but Jest always sets JEST_WORKER_ID.
             if (isJest || process.env.NODE_ENV === "test") {
                 supabaseKey = getSupabaseClientKey();
                 logger.warn({
                     msg: "Using publishable key for Supabase under Jest or NODE_ENV=test (set SUPABASE_SECRET_KEY for integration tests against a real DB).",
                 });
-            } else if (process.env.NODE_ENV === "development") {
-                throw new Error(
-                    "SUPABASE_SECRET_KEY is required for the API process. The publishable key cannot access server-side tables (for example notifications and memberships)."
-                );
             } else {
-                supabaseKey = getSupabaseClientKey();
-                logger.warn({
-                    msg: "Using publishable key for Supabase service client: many repository queries will fail. Set SUPABASE_SECRET_KEY.",
-                });
+                throw new Error(
+                    "SUPABASE_SECRET_KEY is required for the API process. The publishable key cannot write billing or membership rows."
+                );
             }
+        } else {
+            assertIsSupabaseSecretKey(supabaseKey);
         }
 
         if (!supabaseUrl) {
@@ -149,6 +155,12 @@ export function createSupabaseServiceClient(): SupabaseClient<Database> {
             auth: {
                 autoRefreshToken: false,
                 persistSession: false,
+            },
+            global: {
+                headers: {
+                    Authorization: `Bearer ${supabaseKey}`,
+                    apikey: supabaseKey,
+                },
             },
         });
 

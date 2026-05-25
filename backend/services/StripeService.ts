@@ -467,6 +467,7 @@ export class StripeService {
                 success_url: `${frontend}/account/billing?checkout=${uniqueId}`,
                 cancel_url: `${frontend}/account/billing`,
                 subscription_data: {
+                    // trial_period_days is in days - eg 7 days
                     ...(params.allowTrial ? { trial_period_days: 7 } : {}),
                     metadata: {
                         service: STRIPE_SERVICE_METADATA,
@@ -694,7 +695,6 @@ export class StripeService {
                 subscription: current.id,
                 subscription_details: {
                     proration_behavior: "create_prorations",
-                    billing_cycle_anchor: "now",
                     items: [
                         {
                             id: current.items.data[0].id,
@@ -705,10 +705,16 @@ export class StripeService {
                     proration_date: prorationDate,
                 },
             });
-            return {
-                price: preview.amount_remaining ? preview.amount_remaining / 100 : 0,
-            };
-        } catch {
+            const amountCents = preview.amount_due ?? preview.amount_remaining ?? 0;
+            return { price: amountCents > 0 ? amountCents / 100 : 0 };
+        } catch (error) {
+            logger.warn({
+                msg: "previewProration: Stripe invoice preview failed",
+                organizationId,
+                billing: body.billing,
+                period: body.period,
+                error: error instanceof Error ? error.message : String(error),
+            });
             return { price: 0 };
         }
     }
@@ -1124,14 +1130,25 @@ export class StripeService {
         const tier = this.tierFromMetadata(metadata);
         if (!tier) return;
 
-        const organizationId =
+        const organizationIdRaw =
             typeof metadata.organizationId === "string"
                 ? metadata.organizationId
                 : (await this.subscriptionRepository.getOrganizationByStripeCustomerId(
                       String(subscription.customer)
                   ))?.id;
-
+        const organizationId = organizationIdRaw?.trim();
         if (!organizationId) return;
+
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org) {
+            logger.warn({
+                msg: "syncSubscriptionFromStripe: organization not found",
+                organizationId,
+                stripeSubscriptionId: subscription.id,
+                stripeCustomerId: String(subscription.customer),
+            });
+            return;
+        }
 
         const uniqueId =
             typeof metadata.uniqueId === "string" ? metadata.uniqueId : subscription.id;

@@ -62,6 +62,8 @@
     "test:e2e:post-schedule": "cross-env NODE_ENV=development jest tests/e2e/post.schedule.e2e.test.ts --runInBand --verbose --no-coverage",
     "test:e2e:signature": "cross-env NODE_ENV=development jest tests/e2e/signature.e2e.test.ts --runInBand --verbose --no-coverage",
     "test:e2e:user:setting": "cross-env NODE_ENV=development jest tests/e2e/user.setting.e2e.test.ts --runInBand --verbose --no-coverage",
+    "test:e2e:billing-plans": "cross-env NODE_ENV=development jest tests/e2e/billing.plans.e2e.test.ts --runInBand --verbose --no-coverage",
+    "test:e2e:billing-plans:stripe": "cross-env THIRD_PARTY_TESTS_STRIPE=true NODE_ENV=development jest tests/e2e/billing.plans.e2e.test.ts --runInBand --verbose --no-coverage",
     "test:e2e:resend": "cross-env NODE_ENV=development jest tests/e2e/auth.normal.e2e.test.ts --runInBand --testNamePattern=\"Resend verification email\"",
     "test:webhook:stripe": "stripe listen --forward-to localhost:3000/api/v1/billing/webhooks/stripe",
     "lint": "eslint .",
