@@ -12,6 +12,7 @@ import type { UserSessionService } from "../services/UserSessionService";
 import type { OrganizationService } from "../services/OrganizationService";
 import type { SubscriptionService } from "../services/SubscriptionService";
 import type { StripeService } from "../services/StripeService";
+import { OrganizationNotFoundError, OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError, UserAuthorizationError } from "../errors/UserError";
 import { ValidationError, InfraError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
@@ -22,6 +23,7 @@ import { resolveActiveOrganizationId } from "../utils/session/resolveActiveOrgan
 import {
     readJoinOrganizationToken,
     setActiveOrganizationCookie,
+    clearActiveOrganizationCookie,
     clearJoinOrganizationCookie,
 } from "../utils/session/sessionCookies";
 import { toOrganizationWithRoleDTO } from "../utils/dtos/OrganizationDTO";
@@ -45,7 +47,7 @@ export class UserController {
 
     /**
      * GET /users/me — profile (+ workspace session when `organizationId` query or `showorg` cookie is set).
-     * Session field names match protected-shell bootstrap (`orgId`, `tier`, `totalChannels`, `role`, …).
+     * Session field names match protected-shell bootstrap (`orgId`, `tier`, `channelsPerWorkspace`, `role`, …).
      */
     getProfile: ValidateGetMeRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -72,8 +74,27 @@ export class UserController {
             };
 
             if (organizationId) {
-                const session = await this.userSessionService.getWorkspaceSession(authUserId, organizationId);
-                Object.assign(data, session);
+                try {
+                    const session = await this.userSessionService.getWorkspaceSession(
+                        authUserId,
+                        organizationId
+                    );
+                    Object.assign(data, session);
+                } catch (error) {
+                    if (
+                        error instanceof OrganizationNotFoundError ||
+                        error instanceof OrganizationForbiddenError
+                    ) {
+                        clearActiveOrganizationCookie(res);
+                        logger.warn({
+                            msg: "GET /users/me: ignored stale or inaccessible active workspace cookie",
+                            organizationId,
+                            authUserId,
+                        });
+                    } else {
+                        throw error;
+                    }
+                }
             }
 
             res.status(200).json({

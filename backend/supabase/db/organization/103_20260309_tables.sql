@@ -29,12 +29,18 @@ CREATE TABLE IF NOT EXISTS public.organizations (
     name TEXT NOT NULL,
     description TEXT,
     api_key TEXT,
+    stripe_customer_id TEXT,
+    allow_trial BOOLEAN NOT NULL DEFAULT FALSE,
+    is_trialing BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
 COMMENT ON TABLE public.organizations IS 'Organizations (workspaces/tenants). Tenant key for org-scoped rows (e.g. public.posts.organization_id, public.post_internal_comments.organization_id).';
 COMMENT ON COLUMN public.organizations.api_key IS 'Optional API key for programmatic access';
+COMMENT ON COLUMN public.organizations.stripe_customer_id IS 'Stripe Customer id for workspace billing.';
+COMMENT ON COLUMN public.organizations.allow_trial IS 'When true, new checkout sessions may include a trial period.';
+COMMENT ON COLUMN public.organizations.is_trialing IS 'Workspace trial state; synced from Stripe when subscribed, cleared when trial ends or plan is active.';
 
 -- ---------------------------
 -- User-Organization membership

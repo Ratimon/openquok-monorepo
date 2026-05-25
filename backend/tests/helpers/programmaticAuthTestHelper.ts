@@ -66,6 +66,7 @@ export async function signupVerifyAndGetWorkspace(
     expect(listRes.status).toBe(200);
     const orgId = listRes.body?.data?.[0]?.id as string;
     expect(orgId).toBeDefined();
+    userHelper.trackOrganization(orgId);
 
     return { accessToken: accessToken as string, orgId };
 }

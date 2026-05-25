@@ -20,7 +20,7 @@ export function embeddedCheckoutAppearance(isDark: boolean): Appearance {
 				marginBottom: '8px'
 			},
 			'.Input': {
-				height: '44px',
+				padding: '12px',
 				backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF'
 			}
 		}

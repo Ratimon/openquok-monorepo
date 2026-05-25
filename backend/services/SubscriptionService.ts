@@ -141,7 +141,7 @@ export class SubscriptionService {
         identifier: string;
         subscriptionTier: PaidSubscriptionTier;
         period: SubscriptionPeriod;
-        totalChannels: number;
+        channelsPerWorkspace: number;
         cancelAt: string | null;
     }): Promise<OrganizationSubscriptionRow> {
         return this.subscriptionRepository.createOrUpdateSubscription({
@@ -150,7 +150,7 @@ export class SubscriptionService {
             identifier: params.identifier,
             subscriptionTier: params.subscriptionTier,
             period: params.period,
-            totalChannels: params.totalChannels,
+            channelsPerWorkspace: params.channelsPerWorkspace,
             cancelAt: params.cancelAt,
         });
     }
@@ -171,7 +171,7 @@ export class SubscriptionService {
             identifier: `admin-${Date.now()}`,
             subscriptionTier: params.subscriptionTier,
             period: params.period ?? "MONTHLY",
-            totalChannels: limits.channel_per_workspace,
+            channelsPerWorkspace: limits.channel_per_workspace,
             cancelAt: null,
         });
     }

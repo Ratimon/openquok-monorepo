@@ -17,6 +17,7 @@
 	import BillingPeriodToggle from '$lib/ui/components/billing/BillingPeriodToggle.svelte';
 	import BillingPlanFeatures from '$lib/ui/components/billing/BillingPlanFeatures.svelte';
 	import EmbeddedBilling from '$lib/ui/components/billing/EmbeddedBilling.svelte';
+	import FirstBillingHero from '$lib/ui/components/billing/FirstBillingHero.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import HeaderWorkspaceSwitcher from '$lib/ui/components/workspaces/HeaderWorkspaceSwitcher.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -36,6 +37,7 @@
 	let checkoutLoading = $state(false);
 	let checkoutLoadFailed = $state(false);
 	let checkoutErrorMessage = $state<string | null>(null);
+	let checkoutRequestId = 0;
 
 	const pricingVm = $derived(firstBillingGatePresenter.pricingVm);
 	const paidPlans = $derived(
@@ -62,22 +64,36 @@
 			checkoutSecret = null;
 			checkoutLoadFailed = false;
 			checkoutErrorMessage = null;
+			checkoutLoading = false;
 			return;
 		}
+
+		const requestId = ++checkoutRequestId;
 		checkoutLoading = true;
-		checkoutSecret = null;
 		checkoutLoadFailed = false;
 		checkoutErrorMessage = null;
+
 		try {
 			const result = await billingPresenter.loadEmbeddedCheckoutSecret(selectedTier, period);
-			checkoutSecret = result.clientSecret;
-			checkoutLoadFailed = !result.clientSecret;
-			checkoutErrorMessage = result.errorMessage;
+			if (requestId !== checkoutRequestId) return;
+
+			if (result.clientSecret) {
+				checkoutSecret = result.clientSecret;
+				checkoutLoadFailed = false;
+			} else if (!checkoutSecret) {
+				checkoutLoadFailed = true;
+				checkoutErrorMessage = result.errorMessage;
+			}
 		} catch {
-			checkoutLoadFailed = true;
-			checkoutErrorMessage = 'Could not start checkout. Try again.';
+			if (requestId !== checkoutRequestId) return;
+			if (!checkoutSecret) {
+				checkoutLoadFailed = true;
+				checkoutErrorMessage = 'Could not start checkout. Try again.';
+			}
 		} finally {
-			checkoutLoading = false;
+			if (requestId === checkoutRequestId) {
+				checkoutLoading = false;
+			}
 		}
 	}
 
@@ -165,43 +181,10 @@
 	<div class="flex flex-1 flex-col px-4 md:px-8 lg:flex-row lg:px-20">
 		<section class="flex flex-1 flex-col py-8 lg:pe-10 lg:pt-10">
 			<div class="mb-8 lg:hidden">
-				<h1 class="text-balance text-3xl font-semibold leading-tight md:text-4xl">
-					Choose a plan to unlock your workspace
-				</h1>
-				{#if allowTrial}
-					<ul class="mt-6 flex flex-col gap-3 text-base font-medium">
-						<li class="flex items-center gap-2">
-							<AbstractIcon
-								name={icons.CircleCheck.name}
-								class="text-success"
-								width="17"
-								height="17"
-							/>
-							100% no-risk free trial
-						</li>
-						<li class="flex items-center gap-2">
-							<AbstractIcon
-								name={icons.CircleCheck.name}
-								class="text-success"
-								width="17"
-								height="17"
-							/>
-							Pay nothing for the first 7 days
-						</li>
-						<li class="flex items-center gap-2">
-							<AbstractIcon
-								name={icons.CircleCheck.name}
-								class="text-success"
-								width="17"
-								height="17"
-							/>
-							Cancel anytime from billing settings
-						</li>
-					</ul>
-				{/if}
+				<FirstBillingHero {allowTrial} />
 			</div>
 
-			{#if awaitingWorkspace || checkoutLoading}
+			{#if awaitingWorkspace || (checkoutLoading && !checkoutSecret)}
 				<div class="flex flex-1 items-center justify-center py-16">
 					<span class="loading loading-spinner loading-lg text-primary"></span>
 				</div>
@@ -219,7 +202,11 @@
 					</Button>
 				</div>
 			{:else}
-				<EmbeddedBilling clientSecret={checkoutSecret} showCoupon={period === 'MONTHLY'} />
+				<EmbeddedBilling
+					clientSecret={checkoutSecret}
+					showCoupon={period === 'MONTHLY'}
+					checkoutUpdating={checkoutLoading}
+				/>
 			{/if}
 		</section>
 
@@ -227,40 +214,7 @@
 			class="flex flex-col border-base-300 py-8 lg:w-[min(100%,520px)] lg:border-l lg:ps-10 lg:pt-10"
 		>
 			<div class="hidden lg:block">
-				<h1 class="text-balance text-3xl font-semibold leading-tight md:text-4xl">
-					Choose a plan to unlock your workspace
-				</h1>
-				{#if allowTrial}
-					<ul class="mt-6 flex flex-col gap-3 text-base font-medium">
-						<li class="flex items-center gap-2">
-							<AbstractIcon
-								name={icons.CircleCheck.name}
-								class="text-success"
-								width="17"
-								height="17"
-							/>
-							100% no-risk free trial
-						</li>
-						<li class="flex items-center gap-2">
-							<AbstractIcon
-								name={icons.CircleCheck.name}
-								class="text-success"
-								width="17"
-								height="17"
-							/>
-							Pay nothing for the first 7 days
-						</li>
-						<li class="flex items-center gap-2">
-							<AbstractIcon
-								name={icons.CircleCheck.name}
-								class="text-success"
-								width="17"
-								height="17"
-							/>
-							Cancel anytime from billing settings
-						</li>
-					</ul>
-				{/if}
+				<FirstBillingHero {allowTrial} />
 			</div>
 
 			<div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">

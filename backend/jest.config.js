@@ -26,6 +26,7 @@ export default {
     },
     moduleFileExtensions: ["ts", "js", "json", "node"],
     setupFiles: ["<rootDir>/jest.env-setup.cjs"],
+    globalSetup: "<rootDir>/tests/global-setup.cjs",
     testEnvironment: "node",
     clearMocks: true,
     collectCoverage: false,

@@ -18,7 +18,7 @@ Openquok uses **Stripe** for **workspace (organization) subscriptions**. Plan li
 | --- | --- |
 | **Backend** | Checkout, customer portal, webhooks, subscription rows in Postgres |
 | **Web** | <Badge text="/account/billing" variant="path" /> — current plan, usage, upgrade |
-| **Database** | <Badge text="organization_subscriptions" variant="param" />, <Badge text="organizations.stripe_customer_id" variant="param"/> (billing migrations) |
+| **Database** | <Badge text="organization_subscriptions" variant="param" />, <Badge text="organizations.stripe_customer_id" variant="param"/>, <Badge text="organizations.allow_trial" variant="param"/>, <Badge text="organizations.is_trialing" variant="param"/> (organization + billing migrations) |
 
 
 ## Environment variables

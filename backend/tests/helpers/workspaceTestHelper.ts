@@ -32,7 +32,7 @@ export function mockSoloSubscriptionRow(organizationId: string): OrganizationSub
         period: "MONTHLY",
         identifier: "test_checkout_stub",
         cancel_at: null,
-        total_channels: soloLimits.channel_per_workspace,
+        channels_per_workspace: soloLimits.channel_per_workspace,
         is_lifetime: false,
         created_at: createdAt,
         updated_at: createdAt,

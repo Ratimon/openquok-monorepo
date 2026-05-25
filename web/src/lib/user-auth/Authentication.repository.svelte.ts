@@ -614,8 +614,8 @@ export class AuthenticationRepository {
 		return this.currentAuthStatus.status === AuthStatus.AUTHENTICATED && this.currentUser !== null;
 	}
 
-	/** Update the in-memory and stored user profile (e.g. after PATCH /users/me). Call before invalidateAll() so layout shows updated name. */
-	public updateStoredProfile(updates: { fullName?: string }): void {
+	/** Update the in-memory and stored user profile (e.g. after PATCH /users/me or email verification). */
+	public updateStoredProfile(updates: { fullName?: string; isEmailVerified?: boolean }): void {
 		if (!this.currentUser) return;
 		const next = { ...this.currentUser, ...updates };
 		this.currentUser = next;

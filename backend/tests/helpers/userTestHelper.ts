@@ -2,12 +2,15 @@ import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { faker } from "@faker-js/faker";
 import { config } from "../../config/GlobalConfig";
+import { cleanTestOrganizationsAndUsers } from "./organizationTestCleanup";
 
 const supabaseConfig = config.supabase as { supabaseUrl: string; supabaseSecretKey?: string };
 
 export class UserTestHelper {
     private adminSupabase: SupabaseClient;
     public createdUserIds: string[] = [];
+    /** Workspace ids created during tests; cleared in {@link cleanAllStoredUsers}. */
+    public createdOrganizationIds: string[] = [];
 
     constructor() {
         const url = supabaseConfig.supabaseUrl;
@@ -27,17 +30,34 @@ export class UserTestHelper {
         }
     }
 
-    private async deleteOrganizationsForUserIds(userIds: string[]): Promise<void> {
-        if (!userIds.length) return;
+    trackOrganization(organizationId: string): void {
+        const id = organizationId?.trim();
+        if (id) this.createdOrganizationIds.push(id);
+    }
+
+    private async organizationIdsForTrackedUsers(userIds: string[]): Promise<string[]> {
+        const organizationIds = new Set(
+            this.createdOrganizationIds.map((id) => id?.trim()).filter(Boolean) as string[]
+        );
+        if (!userIds.length) return Array.from(organizationIds);
+
         try {
             const { data: memberships } = await this.adminSupabase
                 .from("user_organizations")
                 .select("organization_id")
                 .in("user_id", userIds);
-            const organizationIds = Array.from(
-                new Set((memberships ?? []).map((m) => m.organization_id).filter(Boolean))
-            ) as string[];
-            if (!organizationIds.length) return;
+            for (const membership of memberships ?? []) {
+                if (membership.organization_id) organizationIds.add(membership.organization_id);
+            }
+        } catch {
+            // ignore cleanup errors
+        }
+        return Array.from(organizationIds);
+    }
+
+    private async deleteOrganizationsByIds(organizationIds: string[]): Promise<void> {
+        if (!organizationIds.length) return;
+        try {
             await this.adminSupabase.from("organizations").delete().in("id", organizationIds);
         } catch {
             // ignore cleanup errors
@@ -242,7 +262,9 @@ export class UserTestHelper {
         );
 
         await this.deleteBlogPostsForUserIds(userIds);
-        await this.deleteOrganizationsForUserIds(userIds);
+        const organizationIds = await this.organizationIdsForTrackedUsers(userIds);
+        await this.deleteOrganizationsByIds(organizationIds);
+        this.createdOrganizationIds = [];
         await this.deleteOrganizationInvitesForEmails(emails);
 
         // Delete auth users and their corresponding public.users rows (best-effort).
@@ -273,47 +295,30 @@ export class UserTestHelper {
         this.createdUserIds = [];
     }
 
-    /** Delete auth and public.users for test emails (@test.com, @example.com). */
+    /** Delete test users and their organizations (@test.com, @example.com, e2e org names, orphans). */
     async cleanTestUsersByEmailPattern(): Promise<void> {
-        await this.deleteOrganizationInvitesByEmailPattern();
-        const { data: rows } = await this.adminSupabase
-            .from("users")
-            .select("id, auth_id")
-            .or("email.ilike.%@test.com,email.ilike.%@example.com");
-        const userIds = (rows ?? []).map((row) => row.id).filter(Boolean);
-        if (userIds.length) {
-            await this.deleteBlogPostsForUserIds(userIds);
-            await this.deleteOrganizationsForUserIds(userIds);
-            for (const row of rows ?? []) {
-                if (row.auth_id) {
-                    try {
-                        await this.adminSupabase.auth.admin.deleteUser(row.auth_id);
-                    } catch {
-                        // ignore
-                    }
-                }
-            }
-            for (const row of rows ?? []) {
-                if (row.id) {
-                    await this.adminSupabase.from("users").delete().eq("id", row.id);
-                }
-            }
-        }
-        const { data: authUsers } = await this.adminSupabase.auth.admin.listUsers();
-        for (const user of authUsers?.users ?? []) {
-            if (user.email?.includes("@test.com") || user.email?.includes("@example.com")) {
-                try {
-                    await this.adminSupabase.auth.admin.deleteUser(user.id);
-                } catch {
-                    // ignore
-                }
+        try {
+            await cleanTestOrganizationsAndUsers(this.adminSupabase);
+        } catch {
+            // Fall back to legacy partial cleanup if the shared helper fails mid-suite.
+            await this.deleteOrganizationInvitesByEmailPattern();
+            const { data: rows } = await this.adminSupabase
+                .from("users")
+                .select("id, auth_id")
+                .or("email.ilike.%@test.com,email.ilike.%@example.com");
+            const userIds = (rows ?? []).map((row) => row.id).filter(Boolean);
+            if (userIds.length) {
+                await this.deleteBlogPostsForUserIds(userIds);
+                const organizationIds = await this.organizationIdsForTrackedUsers(userIds);
+                await this.deleteOrganizationsByIds(organizationIds);
+                this.createdOrganizationIds = [];
             }
         }
     }
 
     /**
-     * Run all cleanup in one call: stored users (with blog_posts), then test users by email pattern.
-     * Use in afterAll of a test suite to leave the DB clean.
+     * Run all cleanup in one call: tracked users from the current suite, then full test DB sweep.
+     * Global setup also runs the sweep once before the first test file.
      */
     async cleanAll(): Promise<void> {
         await this.cleanAllStoredUsers();

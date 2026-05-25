@@ -40,7 +40,7 @@ function subscriptionRow(
         period: "MONTHLY",
         identifier: faker.string.alphanumeric(12),
         cancel_at: null,
-        total_channels: pricing[tier].channel_per_workspace,
+        channels_per_workspace: pricing[tier].channel_per_workspace,
         is_lifetime: false,
         created_at: now,
         updated_at: now,
@@ -286,7 +286,7 @@ describe("SubscriptionService", () => {
                 identifier: "checkout-abc",
                 subscriptionTier: "CREATOR",
                 period: "YEARLY",
-                totalChannels: 20,
+                channelsPerWorkspace: 20,
                 cancelAt: null,
             });
             expect(subscriptionRepo.createOrUpdateSubscription).toHaveBeenCalledWith({
@@ -295,7 +295,7 @@ describe("SubscriptionService", () => {
                 identifier: "checkout-abc",
                 subscriptionTier: "CREATOR",
                 period: "YEARLY",
-                totalChannels: 20,
+                channelsPerWorkspace: 20,
                 cancelAt: null,
             });
             expect(result).toBe(row);
@@ -326,7 +326,7 @@ describe("SubscriptionService", () => {
                     organizationId,
                     subscriptionTier: "TEAM",
                     period: "YEARLY",
-                    totalChannels: pricing.TEAM.channel_per_workspace,
+                    channelsPerWorkspace: pricing.TEAM.channel_per_workspace,
                     isTrialing: false,
                     cancelAt: null,
                 })

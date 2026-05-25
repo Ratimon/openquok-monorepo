@@ -6,7 +6,7 @@ export type UserMeWorkspaceRole = 'USER' | 'ADMIN' | 'OWNER';
 /**
  * Workspace session fields returned by `GET /users/me?organizationId=…`.
  * Names align with common protected-shell session bootstrap payloads
- * (`orgId`, `tier`, `totalChannels`, `role`, `publicApi`, etc.).
+ * (`orgId`, `tier`, `channelsPerWorkspace`, `role`, `publicApi`, etc.).
  */
 export interface UserMeWorkspaceSession {
 	orgId: string;
@@ -15,7 +15,7 @@ export interface UserMeWorkspaceSession {
 	/** Plan catalog row for {@link tier}. */
 	tierPlan: PlanLimits;
 	/** Effective connected-channel cap for the active workspace. */
-	totalChannels: number;
+	channelsPerWorkspace: number;
 	role: UserMeWorkspaceRole;
 	/** Workspace public API key; empty when not exposed to this member. */
 	publicApi: string;

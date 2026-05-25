@@ -1,8 +1,8 @@
 import { planLimitsForTier } from "openquok-common";
 import {
-    DEV_SESSION_TOTAL_CHANNELS,
+    DEV_SESSION_CHANNELS_PER_WORKSPACE,
     resolveSessionPublicApiKey,
-    resolveSessionTotalChannels,
+    resolveSessionChannelsPerWorkspace,
     workspaceRoleToUserMeRole,
 } from "./UserMeDTO";
 
@@ -15,23 +15,25 @@ describe("UserMeDTO", () => {
         });
     });
 
-    describe("resolveSessionTotalChannels", () => {
+    describe("resolveSessionChannelsPerWorkspace", () => {
         it("returns generous cap when billing is disabled", () => {
             expect(
-                resolveSessionTotalChannels(false, "FREE", planLimitsForTier("FREE"), null)
-            ).toBe(DEV_SESSION_TOTAL_CHANNELS);
+                resolveSessionChannelsPerWorkspace(false, "FREE", planLimitsForTier("FREE"), null)
+            ).toBe(DEV_SESSION_CHANNELS_PER_WORKSPACE);
         });
 
         it("uses plan cap when subscription snapshot is zero", () => {
             const solo = planLimitsForTier("SOLO");
-            expect(resolveSessionTotalChannels(true, "SOLO", solo, null)).toBe(solo.channel_per_workspace);
+            expect(resolveSessionChannelsPerWorkspace(true, "SOLO", solo, null)).toBe(
+                solo.channel_per_workspace
+            );
         });
 
         it("prefers max of snapshot and plan cap", () => {
             const solo = planLimitsForTier("SOLO");
             expect(
-                resolveSessionTotalChannels(true, "SOLO", solo, {
-                    total_channels: 25,
+                resolveSessionChannelsPerWorkspace(true, "SOLO", solo, {
+                    channels_per_workspace: 25,
                 } as never)
             ).toBe(25);
         });

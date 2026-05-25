@@ -22,9 +22,10 @@
 	type Props = {
 		clientSecret: string;
 		showCoupon?: boolean;
+		checkoutUpdating?: boolean;
 	};
 
-	let { clientSecret, showCoupon = false }: Props = $props();
+	let { clientSecret, showCoupon = false, checkoutUpdating = false }: Props = $props();
 
 	let paymentMountEl = $state<HTMLDivElement | null>(null);
 	let stripe = $state<Stripe | null>(null);
@@ -39,36 +40,43 @@
 	let couponApplying = $state(false);
 	let showCouponInput = $state(false);
 	let appliedCoupon = $state<string | null>(null);
+	let summarySession = $state<StripeCheckoutSession | null>(null);
 
 	const preAppliedCode = $derived(session?.discountAmounts?.[0]?.promotionCode ?? null);
 	const effectiveCoupon = $derived(appliedCoupon ?? preAppliedCode);
 
-	const lineItem = $derived(session?.lineItems?.[0] ?? null);
-	const dueToday = $derived(session?.total?.total?.amount ?? '$0.00');
-	const nextBillingTotal = $derived(session?.recurring?.dueNext?.total?.amount ?? null);
+	const displaySession = $derived(session ?? summarySession);
+
+	const lineItem = $derived(displaySession?.lineItems?.[0] ?? null);
+	const dueToday = $derived(displaySession?.total?.total?.amount ?? '$0.00');
+	const nextBillingTotal = $derived(displaySession?.recurring?.dueNext?.total?.amount ?? null);
 	const nextBillingDate = $derived.by(() => {
-		const trialEnd = session?.recurring?.trial?.trialEnd;
+		const trialEnd = displaySession?.recurring?.trial?.trialEnd;
 		return trialEnd ? dayjs(trialEnd * 1000).format('MMMM D, YYYY') : null;
 	});
 	const billingInterval = $derived(
-		session?.recurring?.interval === 'year' ? 'Yearly' : 'Monthly'
+		displaySession?.recurring?.interval === 'year' ? 'Yearly' : 'Monthly'
 	);
 	const trialEndLabel = $derived.by(() => {
-		const trialEnd = session?.recurring?.trial?.trialEnd;
+		const trialEnd = displaySession?.recurring?.trial?.trialEnd;
 		return trialEnd ? dayjs(trialEnd * 1000).format('MMMM D, YYYY') : null;
 	});
 	const submitLabel = $derived(
-		session?.recurring?.trial?.trialEnd
+		displaySession?.recurring?.trial?.trialEnd
 			? 'Pay $0 today — start your free trial'
 			: 'Pay now'
 	);
-	const canSubmit = $derived(Boolean(session?.canConfirm) && !submitting);
+	const canSubmit = $derived(Boolean(session?.canConfirm) && !submitting && !checkoutUpdating);
+	const showSummary = $derived(Boolean(displaySession) && (paymentReady || summarySession));
 
-	async function teardownCheckout(): Promise<void> {
+	async function teardownCheckout(keepSummary = false): Promise<void> {
 		paymentElement?.unmount();
 		paymentElement = null;
 		actions = null;
-		session = null;
+		if (!keepSummary) {
+			session = null;
+			summarySession = null;
+		}
 		paymentReady = false;
 		mountedSecret = null;
 		mountError = null;
@@ -76,7 +84,13 @@
 
 	async function mountCheckout(secret: string): Promise<void> {
 		if (!stripe || !secret) return;
-		await teardownCheckout();
+		const keepSummary = mountedSecret !== null;
+		await teardownCheckout(keepSummary);
+		if (keepSummary) {
+			appliedCoupon = null;
+			showCouponInput = false;
+			couponCode = '';
+		}
 		mountError = null;
 
 		await tick();
@@ -93,6 +107,7 @@
 
 			sdk.on('change', (nextSession) => {
 				session = nextSession;
+				summarySession = nextSession;
 			});
 
 			const loadResult = await sdk.loadActions();
@@ -105,6 +120,7 @@
 
 			actions = loadResult.actions;
 			session = loadResult.actions.getSession();
+			summarySession = session;
 
 			const element = sdk.createPaymentElement({
 				fields: { billingDetails: { address: 'if_required' } },
@@ -187,21 +203,32 @@
 <form class="flex flex-1 flex-col pt-6 lg:pt-12" onsubmit={handleSubmit}>
 	<div>
 		<h2 class="mb-8 text-2xl font-bold">Payment</h2>
-		{#if mountError}
-			<div class="alert alert-error text-sm" role="alert">
-				<span>{mountError}</span>
-			</div>
-		{/if}
-		<div bind:this={paymentMountEl} class="min-h-[220px]"></div>
-		{#if !paymentReady && !mountError && clientSecret}
-			<div class="mt-4 flex justify-center py-8">
-				<span class="loading loading-spinner loading-md text-primary"></span>
-			</div>
-		{/if}
+		<div class="relative">
+			{#if mountError}
+				<div class="alert alert-error text-sm" role="alert">
+					<span>{mountError}</span>
+				</div>
+			{/if}
+			<div bind:this={paymentMountEl} class="min-h-[220px]"></div>
+			{#if (!paymentReady || checkoutUpdating) && !mountError && clientSecret}
+				<div
+					class="absolute inset-0 flex items-center justify-center rounded-lg bg-base-100/80 backdrop-blur-[1px]"
+				>
+					<span class="loading loading-spinner loading-md text-primary"></span>
+				</div>
+			{/if}
+		</div>
 	</div>
 
-	{#if paymentReady && session}
-		<div class="mt-10">
+	{#if showSummary && displaySession}
+		<div class="relative mt-10">
+			{#if checkoutUpdating || !paymentReady}
+				<div
+					class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-base-100/70 backdrop-blur-[1px]"
+				>
+					<span class="loading loading-spinner loading-md text-primary"></span>
+				</div>
+			{/if}
 			<h3 class="mb-4 text-2xl font-bold">Order summary</h3>
 			<div class="flex flex-col gap-3 rounded-xl border border-base-300 p-5">
 				<div class="flex items-center justify-between gap-4">
@@ -212,8 +239,8 @@
 					<span class="font-medium">{lineItem?.unitAmount?.amount ?? '$0.00'}</span>
 				</div>
 
-				{#if session.discountAmounts?.[0]}
-					{@const discount = session.discountAmounts[0]}
+				{#if displaySession.discountAmounts?.[0]}
+					{@const discount = displaySession.discountAmounts[0]}
 					<div class="flex items-center justify-between gap-4 font-semibold">
 						<span class="font-medium">
 							{discount.displayName || discount.promotionCode}
@@ -249,7 +276,7 @@
 			</div>
 		</div>
 
-		{#if showCoupon}
+		{#if showCoupon && paymentReady}
 			{#if effectiveCoupon}
 				<div class="mt-10 flex flex-col gap-2">
 					<div

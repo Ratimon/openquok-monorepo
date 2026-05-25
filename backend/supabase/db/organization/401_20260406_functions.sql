@@ -234,11 +234,14 @@ $$;
 -- Server-side workspace creation bypasses RLS (service_role / API layer).
 -- Direct INSERT into organizations fails when the DB client is subject to RLS
 -- (e.g. publishable key without service_role bypass).
+DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text);
 CREATE OR REPLACE FUNCTION public.internal_create_organization_with_owner(
     p_user_id uuid,
     p_name text,
     p_description text,
-    p_api_key text
+    p_api_key text,
+    p_allow_trial boolean DEFAULT TRUE,
+    p_is_trialing boolean DEFAULT TRUE
 )
 RETURNS TABLE (
     id uuid,
@@ -265,11 +268,20 @@ BEGIN
         RAISE EXCEPTION 'User not found';
     END IF;
 
-    INSERT INTO public.organizations (name, description, api_key, updated_at)
+    INSERT INTO public.organizations (
+        name,
+        description,
+        api_key,
+        allow_trial,
+        is_trialing,
+        updated_at
+    )
     VALUES (
         v_name,
         NULLIF(trim(COALESCE(p_description, '')), ''),
         p_api_key,
+        COALESCE(p_allow_trial, TRUE),
+        COALESCE(p_is_trialing, TRUE),
         NOW()
     )
     RETURNING organizations.id INTO v_org_id;
@@ -284,10 +296,10 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text) TO service_role;
+REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) TO service_role;
 
-COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text) IS
-    'Create organization and add founding user as owner (bypasses RLS); API service_role only.';
+COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) IS
+    'Create organization and add founding user as owner (bypasses RLS); billing flags supplied by API layer.';
 
 COMMIT;

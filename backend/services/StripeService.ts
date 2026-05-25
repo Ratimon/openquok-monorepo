@@ -804,8 +804,8 @@ export class StripeService {
             identifier: dbRow.identifier?.trim() || dbRow.id,
             subscriptionTier: tier,
             period: dbRow.period as SubscriptionPeriod,
-            totalChannels:
-                dbRow.total_channels ?? pricing[tier].channel_per_workspace,
+            channelsPerWorkspace:
+                dbRow.channels_per_workspace ?? pricing[tier].channel_per_workspace,
             cancelAt: null,
         });
     }
@@ -1145,7 +1145,7 @@ export class StripeService {
             identifier: uniqueId,
             subscriptionTier: tier,
             period,
-            totalChannels: pricing[tier].channel_per_workspace,
+            channelsPerWorkspace: pricing[tier].channel_per_workspace,
             cancelAt,
         });
     }

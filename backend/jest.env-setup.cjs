@@ -27,3 +27,6 @@ if (fs.existsSync(testLocalPath)) {
 // Integration/e2e tests use supertest against the in-process app and do not require Redis.
 process.env.CACHE_PROVIDER = "memory";
 process.env.CACHE_ENABLED = "false";
+
+// Before the first test file, `tests/global-setup.ts` deletes test organizations/users when
+// PUBLIC_SUPABASE_URL + SUPABASE_SECRET_KEY are set. Set OPENQUOK_SKIP_TEST_DB_CLEANUP=true to skip.

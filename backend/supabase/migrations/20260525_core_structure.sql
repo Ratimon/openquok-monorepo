@@ -160,12 +160,18 @@ CREATE TABLE IF NOT EXISTS public.organizations (
     name TEXT NOT NULL,
     description TEXT,
     api_key TEXT,
+    stripe_customer_id TEXT,
+    allow_trial BOOLEAN NOT NULL DEFAULT FALSE,
+    is_trialing BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
 COMMENT ON TABLE public.organizations IS 'Organizations (workspaces/tenants). Tenant key for org-scoped rows (e.g. public.posts.organization_id, public.post_internal_comments.organization_id).';
 COMMENT ON COLUMN public.organizations.api_key IS 'Optional API key for programmatic access';
+COMMENT ON COLUMN public.organizations.stripe_customer_id IS 'Stripe Customer id for workspace billing.';
+COMMENT ON COLUMN public.organizations.allow_trial IS 'When true, new checkout sessions may include a trial period.';
+COMMENT ON COLUMN public.organizations.is_trialing IS 'Workspace trial state; synced from Stripe when subscribed, cleared when trial ends or plan is active.';
 
 -- ---------------------------
 -- User-Organization membership
@@ -271,6 +277,27 @@ COMMENT ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) IS 'RLS h
 COMMENT ON FUNCTION public.is_active_owner_of_org(uuid, uuid) IS 'RLS helper: owner membership (bypasses RLS inside).';
 
 
+-- Module: organization, File: 104_20260524_tables.sql
+-- ---------------------------
+-- MODULE NAME: Organization
+-- MODULE DATE: 20260524
+-- MODULE SCOPE: Tables
+-- ---------------------------
+-- Idempotent for DBs that already received billing columns via billing/101 ALTER.
+-- Column defaults stay FALSE; new workspaces set allow_trial / is_trialing in the API repository.
+
+
+
+ALTER TABLE public.organizations
+    ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
+    ADD COLUMN IF NOT EXISTS allow_trial BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS is_trialing BOOLEAN NOT NULL DEFAULT FALSE;
+
+COMMENT ON COLUMN public.organizations.stripe_customer_id IS 'Stripe Customer id for workspace billing.';
+COMMENT ON COLUMN public.organizations.allow_trial IS 'When true, new checkout sessions may include a trial period.';
+COMMENT ON COLUMN public.organizations.is_trialing IS 'Workspace trial state; synced from Stripe when subscribed, cleared when trial ends or plan is active.';
+
+
 -- Module: billing, File: 101_20260519_tables.sql
 -- ---------------------------
 -- MODULE NAME: Billing
@@ -295,15 +322,6 @@ END $$;
 COMMENT ON TYPE public.subscription_tier IS 'Paid workspace subscription tier (FREE is implicit when no subscription row exists).';
 COMMENT ON TYPE public.subscription_period IS 'Billing cadence for a paid subscription.';
 
-ALTER TABLE public.organizations
-    ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
-    ADD COLUMN IF NOT EXISTS allow_trial BOOLEAN NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS is_trialing BOOLEAN NOT NULL DEFAULT FALSE;
-
-COMMENT ON COLUMN public.organizations.stripe_customer_id IS 'Stripe Customer id for workspace billing.';
-COMMENT ON COLUMN public.organizations.allow_trial IS 'When true, new checkout sessions may include a trial period.';
-COMMENT ON COLUMN public.organizations.is_trialing IS 'Synced from Stripe when the subscription is in trial.';
-
 CREATE TABLE IF NOT EXISTS public.organization_subscriptions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
@@ -311,7 +329,7 @@ CREATE TABLE IF NOT EXISTS public.organization_subscriptions (
     period public.subscription_period NOT NULL DEFAULT 'MONTHLY',
     identifier TEXT,
     cancel_at TIMESTAMPTZ,
-    total_channels INTEGER NOT NULL DEFAULT 0,
+    channels_per_workspace INTEGER NOT NULL DEFAULT 0,
     is_lifetime BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -321,11 +339,39 @@ CREATE TABLE IF NOT EXISTS public.organization_subscriptions (
 
 COMMENT ON TABLE public.organization_subscriptions IS 'Active paid plan for a workspace; mirrors Stripe subscription state.';
 COMMENT ON COLUMN public.organization_subscriptions.identifier IS 'Checkout correlation id stored in Stripe subscription metadata.';
-COMMENT ON COLUMN public.organization_subscriptions.total_channels IS 'Channel cap snapshot (may exceed plan default after upgrades).';
+COMMENT ON COLUMN public.organization_subscriptions.channels_per_workspace IS 'Per-workspace connected-channel cap snapshot (may exceed plan default after upgrades).';
 
 CREATE INDEX IF NOT EXISTS idx_organization_subscriptions_customer
     ON public.organization_subscriptions (organization_id)
     WHERE deleted_at IS NULL;
+
+
+-- Module: billing, File: 102_20260525_tables.sql
+-- ---------------------------
+-- MODULE NAME: Billing
+-- MODULE DATE: 20260525
+-- MODULE SCOPE: Tables
+-- ---------------------------
+-- Rename misleading total_channels → channels_per_workspace on existing databases.
+
+
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'organization_subscriptions'
+          AND column_name = 'total_channels'
+    ) THEN
+        ALTER TABLE public.organization_subscriptions
+            RENAME COLUMN total_channels TO channels_per_workspace;
+    END IF;
+END $$;
+
+COMMENT ON COLUMN public.organization_subscriptions.channels_per_workspace IS
+    'Per-workspace connected-channel cap snapshot (may exceed plan default after upgrades).';
 
 
 -- Module: media, File: 102_20260417_tables.sql
@@ -4148,11 +4194,14 @@ $$;
 -- Server-side workspace creation bypasses RLS (service_role / API layer).
 -- Direct INSERT into organizations fails when the DB client is subject to RLS
 -- (e.g. publishable key without service_role bypass).
+DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text);
 CREATE OR REPLACE FUNCTION public.internal_create_organization_with_owner(
     p_user_id uuid,
     p_name text,
     p_description text,
-    p_api_key text
+    p_api_key text,
+    p_allow_trial boolean DEFAULT TRUE,
+    p_is_trialing boolean DEFAULT TRUE
 )
 RETURNS TABLE (
     id uuid,
@@ -4179,11 +4228,20 @@ BEGIN
         RAISE EXCEPTION 'User not found';
     END IF;
 
-    INSERT INTO public.organizations (name, description, api_key, updated_at)
+    INSERT INTO public.organizations (
+        name,
+        description,
+        api_key,
+        allow_trial,
+        is_trialing,
+        updated_at
+    )
     VALUES (
         v_name,
         NULLIF(trim(COALESCE(p_description, '')), ''),
         p_api_key,
+        COALESCE(p_allow_trial, TRUE),
+        COALESCE(p_is_trialing, TRUE),
         NOW()
     )
     RETURNING organizations.id INTO v_org_id;
@@ -4198,11 +4256,11 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text) TO service_role;
+REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) TO service_role;
 
-COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text) IS
-    'Create organization and add founding user as owner (bypasses RLS); API service_role only.';
+COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) IS
+    'Create organization and add founding user as owner (bypasses RLS); billing flags supplied by API layer.';
 
 
 -- Module: customer, File: 401_20260412_functions.sql

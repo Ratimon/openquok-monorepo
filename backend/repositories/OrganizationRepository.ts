@@ -178,6 +178,8 @@ export class OrganizationRepository {
                 p_name: params.name,
                 p_description: params.description ?? null,
                 p_api_key: apiKey,
+                p_allow_trial: true,
+                p_is_trialing: true,
             } as never
         );
         if (error) {

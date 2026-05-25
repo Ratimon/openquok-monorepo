@@ -4,8 +4,8 @@ import type { SubscriptionTier } from "openquok-common";
 import type { OrganizationSubscriptionRow } from "../../repositories/SubscriptionRepository";
 import type { WorkspaceMembershipRole } from "../../repositories/OrganizationRepository";
 
-/** Generous channel cap when billing is disabled (local/dev shell bootstrap). */
-export const DEV_SESSION_TOTAL_CHANNELS = 10_000;
+/** Generous per-workspace channel cap when billing is disabled (local/dev shell bootstrap). */
+export const DEV_SESSION_CHANNELS_PER_WORKSPACE = 10_000;
 
 export function workspaceRoleToUserMeRole(role: WorkspaceMembershipRole): UserMeWorkspaceRole {
 	switch (role) {
@@ -19,20 +19,20 @@ export function workspaceRoleToUserMeRole(role: WorkspaceMembershipRole): UserMe
 }
 
 /**
- * Effective channel cap for session UI (connect / enable channel affordances).
+ * Effective per-workspace channel cap for session UI (connect / enable channel affordances).
  * Uses subscription snapshot when set, otherwise plan `channel_per_workspace`.
  */
-export function resolveSessionTotalChannels(
+export function resolveSessionChannelsPerWorkspace(
 	billingEnabled: boolean,
 	tier: SubscriptionTier,
 	limits: PlanLimits,
 	subscription: OrganizationSubscriptionRow | null
 ): number {
 	if (!billingEnabled) {
-		return DEV_SESSION_TOTAL_CHANNELS;
+		return DEV_SESSION_CHANNELS_PER_WORKSPACE;
 	}
 	const planCap = limits.channel_per_workspace;
-	const snapshot = subscription?.total_channels ?? 0;
+	const snapshot = subscription?.channels_per_workspace ?? 0;
 	if (snapshot > 0) {
 		return Math.max(snapshot, planCap);
 	}

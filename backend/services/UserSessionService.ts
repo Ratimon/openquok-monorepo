@@ -6,7 +6,7 @@ import type { SubscriptionService } from "./SubscriptionService";
 import { OrganizationForbiddenError, OrganizationNotFoundError } from "../errors/OrganizationError";
 import {
 	resolveSessionPublicApiKey,
-	resolveSessionTotalChannels,
+	resolveSessionChannelsPerWorkspace,
 	workspaceRoleToUserMeRole,
 } from "../utils/dtos/UserMeDTO";
 import type { WorkspaceMembershipRole } from "../repositories/OrganizationRepository";
@@ -50,7 +50,12 @@ export class UserSessionService {
 			orgId: organizationId,
 			tier,
 			tierPlan: limits,
-			totalChannels: resolveSessionTotalChannels(billingEnabled, tier, limits, subscription),
+			channelsPerWorkspace: resolveSessionChannelsPerWorkspace(
+				billingEnabled,
+				tier,
+				limits,
+				subscription
+			),
 			role: workspaceRoleToUserMeRole(workspaceRole),
 			publicApi: resolveSessionPublicApiKey({
 				workspaceRole,

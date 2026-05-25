@@ -88,6 +88,7 @@
 			if (verifyEmailPresenter.status === VerifyEmailStatus.CONFIRMED) {
 				message = { type: 'success', text: verifyEmailPresenter.toastMessage };
 				signupPresenter.status = SignupStatus.SUCCESS;
+				authenticationRepository.updateStoredProfile({ isEmailVerified: true });
 				try {
 					await authenticationRepository.checkAuth(undefined, { forceProfile: true });
 				} catch {

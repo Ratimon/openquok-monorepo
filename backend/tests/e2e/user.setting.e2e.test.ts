@@ -69,7 +69,7 @@ function mockTeamSubscriptionRow(organizationId: string): OrganizationSubscripti
         period: "MONTHLY",
         identifier: "test_e2e_team_stub",
         cancel_at: null,
-        total_channels: teamLimits.channel_per_workspace,
+        channels_per_workspace: teamLimits.channel_per_workspace,
         is_lifetime: false,
         created_at: createdAt,
         updated_at: createdAt,

@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import supertest from "supertest";
 
 import { app } from "../../app";
@@ -14,6 +15,7 @@ import {
     type SoloWorkspaceSpies,
 } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
+import { ACTIVE_ORGANIZATION_COOKIE } from "../../utils/session/sessionCookies";
 import { planLimitsForTier } from "openquok-common";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
@@ -102,7 +104,7 @@ describeIfSupabase("GET /users/me workspace session (integration)", () => {
         expect(data?.orgId).toBe(orgId);
         expect(data?.tier).toBe("SOLO");
         expect(data?.tierPlan?.channel_per_workspace).toBe(soloLimits.channel_per_workspace);
-        expect(data?.totalChannels).toBe(soloLimits.channel_per_workspace);
+        expect(data?.channelsPerWorkspace).toBe(soloLimits.channel_per_workspace);
         expect(data?.role).toBe("OWNER");
         expect(data?.billingEnabled).toBe(true);
         expect(typeof data?.publicApi).toBe("string");
@@ -119,5 +121,31 @@ describeIfSupabase("GET /users/me workspace session (integration)", () => {
             .set("Authorization", `Bearer ${accessToken}`);
 
         expect(res.status).toBe(400);
+    });
+
+    it("returns profile and clears stale showorg cookie when workspace no longer exists", async () => {
+        const { accessToken } = await signUpAndGetToken();
+        const staleOrgId = randomUUID();
+
+        const res = await supertest(app)
+            .get(`${usersPath}/me`)
+            .set("Authorization", `Bearer ${accessToken}`)
+            .set("Cookie", [`${ACTIVE_ORGANIZATION_COOKIE}=${staleOrgId}`]);
+
+        expect(res.status).toBe(200);
+        expect(res.body?.data?.email).toBeDefined();
+        expect(res.body?.data?.isEmailVerified).toBe(true);
+        expect(res.body?.data?.orgId).toBeUndefined();
+
+        const setCookie = res.headers["set-cookie"];
+        const cleared = Array.isArray(setCookie)
+            ? setCookie.some(
+                  (c) =>
+                      typeof c === "string" &&
+                      c.startsWith(`${ACTIVE_ORGANIZATION_COOKIE}=`) &&
+                      /Max-Age=0|Expires=/i.test(c)
+              )
+            : false;
+        expect(cleared).toBe(true);
     });
 });
