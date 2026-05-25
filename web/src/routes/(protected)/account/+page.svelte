@@ -27,6 +27,7 @@
 	import { createHomeChannelsGridTableFilter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
+	import { firstBillingGatePresenter } from '$lib/billing';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
 
@@ -53,6 +54,7 @@
 	import { channelsGridActionsKey } from '$lib/ui/components/channels/channelsGridContext';
 	import ChannelsChipsLayout from '$lib/ui/components/channels/ChannelsChipsLayout.svelte';
 	import ChannelsGridLayout from '$lib/ui/components/channels/ChannelsGridLayout.svelte';
+	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import MyWorkspaces from '$lib/ui/components/workspaces/MyWorkspaces.svelte';
 
 	// /account
@@ -89,6 +91,8 @@
 	const accountSettingsDeveloperApiKeyHref = $derived(
 		url(`${accountRoot}/settings?${buildAccountSettingsSearchParams('developers')}`)
 	);
+	const accountSettingsTeamHref = $derived(url(`${accountRoot}/settings?section=workspace`));
+	const accountBillingHref = $derived(url(`${accountRoot}/billing`));
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
 	$effect(() => {
@@ -140,6 +144,14 @@
 	const myWorkspacesStatus = $derived(pagePresenter.myWorkspacesStatus);
 	const workspacesVm = $derived(workspaceSettingsPresenter.workspacesVm);
 	const myWorkspacesTotalCount = $derived(workspacesVm.length);
+	const currentWorkspaceCardVm = $derived(myWorkspacesCardsVm.find((c) => c.isCurrent) ?? null);
+	const currentWorkspaceMemberCountVm = $derived(currentWorkspaceCardVm?.memberCount ?? 0);
+	const subscriptionTierVm = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.subscription?.tier ??
+			firstBillingGatePresenter.pricingVm?.currentVm?.tier ??
+			null
+	);
+	const isSoloPlanVm = $derived(subscriptionTierVm === 'SOLO');
 	const creatingWorkspace = $derived(
 		workspaceSettingsPresenter.status === WorkspaceSettingsStatus.CREATING
 	);
@@ -519,22 +531,45 @@
 	});
 
 	/**
-	 * Onboarding wizard (`OnBoardingModal`): wide modal, step 1 uses a 9-column grid on large screens.
-	 * It opens from the `$effect` below when there are no connected channels and onboarding is not
-	 * marked complete in `localStorage` (key `onboarding:completed`).
+	 * Onboarding: dismissible home notices (no channels, solo upgrade, invite team) plus
+	 * `OnBoardingModal` auto-open on first empty workspace when `onboarding:completed` is unset.
 	 *
-	 * To preview the onboarding UI:
-	 * - DevTools → Application → Local Storage → delete key `onboarding:completed`
-	 * - Remove all channels for the workspace (or use an empty workspace), then reload `/account`
-	 * - Or temporarily force: change the initial state on the next line from `false` to `true`
-	 *   (`let onboardingDialogOpen = $state(true)`), then revert after testing.
+	 * Preview modal: delete `onboarding:completed` in DevTools, reload with zero channels.
+	 * Preview notices: delete `home:notice:*` keys for the workspace id in localStorage.
 	 */
 	let onboardingDialogOpen = $state(false);
 	let prevOnboardingWelcome = $state(false);
 	let hasAutoOpenedOnboarding = $state(false);
+	let noChannelsNoticeDismissed = $state(false);
+	let inviteTeamNoticeDismissed = $state(false);
+	let soloUpgradeNoticeDismissed = $state(false);
+
+	const HOME_NOTICE_STORAGE_PREFIX = 'home:notice';
+
+	function homeNoticeStorageKey(kind: string, orgId: string): string {
+		return `${HOME_NOTICE_STORAGE_PREFIX}:${kind}:${orgId}`;
+	}
+
+	function readHomeNoticeDismissed(kind: string, orgId: string | null): boolean {
+		if (!browser || !orgId) return false;
+		try {
+			return localStorage.getItem(homeNoticeStorageKey(kind, orgId)) === 'true';
+		} catch {
+			return false;
+		}
+	}
+
+	function persistHomeNoticeDismissed(kind: string, orgId: string): void {
+		if (!browser) return;
+		try {
+			localStorage.setItem(homeNoticeStorageKey(kind, orgId), 'true');
+		} catch {
+			// ignore
+		}
+	}
 
 	function isOnboardingCompleted(): boolean {
-		if (typeof window === 'undefined') return false;
+		if (!browser) return false;
 		try {
 			return localStorage.getItem('onboarding:completed') === 'true';
 		} catch {
@@ -543,13 +578,64 @@
 	}
 
 	function markOnboardingCompleted(): void {
-		if (typeof window === 'undefined') return;
+		if (!browser) return;
 		try {
 			localStorage.setItem('onboarding:completed', 'true');
 		} catch {
 			// ignore
 		}
 	}
+
+	function openOnboardingFlow(): void {
+		onboardingDialogOpen = true;
+	}
+
+	function dismissNoChannelsNotice(): void {
+		noChannelsNoticeDismissed = true;
+		if (workspaceId) persistHomeNoticeDismissed('no-channels', workspaceId);
+	}
+
+	function dismissInviteTeamNotice(): void {
+		inviteTeamNoticeDismissed = true;
+		if (workspaceId) persistHomeNoticeDismissed('invite-team', workspaceId);
+	}
+
+	function dismissSoloUpgradeNotice(): void {
+		soloUpgradeNoticeDismissed = true;
+		if (workspaceId) persistHomeNoticeDismissed('solo-upgrade', workspaceId);
+	}
+
+	$effect(() => {
+		const orgId = workspaceId;
+		noChannelsNoticeDismissed = readHomeNoticeDismissed('no-channels', orgId);
+		inviteTeamNoticeDismissed = readHomeNoticeDismissed('invite-team', orgId);
+		soloUpgradeNoticeDismissed = readHomeNoticeDismissed('solo-upgrade', orgId);
+	});
+
+	const showNoChannelsNotice = $derived(
+		Boolean(workspaceId) &&
+			listStatus === 'ready' &&
+			connectedChannelCountVm === 0 &&
+			!noChannelsNoticeDismissed
+	);
+
+	const showSoloUpgradeNotice = $derived(
+		Boolean(workspaceId) &&
+			isSoloPlanVm &&
+			myWorkspacesStatus === 'ready' &&
+			currentWorkspaceCardVm != null &&
+			(myWorkspacesTotalCount <= 1 || currentWorkspaceMemberCountVm <= 1) &&
+			!soloUpgradeNoticeDismissed
+	);
+
+	const showInviteTeamNotice = $derived(
+		Boolean(workspaceId) &&
+			!showSoloUpgradeNotice &&
+			myWorkspacesStatus === 'ready' &&
+			currentWorkspaceCardVm != null &&
+			currentWorkspaceMemberCountVm === 1 &&
+			!inviteTeamNoticeDismissed
+	);
 
 	// --- Onboarding visibility (welcome flag + first-empty-workspace auto-open) ---
 	$effect(() => {
@@ -700,6 +786,95 @@
 </script>
 
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
+	{#if showNoChannelsNotice || showSoloUpgradeNotice || showInviteTeamNotice}
+		<div class="mb-6 flex flex-col gap-3">
+			{#if showNoChannelsNotice}
+				<HomeAccountNoticeBanner
+					iconName={icons.Info.name}
+					tone="neutral"
+					onDismiss={dismissNoChannelsNotice}
+				>
+					<p class="text-base-content/90">
+						This workspace has no connected channels yet. Go through the
+						<button
+							type="button"
+							class="link link-primary font-medium"
+							onclick={openOnboardingFlow}
+						>
+							onboard flow
+						</button>
+						to get started, or grab an
+						<a class="link link-primary font-medium" href={accountSettingsDeveloperApiKeyHref}>
+							Auth key
+						</a>
+						to start automation using agents.
+					</p>
+					{#snippet actions()}
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							class="gap-1.5"
+							onclick={openOnboardingFlow}
+						>
+							<AbstractIcon name={icons.Settings.name} class="size-4" width="16" height="16" />
+							Go to onboarding
+						</Button>
+					{/snippet}
+				</HomeAccountNoticeBanner>
+			{/if}
+
+			{#if showSoloUpgradeNotice}
+				<HomeAccountNoticeBanner
+					iconName={icons.Sparkles.name}
+					tone="upgrade"
+					onDismiss={dismissSoloUpgradeNotice}
+				>
+					<p class="text-base-content/90">
+						Your Solo plan includes one workspace and one team member. Upgrade to add more workspaces,
+						invite collaborators, and unlock higher limits.
+					</p>
+					{#snippet actions()}
+						<Button
+							type="button"
+							variant="primary"
+							size="sm"
+							class="gap-1.5"
+							onclick={() => void goto(accountBillingHref)}
+						>
+							<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+							Upgrade plan
+						</Button>
+					{/snippet}
+				</HomeAccountNoticeBanner>
+			{/if}
+
+			{#if showInviteTeamNotice}
+				<HomeAccountNoticeBanner
+					iconName={icons.Users.name}
+					tone="neutral"
+					onDismiss={dismissInviteTeamNotice}
+				>
+					<p class="text-base-content/90">
+						Get more out of your workspace by inviting your team for free.
+					</p>
+					{#snippet actions()}
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							class="gap-1.5"
+							onclick={() => void goto(accountSettingsTeamHref)}
+						>
+							<AbstractIcon name={icons.Plus.name} class="size-4" width="16" height="16" />
+							Invite team members
+						</Button>
+					{/snippet}
+				</HomeAccountNoticeBanner>
+			{/if}
+		</div>
+	{/if}
+
 	<div class="flex items-center gap-3">
 		<AbstractIcon
 			name={icons.House.name}

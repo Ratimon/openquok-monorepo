@@ -4,8 +4,10 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getRootPathAccount } from '$lib/area-protected';
+	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
-	import { absoluteUrl, route } from '$lib/utils/path';
+	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
+	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
 
@@ -14,6 +16,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import { cn } from '$lib/ui/helpers/common';
@@ -26,7 +29,7 @@
 
 	let { open, onOpenChange }: Props = $props();
 
-	let step = $state<1 | 2>(1);
+	let step = $state<1 | 2 | 3>(1);
 	let loading = $state(false);
 	let providers = $state<IntegrationCatalogItemProgrammerModel[]>([]);
 
@@ -36,6 +39,19 @@
 	const accountPath = route(rootPathAccount);
 	const accountRoot = $derived(accountPath);
 	const returnTo = $derived(page.url.pathname || accountRoot);
+	// /docs/getting-started-for-cli
+	const rootPathPublicDocs = getRootPathPublicDocs();
+	const publicDocsPath = route(rootPathPublicDocs);
+	const cliDocsHref = $derived(url(`${publicDocsPath}/getting-started-for-cli`));
+	const cliAuthDocsHref = $derived(url(`${publicDocsPath}/getting-started-for-cli/authentication`));
+	const openclawDocsHref = $derived(url(`${publicDocsPath}/agent-guides/openclaw`));
+	const apiKeySettingsHref = $derived(
+		url(`${accountRoot}/settings?${buildAccountSettingsSearchParams('developers')}`)
+	);
+
+	const installCliCommand = 'npm install -g @openquok/auto-cli';
+	const installAgentSkillCommand =
+		'npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core';
 
 	async function ensureWorkspaceLoaded() {
 		if (currentWorkspaceId) return;
@@ -99,12 +115,13 @@
 	<Dialog.Content
 		class={cn('w-full max-w-[min(96vw,90rem)] p-0 sm:max-w-6xl lg:max-w-7xl xl:max-w-[min(96vw,90rem)]')}
 	>
+		<Tooltip.Provider delayDuration={200}>
 		<div class="relative border-b border-base-300 px-6 py-5">
 			<div class="flex items-center justify-between gap-3">
 				<div>
 					<Dialog.Title class="text-xl font-semibold text-base-content">Connect your channels</Dialog.Title>
 					<Dialog.Description class="mt-1 text-sm text-base-content/70">
-						Step {step} of 2
+						Step {step} of 3
 					</Dialog.Description>
 				</div>
 			</div>
@@ -115,16 +132,22 @@
 				aria-label="Onboarding progress"
 			>
 				<li class={cn('step', step >= 1 && 'step-primary')}>
-					Add channel</li>
-				<li class={cn('step', step === 2 && 'step-primary')}>
-					Watch tutorial</li>
+					Add channel
+				</li>
+				<li class={cn('step', step >= 2 && 'step-primary')}>
+					CLI &amp; agents
+				</li>
+				<li class={cn('step', step >= 3 && 'step-primary')}>
+					Watch tutorial
+				</li>
 			</ul>
 		</div>
 
 		{#if step === 1}
 			<div class="px-6 py-6">
 				<p class="mb-4 text-sm text-base-content/70">
-					Click a channel to add it.</p>
+					Click a channel to add it.
+				</p>
 				{#if loading}
 					<div class="flex items-center gap-2 py-10 text-base-content/70">
 						<AbstractIcon
@@ -137,7 +160,8 @@
 					</div>
 				{:else if providers.length === 0}
 					<div class="py-10 text-sm text-base-content/70">
-						No providers available right now.</div>
+						No providers available right now.
+					</div>
 				{:else}
 					<div
 						class={cn(
@@ -189,9 +213,115 @@
 
 			<div class="flex items-center justify-end gap-2 border-t border-base-300 px-6 py-4">
 				<Button variant="ghost" type="button" onclick={close}>
-					Close</Button>
+					Close
+				</Button>
 				<Button type="button" onclick={() => (step = 2)}>
-					Next</Button>
+					Next
+				</Button>
+			</div>
+		{:else if step === 2}
+			<div class="px-6 py-6">
+				<h3 class="text-lg font-semibold text-base-content">
+					Automate with the CLI and your agent
+				</h3>
+
+				<ol class="mt-5 space-y-4 text-sm text-base-content/80">
+					<li class="flex gap-3">
+						<span
+							class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+							aria-hidden="true"
+						>
+							1
+						</span>
+						<div class="min-w-0 flex-1 space-y-2">
+							<p class="font-medium text-base-content">Install the CLI</p>
+							<CopyBlock
+								text={installCliCommand}
+								boxClass="w-full cursor-pointer overflow-x-auto rounded-lg border p-3 pr-14 font-mono text-xs text-left"
+								background="border-base-300 bg-base-200/80"
+								copiedBackground="border-success/50 bg-success/10"
+								class="text-base-content whitespace-nowrap"
+								copiedColor="text-success"
+							/>
+						</div>
+					</li>
+					<li class="flex gap-3">
+						<span
+							class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+							aria-hidden="true"
+						>
+							2
+						</span>
+						<div class="min-w-0 flex-1 space-y-2">
+							<p class="font-medium text-base-content">
+								Authenticate (2 Options)
+							</p>
+							<p>
+								<strong class="font-medium text-base-content">OAuth (suggested)</strong> — run
+								<code class="rounded bg-base-200 px-1 py-0.5 text-xs">openquok auth:login</code>
+								for device-flow login (credentials stored at
+								<code class="rounded bg-base-200 px-1 py-0.5 text-xs">~/.openquok/credentials.json</code>).
+							</p>
+							<p>
+								<strong class="font-medium text-base-content">API key</strong> — for CI and scripts,
+								copy a workspace key and set
+								<code class="rounded bg-base-200 px-1 py-0.5 text-xs">OPENQUOK_API_KEY</code>.
+							</p>
+						</div>
+					</li>
+					<li class="flex gap-3">
+						<span
+							class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+							aria-hidden="true"
+						>
+							3
+						</span>
+						<div class="min-w-0 flex-1 space-y-2">
+							<p class="font-medium text-base-content">
+								Set up your AI agent
+							</p>
+							<p>
+								Install the
+								<code class="rounded bg-base-200 px-1 py-0.5 text-xs">openquok-core</code>
+								skill for your agent that supports
+								project skills (eg. OpenClaw, Hermes,and etc). The skill
+								teaches Openquok CLI usage; run the install command below:
+							</p>
+							<CopyBlock
+								text={installAgentSkillCommand}
+								boxClass="w-full cursor-pointer overflow-x-auto rounded-lg border p-3 pr-14 font-mono text-xs text-left"
+								background="border-base-300 bg-base-200/80"
+								copiedBackground="border-success/50 bg-success/10"
+								class="text-base-content whitespace-nowrap"
+								copiedColor="text-success"
+							/>
+						</div>
+					</li>
+				</ol>
+
+				<div class="mt-6 flex flex-wrap gap-2">
+					<Button variant="outline" size="sm" href={cliDocsHref} target="_blank" rel="noopener noreferrer">
+						CLI documentation
+					</Button>
+					<Button variant="outline" size="sm" href={cliAuthDocsHref} target="_blank" rel="noopener noreferrer">
+						Authentication guide
+					</Button>
+					<Button variant="outline" size="sm" href={openclawDocsHref} target="_blank" rel="noopener noreferrer">
+						OpenClaw guide
+					</Button>
+					<Button variant="primary" size="sm" href={apiKeySettingsHref}>
+						Get API key
+					</Button>
+				</div>
+			</div>
+
+			<div class="flex items-center justify-between gap-2 border-t border-base-300 px-6 py-4">
+				<Button variant="ghost" type="button" onclick={() => (step = 1)}>
+					Back
+				</Button>
+				<Button type="button" onclick={() => (step = 3)}>
+					Next
+				</Button>
 			</div>
 		{:else}
 			<div class="px-6 py-8">
@@ -217,16 +347,20 @@
 			</div>
 
 			<div class="flex items-center justify-between gap-2 border-t border-base-300 px-6 py-4">
-				<Button variant="ghost" type="button" onclick={() => (step = 1)}>
-					Back</Button>
+				<Button variant="ghost" type="button" onclick={() => (step = 2)}>
+					Back
+				</Button>
 				<div class="flex items-center gap-2">
 					<Button variant="ghost" type="button" onclick={close}>
-						Close</Button>
+						Close
+					</Button>
 					<Button type="button" onclick={finish}>
-						Finish</Button>
+						Finish
+					</Button>
 				</div>
 			</div>
 		{/if}
+		</Tooltip.Provider>
 	</Dialog.Content>
 </Dialog.Root>
 

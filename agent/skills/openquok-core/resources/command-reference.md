@@ -35,7 +35,7 @@ openquok auth:logout
 - **Humans with TTY:** `openquok auth:login` without `--json` is fine locally.
 - **Session start:** see Rule 0 in [SKILL.md](../SKILL.md) — run version + `auth:status` (+ `auth:workspace` when connected) via shell before the first assistant message; greet as the Openquok bot, not the host persona.
 - **Invalid or expired code:** Re-run `auth:login --json` while the CLI polls; use a fresh prefilled link (~15 min). Signing in at openquok.com alone does not complete device flow.
-- **Stale CLI:** If verify host errors mention `cli-auth.openquok.com`, upgrade to `@openquok/auto-cli@latest` (≥ 0.0.6).
+
 
 ## Integrations
 

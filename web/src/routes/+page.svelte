@@ -2,8 +2,10 @@
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+
 	import { publicLayoutPagePresenter } from '$lib/area-public/index';
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
+	
 	import PublicArea from '$lib/ui/templates/PublicArea.svelte';
 	import LandingPage from '$lib/ui/templates/LandingPage.svelte';
 
