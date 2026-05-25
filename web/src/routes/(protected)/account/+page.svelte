@@ -55,7 +55,7 @@
 	import ChannelsChipsLayout from '$lib/ui/components/channels/ChannelsChipsLayout.svelte';
 	import ChannelsGridLayout from '$lib/ui/components/channels/ChannelsGridLayout.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
-	import MyWorkspaces from '$lib/ui/components/workspaces/MyWorkspaces.svelte';
+	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -898,7 +898,7 @@
 			posts through Draft, Scheduled, and Published for your connected channels.
 		</p>
 	{/if}
-	<MyWorkspaces
+	<MyWorkspacesSection
 		cards={myWorkspacesCardsVm}
 		status={myWorkspacesStatus}
 		totalCount={myWorkspacesTotalCount}
