@@ -23,6 +23,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ThemeSwitcher, { ensureDefaultTheme } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
 	import { cn } from '$lib/ui/helpers/common';
+	import { url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
 	type Props = {
@@ -150,10 +151,25 @@
 
 <div class="flex min-h-screen flex-col bg-base-200 pb-16">
 	<header
-		class="flex h-[92px] items-center border-b border-base-300 bg-base-100 px-4 md:px-8 lg:px-20"
+		class="flex h-[92px] items-center justify-between gap-4 border-b border-base-300 bg-base-100 px-4 md:px-8 lg:px-20"
 	>
-		<div class="flex flex-1 items-center text-xl font-semibold tracking-tight">
-			{companyName}
+		<div class="relative z-10 flex shrink-0">
+			<a
+				class="flex shrink-0 items-center gap-2"
+				href="/"
+				title="{companyName} homepage"
+			>
+				<img
+					class="w-14"
+					alt={companyName}
+					src={url('/pwa/favicon.svg')}
+					width={32}
+					height={32}
+				/>
+				<span class="text-lg font-extrabold text-base-content">
+					{companyName}
+				</span>
+			</a>
 		</div>
 		<div class="flex items-center gap-4 text-base-content/70">
 			<HeaderWorkspaceSwitcher
@@ -164,17 +180,14 @@
 			/>
 			<ThemeSwitcher />
 			<div class="hidden h-5 w-px bg-base-300 sm:block"></div>
-			<Button
-				class="gap-2"
-				variant="red"
-				size="sm"
+			<button
+				type="button"
+				class="tab tab-lg tab-lifted flex flex-col items-center gap-1 whitespace-nowrap !text-error hover:!bg-error/10 focus-visible:!text-error"
 				onclick={() => void handleSignOut()}
 			>
-				<AbstractIcon name={icons.LogOut.name} class="size-4" width="16" height="16" />
-				<span class="hidden sm:inline">
-					Sign out
-				</span>
-			</Button>
+				<AbstractIcon name={icons.LogOut.name} width="24" height="24" focusable="false" />
+				Sign out
+			</button>
 		</div>
 	</header>
 
