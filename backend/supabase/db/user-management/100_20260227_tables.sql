@@ -28,14 +28,6 @@ CREATE TABLE IF NOT EXISTS public.users (
 
 COMMENT ON TABLE public.users IS 'Core identity row (auth.users link). Referenced by user_organizations and tenant-scoped tables such as public.post_internal_comments (composer post comments; FK user_id — defined in post module).';
 
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL;
-
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS send_success_emails BOOLEAN DEFAULT TRUE NOT NULL;
-
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS send_failure_emails BOOLEAN DEFAULT TRUE NOT NULL;
 
 COMMENT ON COLUMN public.users.last_read_notifications IS 'Cursor for unread in-app notification count (per user)';
 COMMENT ON COLUMN public.users.send_success_emails IS 'When false, org notification emails typed as success are skipped for this user';

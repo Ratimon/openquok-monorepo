@@ -39,14 +39,6 @@ CREATE TABLE IF NOT EXISTS public.users (
 
 COMMENT ON TABLE public.users IS 'Core identity row (auth.users link). Referenced by user_organizations and tenant-scoped tables such as public.post_internal_comments (composer post comments; FK user_id — defined in post module).';
 
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL;
-
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS send_success_emails BOOLEAN DEFAULT TRUE NOT NULL;
-
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS send_failure_emails BOOLEAN DEFAULT TRUE NOT NULL;
 
 COMMENT ON COLUMN public.users.last_read_notifications IS 'Cursor for unread in-app notification count (per user)';
 COMMENT ON COLUMN public.users.send_success_emails IS 'When false, org notification emails typed as success are skipped for this user';
@@ -277,27 +269,6 @@ COMMENT ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) IS 'RLS h
 COMMENT ON FUNCTION public.is_active_owner_of_org(uuid, uuid) IS 'RLS helper: owner membership (bypasses RLS inside).';
 
 
--- Module: organization, File: 104_20260524_tables.sql
--- ---------------------------
--- MODULE NAME: Organization
--- MODULE DATE: 20260524
--- MODULE SCOPE: Tables
--- ---------------------------
--- Idempotent for DBs that already received billing columns via billing/101 ALTER.
--- Column defaults stay FALSE; new workspaces set allow_trial / is_trialing in the API repository.
-
-
-
-ALTER TABLE public.organizations
-    ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
-    ADD COLUMN IF NOT EXISTS allow_trial BOOLEAN NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS is_trialing BOOLEAN NOT NULL DEFAULT FALSE;
-
-COMMENT ON COLUMN public.organizations.stripe_customer_id IS 'Stripe Customer id for workspace billing.';
-COMMENT ON COLUMN public.organizations.allow_trial IS 'When true, new checkout sessions may include a trial period.';
-COMMENT ON COLUMN public.organizations.is_trialing IS 'Workspace trial state; synced from Stripe when subscribed, cleared when trial ends or plan is active.';
-
-
 -- Module: billing, File: 101_20260519_tables.sql
 -- ---------------------------
 -- MODULE NAME: Billing
@@ -344,34 +315,6 @@ COMMENT ON COLUMN public.organization_subscriptions.channels_per_workspace IS 'P
 CREATE INDEX IF NOT EXISTS idx_organization_subscriptions_customer
     ON public.organization_subscriptions (organization_id)
     WHERE deleted_at IS NULL;
-
-
--- Module: billing, File: 102_20260525_tables.sql
--- ---------------------------
--- MODULE NAME: Billing
--- MODULE DATE: 20260525
--- MODULE SCOPE: Tables
--- ---------------------------
--- Rename misleading total_channels → channels_per_workspace on existing databases.
-
-
-
-DO $$
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_schema = 'public'
-          AND table_name = 'organization_subscriptions'
-          AND column_name = 'total_channels'
-    ) THEN
-        ALTER TABLE public.organization_subscriptions
-            RENAME COLUMN total_channels TO channels_per_workspace;
-    END IF;
-END $$;
-
-COMMENT ON COLUMN public.organization_subscriptions.channels_per_workspace IS
-    'Per-workspace connected-channel cap snapshot (may exceed plan default after upgrades).';
 
 
 -- Module: media, File: 102_20260417_tables.sql
