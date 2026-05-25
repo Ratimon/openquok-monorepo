@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { toast } from '$lib/ui/sonner';

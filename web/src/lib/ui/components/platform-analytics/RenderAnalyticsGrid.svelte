@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 	import type { AnalyticsSeriesViewModel } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 
 	import AnalyticsCard from '$lib/ui/components/platform-analytics/AnalyticsCard.svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
-	import { protectedDashboardPagePresenter } from '$lib/area-protected';
+	import { protectedHomePagePresenter } from '$lib/area-protected';
 	import { icons } from '$data/icons';
 	import * as Dialog from '$lib/ui/dialog';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -20,7 +20,7 @@
 	let selectedGroupId = $state<string | null>(null);
 	let busy = $state(false);
 
-	const groups = $derived(protectedDashboardPagePresenter.channelGroupsVm);
+	const groups = $derived(protectedHomePagePresenter.channelGroupsVm);
 
 	const filteredGroups = $derived(
 		groups.filter((g) => g.name.toLowerCase().includes(filterText.trim().toLowerCase()))
@@ -30,7 +30,7 @@
 		if (open && integration) {
 			selectedGroupId = integration.group?.id ?? null;
 			filterText = integration.group?.name ?? '';
-			void protectedDashboardPagePresenter.loadChannelGroups();
+			void protectedHomePagePresenter.loadChannelGroups();
 		}
 		if (!open) {
 			filterText = '';
@@ -52,7 +52,7 @@
 			if (trimmed) {
 				const exactByName = groups.find((g) => g.name.toLowerCase() === trimmed.toLowerCase());
 				if (exactByName) {
-					const resultVm = await protectedDashboardPagePresenter.assignChannelGroup(
+					const resultVm = await protectedHomePagePresenter.assignChannelGroup(
 						integration.id,
 						exactByName.id,
 						exactByName.name
@@ -68,7 +68,7 @@
 			}
 			if (selectedGroupId && groups.some((g) => g.id === selectedGroupId)) {
 				const picked = groups.find((g) => g.id === selectedGroupId)!;
-				const resultVm = await protectedDashboardPagePresenter.assignChannelGroup(
+				const resultVm = await protectedHomePagePresenter.assignChannelGroup(
 					integration.id,
 					picked.id,
 					picked.name
@@ -82,12 +82,12 @@
 				return;
 			}
 			if (trimmed) {
-				const created = await protectedDashboardPagePresenter.createChannelGroup(trimmed);
+				const created = await protectedHomePagePresenter.createChannelGroup(trimmed);
 				if (!created.ok) {
 					toast.error(created.error);
 					return;
 				}
-				const assign = await protectedDashboardPagePresenter.assignChannelGroup(
+				const assign = await protectedHomePagePresenter.assignChannelGroup(
 					integration.id,
 					created.id,
 					created.name
@@ -110,7 +110,7 @@
 		if (!integration) return;
 		busy = true;
 		try {
-			const resultVm = await protectedDashboardPagePresenter.assignChannelGroup(integration.id, null);
+			const resultVm = await protectedHomePagePresenter.assignChannelGroup(integration.id, null);
 			if (resultVm.ok) {
 				toast.success('Removed from group.');
 				open = false;

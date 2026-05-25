@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { DashboardWorkspaceCardViewModel } from '$lib/area-protected/GetDashboardWorkspaces.presenter.svelte';
+	import type { HomeWorkspaceCardViewModel } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 
 	import WorkspaceCard from '$lib/ui/components/workspaces/WorkspaceCard.svelte';
 	import CreateWorkspaceCard from '$lib/ui/components/workspaces/CreateWorkspaceCard.svelte';
 
 	type Props = {
-		cards: DashboardWorkspaceCardViewModel[];
+		cards: HomeWorkspaceCardViewModel[];
 		status: 'idle' | 'loading' | 'ready' | 'error';
 		totalCount: number;
 		creatingWorkspace?: boolean;

@@ -6,19 +6,19 @@ import type { GetChannelPresenter } from '$lib/channels/GetChannel.presenter.sve
 const MEMBER_AVATAR_PREVIEW_LIMIT = 4;
 const CHANNEL_PREVIEW_LIMIT = 3;
 
-export interface DashboardWorkspaceMemberPreviewViewModel {
+export interface HomeWorkspaceMemberPreviewViewModel {
 	id: string;
 	displayName: string;
 	initials: string;
 }
 
-export interface DashboardWorkspaceChannelPreviewViewModel {
+export interface HomeWorkspaceChannelPreviewViewModel {
 	id: string;
 	picture: string | null;
 	identifier: string;
 }
 
-export interface DashboardWorkspaceCardViewModel {
+export interface HomeWorkspaceCardViewModel {
 	id: string;
 	name: string;
 	description: string | null;
@@ -27,9 +27,9 @@ export interface DashboardWorkspaceCardViewModel {
 	userFullName: string;
 	userEmail: string;
 	memberCount: number;
-	membersPreview: DashboardWorkspaceMemberPreviewViewModel[];
+	membersPreview: HomeWorkspaceMemberPreviewViewModel[];
 	hiddenMemberCount: number;
-	channelPreviews: DashboardWorkspaceChannelPreviewViewModel[];
+	channelPreviews: HomeWorkspaceChannelPreviewViewModel[];
 	hiddenChannelCount: number;
 	socialChannelCount: number;
 	isCurrent: boolean;
@@ -70,7 +70,7 @@ function isSocialChannel(pm: ConnectedIntegrationProgrammerModel): boolean {
 	return (pm.type ?? '').toLowerCase() === 'social';
 }
 
-export class GetDashboardWorkspacesPresenter {
+export class GetHomeWorkspacesPresenter {
 	public toWorkspaceCardVm(params: {
 		workspace: WorkspaceCardViewModel;
 		membersPm: TeamMemberProgrammerModel[];
@@ -78,7 +78,7 @@ export class GetDashboardWorkspacesPresenter {
 		currentUser: CurrentUserSnapshot | null;
 		isCurrent: boolean;
 		getChannelPresenter: GetChannelPresenter;
-	}): DashboardWorkspaceCardViewModel {
+	}): HomeWorkspaceCardViewModel {
 		const { workspace, membersPm, integrationsPm, currentUser, isCurrent, getChannelPresenter } = params;
 		const currentUserId = currentUser?.id?.trim() ?? '';
 

@@ -73,7 +73,7 @@
 
 	
 	const mainLinks: SidebarLinkItem[] = [
-		{ label: 'Dashboard', href: accountPath, iconName: icons.Gauge.name },
+		{ label: 'Home', href: accountPath, iconName: icons.House.name },
 		{ label: 'Calendar', href: calendarPath, iconName: icons.CalendarClock.name },
 		{ label: 'Templates', href: templatesPath, iconName: icons.LayoutTemplate.name },
 		{ label: 'Auto Plugs', href: plugsPath, iconName: icons.Sparkles.name },

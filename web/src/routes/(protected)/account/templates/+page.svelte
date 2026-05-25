@@ -151,7 +151,7 @@
 	const loading = $derived(gridPresenter.loading);
 
 	/**
-	 * Subscribes to dashboard channel rows so Auto-replies column tooltips stay in sync after loads.
+	 * Subscribes to home channel rows so Auto-replies column tooltips stay in sync after loads.
 	 */
 	const setsGridColumnsForHost = $derived.by(() => {
 		void pagePresenter.connectedChannelsVm;
@@ -403,7 +403,7 @@
 
 	{#if !workspaceId}
 		<Button class="mt-4" variant="outline" onclick={() => void goto(accountPath)}>
-			Go to Dashboard
+			Go to Home
 		</Button>
 	{/if}
 </div>
@@ -559,7 +559,7 @@
 		background: color-mix(in oklab, var(--color-base-content) 7%, var(--color-base-100));
 	}
 
-	/* Pager: bridge SVAR Willow vars to DaisyUI (same pattern as dashboard channels grid). */
+	/* Pager: bridge SVAR Willow vars to DaisyUI (same pattern as home channels grid). */
 	.svar-grid-pager :global(.wx-willow-theme),
 	.svar-grid-pager :global(.wx-willow-dark-theme) {
 		--wx-color-font: var(--color-base-content);

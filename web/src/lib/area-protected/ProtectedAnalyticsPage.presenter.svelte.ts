@@ -1,7 +1,7 @@
 import type {
 	CreateSocialPostChannelViewModel,
-	ProtectedDashboardPagePresenter
-} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	ProtectedHomePagePresenter
+} from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import {
 	formatAnalyticsSeriesTotalsVm,
 	type AnalyticsSeriesViewModel,
@@ -19,8 +19,8 @@ import { socialProviderIcon, SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS } from '$d
 /**
  * Account `/account/analytics`: platform filter + merged analytics series for targeted channels.
  *
- * - Channel rows come from {@link ProtectedDashboardPagePresenter}; aggregation uses {@link GetAnalyticsPresenter}.
- * - Prefer **`syncWorkspaceDashboardLists`** + **`loadMergedAnalytics`** from route **`$effect`** blocks (see analytics `+page.svelte`).
+ * - Channel rows come from {@link ProtectedHomePagePresenter}; aggregation uses {@link GetAnalyticsPresenter}.
+ * - Prefer **`syncWorkspaceHomeLists`** + **`loadMergedAnalytics`** from route **`$effect`** blocks (see analytics `+page.svelte`).
  */
 export class ProtectedAnalyticsPagePresenter {
 	// --- Merged metrics (GET analytics → VM merge on client) ---
@@ -40,7 +40,7 @@ export class ProtectedAnalyticsPagePresenter {
 
 	filteredIntegrationsVm = $derived.by(() => {
 		const supportedIntegrationSet = new Set<string>(this.supportedIntegrations);
-		const list = this.dashboardPagePresenter.connectedChannelsVm.filter((c) =>
+		const list = this.homePagePresenter.connectedChannelsVm.filter((c) =>
 			supportedIntegrationSet.has(String(c.identifier ?? '').trim())
 		);
 		const pf = this.platformFilterVm;
@@ -50,7 +50,7 @@ export class ProtectedAnalyticsPagePresenter {
 	});
 
 	constructor(
-		private readonly dashboardPagePresenter: ProtectedDashboardPagePresenter,
+		private readonly homePagePresenter: ProtectedHomePagePresenter,
 		private readonly workspaceSettings: WorkspaceSettingsPresenter,
 		private readonly getAnalyticsPresenter: GetAnalyticsPresenter,
 		private readonly integrationsRepository: IntegrationsRepository
@@ -61,9 +61,9 @@ export class ProtectedAnalyticsPagePresenter {
 		return socialProviderIcon(identifier);
 	}
 
-	/** Delegates to dashboard presenter with OAuth `returnTo` set to the analytics route. */
+	/** Delegates to home presenter with OAuth `returnTo` set to the analytics route. */
 	continueSetupHref(integration: CreateSocialPostChannelViewModel): string {
-		return this.dashboardPagePresenter.continueSetupHref(integration, url('/account/analytics'));
+		return this.homePagePresenter.continueSetupHref(integration, url('/account/analytics'));
 	}
 
 	/**
@@ -87,10 +87,10 @@ export class ProtectedAnalyticsPagePresenter {
 
 	// --- Workspace list sync + analytics load entry points (called from route `$effect`) ---
 	/** When a workspace id is available, ensure integration rows are loaded for filters/chips. */
-	syncWorkspaceDashboardLists(): void {
+	syncWorkspaceHomeLists(): void {
 		const orgId = this.workspaceSettings.currentWorkspaceId;
 		if (!orgId) return;
-		void this.dashboardPagePresenter.loadDashboardLists();
+		void this.homePagePresenter.loadHomeLists();
 	}
 
 	/** Clears merged series state (e.g. on navigation away if you add teardown later). */

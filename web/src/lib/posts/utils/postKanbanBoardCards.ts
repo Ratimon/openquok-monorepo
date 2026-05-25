@@ -1,4 +1,4 @@
-import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { ChannelViewModel } from '$lib/posts/scheduler.types';
 import { deriveIntegrationFilter } from '$lib/posts/utils/schedulerIntegrationFilter';
 import { isProfileChannelDisplayName } from '$data/social-providers';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type {
 		CreateSocialPostChannelViewModel,
-		DashboardPlatformChannelRowViewModel
+		HomePlatformChannelRowViewModel
 	} from '$lib/channels/GetChannel.presenter.svelte';
 
 	import { icons } from '$data/icons';
@@ -12,7 +12,7 @@
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 
 	type Props = {
-		rows: DashboardPlatformChannelRowViewModel[];
+		rows: HomePlatformChannelRowViewModel[];
 		workspaceId: string;
 		continueSetupHref: (integration: CreateSocialPostChannelViewModel) => string;
 		onCreatePost: (integrationId: string) => void;

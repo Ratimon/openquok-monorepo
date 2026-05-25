@@ -385,7 +385,7 @@
 			<p class="text-base-content/75">
 				No channels with plug support yet. Connect Threads to get started.</p>
 			<Button class="mt-4" variant="outline" onclick={() => void goto(accountPath)}>
-				Go to Dashboard
+				Go to Home
 			</Button>
 		</div>
 	{:else}
@@ -591,7 +591,7 @@
 		line-height: 1;
 	}
 
-	/* Pager: bridge SVAR Willow vars to DaisyUI (same pattern as dashboard channels grid). */
+	/* Pager: bridge SVAR Willow vars to DaisyUI (same pattern as home channels grid). */
 	.svar-grid-pager :global(.wx-willow-theme),
 	.svar-grid-pager :global(.wx-willow-dark-theme) {
 		--wx-color-font: var(--color-base-content);

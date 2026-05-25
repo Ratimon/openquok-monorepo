@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
 	import dayjs from 'dayjs';
 	import utc from 'dayjs/plugin/utc';
 	import timezone from 'dayjs/plugin/timezone';
 
-	import { protectedDashboardPagePresenter } from '$lib/area-protected';
+	import { protectedHomePagePresenter } from '$lib/area-protected';
 	import { icons } from '$data/icons';
 	import {
 		getDateMetricUsStyle,
@@ -136,7 +136,7 @@
 		const payload = [...draftMinutes].sort((a, b) => a - b).map((time) => ({ time }));
 		busy = true;
 		try {
-			const resultVm = await protectedDashboardPagePresenter.setPostingTimes(integration.id, payload);
+			const resultVm = await protectedHomePagePresenter.setPostingTimes(integration.id, payload);
 			if (resultVm.ok) {
 				toast.success('Time slots saved.');
 				baselineMinutes = [...draftMinutes].sort((a, b) => a - b);

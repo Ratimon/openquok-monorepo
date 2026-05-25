@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ICellProps } from '@svar-ui/svelte-grid';
-	import type { DashboardChannelTableRowViewModel } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
+	import type { HomeChannelTableRowViewModel } from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
 
 	import { socialProviderIcon } from '$data/social-providers';
 
@@ -9,7 +9,7 @@
 
 	let { row }: ICellProps = $props();
 
-	const rowVm = $derived(row as unknown as DashboardChannelTableRowViewModel);
+	const rowVm = $derived(row as unknown as HomeChannelTableRowViewModel);
 </script>
 
 <div class="flex min-w-0 items-start gap-1.5 py-0.5">

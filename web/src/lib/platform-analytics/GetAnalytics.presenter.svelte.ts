@@ -1,5 +1,5 @@
 import type { AnalyticsSeriesProgrammerModel, AnalyticsRepository } from '$lib/platform-analytics/Analytics.repository.svelte';
-import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
 /** Normalized series for charts / cards (`total` coerced to number). */
 export type AnalyticsSeriesViewModel = {

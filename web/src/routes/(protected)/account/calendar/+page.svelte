@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
 
 	// --- App / routing ---
@@ -12,7 +12,7 @@
 	import {
 		getRootPathAccount,
 		protectedCalendarPagePresenter,
-		protectedDashboardPagePresenter
+		protectedHomePagePresenter
 	} from '$lib/area-protected';
 	import { getSetPresenter } from '$lib/sets';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -75,9 +75,9 @@
 	// --- Routes & workspace ---
 	const accountRoot = accountPath;
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
-	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
+	const connectedChannelsVm = $derived(protectedHomePagePresenter.connectedChannelsVm);
 	const workspaceTagsVm = $derived(createSocialPostModalPresenter.tagsVm);
-	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
+	const listStatus = $derived(protectedHomePagePresenter.listStatus);
 	const channelsLoadPending = $derived(listStatus === 'idle' || listStatus === 'loading');
 
 	const targetedChannelsVm = $derived(calendarPresenter.targetedChannelsVm);
@@ -322,7 +322,7 @@
 	$effect(() => {
 		const orgId = workspaceId;
 		if (!orgId) return;
-		calendarPresenter.syncWorkspaceDashboardLists();
+		calendarPresenter.syncWorkspaceHomeLists();
 	});
 </script>
 
@@ -357,7 +357,7 @@
 			</Button>
 			<Button type="button" variant="outline" onclick={goBackToAccount}>
 				<AbstractIcon name={icons.ArrowLeft.name} class="size-4" width="16" height="16" />
-				Back to dashboard
+				Back to home
 			</Button>
 		</div>
 	</div>

@@ -85,7 +85,7 @@
 <Dialog.Root bind:open={createDialogOpen}>
 	<Dialog.Content>
 		<form
-			id="dashboard-create-workspace-form"
+			id="home-create-workspace-form"
 			method="dialog"
 			onsubmit={handleCreateFormSubmit}
 			class="space-y-4"
@@ -101,11 +101,11 @@
 			<createWorkspaceForm.Field name="workspaceName">
 				{#snippet children(field)}
 					<div>
-						<Field.Label field={field} for="dashboard-create-workspace-name">
+						<Field.Label field={field} for="home-create-workspace-name">
 							Workspace name
 						</Field.Label>
 						<input
-							id="dashboard-create-workspace-name"
+							id="home-create-workspace-name"
 							type="text"
 							value={field.state.value}
 							onblur={field.handleBlur}
@@ -129,7 +129,7 @@
 					{#snippet children(state)}
 						<Button
 							type="submit"
-							form="dashboard-create-workspace-form"
+							form="home-create-workspace-form"
 							variant="primary"
 							disabled={state.isSubmitting || creating}
 						>

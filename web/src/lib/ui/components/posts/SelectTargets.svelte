@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';

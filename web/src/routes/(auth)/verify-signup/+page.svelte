@@ -238,7 +238,7 @@
 						<AbstractIcon name={icons.LoaderCircle.name} width="24" height="24" focusable="false" />
 					</span>
 				{:else if isConfirmed}
-					Go to Account Dashboard
+					Go to Home
 				{:else}
 					Complete your registration
 				{/if}

@@ -560,7 +560,7 @@
 <style>
 	/*
 	  SVAR Willow ships fixed light greys/blues. This app themes via `html[data-theme]` (DaisyUI),
-	  so bridge File Manager tokens to semantic colors (same approach as dashboard SVAR grids).
+	  so bridge File Manager tokens to semantic colors (same approach as home channels SVAR grids).
 	*/
 	.media-file-manager-host :global(.wx-willow-theme) {
 		--wx-font-family: inherit;

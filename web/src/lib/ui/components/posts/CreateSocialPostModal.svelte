@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 	import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 	import type { RepeatIntervalKey } from '$lib/posts';
 

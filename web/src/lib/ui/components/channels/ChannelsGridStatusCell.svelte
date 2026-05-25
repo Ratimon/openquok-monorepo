@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { ICellProps } from '@svar-ui/svelte-grid';
-	import type { DashboardChannelTableRowViewModel } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
+	import type { HomeChannelTableRowViewModel } from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
 
 	let { row }: ICellProps = $props();
 
-	const rowVm = $derived(row as unknown as DashboardChannelTableRowViewModel);
+	const rowVm = $derived(row as unknown as HomeChannelTableRowViewModel);
 
 	const badgeClass = $derived.by(() => {
 		const ch = rowVm.channel;

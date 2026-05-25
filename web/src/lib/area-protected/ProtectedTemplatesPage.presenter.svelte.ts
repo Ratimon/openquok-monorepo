@@ -1,4 +1,4 @@
-import type { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import type { ProtectedHomePagePresenter } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { GetSetPresenter } from '$lib/sets/GetSet.presenter.svelte';
 import type { SetGridTablePresenter, SetGridTableRowViewModel } from '$lib/sets/SetGridTable.presenter.svelte';
 import type { SetGridFilterBuilderPresenter } from '$lib/sets/SetGridFilterBuilder.presenter.svelte';
@@ -16,7 +16,7 @@ export class ProtectedTemplatesPagePresenter {
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
 		private readonly getSetPresenter: GetSetPresenter,
 		private readonly upsertSetPresenter: UpsertSetPresenter,
-		private readonly protectedDashboardPagePresenter: ProtectedDashboardPagePresenter,
+		private readonly protectedHomePagePresenter: ProtectedHomePagePresenter,
 		readonly setGridTable: SetGridTablePresenter,
 		readonly setGridFilterBuilder: SetGridFilterBuilderPresenter
 	) {}
@@ -26,11 +26,11 @@ export class ProtectedTemplatesPagePresenter {
 	}
 
 	get createSocialPostPresenter() {
-		return this.protectedDashboardPagePresenter.createSocialPostPresenter;
+		return this.protectedHomePagePresenter.createSocialPostPresenter;
 	}
 
 	get connectedChannelsVm() {
-		return this.protectedDashboardPagePresenter.connectedChannelsVm;
+		return this.protectedHomePagePresenter.connectedChannelsVm;
 	}
 
 	async syncWorkspace(): Promise<void> {
@@ -59,7 +59,7 @@ export class ProtectedTemplatesPagePresenter {
 	openNewSet(): void {
 		const oid = this.organizationId;
 		if (!oid) return;
-		void this.protectedDashboardPagePresenter.loadDashboardLists();
+		void this.protectedHomePagePresenter.loadHomeLists();
 		this.createSocialPostPresenter.prepareContentSetAuthoring({});
 	}
 
@@ -74,7 +74,7 @@ export class ProtectedTemplatesPagePresenter {
 				error: 'This set uses an unsupported format and cannot be edited.'
 			};
 		}
-		void this.protectedDashboardPagePresenter.loadDashboardLists();
+		void this.protectedHomePagePresenter.loadHomeLists();
 		this.createSocialPostPresenter.prepareContentSetAuthoring({
 			editingSetId: vm.setRowVm.id,
 			editingSetName: vm.name,

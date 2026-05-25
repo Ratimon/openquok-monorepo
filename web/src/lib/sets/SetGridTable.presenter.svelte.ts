@@ -3,7 +3,7 @@ import type { IApi, IColumn } from '@svar-ui/svelte-grid';
 import type { GetSetPresenter, SetRowViewModel } from '$lib/sets/GetSet.presenter.svelte';
 import type { SetSnapshotProgrammerModel } from '$lib/sets/Sets.repository.svelte';
 import type { RepeatIntervalKey } from '$lib/posts';
-import type { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import type { ProtectedHomePagePresenter } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
 import { tick } from 'svelte';
 import { formatDateShort } from '$lib/ui/helpers/formatters';
@@ -262,7 +262,7 @@ function bodyPreviewTooltipFromSnapshot(snap: SetSnapshotProgrammerModel): strin
 	return t.length ? t : DASH;
 }
 
-/** Minimal channel fields from dashboard list — keeps this presenter free of dashboard imports. */
+/** Minimal channel fields from home list — keeps this presenter free of home page imports. */
 export type SetGridChannelLookupViewModel = {
 	id: string;
 	/** Provider row id when it differs from {@link id} — some payloads key integrations by either. */
@@ -495,11 +495,11 @@ export class SetGridTablePresenter {
 
 	constructor(
 		private readonly getSetPresenter: GetSetPresenter,
-		private readonly dashboardPagePresenter: ProtectedDashboardPagePresenter
+		private readonly homePagePresenter: ProtectedHomePagePresenter
 	) {}
 
 	private _channelLookup(): SetGridChannelLookupViewModel[] {
-		return this.dashboardPagePresenter.connectedChannelsVm.map((c) => ({
+		return this.homePagePresenter.connectedChannelsVm.map((c) => ({
 			id: c.id,
 			internalId: c.internalId,
 			name: c.name,
@@ -517,17 +517,17 @@ export class SetGridTablePresenter {
 		return toSetGridTableRowVm(rowVm, channelLookup, tagLookup);
 	}
 
-	/** Refresh grid rows for the current workspace (loads dashboard lists + tags; maps PM → grid VMs). */
+	/** Refresh grid rows for the current workspace (loads home lists + tags; maps PM → grid VMs). */
 	async refreshRowsForOrganization(organizationId: string): Promise<void> {
 		if (!organizationId) {
 			this.setsGridRowsVm = [];
 			return;
 		}
-		await this.dashboardPagePresenter.loadDashboardLists();
-		await this.dashboardPagePresenter.createSocialPostPresenter.loadWorkspaceTagsIfNeeded(organizationId);
+		await this.homePagePresenter.loadHomeLists();
+		await this.homePagePresenter.createSocialPostPresenter.loadWorkspaceTagsIfNeeded(organizationId);
 		const rowsVm = await this.getSetPresenter.loadSetsListVm(organizationId);
 		const channelLookup = this._channelLookup();
-		const tagLookup = this.dashboardPagePresenter.createSocialPostPresenter.tagsVm;
+		const tagLookup = this.homePagePresenter.createSocialPostPresenter.tagsVm;
 		const rows = rowsVm.map((r) => this.toGridRowVm(r, channelLookup, tagLookup));
 		this.setsGridRowsVm = sortSetGridRows(rows);
 	}

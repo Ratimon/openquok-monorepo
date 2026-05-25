@@ -36,7 +36,7 @@
 	const isDraggable = $derived(cardVm.column !== 'published' && !isEditingNote);
 	const multiChannels = $derived(cardVm.channelSlots.length > 1);
 	const previewSlots = $derived(cardVm.channelSlots.slice(0, 3));
-	/** Human badge: any post not flagged agent-edited (dashboard/calendar creates and human-reviewed agent drafts). */
+	/** Human badge: any post not flagged agent-edited (home/calendar creates and human-reviewed agent drafts). */
 	const showHumanBadge = $derived(!cardVm.isAgentEdited);
 
 	$effect(() => {

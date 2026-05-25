@@ -1,5 +1,5 @@
 /**
- * Root path for the default protected account/dashboard (first page when authenticated).
+ * Root path for the default protected account home (first page when authenticated).
  */
 export function getRootPathAccount(): string {
 	return 'account';

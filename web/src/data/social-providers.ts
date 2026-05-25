@@ -1,7 +1,7 @@
 import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
-/** Provider identifiers treated as analytics-capable in the dashboard */
+/** Provider identifiers treated as analytics-capable on the account home */
 export const SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS = [
 	'facebook',
 	'instagram',

@@ -143,7 +143,7 @@
 					class="gap-2"
 				>
 					<AbstractIcon name={icons.Gauge.name} class="size-4" width="16" height="16" />
-					Go to Dashboard
+					Go to Home
 				</Button>
 				<Button
 					variant="secondary"

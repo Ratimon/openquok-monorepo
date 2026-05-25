@@ -122,7 +122,8 @@
 <div class="p-4 md:p-6 max-w-7xl mx-auto w-full flex flex-col min-h-0 flex-1 gap-3">
 	<div>
 		<h1 class="text-xl font-semibold text-base-content">
-			Queue dashboard</h1>
+			Queue dashboard
+		</h1>
 		<p class="text-sm text-base-content/70 mt-1">
 			Bull Board is loaded in an iframe. The API stores a short-lived, path-scoped HttpOnly cookie (via
 			<code class="text-xs">POST {bullBoardSessionPath}</code>) so the dashboard’s static assets and own API calls

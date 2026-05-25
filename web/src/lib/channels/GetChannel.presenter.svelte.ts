@@ -3,11 +3,11 @@ import type { ConnectedIntegrationProgrammerModel } from '$lib/integrations/Inte
 /** One scheduled posting slot: minutes after midnight (0–1439), matching `integrations.posting_times` JSON. */
 export type PostingTimeSlotViewModel = { time: number };
 
-/** Workspace channel group row (id + display name) for dashboard lists and assignment. */
+/** Workspace channel group row (id + display name) for home lists and assignment. */
 export type WorkspaceChannelGroupViewModel = { id: string; name: string };
 
 /**
- * Connected channel row for dashboard / composer UI. No repository DTO shape.
+ * Connected channel row for home / composer UI. No repository DTO shape.
  */
 export interface CreateSocialPostChannelViewModel {
 	id: string;
@@ -30,33 +30,33 @@ export interface CreateSocialPostChannelViewModel {
 	postingTimes: PostingTimeSlotViewModel[];
 }
 
-/** Collapsible menu section on the account dashboard (grouped by channel `type`). */
-export interface DashboardConnectedChannelMenuGroupViewModel {
+/** Collapsible menu section on the account home (grouped by channel `type`). */
+export interface HomeConnectedChannelMenuGroupViewModel {
 	label: string;
 	items: CreateSocialPostChannelViewModel[];
 }
 
 /** One row per integration provider (`identifier`): platform icon + its connected channels. */
-export interface DashboardPlatformChannelRowViewModel {
+export interface HomePlatformChannelRowViewModel {
 	identifier: string;
 	items: CreateSocialPostChannelViewModel[];
 }
 
 /** Channels assigned to the same workspace channel group (sidebar section). */
-export interface DashboardChannelGroupViewModel {
+export interface HomeChannelGroupViewModel {
 	id: string;
 	name: string;
 	items: CreateSocialPostChannelViewModel[];
 	/** One row per integration `identifier` (icon + chips + Add more), scoped to this group's channels. */
-	platformRows: DashboardPlatformChannelRowViewModel[];
+	platformRows: HomePlatformChannelRowViewModel[];
 }
 
-/** Connected channels section layout on the account dashboard. */
-export type DashboardChannelsLayoutModeViewModel = 'chips' | 'table';
+/** Connected channels section layout on the account home. */
+export type HomeChannelsLayoutModeViewModel = 'chips' | 'table';
 
 const MINUTES_PER_DAY = 24 * 60;
 
-const DASHBOARD_PLATFORM_ROW_ORDER: readonly string[] = [
+const HOME_PLATFORM_ROW_ORDER: readonly string[] = [
 	'threads',
 	'instagram-business',
 	'instagram-standalone',
@@ -69,7 +69,7 @@ const DASHBOARD_PLATFORM_ROW_ORDER: readonly string[] = [
 type ChannelGroupAcc = WorkspaceChannelGroupViewModel & { items: CreateSocialPostChannelViewModel[] };
 
 /**
- * Stateless PM → VM mapping for connected integrations (dashboard, composer, calendar, etc.).
+ * Stateless PM → VM mapping for connected integrations (home, composer, calendar, etc.).
  */
 export class GetChannelPresenter {
 	/** Normalizes list API `time` payloads into unique minute-of-day values. */
@@ -119,16 +119,16 @@ export class GetChannelPresenter {
 		};
 	}
 
-	buildDashboardChannelMenuGroupsVm(
+	buildHomeChannelMenuGroupsVm(
 		channels: readonly CreateSocialPostChannelViewModel[]
-	): DashboardConnectedChannelMenuGroupViewModel[] {
+	): HomeConnectedChannelMenuGroupViewModel[] {
 		const map = new Map<string, CreateSocialPostChannelViewModel[]>();
 		for (const item of channels) {
-			const key = this.labelForDashboardChannelGroupType(item.type);
+			const key = this.labelForHomeChannelGroupType(item.type);
 			if (!map.has(key)) map.set(key, []);
 			map.get(key)!.push(item);
 		}
-		const groups: DashboardConnectedChannelMenuGroupViewModel[] = [];
+		const groups: HomeConnectedChannelMenuGroupViewModel[] = [];
 		for (const [label, items] of map.entries()) {
 			const sorted = [...items].sort((a, b) =>
 				(a.name || a.identifier).localeCompare(b.name || b.identifier, undefined, { sensitivity: 'base' })
@@ -141,14 +141,14 @@ export class GetChannelPresenter {
 
 	buildPlatformChannelRowsVm(
 		channels: readonly CreateSocialPostChannelViewModel[]
-	): DashboardPlatformChannelRowViewModel[] {
+	): HomePlatformChannelRowViewModel[] {
 		const map = new Map<string, CreateSocialPostChannelViewModel[]>();
 		for (const ch of channels) {
 			const key = ch.identifier?.trim() || 'unknown';
 			if (!map.has(key)) map.set(key, []);
 			map.get(key)!.push(ch);
 		}
-		const rows: DashboardPlatformChannelRowViewModel[] = [];
+		const rows: HomePlatformChannelRowViewModel[] = [];
 		for (const [identifier, items] of map.entries()) {
 			const sorted = [...items].sort((a, b) =>
 				(a.name || a.identifier).localeCompare(b.name || b.identifier, undefined, { sensitivity: 'base' })
@@ -156,8 +156,8 @@ export class GetChannelPresenter {
 			rows.push({ identifier, items: sorted });
 		}
 		rows.sort((a, b) => {
-			const ia = DASHBOARD_PLATFORM_ROW_ORDER.indexOf(a.identifier);
-			const ib = DASHBOARD_PLATFORM_ROW_ORDER.indexOf(b.identifier);
+			const ia = HOME_PLATFORM_ROW_ORDER.indexOf(a.identifier);
+			const ib = HOME_PLATFORM_ROW_ORDER.indexOf(b.identifier);
 			const sa = ia === -1 ? 999 : ia;
 			const sb = ib === -1 ? 999 : ib;
 			if (sa !== sb) return sa - sb;
@@ -168,7 +168,7 @@ export class GetChannelPresenter {
 
 	buildChannelGroupSectionsVm(
 		channels: readonly CreateSocialPostChannelViewModel[]
-	): DashboardChannelGroupViewModel[] {
+	): HomeChannelGroupViewModel[] {
 		const map = new Map<string, ChannelGroupAcc>();
 		for (const ch of channels) {
 			if (!ch.group) continue;
@@ -177,7 +177,7 @@ export class GetChannelPresenter {
 			}
 			map.get(ch.group.id)!.items.push(ch);
 		}
-		const groups: DashboardChannelGroupViewModel[] = [];
+		const groups: HomeChannelGroupViewModel[] = [];
 		for (const g of map.values()) {
 			g.items.sort((a, b) =>
 				(a.name || a.identifier).localeCompare(b.name || b.identifier, undefined, { sensitivity: 'base' })
@@ -193,7 +193,7 @@ export class GetChannelPresenter {
 		return groups;
 	}
 
-	private labelForDashboardChannelGroupType(type: string | undefined): string {
+	private labelForHomeChannelGroupType(type: string | undefined): string {
 		const t = type?.trim() ?? '';
 		if (!t) return 'Channels';
 		const lower = t.toLowerCase();

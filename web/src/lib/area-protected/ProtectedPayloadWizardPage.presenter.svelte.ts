@@ -11,7 +11,7 @@ export type PayloadWizardChannelsLoadStatus = 'idle' | 'loading' | 'ready' | 'er
 /**
  * Account `/account/payload-wizard`: load connected channels and expose the shared composer instance.
  *
- * This page intentionally does not depend on `ProtectedDashboardPagePresenter` to avoid cross-page
+ * This page intentionally does not depend on `ProtectedHomePagePresenter` to avoid cross-page
  * reach-through; it owns its own connected-channel list state for the wizard.
  */
 export class ProtectedPayloadWizardPagePresenter {

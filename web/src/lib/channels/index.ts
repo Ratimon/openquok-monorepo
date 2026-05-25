@@ -6,22 +6,22 @@ export { GetChannelPresenter } from '$lib/channels/GetChannel.presenter.svelte';
 
 export type {
 	CreateSocialPostChannelViewModel,
-	DashboardChannelGroupViewModel,
-	DashboardChannelsLayoutModeViewModel,
-	DashboardConnectedChannelMenuGroupViewModel,
-	DashboardPlatformChannelRowViewModel,
+	HomeChannelGroupViewModel,
+	HomeChannelsLayoutModeViewModel,
+	HomeConnectedChannelMenuGroupViewModel,
+	HomePlatformChannelRowViewModel,
 	PostingTimeSlotViewModel,
 	WorkspaceChannelGroupViewModel
 } from '$lib/channels/GetChannel.presenter.svelte';
 
 export {
-	DASHBOARD_CHANNEL_UNGROUPED_GROUP_LABEL,
-	DashboardChannelsGridTablePresenter,
-	type DashboardChannelTableRowViewModel
-} from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
+	HOME_CHANNEL_UNGROUPED_GROUP_LABEL,
+	HomeChannelsGridTablePresenter,
+	type HomeChannelTableRowViewModel
+} from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
 
 export {
-	createDashboardChannelsGridTableFilter,
-	DashboardChannelsGridFilterBuilderPresenter,
-	DASHBOARD_CHANNELS_GRID_FILTER_BUILDER_FIELDS
-} from '$lib/channels/DashboardChannelsGridFilterBuilder.presenter.svelte';
+	createHomeChannelsGridTableFilter,
+	HomeChannelsGridFilterBuilderPresenter,
+	HOME_CHANNELS_GRID_FILTER_BUILDER_FIELDS
+} from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type {
 		CreateSocialPostChannelViewModel,
-		DashboardChannelGroupViewModel,
-		DashboardPlatformChannelRowViewModel
+		HomeChannelGroupViewModel,
+		HomePlatformChannelRowViewModel
 	} from '$lib/channels/GetChannel.presenter.svelte';
 
 	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
@@ -13,8 +13,8 @@
 	import PlatformChannelRows from '$lib/ui/components/channels/PlatformChannelRows.svelte';
 
 	type Props = {
-		channelGroupSections: DashboardChannelGroupViewModel[];
-		platformChannelRowsUngrouped: DashboardPlatformChannelRowViewModel[];
+		channelGroupSections: HomeChannelGroupViewModel[];
+		platformChannelRowsUngrouped: HomePlatformChannelRowViewModel[];
 		groupDetailsOpen: Record<string, boolean>;
 		ungroupedDetailsOpen: boolean;
 		workspaceId: string;

@@ -9,8 +9,8 @@ export {
 } from '$lib/area-protected/getRootPathProtectedArea';
 import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus } from './ProtectedSettingsPage.presenter.svelte';
 import { ProtectedLayoutPagePresenter } from '$lib/area-protected/ProtectedLayoutPage.presenter.svelte';
-import { ProtectedDashboardPagePresenter } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
-import { GetDashboardWorkspacesPresenter } from '$lib/area-protected/GetDashboardWorkspaces.presenter.svelte';
+import { ProtectedHomePagePresenter } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+import { GetHomeWorkspacesPresenter } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 import { ProtectedCalendarPagePresenter } from '$lib/area-protected/ProtectedCalendarPage.presenter.svelte';
 import { ProtectedMediaPagePresenter } from '$lib/area-protected/ProtectedMediaPage.presenter.svelte';
 import { ProtectedAnalyticsPagePresenter } from '$lib/area-protected/ProtectedAnalyticsPage.presenter.svelte';
@@ -45,8 +45,8 @@ import { PlugGridTablePresenter } from '$lib/plugs/PlugGridTable.presenter.svelt
 import { PlugGridFilterBuilderPresenter } from '$lib/plugs/PlugGridFilterBuilder.presenter.svelte';
 import { SetGridFilterBuilderPresenter } from '$lib/sets/SetGridFilterBuilder.presenter.svelte';
 import {
-	DashboardChannelsGridFilterBuilderPresenter,
-	DashboardChannelsGridTablePresenter,
+	HomeChannelsGridFilterBuilderPresenter,
+	HomeChannelsGridTablePresenter,
 	getChannelPresenter
 } from '$lib/channels';
 
@@ -94,8 +94,8 @@ const createSocialPostPresenter = new CreateSocialPostPresenter(
 	schedulerPresenter
 );
 
-const dashboardChannelsGridTable = new DashboardChannelsGridTablePresenter();
-const dashboardChannelsGridFilterBuilder = new DashboardChannelsGridFilterBuilderPresenter();
+const homeChannelsGridTable = new HomeChannelsGridTablePresenter();
+const homeChannelsGridFilterBuilder = new HomeChannelsGridFilterBuilderPresenter();
 
 const postKanbanBoardPresenter = new PostKanbanBoardPresenter(
 	postsRepository,
@@ -103,22 +103,22 @@ const postKanbanBoardPresenter = new PostKanbanBoardPresenter(
 	schedulerPresenter
 );
 
-const getDashboardWorkspacesPresenter = new GetDashboardWorkspacesPresenter();
+const getHomeWorkspacesPresenter = new GetHomeWorkspacesPresenter();
 
-const protectedDashboardPagePresenter = new ProtectedDashboardPagePresenter(
+const protectedHomePagePresenter = new ProtectedHomePagePresenter(
 	integrationsRepository,
 	settingsRepository,
 	workspaceSettingsPresenter,
 	createSocialPostPresenter,
 	postKanbanBoardPresenter,
-	dashboardChannelsGridTable,
-	dashboardChannelsGridFilterBuilder,
+	homeChannelsGridTable,
+	homeChannelsGridFilterBuilder,
 	getChannelPresenter,
-	getDashboardWorkspacesPresenter
+	getHomeWorkspacesPresenter
 );
 
 const protectedCalendarPagePresenter = new ProtectedCalendarPagePresenter(
-	protectedDashboardPagePresenter,
+	protectedHomePagePresenter,
 	workspaceSettingsPresenter,
 	schedulerPresenter,
 	createSocialPostPresenter,
@@ -127,7 +127,7 @@ const protectedCalendarPagePresenter = new ProtectedCalendarPagePresenter(
 );
 
 const protectedAnalyticsPagePresenter = new ProtectedAnalyticsPagePresenter(
-	protectedDashboardPagePresenter,
+	protectedHomePagePresenter,
 	workspaceSettingsPresenter,
 	getAnalyticsPresenter,
 	integrationsRepository
@@ -152,7 +152,7 @@ const protectedPlugsPagePresenter = new ProtectedPlugsPagePresenter(
 	plugGridFilterBuilder
 );
 
-const setGridTable = new SetGridTablePresenter(getSetPresenter, protectedDashboardPagePresenter);
+const setGridTable = new SetGridTablePresenter(getSetPresenter, protectedHomePagePresenter);
 const setGridFilterBuilder = new SetGridFilterBuilderPresenter();
 
 const protectedBillingPagePresenter = new ProtectedBillingPagePresenter(
@@ -165,7 +165,7 @@ const protectedTemplatesPagePresenter = new ProtectedTemplatesPagePresenter(
 	workspaceSettingsPresenter,
 	getSetPresenter,
 	upsertSetPresenter,
-	protectedDashboardPagePresenter,
+	protectedHomePagePresenter,
 	setGridTable,
 	setGridFilterBuilder
 );
@@ -178,8 +178,8 @@ export {
 	protectedSettingsPagePresenter,
 	ProtectedLayoutPagePresenter,
 	protectedLayoutPagePresenter,
-	ProtectedDashboardPagePresenter,
-	protectedDashboardPagePresenter,
+	ProtectedHomePagePresenter,
+	protectedHomePagePresenter,
 	ProtectedCalendarPagePresenter,
 	protectedCalendarPagePresenter,
 	ProtectedAnalyticsPagePresenter,

@@ -1,7 +1,7 @@
 import type {
 	PostingTimeSlotViewModel,
 	WorkspaceChannelGroupViewModel
-} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+} from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
 import { isProfileChannelDisplayName } from '$data/social-providers';
 import { publicUrlForMediaStorageKey } from '$lib/medias/utils/publicMediaObjectUrl';
@@ -170,7 +170,7 @@ export interface PublicPreviewPostViewModel {
 
 /**
  * Minimal channel VM for provider-specific mock previews on `/p/[postId]` (no integrations list fetch).
- * Same field shape as `CreateSocialPostChannelViewModel`; kept explicit so public preview stays decoupled from dashboard wiring.
+ * Same field shape as `CreateSocialPostChannelViewModel`; kept explicit so public preview stays decoupled from home page wiring.
  */
 export interface PublicPreviewChannelViewModel {
 	id: string;

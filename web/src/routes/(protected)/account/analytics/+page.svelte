@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
 	// --- Navigation & routing ---
 	import { goto } from '$app/navigation';
@@ -9,7 +9,7 @@
 	import {
 		getRootPathAccount,
 		protectedAnalyticsPagePresenter,
-		protectedDashboardPagePresenter
+		protectedHomePagePresenter
 	} from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
@@ -38,10 +38,10 @@
 	// --- Routes (static, base-aware via `route`) ---
 	const accountRoot = accountPath;
 
-	// --- Workspace + integration list (dashboard presenter is source of truth) ---
+	// --- Workspace + integration list (home presenter is source of truth) ---
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
-	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
-	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
+	const connectedChannelsVm = $derived(protectedHomePagePresenter.connectedChannelsVm);
+	const listStatus = $derived(protectedHomePagePresenter.listStatus);
 	const channelsLoadPending = $derived(listStatus === 'idle' || listStatus === 'loading');
 
 	// --- Analytics screen VM (filters + merged series live on analytics presenter) ---
@@ -68,7 +68,7 @@
 	}
 
 	async function handleRemoveChannel(id: string): Promise<boolean> {
-		const resultVm = await protectedDashboardPagePresenter.removeChannel(id);
+		const resultVm = await protectedHomePagePresenter.removeChannel(id);
 		if (resultVm.ok) {
 			toast.success('Channel removed.');
 			return true;
@@ -78,7 +78,7 @@
 	}
 
 	async function handleSetChannelDisabled(id: string, disabled: boolean): Promise<boolean> {
-		const resultVm = await protectedDashboardPagePresenter.setChannelDisabled(id, disabled);
+		const resultVm = await protectedHomePagePresenter.setChannelDisabled(id, disabled);
 		if (resultVm.ok) {
 			toast.success(disabled ? 'Channel disabled.' : 'Channel enabled.');
 			return true;
@@ -96,7 +96,7 @@
 	$effect(() => {
 		const orgId = workspaceId;
 		if (!orgId) return;
-		analyticsPresenter.syncWorkspaceDashboardLists();
+		analyticsPresenter.syncWorkspaceHomeLists();
 	});
 
 	$effect(() => {
@@ -131,7 +131,7 @@
 		<div class="flex items-center gap-2">
 			<Button type="button" variant="outline" href={accountPath}>
 				<AbstractIcon name={icons.ArrowLeft.name} class="size-4" width="16" height="16" />
-				Back to dashboard
+				Back to home
 			</Button>
 		</div>
 	</div>

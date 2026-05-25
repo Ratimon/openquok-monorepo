@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { DashboardWorkspaceCardViewModel } from '$lib/area-protected/GetDashboardWorkspaces.presenter.svelte';
+	import type { HomeWorkspaceCardViewModel } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 
 	import { socialProviderIcon } from '$data/social-providers';
 	import { icons } from '$data/icons';
@@ -16,7 +16,7 @@
 	};
 
 	type Props = {
-		card: DashboardWorkspaceCardViewModel;
+		card: HomeWorkspaceCardViewModel;
 		index: number;
 		onSwitchWorkspace?: (workspaceId: string) => void;
 		onOpenWorkspaceSettings?: (workspaceId: string) => void;
@@ -287,7 +287,7 @@
 		buttonIconName={icons.ArrowRight.name}
 		buttonText="Switch workspace"
 		modalTitle="Switch workspace"
-		modalDescription={`You are about to open "${card.name}". Your dashboard, channels, posts, your API keys will reflect that workspace.`}
+		modalDescription={`You are about to open "${card.name}". Your home, channels, posts, your API keys will reflect that workspace.`}
 		modalVerficationWithAnswer={false}
 	/>
 {/if}

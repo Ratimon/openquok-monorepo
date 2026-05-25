@@ -2,7 +2,7 @@
 	import type { ICellProps } from '@svar-ui/svelte-grid';
 	import { getContext } from 'svelte';
 
-	import type { DashboardChannelTableRowViewModel } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
+	import type { HomeChannelTableRowViewModel } from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
 
 	import { icons } from '$data/icons';
 	import { socialProviderDisplayLabel, socialProviderIcon } from '$data/social-providers';
@@ -18,7 +18,7 @@
 
 	const actions = getContext<ChannelsGridActions>(channelsGridActionsKey);
 
-	const rowVm = $derived(row as unknown as DashboardChannelTableRowViewModel);
+	const rowVm = $derived(row as unknown as HomeChannelTableRowViewModel);
 	const platformKey = $derived(rowVm.platformKey);
 	const platformLabel = $derived(socialProviderDisplayLabel(platformKey));
 </script>

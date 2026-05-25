@@ -9,10 +9,10 @@ import ChannelsGridAddMoreCell from '$lib/ui/components/channels/ChannelsGridAdd
 import ChannelsGridStatusCell from '$lib/ui/components/channels/ChannelsGridStatusCell.svelte';
 
 /** Display label when a channel has no workspace group (table + filters). */
-export const DASHBOARD_CHANNEL_UNGROUPED_GROUP_LABEL = 'ungrouped';
+export const HOME_CHANNEL_UNGROUPED_GROUP_LABEL = 'ungrouped';
 
-/** One row in the account dashboard connected-channels SVAR grid. */
-export type DashboardChannelTableRowViewModel = {
+/** One row in the account home connected-channels SVAR grid. */
+export type HomeChannelTableRowViewModel = {
 	id: string;
 	channel: CreateSocialPostChannelViewModel;
 	platformLabel: string;
@@ -24,7 +24,7 @@ export type DashboardChannelTableRowViewModel = {
 	statusDisplay: string;
 };
 
-type DashboardChannelsGridVis = {
+type HomeChannelsGridVis = {
 	accountWidth: number;
 	platformWidth: number;
 	groupWidth: number;
@@ -35,7 +35,7 @@ type DashboardChannelsGridVis = {
 	accountHeader: string;
 };
 
-const DASHBOARD_CHANNELS_GRID_WIDE_DEFAULTS: DashboardChannelsGridVis = {
+const HOME_CHANNELS_GRID_WIDE_DEFAULTS: HomeChannelsGridVis = {
 	accountWidth: 240,
 	platformWidth: 140,
 	groupWidth: 160,
@@ -54,9 +54,9 @@ function statusLabelForChannel(ch: CreateSocialPostChannelViewModel): string {
 	return 'Ready';
 }
 
-function toDashboardChannelTableRowViewModel(
+function toHomeChannelTableRowViewModel(
 	ch: CreateSocialPostChannelViewModel
-): DashboardChannelTableRowViewModel {
+): HomeChannelTableRowViewModel {
 	const platformKey = String(ch.identifier ?? '').trim();
 	return {
 		id: ch.id,
@@ -65,23 +65,23 @@ function toDashboardChannelTableRowViewModel(
 		platformKey,
 		channelName: ch.name?.trim() || platformKey || 'Channel',
 		channelPicture: ch.picture,
-		groupName: ch.group?.name?.trim() || DASHBOARD_CHANNEL_UNGROUPED_GROUP_LABEL,
+		groupName: ch.group?.name?.trim() || HOME_CHANNEL_UNGROUPED_GROUP_LABEL,
 		groupId: ch.group?.id ?? null,
 		statusDisplay: statusLabelForChannel(ch)
 	};
 }
 
 /**
- * SVAR grid table for account dashboard connected channels (table layout mode).
+ * SVAR grid table for account home connected channels (table layout mode).
  *
  * Source channel list is owned by the page presenter (`connectedChannelsVm`). This presenter only owns grid row VMs.
  */
-export class DashboardChannelsGridTablePresenter {
+export class HomeChannelsGridTablePresenter {
 	/** Grid rows — analogue of {@link PlugGridTablePresenter.plugRulesRowsVm}. */
-	dashboardChannelTableRowsVm = $state<DashboardChannelTableRowViewModel[]>([]);
+	homeChannelTableRowsVm = $state<HomeChannelTableRowViewModel[]>([]);
 
 	refreshRowsFromChannels(channels: readonly CreateSocialPostChannelViewModel[]): void {
-		const rows = channels.map(toDashboardChannelTableRowViewModel);
+		const rows = channels.map(toHomeChannelTableRowViewModel);
 		rows.sort((a, b) => {
 			const byPlatform = a.platformLabel.localeCompare(b.platformLabel, undefined, { sensitivity: 'base' });
 			if (byPlatform !== 0) return byPlatform;
@@ -89,20 +89,20 @@ export class DashboardChannelsGridTablePresenter {
 			if (byGroup !== 0) return byGroup;
 			return a.channelName.localeCompare(b.channelName, undefined, { sensitivity: 'base' });
 		});
-		this.dashboardChannelTableRowsVm = rows;
+		this.homeChannelTableRowsVm = rows;
 	}
 
 	resetForNoWorkspace(): void {
-		this.dashboardChannelTableRowsVm = [];
+		this.homeChannelTableRowsVm = [];
 	}
 
 	accountTooltipPlainText(row: unknown): string {
-		const r = row as DashboardChannelTableRowViewModel;
+		const r = row as HomeChannelTableRowViewModel;
 		const parts = [r.channelName?.trim(), r.platformLabel?.trim(), r.groupName?.trim()].filter(Boolean);
 		return parts.join('\n');
 	}
 
-	private _dashboardChannelsGridColumns(vis: DashboardChannelsGridVis): IColumn[] {
+	private _homeChannelsGridColumns(vis: HomeChannelsGridVis): IColumn[] {
 		return [
 			{
 				id: 'channelAccount',
@@ -147,12 +147,12 @@ export class DashboardChannelsGridTablePresenter {
 		] as unknown as IColumn[];
 	}
 
-	getDashboardChannelsGridColumnsForViewport(
+	getHomeChannelsGridColumnsForViewport(
 		layoutTierWidthPx: number,
 		gridLayoutWidthPx: number,
 		browser: boolean
 	): IColumn[] {
-		const columns = this._dashboardChannelsGridColumns(DASHBOARD_CHANNELS_GRID_WIDE_DEFAULTS);
+		const columns = this._homeChannelsGridColumns(HOME_CHANNELS_GRID_WIDE_DEFAULTS);
 
 		const w = layoutTierWidthPx;
 		if (!browser || w <= 0) return columns;
@@ -169,7 +169,7 @@ export class DashboardChannelsGridTablePresenter {
 				72,
 				cw - platformPx - groupPx - statusPx - actionsPx - addMorePx - gutter
 			);
-			return this._dashboardChannelsGridColumns({
+			return this._homeChannelsGridColumns({
 				accountWidth: accountPx,
 				platformWidth: platformPx,
 				groupWidth: groupPx,
@@ -190,7 +190,7 @@ export class DashboardChannelsGridTablePresenter {
 			const statusPx = 100;
 			const actionsPx = 96;
 			const addMorePx = 136;
-			return this._dashboardChannelsGridColumns({
+			return this._homeChannelsGridColumns({
 				accountWidth: accountPx,
 				platformWidth: platformPx,
 				groupWidth: groupPx,
@@ -204,21 +204,21 @@ export class DashboardChannelsGridTablePresenter {
 
 		const gutter = 28;
 		const reserved =
-			DASHBOARD_CHANNELS_GRID_WIDE_DEFAULTS.accountWidth +
-			DASHBOARD_CHANNELS_GRID_WIDE_DEFAULTS.platformWidth +
-			DASHBOARD_CHANNELS_GRID_WIDE_DEFAULTS.groupWidth +
-			DASHBOARD_CHANNELS_GRID_WIDE_DEFAULTS.statusWidth +
-			DASHBOARD_CHANNELS_GRID_WIDE_DEFAULTS.actionsWidthPx +
-			DASHBOARD_CHANNELS_GRID_WIDE_DEFAULTS.addMoreWidthPx +
+			HOME_CHANNELS_GRID_WIDE_DEFAULTS.accountWidth +
+			HOME_CHANNELS_GRID_WIDE_DEFAULTS.platformWidth +
+			HOME_CHANNELS_GRID_WIDE_DEFAULTS.groupWidth +
+			HOME_CHANNELS_GRID_WIDE_DEFAULTS.statusWidth +
+			HOME_CHANNELS_GRID_WIDE_DEFAULTS.actionsWidthPx +
+			HOME_CHANNELS_GRID_WIDE_DEFAULTS.addMoreWidthPx +
 			gutter;
-		const accountW = Math.max(200, Math.floor(basis - reserved + DASHBOARD_CHANNELS_GRID_WIDE_DEFAULTS.accountWidth));
-		return this._dashboardChannelsGridColumns({
-			...DASHBOARD_CHANNELS_GRID_WIDE_DEFAULTS,
+		const accountW = Math.max(200, Math.floor(basis - reserved + HOME_CHANNELS_GRID_WIDE_DEFAULTS.accountWidth));
+		return this._homeChannelsGridColumns({
+			...HOME_CHANNELS_GRID_WIDE_DEFAULTS,
 			accountWidth: accountW
 		});
 	}
 
-	getDashboardChannelsGridSizesForViewport(
+	getHomeChannelsGridSizesForViewport(
 		layoutTierWidthPx: number,
 		browser: boolean
 	): { rowHeight: number; headerHeight: number } {
@@ -227,11 +227,11 @@ export class DashboardChannelsGridTablePresenter {
 		return { rowHeight: 44, headerHeight: 40 };
 	}
 
-	getDashboardChannelsGridAutoRowHeight(layoutTierWidthPx: number, browser: boolean): boolean {
+	getHomeChannelsGridAutoRowHeight(layoutTierWidthPx: number, browser: boolean): boolean {
 		return Boolean(browser && layoutTierWidthPx > 0);
 	}
 
-	dashboardChannelsGridCellStyle(_row: unknown, column: IColumn): string {
+	homeChannelsGridCellStyle(_row: unknown, column: IColumn): string {
 		if (String(column.id ?? '') === 'groupName') {
 			return 'white-space:normal;word-break:break-word;overflow-wrap:anywhere;';
 		}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { IApi, IColumn } from '@svar-ui/svelte-grid';
-	import type { DashboardChannelTableRowViewModel } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
+	import type { HomeChannelTableRowViewModel } from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
 
 	import { icons } from '$data/icons';
 
@@ -14,7 +14,7 @@
 
 	type Props = {
 		filteredRowCount: number;
-		pagedRowsVm: DashboardChannelTableRowViewModel[];
+		pagedRowsVm: HomeChannelTableRowViewModel[];
 		filterValue: { glue: 'and' | 'or'; rules: unknown[] };
 		filterFields: readonly FilterField[];
 		filterHasAnyRule: boolean;

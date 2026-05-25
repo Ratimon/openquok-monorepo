@@ -1,5 +1,5 @@
 import type { CalendarEventExternal } from '@schedule-x/calendar';
-import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { DebugExportPostGroupProgrammerModel } from '$lib/posts/Post.repository.svelte';
 import type { CalendarPostRowViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 

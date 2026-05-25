@@ -6,9 +6,9 @@ import type { SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import type {
 	CreateSocialPostChannelViewModel,
-	DashboardChannelMutationViewModel,
-	ProtectedDashboardPagePresenter
-} from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	HomeChannelMutationViewModel,
+	ProtectedHomePagePresenter
+} from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { IconName } from '$data/icons';
 import type {
 	GetAnalyticsPresenter,
@@ -34,7 +34,7 @@ export type UpdatePostReleaseIdResultViewModel = { ok: true } | { ok: false; err
 /**
  * Account `/account/calendar`: targeted channels, Schedule‑X reload fingerprint, composer scope.
  *
- * Delegates channel CRUD + OAuth URLs to {@link ProtectedDashboardPagePresenter}; bumps {@link calendarRefreshKey}
+ * Delegates channel CRUD + OAuth URLs to {@link ProtectedHomePagePresenter}; bumps {@link calendarRefreshKey}
  * after mutations so {@link SchedulerPresenter} reloads.
  */
 export class ProtectedCalendarPagePresenter {
@@ -43,7 +43,7 @@ export class ProtectedCalendarPagePresenter {
 	calendarRefreshKey = $state(0);
 
 	constructor(
-		private readonly dashboardPagePresenter: ProtectedDashboardPagePresenter,
+		private readonly homePagePresenter: ProtectedHomePagePresenter,
 		private readonly workspaceSettings: WorkspaceSettingsPresenter,
 		readonly schedulerPresenter: SchedulerPresenter,
 		readonly createSocialPostPresenter: CreateSocialPostPresenter,
@@ -57,7 +57,7 @@ export class ProtectedCalendarPagePresenter {
 	}
 
 	continueSetupHref(integration: CreateSocialPostChannelViewModel): string {
-		return this.dashboardPagePresenter.continueSetupHref(integration, url('/account/calendar'));
+		return this.homePagePresenter.continueSetupHref(integration, url('/account/calendar'));
 	}
 
 	// --- Targeted channel list (filled by Scheduler via callback) ---
@@ -70,12 +70,12 @@ export class ProtectedCalendarPagePresenter {
 	}
 
 	/**
-	 * Run in `$effect`: when a workspace id is available, load dashboard lists for channel rows.
+	 * Run in `$effect`: when a workspace id is available, load home lists for channel rows.
 	 */
-	syncWorkspaceDashboardLists(): void {
+	syncWorkspaceHomeLists(): void {
 		const orgId = this.workspaceSettings.currentWorkspaceId;
 		if (!orgId) return;
-		void this.dashboardPagePresenter.loadDashboardLists();
+		void this.homePagePresenter.loadHomeLists();
 	}
 
 	// --- Create-post composer scope from current targeted channels ---
@@ -89,7 +89,7 @@ export class ProtectedCalendarPagePresenter {
 			return { ok: false, error: 'Create or select a workspace first.' };
 		}
 		const targetedChannelsVm = this.targetedChannelsVm;
-		const connectedChannelsVm = this.dashboardPagePresenter.connectedChannelsVm;
+		const connectedChannelsVm = this.homePagePresenter.connectedChannelsVm;
 		const ids = targetedChannelsVm.filter((c) => c.schedulable).map((c) => c.id);
 		if (targetedChannelsVm.length > 0 && ids.length === 0) {
 			return { ok: false, error: 'All targeted channels need reconnecting before you can schedule posts.' };
@@ -112,14 +112,14 @@ export class ProtectedCalendarPagePresenter {
 	}
 
 	// --- Channel mutations (delegate + bump scheduler refresh on success) ---
-	async removeChannel(id: string): Promise<DashboardChannelMutationViewModel> {
-		const removeChannelResult = await this.dashboardPagePresenter.removeChannel(id);
+	async removeChannel(id: string): Promise<HomeChannelMutationViewModel> {
+		const removeChannelResult = await this.homePagePresenter.removeChannel(id);
 		if (removeChannelResult.ok) this.bumpCalendarRefresh();
 		return removeChannelResult;
 	}
 
-	async setChannelDisabled(id: string, disabled: boolean): Promise<DashboardChannelMutationViewModel> {
-		const setChannelDisabledResult = await this.dashboardPagePresenter.setChannelDisabled(id, disabled);
+	async setChannelDisabled(id: string, disabled: boolean): Promise<HomeChannelMutationViewModel> {
+		const setChannelDisabledResult = await this.homePagePresenter.setChannelDisabled(id, disabled);
 		if (setChannelDisabledResult.ok) this.bumpCalendarRefresh();
 		return setChannelDisabledResult;
 	}

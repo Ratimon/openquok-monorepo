@@ -3,7 +3,7 @@
 	import type { IApi } from '@svar-ui/svelte-grid';
 	import type {
 		CreateSocialPostChannelViewModel,
-		DashboardChannelsLayoutModeViewModel
+		HomeChannelsLayoutModeViewModel
 	} from '$lib/channels';
 	import type { ChannelsGridActions } from '$lib/ui/components/channels/channelsGridContext';
 	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
@@ -20,11 +20,11 @@
 		getRootPathAccount,
 		getRootPathCalendar,
 		protectedCalendarPagePresenter,
-		protectedDashboardPagePresenter,
+		protectedHomePagePresenter,
 		protectedSettingsPagePresenter,
 		WorkspaceSettingsStatus
 	} from '$lib/area-protected';
-	import { createDashboardChannelsGridTableFilter } from '$lib/channels/DashboardChannelsGridFilterBuilder.presenter.svelte';
+	import { createHomeChannelsGridTableFilter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -63,7 +63,7 @@
 	const rootPathCalendar = getRootPathCalendar();
 	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
 
-	const pagePresenter = protectedDashboardPagePresenter;
+	const pagePresenter = protectedHomePagePresenter;
 	const postKanbanBoard = pagePresenter.postKanbanBoardPresenter;
 	const channelsGridPresenter = pagePresenter.channelsGridTable;
 	const channelsFilterPresenter = pagePresenter.channelsGridFilterBuilder;
@@ -80,7 +80,7 @@
 	// --- Layout data ---
 	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? (page.data as App.LayoutData)?.currentUser ?? null);
 
-	// --- Workspace + dashboard VMs ---
+	// --- Workspace + home VMs ---
 	const accountRoot = $derived(accountPath);
 	const accountSettingsWorkspaceHref = $derived(url(`${accountRoot}/settings?section=workspace`));
 	const accountSettingsDeveloperOAuthHref = $derived(
@@ -95,10 +95,10 @@
 		void postKanbanBoard.load(workspaceId);
 	});
 
-	const platformChannelRowsUngrouped = $derived(protectedDashboardPagePresenter.platformChannelRowsUngrouped);
-	const channelGroupSections = $derived(protectedDashboardPagePresenter.channelGroupSections);
-	const listStatus = $derived(protectedDashboardPagePresenter.listStatus);
-	const connectedChannelsVm = $derived(protectedDashboardPagePresenter.connectedChannelsVm);
+	const platformChannelRowsUngrouped = $derived(protectedHomePagePresenter.platformChannelRowsUngrouped);
+	const channelGroupSections = $derived(protectedHomePagePresenter.channelGroupSections);
+	const listStatus = $derived(protectedHomePagePresenter.listStatus);
+	const connectedChannelsVm = $derived(protectedHomePagePresenter.connectedChannelsVm);
 
 	$effect(() => {
 		const orgId = workspaceId;
@@ -153,7 +153,7 @@
 	const showPostKanbanBoard = $derived(
 		Boolean(workspaceId) && currentWorkspaceSocialChannelCount > 0
 	);
-	const dashboardChannelTableRowsVm = $derived(channelsGridPresenter.dashboardChannelTableRowsVm);
+	const homeChannelTableRowsVm = $derived(channelsGridPresenter.homeChannelTableRowsVm);
 
 	const DASHBOARD_CHANNELS_GRID_PAGE_SIZE = 25;
 
@@ -161,8 +161,8 @@
 	let channelsGridPageSize = $state(DASHBOARD_CHANNELS_GRID_PAGE_SIZE);
 
 	const channelsGridFilteredRowsVm = $derived.by(() => {
-		const filter = createDashboardChannelsGridTableFilter(channelsFilterPresenter.value);
-		return dashboardChannelTableRowsVm.filter(filter);
+		const filter = createHomeChannelsGridTableFilter(channelsFilterPresenter.value);
+		return homeChannelTableRowsVm.filter(filter);
 	});
 
 	const channelsGridPagedRowsVm = $derived.by(() => {
@@ -171,7 +171,7 @@
 		return channelsGridFilteredRowsVm.slice(from, to);
 	});
 
-	let channelsLayoutMode = $state<DashboardChannelsLayoutModeViewModel>('chips');
+	let channelsLayoutMode = $state<HomeChannelsLayoutModeViewModel>('chips');
 
 	let channelsGridApi = $state<IApi | undefined>(undefined);
 	let channelsGridHostEl = $state<HTMLDivElement | null>(null);
@@ -204,7 +204,7 @@
 	});
 
 	const channelsGridColumnsForHost = $derived.by(() =>
-		channelsGridPresenter.getDashboardChannelsGridColumnsForViewport(
+		channelsGridPresenter.getHomeChannelsGridColumnsForViewport(
 			layoutTierWidthPx,
 			channelsGridLayoutWidthPx,
 			browser
@@ -212,11 +212,11 @@
 	);
 
 	const channelsGridSizesForHost = $derived.by(() =>
-		channelsGridPresenter.getDashboardChannelsGridSizesForViewport(layoutTierWidthPx, browser)
+		channelsGridPresenter.getHomeChannelsGridSizesForViewport(layoutTierWidthPx, browser)
 	);
 
 	const channelsGridAutoRowHeight = $derived(
-		channelsGridPresenter.getDashboardChannelsGridAutoRowHeight(layoutTierWidthPx, browser)
+		channelsGridPresenter.getHomeChannelsGridAutoRowHeight(layoutTierWidthPx, browser)
 	);
 
 	/** Same integration `identifier` with two or more social connections (different accounts). */
@@ -504,7 +504,7 @@
 	});
 
 	$effect(() => {
-		void dashboardChannelTableRowsVm;
+		void homeChannelTableRowsVm;
 		void channelsFilterPresenter.value;
 		void channelsGridPageSize;
 		channelsGridPage = 1;
@@ -517,7 +517,6 @@
 			channelsGridPage = pageCount;
 		}
 	});
-
 
 	/**
 	 * Onboarding wizard (`OnBoardingModal`): wide modal, step 1 uses a 9-column grid on large screens.
@@ -554,7 +553,7 @@
 
 	// --- Onboarding visibility (welcome flag + first-empty-workspace auto-open) ---
 	$effect(() => {
-		const w = protectedDashboardPagePresenter.showOnboardingWelcome;
+		const w = protectedHomePagePresenter.showOnboardingWelcome;
 		if (w && !prevOnboardingWelcome) {
 			onboardingDialogOpen = true;
 		}
@@ -565,8 +564,8 @@
 	});
 
 	$effect(() => {
-		if (!onboardingDialogOpen && protectedDashboardPagePresenter.showOnboardingWelcome) {
-			protectedDashboardPagePresenter.dismissOnboardingWelcome();
+		if (!onboardingDialogOpen && protectedHomePagePresenter.showOnboardingWelcome) {
+			protectedHomePagePresenter.dismissOnboardingWelcome();
 		}
 	});
 
@@ -574,7 +573,7 @@
 		if (hasAutoOpenedOnboarding) return;
 		if (!workspaceId) return;
 		if (!currentUser) return;
-		if (protectedDashboardPagePresenter.listStatus !== 'ready') return;
+		if (protectedHomePagePresenter.listStatus !== 'ready') return;
 		const hasAnyChannels = connectedChannelCountVm > 0;
 		if (hasAnyChannels) return;
 		if (isOnboardingCompleted()) return;
@@ -603,7 +602,7 @@
 	} satisfies ChannelsGridActions);
 
 	async function handleRemoveChannel(id: string): Promise<boolean> {
-		const resultVm = await protectedDashboardPagePresenter.removeChannel(id);
+		const resultVm = await protectedHomePagePresenter.removeChannel(id);
 		if (resultVm.ok) {
 			toast.success('Channel removed.');
 			return true;
@@ -613,7 +612,7 @@
 	}
 
 	async function handleSetChannelDisabled(id: string, disabled: boolean): Promise<boolean> {
-		const resultVm = await protectedDashboardPagePresenter.setChannelDisabled(id, disabled);
+		const resultVm = await protectedHomePagePresenter.setChannelDisabled(id, disabled);
 		if (resultVm.ok) {
 			toast.success(disabled ? 'Channel disabled.' : 'Channel enabled.');
 			return true;
@@ -628,7 +627,7 @@
 		const msg = u.searchParams.get('msg');
 		const onboarding = u.searchParams.get('onboarding');
 		if (!added && !msg && onboarding !== 'true') return;
-		void protectedDashboardPagePresenter.handlePostConnectQuery(u, goto).then((r) => {
+		void protectedHomePagePresenter.handlePostConnectQuery(u, goto).then((r) => {
 			if (r.handled) {
 				if (added) {
 					fireProductEvent('channel_added', undefined, currentUser);
@@ -647,7 +646,7 @@
 	$effect(() => {
 		const orgId = workspaceId;
 		if (!orgId) return;
-		void protectedDashboardPagePresenter.loadDashboardLists();
+		void protectedHomePagePresenter.loadHomeLists();
 	});
 
 	$effect(() => {
@@ -703,13 +702,13 @@
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
 	<div class="flex items-center gap-3">
 		<AbstractIcon
-			name={icons.Gauge.name}
+			name={icons.House.name}
 			class="text-primary size-8 shrink-0"
 			width="32"
 			height="32"
 		/>
 		<h1 class="text-2xl font-bold text-base-content">
-			Account dashboard
+			Home
 		</h1>
 	</div>
 	{#if listStatus === 'ready' && connectedChannelCountVm === 0}
@@ -917,11 +916,11 @@
 				filterIsReady={channelsFilterPresenter.isReady}
 				filterAddMenuOpen={channelsFilterPresenter.addFilterMenuOpen}
 				filterAddableFieldOptions={channelsFilterPresenter.addableFieldOptions}
-				filterOptions={channelsFilterPresenter.buildOptions(dashboardChannelTableRowsVm)}
+				filterOptions={channelsFilterPresenter.buildOptions(homeChannelTableRowsVm)}
 				gridColumns={channelsGridColumnsForHost}
 				gridSizes={channelsGridSizesForHost}
 				gridAutoRowHeight={channelsGridAutoRowHeight}
-				gridCellStyle={channelsGridPresenter.dashboardChannelsGridCellStyle}
+				gridCellStyle={channelsGridPresenter.homeChannelsGridCellStyle}
 				bind:gridHostEl={channelsGridHostEl}
 				bind:gridPage={channelsGridPage}
 				bind:gridPageSize={channelsGridPageSize}
@@ -1014,8 +1013,8 @@
 		onboardingDialogOpen = v;
 		if (!v) {
 			markOnboardingCompleted();
-			if (protectedDashboardPagePresenter.showOnboardingWelcome) {
-				protectedDashboardPagePresenter.dismissOnboardingWelcome();
+			if (protectedHomePagePresenter.showOnboardingWelcome) {
+				protectedHomePagePresenter.dismissOnboardingWelcome();
 			}
 		}
 	}}
@@ -1025,7 +1024,7 @@
 	open={channelActionsOpen}
 	integration={channelActionsFor}
 	workspaceId={workspaceId}
-	continueSetupHref={(i) => protectedDashboardPagePresenter.continueSetupHref(i)}
+	continueSetupHref={(i) => protectedHomePagePresenter.continueSetupHref(i)}
 	onClose={() => (channelActionsOpen = false)}
 	onCreatePost={(i) => openCreatePost(i.id)}
 	onMoveToGroup={openMoveGroupModal}

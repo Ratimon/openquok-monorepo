@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { IconName } from '$data/icons';
-	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedDashboardPage.presenter.svelte';
+	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { toast } from '$lib/ui/sonner';
@@ -24,7 +24,7 @@
 		onEditTimeSlots: (integration: CreateSocialPostChannelViewModel) => void;
 		onSetDisabled: (integrationId: string, disabled: boolean) => Promise<boolean>;
 		onRemove: (integrationId: string) => Promise<boolean>;
-		/** `chip`: compact pill for horizontal rows (e.g. account dashboard). */
+		/** `chip`: compact pill for horizontal rows (e.g. account home). */
 		variant?: 'card' | 'chip';
 		/**
 		 * Chip variant: show a small platform icon at the bottom-right of the profile image when a photo exists

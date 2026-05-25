@@ -4,11 +4,11 @@ import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.pres
 import type { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import {
-	GetDashboardWorkspacesPresenter,
-	type DashboardWorkspaceCardViewModel
-} from '$lib/area-protected/GetDashboardWorkspaces.presenter.svelte';
-import type { DashboardChannelsGridFilterBuilderPresenter } from '$lib/channels/DashboardChannelsGridFilterBuilder.presenter.svelte';
-import type { DashboardChannelsGridTablePresenter } from '$lib/channels/DashboardChannelsGridTable.presenter.svelte';
+	GetHomeWorkspacesPresenter,
+	type HomeWorkspaceCardViewModel
+} from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
+import type { HomeChannelsGridFilterBuilderPresenter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
+import type { HomeChannelsGridTablePresenter } from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
 import type {
 	CreateSocialPostChannelViewModel,
 	GetChannelPresenter,
@@ -22,58 +22,58 @@ import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea
 
 export type {
 	CreateSocialPostChannelViewModel,
-	DashboardChannelGroupViewModel,
-	DashboardChannelsLayoutModeViewModel,
-	DashboardConnectedChannelMenuGroupViewModel,
-	DashboardPlatformChannelRowViewModel,
+	HomeChannelGroupViewModel,
+	HomeChannelsLayoutModeViewModel,
+	HomeConnectedChannelMenuGroupViewModel,
+	HomePlatformChannelRowViewModel,
 	PostingTimeSlotViewModel,
 	WorkspaceChannelGroupViewModel
 } from '$lib/channels/GetChannel.presenter.svelte';
 
-type DashboardIntegrationsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
+type HomeIntegrationsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 type ChannelGroupsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
-export type DashboardChannelMutationViewModel = { ok: true } | { ok: false; error: string };
+export type HomeChannelMutationViewModel = { ok: true } | { ok: false; error: string };
 
-export type DashboardPostConnectQueryViewModel =
+export type HomePostConnectQueryViewModel =
 	| { handled: false }
 	| { handled: true; successToastMessage?: string };
 
-export type { DashboardWorkspaceCardViewModel } from '$lib/area-protected/GetDashboardWorkspaces.presenter.svelte';
+export type { HomeWorkspaceCardViewModel } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 
 type MyWorkspacesLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
-type DashboardCurrentUserSnapshot = {
+type HomeCurrentUserSnapshot = {
 	id?: string | null;
 	email?: string | null;
 	fullName?: string | null;
 };
 
 /**
- * Account `/account` dashboard: workspace channels, channel groups, post-connect query handling, OAuth continue URLs.
+ * Account `/account` home: workspace channels, channel groups, post-connect query handling, OAuth continue URLs.
  */
-export class ProtectedDashboardPagePresenter {
+export class ProtectedHomePagePresenter {
 	// --- Raw list + status (integrations API) ---
 	connectedChannelsVm = $state<CreateSocialPostChannelViewModel[]>([]);
-	listStatus = $state<DashboardIntegrationsLoadStatus>('idle');
+	listStatus = $state<HomeIntegrationsLoadStatus>('idle');
 	channelGroupsVm = $state<WorkspaceChannelGroupViewModel[]>([]);
 	channelGroupsStatus = $state<ChannelGroupsLoadStatus>('idle');
 	showOnboardingWelcome = $state(false);
 
-	myWorkspacesCardsVm = $state<DashboardWorkspaceCardViewModel[]>([]);
+	myWorkspacesCardsVm = $state<HomeWorkspaceCardViewModel[]>([]);
 	myWorkspacesStatus = $state<MyWorkspacesLoadStatus>('idle');
 
 	/** Coalesces overlapping list + channel-group loads (same navigation tick, post-connect, etc.). */
-	private dashboardListsInflight: Promise<void> | null = null;
+	private homeListsInflight: Promise<void> | null = null;
 	private myWorkspacesInflight: Promise<void> | null = null;
 
 	// --- Derived rows for menus / sections (built from connectedChannelsVm) ---
-	/** Grouped by integration `type` for dashboard menus. */
+	/** Grouped by integration `type` for home menus. */
 	menuGroups = $derived.by(() =>
-		this.getChannelPresenter.buildDashboardChannelMenuGroupsVm(this.connectedChannelsVm)
+		this.getChannelPresenter.buildHomeChannelMenuGroupsVm(this.connectedChannelsVm)
 	);
 
-	/** Grouped by integration `identifier` (one row per provider on the account dashboard). */
+	/** Grouped by integration `identifier` (one row per provider on the account home). */
 	platformChannelRows = $derived.by(() =>
 		this.getChannelPresenter.buildPlatformChannelRowsVm(this.connectedChannelsVm)
 	);
@@ -96,21 +96,21 @@ export class ProtectedDashboardPagePresenter {
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
 		readonly createSocialPostPresenter: CreateSocialPostPresenter,
 		readonly postKanbanBoardPresenter: PostKanbanBoardPresenter,
-		readonly channelsGridTable: DashboardChannelsGridTablePresenter,
-		readonly channelsGridFilterBuilder: DashboardChannelsGridFilterBuilderPresenter,
+		readonly channelsGridTable: HomeChannelsGridTablePresenter,
+		readonly channelsGridFilterBuilder: HomeChannelsGridFilterBuilderPresenter,
 		private readonly getChannelPresenter: GetChannelPresenter,
-		private readonly getDashboardWorkspacesPresenter: GetDashboardWorkspacesPresenter
+		private readonly getHomeWorkspacesPresenter: GetHomeWorkspacesPresenter
 	) {}
 
 	/** Rebuild SVAR grid rows from {@link connectedChannelsVm} (table layout). */
-	refreshDashboardChannelsGrid(): void {
+	refreshHomeChannelsGrid(): void {
 		this.channelsGridTable.refreshRowsFromChannels(this.connectedChannelsVm);
 	}
 
 	// --- OAuth continue URLs (optional `oauthReturnTo` for calendar/analytics) ---
 	/**
 	 * Absolute OAuth continue URL for a channel.
-	 * When `oauthReturnTo` is omitted, `returnTo` is the routed account root (same as dashboard / calendar).
+	 * When `oauthReturnTo` is omitted, `returnTo` is the routed account root (same as home / calendar).
 	 */
 	continueSetupHref(
 		integration: CreateSocialPostChannelViewModel,
@@ -141,9 +141,9 @@ export class ProtectedDashboardPagePresenter {
 	 * Prefer this over separate `loadConnectedIntegrations` / `loadChannelGroups` from UI to avoid duplicate HTTP.
 	 */
 	/**
-	 * Loads team + social channels for every workspace the user belongs to (account dashboard cards).
+	 * Loads team + social channels for every workspace the user belongs to (account home cards).
 	 */
-	async loadMyWorkspacesOverview(currentUser: DashboardCurrentUserSnapshot | null): Promise<void> {
+	async loadMyWorkspacesOverview(currentUser: HomeCurrentUserSnapshot | null): Promise<void> {
 		const workspaces = this.workspaceSettingsPresenter.workspacesVm;
 		if (workspaces.length === 0) {
 			this.myWorkspacesCardsVm = [];
@@ -161,7 +161,7 @@ export class ProtectedDashboardPagePresenter {
 							this.settingsRepository.getTeam(workspace.id),
 							this.integrationsRepository.listConnectedIntegrations(workspace.id)
 						]);
-						return this.getDashboardWorkspacesPresenter.toWorkspaceCardVm({
+						return this.getHomeWorkspacesPresenter.toWorkspaceCardVm({
 							workspace,
 							membersPm,
 							integrationsPm,
@@ -185,8 +185,8 @@ export class ProtectedDashboardPagePresenter {
 		}
 	}
 
-	async loadDashboardLists(): Promise<void> {
-		if (this.dashboardListsInflight) return this.dashboardListsInflight;
+	async loadHomeLists(): Promise<void> {
+		if (this.homeListsInflight) return this.homeListsInflight;
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			this.connectedChannelsVm = [];
@@ -195,13 +195,13 @@ export class ProtectedDashboardPagePresenter {
 			this.channelGroupsStatus = 'idle';
 			return;
 		}
-		this.dashboardListsInflight = (async () => {
+		this.homeListsInflight = (async () => {
 			await Promise.all([this.loadConnectedIntegrations(), this.loadChannelGroups()]);
 		})();
 		try {
-			await this.dashboardListsInflight;
+			await this.homeListsInflight;
 		} finally {
-			this.dashboardListsInflight = null;
+			this.homeListsInflight = null;
 		}
 	}
 
@@ -222,7 +222,7 @@ export class ProtectedDashboardPagePresenter {
 				this.getChannelPresenter.toCreateSocialPostChannelViewModel(pm)
 			);
 			this.listStatus = 'ready';
-			this.refreshDashboardChannelsGrid();
+			this.refreshHomeChannelsGrid();
 		} catch {
 			this.listStatus = 'error';
 			this.connectedChannelsVm = [];
@@ -273,7 +273,7 @@ export class ProtectedDashboardPagePresenter {
 		integrationId: string,
 		groupId: string | null,
 		groupDisplayName?: string | null
-	): Promise<DashboardChannelMutationViewModel> {
+	): Promise<HomeChannelMutationViewModel> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
@@ -308,7 +308,7 @@ export class ProtectedDashboardPagePresenter {
 		this.showOnboardingWelcome = false;
 	}
 
-	async removeChannel(integrationId: string): Promise<DashboardChannelMutationViewModel> {
+	async removeChannel(integrationId: string): Promise<HomeChannelMutationViewModel> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
@@ -324,7 +324,7 @@ export class ProtectedDashboardPagePresenter {
 		return { ok: false, error: resPm.error };
 	}
 
-	async setChannelDisabled(integrationId: string, disabled: boolean): Promise<DashboardChannelMutationViewModel> {
+	async setChannelDisabled(integrationId: string, disabled: boolean): Promise<HomeChannelMutationViewModel> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
@@ -344,7 +344,7 @@ export class ProtectedDashboardPagePresenter {
 	async setPostingTimes(
 		integrationId: string,
 		slots: PostingTimeSlotViewModel[]
-	): Promise<DashboardChannelMutationViewModel> {
+	): Promise<HomeChannelMutationViewModel> {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
@@ -371,7 +371,7 @@ export class ProtectedDashboardPagePresenter {
 	async handlePostConnectQuery(
 		url: URL,
 		navigate: (href: string, opts?: { replaceState?: boolean }) => Promise<void>
-	): Promise<DashboardPostConnectQueryViewModel> {
+	): Promise<HomePostConnectQueryViewModel> {
 		const added = url.searchParams.get('added');
 		const msg = url.searchParams.get('msg');
 		const onboarding = url.searchParams.get('onboarding');
@@ -393,7 +393,7 @@ export class ProtectedDashboardPagePresenter {
 		}
 
 		await navigate(url.pathname, { replaceState: true });
-		await this.loadDashboardLists();
+		await this.loadHomeLists();
 		return successToastMessage !== undefined
 			? { handled: true, successToastMessage }
 			: { handled: true };
@@ -421,7 +421,7 @@ export class ProtectedDashboardPagePresenter {
 			{ ...prev, group },
 			...this.connectedChannelsVm.slice(idx + 1)
 		];
-		this.refreshDashboardChannelsGrid();
+		this.refreshHomeChannelsGrid();
 	}
 
 	private _patchIntegrationPostingTimes(integrationId: string, slots: PostingTimeSlotViewModel[]): void {
@@ -434,6 +434,6 @@ export class ProtectedDashboardPagePresenter {
 			{ ...prev, postingTimes: sorted },
 			...this.connectedChannelsVm.slice(idx + 1)
 		];
-		this.refreshDashboardChannelsGrid();
+		this.refreshHomeChannelsGrid();
 	}
 }
