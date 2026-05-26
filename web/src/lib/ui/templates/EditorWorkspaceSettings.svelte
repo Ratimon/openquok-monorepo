@@ -19,6 +19,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import TeamMembersLimitUpgradeModal from '$lib/ui/components/workspaces/TeamMembersLimitUpgradeModal.svelte';
+	import WorkspaceLimitUpgradeModal from '$lib/ui/components/workspaces/WorkspaceLimitUpgradeModal.svelte';
 	import UpdateWorkspaceModal from '$lib/ui/components/settings/UpdateWorkspaceModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
@@ -96,14 +97,33 @@
 	);
 	const showTeamSeatsUpgradeCta = $derived(isTeamSeatsLimitFull && Boolean(accountBillingHref));
 
+	const workspaceCountUsed = $derived(workspacesVm.length);
+	const workspaceCountLimit = $derived.by(() => {
+		const cap = firstBillingGatePresenter.pricingVm?.currentVm?.limits?.workspaces ?? null;
+		return cap != null && cap >= 1 ? cap : null;
+	});
+	const workspacesUsageLabel = $derived(
+		workspaceCountLimit != null ? `${workspaceCountUsed}/${workspaceCountLimit}` : null
+	);
+	const showWorkspacesLimitSection = $derived(workspaceCountLimit != null);
+	const isWorkspaceLimitFull = $derived(
+		workspaceCountLimit != null && workspaceCountUsed >= workspaceCountLimit
+	);
+	const showWorkspacesUpgradeCta = $derived(isWorkspaceLimitFull && Boolean(accountBillingHref));
+
 	let createDialogOpen = $state(false);
 	let inviteDialogOpen = $state(false);
 	let editWorkspaceModalOpen = $state(false);
 	let editingWorkspaceId = $state<string | null>(null);
 	let teamMembersUpgradeDialogOpen = $state(false);
+	let workspaceUpgradeDialogOpen = $state(false);
 
 	function openTeamMembersUpgradeDialog() {
 		teamMembersUpgradeDialogOpen = true;
+	}
+
+	function openWorkspaceUpgradeDialog() {
+		workspaceUpgradeDialogOpen = true;
 	}
 
 	function adjustTeamMembersUsed(delta: number) {
@@ -221,6 +241,10 @@
 	}
 
 	function openCreateDialog() {
+		if (isWorkspaceLimitFull) {
+			openWorkspaceUpgradeDialog();
+			return;
+		}
 		createWorkspaceForm.setFieldValue('workspaceName', defaultNewWorkspaceName);
 		createDialogOpen = true;
 	}
@@ -325,15 +349,58 @@
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6">
 		<h2 id="workspaces-heading" class="text-lg font-semibold text-base-content">
 			All Workspaces
+			{#if workspacesUsageLabel}
+				<span class={isWorkspaceLimitFull ? 'text-warning' : 'text-base-content/70'}>
+					({workspacesUsageLabel})
+				</span>
+			{/if}
 		</h2>
-		<Button
-			type="button"
-			onclick={openCreateDialog}
-			disabled={loadingWorkspaces || createSubmitting}
-		>
-			Create New Workspace
+		<Button type="button" onclick={openCreateDialog} disabled={loadingWorkspaces || createSubmitting}>
+			{#if isWorkspaceLimitFull}
+				<AbstractIcon
+					name={icons.Lock.name}
+					class="size-4"
+					width="16"
+					height="16"
+					focusable="false"
+				/>
+				Workspace limit reached
+			{:else}
+				Create New Workspace
+			{/if}
 		</Button>
 	</div>
+
+	{#if showWorkspacesLimitSection && workspacesUsageLabel}
+		<div class="border-t border-base-300 px-6 pb-4 pt-4">
+			<HomeAccountNoticeBanner
+				iconName={isWorkspaceLimitFull ? icons.Sparkles.name : icons.Info.name}
+				tone={isWorkspaceLimitFull ? 'upgrade' : 'neutral'}
+				dismissible={false}
+			>
+				<p class="text-base-content/90">
+					{#if isWorkspaceLimitFull}
+						You have reached your plan workspace limit
+						<span class="font-medium tabular-nums">({workspacesUsageLabel})</span>. Upgrade to
+						create more workspaces for another team or brand.
+					{:else}
+						Workspaces on your plan:
+						<span class="font-medium tabular-nums">{workspacesUsageLabel}</span>
+						used across your account.
+					{/if}
+				</p>
+				{#snippet actions()}
+					{#if showWorkspacesUpgradeCta}
+						<Button href={accountBillingHref} variant="secondary" size="sm" class="gap-1.5">
+							<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+							Upgrade plan
+						</Button>
+					{/if}
+				{/snippet}
+			</HomeAccountNoticeBanner>
+		</div>
+	{/if}
+
 	<div class="border-t border-base-300 px-6 pb-6 pt-4 space-y-4">
 		{#if loadingWorkspaces}
 			<p class="text-sm text-base-content/70">
@@ -742,5 +809,10 @@
 
 <TeamMembersLimitUpgradeModal
 	bind:open={teamMembersUpgradeDialogOpen}
+	upgradeHref={accountBillingHref}
+/>
+
+<WorkspaceLimitUpgradeModal
+	bind:open={workspaceUpgradeDialogOpen}
 	upgradeHref={accountBillingHref}
 />

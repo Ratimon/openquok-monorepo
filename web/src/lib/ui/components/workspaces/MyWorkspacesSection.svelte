@@ -9,7 +9,7 @@
 	import CreateWorkspaceCard from '$lib/ui/components/workspaces/CreateWorkspaceCard.svelte';
 
 	type Props = {
-		cards: HomeWorkspaceCardViewModel[];
+		cardsVm: HomeWorkspaceCardViewModel[];
 		status: 'idle' | 'loading' | 'ready' | 'error';
 		totalCount: number;
 		/** Plan workspace cap; omit or pass under 1 when the tier does not enforce a limit (e.g. FREE). */
@@ -24,7 +24,7 @@
 	};
 
 	let {
-		cards,
+		cardsVm,
 		status,
 		totalCount,
 		allowedWorkspaceCount = null,
@@ -80,7 +80,7 @@
 			<p class="text-sm text-base-content/70">
 				Loading workspaces…
 			</p>
-		{:else if status === 'error' && cards.length === 0}
+		{:else if status === 'error' && cardsVm.length === 0}
 			<p class="text-sm text-error">
 				Could not load workspace details. Refresh the page to try again.
 			</p>
@@ -93,13 +93,13 @@
 					Some workspace details could not be loaded. Cards may be incomplete.
 				</p>
 			{/if}
-			{#if cards.length === 0}
+			{#if cardsVm.length === 0}
 				<p class="mb-4 text-sm text-base-content/70">
 					You do not have a workspace yet. Create one to connect channels and schedule posts.
 				</p>
 			{/if}
 			<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-				{#each cards as card, index (card.id)}
+				{#each cardsVm as card, index (card.id)}
 					<WorkspaceCard
 						{card}
 						{index}

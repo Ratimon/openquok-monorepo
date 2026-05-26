@@ -34,6 +34,7 @@
 		$props();
 
 	const displayFullName = $derived(profileVm?.fullName ?? null);
+	const displayEmail = $derived(profileVm?.email ?? null);
 	const displayWebsite = $derived(profileVm?.websiteUrl ?? null);
 
 	let pictureModalOpen = $state(false);
@@ -208,7 +209,7 @@
 	aria-labelledby="profile-heading"
 >
 	<p id="profile-description" class="sr-only">
-		Manage your profile: full name, password, picture, website.
+		Manage your profile: full name, email, password, picture, website.
 	</p>
 	<div class="divide-y divide-base-300">
 		<!-- Full name row -->
@@ -233,6 +234,20 @@
 				>
 					Update full name
 				</Button>
+			</div>
+		</div>
+		<!-- Email row -->
+		<div class="flex flex-col gap-3 p-4 sm:p-6">
+			<div class="min-w-0">
+				<h3 class="text-sm font-semibold text-base-content">
+					Email
+				</h3>
+				<p class="mt-1 text-sm text-base-content/70 break-all">
+					{loadingProfile ? 'Loading…' : (displayEmail?.trim() ? displayEmail.trim() : '—')}
+				</p>
+				<p class="mt-1 text-xs text-base-content/60">
+					The address you used to sign up. Contact support if you need to change it.
+				</p>
 			</div>
 		</div>
 		<!-- Password row -->

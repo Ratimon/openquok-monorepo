@@ -131,7 +131,8 @@
 				<CardHeader>
 					<CardTitle>
 						<h1 class="text-xl font-semibold leading-none tracking-tight">
-							Create Your Account</h1>
+							Create Your Account
+						</h1>
 					</CardTitle>
 					<CardDescription>Sign up to continue.</CardDescription>
 				</CardHeader>

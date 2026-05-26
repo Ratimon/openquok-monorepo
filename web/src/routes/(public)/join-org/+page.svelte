@@ -96,7 +96,7 @@
 				{#if !isAuthenticated}
 					<Button
 						href={signinUrlWithRedirect}
-						variant="ghost"
+						variant="primary"
 						class="border-0 bg-base-content text-base-100 hover:bg-base-content/90"
 					>
 						Sign in to accept
@@ -107,7 +107,7 @@
 				{:else}
 					<Button
 						type="button"
-						variant="ghost"
+						variant="primary"
 						class="border-0 bg-base-content text-base-100 hover:bg-base-content/90"
 						onclick={acceptInvite}
 						disabled={joining}

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { CreateSocialPostChannelViewModel } from '$lib/channels';
-	import type { ChannelsGridActions } from '$lib/ui/components/channels/channelsGridContext';
 	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
+	import type { PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
 
 	// --- App / routing ---
 	import { browser } from '$app/environment';
@@ -47,7 +47,7 @@
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import MyChannelsSection from '$lib/ui/components/channels/MyChannelsSection.svelte';
 	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
-	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
+	import { postsLimitKey } from '$lib/ui/components/posts/postsLimitContext';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -774,9 +774,14 @@
 			Hi! {currentUser?.fullName ? `${currentUser.fullName}, pick` : 'Pick'} up where you left off — move
 			posts through Draft, Scheduled, and Published for your connected channels.
 		</p>
+		{#if currentUser?.email?.trim()}
+			<p class="mt-1 text-sm text-base-content/60">
+				{currentUser.email.trim()}
+			</p>
+		{/if}
 	{/if}
 	<MyWorkspacesSection
-		cards={myWorkspacesCardsVm}
+		cardsVm={myWorkspacesCardsVm}
 		status={myWorkspacesStatus}
 		totalCount={myWorkspacesTotalCount}
 		allowedWorkspaceCount={allowedWorkspaceCountVm}
