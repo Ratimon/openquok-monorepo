@@ -28,7 +28,7 @@
 	import MediaLibraryUploadOverlay from '$lib/ui/components/media/MediaLibraryUploadOverlay.svelte';
 	import MediaSettings from '$lib/ui/components/media/MediaSettings.svelte';
 	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
-	import StorageLimitUpgradeDialog from '$lib/ui/components/media/StorageLimitUpgradeDialog.svelte';
+	import StorageLimitUpgradeModal from '$lib/ui/components/media/StorageLimitUpgradeModal.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import PaginationComposite from '$lib/ui/pagination/pagination-composite.svelte';
@@ -480,4 +480,4 @@
 	onClose={() => p.clearSettingsMediaVm()}
 />
 
-<StorageLimitUpgradeDialog bind:open={storageUpgradeDialogOpen} upgradeHref={accountBillingHref} />
+<StorageLimitUpgradeModal bind:open={storageUpgradeDialogOpen} upgradeHref={accountBillingHref} />

@@ -18,7 +18,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
-	import TeamMembersLimitUpgradeDialog from '$lib/ui/components/workspaces/TeamMembersLimitUpgradeDialog.svelte';
+	import TeamMembersLimitUpgradeModal from '$lib/ui/components/workspaces/TeamMembersLimitUpgradeModal.svelte';
 	import UpdateWorkspaceModal from '$lib/ui/components/settings/UpdateWorkspaceModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
@@ -740,7 +740,7 @@
 	onSubmit={handleUpdateWorkspaceFormSubmit}
 />
 
-<TeamMembersLimitUpgradeDialog
+<TeamMembersLimitUpgradeModal
 	bind:open={teamMembersUpgradeDialogOpen}
 	upgradeHref={accountBillingHref}
 />

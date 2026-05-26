@@ -12,7 +12,7 @@
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import ChannelLimitUpgradeDialog from '$lib/ui/components/channels/ChannelLimitUpgradeDialog.svelte';
+	import ChannelLimitUpgradeModal from '$lib/ui/components/channels/ChannelLimitUpgradeModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import Button, { type ButtonSize, type ButtonVariant } from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
@@ -320,5 +320,5 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<ChannelLimitUpgradeDialog bind:open={upgradeDialogOpen} {upgradeHref} />
+<ChannelLimitUpgradeModal bind:open={upgradeDialogOpen} {upgradeHref} />
 

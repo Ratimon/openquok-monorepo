@@ -20,7 +20,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AddProvider from '$lib/ui/components/posts/AddProvider.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import ChannelLimitUpgradeDialog from '$lib/ui/components/channels/ChannelLimitUpgradeDialog.svelte';
+	import ChannelLimitUpgradeModal from '$lib/ui/components/channels/ChannelLimitUpgradeModal.svelte';
 	import ChannelsChipsLayout from '$lib/ui/components/channels/ChannelsChipsLayout.svelte';
 	import ChannelsGridLayout from '$lib/ui/components/channels/ChannelsGridLayout.svelte';
 	import {
@@ -487,5 +487,5 @@
 		/>
 	{/if}
 
-	<ChannelLimitUpgradeDialog bind:open={channelUpgradeDialogOpen} upgradeHref={billingHref} />
+	<ChannelLimitUpgradeModal bind:open={channelUpgradeDialogOpen} upgradeHref={billingHref} />
 </section>

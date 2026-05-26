@@ -7,7 +7,7 @@
 	import { firstBillingGatePresenter } from '$lib/billing';
 	import { route, url } from '$lib/utils/path';
 
-	import PostsLimitUpgradeDialog from '$lib/ui/components/posts/PostsLimitUpgradeDialog.svelte';
+	import PostsLimitUpgradeModal from '$lib/ui/components/posts/PostsLimitUpgradeModal.svelte';
 	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
 
 	type Props = {
@@ -75,4 +75,4 @@
 
 {@render children()}
 
-<PostsLimitUpgradeDialog bind:open={postsUpgradeDialogOpen} upgradeHref={billingHref} />
+<PostsLimitUpgradeModal bind:open={postsUpgradeDialogOpen} upgradeHref={billingHref} />
