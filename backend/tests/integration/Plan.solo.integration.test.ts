@@ -360,6 +360,124 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         }
     });
 
+    it("allows scheduling again after posts_per_month resets for a new billing period", async () => {
+        const soloLimits = planLimitsForTier("SOLO");
+        const postsCap = soloLimits.posts_per_month;
+        expect(postsCap).toBe(500);
+
+        const payload = userHelper.setupTestUser1();
+        const { accessToken } = await signupVerifyAndSignIn(payload);
+        const orgId = await firstOrganizationId(accessToken);
+        const tierLimitsSpy = jest
+            .spyOn(permissionsService, "getTierAndLimits")
+            .mockImplementation(async (orgIdForCall) => ({
+                tier: "SOLO",
+                limits: soloLimits,
+                subscription: {
+                    ...((await subscriptionService.getEffectiveSubscription(orgIdForCall)) ?? {
+                        id: `test-reset-${uuidv4()}`,
+                        organization_id: orgIdForCall,
+                        subscription_tier: "SOLO",
+                        period: "MONTHLY",
+                        identifier: `test-reset-${uuidv4()}`,
+                        cancel_at: null,
+                        channels_per_workspace: soloLimits.channel_per_workspace,
+                        is_lifetime: false,
+                        current_period_start: null,
+                        current_period_end: null,
+                        created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+                        updated_at: new Date().toISOString(),
+                        deleted_at: null,
+                    }),
+                    current_period_start: currentPeriodStart.toISOString(),
+                    current_period_end: currentPeriodEnd.toISOString(),
+                    period: "MONTHLY",
+                },
+            }));
+
+        // Simulate an active monthly billing cycle anchored by Stripe.
+        const currentPeriodStart = new Date(Date.now() - 2 * 60 * 60 * 1000); // 2h ago
+        const currentPeriodEnd = new Date(Date.now() + 28 * 24 * 60 * 60 * 1000); // ~4 weeks ahead
+        const previousPeriodPublishIso = new Date(currentPeriodStart.getTime() - 24 * 60 * 60 * 1000).toISOString();
+
+        try {
+            const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId, {
+                internalId: "solo-posts-reset-channel",
+            });
+
+            // 500 posts in the previous period should not count toward the new period.
+            await seedScheduledSocialPosts(adminSupabase, orgId, {
+                count: postsCap,
+                postGroupPrefix: "solo-posts-reset-prev",
+                publishDateIso: previousPeriodPublishIso,
+            });
+
+            await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 1)).resolves.toBeUndefined();
+
+            // Success case: API can schedule again in the new period.
+            const findSlotOk = await supertest(app)
+                .get(`${postsPath}/find-slot`)
+                .query({ organizationId: orgId })
+                .set("Authorization", `Bearer ${accessToken}`);
+            expect(findSlotOk.status).toBe(200);
+            const scheduledAtOk = findSlotOk.body?.data?.date as string;
+            expect(scheduledAtOk).toBeDefined();
+
+            const createOk = await supertest(app)
+                .post(postsPath)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({
+                    organizationId: orgId,
+                    body: "Should be allowed after monthly reset",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAt: scheduledAtOk,
+                    tagNames: [],
+                    status: "scheduled",
+                });
+            expect(createOk.status).toBe(200);
+            expect(createOk.body?.success).toBe(true);
+
+            // Now fill the current period to the cap and verify it blocks.
+            await seedScheduledSocialPosts(adminSupabase, orgId, {
+                count: postsCap - 1, // one slot already used by the successful create above
+                postGroupPrefix: "solo-posts-reset-cur",
+                publishDateIso: new Date(currentPeriodStart.getTime() + 5 * 60 * 1000).toISOString(),
+            });
+            await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 1)).rejects.toBeInstanceOf(
+                SubscriptionError
+            );
+
+            // API should also enforce it at create time.
+            const findSlot = await supertest(app)
+                .get(`${postsPath}/find-slot`)
+                .query({ organizationId: orgId })
+                .set("Authorization", `Bearer ${accessToken}`);
+            expect(findSlot.status).toBe(200);
+            const scheduledAt = findSlot.body?.data?.date as string;
+            expect(scheduledAt).toBeDefined();
+
+            const createRes = await supertest(app)
+                .post(postsPath)
+                .set("Authorization", `Bearer ${accessToken}`)
+                .send({
+                    organizationId: orgId,
+                    body: "Should exceed monthly post cap after reset test",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAt,
+                    tagNames: [],
+                    status: "scheduled",
+                });
+
+            expect(createRes.status).toBe(402);
+            expect(createRes.body?.success).toBe(false);
+            expect(createRes.body?.error?.section).toBe("posts_per_month");
+        } finally {
+            tierLimitsSpy.mockRestore();
+        }
+    });
+
     it("blocks complete-multipart-upload when workspace is at SOLO media_storage_bytes_per_workspace", async () => {
         const soloLimits = planLimitsForTier("SOLO");
         const storageCap = soloLimits.media_storage_bytes_per_workspace;

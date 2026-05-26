@@ -23,6 +23,8 @@ export interface OrganizationSubscriptionRow {
     cancel_at: string | null;
     channels_per_workspace: number;
     is_lifetime: boolean;
+    current_period_start: string | null;
+    current_period_end: string | null;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
@@ -45,7 +47,7 @@ export class SubscriptionRepository {
         const { data, error } = await this.supabase
             .from(SUBSCRIPTIONS_TABLE)
             .select(
-                "id, organization_id, subscription_tier, period, identifier, cancel_at, channels_per_workspace, is_lifetime, created_at, updated_at, deleted_at"
+                "id, organization_id, subscription_tier, period, identifier, cancel_at, channels_per_workspace, is_lifetime, current_period_start, current_period_end, created_at, updated_at, deleted_at"
             )
             .eq("organization_id", organizationId)
             .is("deleted_at", null)
@@ -149,7 +151,7 @@ export class SubscriptionRepository {
         const { data, error } = await this.supabase
             .from(SUBSCRIPTIONS_TABLE)
             .select(
-                "id, organization_id, subscription_tier, period, identifier, cancel_at, channels_per_workspace, is_lifetime, created_at, updated_at, deleted_at"
+                "id, organization_id, subscription_tier, period, identifier, cancel_at, channels_per_workspace, is_lifetime, current_period_start, current_period_end, created_at, updated_at, deleted_at"
             )
             .eq("identifier", trimmed)
             .is("deleted_at", null)
@@ -172,7 +174,7 @@ export class SubscriptionRepository {
         const { data, error } = await this.supabase
             .from(SUBSCRIPTIONS_TABLE)
             .select(
-                "id, organization_id, subscription_tier, period, identifier, cancel_at, channels_per_workspace, is_lifetime, created_at, updated_at, deleted_at"
+                "id, organization_id, subscription_tier, period, identifier, cancel_at, channels_per_workspace, is_lifetime, current_period_start, current_period_end, created_at, updated_at, deleted_at"
             )
             .eq("organization_id", organizationId)
             .eq("identifier", identifier)
@@ -197,6 +199,8 @@ export class SubscriptionRepository {
         period: SubscriptionPeriod;
         channelsPerWorkspace: number;
         cancelAt: string | null;
+        currentPeriodStart?: string | null;
+        currentPeriodEnd?: string | null;
         isLifetime?: boolean;
     }): Promise<OrganizationSubscriptionRow> {
         const organizationId = params.organizationId.trim();
@@ -218,6 +222,8 @@ export class SubscriptionRepository {
                 p_channels_per_workspace: params.channelsPerWorkspace,
                 p_is_lifetime: params.isLifetime ?? false,
                 p_is_trialing: params.isTrialing,
+                p_current_period_start: params.currentPeriodStart ?? null,
+                p_current_period_end: params.currentPeriodEnd ?? null,
             }
         );
 

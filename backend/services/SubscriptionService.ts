@@ -143,6 +143,8 @@ export class SubscriptionService {
         period: SubscriptionPeriod;
         channelsPerWorkspace: number;
         cancelAt: string | null;
+        currentPeriodStart?: string | null;
+        currentPeriodEnd?: string | null;
     }): Promise<OrganizationSubscriptionRow> {
         return this.subscriptionRepository.createOrUpdateSubscription({
             organizationId: params.organizationId,
@@ -152,6 +154,8 @@ export class SubscriptionService {
             period: params.period,
             channelsPerWorkspace: params.channelsPerWorkspace,
             cancelAt: params.cancelAt,
+            currentPeriodStart: params.currentPeriodStart ?? null,
+            currentPeriodEnd: params.currentPeriodEnd ?? null,
         });
     }
 

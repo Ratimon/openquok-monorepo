@@ -15,7 +15,9 @@ DROP FUNCTION IF EXISTS public.internal_upsert_organization_subscription(
     timestamptz,
     integer,
     boolean,
-    boolean
+    boolean,
+    timestamptz,
+    timestamptz
 );
 
 CREATE OR REPLACE FUNCTION public.internal_upsert_organization_subscription(
@@ -26,7 +28,9 @@ CREATE OR REPLACE FUNCTION public.internal_upsert_organization_subscription(
     p_cancel_at timestamptz,
     p_channels_per_workspace integer,
     p_is_lifetime boolean DEFAULT FALSE,
-    p_is_trialing boolean DEFAULT FALSE
+    p_is_trialing boolean DEFAULT FALSE,
+    p_current_period_start timestamptz DEFAULT NULL,
+    p_current_period_end timestamptz DEFAULT NULL
 )
 RETURNS TABLE (
     id uuid,
@@ -37,6 +41,8 @@ RETURNS TABLE (
     cancel_at timestamptz,
     channels_per_workspace integer,
     is_lifetime boolean,
+    current_period_start timestamptz,
+    current_period_end timestamptz,
     created_at timestamptz,
     updated_at timestamptz,
     deleted_at timestamptz
@@ -58,6 +64,8 @@ BEGIN
         cancel_at,
         channels_per_workspace,
         is_lifetime,
+        current_period_start,
+        current_period_end,
         updated_at,
         deleted_at
     )
@@ -69,6 +77,8 @@ BEGIN
         p_cancel_at,
         p_channels_per_workspace,
         COALESCE(p_is_lifetime, FALSE),
+        p_current_period_start,
+        p_current_period_end,
         NOW(),
         NULL
     )
@@ -79,6 +89,8 @@ BEGIN
         cancel_at = EXCLUDED.cancel_at,
         channels_per_workspace = EXCLUDED.channels_per_workspace,
         is_lifetime = EXCLUDED.is_lifetime,
+        current_period_start = EXCLUDED.current_period_start,
+        current_period_end = EXCLUDED.current_period_end,
         updated_at = NOW(),
         deleted_at = NULL;
 
@@ -96,6 +108,8 @@ BEGIN
         s.cancel_at,
         s.channels_per_workspace,
         s.is_lifetime,
+        s.current_period_start,
+        s.current_period_end,
         s.created_at,
         s.updated_at,
         s.deleted_at
@@ -112,7 +126,9 @@ REVOKE ALL ON FUNCTION public.internal_upsert_organization_subscription(
     timestamptz,
     integer,
     boolean,
-    boolean
+    boolean,
+    timestamptz,
+    timestamptz
 ) FROM PUBLIC;
 
 GRANT EXECUTE ON FUNCTION public.internal_upsert_organization_subscription(
@@ -123,7 +139,9 @@ GRANT EXECUTE ON FUNCTION public.internal_upsert_organization_subscription(
     timestamptz,
     integer,
     boolean,
-    boolean
+    boolean,
+    timestamptz,
+    timestamptz
 ) TO service_role;
 
 COMMENT ON FUNCTION public.internal_upsert_organization_subscription(
@@ -134,7 +152,9 @@ COMMENT ON FUNCTION public.internal_upsert_organization_subscription(
     timestamptz,
     integer,
     boolean,
-    boolean
+    boolean,
+    timestamptz,
+    timestamptz
 ) IS 'Upsert paid subscription row and trial flag (bypasses RLS); Stripe webhook and billing API only.';
 
 COMMIT;

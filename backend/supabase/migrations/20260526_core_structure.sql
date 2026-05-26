@@ -302,6 +302,8 @@ CREATE TABLE IF NOT EXISTS public.organization_subscriptions (
     cancel_at TIMESTAMPTZ,
     channels_per_workspace INTEGER NOT NULL DEFAULT 0,
     is_lifetime BOOLEAN NOT NULL DEFAULT FALSE,
+    current_period_start TIMESTAMPTZ,
+    current_period_end TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
@@ -311,6 +313,8 @@ CREATE TABLE IF NOT EXISTS public.organization_subscriptions (
 COMMENT ON TABLE public.organization_subscriptions IS 'Active paid plan for a workspace; mirrors Stripe subscription state.';
 COMMENT ON COLUMN public.organization_subscriptions.identifier IS 'Checkout correlation id stored in Stripe subscription metadata.';
 COMMENT ON COLUMN public.organization_subscriptions.channels_per_workspace IS 'Per-workspace connected-channel cap snapshot (may exceed plan default after upgrades).';
+COMMENT ON COLUMN public.organization_subscriptions.current_period_start IS 'Stripe billing period start (UTC). Used to anchor per-month limit windows.';
+COMMENT ON COLUMN public.organization_subscriptions.current_period_end IS 'Stripe billing period end (UTC). Informational (UI/debug); limits anchor uses period start.';
 
 CREATE INDEX IF NOT EXISTS idx_organization_subscriptions_customer
     ON public.organization_subscriptions (organization_id)
@@ -4232,7 +4236,9 @@ DROP FUNCTION IF EXISTS public.internal_upsert_organization_subscription(
     timestamptz,
     integer,
     boolean,
-    boolean
+    boolean,
+    timestamptz,
+    timestamptz
 );
 
 CREATE OR REPLACE FUNCTION public.internal_upsert_organization_subscription(
@@ -4243,7 +4249,9 @@ CREATE OR REPLACE FUNCTION public.internal_upsert_organization_subscription(
     p_cancel_at timestamptz,
     p_channels_per_workspace integer,
     p_is_lifetime boolean DEFAULT FALSE,
-    p_is_trialing boolean DEFAULT FALSE
+    p_is_trialing boolean DEFAULT FALSE,
+    p_current_period_start timestamptz DEFAULT NULL,
+    p_current_period_end timestamptz DEFAULT NULL
 )
 RETURNS TABLE (
     id uuid,
@@ -4254,6 +4262,8 @@ RETURNS TABLE (
     cancel_at timestamptz,
     channels_per_workspace integer,
     is_lifetime boolean,
+    current_period_start timestamptz,
+    current_period_end timestamptz,
     created_at timestamptz,
     updated_at timestamptz,
     deleted_at timestamptz
@@ -4275,6 +4285,8 @@ BEGIN
         cancel_at,
         channels_per_workspace,
         is_lifetime,
+        current_period_start,
+        current_period_end,
         updated_at,
         deleted_at
     )
@@ -4286,6 +4298,8 @@ BEGIN
         p_cancel_at,
         p_channels_per_workspace,
         COALESCE(p_is_lifetime, FALSE),
+        p_current_period_start,
+        p_current_period_end,
         NOW(),
         NULL
     )
@@ -4296,6 +4310,8 @@ BEGIN
         cancel_at = EXCLUDED.cancel_at,
         channels_per_workspace = EXCLUDED.channels_per_workspace,
         is_lifetime = EXCLUDED.is_lifetime,
+        current_period_start = EXCLUDED.current_period_start,
+        current_period_end = EXCLUDED.current_period_end,
         updated_at = NOW(),
         deleted_at = NULL;
 
@@ -4313,6 +4329,8 @@ BEGIN
         s.cancel_at,
         s.channels_per_workspace,
         s.is_lifetime,
+        s.current_period_start,
+        s.current_period_end,
         s.created_at,
         s.updated_at,
         s.deleted_at
@@ -4329,7 +4347,9 @@ REVOKE ALL ON FUNCTION public.internal_upsert_organization_subscription(
     timestamptz,
     integer,
     boolean,
-    boolean
+    boolean,
+    timestamptz,
+    timestamptz
 ) FROM PUBLIC;
 
 GRANT EXECUTE ON FUNCTION public.internal_upsert_organization_subscription(
@@ -4340,7 +4360,9 @@ GRANT EXECUTE ON FUNCTION public.internal_upsert_organization_subscription(
     timestamptz,
     integer,
     boolean,
-    boolean
+    boolean,
+    timestamptz,
+    timestamptz
 ) TO service_role;
 
 COMMENT ON FUNCTION public.internal_upsert_organization_subscription(
@@ -4351,7 +4373,9 @@ COMMENT ON FUNCTION public.internal_upsert_organization_subscription(
     timestamptz,
     integer,
     boolean,
-    boolean
+    boolean,
+    timestamptz,
+    timestamptz
 ) IS 'Upsert paid subscription row and trial flag (bypasses RLS); Stripe webhook and billing API only.';
 
 

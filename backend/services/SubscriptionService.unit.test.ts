@@ -42,6 +42,8 @@ function subscriptionRow(
         cancel_at: null,
         channels_per_workspace: pricing[tier].channel_per_workspace,
         is_lifetime: false,
+        current_period_start: null,
+        current_period_end: null,
         created_at: now,
         updated_at: now,
         deleted_at: null,
@@ -297,6 +299,8 @@ describe("SubscriptionService", () => {
                 period: "YEARLY",
                 channelsPerWorkspace: 20,
                 cancelAt: null,
+                currentPeriodStart: null,
+                currentPeriodEnd: null,
             });
             expect(result).toBe(row);
         });

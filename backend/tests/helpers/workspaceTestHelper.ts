@@ -34,6 +34,8 @@ export function mockSoloSubscriptionRow(organizationId: string): OrganizationSub
         cancel_at: null,
         channels_per_workspace: soloLimits.channel_per_workspace,
         is_lifetime: false,
+        current_period_start: null,
+        current_period_end: null,
         created_at: createdAt,
         updated_at: createdAt,
         deleted_at: null,

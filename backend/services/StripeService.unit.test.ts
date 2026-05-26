@@ -444,6 +444,8 @@ describe("StripeService", () => {
                 period: "MONTHLY",
                 channelsPerWorkspace: pricing.SOLO.channel_per_workspace,
                 cancelAt: new Date(1_800_000_000 * 1000).toISOString(),
+                currentPeriodStart: null,
+                currentPeriodEnd: null,
             });
         });
     });

@@ -19,6 +19,36 @@ import { resolveSessionChannelsPerWorkspace } from "../utils/dtos/UserMeDTO";
 
 export type WorkspaceMembershipRole = "user" | "admin" | "owner";
 
+export function computePostsBillingMonthStart(params: {
+    /** Subscription row for the billing account (may be null). */
+    subscription: OrganizationSubscriptionRow | null;
+    /** Workspace created_at ISO fallback when no subscription exists. */
+    organizationCreatedAt: string;
+    /** Current time (injectable for tests). */
+    now?: Date;
+}): Date {
+    const { subscription, organizationCreatedAt, now } = params;
+    const clock = now ?? new Date();
+
+    // Prefer Stripe billing anchor when available; fall back to local created_at.
+    // For YEARLY plans we still enforce a per-month cap, anchored to the current billing period start.
+    const anchorIso =
+        (subscription as any)?.current_period_start ??
+        subscription?.created_at ??
+        organizationCreatedAt;
+    const anchor = dayjs(anchorIso);
+    const current = dayjs(clock);
+
+    // Monthly Stripe period start is already the correct billing-month boundary.
+    if (subscription?.period === "MONTHLY" && (subscription as any)?.current_period_start) {
+        return anchor.toDate();
+    }
+
+    // Otherwise, compute the rolling month start relative to the anchor.
+    const monthsPast = Math.max(0, current.diff(anchor, "month"));
+    return anchor.add(monthsPast, "month").toDate();
+}
+
 export class PermissionsService {
     constructor(
         private readonly subscriptionService: SubscriptionService,
@@ -137,10 +167,7 @@ export class PermissionsService {
         subscription: OrganizationSubscriptionRow | null,
         organizationCreatedAt: string
     ): Date {
-        const anchor = subscription?.created_at ?? organizationCreatedAt;
-        const created = dayjs(anchor);
-        const monthsPast = Math.abs(created.diff(dayjs(), "month"));
-        return created.add(monthsPast, "month").toDate();
+        return computePostsBillingMonthStart({ subscription, organizationCreatedAt });
     }
 
     /**

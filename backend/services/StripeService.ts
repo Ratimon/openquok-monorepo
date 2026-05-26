@@ -813,6 +813,8 @@ export class StripeService {
             channelsPerWorkspace:
                 dbRow.channels_per_workspace ?? pricing[tier].channel_per_workspace,
             cancelAt: null,
+            currentPeriodStart: dbRow.current_period_start ?? null,
+            currentPeriodEnd: dbRow.current_period_end ?? null,
         });
     }
 
@@ -1155,6 +1157,14 @@ export class StripeService {
         const period = this.periodFromMetadata(metadata);
         const isTrialing = subscription.status === "trialing";
         const cancelAt = this.resolveCancelAtFromStripe(subscription);
+        const cps =
+            typeof (subscription as any)?.current_period_start === "number"
+                ? new Date(((subscription as any).current_period_start as number) * 1000).toISOString()
+                : null;
+        const cpe =
+            typeof (subscription as any)?.current_period_end === "number"
+                ? new Date(((subscription as any).current_period_end as number) * 1000).toISOString()
+                : null;
 
         await this.subscriptionService.createOrUpdateFromStripe({
             organizationId,
@@ -1164,6 +1174,8 @@ export class StripeService {
             period,
             channelsPerWorkspace: pricing[tier].channel_per_workspace,
             cancelAt,
+            currentPeriodStart: cps,
+            currentPeriodEnd: cpe,
         });
     }
 
