@@ -135,20 +135,40 @@ export class OrganizationService {
         return organization ? { organizationName: organization.name, workspaceRole: payload.workspaceRole } : null;
     }
 
-    /** List pending invites sent from a workspace (any member may view). */
+    /** List pending invites sent from a workspace (workspace owner only). */
     async listSentInvitesForOrganization(
         authUserId: string,
         organizationId: string
     ): Promise<OrganizationInviteLike[]> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
-        if (!membership || membership.disabled) {
-            throw new OrganizationNotFoundError(organizationId);
-        }
+        this.assertWorkspaceOwner(membership, organizationId);
         const { invites } = await this.organizationRepository.findPendingInvitesByOrganization(
             organizationId
         );
         return invites;
+    }
+
+    /** Cancel a pending invite sent from a workspace (workspace owner only). */
+    async cancelSentInvite(
+        authUserId: string,
+        organizationId: string,
+        inviteId: string
+    ): Promise<void> {
+        const userId = await this.resolveAuthUserToUserId(authUserId);
+        const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
+        this.assertWorkspaceOwner(membership, organizationId);
+        const { invite } = await this.organizationRepository.findInviteById(inviteId);
+        if (!invite || invite.organization_id !== organizationId) {
+            throw new OrganizationForbiddenError("Invite not found or already cancelled");
+        }
+        const now = new Date().toISOString();
+        if (invite.expires_at <= now) {
+            await this.organizationRepository.deleteInvite(inviteId);
+            return;
+        }
+        const { error } = await this.organizationRepository.deleteInvite(inviteId);
+        if (error) throw error as Error;
     }
 
     /** List pending workspace invites for the current user (by email). Returns row shape; controller maps to DTO. */
@@ -215,6 +235,18 @@ export class OrganizationService {
     /** Get role level for permission checks. */
     private getRoleLevel(role: string): number {
         return ROLE_LEVEL[role] ?? -1;
+    }
+
+    private assertWorkspaceOwner(
+        membership: { role: string; disabled: boolean } | null,
+        organizationId: string
+    ): void {
+        if (!membership || membership.disabled) {
+            throw new OrganizationNotFoundError(organizationId);
+        }
+        if (membership.role !== "owner") {
+            throw new OrganizationForbiddenError("Only workspace owners can manage sent invitations");
+        }
     }
 
     /** List organizations for the authenticated user. Returns aggregate; controller maps to DTO. */

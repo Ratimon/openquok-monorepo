@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
 import supertest from "supertest";
 import { v4 as uuidv4 } from "uuid";
+import { faker } from "@faker-js/faker";
 
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
@@ -30,7 +31,15 @@ import {
     cleanupIntegrationTestUsers,
     signupVerifyAndSignIn as sharedSignupVerifyAndSignIn,
 } from "../helpers/integrationAuthTestHelper";
-import { activateWorkspace, stubBillingEnabled, stubSoloPlanLimits } from "../helpers/workspaceTestHelper";
+import {
+    activateWorkspace,
+    restoreSoloWorkspaceSpies,
+    stubBillingEnabled,
+    stubSoloPlanLimits,
+    stubSoloSubscriptionLookup,
+    stubTeamSeatCapacityChecks,
+    type SoloWorkspaceSpies,
+} from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 import { planLimitsForTier } from "openquok-common";
 
@@ -45,6 +54,7 @@ const SOCIAL_CONNECT_PROVIDER = "threads";
 
 const inviteTokenSecret = (config.auth as { inviteTokenSecret?: string } | undefined)?.inviteTokenSecret?.trim();
 const itIfInviteSigning = inviteTokenSecret ? it : it.skip;
+const PASSWORD = "Test1234!";
 
 const supabaseUrl = (config.supabase as { supabaseUrl?: string }).supabaseUrl;
 const supabaseSecretKey = (config.supabase as { supabaseSecretKey?: string }).supabaseSecretKey;
@@ -126,6 +136,32 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const orgId = listRes.body?.data?.[0]?.id as string;
         expect(orgId).toBeDefined();
         return orgId;
+    }
+
+    async function supabaseAuthUserId(accessToken: string): Promise<string> {
+        const { data, error } = await adminSupabase.auth.getUser(accessToken);
+        expect(error).toBeNull();
+        expect(data.user?.id).toBeDefined();
+        return data.user!.id;
+    }
+
+    async function acceptWorkspaceInvite(
+        accessToken: string,
+        organizationId: string
+    ): Promise<void> {
+        const pendingRes = await supertest(app)
+            .get(`${settingsPath}/invites/pending`)
+            .set("Authorization", `Bearer ${accessToken}`);
+        expect(pendingRes.status).toBe(200);
+        const invite = (pendingRes.body?.data ?? []).find(
+            (row: { organizationId: string }) => row.organizationId === organizationId
+        );
+        expect(invite?.id).toBeDefined();
+        const acceptRes = await supertest(app)
+            .post(`${settingsPath}/invites/${invite.id}/accept`)
+            .set("Authorization", `Bearer ${accessToken}`);
+        expect(acceptRes.status).toBe(200);
+        expect(acceptRes.body?.success).toBe(true);
     }
 
     it("blocks creating a second workspace when SOLO workspaces cap is 1", async () => {
@@ -419,6 +455,12 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const payload = userHelper.setupTestUser1();
         const { accessToken } = await signupVerifyAndSignIn(payload);
         const orgId = await firstOrganizationId(accessToken);
+
+        // Simulate an active monthly billing cycle anchored by Stripe.
+        const currentPeriodStart = new Date(Date.now() - 2 * 60 * 60 * 1000); // 2h ago
+        const currentPeriodEnd = new Date(Date.now() + 28 * 24 * 60 * 60 * 1000); // ~4 weeks ahead
+        const previousPeriodPublishIso = new Date(currentPeriodStart.getTime() - 24 * 60 * 60 * 1000).toISOString();
+
         const tierLimitsSpy = jest
             .spyOn(permissionsService, "getTierAndLimits")
             .mockImplementation(async (orgIdForCall) => ({
@@ -445,11 +487,6 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                     period: "MONTHLY",
                 },
             }));
-
-        // Simulate an active monthly billing cycle anchored by Stripe.
-        const currentPeriodStart = new Date(Date.now() - 2 * 60 * 60 * 1000); // 2h ago
-        const currentPeriodEnd = new Date(Date.now() + 28 * 24 * 60 * 60 * 1000); // ~4 weeks ahead
-        const previousPeriodPublishIso = new Date(currentPeriodStart.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
         try {
             const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId, {
@@ -568,6 +605,265 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
             driveUsageSpy.mockRestore();
             completeMultipartSpy.mockRestore();
         }
+    });
+
+    describe("SOLO posts_per_month credit access", () => {
+        it("rejects unauthenticated find-slot and post create requests", async () => {
+            const soloLimits = planLimitsForTier("SOLO");
+            expect(soloLimits.posts_per_month).toBe(500);
+
+            const payload = userHelper.setupTestUser1();
+            const { accessToken } = await signupVerifyAndSignIn(payload);
+            const orgId = await firstOrganizationId(accessToken);
+            const tierLimitsSpy = stubSoloPlanLimits();
+
+            try {
+                const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId, {
+                    internalId: "solo-posts-anon-channel",
+                });
+
+                const findSlotRes = await supertest(app)
+                    .get(`${postsPath}/find-slot`)
+                    .query({ organizationId: orgId });
+                expect(findSlotRes.status).toBe(401);
+                expect(findSlotRes.body?.success).toBe(false);
+
+                const createRes = await supertest(app).post(postsPath).send({
+                    organizationId: orgId,
+                    body: "Anonymous post attempt",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+                    tagNames: [],
+                    status: "scheduled",
+                });
+                expect(createRes.status).toBe(401);
+                expect(createRes.body?.success).toBe(false);
+            } finally {
+                tierLimitsSpy.mockRestore();
+            }
+        });
+
+        it("rejects a non-member from scheduling on another user's SOLO workspace", async () => {
+            const payload = userHelper.setupTestUser1();
+            const { accessToken: ownerToken } = await signupVerifyAndSignIn(payload);
+            const orgId = await firstOrganizationId(ownerToken);
+            const tierLimitsSpy = stubSoloPlanLimits();
+
+            const strangerPayload = {
+                email: `stranger-${uuidv4()}@test.com`,
+                password: PASSWORD,
+                fullName: faker.person.fullName(),
+            };
+            const { accessToken: strangerToken } = await signupVerifyAndSignIn(strangerPayload);
+
+            try {
+                const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId, {
+                    internalId: "solo-posts-stranger-channel",
+                });
+
+                const usageBefore = await permissionsService.getPostsPerMonthUsage(orgId, ownerToken);
+                expect(usageBefore.used).toBe(0);
+
+                const findSlotRes = await supertest(app)
+                    .get(`${postsPath}/find-slot`)
+                    .query({ organizationId: orgId })
+                    .set("Authorization", `Bearer ${strangerToken}`);
+                expect(findSlotRes.status).toBe(404);
+
+                const createRes = await supertest(app)
+                    .post(postsPath)
+                    .set("Authorization", `Bearer ${strangerToken}`)
+                    .send({
+                        organizationId: orgId,
+                        body: "Stranger should not schedule on this workspace",
+                        integrationIds: [integrationId],
+                        isGlobal: true,
+                        scheduledAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+                        tagNames: [],
+                        status: "scheduled",
+                    });
+                expect(createRes.status).toBe(404);
+                expect(createRes.body?.success).toBe(false);
+
+                const usageAfter = await permissionsService.getPostsPerMonthUsage(orgId, ownerToken);
+                expect(usageAfter.used).toBe(usageBefore.used);
+            } finally {
+                tierLimitsSpy.mockRestore();
+            }
+        });
+
+        itIfInviteSigning(
+            "allows a workspace admin member to use the shared SOLO posts_per_month credit",
+            async () => {
+                const soloLimits = planLimitsForTier("SOLO");
+                expect(soloLimits.posts_per_month).toBe(500);
+
+                let workspaceSpies: SoloWorkspaceSpies | undefined;
+                const tierLimitsSpy = stubSoloPlanLimits();
+
+                try {
+                    workspaceSpies = {
+                        billingEnabledSpy: stubBillingEnabled(),
+                        tierLimitsSpy,
+                        subscriptionLookupSpy: stubSoloSubscriptionLookup(),
+                        ...stubTeamSeatCapacityChecks(),
+                    };
+
+                    const { accessToken: ownerToken } = await signupVerifyAndSignIn({
+                        email: `solo-owner-${uuidv4()}@test.com`,
+                        password: PASSWORD,
+                        fullName: faker.person.fullName(),
+                    });
+                    const orgId = await firstOrganizationId(ownerToken);
+                    await activateWorkspace(ownerToken, orgId);
+                    const workspaceCookie = [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`];
+
+                    const adminEmail = `solo-admin-${uuidv4()}@test.com`;
+                    const inviteAdminRes = await supertest(app)
+                        .post(`${settingsPath}/team`)
+                        .set("Authorization", `Bearer ${ownerToken}`)
+                        .set("Cookie", workspaceCookie)
+                        .send({ email: adminEmail, workspaceRole: "admin", sendEmail: false });
+                    expect(inviteAdminRes.status).toBe(200);
+
+                    const { accessToken: adminToken } = await signupVerifyAndSignIn({
+                        email: adminEmail,
+                        password: PASSWORD,
+                        fullName: faker.person.fullName(),
+                    });
+                    await acceptWorkspaceInvite(adminToken, orgId);
+                    await activateWorkspace(adminToken, orgId);
+
+                    const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId, {
+                        internalId: "solo-posts-member-channel",
+                    });
+
+                    const usageBefore = await permissionsService.getPostsPerMonthUsage(orgId);
+                    expect(usageBefore.used).toBe(0);
+
+                    const adminAuthUserId = await supabaseAuthUserId(adminToken);
+                    await expect(
+                        permissionsService.assertPostsPerMonthAllowed(orgId, 1, adminAuthUserId)
+                    ).resolves.toBeUndefined();
+
+                    const adminFindSlot = await supertest(app)
+                        .get(`${postsPath}/find-slot`)
+                        .query({ organizationId: orgId })
+                        .set("Authorization", `Bearer ${adminToken}`);
+                    expect(adminFindSlot.status).toBe(200);
+                    const adminScheduledAt = adminFindSlot.body?.data?.date as string;
+                    expect(adminScheduledAt).toBeDefined();
+
+                    const adminCreateRes = await supertest(app)
+                        .post(postsPath)
+                        .set("Authorization", `Bearer ${adminToken}`)
+                        .send({
+                            organizationId: orgId,
+                            body: "Admin member shares workspace monthly post credit",
+                            integrationIds: [integrationId],
+                            isGlobal: true,
+                            scheduledAt: adminScheduledAt,
+                            tagNames: [],
+                            status: "scheduled",
+                        });
+                    expect(adminCreateRes.status).toBe(200);
+                    expect(adminCreateRes.body?.success).toBe(true);
+
+                    const usageAfter = await permissionsService.getPostsPerMonthUsage(orgId);
+                    expect(usageAfter.used).toBe(usageBefore.used + 1);
+                } finally {
+                    tierLimitsSpy.mockRestore();
+                    restoreSoloWorkspaceSpies(workspaceSpies);
+                }
+            }
+        );
+
+        itIfInviteSigning(
+            "allows a workspace member (non-admin) to use the shared SOLO posts_per_month credit",
+            async () => {
+                const soloLimits = planLimitsForTier("SOLO");
+                expect(soloLimits.posts_per_month).toBe(500);
+
+                let workspaceSpies: SoloWorkspaceSpies | undefined;
+                const tierLimitsSpy = stubSoloPlanLimits();
+
+                try {
+                    workspaceSpies = {
+                        billingEnabledSpy: stubBillingEnabled(),
+                        tierLimitsSpy,
+                        subscriptionLookupSpy: stubSoloSubscriptionLookup(),
+                        ...stubTeamSeatCapacityChecks(),
+                    };
+
+                    const { accessToken: ownerToken } = await signupVerifyAndSignIn({
+                        email: `solo-owner-member-${uuidv4()}@test.com`,
+                        password: PASSWORD,
+                        fullName: faker.person.fullName(),
+                    });
+                    const orgId = await firstOrganizationId(ownerToken);
+                    await activateWorkspace(ownerToken, orgId);
+                    const workspaceCookie = [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`];
+
+                    const memberEmail = `solo-member-${uuidv4()}@test.com`;
+                    const inviteMemberRes = await supertest(app)
+                        .post(`${settingsPath}/team`)
+                        .set("Authorization", `Bearer ${ownerToken}`)
+                        .set("Cookie", workspaceCookie)
+                        .send({ email: memberEmail, workspaceRole: "user", sendEmail: false });
+                    expect(inviteMemberRes.status).toBe(200);
+
+                    const { accessToken: memberToken } = await signupVerifyAndSignIn({
+                        email: memberEmail,
+                        password: PASSWORD,
+                        fullName: faker.person.fullName(),
+                    });
+                    await acceptWorkspaceInvite(memberToken, orgId);
+                    await activateWorkspace(memberToken, orgId);
+
+                    const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId, {
+                        internalId: "solo-posts-regular-member-channel",
+                    });
+
+                    const usageBefore = await permissionsService.getPostsPerMonthUsage(orgId);
+                    expect(usageBefore.used).toBe(0);
+
+                    const memberAuthUserId = await supabaseAuthUserId(memberToken);
+                    await expect(
+                        permissionsService.assertPostsPerMonthAllowed(orgId, 1, memberAuthUserId)
+                    ).resolves.toBeUndefined();
+
+                    const memberFindSlot = await supertest(app)
+                        .get(`${postsPath}/find-slot`)
+                        .query({ organizationId: orgId })
+                        .set("Authorization", `Bearer ${memberToken}`);
+                    expect(memberFindSlot.status).toBe(200);
+                    const memberScheduledAt = memberFindSlot.body?.data?.date as string;
+                    expect(memberScheduledAt).toBeDefined();
+
+                    const memberCreateRes = await supertest(app)
+                        .post(postsPath)
+                        .set("Authorization", `Bearer ${memberToken}`)
+                        .send({
+                            organizationId: orgId,
+                            body: "Regular member shares workspace monthly post credit",
+                            integrationIds: [integrationId],
+                            isGlobal: true,
+                            scheduledAt: memberScheduledAt,
+                            tagNames: [],
+                            status: "scheduled",
+                        });
+                    expect(memberCreateRes.status).toBe(200);
+                    expect(memberCreateRes.body?.success).toBe(true);
+
+                    const usageAfter = await permissionsService.getPostsPerMonthUsage(orgId);
+                    expect(usageAfter.used).toBe(usageBefore.used + 1);
+                } finally {
+                    tierLimitsSpy.mockRestore();
+                    restoreSoloWorkspaceSpies(workspaceSpies);
+                }
+            }
+        );
     });
 
     it("rejects additional bytes via assertMediaStorageAvailable when SOLO storage is full", async () => {

@@ -20,6 +20,7 @@ export interface SettingsConfig {
 		removeTeamMember: (orgId: string, userId: string) => string;
 		listPendingInvites: string;
 		listSentInvites: string;
+		cancelSentInvite: (id: string) => string;
 		acceptPendingInvite: (id: string) => string;
 		validateInvite: string;
 		joinByToken: string;
@@ -186,6 +187,7 @@ export interface SettingsTeamMutationProgrammerModel {
 export type LeaveWorkspaceProgrammerModel = SettingsTeamMutationProgrammerModel;
 export type InviteTeamMemberProgrammerModel = SettingsTeamMutationProgrammerModel;
 export type AcceptPendingInviteProgrammerModel = SettingsTeamMutationProgrammerModel;
+export type CancelSentInviteProgrammerModel = SettingsTeamMutationProgrammerModel;
 export type JoinWorkspaceByTokenProgrammerModel = SettingsTeamMutationProgrammerModel;
 
 export function toOrganizationPm(dto: OrganizationDto): OrganizationProgrammerModel {
@@ -452,6 +454,35 @@ export class SettingsRepository {
 			return [];
 		} catch {
 			return [];
+		}
+	}
+
+	public async cancelSentInvite(inviteId: string): Promise<CancelSentInviteProgrammerModel> {
+		try {
+			const url = this.config.endpoints.cancelSentInvite(inviteId);
+			const { data: cancelSentInviteDto, ok } =
+				await this.httpGateway.request<{ success: boolean; message?: string }>({
+					method: HttpMethod.DELETE,
+					url,
+					withCredentials: true
+				});
+			if (ok && cancelSentInviteDto?.success) {
+				return { success: true, message: cancelSentInviteDto.message };
+			}
+			return {
+				success: false,
+				message: cancelSentInviteDto?.message ?? 'Failed to cancel invitation.'
+			};
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				'message' in error.data
+			) {
+				return { success: false, message: String((error.data as { message: string }).message) };
+			}
+			return { success: false, message: 'Failed to cancel invitation.' };
 		}
 	}
 

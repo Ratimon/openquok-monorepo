@@ -707,9 +707,9 @@ describe("OrganizationService", () => {
             expires_at: futureExpiry,
         };
 
-        it("returns pending invites when user is a member", async () => {
+        it("returns pending invites when user is workspace owner", async () => {
             (orgRepo.findMembership as jest.Mock).mockResolvedValue({
-                membership: { ...membershipRow, role: "user" },
+                membership: { ...membershipRow, role: "owner" },
                 error: null,
             });
             (orgRepo.findPendingInvitesByOrganization as jest.Mock).mockResolvedValue({
@@ -724,9 +724,21 @@ describe("OrganizationService", () => {
             expect(orgRepo.findPendingInvitesByOrganization).toHaveBeenCalledWith(orgId);
         });
 
+        it("throws when user is not workspace owner", async () => {
+            (orgRepo.findMembership as jest.Mock).mockResolvedValue({
+                membership: { ...membershipRow, role: "admin" },
+                error: null,
+            });
+            const service = new OrganizationService(orgRepo, userRepo);
+            await expect(
+                service.listSentInvitesForOrganization(authUserId, orgId)
+            ).rejects.toThrow(/Only workspace owners can manage sent invitations/);
+            expect(orgRepo.findPendingInvitesByOrganization).not.toHaveBeenCalled();
+        });
+
         it("returns empty array when organization has no pending invites", async () => {
             (orgRepo.findMembership as jest.Mock).mockResolvedValue({
-                membership: membershipRow,
+                membership: { ...membershipRow, role: "owner" },
                 error: null,
             });
             (orgRepo.findPendingInvitesByOrganization as jest.Mock).mockResolvedValue({
@@ -767,6 +779,58 @@ describe("OrganizationService", () => {
                 service.listSentInvitesForOrganization(authUserId, orgId)
             ).rejects.toThrow(/User not found/);
             expect(orgRepo.findPendingInvitesByOrganization).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("cancelSentInvite", () => {
+        const sentInviteRow = {
+            id: inviteId,
+            email: inviteeEmail,
+            organization_id: orgId,
+            role: "user",
+            invited_by_user_id: invitedByUserId,
+            created_at: orgCreatedAt,
+            expires_at: futureExpiry,
+        };
+
+        it("deletes invite when caller is workspace owner", async () => {
+            (orgRepo.findMembership as jest.Mock).mockResolvedValue({
+                membership: { ...membershipRow, role: "owner" },
+                error: null,
+            });
+            (orgRepo.findInviteById as jest.Mock).mockResolvedValue({ invite: sentInviteRow, error: null });
+            (orgRepo.deleteInvite as jest.Mock).mockResolvedValue({ error: null });
+            const service = new OrganizationService(orgRepo, userRepo);
+            await service.cancelSentInvite(authUserId, orgId, inviteId);
+            expect(orgRepo.deleteInvite).toHaveBeenCalledWith(inviteId);
+        });
+
+        it("throws when caller is not workspace owner", async () => {
+            (orgRepo.findMembership as jest.Mock).mockResolvedValue({
+                membership: { ...membershipRow, role: "admin" },
+                error: null,
+            });
+            const service = new OrganizationService(orgRepo, userRepo);
+            await expect(service.cancelSentInvite(authUserId, orgId, inviteId)).rejects.toThrow(
+                /Only workspace owners can manage sent invitations/
+            );
+            expect(orgRepo.findInviteById).not.toHaveBeenCalled();
+        });
+
+        it("throws when invite belongs to another organization", async () => {
+            (orgRepo.findMembership as jest.Mock).mockResolvedValue({
+                membership: { ...membershipRow, role: "owner" },
+                error: null,
+            });
+            (orgRepo.findInviteById as jest.Mock).mockResolvedValue({
+                invite: { ...sentInviteRow, organization_id: orgId2 },
+                error: null,
+            });
+            const service = new OrganizationService(orgRepo, userRepo);
+            await expect(service.cancelSentInvite(authUserId, orgId, inviteId)).rejects.toThrow(
+                /Invite not found or already cancelled/
+            );
+            expect(orgRepo.deleteInvite).not.toHaveBeenCalled();
         });
     });
 

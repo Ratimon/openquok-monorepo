@@ -44,7 +44,7 @@
     "test:integration:plan:free": "cross-env NODE_ENV=development jest tests/integration/Plan.free.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:plan:solo": "cross-env NODE_ENV=development jest tests/integration/Plan.solo.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:user-me": "cross-env NODE_ENV=development jest tests/integration/user.me.integration.test.ts --runInBand --verbose --no-coverage",
-    "test:integration:user-workspace-cookies": "cross-env NODE_ENV=development jest tests/integration/user.workspace-cookies.integration.test.ts --runInBand --verbose --no-coverage",
+    "test:integration:workspace-rbac": "cross-env NODE_ENV=development jest tests/integration/WorkspaceRbac.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:third-parties:r2": "cross-env THIRD_PARTY_TESTS_R2=true NODE_ENV=development jest tests/integration/ThirdParties.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:third-parties:redis": "cross-env THIRD_PARTY_TESTS_REDIS=true NODE_ENV=development jest tests/integration/ThirdParties.integration.test.ts --runInBand --verbose --no-coverage",
     "test:integration:third-parties:prod": "cross-env DOTENV_OVERRIDE=true NODE_ENV=production jest tests/integration/ThirdParties.integration.test.ts --runInBand --verbose --no-coverage",

@@ -26,6 +26,7 @@ const settingsConfig: SettingsConfig = {
 		removeTeamMember: (orgId, userId) => `${base}/${orgId}/team/${userId}`,
 		listPendingInvites: `${base}/invites/pending`,
 		listSentInvites: `${base}/invites/sent`,
+		cancelSentInvite: (id) => `${base}/invites/${id}`,
 		acceptPendingInvite: (id) => `${base}/invites/${id}/accept`,
 		validateInvite: `${base}/invite/validate`,
 		joinByToken: `${base}/join`
@@ -60,6 +61,7 @@ export type {
 	LeaveWorkspaceProgrammerModel,
 	InviteTeamMemberProgrammerModel,
 	AcceptPendingInviteProgrammerModel,
+	CancelSentInviteProgrammerModel,
 	JoinWorkspaceByTokenProgrammerModel
 } from '$lib/settings/Settings.repository.svelte';
 

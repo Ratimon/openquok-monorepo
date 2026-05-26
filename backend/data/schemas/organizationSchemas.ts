@@ -31,6 +31,7 @@ export const joinOrganizationBodySchema = z.object({
 });
 
 const organizationIdParamSchema = z.object({ id: z.string().uuid("Invalid organization id") });
+const inviteIdParamSchema = z.object({ id: z.string().uuid("Invalid invite id") });
 const teamUserIdParamSchema = z.object({ userId: z.string().uuid("Invalid user id") });
 
 export const validateOrganizationIdParam: RequestHandler = validateRequest({
@@ -39,6 +40,10 @@ export const validateOrganizationIdParam: RequestHandler = validateRequest({
 
 export const validateOrganizationIdAndUserIdParam: RequestHandler = validateRequest({
     params: organizationIdParamSchema.merge(teamUserIdParamSchema),
+});
+
+export const validateInviteIdParam: RequestHandler = validateRequest({
+    params: inviteIdParamSchema,
 });
 
 export const validateCreateOrganizationRequest: RequestHandler = validateRequest({

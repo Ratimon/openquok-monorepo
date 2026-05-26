@@ -311,7 +311,7 @@ export class SettingsController {
         }
     };
 
-    /** GET /settings/invites/sent — pending invites sent from the active workspace (`showorg` cookie). */
+    /** GET /settings/invites/sent — pending invites sent from the active workspace (`showorg` cookie); owner only. */
     listSentInvitesForActiveWorkspace = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;
@@ -324,6 +324,21 @@ export class SettingsController {
             );
             const data = list.map(toWorkspaceSentInviteDTO);
             res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** DELETE /settings/invites/:id — cancel a pending invite for the active workspace; owner only. */
+    cancelSentInviteForActiveWorkspace = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
+            const inviteId = (req.params as { id: string }).id;
+            await this.organizationService.cancelSentInvite(authUserId, organizationId, inviteId);
+            res.status(200).json({ success: true, message: "Invitation cancelled" });
         } catch (error) {
             next(error);
         }

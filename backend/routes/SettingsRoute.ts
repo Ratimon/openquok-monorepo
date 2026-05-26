@@ -8,6 +8,7 @@ import {
     validateJoinOrganizationRequest,
     validateOrganizationIdParam,
     validateOrganizationIdAndUserIdParam,
+    validateInviteIdParam,
 } from "../data/schemas/organizationSchemas";
 import { requireFullAuth } from "../middlewares/authenticateUser";
 import { supabaseAnonClient } from "../connections/index";
@@ -21,7 +22,15 @@ settingsRouter.get("/", auth, settingsController.listMine);
 settingsRouter.get("/invite/validate", settingsController.validateInviteToken);
 settingsRouter.post("/join", auth, validateJoinOrganizationRequest, settingsController.joinByToken);
 settingsRouter.get("/invites/pending", auth, settingsController.listPendingInvites);
+/** Outbound invites for active workspace — workspace owner only (enforced in service). */
 settingsRouter.get("/invites/sent", auth, settingsController.listSentInvitesForActiveWorkspace);
+/** Cancel outbound invite — workspace owner only (enforced in service). */
+settingsRouter.delete(
+    "/invites/:id",
+    auth,
+    validateInviteIdParam,
+    settingsController.cancelSentInviteForActiveWorkspace
+);
 settingsRouter.post("/invites/:id/accept", auth, settingsController.acceptPendingInvite);
 /** Active workspace from `showorg` cookie (set via POST /users/change-org). */
 settingsRouter.get("/team", auth, settingsController.getTeamForActiveWorkspace);

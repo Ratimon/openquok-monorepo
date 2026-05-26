@@ -48,6 +48,9 @@
 	const sentInvitesVm = $derived(workspacePresenter.sentInvitesVm);
 	const pendingInvitesVm = $derived(workspacePresenter.pendingInvitesVm);
 	const canInviteInCurrentWorkspace = $derived(workspacePresenter.canInviteInCurrentWorkspace);
+	const canManageSentInvitesInCurrentWorkspace = $derived(
+		workspacePresenter.canManageSentInvitesInCurrentWorkspace
+	);
 	const loadingWorkspaces = $derived(workspacePresenter.status === WorkspaceSettingsStatus.LOADING);
 	const createSubmitting = $derived(workspacePresenter.status === WorkspaceSettingsStatus.CREATING);
 	const updateSubmitting = $derived(workspacePresenter.status === WorkspaceSettingsStatus.UPDATING);
@@ -56,6 +59,7 @@
 	const inviting = $derived(workspacePresenter.status === WorkspaceSettingsStatus.INVITING);
 	const loadingPendingInvites = $derived(workspacePresenter.loadingPendingInvites);
 	const acceptingInviteId = $derived(workspacePresenter.acceptingInviteId);
+	const cancelingSentInviteId = $derived(workspacePresenter.cancelingSentInviteId);
 
 	// Load profile when profile section is shown
 	$effect(() => {
@@ -200,6 +204,10 @@
 		return pagePresenter.acceptPendingInvite(inviteId);
 	}
 
+	async function handleCancelSentInvite(inviteId: string) {
+		return pagePresenter.cancelSentInvite(inviteId);
+	}
+
 	function handleCopyWorkspaceId(workspaceId: string) {
 		navigator.clipboard.writeText(workspaceId).then(
 			() => toast.success('Workspace ID copied to clipboard'),
@@ -238,6 +246,7 @@
 			sentInvitesVm={sentInvitesVm}
 			pendingInvitesVm={pendingInvitesVm}
 			canInviteInCurrentWorkspace={canInviteInCurrentWorkspace}
+			canManageSentInvitesInCurrentWorkspace={canManageSentInvitesInCurrentWorkspace}
 			loadingWorkspaces={loadingWorkspaces}
 			createSubmitting={createSubmitting}
 			updateSubmitting={updateSubmitting}
@@ -246,12 +255,14 @@
 			inviting={inviting}
 			loadingPendingInvites={loadingPendingInvites}
 			acceptingInviteId={acceptingInviteId}
+			cancelingSentInviteId={cancelingSentInviteId}
 			onSwitchWorkspace={handleSwitchWorkspace}
 			onCreateWorkspace={handleCreateWorkspace}
 			onUpdateWorkspace={handleUpdateWorkspace}
 			onLeaveWorkspace={handleLeaveWorkspace}
 			onInviteMember={handleInviteMember}
 			onAcceptPendingInvite={handleAcceptPendingInvite}
+			onCancelSentInvite={handleCancelSentInvite}
 			onCopyWorkspaceId={handleCopyWorkspaceId}
 		/>
 	{:else if currentSection === 'developers'}

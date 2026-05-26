@@ -96,6 +96,14 @@ export class ProtectedSettingsPagePresenter {
 	acceptPendingInvite(inviteId: string): Promise<{ success: boolean; message: string }> {
 		return this.workspaceSettingsPresenter.acceptPendingInvite(inviteId);
 	}
+
+	cancelSentInvite(inviteId: string): Promise<{ success: boolean; message: string }> {
+		const currentWorkspaceId = this.workspaceSettingsPresenter.currentWorkspaceId;
+		if (!currentWorkspaceId) {
+			return Promise.resolve({ success: false, message: 'No workspace selected.' });
+		}
+		return this.workspaceSettingsPresenter.cancelSentInvite(currentWorkspaceId, inviteId);
+	}
 }
 
 export { UpdateProfileStatus } from '$lib/account/EditorAccountSettings.presenter.svelte';

@@ -33,6 +33,7 @@
 		sentInvitesVm: SentInviteViewModel[];
 		pendingInvitesVm: PendingInviteViewModel[];
 		canInviteInCurrentWorkspace: boolean;
+		canManageSentInvitesInCurrentWorkspace: boolean;
 		loadingWorkspaces: boolean;
 		createSubmitting: boolean;
 		updateSubmitting: boolean;
@@ -41,6 +42,7 @@
 		inviting: boolean;
 		loadingPendingInvites: boolean;
 		acceptingInviteId: string | null;
+		cancelingSentInviteId: string | null;
 		onSwitchWorkspace: (workspaceId: string) => void;
 		onCreateWorkspace: (name: string) => Promise<{ success: boolean; message: string }>;
 		onUpdateWorkspace: (
@@ -54,6 +56,7 @@
 			sendEmail: boolean;
 		}) => Promise<{ success: boolean; message: string }>;
 		onAcceptPendingInvite: (inviteId: string) => Promise<{ success: boolean; message: string }>;
+		onCancelSentInvite: (inviteId: string) => Promise<{ success: boolean; message: string }>;
 		onCopyWorkspaceId: (workspaceId: string) => void;
 	};
 
@@ -64,6 +67,7 @@
 		sentInvitesVm,
 		pendingInvitesVm,
 		canInviteInCurrentWorkspace,
+		canManageSentInvitesInCurrentWorkspace,
 		loadingWorkspaces,
 		createSubmitting,
 		updateSubmitting,
@@ -72,12 +76,14 @@
 		inviting,
 		loadingPendingInvites,
 		acceptingInviteId,
+		cancelingSentInviteId,
 		onSwitchWorkspace,
 		onCreateWorkspace,
 		onUpdateWorkspace,
 		onLeaveWorkspace,
 		onInviteMember,
 		onAcceptPendingInvite,
+		onCancelSentInvite,
 		onCopyWorkspaceId
 	}: Props = $props();
 
@@ -302,6 +308,13 @@
 
 	async function handleAcceptPendingInvite(inviteId: string) {
 		await onAcceptPendingInvite(inviteId);
+	}
+
+	async function handleCancelSentInvite(inviteId: string) {
+		const result = await onCancelSentInvite(inviteId);
+		if (result.success) {
+			adjustTeamMembersUsed(-1);
+		}
 	}
 
 	function openEditWorkspaceModal(org: WorkspaceCardViewModel) {
@@ -559,7 +572,7 @@
 				{/each}
 			{/if}
 
-			{#if sentInvitesVm.length > 0}
+			{#if canManageSentInvitesInCurrentWorkspace && sentInvitesVm.length > 0}
 				<div class="space-y-3 border-t border-base-300 pt-4">
 					<h3 class="text-sm font-medium text-base-content">
 						Pending invitations
@@ -577,9 +590,16 @@
 									{/if}
 								</p>
 							</div>
-							<span class="shrink-0 rounded-full border border-base-300 bg-base-200 px-2.5 py-0.5 text-xs font-medium text-base-content/70">
-								Pending
-							</span>
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								class="shrink-0 text-error hover:text-error"
+								onclick={() => handleCancelSentInvite(invite.id)}
+								disabled={cancelingSentInviteId !== null}
+							>
+								{cancelingSentInviteId === invite.id ? 'Cancelling…' : 'Cancel'}
+							</Button>
 						</div>
 					{/each}
 				</div>

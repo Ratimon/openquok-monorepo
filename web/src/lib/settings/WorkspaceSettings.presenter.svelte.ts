@@ -97,6 +97,7 @@ export class WorkspaceSettingsPresenter {
 	public sentInvitesVm = $state<SentInviteViewModel[]>([]);
 	public loadingPendingInvites = $state(false);
 	public acceptingInviteId = $state<string | null>(null);
+	public cancelingSentInviteId = $state<string | null>(null);
 
 	/** Join-org (token link) flow */
 	public inviteOrganizationName = $state('');
@@ -122,6 +123,10 @@ export class WorkspaceSettingsPresenter {
 
 	public get canInviteInCurrentWorkspace(): boolean {
 		return this.currentWorkspaceRole === 'admin' || this.currentWorkspaceRole === 'owner';
+	}
+
+	public get canManageSentInvitesInCurrentWorkspace(): boolean {
+		return this.currentWorkspaceRole === 'owner';
 	}
 
 	public canEditWorkspace(workspaceRole: 'user' | 'admin' | 'owner'): boolean {
@@ -274,14 +279,49 @@ export class WorkspaceSettingsPresenter {
 	public async loadTeam(organizationId: string): Promise<void> {
 		this.status = WorkspaceSettingsStatus.LOADING_TEAM;
 		try {
+			const sentInvitesPromise = this.canManageSentInvitesInCurrentWorkspace
+				? this.settingsRepository.getSentInvites(organizationId)
+				: Promise.resolve([]);
 			const [membersPm, sentInvitesPm] = await Promise.all([
 				this.settingsRepository.getTeam(organizationId),
-				this.settingsRepository.getSentInvites(organizationId)
+				sentInvitesPromise
 			]);
 			this.teamMembersVm = membersPm.map(toTeamMemberVm);
-			this.sentInvitesVm = sentInvitesPm.map(toSentInviteVm);
+			this.sentInvitesVm = this.canManageSentInvitesInCurrentWorkspace
+				? sentInvitesPm.map(toSentInviteVm)
+				: [];
 		} finally {
 			this.status = WorkspaceSettingsStatus.IDLE;
+		}
+	}
+
+	public async cancelSentInvite(
+		organizationId: string,
+		inviteId: string
+	): Promise<{ success: boolean; message: string }> {
+		if (!this.canManageSentInvitesInCurrentWorkspace) {
+			const msg = 'Only workspace owners can cancel invitations.';
+			this.toastMessage = msg;
+			this.toastIsError = true;
+			this.showToastMessage = true;
+			return { success: false, message: msg };
+		}
+		this.cancelingSentInviteId = inviteId;
+		try {
+			const resultPm = await this.settingsRepository.cancelSentInvite(inviteId);
+			if (resultPm.success) {
+				this.sentInvitesVm = this.sentInvitesVm.filter((inv) => inv.id !== inviteId);
+				this.toastMessage = resultPm.message ?? 'Invitation cancelled.';
+				this.toastIsError = false;
+				this.showToastMessage = true;
+				return { success: true, message: resultPm.message ?? 'Invitation cancelled.' };
+			}
+			this.toastMessage = resultPm.message ?? 'Failed to cancel invitation.';
+			this.toastIsError = true;
+			this.showToastMessage = true;
+			return { success: false, message: resultPm.message ?? 'Failed to cancel invitation.' };
+		} finally {
+			this.cancelingSentInviteId = null;
 		}
 	}
 
