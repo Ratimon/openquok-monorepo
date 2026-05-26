@@ -79,12 +79,12 @@ export class ProtectedHomePagePresenter {
 	);
 
 	/** Channels with a workspace channel group, for collapsible sidebar sections. */
-	channelGroupSections = $derived.by(() =>
+	channelGroupSectionsVm = $derived.by(() =>
 		this.getChannelPresenter.buildChannelGroupSectionsVm(this.connectedChannelsVm)
 	);
 
 	/** Same as {@link platformChannelRows} but only channels not assigned to a channel group. */
-	platformChannelRowsUngrouped = $derived.by(() =>
+	platformChannelRowsUngroupedVm = $derived.by(() =>
 		this.getChannelPresenter.buildPlatformChannelRowsVm(
 			this.connectedChannelsVm.filter((c) => !c.group)
 		)

@@ -13,8 +13,8 @@
 	import PlatformChannelRows from '$lib/ui/components/channels/PlatformChannelRows.svelte';
 
 	type Props = {
-		channelGroupSections: HomeChannelGroupViewModel[];
-		platformChannelRowsUngrouped: HomePlatformChannelRowViewModel[];
+		channelGroupSectionsVm: HomeChannelGroupViewModel[];
+		platformChannelRowsUngroupedVm: HomePlatformChannelRowViewModel[];
 		groupDetailsOpen: Record<string, boolean>;
 		ungroupedDetailsOpen: boolean;
 		workspaceId: string;
@@ -31,8 +31,8 @@
 	};
 
 	let {
-		channelGroupSections,
-		platformChannelRowsUngrouped,
+		channelGroupSectionsVm,
+		platformChannelRowsUngroupedVm,
 		groupDetailsOpen = $bindable(),
 		ungroupedDetailsOpen = $bindable(),
 		workspaceId,
@@ -49,12 +49,12 @@
 	}: Props = $props();
 </script>
 
-{#if channelGroupSections.length > 0}
+{#if channelGroupSectionsVm.length > 0}
 	<div class="mt-4 space-y-2">
 		<h4 class="text-sm font-semibold text-base-content/80">
 			Grouped accounts/channels
 		</h4>
-		{#each channelGroupSections as group (group.id)}
+		{#each channelGroupSectionsVm as group (group.id)}
 			<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={groupDetailsOpen[group.id]}>
 				<summary
 					class="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden"
@@ -119,7 +119,7 @@
 	</div>
 {/if}
 
-{#if platformChannelRowsUngrouped.length > 0}
+{#if platformChannelRowsUngroupedVm.length > 0}
 	<div class="mt-4 space-y-2">
 		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h4 class="text-sm font-semibold text-base-content/80">
@@ -164,7 +164,7 @@
 		<p class="text-sm text-base-content/70">
 			To add a channel to a group, open its menu and select <span class="font-medium text-base-content">Move / add to group</span>.
 		</p>
-		{#if channelGroupSections.length === 0}
+		{#if channelGroupSectionsVm.length === 0}
 			<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={ungroupedDetailsOpen}>
 				<summary
 					class="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden"
@@ -181,7 +181,7 @@
 				</summary>
 				<div class="border-t border-base-300 px-3 py-3">
 					<PlatformChannelRows
-						rows={platformChannelRowsUngrouped}
+						rows={platformChannelRowsUngroupedVm}
 						{workspaceId}
 						{continueSetupHref}
 						onCreatePost={onCreatePostForChannel}
@@ -196,7 +196,7 @@
 		{:else}
 			<div class="rounded-lg border border-base-300 bg-base-200/40 px-3 py-3">
 				<PlatformChannelRows
-					rows={platformChannelRowsUngrouped}
+					rows={platformChannelRowsUngroupedVm}
 					{workspaceId}
 					{continueSetupHref}
 					onCreatePost={onCreatePostForChannel}
