@@ -4,6 +4,7 @@
 
 	// --- App / routing ---
 	import { browser } from '$app/environment';
+	import { getContext } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { route } from '$lib/utils/path';
@@ -28,6 +29,8 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import Scheduler from '$lib/ui/components/calendar-scheduler/Scheduler.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
+	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
+	import { cn } from '$lib/ui/helpers/common';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import SetPickerDialog from '$lib/ui/components/posts/SetPickerDialog.svelte';
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
@@ -41,6 +44,8 @@
 	const accountPath = route(rootPathAccount);
 
 	const calendarPresenter = protectedCalendarPagePresenter;
+	const postsLimitCtx = getContext<PostsLimitContext>(postsLimitKey);
+	const isPostsLimitFull = $derived(postsLimitCtx.isPostsLimitFull());
 
 	/** Stable ref for composer `bind:` chain (`calendarPresenter.createSocialPostPresenter`). */
 	let createSocialPostModalPresenter = $state.raw(calendarPresenter.createSocialPostPresenter);
@@ -144,21 +149,23 @@
 	}
 
 	async function openCreatePostForCurrentScopeAtIso(preselectScheduledAtIso: string | null) {
-		const resultVm = calendarPresenter.getCreatePostPrepareOpenOptions();
-		if (!resultVm.ok) {
-			toast.error(resultVm.error);
-			return;
-		}
-		const oid = workspaceId;
-		if (!oid) return;
-		const picked = await chooseSetSnapshotForWorkspace();
-		if (picked === undefined) return;
-		createSocialPostModalPresenter.prepareOpen({
-			...resultVm.options,
-			preselectScheduledAtIso,
-			setSnapshot: picked ?? null
+		postsLimitCtx.tryCreatePost(async () => {
+			const resultVm = calendarPresenter.getCreatePostPrepareOpenOptions();
+			if (!resultVm.ok) {
+				toast.error(resultVm.error);
+				return;
+			}
+			const oid = workspaceId;
+			if (!oid) return;
+			const picked = await chooseSetSnapshotForWorkspace();
+			if (picked === undefined) return;
+			createSocialPostModalPresenter.prepareOpen({
+				...resultVm.options,
+				preselectScheduledAtIso,
+				setSnapshot: picked ?? null
+			});
+			createSocialPostOpen = true;
 		});
-		createSocialPostOpen = true;
 	}
 
 	function openEditPostGroup(postGroup: string) {
@@ -347,13 +354,22 @@
 		<div class="flex items-center gap-2">
 			<Button
 				type="button"
-				variant="secondary"
+				variant={isPostsLimitFull ? 'outline' : 'secondary'}
 				disabled={!workspaceId}
 				onclick={openCreatePostForCurrentScope}
-				class="shrink-0"
+				class={cn(
+					'shrink-0 gap-1.5',
+					isPostsLimitFull &&
+						'border-warning/35 bg-warning/5 text-warning hover:border-warning/50 hover:bg-warning/10'
+				)}
 			>
-				<AbstractIcon name={icons.Plus.name} class="size-4" width="16" height="16" />
-				Create Post
+				<AbstractIcon
+					name={isPostsLimitFull ? icons.Lock.name : icons.Plus.name}
+					class="size-4"
+					width="16"
+					height="16"
+				/>
+				{isPostsLimitFull ? 'Post limit reached' : 'Create Post'}
 			</Button>
 			<Button type="button" variant="outline" onclick={goBackToAccount}>
 				<AbstractIcon name={icons.ArrowLeft.name} class="size-4" width="16" height="16" />

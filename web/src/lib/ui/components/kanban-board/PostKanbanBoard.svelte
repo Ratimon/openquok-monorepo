@@ -21,6 +21,8 @@
 
 	import { UNLIMITED_POSTS_PER_MONTH } from 'openquok-common';
 
+	import { getContext } from 'svelte';
+
 	import { icons } from '$data/icons';
 
 	import { Alert, AlertDescription, AlertTitle } from '$lib/ui/alert';
@@ -29,7 +31,7 @@
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import KanbanBoardFilters from './KanbanBoardFilters.svelte';
 	import KanbanColumn from './KanbanColumn.svelte';
-	import PostsLimitUpgradeDialog from '$lib/ui/components/kanban-board/PostsLimitUpgradeDialog.svelte';
+	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
 
 	import { toast } from '$lib/ui/sonner';
 
@@ -133,7 +135,7 @@
 
 	const showUpgradeCta = $derived(isPostsLimitFull && Boolean(billingHref));
 
-	let postsUpgradeDialogOpen = $state(false);
+	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
 
 	let dragOverColumnId = $state<PostKanbanColumnId | null>(null);
 	let activeDrag = $state<KanbanCardDragPayload | null>(null);
@@ -167,7 +169,7 @@
 		activeDrag = null;
 
 		if (schedulingWouldExceedLimit(payload, columnId)) {
-			postsUpgradeDialogOpen = true;
+			postsLimitCtx?.openUpgradeDialog();
 			return;
 		}
 
@@ -264,7 +266,7 @@
 						<button
 							type="button"
 							class="link link-primary font-medium"
-							onclick={() => (postsUpgradeDialogOpen = true)}
+							onclick={() => postsLimitCtx?.openUpgradeDialog()}
 						>
 							View upgrade options
 						</button>
@@ -302,6 +304,4 @@
 			{/each}
 		</div>
 	{/if}
-
-	<PostsLimitUpgradeDialog bind:open={postsUpgradeDialogOpen} upgradeHref={billingHref} />
 </section>

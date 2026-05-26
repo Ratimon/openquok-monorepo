@@ -5,11 +5,15 @@
 		HomePlatformChannelRowViewModel
 	} from '$lib/channels/GetChannel.presenter.svelte';
 
+	import { getContext } from 'svelte';
+
 	import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts';
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import { cn } from '$lib/ui/helpers/common';
+	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
 	import PlatformChannelRows from '$lib/ui/components/channels/PlatformChannelRows.svelte';
 
 	type Props = {
@@ -49,6 +53,17 @@
 		onAddAnotherChannel,
 		channelLimitFull = false
 	}: Props = $props();
+
+	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
+	const isPostsLimitFull = $derived(postsLimitCtx?.isPostsLimitFull() ?? false);
+
+	const createPostButtonClass = $derived(
+		cn(
+			'shrink-0 gap-1.5',
+			isPostsLimitFull &&
+				'border-warning/35 bg-warning/5 text-warning hover:border-warning/50 hover:bg-warning/10'
+		)
+	);
 </script>
 
 {#if channelGroupSectionsVm.length > 0}
@@ -73,14 +88,17 @@
 					<Button
 						type="button"
 						size="sm"
-						variant="secondary"
-						class="shrink-0"
+						variant={isPostsLimitFull ? 'outline' : 'secondary'}
+						class={createPostButtonClass}
 						onclick={(e: MouseEvent) => {
 							e.preventDefault();
 							e.stopPropagation();
 							onCreatePostForGroup(group.id);
 						}}
 					>
+						{#if isPostsLimitFull}
+							<AbstractIcon name={icons.Lock.name} class="h-4 w-4" width="16" height="16" />
+						{/if}
 						Create Post for {group.name}
 					</Button>
 					<Button
@@ -132,16 +150,21 @@
 				<Button
 					type="button"
 					size="sm"
-					variant="primary"
-					class="shrink-0 gap-1.5"
+					variant={isPostsLimitFull ? 'outline' : 'primary'}
+					class={createPostButtonClass}
 					onclick={(e: MouseEvent) => {
 						e.preventDefault();
 						e.stopPropagation();
 						onCreatePost(null);
 					}}
 				>
-					<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
-					Create Post
+					<AbstractIcon
+						name={isPostsLimitFull ? icons.Lock.name : icons.Plus.name}
+						class="h-4 w-4"
+						width="16"
+						height="16"
+					/>
+					{isPostsLimitFull ? 'Post limit reached' : 'Create Post'}
 				</Button>
 				<Button
 					type="button"

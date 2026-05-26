@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+
+	import { getContext } from 'svelte';
 	import type {
 		CalendarPostRowViewModel,
 		PostGroupDetailsViewModel
@@ -12,6 +14,8 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
+	import { cn } from '$lib/ui/helpers/common';
 	import * as Dialog from '$lib/ui/dialog';
 	import { Separator } from '$lib/ui/separator';
 
@@ -63,8 +67,25 @@
 		onCreatePost
 	}: Props = $props();
 
+	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
+	const isPostsLimitFull = $derived(postsLimitCtx?.isPostsLimitFull() ?? false);
+
 	const hasExistingPost = $derived(Boolean(postGroup?.trim()));
 	const hasCreateSlot = $derived(Boolean(createAtIso?.trim() && onCreatePost));
+
+	function handleCreatePostInSlot() {
+		const iso = String(createAtIso ?? '').trim();
+		if (!iso || !onCreatePost) return;
+		const run = () => {
+			onClose();
+			onCreatePost(iso);
+		};
+		if (postsLimitCtx) {
+			postsLimitCtx.tryCreatePost(run);
+			return;
+		}
+		run();
+	}
 
 	const createSlotLabel = $derived.by(() => {
 		const iso = String(createAtIso ?? '').trim();
@@ -298,17 +319,22 @@
 				</p>
 				<button
 					type="button"
-					class="hover:bg-primary/15 flex w-full items-center gap-2 rounded px-3 py-2 text-sm font-medium text-start text-primary outline-none disabled:opacity-50"
+					class={cn(
+						'flex w-full items-center gap-2 rounded px-3 py-2 text-sm font-medium text-start outline-none disabled:opacity-50',
+						isPostsLimitFull
+							? 'bg-warning/10 text-warning hover:bg-warning/15'
+							: 'hover:bg-primary/15 text-primary'
+					)}
 					disabled={busy}
-					onclick={() => {
-						const iso = String(createAtIso ?? '').trim();
-						if (!iso) return;
-						onClose();
-						onCreatePost?.(iso);
-					}}
+					onclick={handleCreatePostInSlot}
 				>
-					<AbstractIcon name={icons.Plus.name} class="size-4 shrink-0" width="16" height="16" />
-					Create post
+					<AbstractIcon
+						name={isPostsLimitFull ? icons.Lock.name : icons.Plus.name}
+						class="size-4 shrink-0"
+						width="16"
+						height="16"
+					/>
+					{isPostsLimitFull ? 'Post limit reached' : 'Create post'}
 					{#if createSlotLabel.time}
 						<span class="ms-auto text-xs font-normal text-base-content/55">{createSlotLabel.time}</span>
 					{/if}

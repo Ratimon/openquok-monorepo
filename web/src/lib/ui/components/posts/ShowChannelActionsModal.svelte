@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
+	import { getContext } from 'svelte';
+
 	import { copyToClipboard } from '$lib/utils/clipboard';
+	import { cn } from '$lib/ui/helpers/common';
+	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
@@ -43,7 +47,23 @@
 	let confirmRemoveOpen = $state(false);
 	let actionBusy = $state(false);
 
+	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
+	const isPostsLimitFull = $derived(postsLimitCtx?.isPostsLimitFull() ?? false);
+
 	const effectiveBusy = $derived(busy || actionBusy);
+
+	function handleCreatePost() {
+		if (!integration || !onCreatePost) return;
+		const run = () => {
+			onClose();
+			onCreatePost(integration);
+		};
+		if (postsLimitCtx) {
+			postsLimitCtx.tryCreatePost(run);
+			return;
+		}
+		run();
+	}
 
 	$effect(() => {
 		if (!open) {
@@ -149,15 +169,22 @@
 				{#if onCreatePost && integration.schedulable}
 					<button
 						type="button"
-						class="hover:bg-primary/15 flex w-full items-center gap-2 rounded px-3 py-2 text-sm font-medium text-start text-primary outline-none disabled:opacity-50"
+						class={cn(
+							'flex w-full items-center gap-2 rounded px-3 py-2 text-sm font-medium text-start outline-none disabled:opacity-50',
+							isPostsLimitFull
+								? 'bg-warning/10 text-warning hover:bg-warning/15'
+								: 'hover:bg-primary/15 text-primary'
+						)}
 						disabled={effectiveBusy}
-						onclick={() => {
-							onClose();
-							onCreatePost(integration);
-						}}
+						onclick={handleCreatePost}
 					>
-						<AbstractIcon name={icons.Megaphone.name} class="size-4 shrink-0" width="16" height="16" />
-						Create post
+						<AbstractIcon
+							name={isPostsLimitFull ? icons.Lock.name : icons.Megaphone.name}
+							class="size-4 shrink-0"
+							width="16"
+							height="16"
+						/>
+						{isPostsLimitFull ? 'Post limit reached' : 'Create post'}
 					</button>
 				{/if}
 

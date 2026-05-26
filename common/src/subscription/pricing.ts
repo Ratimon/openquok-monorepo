@@ -59,7 +59,7 @@ export const pricing: PricingMap = {
 		year_price: 278,
 		workspaces: 1,
 		channel_per_workspace: 15,
-		posts_per_month: 500,
+		posts_per_month: 1,
 		team_members_per_workspace: 1,
 		share_post_preview: false,
 		community_features: true,

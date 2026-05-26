@@ -6,6 +6,7 @@
 
 	import SetPostingScheduleTimezone from '$lib/ui/components/SetPostingScheduleTimezone.svelte';
 	import FirstBilling from '$lib/ui/components/billing/FirstBilling.svelte';
+	import PostsLimitProvider from '$lib/ui/components/posts/PostsLimitProvider.svelte';
 	import { firstBillingGatePresenter } from '$lib/billing';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
@@ -40,5 +41,7 @@
 {:else if showFirstBilling}
 	<FirstBilling {companyName} />
 {:else}
-	{@render children?.()}
+	<PostsLimitProvider>
+		{@render children?.()}
+	</PostsLimitProvider>
 {/if}

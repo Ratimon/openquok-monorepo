@@ -6,6 +6,7 @@
 
 	// --- App / routing ---
 	import { browser } from '$app/environment';
+	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
@@ -46,6 +47,7 @@
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import MyChannelsSection from '$lib/ui/components/channels/MyChannelsSection.svelte';
 	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
+	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -68,6 +70,8 @@
 	};
 
 	let { data }: Props = $props();
+
+	const postsLimitCtx = getContext<PostsLimitContext>(postsLimitKey);
 
 	// --- Layout data ---
 	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? (page.data as App.LayoutData)?.currentUser ?? null);
@@ -221,36 +225,40 @@
 
 	// --- Composer & navigation ---
 	async function openCreatePost(preselectIntegrationId: string | null) {
-		const oid = workspaceId;
-		if (!oid) {
-			toast.error('Create or select a workspace first.');
-			return;
-		}
-		const picked = await chooseSetSnapshotForWorkspace();
-		if (picked === undefined) return;
-		createSocialPostModalPresenter.prepareOpen({
-			preselectIntegrationId,
-			preselectGroupId: null,
-			setSnapshot: picked ?? null
+		postsLimitCtx.tryCreatePost(async () => {
+			const oid = workspaceId;
+			if (!oid) {
+				toast.error('Create or select a workspace first.');
+				return;
+			}
+			const picked = await chooseSetSnapshotForWorkspace();
+			if (picked === undefined) return;
+			createSocialPostModalPresenter.prepareOpen({
+				preselectIntegrationId,
+				preselectGroupId: null,
+				setSnapshot: picked ?? null
+			});
+			createSocialPostOpen = true;
 		});
-		createSocialPostOpen = true;
 	}
 
 	async function openCreatePostForGroup(groupId: string) {
-		const oid = workspaceId;
-		if (!oid) {
-			toast.error('Create or select a workspace first.');
-			return;
-		}
-		const picked = await chooseSetSnapshotForWorkspace();
-		if (picked === undefined) return;
-		createSocialPostModalPresenter.prepareOpen({
-			preselectIntegrationId: null,
-			preselectGroupId: groupId,
-			autoCustomizeFirstSelected: true,
-			setSnapshot: picked ?? null
+		postsLimitCtx.tryCreatePost(async () => {
+			const oid = workspaceId;
+			if (!oid) {
+				toast.error('Create or select a workspace first.');
+				return;
+			}
+			const picked = await chooseSetSnapshotForWorkspace();
+			if (picked === undefined) return;
+			createSocialPostModalPresenter.prepareOpen({
+				preselectIntegrationId: null,
+				preselectGroupId: groupId,
+				autoCustomizeFirstSelected: true,
+				setSnapshot: picked ?? null
+			});
+			createSocialPostOpen = true;
 		});
-		createSocialPostOpen = true;
 	}
 
 	function openKanbanPostActions(payload: { postGroup: string; postId: string }) {
@@ -265,6 +273,35 @@
 		kanbanActionsFocusPostId = null;
 		kanbanActionsBusy = false;
 		kanbanDeleteConfirmOpen = false;
+	}
+
+	async function handleKanbanMoveCardToColumn(
+		payload: Parameters<typeof postKanbanBoard.moveCardToColumn>[0],
+		column: Parameters<typeof postKanbanBoard.moveCardToColumn>[1]
+	) {
+		const usageDelta = postKanbanBoard.postsUsageDeltaForMove(payload, column);
+		if (usageDelta) {
+			postsLimitCtx.adjustPostsUsedThisMonth(usageDelta);
+		}
+		const result = await postKanbanBoard.moveCardToColumn(payload, column);
+		if (!result.ok && usageDelta) {
+			postsLimitCtx.adjustPostsUsedThisMonth(-usageDelta);
+		}
+		return result;
+	}
+
+	function handleComposerScheduled() {
+		void postKanbanBoard.refresh();
+		if (!createSocialPostModalPresenter.editingPostGroup) {
+			const rowCount = createSocialPostModalPresenter.selectedIds.length;
+			if (rowCount > 0) {
+				postsLimitCtx.adjustPostsUsedThisMonth(rowCount);
+			}
+		}
+	}
+
+	function handleComposerDraftSaved() {
+		void postKanbanBoard.refresh();
 	}
 
 	function openEditKanbanPostGroup(postGroup: string) {
@@ -780,7 +817,7 @@
 			onTagFilterChange={(next) => postKanbanBoard.setTagFilter(next)}
 			onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
 			onTimeFilterChange={(next) => postKanbanBoard.setTimeFilter(next)}
-			onMoveCardToColumn={(payload, column) => postKanbanBoard.moveCardToColumn(payload, column)}
+			onMoveCardToColumn={handleKanbanMoveCardToColumn}
 			onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}
 			onNoteChange={(id, note) => void postKanbanBoard.updateNote(id, note)}
 			onOpenPostActions={openKanbanPostActions}
@@ -862,10 +899,8 @@
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}
-	onScheduled={() => {
-		void postKanbanBoard.refresh();
-		goToCalendar(null);
-	}}
+	onScheduled={handleComposerScheduled}
+	onDraftSaved={handleComposerDraftSaved}
 />
 
 <OnBoardingModal

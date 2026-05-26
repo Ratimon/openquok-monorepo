@@ -2,6 +2,8 @@
 	import type { IconName } from '$data/icons';
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
+	import { getContext } from 'svelte';
+
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
@@ -12,6 +14,8 @@
 	import * as Popover from '$lib/ui/popover';
 	import DeleteChannelModal from '$lib/ui/components/posts/DeleteChannelModal.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
+	import { cn } from '$lib/ui/helpers/common';
 
 	type Props = {
 		integration: CreateSocialPostChannelViewModel;
@@ -47,7 +51,23 @@
 		showProviderBadge = false
 	}: Props = $props();
 
+	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
+	const isPostsLimitFull = $derived(postsLimitCtx?.isPostsLimitFull() ?? false);
+
 	const hasAvatarPhoto = $derived(Boolean(integration.picture?.trim()));
+
+	function handleCreatePostClick() {
+		if (!onCreatePost) return;
+		const run = () => {
+			menuOpen = false;
+			onCreatePost(integration);
+		};
+		if (postsLimitCtx) {
+			postsLimitCtx.tryCreatePost(run);
+			return;
+		}
+		run();
+	}
 
 	let menuOpen = $state(false);
 	let confirmRemoveOpen = $state(false);
@@ -104,23 +124,29 @@
 		{#if onCreatePost && integration.schedulable}
 			<Button
 				type="button"
-				variant="primary"
+				variant={isPostsLimitFull ? 'outline' : 'primary'}
 				size="sm"
-				class="w-full justify-start gap-2 sm:w-fit"
+				class={cn(
+					'w-full justify-start gap-2 sm:w-fit',
+					isPostsLimitFull &&
+						'border-warning/35 bg-warning/5 text-warning hover:border-warning/50 hover:bg-warning/10'
+				)}
 				disabled={busy}
-				onclick={() => {
-					menuOpen = false;
-					onCreatePost(integration);
-				}}
+				onclick={handleCreatePostClick}
 			>
 				<AbstractIcon
-					name={icons.Megaphone.name}
-					class="size-4 shrink-0 text-primary-content"
+					name={isPostsLimitFull ? icons.Lock.name : icons.Megaphone.name}
+					class={cn('size-4 shrink-0', !isPostsLimitFull && 'text-primary-content')}
 					width="16"
 					height="16"
 				/>
-				<span class="min-w-0 text-start text-xs leading-tight text-primary-content">
-					Create Post
+				<span
+					class={cn(
+						'min-w-0 text-start text-xs leading-tight',
+						!isPostsLimitFull && 'text-primary-content'
+					)}
+				>
+					{isPostsLimitFull ? 'Post limit reached' : 'Create Post'}
 				</span>
 			</Button>
 		{/if}

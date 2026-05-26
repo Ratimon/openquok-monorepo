@@ -10,7 +10,7 @@
 	import type { ChannelsGridActions, ChannelsGridLimitContext } from '$lib/ui/components/channels/channelsGridContext';
 
 	import { browser } from '$app/environment';
-	import { setContext } from 'svelte';
+	import { getContext, setContext } from 'svelte';
 
 	import { createHomeChannelsGridTableFilter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
 	import { icons } from '$data/icons';
@@ -27,6 +27,8 @@
 		channelsGridActionsKey,
 		channelsGridLimitKey,
 	} from '$lib/ui/components/channels/channelsGridContext';
+	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
+	import { cn } from '$lib/ui/helpers/common';
 
 	type ListStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -78,6 +80,9 @@
 	}: Props = $props();
 
 	let channelUpgradeDialogOpen = $state(false);
+
+	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
+	const isPostsLimitFull = $derived(postsLimitCtx?.isPostsLimitFull() ?? false);
 
 	function tryAddAnotherChannel(identifier: string) {
 		if (isChannelLimitFull) {
@@ -197,6 +202,10 @@
 	function handleCreatePostForAllChannels() {
 		if (!workspaceId) {
 			toast.error('Create or select a workspace first.');
+			return;
+		}
+		if (postsLimitCtx) {
+			postsLimitCtx.tryCreatePost(() => onCreatePost(null));
 			return;
 		}
 		onCreatePost(null);
@@ -330,13 +339,22 @@
 			{#if connectedChannelCount >= 1}
 				<Button
 					type="button"
-					variant="primary"
-					class="gap-1.5"
+					variant={isPostsLimitFull ? 'outline' : 'primary'}
+					class={cn(
+						'gap-1.5',
+						isPostsLimitFull &&
+							'border-warning/35 bg-warning/5 text-warning hover:border-warning/50 hover:bg-warning/10'
+					)}
 					disabled={!workspaceId}
 					onclick={handleCreatePostForAllChannels}
 				>
-					<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
-					Create Post for All Channels
+					<AbstractIcon
+						name={isPostsLimitFull ? icons.Lock.name : icons.Plus.name}
+						class="h-4 w-4"
+						width="16"
+						height="16"
+					/>
+					{isPostsLimitFull ? 'Post limit reached' : 'Create Post for All Channels'}
 				</Button>
 				<Button
 					type="button"

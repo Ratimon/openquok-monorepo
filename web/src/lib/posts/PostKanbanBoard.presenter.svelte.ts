@@ -248,6 +248,22 @@ export class PostKanbanBoardPresenter {
 		await this.updatePostReviewField(postId, { note: normalized }, { note: normalized });
 	}
 
+	/**
+	 * Billing-month usage delta when moving a post group across draft ↔ scheduled
+	 * (`QUEUE` rows per channel in the group).
+	 */
+	postsUsageDeltaForMove(
+		payload: KanbanCardDragPayload,
+		targetColumn: PostKanbanColumnId
+	): number {
+		if (!canMoveKanbanCard(payload.sourceColumn, targetColumn)) return 0;
+		const rowCount = this.listVm.filter((r) => r.postGroup === payload.postGroup).length;
+		if (rowCount < 1) return 0;
+		if (payload.sourceColumn === 'draft' && targetColumn === 'scheduled') return rowCount;
+		if (payload.sourceColumn === 'scheduled' && targetColumn === 'draft') return -rowCount;
+		return 0;
+	}
+
 	/** Draft ↔ scheduled via session `PUT /posts/:postId/status` (same as CLI `posts:status`). */
 	async moveCardToColumn(
 		payload: KanbanCardDragPayload,

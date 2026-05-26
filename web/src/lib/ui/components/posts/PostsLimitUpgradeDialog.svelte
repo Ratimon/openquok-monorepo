@@ -24,7 +24,7 @@
 		<Dialog.Header>
 			<Dialog.Title>Upgrade to schedule more posts</Dialog.Title>
 			<Dialog.Description>
-				Your current plan has reached its scheduled posts limit for this billing month. Upgrade to
+				Your current plan has reached its posts-per-month limit for this billing month. Upgrade to
 				a higher tier to schedule more posts.
 			</Dialog.Description>
 		</Dialog.Header>
