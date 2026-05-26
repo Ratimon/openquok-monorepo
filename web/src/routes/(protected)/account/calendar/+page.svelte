@@ -7,7 +7,7 @@
 	import { getContext } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { route } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
 
 	// --- Area presenters ---
 	import {
@@ -15,6 +15,7 @@
 		protectedCalendarPagePresenter,
 		protectedHomePagePresenter
 	} from '$lib/area-protected';
+	import { firstBillingGatePresenter } from '$lib/billing';
 	import { getSetPresenter } from '$lib/sets';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
@@ -38,14 +39,31 @@
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import StatisticsModal from '$lib/ui/components/platform-analytics/StatisticsModal.svelte';
+	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);
+	const accountBillingHref = $derived(url(`${accountPath}/billing`));
 
 	const calendarPresenter = protectedCalendarPagePresenter;
 	const postsLimitCtx = getContext<PostsLimitContext>(postsLimitKey);
 	const isPostsLimitFull = $derived(postsLimitCtx.isPostsLimitFull());
+
+	const postsUsedThisMonth = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.posts?.used ?? 0
+	);
+	const allowedPostsPerMonth = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.posts?.limit ?? null
+	);
+	const postsLimit = $derived(
+		allowedPostsPerMonth != null && allowedPostsPerMonth >= 1 ? allowedPostsPerMonth : null
+	);
+	const postsUsageLabel = $derived(
+		postsLimit != null ? `${postsUsedThisMonth} / ${postsLimit}` : null
+	);
+	const showPostsPerMonthSection = $derived(postsLimit != null);
+	const showPostsUpgradeCta = $derived(isPostsLimitFull && Boolean(accountBillingHref));
 
 	/** Stable ref for composer `bind:` chain (`calendarPresenter.createSocialPostPresenter`). */
 	let createSocialPostModalPresenter = $state.raw(calendarPresenter.createSocialPostPresenter);
@@ -146,6 +164,22 @@
 
 	async function openCreatePostForCurrentScope() {
 		await openCreatePostForCurrentScopeAtIso(null);
+	}
+
+	function handleComposerScheduled() {
+		calendarPresenter.bumpCalendarRefresh();
+		const delta = createSocialPostModalPresenter.consumeLastPostsUsageRowDelta();
+		if (delta) {
+			postsLimitCtx.adjustPostsUsedThisMonth(delta);
+		}
+	}
+
+	function handleComposerDraftSaved() {
+		calendarPresenter.bumpCalendarRefresh();
+		const delta = createSocialPostModalPresenter.consumeLastPostsUsageRowDelta();
+		if (delta) {
+			postsLimitCtx.adjustPostsUsedThisMonth(delta);
+		}
 	}
 
 	async function openCreatePostForCurrentScopeAtIso(preselectScheduledAtIso: string | null) {
@@ -378,6 +412,34 @@
 		</div>
 	</div>
 
+	{#if showPostsPerMonthSection && postsUsageLabel}
+		<HomeAccountNoticeBanner
+			iconName={isPostsLimitFull ? icons.Sparkles.name : icons.Info.name}
+			tone={isPostsLimitFull ? 'upgrade' : 'neutral'}
+			dismissible={false}
+		>
+			<p class="text-base-content/90">
+				{#if isPostsLimitFull}
+					You have reached your monthly post limit
+					<span class="font-medium tabular-nums">({postsUsageLabel})</span>. Upgrade to schedule more
+					posts, or wait until your billing month resets.
+				{:else}
+					You have used
+					<span class="font-medium tabular-nums">{postsUsageLabel}</span>
+					scheduled posts this billing month.
+				{/if}
+			</p>
+			{#snippet actions()}
+				{#if showPostsUpgradeCta}
+					<Button href={accountBillingHref} variant="secondary" size="sm" class="gap-1.5">
+						<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+						Upgrade plan
+					</Button>
+				{/if}
+			{/snippet}
+		</HomeAccountNoticeBanner>
+	{/if}
+
 	<section class="space-y-3">
 		<div class="flex items-center justify-between gap-3">
 			<h3 class="text-lg font-semibold text-base-content">
@@ -507,8 +569,8 @@
 	workspaceId={workspaceId}
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}
-	onScheduled={() => calendarPresenter.bumpCalendarRefresh()}
-	onDraftSaved={() => calendarPresenter.bumpCalendarRefresh()}
+	onScheduled={handleComposerScheduled}
+	onDraftSaved={handleComposerDraftSaved}
 />
 
 <SetPickerDialog

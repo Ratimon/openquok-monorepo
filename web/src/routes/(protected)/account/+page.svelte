@@ -292,16 +292,18 @@
 
 	function handleComposerScheduled() {
 		void postKanbanBoard.refresh();
-		if (!createSocialPostModalPresenter.editingPostGroup) {
-			const rowCount = createSocialPostModalPresenter.selectedIds.length;
-			if (rowCount > 0) {
-				postsLimitCtx.adjustPostsUsedThisMonth(rowCount);
-			}
+		const delta = createSocialPostModalPresenter.consumeLastPostsUsageRowDelta();
+		if (delta) {
+			postsLimitCtx.adjustPostsUsedThisMonth(delta);
 		}
 	}
 
 	function handleComposerDraftSaved() {
 		void postKanbanBoard.refresh();
+		const delta = createSocialPostModalPresenter.consumeLastPostsUsageRowDelta();
+		if (delta) {
+			postsLimitCtx.adjustPostsUsedThisMonth(delta);
+		}
 	}
 
 	function openEditKanbanPostGroup(postGroup: string) {

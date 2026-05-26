@@ -115,6 +115,10 @@ export class CreateSocialPostPresenter {
 	connectedChannelsForSessionVm = $state<CreateSocialPostChannelViewModel[]>([]);
 
 	editingPostGroup = $state<string | null>(null);
+	/** Group status when edit load finished; used for optimistic posts/month usage after schedule. */
+	editingGroupStatusBeforeSave = $state<'draft' | 'scheduled' | null>(null);
+	/** Billing-month usage delta from the last successful schedule or draft save (consume from page callbacks). */
+	lastPostsUsageRowDelta = $state(0);
 
 	mode = $state<CreateSocialPostMode>('global');
 	focusedIntegrationId = $state<string | null>(null);
@@ -657,6 +661,12 @@ export class CreateSocialPostPresenter {
 				? await this.postsRepository.updatePostGroup(this.editingPostGroup, payload)
 				: await this.postsRepository.createPost(payload);
 			if (persistDraftPmResult.ok) {
+				this.lastPostsUsageRowDelta = this.draftUsageRowDeltaForResult(
+					persistDraftPmResult.postIds.length
+				);
+				if (this.editingPostGroup) {
+					this.editingGroupStatusBeforeSave = 'draft';
+				}
 				toast.success(this.editingPostGroup ? 'Draft updated.' : 'Draft saved.');
 				return true;
 			}
@@ -706,6 +716,12 @@ export class CreateSocialPostPresenter {
 				? await this.postsRepository.updatePostGroup(this.editingPostGroup, payload)
 				: await this.postsRepository.createPost(payload);
 			if (schedulePostPmResult.ok) {
+				this.lastPostsUsageRowDelta = this.scheduledUsageRowDeltaForResult(
+					schedulePostPmResult.postIds.length
+				);
+				if (this.editingPostGroup) {
+					this.editingGroupStatusBeforeSave = 'scheduled';
+				}
 				toast.success(this.editingPostGroup ? 'Post updated.' : 'Post scheduled.');
 				return true;
 			}
@@ -848,6 +864,28 @@ export class CreateSocialPostPresenter {
 		};
 	}
 
+	/** Rows that newly count toward `posts_per_month` after a successful schedule. */
+	private scheduledUsageRowDeltaForResult(scheduledRowCount: number): number {
+		if (scheduledRowCount < 1) return 0;
+		if (!this.editingPostGroup) return scheduledRowCount;
+		if (this.editingGroupStatusBeforeSave === 'draft') return scheduledRowCount;
+		return 0;
+	}
+
+	/** Rows freed from the monthly cap when a scheduled group is saved as draft. */
+	private draftUsageRowDeltaForResult(rowCount: number): number {
+		if (rowCount < 1) return 0;
+		if (!this.editingPostGroup) return 0;
+		if (this.editingGroupStatusBeforeSave === 'scheduled') return -rowCount;
+		return 0;
+	}
+
+	consumeLastPostsUsageRowDelta(): number {
+		const delta = this.lastPostsUsageRowDelta;
+		this.lastPostsUsageRowDelta = 0;
+		return delta;
+	}
+
 	private captureInitialSnapshot(): void {
 		this.initialSnapshot = serializeComposerSnapshot(this.composerSnapshotInput());
 	}
@@ -858,6 +896,8 @@ export class CreateSocialPostPresenter {
 		this.editorLocked = false;
 		this.customEditingUnlocked = false;
 		this.editingPostGroup = null;
+		this.editingGroupStatusBeforeSave = null;
+		this.lastPostsUsageRowDelta = 0;
 		this.contentSetAuthoringActive = false;
 		this.editingSetId = null;
 		this.editingSetName = '';
@@ -1022,6 +1062,7 @@ export class CreateSocialPostPresenter {
 			}
 
 			this.editingPostGroup = g.postGroup;
+			this.editingGroupStatusBeforeSave = g.status ?? null;
 			this.lastLoadedEditKey = editKey;
 			this.repeatInterval = g.repeatInterval ?? null;
 			this.selectedTagNames = Array.isArray(g.tagNames) ? g.tagNames : [];

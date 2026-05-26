@@ -25,15 +25,22 @@
 	const postsLimit = $derived(
 		allowedPostsPerMonth != null && allowedPostsPerMonth >= 1 ? allowedPostsPerMonth : null
 	);
-	const isPostsLimitFull = $derived(postsLimit != null && postsUsed >= postsLimit);
 	const billingHref = $derived(url(`${route(getRootPathAccount())}/billing`));
+
+	function readIsPostsLimitFull(): boolean {
+		const pricingVm = firstBillingGatePresenter.pricingVm;
+		const posts = pricingVm?.currentVm?.posts;
+		const limit = posts?.limit;
+		if (limit == null || limit < 1) return false;
+		return (posts?.used ?? 0) >= limit;
+	}
 
 	function openUpgradeDialog() {
 		postsUpgradeDialogOpen = true;
 	}
 
 	function tryCreatePost(run: () => void | Promise<void>) {
-		if (isPostsLimitFull) {
+		if (readIsPostsLimitFull()) {
 			openUpgradeDialog();
 			return;
 		}
@@ -59,7 +66,7 @@
 	}
 
 	setContext(postsLimitKey, {
-		isPostsLimitFull: () => isPostsLimitFull,
+		isPostsLimitFull: readIsPostsLimitFull,
 		openUpgradeDialog,
 		tryCreatePost,
 		adjustPostsUsedThisMonth
