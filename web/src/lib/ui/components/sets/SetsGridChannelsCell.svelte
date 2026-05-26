@@ -4,6 +4,7 @@
 	import { socialProviderIcon } from '$data/social-providers';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 
 	let { row }: ICellProps = $props();
 
@@ -23,15 +24,14 @@
 					class="relative h-8 w-8 shrink-0 rounded-md ring-2 ring-base-100"
 					style="z-index: {10 - i}"
 				>
-					{#if channelSummaryVm.pictureUrl}
-						<img src={channelSummaryVm.pictureUrl} alt="" class="h-8 w-8 rounded-md object-cover" />
-					{:else}
-						<div
-							class="flex h-8 w-8 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60"
-						>
-							{channelSummaryVm.displayName.slice(0, 2).toUpperCase()}
-						</div>
-					{/if}
+					<div class="h-full w-full overflow-hidden rounded-md">
+						<IntegrationChannelPicture
+							profilePictureUrl={channelSummaryVm.pictureUrl}
+							fallbackIcon={socialProviderIcon(channelSummaryVm.providerIdentifier)}
+							alt=""
+							class="h-8 w-8 object-cover"
+						/>
+					</div>
 					<span
 						class="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"
 						aria-hidden="true"

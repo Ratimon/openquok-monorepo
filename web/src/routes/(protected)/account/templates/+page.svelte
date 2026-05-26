@@ -232,7 +232,7 @@
 
 <svelte:head>
 	<title>
-		Reusable Templates Content Sets — OpenQuok
+		Reusable Templates — OpenQuok
 	</title>
 </svelte:head>
 
@@ -248,7 +248,7 @@
 						height="32"
 					/>
 					<h1 class="text-2xl font-semibold tracking-tight text-base-content">
-						Reusable Templates Content Sets
+						Reusable Templates
 					</h1>
 				</div>
 				<p class="mt-2 text-base-content/80">

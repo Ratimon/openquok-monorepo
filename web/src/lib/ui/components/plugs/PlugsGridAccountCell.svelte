@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { ICellProps } from '@svar-ui/svelte-grid';
 	import type { PlugRuleTableRowViewModel } from '$lib/plugs/GetPlug.presenter.svelte';
-	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 
 	let { row }: ICellProps = $props();
 
@@ -13,12 +13,14 @@
 
 <div class="flex min-w-0 items-start gap-1.5 py-0.5">
 	<div class="relative h-8 w-8 shrink-0 rounded-md ring-2 ring-base-100">
-		<ImageWithFallback
-			src={rowVm.channelPicture ?? ''}
-			alt=""
-			fallbackIcon={icons.User1.name}
-			class="border-base-300 h-8 w-8 rounded-md border object-cover"
-		/>
+		<div class="h-full w-full overflow-hidden rounded-md border border-base-300">
+			<IntegrationChannelPicture
+				profilePictureUrl={rowVm.channelPicture}
+				alt=""
+				fallbackIcon={socialProviderIcon(String(rowVm.platformKey ?? ''))}
+				class="h-8 w-8 object-cover"
+			/>
+		</div>
 		<span
 			class="ring-base-100 absolute -right-0.5 -bottom-0.5 flex size-4 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"
 			aria-hidden="true"

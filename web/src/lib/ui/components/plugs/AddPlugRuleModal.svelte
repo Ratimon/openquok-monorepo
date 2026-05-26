@@ -6,11 +6,11 @@
 	} from '$lib/plugs/GetPlug.presenter.svelte';
 
 	import * as Dialog from '$lib/ui/dialog';
+	import { socialProviderIcon } from '$data/social-providers';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
-	import { icons } from '$data/icons';
-	import { socialProviderIcon } from '$data/social-providers';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 
 	let {
 		open,
@@ -73,12 +73,14 @@
 
 			<div class="mt-4 flex items-center gap-3 border-b border-base-300 pb-4">
 				<div class="relative h-12 w-12 shrink-0">
-					<ImageWithFallback
-						src={currentChannelForModalVm.picture ?? ''}
-						alt=""
-						fallbackIcon={icons.User1.name}
-						class="border-base-300 h-12 w-12 rounded-full border object-cover"
-					/>
+					<div class="h-full w-full overflow-hidden rounded-full border border-base-300">
+						<IntegrationChannelPicture
+							profilePictureUrl={currentChannelForModalVm.picture}
+							alt=""
+							fallbackIcon={socialProviderIcon(currentChannelForModalVm.identifier)}
+							class="h-12 w-12 object-cover"
+						/>
+					</div>
 					<span
 						class="border-base-300 bg-base-100 absolute -right-0.5 -bottom-0.5 flex h-6 w-6 items-center justify-center rounded-full border shadow-sm ring-2 ring-base-100"
 						aria-hidden="true"
