@@ -44,6 +44,13 @@
 	let showPaymentPortalDialog = $state(false);
 	let pendingSubscribeTier = $state<PaidSubscriptionTier | null>(null);
 	let paymentPortalUrl = $state<string | null>(null);
+	let subscriptionUpdatedNotified = false;
+
+	function notifySubscriptionUpdated(): void {
+		if (subscriptionUpdatedNotified) return;
+		subscriptionUpdatedNotified = true;
+		toast.success('Subscription updated.');
+	}
 
 	const subscription = $derived(pagePresenter.currentVm?.subscription ?? null);
 	const currentTier = $derived(subscription?.tier ?? pagePresenter.currentVm?.tier ?? null);
@@ -91,10 +98,17 @@
 	}
 
 	async function runSubscribe(tier: PaidSubscriptionTier): Promise<void> {
-		const portalUrl = await pagePresenter.subscribeWithTracking(tier, period);
-		if (portalUrl) {
-			paymentPortalUrl = portalUrl;
+		const result = await pagePresenter.subscribeWithTracking(tier, period);
+		if (result.type === 'portal') {
+			paymentPortalUrl = result.url;
 			showPaymentPortalDialog = true;
+			return;
+		}
+		if (result.type === 'updated') {
+			notifySubscriptionUpdated();
+			if (checkoutId) {
+				replaceState('/account/billing', {});
+			}
 		}
 	}
 
@@ -160,7 +174,7 @@
 				if (alreadyActive) {
 					pagePresenter.onPurchaseComplete();
 					void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
-					toast.success('Subscription updated.');
+					notifySubscriptionUpdated();
 					replaceState('/account/billing', {});
 					return;
 				}
@@ -172,7 +186,7 @@
 					if (confirmed) {
 						pagePresenter.onPurchaseComplete();
 						void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
-						toast.success('Subscription updated.');
+						notifySubscriptionUpdated();
 						replaceState('/account/billing', {});
 					} else {
 						toast.error(

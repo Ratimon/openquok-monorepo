@@ -6,6 +6,12 @@ import { stripePriceIdForTier, STRIPE_PUBLISHABLE_KEY } from '$lib/billing/const
 import { ApiError, messageFromApiError } from '$lib/core/HttpGateway';
 import { toast } from '$lib/ui/sonner';
 
+export type SubscribeResult =
+	| { type: 'redirect' }
+	| { type: 'portal'; url: string }
+	| { type: 'updated' }
+	| { type: 'error' };
+
 export class BillingPresenter {
 	checkoutBusy = $state(false);
 
@@ -75,20 +81,19 @@ export class BillingPresenter {
 		}
 	}
 
-	/** @returns Billing portal URL when in-place upgrade needs a payment method update. */
 	async subscribe(
 		tier: PaidSubscriptionTier,
 		period: SubscriptionPeriod
-	): Promise<string | undefined> {
+	): Promise<SubscribeResult> {
 		const organizationId = this.organizationId;
-		if (!organizationId) return undefined;
+		if (!organizationId) return { type: 'error' };
 
 		const stripePriceId = stripePriceIdForTier(tier, period);
 		if (!stripePriceId) {
 			toast.error(
 				`Stripe price is not configured for ${tier} (${period.toLowerCase()}). Add VITE_PUBLIC_STRIPE_PRICE_ID_${tier}_${period} to your web env.`
 			);
-			return undefined;
+			return { type: 'error' };
 		}
 
 		this.checkoutBusy = true;
@@ -101,24 +106,24 @@ export class BillingPresenter {
 			});
 			if (resultPm?.url) {
 				window.location.href = resultPm.url;
-				return undefined;
+				return { type: 'redirect' };
 			}
 			if (resultPm?.portal) {
-				return resultPm.portal;
+				return { type: 'portal', url: resultPm.portal };
 			}
 			if (resultPm?.updated) {
 				try {
 					await this.reloadPricing?.();
-					toast.success('Subscription updated.');
+					return { type: 'updated' };
 				} catch {
 					toast.error(
 						'Subscription changed, but billing details failed to refresh. Reload the page.'
 					);
+					return { type: 'error' };
 				}
-				return undefined;
 			}
 			toast.error('Checkout could not be started. Try again or contact support.');
-			return undefined;
+			return { type: 'error' };
 		} catch (error) {
 			if (error instanceof ApiError) {
 				toast.error(
@@ -127,7 +132,7 @@ export class BillingPresenter {
 			} else {
 				toast.error('Checkout failed. Try again.');
 			}
-			return undefined;
+			return { type: 'error' };
 		} finally {
 			this.checkoutBusy = false;
 		}

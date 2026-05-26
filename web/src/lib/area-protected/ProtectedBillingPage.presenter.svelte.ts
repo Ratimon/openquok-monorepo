@@ -1,4 +1,7 @@
-import type { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
+import type {
+	BillingPresenter,
+	SubscribeResult
+} from '$lib/billing/Billing.presenter.svelte';
 import type {
 	BillingCurrentViewModel,
 	BillingPlanViewModel,
@@ -98,12 +101,11 @@ export class ProtectedBillingPagePresenter {
 	/**
 	 * Plan checkout and changes (POST /billing/subscribe): hosted redirect for new subscribers,
 	 * in-place Stripe update when a subscription already exists. Embedded checkout lives on FirstBilling only.
-	 * @returns Stripe billing portal URL when payment method must be updated in-place.
 	 */
 	async subscribeWithTracking(
 		tier: PaidSubscriptionTier,
 		period: SubscriptionPeriod
-	): Promise<string | undefined> {
+	): Promise<SubscribeResult> {
 		const planVm = this.plansVm.find((row) => row.tier === tier);
 		const price = planVm ? (period === 'MONTHLY' ? planVm.monthPrice : planVm.yearPrice) : 0;
 		await trackConversion(ConversionTrackEvent.InitiateCheckout, {
