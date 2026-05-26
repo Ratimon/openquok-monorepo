@@ -34,6 +34,7 @@ export type BillingCurrentViewModel = {
 	tier: BillingCurrentProgrammerModel['tier'];
 	subscription: BillingSubscriptionViewModel | null;
 	drive: BillingCurrentProgrammerModel['drive'];
+	posts: BillingCurrentProgrammerModel['posts'];
 	limits: BillingCurrentProgrammerModel['limits'];
 	billing: BillingCurrentProgrammerModel['billing'];
 	billingEnabled: boolean;
@@ -138,6 +139,7 @@ export class GetPricingPresenter {
 			tier: pm.tier,
 			subscription: this.toBillingSubscriptionVm(pm.subscription),
 			drive: pm.drive,
+			posts: pm.posts,
 			limits: pm.limits,
 			billing: pm.billing,
 			billingEnabled: pm.billingEnabled

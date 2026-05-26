@@ -149,6 +149,12 @@
 	const allowedChannelCountVm = $derived(
 		firstBillingGatePresenter.pricingVm?.currentVm?.limits?.channelPerWorkspace ?? null
 	);
+	const postsUsedThisMonthVm = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.posts?.used ?? 0
+	);
+	const allowedPostsPerMonthVm = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.posts?.limit ?? null
+	);
 	const isSoloPlanVm = $derived(subscriptionTierVm === 'SOLO');
 	const currentPlanLabel = $derived(tierDisplayName(subscriptionTierVm ?? 'FREE'));
 	const creatingWorkspace = $derived(
@@ -666,7 +672,7 @@
 				>
 					<p class="text-base-content/90">
 						Your Solo plan includes one workspace and one team member. Upgrade to add more workspaces,
-						invite collaborators, and unlock higher limits.
+						invite collaborators, and unlock unlimited posts per month limit.
 					</p>
 					{#snippet actions()}
 						<Button
@@ -765,6 +771,9 @@
 			status={postKanbanStatus}
 			error={postKanbanError}
 			movingPostGroup={postKanbanMovingPostGroup}
+			postsUsedThisMonth={postsUsedThisMonthVm}
+			allowedPostsPerMonth={allowedPostsPerMonthVm}
+			billingHref={accountBillingHref}
 			calendarHref={calendarPath}
 			onGroupFilterChange={(next) => postKanbanBoard.setGroupFilter(next)}
 			onSocialPlatformFilterChange={(next) => postKanbanBoard.setSocialPlatformFilter(next)}

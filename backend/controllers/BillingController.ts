@@ -2,11 +2,13 @@ import type { NextFunction, Request, Response } from "express";
 import {
     DEFAULT_MEDIA_STORAGE_QUOTA_BYTES,
     pricing,
+    UNLIMITED_POSTS_PER_MONTH,
     type PaidSubscriptionTier,
     type SubscriptionTier,
 } from "openquok-common";
 import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
 import type { SubscriptionService } from "../services/SubscriptionService";
+import type { PermissionsService } from "../services/PermissionsService";
 import type { StripeService } from "../services/StripeService";
 import type {
     OrganizationSubscriptionRow,
@@ -22,6 +24,7 @@ import { logger } from "../utils/Logger";
 export class BillingController {
     constructor(
         private readonly subscriptionService: SubscriptionService,
+        private readonly permissionsService: PermissionsService,
         private readonly stripeService: StripeService,
         private readonly subscriptionRepository: SubscriptionRepository,
         private readonly emailService: EmailService
@@ -429,6 +432,22 @@ export class BillingController {
             });
         }
 
+        let posts: { used: number; limit: number | null };
+        try {
+            posts = await this.permissionsService.getPostsPerMonthUsage(organizationId, authUserId);
+        } catch (error) {
+            logger.warn({
+                msg: "buildCurrentBillingData: posts usage unavailable",
+                organizationId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+            const cap = limits.posts_per_month;
+            posts = {
+                used: 0,
+                limit: cap >= UNLIMITED_POSTS_PER_MONTH ? null : cap,
+            };
+        }
+
         return {
             tier,
             billingEnabled: this.subscriptionService.billingEnabled(),
@@ -444,6 +463,7 @@ export class BillingController {
                 publicApi: limits.public_api,
             },
             drive,
+            posts,
             billing,
         };
     }

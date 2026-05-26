@@ -29,6 +29,8 @@
 		onNoteChange: (postId: string, note: string) => void;
 		onOpenPostActions?: (payload: { postGroup: string; postId: string }) => void;
 		onEditPost?: (postGroup: string) => void;
+		/** When true, draft → scheduled drops are blocked (monthly post cap). */
+		postsLimitFull?: boolean;
 	};
 
 	let {
@@ -46,7 +48,8 @@
 		onToggleReviewed,
 		onNoteChange,
 		onOpenPostActions,
-		onEditPost
+		onEditPost,
+		postsLimitFull = false
 	}: Props = $props();
 
 	let pageIndex = $state(0);
@@ -76,7 +79,9 @@
 			? 'Published posts stay in this column'
 			: columnId === 'draft'
 				? 'Drop here to move back to draft'
-				: 'Drop here to schedule'
+				: postsLimitFull
+					? 'Monthly post limit reached — upgrade to schedule more'
+					: 'Drop here to schedule'
 	);
 
 	$effect(() => {
@@ -115,6 +120,7 @@
 		{columnId}
 		{isDragOver}
 		{activeDrag}
+		{postsLimitFull}
 		bind:viewportRef={scrollViewport}
 		{onDragOverColumn}
 		{onDropOnColumn}

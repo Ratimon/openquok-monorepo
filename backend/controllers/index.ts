@@ -44,6 +44,7 @@ import {
     oauthService,
     mediaService,
     subscriptionService,
+    permissionsService,
     stripeService,
     trackService,
     signatureService,
@@ -88,6 +89,7 @@ export const mediaController = new MediaController(
 );
 export const billingController = new BillingController(
     subscriptionService,
+    permissionsService,
     stripeService,
     subscriptionRepository,
     emailService

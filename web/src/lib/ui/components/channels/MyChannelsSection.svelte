@@ -7,6 +7,7 @@
 	} from '$lib/channels';
 	import type { HomeChannelsGridFilterBuilderPresenter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
 	import type { HomeChannelsGridTablePresenter } from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
+	import type { ChannelsGridActions, ChannelsGridLimitContext } from '$lib/ui/components/channels/channelsGridContext';
 
 	import { browser } from '$app/environment';
 	import { setContext } from 'svelte';
@@ -25,8 +26,6 @@
 	import {
 		channelsGridActionsKey,
 		channelsGridLimitKey,
-		type ChannelsGridActions,
-		type ChannelsGridLimitContext
 	} from '$lib/ui/components/channels/channelsGridContext';
 
 	type ListStatus = 'idle' | 'loading' | 'ready' | 'error';

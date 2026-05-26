@@ -1,27 +1,35 @@
 <script lang="ts">
-	import type { PaidSubscriptionTier } from 'openquok-common';
+	import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
 
 	import { onMount } from 'svelte';
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 
+	import { icons } from '$data/icons';
 	import { ConversionTrackEvent, trackConversion } from '$lib/product-analytics';
+	import { getRootPathAccount, protectedBillingPagePresenter } from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
-	import { protectedBillingPagePresenter } from '$lib/area-protected';
+	import { route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 	import { formatSubscriptionCancelDate } from '$lib/ui/helpers/formatters';
 
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import {
 		BillingCancelFeedbackDialog,
 		BillingCancelRetentionDialog,
 		BillingFaq,
+		BillingPeriodToggle,
 		BillingPlansSection,
 		FinishTrial
 	} from '$lib/ui/components/billing';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 
 	const pagePresenter = protectedBillingPagePresenter;
+
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountPath = route(rootPathAccount);
 
 	const organizationId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 	const checkoutId = $derived(page.url.searchParams.get('checkout'));
@@ -189,83 +197,123 @@
 </script>
 
 <div class="flex flex-1 flex-col gap-4 p-5">
-	{#if pagePresenter.loading}
-		<div class="flex justify-center py-16">
-			<span class="loading loading-spinner loading-lg text-primary"></span>
-		</div>
-	{:else if !organizationId}
-		<div
-			class="flex flex-col gap-2 rounded-lg border border-base-300 bg-base-100 p-6 text-sm text-base-content/80"
-			role="status"
-		>
-			<p class="font-medium text-base-content">Select a workspace</p>
-			<p>Choose a workspace from the header switcher to view plans, manage billing, and checkout.</p>
-		</div>
-	{:else}
-		{#if !checkoutEnabled}
-			<div class="alert alert-info">
-				<span>
-					Stripe billing is not configured for this environment. Set backend <code>STRIPE_*</code>
-					keys and web <code>VITE_PUBLIC_STRIPE_PRICE_ID_*</code> variables to enable checkout. Plans
-					below are shown for reference only.
-				</span>
+	<div class="space-y-6 rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
+		<div class="flex flex-wrap items-center justify-between gap-3">
+			<div class="space-y-1">
+				<div class="flex items-center gap-3">
+					<AbstractIcon
+						name={icons.CreditCard.name}
+						class="text-primary size-8 shrink-0"
+						width="32"
+						height="32"
+					/>
+					<h1 class="text-2xl font-bold text-base-content">
+						Plans
+					</h1>
+				</div>
+				<p class="text-sm text-base-content/70">
+					Compare plans, manage your subscription, and update billing for this workspace.
+				</p>
 			</div>
-		{/if}
-
-		<BillingPlansSection
-			plansVm={pagePresenter.plansVm}
-			bind:period
-			{currentTier}
-			{subscriptionPeriod}
-			{cancelAt}
-			{hasActiveSubscription}
-			{hasSubscriptionRecord}
-			{checkoutEnabled}
-			{checkoutBusy}
-			{allowTrial}
-			{userOnFreeTier}
-			previewProrate={(tier, billingPeriod) =>
-				pagePresenter.previewProration(tier, billingPeriod)}
-			onSubscribe={requestSubscribe}
-			onReactivate={() => void pagePresenter.reactivateSubscription()}
-			onCancelSubscription={startCancelSubscription}
-		/>
-
-		{#if checkoutEnabled && hasSubscriptionRecord}
-			<div class="mt-5 flex flex-wrap justify-center gap-2.5">
-				{#if pagePresenter.currentVm?.billing?.hasStripeCustomer}
-					<Button
-						variant="primary"
-						size="default"
-						disabled={checkoutBusy}
-						onclick={() => void pagePresenter.openPortal()}
-					>
-						Update payment method / invoices history
-					</Button>
-				{/if}
-				{#if canCancelSubscription}
-					<Button
-						variant="red"
-						size="default"
-						disabled={checkoutBusy}
-						onclick={startCancelSubscription}
-					>
-						Cancel subscription
-					</Button>
-				{/if}
+			<div class="flex items-center gap-2">
+				<Button type="button" variant="outline" href={accountPath}>
+					<AbstractIcon name={icons.ArrowLeft.name} class="size-4" width="16" height="16" />
+					Back to home
+				</Button>
 			</div>
-		{/if}
+		</div>
 
-		{#if cancelAt}
-			<p class="text-center text-sm text-base-content/70">
-				Your subscription will be canceled at {formatSubscriptionCancelDate(cancelAt)}.
-				<br />
-				You will not be charged again after that date.
-			</p>
-		{/if}
+		{#if pagePresenter.loading}
+			<div class="flex justify-center py-16">
+				<span class="loading loading-spinner loading-lg text-primary"></span>
+			</div>
+		{:else if !organizationId}
+			<div
+				class="flex flex-col gap-2 rounded-lg border border-base-300 bg-base-200/30 p-4 text-sm text-base-content/80"
+				role="status"
+			>
+				<p class="font-medium text-base-content">Select a workspace</p>
+				<p>
+					Choose a workspace from the header switcher to view plans, manage billing, and checkout.
+				</p>
+			</div>
+		{:else}
+			{#if !checkoutEnabled}
+				<div class="alert alert-info">
+					<span>
+						Stripe billing is not configured for this environment. Set backend <code>STRIPE_*</code>
+						keys and web <code>VITE_PUBLIC_STRIPE_PRICE_ID_*</code> variables to enable checkout.
+						Plans below are shown for reference only.
+					</span>
+				</div>
+			{/if}
 
-		<BillingFaq {allowTrial} />
-	{/if}
+			<div class="flex flex-col gap-4">
+				<div class="flex justify-end max-lg:justify-stretch">
+					<BillingPeriodToggle
+						{period}
+						onPeriodChange={(next: SubscriptionPeriod) => {
+							period = next;
+						}}
+					/>
+				</div>
+
+				<BillingPlansSection
+					plansVm={pagePresenter.plansVm}
+					bind:period
+					{currentTier}
+					{subscriptionPeriod}
+					{cancelAt}
+					{hasActiveSubscription}
+					{hasSubscriptionRecord}
+					{checkoutEnabled}
+					{checkoutBusy}
+					{allowTrial}
+					{userOnFreeTier}
+					previewProrate={(tier, billingPeriod) =>
+						pagePresenter.previewProration(tier, billingPeriod)}
+					onSubscribe={requestSubscribe}
+					onReactivate={() => void pagePresenter.reactivateSubscription()}
+					onCancelSubscription={startCancelSubscription}
+				/>
+			</div>
+
+			{#if checkoutEnabled && hasSubscriptionRecord}
+				<div class="flex flex-wrap justify-center gap-2.5">
+					{#if pagePresenter.currentVm?.billing?.hasStripeCustomer}
+						<Button
+							variant="primary"
+							size="default"
+							disabled={checkoutBusy}
+							onclick={() => void pagePresenter.openPortal()}
+						>
+							Update payment method / invoices history
+						</Button>
+					{/if}
+					{#if canCancelSubscription}
+						<Button
+							variant="red"
+							size="default"
+							disabled={checkoutBusy}
+							onclick={startCancelSubscription}
+						>
+							Cancel subscription
+						</Button>
+					{/if}
+				</div>
+			{/if}
+
+			{#if cancelAt}
+				<p class="text-center text-sm text-base-content/70">
+					Your subscription will be canceled at {formatSubscriptionCancelDate(cancelAt)}.
+					<br />
+					You will not be charged again after that date.
+				</p>
+			{/if}
+
+			<BillingFaq {allowTrial} />
+		{/if}
+	</div>
 
 	{#if showFinishTrial}
 		<FinishTrial

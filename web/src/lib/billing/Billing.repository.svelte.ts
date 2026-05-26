@@ -66,6 +66,7 @@ export interface BillingCurrentProgrammerModel {
 	tier: SubscriptionTier;
 	subscription: BillingSubscriptionProgrammerModel | null;
 	drive: { used: number; total: number };
+	posts: { used: number; limit: number | null };
 	limits: {
 		mediaStorageBytesPerWorkspace: number;
 		channelPerWorkspace: number;
@@ -94,6 +95,7 @@ interface BillingCurrentApiData {
 	tier: SubscriptionTier;
 	subscription: Record<string, unknown> | null;
 	drive: BillingCurrentProgrammerModel['drive'];
+	posts?: BillingCurrentProgrammerModel['posts'];
 	limits: BillingCurrentProgrammerModel['limits'];
 	billing: BillingCurrentProgrammerModel['billing'];
 	billingEnabled?: boolean;
@@ -163,10 +165,15 @@ export class BillingRepository {
 
 		if (ok && currentDto?.data) {
 			const subscription = mapBillingSubscription(currentDto.data.subscription);
+			const postsCap = currentDto.data.limits?.postsPerMonth ?? 0;
 			return {
 				tier: currentDto.data.tier,
 				subscription,
 				drive: currentDto.data.drive,
+				posts: currentDto.data.posts ?? {
+					used: 0,
+					limit: postsCap >= UNLIMITED_POSTS_PER_MONTH ? null : postsCap
+				},
 				limits: currentDto.data.limits,
 				billing: currentDto.data.billing,
 				billingEnabled: currentDto.data.billingEnabled ?? false

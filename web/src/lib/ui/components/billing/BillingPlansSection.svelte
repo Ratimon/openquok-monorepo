@@ -2,7 +2,6 @@
 	import type { BillingPlanViewModel } from '$lib/billing';
 	import type { PaidSubscriptionTier, SubscriptionPeriod, SubscriptionTier } from 'openquok-common';
 
-	import BillingPeriodToggle from '$lib/ui/components/billing/BillingPeriodToggle.svelte';
 	import BillingPlanCard from '$lib/ui/components/billing/BillingPlanCard.svelte';
 
 	type Props = {
@@ -51,36 +50,24 @@
 	});
 </script>
 
-<div class="flex flex-col gap-4">
-	<div class="flex flex-row items-center gap-4 max-lg:flex-col max-lg:items-stretch">
-		<div class="flex-1 text-xl font-semibold">Plans</div>
-		<BillingPeriodToggle
+<div class="flex gap-4 max-lg:flex-col max-lg:text-center">
+	{#each plansVm as planVm (planVm.tier)}
+		<BillingPlanCard
+			{planVm}
 			{period}
-			onPeriodChange={(next: SubscriptionPeriod) => {
-				period = next;
-			}}
+			{currentTier}
+			{currentPackage}
+			{cancelAt}
+			{hasActiveSubscription}
+			{hasSubscriptionRecord}
+			{checkoutEnabled}
+			{checkoutBusy}
+			{allowTrial}
+			{userOnFreeTier}
+			{previewProrate}
+			{onSubscribe}
+			{onReactivate}
+			{onCancelSubscription}
 		/>
-	</div>
-
-	<div class="flex gap-4 max-lg:flex-col max-lg:text-center">
-		{#each plansVm as planVm (planVm.tier)}
-			<BillingPlanCard
-				{planVm}
-				{period}
-				{currentTier}
-				{currentPackage}
-				{cancelAt}
-				{hasActiveSubscription}
-				{hasSubscriptionRecord}
-				{checkoutEnabled}
-				{checkoutBusy}
-				{allowTrial}
-				{userOnFreeTier}
-				{previewProrate}
-				{onSubscribe}
-				{onReactivate}
-				{onCancelSubscription}
-			/>
-		{/each}
-	</div>
+	{/each}
 </div>

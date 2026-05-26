@@ -83,7 +83,8 @@
 			<section class="flex flex-col gap-2">
 				{#if !topic}
 					<h1 class="mb-8 text-3xl font-bold">
-						{TOPIC_NOT_FOUND}</h1>
+						{TOPIC_NOT_FOUND}
+					</h1>
 				{:else}
 					<div class="flex w-full flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 						<div>

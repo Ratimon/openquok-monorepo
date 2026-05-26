@@ -31,15 +31,6 @@
 			page.data?.authStatus === 'checking'
 	);
 
-	/** True until auth is known and the OAuth app metadata request has finished. */
-	const isPreparing = $derived(
-		Boolean(clientId) &&
-			responseType === 'code' &&
-			!errorMessage &&
-			!app &&
-			(authChecking || loading)
-	);
-
 	type AuthorizeGetResponse = {
 		app: {
 			name: string;
@@ -56,6 +47,15 @@
 	let errorMessage = $state(null as string | null);
 	let app = $state(null as AuthorizeGetResponse['app'] | null);
 	let organizationId = $state('');
+
+	/** True until auth is known and the OAuth app metadata request has finished. */
+	const isPreparing = $derived(
+		Boolean(clientId) &&
+			responseType === 'code' &&
+			!errorMessage &&
+			!app &&
+			(authChecking || loading)
+	);
 
 	$effect(() => {
 		// Default org selection: current workspace if set and still in the loaded list.

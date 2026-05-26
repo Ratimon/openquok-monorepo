@@ -210,6 +210,37 @@ export class PermissionsService {
         }
     }
 
+    /**
+     * Scheduled-post usage for the current billing month (`QUEUE` + `PUBLISHED` since period start).
+     * `limit` is null when billing is off or the plan has unlimited posts per month.
+     */
+    async getPostsPerMonthUsage(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<{ used: number; limit: number | null }> {
+        if (!this.subscriptionService.billingEnabled()) {
+            return { used: 0, limit: null };
+        }
+
+        const { limits, subscription } = await this.getTierAndLimits(organizationId, authUserId);
+        const cap = limits.posts_per_month;
+        if (cap >= UNLIMITED_POSTS_PER_MONTH) {
+            return { used: 0, limit: null };
+        }
+
+        if (cap < 1) {
+            return { used: 0, limit: 0 };
+        }
+
+        const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
+        const periodStart = this.postsBillingPeriodStart(
+            subscription,
+            organization?.created_at ?? new Date().toISOString()
+        );
+        const used = await this.postsRepository.countPostsFromDay(organizationId, periodStart);
+        return { used, limit: cap };
+    }
+
     /** Before creating a pending email invite — members + pending invites must stay under the seat cap. */
     async assertTeamInviteCapacity(organizationId: string, authUserId?: string): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
