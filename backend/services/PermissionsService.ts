@@ -241,6 +241,36 @@ export class PermissionsService {
         return { used, limit: cap };
     }
 
+    /**
+     * Workspace seat usage for UI (`active members + pending invites` vs `team_members_per_workspace`).
+     * `limit` is null when billing is off or the plan has unlimited seats per workspace.
+     */
+    async getTeamMembersPerWorkspaceUsage(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<{ used: number; limit: number | null }> {
+        if (!this.subscriptionService.billingEnabled()) {
+            return { used: 0, limit: null };
+        }
+
+        const { limits } = await this.getTierAndLimits(organizationId, authUserId);
+        const cap = limits.team_members_per_workspace;
+        if (cap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE) {
+            return { used: 0, limit: null };
+        }
+
+        if (cap < 1) {
+            return { used: 0, limit: 0 };
+        }
+
+        const [memberCounts, pendingInvites] = await Promise.all([
+            this.organizationRepository.getMemberCounts([organizationId]),
+            this.organizationRepository.countPendingInvitesByOrganization(organizationId),
+        ]);
+        const members = memberCounts[organizationId] ?? 0;
+        return { used: members + pendingInvites, limit: cap };
+    }
+
     /** Before creating a pending email invite — members + pending invites must stay under the seat cap. */
     async assertTeamInviteCapacity(organizationId: string, authUserId?: string): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;

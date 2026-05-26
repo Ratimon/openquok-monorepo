@@ -10,9 +10,15 @@
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
 
+	import { getRootPathAccount } from '$lib/area-protected';
+	import { firstBillingGatePresenter } from '$lib/billing';
+	import { route, url } from '$lib/utils/path';
+
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
+	import TeamMembersLimitUpgradeDialog from '$lib/ui/components/workspaces/TeamMembersLimitUpgradeDialog.svelte';
 	import UpdateWorkspaceModal from '$lib/ui/components/settings/UpdateWorkspaceModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
@@ -73,10 +79,48 @@
 
 	const defaultNewWorkspaceName = 'My Workspace';
 
+	const accountBillingHref = $derived(url(`${route(getRootPathAccount())}/billing`));
+
+	const teamMembersUsed = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.teamMembers?.used ?? 0
+	);
+	const teamMembersLimit = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.teamMembers?.limit ?? null
+	);
+	const teamSeatsUsageLabel = $derived(
+		teamMembersLimit != null ? `${teamMembersUsed}/${teamMembersLimit}` : null
+	);
+	const showTeamSeatsLimitSection = $derived(teamMembersLimit != null);
+	const isTeamSeatsLimitFull = $derived(
+		teamMembersLimit != null && teamMembersUsed >= teamMembersLimit
+	);
+	const showTeamSeatsUpgradeCta = $derived(isTeamSeatsLimitFull && Boolean(accountBillingHref));
+
 	let createDialogOpen = $state(false);
 	let inviteDialogOpen = $state(false);
 	let editWorkspaceModalOpen = $state(false);
 	let editingWorkspaceId = $state<string | null>(null);
+	let teamMembersUpgradeDialogOpen = $state(false);
+
+	function openTeamMembersUpgradeDialog() {
+		teamMembersUpgradeDialogOpen = true;
+	}
+
+	function adjustTeamMembersUsed(delta: number) {
+		if (!delta) return;
+		const pricingVm = firstBillingGatePresenter.pricingVm;
+		if (!pricingVm?.currentVm?.teamMembers || pricingVm.currentVm.teamMembers.limit == null) return;
+
+		const nextUsed = Math.max(0, pricingVm.currentVm.teamMembers.used + delta);
+		firstBillingGatePresenter.pricingVm = {
+			plansVm: pricingVm.plansVm,
+			billingEnabled: pricingVm.billingEnabled,
+			currentVm: {
+				...pricingVm.currentVm,
+				teamMembers: { ...pricingVm.currentVm.teamMembers, used: nextUsed }
+			}
+		};
+	}
 
 	const createWorkspaceForm = createForm(() => ({
 		defaultValues: {
@@ -138,6 +182,7 @@
 			});
 			if (result.success) {
 				inviteDialogOpen = false;
+				adjustTeamMembersUsed(1);
 			} else {
 				toast.error(result.message);
 			}
@@ -182,6 +227,10 @@
 
 	function openInviteDialog() {
 		if (!canInviteInCurrentWorkspace) return;
+		if (isTeamSeatsLimitFull) {
+			openTeamMembersUpgradeDialog();
+			return;
+		}
 		inviteMemberForm.setFieldValue('email', '');
 		inviteMemberForm.setFieldValue('role', 'user');
 		inviteMemberForm.setFieldValue('sendEmail', true);
@@ -380,6 +429,37 @@
 		<p class="mt-1 text-sm text-base-content/70">
 			Invite your assistant or team member to manage your account
 		</p>
+
+		{#if showTeamSeatsLimitSection && teamSeatsUsageLabel}
+			<div class="mt-4">
+				<HomeAccountNoticeBanner
+					iconName={isTeamSeatsLimitFull ? icons.Sparkles.name : icons.Info.name}
+					tone={isTeamSeatsLimitFull ? 'upgrade' : 'neutral'}
+					dismissible={false}
+				>
+					<p class="text-base-content/90">
+						{#if isTeamSeatsLimitFull}
+							This workspace has reached its team member limit
+							<span class="font-medium tabular-nums">({teamSeatsUsageLabel})</span>. Upgrade to
+							invite more collaborators, or remove members and pending invites to free seats.
+						{:else}
+							Workspace team seats:
+							<span class="font-medium tabular-nums">{teamSeatsUsageLabel}</span>
+							used (members and pending invites count toward your plan limit).
+						{/if}
+					</p>
+					{#snippet actions()}
+						{#if showTeamSeatsUpgradeCta}
+							<Button href={accountBillingHref} variant="secondary" size="sm" class="gap-1.5">
+								<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+								Upgrade plan
+							</Button>
+						{/if}
+					{/snippet}
+				</HomeAccountNoticeBanner>
+			</div>
+		{/if}
+
 		<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-4 space-y-4">
 			{#if loadingTeam}
 				<p class="text-sm text-base-content/70">
@@ -403,8 +483,25 @@
 			{/if}
 
 			{#if canInviteInCurrentWorkspace}
-				<Button type="button" onclick={openInviteDialog} disabled={loadingTeam || inviting}>
-					{inviting ? 'Sending…' : 'Add another member'}
+				<Button
+					class="gap-1.5"
+					variant={isTeamSeatsLimitFull ? 'warning' : 'primary'}
+					type="button"
+					onclick={openInviteDialog}
+					disabled={loadingTeam || inviting}
+				>
+					{#if isTeamSeatsLimitFull}
+						<AbstractIcon
+							name={icons.Lock.name}
+							class="size-4"
+							width="16"
+							height="16"
+							focusable="false"
+						/>
+						Member limit reached
+					{:else}
+						{inviting ? 'Sending…' : 'Add another member'}
+					{/if}
 				</Button>
 			{:else}
 				<p class="text-xs text-base-content/60">
@@ -641,4 +738,9 @@
 	bind:open={editWorkspaceModalOpen}
 	form={updateWorkspaceForm}
 	onSubmit={handleUpdateWorkspaceFormSubmit}
+/>
+
+<TeamMembersLimitUpgradeDialog
+	bind:open={teamMembersUpgradeDialogOpen}
+	upgradeHref={accountBillingHref}
 />

@@ -1,6 +1,6 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import type { PaidSubscriptionTier, SubscriptionPeriod, SubscriptionTier } from 'openquok-common';
-import { UNLIMITED_POSTS_PER_MONTH } from 'openquok-common';
+import { UNLIMITED_POSTS_PER_MONTH, UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE } from 'openquok-common';
 
 export interface BillingConfig {
 	endpoints: {
@@ -67,6 +67,7 @@ export interface BillingCurrentProgrammerModel {
 	subscription: BillingSubscriptionProgrammerModel | null;
 	drive: { used: number; total: number };
 	posts: { used: number; limit: number | null };
+	teamMembers: { used: number; limit: number | null };
 	limits: {
 		mediaStorageBytesPerWorkspace: number;
 		channelPerWorkspace: number;
@@ -96,6 +97,7 @@ interface BillingCurrentApiData {
 	subscription: Record<string, unknown> | null;
 	drive: BillingCurrentProgrammerModel['drive'];
 	posts?: BillingCurrentProgrammerModel['posts'];
+	teamMembers?: BillingCurrentProgrammerModel['teamMembers'];
 	limits: BillingCurrentProgrammerModel['limits'];
 	billing: BillingCurrentProgrammerModel['billing'];
 	billingEnabled?: boolean;
@@ -166,6 +168,7 @@ export class BillingRepository {
 		if (ok && currentDto?.data) {
 			const subscription = mapBillingSubscription(currentDto.data.subscription);
 			const postsCap = currentDto.data.limits?.postsPerMonth ?? 0;
+			const teamCap = currentDto.data.limits?.teamMembersPerWorkspace ?? 0;
 			return {
 				tier: currentDto.data.tier,
 				subscription,
@@ -173,6 +176,10 @@ export class BillingRepository {
 				posts: currentDto.data.posts ?? {
 					used: 0,
 					limit: postsCap >= UNLIMITED_POSTS_PER_MONTH ? null : postsCap
+				},
+				teamMembers: currentDto.data.teamMembers ?? {
+					used: 0,
+					limit: teamCap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE ? null : teamCap
 				},
 				limits: currentDto.data.limits,
 				billing: currentDto.data.billing,

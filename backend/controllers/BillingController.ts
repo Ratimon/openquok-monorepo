@@ -3,6 +3,7 @@ import {
     DEFAULT_MEDIA_STORAGE_QUOTA_BYTES,
     pricing,
     UNLIMITED_POSTS_PER_MONTH,
+    UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
     type PaidSubscriptionTier,
     type SubscriptionTier,
 } from "openquok-common";
@@ -448,6 +449,25 @@ export class BillingController {
             };
         }
 
+        let teamMembers: { used: number; limit: number | null };
+        try {
+            teamMembers = await this.permissionsService.getTeamMembersPerWorkspaceUsage(
+                organizationId,
+                authUserId
+            );
+        } catch (error) {
+            logger.warn({
+                msg: "buildCurrentBillingData: team member usage unavailable",
+                organizationId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+            const cap = limits.team_members_per_workspace;
+            teamMembers = {
+                used: 0,
+                limit: cap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE ? null : cap,
+            };
+        }
+
         return {
             tier,
             billingEnabled: this.subscriptionService.billingEnabled(),
@@ -464,6 +484,7 @@ export class BillingController {
             },
             drive,
             posts,
+            teamMembers,
             billing,
         };
     }
