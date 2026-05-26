@@ -8,8 +8,9 @@
 
 	import { getMenuOptions, type IFileMenuOption } from '@svar-ui/svelte-filemanager';
 
-	import { mediaLibraryMediaModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
+	import { getRootPathAccount, mediaLibraryMediaModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
 	import { formatBytes, mediaUploadLimitsHint, normalizeMediaVirtualPath } from '$lib/medias';
+	import { route, url } from '$lib/utils/path';
 	import { createAccountMediaUppy } from '$lib/medias/utils/accountMediaUppy';
 	import { validateFilesForMediaUpload } from '$lib/medias/utils/mediaUploadRestrictions';
 	import { authenticationRepository } from '$lib/user-auth';
@@ -27,6 +28,9 @@
 	import MediaLibraryUploadOverlay from '$lib/ui/components/media/MediaLibraryUploadOverlay.svelte';
 	import MediaSettings from '$lib/ui/components/media/MediaSettings.svelte';
 	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
+	import StorageLimitUpgradeDialog from '$lib/ui/components/media/StorageLimitUpgradeDialog.svelte';
+	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import PaginationComposite from '$lib/ui/pagination/pagination-composite.svelte';
 
 	interface MediaLibraryPageProps {
@@ -34,6 +38,8 @@
 	}
 
 	let { data }: MediaLibraryPageProps = $props();
+
+	const accountBillingHref = $derived(url(`${route(getRootPathAccount())}/billing`));
 
 	const ACCEPTED_MEDIA_TYPES = ['image/', 'video/'];
 
@@ -66,6 +72,30 @@
 		libraryLayout === 'gallery' ? 'cards' : libraryLayout
 	);
 
+	const storageQuotaBytes = $derived(drive.total >= 1 ? drive.total : null);
+	const storageUsageLabel = $derived(
+		storageQuotaBytes != null ? `${formatBytes(drive.used)} / ${formatBytes(storageQuotaBytes)}` : null
+	);
+	const showStorageLimitSection = $derived(storageQuotaBytes != null);
+	const isStorageLimitFull = $derived(
+		storageQuotaBytes != null && drive.used >= storageQuotaBytes
+	);
+	const showStorageUpgradeCta = $derived(isStorageLimitFull && Boolean(accountBillingHref));
+
+	let storageUpgradeDialogOpen = $state(false);
+
+	function openStorageUpgradeDialog() {
+		storageUpgradeDialogOpen = true;
+	}
+
+	function tryMediaUpload(run: () => void) {
+		if (isStorageLimitFull) {
+			openStorageUpgradeDialog();
+			return;
+		}
+		run();
+	}
+
 	let uppy = $state.raw<ReturnType<typeof createAccountMediaUppy> | null>(null);
 
 	function isSupportedUpload(file: File): boolean {
@@ -81,6 +111,10 @@
 	}
 
 	function queueFilesForUpload(fileList: FileList | null): void {
+		tryMediaUpload(() => queueFilesForUploadInner(fileList));
+	}
+
+	function queueFilesForUploadInner(fileList: FileList | null): void {
 		if (!fileList?.length || !uppy || uploadBusy) return;
 		if (!organizationId) {
 			toast.error('Select a workspace first.');
@@ -113,7 +147,7 @@
 	}
 
 	function onDesignAdded(_items: PostMediaProgrammerModel[]): void {
-		p.onDesignAdded();
+		tryMediaUpload(() => p.onDesignAdded());
 	}
 
 	function buildMenuOptions(
@@ -239,6 +273,13 @@
 			const failed = result.failed ?? [];
 			const ok = successful.length;
 			if (ok > 0) {
+				const addedBytes = successful.reduce(
+					(sum, file) => sum + (typeof file.size === 'number' ? file.size : 0),
+					0
+				);
+				if (addedBytes > 0) {
+					p.adjustDriveUsedBytes(addedBytes);
+				}
 				p.reloadFromFirstPage();
 				const destinationPath =
 					(successful[0]?.meta as { virtualPath?: string } | undefined)?.virtualPath ??
@@ -317,12 +358,44 @@
 				<MediaLibraryToolbar
 					{organizationId}
 					{uploadBusy}
+					storageLimitFull={isStorageLimitFull}
+					onStorageLimitBlocked={openStorageUpgradeDialog}
 					onFilesSelected={queueFilesForUpload}
 					onDesignClick={() => (designOpen = true)}
 					onImported={() => p.reloadFromFirstPage()}
 				/>
 			</div>
 		</div>
+
+		{#if showStorageLimitSection && storageUsageLabel && organizationId}
+			<div class="mb-5">
+			<HomeAccountNoticeBanner
+				iconName={isStorageLimitFull ? icons.Sparkles.name : icons.Info.name}
+				tone={isStorageLimitFull ? 'upgrade' : 'neutral'}
+				dismissible={false}
+			>
+				<p class="text-base-content/90">
+					{#if isStorageLimitFull}
+						This workspace has reached its media storage limit
+						<span class="font-medium tabular-nums">({storageUsageLabel})</span>. Upgrade for more
+						space, or delete files to free storage.
+					{:else}
+						Workspace media storage:
+						<span class="font-medium tabular-nums">{storageUsageLabel}</span>
+						used (per workspace on your plan).
+					{/if}
+				</p>
+				{#snippet actions()}
+					{#if showStorageUpgradeCta}
+						<Button href={accountBillingHref} variant="secondary" size="sm" class="gap-1.5">
+							<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+							Upgrade plan
+						</Button>
+					{/if}
+				{/snippet}
+			</HomeAccountNoticeBanner>
+			</div>
+		{/if}
 
 		{#if !organizationId}
 			<p class="text-base-content/70 rounded-xl border border-dashed border-base-300/80 bg-base-200/30 px-4 py-8 text-center text-sm">
@@ -391,7 +464,7 @@
 		mediaLibraryMediaModalPresenter
 	)}
 	bind:open={designOpen}
-	disabled={uploadBusy || !organizationId}
+	disabled={uploadBusy || !organizationId || isStorageLimitFull}
 	uploadUid={organizationId}
 	useMediaLabel="Save this for later"
 	onAdd={onDesignAdded}
@@ -406,3 +479,5 @@
 	onSaved={() => p.reloadFromFirstPage()}
 	onClose={() => p.clearSettingsMediaVm()}
 />
+
+<StorageLimitUpgradeDialog bind:open={storageUpgradeDialogOpen} upgradeHref={accountBillingHref} />

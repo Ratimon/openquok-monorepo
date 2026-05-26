@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { icons } from '$data/icons';
 
+	import { cn } from '$lib/ui/helpers/common';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DeviceMediaAttachModal from '$lib/ui/components/media/DeviceMediaAttachModal.svelte';
 	import GlyphDesignEditor from '$lib/ui/components/posts/GlyphDesignEditor.svelte';
@@ -10,12 +11,22 @@
 	type Props = {
 		organizationId: string;
 		uploadBusy: boolean;
+		storageLimitFull?: boolean;
+		onStorageLimitBlocked?: () => void;
 		onFilesSelected: (files: FileList | null) => void;
 		onDesignClick: () => void;
 		onImported: () => void;
 	};
 
-	let { organizationId, uploadBusy, onFilesSelected, onDesignClick, onImported }: Props = $props();
+	let {
+		organizationId,
+		uploadBusy,
+		storageLimitFull = false,
+		onStorageLimitBlocked,
+		onFilesSelected,
+		onDesignClick,
+		onImported
+	}: Props = $props();
 
 	let attachOpen = $state(false);
 
@@ -23,16 +34,47 @@
 		onFilesSelected(files);
 		attachOpen = false;
 	}
+
+	function tryOpenUpload() {
+		if (storageLimitFull) {
+			onStorageLimitBlocked?.();
+			return;
+		}
+		attachOpen = true;
+	}
+
+	function tryOpenDesign() {
+		if (storageLimitFull) {
+			onStorageLimitBlocked?.();
+			return;
+		}
+		onDesignClick();
+	}
 </script>
 
 <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-	<Button type="button" class="gap-2" disabled={uploadBusy} onclick={() => (attachOpen = true)}>
+	<Button
+		type="button"
+		variant={storageLimitFull ? 'outline' : 'primary'}
+		class={cn(
+			'gap-2',
+			storageLimitFull &&
+				'border-warning/35 bg-warning/5 text-warning hover:border-warning/50 hover:bg-warning/10'
+		)}
+		disabled={uploadBusy}
+		onclick={tryOpenUpload}
+	>
 		{#if uploadBusy}
 			<AbstractIcon name={icons.LoaderCircle.name} class="size-4 animate-spin" width="16" height="16" />
 		{:else}
-			<AbstractIcon name={icons.Plus.name} class="size-4" width="16" height="16" />
+			<AbstractIcon
+				name={storageLimitFull ? icons.Lock.name : icons.Plus.name}
+				class="size-4"
+				width="16"
+				height="16"
+			/>
 		{/if}
-		Upload
+		{storageLimitFull ? 'Storage full' : 'Upload'}
 	</Button>
 
 	<DeviceMediaAttachModal
@@ -49,14 +91,19 @@
 	<Button
 		type="button"
 		variant="secondary"
-		class="gap-2"
+		class={cn('gap-2', storageLimitFull && 'opacity-60')}
 		disabled={uploadBusy || !organizationId}
-		onclick={onDesignClick}
+		onclick={tryOpenDesign}
 	>
 		<span class="inline-flex shrink-0 text-secondary-content">
 			<GlyphDesignEditor badgeSurfaceClass="rounded-sm bg-secondary shadow-none ring-0" />
 		</span>
 		Design
 	</Button>
-	<ThirdPartyMediaLibrary {organizationId} onImported={onImported} />
+	<ThirdPartyMediaLibrary
+		{organizationId}
+		storageLimitFull={storageLimitFull}
+		onStorageLimitBlocked={onStorageLimitBlocked}
+		onImported={onImported}
+	/>
 </div>

@@ -11,14 +11,15 @@
 	import type { MediaLibraryLayout } from '$lib/ui/components/media/MediaFileManagerViewControls.svelte';
 
 	import { mount, onDestroy, tick, unmount } from 'svelte';
-
 	import { mediaFileManagerDisplayNameFromId, parseMediaFileManagerId } from 'openquok-common';
 
-	import { Filemanager, Willow } from '@svar-ui/svelte-filemanager';
-
+	import { formatBytes } from '$lib/medias';
 	import { icons } from '$data/icons';
+
+	import { Filemanager, Willow } from '@svar-ui/svelte-filemanager';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import PaginationComposite from '$lib/ui/pagination/pagination-composite.svelte';
+	import { cn } from '$lib/ui/helpers/common';
 
 	interface MediaFileManagerProps {
 		data: IEntity[];
@@ -56,6 +57,16 @@
 		onOpenFile,
 		onCreateFile
 	}: MediaFileManagerProps = $props();
+
+	const storageQuotaBytes = $derived(drive.total >= 1 ? drive.total : null);
+	const storageUsageLabel = $derived(
+		storageQuotaBytes != null
+			? `${formatBytes(drive.used)} of ${formatBytes(storageQuotaBytes)} used`
+			: null
+	);
+	const isStorageLimitFull = $derived(
+		storageQuotaBytes != null && drive.used >= storageQuotaBytes
+	);
 
 	let fmApi = $state<IApi | null>(null);
 	let hostEl = $state<HTMLDivElement | null>(null);
@@ -540,6 +551,18 @@
 	</Willow>
 	</div>
 
+	{#if storageUsageLabel}
+		<p
+			class={cn(
+				'border-base-300 shrink-0 border-t px-1 pt-2 text-xs tabular-nums',
+				isStorageLimitFull ? 'text-warning' : 'text-base-content/70'
+			)}
+			aria-live="polite"
+		>
+			{storageUsageLabel}
+		</p>
+	{/if}
+
 	{#if showFolderPagination}
 		<PaginationComposite
 			class="mt-4 shrink-0"
@@ -711,13 +734,20 @@
 
 	.media-file-manager-host :global(.wx-toolbar .wx-name),
 	.media-file-manager-host :global(.wx-breadcrumbs .wx-item),
-	.media-file-manager-host :global(.wx-folder .wx-name),
-	.media-file-manager-host :global(.wx-cards .wx-item .wx-name),
-	.media-file-manager-host :global(.wx-info .wx-title),
-	.media-file-manager-host :global(.wx-info .wx-list .wx-name),
-	.media-file-manager-host :global(.wx-info .wx-list .wx-value),
-	.media-file-manager-host :global(.wx-drive p) {
+	.media-file-manager-host :global(.wx-sidebar .wx-tree .wx-folder .wx-name),
+	.media-file-manager-host :global(.wx-sidebar .wx-tree .wx-folder.wx-selected .wx-name),
+	.media-file-manager-host :global(.wx-cards .wx-item .wx-folder-name .wx-type),
+	.media-file-manager-host :global(.wx-cards .wx-item .wx-folder-name .wx-name),
+	.media-file-manager-host :global(.wx-cards .wx-item .wx-file-name .wx-name),
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-title),
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-list .wx-name),
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-list .wx-value) {
 		color: var(--color-base-content);
+	}
+
+	/* SVAR drive footer only (progress + decimal usage text); replaced by our formatBytes footer. */
+	.media-file-manager-host :global(.wx-sidebar .wx-drive) {
+		display: none !important;
 	}
 
 	.media-file-manager-host :global(.wx-cards .wx-item) {
@@ -764,13 +794,26 @@
 		margin-top: 0.5rem;
 	}
 
-	.media-file-manager-host :global(.wx-info) {
+	/*
+	  Layout uses `.wx-info` for the right details pane; card rows also use `.wx-info` for the footer.
+	  Only flex-shrink the details pane — keep card footers at SVAR's fixed height.
+	*/
+	.media-file-manager-host :global(.wx-content > .wx-info) {
 		display: flex;
 		min-height: 0;
 	}
 
+	.media-file-manager-host :global(.wx-cards .wx-item > .wx-info) {
+		display: flex;
+		align-items: center;
+		flex: 0 0 auto;
+		height: 46px;
+		min-height: 46px;
+		padding: 0 6px 3px 10px;
+	}
+
 	/* SVAR uses fixed 60/40 heights + extra padding/margins; switch to flex so metadata is not clipped. */
-	.media-file-manager-host :global(.wx-info > .wx-wrapper) {
+	.media-file-manager-host :global(.wx-content > .wx-info > .wx-wrapper) {
 		display: flex;
 		flex-direction: column;
 		min-height: 0;
@@ -779,7 +822,7 @@
 		overflow-y: auto;
 	}
 
-	.media-file-manager-host :global(.wx-info .wx-preview) {
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-preview) {
 		flex: 0 1 auto;
 		height: auto;
 		min-height: 9rem;
@@ -787,31 +830,32 @@
 		margin-bottom: 0.625rem;
 	}
 
-	.media-file-manager-host :global(.wx-info .wx-preview:has(.wx-icon-wrapper i.wxi-folder)) {
+	.media-file-manager-host
+		:global(.wx-content > .wx-info .wx-preview:has(.wx-icon-wrapper i.wxi-folder)) {
 		min-height: 8rem;
 		max-height: 12rem;
 	}
 
-	.media-file-manager-host :global(.wx-info .wx-info-panel) {
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-info-panel) {
 		flex: 0 0 auto;
 		height: auto;
 		min-height: fit-content;
 	}
 
-	.media-file-manager-host :global(.wx-info .wx-list) {
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-list) {
 		max-height: none;
 		overflow: visible;
 	}
 
-	.media-file-manager-host :global(.wx-info .wx-list .wx-value) {
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-list .wx-value) {
 		overflow-wrap: anywhere;
 	}
 
-	.media-file-manager-host :global(.wx-info .wx-preview .wx-icon-wrapper) {
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-preview .wx-icon-wrapper) {
 		background: color-mix(in oklab, var(--color-primary) 6%, var(--color-base-200));
 	}
 
-	.media-file-manager-host :global(.wx-info .wx-preview .wx-icon-wrapper > i.wxi-folder) {
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-preview .wx-icon-wrapper > i.wxi-folder) {
 		display: none;
 	}
 

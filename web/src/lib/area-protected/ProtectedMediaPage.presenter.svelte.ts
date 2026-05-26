@@ -110,6 +110,17 @@ export class ProtectedMediaPagePresenter {
 		return this.fileManagerApiState;
 	}
 
+	/** Optimistically adjust workspace drive usage shown in the file manager (clamped to quota). */
+	adjustDriveUsedBytes(delta: number): void {
+		if (!delta) return;
+		const { used, total } = this.drive;
+		if (total < 1) return;
+		this.drive = {
+			used: Math.max(0, Math.min(total, used + delta)),
+			total
+		};
+	}
+
 	registerFileManagerApi(api: IApi): void {
 		this.fileManagerApiState = api;
 		this.syncUploadFolderFromApi();

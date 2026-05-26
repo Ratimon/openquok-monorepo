@@ -10,10 +10,13 @@
 
 	type Props = {
 		organizationId: string;
+		storageLimitFull?: boolean;
+		onStorageLimitBlocked?: () => void;
 		onImported?: () => void;
 	};
 
-	let { organizationId, onImported }: Props = $props();
+	let { organizationId, storageLimitFull = false, onStorageLimitBlocked, onImported }: Props =
+		$props();
 
 	let loaded = $state(false);
 	let integrations = $state<ThirdPartyConnectorProgrammerModel[]>([]);
@@ -37,6 +40,10 @@
 	});
 
 	function openDialog(): void {
+		if (storageLimitFull) {
+			onStorageLimitBlocked?.();
+			return;
+		}
 		selected = null;
 		dialogOpen = true;
 	}
