@@ -78,6 +78,7 @@ function createMockOrgRepo(): jest.Mocked<OrganizationRepository> {
         rotateApiKey: jest.fn(),
         insertInvite: jest.fn(),
         findPendingInvitesByEmail: jest.fn(),
+        findPendingInvitesByOrganization: jest.fn(),
         findInviteById: jest.fn(),
         deleteInvite: jest.fn(),
         deleteInvitesByEmailAndOrganization: jest.fn(),
@@ -683,6 +684,89 @@ describe("OrganizationService", () => {
             const service = new OrganizationService(orgRepo, userRepo);
             const result = await service.validateInviteToken(token);
             expect(result).toBeNull();
+        });
+    });
+
+    describe("listSentInvitesForOrganization", () => {
+        const sentInviteRow = {
+            id: inviteId,
+            email: inviteeEmail,
+            organization_id: orgId,
+            role: "user",
+            invited_by_user_id: invitedByUserId,
+            created_at: orgCreatedAt,
+            expires_at: expiresAt,
+        };
+        const sentInviteRow2 = {
+            id: inviteId2,
+            email: invitedEmail,
+            organization_id: orgId,
+            role: "admin",
+            invited_by_user_id: invitedByUserId,
+            created_at: orgCreatedAt,
+            expires_at: futureExpiry,
+        };
+
+        it("returns pending invites when user is a member", async () => {
+            (orgRepo.findMembership as jest.Mock).mockResolvedValue({
+                membership: { ...membershipRow, role: "user" },
+                error: null,
+            });
+            (orgRepo.findPendingInvitesByOrganization as jest.Mock).mockResolvedValue({
+                invites: [sentInviteRow, sentInviteRow2],
+                error: null,
+            });
+            const service = new OrganizationService(orgRepo, userRepo);
+            const result = await service.listSentInvitesForOrganization(authUserId, orgId);
+            expect(result).toHaveLength(2);
+            expect(result[0]).toMatchObject(sentInviteRow);
+            expect(result[1]).toMatchObject(sentInviteRow2);
+            expect(orgRepo.findPendingInvitesByOrganization).toHaveBeenCalledWith(orgId);
+        });
+
+        it("returns empty array when organization has no pending invites", async () => {
+            (orgRepo.findMembership as jest.Mock).mockResolvedValue({
+                membership: membershipRow,
+                error: null,
+            });
+            (orgRepo.findPendingInvitesByOrganization as jest.Mock).mockResolvedValue({
+                invites: [],
+                error: null,
+            });
+            const service = new OrganizationService(orgRepo, userRepo);
+            const result = await service.listSentInvitesForOrganization(authUserId, orgId);
+            expect(result).toEqual([]);
+            expect(orgRepo.findPendingInvitesByOrganization).toHaveBeenCalledWith(orgId);
+        });
+
+        it("throws OrganizationNotFoundError when user is not a member", async () => {
+            (orgRepo.findMembership as jest.Mock).mockResolvedValue({ membership: null, error: null });
+            const service = new OrganizationService(orgRepo, userRepo);
+            await expect(
+                service.listSentInvitesForOrganization(authUserId, orgId)
+            ).rejects.toThrow(/Organization not found/);
+            expect(orgRepo.findPendingInvitesByOrganization).not.toHaveBeenCalled();
+        });
+
+        it("throws OrganizationNotFoundError when membership is disabled", async () => {
+            (orgRepo.findMembership as jest.Mock).mockResolvedValue({
+                membership: { ...membershipRow, disabled: true },
+                error: null,
+            });
+            const service = new OrganizationService(orgRepo, userRepo);
+            await expect(
+                service.listSentInvitesForOrganization(authUserId, orgId)
+            ).rejects.toThrow(/Organization not found/);
+            expect(orgRepo.findPendingInvitesByOrganization).not.toHaveBeenCalled();
+        });
+
+        it("throws UserNotFoundError when auth user has no profile", async () => {
+            (orgRepo.findUserIdByAuthId as jest.Mock).mockResolvedValue({ userId: null, error: null });
+            const service = new OrganizationService(orgRepo, userRepo);
+            await expect(
+                service.listSentInvitesForOrganization(authUserId, orgId)
+            ).rejects.toThrow(/User not found/);
+            expect(orgRepo.findPendingInvitesByOrganization).not.toHaveBeenCalled();
         });
     });
 

@@ -1,5 +1,6 @@
 import type { OrganizationRepository, WorkspaceMembershipRole } from "../repositories/OrganizationRepository";
 import type {
+    OrganizationInviteLike,
     OrganizationLike,
     PendingInviteViewLike,
     UserOrganizationLike,
@@ -132,6 +133,22 @@ export class OrganizationService {
         if (!payload) return null;
         const { organization } = await this.organizationRepository.findOrganizationById(payload.organizationId);
         return organization ? { organizationName: organization.name, workspaceRole: payload.workspaceRole } : null;
+    }
+
+    /** List pending invites sent from a workspace (any member may view). */
+    async listSentInvitesForOrganization(
+        authUserId: string,
+        organizationId: string
+    ): Promise<OrganizationInviteLike[]> {
+        const userId = await this.resolveAuthUserToUserId(authUserId);
+        const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
+        if (!membership || membership.disabled) {
+            throw new OrganizationNotFoundError(organizationId);
+        }
+        const { invites } = await this.organizationRepository.findPendingInvitesByOrganization(
+            organizationId
+        );
+        return invites;
     }
 
     /** List pending workspace invites for the current user (by email). Returns row shape; controller maps to DTO. */

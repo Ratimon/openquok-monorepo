@@ -771,14 +771,19 @@
 		</p>
 	{:else if showPostKanbanBoard}
 		<p class="mt-2 text-base-content/80">
-			Hi! {currentUser?.fullName ? `${currentUser.fullName}, pick` : 'Pick'} up where you left off — move
-			posts through Draft, Scheduled, and Published for your connected channels.
+			Hi!
+			{#if currentUser?.fullName && currentUser?.email?.trim()}
+				{currentUser.fullName} ({currentUser.email.trim()}), pick
+			{:else if currentUser?.fullName}
+				{currentUser.fullName}, pick
+			{:else if currentUser?.email?.trim()}
+				Signed in as {currentUser.email.trim()} — pick
+			{:else}
+				Pick
+			{/if}
+			up where you left off — move posts through Draft, Scheduled, and Published for your connected
+			channels.
 		</p>
-		{#if currentUser?.email?.trim()}
-			<p class="mt-1 text-sm text-base-content/60">
-				{currentUser.email.trim()}
-			</p>
-		{/if}
 	{/if}
 	<MyWorkspacesSection
 		cardsVm={myWorkspacesCardsVm}

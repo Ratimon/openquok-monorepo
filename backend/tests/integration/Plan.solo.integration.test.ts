@@ -167,18 +167,47 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
     itIfInviteSigning(
         "returns error when a SOLO workspace admin tries to invite another member (single seat)",
         async () => {
+            const soloLimits = planLimitsForTier("SOLO");
+            const seatCap = soloLimits.team_members_per_workspace;
+            expect(seatCap).toBe(1);
+
             const payload = userHelper.setupTestUser1();
             const { accessToken } = await signupVerifyAndSignIn(payload);
             const orgId = await firstOrganizationId(accessToken);
             const tierLimitsSpy = stubSoloPlanLimits();
+            const workspaceCookie = [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`];
 
             try {
                 await activateWorkspace(accessToken, orgId);
+
+                const teamBeforeRes = await supertest(app)
+                    .get(`${settingsPath}/team`)
+                    .set("Authorization", `Bearer ${accessToken}`)
+                    .set("Cookie", workspaceCookie);
+                expect(teamBeforeRes.status).toBe(200);
+                expect(teamBeforeRes.body?.data).toHaveLength(seatCap);
+                expect(
+                    (teamBeforeRes.body.data as { email?: string }[]).some(
+                        (m) => m.email?.toLowerCase() === payload.email.toLowerCase()
+                    )
+                ).toBe(true);
+
+                const sentBeforeRes = await supertest(app)
+                    .get(`${settingsPath}/invites/sent`)
+                    .set("Authorization", `Bearer ${accessToken}`)
+                    .set("Cookie", workspaceCookie);
+                expect(sentBeforeRes.status).toBe(200);
+                expect(sentBeforeRes.body?.data ?? []).toHaveLength(0);
+
+                await expect(permissionsService.assertTeamInviteCapacity(orgId)).rejects.toBeInstanceOf(
+                    SubscriptionError
+                );
+
                 const inviteeEmail = `invitee-${uuidv4()}@test.com`.toLowerCase();
                 const res = await supertest(app)
                     .post(`${settingsPath}/team`)
                     .set("Authorization", `Bearer ${accessToken}`)
-                    .set("Cookie", [`${ACTIVE_ORGANIZATION_COOKIE}=${orgId}`])
+                    .set("Cookie", workspaceCookie)
                     .send({
                         email: inviteeEmail,
                         workspaceRole: "user",
@@ -188,6 +217,28 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                 expect(res.status).toBe(402);
                 expect(res.body?.success).toBe(false);
                 expect(res.body?.error?.section).toBe("team_members_per_workspace");
+
+                const sentAfterRes = await supertest(app)
+                    .get(`${settingsPath}/invites/sent`)
+                    .set("Authorization", `Bearer ${accessToken}`)
+                    .set("Cookie", workspaceCookie);
+                expect(sentAfterRes.status).toBe(200);
+                const sentInvites = (sentAfterRes.body?.data ?? []) as { email?: string }[];
+                expect(
+                    sentInvites.some((inv) => inv.email?.toLowerCase() === inviteeEmail)
+                ).toBe(false);
+
+                const teamAfterRes = await supertest(app)
+                    .get(`${settingsPath}/team`)
+                    .set("Authorization", `Bearer ${accessToken}`)
+                    .set("Cookie", workspaceCookie);
+                expect(teamAfterRes.status).toBe(200);
+                expect(teamAfterRes.body?.data).toHaveLength(seatCap);
+                expect(
+                    (teamAfterRes.body.data as { email?: string }[]).some(
+                        (m) => m.email?.toLowerCase() === inviteeEmail
+                    )
+                ).toBe(false);
             } finally {
                 tierLimitsSpy.mockRestore();
             }

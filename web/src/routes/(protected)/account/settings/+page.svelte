@@ -45,6 +45,7 @@
 	const workspacesVm = $derived(workspacePresenter.workspacesVm);
 	const currentWorkspaceId = $derived(workspacePresenter.currentWorkspaceId);
 	const teamMembersVm = $derived(workspacePresenter.teamMembersVm);
+	const sentInvitesVm = $derived(workspacePresenter.sentInvitesVm);
 	const pendingInvitesVm = $derived(workspacePresenter.pendingInvitesVm);
 	const canInviteInCurrentWorkspace = $derived(workspacePresenter.canInviteInCurrentWorkspace);
 	const loadingWorkspaces = $derived(workspacePresenter.status === WorkspaceSettingsStatus.LOADING);
@@ -234,6 +235,7 @@
 			workspacesVm={workspacesVm}
 			currentWorkspaceId={currentWorkspaceId}
 			teamMembersVm={teamMembersVm}
+			sentInvitesVm={sentInvitesVm}
 			pendingInvitesVm={pendingInvitesVm}
 			canInviteInCurrentWorkspace={canInviteInCurrentWorkspace}
 			loadingWorkspaces={loadingWorkspaces}

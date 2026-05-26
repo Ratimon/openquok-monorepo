@@ -4,6 +4,7 @@
 		workspaceInviteMemberFormSchema,
 		workspaceUpdateFormSchema,
 		type PendingInviteViewModel,
+		type SentInviteViewModel,
 		type TeamMemberViewModel,
 		type WorkspaceCardViewModel
 	} from '$lib/settings';
@@ -29,6 +30,7 @@
 		workspacesVm: WorkspaceCardViewModel[];
 		currentWorkspaceId: string | null;
 		teamMembersVm: TeamMemberViewModel[];
+		sentInvitesVm: SentInviteViewModel[];
 		pendingInvitesVm: PendingInviteViewModel[];
 		canInviteInCurrentWorkspace: boolean;
 		loadingWorkspaces: boolean;
@@ -59,6 +61,7 @@
 		workspacesVm,
 		currentWorkspaceId,
 		teamMembersVm,
+		sentInvitesVm,
 		pendingInvitesVm,
 		canInviteInCurrentWorkspace,
 		loadingWorkspaces,
@@ -532,21 +535,54 @@
 				<p class="text-sm text-base-content/70">
 					Loading team…
 				</p>
-			{:else if teamMembersVm.length === 0}
+			{:else if teamMembersVm.length === 0 && sentInvitesVm.length === 0}
 				<p class="text-sm text-base-content/70">
 					No members yet.
 				</p>
 			{:else}
 				{#each teamMembersVm as member (member.id)}
 					<div class="flex items-center justify-between gap-4">
-						<span class="text-sm font-medium text-base-content">
-							{member.displayName}
-						</span>
-						<span class="text-sm text-base-content/70">
+						<div class="min-w-0">
+							<p class="text-sm font-medium text-base-content">
+								{member.displayName}
+							</p>
+							{#if member.email}
+								<p class="text-xs text-base-content/70 truncate">
+									{member.email}
+								</p>
+							{/if}
+						</div>
+						<span class="shrink-0 text-sm text-base-content/70">
 							{roleDisplayLabel(member.workspaceRole)}
 						</span>
 					</div>
 				{/each}
+			{/if}
+
+			{#if sentInvitesVm.length > 0}
+				<div class="space-y-3 border-t border-base-300 pt-4">
+					<h3 class="text-sm font-medium text-base-content">
+						Pending invitations
+					</h3>
+					{#each sentInvitesVm as invite (invite.id)}
+						<div class="flex items-center justify-between gap-4">
+							<div class="min-w-0">
+								<p class="text-sm font-medium text-base-content truncate">
+									{invite.email}
+								</p>
+								<p class="text-xs text-base-content/70">
+									Invited · {roleDisplayLabel(invite.workspaceRole)}
+									{#if formatInviteExpiry(invite.expiresAt)}
+										<span class="ml-1">· {formatInviteExpiry(invite.expiresAt)}</span>
+									{/if}
+								</p>
+							</div>
+							<span class="shrink-0 rounded-full border border-base-300 bg-base-200 px-2.5 py-0.5 text-xs font-medium text-base-content/70">
+								Pending
+							</span>
+						</div>
+					{/each}
+				</div>
 			{/if}
 
 			{#if canInviteInCurrentWorkspace}

@@ -21,6 +21,7 @@ settingsRouter.get("/", auth, settingsController.listMine);
 settingsRouter.get("/invite/validate", settingsController.validateInviteToken);
 settingsRouter.post("/join", auth, validateJoinOrganizationRequest, settingsController.joinByToken);
 settingsRouter.get("/invites/pending", auth, settingsController.listPendingInvites);
+settingsRouter.get("/invites/sent", auth, settingsController.listSentInvitesForActiveWorkspace);
 settingsRouter.post("/invites/:id/accept", auth, settingsController.acceptPendingInvite);
 /** Active workspace from `showorg` cookie (set via POST /users/change-org). */
 settingsRouter.get("/team", auth, settingsController.getTeamForActiveWorkspace);

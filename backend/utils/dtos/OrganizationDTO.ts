@@ -78,6 +78,23 @@ export interface PendingInviteDTO {
     expiresAt: string;
 }
 
+/** Pending invite sent from a workspace (for admins viewing outbound invites). */
+export interface WorkspaceSentInviteDTO {
+    id: string;
+    email: string;
+    workspaceRole: string;
+    expiresAt: string;
+}
+
+export function toWorkspaceSentInviteDTO(row: OrganizationInviteLike): WorkspaceSentInviteDTO {
+    return {
+        id: row.id,
+        email: row.email,
+        workspaceRole: row.role,
+        expiresAt: row.expires_at,
+    };
+}
+
 export function toPendingInviteDTO(row: PendingInviteViewLike): PendingInviteDTO {
     return {
         id: row.id,

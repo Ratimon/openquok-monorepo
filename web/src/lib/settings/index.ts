@@ -25,6 +25,7 @@ const settingsConfig: SettingsConfig = {
 		inviteByOrganizationId: (id) => `${base}/${id}/invite`,
 		removeTeamMember: (orgId, userId) => `${base}/${orgId}/team/${userId}`,
 		listPendingInvites: `${base}/invites/pending`,
+		listSentInvites: `${base}/invites/sent`,
 		acceptPendingInvite: (id) => `${base}/invites/${id}/accept`,
 		validateInvite: `${base}/invite/validate`,
 		joinByToken: `${base}/join`
@@ -64,7 +65,12 @@ export type {
 
 export { GetWorkspacePresenter } from '$lib/settings/GetWorkspace.presenter.svelte';
 export { WorkspaceSettingsPresenter, WorkspaceSettingsStatus } from '$lib/settings/WorkspaceSettings.presenter.svelte';
-export type { WorkspaceCardViewModel, TeamMemberViewModel, PendingInviteViewModel } from '$lib/settings/WorkspaceSettings.presenter.svelte';
+export type {
+	WorkspaceCardViewModel,
+	TeamMemberViewModel,
+	PendingInviteViewModel,
+	SentInviteViewModel
+} from '$lib/settings/WorkspaceSettings.presenter.svelte';
 export {
 	workspaceCreateFormSchema,
 	workspaceUpdateFormSchema,

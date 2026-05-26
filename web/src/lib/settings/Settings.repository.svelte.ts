@@ -19,6 +19,7 @@ export interface SettingsConfig {
 		inviteByOrganizationId: (id: string) => string;
 		removeTeamMember: (orgId: string, userId: string) => string;
 		listPendingInvites: string;
+		listSentInvites: string;
 		acceptPendingInvite: (id: string) => string;
 		validateInvite: string;
 		joinByToken: string;
@@ -106,6 +107,19 @@ export interface ListPendingInvitesResponseDto {
 	message?: string;
 }
 
+export interface WorkspaceSentInviteDto {
+	id: string;
+	email: string;
+	workspaceRole: string;
+	expiresAt: string;
+}
+
+export interface ListSentInvitesResponseDto {
+	success: boolean;
+	data: WorkspaceSentInviteDto[];
+	message?: string;
+}
+
 export interface ValidateInviteResponseDto {
 	success: boolean;
 	data: { organizationName: string; workspaceRole: string } | null;
@@ -152,6 +166,13 @@ export interface PendingInviteProgrammerModel {
 	id: string;
 	organizationId: string;
 	organizationName: string;
+	workspaceRole: string;
+	expiresAt: string;
+}
+
+export interface SentInviteProgrammerModel {
+	id: string;
+	email: string;
 	workspaceRole: string;
 	expiresAt: string;
 }
@@ -403,6 +424,27 @@ export class SettingsRepository {
 					id: d.id,
 					organizationId: d.organizationId,
 					organizationName: d.organizationName,
+					workspaceRole: d.workspaceRole,
+					expiresAt: d.expiresAt
+				}));
+			}
+			return [];
+		} catch {
+			return [];
+		}
+	}
+
+	public async getSentInvites(_organizationId: string): Promise<SentInviteProgrammerModel[]> {
+		try {
+			const { ok, data: listSentInvitesDto } = await this.httpGateway.get<ListSentInvitesResponseDto>(
+				this.config.endpoints.listSentInvites,
+				undefined,
+				{ withCredentials: true }
+			);
+			if (ok && listSentInvitesDto?.success && Array.isArray(listSentInvitesDto.data)) {
+				return listSentInvitesDto.data.map((d) => ({
+					id: d.id,
+					email: d.email,
 					workspaceRole: d.workspaceRole,
 					expiresAt: d.expiresAt
 				}));

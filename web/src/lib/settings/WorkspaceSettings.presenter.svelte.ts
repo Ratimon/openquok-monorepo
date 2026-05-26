@@ -10,7 +10,15 @@ export interface TeamMemberViewModel {
 	id: string;
 	userId: string;
 	displayName: string;
+	email: string | null;
 	workspaceRole: 'user' | 'admin' | 'owner';
+}
+
+export interface SentInviteViewModel {
+	id: string;
+	email: string;
+	workspaceRole: 'user' | 'admin';
+	expiresAt: string;
 }
 
 export interface PendingInviteViewModel {
@@ -32,7 +40,26 @@ function toTeamMemberVm(pm: TeamMemberProgrammerModel): TeamMemberViewModel {
 		id: pm.id,
 		userId: pm.userId,
 		displayName,
+		email: pm.email,
 		workspaceRole: roleLabel[pm.workspaceRole] ?? 'user'
+	};
+}
+
+function toSentInviteVm(pm: {
+	id: string;
+	email: string;
+	workspaceRole: string;
+	expiresAt: string;
+}): SentInviteViewModel {
+	const roleLabel: Record<string, 'user' | 'admin'> = {
+		admin: 'admin',
+		user: 'user'
+	};
+	return {
+		id: pm.id,
+		email: pm.email,
+		workspaceRole: roleLabel[pm.workspaceRole] ?? 'user',
+		expiresAt: pm.expiresAt
 	};
 }
 
@@ -67,6 +94,7 @@ export class WorkspaceSettingsPresenter {
 	public currentWorkspaceRole = $state<'user' | 'admin' | 'owner' | null>(null);
 
 	public pendingInvitesVm = $state<PendingInviteViewModel[]>([]);
+	public sentInvitesVm = $state<SentInviteViewModel[]>([]);
 	public loadingPendingInvites = $state(false);
 	public acceptingInviteId = $state<string | null>(null);
 
@@ -139,6 +167,7 @@ export class WorkspaceSettingsPresenter {
 	public async switchWorkspace(workspaceId: string) {
 		this.currentWorkspaceId = workspaceId;
 		this.teamMembersVm = [];
+		this.sentInvitesVm = [];
 		this.updateCurrentWorkspaceRole();
 		void this.profileRepository.changeOrganization(workspaceId);
 		await this.loadTeam(workspaceId);
@@ -245,8 +274,12 @@ export class WorkspaceSettingsPresenter {
 	public async loadTeam(organizationId: string): Promise<void> {
 		this.status = WorkspaceSettingsStatus.LOADING_TEAM;
 		try {
-			const membersPm = await this.settingsRepository.getTeam(organizationId);
+			const [membersPm, sentInvitesPm] = await Promise.all([
+				this.settingsRepository.getTeam(organizationId),
+				this.settingsRepository.getSentInvites(organizationId)
+			]);
 			this.teamMembersVm = membersPm.map(toTeamMemberVm);
+			this.sentInvitesVm = sentInvitesPm.map(toSentInviteVm);
 		} finally {
 			this.status = WorkspaceSettingsStatus.IDLE;
 		}

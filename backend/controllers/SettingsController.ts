@@ -16,6 +16,7 @@ import {
     toOrganizationDTO,
     toOrganizationMemberDTO,
     toPendingInviteDTO,
+    toWorkspaceSentInviteDTO
 } from "../utils/dtos/OrganizationDTO";
 
 export class SettingsController {
@@ -304,6 +305,24 @@ export class SettingsController {
             if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
             const list = await this.organizationService.listPendingInvitesForUser(authUserId);
             const data = list.map(toPendingInviteDTO);
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /settings/invites/sent — pending invites sent from the active workspace (`showorg` cookie). */
+    listSentInvitesForActiveWorkspace = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
+            const list = await this.organizationService.listSentInvitesForOrganization(
+                authUserId,
+                organizationId
+            );
+            const data = list.map(toWorkspaceSentInviteDTO);
             res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);

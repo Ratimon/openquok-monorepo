@@ -450,6 +450,30 @@ export class OrganizationRepository {
         return { error };
     }
 
+    /** List pending (not yet expired) invites sent for a workspace. */
+    async findPendingInvitesByOrganization(organizationId: string): Promise<{
+        invites: OrganizationInviteLike[];
+        error: unknown;
+    }> {
+        const now = new Date().toISOString();
+        const { data, error } = await this.supabase
+            .from(INVITES_TABLE)
+            .select()
+            .eq("organization_id", organizationId)
+            .gt("expires_at", now)
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            throw new DatabaseError("Failed to list organization invites", {
+                cause: error as unknown as Error,
+                operation: "findPendingInvitesByOrganization",
+                resource: { type: "table", name: INVITES_TABLE },
+            });
+        }
+
+        return { invites: (data ?? []) as OrganizationInviteLike[], error: null };
+    }
+
     /** Count pending (not yet expired) invites for a workspace — used for plan seat caps. */
     async countPendingInvitesByOrganization(organizationId: string): Promise<number> {
         const now = new Date().toISOString();
