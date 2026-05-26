@@ -11,14 +11,18 @@
 
 	type Props = {
 		creating?: boolean;
+		/** At plan workspace cap — card looks locked; opens upgrade prompt instead of create form. */
+		locked?: boolean;
+		upgradeHref?: string;
 		onCreateWorkspace: (name: string) => Promise<{ success: boolean; message: string }>;
 	};
 
-	let { creating = false, onCreateWorkspace }: Props = $props();
+	let { creating = false, locked = false, upgradeHref, onCreateWorkspace }: Props = $props();
 
 	const defaultNewWorkspaceName = 'My Workspace';
 
 	let createDialogOpen = $state(false);
+	let upgradeDialogOpen = $state(false);
 
 	const createWorkspaceForm = createForm(() => ({
 		defaultValues: {
@@ -43,6 +47,14 @@
 		createDialogOpen = true;
 	}
 
+	function handleCardClick() {
+		if (locked) {
+			upgradeDialogOpen = true;
+			return;
+		}
+		openCreateDialog();
+	}
+
 	function handleCreateFormSubmit(e: Event) {
 		e.preventDefault();
 		e.stopPropagation();
@@ -64,23 +76,60 @@
 
 <button
 	type="button"
-	class="flex h-full min-h-[220px] w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-base-300 bg-base-200/40 p-6 text-center transition-colors hover:border-primary/50 hover:bg-base-200/80"
-	onclick={openCreateDialog}
-	disabled={creating}
+	class="flex h-full min-h-[220px] w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center transition-colors
+		{locked
+		? 'cursor-pointer border-warning/35 bg-base-200/25 text-base-content/50 hover:border-warning/50 hover:bg-warning/5'
+		: 'border-base-300 bg-base-200/40 hover:border-primary/50 hover:bg-base-200/80'}"
+	onclick={handleCardClick}
+	disabled={!locked && creating}
+	aria-disabled={locked || creating}
 >
 	<span
-		class="flex size-14 items-center justify-center rounded-full border border-base-300 bg-base-100 text-base-content/80"
+		class="flex size-14 items-center justify-center rounded-full border bg-base-100
+			{locked ? 'border-warning/30 text-warning' : 'border-base-300 text-base-content/80'}"
 		aria-hidden="true"
 	>
-		<AbstractIcon name={icons.Plus.name} class="size-7" width="28" height="28" />
+		<AbstractIcon
+			name={locked ? icons.Lock.name : icons.Plus.name}
+			class="size-7"
+			width="28"
+			height="28"
+		/>
 	</span>
-	<span class="text-base font-semibold text-base-content">
-		Create a new one
+	<span class="text-base font-semibold {locked ? 'text-base-content/60' : 'text-base-content'}">
+		{locked ? 'Workspace limit reached' : 'Create a new one'}
 	</span>
 	<span class="max-w-[14rem] text-xs text-base-content/60">
-		Add another workspace for a separate team or brand.
+		{locked
+			? 'Upgrade your plan to add another workspace for a separate team or brand.'
+			: 'Add another workspace for a separate team or brand.'}
 	</span>
 </button>
+
+<Dialog.Root bind:open={upgradeDialogOpen}>
+	<Dialog.Content class="max-w-lg" showCloseButton>
+		<Dialog.Header>
+			<Dialog.Title>Upgrade to add a workspace</Dialog.Title>
+			<Dialog.Description>
+				Your current plan has reached its workspace limit. Upgrade to a higher tier to create more
+				workspaces.
+			</Dialog.Description>
+		</Dialog.Header>
+		<Dialog.Footer>
+			<Dialog.Close>
+				<Button type="button" variant="ghost">
+					Not now
+				</Button>
+			</Dialog.Close>
+			{#if upgradeHref}
+				<Button href={upgradeHref} variant="primary" class="gap-1.5">
+					<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+					View plans
+				</Button>
+			{/if}
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
 
 <Dialog.Root bind:open={createDialogOpen}>
 	<Dialog.Content>

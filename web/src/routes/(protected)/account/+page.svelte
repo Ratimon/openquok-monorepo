@@ -27,7 +27,7 @@
 	import { createHomeChannelsGridTableFilter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
-	import { firstBillingGatePresenter } from '$lib/billing';
+	import { firstBillingGatePresenter, tierDisplayName } from '$lib/billing';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
 
@@ -151,7 +151,11 @@
 			firstBillingGatePresenter.pricingVm?.currentVm?.tier ??
 			null
 	);
+	const allowedWorkspaceCountVm = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.limits?.workspaces ?? null
+	);
 	const isSoloPlanVm = $derived(subscriptionTierVm === 'SOLO');
+	const currentPlanLabel = $derived(tierDisplayName(subscriptionTierVm ?? 'FREE'));
 	const creatingWorkspace = $derived(
 		workspaceSettingsPresenter.status === WorkspaceSettingsStatus.CREATING
 	);
@@ -840,7 +844,7 @@
 					{#snippet actions()}
 						<Button
 							type="button"
-							variant="primary"
+							variant="secondary"
 							size="sm"
 							class="gap-1.5"
 							onclick={() => void goto(accountBillingHref)}
@@ -889,8 +893,9 @@
 	</div>
 	{#if listStatus === 'ready' && connectedChannelCountVm === 0}
 		<p class="mt-2 text-base-content/80">
-			Welcome{currentUser?.fullName ? `, ${currentUser.fullName}` : ''}! Connect channels for the
-			selected workspace to start scheduling posts and manage them here.
+			Welcome{currentUser?.fullName ? `, ${currentUser.fullName}` : ''}! You are at the
+			<a class="link link-primary font-medium" href={accountBillingHref}>{currentPlanLabel}</a>
+			plan — <a class="link link-primary font-medium" href={accountBillingHref}>view available plans</a>.
 		</p>
 	{:else if showPostKanbanBoard}
 		<p class="mt-2 text-base-content/80">
@@ -902,6 +907,8 @@
 		cards={myWorkspacesCardsVm}
 		status={myWorkspacesStatus}
 		totalCount={myWorkspacesTotalCount}
+		allowedWorkspaceCount={allowedWorkspaceCountVm}
+		billingHref={accountBillingHref}
 		creatingWorkspace={creatingWorkspace}
 		onSwitchWorkspace={handleSwitchWorkspace}
 		onOpenWorkspaceSettings={handleOpenWorkspaceSettings}

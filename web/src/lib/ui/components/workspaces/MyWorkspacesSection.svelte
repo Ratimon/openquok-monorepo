@@ -1,6 +1,10 @@
 <script lang="ts">
 	import type { HomeWorkspaceCardViewModel } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 
+	import { icons } from '$data/icons';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import WorkspaceCard from '$lib/ui/components/workspaces/WorkspaceCard.svelte';
 	import CreateWorkspaceCard from '$lib/ui/components/workspaces/CreateWorkspaceCard.svelte';
 
@@ -8,6 +12,9 @@
 		cards: HomeWorkspaceCardViewModel[];
 		status: 'idle' | 'loading' | 'ready' | 'error';
 		totalCount: number;
+		/** Plan workspace cap; omit or pass under 1 when the tier does not enforce a limit (e.g. FREE). */
+		allowedWorkspaceCount?: number | null;
+		billingHref?: string;
 		creatingWorkspace?: boolean;
 		onSwitchWorkspace?: (workspaceId: string) => void;
 		onOpenWorkspaceSettings?: (workspaceId: string) => void;
@@ -20,6 +27,8 @@
 		cards,
 		status,
 		totalCount,
+		allowedWorkspaceCount = null,
+		billingHref,
 		creatingWorkspace = false,
 		onSwitchWorkspace,
 		onOpenWorkspaceSettings,
@@ -28,23 +37,42 @@
 		onCreateWorkspace
 	}: Props = $props();
 
-	const workspaceCountLabel = $derived(
-		totalCount === 1 ? '1 workspace' : `${totalCount} workspaces`
+	const workspaceLimit = $derived(
+		allowedWorkspaceCount != null && allowedWorkspaceCount >= 1 ? allowedWorkspaceCount : null
 	);
+
+	const workspaceCountLabel = $derived(
+		workspaceLimit != null ? `${totalCount}/${workspaceLimit}` : null
+	);
+
+	const isWorkspaceLimitFull = $derived(
+		workspaceLimit != null && totalCount >= workspaceLimit
+	);
+
+	const showUpgradeCta = $derived(isWorkspaceLimitFull && Boolean(billingHref));
 
 	const showWorkspaceGrid = $derived(status === 'ready' || status === 'error');
 </script>
 
 <section class="mt-6" aria-labelledby="my-workspaces-heading">
-	<div class="flex flex-wrap items-end justify-between gap-2">
-		<div>
-			<h2 id="my-workspaces-heading" class="text-xl font-bold text-base-content">
-				My workspaces
-			</h2>
-			<p class="mt-1 text-sm text-base-content/60">
-				{workspaceCountLabel}
-			</p>
-		</div>
+	<div class="flex flex-wrap items-center justify-between gap-2">
+		<h2 id="my-workspaces-heading" class="text-xl font-bold text-base-content">
+			My workspaces
+			{#if workspaceCountLabel}
+				<span class={isWorkspaceLimitFull ? 'text-warning' : 'text-base-content/70'}>
+					({workspaceCountLabel})
+				</span>
+			{/if}
+		</h2>
+		{#if showUpgradeCta && billingHref}
+			<Button href={billingHref}
+				variant="outline"
+				size="sm" class="gap-1.5"
+			>
+				<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+				Upgrade plan
+			</Button>
+		{/if}
 	</div>
 
 	<div class="mt-4">
@@ -81,7 +109,12 @@
 						{onOpenDeveloperApiKey}
 					/>
 				{/each}
-				<CreateWorkspaceCard creating={creatingWorkspace} {onCreateWorkspace} />
+				<CreateWorkspaceCard
+					creating={creatingWorkspace}
+					locked={isWorkspaceLimitFull}
+					upgradeHref={billingHref}
+					{onCreateWorkspace}
+				/>
 			</div>
 		{/if}
 	</div>

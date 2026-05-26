@@ -265,7 +265,7 @@
 				{#if !card.isCurrent && onSwitchWorkspace}
 					<Button
 						type="button"
-						variant="warning"
+						variant="secondary"
 						size="sm"
 						class="shrink-0"
 						data-workspace-card-action
