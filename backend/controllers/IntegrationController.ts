@@ -153,12 +153,20 @@ export class IntegrationController {
         }
     };
 
-    /** POST /integrations/social-connect/:integration (no-auth callback variant; organization resolved from OAuth state cache). */
+    /**
+     * POST /integrations/social-connect/:integration
+     * OAuth callback (JWT optional via {@link optionalAuthWithRoles}). When Bearer is present, subscription
+     * inheritance matches billing and channel-cap UI on secondary workspaces.
+     */
     connectSocialMediaNoAuth = async (req: Request, res: Response, next: NextFunction) => {
         try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
             const { integration } = req.params as { integration: string };
             const body = req.body as { state: string; code: string; timezone: string; refresh?: string };
-            const data = await this.integrationConnectionService.connectSocialMediaNoAuth(integration, body);
+            const data = authUserId
+                ? await this.integrationConnectionService.connectSocialMedia(authUserId, integration, body)
+                : await this.integrationConnectionService.connectSocialMediaNoAuth(integration, body);
             res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);

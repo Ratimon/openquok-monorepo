@@ -11,7 +11,8 @@
 	import { integrationsRepository } from '$lib/integrations';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
-    import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import ChannelLimitUpgradeDialog from '$lib/ui/components/channels/ChannelLimitUpgradeDialog.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import Button, { type ButtonSize, type ButtonVariant } from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
@@ -42,6 +43,9 @@
 		buttonSize?: ButtonSize;
 		buttonClass?: string;
 		iconClass?: string;
+		/** When true, opening the provider picker shows an upgrade prompt instead. */
+		channelLimitFull?: boolean;
+		upgradeHref?: string;
 	};
 
 	let {
@@ -55,17 +59,41 @@
 		buttonVariant,
 		buttonSize,
 		buttonClass,
-		iconClass
+		iconClass,
+		channelLimitFull = false,
+		upgradeHref
 	}: Props = $props();
 
 	const channelButtonVariant = $derived(
-		buttonVariant ?? (hasConnectedChannels ? 'secondary' : 'primary')
+		channelLimitFull
+			? 'outline'
+			: (buttonVariant ?? (hasConnectedChannels ? 'secondary' : 'primary'))
 	);
 	const triggerIconClass = $derived(iconClass ?? 'h-4 w-4');
+	const lockedTriggerClass = $derived(
+		channelLimitFull
+			? 'border-warning/35 bg-warning/5 text-warning hover:border-warning/50 hover:bg-warning/10'
+			: ''
+	);
+	const addChannelTriggerLabel = $derived(
+		channelLimitFull ? 'Channel limit reached' : buttonLabel
+	);
+	const inviteLockedLabel = $derived(
+		channelLimitFull ? 'Channel limit reached — cannot send invite link' : (iconOnlyTooltip ?? buttonLabel)
+	);
 
 	let open = $state(false);
+	let upgradeDialogOpen = $state(false);
 	let loading = $state(false);
 	let providers = $state<IntegrationCatalogItemProgrammerModel[]>([]);
+
+	function openAddChannelFlow() {
+		if (channelLimitFull) {
+			upgradeDialogOpen = true;
+			return;
+		}
+		open = true;
+	}
 
 	const currentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
@@ -139,8 +167,7 @@
 
 <Dialog.Root bind:open>
 	{#if invite && iconOnly}
-		{@const inviteTriggerLabel = iconOnlyTooltip ?? buttonLabel}
-		{#if iconOnlyTooltip}
+		{#if iconOnlyTooltip && !channelLimitFull}
 			<Tooltip.Provider delayDuration={200}>
 				<Tooltip.Root>
 					<Tooltip.Trigger>
@@ -150,11 +177,16 @@
 									type="button"
 									variant={channelButtonVariant}
 									size="icon"
-									class="shrink-0 border-base-300"
-									onclick={() => (open = true)}
-									aria-label={inviteTriggerLabel}
+									class={cn('shrink-0', lockedTriggerClass || 'border-base-300')}
+									onclick={openAddChannelFlow}
+									aria-label={inviteLockedLabel}
 								>
-									<AbstractIcon name={icons.Link.name} class="size-4" width="16" height="16" />
+									<AbstractIcon
+										name={channelLimitFull ? icons.Lock.name : icons.Link.name}
+										class="size-4"
+										width="16"
+										height="16"
+									/>
 								</Button>
 							</span>
 						{/snippet}
@@ -167,30 +199,35 @@
 				type="button"
 				variant={channelButtonVariant}
 				size="icon"
-				class="shrink-0 border-base-300"
-				onclick={() => (open = true)}
-				aria-label={inviteTriggerLabel}
-				title={inviteTriggerLabel}
+				class={cn('shrink-0', lockedTriggerClass || 'border-base-300')}
+				onclick={openAddChannelFlow}
+				aria-label={inviteLockedLabel}
+				title={inviteLockedLabel}
 			>
-				<AbstractIcon name={icons.Link.name} class="size-4" width="16" height="16" />
+				<AbstractIcon
+					name={icons.Link.name}
+					class="size-4"
+					width="16"
+					height="16"
+				/>
 			</Button>
 		{/if}
 	{:else}
 		<span class="inline-flex shrink-0">
 			<Button
-				class={cn('gap-2', buttonClass)}
+				class={cn('gap-2', lockedTriggerClass, buttonClass)}
 				type="button"
 				variant={channelButtonVariant}
 				size={buttonSize}
-				onclick={() => (open = true)}
+				onclick={openAddChannelFlow}
 			>
 				<AbstractIcon
-					name={icons.Plus.name}
+					name={channelLimitFull ? icons.Lock.name : icons.Plus.name}
 					class={triggerIconClass}
 					width="14"
 					height="14"
 				/>
-				{buttonLabel}
+				{addChannelTriggerLabel}
 			</Button>
 		</span>
 	{/if}
@@ -282,4 +319,6 @@
 		</Tooltip.Provider>
 	</Dialog.Content>
 </Dialog.Root>
+
+<ChannelLimitUpgradeDialog bind:open={upgradeDialogOpen} {upgradeHref} />
 

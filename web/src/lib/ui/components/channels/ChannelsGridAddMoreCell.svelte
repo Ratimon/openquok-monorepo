@@ -4,36 +4,26 @@
 
 	import type { HomeChannelTableRowViewModel } from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
 
-	import { icons } from '$data/icons';
-	import { socialProviderDisplayLabel, socialProviderIcon } from '$data/social-providers';
-
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
+	import ChannelAddMoreButton from '$lib/ui/components/channels/ChannelAddMoreButton.svelte';
 	import {
 		channelsGridActionsKey,
-		type ChannelsGridActions
+		channelsGridLimitKey,
+		type ChannelsGridActions,
+		type ChannelsGridLimitContext
 	} from '$lib/ui/components/channels/channelsGridContext';
 
 	let { row }: ICellProps = $props();
 
 	const actions = getContext<ChannelsGridActions>(channelsGridActionsKey);
+	const limitCtx = getContext<ChannelsGridLimitContext | undefined>(channelsGridLimitKey);
 
 	const rowVm = $derived(row as unknown as HomeChannelTableRowViewModel);
 	const platformKey = $derived(rowVm.platformKey);
-	const platformLabel = $derived(socialProviderDisplayLabel(platformKey));
+	const channelLimitFull = $derived(limitCtx?.isChannelLimitFull() ?? false);
 </script>
 
-<Button
-	type="button"
-	variant="ghost"
-	size="sm"
-	class="h-8 shrink-0 gap-1.5 border-base-300 px-2 text-xs whitespace-nowrap"
-	aria-label={`Add another ${platformLabel} connection`}
-	onclick={() => actions?.addMoreChannel(platformKey)}
->
-	<span class="inline-flex items-center gap-1.5" aria-hidden="true">
-		<AbstractIcon name={icons.Plus.name} class="size-3.5" width="14" height="14" />
-		Add more
-		<AbstractIcon name={socialProviderIcon(platformKey)} class="size-3.5" width="14" height="14" />
-	</span>
-</Button>
+<ChannelAddMoreButton
+	{platformKey}
+	{channelLimitFull}
+	onClick={() => actions?.addMoreChannel(platformKey)}
+/>

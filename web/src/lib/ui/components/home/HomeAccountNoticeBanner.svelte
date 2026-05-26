@@ -27,14 +27,23 @@
 		actions
 	}: Props = $props();
 
-	const toneClass = $derived.by(() => {
+	const toneStyles = $derived.by(() => {
 		switch (tone) {
 			case 'accent':
-				return 'border-primary/25 bg-primary/5';
+				return {
+					container: 'border-primary/40 bg-primary/5',
+					icon: 'text-primary'
+				};
 			case 'upgrade':
-				return 'border-secondary/30 bg-secondary/10';
+				return {
+					container: 'border-secondary/40 bg-secondary/5',
+					icon: 'text-secondary'
+				};
 			default:
-				return 'border-base-300 bg-base-200/60';
+				return {
+					container: 'border-info/40 bg-info/5',
+					icon: 'text-info'
+				};
 		}
 	});
 </script>
@@ -43,13 +52,13 @@
 	role="status"
 	class={cn(
 		'flex flex-col gap-3 rounded-lg border px-4 py-3 text-sm text-base-content sm:flex-row sm:items-center sm:justify-between',
-		toneClass
+		toneStyles.container
 	)}
 >
 	<div class="flex min-w-0 flex-1 items-start gap-3">
 		<AbstractIcon
 			name={iconName}
-			class="mt-0.5 size-5 shrink-0 text-base-content/70"
+			class={cn('mt-0.5 size-5 shrink-0', toneStyles.icon)}
 			width="20"
 			height="20"
 			focusable="false"

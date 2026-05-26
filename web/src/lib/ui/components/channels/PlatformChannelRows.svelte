@@ -5,15 +5,16 @@
 	} from '$lib/channels/GetChannel.presenter.svelte';
 
 	import { icons } from '$data/icons';
-	import { socialProviderDisplayLabel, socialProviderIcon } from '$data/social-providers';
+	import { socialProviderIcon } from '$data/social-providers';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
+	import ChannelAddMoreButton from '$lib/ui/components/channels/ChannelAddMoreButton.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 
 	type Props = {
 		rows: HomePlatformChannelRowViewModel[];
 		workspaceId: string;
+		channelLimitFull?: boolean;
 		continueSetupHref: (integration: CreateSocialPostChannelViewModel) => string;
 		onCreatePost: (integrationId: string) => void;
 		onMoveToGroup: (integration: CreateSocialPostChannelViewModel) => void;
@@ -26,6 +27,7 @@
 	let {
 		rows,
 		workspaceId,
+		channelLimitFull = false,
 		continueSetupHref,
 		onCreatePost,
 		onMoveToGroup,
@@ -68,25 +70,12 @@
 					</li>
 				{/each}
 			</ul>
-			<Button
-				type="button"
-				variant="ghost"
-				size="sm"
-				class="shrink-0 gap-1.5 border-base-300"
-				aria-label={`Add another ${socialProviderDisplayLabel(row.identifier)} connection`}
-				onclick={() => onAddAnotherChannel(row.identifier)}
-			>
-				<span class="inline-flex items-center gap-1.5" aria-hidden="true">
-					<AbstractIcon name={icons.Plus.name} class="h-4 w-4" width="16" height="16" />
-					Add more
-					<AbstractIcon
-						name={socialProviderIcon(row.identifier)}
-						class="h-4 w-4"
-						width="16"
-						height="16"
-					/>
-				</span>
-			</Button>
+			<ChannelAddMoreButton
+				platformKey={row.identifier}
+				{channelLimitFull}
+				class="h-auto shrink-0 py-1.5"
+				onClick={() => onAddAnotherChannel(row.identifier)}
+			/>
 		</div>
 	{/each}
 </div>

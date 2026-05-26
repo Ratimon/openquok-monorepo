@@ -8,7 +8,6 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { setContext } from 'svelte';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 
 	// --- Area & integrations ---
@@ -44,7 +43,6 @@
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
-	import { channelsGridActionsKey } from '$lib/ui/components/channels/channelsGridContext';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import MyChannelsSection from '$lib/ui/components/channels/MyChannelsSection.svelte';
 	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
@@ -147,6 +145,9 @@
 	);
 	const allowedWorkspaceCountVm = $derived(
 		firstBillingGatePresenter.pricingVm?.currentVm?.limits?.workspaces ?? null
+	);
+	const allowedChannelCountVm = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.limits?.channelPerWorkspace ?? null
 	);
 	const isSoloPlanVm = $derived(subscriptionTierVm === 'SOLO');
 	const currentPlanLabel = $derived(tierDisplayName(subscriptionTierVm ?? 'FREE'));
@@ -522,14 +523,6 @@
 		void goto(absoluteUrl(`${connectPath}?${qs}`));
 	}
 
-	setContext(channelsGridActionsKey, {
-		openActions: (integration: CreateSocialPostChannelViewModel) => {
-			channelActionsFor = integration;
-			channelActionsOpen = true;
-		},
-		addMoreChannel: startAddAnotherChannel
-	} satisfies ChannelsGridActions);
-
 	async function handleRemoveChannel(id: string): Promise<boolean> {
 		const resultVm = await protectedHomePagePresenter.removeChannel(id);
 		if (resultVm.ok) {
@@ -695,7 +688,7 @@
 					onDismiss={dismissInviteTeamNotice}
 				>
 					<p class="text-base-content/90">
-						Get more out of your workspace by inviting your team for free.
+						Get more out of your workspace by inviting your team.
 					</p>
 					{#snippet actions()}
 						<Button
@@ -791,6 +784,8 @@
 		listStatus={listStatus}
 		connectedChannelsVm={connectedChannelsVm}
 		accountSettingsWorkspaceHref={accountSettingsWorkspaceHref}
+		allowedChannelCount={allowedChannelCountVm}
+		billingHref={accountBillingHref}
 		{channelGroupSectionsVm}
 		{platformChannelRowsUngroupedVm}
 		channelsGridPresenter={channelsGridPresenter}
@@ -804,6 +799,10 @@
 		onSetDisabled={handleSetChannelDisabled}
 		onRemove={handleRemoveChannel}
 		onAddAnotherChannel={startAddAnotherChannel}
+		onOpenChannelActions={(integration) => {
+			channelActionsFor = integration;
+			channelActionsOpen = true;
+		}}
 	/>
 </div>
 

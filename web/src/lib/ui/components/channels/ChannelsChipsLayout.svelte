@@ -28,6 +28,7 @@
 		onSetDisabled: (id: string, disabled: boolean) => Promise<boolean>;
 		onRemove: (id: string) => Promise<boolean>;
 		onAddAnotherChannel: (identifier: string) => void;
+		channelLimitFull?: boolean;
 	};
 
 	let {
@@ -45,7 +46,8 @@
 		onEditTimeSlots,
 		onSetDisabled,
 		onRemove,
-		onAddAnotherChannel
+		onAddAnotherChannel,
+		channelLimitFull = false
 	}: Props = $props();
 </script>
 
@@ -105,6 +107,7 @@
 					<PlatformChannelRows
 						rows={group.platformRows}
 						{workspaceId}
+						{channelLimitFull}
 						{continueSetupHref}
 						onCreatePost={onCreatePostForChannel}
 						{onMoveToGroup}
@@ -183,6 +186,7 @@
 					<PlatformChannelRows
 						rows={platformChannelRowsUngroupedVm}
 						{workspaceId}
+						{channelLimitFull}
 						{continueSetupHref}
 						onCreatePost={onCreatePostForChannel}
 						{onMoveToGroup}
@@ -198,6 +202,7 @@
 				<PlatformChannelRows
 					rows={platformChannelRowsUngroupedVm}
 					{workspaceId}
+					{channelLimitFull}
 					{continueSetupHref}
 					onCreatePost={onCreatePostForChannel}
 					{onMoveToGroup}

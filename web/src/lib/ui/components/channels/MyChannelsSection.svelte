@@ -9,6 +9,7 @@
 	import type { HomeChannelsGridTablePresenter } from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
 
 	import { browser } from '$app/environment';
+	import { setContext } from 'svelte';
 
 	import { createHomeChannelsGridTableFilter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
 	import { icons } from '$data/icons';
@@ -18,8 +19,15 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AddProvider from '$lib/ui/components/posts/AddProvider.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import ChannelLimitUpgradeDialog from '$lib/ui/components/channels/ChannelLimitUpgradeDialog.svelte';
 	import ChannelsChipsLayout from '$lib/ui/components/channels/ChannelsChipsLayout.svelte';
 	import ChannelsGridLayout from '$lib/ui/components/channels/ChannelsGridLayout.svelte';
+	import {
+		channelsGridActionsKey,
+		channelsGridLimitKey,
+		type ChannelsGridActions,
+		type ChannelsGridLimitContext
+	} from '$lib/ui/components/channels/channelsGridContext';
 
 	type ListStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -41,6 +49,10 @@
 		onSetDisabled: (id: string, disabled: boolean) => Promise<boolean>;
 		onRemove: (id: string) => Promise<boolean>;
 		onAddAnotherChannel: (identifier: string) => void;
+		onOpenChannelActions: (integration: CreateSocialPostChannelViewModel) => void;
+		/** Plan `channel_per_workspace` cap; omit or pass under 1 when not enforced (e.g. FREE). */
+		allowedChannelCount?: number | null;
+		billingHref?: string;
 	};
 
 	let {
@@ -60,12 +72,48 @@
 		onEditTimeSlots,
 		onSetDisabled,
 		onRemove,
-		onAddAnotherChannel
+		onAddAnotherChannel,
+		onOpenChannelActions,
+		allowedChannelCount = null,
+		billingHref
 	}: Props = $props();
+
+	let channelUpgradeDialogOpen = $state(false);
+
+	function tryAddAnotherChannel(identifier: string) {
+		if (isChannelLimitFull) {
+			channelUpgradeDialogOpen = true;
+			return;
+		}
+		onAddAnotherChannel(identifier);
+	}
+
+	setContext(channelsGridActionsKey, {
+		openActions: (integration) => onOpenChannelActions(integration),
+		addMoreChannel: (identifier) => tryAddAnotherChannel(identifier)
+	} satisfies ChannelsGridActions);
+
+	setContext(channelsGridLimitKey, {
+		isChannelLimitFull: () => isChannelLimitFull
+	} satisfies ChannelsGridLimitContext);
 
 	const DASHBOARD_CHANNELS_GRID_PAGE_SIZE = 25;
 
 	const connectedChannelCount = $derived(connectedChannelsVm.length);
+
+	const channelLimit = $derived(
+		allowedChannelCount != null && allowedChannelCount >= 1 ? allowedChannelCount : null
+	);
+
+	const channelCountLabel = $derived(
+		channelLimit != null ? `${connectedChannelCount}/${channelLimit}` : null
+	);
+
+	const isChannelLimitFull = $derived(
+		channelLimit != null && connectedChannelCount >= channelLimit
+	);
+
+	const showUpgradeCta = $derived(isChannelLimitFull && Boolean(billingHref));
 
 	const homeChannelTableRowsVm = $derived(channelsGridPresenter.homeChannelTableRowsVm);
 
@@ -235,7 +283,18 @@
 		<div class="flex min-w-0 flex-wrap items-center gap-3">
 			<h2 id="connected-channels-heading" class="text-xl font-bold text-base-content">
 				Connected channels
+				{#if channelCountLabel}
+					<span class={isChannelLimitFull ? 'text-warning' : 'text-base-content/70'}>
+						({channelCountLabel})
+					</span>
+				{/if}
 			</h2>
+			{#if showUpgradeCta && billingHref}
+				<Button href={billingHref} variant="outline" size="sm" class="gap-1.5">
+					<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+					Upgrade plan
+				</Button>
+			{/if}
 			{#if listStatus === 'ready' && connectedChannelCount > 0}
 				<div
 					class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
@@ -296,12 +355,19 @@
 					Calendar
 				</Button>
 			{/if}
-			<AddProvider buttonLabel="Add Channel" hasConnectedChannels={connectedChannelCount >= 1} />
+			<AddProvider
+				buttonLabel="Add Channel"
+				hasConnectedChannels={connectedChannelCount >= 1}
+				channelLimitFull={isChannelLimitFull}
+				upgradeHref={billingHref}
+			/>
 			<AddProvider
 				invite
 				iconOnly
 				iconOnlyTooltip="Send Invite Link to connect channel"
 				hasConnectedChannels={connectedChannelCount >= 1}
+				channelLimitFull={isChannelLimitFull}
+				upgradeHref={billingHref}
 			/>
 		</div>
 	</div>
@@ -309,23 +375,23 @@
 	{#if showSamePlatformMultiChannelAlert}
 		<Alert
 			variant="warning"
-			class="mt-3 items-start gap-3 text-sm text-neutral-950 sm:flex-row [&_svg]:text-neutral-950"
+			class="mt-3 items-start gap-3 border-warning/40 bg-warning/5 text-sm sm:flex-row [&_svg]:text-warning"
 		>
 			<AbstractIcon
 				name={icons.CircleAlert.name}
-				class="mt-0.5 h-5 w-5 shrink-0 text-neutral-950"
+				class="mt-0.5 h-5 w-5 shrink-0 text-warning"
 				width="20"
 				height="20"
 				focusable="false"
 			/>
 			<div class="min-w-0 space-y-1">
-				<AlertTitle class="text-sm font-semibold leading-snug text-neutral-950">
+				<AlertTitle class="text-sm font-semibold leading-snug text-warning">
 					Multiple channels on the same platform
 				</AlertTitle>
-				<AlertDescription class="leading-relaxed text-neutral-900">
+				<AlertDescription class="leading-relaxed text-base-content/80">
 					You can connect more than one channel per platform. Before you use
-					<span class="font-semibold text-neutral-950">Add Channel</span> or
-					<span class="font-semibold text-neutral-950">Add more</span> for a different login,
+					<span class="font-semibold text-base-content">Add Channel</span> or
+					<span class="font-semibold text-base-content">Add more</span> for a different login,
 					sign out of that service in your browser. Otherwise the channel may be reused for the last connected channel.
 				</AlertDescription>
 			</div>
@@ -390,6 +456,7 @@
 			bind:groupDetailsOpen
 			bind:ungroupedDetailsOpen
 			{workspaceId}
+			channelLimitFull={isChannelLimitFull}
 			{continueSetupHref}
 			{onCreatePostForGroup}
 			onCreatePost={onCreatePost}
@@ -399,7 +466,9 @@
 			{onEditTimeSlots}
 			{onSetDisabled}
 			{onRemove}
-			{onAddAnotherChannel}
+			onAddAnotherChannel={tryAddAnotherChannel}
 		/>
 	{/if}
+
+	<ChannelLimitUpgradeDialog bind:open={channelUpgradeDialogOpen} upgradeHref={billingHref} />
 </section>

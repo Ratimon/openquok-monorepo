@@ -15,6 +15,7 @@ import type { OrganizationSubscriptionRow } from "../repositories/SubscriptionRe
 import type { IntegrationService } from "./IntegrationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { PostsRepository } from "../repositories/PostsRepository";
+import { resolveSessionChannelsPerWorkspace } from "../utils/dtos/UserMeDTO";
 
 export type WorkspaceMembershipRole = "user" | "admin" | "owner";
 
@@ -284,8 +285,13 @@ export class PermissionsService {
     ): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
 
-        const { limits } = await this.getTierAndLimits(organizationId, authUserId);
-        const cap = limits.channel_per_workspace;
+        const { tier, limits, subscription } = await this.getTierAndLimits(organizationId, authUserId);
+        const cap = resolveSessionChannelsPerWorkspace(
+            this.subscriptionService.billingEnabled(),
+            tier,
+            limits,
+            subscription
+        );
         if (cap < 1) {
             throw new SubscriptionError(
                 "Social channels are not included on your current plan.",
