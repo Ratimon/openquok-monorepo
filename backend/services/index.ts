@@ -95,12 +95,6 @@ export const feedbackService = new FeedbackService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
-export const blogService = new BlogService(
-    blogRepository,
-    cacheServiceConnection,
-    cacheInvalidationServiceConnection,
-    configRepository
-);
 export const configService = new ConfigService(
     configRepository,
     cacheServiceConnection,
@@ -127,6 +121,13 @@ export const permissionsService = new PermissionsService(
     integrationService,
     organizationRepository,
     postsRepository
+);
+export const blogService = new BlogService(
+    blogRepository,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection,
+    configRepository,
+    permissionsService
 );
 export const userSessionService = new UserSessionService(
     organizationRepository,

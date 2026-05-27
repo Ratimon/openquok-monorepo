@@ -13,12 +13,17 @@
 	import { toast } from '$lib/ui/sonner';
 
 	import { publicBlogBySlugPagePresenter } from '$lib/area-public/index';
-	import { url } from '$lib/utils/path';
+	import { getPricingPresenter } from '$lib/billing';
+	import { planLimitsForTier } from 'openquok-common';
+	import { getRootPathAccount } from '$lib/area-protected';
+	import { authenticationRepository } from '$lib/user-auth';
+	import { url, route } from '$lib/utils/path';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { normalizeBlogInlineImagesInHtml } from '$lib/blogs/utils';
 
 	import BlogPost from '$lib/ui/components/blog-post/BlogPost.svelte';
+	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 	import LayoutInnerContainer from '$lib/ui/layouts/LayoutInnerContainer.svelte';
 	import LayoutOuterContainer from '$lib/ui/layouts/LayoutOuterContainer.svelte';
 
@@ -37,6 +42,45 @@
 	} & PageData;
 
 	let { data }: Props = $props();
+
+	const isLoggedIn = $derived(
+		authenticationRepository.isAuthenticated() || data.isLoggedIn === true
+	);
+
+	/** Owned-account plan (SOLO cannot comment on blog posts). */
+	let viewerCommunityFeaturesEnabled = $state<boolean | null>(null);
+
+	$effect(() => {
+		if (!browser || !isLoggedIn) {
+			viewerCommunityFeaturesEnabled = null;
+			return;
+		}
+		let cancelled = false;
+		void getPricingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
+			if (cancelled) return;
+			viewerCommunityFeaturesEnabled = vm
+				? planLimitsForTier(vm.tier).community_features
+				: false;
+		});
+		return () => {
+			cancelled = true;
+		};
+	});
+
+	const communityCommentsEnabled = $derived.by(() => {
+		if (!browser || !isLoggedIn) return true;
+		return viewerCommunityFeaturesEnabled === true;
+	});
+
+	const communityUpgradeHref = $derived(
+		isLoggedIn ? url(`${route(getRootPathAccount())}/billing`) : undefined
+	);
+
+	let communityUpgradeDialogOpen = $state(false);
+
+	function openCommunityUpgradeDialog(): void {
+		communityUpgradeDialogOpen = true;
+	}
 
 	onMount(() => {
 		if (!browser) return;
@@ -157,10 +201,12 @@
 			comments={data.comments}
 			previousLink={previousNav}
 			nextLink={nextNav}
-			isLoggedIn={data.isLoggedIn === true}
+			{isLoggedIn}
 			{signInHref}
 			{submitBlogComment}
 			submittingComment={blogCommentSubmitting}
+			{communityCommentsEnabled}
+			onCommunityUpgradeRequired={openCommunityUpgradeDialog}
 			{trackBlogLike}
 			submittingLike={blogLikeSubmitting}
 			{trackBlogShare}
@@ -169,3 +215,8 @@
 		/>
 	</LayoutInnerContainer>
 </LayoutOuterContainer>
+
+<CommunityFeaturesLimitUpgradeModal
+	bind:open={communityUpgradeDialogOpen}
+	upgradeHref={communityUpgradeHref}
+/>

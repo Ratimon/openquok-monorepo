@@ -50,6 +50,8 @@
 			parentId: string | null;
 		}) => Promise<PublicBlogMutationResultViewModel>;
 		submittingComment?: boolean;
+		communityCommentsEnabled?: boolean;
+		onCommunityUpgradeRequired?: () => void;
 		trackBlogLike: (postId: string) => Promise<PublicBlogMutationResultViewModel>;
 		submittingLike?: boolean;
 		trackBlogShare: (postId: string) => Promise<PublicBlogMutationResultViewModel>;
@@ -69,6 +71,8 @@
 		composerAvatarUrl = null,
 		submitBlogComment,
 		submittingComment = false,
+		communityCommentsEnabled = true,
+		onCommunityUpgradeRequired,
 		trackBlogLike,
 		submittingLike = false,
 		trackBlogShare,
@@ -228,6 +232,8 @@
 						{composerAvatarUrl}
 						{submitBlogComment}
 						{submittingComment}
+						communityCommentsEnabled={communityCommentsEnabled}
+						onUpgradeRequired={onCommunityUpgradeRequired}
 					/>
 				</div>
 				<PostNavigation previousLink={previousLink} nextLink={nextLink} class="mt-4" />

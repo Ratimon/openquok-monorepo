@@ -145,9 +145,11 @@ export class BlogController {
                 res.status(401).json({ error: "Authentication required" });
                 return;
             }
+            const authUserId = authReq.user?.id;
             const result = await this.blogService.createBlogComment(
                 req.body as BlogCommentCreateSchemaType,
-                userId
+                userId,
+                authUserId
             );
             res.status(201).json({
                 success: true,

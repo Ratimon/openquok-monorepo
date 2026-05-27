@@ -34,6 +34,7 @@ import { stringToSlug } from "../utils/blog/slug";
 import { ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 import { BlogPostId } from "../utils/valueObjects/BlogPostId";
+import type { PermissionsService } from "./PermissionsService";
 
 /** Domain-scoped cache key prefixes. */
 const CACHE_KEYS = {
@@ -65,7 +66,8 @@ export class BlogService {
         private readonly blogRepository: BlogRepository,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
-        private readonly configRepository?: ConfigRepository
+        private readonly configRepository?: ConfigRepository,
+        private readonly permissionsService?: PermissionsService
     ) {}
 
     /**
@@ -440,8 +442,12 @@ export class BlogService {
      */
     async createBlogComment(
         payload: BlogCommentCreateSchemaType,
-        userId: string
+        userId: string,
+        authUserId?: string
     ): Promise<{ id: string }> {
+        if (authUserId?.trim() && this.permissionsService) {
+            await this.permissionsService.assertCommunityFeaturesAllowed(authUserId);
+        }
         const postId = payload.post_id!;
         const result = await this.blogRepository.createComment(
             { post_id: postId, parent_id: payload.parent_id ?? undefined, content: payload.content },

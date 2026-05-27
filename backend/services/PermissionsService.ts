@@ -293,6 +293,24 @@ export class PermissionsService {
         return planLimitsForTier(viewerTier).share_post_preview;
     }
 
+    /** Blog comments and similar account-level community surfaces (viewer owned-account plan). */
+    async isCommunityFeaturesEnabledForAuthUser(authUserId: string): Promise<boolean> {
+        const owned = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+        const viewerTier = owned?.subscription_tier ?? "FREE";
+        return planLimitsForTier(viewerTier).community_features;
+    }
+
+    /** Before posting blog comments on `/blog/:slug`. */
+    async assertCommunityFeaturesAllowed(authUserId: string): Promise<void> {
+        if (!(await this.isCommunityFeaturesEnabledForAuthUser(authUserId))) {
+            throw new SubscriptionError(
+                "Community features are not included on your current plan.",
+                SubscriptionSection.COMMUNITY_FEATURES,
+                this.billingUrl()
+            );
+        }
+    }
+
     /** Before opening share preview UX or posting collaboration comments on `/p/:postId`. */
     async assertSharePostPreviewAllowed(organizationId: string, authUserId?: string): Promise<void> {
         if (!(await this.isSharePostPreviewEnabledForOrganization(organizationId))) {

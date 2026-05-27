@@ -5,6 +5,7 @@
 	import { icons } from '$data/icons';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import * as Dialog from '$lib/ui/dialog';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Avatar from '$lib/ui/components/avatar';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
@@ -32,6 +33,10 @@
 		}) => Promise<PublicBlogMutationResultViewModel>;
 		/** From page presenter `submittingComment` — parent derives from presenter. */
 		submittingComment?: boolean;
+		/** When false, the signed-in viewer cannot post blog comments (owned-account plan). */
+		communityCommentsEnabled?: boolean;
+		/** Opens upgrade modal when a logged-in user submits without community access. */
+		onUpgradeRequired?: () => void;
 		class?: string;
 	};
 
@@ -43,22 +48,40 @@
 		composerAvatarUrl = null,
 		submitBlogComment,
 		submittingComment = false,
+		communityCommentsEnabled = true,
+		onUpgradeRequired,
 		class: className = ''
 	}: Props = $props();
 
 	let replyingTo = $state<BlogPostCommentViewModel | null>(null);
 	let disabledSubmit = $state(false);
 	let commentContent = $state('');
+	let showSignInDialog = $state(false);
 	const maxLength = 1000;
+
+	const canPostComments = $derived(isLoggedIn && communityCommentsEnabled);
 
 	function repliesFor(parentId: string): BlogPostCommentViewModel[] {
 		return comments.filter((c) => c.parentId === parentId);
 	}
 
 	async function handleComment() {
+		const trimmed = commentContent.trim();
+		if (!trimmed.length) return;
+
+		if (!isLoggedIn) {
+			showSignInDialog = true;
+			return;
+		}
+
+		if (!canPostComments) {
+			onUpgradeRequired?.();
+			return;
+		}
+
 		const result = await submitBlogComment({
 			postId,
-			content: commentContent.trim(),
+			content: trimmed,
 			parentId: replyingTo?.id ?? null
 		});
 		if (result.ok) {
@@ -66,6 +89,18 @@
 			commentContent = '';
 			replyingTo = null;
 		}
+	}
+
+	function handleReplyClick(comment: BlogPostCommentViewModel) {
+		if (!isLoggedIn) {
+			showSignInDialog = true;
+			return;
+		}
+		if (!canPostComments) {
+			onUpgradeRequired?.();
+			return;
+		}
+		replyingTo = comment;
 	}
 
 	function handleCancelReply() {
@@ -109,7 +144,7 @@
 						<Button
 							variant="primary"
 							size="sm"
-							onclick={() => (replyingTo = c)}
+							onclick={() => handleReplyClick(c)}
 						>
 							Reply
 							<span class="sr-only">to this comment</span>
@@ -150,6 +185,11 @@
 	<div class="space-y-2">
 		<h3 class="text-xl font-bold">
 			Add a comment</h3>
+		{#if isLoggedIn && !communityCommentsEnabled}
+			<p class="text-sm text-base-content/65">
+				Join the conversation on blog posts. Posting requires Creator or higher on your plan.
+			</p>
+		{/if}
 		{#if replyingTo}
 			<div class="pl-14 text-sm text-base-content/70">
 				Replying to {replyingTo.author?.fullName ?? 'Anonymous'}
@@ -175,44 +215,73 @@
 			</Avatar.Root>
 
 			<div class="min-w-0 flex-1">
-				<Textarea
-					placeholder="Write a comment…"
-					class="min-h-[100px] resize-none"
-					bind:value={commentContent}
-					maxlength={maxLength}
-				/>
-				<div class="mt-2 flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
-					{#if !isLoggedIn}
-						<p class="mr-auto text-xs italic text-base-content/60">
-							<a href={signInHref} class="link link-primary">Sign in</a> to comment.
-						</p>
-					{/if}
-					<span class="text-xs italic text-base-content/50">
-						{commentContent.length}/{maxLength}
-					</span>
-					{#if replyingTo}
+				<form
+					onsubmit={(e) => {
+						e.preventDefault();
+						void handleComment();
+					}}
+				>
+					<Textarea
+						placeholder="Write a comment…"
+						class="min-h-[100px] resize-none"
+						bind:value={commentContent}
+						maxlength={maxLength}
+						disabled={submittingComment}
+					/>
+					<div class="mt-2 flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+						{#if !isLoggedIn}
+							<p class="mr-auto text-xs italic text-base-content/60">
+								<a href={signInHref} class="link link-primary">Sign in</a> to comment.
+							</p>
+						{/if}
+						<span class="text-xs italic text-base-content/50">
+							{commentContent.length}/{maxLength}
+						</span>
+						{#if replyingTo}
+							<Button
+								type="button"
+								variant="ghost"
+								onclick={handleCancelReply}
+							>
+								Cancel
+							</Button>
+						{/if}
 						<Button
-							variant="ghost"
-							onclick={handleCancelReply}
+							type="submit"
+							variant="primary"
+							class="ml-2"
+							disabled={
+								disabledSubmit ||
+								submittingComment ||
+								!commentContent.trim()
+							}
 						>
-							Cancel
+							Submit
 						</Button>
-					{/if}
-					<Button
-						variant="primary"
-						class="ml-2"
-						disabled={
-							!isLoggedIn ||
-							disabledSubmit ||
-							submittingComment ||
-							!commentContent.trim()
-						}
-						onclick={handleComment}
-					>
-						Submit
-					</Button>
-				</div>
+					</div>
+				</form>
 			</div>
 		</div>
 	</div>
 </div>
+
+<Dialog.Root bind:open={showSignInDialog}>
+	<Dialog.Content class="max-w-md" showCloseButton>
+		<Dialog.Header>
+			<Dialog.Title>Sign in to comment</Dialog.Title>
+			<Dialog.Description>
+				Sign in to add comments on this post.
+			</Dialog.Description>
+		</Dialog.Header>
+		<Dialog.Footer>
+			<Dialog.Close>
+				<Button type="button" variant="ghost">
+					Not now
+				</Button>
+			</Dialog.Close>
+			<Button href={signInHref} variant="primary" checkCurrent={false}>
+				Sign in
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>

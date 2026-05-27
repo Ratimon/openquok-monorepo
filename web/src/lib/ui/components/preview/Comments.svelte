@@ -6,6 +6,8 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { Textarea } from '$lib/ui/textarea';
 
+	import SignInToCommentModal from '$lib/ui/components/blog-post/SignInToCommentModal.svelte';
+
 	type Props = {
 		postId: string;
 		organizationId: string;
@@ -44,8 +46,10 @@
 	}: Props = $props();
 
 	let commentContent = $state('');
+	let showSignInDialog = $state(false);
 
 	const canPostComments = $derived(isLoggedIn && collaborationCommentsEnabled);
+	const showComposer = $derived(isLoggedIn || sharePostPreviewEnabled);
 
 	let commentsHeading = $derived(comments.length === 1 ? '1 Comment' : `${comments.length} Comments`);
 	let userLabels = $derived.by(() => {
@@ -63,6 +67,11 @@
 	async function handleSubmitComment(): Promise<void> {
 		const trimmedComment = commentContent.trim();
 		if (!trimmedComment.length) return;
+
+		if (!isLoggedIn) {
+			showSignInDialog = true;
+			return;
+		}
 
 		if (!canPostComments) {
 			onUpgradeRequired?.();
@@ -101,10 +110,20 @@
 			</p>
 		</div>
 
-		{#if isLoggedIn}
-			<div class="space-y-3 rounded-lg border border-base-300 bg-base-200/50 p-3">
+		{#if showComposer}
+			<form
+				class="space-y-3 rounded-lg border border-base-300 bg-base-200/50 p-3"
+				onsubmit={(e) => {
+					e.preventDefault();
+					void handleSubmitComment();
+				}}
+			>
 				<div class="text-sm text-base-content/70">
-					Commenting as {currentUserLabel ?? 'current user'}
+					{#if isLoggedIn}
+						Commenting as {currentUserLabel ?? 'current user'}
+					{:else}
+						Sign in to add a comment
+					{/if}
 				</div>
 				<Textarea
 					bind:value={commentContent}
@@ -117,21 +136,14 @@
 					<span class="text-xs text-base-content/50">{commentContent.length}/1000</span>
 					<div class="flex flex-wrap items-center gap-2">
 						<Button
-							type="button"
+							type="submit"
 							disabled={submittingComment || !commentContent.trim().length}
-							onclick={() => void handleSubmitComment()}
 						>
 							{submittingComment ? 'Posting...' : 'Post'}
 						</Button>
 					</div>
 				</div>
-			</div>
-		{:else if sharePostPreviewEnabled}
-			<div class="rounded-lg border border-dashed border-base-300 bg-base-200/40 p-4">
-				<Button href={signInHref} class="w-full" checkCurrent={false}>
-					Login to add comments
-				</Button>
-			</div>
+			</form>
 		{/if}
 
 		<div class="space-y-3">
@@ -156,3 +168,5 @@
 		</div>
 	</div>
 </div>
+
+<SignInToCommentModal bind:open={showSignInDialog} signInHref={signInHref} />
