@@ -1,4 +1,5 @@
 import { AbstractEmailTemplate } from "./AbstractEmailTemplate";
+import { EMAIL_PRIMARY_COLOR } from "./emailTheme";
 
 /**
  * Change password email: sent when an authenticated user requests a link to change their password.
@@ -47,10 +48,10 @@ Visit our help center to learn more about our platform and to share your feedbac
         We received a request to change your password. Click the button below to change your password. If you didn't ask to change your password, you can ignore this email.
     </p>
     <p style="margin: 24px 0;">
-        <a href="${this.changePasswordLink}" style="display: inline-block; background-color: #111; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Change password →</a>
+        <a href="${this.changePasswordLink}" style="display: inline-block; background-color: ${EMAIL_PRIMARY_COLOR}; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Change password →</a>
     </p>
     <p style="margin-top: 32px; font-size: 14px; color: #666;">
-        Visit our <a href="#" style="color: #111; text-decoration: underline;">help center</a> to learn more about our platform and to share your feedback.
+        Visit our <a href="#" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline;">help center</a> to learn more about our platform and to share your feedback.
     </p>
 </body>
 </html>

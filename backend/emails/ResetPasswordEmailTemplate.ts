@@ -1,4 +1,5 @@
 import { AbstractEmailTemplate } from "./AbstractEmailTemplate";
+import { EMAIL_PRIMARY_COLOR } from "./emailTheme";
 
 /**
  * Reset password email: shows the one-time code and a link to the frontend forgot-password page.
@@ -47,16 +48,16 @@ The Team
     <title>Reset your password</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #e67e22; padding-bottom: 10px;">Reset your password</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid ${EMAIL_PRIMARY_COLOR}; padding-bottom: 10px;">Reset your password</h1>
     <p>Hello <strong>${this.fullName || "there"}</strong>,</p>
     <p>Your code is <strong style="font-size: 1.2em; letter-spacing: 0.1em;">${this.code}</strong></p>
     <p>Follow this link to reset your password using the code above:</p>
     <p style="margin: 20px 0;">
-        <a href="${this.resetLink}" style="display: inline-block; background-color: #e67e22; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset password</a>
+        <a href="${this.resetLink}" style="display: inline-block; background-color: ${EMAIL_PRIMARY_COLOR}; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset password</a>
     </p>
     <p style="color: #7f8c8d; font-size: 14px;">
         Or copy and paste this link into your browser:<br>
-        <a href="${this.resetLink}" style="color: #e67e22; word-break: break-all;">${this.resetLink}</a>
+        <a href="${this.resetLink}" style="color: ${EMAIL_PRIMARY_COLOR}; word-break: break-all;">${this.resetLink}</a>
     </p>
     <p style="color: #7f8c8d; font-size: 14px; margin-top: 30px;">
         If you did not request a password reset, please ignore this email.

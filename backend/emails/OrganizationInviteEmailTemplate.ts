@@ -1,4 +1,5 @@
 import { AbstractEmailTemplate } from "./AbstractEmailTemplate";
+import { EMAIL_PRIMARY_COLOR } from "./emailTheme";
 
 export class OrganizationInviteEmailTemplate extends AbstractEmailTemplate {
     private inviteLink: string;
@@ -50,15 +51,15 @@ The Team
     <title>Organization Invitation</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">You're invited to join ${this.organizationName}</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid ${EMAIL_PRIMARY_COLOR}; padding-bottom: 10px;">You're invited to join ${this.organizationName}</h1>
     <p>You have been invited to join <strong>${this.organizationName}</strong> as <strong>${this.role}</strong>.</p>
     <p>Open the link below, then sign in or create an account before you accept the invitation.</p>
     <p style="margin: 20px 0;">
-        <a href="${this.inviteLink}" style="display: inline-block; background-color: #3498db; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View invitation</a>
+        <a href="${this.inviteLink}" style="display: inline-block; background-color: ${EMAIL_PRIMARY_COLOR}; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View invitation</a>
     </p>
     <p style="color: #7f8c8d; font-size: 14px;">
         Or copy and paste this link into your browser:<br>
-        <a href="${this.inviteLink}" style="color: #3498db; word-break: break-all;">${this.inviteLink}</a>
+        <a href="${this.inviteLink}" style="color: ${EMAIL_PRIMARY_COLOR}; word-break: break-all;">${this.inviteLink}</a>
     </p>
     <p style="color: #e74c3c; font-weight: bold;">This link will expire in ${this.expiresInHours} hour(s).</p>
     <p style="color: #7f8c8d; font-size: 14px; margin-top: 30px;">

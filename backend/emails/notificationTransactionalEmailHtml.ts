@@ -1,4 +1,5 @@
 import type { DigestQueueEntry } from "openquok-common";
+import { EMAIL_PRIMARY_COLOR } from "./emailTheme";
 import { escapeHtml } from "./htmlEscape";
 
 const URL_IN_TEXT = /(https?:\/\/[^\s<]+)/gi;
@@ -24,7 +25,7 @@ export function buildNotificationMessageParagraphWithAutolink(message: string): 
                 const u = part.trim();
                 if (/^https?:\/\//i.test(u)) {
                     const safe = escapeHtml(u);
-                    return `<a href="${safe}">${safe}</a>`;
+                    return `<a href="${safe}" style="color: ${EMAIL_PRIMARY_COLOR};">${safe}</a>`;
                 }
             }
             return escapeHtml(part);

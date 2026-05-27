@@ -1,4 +1,5 @@
 import { AbstractEmailTemplate } from "./AbstractEmailTemplate";
+import { EMAIL_PRIMARY_COLOR } from "./emailTheme";
 
 export class VerifyEmailTemplate extends AbstractEmailTemplate {
     private fullName: string;
@@ -46,15 +47,15 @@ The Team
     <title>Verify Your Email Address</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">Please verify your email address</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid ${EMAIL_PRIMARY_COLOR}; padding-bottom: 10px;">Please verify your email address</h1>
     <p>Hello <strong>${this.fullName || "there"}</strong>,</p>
     <p>Please verify your email address by clicking the link below:</p>
     <p style="margin: 20px 0;">
-        <a href="${this.verificationLink}" style="display: inline-block; background-color: #3498db; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email Address</a>
+        <a href="${this.verificationLink}" style="display: inline-block; background-color: ${EMAIL_PRIMARY_COLOR}; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email Address</a>
     </p>
     <p style="color: #7f8c8d; font-size: 14px;">
         Or copy and paste this link into your browser:<br>
-        <a href="${this.verificationLink}" style="color: #3498db; word-break: break-all;">${this.verificationLink}</a>
+        <a href="${this.verificationLink}" style="color: ${EMAIL_PRIMARY_COLOR}; word-break: break-all;">${this.verificationLink}</a>
     </p>
     <p style="color: #e74c3c; font-weight: bold;">This link will expire in 24 hours.</p>
     <p style="color: #7f8c8d; font-size: 14px; margin-top: 30px;">

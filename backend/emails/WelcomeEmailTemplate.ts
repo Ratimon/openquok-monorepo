@@ -1,4 +1,5 @@
 import { AbstractEmailTemplate } from "./AbstractEmailTemplate";
+import { EMAIL_PRIMARY_COLOR } from "./emailTheme";
 
 export class WelcomeEmailTemplate extends AbstractEmailTemplate {
     private fullName: string;
@@ -35,7 +36,7 @@ The Team
     <title>Welcome!</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 10px;">Welcome to our platform!</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid ${EMAIL_PRIMARY_COLOR}; padding-bottom: 10px;">Welcome to our platform!</h1>
     <p>Hello <strong>${this.fullName || "there"}</strong>,</p>
     <p>Thank you for verifying your email address. Your account is now fully activated.</p>
     <p>You can now access all features of our platform.</p>
