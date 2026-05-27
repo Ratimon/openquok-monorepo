@@ -7,6 +7,7 @@ export interface WorkspaceCardViewModel {
 	name: string;
 	description: string | null;
 	subtitle: string;
+	memberCount: number;
 	workspaceRole: 'user' | 'admin' | 'owner';
 	disabled: boolean;
 }
@@ -27,6 +28,7 @@ export class GetWorkspacePresenter {
 			name: pm.name,
 			description: pm.description ?? null,
 			subtitle: `${pm.memberCount} ${memberLabel}`,
+			memberCount: pm.memberCount,
 			workspaceRole: pm.workspaceRole,
 			disabled: pm.disabled
 		};

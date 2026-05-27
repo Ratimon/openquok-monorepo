@@ -174,4 +174,10 @@ export class GetPricingPresenter {
 			billingEnabled: listPm.billingEnabled
 		};
 	}
+
+	/** Owned-account tier and workspace cap (not the active workspace). */
+	public async loadOwnedAccountBillingVmStateless(): Promise<BillingCurrentViewModel | null> {
+		const pm = await this.billingRepository.getAccountOwned();
+		return pm ? this.toBillingCurrentVm(pm) : null;
+	}
 }

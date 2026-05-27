@@ -47,7 +47,7 @@ export const pricing: PricingMap = {
 		workspaces: 0,
 		channel_per_workspace: 0,
 		posts_per_month: 0,
-		team_members_per_workspace: 0,
+		team_members_per_workspace: 1,
 		share_post_preview: false,
 		community_features: true,
 		public_api: false,

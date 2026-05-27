@@ -3,6 +3,7 @@ export { default as BillingCancelRetentionDialog } from '$lib/ui/components/bill
 export { default as BillingFaq } from '$lib/ui/components/billing/BillingFaq.svelte';
 export { default as BillingPeriodToggle } from '$lib/ui/components/billing/BillingPeriodToggle.svelte';
 export { default as BillingPlansSection } from '$lib/ui/components/billing/BillingPlansSection.svelte';
+export { default as BillingWorkspaceSelect } from '$lib/ui/components/billing/BillingWorkspaceSelect.svelte';
 export { default as EmbeddedBilling } from '$lib/ui/components/billing/EmbeddedBilling.svelte';
 export { default as FirstBilling } from '$lib/ui/components/billing/FirstBilling.svelte';
 export { default as FinishTrial } from '$lib/ui/components/billing/FinishTrial.svelte';

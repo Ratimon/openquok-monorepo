@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { IconName } from '$data/icons';
+
+	import { cn } from '$lib/ui/helpers/common';
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import { cn } from '$lib/ui/helpers/common';
 
 	type NoticeTone = 'neutral' | 'accent' | 'upgrade';
 
@@ -77,11 +78,11 @@
 				type="button"
 				variant="ghost"
 				size="sm"
-				class="btn-square min-h-8 h-8 w-8 text-base-content/60 hover:text-base-content"
+				class="btn-square size-8 text-base-content/60 hover:text-base-content"
 				aria-label="Dismiss notice"
 				onclick={() => onDismiss?.()}
 			>
-				<AbstractIcon name={icons.X2.name} class="size-4" width="16" height="16" />
+				<AbstractIcon name={icons.X2.name} class="size-5" width="20" height="20" />
 			</Button>
 		{/if}
 	</div>

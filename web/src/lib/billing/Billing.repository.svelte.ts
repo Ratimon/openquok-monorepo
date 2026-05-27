@@ -7,6 +7,8 @@ export interface BillingConfig {
 		plans: string;
 		/** Full billing context; uses `showorg` cookie when query is omitted. */
 		current: string;
+		/** Tier and owned-workspace cap for organizations the user owns. */
+		accountOwned: string;
 		root: string;
 		subscribe: string;
 		embedded: string;
@@ -155,6 +157,37 @@ export class BillingRepository {
 			};
 		}
 		return { plans: [], billingEnabled: false };
+	}
+
+	async getAccountOwned(): Promise<BillingCurrentProgrammerModel | null> {
+		const { data: currentDto, ok } = await this.httpGateway.get<BillingCurrentResponseDto>(
+			this.config.endpoints.accountOwned,
+			undefined,
+			{ withCredentials: true }
+		);
+
+		if (ok && currentDto?.data) {
+			const subscription = mapBillingSubscription(currentDto.data.subscription);
+			const postsCap = currentDto.data.limits?.postsPerMonth ?? 0;
+			const teamCap = currentDto.data.limits?.teamMembersPerWorkspace ?? 0;
+			return {
+				tier: currentDto.data.tier,
+				subscription,
+				drive: currentDto.data.drive ?? { used: 0, total: 0 },
+				posts: currentDto.data.posts ?? {
+					used: 0,
+					limit: postsCap >= UNLIMITED_POSTS_PER_MONTH ? null : postsCap
+				},
+				teamMembers: currentDto.data.teamMembers ?? {
+					used: 0,
+					limit: teamCap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE ? null : teamCap
+				},
+				limits: currentDto.data.limits,
+				billing: currentDto.data.billing ?? null,
+				billingEnabled: currentDto.data.billingEnabled ?? false
+			};
+		}
+		return null;
 	}
 
 	async getCurrent(organizationId?: string): Promise<BillingCurrentProgrammerModel | null> {

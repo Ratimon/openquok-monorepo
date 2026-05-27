@@ -359,10 +359,11 @@ export class AuthController {
                 this.setRefreshTokenCookie(res, session.refresh_token);
             }
 
-            // Create default organization for new user (createOrgAndUser-style); keep multi-org create/update/delete in settings
+            // Create default organization for new user (best-effort).
             if (newUser?.id) {
                 const defaultOrg = await this.organizationService.createDefaultOrganizationForNewUser(newUser.id, {
                     name: fullName ?? "My Organization",
+                    email,
                 });
                 if (!defaultOrg) {
                     logger.warn({ msg: "Default organization creation failed at signup", userId: newUser.id });

@@ -313,6 +313,39 @@ describe("OrganizationService", () => {
             const result = await service.createDefaultOrganizationForNewUser(authUserId, { name: orgName });
             expect(result).toBeNull();
         });
+
+        // it("creates default org even when email has a pending workspace invite", async () => {
+        //     (orgRepo.findPendingInvitesByEmail as jest.Mock).mockResolvedValue({
+        //         invites: [{ id: inviteId, email: invitedEmail, organization_id: orgId }],
+        //         error: null,
+        //     });
+        //     (orgRepo.createOrganization as jest.Mock).mockResolvedValue({
+        //         organization: orgRow,
+        //         error: null,
+        //     });
+        //     const service = new OrganizationService(orgRepo, userRepo);
+        //     const result = await service.createDefaultOrganizationForNewUser(authUserId, {
+        //         name: orgName,
+        //         email: invitedEmail,
+        //     });
+        //     expect(result).not.toBeNull();
+        //     expect(orgRepo.createOrganization).toHaveBeenCalled();
+        // });
+
+        // it("creates default org when email has no pending workspace invite", async () => {
+        //     (orgRepo.findPendingInvitesByEmail as jest.Mock).mockResolvedValue({ invites: [], error: null });
+        //     (orgRepo.createOrganization as jest.Mock).mockResolvedValue({
+        //         organization: orgRow,
+        //         error: null,
+        //     });
+        //     const service = new OrganizationService(orgRepo, userRepo);
+        //     const result = await service.createDefaultOrganizationForNewUser(authUserId, {
+        //         name: orgName,
+        //         email: invitedEmail,
+        //     });
+        //     expect(result).not.toBeNull();
+        //     expect(orgRepo.createOrganization).toHaveBeenCalled();
+        // });
     });
 
     describe("updateOrganization", () => {
@@ -661,18 +694,22 @@ describe("OrganizationService", () => {
             });
             const service = new OrganizationService(orgRepo, userRepo);
             const result = await service.validateInviteToken(token);
-            expect(result).not.toBeNull();
-            expect(result!.organizationName).toBe(orgName);
-            expect(result!.workspaceRole).toBe("admin");
+            expect(result.valid).toBe(true);
+            if (result.valid) {
+                expect(result.organizationName).toBe(orgName);
+                expect(result.workspaceRole).toBe("admin");
+                expect(result.inviteeEmail).toBe(validateTokenEmail);
+            }
         });
 
-        it("returns null for invalid token", async () => {
+        it("returns invalid_signature for malformed token", async () => {
             const service = new OrganizationService(orgRepo, userRepo);
             const result = await service.validateInviteToken("invalid");
-            expect(result).toBeNull();
+            expect(result.valid).toBe(false);
+            if (!result.valid) expect(result.reason).toBe("malformed");
         });
 
-        it("returns null when org no longer exists", async () => {
+        it("returns organization_not_found when org no longer exists", async () => {
             const token = signInviteToken(
                 { email: validateTokenEmail, organizationId: orgId, workspaceRole: "user" },
                 "test-invite-secret"
@@ -683,7 +720,8 @@ describe("OrganizationService", () => {
             });
             const service = new OrganizationService(orgRepo, userRepo);
             const result = await service.validateInviteToken(token);
-            expect(result).toBeNull();
+            expect(result.valid).toBe(false);
+            if (!result.valid) expect(result.reason).toBe("organization_not_found");
         });
     });
 

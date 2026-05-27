@@ -27,7 +27,7 @@ export class OrganizationInviteEmailTemplate extends AbstractEmailTemplate {
         return `
 You have been invited to join ${this.organizationName} as ${this.role}.
 
-Click the link below to accept the invitation:
+Open the link below, then sign in or create an account before you accept the invitation:
 
 ${this.inviteLink}
 
@@ -52,9 +52,9 @@ The Team
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
     <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">You're invited to join ${this.organizationName}</h1>
     <p>You have been invited to join <strong>${this.organizationName}</strong> as <strong>${this.role}</strong>.</p>
-    <p>Click the button below to accept the invitation:</p>
+    <p>Open the link below, then sign in or create an account before you accept the invitation.</p>
     <p style="margin: 20px 0;">
-        <a href="${this.inviteLink}" style="display: inline-block; background-color: #3498db; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Accept invitation</a>
+        <a href="${this.inviteLink}" style="display: inline-block; background-color: #3498db; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View invitation</a>
     </p>
     <p style="color: #7f8c8d; font-size: 14px;">
         Or copy and paste this link into your browser:<br>

@@ -43,7 +43,9 @@
 	);
 
 	const triggerLabel = $derived(
-		loading && !currentWorkspace ? 'Workspace…' : (currentWorkspace?.name ?? 'Workspace')
+		loading && !currentWorkspace
+			? 'Workspace…'
+			: (currentWorkspace?.name ?? (workspaces.length > 0 ? 'Switch workspace' : 'Workspace'))
 	);
 
 	const switchWorkspaceModalData = $derived<SwitchWorkspaceModalData | null>(pendingSwitch);
@@ -76,7 +78,8 @@
 			aria-label="Switch workspace"
 			disabled={loading && !currentWorkspace}
 			class={cn(
-				'hidden sm:inline-flex h-8 max-w-[12rem] items-center gap-2 rounded-md border border-base-300 bg-base-100 px-2.5 text-sm font-medium text-base-content shadow-sm outline-none hover:bg-base-content/10 focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50'
+				'h-8 max-w-[12rem] items-center gap-2 rounded-md border border-base-300 bg-base-100 px-2.5 text-sm font-medium text-base-content shadow-sm outline-none hover:bg-base-content/10 focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50',
+				'hidden sm:inline-flex'
 			)}
 		>
 			<span

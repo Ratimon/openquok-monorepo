@@ -24,6 +24,8 @@ const authWithRoles = requireFullAuthWithRoles(
 const billingRouter: ExpressRouter = Router();
 
 billingRouter.get("/plans", billingController.getPlans);
+/** Tier and workspace cap for organizations the user owns (ignores active workspace / invites). */
+billingRouter.get("/account-owned", authWithRoles, billingController.getOwnedAccount);
 /** Active workspace from `showorg` cookie or `organizationId` query (aligned with legacy GET /billing). */
 billingRouter.get("/", authWithRoles, validateBillingOrganizationQuery, billingController.getCurrent);
 billingRouter.get("/subscription", authWithRoles, validateBillingOrganizationQuery, billingController.getCurrent);

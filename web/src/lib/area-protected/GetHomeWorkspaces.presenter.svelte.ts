@@ -10,6 +10,8 @@ export interface HomeWorkspaceMemberPreviewViewModel {
 	id: string;
 	displayName: string;
 	initials: string;
+	/** True when this row is the signed-in user. */
+	isSelf: boolean;
 }
 
 export interface HomeWorkspaceChannelPreviewViewModel {
@@ -83,15 +85,17 @@ export class GetHomeWorkspacesPresenter {
 		const currentUserId = currentUser?.id?.trim() ?? '';
 
 		const membersPreviewAll = membersPm
-			.filter((m) => !currentUserId || m.userId !== currentUserId)
 			.map((m) => {
+				const isSelf = Boolean(currentUserId && m.userId === currentUserId);
 				const displayName = memberDisplayName(m);
 				return {
 					id: m.id,
 					displayName,
-					initials: memberInitials(displayName)
+					initials: memberInitials(displayName),
+					isSelf
 				};
-			});
+			})
+			.sort((a, b) => Number(b.isSelf) - Number(a.isSelf));
 
 		const membersPreview = membersPreviewAll.slice(0, MEMBER_AVATAR_PREVIEW_LIMIT);
 		const hiddenMemberCount = Math.max(0, membersPreviewAll.length - membersPreview.length);
@@ -119,7 +123,7 @@ export class GetHomeWorkspacesPresenter {
 			roleLabel: workspaceRoleDisplayLabel(workspace.workspaceRole),
 			userFullName,
 			userEmail,
-			memberCount: membersPm.length,
+			memberCount: Math.max(workspace.memberCount, membersPm.length),
 			membersPreview,
 			hiddenMemberCount,
 			channelPreviews,

@@ -21,8 +21,10 @@
 		BillingFaq,
 		BillingPeriodToggle,
 		BillingPlansSection,
+		BillingWorkspaceSelect,
 		FinishTrial
 	} from '$lib/ui/components/billing';
+	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 
 	const pagePresenter = protectedBillingPagePresenter;
@@ -32,6 +34,19 @@
 	const accountPath = route(rootPathAccount);
 
 	const organizationId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
+	const ownedWorkspaces = $derived(
+		workspaceSettingsPresenter.workspacesVm.filter((w) => w.workspaceRole === 'owner')
+	);
+	const canManageBilling = $derived(workspaceSettingsPresenter.canManageSentInvitesInCurrentWorkspace);
+	const currentWorkspaceName = $derived(
+		workspaceSettingsPresenter.workspacesVm.find((w) => w.id === organizationId)?.name ?? null
+	);
+	const planHeadingWorkspaceName = $derived(currentWorkspaceName ?? 'this workspace');
+	const showBillingWorkspaceSelect = $derived(
+		!canManageBilling
+			? ownedWorkspaces.length > 0
+			: ownedWorkspaces.length > 1
+	);
 	const checkoutId = $derived(page.url.searchParams.get('checkout'));
 	const finishTrialQuery = $derived(page.url.searchParams.get('finishTrial'));
 
@@ -64,9 +79,14 @@
 	const checkoutBusy = $derived(pagePresenter.billingPresenter.checkoutBusy);
 	const hasSubscriptionRecord = $derived(Boolean(subscription?.id));
 	const checkoutEnabled = $derived(pagePresenter.billingEnabled);
+	const billingActionsEnabled = $derived(checkoutEnabled && canManageBilling);
 	const canCancelSubscription = $derived(
-		checkoutEnabled && hasActiveSubscription && !cancelAt
+		billingActionsEnabled && hasActiveSubscription && !cancelAt
 	);
+
+	function handleSwitchWorkspace(workspaceId: string): void {
+		void workspaceSettingsPresenter.switchWorkspace(workspaceId);
+	}
 
 	const cancelConfirmDescription = $derived.by(() => {
 		const base = 'Are you sure you want to cancel your subscription?';
@@ -87,7 +107,7 @@
 	}
 
 	function requestSubscribe(tier: PaidSubscriptionTier): void {
-		if (!checkoutEnabled || checkoutBusy) return;
+		if (!billingActionsEnabled || checkoutBusy) return;
 		const warning = pagePresenter.teamMemberDowngradeWarningForTier(tier);
 		if (warning) {
 			pendingSubscribeTier = tier;
@@ -166,6 +186,11 @@
 			if (loadedPeriod) {
 				period = loadedPeriod;
 			}
+			if (checkoutId && !workspaceSettingsPresenter.canManageSentInvitesInCurrentWorkspace) {
+				toast.error('Only the workspace owner can complete checkout for this workspace.');
+				replaceState('/account/billing', {});
+				return;
+			}
 			if (checkoutId) {
 				const tierAfterLoad = pagePresenter.currentVm?.tier ?? 'FREE';
 				const alreadyActive =
@@ -213,20 +238,37 @@
 <div class="flex flex-1 flex-col gap-4 p-5">
 	<div class="space-y-6 rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
 		<div class="flex flex-wrap items-center justify-between gap-3">
-			<div class="space-y-1">
-				<div class="flex items-center gap-3">
+			<div class="min-w-0 space-y-1">
+				<div class="flex flex-wrap items-center gap-3">
 					<AbstractIcon
 						name={icons.CreditCard.name}
 						class="text-primary size-8 shrink-0"
 						width="32"
 						height="32"
 					/>
-					<h1 class="text-2xl font-bold text-base-content">
-						Plans
+					<h1 class="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-2xl font-bold text-base-content">
+						<span class="shrink-0">Plan for</span>
+						{#if showBillingWorkspaceSelect}
+							<BillingWorkspaceSelect
+								workspaces={ownedWorkspaces}
+								currentWorkspaceId={organizationId}
+								displayName={planHeadingWorkspaceName}
+								onSwitchWorkspace={handleSwitchWorkspace}
+							/>
+						{:else}
+							<span class="text-primary">{planHeadingWorkspaceName}</span> workspace
+						{/if}
 					</h1>
 				</div>
 				<p class="text-sm text-base-content/70">
-					Compare plans, manage your subscription, and update billing for this workspace.
+					{#if canManageBilling}
+						Compare plans, manage your subscription, and update billing for this workspace.
+					{:else}
+						View plans for this workspace. Only the workspace owner can purchase or change billing.
+						{#if ownedWorkspaces.length > 0}
+							Use the workspace menu in the title to switch to one you own.
+						{/if}
+					{/if}
 				</p>
 			</div>
 			<div class="flex items-center gap-2">
@@ -252,6 +294,20 @@
 				</p>
 			</div>
 		{:else}
+			{#if !canManageBilling}
+				<HomeAccountNoticeBanner iconName={icons.Info.name} tone="neutral" dismissible={false}>
+					<p class="text-base-content/90">
+						{#if currentWorkspaceName}
+							Billing for <span class="font-medium">{currentWorkspaceName}</span> is managed by the
+							workspace owner.
+						{:else}
+							Billing for this workspace is managed by the workspace owner.
+						{/if}
+						Ask them to change the plan or payment method.
+					</p>
+				</HomeAccountNoticeBanner>
+			{/if}
+
 			{#if !checkoutEnabled}
 				<div class="alert alert-info">
 					<span>
@@ -280,7 +336,7 @@
 					{cancelAt}
 					{hasActiveSubscription}
 					{hasSubscriptionRecord}
-					{checkoutEnabled}
+					checkoutEnabled={billingActionsEnabled}
 					{checkoutBusy}
 					{allowTrial}
 					{userOnFreeTier}
@@ -292,7 +348,7 @@
 				/>
 			</div>
 
-			{#if checkoutEnabled && hasSubscriptionRecord}
+			{#if billingActionsEnabled && hasSubscriptionRecord}
 				<div class="flex flex-wrap justify-center gap-2.5">
 					{#if pagePresenter.currentVm?.billing?.hasStripeCustomer}
 						<Button

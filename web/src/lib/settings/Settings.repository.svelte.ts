@@ -121,9 +121,17 @@ export interface ListSentInvitesResponseDto {
 	message?: string;
 }
 
+export type ValidateInviteFailureReason =
+	| 'malformed'
+	| 'missing_secret'
+	| 'invalid_signature'
+	| 'expired'
+	| 'organization_not_found';
+
 export interface ValidateInviteResponseDto {
 	success: boolean;
-	data: { organizationName: string; workspaceRole: string } | null;
+	data: { organizationName: string; workspaceRole: string; inviteeEmail: string } | null;
+	reason?: ValidateInviteFailureReason;
 	message?: string;
 }
 
@@ -362,10 +370,10 @@ export class SettingsRepository {
 		}
 	}
 
-	public async getTeam(_organizationId: string): Promise<TeamMemberProgrammerModel[]> {
+	public async getTeam(organizationId: string): Promise<TeamMemberProgrammerModel[]> {
 		try {
 			const { ok, data: getTeamDto } = await this.httpGateway.get<GetTeamResponseDto>(
-				this.config.endpoints.getTeam,
+				this.config.endpoints.getTeamById(organizationId),
 				undefined,
 				{ withCredentials: true }
 			);
@@ -510,7 +518,12 @@ export class SettingsRepository {
 		}
 	}
 
-	public async validateInviteToken(token: string): Promise<{ organizationName: string; role: string } | null> {
+	public async validateInviteToken(
+		token: string
+	): Promise<
+		| { organizationName: string; role: string; inviteeEmail: string }
+		| { reason: ValidateInviteFailureReason | 'network' }
+	> {
 		try {
 			const { ok, data: validateInviteDto } = await this.httpGateway.get<ValidateInviteResponseDto>(
 				this.config.endpoints.validateInvite,
@@ -520,12 +533,13 @@ export class SettingsRepository {
 			if (ok && validateInviteDto?.success && validateInviteDto.data) {
 				return {
 					organizationName: validateInviteDto.data.organizationName,
-					role: validateInviteDto.data.workspaceRole
+					role: validateInviteDto.data.workspaceRole,
+					inviteeEmail: validateInviteDto.data.inviteeEmail
 				};
 			}
-			return null;
+			return { reason: validateInviteDto?.reason ?? 'invalid_signature' };
 		} catch {
-			return null;
+			return { reason: 'network' };
 		}
 	}
 

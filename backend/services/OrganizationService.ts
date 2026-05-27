@@ -13,7 +13,14 @@ import type { PermissionsService } from "./PermissionsService";
 
 import { OrganizationNotFoundError, OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError } from "../errors/UserError";
-import { signInviteToken, verifyInviteToken } from "../utils/auth/inviteToken";
+import {
+    decodeInviteToken,
+    INVITE_TOKEN_TTL_HOURS,
+    INVITE_TOKEN_TTL_MS,
+    signInviteToken,
+    verifyInviteToken,
+    type InviteTokenInvalidReason,
+} from "../utils/auth/inviteToken";
 import { config } from "../config/GlobalConfig";
 import { OrganizationInviteEmailTemplate } from "../emails/OrganizationInviteEmailTemplate";
 import dayjs from "dayjs";
@@ -63,11 +70,16 @@ export class OrganizationService {
         );
         const frontendUrl = (config.server as { frontendDomainUrl?: string })?.frontendDomainUrl ?? "";
         const inviteUrl = `${frontendUrl}/join-org?token=${encodeURIComponent(token)}`;
-        const expiresAt = dayjs().add(1, "hour").toISOString();
+        const expiresAt = new Date(Date.now() + INVITE_TOKEN_TTL_MS).toISOString();
         if (params.sendEmail && this.emailService?.isEnabled) {
             try {
                 await this.emailService.send(
-                    new OrganizationInviteEmailTemplate(inviteUrl, organization.name, params.workspaceRole, 1),
+                    new OrganizationInviteEmailTemplate(
+                        inviteUrl,
+                        organization.name,
+                        params.workspaceRole,
+                        INVITE_TOKEN_TTL_HOURS
+                    ),
                     params.email
                 );
             } catch (_) {}
@@ -126,13 +138,23 @@ export class OrganizationService {
         return { organizationId: payload.organizationId, workspaceRole: payload.workspaceRole };
     }
 
-    /** Validate invite token without consuming; returns org name and role for UI. */
-    async validateInviteToken(token: string): Promise<{ organizationName: string; workspaceRole: string } | null> {
+    /** Validate invite token without consuming; returns org name, role, and invitee email for UI. */
+    async validateInviteToken(token: string): Promise<
+        | { valid: true; organizationName: string; workspaceRole: string; inviteeEmail: string }
+        | { valid: false; reason: InviteTokenInvalidReason | "organization_not_found" }
+    > {
         const secret = (config.auth as { inviteTokenSecret?: string })?.inviteTokenSecret ?? "";
-        const payload = verifyInviteToken(token, secret);
-        if (!payload) return null;
+        const decoded = decodeInviteToken(token, secret);
+        if (!decoded.ok) return { valid: false, reason: decoded.reason };
+        const payload = decoded.payload;
         const { organization } = await this.organizationRepository.findOrganizationById(payload.organizationId);
-        return organization ? { organizationName: organization.name, workspaceRole: payload.workspaceRole } : null;
+        if (!organization) return { valid: false, reason: "organization_not_found" };
+        return {
+            valid: true,
+            organizationName: organization.name,
+            workspaceRole: payload.workspaceRole,
+            inviteeEmail: payload.email,
+        };
     }
 
     /** List pending invites sent from a workspace (workspace owner only). */
@@ -340,14 +362,22 @@ export class OrganizationService {
         return organization;
     }
 
+    /** True when the email has at least one non-expired workspace invite (join-by-link / pending invite row). */
+    async hasPendingWorkspaceInviteForEmail(email: string): Promise<boolean> {
+        const normalized = email?.trim();
+        if (!normalized) return false;
+        const { invites } = await this.organizationRepository.findPendingInvitesByEmail(normalized);
+        return invites.length > 0;
+    }
+
     /**
      * Create a default organization for a newly registered user (createOrgAndUser-style).
-     * Used at signup and OAuth registration so the user has one org and is owner.
-     * Returns the created org row or null on failure (caller should not fail signup).
+     * Used at signup so the user has one org and is owner.
+     * Returns the created org row or null on failure or skip (caller should not fail signup).
      */
     async createDefaultOrganizationForNewUser(
         authUserId: string,
-        params?: { name?: string }
+        params?: { name?: string; email?: string }
     ): Promise<OrganizationLike | null> {
         try {
             return await this.createOrganization(authUserId, {

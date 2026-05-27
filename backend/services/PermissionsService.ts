@@ -330,9 +330,9 @@ export class PermissionsService {
     }
 
     /**
-     * Before creating another workspace for the user — uses the highest `workspaces` limit among
-     * organizations they already belong to. Tiers with `workspaces: 0` (FREE) skip enforcement so
-     * signup can still provision the default organization.
+     * Before creating another workspace the user will own — uses the user's owned billing account
+     * (paid subscription rows on owned organizations only, not invited memberships). Without a paid
+     * owned subscription the cap is one workspace (signup default).
      */
     async assertCanCreateWorkspace(authUserId: string): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
@@ -340,18 +340,20 @@ export class PermissionsService {
         const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
         if (!userId) return;
 
-        const { organizations } = await this.organizationRepository.findOrganizationsByUserId(userId);
-        const currentCount = organizations.length;
+        const { organizations, memberships } =
+            await this.organizationRepository.findOrganizationsByUserId(userId);
+        const ownedOrganizationIds = new Set(
+            memberships
+                .filter((m) => (m.role ?? "").toLowerCase() === "owner")
+                .map((m) => m.organizationId)
+        );
+        const ownedCount = organizations.filter((org) => ownedOrganizationIds.has(org.id)).length;
 
-        let workspaceCap = 0;
-        for (const org of organizations) {
-            const { limits } = await this.getTierAndLimits(org.id, authUserId);
-            workspaceCap = Math.max(workspaceCap, limits.workspaces);
-        }
+        const ownedSubscription =
+            await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+        const workspaceCap = this.subscriptionService.resolveOwnedWorkspaceCap(ownedSubscription);
 
-        if (workspaceCap < 1) return;
-
-        if (currentCount >= workspaceCap) {
+        if (ownedCount >= workspaceCap) {
             throw new SubscriptionError(
                 workspaceCap === 1
                     ? "Your plan includes one workspace. Upgrade to add more."

@@ -41,9 +41,63 @@ export class SubscriptionService {
     }
 
     /**
+     * Paid subscription on organizations the user owns (direct rows only, then inheritance among
+     * owned workspaces within the plan workspace cap). Ignores invited/member workspaces.
+     */
+    async getOwnedAccountSubscription(authUserId: string): Promise<OrganizationSubscriptionRow | null> {
+        if (!authUserId?.trim() || !this.billingEnabled()) return null;
+
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId.trim());
+        if (!userId) return null;
+
+        const { organizations, memberships } =
+            await this.organizationRepository.findOrganizationsByUserId(userId);
+        const ownedOrganizationIds = new Set(
+            memberships
+                .filter((m) => (m.role ?? "").toLowerCase() === "owner" && !m.disabled)
+                .map((m) => m.organizationId)
+        );
+        const ownedOrganizationsCount = memberships.filter(
+            (m) => (m.role ?? "").toLowerCase() === "owner" && !m.disabled
+        ).length;
+
+        let best: OrganizationSubscriptionRow | null = null;
+        let bestWorkspaceCap = -1;
+
+        for (const org of organizations) {
+            if (!ownedOrganizationIds.has(org.id)) continue;
+            const sub = await this.subscriptionRepository.getSubscriptionByOrganizationId(org.id);
+            if (!sub) continue;
+            const cap = planLimitsForTier(sub.subscription_tier).workspaces;
+            if (cap > bestWorkspaceCap) {
+                bestWorkspaceCap = cap;
+                best = sub;
+            }
+        }
+
+        if (!best || bestWorkspaceCap < 1) return null;
+        if (ownedOrganizationsCount > bestWorkspaceCap) return null;
+
+        return best;
+    }
+
+    /**
+     * How many workspaces the user may own on their billing account (not the active/shared workspace).
+     * FREE / no owned subscription: one workspace (signup default). Billing disabled: CREATOR cap.
+     */
+    resolveOwnedWorkspaceCap(subscription: OrganizationSubscriptionRow | null): number {
+        if (!this.billingEnabled()) {
+            return pricing.CREATOR.workspaces;
+        }
+        const planCap = planLimitsForTier(this.resolveTier(subscription)).workspaces;
+        if (planCap >= 1) return planCap;
+        return 1;
+    }
+
+    /**
      * Resolves the paid subscription that applies to a workspace.
-     * When the workspace has no row, inherits from another workspace on the same billing account
-     * (all non-disabled memberships for the user), if the account is within the plan workspace cap.
+     * When the workspace has no row, inherits from another owned workspace on the same billing
+     * account when the user is within the plan workspace cap (owned workspaces only).
      */
     async getEffectiveSubscription(
         organizationId: string,
@@ -56,26 +110,18 @@ export class SubscriptionService {
         const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId.trim());
         if (!userId) return null;
 
-        const { organizations } = await this.organizationRepository.findOrganizationsByUserId(userId);
+        const { organizations, memberships } = await this.organizationRepository.findOrganizationsByUserId(userId);
         if (!organizations.some((org) => org.id === organizationId)) return null;
 
-        let best: OrganizationSubscriptionRow | null = null;
-        let bestWorkspaceCap = -1;
+        const ownedOrganizationIds = new Set(
+            memberships
+                .filter((m) => (m.role ?? "").toLowerCase() === "owner" && !m.disabled)
+                .map((m) => m.organizationId)
+        );
+        // Only owned workspaces inherit subscription across the owner's billing account.
+        if (!ownedOrganizationIds.has(organizationId)) return null;
 
-        for (const org of organizations) {
-            const sub = await this.subscriptionRepository.getSubscriptionByOrganizationId(org.id);
-            if (!sub) continue;
-            const cap = planLimitsForTier(sub.subscription_tier).workspaces;
-            if (cap > bestWorkspaceCap) {
-                bestWorkspaceCap = cap;
-                best = sub;
-            }
-        }
-
-        if (!best || bestWorkspaceCap < 1) return null;
-        if (organizations.length > bestWorkspaceCap) return null;
-
-        return best;
+        return this.getOwnedAccountSubscription(authUserId);
     }
 
     resolveTier(subscription: OrganizationSubscriptionRow | null): SubscriptionTier {

@@ -30,7 +30,7 @@ import { logger } from "../utils/Logger";
  * API route mounting and auth surfaces (under `config.api.prefix`, default `/api/v1`):
  *
  * 1. **No user JWT** — paths listed in `middlewares/core.ts` `shouldSkipApiAuth` (e.g. auth, company,
- *    blog read paths, GET `/integrations` catalog only).
+ *    blog read paths, GET `/integrations` catalog only, GET `/settings/invite/validate`).
  * 2. **User JWT** — most of `/integrations/*` (see `routes/integrationApi`), `/settings`, etc.
  * 3. **Organization API key** — `{prefix}/public/*` (e.g. `/api/v1/public/*`); `core.ts` lists `/public` in `publicPaths`
  *    so JWT is skipped. Programmatic routes use `requireProgrammaticAuth` (e.g. `routes/publicApi/IntegrationRoutes.ts`,

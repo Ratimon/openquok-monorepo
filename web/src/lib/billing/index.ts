@@ -3,6 +3,7 @@ import type { BillingConfig } from '$lib/billing/Billing.repository.svelte';
 import { BillingRepository } from '$lib/billing/Billing.repository.svelte';
 import { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
 import { FirstBillingGatePresenter } from '$lib/billing/FirstBillingGate.presenter.svelte';
+import { OwnedAccountBillingPresenter } from '$lib/billing/OwnedAccountBilling.presenter.svelte';
 import { GetPricingPresenter } from '$lib/billing/GetPricing.presenter.svelte';
 import { workspaceSettingsPresenter } from '$lib/settings';
 
@@ -10,6 +11,7 @@ const billingConfig: BillingConfig = {
 	endpoints: {
 		plans: '/api/v1/billing/plans',
 		current: '/api/v1/billing/current',
+		accountOwned: '/api/v1/billing/account-owned',
 		root: '/api/v1/billing',
 		subscribe: '/api/v1/billing/subscribe',
 		embedded: '/api/v1/billing/embedded',
@@ -35,8 +37,11 @@ export const firstBillingGatePresenter = new FirstBillingGatePresenter(
 	workspaceSettingsPresenter
 );
 
+export const ownedAccountBillingPresenter = new OwnedAccountBillingPresenter(getPricingPresenter);
+
 export { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
 export { FirstBillingGatePresenter } from '$lib/billing/FirstBillingGate.presenter.svelte';
+export { OwnedAccountBillingPresenter } from '$lib/billing/OwnedAccountBilling.presenter.svelte';
 export {
 	GetPricingPresenter,
 	buildPlanFeatureLinesVm,

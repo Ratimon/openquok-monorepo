@@ -1,9 +1,15 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { SignupStatus } from '$lib/user-auth/Signup.presenter.svelte';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
 	import { ConversionTrackEvent, fireProductEvent, trackConversion } from '$lib/product-analytics';
-	import { signupFormFieldsSchema, signupFormSchema, signupPresenter } from '$lib/user-auth/index';
+	import {
+		getPostSigninRedirectTarget,
+		signupFormFieldsSchema,
+		signupFormSchema,
+		signupPresenter
+	} from '$lib/user-auth/index';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
@@ -28,7 +34,25 @@
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
-	const googleOAuthNext = url(rootPathAccount);
+	const accountHref = url(rootPathAccount);
+
+	function getRedirectURL(): string {
+		if (typeof window !== 'undefined') {
+			const wParams = new URLSearchParams(window.location.search);
+			if (wParams.get('redirectURL')) {
+				return getPostSigninRedirectTarget(wParams, accountHref);
+			}
+		}
+		return getPostSigninRedirectTarget(page.url.searchParams, accountHref);
+	}
+
+	const signinUrlWithRedirect = $derived.by(() => {
+		const target = getRedirectURL();
+		if (target === accountHref) return signinUrl;
+		return `${signinUrl}?redirectURL=${encodeURIComponent(target)}`;
+	});
+
+	let googleOAuthNext = $derived(getRedirectURL());
 
 	let status = $derived(signupPresenter.status);
 	let isSubmitting = $derived(status === SignupStatus.SUBMITTING);
@@ -286,7 +310,7 @@
 			</Card>
 			<p class="text-center text-sm text-base-content/80">
 				Already have an account?
-				<a href={signinUrl} class="font-medium text-primary underline hover:no-underline">Sign in</a>
+				<a href={signinUrlWithRedirect} class="font-medium text-primary underline hover:no-underline">Sign in</a>
 			</p>
 
 		{:else if status === SignupStatus.SUBMITTED || status === SignupStatus.RESENDING_EMAIL || status === SignupStatus.VERIFYING_EMAIL}
@@ -327,7 +351,7 @@
 			</div>
 			<p class="text-center text-sm text-base-content/80">
 				Already verified the email?
-				<a href={signinUrl} class="font-medium text-primary underline hover:no-underline">Sign in</a>
+				<a href={signinUrlWithRedirect} class="font-medium text-primary underline hover:no-underline">Sign in</a>
 			</p>
 
 		{:else}

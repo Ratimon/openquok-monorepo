@@ -29,7 +29,7 @@ describe("OrganizationInviteEmailTemplate", () => {
         expect(text).toContain(ORGANIZATION_NAME);
         expect(text).toContain(ROLE);
         expect(text).toContain("You have been invited to join");
-        expect(text).toContain("Click the link below to accept the invitation");
+        expect(text).toContain("sign in or create an account before you accept the invitation");
         expect(text).toContain("This link will expire in 24 hour(s)");
         expect(text).toContain("If you did not expect this invitation");
         expect(text).toContain("Best regards");
@@ -70,10 +70,10 @@ describe("OrganizationInviteEmailTemplate", () => {
         expect(html).toContain(`<strong>${ORGANIZATION_NAME}</strong>`);
         expect(html).toContain(`<strong>${ROLE}</strong>`);
         expect(html).toContain("You have been invited to join");
-        expect(html).toContain("Click the button below to accept the invitation");
+        expect(html).toContain("sign in or create an account before you accept the invitation");
     });
 
-    it("should contain accept invitation button and invite link in HTML", () => {
+    it("should contain view invitation button and invite link in HTML", () => {
         const template = new OrganizationInviteEmailTemplate(
             INVITE_LINK,
             ORGANIZATION_NAME,
@@ -82,7 +82,7 @@ describe("OrganizationInviteEmailTemplate", () => {
         const html = template.buildHtml();
 
         expect(html).toContain(`href="${INVITE_LINK}"`);
-        expect(html).toContain("Accept invitation");
+        expect(html).toContain("View invitation");
         expect(html).toContain("Or copy and paste this link into your browser");
     });
 

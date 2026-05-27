@@ -289,9 +289,16 @@ export class SettingsController {
     validateInviteToken = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const token = (req.query as { token?: string }).token;
-            if (!token) return res.status(200).json({ success: true, data: null });
-            const data = await this.organizationService.validateInviteToken(token);
-            res.status(200).json({ success: true, data });
+            if (!token) return res.status(200).json({ success: true, data: null, reason: "malformed" });
+            const result = await this.organizationService.validateInviteToken(token);
+            if (result.valid) {
+                const { organizationName, workspaceRole, inviteeEmail } = result;
+                return res.status(200).json({
+                    success: true,
+                    data: { organizationName, workspaceRole, inviteeEmail },
+                });
+            }
+            res.status(200).json({ success: true, data: null, reason: result.reason });
         } catch (error) {
             next(error);
         }

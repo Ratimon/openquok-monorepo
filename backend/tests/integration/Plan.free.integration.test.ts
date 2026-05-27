@@ -57,7 +57,7 @@ jest.mock("openquok-orchestrator", () => ({
 /**
  * FREE tier caps from the shared plan catalog (`planLimitsForTier("FREE")`):
  * - zero workspaces cap skips create-workspace enforcement (signup default org still allowed)
- * - no connected channels, scheduled posts, team seats, or catalog media bytes
+ * - no connected channels, scheduled posts, or catalog media bytes; one seat (owner) per workspace
  * - runtime media quota falls back to {@link DEFAULT_MEDIA_STORAGE_QUOTA_BYTES} when catalog bytes are 0
  *
  * Policy checks run when Stripe billing is configured; this suite forces billing on via a spy

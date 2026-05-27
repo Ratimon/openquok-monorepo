@@ -57,6 +57,42 @@ export class BillingController {
         }
     };
 
+    /** GET /billing/account-owned — tier and limits for workspaces the user owns (not active workspace). */
+    getOwnedAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUserId = (req as AuthenticatedRequest).user?.id;
+            if (!authUserId) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const subscription = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+            const tier = this.subscriptionService.resolveTier(subscription);
+            const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
+            const ownedWorkspaceCap = this.subscriptionService.resolveOwnedWorkspaceCap(subscription);
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    tier,
+                    billingEnabled: this.subscriptionService.billingEnabled(),
+                    subscription,
+                    limits: {
+                        mediaStorageBytesPerWorkspace: limits.media_storage_bytes_per_workspace,
+                        channelPerWorkspace: limits.channel_per_workspace,
+                        postsPerMonth: limits.posts_per_month,
+                        workspaces: ownedWorkspaceCap,
+                        teamMembersPerWorkspace: limits.team_members_per_workspace,
+                        sharePostPreview: limits.share_post_preview,
+                        communityFeatures: limits.community_features,
+                        publicApi: limits.public_api,
+                    },
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** GET /billing, /billing/current — full billing context for active workspace. */
     getCurrent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {

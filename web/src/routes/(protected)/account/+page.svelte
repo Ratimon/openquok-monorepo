@@ -22,7 +22,12 @@
 	} from '$lib/area-protected';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
-	import { firstBillingGatePresenter, tierDisplayName } from '$lib/billing';
+	import {
+		firstBillingGatePresenter,
+		ownedAccountBillingPresenter,
+		tierDisplayName
+	} from '$lib/billing';
+	import { isUnlimitedTeamMembersPerWorkspace } from 'openquok-common';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
 
@@ -93,6 +98,11 @@
 		void postKanbanBoard.load(workspaceId);
 	});
 
+	$effect(() => {
+		if (!browser) return;
+		void ownedAccountBillingPresenter.load();
+	});
+
 	const listStatus = $derived(protectedHomePagePresenter.listStatus);
 	const channelGroupSectionsVm = $derived(protectedHomePagePresenter.channelGroupSectionsVm);
 	const platformChannelRowsUngroupedVm = $derived(
@@ -139,6 +149,9 @@
 	const myWorkspacesCardsVm = $derived(pagePresenter.myWorkspacesCardsVm);
 	const myWorkspacesStatus = $derived(pagePresenter.myWorkspacesStatus);
 	const workspacesVm = $derived(workspaceSettingsPresenter.workspacesVm);
+	const myWorkspacesOwnedCount = $derived(
+		workspacesVm.filter((w) => w.workspaceRole === 'owner').length
+	);
 	const myWorkspacesTotalCount = $derived(workspacesVm.length);
 	const currentWorkspaceCardVm = $derived(myWorkspacesCardsVm.find((c) => c.isCurrent) ?? null);
 	const currentWorkspaceMemberCountVm = $derived(currentWorkspaceCardVm?.memberCount ?? 0);
@@ -147,9 +160,24 @@
 			firstBillingGatePresenter.pricingVm?.currentVm?.tier ??
 			null
 	);
-	const allowedWorkspaceCountVm = $derived(
-		firstBillingGatePresenter.pricingVm?.currentVm?.limits?.workspaces ?? null
+	const ownedAccountTierVm = $derived(
+		ownedAccountBillingPresenter.loaded
+			? (ownedAccountBillingPresenter.tier ?? 'FREE')
+			: null
 	);
+	const allowedWorkspaceCountVm = $derived(
+		ownedAccountBillingPresenter.loaded
+			? ownedAccountBillingPresenter.workspaceCap
+			: (firstBillingGatePresenter.pricingVm?.currentVm?.limits?.workspaces ?? null)
+	);
+	const allowedMemberCountPerWorkspaceVm = $derived.by(() => {
+		const cap = ownedAccountBillingPresenter.loaded
+			? ownedAccountBillingPresenter.teamMembersPerWorkspace
+			: (firstBillingGatePresenter.pricingVm?.currentVm?.limits?.teamMembersPerWorkspace ??
+				null);
+		if (cap == null || cap < 1 || isUnlimitedTeamMembersPerWorkspace(cap)) return null;
+		return cap;
+	});
 	const allowedChannelCountVm = $derived(
 		firstBillingGatePresenter.pricingVm?.currentVm?.limits?.channelPerWorkspace ?? null
 	);
@@ -159,8 +187,12 @@
 	const allowedPostsPerMonthVm = $derived(
 		firstBillingGatePresenter.pricingVm?.currentVm?.posts?.limit ?? null
 	);
-	const isSoloPlanVm = $derived(subscriptionTierVm === 'SOLO');
-	const currentPlanLabel = $derived(tierDisplayName(subscriptionTierVm ?? 'FREE'));
+	const isSoloPlanVm = $derived(
+		(ownedAccountTierVm ?? subscriptionTierVm) === 'SOLO'
+	);
+	const currentPlanLabel = $derived(
+		tierDisplayName(ownedAccountTierVm ?? subscriptionTierVm ?? 'FREE')
+	);
 	const creatingWorkspace = $derived(
 		workspaceSettingsPresenter.status === WorkspaceSettingsStatus.CREATING
 	);
@@ -623,6 +655,11 @@
 	});
 
 	$effect(() => {
+		if (!currentUser) return;
+		void workspaceSettingsPresenter.loadPendingInvites();
+	});
+
+	$effect(() => {
 		const activeId = workspaceId;
 		const cards = pagePresenter.myWorkspacesCardsVm;
 		if (!cards.length || !activeId) return;
@@ -650,6 +687,14 @@
 
 	function handleOpenDeveloperApiKey(_targetWorkspaceId: string) {
 		void goto(accountSettingsDeveloperApiKeyHref);
+	}
+
+	async function handleAcceptPendingInvite(inviteId: string) {
+		const result = await workspaceSettingsPresenter.acceptPendingInvite(inviteId);
+		if (result.success) {
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
+		}
+		return result;
 	}
 
 	async function handleCreateWorkspace(name: string) {
@@ -788,10 +833,15 @@
 	<MyWorkspacesSection
 		cardsVm={myWorkspacesCardsVm}
 		status={myWorkspacesStatus}
-		totalCount={myWorkspacesTotalCount}
+		ownedWorkspaceCount={myWorkspacesOwnedCount}
 		allowedWorkspaceCount={allowedWorkspaceCountVm}
+		allowedMemberCountPerWorkspace={allowedMemberCountPerWorkspaceVm}
 		billingHref={accountBillingHref}
 		creatingWorkspace={creatingWorkspace}
+		pendingInvitesVm={workspaceSettingsPresenter.pendingInvitesVm}
+		loadingPendingInvites={workspaceSettingsPresenter.loadingPendingInvites}
+		acceptingInviteId={workspaceSettingsPresenter.acceptingInviteId}
+		onAcceptPendingInvite={handleAcceptPendingInvite}
 		onSwitchWorkspace={handleSwitchWorkspace}
 		onOpenWorkspaceSettings={handleOpenWorkspaceSettings}
 		onOpenDeveloperOAuth={handleOpenDeveloperOAuth}

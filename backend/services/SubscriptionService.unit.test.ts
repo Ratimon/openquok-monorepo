@@ -135,7 +135,10 @@ describe("SubscriptionService", () => {
             (organizationRepo.findUserIdByAuthId as jest.Mock).mockResolvedValue({ userId, error: null });
             (organizationRepo.findOrganizationsByUserId as jest.Mock).mockResolvedValue({
                 organizations: [{ id: billingOrganizationId }, { id: organizationId }],
-                memberships: [],
+                memberships: [
+                    { organizationId: billingOrganizationId, role: "owner", disabled: false },
+                    { organizationId: organizationId, role: "owner", disabled: false },
+                ],
                 error: null,
             });
             const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
@@ -156,11 +159,78 @@ describe("SubscriptionService", () => {
                     { id: organizationId },
                     { id: faker.string.uuid() },
                 ],
-                memberships: [],
+                // Cap is SOLO=1 workspaces, so owning 2+ organizations should return null.
+                memberships: [
+                    { organizationId: billingOrganizationId, role: "owner", disabled: false },
+                    { organizationId: organizationId, role: "owner", disabled: false },
+                    { organizationId: faker.string.uuid(), role: "user", disabled: false },
+                ],
                 error: null,
             });
             const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             await expect(service.getEffectiveSubscription(organizationId, authUserId)).resolves.toBeNull();
+        });
+
+        it("getOwnedAccountSubscription returns null when user only has member access to a paid org", async () => {
+            const creatorRow = subscriptionRow("CREATOR", { organization_id: billingOrganizationId });
+            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockImplementation(
+                async (orgId: string) => (orgId === billingOrganizationId ? creatorRow : null)
+            );
+            (organizationRepo.findUserIdByAuthId as jest.Mock).mockResolvedValue({ userId, error: null });
+            (organizationRepo.findOrganizationsByUserId as jest.Mock).mockResolvedValue({
+                organizations: [{ id: billingOrganizationId }, { id: organizationId }],
+                memberships: [
+                    { organizationId: billingOrganizationId, role: "user", disabled: false },
+                    { organizationId: organizationId, role: "owner", disabled: false },
+                ],
+                error: null,
+            });
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            await expect(service.getOwnedAccountSubscription(authUserId)).resolves.toBeNull();
+        });
+
+        it("does not inherit subscription into a workspace the user does not own", async () => {
+            const creatorRow = subscriptionRow("CREATOR", { organization_id: billingOrganizationId });
+            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockImplementation(
+                async (orgId: string) => (orgId === billingOrganizationId ? creatorRow : null)
+            );
+            (organizationRepo.findUserIdByAuthId as jest.Mock).mockResolvedValue({ userId, error: null });
+            (organizationRepo.findOrganizationsByUserId as jest.Mock).mockResolvedValue({
+                organizations: [{ id: billingOrganizationId }, { id: organizationId }],
+                memberships: [
+                    // User is only a member of the billing org, not an owner
+                    { organizationId: billingOrganizationId, role: "user", disabled: false },
+                    // They own the target org (new personal org) but it has no subscription row
+                    { organizationId: organizationId, role: "owner", disabled: false },
+                ],
+                error: null,
+            });
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            await expect(service.getEffectiveSubscription(organizationId, authUserId)).resolves.toBeNull();
+        });
+    });
+
+    describe("resolveOwnedWorkspaceCap", () => {
+        it("returns 1 when billing is enabled and there is no owned subscription", () => {
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            expect(service.resolveOwnedWorkspaceCap(null)).toBe(1);
+        });
+
+        it("returns the paid plan workspace cap when the user has an owned subscription", () => {
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            expect(service.resolveOwnedWorkspaceCap(subscriptionRow("CREATOR"))).toBe(
+                pricing.CREATOR.workspaces
+            );
+        });
+
+        it("returns CREATOR cap when billing is disabled", () => {
+            const { config } = jest.requireMock("../config/GlobalConfig") as {
+                config: { stripe: { publishableKey?: string } };
+            };
+            config.stripe.publishableKey = "";
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            expect(service.resolveOwnedWorkspaceCap(null)).toBe(pricing.CREATOR.workspaces);
+            config.stripe.publishableKey = "pk_test_123";
         });
     });
 

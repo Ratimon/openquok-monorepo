@@ -18,6 +18,10 @@
 	type Props = {
 		card: HomeWorkspaceCardViewModel;
 		index: number;
+		/** Full card (owner workspaces) or compact (shared / member workspaces). */
+		variant?: 'full' | 'compact';
+		/** Per-workspace team member cap from the current plan; omit when unlimited or not enforced. */
+		allowedMemberCount?: number | null;
 		onSwitchWorkspace?: (workspaceId: string) => void;
 		onOpenWorkspaceSettings?: (workspaceId: string) => void;
 		onOpenDeveloperOAuth?: (workspaceId: string) => void;
@@ -27,11 +31,15 @@
 	let {
 		card,
 		index,
+		variant = 'full',
+		allowedMemberCount = null,
 		onSwitchWorkspace,
 		onOpenWorkspaceSettings,
 		onOpenDeveloperOAuth,
 		onOpenDeveloperApiKey
 	}: Props = $props();
+
+	const isCompact = $derived(variant === 'compact');
 
 	const workspaceInitial = $derived((card.name || 'W').trim().slice(0, 1).toUpperCase());
 	const iconTone = $derived.by(() => {
@@ -42,6 +50,16 @@
 		] as const;
 		return tones[index % tones.length]!;
 	});
+
+	const memberLimit = $derived(
+		!isCompact && allowedMemberCount != null && allowedMemberCount >= 1 ? allowedMemberCount : null
+	);
+
+	const memberUsageLabel = $derived(
+		memberLimit != null ? `${card.memberCount}/${memberLimit}` : null
+	);
+
+	const isMemberLimitFull = $derived(memberLimit != null && card.memberCount >= memberLimit);
 
 	const userSubtitle = $derived.by(() => {
 		const name = card.userFullName !== '—' ? card.userFullName : '';
@@ -140,121 +158,157 @@
 					</Button>
 				</div>
 			</div>
-			<div class="mt-2 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
-				<Button
-					type="button"
-					variant="primary"
-					size="sm"
-					class="h-7 shrink-0 gap-1 px-2 text-xs"
-					disabled={!card.isCurrent}
-					onclick={handleDeveloperOAuthClick}
-				>
-					<AbstractIcon name={icons.Bot.name} class="size-3.5" width="14" height="14" />
-					OAuth Secrets
-				</Button>
-				<Button
-					type="button"
-					variant="outline"
-					size="sm"
-					class="h-7 shrink-0 gap-1 px-2 text-xs"
-					disabled={!card.isCurrent}
-					onclick={handleDeveloperApiKeyClick}
-				>
-					<AbstractIcon name={icons.Lock.name} class="size-3.5" width="14" height="14" />
-					API key
-				</Button>
-				{#if card.isCurrent}
-					<span class="inline-flex shrink-0" data-workspace-card-action>
-						<AddProvider
-							buttonLabel="Add channel"
-							buttonVariant="secondary"
-							buttonSize="sm"
-							buttonClass="h-7 shrink-0 gap-1 px-2 text-xs"
-							iconClass="size-3.5"
-						/>
-					</span>
-				{/if}
-			</div>
+			{#if !isCompact}
+				<div class="mt-2 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
+					<Button
+						type="button"
+						variant="primary"
+						size="sm"
+						class="h-7 shrink-0 gap-1 px-2 text-xs"
+						disabled={!card.isCurrent}
+						onclick={handleDeveloperOAuthClick}
+					>
+						<AbstractIcon name={icons.Bot.name} class="size-3.5" width="14" height="14" />
+						OAuth Secrets
+					</Button>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						class="h-7 shrink-0 gap-1 px-2 text-xs"
+						disabled={!card.isCurrent}
+						onclick={handleDeveloperApiKeyClick}
+					>
+						<AbstractIcon name={icons.Lock.name} class="size-3.5" width="14" height="14" />
+						API key
+					</Button>
+					{#if card.isCurrent}
+						<span class="inline-flex shrink-0" data-workspace-card-action>
+							<AddProvider
+								buttonLabel="Add channel"
+								buttonVariant="secondary"
+								buttonSize="sm"
+								buttonClass="h-7 shrink-0 gap-1 px-2 text-xs"
+								iconClass="size-3.5"
+							/>
+						</span>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	</div>
 
 	<div class="border-t border-base-300/80 px-4 py-3">
 		{#if card.membersPreview.length > 0 || card.hiddenMemberCount > 0}
-			<div class="flex items-center gap-2">
-				<div class="flex -space-x-2" aria-hidden="true">
-					{#each card.membersPreview as member (member.id)}
-						<span
-							class="flex size-8 items-center justify-center rounded-full border-2 border-base-100 bg-base-200 text-[10px] font-semibold text-base-content/80"
-							title={member.displayName}
-						>
-							{member.initials}
+			<div class="flex items-center justify-between gap-2">
+				<div class="flex min-w-0 items-center gap-2">
+					<div class="flex -space-x-2" aria-hidden="true">
+						{#each card.membersPreview as member (member.id)}
+							<span
+								class="flex size-8 items-center justify-center rounded-full border-2 text-[10px] font-semibold {member.isSelf
+									? 'border-primary/50 bg-primary/15 text-primary'
+									: 'border-base-100 bg-base-200 text-base-content/80'}"
+								title={member.isSelf ? `You (${member.displayName})` : member.displayName}
+							>
+								{member.initials}
+							</span>
+						{/each}
+					</div>
+					{#if card.hiddenMemberCount > 0}
+						<span class="text-xs font-medium text-base-content/60">
+							+{card.hiddenMemberCount} more
 						</span>
-					{/each}
+					{:else if !memberUsageLabel && card.memberCount > card.membersPreview.length}
+						<span class="text-xs text-base-content/60">
+							{card.memberCount} members
+						</span>
+					{/if}
 				</div>
-				{#if card.hiddenMemberCount > 0}
-					<span class="text-xs font-medium text-base-content/60">
-						+{card.hiddenMemberCount} more
-					</span>
-				{:else if card.memberCount > card.membersPreview.length + 1}
-					<span class="text-xs text-base-content/60">
-						{card.memberCount} members
+				{#if memberUsageLabel}
+					<span
+						class="shrink-0 text-xs tabular-nums {isMemberLimitFull
+							? 'font-medium text-warning'
+							: 'text-base-content/60'}"
+					>
+						{memberUsageLabel}
 					</span>
 				{/if}
 			</div>
 		{:else}
 			<p class="text-xs text-base-content/50">
-				{card.memberCount <= 1 ? 'Only you in this workspace' : `${card.memberCount} members`}
+				{#if memberUsageLabel}
+					<span class={isMemberLimitFull ? 'font-medium text-warning' : ''}>{memberUsageLabel}</span>
+					<span class="text-base-content/50"> members</span>
+				{:else if card.memberCount <= 1}
+					Only you in this workspace
+				{:else}
+					{card.memberCount} members
+				{/if}
 			</p>
 		{/if}
 	</div>
 
 	<div class="mt-auto border-t border-base-300/80 bg-base-200/40 px-4 py-3">
 		{#if hasSocialChannels}
-			<div class="flex items-center gap-2">
-				<div
-					class="relative h-5 shrink-0"
-					style:width={`${Math.max(20, 12 + (card.channelPreviews.length - 1) * 10)}px`}
-				>
-					{#each card.channelPreviews as ch, i (ch.id)}
-						<div class="absolute top-0" style:left={`${i * 10}px`}>
-							<div class="relative h-5 w-5 shrink-0">
-								{#if ch.picture}
-									<IntegrationChannelPicture
-										profilePictureUrl={ch.picture}
-										fallbackIcon={socialProviderIcon(ch.identifier ?? 'threads')}
-										class="h-5 w-5 rounded object-cover ring-1 ring-base-100"
-									/>
-								{:else}
-									<div
-										class="flex h-5 w-5 items-center justify-center rounded bg-base-content/15 text-[9px] font-semibold text-base-content/80 ring-1 ring-base-100"
-									>
-										{(ch.identifier || 'CH').slice(0, 1).toUpperCase()}
-									</div>
-								{/if}
-								<span
-									class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[11px] items-center justify-center rounded-full border border-base-100 bg-base-100"
-									aria-hidden="true"
-								>
-									<AbstractIcon
-										name={socialProviderIcon(ch.identifier)}
-										class="size-2.5"
-										width="10"
-										height="10"
-									/>
-								</span>
-							</div>
-						</div>
-					{/each}
-				</div>
-				<span class="min-w-0 flex-1 truncate text-xs text-base-content/70">
-					Connected Channels
-				</span>
-				{#if card.hiddenChannelCount > 0}
+			<div class="flex flex-col gap-2">
+				<div class="flex items-center gap-2">
 					<div
-						class="rounded bg-base-content/10 px-1.5 py-0.5 text-[10px] font-semibold text-base-content/80"
+						class="relative h-5 shrink-0"
+						style:width={`${Math.max(20, 12 + (card.channelPreviews.length - 1) * 10)}px`}
 					>
-						+{card.hiddenChannelCount}
+						{#each card.channelPreviews as ch, i (ch.id)}
+							<div class="absolute top-0" style:left={`${i * 10}px`}>
+								<div class="relative h-5 w-5 shrink-0">
+									{#if ch.picture}
+										<IntegrationChannelPicture
+											profilePictureUrl={ch.picture}
+											fallbackIcon={socialProviderIcon(ch.identifier ?? 'threads')}
+											class="h-5 w-5 rounded object-cover ring-1 ring-base-100"
+										/>
+									{:else}
+										<div
+											class="flex h-5 w-5 items-center justify-center rounded bg-base-content/15 text-[9px] font-semibold text-base-content/80 ring-1 ring-base-100"
+										>
+											{(ch.identifier || 'CH').slice(0, 1).toUpperCase()}
+										</div>
+									{/if}
+									<span
+										class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[11px] items-center justify-center rounded-full border border-base-100 bg-base-100"
+										aria-hidden="true"
+									>
+										<AbstractIcon
+											name={socialProviderIcon(ch.identifier)}
+											class="size-2.5"
+											width="10"
+											height="10"
+										/>
+									</span>
+								</div>
+							</div>
+						{/each}
 					</div>
+					<span class="min-w-0 flex-1 truncate text-xs text-base-content/70">
+						Connected Channels
+					</span>
+					{#if card.hiddenChannelCount > 0}
+						<div
+							class="rounded bg-base-content/10 px-1.5 py-0.5 text-[10px] font-semibold text-base-content/80"
+						>
+							+{card.hiddenChannelCount}
+						</div>
+					{/if}
+				</div>
+				{#if isCompact && !card.isCurrent && onSwitchWorkspace}
+					<Button
+						type="button"
+						variant="secondary"
+						size="sm"
+						class="w-full shrink-0 sm:w-auto"
+						data-workspace-card-action
+						onclick={requestSwitchWorkspace}
+					>
+						Switch workspace
+					</Button>
 				{/if}
 			</div>
 		{:else}

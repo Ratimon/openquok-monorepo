@@ -371,7 +371,12 @@
 				</span>
 			{/if}
 		</h2>
-		<Button type="button" onclick={openCreateDialog} disabled={loadingWorkspaces || createSubmitting}>
+		<Button
+			class="gap-1.5"
+			type="button"
+			onclick={openCreateDialog}
+			disabled={loadingWorkspaces || createSubmitting}
+		>
 			{#if isWorkspaceLimitFull}
 				<AbstractIcon
 					name={icons.Lock.name}

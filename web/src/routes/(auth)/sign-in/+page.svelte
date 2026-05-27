@@ -33,6 +33,12 @@
 	const signUpPath = route(rootPathSignUp);
 	const signupUrl = absoluteUrl(signUpPath);
 
+	const signupUrlWithRedirect = $derived.by(() => {
+		const redirectParam = page.url.searchParams.get('redirectURL');
+		if (!redirectParam) return signupUrl;
+		return `${signupUrl}?redirectURL=${encodeURIComponent(redirectParam)}`;
+	});
+
 	// /forgot-password
 	const rootPathForgotPassword = getRootPathForgotPassword();
 	const forgotPasswordPath = route(rootPathForgotPassword);
@@ -307,7 +313,7 @@
 
 			<p class="text-center text-sm text-base-content/80">
 				Don't have an account?
-				<a href={signupUrl} class="font-medium text-primary underline hover:no-underline">Sign up</a>
+				<a href={signupUrlWithRedirect} class="font-medium text-primary underline hover:no-underline">Sign up</a>
 			</p>
 			<p class="text-center text-sm text-base-content/80">
 				<a href={forgotPasswordUrl} class="font-medium text-primary underline hover:no-underline">Forgot password?</a>

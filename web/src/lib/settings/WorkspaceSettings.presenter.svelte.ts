@@ -102,6 +102,7 @@ export class WorkspaceSettingsPresenter {
 	/** Join-org (token link) flow */
 	public inviteOrganizationName = $state('');
 	public inviteRole = $state('');
+	public inviteeEmail = $state('');
 	public validateInviteError = $state<string | null>(null);
 	public joinByTokenError = $state<string | null>(null);
 
@@ -385,25 +386,76 @@ export class WorkspaceSettingsPresenter {
 		}
 	}
 
-	public async validateInviteToken(token: string): Promise<void> {
+	public clearInviteTokenState(): void {
 		this.validateInviteError = null;
 		this.inviteOrganizationName = '';
 		this.inviteRole = '';
+		this.inviteeEmail = '';
+	}
+
+	public applyValidatedInvite(params: {
+		organizationName: string;
+		role: string;
+		inviteeEmail: string;
+	}): void {
+		this.clearInviteTokenState();
+		this.inviteOrganizationName = params.organizationName;
+		this.inviteRole = params.role;
+		this.inviteeEmail = params.inviteeEmail;
+	}
+
+	public setInviteValidateError(reason: string): void {
+		this.clearInviteTokenState();
+		this.validateInviteError = reason;
+	}
+
+	public inviteValidateErrorMessage(
+		reason:
+			| 'malformed'
+			| 'missing_secret'
+			| 'invalid_signature'
+			| 'expired'
+			| 'organization_not_found'
+			| 'network'
+			| string
+	): string {
+		switch (reason) {
+			case 'expired':
+				return 'This invitation link has expired. Ask the workspace owner to send a new invite.';
+			case 'organization_not_found':
+				return 'This workspace no longer exists. Ask the workspace owner to send a new invite.';
+			case 'missing_secret':
+			case 'invalid_signature':
+				return 'This invite link is invalid or was created in a different environment. Ask the workspace owner to send a new invite.';
+			case 'malformed':
+				return 'This invite link is missing a token or is malformed.';
+			case 'network':
+				return 'Unable to validate this invite. Please check your connection and try again.';
+			default:
+				return 'This invite is invalid, expired, or the workspace no longer exists.';
+		}
+	}
+
+	public async validateInviteToken(token: string): Promise<void> {
+		this.clearInviteTokenState();
 		if (!token?.trim()) {
-			this.validateInviteError = 'This invite link is missing a token or is malformed.';
+			this.validateInviteError = this.inviteValidateErrorMessage('malformed');
 			return;
 		}
 		this.status = WorkspaceSettingsStatus.VALIDATING_INVITE;
 		try {
-			const dataPm = await this.settingsRepository.validateInviteToken(token);
-			if (dataPm) {
-				this.inviteOrganizationName = dataPm.organizationName;
-				this.inviteRole = dataPm.role;
+			const result = await this.settingsRepository.validateInviteToken(token);
+			if ('organizationName' in result) {
+				this.applyValidatedInvite({
+					organizationName: result.organizationName,
+					role: result.role,
+					inviteeEmail: result.inviteeEmail
+				});
 			} else {
-				this.validateInviteError = 'This invite is invalid, expired, or the workspace no longer exists.';
+				this.validateInviteError = this.inviteValidateErrorMessage(result.reason);
 			}
 		} catch {
-			this.validateInviteError = 'Unable to validate this invite. Please check your connection and try again.';
+			this.validateInviteError = this.inviteValidateErrorMessage('network');
 		} finally {
 			this.status = WorkspaceSettingsStatus.IDLE;
 		}

@@ -126,6 +126,8 @@ function configureCoreMiddleware(app: Express, config: ConfigObject, supabase: S
             "/blog-system/topics",
             "/blog-system/topics/active",
             "/openapi.json",
+            /** Join-org page: invitees validate the link before sign-in. */
+            "/settings/invite/validate",
         ];
         const bypassPaths = ["/health", "/sitemap.xml"];
 
