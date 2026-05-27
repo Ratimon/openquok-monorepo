@@ -6,6 +6,7 @@
 	import { page } from '$app/state';
 	import { getContext } from 'svelte';
 	import { toast } from '$lib/ui/sonner';
+	import { planLimitsForTier } from 'openquok-common';
 	import {
 		buildAccountSettingsSearchParams,
 		parseDeveloperSettingsTab
@@ -20,6 +21,7 @@
 
 	import { DevelopersSettingsStatus } from '$lib/settings/DevelopersSettings.presenter.svelte';
 	import { upsertOauthAppsPresenter } from '$lib/developers';
+	import { getPricingPresenter } from '$lib/billing';
 
 	import EditorAccountSettings from '$lib/ui/templates/EditorAccountSettings.svelte';
 	import EditorDeveloperSettings from '$lib/ui/templates/EditorDeveloperSettings.svelte';
@@ -81,6 +83,7 @@
 	const developerApiKeyVisible = $derived(developersPresenter.apiKeyVisible);
 	const developerCanRotate = $derived(developersPresenter.canRotateApiKey);
 	const developerRotating = $derived(developersPresenter.status === DevelopersSettingsStatus.ROTATING);
+	let publicApiEnabled = $state<boolean | null>(null);
 
 	const developerTab = $derived.by((): DeveloperSettingsTabId => {
 		if (currentSection !== 'developers') return 'access';
@@ -140,6 +143,28 @@
 		if (currentSection === 'developers' && developerTab === 'apps') {
 			upsertOauthAppsPresenter.loadForCurrentWorkspace();
 		}
+	});
+
+	$effect(() => {
+		if (currentSection !== 'developers') {
+			publicApiEnabled = null;
+			developersPresenter.setPublicApiEnabled(null);
+			upsertOauthAppsPresenter.setPublicApiEnabled(null);
+			return;
+		}
+		let cancelled = false;
+		publicApiEnabled = null;
+		developersPresenter.setPublicApiEnabled(null);
+		upsertOauthAppsPresenter.setPublicApiEnabled(null);
+		void getPricingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
+			if (cancelled) return;
+			publicApiEnabled = vm ? planLimitsForTier(vm.tier).public_api : false;
+			developersPresenter.setPublicApiEnabled(publicApiEnabled);
+			upsertOauthAppsPresenter.setPublicApiEnabled(publicApiEnabled);
+		});
+		return () => {
+			cancelled = true;
+		};
 	});
 
 	$effect(() => {
@@ -274,6 +299,7 @@
 		/>
 	{:else if currentSection === 'developers'}
 		<EditorDeveloperSettings
+			publicApiEnabled={publicApiEnabled}
 			apiKey={developerApiKey}
 			apiKeyVisible={developerApiKeyVisible}
 			canRotate={developerCanRotate}

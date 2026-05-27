@@ -13,6 +13,7 @@ import type { PermissionsService } from "./PermissionsService";
 
 import { OrganizationNotFoundError, OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError } from "../errors/UserError";
+import { SubscriptionSection } from "openquok-common";
 import {
     decodeInviteToken,
     INVITE_TOKEN_TTL_HOURS,
@@ -527,6 +528,13 @@ export class OrganizationService {
         if (this.getRoleLevel(membership.role) < 1) {
             throw new OrganizationForbiddenError("Only admins can rotate the API key");
         }
+        const membershipRole = membership.role as WorkspaceMembershipRole;
+        await this.permissionsService?.assertPolicies(
+            organizationId,
+            membershipRole,
+            [["update", SubscriptionSection.PUBLIC_API]],
+            authUserId
+        );
         const { organization, error } = await this.organizationRepository.rotateApiKey(organizationId);
         if (error) throw error as Error;
         if (!organization) throw new OrganizationNotFoundError(organizationId);

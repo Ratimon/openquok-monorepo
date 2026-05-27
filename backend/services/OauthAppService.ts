@@ -2,9 +2,11 @@ import type { OauthAppRepository, OauthAppLike } from "../repositories/OauthAppR
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import { publicUrlForObjectKey, type MediaRepository } from "../repositories/MediaRepository";
 import { AppError } from "../errors/AppError";
+import type { PermissionsService } from "./PermissionsService";
 import { makeId } from "../utils/ids/makeId";
 import { hashProgrammaticToken, hashProgrammaticTokenCandidates } from "../utils/auth/tokenHash";
 import { config } from "../config/GlobalConfig";
+import { SubscriptionSection } from "openquok-common";
 
 function assertValidUrl(url: string, errorMsg: string): void {
     try {
@@ -24,7 +26,8 @@ export class OauthAppService {
     constructor(
         private readonly oauthAppRepository: OauthAppRepository,
         private readonly organizationRepository: OrganizationRepository,
-        private readonly mediaRepository: MediaRepository
+        private readonly mediaRepository: MediaRepository,
+        private readonly permissionsService?: PermissionsService
     ) {}
 
     private async resolveAuthUserToUserId(authUserId: string): Promise<string> {
@@ -33,25 +36,35 @@ export class OauthAppService {
         return userId;
     }
 
-    private async assertOrgAdmin(authUserId: string, organizationId: string): Promise<{ userId: string }> {
+    private async assertOrgAdmin(
+        authUserId: string,
+        organizationId: string,
+        policy: "create" | "read" | "update" | "delete"
+    ): Promise<{ userId: string }> {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) throw new AppError("Workspace not found", 404);
         if (membership.role !== "admin" && membership.role !== "owner") {
             throw new AppError("Only admins can manage OAuth apps", 403);
         }
+        await this.permissionsService?.assertPolicies(
+            organizationId,
+            membership.role,
+            [[policy, SubscriptionSection.PUBLIC_API]],
+            authUserId
+        );
         return { userId };
     }
 
     async listApps(authUserId: string, organizationId: string): Promise<OauthAppApiPayload[]> {
         // members can list; keep it strict (admin-only) for now.
-        await this.assertOrgAdmin(authUserId, organizationId);
+        await this.assertOrgAdmin(authUserId, organizationId, "read");
         const apps = await this.oauthAppRepository.listAppsByOrganization(organizationId);
         return Promise.all(apps.map((a) => this.enrichAppWithPicturePublicUrls(a, organizationId)));
     }
 
     async getApp(authUserId: string, organizationId: string): Promise<OauthAppApiPayload | false> {
-        await this.assertOrgAdmin(authUserId, organizationId);
+        await this.assertOrgAdmin(authUserId, organizationId, "read");
         const app = await this.oauthAppRepository.getAppByOrganizationId(organizationId);
         if (!app) return false;
         return this.enrichAppWithPicturePublicUrls(app, organizationId);
@@ -82,7 +95,7 @@ export class OauthAppService {
         redirectUrl: string;
         pictureId?: string | null;
     }): Promise<{ app: OauthAppApiPayload; clientId: string; clientSecret: string }> {
-        const { userId } = await this.assertOrgAdmin(authUserId, input.organizationId);
+        const { userId } = await this.assertOrgAdmin(authUserId, input.organizationId, "create");
         const existing = await this.oauthAppRepository.getAppByOrganizationId(input.organizationId);
         if (existing) {
             throw new AppError("You can only have one OAuth application per organization", 400);
@@ -123,7 +136,7 @@ export class OauthAppService {
         pictureId?: string | null;
         redirectUrl?: string;
     }): Promise<OauthAppApiPayload | null> {
-        await this.assertOrgAdmin(authUserId, input.organizationId);
+        await this.assertOrgAdmin(authUserId, input.organizationId, "update");
         if (input.redirectUrl !== undefined) {
             const redirectUrl = input.redirectUrl.trim();
             if (!redirectUrl) throw new AppError("Redirect URL is invalid", 400);
@@ -142,7 +155,7 @@ export class OauthAppService {
     }
 
     async rotateSecret(authUserId: string, input: { organizationId: string; oauthAppId: string }): Promise<{ clientSecret: string }> {
-        await this.assertOrgAdmin(authUserId, input.organizationId);
+        await this.assertOrgAdmin(authUserId, input.organizationId, "update");
         const secretKey = (config.auth as { programmaticTokenSecret?: string })?.programmaticTokenSecret ?? "";
         if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
         const newSecret = `oqs_${makeId(48)}`;
@@ -157,7 +170,7 @@ export class OauthAppService {
     }
 
     async deleteApp(authUserId: string, input: { organizationId: string; oauthAppId: string }): Promise<void> {
-        await this.assertOrgAdmin(authUserId, input.organizationId);
+        await this.assertOrgAdmin(authUserId, input.organizationId, "delete");
         await this.oauthAppRepository.revokeAllForApp(input.oauthAppId);
         await this.oauthAppRepository.deleteApp(input.organizationId, input.oauthAppId);
     }

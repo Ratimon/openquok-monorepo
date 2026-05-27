@@ -12,6 +12,7 @@ export class DevelopersSettingsPresenter {
 	public showToastMessage = $state(false);
 	public toastMessage = $state('');
 	public toastIsError = $state(false);
+	public publicApiEnabled = $state<boolean | null>(null);
 
 	constructor(
 		private readonly settingsRepository: SettingsRepository,
@@ -30,8 +31,13 @@ export class DevelopersSettingsPresenter {
 	}
 
 	get canRotateApiKey(): boolean {
+		if (this.publicApiEnabled === false) return false;
 		const role = this.workspaceSettingsPresenter.currentWorkspaceRole;
 		return role === 'admin' || role === 'owner';
+	}
+
+	public setPublicApiEnabled(enabled: boolean | null) {
+		this.publicApiEnabled = enabled;
 	}
 
 	public setApiKeyVisible(visible: boolean) {
@@ -41,6 +47,13 @@ export class DevelopersSettingsPresenter {
 	public async rotateApiKey(): Promise<void> {
 		const id = this.currentWorkspaceId;
 		if (!id) return;
+
+		if (this.publicApiEnabled === false) {
+			this.toastMessage = 'Public API access is not included on your current plan.';
+			this.toastIsError = true;
+			this.showToastMessage = true;
+			return;
+		}
 
 		if (!this.canRotateApiKey) {
 			this.toastMessage = 'Only workspace admins can rotate the API key.';

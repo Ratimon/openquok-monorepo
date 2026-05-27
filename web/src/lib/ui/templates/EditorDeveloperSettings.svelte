@@ -8,6 +8,7 @@
 	import UpdateDeveloperOauth from '$lib/ui/components/developer/UpdateDeveloperOauth.svelte';
 
 	type Props = {
+		publicApiEnabled: boolean | null;
 		apiKey: string | null;
 		apiKeyVisible: boolean;
 		canRotate: boolean;
@@ -60,6 +61,7 @@
 	};
 
 	let {
+		publicApiEnabled,
 		apiKey,
 		apiKeyVisible,
 		canRotate,
@@ -112,6 +114,18 @@
 </script>
 
 <div class="space-y-6">
+	{#if publicApiEnabled === null}
+		<div class="rounded-xl border border-base-300 bg-base-200 p-8 text-center text-sm text-base-content/70">
+			Loading developer settings…
+		</div>
+	{:else if publicApiEnabled === false}
+		<div class="rounded-xl border border-warning/40 bg-warning/10 p-6 text-sm text-base-content">
+			<p class="font-medium">Public API is not included on your current plan.</p>
+			<p class="mt-1 text-base-content/70">
+				Upgrade to unlock API keys and OAuth app management.
+			</p>
+		</div>
+	{:else}
 	<div class="flex items-center justify-between gap-3">
 		<div class="min-w-0 flex-1">
 			{#if developerTab === 'access'}
@@ -201,5 +215,6 @@
 			onUploadMediaPickerFiles={onOauthUploadMediaPickerFiles}
 			onCopy={onCopy}
 		/>
+	{/if}
 	{/if}
 </div>

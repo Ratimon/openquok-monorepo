@@ -156,7 +156,12 @@ export const organizationService = new OrganizationService(
     permissionsService
 );
 
-export const oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository, mediaRepository);
+export const oauthAppService = new OauthAppService(
+    oauthAppRepository,
+    organizationRepository,
+    mediaRepository,
+    permissionsService
+);
 export const oauthService = new OauthService(oauthAppRepository, organizationRepository, mediaRepository);
 export const postsService = new PostsService(
     postsRepository,

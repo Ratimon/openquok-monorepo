@@ -45,6 +45,7 @@ export class UpsertOAuthAppsPresenter {
 	public appVm = $state<OauthAppViewModel | null | undefined>(undefined);
 	public creating = $state(false);
 	public editing = $state(false);
+	public publicApiEnabled = $state<boolean | null>(null);
 
 	public formName = $state('');
 	public formDescription = $state('');
@@ -92,6 +93,16 @@ export class UpsertOAuthAppsPresenter {
 		return this.status === OAuthAppsPresenterStatus.LOADING;
 	}
 
+	public setPublicApiEnabled(enabled: boolean | null): void {
+		this.publicApiEnabled = enabled;
+		if (enabled === false) {
+			this.invalidateCache();
+			this.loadForbidden = true;
+			this.forbiddenMessage = 'Public API access is not included on your current plan.';
+			this.appVm = null;
+		}
+	}
+
 	public resetForms(): void {
 		this.formName = '';
 		this.formDescription = '';
@@ -128,6 +139,12 @@ export class UpsertOAuthAppsPresenter {
 	}
 
 	public async loadForCurrentWorkspace(): Promise<void> {
+		if (this.publicApiEnabled === false) {
+			this.loadForbidden = true;
+			this.forbiddenMessage = 'Public API access is not included on your current plan.';
+			this.appVm = null;
+			return;
+		}
 		const orgId = this.currentOrganizationId;
 		if (!orgId) {
 			this.appVm = undefined;
@@ -152,6 +169,13 @@ export class UpsertOAuthAppsPresenter {
 		this.loadForbidden = false;
 		this.forbiddenMessage = '';
 		try {
+			if (this.publicApiEnabled === false) {
+				this.loadForbidden = true;
+				this.forbiddenMessage = 'Public API access is not included on your current plan.';
+				this.appVm = null;
+				this.lastLoadedOrgId = organizationId;
+				return;
+			}
 			const resultPm = await this.oauthAppsRepository.getApp(organizationId);
 			if (!resultPm.ok) {
 				this.loadForbidden = true;
@@ -259,6 +283,10 @@ export class UpsertOAuthAppsPresenter {
 
 	public async submitCreate(): Promise<void> {
 		const orgId = this.currentOrganizationId;
+		if (this.publicApiEnabled === false) {
+			this.pushToast('Public API access is not included on your current plan.', true);
+			return;
+		}
 		if (!orgId || !this.canManageApps) {
 			this.pushToast('Only workspace admins can manage OAuth apps.', true);
 			return;
@@ -293,6 +321,10 @@ export class UpsertOAuthAppsPresenter {
 	public async submitUpdate(): Promise<void> {
 		const orgId = this.currentOrganizationId;
 		const app = this.appVm;
+		if (this.publicApiEnabled === false) {
+			this.pushToast('Public API access is not included on your current plan.', true);
+			return;
+		}
 		if (!orgId || !app || !this.canManageApps) {
 			this.pushToast('Only workspace admins can manage OAuth apps.', true);
 			return;
@@ -335,6 +367,10 @@ export class UpsertOAuthAppsPresenter {
 		this.confirmRotateOpen = false;
 		const orgId = this.currentOrganizationId;
 		const app = this.appVm;
+		if (this.publicApiEnabled === false) {
+			this.pushToast('Public API access is not included on your current plan.', true);
+			return;
+		}
 		if (!orgId || !app || !this.canManageApps) return;
 		this.status = OAuthAppsPresenterStatus.MUTATING;
 		try {
@@ -362,6 +398,10 @@ export class UpsertOAuthAppsPresenter {
 		this.confirmDeleteOpen = false;
 		const orgId = this.currentOrganizationId;
 		const app = this.appVm;
+		if (this.publicApiEnabled === false) {
+			this.pushToast('Public API access is not included on your current plan.', true);
+			return;
+		}
 		if (!orgId || !app || !this.canManageApps) return;
 		this.status = OAuthAppsPresenterStatus.MUTATING;
 		try {
