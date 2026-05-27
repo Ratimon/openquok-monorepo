@@ -55,6 +55,7 @@
 	const createSubmitting = $derived(workspacePresenter.status === WorkspaceSettingsStatus.CREATING);
 	const updateSubmitting = $derived(workspacePresenter.status === WorkspaceSettingsStatus.UPDATING);
 	const leavingWorkspace = $derived(workspacePresenter.status === WorkspaceSettingsStatus.LEAVING);
+	const deletingWorkspace = $derived(workspacePresenter.status === WorkspaceSettingsStatus.DELETING);
 	const loadingTeam = $derived(workspacePresenter.status === WorkspaceSettingsStatus.LOADING_TEAM);
 	const inviting = $derived(workspacePresenter.status === WorkspaceSettingsStatus.INVITING);
 	const loadingPendingInvites = $derived(workspacePresenter.loadingPendingInvites);
@@ -192,6 +193,10 @@
 		return pagePresenter.leaveWorkspace(workspaceId);
 	}
 
+	async function handleDeleteWorkspace(workspaceId: string) {
+		return pagePresenter.deleteWorkspace(workspaceId);
+	}
+
 	async function handleInviteMember(params: {
 		email: string;
 		role: 'user' | 'admin';
@@ -251,6 +256,7 @@
 			createSubmitting={createSubmitting}
 			updateSubmitting={updateSubmitting}
 			leavingWorkspace={leavingWorkspace}
+			deletingWorkspace={deletingWorkspace}
 			loadingTeam={loadingTeam}
 			inviting={inviting}
 			loadingPendingInvites={loadingPendingInvites}
@@ -260,6 +266,7 @@
 			onCreateWorkspace={handleCreateWorkspace}
 			onUpdateWorkspace={handleUpdateWorkspace}
 			onLeaveWorkspace={handleLeaveWorkspace}
+			onDeleteWorkspace={handleDeleteWorkspace}
 			onInviteMember={handleInviteMember}
 			onAcceptPendingInvite={handleAcceptPendingInvite}
 			onCancelSentInvite={handleCancelSentInvite}

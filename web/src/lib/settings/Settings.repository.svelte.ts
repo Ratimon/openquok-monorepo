@@ -193,6 +193,7 @@ export interface SettingsTeamMutationProgrammerModel {
 }
 
 export type LeaveWorkspaceProgrammerModel = SettingsTeamMutationProgrammerModel;
+export type DeleteWorkspaceProgrammerModel = SettingsTeamMutationProgrammerModel;
 export type InviteTeamMemberProgrammerModel = SettingsTeamMutationProgrammerModel;
 export type AcceptPendingInviteProgrammerModel = SettingsTeamMutationProgrammerModel;
 export type CancelSentInviteProgrammerModel = SettingsTeamMutationProgrammerModel;
@@ -337,6 +338,32 @@ export class SettingsRepository {
 			return null;
 		} catch {
 			return null;
+		}
+	}
+
+	public async deleteOrganization(organizationId: string): Promise<DeleteWorkspaceProgrammerModel> {
+		try {
+			const { data: deleteWorkspaceDto, ok } =
+				await this.httpGateway.request<{ success: boolean; message?: string }>({
+					method: HttpMethod.DELETE,
+					url: this.config.endpoints.delete(organizationId),
+					withCredentials: true
+				});
+			if (ok && deleteWorkspaceDto?.success) {
+				this.organizationsPm = this.organizationsPm.filter((o) => o.id !== organizationId);
+				return { success: true, message: deleteWorkspaceDto.message };
+			}
+			return { success: false, message: deleteWorkspaceDto?.message };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				'message' in error.data
+			) {
+				return { success: false, message: String((error.data as { message: string }).message) };
+			}
+			return { success: false, message: 'Failed to delete workspace.' };
 		}
 	}
 

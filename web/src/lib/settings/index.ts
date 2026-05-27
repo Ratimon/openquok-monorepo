@@ -59,6 +59,7 @@ export type {
 	OrganizationWithRoleProgrammerModel,
 	SettingsTeamMutationProgrammerModel,
 	LeaveWorkspaceProgrammerModel,
+	DeleteWorkspaceProgrammerModel,
 	InviteTeamMemberProgrammerModel,
 	AcceptPendingInviteProgrammerModel,
 	CancelSentInviteProgrammerModel,

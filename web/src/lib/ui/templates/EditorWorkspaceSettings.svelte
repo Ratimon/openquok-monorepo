@@ -22,6 +22,7 @@
 	import TeamMembersLimitUpgradeModal from '$lib/ui/components/workspaces/TeamMembersLimitUpgradeModal.svelte';
 	import WorkspaceLimitUpgradeModal from '$lib/ui/components/workspaces/WorkspaceLimitUpgradeModal.svelte';
 	import UpdateWorkspaceModal from '$lib/ui/components/settings/UpdateWorkspaceModal.svelte';
+	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import * as Field from '$lib/ui/field';
@@ -38,6 +39,7 @@
 		createSubmitting: boolean;
 		updateSubmitting: boolean;
 		leavingWorkspace: boolean;
+		deletingWorkspace: boolean;
 		loadingTeam: boolean;
 		inviting: boolean;
 		loadingPendingInvites: boolean;
@@ -50,6 +52,7 @@
 			params: { name: string; description: string | null }
 		) => Promise<{ success: boolean; message: string }>;
 		onLeaveWorkspace: (workspaceId: string) => Promise<{ success: boolean; message: string }>;
+		onDeleteWorkspace: (workspaceId: string) => Promise<{ success: boolean; message: string }>;
 		onInviteMember: (params: {
 			email: string;
 			role: 'user' | 'admin';
@@ -72,6 +75,7 @@
 		createSubmitting,
 		updateSubmitting,
 		leavingWorkspace,
+		deletingWorkspace,
 		loadingTeam,
 		inviting,
 		loadingPendingInvites,
@@ -81,6 +85,7 @@
 		onCreateWorkspace,
 		onUpdateWorkspace,
 		onLeaveWorkspace,
+		onDeleteWorkspace,
 		onInviteMember,
 		onAcceptPendingInvite,
 		onCancelSentInvite,
@@ -126,6 +131,8 @@
 	let editingWorkspaceId = $state<string | null>(null);
 	let teamMembersUpgradeDialogOpen = $state(false);
 	let workspaceUpgradeDialogOpen = $state(false);
+	let deleteWorkspaceConfirmOpen = $state(false);
+	let deleteWorkspaceTarget = $state<WorkspaceCardViewModel | null>(null);
 
 	function openTeamMembersUpgradeDialog() {
 		teamMembersUpgradeDialogOpen = true;
@@ -347,9 +354,35 @@
 		onCopyWorkspaceId(workspaceId);
 	}
 
+	const workspaceMutationBusy = $derived(leavingWorkspace || deletingWorkspace);
+
 	async function leaveWorkspace(workspaceId: string) {
 		const result = await onLeaveWorkspace(workspaceId);
 		if (!result.success) toast.error(result.message);
+	}
+
+	function openDeleteWorkspaceConfirm(org: WorkspaceCardViewModel) {
+		if (org.workspaceRole !== 'owner') return;
+		deleteWorkspaceTarget = org;
+		deleteWorkspaceConfirmOpen = true;
+	}
+
+	function closeDeleteWorkspaceConfirm() {
+		if (deletingWorkspace) return;
+		deleteWorkspaceConfirmOpen = false;
+		deleteWorkspaceTarget = null;
+	}
+
+	async function confirmDeleteWorkspace() {
+		const target = deleteWorkspaceTarget;
+		if (!target) return;
+		const result = await onDeleteWorkspace(target.id);
+		if (result.success) {
+			deleteWorkspaceConfirmOpen = false;
+			deleteWorkspaceTarget = null;
+		} else {
+			toast.error(result.message);
+		}
 	}
 
 	function switchWorkspace(org: WorkspaceCardViewModel) {
@@ -462,7 +495,7 @@
 								type="button"
 								variant="ghost"
 								onclick={() => switchWorkspace(org)}
-								disabled={leavingWorkspace}
+								disabled={workspaceMutationBusy}
 							>
 								Switch
 							</Button>
@@ -471,7 +504,7 @@
 							<DropdownMenu.Trigger
 								class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-base-300 bg-base-100 text-sm font-medium text-base-content shadow-sm outline-none hover:bg-base-content/10 focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50"
 								aria-label="Workspace options"
-								disabled={leavingWorkspace}
+								disabled={workspaceMutationBusy}
 							>
 								<AbstractIcon name={icons.Cog.name} width="16" height="16" focusable="false" />
 							</DropdownMenu.Trigger>
@@ -489,13 +522,24 @@
 									<AbstractIcon name={icons.Copy.name} width="16" height="16" focusable="false" />
 									Copy Workspace ID
 								</DropdownMenu.Item>
-								<DropdownMenu.Item
-									variant="destructive"
-									disabled={leavingWorkspace}
-									onclick={() => leaveWorkspace(org.id)}
-								>
-									Leave Workspace
-								</DropdownMenu.Item>
+								{#if org.workspaceRole === 'owner'}
+									<DropdownMenu.Item
+										variant="destructive"
+										disabled={workspaceMutationBusy}
+										onclick={() => openDeleteWorkspaceConfirm(org)}
+									>
+										<AbstractIcon name={icons.Trash.name} width="16" height="16" focusable="false" />
+										Delete workspace
+									</DropdownMenu.Item>
+								{:else}
+									<DropdownMenu.Item
+										variant="destructive"
+										disabled={workspaceMutationBusy}
+										onclick={() => leaveWorkspace(org.id)}
+									>
+										Leave Workspace
+									</DropdownMenu.Item>
+								{/if}
 							</DropdownMenu.Content>
 						</DropdownMenu.Root>
 					</div>
@@ -877,3 +921,25 @@
 	bind:open={workspaceUpgradeDialogOpen}
 	upgradeHref={accountBillingHref}
 />
+
+{#if deleteWorkspaceTarget}
+	<DeleteModal
+		bind:open={deleteWorkspaceConfirmOpen}
+		title="Delete workspace?"
+		description="This permanently deletes the workspace for all members. Posts, channels, media, and settings in this workspace cannot be recovered."
+		itemName={deleteWorkspaceTarget.name}
+		confirmLabel="Yes, delete workspace"
+		cancelLabel="Cancel"
+		loading={deletingWorkspace}
+		contentClass="max-w-md"
+		confirmVariant="red"
+		cancelFirst
+		onOpenChange={(open) => {
+			if (!open && !deletingWorkspace) {
+				deleteWorkspaceTarget = null;
+			}
+		}}
+		onConfirm={() => void confirmDeleteWorkspace()}
+		onCancel={closeDeleteWorkspaceConfirm}
+	/>
+{/if}

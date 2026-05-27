@@ -74,6 +74,7 @@ export enum WorkspaceSettingsStatus {
 	LOADING = 'LOADING',
 	CREATING = 'CREATING',
 	LEAVING = 'LEAVING',
+	DELETING = 'DELETING',
 	UPDATING = 'UPDATING',
 	LOADING_TEAM = 'LOADING_TEAM',
 	INVITING = 'INVITING',
@@ -233,6 +234,53 @@ export class WorkspaceSettingsPresenter {
 			this.toastIsError = false;
 			this.showToastMessage = true;
 			return { success: true, message: 'Workspace created.' };
+		} finally {
+			this.status = WorkspaceSettingsStatus.IDLE;
+		}
+	}
+
+	public async deleteWorkspace(workspaceId: string): Promise<{ success: boolean; message: string }> {
+		const workspace = this.workspacesVm.find((w) => w.id === workspaceId);
+		if (!workspace) {
+			return { success: false, message: 'Workspace not found.' };
+		}
+		if (workspace.workspaceRole !== 'owner') {
+			const msg = 'Only the workspace owner can delete it.';
+			this.toastMessage = msg;
+			this.toastIsError = true;
+			this.showToastMessage = true;
+			return { success: false, message: msg };
+		}
+		this.status = WorkspaceSettingsStatus.DELETING;
+		try {
+			const resultPm = await this.settingsRepository.deleteOrganization(workspaceId);
+			if (!resultPm.success) {
+				const msg = resultPm.message ?? 'Failed to delete workspace.';
+				this.toastMessage = msg;
+				this.toastIsError = true;
+				this.showToastMessage = true;
+				return { success: false, message: msg };
+			}
+
+			this.workspacesVm = this.settingsRepository.organizationsPm.map((o) =>
+				this.getWorkspacePresenter.toCardVm(o)
+			);
+			if (this.currentWorkspaceId === workspaceId) {
+				const nextWorkspaceId = this.workspacesVm[0]?.id ?? null;
+				this.currentWorkspaceId = nextWorkspaceId;
+				if (nextWorkspaceId) {
+					void this.profileRepository.changeOrganization(nextWorkspaceId);
+					await this.loadTeam(nextWorkspaceId);
+				} else {
+					this.teamMembersVm = [];
+					this.sentInvitesVm = [];
+				}
+			}
+			this.updateCurrentWorkspaceRole();
+			this.toastMessage = 'Workspace deleted.';
+			this.toastIsError = false;
+			this.showToastMessage = true;
+			return { success: true, message: 'Workspace deleted.' };
 		} finally {
 			this.status = WorkspaceSettingsStatus.IDLE;
 		}

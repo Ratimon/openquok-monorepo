@@ -81,6 +81,10 @@ export class ProtectedSettingsPagePresenter {
 		return this.workspaceSettingsPresenter.leaveWorkspace(workspaceId);
 	}
 
+	deleteWorkspace(workspaceId: string): Promise<{ success: boolean; message: string }> {
+		return this.workspaceSettingsPresenter.deleteWorkspace(workspaceId);
+	}
+
 	inviteTeamMember(params: {
 		email: string;
 		role: 'user' | 'admin';
