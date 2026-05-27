@@ -8,8 +8,12 @@
 	import { toast } from '$lib/ui/sonner';
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
-	import { url } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
 	import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
+	import { getScheduledPostsPresenter } from '$lib/posts';
+	import { getPricingPresenter } from '$lib/billing';
+	import { planLimitsForTier } from 'openquok-common';
+	import { getRootPathAccount } from '$lib/area-protected';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
@@ -47,12 +51,64 @@
 		});
 	});
 
-	// Prefer SSR data; fall back to presenter state (client-side refreshes).
+	const isLoggedIn = $derived(authenticationRepository.isAuthenticated());
+
+	/** Client preview with Bearer auth (SSR omits viewer plan; do not let `data.postVm` override this). */
+	let authedPreviewVm = $state<PublicPreviewPostViewModel | null>(null);
+
+	$effect(() => {
+		const postId = data.postVm?.id;
+		if (!browser || !isLoggedIn || !postId) {
+			authedPreviewVm = null;
+			return;
+		}
+		let cancelled = false;
+		void getScheduledPostsPresenter.loadPostPreviewVmById(postId).then((vm) => {
+			if (!cancelled) {
+				authedPreviewVm = vm;
+				if (vm) publicPreviewPostByIdPagePresenter.currentPreviewPostVm = vm;
+			}
+		});
+		return () => {
+			cancelled = true;
+		};
+	});
+
 	const previewPostVm = $derived(
-		(data.postVm ?? publicPreviewPostByIdPagePresenter.currentPreviewPostVm) as
-			| PublicPreviewPostViewModel
-			| null
+		(authedPreviewVm ??
+			data.postVm ??
+			publicPreviewPostByIdPagePresenter.currentPreviewPostVm) as PublicPreviewPostViewModel | null
 	);
+
+	const sharePostPreviewEnabled = $derived(previewPostVm?.sharePostPreviewEnabled === true);
+
+	/** Owned-account plan (SOLO cannot comment even when a workspace preview API omits viewer tier). */
+	let viewerAccountAllowsComments = $state<boolean | null>(null);
+
+	$effect(() => {
+		if (!browser || !isLoggedIn) {
+			viewerAccountAllowsComments = null;
+			return;
+		}
+		let cancelled = false;
+		void getPricingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
+			if (cancelled) return;
+			viewerAccountAllowsComments = vm
+				? planLimitsForTier(vm.tier).share_post_preview
+				: false;
+		});
+		return () => {
+			cancelled = true;
+		};
+	});
+
+	const collaborationCommentsEnabled = $derived.by(() => {
+		if (!previewPostVm?.collaborationCommentsEnabled) return false;
+		if (browser && isLoggedIn) {
+			if (viewerAccountAllowsComments !== true) return false;
+		}
+		return true;
+	});
 
 	const previewChannelVm = $derived(
 		data.previewChannelVm ?? publicPreviewPostByIdPagePresenter.currentPreviewChannelVm
@@ -72,7 +128,9 @@
 	const currentUserLabel = $derived(
 		authenticationRepository.currentUser?.fullName ?? authenticationRepository.currentUser?.email ?? null
 	);
-	const isLoggedIn = $derived(authenticationRepository.isAuthenticated());
+	const commentUpgradeHref = $derived(
+		isLoggedIn ? url(`${route(getRootPathAccount())}/billing`) : undefined
+	);
 	let schemaData = $derived(data.schemaData);
 	const commentsVm = $derived(
 		(data.commentsVm ?? publicPreviewPostByIdPagePresenter.currentCommentsVm) as PostCommentViewModel[]
@@ -120,12 +178,12 @@
 						height="55"
 						class="h-10 w-10 shrink-0"
 					/>
-					<div class="text-2xl font-semibold tracking-tight">
-						Openquok
-					</div>
+					<h1 class="text-2xl font-semibold tracking-tight">
+						Openquok Scheduled Post
+					</h1>
 				</a>
 				<div class="flex items-center gap-4 text-sm text-base-content/70">
-					{#if showShare}
+					{#if showShare && sharePostPreviewEnabled}
 						<CopyClient />
 					{/if}
 					<div class="whitespace-nowrap">
@@ -159,6 +217,9 @@
 					comments={commentsVm}
 					submitComment={handleSubmitComment}
 					{submittingComment}
+					{sharePostPreviewEnabled}
+					{collaborationCommentsEnabled}
+					upgradeHref={commentUpgradeHref}
 				/>
 			</div>
 		</div>
@@ -168,4 +229,3 @@
 		</div>
 	{/if}
 </div>
-

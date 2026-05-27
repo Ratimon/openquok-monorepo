@@ -166,6 +166,10 @@ export interface PublicPreviewPostViewModel {
 	threadFinisher: { enabled: boolean; message: string } | null;
 	/** Threads only: delayed engagement plug — mirrors composer preview. */
 	delayedEngagementReply: { message: string; delaySeconds: number } | null;
+	/** Workspace plan includes shareable preview links (copy link). */
+	sharePostPreviewEnabled: boolean;
+	/** Signed-in viewer may post collaboration comments (workspace + account plan). */
+	collaborationCommentsEnabled: boolean;
 }
 
 /**
@@ -287,7 +291,9 @@ export class GetScheduledPostsPresenter {
 				delaySeconds: r.delaySeconds
 			})),
 			threadFinisher: previewPostPm.threadFinisher ?? null,
-			delayedEngagementReply: previewPostPm.delayedEngagementReply ?? null
+			delayedEngagementReply: previewPostPm.delayedEngagementReply ?? null,
+			sharePostPreviewEnabled: previewPostPm.sharePostPreviewEnabled === true,
+			collaborationCommentsEnabled: previewPostPm.collaborationCommentsEnabled === true
 		};
 		return previewPostVm;
 	}

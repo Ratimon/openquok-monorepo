@@ -224,7 +224,8 @@ export class PostsController {
         try {
             const postId = (req.params as { postId: string }).postId;
             const share = typeof req.query.share === "string" ? req.query.share : null;
-            const d = await this.postsService.getPostPreview(postId, share);
+            const authUserId = (req as AuthenticatedRequest).user?.id;
+            const d = await this.postsService.getPostPreview(postId, share, authUserId);
             res.status(200).json({ success: true, data: d });
         } catch (error) {
             next(error);

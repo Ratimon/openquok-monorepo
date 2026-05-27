@@ -134,6 +134,19 @@ export class SubscriptionService {
         return "FREE";
     }
 
+    /**
+     * Tier for workspace-scoped share-preview features (`/p/:postId` comments, copy link).
+     * Uses only this organization's subscription row (no account inheritance) so SOLO workspaces
+     * stay gated even when the viewer is on a higher plan elsewhere.
+     */
+    async resolveOrganizationPlanTier(organizationId: string): Promise<SubscriptionTier> {
+        const subscription = await this.subscriptionRepository.getSubscriptionByOrganizationId(organizationId);
+        if (subscription?.subscription_tier) {
+            return subscription.subscription_tier;
+        }
+        return "FREE";
+    }
+
     getPlanLimitsForOrganization(
         subscription: OrganizationSubscriptionRow | null
     ): (typeof pricing)[SubscriptionTier] {

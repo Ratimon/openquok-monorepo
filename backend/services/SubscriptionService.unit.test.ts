@@ -118,6 +118,22 @@ describe("SubscriptionService", () => {
         });
     });
 
+    describe("resolveOrganizationPlanTier", () => {
+        it("returns the workspace tier from its direct subscription row", async () => {
+            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockResolvedValue(
+                subscriptionRow("SOLO", { organization_id: organizationId })
+            );
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            await expect(service.resolveOrganizationPlanTier(organizationId)).resolves.toBe("SOLO");
+        });
+
+        it("returns FREE when the workspace has no subscription row", async () => {
+            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockResolvedValue(null);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            await expect(service.resolveOrganizationPlanTier(organizationId)).resolves.toBe("FREE");
+        });
+    });
+
     describe("getEffectiveSubscription", () => {
         it("returns the workspace subscription when present", async () => {
             const row = subscriptionRow("TEAM", { organization_id: organizationId });

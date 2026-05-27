@@ -13,7 +13,7 @@ import { IntegrationConnectionService } from "./IntegrationConnectionService";
 import { IntegrationManager } from "../integrations/integrationManager";
 
 import { UserNotFoundError } from "../errors/UserError";
-import { OrganizationNotFoundError } from "../errors/OrganizationError";
+import { OrganizationForbiddenError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
 
@@ -269,11 +269,11 @@ describe("IntegrationConnectionService", () => {
             await expect(service().getIntegrationList(authUserId, orgId)).rejects.toBeInstanceOf(UserNotFoundError);
         });
 
-        it("throws OrganizationNotFoundError when membership missing", async () => {
+        it("throws OrganizationForbiddenError when membership missing", async () => {
             orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
             orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(null));
             await expect(service().getIntegrationList(authUserId, orgId)).rejects.toBeInstanceOf(
-                OrganizationNotFoundError
+                OrganizationForbiddenError
             );
         });
 
@@ -692,7 +692,7 @@ describe("IntegrationConnectionService", () => {
     });
 
     describe("saveProviderPage", () => {
-        it("throws OrganizationNotFoundError when user is not a member", async () => {
+        it("throws OrganizationForbiddenError when user is not a member", async () => {
             orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
             orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(null));
             await expect(
@@ -701,7 +701,7 @@ describe("IntegrationConnectionService", () => {
                     pageId: "p1",
                     id: "ig1",
                 })
-            ).rejects.toBeInstanceOf(OrganizationNotFoundError);
+            ).rejects.toBeInstanceOf(OrganizationForbiddenError);
         });
 
         it("throws 404 when integration row is missing", async () => {
@@ -982,11 +982,11 @@ describe("IntegrationConnectionService", () => {
             expect(out.internalPlugs.some((p) => p.methodName === "threadsInternalFollowUp")).toBe(true);
         });
 
-        it("getInternalPlugDefinitions throws OrganizationNotFoundError when not a member", async () => {
+        it("getInternalPlugDefinitions throws OrganizationForbiddenError when not a member", async () => {
             orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
             orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(null));
             await expect(service().getInternalPlugDefinitions(authUserId, orgId, "threads")).rejects.toBeInstanceOf(
-                OrganizationNotFoundError
+                OrganizationForbiddenError
             );
         });
 

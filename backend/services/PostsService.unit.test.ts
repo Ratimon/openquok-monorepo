@@ -1266,6 +1266,8 @@ describe("PostsService", () => {
                 threadReplies: [],
                 threadFinisher: null,
                 delayedEngagementReply: null,
+                sharePostPreviewEnabled: true,
+                collaborationCommentsEnabled: false,
             });
             expect(postsRepo.listThreadRepliesByPostId).toHaveBeenCalledWith(postId);
         });
@@ -1303,6 +1305,8 @@ describe("PostsService", () => {
                 threadReplies: [],
                 threadFinisher: null,
                 delayedEngagementReply: null,
+                sharePostPreviewEnabled: true,
+                collaborationCommentsEnabled: false,
             });
         });
 
@@ -1452,6 +1456,8 @@ describe("PostsService", () => {
                 threadReplies: [],
                 threadFinisher: null,
                 delayedEngagementReply: null,
+                sharePostPreviewEnabled: true,
+                collaborationCommentsEnabled: false,
             };
             const getOrSet = jest.fn().mockResolvedValue(expected);
 

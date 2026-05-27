@@ -1,5 +1,5 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
-import { ApiError } from '$lib/core/HttpGateway';
+import { userFacingApiErrorMessage } from '$lib/core/HttpGateway';
 import { mediaRepository, mediaVirtualPathForComposerUpload } from '$lib/medias';
 
 /** One image attached to a social post (R2 / user media paths from `/api/v1/media/*`). */
@@ -197,6 +197,9 @@ export type PostPreviewProgrammerModel = {
 	threadFinisher?: { enabled: boolean; message: string } | null;
 	/** Threads: `threads.internalEngagementPlug` when enabled (public preview API). */
 	delayedEngagementReply?: { message: string; delaySeconds: number } | null;
+	sharePostPreviewEnabled?: boolean;
+	/** When true, the signed-in viewer may post collaboration comments on this share preview. */
+	collaborationCommentsEnabled?: boolean;
 };
 
 export type GetPostPreviewResponseDto = {
@@ -494,7 +497,7 @@ export class PostsRepository {
 			const { ok, data: dto } = await this.httpGateway.get<GetPostPreviewResponseDto>(
 				url,
 				{ share: 'true' },
-				{ withCredentials: false, ...(options?.fetch ? { fetch: options.fetch } : {}) }
+				{ withCredentials: true, ...(options?.fetch ? { fetch: options.fetch } : {}) }
 			);
 			if (ok && dto?.success === true && dto.data?.id) {
 				return { ok: true, post: dto.data };
@@ -666,10 +669,6 @@ export class PostsRepository {
 	}
 
 	private mapCatch(error: unknown, fallback: string): { ok: false; error: string } {
-		if (error instanceof ApiError && typeof error.data === 'object' && error.data !== null) {
-			const o = error.data as Record<string, unknown>;
-			if (typeof o.message === 'string') return { ok: false, error: o.message };
-		}
-		return { ok: false, error: fallback };
+		return { ok: false, error: userFacingApiErrorMessage(error, fallback) };
 	}
 }

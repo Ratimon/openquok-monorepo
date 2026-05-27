@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { supabaseAnonClient } from "../connections/index";
-import { requireFullAuth } from "../middlewares/authenticateUser";
+import { optionalAuthWithRoles, requireFullAuth } from "../middlewares/authenticateUser";
+import { userRepository, rbacRepository } from "../repositories/index";
 import { postsController } from "../controllers/index.js";
 import {
     validateCreateComposerComment,
@@ -22,6 +23,7 @@ import {
 type PostRouter = ReturnType<typeof Router>;
 const postRouter: PostRouter = Router();
 const auth = requireFullAuth(supabaseAnonClient);
+const optionalAuth = optionalAuthWithRoles(supabaseAnonClient, userRepository, rbacRepository);
 
 postRouter.get("/find-slot", auth, validatePostOrganizationQuery, postsController.findSlot);
 postRouter.get("/tags", auth, validatePostOrganizationQuery, postsController.listTags);
@@ -31,7 +33,12 @@ postRouter.get("/list", auth, validateListPostsQuery, postsController.listPosts)
 postRouter.post("/", auth, validateCreatePostBody, postsController.createPost);
 postRouter.post("/:postId/comments", auth, validateCreateComposerComment, postsController.createComposerComment);
 // public preview
-postRouter.get("/preview/:postId", validatePostPreviewParams, postsController.getPostPreview);
+postRouter.get(
+    "/preview/:postId",
+    optionalAuth,
+    validatePostPreviewParams,
+    postsController.getPostPreview
+);
 postRouter.get(
     "/group/:postGroup/debug-export",
     auth,

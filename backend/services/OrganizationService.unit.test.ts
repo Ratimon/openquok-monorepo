@@ -424,7 +424,7 @@ describe("OrganizationService", () => {
         it("throws OrganizationNotFoundError when user is not member", async () => {
             (orgRepo.findMembership as jest.Mock).mockResolvedValue({ membership: null, error: null });
             const service = new OrganizationService(orgRepo, userRepo);
-            await expect(service.getTeam(authUserId, orgId)).rejects.toThrow(/Organization not found/);
+            await expect(service.getTeam(authUserId, orgId)).rejects.toThrow(/Workspace not found/);
         });
     });
 
@@ -794,7 +794,7 @@ describe("OrganizationService", () => {
             const service = new OrganizationService(orgRepo, userRepo);
             await expect(
                 service.listSentInvitesForOrganization(authUserId, orgId)
-            ).rejects.toThrow(/Organization not found/);
+            ).rejects.toThrow(/Workspace not found/);
             expect(orgRepo.findPendingInvitesByOrganization).not.toHaveBeenCalled();
         });
 
@@ -806,7 +806,7 @@ describe("OrganizationService", () => {
             const service = new OrganizationService(orgRepo, userRepo);
             await expect(
                 service.listSentInvitesForOrganization(authUserId, orgId)
-            ).rejects.toThrow(/Organization not found/);
+            ).rejects.toThrow(/Workspace not found/);
             expect(orgRepo.findPendingInvitesByOrganization).not.toHaveBeenCalled();
         });
 

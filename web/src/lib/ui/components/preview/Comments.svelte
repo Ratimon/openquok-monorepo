@@ -19,6 +19,12 @@
 			comment: string;
 		}) => Promise<PostCommentViewModel | null>;
 		submittingComment?: boolean;
+		/** When false, share preview login CTA is hidden (workspace plan). */
+		sharePostPreviewEnabled?: boolean;
+		/** When false, the signed-in viewer cannot post comments (workspace + account plan). */
+		collaborationCommentsEnabled?: boolean;
+		/** Billing / plans link when comments are plan-gated (e.g. SOLO). */
+		upgradeHref?: string;
 		class?: string;
 	};
 
@@ -31,10 +37,15 @@
 		comments,
 		submitComment,
 		submittingComment = false,
+		sharePostPreviewEnabled = false,
+		collaborationCommentsEnabled = false,
+		upgradeHref,
 		class: className = ''
 	}: Props = $props();
 
 	let commentContent = $state('');
+
+	const canPostComments = $derived(isLoggedIn && collaborationCommentsEnabled);
 
 	let commentsHeading = $derived(comments.length === 1 ? '1 Comment' : `${comments.length} Comments`);
 	let userLabels = $derived.by(() => {
@@ -50,6 +61,8 @@
 	});
 
 	async function handleSubmitComment(): Promise<void> {
+		if (!canPostComments) return;
+
 		const trimmedComment = commentContent.trim();
 		if (!trimmedComment.length) return;
 
@@ -70,7 +83,19 @@
 				{commentsHeading}
 			</h2>
 			<p class="text-sm text-base-content/65">
-				Join conversation or add notes on this share link. Scheduled social thread replies are shown in the main preview.
+				{#if canPostComments}
+					Join conversation or add notes on this share link. Scheduled social thread replies are shown in
+					the main preview.
+				{:else if isLoggedIn}
+					Collaboration comments are not available on your current plan. You can still view the scheduled
+					post preview.
+				{:else if sharePostPreviewEnabled}
+					Sign in to add collaboration notes on this share link. Scheduled social thread replies are shown
+					in the main preview.
+				{:else}
+					Collaboration comments are not available on this workspace&apos;s plan. You can still view the
+					scheduled post preview.
+				{/if}
 			</p>
 		</div>
 
@@ -81,22 +106,35 @@
 				</div>
 				<Textarea
 					bind:value={commentContent}
-					placeholder="Add a comment..."
-					class="min-h-[104px] resize-none bg-base-100"
+					placeholder={canPostComments
+						? 'Add a comment...'
+						: 'Collaboration comments require Creator or higher.'}
+					class="min-h-[104px] resize-none bg-base-100 disabled:cursor-not-allowed disabled:opacity-60"
 					maxlength={1000}
+					disabled={!canPostComments}
+					readonly={!canPostComments}
 				/>
-				<div class="flex items-center justify-between gap-3">
+				<div class="flex flex-wrap items-center justify-between gap-3">
 					<span class="text-xs text-base-content/50">{commentContent.length}/1000</span>
-					<Button
-						type="button"
-						disabled={submittingComment || !commentContent.trim().length}
-						onclick={() => void handleSubmitComment()}
-					>
-						{submittingComment ? 'Posting...' : 'Post'}
-					</Button>
+					<div class="flex flex-wrap items-center gap-2">
+						{#if !canPostComments && upgradeHref}
+							<Button href={upgradeHref} variant="secondary" size="sm" checkCurrent={false}>
+								View plans
+							</Button>
+						{/if}
+						<Button
+							type="button"
+							disabled={!canPostComments ||
+								submittingComment ||
+								!commentContent.trim().length}
+							onclick={() => void handleSubmitComment()}
+						>
+							{submittingComment ? 'Posting...' : 'Post'}
+						</Button>
+					</div>
 				</div>
 			</div>
-		{:else}
+		{:else if sharePostPreviewEnabled}
 			<div class="rounded-lg border border-dashed border-base-300 bg-base-200/40 p-4">
 				<Button href={signInHref} class="w-full" checkCurrent={false}>
 					Login to add comments

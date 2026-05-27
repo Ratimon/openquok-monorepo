@@ -67,6 +67,59 @@ export function messageFromApiError(error: unknown, fallback: string): string {
 	return fallback;
 }
 
+const UUID_PATTERN =
+	/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
+
+const API_ERROR_CODE_MESSAGES: Record<string, string> = {
+	ORGANIZATION_NOT_FOUND: 'This workspace could not be found.',
+	ORGANIZATION_FORBIDDEN: 'You do not have access to this workspace.'
+};
+
+function apiErrorCodeFromBody(error: ApiError): string | undefined {
+	if (error.code) return error.code;
+	if (typeof error.data !== 'object' || error.data === null) return undefined;
+	const body = error.data as Record<string, unknown>;
+	const nested = body.error;
+	if (typeof nested === 'object' && nested !== null) {
+		const errorCode = (nested as Record<string, unknown>).errorCode;
+		if (typeof errorCode === 'string') return errorCode;
+	}
+	return undefined;
+}
+
+/** Toast-safe API error text: known codes, no UUIDs, no raw server identifiers. */
+function sanitizeUserFacingMessage(message: string, fallback: string): string {
+	const trimmed = message.trim();
+	if (!trimmed) return fallback;
+
+	if (UUID_PATTERN.test(trimmed)) {
+		UUID_PATTERN.lastIndex = 0;
+		const withoutIds = trimmed
+			.replace(UUID_PATTERN, '')
+			.replace(/\s{2,}/g, ' ')
+			.replace(/:\s*$/, '')
+			.trim();
+		if (/^organization not found/i.test(withoutIds)) {
+			return API_ERROR_CODE_MESSAGES.ORGANIZATION_NOT_FOUND;
+		}
+		if (/^user not found/i.test(withoutIds)) {
+			return 'User not found.';
+		}
+		return withoutIds || fallback;
+	}
+
+	return trimmed;
+}
+
+export function userFacingApiErrorMessage(error: unknown, fallback: string): string {
+	if (!(error instanceof ApiError)) return fallback;
+	const code = apiErrorCodeFromBody(error);
+	if (code && API_ERROR_CODE_MESSAGES[code]) {
+		return API_ERROR_CODE_MESSAGES[code];
+	}
+	return sanitizeUserFacingMessage(messageFromApiError(error, fallback), fallback);
+}
+
 export class ApiError extends Error {
 	public status: number;
 	public statusText: string;

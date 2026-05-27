@@ -8,11 +8,16 @@
 	} from '$lib/posts/GetScheduledPost.presenter.svelte';
 	import { resolvePostChannelDisplay } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
+	import { getRootPathAccount } from '$lib/area-protected';
+	import { firstBillingGatePresenter } from '$lib/billing';
+	import { route, url } from '$lib/utils/path';
+
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import SharePostPreviewLimitUpgradeModal from '$lib/ui/components/posts/SharePostPreviewLimitUpgradeModal.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
 	import { cn } from '$lib/ui/helpers/common';
@@ -69,6 +74,27 @@
 
 	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
 	const isPostsLimitFull = $derived(postsLimitCtx?.isPostsLimitFull() ?? false);
+
+	const accountBillingHref = $derived(url(`${route(getRootPathAccount())}/billing`));
+	const sharePostPreviewEnabled = $derived.by(() => {
+		const pricingVm = firstBillingGatePresenter.pricingVm;
+		if (!pricingVm?.billingEnabled) return true;
+		return pricingVm.currentVm?.limits?.sharePostPreview ?? false;
+	});
+
+	let sharePreviewUpgradeDialogOpen = $state(false);
+
+	function openSharePreviewUpgradeDialog() {
+		sharePreviewUpgradeDialogOpen = true;
+	}
+
+	function handlePreviewClick() {
+		if (!sharePostPreviewEnabled) {
+			openSharePreviewUpgradeDialog();
+			return;
+		}
+		onPreview?.();
+	}
 
 	const hasExistingPost = $derived(Boolean(postGroup?.trim()));
 	const hasCreateSlot = $derived(Boolean(createAtIso?.trim() && onCreatePost));
@@ -395,12 +421,22 @@
 
 			<button
 				type="button"
-				class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
+				class={cn(
+					'flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50',
+					sharePostPreviewEnabled
+						? 'hover:bg-base-200/60'
+						: 'bg-warning/10 text-warning hover:bg-warning/15'
+				)}
 				disabled={busy}
-				onclick={() => onPreview?.()}
+				onclick={handlePreviewClick}
 			>
-				<AbstractIcon name={icons.Eye.name} class="size-4 shrink-0" width="16" height="16" />
-				Preview
+				<AbstractIcon
+					name={sharePostPreviewEnabled ? icons.Eye.name : icons.Lock.name}
+					class="size-4 shrink-0"
+					width="16"
+					height="16"
+				/>
+				{sharePostPreviewEnabled ? 'Preview' : 'Preview (upgrade required)'}
 			</button>
 
 			<button
@@ -433,4 +469,9 @@
 		</div>
 	</Dialog.Content>
 </Dialog.Root>
+
+<SharePostPreviewLimitUpgradeModal
+	bind:open={sharePreviewUpgradeDialogOpen}
+	upgradeHref={accountBillingHref}
+/>
 

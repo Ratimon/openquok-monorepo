@@ -989,7 +989,11 @@ export class PostsService {
         };
     }
 
-    async getPostPreview(postId: string, share: string | null): Promise<{
+    async getPostPreview(
+        postId: string,
+        share: string | null,
+        authUserId?: string
+    ): Promise<{
         id: string;
         postGroup: string;
         organizationId: string;
@@ -1009,6 +1013,10 @@ export class PostsService {
         threadFinisher: { enabled: boolean; message: string } | null;
         /** Threads same-account delayed engagement plug (`threads.internalEngagementPlug`) when enabled. */
         delayedEngagementReply: { message: string; delaySeconds: number } | null;
+        /** Workspace plan allows share-link UI (copy link) on `/p/:postId`. */
+        sharePostPreviewEnabled: boolean;
+        /** Signed-in viewer may post collaboration comments (workspace + account plan). */
+        collaborationCommentsEnabled: boolean;
     }> {
         if (share !== "true") {
             throw new AppError("Forbidden", 403);
@@ -1107,10 +1115,30 @@ export class PostsService {
             };
         };
 
+        const resolvePreviewPlanFlags = async (organizationId: string) => {
+            if (!this.permissionsService) {
+                return { sharePostPreviewEnabled: true, collaborationCommentsEnabled: false };
+            }
+            const sharePostPreviewEnabled =
+                await this.permissionsService.isSharePostPreviewEnabledForOrganization(organizationId);
+            const collaborationCommentsEnabled =
+                authUserId?.trim() && sharePostPreviewEnabled
+                    ? await this.permissionsService.isCollaborationCommentsEnabledForOrganization(
+                          organizationId,
+                          authUserId
+                      )
+                    : false;
+            return { sharePostPreviewEnabled, collaborationCommentsEnabled };
+        };
+
         if (this.cache) {
-            return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+            const cached = await this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+            const flags = await resolvePreviewPlanFlags(cached.organizationId);
+            return { ...cached, ...flags };
         }
-        return factory();
+        const preview = await factory();
+        const flags = await resolvePreviewPlanFlags(preview.organizationId);
+        return { ...preview, ...flags };
     }
 
     /** Public `GET /public/posts/:postId/comments` — no API key; comments keyed by post id only. */
@@ -1128,6 +1156,7 @@ export class PostsService {
         const { organizationId, authUserId, postId, comment } = params;
 
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.permissionsService?.assertSharePostPreviewAllowed(organizationId, authUserId);
 
         const trimmed = comment.trim();
         if (!trimmed.length) {

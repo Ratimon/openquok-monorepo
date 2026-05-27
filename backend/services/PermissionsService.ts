@@ -271,6 +271,50 @@ export class PermissionsService {
         return { used: members + pendingInvites, limit: cap };
     }
 
+    /** Whether the workspace plan includes shareable post preview links (copy link on `/p/:postId`). */
+    async isSharePostPreviewEnabledForOrganization(organizationId: string): Promise<boolean> {
+        const tier = await this.subscriptionService.resolveOrganizationPlanTier(organizationId);
+        return planLimitsForTier(tier).share_post_preview;
+    }
+
+    /**
+     * Whether the signed-in user may post collaboration comments on this workspace's share preview.
+     * Requires both the workspace plan and the viewer's owned-account plan to include the feature.
+     */
+    async isCollaborationCommentsEnabledForOrganization(
+        organizationId: string,
+        authUserId: string
+    ): Promise<boolean> {
+        if (!(await this.isSharePostPreviewEnabledForOrganization(organizationId))) {
+            return false;
+        }
+        const owned = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+        const viewerTier = owned?.subscription_tier ?? "FREE";
+        return planLimitsForTier(viewerTier).share_post_preview;
+    }
+
+    /** Before opening share preview UX or posting collaboration comments on `/p/:postId`. */
+    async assertSharePostPreviewAllowed(organizationId: string, authUserId?: string): Promise<void> {
+        if (!(await this.isSharePostPreviewEnabledForOrganization(organizationId))) {
+            throw new SubscriptionError(
+                "Shareable post previews are not included on this workspace's plan.",
+                SubscriptionSection.SHARE_POST_PREVIEW,
+                this.billingUrl()
+            );
+        }
+        if (authUserId?.trim()) {
+            const owned = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+            const viewerTier = owned?.subscription_tier ?? "FREE";
+            if (!planLimitsForTier(viewerTier).share_post_preview) {
+                throw new SubscriptionError(
+                    "Collaboration comments are not included on your current plan.",
+                    SubscriptionSection.SHARE_POST_PREVIEW,
+                    this.billingUrl()
+                );
+            }
+        }
+    }
+
     /** Before creating a pending email invite — members + pending invites must stay under the seat cap. */
     async assertTeamInviteCapacity(organizationId: string, authUserId?: string): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;

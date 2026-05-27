@@ -19,7 +19,7 @@ import dayjs from "dayjs";
 import { IntegrationManager } from "../integrations/integrationManager";
 
 import { UserNotFoundError } from "../errors/UserError";
-import { OrganizationNotFoundError } from "../errors/OrganizationError";
+import { OrganizationForbiddenError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
 import { resolveIntegrationPictureForStorage } from "../utils/images/mirrorIntegrationProfilePicture";
@@ -127,7 +127,7 @@ export class IntegrationConnectionService {
         const userId = await this.resolveUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) {
-            throw new OrganizationNotFoundError(organizationId);
+            throw new OrganizationForbiddenError();
         }
     }
 
