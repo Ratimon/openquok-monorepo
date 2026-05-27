@@ -78,11 +78,16 @@
 				type="button"
 				variant="ghost"
 				size="sm"
-				class="btn-square size-8 text-base-content/60 hover:text-base-content"
+				class="btn-square size-8 items-center justify-center text-base-content/60 hover:text-base-content"
 				aria-label="Dismiss notice"
 				onclick={() => onDismiss?.()}
 			>
-				<AbstractIcon name={icons.X2.name} class="size-5" width="20" height="20" />
+				<AbstractIcon
+					name={icons.X2.name}
+					class="size-6 shrink-0"
+					width="16"
+					height="16"
+				/>
 			</Button>
 		{/if}
 	</div>
