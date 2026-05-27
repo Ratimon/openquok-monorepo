@@ -73,7 +73,7 @@ export async function signupVerifyAndGetWorkspace(
 
 /**
  * `requireProgrammaticAuth` fallback: `organizations.api_key` (`opk_…`).
- * @see middlewares/programmaticAuth.ts
+ * @see guards/programmatic/programmaticAuth.ts
  */
 export async function provisionLegacyOrgApiKey(
     adminSupabase: SupabaseClient,
@@ -105,7 +105,7 @@ export async function provisionLegacyOrgApiKey(
 
 /**
  * `requireProgrammaticAuth` primary path: OAuth app token from code exchange (`opo_…`).
- * @see middlewares/programmaticAuth.ts, tests/integration/OauthApps.integration.test.ts
+ * @see guards/programmatic/programmaticAuth.ts, tests/integration/OauthApps.integration.test.ts
  */
 export async function provisionOAuthAppAccessToken(
     adminSupabase: SupabaseClient,

@@ -4,7 +4,7 @@ import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseR
 import http from "http";
 import https from "https";
 
-import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
+import type { AuthenticatedRequest } from "../guards";
 import { UserValidationError } from "../errors/UserError";
 import { isSupabaseImageBucketName } from "../repositories/StorageSupabaseRepository";
 import { isAllowedExternalImageHost } from "../utils/images/allowedExternalImageHosts";

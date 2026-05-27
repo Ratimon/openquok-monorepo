@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 
 import { imageController } from "../controllers/index";
-import { requireFullAuthWithRoles, requireEditor } from "../middlewares/authenticateUser";
+import { requireEditor, requireFullAuthWithRoles } from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
 

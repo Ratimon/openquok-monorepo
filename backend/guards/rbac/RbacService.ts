@@ -1,10 +1,10 @@
-import type { AppRole, AppPermission } from "../data/types/rbacTypes";
-import { VALID_ROLES, VALID_PERMISSIONS } from "../data/types/rbacTypes";
-import type { RbacRepository } from "../repositories/RbacRepository";
-import type CacheService from "../connections/cache/CacheService";
-import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
-import { RoleValidationError } from "../errors/RoleError";
-import { logger } from "../utils/Logger";
+import type { AppRole, AppPermission } from "../../data/types/rbacTypes";
+import { VALID_ROLES, VALID_PERMISSIONS } from "../../data/types/rbacTypes";
+import type { RbacRepository } from "../../repositories/RbacRepository";
+import type CacheService from "../../connections/cache/CacheService";
+import type CacheInvalidationService from "../../connections/cache/CacheInvalidationService";
+import { RoleValidationError } from "../../errors/RoleError";
+import { logger } from "../../utils/Logger";
 
 /** Domain-scoped cache key prefixes. */
 const CACHE_KEYS = {

@@ -2,8 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import type { StorageR2Repository } from "../repositories/StorageR2Repository";
 import type { MediaService } from "../services/MediaService";
 import type { SubscriptionService } from "../services/SubscriptionService";
-import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
-import type { ProgrammaticAuthRequest } from "../middlewares/programmaticAuth";
+import type { AuthenticatedRequest, ProgrammaticAuthRequest } from "../guards";
 import type { IUploadProvider } from "../connections/upload/upload.interface";
 
 import { publicUrlForObjectKey } from "../repositories/MediaRepository";

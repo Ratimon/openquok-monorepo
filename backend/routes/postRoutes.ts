@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { supabaseAnonClient } from "../connections/index";
-import { optionalAuthWithRoles, requireFullAuth } from "../middlewares/authenticateUser";
+import { optionalAuthWithRoles, requireFullAuth } from "../guards";
 import { userRepository, rbacRepository } from "../repositories/index";
 import { postsController } from "../controllers/index.js";
 import {

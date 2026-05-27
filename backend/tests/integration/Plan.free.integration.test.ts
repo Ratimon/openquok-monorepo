@@ -10,7 +10,7 @@ import { EmailService } from "../../services/EmailService";
 import {
     integrationManager,
     integrationService,
-    permissionsService,
+    subscriptionGuard,
     refreshIntegrationService,
     subscriptionService,
 } from "../../services/index";
@@ -30,7 +30,7 @@ import {
 } from "../helpers/integrationAuthTestHelper";
 import { activateWorkspace } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
-import { DEFAULT_MEDIA_STORAGE_QUOTA_BYTES, planLimitsForTier } from "openquok-common";
+import { DEFAULT_MEDIA_STORAGE_QUOTA_BYTES, planLimitsForTier, SubscriptionSection } from "openquok-common";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
 const authPath = `${apiPrefix}/auth`;
@@ -188,7 +188,11 @@ describeIfSupabase("FREE plan subscription limits (integration)", () => {
         expect(connectedChannels).toHaveLength(0);
 
         await expect(
-            permissionsService.assertConnectSocialChannelAllowed(orgId, "free-first-channel")
+            subscriptionGuard.assert(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
+                scope: "workspaceWithReconnect",
+                organizationId: orgId,
+                reconnectInternalId: "free-first-channel",
+            })
         ).rejects.toBeInstanceOf(SubscriptionError);
 
         const mockAuthDetails = (internalId: string, name: string): AuthTokenDetails => ({
@@ -263,11 +267,21 @@ describeIfSupabase("FREE plan subscription limits (integration)", () => {
             internalId: "free-posts-cap-channel",
         });
 
-        await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 0)).resolves.toBeUndefined();
+        await expect(
+            subscriptionGuard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
+                organizationId: orgId,
+                delta: 0,
+            })
+        ).resolves.toBeUndefined();
 
-        await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 1)).rejects.toBeInstanceOf(
-            SubscriptionError
-        );
+        await expect(
+            subscriptionGuard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
+                organizationId: orgId,
+                delta: 1,
+            })
+        ).rejects.toBeInstanceOf(SubscriptionError);
 
         const findSlot = await supertest(app)
             .get(`${postsPath}/find-slot`)

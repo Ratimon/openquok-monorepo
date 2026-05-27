@@ -11,7 +11,7 @@ import { EmailService } from "../../services/EmailService";
 import {
     integrationManager,
     integrationService,
-    permissionsService,
+    subscriptionGuard,
     refreshIntegrationService,
     subscriptionService,
 } from "../../services/index";
@@ -41,7 +41,7 @@ import {
     type SoloWorkspaceSpies,
 } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
-import { planLimitsForTier } from "openquok-common";
+import { planLimitsForTier, SubscriptionSection } from "openquok-common";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
 const authPath = `${apiPrefix}/auth`;
@@ -75,7 +75,7 @@ jest.mock("openquok-orchestrator", () => ({
  * - limited media library storage per workspace (`media_storage_bytes_per_workspace`, 5 GiB on SOLO)
  *
  * Policy checks run when Stripe billing is configured; this suite forces billing on and stubs
- * `permissionsService.getTierAndLimits` to SOLO. Team invite uses POST /settings/team + `showorg` cookie.
+ * `subscriptionGuard.getTierAndLimits` to SOLO. Team invite uses POST /settings/team + `showorg` cookie.
  */
 describeIfSupabase("SOLO plan subscription limits (integration)", () => {
     const adminSupabase = createClient(supabaseUrl!, supabaseSecretKey!) as SupabaseClient;
@@ -235,7 +235,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                 expect(sentBeforeRes.status).toBe(200);
                 expect(sentBeforeRes.body?.data ?? []).toHaveLength(0);
 
-                await expect(permissionsService.assertTeamInviteCapacity(orgId)).rejects.toBeInstanceOf(
+                await expect(subscriptionGuard.assertTeamInviteCapacity(orgId)).rejects.toBeInstanceOf(
                     SubscriptionError
                 );
 
@@ -301,12 +301,20 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         expect(connectedChannels).toHaveLength(channelCap);
 
         await expect(
-            permissionsService.assertConnectSocialChannelAllowed(orgId, "brand-new-internal-id")
+            subscriptionGuard.assert(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
+                scope: "workspaceWithReconnect",
+                organizationId: orgId,
+                reconnectInternalId: "brand-new-internal-id",
+            })
         ).rejects.toBeInstanceOf(SubscriptionError);
 
         // Cap blocks new provider accounts only; same internal_id is a reconnect (token refresh), not a 16th slot.
         await expect(
-            permissionsService.assertConnectSocialChannelAllowed(orgId, internalIds[0]!)
+            subscriptionGuard.assert(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
+                scope: "workspaceWithReconnect",
+                organizationId: orgId,
+                reconnectInternalId: internalIds[0]!,
+            })
         ).resolves.toBeUndefined();
 
         const mockAuthDetails = (internalId: string, name: string): AuthTokenDetails => ({
@@ -414,9 +422,13 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                 postGroupPrefix: "solo-posts-cap-api",
             });
 
-            await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 1)).rejects.toBeInstanceOf(
-                SubscriptionError
-            );
+            await expect(
+                subscriptionGuard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                    scope: "workspaceWithDelta",
+                    organizationId: orgId,
+                    delta: 1,
+                })
+            ).rejects.toBeInstanceOf(SubscriptionError);
 
             const findSlot = await supertest(app)
                 .get(`${postsPath}/find-slot`)
@@ -462,7 +474,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         const previousPeriodPublishIso = new Date(currentPeriodStart.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
         const tierLimitsSpy = jest
-            .spyOn(permissionsService, "getTierAndLimits")
+            .spyOn(subscriptionGuard, "getTierAndLimits")
             .mockImplementation(async (orgIdForCall) => ({
                 tier: "SOLO",
                 limits: soloLimits,
@@ -500,7 +512,13 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                 publishDateIso: previousPeriodPublishIso,
             });
 
-            await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 1)).resolves.toBeUndefined();
+            await expect(
+                subscriptionGuard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                    scope: "workspaceWithDelta",
+                    organizationId: orgId,
+                    delta: 1,
+                })
+            ).resolves.toBeUndefined();
 
             // Success case: API can schedule again in the new period.
             const findSlotOk = await supertest(app)
@@ -532,9 +550,13 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                 postGroupPrefix: "solo-posts-reset-cur",
                 publishDateIso: new Date(currentPeriodStart.getTime() + 5 * 60 * 1000).toISOString(),
             });
-            await expect(permissionsService.assertPostsPerMonthAllowed(orgId, 1)).rejects.toBeInstanceOf(
-                SubscriptionError
-            );
+            await expect(
+                subscriptionGuard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                    scope: "workspaceWithDelta",
+                    organizationId: orgId,
+                    delta: 1,
+                })
+            ).rejects.toBeInstanceOf(SubscriptionError);
 
             // API should also enforce it at create time.
             const findSlot = await supertest(app)
@@ -662,7 +684,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                     internalId: "solo-posts-stranger-channel",
                 });
 
-                const usageBefore = await permissionsService.getPostsPerMonthUsage(orgId, ownerToken);
+                const usageBefore = await subscriptionGuard.getPostsPerMonthUsage(orgId, ownerToken);
                 expect(usageBefore.used).toBe(0);
 
                 const findSlotRes = await supertest(app)
@@ -686,7 +708,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                 expect(createRes.status).toBe(404);
                 expect(createRes.body?.success).toBe(false);
 
-                const usageAfter = await permissionsService.getPostsPerMonthUsage(orgId, ownerToken);
+                const usageAfter = await subscriptionGuard.getPostsPerMonthUsage(orgId, ownerToken);
                 expect(usageAfter.used).toBe(usageBefore.used);
             } finally {
                 tierLimitsSpy.mockRestore();
@@ -739,12 +761,17 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                         internalId: "solo-posts-member-channel",
                     });
 
-                    const usageBefore = await permissionsService.getPostsPerMonthUsage(orgId);
+                    const usageBefore = await subscriptionGuard.getPostsPerMonthUsage(orgId);
                     expect(usageBefore.used).toBe(0);
 
                     const adminAuthUserId = await supabaseAuthUserId(adminToken);
                     await expect(
-                        permissionsService.assertPostsPerMonthAllowed(orgId, 1, adminAuthUserId)
+                        subscriptionGuard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                            scope: "workspaceWithDelta",
+                            organizationId: orgId,
+                            delta: 1,
+                            authUserId: adminAuthUserId,
+                        })
                     ).resolves.toBeUndefined();
 
                     const adminFindSlot = await supertest(app)
@@ -770,7 +797,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                     expect(adminCreateRes.status).toBe(200);
                     expect(adminCreateRes.body?.success).toBe(true);
 
-                    const usageAfter = await permissionsService.getPostsPerMonthUsage(orgId);
+                    const usageAfter = await subscriptionGuard.getPostsPerMonthUsage(orgId);
                     expect(usageAfter.used).toBe(usageBefore.used + 1);
                 } finally {
                     tierLimitsSpy.mockRestore();
@@ -825,12 +852,17 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                         internalId: "solo-posts-regular-member-channel",
                     });
 
-                    const usageBefore = await permissionsService.getPostsPerMonthUsage(orgId);
+                    const usageBefore = await subscriptionGuard.getPostsPerMonthUsage(orgId);
                     expect(usageBefore.used).toBe(0);
 
                     const memberAuthUserId = await supabaseAuthUserId(memberToken);
                     await expect(
-                        permissionsService.assertPostsPerMonthAllowed(orgId, 1, memberAuthUserId)
+                        subscriptionGuard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                            scope: "workspaceWithDelta",
+                            organizationId: orgId,
+                            delta: 1,
+                            authUserId: memberAuthUserId,
+                        })
                     ).resolves.toBeUndefined();
 
                     const memberFindSlot = await supertest(app)
@@ -856,7 +888,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                     expect(memberCreateRes.status).toBe(200);
                     expect(memberCreateRes.body?.success).toBe(true);
 
-                    const usageAfter = await permissionsService.getPostsPerMonthUsage(orgId);
+                    const usageAfter = await subscriptionGuard.getPostsPerMonthUsage(orgId);
                     expect(usageAfter.used).toBe(usageBefore.used + 1);
                 } finally {
                     tierLimitsSpy.mockRestore();

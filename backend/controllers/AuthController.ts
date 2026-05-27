@@ -4,7 +4,7 @@ import type { UserRepository } from "../repositories/UserRepository";
 import type { EmailService } from "../services/EmailService";
 import type { OrganizationService } from "../services/OrganizationService";
 import type { UserService } from "../services/UserService";
-import type { RbacService } from "../services/RbacService";
+import type { RbacService } from "../guards/rbac/RbacService";
 
 import type {
     validateSignUpRequestHandler,

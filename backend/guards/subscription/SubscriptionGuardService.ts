@@ -6,14 +6,14 @@ import {
     type SubscriptionTier,
     SubscriptionSection,
 } from "openquok-common";
-import { SubscriptionError } from "../errors/SubscriptionError";
-import { config } from "../config/GlobalConfig";
-import type { SubscriptionService } from "../services/SubscriptionService";
-import type { OrganizationSubscriptionRow } from "../repositories/SubscriptionRepository";
-import type { IntegrationService } from "../services/IntegrationService";
-import type { OrganizationRepository } from "../repositories/OrganizationRepository";
-import type { PostsRepository } from "../repositories/PostsRepository";
-import { resolveSessionChannelsPerWorkspace } from "../utils/dtos/UserMeDTO";
+import { SubscriptionError } from "../../errors/SubscriptionError";
+import { config } from "../../config/GlobalConfig";
+import type { SubscriptionService } from "../../services/SubscriptionService";
+import type { OrganizationSubscriptionRow } from "../../repositories/SubscriptionRepository";
+import type { IntegrationService } from "../../services/IntegrationService";
+import type { OrganizationRepository } from "../../repositories/OrganizationRepository";
+import type { PostsRepository } from "../../repositories/PostsRepository";
+import { resolveSessionChannelsPerWorkspace } from "../../utils/dtos/UserMeDTO";
 import {
     GUARD_REGISTRY,
     TEAM_INVITE_DENIED_MESSAGE,
@@ -348,19 +348,6 @@ export class SubscriptionGuardService {
         }
     }
 
-    async assertPostsPerMonthAllowed(
-        organizationId: string,
-        rowsToAdd = 1,
-        authUserId?: string
-    ): Promise<void> {
-        await this.assert(SubscriptionSection.POSTS_PER_MONTH, {
-            scope: "workspaceWithDelta",
-            organizationId,
-            authUserId,
-            delta: rowsToAdd,
-        });
-    }
-
     async getPostsPerMonthUsage(
         organizationId: string,
         authUserId?: string
@@ -437,18 +424,6 @@ export class SubscriptionGuardService {
         return planLimitsForTier(viewerTier).community_features;
     }
 
-    async assertCommunityFeaturesAllowed(authUserId: string): Promise<void> {
-        await this.assert(SubscriptionSection.COMMUNITY_FEATURES, { scope: "account", authUserId });
-    }
-
-    async assertSharePostPreviewAllowed(organizationId: string, authUserId?: string): Promise<void> {
-        await this.assert(SubscriptionSection.SHARE_POST_PREVIEW, {
-            scope: "workspace",
-            organizationId,
-            authUserId,
-        });
-    }
-
     async assertTeamInviteCapacity(organizationId: string, authUserId?: string): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
 
@@ -503,23 +478,6 @@ export class SubscriptionGuardService {
                 this.billingUrl()
             );
         }
-    }
-
-    async assertCanCreateWorkspace(authUserId: string): Promise<void> {
-        await this.assert(SubscriptionSection.WORKSPACES, { scope: "account", authUserId });
-    }
-
-    async assertConnectSocialChannelAllowed(
-        organizationId: string,
-        newAccountInternalId: string,
-        authUserId?: string
-    ): Promise<void> {
-        await this.assert(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
-            scope: "workspaceWithReconnect",
-            organizationId,
-            authUserId,
-            reconnectInternalId: newAccountInternalId,
-        });
     }
 
     async assertMediaStorageAvailable(

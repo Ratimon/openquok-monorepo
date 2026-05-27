@@ -1,7 +1,7 @@
 import type { UserMeWorkspaceSession } from "openquok-common";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { SubscriptionRepository } from "../repositories/SubscriptionRepository";
-import type { PermissionsService } from "./PermissionsService";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import type { SubscriptionService } from "./SubscriptionService";
 import { OrganizationForbiddenError, OrganizationNotFoundError } from "../errors/OrganizationError";
 import {
@@ -14,7 +14,7 @@ import type { WorkspaceMembershipRole } from "../repositories/OrganizationReposi
 export class UserSessionService {
 	constructor(
 		private readonly organizationRepository: OrganizationRepository,
-		private readonly permissionsService: PermissionsService,
+		private readonly subscriptionGuard: SubscriptionGuardService,
 		private readonly subscriptionService: SubscriptionService,
 		private readonly subscriptionRepository: SubscriptionRepository
 	) {}
@@ -35,7 +35,7 @@ export class UserSessionService {
 		}
 
 		const workspaceRole = membership.role as WorkspaceMembershipRole;
-		const { tier, limits, subscription } = await this.permissionsService.getTierAndLimits(
+		const { tier, limits, subscription } = await this.subscriptionGuard.getTierAndLimits(
 			organizationId,
 			authUserId
 		);

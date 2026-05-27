@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import { publicNotificationController } from "../../controllers/index";
 import { organizationRepository } from "../../repositories/index";
-import { requireProgrammaticAuth } from "../../middlewares/programmaticAuth";
+import { requireProgrammaticAuth } from "../../guards";
 import { oauthAppService } from "../../services/index";
 import { validatePublicListNotificationsQuery } from "../../data/schemas/publicNotificationsSchemas";
 

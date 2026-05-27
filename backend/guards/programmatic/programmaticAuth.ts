@@ -1,7 +1,7 @@
-import type { Request, Response, NextFunction } from "express";
-import type { OrganizationRepository } from "../repositories/OrganizationRepository";
-import type { OauthAppService } from "../services/OauthAppService";
-import type { OrganizationLike } from "../utils/dtos/OrganizationDTO";
+import type { NextFunction, Request, Response } from "express";
+import type { OrganizationRepository } from "../../repositories/OrganizationRepository";
+import type { OauthAppService } from "../../services/OauthAppService";
+import type { OrganizationLike } from "../../utils/dtos/OrganizationDTO";
 
 export interface ProgrammaticAuthRequest extends Request {
     organization?: OrganizationLike;
@@ -60,4 +60,3 @@ export function requireProgrammaticAuth(params: {
         }
     };
 }
-

@@ -16,7 +16,7 @@ import type {
 } from "../repositories/SubscriptionRepository";
 import type { IntegrationService } from "./IntegrationService";
 import type { PostsRepository } from "../repositories/PostsRepository";
-import { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { SubscriptionService } from "./SubscriptionService";
 
 jest.mock("../config/GlobalConfig", () => ({

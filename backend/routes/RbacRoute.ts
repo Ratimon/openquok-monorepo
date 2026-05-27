@@ -4,7 +4,7 @@ import {
     requireFullAuthWithRoles,
     requireAdmin,
     requirePermission,
-} from "../middlewares/authenticateUser";
+} from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
 

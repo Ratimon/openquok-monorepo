@@ -13,7 +13,7 @@ import type {
     SubscriptionRepository,
 } from "../repositories/SubscriptionRepository";
 import { config } from "../config/GlobalConfig";
-import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 
 export interface WorkspaceDriveUsage {
     used: number;

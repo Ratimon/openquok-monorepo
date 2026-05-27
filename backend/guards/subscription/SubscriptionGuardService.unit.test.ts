@@ -5,16 +5,16 @@ import {
     SubscriptionSection,
     type SubscriptionTier,
 } from "openquok-common";
-import { SubscriptionError } from "../errors/SubscriptionError";
-import type { IntegrationService } from "../services/IntegrationService";
-import type { OrganizationRepository } from "../repositories/OrganizationRepository";
-import type { PostsRepository } from "../repositories/PostsRepository";
-import type { SubscriptionService } from "../services/SubscriptionService";
-import type { OrganizationSubscriptionRow } from "../repositories/SubscriptionRepository";
+import { SubscriptionError } from "../../errors/SubscriptionError";
+import type { IntegrationService } from "../../services/IntegrationService";
+import type { OrganizationRepository } from "../../repositories/OrganizationRepository";
+import type { PostsRepository } from "../../repositories/PostsRepository";
+import type { SubscriptionService } from "../../services/SubscriptionService";
+import type { OrganizationSubscriptionRow } from "../../repositories/SubscriptionRepository";
 import { computePostsBillingMonthStart } from "./postsBilling";
 import { SubscriptionGuardService } from "./SubscriptionGuardService";
 
-jest.mock("../config/GlobalConfig", () => ({
+jest.mock("../../config/GlobalConfig", () => ({
     config: {
         stripe: { publishableKey: "pk_test_123" },
         server: { frontendDomainUrl: "https://app.example.com/" },
@@ -305,20 +305,38 @@ describe("SubscriptionGuardService POSTS_PER_MONTH", () => {
 
     it("blocks scheduling when FREE posts_per_month cap is 0", async () => {
         const guard = createGuardHarness({ workspaceTier: "FREE" });
-        await expect(guard.assertPostsPerMonthAllowed(organizationId, 1)).rejects.toMatchObject({
+        await expect(
+            guard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
+                organizationId,
+                delta: 1,
+            })
+        ).rejects.toMatchObject({
             section: SubscriptionSection.POSTS_PER_MONTH,
         });
     });
 
     it("allows a post when under the SOLO monthly cap", async () => {
         const guard = createGuardHarness({ workspaceTier: "SOLO", postsCount: 0 });
-        await expect(guard.assertPostsPerMonthAllowed(organizationId, 1)).resolves.toBeUndefined();
+        await expect(
+            guard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
+                organizationId,
+                delta: 1,
+            })
+        ).resolves.toBeUndefined();
     });
 
     it("blocks when usage plus delta would exceed the SOLO cap", async () => {
         const cap = pricing.SOLO.posts_per_month;
         const guard = createGuardHarness({ workspaceTier: "SOLO", postsCount: cap });
-        await expect(guard.assertPostsPerMonthAllowed(organizationId, 1)).rejects.toMatchObject({
+        await expect(
+            guard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
+                organizationId,
+                delta: 1,
+            })
+        ).rejects.toMatchObject({
             section: SubscriptionSection.POSTS_PER_MONTH,
         });
     });
@@ -382,6 +400,12 @@ describe("SubscriptionGuardService boolean and role gates", () => {
         await expect(
             guard.assert(SubscriptionSection.WORKSPACES, { scope: "account", authUserId })
         ).resolves.toBeUndefined();
-        await expect(guard.assertPostsPerMonthAllowed(organizationId, 1)).resolves.toBeUndefined();
+        await expect(
+            guard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
+                organizationId,
+                delta: 1,
+            })
+        ).resolves.toBeUndefined();
     });
 });

@@ -3,7 +3,7 @@ import multer from "multer";
 
 import { mediaController } from "../../controllers/index";
 import { organizationRepository } from "../../repositories/index";
-import { requireProgrammaticAuth } from "../../middlewares/programmaticAuth";
+import { requireProgrammaticAuth } from "../../guards";
 import { oauthAppService } from "../../services/index";
 import { validatePublicUploadFromUrlBody } from "../../data/schemas/mediaSchemas";
 import { MAX_MEDIA_UPLOAD_BYTES } from "openquok-common";

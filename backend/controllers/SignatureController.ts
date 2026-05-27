@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
+import type { AuthenticatedRequest } from "../guards";
 import type { SignatureService } from "../services/SignatureService";
 import type { CreateSignatureBody, ListSignaturesQuery, UpdateSignatureBody } from "../data/schemas/signatureSchemas";
 import { UserAuthorizationError } from "../errors/UserError";

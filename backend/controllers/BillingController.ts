@@ -7,9 +7,9 @@ import {
     type PaidSubscriptionTier,
     type SubscriptionTier,
 } from "openquok-common";
-import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
+import type { AuthenticatedRequest } from "../guards";
 import type { SubscriptionService } from "../services/SubscriptionService";
-import type { PermissionsService } from "../services/PermissionsService";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import type { StripeService } from "../services/StripeService";
 import type {
     OrganizationSubscriptionRow,
@@ -25,7 +25,7 @@ import { logger } from "../utils/Logger";
 export class BillingController {
     constructor(
         private readonly subscriptionService: SubscriptionService,
-        private readonly permissionsService: PermissionsService,
+        private readonly subscriptionGuard: SubscriptionGuardService,
         private readonly stripeService: StripeService,
         private readonly subscriptionRepository: SubscriptionRepository,
         private readonly emailService: EmailService
@@ -471,7 +471,7 @@ export class BillingController {
 
         let posts: { used: number; limit: number | null };
         try {
-            posts = await this.permissionsService.getPostsPerMonthUsage(organizationId, authUserId);
+            posts = await this.subscriptionGuard.getPostsPerMonthUsage(organizationId, authUserId);
         } catch (error) {
             logger.warn({
                 msg: "buildCurrentBillingData: posts usage unavailable",
@@ -487,7 +487,7 @@ export class BillingController {
 
         let teamMembers: { used: number; limit: number | null };
         try {
-            teamMembers = await this.permissionsService.getTeamMembersPerWorkspaceUsage(
+            teamMembers = await this.subscriptionGuard.getTeamMembersPerWorkspaceUsage(
                 organizationId,
                 authUserId
             );

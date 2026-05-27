@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { configController, emailController, userController } from "../controllers/index";
-import { requireFullAuthWithRoles, requirePlatformAdmin } from "../middlewares/authenticateUser";
+import { requireFullAuthWithRoles, requirePlatformAdmin } from "../guards";
 import { createListReceivedEmailsParser } from "../middlewares/queryParsers";
 import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";

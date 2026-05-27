@@ -6,7 +6,7 @@ import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import type { OrganizationSubscriptionRow } from "../../repositories/SubscriptionRepository";
 import { subscriptionRepository } from "../../repositories/index";
-import { permissionsService, subscriptionService } from "../../services/index";
+import { subscriptionGuard, subscriptionService } from "../../services/index";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
 const usersPath = `${apiPrefix}/users`;
@@ -47,7 +47,7 @@ export function mockSoloSubscriptionRow(organizationId: string): OrganizationSub
 /** Stub SOLO tier limits for plan enforcement without seeding `organization_subscriptions`. */
 export function stubSoloPlanLimits(): jest.SpyInstance {
     const soloLimits = planLimitsForTier("SOLO");
-    return jest.spyOn(permissionsService, "getTierAndLimits").mockImplementation(async (orgId) => ({
+    return jest.spyOn(subscriptionGuard, "getTierAndLimits").mockImplementation(async (orgId) => ({
         tier: "SOLO",
         limits: soloLimits,
         subscription: mockSoloSubscriptionRow(orgId),
@@ -98,10 +98,10 @@ export function stubTeamSeatCapacityChecks(): {
 } {
     return {
         teamInviteCapacitySpy: jest
-            .spyOn(permissionsService, "assertTeamInviteCapacity")
+            .spyOn(subscriptionGuard, "assertTeamInviteCapacity")
             .mockResolvedValue(undefined),
         workspaceSeatSpy: jest
-            .spyOn(permissionsService, "assertWorkspaceHasSeatForNewMember")
+            .spyOn(subscriptionGuard, "assertWorkspaceHasSeatForNewMember")
             .mockResolvedValue(undefined),
     };
 }
@@ -129,7 +129,7 @@ export function mockTeamSubscriptionRow(organizationId: string): OrganizationSub
 /** TEAM-tier limits with enough seats for multi-member workspace RBAC flows. */
 export function stubTeamPlanLimitsForInvites(): jest.SpyInstance {
     const limits = { ...planLimitsForTier("TEAM"), team_members_per_workspace: 6 };
-    return jest.spyOn(permissionsService, "getTierAndLimits").mockImplementation(async (orgId) => ({
+    return jest.spyOn(subscriptionGuard, "getTierAndLimits").mockImplementation(async (orgId) => ({
         tier: "TEAM",
         limits,
         subscription: mockTeamSubscriptionRow(orgId),

@@ -11,7 +11,7 @@ import {
     parseBearerToken,
     requireFullAuthWithRoles,
     requirePlatformAdmin,
-} from "../middlewares/authenticateUser";
+} from "../guards";
 import { rbacRepository, userRepository } from "../repositories/index";
 import { logger } from "../utils/Logger";
 

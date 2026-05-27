@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
+import type { AuthenticatedRequest } from "../guards";
 import type {
     BlogPostCreateSchemaType,
     BlogPostUpdateSchemaType,

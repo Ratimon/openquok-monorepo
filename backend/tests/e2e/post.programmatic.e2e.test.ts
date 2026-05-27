@@ -49,7 +49,7 @@ const programmaticAuthCases: Array<{ name: string; provision: ProvisionProgramma
 /**
  * E2E for programmatic posts (`routes/publicApi/PostRoutes.ts` → `{apiPrefix}/public/posts/*`).
  *
- * `requireProgrammaticAuth` ({@link middlewares/programmaticAuth.ts}) accepts either:
+ * `requireProgrammaticAuth` ({@link guards/programmatic/programmaticAuth.ts}) accepts either:
  * 1) OAuth app bearer (`opo_…`) — verified via `OauthAppService.verifyProgrammaticToken`
  * 2) Legacy workspace API key (`opk_…`) — `organizations.api_key`
  *

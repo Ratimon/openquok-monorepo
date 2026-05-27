@@ -1,10 +1,10 @@
 import type { NextFunction, Response } from "express";
 import { SubscriptionSection } from "openquok-common";
-import { TokenError } from "../errors/AuthError";
-import { subscriptionGuard } from "../services/index";
-import type { SubscriptionGuardContext, WorkspaceMembershipRole } from "../subscription/types";
-import { resolveActiveOrganizationId } from "../utils/session/resolveActiveOrganizationId";
-import type { AuthenticatedRequest } from "./authenticateUser";
+import { TokenError } from "../../errors/AuthError";
+import { subscriptionGuard } from "../../services/index";
+import { resolveActiveOrganizationId } from "../../utils/session/resolveActiveOrganizationId";
+import type { AuthenticatedRequest } from "../auth/types";
+import type { SubscriptionGuardContext, WorkspaceMembershipRole } from "./types";
 
 export type RequirePlanCapabilityOptions = {
     resolveWorkspaceRole?: (req: AuthenticatedRequest) => WorkspaceMembershipRole | undefined;

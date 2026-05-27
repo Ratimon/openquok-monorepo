@@ -13,7 +13,7 @@ import type { IntegrationTimeDto } from "../data/schemas/integrationTimeSchemas"
 import type { IntegrationService } from "./IntegrationService";
 import type { PlugService } from "./PlugService";
 import type { PlugUpsertBodyDto } from "../utils/dtos/PlugDTO";
-import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { SubscriptionSection } from "openquok-common";
 
 import dayjs from "dayjs";

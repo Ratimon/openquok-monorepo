@@ -1,7 +1,7 @@
-import type { Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "./authenticateUser";
-import { UserAuthorizationError } from "../errors/UserError";
-import { logger } from "../utils/Logger";
+import type { NextFunction, Response } from "express";
+import { UserAuthorizationError } from "../../errors/UserError";
+import { logger } from "../../utils/Logger";
+import type { AuthenticatedRequest } from "../auth/types";
 
 export type ResourceType =
     | "blog_posts"

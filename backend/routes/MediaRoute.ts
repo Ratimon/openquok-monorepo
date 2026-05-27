@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 
 import { mediaController, MAX_MEDIA_UPLOAD_BYTES } from "../controllers/index";
-import { requireFullAuthWithRoles } from "../middlewares/authenticateUser";
+import { requireFullAuthWithRoles } from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
 import {

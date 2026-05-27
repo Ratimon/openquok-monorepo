@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import type { ProgrammaticAuthRequest } from "../middlewares/programmaticAuth";
+import type { ProgrammaticAuthRequest } from "../guards";
 import type { IntegrationConnectionService } from "../services/IntegrationConnectionService";
 
 import { countPublicApiRequest } from "../connections/index";

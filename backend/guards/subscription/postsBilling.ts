@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import type { OrganizationSubscriptionRow } from "../repositories/SubscriptionRepository";
+import type { OrganizationSubscriptionRow } from "../../repositories/SubscriptionRepository";
 
 export function computePostsBillingMonthStart(params: {
     /** Subscription row for the billing account (may be null). */

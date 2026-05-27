@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { analyticsController } from "../controllers/index";
-import { requireFullAuth } from "../middlewares/authenticateUser";
+import { requireFullAuth } from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { validateIntegrationAnalyticsRequest, validatePostAnalyticsRequest } from "../data/schemas/analyticsSchemas";
 

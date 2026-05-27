@@ -10,8 +10,7 @@ import {
     validateOrganizationIdAndUserIdParam,
     validateInviteIdParam,
 } from "../data/schemas/organizationSchemas";
-import { requireFullAuth } from "../middlewares/authenticateUser";
-import { requireAccountPlanCapability } from "../middlewares/requirePlanCapability";
+import { requireAccountPlanCapability, requireFullAuth } from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { SubscriptionSection } from "openquok-common";
 

@@ -9,7 +9,7 @@ import { planLimitsForTier } from "openquok-common";
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
-import { permissionsService, subscriptionService } from "../../services/index";
+import { subscriptionGuard, subscriptionService } from "../../services/index";
 import { UserTestHelper } from "../helpers/userTestHelper";
 import { activateWorkspace } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
@@ -71,6 +71,8 @@ function mockTeamSubscriptionRow(organizationId: string): OrganizationSubscripti
         cancel_at: null,
         channels_per_workspace: teamLimits.channel_per_workspace,
         is_lifetime: false,
+        current_period_start: null,
+        current_period_end: null,
         created_at: createdAt,
         updated_at: createdAt,
         deleted_at: null,
@@ -80,7 +82,7 @@ function mockTeamSubscriptionRow(organizationId: string): OrganizationSubscripti
 /** TEAM-tier limits with enough seats for multi-member invite flows in this suite. */
 function stubTeamPlanLimitsForInvites(): jest.SpyInstance {
     const limits = { ...planLimitsForTier("TEAM"), team_members_per_workspace: 6 };
-    return jest.spyOn(permissionsService, "getTierAndLimits").mockImplementation(async (orgId) => ({
+    return jest.spyOn(subscriptionGuard, "getTierAndLimits").mockImplementation(async (orgId) => ({
         tier: "TEAM",
         limits,
         subscription: mockTeamSubscriptionRow(orgId),

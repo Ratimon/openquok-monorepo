@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { integrationController } from "../../controllers/index";
-import { optionalAuthWithRoles } from "../../middlewares/authenticateUser";
+import { optionalAuthWithRoles } from "../../guards";
 import { supabaseAnonClient } from "../../connections/index";
 import { userRepository, rbacRepository } from "../../repositories/index";
 import {

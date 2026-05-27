@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../middlewares/authenticateUser";
+import type { AuthenticatedRequest } from "../guards";
 import type { AnalyticsService } from "../services/AnalyticsService";
 import type { IntegrationConnectionService } from "../services/IntegrationConnectionService";
 import type { PostsService } from "../services/PostsService";

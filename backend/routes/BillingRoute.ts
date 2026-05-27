@@ -3,7 +3,7 @@ import { billingController, stripeWebhookController } from "../controllers/index
 import {
     requireFullAuthWithRoles,
     requirePlatformAdmin,
-} from "../middlewares/authenticateUser";
+} from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
 import {

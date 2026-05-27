@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { thirdPartyController } from "../controllers/index";
-import { requireFullAuthWithRoles } from "../middlewares/authenticateUser";
+import { requireFullAuthWithRoles } from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
 import { validateMediaOrganizationQuery } from "../data/schemas/mediaSchemas";

@@ -24,7 +24,7 @@ import { EmailService } from "./EmailService";
 import { CompanyService } from "./CompanyService";
 import { MarketingService } from "./MarketingService";
 import { OrganizationService } from "./OrganizationService";
-import { RbacService } from "./RbacService";
+import { RbacService } from "../guards/rbac/RbacService";
 import { FeedbackService } from "./FeedbackService";
 import { BlogService } from "./BlogService";
 import { ConfigService } from "./ConfigService";
@@ -44,8 +44,7 @@ import { OauthAppService } from "./OauthAppService";
 import { OauthService } from "./OauthService";
 import { SubscriptionService } from "./SubscriptionService";
 import { UserSessionService } from "./UserSessionService";
-import { PermissionsService } from "./PermissionsService";
-import { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { StripeService } from "./StripeService";
 import { TrackService } from "./TrackService";
 import { config } from "../config/GlobalConfig";
@@ -124,7 +123,6 @@ export const subscriptionGuard = new SubscriptionGuardService(
     postsRepository
 );
 subscriptionService.setSubscriptionGuard(subscriptionGuard);
-export const permissionsService = new PermissionsService(subscriptionGuard);
 export const blogService = new BlogService(
     blogRepository,
     cacheServiceConnection,
@@ -134,7 +132,7 @@ export const blogService = new BlogService(
 );
 export const userSessionService = new UserSessionService(
     organizationRepository,
-    permissionsService,
+    subscriptionGuard,
     subscriptionService,
     subscriptionRepository
 );
@@ -156,7 +154,6 @@ export const organizationService = new OrganizationService(
     emailService,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
-    permissionsService,
     subscriptionGuard
 );
 
@@ -176,7 +173,6 @@ export const postsService = new PostsService(
     refreshIntegrationService,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
-    permissionsService,
     subscriptionGuard
 );
 export const stripeService = new StripeService(
@@ -212,7 +208,7 @@ export { EmailService } from "./EmailService";
 export { CompanyService } from "./CompanyService";
 export { MarketingService } from "./MarketingService";
 export { OrganizationService } from "./OrganizationService";
-export { RbacService } from "./RbacService";
+export { RbacService } from "../guards/rbac/RbacService";
 export { FeedbackService } from "./FeedbackService";
 export { BlogService } from "./BlogService";
 export { ConfigService } from "./ConfigService";
@@ -228,7 +224,6 @@ export { SignatureService } from "./SignatureService";
 export { SetsService } from "./SetsService";
 export { AnalyticsService } from "./AnalyticsService";
 export { SubscriptionService } from "./SubscriptionService";
-export { PermissionsService } from "./PermissionsService";
-export { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+export { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 export { StripeService } from "./StripeService";
 export { TrackService } from "./TrackService";

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { publicIntegrationController } from "../../controllers/index";
 import { organizationRepository } from "../../repositories/index";
-import { requireProgrammaticAuth } from "../../middlewares/programmaticAuth";
+import { requireProgrammaticAuth } from "../../guards";
 import {
     validatePublicIntegrationIdParams,
     validatePublicIntegrationTriggerRequest,

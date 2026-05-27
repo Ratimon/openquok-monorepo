@@ -4,7 +4,7 @@ import {
     validateNotificationOrganizationQuery,
     validateNotificationPaginatedQuery,
 } from "../data/schemas/notificationSchemas";
-import { requireFullAuth } from "../middlewares/authenticateUser";
+import { requireFullAuth } from "../guards";
 import {
     createNotificationOrganizationQueryParser,
     createNotificationPaginatedQueryParser,

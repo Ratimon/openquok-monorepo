@@ -33,8 +33,7 @@ import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
 import { config } from "../config/GlobalConfig";
 import { logger } from "../utils/Logger";
-import type { PermissionsService } from "./PermissionsService";
-import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { SubscriptionSection } from "openquok-common";
 
 const DEFAULT_TAG_COLOR = "#6366f1";
@@ -237,7 +236,6 @@ export class PostsService {
         private readonly refreshIntegrationService: RefreshIntegrationService,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
-        private readonly permissionsService?: PermissionsService,
         private readonly subscriptionGuard?: SubscriptionGuardService
     ) {}
 
@@ -1121,14 +1119,14 @@ export class PostsService {
         };
 
         const resolvePreviewPlanFlags = async (organizationId: string) => {
-            if (!this.permissionsService) {
+            if (!this.subscriptionGuard) {
                 return { sharePostPreviewEnabled: true, collaborationCommentsEnabled: false };
             }
             const sharePostPreviewEnabled =
-                await this.permissionsService.isSharePostPreviewEnabledForOrganization(organizationId);
+                await this.subscriptionGuard.isSharePostPreviewEnabledForOrganization(organizationId);
             const collaborationCommentsEnabled =
                 authUserId?.trim() && sharePostPreviewEnabled
-                    ? await this.permissionsService.isCollaborationCommentsEnabledForOrganization(
+                    ? await this.subscriptionGuard.isCollaborationCommentsEnabledForOrganization(
                           organizationId,
                           authUserId
                       )

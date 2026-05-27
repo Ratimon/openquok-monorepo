@@ -9,8 +9,7 @@ import type { UserRepository } from "../repositories/UserRepository";
 import type { EmailService } from "./EmailService";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
-import type { PermissionsService } from "./PermissionsService";
-import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 
 import { OrganizationNotFoundError, OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError } from "../errors/UserError";
@@ -46,7 +45,6 @@ export class OrganizationService {
         private readonly emailService?: EmailService,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
-        private readonly permissionsService?: PermissionsService,
         private readonly subscriptionGuard?: SubscriptionGuardService
     ) {}
 
@@ -62,7 +60,7 @@ export class OrganizationService {
 
         if (this.getRoleLevel(membership.role) < 1) throw new OrganizationForbiddenError("Only admins can invite team members");
 
-        await this.permissionsService?.assertTeamInviteCapacity(organizationId, authUserId);
+        await this.subscriptionGuard?.assertTeamInviteCapacity(organizationId, authUserId);
 
         const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
         if (!organization) throw new OrganizationNotFoundError(organizationId);
@@ -123,7 +121,7 @@ export class OrganizationService {
         if (existing && !existing.disabled) {
             return { organizationId: payload.organizationId, workspaceRole: payload.workspaceRole };
         }
-        await this.permissionsService?.assertWorkspaceHasSeatForNewMember(
+        await this.subscriptionGuard?.assertWorkspaceHasSeatForNewMember(
             payload.organizationId,
             authUserId
         );
@@ -234,7 +232,7 @@ export class OrganizationService {
             await this._invalidateOrganizationRelatedCaches({ authUserId });
             return { organizationId: invite.organization_id, workspaceRole: invite.role as "user" | "admin" };
         }
-        await this.permissionsService?.assertWorkspaceHasSeatForNewMember(
+        await this.subscriptionGuard?.assertWorkspaceHasSeatForNewMember(
             invite.organization_id,
             authUserId
         );

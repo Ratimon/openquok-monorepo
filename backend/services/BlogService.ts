@@ -34,7 +34,7 @@ import { stringToSlug } from "../utils/blog/slug";
 import { ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 import { BlogPostId } from "../utils/valueObjects/BlogPostId";
-import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { SubscriptionSection } from "openquok-common";
 
 /** Domain-scoped cache key prefixes. */

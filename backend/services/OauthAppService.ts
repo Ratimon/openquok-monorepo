@@ -2,7 +2,7 @@ import type { OauthAppRepository, OauthAppLike } from "../repositories/OauthAppR
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import { publicUrlForObjectKey, type MediaRepository } from "../repositories/MediaRepository";
 import { AppError } from "../errors/AppError";
-import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { makeId } from "../utils/ids/makeId";
 import { hashProgrammaticToken, hashProgrammaticTokenCandidates } from "../utils/auth/tokenHash";
 import { config } from "../config/GlobalConfig";

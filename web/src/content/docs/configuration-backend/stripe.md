@@ -13,6 +13,13 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 Openquok uses **Stripe** for **workspace (organization) subscriptions**. Plan limits are defined in <Badge text="openquok-common" variant="path" />.
 
+Plan enforcement (limits + feature gates) lives in the backend guards module:
+
+| Concern | Location |
+| --- | --- |
+| Guard service (plan evaluation + assertions) | <Badge text="backend/guards/subscription/SubscriptionGuardService.ts" variant="path" /> |
+| Route guard middleware helpers (`requirePlanCapability`, `requireAccountPlanCapability`) | <Badge text="backend/guards/subscription/middleware.ts" variant="path" /> |
+
 
 | Surface | Role |
 | --- | --- |

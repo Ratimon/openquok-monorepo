@@ -2,7 +2,7 @@ import { Router } from "express";
 import { postsController, publicPostsController } from "../../controllers/index.js";
 import { validatePublicPostCommentsParams } from "../../data/schemas/postSchemas";
 import { organizationRepository } from "../../repositories/index.js";
-import { requireProgrammaticAuth } from "../../middlewares/programmaticAuth";
+import { requireProgrammaticAuth } from "../../guards";
 import {
     validatePublicCreatePostBody,
     validatePublicFindSlotParams,

@@ -5,8 +5,8 @@ import {
     optionalAuthWithRoles,
     requireEditor,
     requireAdmin,
-} from "../middlewares/authenticateUser";
-import { authorizeResource } from "../middlewares/resourceAuth";
+    authorizeResource,
+} from "../guards";
 import {
     createPublishedBlogPostsParser,
     createAdminBlogPostsParser,

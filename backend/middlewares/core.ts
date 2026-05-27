@@ -6,7 +6,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import { v4 as uuidv4 } from "uuid";
 
-import { requireFullAuth } from "../middlewares/authenticateUser";
+import { requireFullAuth } from "../guards";
 import { applyRateLimiting } from "../middlewares/rateLimit";
 import { logger } from "../utils/Logger";
 

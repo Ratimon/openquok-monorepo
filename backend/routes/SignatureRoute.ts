@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { signatureController } from "../controllers/index";
-import { requireFullAuth } from "../middlewares/authenticateUser";
+import { requireFullAuth } from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { validateRequest } from "../middlewares/validateRequest";
 import {
