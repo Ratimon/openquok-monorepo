@@ -183,6 +183,8 @@
 								variant="compact"
 								{onSwitchWorkspace}
 								{onOpenWorkspaceSettings}
+								{onOpenDeveloperOAuth}
+								{onOpenDeveloperApiKey}
 							/>
 						{/each}
 					</div>

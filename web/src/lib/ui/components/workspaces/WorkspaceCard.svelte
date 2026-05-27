@@ -18,7 +18,7 @@
 	type Props = {
 		card: HomeWorkspaceCardViewModel;
 		index: number;
-		/** Full card (owner workspaces) or compact (shared / member workspaces). */
+		/** Full card (owner) or compact (shared / member); compact omits owner-only member cap UI. */
 		variant?: 'full' | 'compact';
 		/** Per-workspace team member cap from the current plan; omit when unlimited or not enforced. */
 		allowedMemberCount?: number | null;
@@ -158,43 +158,41 @@
 					</Button>
 				</div>
 			</div>
-			{#if !isCompact}
-				<div class="mt-2 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
-					<Button
-						type="button"
-						variant="primary"
-						size="sm"
-						class="h-7 shrink-0 gap-1 px-2 text-xs"
-						disabled={!card.isCurrent}
-						onclick={handleDeveloperOAuthClick}
-					>
-						<AbstractIcon name={icons.Bot.name} class="size-3.5" width="14" height="14" />
-						OAuth Secrets
-					</Button>
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						class="h-7 shrink-0 gap-1 px-2 text-xs"
-						disabled={!card.isCurrent}
-						onclick={handleDeveloperApiKeyClick}
-					>
-						<AbstractIcon name={icons.Lock.name} class="size-3.5" width="14" height="14" />
-						API key
-					</Button>
-					{#if card.isCurrent}
-						<span class="inline-flex shrink-0" data-workspace-card-action>
-							<AddProvider
-								buttonLabel="Add channel"
-								buttonVariant="secondary"
-								buttonSize="sm"
-								buttonClass="h-7 shrink-0 gap-1 px-2 text-xs"
-								iconClass="size-3.5"
-							/>
-						</span>
-					{/if}
-				</div>
-			{/if}
+			<div class="mt-2 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
+				<Button
+					type="button"
+					variant="primary"
+					size="sm"
+					class="h-7 shrink-0 gap-1 px-2 text-xs"
+					disabled={!card.isCurrent}
+					onclick={handleDeveloperOAuthClick}
+				>
+					<AbstractIcon name={icons.Bot.name} class="size-3.5" width="14" height="14" />
+					OAuth Secrets
+				</Button>
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					class="h-7 shrink-0 gap-1 px-2 text-xs"
+					disabled={!card.isCurrent}
+					onclick={handleDeveloperApiKeyClick}
+				>
+					<AbstractIcon name={icons.Lock.name} class="size-3.5" width="14" height="14" />
+					API key
+				</Button>
+				{#if card.isCurrent}
+					<span class="inline-flex shrink-0" data-workspace-card-action>
+						<AddProvider
+							buttonLabel="Add channel"
+							buttonVariant="secondary"
+							buttonSize="sm"
+							buttonClass="h-7 shrink-0 gap-1 px-2 text-xs"
+							iconClass="size-3.5"
+						/>
+					</span>
+				{/if}
+			</div>
 		</div>
 	</div>
 
