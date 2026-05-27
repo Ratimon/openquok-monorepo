@@ -13,7 +13,8 @@ import type { IntegrationTimeDto } from "../data/schemas/integrationTimeSchemas"
 import type { IntegrationService } from "./IntegrationService";
 import type { PlugService } from "./PlugService";
 import type { PlugUpsertBodyDto } from "../utils/dtos/PlugDTO";
-import type { PermissionsService } from "./PermissionsService";
+import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import { SubscriptionSection } from "openquok-common";
 
 import dayjs from "dayjs";
 import { IntegrationManager } from "../integrations/integrationManager";
@@ -98,7 +99,7 @@ export class IntegrationConnectionService {
         private readonly storageRepository: StorageSupabaseRepository,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
-        private readonly permissionsService?: PermissionsService
+        private readonly subscriptionGuard?: SubscriptionGuardService
     ) {}
 
     private requireCache(): CacheService {
@@ -513,11 +514,12 @@ export class IntegrationConnectionService {
             resolveFreshRemoteUrl: async () => picture || null,
         });
 
-        await this.permissionsService?.assertConnectSocialChannelAllowed(
+        await this.subscriptionGuard?.assert(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
+            scope: "workspaceWithReconnect",
             organizationId,
-            String(id),
-            authUserId ?? undefined
-        );
+            authUserId: authUserId ?? undefined,
+            reconnectInternalId: String(id),
+        });
 
         const row = await this.integrations.upsertIntegration({
             organizationId,

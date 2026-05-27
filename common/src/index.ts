@@ -41,6 +41,7 @@ export {
 	planLimitsForTier,
 	pricing,
 } from './subscription/pricing';
+export { isUnlimitedPlanCap, planLimitForSection } from './subscription/planLimits';
 export { stripePriceEnvKey } from './subscription/stripePriceEnv';
 export {
 	MEDIA_VIRTUAL_GENERAL,

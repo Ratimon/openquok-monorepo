@@ -45,6 +45,7 @@ import { OauthService } from "./OauthService";
 import { SubscriptionService } from "./SubscriptionService";
 import { UserSessionService } from "./UserSessionService";
 import { PermissionsService } from "./PermissionsService";
+import { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
 import { StripeService } from "./StripeService";
 import { TrackService } from "./TrackService";
 import { config } from "../config/GlobalConfig";
@@ -116,18 +117,20 @@ export const subscriptionService = new SubscriptionService(
     mediaRepository,
     organizationRepository
 );
-export const permissionsService = new PermissionsService(
+export const subscriptionGuard = new SubscriptionGuardService(
     subscriptionService,
     integrationService,
     organizationRepository,
     postsRepository
 );
+subscriptionService.setSubscriptionGuard(subscriptionGuard);
+export const permissionsService = new PermissionsService(subscriptionGuard);
 export const blogService = new BlogService(
     blogRepository,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
     configRepository,
-    permissionsService
+    subscriptionGuard
 );
 export const userSessionService = new UserSessionService(
     organizationRepository,
@@ -144,7 +147,7 @@ export const integrationConnectionService = new IntegrationConnectionService(
     storageSupabaseRepository,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
-    permissionsService
+    subscriptionGuard
 );
 
 export const organizationService = new OrganizationService(
@@ -153,14 +156,15 @@ export const organizationService = new OrganizationService(
     emailService,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
-    permissionsService
+    permissionsService,
+    subscriptionGuard
 );
 
 export const oauthAppService = new OauthAppService(
     oauthAppRepository,
     organizationRepository,
     mediaRepository,
-    permissionsService
+    subscriptionGuard
 );
 export const oauthService = new OauthService(oauthAppRepository, organizationRepository, mediaRepository);
 export const postsService = new PostsService(
@@ -172,7 +176,8 @@ export const postsService = new PostsService(
     refreshIntegrationService,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
-    permissionsService
+    permissionsService,
+    subscriptionGuard
 );
 export const stripeService = new StripeService(
     subscriptionRepository,
@@ -224,5 +229,6 @@ export { SetsService } from "./SetsService";
 export { AnalyticsService } from "./AnalyticsService";
 export { SubscriptionService } from "./SubscriptionService";
 export { PermissionsService } from "./PermissionsService";
+export { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
 export { StripeService } from "./StripeService";
 export { TrackService } from "./TrackService";

@@ -10,6 +10,7 @@ import type { EmailService } from "./EmailService";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import type { PermissionsService } from "./PermissionsService";
+import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
 
 import { OrganizationNotFoundError, OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError } from "../errors/UserError";
@@ -45,7 +46,8 @@ export class OrganizationService {
         private readonly emailService?: EmailService,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
-        private readonly permissionsService?: PermissionsService
+        private readonly permissionsService?: PermissionsService,
+        private readonly subscriptionGuard?: SubscriptionGuardService
     ) {}
 
     /** Invite a team member by email: create signed invite link and optionally send email. */
@@ -352,7 +354,10 @@ export class OrganizationService {
         authUserId: string,
         params: { name: string; description?: string | null }
     ): Promise<OrganizationLike> {
-        await this.permissionsService?.assertCanCreateWorkspace(authUserId);
+        await this.subscriptionGuard?.assert(SubscriptionSection.WORKSPACES, {
+            scope: "account",
+            authUserId,
+        });
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { organization, error } = await this.organizationRepository.createOrganization({
             ...params,
@@ -529,12 +534,12 @@ export class OrganizationService {
             throw new OrganizationForbiddenError("Only admins can rotate the API key");
         }
         const membershipRole = membership.role as WorkspaceMembershipRole;
-        await this.permissionsService?.assertPolicies(
+        await this.subscriptionGuard?.assert(SubscriptionSection.PUBLIC_API, {
+            scope: "workspace",
             organizationId,
-            membershipRole,
-            [["update", SubscriptionSection.PUBLIC_API]],
-            authUserId
-        );
+            authUserId,
+            workspaceRole: membershipRole,
+        });
         const { organization, error } = await this.organizationRepository.rotateApiKey(organizationId);
         if (error) throw error as Error;
         if (!organization) throw new OrganizationNotFoundError(organizationId);

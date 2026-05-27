@@ -34,6 +34,8 @@ import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationEr
 import { config } from "../config/GlobalConfig";
 import { logger } from "../utils/Logger";
 import type { PermissionsService } from "./PermissionsService";
+import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import { SubscriptionSection } from "openquok-common";
 
 const DEFAULT_TAG_COLOR = "#6366f1";
 
@@ -235,7 +237,8 @@ export class PostsService {
         private readonly refreshIntegrationService: RefreshIntegrationService,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
-        private readonly permissionsService?: PermissionsService
+        private readonly permissionsService?: PermissionsService,
+        private readonly subscriptionGuard?: SubscriptionGuardService
     ) {}
 
     async findFreeSlot(organizationId: string, authUserId: string): Promise<string> {
@@ -497,11 +500,12 @@ export class PostsService {
         }
 
         if (state === "QUEUE") {
-            await this.permissionsService?.assertPostsPerMonthAllowed(
+            await this.subscriptionGuard?.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
                 organizationId,
-                toInsert.length,
-                authUserId ?? undefined
-            );
+                authUserId: authUserId ?? undefined,
+                delta: toInsert.length,
+            });
         }
 
         return { postGroup, toInsert, tagIds };
@@ -834,11 +838,12 @@ export class PostsService {
             }
             const draftRows = rows.filter((r) => r.state === "DRAFT" && r.deleted_at == null);
             if (draftRows.length > 0) {
-                await this.permissionsService?.assertPostsPerMonthAllowed(
-                    input.organizationId,
-                    draftRows.length,
-                    input.authUserId ?? undefined
-                );
+                await this.subscriptionGuard?.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                    scope: "workspaceWithDelta",
+                    organizationId: input.organizationId,
+                    authUserId: input.authUserId ?? undefined,
+                    delta: draftRows.length,
+                });
             }
         }
 
@@ -1156,7 +1161,11 @@ export class PostsService {
         const { organizationId, authUserId, postId, comment } = params;
 
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
-        await this.permissionsService?.assertSharePostPreviewAllowed(organizationId, authUserId);
+        await this.subscriptionGuard?.assert(SubscriptionSection.SHARE_POST_PREVIEW, {
+            scope: "workspace",
+            organizationId,
+            authUserId,
+        });
 
         const trimmed = comment.trim();
         if (!trimmed.length) {

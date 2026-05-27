@@ -59,7 +59,7 @@ Leave <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> **unset** (yo
 | `billingEnabled` | `false` |
 | Effective tier (no <Badge text="organization_subscriptions" variant="param" /> row) | **CREATOR** — see <Badge text="SubscriptionService.resolveTier" variant="path" /> |
 | Plan limits | CREATOR limits from <Badge text="pricing.ts" variant="path" /> (storage, features, and so on) |
-| <Badge text="PermissionsService.assertPolicies" variant="path" /> | **Skipped** — subscription policy checks do not run |
+| <Badge text="SubscriptionGuardService.assert" variant="path" /> | **Skipped** — subscription policy checks do not run |
 | <Badge text="/account/billing" variant="path" /> | Shows an info alert: billing is not configured; no upgrade cards |
 
 Use this for contributors, Docker self-host, or internal instances where Stripe is intentionally disabled.
@@ -73,7 +73,7 @@ Set **all three** backend Stripe variables. With <Badge text="STRIPE_PUBLISHABLE
 | `billingEnabled` | `true` |
 | Effective tier (no subscription row) | **FREE** — paid limits until the user subscribes |
 | Plan limits | Enforced from the active tier (FREE or paid row in Postgres) |
-| <Badge text="PermissionsService.assertPolicies" variant="path" /> | **Active** — storage, team seats, share preview, public API, and related gates |
+| <Badge text="SubscriptionGuardService.assert" variant="path" /> | **Active** — storage, team seats, share preview, public API, and related gates |
 | <Badge text="/account/billing" variant="path" /> | Upgrade UI, Checkout redirect, Customer Portal when a Stripe customer exists |
 
 Checkout and webhooks still require <Badge text="STRIPE_SECRET_KEY" variant="envBackend" /> and <Badge text="STRIPE_WEBHOOK_SECRET" variant="envBackend" />.

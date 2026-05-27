@@ -14,6 +14,9 @@ import type {
     OrganizationSubscriptionRow,
     SubscriptionRepository,
 } from "../repositories/SubscriptionRepository";
+import type { IntegrationService } from "./IntegrationService";
+import type { PostsRepository } from "../repositories/PostsRepository";
+import { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
 import { SubscriptionService } from "./SubscriptionService";
 
 jest.mock("../config/GlobalConfig", () => ({
@@ -81,11 +84,19 @@ function createService(
         Pick<OrganizationRepository, "findUserIdByAuthId" | "findOrganizationsByUserId">
     >
 ): SubscriptionService {
-    return new SubscriptionService(
+    const service = new SubscriptionService(
         subscriptionRepo,
         mediaRepo,
         organizationRepo as unknown as OrganizationRepository
     );
+    const guard = new SubscriptionGuardService(
+        service,
+        {} as IntegrationService,
+        organizationRepo as unknown as OrganizationRepository,
+        {} as PostsRepository
+    );
+    service.setSubscriptionGuard(guard);
+    return service;
 }
 
 describe("SubscriptionService", () => {

@@ -11,7 +11,9 @@ import {
     validateInviteIdParam,
 } from "../data/schemas/organizationSchemas";
 import { requireFullAuth } from "../middlewares/authenticateUser";
+import { requireAccountPlanCapability } from "../middlewares/requirePlanCapability";
 import { supabaseAnonClient } from "../connections/index";
+import { SubscriptionSection } from "openquok-common";
 
 type SettingsRouter = ReturnType<typeof Router>;
 
@@ -41,7 +43,13 @@ settingsRouter.post(
     settingsController.inviteTeamMemberForActiveWorkspace
 );
 settingsRouter.get("/:id", auth, validateOrganizationIdParam, settingsController.getById);
-settingsRouter.post("/", auth, validateCreateOrganizationRequest, settingsController.create);
+settingsRouter.post(
+    "/",
+    auth,
+    requireAccountPlanCapability(SubscriptionSection.WORKSPACES),
+    validateCreateOrganizationRequest,
+    settingsController.create
+);
 settingsRouter.patch(
     "/:id",
     auth,

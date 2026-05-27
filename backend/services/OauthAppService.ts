@@ -2,7 +2,7 @@ import type { OauthAppRepository, OauthAppLike } from "../repositories/OauthAppR
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import { publicUrlForObjectKey, type MediaRepository } from "../repositories/MediaRepository";
 import { AppError } from "../errors/AppError";
-import type { PermissionsService } from "./PermissionsService";
+import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
 import { makeId } from "../utils/ids/makeId";
 import { hashProgrammaticToken, hashProgrammaticTokenCandidates } from "../utils/auth/tokenHash";
 import { config } from "../config/GlobalConfig";
@@ -27,7 +27,7 @@ export class OauthAppService {
         private readonly oauthAppRepository: OauthAppRepository,
         private readonly organizationRepository: OrganizationRepository,
         private readonly mediaRepository: MediaRepository,
-        private readonly permissionsService?: PermissionsService
+        private readonly subscriptionGuard?: SubscriptionGuardService
     ) {}
 
     private async resolveAuthUserToUserId(authUserId: string): Promise<string> {
@@ -47,12 +47,12 @@ export class OauthAppService {
         if (membership.role !== "admin" && membership.role !== "owner") {
             throw new AppError("Only admins can manage OAuth apps", 403);
         }
-        await this.permissionsService?.assertPolicies(
+        await this.subscriptionGuard?.assert(SubscriptionSection.PUBLIC_API, {
+            scope: "workspace",
             organizationId,
-            membership.role,
-            [[policy, SubscriptionSection.PUBLIC_API]],
-            authUserId
-        );
+            authUserId,
+            workspaceRole: membership.role,
+        });
         return { userId };
     }
 

@@ -34,7 +34,8 @@ import { stringToSlug } from "../utils/blog/slug";
 import { ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 import { BlogPostId } from "../utils/valueObjects/BlogPostId";
-import type { PermissionsService } from "./PermissionsService";
+import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
+import { SubscriptionSection } from "openquok-common";
 
 /** Domain-scoped cache key prefixes. */
 const CACHE_KEYS = {
@@ -67,7 +68,7 @@ export class BlogService {
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
         private readonly configRepository?: ConfigRepository,
-        private readonly permissionsService?: PermissionsService
+        private readonly subscriptionGuard?: SubscriptionGuardService
     ) {}
 
     /**
@@ -445,8 +446,11 @@ export class BlogService {
         userId: string,
         authUserId?: string
     ): Promise<{ id: string }> {
-        if (authUserId?.trim() && this.permissionsService) {
-            await this.permissionsService.assertCommunityFeaturesAllowed(authUserId);
+        if (authUserId?.trim() && this.subscriptionGuard) {
+            await this.subscriptionGuard.assert(SubscriptionSection.COMMUNITY_FEATURES, {
+                scope: "account",
+                authUserId,
+            });
         }
         const postId = payload.post_id!;
         const result = await this.blogRepository.createComment(

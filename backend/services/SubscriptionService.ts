@@ -13,8 +13,7 @@ import type {
     SubscriptionRepository,
 } from "../repositories/SubscriptionRepository";
 import { config } from "../config/GlobalConfig";
-import { SubscriptionError } from "../errors/SubscriptionError";
-import { SubscriptionSection } from "openquok-common";
+import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
 
 export interface WorkspaceDriveUsage {
     used: number;
@@ -23,11 +22,18 @@ export interface WorkspaceDriveUsage {
 }
 
 export class SubscriptionService {
+    private subscriptionGuard?: SubscriptionGuardService;
+
     constructor(
         private readonly subscriptionRepository: SubscriptionRepository,
         private readonly mediaRepository: MediaRepository,
         private readonly organizationRepository: OrganizationRepository
     ) {}
+
+    /** Wired after {@link SubscriptionGuardService} is constructed (avoids circular init). */
+    setSubscriptionGuard(guard: SubscriptionGuardService): void {
+        this.subscriptionGuard = guard;
+    }
 
     billingEnabled(): boolean {
         const stripe = config.stripe as { publishableKey?: string } | undefined;
@@ -183,15 +189,14 @@ export class SubscriptionService {
         additionalBytes: number,
         authUserId?: string
     ): Promise<void> {
-        const { used, total } = await this.getWorkspaceDriveUsage(organizationId, authUserId);
-        if (used + additionalBytes > total) {
-            const frontend = (config.server as { frontendDomainUrl?: string }).frontendDomainUrl ?? "";
-            throw new SubscriptionError(
-                "Workspace media storage limit reached. Upgrade your plan or delete files.",
-                SubscriptionSection.MEDIA_STORAGE_BYTES_PER_WORKSPACE,
-                `${frontend.replace(/\/+$/, "")}/account/billing`
-            );
+        if (!this.subscriptionGuard) {
+            throw new Error("SubscriptionGuardService is not wired on SubscriptionService");
         }
+        await this.subscriptionGuard.assertMediaStorageAvailable(
+            organizationId,
+            additionalBytes,
+            authUserId
+        );
     }
 
     async createOrUpdateFromStripe(params: {
