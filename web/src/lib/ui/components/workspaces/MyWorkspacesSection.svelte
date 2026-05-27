@@ -6,6 +6,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import WorkspaceCard from '$lib/ui/components/workspaces/WorkspaceCard.svelte';
 	import PendingInviteWorkspaceCard from '$lib/ui/components/workspaces/PendingInviteWorkspaceCard.svelte';
 	import CreateWorkspaceCard from '$lib/ui/components/workspaces/CreateWorkspaceCard.svelte';
@@ -119,6 +120,19 @@
 					{/if}
 				</div>
 
+				<HomeAccountNoticeBanner
+					iconName={icons.Info.name}
+					tone="neutral"
+					dismissible={true}
+				>
+					<p class="font-medium text-base-content">One workspace = one context</p>
+					<p class="mt-1 text-base-content/90">
+						Workspaces exist to keep agent and automation context focused. Connecting many social
+						channels or packing one workspace with lots of skills and tasks can cause context rot
+						and hallucinations. Use separate workspaces for different brands, clients, or focus
+						areas when things get crowded.
+					</p>
+				</HomeAccountNoticeBanner>
 
 				{#if ownerCards.length === 0}
 					<p class="text-sm text-base-content/70">
@@ -126,9 +140,8 @@
 					</p>
 				{:else}
 					<p class="text-sm text-base-content/70">
-						You own {ownerCards.length} workspace{ownerCards.length === 1 ? '' : 's'}.
-						These are workspaces where you are the owner — you manage billing, invites, and plan
-						limits.
+						You own {ownerCards.length} workspace{ownerCards.length === 1 ? '' : 's'} — you manage
+						billing, invites, and plan limits.
 					</p>
 				{/if}
 
