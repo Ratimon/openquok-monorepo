@@ -406,6 +406,7 @@
 		</h2>
 		<Button
 			class="gap-1.5"
+			variant={isWorkspaceLimitFull ? 'warning' : 'primary'}
 			type="button"
 			onclick={openCreateDialog}
 			disabled={loadingWorkspaces || createSubmitting}

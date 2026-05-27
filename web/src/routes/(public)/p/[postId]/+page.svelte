@@ -21,6 +21,7 @@
 	import Comments from '$lib/ui/components/preview/Comments.svelte';
 	import CopyClient from '$lib/ui/components/preview/CopyClient.svelte';
 	import RenderPreviewDate from '$lib/ui/components/preview/RenderPreviewDate.svelte';
+	import SharePostPreviewLimitUpgradeModal from '$lib/ui/components/posts/SharePostPreviewLimitUpgradeModal.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -110,6 +111,13 @@
 		return true;
 	});
 
+	/** Share link + collaboration both require `share_post_preview` on workspace and owned account. */
+	const canShareWithOthers = $derived.by(() => {
+		if (!sharePostPreviewEnabled) return false;
+		if (browser && isLoggedIn && viewerAccountAllowsComments !== true) return false;
+		return true;
+	});
+
 	const previewChannelVm = $derived(
 		data.previewChannelVm ?? publicPreviewPostByIdPagePresenter.currentPreviewChannelVm
 	);
@@ -157,6 +165,12 @@
 	};
 
 	const submittingComment = $derived(publicPreviewPostByIdPagePresenter.submittingComment);
+
+	let sharePreviewUpgradeDialogOpen = $state(false);
+
+	function openSharePreviewUpgradeDialog(): void {
+		sharePreviewUpgradeDialogOpen = true;
+	}
 </script>
 
 <svelte:head>
@@ -183,8 +197,11 @@
 					</h1>
 				</a>
 				<div class="flex items-center gap-4 text-sm text-base-content/70">
-					{#if showShare && sharePostPreviewEnabled}
-						<CopyClient />
+					{#if showShare}
+						<CopyClient
+							enabled={canShareWithOthers}
+							onUpgradeRequired={openSharePreviewUpgradeDialog}
+						/>
 					{/if}
 					<div class="whitespace-nowrap">
 						Publication Date: <RenderPreviewDate date={previewPostVm.publishDateIso} />
@@ -219,7 +236,7 @@
 					{submittingComment}
 					{sharePostPreviewEnabled}
 					{collaborationCommentsEnabled}
-					upgradeHref={commentUpgradeHref}
+					onUpgradeRequired={openSharePreviewUpgradeDialog}
 				/>
 			</div>
 		</div>
@@ -229,3 +246,8 @@
 		</div>
 	{/if}
 </div>
+
+<SharePostPreviewLimitUpgradeModal
+	bind:open={sharePreviewUpgradeDialogOpen}
+	upgradeHref={commentUpgradeHref}
+/>

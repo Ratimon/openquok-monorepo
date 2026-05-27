@@ -23,8 +23,8 @@
 		sharePostPreviewEnabled?: boolean;
 		/** When false, the signed-in viewer cannot post comments (workspace + account plan). */
 		collaborationCommentsEnabled?: boolean;
-		/** Billing / plans link when comments are plan-gated (e.g. SOLO). */
-		upgradeHref?: string;
+		/** Opens upgrade modal when a logged-in user posts without collaboration access. */
+		onUpgradeRequired?: () => void;
 		class?: string;
 	};
 
@@ -39,7 +39,7 @@
 		submittingComment = false,
 		sharePostPreviewEnabled = false,
 		collaborationCommentsEnabled = false,
-		upgradeHref,
+		onUpgradeRequired,
 		class: className = ''
 	}: Props = $props();
 
@@ -61,10 +61,13 @@
 	});
 
 	async function handleSubmitComment(): Promise<void> {
-		if (!canPostComments) return;
-
 		const trimmedComment = commentContent.trim();
 		if (!trimmedComment.length) return;
+
+		if (!canPostComments) {
+			onUpgradeRequired?.();
+			return;
+		}
 
 		const comment = await submitComment({ postId, organizationId, comment: trimmedComment });
 		if (!comment) return;
@@ -87,8 +90,7 @@
 					Join conversation or add notes on this share link. Scheduled social thread replies are shown in
 					the main preview.
 				{:else if isLoggedIn}
-					Collaboration comments are not available on your current plan. You can still view the scheduled
-					post preview.
+					Add notes on this share link. Posting requires Creator or higher on your plan.
 				{:else if sharePostPreviewEnabled}
 					Sign in to add collaboration notes on this share link. Scheduled social thread replies are shown
 					in the main preview.
@@ -106,27 +108,17 @@
 				</div>
 				<Textarea
 					bind:value={commentContent}
-					placeholder={canPostComments
-						? 'Add a comment...'
-						: 'Collaboration comments require Creator or higher.'}
-					class="min-h-[104px] resize-none bg-base-100 disabled:cursor-not-allowed disabled:opacity-60"
+					placeholder="Add a comment..."
+					class="min-h-[104px] resize-none bg-base-100"
 					maxlength={1000}
-					disabled={!canPostComments}
-					readonly={!canPostComments}
+					disabled={submittingComment}
 				/>
 				<div class="flex flex-wrap items-center justify-between gap-3">
 					<span class="text-xs text-base-content/50">{commentContent.length}/1000</span>
 					<div class="flex flex-wrap items-center gap-2">
-						{#if !canPostComments && upgradeHref}
-							<Button href={upgradeHref} variant="secondary" size="sm" checkCurrent={false}>
-								View plans
-							</Button>
-						{/if}
 						<Button
 							type="button"
-							disabled={!canPostComments ||
-								submittingComment ||
-								!commentContent.trim().length}
+							disabled={submittingComment || !commentContent.trim().length}
 							onclick={() => void handleSubmitComment()}
 						>
 							{submittingComment ? 'Posting...' : 'Post'}
