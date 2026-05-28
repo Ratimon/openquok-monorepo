@@ -21,6 +21,8 @@
 	import ThreadRepliesEditor from '$lib/ui/components/posts/thread/ThreadRepliesEditor.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
 	import { datetimeLocalToIso } from '$lib/utils/postingSchedulePreferences';
+	import * as Dialog from '$lib/ui/dialog';
+	import MultiAccountEngagementPlug from '$lib/ui/components/posts/thread/MultiAccountEngagementPlug.svelte';
 
 	type Mode = 'global' | 'custom';
 
@@ -159,6 +161,7 @@
 
 	/** Threads internal plug (`threads.internalEngagementPlug`) — runs after replies & thread finisher in the worker. */
 	let editorPostRef = $state<import('./EditorPost.svelte').default | undefined>();
+	let plugSettingsOpen = $state(false);
 
 	function handleToggleGlobalFromTargets() {
 		const needsConfirm =
@@ -219,6 +222,17 @@
 					: null;
 		if (!integrationId) return null;
 		return socialChannels.find((c) => c.id === integrationId)?.identifier ?? null;
+	});
+
+	const plugSettingsIntegrationId = $derived.by(() => {
+		if (mode === 'custom') return focusedIntegrationId ?? null;
+		return selectedIds.length === 1 ? selectedIds[0] : null;
+	});
+
+	const canShowPlugSettings = $derived.by(() => {
+		if (!plugSettingsIntegrationId) return false;
+		const ch = socialChannels.find((c) => c.id === plugSettingsIntegrationId);
+		return (ch?.identifier ?? '').toLowerCase() === 'threads';
 	});
 </script>
 
@@ -281,6 +295,7 @@
 					<AddPostButton
 						onclick={onAddPost}
 						postComment={postComment}
+						onOpenPlugSettings={canShowPlugSettings ? () => (plugSettingsOpen = true) : undefined}
 						disabled={busy || editorLocked}
 					/>
 				</div>
@@ -295,6 +310,7 @@
 				disabled={busy}
 				replies={threadReplies}
 				onAddReply={onAddPost}
+				onOpenPlugSettings={canShowPlugSettings ? () => (plugSettingsOpen = true) : undefined}
 				onChangeReplies={onChangeThreadReplies}
 			/>
 		{/if}
@@ -342,3 +358,59 @@
 		</div>
 	</div>
 </div>
+
+<Dialog.Root bind:open={plugSettingsOpen}>
+	<Dialog.Content class="max-h-[min(90vh,760px)] max-w-[calc(100%-2rem)] overflow-y-auto sm:max-w-2xl">
+		<Dialog.Header>
+			<Dialog.Title class="text-lg">Plug settings</Dialog.Title>
+			<Dialog.Description class="text-base-content/65">
+				Configure engagement plugs for the focused channel.
+			</Dialog.Description>
+		</Dialog.Header>
+
+		{#if plugSettingsIntegrationId}
+			{@const focused = socialChannels.find((c) => c.id === plugSettingsIntegrationId)}
+			{#if focused && (focused.identifier ?? '').toLowerCase() === 'threads'}
+				{@const threads = (providerSettings?.threads && typeof providerSettings.threads === 'object'
+					? (providerSettings.threads as Record<string, unknown>)
+					: {})}
+				{@const multi = (threads.multiAccountEngagementPlug && typeof threads.multiAccountEngagementPlug === 'object'
+					? (threads.multiAccountEngagementPlug as Record<string, unknown>)
+					: {})}
+
+				<div class="mt-4 space-y-4">
+					<MultiAccountEngagementPlug
+						channels={socialChannels}
+						currentIntegrationId={plugSettingsIntegrationId}
+						identifier="threads"
+						value={{
+							enabled: multi.enabled === true,
+							integrationIds: Array.isArray(multi.integrationIds)
+								? (multi.integrationIds as unknown[]).filter((x): x is string => typeof x === 'string')
+								: []
+						}}
+						disabled={busy}
+						onChange={(next) => {
+							onProviderSettingsChange({
+								threads: {
+									...(threads as any),
+									multiAccountEngagementPlug: next
+								}
+							});
+						}}
+					/>
+				</div>
+			{:else}
+				<p class="mt-4 text-sm text-base-content/60">
+					No plug settings available for this provider yet.
+				</p>
+			{/if}
+		{/if}
+
+		<div class="mt-6 flex justify-end">
+			<Dialog.Close class="border-base-300 bg-base-100 text-base-content rounded-md border px-3 py-2 text-sm hover:bg-base-200">
+				Close
+			</Dialog.Close>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>

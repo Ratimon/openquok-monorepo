@@ -66,7 +66,8 @@
 			}
 		}
 		if (s.instagram) {
-			igPostType = s.instagram.postType;
+			const pt = (s.instagram as any).postType;
+			igPostType = pt === 'story' ? 'story' : 'post';
 			igCollaborators = Array.isArray(s.instagram.collaborators)
 				? s.instagram.collaborators
 				: typeof (s.instagram as any).collaborators === 'string'
@@ -75,7 +76,7 @@
 							.map((x: string) => x.trim())
 							.filter(Boolean)
 					: [];
-			igTrialReel = s.instagram.trialReel;
+			igTrialReel = s.instagram.trialReel === true;
 		}
 	});
 

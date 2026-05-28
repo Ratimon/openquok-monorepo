@@ -135,7 +135,7 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	{
 		id: 'analytics',
 		label: 'Analytics',
-		tooltip: 'Track post performance and engagement across channels.'
+		tooltip: 'Track post performance (eg. likes, comments, shares) across channels.'
 	},
 	{
 		id: 'canva_editor',
@@ -175,7 +175,8 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	{
 		id: 'smart_filter',
 		label: 'Smart filters',
-		tooltip: 'Build and save custom filters to quickly find channels, templates or signatures.'
+		tooltip:
+			'Build and save filters in calendat post, plugs, and templates.\nExamples: by platform, channel groups, or tags.'
 	},
 	{
 		id: 'post_delays',
@@ -190,17 +191,17 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	{
 		id: 'internal_plugs',
 		label: 'Internal plugs',
-		tooltip: 'Boost engagement using other connected accounts in your workspace.'
+		tooltip: 'Boost engagement using other connected accounts (Only available for plug based social platform eg. Threads).'
 	},
 	{
 		id: 'global_plugs',
 		label: 'Global plugs',
-		tooltip: 'Trigger automations when posts hit engagement thresholds.'
+		tooltip: 'Mannage Trigger replies at scale when posts hit engagement thresholds (eg. 100 likes).'
 	},
 	{
 		id: 'group_management',
 		label: 'Group management',
-		tooltip: 'Organize channels into groups for client, brand, or team workflows.'
+		tooltip: 'Organize channels into groups for account/workflow management.'
 	},
 	{
 		id: 'dark_light_mode',
@@ -219,11 +220,12 @@ export type PublicPricingFaqItem = {
 	description: string;
 };
 
+
 export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 	{
 		title: 'Can I try OpenQuok for free?',
 		description:
-			'You can create an account and explore the product. Paid plans unlock higher limits for workspaces, channels, posts, storage, and team collaboration. Trial availability depends on your deployment’s billing settings.'
+			'Yes. OpenQuok offers a 7-day free trial. You can create an account and start today!'
 	},
 	{
 		title: 'Can I get a refund?',

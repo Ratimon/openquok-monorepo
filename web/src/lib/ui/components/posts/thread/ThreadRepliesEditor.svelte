@@ -20,6 +20,8 @@
 		replies: ThreadReplyViewModel[];
 		/** Called when user wants to add a reply. */
 		onAddReply: () => void;
+		/** Optional action to open plug settings (Threads only). */
+		onOpenPlugSettings?: () => void;
 		/** Called when replies are updated. */
 		onChangeReplies: (next: ThreadReplyViewModel[]) => void;
 	};
@@ -31,6 +33,7 @@
 		disabled = false,
 		replies,
 		onAddReply,
+		onOpenPlugSettings = undefined,
 		onChangeReplies
 	}: Props = $props();
 
@@ -50,7 +53,19 @@
 		<div class="flex items-center justify-between gap-3">
 			<div class="text-sm font-medium text-base-content/80">
 				Follow-up comments</div>
-			<AddPostButton onclick={onAddReply} {postComment} disabled={disabled} />
+			<div class="flex items-center gap-2">
+				<AddPostButton onclick={onAddReply} {postComment} disabled={disabled} />
+				{#if onOpenPlugSettings}
+					<button
+						type="button"
+						class="border-base-300 bg-base-100 text-base-content rounded-md border px-3 py-2 text-sm hover:bg-base-200 disabled:opacity-60"
+						disabled={disabled}
+						onclick={onOpenPlugSettings}
+					>
+						Plug settings
+					</button>
+				{/if}
+			</div>
 		</div>
 
 		{#if id === 'threads'}
