@@ -200,7 +200,7 @@
 	});
 </script>
 
-<form class="flex flex-1 flex-col pt-6 lg:pt-12" onsubmit={handleSubmit}>
+<form class="flex flex-1 flex-col pt-6 lg:pt-0" onsubmit={handleSubmit}>
 	<div>
 		<h2 class="mb-8 text-2xl font-bold">Payment</h2>
 		<div class="relative">

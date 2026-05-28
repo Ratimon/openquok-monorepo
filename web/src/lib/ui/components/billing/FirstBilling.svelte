@@ -18,6 +18,7 @@
 	import BillingPlanFeatures from '$lib/ui/components/billing/BillingPlanFeatures.svelte';
 	import EmbeddedBilling from '$lib/ui/components/billing/EmbeddedBilling.svelte';
 	import FirstBillingHero from '$lib/ui/components/billing/FirstBillingHero.svelte';
+	import FirstBillingPaymentLead from '$lib/ui/components/billing/FirstBillingPaymentLead.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import HeaderWorkspaceSwitcher from '$lib/ui/components/workspaces/HeaderWorkspaceSwitcher.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -191,8 +192,10 @@
 		</div>
 	</header>
 
-	<div class="flex flex-1 flex-col px-4 md:px-8 lg:flex-row lg:px-20">
-		<section class="flex flex-1 flex-col py-8 lg:pe-10 lg:pt-10">
+	<div
+		class="flex flex-1 flex-col px-4 md:px-8 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:px-20"
+	>
+		<section class="flex min-w-0 flex-col py-8 lg:pe-0 lg:pt-10">
 			<div class="mb-8 lg:hidden">
 				<FirstBillingHero {allowTrial} />
 			</div>
@@ -215,6 +218,9 @@
 					</Button>
 				</div>
 			{:else}
+				<div class="mb-8 hidden lg:block">
+					<FirstBillingPaymentLead {companyName} />
+				</div>
 				<EmbeddedBilling
 					clientSecret={checkoutSecret}
 					showCoupon={period === 'MONTHLY'}
@@ -224,14 +230,16 @@
 		</section>
 
 		<aside
-			class="flex flex-col border-base-300 py-8 lg:w-[min(100%,520px)] lg:border-l lg:ps-10 lg:pt-10"
+			class="flex min-w-0 flex-col border-base-300 py-8 lg:border-l lg:ps-10 lg:pt-10"
 		>
 			<div class="hidden lg:block">
 				<FirstBillingHero {allowTrial} />
 			</div>
 
 			<div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-				<h2 class="flex-1 text-2xl font-bold">Choose a plan</h2>
+				<h2 class="flex-1 text-2xl font-bold">
+					Choose a plan
+				</h2>
 				<BillingPeriodToggle
 					{period}
 					onPeriodChange={(next) => {
