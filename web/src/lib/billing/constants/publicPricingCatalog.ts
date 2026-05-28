@@ -1,5 +1,5 @@
-import type { PaidSubscriptionTier } from './types.js';
-import { PAID_SUBSCRIPTION_TIERS } from './types.js';
+import type { PaidSubscriptionTier } from 'openquok-common';
+import { PAID_SUBSCRIPTION_TIERS } from 'openquok-common';
 
 /** Paid tiers in display order (left → right on the pricing page). */
 export const PUBLIC_PRICING_TIER_ORDER = PAID_SUBSCRIPTION_TIERS;
@@ -221,7 +221,6 @@ export type PublicPricingFaqItem = {
 	description: string;
 };
 
-
 export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 	{
 		title: 'Can I try OpenQuok for free?',
@@ -288,5 +287,4 @@ export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 		description:
 			'The Group management feature let you organize connected channels by client, brand, or any structure you like—making it simple to manage multiple clients or keep personal and business accounts separate. This can be selected to create post later or used by smart filters.'
 	}
-
 ];

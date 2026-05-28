@@ -1,9 +1,9 @@
 import {
 	UNLIMITED_POSTS_PER_MONTH,
 	UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
-} from './pricing.js';
-import type { PlanLimits } from './types.js';
-import { SubscriptionSection } from './types.js';
+} from "openquok-common";
+import type { PlanLimits } from "openquok-common";
+import { SubscriptionSection } from "openquok-common";
 
 /** Maps a {@link SubscriptionSection} to the corresponding {@link PlanLimits} field value. */
 export function planLimitForSection(

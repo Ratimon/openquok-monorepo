@@ -1,6 +1,6 @@
 {
   "name": "openquok",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "description": "Openquok CLI skill for the social media scheduling API — integrations, posts, uploads, analytics (JSON output for agents).",
   "author": {
     "name": "Rati Montreewat",

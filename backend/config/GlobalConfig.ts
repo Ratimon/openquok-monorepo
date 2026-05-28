@@ -368,7 +368,7 @@ export const config: ConfigObject = {
         webhookSecret: getEnvTrimmed("STRIPE_WEBHOOK_SECRET", ""),
         /** Stripe Coupon id applied via POST /billing/apply-discount when eligible. */
         discountCouponId: getEnvTrimmed("STRIPE_DISCOUNT_ID", ""),
-        /** Pre-created Stripe Price ids (`price_…`) per tier and cadence; see stripePriceEnvKey in openquok-common. */
+        /** Pre-created Stripe Price ids (`price_…`) per tier and cadence; see stripePriceEnvKey in config/stripePriceEnv. */
         priceIds: loadStripePriceIds(),
     },
 

@@ -3,13 +3,15 @@ import { formatPostsPerMonthLimit } from '$lib/billing/Billing.repository.svelte
 import { buildPlanFeatureLinesVm, tierDisplayName } from '$lib/billing/GetPricing.presenter.svelte';
 import { formatBytes } from '$lib/medias';
 import {
-	accountTeamMemberSeatTotal,
-	isUnlimitedTeamMembersPerWorkspace,
 	PUBLIC_PRICING_COMPARE_ROWS,
 	PUBLIC_PRICING_FEATURED_TIER,
 	PUBLIC_PRICING_PLAN_META,
 	PUBLIC_PRICING_SHARED_CARD_FEATURES,
-	PUBLIC_PRICING_TIER_ORDER,
+	PUBLIC_PRICING_TIER_ORDER
+} from '$lib/billing/constants/publicPricingCatalog';
+import {
+	accountTeamMemberSeatTotal,
+	isUnlimitedTeamMembersPerWorkspace,
 	planLimitsForTier,
 	pricing,
 	type PaidSubscriptionTier,

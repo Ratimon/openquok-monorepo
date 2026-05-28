@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PUBLIC_PRICING_FAQ_ITEMS } from 'openquok-common';
+	import { PUBLIC_PRICING_FAQ_ITEMS } from '$lib/billing/constants/publicPricingCatalog';
 
 	import BillingFaqAccordion from '$lib/ui/components/billing/BillingFaqAccordion.svelte';
 </script>

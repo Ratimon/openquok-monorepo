@@ -1,11 +1,10 @@
 import {
-    isUnlimitedPlanCap,
-    planLimitForSection,
     planLimitsForTier,
     pricing,
     type SubscriptionTier,
     SubscriptionSection,
 } from "openquok-common";
+import { isUnlimitedPlanCap, planLimitForSection } from "./planLimits.js";
 import { SubscriptionError } from "../../errors/SubscriptionError";
 import { config } from "../../config/GlobalConfig";
 import type { SubscriptionService } from "../../services/SubscriptionService";
