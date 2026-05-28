@@ -53,8 +53,10 @@ function perWorkspaceLabel(count: number, singular: string, plural: string): str
 
 export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanFeatureLineViewModel[] {
 	const linesVm: PlanFeatureLineViewModel[] = [];
-	if (plan.workspaces > 1) {
-		linesVm.push({ label: `${plan.workspaces} workspaces` });
+	if (plan.workspaces > 0) {
+		linesVm.push({
+			label: plan.workspaces === 1 ? '1 workspace' : `${plan.workspaces} workspaces`
+		});
 	}
 
 	const channelTotal = plan.channelPerWorkspace * plan.workspaces;
@@ -84,10 +86,6 @@ export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanF
 		linesVm.push({ label: 'Shareable post preview links' });
 	}
 
-	if (plan.publicApi) {
-		linesVm.push({ label: 'Public API access' });
-	}
-
 	const storageTotalBytes = plan.mediaStorageBytesPerWorkspace * plan.workspaces;
 	linesVm.push({
 		label: `Total ${formatBytes(storageTotalBytes)} cloud storage`,
@@ -96,6 +94,10 @@ export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanF
 				? `${formatBytes(plan.mediaStorageBytesPerWorkspace)} cloud storage per workspace`
 				: undefined
 	});
+
+	if (plan.publicApi) {
+		linesVm.push({ label: 'Public API access' });
+	}
 
 	return linesVm;
 }

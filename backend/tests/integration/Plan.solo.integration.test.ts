@@ -691,7 +691,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                     .get(`${postsPath}/find-slot`)
                     .query({ organizationId: orgId })
                     .set("Authorization", `Bearer ${strangerToken}`);
-                expect(findSlotRes.status).toBe(404);
+                expect(findSlotRes.status).toBe(403);
 
                 const createRes = await supertest(app)
                     .post(postsPath)
@@ -705,7 +705,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                         tagNames: [],
                         status: "scheduled",
                     });
-                expect(createRes.status).toBe(404);
+                expect(createRes.status).toBe(403);
                 expect(createRes.body?.success).toBe(false);
 
                 const usageAfter = await subscriptionGuard.getPostsPerMonthUsage(orgId, ownerToken);

@@ -159,14 +159,6 @@ export class SubscriptionService {
         return planLimitsForTier(this.resolveTier(subscription));
     }
 
-    async getMediaStorageQuotaBytes(
-        organizationId: string,
-        authUserId?: string
-    ): Promise<number> {
-        const subscription = await this.getEffectiveSubscription(organizationId, authUserId);
-        return this.getPlanLimitsForOrganization(subscription).media_storage_bytes_per_workspace;
-    }
-
     async getWorkspaceDriveUsage(
         organizationId: string,
         authUserId?: string
@@ -183,6 +175,7 @@ export class SubscriptionService {
             tier,
         };
     }
+
 
     async assertMediaStorageAvailable(
         organizationId: string,

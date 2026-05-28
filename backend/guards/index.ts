@@ -1,6 +1,11 @@
 export { subscriptionGuard, SubscriptionGuardService } from "../services/index";
-export { requirePlanCapability, requireAccountPlanCapability } from "./subscription/middleware";
-export type { RequirePlanCapabilityOptions } from "./subscription/middleware";
+export {
+    requirePlanCapability,
+    requireAccountPlanCapability,
+    requireProgrammaticPlanCapability,
+    requirePlanCapabilityForOrganization,
+} from "./subscription/middleware";
+export type { RequirePlanCapabilityOptions, RequirePlanCapabilityForOrganizationOptions } from "./subscription/middleware";
 export type {
     SubscriptionGuardAccountContext,
     SubscriptionGuardContext,

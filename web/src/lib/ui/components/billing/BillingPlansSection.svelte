@@ -40,6 +40,8 @@
 		onCancelSubscription
 	}: Props = $props();
 
+	const paidPlansVm = $derived(plansVm.filter((plan) => plan.tier !== 'FREE'));
+
 	/** Highlighted plan when the toggle matches the subscription billing cadence. */
 	const currentPackage = $derived.by((): PaidSubscriptionTier | '' => {
 		if (!hasActiveSubscription || !currentTier || currentTier === 'FREE') {
@@ -51,7 +53,7 @@
 </script>
 
 <div class="flex gap-4 max-lg:flex-col max-lg:text-center">
-	{#each plansVm as planVm (planVm.tier)}
+	{#each paidPlansVm as planVm (planVm.tier)}
 		<BillingPlanCard
 			{planVm}
 			{period}

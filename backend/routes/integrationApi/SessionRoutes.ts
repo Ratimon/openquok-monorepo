@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { integrationController } from "../../controllers/index";
-import { requireFullAuth } from "../../guards";
+import { requireFullAuth, requirePlanCapabilityForOrganization } from "../../guards";
 import { supabaseAnonClient } from "../../connections/index";
 import {
     validateIntegrationOrganizationQuery,
@@ -19,6 +19,7 @@ import {
     validateIntegrationPlugsUpsertRequest,
 } from "../../data/schemas/integrationPlugSchemas";
 import { validateIntegrationTimeRequest } from "../../data/schemas/integrationTimeSchemas";
+import { SubscriptionSection } from "openquok-common";
 
 type IntegrationSessionRouter = ReturnType<typeof Router>;
 
@@ -83,11 +84,17 @@ integrationSessionRouter.post(
 integrationSessionRouter.get(
     "/social/:integration",
     validateIntegrationOrganizationQuery,
+    requirePlanCapabilityForOrganization(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
+        resolveOrganizationId: (req) => (req.query as any)?.organizationId,
+    }),
     integrationController.getIntegrationUrl
 );
 integrationSessionRouter.post(
     "/social-connect/:integration",
     validateSocialConnectBody,
+    requirePlanCapabilityForOrganization(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
+        resolveOrganizationId: (req) => (req.body as any)?.organizationId,
+    }),
     integrationController.connectSocialMedia
 );
 integrationSessionRouter.post("/disable", validateIntegrationOrgAndIdBody, integrationController.disable);

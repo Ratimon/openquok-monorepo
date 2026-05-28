@@ -10,7 +10,12 @@ import {
     validateOrganizationIdAndUserIdParam,
     validateInviteIdParam,
 } from "../data/schemas/organizationSchemas";
-import { requireAccountPlanCapability, requireFullAuth } from "../guards";
+import {
+    requireAccountPlanCapability,
+    requireFullAuth,
+    requirePlanCapability,
+    requirePlanCapabilityForOrganization,
+} from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { SubscriptionSection } from "openquok-common";
 
@@ -38,6 +43,7 @@ settingsRouter.get("/team", auth, settingsController.getTeamForActiveWorkspace);
 settingsRouter.post(
     "/team",
     auth,
+    requirePlanCapability(SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE),
     validateInviteTeamMemberRequest,
     settingsController.inviteTeamMemberForActiveWorkspace
 );
@@ -66,6 +72,9 @@ settingsRouter.post(
     "/:id/invite",
     auth,
     validateOrganizationIdParam,
+    requirePlanCapabilityForOrganization(SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE, {
+        resolveOrganizationId: (req) => (req.params as any)?.id,
+    }),
     validateInviteTeamMemberRequest,
     settingsController.inviteTeamMember
 );
@@ -79,6 +88,9 @@ settingsRouter.post(
     "/:id/team",
     auth,
     validateOrganizationIdParam,
+    requirePlanCapabilityForOrganization(SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE, {
+        resolveOrganizationId: (req) => (req.params as any)?.id,
+    }),
     validateAddTeamMemberRequest,
     settingsController.addTeamMember
 );
@@ -92,6 +104,9 @@ settingsRouter.post(
     "/:id/rotate-api-key",
     auth,
     validateOrganizationIdParam,
+    requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
+        resolveOrganizationId: (req) => (req.params as any)?.id,
+    }),
     settingsController.rotateApiKey
 );
 

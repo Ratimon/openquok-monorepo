@@ -124,30 +124,33 @@ describeIfSupabase("FREE plan subscription limits (integration)", () => {
         return orgId;
     }
 
-    it("allows creating another workspace when FREE workspaces cap is 0 (enforcement skipped)", async () => {
+    it("blocks creating another workspace when FREE owned workspaces cap is 1", async () => {
         const freeLimits = planLimitsForTier("FREE");
         expect(freeLimits.workspaces).toBe(0);
+        const ownedWorkspaceCap = subscriptionService.resolveOwnedWorkspaceCap(null);
+        expect(ownedWorkspaceCap).toBe(1);
 
         const payload = userHelper.setupTestUser1();
         const { accessToken } = await signupVerifyAndSignIn(payload);
 
         const listRes = await supertest(app).get(settingsPath).set("Authorization", `Bearer ${accessToken}`);
         expect(listRes.status).toBe(200);
-        expect(listRes.body?.data?.length).toBeGreaterThanOrEqual(1);
+        expect(listRes.body?.data).toHaveLength(ownedWorkspaceCap);
 
         const createRes = await supertest(app)
             .post(settingsPath)
             .set("Authorization", `Bearer ${accessToken}`)
             .send({ name: "Second workspace", description: null });
 
-        expect(createRes.status).toBe(201);
-        expect(createRes.body?.success).toBe(true);
+        expect(createRes.status).toBe(402);
+        expect(createRes.body?.success).toBe(false);
+        expect(createRes.body?.error?.section).toBe("workspaces");
 
         const listAfterRes = await supertest(app)
             .get(settingsPath)
             .set("Authorization", `Bearer ${accessToken}`);
         expect(listAfterRes.status).toBe(200);
-        expect(listAfterRes.body?.data?.length).toBeGreaterThanOrEqual(2);
+        expect(listAfterRes.body?.data).toHaveLength(ownedWorkspaceCap);
     });
 
     itIfInviteSigning(

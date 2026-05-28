@@ -32,13 +32,13 @@ export interface PlanLimits {
 	posts_per_month: number;
 	/** Team member seats per workspace; {@link UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE} means unlimited. */
 	team_members_per_workspace: number;
+	/** Total media library storage per workspace in bytes. */
+	media_storage_bytes_per_workspace: number;
 	/** Shareable post preview links. */
 	share_post_preview: boolean;
 	/** Blog comments, skill listing, and similar community surfaces. */
 	community_features: boolean;
 	public_api: boolean;
-	/** Total media library storage per workspace in bytes. */
-	media_storage_bytes_per_workspace: number;
 }
 
 export type PricingMap = Record<SubscriptionTier, PlanLimits>;

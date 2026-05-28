@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { publicIntegrationController } from "../../controllers/index";
 import { organizationRepository } from "../../repositories/index";
-import { requireProgrammaticAuth } from "../../guards";
+import { requireProgrammaticAuth, requireProgrammaticPlanCapability } from "../../guards";
+import { SubscriptionSection } from "openquok-common";
 import {
     validatePublicIntegrationIdParams,
     validatePublicIntegrationTriggerRequest,
@@ -28,6 +29,7 @@ publicIntegrationRouter.get("/integrations", apiKeyAuth, publicIntegrationContro
 publicIntegrationRouter.get(
     "/social/:integration",
     apiKeyAuth,
+    requireProgrammaticPlanCapability(SubscriptionSection.CHANNEL_PER_WORKSPACE),
     validatePublicSocialOAuthQuery,
     publicIntegrationController.getIntegrationUrl
 );

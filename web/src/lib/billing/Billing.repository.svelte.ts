@@ -43,6 +43,7 @@ interface ListBillingPlansResponseDto {
 	data?: { tiers: BillingPlanWireDto[]; billingEnabled: boolean };
 }
 
+
 export interface BillingPlanProgrammerModel {
 	tier: SubscriptionTier;
 	monthPrice: number;

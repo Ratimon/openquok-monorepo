@@ -48,10 +48,10 @@ export const pricing: PricingMap = {
 		channel_per_workspace: 0,
 		posts_per_month: 0,
 		team_members_per_workspace: 1,
+		media_storage_bytes_per_workspace: 0,
 		share_post_preview: false,
 		community_features: true,
 		public_api: false,
-		media_storage_bytes_per_workspace: 0,
 	},
 	SOLO: {
 		current: 'SOLO',
@@ -61,10 +61,10 @@ export const pricing: PricingMap = {
 		channel_per_workspace: 15,
 		posts_per_month: 500,
 		team_members_per_workspace: 1,
+		media_storage_bytes_per_workspace: gbToBytes(5), // total of 5 GiB
 		share_post_preview: false,
 		community_features: true,
 		public_api: true,
-		media_storage_bytes_per_workspace: gbToBytes(5), // total of 5 GiB
 	},
 	CREATOR: {
 		current: 'CREATOR',
@@ -74,10 +74,10 @@ export const pricing: PricingMap = {
 		channel_per_workspace: 20, // total of 40 channels
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
 		team_members_per_workspace: 3, // total of 6 team members 
+		media_storage_bytes_per_workspace: gbToBytes(5), // total of 10 GiB
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,
-		media_storage_bytes_per_workspace: gbToBytes(5), // total of 10 GiB
 	},
 	TEAM: {
 		current: 'TEAM',
@@ -87,10 +87,10 @@ export const pricing: PricingMap = {
 		channel_per_workspace: 25, // total of 75 channels
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
 		team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
+		media_storage_bytes_per_workspace: gbToBytes(5), // total of 15 GiB
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,
-		media_storage_bytes_per_workspace: gbToBytes(5), // total of 15 GiB
 	},
 	ULTIMATE: {
 		current: 'ULTIMATE',
@@ -100,10 +100,10 @@ export const pricing: PricingMap = {
 		channel_per_workspace: 30, // total of 300 channels
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
 		team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
+		media_storage_bytes_per_workspace: gbToBytes(6), // total of 30 GiB
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,
-		media_storage_bytes_per_workspace: gbToBytes(6), // total of 30 GiB
 	},
 };
 

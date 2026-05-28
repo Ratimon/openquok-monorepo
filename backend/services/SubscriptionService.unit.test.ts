@@ -291,18 +291,6 @@ describe("SubscriptionService", () => {
         });
     });
 
-    describe("getMediaStorageQuotaBytes", () => {
-        it("returns plan media storage for the organization", async () => {
-            (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockResolvedValue(
-                subscriptionRow("SOLO")
-            );
-            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
-            await expect(service.getMediaStorageQuotaBytes(organizationId)).resolves.toBe(
-                pricing.SOLO.media_storage_bytes_per_workspace
-            );
-        });
-    });
-
     describe("getWorkspaceDriveUsage", () => {
         it("sums media sizes and uses plan quota as total", async () => {
             (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockResolvedValue(
