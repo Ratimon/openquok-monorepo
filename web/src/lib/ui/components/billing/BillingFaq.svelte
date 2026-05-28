@@ -29,12 +29,12 @@
 			{
 				title: 'What are workspaces?',
 				description:
-					'A workspace is where you connect channels, schedule posts, and collaborate. Workspaces keep agent and automation context focused—too many channels or tasks in one place can cause context rot, so use separate workspaces for different brands, clients, or focus areas. You manage billing and invites for workspaces you own, and can join shared workspaces.'
+					'A workspace is where you connect channels, schedule posts, and collaborate. Workspaces keep agent and automation context focused. Too many channels or tasks in one place can cause context rot, so use separate workspaces for different brands, clients, or focus areas. You manage billing and invites for workspaces you own, and can join shared workspaces.'
 			},
 			{
-				title: 'What are channels?',
+				title: 'What counts as a channel?',
 				description:
-					'A channel is a connected publishing account (for example X, Facebook, Instagram, LinkedIn, TikTok, YouTube, Reddit, Threads, or Pinterest). You schedule posts to the channels you connect.'
+					'A channel is a connected social account (for example Facebook, Instagram, LinkedIn, TikTok, YouTube, Reddit, Threads, or Pinterest). You schedule posts to the channels you connect.'
 			},
 			{
 				title: 'What are team members?',

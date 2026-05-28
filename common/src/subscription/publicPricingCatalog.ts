@@ -165,7 +165,8 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	{
 		id: 'reusable_templates',
 		label: 'Reusable templates',
-		tooltip: 'Reusable channel groups with tailored messages for quick posting to your go-to combinations.'
+		tooltip:
+			'Templates are saved groups of channels with message templates. If you often post to the same mix of accounts (for example your personal X, your company LinkedIn, and a Facebook page), save it once for one-click posting.'
 	},
 	{
 		id: 'reusable_signatures',
@@ -201,7 +202,7 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	{
 		id: 'group_management',
 		label: 'Group management',
-		tooltip: 'Organize channels into groups for account/workflow management.'
+		tooltip: 'Organize channels into groups for account/workflow management. This can be selected to create post later or used by smart filters.'
 	},
 	{
 		id: 'dark_light_mode',
@@ -228,33 +229,64 @@ export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 			'Yes. OpenQuok offers a 7-day free trial. You can create an account and start today!'
 	},
 	{
+		title: 'Can I self-host OpenQuok?',
+		description:
+			'Yes. OpenQuok is open source, so you can run it on your own infrastructure (eg. AWS, GCP, Hezner, or even vercel) and manage limits locally without needing a subscription.'
+	},
+	{
 		title: 'Can I get a refund?',
 		description:
 			'If you have not used the product during a billing period, contact support and we will work with you on a fair resolution. Self-hosted deployments follow your own billing policies.'
 	},
 	{
-		title: 'Can I self-host OpenQuok?',
+		title: 'Can I change plans later?',
 		description:
-			'Yes. OpenQuok is open source. You can deploy on your own infrastructure and manage limits locally without a cloud subscription.'
+			'Yes. Upgrade or downgrade from account billing settings. Proration and timing follow your Stripe subscription when cloud billing is enabled.'
 	},
 	{
 		title: 'What is a workspace?',
 		description:
-			'A workspace is where you connect channels, schedule posts, and collaborate. Use separate workspaces for different brands or clients to keep context focused.'
+			'A workspace is where you connect channels, schedule posts, and collaborate. Workspaces exist to keep agent and automation context focused. Too many channels or tasks in one place can cause context rot or hallucinations. Use separate workspaces for different brands or clients when things get crowded.'
 	},
 	{
 		title: 'What counts as a channel?',
 		description:
-			'A channel is a connected publishing account such as X, LinkedIn, Instagram, Facebook, TikTok, YouTube, or Pinterest.'
+			'A channel is a connected social account (for example Facebook, Instagram, LinkedIn, TikTok, YouTube, Reddit, Threads, or Pinterest). You schedule posts to the channels you connect.'
 	},
 	{
-		title: 'How does yearly billing work?',
+		title: 'How does repeated posts work',
 		description:
-			'Yearly billing charges once per year at the listed annual price (about 20% less than paying monthly). Limits match the monthly plans; only the billing cadence changes.'
+			'Repeated posts let you automatically republish evergreen content on a schedule (daily, weekly, or a custom cadence). It’s a great way to keep promoting ongoing offers, quotes, or other timeless content without manually rescheduling.'
 	},
 	{
-		title: 'Can I change plans later?',
+		title: 'What are reusable templates and how does it work?',
 		description:
-			'Yes. Upgrade or downgrade from account billing settings. Proration and timing follow your Stripe subscription when cloud billing is enabled.'
+			'Templates are pre-defined groups of channels with custom message templates. If you frequently post to the same combination of accounts (e.g., your personal X + company LinkedIn + Facebook page), you can save it as a Set for one-click posting.'
+	},
+	{
+		title: 'What are reusable signatures and how does it work?',
+		description:
+			'Signatures are snippets of text you can automatically append to posts (hashtags, links, promos). If you often use the same call-to-action or signature across multiple posts, save it once and reuse it everywhere.'
+	},
+	{
+		title: 'What analytics does OpenQuok offer?',
+		description:
+			'Get detailed analytics across connected platforms—impressions, likes, comments, shares, bookmarks, and engagement rate—so you can track results over time and see what content resonates most.'
+	},
+	{
+		title: 'Can I schedule comments or threads',
+		description:
+			'Yes. You can schedule follow-up comments to help drive engagement. On platforms like X and Threads, you can also schedule full threads, while on LinkedIn and Facebook scheduled comments are posted as replies to your main post.'
+	},
+	{
+		title: 'What is the delay feature between posts?',
+		description:
+			'Use the delay feature to add time gaps between posts and scheduled comments for a more natural publishing cadence—space them out by minutes or hours instead of posting everything at once.'
+	},
+	{
+		title: 'I have connnected too many channels, what should I do?',
+		description:
+			'The Group management feature let you organize connected channels by client, brand, or any structure you like—making it simple to manage multiple clients or keep personal and business accounts separate. This can be selected to create post later or used by smart filters.'
 	}
+
 ];

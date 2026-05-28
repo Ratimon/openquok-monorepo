@@ -32,7 +32,7 @@
 
 <section class="mt-24">
 	<h2 class="text-center text-2xl font-bold text-base-content sm:text-3xl">
-		Compare and explore the features of each plan
+		Compare plans and find the best fit
 	</h2>
 
 	<div class="mt-10 overflow-x-auto">
