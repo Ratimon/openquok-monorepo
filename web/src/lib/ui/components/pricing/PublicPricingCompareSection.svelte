@@ -39,10 +39,10 @@
 		<Table.Root class="min-w-[56rem] border-separate border-spacing-x-2 border-spacing-y-2">
 			<Table.Header>
 				<Table.Row class="border-0 hover:bg-transparent">
-					<Table.Head class="w-[14rem] min-w-[12rem] align-bottom border-0 bg-transparent p-3">
+					<Table.Head class="w-[18rem] min-w-[18rem] align-bottom border-0 bg-transparent p-3">
 						<div class="text-lg font-bold">Plans</div>
 						<p class="mt-1 text-sm font-normal text-base-content/60">Save with yearly billing</p>
-						<div class="mt-4">
+						<div class="mt-4 w-max">
 							<BillingPeriodToggle {period} {onPeriodChange} />
 						</div>
 					</Table.Head>
@@ -80,7 +80,7 @@
 								Get started
 							</Button>
 							{#if plan.compareFootnote}
-								<p class={cn('mt-2 text-xs', featured ? 'text-primary-content/75' : 'text-error')}>
+								<p class={cn('mt-2 text-xs', featured ? 'text-primary-content/80' : 'text-warning')}>
 									{plan.compareFootnote}
 								</p>
 							{/if}
@@ -114,7 +114,13 @@
 													</span>
 												{/snippet}
 											</Tooltip.Trigger>
-											<Tooltip.Content side="top" sideOffset={8}>{row.tooltip}</Tooltip.Content>
+											<Tooltip.Content
+												side="top"
+												sideOffset={8}
+												class="max-w-sm whitespace-pre-line"
+											>
+												{row.tooltip}
+											</Tooltip.Content>
 										</Tooltip.Root>
 									{/if}
 								</div>

@@ -19,26 +19,34 @@ export const PUBLIC_PRICING_PLAN_META: Record<PaidSubscriptionTier, PublicPricin
 		compareFootnote: 'Single workspace'
 	},
 	CREATOR: {
-		tagline: 'Best for creators and small brands'
+		tagline: 'Best for creators and small teams',
+		compareFootnote: 'Unlimited Posts'
 	},
 	TEAM: {
-		tagline: 'Best for growing teams and businesses'
+		tagline: 'Best for growing teams and businesses',
+		compareFootnote: 'Unlimited team members'
 	},
 	ULTIMATE: {
-		tagline: 'Best for agencies managing many brands'
+		tagline: 'Best for scaling tons of AI agents'
 	}
 };
 
 /** Product capabilities included on every paid plan (marketing copy for cards). */
 export const PUBLIC_PRICING_SHARED_CARD_FEATURES: readonly string[] = [
-	'Post scheduling & calendar views',
 	'Multi-channel publishing',
-	'OAuth integrations',
-	'Community blog & comments',
+	'Agent integrations',
+	'Analytics',
+	'Calendar views',
+	'Kanban views',
+	'Reusable templates',
+	'Reusable signatures',
+	'Post delays',
+	'Post comments',
+	'Group management',
+	'Community features',
 	'Dark / light mode'
 ];
 
-// to do : addmore
 export type PublicPricingCompareRowId =
 	| 'workspaces'
 	| 'channels'
@@ -47,8 +55,24 @@ export type PublicPricingCompareRowId =
 	| 'share_post_preview'
 	| 'public_api'
 	| 'cloud_storage'
-	| 'scheduling'
-	| 'integrations'
+	| 'multi_channel_publishing'
+	| 'agent_integrations'
+	| 'analytics'
+	| 'canva_editor'
+	| 'calendar_views'
+	| 'kanban_views'
+	| 'file_manager'
+	| 'repeated_posts'
+	| 'reusable_templates'
+	| 'reusable_signatures'
+	| 'smart_filter'
+	| 'post_delays'
+	| 'post_comments'
+	| 'cross_posting'
+	| 'internal_plugs'
+	| 'global_plugs'
+	| 'group_management'
+	| 'dark_light_mode'
 	| 'community';
 
 export type PublicPricingCompareRowDefinition = {
@@ -62,13 +86,13 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 		id: 'workspaces',
 		label: 'Workspaces',
 		tooltip:
-			'Separate workspaces for brands, clients, or focus areas. Billing and invites apply per workspace you own.'
+			'Separate workspaces for different brands, clients, or focus areas. Too many channels or tasks in one place can cause context rot or hallucinations.'
 	},
 	{
 		id: 'channels',
 		label: 'Total channels',
 		tooltip:
-			'Connected publishing accounts across all workspaces on your billing account (for example X, LinkedIn, Instagram, or YouTube).'
+			'Channels are capped per workspace. The table shows the total across all workspaces on the plan (for example 20 per workspace × 2 workspaces = 40 total).'
 	},
 	{
 		id: 'posts_per_month',
@@ -78,7 +102,8 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	{
 		id: 'team_members',
 		label: 'Team members',
-		tooltip: 'Collaborators you can invite across workspaces on your billing account.'
+		tooltip:
+			'Seats are capped per workspace. The table shows the total across all workspaces on the plan (for example 3 per workspace × 2 workspaces = 6 total).'
 	},
 	{
 		id: 'share_post_preview',
@@ -88,27 +113,104 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	{
 		id: 'public_api',
 		label: 'Public API',
-		tooltip: 'Programmatic access to schedule and manage content via REST API.'
+		tooltip: 'Programmatic access to schedule and manage content via REST API from the terminal.'
 	},
 	{
 		id: 'cloud_storage',
 		label: 'Cloud media storage',
-		tooltip: 'Shared media library storage per workspace; totals combine across workspaces on the plan.'
+		tooltip:
+			'Storage is capped per workspace. The table shows the total across all workspaces on the plan (for example 5 GiB per workspace × 2 workspaces = 10 GiB total).'
 	},
 	{
-		id: 'scheduling',
-		label: 'Scheduling & calendar',
-		tooltip: 'Schedule posts and manage them in day, week, and month calendar views.'
+		id: 'multi_channel_publishing',
+		label: 'Multi-channel publishing',
+		tooltip: 'Schedule and publish the same content to multiple channels with per-platform customization..'
 	},
 	{
-		id: 'integrations',
-		label: 'OAuth integrations',
-		tooltip: 'Connect third-party apps and custom OAuth clients where your deployment allows.'
+		id: 'agent_integrations',
+		label: 'Agent integrations',
+		tooltip:
+			'Connect to OpenClaw, Hermes, or Claude.\nAuthenticate with OAuth or an API key; install the skill so agents can schedule posts and upload media from the terminal.'
+	},
+	{
+		id: 'analytics',
+		label: 'Analytics',
+		tooltip: 'Track post performance and engagement across channels.'
+	},
+	{
+		id: 'canva_editor',
+		label: 'Canva editor',
+		tooltip: 'Interactive canvas style editor to resize and tailor your content to the platform.'
+	},
+	{
+		id: 'calendar_views',
+		label: 'Calendar views',
+		tooltip: 'Plan/review/edit content with day / week / month calendar views.'
+	},
+	{
+		id: 'kanban_views',
+		label: 'Kanban views',
+		tooltip: 'Review AI-genrated post by moving them through draft → review → scheduled in a kanban workflow.'
+	},
+	{
+		id: 'file_manager',
+		label: 'File manager',
+		tooltip: 'Create, rename, organize and manage your media/footage files.'
+	},
+	{
+		id: 'repeated_posts',
+		label: 'Repeated posts',
+		tooltip: 'Automatically re-publish evergreen posts on a schedule (daily, weekly, monthly).'
+	},
+	{
+		id: 'reusable_templates',
+		label: 'Reusable templates',
+		tooltip: 'Reusable channel groups with tailored messages for quick posting to your go-to combinations.'
+	},
+	{
+		id: 'reusable_signatures',
+		label: 'Reusable signatures',
+		tooltip: 'Automatically append signature snippets (hashtags, links, promos) to yout contents.'
+	},
+	{
+		id: 'smart_filter',
+		label: 'Smart filters',
+		tooltip: 'Build and save custom filters to quickly find channels, templates or signatures.'
+	},
+	{
+		id: 'post_delays',
+		label: 'Post delays',
+		tooltip: 'Add delays between posts and comments for a natural publishing rhythm.'
+	},
+	{
+		id: 'post_comments',
+		label: 'Post comments',
+		tooltip: 'Schedule follow-up comments (and threads where supported) to boost engagement.'
+	},
+	{
+		id: 'internal_plugs',
+		label: 'Internal plugs',
+		tooltip: 'Boost engagement using other connected accounts in your workspace.'
+	},
+	{
+		id: 'global_plugs',
+		label: 'Global plugs',
+		tooltip: 'Trigger automations when posts hit engagement thresholds.'
+	},
+	{
+		id: 'group_management',
+		label: 'Group management',
+		tooltip: 'Organize channels into groups for client, brand, or team workflows.'
+	},
+	{
+		id: 'dark_light_mode',
+		label: 'Dark / light mode',
+		tooltip: 'Switch themes based on preference.'
 	},
 	{
 		id: 'community',
 		label: 'Community features',
-		tooltip: 'Blog comments, public skill listings, and related community surfaces.'
+		tooltip: 'Blog comments, and related community surfaces.'
 	}
 ];
 

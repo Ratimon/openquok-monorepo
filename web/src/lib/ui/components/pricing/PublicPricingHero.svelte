@@ -13,7 +13,7 @@
 
 <header class="mx-auto max-w-3xl px-4 text-center">
 	<h1 class="text-3xl font-extrabold tracking-tight text-base-content sm:text-4xl md:text-5xl">
-		Find the right
+		Find the best
 		<span class="relative inline-block">
 			<span class="relative z-10">plan</span>
 			<span
@@ -21,10 +21,10 @@
 				aria-hidden="true"
 			></span>
 		</span>
-		for your needs
+		that matches your need
 	</h1>
 	<p class="mt-4 text-base text-base-content/70 sm:text-lg">
-		Whether you are an individual creator, a brand, a team, or an agency, we have options that scale
+		Whether you are a solopreneur, a creator team, or AI practitioner using agent at a scale, we have options that scale
 		with you.
 	</p>
 	<div class="mt-8 flex w-full justify-center [&_[data-slot=tabs]]:!w-auto">

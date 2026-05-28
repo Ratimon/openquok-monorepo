@@ -65,18 +65,35 @@ function planLimitsToBillingPm(tier: PaidSubscriptionTier, limits: PlanLimits): 
 }
 
 function totalChannels(limits: PlanLimits): number {
-	return limits.workspaces * limits.channel_per_workspace;
+	return Math.max(0, limits.workspaces) * Math.max(0, limits.channel_per_workspace);
+}
+
+function formatChannelsCell(limits: PlanLimits): PublicPricingCompareCellViewModel {
+	const perWorkspace = limits.channel_per_workspace;
+	const total = totalChannels(limits);
+	if (limits.workspaces <= 1) return { kind: 'text', text: String(total) };
+	return { kind: 'text', text: `${total} (${perWorkspace}/ workspace)` };
+}
+
+function formatCloudStorageCell(limits: PlanLimits): PublicPricingCompareCellViewModel {
+	const perWorkspaceBytes = limits.media_storage_bytes_per_workspace;
+	const totalBytes = perWorkspaceBytes * limits.workspaces;
+	const totalLabel = formatBytes(totalBytes);
+	if (limits.workspaces <= 1) return { kind: 'text', text: totalLabel };
+	return { kind: 'text', text: `${totalLabel} (${formatBytes(perWorkspaceBytes)}/ workspace)` };
 }
 
 function formatTeamMembersCell(limits: PlanLimits): PublicPricingCompareCellViewModel {
 	if (isUnlimitedTeamMembersPerWorkspace(limits.team_members_per_workspace)) {
 		return { kind: 'text', text: 'Unlimited' };
 	}
-	const total = accountTeamMemberSeatTotal(limits.workspaces, limits.team_members_per_workspace);
+	const perWorkspace = limits.team_members_per_workspace;
+	const total = accountTeamMemberSeatTotal(limits.workspaces, perWorkspace);
 	if (total <= 1) {
 		return total === 1 ? { kind: 'text', text: '1' } : { kind: 'excluded' };
 	}
-	return { kind: 'text', text: String(total) };
+	if (limits.workspaces <= 1) return { kind: 'text', text: String(total) };
+	return { kind: 'text', text: `${total} (${perWorkspace}/ workspace)` };
 }
 
 function compareCellForRow(
@@ -87,7 +104,7 @@ function compareCellForRow(
 		case 'workspaces':
 			return { kind: 'text', text: String(limits.workspaces) };
 		case 'channels':
-			return { kind: 'text', text: String(totalChannels(limits)) };
+			return formatChannelsCell(limits);
 		case 'posts_per_month':
 			return { kind: 'text', text: formatPostsPerMonthLimit(limits.posts_per_month) };
 		case 'team_members':
@@ -96,12 +113,26 @@ function compareCellForRow(
 			return limits.share_post_preview ? { kind: 'included' } : { kind: 'excluded' };
 		case 'public_api':
 			return limits.public_api ? { kind: 'included' } : { kind: 'excluded' };
-		case 'cloud_storage': {
-			const totalBytes = limits.media_storage_bytes_per_workspace * limits.workspaces;
-			return { kind: 'text', text: formatBytes(totalBytes) };
-		}
-		case 'scheduling':
-		case 'integrations':
+		case 'cloud_storage':
+			return formatCloudStorageCell(limits);
+		case 'multi_channel_publishing':
+		case 'agent_integrations':
+		case 'analytics':
+		case 'canva_editor':
+		case 'calendar_views':
+		case 'kanban_views':
+		case 'file_manager':
+		case 'repeated_posts':
+		case 'reusable_templates':
+		case 'reusable_signatures':
+		case 'smart_filter':
+		case 'post_delays':
+		case 'post_comments':
+		case 'cross_posting':
+		case 'internal_plugs':
+		case 'global_plugs':
+		case 'group_management':
+		case 'dark_light_mode':
 		case 'community':
 			return { kind: 'included' };
 		default:
@@ -111,7 +142,33 @@ function compareCellForRow(
 
 function buildCardFeatures(tier: PaidSubscriptionTier, limits: PlanLimits): string[] {
 	const pm = planLimitsToBillingPm(tier, limits);
-	const limitLines = buildPlanFeatureLinesVm(pm).map((line) => line.label);
+	const limitLines = buildPlanFeatureLinesVm(pm).map((line) => {
+		// Channels are capped per workspace; cards should match compare-table formatting.
+		if (limits.workspaces > 1 && /^Total \d+ channels$/.test(line.label)) {
+			const perWorkspace = limits.channel_per_workspace;
+			const total = totalChannels(limits);
+			return `${total} channels (${perWorkspace}/ workspace)`;
+		}
+
+		// Cloud storage is capped per workspace; show total plus per-workspace allocation.
+		if (limits.workspaces > 1 && /^Total .* cloud storage$/.test(line.label)) {
+			const perWorkspaceBytes = limits.media_storage_bytes_per_workspace;
+			const totalBytes = perWorkspaceBytes * limits.workspaces;
+			return `${formatBytes(totalBytes)} cloud storage (${formatBytes(perWorkspaceBytes)}/ workspace)`;
+		}
+
+		if (
+			limits.workspaces > 1 &&
+			!isUnlimitedTeamMembersPerWorkspace(limits.team_members_per_workspace) &&
+			/^Total \d+ team members$/.test(line.label)
+		) {
+			const perWorkspace = limits.team_members_per_workspace;
+			const total = accountTeamMemberSeatTotal(limits.workspaces, perWorkspace);
+			const noun = perWorkspace === 1 ? 'member' : 'members';
+			return `${perWorkspace} ${noun} per workspace (total of ${total})`;
+		}
+		return line.label;
+	});
 	const shared = PUBLIC_PRICING_SHARED_CARD_FEATURES.filter((label) => {
 		if (label.startsWith('Community') && !limits.community_features) return false;
 		return true;
