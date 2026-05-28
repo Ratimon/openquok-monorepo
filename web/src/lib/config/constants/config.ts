@@ -194,7 +194,8 @@ export interface Link {
 
 export const PUBLIC_NAVBAR_LINKS: Link[] = [
 	{ pathname: publicDocsPath, title: 'Dev Docs', navType: 'tab' },
-	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' }
+	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' },
+	{ pathname: '/pricing', title: 'Pricing', navType: 'tab' }
 ];
 
 export const PUBLIC_NAVBAR_MOBILE_LINKS: Link[] = [...PUBLIC_NAVBAR_LINKS];
@@ -213,6 +214,7 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 	],
 	Company: [
 		{ label: 'About Us', href: '/about' },
+		{ label: 'Pricing', href: '/pricing' },
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	]
 };

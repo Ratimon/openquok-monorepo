@@ -11,6 +11,8 @@ import { PublicBlogBySlugPagePresenter } from '$lib/area-public/PublicBlogBySlug
 import { PublicPreviewPostByIdPagePresenter } from '$lib/area-public/PublicPreviewPostByIdPage.presenter.svelte';
 import { PublicInformationRepository } from '$lib/area-public/PublicInformation.repository.svelte';
 import { PublicLayoutPagePresenter } from '$lib/area-public/PublicLayoutPage.presenter.svelte';
+import { PublicPricingPagePresenter } from '$lib/area-public/PublicPricingPage.presenter.svelte';
+import { getPublicPricingPresenter } from '$lib/billing';
 
 const publicInformationConfig: PublicInformationConfig = {
 	endpoints: {
@@ -34,8 +36,10 @@ const publicBlogAuthorPagePresenter = new PublicBlogAuthorPagePresenter(getBlogP
 const publicBlogAuthorByIdentifierPagePresenter = new PublicBlogAuthorByIdentifierPagePresenter(getBlogPresenter);
 const publicBlogBySlugPagePresenter = new PublicBlogBySlugPagePresenter(getBlogPresenter, blogRepository);
 const publicPreviewPostByIdPagePresenter = new PublicPreviewPostByIdPagePresenter(getScheduledPostsPresenter, postsRepository);
+const publicPricingPagePresenter = new PublicPricingPagePresenter(getPublicPricingPresenter);
 
 export {
+	publicPricingPagePresenter,
 	publicInformationRepository,
 	publicLayoutPagePresenter,
 	publicBlogPagePresenter,
@@ -44,5 +48,6 @@ export {
 	publicBlogAuthorPagePresenter,
 	publicBlogAuthorByIdentifierPagePresenter,
 	publicBlogBySlugPagePresenter,
-	publicPreviewPostByIdPagePresenter
+	publicPreviewPostByIdPagePresenter,
+	PublicPricingPagePresenter
 };

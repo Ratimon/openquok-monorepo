@@ -41,6 +41,18 @@ export {
 	planLimitsForTier,
 	pricing,
 } from './subscription/pricing';
+export {
+	PUBLIC_PRICING_COMPARE_ROWS,
+	PUBLIC_PRICING_FAQ_ITEMS,
+	PUBLIC_PRICING_FEATURED_TIER,
+	PUBLIC_PRICING_PLAN_META,
+	PUBLIC_PRICING_SHARED_CARD_FEATURES,
+	PUBLIC_PRICING_TIER_ORDER,
+	type PublicPricingCompareRowDefinition,
+	type PublicPricingCompareRowId,
+	type PublicPricingFaqItem,
+	type PublicPricingPlanMeta,
+} from './subscription/publicPricingCatalog';
 export { isUnlimitedPlanCap, planLimitForSection } from './subscription/planLimits';
 export { stripePriceEnvKey } from './subscription/stripePriceEnv';
 export {

@@ -5,6 +5,7 @@ import { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
 import { FirstBillingGatePresenter } from '$lib/billing/FirstBillingGate.presenter.svelte';
 import { OwnedAccountBillingPresenter } from '$lib/billing/OwnedAccountBilling.presenter.svelte';
 import { GetPricingPresenter } from '$lib/billing/GetPricing.presenter.svelte';
+import { GetPublicPricingPresenter } from '$lib/billing/GetPublicPricing.presenter.svelte';
 import { workspaceSettingsPresenter } from '$lib/settings';
 
 const billingConfig: BillingConfig = {
@@ -30,6 +31,8 @@ export const billingRepository = new BillingRepository(httpGateway, billingConfi
 
 export const getPricingPresenter = new GetPricingPresenter(billingRepository);
 
+export const getPublicPricingPresenter = new GetPublicPricingPresenter();
+
 export const billingPresenter = new BillingPresenter(billingRepository, workspaceSettingsPresenter);
 
 export const firstBillingGatePresenter = new FirstBillingGatePresenter(
@@ -52,6 +55,13 @@ export {
 	type BillingSubscriptionViewModel,
 	type PlanFeatureLineViewModel
 } from '$lib/billing/GetPricing.presenter.svelte';
+export {
+	GetPublicPricingPresenter,
+	type PublicPricingCompareCellViewModel,
+	type PublicPricingCompareRowViewModel,
+	type PublicPricingPageViewModel,
+	type PublicPricingPlanCardViewModel
+} from '$lib/billing/GetPublicPricing.presenter.svelte';
 export {
 	formatPostsPerMonthLimit,
 	type BillingCurrentProgrammerModel,
