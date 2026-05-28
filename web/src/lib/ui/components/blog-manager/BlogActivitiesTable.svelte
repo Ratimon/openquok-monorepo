@@ -9,6 +9,14 @@
 	import { createPagination } from '$lib/ui/helpers/createPagination.svelte';
 	import { formatPassedTime } from '$lib/ui/helpers/common';
 	import { Pagination } from '$lib/ui/pagination';
+	import {
+		Root as Table,
+		Body as TableBody,
+		Cell as TableCell,
+		Head as TableHead,
+		Header as TableHeader,
+		Row as TableRow
+	} from '$lib/ui/table';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 
 	type Props = {
@@ -69,7 +77,7 @@
 	}
 </script>
 
-<div class="mt-6 grid">
+<div class="mt-6 w-full">
 	<div class="flex w-full justify-end">
 		<input
 			type="text"
@@ -79,83 +87,69 @@
 		/>
 	</div>
 
-	<CardContent>
-		<div class="grid">
-			<div class="mt-6 table w-full table-auto">
-				<div class="table-header-group">
-					<div class="table-row text-sm">
-						<div class="table-cell h-10 whitespace-nowrap border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							User
-						</div>
-						<div class="table-cell h-10 whitespace-nowrap border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							Activity
-						</div>
-						<div class="table-cell h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							Blog post
-						</div>
-						<div class="table-cell h-10 whitespace-nowrap border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							Date
-						</div>
-					</div>
-				</div>
-
-				<div class="table-row-group">
-					{#if currentData.length === 0}
-						<div class="table-row">
-							<div class="table-cell p-6 text-center text-base-content/60" style="grid-column: 1 / -1;">
-								No activities found.
-							</div>
-						</div>
-					{:else}
-						{#each currentData as activity (activity.id)}
-							<div class="table-row h-auto">
-								<div class="table-cell content-center border-b-2 border-base-300 p-2 align-middle">
-									<div class="flex items-center gap-2">
-										<Avatar.Root class="size-8 shrink-0">
-											<SupabaseUserAvatar
-												url={activity.author?.avatarUrl}
-												size={32}
-												alt={activity.author?.fullName ?? 'User'}
-												imageOnly
-											/>
-											<Avatar.Fallback>
-												{activity.author?.fullName?.[0] ?? 'A'}
-											</Avatar.Fallback>
-										</Avatar.Root>
-										<span class="text-sm text-base-content/70">
-											{activity.author?.fullName ?? 'Anonymous'}
-										</span>
-									</div>
+	<CardContent class="w-full px-0">
+		<Table containerClass="mt-6 w-full border border-base-300 rounded-xl bg-base-100">
+			<TableHeader>
+				<TableRow class="text-sm">
+					<TableHead>User</TableHead>
+					<TableHead>Activity</TableHead>
+					<TableHead class="whitespace-normal">Blog post</TableHead>
+					<TableHead>Date</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{#if currentData.length === 0}
+					<TableRow>
+						<TableCell colspan={4} class="py-6 text-center text-base-content/60">
+							No activities found.
+						</TableCell>
+					</TableRow>
+				{:else}
+					{#each currentData as activity (activity.id)}
+						<TableRow class="h-auto">
+							<TableCell>
+								<div class="flex items-center gap-2">
+									<Avatar.Root class="size-8 shrink-0">
+										<SupabaseUserAvatar
+											url={activity.author?.avatarUrl}
+											size={32}
+											alt={activity.author?.fullName ?? 'User'}
+											imageOnly
+										/>
+										<Avatar.Fallback>
+											{activity.author?.fullName?.[0] ?? 'A'}
+										</Avatar.Fallback>
+									</Avatar.Root>
+									<span class="text-sm text-base-content/70">
+										{activity.author?.fullName ?? 'Anonymous'}
+									</span>
 								</div>
-								<div class="table-cell content-center border-b-2 border-base-300 p-2 align-middle">
-									<Badge variant={activityBadgeVariant(activity.activityType)}>
-										{activityLabel(activity.activityType)}
-									</Badge>
-								</div>
-								<div class="table-cell content-center border-b-2 border-base-300 p-2 align-middle">
-									{#if activity.blogPost}
-										<a
-											href={getPostHref(activity)}
-											class="text-base-content/70 hover:underline"
-										>
-											{activity.blogPost.title}
-										</a>
-									{:else}
-										<span class="text-base-content/50">Deleted post</span>
-									{/if}
-								</div>
-								<div class="table-cell content-center border-b-2 border-base-300 p-2 align-middle text-base-content/70">
-									{formatPassedTime(activity.createdAt)}
-								</div>
-							</div>
-						{/each}
-					{/if}
-				</div>
-			</div>
-		</div>
+							</TableCell>
+							<TableCell>
+								<Badge variant={activityBadgeVariant(activity.activityType)}>
+									{activityLabel(activity.activityType)}
+								</Badge>
+							</TableCell>
+							<TableCell>
+								{#if activity.blogPost}
+									<a href={getPostHref(activity)} class="text-base-content/70 hover:underline">
+										{activity.blogPost.title}
+									</a>
+								{:else}
+									<span class="text-base-content/50">Deleted post</span>
+								{/if}
+							</TableCell>
+							<TableCell class="text-base-content/70">
+								{formatPassedTime(activity.createdAt)}
+							</TableCell>
+						</TableRow>
+					{/each}
+				{/if}
+			</TableBody>
+		</Table>
 	</CardContent>
 
-	<CardFooter>
+	<CardFooter class="w-full flex-col items-stretch px-0">
 		<Pagination
 			itemsPerPage={itemsPerPage}
 			totalItems={totalFilteredItems}

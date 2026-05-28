@@ -7,6 +7,14 @@
 	import { CardContent, CardFooter } from '$lib/ui/card';
 	import { createPagination } from '$lib/ui/helpers/createPagination.svelte';
 	import { Pagination } from '$lib/ui/pagination';
+	import {
+		Root as Table,
+		Body as TableBody,
+		Cell as TableCell,
+		Head as TableHead,
+		Header as TableHeader,
+		Row as TableRow
+	} from '$lib/ui/table';
 	import BlogTopicUpsertModal from '$lib/ui/components/blog-manager/BlogTopicUpsertModal.svelte';
 	import { createSortedTopicChoices } from '$lib/blogs/utils/parentPathCreator';
 
@@ -63,7 +71,7 @@
 	}
 </script>
 
-<div class="mt-6 grid">
+<div class="mt-6 w-full">
 	<div class="flex w-full justify-between flex-wrap gap-4 items-center">
 		<BlogTopicUpsertModal
 			topic={undefined}
@@ -81,51 +89,36 @@
 		/>
 	</div>
 
-	<CardContent>
-		<div class="mt-6 table w-full table-auto">
-			<div class="table-header-group">
-				<div class="table-row text-sm">
-					<div class="table-cell h-10 whitespace-nowrap border-b-2 border-neutral-200 px-2 text-left align-middle font-medium">
-						Name
-					</div>
-					<div class="table-cell h-10 whitespace-nowrap border-b-2 border-neutral-200 px-2 text-left align-middle font-medium">
-						Description
-					</div>
-					<div class="table-cell h-10 whitespace-nowrap border-b-2 border-neutral-200 px-2 text-left align-middle font-medium">
-						Parent
-					</div>
-					<div class="table-cell h-10 w-28 border-b-2 border-neutral-200 px-2 text-left align-middle font-medium">
-						Edit/Delete
-					</div>
-				</div>
-			</div>
-
-			<div class="table-row-group">
+	<CardContent class="w-full px-0">
+		<Table containerClass="mt-6 w-full border border-base-300 rounded-xl bg-base-100">
+			<TableHeader>
+				<TableRow class="text-sm">
+					<TableHead>Name</TableHead>
+					<TableHead>Description</TableHead>
+					<TableHead>Parent</TableHead>
+					<TableHead class="w-28">Edit/Delete</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
 				{#if currentData.length === 0}
-					<div class="table-row">
-						<div
-							class="table-cell p-6 text-center text-base-content/60"
-							style="grid-column: 1 / -1;"
-						>
+					<TableRow>
+						<TableCell colspan={4} class="py-6 text-center text-base-content/60">
 							No topics found.
-						</div>
-					</div>
+						</TableCell>
+					</TableRow>
 				{:else}
 					{#each currentData as topic (topic.id)}
-						<div class="table-row h-auto">
-							<div class="table-cell content-center border-b-2 border-neutral-200 p-2 align-middle font-medium">
+						<TableRow class="h-auto">
+							<TableCell class="font-medium">
 								{topic.name}
-							</div>
-
-							<div class="table-cell content-center border-b-2 border-neutral-200 p-2 align-middle text-muted-foreground">
+							</TableCell>
+							<TableCell class="text-base-content/70">
 								{topic.description ? String(topic.description) : '—'}
-							</div>
-
-							<div class="table-cell content-center border-b-2 border-neutral-200 p-2 align-middle text-muted-foreground">
+							</TableCell>
+							<TableCell class="text-base-content/70">
 								{getParentLabel(topic)}
-							</div>
-
-							<div class="table-cell content-center border-b-2 border-neutral-200 p-2">
+							</TableCell>
+							<TableCell>
 								<div class="flex gap-2">
 									<BlogTopicUpsertModal
 										{topic}
@@ -134,7 +127,6 @@
 										{onTopicCreated}
 										{onTopicUpdated}
 									/>
-
 									<Button
 										variant="outline"
 										size="sm"
@@ -144,15 +136,15 @@
 										Delete
 									</Button>
 								</div>
-							</div>
-						</div>
+							</TableCell>
+						</TableRow>
 					{/each}
 				{/if}
-			</div>
-		</div>
+			</TableBody>
+		</Table>
 	</CardContent>
 
-	<CardFooter>
+	<CardFooter class="w-full flex-col items-stretch px-0">
 		<Pagination
 			itemsPerPage={itemsPerPage}
 			totalItems={totalFilteredItems}

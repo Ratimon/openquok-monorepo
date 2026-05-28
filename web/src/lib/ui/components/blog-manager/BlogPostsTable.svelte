@@ -6,6 +6,14 @@
 	import { CardContent, CardFooter } from '$lib/ui/card';
 	import { createPagination } from '$lib/ui/helpers/createPagination.svelte';
 	import { Pagination } from '$lib/ui/pagination';
+	import {
+		Root as Table,
+		Body as TableBody,
+		Cell as TableCell,
+		Head as TableHead,
+		Header as TableHeader,
+		Row as TableRow
+	} from '$lib/ui/table';
 	import FormattedISODate from '$lib/ui/components/FormattedISODate.svelte';
 	import SupabaseImage from '$lib/ui/supabase/SupabaseImage.svelte';
 
@@ -72,7 +80,7 @@
 	}
 </script>
 
-<div class="mt-6 grid">
+<div class="mt-6 w-full">
 	<div class="flex w-full justify-end">
 		<input
 			type="text"
@@ -82,109 +90,78 @@
 		/>
 	</div>
 
-	<CardContent>
-		<div class="grid">
-			<div class="mt-6 table w-full table-auto">
-				<div class="table-header-group">
-					<div class="table-row text-sm">
-						<div class="hidden h-10 w-24 border-b-2 border-base-300 px-2 text-left align-middle font-medium sm:table-cell">
-							
-						</div>
-						<div class="table-cell h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							Title
-						</div>
-						<div class="hidden h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium sm:table-cell">
-							Description
-						</div>
-						<div class="hidden h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium sm:table-cell">
-							Status
-						</div>
-						<div class="hidden h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium sm:table-cell">
-							Created
-						</div>
-						<div
-							class="table-cell h-10 min-w-[11rem] whitespace-nowrap border-b-2 border-base-300 px-2 text-left align-middle font-medium"
-						>
-							Actions
-						</div>
-					</div>
-				</div>
-
-				<div class="table-row-group">
-					{#if currentData.length === 0}
-						<div class="table-row">
-							<div class="table-cell p-6 text-center text-base-content/60" style="grid-column: 1 / -1;">
-								No posts found.
-							</div>
-						</div>
-					{:else}
-						{#each currentData as post (post.id)}
-							<div class="table-row h-auto">
-								<div class="hidden w-24 border-b-2 border-base-300 p-2 sm:table-cell">
-									{#if post.heroImageFilename}
-										<SupabaseImage
-											dbImageUrl={post.heroImageFilename}
-											database="blog_images"
-											width={900}
-											height={600}
-											class="relative inline h-12 w-24 overflow-hidden rounded-lg bg-base-200"
-										/>
-									{:else}
-										<div class="h-12 w-24 rounded-lg bg-base-200"></div>
-									{/if}
+	<CardContent class="w-full px-0">
+		<Table containerClass="mt-6 w-full border border-base-300 rounded-xl bg-base-100">
+			<TableHeader>
+				<TableRow class="text-sm">
+					<TableHead class="hidden w-24 sm:table-cell"></TableHead>
+					<TableHead>Title</TableHead>
+					<TableHead class="hidden sm:table-cell">Description</TableHead>
+					<TableHead class="hidden sm:table-cell">Status</TableHead>
+					<TableHead class="hidden sm:table-cell">Created</TableHead>
+					<TableHead class="min-w-[11rem]">Actions</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{#if currentData.length === 0}
+					<TableRow>
+						<TableCell colspan={6} class="py-6 text-center text-base-content/60">
+							No posts found.
+						</TableCell>
+					</TableRow>
+				{:else}
+					{#each currentData as post (post.id)}
+						<TableRow class="h-auto">
+							<TableCell class="hidden w-24 sm:table-cell">
+								{#if post.heroImageFilename}
+									<SupabaseImage
+										dbImageUrl={post.heroImageFilename}
+										database="blog_images"
+										width={900}
+										height={600}
+										class="relative inline h-12 w-24 overflow-hidden rounded-lg bg-base-200"
+									/>
+								{:else}
+									<div class="h-12 w-24 rounded-lg bg-base-200"></div>
+								{/if}
+							</TableCell>
+							<TableCell class="font-medium">
+								{post.title}
+							</TableCell>
+							<TableCell class="hidden overflow-hidden text-xs text-base-content/70 sm:table-cell">
+								{#if post.description}
+									{post.description.slice(0, 80)}{post.description.length > 80 ? '…' : ''}
+								{:else}
+									<span class="text-base-content/50">—</span>
+								{/if}
+							</TableCell>
+							<TableCell class="hidden sm:table-cell">
+								<span class={statusLabel(post).className}>{statusLabel(post).label}</span>
+							</TableCell>
+							<TableCell class="hidden text-sm text-base-content/70 sm:table-cell">
+								<FormattedISODate date={post.createdAt} />
+							</TableCell>
+							<TableCell>
+								<div class="flex flex-row flex-nowrap items-center gap-2">
+									<Button variant="outline" size="sm" href={getEditHref(post)}>Edit</Button>
+									<Button
+										variant="outline"
+										size="sm"
+										type="button"
+										onclick={() => openDeleteModal(post)}
+									>
+										Delete
+									</Button>
 								</div>
-
-								<div class="table-cell content-center border-b-2 border-base-300 p-2 align-middle font-medium">
-									{post.title}
-								</div>
-
-								<div class="hidden content-center overflow-hidden border-b-2 border-base-300 p-2 text-xs text-base-content/70 sm:table-cell">
-									{#if post.description}
-										{post.description.slice(0, 80)}{post.description.length > 80 ? '…' : ''}
-									{:else}
-										<span class="text-base-content/50">—</span>
-									{/if}
-								</div>
-
-								<div class="hidden content-center border-b-2 border-base-300 p-2 sm:table-cell">
-									<span class={statusLabel(post).className}>{statusLabel(post).label}</span>
-								</div>
-
-								<div class="hidden content-center whitespace-nowrap border-b-2 border-base-300 p-2 text-sm text-base-content/70 sm:table-cell">
-									<FormattedISODate date={post.createdAt} />
-								</div>
-
-								<div
-									class="table-cell content-center whitespace-nowrap border-b-2 border-base-300 p-2 align-middle"
-								>
-									<div class="flex flex-row flex-nowrap items-center gap-2">
-										<Button
-											variant="outline"
-											size="sm"
-											href={getEditHref(post)}
-										>
-											Edit
-										</Button>
-
-										<Button
-											variant="outline"
-											size="sm"
-											type="button"
-											onclick={() => openDeleteModal(post)}
-										>
-											Delete
-										</Button>
-									</div>
-								</div>
-							</div>
-						{/each}
-					{/if}
-				</div>
-			</div>
-		</div>
+							</TableCell>
+						</TableRow>
+					{/each}
+				{/if}
+			</TableBody>
+		</Table>
 	</CardContent>
 
-	<CardFooter>
+	<CardFooter class="w-full flex-col items-stretch px-0">
 		<Pagination
 			itemsPerPage={itemsPerPage}
 			totalItems={totalFilteredItems}

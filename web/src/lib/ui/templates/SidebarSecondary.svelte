@@ -69,7 +69,7 @@
 	</Sidebar.Root>
 
 	<Sidebar.Inset class="min-w-0 flex-1 overflow-auto pl-2 pr-6 py-6">
-		<div class={cn('w-full max-w-3xl space-y-8', centerContent && 'mx-auto')}>
+		<div class={cn('w-full space-y-8', centerContent && 'mx-auto max-w-3xl')}>
 			<h1 class="text-2xl font-bold text-base-content">
 				{sectionTitle}</h1>
 			{@render children?.()}

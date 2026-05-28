@@ -9,6 +9,14 @@
 	import { createPagination } from '$lib/ui/helpers/createPagination.svelte';
 	import { formatPassedTime } from '$lib/ui/helpers/common';
 	import { Pagination } from '$lib/ui/pagination';
+	import {
+		Root as Table,
+		Body as TableBody,
+		Cell as TableCell,
+		Head as TableHead,
+		Header as TableHeader,
+		Row as TableRow
+	} from '$lib/ui/table';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
@@ -67,7 +75,7 @@
 	}
 </script>
 
-<div class="mt-6 grid">
+<div class="mt-6 w-full">
 	<div class="flex w-full justify-end">
 		<input
 			type="text"
@@ -77,105 +85,83 @@
 		/>
 	</div>
 
-	<CardContent>
-		<div class="grid">
-			<div class="mt-6 table w-full table-auto">
-				<div class="table-header-group">
-					<div class="table-row text-sm">
-						<div class="table-cell h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							Content
-						</div>
-						<div class="table-cell h-10 whitespace-nowrap border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							Author
-						</div>
-						<div class="table-cell h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							Blog post
-						</div>
-						<div class="table-cell h-10 whitespace-nowrap border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							Date
-						</div>
-						<div class="table-cell h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							Status
-						</div>
-						<div class="table-cell h-10 w-24 border-b-2 border-base-300 px-2 text-left align-middle font-medium">
-							Actions
-						</div>
-					</div>
-				</div>
-
-				<div class="table-row-group">
-					{#if currentData.length === 0}
-						<div class="table-row">
-							<div class="table-cell p-6 text-center text-base-content/60" style="grid-column: 1 / -1;">
-								No comments found.
-							</div>
-						</div>
-					{:else}
-						{#each currentData as comment (comment.id)}
-							<div class="table-row h-auto">
-								<div class="table-cell content-center border-b-2 border-base-300 p-2 pr-4 align-middle">
-									{comment.content}
-								</div>
-								<div class="table-cell content-center whitespace-nowrap border-b-2 border-base-300 p-2 align-middle text-base-content/70">
-									{comment.author?.fullName ?? 'Anonymous'}
-								</div>
-								<div class="table-cell content-center border-b-2 border-base-300 p-2 align-middle">
-									{#if comment.blogPost}
-										<a
-											href={getPostHref(comment)}
-											class="text-base-content/70 hover:underline"
-										>
-											{comment.blogPost.title}
-										</a>
-									{:else}
-										<span class="text-base-content/50">Deleted post</span>
-									{/if}
-								</div>
-								<div class="table-cell content-center whitespace-nowrap border-b-2 border-base-300 p-2 align-middle text-base-content/70">
-									{formatPassedTime(comment.createdAt)}
-								</div>
-								<div class="table-cell content-center border-b-2 border-base-300 p-2 align-middle">
-									<span
-										class={comment.isApproved
-											? 'text-success'
-											: 'text-warning'}
-									>
-										{comment.isApproved ? 'Approved' : 'Pending'}
-									</span>
-								</div>
-								<div class="table-cell content-center border-b-2 border-base-300 p-2">
-									<div class="flex gap-2">
-										{#if !comment.isApproved}
-											<Button
-												variant="outline"
-												size="sm"
-												type="button"
-												disabled={busyApproveId !== null}
-												onclick={() => handleApprove(comment.id)}
-											>
-												<AbstractIcon name={icons.Check.name} class="size-4" width="16" height="16" />
-											</Button>
-										{/if}
-
+	<CardContent class="w-full px-0">
+		<Table containerClass="mt-6 w-full border border-base-300 rounded-xl bg-base-100">
+			<TableHeader>
+				<TableRow class="text-sm">
+					<TableHead class="whitespace-normal">Content</TableHead>
+					<TableHead>Author</TableHead>
+					<TableHead class="whitespace-normal">Blog post</TableHead>
+					<TableHead>Date</TableHead>
+					<TableHead>Status</TableHead>
+					<TableHead class="w-24">Actions</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{#if currentData.length === 0}
+					<TableRow>
+						<TableCell colspan={6} class="py-6 text-center text-base-content/60">
+							No comments found.
+						</TableCell>
+					</TableRow>
+				{:else}
+					{#each currentData as comment (comment.id)}
+						<TableRow class="h-auto">
+							<TableCell class="pr-4">
+								{comment.content}
+							</TableCell>
+							<TableCell class="text-base-content/70">
+								{comment.author?.fullName ?? 'Anonymous'}
+							</TableCell>
+							<TableCell>
+								{#if comment.blogPost}
+									<a href={getPostHref(comment)} class="text-base-content/70 hover:underline">
+										{comment.blogPost.title}
+									</a>
+								{:else}
+									<span class="text-base-content/50">Deleted post</span>
+								{/if}
+							</TableCell>
+							<TableCell class="text-base-content/70">
+								{formatPassedTime(comment.createdAt)}
+							</TableCell>
+							<TableCell>
+								<span class={comment.isApproved ? 'text-success' : 'text-warning'}>
+									{comment.isApproved ? 'Approved' : 'Pending'}
+								</span>
+							</TableCell>
+							<TableCell>
+								<div class="flex gap-2">
+									{#if !comment.isApproved}
 										<Button
 											variant="outline"
 											size="sm"
 											type="button"
-											onclick={() => openDeleteModal(comment)}
+											disabled={busyApproveId !== null}
+											onclick={() => handleApprove(comment.id)}
 										>
-											<AbstractIcon name={icons.Trash.name} class="size-4" width="16" height="16" />
+											<AbstractIcon name={icons.Check.name} class="size-4" width="16" height="16" />
 										</Button>
-									</div>
+									{/if}
+
+									<Button
+										variant="outline"
+										size="sm"
+										type="button"
+										onclick={() => openDeleteModal(comment)}
+									>
+										<AbstractIcon name={icons.Trash.name} class="size-4" width="16" height="16" />
+									</Button>
 								</div>
-							</div>
-						{/each}
-					{/if}
-				</div>
-			</div>
-		</div>
+							</TableCell>
+						</TableRow>
+					{/each}
+				{/if}
+			</TableBody>
+		</Table>
 	</CardContent>
 
-	<CardFooter>
+	<CardFooter class="w-full flex-col items-stretch px-0">
 		<Pagination
 			itemsPerPage={itemsPerPage}
 			totalItems={totalFilteredItems}

@@ -10,6 +10,14 @@
 	import FormattedISODate from '$lib/ui/components/FormattedISODate.svelte';
 	import { Pagination } from '$lib/ui/pagination';
 	import {
+		Root as Table,
+		Body as TableBody,
+		Cell as TableCell,
+		Head as TableHead,
+		Header as TableHeader,
+		Row as TableRow
+	} from '$lib/ui/table';
+	import {
 		Root as Select,
 		Content as SelectContent,
 		Item as SelectItem,
@@ -108,145 +116,114 @@
 	</div>
 
 	<CardContent>
-		<div class="grid">
-			<div class="mt-6 table w-full table-auto">
-				<div class="table-header-group">
-					<div class="table-row text-sm">
-						<div
-							class="table-cell h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium"
-						>
-							Email
-						</div>
-						<div
-							class="table-cell h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium"
-						>
-							Current Roles
-						</div>
-						<div
-							class="hidden h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium sm:table-cell"
-						>
-							Created
-						</div>
-						<div
-							class="table-cell h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium"
-						>
-							Assign Role
-						</div>
-						<div
-							class="table-cell h-10 border-b-2 border-base-300 px-2 text-left align-middle font-medium"
-						>
-							Remove Role
-						</div>
-					</div>
-				</div>
-
-				<div class="table-row-group">
-					{#each currentData as user}
-						<div class="table-row h-auto">
-							<div
-								class="table-cell content-center overflow-hidden border-b-2 border-base-300 p-2 text-sm"
+		<Table containerClass="mt-6 border border-base-300 rounded-xl bg-base-100">
+			<TableHeader>
+				<TableRow class="text-sm">
+					<TableHead>Email</TableHead>
+					<TableHead>Current Roles</TableHead>
+					<TableHead class="hidden sm:table-cell">Created</TableHead>
+					<TableHead>Assign Role</TableHead>
+					<TableHead>Remove Role</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{#each currentData as user}
+					<TableRow class="h-auto">
+						<TableCell class="overflow-hidden text-sm">
+							{user.email || '—'}
+						</TableCell>
+						<TableCell class="text-sm">
+							{#if user.roles.length === 0}
+								<span class="text-base-content/50">No roles</span>
+							{:else}
+								{user.roles.map((r) => formatRole(r)).join(', ')}
+							{/if}
+						</TableCell>
+						<TableCell class="hidden text-sm sm:table-cell">
+							<FormattedISODate date={user.createdAt} />
+						</TableCell>
+						<TableCell class="text-sm">
+							<Select
+								type="single"
+								value={undefined}
+								onValueChange={(value: string | undefined) => {
+									if (value) handleRoleSelection(user.id, value as AppRole);
+								}}
 							>
-								{user.email || '—'}
-							</div>
-
-							<div class="table-cell content-center border-b-2 border-base-300 p-2 text-sm">
-								{#if user.roles.length === 0}
-									<span class="text-base-content/50">No roles</span>
-								{:else}
-									{user.roles.map((r) => formatRole(r)).join(', ')}
-								{/if}
-							</div>
-
-							<div
-								class="hidden content-center border-b-2 border-base-300 p-2 align-middle text-sm sm:table-cell"
-							>
-								<FormattedISODate date={user.createdAt} />
-							</div>
-
-							<div class="table-cell content-center border-b-2 border-base-300 p-2 text-sm">
+								<SelectTrigger class="w-36 max-w-xs" size="sm">
+									<span>Assign Role</span>
+								</SelectTrigger>
+								<SelectContent>
+									{#each availableRoles as role}
+										<SelectItem value={role}>
+											{formatRole(role)}
+										</SelectItem>
+									{/each}
+								</SelectContent>
+							</Select>
+							{#if selectedUserRole && selectedUserRole.userId === user.id}
+								<ActionVerificationModal
+									data={selectedUserRole}
+									bind:open={modalOpen}
+									executionFunction={assignRolePresenter.execute}
+									status={assignRolePresenter.status}
+									showToastMessage={assignRolePresenter.showToastMessage}
+									toastMessage={assignRolePresenter.toastMessage}
+									buttonIconName={icons.UserCheck.name}
+									buttonText=""
+									modalTitle="Assign Role"
+									modalDescription={`Are you sure you want to assign the role "${formatRole(selectedUserRole.role)}" to ${user.email}?`}
+									modalVerficationWithAnswer={true}
+									modalVerificationAnswer="YES"
+									onSuccess={handleAssignModalSuccess}
+								/>
+							{/if}
+						</TableCell>
+						<TableCell class="text-sm">
+							{#if user.roles.length > 0}
 								<Select
 									type="single"
 									value={undefined}
 									onValueChange={(value: string | undefined) => {
-										if (value) handleRoleSelection(user.id, value as AppRole);
+										if (value) handleRoleRemovalSelection(user.id, value as AppRole);
 									}}
 								>
 									<SelectTrigger class="w-36 max-w-xs" size="sm">
-										<span>Assign Role</span>
+										<span>Remove Role</span>
 									</SelectTrigger>
 									<SelectContent>
-										{#each availableRoles as role}
+										{#each user.roles as role}
 											<SelectItem value={role}>
 												{formatRole(role)}
 											</SelectItem>
 										{/each}
 									</SelectContent>
 								</Select>
-								{#if selectedUserRole && selectedUserRole.userId === user.id}
+								{#if selectedUserRoleToRemove && selectedUserRoleToRemove.userId === user.id}
 									<ActionVerificationModal
-										data={selectedUserRole}
-										bind:open={modalOpen}
-										executionFunction={assignRolePresenter.execute}
-										status={assignRolePresenter.status}
-										showToastMessage={assignRolePresenter.showToastMessage}
-										toastMessage={assignRolePresenter.toastMessage}
-										buttonIconName={icons.UserCheck.name}
+										data={selectedUserRoleToRemove}
+										bind:open={removeModalOpen}
+										executionFunction={removeRolePresenter.execute}
+										status={removeRolePresenter.status}
+										showToastMessage={removeRolePresenter.showToastMessage}
+										toastMessage={removeRolePresenter.toastMessage}
+										buttonIconName={icons.X2.name}
 										buttonText=""
-										modalTitle="Assign Role"
-										modalDescription={`Are you sure you want to assign the role "${formatRole(selectedUserRole.role)}" to ${user.email}?`}
+										modalTitle="Remove Role"
+										modalDescription={`Are you sure you want to remove the role "${formatRole(selectedUserRoleToRemove.role)}" from ${user.email}?`}
 										modalVerficationWithAnswer={true}
 										modalVerificationAnswer="YES"
-										onSuccess={handleAssignModalSuccess}
+										onSuccess={handleRemoveModalSuccess}
 									/>
 								{/if}
-							</div>
-
-							<div class="table-cell content-center border-b-2 border-base-300 p-2 text-sm">
-								{#if user.roles.length > 0}
-									<Select
-										type="single"
-										value={undefined}
-										onValueChange={(value: string | undefined) => {
-											if (value) handleRoleRemovalSelection(user.id, value as AppRole);
-										}}
-									>
-										<SelectTrigger class="w-36 max-w-xs" size="sm">
-											<span>Remove Role</span>
-										</SelectTrigger>
-										<SelectContent>
-											{#each user.roles as role}
-												<SelectItem value={role}>
-													{formatRole(role)}
-												</SelectItem>
-											{/each}
-										</SelectContent>
-									</Select>
-									{#if selectedUserRoleToRemove && selectedUserRoleToRemove.userId === user.id}
-										<ActionVerificationModal
-											data={selectedUserRoleToRemove}
-											bind:open={removeModalOpen}
-											executionFunction={removeRolePresenter.execute}
-											status={removeRolePresenter.status}
-											showToastMessage={removeRolePresenter.showToastMessage}
-											toastMessage={removeRolePresenter.toastMessage}
-											buttonIconName={icons.X2.name}
-											buttonText=""
-											modalTitle="Remove Role"
-											modalDescription={`Are you sure you want to remove the role "${formatRole(selectedUserRoleToRemove.role)}" from ${user.email}?`}
-											modalVerficationWithAnswer={true}
-											modalVerificationAnswer="YES"
-											onSuccess={handleRemoveModalSuccess}
-										/>
-									{/if}
-								{:else}
-									<span class="text-base-content/50">—</span>
-								{/if}
-							</div>
-						</div>
-					{/each}
-				</div>
-			</div>
-		</div>
+							{:else}
+								<span class="text-base-content/50">—</span>
+							{/if}
+						</TableCell>
+					</TableRow>
+				{/each}
+			</TableBody>
+		</Table>
 	</CardContent>
 
 	<CardFooter>

@@ -7,6 +7,14 @@
 	import { cn } from '$lib/ui/helpers/common';
 	import { CardContent, CardFooter } from '$lib/ui/card';
 	import { Pagination } from '$lib/ui/pagination';
+	import {
+		Root as Table,
+		Body as TableBody,
+		Cell as TableCell,
+		Head as TableHead,
+		Header as TableHeader,
+		Row as TableRow
+	} from '$lib/ui/table';
 
 	type Props = {
 		feedbacksVm: FeedbackViewModel[];
@@ -51,81 +59,69 @@
 	</div>
 
 	<CardContent>
-		<div class="mt-4 overflow-x-auto border border-base-300 rounded-xl bg-base-100">
-			<table class="table table-zebra">
-				<thead>
-					<tr>
-						<th class="whitespace-nowrap">
-							Created</th>
-						<th class="whitespace-nowrap">
-							Type</th>
-						<th>
-							Description</th>
-						<th class="whitespace-nowrap">
-							URL</th>
-						<th class="whitespace-nowrap">
-							Email</th>
-						<th class="whitespace-nowrap text-right">
-							Handled</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#if currentData.length === 0}
-						<tr>
-							<td colspan={6} class="text-center text-base-content/60 py-10">
-								No feedback found.
-							</td>
-						</tr>
-					{:else}
-						{#each currentData as f (f.id)}
-							<tr
-								class={cn(
-									'h-auto',
-									f.isHandled && 'opacity-70'
-								)}
-							>
-								<td class="whitespace-nowrap text-xs text-base-content/70">
-									{formatDate(f.createdAt)}
-								</td>
-								<td class="whitespace-nowrap">
-									<span class="badge badge-ghost">{capitalize(f.feedbackType || 'unknown')}</span>
-								</td>
-								<td class="min-w-[22rem] max-w-[42rem]">
-									<div class="whitespace-pre-wrap break-words text-sm">
-										{f.description ?? '—'}</div>
-								</td>
-								<td class="max-w-[18rem]">
-									{#if f.url}
-										<a
-											class="link link-primary text-sm break-all"
-											href={f.url}
-											target="_blank"
-											rel="noreferrer"
-										>
-											{f.url}
-										</a>
-									{:else}
-										<span class="text-base-content/50">—</span>
-									{/if}
-								</td>
-								<td class="whitespace-nowrap text-sm text-base-content/80">
-									{f.email ?? '—'}
-								</td>
-								<td class="whitespace-nowrap text-right">
-									<input
-										type="checkbox"
-										class="toggle toggle-sm"
-										checked={f.isHandled}
-										onchange={(e) =>
-											handleToggle(f, (e.currentTarget as HTMLInputElement).checked)}
-									/>
-								</td>
-							</tr>
-						{/each}
-					{/if}
-				</tbody>
-			</table>
-		</div>
+		<Table class="table-zebra" containerClass="mt-4 border border-base-300 rounded-xl bg-base-100">
+			<TableHeader>
+				<TableRow>
+					<TableHead>Created</TableHead>
+					<TableHead>Type</TableHead>
+					<TableHead class="whitespace-normal">Description</TableHead>
+					<TableHead>URL</TableHead>
+					<TableHead>Email</TableHead>
+					<TableHead class="text-right">Handled</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{#if currentData.length === 0}
+					<TableRow>
+						<TableCell colspan={6} class="py-10 text-center text-base-content/60">
+							No feedback found.
+						</TableCell>
+					</TableRow>
+				{:else}
+					{#each currentData as f (f.id)}
+						<TableRow class={cn('h-auto', f.isHandled && 'opacity-70')}>
+							<TableCell class="text-xs text-base-content/70">
+								{formatDate(f.createdAt)}
+							</TableCell>
+							<TableCell>
+								<span class="badge badge-ghost">{capitalize(f.feedbackType || 'unknown')}</span>
+							</TableCell>
+							<TableCell class="min-w-[22rem] max-w-[42rem]">
+								<div class="whitespace-pre-wrap break-words text-sm">
+									{f.description ?? '—'}
+								</div>
+							</TableCell>
+							<TableCell class="max-w-[18rem]">
+								{#if f.url}
+									<a
+										class="link link-primary text-sm break-all"
+										href={f.url}
+										target="_blank"
+										rel="noreferrer"
+									>
+										{f.url}
+									</a>
+								{:else}
+									<span class="text-base-content/50">—</span>
+								{/if}
+							</TableCell>
+							<TableCell class="text-sm text-base-content/80">
+								{f.email ?? '—'}
+							</TableCell>
+							<TableCell class="text-right">
+								<input
+									type="checkbox"
+									class="toggle toggle-sm"
+									checked={f.isHandled}
+									onchange={(e) =>
+										handleToggle(f, (e.currentTarget as HTMLInputElement).checked)}
+								/>
+							</TableCell>
+						</TableRow>
+					{/each}
+				{/if}
+			</TableBody>
+		</Table>
 	</CardContent>
 
 	<CardFooter>
