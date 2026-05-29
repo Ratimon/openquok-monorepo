@@ -78,7 +78,14 @@ const aggregateMigrations = async () => {
         console.log(`   📄 Adding Migration: ${sqlFile}`)
         const filePath = path.join(modulePath, sqlFile)
         let fileContent = await fs.promises.readFile(filePath, "utf-8")
-        fileContent = fileContent.replace("BEGIN;", "").replace("COMMIT;", "")
+        // Strip only the module's outer transaction wrapper (keep mid-file COMMIT/BEGIN for enum safety, etc.).
+        fileContent = fileContent.trim()
+        if (fileContent.startsWith("BEGIN;")) {
+          fileContent = fileContent.slice("BEGIN;".length).trimStart()
+        }
+        if (fileContent.endsWith("COMMIT;")) {
+          fileContent = fileContent.slice(0, -"COMMIT;".length).trimEnd()
+        }
 
         // Push migration file data for global sorting
         migrationFiles.push({

@@ -15,7 +15,7 @@ BEGIN;
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Users
@@ -85,7 +85,7 @@ COMMENT ON COLUMN public.user_profiles.website_url IS 'User website URL (renamed
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Refresh Token
@@ -129,7 +129,7 @@ COMMENT ON COLUMN public.users.provider_id IS 'Provider-specific user id';
 -- Prefix 103 ensures this runs after user-management (101, creates users) and user-auth (102).
 -- user_organizations references public.users(id).
 
-
+BEGIN;
 
 -- ---------------------------
 -- Organization role (membership)
@@ -203,89 +203,6 @@ COMMENT ON TABLE public.organization_invites IS 'Pending workspace invites (by e
 -- ---------------------------
 
 
--- Module: organization, File: 104_20260520_workspace_role_owner.sql
--- ---------------------------
--- MODULE NAME: Organization
--- MODULE DATE: 20260520
--- MODULE SCOPE: Rename workspace role owner → owner
--- ---------------------------
-
-
-
-DO $$ BEGIN
-    ALTER TYPE public.workspace_membership_role ADD VALUE 'owner';
-EXCEPTION
-    WHEN duplicate_object THEN NULL;
-END $$;
-
-UPDATE public.user_organizations
-SET role = 'owner'::public.workspace_membership_role
-WHERE role = 'owner'::public.workspace_membership_role;
-
-CREATE OR REPLACE FUNCTION public.is_active_admin_or_owner_of_org(p_organization_id uuid, p_auth_id uuid)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.user_organizations uo
-    JOIN public.users u ON u.id = uo.user_id
-    WHERE uo.organization_id = p_organization_id
-      AND u.auth_id = p_auth_id
-      AND uo.disabled = FALSE
-      AND uo.role IN ('admin', 'owner')
-  );
-$$;
-
-CREATE OR REPLACE FUNCTION public.is_active_owner_of_org(p_organization_id uuid, p_auth_id uuid)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.user_organizations uo
-    JOIN public.users u ON u.id = uo.user_id
-    WHERE uo.organization_id = p_organization_id
-      AND u.auth_id = p_auth_id
-      AND uo.disabled = FALSE
-      AND uo.role = 'owner'
-  );
-$$;
-
-GRANT EXECUTE ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) TO service_role;
-GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO service_role;
-
-COMMENT ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) IS 'RLS helper: admin or owner membership (bypasses RLS inside).';
-COMMENT ON FUNCTION public.is_active_owner_of_org(uuid, uuid) IS 'RLS helper: owner membership (bypasses RLS inside).';
-
-
--- Module: organization, File: 104_20260529_drop_organizations_api_key.sql
--- ---------------------------
--- MODULE NAME: Organization
--- MODULE DATE: 20260529
--- MODULE SCOPE: Tables
--- ---------------------------
--- Remove legacy workspace API key column (programmatic auth uses OAuth app tokens only).
-
-
-
-DROP INDEX IF EXISTS public.idx_organizations_api_key;
-
-ALTER TABLE public.organizations DROP COLUMN IF EXISTS api_key;
-
--- ---------------------------
--- END OF FILE
--- ---------------------------
-
-
 -- Module: billing, File: 101_20260519_tables.sql
 -- ---------------------------
 -- MODULE NAME: Billing
@@ -293,7 +210,7 @@ ALTER TABLE public.organizations DROP COLUMN IF EXISTS api_key;
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
-
+BEGIN;
 
 DO $$ BEGIN
     CREATE TYPE public.subscription_tier AS ENUM ('SOLO', 'CREATOR', 'TEAM', 'ULTIMATE', 'MAX');
@@ -345,7 +262,7 @@ CREATE INDEX IF NOT EXISTS idx_organization_subscriptions_customer
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.media (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -381,7 +298,7 @@ COMMENT ON COLUMN public.media.type IS 'Logical media type label (e.g. image, vi
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.media_virtual_folders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -408,7 +325,7 @@ COMMENT ON COLUMN public.media_virtual_folders.path IS 'Normalized virtual path 
 -- OAuth apps + programmatic tokens tied to app/user/org.
 -- Tokens are stored as hashes; raw token is shown only at mint time.
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.oauth_apps (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -460,7 +377,7 @@ COMMENT ON COLUMN public.oauth_authorizations.access_token_hash IS 'SHA-256 hash
 -- Workspace-scoped channel groups (`integration_customers`).
 -- Runs before `integration` module `101_*` so `public.integrations` can declare FK to this table.
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.integration_customers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -488,7 +405,7 @@ COMMENT ON TABLE public.integration_customers IS
 -- Optional relations (plugs, posts, webhooks) are not modeled here yet — columns reserved where noted.
 -- `customer_id` FK requires `customer` module tables to run before this file (see MODULE_ORDER).
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.integrations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -543,7 +460,7 @@ COMMENT ON COLUMN public.integrations.posting_times IS 'JSON [{time:number}, ...
 -- Every row still scopes to exactly one integration (and redundantly stores organization_id for
 -- org-level queries / RLS, matching upstream organizationId + integrationId).
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.plugs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -560,7 +477,7 @@ COMMENT ON TABLE public.plugs IS 'Plugs`: org + integration FKs, plug_function, 
 COMMENT ON COLUMN public.plugs.organization_id IS 'Denormalized workspace scope.';
 COMMENT ON COLUMN public.plugs.integration_id IS 'Channel scope.';
 
-
+COMMIT;
 
 -- ---------------------------
 -- END OF FILE
@@ -576,11 +493,11 @@ COMMENT ON COLUMN public.plugs.integration_id IS 'Channel scope.';
 -- Drops unique (integration_id, plug_function) so channels can stack several rules of the same type
 -- (e.g. multiple auto-threshold replies). Identity is `plugs.id`.
 
-
+BEGIN;
 
 ALTER TABLE public.plugs DROP CONSTRAINT IF EXISTS uq_plugs_integration_function;
 
-
+COMMIT;
 
 -- ---------------------------
 -- END OF FILE
@@ -594,7 +511,7 @@ ALTER TABLE public.plugs DROP CONSTRAINT IF EXISTS uq_plugs_integration_function
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
-
+BEGIN;
 
 DO $$ BEGIN
     CREATE TYPE public.post_state AS ENUM ('QUEUE', 'PUBLISHED', 'ERROR', 'DRAFT');
@@ -674,7 +591,7 @@ COMMENT ON TABLE public.post_tag_assignments IS 'Join between posts and post_tag
 -- ---------------------------
 -- Thread replies / follow-up comments for social posts (scheduled publishing entities).
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.post_thread_replies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -710,7 +627,7 @@ COMMENT ON COLUMN public.post_thread_replies.state IS 'Publish state for this re
 -- ---------------------------
 -- Composer / preview comments on scheduled posts (internal discussion).
 
-
+BEGIN;
 
 -- FKs: organizations — db/organization; users — db/user-management; posts — db/post. Distinct from blog_comments.
 CREATE TABLE IF NOT EXISTS public.post_internal_comments (
@@ -739,7 +656,7 @@ COMMENT ON TABLE public.post_internal_comments IS 'Internal composer/preview com
 -- ---------------------------
 -- Runs after user-management (101). user_roles references public.users(id).
 
-
+BEGIN;
 
 -- ---------------------------
 -- App permission and role enums
@@ -811,7 +728,7 @@ COMMENT ON TABLE public.role_permissions IS 'Maps app roles to their permissions
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- MODULE CONFIGS
@@ -835,7 +752,7 @@ CREATE TABLE IF NOT EXISTS public.module_configs (
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.feedback (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -857,7 +774,7 @@ COMMENT ON TABLE public.feedback IS 'User feedback (propose, report, general). A
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Blog Topics Table
@@ -933,7 +850,7 @@ CREATE TABLE IF NOT EXISTS public.blog_activities (
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -958,7 +875,7 @@ COMMENT ON COLUMN public.notifications.link IS 'Optional deep link or URL relate
 -- ---------------------------
 -- Workspace-scoped presets (channel selections + composer snapshot JSON).
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.sets (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -973,7 +890,7 @@ COMMENT ON TABLE public.sets IS 'Workspace-scoped presets grouping channels and 
 COMMENT ON COLUMN public.sets.organization_id IS 'Owning workspace/organization.';
 COMMENT ON COLUMN public.sets.content IS 'Opaque composer snapshot JSON (client-defined schema version).';
 
-
+COMMIT;
 
 -- ---------------------------
 -- END OF FILE
@@ -988,7 +905,7 @@ COMMENT ON COLUMN public.sets.content IS 'Opaque composer snapshot JSON (client-
 -- ---------------------------
 -- Workspace-scoped signatures.
 
-
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.signatures (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1016,7 +933,7 @@ COMMENT ON COLUMN public.signatures.is_default IS 'When true, default signature 
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_users_auth_id ON public.users(auth_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
@@ -1054,7 +971,7 @@ WHERE provider IS NOT NULL AND provider_id IS NOT NULL;
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_user_organizations_user_id ON public.user_organizations(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_organizations_organization_id ON public.user_organizations(organization_id);
@@ -1076,7 +993,7 @@ CREATE INDEX IF NOT EXISTS idx_organization_invites_expires_at ON public.organiz
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_media_name ON public.media(name);
 CREATE INDEX IF NOT EXISTS idx_media_organization_id ON public.media(organization_id);
@@ -1099,7 +1016,7 @@ WHERE deleted_at IS NULL;
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_oauth_apps_org_id ON public.oauth_apps(organization_id);
 CREATE INDEX IF NOT EXISTS idx_oauth_apps_created_by_user_id ON public.oauth_apps(created_by_user_id);
@@ -1126,7 +1043,7 @@ CREATE INDEX IF NOT EXISTS idx_oauth_authorizations_authorization_code_hash ON p
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_integration_customers_organization_id
     ON public.integration_customers(organization_id);
@@ -1140,7 +1057,7 @@ CREATE INDEX IF NOT EXISTS idx_integration_customers_organization_id
 -- ---------------------------
 -- Indexes for common filters: organization, provider, lifecycle timestamps, flags.
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_integrations_organization_id ON public.integrations(organization_id);
 CREATE INDEX IF NOT EXISTS idx_integrations_provider_identifier ON public.integrations(provider_identifier);
@@ -1166,14 +1083,14 @@ CREATE INDEX IF NOT EXISTS idx_integrations_disabled ON public.integrations(disa
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_plugs_organization_id ON public.plugs(organization_id);
 CREATE INDEX IF NOT EXISTS idx_plugs_integration_id ON public.plugs(integration_id);
 CREATE INDEX IF NOT EXISTS idx_plugs_activated ON public.plugs(activated)
     WHERE activated = TRUE;
 
-
+COMMIT;
 
 -- ---------------------------
 -- END OF FILE
@@ -1188,7 +1105,7 @@ CREATE INDEX IF NOT EXISTS idx_plugs_activated ON public.plugs(activated)
 -- ---------------------------
 -- Mirrors common Post / Tags index patterns (group, publish window, org, state).
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_post_tags_org_id ON public.post_tags(org_id);
 CREATE INDEX IF NOT EXISTS idx_post_tags_deleted_at ON public.post_tags(deleted_at);
@@ -1215,7 +1132,7 @@ CREATE INDEX IF NOT EXISTS idx_posts_org_state ON public.posts(organization_id, 
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_post_thread_replies_org_id ON public.post_thread_replies(organization_id);
 CREATE INDEX IF NOT EXISTS idx_post_thread_replies_post_id ON public.post_thread_replies(post_id);
@@ -1236,7 +1153,7 @@ CREATE INDEX IF NOT EXISTS idx_post_thread_replies_created_at ON public.post_thr
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 -- public.post_internal_comments (composer / preview comments)
 CREATE INDEX IF NOT EXISTS idx_post_internal_comments_created_at ON public.post_internal_comments(created_at);
@@ -1281,7 +1198,7 @@ CREATE INDEX IF NOT EXISTS idx_feedback_created_at ON public.feedback(created_at
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Blog Posts Indexes
@@ -1325,7 +1242,7 @@ CREATE INDEX IF NOT EXISTS idx_blog_activities_created_at ON public.blog_activit
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_notifications_organization_id ON public.notifications(organization_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(created_at);
@@ -1340,11 +1257,11 @@ CREATE INDEX IF NOT EXISTS idx_users_last_read_notifications ON public.users(las
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_sets_organization_id ON public.sets(organization_id);
 
-
+COMMIT;
 
 -- ---------------------------
 -- END OF FILE
@@ -1358,7 +1275,7 @@ CREATE INDEX IF NOT EXISTS idx_sets_organization_id ON public.sets(organization_
 -- MODULE SCOPE: Indexes
 -- ---------------------------
 
-
+BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_signatures_organization_id ON public.signatures(organization_id);
 
@@ -1379,7 +1296,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_signatures_organization_default
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Helper: check super admin (bypasses RLS; used by config and other modules)
@@ -1599,7 +1516,7 @@ USING (bucket_id = 'avatars'::text);
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- refresh_tokens RLS
@@ -1659,7 +1576,7 @@ COMMENT ON COLUMN public.refresh_tokens.user_agent IS 'Browser/device informatio
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Grants
@@ -1910,7 +1827,7 @@ USING (
 -- MODULE SCOPE: RLS + grants
 -- ---------------------------
 
-
+BEGIN;
 
 ALTER TABLE public.organization_subscriptions ENABLE ROW LEVEL SECURITY;
 
@@ -1950,7 +1867,7 @@ CREATE POLICY organization_subscriptions_service_role_all
 -- ---------------------------
 -- API uses service_role; RLS limits direct authenticated access.
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.media TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.media TO service_role;
@@ -2043,7 +1960,7 @@ USING (
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.media_virtual_folders TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.media_virtual_folders TO service_role;
@@ -2131,7 +2048,7 @@ USING (
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Grants
@@ -2274,7 +2191,7 @@ WITH CHECK (
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.integration_customers TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.integration_customers TO service_role;
@@ -2363,7 +2280,7 @@ USING (
 -- ---------------------------
 -- API uses service_role; RLS limits direct authenticated access to tokens.
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.integrations TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.integrations TO service_role;
@@ -2457,14 +2374,14 @@ USING (
 -- Table privileges and enable RLS only. Policies that call `public.is_active_member_of_org`
 -- live in `402_*` (tier 4) so they run after `organization/401_*_functions.sql`.
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.plugs TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.plugs TO service_role;
 
 ALTER TABLE public.plugs ENABLE ROW LEVEL SECURITY;
 
-
+COMMIT;
 
 -- ---------------------------
 -- END OF FILE
@@ -2479,7 +2396,7 @@ ALTER TABLE public.plugs ENABLE ROW LEVEL SECURITY;
 -- ---------------------------
 -- API uses service_role; RLS limits direct authenticated access.
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tags TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_tags TO service_role;
@@ -2738,7 +2655,7 @@ USING (
 -- ---------------------------
 -- API uses service_role; RLS limits direct authenticated access.
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_thread_replies TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_thread_replies TO service_role;
@@ -2832,7 +2749,7 @@ USING (
 -- ---------------------------
 -- API uses service_role; RLS limits direct authenticated access.
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_internal_comments TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_internal_comments TO service_role;
@@ -2927,7 +2844,7 @@ USING (
 -- Runs after user-management/301 so public.is_super_admin(uuid) exists.
 -- openquok: public.users.id is PK; users.auth_id = auth.uid() for current user.
 
-
+BEGIN;
 
 GRANT USAGE ON TYPE public.app_role TO authenticated;
 GRANT USAGE ON TYPE public.app_permission TO authenticated;
@@ -2994,7 +2911,7 @@ CREATE POLICY "Super admins can manage role permissions"
 -- Runs after user-management/301 so public.is_super_admin(uuid) exists.
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- ADMIN MODULE CONFIGURATION
@@ -3050,7 +2967,7 @@ USING (public.is_super_admin(auth.uid()));
 -- Runs after user-management/300 so public.is_super_admin(uuid) exists.
 -- Anyone can insert. Select/update/delete: super_admin or user with admin/support app role (support handles feedback; editor is blog-only).
 
-
+BEGIN;
 
 GRANT SELECT, INSERT ON public.feedback TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.feedback TO authenticated;
@@ -3111,7 +3028,7 @@ CREATE POLICY "Super admin admins support can delete feedback"
 -- MODULE SCOPE: Row Level Security and Grants
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Enable Row Level Security
@@ -3417,7 +3334,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO service_role;
@@ -3505,7 +3422,7 @@ USING (
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.sets TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.sets TO service_role;
@@ -3585,7 +3502,7 @@ USING (
     )
 );
 
-
+COMMIT;
 
 -- ---------------------------
 -- END OF FILE
@@ -3600,7 +3517,7 @@ USING (
 -- ---------------------------
 -- Same membership pattern as post_tags / posts (organization_id scope).
 
-
+BEGIN;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.signatures TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.signatures TO service_role;
@@ -3692,7 +3609,7 @@ USING (
 -- MODULE SCOPE: Functions
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- (handle_new_user lives in user-auth)
@@ -3893,7 +3810,7 @@ COMMENT ON FUNCTION public.internal_create_refresh_token IS 'Insert refresh toke
 -- MODULE SCOPE: Functions
 -- ---------------------------
 
-
+BEGIN;
 
 -- Sync auth.users -> public.users: OAuth and email-confirm flows set email_confirmed_at in auth;
 -- public.users.is_email_verified must match so password sign-in and app policy stay consistent.
@@ -3937,7 +3854,7 @@ WHERE u.auth_id = a.id
 -- These SECURITY DEFINER functions read membership with owner privileges so RLS does not
 -- re-enter the same policy.
 
-
+BEGIN;
 
 CREATE OR REPLACE FUNCTION public.is_active_member_of_org(p_organization_id uuid, p_auth_id uuid)
 RETURNS boolean
@@ -4229,83 +4146,6 @@ COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, t
     'Create organization and add founding user as owner (bypasses RLS); billing flags supplied by API layer.';
 
 
--- Module: organization, File: 402_20260529_internal_create_org_without_api_key.sql
--- ---------------------------
--- MODULE NAME: organization
--- MODULE DATE: 20260529
--- MODULE SCOPE: Functions
--- ---------------------------
--- Recreate workspace creation RPC without legacy api_key parameter.
-
-
-
-DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text);
-DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean);
-
-CREATE OR REPLACE FUNCTION public.internal_create_organization_with_owner(
-    p_user_id uuid,
-    p_name text,
-    p_description text,
-    p_allow_trial boolean DEFAULT TRUE,
-    p_is_trialing boolean DEFAULT TRUE
-)
-RETURNS TABLE (
-    id uuid,
-    name text,
-    description text,
-    created_at timestamptz,
-    updated_at timestamptz
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-    v_org_id uuid;
-    v_name text;
-BEGIN
-    v_name := trim(p_name);
-    IF v_name IS NULL OR v_name = '' THEN
-        RAISE EXCEPTION 'Organization name is required';
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM public.users u WHERE u.id = p_user_id) THEN
-        RAISE EXCEPTION 'User not found';
-    END IF;
-
-    INSERT INTO public.organizations (
-        name,
-        description,
-        allow_trial,
-        is_trialing,
-        updated_at
-    )
-    VALUES (
-        v_name,
-        NULLIF(trim(COALESCE(p_description, '')), ''),
-        COALESCE(p_allow_trial, TRUE),
-        COALESCE(p_is_trialing, TRUE),
-        NOW()
-    )
-    RETURNING organizations.id INTO v_org_id;
-
-    INSERT INTO public.user_organizations (user_id, organization_id, role, disabled, updated_at)
-    VALUES (p_user_id, v_org_id, 'owner', FALSE, NOW());
-
-    RETURN QUERY
-    SELECT o.id, o.name, o.description, o.created_at, o.updated_at
-    FROM public.organizations o
-    WHERE o.id = v_org_id;
-END;
-$$;
-
-REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) TO service_role;
-
-COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) IS
-    'Create organization and add founding user as owner (bypasses RLS); billing flags supplied by API layer.';
-
-
 -- Module: billing, File: 401_20260525_functions.sql
 -- ---------------------------
 -- MODULE NAME: Billing
@@ -4314,7 +4154,7 @@ COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, t
 -- ---------------------------
 -- Server-side subscription sync bypasses RLS (same pattern as workspace creation).
 
-
+BEGIN;
 
 DROP FUNCTION IF EXISTS public.internal_upsert_organization_subscription(
     uuid,
@@ -4479,7 +4319,7 @@ COMMENT ON FUNCTION public.internal_upsert_organization_subscription(
 -- Existing DBs may still have the older RETURNS TABLE; `CREATE OR REPLACE` cannot change OUT
 -- types (42P13), so drop first when upgrading.
 
-
+BEGIN;
 
 DROP FUNCTION IF EXISTS public.internal_list_integrations_by_org(uuid);
 
@@ -4556,7 +4396,7 @@ COMMENT ON FUNCTION public.internal_list_integrations_by_org(uuid) IS
 -- before integration in the same scope tier, and PostgreSQL rejects CREATE OR REPLACE when
 -- the RETURNS TABLE row shape would change.
 
-
+BEGIN;
 
 CREATE OR REPLACE FUNCTION public.internal_get_integration_by_org_and_id(
     p_organization_id uuid,
@@ -4619,7 +4459,7 @@ COMMENT ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) IS
 -- Replace membership checks with public.is_active_member_of_org (see organization 401)
 -- to avoid RLS recursion when policies scan user_organizations.
 
-
+BEGIN;
 
 DROP POLICY IF EXISTS "Members can view integrations" ON public.integrations;
 CREATE POLICY "Members can view integrations"
@@ -4665,7 +4505,7 @@ USING (public.is_active_member_of_org(integrations.organization_id, auth.uid()))
 -- Plug module defines no SQL functions yet; add `401_*_functions.sql` here when needed.
 -- Same layering as integration: `301_*` = grants + enable RLS; `402_*` = membership-aware policies.
 
-
+BEGIN;
 
 DROP POLICY IF EXISTS "Members can view plugs" ON public.plugs;
 CREATE POLICY "Members can view plugs"
@@ -4700,7 +4540,7 @@ FOR DELETE
 TO authenticated
 USING (public.is_active_member_of_org(plugs.organization_id, auth.uid()));
 
-
+COMMIT;
 
 -- ---------------------------
 -- END OF FILE
@@ -4889,7 +4729,7 @@ GRANT EXECUTE ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) T
 -- MODULE SCOPE: Functions
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Update Updated At Function
@@ -5113,7 +4953,7 @@ CREATE TRIGGER update_blog_post_like_count_trigger
 -- Replace membership checks with public.is_active_member_of_org (see organization 401)
 -- to avoid RLS recursion when policies scan user_organizations.
 
-
+BEGIN;
 
 DROP POLICY IF EXISTS "Members can view notifications" ON public.notifications;
 CREATE POLICY "Members can view notifications"
@@ -5156,7 +4996,7 @@ USING (public.is_active_member_of_org(notifications.organization_id, auth.uid())
 -- MODULE SCOPE: Seed
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Avatars
@@ -5199,7 +5039,7 @@ ON CONFLICT (id) DO NOTHING;
 -- MODULE SCOPE: Seed
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- User Auth Config (optional: ensure module_configs exists)
@@ -5238,7 +5078,7 @@ ON CONFLICT (role, permission) DO NOTHING;
 -- MODULE SCOPE: Seed
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Company Information Config
@@ -5340,7 +5180,7 @@ ON CONFLICT (module_name) DO NOTHING;
 -- MODULE SCOPE: Initial Data
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Create Blog Images Bucket
@@ -5459,7 +5299,7 @@ ON CONFLICT (module_name) DO NOTHING;
 -- MODULE SCOPE: Cron Jobs
 -- ---------------------------
 
-
+BEGIN;
 
 -- ---------------------------
 -- Install pg_cron Extension
