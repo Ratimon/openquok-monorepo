@@ -231,9 +231,9 @@ export class GetPublicPricingPresenter {
 	public listPlanLimitsPm(): Record<PaidSubscriptionTier, PlanLimits> {
 		return {
 			SOLO: pricing.SOLO,
-			CREATOR: pricing.CREATOR,
 			TEAM: pricing.TEAM,
-			ULTIMATE: pricing.ULTIMATE
+			ULTIMATE: pricing.ULTIMATE,
+			MAX: pricing.MAX
 		};
 	}
 }

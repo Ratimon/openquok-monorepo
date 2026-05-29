@@ -105,9 +105,9 @@ export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanF
 export function tierDisplayName(tier: string): string {
 	if (tier === 'FREE') return 'Free';
 	if (tier === 'SOLO') return 'Solo';
-	if (tier === 'CREATOR') return 'Creator';
 	if (tier === 'TEAM') return 'Team';
 	if (tier === 'ULTIMATE') return 'Ultimate';
+	if (tier === 'MAX') return '10x Max';
 	return tier;
 }
 

@@ -1,7 +1,7 @@
 import { PAID_SUBSCRIPTION_TIERS, type PaidSubscriptionTier, type SubscriptionPeriod } from "openquok-common";
 
 import { getEnvTrimmed } from "./envHelper";
-import { stripePriceEnvKey } from "./stripePriceEnv.js";
+import { stripePriceEnvKey } from "./stripePriceEnv";
 
 export type StripePriceIdMap = Record<
     PaidSubscriptionTier,

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import supertest from "supertest";
 import { v4 as uuidv4 } from "uuid";
 import type Stripe from "stripe";
-import { pricing, type PaidSubscriptionTier, type SubscriptionPeriod } from "openquok-common";
+import { PAID_SUBSCRIPTION_TIERS, pricing, type PaidSubscriptionTier, type SubscriptionPeriod } from "openquok-common";
 
 import { app } from "../../../app";
 import { config } from "../../../config/GlobalConfig";
@@ -77,9 +77,8 @@ export function hasStripeBillingE2eConfig(): boolean {
     const stripe = config.stripe as { secretKey?: string; publishableKey?: string; priceIds?: StripePriceIdMap };
     if (!stripe.secretKey?.trim() || !stripe.publishableKey?.trim()) return false;
     const priceIds = stripe.priceIds ?? ({} as StripePriceIdMap);
-    return Boolean(
-        configuredStripePriceId(priceIds, "SOLO", "MONTHLY") &&
-            configuredStripePriceId(priceIds, "CREATOR", "MONTHLY")
+    return PAID_SUBSCRIPTION_TIERS.every((tier) =>
+        Boolean(configuredStripePriceId(priceIds, tier, "MONTHLY"))
     );
 }
 

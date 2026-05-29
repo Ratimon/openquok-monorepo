@@ -34,7 +34,7 @@
 	let { companyName = 'Openquok' }: Props = $props();
 
 	let period = $state<SubscriptionPeriod>('MONTHLY');
-	let selectedTier = $state<PaidSubscriptionTier>('CREATOR');
+	let selectedTier = $state<PaidSubscriptionTier>('TEAM');
 	let checkoutSecret = $state<string | null>(null);
 	let checkoutLoading = $state(false);
 	let checkoutLoadFailed = $state(false);

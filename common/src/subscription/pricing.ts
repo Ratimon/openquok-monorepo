@@ -34,10 +34,9 @@ export const DEFAULT_MEDIA_STORAGE_QUOTA_BYTES = gbToBytes(5);
  *
  * Storage notes (per workspace, all members share one pool):
  * - SOLO 5 GiB @ $29: ~$5.8/GiB — fine for one person, image-heavy social use.
- * - CREATOR 10 GiB @ $39: step-up for 2 workspaces / more accounts.
- * - TEAM 15 GiB @ $49: ~3 GiB per workspace if split evenly — OK for mixed media;
- *   video-heavy teams may need a higher tier or add-on later.
- * - ULTIMATE 30 GiB @ $99: ~6 GiB per workspace at 5 workspaces — strong for agencies.
+ * - TEAM 15 GiB @ $49: ~3 GiB per workspace if split evenly — OK for mixed media.
+ * - ULTIMATE 25 GiB @ $69: ~5 GiB per workspace at 5 workspaces — strong for multi-brand use.
+ * - MAX 60 GiB @ $129: ~6 GiB per workspace at 10 workspaces — agencies and high-scale agents.
  */
 export const pricing: PricingMap = {
 	FREE: {
@@ -61,46 +60,60 @@ export const pricing: PricingMap = {
 		channel_per_workspace: 15,
 		posts_per_month: 500,
 		team_members_per_workspace: 1,
-		media_storage_bytes_per_workspace: gbToBytes(5), // total of 5 GiB
+		media_storage_bytes_per_workspace: gbToBytes(5),
 		share_post_preview: false,
 		community_features: true,
 		public_api: true,
 	},
-	CREATOR: {
-		current: 'CREATOR',
-		month_price: 39,
-		year_price: 374,
-		workspaces: 2,
-		channel_per_workspace: 20, // total of 40 channels
-		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
-		team_members_per_workspace: 3, // total of 6 team members 
-		media_storage_bytes_per_workspace: gbToBytes(5), // total of 10 GiB
-		share_post_preview: true,
-		community_features: true,
-		public_api: true,
-	},
+	/** Legacy tier — no longer sold; limits preserved for grandfathered subscriptions. */
+	// CREATOR: {
+	// 	current: 'CREATOR',
+	// 	month_price: 39,
+	// 	year_price: 374,
+	// 	workspaces: 2,
+	// 	channel_per_workspace: 20,
+	// 	posts_per_month: UNLIMITED_POSTS_PER_MONTH,
+	// 	team_members_per_workspace: 3,
+	// 	media_storage_bytes_per_workspace: gbToBytes(5),
+	// 	share_post_preview: true,
+	// 	community_features: true,
+	// 	public_api: true,
+	// },
 	TEAM: {
 		current: 'TEAM',
 		month_price: 49,
 		year_price: 470,
 		workspaces: 3,
-		channel_per_workspace: 25, // total of 75 channels
+		channel_per_workspace: 20, // total of 60 channls
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
-		team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
-		media_storage_bytes_per_workspace: gbToBytes(5), // total of 15 GiB
+		team_members_per_workspace: 5,
+		media_storage_bytes_per_workspace: gbToBytes(5),
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,
 	},
 	ULTIMATE: {
 		current: 'ULTIMATE',
+		month_price: 69,
+		year_price: 662,
+		workspaces: 5,
+		channel_per_workspace: 25, // total of 125 channels
+		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
+		team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
+		media_storage_bytes_per_workspace: gbToBytes(5),
+		share_post_preview: true,
+		community_features: true,
+		public_api: true,
+	},
+	MAX: {
+		current: 'MAX',
 		month_price: 129,
 		year_price: 1238,
 		workspaces: 10,
-		channel_per_workspace: 30, // total of 300 channels
+		channel_per_workspace: 30,
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
 		team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
-		media_storage_bytes_per_workspace: gbToBytes(6), // total of 30 GiB
+		media_storage_bytes_per_workspace: gbToBytes(6),
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,

@@ -279,7 +279,7 @@ COMMENT ON FUNCTION public.is_active_owner_of_org(uuid, uuid) IS 'RLS helper: ow
 
 
 DO $$ BEGIN
-    CREATE TYPE public.subscription_tier AS ENUM ('SOLO', 'CREATOR', 'TEAM', 'ULTIMATE');
+    CREATE TYPE public.subscription_tier AS ENUM ('SOLO', 'CREATOR', 'TEAM', 'ULTIMATE', 'MAX');
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;

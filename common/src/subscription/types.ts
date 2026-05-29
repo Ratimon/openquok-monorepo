@@ -1,10 +1,10 @@
 /** All subscription tiers; FREE is implicit when no `organization_subscriptions` row exists. */
-export const SUBSCRIPTION_TIERS = ['FREE', 'SOLO', 'CREATOR', 'TEAM', 'ULTIMATE'] as const;
+export const SUBSCRIPTION_TIERS = ['FREE', 'SOLO', 'TEAM', 'ULTIMATE', 'MAX'] as const;
 
 export type SubscriptionTier = (typeof SUBSCRIPTION_TIERS)[number];
 
-/** Tiers that may be persisted on an active paid subscription. */
-export const PAID_SUBSCRIPTION_TIERS = ['SOLO', 'CREATOR', 'TEAM', 'ULTIMATE'] as const satisfies readonly Exclude<
+/** Tiers that may be purchased or selected on checkout. */
+export const PAID_SUBSCRIPTION_TIERS = ['SOLO', 'TEAM', 'ULTIMATE', 'MAX'] as const satisfies readonly Exclude<
 	SubscriptionTier,
 	'FREE'
 >[];

@@ -1,5 +1,5 @@
-import type { PaidSubscriptionTier } from 'openquok-common';
-import { PAID_SUBSCRIPTION_TIERS } from 'openquok-common';
+import type { PaidSubscriptionTier } from './types.js';
+import { PAID_SUBSCRIPTION_TIERS } from './types.js';
 
 /** Paid tiers in display order (left → right on the pricing page). */
 export const PUBLIC_PRICING_TIER_ORDER = PAID_SUBSCRIPTION_TIERS;
@@ -20,14 +20,14 @@ export const PUBLIC_PRICING_PLAN_META: Record<PaidSubscriptionTier, PublicPricin
 	},
 	TEAM: {
 		tagline: 'Best for growing teams and businesses',
-		compareFootnote: '5 members per workspace'
+		compareFootnote: '5 team members per workspace'
 	},
 	ULTIMATE: {
-		tagline: 'Best for manage multiple brands and AI agents',
-		compareFootnote: 'Unlimited posts and members'
+		tagline: 'Best for scaling multiple brands and AI agents',
+		compareFootnote: 'Unlimited team members'
 	},
 	MAX: {
-		tagline: 'Best for scalling by heavy users running tons of AI agents'
+		tagline: 'Best for Heavy Users running tons of AI agents'
 	}
 };
 
@@ -221,6 +221,7 @@ export type PublicPricingFaqItem = {
 	description: string;
 };
 
+
 export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 	{
 		title: 'Can I try OpenQuok for free?',
@@ -235,7 +236,7 @@ export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 	{
 		title: 'Can I get a refund?',
 		description:
-			'With in 1 month, you can get a refund if you have not used the product during a billing period. If you have used the product during a billing period, contact support and we will work with you on a fair resolution. Self-hosted deployments follow your own billing policies.'
+			'If you have not used the product during a billing period, contact support and we will work with you on a fair resolution. Self-hosted deployments follow your own billing policies.'
 	},
 	{
 		title: 'Can I change plans later?',
@@ -287,4 +288,5 @@ export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 		description:
 			'The Group management feature let you organize connected channels by client, brand, or any structure you like—making it simple to manage multiple clients or keep personal and business accounts separate. This can be selected to create post later or used by smart filters.'
 	}
+
 ];

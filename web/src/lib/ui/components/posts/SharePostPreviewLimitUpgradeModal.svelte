@@ -25,7 +25,7 @@
 			<Dialog.Title>Upgrade for shareable previews</Dialog.Title>
 			<Dialog.Description>
 				Shareable post preview links and collaboration comments are not included on your current
-				plan. Upgrade to Creator or higher to open previews from the post menu and invite feedback on
+				plan. Upgrade to Team or higher to open previews from the post menu and invite feedback on
 				share links.
 			</Dialog.Description>
 		</Dialog.Header>

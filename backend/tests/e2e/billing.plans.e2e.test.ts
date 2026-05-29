@@ -1,4 +1,5 @@
 import supertest from "supertest";
+import { PAID_SUBSCRIPTION_TIERS, pricing } from "openquok-common";
 
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
@@ -93,22 +94,31 @@ describeIfSupabase("Billing plans (API)", () => {
         const session = await signUpSession();
 
         const { status, price } = await postBillingProrate(session, {
-            billing: "CREATOR",
+            billing: "TEAM",
             period: "MONTHLY",
         });
         expect(status).toBe(200);
         expect(price).toBe(0);
     });
 
-    it("GET /billing/plans exposes tier catalog when billing is configured", async () => {
+    it("GET /billing/plans exposes paid tier catalog when billing is configured", async () => {
         const session = await signUpSession();
 
         const plansRes = await billingGet(app, session, `${billingPath}/plans`);
         expect(plansRes.status).toBe(200);
-        expect(Array.isArray(plansRes.body?.data?.tiers)).toBe(true);
-        expect(plansRes.body?.data?.tiers?.map((t: { tier: string }) => t.tier)).toEqual(
-            expect.arrayContaining(["SOLO", "CREATOR", "TEAM", "ULTIMATE"])
-        );
+        const tiers = plansRes.body?.data?.tiers as Array<{
+            tier: string;
+            monthPrice: number;
+            yearPrice: number;
+        }>;
+        expect(Array.isArray(tiers)).toBe(true);
+
+        for (const paidTier of PAID_SUBSCRIPTION_TIERS) {
+            const row = tiers.find((plan) => plan.tier === paidTier);
+            expect(row).toBeDefined();
+            expect(row?.monthPrice).toBe(pricing[paidTier].month_price);
+            expect(row?.yearPrice).toBe(pricing[paidTier].year_price);
+        }
 
         const meRes = await supertest(app)
             .get(`${usersPath}/me`)
@@ -176,7 +186,7 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
         expect(currentRes.body?.data?.billing?.isTrialing).toBe(true);
 
         const { price: upgradeWhileTrial } = await postBillingProrate(session, {
-            billing: "CREATOR",
+            billing: "TEAM",
             period: "MONTHLY",
         });
         expect(upgradeWhileTrial).toBe(0);
@@ -208,13 +218,13 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
                 session,
                 fixture: stripeFixture,
                 fromTier: "SOLO",
-                target: { billing: "CREATOR", period: "MONTHLY" },
+                target: { billing: "TEAM", period: "MONTHLY" },
                 startDays: 8,
                 stepDays: 4,
                 maxDays: 28,
             });
         assertPayTodayProrate({
-            label: "SOLO → CREATOR after trial (mid-cycle upgrade)",
+            label: "SOLO → TEAM after trial (mid-cycle upgrade)",
             breakdown: upgradeBreakdown,
             apiPayTodayUsd: upgradePayToday,
             greaterThan: 0,
@@ -231,7 +241,7 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
             payTodayUsd: upgradeBreakdown.payTodayUsd,
             stripeRawUsd: upgradeBreakdown.rawPayTodayUsd,
             linearEstimateUsd: upgradeBreakdown.linearEstimateUsd,
-            catalogFromTo: "$29 → $39",
+            catalogFromTo: "$29 → $49",
             stripeFromTo: `$${upgradeBreakdown.fromStripeMonthlyUsd} → $${upgradeBreakdown.toStripeMonthlyUsd}`,
             daysRemaining: expect.any(Number),
             daysInPeriod: expect.any(Number),
@@ -251,13 +261,13 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
                 session,
                 fixture: stripeFixture,
                 fromTier: "SOLO",
-                target: { billing: "CREATOR", period: "MONTHLY" },
+                target: { billing: "TEAM", period: "MONTHLY" },
                 startDays: 10,
                 stepDays: 5,
                 maxDays: 30,
             });
         assertPayTodayProrate({
-            label: "SOLO → CREATOR mid-cycle (before subscribe)",
+            label: "SOLO → TEAM mid-cycle (before subscribe)",
             breakdown: upgradeBreakdown,
             apiPayTodayUsd: upgradePayToday,
             greaterThan: 0,
@@ -266,21 +276,21 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
             upgradePayTodayUsd: upgradePayToday,
             upgradeStripeRawUsd: upgradeBreakdown.rawPayTodayUsd,
             upgradeLinearEstimateUsd: upgradeBreakdown.linearEstimateUsd,
-            catalogFromTo: "$29 → $39",
+            catalogFromTo: "$29 → $49",
         }).toEqual({
             upgradePayTodayUsd: upgradeBreakdown.payTodayUsd,
             upgradeStripeRawUsd: upgradeBreakdown.rawPayTodayUsd,
             upgradeLinearEstimateUsd: upgradeBreakdown.linearEstimateUsd,
-            catalogFromTo: "$29 → $39",
+            catalogFromTo: "$29 → $49",
         });
 
-        const creatorPriceId = stripePriceIdForTier("CREATOR", "MONTHLY");
+        const teamPriceId = stripePriceIdForTier("TEAM", "MONTHLY");
         const subscribeRes = await billingPost(app, session, `${billingPath}/subscribe`)
             .send({
                 organizationId: session.organizationId,
                 period: "MONTHLY",
-                billing: "CREATOR",
-                stripePriceId: creatorPriceId,
+                billing: "TEAM",
+                stripePriceId: teamPriceId,
             });
         expect(subscribeRes.status).toBe(200);
         expect(subscribeRes.body?.data?.updated).toBe(true);
@@ -289,11 +299,11 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
 
         const currentRes = await billingGet(app, session, `${billingPath}/current`);
         expect(currentRes.status).toBe(200);
-        expect(currentRes.body?.data?.tier).toBe("CREATOR");
+        expect(currentRes.body?.data?.tier).toBe("TEAM");
 
         const downgradeBreakdown = await buildProrationBreakdown({
             fixture: stripeFixture,
-            fromTier: "CREATOR",
+            fromTier: "TEAM",
             toTier: "SOLO",
             period: "MONTHLY",
         });
@@ -302,7 +312,7 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
             period: "MONTHLY",
         });
         assertPayTodayProrate({
-            label: "CREATOR → SOLO mid-cycle (downgrade preview)",
+            label: "TEAM → SOLO mid-cycle (downgrade preview)",
             breakdown: downgradeBreakdown,
             apiPayTodayUsd: downgradePayToday,
             lessThan: upgradePayToday,
@@ -318,22 +328,22 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
             upgradePayTodayUsd: expect.any(Number),
             downgradePayTodayUsd: downgradeBreakdown.payTodayUsd,
             downgradeStripeRawUsd: downgradeBreakdown.rawPayTodayUsd,
-            catalogDeltaUsd: -10,
+            catalogDeltaUsd: -20,
         });
         expect(downgradePayToday).toBeLessThan(upgradePayToday);
 
         const sameTierBreakdown = await buildProrationBreakdown({
             fixture: stripeFixture,
-            fromTier: "CREATOR",
-            toTier: "CREATOR",
+            fromTier: "TEAM",
+            toTier: "TEAM",
             period: "MONTHLY",
         });
         const { price: sameTierPayToday } = await postBillingProrate(session, {
-            billing: "CREATOR",
+            billing: "TEAM",
             period: "MONTHLY",
         });
         assertPayTodayProrate({
-            label: "CREATOR → CREATOR (no plan change)",
+            label: "TEAM → TEAM (no plan change)",
             breakdown: sameTierBreakdown,
             apiPayTodayUsd: sameTierPayToday,
         });
@@ -368,13 +378,13 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
         expect(currentScheduled.status).toBe(200);
         expect(currentScheduled.body?.data?.subscription?.cancel_at).toBeTruthy();
 
-        const creatorPriceId = stripePriceIdForTier("CREATOR", "MONTHLY");
+        const ultimatePriceId = stripePriceIdForTier("ULTIMATE", "MONTHLY");
         const upgradeRes = await billingPost(app, session, `${billingPath}/subscribe`)
             .send({
                 organizationId: session.organizationId,
                 period: "MONTHLY",
-                billing: "CREATOR",
-                stripePriceId: creatorPriceId,
+                billing: "ULTIMATE",
+                stripePriceId: ultimatePriceId,
             });
         expect(upgradeRes.status).toBe(200);
         expect(upgradeRes.body?.data?.updated ?? upgradeRes.body?.data?.url).toBeTruthy();
@@ -383,7 +393,38 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
 
         const currentAfterUpgrade = await billingGet(app, session, `${billingPath}/current`);
         expect(currentAfterUpgrade.status).toBe(200);
-        expect(currentAfterUpgrade.body?.data?.tier).toBe("CREATOR");
+        expect(currentAfterUpgrade.body?.data?.tier).toBe("ULTIMATE");
+    });
+
+    it("ULTIMATE to MAX mid-cycle upgrade preview uses catalog prices", async () => {
+        const session = await signUpSession();
+        stripeFixture = await seedStripeSubscriptionFixture({
+            organizationId: session.organizationId,
+            tier: "ULTIMATE",
+            period: "MONTHLY",
+        });
+
+        const { payTodayUsd: upgradePayToday, breakdown: upgradeBreakdown } =
+            await postBillingProrateAfterAdvancingClock({
+                session,
+                fixture: stripeFixture,
+                fromTier: "ULTIMATE",
+                target: { billing: "MAX", period: "MONTHLY" },
+                startDays: 10,
+                stepDays: 5,
+                maxDays: 30,
+            });
+        assertPayTodayProrate({
+            label: "ULTIMATE → MAX mid-cycle upgrade",
+            breakdown: upgradeBreakdown,
+            apiPayTodayUsd: upgradePayToday,
+            greaterThan: 0,
+        });
+        expect({
+            catalogFromTo: `$${upgradeBreakdown.fromMonthlyCatalogUsd} → $${upgradeBreakdown.toMonthlyCatalogUsd}`,
+        }).toEqual({
+            catalogFromTo: "$69 → $129",
+        });
     });
 
     it("after subscription ends, user can subscribe to a higher tier again", async () => {
@@ -403,23 +444,23 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
         expect(freeRes.status).toBe(200);
         expect(freeRes.body?.data?.tier).toBe("FREE");
 
-        const creatorPriceId = stripePriceIdForTier("CREATOR", "MONTHLY");
+        const ultimatePriceId = stripePriceIdForTier("ULTIMATE", "MONTHLY");
         const subscribeRes = await billingPost(app, session, `${billingPath}/subscribe`)
             .send({
                 organizationId: session.organizationId,
                 period: "MONTHLY",
-                billing: "CREATOR",
-                stripePriceId: creatorPriceId,
+                billing: "ULTIMATE",
+                stripePriceId: ultimatePriceId,
             });
         expect(subscribeRes.status).toBe(200);
         expect(subscribeRes.body?.data?.url).toBeDefined();
 
         const newSub = await stripe.subscriptions.create({
             customer: stripeFixture.customerId,
-            items: [{ price: creatorPriceId, quantity: 1 }],
+            items: [{ price: ultimatePriceId, quantity: 1 }],
             metadata: {
                 service: "openquok",
-                billing: "CREATOR",
+                billing: "ULTIMATE",
                 period: "MONTHLY",
                 uniqueId: `e2e-resub-${Date.now()}`,
                 organizationId: session.organizationId,
@@ -433,6 +474,6 @@ describeIfStripeBilling("Billing plans (Stripe test mode)", () => {
 
         const currentRes = await billingGet(app, session, `${billingPath}/current`);
         expect(currentRes.status).toBe(200);
-        expect(currentRes.body?.data?.tier).toBe("CREATOR");
+        expect(currentRes.body?.data?.tier).toBe("ULTIMATE");
     });
 });

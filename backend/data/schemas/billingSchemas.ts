@@ -1,3 +1,4 @@
+import { PAID_SUBSCRIPTION_TIERS } from "openquok-common";
 import { z } from "zod";
 
 const optionalOrganizationId = z.preprocess(
@@ -5,10 +6,12 @@ const optionalOrganizationId = z.preprocess(
     z.string().uuid("organizationId must be a valid UUID").optional()
 );
 
+const purchasableBillingTierSchema = z.enum(PAID_SUBSCRIPTION_TIERS);
+
 export const billingSubscribeBodySchema = z.object({
     organizationId: optionalOrganizationId,
     period: z.enum(["MONTHLY", "YEARLY"]),
-    billing: z.enum(["SOLO", "CREATOR", "TEAM", "ULTIMATE"]),
+    billing: purchasableBillingTierSchema,
     stripePriceId: z
         .string()
         .trim()
@@ -22,7 +25,7 @@ export const billingOrganizationQuerySchema = z.object({
 export const billingPlanChangeBodySchema = z.object({
     organizationId: z.string().uuid("organizationId must be a valid UUID").optional(),
     period: z.enum(["MONTHLY", "YEARLY"]),
-    billing: z.enum(["SOLO", "CREATOR", "TEAM", "ULTIMATE"]),
+    billing: purchasableBillingTierSchema,
 });
 
 export const billingCancelBodySchema = z.object({
@@ -32,7 +35,7 @@ export const billingCancelBodySchema = z.object({
 
 export const billingAdminAddSubscriptionBodySchema = z.object({
     organizationId: z.string().uuid("organizationId must be a valid UUID").optional(),
-    subscription: z.enum(["SOLO", "CREATOR", "TEAM", "ULTIMATE"]),
+    subscription: purchasableBillingTierSchema,
 });
 
 export const billingRefundChargesBodySchema = z.object({

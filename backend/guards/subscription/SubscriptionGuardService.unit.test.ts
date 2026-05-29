@@ -235,7 +235,7 @@ describe("SubscriptionGuardService WORKSPACES", () => {
         const guard = createGuardHarness({
             ownedCount: 1,
             invitedCount: 5,
-            ownedTier: "CREATOR",
+            ownedTier: "TEAM",
         });
         await expect(
             guard.assert(SubscriptionSection.WORKSPACES, { scope: "account", authUserId })

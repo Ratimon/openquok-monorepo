@@ -99,7 +99,7 @@
 					Join conversation or add notes on this share link. Scheduled social thread replies are shown in
 					the main preview.
 				{:else if isLoggedIn}
-					Add notes on this share link. Posting requires Creator or higher on your plan.
+					Add notes on this share link. Posting requires Team or higher on your plan.
 				{:else if sharePostPreviewEnabled}
 					Sign in to add collaboration notes on this share link. Scheduled social thread replies are shown
 					in the main preview.

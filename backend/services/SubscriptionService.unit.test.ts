@@ -1,7 +1,6 @@
 /// <reference types="jest" />
 import { faker } from "@faker-js/faker";
 import {
-    DEFAULT_MEDIA_STORAGE_QUOTA_BYTES,
     pricing,
     SubscriptionSection,
     type PaidSubscriptionTier,
@@ -99,6 +98,16 @@ function createService(
     return service;
 }
 
+function mockGlobalConfig(): { config: { stripe: { publishableKey?: string } } } {
+    return jest.requireMock("../config/GlobalConfig") as {
+        config: { stripe: { publishableKey?: string } };
+    };
+}
+
+function setBillingEnabled(enabled: boolean): void {
+    mockGlobalConfig().config.stripe.publishableKey = enabled ? "pk_test_123" : "";
+}
+
 describe("SubscriptionService", () => {
     let subscriptionRepo: jest.Mocked<SubscriptionRepository>;
     let mediaRepo: jest.Mocked<MediaRepository>;
@@ -110,6 +119,7 @@ describe("SubscriptionService", () => {
         subscriptionRepo = createMockSubscriptionRepo();
         mediaRepo = createMockMediaRepo();
         organizationRepo = createMockOrganizationRepo();
+        setBillingEnabled(true);
     });
 
     describe("billingEnabled", () => {
@@ -119,13 +129,9 @@ describe("SubscriptionService", () => {
         });
 
         it("returns false when publishable key is missing", () => {
-            const { config } = jest.requireMock("../config/GlobalConfig") as {
-                config: { stripe: { publishableKey?: string } };
-            };
-            config.stripe.publishableKey = "";
+            setBillingEnabled(false);
             const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             expect(service.billingEnabled()).toBe(false);
-            config.stripe.publishableKey = "pk_test_123";
         });
     });
 
@@ -199,9 +205,9 @@ describe("SubscriptionService", () => {
         });
 
         it("getOwnedAccountSubscription returns null when user only has member access to a paid org", async () => {
-            const creatorRow = subscriptionRow("CREATOR", { organization_id: billingOrganizationId });
+            const ultimateRow = subscriptionRow("ULTIMATE", { organization_id: billingOrganizationId });
             (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockImplementation(
-                async (orgId: string) => (orgId === billingOrganizationId ? creatorRow : null)
+                async (orgId: string) => (orgId === billingOrganizationId ? ultimateRow : null)
             );
             (organizationRepo.findUserIdByAuthId as jest.Mock).mockResolvedValue({ userId, error: null });
             (organizationRepo.findOrganizationsByUserId as jest.Mock).mockResolvedValue({
@@ -217,9 +223,9 @@ describe("SubscriptionService", () => {
         });
 
         it("does not inherit subscription into a workspace the user does not own", async () => {
-            const creatorRow = subscriptionRow("CREATOR", { organization_id: billingOrganizationId });
+            const ultimateRow = subscriptionRow("ULTIMATE", { organization_id: billingOrganizationId });
             (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockImplementation(
-                async (orgId: string) => (orgId === billingOrganizationId ? creatorRow : null)
+                async (orgId: string) => (orgId === billingOrganizationId ? ultimateRow : null)
             );
             (organizationRepo.findUserIdByAuthId as jest.Mock).mockResolvedValue({ userId, error: null });
             (organizationRepo.findOrganizationsByUserId as jest.Mock).mockResolvedValue({
@@ -245,19 +251,18 @@ describe("SubscriptionService", () => {
 
         it("returns the paid plan workspace cap when the user has an owned subscription", () => {
             const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
-            expect(service.resolveOwnedWorkspaceCap(subscriptionRow("CREATOR"))).toBe(
-                pricing.CREATOR.workspaces
+            expect(service.resolveOwnedWorkspaceCap(subscriptionRow("TEAM"))).toBe(
+                pricing.TEAM.workspaces
+            );
+            expect(service.resolveOwnedWorkspaceCap(subscriptionRow("MAX"))).toBe(
+                pricing.MAX.workspaces
             );
         });
 
-        it("returns CREATOR cap when billing is disabled", () => {
-            const { config } = jest.requireMock("../config/GlobalConfig") as {
-                config: { stripe: { publishableKey?: string } };
-            };
-            config.stripe.publishableKey = "";
+        it("returns SOLO cap when billing is disabled", () => {
+            setBillingEnabled(false);
             const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
-            expect(service.resolveOwnedWorkspaceCap(null)).toBe(pricing.CREATOR.workspaces);
-            config.stripe.publishableKey = "pk_test_123";
+            expect(service.resolveOwnedWorkspaceCap(null)).toBe(pricing.SOLO.workspaces);
         });
     });
 
@@ -267,14 +272,10 @@ describe("SubscriptionService", () => {
             expect(service.resolveTier(subscriptionRow("TEAM"))).toBe("TEAM");
         });
 
-        it("returns CREATOR when billing is disabled and no subscription", () => {
-            const { config } = jest.requireMock("../config/GlobalConfig") as {
-                config: { stripe: { publishableKey?: string } };
-            };
-            config.stripe.publishableKey = "";
+        it("returns SOLO when billing is disabled and no subscription", () => {
+            setBillingEnabled(false);
             const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
-            expect(service.resolveTier(null)).toBe("CREATOR");
-            config.stripe.publishableKey = "pk_test_123";
+            expect(service.resolveTier(null)).toBe("SOLO");
         });
 
         it("returns FREE when billing is enabled and no subscription", () => {
@@ -286,8 +287,10 @@ describe("SubscriptionService", () => {
     describe("getPlanLimitsForOrganization", () => {
         it("returns limits for the resolved tier", () => {
             const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
-            const limits = service.getPlanLimitsForOrganization(subscriptionRow("ULTIMATE"));
-            expect(limits).toEqual(pricing.ULTIMATE);
+            expect(service.getPlanLimitsForOrganization(subscriptionRow("ULTIMATE"))).toEqual(
+                pricing.ULTIMATE
+            );
+            expect(service.getPlanLimitsForOrganization(subscriptionRow("MAX"))).toEqual(pricing.MAX);
         });
     });
 
@@ -319,18 +322,14 @@ describe("SubscriptionService", () => {
             expect(usage.total).toBe(quota + 1);
         });
 
-        it("falls back to default quota when plan storage is zero", async () => {
-            const { config } = jest.requireMock("../config/GlobalConfig") as {
-                config: { stripe: { publishableKey?: string } };
-            };
-            config.stripe.publishableKey = "";
+        it("uses SOLO plan quota when billing is disabled and there is no subscription row", async () => {
+            setBillingEnabled(false);
             (subscriptionRepo.getSubscriptionByOrganizationId as jest.Mock).mockResolvedValue(null);
             (mediaRepo.listAllMedia as jest.Mock).mockResolvedValue([]);
             const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             const usage = await service.getWorkspaceDriveUsage(organizationId);
-            expect(usage.tier).toBe("CREATOR");
-            expect(usage.total).toBe(DEFAULT_MEDIA_STORAGE_QUOTA_BYTES);
-            config.stripe.publishableKey = "pk_test_123";
+            expect(usage.tier).toBe("SOLO");
+            expect(usage.total).toBe(pricing.SOLO.media_storage_bytes_per_workspace);
         });
     });
 
@@ -364,25 +363,25 @@ describe("SubscriptionService", () => {
 
     describe("createOrUpdateFromStripe", () => {
         it("delegates to the subscription repository", async () => {
-            const row = subscriptionRow("CREATOR");
+            const row = subscriptionRow("MAX");
             (subscriptionRepo.createOrUpdateSubscription as jest.Mock).mockResolvedValue(row);
             const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
             const result = await service.createOrUpdateFromStripe({
                 organizationId,
                 isTrialing: true,
                 identifier: "checkout-abc",
-                subscriptionTier: "CREATOR",
+                subscriptionTier: "MAX",
                 period: "YEARLY",
-                channelsPerWorkspace: 20,
+                channelsPerWorkspace: pricing.MAX.channel_per_workspace,
                 cancelAt: null,
             });
             expect(subscriptionRepo.createOrUpdateSubscription).toHaveBeenCalledWith({
                 organizationId,
                 isTrialing: true,
                 identifier: "checkout-abc",
-                subscriptionTier: "CREATOR",
+                subscriptionTier: "MAX",
                 period: "YEARLY",
-                channelsPerWorkspace: 20,
+                channelsPerWorkspace: pricing.MAX.channel_per_workspace,
                 cancelAt: null,
                 currentPeriodStart: null,
                 currentPeriodEnd: null,
@@ -421,6 +420,23 @@ describe("SubscriptionService", () => {
                 })
             );
             expect(result).toBe(row);
+        });
+
+        it("supports granting the MAX tier", async () => {
+            const row = subscriptionRow("MAX");
+            (subscriptionRepo.createOrUpdateSubscription as jest.Mock).mockResolvedValue(row);
+            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            await service.grantPaidSubscriptionForAdmin({
+                organizationId,
+                subscriptionTier: "MAX",
+            });
+            expect(subscriptionRepo.createOrUpdateSubscription).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    organizationId,
+                    subscriptionTier: "MAX",
+                    channelsPerWorkspace: pricing.MAX.channel_per_workspace,
+                })
+            );
         });
     });
 });

@@ -47,9 +47,9 @@ jest.mock("../config/GlobalConfig", () => ({
             webhookSecret: "whsec_test",
             priceIds: {
                 SOLO: { monthly: "price_solo_monthly", yearly: "price_solo_yearly" },
-                CREATOR: { monthly: "", yearly: "" },
                 TEAM: { monthly: "", yearly: "" },
                 ULTIMATE: { monthly: "", yearly: "" },
+                MAX: { monthly: "", yearly: "" },
             },
             discountCouponId: "coupon_retention",
         },
@@ -871,7 +871,7 @@ describe("StripeService", () => {
                 data: [stripeSubscription()],
             });
             await expect(
-                service().previewProration(organizationId, { billing: "CREATOR", period: "MONTHLY" })
+                service().previewProration(organizationId, { billing: "TEAM", period: "MONTHLY" })
             ).rejects.toBeInstanceOf(UserValidationError);
             expect(mockStripe.products.create).not.toHaveBeenCalled();
             expect(mockStripe.prices.create).not.toHaveBeenCalled();
@@ -879,9 +879,9 @@ describe("StripeService", () => {
 
         it("returns amount_due from Stripe preview without billing_cycle_anchor now", async () => {
             const { config } = jest.requireMock("../config/GlobalConfig") as {
-                config: { stripe: { priceIds: { CREATOR: { monthly: string } } } };
+                config: { stripe: { priceIds: { TEAM: { monthly: string } } } };
             };
-            config.stripe.priceIds.CREATOR.monthly = "price_creator_monthly";
+            config.stripe.priceIds.TEAM.monthly = "price_team_monthly";
 
             (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
                 id: organizationId,
@@ -895,7 +895,7 @@ describe("StripeService", () => {
             });
             mockStripe.prices.retrieve.mockResolvedValue({
                 active: true,
-                id: "price_creator_monthly",
+                id: "price_team_monthly",
                 recurring: { interval: "month" },
             });
             mockStripe.invoices.createPreview.mockResolvedValue({
@@ -904,7 +904,7 @@ describe("StripeService", () => {
             });
 
             await expect(
-                service().previewProration(organizationId, { billing: "CREATOR", period: "MONTHLY" })
+                service().previewProration(organizationId, { billing: "TEAM", period: "MONTHLY" })
             ).resolves.toEqual({ price: 12.5 });
 
             const previewArgs = mockStripe.invoices.createPreview.mock.calls[0]?.[0] as {
@@ -916,7 +916,7 @@ describe("StripeService", () => {
             });
             expect(previewArgs.subscription_details).not.toHaveProperty("billing_cycle_anchor");
 
-            config.stripe.priceIds.CREATOR.monthly = "";
+            config.stripe.priceIds.TEAM.monthly = "";
         });
     });
 
@@ -969,15 +969,15 @@ describe("StripeService", () => {
             await expect(service().getPackages()).resolves.toEqual({
                 month: [
                     { name: "SOLO", recurring: "month", price: pricing.SOLO.month_price },
-                    { name: "CREATOR", recurring: "month", price: pricing.CREATOR.month_price },
                     { name: "TEAM", recurring: "month", price: pricing.TEAM.month_price },
                     { name: "ULTIMATE", recurring: "month", price: pricing.ULTIMATE.month_price },
+                    { name: "MAX", recurring: "month", price: pricing.MAX.month_price },
                 ],
                 year: [
                     { name: "SOLO", recurring: "year", price: pricing.SOLO.year_price },
-                    { name: "CREATOR", recurring: "year", price: pricing.CREATOR.year_price },
                     { name: "TEAM", recurring: "year", price: pricing.TEAM.year_price },
                     { name: "ULTIMATE", recurring: "year", price: pricing.ULTIMATE.year_price },
+                    { name: "MAX", recurring: "year", price: pricing.MAX.year_price },
                 ],
             });
             config.stripe.publishableKey = "pk_test";

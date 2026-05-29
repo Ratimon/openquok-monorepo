@@ -89,11 +89,11 @@ export class SubscriptionService {
 
     /**
      * How many workspaces the user may own on their billing account (not the active/shared workspace).
-     * FREE / no owned subscription: one workspace (signup default). Billing disabled: CREATOR cap.
+     * FREE / no owned subscription: one workspace (signup default). Billing disabled: SOLO cap.
      */
     resolveOwnedWorkspaceCap(subscription: OrganizationSubscriptionRow | null): number {
         if (!this.billingEnabled()) {
-            return pricing.CREATOR.workspaces;
+            return pricing.SOLO.workspaces;
         }
         const planCap = planLimitsForTier(this.resolveTier(subscription)).workspaces;
         if (planCap >= 1) return planCap;
@@ -135,7 +135,7 @@ export class SubscriptionService {
             return subscription.subscription_tier;
         }
         if (!this.billingEnabled()) {
-            return "CREATOR";
+            return "SOLO";
         }
         return "FREE";
     }
