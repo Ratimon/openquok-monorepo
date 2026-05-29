@@ -13,6 +13,13 @@ import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings
 import { teamMemberDowngradeWarning } from '$lib/billing/utils/planChangeWarnings';
 import { ConversionTrackEvent, fireProductEvent, trackConversion } from '$lib/product-analytics';
 import { authenticationRepository } from '$lib/user-auth/index';
+import { toast } from '$lib/ui/sonner';
+
+export type HostedCheckoutReturnResult =
+	| 'success'
+	| 'already_active'
+	| 'unauthorized'
+	| 'pending_confirmation';
 
 /**
  * Page presenter for account billing: loads pricing via {@link GetPricingPresenter},
@@ -25,6 +32,7 @@ export class ProtectedBillingPagePresenter {
 	billingEnabled = $state(false);
 
 	private loadInFlight: Promise<void> | null = null;
+	private subscriptionUpdatedNotified = false;
 
 	constructor(
 		private readonly getPricingPresenter: GetPricingPresenter,
@@ -121,6 +129,48 @@ export class ProtectedBillingPagePresenter {
 
 	onPurchaseComplete(): void {
 		fireProductEvent('purchase', undefined, authenticationRepository.currentUser);
+	}
+
+	notifySubscriptionUpdated(): void {
+		if (this.subscriptionUpdatedNotified) return;
+		this.subscriptionUpdatedNotified = true;
+		toast.success('Subscription updated.');
+	}
+
+	private notifyPurchaseComplete(): void {
+		this.notifySubscriptionUpdated();
+		this.onPurchaseComplete();
+		void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
+	}
+
+	/** After Stripe hosted or embedded checkout redirect (`?checkout=`). */
+	async completeHostedCheckoutReturn(checkoutId: string): Promise<HostedCheckoutReturnResult> {
+		await this.workspaceSettingsPresenter.load({ includeTeam: false });
+		await this.alignWorkspaceForCheckoutReturn(checkoutId);
+		await this.load();
+
+		if (!this.workspaceSettingsPresenter.canManageSentInvitesInCurrentWorkspace) {
+			toast.error('Only the workspace owner can complete checkout for this workspace.');
+			return 'unauthorized';
+		}
+
+		const tierAfterLoad = this.currentVm?.tier ?? 'FREE';
+		const alreadyActive =
+			Boolean(this.currentVm?.subscription?.id) ||
+			(tierAfterLoad !== 'FREE' && tierAfterLoad !== null);
+		if (alreadyActive) {
+			this.notifyPurchaseComplete();
+			return 'already_active';
+		}
+
+		const confirmed = await this.pollCheckout(checkoutId);
+		if (confirmed) {
+			this.notifyPurchaseComplete();
+			return 'success';
+		}
+
+		toast.error('We could not confirm your subscription yet. Refresh the page in a moment.');
+		return 'pending_confirmation';
 	}
 
 	finishTrial(): Promise<void> {

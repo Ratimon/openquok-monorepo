@@ -97,12 +97,20 @@
 
 	{#if !oauthAppLoading && !oauthAppReady}
 		<div class="mt-4 rounded-lg border border-warning/40 bg-warning/10 p-4 text-sm text-base-content">
-			<p class="font-medium">Create an OAuth application first</p>
+			<p class="font-medium">
+				Create an OAuth application first
+			</p>
 			<p class="mt-1 text-base-content/70">
 				Programmatic tokens are issued for your workspace OAuth app. Open the Apps tab to register one (name,
 				redirect URL), then return here to generate a token.
 			</p>
-			<Button class="mt-3" variant="primary" onclick={() => onGoToAppsTab()}>Go to Oauth Apps</Button>
+			<Button
+				class="mt-3"
+				variant="primary"
+				onclick={() => onGoToAppsTab()}
+			>
+				Go to Oauth Apps
+			</Button>
 		</div>
 	{/if}
 

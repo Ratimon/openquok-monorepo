@@ -464,7 +464,7 @@ export class StripeService {
                 mode: "subscription",
                 customer,
                 line_items: [{ price: priceId, quantity: 1 }],
-                success_url: `${frontend}/account/billing?checkout=${uniqueId}`,
+                success_url: `${frontend}/account?checkout=${uniqueId}`,
                 cancel_url: `${frontend}/account/billing`,
                 subscription_data: {
                     // trial_period_days is in days - eg 7 days
@@ -943,7 +943,7 @@ export class StripeService {
                 mode: "subscription",
                 customer,
                 line_items: [{ price: priceId, quantity: 1 }],
-                return_url: `${frontend}/account/billing?checkout=${uniqueId}`,
+                return_url: `${frontend}/account?checkout=${uniqueId}`,
                 subscription_data: {
                     ...(params.allowTrial ? { trial_period_days: 7 } : {}),
                     metadata: {

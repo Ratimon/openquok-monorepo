@@ -6,11 +6,9 @@
 	import { page } from '$app/state';
 
 	import { icons } from '$data/icons';
-	import { ConversionTrackEvent, trackConversion } from '$lib/product-analytics';
 	import { getRootPathAccount, protectedBillingPagePresenter } from '$lib/area-protected';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { route } from '$lib/utils/path';
-	import { toast } from '$lib/ui/sonner';
 	import { formatSubscriptionCancelDate } from '$lib/ui/helpers/formatters';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -59,14 +57,6 @@
 	let showPaymentPortalDialog = $state(false);
 	let pendingSubscribeTier = $state<PaidSubscriptionTier | null>(null);
 	let paymentPortalUrl = $state<string | null>(null);
-	let subscriptionUpdatedNotified = false;
-
-	function notifySubscriptionUpdated(): void {
-		if (subscriptionUpdatedNotified) return;
-		subscriptionUpdatedNotified = true;
-		toast.success('Subscription updated.');
-	}
-
 	const subscription = $derived(pagePresenter.currentVm?.subscription ?? null);
 	const currentTier = $derived(subscription?.tier ?? pagePresenter.currentVm?.tier ?? null);
 	const cancelAt = $derived(subscription?.cancelAt ?? null);
@@ -125,9 +115,9 @@
 			return;
 		}
 		if (result.type === 'updated') {
-			notifySubscriptionUpdated();
+			pagePresenter.notifySubscriptionUpdated();
 			if (checkoutId) {
-				replaceState('/account/billing', {});
+				replaceState(accountPath, {});
 			}
 		}
 	}
@@ -178,42 +168,13 @@
 	}
 
 	async function handleCheckoutReturn(): Promise<void> {
-		await workspaceSettingsPresenter.load({ includeTeam: false });
-		await pagePresenter.alignWorkspaceForCheckoutReturn(checkoutId!);
-		await pagePresenter.load();
-
+		const result = await pagePresenter.completeHostedCheckoutReturn(checkoutId!);
 		const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
 		if (loadedPeriod) {
 			period = loadedPeriod;
 		}
-		if (!workspaceSettingsPresenter.canManageSentInvitesInCurrentWorkspace) {
-			toast.error('Only the workspace owner can complete checkout for this workspace.');
-			replaceState('/account/billing', {});
-			return;
-		}
-		const tierAfterLoad = pagePresenter.currentVm?.tier ?? 'FREE';
-		const alreadyActive =
-			Boolean(pagePresenter.currentVm?.subscription?.id) ||
-			(tierAfterLoad !== 'FREE' && tierAfterLoad !== null);
-		if (alreadyActive) {
-			pagePresenter.onPurchaseComplete();
-			void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
-			notifySubscriptionUpdated();
-			replaceState('/account/billing', {});
-			return;
-		}
-		const confirmed = await pagePresenter.pollCheckout(checkoutId!);
-		const periodAfterPoll = pagePresenter.currentVm?.subscription?.period;
-		if (periodAfterPoll) {
-			period = periodAfterPoll;
-		}
-		if (confirmed) {
-			pagePresenter.onPurchaseComplete();
-			void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
-			notifySubscriptionUpdated();
-			replaceState('/account/billing', {});
-		} else {
-			toast.error('We could not confirm your subscription yet. Refresh the page in a moment.');
+		if (result !== 'pending_confirmation') {
+			replaceState(accountPath, {});
 		}
 	}
 

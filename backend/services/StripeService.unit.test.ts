@@ -623,7 +623,7 @@ describe("StripeService", () => {
                             organizationId,
                         }),
                     }),
-                    success_url: `https://app.example.com/account/billing?checkout=${checkoutId}`,
+                    success_url: `https://app.example.com/account?checkout=${checkoutId}`,
                 })
             );
         });
