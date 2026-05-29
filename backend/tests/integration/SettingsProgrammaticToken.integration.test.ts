@@ -1,6 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { faker } from "@faker-js/faker";
-import { createClient } from "@supabase/supabase-js";
 import supertest from "supertest";
 
 import { app } from "../../app";
@@ -39,7 +37,6 @@ const describeIfSupabase =
  * using the workspace OAuth app (Settings → Developers → Apps).
  */
 describeIfSupabase("Settings programmatic access token (integration)", () => {
-    const adminSupabase = createClient(supabaseUrl!, supabaseSecretKey!) as SupabaseClient;
     const userHelper = new UserTestHelper();
 
     let getVerificationTokenSpy: jest.SpyInstance;
@@ -115,7 +112,7 @@ describeIfSupabase("Settings programmatic access token (integration)", () => {
         expect(rotateRes.body?.message).toMatch(/OAuth application/i);
     });
 
-    it("GET programmatic-token is false before rotate, true after; rotate returns opo_ without updating organizations.api_key", async () => {
+    it("GET programmatic-token is false before rotate, true after; rotate returns opo_", async () => {
         const { accessToken, orgId } = await signupVerifyAndGetWorkspace();
         await createWorkspaceOauthApp(accessToken, orgId);
 
@@ -125,28 +122,12 @@ describeIfSupabase("Settings programmatic access token (integration)", () => {
         expect(statusBefore.status).toBe(200);
         expect(statusBefore.body?.data).toEqual({ configured: false });
 
-        const { data: orgBeforeRotate, error: orgBeforeError } = await adminSupabase
-            .from("organizations")
-            .select("api_key")
-            .eq("id", orgId)
-            .single();
-        expect(orgBeforeError).toBeNull();
-
         const rotateRes = await supertest(app)
             .post(`${settingsPath}/${orgId}/rotate-api-key`)
             .set("Authorization", `Bearer ${accessToken}`);
         expect(rotateRes.status).toBe(200);
         const programmaticAccessToken = rotateRes.body?.data?.programmaticAccessToken as string;
         expect(programmaticAccessToken).toMatch(/^opo_/);
-        expect(rotateRes.body?.data?.apiKey).toBeNull();
-
-        const { data: orgAfterRotate, error: orgAfterError } = await adminSupabase
-            .from("organizations")
-            .select("api_key")
-            .eq("id", orgId)
-            .single();
-        expect(orgAfterError).toBeNull();
-        expect(orgAfterRotate?.api_key).toBe(orgBeforeRotate?.api_key ?? null);
 
         const statusAfter = await supertest(app)
             .get(`${settingsPath}/${orgId}/programmatic-token`)

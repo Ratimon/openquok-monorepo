@@ -14,13 +14,12 @@ const organizationId = faker.string.uuid();
 const oauthAppId = faker.string.uuid();
 const tokenId = faker.string.uuid();
 const programmaticToken = `opo_${faker.string.alphanumeric(32)}`;
-const legacyApiKey = `opk_${faker.string.alphanumeric(32)}`;
+const invalidBearer = `not_a_valid_programmatic_token_${faker.string.alphanumeric(16)}`;
 
 const organization = {
     id: organizationId,
     name: faker.company.name(),
     description: null,
-    api_key: legacyApiKey,
     created_at: faker.date.past().toISOString(),
     updated_at: faker.date.past().toISOString(),
 };
@@ -88,7 +87,7 @@ describe("requireProgrammaticAuth", () => {
         expect(oauthAppService.verifyProgrammaticToken).not.toHaveBeenCalled();
     });
 
-    it("returns 401 for legacy opk_ keys without calling subscription guard", async () => {
+    it("returns 401 for invalid bearer without calling subscription guard", async () => {
         const { oauthAppService, organizationRepository, subscriptionGuard } = createMocks();
         oauthAppService.verifyProgrammaticToken.mockResolvedValue(null);
 
@@ -99,11 +98,11 @@ describe("requireProgrammaticAuth", () => {
         });
 
         const { statusCode, body, next } = await runMiddleware(
-            { headers: { authorization: `Bearer ${legacyApiKey}` } },
+            { headers: { authorization: `Bearer ${invalidBearer}` } },
             middleware
         );
 
-        expect(oauthAppService.verifyProgrammaticToken).toHaveBeenCalledWith(legacyApiKey);
+        expect(oauthAppService.verifyProgrammaticToken).toHaveBeenCalledWith(invalidBearer);
         expect(statusCode).toBe(401);
         expect(body).toEqual({ msg: "Invalid API key" });
         expect(subscriptionGuard.assert).not.toHaveBeenCalled();

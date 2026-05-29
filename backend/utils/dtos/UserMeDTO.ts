@@ -40,10 +40,6 @@ export function resolveSessionChannelsPerWorkspace(
 }
 
 /** Programmatic tokens are not recoverable from storage; session never exposes a bearer value. */
-export function resolveSessionPublicApiKey(_params: {
-	workspaceRole: WorkspaceMembershipRole;
-	planAllowsPublicApi: boolean;
-	apiKey: string | null;
-}): string {
+export function resolveSessionPublicApiKey(): string {
 	return "";
 }

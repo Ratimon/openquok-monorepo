@@ -151,7 +151,6 @@ CREATE TABLE IF NOT EXISTS public.organizations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     description TEXT,
-    api_key TEXT,
     stripe_customer_id TEXT,
     allow_trial BOOLEAN NOT NULL DEFAULT FALSE,
     is_trialing BOOLEAN NOT NULL DEFAULT FALSE,
@@ -160,7 +159,6 @@ CREATE TABLE IF NOT EXISTS public.organizations (
 );
 
 COMMENT ON TABLE public.organizations IS 'Organizations (workspaces/tenants). Tenant key for org-scoped rows (e.g. public.posts.organization_id, public.post_internal_comments.organization_id).';
-COMMENT ON COLUMN public.organizations.api_key IS 'Optional API key for programmatic access';
 COMMENT ON COLUMN public.organizations.stripe_customer_id IS 'Stripe Customer id for workspace billing.';
 COMMENT ON COLUMN public.organizations.allow_trial IS 'When true, new checkout sessions may include a trial period.';
 COMMENT ON COLUMN public.organizations.is_trialing IS 'Workspace trial state; synced from Stripe when subscribed, cleared when trial ends or plan is active.';
@@ -267,6 +265,25 @@ GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO service_r
 
 COMMENT ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) IS 'RLS helper: admin or owner membership (bypasses RLS inside).';
 COMMENT ON FUNCTION public.is_active_owner_of_org(uuid, uuid) IS 'RLS helper: owner membership (bypasses RLS inside).';
+
+
+-- Module: organization, File: 104_20260529_drop_organizations_api_key.sql
+-- ---------------------------
+-- MODULE NAME: Organization
+-- MODULE DATE: 20260529
+-- MODULE SCOPE: Tables
+-- ---------------------------
+-- Remove legacy workspace API key column (programmatic auth uses OAuth app tokens only).
+
+
+
+DROP INDEX IF EXISTS public.idx_organizations_api_key;
+
+ALTER TABLE public.organizations DROP COLUMN IF EXISTS api_key;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
 
 -- Module: billing, File: 101_20260519_tables.sql
@@ -1038,9 +1055,6 @@ WHERE provider IS NOT NULL AND provider_id IS NOT NULL;
 -- ---------------------------
 
 
-
-CREATE INDEX IF NOT EXISTS idx_organizations_api_key ON public.organizations(api_key)
-    WHERE api_key IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_user_organizations_user_id ON public.user_organizations(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_organizations_organization_id ON public.user_organizations(organization_id);
@@ -4150,11 +4164,11 @@ $$;
 -- Direct INSERT into organizations fails when the DB client is subject to RLS
 -- (e.g. publishable key without service_role bypass).
 DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text);
+DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean);
 CREATE OR REPLACE FUNCTION public.internal_create_organization_with_owner(
     p_user_id uuid,
     p_name text,
     p_description text,
-    p_api_key text,
     p_allow_trial boolean DEFAULT TRUE,
     p_is_trialing boolean DEFAULT TRUE
 )
@@ -4162,7 +4176,6 @@ RETURNS TABLE (
     id uuid,
     name text,
     description text,
-    api_key text,
     created_at timestamptz,
     updated_at timestamptz
 )
@@ -4186,7 +4199,6 @@ BEGIN
     INSERT INTO public.organizations (
         name,
         description,
-        api_key,
         allow_trial,
         is_trialing,
         updated_at
@@ -4194,7 +4206,6 @@ BEGIN
     VALUES (
         v_name,
         NULLIF(trim(COALESCE(p_description, '')), ''),
-        p_api_key,
         COALESCE(p_allow_trial, TRUE),
         COALESCE(p_is_trialing, TRUE),
         NOW()
@@ -4205,16 +4216,93 @@ BEGIN
     VALUES (p_user_id, v_org_id, 'owner', FALSE, NOW());
 
     RETURN QUERY
-    SELECT o.id, o.name, o.description, o.api_key, o.created_at, o.updated_at
+    SELECT o.id, o.name, o.description, o.created_at, o.updated_at
     FROM public.organizations o
     WHERE o.id = v_org_id;
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) TO service_role;
+REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) TO service_role;
 
-COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) IS
+COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) IS
+    'Create organization and add founding user as owner (bypasses RLS); billing flags supplied by API layer.';
+
+
+-- Module: organization, File: 402_20260529_internal_create_org_without_api_key.sql
+-- ---------------------------
+-- MODULE NAME: organization
+-- MODULE DATE: 20260529
+-- MODULE SCOPE: Functions
+-- ---------------------------
+-- Recreate workspace creation RPC without legacy api_key parameter.
+
+
+
+DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text);
+DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean);
+
+CREATE OR REPLACE FUNCTION public.internal_create_organization_with_owner(
+    p_user_id uuid,
+    p_name text,
+    p_description text,
+    p_allow_trial boolean DEFAULT TRUE,
+    p_is_trialing boolean DEFAULT TRUE
+)
+RETURNS TABLE (
+    id uuid,
+    name text,
+    description text,
+    created_at timestamptz,
+    updated_at timestamptz
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_org_id uuid;
+    v_name text;
+BEGIN
+    v_name := trim(p_name);
+    IF v_name IS NULL OR v_name = '' THEN
+        RAISE EXCEPTION 'Organization name is required';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.users u WHERE u.id = p_user_id) THEN
+        RAISE EXCEPTION 'User not found';
+    END IF;
+
+    INSERT INTO public.organizations (
+        name,
+        description,
+        allow_trial,
+        is_trialing,
+        updated_at
+    )
+    VALUES (
+        v_name,
+        NULLIF(trim(COALESCE(p_description, '')), ''),
+        COALESCE(p_allow_trial, TRUE),
+        COALESCE(p_is_trialing, TRUE),
+        NOW()
+    )
+    RETURNING organizations.id INTO v_org_id;
+
+    INSERT INTO public.user_organizations (user_id, organization_id, role, disabled, updated_at)
+    VALUES (p_user_id, v_org_id, 'owner', FALSE, NOW());
+
+    RETURN QUERY
+    SELECT o.id, o.name, o.description, o.created_at, o.updated_at
+    FROM public.organizations o
+    WHERE o.id = v_org_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) TO service_role;
+
+COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) IS
     'Create organization and add founding user as owner (bypasses RLS); billing flags supplied by API layer.';
 
 

@@ -109,7 +109,7 @@ describe("Post kanban review (agent and human)", () => {
         email: string;
         password: string;
         fullName: string;
-    }): Promise<{ accessToken: string; orgId: string; apiKey: string; programmaticAccessToken: string }> {
+    }): Promise<{ accessToken: string; orgId: string; programmaticAccessToken: string }> {
         const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
         expect(signupRes.status).toBe(201);
         await userHelper.trackUserAfterSignUp(signupRes, payload.email);
@@ -148,7 +148,6 @@ describe("Post kanban review (agent and human)", () => {
         return {
             accessToken: accessToken as string,
             orgId,
-            apiKey: programmaticAccessToken,
             programmaticAccessToken,
         };
     }
@@ -196,7 +195,8 @@ describe("Post kanban review (agent and human)", () => {
             "agent-created draft stays flagged until the human marks review complete and schedules from the dashboard",
             async () => {
                 const payload = userHelper.setupTestUser1();
-                const { accessToken, orgId, apiKey } = await signupVerifyAndSignIn(payload);
+                const { accessToken, orgId, programmaticAccessToken } =
+                    await signupVerifyAndSignIn(payload);
                 const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId);
 
                 const findSlot = await supertest(app)
@@ -223,7 +223,7 @@ describe("Post kanban review (agent and human)", () => {
                 const { status: cliStatus, stdout, stderr } = await runOpenquokCli(cliArgv, {
                     HOME: isolatedHome,
                     OPENQUOK_API_URL: e2eServer.baseUrl,
-                    OPENQUOK_API_KEY: apiKey,
+                    OPENQUOK_API_KEY: programmaticAccessToken,
                 });
                 if (cliStatus !== 0) {
                     throw new Error(`openquok posts:create failed (${cliStatus}): ${stderr || stdout}`);
@@ -379,7 +379,7 @@ describe("Post kanban review (agent and human)", () => {
             "API key holder can set a review note and keep isAgentEdited true",
             async () => {
                 const payload = userHelper.setupTestUser1();
-                const { apiKey, orgId } = await signupVerifyAndSignIn(payload);
+                const { programmaticAccessToken, orgId } = await signupVerifyAndSignIn(payload);
                 const { integrationId } = await insertTestSocialIntegration(adminSupabase, orgId);
 
                 const scheduledAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
@@ -387,7 +387,7 @@ describe("Post kanban review (agent and human)", () => {
 
                 const createRes = await supertest(app)
                     .post(publicPostsPath)
-                    .set("Authorization", `Bearer ${apiKey}`)
+                    .set("Authorization", `Bearer ${programmaticAccessToken}`)
                     .send({
                         isAgent: true,
                         body: faker.lorem.paragraph(),
@@ -403,7 +403,7 @@ describe("Post kanban review (agent and human)", () => {
 
                 const agentReview = await supertest(app)
                     .put(`${publicPostsPath}/${postId}/review-todo`)
-                    .set("Authorization", `Bearer ${apiKey}`)
+                    .set("Authorization", `Bearer ${programmaticAccessToken}`)
                     .send({ note: agentNote, isAgent: true, isReviewed: false });
                 expect(agentReview.status).toBe(200);
                 const rows = agentReview.body?.data?.posts as PostRowDto[];

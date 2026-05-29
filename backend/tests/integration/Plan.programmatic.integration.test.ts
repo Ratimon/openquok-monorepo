@@ -1,5 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@supabase/supabase-js";
 import supertest from "supertest";
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
@@ -13,7 +11,6 @@ import {
 import {
     exchangeOAuthProgrammaticToken,
     programmaticBearerAuth,
-    provisionLegacyOrgApiKey,
 } from "../helpers/programmaticAuthTestHelper";
 import {
     prepareSoloWorkspace,
@@ -39,7 +36,6 @@ const describeIfSupabase =
  * at request time (including downgrade / over-cap workspaces resolving to FREE).
  */
 describeIfSupabase("Programmatic API plan enforcement (integration)", () => {
-    const adminSupabase = createClient(supabaseUrl!, supabaseSecretKey!) as SupabaseClient;
     const userHelper = new UserTestHelper();
 
     let getVerificationTokenSpy: jest.SpyInstance;
@@ -145,18 +141,14 @@ describeIfSupabase("Programmatic API plan enforcement (integration)", () => {
         }
     });
 
-    it("rejects legacy opk_ workspace API keys with 401", async () => {
-        const payload = userHelper.setupTestUser1();
-        const { bearerToken } = await provisionLegacyOrgApiKey(adminSupabase, userHelper, payload);
-        expect(bearerToken).toMatch(/^opk_/);
-
+    it("rejects unknown bearer tokens with 401", async () => {
         const res = await supertest(app)
             .get(`${publicPostsPath}/list`)
             .query({
                 start: new Date(Date.now() - 60_000).toISOString(),
                 end: new Date(Date.now() + 60_000).toISOString(),
             })
-            .set(programmaticBearerAuth(bearerToken));
+            .set(programmaticBearerAuth("not_a_valid_programmatic_token_000000000000"));
 
         expect(res.status).toBe(401);
         expect(res.body?.msg).toBe("Invalid API key");

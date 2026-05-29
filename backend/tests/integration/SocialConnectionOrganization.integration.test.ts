@@ -137,13 +137,7 @@ describe("Social connection (organization programmatic API)", () => {
             expect(res.body).toEqual({ msg: "No API key provided" });
         });
 
-        it("responds 401 for legacy opk_ keys and unknown tokens", async () => {
-            const legacy = await supertest(app)
-                .get(`${publicProgrammaticBase}/is-connected`)
-                .set("Authorization", "opk_not_a_real_key_000000000000000000000000");
-            expect(legacy.status).toBe(401);
-            expect(legacy.body).toEqual({ msg: "Invalid API key" });
-
+        it("responds 401 for unknown bearer tokens", async () => {
             const unknown = await supertest(app)
                 .get(`${publicProgrammaticBase}/is-connected`)
                 .set("Authorization", "opo_not_a_real_token_000000000000000000000000");

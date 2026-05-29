@@ -73,26 +73,6 @@ export async function signupVerifyAndGetWorkspace(
 }
 
 /**
- * Writes a legacy `organizations.api_key` (`opk_…`) directly for tests that assert rejection.
- * Programmatic `/public/*` routes accept `opo_` only; use {@link provisionOAuthAppAccessToken} for valid auth.
- */
-export async function provisionLegacyOrgApiKey(
-    adminSupabase: SupabaseClient,
-    userHelper: UserTestHelper,
-    payload: SignupPayload
-): Promise<ProgrammaticAuthFixture> {
-    const { orgId } = await signupVerifyAndGetWorkspace(adminSupabase, userHelper, payload);
-    const legacyKey = `opk_${faker.string.alphanumeric(48)}`;
-    const { error } = await adminSupabase
-        .from("organizations")
-        .update({ api_key: legacyKey, updated_at: new Date().toISOString() })
-        .eq("id", orgId);
-    expect(error).toBeNull();
-
-    return { orgId, bearerToken: legacyKey };
-}
-
-/**
  * OAuth app token from code exchange (`opo_…`) for programmatic `/public/*` routes.
  * @see guards/programmatic/programmaticAuth.ts, tests/integration/OauthApps.integration.test.ts
  */

@@ -6,13 +6,12 @@ import type {
     UserOrganizationLike,
 } from "../utils/dtos/OrganizationDTO";
 import { DatabaseError } from "../errors/InfraError";
-import { makeId } from "../utils/ids/makeId";
 
 const ORGS_TABLE = "organizations";
 const USER_ORGS_TABLE = "user_organizations";
 const INVITES_TABLE = "organization_invites";
 
-const ORG_SELECT = "id, name, description, api_key, created_at, updated_at";
+const ORG_SELECT = "id, name, description, created_at, updated_at";
 const USER_ORG_SELECT =
     "id, user_id, organization_id, role, disabled, created_at, updated_at";
 
@@ -22,11 +21,6 @@ export type OrgRole = WorkspaceMembershipRole;
 
 export class OrganizationRepository {
     constructor(private readonly supabase: SupabaseClient) {}
-
-    private async generateApiKey(): Promise<string> {
-        // `opk_` is an organization API key (distinct from OAuth app tokens).
-        return `opk_${makeId(48)}`;
-    }
 
     /** Find public.users.id by auth_id (Supabase auth user id).
      *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
@@ -170,14 +164,12 @@ export class OrganizationRepository {
         description?: string | null;
         userId: string;
     }): Promise<{ organization: OrganizationLike; error: unknown }> {
-        const apiKey = await this.generateApiKey();
         const { data, error } = await this.supabase.rpc(
             "internal_create_organization_with_owner" as never,
             {
                 p_user_id: params.userId,
                 p_name: params.name,
                 p_description: params.description ?? null,
-                p_api_key: apiKey,
                 p_allow_trial: true,
                 p_is_trialing: true,
             } as never
@@ -193,27 +185,6 @@ export class OrganizationRepository {
             };
         }
         return { organization: row as OrganizationLike, error: null };
-    }
-
-    /** Ensure an organization has an API key; writes only when `api_key` is null. */
-    async ensureApiKeyForOrganization(organizationId: string): Promise<OrganizationLike | null> {
-        const newKey = await this.generateApiKey();
-        const { data, error } = await this.supabase
-            .from(ORGS_TABLE)
-            .update({ api_key: newKey, updated_at: new Date().toISOString() })
-            .eq("id", organizationId)
-            .is("api_key", null)
-            .select(ORG_SELECT)
-            .maybeSingle();
-
-        if (error) {
-            throw new DatabaseError("Failed to ensure organization api key", {
-                cause: error as unknown as Error,
-                operation: "ensureApiKeyForOrganization",
-                resource: { type: "table", name: ORGS_TABLE },
-            });
-        }
-        return (data as OrganizationLike | null) ?? null;
     }
 
     /** Add user to organization with role. */
@@ -317,39 +288,6 @@ export class OrganizationRepository {
             .delete()
             .eq("id", organizationId);
         return { error };
-    }
-
-    /** Resolve organization by programmatic API key (Authorization header value). */
-    async findOrganizationByApiKey(apiKey: string): Promise<OrganizationLike | null> {
-        const { data, error } = await this.supabase
-            .from(ORGS_TABLE)
-            .select(ORG_SELECT)
-            .eq("api_key", apiKey)
-            .maybeSingle();
-
-        if (error) {
-            throw new DatabaseError("Failed to resolve organization by API key", {
-                cause: error as unknown as Error,
-                operation: "findOrganizationByApiKey",
-                resource: { type: "table", name: ORGS_TABLE },
-            });
-        }
-        return (data as OrganizationLike) ?? null;
-    }
-
-    /** Generate and set a new api_key for the organization. */
-    async rotateApiKey(organizationId: string): Promise<{
-        organization: OrganizationLike | null;
-        error: unknown;
-    }> {
-        const newKey = await this.generateApiKey();
-        const { data, error } = await this.supabase
-            .from(ORGS_TABLE)
-            .update({ api_key: newKey, updated_at: new Date().toISOString() })
-            .eq("id", organizationId)
-            .select(ORG_SELECT)
-            .single();
-        return { organization: data as OrganizationLike | null, error };
     }
 
     /** Insert a pending invite (when admin sends invite by email). */

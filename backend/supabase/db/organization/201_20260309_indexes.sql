@@ -6,9 +6,6 @@
 
 BEGIN;
 
-CREATE INDEX IF NOT EXISTS idx_organizations_api_key ON public.organizations(api_key)
-    WHERE api_key IS NOT NULL;
-
 CREATE INDEX IF NOT EXISTS idx_user_organizations_user_id ON public.user_organizations(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_organizations_organization_id ON public.user_organizations(organization_id);
 CREATE INDEX IF NOT EXISTS idx_user_organizations_disabled ON public.user_organizations(disabled);

@@ -510,7 +510,7 @@ export class OrganizationService {
 
     /**
      * Rotate workspace programmatic access token (`opo_…`); requires admin or owner.
-     * Plaintext token is returned once; org row is unchanged (legacy `api_key` is not updated).
+     * Plaintext token is returned once; organization row is unchanged.
      */
     async rotateProgrammaticAccessToken(
         authUserId: string,

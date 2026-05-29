@@ -57,11 +57,7 @@ export class UserSessionService {
 				subscription
 			),
 			role: workspaceRoleToUserMeRole(workspaceRole),
-			publicApi: resolveSessionPublicApiKey({
-				workspaceRole,
-				planAllowsPublicApi: limits.public_api,
-				apiKey: organization.api_key,
-			}),
+			publicApi: resolveSessionPublicApiKey(),
 			isLifetime: subscription?.is_lifetime ?? false,
 			isTrailing: billing?.is_trialing ?? false,
 			allowTrial: billing?.allow_trial ?? false,

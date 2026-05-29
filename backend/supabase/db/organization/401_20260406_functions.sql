@@ -235,11 +235,11 @@ $$;
 -- Direct INSERT into organizations fails when the DB client is subject to RLS
 -- (e.g. publishable key without service_role bypass).
 DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text);
+DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean);
 CREATE OR REPLACE FUNCTION public.internal_create_organization_with_owner(
     p_user_id uuid,
     p_name text,
     p_description text,
-    p_api_key text,
     p_allow_trial boolean DEFAULT TRUE,
     p_is_trialing boolean DEFAULT TRUE
 )
@@ -247,7 +247,6 @@ RETURNS TABLE (
     id uuid,
     name text,
     description text,
-    api_key text,
     created_at timestamptz,
     updated_at timestamptz
 )
@@ -271,7 +270,6 @@ BEGIN
     INSERT INTO public.organizations (
         name,
         description,
-        api_key,
         allow_trial,
         is_trialing,
         updated_at
@@ -279,7 +277,6 @@ BEGIN
     VALUES (
         v_name,
         NULLIF(trim(COALESCE(p_description, '')), ''),
-        p_api_key,
         COALESCE(p_allow_trial, TRUE),
         COALESCE(p_is_trialing, TRUE),
         NOW()
@@ -290,16 +287,16 @@ BEGIN
     VALUES (p_user_id, v_org_id, 'owner', FALSE, NOW());
 
     RETURN QUERY
-    SELECT o.id, o.name, o.description, o.api_key, o.created_at, o.updated_at
+    SELECT o.id, o.name, o.description, o.created_at, o.updated_at
     FROM public.organizations o
     WHERE o.id = v_org_id;
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) TO service_role;
+REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) TO service_role;
 
-COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean) IS
+COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) IS
     'Create organization and add founding user as owner (bypasses RLS); billing flags supplied by API layer.';
 
 COMMIT;

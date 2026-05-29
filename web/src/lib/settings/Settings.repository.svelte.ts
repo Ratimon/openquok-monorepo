@@ -36,7 +36,6 @@ export interface OrganizationWithRoleDto {
 	id: string;
 	name: string;
 	description: string | null;
-	apiKey: string | null;
 	createdAt: string;
 	updatedAt: string;
 	workspaceRole: 'user' | 'admin' | 'owner';
@@ -48,7 +47,6 @@ export interface OrganizationDto {
 	id: string;
 	name: string;
 	description: string | null;
-	apiKey: string | null;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -167,7 +165,6 @@ export interface OrganizationProgrammerModel {
 	id: string;
 	name: string;
 	description: string | null;
-	apiKey: string | null;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -223,7 +220,6 @@ export function toOrganizationPm(dto: OrganizationDto): OrganizationProgrammerMo
 		id: dto.id,
 		name: dto.name,
 		description: dto.description ?? null,
-		apiKey: dto.apiKey ?? null,
 		createdAt: dto.createdAt,
 		updatedAt: dto.updatedAt
 	};

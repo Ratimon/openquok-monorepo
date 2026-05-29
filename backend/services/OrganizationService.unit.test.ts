@@ -50,7 +50,6 @@ const orgRow = {
     id: orgId,
     name: orgName,
     description: orgDescription,
-    api_key: null,
     created_at: orgCreatedAt,
     updated_at: orgUpdatedAt,
 };
@@ -77,7 +76,6 @@ function createMockOrgRepo(): jest.Mocked<OrganizationRepository> {
         getTeam: jest.fn(),
         removeMember: jest.fn(),
         deleteOrganization: jest.fn(),
-        rotateApiKey: jest.fn(),
         insertInvite: jest.fn(),
         findPendingInvitesByEmail: jest.fn(),
         findPendingInvitesByOrganization: jest.fn(),
@@ -580,7 +578,7 @@ describe("OrganizationService", () => {
     });
 
     describe("rotateProgrammaticAccessToken", () => {
-        it("returns org and opo_ token via OAuth app service without updating organizations.api_key", async () => {
+        it("returns org and opo_ token via OAuth app service", async () => {
             const programmaticAccessToken = `opo_${faker.string.alphanumeric(48)}`;
             const oauthAppService = {
                 issueWorkspaceProgrammaticToken: jest
@@ -607,7 +605,6 @@ describe("OrganizationService", () => {
                 authUserId,
                 orgId
             );
-            expect(orgRepo.rotateApiKey).not.toHaveBeenCalled();
         });
     });
 

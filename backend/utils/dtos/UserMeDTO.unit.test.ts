@@ -41,20 +41,7 @@ describe("UserMeDTO", () => {
 
     describe("resolveSessionPublicApiKey", () => {
         it("always returns empty (tokens are not recoverable from storage)", () => {
-            expect(
-                resolveSessionPublicApiKey({
-                    workspaceRole: "user",
-                    planAllowsPublicApi: true,
-                    apiKey: "opk_secret",
-                })
-            ).toBe("");
-            expect(
-                resolveSessionPublicApiKey({
-                    workspaceRole: "admin",
-                    planAllowsPublicApi: true,
-                    apiKey: "opk_secret",
-                })
-            ).toBe("");
+            expect(resolveSessionPublicApiKey()).toBe("");
         });
     });
 });

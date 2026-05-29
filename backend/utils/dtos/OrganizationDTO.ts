@@ -7,7 +7,6 @@ export type OrganizationLike = {
     id: string;
     name: string;
     description: string | null;
-    api_key: string | null;
     created_at: string;
     updated_at: string;
 };
@@ -41,7 +40,6 @@ export interface OrganizationDTO {
     id: string;
     name: string;
     description: string | null;
-    apiKey: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -111,7 +109,6 @@ export function toOrganizationDTO(row: OrganizationLike | null): OrganizationDTO
         id: row.id,
         name: row.name,
         description: row.description ?? null,
-        apiKey: null,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
