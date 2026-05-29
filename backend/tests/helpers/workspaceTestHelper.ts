@@ -1,5 +1,6 @@
 import supertest from "supertest";
 import { v4 as uuidv4 } from "uuid";
+import type { PaidSubscriptionTier } from "openquok-common";
 import { planLimitsForTier } from "openquok-common";
 
 import { app } from "../../app";
@@ -24,17 +25,20 @@ export async function activateWorkspace(
     expect(res.status).toBe(200);
 }
 
-export function mockSoloSubscriptionRow(organizationId: string): OrganizationSubscriptionRow {
-    const soloLimits = planLimitsForTier("SOLO");
+export function mockSubscriptionRowForTier(
+    tier: PaidSubscriptionTier,
+    organizationId: string
+): OrganizationSubscriptionRow {
+    const limits = planLimitsForTier(tier);
     const createdAt = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
     return {
         id: uuidv4(),
         organization_id: organizationId,
-        subscription_tier: "SOLO",
+        subscription_tier: tier,
         period: "MONTHLY",
-        identifier: "test_checkout_stub",
+        identifier: `test_${tier.toLowerCase()}_stub`,
         cancel_at: null,
-        channels_per_workspace: soloLimits.channel_per_workspace,
+        channels_per_workspace: limits.channel_per_workspace,
         is_lifetime: false,
         current_period_start: null,
         current_period_end: null,
@@ -44,14 +48,60 @@ export function mockSoloSubscriptionRow(organizationId: string): OrganizationSub
     };
 }
 
+export function mockSoloSubscriptionRow(organizationId: string): OrganizationSubscriptionRow {
+    return mockSubscriptionRowForTier("SOLO", organizationId);
+}
+
 /** Stub SOLO tier limits for plan enforcement without seeding `organization_subscriptions`. */
 export function stubSoloPlanLimits(): jest.SpyInstance {
-    const soloLimits = planLimitsForTier("SOLO");
+    return stubPlanLimits("SOLO");
+}
+
+/** Stub catalog limits for a paid tier on workspace-scoped enforcement checks. */
+export function stubPlanLimits(tier: PaidSubscriptionTier): jest.SpyInstance {
+    const limits = planLimitsForTier(tier);
     return jest.spyOn(subscriptionGuard, "getTierAndLimits").mockImplementation(async (orgId) => ({
-        tier: "SOLO",
-        limits: soloLimits,
-        subscription: mockSoloSubscriptionRow(orgId),
+        tier,
+        limits,
+        subscription: mockSubscriptionRowForTier(tier, orgId),
     }));
+}
+
+/** Stub owned-account subscription reads used for workspace caps and billing account context. */
+export function stubOwnedAccountSubscriptionForTier(tier: PaidSubscriptionTier): jest.SpyInstance {
+    return jest
+        .spyOn(subscriptionService, "getOwnedAccountSubscription")
+        .mockImplementation(async (authUserId) =>
+            mockSubscriptionRowForTier(tier, `owned-${authUserId}`)
+        );
+}
+
+export type PlanEnforcementSpies = {
+    billingEnabledSpy: jest.SpyInstance;
+    tierLimitsSpy: jest.SpyInstance;
+    ownedAccountSubscriptionSpy: jest.SpyInstance;
+    subscriptionLookupSpy: jest.SpyInstance;
+};
+
+/** Enable billing + tier limits + owned-account subscription without DB seed. */
+export function preparePlanEnforcement(tier: PaidSubscriptionTier): PlanEnforcementSpies {
+    return {
+        billingEnabledSpy: stubBillingEnabled(),
+        tierLimitsSpy: stubPlanLimits(tier),
+        ownedAccountSubscriptionSpy: stubOwnedAccountSubscriptionForTier(tier),
+        subscriptionLookupSpy: jest
+            .spyOn(subscriptionRepository, "getSubscriptionByOrganizationId")
+            .mockImplementation(async (organizationId) =>
+                mockSubscriptionRowForTier(tier, organizationId)
+            ),
+    };
+}
+
+export function restorePlanEnforcementSpies(spies: PlanEnforcementSpies | undefined): void {
+    spies?.billingEnabledSpy?.mockRestore();
+    spies?.tierLimitsSpy?.mockRestore();
+    spies?.ownedAccountSubscriptionSpy?.mockRestore();
+    spies?.subscriptionLookupSpy?.mockRestore();
 }
 
 /** Stub subscription row reads used by GET /users/subscription and GET /billing/current. */
@@ -107,23 +157,7 @@ export function stubTeamSeatCapacityChecks(): {
 }
 
 export function mockTeamSubscriptionRow(organizationId: string): OrganizationSubscriptionRow {
-    const teamLimits = planLimitsForTier("TEAM");
-    const createdAt = new Date().toISOString();
-    return {
-        id: uuidv4(),
-        organization_id: organizationId,
-        subscription_tier: "TEAM",
-        period: "MONTHLY",
-        identifier: "test_team_stub",
-        cancel_at: null,
-        channels_per_workspace: teamLimits.channel_per_workspace,
-        is_lifetime: false,
-        current_period_start: null,
-        current_period_end: null,
-        created_at: createdAt,
-        updated_at: createdAt,
-        deleted_at: null,
-    };
+    return mockSubscriptionRowForTier("TEAM", organizationId);
 }
 
 /** TEAM-tier limits with enough seats for multi-member workspace RBAC flows. */
