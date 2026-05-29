@@ -4,12 +4,17 @@
 	import type { OauthAppViewModel } from '$lib/developers/UpsertOAuthApp.presenter.svelte';
 
 	import { icons } from '$data/icons';
+	import {
+		OAUTH_APP_DEFAULT_PROFILE_IMAGE_PATH,
+		OPENQUOK_HOSTED_OAUTH_REDIRECT_URL
+	} from '$lib/developers/constants/oauthAppDefaults';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import { Dropzone } from '$lib/ui/dropzone';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import { url } from '$lib/utils/path';
 
 	type Props = {
 		loadForbidden: boolean;
@@ -105,6 +110,8 @@
 	}: Props = $props();
 
 	const mediaPickerBusy = $derived(mediaPickerLoading || mediaPickerUploadBusy);
+	const defaultProfilePreviewUrl = url(OAUTH_APP_DEFAULT_PROFILE_IMAGE_PATH);
+	const createProfilePreviewUrl = $derived(formPicturePreviewUrl ?? defaultProfilePreviewUrl);
 </script>
 
 <div class="space-y-6">
@@ -172,23 +179,22 @@
 				</div>
 				<div>
 					<span class="text-sm font-medium">Profile image</span>
+					<p class="mt-0.5 text-xs text-base-content/60">
+						Defaults to the OpenQuok logo. Choose another image if you prefer.
+					</p>
 					<div class="mt-2 flex flex-wrap items-center gap-3">
-						{#if formPicturePreviewUrl}
-							<img
-								src={formPicturePreviewUrl}
-								alt=""
-								class="size-12 rounded-full object-cover"
-							/>
-						{:else}
-							<div class="flex size-12 items-center justify-center rounded-full bg-base-300 text-base-content/50">
-								?
-							</div>
-						{/if}
+						<img
+							src={createProfilePreviewUrl}
+							alt=""
+							class="size-12 rounded-full object-cover"
+						/>
 						<Button variant="outline" type="button" onclick={() => onOpenMediaPicker()}>
 							Choose image
 						</Button>
 						{#if formPictureId}
-							<Button variant="ghost" type="button" onclick={() => onClearPicture()}>Remove</Button>
+							<Button variant="ghost" type="button" onclick={() => onClearPicture()}>
+								Reset to default
+							</Button>
 						{/if}
 					</div>
 				</div>
@@ -200,8 +206,13 @@
 						id="oauth-create-redirect"
 						class="input input-bordered mt-1 w-full bg-base-100"
 						bind:value={formRedirectUrl}
-						placeholder="https://yourapp.com/oauth/callback"
+						placeholder={OPENQUOK_HOSTED_OAUTH_REDIRECT_URL}
 					/>
+					<p class="mt-1 text-xs text-base-content/60">
+						For OpenQuok-hosted CLI login, use
+						<code class="text-xs">{OPENQUOK_HOSTED_OAUTH_REDIRECT_URL}</code>
+						(self-hosted: see configuration docs).
+					</p>
 				</div>
 				<div class="flex flex-wrap gap-2">
 					<Button
