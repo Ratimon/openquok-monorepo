@@ -151,8 +151,13 @@ export class WorkspaceSettingsPresenter {
 					this.teamMembersVm = [];
 				}
 				if (this.workspacesVm.length > 0 && !this.currentWorkspaceId) {
-					this.currentWorkspaceId = this.workspacesVm[0]?.id ?? null;
-					if (this.currentWorkspaceId) {
+					const sessionOrgId = await this.profileRepository.getActiveWorkspaceIdFromSession();
+					const preferred =
+						sessionOrgId && this.workspacesVm.some((w) => w.id === sessionOrgId) ?
+							sessionOrgId
+						:	(this.workspacesVm[0]?.id ?? null);
+					this.currentWorkspaceId = preferred;
+					if (this.currentWorkspaceId && this.currentWorkspaceId !== sessionOrgId) {
 						void this.profileRepository.changeOrganization(this.currentWorkspaceId);
 					}
 				}

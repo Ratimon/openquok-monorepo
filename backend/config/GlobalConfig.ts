@@ -110,6 +110,9 @@ export const config: ConfigObject = {
                     origins.push(origin, ...deriveWwwVariants(origin));
                 }
             }
+            // SvelteKit sets this Origin on server fetch during `vite build` / prerender (not a browser).
+            origins.push("http://sveltekit-prerender");
+
             if (!isProductionEnv) {
                 origins.push(
                     "http://localhost:5173",

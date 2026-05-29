@@ -177,48 +177,58 @@
 		}
 	}
 
+	async function handleCheckoutReturn(): Promise<void> {
+		await workspaceSettingsPresenter.load({ includeTeam: false });
+		await pagePresenter.alignWorkspaceForCheckoutReturn(checkoutId!);
+		await pagePresenter.load();
+
+		const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
+		if (loadedPeriod) {
+			period = loadedPeriod;
+		}
+		if (!workspaceSettingsPresenter.canManageSentInvitesInCurrentWorkspace) {
+			toast.error('Only the workspace owner can complete checkout for this workspace.');
+			replaceState('/account/billing', {});
+			return;
+		}
+		const tierAfterLoad = pagePresenter.currentVm?.tier ?? 'FREE';
+		const alreadyActive =
+			Boolean(pagePresenter.currentVm?.subscription?.id) ||
+			(tierAfterLoad !== 'FREE' && tierAfterLoad !== null);
+		if (alreadyActive) {
+			pagePresenter.onPurchaseComplete();
+			void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
+			notifySubscriptionUpdated();
+			replaceState('/account/billing', {});
+			return;
+		}
+		const confirmed = await pagePresenter.pollCheckout(checkoutId!);
+		const periodAfterPoll = pagePresenter.currentVm?.subscription?.period;
+		if (periodAfterPoll) {
+			period = periodAfterPoll;
+		}
+		if (confirmed) {
+			pagePresenter.onPurchaseComplete();
+			void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
+			notifySubscriptionUpdated();
+			replaceState('/account/billing', {});
+		} else {
+			toast.error('We could not confirm your subscription yet. Refresh the page in a moment.');
+		}
+	}
+
 	onMount(() => {
 		if (finishTrialQuery) {
 			showFinishTrial = true;
+		}
+		if (checkoutId) {
+			void handleCheckoutReturn();
+			return;
 		}
 		void pagePresenter.load().then(() => {
 			const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
 			if (loadedPeriod) {
 				period = loadedPeriod;
-			}
-			if (checkoutId && !workspaceSettingsPresenter.canManageSentInvitesInCurrentWorkspace) {
-				toast.error('Only the workspace owner can complete checkout for this workspace.');
-				replaceState('/account/billing', {});
-				return;
-			}
-			if (checkoutId) {
-				const tierAfterLoad = pagePresenter.currentVm?.tier ?? 'FREE';
-				const alreadyActive =
-					Boolean(pagePresenter.currentVm?.subscription?.id) ||
-					(tierAfterLoad !== 'FREE' && tierAfterLoad !== null);
-				if (alreadyActive) {
-					pagePresenter.onPurchaseComplete();
-					void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
-					notifySubscriptionUpdated();
-					replaceState('/account/billing', {});
-					return;
-				}
-				void pagePresenter.pollCheckout(checkoutId).then((confirmed) => {
-					const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
-					if (loadedPeriod) {
-						period = loadedPeriod;
-					}
-					if (confirmed) {
-						pagePresenter.onPurchaseComplete();
-						void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
-						notifySubscriptionUpdated();
-						replaceState('/account/billing', {});
-					} else {
-						toast.error(
-							'We could not confirm your subscription yet. Refresh the page in a moment.'
-						);
-					}
-				});
 			}
 		});
 	});

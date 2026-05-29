@@ -63,6 +63,10 @@ export class ProtectedBillingPagePresenter {
 		}
 	}
 
+	alignWorkspaceForCheckoutReturn(checkoutId: string): Promise<void> {
+		return this.billingPresenter.alignWorkspaceForCheckoutReturn(checkoutId);
+	}
+
 	pollCheckout(checkoutId: string): Promise<boolean> {
 		return this.billingPresenter.pollCheckout(checkoutId);
 	}

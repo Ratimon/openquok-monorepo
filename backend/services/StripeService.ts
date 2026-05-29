@@ -546,14 +546,22 @@ export class StripeService {
 
         const stripe = getStripeClient();
 
+        let pendingSessionOrgId: string | undefined;
         try {
             const sessions = await stripe.checkout.sessions.list({
                 customer: customerId,
                 limit: 20,
             });
             const session = sessions.data.find((s) => s.metadata?.uniqueId === checkoutId);
+            const sessionOrgId =
+                typeof session?.metadata?.organizationId === "string" ?
+                    session.metadata.organizationId.trim()
+                :   undefined;
+            if (sessionOrgId) {
+                pendingSessionOrgId = sessionOrgId;
+            }
             if (session?.status === "expired") {
-                return { status: 1 };
+                return { status: 1, ...(sessionOrgId ? { organizationId: sessionOrgId } : {}) };
             }
             const sessionPaid =
                 session?.payment_status === "paid" || session?.status === "complete";
@@ -610,6 +618,10 @@ export class StripeService {
             if (syncedRow) {
                 return { status: 2, organizationId: syncedRow.organization_id };
             }
+        }
+
+        if (pendingSessionOrgId) {
+            return { status: 0, organizationId: pendingSessionOrgId };
         }
 
         return { status: 0 };

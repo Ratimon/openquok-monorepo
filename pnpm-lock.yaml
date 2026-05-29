@@ -374,7 +374,7 @@ importers:
         version: 4.0.2
       '@stripe/stripe-js':
         specifier: ^9.6.0
-        version: 9.6.0
+        version: 9.7.0
       '@svar-ui/svelte-core':
         specifier: ^2.5.3
         version: 2.5.3
@@ -3107,8 +3107,8 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@stripe/stripe-js@9.6.0':
-    resolution: {integrity: sha512-v5MebYvJbddSRn15fknxTVwypJPzjeIXI1Q2HBxCBrQieWna8PC+RXEVUZ3F4ANAeILEj97HzFlr0r7CXvG7ZA==}
+  '@stripe/stripe-js@9.7.0':
+    resolution: {integrity: sha512-r1ElolvWXM4aYnZZVHvKW3EDL8JcwEuIgTuWxlB5lvC+YsvjkQ0gX35x9d8dTDubX395fViLVqkaolVs1PmIQQ==}
     engines: {node: '>=12.16'}
 
   '@supabase/auth-js@2.97.0':
@@ -10890,7 +10890,7 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@stripe/stripe-js@9.6.0': {}
+  '@stripe/stripe-js@9.7.0': {}
 
   '@supabase/auth-js@2.97.0':
     dependencies:

@@ -136,6 +136,22 @@ export class ProfileRepository {
 		}
 	}
 
+	/** Active workspace from `showorg` cookie via GET /users/me (session `orgId`). */
+	public async getActiveWorkspaceIdFromSession(): Promise<string | null> {
+		try {
+			const { ok, data: getProfileDto } = await this.httpGateway.get<GetProfileResponseDto>(
+				this.config.endpoints.me,
+				undefined,
+				{ withCredentials: true }
+			);
+			if (!ok || !getProfileDto?.success || !getProfileDto.data) return null;
+			const orgId = getProfileDto.data.orgId;
+			return typeof orgId === 'string' && orgId.trim() ? orgId.trim() : null;
+		} catch {
+			return null;
+		}
+	}
+
 	public async getProfile(
 		options?: { organizationId?: string; fetch?: typeof globalThis.fetch }
 	): Promise<UserProfileProgrammerModel | null> {

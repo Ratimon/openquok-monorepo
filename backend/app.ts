@@ -80,7 +80,9 @@ const getCorsOptions = () => {
                 }
             }
             logger.warn({ msg: "[CORS] Origin rejected", origin });
-            return callback(new Error(`Origin ${origin} not allowed by CORS policy`), false);
+            // Do not pass an Error to callback — that becomes a 500 via the global error handler.
+            // Browsers still block cross-origin reads; server-side fetches (e.g. SvelteKit prerender) can proceed.
+            return callback(null, false);
         },
         methods: c.methods ?? ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allowedHeaders:

@@ -18,14 +18,6 @@ EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
 
--- Legacy DBs: enum may exist without 'owner'. New enum labels cannot be used until committed
--- (aggregated migration is otherwise one transaction). Greenfield: IF NOT EXISTS is a no-op.
-COMMIT;
-
-ALTER TYPE public.workspace_membership_role ADD VALUE IF NOT EXISTS 'owner';
-
-BEGIN;
-
 COMMENT ON TYPE public.workspace_membership_role IS 'Role of a user within a workspace/organization membership';
 
 -- ---------------------------
@@ -42,12 +34,6 @@ CREATE TABLE IF NOT EXISTS public.organizations (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
-
--- Existing deployments: CREATE TABLE IF NOT EXISTS does not add new columns.
-ALTER TABLE public.organizations
-    ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
-    ADD COLUMN IF NOT EXISTS allow_trial BOOLEAN NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS is_trialing BOOLEAN NOT NULL DEFAULT FALSE;
 
 COMMENT ON TABLE public.organizations IS 'Organizations (workspaces/tenants). Tenant key for org-scoped rows (e.g. public.posts.organization_id, public.post_internal_comments.organization_id).';
 COMMENT ON COLUMN public.organizations.stripe_customer_id IS 'Stripe Customer id for workspace billing.';

@@ -9,7 +9,7 @@ interface UpdateModuleConfigBody {
 export class ConfigController {
     constructor(private readonly configService: ConfigService) {}
 
-    private static readonly PUBLIC_MODULE_ALLOWLIST = new Set(["landing-page"]);
+    private static readonly PUBLIC_MODULE_ALLOWLIST = new Set(["landing_page"]);
 
     getModuleConfig = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {

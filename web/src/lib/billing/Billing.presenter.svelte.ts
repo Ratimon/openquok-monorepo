@@ -145,6 +145,21 @@ export class BillingPresenter {
 		if (portalUrl) window.location.href = portalUrl;
 	}
 
+	/** After Stripe redirect: align active workspace from checkout poll before permission checks. */
+	async alignWorkspaceForCheckoutReturn(checkoutId: string): Promise<void> {
+		if (!checkoutId.trim()) return;
+		const workspaceId = this.organizationId;
+		try {
+			const poll = await this.billingRepository.checkCheckout(workspaceId, checkoutId);
+			const checkoutOrgId = poll.organizationId?.trim();
+			if (checkoutOrgId && checkoutOrgId !== workspaceId) {
+				await this.workspaceSettingsPresenter.switchWorkspace(checkoutOrgId);
+			}
+		} catch {
+			// Best-effort; pollCheckout and billing load will retry.
+		}
+	}
+
 	async pollCheckout(checkoutId: string): Promise<boolean> {
 		if (!checkoutId) return false;
 

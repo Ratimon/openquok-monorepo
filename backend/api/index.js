@@ -11,8 +11,10 @@ var uuid = require('uuid');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
-var dayjs5 = require('dayjs');
-var Stripe = require('stripe');
+var dayjs4 = require('dayjs');
+var Stripe2 = require('stripe');
+var groupBy = require('lodash/groupBy');
+var facebookNodejsBusinessSdk = require('facebook-nodejs-business-sdk');
 var http = require('http');
 var https = require('https');
 var fs = require('fs/promises');
@@ -55,8 +57,9 @@ var Sentry__namespace = /*#__PURE__*/_interopNamespace(Sentry);
 var IORedis__default = /*#__PURE__*/_interopDefault(IORedis);
 var crypto__default = /*#__PURE__*/_interopDefault(crypto);
 var nodemailer__default = /*#__PURE__*/_interopDefault(nodemailer);
-var dayjs5__default = /*#__PURE__*/_interopDefault(dayjs5);
-var Stripe__default = /*#__PURE__*/_interopDefault(Stripe);
+var dayjs4__default = /*#__PURE__*/_interopDefault(dayjs4);
+var Stripe2__default = /*#__PURE__*/_interopDefault(Stripe2);
+var groupBy__default = /*#__PURE__*/_interopDefault(groupBy);
 var http__default = /*#__PURE__*/_interopDefault(http);
 var https__default = /*#__PURE__*/_interopDefault(https);
 var fs__default = /*#__PURE__*/_interopDefault(fs);
@@ -164,7 +167,7 @@ var init_envHelper = __esm({
   }
 });
 
-// ../common/dist/mediaUploadLimits.js
+// ../common/dist/media/uploadLimits.js
 function normalizeMime(mimetype) {
   return (mimetype || "").trim().toLowerCase();
 }
@@ -200,8 +203,8 @@ function validateMediaFileUploadSize(size, mimetype, surface) {
   return `${kind} must be ${formatLimitLabel(max)} or smaller (file is ${formatLimitLabel(size)}).`;
 }
 var MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND, MAX_MEDIA_VIDEO_UPLOAD_BYTES, MAX_MEDIA_UPLOAD_BYTES;
-var init_mediaUploadLimits = __esm({
-  "../common/dist/mediaUploadLimits.js"() {
+var init_uploadLimits = __esm({
+  "../common/dist/media/uploadLimits.js"() {
     MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND = 10 * 1024 * 1024;
     MAX_MEDIA_VIDEO_UPLOAD_BYTES = 1024 * 1024 * 1024;
     MAX_MEDIA_UPLOAD_BYTES = MAX_MEDIA_VIDEO_UPLOAD_BYTES;
@@ -212,21 +215,15 @@ var init_mediaUploadLimits = __esm({
 var PAID_SUBSCRIPTION_TIERS, SubscriptionSection;
 var init_types = __esm({
   "../common/dist/subscription/types.js"() {
-    PAID_SUBSCRIPTION_TIERS = [
-      "SOLO",
-      "CREATOR",
-      "TEAM",
-      "ULTIMATE"
-    ];
+    PAID_SUBSCRIPTION_TIERS = ["SOLO", "TEAM", "ULTIMATE", "MAX"];
     (function(SubscriptionSection2) {
-      SubscriptionSection2["CHANNEL"] = "channel";
+      SubscriptionSection2["CHANNEL_PER_WORKSPACE"] = "channel_per_workspace";
       SubscriptionSection2["POSTS_PER_MONTH"] = "posts_per_month";
-      SubscriptionSection2["TEAM_MEMBERS"] = "team_members";
+      SubscriptionSection2["TEAM_MEMBERS_PER_WORKSPACE"] = "team_members_per_workspace";
       SubscriptionSection2["WORKSPACES"] = "workspaces";
-      SubscriptionSection2["MEDIA_STORAGE"] = "media_storage";
+      SubscriptionSection2["MEDIA_STORAGE_BYTES_PER_WORKSPACE"] = "media_storage_bytes_per_workspace";
       SubscriptionSection2["SHARE_POST_PREVIEW"] = "share_post_preview";
-      SubscriptionSection2["WEBHOOKS"] = "webhooks";
-      SubscriptionSection2["AI"] = "ai";
+      SubscriptionSection2["COMMUNITY_FEATURES"] = "community_features";
       SubscriptionSection2["PUBLIC_API"] = "public_api";
       SubscriptionSection2["ADMIN"] = "admin";
     })(SubscriptionSection || (SubscriptionSection = {}));
@@ -240,11 +237,12 @@ function isPaidSubscriptionTier(tier) {
 function planLimitsForTier(tier) {
   return pricing[tier] ?? pricing.FREE;
 }
-var UNLIMITED_POSTS_PER_MONTH, GIB, gbToBytes, DEFAULT_MEDIA_STORAGE_QUOTA_BYTES, pricing;
+var UNLIMITED_POSTS_PER_MONTH, UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE, GIB, gbToBytes, DEFAULT_MEDIA_STORAGE_QUOTA_BYTES, pricing;
 var init_pricing = __esm({
   "../common/dist/subscription/pricing.js"() {
     init_types();
     UNLIMITED_POSTS_PER_MONTH = 1e6;
+    UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE = 1e6;
     GIB = 1024 ** 3;
     gbToBytes = (gb) => Math.round(gb * GIB);
     DEFAULT_MEDIA_STORAGE_QUOTA_BYTES = gbToBytes(5);
@@ -256,11 +254,11 @@ var init_pricing = __esm({
         workspaces: 0,
         channel_per_workspace: 0,
         posts_per_month: 0,
-        team_members_per_workspace: 0,
+        team_members_per_workspace: 1,
+        media_storage_bytes_per_workspace: 0,
         share_post_preview: false,
         community_features: true,
-        public_api: false,
-        media_storage_bytes_per_workspace: 0
+        public_api: false
       },
       SOLO: {
         current: "SOLO",
@@ -270,75 +268,71 @@ var init_pricing = __esm({
         channel_per_workspace: 15,
         posts_per_month: 500,
         team_members_per_workspace: 1,
+        media_storage_bytes_per_workspace: gbToBytes(5),
         share_post_preview: false,
         community_features: true,
-        public_api: true,
-        media_storage_bytes_per_workspace: gbToBytes(5)
-        // total of 5 GiB
+        public_api: true
       },
-      CREATOR: {
-        current: "CREATOR",
-        month_price: 39,
-        year_price: 374,
-        workspaces: 2,
-        channel_per_workspace: 20,
-        // total of 40 channels
-        posts_per_month: UNLIMITED_POSTS_PER_MONTH,
-        team_members_per_workspace: 1,
-        // total of 2 team members 
-        share_post_preview: true,
-        community_features: true,
-        public_api: true,
-        media_storage_bytes_per_workspace: gbToBytes(5)
-        // total of 10 GiB
-      },
+      /** Legacy tier — no longer sold; limits preserved for grandfathered subscriptions. */
+      // CREATOR: {
+      // 	current: 'CREATOR',
+      // 	month_price: 39,
+      // 	year_price: 374,
+      // 	workspaces: 2,
+      // 	channel_per_workspace: 20,
+      // 	posts_per_month: UNLIMITED_POSTS_PER_MONTH,
+      // 	team_members_per_workspace: 3,
+      // 	media_storage_bytes_per_workspace: gbToBytes(5),
+      // 	share_post_preview: true,
+      // 	community_features: true,
+      // 	public_api: true,
+      // },
       TEAM: {
         current: "TEAM",
         month_price: 49,
         year_price: 470,
         workspaces: 3,
-        channel_per_workspace: 25,
-        // total of 75 channels
+        channel_per_workspace: 20,
+        // total of 60 channls
         posts_per_month: UNLIMITED_POSTS_PER_MONTH,
-        team_members_per_workspace: 2,
-        // total of 6 team members
+        team_members_per_workspace: 5,
+        media_storage_bytes_per_workspace: gbToBytes(5),
         share_post_preview: true,
         community_features: true,
-        public_api: true,
-        media_storage_bytes_per_workspace: gbToBytes(5)
-        // total of 15 GiB
+        public_api: true
       },
       ULTIMATE: {
         current: "ULTIMATE",
-        month_price: 99,
-        year_price: 950,
+        month_price: 69,
+        year_price: 662,
         workspaces: 5,
-        channel_per_workspace: 40,
-        // total of 200 channels
+        channel_per_workspace: 25,
+        // total of 125 channels
         posts_per_month: UNLIMITED_POSTS_PER_MONTH,
-        team_members_per_workspace: 2,
-        // total of 10 team members
+        team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
+        media_storage_bytes_per_workspace: gbToBytes(5),
         share_post_preview: true,
         community_features: true,
-        public_api: true,
-        media_storage_bytes_per_workspace: gbToBytes(6)
-        // total of 30 GiB
+        public_api: true
+      },
+      MAX: {
+        current: "MAX",
+        month_price: 129,
+        year_price: 1238,
+        workspaces: 10,
+        channel_per_workspace: 30,
+        posts_per_month: UNLIMITED_POSTS_PER_MONTH,
+        team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
+        media_storage_bytes_per_workspace: gbToBytes(6),
+        share_post_preview: true,
+        community_features: true,
+        public_api: true
       }
     };
   }
 });
 
-// ../common/dist/subscription/stripePriceEnv.js
-function stripePriceEnvKey(tier, period) {
-  const periodKey = period === "MONTHLY" ? "MONTHLY" : "YEARLY";
-  return `STRIPE_PRICE_ID_${tier}_${periodKey}`;
-}
-var init_stripePriceEnv = __esm({
-  "../common/dist/subscription/stripePriceEnv.js"() {
-  }
-});
-
-// ../common/dist/mediaVirtualPaths.js
+// ../common/dist/media/virtualPaths.js
 function normalizeMediaVirtualPath(path7) {
   const raw = String(path7 ?? "").trim().replace(/\\/g, "/");
   if (!raw || raw === "/")
@@ -384,8 +378,8 @@ function sanitizeMediaDisplayName(name) {
   return base.length > 0 ? base : "file";
 }
 var MEDIA_VIRTUAL_GENERAL, MEDIA_VIRTUAL_POSTS, MEDIA_VIRTUAL_POSTS_UNSCHEDULED, MEDIA_VIRTUAL_PROTECTED_FOLDERS, UUID_RE;
-var init_mediaVirtualPaths = __esm({
-  "../common/dist/mediaVirtualPaths.js"() {
+var init_virtualPaths = __esm({
+  "../common/dist/media/virtualPaths.js"() {
     MEDIA_VIRTUAL_GENERAL = "/General";
     MEDIA_VIRTUAL_POSTS = "/Posts";
     MEDIA_VIRTUAL_POSTS_UNSCHEDULED = "/Posts/unscheduled";
@@ -401,11 +395,20 @@ var init_mediaVirtualPaths = __esm({
 // ../common/dist/index.js
 var init_dist = __esm({
   "../common/dist/index.js"() {
-    init_mediaUploadLimits();
+    init_uploadLimits();
     init_types();
     init_pricing();
-    init_stripePriceEnv();
-    init_mediaVirtualPaths();
+    init_virtualPaths();
+  }
+});
+
+// config/stripePriceEnv.ts
+function stripePriceEnvKey(tier, period) {
+  const periodKey = period === "MONTHLY" ? "MONTHLY" : "YEARLY";
+  return `STRIPE_PRICE_ID_${tier}_${periodKey}`;
+}
+var init_stripePriceEnv = __esm({
+  "config/stripePriceEnv.ts"() {
   }
 });
 
@@ -430,6 +433,7 @@ var init_stripePriceConfig = __esm({
   "config/stripePriceConfig.ts"() {
     init_dist();
     init_envHelper();
+    init_stripePriceEnv();
   }
 });
 
@@ -588,7 +592,7 @@ function orchestrationTransportFromEnv(envKey, fallback) {
   }
   return fallback;
 }
-var loadBackendDotenvCjs, loadBackendDotenv, normalizeOrigin, deriveWwwVariants, isProductionEnv, rawApiPrefix, resolvedApiPrefix, config, server;
+var loadBackendDotenvCjs, loadBackendDotenv, normalizeOrigin, deriveWwwVariants, isProductionEnv, rawApiPrefix, resolvedApiPrefix, config, server, stripeCfg;
 var init_GlobalConfig = __esm({
   "config/GlobalConfig.ts"() {
     init_envHelper();
@@ -666,6 +670,7 @@ var init_GlobalConfig = __esm({
               origins.push(origin, ...deriveWwwVariants(origin));
             }
           }
+          origins.push("http://sveltekit-prerender");
           if (!isProductionEnv) {
             origins.push(
               "http://localhost:5173",
@@ -690,7 +695,13 @@ var init_GlobalConfig = __esm({
           return unique;
         })(),
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"],
+        allowedHeaders: (() => {
+          const base = ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"];
+          if (getEnvBoolean("NOT_SECURED", false)) {
+            base.push("showorg", "joinOrg", "impersonate");
+          }
+          return base;
+        })(),
         credentials: true,
         maxAge: 86400
       },
@@ -896,12 +907,19 @@ var init_GlobalConfig = __esm({
           message: "Too many OAuth requests, please try again later"
         }
       },
+      /** Product analytics (Meta Conversions API). */
+      marketing: {
+        facebookPixelId: getEnvTrimmed("FACEBOOK_PIXEL_ID", ""),
+        facebookPixelAccessToken: getEnvTrimmed("FACEBOOK_PIXEL_ACCESS_TOKEN", "")
+      },
       /** Stripe billing (workspace subscriptions). */
       stripe: {
         publishableKey: getEnvTrimmed("STRIPE_PUBLISHABLE_KEY", ""),
         secretKey: getEnvTrimmed("STRIPE_SECRET_KEY", ""),
         webhookSecret: getEnvTrimmed("STRIPE_WEBHOOK_SECRET", ""),
-        /** Pre-created Stripe Price ids (`price_…`) per tier and cadence; see stripePriceEnvKey in openquok-common. */
+        /** Stripe Coupon id applied via POST /billing/apply-discount when eligible. */
+        discountCouponId: getEnvTrimmed("STRIPE_DISCOUNT_ID", ""),
+        /** Pre-created Stripe Price ids (`price_…`) per tier and cadence; see stripePriceEnvKey in config/stripePriceEnv. */
         priceIds: loadStripePriceIds()
       },
       /** Social integration OAuth (per-provider secrets). */
@@ -924,6 +942,21 @@ var init_GlobalConfig = __esm({
     };
     server = config.server;
     logger.info({ msg: "[Config] Loaded", env: server?.nodeEnv });
+    stripeCfg = config.stripe;
+    if (server?.nodeEnv === "development" && stripeCfg?.secretKey?.trim()) {
+      const wh = stripeCfg.webhookSecret?.trim() ?? "";
+      if (wh) {
+        logger.info({
+          msg: "[Stripe] STRIPE_WEBHOOK_SECRET loaded (must match current `stripe listen` session)",
+          secretPrefix: `${wh.slice(0, 12)}\u2026`,
+          secretLength: wh.length
+        });
+      } else {
+        logger.warn({
+          msg: "[Stripe] STRIPE_SECRET_KEY is set but STRIPE_WEBHOOK_SECRET is empty; webhooks will fail signature verification"
+        });
+      }
+    }
   }
 });
 function getSupabaseClientKey() {
@@ -931,6 +964,19 @@ function getSupabaseClientKey() {
 }
 function getSupabaseServerKey() {
   return (supabaseConfig.supabaseSecretKey ?? "").trim() || (process.env.SUPABASE_SECRET_KEY ?? "").trim();
+}
+function assertIsSupabaseSecretKey(key) {
+  const trimmed = key.trim();
+  if (!trimmed) {
+    throw new Error(
+      "SUPABASE_SECRET_KEY is required for the API process (sb_secret_\u2026 from `supabase status -o env`)."
+    );
+  }
+  if (trimmed.startsWith("sb_publishable_")) {
+    throw new Error(
+      "SUPABASE_SECRET_KEY must be the secret key (sb_secret_\u2026), not PUBLIC_SUPABASE_PUBLISHABLE_KEY."
+    );
+  }
 }
 function getSiteKey(hostname) {
   const h = hostname.toLowerCase();
@@ -981,27 +1027,19 @@ function createSupabaseServiceClient() {
     const supabaseUrl = supabaseConfig.supabaseUrl;
     let supabaseKey = getSupabaseServerKey();
     if (!supabaseKey) {
-      if (config.server.nodeEnv === "production") {
-        throw new Error(
-          "SUPABASE_SECRET_KEY (or config.supabase.supabaseSecretKey) is required in production"
-        );
-      }
       const isJest = process.env.JEST_WORKER_ID !== void 0;
       if (isJest || process.env.NODE_ENV === "test") {
         supabaseKey = getSupabaseClientKey();
         logger.warn({
           msg: "Using publishable key for Supabase under Jest or NODE_ENV=test (set SUPABASE_SECRET_KEY for integration tests against a real DB)."
         });
-      } else if (process.env.NODE_ENV === "development") {
-        throw new Error(
-          "SUPABASE_SECRET_KEY is required for the API process. The publishable key cannot access server-side tables (for example notifications and memberships)."
-        );
       } else {
-        supabaseKey = getSupabaseClientKey();
-        logger.warn({
-          msg: "Using publishable key for Supabase service client: many repository queries will fail. Set SUPABASE_SECRET_KEY."
-        });
+        throw new Error(
+          "SUPABASE_SECRET_KEY is required for the API process. The publishable key cannot write billing or membership rows."
+        );
       }
+    } else {
+      assertIsSupabaseSecretKey(supabaseKey);
     }
     if (!supabaseUrl) {
       throw new Error("PUBLIC_SUPABASE_URL (or config.supabase.supabaseUrl) is required");
@@ -1010,6 +1048,12 @@ function createSupabaseServiceClient() {
       auth: {
         autoRefreshToken: false,
         persistSession: false
+      },
+      global: {
+        headers: {
+          Authorization: `Bearer ${supabaseKey}`,
+          apikey: supabaseKey
+        }
       }
     });
     return supabaseClient;
@@ -2115,11 +2159,20 @@ var init_AbstractEmailTemplate = __esm({
   }
 });
 
+// emails/emailTheme.ts
+var EMAIL_PRIMARY_COLOR;
+var init_emailTheme = __esm({
+  "emails/emailTheme.ts"() {
+    EMAIL_PRIMARY_COLOR = "#249546";
+  }
+});
+
 // emails/VerifyEmailTemplate.ts
 var VerifyEmailTemplate;
 var init_VerifyEmailTemplate = __esm({
   "emails/VerifyEmailTemplate.ts"() {
     init_AbstractEmailTemplate();
+    init_emailTheme();
     VerifyEmailTemplate = class extends AbstractEmailTemplate {
       fullName;
       verificationLink;
@@ -2157,15 +2210,15 @@ The Team
     <title>Verify Your Email Address</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">Please verify your email address</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid ${EMAIL_PRIMARY_COLOR}; padding-bottom: 10px;">Please verify your email address</h1>
     <p>Hello <strong>${this.fullName || "there"}</strong>,</p>
     <p>Please verify your email address by clicking the link below:</p>
     <p style="margin: 20px 0;">
-        <a href="${this.verificationLink}" style="display: inline-block; background-color: #3498db; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email Address</a>
+        <a href="${this.verificationLink}" style="display: inline-block; background-color: ${EMAIL_PRIMARY_COLOR}; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email Address</a>
     </p>
     <p style="color: #7f8c8d; font-size: 14px;">
         Or copy and paste this link into your browser:<br>
-        <a href="${this.verificationLink}" style="color: #3498db; word-break: break-all;">${this.verificationLink}</a>
+        <a href="${this.verificationLink}" style="color: ${EMAIL_PRIMARY_COLOR}; word-break: break-all;">${this.verificationLink}</a>
     </p>
     <p style="color: #e74c3c; font-weight: bold;">This link will expire in 24 hours.</p>
     <p style="color: #7f8c8d; font-size: 14px; margin-top: 30px;">
@@ -2188,6 +2241,7 @@ var WelcomeEmailTemplate;
 var init_WelcomeEmailTemplate = __esm({
   "emails/WelcomeEmailTemplate.ts"() {
     init_AbstractEmailTemplate();
+    init_emailTheme();
     WelcomeEmailTemplate = class extends AbstractEmailTemplate {
       fullName;
       constructor(fullName) {
@@ -2219,7 +2273,7 @@ The Team
     <title>Welcome!</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 10px;">Welcome to our platform!</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid ${EMAIL_PRIMARY_COLOR}; padding-bottom: 10px;">Welcome to our platform!</h1>
     <p>Hello <strong>${this.fullName || "there"}</strong>,</p>
     <p>Thank you for verifying your email address. Your account is now fully activated.</p>
     <p>You can now access all features of our platform.</p>
@@ -2240,6 +2294,7 @@ var ResetPasswordEmailTemplate;
 var init_ResetPasswordEmailTemplate = __esm({
   "emails/ResetPasswordEmailTemplate.ts"() {
     init_AbstractEmailTemplate();
+    init_emailTheme();
     ResetPasswordEmailTemplate = class extends AbstractEmailTemplate {
       fullName;
       code;
@@ -2279,16 +2334,16 @@ The Team
     <title>Reset your password</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #e67e22; padding-bottom: 10px;">Reset your password</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid ${EMAIL_PRIMARY_COLOR}; padding-bottom: 10px;">Reset your password</h1>
     <p>Hello <strong>${this.fullName || "there"}</strong>,</p>
     <p>Your code is <strong style="font-size: 1.2em; letter-spacing: 0.1em;">${this.code}</strong></p>
     <p>Follow this link to reset your password using the code above:</p>
     <p style="margin: 20px 0;">
-        <a href="${this.resetLink}" style="display: inline-block; background-color: #e67e22; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset password</a>
+        <a href="${this.resetLink}" style="display: inline-block; background-color: ${EMAIL_PRIMARY_COLOR}; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset password</a>
     </p>
     <p style="color: #7f8c8d; font-size: 14px;">
         Or copy and paste this link into your browser:<br>
-        <a href="${this.resetLink}" style="color: #e67e22; word-break: break-all;">${this.resetLink}</a>
+        <a href="${this.resetLink}" style="color: ${EMAIL_PRIMARY_COLOR}; word-break: break-all;">${this.resetLink}</a>
     </p>
     <p style="color: #7f8c8d; font-size: 14px; margin-top: 30px;">
         If you did not request a password reset, please ignore this email.
@@ -2305,17 +2360,13 @@ The Team
   }
 });
 
-// utils/helper.ts
+// utils/validation/email.ts
 function normalizeEmail(email) {
   if (email == null || typeof email !== "string") return "";
   return email.trim().toLowerCase();
 }
-function isValidUUID(value) {
-  const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return regex.test(value);
-}
-var init_helper = __esm({
-  "utils/helper.ts"() {
+var init_email = __esm({
+  "utils/validation/email.ts"() {
   }
 });
 
@@ -2348,8 +2399,126 @@ var init_AuthUserDTO = __esm({
   }
 });
 
+// utils/session/sessionCookies.ts
+function getSiteKey2(hostname) {
+  const h = hostname.toLowerCase();
+  const parts = h.split(".").filter(Boolean);
+  if (parts.length <= 1) return h;
+  const threeLabelPublicSuffixes = /* @__PURE__ */ new Set([
+    "vercel.app",
+    "netlify.app",
+    "onrender.com",
+    "fly.dev",
+    "pages.dev",
+    "web.app",
+    "firebaseapp.com",
+    "github.io"
+  ]);
+  const last2 = parts.slice(-2).join(".");
+  if (threeLabelPublicSuffixes.has(last2) && parts.length >= 3) {
+    return parts.slice(-3).join(".");
+  }
+  return last2;
+}
+function getSessionCookieDomain() {
+  if (serverConfig3.nodeEnv !== "production") return void 0;
+  try {
+    const backUrl = new URL(serverConfig3.backendDomainUrl ?? "");
+    const hostname = backUrl.hostname;
+    if (hostname === "localhost") return void 0;
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) return void 0;
+    const site = getSiteKey2(hostname);
+    if (hostname !== site && hostname.endsWith(`.${site}`)) return site;
+    return void 0;
+  } catch {
+    return void 0;
+  }
+}
+function getSameSiteValue2() {
+  if (serverConfig3.nodeEnv !== "production") return "lax";
+  try {
+    const frontUrl = new URL(serverConfig3.frontendDomainUrl ?? "");
+    const backUrl = new URL(serverConfig3.backendDomainUrl ?? "");
+    return getSiteKey2(frontUrl.hostname) === getSiteKey2(backUrl.hostname) ? "lax" : "none";
+  } catch {
+    return "none";
+  }
+}
+function sessionCookieAttributes(maxAgeMs) {
+  const isProduction = serverConfig3.nodeEnv === "production";
+  const domain = getSessionCookieDomain();
+  const secure = isProduction || Boolean(authConfig.notSecured);
+  return {
+    httpOnly: true,
+    secure,
+    sameSite: getSameSiteValue2(),
+    path: "/",
+    maxAge: maxAgeMs,
+    ...domain ? { domain } : {}
+  };
+}
+function readHeaderValue(req, name) {
+  if (!authConfig.notSecured) return void 0;
+  const raw = req.headers[name];
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  return void 0;
+}
+function readActiveOrganizationId(req) {
+  const queryId = req.query.organizationId?.trim();
+  if (queryId) return queryId;
+  const fromCookie = req.cookies?.[ACTIVE_ORGANIZATION_COOKIE];
+  if (typeof fromCookie === "string" && fromCookie.trim()) {
+    return fromCookie.trim();
+  }
+  return readHeaderValue(req, ACTIVE_ORGANIZATION_COOKIE);
+}
+function readJoinOrganizationToken(req, bodyOrg) {
+  const fromBody = bodyOrg?.trim();
+  if (fromBody) return fromBody;
+  const fromCookie = req.cookies?.[JOIN_ORGANIZATION_COOKIE];
+  if (typeof fromCookie === "string" && fromCookie.trim()) {
+    return fromCookie.trim();
+  }
+  return readHeaderValue(req, JOIN_ORGANIZATION_COOKIE);
+}
+function setActiveOrganizationCookie(res, organizationId) {
+  res.cookie(ACTIVE_ORGANIZATION_COOKIE, organizationId, sessionCookieAttributes(ONE_YEAR_MS));
+  if (authConfig.notSecured) {
+    res.setHeader(ACTIVE_ORGANIZATION_COOKIE, organizationId);
+  }
+}
+function clearActiveOrganizationCookie(res) {
+  const attrs = { ...sessionCookieAttributes(0), expires: /* @__PURE__ */ new Date(0) };
+  res.clearCookie(ACTIVE_ORGANIZATION_COOKIE, attrs);
+  if (authConfig.notSecured) {
+    res.removeHeader(ACTIVE_ORGANIZATION_COOKIE);
+  }
+}
+function clearJoinOrganizationCookie(res) {
+  const attrs = { ...sessionCookieAttributes(0), expires: /* @__PURE__ */ new Date(0) };
+  res.clearCookie(JOIN_ORGANIZATION_COOKIE, attrs);
+  if (authConfig.notSecured) {
+    res.removeHeader(JOIN_ORGANIZATION_COOKIE);
+  }
+}
+function clearWorkspaceSessionCookies(res) {
+  clearActiveOrganizationCookie(res);
+  clearJoinOrganizationCookie(res);
+}
+var ACTIVE_ORGANIZATION_COOKIE, JOIN_ORGANIZATION_COOKIE, ONE_YEAR_MS, serverConfig3, authConfig;
+var init_sessionCookies = __esm({
+  "utils/session/sessionCookies.ts"() {
+    init_GlobalConfig();
+    ACTIVE_ORGANIZATION_COOKIE = "showorg";
+    JOIN_ORGANIZATION_COOKIE = "joinOrg";
+    ONE_YEAR_MS = 1e3 * 60 * 60 * 24 * 365;
+    serverConfig3 = config.server;
+    authConfig = config.auth;
+  }
+});
+
 // controllers/AuthController.ts
-var serverConfig3, AuthController;
+var serverConfig4, AuthController;
 var init_AuthController = __esm({
   "controllers/AuthController.ts"() {
     init_AuthError();
@@ -2359,9 +2528,10 @@ var init_AuthController = __esm({
     init_ResetPasswordEmailTemplate();
     init_GlobalConfig();
     init_Logger();
-    init_helper();
+    init_email();
     init_AuthUserDTO();
-    serverConfig3 = config.server;
+    init_sessionCookies();
+    serverConfig4 = config.server;
     AuthController = class {
       userRepository;
       userService;
@@ -2409,10 +2579,10 @@ var init_AuthController = __esm({
        * - 'none' when frontend/backend are on different domains (requires secure: true)
        */
       getSameSiteValue() {
-        if (serverConfig3.nodeEnv !== "production") return "lax";
+        if (serverConfig4.nodeEnv !== "production") return "lax";
         try {
-          const frontUrl = new URL(serverConfig3.frontendDomainUrl ?? "");
-          const backUrl = new URL(serverConfig3.backendDomainUrl ?? "");
+          const frontUrl = new URL(serverConfig4.frontendDomainUrl ?? "");
+          const backUrl = new URL(serverConfig4.backendDomainUrl ?? "");
           const frontSite = this.getSiteKey(frontUrl.hostname);
           const backSite = this.getSiteKey(backUrl.hostname);
           return frontSite === backSite ? "lax" : "none";
@@ -2421,11 +2591,11 @@ var init_AuthController = __esm({
         }
       }
       setRefreshTokenCookie(res, refreshToken) {
-        const isProduction = serverConfig3.nodeEnv === "production";
+        const isProduction = serverConfig4.nodeEnv === "production";
         const domain = (() => {
           if (!isProduction) return void 0;
           try {
-            const backUrl = new URL(serverConfig3.backendDomainUrl ?? "");
+            const backUrl = new URL(serverConfig4.backendDomainUrl ?? "");
             const hostname = backUrl.hostname;
             if (hostname === "localhost") return void 0;
             if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) return void 0;
@@ -2480,7 +2650,7 @@ var init_AuthController = __esm({
           const safeNext = nextPath && nextPath.startsWith("/") ? nextPath : "/account";
           res.cookie("oauthNext", safeNext, {
             httpOnly: true,
-            secure: serverConfig3.nodeEnv === "production",
+            secure: serverConfig4.nodeEnv === "production",
             sameSite: this.getSameSiteValue(),
             maxAge: 10 * 60 * 1e3,
             // 10 minutes
@@ -2503,7 +2673,7 @@ var init_AuthController = __esm({
           const nextFromQuery = typeof req.query.next === "string" ? req.query.next : void 0;
           const nextFromCookie = typeof req.cookies?.oauthNext === "string" ? req.cookies.oauthNext : void 0;
           const nextPath = nextFromQuery ?? nextFromCookie ?? "/account";
-          const frontendUrl = serverConfig3.frontendDomainUrl ?? "";
+          const frontendUrl = serverConfig4.frontendDomainUrl ?? "";
           const safeNext = nextPath.startsWith("/") ? nextPath : "/";
           const authErrorUrl = `${frontendUrl}/auth-error?message=${encodeURIComponent("Google sign-in failed. Please try again.")}`;
           if (!code) {
@@ -2577,7 +2747,7 @@ var init_AuthController = __esm({
           res.clearCookie("oauthNext", { path: "/" });
           res.redirect(`${frontendUrl}${safeNext}`);
         } catch (error) {
-          const frontendUrl = serverConfig3.frontendDomainUrl ?? "";
+          const frontendUrl = serverConfig4.frontendDomainUrl ?? "";
           const message = error instanceof AuthError ? error.message : error instanceof Error ? error.message : "Google sign-in failed. Please try again.";
           res.redirect(`${frontendUrl}/auth-error?message=${encodeURIComponent(message)}`);
         }
@@ -2630,7 +2800,8 @@ var init_AuthController = __esm({
           }
           if (newUser?.id) {
             const defaultOrg = await this.organizationService.createDefaultOrganizationForNewUser(newUser.id, {
-              name: fullName ?? "My Organization"
+              name: fullName ?? "My Organization",
+              email
             });
             if (!defaultOrg) {
               logger.warn({ msg: "Default organization creation failed at signup", userId: newUser.id });
@@ -2656,7 +2827,7 @@ var init_AuthController = __esm({
                 try {
                   await this.emailService.send(
                     new VerifyEmailTemplate(
-                      serverConfig3.backendDomainUrl ?? "",
+                      serverConfig4.backendDomainUrl ?? "",
                       fullName ?? "User",
                       email,
                       token
@@ -2687,7 +2858,7 @@ var init_AuthController = __esm({
             { roles: [] }
           );
           logger.info({ msg: "User signup successful", email });
-          const isUsingCookie = Boolean(session?.refresh_token && (req.cookies?.refreshToken !== void 0 || serverConfig3.nodeEnv === "production"));
+          const isUsingCookie = Boolean(session?.refresh_token && (req.cookies?.refreshToken !== void 0 || serverConfig4.nodeEnv === "production"));
           res.status(201).json({
             success: true,
             data: {
@@ -2740,7 +2911,7 @@ var init_AuthController = __esm({
             { roles: [] }
           );
           logger.info({ msg: "User authenticated successfully", email });
-          const isUsingCookie = serverConfig3.nodeEnv === "production";
+          const isUsingCookie = serverConfig4.nodeEnv === "production";
           res.status(200).json({
             success: true,
             data: {
@@ -2769,6 +2940,7 @@ var init_AuthController = __esm({
             }
           }
           res.clearCookie("refreshToken");
+          clearWorkspaceSessionCookies(res);
           await this.authenticationService.signOut({ req, res });
           logger.info({ msg: "User signed out" });
           res.status(200).json({ success: true, message: "Signed out successfully" });
@@ -2796,7 +2968,7 @@ var init_AuthController = __esm({
               this.userRepository.findUserIdByAuthId(authUserId)
             ]);
             const rolesResult = publicId ? await this.rbacService.getUserRoles(publicId) : { roles: [] };
-            const isSuperAdmin = publicId ? await this.rbacService.isSuperAdmin(publicId) : false;
+            const isPlatformAdmin = publicId ? await this.rbacService.isPlatformAdmin(publicId) : false;
             return userData ? {
               id: userData.id,
               email: userData.email,
@@ -2804,10 +2976,10 @@ var init_AuthController = __esm({
               username: userData.email,
               isEmailVerified: userData.is_email_verified === true,
               roles: rolesResult.roles,
-              isSuperAdmin
+              isPlatformAdmin
             } : null;
           })() : null;
-          if (serverConfig3.nodeEnv === "production" || cookieRefreshToken) {
+          if (serverConfig4.nodeEnv === "production" || cookieRefreshToken) {
             this.setRefreshTokenCookie(res, data.session.refresh_token);
           }
           logger.info({ msg: "Token refreshed successfully" });
@@ -2848,7 +3020,7 @@ var init_AuthController = __esm({
       askPasswordReset = async (req, res, next) => {
         try {
           const email = normalizeEmail(req.body?.email);
-          const frontendUrl = serverConfig3.frontendDomainUrl ?? "";
+          const frontendUrl = serverConfig4.frontendDomainUrl ?? "";
           const { token, error: genError } = await this.authenticationService.generateRecoveryLink(email, {
             redirectTo: `${frontendUrl}/forgot-password`
           });
@@ -2926,7 +3098,7 @@ var init_AuthController = __esm({
             if (email) {
               const { userData: userByEmail } = await this.userRepository.findFullUserByEmail(email);
               if (userByEmail?.is_email_verified) {
-                res.redirect(`${serverConfig3.frontendDomainUrl ?? ""}/sign-up`);
+                res.redirect(`${serverConfig4.frontendDomainUrl ?? ""}/sign-up`);
                 return;
               }
               throw new TokenError(
@@ -2940,13 +3112,13 @@ var init_AuthController = __esm({
             throw new TokenError("Invalid or expired verification token");
           }
           if (!user.is_email_verified) {
-            const frontendUrl = serverConfig3.frontendDomainUrl ?? "";
+            const frontendUrl = serverConfig4.frontendDomainUrl ?? "";
             res.redirect(`${frontendUrl}/verify-signup?token=${token}&email=${encodeURIComponent(email ?? user.email ?? "")}`);
             return;
           }
-          res.redirect(`${serverConfig3.frontendDomainUrl ?? ""}/sign-up`);
+          res.redirect(`${serverConfig4.frontendDomainUrl ?? ""}/sign-up`);
         } catch (error) {
-          const frontendUrl = serverConfig3.frontendDomainUrl ?? "";
+          const frontendUrl = serverConfig4.frontendDomainUrl ?? "";
           const message = error instanceof AuthError ? error.message : error instanceof Error ? error.message : "An error occurred. Please contact support.";
           res.redirect(`${frontendUrl}/auth-error?message=${encodeURIComponent(message)}`);
         }
@@ -3023,7 +3195,7 @@ var init_AuthController = __esm({
           if (!updateError && this.emailService.isEnabled) {
             await this.emailService.send(
               new VerifyEmailTemplate(
-                serverConfig3.backendDomainUrl ?? "",
+                serverConfig4.backendDomainUrl ?? "",
                 userData.full_name ?? "User",
                 userData.email ?? email,
                 token
@@ -3115,6 +3287,35 @@ var init_AppError = __esm({
   }
 });
 
+// errors/OrganizationError.ts
+var OrganizationError, OrganizationNotFoundError, OrganizationForbiddenError;
+var init_OrganizationError = __esm({
+  "errors/OrganizationError.ts"() {
+    init_AppError();
+    OrganizationError = class extends AppError {
+      constructor(message, statusCode, options2 = {}) {
+        super(message, statusCode, { ...options2, errorCode: options2.errorCode ?? "ORGANIZATION_ERROR" });
+        this.name = "OrganizationError";
+      }
+    };
+    OrganizationNotFoundError = class extends OrganizationError {
+      constructor(identifier = "") {
+        super("Workspace not found", 404, {
+          errorCode: "ORGANIZATION_NOT_FOUND",
+          metadata: identifier ? { identifier } : {}
+        });
+        this.name = "OrganizationNotFoundError";
+      }
+    };
+    OrganizationForbiddenError = class extends OrganizationError {
+      constructor(message = "You do not have access to this workspace") {
+        super(message, 403, { errorCode: "ORGANIZATION_FORBIDDEN" });
+        this.name = "OrganizationForbiddenError";
+      }
+    };
+  }
+});
+
 // errors/UserError.ts
 var UserError, UserNotFoundError, UserAuthorizationError, UserValidationError;
 var init_UserError = __esm({
@@ -3159,6 +3360,7 @@ var ChangePasswordEmailTemplate;
 var init_ChangePasswordEmailTemplate = __esm({
   "emails/ChangePasswordEmailTemplate.ts"() {
     init_AbstractEmailTemplate();
+    init_emailTheme();
     ChangePasswordEmailTemplate = class extends AbstractEmailTemplate {
       changePasswordLink;
       constructor(frontendDomainUrl, token, email) {
@@ -3197,10 +3399,10 @@ Visit our help center to learn more about our platform and to share your feedbac
         We received a request to change your password. Click the button below to change your password. If you didn't ask to change your password, you can ignore this email.
     </p>
     <p style="margin: 24px 0;">
-        <a href="${this.changePasswordLink}" style="display: inline-block; background-color: #111; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Change password \u2192</a>
+        <a href="${this.changePasswordLink}" style="display: inline-block; background-color: ${EMAIL_PRIMARY_COLOR}; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Change password \u2192</a>
     </p>
     <p style="margin-top: 32px; font-size: 14px; color: #666;">
-        Visit our <a href="#" style="color: #111; text-decoration: underline;">help center</a> to learn more about our platform and to share your feedback.
+        Visit our <a href="#" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline;">help center</a> to learn more about our platform and to share your feedback.
     </p>
 </body>
 </html>
@@ -3243,25 +3445,106 @@ var init_UserDTO = __esm({
   }
 });
 
+// utils/session/resolveActiveOrganizationId.ts
+function resolveActiveOrganizationId(req, options2) {
+  const id = readActiveOrganizationId(req);
+  if (options2?.required && !id) {
+    throw new UserValidationError(
+      "Active workspace is required (set showorg cookie via POST /users/change-org or pass organizationId)"
+    );
+  }
+  return id;
+}
+var init_resolveActiveOrganizationId = __esm({
+  "utils/session/resolveActiveOrganizationId.ts"() {
+    init_UserError();
+    init_sessionCookies();
+  }
+});
+
+// utils/dtos/OrganizationDTO.ts
+function toWorkspaceSentInviteDTO(row) {
+  return {
+    id: row.id,
+    email: row.email,
+    workspaceRole: row.role,
+    expiresAt: row.expires_at
+  };
+}
+function toPendingInviteDTO(row) {
+  return {
+    id: row.id,
+    organizationId: row.organization_id,
+    organizationName: row.organization_name,
+    workspaceRole: row.role,
+    expiresAt: row.expires_at
+  };
+}
+function toOrganizationDTO(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+function toOrganizationWithRoleDTO(org, membership, memberCount) {
+  const dto = toOrganizationDTO(org);
+  return {
+    ...dto,
+    workspaceRole: membership.role,
+    disabled: membership.disabled,
+    memberCount
+  };
+}
+function toOrganizationMemberDTO(uo, user) {
+  return {
+    id: uo.id,
+    userId: uo.user_id,
+    organizationId: uo.organization_id,
+    workspaceRole: uo.role,
+    disabled: uo.disabled,
+    email: user?.email ?? null,
+    fullName: user?.full_name ?? null,
+    createdAt: uo.created_at,
+    updatedAt: uo.updated_at
+  };
+}
+var init_OrganizationDTO = __esm({
+  "utils/dtos/OrganizationDTO.ts"() {
+  }
+});
+
 // controllers/UserController.ts
-var serverConfig4, UserController;
+var serverConfig5, UserController;
 var init_UserController = __esm({
   "controllers/UserController.ts"() {
+    init_OrganizationError();
     init_UserError();
     init_InfraError();
     init_Logger();
     init_ChangePasswordEmailTemplate();
     init_GlobalConfig();
     init_UserDTO();
-    serverConfig4 = config.server;
+    init_resolveActiveOrganizationId();
+    init_sessionCookies();
+    init_OrganizationDTO();
+    serverConfig5 = config.server;
     UserController = class {
-      constructor(userService2, authenticationService2, emailService2) {
+      constructor(userService2, authenticationService2, emailService2, userSessionService2, organizationService2, subscriptionService2, stripeService2) {
         this.userService = userService2;
         this.authenticationService = authenticationService2;
         this.emailService = emailService2;
+        this.userSessionService = userSessionService2;
+        this.organizationService = organizationService2;
+        this.subscriptionService = subscriptionService2;
+        this.stripeService = stripeService2;
       }
       /**
-       * GET /users/me - return the authenticated user's profile.
+       * GET /users/me — profile (+ workspace session when `organizationId` query or `showorg` cookie is set).
+       * Session field names match protected-shell bootstrap (`orgId`, `tier`, `channelsPerWorkspace`, `role`, …).
        */
       getProfile = async (req, res, next) => {
         try {
@@ -3275,13 +3558,37 @@ var init_UserController = __esm({
             return next(new UserNotFoundError(authUserId));
           }
           const dto = toUserDTO(profile);
+          const isPlatformAdmin = authReq.user?.isPlatformAdmin ?? false;
+          const organizationId = resolveActiveOrganizationId(req);
+          const data = {
+            ...dto,
+            roles: authReq.user?.roles ?? [],
+            isPlatformAdmin,
+            impersonate: Boolean(req.cookies?.impersonate ?? req.headers.impersonate)
+          };
+          if (organizationId) {
+            try {
+              const session = await this.userSessionService.getWorkspaceSession(
+                authUserId,
+                organizationId
+              );
+              Object.assign(data, session);
+            } catch (error) {
+              if (error instanceof OrganizationNotFoundError || error instanceof OrganizationForbiddenError) {
+                clearActiveOrganizationCookie(res);
+                logger.warn({
+                  msg: "GET /users/me: ignored stale or inaccessible active workspace cookie",
+                  organizationId,
+                  authUserId
+                });
+              } else {
+                throw error;
+              }
+            }
+          }
           res.status(200).json({
             success: true,
-            data: {
-              ...dto,
-              roles: authReq.user?.roles ?? [],
-              isSuperAdmin: authReq.user?.isSuperAdmin ?? false
-            }
+            data
           });
         } catch (error) {
           next(error);
@@ -3353,7 +3660,7 @@ var init_UserController = __esm({
           if (!profile?.email) {
             return next(new UserNotFoundError(authUserId));
           }
-          const frontendUrl = serverConfig4.frontendDomainUrl ?? "";
+          const frontendUrl = serverConfig5.frontendDomainUrl ?? "";
           const { token, error: genError } = await this.authenticationService.generateRecoveryLink(
             profile.email,
             { redirectTo: `${frontendUrl}/account/settings/password` }
@@ -3398,6 +3705,101 @@ var init_UserController = __esm({
             success: true,
             message: "If an account exists for this email, you will receive a link to change your password."
           });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /users/organizations — workspaces for the authenticated user (non-disabled memberships). */
+      listOrganizations = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const list = await this.organizationService.listMyOrganizations(authUserId);
+          const membershipByOrg = new Map(list.memberships.map((m) => [m.organizationId, m]));
+          const data = list.organizations.filter((org) => {
+            const m = membershipByOrg.get(org.id);
+            return m && !m.disabled;
+          }).map(
+            (org) => toOrganizationWithRoleDTO(
+              org,
+              membershipByOrg.get(org.id) ?? { role: "user", disabled: false },
+              list.memberCounts[org.id] ?? 0
+            )
+          );
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /users/change-org — set active workspace cookie (`showorg`). */
+      changeOrganization = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const { id } = req.body;
+          const membership = await this.organizationService.getOrganizationById(authUserId, id);
+          if (!membership) {
+            return next(new UserAuthorizationError("You do not have access to this workspace"));
+          }
+          setActiveOrganizationCookie(res, id);
+          res.status(200).json({ success: true, data: { id } });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /**
+       * POST /users/join-org — accept invite from body `org` or `joinOrg` cookie (signed invite token).
+       * On success sets `showorg` to the joined workspace and clears the invite cookie.
+       */
+      joinOrganization = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const body = req.body;
+          const token = readJoinOrganizationToken(req, body.org);
+          if (!token) {
+            res.status(200).json({ success: true, data: { id: null } });
+            return;
+          }
+          const result = await this.organizationService.joinOrganizationByToken(authUserId, token);
+          clearJoinOrganizationCookie(res);
+          setActiveOrganizationCookie(res, result.organizationId);
+          res.status(200).json({ success: true, data: { id: result.organizationId } });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /users/subscription — subscription row for active workspace (query or `showorg` cookie). */
+      getSubscription = async (req, res, next) => {
+        try {
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const authUserId = req.user?.id;
+          const subscription = await this.subscriptionService.getEffectiveSubscription(
+            organizationId,
+            authUserId
+          );
+          res.status(200).json({
+            success: true,
+            data: { subscription: subscription ?? void 0 }
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /users/subscription/tiers — Stripe prices grouped by interval (`month` / `year`). */
+      getSubscriptionTiers = async (_req, res, next) => {
+        try {
+          const tiers = await this.stripeService.getPackages();
+          res.status(200).json({ success: true, data: tiers });
         } catch (error) {
           next(error);
         }
@@ -3481,87 +3883,13 @@ var init_CompanyController = __esm({
   }
 });
 
-// errors/OrganizationError.ts
-var OrganizationError, OrganizationNotFoundError, OrganizationForbiddenError;
-var init_OrganizationError = __esm({
-  "errors/OrganizationError.ts"() {
-    init_AppError();
-    OrganizationError = class extends AppError {
-      constructor(message, statusCode, options2 = {}) {
-        super(message, statusCode, { ...options2, errorCode: options2.errorCode ?? "ORGANIZATION_ERROR" });
-        this.name = "OrganizationError";
-      }
-    };
-    OrganizationNotFoundError = class extends OrganizationError {
-      constructor(identifier = "") {
-        const message = identifier ? `Organization not found: ${identifier}` : "Organization not found";
-        super(message, 404, { errorCode: "ORGANIZATION_NOT_FOUND", metadata: identifier ? { identifier } : {} });
-        this.name = "OrganizationNotFoundError";
-      }
-    };
-    OrganizationForbiddenError = class extends OrganizationError {
-      constructor(message = "You do not have permission to perform this action") {
-        super(message, 403, { errorCode: "ORGANIZATION_FORBIDDEN" });
-        this.name = "OrganizationForbiddenError";
-      }
-    };
-  }
-});
-
-// utils/dtos/OrganizationDTO.ts
-function toPendingInviteDTO(row) {
-  return {
-    id: row.id,
-    organizationId: row.organization_id,
-    organizationName: row.organization_name,
-    workspaceRole: row.role,
-    expiresAt: row.expires_at
-  };
-}
-function toOrganizationDTO(row) {
-  if (!row) return null;
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description ?? null,
-    apiKey: row.api_key ?? null,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  };
-}
-function toOrganizationWithRoleDTO(org, membership, memberCount) {
-  const dto = toOrganizationDTO(org);
-  return {
-    ...dto,
-    workspaceRole: membership.role,
-    disabled: membership.disabled,
-    memberCount
-  };
-}
-function toOrganizationMemberDTO(uo, user) {
-  return {
-    id: uo.id,
-    userId: uo.user_id,
-    organizationId: uo.organization_id,
-    workspaceRole: uo.role,
-    disabled: uo.disabled,
-    email: user?.email ?? null,
-    fullName: user?.full_name ?? null,
-    createdAt: uo.created_at,
-    updatedAt: uo.updated_at
-  };
-}
-var init_OrganizationDTO = __esm({
-  "utils/dtos/OrganizationDTO.ts"() {
-  }
-});
-
 // controllers/SettingsController.ts
 var SettingsController;
 var init_SettingsController = __esm({
   "controllers/SettingsController.ts"() {
     init_OrganizationError();
     init_UserError();
+    init_resolveActiveOrganizationId();
     init_OrganizationDTO();
     SettingsController = class {
       constructor(organizationService2) {
@@ -3612,7 +3940,7 @@ var init_SettingsController = __esm({
           next(error);
         }
       };
-      /** POST /settings — create organization and add current user as superadmin. */
+      /** POST /settings — create organization and add current user as owner. */
       create = async (req, res, next) => {
         try {
           const authReq = req;
@@ -3631,7 +3959,7 @@ var init_SettingsController = __esm({
           next(error);
         }
       };
-      /** PATCH /settings/:id — update organization (admin/superadmin only). */
+      /** PATCH /settings/:id — update organization (admin/owner only). */
       update = async (req, res, next) => {
         try {
           const authReq = req;
@@ -3647,6 +3975,40 @@ var init_SettingsController = __esm({
           });
           const org = toOrganizationDTO(row);
           res.status(200).json({ success: true, data: org });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /settings/team — team for active workspace (`showorg` cookie). */
+      getTeamForActiveWorkspace = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const rows = await this.organizationService.getTeam(authUserId, organizationId);
+          const members = rows.map((m) => toOrganizationMemberDTO(m, { email: m.email, full_name: m.full_name }));
+          res.status(200).json({ success: true, data: members });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /settings/team — invite by email for active workspace (`showorg` cookie). */
+      inviteTeamMemberForActiveWorkspace = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const { email, workspaceRole, sendEmail } = req.body;
+          const result = await this.organizationService.inviteTeamMemberByEmail(authUserId, organizationId, {
+            email,
+            workspaceRole,
+            sendEmail
+          });
+          res.status(200).json({ success: true, data: result });
         } catch (error) {
           next(error);
         }
@@ -3667,7 +4029,7 @@ var init_SettingsController = __esm({
           next(error);
         }
       };
-      /** POST /settings/:id/team — add team member (admin/superadmin only). */
+      /** POST /settings/:id/team — add team member (admin/owner only). */
       addTeamMember = async (req, res, next) => {
         try {
           const authReq = req;
@@ -3702,7 +4064,7 @@ var init_SettingsController = __esm({
           next(error);
         }
       };
-      /** DELETE /settings/:id — delete organization (superadmin only). */
+      /** DELETE /settings/:id — delete organization (owner only). */
       deleteById = async (req, res, next) => {
         try {
           const authReq = req;
@@ -3717,7 +4079,7 @@ var init_SettingsController = __esm({
           next(error);
         }
       };
-      /** POST /settings/:id/rotate-api-key — rotate API key (admin/superadmin only). */
+      /** POST /settings/:id/rotate-api-key — rotate programmatic access token (admin/owner only). */
       rotateApiKey = async (req, res, next) => {
         try {
           const authReq = req;
@@ -3726,14 +4088,35 @@ var init_SettingsController = __esm({
             return next(new UserAuthorizationError("Not authenticated"));
           }
           const organizationId = req.params.id;
-          const row = await this.organizationService.rotateApiKey(authUserId, organizationId);
-          const org = toOrganizationDTO(row);
-          res.status(200).json({ success: true, data: org });
+          const { organization, programmaticAccessToken } = await this.organizationService.rotateProgrammaticAccessToken(authUserId, organizationId);
+          const org = toOrganizationDTO(organization);
+          res.status(200).json({
+            success: true,
+            data: { ...org, programmaticAccessToken }
+          });
         } catch (error) {
           next(error);
         }
       };
-      /** POST /settings/:id/invite — invite team member by email (admin/superadmin only). */
+      /** GET /settings/:id/programmatic-token — whether a programmatic token is configured. */
+      getProgrammaticTokenStatus = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const organizationId = req.params.id;
+          const status = await this.organizationService.getProgrammaticTokenStatus(
+            authUserId,
+            organizationId
+          );
+          res.status(200).json({ success: true, data: status });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /settings/:id/invite — invite team member by email (admin/owner only). */
       inviteTeamMember = async (req, res, next) => {
         try {
           const authReq = req;
@@ -3768,9 +4151,16 @@ var init_SettingsController = __esm({
       validateInviteToken = async (req, res, next) => {
         try {
           const token = req.query.token;
-          if (!token) return res.status(200).json({ success: true, data: null });
-          const data = await this.organizationService.validateInviteToken(token);
-          res.status(200).json({ success: true, data });
+          if (!token) return res.status(200).json({ success: true, data: null, reason: "malformed" });
+          const result = await this.organizationService.validateInviteToken(token);
+          if (result.valid) {
+            const { organizationName, workspaceRole, inviteeEmail } = result;
+            return res.status(200).json({
+              success: true,
+              data: { organizationName, workspaceRole, inviteeEmail }
+            });
+          }
+          res.status(200).json({ success: true, data: null, reason: result.reason });
         } catch (error) {
           next(error);
         }
@@ -3784,6 +4174,37 @@ var init_SettingsController = __esm({
           const list = await this.organizationService.listPendingInvitesForUser(authUserId);
           const data = list.map(toPendingInviteDTO);
           res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /settings/invites/sent — pending invites sent from the active workspace (`showorg` cookie); owner only. */
+      listSentInvitesForActiveWorkspace = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const list = await this.organizationService.listSentInvitesForOrganization(
+            authUserId,
+            organizationId
+          );
+          const data = list.map(toWorkspaceSentInviteDTO);
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** DELETE /settings/invites/:id — cancel a pending invite for the active workspace; owner only. */
+      cancelSentInviteForActiveWorkspace = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const inviteId = req.params.id;
+          await this.organizationService.cancelSentInvite(authUserId, organizationId, inviteId);
+          res.status(200).json({ success: true, message: "Invitation cancelled" });
         } catch (error) {
           next(error);
         }
@@ -3828,10 +4249,10 @@ var init_RoleError = __esm({
   }
 });
 
-// services/RbacService.ts
+// guards/rbac/RbacService.ts
 var CACHE_KEYS, RBAC_CACHE_TTL_SEC, RbacService;
 var init_RbacService = __esm({
-  "services/RbacService.ts"() {
+  "guards/rbac/RbacService.ts"() {
     init_rbacTypes();
     init_RoleError();
     init_Logger();
@@ -3869,8 +4290,8 @@ var init_RbacService = __esm({
       }
       async removeRole(userId, role, removedBy) {
         if (role === "admin") {
-          const isSuperAdmin = await this.rbacRepository.isSuperAdmin(removedBy);
-          if (!isSuperAdmin) {
+          const isPlatformAdmin = await this.rbacRepository.isPlatformAdmin(removedBy);
+          if (!isPlatformAdmin) {
             throw new RoleValidationError(
               "Admins cannot remove the admin role. Only super admins can remove admin roles."
             );
@@ -3926,8 +4347,8 @@ var init_RbacService = __esm({
         await this._invalidateRbacRelatedCaches();
       }
       /** Check if the given user (public.users.id) is a super admin. */
-      async isSuperAdmin(publicUserId) {
-        return this.rbacRepository.isSuperAdmin(publicUserId);
+      async isPlatformAdmin(publicUserId) {
+        return this.rbacRepository.isPlatformAdmin(publicUserId);
       }
       /**
        * Invalidate caches used by getUserRoles, getPermissionsForRole, getAllRolePermissions,
@@ -3999,8 +4420,8 @@ var init_RbacController = __esm({
           if (!role) return next(new RoleValidationError("Missing role"));
           const assignedBy = await this.getPublicUserIdFromAuth(authUserId);
           const validatedRole = RbacService.validateRole(role.trim());
-          const isSuperAdmin = await this.rbacService.isSuperAdmin(assignedBy);
-          const result = isSuperAdmin ? await this.rbacService.assignRoleBySuperAdmin(userId, validatedRole, assignedBy) : await this.rbacService.assignRoleByAdmin(userId, validatedRole, assignedBy);
+          const isPlatformAdmin = await this.rbacService.isPlatformAdmin(assignedBy);
+          const result = isPlatformAdmin ? await this.rbacService.assignRoleBySuperAdmin(userId, validatedRole, assignedBy) : await this.rbacService.assignRoleByAdmin(userId, validatedRole, assignedBy);
           res.status(200).json({
             success: true,
             message: `Role '${validatedRole}' assigned successfully`,
@@ -4861,38 +5282,19 @@ var init_ConfigRepository = __esm({
   }
 });
 
-// utils/make.is.ts
-var makeId;
-var init_make_is = __esm({
-  "utils/make.is.ts"() {
-    makeId = (length) => {
-      let text = "";
-      const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-      for (let i = 0; i < length; i += 1) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-      }
-      return text;
-    };
-  }
-});
-
 // repositories/OrganizationRepository.ts
 var ORGS_TABLE, USER_ORGS_TABLE, INVITES_TABLE, ORG_SELECT, USER_ORG_SELECT, OrganizationRepository;
 var init_OrganizationRepository = __esm({
   "repositories/OrganizationRepository.ts"() {
     init_InfraError();
-    init_make_is();
     ORGS_TABLE = "organizations";
     USER_ORGS_TABLE = "user_organizations";
     INVITES_TABLE = "organization_invites";
-    ORG_SELECT = "id, name, description, api_key, created_at, updated_at";
+    ORG_SELECT = "id, name, description, created_at, updated_at";
     USER_ORG_SELECT = "id, user_id, organization_id, role, disabled, created_at, updated_at";
     OrganizationRepository = class {
       constructor(supabase2) {
         this.supabase = supabase2;
-      }
-      async generateApiKey() {
-        return `opk_${makeId(48)}`;
       }
       /** Find public.users.id by auth_id (Supabase auth user id).
        *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
@@ -4988,18 +5390,18 @@ var init_OrganizationRepository = __esm({
         return { membership: data, error: null };
       }
       /**
-       * Create organization and add founding user as superadmin via SECURITY DEFINER RPC
+       * Create organization and add founding user as owner via SECURITY DEFINER RPC
        * (bypasses RLS; required when the Supabase client is not service_role).
        */
       async createOrganization(params) {
-        const apiKey = await this.generateApiKey();
         const { data, error } = await this.supabase.rpc(
           "internal_create_organization_with_owner",
           {
             p_user_id: params.userId,
             p_name: params.name,
             p_description: params.description ?? null,
-            p_api_key: apiKey
+            p_allow_trial: true,
+            p_is_trialing: true
           }
         );
         if (error) {
@@ -5013,19 +5415,6 @@ var init_OrganizationRepository = __esm({
           };
         }
         return { organization: row, error: null };
-      }
-      /** Ensure an organization has an API key; writes only when `api_key` is null. */
-      async ensureApiKeyForOrganization(organizationId) {
-        const newKey = await this.generateApiKey();
-        const { data, error } = await this.supabase.from(ORGS_TABLE).update({ api_key: newKey, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", organizationId).is("api_key", null).select(ORG_SELECT).maybeSingle();
-        if (error) {
-          throw new DatabaseError("Failed to ensure organization api key", {
-            cause: error,
-            operation: "ensureApiKeyForOrganization",
-            resource: { type: "table", name: ORGS_TABLE }
-          });
-        }
-        return data ?? null;
       }
       /** Add user to organization with role. */
       async addMember(params) {
@@ -5081,24 +5470,6 @@ var init_OrganizationRepository = __esm({
       async deleteOrganization(organizationId) {
         const { error } = await this.supabase.from(ORGS_TABLE).delete().eq("id", organizationId);
         return { error };
-      }
-      /** Resolve organization by programmatic API key (Authorization header value). */
-      async findOrganizationByApiKey(apiKey) {
-        const { data, error } = await this.supabase.from(ORGS_TABLE).select(ORG_SELECT).eq("api_key", apiKey).maybeSingle();
-        if (error) {
-          throw new DatabaseError("Failed to resolve organization by API key", {
-            cause: error,
-            operation: "findOrganizationByApiKey",
-            resource: { type: "table", name: ORGS_TABLE }
-          });
-        }
-        return data ?? null;
-      }
-      /** Generate and set a new api_key for the organization. */
-      async rotateApiKey(organizationId) {
-        const newKey = await this.generateApiKey();
-        const { data, error } = await this.supabase.from(ORGS_TABLE).update({ api_key: newKey, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", organizationId).select(ORG_SELECT).single();
-        return { organization: data, error };
       }
       /** Insert a pending invite (when admin sends invite by email). */
       async insertInvite(params) {
@@ -5156,6 +5527,32 @@ var init_OrganizationRepository = __esm({
       async deleteInvitesByEmailAndOrganization(email, organizationId) {
         const { error } = await this.supabase.from(INVITES_TABLE).delete().ilike("email", email.trim()).eq("organization_id", organizationId);
         return { error };
+      }
+      /** List pending (not yet expired) invites sent for a workspace. */
+      async findPendingInvitesByOrganization(organizationId) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { data, error } = await this.supabase.from(INVITES_TABLE).select().eq("organization_id", organizationId).gt("expires_at", now).order("created_at", { ascending: false });
+        if (error) {
+          throw new DatabaseError("Failed to list organization invites", {
+            cause: error,
+            operation: "findPendingInvitesByOrganization",
+            resource: { type: "table", name: INVITES_TABLE }
+          });
+        }
+        return { invites: data ?? [], error: null };
+      }
+      /** Count pending (not yet expired) invites for a workspace — used for plan seat caps. */
+      async countPendingInvitesByOrganization(organizationId) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { count, error } = await this.supabase.from(INVITES_TABLE).select("id", { count: "exact", head: true }).eq("organization_id", organizationId).gt("expires_at", now);
+        if (error) {
+          throw new DatabaseError("Failed to count pending organization invites", {
+            cause: error,
+            operation: "countPendingInvitesByOrganization",
+            resource: { type: "table", name: INVITES_TABLE }
+          });
+        }
+        return count ?? 0;
       }
       /** Active members with email and per-user notification email preferences. */
       async listMembersForNotificationEmails(organizationId) {
@@ -5315,7 +5712,7 @@ var init_RbacRepository = __esm({
         return { permissions };
       }
       /** Check if user (public.users.id) is super admin. */
-      async isSuperAdmin(publicUserId) {
+      async isPlatformAdmin(publicUserId) {
         const { data, error } = await this.supabase.from("users").select("is_super_admin").eq("id", publicUserId).single();
         if (error) {
           throw new DatabaseError("Error checking super admin", {
@@ -5414,12 +5811,12 @@ var init_FeedbackRepository = __esm({
   }
 });
 
-// utils/slug.ts
+// utils/blog/slug.ts
 function stringToSlug(value) {
   return value.toLowerCase().trim().replace(/[^\p{L}\p{N}\s-]/gu, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "") || "post";
 }
 var init_slug = __esm({
-  "utils/slug.ts"() {
+  "utils/blog/slug.ts"() {
   }
 });
 
@@ -7187,6 +7584,22 @@ var init_PostsRepository = __esm({
         }
         return data != null;
       }
+      /**
+       * Rows that count toward the monthly post cap: active `QUEUE` rows and all `PUBLISHED` rows
+       * with `publish_date` on or after `fromDate`.
+       */
+      async countPostsFromDay(organizationId, fromDate) {
+        const fromIso = fromDate.toISOString();
+        const { count, error } = await this.supabase.from(TABLE_POSTS).select("id", { count: "exact", head: true }).eq("organization_id", organizationId).gte("publish_date", fromIso).or("and(deleted_at.is.null,state.eq.QUEUE),state.eq.PUBLISHED");
+        if (error) {
+          throw new DatabaseError(`Failed to count posts for plan limit: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_POSTS }
+          });
+        }
+        return count ?? 0;
+      }
       async listTagsByOrganization(organizationId) {
         const { data, error } = await this.supabase.from(TABLE_TAGS).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).is("deleted_at", null).order("name", { ascending: true });
         if (error) {
@@ -8021,6 +8434,33 @@ var init_OauthAppRepository = __esm({
           });
         }
       }
+      async setAccessTokenForAuthorization(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { error } = await this.supabase.from(TABLE_AUTHS).update({
+          access_token_hash: params.accessTokenHash,
+          authorization_code_hash: null,
+          code_expires_at: null,
+          updated_at: now
+        }).eq("id", params.authorizationId).is("revoked_at", null);
+        if (error) {
+          throw new DatabaseError("Failed to set oauth access token", {
+            cause: error,
+            operation: "update",
+            resource: { type: "table", name: TABLE_AUTHS }
+          });
+        }
+      }
+      async findActiveAuthorizationForUserOrgApp(params) {
+        const { data, error } = await this.supabase.from(TABLE_AUTHS).select("*").eq("oauth_app_id", params.oauthAppId).eq("user_id", params.userId).eq("organization_id", params.organizationId).is("revoked_at", null).not("access_token_hash", "is", null).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Failed to resolve oauth authorization for workspace", {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_AUTHS }
+          });
+        }
+        return data ?? null;
+      }
       async exchangeCodeForAccessToken(params) {
         const now = (/* @__PURE__ */ new Date()).toISOString();
         const { data, error } = await this.supabase.from(TABLE_AUTHS).update({
@@ -8076,6 +8516,14 @@ var init_OauthAppRepository = __esm({
 });
 
 // repositories/SubscriptionRepository.ts
+function supabaseErrorMetadata(error) {
+  return {
+    code: error.code,
+    message: error.message,
+    details: error.details,
+    hint: error.hint
+  };
+}
 var SUBSCRIPTIONS_TABLE, ORGS_TABLE2, SubscriptionRepository;
 var init_SubscriptionRepository = __esm({
   "repositories/SubscriptionRepository.ts"() {
@@ -8088,7 +8536,7 @@ var init_SubscriptionRepository = __esm({
       }
       async getSubscriptionByOrganizationId(organizationId) {
         const { data, error } = await this.supabase.from(SUBSCRIPTIONS_TABLE).select(
-          "id, organization_id, subscription_tier, period, identifier, cancel_at, total_channels, is_lifetime, created_at, updated_at, deleted_at"
+          "id, organization_id, subscription_tier, period, identifier, cancel_at, channels_per_workspace, is_lifetime, current_period_start, current_period_end, created_at, updated_at, deleted_at"
         ).eq("organization_id", organizationId).is("deleted_at", null).maybeSingle();
         if (error) {
           throw new DatabaseError("Failed to load organization subscription", {
@@ -8131,6 +8579,17 @@ var init_SubscriptionRepository = __esm({
           });
         }
       }
+      /** Clears a stale Stripe customer link (e.g. customer deleted in the Dashboard). */
+      async clearStripeCustomerId(organizationId) {
+        const { error } = await this.supabase.from(ORGS_TABLE2).update({ stripe_customer_id: null, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", organizationId);
+        if (error) {
+          throw new DatabaseError("Failed to clear Stripe customer id", {
+            cause: error,
+            operation: "clearStripeCustomerId",
+            resource: { type: "table", name: ORGS_TABLE2 }
+          });
+        }
+      }
       async setTrialing(organizationId, isTrialing) {
         const { error } = await this.supabase.from(ORGS_TABLE2).update({ is_trialing: isTrialing, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", organizationId);
         if (error) {
@@ -8141,9 +8600,25 @@ var init_SubscriptionRepository = __esm({
           });
         }
       }
+      /** Checkout correlation id (`?checkout=` / Stripe metadata.uniqueId), any workspace. */
+      async getSubscriptionByIdentifier(identifier) {
+        const trimmed = identifier.trim();
+        if (!trimmed) return null;
+        const { data, error } = await this.supabase.from(SUBSCRIPTIONS_TABLE).select(
+          "id, organization_id, subscription_tier, period, identifier, cancel_at, channels_per_workspace, is_lifetime, current_period_start, current_period_end, created_at, updated_at, deleted_at"
+        ).eq("identifier", trimmed).is("deleted_at", null).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Failed to load subscription by identifier", {
+            cause: error,
+            operation: "getSubscriptionByIdentifier",
+            resource: { type: "table", name: SUBSCRIPTIONS_TABLE }
+          });
+        }
+        return data ?? null;
+      }
       async checkSubscriptionByIdentifier(organizationId, identifier) {
         const { data, error } = await this.supabase.from(SUBSCRIPTIONS_TABLE).select(
-          "id, organization_id, subscription_tier, period, identifier, cancel_at, total_channels, is_lifetime, created_at, updated_at, deleted_at"
+          "id, organization_id, subscription_tier, period, identifier, cancel_at, channels_per_workspace, is_lifetime, current_period_start, current_period_end, created_at, updated_at, deleted_at"
         ).eq("organization_id", organizationId).eq("identifier", identifier).is("deleted_at", null).maybeSingle();
         if (error) {
           throw new DatabaseError("Failed to check subscription identifier", {
@@ -8155,30 +8630,52 @@ var init_SubscriptionRepository = __esm({
         return data ?? null;
       }
       async createOrUpdateSubscription(params) {
-        const now = (/* @__PURE__ */ new Date()).toISOString();
-        const row = {
-          organization_id: params.organizationId,
-          subscription_tier: params.subscriptionTier,
-          period: params.period,
-          identifier: params.identifier,
-          cancel_at: params.cancelAt,
-          total_channels: params.totalChannels,
-          is_lifetime: params.isLifetime ?? false,
-          updated_at: now,
-          deleted_at: null
-        };
-        const { data, error } = await this.supabase.from(SUBSCRIPTIONS_TABLE).upsert(row, { onConflict: "organization_id" }).select(
-          "id, organization_id, subscription_tier, period, identifier, cancel_at, total_channels, is_lifetime, created_at, updated_at, deleted_at"
-        ).single();
-        if (error) {
-          throw new DatabaseError("Failed to upsert organization subscription", {
-            cause: error,
+        const organizationId = params.organizationId.trim();
+        if (!organizationId) {
+          throw new DatabaseError("organizationId is required to upsert organization subscription", {
             operation: "createOrUpdateSubscription",
             resource: { type: "table", name: SUBSCRIPTIONS_TABLE }
           });
         }
-        await this.setTrialing(params.organizationId, params.isTrialing);
-        return data;
+        const { data, error } = await this.supabase.rpc(
+          "internal_upsert_organization_subscription",
+          {
+            p_organization_id: organizationId,
+            p_subscription_tier: params.subscriptionTier,
+            p_period: params.period,
+            p_identifier: params.identifier,
+            p_cancel_at: params.cancelAt,
+            p_channels_per_workspace: params.channelsPerWorkspace,
+            p_is_lifetime: params.isLifetime ?? false,
+            p_is_trialing: params.isTrialing,
+            p_current_period_start: params.currentPeriodStart ?? null,
+            p_current_period_end: params.currentPeriodEnd ?? null
+          }
+        );
+        if (error) {
+          const pg = error;
+          throw new DatabaseError("Failed to upsert organization subscription", {
+            cause: error,
+            operation: "createOrUpdateSubscription",
+            resource: { type: "function", name: "internal_upsert_organization_subscription" },
+            metadata: {
+              organizationId,
+              subscriptionTier: params.subscriptionTier,
+              ...supabaseErrorMetadata(pg)
+            }
+          });
+        }
+        const rows = Array.isArray(data) ? data : data ? [data] : [];
+        const row = rows[0];
+        if (!row) {
+          throw new DatabaseError("Failed to upsert organization subscription", {
+            cause: new Error("RPC returned no row"),
+            operation: "createOrUpdateSubscription",
+            resource: { type: "function", name: "internal_upsert_organization_subscription" },
+            metadata: { organizationId }
+          });
+        }
+        return row;
       }
       async softDeleteByOrganizationId(organizationId) {
         const now = (/* @__PURE__ */ new Date()).toISOString();
@@ -8292,7 +8789,7 @@ var init_AuthenticationService = __esm({
     init_UserError();
     init_UserError();
     init_InfraError();
-    init_helper();
+    init_email();
     init_Logger();
     init_GlobalConfig();
     AuthenticationService = class {
@@ -8364,9 +8861,9 @@ var init_AuthenticationService = __esm({
         await supabaseRLSClient.auth.signOut();
       }
       buildBackendOAuthCallbackUrl(provider) {
-        const serverConfig6 = config.server;
+        const serverConfig7 = config.server;
         const apiConfig = config.api;
-        const backendOrigin = serverConfig6.backendDomainUrl ?? "http://localhost:3000";
+        const backendOrigin = serverConfig7.backendDomainUrl ?? "http://localhost:3000";
         const apiPrefix = apiConfig.prefix ?? "/api/v1";
         return new URL(`${backendOrigin}${apiPrefix}/auth/oauth/${provider}/callback`).toString();
       }
@@ -8574,8 +9071,8 @@ var init_UserService = __esm({
       }
       /** Returns "true" if signup is allowed, or "false". */
       async isUserSignUpAllowed() {
-        const authConfig = config.auth;
-        if (authConfig?.disableRegistration === true) {
+        const authConfig2 = config.auth;
+        if (authConfig2?.disableRegistration === true) {
           return "false";
         }
         return "true";
@@ -8616,7 +9113,7 @@ var init_UserService = __esm({
               id: u.id,
               email: u.email ?? "",
               roles: [],
-              isSuperAdmin: u.is_super_admin,
+              isPlatformAdmin: u.is_super_admin,
               createdAt: u.created_at
             }));
           }
@@ -8627,7 +9124,7 @@ var init_UserService = __esm({
               id: u.id,
               email: u.email ?? "",
               roles,
-              isSuperAdmin: u.is_super_admin,
+              isPlatformAdmin: u.is_super_admin,
               createdAt: u.created_at
             });
           }
@@ -8701,7 +9198,7 @@ var init_UserService = __esm({
     };
   }
 });
-var RESEND_API_BASE, RESEND_USER_AGENT, emailConfig, serverConfig5, basicConfig, awsConfig, resendConfig, EmailService;
+var RESEND_API_BASE, RESEND_USER_AGENT, emailConfig, serverConfig6, basicConfig, awsConfig, resendConfig, EmailService;
 var init_EmailService = __esm({
   "services/EmailService.ts"() {
     init_GlobalConfig();
@@ -8710,7 +9207,7 @@ var init_EmailService = __esm({
     RESEND_API_BASE = "https://api.resend.com";
     RESEND_USER_AGENT = "openquok-backend/1.0";
     emailConfig = config.email;
-    serverConfig5 = config.server;
+    serverConfig6 = config.server;
     basicConfig = config.basic;
     awsConfig = config.aws;
     resendConfig = config.resend;
@@ -8720,7 +9217,7 @@ var init_EmailService = __esm({
       constructor(options2) {
         this.isEnabled = options2?.isEnabled ?? emailConfig?.enabled ?? false;
         if (!this.isEnabled) return;
-        const isProduction = serverConfig5?.nodeEnv === "production";
+        const isProduction = serverConfig6?.nodeEnv === "production";
         const createResendSmtpTransport = () => nodemailer__default.default.createTransport({
           host: "smtp.resend.com",
           secure: true,
@@ -8740,7 +9237,7 @@ var init_EmailService = __esm({
           if (resendConfig?.secretKey) {
             this.transporter = createResendSmtpTransport();
           } else {
-            const useLocalSes = serverConfig5?.isEmailServerOffline === true || awsConfig?.accessKeyId === "local" && awsConfig?.secretAccessKey === "local";
+            const useLocalSes = serverConfig6?.isEmailServerOffline === true || awsConfig?.accessKeyId === "local" && awsConfig?.secretAccessKey === "local";
             let sesOptions = {
               region: "ap-southeast-1",
               apiVersion: "2019-09-27",
@@ -9008,7 +9505,7 @@ function signInviteToken(payload, secret) {
   if (!secret) {
     throw new Error("Invite token secret is not configured (set SECURITY_SECRET)");
   }
-  const expiresAt = new Date(Date.now() + TTL_MS).toISOString();
+  const expiresAt = new Date(Date.now() + INVITE_TOKEN_TTL_MS).toISOString();
   const id = crypto.randomBytes(6).toString("hex");
   const full = { ...payload, expiresAt, id };
   const raw = JSON.stringify(full);
@@ -9016,34 +9513,40 @@ function signInviteToken(payload, secret) {
   const sig = crypto.createHmac(ALG, secret).update(payloadB64).digest();
   return `${payloadB64}${SEP}${base64UrlEncode(sig)}`;
 }
-function verifyInviteToken(token, secret) {
-  if (!secret || !token) return null;
+function decodeInviteToken(token, secret) {
+  if (!secret) return { ok: false, reason: "missing_secret" };
+  if (!token?.trim()) return { ok: false, reason: "malformed" };
   const idx = token.lastIndexOf(SEP);
-  if (idx === -1) return null;
+  if (idx === -1) return { ok: false, reason: "malformed" };
   const payloadB64 = token.slice(0, idx);
   const sigB64 = token.slice(idx + 1);
   try {
     const expectedSig = crypto.createHmac(ALG, secret).update(payloadB64).digest();
     const actualSig = base64UrlDecode(sigB64);
     if (actualSig.length !== expectedSig.length || !crypto.timingSafeEqual(actualSig, expectedSig)) {
-      return null;
+      return { ok: false, reason: "invalid_signature" };
     }
     const raw = base64UrlDecode(payloadB64).toString("utf8");
     const payload = JSON.parse(raw);
     if (new Date(payload.expiresAt).getTime() < Date.now()) {
-      return null;
+      return { ok: false, reason: "expired" };
     }
-    return payload;
+    return { ok: true, payload };
   } catch {
-    return null;
+    return { ok: false, reason: "malformed" };
   }
 }
-var ALG, SEP, TTL_MS;
+function verifyInviteToken(token, secret) {
+  const decoded = decodeInviteToken(token, secret);
+  return decoded.ok ? decoded.payload : null;
+}
+var ALG, SEP, INVITE_TOKEN_TTL_MS, INVITE_TOKEN_TTL_HOURS;
 var init_inviteToken = __esm({
-  "utils/inviteToken.ts"() {
+  "utils/auth/inviteToken.ts"() {
     ALG = "sha256";
     SEP = ".";
-    TTL_MS = 60 * 60 * 1e3;
+    INVITE_TOKEN_TTL_MS = 60 * 60 * 1e3;
+    INVITE_TOKEN_TTL_HOURS = 1;
   }
 });
 
@@ -9052,6 +9555,7 @@ var OrganizationInviteEmailTemplate;
 var init_OrganizationInviteEmailTemplate = __esm({
   "emails/OrganizationInviteEmailTemplate.ts"() {
     init_AbstractEmailTemplate();
+    init_emailTheme();
     OrganizationInviteEmailTemplate = class extends AbstractEmailTemplate {
       inviteLink;
       organizationName;
@@ -9071,7 +9575,7 @@ var init_OrganizationInviteEmailTemplate = __esm({
         return `
 You have been invited to join ${this.organizationName} as ${this.role}.
 
-Click the link below to accept the invitation:
+Open the link below, then sign in or create an account before you accept the invitation:
 
 ${this.inviteLink}
 
@@ -9093,15 +9597,15 @@ The Team
     <title>Organization Invitation</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">You're invited to join ${this.organizationName}</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid ${EMAIL_PRIMARY_COLOR}; padding-bottom: 10px;">You're invited to join ${this.organizationName}</h1>
     <p>You have been invited to join <strong>${this.organizationName}</strong> as <strong>${this.role}</strong>.</p>
-    <p>Click the button below to accept the invitation:</p>
+    <p>Open the link below, then sign in or create an account before you accept the invitation.</p>
     <p style="margin: 20px 0;">
-        <a href="${this.inviteLink}" style="display: inline-block; background-color: #3498db; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Accept invitation</a>
+        <a href="${this.inviteLink}" style="display: inline-block; background-color: ${EMAIL_PRIMARY_COLOR}; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View invitation</a>
     </p>
     <p style="color: #7f8c8d; font-size: 14px;">
         Or copy and paste this link into your browser:<br>
-        <a href="${this.inviteLink}" style="color: #3498db; word-break: break-all;">${this.inviteLink}</a>
+        <a href="${this.inviteLink}" style="color: ${EMAIL_PRIMARY_COLOR}; word-break: break-all;">${this.inviteLink}</a>
     </p>
     <p style="color: #e74c3c; font-weight: bold;">This link will expire in ${this.expiresInHours} hour(s).</p>
     <p style="color: #7f8c8d; font-size: 14px; margin-top: 30px;">
@@ -9118,16 +9622,19 @@ The Team
     };
   }
 });
+
+// services/OrganizationService.ts
 var ROLE_LEVEL, CACHE_KEYS5, ORG_CACHE_TTL_SEC, OrganizationService;
 var init_OrganizationService = __esm({
   "services/OrganizationService.ts"() {
     init_OrganizationError();
     init_UserError();
+    init_dist();
     init_inviteToken();
     init_GlobalConfig();
     init_OrganizationInviteEmailTemplate();
     init_Logger();
-    ROLE_LEVEL = { user: 0, admin: 1, superadmin: 2 };
+    ROLE_LEVEL = { user: 0, admin: 1, owner: 2 };
     CACHE_KEYS5 = {
       ORG: "org",
       ORG_LIST_BYUSERID: "org:list:byUserId",
@@ -9135,12 +9642,14 @@ var init_OrganizationService = __esm({
     };
     ORG_CACHE_TTL_SEC = 300;
     OrganizationService = class {
-      constructor(organizationRepository2, userRepository2, emailService2, cache, cacheInvalidator) {
+      constructor(organizationRepository2, userRepository2, emailService2, cache, cacheInvalidator, subscriptionGuard2, oauthAppService2) {
         this.organizationRepository = organizationRepository2;
         this.userRepository = userRepository2;
         this.emailService = emailService2;
         this.cache = cache;
         this.cacheInvalidator = cacheInvalidator;
+        this.subscriptionGuard = subscriptionGuard2;
+        this.oauthAppService = oauthAppService2;
       }
       /** Invite a team member by email: create signed invite link and optionally send email. */
       async inviteTeamMemberByEmail(authUserId, organizationId, params) {
@@ -9148,6 +9657,7 @@ var init_OrganizationService = __esm({
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) throw new OrganizationNotFoundError(organizationId);
         if (this.getRoleLevel(membership.role) < 1) throw new OrganizationForbiddenError("Only admins can invite team members");
+        await this.subscriptionGuard?.assertTeamInviteCapacity(organizationId, authUserId);
         const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
         if (!organization) throw new OrganizationNotFoundError(organizationId);
         const secret = config.auth?.inviteTokenSecret ?? "";
@@ -9157,11 +9667,16 @@ var init_OrganizationService = __esm({
         );
         const frontendUrl = config.server?.frontendDomainUrl ?? "";
         const inviteUrl = `${frontendUrl}/join-org?token=${encodeURIComponent(token)}`;
-        const expiresAt = dayjs5__default.default().add(1, "hour").toISOString();
+        const expiresAt = new Date(Date.now() + INVITE_TOKEN_TTL_MS).toISOString();
         if (params.sendEmail && this.emailService?.isEnabled) {
           try {
             await this.emailService.send(
-              new OrganizationInviteEmailTemplate(inviteUrl, organization.name, params.workspaceRole, 1),
+              new OrganizationInviteEmailTemplate(
+                inviteUrl,
+                organization.name,
+                params.workspaceRole,
+                INVITE_TOKEN_TTL_HOURS
+              ),
               params.email
             );
           } catch (_) {
@@ -9199,6 +9714,10 @@ var init_OrganizationService = __esm({
         if (existing && !existing.disabled) {
           return { organizationId: payload.organizationId, workspaceRole: payload.workspaceRole };
         }
+        await this.subscriptionGuard?.assertWorkspaceHasSeatForNewMember(
+          payload.organizationId,
+          authUserId
+        );
         const { error } = await this.organizationRepository.addMember({
           userId,
           organizationId: payload.organizationId,
@@ -9212,13 +9731,47 @@ var init_OrganizationService = __esm({
         await this._invalidateOrganizationRelatedCaches({ authUserId });
         return { organizationId: payload.organizationId, workspaceRole: payload.workspaceRole };
       }
-      /** Validate invite token without consuming; returns org name and role for UI. */
+      /** Validate invite token without consuming; returns org name, role, and invitee email for UI. */
       async validateInviteToken(token) {
         const secret = config.auth?.inviteTokenSecret ?? "";
-        const payload = verifyInviteToken(token, secret);
-        if (!payload) return null;
+        const decoded = decodeInviteToken(token, secret);
+        if (!decoded.ok) return { valid: false, reason: decoded.reason };
+        const payload = decoded.payload;
         const { organization } = await this.organizationRepository.findOrganizationById(payload.organizationId);
-        return organization ? { organizationName: organization.name, workspaceRole: payload.workspaceRole } : null;
+        if (!organization) return { valid: false, reason: "organization_not_found" };
+        return {
+          valid: true,
+          organizationName: organization.name,
+          workspaceRole: payload.workspaceRole,
+          inviteeEmail: payload.email
+        };
+      }
+      /** List pending invites sent from a workspace (workspace owner only). */
+      async listSentInvitesForOrganization(authUserId, organizationId) {
+        const userId = await this.resolveAuthUserToUserId(authUserId);
+        const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
+        this.assertWorkspaceOwner(membership, organizationId);
+        const { invites } = await this.organizationRepository.findPendingInvitesByOrganization(
+          organizationId
+        );
+        return invites;
+      }
+      /** Cancel a pending invite sent from a workspace (workspace owner only). */
+      async cancelSentInvite(authUserId, organizationId, inviteId) {
+        const userId = await this.resolveAuthUserToUserId(authUserId);
+        const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
+        this.assertWorkspaceOwner(membership, organizationId);
+        const { invite } = await this.organizationRepository.findInviteById(inviteId);
+        if (!invite || invite.organization_id !== organizationId) {
+          throw new OrganizationForbiddenError("Invite not found or already cancelled");
+        }
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        if (invite.expires_at <= now) {
+          await this.organizationRepository.deleteInvite(inviteId);
+          return;
+        }
+        const { error } = await this.organizationRepository.deleteInvite(inviteId);
+        if (error) throw error;
       }
       /** List pending workspace invites for the current user (by email). Returns row shape; controller maps to DTO. */
       async listPendingInvitesForUser(authUserId) {
@@ -9254,6 +9807,10 @@ var init_OrganizationService = __esm({
           await this._invalidateOrganizationRelatedCaches({ authUserId });
           return { organizationId: invite.organization_id, workspaceRole: invite.role };
         }
+        await this.subscriptionGuard?.assertWorkspaceHasSeatForNewMember(
+          invite.organization_id,
+          authUserId
+        );
         const { error } = await this.organizationRepository.addMember({
           userId,
           organizationId: invite.organization_id,
@@ -9276,29 +9833,23 @@ var init_OrganizationService = __esm({
       getRoleLevel(role) {
         return ROLE_LEVEL[role] ?? -1;
       }
+      assertWorkspaceOwner(membership, organizationId) {
+        if (!membership || membership.disabled) {
+          throw new OrganizationNotFoundError(organizationId);
+        }
+        if (membership.role !== "owner") {
+          throw new OrganizationForbiddenError("Only workspace owners can manage sent invitations");
+        }
+      }
       /** List organizations for the authenticated user. Returns aggregate; controller maps to DTO. */
       async listMyOrganizations(authUserId) {
         const cacheKey = `${CACHE_KEYS5.ORG_LIST_BYUSERID}:${authUserId}`;
         const factory = async () => {
           const userId = await this.resolveAuthUserToUserId(authUserId);
           const { organizations, memberships } = await this.organizationRepository.findOrganizationsByUserId(userId);
-          const patched = [];
-          for (const org of organizations) {
-            if (org.api_key == null) {
-              try {
-                const updated = await this.organizationRepository.ensureApiKeyForOrganization(org.id);
-                patched.push(updated ?? org);
-                continue;
-              } catch {
-                patched.push(org);
-                continue;
-              }
-            }
-            patched.push(org);
-          }
           const orgIds = organizations.map((o) => o.id);
           const memberCounts = await this.organizationRepository.getMemberCounts(orgIds);
-          return { organizations: patched, memberships, memberCounts };
+          return { organizations, memberships, memberCounts };
         };
         if (this.cache) {
           return this.cache.getOrSet(cacheKey, factory, ORG_CACHE_TTL_SEC);
@@ -9328,8 +9879,12 @@ var init_OrganizationService = __esm({
         }
         return factory();
       }
-      /** Create organization and add the current user as superadmin. Returns row; controller maps to DTO. */
+      /** Create organization and add the current user as owner. Returns row; controller maps to DTO. */
       async createOrganization(authUserId, params) {
+        await this.subscriptionGuard?.assert(SubscriptionSection.WORKSPACES, {
+          scope: "account",
+          authUserId
+        });
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { organization, error } = await this.organizationRepository.createOrganization({
           ...params,
@@ -9339,10 +9894,17 @@ var init_OrganizationService = __esm({
         await this._invalidateOrganizationRelatedCaches({ authUserId });
         return organization;
       }
+      /** True when the email has at least one non-expired workspace invite (join-by-link / pending invite row). */
+      async hasPendingWorkspaceInviteForEmail(email) {
+        const normalized = email?.trim();
+        if (!normalized) return false;
+        const { invites } = await this.organizationRepository.findPendingInvitesByEmail(normalized);
+        return invites.length > 0;
+      }
       /**
        * Create a default organization for a newly registered user (createOrgAndUser-style).
-       * Used at signup and OAuth registration so the user has one org and is superadmin.
-       * Returns the created org row or null on failure (caller should not fail signup).
+       * Used at signup so the user has one org and is owner.
+       * Returns the created org row or null on failure or skip (caller should not fail signup).
        */
       async createDefaultOrganizationForNewUser(authUserId, params) {
         try {
@@ -9359,7 +9921,7 @@ var init_OrganizationService = __esm({
           return null;
         }
       }
-      /** Update organization; requires admin or superadmin. Returns row; controller maps to DTO. */
+      /** Update organization; requires admin or owner. Returns row; controller maps to DTO. */
       async updateOrganization(authUserId, organizationId, params) {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
@@ -9388,7 +9950,7 @@ var init_OrganizationService = __esm({
         const { members } = await this.organizationRepository.getTeam(organizationId);
         return members;
       }
-      /** Add a team member; requires admin or superadmin. Returns added member row; controller maps to DTO. */
+      /** Add a team member; requires admin or owner. Returns added member row; controller maps to DTO. */
       async addTeamMember(authUserId, organizationId, params) {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
@@ -9400,6 +9962,7 @@ var init_OrganizationService = __esm({
         }
         const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
         if (!organization) throw new OrganizationNotFoundError(organizationId);
+        await this.subscriptionGuard?.assertWorkspaceHasSeatForNewMember(organizationId, authUserId);
         const { membership: newMembership, error } = await this.organizationRepository.addMember({
           userId: params.userId,
           organizationId,
@@ -9411,7 +9974,7 @@ var init_OrganizationService = __esm({
         await this._invalidateOrganizationRelatedCaches({ authUserId, organizationId });
         return added ?? { ...newMembership, email: null, full_name: null };
       }
-      /** Remove a team member; requires admin/superadmin (and cannot remove higher role) or self-remove. */
+      /** Remove a team member; requires admin/owner (and cannot remove higher role) or self-remove. */
       async removeTeamMember(authUserId, organizationId, targetUserId) {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership: myMembership } = await this.organizationRepository.findMembership(
@@ -9444,35 +10007,43 @@ var init_OrganizationService = __esm({
         if (error) throw error;
         await this._invalidateOrganizationRelatedCaches({ authUserId, organizationId });
       }
-      /** Delete organization; requires superadmin. */
+      /** Delete organization; requires owner. */
       async deleteOrganization(authUserId, organizationId) {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) {
           throw new OrganizationNotFoundError(organizationId);
         }
-        if (membership.role !== "superadmin") {
-          throw new OrganizationForbiddenError("Only the organization superadmin can delete it");
+        if (membership.role !== "owner") {
+          throw new OrganizationForbiddenError("Only the organization owner can delete it");
         }
         const { error } = await this.organizationRepository.deleteOrganization(organizationId);
         if (error) throw error;
         await this._invalidateOrganizationRelatedCaches({ authUserId, organizationId });
       }
-      /** Rotate API key; requires admin or superadmin. Returns row; controller maps to DTO. */
-      async rotateApiKey(authUserId, organizationId) {
-        const userId = await this.resolveAuthUserToUserId(authUserId);
-        const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
-        if (!membership || membership.disabled) {
-          throw new OrganizationNotFoundError(organizationId);
+      /**
+       * Rotate workspace programmatic access token (`opo_…`); requires admin or owner.
+       * Plaintext token is returned once; organization row is unchanged.
+       */
+      async rotateProgrammaticAccessToken(authUserId, organizationId) {
+        if (!this.oauthAppService) {
+          throw new Error("OAuth app service is not configured");
         }
-        if (this.getRoleLevel(membership.role) < 1) {
-          throw new OrganizationForbiddenError("Only admins can rotate the API key");
-        }
-        const { organization, error } = await this.organizationRepository.rotateApiKey(organizationId);
-        if (error) throw error;
+        const { programmaticAccessToken } = await this.oauthAppService.issueWorkspaceProgrammaticToken(
+          authUserId,
+          organizationId
+        );
+        const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
         if (!organization) throw new OrganizationNotFoundError(organizationId);
         await this._invalidateOrganizationRelatedCaches({ authUserId, organizationId });
-        return organization;
+        return { organization, programmaticAccessToken };
+      }
+      /** Whether the current admin has configured a programmatic token for this workspace. */
+      async getProgrammaticTokenStatus(authUserId, organizationId) {
+        if (!this.oauthAppService) {
+          return { configured: false };
+        }
+        return this.oauthAppService.getWorkspaceProgrammaticTokenStatus(authUserId, organizationId);
       }
       /**
        * Invalidate caches for list (listMyOrganizations) and by-id (getOrganizationById).
@@ -9578,12 +10149,22 @@ var init_FeedbackService = __esm({
   }
 });
 
+// utils/validation/uuid.ts
+function isValidUUID(value) {
+  const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return regex.test(value);
+}
+var init_uuid = __esm({
+  "utils/validation/uuid.ts"() {
+  }
+});
+
 // utils/valueObjects/BlogPostId.ts
 var BlogPostId;
 var init_BlogPostId = __esm({
   "utils/valueObjects/BlogPostId.ts"() {
     init_InfraError();
-    init_helper();
+    init_uuid();
     BlogPostId = class _BlogPostId {
       _value;
       constructor(value) {
@@ -9626,6 +10207,7 @@ var init_BlogService = __esm({
     init_InfraError();
     init_Logger();
     init_BlogPostId();
+    init_dist();
     CACHE_KEYS7 = {
       BLOG: "blog",
       BLOG_BYID: "blog:byBlogId",
@@ -9649,11 +10231,12 @@ var init_BlogService = __esm({
     };
     BLOG_CACHE_TTL_SEC = 300;
     BlogService = class {
-      constructor(blogRepository3, cache, cacheInvalidator, configRepository2) {
+      constructor(blogRepository3, cache, cacheInvalidator, configRepository2, subscriptionGuard2) {
         this.blogRepository = blogRepository3;
         this.cache = cache;
         this.cacheInvalidator = cacheInvalidator;
         this.configRepository = configRepository2;
+        this.subscriptionGuard = subscriptionGuard2;
       }
       /**
        * Public blog overview metadata (from public.module_configs where module_name = 'blog').
@@ -9877,10 +10460,10 @@ var init_BlogService = __esm({
        * Create a blog post. Requires editor or admin role (enforced by route).
        * Returns id, title, slug and approval flags. Fetches saved post for cache invalidation (Listing-style).
        */
-      async createBlogPost(post, userId, isSuperAdmin) {
+      async createBlogPost(post, userId, isPlatformAdmin) {
         const slug = stringToSlug(post.title);
         const isUserApproved = post.is_user_published === true;
-        const isAdminApproved = isSuperAdmin && isUserApproved;
+        const isAdminApproved = isPlatformAdmin && isUserApproved;
         const createPayload = {
           ...post,
           is_user_published: isUserApproved,
@@ -9906,9 +10489,9 @@ var init_BlogService = __esm({
        * Update a blog post. Requires editor or admin role (enforced by route).
        * Post must contain id (controller merges from URL or body). No id validation here—same as updateListing; repo/DB surfaces errors.
        */
-      async updateBlogPost(post, isSuperAdmin) {
+      async updateBlogPost(post, isPlatformAdmin) {
         const isUserApproved = post.is_user_published === true;
-        const isAdminApproved = isSuperAdmin && isUserApproved;
+        const isAdminApproved = isPlatformAdmin && isUserApproved;
         const slug = stringToSlug(post.title);
         const updatePayload = {
           ...post,
@@ -9956,7 +10539,13 @@ var init_BlogService = __esm({
        * Payload must contain post_id (schema refine enforces on create). No id validation here—repo/DB surfaces errors.
        * Invalidates the post's by-id cache so post detail (e.g. with comments) stays fresh.
        */
-      async createBlogComment(payload, userId) {
+      async createBlogComment(payload, userId, authUserId) {
+        if (authUserId?.trim() && this.subscriptionGuard) {
+          await this.subscriptionGuard.assert(SubscriptionSection.COMMUNITY_FEATURES, {
+            scope: "account",
+            authUserId
+          });
+        }
         const postId = payload.post_id;
         const result = await this.blogRepository.createComment(
           { post_id: postId, parent_id: payload.parent_id ?? void 0, content: payload.content },
@@ -10211,10 +10800,10 @@ function metricTitle(name) {
       return name;
   }
 }
-async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken, dateWindowDays) {
-  const until = dayjs5__default.default().endOf("day").unix();
-  const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
-  const enc = encodeURIComponent(accessToken);
+async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken2, dateWindowDays) {
+  const until = dayjs4__default.default().endOf("day").unix();
+  const since = dayjs4__default.default().subtract(dateWindowDays, "day").unix();
+  const enc = encodeURIComponent(accessToken2);
   const res1 = await fetch(
     `${graphBaseUrl}/${encodeURIComponent(igUserId)}/insights?metric=follower_count,reach&access_token=${enc}&period=day&since=${since}&until=${until}`
   );
@@ -10229,8 +10818,8 @@ async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken
   if (!res2.ok || json2.error) {
     return [];
   }
-  const today = dayjs5__default.default().format("YYYY-MM-DD");
-  const tomorrow = dayjs5__default.default().add(1, "day").format("YYYY-MM-DD");
+  const today = dayjs4__default.default().format("YYYY-MM-DD");
+  const tomorrow = dayjs4__default.default().add(1, "day").format("YYYY-MM-DD");
   const analytics = [];
   for (const d of json1.data ?? []) {
     const name = d.name ?? "";
@@ -10241,7 +10830,7 @@ async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken
       percentageChange: 0,
       data: (d.values ?? []).map((v) => ({
         total: String(v.value ?? 0),
-        date: v.end_time ? dayjs5__default.default(v.end_time).format("YYYY-MM-DD") : today
+        date: v.end_time ? dayjs4__default.default(v.end_time).format("YYYY-MM-DD") : today
       }))
     });
   }
@@ -10262,9 +10851,9 @@ async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken
   }
   return analytics;
 }
-async function fetchInstagramMediaInsights(graphBaseUrl, mediaId, accessToken) {
-  const today = dayjs5__default.default().format("YYYY-MM-DD");
-  const enc = encodeURIComponent(accessToken);
+async function fetchInstagramMediaInsights(graphBaseUrl, mediaId, accessToken2) {
+  const today = dayjs4__default.default().format("YYYY-MM-DD");
+  const enc = encodeURIComponent(accessToken2);
   const res = await fetch(
     `${graphBaseUrl}/${encodeURIComponent(mediaId)}/insights?metric=views,reach,saved,likes,comments,shares&access_token=${enc}`
   );
@@ -10293,13 +10882,13 @@ var init_instagramInsightsAnalytics = __esm({
   }
 });
 
-// utils/htmlToPlain.ts
+// utils/content/htmlToPlain.ts
 function htmlToPlainText(html) {
   if (!html) return "";
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 var init_htmlToPlain = __esm({
-  "utils/htmlToPlain.ts"() {
+  "utils/content/htmlToPlain.ts"() {
   }
 });
 
@@ -10423,10 +11012,10 @@ async function assertUrlPubliclyReachable(url) {
     );
   }
 }
-async function waitForMediaContainerReady(root, creationId, accessToken) {
+async function waitForMediaContainerReady(root, creationId, accessToken2) {
   for (let i = 0; i < POLL_MAX_ROUNDS; i++) {
     const res = await fetch(
-      `${root}/${encodeURIComponent(creationId)}?fields=status_code,status&access_token=${encodeURIComponent(accessToken)}`
+      `${root}/${encodeURIComponent(creationId)}?fields=status_code,status&access_token=${encodeURIComponent(accessToken2)}`
     );
     const json = await readGraphJson(res);
     if (!res.ok) {
@@ -10449,7 +11038,7 @@ async function postForm(url, params) {
   const json = await readGraphJson(res);
   return { res, json };
 }
-async function publishInstagramGraphFeedPost(igUserId, accessToken, first, target) {
+async function publishInstagramGraphFeedPost(igUserId, accessToken2, first, target) {
   const version = target.apiVersion ?? DEFAULT_API_VERSION;
   const root = apiRoot(target.graphHostname, version);
   const rawItems = extractComposerMedia(first.settings);
@@ -10500,13 +11089,13 @@ async function publishInstagramGraphFeedPost(igUserId, accessToken, first, targe
       })
     )}` : "";
     const collaborators = Array.isArray(settings.collaborators) && settings.collaborators.length > 0 && !isStory ? `&collaborators=${encodeURIComponent(JSON.stringify(settings.collaborators.map((p) => p.label).filter(Boolean)))}` : "";
-    const url = `${root}/${encodeURIComponent(igUserId)}/media?${mediaQuery}${isCarousel}${collaborators}${trialParams}${caption}&access_token=${encodeURIComponent(accessToken)}`;
+    const url = `${root}/${encodeURIComponent(igUserId)}/media?${mediaQuery}${isCarousel}${collaborators}${trialParams}${caption}&access_token=${encodeURIComponent(accessToken2)}`;
     const createRes = await fetch(url, { method: "POST" });
     const createJson = await readGraphJson(createRes);
     if (!createRes.ok || !createJson.id) {
       throw new Error(formatGraphError("Instagram create media container failed", createRes, createJson));
     }
-    await waitForMediaContainerReady(root, createJson.id, accessToken);
+    await waitForMediaContainerReady(root, createJson.id, accessToken2);
     creationIds.push(createJson.id);
   }
   if (isStory && creationIds.length > 1) {
@@ -10515,7 +11104,7 @@ async function publishInstagramGraphFeedPost(igUserId, accessToken, first, targe
     for (const creationId of creationIds) {
       const pub = await postForm(`${root}/${encodeURIComponent(igUserId)}/media_publish`, {
         creation_id: creationId,
-        access_token: accessToken
+        access_token: accessToken2
       });
       const pubJson = pub.json;
       if (!pub.res.ok || !pubJson.id) {
@@ -10523,7 +11112,7 @@ async function publishInstagramGraphFeedPost(igUserId, accessToken, first, targe
       }
       lastMediaId = pubJson.id;
       const permRes = await fetch(
-        `${root}/${encodeURIComponent(pubJson.id)}?fields=permalink&access_token=${encodeURIComponent(accessToken)}`
+        `${root}/${encodeURIComponent(pubJson.id)}?fields=permalink&access_token=${encodeURIComponent(accessToken2)}`
       );
       const permJson = await readGraphJson(permRes);
       if (permRes.ok && permJson.permalink) {
@@ -10542,14 +11131,14 @@ async function publishInstagramGraphFeedPost(igUserId, accessToken, first, targe
   if (creationIds.length === 1) {
     const pub = await postForm(`${root}/${encodeURIComponent(igUserId)}/media_publish`, {
       creation_id: creationIds[0],
-      access_token: accessToken
+      access_token: accessToken2
     });
     const pubJson = pub.json;
     if (!pub.res.ok || !pubJson.id) {
       throw new Error(formatGraphError("Instagram media_publish failed", pub.res, pubJson));
     }
     const permRes = await fetch(
-      `${root}/${encodeURIComponent(pubJson.id)}?fields=permalink&access_token=${encodeURIComponent(accessToken)}`
+      `${root}/${encodeURIComponent(pubJson.id)}?fields=permalink&access_token=${encodeURIComponent(accessToken2)}`
     );
     const permJson = await readGraphJson(permRes);
     if (!permRes.ok) {
@@ -10564,23 +11153,23 @@ async function publishInstagramGraphFeedPost(igUserId, accessToken, first, targe
       }
     ];
   }
-  const carouselUrl = `${root}/${encodeURIComponent(igUserId)}/media?caption=${encodeURIComponent(message)}&media_type=CAROUSEL&children=${encodeURIComponent(creationIds.join(","))}&access_token=${encodeURIComponent(accessToken)}`;
+  const carouselUrl = `${root}/${encodeURIComponent(igUserId)}/media?caption=${encodeURIComponent(message)}&media_type=CAROUSEL&children=${encodeURIComponent(creationIds.join(","))}&access_token=${encodeURIComponent(accessToken2)}`;
   const carRes = await fetch(carouselUrl, { method: "POST" });
   const carJson = await readGraphJson(carRes);
   if (!carRes.ok || !carJson.id) {
     throw new Error(formatGraphError("Instagram create carousel container failed", carRes, carJson));
   }
-  await waitForMediaContainerReady(root, carJson.id, accessToken);
+  await waitForMediaContainerReady(root, carJson.id, accessToken2);
   const pub2 = await postForm(`${root}/${encodeURIComponent(igUserId)}/media_publish`, {
     creation_id: carJson.id,
-    access_token: accessToken
+    access_token: accessToken2
   });
   const pub2Json = pub2.json;
   if (!pub2.res.ok || !pub2Json.id) {
     throw new Error(formatGraphError("Instagram carousel media_publish failed", pub2.res, pub2Json));
   }
   const perm2 = await fetch(
-    `${root}/${encodeURIComponent(pub2Json.id)}?fields=permalink&access_token=${encodeURIComponent(accessToken)}`
+    `${root}/${encodeURIComponent(pub2Json.id)}?fields=permalink&access_token=${encodeURIComponent(accessToken2)}`
   );
   const perm2Json = await readGraphJson(perm2);
   if (!perm2.ok) {
@@ -10603,6 +11192,21 @@ var init_instagramGraphContentPublish = __esm({
     DEFAULT_API_VERSION = "v20.0";
     POLL_INTERVAL_MS = 3e3;
     POLL_MAX_ROUNDS = 60;
+  }
+});
+
+// utils/ids/makeId.ts
+var makeId;
+var init_makeId = __esm({
+  "utils/ids/makeId.ts"() {
+    makeId = (length) => {
+      let text = "";
+      const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      for (let i = 0; i < length; i += 1) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+      }
+      return text;
+    };
   }
 });
 
@@ -10654,7 +11258,7 @@ var init_instagramBusinessProvider = __esm({
     init_instagramGraphContentPublish();
     init_GlobalConfig();
     init_AppError();
-    init_make_is();
+    init_makeId();
     init_oauthFrontendOrigin();
     init_oauthFrontendCallbackPath();
     GRAPH = "https://graph.facebook.com/v20.0";
@@ -10685,9 +11289,9 @@ var init_instagramBusinessProvider = __esm({
         return null;
       }
       /** Content Publishing on `graph.facebook.com` with Page token. */
-      async post(id, accessToken, postDetails, _integration) {
+      async post(id, accessToken2, postDetails, _integration) {
         if (!postDetails.length) return [];
-        return publishInstagramGraphFeedPost(id, accessToken, postDetails[0], {
+        return publishInstagramGraphFeedPost(id, accessToken2, postDetails[0], {
           graphHostname: "graph.facebook.com",
           apiVersion: "v20.0"
         });
@@ -10695,7 +11299,7 @@ var init_instagramBusinessProvider = __esm({
       /**
        * Follow-up comment or nested reply on a published Instagram media id (Facebook Graph, Page token).
        */
-      async comment(_userId, postId, lastCommentId, accessToken, postDetails, _integration) {
+      async comment(_userId, postId, lastCommentId, accessToken2, postDetails, _integration) {
         if (!postDetails.length) return [];
         const [first] = postDetails;
         const { commentId, mediaPermalink } = await publishInstagramGraphComment({
@@ -10704,7 +11308,7 @@ var init_instagramBusinessProvider = __esm({
           mediaId: postId,
           lastCommentId,
           message: first.message ?? "",
-          accessToken
+          accessToken: accessToken2
         });
         return [
           {
@@ -10745,7 +11349,7 @@ var init_instagramBusinessProvider = __esm({
           name: me.name ?? "",
           accessToken: extended.access_token,
           refreshToken: extended.access_token,
-          expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs4__default.default().add(59, "days").unix() - dayjs4__default.default().unix(),
           picture: me.picture?.data?.url ?? "",
           username: ""
         };
@@ -10801,19 +11405,19 @@ var init_instagramBusinessProvider = __esm({
           name: me.name ?? "",
           accessToken: longLived.access_token,
           refreshToken: longLived.access_token,
-          expiresIn: dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs4__default.default().add(59, "days").unix() - dayjs4__default.default().unix(),
           picture: me.picture?.data?.url ?? "",
           username: ""
         };
       }
       /** Same as {@link listBetweenStepAccounts}; name matches common integration “pages” step after OAuth. */
-      async pages(accessToken) {
-        return this.listBetweenStepAccounts(accessToken);
+      async pages(accessToken2) {
+        return this.listBetweenStepAccounts(accessToken2);
       }
       /** Facebook Pages that have a linked Instagram professional account (for the between-steps picker). */
-      async listBetweenStepAccounts(accessToken) {
+      async listBetweenStepAccounts(accessToken2) {
         const res = await fetch(
-          `${GRAPH}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)&access_token=${encodeURIComponent(accessToken)}&limit=500`
+          `${GRAPH}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)&access_token=${encodeURIComponent(accessToken2)}&limit=500`
         );
         const json = await res.json();
         const rows = json.data ?? [];
@@ -10822,7 +11426,7 @@ var init_instagramBusinessProvider = __esm({
         for (const p of withIg) {
           const igId = p.instagram_business_account.id;
           const igRes = await fetch(
-            `${GRAPH}/${igId}?fields=name,profile_picture_url,username&access_token=${encodeURIComponent(accessToken)}`
+            `${GRAPH}/${igId}?fields=name,profile_picture_url,username&access_token=${encodeURIComponent(accessToken2)}`
           );
           const ig = await igRes.json();
           out.push({
@@ -10834,15 +11438,15 @@ var init_instagramBusinessProvider = __esm({
         }
         return out;
       }
-      async fetchPageInformation(accessToken, data) {
+      async fetchPageInformation(accessToken2, data) {
         const pageRes = await fetch(
-          `${GRAPH}/${data.pageId}?fields=access_token,name,picture.type(large)&access_token=${encodeURIComponent(accessToken)}`
+          `${GRAPH}/${data.pageId}?fields=access_token,name,picture.type(large)&access_token=${encodeURIComponent(accessToken2)}`
         );
         const pageJson = await pageRes.json();
         const pageToken = pageJson.access_token;
         if (!pageToken) throw new Error("Could not load Page access token");
         const igRes = await fetch(
-          `${GRAPH}/${data.id}?fields=username,name,profile_picture_url&access_token=${encodeURIComponent(accessToken)}`
+          `${GRAPH}/${data.id}?fields=username,name,profile_picture_url&access_token=${encodeURIComponent(accessToken2)}`
         );
         const ig = await igRes.json();
         return {
@@ -10853,13 +11457,13 @@ var init_instagramBusinessProvider = __esm({
           username: ig.username ?? ""
         };
       }
-      async reConnect(_facebookUserId, instagramBusinessAccountId, accessToken) {
-        const accounts = await this.listBetweenStepAccounts(accessToken);
+      async reConnect(_facebookUserId, instagramBusinessAccountId, accessToken2) {
+        const accounts = await this.listBetweenStepAccounts(accessToken2);
         const match = accounts.find((a) => a.id === instagramBusinessAccountId);
         if (!match) {
           throw new Error("Selected Instagram account was not found for this login");
         }
-        const information = await this.fetchPageInformation(accessToken, {
+        const information = await this.fetchPageInformation(accessToken2, {
           id: instagramBusinessAccountId,
           pageId: match.pageId
         });
@@ -10872,12 +11476,12 @@ var init_instagramBusinessProvider = __esm({
         };
       }
       /** Instagram user insights via Facebook Graph (`instagram_manage_insights`). */
-      async analytics(igUserId, accessToken, dateWindowDays) {
-        return fetchInstagramAccountInsights(IG_INSIGHTS_GRAPH, igUserId, accessToken, dateWindowDays);
+      async analytics(igUserId, accessToken2, dateWindowDays) {
+        return fetchInstagramAccountInsights(IG_INSIGHTS_GRAPH, igUserId, accessToken2, dateWindowDays);
       }
       /** Media insights for a published Instagram object id (`releaseId`). */
-      async postAnalytics(_integrationId, accessToken, mediaId, _fromDate) {
-        return fetchInstagramMediaInsights(IG_INSIGHTS_GRAPH, mediaId, accessToken);
+      async postAnalytics(_integrationId, accessToken2, mediaId, _fromDate) {
+        return fetchInstagramMediaInsights(IG_INSIGHTS_GRAPH, mediaId, accessToken2);
       }
     };
   }
@@ -10904,7 +11508,7 @@ var init_instagramStandaloneProvider = __esm({
     init_instagramGraphComment();
     init_instagramGraphContentPublish();
     init_GlobalConfig();
-    init_make_is();
+    init_makeId();
     init_oauthFrontendOrigin();
     init_oauthFrontendCallbackPath();
     IG_GRAPH = "https://graph.instagram.com";
@@ -10932,9 +11536,9 @@ var init_instagramStandaloneProvider = __esm({
         return null;
       }
       /** Content Publishing on `graph.instagram.com`. */
-      async post(id, accessToken, postDetails, _integration) {
+      async post(id, accessToken2, postDetails, _integration) {
         if (!postDetails.length) return [];
-        return publishInstagramGraphFeedPost(id, accessToken, postDetails[0], {
+        return publishInstagramGraphFeedPost(id, accessToken2, postDetails[0], {
           graphHostname: "graph.instagram.com",
           apiVersion: "v20.0"
         });
@@ -10942,7 +11546,7 @@ var init_instagramStandaloneProvider = __esm({
       /**
        * Follow-up comment or nested reply on a published Instagram media object (Business Login / Instagram Graph).
        */
-      async comment(_userId, postId, lastCommentId, accessToken, postDetails, _integration) {
+      async comment(_userId, postId, lastCommentId, accessToken2, postDetails, _integration) {
         if (!postDetails.length) return [];
         const [first] = postDetails;
         const { commentId, mediaPermalink } = await publishInstagramGraphComment({
@@ -10951,7 +11555,7 @@ var init_instagramStandaloneProvider = __esm({
           mediaId: postId,
           lastCommentId,
           message: first.message ?? "",
-          accessToken
+          accessToken: accessToken2
         });
         return [
           {
@@ -10986,7 +11590,7 @@ var init_instagramStandaloneProvider = __esm({
           name: me.name ?? me.username ?? "",
           accessToken: body.access_token,
           refreshToken: body.access_token,
-          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs4__default.default().add(58, "days").unix() - dayjs4__default.default().unix(),
           picture: me.profile_picture_url ?? "",
           username: me.username ?? ""
         };
@@ -11043,17 +11647,17 @@ var init_instagramStandaloneProvider = __esm({
           name: me.name ?? me.username ?? "",
           accessToken: longLived.access_token,
           refreshToken: longLived.access_token,
-          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs4__default.default().add(58, "days").unix() - dayjs4__default.default().unix(),
           picture: me.profile_picture_url ?? "",
           username: me.username ?? ""
         };
       }
       /** Same metrics as Instagram Business, via Instagram Graph host (Business Login). */
-      async analytics(igUserId, accessToken, dateWindowDays) {
-        return fetchInstagramAccountInsights(IG_INSIGHTS_GRAPH2, igUserId, accessToken, dateWindowDays);
+      async analytics(igUserId, accessToken2, dateWindowDays) {
+        return fetchInstagramAccountInsights(IG_INSIGHTS_GRAPH2, igUserId, accessToken2, dateWindowDays);
       }
-      async postAnalytics(_integrationId, accessToken, mediaId, _fromDate) {
-        return fetchInstagramMediaInsights(IG_INSIGHTS_GRAPH2, mediaId, accessToken);
+      async postAnalytics(_integrationId, accessToken2, mediaId, _fromDate) {
+        return fetchInstagramMediaInsights(IG_INSIGHTS_GRAPH2, mediaId, accessToken2);
       }
     };
   }
@@ -11088,7 +11692,7 @@ var GRAPH2, THREADS_GLOBAL_PLUG_CATALOG, THREADS_INTERNAL_PLUG_CATALOG, ThreadsP
 var init_threadsProvider = __esm({
   "integrations/providers/threadsProvider.ts"() {
     init_GlobalConfig();
-    init_make_is();
+    init_makeId();
     init_MediaRepository();
     init_oauthFrontendOrigin();
     init_oauthFrontendCallbackPath();
@@ -11152,7 +11756,7 @@ var init_threadsProvider = __esm({
       maxLength(_additionalSettings) {
         return 500;
       }
-      async post(userId, accessToken, postDetails, _integration) {
+      async post(userId, accessToken2, postDetails, _integration) {
         if (!postDetails.length) return [];
         const [first] = postDetails;
         const message = first.message ?? "";
@@ -11170,8 +11774,8 @@ var init_threadsProvider = __esm({
             await this.assertUrlReachableForThreads(m.path);
           }
         }
-        const creationId = media.length === 0 ? await this.createTextContent(userId, accessToken, message) : media.length === 1 ? await this.createSingleMediaContent(userId, accessToken, media[0], message) : await this.createCarouselContent(userId, accessToken, media, message);
-        const { threadId, permalink } = await this.publishThread(userId, accessToken, creationId);
+        const creationId = media.length === 0 ? await this.createTextContent(userId, accessToken2, message) : media.length === 1 ? await this.createSingleMediaContent(userId, accessToken2, media[0], message) : await this.createCarouselContent(userId, accessToken2, media, message);
+        const { threadId, permalink } = await this.publishThread(userId, accessToken2, creationId);
         return [
           {
             id: first.id,
@@ -11188,7 +11792,7 @@ var init_threadsProvider = __esm({
        * 1) create a TEXT media container with `reply_to_id`
        * 2) publish it via `/{threads-user-id}/threads_publish`
        */
-      async comment(userId, postId, lastCommentId, accessToken, postDetails, _integration) {
+      async comment(userId, postId, lastCommentId, accessToken2, postDetails, _integration) {
         if (!postDetails.length) return [];
         const [first] = postDetails;
         const message = htmlToPlainText(first.message ?? "").trim().slice(0, this.maxLength());
@@ -11199,8 +11803,8 @@ var init_threadsProvider = __esm({
         if (!replyToId) {
           throw new Error("Threads reply_to_id is required to publish a comment");
         }
-        const creationId = await this.createTextContent(userId, accessToken, message, replyToId);
-        const { threadId, permalink } = await this.publishThread(userId, accessToken, creationId);
+        const creationId = await this.createTextContent(userId, accessToken2, message, replyToId);
+        const { threadId, permalink } = await this.publishThread(userId, accessToken2, creationId);
         return [
           {
             id: first.id,
@@ -11271,7 +11875,7 @@ var init_threadsProvider = __esm({
           name,
           accessToken: access_token,
           refreshToken: access_token,
-          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs4__default.default().add(58, "days").unix() - dayjs4__default.default().unix(),
           picture: picture || "",
           username: username || ""
         };
@@ -11306,7 +11910,7 @@ var init_threadsProvider = __esm({
           name,
           accessToken: longLived.access_token,
           refreshToken: longLived.access_token,
-          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs4__default.default().add(58, "days").unix() - dayjs4__default.default().unix(),
           picture: picture || "",
           username: username || ""
         };
@@ -11379,10 +11983,10 @@ var init_threadsProvider = __esm({
           );
         }
       }
-      async checkLoaded(creationId, accessToken) {
+      async checkLoaded(creationId, accessToken2) {
         for (let i = 0; i < 40; i++) {
           const res = await fetch(
-            `${GRAPH2}/${encodeURIComponent(creationId)}?fields=status,error_message&access_token=${encodeURIComponent(accessToken)}`
+            `${GRAPH2}/${encodeURIComponent(creationId)}?fields=status,error_message&access_token=${encodeURIComponent(accessToken2)}`
           );
           const json = await this.readGraphJson(res);
           if (!res.ok) {
@@ -11407,14 +12011,14 @@ var init_threadsProvider = __esm({
       async formPostThreads(userId, form) {
         return await fetch(`${GRAPH2}/${encodeURIComponent(userId)}/threads`, { method: "POST", body: form });
       }
-      async createTextContent(userId, accessToken, message, replyToId) {
+      async createTextContent(userId, accessToken2, message, replyToId) {
         const form = new FormData();
         form.append("media_type", "TEXT");
         form.append("text", message);
         if (replyToId && replyToId.trim().length > 0) {
           form.append("reply_to_id", replyToId.trim());
         }
-        form.append("access_token", accessToken);
+        form.append("access_token", accessToken2);
         const res = await this.formPostThreads(userId, form);
         const json = await this.readGraphJson(res);
         if (!json.id) {
@@ -11422,7 +12026,7 @@ var init_threadsProvider = __esm({
         }
         return json.id;
       }
-      async createSingleMediaContent(userId, accessToken, media, message, isCarouselItem = false) {
+      async createSingleMediaContent(userId, accessToken2, media, message, isCarouselItem = false) {
         const isVideo = media.path.toLowerCase().includes(".mp4");
         const form = new FormData();
         form.append("media_type", isVideo ? "VIDEO" : "IMAGE");
@@ -11435,7 +12039,7 @@ var init_threadsProvider = __esm({
           form.append("is_carousel_item", "true");
         }
         form.append("text", message);
-        form.append("access_token", accessToken);
+        form.append("access_token", accessToken2);
         const res = await this.formPostThreads(userId, form);
         const json = await this.readGraphJson(res);
         if (!json.id) {
@@ -11443,18 +12047,18 @@ var init_threadsProvider = __esm({
         }
         return json.id;
       }
-      async createCarouselContent(userId, accessToken, media, message) {
+      async createCarouselContent(userId, accessToken2, media, message) {
         const mediaIds = [];
         for (const item of media) {
-          const mediaId = await this.createSingleMediaContent(userId, accessToken, item, message, true);
+          const mediaId = await this.createSingleMediaContent(userId, accessToken2, item, message, true);
           mediaIds.push(mediaId);
         }
-        await Promise.all(mediaIds.map((id) => this.checkLoaded(id, accessToken)));
+        await Promise.all(mediaIds.map((id) => this.checkLoaded(id, accessToken2)));
         const form = new FormData();
         form.append("text", message);
         form.append("media_type", "CAROUSEL");
         form.append("children", mediaIds.join(","));
-        form.append("access_token", accessToken);
+        form.append("access_token", accessToken2);
         const res = await this.formPostThreads(userId, form);
         const json = await this.readGraphJson(res);
         if (!json.id) {
@@ -11462,11 +12066,11 @@ var init_threadsProvider = __esm({
         }
         return json.id;
       }
-      async publishThread(userId, accessToken, creationId) {
-        await this.checkLoaded(creationId, accessToken);
+      async publishThread(userId, accessToken2, creationId) {
+        await this.checkLoaded(creationId, accessToken2);
         const pubForm = new FormData();
         pubForm.append("creation_id", creationId);
-        pubForm.append("access_token", accessToken);
+        pubForm.append("access_token", accessToken2);
         const pubRes = await fetch(`${GRAPH2}/${encodeURIComponent(userId)}/threads_publish`, {
           method: "POST",
           body: pubForm
@@ -11476,7 +12080,7 @@ var init_threadsProvider = __esm({
           throw new Error(this.formatGraphError("Threads publish failed", pubRes, pubJson));
         }
         const infoRes = await fetch(
-          `${GRAPH2}/${encodeURIComponent(pubJson.id)}?fields=id,permalink&access_token=${encodeURIComponent(accessToken)}`
+          `${GRAPH2}/${encodeURIComponent(pubJson.id)}?fields=id,permalink&access_token=${encodeURIComponent(accessToken2)}`
         );
         const infoJson = await this.readGraphJson(infoRes);
         if (!infoRes.ok) {
@@ -11491,22 +12095,22 @@ var init_threadsProvider = __esm({
       /**
        * Account insights for the analytics dashboard (`threads_manage_insights`).
        */
-      async analytics(id, accessToken, dateWindowDays) {
-        const until = dayjs5__default.default().endOf("day").unix();
-        const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
-        const url = `${GRAPH2}/${encodeURIComponent(id)}/threads_insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken)}&period=day&since=${since}&until=${until}`;
+      async analytics(id, accessToken2, dateWindowDays) {
+        const until = dayjs4__default.default().endOf("day").unix();
+        const since = dayjs4__default.default().subtract(dateWindowDays, "day").unix();
+        const url = `${GRAPH2}/${encodeURIComponent(id)}/threads_insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}&period=day&since=${since}&until=${until}`;
         const res = await fetch(url);
         const body = await res.json();
         if (!res.ok || body.error) {
           return [];
         }
-        const today = dayjs5__default.default().format("YYYY-MM-DD");
+        const today = dayjs4__default.default().format("YYYY-MM-DD");
         const rows = body.data?.map((d) => ({
           label: this.capitalizeMetric(d.name ?? ""),
           percentageChange: 0,
           data: d.total_value ? [{ total: String(d.total_value.value ?? 0), date: today }] : (d.values ?? []).map((v) => ({
             total: String(v.value ?? 0),
-            date: v.end_time ? dayjs5__default.default(v.end_time).format("YYYY-MM-DD") : today
+            date: v.end_time ? dayjs4__default.default(v.end_time).format("YYYY-MM-DD") : today
           }))
         })) ?? [];
         return rows.filter((r) => r.label.length > 0);
@@ -11514,11 +12118,11 @@ var init_threadsProvider = __esm({
       /**
        * Per-thread insights for post statistics (`threads_manage_insights`).
        */
-      async postAnalytics(_integrationId, accessToken, threadMediaOrPostId, _fromDate) {
-        const today = dayjs5__default.default().format("YYYY-MM-DD");
+      async postAnalytics(_integrationId, accessToken2, threadMediaOrPostId, _fromDate) {
+        const today = dayjs4__default.default().format("YYYY-MM-DD");
         try {
           const res = await fetch(
-            `${GRAPH2}/${encodeURIComponent(threadMediaOrPostId)}/insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken)}`
+            `${GRAPH2}/${encodeURIComponent(threadMediaOrPostId)}/insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}`
           );
           const json = await res.json();
           throwIfMetaGraphInvalidAccessToken(json);
@@ -11563,9 +12167,9 @@ var init_threadsProvider = __esm({
           return [];
         }
       }
-      async fetchUserInfo(accessToken) {
+      async fetchUserInfo(accessToken2) {
         const res = await fetch(
-          `https://graph.threads.net/v1.0/me?fields=id,username,threads_profile_picture_url&access_token=${encodeURIComponent(accessToken)}`
+          `https://graph.threads.net/v1.0/me?fields=id,username,threads_profile_picture_url&access_token=${encodeURIComponent(accessToken2)}`
         );
         const body = await res.json();
         const id = body.id ?? "";
@@ -11718,7 +12322,7 @@ var init_integrationManager = __esm({
   }
 });
 
-// utils/allowedExternalImageHosts.ts
+// utils/images/allowedExternalImageHosts.ts
 function isAllowedExternalImageHost(hostname) {
   const h = hostname.toLowerCase();
   return h === "cdninstagram.com" || h.endsWith(".cdninstagram.com") || h === "fbcdn.net" || h.endsWith(".fbcdn.net") || h === "platform-lookaside.fbsbx.com" || h.endsWith(".fbsbx.com");
@@ -11731,11 +12335,11 @@ function isExternalCdnProfilePictureUrl(url) {
   }
 }
 var init_allowedExternalImageHosts = __esm({
-  "utils/allowedExternalImageHosts.ts"() {
+  "utils/images/allowedExternalImageHosts.ts"() {
   }
 });
 
-// utils/externalImageFetch.ts
+// utils/images/externalImageFetch.ts
 function externalCdnImageRequestHeaders(remoteUrl) {
   let referer = "https://www.instagram.com/";
   try {
@@ -11798,7 +12402,7 @@ async function fetchAllowlistedExternalImage(remoteUrl) {
 }
 var FETCH_TIMEOUT_MS, ExternalImageFetchError;
 var init_externalImageFetch = __esm({
-  "utils/externalImageFetch.ts"() {
+  "utils/images/externalImageFetch.ts"() {
     init_allowedExternalImageHosts();
     FETCH_TIMEOUT_MS = 15e3;
     ExternalImageFetchError = class extends Error {
@@ -11811,7 +12415,7 @@ var init_externalImageFetch = __esm({
   }
 });
 
-// utils/mirrorIntegrationProfilePicture.ts
+// utils/images/mirrorIntegrationProfilePicture.ts
 function integrationProfileStoragePath(organizationId, internalId) {
   const safeOrg = organizationId.replace(/[^a-zA-Z0-9_-]/g, "_");
   const safeInternal = internalId.replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -11900,7 +12504,7 @@ async function resolveIntegrationPictureForStorage(params) {
 }
 var INTEGRATION_PROFILE_STORAGE_PREFIX;
 var init_mirrorIntegrationProfilePicture = __esm({
-  "utils/mirrorIntegrationProfilePicture.ts"() {
+  "utils/images/mirrorIntegrationProfilePicture.ts"() {
     init_allowedExternalImageHosts();
     init_externalImageFetch();
     init_Logger();
@@ -12337,6 +12941,7 @@ function isVerifiedFromAdditionalSettings(settings) {
 var CACHE_KEYS11, OAUTH_STATE_TTL_SEC, IntegrationConnectionService;
 var init_IntegrationConnectionService = __esm({
   "services/IntegrationConnectionService.ts"() {
+    init_dist();
     init_UserError();
     init_OrganizationError();
     init_AppError();
@@ -12354,7 +12959,7 @@ var init_IntegrationConnectionService = __esm({
     };
     OAUTH_STATE_TTL_SEC = 3600;
     IntegrationConnectionService = class {
-      constructor(integrations, plugs, organizationRepository2, manager, refreshIntegrationService2, storageRepository, cache, cacheInvalidator) {
+      constructor(integrations, plugs, organizationRepository2, manager, refreshIntegrationService2, storageRepository, cache, cacheInvalidator, subscriptionGuard2) {
         this.integrations = integrations;
         this.plugs = plugs;
         this.organizationRepository = organizationRepository2;
@@ -12363,6 +12968,7 @@ var init_IntegrationConnectionService = __esm({
         this.storageRepository = storageRepository;
         this.cache = cache;
         this.cacheInvalidator = cacheInvalidator;
+        this.subscriptionGuard = subscriptionGuard2;
       }
       requireCache() {
         if (!this.cache) {
@@ -12387,7 +12993,7 @@ var init_IntegrationConnectionService = __esm({
         const userId = await this.resolveUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) {
-          throw new OrganizationNotFoundError(organizationId);
+          throw new OrganizationForbiddenError();
         }
       }
       async getIntegrationList(authUserId, organizationId) {
@@ -12648,7 +13254,7 @@ var init_IntegrationConnectionService = __esm({
         if ("error" in authResult && !("accessToken" in authResult)) {
           throw new AppError(authResult.error, 400, { errorCode: "INTEGRATION_OAUTH_ERROR" });
         }
-        const { accessToken, expiresIn, refreshToken, id, name, picture, username, additionalSettings } = authResult;
+        const { accessToken: accessToken2, expiresIn, refreshToken, id, name, picture, username, additionalSettings } = authResult;
         if (!id) {
           throw new AppError("Invalid API key", 400);
         }
@@ -12672,6 +13278,12 @@ var init_IntegrationConnectionService = __esm({
           picture: picture || null,
           resolveFreshRemoteUrl: async () => picture || null
         });
+        await this.subscriptionGuard?.assert(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
+          scope: "workspaceWithReconnect",
+          organizationId,
+          authUserId: authUserId ?? void 0,
+          reconnectInternalId: String(id)
+        });
         const row = await this.integrations.upsertIntegration({
           organizationId,
           internalId: String(id),
@@ -12679,7 +13291,7 @@ var init_IntegrationConnectionService = __esm({
           picture: storedPicture,
           providerIdentifier: integration,
           integrationType: "social",
-          token: accessToken,
+          token: accessToken2,
           refreshToken: refreshToken ?? "",
           expiresInSeconds: expiresIn,
           profile: username || null,
@@ -12700,7 +13312,7 @@ var init_IntegrationConnectionService = __esm({
           const fetchPages = typeof integrationProvider.pages === "function" ? integrationProvider.pages.bind(integrationProvider) : null;
           if (fetchPages) {
             try {
-              pages = await fetchPages(accessToken);
+              pages = await fetchPages(accessToken2);
             } catch {
               pages = [];
             }
@@ -12906,7 +13518,7 @@ var init_IntegrationConnectionService = __esm({
         const isInstagramBusiness = row.provider_identifier === "instagram-business";
         const refreshToken = isInstagramBusiness ? userAccessToken : row.refresh_token || "";
         const rootInternalId2 = isInstagramBusiness ? priorInternalId : row.root_internal_id;
-        const expiresInSeconds = isInstagramBusiness ? dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix() : void 0;
+        const expiresInSeconds = isInstagramBusiness ? dayjs4__default.default().add(59, "days").unix() - dayjs4__default.default().unix() : void 0;
         await this.integrations.updateIntegrationById(organizationId, integrationId, {
           internalId: String(information.id),
           name: (information.name ?? "").trim() || information.username || row.name,
@@ -12944,7 +13556,7 @@ function buildNotificationMessageParagraphWithAutolink(message) {
       const u = part.trim();
       if (/^https?:\/\//i.test(u)) {
         const safe = escapeHtml(u);
-        return `<a href="${safe}">${safe}</a>`;
+        return `<a href="${safe}" style="color: ${EMAIL_PRIMARY_COLOR};">${safe}</a>`;
       }
     }
     return escapeHtml(part);
@@ -12965,6 +13577,7 @@ function buildNotificationDigestBodyInner(entries) {
 var URL_IN_TEXT;
 var init_notificationTransactionalEmailHtml = __esm({
   "emails/notificationTransactionalEmailHtml.ts"() {
+    init_emailTheme();
     init_htmlEscape();
     URL_IN_TEXT = /(https?:\/\/[^\s<]+)/gi;
   }
@@ -13470,6 +14083,7 @@ var init_PostsService = __esm({
     init_ProviderIntegrationErrors();
     init_GlobalConfig();
     init_Logger();
+    init_dist();
     DEFAULT_TAG_COLOR = "#6366f1";
     POSTS_CALENDAR_LIST_CACHE_PREFIX = "posts:calendar:list";
     CACHE_KEYS12 = {
@@ -13489,7 +14103,7 @@ var init_PostsService = __esm({
     POSTS_CACHE_TTL_SEC = 300;
     POST_ANALYTICS_CACHE_TTL_SEC = !process.env.NODE_ENV || process.env.NODE_ENV === "development" ? 1 : 3600;
     PostsService = class {
-      constructor(postsRepository2, integrationConnectionService2, integrationService2, organizationRepository2, integrationManager2, refreshIntegrationService2, cache, cacheInvalidator) {
+      constructor(postsRepository2, integrationConnectionService2, integrationService2, organizationRepository2, integrationManager2, refreshIntegrationService2, cache, cacheInvalidator, subscriptionGuard2) {
         this.postsRepository = postsRepository2;
         this.integrationConnectionService = integrationConnectionService2;
         this.integrationService = integrationService2;
@@ -13498,6 +14112,7 @@ var init_PostsService = __esm({
         this.refreshIntegrationService = refreshIntegrationService2;
         this.cache = cache;
         this.cacheInvalidator = cacheInvalidator;
+        this.subscriptionGuard = subscriptionGuard2;
       }
       async findFreeSlot(organizationId, authUserId) {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
@@ -13687,6 +14302,14 @@ var init_PostsService = __esm({
               providerSettings: providerSettingsByIntegrationId?.[integrationId] ?? null
             })
           }));
+        }
+        if (state === "QUEUE") {
+          await this.subscriptionGuard?.assert(SubscriptionSection.POSTS_PER_MONTH, {
+            scope: "workspaceWithDelta",
+            organizationId,
+            authUserId: authUserId ?? void 0,
+            delta: toInsert.length
+          });
         }
         return { postGroup, toInsert, tagIds };
       }
@@ -13946,6 +14569,15 @@ var init_PostsService = __esm({
           if (taken) {
             throw new AppError("That time slot is already taken; pick another.", 409);
           }
+          const draftRows = rows.filter((r) => r.state === "DRAFT" && r.deleted_at == null);
+          if (draftRows.length > 0) {
+            await this.subscriptionGuard?.assert(SubscriptionSection.POSTS_PER_MONTH, {
+              scope: "workspaceWithDelta",
+              organizationId: input.organizationId,
+              authUserId: input.authUserId ?? void 0,
+              delta: draftRows.length
+            });
+          }
         }
         let updated = await this.postsRepository.updatePostGroupState(
           post.post_group,
@@ -14061,7 +14693,7 @@ var init_PostsService = __esm({
           posts: rows
         };
       }
-      async getPostPreview(postId, share) {
+      async getPostPreview(postId, share, authUserId) {
         if (share !== "true") {
           throw new AppError("Forbidden", 403);
         }
@@ -14136,10 +14768,25 @@ var init_PostsService = __esm({
             delayedEngagementReply
           };
         };
+        const resolvePreviewPlanFlags = async (organizationId) => {
+          if (!this.subscriptionGuard) {
+            return { sharePostPreviewEnabled: true, collaborationCommentsEnabled: false };
+          }
+          const sharePostPreviewEnabled = await this.subscriptionGuard.isSharePostPreviewEnabledForOrganization(organizationId);
+          const collaborationCommentsEnabled = authUserId?.trim() && sharePostPreviewEnabled ? await this.subscriptionGuard.isCollaborationCommentsEnabledForOrganization(
+            organizationId,
+            authUserId
+          ) : false;
+          return { sharePostPreviewEnabled, collaborationCommentsEnabled };
+        };
         if (this.cache) {
-          return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+          const cached2 = await this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
+          const flags2 = await resolvePreviewPlanFlags(cached2.organizationId);
+          return { ...cached2, ...flags2 };
         }
-        return factory();
+        const preview = await factory();
+        const flags = await resolvePreviewPlanFlags(preview.organizationId);
+        return { ...preview, ...flags };
       }
       /** Public `GET /public/posts/:postId/comments` — no API key; comments keyed by post id only. */
       async getPublicComments(postId) {
@@ -14149,6 +14796,11 @@ var init_PostsService = __esm({
       async createComposerComment(params) {
         const { organizationId, authUserId, postId, comment } = params;
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.subscriptionGuard?.assert(SubscriptionSection.SHARE_POST_PREVIEW, {
+          scope: "workspace",
+          organizationId,
+          authUserId
+        });
         const trimmed = comment.trim();
         if (!trimmed.length) {
           throw new AppError("Comment is required", 400);
@@ -14324,8 +14976,8 @@ var init_PostsService = __esm({
        * On failed refresh, soft-deletes the channel.
        */
       async ensureFreshSocialToken(integrationRow, organizationId, options2) {
-        const exp = integrationRow.token_expiration ? dayjs5__default.default(integrationRow.token_expiration) : null;
-        const expired = !exp || !exp.isValid() || exp.isBefore(dayjs5__default.default());
+        const exp = integrationRow.token_expiration ? dayjs4__default.default(integrationRow.token_expiration) : null;
+        const expired = !exp || !exp.isValid() || exp.isBefore(dayjs4__default.default());
         const provider = options2?.provider ?? this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
         if (options2?.force || expired) {
           const refreshed = await this.refreshIntegrationService.refresh(integrationRow);
@@ -15292,8 +15944,8 @@ var init_AnalyticsService = __esm({
         if (!provider?.analytics) {
           return [];
         }
-        const exp = row.token_expiration ? dayjs5__default.default(row.token_expiration) : null;
-        if (exp && exp.isValid() && exp.isBefore(dayjs5__default.default())) {
+        const exp = row.token_expiration ? dayjs4__default.default(row.token_expiration) : null;
+        if (exp && exp.isValid() && exp.isBefore(dayjs4__default.default())) {
           const refreshed = await this.refreshIntegrationService.refresh(row);
           if (!refreshed || !refreshed.accessToken) {
             return [];
@@ -15337,7 +15989,7 @@ function timingSafeEqualHexOrPrefixed(a, b) {
   return crypto__default.default.timingSafeEqual(ba, bbuff);
 }
 var init_tokenHash = __esm({
-  "utils/tokenHash.ts"() {
+  "utils/auth/tokenHash.ts"() {
   }
 });
 
@@ -15354,36 +16006,44 @@ var init_OauthAppService = __esm({
   "services/OauthAppService.ts"() {
     init_MediaRepository();
     init_AppError();
-    init_make_is();
+    init_makeId();
     init_tokenHash();
     init_GlobalConfig();
+    init_dist();
     OauthAppService = class {
-      constructor(oauthAppRepository2, organizationRepository2, mediaRepository2) {
+      constructor(oauthAppRepository2, organizationRepository2, mediaRepository2, subscriptionGuard2) {
         this.oauthAppRepository = oauthAppRepository2;
         this.organizationRepository = organizationRepository2;
         this.mediaRepository = mediaRepository2;
+        this.subscriptionGuard = subscriptionGuard2;
       }
       async resolveAuthUserToUserId(authUserId) {
         const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
         if (!userId) throw new AppError("User not found", 404);
         return userId;
       }
-      async assertOrgAdmin(authUserId, organizationId) {
+      async assertOrgAdmin(authUserId, organizationId, policy) {
         const userId = await this.resolveAuthUserToUserId(authUserId);
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) throw new AppError("Workspace not found", 404);
-        if (membership.role !== "admin" && membership.role !== "superadmin") {
+        if (membership.role !== "admin" && membership.role !== "owner") {
           throw new AppError("Only admins can manage OAuth apps", 403);
         }
+        await this.subscriptionGuard?.assert(SubscriptionSection.PUBLIC_API, {
+          scope: "workspace",
+          organizationId,
+          authUserId,
+          workspaceRole: membership.role
+        });
         return { userId };
       }
       async listApps(authUserId, organizationId) {
-        await this.assertOrgAdmin(authUserId, organizationId);
+        await this.assertOrgAdmin(authUserId, organizationId, "read");
         const apps = await this.oauthAppRepository.listAppsByOrganization(organizationId);
         return Promise.all(apps.map((a) => this.enrichAppWithPicturePublicUrls(a, organizationId)));
       }
       async getApp(authUserId, organizationId) {
-        await this.assertOrgAdmin(authUserId, organizationId);
+        await this.assertOrgAdmin(authUserId, organizationId, "read");
         const app2 = await this.oauthAppRepository.getAppByOrganizationId(organizationId);
         if (!app2) return false;
         return this.enrichAppWithPicturePublicUrls(app2, organizationId);
@@ -15406,7 +16066,7 @@ var init_OauthAppService = __esm({
        * Create an OAuth app (admin-only). Returns the raw clientSecret exactly once.
        */
       async createApp(authUserId, input) {
-        const { userId } = await this.assertOrgAdmin(authUserId, input.organizationId);
+        const { userId } = await this.assertOrgAdmin(authUserId, input.organizationId, "create");
         const existing = await this.oauthAppRepository.getAppByOrganizationId(input.organizationId);
         if (existing) {
           throw new AppError("You can only have one OAuth application per organization", 400);
@@ -15435,7 +16095,7 @@ var init_OauthAppService = __esm({
         return { app: enriched, clientId, clientSecret };
       }
       async updateApp(authUserId, input) {
-        await this.assertOrgAdmin(authUserId, input.organizationId);
+        await this.assertOrgAdmin(authUserId, input.organizationId, "update");
         if (input.redirectUrl !== void 0) {
           const redirectUrl = input.redirectUrl.trim();
           if (!redirectUrl) throw new AppError("Redirect URL is invalid", 400);
@@ -15453,7 +16113,7 @@ var init_OauthAppService = __esm({
         return this.enrichAppWithPicturePublicUrls(updated, input.organizationId);
       }
       async rotateSecret(authUserId, input) {
-        await this.assertOrgAdmin(authUserId, input.organizationId);
+        await this.assertOrgAdmin(authUserId, input.organizationId, "update");
         const secretKey = config.auth?.programmaticTokenSecret ?? "";
         if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
         const newSecret = `oqs_${makeId(48)}`;
@@ -15466,9 +16126,51 @@ var init_OauthAppService = __esm({
         return { clientSecret: newSecret };
       }
       async deleteApp(authUserId, input) {
-        await this.assertOrgAdmin(authUserId, input.organizationId);
+        await this.assertOrgAdmin(authUserId, input.organizationId, "delete");
         await this.oauthAppRepository.revokeAllForApp(input.oauthAppId);
         await this.oauthAppRepository.deleteApp(input.organizationId, input.oauthAppId);
+      }
+      /**
+       * Issue a workspace programmatic access token (`opo_…`) for this workspace's OAuth app.
+       * Plaintext is returned once; only the hash is stored.
+       */
+      async issueWorkspaceProgrammaticToken(authUserId, organizationId) {
+        const { userId } = await this.assertOrgAdmin(authUserId, organizationId, "update");
+        const app2 = await this.oauthAppRepository.getAppByOrganizationId(organizationId);
+        if (!app2) {
+          throw new AppError(
+            "Create an OAuth application for this workspace before generating a programmatic access token",
+            400
+          );
+        }
+        const secretKey = config.auth?.programmaticTokenSecret ?? "";
+        if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
+        const authz = await this.oauthAppRepository.upsertAuthorization({
+          oauthAppId: app2.id,
+          userId,
+          organizationId
+        });
+        const programmaticAccessToken = `opo_${makeId(48)}`;
+        const accessTokenHash = hashProgrammaticToken(programmaticAccessToken, secretKey);
+        await this.oauthAppRepository.setAccessTokenForAuthorization({
+          authorizationId: authz.id,
+          accessTokenHash
+        });
+        return { programmaticAccessToken };
+      }
+      /** Whether the current admin has an active programmatic token for this workspace OAuth app. */
+      async getWorkspaceProgrammaticTokenStatus(authUserId, organizationId) {
+        const { userId } = await this.assertOrgAdmin(authUserId, organizationId, "read");
+        const app2 = await this.oauthAppRepository.getAppByOrganizationId(organizationId);
+        if (!app2) {
+          return { configured: false };
+        }
+        const authz = await this.oauthAppRepository.findActiveAuthorizationForUserOrgApp({
+          oauthAppId: app2.id,
+          userId,
+          organizationId
+        });
+        return { configured: Boolean(authz?.access_token_hash) };
       }
       /**
        * Programmatic access token verification for `/public/*` (OAuth2 access token).
@@ -15492,7 +16194,7 @@ var init_OauthService = __esm({
     init_MediaRepository();
     init_AppError();
     init_GlobalConfig();
-    init_make_is();
+    init_makeId();
     init_tokenHash();
     OauthService = class {
       constructor(oauthAppRepository2, organizationRepository2, mediaRepository2) {
@@ -15567,8 +16269,8 @@ var init_OauthService = __esm({
         if (!authz.code_expires_at || /* @__PURE__ */ new Date() > new Date(authz.code_expires_at)) {
           throw new AppError("invalid_grant", 400);
         }
-        const accessToken = `opo_${makeId(48)}`;
-        const accessTokenHash = hashProgrammaticToken(accessToken, secretKey);
+        const accessToken2 = `opo_${makeId(48)}`;
+        const accessTokenHash = hashProgrammaticToken(accessToken2, secretKey);
         const exchanged = await this.oauthAppRepository.exchangeCodeForAccessToken({
           oauthAppId: app2.id,
           organizationId: authz.organization_id,
@@ -15578,7 +16280,7 @@ var init_OauthService = __esm({
         if (!exchanged) {
           throw new AppError("invalid_grant", 400);
         }
-        return { organizationId: exchanged.organization_id, access_token: accessToken, token_type: "bearer" };
+        return { organizationId: exchanged.organization_id, access_token: accessToken2, token_type: "bearer" };
       }
       async getOrgByOAuthToken(rawAccessToken) {
         const secretKey = config.auth?.programmaticTokenSecret ?? "";
@@ -15619,6 +16321,303 @@ var init_OauthService = __esm({
   }
 });
 
+// services/SubscriptionService.ts
+var SubscriptionService;
+var init_SubscriptionService = __esm({
+  "services/SubscriptionService.ts"() {
+    init_dist();
+    init_GlobalConfig();
+    SubscriptionService = class {
+      constructor(subscriptionRepository2, mediaRepository2, organizationRepository2) {
+        this.subscriptionRepository = subscriptionRepository2;
+        this.mediaRepository = mediaRepository2;
+        this.organizationRepository = organizationRepository2;
+      }
+      subscriptionGuard;
+      /** Wired after {@link SubscriptionGuardService} is constructed (avoids circular init). */
+      setSubscriptionGuard(guard) {
+        this.subscriptionGuard = guard;
+      }
+      billingEnabled() {
+        const stripe = config.stripe;
+        return Boolean(stripe?.publishableKey?.trim());
+      }
+      async getSubscriptionByOrganizationId(organizationId) {
+        return this.subscriptionRepository.getSubscriptionByOrganizationId(organizationId);
+      }
+      /**
+       * Paid subscription on organizations the user owns (direct rows only, then inheritance among
+       * owned workspaces within the plan workspace cap). Ignores invited/member workspaces.
+       */
+      async getOwnedAccountSubscription(authUserId) {
+        if (!authUserId?.trim() || !this.billingEnabled()) return null;
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId.trim());
+        if (!userId) return null;
+        const { organizations, memberships } = await this.organizationRepository.findOrganizationsByUserId(userId);
+        const ownedOrganizationIds = new Set(
+          memberships.filter((m) => (m.role ?? "").toLowerCase() === "owner" && !m.disabled).map((m) => m.organizationId)
+        );
+        const ownedOrganizationsCount = memberships.filter(
+          (m) => (m.role ?? "").toLowerCase() === "owner" && !m.disabled
+        ).length;
+        let best = null;
+        let bestWorkspaceCap = -1;
+        for (const org of organizations) {
+          if (!ownedOrganizationIds.has(org.id)) continue;
+          const sub = await this.subscriptionRepository.getSubscriptionByOrganizationId(org.id);
+          if (!sub) continue;
+          const cap = planLimitsForTier(sub.subscription_tier).workspaces;
+          if (cap > bestWorkspaceCap) {
+            bestWorkspaceCap = cap;
+            best = sub;
+          }
+        }
+        if (!best || bestWorkspaceCap < 1) return null;
+        if (ownedOrganizationsCount > bestWorkspaceCap) return null;
+        return best;
+      }
+      /**
+       * How many workspaces the user may own on their billing account (not the active/shared workspace).
+       * FREE / no owned subscription: one workspace (signup default). Billing disabled: SOLO cap.
+       */
+      resolveOwnedWorkspaceCap(subscription) {
+        if (!this.billingEnabled()) {
+          return pricing.SOLO.workspaces;
+        }
+        const planCap = planLimitsForTier(this.resolveTier(subscription)).workspaces;
+        if (planCap >= 1) return planCap;
+        return 1;
+      }
+      /**
+       * Resolves the paid subscription that applies to a workspace.
+       * When the workspace has no row, inherits from another owned workspace on the same billing
+       * account when the user is within the plan workspace cap (owned workspaces only).
+       */
+      async getEffectiveSubscription(organizationId, authUserId) {
+        const direct = await this.subscriptionRepository.getSubscriptionByOrganizationId(organizationId);
+        if (direct) return direct;
+        if (!authUserId?.trim() || !this.billingEnabled()) return null;
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId.trim());
+        if (!userId) return null;
+        const { organizations, memberships } = await this.organizationRepository.findOrganizationsByUserId(userId);
+        if (!organizations.some((org) => org.id === organizationId)) return null;
+        const ownedOrganizationIds = new Set(
+          memberships.filter((m) => (m.role ?? "").toLowerCase() === "owner" && !m.disabled).map((m) => m.organizationId)
+        );
+        if (!ownedOrganizationIds.has(organizationId)) return null;
+        return this.getOwnedAccountSubscription(authUserId);
+      }
+      resolveTier(subscription) {
+        if (subscription?.subscription_tier) {
+          return subscription.subscription_tier;
+        }
+        if (!this.billingEnabled()) {
+          return "SOLO";
+        }
+        return "FREE";
+      }
+      /**
+       * Tier for workspace-scoped share-preview features (`/p/:postId` comments, copy link).
+       * Uses only this organization's subscription row (no account inheritance) so SOLO workspaces
+       * stay gated even when the viewer is on a higher plan elsewhere.
+       */
+      async resolveOrganizationPlanTier(organizationId) {
+        const subscription = await this.subscriptionRepository.getSubscriptionByOrganizationId(organizationId);
+        if (subscription?.subscription_tier) {
+          return subscription.subscription_tier;
+        }
+        return "FREE";
+      }
+      getPlanLimitsForOrganization(subscription) {
+        return planLimitsForTier(this.resolveTier(subscription));
+      }
+      async getWorkspaceDriveUsage(organizationId, authUserId) {
+        const subscription = await this.getEffectiveSubscription(organizationId, authUserId);
+        const tier = this.resolveTier(subscription);
+        const total = planLimitsForTier(tier).media_storage_bytes_per_workspace || DEFAULT_MEDIA_STORAGE_QUOTA_BYTES;
+        const items = await this.mediaRepository.listAllMedia(organizationId);
+        const used = items.reduce((sum, row) => sum + (row.size ?? 0), 0);
+        return {
+          used,
+          total: Math.max(used, total),
+          tier
+        };
+      }
+      async assertMediaStorageAvailable(organizationId, additionalBytes, authUserId) {
+        if (!this.subscriptionGuard) {
+          throw new Error("SubscriptionGuardService is not wired on SubscriptionService");
+        }
+        await this.subscriptionGuard.assertMediaStorageAvailable(
+          organizationId,
+          additionalBytes,
+          authUserId
+        );
+      }
+      async createOrUpdateFromStripe(params) {
+        return this.subscriptionRepository.createOrUpdateSubscription({
+          organizationId: params.organizationId,
+          isTrialing: params.isTrialing,
+          identifier: params.identifier,
+          subscriptionTier: params.subscriptionTier,
+          period: params.period,
+          channelsPerWorkspace: params.channelsPerWorkspace,
+          cancelAt: params.cancelAt,
+          currentPeriodStart: params.currentPeriodStart ?? null,
+          currentPeriodEnd: params.currentPeriodEnd ?? null
+        });
+      }
+      async deleteSubscriptionForCustomer(customerId) {
+        await this.subscriptionRepository.softDeleteByStripeCustomerId(customerId);
+      }
+      async grantPaidSubscriptionForAdmin(params) {
+        const limits = pricing[params.subscriptionTier];
+        return this.subscriptionRepository.createOrUpdateSubscription({
+          organizationId: params.organizationId,
+          isTrialing: false,
+          identifier: `admin-${Date.now()}`,
+          subscriptionTier: params.subscriptionTier,
+          period: params.period ?? "MONTHLY",
+          channelsPerWorkspace: limits.channel_per_workspace,
+          cancelAt: null
+        });
+      }
+    };
+  }
+});
+
+// utils/dtos/UserMeDTO.ts
+function workspaceRoleToUserMeRole(role) {
+  switch (role) {
+    case "owner":
+      return "OWNER";
+    case "admin":
+      return "ADMIN";
+    default:
+      return "USER";
+  }
+}
+function resolveSessionChannelsPerWorkspace(billingEnabled, tier, limits, subscription) {
+  if (!billingEnabled) {
+    return DEV_SESSION_CHANNELS_PER_WORKSPACE;
+  }
+  const planCap = limits.channel_per_workspace;
+  const snapshot = subscription?.channels_per_workspace ?? 0;
+  if (snapshot > 0) {
+    return Math.max(snapshot, planCap);
+  }
+  return planCap;
+}
+function resolveSessionPublicApiKey() {
+  return "";
+}
+var DEV_SESSION_CHANNELS_PER_WORKSPACE;
+var init_UserMeDTO = __esm({
+  "utils/dtos/UserMeDTO.ts"() {
+    DEV_SESSION_CHANNELS_PER_WORKSPACE = 1e4;
+  }
+});
+
+// services/UserSessionService.ts
+var UserSessionService;
+var init_UserSessionService = __esm({
+  "services/UserSessionService.ts"() {
+    init_OrganizationError();
+    init_UserMeDTO();
+    UserSessionService = class {
+      constructor(organizationRepository2, subscriptionGuard2, subscriptionService2, subscriptionRepository2) {
+        this.organizationRepository = organizationRepository2;
+        this.subscriptionGuard = subscriptionGuard2;
+        this.subscriptionService = subscriptionService2;
+        this.subscriptionRepository = subscriptionRepository2;
+      }
+      /**
+       * Build workspace session fields for `GET /users/me?organizationId=…`.
+       * Caller must be a non-disabled member of the organization.
+       */
+      async getWorkspaceSession(authUserId, organizationId) {
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+        if (!userId) {
+          throw new OrganizationForbiddenError("You do not have access to this workspace");
+        }
+        const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
+        if (!membership || membership.disabled) {
+          throw new OrganizationNotFoundError(organizationId);
+        }
+        const workspaceRole = membership.role;
+        const { tier, limits, subscription } = await this.subscriptionGuard.getTierAndLimits(
+          organizationId,
+          authUserId
+        );
+        const billingEnabled = this.subscriptionService.billingEnabled();
+        const billing = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
+        if (!organization) {
+          throw new OrganizationNotFoundError(organizationId);
+        }
+        return {
+          orgId: organizationId,
+          tier,
+          tierPlan: limits,
+          channelsPerWorkspace: resolveSessionChannelsPerWorkspace(
+            billingEnabled,
+            tier,
+            limits,
+            subscription
+          ),
+          role: workspaceRoleToUserMeRole(workspaceRole),
+          publicApi: resolveSessionPublicApiKey(),
+          isLifetime: subscription?.is_lifetime ?? false,
+          isTrailing: billing?.is_trialing ?? false,
+          allowTrial: billing?.allow_trial ?? false,
+          streakSince: null,
+          billingEnabled
+        };
+      }
+    };
+  }
+});
+
+// guards/subscription/planLimits.ts
+function planLimitForSection(limits, section) {
+  switch (section) {
+    case SubscriptionSection.CHANNEL_PER_WORKSPACE:
+      return limits.channel_per_workspace;
+    case SubscriptionSection.POSTS_PER_MONTH:
+      return limits.posts_per_month;
+    case SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE:
+      return limits.team_members_per_workspace;
+    case SubscriptionSection.WORKSPACES:
+      return limits.workspaces;
+    case SubscriptionSection.MEDIA_STORAGE_BYTES_PER_WORKSPACE:
+      return limits.media_storage_bytes_per_workspace;
+    case SubscriptionSection.SHARE_POST_PREVIEW:
+      return limits.share_post_preview;
+    case SubscriptionSection.COMMUNITY_FEATURES:
+      return limits.community_features;
+    case SubscriptionSection.PUBLIC_API:
+      return limits.public_api;
+    case SubscriptionSection.ADMIN:
+      return null;
+    default:
+      return null;
+  }
+}
+function isUnlimitedPlanCap(cap, section) {
+  if (section === SubscriptionSection.POSTS_PER_MONTH) {
+    return cap >= UNLIMITED_POSTS_PER_MONTH;
+  }
+  if (section === SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE) {
+    return cap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE;
+  }
+  return false;
+}
+var init_planLimits = __esm({
+  "guards/subscription/planLimits.ts"() {
+    init_dist();
+    init_dist();
+  }
+});
+
 // errors/SubscriptionError.ts
 var SubscriptionError;
 var init_SubscriptionError = __esm({
@@ -15637,112 +16636,97 @@ var init_SubscriptionError = __esm({
   }
 });
 
-// services/SubscriptionService.ts
-var SubscriptionService;
-var init_SubscriptionService = __esm({
-  "services/SubscriptionService.ts"() {
+// guards/subscription/guardRegistry.ts
+var GUARD_REGISTRY, TEAM_INVITE_DENIED_MESSAGE, TEAM_MEMBER_CAP_DENIED_MESSAGE;
+var init_guardRegistry = __esm({
+  "guards/subscription/guardRegistry.ts"() {
     init_dist();
-    init_GlobalConfig();
-    init_SubscriptionError();
-    init_dist();
-    SubscriptionService = class {
-      constructor(subscriptionRepository2, mediaRepository2) {
-        this.subscriptionRepository = subscriptionRepository2;
-        this.mediaRepository = mediaRepository2;
-      }
-      billingEnabled() {
-        const stripe = config.stripe;
-        return Boolean(stripe?.publishableKey?.trim());
-      }
-      async getSubscriptionByOrganizationId(organizationId) {
-        return this.subscriptionRepository.getSubscriptionByOrganizationId(organizationId);
-      }
-      resolveTier(subscription) {
-        if (subscription?.subscription_tier) {
-          return subscription.subscription_tier;
-        }
-        if (!this.billingEnabled()) {
-          return "CREATOR";
-        }
-        return "FREE";
-      }
-      getPlanLimitsForOrganization(subscription) {
-        return planLimitsForTier(this.resolveTier(subscription));
-      }
-      async getMediaStorageQuotaBytes(organizationId) {
-        const subscription = await this.subscriptionRepository.getSubscriptionByOrganizationId(
-          organizationId
-        );
-        return this.getPlanLimitsForOrganization(subscription).media_storage_bytes_per_workspace;
-      }
-      async getWorkspaceDriveUsage(organizationId) {
-        const subscription = await this.subscriptionRepository.getSubscriptionByOrganizationId(
-          organizationId
-        );
-        const tier = this.resolveTier(subscription);
-        const total = planLimitsForTier(tier).media_storage_bytes_per_workspace || DEFAULT_MEDIA_STORAGE_QUOTA_BYTES;
-        const items = await this.mediaRepository.listAllMedia(organizationId);
-        const used = items.reduce((sum, row) => sum + (row.size ?? 0), 0);
-        return {
-          used,
-          total: Math.max(used, total),
-          tier
-        };
-      }
-      async assertMediaStorageAvailable(organizationId, additionalBytes) {
-        const { used, total } = await this.getWorkspaceDriveUsage(organizationId);
-        if (used + additionalBytes > total) {
-          const frontend = config.server.frontendDomainUrl ?? "";
-          throw new SubscriptionError(
-            "Workspace media storage limit reached. Upgrade your plan or delete files.",
-            SubscriptionSection.MEDIA_STORAGE,
-            `${frontend.replace(/\/+$/, "")}/account/billing`
-          );
-        }
-      }
-      async createOrUpdateFromStripe(params) {
-        return this.subscriptionRepository.createOrUpdateSubscription({
-          organizationId: params.organizationId,
-          isTrialing: params.isTrialing,
-          identifier: params.identifier,
-          subscriptionTier: params.subscriptionTier,
-          period: params.period,
-          totalChannels: params.totalChannels,
-          cancelAt: params.cancelAt
-        });
-      }
-      async deleteSubscriptionForCustomer(customerId) {
-        await this.subscriptionRepository.softDeleteByStripeCustomerId(customerId);
-      }
-      async checkCheckoutStatus(organizationId, identifier) {
-        const row = await this.subscriptionRepository.checkSubscriptionByIdentifier(
-          organizationId,
-          identifier
-        );
-        return row ? 2 : 0;
+    GUARD_REGISTRY = {
+      [SubscriptionSection.PUBLIC_API]: {
+        kind: "boolean",
+        deniedMessage: "Public API access is not included on your current plan."
+      },
+      [SubscriptionSection.COMMUNITY_FEATURES]: {
+        kind: "account_boolean",
+        deniedMessage: "Community features are not included on your current plan."
+      },
+      [SubscriptionSection.SHARE_POST_PREVIEW]: {
+        kind: "share_post_preview",
+        deniedMessage: "Shareable post previews are not included on your current plan."
+      },
+      [SubscriptionSection.ADMIN]: {
+        kind: "role",
+        deniedMessage: "Workspace admin access is required."
+      },
+      [SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE]: {
+        kind: "boolean",
+        deniedMessage: "Team members are not included on your current plan."
+      },
+      [SubscriptionSection.MEDIA_STORAGE_BYTES_PER_WORKSPACE]: {
+        kind: "usage_bytes",
+        deniedMessage: "Workspace media storage limit reached. Upgrade your plan or delete files."
+      },
+      [SubscriptionSection.CHANNEL_PER_WORKSPACE]: {
+        kind: "quota",
+        deniedMessage: "Social channels are not included on your current plan."
+      },
+      [SubscriptionSection.POSTS_PER_MONTH]: {
+        kind: "quota",
+        deniedMessage: "Scheduled posts are not included on your current plan."
+      },
+      [SubscriptionSection.WORKSPACES]: {
+        kind: "account_quota",
+        deniedMessage: "Your plan does not allow more workspaces. Upgrade to add more."
       }
     };
+    TEAM_INVITE_DENIED_MESSAGE = "Your plan does not include additional workspace seats. Upgrade to invite team members.";
+    TEAM_MEMBER_CAP_DENIED_MESSAGE = "This workspace has reached its team member limit for your current plan.";
+  }
+});
+function computePostsBillingMonthStart(params) {
+  const { subscription, organizationCreatedAt, now } = params;
+  const clock = now ?? /* @__PURE__ */ new Date();
+  const anchorIso = subscription?.current_period_start ?? subscription?.created_at ?? organizationCreatedAt;
+  const anchor = dayjs4__default.default(anchorIso);
+  const current = dayjs4__default.default(clock);
+  if (subscription?.period === "MONTHLY" && subscription.current_period_start) {
+    return anchor.toDate();
+  }
+  const monthsPast = Math.max(0, current.diff(anchor, "month"));
+  return anchor.add(monthsPast, "month").toDate();
+}
+var init_postsBilling = __esm({
+  "guards/subscription/postsBilling.ts"() {
   }
 });
 
-// services/PermissionsService.ts
-var PermissionsService;
-var init_PermissionsService = __esm({
-  "services/PermissionsService.ts"() {
+// guards/subscription/SubscriptionGuardService.ts
+var SubscriptionGuardService;
+var init_SubscriptionGuardService = __esm({
+  "guards/subscription/SubscriptionGuardService.ts"() {
     init_dist();
+    init_planLimits();
     init_SubscriptionError();
     init_GlobalConfig();
-    PermissionsService = class {
-      constructor(subscriptionService2) {
+    init_UserMeDTO();
+    init_guardRegistry();
+    init_postsBilling();
+    init_postsBilling();
+    SubscriptionGuardService = class {
+      constructor(subscriptionService2, integrationService2, organizationRepository2, postsRepository2) {
         this.subscriptionService = subscriptionService2;
+        this.integrationService = integrationService2;
+        this.organizationRepository = organizationRepository2;
+        this.postsRepository = postsRepository2;
       }
       billingUrl() {
         const frontend = config.server.frontendDomainUrl ?? "";
         return `${frontend.replace(/\/+$/, "")}/account/billing`;
       }
-      async getTierAndLimits(organizationId) {
-        const subscription = await this.subscriptionService.getSubscriptionByOrganizationId(
-          organizationId
+      async getTierAndLimits(organizationId, authUserId) {
+        const subscription = await this.subscriptionService.getEffectiveSubscription(
+          organizationId,
+          authUserId
         );
         const tier = this.subscriptionService.resolveTier(subscription);
         return {
@@ -15752,69 +16736,365 @@ var init_PermissionsService = __esm({
         };
       }
       /**
-       * Enforces subscription limits for the requested policies.
-       * When Stripe billing is not configured, all policies pass (local/dev).
+       * Single entry point for plan capability checks.
+       * When Stripe billing is not configured, all checks pass (local/dev).
        */
-      async assertPolicies(organizationId, workspaceRole, policies) {
+      async assert(section, ctx) {
+        if (!this.subscriptionService.billingEnabled()) return;
+        const entry = GUARD_REGISTRY[section];
+        if (!entry) return;
+        switch (entry.kind) {
+          case "role":
+            return this.assertAdminRole(section, ctx);
+          case "boolean":
+            return this.assertWorkspaceBoolean(section, ctx);
+          case "account_boolean":
+            return this.assertAccountBoolean(section, ctx);
+          case "account_quota":
+            return this.assertAccountWorkspaceQuota(section, ctx);
+          case "usage_bytes":
+            return this.assertMediaStorage(section, ctx);
+          case "quota":
+            return this.assertQuota(section, ctx);
+          case "share_post_preview":
+            return this.assertSharePostPreview(ctx);
+          default:
+            return;
+        }
+      }
+      requireWorkspaceContext(ctx) {
+        if (ctx.scope === "account") {
+          throw new Error(`Workspace context required for ${ctx.scope}`);
+        }
+        return ctx;
+      }
+      async assertAdminRole(section, ctx) {
+        const workspaceCtx = this.requireWorkspaceContext(ctx);
+        const role = workspaceCtx.workspaceRole;
+        if (role !== "admin" && role !== "owner") {
+          throw new SubscriptionError(GUARD_REGISTRY[section].deniedMessage, section, this.billingUrl());
+        }
+      }
+      async assertWorkspaceBoolean(section, ctx) {
+        const workspaceCtx = this.requireWorkspaceContext(ctx);
+        const { limits } = await this.getTierAndLimits(
+          workspaceCtx.organizationId,
+          workspaceCtx.authUserId
+        );
+        const cap = planLimitForSection(limits, section);
+        if (typeof cap === "boolean" && !cap) {
+          throw new SubscriptionError(GUARD_REGISTRY[section].deniedMessage, section, this.billingUrl());
+        }
+        if (section === SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE) {
+          const seatCap = limits.team_members_per_workspace;
+          if (seatCap < 1) {
+            throw new SubscriptionError(GUARD_REGISTRY[section].deniedMessage, section, this.billingUrl());
+          }
+        }
+      }
+      async assertAccountBoolean(section, ctx) {
+        if (ctx.scope !== "account") {
+          const workspaceCtx = this.requireWorkspaceContext(ctx);
+          const { limits } = await this.getTierAndLimits(
+            workspaceCtx.organizationId,
+            workspaceCtx.authUserId
+          );
+          const cap = planLimitForSection(limits, section);
+          if (typeof cap === "boolean" && !cap) {
+            throw new SubscriptionError(GUARD_REGISTRY[section].deniedMessage, section, this.billingUrl());
+          }
+          return;
+        }
+        const owned = await this.subscriptionService.getOwnedAccountSubscription(ctx.authUserId);
+        const viewerTier = owned?.subscription_tier ?? "FREE";
+        if (!planLimitsForTier(viewerTier).community_features) {
+          throw new SubscriptionError(GUARD_REGISTRY[section].deniedMessage, section, this.billingUrl());
+        }
+      }
+      async assertAccountWorkspaceQuota(section, ctx) {
+        if (ctx.scope !== "account") return;
+        const authUserId = ctx.authUserId;
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId);
+        if (!userId) return;
+        const { organizations, memberships } = await this.organizationRepository.findOrganizationsByUserId(userId);
+        const ownedOrganizationIds = new Set(
+          memberships.filter((m) => (m.role ?? "").toLowerCase() === "owner").map((m) => m.organizationId)
+        );
+        const ownedCount = organizations.filter((org) => ownedOrganizationIds.has(org.id)).length;
+        const ownedSubscription = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+        const workspaceCap = this.subscriptionService.resolveOwnedWorkspaceCap(ownedSubscription);
+        if (ownedCount >= workspaceCap) {
+          throw new SubscriptionError(
+            workspaceCap === 1 ? "Your plan includes one workspace. Upgrade to add more." : `Your plan allows up to ${workspaceCap} workspaces. Upgrade to add more.`,
+            section,
+            this.billingUrl()
+          );
+        }
+      }
+      async assertMediaStorage(section, ctx) {
+        const workspaceCtx = this.requireWorkspaceContext(ctx);
+        const additionalBytes = workspaceCtx.scope === "workspace" ? workspaceCtx.additionalBytes ?? 0 : 0;
+        if (additionalBytes > 0) {
+          const { used, total } = await this.subscriptionService.getWorkspaceDriveUsage(
+            workspaceCtx.organizationId,
+            workspaceCtx.authUserId
+          );
+          if (used + additionalBytes > total) {
+            throw new SubscriptionError(
+              GUARD_REGISTRY[section].deniedMessage,
+              section,
+              this.billingUrl()
+            );
+          }
+          return;
+        }
+        const drive = await this.subscriptionService.getWorkspaceDriveUsage(
+          workspaceCtx.organizationId,
+          workspaceCtx.authUserId
+        );
+        if (drive.used >= drive.total) {
+          throw new SubscriptionError(GUARD_REGISTRY[section].deniedMessage, section, this.billingUrl());
+        }
+      }
+      async assertQuota(section, ctx) {
+        if (section === SubscriptionSection.POSTS_PER_MONTH) {
+          return this.assertPostsPerMonth(ctx);
+        }
+        if (section === SubscriptionSection.CHANNEL_PER_WORKSPACE) {
+          return this.assertConnectSocialChannel(ctx);
+        }
+      }
+      postsBillingPeriodStart(subscription, organizationCreatedAt) {
+        return computePostsBillingMonthStart({ subscription, organizationCreatedAt });
+      }
+      async assertPostsPerMonth(ctx) {
+        const workspaceCtx = this.requireWorkspaceContext(ctx);
+        const rowsToAdd = workspaceCtx.scope === "workspaceWithDelta" ? workspaceCtx.delta : workspaceCtx.scope === "workspace" ? workspaceCtx.delta ?? 1 : 1;
+        if (rowsToAdd < 1) return;
+        const { limits, subscription } = await this.getTierAndLimits(
+          workspaceCtx.organizationId,
+          workspaceCtx.authUserId
+        );
+        const cap = limits.posts_per_month;
+        if (isUnlimitedPlanCap(cap, SubscriptionSection.POSTS_PER_MONTH)) return;
+        if (cap < 1) {
+          throw new SubscriptionError(
+            "Scheduled posts are not included on your current plan.",
+            SubscriptionSection.POSTS_PER_MONTH,
+            this.billingUrl()
+          );
+        }
+        const { organization } = await this.organizationRepository.findOrganizationById(
+          workspaceCtx.organizationId
+        );
+        const periodStart = this.postsBillingPeriodStart(
+          subscription,
+          organization?.created_at ?? (/* @__PURE__ */ new Date()).toISOString()
+        );
+        const count = await this.postsRepository.countPostsFromDay(
+          workspaceCtx.organizationId,
+          periodStart
+        );
+        if (count + rowsToAdd > cap) {
+          throw new SubscriptionError(
+            `Your plan allows up to ${cap} scheduled posts per billing month. Upgrade to schedule more.`,
+            SubscriptionSection.POSTS_PER_MONTH,
+            this.billingUrl()
+          );
+        }
+      }
+      async assertConnectSocialChannel(ctx) {
+        const workspaceCtx = this.requireWorkspaceContext(ctx);
+        const reconnectInternalId = workspaceCtx.scope === "workspaceWithReconnect" ? workspaceCtx.reconnectInternalId : "";
+        const { tier, limits, subscription } = await this.getTierAndLimits(
+          workspaceCtx.organizationId,
+          workspaceCtx.authUserId
+        );
+        const cap = resolveSessionChannelsPerWorkspace(
+          this.subscriptionService.billingEnabled(),
+          tier,
+          limits,
+          subscription
+        );
+        if (cap < 1) {
+          throw new SubscriptionError(
+            "Social channels are not included on your current plan.",
+            SubscriptionSection.CHANNEL_PER_WORKSPACE,
+            this.billingUrl()
+          );
+        }
+        const channels = await this.integrationService.listByOrganization(workspaceCtx.organizationId);
+        const isReconnect = reconnectInternalId ? channels.some((c) => c.internal_id === reconnectInternalId) : false;
+        if (isReconnect) return;
+        if (channels.length >= cap) {
+          throw new SubscriptionError(
+            `Your plan allows up to ${cap} connected channels per workspace. Disconnect a channel or upgrade to add more.`,
+            SubscriptionSection.CHANNEL_PER_WORKSPACE,
+            this.billingUrl()
+          );
+        }
+      }
+      async assertSharePostPreview(ctx) {
+        const workspaceCtx = this.requireWorkspaceContext(ctx);
+        const organizationId = workspaceCtx.organizationId;
+        const tier = await this.subscriptionService.resolveOrganizationPlanTier(organizationId);
+        if (!planLimitsForTier(tier).share_post_preview) {
+          throw new SubscriptionError(
+            "Shareable post previews are not included on this workspace's plan.",
+            SubscriptionSection.SHARE_POST_PREVIEW,
+            this.billingUrl()
+          );
+        }
+        const authUserId = workspaceCtx.authUserId?.trim();
+        if (authUserId) {
+          const owned = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+          const viewerTier = owned?.subscription_tier ?? "FREE";
+          if (!planLimitsForTier(viewerTier).share_post_preview) {
+            throw new SubscriptionError(
+              "Collaboration comments are not included on your current plan.",
+              SubscriptionSection.SHARE_POST_PREVIEW,
+              this.billingUrl()
+            );
+          }
+        }
+      }
+      async getPostsPerMonthUsage(organizationId, authUserId) {
+        if (!this.subscriptionService.billingEnabled()) {
+          return { used: 0, limit: null };
+        }
+        const { limits, subscription } = await this.getTierAndLimits(organizationId, authUserId);
+        const cap = limits.posts_per_month;
+        if (isUnlimitedPlanCap(cap, SubscriptionSection.POSTS_PER_MONTH)) {
+          return { used: 0, limit: null };
+        }
+        if (cap < 1) {
+          return { used: 0, limit: 0 };
+        }
+        const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
+        const periodStart = this.postsBillingPeriodStart(
+          subscription,
+          organization?.created_at ?? (/* @__PURE__ */ new Date()).toISOString()
+        );
+        const used = await this.postsRepository.countPostsFromDay(organizationId, periodStart);
+        return { used, limit: cap };
+      }
+      async getTeamMembersPerWorkspaceUsage(organizationId, authUserId) {
+        if (!this.subscriptionService.billingEnabled()) {
+          return { used: 0, limit: null };
+        }
+        const { limits } = await this.getTierAndLimits(organizationId, authUserId);
+        const cap = limits.team_members_per_workspace;
+        if (isUnlimitedPlanCap(cap, SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE)) {
+          return { used: 0, limit: null };
+        }
+        if (cap < 1) {
+          return { used: 0, limit: 0 };
+        }
+        const [memberCounts, pendingInvites] = await Promise.all([
+          this.organizationRepository.getMemberCounts([organizationId]),
+          this.organizationRepository.countPendingInvitesByOrganization(organizationId)
+        ]);
+        const members = memberCounts[organizationId] ?? 0;
+        return { used: members + pendingInvites, limit: cap };
+      }
+      async isSharePostPreviewEnabledForOrganization(organizationId) {
+        const tier = await this.subscriptionService.resolveOrganizationPlanTier(organizationId);
+        return planLimitsForTier(tier).share_post_preview;
+      }
+      async isCollaborationCommentsEnabledForOrganization(organizationId, authUserId) {
+        if (!await this.isSharePostPreviewEnabledForOrganization(organizationId)) {
+          return false;
+        }
+        const owned = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+        const viewerTier = owned?.subscription_tier ?? "FREE";
+        return planLimitsForTier(viewerTier).share_post_preview;
+      }
+      async isCommunityFeaturesEnabledForAuthUser(authUserId) {
+        const owned = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+        const viewerTier = owned?.subscription_tier ?? "FREE";
+        return planLimitsForTier(viewerTier).community_features;
+      }
+      async assertTeamInviteCapacity(organizationId, authUserId) {
+        if (!this.subscriptionService.billingEnabled()) return;
+        const { limits } = await this.getTierAndLimits(organizationId, authUserId);
+        const cap = limits.team_members_per_workspace;
+        if (cap < 1) {
+          throw new SubscriptionError(
+            GUARD_REGISTRY[SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE].deniedMessage,
+            SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE,
+            this.billingUrl()
+          );
+        }
+        if (isUnlimitedPlanCap(cap, SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE)) return;
+        const [memberCounts, pendingInvites] = await Promise.all([
+          this.organizationRepository.getMemberCounts([organizationId]),
+          this.organizationRepository.countPendingInvitesByOrganization(organizationId)
+        ]);
+        const members = memberCounts[organizationId] ?? 0;
+        if (members + pendingInvites >= cap) {
+          throw new SubscriptionError(
+            TEAM_INVITE_DENIED_MESSAGE,
+            SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE,
+            this.billingUrl()
+          );
+        }
+      }
+      async assertWorkspaceHasSeatForNewMember(organizationId, authUserId) {
+        if (!this.subscriptionService.billingEnabled()) return;
+        const { limits } = await this.getTierAndLimits(organizationId, authUserId);
+        const cap = limits.team_members_per_workspace;
+        if (cap < 1) {
+          throw new SubscriptionError(
+            GUARD_REGISTRY[SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE].deniedMessage,
+            SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE,
+            this.billingUrl()
+          );
+        }
+        if (isUnlimitedPlanCap(cap, SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE)) return;
+        const memberCounts = await this.organizationRepository.getMemberCounts([organizationId]);
+        const members = memberCounts[organizationId] ?? 0;
+        if (members >= cap) {
+          throw new SubscriptionError(
+            TEAM_MEMBER_CAP_DENIED_MESSAGE,
+            SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE,
+            this.billingUrl()
+          );
+        }
+      }
+      async assertMediaStorageAvailable(organizationId, additionalBytes, authUserId) {
+        await this.assert(SubscriptionSection.MEDIA_STORAGE_BYTES_PER_WORKSPACE, {
+          scope: "workspace",
+          organizationId,
+          authUserId,
+          additionalBytes
+        });
+      }
+      async assertPolicies(organizationId, workspaceRole, policies, authUserId) {
         if (policies.length === 0) return;
         if (!this.subscriptionService.billingEnabled()) return;
-        const { limits } = await this.getTierAndLimits(organizationId);
         for (const [, section] of policies) {
-          if (section === SubscriptionSection.ADMIN) {
-            if (workspaceRole !== "admin" && workspaceRole !== "superadmin") {
-              throw new SubscriptionError(
-                "Workspace admin access is required.",
-                section,
-                this.billingUrl()
-              );
-            }
+          if (section === SubscriptionSection.CHANNEL_PER_WORKSPACE || section === SubscriptionSection.POSTS_PER_MONTH || section === SubscriptionSection.WORKSPACES) {
             continue;
           }
-          if (section === SubscriptionSection.MEDIA_STORAGE) {
-            const drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId);
-            if (drive.used >= drive.total) {
-              throw new SubscriptionError(
-                "Workspace media storage limit reached. Upgrade your plan or delete files.",
-                section,
-                this.billingUrl()
-              );
-            }
-            continue;
-          }
-          if (section === SubscriptionSection.TEAM_MEMBERS && limits.team_members_per_workspace < 1) {
-            throw new SubscriptionError(
-              "Team members are not included on your current plan.",
-              section,
-              this.billingUrl()
-            );
-          }
-          if (section === SubscriptionSection.SHARE_POST_PREVIEW && !limits.share_post_preview) {
-            throw new SubscriptionError(
-              "Shareable post previews are not included on your current plan.",
-              section,
-              this.billingUrl()
-            );
-          }
-          if (section === SubscriptionSection.PUBLIC_API && !limits.public_api) {
-            throw new SubscriptionError(
-              "Public API access is not included on your current plan.",
-              section,
-              this.billingUrl()
-            );
-          }
+          await this.assert(section, {
+            scope: "workspace",
+            organizationId,
+            authUserId,
+            workspaceRole
+          });
         }
       }
     };
   }
 });
 function getStripeClient() {
-  const stripeCfg = config.stripe;
-  const secretKey = stripeCfg?.secretKey?.trim();
+  const stripeCfg2 = config.stripe;
+  const secretKey = stripeCfg2?.secretKey?.trim();
   if (!secretKey) {
     throw new Error("Stripe is not configured. Set STRIPE_SECRET_KEY.");
   }
   if (!stripeClient) {
-    stripeClient = new Stripe__default.default(secretKey, {
+    stripeClient = new Stripe2__default.default(secretKey, {
       apiVersion: "2026-04-22.dahlia",
       appInfo: { name: "Openquok", version: "1.0.0" }
     });
@@ -15828,9 +17108,7 @@ var init_stripe = __esm({
     stripeClient = null;
   }
 });
-
-// services/StripeService.ts
-var STRIPE_SERVICE_METADATA, StripeService;
+var STRIPE_SERVICE_METADATA, STRIPE_PRICE_LOOKUP_KEYS, StripeService;
 var init_StripeService = __esm({
   "services/StripeService.ts"() {
     init_dist();
@@ -15838,13 +17116,19 @@ var init_StripeService = __esm({
     init_GlobalConfig();
     init_stripePriceConfig();
     init_UserError();
-    init_make_is();
+    init_makeId();
+    init_Logger();
     STRIPE_SERVICE_METADATA = "openquok";
+    STRIPE_PRICE_LOOKUP_KEYS = PAID_SUBSCRIPTION_TIERS.flatMap((tier) => [
+      `${tier.toLowerCase()}_monthly`,
+      `${tier.toLowerCase()}_yearly`
+    ]);
     StripeService = class {
-      constructor(subscriptionRepository2, subscriptionService2, organizationRepository2) {
+      constructor(subscriptionRepository2, subscriptionService2, organizationRepository2, userRepository2) {
         this.subscriptionRepository = subscriptionRepository2;
         this.subscriptionService = subscriptionService2;
         this.organizationRepository = organizationRepository2;
+        this.userRepository = userRepository2;
       }
       frontendUrl() {
         return String(config.server.frontendDomainUrl ?? "").replace(
@@ -15852,9 +17136,22 @@ var init_StripeService = __esm({
           ""
         );
       }
+      /** Surface Stripe API failures as 400 responses the billing UI can display. */
+      rethrowStripeAsValidation(error) {
+        if (error instanceof Stripe2__default.default.errors.StripeError) {
+          throw new UserValidationError(error.message);
+        }
+        throw error;
+      }
+      isMissingStripeCustomerError(error) {
+        if (error instanceof Stripe2__default.default.errors.StripeInvalidRequestError) {
+          return error.code === "resource_missing" || /No such customer/i.test(error.message);
+        }
+        return error instanceof Error && /No such customer/i.test(error.message);
+      }
       validateWebhook(rawBody, signature) {
-        const stripeCfg = config.stripe;
-        const secret = stripeCfg?.webhookSecret?.trim();
+        const stripeCfg2 = config.stripe;
+        const secret = stripeCfg2?.webhookSecret?.trim();
         if (!secret) {
           throw new Error("Stripe webhook secret is not configured (STRIPE_WEBHOOK_SECRET).");
         }
@@ -15870,31 +17167,175 @@ var init_StripeService = __esm({
           throw error;
         }
       }
-      async createOrGetCustomer(organizationId) {
+      normalizeBillingEmail(rawEmail) {
+        const raw = rawEmail?.trim();
+        if (!raw) return "billing@openquok.local";
+        if (raw.includes("@")) return raw;
+        return `${raw}@billing.local`;
+      }
+      billingDisplayName(fullName, fallback) {
+        const name = fullName?.trim();
+        return name || fallback;
+      }
+      /** Billing contact name/email for Stripe Customer (portal + checkout). */
+      async resolveBillingContact(organizationId, authUserId) {
         const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
-        if (!org) {
-          throw new Error("Organization not found");
-        }
-        if (org.stripe_customer_id) {
-          return org.stripe_customer_id;
+        const orgName = org?.name?.trim() || "Workspace";
+        const authId = authUserId?.trim();
+        if (authId) {
+          const { userData } = await this.userRepository.findFullUserByUserId(authId);
+          if (userData) {
+            return {
+              name: this.billingDisplayName(userData.full_name, orgName),
+              email: this.normalizeBillingEmail(userData.email)
+            };
+          }
         }
         const { members } = await this.organizationRepository.getTeam(organizationId);
-        const lead = members.find((m) => m.role === "superadmin") ?? members[0];
-        const rawEmail = lead?.email?.trim();
-        const email = rawEmail && rawEmail.includes("@") ? rawEmail : rawEmail ? `${rawEmail}@billing.local` : "billing@openquok.local";
+        const lead = members.find((m) => m.role === "owner") ?? members[0];
+        return {
+          name: this.billingDisplayName(lead?.full_name, orgName),
+          email: this.normalizeBillingEmail(lead?.email)
+        };
+      }
+      async syncStripeCustomerProfile(customerId, contact) {
+        await getStripeClient().customers.update(customerId, {
+          name: contact.name,
+          email: contact.email
+        });
+      }
+      async createStripeCustomerForOrganization(organizationId, authUserId) {
+        const contact = await this.resolveBillingContact(organizationId, authUserId);
         const customer = await getStripeClient().customers.create({
-          email,
-          name: org.name,
+          email: contact.email,
+          name: contact.name,
           metadata: { organizationId, service: STRIPE_SERVICE_METADATA }
         });
         await this.subscriptionRepository.updateStripeCustomerId(organizationId, customer.id);
         return customer.id;
       }
+      async createOrGetCustomer(organizationId) {
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org) {
+          throw new Error("Organization not found");
+        }
+        const storedId = org.stripe_customer_id?.trim();
+        if (storedId) {
+          const stripe = getStripeClient();
+          try {
+            const customer = await stripe.customers.retrieve(storedId);
+            if (!("deleted" in customer && customer.deleted)) {
+              return storedId;
+            }
+            logger.warn({
+              msg: "Stripe customer was deleted; creating a new customer for the workspace",
+              organizationId,
+              stripeCustomerId: storedId
+            });
+            await this.subscriptionRepository.clearStripeCustomerId(organizationId);
+          } catch (error) {
+            if (this.isMissingStripeCustomerError(error)) {
+              logger.warn({
+                msg: "Stale Stripe customer id; creating a new customer for the workspace",
+                organizationId,
+                stripeCustomerId: storedId
+              });
+              await this.subscriptionRepository.clearStripeCustomerId(organizationId);
+            } else {
+              throw error;
+            }
+          }
+        }
+        return this.createStripeCustomerForOrganization(organizationId);
+      }
       stripePriceIds() {
         return config.stripe.priceIds ?? {};
       }
-      /** Prefer price id from the web app; optional backend env fallback; then auto-create. */
-      async resolvePriceId(tier, period, stripePriceIdFromClient) {
+      billingEnabled() {
+        const stripeCfg2 = config.stripe;
+        return Boolean(stripeCfg2?.publishableKey?.trim());
+      }
+      packagesFromCatalog() {
+        const rows = PAID_SUBSCRIPTION_TIERS.flatMap((tier) => {
+          const plan = pricing[tier];
+          return [
+            { name: tier, recurring: "month", price: plan.month_price },
+            { name: tier, recurring: "year", price: plan.year_price }
+          ];
+        });
+        return groupBy__default.default(rows, "recurring");
+      }
+      stripePriceAmountUsd(price) {
+        const tiered = price.tiers?.[0]?.unit_amount;
+        if (tiered != null) return tiered / 100;
+        return (price.unit_amount ?? 0) / 100;
+      }
+      mapStripePricesToPackages(prices) {
+        const rows = [];
+        for (const p of prices) {
+          const interval = p.recurring?.interval;
+          if (!interval) continue;
+          const product = p.product;
+          const name = typeof product === "object" && product && "name" in product ? String(product.name ?? "") : "";
+          if (!name) continue;
+          rows.push({
+            name,
+            recurring: interval,
+            price: this.stripePriceAmountUsd(p)
+          });
+        }
+        return groupBy__default.default(rows, "recurring");
+      }
+      async fetchConfiguredStripePrices() {
+        const stripe = getStripeClient();
+        const ids = [];
+        const priceIds = this.stripePriceIds();
+        for (const tier of PAID_SUBSCRIPTION_TIERS) {
+          const monthly = configuredStripePriceId(priceIds, tier, "MONTHLY");
+          const yearly = configuredStripePriceId(priceIds, tier, "YEARLY");
+          if (monthly) ids.push(monthly);
+          if (yearly) ids.push(yearly);
+        }
+        const uniqueIds = [...new Set(ids)];
+        const prices = await Promise.all(
+          uniqueIds.map(
+            (id) => stripe.prices.retrieve(id, { expand: ["product"] })
+          )
+        );
+        return prices.filter((p) => p.active);
+      }
+      /**
+       * Active Stripe prices grouped by billing interval (`month` / `year`).
+       * Uses Dashboard lookup keys when present, else configured price ids, else the plan catalog.
+       */
+      async getPackages() {
+        if (!this.billingEnabled()) {
+          return this.packagesFromCatalog();
+        }
+        try {
+          const stripe = getStripeClient();
+          const listed = await stripe.prices.list({
+            active: true,
+            expand: ["data.tiers", "data.product"],
+            lookup_keys: [...STRIPE_PRICE_LOOKUP_KEYS],
+            limit: 100
+          });
+          if (listed.data.length > 0) {
+            return this.mapStripePricesToPackages(listed.data);
+          }
+          const configured = await this.fetchConfiguredStripePrices();
+          if (configured.length > 0) {
+            return this.mapStripePricesToPackages(configured);
+          }
+        } catch {
+        }
+        return this.packagesFromCatalog();
+      }
+      /**
+       * Prefer price id from the web app; optional backend env fallback; then auto-create (checkout only).
+       * Proration previews set `allowAutoCreate: false` so Stripe products are never provisioned implicitly.
+       */
+      async resolvePriceId(tier, period, stripePriceIdFromClient, options2) {
         const fromClient = stripePriceIdFromClient?.trim();
         if (fromClient) {
           await this.assertPriceMatchesPlan(fromClient, tier, period);
@@ -15903,6 +17344,11 @@ var init_StripeService = __esm({
         const configured = configuredStripePriceId(this.stripePriceIds(), tier, period);
         if (configured) {
           return configured;
+        }
+        if (options2?.allowAutoCreate === false) {
+          throw new UserValidationError(
+            "Stripe price is not configured for this plan. Set STRIPE_PRICE_ID_* in the backend env (use the same price_\u2026 ids as VITE_PUBLIC_STRIPE_PRICE_ID_* on the web)."
+          );
         }
         return this.findOrCreatePrice(tier, period);
       }
@@ -15960,65 +17406,519 @@ var init_StripeService = __esm({
         );
         const stripe = getStripeClient();
         const frontend = this.frontendUrl();
-        const existing = await this.subscriptionRepository.getSubscriptionByOrganizationId(
-          params.organizationId
-        );
-        const activeSubs = await stripe.subscriptions.list({
-          customer,
-          status: "all",
-          limit: 20
-        });
-        const current = activeSubs.data.find(
-          (s) => s.status === "active" || s.status === "trialing"
-        );
-        if (current && existing) {
-          const updated = await stripe.subscriptions.update(current.id, {
-            items: [{ id: current.items.data[0]?.id, price: priceId }],
-            proration_behavior: "create_prorations",
+        try {
+          const activeSubs = await stripe.subscriptions.list({
+            customer,
+            status: "all",
+            limit: 20
+          });
+          const current = activeSubs.data.find(
+            (s) => s.status === "active" || s.status === "trialing"
+          );
+          if (current) {
+            const itemId = current.items.data[0]?.id;
+            if (!itemId) {
+              throw new UserValidationError(
+                "This Stripe subscription cannot be changed automatically. Use the billing portal or contact support."
+              );
+            }
+            try {
+              const updated = await stripe.subscriptions.update(current.id, {
+                items: [{ id: itemId, price: priceId }],
+                proration_behavior: "create_prorations",
+                metadata: {
+                  service: STRIPE_SERVICE_METADATA,
+                  billing: params.body.billing,
+                  period: params.body.period,
+                  uniqueId,
+                  userId: params.userId,
+                  organizationId: params.organizationId
+                }
+              });
+              await this.syncSubscriptionFromStripe(updated);
+              return { updated: true };
+            } catch (updateError) {
+              try {
+                const portal = await this.createBillingPortalSession(
+                  params.organizationId,
+                  params.userId
+                );
+                return { portal };
+              } catch {
+                if (updateError instanceof UserValidationError) {
+                  throw updateError;
+                }
+                this.rethrowStripeAsValidation(updateError);
+              }
+            }
+          }
+          if (!frontend) {
+            throw new UserValidationError(
+              "FRONTEND_DOMAIN_URL is not configured. Set it in the backend env for checkout redirect URLs."
+            );
+          }
+          const session = await stripe.checkout.sessions.create({
+            mode: "subscription",
+            customer,
+            line_items: [{ price: priceId, quantity: 1 }],
+            success_url: `${frontend}/account/billing?checkout=${uniqueId}`,
+            cancel_url: `${frontend}/account/billing`,
+            subscription_data: {
+              // trial_period_days is in days - eg 7 days
+              ...params.allowTrial ? { trial_period_days: 7 } : {},
+              metadata: {
+                service: STRIPE_SERVICE_METADATA,
+                billing: params.body.billing,
+                period: params.body.period,
+                uniqueId,
+                userId: params.userId,
+                organizationId: params.organizationId
+              }
+            },
             metadata: {
               service: STRIPE_SERVICE_METADATA,
-              billing: params.body.billing,
-              period: params.body.period,
               uniqueId,
-              userId: params.userId,
               organizationId: params.organizationId
             }
           });
-          await this.syncSubscriptionFromStripe(updated);
-          return { updated: true };
-        }
-        const session = await stripe.checkout.sessions.create({
-          mode: "subscription",
-          customer,
-          line_items: [{ price: priceId, quantity: 1 }],
-          success_url: `${frontend}/account/billing?checkout=${uniqueId}`,
-          cancel_url: `${frontend}/account/billing`,
-          subscription_data: {
-            ...params.allowTrial ? { trial_period_days: 7 } : {},
-            metadata: {
-              service: STRIPE_SERVICE_METADATA,
-              billing: params.body.billing,
-              period: params.body.period,
-              uniqueId,
-              userId: params.userId,
-              organizationId: params.organizationId
-            }
-          },
-          metadata: {
-            service: STRIPE_SERVICE_METADATA,
-            uniqueId,
-            organizationId: params.organizationId
+          return { url: session.url ?? void 0 };
+        } catch (error) {
+          if (error instanceof UserValidationError) {
+            throw error;
           }
-        });
-        return { url: session.url ?? void 0 };
+          this.rethrowStripeAsValidation(error);
+        }
       }
-      async createBillingPortalSession(organizationId) {
+      async createBillingPortalSession(organizationId, authUserId) {
         const customer = await this.createOrGetCustomer(organizationId);
+        const contact = await this.resolveBillingContact(organizationId, authUserId);
+        await this.syncStripeCustomerProfile(customer, contact);
         const session = await getStripeClient().billingPortal.sessions.create({
           customer,
           return_url: `${this.frontendUrl()}/account/billing`
         });
         return session.url;
+      }
+      /** True when the workspace has a persisted subscription row for this checkout (or any paid row after sync). */
+      async isCheckoutConfirmedInDb(organizationId, checkoutId) {
+        const byIdentifier = await this.subscriptionRepository.checkSubscriptionByIdentifier(
+          organizationId,
+          checkoutId
+        );
+        if (byIdentifier) return true;
+        const row = await this.subscriptionRepository.getSubscriptionByOrganizationId(organizationId);
+        return row != null;
+      }
+      /**
+       * Poll checkout completion after redirect.
+       * 0 = pending, 1 = payment failed / canceled, 2 = subscription active in DB.
+       */
+      async checkCheckoutStatus(organizationId, checkoutId) {
+        const globalRow = await this.subscriptionRepository.getSubscriptionByIdentifier(checkoutId);
+        if (globalRow) {
+          return { status: 2, organizationId: globalRow.organization_id };
+        }
+        if (!organizationId.trim()) {
+          return { status: 0 };
+        }
+        if (await this.isCheckoutConfirmedInDb(organizationId, checkoutId)) {
+          return { status: 2, organizationId };
+        }
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        const customerId = org?.stripe_customer_id;
+        if (!customerId) return { status: 0 };
+        const stripe = getStripeClient();
+        try {
+          const sessions = await stripe.checkout.sessions.list({
+            customer: customerId,
+            limit: 20
+          });
+          const session = sessions.data.find((s) => s.metadata?.uniqueId === checkoutId);
+          if (session?.status === "expired") {
+            return { status: 1 };
+          }
+          const sessionPaid = session?.payment_status === "paid" || session?.status === "complete";
+          if (session && sessionPaid && session.subscription) {
+            const subId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
+            const sub = await stripe.subscriptions.retrieve(subId);
+            await this.syncSubscriptionFromStripe(sub, {
+              uniqueId: checkoutId,
+              service: STRIPE_SERVICE_METADATA,
+              organizationId: session.metadata?.organizationId ?? organizationId,
+              ...typeof session.metadata?.billing === "string" ? { billing: session.metadata.billing } : {},
+              ...typeof session.metadata?.period === "string" ? { period: session.metadata.period } : {}
+            });
+            if (await this.isCheckoutConfirmedInDb(organizationId, checkoutId)) {
+              return { status: 2, organizationId };
+            }
+          }
+        } catch (error) {
+          logger.warn({
+            msg: "checkCheckoutStatus: checkout session lookup failed",
+            organizationId,
+            checkoutId,
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+        const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 20 });
+        const match = subs.data.find((s) => s.metadata?.uniqueId === checkoutId);
+        if (match?.canceled_at) return { status: 1 };
+        if (match && (match.status === "active" || match.status === "trialing")) {
+          try {
+            await this.syncSubscriptionFromStripe(match, { uniqueId: checkoutId });
+          } catch (error) {
+            logger.warn({
+              msg: "checkCheckoutStatus: failed to sync subscription from Stripe",
+              organizationId,
+              checkoutId,
+              error: error instanceof Error ? error.message : String(error)
+            });
+          }
+          if (await this.isCheckoutConfirmedInDb(organizationId, checkoutId)) {
+            return { status: 2, organizationId };
+          }
+          const syncedRow = await this.subscriptionRepository.getSubscriptionByIdentifier(checkoutId);
+          if (syncedRow) {
+            return { status: 2, organizationId: syncedRow.organization_id };
+          }
+        }
+        return { status: 0 };
+      }
+      async checkDiscountEligible(customerId) {
+        const couponId = config.stripe.discountCouponId?.trim();
+        if (!couponId || !customerId) return false;
+        const stripe = getStripeClient();
+        const charges = await stripe.charges.list({ customer: customerId, limit: 1 });
+        if (!charges.data.some((c) => c.amount > 1e3)) return false;
+        const subs = await stripe.subscriptions.list({
+          customer: customerId,
+          status: "all",
+          expand: ["data.discounts"],
+          limit: 10
+        });
+        const active = subs.data.find((s) => s.status === "active" || s.status === "trialing");
+        if (!active) return false;
+        const interval = active.items.data[0]?.price?.recurring?.interval;
+        if (interval === "year") return false;
+        const discounts = active.discounts ?? [];
+        if (discounts.length > 0) return false;
+        return true;
+      }
+      async applyRetentionDiscount(customerId) {
+        const couponId = config.stripe.discountCouponId?.trim();
+        if (!couponId) return false;
+        const eligible = await this.checkDiscountEligible(customerId);
+        if (!eligible) return false;
+        const stripe = getStripeClient();
+        const subs = await stripe.subscriptions.list({
+          customer: customerId,
+          status: "all",
+          limit: 10
+        });
+        const active = subs.data.find((s) => s.status === "active" || s.status === "trialing");
+        if (!active) return false;
+        await stripe.subscriptions.update(active.id, {
+          discounts: [{ coupon: couponId }]
+        });
+        return true;
+      }
+      async finishTrial(customerId) {
+        if (!customerId) return;
+        const stripe = getStripeClient();
+        const subs = (await stripe.subscriptions.list({ customer: customerId, limit: 20 })).data.filter(
+          (s) => s.status === "trialing"
+        );
+        if (!subs[0]?.id) return;
+        const updated = await stripe.subscriptions.update(subs[0].id, { trial_end: "now" });
+        await this.syncSubscriptionFromStripe(updated);
+        const org = await this.subscriptionRepository.getOrganizationByStripeCustomerId(customerId);
+        if (org) await this.subscriptionRepository.setTrialing(org.id, false);
+      }
+      async previewProration(organizationId, body) {
+        const customer = await this.createOrGetCustomer(organizationId);
+        const priceId = await this.resolvePriceId(body.billing, body.period, void 0, {
+          allowAutoCreate: false
+        });
+        const stripe = getStripeClient();
+        const prorationDate = Math.floor(Date.now() / 1e3);
+        const subs = await stripe.subscriptions.list({ customer, status: "all", limit: 20 });
+        const current = subs.data.find((s) => s.status === "active" || s.status === "trialing");
+        if (!current?.items.data[0]?.id) return { price: 0 };
+        try {
+          const preview = await stripe.invoices.createPreview({
+            customer,
+            subscription: current.id,
+            subscription_details: {
+              proration_behavior: "create_prorations",
+              items: [
+                {
+                  id: current.items.data[0].id,
+                  price: priceId,
+                  quantity: 1
+                }
+              ],
+              proration_date: prorationDate
+            }
+          });
+          const amountCents = preview.amount_due ?? preview.amount_remaining ?? 0;
+          return { price: amountCents > 0 ? amountCents / 100 : 0 };
+        } catch (error) {
+          logger.warn({
+            msg: "previewProration: Stripe invoice preview failed",
+            organizationId,
+            billing: body.billing,
+            period: body.period,
+            error: error instanceof Error ? error.message : String(error)
+          });
+          return { price: 0 };
+        }
+      }
+      resolveCancelAtFromStripe(subscription) {
+        if (subscription.cancel_at) {
+          return new Date(subscription.cancel_at * 1e3).toISOString();
+        }
+        const periodEnd = subscription.current_period_end;
+        if (subscription.cancel_at_period_end && periodEnd) {
+          return new Date(periodEnd * 1e3).toISOString();
+        }
+        return null;
+      }
+      async listOpenStripeSubscriptions(customer) {
+        const stripe = getStripeClient();
+        const { data } = await stripe.subscriptions.list({
+          customer,
+          status: "all",
+          expand: ["data.latest_invoice"],
+          limit: 20
+        });
+        return data.filter(
+          (s) => s.status !== "canceled" && s.status !== "incomplete_expired"
+        );
+      }
+      isBillableStripeStatus(status) {
+        return status === "active" || status === "trialing" || status === "past_due";
+      }
+      pickSubscriptionScheduledToCancel(subs) {
+        return subs.find(
+          (s) => this.isBillableStripeStatus(s.status) && (s.cancel_at_period_end || s.cancel_at != null)
+        );
+      }
+      pickOpenBillableSubscription(subs) {
+        return subs.find((s) => this.isBillableStripeStatus(s.status));
+      }
+      pickOpenQuokSubscription(subs) {
+        return subs.find(
+          (s) => this.isBillableStripeStatus(s.status) && s.metadata?.service === STRIPE_SERVICE_METADATA && this.tierFromMetadata(s.metadata) != null
+        );
+      }
+      hasScheduledCancellationInDb(dbRow) {
+        return Boolean(dbRow?.cancel_at?.trim());
+      }
+      /** Matches billing UI: subscription may live on another workspace in the same account. */
+      async resolveBillingSubscription(organizationId, authUserId) {
+        const dbRow = await this.subscriptionService.getEffectiveSubscription(
+          organizationId,
+          authUserId
+        );
+        return {
+          billingOrgId: dbRow?.organization_id ?? organizationId,
+          dbRow
+        };
+      }
+      async clearSubscriptionCancelAtInDb(billingOrgId, dbRow) {
+        const tier = dbRow.subscription_tier;
+        if (!isPaidSubscriptionTier(tier)) return;
+        const org = await this.subscriptionRepository.getOrganizationBilling(billingOrgId);
+        await this.subscriptionService.createOrUpdateFromStripe({
+          organizationId: billingOrgId,
+          isTrialing: Boolean(org?.is_trialing),
+          identifier: dbRow.identifier?.trim() || dbRow.id,
+          subscriptionTier: tier,
+          period: dbRow.period,
+          channelsPerWorkspace: dbRow.channels_per_workspace ?? pricing[tier].channel_per_workspace,
+          cancelAt: null,
+          currentPeriodStart: dbRow.current_period_start ?? null,
+          currentPeriodEnd: dbRow.current_period_end ?? null
+        });
+      }
+      async reactivateSubscription(organizationId, authUserId) {
+        const { billingOrgId, dbRow } = await this.resolveBillingSubscription(
+          organizationId,
+          authUserId
+        );
+        const customer = await this.createOrGetCustomer(billingOrgId);
+        const uniqueId = makeId(10);
+        const stripe = getStripeClient();
+        const openSubs = await this.listOpenStripeSubscriptions(customer);
+        const dbScheduled = this.hasScheduledCancellationInDb(dbRow);
+        const sub = this.pickSubscriptionScheduledToCancel(openSubs) ?? (dbScheduled ? this.pickOpenBillableSubscription(openSubs) : void 0);
+        if (!sub) {
+          if (dbScheduled && dbRow) {
+            await this.clearSubscriptionCancelAtInDb(billingOrgId, dbRow);
+            return { id: uniqueId };
+          }
+          throw new UserValidationError(
+            "No subscription scheduled for cancellation was found. Refresh the page or contact support."
+          );
+        }
+        const updated = await stripe.subscriptions.update(sub.id, {
+          cancel_at_period_end: false,
+          metadata: { ...sub.metadata, service: STRIPE_SERVICE_METADATA, uniqueId }
+        });
+        await this.syncSubscriptionFromStripe(updated);
+        const cancelAtIso = this.resolveCancelAtFromStripe(updated);
+        return {
+          id: uniqueId,
+          cancelAt: cancelAtIso ? new Date(cancelAtIso) : void 0
+        };
+      }
+      async setSubscriptionCancelAtPeriodEnd(organizationId, authUserId) {
+        const { billingOrgId } = await this.resolveBillingSubscription(organizationId, authUserId);
+        const customer = await this.createOrGetCustomer(billingOrgId);
+        const stripe = getStripeClient();
+        const uniqueId = makeId(10);
+        const subs = await this.listOpenStripeSubscriptions(customer);
+        const sub = this.pickOpenBillableSubscription(subs);
+        if (!sub) {
+          throw new UserValidationError("No active subscription found");
+        }
+        const latestInvoice = sub.latest_invoice;
+        const hasFailedPayment = sub.status === "past_due" || latestInvoice?.status === "open" || latestInvoice?.status === "uncollectible";
+        if (hasFailedPayment) {
+          await stripe.subscriptions.cancel(sub.id);
+          await this.subscriptionService.deleteSubscriptionForCustomer(customer);
+          return { id: uniqueId, cancelAt: /* @__PURE__ */ new Date() };
+        }
+        const updated = await stripe.subscriptions.update(sub.id, {
+          cancel_at_period_end: true,
+          metadata: { service: STRIPE_SERVICE_METADATA, uniqueId }
+        });
+        await this.syncSubscriptionFromStripe(updated);
+        const cancelAtIso = this.resolveCancelAtFromStripe(updated);
+        return {
+          id: uniqueId,
+          cancelAt: cancelAtIso ? new Date(cancelAtIso) : void 0
+        };
+      }
+      async createEmbeddedCheckout(params) {
+        const customer = await this.createOrGetCustomer(params.organizationId);
+        const uniqueId = makeId(12);
+        const priceId = await this.resolvePriceId(
+          params.body.billing,
+          params.body.period,
+          params.body.stripePriceId
+        );
+        const frontend = this.frontendUrl();
+        if (!frontend) {
+          throw new UserValidationError(
+            "FRONTEND_DOMAIN_URL is not configured. Set it in the backend env for checkout redirect URLs."
+          );
+        }
+        try {
+          const stripe = getStripeClient();
+          const session = await stripe.checkout.sessions.create({
+            // Custom Payment Element checkout (initCheckoutElementsSdk on the web app).
+            ui_mode: "elements",
+            mode: "subscription",
+            customer,
+            line_items: [{ price: priceId, quantity: 1 }],
+            return_url: `${frontend}/account/billing?checkout=${uniqueId}`,
+            subscription_data: {
+              ...params.allowTrial ? { trial_period_days: 7 } : {},
+              metadata: {
+                service: STRIPE_SERVICE_METADATA,
+                billing: params.body.billing,
+                period: params.body.period,
+                uniqueId,
+                userId: params.userId,
+                organizationId: params.organizationId
+              }
+            },
+            metadata: {
+              service: STRIPE_SERVICE_METADATA,
+              uniqueId,
+              organizationId: params.organizationId
+            }
+          });
+          const clientSecret = session.client_secret?.trim();
+          if (!clientSecret) {
+            throw new UserValidationError(
+              "Stripe did not return a checkout client secret. Confirm your Stripe API version supports ui_mode elements."
+            );
+          }
+          return { clientSecret };
+        } catch (error) {
+          if (error instanceof UserValidationError) {
+            throw error;
+          }
+          this.rethrowStripeAsValidation(error);
+        }
+      }
+      async listCharges(organizationId) {
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org?.stripe_customer_id) return [];
+        const stripe = getStripeClient();
+        const charges = await stripe.charges.list({ customer: org.stripe_customer_id, limit: 100 });
+        const chargeList = charges.data.filter((c) => c.status === "succeeded").map((charge) => {
+          const invoiceRef = charge.invoice;
+          return {
+            id: charge.id,
+            amount: charge.amount,
+            currency: charge.currency,
+            created: charge.created,
+            status: charge.status,
+            refunded: charge.refunded,
+            amount_refunded: charge.amount_refunded,
+            description: charge.description,
+            receipt_url: charge.receipt_url ?? null,
+            invoice: typeof invoiceRef === "string" ? invoiceRef : invoiceRef?.id ?? null
+          };
+        });
+        const invoiceIds = chargeList.map((c) => c.invoice).filter((id) => Boolean(id));
+        const invoicePdfMap = {};
+        for (const invoiceId of invoiceIds) {
+          try {
+            const inv = await stripe.invoices.retrieve(invoiceId);
+            if (inv.invoice_pdf) invoicePdfMap[invoiceId] = inv.invoice_pdf;
+          } catch {
+          }
+        }
+        return chargeList.map((charge) => ({
+          ...charge,
+          invoice_pdf: charge.invoice && invoicePdfMap[charge.invoice] ? invoicePdfMap[charge.invoice] : null
+        }));
+      }
+      async refundCharges(organizationId, chargeIds) {
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org?.stripe_customer_id) {
+          throw new UserValidationError("No payment customer found for this organization");
+        }
+        const stripe = getStripeClient();
+        const refunded = [];
+        const failed = [];
+        for (const chargeId of chargeIds) {
+          try {
+            await stripe.refunds.create({ charge: chargeId });
+            refunded.push(chargeId);
+          } catch {
+            failed.push(chargeId);
+          }
+        }
+        return { refunded, failed };
+      }
+      async cancelSubscriptionImmediately(organizationId) {
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org?.stripe_customer_id) {
+          throw new UserValidationError("No payment customer found for this organization");
+        }
+        const stripe = getStripeClient();
+        const subs = (await stripe.subscriptions.list({ customer: org.stripe_customer_id, status: "all", limit: 20 })).data.filter((s) => s.status !== "canceled");
+        if (!subs.length) {
+          throw new UserValidationError("No active subscription found");
+        }
+        await stripe.subscriptions.cancel(subs[0].id);
+        await this.subscriptionService.deleteSubscriptionForCustomer(org.stripe_customer_id);
+        return { cancelled: true };
       }
       tierFromMetadata(metadata) {
         const billing = metadata?.billing;
@@ -16030,30 +17930,85 @@ var init_StripeService = __esm({
       periodFromMetadata(metadata) {
         return metadata?.period === "YEARLY" ? "YEARLY" : "MONTHLY";
       }
-      async syncSubscriptionFromStripe(subscription) {
-        const metadata = subscription.metadata;
+      /**
+       * Aligns the local subscription row with Stripe (e.g. after Dashboard cancel or missed webhooks).
+       * Soft-deletes the DB row when the customer has no open billable openquok subscription.
+       */
+      async reconcileSubscriptionWithStripe(organizationId, authUserId) {
+        const { billingOrgId, dbRow } = await this.resolveBillingSubscription(
+          organizationId,
+          authUserId
+        );
+        const org = await this.subscriptionRepository.getOrganizationBilling(billingOrgId);
+        const customerId = org?.stripe_customer_id?.trim();
+        if (!customerId || dbRow?.is_lifetime) return;
+        try {
+          const openSubs = await this.listOpenStripeSubscriptions(customerId);
+          const quokSub = this.pickOpenQuokSubscription(openSubs);
+          if (quokSub) {
+            await this.syncSubscriptionFromStripe(quokSub);
+            return;
+          }
+          if (dbRow) {
+            await this.subscriptionService.deleteSubscriptionForCustomer(customerId);
+          }
+        } catch (error) {
+          logger.warn({
+            msg: "reconcileSubscriptionWithStripe failed",
+            organizationId: billingOrgId,
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+      async syncSubscriptionFromStripe(subscription, metadataOverrides) {
+        const metadata = { ...subscription.metadata, ...metadataOverrides };
         if (metadata?.service !== STRIPE_SERVICE_METADATA) return;
         const tier = this.tierFromMetadata(metadata);
         if (!tier) return;
-        const organizationId = typeof metadata.organizationId === "string" ? metadata.organizationId : (await this.subscriptionRepository.getOrganizationByStripeCustomerId(
+        const organizationIdRaw = typeof metadata.organizationId === "string" ? metadata.organizationId : (await this.subscriptionRepository.getOrganizationByStripeCustomerId(
           String(subscription.customer)
         ))?.id;
+        const organizationId = organizationIdRaw?.trim();
         if (!organizationId) return;
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org) {
+          logger.warn({
+            msg: "syncSubscriptionFromStripe: organization not found",
+            organizationId,
+            stripeSubscriptionId: subscription.id,
+            stripeCustomerId: String(subscription.customer)
+          });
+          return;
+        }
         const uniqueId = typeof metadata.uniqueId === "string" ? metadata.uniqueId : subscription.id;
         const period = this.periodFromMetadata(metadata);
         const isTrialing = subscription.status === "trialing";
-        const cancelAt = subscription.cancel_at ? new Date(subscription.cancel_at * 1e3).toISOString() : null;
+        const cancelAt = this.resolveCancelAtFromStripe(subscription);
+        const cps = typeof subscription?.current_period_start === "number" ? new Date(subscription.current_period_start * 1e3).toISOString() : null;
+        const cpe = typeof subscription?.current_period_end === "number" ? new Date(subscription.current_period_end * 1e3).toISOString() : null;
         await this.subscriptionService.createOrUpdateFromStripe({
           organizationId,
           isTrialing,
           identifier: uniqueId,
           subscriptionTier: tier,
           period,
-          totalChannels: pricing[tier].channel_per_workspace,
-          cancelAt
+          channelsPerWorkspace: pricing[tier].channel_per_workspace,
+          cancelAt,
+          currentPeriodStart: cps,
+          currentPeriodEnd: cpe
         });
       }
       async handleWebhookEvent(event) {
+        if (event.type === "customer.subscription.deleted") {
+          const sub = event.data.object;
+          const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer?.id;
+          if (!customerId) return;
+          const org = await this.subscriptionRepository.getOrganizationByStripeCustomerId(customerId);
+          if (org) {
+            await this.subscriptionService.deleteSubscriptionForCustomer(customerId);
+          }
+          return;
+        }
         const objectMeta = event.data.object && typeof event.data.object === "object" ? event.data.object.metadata : void 0;
         if (objectMeta?.service !== STRIPE_SERVICE_METADATA && event.type !== "invoice.payment_succeeded") {
           return;
@@ -16065,22 +18020,87 @@ var init_StripeService = __esm({
             await this.syncSubscriptionFromStripe(sub);
             break;
           }
-          case "customer.subscription.deleted": {
-            const sub = event.data.object;
-            const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer?.id;
-            if (customerId) {
-              await this.subscriptionService.deleteSubscriptionForCustomer(customerId);
-            }
-            break;
-          }
         }
       }
     };
   }
 });
 
+// data/types/conversionTrackEvent.ts
+function conversionTrackEventName(tt) {
+  return ConversionTrackEvent[tt] ?? "ViewContent";
+}
+var ConversionTrackEvent;
+var init_conversionTrackEvent = __esm({
+  "data/types/conversionTrackEvent.ts"() {
+    ConversionTrackEvent = /* @__PURE__ */ ((ConversionTrackEvent3) => {
+      ConversionTrackEvent3[ConversionTrackEvent3["ViewContent"] = 0] = "ViewContent";
+      ConversionTrackEvent3[ConversionTrackEvent3["CompleteRegistration"] = 1] = "CompleteRegistration";
+      ConversionTrackEvent3[ConversionTrackEvent3["InitiateCheckout"] = 2] = "InitiateCheckout";
+      ConversionTrackEvent3[ConversionTrackEvent3["StartTrial"] = 3] = "StartTrial";
+      ConversionTrackEvent3[ConversionTrackEvent3["Purchase"] = 4] = "Purchase";
+      return ConversionTrackEvent3;
+    })(ConversionTrackEvent || {});
+  }
+});
+var marketingConfig, pixelId, accessToken, TrackService;
+var init_TrackService = __esm({
+  "services/TrackService.ts"() {
+    init_GlobalConfig();
+    init_conversionTrackEvent();
+    marketingConfig = config.marketing;
+    pixelId = marketingConfig.facebookPixelId?.trim() ?? "";
+    accessToken = marketingConfig.facebookPixelAccessToken?.trim() ?? "";
+    if (accessToken && pixelId) {
+      facebookNodejsBusinessSdk.FacebookAdsApi.init(accessToken);
+    }
+    TrackService = class {
+      hashValue(value) {
+        return crypto.createHash("sha256").update(value).digest("hex");
+      }
+      track(uniqueId, ip, userAgent, tt, additional = {}, fbclid, user) {
+        if (!accessToken || !pixelId) {
+          return void 0;
+        }
+        const currentTimestamp = Math.floor(Date.now() / 1e3);
+        const userData = new facebookNodejsBusinessSdk.UserData();
+        const clientIp = ip || user?.ip || "";
+        if (clientIp) {
+          userData.setClientIpAddress(clientIp);
+        }
+        const agent = userAgent || user?.userAgent || "";
+        if (agent) {
+          userData.setClientUserAgent(agent);
+        }
+        if (fbclid) {
+          userData.setFbc(fbclid);
+        }
+        if (user?.email) {
+          userData.setEmail(this.hashValue(user.email));
+        }
+        let customData = null;
+        const value = additional?.value;
+        if (typeof value === "number" && Number.isFinite(value)) {
+          customData = new facebookNodejsBusinessSdk.CustomData();
+          customData.setValue(value).setCurrency("USD");
+        }
+        const serverEvent = new facebookNodejsBusinessSdk.ServerEvent().setEventName(conversionTrackEventName(tt)).setEventTime(currentTimestamp).setActionSource("website");
+        if (user?.id) {
+          serverEvent.setEventId(uniqueId || user.id);
+        }
+        serverEvent.setUserData(userData);
+        if (customData) {
+          serverEvent.setCustomData(customData);
+        }
+        const eventRequest = new facebookNodejsBusinessSdk.EventRequest(accessToken, pixelId).setEvents([serverEvent]);
+        return eventRequest.execute();
+      }
+    };
+  }
+});
+
 // services/index.ts
-var integrationManager, userService, emailService, transactionalNotificationEmailService, notificationService, refreshIntegrationService, authenticationService, organizationService, companyService, marketingService, rbacService, feedbackService, blogService, configService, integrationService, plugService, integrationConnectionService, oauthAppService, oauthService, postsService, subscriptionService, stripeService, mediaService, signatureService, setsService, analyticsService;
+var integrationManager, userService, emailService, transactionalNotificationEmailService, notificationService, refreshIntegrationService, authenticationService, companyService, marketingService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, userSessionService, integrationConnectionService, oauthAppService, organizationService, oauthService, postsService, stripeService, trackService, mediaService, signatureService, setsService, analyticsService;
 var init_services = __esm({
   "services/index.ts"() {
     init_connections();
@@ -16110,8 +18130,10 @@ var init_services = __esm({
     init_OauthAppService();
     init_OauthService();
     init_SubscriptionService();
-    init_PermissionsService();
+    init_UserSessionService();
+    init_SubscriptionGuardService();
     init_StripeService();
+    init_TrackService();
     init_GlobalConfig();
     init_AuthenticationService();
     init_UserService();
@@ -16135,8 +18157,9 @@ var init_services = __esm({
     init_SetsService();
     init_AnalyticsService();
     init_SubscriptionService();
-    init_PermissionsService();
+    init_SubscriptionGuardService();
     init_StripeService();
+    init_TrackService();
     integrationManager = new IntegrationManager();
     userService = new UserService(
       userRepository,
@@ -16169,13 +18192,6 @@ var init_services = __esm({
       userRepository,
       userService
     );
-    organizationService = new OrganizationService(
-      organizationRepository,
-      userRepository,
-      emailService,
-      cacheServiceConnection,
-      cacheInvalidationServiceConnection
-    );
     companyService = new CompanyService(configRepository, cacheServiceConnection);
     marketingService = new MarketingService(configRepository, cacheServiceConnection);
     rbacService = new RbacService(
@@ -16187,12 +18203,6 @@ var init_services = __esm({
       feedbackRepository,
       cacheServiceConnection,
       cacheInvalidationServiceConnection
-    );
-    blogService = new BlogService(
-      blogRepository,
-      cacheServiceConnection,
-      cacheInvalidationServiceConnection,
-      configRepository
     );
     configService = new ConfigService(
       configRepository,
@@ -16210,6 +18220,31 @@ var init_services = __esm({
       cacheServiceConnection,
       cacheInvalidationServiceConnection
     );
+    subscriptionService = new SubscriptionService(
+      subscriptionRepository,
+      mediaRepository,
+      organizationRepository
+    );
+    subscriptionGuard = new SubscriptionGuardService(
+      subscriptionService,
+      integrationService,
+      organizationRepository,
+      postsRepository
+    );
+    subscriptionService.setSubscriptionGuard(subscriptionGuard);
+    blogService = new BlogService(
+      blogRepository,
+      cacheServiceConnection,
+      cacheInvalidationServiceConnection,
+      configRepository,
+      subscriptionGuard
+    );
+    userSessionService = new UserSessionService(
+      organizationRepository,
+      subscriptionGuard,
+      subscriptionService,
+      subscriptionRepository
+    );
     integrationConnectionService = new IntegrationConnectionService(
       integrationService,
       plugService,
@@ -16218,9 +18253,24 @@ var init_services = __esm({
       refreshIntegrationService,
       storageSupabaseRepository,
       cacheServiceConnection,
-      cacheInvalidationServiceConnection
+      cacheInvalidationServiceConnection,
+      subscriptionGuard
     );
-    oauthAppService = new OauthAppService(oauthAppRepository, organizationRepository, mediaRepository);
+    oauthAppService = new OauthAppService(
+      oauthAppRepository,
+      organizationRepository,
+      mediaRepository,
+      subscriptionGuard
+    );
+    organizationService = new OrganizationService(
+      organizationRepository,
+      userRepository,
+      emailService,
+      cacheServiceConnection,
+      cacheInvalidationServiceConnection,
+      subscriptionGuard,
+      oauthAppService
+    );
     oauthService = new OauthService(oauthAppRepository, organizationRepository, mediaRepository);
     postsService = new PostsService(
       postsRepository,
@@ -16230,15 +18280,16 @@ var init_services = __esm({
       integrationManager,
       refreshIntegrationService,
       cacheServiceConnection,
-      cacheInvalidationServiceConnection
+      cacheInvalidationServiceConnection,
+      subscriptionGuard
     );
-    subscriptionService = new SubscriptionService(subscriptionRepository, mediaRepository);
-    new PermissionsService(subscriptionService);
     stripeService = new StripeService(
       subscriptionRepository,
       subscriptionService,
-      organizationRepository
+      organizationRepository,
+      userRepository
     );
+    trackService = new TrackService();
     mediaService = new MediaService(mediaRepository);
     signatureService = new SignatureService(
       signatureRepository,
@@ -16260,7 +18311,7 @@ var init_services = __esm({
   }
 });
 
-// utils/generateBlogRSSFeed.ts
+// utils/blog/generateBlogRSSFeed.ts
 async function generateBlogRSSFeed(posts) {
   const { Feed } = await import('feed');
   const companyInfo = await companyService.getCompanyInformationByProperties(["URL", "NAME"]);
@@ -16313,7 +18364,7 @@ async function generateBlogRSSFeed(posts) {
   };
 }
 var init_generateBlogRSSFeed = __esm({
-  "utils/generateBlogRSSFeed.ts"() {
+  "utils/blog/generateBlogRSSFeed.ts"() {
     init_services();
   }
 });
@@ -16337,11 +18388,11 @@ var init_BlogController = __esm({
             res.status(401).json({ error: "Authentication required" });
             return;
           }
-          const isSuperAdmin = authReq.user?.isSuperAdmin === true;
+          const isPlatformAdmin = authReq.user?.isPlatformAdmin === true;
           const result = await this.blogService.createBlogPost(
             req.body,
             userId,
-            isSuperAdmin
+            isPlatformAdmin
           );
           res.status(201).json({
             success: true,
@@ -16359,10 +18410,10 @@ var init_BlogController = __esm({
             res.status(401).json({ error: "Authentication required" });
             return;
           }
-          const isSuperAdmin = authReq.user?.isSuperAdmin === true;
+          const isPlatformAdmin = authReq.user?.isPlatformAdmin === true;
           const id = req.params.id;
           const post = { ...req.body, id };
-          const result = await this.blogService.updateBlogPost(post, isSuperAdmin);
+          const result = await this.blogService.updateBlogPost(post, isPlatformAdmin);
           res.status(200).json({
             success: true,
             data: { id: result.id },
@@ -16444,9 +18495,11 @@ var init_BlogController = __esm({
             res.status(401).json({ error: "Authentication required" });
             return;
           }
+          const authUserId = authReq.user?.id;
           const result = await this.blogService.createBlogComment(
             req.body,
-            userId
+            userId,
+            authUserId
           );
           res.status(201).json({
             success: true,
@@ -16978,7 +19031,7 @@ var init_ImageController = __esm({
   }
 });
 
-// utils/mediaTreeBuilder.ts
+// utils/media/mediaTreeBuilder.ts
 function folderEntity(id, lazy = false) {
   const slash = id.lastIndexOf("/");
   const name = slash >= 0 ? id.slice(slash + 1) : id;
@@ -17033,7 +19086,7 @@ function buildMediaTreeEntities(items, extraFolderPaths = []) {
 }
 var DEFAULT_FOLDERS;
 var init_mediaTreeBuilder = __esm({
-  "utils/mediaTreeBuilder.ts"() {
+  "utils/media/mediaTreeBuilder.ts"() {
     init_dist();
     DEFAULT_FOLDERS = [
       MEDIA_VIRTUAL_GENERAL,
@@ -17056,7 +19109,7 @@ var MediaController;
 var init_MediaController = __esm({
   "controllers/MediaController.ts"() {
     init_MediaRepository();
-    init_make_is();
+    init_makeId();
     init_mediaTreeBuilder();
     init_AuthError();
     init_UserError();
@@ -17069,7 +19122,7 @@ var init_MediaController = __esm({
         this.uploadProvider = uploadProvider;
       }
       async uploadToStorage(params) {
-        const { organizationId, file } = params;
+        const { organizationId, authUserId, file } = params;
         if (!isAllowedMediaMime(file.mimetype || "")) {
           throw new UserValidationError("Unsupported media type");
         }
@@ -17078,7 +19131,7 @@ var init_MediaController = __esm({
         if (uploadSizeError) {
           throw new UserValidationError(uploadSizeError);
         }
-        await this.subscriptionService.assertMediaStorageAvailable(organizationId, size);
+        await this.subscriptionService.assertMediaStorageAvailable(organizationId, size, authUserId);
         const out = await this.uploadProvider.uploadFile({
           organizationId,
           buffer: file.buffer,
@@ -17086,6 +19139,9 @@ var init_MediaController = __esm({
           contentType: file.mimetype || "application/octet-stream"
         });
         return { filePath: out.path, publicUrl: out.publicUrl ?? publicUrlForObjectKey(out.path) };
+      }
+      authUserIdFromRequest(req) {
+        return req.user?.id;
       }
       list = async (req, res, next) => {
         try {
@@ -17304,7 +19360,11 @@ var init_MediaController = __esm({
             throw new UserValidationError("organizationId is required");
           }
           const file = req.file;
-          const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+          const { filePath, publicUrl } = await this.uploadToStorage({
+            organizationId,
+            authUserId: this.authUserIdFromRequest(req),
+            file
+          });
           const saved = await this.mediaService.saveFile({
             organizationId,
             name: filePath.split("/").pop() ?? filePath,
@@ -17397,7 +19457,11 @@ var init_MediaController = __esm({
             if (uploadSizeError) {
               throw new UserValidationError(uploadSizeError);
             }
-            await this.subscriptionService.assertMediaStorageAvailable(organizationId, fileSize);
+            await this.subscriptionService.assertMediaStorageAvailable(
+              organizationId,
+              fileSize,
+              this.authUserIdFromRequest(req)
+            );
             const parts = Array.isArray(req.body?.parts) ? req.body.parts : [];
             const completed = await this.storageR2Repository.completeMultipartUpload({
               key,
@@ -17444,7 +19508,11 @@ var init_MediaController = __esm({
           if (!organizationId.trim()) {
             throw new UserValidationError("organizationId is required");
           }
-          const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+          const { filePath, publicUrl } = await this.uploadToStorage({
+            organizationId,
+            authUserId: this.authUserIdFromRequest(req),
+            file
+          });
           const saved = await this.mediaService.saveFile({
             organizationId,
             name: filePath.split("/").pop() ?? filePath,
@@ -17515,7 +19583,11 @@ var init_MediaController = __esm({
           const finalExt = ext || (mimetype === "image/jpeg" ? "jpg" : mimetype.startsWith("image/") || mimetype.startsWith("video/") ? mimetype.split("/")[1] : "bin");
           const file = { buffer, originalname: `upload.${finalExt}`, mimetype };
           const organizationId = organization.id;
-          const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+          const { filePath, publicUrl } = await this.uploadToStorage({
+            organizationId,
+            authUserId: this.authUserIdFromRequest(req),
+            file
+          });
           const saved = await this.mediaService.saveFile({
             organizationId,
             name: filePath.split("/").pop() ?? filePath,
@@ -17567,7 +19639,11 @@ var init_MediaController = __esm({
           }
           const file = { ...raw, mimetype };
           const organizationId = organization.id;
-          const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+          const { filePath, publicUrl } = await this.uploadToStorage({
+            organizationId,
+            authUserId: this.authUserIdFromRequest(req),
+            file
+          });
           const saved = await this.mediaService.saveFile({
             organizationId,
             name: filePath.split("/").pop() ?? filePath,
@@ -17610,7 +19686,11 @@ var init_MediaController = __esm({
           if (!organizationId.trim()) {
             throw new UserValidationError("organizationId is required");
           }
-          const { filePath, publicUrl } = await this.uploadToStorage({ organizationId, file });
+          const { filePath, publicUrl } = await this.uploadToStorage({
+            organizationId,
+            authUserId: this.authUserIdFromRequest(req),
+            file
+          });
           if (preventSave) {
             res.status(200).json({
               success: true,
@@ -17732,6 +19812,27 @@ var init_MediaController = __esm({
     };
   }
 });
+function mustGetSecret(secret) {
+  const trimmed = secret.trim();
+  if (!trimmed) {
+    throw new Error("Billing discount token secret is not configured (set SECURITY_SECRET)");
+  }
+  return trimmed;
+}
+function signBillingDiscountToken(secret) {
+  const key = mustGetSecret(secret);
+  const exp = Date.now() + TTL_MS;
+  const payload = Buffer.from(JSON.stringify({ discount: true, exp }), "utf8").toString("base64url");
+  const sig = crypto.createHmac("sha256", key).update(payload).digest("base64url");
+  return `${PREFIX}${payload}.${sig}`;
+}
+var PREFIX, TTL_MS;
+var init_billingDiscountToken = __esm({
+  "utils/auth/billingDiscountToken.ts"() {
+    PREFIX = "bd1.";
+    TTL_MS = 15 * 60 * 1e3;
+  }
+});
 
 // controllers/BillingController.ts
 var BillingController;
@@ -17739,11 +19840,17 @@ var init_BillingController = __esm({
   "controllers/BillingController.ts"() {
     init_dist();
     init_UserError();
+    init_resolveActiveOrganizationId();
+    init_GlobalConfig();
+    init_billingDiscountToken();
+    init_Logger();
     BillingController = class {
-      constructor(subscriptionService2, stripeService2, subscriptionRepository2) {
+      constructor(subscriptionService2, subscriptionGuard2, stripeService2, subscriptionRepository2, emailService2) {
         this.subscriptionService = subscriptionService2;
+        this.subscriptionGuard = subscriptionGuard2;
         this.stripeService = stripeService2;
         this.subscriptionRepository = subscriptionRepository2;
+        this.emailService = emailService2;
       }
       getPlans = async (_req, res, next) => {
         try {
@@ -17770,19 +19877,17 @@ var init_BillingController = __esm({
           next(error);
         }
       };
-      getCurrent = async (req, res, next) => {
+      /** GET /billing/account-owned — tier and limits for workspaces the user owns (not active workspace). */
+      getOwnedAccount = async (req, res, next) => {
         try {
-          const organizationId = String(req.query.organizationId ?? "");
-          if (!organizationId.trim()) {
-            throw new UserValidationError("organizationId query parameter is required");
+          const authUserId = req.user?.id;
+          if (!authUserId) {
+            throw new UserValidationError("Authentication required");
           }
-          const subscription = await this.subscriptionService.getSubscriptionByOrganizationId(
-            organizationId
-          );
+          const subscription = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
           const tier = this.subscriptionService.resolveTier(subscription);
           const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
-          const drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId);
-          const billing = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+          const ownedWorkspaceCap = this.subscriptionService.resolveOwnedWorkspaceCap(subscription);
           res.status(200).json({
             success: true,
             data: {
@@ -17793,20 +19898,25 @@ var init_BillingController = __esm({
                 mediaStorageBytesPerWorkspace: limits.media_storage_bytes_per_workspace,
                 channelPerWorkspace: limits.channel_per_workspace,
                 postsPerMonth: limits.posts_per_month,
-                workspaces: limits.workspaces,
+                workspaces: ownedWorkspaceCap,
                 teamMembersPerWorkspace: limits.team_members_per_workspace,
                 sharePostPreview: limits.share_post_preview,
                 communityFeatures: limits.community_features,
                 publicApi: limits.public_api
-              },
-              drive,
-              billing: billing ? {
-                allowTrial: billing.allow_trial,
-                isTrialing: billing.is_trialing,
-                hasStripeCustomer: Boolean(billing.stripe_customer_id)
-              } : null
+              }
             }
           });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /billing, /billing/current — full billing context for active workspace. */
+      getCurrent = async (req, res, next) => {
+        try {
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const authUserId = req.user?.id;
+          const data = await this.buildCurrentBillingData(organizationId, authUserId);
+          res.status(200).json({ success: true, data });
         } catch (error) {
           next(error);
         }
@@ -17818,12 +19928,46 @@ var init_BillingController = __esm({
             throw new UserValidationError("Authentication required");
           }
           const body = req.body;
-          const orgBilling = await this.subscriptionRepository.getOrganizationBilling(body.organizationId);
+          const organizationId = body.organizationId?.trim() || resolveActiveOrganizationId(req, { required: true });
+          if (!organizationId) {
+            throw new UserValidationError("organizationId is required");
+          }
+          const orgBilling = await this.subscriptionRepository.getOrganizationBilling(organizationId);
           if (!orgBilling) {
             throw new UserValidationError("Organization not found");
           }
           const result = await this.stripeService.subscribe({
-            organizationId: body.organizationId,
+            organizationId,
+            userId: authUser.publicId ?? authUser.id,
+            body: {
+              period: body.period,
+              billing: body.billing,
+              stripePriceId: body.stripePriceId
+            },
+            allowTrial: orgBilling.allow_trial
+          });
+          res.status(200).json({ success: true, data: result });
+        } catch (error) {
+          next(error);
+        }
+      };
+      embedded = async (req, res, next) => {
+        try {
+          const authUser = req.user;
+          if (!authUser?.id) {
+            throw new UserValidationError("Authentication required");
+          }
+          const body = req.body;
+          const organizationId = body.organizationId?.trim() || resolveActiveOrganizationId(req, { required: true });
+          if (!organizationId) {
+            throw new UserValidationError("organizationId is required");
+          }
+          const orgBilling = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+          if (!orgBilling) {
+            throw new UserValidationError("Organization not found");
+          }
+          const result = await this.stripeService.createEmbeddedCheckout({
+            organizationId,
             userId: authUser.publicId ?? authUser.id,
             body: {
               period: body.period,
@@ -17839,11 +19983,12 @@ var init_BillingController = __esm({
       };
       portal = async (req, res, next) => {
         try {
-          const organizationId = String(req.query.organizationId ?? "");
-          if (!organizationId.trim()) {
-            throw new UserValidationError("organizationId query parameter is required");
-          }
-          const url = await this.stripeService.createBillingPortalSession(organizationId);
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const authUserId = req.user?.id;
+          const url = await this.stripeService.createBillingPortalSession(
+            organizationId,
+            authUserId
+          );
           res.status(200).json({ success: true, data: { portal: url } });
         } catch (error) {
           next(error);
@@ -17851,17 +19996,284 @@ var init_BillingController = __esm({
       };
       checkCheckout = async (req, res, next) => {
         try {
-          const organizationId = String(req.query.organizationId ?? "");
+          const organizationId = resolveActiveOrganizationId(req) ?? "";
           const id = String(req.params.id ?? "");
-          if (!organizationId.trim() || !id.trim()) {
-            throw new UserValidationError("organizationId and checkout id are required");
+          if (!id.trim()) {
+            throw new UserValidationError("checkout id is required");
           }
-          const status = await this.subscriptionService.checkCheckoutStatus(organizationId, id);
-          res.status(200).json({ success: true, data: { status } });
+          const poll = await this.stripeService.checkCheckoutStatus(organizationId, id);
+          res.status(200).json({ success: true, data: poll });
         } catch (error) {
           next(error);
         }
       };
+      checkDiscount = async (req, res, next) => {
+        try {
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+          const eligible = await this.stripeService.checkDiscountEligible(org?.stripe_customer_id);
+          const secret = config.auth.securitySecret ?? "";
+          res.status(200).json({
+            success: true,
+            data: {
+              offerCoupon: eligible && secret.trim() ? signBillingDiscountToken(secret) : false
+            }
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      applyDiscount = async (req, res, next) => {
+        try {
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+          if (!org?.stripe_customer_id) {
+            throw new UserValidationError("No Stripe customer for this workspace");
+          }
+          await this.stripeService.applyRetentionDiscount(org.stripe_customer_id);
+          res.status(200).json({ success: true, data: { applied: true } });
+        } catch (error) {
+          next(error);
+        }
+      };
+      finishTrial = async (req, res, next) => {
+        try {
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+          try {
+            await this.stripeService.finishTrial(org?.stripe_customer_id);
+          } catch (err) {
+            logger.warn({
+              msg: "[Billing] finishTrial Stripe call failed",
+              organizationId,
+              error: err instanceof Error ? err.message : String(err)
+            });
+          }
+          res.status(200).json({ success: true, data: { finish: true } });
+        } catch (error) {
+          next(error);
+        }
+      };
+      isTrialFinished = async (req, res, next) => {
+        try {
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+          res.status(200).json({
+            success: true,
+            data: { finished: !org?.is_trialing }
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      prorate = async (req, res, next) => {
+        try {
+          const body = req.body;
+          const organizationId = body.organizationId?.trim() || resolveActiveOrganizationId(req, { required: true });
+          if (!organizationId) {
+            throw new UserValidationError("organizationId is required");
+          }
+          const price = await this.stripeService.previewProration(organizationId, {
+            billing: body.billing,
+            period: body.period
+          });
+          res.status(200).json({ success: true, data: price });
+        } catch (error) {
+          next(error);
+        }
+      };
+      cancel = async (req, res, next) => {
+        try {
+          const authUser = req.user;
+          const body = req.body;
+          const organizationId = body.organizationId?.trim() || resolveActiveOrganizationId(req, { required: true });
+          if (!organizationId) {
+            throw new UserValidationError("organizationId is required");
+          }
+          const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+          if (!org) {
+            throw new UserValidationError("Organization not found");
+          }
+          const feedback = body.feedback?.trim() ?? "";
+          if (feedback && this.emailService.isEnabled) {
+            const sender = config.basic.senderEmailAddress;
+            void this.emailService.sendPlain({
+              to: sender ?? "support@example.com",
+              subject: "Subscription cancelled",
+              text: `Workspace "${org.name}" (${organizationId}) cancelled their subscription.
+
+Feedback:
+${feedback}`,
+              replyTo: authUser?.email
+            }).catch((err) => {
+              logger.warn({
+                msg: "[Billing] cancellation notification email failed",
+                error: err instanceof Error ? err.message : String(err)
+              });
+            });
+          }
+          const result = feedback.length > 0 ? await this.stripeService.setSubscriptionCancelAtPeriodEnd(
+            organizationId,
+            authUser?.id
+          ) : await this.stripeService.reactivateSubscription(organizationId, authUser?.id);
+          res.status(200).json({ success: true, data: result });
+        } catch (error) {
+          next(error);
+        }
+      };
+      getCharges = async (req, res, next) => {
+        try {
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const charges = await this.stripeService.listCharges(organizationId);
+          res.status(200).json({ success: true, data: charges });
+        } catch (error) {
+          next(error);
+        }
+      };
+      refundCharges = async (req, res, next) => {
+        try {
+          const body = req.body;
+          const organizationId = body.organizationId?.trim() || resolveActiveOrganizationId(req, { required: true });
+          if (!organizationId) {
+            throw new UserValidationError("organizationId is required");
+          }
+          const result = await this.stripeService.refundCharges(organizationId, body.chargeIds);
+          res.status(200).json({ success: true, data: result });
+        } catch (error) {
+          next(error);
+        }
+      };
+      cancelSubscriptionAdmin = async (req, res, next) => {
+        try {
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const result = await this.stripeService.cancelSubscriptionImmediately(organizationId);
+          res.status(200).json({ success: true, data: result });
+        } catch (error) {
+          next(error);
+        }
+      };
+      addSubscriptionAdmin = async (req, res, next) => {
+        try {
+          const body = req.body;
+          const organizationId = body.organizationId?.trim() || resolveActiveOrganizationId(req, { required: true });
+          if (!organizationId) {
+            throw new UserValidationError("organizationId is required");
+          }
+          await this.subscriptionService.grantPaidSubscriptionForAdmin({
+            organizationId,
+            subscriptionTier: body.subscription
+          });
+          res.status(200).json({ success: true, data: { granted: true } });
+        } catch (error) {
+          next(error);
+        }
+      };
+      async buildCurrentBillingData(organizationId, authUserId) {
+        try {
+          await this.stripeService.reconcileSubscriptionWithStripe(organizationId, authUserId);
+        } catch (error) {
+          logger.warn({
+            msg: "buildCurrentBillingData: Stripe reconciliation failed",
+            organizationId,
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+        let subscription = null;
+        try {
+          subscription = await this.subscriptionService.getEffectiveSubscription(
+            organizationId,
+            authUserId
+          );
+        } catch (error) {
+          logger.error({
+            msg: "buildCurrentBillingData: subscription lookup failed",
+            organizationId,
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+        const tier = this.subscriptionService.resolveTier(subscription);
+        const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
+        const billingOrganizationId = subscription?.organization_id ?? organizationId;
+        let drive;
+        try {
+          drive = await this.subscriptionService.getWorkspaceDriveUsage(organizationId, authUserId);
+        } catch (error) {
+          logger.warn({
+            msg: "buildCurrentBillingData: drive usage unavailable",
+            organizationId,
+            error: error instanceof Error ? error.message : String(error)
+          });
+          const total = limits.media_storage_bytes_per_workspace || DEFAULT_MEDIA_STORAGE_QUOTA_BYTES;
+          drive = { used: 0, total, tier };
+        }
+        let billing = null;
+        try {
+          const orgBilling = await this.subscriptionRepository.getOrganizationBilling(billingOrganizationId);
+          billing = orgBilling ? {
+            allowTrial: orgBilling.allow_trial,
+            isTrialing: orgBilling.is_trialing,
+            hasStripeCustomer: Boolean(orgBilling.stripe_customer_id)
+          } : null;
+        } catch (error) {
+          logger.warn({
+            msg: "buildCurrentBillingData: organization billing lookup failed",
+            organizationId: billingOrganizationId,
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+        let posts;
+        try {
+          posts = await this.subscriptionGuard.getPostsPerMonthUsage(organizationId, authUserId);
+        } catch (error) {
+          logger.warn({
+            msg: "buildCurrentBillingData: posts usage unavailable",
+            organizationId,
+            error: error instanceof Error ? error.message : String(error)
+          });
+          const cap = limits.posts_per_month;
+          posts = {
+            used: 0,
+            limit: cap >= UNLIMITED_POSTS_PER_MONTH ? null : cap
+          };
+        }
+        let teamMembers;
+        try {
+          teamMembers = await this.subscriptionGuard.getTeamMembersPerWorkspaceUsage(
+            organizationId,
+            authUserId
+          );
+        } catch (error) {
+          logger.warn({
+            msg: "buildCurrentBillingData: team member usage unavailable",
+            organizationId,
+            error: error instanceof Error ? error.message : String(error)
+          });
+          const cap = limits.team_members_per_workspace;
+          teamMembers = {
+            used: 0,
+            limit: cap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE ? null : cap
+          };
+        }
+        return {
+          tier,
+          billingEnabled: this.subscriptionService.billingEnabled(),
+          subscription,
+          limits: {
+            mediaStorageBytesPerWorkspace: limits.media_storage_bytes_per_workspace,
+            channelPerWorkspace: limits.channel_per_workspace,
+            postsPerMonth: limits.posts_per_month,
+            workspaces: limits.workspaces,
+            teamMembersPerWorkspace: limits.team_members_per_workspace,
+            sharePostPreview: limits.share_post_preview,
+            communityFeatures: limits.community_features,
+            publicApi: limits.public_api
+          },
+          drive,
+          posts,
+          teamMembers,
+          billing
+        };
+      }
     };
   }
 });
@@ -18193,12 +20605,18 @@ var init_IntegrationController = __esm({
           next(error);
         }
       };
-      /** POST /integrations/social-connect/:integration (no-auth callback variant; organization resolved from OAuth state cache). */
+      /**
+       * POST /integrations/social-connect/:integration
+       * OAuth callback (JWT optional via {@link optionalAuthWithRoles}). When Bearer is present, subscription
+       * inheritance matches billing and channel-cap UI on secondary workspaces.
+       */
       connectSocialMediaNoAuth = async (req, res, next) => {
         try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
           const { integration } = req.params;
           const body = req.body;
-          const data = await this.integrationConnectionService.connectSocialMediaNoAuth(integration, body);
+          const data = authUserId ? await this.integrationConnectionService.connectSocialMedia(authUserId, integration, body) : await this.integrationConnectionService.connectSocialMediaNoAuth(integration, body);
           res.status(200).json({ success: true, data });
         } catch (error) {
           next(error);
@@ -18815,7 +21233,8 @@ var init_PostsController = __esm({
         try {
           const postId = req.params.postId;
           const share = typeof req.query.share === "string" ? req.query.share : null;
-          const d = await this.postsService.getPostPreview(postId, share);
+          const authUserId = req.user?.id;
+          const d = await this.postsService.getPostPreview(postId, share, authUserId);
           res.status(200).json({ success: true, data: d });
         } catch (error) {
           next(error);
@@ -19721,6 +22140,77 @@ var init_AnalyticsController = __esm({
     };
   }
 });
+
+// controllers/TrackController.ts
+function readClientIp(req) {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string" && forwarded.trim()) {
+    return forwarded.split(",")[0]?.trim() ?? "";
+  }
+  return req.socket.remoteAddress ?? "";
+}
+function readUserAgent(req) {
+  const raw = req.headers["user-agent"];
+  return typeof raw === "string" ? raw : "";
+}
+function ensureTrackCookies(req, res, uniqueId, fbclid) {
+  if (!req.cookies?.[TRACK_COOKIE]) {
+    res.cookie(TRACK_COOKIE, uniqueId, sessionCookieAttributes(ONE_YEAR_MS2));
+  }
+  if (fbclid && !req.cookies?.[FBCLID_COOKIE]) {
+    res.cookie(FBCLID_COOKIE, fbclid, sessionCookieAttributes(ONE_YEAR_MS2));
+  }
+}
+var TRACK_COOKIE, FBCLID_COOKIE, ONE_YEAR_MS2, TrackController;
+var init_TrackController = __esm({
+  "controllers/TrackController.ts"() {
+    init_makeId();
+    init_sessionCookies();
+    TRACK_COOKIE = "track";
+    FBCLID_COOKIE = "fbclid";
+    ONE_YEAR_MS2 = 1e3 * 60 * 60 * 24 * 365;
+    TrackController = class {
+      constructor(trackService2) {
+        this.trackService = trackService2;
+      }
+      trackPublic = async (req, res, _next) => {
+        const body = req.body;
+        const uniqueId = req.cookies?.[TRACK_COOKIE] || makeId(10);
+        const fbclid = req.cookies?.[FBCLID_COOKIE] || body.fbclid;
+        await this.trackService.track(
+          uniqueId,
+          readClientIp(req),
+          readUserAgent(req),
+          body.tt,
+          body.additional ?? {},
+          fbclid
+        );
+        ensureTrackCookies(req, res, uniqueId, body.fbclid);
+        res.status(200).json({ success: true, data: { track: uniqueId } });
+      };
+      trackAuthenticated = async (req, res, _next) => {
+        const body = req.body;
+        const uniqueId = req.cookies?.[TRACK_COOKIE] || makeId(10);
+        const fbclid = req.cookies?.[FBCLID_COOKIE] || body.fbclid;
+        const authUser = req.user;
+        await this.trackService.track(
+          uniqueId,
+          readClientIp(req),
+          readUserAgent(req),
+          body.tt,
+          body.additional ?? {},
+          fbclid,
+          authUser ? {
+            id: authUser.publicId ?? authUser.id,
+            email: authUser.email
+          } : void 0
+        );
+        ensureTrackCookies(req, res, uniqueId, body.fbclid);
+        res.status(200).json({ success: true, data: { track: uniqueId } });
+      };
+    };
+  }
+});
 function safeJoin(base, p) {
   const out = path__default.default.join(base, p);
   const rel = path__default.default.relative(base, out);
@@ -19739,7 +22229,7 @@ var LocalStorage;
 var init_local_storage = __esm({
   "connections/upload/local.storage.ts"() {
     init_GlobalConfig();
-    init_make_is();
+    init_makeId();
     init_InfraError();
     LocalStorage = class {
       constructor(uploadDirectory) {
@@ -19783,7 +22273,7 @@ var R2Storage;
 var init_r2_storage = __esm({
   "connections/upload/r2.storage.ts"() {
     init_MediaRepository();
-    init_make_is();
+    init_makeId();
     R2Storage = class {
       constructor(storageR2Repository2) {
         this.storageR2Repository = storageR2Repository2;
@@ -19859,9 +22349,10 @@ __export(controllers_exports, {
   signatureController: () => signatureController,
   stripeWebhookController: () => stripeWebhookController,
   thirdPartyController: () => thirdPartyController,
+  trackController: () => trackController,
   userController: () => userController
 });
-var authController, userController, companyController, settingsController, rbacController, feedbackController, blogController, imageController, mediaController, billingController, stripeWebhookController, configController, emailController, integrationController, publicIntegrationController, notificationController, publicNotificationController, postsController, publicPostsController, publicAnalyticsController, oauthAppController, oauthController, approvedAppsController, thirdPartyController, signatureController, setsController, analyticsController;
+var authController, userController, companyController, trackController, settingsController, rbacController, feedbackController, blogController, imageController, mediaController, billingController, stripeWebhookController, configController, emailController, integrationController, publicIntegrationController, notificationController, publicNotificationController, postsController, publicPostsController, publicAnalyticsController, oauthAppController, oauthController, approvedAppsController, thirdPartyController, signatureController, setsController, analyticsController;
 var init_controllers = __esm({
   "controllers/index.ts"() {
     init_AuthController();
@@ -19892,6 +22383,7 @@ var init_controllers = __esm({
     init_SetsController();
     init_AnalyticsController();
     init_services();
+    init_TrackController();
     init_repositories();
     init_repositories();
     init_upload_factory();
@@ -19903,8 +22395,17 @@ var init_controllers = __esm({
       organizationService,
       rbacService
     );
-    userController = new UserController(userService, authenticationService, emailService);
+    userController = new UserController(
+      userService,
+      authenticationService,
+      emailService,
+      userSessionService,
+      organizationService,
+      subscriptionService,
+      stripeService
+    );
     companyController = new CompanyController(companyService, marketingService);
+    trackController = new TrackController(trackService);
     settingsController = new SettingsController(organizationService);
     rbacController = new RbacController(rbacService, userRepository);
     feedbackController = new FeedbackController(feedbackService);
@@ -19918,8 +22419,10 @@ var init_controllers = __esm({
     );
     billingController = new BillingController(
       subscriptionService,
+      subscriptionGuard,
       stripeService,
-      subscriptionRepository
+      subscriptionRepository,
+      emailService
     );
     stripeWebhookController = new StripeWebhookController(stripeService);
     configController = new ConfigController(configService);
@@ -20082,6 +22585,15 @@ authRouter.get("/status", authController.status);
 
 // routes/UserRoute.ts
 init_controllers();
+init_conversionTrackEvent();
+var trackEventBodySchema = zod.z.object({
+  tt: zod.z.nativeEnum(ConversionTrackEvent),
+  fbclid: zod.z.string().optional(),
+  additional: zod.z.record(zod.z.unknown()).optional().default({})
+});
+var validateTrackEventRequest = validateRequest({
+  body: trackEventBodySchema
+});
 var passwordRequirements2 = zod.z.string().min(8, { message: "Password must be at least 8 characters long." }).max(72, { message: "Password must be at most 72 characters long." }).trim();
 var updatePasswordBodySchema = zod.z.object({
   password: passwordRequirements2
@@ -20098,11 +22610,30 @@ var updateProfileBodySchema = zod.z.object({
   (data) => data.fullName !== void 0 || data.avatarUrl !== void 0 || data.websiteUrl !== void 0,
   { message: "At least one of fullName, avatarUrl, or websiteUrl is required." }
 );
+var getMeQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("organizationId must be a valid UUID").optional()
+});
+var validateGetMeRequest = validateRequest({
+  query: getMeQuerySchema
+});
 var validateUpdateProfileRequest = validateRequest({
   body: updateProfileBodySchema
 });
 var validateUpdatePasswordMeRequest = validateRequest({
   body: updatePasswordBodySchema
+});
+var changeOrganizationBodySchema = zod.z.object({
+  id: zod.z.string().uuid("id must be a valid organization UUID")
+});
+var joinOrganizationBodySchema = zod.z.object({
+  /** Signed invite token; optional when `joinOrg` cookie is set. */
+  org: zod.z.string().min(1).optional()
+});
+var validateChangeOrganizationRequest = validateRequest({
+  body: changeOrganizationBodySchema
+});
+var validateJoinOrganizationRequest = validateRequest({
+  body: joinOrganizationBodySchema
 });
 var approvedAppAuthorizationIdParamSchema = zod.z.object({
   id: zod.z.string().uuid("Invalid authorization id")
@@ -20111,9 +22642,213 @@ var validateApprovedAppAuthorizationIdParam = validateRequest({
   params: approvedAppAuthorizationIdParamSchema
 });
 
-// middlewares/authenticateUser.ts
+// guards/index.ts
+init_services();
+
+// guards/subscription/middleware.ts
+init_AuthError();
+init_services();
+init_resolveActiveOrganizationId();
+function requirePlanCapabilityForOrganization(section, options2) {
+  return async (req, _res, next) => {
+    try {
+      if (!req.user?.id) {
+        next(new TokenError("Authentication required"));
+        return;
+      }
+      const organizationId = options2.resolveOrganizationId(req);
+      if (!organizationId?.trim()) {
+        next(new TokenError("Workspace context required"));
+        return;
+      }
+      const ctx = {
+        scope: "workspace",
+        organizationId,
+        authUserId: req.user.id,
+        workspaceRole: options2.resolveWorkspaceRole?.(req)
+      };
+      await subscriptionGuard.assert(section, ctx);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+function requireAccountPlanCapability(section) {
+  return async (req, _res, next) => {
+    try {
+      if (!req.user?.id) {
+        next(new TokenError("Authentication required"));
+        return;
+      }
+      const ctx = {
+        scope: "account",
+        authUserId: req.user.id
+      };
+      await subscriptionGuard.assert(section, ctx);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+function requireProgrammaticPlanCapability(section) {
+  return async (req, _res, next) => {
+    try {
+      const organizationId = req.organization?.id;
+      if (!organizationId) {
+        next(new TokenError("Authentication required"));
+        return;
+      }
+      const ctx = {
+        scope: "workspace",
+        organizationId,
+        authUserId: void 0
+      };
+      await subscriptionGuard.assert(section, ctx);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+function requireTeamInviteCapacity() {
+  return async (req, _res, next) => {
+    try {
+      if (!req.user?.id) {
+        next(new TokenError("Authentication required"));
+        return;
+      }
+      const organizationId = resolveActiveOrganizationId(req, { required: true });
+      await subscriptionGuard.assertTeamInviteCapacity(organizationId, req.user.id);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+function requireTeamInviteCapacityForOrganization(options2) {
+  return async (req, _res, next) => {
+    try {
+      if (!req.user?.id) {
+        next(new TokenError("Authentication required"));
+        return;
+      }
+      const organizationId = options2.resolveOrganizationId(req);
+      if (!organizationId?.trim()) {
+        next(new TokenError("Workspace context required"));
+        return;
+      }
+      await subscriptionGuard.assertTeamInviteCapacity(organizationId, req.user.id);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+function requireTeamSeatForOrganization(options2) {
+  return async (req, _res, next) => {
+    try {
+      if (!req.user?.id) {
+        next(new TokenError("Authentication required"));
+        return;
+      }
+      const organizationId = options2.resolveOrganizationId(req);
+      if (!organizationId?.trim()) {
+        next(new TokenError("Workspace context required"));
+        return;
+      }
+      await subscriptionGuard.assertWorkspaceHasSeatForNewMember(organizationId, req.user.id);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+
+// guards/index.ts
+init_postsBilling();
+init_guardRegistry();
+init_RbacService();
+
+// guards/rbac/middleware.ts
 init_AuthError();
 init_Logger();
+function requireEditor(req, _res, next) {
+  if (!req.user?.id) {
+    next(new TokenError("Authentication required"));
+    return;
+  }
+  const hasEditor = req.user.roles?.includes("editor");
+  const hasAdmin = req.user.roles?.includes("admin");
+  if (!req.user.isPlatformAdmin && !hasAdmin && !hasEditor) {
+    next(new PermissionError("editor"));
+    return;
+  }
+  next();
+}
+function requireSupport(req, _res, next) {
+  if (!req.user?.id) {
+    next(new TokenError("Authentication required"));
+    return;
+  }
+  const hasSupport = req.user.roles?.includes("support");
+  const hasAdmin = req.user.roles?.includes("admin");
+  if (!req.user.isPlatformAdmin && !hasAdmin && !hasSupport) {
+    next(new PermissionError("support"));
+    return;
+  }
+  next();
+}
+function requireAdmin(req, _res, next) {
+  if (!req.user?.id) {
+    next(new TokenError("Authentication required"));
+    return;
+  }
+  const hasAdmin = req.user.roles?.includes("admin");
+  if (!req.user.isPlatformAdmin && !hasAdmin) {
+    next(new PermissionError("admin"));
+    return;
+  }
+  next();
+}
+function requirePlatformAdmin(req, _res, next) {
+  if (!req.user?.id) {
+    next(new TokenError("Authentication required"));
+    return;
+  }
+  if (!req.user.isPlatformAdmin) {
+    next(new PermissionError("super_admin"));
+    return;
+  }
+  next();
+}
+function requirePermission(permission) {
+  return (req, _res, next) => {
+    if (!req.user?.id) {
+      next(new TokenError("Authentication required"));
+      return;
+    }
+    if (req.user.isPlatformAdmin) {
+      next();
+      return;
+    }
+    const hasPermission = req.user.permissions?.includes(permission);
+    if (!hasPermission) {
+      logger.debug({
+        msg: "Permission denied",
+        userId: req.user.publicId ?? req.user.id,
+        permission
+      });
+      next(new PermissionError(permission));
+      return;
+    }
+    next();
+  };
+}
+
+// guards/auth/types.ts
+init_AuthError();
 var BULL_BOARD_ACCESS_COOKIE_NAME = "openquok_bullboard_jwt";
 function normalizeAccessTokenString(raw) {
   if (raw.startsWith("{")) {
@@ -20144,15 +22879,19 @@ function parseBearerToken(req) {
   }
   throw new TokenError("No token provided or invalid format");
 }
+
+// guards/auth/jwtMiddleware.ts
+init_AuthError();
+init_Logger();
 function requireFullAuth(supabase2) {
   return async (req, _res, next) => {
     try {
-      const accessToken = parseBearerToken(req);
+      const accessToken2 = parseBearerToken(req);
       if (!supabase2) {
         logger.error({ msg: "Supabase client was not provided to requireFullAuth" });
         throw new AuthError("Authentication configuration error", 500);
       }
-      const { data, error } = await supabase2.auth.getUser(accessToken);
+      const { data, error } = await supabase2.auth.getUser(accessToken2);
       if (error) {
         logger.debug({ msg: "Token verification failed", error: error.message });
         if (error.message?.includes("expired") || error.code === "PGRST301") {
@@ -20176,12 +22915,12 @@ function requireFullAuth(supabase2) {
 function requireFullAuthWithRoles(supabase2, userRepository2, rbacRepository2) {
   return async (req, _res, next) => {
     try {
-      const accessToken = parseBearerToken(req);
+      const accessToken2 = parseBearerToken(req);
       if (!supabase2) {
         logger.error({ msg: "Supabase client was not provided to requireFullAuthWithRoles" });
         throw new AuthError("Authentication configuration error", 500);
       }
-      const { data, error } = await supabase2.auth.getUser(accessToken);
+      const { data, error } = await supabase2.auth.getUser(accessToken2);
       if (error) {
         logger.debug({ msg: "Token verification failed", error: error.message });
         if (error.message?.includes("expired") || error.code === "PGRST301") {
@@ -20201,14 +22940,14 @@ function requireFullAuthWithRoles(supabase2, userRepository2, rbacRepository2) {
         rbacRepository2.getUserRoles(publicId),
         rbacRepository2.getUserPermissions(publicId)
       ]);
-      const isSuperAdmin = await rbacRepository2.isSuperAdmin(publicId);
+      const isPlatformAdmin = await rbacRepository2.isPlatformAdmin(publicId);
       req.user = {
         id: authId,
         publicId,
         email: data.user.email ?? void 0,
         roles: rolesResult.roles,
         permissions: permissionsResult.permissions,
-        isSuperAdmin
+        isPlatformAdmin
       };
       next();
     } catch (err) {
@@ -20249,14 +22988,14 @@ function optionalAuthWithRoles(supabase2, userRepository2, rbacRepository2) {
         rbacRepository2.getUserRoles(publicId),
         rbacRepository2.getUserPermissions(publicId)
       ]);
-      const isSuperAdmin = await rbacRepository2.isSuperAdmin(publicId);
+      const isPlatformAdmin = await rbacRepository2.isPlatformAdmin(publicId);
       req.user = {
         id: authId,
         publicId,
         email: data.user.email ?? void 0,
         roles: rolesResult.roles,
         permissions: permissionsResult.permissions,
-        isSuperAdmin
+        isPlatformAdmin
       };
       next();
     } catch {
@@ -20264,76 +23003,117 @@ function optionalAuthWithRoles(supabase2, userRepository2, rbacRepository2) {
     }
   };
 }
-function requireEditor(req, _res, next) {
-  if (!req.user?.id) {
-    next(new TokenError("Authentication required"));
-    return;
-  }
-  const hasEditor = req.user.roles?.includes("editor");
-  const hasAdmin = req.user.roles?.includes("admin");
-  if (!req.user.isSuperAdmin && !hasAdmin && !hasEditor) {
-    next(new PermissionError("editor"));
-    return;
-  }
-  next();
+
+// guards/resource/authorizeResource.ts
+init_UserError();
+init_Logger();
+function authorizeResource(options2) {
+  const {
+    resourceType,
+    paramName = "id",
+    action = "read",
+    getResourceOwner
+  } = options2;
+  return async (req, _res, next) => {
+    try {
+      if (!req.user?.publicId) {
+        next(new UserAuthorizationError("Authentication required"));
+        return;
+      }
+      const userId = req.user.publicId;
+      const resourceIdRaw = req.params[paramName];
+      const resourceId = typeof resourceIdRaw === "string" ? resourceIdRaw : Array.isArray(resourceIdRaw) ? resourceIdRaw[0] : void 0;
+      if (!resourceId) {
+        next(
+          new UserAuthorizationError(
+            `Resource ID not provided in parameter: ${paramName}`
+          )
+        );
+        return;
+      }
+      let resourceOwnerId;
+      if (typeof getResourceOwner === "function") {
+        try {
+          resourceOwnerId = await getResourceOwner(resourceId);
+        } catch (error) {
+          logger.error({
+            msg: "Error retrieving resource owner",
+            error: error.message,
+            resourceType,
+            resourceId
+          });
+          next(error);
+          return;
+        }
+      } else {
+        resourceOwnerId = resourceId;
+      }
+      const isOwner = userId === resourceOwnerId;
+      const isPlatformAdmin = req.user.isPlatformAdmin === true;
+      const hasEditor = req.user.roles?.includes("editor") === true;
+      const hasAdmin = req.user.roles?.includes("admin") === true;
+      const canAccessAsRole = isPlatformAdmin || hasAdmin || hasEditor;
+      if (isOwner) {
+        next();
+        return;
+      }
+      if (action === "read" && canAccessAsRole) {
+        next();
+        return;
+      }
+      if (action !== "read" && isPlatformAdmin) {
+        next();
+        return;
+      }
+      next(
+        new UserAuthorizationError(
+          "You don't have permission to access this resource"
+        )
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
 }
-function requireSupport(req, _res, next) {
-  if (!req.user?.id) {
-    next(new TokenError("Authentication required"));
-    return;
-  }
-  const hasSupport = req.user.roles?.includes("support");
-  const hasAdmin = req.user.roles?.includes("admin");
-  if (!req.user.isSuperAdmin && !hasAdmin && !hasSupport) {
-    next(new PermissionError("support"));
-    return;
-  }
-  next();
+
+// guards/programmatic/programmaticAuth.ts
+init_dist();
+function parseRawToken(req) {
+  const raw = req.headers.authorization ?? req.headers.Authorization;
+  if (!raw?.trim()) return null;
+  const key = raw.startsWith("Bearer ") ? raw.slice(7).trim() : raw.trim();
+  return key || null;
 }
-function requireAdmin(req, _res, next) {
-  if (!req.user?.id) {
-    next(new TokenError("Authentication required"));
-    return;
-  }
-  const hasAdmin = req.user.roles?.includes("admin");
-  if (!req.user.isSuperAdmin && !hasAdmin) {
-    next(new PermissionError("admin"));
-    return;
-  }
-  next();
-}
-function requireSuperAdmin(req, _res, next) {
-  if (!req.user?.id) {
-    next(new TokenError("Authentication required"));
-    return;
-  }
-  if (!req.user.isSuperAdmin) {
-    next(new PermissionError("super_admin"));
-    return;
-  }
-  next();
-}
-function requirePermission(permission) {
-  return (req, _res, next) => {
-    if (!req.user?.id) {
-      next(new TokenError("Authentication required"));
+function requireProgrammaticAuth(params) {
+  return async (req, res, next) => {
+    const token = parseRawToken(req);
+    if (!token) {
+      res.status(401).json({ msg: "No API key provided" });
       return;
     }
-    if (req.user.isSuperAdmin) {
-      next();
-      return;
-    }
-    const hasPermission = req.user.permissions?.includes(permission);
-    if (!hasPermission) {
-      logger.debug({
-        msg: "Permission denied",
-        userId: req.user.publicId ?? req.user.id,
-        permission
+    try {
+      const verified = await params.oauthAppService.verifyProgrammaticToken(token);
+      if (!verified) {
+        res.status(401).json({ msg: "Invalid API key" });
+        return;
+      }
+      const { organization } = await params.organizationRepository.findOrganizationById(
+        verified.organizationId
+      );
+      if (!organization) {
+        res.status(401).json({ msg: "Invalid API key" });
+        return;
+      }
+      await params.subscriptionGuard.assert(SubscriptionSection.PUBLIC_API, {
+        scope: "workspace",
+        organizationId: organization.id
       });
-      next(new PermissionError(permission));
-      return;
+      req.organization = organization;
+      req.oauthApp = { id: verified.oauthAppId, tokenId: verified.tokenId };
+      next();
+    } catch (err) {
+      next(err);
     }
-    next();
   };
 }
 
@@ -20347,10 +23127,16 @@ var authWithRoles = requireFullAuthWithRoles(
   rbacRepository
 );
 var requireManageRoles = requirePermission("users.manage_roles");
-userRouter.get("/me", authWithRoles, userController.getProfile);
+userRouter.get("/me", authWithRoles, validateGetMeRequest, userController.getProfile);
 userRouter.patch("/me", authWithRoles, validateUpdateProfileRequest, userController.updateProfile);
 userRouter.put("/me/password", authWithRoles, validateUpdatePasswordMeRequest, userController.updatePasswordMe);
 userRouter.post("/me/request-change-password", authWithRoles, userController.requestChangePasswordEmail);
+userRouter.get("/organizations", authWithRoles, userController.listOrganizations);
+userRouter.get("/subscription/tiers", authWithRoles, userController.getSubscriptionTiers);
+userRouter.get("/subscription", authWithRoles, userController.getSubscription);
+userRouter.post("/change-org", authWithRoles, validateChangeOrganizationRequest, userController.changeOrganization);
+userRouter.post("/join-org", authWithRoles, validateJoinOrganizationRequest, userController.joinOrganization);
+userRouter.post("/t", authWithRoles, validateTrackEventRequest, trackController.trackAuthenticated);
 userRouter.get("/me/approved-apps", authWithRoles, approvedAppsController.list);
 userRouter.delete(
   "/me/approved-apps/:id",
@@ -20602,32 +23388,32 @@ var authWithRoles2 = requireFullAuthWithRoles(
   userRepository,
   rbacRepository
 );
-adminRouter.get("/users", authWithRoles2, requireSuperAdmin, userController.getFullUsersWithRoles);
+adminRouter.get("/users", authWithRoles2, requirePlatformAdmin, userController.getFullUsersWithRoles);
 adminRouter.get(
   "/config",
   authWithRoles2,
-  requireSuperAdmin,
+  requirePlatformAdmin,
   configSchemas_default.validateGetModuleConfigQuery,
   configController.getModuleConfig
 );
 adminRouter.put(
   "/config",
   authWithRoles2,
-  requireSuperAdmin,
+  requirePlatformAdmin,
   configSchemas_default.validateUpdateModuleConfigRequest,
   configController.updateModuleConfig
 );
 adminRouter.post(
   "/emails/send",
   authWithRoles2,
-  requireSuperAdmin,
+  requirePlatformAdmin,
   emailSchemas_default.validateSendEmailBody,
   emailController.sendEmail
 );
 adminRouter.get(
   "/emails/receiving",
   authWithRoles2,
-  requireSuperAdmin,
+  requirePlatformAdmin,
   emailSchemas_default.validateListReceivedEmailsQuery,
   parseListReceivedEmailsQuery,
   emailController.listReceivedEmails
@@ -20635,7 +23421,7 @@ adminRouter.get(
 adminRouter.get(
   "/emails/receiving/:id",
   authWithRoles2,
-  requireSuperAdmin,
+  requirePlatformAdmin,
   emailSchemas_default.validateGetReceivedEmailParams,
   emailController.getReceivedEmail
 );
@@ -20903,10 +23689,11 @@ companyRouter.get(
   companyController.getInformationByPropertiesCombined
 );
 companyRouter.get("/config", configSchemas_default.validateGetModuleConfigQuery, configController.getPublicModuleConfig);
+companyRouter.post("/t", validateTrackEventRequest, trackController.trackPublic);
 
 // routes/SettingsRoute.ts
 init_controllers();
-var workspaceMembershipRoleSchema = zod.z.enum(["user", "admin", "superadmin"]);
+var workspaceMembershipRoleSchema = zod.z.enum(["user", "admin", "owner"]);
 var createOrganizationBodySchema = zod.z.object({
   name: zod.z.string().min(1, "Name is required").max(256).trim(),
   description: zod.z.string().max(2e3).trim().nullish()
@@ -20925,16 +23712,20 @@ var inviteTeamMemberBodySchema = zod.z.object({
   workspaceRole: inviteRoleSchema.default("user"),
   sendEmail: zod.z.boolean().default(true)
 });
-var joinOrganizationBodySchema = zod.z.object({
+var joinOrganizationBodySchema2 = zod.z.object({
   token: zod.z.string().min(1, "Invite token is required")
 });
 var organizationIdParamSchema = zod.z.object({ id: zod.z.string().uuid("Invalid organization id") });
+var inviteIdParamSchema = zod.z.object({ id: zod.z.string().uuid("Invalid invite id") });
 var teamUserIdParamSchema = zod.z.object({ userId: zod.z.string().uuid("Invalid user id") });
 var validateOrganizationIdParam = validateRequest({
   params: organizationIdParamSchema
 });
 var validateOrganizationIdAndUserIdParam = validateRequest({
   params: organizationIdParamSchema.merge(teamUserIdParamSchema)
+});
+var validateInviteIdParam = validateRequest({
+  params: inviteIdParamSchema
 });
 var validateCreateOrganizationRequest = validateRequest({
   body: createOrganizationBodySchema
@@ -20948,21 +23739,43 @@ var validateAddTeamMemberRequest = validateRequest({
 var validateInviteTeamMemberRequest = validateRequest({
   body: inviteTeamMemberBodySchema
 });
-var validateJoinOrganizationRequest = validateRequest({
-  body: joinOrganizationBodySchema
+var validateJoinOrganizationRequest2 = validateRequest({
+  body: joinOrganizationBodySchema2
 });
 
 // routes/SettingsRoute.ts
 init_connections();
+init_dist();
 var settingsRouter = express.Router();
 var auth = requireFullAuth(supabase);
 settingsRouter.get("/", auth, settingsController.listMine);
 settingsRouter.get("/invite/validate", settingsController.validateInviteToken);
-settingsRouter.post("/join", auth, validateJoinOrganizationRequest, settingsController.joinByToken);
+settingsRouter.post("/join", auth, validateJoinOrganizationRequest2, settingsController.joinByToken);
 settingsRouter.get("/invites/pending", auth, settingsController.listPendingInvites);
+settingsRouter.get("/invites/sent", auth, settingsController.listSentInvitesForActiveWorkspace);
+settingsRouter.delete(
+  "/invites/:id",
+  auth,
+  validateInviteIdParam,
+  settingsController.cancelSentInviteForActiveWorkspace
+);
 settingsRouter.post("/invites/:id/accept", auth, settingsController.acceptPendingInvite);
+settingsRouter.get("/team", auth, settingsController.getTeamForActiveWorkspace);
+settingsRouter.post(
+  "/team",
+  auth,
+  requireTeamInviteCapacity(),
+  validateInviteTeamMemberRequest,
+  settingsController.inviteTeamMemberForActiveWorkspace
+);
 settingsRouter.get("/:id", auth, validateOrganizationIdParam, settingsController.getById);
-settingsRouter.post("/", auth, validateCreateOrganizationRequest, settingsController.create);
+settingsRouter.post(
+  "/",
+  auth,
+  requireAccountPlanCapability(SubscriptionSection.WORKSPACES),
+  validateCreateOrganizationRequest,
+  settingsController.create
+);
 settingsRouter.patch(
   "/:id",
   auth,
@@ -20980,6 +23793,9 @@ settingsRouter.post(
   "/:id/invite",
   auth,
   validateOrganizationIdParam,
+  requireTeamInviteCapacityForOrganization({
+    resolveOrganizationId: (req) => req.params?.id
+  }),
   validateInviteTeamMemberRequest,
   settingsController.inviteTeamMember
 );
@@ -20993,6 +23809,9 @@ settingsRouter.post(
   "/:id/team",
   auth,
   validateOrganizationIdParam,
+  requireTeamSeatForOrganization({
+    resolveOrganizationId: (req) => req.params?.id
+  }),
   validateAddTeamMemberRequest,
   settingsController.addTeamMember
 );
@@ -21002,10 +23821,22 @@ settingsRouter.delete(
   validateOrganizationIdAndUserIdParam,
   settingsController.removeTeamMember
 );
+settingsRouter.get(
+  "/:id/programmatic-token",
+  auth,
+  validateOrganizationIdParam,
+  requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
+    resolveOrganizationId: (req) => req.params?.id
+  }),
+  settingsController.getProgrammaticTokenStatus
+);
 settingsRouter.post(
   "/:id/rotate-api-key",
   auth,
   validateOrganizationIdParam,
+  requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
+    resolveOrganizationId: (req) => req.params?.id
+  }),
   settingsController.rotateApiKey
 );
 
@@ -21072,80 +23903,6 @@ feedbackRouter.patch("/:feedbackId", authWithRoles4, requireSupport, feedbackCon
 
 // routes/BlogRoute.ts
 init_controllers();
-
-// middlewares/resourceAuth.ts
-init_UserError();
-init_Logger();
-function authorizeResource(options2) {
-  const {
-    resourceType,
-    paramName = "id",
-    action = "read",
-    getResourceOwner
-  } = options2;
-  return async (req, _res, next) => {
-    try {
-      if (!req.user?.publicId) {
-        next(new UserAuthorizationError("Authentication required"));
-        return;
-      }
-      const userId = req.user.publicId;
-      const resourceIdRaw = req.params[paramName];
-      const resourceId = typeof resourceIdRaw === "string" ? resourceIdRaw : Array.isArray(resourceIdRaw) ? resourceIdRaw[0] : void 0;
-      if (!resourceId) {
-        next(
-          new UserAuthorizationError(
-            `Resource ID not provided in parameter: ${paramName}`
-          )
-        );
-        return;
-      }
-      let resourceOwnerId;
-      if (typeof getResourceOwner === "function") {
-        try {
-          resourceOwnerId = await getResourceOwner(resourceId);
-        } catch (error) {
-          logger.error({
-            msg: "Error retrieving resource owner",
-            error: error.message,
-            resourceType,
-            resourceId
-          });
-          next(error);
-          return;
-        }
-      } else {
-        resourceOwnerId = resourceId;
-      }
-      const isOwner = userId === resourceOwnerId;
-      const isSuperAdmin = req.user.isSuperAdmin === true;
-      const hasEditor = req.user.roles?.includes("editor") === true;
-      const hasAdmin = req.user.roles?.includes("admin") === true;
-      const canAccessAsRole = isSuperAdmin || hasAdmin || hasEditor;
-      if (isOwner) {
-        next();
-        return;
-      }
-      if (action === "read" && canAccessAsRole) {
-        next();
-        return;
-      }
-      if (action !== "read" && isSuperAdmin) {
-        next();
-        return;
-      }
-      next(
-        new UserAuthorizationError(
-          "You don't have permission to access this resource"
-        )
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
-}
-
-// routes/BlogRoute.ts
 init_connections();
 init_repositories();
 var blogPostFields = {
@@ -21208,7 +23965,7 @@ var blogTrackActivitySchema = zod.z.object({
 });
 
 // routes/BlogRoute.ts
-init_helper();
+init_uuid();
 var blogRouter = express.Router();
 var authWithRoles5 = requireFullAuthWithRoles(
   supabase,
@@ -21495,6 +24252,8 @@ mediaRouter.post("/:endpoint", authWithRoles7, validateMultipartEndpoint, mediaC
 
 // routes/integrationApi/NoAuthRoutes.ts
 init_controllers();
+init_connections();
+init_repositories();
 var integrationOrganizationQuerySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id")
 });
@@ -21563,9 +24322,11 @@ var validateIntegrationGroup = validateRequest({
 
 // routes/integrationApi/NoAuthRoutes.ts
 var integrationNoAuthRouter = express.Router();
+var optionalAuth3 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
 integrationNoAuthRouter.get("/", integrationController.getAllIntegrations);
 integrationNoAuthRouter.post(
   "/social-connect/:integration",
+  optionalAuth3,
   validateSocialConnectBody,
   integrationController.connectSocialMediaNoAuth
 );
@@ -21634,6 +24395,7 @@ var validateIntegrationTimeRequest = validateRequest({
 });
 
 // routes/integrationApi/SessionRoutes.ts
+init_dist();
 var integrationSessionRouter = express.Router();
 var auth2 = requireFullAuth(supabase);
 integrationSessionRouter.use(auth2);
@@ -21692,11 +24454,17 @@ integrationSessionRouter.post(
 integrationSessionRouter.get(
   "/social/:integration",
   validateIntegrationOrganizationQuery,
+  requirePlanCapabilityForOrganization(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
+    resolveOrganizationId: (req) => req.query?.organizationId
+  }),
   integrationController.getIntegrationUrl
 );
 integrationSessionRouter.post(
   "/social-connect/:integration",
   validateSocialConnectBody,
+  requirePlanCapabilityForOrganization(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
+    resolveOrganizationId: (req) => req.body?.organizationId
+  }),
   integrationController.connectSocialMedia
 );
 integrationSessionRouter.post("/disable", validateIntegrationOrgAndIdBody, integrationController.disable);
@@ -21711,50 +24479,6 @@ integrationsRouter.use("/", integrationSessionRouter);
 // routes/publicApi/AnalyticsRoutes.ts
 init_controllers();
 init_repositories();
-
-// middlewares/programmaticAuth.ts
-function parseRawToken(req) {
-  const raw = req.headers.authorization ?? req.headers.Authorization;
-  if (!raw?.trim()) return null;
-  const key = raw.startsWith("Bearer ") ? raw.slice(7).trim() : raw.trim();
-  return key || null;
-}
-function requireProgrammaticAuth(params) {
-  return async (req, res, next) => {
-    const token = parseRawToken(req);
-    if (!token) {
-      res.status(401).json({ msg: "No API key provided" });
-      return;
-    }
-    try {
-      const verified = await params.oauthAppService.verifyProgrammaticToken(token);
-      if (verified) {
-        const { organization } = await params.organizationRepository.findOrganizationById(
-          verified.organizationId
-        );
-        if (!organization) {
-          res.status(401).json({ msg: "Invalid API key" });
-          return;
-        }
-        req.organization = organization;
-        req.oauthApp = { id: verified.oauthAppId, tokenId: verified.tokenId };
-        next();
-        return;
-      }
-      const org = await params.organizationRepository.findOrganizationByApiKey(token);
-      if (!org) {
-        res.status(401).json({ msg: "Invalid API key" });
-        return;
-      }
-      req.organization = org;
-      next();
-    } catch (err) {
-      next(err);
-    }
-  };
-}
-
-// routes/publicApi/AnalyticsRoutes.ts
 init_services();
 var dateWindowSchema = zod.z.string().refine((v) => {
   const n = Number(v);
@@ -21783,7 +24507,7 @@ var validatePublicPostAnalyticsRequest = validateRequest({
 
 // routes/publicApi/AnalyticsRoutes.ts
 var publicAnalyticsRouter = express.Router();
-var apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+var apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 publicAnalyticsRouter.get(
   "/post/:postId",
   apiKeyAuth,
@@ -21800,6 +24524,7 @@ publicAnalyticsRouter.get(
 // routes/publicApi/IntegrationRoutes.ts
 init_controllers();
 init_repositories();
+init_dist();
 var publicSocialOAuthQuerySchema = zod.z.object({
   refresh: zod.z.string().uuid().optional()
 });
@@ -21824,13 +24549,14 @@ var validatePublicIntegrationTriggerRequest = validateRequest({
 // routes/publicApi/IntegrationRoutes.ts
 init_services();
 var publicIntegrationRouter = express.Router();
-var apiKeyAuth2 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+var apiKeyAuth2 = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 publicIntegrationRouter.get("/is-connected", apiKeyAuth2, publicIntegrationController.isConnected);
 publicIntegrationRouter.get("/workspace", apiKeyAuth2, publicIntegrationController.getWorkspace);
 publicIntegrationRouter.get("/integrations", apiKeyAuth2, publicIntegrationController.listIntegrations);
 publicIntegrationRouter.get(
   "/social/:integration",
   apiKeyAuth2,
+  requireProgrammaticPlanCapability(SubscriptionSection.CHANNEL_PER_WORKSPACE),
   validatePublicSocialOAuthQuery,
   publicIntegrationController.getIntegrationUrl
 );
@@ -21855,10 +24581,10 @@ init_services();
 init_dist();
 var upload3 = multer__default.default({
   storage: multer__default.default.memoryStorage(),
-  limits: { fileSize: MAX_MEDIA_UPLOAD_BYTES }
+  limits: { fileSize: MAX_MEDIA_VIDEO_UPLOAD_BYTES }
 });
 var publicMediaUploadRouter = express.Router();
-var apiKeyAuth3 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+var apiKeyAuth3 = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 publicMediaUploadRouter.post(
   "/upload",
   apiKeyAuth3,
@@ -21885,7 +24611,7 @@ var validatePublicListNotificationsQuery = validateRequest({
 
 // routes/publicApi/NotificationRoutes.ts
 var publicNotificationRouter = express.Router();
-var apiKeyAuth4 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+var apiKeyAuth4 = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 publicNotificationRouter.get(
   "/notifications",
   apiKeyAuth4,
@@ -22115,7 +24841,7 @@ var validatePublicUpdatePostReviewTodoRequest = validateRequest({
 // routes/publicApi/PostRoutes.ts
 init_services();
 var publicPostRouter = express.Router();
-var apiKeyAuth5 = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+var apiKeyAuth5 = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 publicPostRouter.get("/:postId/comments", validatePublicPostCommentsParams, postsController.getPublicComments);
 publicPostRouter.get("/list", apiKeyAuth5, validatePublicListPostsQuery, publicPostsController.listPosts);
 publicPostRouter.get("/find-slot", apiKeyAuth5, publicPostsController.findSlot);
@@ -22216,9 +24942,11 @@ notificationRouter.get(
 
 // routes/PostRoutes.ts
 init_connections();
+init_repositories();
 init_controllers();
 var postRouter = express.Router();
 var auth4 = requireFullAuth(supabase);
+var optionalAuth4 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
 postRouter.get("/find-slot", auth4, validatePostOrganizationQuery, postsController.findSlot);
 postRouter.get("/tags", auth4, validatePostOrganizationQuery, postsController.listTags);
 postRouter.post("/tags", auth4, validateCreatePostTagBody, postsController.createTag);
@@ -22226,7 +24954,12 @@ postRouter.delete("/tags/:tagId", auth4, validateDeletePostTag, postsController.
 postRouter.get("/list", auth4, validateListPostsQuery, postsController.listPosts);
 postRouter.post("/", auth4, validateCreatePostBody, postsController.createPost);
 postRouter.post("/:postId/comments", auth4, validateCreateComposerComment, postsController.createComposerComment);
-postRouter.get("/preview/:postId", validatePostPreviewParams, postsController.getPostPreview);
+postRouter.get(
+  "/preview/:postId",
+  optionalAuth4,
+  validatePostPreviewParams,
+  postsController.getPostPreview
+);
 postRouter.get(
   "/group/:postGroup/debug-export",
   auth4,
@@ -22362,14 +25095,39 @@ analyticsRouter.get("/:integrationId", validateIntegrationAnalyticsRequest, anal
 init_controllers();
 init_connections();
 init_repositories();
+
+// data/schemas/billingSchemas.ts
+init_dist();
+var optionalOrganizationId = zod.z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? void 0 : value,
+  zod.z.string().uuid("organizationId must be a valid UUID").optional()
+);
+var purchasableBillingTierSchema = zod.z.enum(PAID_SUBSCRIPTION_TIERS);
 var billingSubscribeBodySchema = zod.z.object({
-  organizationId: zod.z.string().uuid("organizationId must be a valid UUID"),
+  organizationId: optionalOrganizationId,
   period: zod.z.enum(["MONTHLY", "YEARLY"]),
-  billing: zod.z.enum(["SOLO", "CREATOR", "TEAM", "ULTIMATE"]),
+  billing: purchasableBillingTierSchema,
   stripePriceId: zod.z.string().trim().regex(/^price_/, "stripePriceId must be a Stripe Price id (price_\u2026)")
 });
 var billingOrganizationQuerySchema = zod.z.object({
-  organizationId: zod.z.string().uuid("organizationId must be a valid UUID")
+  organizationId: zod.z.string().uuid("organizationId must be a valid UUID").optional()
+});
+var billingPlanChangeBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("organizationId must be a valid UUID").optional(),
+  period: zod.z.enum(["MONTHLY", "YEARLY"]),
+  billing: purchasableBillingTierSchema
+});
+var billingCancelBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("organizationId must be a valid UUID").optional(),
+  feedback: zod.z.string().trim().max(5e3).optional()
+});
+var billingAdminAddSubscriptionBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("organizationId must be a valid UUID").optional(),
+  subscription: purchasableBillingTierSchema
+});
+var billingRefundChargesBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("organizationId must be a valid UUID").optional(),
+  chargeIds: zod.z.array(zod.z.string().trim().min(1)).min(1, "chargeIds must include at least one id")
 });
 function validateBillingSubscribeBody(req, res, next) {
   const parsed = billingSubscribeBodySchema.safeParse(req.body);
@@ -22392,9 +25150,24 @@ function validateBillingOrganizationQuery(req, res, next) {
     });
     return;
   }
-  req.query = parsed.data;
   next();
 }
+function validateBody(schema, req, res, next) {
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({
+      success: false,
+      message: parsed.error.issues.map((i) => i.message).join(" ")
+    });
+    return;
+  }
+  req.body = parsed.data;
+  next();
+}
+var validateBillingPlanChangeBody = (req, res, next) => validateBody(billingPlanChangeBodySchema, req, res, next);
+var validateBillingCancelBody = (req, res, next) => validateBody(billingCancelBodySchema, req, res, next);
+var validateBillingAdminAddSubscriptionBody = (req, res, next) => validateBody(billingAdminAddSubscriptionBodySchema, req, res, next);
+var validateBillingRefundChargesBody = (req, res, next) => validateBody(billingRefundChargesBodySchema, req, res, next);
 
 // routes/BillingRoute.ts
 var authWithRoles9 = requireFullAuthWithRoles(
@@ -22404,6 +25177,9 @@ var authWithRoles9 = requireFullAuthWithRoles(
 );
 var billingRouter = express.Router();
 billingRouter.get("/plans", billingController.getPlans);
+billingRouter.get("/account-owned", authWithRoles9, billingController.getOwnedAccount);
+billingRouter.get("/", authWithRoles9, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/subscription", authWithRoles9, validateBillingOrganizationQuery, billingController.getCurrent);
 billingRouter.get("/current", authWithRoles9, validateBillingOrganizationQuery, billingController.getCurrent);
 billingRouter.post(
   "/subscribe",
@@ -22411,12 +25187,82 @@ billingRouter.post(
   validateBillingSubscribeBody,
   billingController.subscribe
 );
+billingRouter.post(
+  "/embedded",
+  authWithRoles9,
+  validateBillingSubscribeBody,
+  billingController.embedded
+);
 billingRouter.get("/portal", authWithRoles9, validateBillingOrganizationQuery, billingController.portal);
 billingRouter.get(
   "/check/:id",
   authWithRoles9,
   validateBillingOrganizationQuery,
   billingController.checkCheckout
+);
+billingRouter.get(
+  "/check-discount",
+  authWithRoles9,
+  validateBillingOrganizationQuery,
+  billingController.checkDiscount
+);
+billingRouter.post(
+  "/apply-discount",
+  authWithRoles9,
+  validateBillingOrganizationQuery,
+  billingController.applyDiscount
+);
+billingRouter.post(
+  "/finish-trial",
+  authWithRoles9,
+  validateBillingOrganizationQuery,
+  billingController.finishTrial
+);
+billingRouter.get(
+  "/is-trial-finished",
+  authWithRoles9,
+  validateBillingOrganizationQuery,
+  billingController.isTrialFinished
+);
+billingRouter.post(
+  "/prorate",
+  authWithRoles9,
+  validateBillingPlanChangeBody,
+  billingController.prorate
+);
+billingRouter.post(
+  "/cancel",
+  authWithRoles9,
+  validateBillingCancelBody,
+  billingController.cancel
+);
+billingRouter.get(
+  "/charges",
+  authWithRoles9,
+  requirePlatformAdmin,
+  validateBillingOrganizationQuery,
+  billingController.getCharges
+);
+billingRouter.post(
+  "/refund-charges",
+  authWithRoles9,
+  requirePlatformAdmin,
+  validateBillingRefundChargesBody,
+  billingController.refundCharges
+);
+billingRouter.post(
+  "/cancel-subscription",
+  authWithRoles9,
+  requirePlatformAdmin,
+  validateBillingOrganizationQuery,
+  billingController.cancelSubscriptionAdmin
+);
+billingRouter.post(
+  "/add-subscription",
+  authWithRoles9,
+  requirePlatformAdmin,
+  validateBillingAdminAddSubscriptionBody,
+  billingController.addSubscriptionAdmin
 );
 var stripeWebhookRouter = express.Router();
 stripeWebhookRouter.post("/stripe", stripeWebhookController.handle);
@@ -22468,14 +25314,47 @@ var validateRotateOauthSecret = validateRequest({
 });
 
 // routes/OauthAppRoute.ts
+init_dist();
 var oauthAppRouter = express.Router();
 var auth8 = requireFullAuth(supabase);
 oauthAppRouter.get("/", auth8, validateOauthAppOrganizationQuery, oauthAppController.listApps);
 oauthAppRouter.get("/app", auth8, validateOauthAppOrganizationQuery, oauthAppController.getApp);
-oauthAppRouter.post("/", auth8, validateCreateOauthApp, oauthAppController.createApp);
-oauthAppRouter.put("/", auth8, validateUpdateOauthApp, oauthAppController.updateApp);
-oauthAppRouter.delete("/:oauthAppId", auth8, validateDeleteOauthApp, oauthAppController.deleteApp);
-oauthAppRouter.post("/rotate-secret", auth8, validateRotateOauthSecret, oauthAppController.rotateSecret);
+oauthAppRouter.post(
+  "/",
+  auth8,
+  validateCreateOauthApp,
+  requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
+    resolveOrganizationId: (req) => req.body?.organizationId
+  }),
+  oauthAppController.createApp
+);
+oauthAppRouter.put(
+  "/",
+  auth8,
+  validateUpdateOauthApp,
+  requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
+    resolveOrganizationId: (req) => req.body?.organizationId
+  }),
+  oauthAppController.updateApp
+);
+oauthAppRouter.delete(
+  "/:oauthAppId",
+  auth8,
+  validateDeleteOauthApp,
+  requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
+    resolveOrganizationId: (req) => req.query?.organizationId
+  }),
+  oauthAppController.deleteApp
+);
+oauthAppRouter.post(
+  "/rotate-secret",
+  auth8,
+  validateRotateOauthSecret,
+  requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
+    resolveOrganizationId: (req) => req.body?.organizationId
+  }),
+  oauthAppController.rotateSecret
+);
 
 // routes/OauthRoute.ts
 init_connections();
@@ -22622,8 +25501,8 @@ function registerBullBoardSessionRoutes(apiRouter, config2) {
     res.status(200).json({ ok: true });
   };
   const session = express__default.default.Router();
-  session.post("/", authWithRoles10, requireSuperAdmin, setSession);
-  session.post("/clear", authWithRoles10, requireSuperAdmin, clearSession);
+  session.post("/", authWithRoles10, requirePlatformAdmin, setSession);
+  session.post("/clear", authWithRoles10, requirePlatformAdmin, clearSession);
   apiRouter.use("/admin/bull-board/session", session);
   logger.info({ msg: "[BullBoard] Session cookie routes mounted", cookiePath, sessionBase: "/admin/bull-board/session" });
 }
@@ -22669,7 +25548,7 @@ async function registerBullBoardRoutes(apiRouter, config2) {
     });
     const boardRouter = express__default.default.Router();
     const authWithRoles10 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
-    boardRouter.use(authWithRoles10, requireSuperAdmin, serverAdapter.getRouter());
+    boardRouter.use(authWithRoles10, requirePlatformAdmin, serverAdapter.getRouter());
     apiRouter.use(mountPath, boardRouter);
     logger.info({
       msg: "[BullBoard] Mounted (super admin only)",
@@ -23063,7 +25942,7 @@ var applyRateLimiting = (app2) => {
   }
   const apiPrefix = config.api?.prefix ?? "/api/v1";
   const globalConfig = config.rateLimit.global;
-  const authConfig = config.rateLimit.auth;
+  const authConfig2 = config.rateLimit.auth;
   app2.use(apiPrefix, globalLimiter);
   logger.info({
     msg: "Applied global rate limiting to all API routes",
@@ -23080,8 +25959,8 @@ var applyRateLimiting = (app2) => {
   app2.use(`${apiPrefix}/auth`, authLimiter);
   logger.info({
     msg: "Applied authentication rate limiting",
-    windowMs: authConfig?.windowMs,
-    max: authConfig?.max
+    windowMs: authConfig2?.windowMs,
+    max: authConfig2?.max
   });
 };
 
@@ -23162,7 +26041,9 @@ function configureCoreMiddleware(app2, config2, supabase2) {
       "/blog-system/authors",
       "/blog-system/topics",
       "/blog-system/topics/active",
-      "/openapi.json"
+      "/openapi.json",
+      /** Join-org page: invitees validate the link before sign-in. */
+      "/settings/invite/validate"
     ];
     const bypassPaths = ["/health", "/sitemap.xml"];
     app2.use((req, res, next) => {
@@ -23275,7 +26156,7 @@ var getCorsOptions = () => {
         }
       }
       logger.warn({ msg: "[CORS] Origin rejected", origin });
-      return callback(new Error(`Origin ${origin} not allowed by CORS policy`), false);
+      return callback(null, false);
     },
     methods: c.methods ?? ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: c.allowedHeaders ?? [

@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 	let landingPageConfigPm: { [key: string]: string } = {};
 	try {
 		landingPageConfigPm = await configRepository
-			.getPublicModuleConfig('landing-page');
+			.getPublicModuleConfig('landing_page');
 	} catch (error) {
 		console.error('[+page.server] Failed to fetch landing page config:', error);
 		landingPageConfigPm = {
