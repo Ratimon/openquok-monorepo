@@ -13,6 +13,11 @@
 	import { icons } from '$data/icons';
 	import { signoutPresenter, SignoutStatus } from '$lib/user-auth/index';
 	import { workspaceSettingsPresenter, WorkspaceSettingsStatus } from '$lib/settings';
+	import { cn } from '$lib/ui/helpers/common';
+	import { url } from '$lib/utils/path';
+	import { toast } from '$lib/ui/sonner';
+	
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import BillingFaq from '$lib/ui/components/billing/BillingFaq.svelte';
 	import BillingPeriodToggle from '$lib/ui/components/billing/BillingPeriodToggle.svelte';
 	import BillingPlanFeatures from '$lib/ui/components/billing/BillingPlanFeatures.svelte';
@@ -21,11 +26,8 @@
 	import FirstBillingPaymentLead from '$lib/ui/components/billing/FirstBillingPaymentLead.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import HeaderWorkspaceSwitcher from '$lib/ui/components/workspaces/HeaderWorkspaceSwitcher.svelte';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ThemeSwitcher, { ensureDefaultTheme } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
-	import { cn } from '$lib/ui/helpers/common';
-	import { url } from '$lib/utils/path';
-	import { toast } from '$lib/ui/sonner';
+	
 
 	type Props = {
 		companyName?: string;

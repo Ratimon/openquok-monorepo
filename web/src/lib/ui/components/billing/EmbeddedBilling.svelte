@@ -15,9 +15,11 @@
 		embeddedCheckoutAppearance,
 		isDarkCheckoutTheme
 	} from '$lib/billing/stripe/embeddedCheckoutAppearance';
-	import Button from '$lib/ui/buttons/Button.svelte';
 	import { cn } from '$lib/ui/helpers/common';
 	import { toast } from '$lib/ui/sonner';
+	
+	import Button from '$lib/ui/buttons/Button.svelte';
+	
 
 	type Props = {
 		clientSecret: string;

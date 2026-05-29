@@ -9,25 +9,20 @@ export const PUBLIC_PRICING_FEATURED_TIER: PaidSubscriptionTier = 'ULTIMATE';
 
 export type PublicPricingPlanMeta = {
 	tagline: string;
-	/** Optional note under the compare-table CTA (e.g. solo workspace). */
-	compareFootnote?: string;
 };
 
 export const PUBLIC_PRICING_PLAN_META: Record<PaidSubscriptionTier, PublicPricingPlanMeta> = {
 	SOLO: {
-		tagline: 'Best for individuals and solo creators',
-		compareFootnote: 'Single Agent workspace'
+		tagline: 'Best for individuals and solo creators'
 	},
 	TEAM: {
-		tagline: 'Best for growing teams and businesses',
-		compareFootnote: '5 team members per Agent workspace'
+		tagline: 'Best for growing teams and businesses'
 	},
 	ULTIMATE: {
-		tagline: 'Best for managing multiple brands and AI agents',
-		compareFootnote: 'Unlimited team members'
+		tagline: 'Best for managing multiple brands and AI agents'
 	},
 	MAX: {
-		tagline: 'Best for scalling by Hhavy users running tons of AI agents'
+		tagline: 'Best for scalling by Heavy users running tons of AI agents'
 	}
 };
 
@@ -251,6 +246,11 @@ export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 		title: 'What counts as a channel?',
 		description:
 			'A channel is a connected social account (for example Facebook, Instagram, LinkedIn, TikTok, YouTube, Reddit, Threads, or Pinterest). You schedule posts to the channels you connect.'
+	},
+	{
+		title: 'How does team members work?',
+		description:
+			'Team members are people you invite to a workspace. They can collaborate on content and connect their own channels where your plan allows. Seat limits are shown as invites plus you as owner. For example, “2 + 1 (you) per workspace” means four invited members and one seat for you on each workspace you own.'
 	},
 	{
 		title: 'How does repeated posts work',

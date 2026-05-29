@@ -1,6 +1,11 @@
 import type { BillingPlanProgrammerModel } from '$lib/billing/Billing.repository.svelte';
 import { formatPostsPerMonthLimit } from '$lib/billing/Billing.repository.svelte';
-import { buildPlanFeatureLinesVm, tierDisplayName } from '$lib/billing/GetPricing.presenter.svelte';
+import {
+	buildPlanFeatureLinesVm,
+	formatTeamMembersPerWorkspaceDisplay,
+	teamMembersPerWorkspaceLabel,
+	tierDisplayName
+} from '$lib/billing/GetPricing.presenter.svelte';
 import { formatBytes } from '$lib/medias';
 import {
 	PUBLIC_PRICING_COMPARE_ROWS,
@@ -14,6 +19,7 @@ import {
 	isUnlimitedTeamMembersPerWorkspace,
 	planLimitsForTier,
 	pricing,
+	UNLIMITED_POSTS_PER_MONTH,
 	type PaidSubscriptionTier,
 	type PlanLimits,
 	type SubscriptionPeriod
@@ -98,7 +104,8 @@ function formatTeamMembersCell(limits: PlanLimits): PublicPricingCompareCellView
 		return total === 1 ? { kind: 'text', text: '1' } : { kind: 'excluded' };
 	}
 	if (limits.workspaces <= 1) return { kind: 'text', text: String(total) };
-	return { kind: 'text', text: `${total} (${perWorkspace}/ workspace)` };
+	const perWorkspaceLabel = formatTeamMembersPerWorkspaceDisplay(perWorkspace, { includeYou: false });
+	return { kind: 'text', text: `${total} (${perWorkspaceLabel}/ workspace)` };
 }
 
 function compareCellForRow(
@@ -165,12 +172,13 @@ function buildCardFeatures(tier: PaidSubscriptionTier, limits: PlanLimits): stri
 		if (
 			limits.workspaces > 1 &&
 			!isUnlimitedTeamMembersPerWorkspace(limits.team_members_per_workspace) &&
-			/^Total \d+ team members$/.test(line.label)
+			line.label === teamMembersPerWorkspaceLabel(limits.team_members_per_workspace)
 		) {
-			const perWorkspace = limits.team_members_per_workspace;
-			const total = accountTeamMemberSeatTotal(limits.workspaces, perWorkspace);
-			const noun = perWorkspace === 1 ? 'member' : 'members';
-			return `${perWorkspace} ${noun} per Agent workspace (total of ${total})`;
+			const total = accountTeamMemberSeatTotal(
+				limits.workspaces,
+				limits.team_members_per_workspace
+			);
+			return `${line.label} (total of ${total})`;
 		}
 		return line.label;
 	});
@@ -187,6 +195,25 @@ function buildCardFeatures(tier: PaidSubscriptionTier, limits: PlanLimits): stri
 		merged.push(label);
 	}
 	return merged;
+}
+
+function buildCompareFootnote(limits: PlanLimits): string | undefined {
+	const unlimitedPosts = limits.posts_per_month >= UNLIMITED_POSTS_PER_MONTH;
+	const unlimitedTeam = isUnlimitedTeamMembersPerWorkspace(limits.team_members_per_workspace);
+
+	if (unlimitedPosts && unlimitedTeam) {
+		return `${formatPostsPerMonthLimit(limits.posts_per_month)} posts & Unlimited team members`;
+	}
+
+	if (limits.workspaces === 1 && limits.team_members_per_workspace <= 1) {
+		return 'Single Agent workspace';
+	}
+
+	if (!unlimitedTeam && limits.team_members_per_workspace > 1) {
+		return teamMembersPerWorkspaceLabel(limits.team_members_per_workspace);
+	}
+
+	return undefined;
 }
 
 export class GetPublicPricingPresenter {
@@ -206,7 +233,7 @@ export class GetPublicPricingPresenter {
 				periodLabel,
 				isFeatured: tier === PUBLIC_PRICING_FEATURED_TIER,
 				features: buildCardFeatures(tier, limits),
-				compareFootnote: meta.compareFootnote
+				compareFootnote: buildCompareFootnote(limits)
 			} satisfies PublicPricingPlanCardViewModel;
 		});
 

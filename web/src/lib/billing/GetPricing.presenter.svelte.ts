@@ -49,8 +49,23 @@ export type BillingPricingViewModel = {
 
 function perWorkspaceLabel(count: number, singular: string, plural: string): string {
 	return count === 1
-		? `1 ${singular} per Agent workspace`
-		: `${count} ${plural} per Agent workspace`;
+		? `1 ${singular} per agent workspace`
+		: `${count} ${plural} per agent workspace`;
+}
+
+/** Per-workspace seat breakdown for UI (owner + invites). */
+export function formatTeamMembersPerWorkspaceDisplay(
+	perWorkspace: number,
+	options?: { includeYou?: boolean }
+): string {
+	const includeYou = options?.includeYou ?? true;
+	if (perWorkspace <= 1) return '1 (you)';
+	const invited = perWorkspace - 1;
+	return includeYou ? `${invited} + 1 (you)` : `${invited} + 1`;
+}
+
+export function teamMembersPerWorkspaceLabel(perWorkspace: number): string {
+	return `${formatTeamMembersPerWorkspaceDisplay(perWorkspace)} per workspace`;
 }
 
 export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanFeatureLineViewModel[] {
@@ -59,7 +74,7 @@ export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanF
 		linesVm.push({
 			label:
 				plan.workspaces === 1
-					? '1 Agent workspace'
+					? '1 agent workspace'
 					: `${plan.workspaces} Agent workspaces`
 		});
 	}
@@ -81,8 +96,9 @@ export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanF
 		const teamTotal = accountTeamMemberSeatTotal(plan.workspaces, plan.teamMembersPerWorkspace);
 		if (teamTotal > 1) {
 			linesVm.push({
-				label: `Total ${teamTotal} team members`,
-				tooltip: perWorkspaceLabel(plan.teamMembersPerWorkspace, 'member', 'members')
+				label: teamMembersPerWorkspaceLabel(plan.teamMembersPerWorkspace),
+				tooltip:
+					plan.workspaces > 1 ? `Total ${teamTotal} team members` : undefined
 			});
 		}
 	}

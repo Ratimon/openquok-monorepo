@@ -86,7 +86,7 @@ export const pricing: PricingMap = {
 		workspaces: 3,
 		channel_per_workspace: 20, // total of 60 channls
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
-		team_members_per_workspace: 5,
+		team_members_per_workspace: 3,
 		media_storage_bytes_per_workspace: gbToBytes(5),
 		share_post_preview: true,
 		community_features: true,
