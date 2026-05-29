@@ -1,8 +1,8 @@
 ---
 title: Overview - Integrations APIs
-description: Programmatic endpoints for connecting social channels, and invoking provider-specific tools using an organization API key.
+description: Programmatic endpoints for connecting social channels, and invoking provider-specific tools using a workspace programmatic token (opo_).
 order: 0
-lastUpdated: 2026-05-11
+lastUpdated: 2026-05-29
 ---
 
 <script>
@@ -12,10 +12,10 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 ## Endpoints
 
 <CardGrid>
-<LinkCard title="List Integrations" description="Return every connected social channel for the API key's workspace" href="/docs/apis-integrations/list" />
+<LinkCard title="List Integrations" description="Return every connected social channel for the token's workspace" href="/docs/apis-integrations/list" />
 <LinkCard title="Connect Channel (OAuth)" description="Generate an OAuth authorization URL for a provider — the first step in connecting a new channel" href="/docs/apis-integrations/connect" />
 <LinkCard title="Delete Channel" description="Soft-delete a connected channel so it stops publishing and disappears from List Integrations" href="/docs/apis-integrations/delete" />
-<LinkCard title="Check Connection" description="Lightweight healthcheck — confirm the supplied API key or OAuth app token is accepted" href="/docs/apis-integrations/is-connected" />
+<LinkCard title="Check Connection" description="Lightweight healthcheck — confirm the supplied programmatic or OAuth app token is accepted" href="/docs/apis-integrations/is-connected" />
 <LinkCard title="Channel settings & tools" description="Fetch rules, max post length, settings schema, and the allow-listed tools for a connected channel" href="/docs/apis-integrations/integration-settings" />
 <LinkCard title="Trigger a channel tool" description="Invoke an allow-listed provider method on a connected channel (e.g. list subreddits, fetch playlists)" href="/docs/apis-integrations/integration-trigger" />
 </CardGrid>

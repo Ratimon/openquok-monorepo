@@ -1,5 +1,5 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
-import { ApiError, HttpMethod } from '$lib/core/HttpGateway';
+import { ApiError, HttpMethod, messageFromApiError } from '$lib/core/HttpGateway';
 
 /**
  * Settings / Organization API config (infra boundary is HttpGateway).
@@ -12,6 +12,7 @@ export interface SettingsConfig {
 		update: (id: string) => string;
 		delete: (id: string) => string;
 		rotateApiKey: (id: string) => string;
+		programmaticTokenStatus: (id: string) => string;
 		/** Active workspace (`showorg` cookie). */
 		getTeam: string;
 		inviteTeamMember: string;
@@ -66,8 +67,26 @@ export interface CreateOrganizationResponseDto {
 
 export interface RotateApiKeyResponseDto {
 	success: boolean;
-	data: OrganizationDto;
+	data: OrganizationDto & { programmaticAccessToken?: string };
 	message?: string;
+}
+
+export interface ProgrammaticTokenStatusResponseDto {
+	success: boolean;
+	data: { configured: boolean };
+	message?: string;
+}
+
+export type RotateProgrammaticAccessProgrammerModel =
+	| {
+			success: true;
+			organization: OrganizationProgrammerModel;
+			programmaticAccessToken: string;
+	  }
+	| { success: false; message: string };
+
+export interface ProgrammaticTokenStatusProgrammerModel {
+	configured: boolean;
 }
 
 export interface TeamMemberDto {
@@ -321,23 +340,60 @@ export class SettingsRepository {
 		}
 	}
 
-	public async rotateApiKey(organizationId: string): Promise<OrganizationProgrammerModel | null> {
+	public async getProgrammaticTokenStatus(
+		organizationId: string
+	): Promise<ProgrammaticTokenStatusProgrammerModel | null> {
+		try {
+			const { ok, data: programmaticTokenStatusDto } =
+				await this.httpGateway.get<ProgrammaticTokenStatusResponseDto>(
+					this.config.endpoints.programmaticTokenStatus(organizationId),
+					undefined,
+					{ withCredentials: true }
+				);
+			if (ok && programmaticTokenStatusDto?.success && programmaticTokenStatusDto.data) {
+				return { configured: programmaticTokenStatusDto.data.configured };
+			}
+			return null;
+		} catch {
+			return null;
+		}
+	}
+
+	public async rotateProgrammaticAccessToken(
+		organizationId: string
+	): Promise<RotateProgrammaticAccessProgrammerModel> {
 		try {
 			const { ok, data: rotateApiKeyDto } = await this.httpGateway.request<RotateApiKeyResponseDto>({
 				method: HttpMethod.POST,
 				url: this.config.endpoints.rotateApiKey(organizationId),
 				withCredentials: true
 			});
-			if (ok && rotateApiKeyDto?.success && rotateApiKeyDto.data) {
+			if (ok && rotateApiKeyDto?.success && rotateApiKeyDto.data?.programmaticAccessToken) {
 				const updated = toOrganizationPm(rotateApiKeyDto.data);
 				this.organizationsPm = this.organizationsPm.map((o) =>
-					o.id === organizationId ? { ...o, apiKey: updated.apiKey, updatedAt: updated.updatedAt } : o
+					o.id === organizationId ? { ...o, updatedAt: updated.updatedAt } : o
 				);
-				return updated;
+				return {
+					success: true,
+					organization: updated,
+					programmaticAccessToken: rotateApiKeyDto.data.programmaticAccessToken
+				};
 			}
-			return null;
-		} catch {
-			return null;
+			return {
+				success: false,
+				message:
+					rotateApiKeyDto?.message?.trim() ||
+					'Failed to rotate programmatic access token. Please try again.'
+			};
+		} catch (error) {
+			const fallback =
+				error instanceof ApiError && error.status === 400
+					? 'Create an OAuth application under Developers → Apps before generating a programmatic access token.'
+					: 'Failed to rotate programmatic access token. Please try again.';
+			return {
+				success: false,
+				message: messageFromApiError(error, fallback)
+			};
 		}
 	}
 

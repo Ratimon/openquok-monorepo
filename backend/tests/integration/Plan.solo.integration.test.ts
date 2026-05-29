@@ -281,6 +281,60 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
         }
     );
 
+    it("returns 402 when a SOLO workspace admin tries to add a member directly at seat cap", async () => {
+        const soloLimits = planLimitsForTier("SOLO");
+        const seatCap = soloLimits.team_members_per_workspace;
+        expect(seatCap).toBe(1);
+
+        const ownerPayload = userHelper.setupTestUser1();
+        const { accessToken: ownerToken } = await signupVerifyAndSignIn(ownerPayload);
+        const orgId = await firstOrganizationId(ownerToken);
+        const tierLimitsSpy = stubSoloPlanLimits();
+
+        const memberPayload = {
+            email: `member-${uuidv4()}@test.com`.toLowerCase(),
+            password: PASSWORD,
+            fullName: faker.person.fullName(),
+        };
+        const { accessToken: memberToken } = await signupVerifyAndSignIn(memberPayload);
+        const memberMeRes = await supertest(app)
+            .get(`${usersPath}/me`)
+            .set("Authorization", `Bearer ${memberToken}`);
+        expect(memberMeRes.status).toBe(200);
+        const memberUserId = memberMeRes.body?.data?.id as string;
+        expect(memberUserId).toBeDefined();
+
+        try {
+            const teamBeforeRes = await supertest(app)
+                .get(`${settingsPath}/${orgId}/team`)
+                .set("Authorization", `Bearer ${ownerToken}`);
+            expect(teamBeforeRes.status).toBe(200);
+            expect(teamBeforeRes.body?.data).toHaveLength(seatCap);
+
+            const addRes = await supertest(app)
+                .post(`${settingsPath}/${orgId}/team`)
+                .set("Authorization", `Bearer ${ownerToken}`)
+                .send({ userId: memberUserId, workspaceRole: "user" });
+
+            expect(addRes.status).toBe(402);
+            expect(addRes.body?.success).toBe(false);
+            expect(addRes.body?.error?.section).toBe("team_members_per_workspace");
+
+            const teamAfterRes = await supertest(app)
+                .get(`${settingsPath}/${orgId}/team`)
+                .set("Authorization", `Bearer ${ownerToken}`);
+            expect(teamAfterRes.status).toBe(200);
+            expect(teamAfterRes.body?.data).toHaveLength(seatCap);
+            expect(
+                (teamAfterRes.body.data as { user_id?: string }[]).some(
+                    (m) => m.user_id === memberUserId
+                )
+            ).toBe(false);
+        } finally {
+            tierLimitsSpy.mockRestore();
+        }
+    });
+
     it("blocks a new social channel when the workspace is at SOLO channel_per_workspace cap", async () => {
         const soloLimits = planLimitsForTier("SOLO");
         const channelCap = soloLimits.channel_per_workspace;

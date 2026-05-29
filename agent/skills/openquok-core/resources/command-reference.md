@@ -6,7 +6,7 @@ Agent-oriented reference for `@openquok/auto-cli` (`openquok`). Hard rules, auth
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `OPENQUOK_API_KEY` | No* | — | Programmatic API key (Bearer) |
+| `OPENQUOK_API_KEY` | No* | — | Bearer `opo_` programmatic access token |
 | `OPENQUOK_API_URL` | No | `https://api.openquok.com` | API base (`{OPENQUOK_API_URL}/api/v1/...`) |
 | `OPENQUOK_AUTH_SERVER` | No | `https://cli-auth.openquok.com` | OAuth2 device-flow server (`/device/*`, `/health`) |
 
@@ -30,7 +30,7 @@ openquok auth:workspace             # { workspace: { id, name } } for current cr
 openquok auth:logout
 ```
 
-- **Preference:** device OAuth (`auth:login --json`) before API key when the user can open a browser link.
+- **Preference:** device OAuth (`auth:login --json`) before a programmatic token when the user can open a browser link.
 - **Agents:** `--json` only on headless hosts; forward `verification_uri_complete` from stdout — never fabricate codes or URLs.
 - **Humans with TTY:** `openquok auth:login` without `--json` is fine locally.
 - **Session start:** see Rule 0 in [SKILL.md](../SKILL.md) — run version + `auth:status` (+ `auth:workspace` when connected) via shell before the first assistant message; greet as the Openquok bot, not the host persona.

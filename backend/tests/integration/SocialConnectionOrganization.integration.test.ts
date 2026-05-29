@@ -9,6 +9,15 @@ import {
     cleanupIntegrationTestUsers,
     signupVerifyAndSignIn as sharedSignupVerifyAndSignIn,
 } from "../helpers/integrationAuthTestHelper";
+import {
+    exchangeOAuthProgrammaticToken,
+    programmaticBearerAuth,
+} from "../helpers/programmaticAuthTestHelper";
+import {
+    prepareSoloWorkspace,
+    restoreSoloWorkspaceSpies,
+    type SoloWorkspaceSpies,
+} from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
@@ -26,7 +35,7 @@ const threadsOAuthConfigured = Boolean(
 const itIfThreadsOAuth = threadsOAuthConfigured ? it : it.skip;
 
 /**
- * Organization-scoped programmatic API (`{apiPrefix}/public`): workspace is resolved from the org API key,
+ * Organization-scoped programmatic API (`{apiPrefix}/public`): workspace is resolved from an OAuth app token,
  * not from the user session. Contrasts with `/integrations` session routes (JWT + org in query/body).
  *
  * Depends on DB RPCs `internal_list_integrations_by_org`, `internal_get_integration_by_org_and_id`,
@@ -39,6 +48,7 @@ describe("Social connection (organization programmatic API)", () => {
     let getVerificationTokenSpy: jest.SpyInstance;
     let verificationToken: string;
     let emailSendSpy: jest.SpyInstance;
+    let soloWorkspaceSpies: SoloWorkspaceSpies | undefined;
 
     beforeAll(() => {
         verificationToken = generateRandomVerificationToken();
@@ -54,7 +64,13 @@ describe("Social connection (organization programmatic API)", () => {
         emailSendSpy?.mockRestore();
     });
 
+    beforeEach(() => {
+        soloWorkspaceSpies = prepareSoloWorkspace();
+    });
+
     afterEach(async () => {
+        restoreSoloWorkspaceSpies(soloWorkspaceSpies);
+        soloWorkspaceSpies = undefined;
         await cleanupIntegrationTestUsers(userHelper);
     });
 
@@ -62,7 +78,7 @@ describe("Social connection (organization programmatic API)", () => {
         email: string;
         password: string;
         fullName: string;
-    }): Promise<{ accessToken: string }> {
+    }): Promise<{ accessToken: string; orgId: string }> {
         const { accessToken } = await sharedSignupVerifyAndSignIn(
             app,
             userHelper,
@@ -76,14 +92,6 @@ describe("Social connection (organization programmatic API)", () => {
             .set("Authorization", `Bearer ${accessToken}`);
         expect(meRes.status).toBe(200);
 
-        return { accessToken };
-    }
-
-    /** Rotate API key for the user’s first organization; asserts settings + rotate succeed. */
-    async function createWorkspaceWithProgrammaticApiKey(): Promise<{ apiKey: string; orgId: string }> {
-        const payload = userHelper.setupTestUser1();
-        const { accessToken } = await signupVerifyAndSignIn(payload);
-
         const listRes = await supertest(app)
             .get(settingsPath)
             .set("Authorization", `Bearer ${accessToken}`);
@@ -91,14 +99,14 @@ describe("Social connection (organization programmatic API)", () => {
         const orgId = listRes.body?.data?.[0]?.id as string;
         expect(orgId).toBeDefined();
 
-        const rotateRes = await supertest(app)
-            .post(`${settingsPath}/${orgId}/rotate-api-key`)
-            .set("Authorization", `Bearer ${accessToken}`);
-        expect(rotateRes.status).toBe(200);
-        const apiKey = rotateRes.body?.data?.apiKey as string;
-        expect(apiKey).toBeDefined();
+        return { accessToken, orgId };
+    }
 
-        return { apiKey, orgId };
+    async function createWorkspaceWithOAuthToken(): Promise<{ bearerToken: string; orgId: string }> {
+        const payload = userHelper.setupTestUser1();
+        const { accessToken, orgId } = await signupVerifyAndSignIn(payload);
+        const bearerToken = await exchangeOAuthProgrammaticToken(accessToken, orgId);
+        return { bearerToken, orgId };
     }
 
     describe("contrast with session integration routes", () => {
@@ -129,49 +137,55 @@ describe("Social connection (organization programmatic API)", () => {
             expect(res.body).toEqual({ msg: "No API key provided" });
         });
 
-        it("responds 401 when the key is not a registered organization API key", async () => {
-            const res = await supertest(app)
+        it("responds 401 for legacy opk_ keys and unknown tokens", async () => {
+            const legacy = await supertest(app)
                 .get(`${publicProgrammaticBase}/is-connected`)
                 .set("Authorization", "opk_not_a_real_key_000000000000000000000000");
-            expect(res.status).toBe(401);
-            expect(res.body).toEqual({ msg: "Invalid API key" });
+            expect(legacy.status).toBe(401);
+            expect(legacy.body).toEqual({ msg: "Invalid API key" });
+
+            const unknown = await supertest(app)
+                .get(`${publicProgrammaticBase}/is-connected`)
+                .set("Authorization", "opo_not_a_real_token_000000000000000000000000");
+            expect(unknown.status).toBe(401);
+            expect(unknown.body).toEqual({ msg: "Invalid API key" });
         });
 
-        it("accepts the raw key or Bearer-prefixed key equivalently", async () => {
-            const { apiKey } = await createWorkspaceWithProgrammaticApiKey();
+        it("accepts the raw token or Bearer-prefixed token equivalently", async () => {
+            const { bearerToken } = await createWorkspaceWithOAuthToken();
 
             const raw = await supertest(app)
                 .get(`${publicProgrammaticBase}/is-connected`)
-                .set("Authorization", apiKey);
+                .set("Authorization", bearerToken);
             expect(raw.status).toBe(200);
             expect(raw.body).toEqual({ connected: true });
 
             const bearer = await supertest(app)
                 .get(`${publicProgrammaticBase}/is-connected`)
-                .set("Authorization", `Bearer ${apiKey}`);
+                .set(programmaticBearerAuth(bearerToken));
             expect(bearer.status).toBe(200);
             expect(bearer.body).toEqual({ connected: true });
         });
     });
 
     describe("connection check and channel listing", () => {
-        it("reports connected when a valid programmatic key is supplied", async () => {
-            const { apiKey } = await createWorkspaceWithProgrammaticApiKey();
+        it("reports connected when a valid OAuth programmatic token is supplied", async () => {
+            const { bearerToken } = await createWorkspaceWithOAuthToken();
 
             const res = await supertest(app)
                 .get(`${publicProgrammaticBase}/is-connected`)
-                .set("Authorization", apiKey);
+                .set(programmaticBearerAuth(bearerToken));
 
             expect(res.status).toBe(200);
             expect(res.body).toEqual({ connected: true });
         });
 
-        it("returns workspace id and name for a valid programmatic key", async () => {
-            const { apiKey, orgId } = await createWorkspaceWithProgrammaticApiKey();
+        it("returns workspace id and name for a valid OAuth programmatic token", async () => {
+            const { bearerToken, orgId } = await createWorkspaceWithOAuthToken();
 
             const res = await supertest(app)
                 .get(`${publicProgrammaticBase}/workspace`)
-                .set("Authorization", apiKey);
+                .set(programmaticBearerAuth(bearerToken));
 
             expect(res.status).toBe(200);
             expect(res.body?.workspace?.id).toBe(orgId);
@@ -192,11 +206,11 @@ describe("Social connection (organization programmatic API)", () => {
         });
 
         it("returns an empty array when the workspace has no connected channels", async () => {
-            const { apiKey } = await createWorkspaceWithProgrammaticApiKey();
+            const { bearerToken } = await createWorkspaceWithOAuthToken();
 
             const res = await supertest(app)
                 .get(`${publicProgrammaticBase}/integrations`)
-                .set("Authorization", apiKey);
+                .set(programmaticBearerAuth(bearerToken));
 
             expect(res.status).toBe(200);
             expect(Array.isArray(res.body)).toBe(true);
@@ -206,22 +220,22 @@ describe("Social connection (organization programmatic API)", () => {
 
     describe("OAuth URL for connecting a channel", () => {
         it("rejects unknown provider identifiers", async () => {
-            const { apiKey } = await createWorkspaceWithProgrammaticApiKey();
+            const { bearerToken } = await createWorkspaceWithOAuthToken();
 
             const res = await supertest(app)
                 .get(`${publicProgrammaticBase}/social/${encodeURIComponent("not-a-real-provider")}`)
-                .set("Authorization", apiKey);
+                .set(programmaticBearerAuth(bearerToken));
 
             expect(res.status).toBe(400);
             expect(res.body?.message ?? res.body?.error?.message).toMatch(/not allowed/i);
         });
 
         itIfThreadsOAuth("returns an authorization URL when Threads OAuth is configured", async () => {
-            const { apiKey } = await createWorkspaceWithProgrammaticApiKey();
+            const { bearerToken } = await createWorkspaceWithOAuthToken();
 
             const res = await supertest(app)
                 .get(`${publicProgrammaticBase}/social/threads`)
-                .set("Authorization", apiKey);
+                .set(programmaticBearerAuth(bearerToken));
 
             expect(res.status).toBe(200);
             expect(typeof res.body?.url).toBe("string");
@@ -229,12 +243,12 @@ describe("Social connection (organization programmatic API)", () => {
         });
 
         it("rejects invalid refresh query (must be a UUID when present)", async () => {
-            const { apiKey } = await createWorkspaceWithProgrammaticApiKey();
+            const { bearerToken } = await createWorkspaceWithOAuthToken();
 
             const res = await supertest(app)
                 .get(`${publicProgrammaticBase}/social/threads`)
                 .query({ refresh: "not-a-uuid" })
-                .set("Authorization", apiKey);
+                .set(programmaticBearerAuth(bearerToken));
 
             expect(res.status).toBe(400);
         });
@@ -242,12 +256,12 @@ describe("Social connection (organization programmatic API)", () => {
 
     describe("removing a connected channel", () => {
         it("returns 404 when the channel id does not exist for that workspace", async () => {
-            const { apiKey } = await createWorkspaceWithProgrammaticApiKey();
+            const { bearerToken } = await createWorkspaceWithOAuthToken();
             const fakeId = uuidv4();
 
             const res = await supertest(app)
                 .delete(`${publicProgrammaticBase}/integrations/${fakeId}`)
-                .set("Authorization", apiKey);
+                .set(programmaticBearerAuth(bearerToken));
 
             expect(res.status).toBe(404);
         });

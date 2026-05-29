@@ -2,7 +2,7 @@
 title: Introduction to Openquok CLI
 description: An CLI-first tool for AI agents. Give your agents the Openquok CLI to schedule posts, manage integrations, and upload media purely from the terminal.
 order: 0
-lastUpdated: 2026-05-15
+lastUpdated: 2026-05-29
 ---
 
 <script>
@@ -51,7 +51,7 @@ openquok --help
 
 ## Authentication
 
-Use **OAuth2 device flow**, so you never embed client secrets in the CLI, or set an **API key** for CI and scripts. Full variable reference and self-hosted auth options are on <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.
+Use **OAuth2 device flow**, so you never embed client secrets in the CLI, or set a **programmatic access token** (<Badge text="opo_" variant="default" />) for CI and scripts. Full variable reference and self-hosted auth options are on <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.
 
 
 ### Option 1: OAuth2 (Suggested)
@@ -72,9 +72,9 @@ openquok auth:status
 openquok auth:logout
 ```
 
-### Option 2: API key
+### Option 2: Programmatic token
 
-Set **API key** as an environment variable. — see <a href="/docs/getting-started-for-cli/authentication#api-key">API key</a> on the authentication page.
+Set a workspace **programmatic token** as an environment variable — see <a href="/docs/getting-started-for-cli/authentication#programmatic-token">Programmatic token</a> on the authentication page (rotate from <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> in the dashboard).
 
 
 ```bash
@@ -187,7 +187,7 @@ openquok posts:delete <post-id>
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="CLI authentication" description="OAuth device flow, API key, and custom auth server URL" href="/docs/getting-started-for-cli/authentication" />
+<LinkCard title="CLI authentication" description="OAuth device flow, programmatic token (opo_), and custom auth server URL" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="Configuration - Agent" description="Deploy the CLI auth server (env vars, SERVER_URL, callbacks, Vercel)" href="/docs/configuration-agent" />
 <LinkCard title="Auth server architecture" description="Device flow, endpoints, and Postgres state" href="/docs/configuration-agent/architecture" />
 </CardGrid>

@@ -2,7 +2,7 @@
 title: Configuration - Agent
 description: Deploy and configure the CLI auth server environment variables for production and local development.
 order: 0
-lastUpdated: 2026-05-15
+lastUpdated: 2026-05-29
 ---
 
 <script>
@@ -43,7 +43,7 @@ DATABASE_URL=postgresql://openquok:openquok@localhost:5432/openquok_cli_auth
 </Callout>
 
 <Callout type="note" title="Who this page is for">
-<p><strong>Deployers</strong> configure <Badge text="agent/server" variant="path" /> and (for production) deploy <Badge text="web" variant="path" /> with matching env. <strong>CLI users</strong> — install, <code>openquok auth:login</code>, API keys — see <a href="/docs/getting-started-for-cli">CLI</a> and <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
+<p><strong>Deployers</strong> configure <Badge text="agent/server" variant="path" /> and (for production) deploy <Badge text="web" variant="path" /> with matching env. <strong>CLI users</strong> — install, <code>openquok auth:login</code>, programmatic tokens — see <a href="/docs/getting-started-for-cli">CLI</a> and <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
 </Callout>
 
 Request paths, polling, and the <Badge text="device_requests" variant="default" /> table are explained in <a href="/docs/configuration-agent/architecture">Auth server architecture</a>.
@@ -57,8 +57,12 @@ Templates: <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/
 ### Required
 
 - <Badge text="DATABASE_URL" variant="envBackend" /> — Postgres connection string. The server auto-creates the <code>device_requests</code> table on startup.
-- <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" /> — OAuth app client ID (prefix <code>oqc_...</code>).
-- <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" /> — OAuth app secret (prefix <code>oqs_...</code>).
+- <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" /> — Platform CLI OAuth app client ID (prefix <code>oqc_...</code>). Used only on the auth server; not configured on the Openquok API backend.
+- <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" /> — That app’s client secret (prefix <code>oqs_...</code>). Held only by the auth server for token exchange — not end-user credentials.
+
+<Callout type="note">
+<p>Each CLI user still gets their own <Badge text="opo_…" variant="default" /> token scoped to the workspace they approve; plan limits apply to that workspace. See <a href="/docs/configuration-agent/architecture#oauth-client-credentials-vs-user-access-tokens">Auth server architecture → OAuth client credentials vs user access tokens</a>.</p>
+</Callout>
 
 ### SERVER_URL (API origin)
 
@@ -149,7 +153,7 @@ See <a href="/docs/installation/vercel#cli-auth-server-on-vercel">Installation �
 
 <CardGrid>
 <LinkCard title="CLI" description="Install the Openquok CLI, quick start, and command overview" href="/docs/getting-started-for-cli" />
-<LinkCard title="CLI authentication" description="OPENQUOK_AUTH_SERVER, device login, and API keys for CLI users" href="/docs/getting-started-for-cli/authentication" />
+<LinkCard title="CLI authentication" description="OPENQUOK_AUTH_SERVER, device login, and programmatic tokens for CLI users" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="Auth server architecture" description="Request flow, endpoints, and Postgres state for device flow" href="/docs/configuration-agent/architecture" />
 <LinkCard title="Configuration - Web" description="CLI_AUTH_SERVER_URL and web production env" href="/docs/configuration-web" />
 <LinkCard title="Neon Postgres" description="Create and configure a Neon database for agent server" href="/docs/configuration-agent/neon" />

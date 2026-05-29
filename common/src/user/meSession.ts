@@ -17,7 +17,7 @@ export interface UserMeWorkspaceSession {
 	/** Effective connected-channel cap for the active workspace. */
 	channelsPerWorkspace: number;
 	role: UserMeWorkspaceRole;
-	/** Workspace public API key; empty when not exposed to this member. */
+	/** Programmatic access configured indicator; bearer token is never returned in session. */
 	publicApi: string;
 	isLifetime: boolean;
 	/** Whether the workspace is in a Stripe trial period. */

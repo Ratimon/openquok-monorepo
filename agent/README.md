@@ -51,7 +51,9 @@ export OPENQUOK_AUTH_SERVER="http://localhost:3111"
 openquok auth:login
 ```
 
-### Option 2: API Key
+### Option 2: Programmatic access token
+
+Rotate a workspace token from **Account → Settings → Developers → Access** in the dashboard. The plaintext value uses the `opo_` prefix and is shown once after **Generate / Rotate token**.
 
 #### Use environment variables (recommended for CI)
 
@@ -62,7 +64,7 @@ export OPENQUOK_API_KEY="opo_..."
 #### Store credentials locally
 
 ```bash
-openquok auth:login --apiKey "your_token"
+openquok auth:login --apiKey "opo_your_programmatic_token"
 openquok auth:status
 openquok auth:workspace
 openquok auth:logout
@@ -147,7 +149,7 @@ Both return JSON including `data.filePath` and `data.id`, which you can pass int
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `OPENQUOK_API_KEY` | No* | - | Programmatic API key / token (Bearer) |
+| `OPENQUOK_API_KEY` | No* | - | Bearer `opo_` programmatic access token |
 | `OPENQUOK_API_URL` | No | `https://api.openquok.com` | Base URL (the CLI calls `{OPENQUOK_API_URL}/api/v1/...`) |
 | `OPENQUOK_AUTH_SERVER` | No | `https://cli-auth.openquok.com` | OAuth2 device flow auth server origin (paths `/device/*`, `/health`). Use `http://localhost:3111` when running `agent/server` locally. |
 
@@ -212,7 +214,7 @@ pnpm --filter ./agent cli -- posts:connect --help
 pnpm --filter ./agent cli -- upload-from-url --help
 ```
 
-For a connectivity smoke (requires a valid API key or stored credentials):
+For a connectivity smoke (requires a valid `opo_` programmatic token or stored credentials):
 
 ```bash
 # 3. Confirm auth + workspace plumbing end-to-end

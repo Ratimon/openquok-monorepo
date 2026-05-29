@@ -176,6 +176,58 @@ export class OauthAppService {
     }
 
     /**
+     * Issue a workspace programmatic access token (`opo_…`) for this workspace's OAuth app.
+     * Plaintext is returned once; only the hash is stored.
+     */
+    async issueWorkspaceProgrammaticToken(
+        authUserId: string,
+        organizationId: string
+    ): Promise<{ programmaticAccessToken: string }> {
+        const { userId } = await this.assertOrgAdmin(authUserId, organizationId, "update");
+        const app = await this.oauthAppRepository.getAppByOrganizationId(organizationId);
+        if (!app) {
+            throw new AppError(
+                "Create an OAuth application for this workspace before generating a programmatic access token",
+                400
+            );
+        }
+
+        const secretKey = (config.auth as { programmaticTokenSecret?: string })?.programmaticTokenSecret ?? "";
+        if (!secretKey.trim()) throw new AppError("SECURITY_SECRET is not configured", 500);
+
+        const authz = await this.oauthAppRepository.upsertAuthorization({
+            oauthAppId: app.id,
+            userId,
+            organizationId,
+        });
+        const programmaticAccessToken = `opo_${makeId(48)}`;
+        const accessTokenHash = hashProgrammaticToken(programmaticAccessToken, secretKey);
+        await this.oauthAppRepository.setAccessTokenForAuthorization({
+            authorizationId: authz.id,
+            accessTokenHash,
+        });
+        return { programmaticAccessToken };
+    }
+
+    /** Whether the current admin has an active programmatic token for this workspace OAuth app. */
+    async getWorkspaceProgrammaticTokenStatus(
+        authUserId: string,
+        organizationId: string
+    ): Promise<{ configured: boolean }> {
+        const { userId } = await this.assertOrgAdmin(authUserId, organizationId, "read");
+        const app = await this.oauthAppRepository.getAppByOrganizationId(organizationId);
+        if (!app) {
+            return { configured: false };
+        }
+        const authz = await this.oauthAppRepository.findActiveAuthorizationForUserOrgApp({
+            oauthAppId: app.id,
+            userId,
+            organizationId,
+        });
+        return { configured: Boolean(authz?.access_token_hash) };
+    }
+
+    /**
      * Programmatic access token verification for `/public/*` (OAuth2 access token).
      */
     async verifyProgrammaticToken(rawToken: string): Promise<{ organizationId: string; oauthAppId: string; tokenId: string } | null> {

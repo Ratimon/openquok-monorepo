@@ -19,6 +19,7 @@ const settingsConfig: SettingsConfig = {
 		update: (id) => `${base}/${id}`,
 		delete: (id) => `${base}/${id}`,
 		rotateApiKey: (id) => `${base}/${id}/rotate-api-key`,
+		programmaticTokenStatus: (id) => `${base}/${id}/programmatic-token`,
 		getTeam: `${base}/team`,
 		inviteTeamMember: `${base}/team`,
 		getTeamById: (id) => `${base}/${id}/team`,
@@ -63,7 +64,9 @@ export type {
 	InviteTeamMemberProgrammerModel,
 	AcceptPendingInviteProgrammerModel,
 	CancelSentInviteProgrammerModel,
-	JoinWorkspaceByTokenProgrammerModel
+	JoinWorkspaceByTokenProgrammerModel,
+	ProgrammaticTokenStatusProgrammerModel,
+	RotateProgrammaticAccessProgrammerModel
 } from '$lib/settings/Settings.repository.svelte';
 
 export { GetWorkspacePresenter } from '$lib/settings/GetWorkspace.presenter.svelte';

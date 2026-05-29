@@ -8,20 +8,19 @@ import {
     validatePublicIntegrationTriggerRequest,
     validatePublicSocialOAuthQuery,
 } from "../../data/schemas/publicIntegrationsSchemas";
-import { oauthAppService } from "../../services/index";
+import { oauthAppService, subscriptionGuard } from "../../services/index";
 
 type PublicIntegrationRouter = ReturnType<typeof Router>;
 
 /**
  * Programmatic integration API under `/public` (full URL: `{api.prefix}/public/...`, e.g. `/api/v1/public/...`).
  * Version is carried by `api.prefix` only — no second `v1` segment. Organization from API key (not user JWT).
- * Listed in `middlewares/core.ts` `publicPaths` as `/public`; routes here use `requireProgrammaticAuth` (OAuth app token)
- * with a legacy fallback to `organizations.api_key` for compatibility.
+ * Listed in `middlewares/core.ts` `publicPaths` as `/public`; routes here use `requireProgrammaticAuth` (OAuth app token).
  *
  * Session-scoped integration UX lives under `{api.prefix}/integrations` — see `routes/integrationRoutes.ts`
  */
 const publicIntegrationRouter: PublicIntegrationRouter = Router();
-const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 
 publicIntegrationRouter.get("/is-connected", apiKeyAuth, publicIntegrationController.isConnected);
 publicIntegrationRouter.get("/workspace", apiKeyAuth, publicIntegrationController.getWorkspace);

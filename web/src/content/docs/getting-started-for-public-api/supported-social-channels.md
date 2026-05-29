@@ -2,7 +2,7 @@
 title: Supported social channels
 description: Social channels Openquok currently supports — Meta Threads and Instagram (Business + Standalone) — plus the per-channel settings shape behind the public API.
 order: 1
-lastUpdated: 2026-05-12
+lastUpdated: 2026-05-29
 ---
 
 <script>
@@ -98,7 +98,7 @@ All examples target <Badge text="POST /api/v1/public/posts" variant="default" />
 
 ```bash
 curl -X POST https://api.openquok.com/api/v1/public/posts \
-  -H "Authorization: opo_your_api_key" \
+  -H "Authorization: Bearer opo_your_programmatic_token" \
   -H "Content-Type: application/json" \
   -d '{
     "body": "Hello from the Openquok API!",
@@ -116,7 +116,7 @@ Instagram needs publicly reachable media, so first upload through <Badge text="P
 ```bash
 # 1) Upload the image (multipart field name: file)
 curl -X POST https://api.openquok.com/api/v1/public/upload \
-  -H "Authorization: opo_your_api_key" \
+  -H "Authorization: Bearer opo_your_programmatic_token" \
   -F "file=@photo.jpg"
 
 # Response:
@@ -128,7 +128,7 @@ curl -X POST https://api.openquok.com/api/v1/public/upload \
 
 # 2) Schedule a feed post that references the upload
 curl -X POST https://api.openquok.com/api/v1/public/posts \
-  -H "Authorization: opo_your_api_key" \
+  -H "Authorization: Bearer opo_your_programmatic_token" \
   -H "Content-Type: application/json" \
   -d '{
     "body": "Beautiful sunset 🌅 #photography",

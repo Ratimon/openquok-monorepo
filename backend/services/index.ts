@@ -148,20 +148,21 @@ export const integrationConnectionService = new IntegrationConnectionService(
     subscriptionGuard
 );
 
+export const oauthAppService = new OauthAppService(
+    oauthAppRepository,
+    organizationRepository,
+    mediaRepository,
+    subscriptionGuard
+);
+
 export const organizationService = new OrganizationService(
     organizationRepository,
     userRepository,
     emailService,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
-    subscriptionGuard
-);
-
-export const oauthAppService = new OauthAppService(
-    oauthAppRepository,
-    organizationRepository,
-    mediaRepository,
-    subscriptionGuard
+    subscriptionGuard,
+    oauthAppService
 );
 export const oauthService = new OauthService(oauthAppRepository, organizationRepository, mediaRepository);
 export const postsService = new PostsService(

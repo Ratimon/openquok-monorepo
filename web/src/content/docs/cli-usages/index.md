@@ -32,5 +32,5 @@ Operational recipes for the <Badge text="openquok" variant="default" /> CLI grou
 <CardGrid>
 <LinkCard title="CLI Examples" description="Platform-specific recipes for Meta Threads and Instagram (Business / Standalone)" href="/docs/cli-examples" />
 <LinkCard title="Public API" description="REST endpoints and OAuth used by the CLI and SDK" href="/docs/getting-started-for-public-api" />
-<LinkCard title="CLI authentication" description="OAuth device flow, API keys, and custom auth server URL" href="/docs/getting-started-for-cli/authentication" />
+<LinkCard title="CLI authentication" description="OAuth device flow, programmatic token (opo_), and custom auth server URL" href="/docs/getting-started-for-cli/authentication" />
 </CardGrid>

@@ -231,7 +231,7 @@ export class SettingsController {
         }
     };
 
-    /** POST /settings/:id/rotate-api-key — rotate API key (admin/owner only). */
+    /** POST /settings/:id/rotate-api-key — rotate programmatic access token (admin/owner only). */
     rotateApiKey = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;
@@ -240,9 +240,32 @@ export class SettingsController {
                 return next(new UserAuthorizationError("Not authenticated"));
             }
             const organizationId = (req.params as { id: string }).id;
-            const row = await this.organizationService.rotateApiKey(authUserId, organizationId);
-            const org = toOrganizationDTO(row)!;
-            res.status(200).json({ success: true, data: org });
+            const { organization, programmaticAccessToken } =
+                await this.organizationService.rotateProgrammaticAccessToken(authUserId, organizationId);
+            const org = toOrganizationDTO(organization)!;
+            res.status(200).json({
+                success: true,
+                data: { ...org, programmaticAccessToken },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /settings/:id/programmatic-token — whether a programmatic token is configured. */
+    getProgrammaticTokenStatus = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const organizationId = (req.params as { id: string }).id;
+            const status = await this.organizationService.getProgrammaticTokenStatus(
+                authUserId,
+                organizationId
+            );
+            res.status(200).json({ success: true, data: status });
         } catch (error) {
             next(error);
         }

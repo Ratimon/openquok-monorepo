@@ -79,9 +79,10 @@
 		}
 	});
 
-	const developerApiKey = $derived(developersPresenter.currentApiKey);
-	const developerApiKeyVisible = $derived(developersPresenter.apiKeyVisible);
-	const developerCanRotate = $derived(developersPresenter.canRotateApiKey);
+	const developerProgrammaticToken = $derived(developersPresenter.programmaticAccessToken);
+	const developerProgrammaticConfigured = $derived(developersPresenter.programmaticAccessConfigured ?? false);
+	const developerTokenVisible = $derived(developersPresenter.tokenVisible);
+	const developerCanRotate = $derived(developersPresenter.canRotateProgrammaticToken);
 	const developerRotating = $derived(developersPresenter.status === DevelopersSettingsStatus.ROTATING);
 	let publicApiEnabled = $state<boolean | null>(null);
 
@@ -140,9 +141,26 @@
 	});
 
 	$effect(() => {
-		if (currentSection === 'developers' && developerTab === 'apps') {
-			upsertOauthAppsPresenter.loadForCurrentWorkspace();
+		if (currentSection === 'developers') {
+			void upsertOauthAppsPresenter.loadForCurrentWorkspace();
 		}
+	});
+
+	const developerOauthAppReady = $derived(upsertOauthAppsPresenter.appVm != null);
+	const developerOauthAppLoading = $derived(
+		upsertOauthAppsPresenter.appVm === undefined || upsertOauthAppsPresenter.isLoading
+	);
+
+	$effect(() => {
+		if (currentSection !== 'developers') return;
+		const workspaceId = workspacePresenter.currentWorkspaceId;
+		if (!workspaceId) {
+			developersPresenter.resetProgrammaticAccessSession();
+			developersPresenter.clearProgrammaticTokenStatus();
+			return;
+		}
+		developersPresenter.resetProgrammaticAccessSession();
+		void developersPresenter.loadProgrammaticTokenStatus();
 	});
 
 	$effect(() => {
@@ -300,12 +318,16 @@
 	{:else if currentSection === 'developers'}
 		<EditorDeveloperSettings
 			publicApiEnabled={publicApiEnabled}
-			apiKey={developerApiKey}
-			apiKeyVisible={developerApiKeyVisible}
+			programmaticAccessToken={developerProgrammaticToken}
+			programmaticAccessConfigured={developerProgrammaticConfigured}
+			tokenVisible={developerTokenVisible}
 			canRotate={developerCanRotate}
 			rotating={developerRotating}
-			onSetApiKeyVisible={(v) => developersPresenter.setApiKeyVisible(v)}
-			onRotateApiKey={() => developersPresenter.rotateApiKey()}
+			onSetTokenVisible={(v) => developersPresenter.setTokenVisible(v)}
+			oauthAppReady={developerOauthAppReady}
+			oauthAppLoading={developerOauthAppLoading}
+			onRotateToken={() => developersPresenter.rotateProgrammaticAccessToken()}
+			onGoToAppsTab={() => setDeveloperTab('apps')}
 			oauthLoadForbidden={upsertOauthAppsPresenter.loadForbidden}
 			oauthForbiddenMessage={upsertOauthAppsPresenter.forbiddenMessage}
 			oauthAppVm={upsertOauthAppsPresenter.appVm}

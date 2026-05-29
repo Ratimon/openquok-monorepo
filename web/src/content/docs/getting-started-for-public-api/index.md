@@ -2,7 +2,7 @@
 title: Overview - Public API
 description: Getting started to automate your Social Scheduling with Openquok 's public api.
 order: 0
-lastUpdated: 2026-05-11
+lastUpdated: 2026-05-29
 ---
 
 <script>
@@ -12,24 +12,32 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 ## Authentication
 
-There are two ways to authenticate with the Openquok public API. In both cases the token is sent in the <Badge text="Authorization" variant="default" /> header and currently uses the <Badge text="opo_" variant="default" /> prefix.
+All programmatic access to <Badge text="/api/v1/public/*" variant="path" /> uses a Bearer token with the <Badge text="opo_" variant="default" /> prefix in the <Badge text="Authorization" variant="default" /> header.
 
-### API key
+### Programmatic access token (your workspace)
 
-Get your workspace API key from <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />, then reveal and copy it from the **API Key** panel. Send it on every request:
+For scripts, CI, and your own integrations, use a **programmatic access token** tied to your workspace:
+
+1. In the Openquok app, go to <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
+2. Click <Badge text="Generate / Rotate token" variant="new" />. The plaintext <Badge text="opo_…" variant="default" /> value is shown **once** — copy it immediately.
+3. Send it on every request:
 
 ```bash
-curl -H "Authorization: opo_your_api_key" https://api.openquok.com/api/v1/public/integrations
+curl -H "Authorization: Bearer opo_your_programmatic_token" https://api.openquok.com/api/v1/public/integrations
 ```
 
-API keys belong to a **workspace (organization)** and act with that workspace's permissions. We may rotate from the same panel ounce in a while.
+Tokens belong to the **workspace (organization)** you selected and act with that workspace's permissions. Rotate from the same panel when you need a new token; previously issued tokens stop working after rotation.
 
-### OAuth2 access token
+<Callout type="tip" title="CLI and agents">
+<p>Prefer <Badge text="openquok auth:login" variant="default" /> (device OAuth) when a browser is available — it stores an <Badge text="opo_" variant="default" /> token without pasting secrets. For headless hosts, set <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> to the same <Badge text="opo_" variant="default" /> value. See <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
+</Callout>
 
-If you are building an app for other Openquok users, use the <a href="/docs/developer-guidelines/oauth2-authentication">OAuth2 Authorization Code flow</a> to obtain tokens that act on behalf of users. The returned <Badge text="access_token" variant="default" /> is sent the same way as an API key:
+### OAuth2 access token (third-party apps)
+
+If you are building an app **for other Openquok users**, register an OAuth app under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> and use the <a href="/docs/developer-guidelines/oauth2-authentication">OAuth2 Authorization Code flow</a>. The returned <Badge text="access_token" variant="default" /> also uses the <Badge text="opo_" variant="default" /> prefix and is sent the same way:
 
 ```bash
-curl -H "Authorization: opo_your_oauth_token" https://api.openquok.com/api/v1/public/integrations
+curl -H "Authorization: Bearer opo_your_oauth_token" https://api.openquok.com/api/v1/public/integrations
 ```
 
 OAuth tokens are scoped to the **organization the user authorized** — not to the developer who built the app — so the same endpoint returns different data depending on which token is used.
@@ -83,13 +91,13 @@ npm install @openquok/node-sdk
 ### Quick guide
 
 <Callout type="note" title="Authentication">
-<p>Pass an organization <strong>API key</strong> (or OAuth app token) as the first argument to the <code>Openquok</code> constructor — it is sent as the <Badge text="Authorization" variant="default" /> header on every request.</p>
+<p>Pass your programmatic <Badge text="opo_" variant="default" /> token (from <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />, or from OAuth for third-party apps) as the first argument to the <code>Openquok</code> constructor — it is sent as the <Badge text="Authorization" variant="default" /> header on every request.</p>
 </Callout>
 
 ```ts
 import Openquok from '@openquok/node-sdk';
 
-const openquok = new Openquok('YOUR_API_KEY', {
+const openquok = new Openquok('opo_your_programmatic_token', {
 	// optional (defaults shown)
 	baseUrl: 'https://api.openquok.com',
 	apiPrefix: '/api/v1'

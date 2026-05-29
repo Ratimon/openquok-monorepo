@@ -295,7 +295,7 @@ pnpm --filter ./agent cli -- posts:connect --help
 pnpm --filter ./agent cli -- upload-from-url --help
 ```
 
-**Connectivity smoke** — requires a valid API key or stored credentials. Confirms auth + workspace plumbing end-to-end against a running backend:
+**Connectivity smoke** — requires a valid <Badge text="opo_" variant="default" /> programmatic token or stored credentials. Confirms auth + workspace plumbing end-to-end against a running backend:
 
 ```bash
 pnpm -s --filter ./agent cli -- auth:status
@@ -346,10 +346,10 @@ Use the same origin your web app uses for API calls if you proxy through another
 
 ### Authenticate the CLI
 
-**API key (fastest)** — copy a programmatic key from **Settings** in the dashboard, then store it:
+**Programmatic token (fastest)** — rotate a token from <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />, then store it:
 
 ```bash
-pnpm -s --filter ./agent cli -- auth:login --apiKey "opo_your_key_here"
+pnpm -s --filter ./agent cli -- auth:login --apiKey "opo_your_programmatic_token"
 ```
 
 **Or** export <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> for the session (run <Badge text="auth:logout" variant="default" /> first if <Badge text="~/.openquok/credentials.json" variant="path" /> already exists — stored credentials take priority over env).

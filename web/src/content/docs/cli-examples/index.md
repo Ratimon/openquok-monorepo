@@ -32,7 +32,7 @@ INSTAGRAM_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier | st
 ```
 
 - The `--providerSettingsByIntegrationId` payloads shown match the JSON shapes the backend's provider modules expect today. If a key is missing or renamed, fetch the canonical schema with <a href="/docs/cli-usages/integrations"><Badge text="integrations:settings" variant="default" /></a> before scripting a batch.
-- All examples assume you're already authenticated — see <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a> for OAuth device flow or API key setup.
+- All examples assume you're already authenticated — see <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a> for OAuth device flow or programmatic token setup.
 
 ## Related Section(s)
 

@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 ## Overview
 
-Openquok connects **social channels** through the **backend** integration layer: OAuth flows, organization-scoped channels, and optional **programmatic** APIs (organization API key). Credentials and redirect URLs are configured via **environment variables** on the backend and **Meta for Developers** (for Threads, Instagram, and other providers).
+Openquok connects **social channels** through the **backend** integration layer: OAuth flows, organization-scoped channels, and optional **programmatic** APIs authenticated with a workspace <Badge text="opo_" variant="default" /> token. Credentials and redirect URLs are configured via **environment variables** on the backend and **Meta for Developers** (for Threads, Instagram, and other providers). See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> for token setup.
 
 The flow matches common **OAuth-based social tools**: you register apps with each platform, set redirect URIs, and store client IDs and secrets in env—**never** in client-side code or the repo.
 

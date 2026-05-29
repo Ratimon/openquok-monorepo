@@ -3,16 +3,21 @@ import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings
 
 export enum DevelopersSettingsStatus {
 	IDLE = 'IDLE',
-	ROTATING = 'ROTATING'
+	ROTATING = 'ROTATING',
+	LOADING_STATUS = 'LOADING_STATUS'
 }
 
 export class DevelopersSettingsPresenter {
 	public status = $state<DevelopersSettingsStatus>(DevelopersSettingsStatus.IDLE);
-	public apiKeyVisible = $state(false);
+	public tokenVisible = $state(false);
 	public showToastMessage = $state(false);
 	public toastMessage = $state('');
 	public toastIsError = $state(false);
 	public publicApiEnabled = $state<boolean | null>(null);
+	/** Plaintext token shown once after rotate/generate; not persisted in org list. */
+	public programmaticAccessToken = $state<string | null>(null);
+	/** Whether an active programmatic token exists server-side for this workspace. */
+	public programmaticAccessConfigured = $state<boolean | null>(null);
 
 	constructor(
 		private readonly settingsRepository: SettingsRepository,
@@ -23,14 +28,7 @@ export class DevelopersSettingsPresenter {
 		return this.workspaceSettingsPresenter.currentWorkspaceId;
 	}
 
-	get currentApiKey(): string | null {
-		const id = this.currentWorkspaceId;
-		if (!id) return null;
-		const org = this.settingsRepository.organizationsPm.find((o) => o.id === id);
-		return org?.apiKey ?? null;
-	}
-
-	get canRotateApiKey(): boolean {
+	get canRotateProgrammaticToken(): boolean {
 		if (this.publicApiEnabled === false) return false;
 		const role = this.workspaceSettingsPresenter.currentWorkspaceRole;
 		return role === 'admin' || role === 'owner';
@@ -40,11 +38,36 @@ export class DevelopersSettingsPresenter {
 		this.publicApiEnabled = enabled;
 	}
 
-	public setApiKeyVisible(visible: boolean) {
-		this.apiKeyVisible = visible;
+	public setTokenVisible(visible: boolean) {
+		this.tokenVisible = visible;
 	}
 
-	public async rotateApiKey(): Promise<void> {
+	public resetProgrammaticAccessSession(): void {
+		this.programmaticAccessToken = null;
+		this.tokenVisible = false;
+	}
+
+	public clearProgrammaticTokenStatus(): void {
+		this.programmaticAccessConfigured = null;
+	}
+
+	public async loadProgrammaticTokenStatus(): Promise<void> {
+		const id = this.currentWorkspaceId;
+		if (!id) {
+			this.programmaticAccessConfigured = null;
+			return;
+		}
+
+		this.status = DevelopersSettingsStatus.LOADING_STATUS;
+		try {
+			const status = await this.settingsRepository.getProgrammaticTokenStatus(id);
+			this.programmaticAccessConfigured = status?.configured ?? false;
+		} finally {
+			this.status = DevelopersSettingsStatus.IDLE;
+		}
+	}
+
+	public async rotateProgrammaticAccessToken(): Promise<void> {
 		const id = this.currentWorkspaceId;
 		if (!id) return;
 
@@ -55,8 +78,8 @@ export class DevelopersSettingsPresenter {
 			return;
 		}
 
-		if (!this.canRotateApiKey) {
-			this.toastMessage = 'Only workspace admins can rotate the API key.';
+		if (!this.canRotateProgrammaticToken) {
+			this.toastMessage = 'Only workspace admins can rotate the programmatic access token.';
 			this.toastIsError = true;
 			this.showToastMessage = true;
 			return;
@@ -64,15 +87,17 @@ export class DevelopersSettingsPresenter {
 
 		this.status = DevelopersSettingsStatus.ROTATING;
 		try {
-			const updated = await this.settingsRepository.rotateApiKey(id);
-			if (!updated?.apiKey) {
-				this.toastMessage = 'Failed to rotate API key. Please try again.';
+			const result = await this.settingsRepository.rotateProgrammaticAccessToken(id);
+			if (!result.success) {
+				this.toastMessage = result.message;
 				this.toastIsError = true;
 				this.showToastMessage = true;
 				return;
 			}
-			this.apiKeyVisible = true;
-			this.toastMessage = 'API key rotated.';
+			this.programmaticAccessToken = result.programmaticAccessToken;
+			this.programmaticAccessConfigured = true;
+			this.tokenVisible = true;
+			this.toastMessage = 'Programmatic access token generated.';
 			this.toastIsError = false;
 			this.showToastMessage = true;
 		} finally {
@@ -80,4 +105,3 @@ export class DevelopersSettingsPresenter {
 		}
 	}
 }
-

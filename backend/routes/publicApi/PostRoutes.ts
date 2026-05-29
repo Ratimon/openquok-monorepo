@@ -12,21 +12,21 @@ import {
     validatePublicUpdateReleaseIdRequest,
     validatePublicUpdatePostReviewTodoRequest,
 } from "../../data/schemas/publicPostsSchemas";
-import { oauthAppService } from "../../services/index";
+import { oauthAppService, subscriptionGuard } from "../../services/index";
 
 type PublicPostRouter = ReturnType<typeof Router>;
 
 /**
  * `/public/posts` router.
  * - Anonymous: `GET /:postId/comments`
- * - Programmatic auth: OAuth app token (hashed) with a legacy fallback org api_key
+ * - Programmatic auth: OAuth app token (`opo_…`) with `public_api` plan enforcement
  *
  * NOTE: order matters — static segments (`/list`, `/find-slot/...`) and
  * suffix routes (`/:postId/status`, `/:postId/missing`, `/:postId/release-id`) are registered **before**
  * `GET /:postId` and `DELETE /:postId` so Express does not greedily match the catch-all.
  */
 const publicPostRouter: PublicPostRouter = Router();
-const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 
 publicPostRouter.get("/:postId/comments", validatePublicPostCommentsParams, postsController.getPublicComments);
 

@@ -10,6 +10,7 @@ import type { EmailService } from "./EmailService";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
+import type { OauthAppService } from "./OauthAppService";
 
 import { OrganizationNotFoundError, OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError } from "../errors/UserError";
@@ -45,7 +46,8 @@ export class OrganizationService {
         private readonly emailService?: EmailService,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
-        private readonly subscriptionGuard?: SubscriptionGuardService
+        private readonly subscriptionGuard?: SubscriptionGuardService,
+        private readonly oauthAppService?: OauthAppService
     ) {}
 
     /** Invite a team member by email: create signed invite link and optionally send email. */
@@ -288,26 +290,9 @@ export class OrganizationService {
             const { organizations, memberships } =
                 await this.organizationRepository.findOrganizationsByUserId(userId);
 
-            // Backfill missing programmatic API keys (legacy orgs created before api_key generation existed).
-            // Safe: caller is already a member of these orgs.
-            const patched: OrganizationLike[] = [];
-            for (const org of organizations) {
-                if (org.api_key == null) {
-                    try {
-                        const updated = await this.organizationRepository.ensureApiKeyForOrganization(org.id);
-                        patched.push(updated ?? org);
-                        continue;
-                    } catch {
-                        patched.push(org);
-                        continue;
-                    }
-                }
-                patched.push(org);
-            }
-
             const orgIds = organizations.map((o) => o.id);
             const memberCounts = await this.organizationRepository.getMemberCounts(orgIds);
-            return { organizations: patched, memberships, memberCounts };
+            return { organizations, memberships, memberCounts };
         };
         if (this.cache) {
             return this.cache.getOrSet(cacheKey, factory, ORG_CACHE_TTL_SEC);
@@ -452,6 +437,8 @@ export class OrganizationService {
         const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
         if (!organization) throw new OrganizationNotFoundError(organizationId);
 
+        await this.subscriptionGuard?.assertWorkspaceHasSeatForNewMember(organizationId, authUserId);
+
         const { membership: newMembership, error } = await this.organizationRepository.addMember({
             userId: params.userId,
             organizationId,
@@ -521,28 +508,36 @@ export class OrganizationService {
         await this._invalidateOrganizationRelatedCaches({ authUserId, organizationId });
     }
 
-    /** Rotate API key; requires admin or owner. Returns row; controller maps to DTO. */
-    async rotateApiKey(authUserId: string, organizationId: string): Promise<OrganizationLike> {
-        const userId = await this.resolveAuthUserToUserId(authUserId);
-        const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
-        if (!membership || membership.disabled) {
-            throw new OrganizationNotFoundError(organizationId);
+    /**
+     * Rotate workspace programmatic access token (`opo_…`); requires admin or owner.
+     * Plaintext token is returned once; org row is unchanged (legacy `api_key` is not updated).
+     */
+    async rotateProgrammaticAccessToken(
+        authUserId: string,
+        organizationId: string
+    ): Promise<{ organization: OrganizationLike; programmaticAccessToken: string }> {
+        if (!this.oauthAppService) {
+            throw new Error("OAuth app service is not configured");
         }
-        if (this.getRoleLevel(membership.role) < 1) {
-            throw new OrganizationForbiddenError("Only admins can rotate the API key");
-        }
-        const membershipRole = membership.role as WorkspaceMembershipRole;
-        await this.subscriptionGuard?.assert(SubscriptionSection.PUBLIC_API, {
-            scope: "workspace",
-            organizationId,
+        const { programmaticAccessToken } = await this.oauthAppService.issueWorkspaceProgrammaticToken(
             authUserId,
-            workspaceRole: membershipRole,
-        });
-        const { organization, error } = await this.organizationRepository.rotateApiKey(organizationId);
-        if (error) throw error as Error;
+            organizationId
+        );
+        const { organization } = await this.organizationRepository.findOrganizationById(organizationId);
         if (!organization) throw new OrganizationNotFoundError(organizationId);
         await this._invalidateOrganizationRelatedCaches({ authUserId, organizationId });
-        return organization;
+        return { organization, programmaticAccessToken };
+    }
+
+    /** Whether the current admin has configured a programmatic token for this workspace. */
+    async getProgrammaticTokenStatus(
+        authUserId: string,
+        organizationId: string
+    ): Promise<{ configured: boolean }> {
+        if (!this.oauthAppService) {
+            return { configured: false };
+        }
+        return this.oauthAppService.getWorkspaceProgrammaticTokenStatus(authUserId, organizationId);
     }
 
     /**

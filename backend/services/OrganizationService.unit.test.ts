@@ -1,5 +1,8 @@
+import { SubscriptionSection } from "openquok-common";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { UserRepository } from "../repositories/UserRepository";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
+import { SubscriptionError } from "../errors/SubscriptionError";
 
 import { OrganizationService } from "./OrganizationService";
 import { signInviteToken, verifyInviteToken } from "../utils/auth/inviteToken";
@@ -41,7 +44,6 @@ const validateTokenEmail = faker.internet.email();
 const newMemberEmail = faker.internet.email();
 const newMemberName = faker.person.fullName();
 const pastExpiry = faker.date.past().toISOString();
-const apiKeyRotated = faker.string.alphanumeric(12);
 const acceptInviteId = faker.string.uuid();
 
 const orgRow = {
@@ -467,6 +469,45 @@ describe("OrganizationService", () => {
                 service.addTeamMember(authUserId, orgId, { userId: otherUserId, workspaceRole: "user" })
             ).rejects.toThrow(/Only admins can add team members/);
         });
+
+        it("rejects add when workspace has no remaining team seats", async () => {
+            (orgRepo.findMembership as jest.Mock).mockResolvedValue({
+                membership: { ...membershipRow, role: "admin" },
+                error: null,
+            });
+            (orgRepo.findOrganizationById as jest.Mock).mockResolvedValue({
+                organization: orgRow,
+                error: null,
+            });
+            const seatError = new SubscriptionError(
+                "Team member limit reached for this workspace.",
+                SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE,
+                "https://app.example.com/account/billing"
+            );
+            const subscriptionGuard = {
+                assertWorkspaceHasSeatForNewMember: jest.fn().mockRejectedValue(seatError),
+            } as unknown as SubscriptionGuardService;
+            const service = new OrganizationService(
+                orgRepo,
+                userRepo,
+                undefined,
+                undefined,
+                undefined,
+                subscriptionGuard
+            );
+
+            await expect(
+                service.addTeamMember(authUserId, orgId, {
+                    userId: otherUserId,
+                    workspaceRole: "user",
+                })
+            ).rejects.toBe(seatError);
+            expect(subscriptionGuard.assertWorkspaceHasSeatForNewMember).toHaveBeenCalledWith(
+                orgId,
+                authUserId
+            );
+            expect(orgRepo.addMember).not.toHaveBeenCalled();
+        });
     });
 
     describe("removeTeamMember", () => {
@@ -538,19 +579,66 @@ describe("OrganizationService", () => {
         });
     });
 
-    describe("rotateApiKey", () => {
-        it("returns updated org when admin", async () => {
-            (orgRepo.findMembership as jest.Mock).mockResolvedValue({
-                membership: { ...membershipRow, role: "admin" },
+    describe("rotateProgrammaticAccessToken", () => {
+        it("returns org and opo_ token via OAuth app service without updating organizations.api_key", async () => {
+            const programmaticAccessToken = `opo_${faker.string.alphanumeric(48)}`;
+            const oauthAppService = {
+                issueWorkspaceProgrammaticToken: jest
+                    .fn()
+                    .mockResolvedValue({ programmaticAccessToken }),
+            };
+            (orgRepo.findOrganizationById as jest.Mock).mockResolvedValue({
+                organization: orgRow,
                 error: null,
             });
-            (orgRepo.rotateApiKey as jest.Mock).mockResolvedValue({
-                organization: { ...orgRow, api_key: apiKeyRotated },
-                error: null,
-            });
+            const service = new OrganizationService(
+                orgRepo,
+                userRepo,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                oauthAppService as never
+            );
+            const result = await service.rotateProgrammaticAccessToken(authUserId, orgId);
+            expect(result.programmaticAccessToken).toBe(programmaticAccessToken);
+            expect(result.organization).toMatchObject(orgRow);
+            expect(oauthAppService.issueWorkspaceProgrammaticToken).toHaveBeenCalledWith(
+                authUserId,
+                orgId
+            );
+            expect(orgRepo.rotateApiKey).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("getProgrammaticTokenStatus", () => {
+        it("delegates to oauth app service when configured", async () => {
+            const oauthAppService = {
+                getWorkspaceProgrammaticTokenStatus: jest
+                    .fn()
+                    .mockResolvedValue({ configured: true }),
+            };
+            const service = new OrganizationService(
+                orgRepo,
+                userRepo,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                oauthAppService as never
+            );
+            const result = await service.getProgrammaticTokenStatus(authUserId, orgId);
+            expect(result).toEqual({ configured: true });
+            expect(oauthAppService.getWorkspaceProgrammaticTokenStatus).toHaveBeenCalledWith(
+                authUserId,
+                orgId
+            );
+        });
+
+        it("returns configured false when oauth app service is not configured", async () => {
             const service = new OrganizationService(orgRepo, userRepo);
-            const result = await service.rotateApiKey(authUserId, orgId);
-            expect(result.api_key).toBe(apiKeyRotated);
+            const result = await service.getProgrammaticTokenStatus(authUserId, orgId);
+            expect(result).toEqual({ configured: false });
         });
     });
 

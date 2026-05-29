@@ -3,7 +3,7 @@ import { Router } from "express";
 import { publicNotificationController } from "../../controllers/index";
 import { organizationRepository } from "../../repositories/index";
 import { requireProgrammaticAuth } from "../../guards";
-import { oauthAppService } from "../../services/index";
+import { oauthAppService, subscriptionGuard } from "../../services/index";
 import { validatePublicListNotificationsQuery } from "../../data/schemas/publicNotificationsSchemas";
 
 type PublicNotificationRouter = ReturnType<typeof Router>;
@@ -13,7 +13,7 @@ type PublicNotificationRouter = ReturnType<typeof Router>;
  * Same auth as other `/public/*` routes (`requireProgrammaticAuth`).
  */
 const publicNotificationRouter: PublicNotificationRouter = Router();
-const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 
 publicNotificationRouter.get(
     "/notifications",

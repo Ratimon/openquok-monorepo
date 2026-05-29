@@ -3,7 +3,7 @@ import { Router } from "express";
 import { publicAnalyticsController } from "../../controllers/index";
 import { organizationRepository } from "../../repositories/index";
 import { requireProgrammaticAuth } from "../../guards";
-import { oauthAppService } from "../../services/index";
+import { oauthAppService, subscriptionGuard } from "../../services/index";
 import {
     validatePublicIntegrationAnalyticsRequest,
     validatePublicPostAnalyticsRequest,
@@ -19,7 +19,7 @@ type PublicAnalyticsRouter = ReturnType<typeof Router>;
  * so the static `post` segment is not captured as an integration id.
  */
 const publicAnalyticsRouter: PublicAnalyticsRouter = Router();
-const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 
 publicAnalyticsRouter.get(
     "/post/:postId",

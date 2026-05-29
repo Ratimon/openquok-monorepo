@@ -59,10 +59,10 @@ Production auth uses the API at <Badge text="https://cli-auth.openquok.com" vari
 
 ### Authenticate
 
-**Recommended for OpenClaw / Telegram (no browser on the host):** use an API key from the <a href="https://www.openquok.com">Openquok dashboard</a> (Account → Settings → Developers):
+**Recommended for OpenClaw / Telegram (no browser on the host):** rotate a programmatic token from the <a href="https://www.openquok.com">Openquok dashboard</a> (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />):
 
 ```bash
-export OPENQUOK_API_KEY=opo_your_key_here
+export OPENQUOK_API_KEY=opo_your_programmatic_token
 openquok auth:status
 ```
 
@@ -126,6 +126,6 @@ Then open a shell in the Railway service, <code>cd /data/workspace</code>, and c
 
 <CardGrid>
 <LinkCard title="Introduction to Openquok CLI" description="General install and quick start" href="/docs/getting-started-for-cli" />
-<LinkCard title="CLI authentication" description="OAuth, API keys, and self-hosted auth server" href="/docs/getting-started-for-cli/authentication" />
+<LinkCard title="CLI authentication" description="OAuth device flow, programmatic token (opo_), and self-hosted auth server" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="CLI Examples" description="Threads and Instagram recipes" href="/docs/cli-examples" />
 </CardGrid>

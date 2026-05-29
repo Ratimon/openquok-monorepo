@@ -5,6 +5,7 @@ import supertest from "supertest";
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
+import { hashProgrammaticToken } from "../../utils/auth/tokenHash";
 import type { UserTestHelper } from "./userTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 
@@ -72,39 +73,27 @@ export async function signupVerifyAndGetWorkspace(
 }
 
 /**
- * `requireProgrammaticAuth` fallback: `organizations.api_key` (`opk_…`).
- * @see guards/programmatic/programmaticAuth.ts
+ * Writes a legacy `organizations.api_key` (`opk_…`) directly for tests that assert rejection.
+ * Programmatic `/public/*` routes accept `opo_` only; use {@link provisionOAuthAppAccessToken} for valid auth.
  */
 export async function provisionLegacyOrgApiKey(
     adminSupabase: SupabaseClient,
     userHelper: UserTestHelper,
     payload: SignupPayload
 ): Promise<ProgrammaticAuthFixture> {
-    const { accessToken, orgId } = await signupVerifyAndGetWorkspace(
-        adminSupabase,
-        userHelper,
-        payload
-    );
+    const { orgId } = await signupVerifyAndGetWorkspace(adminSupabase, userHelper, payload);
+    const legacyKey = `opk_${faker.string.alphanumeric(48)}`;
+    const { error } = await adminSupabase
+        .from("organizations")
+        .update({ api_key: legacyKey, updated_at: new Date().toISOString() })
+        .eq("id", orgId);
+    expect(error).toBeNull();
 
-    const listRes = await supertest(app)
-        .get(settingsPath)
-        .set("Authorization", `Bearer ${accessToken}`);
-    let apiKey = listRes.body?.data?.[0]?.apiKey as string | null;
-    if (!apiKey) {
-        const rotate = await supertest(app)
-            .post(`${settingsPath}/${orgId}/rotate-api-key`)
-            .set("Authorization", `Bearer ${accessToken}`);
-        expect(rotate.status).toBe(200);
-        apiKey = rotate.body?.data?.apiKey as string | null;
-    }
-    expect(typeof apiKey).toBe("string");
-    expect(apiKey).toMatch(/^opk_/);
-
-    return { orgId, bearerToken: apiKey as string };
+    return { orgId, bearerToken: legacyKey };
 }
 
 /**
- * `requireProgrammaticAuth` primary path: OAuth app token from code exchange (`opo_…`).
+ * OAuth app token from code exchange (`opo_…`) for programmatic `/public/*` routes.
  * @see guards/programmatic/programmaticAuth.ts, tests/integration/OauthApps.integration.test.ts
  */
 export async function provisionOAuthAppAccessToken(
@@ -156,6 +145,96 @@ export async function provisionOAuthAppAccessToken(
     return { orgId, bearerToken };
 }
 
+/** Exchange an OAuth app authorization code for a programmatic bearer token (`opo_…`). */
+export async function exchangeOAuthProgrammaticToken(
+    accessToken: string,
+    orgId: string,
+    options?: { appName?: string }
+): Promise<string> {
+    const appName = options?.appName ?? `Programmatic ${faker.string.alphanumeric(6)}`;
+
+    const createApp = await supertest(app)
+        .post(oauthAppsPath)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({
+            organizationId: orgId,
+            name: appName,
+            description: "Programmatic integration test",
+            redirectUrl: "https://example.com/oauth/callback",
+        });
+    expect(createApp.status).toBe(201);
+    const clientId = createApp.body?.data?.clientId as string;
+    const clientSecret = createApp.body?.data?.clientSecret as string;
+
+    const approve = await supertest(app)
+        .post(oauthAuthorizePath)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ client_id: clientId, organizationId: orgId, state: "integration", action: "approve" });
+    expect(approve.status).toBe(200);
+    const code = new URL(approve.body?.redirect as string).searchParams.get("code");
+    expect(typeof code).toBe("string");
+
+    const tokenRes = await supertest(app).post(oauthTokenPath).send({
+        grant_type: "authorization_code",
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+    });
+    expect(tokenRes.status).toBe(200);
+    const bearerToken = tokenRes.body?.access_token as string;
+    expect(bearerToken).toMatch(/^opo_/);
+    return bearerToken;
+}
+
 export function programmaticBearerAuth(bearerToken: string): { Authorization: string } {
     return { Authorization: `Bearer ${bearerToken}` };
+}
+
+/**
+ * Ensures the first-party OAuth app row exists for workspace programmatic token rotate tests.
+ * Requires `SECURITY_SECRET` on the backend process.
+ */
+export async function ensureFirstPartyOauthApp(
+    adminSupabase: SupabaseClient,
+    params: { clientId: string; organizationId: string; userId: string }
+): Promise<void> {
+    const { data: existing, error: lookupError } = await adminSupabase
+        .from("oauth_apps")
+        .select("id")
+        .eq("client_id", params.clientId)
+        .is("deleted_at", null)
+        .maybeSingle();
+    expect(lookupError).toBeNull();
+    if (existing?.id) return;
+
+    const secretKey =
+        (config.auth as { programmaticTokenSecret?: string }).programmaticTokenSecret?.trim() ?? "";
+    expect(secretKey.length).toBeGreaterThan(0);
+
+    const now = new Date().toISOString();
+    const { error } = await adminSupabase.from("oauth_apps").insert({
+        organization_id: params.organizationId,
+        created_by_user_id: params.userId,
+        name: "Integration first-party CLI app",
+        description: "Fixture for workspace programmatic token rotate integration tests",
+        redirect_url: "https://example.com/oauth/callback",
+        client_id: params.clientId,
+        client_secret_hash: hashProgrammaticToken("oqs_integration_first_party_secret", secretKey),
+        deleted_at: null,
+        created_at: now,
+        updated_at: now,
+    });
+    expect(error).toBeNull();
+}
+
+/** Resolves public.users id from a session JWT (same as auth user id when ids are aligned). */
+export async function resolveUserIdFromAccessToken(
+    adminSupabase: SupabaseClient,
+    accessToken: string
+): Promise<string> {
+    const { data, error } = await adminSupabase.auth.getUser(accessToken);
+    expect(error).toBeNull();
+    const userId = data?.user?.id;
+    expect(userId).toBeDefined();
+    return userId as string;
 }

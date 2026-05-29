@@ -4,6 +4,9 @@ export {
     requireAccountPlanCapability,
     requireProgrammaticPlanCapability,
     requirePlanCapabilityForOrganization,
+    requireTeamInviteCapacity,
+    requireTeamInviteCapacityForOrganization,
+    requireTeamSeatForOrganization,
 } from "./subscription/middleware";
 export type { RequirePlanCapabilityOptions, RequirePlanCapabilityForOrganizationOptions } from "./subscription/middleware";
 export type {

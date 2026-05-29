@@ -13,8 +13,10 @@ import {
 import {
     requireAccountPlanCapability,
     requireFullAuth,
-    requirePlanCapability,
     requirePlanCapabilityForOrganization,
+    requireTeamInviteCapacity,
+    requireTeamInviteCapacityForOrganization,
+    requireTeamSeatForOrganization,
 } from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { SubscriptionSection } from "openquok-common";
@@ -43,7 +45,7 @@ settingsRouter.get("/team", auth, settingsController.getTeamForActiveWorkspace);
 settingsRouter.post(
     "/team",
     auth,
-    requirePlanCapability(SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE),
+    requireTeamInviteCapacity(),
     validateInviteTeamMemberRequest,
     settingsController.inviteTeamMemberForActiveWorkspace
 );
@@ -72,7 +74,7 @@ settingsRouter.post(
     "/:id/invite",
     auth,
     validateOrganizationIdParam,
-    requirePlanCapabilityForOrganization(SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE, {
+    requireTeamInviteCapacityForOrganization({
         resolveOrganizationId: (req) => (req.params as any)?.id,
     }),
     validateInviteTeamMemberRequest,
@@ -88,7 +90,7 @@ settingsRouter.post(
     "/:id/team",
     auth,
     validateOrganizationIdParam,
-    requirePlanCapabilityForOrganization(SubscriptionSection.TEAM_MEMBERS_PER_WORKSPACE, {
+    requireTeamSeatForOrganization({
         resolveOrganizationId: (req) => (req.params as any)?.id,
     }),
     validateAddTeamMemberRequest,
@@ -99,6 +101,15 @@ settingsRouter.delete(
     auth,
     validateOrganizationIdAndUserIdParam,
     settingsController.removeTeamMember
+);
+settingsRouter.get(
+    "/:id/programmatic-token",
+    auth,
+    validateOrganizationIdParam,
+    requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
+        resolveOrganizationId: (req) => (req.params as any)?.id,
+    }),
+    settingsController.getProgrammaticTokenStatus
 );
 settingsRouter.post(
     "/:id/rotate-api-key",

@@ -6,7 +6,9 @@ import type { MediaRepository } from "../repositories/MediaRepository";
 import { hashProgrammaticToken } from "../utils/auth/tokenHash";
 
 /** Mutable so tests can simulate missing `SECURITY_SECRET` / JWT fallback */
-const oauthAuthConfig = { programmaticTokenSecret: "oauth-unit-test-secret-fixed-for-hashing" };
+const oauthAuthConfig = {
+    programmaticTokenSecret: "oauth-unit-test-secret-fixed-for-hashing",
+};
 
 jest.mock("../config/GlobalConfig", () => ({
     config: {
@@ -62,6 +64,8 @@ function createMockOauthRepo(): jest.Mocked<OauthAppRepository> {
         revokeAllForApp: jest.fn(),
         listApprovedAuthorizationsByUserId: jest.fn(),
         revokeAuthorizationByIdAndUserId: jest.fn(),
+        setAccessTokenForAuthorization: jest.fn(),
+        findActiveAuthorizationForUserOrgApp: jest.fn(),
     } as unknown as jest.Mocked<OauthAppRepository>;
 }
 
@@ -232,6 +236,112 @@ describe("OauthAppService", () => {
                     redirectUrl: "https://example.com/cb",
                 })
             ).rejects.toMatchObject({ statusCode: 500 });
+        });
+    });
+
+    describe("issueWorkspaceProgrammaticToken", () => {
+        it("issues opo_ token and stores hash on authorization", async () => {
+            const app = baseAppRow();
+            const authzId = faker.string.uuid();
+            oauthRepo.getAppByOrganizationId.mockResolvedValue(app);
+            oauthRepo.upsertAuthorization.mockResolvedValue({
+                id: authzId,
+                oauth_app_id: oauthAppId,
+                user_id: userId,
+                organization_id: orgId,
+                access_token_hash: null,
+                authorization_code_hash: null,
+                code_expires_at: null,
+                revoked_at: null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            });
+
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
+            const { programmaticAccessToken } = await service.issueWorkspaceProgrammaticToken(
+                authUserId,
+                orgId
+            );
+
+            expect(programmaticAccessToken).toMatch(/^opo_/);
+            expect(oauthRepo.getAppByOrganizationId).toHaveBeenCalledWith(orgId);
+            expect(oauthRepo.upsertAuthorization).toHaveBeenCalledWith({
+                oauthAppId: app.id,
+                userId,
+                organizationId: orgId,
+            });
+            expect(oauthRepo.setAccessTokenForAuthorization).toHaveBeenCalledWith({
+                authorizationId: authzId,
+                accessTokenHash: hashProgrammaticToken(programmaticAccessToken, secretKey),
+            });
+        });
+
+        it("throws 400 when workspace has no OAuth application", async () => {
+            oauthRepo.getAppByOrganizationId.mockResolvedValue(null);
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
+            await expect(service.issueWorkspaceProgrammaticToken(authUserId, orgId)).rejects.toMatchObject({
+                statusCode: 400,
+            });
+        });
+    });
+
+    describe("getWorkspaceProgrammaticTokenStatus", () => {
+        it("returns configured true when authorization has access token hash", async () => {
+            const app = baseAppRow();
+            oauthRepo.getAppByOrganizationId.mockResolvedValue(app);
+            oauthRepo.findActiveAuthorizationForUserOrgApp.mockResolvedValue({
+                id: faker.string.uuid(),
+                oauth_app_id: oauthAppId,
+                user_id: userId,
+                organization_id: orgId,
+                access_token_hash: "hmac_sha256:abc",
+                authorization_code_hash: null,
+                code_expires_at: null,
+                revoked_at: null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            });
+
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
+            const status = await service.getWorkspaceProgrammaticTokenStatus(authUserId, orgId);
+            expect(status).toEqual({ configured: true });
+        });
+
+        it("returns configured false when workspace has no OAuth application", async () => {
+            oauthRepo.getAppByOrganizationId.mockResolvedValue(null);
+
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
+            const status = await service.getWorkspaceProgrammaticTokenStatus(authUserId, orgId);
+            expect(status).toEqual({ configured: false });
+        });
+
+        it("returns configured false when no authorization exists", async () => {
+            oauthRepo.getAppByOrganizationId.mockResolvedValue(baseAppRow());
+            oauthRepo.findActiveAuthorizationForUserOrgApp.mockResolvedValue(null);
+
+            const service = new OauthAppService(
+                oauthRepo,
+                orgRepo as unknown as OrganizationRepository,
+                mediaRepo as unknown as MediaRepository
+            );
+            const status = await service.getWorkspaceProgrammaticTokenStatus(authUserId, orgId);
+            expect(status).toEqual({ configured: false });
         });
     });
 

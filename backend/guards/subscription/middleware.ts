@@ -134,3 +134,77 @@ export function requireProgrammaticPlanCapability(section: SubscriptionSection) 
         }
     };
 }
+
+/**
+ * Express middleware: enforce team invite capacity (members + pending invites) for the active workspace.
+ */
+export function requireTeamInviteCapacity() {
+    return async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
+        try {
+            if (!req.user?.id) {
+                next(new TokenError("Authentication required"));
+                return;
+            }
+
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
+            await subscriptionGuard.assertTeamInviteCapacity(organizationId, req.user.id);
+            next();
+        } catch (err) {
+            next(err);
+        }
+    };
+}
+
+/**
+ * Express middleware: enforce team invite capacity when the workspace id is in params/query/body.
+ */
+export function requireTeamInviteCapacityForOrganization(
+    options: Pick<RequirePlanCapabilityForOrganizationOptions, "resolveOrganizationId">
+) {
+    return async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
+        try {
+            if (!req.user?.id) {
+                next(new TokenError("Authentication required"));
+                return;
+            }
+
+            const organizationId = options.resolveOrganizationId(req);
+            if (!organizationId?.trim()) {
+                next(new TokenError("Workspace context required"));
+                return;
+            }
+
+            await subscriptionGuard.assertTeamInviteCapacity(organizationId, req.user.id);
+            next();
+        } catch (err) {
+            next(err);
+        }
+    };
+}
+
+/**
+ * Express middleware: enforce an available team seat before adding a member to a workspace.
+ */
+export function requireTeamSeatForOrganization(
+    options: Pick<RequirePlanCapabilityForOrganizationOptions, "resolveOrganizationId">
+) {
+    return async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
+        try {
+            if (!req.user?.id) {
+                next(new TokenError("Authentication required"));
+                return;
+            }
+
+            const organizationId = options.resolveOrganizationId(req);
+            if (!organizationId?.trim()) {
+                next(new TokenError("Workspace context required"));
+                return;
+            }
+
+            await subscriptionGuard.assertWorkspaceHasSeatForNewMember(organizationId, req.user.id);
+            next();
+        } catch (err) {
+            next(err);
+        }
+    };
+}

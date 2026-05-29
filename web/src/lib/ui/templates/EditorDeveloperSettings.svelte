@@ -4,17 +4,61 @@
 	import { OAuthAppsPresenterStatus } from '$lib/developers/UpsertOAuthApp.presenter.svelte';
 	import type { OauthAppViewModel } from '$lib/developers/UpsertOAuthApp.presenter.svelte';
 
+	import { browser } from '$app/environment';
+	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
+	import { route, url } from '$lib/utils/path';
+	import { icons } from '$data/icons';
+
 	import UpdateDeveloperAccess from '$lib/ui/components/developer/UpdateDeveloperAccess.svelte';
 	import UpdateDeveloperOauth from '$lib/ui/components/developer/UpdateDeveloperOauth.svelte';
+	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
+
+	const CLI_DEVICE_LOGIN_NOTICE_STORAGE_KEY = 'settings:developers:cli-device-login-dismissed';
+
+	// /docs/getting-started-for-cli/authentication
+	const rootPathPublicDocs = getRootPathPublicDocs();
+	const publicDocsPath = route(rootPathPublicDocs);
+	const cliAuthDocsHref = url(`${publicDocsPath}/getting-started-for-cli/authentication`);
+
+	let cliDeviceLoginNoticeDismissed = $state(false);
+
+	function readCliDeviceLoginNoticeDismissed(): boolean {
+		if (!browser) return false;
+		try {
+			return localStorage.getItem(CLI_DEVICE_LOGIN_NOTICE_STORAGE_KEY) === 'true';
+		} catch {
+			return false;
+		}
+	}
+
+	function dismissCliDeviceLoginNotice(): void {
+		cliDeviceLoginNoticeDismissed = true;
+		if (!browser) return;
+		try {
+			localStorage.setItem(CLI_DEVICE_LOGIN_NOTICE_STORAGE_KEY, 'true');
+		} catch {
+			// ignore
+		}
+	}
+
+	$effect(() => {
+		cliDeviceLoginNoticeDismissed = readCliDeviceLoginNoticeDismissed();
+	});
 
 	type Props = {
 		publicApiEnabled: boolean | null;
-		apiKey: string | null;
-		apiKeyVisible: boolean;
+		programmaticAccessToken: string | null;
+		programmaticAccessConfigured: boolean;
+		tokenVisible: boolean;
 		canRotate: boolean;
 		rotating: boolean;
-		onSetApiKeyVisible: (visible: boolean) => void;
-		onRotateApiKey: () => void | Promise<void>;
+		oauthAppReady: boolean;
+		oauthAppLoading: boolean;
+		onSetTokenVisible: (visible: boolean) => void;
+		onRotateToken: () => void | Promise<void>;
+		onGoToAppsTab: () => void;
 
 		oauthLoadForbidden: boolean;
 		oauthForbiddenMessage: string;
@@ -62,12 +106,16 @@
 
 	let {
 		publicApiEnabled,
-		apiKey,
-		apiKeyVisible,
+		programmaticAccessToken,
+		programmaticAccessConfigured,
+		tokenVisible,
 		canRotate,
 		rotating,
-		onSetApiKeyVisible,
-		onRotateApiKey,
+		oauthAppReady,
+		oauthAppLoading,
+		onSetTokenVisible,
+		onRotateToken,
+		onGoToAppsTab,
 
 		oauthLoadForbidden,
 		oauthForbiddenMessage,
@@ -122,23 +170,23 @@
 		<div class="rounded-xl border border-warning/40 bg-warning/10 p-6 text-sm text-base-content">
 			<p class="font-medium">Public API is not included on your current plan.</p>
 			<p class="mt-1 text-base-content/70">
-				Upgrade to unlock API keys and OAuth app management.
+				Upgrade to unlock programmatic access tokens and OAuth app management.
 			</p>
 		</div>
 	{:else}
+	<div class="space-y-3">
 	<div class="flex items-center justify-between gap-3">
 		<div class="min-w-0 flex-1">
 			{#if developerTab === 'access'}
 				<p class="text-sm text-base-content/70">
-					Use your API Key to automate your own account.
-				</p>
-				<p class="text-sm text-base-content/70">
-					If you’re building a product that schedules posts on behalf of other users, use OAuth Apps.
+					Generate a programmatic token (<code class="text-xs">opo_…</code>) for CI and headless scripts using your
+					workspace OAuth app. Create that app on the Apps tab first, then rotate the token here.
 				</p>
 			{:else if developerTab === 'apps'}
 				<p class="text-sm text-base-content/70">
-					Create an OAuth app so other users can authorize your product to act on their workspace through
-					Openquok. After OAuth2 completes, your server receives a token you can use like an API key on public endpoints.
+					Register one OAuth application per workspace (redirect URL, client credentials). Required before you
+					can generate a programmatic access token on the Access tab. You can also use this app for third-party
+					OAuth flows.
 				</p>
 			{/if}
 		</div>
@@ -165,14 +213,42 @@
 		</div>
 	</div>
 
+	{#if developerTab === 'access' && !cliDeviceLoginNoticeDismissed}
+		<HomeAccountNoticeBanner
+			iconName={icons.Info.name}
+			tone="neutral"
+			onDismiss={dismissCliDeviceLoginNotice}
+		>
+			<p class="text-base-content/90">
+				For everyday CLI use, run <code class="text-xs">openquok auth:login</code> — official device login uses the
+				hosted auth server and is separate from the programmatic token on this page. You only need an
+				<code class="text-xs">opo_…</code> token for CI or headless automation. Follow the
+				<a class="link link-primary font-medium" href={cliAuthDocsHref} target="_blank" rel="noopener noreferrer">
+					CLI authentication tutorial
+				</a>.
+			</p>
+			{#snippet actions()}
+				<Button href={cliAuthDocsHref} variant="outline" size="sm" class="gap-1.5" target="_blank">
+					<AbstractIcon name={icons.BookOpen.name} class="size-4" width="16" height="16" />
+					Open tutorial
+				</Button>
+			{/snippet}
+		</HomeAccountNoticeBanner>
+	{/if}
+	</div>
+
 	{#if developerTab === 'access'}
 		<UpdateDeveloperAccess
-			apiKey={apiKey}
-			apiKeyVisible={apiKeyVisible}
-			canRotate={canRotate}
-			rotating={rotating}
-			{onSetApiKeyVisible}
-			{onRotateApiKey}
+			{programmaticAccessToken}
+			{programmaticAccessConfigured}
+			{tokenVisible}
+			{canRotate}
+			{rotating}
+			{oauthAppReady}
+			{oauthAppLoading}
+			{onSetTokenVisible}
+			{onRotateToken}
+			{onGoToAppsTab}
 		/>
 	{:else}
 		<UpdateDeveloperOauth

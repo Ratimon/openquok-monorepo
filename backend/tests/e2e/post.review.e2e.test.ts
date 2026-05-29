@@ -11,6 +11,7 @@ import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
 import { insertTestSocialIntegration } from "../helpers/integrationTestHelper";
+import { exchangeOAuthProgrammaticToken } from "../helpers/programmaticAuthTestHelper";
 import { UserTestHelper } from "../helpers/userTestHelper";
 import { prepareSoloWorkspace, restoreSoloWorkspaceSpies } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
@@ -108,7 +109,7 @@ describe("Post kanban review (agent and human)", () => {
         email: string;
         password: string;
         fullName: string;
-    }): Promise<{ accessToken: string; orgId: string; apiKey: string }> {
+    }): Promise<{ accessToken: string; orgId: string; apiKey: string; programmaticAccessToken: string }> {
         const signupRes = await supertest(app).post(`${authPath}/sign-up`).send(payload);
         expect(signupRes.status).toBe(201);
         await userHelper.trackUserAfterSignUp(signupRes, payload.email);
@@ -138,17 +139,18 @@ describe("Post kanban review (agent and human)", () => {
         const orgId = listRes.body?.data?.[0]?.id as string;
         expect(orgId).toBeDefined();
 
-        let apiKey = listRes.body?.data?.[0]?.apiKey as string | null;
-        if (!apiKey) {
-            const rotate = await supertest(app)
-                .post(`${settingsPath}/${orgId}/rotate-api-key`)
-                .set("Authorization", `Bearer ${accessToken as string}`);
-            expect(rotate.status).toBe(200);
-            apiKey = rotate.body?.data?.apiKey as string | null;
-        }
-        expect(typeof apiKey).toBe("string");
+        const programmaticAccessToken = await exchangeOAuthProgrammaticToken(
+            accessToken as string,
+            orgId,
+            { appName: `E2E review ${faker.string.alphanumeric(6)}` }
+        );
 
-        return { accessToken: accessToken as string, orgId, apiKey: apiKey as string };
+        return {
+            accessToken: accessToken as string,
+            orgId,
+            apiKey: programmaticAccessToken,
+            programmaticAccessToken,
+        };
     }
 
     async function readPostReviewColumns(postId: string): Promise<{

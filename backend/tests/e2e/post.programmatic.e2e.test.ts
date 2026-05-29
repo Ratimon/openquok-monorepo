@@ -8,10 +8,8 @@ import { EmailService } from "../../services/EmailService";
 import { insertTestSocialIntegration } from "../helpers/integrationTestHelper";
 import {
     programmaticBearerAuth,
-    provisionLegacyOrgApiKey,
     provisionOAuthAppAccessToken,
     type ProgrammaticAuthFixture,
-    type SignupPayload,
 } from "../helpers/programmaticAuthTestHelper";
 import { prepareSoloWorkspace, restoreSoloWorkspaceSpies } from "../helpers/workspaceTestHelper";
 import type { SoloWorkspaceSpies } from "../helpers/workspaceTestHelper";
@@ -29,32 +27,11 @@ const publicUploadFromUrlPath = `${publicPath}/upload-from-url`;
 const supabaseConfig = config.supabase as { supabaseUrl?: string; supabaseSecretKey?: string };
 const hasSupabaseE2E = Boolean(supabaseConfig.supabaseUrl?.trim() && supabaseConfig.supabaseSecretKey?.trim());
 
-type ProvisionProgrammaticAuth = (
-    adminSupabase: SupabaseClient,
-    userHelper: UserTestHelper,
-    payload: SignupPayload
-) => Promise<ProgrammaticAuthFixture>;
-
-const programmaticAuthCases: Array<{ name: string; provision: ProvisionProgrammaticAuth }> = [
-    {
-        name: "legacy org api_key (organizations.api_key)",
-        provision: provisionLegacyOrgApiKey,
-    },
-    {
-        name: "OAuth app access token (opo_, hashed authorization)",
-        provision: provisionOAuthAppAccessToken,
-    },
-];
-
 /**
  * E2E for programmatic posts (`routes/publicApi/PostRoutes.ts` → `{apiPrefix}/public/posts/*`).
  *
- * `requireProgrammaticAuth` ({@link guards/programmatic/programmaticAuth.ts}) accepts either:
- * 1) OAuth app bearer (`opo_…`) — verified via `OauthAppService.verifyProgrammaticToken`
- * 2) Legacy workspace API key (`opk_…`) — `organizations.api_key`
- *
- * Session JWT / `showorg` cookie are not used on these routes. Each `describe` block below
- * runs the same post surface tests under one auth path.
+ * `requireProgrammaticAuth` ({@link guards/programmatic/programmaticAuth.ts}) accepts OAuth app
+ * bearer tokens (`opo_…`) only. Session JWT / `showorg` cookie are not used on these routes.
  */
 describe("Programmatic posts API (public /posts)", () => {
     let adminSupabase: SupabaseClient;
@@ -111,10 +88,10 @@ describe("Programmatic posts API (public /posts)", () => {
         expect(res.status).toBe(401);
     });
 
-    describe.each(programmaticAuthCases)("auth: $name", ({ provision }) => {
+    describe("OAuth app access token (opo_)", () => {
         async function provisionAuth(): Promise<ProgrammaticAuthFixture> {
             const payload = userHelper.setupTestUser1();
-            return provision(adminSupabase, userHelper, payload);
+            return provisionOAuthAppAccessToken(adminSupabase, userHelper, payload);
         }
 
         (hasSupabaseE2E ? it : it.skip)("rejects a session JWT on programmatic routes", async () => {

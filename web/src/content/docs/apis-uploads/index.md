@@ -2,7 +2,7 @@
 title: Overview - Uploads APIs
 description: Programmatic media uploads. Returns the storage `id` + `path` you pass back as `media[]` when creating or updating a post group.
 order: 0
-lastUpdated: 2026-05-12
+lastUpdated: 2026-05-29
 ---
 
 <script>
@@ -27,7 +27,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 | Multipart field name | <Badge text="file" variant="default" /> |
 | Allowed mime types | image/<em>*</em>, video/<em>*</em>, audio/<em>*</em>, <Badge text="application/pdf" variant="default" /> |
 | Per-file size cap | <Badge text="MAX_MEDIA_UPLOAD_BYTES" variant="envBackend" /> (shared with the session uploader) |
-| Auth header | <Badge text="Authorization: opo_..." variant="default" /> (API key or OAuth app token) |
+| Auth header | <Badge text="Authorization: Bearer opo_..." variant="default" /> (workspace programmatic token or third-party OAuth app token) |
 
 ## Related Section(s)
 

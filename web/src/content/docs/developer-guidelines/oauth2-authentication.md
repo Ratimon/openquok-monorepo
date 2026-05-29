@@ -2,7 +2,7 @@
 title: OAuth2 Authen for Apps
 description: Let users authorize your app to access Openquok on their behalf using OAuth2 Authorization Code flow.
 order: 5
-lastUpdated: 2026-05-08
+lastUpdated: 2026-05-29
 ---
 
 <script>
@@ -11,12 +11,12 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Overview
 
-Openquok supports OAuth2 **Authorization Code** flow, allowing you to build third-party applications that act on behalf of Openquok users.
+Openquok supports OAuth2 **Authorization Code** flow, allowing you to build **third-party applications** that act on behalf of Openquok users.
 
-Instead of asking users for an API key, your app redirects them to Openquok where they approve access, and you receive a token to make API calls on their behalf.
+Your app redirects users to Openquok where they approve access, and you receive an <Badge text="opo_" variant="default" /> access token to call the public API on their behalf.
 
-<Callout type="note" title="OAuth tokens vs API keys">
-OAuth tokens work with the same public API endpoints as API keys. The difference is how the token is obtained.
+<Callout type="note">
+<p><strong>This page</strong> is for apps you register under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> (client ID <Badge text="oqc_" variant="default" />). For automation in <strong>your own</strong> workspace — scripts, CI, or the CLI without device login — rotate a programmatic token under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> instead. See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> and <a href="/docs/getting-started-for-cli/authentication#programmatic-token">CLI programmatic token</a>.</p>
 </Callout>
 
 
@@ -143,10 +143,10 @@ Response:
 
 ### Make API calls
 
-Use the returned <Badge text="access_token" variant="default" /> like an API key in the <Badge text="Authorization" variant="default" /> header:
+Use the returned <Badge text="access_token" variant="default" /> as a Bearer token in the <Badge text="Authorization" variant="default" /> header:
 
 ```bash
-curl -H "Authorization: YOUR_ACCESS_TOKEN" \
+curl -H "Authorization: Bearer opo_your_access_token" \
   https://api.openquok.com/api/v1/public/integrations
 ```
 
@@ -159,7 +159,7 @@ curl -H "Authorization: YOUR_ACCESS_TOKEN" \
 
 ### Rotate client secret
 
-If your client secret is compromised, go to <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> and click <Badge text="Rotate secret" variant="warning" />.
+If your client secret is compromised, go to <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> and click <Badge text="Rotate secret" variant="param" />.
 
 This invalidates the old secret immediately — any token exchange requests using the old secret will fail.
 
@@ -261,6 +261,7 @@ app.listen(3000);
 ## Related configuration
 
 <CardGrid>
+<LinkCard title="Public API authentication" description="Workspace programmatic tokens (opo_) vs third-party OAuth" href="/docs/getting-started-for-public-api#authentication" />
 <LinkCard title="Admin: OAuth apps" description="Redirect URLs for hosted vs self-hosted servers and operator notes" href="/docs/admin/oauth-server" />
 <LinkCard title="Configuration - Backend" description="Backend env vars and public API surfaces" href="/docs/configuration-backend" />
 </CardGrid>

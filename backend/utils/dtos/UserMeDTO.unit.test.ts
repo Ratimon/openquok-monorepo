@@ -40,7 +40,7 @@ describe("UserMeDTO", () => {
     });
 
     describe("resolveSessionPublicApiKey", () => {
-        it("returns empty for non-admin members", () => {
+        it("always returns empty (tokens are not recoverable from storage)", () => {
             expect(
                 resolveSessionPublicApiKey({
                     workspaceRole: "user",
@@ -48,26 +48,13 @@ describe("UserMeDTO", () => {
                     apiKey: "opk_secret",
                 })
             ).toBe("");
-        });
-
-        it("returns empty when plan disallows public API", () => {
-            expect(
-                resolveSessionPublicApiKey({
-                    workspaceRole: "admin",
-                    planAllowsPublicApi: false,
-                    apiKey: "opk_secret",
-                })
-            ).toBe("");
-        });
-
-        it("returns key for workspace admins on eligible plans", () => {
             expect(
                 resolveSessionPublicApiKey({
                     workspaceRole: "admin",
                     planAllowsPublicApi: true,
                     apiKey: "opk_secret",
                 })
-            ).toBe("opk_secret");
+            ).toBe("");
         });
     });
 });

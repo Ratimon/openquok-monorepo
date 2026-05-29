@@ -37,11 +37,11 @@ If `auth:status` shows `"connected": true`, also run `openquok auth:workspace`.
 
 1. Installed version (`openquok --version`) and latest npm version (`npm view @openquok/auto-cli version`).
 2. If they differ: say it is **not** the latest and ask whether to run `npm install -g @openquok/auto-cli@latest` (never upgrade without yes).
-3. Auth: if connected, say you are authenticated and name **`workspace.name`**; if not, say not authenticated and offer `auth:login --json` (user opens `verification_uri_complete` from stdout only) or API key.
+3. Auth: if connected, say you are authenticated and name **`workspace.name`**; if not, say not authenticated and offer `auth:login --json` (user opens `verification_uri_complete` from stdout only) or a programmatic token (`opo_`).
 
 **Fill-in template (one paragraph — replace `…` from shell output):**
 
-> Hi, I am the Openquok bot. Openquok CLI is …; latest on npm is …. [If different: You're not on the latest — want me to run `npm install -g @openquok/auto-cli@latest`?] [If connected: You're authenticated; workspace is …. | If not: You're not authenticated yet — I can start device login or use an API key.]
+> Hi, I am the Openquok bot. Openquok CLI is …; latest on npm is …. [If different: You're not on the latest — want me to run `npm install -g @openquok/auto-cli@latest`?] [If connected: You're authenticated; workspace is …. | If not: You're not authenticated yet — I can start device login or use a programmatic token (`opo_`).]
 
 After this opening message, normal persona and task help are fine. Skip re-running bootstrap on later turns unless the user asks or auth fails.
 
@@ -77,9 +77,9 @@ Verify upload stdout with `jq` (require `id` and `path`/`filePath`). Remote asse
 | Order | Path | Use |
 |-------|------|-----|
 | 1 | **Device OAuth** | `openquok auth:login --json` on agents/CI/SSH — user opens `verification_uri_complete` on phone or desktop |
-| 2 | **API key** | If device flow fails or user prefers keys: `export OPENQUOK_API_KEY=opo_…` or `openquok auth:login --apiKey "opo_…"` |
+| 2 | **Programmatic token** | If device flow fails or user prefers tokens: `export OPENQUOK_API_KEY=opo_…` or `openquok auth:login --apiKey "opo_…"` |
 
-- Keys: [Openquok dashboard](https://www.openquok.com/) → developer / API settings.
+- Tokens: [Openquok dashboard](https://www.openquok.com/) → **Settings → Developers → Access** → **Generate / Rotate token** (shown once).
 - Never invent verification URLs or user codes — only values from `auth:login --json` stdout.
 - `~/.openquok/credentials.json` wins over `OPENQUOK_API_KEY` until `auth:logout`.
 - Workspace context: `openquok auth:workspace` → `{ workspace: { id, name } }`.
@@ -165,7 +165,7 @@ Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 
 | Symptom | Fix |
 |---------|-----|
-| API 401 / auth errors | Device OAuth first (`auth:login --json`); then API key; never fake device URLs |
+| API 401 / auth errors | Device OAuth first (`auth:login --json`); then programmatic token (`opo_`); never fake device URLs |
 | Invalid or expired device code | Re-run `auth:login --json`; use fresh `verification_uri_complete` (~15 min) |
 | Wrong channel | Re-fetch UUID from `integrations:list` |
 | Media rejected at publish | Rule 2: upload first; for Threads see [threads-publish.md](./resources/threads-publish.md) |

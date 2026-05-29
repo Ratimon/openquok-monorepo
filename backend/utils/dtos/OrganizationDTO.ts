@@ -111,7 +111,7 @@ export function toOrganizationDTO(row: OrganizationLike | null): OrganizationDTO
         id: row.id,
         name: row.name,
         description: row.description ?? null,
-        apiKey: row.api_key ?? null,
+        apiKey: null,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };

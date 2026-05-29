@@ -340,6 +340,54 @@ export class OauthAppRepository {
         }
     }
 
+    async setAccessTokenForAuthorization(params: {
+        authorizationId: string;
+        accessTokenHash: string;
+    }): Promise<void> {
+        const now = new Date().toISOString();
+        const { error } = await this.supabase
+            .from(TABLE_AUTHS)
+            .update({
+                access_token_hash: params.accessTokenHash,
+                authorization_code_hash: null,
+                code_expires_at: null,
+                updated_at: now,
+            })
+            .eq("id", params.authorizationId)
+            .is("revoked_at", null);
+        if (error) {
+            throw new DatabaseError("Failed to set oauth access token", {
+                cause: error as unknown as Error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_AUTHS },
+            });
+        }
+    }
+
+    async findActiveAuthorizationForUserOrgApp(params: {
+        oauthAppId: string;
+        userId: string;
+        organizationId: string;
+    }): Promise<OauthAuthorizationLike | null> {
+        const { data, error } = await this.supabase
+            .from(TABLE_AUTHS)
+            .select("*")
+            .eq("oauth_app_id", params.oauthAppId)
+            .eq("user_id", params.userId)
+            .eq("organization_id", params.organizationId)
+            .is("revoked_at", null)
+            .not("access_token_hash", "is", null)
+            .maybeSingle();
+        if (error) {
+            throw new DatabaseError("Failed to resolve oauth authorization for workspace", {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_AUTHS },
+            });
+        }
+        return (data as OauthAuthorizationLike | null) ?? null;
+    }
+
     async exchangeCodeForAccessToken(params: {
         oauthAppId: string;
         organizationId: string;

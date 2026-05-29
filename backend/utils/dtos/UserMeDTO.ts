@@ -39,15 +39,11 @@ export function resolveSessionChannelsPerWorkspace(
 	return planCap;
 }
 
-export function resolveSessionPublicApiKey(params: {
+/** Programmatic tokens are not recoverable from storage; session never exposes a bearer value. */
+export function resolveSessionPublicApiKey(_params: {
 	workspaceRole: WorkspaceMembershipRole;
 	planAllowsPublicApi: boolean;
 	apiKey: string | null;
 }): string {
-	const isWorkspaceAdmin =
-		params.workspaceRole === "admin" || params.workspaceRole === "owner";
-	if (!isWorkspaceAdmin || !params.planAllowsPublicApi) {
-		return "";
-	}
-	return params.apiKey?.trim() ?? "";
+	return "";
 }

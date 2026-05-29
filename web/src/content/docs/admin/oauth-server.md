@@ -2,7 +2,7 @@
 title: OAuth Server Setup
 description: Create and rotate OAuth applications in the dashboard, and set the correct redirect URL for hosted vs self-hosted flows.
 order: 1.5
-lastUpdated: 2026-05-08
+lastUpdated: 2026-05-29
 ---
 
 <script>
@@ -11,7 +11,11 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 ## Overview
 
-Openquok supports **OAuth applications** so third-party services (or infrastructure you operate) can run the OAuth2 authorization code flow and receive tokens for programmatic access.
+Openquok supports **OAuth applications** so third-party services (or infrastructure you operate) can run the OAuth2 authorization code flow and receive <Badge text="opo_" variant="default" /> tokens for programmatic access.
+
+<Callout type="note" title="OAuth apps vs workspace programmatic token">
+<p><strong>This page</strong> covers third-party apps under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> (client ID <Badge text="oqc_" variant="default" />). For automation in <strong>your own</strong> workspace — scripts, CI, or rotating a personal token — use <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> instead. See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a>.</p>
+</Callout>
 
 Only **workspace admins** can manage OAuth apps for their workspace. The **client secret is shown only once** (when you create the app or rotate it).
 
@@ -113,6 +117,8 @@ http://localhost:3111/device/callback
 ## Related configuration
 
 <CardGrid>
+<LinkCard title="Public API authentication" description="Workspace programmatic tokens (opo_) vs third-party OAuth apps" href="/docs/getting-started-for-public-api#authentication" />
+<LinkCard title="OAuth2 for third-party apps" description="Authorization code flow for apps you build for other users" href="/docs/developer-guidelines/oauth2-authentication" />
 <LinkCard title="Configuration - Agent" description="CLI auth server env vars and callback URL" href="/docs/configuration-agent" />
 <LinkCard title="Security secrets" description="SECURITY_SECRET and what it invalidates" href="/docs/admin/security-secrets" />
 </CardGrid>

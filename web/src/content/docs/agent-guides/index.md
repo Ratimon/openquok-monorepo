@@ -25,6 +25,6 @@ Guides for wiring <Badge text="@openquok/auto-cli" variant="experimental" /> int
 
 <CardGrid>
 <LinkCard title="Introduction to Openquok CLI" description="npm install, quick start, and overview" href="/docs/getting-started-for-cli" />
-<LinkCard title="CLI authentication" description="OAuth device flow, API keys, and auth server URLs" href="/docs/getting-started-for-cli/authentication" />
+<LinkCard title="CLI authentication" description="OAuth device flow, programmatic tokens, and auth server URLs" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="CLI Usage" description="Command-by-command reference" href="/docs/cli-usages" />
 </CardGrid>

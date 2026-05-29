@@ -4,15 +4,15 @@ import multer from "multer";
 import { mediaController } from "../../controllers/index";
 import { organizationRepository } from "../../repositories/index";
 import { requireProgrammaticAuth } from "../../guards";
-import { oauthAppService } from "../../services/index";
+import { oauthAppService, subscriptionGuard } from "../../services/index";
 import { validatePublicUploadFromUrlBody } from "../../data/schemas/mediaSchemas";
-import { MAX_MEDIA_UPLOAD_BYTES } from "openquok-common";
+import { MAX_MEDIA_VIDEO_UPLOAD_BYTES } from "openquok-common";
 
 type PublicMediaUploadRouter = ReturnType<typeof Router>;
 
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: MAX_MEDIA_UPLOAD_BYTES },
+    limits: { fileSize: MAX_MEDIA_VIDEO_UPLOAD_BYTES },
 });
 
 /**
@@ -22,7 +22,7 @@ const upload = multer({
  * Same auth as other `/public/*` routes (`requireProgrammaticAuth`).
  */
 const publicMediaUploadRouter: PublicMediaUploadRouter = Router();
-const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository });
+const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 
 publicMediaUploadRouter.post(
     "/upload",

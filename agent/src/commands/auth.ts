@@ -130,12 +130,12 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
   return y
     .command(
       "auth:login",
-      "OAuth2 device flow login (or store an API key)",
+      "OAuth2 device flow login (or store a programmatic access token)",
       (yy: Argv) =>
         yy
           .option("apiKey", {
             type: "string",
-            describe: "Store an API key directly (skips OAuth2 device flow)",
+            describe: "Store an opo_ programmatic token directly (skips OAuth2 device flow)",
           })
           .option("authServer", {
             type: "string",
@@ -154,7 +154,7 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           )
           .example(
             '$0 auth:login --apiKey "opo_..."',
-            "Skip OAuth and store a programmatic API key directly"
+            "Skip OAuth and store an opo_ programmatic access token directly"
           )
           .example(
             "$0 auth:login --authServer http://localhost:3111",
@@ -162,7 +162,7 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           ),
       async (args: any) => {
         await runCommand("auth:login", async () => {
-          // Option 2: API key
+          // Option 2: programmatic access token
           if (typeof args.apiKey === "string" && args.apiKey.trim()) {
             await writeCredentialsFile({ apiKey: requireArg("apiKey", args.apiKey) });
             printJson({ success: true });

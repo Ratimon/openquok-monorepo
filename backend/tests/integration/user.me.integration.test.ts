@@ -107,7 +107,7 @@ describeIfSupabase("GET /users/me workspace session (integration)", () => {
         expect(data?.channelsPerWorkspace).toBe(soloLimits.channel_per_workspace);
         expect(data?.role).toBe("OWNER");
         expect(data?.billingEnabled).toBe(true);
-        expect(typeof data?.publicApi).toBe("string");
+        expect(data?.publicApi).toBe("");
         expect(data?.isPlatformAdmin).toBe(false);
         expect(data?.impersonate).toBe(false);
     });
