@@ -48,14 +48,19 @@ export type BillingPricingViewModel = {
 };
 
 function perWorkspaceLabel(count: number, singular: string, plural: string): string {
-	return count === 1 ? `1 ${singular} per workspace` : `${count} ${plural} per workspace`;
+	return count === 1
+		? `1 ${singular} per Agent workspace`
+		: `${count} ${plural} per Agent workspace`;
 }
 
 export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanFeatureLineViewModel[] {
 	const linesVm: PlanFeatureLineViewModel[] = [];
 	if (plan.workspaces > 0) {
 		linesVm.push({
-			label: plan.workspaces === 1 ? '1 workspace' : `${plan.workspaces} workspaces`
+			label:
+				plan.workspaces === 1
+					? '1 Agent workspace'
+					: `${plan.workspaces} Agent workspaces`
 		});
 	}
 
@@ -91,7 +96,7 @@ export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanF
 		label: `Total ${formatBytes(storageTotalBytes)} cloud storage`,
 		tooltip:
 			plan.workspaces > 1
-				? `${formatBytes(plan.mediaStorageBytesPerWorkspace)} cloud storage per workspace`
+				? `${formatBytes(plan.mediaStorageBytesPerWorkspace)} cloud storage per Agent workspace`
 				: undefined
 	});
 

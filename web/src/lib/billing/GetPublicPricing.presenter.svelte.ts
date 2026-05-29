@@ -82,7 +82,10 @@ function formatCloudStorageCell(limits: PlanLimits): PublicPricingCompareCellVie
 	const totalBytes = perWorkspaceBytes * limits.workspaces;
 	const totalLabel = formatBytes(totalBytes);
 	if (limits.workspaces <= 1) return { kind: 'text', text: totalLabel };
-	return { kind: 'text', text: `${totalLabel} (${formatBytes(perWorkspaceBytes)}/ workspace)` };
+	return {
+		kind: 'text',
+		text: `${totalLabel} (${formatBytes(perWorkspaceBytes)}/ workspace)`
+	};
 }
 
 function formatTeamMembersCell(limits: PlanLimits): PublicPricingCompareCellViewModel {
@@ -149,14 +152,14 @@ function buildCardFeatures(tier: PaidSubscriptionTier, limits: PlanLimits): stri
 		if (limits.workspaces > 1 && /^Total \d+ channels$/.test(line.label)) {
 			const perWorkspace = limits.channel_per_workspace;
 			const total = totalChannels(limits);
-			return `${total} channels (${perWorkspace}/ workspace)`;
+			return `${total} channels (${perWorkspace}/ Agent workspace)`;
 		}
 
 		// Cloud storage is capped per workspace; show total plus per-workspace allocation.
 		if (limits.workspaces > 1 && /^Total .* cloud storage$/.test(line.label)) {
 			const perWorkspaceBytes = limits.media_storage_bytes_per_workspace;
 			const totalBytes = perWorkspaceBytes * limits.workspaces;
-			return `${formatBytes(totalBytes)} cloud storage (${formatBytes(perWorkspaceBytes)}/ workspace)`;
+			return `${formatBytes(totalBytes)} cloud storage (${formatBytes(perWorkspaceBytes)}/ Agent workspace)`;
 		}
 
 		if (
@@ -167,7 +170,7 @@ function buildCardFeatures(tier: PaidSubscriptionTier, limits: PlanLimits): stri
 			const perWorkspace = limits.team_members_per_workspace;
 			const total = accountTeamMemberSeatTotal(limits.workspaces, perWorkspace);
 			const noun = perWorkspace === 1 ? 'member' : 'members';
-			return `${perWorkspace} ${noun} per workspace (total of ${total})`;
+			return `${perWorkspace} ${noun} per Agent workspace (total of ${total})`;
 		}
 		return line.label;
 	});

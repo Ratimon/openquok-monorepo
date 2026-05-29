@@ -16,18 +16,18 @@ export type PublicPricingPlanMeta = {
 export const PUBLIC_PRICING_PLAN_META: Record<PaidSubscriptionTier, PublicPricingPlanMeta> = {
 	SOLO: {
 		tagline: 'Best for individuals and solo creators',
-		compareFootnote: 'Single workspace'
+		compareFootnote: 'Single Agent workspace'
 	},
 	TEAM: {
 		tagline: 'Best for growing teams and businesses',
-		compareFootnote: '5 members per workspace'
+		compareFootnote: '5 team members per Agent workspace'
 	},
 	ULTIMATE: {
-		tagline: 'Best for manage multiple brands and AI agents',
-		compareFootnote: 'Unlimited posts and members'
+		tagline: 'Best for managing multiple brands and AI agents',
+		compareFootnote: 'Unlimited team members'
 	},
 	MAX: {
-		tagline: 'Best for scalling by heavy users running tons of AI agents'
+		tagline: 'Best for scalling by Hhavy users running tons of AI agents'
 	}
 };
 
@@ -84,9 +84,9 @@ export type PublicPricingCompareRowDefinition = {
 export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefinition[] = [
 	{
 		id: 'workspaces',
-		label: 'Workspaces',
+		label: 'Agent workspaces',
 		tooltip:
-			'Separate workspaces for different brands, clients, or focus areas. Too many channels or tasks in one place can cause context rot or hallucinations.'
+			'1 workspace = 1 agent. Separate workspaces for different brands, clients, or focus areas. Too many channels or tasks in one place can cause context rot or hallucinations.'
 	},
 	{
 		id: 'channels',
@@ -243,9 +243,9 @@ export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 			'Yes. Upgrade or downgrade from account billing settings. Proration and timing follow your Stripe subscription when cloud billing is enabled.'
 	},
 	{
-		title: 'What is a workspace?',
+		title: 'What is the agent workspace?',
 		description:
-			'A workspace is where you connect channels, schedule posts, and collaborate. Workspaces exist to keep agent and automation context focused. Too many channels or tasks in one place can cause context rot or hallucinations. Use separate workspaces for different brands or clients when things get crowded.'
+			'An agent workspace is where you connect channels, schedule posts, and collaborate. Workspaces exist to keep agent and automation context focused. Too many channels or tasks in one place can cause context rot or hallucinations. Use separate workspaces for different brands or clients when things get crowded.'
 	},
 	{
 		title: 'What counts as a channel?',

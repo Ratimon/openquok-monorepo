@@ -27,9 +27,9 @@
 					'OpenQuok is open source. You can inspect the code, self-host, or contribute. We believe in transparent billing and product behavior.'
 			},
 			{
-				title: 'What are workspaces?',
+				title: 'What is the agent workspace?',
 				description:
-					'A workspace is where you connect channels, schedule posts, and collaborate. Workspaces keep agent and automation context focused. Too many channels or tasks in one place can cause context rot, so use separate workspaces for different brands, clients, or focus areas. You manage billing and invites for workspaces you own, and can join shared workspaces.'
+					'An agent workspace is where you connect channels, schedule posts, and collaborate. Workspaces keep agent and automation context focused. Too many channels or tasks in one place can cause context rot, so use separate workspaces for different brands, clients, or focus areas. You manage billing and invites for workspaces you own, and can join shared workspaces.'
 			},
 			{
 				title: 'What counts as a channel?',
