@@ -15,7 +15,7 @@
   
 <div
     class={cn(
-      "relative flex flex-col h-[100vh] items-center justify-center bg-base-100 text-base-content transition-bg",
+      "relative flex flex-col min-h-[calc(100dvh-5rem)] items-center justify-center bg-base-100 text-base-content transition-bg",
       _class
     )}
     {...rest}

@@ -157,14 +157,15 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	HERO_TITLE: {
 		description: 'The primary headline displayed in the hero section of your landing page',
 		type: 'string',
-		default: 'AI scales the content creation pipeline. You control the output.',
+		default: 'Save hours\nmanaging AI content\nat scale',
 		inputType: 'input',
 		maxInputLength: 80
 	},
 	HERO_SLOGAN: {
 		description: 'The secondary text or tagline shown below the hero title',
 		type: 'string',
-		default: 'Connect Openclaw once — Approve weeks of social content in minutes, not hours.',
+		default:
+			'Let AI agents handle volume — drafting and scheduling at scale. You handle quality: review and approve what goes live across your channels. Connect OpenClaw, Hermes, or Claude.',
 		inputType: 'textarea',
 		maxInputLength: 200
 	},

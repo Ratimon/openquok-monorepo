@@ -114,15 +114,25 @@
 
 	type TextSegment = { text: string; highlight: boolean };
 
-	function parseTitleForControlHighlight(text: string): TextSegment[] {
+	const TITLE_HIGHLIGHT_WORD = /^(?:control|hours)$/i;
+
+	function parseTitleLineSegments(text: string): TextSegment[] {
 		if (!text) return [];
-		const parts = text.split(/(\bcontrol\b)/gi);
+		const parts = text.split(/\b(control|hours)\b/gi);
 		const out: TextSegment[] = [];
 		for (const p of parts) {
 			if (p === '') continue;
-			out.push({ text: p, highlight: /^control$/i.test(p) });
+			out.push({ text: p, highlight: TITLE_HIGHLIGHT_WORD.test(p) });
 		}
 		return out;
+	}
+
+	function parseHeroTitleLines(text: string): string[] {
+		if (!text) return [];
+		return text
+			.split(/\n/)
+			.map((line) => line.trim())
+			.filter((line) => line.length > 0);
 	}
 
 	function parseSloganForNotHoursHighlight(text: string): TextSegment[] {
@@ -139,29 +149,38 @@
 		return out;
 	}
 
-	const titleSegments = $derived(parseTitleForControlHighlight(heroTitle));
+	const titleLines = $derived(parseHeroTitleLines(heroTitle));
 	const sloganSegments = $derived(parseSloganForNotHoursHighlight(heroSlogan));
 
-	function gradientIndexBeforeTitleSegment(index: number): number {
-		let n = 0;
-		for (let j = 0; j < index; j++) {
-			if (!titleSegments[j].highlight) n++;
-		}
-		return n;
-	}
+	const titleLineModels = $derived(
+		titleLines.map((line) => ({ segments: parseTitleLineSegments(line) }))
+	);
 
-	// High-contrast gradients for forest/dark-green background (non-highlight title spans only)
-	const getTitleGradientClass = (index: number): string => {
-		const classes = [
-			'bg-gradient-to-r from-emerald-300 via-lime-300 to-amber-300 bg-clip-text text-transparent',
-			'bg-gradient-to-r from-fuchsia-300 via-rose-300 to-orange-300 bg-clip-text text-transparent',
-			'bg-gradient-to-r from-sky-300 via-cyan-200 to-emerald-200 bg-clip-text text-transparent'
-		];
-		return classes[index % classes.length];
-	};
+	const TITLE_GRADIENT_PRIMARY =
+		'bg-gradient-to-r from-emerald-300 via-lime-300 to-amber-300 bg-clip-text text-transparent';
+	const TITLE_GRADIENT_ACCENT =
+		'bg-gradient-to-r from-fuchsia-300 via-rose-300 to-orange-300 bg-clip-text text-transparent';
+
+	function getTitleSegmentGradientClass(
+		lineIndex: number,
+		segmentIndex: number,
+		segments: TextSegment[],
+		totalLines: number
+	): string {
+		if (totalLines === 1) {
+			let nonHighlightBefore = 0;
+			for (let i = 0; i < segmentIndex; i++) {
+				if (!segments[i].highlight) nonHighlightBefore++;
+			}
+			return nonHighlightBefore === 0 ? TITLE_GRADIENT_PRIMARY : TITLE_GRADIENT_ACCENT;
+		}
+
+		const isLastLine = lineIndex === totalLines - 1;
+		return isLastLine ? TITLE_GRADIENT_ACCENT : TITLE_GRADIENT_PRIMARY;
+	}
 </script>
 <AuroraBackground>
-	<section class="relative isolate w-full overflow-hidden">
+	<section class="relative isolate w-full overflow-x-hidden">
 		<div
 			class="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-visible py-6 sm:py-10"
 			aria-hidden="true"
@@ -231,7 +250,7 @@
 			</div>
 		</div>
 
-		<div class="relative z-10 container mx-auto px-4 py-16 sm:py-20">
+		<div class="relative z-10 container mx-auto px-4 pt-16 pb-24 sm:pt-20 sm:pb-28">
 			<div class="mx-auto max-w-3xl text-center">
 				{#if githubOwner && githubRepo}
 					<div class="mb-6 flex justify-center">
@@ -277,18 +296,27 @@
 					</Tooltip.Provider>
 				</div>
 
-				<h1 class="text-balance text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-					{#if titleSegments.length > 0}
-						{#each titleSegments as seg, index (index)}
-							{#if seg.highlight}
-								<span class="{HIGHLIGHT_PILL_CLASS} mr-3">{seg.text}</span>
-							{:else}
-								<span
-									class="{getTitleGradientClass(gradientIndexBeforeTitleSegment(index))} mr-3"
-								>
-									{seg.text}
-								</span>
-							{/if}
+				<h1 class="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+					{#if titleLineModels.length > 0}
+						{#each titleLineModels as lineModel, lineIndex (lineIndex)}
+							<span class="block">
+								{#each lineModel.segments as seg, segmentIndex (segmentIndex)}
+									{#if seg.highlight}
+										<span class="{HIGHLIGHT_PILL_CLASS} mr-3">{seg.text}</span>
+									{:else}
+										<span
+											class="{getTitleSegmentGradientClass(
+												lineIndex,
+												segmentIndex,
+												lineModel.segments,
+												titleLineModels.length
+											)} mr-3"
+										>
+											{seg.text}
+										</span>
+									{/if}
+								{/each}
+							</span>
 						{/each}
 					{:else}
 						<span class="bg-gradient-to-r from-base-content via-base-content/80 to-base-content/70 bg-clip-text text-transparent">
@@ -311,9 +339,9 @@
 					{/if}
 				</p>
 
-				<div class="mt-10 flex items-center justify-center">
+				<div class="mt-10 flex items-center justify-center pb-2">
 					<ButtonGlitchBrightness
-						class="my-2 w-2/3 text-sm sm:text-base lg:text-lg justify-center rounded-full px-10"
+						class="w-2/3 text-sm sm:text-base lg:text-lg justify-center rounded-full px-10"
 						variant="primary"
 						size="lg"
 						href={ctaHrefPrimary}
