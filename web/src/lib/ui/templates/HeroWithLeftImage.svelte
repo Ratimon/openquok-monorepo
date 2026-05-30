@@ -4,12 +4,17 @@
 	import Background from '$lib/ui/background/Background.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 
+	type LandingHeroTitleSegment = { text: string; highlight: boolean };
+
 	type LandingHeroTheme = {
 		subtitleClass: string;
 		descriptionClass: string;
 		ctaButtonClass: string;
 		imageClass: string;
-		titlePartClass: (index: number) => string;
+		titlePartClass: (index: number, total: number) => string;
+		titleHighlightPillClass: string;
+		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
+		landingHeroTitlePartHasHighlight: (segments: LandingHeroTitleSegment[]) => boolean;
 	};
 
 	type Props = {
@@ -78,14 +83,28 @@
 
 						{#if landingTitle}
 							<h2
-								class="text-4xl font-black tracking-tight text-balance sm:text-5xl lg:text-6xl"
+								class="text-3xl font-black tracking-tight text-balance sm:text-4xl lg:text-5xl"
 							>
 								{#each titleParts as part, index (index)}
-									<span
-										class="{heroTheme.titlePartClass(index)} {index > 0 ? 'block sm:inline' : ''}"
-									>
-										{part}{#if index < titleParts.length - 1},{/if}
-									</span>
+									{@const partClass = heroTheme.titlePartClass(index, titleParts.length)}
+									{@const segments = heroTheme.parseLandingHeroTitlePartSegments(part)}
+									{@const layoutClass =
+										titleParts.length >= 3 ? 'block' : index > 0 ? 'block sm:inline' : ''}
+									{#if heroTheme.landingHeroTitlePartHasHighlight(segments)}
+										<span class={layoutClass}>
+											{#each segments as seg (seg.text + String(seg.highlight))}
+												{#if seg.highlight}
+													<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+												{:else}
+													<span class={partClass}>{seg.text}</span>
+												{/if}
+											{/each}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
+										</span>
+									{:else}
+										<span class="{partClass} {layoutClass}">
+											{part}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
+										</span>
+									{/if}
 								{/each}
 							</h2>
 						{/if}
