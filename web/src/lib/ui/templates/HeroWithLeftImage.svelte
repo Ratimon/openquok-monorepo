@@ -83,7 +83,7 @@
 
 						{#if landingTitle}
 							<h2
-								class="text-3xl font-black tracking-tight text-balance sm:text-4xl lg:text-5xl"
+								class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
 							>
 								{#each titleParts as part, index (index)}
 									{@const partClass = heroTheme.titlePartClass(index, titleParts.length)}

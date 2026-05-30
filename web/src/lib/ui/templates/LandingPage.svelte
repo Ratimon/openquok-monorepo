@@ -94,11 +94,11 @@
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
-	const TITLE_PART_HIGHLIGHT_WORD = /^(?:minimal)$/i;
+	const TITLE_PART_HIGHLIGHT_WORD = /^(?:minimal|effortlessly)$/i;
 
 	function parseLandingHeroTitlePartSegments(text: string): LandingHeroTitleSegment[] {
 		if (!text) return [];
-		const parts = text.split(/\b(minimal)\b/gi);
+		const parts = text.split(/\b(minimal|effortlessly)\b/gi);
 		const out: LandingHeroTitleSegment[] = [];
 		for (const p of parts) {
 			if (p === '') continue;

@@ -207,7 +207,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_2_TITLE: {
 		description: 'Headline for the second secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Plan weeks ahead, find any post fast',
+		default: 'Plan weeks ahead, find any post effortlessly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -215,7 +215,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the second secondary hero section',
 		type: 'string',
 		default:
-			'Day, week, and month calendar views plus saved smart filters by platform, channel group, or tags. Schedule ahead and surface the right drafts without scrolling an endless AI queue.',
+			'Day, week, and month calendar views plus filters by platform, channel group, or tags. Schedule ahead and surface the right drafts without scrolling an endless AI queue.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
