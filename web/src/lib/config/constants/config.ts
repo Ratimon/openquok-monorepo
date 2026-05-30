@@ -174,8 +174,128 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		type: 'boolean',
 		default: false,
 		inputType: 'switch'
+	},
+	FEATURE_1_SUBTITLE: {
+		description: 'Tag above the first secondary hero section',
+		type: 'string',
+		default: 'Agent workspaces',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	FEATURE_1_TITLE: {
+		description: 'Headline for the first secondary hero section (comma separates accent phrase)',
+		type: 'string',
+		default: 'One workspace per agent, no context rot',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	FEATURE_1_DESCRIPTION: {
+		description: 'Support copy for the first secondary hero section',
+		type: 'string',
+		default:
+			'Give each brand, client, or OpenClaw agent its own workspace with isolated channels and drafts. Run dozens of accounts without one shared calendar—or your AI mixing up the wrong brand.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
+	FEATURE_2_SUBTITLE: {
+		description: 'Tag above the second secondary hero section',
+		type: 'string',
+		default: 'Calendar + smart filters',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	FEATURE_2_TITLE: {
+		description: 'Headline for the second secondary hero section (comma separates accent phrase)',
+		type: 'string',
+		default: 'Plan weeks ahead, find any post fast',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	FEATURE_2_DESCRIPTION: {
+		description: 'Support copy for the second secondary hero section',
+		type: 'string',
+		default:
+			'Day, week, and month calendar views plus saved smart filters by platform, channel group, or tags. Schedule ahead and surface the right drafts without scrolling an endless AI queue.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
+	FEATURE_3_SUBTITLE: {
+		description: 'Tag above the third secondary hero section',
+		type: 'string',
+		default: 'Kanban + smart filters',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	FEATURE_3_TITLE: {
+		description: 'Headline for the third secondary hero section (comma separates accent phrase)',
+		type: 'string',
+		default: 'Review every AI draft, before it goes live',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	FEATURE_3_DESCRIPTION: {
+		description: 'Support copy for the third secondary hero section',
+		type: 'string',
+		default:
+			'Move agent-generated posts from draft to review to scheduled on a kanban board—with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
+	FEATURE_4_SUBTITLE: {
+		description: 'Tag above the fourth secondary hero section',
+		type: 'string',
+		default: 'File manager',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	FEATURE_4_TITLE: {
+		description: 'Headline for the fourth secondary hero section (comma separates accent phrase)',
+		type: 'string',
+		default: 'Organize media per workspace, not per tab',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	FEATURE_4_DESCRIPTION: {
+		description: 'Support copy for the fourth secondary hero section',
+		type: 'string',
+		default:
+			'Create, rename, and manage files in each agent workspace cloud storage. Keep client assets, B-roll, and uploads separated so posting stays fast when you run many accounts.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
+	FEATURE_5_SUBTITLE: {
+		description: 'Tag above the fifth secondary hero section',
+		type: 'string',
+		default: 'Analytics',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	FEATURE_5_TITLE: {
+		description: 'Headline for the fifth secondary hero section (comma separates accent phrase)',
+		type: 'string',
+		default: 'See what worked, across every channel',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	FEATURE_5_DESCRIPTION: {
+		description: 'Support copy for the fifth secondary hero section',
+		type: 'string',
+		default:
+			'Track impressions, likes, comments, shares, and engagement in one place. Compare performance by platform and channel—and improve the posts you approved, not just the volume AI produced.',
+		inputType: 'textarea',
+		maxInputLength: 300
 	}
 };
+
+/** Default landing_page module values (SSR fallback and client-side). */
+export function getLandingPageConfigDefaults(): Record<string, string> {
+	return Object.fromEntries(
+		Object.entries(CONFIG_SCHEMA_LANDING_PAGE).map(([key, field]) => [
+			key,
+			String(field.default)
+		])
+	);
+}
 
 export type NavOptions = 'tab' | 'scroll' | 'menu';
 

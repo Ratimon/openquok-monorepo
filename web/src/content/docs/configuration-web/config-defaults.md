@@ -62,6 +62,7 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
 - **Common changes**:
   - **Hero title / slogan** (`HERO_TITLE`, `HERO_SLOGAN`)
   - **Top banner toggle** (`ACTIVE_TOP_BANNER`)
+  - **Secondary feature sections** (`FEATURE_1_*` … `FEATURE_5_*` — subtitle, title, description per block)
 
 ### Navigation and footer constants
 

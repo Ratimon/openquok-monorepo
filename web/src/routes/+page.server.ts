@@ -3,7 +3,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { Link } from '$lib/ui/nav-bars/Link';
 
 import {
-	CONFIG_SCHEMA_LANDING_PAGE,
+	getLandingPageConfigDefaults,
 	PUBLIC_FOOTER_LINKS,
 	PUBLIC_NAVBAR_LINKS
 } from '$lib/config/constants/config';
@@ -30,11 +30,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 			.getPublicModuleConfig('landing_page');
 	} catch (error) {
 		console.error('[+page.server] Failed to fetch landing page config:', error);
-		landingPageConfigPm = {
-			HERO_TITLE: String(CONFIG_SCHEMA_LANDING_PAGE.HERO_TITLE.default),
-			HERO_SLOGAN: String(CONFIG_SCHEMA_LANDING_PAGE.HERO_SLOGAN.default),
-			ACTIVE_TOP_BANNER: String(CONFIG_SCHEMA_LANDING_PAGE.ACTIVE_TOP_BANNER.default)
-		};
+		landingPageConfigPm = getLandingPageConfigDefaults();
 	}
 
 	return {

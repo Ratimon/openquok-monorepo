@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 
 	import { publicLayoutPagePresenter } from '$lib/area-public/index';
-	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
+	import { getLandingPageConfigDefaults } from '$lib/config/constants/config';
 	
 	import PublicArea from '$lib/ui/templates/PublicArea.svelte';
 	import LandingPage from '$lib/ui/templates/LandingPage.svelte';
@@ -51,11 +51,8 @@
 
 	let landingPageConfigVm = $derived(
 		(data as any)?.landingPageConfigPm ??
-			(page.data as any)?.landingPageConfigPm ?? {
-				HERO_TITLE: String(CONFIG_SCHEMA_LANDING_PAGE.HERO_TITLE.default),
-				HERO_SLOGAN: String(CONFIG_SCHEMA_LANDING_PAGE.HERO_SLOGAN.default),
-				ACTIVE_TOP_BANNER: String(CONFIG_SCHEMA_LANDING_PAGE.ACTIVE_TOP_BANNER.default)
-			}
+			(page.data as any)?.landingPageConfigPm ??
+			getLandingPageConfigDefaults()
 	);
 
 	onMount(() => {
