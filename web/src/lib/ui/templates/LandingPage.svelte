@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
 
+	import AnimatedBeamMultipleAgent from '$lib/ui/templates/AnimatedBeamMultipleAgent.svelte';
 	import HeroMain from '$lib/ui/templates/HeroMain.svelte';
 	import HeroWithLeftImage from '$lib/ui/templates/HeroWithLeftImage.svelte';
 	import HeroWithRightImage from '$lib/ui/templates/HeroWithRightImage.svelte';
@@ -147,11 +148,13 @@
 	landingSubtitle={feature1Subtitle}
 	landingTitle={feature1Title}
 	landingDescription={feature1Description}
-	imageSrc="/landing/1-agent-workspaces.png"
-	imageAlt="Agent workspace with isolated channels and drafts"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
-/>
+>
+	{#snippet rightMedia()}
+		<AnimatedBeamMultipleAgent />
+	{/snippet}
+</HeroWithRightImage>
 
 <HeroWithLeftImage
 	heroTheme={landingHeroTheme}

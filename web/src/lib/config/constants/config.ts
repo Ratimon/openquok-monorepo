@@ -178,14 +178,14 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_1_SUBTITLE: {
 		description: 'Tag above the first secondary hero section',
 		type: 'string',
-		default: 'Agent workspaces',
+		default: 'Multi Agent Workspaces',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_1_TITLE: {
 		description: 'Headline for the first secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'One workspace agent, multi platforms, minimal hallucinations',
+		default: 'Multi agent, multi platforms, minimal hallucinations',
 		inputType: 'input',
 		maxInputLength: 100
 	},

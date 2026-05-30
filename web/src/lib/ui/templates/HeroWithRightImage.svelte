@@ -23,8 +23,9 @@
 		landingTitle: string;
 		landingDescription: string;
 
-		imageSrc: string;
+		imageSrc?: string;
 		imageAlt?: string;
+		rightMedia?: Snippet;
 
 		ctaText?: string;
 		ctaHref?: string;
@@ -41,6 +42,7 @@
 
 		imageSrc,
 		imageAlt = '',
+		rightMedia,
 
 		ctaText = 'Get Started For Free',
 		ctaHref = '/pricing',
@@ -61,7 +63,11 @@
 	<div class="relative isolate z-10 w-full overflow-hidden">
 		<div class="relative z-10 w-full px-6 py-16 sm:py-20">
 			<div class="mx-auto max-w-7xl">
-				<div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+				<div
+					class="grid gap-10 lg:grid-cols-2 lg:gap-16 {rightMedia
+						? 'items-stretch'
+						: 'items-center'}"
+				>
 					<div class="space-y-6 text-center lg:text-left">
 						{#if landingSubtitle}
 							<p class={heroTheme.subtitleClass}>
@@ -71,7 +77,7 @@
 
 						{#if landingTitle}
 							<h2
-								class="text-3xl font-black tracking-tight text-balance sm:text-4xl lg:text-5xl"
+								class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
 							>
 								{#each titleParts as part, index (index)}
 									{@const partClass = heroTheme.titlePartClass(index, titleParts.length)}
@@ -122,15 +128,25 @@
 						{/if}
 					</div>
 
-					<div class="relative flex justify-center lg:justify-end">
-						<div class="relative w-full max-w-lg">
-							<img
-								src={imageSrc}
-								alt={imageAlt}
-								class={heroTheme.imageClass}
-								loading="lazy"
-								decoding="async"
-							/>
+					<div
+						class="relative flex w-full {rightMedia
+							? 'h-full justify-center lg:justify-end'
+							: 'justify-center lg:justify-end'}"
+					>
+						<div
+							class="relative w-full max-w-lg {rightMedia ? 'flex h-full items-stretch' : ''}"
+						>
+							{#if rightMedia}
+								{@render rightMedia()}
+							{:else if imageSrc}
+								<img
+									src={imageSrc}
+									alt={imageAlt}
+									class={heroTheme.imageClass}
+									loading="lazy"
+									decoding="async"
+								/>
+							{/if}
 						</div>
 					</div>
 				</div>
