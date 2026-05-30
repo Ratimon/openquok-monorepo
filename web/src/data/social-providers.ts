@@ -98,7 +98,8 @@ export const socialProviderIconByIdentifier: Record<string, IconName> = {
 	youtube: icons.YouTube.name,
 	tiktok: icons.TikTok.name,
 	x: icons.X.name,
-	threads: icons.Threads.name
+	threads: icons.Threads.name,
+	linkedin: icons.LinkedIn.name
 };
 
 export function socialProviderIcon(identifier: string | null | undefined): IconName {

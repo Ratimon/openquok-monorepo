@@ -1,11 +1,16 @@
 <script lang="ts">
+	import type { IconName } from '$data/icons';
 	import { icons } from '$data/icons';
+
+	import { cn } from '$lib/ui/helpers/common';
+	import { socialProviderDisplayLabel } from '$data/social-providers';
 
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import OrbitingCircles from '$lib/ui/animation/OrbitingCircles.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
+	import * as Tooltip from '$lib/ui/tooltip';
 
 	type Props = {
 		heroTitle?: string;
@@ -27,6 +32,85 @@
 
 	const HIGHLIGHT_PILL_CLASS =
 		'bg-white text-black px-3 py-1 rounded-md -rotate-1 inline-block';
+
+	type HeroSocialPlatform = {
+		id: string;
+		icon: IconName;
+		label?: string;
+		containerClass?: string;
+		iconClass?: string;
+		iconWidth?: string;
+		iconHeight?: string;
+	};
+
+	const HERO_SOCIAL_ICON_BOX_CLASS = 'rounded-md';
+
+	const HERO_SOCIAL_PLATFORMS: HeroSocialPlatform[] = [
+		{
+			id: 'x',
+			icon: icons.X.name,
+			containerClass: 'bg-neutral-800 text-white',
+			iconClass: 'size-6'
+		},
+		{
+			id: 'instagram',
+			icon: icons.InstagramGlyph.name,
+			containerClass: 'bg-transparent p-0',
+			iconClass: 'size-8',
+			iconWidth: '32',
+			iconHeight: '32'
+		},
+		{
+			id: 'linkedin',
+			icon: icons.LinkedIn.name,
+			containerClass: 'bg-transparent p-0',
+			iconClass: 'size-8',
+			iconWidth: '32',
+			iconHeight: '32'
+		},
+		{
+			id: 'facebook',
+			icon: icons.Facebook.name,
+			containerClass: 'bg-transparent p-0',
+			iconClass: 'size-8',
+			iconWidth: '32',
+			iconHeight: '32'
+		},
+		{
+			id: 'tiktok',
+			icon: icons.TikTok.name,
+			containerClass: 'bg-transparent p-0',
+			iconClass: 'size-8',
+			iconWidth: '32',
+			iconHeight: '32'
+		},
+		{
+			id: 'youtube',
+			icon: icons.YouTube.name,
+			containerClass: 'bg-[#FF0000] text-white',
+			iconClass: 'size-4'
+		},
+		{
+			id: 'threads',
+			icon: icons.Threads.name,
+			containerClass: 'bg-neutral-900 text-white',
+			iconClass: 'size-5',
+			iconWidth: '20',
+			iconHeight: '20'
+		},
+		{
+			id: 'google',
+			icon: icons.Google.name,
+			label: 'Google Business',
+			containerClass: 'bg-white',
+			iconClass: 'size-5',
+			iconWidth: '20',
+			iconHeight: '20'
+		}
+	];
+
+	const HERO_SOCIAL_TOOLTIP_CLASS =
+		'border-neutral-800 bg-neutral-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg';
 
 	type TextSegment = { text: string; highlight: boolean };
 
@@ -92,9 +176,9 @@
 					radius={80}
 				>
 					<AbstractIcon
-						name={icons.ChatGPT.name}
-						width="30"
-						height="30"
+						name={icons.Gemini.name}
+						width="40"
+						height="40"
 						class="shrink-0"
 						focusable="false"
 					/>
@@ -107,8 +191,8 @@
 				>
 					<AbstractIcon
 						name={icons.OpenClaw.name}
-						width="30"
-						height="30"
+						width="40"
+						height="40"
 						class="shrink-0"
 						focusable="false"
 					/>
@@ -122,9 +206,9 @@
 					reverse
 				>
 					<AbstractIcon
-						name={icons.InstagramGlyph.name}
-						width="45"
-						height="45"
+						name={icons.ChatGPT.name}
+						width="40"
+						height="40"
 						class="shrink-0"
 						focusable="false"
 					/>
@@ -137,9 +221,9 @@
 					reverse
 				>
 					<AbstractIcon
-						name={icons.TikTok.name}
-						width="45"
-						height="45"
+						name={icons.Claude.name}
+						width="40"
+						height="40"
 						class="shrink-0"
 						focusable="false"
 					/>
@@ -148,13 +232,52 @@
 		</div>
 
 		<div class="relative z-10 container mx-auto px-4 py-16 sm:py-20">
-		<div class="mx-auto max-w-3xl text-center">
-			{#if githubOwner && githubRepo}
-				<div class="mb-6 flex justify-center">
-					<Stargazers owner={githubOwner} name={githubRepo} />
+			<div class="mx-auto max-w-3xl text-center">
+				{#if githubOwner && githubRepo}
+					<div class="mb-6 flex justify-center">
+						<Stargazers owner={githubOwner} name={githubRepo} />
+					</div>
+				{/if}
+
+				<div class="mb-8 flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+					<Tooltip.Provider delayDuration={200}>
+						{#each HERO_SOCIAL_PLATFORMS as platform (platform.id)}
+							{@const label = platform.label ?? socialProviderDisplayLabel(platform.id)}
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									{#snippet child({ props: triggerProps })}
+										<span {...triggerProps} class="inline-flex" aria-label={label}>
+											<span
+												class={cn(
+													'grid size-8 shrink-0 place-items-center',
+													HERO_SOCIAL_ICON_BOX_CLASS,
+													platform.containerClass
+												)}
+											>
+												<AbstractIcon
+													name={platform.icon}
+													width={platform.iconWidth ?? '16'}
+													height={platform.iconHeight ?? '16'}
+													class={platform.iconClass ?? 'size-4'}
+													focusable="false"
+												/>
+											</span>
+										</span>
+									{/snippet}
+								</Tooltip.Trigger>
+								<Tooltip.Content
+									side="bottom"
+									sideOffset={8}
+									class={HERO_SOCIAL_TOOLTIP_CLASS}
+								>
+									{label}
+								</Tooltip.Content>
+							</Tooltip.Root>
+						{/each}
+					</Tooltip.Provider>
 				</div>
-			{/if}
-			<h1 class="text-balance text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+
+				<h1 class="text-balance text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
 					{#if titleSegments.length > 0}
 						{#each titleSegments as seg, index (index)}
 							{#if seg.highlight}

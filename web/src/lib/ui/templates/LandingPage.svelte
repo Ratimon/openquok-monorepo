@@ -17,6 +17,7 @@
 		landingPageConfigVm.HERO_SLOGAN || String(CONFIG_SCHEMA_LANDING_PAGE.HERO_SLOGAN.default)
 	);
 </script>
+
 <HeroMain
     {heroTitle}
     {heroSlogan}
