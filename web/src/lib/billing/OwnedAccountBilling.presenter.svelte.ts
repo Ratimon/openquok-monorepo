@@ -1,4 +1,4 @@
-import type { GetPricingPresenter } from '$lib/billing/GetPricing.presenter.svelte';
+import type { GetBillingPresenter } from '$lib/billing/GetBilling.presenter.svelte';
 import type { SubscriptionTier } from 'openquok-common';
 
 /**
@@ -12,12 +12,12 @@ export class OwnedAccountBillingPresenter {
 	workspaceCap = $state<number | null>(null);
 	teamMembersPerWorkspace = $state<number | null>(null);
 
-	constructor(private readonly getPricingPresenter: GetPricingPresenter) {}
+	constructor(private readonly getBillingPresenter: GetBillingPresenter) {}
 
 	async load(): Promise<void> {
 		this.loading = true;
 		try {
-			const vm = await this.getPricingPresenter.loadOwnedAccountBillingVmStateless();
+			const vm = await this.getBillingPresenter.loadOwnedAccountBillingVmStateless();
 			this.tier = vm?.tier ?? 'FREE';
 			this.workspaceCap = vm?.limits.workspaces ?? null;
 			this.teamMembersPerWorkspace = vm?.limits.teamMembersPerWorkspace ?? null;

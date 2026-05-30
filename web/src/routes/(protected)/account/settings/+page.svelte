@@ -21,7 +21,7 @@
 
 	import { DevelopersSettingsStatus } from '$lib/settings/DevelopersSettings.presenter.svelte';
 	import { upsertOauthAppsPresenter } from '$lib/developers';
-	import { getPricingPresenter } from '$lib/billing';
+	import { getBillingPresenter } from '$lib/billing';
 
 	import EditorAccountSettings from '$lib/ui/templates/EditorAccountSettings.svelte';
 	import EditorDeveloperSettings from '$lib/ui/templates/EditorDeveloperSettings.svelte';
@@ -174,7 +174,7 @@
 		publicApiEnabled = null;
 		developersPresenter.setPublicApiEnabled(null);
 		upsertOauthAppsPresenter.setPublicApiEnabled(null);
-		void getPricingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
+		void getBillingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
 			if (cancelled) return;
 			publicApiEnabled = vm ? planLimitsForTier(vm.tier).public_api : false;
 			developersPresenter.setPublicApiEnabled(publicApiEnabled);

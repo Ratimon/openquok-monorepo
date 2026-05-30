@@ -1,4 +1,4 @@
-import type { BillingPricingViewModel, GetPricingPresenter } from '$lib/billing/GetPricing.presenter.svelte';
+import type { BillingPricingViewModel, GetBillingPresenter } from '$lib/billing/GetBilling.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
 /**
@@ -11,7 +11,7 @@ export class FirstBillingGatePresenter {
 	pricingVm = $state<BillingPricingViewModel | null>(null);
 
 	constructor(
-		private readonly getPricingPresenter: GetPricingPresenter,
+		private readonly getBillingPresenter: GetBillingPresenter,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter
 	) {}
 
@@ -23,7 +23,7 @@ export class FirstBillingGatePresenter {
 			}
 			const organizationId = this.workspaceSettingsPresenter.currentWorkspaceId ?? undefined;
 			const pricingVm =
-				await this.getPricingPresenter.loadBillingPricingVmStateless(organizationId);
+				await this.getBillingPresenter.loadBillingPricingVmStateless(organizationId);
 			this.pricingVm = pricingVm;
 
 			const tier = pricingVm.currentVm?.tier ?? 'FREE';

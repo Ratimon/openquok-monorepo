@@ -132,7 +132,7 @@ export function tierDisplayName(tier: string): string {
 	return tier;
 }
 
-export class GetPricingPresenter {
+export class GetBillingPresenter {
 	constructor(private readonly billingRepository: BillingRepository) {}
 
 	public toBillingPlanVm(pm: BillingPlanProgrammerModel): BillingPlanViewModel {

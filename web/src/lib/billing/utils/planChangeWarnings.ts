@@ -1,4 +1,4 @@
-import type { BillingPlanViewModel } from '$lib/billing/GetPricing.presenter.svelte';
+import type { BillingPlanViewModel } from '$lib/billing/GetBilling.presenter.svelte';
 import { accountTeamMemberSeatTotal } from 'openquok-common';
 
 export const TEAM_MEMBER_DOWNGRADE_MESSAGE =

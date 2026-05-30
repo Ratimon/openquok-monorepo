@@ -11,7 +11,7 @@
 	import { route, url } from '$lib/utils/path';
 	import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
 	import { getScheduledPostsPresenter } from '$lib/posts';
-	import { getPricingPresenter } from '$lib/billing';
+	import { getBillingPresenter } from '$lib/billing';
 	import { planLimitsForTier } from 'openquok-common';
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -92,7 +92,7 @@
 			return;
 		}
 		let cancelled = false;
-		void getPricingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
+		void getBillingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
 			if (cancelled) return;
 			viewerAccountAllowsComments = vm
 				? planLimitsForTier(vm.tier).share_post_preview

@@ -5,8 +5,8 @@ import type {
 import type {
 	BillingCurrentViewModel,
 	BillingPlanViewModel,
-	GetPricingPresenter
-} from '$lib/billing/GetPricing.presenter.svelte';
+	GetBillingPresenter
+} from '$lib/billing/GetBilling.presenter.svelte';
 import type { PaidSubscriptionTier, SubscriptionPeriod, SubscriptionTier } from 'openquok-common';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
@@ -22,7 +22,7 @@ export type HostedCheckoutReturnResult =
 	| 'pending_confirmation';
 
 /**
- * Page presenter for account billing: loads pricing via {@link GetPricingPresenter},
+ * Page presenter for account billing: loads pricing via {@link GetBillingPresenter},
  * delegates checkout and portal to {@link BillingPresenter}, and wires product analytics on subscribe.
  */
 export class ProtectedBillingPagePresenter {
@@ -35,7 +35,7 @@ export class ProtectedBillingPagePresenter {
 	private subscriptionUpdatedNotified = false;
 
 	constructor(
-		private readonly getPricingPresenter: GetPricingPresenter,
+		private readonly getBillingPresenter: GetBillingPresenter,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
 		readonly billingPresenter: BillingPresenter
 	) {
@@ -60,7 +60,7 @@ export class ProtectedBillingPagePresenter {
 		this.loading = true;
 		try {
 			const orgId = this.organizationId;
-			const pricingVm = await this.getPricingPresenter.loadBillingPricingVmStateless(
+			const pricingVm = await this.getBillingPresenter.loadBillingPricingVmStateless(
 				orgId || undefined
 			);
 			this.plansVm = pricingVm.plansVm;

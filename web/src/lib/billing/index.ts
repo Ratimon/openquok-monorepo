@@ -4,7 +4,7 @@ import { BillingRepository } from '$lib/billing/Billing.repository.svelte';
 import { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
 import { FirstBillingGatePresenter } from '$lib/billing/FirstBillingGate.presenter.svelte';
 import { OwnedAccountBillingPresenter } from '$lib/billing/OwnedAccountBilling.presenter.svelte';
-import { GetPricingPresenter } from '$lib/billing/GetPricing.presenter.svelte';
+import { GetBillingPresenter } from '$lib/billing/GetBilling.presenter.svelte';
 import { GetPublicPricingPresenter } from '$lib/billing/GetPublicPricing.presenter.svelte';
 import { workspaceSettingsPresenter } from '$lib/settings';
 
@@ -29,24 +29,24 @@ const billingConfig: BillingConfig = {
 
 export const billingRepository = new BillingRepository(httpGateway, billingConfig);
 
-export const getPricingPresenter = new GetPricingPresenter(billingRepository);
+export const getBillingPresenter = new GetBillingPresenter(billingRepository);
 
 export const getPublicPricingPresenter = new GetPublicPricingPresenter();
 
 export const billingPresenter = new BillingPresenter(billingRepository, workspaceSettingsPresenter);
 
 export const firstBillingGatePresenter = new FirstBillingGatePresenter(
-	getPricingPresenter,
+	getBillingPresenter,
 	workspaceSettingsPresenter
 );
 
-export const ownedAccountBillingPresenter = new OwnedAccountBillingPresenter(getPricingPresenter);
+export const ownedAccountBillingPresenter = new OwnedAccountBillingPresenter(getBillingPresenter);
 
 export { BillingPresenter } from '$lib/billing/Billing.presenter.svelte';
 export { FirstBillingGatePresenter } from '$lib/billing/FirstBillingGate.presenter.svelte';
 export { OwnedAccountBillingPresenter } from '$lib/billing/OwnedAccountBilling.presenter.svelte';
 export {
-	GetPricingPresenter,
+	GetBillingPresenter,
 	buildPlanFeatureLinesVm,
 	tierDisplayName,
 	type BillingCurrentViewModel,
@@ -54,7 +54,7 @@ export {
 	type BillingPricingViewModel,
 	type BillingSubscriptionViewModel,
 	type PlanFeatureLineViewModel
-} from '$lib/billing/GetPricing.presenter.svelte';
+} from '$lib/billing/GetBilling.presenter.svelte';
 export {
 	GetPublicPricingPresenter,
 	type PublicPricingCompareCellViewModel,

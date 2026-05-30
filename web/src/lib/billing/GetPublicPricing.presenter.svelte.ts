@@ -5,7 +5,7 @@ import {
 	formatTeamMembersPerWorkspaceDisplay,
 	teamMembersPerWorkspaceLabel,
 	tierDisplayName
-} from '$lib/billing/GetPricing.presenter.svelte';
+} from '$lib/billing/GetBilling.presenter.svelte';
 import { formatBytes } from '$lib/medias';
 import {
 	PUBLIC_PRICING_COMPARE_ROWS,

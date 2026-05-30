@@ -13,7 +13,7 @@
 	import { toast } from '$lib/ui/sonner';
 
 	import { publicBlogBySlugPagePresenter } from '$lib/area-public/index';
-	import { getPricingPresenter } from '$lib/billing';
+	import { getBillingPresenter } from '$lib/billing';
 	import { planLimitsForTier } from 'openquok-common';
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { authenticationRepository } from '$lib/user-auth';
@@ -56,7 +56,7 @@
 			return;
 		}
 		let cancelled = false;
-		void getPricingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
+		void getBillingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
 			if (cancelled) return;
 			viewerCommunityFeaturesEnabled = vm
 				? planLimitsForTier(vm.tier).community_features
