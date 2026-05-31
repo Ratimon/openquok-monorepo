@@ -2,7 +2,6 @@
 	import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
 
 	import { onMount } from 'svelte';
-	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 
 	import { icons } from '$data/icons';
@@ -45,7 +44,6 @@
 			? ownedWorkspaces.length > 0
 			: ownedWorkspaces.length > 1
 	);
-	const checkoutId = $derived(page.url.searchParams.get('checkout'));
 	const finishTrialQuery = $derived(page.url.searchParams.get('finishTrial'));
 
 	let period = $state<'MONTHLY' | 'YEARLY'>('MONTHLY');
@@ -116,9 +114,6 @@
 		}
 		if (result.type === 'updated') {
 			pagePresenter.notifySubscriptionUpdated();
-			if (checkoutId) {
-				replaceState(accountPath, {});
-			}
 		}
 	}
 
@@ -167,24 +162,9 @@
 		}
 	}
 
-	async function handleCheckoutReturn(): Promise<void> {
-		const result = await pagePresenter.completeHostedCheckoutReturn(checkoutId!);
-		const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
-		if (loadedPeriod) {
-			period = loadedPeriod;
-		}
-		if (result !== 'pending_confirmation') {
-			replaceState(accountPath, {});
-		}
-	}
-
 	onMount(() => {
 		if (finishTrialQuery) {
 			showFinishTrial = true;
-		}
-		if (checkoutId) {
-			void handleCheckoutReturn();
-			return;
 		}
 		void pagePresenter.load().then(() => {
 			const loadedPeriod = pagePresenter.currentVm?.subscription?.period;

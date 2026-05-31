@@ -12,6 +12,10 @@ import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings
 
 import { teamMemberDowngradeWarning } from '$lib/billing/utils/planChangeWarnings';
 import { ConversionTrackEvent, fireProductEvent, trackConversion } from '$lib/product-analytics';
+import {
+	hasPurchaseBeenTrackedForCheckout,
+	markPurchaseTrackedForCheckout
+} from '$lib/product-analytics/utils/purchaseCheckoutDedupe';
 import { authenticationRepository } from '$lib/user-auth/index';
 import { toast } from '$lib/ui/sonner';
 
@@ -137,7 +141,10 @@ export class ProtectedBillingPagePresenter {
 		toast.success('Subscription updated.');
 	}
 
-	private notifyPurchaseComplete(): void {
+	private notifyPurchaseComplete(checkoutId: string): void {
+		const id = checkoutId.trim();
+		if (!id || hasPurchaseBeenTrackedForCheckout(id)) return;
+		markPurchaseTrackedForCheckout(id);
 		this.notifySubscriptionUpdated();
 		this.onPurchaseComplete();
 		void trackConversion(ConversionTrackEvent.Purchase, { authenticated: true });
@@ -159,13 +166,13 @@ export class ProtectedBillingPagePresenter {
 			Boolean(this.currentVm?.subscription?.id) ||
 			(tierAfterLoad !== 'FREE' && tierAfterLoad !== null);
 		if (alreadyActive) {
-			this.notifyPurchaseComplete();
+			this.notifyPurchaseComplete(checkoutId);
 			return 'already_active';
 		}
 
 		const confirmed = await this.pollCheckout(checkoutId);
 		if (confirmed) {
-			this.notifyPurchaseComplete();
+			this.notifyPurchaseComplete(checkoutId);
 			return 'success';
 		}
 

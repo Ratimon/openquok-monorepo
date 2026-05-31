@@ -11,7 +11,7 @@
 </script>
 
 <h1 class="text-balance text-3xl font-semibold leading-tight md:text-4xl">
-	Choose a plan to unlock your workspace
+	Choose a plan to unlock your agent workspace
 </h1>
 {#if allowTrial}
 	<ul class="mt-6 flex flex-col gap-3 text-base font-medium">

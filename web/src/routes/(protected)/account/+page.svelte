@@ -6,9 +6,8 @@
 
 	// --- App / routing ---
 	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
 	import { getContext } from 'svelte';
-	import { goto, replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 
@@ -16,7 +15,6 @@
 	import {
 		getRootPathAccount,
 		getRootPathCalendar,
-		protectedBillingPagePresenter,
 		protectedCalendarPagePresenter,
 		protectedHomePagePresenter,
 		protectedSettingsPagePresenter,
@@ -84,8 +82,6 @@
 	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? (page.data as App.LayoutData)?.currentUser ?? null);
 
 	// --- Workspace + home VMs ---
-	const checkoutId = $derived(page.url.searchParams.get('checkout'));
-
 	const accountRoot = $derived(accountPath);
 	const accountSettingsWorkspaceHref = $derived(url(`${accountRoot}/settings?section=workspace`));
 	const accountSettingsDeveloperOAuthHref = $derived(
@@ -107,17 +103,6 @@
 		void ownedAccountBillingPresenter.load();
 	});
 
-	onMount(() => {
-		if (!checkoutId) return;
-		void (async () => {
-			const result = await protectedBillingPagePresenter.completeHostedCheckoutReturn(checkoutId);
-			if (result !== 'pending_confirmation') {
-				replaceState(accountPath, {});
-			}
-			void firstBillingGatePresenter.evaluate();
-			void ownedAccountBillingPresenter.load();
-		})();
-	});
 
 	const listStatus = $derived(protectedHomePagePresenter.listStatus);
 	const channelGroupSectionsVm = $derived(protectedHomePagePresenter.channelGroupSectionsVm);

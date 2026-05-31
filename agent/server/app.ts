@@ -62,7 +62,7 @@ try {
 // --- Postgres ---
 const pool = new pg.Pool({ connectionString: DATABASE_URL });
 
-const EXPIRY_MINUTES = 15;
+const EXPIRY_MINUTES =30;
 const POLL_INTERVAL_S = 5;
 const MAX_BODY_BYTES = 4096;
 
