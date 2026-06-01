@@ -216,3 +216,31 @@ export function getRootPathConfigManagerBlogInformation(): string {
 export function getRootPathSecretAdminConfigManagerBlogInformation(): string {
 	return `${getRootPathSecretAdminConfigManager()}/${getRootPathConfigManagerBlogInformation()}`;
 }
+
+/**
+ * Segment for config-manager marketing information.
+ */
+export function getRootPathConfigManagerMarketingInformation(): string {
+	return 'marketing-information';
+}
+
+/**
+ * Full path for config-manager marketing information.
+ */
+export function getRootPathSecretAdminConfigManagerMarketingInformation(): string {
+	return `${getRootPathSecretAdminConfigManager()}/${getRootPathConfigManagerMarketingInformation()}`;
+}
+
+/**
+ * Segment for config-manager landing page.
+ */
+export function getRootPathConfigManagerLandingPage(): string {
+	return 'landing-page';
+}
+
+/**
+ * Full path for config-manager landing page.
+ */
+export function getRootPathSecretAdminConfigManagerLandingPage(): string {
+	return `${getRootPathSecretAdminConfigManager()}/${getRootPathConfigManagerLandingPage()}`;
+}

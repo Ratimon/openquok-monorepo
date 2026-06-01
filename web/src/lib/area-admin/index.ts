@@ -52,6 +52,11 @@ const adminRoleManagerPagePresenter = new AdminRoleManagerPagePresenter(
 const adminEmailManagerPagePresenter = new AdminEmailManagerPagePresenter(getEmailPresenter, emailRepository);
 
 const companyInformationFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'company_information');
+const marketingInformationFormPresenter = new ModuleConfigRendererPresenter(
+	configRepository,
+	'marketing_information'
+);
+const landingPageFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'landing_page');
 const blogInformationFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'blog');
 
 export {
@@ -66,6 +71,8 @@ export {
 	adminBlogCommentsManagerPagePresenter,
 	adminBlogActivitiesManagerPagePresenter,
 	companyInformationFormPresenter,
+	marketingInformationFormPresenter,
+	landingPageFormPresenter,
 	blogInformationFormPresenter
 };
 export type { FeedbackViewModel } from '$lib/feedbacks';
