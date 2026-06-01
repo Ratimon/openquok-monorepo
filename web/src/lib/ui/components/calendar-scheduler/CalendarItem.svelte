@@ -109,13 +109,8 @@
 	// Always use the representative post selected by the scheduler (upcoming-first).
 	const previewContent = $derived(content);
 	const previewChannelName = $derived(channelName);
-	const previewPictures = $derived(
-		(slotSummary as SlotSummaryItem[])
-			.map((x) => (x?.channelPicture ? String(x.channelPicture) : ''))
-			.filter(Boolean)
-			.slice(0, 3)
-	);
-	const hiddenChannelCount = $derived(Math.max(0, postCount - previewPictures.length));
+	const previewChannels = $derived((slotSummary as SlotSummaryItem[]).slice(0, 3));
+	const hiddenChannelCount = $derived(Math.max(0, postCount - previewChannels.length));
 
 </script>
 
@@ -143,15 +138,17 @@
 			<div class="flex shrink-0 items-center gap-1">
 				{#if multiPosts}
 					<div class="relative h-4 w-8 shrink-0">
-						{#each previewPictures as pic, i (i)}
-							<img
-								src={pic}
-								alt=""
-								class="absolute top-0 h-4 w-4 rounded object-cover ring-1 ring-primary"
-								style={`left:${i * 6}px`}
-							/>
+						{#each previewChannels as entry, i (`${entry.integrationId ?? entry.postId ?? i}`)}
+							{@const entryIcon = socialProviderIcon(entry.channelIdentifier)}
+							<div class="absolute top-0" style={`left:${i * 6}px`}>
+								<IntegrationChannelPicture
+									profilePictureUrl={entry.channelPicture}
+									fallbackIcon={entryIcon}
+									class="h-4 w-4 rounded object-cover ring-1 ring-primary"
+								/>
+							</div>
 						{/each}
-						{#if previewPictures.length === 0}
+						{#if previewChannels.length === 0}
 							<div class="absolute left-0 top-0 flex h-4 w-4 items-center justify-center rounded bg-primary-content/20 text-[9px] font-semibold text-primary-content/90">
 								{(previewChannelName || 'CH').slice(0, 1).toUpperCase()}
 							</div>
@@ -201,15 +198,17 @@
 			{#if multiPosts}
 				<div class="flex shrink-0 items-center gap-1">
 					<div class="relative h-4 w-8 shrink-0">
-						{#each previewPictures as pic, i (i)}
-							<img
-								src={pic}
-								alt=""
-								class="absolute top-0 h-4 w-4 rounded object-cover ring-1 ring-primary"
-								style={`left:${i * 6}px`}
-							/>
+						{#each previewChannels as entry, i (`${entry.integrationId ?? entry.postId ?? i}`)}
+							{@const entryIcon = socialProviderIcon(entry.channelIdentifier)}
+							<div class="absolute top-0" style={`left:${i * 6}px`}>
+								<IntegrationChannelPicture
+									profilePictureUrl={entry.channelPicture}
+									fallbackIcon={entryIcon}
+									class="h-4 w-4 rounded object-cover ring-1 ring-primary"
+								/>
+							</div>
 						{/each}
-						{#if previewPictures.length === 0}
+						{#if previewChannels.length === 0}
 							<div class="absolute left-0 top-0 flex h-4 w-4 items-center justify-center rounded bg-primary-content/20 text-[9px] font-semibold text-primary-content/90">
 								{(previewChannelName || 'CH').slice(0, 1).toUpperCase()}
 							</div>

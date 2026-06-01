@@ -3,7 +3,6 @@ export {
 	getRootPathCalendar,
 	getRootPathAnalytics,
 	getRootPathMedia,
-	getRootPathIntegrations,
 	getRootPathPlugs,
 	getRootPathTemplates
 } from '$lib/area-protected/getRootPathProtectedArea';

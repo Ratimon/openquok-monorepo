@@ -27,6 +27,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import DateGridEvent from '$lib/ui/components/calendar-scheduler/DateGridEvent.svelte';
 	import * as Dialog from '$lib/ui/dialog';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import TimeGridEvent from '$lib/ui/components/calendar-scheduler/TimeGridEvent.svelte';
 	import MonthGridEvent from '$lib/ui/components/calendar-scheduler/MonthGridEvent.svelte';
 	
@@ -715,13 +716,11 @@
 				>
 					<div class="flex min-w-0 items-start gap-3">
 						<div class="relative mt-0.5 h-9 w-9 shrink-0">
-							{#if item.channelPicture}
-								<img src={item.channelPicture} alt="" class="h-9 w-9 rounded-md object-cover" />
-							{:else}
-								<div class="flex h-9 w-9 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60">
-									{(item.channelName || 'CH').slice(0, 2).toUpperCase()}
-								</div>
-							{/if}
+							<IntegrationChannelPicture
+								profilePictureUrl={item.channelPicture}
+								fallbackIcon={channelIconName}
+								class="h-9 w-9 rounded-md object-cover"
+							/>
 							<span
 								class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"
 								aria-hidden="true"

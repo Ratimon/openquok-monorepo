@@ -7,6 +7,7 @@
 	import { Toaster } from '$lib/ui/sonner';
 	import { MetaTags, deepMerge } from 'svelte-meta-tags';
 	import '../app.postcss';
+	import { THEME_STORAGE_KEY } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
 	
 	import { page } from '$app/state';
 	import CookieConsentBanner from '$lib/ui/cookie/CookieConsentBanner.svelte';
@@ -15,7 +16,6 @@
 	import { identifyPostHogUser } from '$lib/product-analytics/posthog.client';
 	import PostHogPageview from '$lib/product-analytics/PostHogPageview.svelte';
 	import UtmAttribution from '$lib/product-analytics/UtmAttribution.svelte';
-	import { THEME_STORAGE_KEY } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
 
 	type Props = {
 		data: PageData & App.LayoutData;

@@ -6,6 +6,7 @@
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 
 	type SlotSummaryItem = {
 		postId?: string;
@@ -131,13 +132,11 @@
 				}}
 			>
 				<div class="relative h-9 w-9 shrink-0">
-					{#if row.channelPicture}
-						<img src={row.channelPicture} alt="" class="h-9 w-9 rounded-md object-cover" />
-					{:else}
-						<div class="flex h-9 w-9 items-center justify-center rounded-md bg-base-200 text-[10px] font-semibold text-base-content/60">
-							{(row.channelName || 'CH').slice(0, 2).toUpperCase()}
-						</div>
-					{/if}
+					<IntegrationChannelPicture
+						profilePictureUrl={row.channelPicture}
+						fallbackIcon={iconName}
+						class="h-9 w-9 rounded-md object-cover"
+					/>
 					{#if row.channelIdentifier}
 						<span
 							class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"

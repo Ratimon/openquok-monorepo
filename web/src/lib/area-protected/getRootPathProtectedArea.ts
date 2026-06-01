@@ -29,14 +29,8 @@ export function getRootPathMedia(): string {
 }
 
 /**
- * Integrations route segment under the account area (compose with {@link getRootPathAccount}, e.g.
- * `${absoluteUrl(getRootPathAccount())}/${getRootPathIntegrations()}`).
+ * Plugs (channel automation) segment under the account area.
  */
-export function getRootPathIntegrations(): string {
-	return 'integrations';
-}
-
-/** Plugs (channel automation) segment under the account area. */
 export function getRootPathPlugs(): string {
 	return 'plugs';
 }
