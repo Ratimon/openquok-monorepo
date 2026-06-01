@@ -11,6 +11,7 @@
 	import { protectedBillingPagePresenter } from '$lib/area-protected';
 	import { firstBillingGatePresenter, ownedAccountBillingPresenter } from '$lib/billing';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+	import { authenticationRepository } from '$lib/user-auth/index';
 
 	type ProtectedLayoutProps = {
 		children: Snippet;
@@ -20,6 +21,12 @@
 	let { children, data }: ProtectedLayoutProps = $props();
 
 	const companyName = $derived((data as App.LayoutData)?.companyNameVm ?? 'Openquok');
+	const currentUser = $derived(
+		(data as App.LayoutData)?.currentUser ?? authenticationRepository.currentUser ?? null
+	);
+	const isPlatformAdmin = $derived(
+		(currentUser as { isPlatformAdmin?: boolean } | null)?.isPlatformAdmin === true
+	);
 	const checkoutId = $derived(page.url.searchParams.get('checkout'));
 	const checkoutBypass = $derived(firstBillingGatePresenter.isCheckoutBypassed(checkoutId));
 	const checkoutReturnInFlight = $derived(
@@ -31,7 +38,10 @@
 		firstBillingGatePresenter.loading && !checkoutBypass && !checkoutReturnInFlight
 	);
 	const showFirstBilling = $derived(
-		firstBillingGatePresenter.restrictFreeUser && !checkoutBypass && !checkoutReturnInFlight
+		!isPlatformAdmin &&
+			firstBillingGatePresenter.restrictFreeUser &&
+			!checkoutBypass &&
+			!checkoutReturnInFlight
 	);
 
 	$effect(() => {

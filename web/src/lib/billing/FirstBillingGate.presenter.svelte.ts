@@ -9,6 +9,7 @@ import {
 /**
  * Evaluates whether a free-tier workspace should see the first-billing gate
  * instead of the normal protected app shell.
+ * Platform admins bypass the gate in `(protected)/+layout.svelte` (`isPlatformAdmin`).
  */
 export class FirstBillingGatePresenter {
 	loading = $state(true);
