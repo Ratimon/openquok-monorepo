@@ -553,18 +553,49 @@
 <!-- Current Workspace's team -->
 {#if currentWorkspaceId}
 	<section
-		class="mt-6 rounded-lg border border-base-300 bg-base-200 p-6 shadow-sm"
+		class="mt-6 rounded-lg border border-base-300 bg-base-200 shadow-sm overflow-hidden"
 		aria-labelledby="team-members-heading"
 	>
-		<h2 id="team-members-heading" class="text-lg font-semibold text-base-content">
-			Team Members
-		</h2>
-		<p class="mt-1 text-sm text-base-content/70">
-			Invite your assistant or team member to manage your account
-		</p>
+		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6">
+			<div>
+				<h2 id="team-members-heading" class="text-lg font-semibold text-base-content">
+					Team Members
+					{#if teamSeatsUsageLabel}
+						<span class={isTeamSeatsLimitFull ? 'text-warning' : 'text-base-content/70'}>
+							({teamSeatsUsageLabel})
+						</span>
+					{/if}
+				</h2>
+				<p class="mt-1 text-sm text-base-content/70">
+					Invite your assistant or team member to manage your account
+				</p>
+			</div>
+			{#if canInviteInCurrentWorkspace}
+				<Button
+					class="gap-1.5 shrink-0"
+					variant={isTeamSeatsLimitFull ? 'warning' : 'primary'}
+					type="button"
+					onclick={openInviteDialog}
+					disabled={loadingTeam || inviting}
+				>
+					{#if isTeamSeatsLimitFull}
+						<AbstractIcon
+							name={icons.Lock.name}
+							class="size-4"
+							width="16"
+							height="16"
+							focusable="false"
+						/>
+						Member limit reached
+					{:else}
+						{inviting ? 'Sending…' : 'Add another member'}
+					{/if}
+				</Button>
+			{/if}
+		</div>
 
 		{#if showTeamSeatsLimitSection && teamSeatsUsageLabel}
-			<div class="mt-4">
+			<div class="border-t border-base-300 px-6 pb-4 pt-4">
 				<HomeAccountNoticeBanner
 					iconName={isTeamSeatsLimitFull ? icons.Sparkles.name : icons.Info.name}
 					tone={isTeamSeatsLimitFull ? 'upgrade' : 'neutral'}
@@ -572,13 +603,13 @@
 				>
 					<p class="text-base-content/90">
 						{#if isTeamSeatsLimitFull}
-							This workspace has reached its team member limit
+							You have reached your plan team member limit
 							<span class="font-medium tabular-nums">({teamSeatsUsageLabel})</span>. Upgrade to
 							invite more collaborators, or remove members and pending invites to free seats.
 						{:else}
-							Workspace team seats:
+							Team members on your plan:
 							<span class="font-medium tabular-nums">{teamSeatsUsageLabel}</span>
-							used (members and pending invites count toward your plan limit).
+							used across your account.
 						{/if}
 					</p>
 					{#snippet actions()}
@@ -593,7 +624,7 @@
 			</div>
 		{/if}
 
-		<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-4 space-y-4">
+		<div class="border-t border-base-300 px-6 pb-6 pt-4 space-y-4">
 			{#if loadingTeam}
 				<p class="text-sm text-base-content/70">
 					Loading team…
@@ -655,28 +686,7 @@
 				</div>
 			{/if}
 
-			{#if canInviteInCurrentWorkspace}
-				<Button
-					class="gap-1.5"
-					variant={isTeamSeatsLimitFull ? 'warning' : 'primary'}
-					type="button"
-					onclick={openInviteDialog}
-					disabled={loadingTeam || inviting}
-				>
-					{#if isTeamSeatsLimitFull}
-						<AbstractIcon
-							name={icons.Lock.name}
-							class="size-4"
-							width="16"
-							height="16"
-							focusable="false"
-						/>
-						Member limit reached
-					{:else}
-						{inviting ? 'Sending…' : 'Add another member'}
-					{/if}
-				</Button>
-			{:else}
+			{#if !canInviteInCurrentWorkspace}
 				<p class="text-xs text-base-content/60">
 					Only workspace admins can invite new members.
 				</p>
