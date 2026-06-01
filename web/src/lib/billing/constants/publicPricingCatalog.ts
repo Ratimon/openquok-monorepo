@@ -248,9 +248,18 @@ export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 			'A channel is a connected social account (for example Facebook, Instagram, LinkedIn, TikTok, YouTube, Reddit, Threads, or Pinterest). You schedule posts to the channels you connect.'
 	},
 	{
+		title: 'Can I connect 2 channels to the same platform?',
+		description:
+			'Yes. Example: SOLO plan can connect 15 total accounts, all of them can be tiktok accounts.'
+	},
+	{
 		title: 'How does team members work?',
 		description:
 			'Team members are people you invite to a workspace. They can collaborate on content and connect their own channels where your plan allows. Seat limits are shown as invites plus you as owner. For example, “2 + 1 (you) per workspace” means four invited members and one seat for you on each workspace you own.'
+	},
+	{ title: 'will my post get less reach if I use OpenQuok?',
+		description:
+			'No ! Your posts should perform the same as if you published them directly on each platform. We had the same concern that algorithms might favor in-app posting, but in our own tests we did not see lower reach when scheduling through OpenQuok.'
 	},
 	{
 		title: 'How does repeated posts work',

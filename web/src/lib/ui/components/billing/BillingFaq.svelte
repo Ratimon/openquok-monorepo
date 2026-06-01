@@ -40,7 +40,11 @@
 				title: 'How does team members work?',
 				description:
 					'Team members are people you invite to a workspace. They can collaborate on content and connect their own channels where your plan allows. Seat limits are shown as invites plus you as owner. For example, “2 + 1 (you) per workspace” means four invited members and one seat for you on each workspace you own.'
-			}
+			},
+			{ title: 'Can I connect 2 channels to the same platform?',
+				description:
+					'Yes. Example: SOLO plan can connect 15 total accounts, all of them can be tiktok accounts.'
+			},
 		);
 
 		return list;

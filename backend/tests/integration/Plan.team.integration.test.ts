@@ -183,7 +183,7 @@ describeIfSupabase("TEAM plan subscription limits (integration)", () => {
         async () => {
             const teamLimits = planLimitsForTier("TEAM");
             const seatCap = teamLimits.team_members_per_workspace;
-            expect(seatCap).toBe(5);
+            expect(seatCap).toBe(3);
 
             const payload = userHelper.setupTestUser1();
             const { accessToken } = await signupVerifyAndSignIn(payload);
@@ -260,7 +260,7 @@ describeIfSupabase("TEAM plan subscription limits (integration)", () => {
     it("blocks a new social channel when the workspace is at TEAM channel_per_workspace cap", async () => {
         const teamLimits = planLimitsForTier("TEAM");
         const channelCap = teamLimits.channel_per_workspace;
-        expect(channelCap).toBe(20);
+        expect(channelCap).toBe(15);
 
         const payload = userHelper.setupTestUser1();
         const { accessToken } = await signupVerifyAndSignIn(payload);

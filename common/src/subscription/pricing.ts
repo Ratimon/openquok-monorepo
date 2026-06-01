@@ -84,7 +84,7 @@ export const pricing: PricingMap = {
 		month_price: 49,
 		year_price: 470,
 		workspaces: 3,
-		channel_per_workspace: 20, // total of 60 channls
+		channel_per_workspace: 15, // total of 45 channels
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
 		team_members_per_workspace: 3,
 		media_storage_bytes_per_workspace: gbToBytes(5),
@@ -97,7 +97,7 @@ export const pricing: PricingMap = {
 		month_price: 69,
 		year_price: 662,
 		workspaces: 5,
-		channel_per_workspace: 25, // total of 125 channels
+		channel_per_workspace: 20, // total of 100 channels
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
 		team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
 		media_storage_bytes_per_workspace: gbToBytes(5),
@@ -110,7 +110,7 @@ export const pricing: PricingMap = {
 		month_price: 129,
 		year_price: 1238,
 		workspaces: 10,
-		channel_per_workspace: 30,
+		channel_per_workspace: 25, // total of 250 channels
 		posts_per_month: UNLIMITED_POSTS_PER_MONTH,
 		team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
 		media_storage_bytes_per_workspace: gbToBytes(6),

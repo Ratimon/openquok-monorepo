@@ -292,10 +292,10 @@ var init_pricing = __esm({
         month_price: 49,
         year_price: 470,
         workspaces: 3,
-        channel_per_workspace: 20,
-        // total of 60 channls
+        channel_per_workspace: 15,
+        // total of 45 channels
         posts_per_month: UNLIMITED_POSTS_PER_MONTH,
-        team_members_per_workspace: 5,
+        team_members_per_workspace: 3,
         media_storage_bytes_per_workspace: gbToBytes(5),
         share_post_preview: true,
         community_features: true,
@@ -306,8 +306,8 @@ var init_pricing = __esm({
         month_price: 69,
         year_price: 662,
         workspaces: 5,
-        channel_per_workspace: 25,
-        // total of 125 channels
+        channel_per_workspace: 20,
+        // total of 100 channels
         posts_per_month: UNLIMITED_POSTS_PER_MONTH,
         team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
         media_storage_bytes_per_workspace: gbToBytes(5),
@@ -320,7 +320,8 @@ var init_pricing = __esm({
         month_price: 129,
         year_price: 1238,
         workspaces: 10,
-        channel_per_workspace: 30,
+        channel_per_workspace: 25,
+        // total of 250 channels
         posts_per_month: UNLIMITED_POSTS_PER_MONTH,
         team_members_per_workspace: UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE,
         media_storage_bytes_per_workspace: gbToBytes(6),
@@ -17461,7 +17462,7 @@ var init_StripeService = __esm({
             mode: "subscription",
             customer,
             line_items: [{ price: priceId, quantity: 1 }],
-            success_url: `${frontend}/account/billing?checkout=${uniqueId}`,
+            success_url: `${frontend}/account?checkout=${uniqueId}`,
             cancel_url: `${frontend}/account/billing`,
             subscription_data: {
               // trial_period_days is in days - eg 7 days
@@ -17528,14 +17529,19 @@ var init_StripeService = __esm({
         const customerId = org?.stripe_customer_id;
         if (!customerId) return { status: 0 };
         const stripe = getStripeClient();
+        let pendingSessionOrgId;
         try {
           const sessions = await stripe.checkout.sessions.list({
             customer: customerId,
             limit: 20
           });
           const session = sessions.data.find((s) => s.metadata?.uniqueId === checkoutId);
+          const sessionOrgId = typeof session?.metadata?.organizationId === "string" ? session.metadata.organizationId.trim() : void 0;
+          if (sessionOrgId) {
+            pendingSessionOrgId = sessionOrgId;
+          }
           if (session?.status === "expired") {
-            return { status: 1 };
+            return { status: 1, ...sessionOrgId ? { organizationId: sessionOrgId } : {} };
           }
           const sessionPaid = session?.payment_status === "paid" || session?.status === "complete";
           if (session && sessionPaid && session.subscription) {
@@ -17581,6 +17587,9 @@ var init_StripeService = __esm({
           if (syncedRow) {
             return { status: 2, organizationId: syncedRow.organization_id };
           }
+        }
+        if (pendingSessionOrgId) {
+          return { status: 0, organizationId: pendingSessionOrgId };
         }
         return { status: 0 };
       }
@@ -17822,7 +17831,7 @@ var init_StripeService = __esm({
             mode: "subscription",
             customer,
             line_items: [{ price: priceId, quantity: 1 }],
-            return_url: `${frontend}/account/billing?checkout=${uniqueId}`,
+            return_url: `${frontend}/account?checkout=${uniqueId}`,
             subscription_data: {
               ...params.allowTrial ? { trial_period_days: 7 } : {},
               metadata: {
@@ -20325,7 +20334,7 @@ var init_ConfigController = __esm({
       constructor(configService2) {
         this.configService = configService2;
       }
-      static PUBLIC_MODULE_ALLOWLIST = /* @__PURE__ */ new Set(["landing-page"]);
+      static PUBLIC_MODULE_ALLOWLIST = /* @__PURE__ */ new Set(["landing_page"]);
       getModuleConfig = async (req, res, next) => {
         try {
           const moduleName = String(req.query.moduleName ?? "");

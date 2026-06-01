@@ -198,7 +198,7 @@ describeIfSupabase("MAX plan subscription limits (integration)", () => {
     it("blocks a new social channel when the workspace is at MAX channel_per_workspace cap", async () => {
         const maxLimits = planLimitsForTier("MAX");
         const channelCap = maxLimits.channel_per_workspace;
-        expect(channelCap).toBe(30);
+        expect(channelCap).toBe(25);
 
         const payload = userHelper.setupTestUser1();
         const { accessToken } = await signupVerifyAndSignIn(payload);
