@@ -5104,9 +5104,9 @@ ON CONFLICT (module_name) DO NOTHING;
 
 INSERT INTO public.module_configs (module_name, config) VALUES
 ('marketing_information', '{
-  "META_TITLE": "Openquok",
-  "META_DESCRIPTION": "A content platform.",
-  "META_KEYWORDS": "content, platform",
+  "META_TITLE": "Openquok | Agentic Social Media Scheduler",
+  "META_DESCRIPTION": "Draft, review, and schedule social posts from AI agents across platforms and workspaces—stay in control of what goes live.",
+  "META_KEYWORDS": "social media scheduler, AI content, content scheduling, social media management, multi-platform posting, content approval, agentic AI, Openquok",
   "SOCIAL_LINKS_X": "",
   "SOCIAL_LINKS_FACEBOOK": "",
   "SOCIAL_LINKS_INSTAGRAM": "",

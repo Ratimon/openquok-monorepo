@@ -7,8 +7,11 @@ const publicBlogPath = route(getRootPathPublicBlog());
 const publicDocsPath = route(getRootPathPublicDocs());
 
 const appName = 'Openquok';
-const appTitle = 'An agentic social media manager';
-const appDescription = 'Openquok web application';
+const appTitle = 'Openquok | Agentic Social Media Scheduler';
+const appDescription =
+	'Draft, review, and schedule social posts from AI agents across platforms and workspaces—stay in control of what goes live.';
+const appKeywords =
+	'social media scheduler, AI content, content scheduling, social media management, multi-platform posting, content approval, agentic AI, Openquok';
 
 function getApiBaseUrl(): string {
 	const fromMeta =
@@ -122,7 +125,7 @@ export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 	META_KEYWORDS: {
 		description: 'Meta keywords, comma-separated.',
 		type: 'string',
-		default: 'content, cms',
+		default: appKeywords,
 		inputType: 'input'
 	},
 	SOCIAL_LINKS_X: {
