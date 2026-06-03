@@ -33,6 +33,7 @@ export const PUBLIC_PRICING_SHARED_CARD_FEATURES: readonly string[] = [
 	'Analytics',
 	'Calendar views',
 	'Kanban views',
+	'Footage File manager',
 	'Reusable templates',
 	'Reusable signatures',
 	'Post delays',
@@ -149,7 +150,7 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	},
 	{
 		id: 'file_manager',
-		label: 'File manager',
+		label: 'Footage File manager',
 		tooltip: 'Create, rename, organize and manage your media/footage files.'
 	},
 	{
@@ -218,6 +219,11 @@ export type PublicPricingFaqItem = {
 
 export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 	{
+		title: 'Why switch from Buffer or Hootsuite?',
+		description:
+			'Buffer and Hootsuite charge $75–$200/month for enterprise feature most teams never use. OpenQuok covers the same UI scheduling basics including connect channels, compose, calendar, multi-channel publish. We also cover agent-first features like workspaces, integrations, and API/CLI access. Same workflow when you post by hand; built for when agents do the work. Less cost, less clutter, and real support from Meta and OpenQuok team.'
+	},
+	{
 		title: 'Can I try OpenQuok for free?',
 		description:
 			'Yes. OpenQuok offers a 7-day free trial. You can create an account and start today!'
@@ -257,9 +263,9 @@ export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 		description:
 			'Team members are people you invite to a workspace. They can collaborate on content and connect their own channels where your plan allows. Seat limits are shown as invites plus you as owner. For example, “2 + 1 (you) per workspace” means four invited members and one seat for you on each workspace you own.'
 	},
-	{ title: 'will my post get less reach if I use OpenQuok?',
+	{ title: 'will my post get less reach or banned if I use multi-channel publishing with OpenQuok?',
 		description:
-			'No ! Your posts should perform the same as if you published them directly on each platform. We had the same concern that algorithms might favor in-app posting, but in our own tests we did not see lower reach when scheduling through OpenQuok.'
+			'No ! We use the official API for each platform. Your posts should perform the same as if you published them directly on each platform. We had the same concern that algorithms might favor in-app posting, but in our own tests we did not see lower reach when scheduling through OpenQuok.'
 	},
 	{
 		title: 'How does repeated posts work',
