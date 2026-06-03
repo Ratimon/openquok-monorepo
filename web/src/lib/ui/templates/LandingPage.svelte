@@ -148,8 +148,23 @@
 	githubRepo="openquok-monorepo"
 />
 
-<section class="container mx-auto px-4 pb-16 sm:pb-20">
-	<div class="mx-auto max-w-5xl">
+<section class="container mx-auto px-4 pb-16 sm:pb-20" aria-labelledby="landing-demo-heading">
+	<div class="mx-auto max-w-5xl space-y-8 sm:space-y-10">
+		<div class="space-y-6 text-center">
+			<p class={landingHeroTheme.subtitleClass}>
+				Overview
+			</p>
+			<h2
+				id="landing-demo-heading"
+				class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
+			>
+				See OpenQuok in action
+			</h2>
+			<p class={landingHeroTheme.descriptionClass}>
+				Watch how teams review AI drafts, schedule posts, and run multi-agent workspaces at
+				scale.
+			</p>
+		</div>
 		<HeroVideoModal
 			animationStyle="from-center"
 			videoSrc={landingDemoVideoSrc}
