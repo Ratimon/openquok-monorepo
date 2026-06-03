@@ -178,6 +178,29 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		default: false,
 		inputType: 'switch'
 	},
+	DEMO_SUBTITLE: {
+		description: 'Tag above the product demo video section',
+		type: 'string',
+		default: 'How it works',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	DEMO_TITLE: {
+		description:
+			'Headline for the product demo video section (comma separates accent phrase; "in action" is highlighted)',
+		type: 'string',
+		default: 'See OpenQuok, in action',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	DEMO_DESCRIPTION: {
+		description: 'Support copy for the product demo video section',
+		type: 'string',
+		default:
+			'Watch how teams review AI drafts, schedule posts, and run multi-agent workspaces at scale.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
 	FEATURE_1_SUBTITLE: {
 		description: 'Tag above the first secondary hero section',
 		type: 'string',

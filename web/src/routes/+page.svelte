@@ -55,6 +55,10 @@
 			getLandingPageConfigDefaults()
 	);
 
+	const landingDemoYoutubeVideoId = 'iKNimZ9FBu8';
+	const landingDemoThumbnailAlt = 'OpenQuok demo video';
+	const landingDemoHeadingId = 'landing-demo-heading';
+
 	onMount(() => {
 		const hasServerFooterData =
 			(data as App.HomePageData)?.companyNameVm ?? (page.data as App.HomePageData)?.companyNameVm;
@@ -76,5 +80,10 @@
 	{navbarMobileLinks}
 	{footerNavigationLinks}
 >
-	<LandingPage {landingPageConfigVm} />
+	<LandingPage
+		{landingPageConfigVm}
+		demoYoutubeVideoId={landingDemoYoutubeVideoId}
+		demoThumbnailAlt={landingDemoThumbnailAlt}
+		demoHeadingId={landingDemoHeadingId}
+	/>
 </PublicArea>

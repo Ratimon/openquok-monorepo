@@ -2,17 +2,23 @@
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
 
 	import AnimatedBeamMultipleAgent from '$lib/ui/templates/AnimatedBeamMultipleAgent.svelte';
-	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
+	import HeroDemo from '$lib/ui/templates/HeroDemo.svelte';
 	import HeroMain from '$lib/ui/templates/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 
 	type Props = {
 		landingPageConfigVm?: Record<string, string>;
+		demoYoutubeVideoId: string;
+		demoThumbnailAlt: string;
+		demoHeadingId: string;
 	};
 
 	let {
-		landingPageConfigVm = {}
+		landingPageConfigVm = {},
+		demoYoutubeVideoId,
+		demoThumbnailAlt,
+		demoHeadingId
 	}: Props = $props();
 
 	const heroTitle = $derived(
@@ -20,6 +26,18 @@
 	);
 	const heroSlogan = $derived(
 		landingPageConfigVm.HERO_SLOGAN || String(CONFIG_SCHEMA_LANDING_PAGE.HERO_SLOGAN.default)
+	);
+
+	const demoSubtitle = $derived(
+		landingPageConfigVm.DEMO_SUBTITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.DEMO_SUBTITLE.default)
+	);
+	const demoTitle = $derived(
+		landingPageConfigVm.DEMO_TITLE || String(CONFIG_SCHEMA_LANDING_PAGE.DEMO_TITLE.default)
+	);
+	const demoDescription = $derived(
+		landingPageConfigVm.DEMO_DESCRIPTION ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.DEMO_DESCRIPTION.default)
 	);
 
 	const feature1Subtitle = $derived(
@@ -90,24 +108,20 @@
 	const secondaryCtaText = 'Get Started For Free';
 	const secondaryCtaHref = '/pricing';
 
-	const LANDING_DEMO_YOUTUBE_ID = 'iKNimZ9FBu8';
-	const landingDemoVideoSrc = `https://www.youtube.com/embed/${LANDING_DEMO_YOUTUBE_ID}?autoplay=1&rel=0`;
-	const landingDemoThumbnailSrc = `https://img.youtube.com/vi/${LANDING_DEMO_YOUTUBE_ID}/maxresdefault.jpg`;
-
 	const LANDING_HERO_TITLE_HIGHLIGHT_PILL_CLASS =
 		'bg-white text-black px-3 py-1 rounded-md -rotate-1 inline-block';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
-	const TITLE_PART_HIGHLIGHT_WORD = /^(?:minimal|effortlessly)$/i;
+	const TITLE_PART_HIGHLIGHT_PHRASE = /^(?:minimal|effortlessly|in action)$/i;
 
 	function parseLandingHeroTitlePartSegments(text: string): LandingHeroTitleSegment[] {
 		if (!text) return [];
-		const parts = text.split(/\b(minimal|effortlessly)\b/gi);
+		const parts = text.split(/\b(minimal|effortlessly|in action)\b/gi);
 		const out: LandingHeroTitleSegment[] = [];
 		for (const p of parts) {
 			if (p === '') continue;
-			out.push({ text: p, highlight: TITLE_PART_HIGHLIGHT_WORD.test(p) });
+			out.push({ text: p, highlight: TITLE_PART_HIGHLIGHT_PHRASE.test(p) });
 		}
 		return out;
 	}
@@ -148,31 +162,15 @@
 	githubRepo="openquok-monorepo"
 />
 
-<section class="container mx-auto px-4 pb-16 sm:pb-20" aria-labelledby="landing-demo-heading">
-	<div class="mx-auto max-w-5xl space-y-8 sm:space-y-10">
-		<div class="space-y-6 text-center">
-			<p class={landingHeroTheme.subtitleClass}>
-				Overview
-			</p>
-			<h2
-				id="landing-demo-heading"
-				class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
-			>
-				See OpenQuok in action
-			</h2>
-			<p class={landingHeroTheme.descriptionClass}>
-				Watch how teams review AI drafts, schedule posts, and run multi-agent workspaces at
-				scale.
-			</p>
-		</div>
-		<HeroVideoModal
-			animationStyle="from-center"
-			videoSrc={landingDemoVideoSrc}
-			thumbnailSrc={landingDemoThumbnailSrc}
-			thumbnailAlt="OpenQuok demo video"
-		/>
-	</div>
-</section>
+<HeroDemo
+	heroTheme={landingHeroTheme}
+	landingSubtitle={demoSubtitle}
+	landingTitle={demoTitle}
+	landingDescription={demoDescription}
+	youtubeVideoId={demoYoutubeVideoId}
+	thumbnailAlt={demoThumbnailAlt}
+	headingId={demoHeadingId}
+/>
 
 <HeroWithRightMedia
 	heroTheme={landingHeroTheme}
