@@ -113,11 +113,11 @@
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
-	const TITLE_PART_HIGHLIGHT_PHRASE = /^(?:minimal|effortlessly|in action)$/i;
+	const TITLE_PART_HIGHLIGHT_PHRASE = /^(?:minimal|effortlessly|confidently|in action)$/i;
 
 	function parseLandingHeroTitlePartSegments(text: string): LandingHeroTitleSegment[] {
 		if (!text) return [];
-		const parts = text.split(/\b(minimal|effortlessly|in action)\b/gi);
+		const parts = text.split(/\b(minimal|effortlessly|confidently|in action)\b/gi);
 		const out: LandingHeroTitleSegment[] = [];
 		for (const p of parts) {
 			if (p === '') continue;
@@ -201,7 +201,7 @@
 	landingSubtitle={feature3Subtitle}
 	landingTitle={feature3Title}
 	landingDescription={feature3Description}
-	imageSrc="/landing/3-kanban-filters.png"
+	imageSrc="/landing/3-kanban-filters.mp4"
 	imageAlt="Kanban board for reviewing AI-generated drafts"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}

@@ -255,7 +255,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_3_TITLE: {
 		description: 'Headline for the third secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Review every AI draft, before it goes live',
+		default: 'Review every AI draft, sign off confidently, before it goes live',
 		inputType: 'input',
 		maxInputLength: 100
 	},
