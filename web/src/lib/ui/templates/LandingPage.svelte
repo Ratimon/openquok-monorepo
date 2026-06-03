@@ -177,7 +177,7 @@
 	landingSubtitle={feature2Subtitle}
 	landingTitle={feature2Title}
 	landingDescription={feature2Description}
-	imageSrc="/landing/2-calendar-filters.png"
+	imageSrc="/landing/2-calendar-filters.mp4"
 	imageAlt="Calendar with smart filters for scheduled posts"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}

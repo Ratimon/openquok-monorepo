@@ -3,6 +3,7 @@
 
 	import Background from '$lib/ui/background/Background.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -64,10 +65,13 @@
 				<div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
 					<div class="relative order-2 flex justify-center lg:order-1 lg:justify-start">
 						<div class="relative w-full max-w-lg">
-							<img
+							<VideoOrImage
 								src={imageSrc}
+								autoplay={true}
+								fit="none"
+								imageClass={heroTheme.imageClass}
+								videoClass={heroTheme.imageClass}
 								alt={imageAlt}
-								class={heroTheme.imageClass}
 								loading="lazy"
 								decoding="async"
 							/>

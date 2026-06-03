@@ -3,6 +3,7 @@
 
 	import Background from '$lib/ui/background/Background.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -139,10 +140,13 @@
 							{#if rightMedia}
 								{@render rightMedia()}
 							{:else if imageSrc}
-								<img
+								<VideoOrImage
 									src={imageSrc}
+									autoplay={true}
+									fit="none"
+									imageClass={heroTheme.imageClass}
+									videoClass={heroTheme.imageClass}
 									alt={imageAlt}
-									class={heroTheme.imageClass}
 									loading="lazy"
 									decoding="async"
 								/>
