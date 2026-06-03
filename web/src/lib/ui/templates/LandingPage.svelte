@@ -2,6 +2,7 @@
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
 
 	import AnimatedBeamMultipleAgent from '$lib/ui/templates/AnimatedBeamMultipleAgent.svelte';
+	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
 	import HeroMain from '$lib/ui/templates/HeroMain.svelte';
 	import HeroWithLeftImage from '$lib/ui/templates/HeroWithLeftImage.svelte';
 	import HeroWithRightImage from '$lib/ui/templates/HeroWithRightImage.svelte';
@@ -89,6 +90,10 @@
 	const secondaryCtaText = 'Get Started For Free';
 	const secondaryCtaHref = '/pricing';
 
+	const LANDING_DEMO_YOUTUBE_ID = 'iKNimZ9FBu8';
+	const landingDemoVideoSrc = `https://www.youtube.com/embed/${LANDING_DEMO_YOUTUBE_ID}?autoplay=1&rel=0`;
+	const landingDemoThumbnailSrc = `https://img.youtube.com/vi/${LANDING_DEMO_YOUTUBE_ID}/maxresdefault.jpg`;
+
 	const LANDING_HERO_TITLE_HIGHLIGHT_PILL_CLASS =
 		'bg-white text-black px-3 py-1 rounded-md -rotate-1 inline-block';
 
@@ -142,6 +147,17 @@
 	githubOwner="Ratimon"
 	githubRepo="openquok-monorepo"
 />
+
+<section class="container mx-auto px-4 pb-16 sm:pb-20">
+	<div class="mx-auto max-w-5xl">
+		<HeroVideoModal
+			animationStyle="from-center"
+			videoSrc={landingDemoVideoSrc}
+			thumbnailSrc={landingDemoThumbnailSrc}
+			thumbnailAlt="OpenQuok demo video"
+		/>
+	</div>
+</section>
 
 <HeroWithRightImage
 	heroTheme={landingHeroTheme}
