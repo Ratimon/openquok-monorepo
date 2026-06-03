@@ -4,8 +4,8 @@
 	import AnimatedBeamMultipleAgent from '$lib/ui/templates/AnimatedBeamMultipleAgent.svelte';
 	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
 	import HeroMain from '$lib/ui/templates/HeroMain.svelte';
-	import HeroWithLeftImage from '$lib/ui/templates/HeroWithLeftImage.svelte';
-	import HeroWithRightImage from '$lib/ui/templates/HeroWithRightImage.svelte';
+	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
+	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 
 	type Props = {
 		landingPageConfigVm?: Record<string, string>;
@@ -159,7 +159,7 @@
 	</div>
 </section>
 
-<HeroWithRightImage
+<HeroWithRightMedia
 	heroTheme={landingHeroTheme}
 	landingSubtitle={feature1Subtitle}
 	landingTitle={feature1Title}
@@ -170,9 +170,9 @@
 	{#snippet rightMedia()}
 		<AnimatedBeamMultipleAgent />
 	{/snippet}
-</HeroWithRightImage>
+</HeroWithRightMedia>
 
-<HeroWithLeftImage
+<HeroWithLeftMedia
 	heroTheme={landingHeroTheme}
 	landingSubtitle={feature2Subtitle}
 	landingTitle={feature2Title}
@@ -183,7 +183,7 @@
 	ctaHref={secondaryCtaHref}
 />
 
-<HeroWithRightImage
+<HeroWithRightMedia
 	heroTheme={landingHeroTheme}
 	landingSubtitle={feature3Subtitle}
 	landingTitle={feature3Title}
@@ -194,7 +194,7 @@
 	ctaHref={secondaryCtaHref}
 />
 
-<HeroWithLeftImage
+<HeroWithLeftMedia
 	heroTheme={landingHeroTheme}
 	landingSubtitle={feature4Subtitle}
 	landingTitle={feature4Title}
@@ -205,7 +205,7 @@
 	ctaHref={secondaryCtaHref}
 />
 
-<HeroWithRightImage
+<HeroWithRightMedia
 	heroTheme={landingHeroTheme}
 	landingSubtitle={feature5Subtitle}
 	landingTitle={feature5Title}
