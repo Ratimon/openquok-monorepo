@@ -10,12 +10,22 @@
 		PUBLIC_PRICING_PLAN_META,
 		PUBLIC_PRICING_TIER_ORDER
 	} from '$lib/billing/constants/publicPricingCatalog';
+
+    import AuroraWobbleCard from '$lib/ui/card-wobble/AuroraWobbleCard.svelte';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import BillingPeriodToggle from '$lib/ui/components/billing/BillingPeriodToggle.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import Background from '$lib/ui/background/Background.svelte';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+
 	import { cn } from '$lib/ui/helpers/common';
 	import { url } from '$lib/utils/path';
+
+	const TIER_ICON_CLASS: Record<PaidSubscriptionTier, string> = {
+		SOLO: 'text-emerald-400',
+		TEAM: 'text-lime-400',
+		ULTIMATE: 'text-primary',
+		MAX: 'text-amber-400'
+	};
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -116,7 +126,7 @@
 	>
 		<div class="relative z-10 w-full px-6 py-16 sm:py-20">
 			<div class="mx-auto max-w-7xl">
-				<div class="grid items-start gap-10 lg:grid-cols-2 lg:gap-14 xl:gap-16">
+				<div class="grid items-stretch gap-10 lg:grid-cols-2 lg:gap-14 xl:gap-16">
 					<div class="space-y-8 lg:sticky lg:top-24">
 						{#if showSectionHeader}
 						<div class="space-y-6 text-center lg:text-left">
@@ -238,40 +248,45 @@
 
 					{#if selectedPlan && selectedTabIcon}
 						{@const selectedMeta = PUBLIC_PRICING_PLAN_META[selectedPlan.tier]}
+						{@const tierIconClass = TIER_ICON_CLASS[selectedPlan.tier]}
 						<div
 							id="landing-pricing-panel"
 							role="tabpanel"
 							aria-labelledby="landing-pricing-tab-{selectedPlan.tier}"
-							class={cn(
-								'overflow-hidden rounded-3xl border bg-base-200 shadow-xl',
-								selectedPlan.isFeatured ? 'border-primary/40' : 'border-base-300'
-							)}
+							class="h-full min-h-0"
 						>
-							<div class="space-y-5 px-5 py-6 sm:px-6 sm:py-8">
+							<AuroraWobbleCard
+								containerClass={cn(
+									'h-full',
+									selectedPlan.isFeatured && 'ring-1 ring-primary/50'
+								)}
+								class="flex h-full flex-col gap-5 px-5 py-6 sm:px-6 sm:py-8"
+							>
 								<div class="flex items-center gap-2">
 									<AbstractIcon
 										name={selectedTabIcon}
-										class={cn(
-											'size-5 shrink-0',
-											selectedPlan.isFeatured ? 'text-primary' : 'text-base-content'
-										)}
-										width="20"
-										height="20"
+										class="size-6 shrink-0 sm:size-7 {tierIconClass}"
+										width="28"
+										height="28"
 									/>
-									<h3 class="text-lg font-semibold text-base-content">{selectedPlan.name}</h3>
+									<h3 class="text-lg font-semibold tracking-tight text-white sm:text-xl">
+										{selectedPlan.name}
+									</h3>
 								</div>
 
 								<div class="flex flex-wrap items-end gap-1">
-									<span class="text-4xl font-bold tabular-nums tracking-tight sm:text-5xl">
+									<span
+										class="text-4xl font-bold tabular-nums tracking-tight text-white sm:text-5xl"
+									>
 										${selectedPlan.displayPrice}
 									</span>
-									<span class="pb-1 text-sm text-base-content/60">
+									<span class="pb-1 text-sm text-neutral-300">
 										{selectedPlan.periodLabel}
 									</span>
 								</div>
 
 								<p
-									class="text-base font-semibold leading-snug text-balance text-base-content sm:text-lg"
+									class="text-base font-semibold leading-snug text-balance text-neutral-200 sm:text-lg"
 								>
 									{selectedMeta.tabHeadline}
 								</p>
@@ -300,13 +315,13 @@
 									{/if}
 								</div>
 
-								<hr class="border-base-300" />
+								<hr class="border-neutral-700" />
 
 								<div>
-									<p class="text-sm font-semibold text-base-content">Features</p>
+									<p class="text-sm font-semibold text-neutral-300">Features</p>
 									<ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
 										{#each selectedTabFeatures as feature (feature)}
-											<li class="flex gap-2.5 text-sm text-base-content/85">
+											<li class="flex gap-2.5 text-sm text-neutral-200">
 												<AbstractIcon
 													name={icons.CircleCheck.name}
 													class="size-5 shrink-0 text-success"
@@ -320,17 +335,17 @@
 								</div>
 
 								<div
-									class="flex items-center justify-center gap-2 rounded-full border border-base-300 bg-base-100 px-4 py-2.5 text-center text-xs text-base-content/65 sm:text-sm"
+									class="flex items-center justify-center gap-2 rounded-full border border-neutral-600/80 bg-neutral-900/50 px-4 py-2.5 text-center text-xs text-neutral-300 sm:text-sm"
 								>
 									<AbstractIcon
 										name={icons.Info.name}
-										class="size-4 shrink-0 text-base-content/50"
+										class="size-4 shrink-0 text-neutral-400"
 										width="16"
 										height="16"
 									/>
-									<span>7 - day free trial</span>
+									<span>7-day free trial — no credit card required to start</span>
 								</div>
-							</div>
+							</AuroraWobbleCard>
 						</div>
 					{/if}
 				</div>
