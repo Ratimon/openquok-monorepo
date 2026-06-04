@@ -224,7 +224,7 @@
 	landingSubtitle={feature5Subtitle}
 	landingTitle={feature5Title}
 	landingDescription={feature5Description}
-	imageSrc="/landing/5-analytics.png"
+	imageSrc="/landing/5-analytics.mp4"
 	imageAlt="Analytics dashboard across social channels"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
