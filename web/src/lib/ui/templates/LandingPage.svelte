@@ -6,6 +6,7 @@
 	import HeroMain from '$lib/ui/templates/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
+	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 
 	type Props = {
 		landingPageConfigVm?: Record<string, string>;
@@ -172,6 +173,8 @@
 	thumbnailAlt={demoThumbnailAlt}
 	headingId={demoHeadingId}
 />
+
+<WhoIsFor />
 
 <HeroWithRightMedia
 	heroTheme={landingHeroTheme}

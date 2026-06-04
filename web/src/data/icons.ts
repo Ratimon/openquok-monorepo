@@ -22,6 +22,7 @@ export type IconName =
     | "Bold"
     | "BookOpen"
     | "BookOpenCheck"
+    | "CustomizedDrawnHouse"
     | "CalendarClock"
     | "Claude"
     | "ClapperBoard"
@@ -291,6 +292,11 @@ export const icons: Record<IconName, IconEntry> = {
         name: "BookOpenCheck",
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open-check-icon lucide-book-open-check"><path d="M12 21V7"/><path d="m16 12 2 2 4-4"/><path d="M22 6V4a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4 4 4 0 0 0-4-4H3a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h6a3 3 0 0 1 3 3 3 3 0 0 1 3-3h6a1 1 0 0 0 1-1v-1.3"/></svg>`
+    },
+    CustomizedDrawnHouse: {
+        name: "CustomizedDrawnHouse",
+        box: 24,
+        svg: `<path d="M5.2 19.2c-.4-3.1-.5-6.7.3-9.2.5-1.8 2.9-4.4 5.6-5.3 1.6-.6 3.3-.3 4.6.6 2.5 1.7 4.5 4.3 4.9 7.4.3 2.7.1 5.3-.6 6.9-1.6.8-4.5 1.1-7.2.9-3-.2-5.8-.3-7.6-.3" stroke-width="2.5"/><path d="M10.4 19.1l.3-3.8c.1-.7.8-.9 1.3-.9s1.2.2 1.3.9l.3 3.7" stroke-width="2.5"/>`
     },
     CalendarClock: {
         name: "CalendarClock",
