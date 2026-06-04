@@ -124,7 +124,7 @@
 	const whoIsForCards: AudienceCard[] = [
 		{
 			iconName: icons.CustomizedDrawnRobot.name,
-			iconClass: 'text-fuchsia-400',
+			iconClass: 'text-emerald-400',
 			title: 'Agentic',
 			description:
 				'Model-agnostic: use the assistant agents and models that work best for you. Our CLI lets them draft and schedule posts from the AI tools you already use.',
@@ -132,7 +132,7 @@
 		},
 		{
 			iconName: icons.CustomizedDrawnLaptop.name,
-			iconClass: 'text-violet-400',
+			iconClass: 'text-lime-400',
 			title: 'Developers',
 			description:
 				'Fully open source: use OAuth, our SDK, and API to build your own content OS for the creator economy. Connect once, publish everywhere.',
@@ -140,7 +140,7 @@
 		},
 		{
 			iconName: icons.CustomizedDrawnHouse.name,
-			iconClass: 'text-sky-400',
+			iconClass: 'text-rose-400',
 			title: 'Scaling Team',
 			description:
 				'Reuse the viral formats that already work for you. Add workspaces, connect more accounts, and scale — automate, approve, and publish everywhere via API.',
