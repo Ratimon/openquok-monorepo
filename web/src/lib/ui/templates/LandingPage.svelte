@@ -8,6 +8,7 @@
 	import HeroDemo from '$lib/ui/templates/HeroDemo.svelte';
 	import HeroMain from '$lib/ui/templates/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
+	import FeaturesGrid from '$lib/ui/templates/FeaturesGrid.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 
@@ -51,6 +52,15 @@
 	const audienceTitle = $derived(
 		landingPageConfigVm.AUDIENCE_TITLE ||
 			String(CONFIG_SCHEMA_LANDING_PAGE.AUDIENCE_TITLE.default)
+	);
+
+	const featuresGridTitle = $derived(
+		landingPageConfigVm.FEATURES_GRID_TITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURES_GRID_TITLE.default)
+	);
+	const featuresGridDescription = $derived(
+		landingPageConfigVm.FEATURES_GRID_DESCRIPTION ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURES_GRID_DESCRIPTION.default)
 	);
 
 	const feature1Subtitle = $derived(
@@ -275,4 +285,9 @@
 	imageAlt="Analytics dashboard across social channels"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
+/>
+
+<FeaturesGrid
+	landingTitle={featuresGridTitle}
+	landingDescription={featuresGridDescription}
 />

@@ -325,7 +325,23 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 			'Track impressions, likes, comments, shares, and engagement in one place. Compare performance by platform and channel, and improve the posts you approved.',
 		inputType: 'textarea',
 		maxInputLength: 300
-	}
+	},
+	FEATURES_GRID_TITLE: {
+		description:
+			'Headline for the supported social channels grid (the word "channels" gets a decorative underline)',
+		type: 'string',
+		default: 'Supported social media channels',
+		inputType: 'input',
+		maxInputLength: 120
+	},
+	FEATURES_GRID_DESCRIPTION: {
+		description: 'Support copy below the supported social channels grid headline',
+		type: 'string',
+		default:
+			'Connect the networks you publish to and manage them from one workspace — no switching tools per platform.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
 };
 
 /** Default landing_page module values (SSR fallback and client-side). */

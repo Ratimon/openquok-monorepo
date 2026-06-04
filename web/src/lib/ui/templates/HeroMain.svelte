@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { IconName } from '$data/icons';
 	import { icons } from '$data/icons';
+	import { HERO_SOCIAL_PLATFORMS } from '$data/landing-social-platforms';
 
 	import { cn } from '$lib/ui/helpers/common';
 	import { socialProviderDisplayLabel } from '$data/social-providers';
@@ -33,81 +33,7 @@
 	const HIGHLIGHT_PILL_CLASS =
 		'bg-white text-black px-3 py-1 rounded-md -rotate-1 inline-block';
 
-	type HeroSocialPlatform = {
-		id: string;
-		icon: IconName;
-		label?: string;
-		containerClass?: string;
-		iconClass?: string;
-		iconWidth?: string;
-		iconHeight?: string;
-	};
-
 	const HERO_SOCIAL_ICON_BOX_CLASS = 'rounded-md';
-
-	const HERO_SOCIAL_PLATFORMS: HeroSocialPlatform[] = [
-		{
-			id: 'x',
-			icon: icons.X.name,
-			containerClass: 'bg-neutral-800 text-white',
-			iconClass: 'size-6'
-		},
-		{
-			id: 'instagram',
-			icon: icons.InstagramGlyph.name,
-			containerClass: 'bg-transparent p-0',
-			iconClass: 'size-8',
-			iconWidth: '32',
-			iconHeight: '32'
-		},
-		{
-			id: 'linkedin',
-			icon: icons.LinkedIn.name,
-			containerClass: 'bg-transparent p-0',
-			iconClass: 'size-8',
-			iconWidth: '32',
-			iconHeight: '32'
-		},
-		{
-			id: 'facebook',
-			icon: icons.Facebook.name,
-			containerClass: 'bg-transparent p-0',
-			iconClass: 'size-8',
-			iconWidth: '32',
-			iconHeight: '32'
-		},
-		{
-			id: 'tiktok',
-			icon: icons.TikTok.name,
-			containerClass: 'bg-transparent p-0',
-			iconClass: 'size-8',
-			iconWidth: '32',
-			iconHeight: '32'
-		},
-		{
-			id: 'youtube',
-			icon: icons.YouTube.name,
-			containerClass: 'bg-[#FF0000] text-white',
-			iconClass: 'size-4'
-		},
-		{
-			id: 'threads',
-			icon: icons.Threads.name,
-			containerClass: 'bg-neutral-900 text-white',
-			iconClass: 'size-5',
-			iconWidth: '20',
-			iconHeight: '20'
-		},
-		{
-			id: 'google',
-			icon: icons.Google.name,
-			label: 'Google Business',
-			containerClass: 'bg-white',
-			iconClass: 'size-5',
-			iconWidth: '20',
-			iconHeight: '20'
-		}
-	];
 
 	const HERO_SOCIAL_TOOLTIP_CLASS =
 		'border-neutral-800 bg-neutral-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg';
