@@ -128,7 +128,7 @@
 			title: 'Agentic',
 			description:
 				'Model-agnostic: use the assistant agents and models that work best for you. Our CLI lets them draft and schedule posts from the AI tools you already use.',
-			containerClass: 'h-full min-h-[18rem] bg-neutral-900'
+			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.CustomizedDrawnLaptop.name,
@@ -136,7 +136,7 @@
 			title: 'Developers',
 			description:
 				'Fully open source: use OAuth, our SDK, and API to build your own content OS for the creator economy. Connect once, publish everywhere.',
-			containerClass: 'h-full min-h-[18rem] bg-neutral-900'
+			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.CustomizedDrawnHouse.name,
@@ -144,7 +144,7 @@
 			title: 'Scaling Team',
 			description:
 				'Reuse the viral formats that already work for you. Add workspaces, connect more accounts, and scale — automate, approve, and publish everywhere via API.',
-			containerClass: 'h-full min-h-[18rem] bg-neutral-900'
+			containerClass: 'h-full min-h-[18rem]'
 		}
 	];
 
