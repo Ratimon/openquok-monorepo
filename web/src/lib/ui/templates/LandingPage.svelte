@@ -123,7 +123,7 @@
 
 	const whoIsForCards: AudienceCard[] = [
 		{
-			iconName: icons.CalendarClock.name,
+			iconName: icons.CustomizedDrawnRobot.name,
 			iconClass: 'text-fuchsia-400',
 			title: 'Agentic',
 			description:
@@ -131,7 +131,7 @@
 			containerClass: 'h-full min-h-[18rem] bg-neutral-900'
 		},
 		{
-			iconName: icons.Code.name,
+			iconName: icons.CustomizedDrawnLaptop.name,
 			iconClass: 'text-violet-400',
 			title: 'Developers',
 			description:

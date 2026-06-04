@@ -23,6 +23,8 @@ export type IconName =
     | "BookOpen"
     | "BookOpenCheck"
     | "CustomizedDrawnHouse"
+    | "CustomizedDrawnLaptop"
+    | "CustomizedDrawnRobot"
     | "CalendarClock"
     | "Claude"
     | "ClapperBoard"
@@ -296,7 +298,17 @@ export const icons: Record<IconName, IconEntry> = {
     CustomizedDrawnHouse: {
         name: "CustomizedDrawnHouse",
         box: 24,
-        svg: `<path d="M5.2 19.2c-.4-3.1-.5-6.7.3-9.2.5-1.8 2.9-4.4 5.6-5.3 1.6-.6 3.3-.3 4.6.6 2.5 1.7 4.5 4.3 4.9 7.4.3 2.7.1 5.3-.6 6.9-1.6.8-4.5 1.1-7.2.9-3-.2-5.8-.3-7.6-.3" stroke-width="2.5"/><path d="M10.4 19.1l.3-3.8c.1-.7.8-.9 1.3-.9s1.2.2 1.3.9l.3 3.7" stroke-width="2.5"/>`
+        svg: `<path d="M5.3 19.2Q5.1 15.8 5.4 12.1Q5.5 11.4 6 11.2Q9.2 6.4 11.9 4.7Q13.2 4.1 14.6 5Q17.8 8.2 19.2 11.4Q19.4 12 19 12.5Q19.2 16.8 18.5 19.2Q12.1 19.6 5.3 19.2" stroke-width="2.5"/><path d="M10.4 19.1l.3-3.8c.1-.7.8-.9 1.3-.9s1.2.2 1.3.9l.3 3.7" stroke-width="2.5"/>`
+    },
+    CustomizedDrawnLaptop: {
+        name: "CustomizedDrawnLaptop",
+        box: 24,
+        svg: `<path d="M5.8 5.5Q12 4.1 18.1 5.7Q19.5 6.1 19.2 7.4L18.9 14.2Q18.8 14.8 17.6 14.7L5.6 14.4Q4.5 14.3 4.6 13.5L4.8 9.8Q4.8 6.4 5.8 5.5Z" stroke-width="2.5"/><path d="M4.5 14.9L19.2 15L20.6 19.6Q20.8 20.2 19.7 20.3L4.4 20.1Q3.6 20 3.6 19.4L4.5 14.9Z" stroke-width="2.5"/><path d="M9.8 17Q12 16.6 14.4 17.1" stroke-width="2.5"/>`
+    },
+    CustomizedDrawnRobot: {
+        name: "CustomizedDrawnRobot",
+        box: 24,
+        svg: `<path d="M4.8 7.4Q4 12 4.5 19.4Q12 21.6 19.6 19.2Q20.6 12.2 19.2 7.2Q12.2 5.2 4.8 7.4" stroke-width="2.5"/><path d="M8.4 7.2Q8.2 5.2 8.6 3.6" stroke-width="2.5"/><path d="M8.6 3.4Q9 2.8 9.6 3.1Q10 3.6 9.4 4Q8.8 4.1 8.6 3.4" stroke-width="2.5"/><path d="M15.6 7Q15.8 5 15.3 3.4" stroke-width="2.5"/><path d="M15.3 3.2Q15.8 2.6 16.4 3.1Q16.7 3.7 16.1 4.1Q15.4 4 15.3 3.2" stroke-width="2.5"/><path d="M6 9.8Q5.7 10.1 6 10.4Q6.3 10.1 6 9.8" stroke-width="2"/><path d="M18 9.6Q17.7 9.9 18 10.2Q18.3 9.9 18 9.6" stroke-width="2"/><path d="M8.4 11.6Q8.1 12.3 8.4 13.1Q9 13.3 9.3 12.4Q9.2 11.5 8.4 11.6" stroke-width="2.5"/><path d="M14.7 11.4Q14.4 12.2 14.7 13Q15.3 13.2 15.6 12.3Q15.5 11.4 14.7 11.4" stroke-width="2.5"/><path d="M9.2 16.1Q12 17 14.8 16.3" stroke-width="2.5"/>`
     },
     CalendarClock: {
         name: "CalendarClock",
