@@ -277,7 +277,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_4_TITLE: {
 		description: 'Headline for the fourth secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Organize media per workspace, not per tab',
+		default: 'Organize media, keep assets separated, find footages efficiently',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -285,7 +285,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the fourth secondary hero section',
 		type: 'string',
 		default:
-			'Create, rename, and manage files in each agent workspace cloud storage. Keep client assets, B-roll, and uploads separated so posting stays fast when you run many accounts.',
+			'Create, rename, and manage files in each agent workspace. Keep client assets, B-roll, and uploads separated so posting stays fast when you run many accounts.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},

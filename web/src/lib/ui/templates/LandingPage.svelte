@@ -113,11 +113,11 @@
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
-	const TITLE_PART_HIGHLIGHT_PHRASE = /^(?:minimal|effortlessly|confidently|in action)$/i;
+	const TITLE_PART_HIGHLIGHT_PHRASE = /^(?:minimal|in action|effortlessly|confidently|efficiently)$/i;
 
 	function parseLandingHeroTitlePartSegments(text: string): LandingHeroTitleSegment[] {
 		if (!text) return [];
-		const parts = text.split(/\b(minimal|effortlessly|confidently|in action)\b/gi);
+		const parts = text.split(/\b(minimal|in action|effortlessly|confidently|efficiently)\b/gi);
 		const out: LandingHeroTitleSegment[] = [];
 		for (const p of parts) {
 			if (p === '') continue;
@@ -212,7 +212,7 @@
 	landingSubtitle={feature4Subtitle}
 	landingTitle={feature4Title}
 	landingDescription={feature4Description}
-	imageSrc="/landing/4-file-manager.png"
+	imageSrc="/landing/4-file-manager.mp4"
 	imageAlt="Workspace-scoped file manager for media assets"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
