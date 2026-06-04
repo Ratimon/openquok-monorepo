@@ -82,7 +82,11 @@ export type AccountMediaUppyOptions = {
 export function createAccountMediaUppy(options: AccountMediaUppyOptions): Uppy {
 	const uppy = new Uppy({
 		id: 'account-media-library',
-		autoProceed: true
+		autoProceed: true,
+		// Allow re-uploading the same file (same fingerprint) after a prior upload completes.
+		// Uppy keeps successful files in state; without this, adding the same file again throws
+		// "Cannot add the duplicate file …, it already exists" even when the library copy was renamed.
+		onBeforeFileAdded: () => true
 	});
 
 	attachMediaUploadRestrictions(uppy, (message) => options.onUploadError?.(new Error(message)));

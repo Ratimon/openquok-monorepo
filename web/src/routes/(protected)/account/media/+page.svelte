@@ -271,6 +271,13 @@
 			uploadDetailLine = '';
 			const successful = result.successful ?? [];
 			const failed = result.failed ?? [];
+			for (const file of successful) {
+				try {
+					instance.removeFile(file.id);
+				} catch {
+					// ignore — file may already be gone
+				}
+			}
 			const ok = successful.length;
 			if (ok > 0) {
 				const addedBytes = successful.reduce(

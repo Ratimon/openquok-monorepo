@@ -70,6 +70,9 @@
 
 	let fmApi = $state<IApi | null>(null);
 	let hostEl = $state<HTMLDivElement | null>(null);
+	/** SVAR hides the file grid on narrow viewports when preview is on; keep details off below 768px. */
+	let hostWidthPx = $state(0);
+	const showDetailsPanel = $derived(hostWidthPx >= 768);
 	let folderPage = $state(1);
 	let folderItemsPerPage = $state(12);
 
@@ -501,6 +504,20 @@
 		}
 	});
 
+	$effect(() => {
+		const el = hostEl;
+		if (!el || typeof ResizeObserver === 'undefined') return;
+
+		const ro = new ResizeObserver((entries) => {
+			const entry = entries[0];
+			if (!entry) return;
+			const size = entry.borderBoxSize?.[0]?.inlineSize;
+			hostWidthPx = size ?? entry.contentRect.width;
+		});
+		ro.observe(el);
+		return () => ro.disconnect();
+	});
+
 	onDestroy(() => {
 		teardownDecorations();
 	});
@@ -541,7 +558,7 @@
 			{data}
 			{drive}
 			{mode}
-			preview={true}
+			preview={showDetailsPanel}
 			{readonly}
 			{menuOptions}
 			previews={previewUrl}
@@ -675,6 +692,80 @@
 	.media-file-manager-host :global(.wx-cards) {
 		height: auto !important;
 		overflow: visible;
+	}
+
+	/*
+	  SVAR card items are fixed at 210px. When the cards pane is narrower than two fixed cards,
+	  switch to a responsive two-column grid (mobile and split desktop layout with details open).
+	*/
+	.media-file-manager-host :global(.wx-content-item),
+	.media-file-manager-host :global(.wx-content-item-fit) {
+		container-type: inline-size;
+		container-name: media-fm-cards;
+	}
+
+	@container media-fm-cards (max-width: 640px) {
+		.media-file-manager-host :global(.wx-cards) {
+			display: grid !important;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.5rem;
+			padding: 0.75rem 0.5rem 0.5rem;
+			align-content: start;
+		}
+
+		.media-file-manager-host :global(.wx-cards.wx-has-back-link) {
+			padding-top: 0.25rem;
+		}
+
+		.media-file-manager-host :global(.wx-cards .wx-back-item) {
+			grid-column: 1 / -1;
+			width: 100%;
+			margin: 0 0 0.25rem;
+		}
+
+		.media-file-manager-host :global(.wx-cards .wx-item) {
+			width: 100% !important;
+			max-width: none;
+			height: auto;
+			min-height: 9.5rem;
+			margin: 0 !important;
+		}
+
+		.media-file-manager-host :global(.wx-cards .wx-item .wx-file-preview .wx-card-preview) {
+			height: auto;
+			width: 100%;
+			max-height: 7rem;
+			object-fit: cover;
+		}
+
+		.media-file-manager-host :global(.wx-cards .wx-item .wx-file-icon .wx-card-preview) {
+			height: 3.5rem;
+			width: 3.5rem;
+		}
+
+		.media-file-manager-host :global(.wx-cards .wx-item .wx-preview i) {
+			font-size: 3.5rem;
+		}
+
+		.media-file-manager-host :global(.wx-cards .wx-item .wx-preview i:before) {
+			line-height: 3.5rem;
+		}
+	}
+
+	@media (max-width: 767px) {
+		.media-file-manager-host :global(.wx-content) {
+			flex-direction: column;
+		}
+
+		.media-file-manager-host :global(.wx-content-item),
+		.media-file-manager-host :global(.wx-content-item-fit) {
+			width: 100% !important;
+		}
+
+		.media-file-manager-host :global(.wx-content > .wx-info) {
+			width: 100% !important;
+			max-height: min(40vh, 16rem);
+		}
 	}
 
 	.media-file-manager-host :global(.wx-toolbar .wx-right) {
