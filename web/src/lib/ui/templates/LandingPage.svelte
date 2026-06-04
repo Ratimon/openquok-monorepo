@@ -113,11 +113,12 @@
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
-	const TITLE_PART_HIGHLIGHT_PHRASE = /^(?:minimal|in action|effortlessly|confidently|efficiently)$/i;
+	const TITLE_PART_HIGHLIGHT_PHRASE =
+		/^(?:minimal|in action|effortlessly|confidently|efficiently|correctly)$/i;
 
 	function parseLandingHeroTitlePartSegments(text: string): LandingHeroTitleSegment[] {
 		if (!text) return [];
-		const parts = text.split(/\b(minimal|in action|effortlessly|confidently|efficiently)\b/gi);
+		const parts = text.split(/\b(minimal|in action|effortlessly|confidently|efficiently|correctly)\b/gi);
 		const out: LandingHeroTitleSegment[] = [];
 		for (const p of parts) {
 			if (p === '') continue;

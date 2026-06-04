@@ -233,7 +233,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_2_TITLE: {
 		description: 'Headline for the second secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Plan weeks ahead, find any post effortlessly',
+		default: 'Schedule ahead, find any post effortlessly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -270,7 +270,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_4_SUBTITLE: {
 		description: 'Tag above the fourth secondary hero section',
 		type: 'string',
-		default: 'File manager',
+		default: 'Content Management',
 		inputType: 'input',
 		maxInputLength: 60
 	},
@@ -299,7 +299,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_5_TITLE: {
 		description: 'Headline for the fifth secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'See what worked, across every channel',
+		default: 'Track engagement, see winners, and adapt correctly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -307,7 +307,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the fifth secondary hero section',
 		type: 'string',
 		default:
-			'Track impressions, likes, comments, shares, and engagement in one place. Compare performance by platform and channel—and improve the posts you approved, not just the volume AI produced.',
+			'Track impressions, likes, comments, shares, and engagement in one place. Compare performance by platform and channel, and improve the posts you approved.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	}
