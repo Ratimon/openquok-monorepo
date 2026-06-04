@@ -6,32 +6,28 @@
 
 	import SocialChannelHoverCard from '$lib/ui/templates/SocialChannelHoverCard.svelte';
 
+	type LandingHeroTitleSegment = { text: string; highlight: boolean };
+
+	type LandingHeroTheme = {
+		titleHighlightPillClass: string;
+		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
+	};
+
 	type Props = {
+		heroTheme: LandingHeroTheme;
 		landingTitle?: string;
 		landingDescription?: string;
 	};
 
 	let {
+		heroTheme,
 		landingTitle = '',
 		landingDescription = '',
 	}: Props = $props();
 
 	const headingId = 'landing-features-grid-heading';
 
-	const titleBeforeChannels = $derived.by(() => {
-		const marker = 'channels';
-		const lower = landingTitle.toLowerCase();
-		const index = lower.lastIndexOf(marker);
-		if (index === -1) {
-			return { before: landingTitle, highlight: '', after: '' };
-		}
-		const end = index + marker.length;
-		return {
-			before: landingTitle.slice(0, index),
-			highlight: landingTitle.slice(index, end),
-			after: landingTitle.slice(end)
-		};
-	});
+	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(landingTitle));
 </script>
 
 <section
@@ -44,26 +40,13 @@
 				id={headingId}
 				class="text-2xl font-black tracking-tight text-balance text-base-content sm:text-3xl lg:text-4xl"
 			>
-				{titleBeforeChannels.before}
-				{#if titleBeforeChannels.highlight}
-					<span class="relative inline-block whitespace-nowrap">
-						{titleBeforeChannels.highlight}
-						<svg
-							class="pointer-events-none absolute -bottom-1 left-0 h-3 w-full text-violet-400 sm:-bottom-1.5 sm:h-3.5"
-							viewBox="0 0 120 12"
-							fill="none"
-							aria-hidden="true"
-						>
-							<path
-								d="M2 8c18-6 38-10 58-8s38 4 58 2"
-								stroke="currentColor"
-								stroke-width="3"
-								stroke-linecap="round"
-							/>
-						</svg>
-					</span>
-				{/if}
-				{titleBeforeChannels.after}
+				{#each titleSegments as seg (seg.text + String(seg.highlight))}
+					{#if seg.highlight}
+						<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+					{:else}
+						{seg.text}
+					{/if}
+				{/each}
 			</h2>
 			{#if landingDescription}
 				<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">

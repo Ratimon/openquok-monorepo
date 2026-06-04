@@ -234,7 +234,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the first secondary hero section',
 		type: 'string',
 		default:
-			'Give each brand, client, or OpenClaw agent its own workspace with isolated channels and drafts. Run dozens of accounts without one shared context — or your AI mixing up with wrong workflow.',
+			'Give each brand, client, or OpenClaw agent its own workspace with isolated channels and drafts. Run dozens of social channels without one shared context — or your AI mixing up with wrong workflow.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
@@ -300,7 +300,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the fourth secondary hero section',
 		type: 'string',
 		default:
-			'Create, rename, and manage files in each agent workspace. Keep client assets, B-roll, and uploads separated so posting stays fast when you run many accounts.',
+			'Create, rename, and manage files in each agent workspace. Keep client assets, B-roll, and uploads separated so posting stays fast when you run many social channels.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
@@ -328,7 +328,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	},
 	FEATURES_GRID_TITLE: {
 		description:
-			'Headline for the supported social channels grid (the word "channels" gets a decorative underline)',
+			'Headline for the supported social channels grid (the word "channels" is highlighted like other landing accent words)',
 		type: 'string',
 		default: 'Supported social media channels',
 		inputType: 'input',

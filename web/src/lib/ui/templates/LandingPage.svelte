@@ -153,7 +153,7 @@
 			iconClass: 'text-rose-400',
 			title: 'Scaling Team',
 			description:
-				'Reuse the viral formats that already work for you. Add workspaces, connect more accounts, and scale — automate, approve, and publish everywhere via API.',
+				'Reuse the viral formats that already work for you. Add workspaces, connect more social channels, and scale — automate, approve, and publish everywhere via API.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	];
@@ -164,11 +164,13 @@
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
 	const TITLE_PART_HIGHLIGHT_PHRASE =
-		/^(?:minimal|in action|effortlessly|confidently|efficiently|correctly)$/i;
+		/^(?:minimal|in action|effortlessly|confidently|efficiently|correctly|channels)$/i;
 
 	function parseLandingHeroTitlePartSegments(text: string): LandingHeroTitleSegment[] {
 		if (!text) return [];
-		const parts = text.split(/\b(minimal|in action|effortlessly|confidently|efficiently|correctly)\b/gi);
+		const parts = text.split(
+			/\b(minimal|in action|effortlessly|confidently|efficiently|correctly|channels)\b/gi
+		);
 		const out: LandingHeroTitleSegment[] = [];
 		for (const p of parts) {
 			if (p === '') continue;
@@ -288,6 +290,7 @@
 />
 
 <FeaturesGrid
+	heroTheme={landingHeroTheme}
 	landingTitle={featuresGridTitle}
 	landingDescription={featuresGridDescription}
 />
