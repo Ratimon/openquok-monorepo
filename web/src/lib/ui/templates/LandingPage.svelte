@@ -10,6 +10,7 @@
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import FeaturesGrid from '$lib/ui/templates/FeaturesGrid.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
+	import PublicPricingTabs from '$lib/ui/templates/PublicPricingTabs.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 
 	type Props = {
@@ -17,13 +18,15 @@
 		demoYoutubeVideoId: string;
 		demoThumbnailAlt: string;
 		demoHeadingId: string;
+		isLoggedIn?: boolean;
 	};
 
 	let {
 		landingPageConfigVm = {},
 		demoYoutubeVideoId,
 		demoThumbnailAlt,
-		demoHeadingId
+		demoHeadingId,
+		isLoggedIn = false
 	}: Props = $props();
 
 	const heroTitle = $derived(
@@ -128,8 +131,23 @@
 			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_5_DESCRIPTION.default)
 	);
 
+	const pricingSubtitle = $derived(
+		landingPageConfigVm.PRICING_SUBTITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.PRICING_SUBTITLE.default)
+	);
+	const pricingTitle = $derived(
+		landingPageConfigVm.PRICING_TITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.PRICING_TITLE.default)
+	);
+	const pricingDescription = $derived(
+		landingPageConfigVm.PRICING_DESCRIPTION ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.PRICING_DESCRIPTION.default)
+	);
+
 	const secondaryCtaText = 'Get Started For Free';
 	const secondaryCtaHref = '/pricing';
+	const pricingCtaHref = $derived(isLoggedIn ? '/account/billing' : '/sign-up');
+	const pricingCtaLabel = $derived(isLoggedIn ? 'Manage billing' : 'Start for $0');
 
 	const whoIsForCards: AudienceCard[] = [
 		{
@@ -164,12 +182,12 @@
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
 	const TITLE_PART_HIGHLIGHT_PHRASE =
-		/^(?:minimal|in action|effortlessly|confidently|efficiently|correctly|channels)$/i;
+		/^(?:minimal|in action|effortlessly|confidently|efficiently|correctly|channels|plan|perfect plan)$/i;
 
 	function parseLandingHeroTitlePartSegments(text: string): LandingHeroTitleSegment[] {
 		if (!text) return [];
 		const parts = text.split(
-			/\b(minimal|in action|effortlessly|confidently|efficiently|correctly|channels)\b/gi
+			/\b(minimal|in action|effortlessly|confidently|efficiently|correctly|channels|perfect plan|plan)\b/gi
 		);
 		const out: LandingHeroTitleSegment[] = [];
 		for (const p of parts) {
@@ -294,3 +312,16 @@
 	landingTitle={featuresGridTitle}
 	landingDescription={featuresGridDescription}
 />
+
+<PublicPricingTabs
+	heroTheme={landingHeroTheme}
+	landingSubtitle={pricingSubtitle}
+	landingTitle={pricingTitle}
+	landingDescription={pricingDescription}
+	ctaHref={pricingCtaHref}
+	ctaLabel={pricingCtaLabel}
+	secondaryCtaHref="/pricing#pricing-compare"
+	secondaryCtaLabel="Compare all features"
+/>
+
+

@@ -342,6 +342,29 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
+	PRICING_SUBTITLE: {
+		description: 'Tag above the landing pricing tabs section',
+		type: 'string',
+		default: 'Pricings',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	PRICING_TITLE: {
+		description:
+			'Headline for the landing pricing tabs section (comma separates accent phrase; words like "plan" can be highlighted)',
+		type: 'string',
+		default: 'Find your, perfect plan',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	PRICING_DESCRIPTION: {
+		description: 'Support copy for the landing pricing tabs section',
+		type: 'string',
+		default:
+			'Transparent pricing that scales with your needs. No hidden fees — cancel anytime. Start with a 7-day free trial.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
 };
 
 /** Default landing_page module values (SSR fallback and client-side). */

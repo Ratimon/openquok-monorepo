@@ -82,6 +82,7 @@
 >
 	<LandingPage
 		{landingPageConfigVm}
+		{isLoggedIn}
 		demoYoutubeVideoId={landingDemoYoutubeVideoId}
 		demoThumbnailAlt={landingDemoThumbnailAlt}
 		demoHeadingId={landingDemoHeadingId}

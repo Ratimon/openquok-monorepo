@@ -1,3 +1,5 @@
+import type { IconName } from '$data/icons';
+
 import type { PaidSubscriptionTier } from 'openquok-common';
 import { PAID_SUBSCRIPTION_TIERS } from 'openquok-common';
 
@@ -8,23 +10,44 @@ export const PUBLIC_PRICING_TIER_ORDER = PAID_SUBSCRIPTION_TIERS;
 export const PUBLIC_PRICING_FEATURED_TIER: PaidSubscriptionTier = 'ULTIMATE';
 
 export type PublicPricingPlanMeta = {
+	/** Short line on landing pricing tabs (left column). */
 	tagline: string;
+	/** Pain-point headline on the landing pricing detail card (below price). */
+	tabHeadline: string;
 };
 
 export const PUBLIC_PRICING_PLAN_META: Record<PaidSubscriptionTier, PublicPricingPlanMeta> = {
 	SOLO: {
-		tagline: 'Best for individuals and solo creators'
+		tagline: 'Best for individuals and solo creators',
+		tabHeadline:
+			'Still hunting for a repeatable viral format? One agent workspace keeps experiments focused until you know what works.'
 	},
 	TEAM: {
-		tagline: 'Best for growing teams and businesses'
+		tagline: 'Best for growing teams and businesses',
+		tabHeadline:
+			'You found formats that work — now bring in more workspaces, people, and social channels'
 	},
 	ULTIMATE: {
-		tagline: 'Best for managing multiple brands and AI agents'
+		tagline: 'Best for managing multiple brands and AI agents',
+		tabHeadline:
+			'Running several brands or AI agents? Invite the whole team, split workspaces, and stop fighting per-seat limits.'
 	},
 	MAX: {
-		tagline: 'Best for scalling by Heavy users running tons of AI agents'
+		tagline: 'Best for heavy users running tons of AI agents at scale',
+		tabHeadline:
+			'Your Viral format is proven! Now push extreme volume across many workspaces, channels, and agents? Max is built for throughput when “more” is the whole job.'
 	}
 };
+
+export const PUBLIC_PRICING_LANDING_TAB_ICONS: Record<PaidSubscriptionTier, IconName> = {
+	SOLO: 'Rocket',
+	TEAM: 'Users',
+	ULTIMATE: 'Sparkles',
+	MAX: 'Gauge'
+};
+
+/** Max feature bullets in the landing tab detail card (two-column grid). */
+export const PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT = 6;
 
 /** Product capabilities included on every paid plan (marketing copy for cards). */
 export const PUBLIC_PRICING_SHARED_CARD_FEATURES: readonly string[] = [

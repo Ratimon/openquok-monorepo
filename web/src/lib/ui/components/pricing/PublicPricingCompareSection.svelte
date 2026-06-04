@@ -30,7 +30,7 @@
 	}
 </script>
 
-<section class="mt-24">
+<section id="pricing-compare" class="mt-24 scroll-mt-24">
 	<h2 class="text-center text-2xl font-bold text-base-content sm:text-3xl">
 		Compare plans and find the best fit
 	</h2>
