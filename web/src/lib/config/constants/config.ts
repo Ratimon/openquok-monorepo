@@ -201,6 +201,21 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
+	AUDIENCE_SUBTITLE: {
+		description: 'Tag above the audience pillars card section',
+		type: 'string',
+		default: 'Why OpenQuok',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	AUDIENCE_TITLE: {
+		description:
+			'Headline for the audience pillars card section (comma separates accent phrase)',
+		type: 'string',
+		default: 'Who is OpenQuok for?',
+		inputType: 'input',
+		maxInputLength: 100
+	},
 	FEATURE_1_SUBTITLE: {
 		description: 'Tag above the first secondary hero section',
 		type: 'string',

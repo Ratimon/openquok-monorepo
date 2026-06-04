@@ -1,4 +1,7 @@
 <script lang="ts">
+	import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
+
+	import { icons } from '$data/icons';
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
 
 	import AnimatedBeamMultipleAgent from '$lib/ui/templates/AnimatedBeamMultipleAgent.svelte';
@@ -39,6 +42,15 @@
 	const demoDescription = $derived(
 		landingPageConfigVm.DEMO_DESCRIPTION ||
 			String(CONFIG_SCHEMA_LANDING_PAGE.DEMO_DESCRIPTION.default)
+	);
+
+	const audienceSubtitle = $derived(
+		landingPageConfigVm.AUDIENCE_SUBTITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.AUDIENCE_SUBTITLE.default)
+	);
+	const audienceTitle = $derived(
+		landingPageConfigVm.AUDIENCE_TITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.AUDIENCE_TITLE.default)
 	);
 
 	const feature1Subtitle = $derived(
@@ -109,6 +121,33 @@
 	const secondaryCtaText = 'Get Started For Free';
 	const secondaryCtaHref = '/pricing';
 
+	const whoIsForCards: AudienceCard[] = [
+		{
+			iconName: icons.CalendarClock.name,
+			iconClass: 'text-fuchsia-400',
+			title: 'Agentic',
+			description:
+				'Model-agnostic: use the assistant agents and models that work best for you. Our CLI lets them draft and schedule posts from the AI tools you already use.',
+			containerClass: 'h-full min-h-[18rem] bg-neutral-900'
+		},
+		{
+			iconName: icons.Code.name,
+			iconClass: 'text-violet-400',
+			title: 'Developers',
+			description:
+				'Fully open source: use OAuth, our SDK, and API to build your own content OS for the creator economy. Connect once, publish everywhere.',
+			containerClass: 'h-full min-h-[18rem] bg-neutral-900'
+		},
+		{
+			iconName: icons.CustomizedDrawnHouse.name,
+			iconClass: 'text-sky-400',
+			title: 'Scaling Team',
+			description:
+				'Reuse the viral formats that already work for you. Add workspaces, connect more accounts, and scale — automate, approve, and publish everywhere via API.',
+			containerClass: 'h-full min-h-[18rem] bg-neutral-900'
+		}
+	];
+
 	const LANDING_HERO_TITLE_HIGHLIGHT_PILL_CLASS =
 		'bg-white text-black px-3 py-1 rounded-md -rotate-1 inline-block';
 
@@ -174,7 +213,12 @@
 	headingId={demoHeadingId}
 />
 
-<WhoIsFor />
+<WhoIsFor
+	heroTheme={landingHeroTheme}
+	landingSubtitle={audienceSubtitle}
+	landingTitle={audienceTitle}
+	cards={whoIsForCards}
+/>
 
 <HeroWithRightMedia
 	heroTheme={landingHeroTheme}
