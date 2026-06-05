@@ -317,7 +317,8 @@
 			<div class="mx-auto max-w-md pt-12 text-center">
 				<AbstractIcon name={icons.MailOpen.name} width="48" height="48" />
 				<h2 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-					One more step</h2>
+					One more step
+				</h2>
 				<p class="mt-2 text-base-content/80">
 					Hi {lastFullName}, your account: {lastEmail}</p>
 	

@@ -9,19 +9,22 @@
 	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
-	import { icons } from '$data/icons';
 
 	import { integrationsRepository } from '$lib/integrations';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 
+	import { cn } from '$lib/ui/helpers/common';
+	import { icons } from '$data/icons';
+	import { socialProviderIcon } from '$data/social-providers';
+
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
+	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Tooltip from '$lib/ui/tooltip';
-	import { cn } from '$lib/ui/helpers/common';
-	import { socialProviderIcon } from '$data/social-providers';
-
+	
 	type Props = {
 		open: boolean;
 		onOpenChange?: (next: boolean) => void;
@@ -52,6 +55,15 @@
 	const installCliCommand = 'npm install -g @openquok/auto-cli';
 	const installAgentSkillCommand =
 		'npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core';
+
+	const onboardingYoutubeVideoId = 'iKNimZ9FBu8';
+	const onboardingVideoThumbnailAlt = 'OpenQuok getting started tutorial';
+	const onboardingVideoSrc = $derived(
+		`https://www.youtube.com/embed/${onboardingYoutubeVideoId}?autoplay=1&rel=0`
+	);
+	const onboardingVideoThumbnailSrc = $derived(
+		`https://img.youtube.com/vi/${onboardingYoutubeVideoId}/maxresdefault.jpg`
+	);
 
 	async function ensureWorkspaceLoaded() {
 		if (currentWorkspaceId) return;
@@ -254,18 +266,20 @@
 						</span>
 						<div class="min-w-0 flex-1 space-y-2">
 							<p class="font-medium text-base-content">
-								Authenticate (2 Options)
+								Authenticate (2 options)
 							</p>
 							<p>
-								<strong class="font-medium text-base-content">OAuth (suggested)</strong> — run
+								<strong class="font-medium text-base-content">OAuth2 (suggested)</strong> — run
 								<code class="rounded bg-base-200 px-1 py-0.5 text-xs">openquok auth:login</code>
-								for device-flow login (credentials stored at
-								<code class="rounded bg-base-200 px-1 py-0.5 text-xs">~/.openquok/credentials.json</code>).
+								for device-flow login. Credentials are stored at
+								<code class="rounded bg-base-200 px-1 py-0.5 text-xs">~/.openquok/credentials.json</code>.
 							</p>
 							<p>
-								<strong class="font-medium text-base-content">API key</strong> — for CI and scripts,
-								copy a workspace key and set
-								<code class="rounded bg-base-200 px-1 py-0.5 text-xs">OPENQUOK_API_KEY</code>.
+								<strong class="font-medium text-base-content">Programmatic token</strong> — for CI and
+								scripts, rotate an
+								<code class="rounded bg-base-200 px-1 py-0.5 text-xs">opo_…</code>
+								token from Developers → Access, then run
+								<code class="rounded bg-base-200 px-1 py-0.5 text-xs">openquok auth:login --apiKey "opo_…"</code>.
 							</p>
 						</div>
 					</li>
@@ -310,7 +324,7 @@
 						OpenClaw guide
 					</Button>
 					<Button variant="primary" size="sm" href={apiKeySettingsHref}>
-						Get API key
+						Get programmatic token
 					</Button>
 				</div>
 			</div>
@@ -324,25 +338,21 @@
 				</Button>
 			</div>
 		{:else}
-			<div class="px-6 py-8">
+			<div class="px-6 py-6">
 				<h3 class="text-lg font-semibold text-base-content">
-					Watch a quick tutorial</h3>
+					Watch a quick tutorial
+				</h3>
 				<p class="mt-2 max-w-2xl text-sm text-base-content/70">
-					This step is a placeholder for now. We’ll link a short walkthrough video here.
+					See how to connect channels, use the CLI, and automate posting with your agent.
 				</p>
 
-				<div class="mt-6 rounded-xl border border-base-300 bg-base-100 p-5">
-					<div class="flex items-center gap-3">
-						<div class="grid h-10 w-10 place-items-center rounded-lg bg-base-200">
-							<AbstractIcon name={icons.YouTube.name} class="h-6 w-6" width="24" height="24" />
-						</div>
-						<div class="min-w-0">
-							<div class="font-medium text-base-content">
-								Getting started (mock)</div>
-							<div class="text-xs text-base-content/70">
-								Coming soon</div>
-						</div>
-					</div>
+				<div class="mx-auto mt-6 max-w-4xl">
+					<HeroVideoModal
+						animationStyle="from-center"
+						videoSrc={onboardingVideoSrc}
+						thumbnailSrc={onboardingVideoThumbnailSrc}
+						thumbnailAlt={onboardingVideoThumbnailAlt}
+					/>
 				</div>
 			</div>
 
