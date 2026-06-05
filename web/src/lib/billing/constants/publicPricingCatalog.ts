@@ -35,7 +35,7 @@ export const PUBLIC_PRICING_PLAN_META: Record<PaidSubscriptionTier, PublicPricin
 	MAX: {
 		tagline: 'Best for heavy users running tons of AI agents at scale',
 		tabHeadline:
-			'Your Viral format is proven! Now push extreme volume across many workspaces, channels, and agents? Max is built for throughput when “more” is the whole job.'
+			'Your Viral format is proven! Now push extreme volume across many workspaces, and channels? Max is built for throughput when “more” is the whole job.'
 	}
 };
 
@@ -282,11 +282,11 @@ export const PUBLIC_PRICING_FAQ_ITEMS: readonly PublicPricingFaqItem[] = [
 			'Yes. Example: SOLO plan can connect 15 total accounts, all of them can be tiktok accounts.'
 	},
 	{
-		title: 'How does team members work?',
+		title: 'How does team member work?',
 		description:
 			'Team members are people you invite to a workspace. They can collaborate on content and connect their own channels where your plan allows. Seat limits are shown as invites plus you as owner. For example, “2 + 1 (you) per workspace” means four invited members and one seat for you on each workspace you own.'
 	},
-	{ title: 'will my post get less reach or banned if I use multi-channel publishing with OpenQuok?',
+	{ title: 'Will my post get less reach or banned if I use multi-channel publishing with OpenQuok?',
 		description:
 			'No ! We use the official API for each platform. Your posts should perform the same as if you published them directly on each platform. We had the same concern that algorithms might favor in-app posting, but in our own tests we did not see lower reach when scheduling through OpenQuok.'
 	},

@@ -365,6 +365,28 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
+	FAQ_SUBTITLE: {
+		description: 'Tag above the landing FAQ section',
+		type: 'string',
+		default: 'FAQs',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	FAQ_TITLE: {
+		description:
+			'Headline for the landing FAQ section (comma separates accent phrase; words like "questions" can be highlighted)',
+		type: 'string',
+		default: 'Frequently asked, questions',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	FAQ_DESCRIPTION: {
+		description: 'Support copy for the landing FAQ section',
+		type: 'string',
+		default: 'Common questions and answers. Contact us if you need more help.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
 };
 
 /** Default landing_page module values (SSR fallback and client-side). */

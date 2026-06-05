@@ -8,6 +8,7 @@
 	import HeroDemo from '$lib/ui/templates/HeroDemo.svelte';
 	import HeroMain from '$lib/ui/templates/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
+	import FAQs from '$lib/ui/templates/FAQs.svelte';
 	import FeaturesGrid from '$lib/ui/templates/FeaturesGrid.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import PublicPricingTabs from '$lib/ui/templates/PublicPricingTabs.svelte';
@@ -142,6 +143,18 @@
 	const pricingDescription = $derived(
 		landingPageConfigVm.PRICING_DESCRIPTION ||
 			String(CONFIG_SCHEMA_LANDING_PAGE.PRICING_DESCRIPTION.default)
+	);
+
+	const faqSubtitle = $derived(
+		landingPageConfigVm.FAQ_SUBTITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FAQ_SUBTITLE.default)
+	);
+	const faqTitle = $derived(
+		landingPageConfigVm.FAQ_TITLE || String(CONFIG_SCHEMA_LANDING_PAGE.FAQ_TITLE.default)
+	);
+	const faqDescription = $derived(
+		landingPageConfigVm.FAQ_DESCRIPTION ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FAQ_DESCRIPTION.default)
 	);
 
 	const secondaryCtaText = 'Get Started For Free';
@@ -324,4 +337,10 @@
 	secondaryCtaLabel="Compare all features"
 />
 
+<FAQs
+	heroTheme={landingHeroTheme}
+	landingSubtitle={faqSubtitle}
+	landingTitle={faqTitle}
+	landingDescription={faqDescription}
+/>
 
