@@ -389,10 +389,46 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	},
 };
 
+/** Public FAQ section copy (pricing page and deep links). */
+export const CONFIG_SCHEMA_PUBLIC_FAQ: ModuleConfigSchema = {
+	SUBTITLE: {
+		description: 'Tag above the public FAQ section',
+		type: 'string',
+		default: 'FAQs',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	TITLE: {
+		description:
+			'Headline for the public FAQ section (comma separates accent phrase; words like "questions" can be highlighted)',
+		type: 'string',
+		default: 'Frequently asked, questions',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	DESCRIPTION: {
+		description: 'Support copy for the public FAQ section',
+		type: 'string',
+		default: 'Common questions and answers. Contact us if you need more help.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
+};
+
 /** Default landing_page module values (SSR fallback and client-side). */
 export function getLandingPageConfigDefaults(): Record<string, string> {
 	return Object.fromEntries(
 		Object.entries(CONFIG_SCHEMA_LANDING_PAGE).map(([key, field]) => [
+			key,
+			String(field.default)
+		])
+	);
+}
+
+/** Default public_faq module values (SSR fallback and client-side). */
+export function getPublicFaqConfigDefaults(): Record<string, string> {
+	return Object.fromEntries(
+		Object.entries(CONFIG_SCHEMA_PUBLIC_FAQ).map(([key, field]) => [
 			key,
 			String(field.default)
 		])

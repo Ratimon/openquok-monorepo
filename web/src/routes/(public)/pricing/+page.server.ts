@@ -3,6 +3,12 @@ import type { SubscriptionPeriod } from 'openquok-common';
 
 import { publicInformationRepository } from '$lib/area-public';
 import { GetPublicPricingPresenter } from '$lib/billing';
+import {
+	getPublicFaqConfigDefaults,
+	CONFIG_SCHEMA_COMPANY,
+	CONFIG_SCHEMA_MARKETING
+} from '$lib/config/constants/config';
+import { configRepository } from '$lib/config/Config.repository.svelte';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -14,8 +20,15 @@ export async function load({ url, fetch, cookies }) {
 	const { companyInformation: companyInformationPm, marketingInformation: marketingInformationPm } =
 		await publicInformationRepository.getAllInformationCombined(fetch);
 
-	const { CONFIG_SCHEMA_COMPANY, CONFIG_SCHEMA_MARKETING } = await import('$lib/config/constants/config');
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
+
+	let publicFaqConfigPm: Record<string, string> = {};
+	try {
+		publicFaqConfigPm = await configRepository.getPublicModuleConfig('public_faq');
+	} catch (error) {
+		console.error('[pricing/+page.server] Failed to fetch public FAQ config:', error);
+		publicFaqConfigPm = getPublicFaqConfigDefaults();
+	}
 
 	const customTitle = 'Pricing';
 	const customDescription =
@@ -74,7 +87,8 @@ export async function load({ url, fetch, cookies }) {
 		pageVmMonthly,
 		pageVmYearly,
 		defaultPeriod: monthlyPeriod,
-		schemaData
+		schemaData,
+		publicFaqConfigPm
 	};
 }
 

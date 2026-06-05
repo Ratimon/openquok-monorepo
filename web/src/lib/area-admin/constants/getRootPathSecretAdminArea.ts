@@ -244,3 +244,17 @@ export function getRootPathConfigManagerLandingPage(): string {
 export function getRootPathSecretAdminConfigManagerLandingPage(): string {
 	return `${getRootPathSecretAdminConfigManager()}/${getRootPathConfigManagerLandingPage()}`;
 }
+
+/**
+ * Segment for config-manager public FAQ section copy.
+ */
+export function getRootPathConfigManagerPublicFaq(): string {
+	return 'public-faq';
+}
+
+/**
+ * Full path for config-manager public FAQ section copy.
+ */
+export function getRootPathSecretAdminConfigManagerPublicFaq(): string {
+	return `${getRootPathSecretAdminConfigManager()}/${getRootPathConfigManagerPublicFaq()}`;
+}

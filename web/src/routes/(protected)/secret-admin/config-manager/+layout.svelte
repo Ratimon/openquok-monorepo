@@ -13,6 +13,7 @@
 		getRootPathSecretAdminConfigManagerCompanyInformation,
 		getRootPathSecretAdminConfigManagerMarketingInformation,
 		getRootPathSecretAdminConfigManagerLandingPage,
+		getRootPathSecretAdminConfigManagerPublicFaq,
 		getRootPathSecretAdminConfigManagerBlogInformation
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 
@@ -32,6 +33,10 @@
 	const rootPathLandingPage = getRootPathSecretAdminConfigManagerLandingPage();
 	const landingPageHref = url(rootPathLandingPage);
 
+	// /secret-admin/config-manager/public-faq
+	const rootPathPublicFaq = getRootPathSecretAdminConfigManagerPublicFaq();
+	const publicFaqHref = url(rootPathPublicFaq);
+
 	// /secret-admin/config-manager/blog-information
 	const rootPathBlogInformation = getRootPathSecretAdminConfigManagerBlogInformation();
 	const blogInformationHref = url(rootPathBlogInformation);
@@ -46,12 +51,14 @@
 		| 'company_information'
 		| 'marketing_information'
 		| 'landing_page'
+		| 'public_faq'
 		| 'blog_information';
 
 	const navItems: SettingsNavItem<ConfigManagerSectionId>[] = [
 		{ id: 'company_information', label: 'Company Information' },
 		{ id: 'marketing_information', label: 'Marketing Information' },
 		{ id: 'landing_page', label: 'Landing Page' },
+		{ id: 'public_faq', label: 'Public FAQ' },
 		{ id: 'blog_information', label: 'Blog Information' }
 	];
 
@@ -59,11 +66,13 @@
 		company_information: companyInformationHref,
 		marketing_information: marketingInformationHref,
 		landing_page: landingPageHref,
+		public_faq: publicFaqHref,
 		blog_information: blogInformationHref
 	};
 
 	function getCurrentSectionFromPathname(pathname: string): ConfigManagerSectionId {
 		if (pathname.includes('/blog-information')) return 'blog_information';
+		if (pathname.includes('/public-faq')) return 'public_faq';
 		if (pathname.includes('/marketing-information')) return 'marketing_information';
 		if (pathname.includes('/landing-page')) return 'landing_page';
 		return 'company_information';

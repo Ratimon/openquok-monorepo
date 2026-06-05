@@ -1,5 +1,5 @@
 <script lang="ts">
-	import BillingFaqAccordion from '$lib/ui/components/billing/BillingFaqAccordion.svelte';
+	import FaqAccordion from '$lib/ui/templates/FaqAccordion.svelte';
 
 	type Props = {
 		allowTrial?: boolean;
@@ -41,7 +41,7 @@
 				description:
 					'Team members are people you invite to a workspace. They can collaborate on content and connect their own channels where your plan allows. Seat limits are shown as invites plus you as owner. For example, “2 + 1 (you) per workspace” means four invited members and one seat for you on each workspace you own.'
 			},
-			{ title: 'Can I connect 2 channels to the same platform?',
+			{ title: 'Can I connect two channels to the same platform?',
 				description:
 					'Yes. Example: SOLO plan can connect 15 total accounts, all of them can be tiktok accounts.'
 			},
@@ -53,6 +53,6 @@
 
 <div class="mb-10 mt-12 flex flex-col gap-6">
 	{#each items as item, index (index)}
-		<BillingFaqAccordion title={item.title} description={item.description} />
+		<FaqAccordion title={item.title} description={item.description} />
 	{/each}
 </div>

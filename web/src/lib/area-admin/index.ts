@@ -57,6 +57,7 @@ const marketingInformationFormPresenter = new ModuleConfigRendererPresenter(
 	'marketing_information'
 );
 const landingPageFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'landing_page');
+const publicFaqFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'public_faq');
 const blogInformationFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'blog');
 
 export {
@@ -73,6 +74,7 @@ export {
 	companyInformationFormPresenter,
 	marketingInformationFormPresenter,
 	landingPageFormPresenter,
+	publicFaqFormPresenter,
 	blogInformationFormPresenter
 };
 export type { FeedbackViewModel } from '$lib/feedbacks';

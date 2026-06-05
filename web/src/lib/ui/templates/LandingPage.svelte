@@ -8,7 +8,7 @@
 	import HeroDemo from '$lib/ui/templates/HeroDemo.svelte';
 	import HeroMain from '$lib/ui/templates/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
-	import FAQs from '$lib/ui/templates/FAQs.svelte';
+	import PublicFaq from '$lib/ui/templates/PublicFaq.svelte';
 	import FeaturesGrid from '$lib/ui/templates/FeaturesGrid.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import PublicPricingTabs from '$lib/ui/templates/PublicPricingTabs.svelte';
@@ -195,12 +195,12 @@
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
 	const TITLE_PART_HIGHLIGHT_PHRASE =
-		/^(?:minimal|in action|effortlessly|confidently|efficiently|correctly|channels|plan|perfect plan)$/i;
+		/^(?:minimal|in action|effortlessly|confidently|efficiently|correctly|channels|plan|perfect plan|questions)$/i;
 
 	function parseLandingHeroTitlePartSegments(text: string): LandingHeroTitleSegment[] {
 		if (!text) return [];
 		const parts = text.split(
-			/\b(minimal|in action|effortlessly|confidently|efficiently|correctly|channels|perfect plan|plan)\b/gi
+			/\b(minimal|in action|effortlessly|confidently|efficiently|correctly|channels|perfect plan|plan|questions)\b/gi
 		);
 		const out: LandingHeroTitleSegment[] = [];
 		for (const p of parts) {
@@ -337,10 +337,13 @@
 	secondaryCtaLabel="Compare all features"
 />
 
-<FAQs
-	heroTheme={landingHeroTheme}
-	landingSubtitle={faqSubtitle}
-	landingTitle={faqTitle}
-	landingDescription={faqDescription}
-/>
+<div class="container mx-auto px-4">
+	<PublicFaq
+		heroTheme={landingHeroTheme}
+		{faqSubtitle}
+		{faqTitle}
+		{faqDescription}
+		sectionClass="py-16 sm:py-20"
+	/>
+</div>
 

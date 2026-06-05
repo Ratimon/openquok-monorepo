@@ -64,6 +64,8 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
   - **Top banner toggle** (`ACTIVE_TOP_BANNER`)
   - **Product demo video** (`DEMO_SUBTITLE`, `DEMO_TITLE`, `DEMO_DESCRIPTION`)
   - **Secondary feature sections** (`FEATURE_1_*` … `FEATURE_5_*` — subtitle, title, description per block)
+  - **Landing FAQ section** (`FAQ_SUBTITLE`, `FAQ_TITLE`, `FAQ_DESCRIPTION` on the home page)
+- **Public FAQ section** (`CONFIG_SCHEMA_PUBLIC_FAQ` — `SUBTITLE`, `TITLE`, `DESCRIPTION` on `/pricing#faq`; Q&A copy lives in code at `publicFaqCatalog.ts`)
 
 ### Navigation and footer constants
 

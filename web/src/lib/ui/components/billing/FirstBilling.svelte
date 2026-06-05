@@ -278,12 +278,16 @@
 			{#if selectedPlan}
 				<div class="mt-10 flex flex-col gap-4">
 					<h3 class="text-2xl font-bold">Features</h3>
-					<BillingPlanFeatures planVm={selectedPlan} />
+					<BillingPlanFeatures
+						planVm={selectedPlan}
+					/>
 				</div>
 			{/if}
 
 			<div class="hidden lg:block">
-				<BillingFaq {allowTrial} />
+				<BillingFaq
+					{allowTrial}
+				/>
 			</div>
 		</aside>
 	</div>

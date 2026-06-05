@@ -95,6 +95,18 @@ INSERT INTO public.module_configs (module_name, config) VALUES
 ON CONFLICT (module_name) DO NOTHING;
 
 -- ---------------------------
+-- Public FAQ Config
+-- ---------------------------
+
+INSERT INTO public.module_configs (module_name, config) VALUES
+('public_faq', '{
+  "SUBTITLE": "FAQs",
+  "TITLE": "Frequently asked, questions",
+  "DESCRIPTION": "Common questions and answers. Contact us if you need more help."
+}'::jsonb)
+ON CONFLICT (module_name) DO NOTHING;
+
+-- ---------------------------
 -- END OF FILE
 -- ---------------------------
 

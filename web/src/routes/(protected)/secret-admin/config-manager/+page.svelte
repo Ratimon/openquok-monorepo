@@ -3,6 +3,7 @@
 		getRootPathSecretAdminConfigManagerBlogInformation,
 		getRootPathSecretAdminConfigManagerCompanyInformation,
 		getRootPathSecretAdminConfigManagerLandingPage,
+		getRootPathSecretAdminConfigManagerPublicFaq,
 		getRootPathSecretAdminConfigManagerMarketingInformation
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { absoluteUrl, route } from '$lib/utils/path';
@@ -22,6 +23,11 @@
 	const landingPagePath = route(rootPathLandingPage);
 	const landingPageUrl = absoluteUrl(landingPagePath);
 
+	// /secret-admin/config-manager/public-faq
+	const rootPathPublicFaq = getRootPathSecretAdminConfigManagerPublicFaq();
+	const publicFaqPath = route(rootPathPublicFaq);
+	const publicFaqUrl = absoluteUrl(publicFaqPath);
+
 	// /secret-admin/config-manager/blog-information
 	const rootPathBlogInformation = getRootPathSecretAdminConfigManagerBlogInformation();
 	const blogInformationPath = route(rootPathBlogInformation);
@@ -32,7 +38,7 @@
 	<h1 class="text-xl font-semibold text-base-content">
 		Config manager</h1>
 	<p class="text-sm text-base-content/70 mt-1">
-		Update module configuration values for company, marketing, landing page, and blog modules.
+		Update module configuration values for company, marketing, landing page, public FAQ, and blog modules.
 	</p>
 
 	<ul class="mt-4 list-disc list-inside space-y-1 text-sm">
@@ -44,6 +50,9 @@
 		</li>
 		<li>
 			<a href={landingPageUrl} class="link link-primary">Landing Page</a>
+		</li>
+		<li>
+			<a href={publicFaqUrl} class="link link-primary">Public FAQ</a>
 		</li>
 		<li>
 			<a href={blogInformationUrl} class="link link-primary">Blog Information</a>
