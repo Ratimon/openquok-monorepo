@@ -353,7 +353,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description:
 			'Headline for the landing pricing tabs section (comma separates accent phrase; words like "plan" can be highlighted)',
 		type: 'string',
-		default: 'Find your, perfect plan',
+		default: 'Find your perfect plan',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -376,7 +376,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description:
 			'Headline for the landing FAQ section (comma separates accent phrase; words like "questions" can be highlighted)',
 		type: 'string',
-		default: 'Frequently asked, questions',
+		default: 'Frequently asked questions',
 		inputType: 'input',
 		maxInputLength: 100
 	},

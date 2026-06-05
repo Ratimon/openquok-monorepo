@@ -20334,7 +20334,7 @@ var init_ConfigController = __esm({
       constructor(configService2) {
         this.configService = configService2;
       }
-      static PUBLIC_MODULE_ALLOWLIST = /* @__PURE__ */ new Set(["landing_page"]);
+      static PUBLIC_MODULE_ALLOWLIST = /* @__PURE__ */ new Set(["landing_page", "public_faq"]);
       getModuleConfig = async (req, res, next) => {
         try {
           const moduleName = String(req.query.moduleName ?? "");
