@@ -1,7 +1,7 @@
 import {
     normalizeInstagramCollaborators,
     resolveInstagramPublishSettings,
-} from "./instagramPublishSettings.js";
+} from "./instagramGraphContentPublish.js";
 
 describe("resolveInstagramPublishSettings", () => {
     it("reads flat API keys from providerSettings", () => {

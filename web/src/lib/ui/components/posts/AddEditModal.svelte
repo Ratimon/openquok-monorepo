@@ -302,19 +302,6 @@
 			{/if}
 		</div>
 
-		{#if onChangeThreadReplies}
-			<ThreadRepliesEditor
-				providerIdentifier={threadProviderIdentifier}
-				{postComment}
-				scheduledPostDatetimeLocal={scheduledPostDatetimeLocal}
-				disabled={busy}
-				replies={threadReplies}
-				onAddReply={onAddPost}
-				onOpenPlugSettings={canShowPlugSettings ? () => (plugSettingsOpen = true) : undefined}
-				onChangeReplies={onChangeThreadReplies}
-			/>
-		{/if}
-
 		{#if mode === 'custom' && focusedIntegrationId}
 			{@const focused = socialChannels.find((c) => c.id === focusedIntegrationId)}
 			{#if focused}
@@ -328,6 +315,19 @@
 					/>
 				</div>
 			{/if}
+		{/if}
+
+		{#if onChangeThreadReplies}
+			<ThreadRepliesEditor
+				providerIdentifier={threadProviderIdentifier}
+				{postComment}
+				scheduledPostDatetimeLocal={scheduledPostDatetimeLocal}
+				disabled={busy}
+				replies={threadReplies}
+				onAddReply={onAddPost}
+				onOpenPlugSettings={canShowPlugSettings ? () => (plugSettingsOpen = true) : undefined}
+				onChangeReplies={onChangeThreadReplies}
+			/>
 		{/if}
 
 	</div>
