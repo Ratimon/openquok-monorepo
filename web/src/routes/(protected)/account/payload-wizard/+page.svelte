@@ -202,7 +202,7 @@
 							previewText={composerPresenter.previewText}
 							charCount={composerPresenter.charCount}
 							softCharLimit={composerPresenter.softCharLimit}
-							commentsMode={composerPresenter.launchCommentsMode}
+							maxMediaItems={composerPresenter.launchMaxMediaItems}
 							scheduleValidationMessage={composerPresenter.scheduleValidationError}
 							contentSetAuthoringNetworkLock={false}
 							scheduledPostDatetimeLocal={composerPresenter.scheduledLocal}

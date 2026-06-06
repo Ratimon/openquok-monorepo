@@ -10,6 +10,20 @@ function isMp4Path(path: string | undefined | null): boolean {
 	return path.toLowerCase().includes('mp4');
 }
 
+/** Instagram carousel supports up to 10 items; stories and trial reels allow one. */
+export const INSTAGRAM_CAROUSEL_MAX_ITEMS = 10;
+
+export function readInstagramLaunchSettings(
+	settings: Record<string, unknown>
+): InstagramLaunchProviderSettings {
+	return mergeInstagramSettings(settings);
+}
+
+export function instagramMaxMediaItems(settings: InstagramLaunchProviderSettings): number {
+	if (settings.trialReel || settings.postType === 'story') return 1;
+	return INSTAGRAM_CAROUSEL_MAX_ITEMS;
+}
+
 function mergeInstagramSettings(settings: Record<string, unknown>): InstagramLaunchProviderSettings {
 	const s = (settings as { instagram?: Partial<InstagramLaunchProviderSettings> }).instagram;
 	const graduation = s?.graduationStrategy;
@@ -58,6 +72,14 @@ export function checkInstagramLaunchValidity(
 
 	if (settings.postType === 'story' && settings.collaborators.length > 0) {
 		return 'Collaborators are not supported for Stories';
+	}
+
+	if (settings.collaborators.length > 0 && media.length > 1) {
+		return 'Collaborators are not allowed for carousel posts';
+	}
+
+	if (media.length > INSTAGRAM_CAROUSEL_MAX_ITEMS) {
+		return `Instagram carousel supports at most ${INSTAGRAM_CAROUSEL_MAX_ITEMS} attachments`;
 	}
 
 	return true;

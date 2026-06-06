@@ -8,7 +8,6 @@
 		StockPhotoViewModel
 	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
-	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { icons } from '$data/icons';
@@ -51,8 +50,8 @@
 		class?: string;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
-		/** When `'no-media'` and there is at least one item, block adding more media. */
-		commentsMode?: LaunchProviderCommentsMode;
+		/** When set, blocks adding more main-post attachments once reached (`null` = no cap). */
+		maxMediaItems?: number | null;
 	}
 
 	let {
@@ -72,7 +71,7 @@
 		class: className = '',
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
-		commentsMode = true
+		maxMediaItems = null
 	}: ComposerMediaToolbarProps = $props();
 
 	type MediaGenerationProps = ComponentProps<typeof MediaGenerationModal>;
@@ -81,13 +80,13 @@
 	let designOpen = $state(false);
 	let deviceAttachOpen = $state(false);
 	let libraryOpen = $state(false);
-	const mediaLocked = $derived(commentsMode === 'no-media' && items.length > 0);
+	const mediaAtCap = $derived(maxMediaItems != null && items.length >= maxMediaItems);
 	let signatureOpen = $state(false);
 	const iconBtn =
 		'border-base-300/90 bg-base-200/45 text-base-content/85 hover:bg-base-300/55 hover:text-base-content focus-visible:ring-primary/40 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border shadow-sm backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35';
 
 	async function uploadFiles(files: FileList | null): Promise<boolean> {
-		if (mediaLocked) return false;
+		if (mediaAtCap) return false;
 		if (!files?.length || disabled || uploadBusy || !uploadUid) return false;
 		uploadBusy = true;
 		try {
@@ -120,7 +119,7 @@
 	}
 
 	function onAttachFromLibrary(added: PostMediaProgrammerModel[]) {
-		if (!added.length || mediaLocked) return;
+		if (!added.length || mediaAtCap) return;
 		items = [...items, ...added];
 	}
 
@@ -139,7 +138,7 @@
 			fetchPolotnoTemplateListPage,
 			backgroundPanelVm,
 			exportCanvasToMedia,
-			disabled: disabled || uploadBusy || mediaLocked,
+			disabled: disabled || uploadBusy || mediaAtCap,
 			uploadUid,
 			composerMode,
 			focusedProviderIdentifier,
@@ -161,7 +160,7 @@
 					{...props}
 					type="button"
 					class={iconBtn}
-					disabled={disabled || uploadBusy || mediaLocked}
+					disabled={disabled || uploadBusy || mediaAtCap}
 					onclick={composeTooltipTriggerClick(props, () => {
 						deviceAttachOpen = true;
 					})}
@@ -190,7 +189,7 @@
 					{...props}
 					type="button"
 					class={iconBtn}
-					disabled={disabled || uploadBusy || mediaLocked || !organizationId?.trim()}
+					disabled={disabled || uploadBusy || mediaAtCap || !organizationId?.trim()}
 					onclick={composeTooltipTriggerClick(props, () => {
 						libraryOpen = true;
 					})}
@@ -207,7 +206,7 @@
 					{...props}
 					type="button"
 					class={iconBtn}
-					disabled={disabled || uploadBusy || mediaLocked}
+					disabled={disabled || uploadBusy || mediaAtCap}
 					onclick={composeTooltipTriggerClick(props, () => {
 						designOpen = true;
 					})}
@@ -277,7 +276,7 @@
 
 	<DeviceMediaAttachModal
 		bind:open={deviceAttachOpen}
-		disabled={disabled || uploadBusy || mediaLocked}
+		disabled={disabled || uploadBusy || mediaAtCap}
 		{uploadBusy}
 		onFilesSelected={ingestFilesFromAttachDialog}
 	/>
@@ -286,7 +285,7 @@
 		bind:open={libraryOpen}
 		{organizationId}
 		disabled={disabled || uploadBusy}
-		{mediaLocked}
+		mediaLocked={mediaAtCap}
 		attachedPaths={attachedMediaPaths}
 		onAttach={onAttachFromLibrary}
 	/>

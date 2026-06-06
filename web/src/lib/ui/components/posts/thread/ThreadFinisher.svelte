@@ -30,7 +30,6 @@
 			bind:body={message}
 			busy={disabled}
 			comments={true}
-			commentsMode={true}
 		/>
 		<div class="mt-2 flex items-center justify-end">
 			<Button

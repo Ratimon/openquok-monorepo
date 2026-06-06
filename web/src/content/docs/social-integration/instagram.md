@@ -2,7 +2,7 @@
 title: Instagram
 description: How to configure Instagram for Openquok
 order: 2
-lastUpdated: 2026-04-12
+lastUpdated: 2026-06-06
 ---
 
 <script>
@@ -18,6 +18,36 @@ Both require a <DocsExternalLink href="https://developers.facebook.com/apps">Met
 <Callout type="note" title="One Meta app">
 Instagram and Facebook can use the same developer app — there is no need to create two separate apps for both products.
 </Callout>
+
+##  Features
+
+Both **Instagram (Business)** and **Instagram (Standalone)** use the same Content Publishing pipeline.
+
+### Supported
+
+| Feature | Details |
+| --- | --- |
+| Feed image post | At least one attachment required when scheduling |
+| Carousel | 2–10 images and/or videos; one caption for the whole post |
+| Reel | Single `.mp4` attachment is published as a Reel (max 180 seconds) |
+| Story | Set post type to Story; one attachment (max 60 seconds for video) |
+| Trial Reel | Optional trial audience before full publish; graduation **Manual** or **Auto (performance)** |
+| Collaborators | Up to 3 public usernames on feed/Reel posts with **single** media |
+| Text follow-up comments | Schedule comment replies after the root post (text-only on Instagram) |
+
+Media routing is automatic: one video → Reel, multiple attachments on a feed post → carousel, `post_type: story` → Story surface.
+
+### Not supported
+
+| Feature | Notes |
+| --- | --- |
+| Story link stickers | Meta sticker APIs are not wired in Openquok |
+| Automatic comment auto-reply | No inbox automation or keyword replies |
+| Collaborators on carousel | Validation rejects collaborator tags when more than one attachment is attached |
+| Media on follow-up comments | Thread reply rows are caption-only for Instagram |
+
+
+CLI walkthroughs: <a href="/docs/cli-examples/instagram">CLI Examples — Instagram</a>.
 
 ## Backend environment
 
@@ -189,7 +219,6 @@ Copy **Instagram app ID** → <Badge text="INSTAGRAM_APP_ID" variant="envBackend
 Restart the backend. Otherwise, the backend may not pick up your new environment variables.
 
 </Steps>
-
 
 ## Add Role and Start testing
 

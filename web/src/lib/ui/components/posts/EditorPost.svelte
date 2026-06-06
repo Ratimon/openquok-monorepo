@@ -7,7 +7,6 @@
 		StockPhotoViewModel
 	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
-	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { icons } from '$data/icons';
@@ -48,8 +47,8 @@
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
-		/** Provider `comments` mode: `true` or `'no-media'` (single attachment only). */
-		commentsMode?: LaunchProviderCommentsMode;
+		/** When set, blocks adding more main-post attachments once reached (`null` = no cap). */
+		maxMediaItems?: number | null;
 		/** When true, render in "comment" mode (no media; smaller UX). */
 		comments?: boolean;
 		scheduleValidationMessage?: string | null;
@@ -84,7 +83,7 @@
 		loadSignaturesVmForComposer = undefined,
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
-		commentsMode = true,
+		maxMediaItems = null,
 		comments = false,
 		scheduleValidationMessage = null,
 		setsAuthoringNetworkLock = false
@@ -113,16 +112,20 @@
 	}
 
 	const numMedia = $derived(postMediaItems.length);
-	const blockMediaPaste = $derived(commentsMode === 'no-media' && numMedia > 0);
+	const mediaAtCap = $derived(maxMediaItems != null && numMedia >= maxMediaItems);
 
 	const defineSetScopeOverlay = $derived(setsAuthoringNetworkLock && composerMode === 'custom');
 
 	function onComposerPaste(e: ClipboardEvent) {
-		if (!blockMediaPaste) return;
+		if (!mediaAtCap) return;
 		const files = e.clipboardData?.files;
 		if (files && files.length > 0) {
 			e.preventDefault();
-			toast.error('This network only supports a single attachment.');
+			toast.error(
+				maxMediaItems === 1
+					? 'This network only supports a single attachment.'
+					: `You can attach at most ${maxMediaItems} items for the selected network(s).`
+			);
 		}
 	}
 </script>
@@ -212,7 +215,7 @@
 					textarea={composerTextarea}
 					{composerMode}
 					{focusedProviderIdentifier}
-					{commentsMode}
+					{maxMediaItems}
 					onInsertSignature={(sig) => {
 						const base = body ?? '';
 						const suffix = base.trim().length === 0 ? sig : `\n\n${sig}`;
@@ -229,7 +232,7 @@
 				disabled={busy}
 				{uploadUid}
 				{publishDateIso}
-				{commentsMode}
+				{maxMediaItems}
 			/>
 		</div>
 		{#if scheduleValidationMessage}

@@ -5,7 +5,7 @@
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
-	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
+	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 
 	type Props = {
@@ -31,7 +31,7 @@
 
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
-	const firstMediaUrl = $derived((mediaUrls?.[0] ?? '').trim());
+	const isCarousel = $derived(mediaUrls.length > 1);
 </script>
 
 <div class="bg-base-100 text-base-content rounded-xl border border-base-300 overflow-hidden">
@@ -61,11 +61,16 @@
 	</div>
 
 	{#if mediaUrls.length > 0}
-		<div class="w-full aspect-[16/9] overflow-hidden bg-base-200">
-			<VideoOrImage src={firstMediaUrl} autoplay={true} isContain={true} />
+		<div class="relative w-full aspect-[4/5] overflow-hidden bg-base-200">
+			<ImageSlider
+				class="absolute inset-0"
+				urls={mediaUrls}
+				alt=""
+				showSlideCounter={isCarousel}
+			/>
 		</div>
 	{:else}
-		<div class="aspect-[16/9] w-full bg-base-200"></div>
+		<div class="aspect-[4/5] w-full bg-base-200"></div>
 	{/if}
 
 	<div class="px-4 pt-3">

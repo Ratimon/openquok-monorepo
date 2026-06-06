@@ -43,12 +43,11 @@ import {
 } from '$lib/posts/utils/createSocialPostPayload';
 import { mergeProviderSettingsPatch, cloneProviderSettingsByIntegrationId } from '$lib/posts/utils/createSocialPostProviderSettings';
 import {
-	computeLaunchCommentsMode,
+	computeLaunchMaxMediaItems,
 	computeScheduleValidationError,
 	computeScheduleValidationErrorAsync
 } from '$lib/posts/utils/createSocialPostScheduleValidation';
 import { isComposerDirty, serializeComposerSnapshot } from '$lib/posts/utils/createSocialPostSnapshot';
-import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 import type {
 	GetSignaturesPresenter,
 	SignatureViewModel
@@ -160,10 +159,11 @@ export class CreateSocialPostPresenter {
 
 	providerConfig = $derived(getLaunchProviderConfig(this.focusedProviderIdentifier));
 
-	launchCommentsMode = $derived.by((): LaunchProviderCommentsMode =>
-		computeLaunchCommentsMode({
+	launchMaxMediaItems = $derived.by((): number | null =>
+		computeLaunchMaxMediaItems({
 			selectedIds: this.selectedIds,
-			baseSocialChannelsVm: this.baseSocialChannelsVm
+			baseSocialChannelsVm: this.baseSocialChannelsVm,
+			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
 		})
 	);
 

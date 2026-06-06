@@ -1,20 +1,23 @@
 <script lang="ts">
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import BlobOrHrefImg from './BlobOrHrefImg.svelte';
+	import VideoOrImage from './VideoOrImage.svelte';
 
 	type Props = {
 		class?: string;
 		urls: string[];
 		alt?: string;
+		/** Instagram-style `1/N` badge in the top-right corner. */
+		showSlideCounter?: boolean;
 	};
 
-	let { class: className = '', urls, alt = '' }: Props = $props();
+	let { class: className = '', urls, alt = '', showSlideCounter = false }: Props = $props();
 
 	let show = $state(0);
 
 	const canGoPrevious = $derived(show > 0);
 	const canGoNext = $derived(show < urls.length - 1);
+	const currentUrl = $derived(urls[show] ?? '');
 
 	function goToPrevious() {
 		if (!canGoPrevious) return;
@@ -25,10 +28,28 @@
 		if (!canGoNext) return;
 		show = show + 1;
 	}
+
+	$effect(() => {
+		urls.length;
+		show = 0;
+	});
 </script>
 
-<div class={`relative ${className}`}>
-	<BlobOrHrefImg href={urls[show]} {alt} class="h-full w-full object-cover" draggable={false} />
+<div class={`relative overflow-hidden ${className}`}>
+	{#if currentUrl}
+		<div class="absolute inset-0">
+			<VideoOrImage src={currentUrl} {alt} autoplay={true} fit="cover" />
+		</div>
+	{/if}
+
+	{#if showSlideCounter && urls.length > 1}
+		<div
+			class="pointer-events-none absolute top-3 right-3 rounded-md bg-black/55 px-2 py-0.5 text-xs font-semibold text-white"
+			aria-hidden="true"
+		>
+			{show + 1}/{urls.length}
+		</div>
+	{/if}
 
 	{#if canGoPrevious}
 		<button

@@ -2,7 +2,7 @@
 title: Instagram
 description: Openquok CLI examples for Instagram (Business and Standalone) — feed posts, auto-detected reels, carousels, and scheduled reply chains.
 order: 2
-lastUpdated: 2026-05-12
+lastUpdated: 2026-06-06
 ---
 
 <script>
@@ -188,13 +188,35 @@ openquok analytics:post <post-id> -d 30 \
   | jq '.[] | {label, latest: .data[-1].total}'
 ```
 
-## Limitations of the public API today
+## Provider settings via CLI
 
-The Instagram provider supports stories, trial reels, collaborator tags, and graduation strategies, but the corresponding flags (e.g. <Badge text="post_type=story" variant="param" />, <Badge text="is_trial_reel" variant="param" />, <Badge text="collaborators[]" variant="param" />) currently live in the web settings and are **not** writable through the public API. Until they are surfaced as first-class fields on <Badge text="posts:create" variant="param" />:
+Stories, trial reels, collaborators, and graduation strategy are available through <Badge text="--settings" variant="param" /> (flat keys merged into `providerSettingsByIntegrationId`):
 
-- **Stories** — schedule from the web UI.
-- **Trial reels / collaborators** — same.
-- **Reels** — work via the CLI (single MP4 attachment auto-routes to Reels), just not the trial-reel variant.
+```bash
+openquok posts:create \
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Trial reel caption" \
+  -i "$INSTAGRAM_ID" \
+  -m "$MEDIA" \
+  --settings '{"is_trial_reel":true,"graduation_strategy":"SS_PERFORMANCE","collaborators":["partner"]}'
+```
+
+## Platform-specific settings
+
+Configure per integration in the web composer **Settings** panel, or pass flat keys on the CLI with <Badge text="--settings" variant="param" /> (merged into `providerSettingsByIntegrationId`).
+
+| Setting | CLI / API key | Web composer (`instagram.*`) | Values |
+| --- | --- | --- | --- |
+| Post type | `post_type` | `postType` | `post` (feed/Reel) or `story` |
+| Trial Reel | `is_trial_reel` | `trialReel` | `true` / `false` |
+| Graduation strategy | `graduation_strategy` | `graduationStrategy` | `MANUAL` or `SS_PERFORMANCE` |
+| Collaborators | `collaborators` | `collaborators` | Up to 3 usernames (no `@` required) |
+| Delayed replies | `replies` | `replies` | `[{ "message": "…", "delaySeconds": 60 }]` |
+
+<Callout type="note" title="Carousel in the composer">
+<p>Feed posts allow up to <strong>10</strong> attachments in the web UI. Stories and Trial Reels are capped at <strong>1</strong>. The preview panel shows a swipeable carousel when multiple items are attached.</p>
+</Callout>
 
 ## Related
 

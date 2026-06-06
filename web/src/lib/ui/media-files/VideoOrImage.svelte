@@ -66,7 +66,13 @@
 	);
 
 	const videoClassResolved = $derived(
-		resolvedFit === 'none' ? cn(videoClass) : cn('h-full w-full', videoClass)
+		resolvedFit === 'none'
+			? cn(videoClass)
+			: cn(
+					resolvedFit === 'contain' ? 'object-contain' : 'object-cover',
+					'h-full w-full',
+					videoClass
+				)
 	);
 </script>
 

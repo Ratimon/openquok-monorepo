@@ -15,6 +15,7 @@ alwaysApply: false
   - `threads-examples.md`, `instagram-standalone-examples.md`, `instagram-business-examples.md` — platform-specific `posts:create` / integration examples.
   - `threads-publish.md` — server publish behavior summarized in markdown (never link to `.ts` / backend paths from the skill).
 - **`SKILL.md` tone** — imperative, short tables and bullets; no tutorial prose; shell-safety rules for untrusted input; defer command lists and long bash to `resources/`.
+- **CLI-only scope** — skill content is for agents using `openquok` and the public API. Do **not** document web UI, composer panels, preview behavior, or nested web-only setting shapes (e.g. `instagram.postType`). Use flat `--settings` / API keys (`post_type`, `is_trial_reel`, …) and `integrations:settings` output instead.
 - **Links:** Only reference markdown under this skill directory (or stable external URLs in the front matter). Do not link to monorepo source files (TypeScript, tests, etc.) from skill content; summarize behavior in a new `resources/*.md` file instead.
 
 ## Best practices

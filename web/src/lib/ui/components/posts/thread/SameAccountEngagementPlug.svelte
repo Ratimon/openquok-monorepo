@@ -57,7 +57,6 @@
 				bind:body={message}
 				busy={disabled}
 				comments={true}
-				commentsMode={true}
 			/>
 		</div>
 		<div class="flex justify-end">

@@ -29,9 +29,8 @@ export type LaunchProviderConfig = {
 	/** Add-post button mode (comment vs post vs both). */
 	postComment: PostCommentMode;
 	/**
-	 * Extra media affordances for the launch composer:
-	 * - `true` — user can add multiple attachments
-	 * - `'no-media'` — after one attachment, block adding more via the composer chrome (single-attachment networks)
+	 * Follow-up comment affordances (Post / Comment button modes).
+	 * `'no-media'` means thread replies are text-only — it does **not** limit main-post carousel attachments.
 	 */
 	comments?: LaunchProviderCommentsMode;
 	/**

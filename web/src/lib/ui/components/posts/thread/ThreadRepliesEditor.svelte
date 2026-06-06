@@ -114,7 +114,6 @@
 							charCount={(reply.message ?? '').length}
 							softCharLimit={500}
 							comments={true}
-							commentsMode={true}
 							busy={disabled}
 							bind:body={reply.message}
 						/>

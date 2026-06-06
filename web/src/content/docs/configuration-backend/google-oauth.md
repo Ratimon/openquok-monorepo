@@ -13,8 +13,8 @@ import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs
 
 Google OAuth is optional. When configured, the backend provides endpoints that start the login flow and handle the callback.
 
-<Callout type="note" title="Hosted Supabase vs local CLI">
-If your backend uses <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> pointing at <Badge text="127.0.0.1:54321" variant="new" /> (local <Badge text="supabase start" variant="path" />), Google must be enabled in <Badge text="backend/supabase/config.toml" variant="path" /> and credentials supplied via <Badge text="backend/supabase/.env" variant="path" />—not only in the cloud dashboard. A <Badge text="400" variant="default" /> response with <Badge text="provider is not enabled" variant="default" /> from <Badge text="/auth/v1/authorize" variant="path" /> means the local Auth service does not have the Google provider turned on or Client ID/secret are missing. Deploying the app to production does not fix local CLI Auth; either configure local Google as below, or point development at a hosted Supabase project where Google is enabled in the dashboard.
+<Callout type="note" title="Hosted Supabase vs local">
+If your backend uses <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> pointing at <Badge text="127.0.0.1:54321" variant="new" /> (local <Badge text="supabase start" variant="path" />), Google must be enabled in <Badge text="backend/supabase/config.toml" variant="path" /> and credentials supplied via <Badge text="backend/supabase/.env" variant="path" />—not only in the cloud dashboard. A <Badge text="400" variant="default" /> response with <Badge text="provider is not enabled" variant="default" /> from <Badge text="/auth/v1/authorize" variant="path" /> means the local Auth service does not have the Google provider turned on or Client ID/secret are missing. Deploying the app to production does not fix local Auth; either configure local Google as below, or point development at a hosted Supabase project where Google is enabled in the dashboard.
 </Callout>
 
 ## Prerequisites

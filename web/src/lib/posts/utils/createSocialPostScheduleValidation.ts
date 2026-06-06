@@ -2,23 +2,29 @@ import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/Prote
 import type { PostMediaViewModel } from '$lib/posts/Post.repository.svelte';
 import { formatProviderScheduleValidationMessage } from '$lib/posts/utils/createSocialPostChannel';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
-import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
+import {
+	instagramMaxMediaItems,
+	readInstagramLaunchSettings
+} from '$lib/ui/components/posts/providers/instagram/instagram.provider';
 
-export function computeLaunchCommentsMode(args: {
+/** Tightest main-post attachment cap across selected channels (`null` = no cap in the composer). */
+export function computeLaunchMaxMediaItems(args: {
 	selectedIds: string[];
 	baseSocialChannelsVm: CreateSocialPostChannelViewModel[];
-}): LaunchProviderCommentsMode {
-	let out: LaunchProviderCommentsMode = true;
+	providerSettingsByIntegrationId: Record<string, Record<string, unknown>>;
+}): number | null {
+	let cap: number | null = null;
 	for (const id of args.selectedIds) {
 		const ch = args.baseSocialChannelsVm.find((c) => c.id === id);
 		if (!ch) continue;
-		const cfg = getLaunchProviderConfig(ch.identifier);
-		if (typeof cfg.comments === 'undefined') continue;
-		if (cfg.comments === 'no-media') {
-			out = 'no-media';
-		}
+		const ident = (ch.identifier ?? '').toLowerCase();
+		if (!ident.startsWith('instagram')) continue;
+		const limit = instagramMaxMediaItems(
+			readInstagramLaunchSettings(args.providerSettingsByIntegrationId[id] ?? {})
+		);
+		cap = cap === null ? limit : Math.min(cap, limit);
 	}
-	return out;
+	return cap;
 }
 
 export function computeScheduleValidationError(args: {

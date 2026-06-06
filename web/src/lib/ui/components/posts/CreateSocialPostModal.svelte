@@ -165,7 +165,7 @@
 					previewText={presenter.previewText}
 					charCount={presenter.charCount}
 					softCharLimit={presenter.softCharLimit}
-					commentsMode={presenter.launchCommentsMode}
+					maxMediaItems={presenter.launchMaxMediaItems}
 					scheduleValidationMessage={presenter.scheduleValidationError}
 					contentSetAuthoringNetworkLock={presenter.contentSetAuthoringActive}
 					scheduledPostDatetimeLocal={presenter.scheduledLocal}

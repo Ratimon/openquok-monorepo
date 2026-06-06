@@ -9,7 +9,6 @@
 	} from '$lib/canvas';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
-	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
@@ -73,7 +72,7 @@
 		organizationId?: string | null;
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		mediaUrls?: string[];
-		commentsMode?: LaunchProviderCommentsMode;
+		maxMediaItems?: number | null;
 		scheduleValidationMessage?: string | null;
 		/** Provider settings row for the channel used in the preview (same scope as thread replies). */
 		previewProviderSettings?: Record<string, unknown>;
@@ -124,7 +123,7 @@
 		organizationId = null,
 		loadSignaturesVmForComposer = undefined,
 		mediaUrls = [],
-		commentsMode = true,
+		maxMediaItems = null,
 		scheduleValidationMessage = null,
 		previewProviderSettings = {},
 		contentSetAuthoringNetworkLock = false
@@ -278,7 +277,7 @@
 				{softCharLimit}
 				composerMode={mode}
 				focusedProviderIdentifier={focusedProviderIdentifier}
-				{commentsMode}
+				{maxMediaItems}
 				{scheduleValidationMessage}
 				setsAuthoringNetworkLock={contentSetAuthoringNetworkLock}
 				locked={editorLocked}

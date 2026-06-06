@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
-	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
 
 	import { publicUrlForMediaStorageKey } from '$lib/medias';
 	import { getScheduledPostsPresenter, uploadSocialPostComposerMediaFiles } from '$lib/posts';
@@ -22,7 +21,7 @@
 		disabled?: boolean;
 		uploadUid?: string;
 		publishDateIso?: string | null;
-		commentsMode?: LaunchProviderCommentsMode;
+		maxMediaItems?: number | null;
 	};
 
 	let {
@@ -35,14 +34,14 @@
 		disabled = false,
 		uploadUid = '',
 		publishDateIso = null,
-		commentsMode = true
+		maxMediaItems = null
 	}: Props = $props();
 
 	let previewUrl = $state('');
 	let uploadBusy = $state(false);
 	let dragOver = $state(false);
-	const mediaLocked = $derived(commentsMode === 'no-media' && items.length > 0);
-	const noDrag = $derived(mediaLocked);
+	const mediaAtCap = $derived(maxMediaItems != null && items.length >= maxMediaItems);
+	const noDrag = $derived(mediaAtCap);
 
 	const isLibraryMode = $derived(Boolean(mediaVm));
 	const previewUrls = $derived(getScheduledPostsPresenter.toPostMediaPreviewUrlsVm(items));
@@ -76,7 +75,7 @@
 	}
 
 	async function uploadFiles(files: FileList | null) {
-		if (mediaLocked) return;
+		if (mediaAtCap) return;
 		if (!files?.length || disabled || uploadBusy || !uploadUid) return;
 		uploadBusy = true;
 		try {
@@ -277,7 +276,9 @@
 		>
 			{#if noDrag}
 				<span class="text-base-content/60">
-					Adding another attachment isn’t supported for the selected network(s).
+					{maxMediaItems === 1
+						? 'Adding another attachment isn’t supported for the selected network(s).'
+						: `You can attach up to ${maxMediaItems} items for the selected network(s).`}
 				</span>
 			{:else if dragOver}
 				<span class="text-primary shrink-0" aria-hidden="true">
