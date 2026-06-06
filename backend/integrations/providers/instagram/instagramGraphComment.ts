@@ -1,4 +1,4 @@
-import { htmlToPlainText } from "../../utils/content/htmlToPlain";
+import { htmlToPlainText } from "../../../utils/content/htmlToPlain";
 
 export type InstagramGraphHost = "graph.instagram.com" | "graph.facebook.com";
 

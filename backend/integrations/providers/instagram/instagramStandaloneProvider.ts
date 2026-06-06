@@ -7,7 +7,7 @@ import type {
     PostResponse,
     SocialProvider,
     ValidateCreatePostInput,
-} from "../social.integrations.interface";
+} from "../../social.integrations.interface";
 import {
     fetchInstagramAccountInsights,
     fetchInstagramMediaInsights,
@@ -16,10 +16,10 @@ import { publishInstagramGraphComment } from "./instagramGraphComment";
 import { publishInstagramGraphFeedPost } from "./instagramGraphContentPublish";
 
 import dayjs from "dayjs";
-import { config } from "../../config/GlobalConfig";
-import { makeId } from "../../utils/ids/makeId";
-import { oauthFrontendOrigin } from "../utils/oauthFrontendOrigin";
-import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackPath";
+import { config } from "../../../config/GlobalConfig";
+import { makeId } from "../../../utils/ids/makeId";
+import { oauthFrontendOrigin } from "../../utils/oauthFrontendOrigin";
+import { oauthFrontendSocialCallbackPath } from "../../utils/oauthFrontendCallbackPath";
 
 const IG_GRAPH = "https://graph.instagram.com";
 const IG_INSIGHTS_GRAPH = "https://graph.instagram.com/v21.0";

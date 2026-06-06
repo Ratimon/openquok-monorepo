@@ -4,8 +4,8 @@ import type {
     InternalPlugCatalogEntryDto,
     ProviderPlugsCatalogDto,
 } from "../utils/dtos/PlugDTO";
-import { InstagramBusinessProvider } from "./providers/instagramBusinessProvider";
-import { InstagramStandaloneProvider } from "./providers/instagramStandaloneProvider";
+import { InstagramBusinessProvider } from "./providers/instagram/instagramBusinessProvider";
+import { InstagramStandaloneProvider } from "./providers/instagram/instagramStandaloneProvider";
 import { ThreadsProvider } from "./providers/threadsProvider";
 
 const socialIntegrationList: SocialProvider[] = [

@@ -59,7 +59,7 @@ Both Instagram variants accept the **same** per-channel settings; pick the varia
 | <Badge text="graduation_strategy" variant="param" /> | string | Used only with `is_trial_reel: true`. Defaults to `"MANUAL"`. |
 | <Badge text="collaborators" variant="param" /> | array of objects | IG usernames invited as collaborators (feed posts and reels only — **not** stories). Each item carries a <Badge text="label" variant="param" /> (string) field with the username. |
 
-Instagram requires **at least one** image or video for any post with `status: "scheduled"` — see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/instagramStandaloneProvider.ts"><Badge text="instagramStandaloneProvider.ts" variant="path" /></DocsExternalLink>. Captions are capped at <Badge text="2200 chars" variant="default" />.
+Instagram requires **at least one** image or video for any post with `status: "scheduled"` — see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/instagram/instagramStandaloneProvider.ts"><Badge text="instagramStandaloneProvider.ts" variant="path" /></DocsExternalLink>. Captions are capped at <Badge text="2200 chars" variant="default" />.
 
 ### Platforms without custom settings (1)
 

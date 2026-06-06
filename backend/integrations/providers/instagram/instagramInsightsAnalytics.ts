@@ -3,11 +3,11 @@
  * Shared by Instagram (Business via Facebook Login) and Instagram (Standalone).
  *
  */
-import type { AnalyticsData } from "../social.integrations.interface";
+import type { AnalyticsData } from "../../social.integrations.interface";
 
 import dayjs from "dayjs";
 
-import { throwIfMetaGraphInvalidAccessToken } from "../../errors/metaGraphTokenError";
+import { throwIfMetaGraphInvalidAccessToken } from "../../../errors/metaGraphTokenError";
 
 /** e.g. `https://graph.facebook.com/v21.0` or `https://graph.instagram.com/v21.0` */
 export type InstagramGraphInsightsBaseUrl = string;

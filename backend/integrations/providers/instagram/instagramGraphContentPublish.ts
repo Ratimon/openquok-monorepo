@@ -4,10 +4,10 @@
  *
  * @see https://developers.facebook.com/docs/instagram-api/guides/content-publishing
  */
-import type { PostDetails, PostResponse } from "../social.integrations.interface";
+import type { PostDetails, PostResponse } from "../../social.integrations.interface";
 import { humanizeInstagramGraphError } from "./instagramGraphErrors";
-import { publicUrlForObjectKey } from "../../repositories/MediaRepository";
-import { logger } from "../../utils/Logger";
+import { publicUrlForObjectKey } from "../../../repositories/MediaRepository";
+import { logger } from "../../../utils/Logger";
 
 /** Normalized Instagram publish options for Content Publishing API calls. */
 export type InstagramGraduationStrategy = "MANUAL" | "SS_PERFORMANCE";
