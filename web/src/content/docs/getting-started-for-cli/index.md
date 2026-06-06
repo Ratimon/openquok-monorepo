@@ -2,7 +2,7 @@
 title: Introduction to Openquok CLI
 description: An CLI-first tool for AI agents. Give your agents the Openquok CLI to schedule posts, manage integrations, and upload media purely from the terminal.
 order: 0
-lastUpdated: 2026-05-29
+lastUpdated: 2026-06-06
 ---
 
 <script>
@@ -53,6 +53,9 @@ openquok --help
 
 Use **OAuth2 device flow**, so you never embed client secrets in the CLI, or set a **programmatic access token** (<Badge text="opo_" variant="default" />) for CI and scripts. Full variable reference and self-hosted auth options are on <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.
 
+<Callout type="note" title="One token, one workspace">
+<p>Every <Badge text="opo_" variant="default" /> token is scoped to a <strong>single workspace</strong> when it is issued — the workspace you authorize during device login, or the workspace whose programmatic token you copy from the dashboard. To run the CLI against multiple workspaces, issue or authorize a <strong>separate token per workspace</strong>.</p>
+</Callout>
 
 ### Option 1: OAuth2 (Suggested)
 

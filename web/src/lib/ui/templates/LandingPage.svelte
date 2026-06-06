@@ -176,7 +176,7 @@
 			iconClass: 'text-lime-400',
 			title: 'Developers',
 			description:
-				'Fully open source: use OAuth, our SDK, and API to build your own content OS for the creator economy. Connect once, publish everywhere.',
+				'Fully open source: use OAuth, our SDK, and API to build your own content OS without have to write your own APIs. Connect once, publish everywhere.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{

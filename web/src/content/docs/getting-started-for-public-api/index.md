@@ -64,7 +64,7 @@ Openquok currently ships with **3 social provider integrations**: **Meta Threads
 For per-channel settings, and copy-paste API examples — plus the **channel vs integration** terminology used across the dashboard and API — see the dedicated <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a> page.
 
 <CardGrid>
-<LinkCard title="Supported social channels" description="Provider identifiers, per-channel settings (Threads, Instagram), and curl/JSON examples for each platform we ship today" href="/docs/getting-started-for-public-api/supported-social-channels" />
+<LinkCard title="Supported social channels" description="Provider identifiers, per-channel settings (Threads, Instagram)" href="/docs/getting-started-for-public-api/supported-social-channels" />
 </CardGrid>
 
 ## Generate Output
