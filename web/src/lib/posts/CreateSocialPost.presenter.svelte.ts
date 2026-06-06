@@ -44,7 +44,8 @@ import {
 import { mergeProviderSettingsPatch, cloneProviderSettingsByIntegrationId } from '$lib/posts/utils/createSocialPostProviderSettings';
 import {
 	computeLaunchCommentsMode,
-	computeScheduleValidationError
+	computeScheduleValidationError,
+	computeScheduleValidationErrorAsync
 } from '$lib/posts/utils/createSocialPostScheduleValidation';
 import { isComposerDirty, serializeComposerSnapshot } from '$lib/posts/utils/createSocialPostSnapshot';
 import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
@@ -697,6 +698,16 @@ export class CreateSocialPostPresenter {
 		}
 		if (this.scheduleValidationError) {
 			toast.warning(this.scheduleValidationError);
+			return false;
+		}
+		const asyncValidationError = await computeScheduleValidationErrorAsync({
+			selectedIds: this.selectedIds,
+			baseSocialChannelsVm: this.baseSocialChannelsVm,
+			postMediaItems: this.postMediaItemsVm,
+			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
+		});
+		if (asyncValidationError) {
+			toast.warning(asyncValidationError);
 			return false;
 		}
 		const content = validateComposerContent({

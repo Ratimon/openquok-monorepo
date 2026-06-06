@@ -43,3 +43,29 @@ export function computeScheduleValidationError(args: {
 	}
 	return null;
 }
+
+/** Provider async checks (video duration, etc.) before scheduling. */
+export async function computeScheduleValidationErrorAsync(args: {
+	selectedIds: string[];
+	baseSocialChannelsVm: CreateSocialPostChannelViewModel[];
+	postMediaItems: PostMediaViewModel[];
+	providerSettingsByIntegrationId: Record<string, Record<string, unknown>>;
+}): Promise<string | null> {
+	const sync = computeScheduleValidationError(args);
+	if (sync) return sync;
+
+	for (const id of args.selectedIds) {
+		const ch = args.baseSocialChannelsVm.find((c) => c.id === id);
+		if (!ch) continue;
+		const cfg = getLaunchProviderConfig(ch.identifier);
+		if (!cfg.checkValidityAsync) continue;
+		const res = await cfg.checkValidityAsync({
+			media: args.postMediaItems,
+			settings: args.providerSettingsByIntegrationId[id] ?? {}
+		});
+		if (typeof res === 'string' && res.trim().length > 0) {
+			return formatProviderScheduleValidationMessage(ch, res);
+		}
+	}
+	return null;
+}

@@ -5,6 +5,8 @@
  * @see https://developers.facebook.com/docs/instagram-api/guides/content-publishing
  */
 import type { PostDetails, PostResponse } from "../social.integrations.interface";
+import { humanizeInstagramGraphError } from "./instagramGraphErrors";
+import { resolveInstagramPublishSettings } from "./instagramPublishSettings";
 import { publicUrlForObjectKey } from "../../repositories/MediaRepository";
 import { logger } from "../../utils/Logger";
 
@@ -84,10 +86,14 @@ function formatGraphError(prefix: string, res: Response, body: unknown): string 
     };
     if (b?.error?.message) {
         const extra = [b.error.error_user_msg].filter(Boolean).join(" — ");
-        return `${prefix}: ${b.error.message}${extra ? ` (${extra})` : ""}`;
+        const raw = `${b.error.message}${extra ? ` (${extra})` : ""}`;
+        const subcode =
+            b.error.error_subcode != null ? String(b.error.error_subcode) : "";
+        const combined = [raw, subcode].filter(Boolean).join(" ");
+        return `${prefix}: ${humanizeInstagramGraphError(combined)}`;
     }
     if (b && typeof b === "object" && "_nonJsonBody" in b && typeof b._nonJsonBody === "string") {
-        return `${prefix}: HTTP ${res.status} — ${b._nonJsonBody.slice(0, 500)}`;
+        return `${prefix}: ${humanizeInstagramGraphError(b._nonJsonBody.slice(0, 500))}`;
     }
     return `${prefix}: HTTP ${res.status}`;
 }
@@ -178,14 +184,9 @@ export async function publishInstagramGraphFeedPost(
         await assertUrlPubliclyReachable(m.path);
     }
 
-    const settings = (first.settings ?? {}) as {
-        post_type?: string;
-        is_trial_reel?: boolean;
-        graduation_strategy?: string;
-        collaborators?: Array<{ label?: string }>;
-    };
-    const isStory = settings.post_type === "story";
-    const isTrialReel = Boolean(settings.is_trial_reel);
+    const igSettings = resolveInstagramPublishSettings(first.settings);
+    const isStory = igSettings.post_type === "story";
+    const isTrialReel = igSettings.is_trial_reel;
     const message = first.message ?? "";
 
     logger.info({
@@ -226,16 +227,14 @@ export async function publishInstagramGraphFeedPost(
         const trialParams = isTrialReel
             ? `&trial_params=${encodeURIComponent(
                   JSON.stringify({
-                      graduation_strategy: settings.graduation_strategy || "MANUAL",
+                      graduation_strategy: igSettings.graduation_strategy,
                   })
               )}`
             : "";
 
         const collaborators =
-            Array.isArray(settings.collaborators) &&
-            settings.collaborators.length > 0 &&
-            !isStory
-                ? `&collaborators=${encodeURIComponent(JSON.stringify(settings.collaborators.map((p) => p.label).filter(Boolean)))}`
+            igSettings.collaborators.length > 0 && !isStory
+                ? `&collaborators=${encodeURIComponent(JSON.stringify(igSettings.collaborators.map((p) => p.label)))}`
                 : "";
 
         const url =

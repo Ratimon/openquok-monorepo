@@ -262,26 +262,75 @@ export class InstagramBusinessProvider implements SocialProvider {
 
     /** Facebook Pages that have a linked Instagram professional account (for the between-steps picker). */
     async listBetweenStepAccounts(accessToken: string): Promise<InstagramBusinessAccountOption[]> {
-        const res = await fetch(
-            `${GRAPH}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)` +
-                `&access_token=${encodeURIComponent(accessToken)}&limit=500`
-        );
-        const json = (await res.json()) as {
-            data?: Array<{
-                id: string;
-                instagram_business_account?: { id: string };
-                name?: string;
-                picture?: { data?: { url?: string } };
-            }>;
+        type PageRow = {
+            id: string;
+            instagram_business_account?: { id: string };
+            name?: string;
+            picture?: { data?: { url?: string } };
         };
-        const rows = json.data ?? [];
-        const withIg = rows.filter((r) => r.instagram_business_account?.id);
 
+        const seenPageIds = new Set<string>();
+        const allFacebookPages: PageRow[] = [];
+
+        const fetchPaginated = async (startUrl: string): Promise<void> => {
+            let nextUrl: string | undefined = startUrl;
+            while (nextUrl) {
+                const response = await fetch(nextUrl);
+                const json = (await response.json()) as {
+                    data?: PageRow[];
+                    paging?: { next?: string };
+                };
+                for (const page of json.data ?? []) {
+                    if (!seenPageIds.has(page.id)) {
+                        seenPageIds.add(page.id);
+                        allFacebookPages.push(page);
+                    }
+                }
+                nextUrl = json.paging?.next;
+            }
+        };
+
+        const enc = encodeURIComponent(accessToken);
+        await fetchPaginated(
+            `${GRAPH}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+        );
+
+        try {
+            let bizUrl: string | undefined = `${GRAPH}/me/businesses?access_token=${enc}`;
+            while (bizUrl) {
+                const bizResponse = await fetch(bizUrl);
+                const bizJson = (await bizResponse.json()) as {
+                    data?: Array<{ id: string }>;
+                    paging?: { next?: string };
+                };
+                for (const business of bizJson.data ?? []) {
+                    try {
+                        await fetchPaginated(
+                            `${GRAPH}/${business.id}/owned_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+                        );
+                    } catch {
+                        // Continue with other businesses.
+                    }
+                    try {
+                        await fetchPaginated(
+                            `${GRAPH}/${business.id}/client_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+                        );
+                    } catch {
+                        // Continue with other businesses.
+                    }
+                }
+                bizUrl = bizJson.paging?.next;
+            }
+        } catch {
+            // Business Manager API is not available for all users.
+        }
+
+        const withIg = allFacebookPages.filter((r) => r.instagram_business_account?.id);
         const out: InstagramBusinessAccountOption[] = [];
         for (const p of withIg) {
             const igId = p.instagram_business_account!.id;
             const igRes = await fetch(
-                `${GRAPH}/${igId}?fields=name,profile_picture_url,username&access_token=${encodeURIComponent(accessToken)}`
+                `${GRAPH}/${igId}?fields=name,profile_picture_url,username&access_token=${enc}`
             );
             const ig = (await igRes.json()) as {
                 name?: string;

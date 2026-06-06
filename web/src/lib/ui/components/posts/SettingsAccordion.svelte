@@ -21,7 +21,12 @@
 				integrationId: string;
 			};
 		};
-		instagram: { postType: 'post' | 'story'; collaborators: string[]; trialReel: boolean };
+		instagram: {
+			postType: 'post' | 'story';
+			collaborators: string[];
+			trialReel: boolean;
+			graduationStrategy: 'MANUAL' | 'SS_PERFORMANCE';
+		};
 	};
 
 	type Props = {
@@ -46,6 +51,7 @@
 	let igPostType = $state<'post' | 'story'>('post');
 	let igCollaborators = $state<string[]>([]);
 	let igTrialReel = $state(false);
+	let igGraduationStrategy = $state<'MANUAL' | 'SS_PERFORMANCE'>('MANUAL');
 
 	// Pull values from the passed value object.
 	$effect(() => {
@@ -77,6 +83,8 @@
 							.filter(Boolean)
 					: [];
 			igTrialReel = s.instagram.trialReel === true;
+			const gs = (s.instagram as { graduationStrategy?: unknown }).graduationStrategy;
+			igGraduationStrategy = gs === 'SS_PERFORMANCE' ? 'SS_PERFORMANCE' : 'MANUAL';
 		}
 	});
 
@@ -94,7 +102,12 @@
 					integrationId: channel.id
 				}
 			},
-			instagram: { postType: igPostType, collaborators: igCollaborators, trialReel: igTrialReel }
+			instagram: {
+				postType: igPostType,
+				collaborators: igCollaborators,
+				trialReel: igTrialReel,
+				graduationStrategy: igGraduationStrategy
+			}
 		};
 		const sig = JSON.stringify(next);
 		if (sig === lastEmitted) return;
@@ -158,6 +171,7 @@
 						bind:postType={igPostType}
 						bind:collaborators={igCollaborators}
 						bind:trialReel={igTrialReel}
+						bind:graduationStrategy={igGraduationStrategy}
 					/>
 				{:else}
 					<p class="text-sm text-base-content/60">

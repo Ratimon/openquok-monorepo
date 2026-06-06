@@ -4,10 +4,13 @@ export type LaunchProviderId = string;
 
 export type LaunchProviderCommentsMode = boolean | 'no-media';
 
+export type InstagramGraduationStrategy = 'MANUAL' | 'SS_PERFORMANCE';
+
 export type InstagramLaunchProviderSettings = {
 	postType: 'post' | 'story';
 	collaborators: string[];
 	trialReel: boolean;
+	graduationStrategy: InstagramGraduationStrategy;
 };
 
 export type LaunchProviderCheckContext = {
@@ -36,5 +39,7 @@ export type LaunchProviderConfig = {
 	 * Return a user-facing string on failure, or `true` when valid.
 	 */
 	checkValidity?: (ctx: LaunchProviderCheckContext) => true | string;
+	/** Async checks (e.g. video duration) run at schedule time. */
+	checkValidityAsync?: (ctx: LaunchProviderCheckContext) => Promise<true | string>;
 };
 
