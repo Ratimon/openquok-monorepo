@@ -32,8 +32,9 @@ declare global {
 			navbarDesktopLinks?: Link[];
 			navbarMobileLinks?: Link[];
 			footerNavigationLinks?: Record<string, { label: string; href: string }[]>;
+			landingPageConfigVm?: Record<string, string>;
 			pageMetaTags?: BaseMetaTags;
-			currentUserId?: string;
+			schemaData?: Record<string, unknown>;
 		}
 		// interface Error {}
 		// interface Locals {}

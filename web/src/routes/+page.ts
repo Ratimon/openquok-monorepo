@@ -1,9 +1,8 @@
-import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
-
 import type { Link } from '$lib/ui/nav-bars/Link';
-
 import type { PageLoad } from './$types';
+
+import { browser } from '$app/environment';
 
 export const load: PageLoad = async ({ parent, data }) => {
 	const parentData = await parent();
@@ -20,6 +19,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			navbarDesktopLinks: Link[];
 			navbarMobileLinks: Link[];
 			footerNavigationLinks: Record<string, { label: string; href: string }[]>;
+			landingPageConfigVm: Record<string, string>;
+			schemaData: Record<string, unknown>;
 		};
 
 		return {
@@ -27,6 +28,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			navbarDesktopLinks: serverData.navbarDesktopLinks,
 			navbarMobileLinks: serverData.navbarMobileLinks,
 			footerNavigationLinks: serverData.footerNavigationLinks,
+			landingPageConfigVm: serverData.landingPageConfigVm,
+			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,
 			isPlatformAdmin,

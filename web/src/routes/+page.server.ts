@@ -3,41 +3,91 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { Link } from '$lib/ui/nav-bars/Link';
 
 import {
+	CONFIG_SCHEMA_COMPANY,
+	CONFIG_SCHEMA_MARKETING,
 	getLandingPageConfigDefaults,
 	PUBLIC_FOOTER_LINKS,
 	PUBLIC_NAVBAR_LINKS
 } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
+import { createMetaData, openGraphForPublicPage } from '$lib/utils/createMetaData';
 
 export const ssr = true;
 
 export const load: PageServerLoad = async ({ parent, url }) => {
-	const { baseMetaTags } = await parent();
+	const { baseMetaTags, companyInformationPm, marketingInformationPm } = await parent();
+
 	const navbarDesktopLinks: Link[] = [...PUBLIC_NAVBAR_LINKS];
 	const navbarMobileLinks: Link[] = [...PUBLIC_NAVBAR_LINKS];
 	const footerNavigationLinks = { ...PUBLIC_FOOTER_LINKS };
 
-	// "Openquok"
-	const pageMetaTags = {
-		...baseMetaTags,
-		titleTemplate: '%s'
-	} satisfies MetaTagsProps;
+	const landingDefaults = getLandingPageConfigDefaults();
+	let landingPageConfigVm: Record<string, string> = landingDefaults;
 
-	// ✅ SAFE: Load landing page config using SSR
-	let landingPageConfigPm: { [key: string]: string } = {};
 	try {
-		landingPageConfigPm = await configRepository
-			.getPublicModuleConfig('landing_page');
+		const loaded = await configRepository.getPublicModuleConfig('landing_page');
+		if (Object.keys(loaded).length > 0) {
+			landingPageConfigVm = loaded;
+		}
 	} catch (error) {
 		console.error('[+page.server] Failed to fetch landing page config:', error);
-		landingPageConfigPm = getLandingPageConfigDefaults();
 	}
+
+	const companyName =
+		companyInformationPm?.config?.NAME ?? String(CONFIG_SCHEMA_COMPANY.NAME.default);
+	const heroTitleRaw =
+		landingPageConfigVm.HERO_TITLE ?? landingDefaults.HERO_TITLE ?? String(CONFIG_SCHEMA_MARKETING.META_TITLE.default);
+	const heroDescription =
+		landingPageConfigVm.HERO_SLOGAN ??
+		landingDefaults.HERO_SLOGAN ??
+		String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default);
+	const customTitle = heroTitleRaw.replace(/\n+/g, ' ').trim();
+
+	const metaTags = await createMetaData({
+		companyInformation: companyInformationPm,
+		marketingInformation: marketingInformationPm,
+		customTitle: `${customTitle} | ${companyName}`,
+		customDescription: heroDescription,
+		requestUrl: url
+	});
+
+	const canonical = new URL(url.pathname, url.origin).href;
+	const og = openGraphForPublicPage(customTitle, heroDescription, canonical);
+
+	const pageMetaTags = Object.freeze({
+		...baseMetaTags,
+		...metaTags,
+		canonical,
+		titleTemplate: '%s',
+		openGraph: {
+			...metaTags.openGraph,
+			...og.openGraph
+		},
+		twitter: {
+			...metaTags.twitter,
+			...og.twitter
+		}
+	}) satisfies MetaTagsProps;
+
+	const schemaData = {
+		'@context': 'https://schema.org',
+		'@type': 'WebSite',
+		name: companyName,
+		url: url.origin,
+		description: heroDescription,
+		potentialAction: {
+			'@type': 'SearchAction',
+			target: `${url.origin}/blog?q={search_term_string}`,
+			'query-input': 'required name=search_term_string'
+		}
+	};
 
 	return {
 		pageMetaTags,
 		navbarDesktopLinks,
 		navbarMobileLinks,
-		landingPageConfigPm,
-		footerNavigationLinks
+		footerNavigationLinks,
+		landingPageConfigVm,
+		schemaData
 	};
 };

@@ -8,9 +8,9 @@
 	import HeroDemo from '$lib/ui/templates/HeroDemo.svelte';
 	import HeroMain from '$lib/ui/templates/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
+	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import PublicFaq from '$lib/ui/templates/PublicFaq.svelte';
 	import FeaturesGrid from '$lib/ui/templates/FeaturesGrid.svelte';
-	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import PublicPricingTabs from '$lib/ui/templates/PublicPricingTabs.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 

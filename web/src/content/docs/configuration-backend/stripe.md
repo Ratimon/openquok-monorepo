@@ -2,7 +2,7 @@
 title: Stripe billing
 description: Configure Stripe for workspace subscriptions, media storage quotas, checkout, and webhooks in Openquok.
 order: 8
-lastUpdated: 2026-05-20
+lastUpdated: 2026-06-07
 ---
 
 <script>
@@ -123,17 +123,17 @@ Use the **same values** as the matching <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID
 
 Plan limits (channels, storage, workspaces, and so on) are edited in <Badge text="pricing.ts" variant="path" />, not in Stripe metadata.
 
-### Web (publishable key — optional, not used for checkout today)
+### Web (publishable key)
 
 ```bash
 VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 ```
 
-Reserved for a future **embedded** Stripe.js checkout. Current billing uses a **redirect** from <Badge text="POST /api/v1/billing/subscribe" variant="path" />; the web app reads `billingEnabled` from the API (driven by backend <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" />), not from this Vite variable.
+Current billing uses a **redirect** from <Badge text="POST /api/v1/billing/subscribe" variant="path" />; the web app reads `billingEnabled` from the API (driven by backend <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" />), not from this Vite variable.
 
 See <a href="/docs/configuration-web/vite">Vite (SvelteKit)</a> for other <Badge text="VITE_*" variant="envWeb" /> variables.
 
-## Steps (Stripe Dashboard)
+## Steps for Stripe Dashboard
 
 <Callout type="note">
 Use Test mode before going live. Complete setup in **Test mode** in the <DocsExternalLink href="https://dashboard.stripe.com/test/dashboard">Stripe Dashboard</DocsExternalLink>. Repeat with live keys only when checkout and webhooks work end-to-end.
@@ -152,7 +152,7 @@ Copy:
 
 ### Configure the Customer Portal
 
-Open <DocsExternalLink href="https://dashboard.stripe.com/test/settings/billing/portal">Customer portal settings (test)</DocsExternalLink> and save a default configuration (payment method updates, cancellation, and so on). The API opens the portal with return URL built from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> plus <Badge text="/account/billing" variant="path" />.
+Open <DocsExternalLink href="https://dashboard.stripe.com/test/settings/billing/portal">Customer portal settings (test)</DocsExternalLink> or <DocsExternalLink href="https://dashboard.stripe.com/settings/billing/portal">Customer portal settings (live)</DocsExternalLink> and save a default configuration (payment method updates, cancellation, and so on). The API opens the portal with return URL built from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> plus <Badge text="/account/billing" variant="path" />.
 
 ### Create a webhook endpoint
 
