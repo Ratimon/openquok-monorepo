@@ -201,6 +201,20 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
+	DEMO_YOUTUBE_VIDEO_ID: {
+		description: 'YouTube video ID for the landing page product demo (not the full URL)',
+		type: 'string',
+		default: 'iKNimZ9FBu8',
+		inputType: 'input',
+		maxInputLength: 20
+	},
+	DEMO_THUMBNAIL_ALT: {
+		description: 'Alt text for the demo video thumbnail image',
+		type: 'string',
+		default: 'OpenQuok demo video',
+		inputType: 'input',
+		maxInputLength: 120
+	},
 	AUDIENCE_SUBTITLE: {
 		description: 'Tag above the audience pillars card section',
 		type: 'string',

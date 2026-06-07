@@ -11,6 +11,7 @@ import {
 	PUBLIC_NAVBAR_LINKS
 } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
+import { createLandingDemoSEOSchema } from '$lib/content/utils/createLandingDemoSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData, openGraphForPublicPage } from '$lib/utils/createMetaData';
 
@@ -108,6 +109,13 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 					landingPageConfigVm.FAQ_DESCRIPTION ??
 					publicFaqConfigVm.DESCRIPTION ??
 					publicFaqDefaults.DESCRIPTION
+			}),
+			createLandingDemoSEOSchema({
+				youtubeVideoId:
+					landingPageConfigVm.DEMO_YOUTUBE_VIDEO_ID ?? landingDefaults.DEMO_YOUTUBE_VIDEO_ID,
+				name: landingPageConfigVm.DEMO_TITLE ?? landingDefaults.DEMO_TITLE,
+				description: landingPageConfigVm.DEMO_DESCRIPTION ?? landingDefaults.DEMO_DESCRIPTION,
+				pageUrl: canonical
 			})
 		].filter((node) => Object.keys(node).length > 0)
 	};

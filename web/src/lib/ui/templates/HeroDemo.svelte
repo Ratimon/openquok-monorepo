@@ -1,5 +1,6 @@
 <script lang="ts">
 	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
+	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -41,6 +42,7 @@
 	const thumbnailSrc = $derived(
 		`https://img.youtube.com/vi/${youtubeVideoId}/maxresdefault.jpg`
 	);
+	const watchUrl = $derived(`https://www.youtube.com/watch?v=${youtubeVideoId}`);
 
 	const titleParts = $derived(
 		landingTitle
@@ -50,7 +52,11 @@
 	);
 </script>
 
-<section class="container mx-auto px-4 pb-16 sm:pb-20" aria-labelledby={headingId}>
+<section
+	id="landing-demo"
+	class="container mx-auto px-4 pb-16 sm:pb-20"
+	aria-labelledby={headingId}
+>
 	<div class="mx-auto max-w-5xl space-y-8 sm:space-y-10">
 		<div class="space-y-6 text-center">
 			{#if landingSubtitle}
@@ -100,5 +106,8 @@
 			{thumbnailSrc}
 			{thumbnailAlt}
 		/>
+		<p class="text-center text-sm text-base-content/60">
+			<ExternalLink href={watchUrl}>Watch on YouTube</ExternalLink>
+		</p>
 	</div>
 </section>

@@ -17,18 +17,12 @@
 	type Props = {
 		landingPageConfigVm?: Record<string, string>;
 		publicFaqConfigVm?: Record<string, string>;
-		demoYoutubeVideoId: string;
-		demoThumbnailAlt: string;
-		demoHeadingId: string;
 		isLoggedIn?: boolean;
 	};
 
 	let {
 		landingPageConfigVm = {},
 		publicFaqConfigVm = {},
-		demoYoutubeVideoId,
-		demoThumbnailAlt,
-		demoHeadingId,
 		isLoggedIn = false
 	}: Props = $props();
 
@@ -50,6 +44,16 @@
 		landingPageConfigVm.DEMO_DESCRIPTION ||
 			String(CONFIG_SCHEMA_LANDING_PAGE.DEMO_DESCRIPTION.default)
 	);
+	const demoYoutubeVideoId = $derived(
+		landingPageConfigVm.DEMO_YOUTUBE_VIDEO_ID ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.DEMO_YOUTUBE_VIDEO_ID.default)
+	);
+	const demoThumbnailAlt = $derived(
+		landingPageConfigVm.DEMO_THUMBNAIL_ALT ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.DEMO_THUMBNAIL_ALT.default)
+	);
+
+	const demoHeadingId = 'landing-demo-heading';
 
 	const audienceSubtitle = $derived(
 		landingPageConfigVm.AUDIENCE_SUBTITLE ||

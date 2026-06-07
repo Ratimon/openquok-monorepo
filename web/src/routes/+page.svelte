@@ -49,10 +49,6 @@
 	);
 	let schemaData = $derived(data.schemaData);
 
-	const landingDemoYoutubeVideoId = 'iKNimZ9FBu8';
-	const landingDemoThumbnailAlt = 'OpenQuok demo video';
-	const landingDemoHeadingId = 'landing-demo-heading';
-
 	onMount(() => {
 		if (!browser) return;
 
@@ -84,8 +80,5 @@
 		{landingPageConfigVm}
 		{publicFaqConfigVm}
 		{isLoggedIn}
-		demoYoutubeVideoId={landingDemoYoutubeVideoId}
-		demoThumbnailAlt={landingDemoThumbnailAlt}
-		demoHeadingId={landingDemoHeadingId}
 	/>
 </PublicArea>
