@@ -30,6 +30,7 @@
 
 		ctaText?: string;
 		ctaHref?: string;
+		showCta?: boolean;
 
 		bgColorClass?: string;
 		children?: Snippet;
@@ -47,6 +48,7 @@
 
 		ctaText = 'Get Started For Free',
 		ctaHref = '/pricing',
+		showCta = true,
 
 		bgColorClass = 'bg-base-100',
 		children
@@ -110,17 +112,19 @@
 							</p>
 						{/if}
 
-						<div class="pt-2">
-							<ButtonGlitchBrightness
-								class={heroTheme.ctaButtonClass}
-								variant="primary"
-								size="lg"
-								href={ctaHref}
-								preload="off"
-							>
-								{ctaText}
-							</ButtonGlitchBrightness>
-						</div>
+						{#if showCta}
+							<div class="pt-2">
+								<ButtonGlitchBrightness
+									class={heroTheme.ctaButtonClass}
+									variant="primary"
+									size="lg"
+									href={ctaHref}
+									preload="off"
+								>
+									{ctaText}
+								</ButtonGlitchBrightness>
+							</div>
+						{/if}
 
 						{#if children}
 							<div class="pt-2">

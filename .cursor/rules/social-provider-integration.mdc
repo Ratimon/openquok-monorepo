@@ -1,5 +1,5 @@
 ---
-description: Checklist for adding a social channel — update backend provider + web composer/OAuth + docs together
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + public SEO landing page
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
@@ -12,17 +12,23 @@ globs:
   - web/src/data/social-providers.ts
   - web/src/content/docs/social-integration/**
   - web/src/content/docs/cli-examples/**
+  - web/src/content/constants/publicChannelCatalog.ts
+  - web/src/lib/area-public/constants/getRootPathPublicChannels.ts
+  - web/src/routes/(public)/channels/**
+  - web/src/lib/ui/templates/PublicChannelLandingPage.svelte
+  - web/src/lib/ui/components/channels/PublicChannelHero.svelte
+  - web/src/lib/ui/components/channels/PublicChannelsHubGrid.svelte
   - agent/skills/openquok-core/resources/**
 alwaysApply: false
 ---
 
 # Adding a social provider
 
-Ship **backend + web + docs** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Full guide: `web/src/content/docs/social-integration/add-provider.md`.
+Ship **backend + web + docs + public channel landing page** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing references: **facebook**, **threads**, **instagram** in `publicChannelCatalog.ts`. Full guide: `web/src/content/docs/social-integration/add-provider.md`.
 
 ## Identifier contract
 
-Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames. Do not fork slugs between layers.
+Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelCatalog` `slug` / `platformId`**, and `/channels/{slug}`. Do not fork slugs between layers.
 
 ## Backend (required)
 
@@ -45,6 +51,57 @@ Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
 
 Keep composer validation aligned with backend publish rules (`checkValidity` ↔ `validateCreatePost` / publish helper constraints).
 
+## Public channel landing page (SEO marketing)
+
+Routes and UI are **generic** — adding a channel is a **catalog entry only** (no new `+page` files per slug).
+
+| Artifact | Path / URL |
+| --- | --- |
+| Content catalog | `web/src/lib/content/constants/publicChannelCatalog.ts` |
+| Route helpers | `web/src/lib/area-public/constants/getRootPathPublicChannels.ts` (`channels`, `channels/{slug}`) |
+| Hub route | `/channels` — `web/src/routes/(public)/channels/+page.server.ts` lists `listPublicChannelsForHub()` |
+| Detail route | `/channels/{slug}` — `web/src/routes/(public)/channels/[slug]/+page.server.ts` resolves `getAvailablePublicChannelBySlug(slug)` (404 when missing or `available: false`) |
+| Page template | `web/src/lib/ui/templates/PublicChannelLandingPage.svelte` |
+| Hub grid | `web/src/lib/ui/components/channels/PublicChannelsHubGrid.svelte` |
+| Hero | `web/src/lib/ui/components/channels/PublicChannelHero.svelte` |
+
+Navbar/footer link to `/channels` is already in `web/src/lib/config/constants/config.ts`; **do not add per-channel nav entries**.
+
+### Catalog entry (`PublicChannelLandingPage`)
+
+Add a constant in `publicChannelCatalog.ts` and append it to `PUBLIC_CHANNEL_LANDING_PAGES` (before or instead of a coming-soon stub).
+
+| Field | Rule |
+| --- | --- |
+| `slug`, `platformId` | Same kebab-case slug as `provider.identifier` |
+| `platformLabel` | Human-readable name (e.g. `Facebook`, `X`) |
+| `icon` | `icons.{Provider}.name` from `$data/icons` |
+| `heroTitle`, `heroDescription` | Platform-specific H1 and lead copy |
+| `metaTitle`, `metaDescription`, `keywords` | SEO; title becomes `{metaTitle} \| {companyName}` on the page |
+| `featureSections` | **3 sections** typical: subtitle, title, description, optional `imageSrc` under `/landing/`, `imageAlt`, `mediaOnRight` (alternate left/right) |
+| `faqSubtitle`, `faqTitle`, `faqDescription`, `faqItems` | Channel-specific FAQ; JSON-LD `FAQPage` is generated in `+page.server.ts` |
+| `docsPath` | Setup guide path, e.g. `/docs/social-integration/{id}` — must match the doc you ship |
+| `available` | `true` when the detail page should be live; `false` for hub-only “Coming soon” |
+
+**Coming soon (provider not ready):** add a minimal stub in `COMING_SOON_CHANNELS` with `available: false`, empty hero/FAQ/feature arrays, and a short `metaDescription`. Hub shows a badge; `/channels/{slug}` returns 404.
+
+**Go live:** replace the stub with a full entry (or flip `available: true` and fill content). Reuse landing demo assets (`/landing/*.mp4`) where they fit.
+
+### CTA (detail pages)
+
+Use **one CTA label everywhere**, matching `web/src/lib/ui/templates/LandingPage.svelte`:
+
+- **Text:** `Get Started For Free`
+- **Href:** `/pricing`
+
+Wire through `PublicChannelLandingPage.svelte` (`secondaryCtaText` / `secondaryCtaHref`) into the hero and every feature section. **Do not** add login-dependent CTAs (`Start for $0`, `Open workspace`), a secondary “Setup guide” button, or a bottom CTA block.
+
+### Load / page conventions
+
+- `+page.server.ts` files own SSR, meta tags (`createMetaData`), and JSON-LD schema.
+- `+page.ts` follows the universal load pattern (`await parent()`, merge `isLoggedIn` / roles on the client branch). See **web-sveltekit-universal-page-load**.
+- `+page.svelte` exposes load fields via `$derived(data.*)` — do not pass `isLoggedIn` into `PublicChannelLandingPage`.
+
 ## Docs and agent resources (user-facing providers)
 
 | Artifact | Path |
@@ -61,3 +118,6 @@ Follow **docs-conventions** and **source-project-neutrality** (no third-party re
 - Redirect URI in platform console matches `/integration/oauth/{identifier}` exactly.
 - `providerSettings` shape documented for CLI (`providerSettingsByIntegrationId`) and resolved in backend publish code.
 - Unit tests added/updated for non-trivial paths.
+- **`publicChannelCatalog`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state.
+- **Landing page:** hero + 3 feature sections + FAQ filled; CTAs are only `Get Started For Free` → `/pricing`.
+- **Hub:** new channel appears on `/channels` (coming-soon badge or live link).

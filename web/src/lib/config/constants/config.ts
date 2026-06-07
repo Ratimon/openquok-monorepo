@@ -1,10 +1,12 @@
 import type { ModuleConfigSchema } from '$lib/config/constants/types';
 import { getDefaultPublicFaqConfigItems } from '$lib/content/utils/parsePublicFaqConfig';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
+import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
 
 const publicBlogPath = route(getRootPathPublicBlog());
+const publicChannelsPath = route(getRootPathPublicChannels());
 const publicDocsPath = route(getRootPathPublicDocs());
 
 const appName = 'Openquok';
@@ -473,6 +475,7 @@ export interface Link {
 
 export const PUBLIC_NAVBAR_LINKS: Link[] = [
 	{ pathname: publicDocsPath, title: 'Dev Docs', navType: 'tab' },
+	{ pathname: publicChannelsPath, title: 'Channels', navType: 'tab' },
 	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' },
 	{ pathname: '/pricing', title: 'Pricing', navType: 'tab' }
 ];
@@ -482,6 +485,7 @@ export const PUBLIC_NAVBAR_MOBILE_LINKS: Link[] = [...PUBLIC_NAVBAR_LINKS];
 export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
 	Resources: [
 		{ label: 'Developer Docs', href: publicDocsPath },
+		{ label: 'Channels', href: publicChannelsPath },
 		{ label: 'Blog', href: publicBlogPath },
 		{ label: 'Blog Topics', href: '/blog/topic' },
 		{ label: 'Blog Authors', href: '/blog/author' }

@@ -25,7 +25,7 @@ export const PUBLIC_PRICING_PLAN_META: Record<PaidSubscriptionTier, PublicPricin
 	TEAM: {
 		tagline: 'Best for growing teams and businesses',
 		tabHeadline:
-			'You found formats that work — now bring in more workspaces, people, and social channels'
+			'You found formats that work — bring in more workspaces, editors, reviewers, and clients across your social channels. Comment inline, approve drafts, and auto-publish once everyone signs off — no more Slack threads chasing approval.'
 	},
 	ULTIMATE: {
 		tagline: 'Best for managing multiple brands and AI agents',
