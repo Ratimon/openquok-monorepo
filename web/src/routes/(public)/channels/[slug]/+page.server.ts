@@ -2,12 +2,11 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { error } from '@sveltejs/kit';
 
-import { publicInformationRepository } from '$lib/area-public';
+import { publicChannelByPagePresenter, publicInformationRepository } from '$lib/area-public';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
-import { getAvailablePublicChannelBySlug } from '$lib/content/constants/publicChannelCatalog';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
@@ -21,8 +20,8 @@ export async function load({ url, params, fetch, cookies }) {
 		throw error(404, 'Channel page not found');
 	}
 
-	const channel = getAvailablePublicChannelBySlug(slug);
-	if (!channel) {
+	const channelVm = publicChannelByPagePresenter.loadChannelBySlugStateless(slug);
+	if (!channelVm) {
 		throw error(404, 'Channel page not found');
 	}
 
@@ -34,16 +33,16 @@ export async function load({ url, params, fetch, cookies }) {
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const customTitle = `${channel.metaTitle} | ${companyName}`;
-	const customDescription = channel.metaDescription;
+	const customTitle = `${channelVm.metaTitle} | ${companyName}`;
+	const customDescription = channelVm.metaDescription;
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
 		marketingInformation: marketingInformationPm,
 		customTitle,
 		customDescription,
-		customSlug: getRootPathPublicChannel(channel.slug),
-		customTags: channel.keywords,
+		customSlug: getRootPathPublicChannel(channelVm.slug),
+		customTags: channelVm.keywords,
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
@@ -67,7 +66,7 @@ export async function load({ url, params, fetch, cookies }) {
 			{
 				'@type': 'WebPage',
 				'@id': `${canonical}#webpage`,
-				name: channel.metaTitle,
+				name: channelVm.metaTitle,
 				description: customDescription,
 				url: canonical,
 				isPartOf: {
@@ -78,9 +77,9 @@ export async function load({ url, params, fetch, cookies }) {
 			},
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
-				name: channel.faqTitle,
-				description: channel.faqDescription,
-				items: channel.faqItems
+				name: channelVm.faqTitle,
+				description: channelVm.faqDescription,
+				items: channelVm.faqItems
 			})
 		].filter((node) => Object.keys(node).length > 0)
 	};
@@ -88,7 +87,7 @@ export async function load({ url, params, fetch, cookies }) {
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		channelVm: channel,
+		channelVm,
 		schemaData
 	};
 }

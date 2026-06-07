@@ -36,6 +36,7 @@ export type PublicChannelLandingPage = {
 	available: boolean;
 };
 
+
 const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 	slug: 'facebook',
 	platformId: 'facebook',

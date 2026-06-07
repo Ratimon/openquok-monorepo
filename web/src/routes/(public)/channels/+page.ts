@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelCatalog';
+import type { PublicChannelViewModel } from '$lib/area-public/PublicChannelsPage.presenter.svelte';
 
 import type { PageLoad } from './$types';
 
@@ -18,7 +18,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
-			channelsVm: PublicChannelLandingPage[];
+			channelsVm: PublicChannelViewModel[];
 			schemaData: unknown;
 		};
 

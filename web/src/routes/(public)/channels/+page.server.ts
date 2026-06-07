@@ -1,11 +1,10 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import { publicInformationRepository } from '$lib/area-public';
+import { publicChannelsPagePresenter, publicInformationRepository } from '$lib/area-public';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
-import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelCatalog';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 
@@ -19,7 +18,7 @@ export async function load({ url, fetch, cookies }) {
 		await publicInformationRepository.getAllInformationCombined(fetch);
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
-	const channelsVm = listPublicChannelsForHub();
+	const channelsVm = publicChannelsPagePresenter.loadChannelsHubStateless();
 
 	const customTitle = 'Social channel schedulers';
 	const customDescription =
