@@ -3,6 +3,7 @@
 	import type { ModuleConfigViewModel } from '$lib/config/ModuleConfigRenderer.presenter.svelte';
 
 	import { buildModuleConfigFormSchema } from '$lib/config';
+	import { normalizeConfigStringValue } from '$lib/config/utils/normalizeConfigStringValue';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
 
@@ -42,7 +43,7 @@
 					if (isFaq) {
 						return [key, Array.isArray(currentValue) ? currentValue : (schemaItem.default ?? [])];
 					}
-					return [key, String(currentValue)];
+					return [key, normalizeConfigStringValue(String(currentValue))];
 				}
 
 				if (isSwitch) {
@@ -54,7 +55,7 @@
 				}
 
 				if (schemaItem.default === undefined || schemaItem.default === null) return [key, ''];
-				return [key, String(schemaItem.default)];
+				return [key, normalizeConfigStringValue(String(schemaItem.default))];
 			})
 		)
 	);

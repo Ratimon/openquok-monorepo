@@ -25,9 +25,9 @@
 		description = 'Add frequently asked questions for public pages.'
 	}: Props = $props();
 
-	let localFaqs = $state<FaqEditorItem[]>(faqs ?? []);
+	let localFaqs = $state<FaqEditorItem[]>([]);
 
-	$effect(() => {
+	$effect.pre(() => {
 		const next = faqs ?? [];
 		if (JSON.stringify(next) !== JSON.stringify(localFaqs)) {
 			localFaqs = [...next];

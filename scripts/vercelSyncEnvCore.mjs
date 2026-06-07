@@ -71,12 +71,14 @@ export function parseDotenvFile(filePath) {
 function looksSensitiveHeuristic(key) {
   const k = key.toUpperCase();
   return (
-    k.includes("SECRET") ||
-    k.includes("TOKEN") ||
-    k.includes("PASSWORD") ||
-    k.endsWith("_KEY") ||
+    k.includes("SECRET") || // SECURITY_SECRET, STRIPE_SECRET_KEY, RESEND_SECRET_KEY, …
+    k.includes("TOKEN") || // FACEBOOK_PIXEL_ACCESS_TOKEN
+    k.includes("PASSWORD") || // REDIS_PASSWORD
+    k.endsWith("_KEY") || // SUPABASE_SECRET_KEY, STRIPE_SECRET_KEY, …
+    k.includes("ACCESS_KEY") || // AWS_ACCESS_KEY_ID, STORAGE_R2_ACCESS_KEY_ID
     k.includes("PRIVATE") ||
-    k.includes("SERVICE_ROLE")
+    k.includes("SERVICE_ROLE") ||
+    k.includes("DSN") // SENTRY_DSN
   );
 }
 

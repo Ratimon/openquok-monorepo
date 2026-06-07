@@ -11,6 +11,7 @@ import {
 	PUBLIC_NAVBAR_LINKS
 } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
+import { normalizeConfigStringValue } from '$lib/config/utils/normalizeConfigStringValue';
 import { createLandingDemoSEOSchema } from '$lib/content/utils/createLandingDemoSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
@@ -31,9 +32,13 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 	try {
 		const loaded = await configRepository.getPublicModuleConfig('landing_page');
 		if (Object.keys(loaded).length > 0) {
-			landingPageConfigVm = Object.fromEntries(
-				Object.entries(loaded).map(([key, value]) => [key, value == null ? '' : String(value)])
-			);
+			const normalizedLoaded = Object.fromEntries(
+				Object.entries(loaded).map(([key, value]) => [
+					key,
+					value == null ? '' : normalizeConfigStringValue(String(value))
+				])
+			) as Record<string, string>;
+			landingPageConfigVm = { ...landingDefaults, ...normalizedLoaded };
 		}
 	} catch (error) {
 		console.error('[+page.server] Failed to fetch landing page config:', error);
@@ -61,7 +66,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		landingPageConfigVm.HERO_SLOGAN ??
 		landingDefaults.HERO_SLOGAN ??
 		String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default);
-	const customTitle = heroTitleRaw.replace(/\n+/g, ' ').trim();
+	const customTitle = normalizeConfigStringValue(heroTitleRaw).replace(/\n+/g, ' ').trim();
 
 	const metaTags = await createMetaData({
 		companyInformation: companyInformationPm,

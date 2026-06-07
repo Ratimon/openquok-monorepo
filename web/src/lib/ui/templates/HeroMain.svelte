@@ -5,6 +5,8 @@
 	import { cn } from '$lib/ui/helpers/common';
 	import { socialProviderDisplayLabel } from '$data/social-providers';
 
+	import { normalizeConfigStringValue } from '$lib/config/utils/normalizeConfigStringValue';
+
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import OrbitingCircles from '$lib/ui/animation/OrbitingCircles.svelte';
@@ -55,7 +57,7 @@
 
 	function parseHeroTitleLines(text: string): string[] {
 		if (!text) return [];
-		return text
+		return normalizeConfigStringValue(text)
 			.split(/\n/)
 			.map((line) => line.trim())
 			.filter((line) => line.length > 0);

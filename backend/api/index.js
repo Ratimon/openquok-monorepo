@@ -11,7 +11,7 @@ var uuid = require('uuid');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
-var dayjs4 = require('dayjs');
+var dayjs5 = require('dayjs');
 var Stripe2 = require('stripe');
 var groupBy = require('lodash/groupBy');
 var facebookNodejsBusinessSdk = require('facebook-nodejs-business-sdk');
@@ -57,7 +57,7 @@ var Sentry__namespace = /*#__PURE__*/_interopNamespace(Sentry);
 var IORedis__default = /*#__PURE__*/_interopDefault(IORedis);
 var crypto__default = /*#__PURE__*/_interopDefault(crypto);
 var nodemailer__default = /*#__PURE__*/_interopDefault(nodemailer);
-var dayjs4__default = /*#__PURE__*/_interopDefault(dayjs4);
+var dayjs5__default = /*#__PURE__*/_interopDefault(dayjs5);
 var Stripe2__default = /*#__PURE__*/_interopDefault(Stripe2);
 var groupBy__default = /*#__PURE__*/_interopDefault(groupBy);
 var http__default = /*#__PURE__*/_interopDefault(http);
@@ -10744,6 +10744,16 @@ var init_ConfigService = __esm({
   }
 });
 
+// utils/content/htmlToPlain.ts
+function htmlToPlainText(html) {
+  if (!html) return "";
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+var init_htmlToPlain = __esm({
+  "utils/content/htmlToPlain.ts"() {
+  }
+});
+
 // errors/ProviderIntegrationErrors.ts
 var ProviderAccessTokenExpiredError;
 var init_ProviderIntegrationErrors = __esm({
@@ -10771,6 +10781,560 @@ function throwIfMetaGraphInvalidAccessToken(json) {
 var init_metaGraphTokenError = __esm({
   "errors/metaGraphTokenError.ts"() {
     init_ProviderIntegrationErrors();
+  }
+});
+
+// integrations/providers/facebook/facebookGraphPublish.ts
+function extractMedia(settings) {
+  if (!settings || typeof settings !== "object") return [];
+  const media = settings.media;
+  if (Array.isArray(media)) {
+    return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  const items = media?.items;
+  if (Array.isArray(items)) {
+    return items.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  return [];
+}
+function resolvePublicMediaUrl(path7) {
+  const raw = path7.trim();
+  if (!raw) throw new Error("Media path is empty");
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  const url = publicUrlForObjectKey(raw);
+  if (!url) {
+    throw new Error(
+      "Cannot build a public media URL for Facebook (set STORAGE_R2_PUBLIC_BASE_URL for R2, or use full https:// URLs)"
+    );
+  }
+  return url;
+}
+function isMp4Path(path7) {
+  return path7.toLowerCase().includes(".mp4") || path7.toLowerCase().includes("mp4");
+}
+async function graphPostJson(url, body, label) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const json = await res.json();
+  throwIfMetaGraphInvalidAccessToken(json);
+  if (json.error?.message) {
+    throw new Error(`${label}: ${json.error.message}`);
+  }
+  return json;
+}
+function isPlainObject(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function resolveFacebookLinkFromSettings(settings) {
+  if (!isPlainObject(settings)) return void 0;
+  const readUrl = (source) => {
+    const url = source.url;
+    if (typeof url === "string" && url.trim()) return url.trim();
+    return void 0;
+  };
+  const providerSettings = settings.providerSettings;
+  if (isPlainObject(providerSettings)) {
+    const flat = readUrl(providerSettings);
+    if (flat) return flat;
+    const facebook = providerSettings.facebook;
+    if (isPlainObject(facebook)) {
+      const nested = readUrl(facebook);
+      if (nested) return nested;
+    }
+  }
+  if (isPlainObject(settings.facebook)) {
+    return readUrl(settings.facebook);
+  }
+  return readUrl(settings);
+}
+function readLinkFromSettings(settings) {
+  return resolveFacebookLinkFromSettings(settings);
+}
+async function publishFacebookPagePost(pageId, accessToken2, postDetails) {
+  const message = htmlToPlainText(postDetails.message ?? "").trim();
+  const media = extractMedia(postDetails.settings).map((m) => ({
+    ...m,
+    path: resolvePublicMediaUrl(m.path)
+  }));
+  const link = readLinkFromSettings(postDetails.settings);
+  const enc = encodeURIComponent(accessToken2);
+  if (media.length > 0 && isMp4Path(media[0].path)) {
+    const videoJson = await graphPostJson(
+      `${GRAPH}/${pageId}/videos?access_token=${enc}&fields=id,permalink_url`,
+      {
+        file_url: media[0].path,
+        description: message,
+        published: true
+      },
+      "Facebook video upload"
+    );
+    const videoId = String(videoJson.id ?? "");
+    const permalink = String(videoJson.permalink_url ?? `https://www.facebook.com/reel/${videoId}`);
+    return {
+      id: postDetails.id,
+      postId: videoId,
+      status: "success",
+      releaseURL: permalink
+    };
+  }
+  const uploadPhotos = media.length === 0 ? [] : await Promise.all(
+    media.map(async (item) => {
+      const photoJson = await graphPostJson(
+        `${GRAPH}/${pageId}/photos?access_token=${enc}`,
+        { url: item.path, published: false },
+        "Facebook photo upload"
+      );
+      return { media_fbid: String(photoJson.id ?? "") };
+    })
+  );
+  const feedBody = {
+    message,
+    published: true,
+    ...uploadPhotos.length ? { attached_media: uploadPhotos } : {},
+    ...link ? { link } : {}
+  };
+  const feedJson = await graphPostJson(
+    `${GRAPH}/${pageId}/feed?access_token=${enc}&fields=id,permalink_url`,
+    feedBody,
+    "Facebook feed publish"
+  );
+  return {
+    id: postDetails.id,
+    postId: String(feedJson.id ?? ""),
+    status: "success",
+    releaseURL: String(feedJson.permalink_url ?? "")
+  };
+}
+async function publishFacebookComment(replyToId, accessToken2, postDetails) {
+  const message = htmlToPlainText(postDetails.message ?? "").trim();
+  const media = extractMedia(postDetails.settings);
+  const enc = encodeURIComponent(accessToken2);
+  const body = { message };
+  if (media.length > 0) {
+    body.attachment_url = resolvePublicMediaUrl(media[0].path);
+  }
+  const json = await graphPostJson(
+    `${GRAPH}/${replyToId}/comments?access_token=${enc}&fields=id,permalink_url`,
+    body,
+    "Facebook comment"
+  );
+  return {
+    id: postDetails.id,
+    postId: String(json.id ?? ""),
+    status: "success",
+    releaseURL: String(json.permalink_url ?? "")
+  };
+}
+var GRAPH;
+var init_facebookGraphPublish = __esm({
+  "integrations/providers/facebook/facebookGraphPublish.ts"() {
+    init_MediaRepository();
+    init_htmlToPlain();
+    init_metaGraphTokenError();
+    GRAPH = "https://graph.facebook.com/v20.0";
+  }
+});
+
+// utils/ids/makeId.ts
+var makeId;
+var init_makeId = __esm({
+  "utils/ids/makeId.ts"() {
+    makeId = (length) => {
+      let text = "";
+      const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      for (let i = 0; i < length; i += 1) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+      }
+      return text;
+    };
+  }
+});
+
+// integrations/utils/oauthFrontendOrigin.ts
+function normalizeOAuthOriginInput(raw) {
+  return String(raw).trim().replace(/\/+$/, "");
+}
+function oauthFrontendOrigin() {
+  const raw = config.server?.frontendDomainUrl ?? "http://localhost:5173";
+  let candidate = normalizeOAuthOriginInput(raw);
+  if (!/^https?:\/\//i.test(candidate)) {
+    candidate = `https://${candidate}`;
+  }
+  try {
+    const u = new URL(candidate);
+    if (u.protocol === "https:") {
+      return u.origin;
+    }
+    return `https://redirectmeto.com/${u.origin}`;
+  } catch {
+    return candidate.toLowerCase().startsWith("https") ? candidate : `https://redirectmeto.com/${raw}`;
+  }
+}
+var init_oauthFrontendOrigin = __esm({
+  "integrations/utils/oauthFrontendOrigin.ts"() {
+    init_GlobalConfig();
+  }
+});
+
+// integrations/utils/oauthFrontendCallbackPath.ts
+function oauthFrontendSocialCallbackPath(provider) {
+  return `/integration/oauth/${encodeURIComponent(provider)}`;
+}
+var init_oauthFrontendCallbackPath = __esm({
+  "integrations/utils/oauthFrontendCallbackPath.ts"() {
+  }
+});
+function facebookOAuth() {
+  return config.integrations.facebook;
+}
+function facebookRedirectUri() {
+  return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("facebook")}`;
+}
+function normalizePageRow(page) {
+  return {
+    id: page.id,
+    name: page.name ?? page.username ?? page.id,
+    pictureUrl: page.picture?.data?.url ?? "",
+    username: page.username
+  };
+}
+function resolvePageIdFromPayload(data) {
+  if (!data || typeof data !== "object") {
+    throw new Error("Missing page selection");
+  }
+  const o = data;
+  const page = typeof o.page === "string" ? o.page.trim() : "";
+  const pageId = typeof o.pageId === "string" ? o.pageId.trim() : "";
+  const id = typeof o.id === "string" ? o.id.trim() : "";
+  const resolved = page || pageId || id;
+  if (!resolved) throw new Error("Missing page selection");
+  return resolved;
+}
+var GRAPH2, FacebookProvider;
+var init_facebookProvider = __esm({
+  "integrations/providers/facebook/facebookProvider.ts"() {
+    init_facebookGraphPublish();
+    init_GlobalConfig();
+    init_AppError();
+    init_makeId();
+    init_oauthFrontendOrigin();
+    init_oauthFrontendCallbackPath();
+    GRAPH2 = "https://graph.facebook.com/v20.0";
+    FacebookProvider = class {
+      identifier = "facebook";
+      name = "Facebook Page";
+      editor = "normal";
+      isBetweenSteps = true;
+      refreshCron = true;
+      toolTip = "Connect a Facebook Page you manage";
+      scopes = [
+        "pages_show_list",
+        "business_management",
+        "pages_manage_posts",
+        "pages_manage_engagement",
+        "pages_read_engagement",
+        "read_insights"
+      ];
+      maxLength(_additionalSettings) {
+        return 63206;
+      }
+      rules = "Facebook Page posts support text, link previews (optional URL in provider settings), photos, multi-photo posts, and MP4 videos. Follow-up comments may include one image attachment. App must be Live for media to be visible to all users.";
+      async post(pageId, accessToken2, postDetails, _integration) {
+        if (!postDetails.length) return [];
+        const result = await publishFacebookPagePost(pageId, accessToken2, postDetails[0]);
+        return [result];
+      }
+      async comment(_pageId, postId, lastCommentId, accessToken2, postDetails, _integration) {
+        if (!postDetails.length) return [];
+        const replyToId = lastCommentId || postId;
+        const result = await publishFacebookComment(replyToId, accessToken2, postDetails[0]);
+        return [result];
+      }
+      checkScopes(required, granted) {
+        const missing = required.filter((s) => !granted.includes(s));
+        if (missing.length > 0) {
+          throw new Error(`Missing permissions: ${missing.join(", ")}`);
+        }
+      }
+      async refreshToken(refresh_token) {
+        const { appId, appSecret } = facebookOAuth();
+        if (!appId || !appSecret) {
+          throw new AppError(
+            "Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET.",
+            503
+          );
+        }
+        const tokenRes = await fetch(
+          `${GRAPH2}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(refresh_token)}`
+        );
+        const extended = await tokenRes.json();
+        if (!extended.access_token) {
+          throw new Error(extended.error?.message ?? "Facebook token refresh failed");
+        }
+        const meRes = await fetch(
+          `${GRAPH2}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
+        );
+        const me = await meRes.json();
+        return {
+          id: me.id ?? "",
+          name: me.name ?? "",
+          accessToken: extended.access_token,
+          refreshToken: extended.access_token,
+          expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
+          picture: me.picture?.data?.url ?? "",
+          username: ""
+        };
+      }
+      async generateAuthUrl() {
+        const { appId } = facebookOAuth();
+        if (!appId) {
+          throw new AppError(
+            "Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET.",
+            503
+          );
+        }
+        const state = makeId(6);
+        const codeVerifier = makeId(10);
+        const redirectUri = facebookRedirectUri();
+        const url = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(this.scopes.join(","))}`;
+        return { url, codeVerifier, state };
+      }
+      async authenticate(params) {
+        const { appId, appSecret } = facebookOAuth();
+        if (!appId || !appSecret) return "Facebook OAuth is not configured";
+        const redirectUri = facebookRedirectUri();
+        const step1 = await fetch(
+          `${GRAPH2}/oauth/access_token?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&grant_type=authorization_code&client_secret=${encodeURIComponent(appSecret)}&code=${encodeURIComponent(params.code)}`
+        );
+        const shortLived = await step1.json();
+        if (!shortLived.access_token) {
+          return shortLived.error?.message ?? "Facebook token exchange failed";
+        }
+        const step2 = await fetch(
+          `${GRAPH2}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(shortLived.access_token)}`
+        );
+        const longLived = await step2.json();
+        if (!longLived.access_token) {
+          return longLived.error?.message ?? "Facebook long-lived token exchange failed";
+        }
+        const permRes = await fetch(
+          `${GRAPH2}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
+        );
+        const permJson = await permRes.json();
+        const permissions = (permJson.data ?? []).filter((d) => d.status === "granted").map((p) => p.permission).filter(Boolean);
+        try {
+          this.checkScopes(this.scopes, permissions);
+        } catch (e) {
+          return e instanceof Error ? e.message : "Missing OAuth permissions";
+        }
+        const meRes = await fetch(
+          `${GRAPH2}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
+        );
+        const me = await meRes.json();
+        return {
+          id: me.id ?? "",
+          name: me.name ?? "",
+          accessToken: longLived.access_token,
+          refreshToken: longLived.access_token,
+          expiresIn: dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
+          picture: me.picture?.data?.url ?? "",
+          username: ""
+        };
+      }
+      async pages(accessToken2) {
+        return this.listPages(accessToken2);
+      }
+      async listPages(accessToken2) {
+        const seenIds = /* @__PURE__ */ new Set();
+        const allPages = [];
+        const fields = "id,username,name,access_token,picture.type(large)";
+        const enc = encodeURIComponent(accessToken2);
+        const fetchPaginated = async (startUrl) => {
+          let nextUrl = startUrl;
+          while (nextUrl) {
+            const response = await fetch(nextUrl);
+            const json = await response.json();
+            for (const page of json.data ?? []) {
+              if (!seenIds.has(page.id)) {
+                seenIds.add(page.id);
+                allPages.push(page);
+              }
+            }
+            nextUrl = json.paging?.next;
+          }
+        };
+        await fetchPaginated(
+          `${GRAPH2}/me/accounts?fields=${fields}&limit=100&access_token=${enc}`
+        );
+        try {
+          let bizUrl = `${GRAPH2}/me/businesses?access_token=${enc}`;
+          while (bizUrl) {
+            const bizResponse = await fetch(bizUrl);
+            const bizJson = await bizResponse.json();
+            for (const business of bizJson.data ?? []) {
+              try {
+                await fetchPaginated(
+                  `${GRAPH2}/${business.id}/owned_pages?fields=${fields}&limit=100&access_token=${enc}`
+                );
+              } catch {
+              }
+              try {
+                await fetchPaginated(
+                  `${GRAPH2}/${business.id}/client_pages?fields=${fields}&limit=100&access_token=${enc}`
+                );
+              } catch {
+              }
+            }
+            bizUrl = bizJson.paging?.next;
+          }
+        } catch {
+        }
+        return allPages.map(normalizePageRow);
+      }
+      async fetchPageInformation(accessToken2, data) {
+        const pageId = resolvePageIdFromPayload(data);
+        const fields = "id,username,name,access_token,picture.type(large)";
+        const enc = encodeURIComponent(accessToken2);
+        const searchPaginated = async (startUrl) => {
+          let url = startUrl;
+          while (url) {
+            const response = await fetch(url);
+            const json = await response.json();
+            const page = (json.data ?? []).find((p) => String(p.id) === String(pageId));
+            if (page) return page;
+            url = json.paging?.next;
+          }
+          return null;
+        };
+        const fromAccounts = await searchPaginated(
+          `${GRAPH2}/me/accounts?fields=${fields}&limit=100&access_token=${enc}`
+        );
+        if (fromAccounts?.access_token) {
+          return {
+            id: fromAccounts.id,
+            name: fromAccounts.name ?? "",
+            access_token: fromAccounts.access_token,
+            picture: fromAccounts.picture?.data?.url ?? "",
+            username: fromAccounts.username ?? ""
+          };
+        }
+        try {
+          let bizUrl = `${GRAPH2}/me/businesses?access_token=${enc}`;
+          while (bizUrl) {
+            const bizResponse = await fetch(bizUrl);
+            const bizJson = await bizResponse.json();
+            for (const business of bizJson.data ?? []) {
+              const fromOwned = await searchPaginated(
+                `${GRAPH2}/${business.id}/owned_pages?fields=${fields}&limit=100&access_token=${enc}`
+              );
+              if (fromOwned?.access_token) {
+                return {
+                  id: fromOwned.id,
+                  name: fromOwned.name ?? "",
+                  access_token: fromOwned.access_token,
+                  picture: fromOwned.picture?.data?.url ?? "",
+                  username: fromOwned.username ?? ""
+                };
+              }
+              const fromClient = await searchPaginated(
+                `${GRAPH2}/${business.id}/client_pages?fields=${fields}&limit=100&access_token=${enc}`
+              );
+              if (fromClient?.access_token) {
+                return {
+                  id: fromClient.id,
+                  name: fromClient.name ?? "",
+                  access_token: fromClient.access_token,
+                  picture: fromClient.picture?.data?.url ?? "",
+                  username: fromClient.username ?? ""
+                };
+              }
+            }
+            bizUrl = bizJson.paging?.next;
+          }
+        } catch {
+        }
+        throw new Error("Page not found in your accounts");
+      }
+      async reConnect(_facebookUserId, pageId, accessToken2) {
+        const information = await this.fetchPageInformation(accessToken2, { page: pageId });
+        return {
+          id: information.id,
+          name: information.name,
+          accessToken: information.access_token,
+          picture: information.picture,
+          username: information.username
+        };
+      }
+      async analytics(pageId, accessToken2, dateWindowDays) {
+        const until = dayjs5__default.default().endOf("day").unix();
+        const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
+        const enc = encodeURIComponent(accessToken2);
+        const res = await fetch(
+          `${GRAPH2}/${pageId}/insights?metric=page_impressions_unique,page_posts_impressions_unique,page_post_engagements,page_daily_follows,page_video_views&access_token=${enc}&period=day&since=${since}&until=${until}`
+        );
+        const json = await res.json();
+        return (json.data ?? []).map((d) => ({
+          label: d.name === "page_impressions_unique" ? "Page Impressions" : d.name === "page_post_engagements" ? "Posts Engagement" : d.name === "page_daily_follows" ? "Page followers" : d.name === "page_video_views" ? "Videos views" : "Posts Impressions",
+          percentageChange: 0,
+          data: (d.values ?? []).map((v) => ({
+            total: String(v.value ?? 0),
+            date: dayjs5__default.default(v.end_time).format("YYYY-MM-DD")
+          }))
+        }));
+      }
+      async postAnalytics(_integrationId, accessToken2, postId, _fromDate) {
+        const today = dayjs5__default.default().format("YYYY-MM-DD");
+        const enc = encodeURIComponent(accessToken2);
+        try {
+          const res = await fetch(
+            `${GRAPH2}/${postId}/insights?metric=post_impressions_unique,post_reactions_by_type_total,post_clicks,post_clicks_by_type&access_token=${enc}`
+          );
+          const json = await res.json();
+          const result = [];
+          for (const metric of json.data ?? []) {
+            const value = metric.values?.[0]?.value;
+            if (value === void 0) continue;
+            let label = "";
+            let total = "";
+            switch (metric.name) {
+              case "post_impressions_unique":
+                label = "Impressions";
+                total = String(value);
+                break;
+              case "post_clicks":
+                label = "Clicks";
+                total = String(value);
+                break;
+              case "post_clicks_by_type":
+                if (typeof value === "object") {
+                  label = "Clicks by Type";
+                  total = String(
+                    Object.values(value).reduce((sum, v) => sum + Number(v), 0)
+                  );
+                }
+                break;
+              case "post_reactions_by_type_total":
+                if (typeof value === "object") {
+                  label = "Reactions";
+                  total = String(
+                    Object.values(value).reduce((sum, v) => sum + Number(v), 0)
+                  );
+                }
+                break;
+            }
+            if (label) {
+              result.push({ label, percentageChange: 0, data: [{ total, date: today }] });
+            }
+          }
+          return result;
+        } catch {
+          return [];
+        }
+      }
+    };
   }
 });
 function metricTitle(name) {
@@ -10802,8 +11366,8 @@ function metricTitle(name) {
   }
 }
 async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken2, dateWindowDays) {
-  const until = dayjs4__default.default().endOf("day").unix();
-  const since = dayjs4__default.default().subtract(dateWindowDays, "day").unix();
+  const until = dayjs5__default.default().endOf("day").unix();
+  const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
   const enc = encodeURIComponent(accessToken2);
   const res1 = await fetch(
     `${graphBaseUrl}/${encodeURIComponent(igUserId)}/insights?metric=follower_count,reach&access_token=${enc}&period=day&since=${since}&until=${until}`
@@ -10819,8 +11383,8 @@ async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken
   if (!res2.ok || json2.error) {
     return [];
   }
-  const today = dayjs4__default.default().format("YYYY-MM-DD");
-  const tomorrow = dayjs4__default.default().add(1, "day").format("YYYY-MM-DD");
+  const today = dayjs5__default.default().format("YYYY-MM-DD");
+  const tomorrow = dayjs5__default.default().add(1, "day").format("YYYY-MM-DD");
   const analytics = [];
   for (const d of json1.data ?? []) {
     const name = d.name ?? "";
@@ -10831,7 +11395,7 @@ async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken
       percentageChange: 0,
       data: (d.values ?? []).map((v) => ({
         total: String(v.value ?? 0),
-        date: v.end_time ? dayjs4__default.default(v.end_time).format("YYYY-MM-DD") : today
+        date: v.end_time ? dayjs5__default.default(v.end_time).format("YYYY-MM-DD") : today
       }))
     });
   }
@@ -10853,7 +11417,7 @@ async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken
   return analytics;
 }
 async function fetchInstagramMediaInsights(graphBaseUrl, mediaId, accessToken2) {
-  const today = dayjs4__default.default().format("YYYY-MM-DD");
+  const today = dayjs5__default.default().format("YYYY-MM-DD");
   const enc = encodeURIComponent(accessToken2);
   const res = await fetch(
     `${graphBaseUrl}/${encodeURIComponent(mediaId)}/insights?metric=views,reach,saved,likes,comments,shares&access_token=${enc}`
@@ -10878,22 +11442,12 @@ async function fetchInstagramMediaInsights(graphBaseUrl, mediaId, accessToken2) 
   return result;
 }
 var init_instagramInsightsAnalytics = __esm({
-  "integrations/providers/instagramInsightsAnalytics.ts"() {
+  "integrations/providers/instagram/instagramInsightsAnalytics.ts"() {
     init_metaGraphTokenError();
   }
 });
 
-// utils/content/htmlToPlain.ts
-function htmlToPlainText(html) {
-  if (!html) return "";
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-}
-var init_htmlToPlain = __esm({
-  "utils/content/htmlToPlain.ts"() {
-  }
-});
-
-// integrations/providers/instagramGraphComment.ts
+// integrations/providers/instagram/instagramGraphComment.ts
 async function publishInstagramGraphComment(params) {
   const msg = htmlToPlainText(params.message ?? "").trim();
   if (!msg.length) {
@@ -10923,12 +11477,114 @@ async function publishInstagramGraphComment(params) {
   return { commentId: createBody.id, mediaPermalink: typeof permJson.permalink === "string" ? permJson.permalink : "" };
 }
 var init_instagramGraphComment = __esm({
-  "integrations/providers/instagramGraphComment.ts"() {
+  "integrations/providers/instagram/instagramGraphComment.ts"() {
     init_htmlToPlain();
   }
 });
 
-// integrations/providers/instagramGraphContentPublish.ts
+// integrations/providers/instagram/instagramGraphErrors.ts
+function humanizeInstagramGraphError(raw) {
+  const body = raw || "";
+  if (body.indexOf("2207081") > -1) {
+    return "This account doesn't support Trial Reels";
+  }
+  if (body.indexOf("param collaborators is not allowed") > -1) {
+    return "Collaborators are not allowed for carousel posts";
+  }
+  if (body.toLowerCase().indexOf("the user is not an instagram business") > -1) {
+    return "Your Instagram account is not a business account; convert it to a professional account";
+  }
+  if (body.indexOf("2207042") > -1) {
+    return "You have reached the maximum of 25 posts per day for this account";
+  }
+  if (body.indexOf("2207028") > -1) {
+    return "Carousel validation failed";
+  }
+  if (body.indexOf("2207026") > -1) {
+    return "Unsupported video format";
+  }
+  if (body.indexOf("2207009") > -1 || body.indexOf("36003") > -1) {
+    return "Aspect ratio not supported; must be between 4:5 and 1.91:1";
+  }
+  if (body.indexOf("2207003") > -1) {
+    return "Timeout downloading media; please try again";
+  }
+  if (body.indexOf("2207020") > -1) {
+    return "Media expired; please upload again";
+  }
+  if (body.indexOf("2207004") > -1) {
+    return "Image is too large";
+  }
+  if (body.indexOf("Not enough permissions to post") > -1) {
+    return "Not enough permissions to post";
+  }
+  if (body.indexOf("Page request limit reached") > -1) {
+    return "Page posting for today is limited; please try again tomorrow";
+  }
+  return body;
+}
+var init_instagramGraphErrors = __esm({
+  "integrations/providers/instagram/instagramGraphErrors.ts"() {
+  }
+});
+
+// integrations/providers/instagram/instagramGraphContentPublish.ts
+function isPlainObject2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function normalizeInstagramCollaborators(raw) {
+  if (typeof raw === "string") {
+    raw = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const item of raw) {
+    if (typeof item === "string") {
+      const label = item.replace(/^@/, "").trim();
+      if (label) out.push({ label });
+      continue;
+    }
+    if (isPlainObject2(item) && typeof item.label === "string") {
+      const label = item.label.replace(/^@/, "").trim();
+      if (label) out.push({ label });
+    }
+  }
+  return out.slice(0, 3);
+}
+function readPostType(source) {
+  if (source.postType === "story" || source.post_type === "story") return "story";
+  return "post";
+}
+function readTrialReel(source) {
+  if (source.trialReel === true || source.is_trial_reel === true) return true;
+  return false;
+}
+function readGraduationStrategy(source) {
+  const g = source.graduationStrategy ?? source.graduation_strategy;
+  return g === "SS_PERFORMANCE" ? "SS_PERFORMANCE" : "MANUAL";
+}
+function resolveInstagramPublishSettings(postDetailsSettings) {
+  if (!isPlainObject2(postDetailsSettings)) {
+    return { ...DEFAULT_PUBLISH_SETTINGS };
+  }
+  let source = { ...postDetailsSettings };
+  const providerSettings = postDetailsSettings.providerSettings;
+  if (isPlainObject2(providerSettings)) {
+    const { instagram: instagramBucket, ...flatProviderSettings } = providerSettings;
+    source = { ...source, ...flatProviderSettings };
+    if (isPlainObject2(instagramBucket)) {
+      source = { ...source, ...instagramBucket };
+    }
+  } else if (isPlainObject2(postDetailsSettings.instagram)) {
+    source = { ...source, ...postDetailsSettings.instagram };
+  }
+  return {
+    post_type: readPostType(source),
+    is_trial_reel: readTrialReel(source),
+    graduation_strategy: readGraduationStrategy(source),
+    collaborators: normalizeInstagramCollaborators(source.collaborators)
+  };
+}
 function sleepMs(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -10962,7 +11618,7 @@ function extractComposerMedia(settings) {
   }
   return [];
 }
-function resolvePublicMediaUrl(path7) {
+function resolvePublicMediaUrl2(path7) {
   const raw = path7.trim();
   if (!raw) throw new Error("Media path is empty");
   assertInstagramSupportedMedia(raw);
@@ -10990,10 +11646,13 @@ function formatGraphError(prefix, res, body) {
   const b = body;
   if (b?.error?.message) {
     const extra = [b.error.error_user_msg].filter(Boolean).join(" \u2014 ");
-    return `${prefix}: ${b.error.message}${extra ? ` (${extra})` : ""}`;
+    const raw = `${b.error.message}${extra ? ` (${extra})` : ""}`;
+    const subcode = b.error.error_subcode != null ? String(b.error.error_subcode) : "";
+    const combined = [raw, subcode].filter(Boolean).join(" ");
+    return `${prefix}: ${humanizeInstagramGraphError(combined)}`;
   }
   if (b && typeof b === "object" && "_nonJsonBody" in b && typeof b._nonJsonBody === "string") {
-    return `${prefix}: HTTP ${res.status} \u2014 ${b._nonJsonBody.slice(0, 500)}`;
+    return `${prefix}: ${humanizeInstagramGraphError(b._nonJsonBody.slice(0, 500))}`;
   }
   return `${prefix}: HTTP ${res.status}`;
 }
@@ -11043,16 +11702,16 @@ async function publishInstagramGraphFeedPost(igUserId, accessToken2, first, targ
   const version = target.apiVersion ?? DEFAULT_API_VERSION;
   const root = apiRoot(target.graphHostname, version);
   const rawItems = extractComposerMedia(first.settings);
-  const medias = rawItems.map((m) => ({ ...m, path: resolvePublicMediaUrl(String(m.path)) }));
+  const medias = rawItems.map((m) => ({ ...m, path: resolvePublicMediaUrl2(String(m.path)) }));
   if (medias.length === 0) {
     throw new Error("Instagram requires at least one image or video");
   }
   for (const m of medias) {
     await assertUrlPubliclyReachable(m.path);
   }
-  const settings = first.settings ?? {};
-  const isStory = settings.post_type === "story";
-  const isTrialReel = Boolean(settings.is_trial_reel);
+  const igSettings = resolveInstagramPublishSettings(first.settings);
+  const isStory = igSettings.post_type === "story";
+  const isTrialReel = igSettings.is_trial_reel;
   const message = first.message ?? "";
   logger.info({
     msg: "[Instagram] publishing media",
@@ -11086,10 +11745,10 @@ async function publishInstagramGraphFeedPost(igUserId, accessToken2, first, targ
     }
     const trialParams = isTrialReel ? `&trial_params=${encodeURIComponent(
       JSON.stringify({
-        graduation_strategy: settings.graduation_strategy || "MANUAL"
+        graduation_strategy: igSettings.graduation_strategy
       })
     )}` : "";
-    const collaborators = Array.isArray(settings.collaborators) && settings.collaborators.length > 0 && !isStory ? `&collaborators=${encodeURIComponent(JSON.stringify(settings.collaborators.map((p) => p.label).filter(Boolean)))}` : "";
+    const collaborators = igSettings.collaborators.length > 0 && !isStory ? `&collaborators=${encodeURIComponent(JSON.stringify(igSettings.collaborators.map((p) => p.label)))}` : "";
     const url = `${root}/${encodeURIComponent(igUserId)}/media?${mediaQuery}${isCarousel}${collaborators}${trialParams}${caption}&access_token=${encodeURIComponent(accessToken2)}`;
     const createRes = await fetch(url, { method: "POST" });
     const createJson = await readGraphJson(createRes);
@@ -11185,75 +11844,32 @@ async function publishInstagramGraphFeedPost(igUserId, accessToken2, first, targ
     }
   ];
 }
-var DEFAULT_API_VERSION, POLL_INTERVAL_MS, POLL_MAX_ROUNDS;
+var DEFAULT_PUBLISH_SETTINGS, DEFAULT_API_VERSION, POLL_INTERVAL_MS, POLL_MAX_ROUNDS;
 var init_instagramGraphContentPublish = __esm({
-  "integrations/providers/instagramGraphContentPublish.ts"() {
+  "integrations/providers/instagram/instagramGraphContentPublish.ts"() {
+    init_instagramGraphErrors();
     init_MediaRepository();
     init_Logger();
+    DEFAULT_PUBLISH_SETTINGS = {
+      post_type: "post",
+      is_trial_reel: false,
+      graduation_strategy: "MANUAL",
+      collaborators: []
+    };
     DEFAULT_API_VERSION = "v20.0";
     POLL_INTERVAL_MS = 3e3;
     POLL_MAX_ROUNDS = 60;
   }
 });
-
-// utils/ids/makeId.ts
-var makeId;
-var init_makeId = __esm({
-  "utils/ids/makeId.ts"() {
-    makeId = (length) => {
-      let text = "";
-      const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-      for (let i = 0; i < length; i += 1) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-      }
-      return text;
-    };
-  }
-});
-
-// integrations/utils/oauthFrontendOrigin.ts
-function normalizeOAuthOriginInput(raw) {
-  return String(raw).trim().replace(/\/+$/, "");
-}
-function oauthFrontendOrigin() {
-  const raw = config.server?.frontendDomainUrl ?? "http://localhost:5173";
-  let candidate = normalizeOAuthOriginInput(raw);
-  if (!/^https?:\/\//i.test(candidate)) {
-    candidate = `https://${candidate}`;
-  }
-  try {
-    const u = new URL(candidate);
-    if (u.protocol === "https:") {
-      return u.origin;
-    }
-    return `https://redirectmeto.com/${u.origin}`;
-  } catch {
-    return candidate.toLowerCase().startsWith("https") ? candidate : `https://redirectmeto.com/${raw}`;
-  }
-}
-var init_oauthFrontendOrigin = __esm({
-  "integrations/utils/oauthFrontendOrigin.ts"() {
-    init_GlobalConfig();
-  }
-});
-
-// integrations/utils/oauthFrontendCallbackPath.ts
-function oauthFrontendSocialCallbackPath(provider) {
-  return `/integration/oauth/${encodeURIComponent(provider)}`;
-}
-var init_oauthFrontendCallbackPath = __esm({
-  "integrations/utils/oauthFrontendCallbackPath.ts"() {
-  }
-});
-function facebookOAuth() {
+function facebookOAuth2() {
   return config.integrations.facebook;
 }
 function instagramBusinessRedirectUri() {
   return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("instagram-business")}`;
 }
-var GRAPH, IG_INSIGHTS_GRAPH, InstagramBusinessProvider;
+var GRAPH3, IG_INSIGHTS_GRAPH, InstagramBusinessProvider;
 var init_instagramBusinessProvider = __esm({
-  "integrations/providers/instagramBusinessProvider.ts"() {
+  "integrations/providers/instagram/instagramBusinessProvider.ts"() {
     init_instagramInsightsAnalytics();
     init_instagramGraphComment();
     init_instagramGraphContentPublish();
@@ -11262,7 +11878,7 @@ var init_instagramBusinessProvider = __esm({
     init_makeId();
     init_oauthFrontendOrigin();
     init_oauthFrontendCallbackPath();
-    GRAPH = "https://graph.facebook.com/v20.0";
+    GRAPH3 = "https://graph.facebook.com/v20.0";
     IG_INSIGHTS_GRAPH = "https://graph.facebook.com/v21.0";
     InstagramBusinessProvider = class {
       identifier = "instagram-business";
@@ -11327,7 +11943,7 @@ var init_instagramBusinessProvider = __esm({
         }
       }
       async refreshToken(refresh_token) {
-        const { appId, appSecret } = facebookOAuth();
+        const { appId, appSecret } = facebookOAuth2();
         if (!appId || !appSecret) {
           throw new AppError(
             "Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET.",
@@ -11335,14 +11951,14 @@ var init_instagramBusinessProvider = __esm({
           );
         }
         const tokenRes = await fetch(
-          `${GRAPH}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(refresh_token)}`
+          `${GRAPH3}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(refresh_token)}`
         );
         const extended = await tokenRes.json();
         if (!extended.access_token) {
           throw new Error(extended.error?.message ?? "Facebook token refresh failed");
         }
         const meRes = await fetch(
-          `${GRAPH}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
+          `${GRAPH3}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
         );
         const me = await meRes.json();
         return {
@@ -11350,13 +11966,13 @@ var init_instagramBusinessProvider = __esm({
           name: me.name ?? "",
           accessToken: extended.access_token,
           refreshToken: extended.access_token,
-          expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs4__default.default().add(59, "days").unix() - dayjs4__default.default().unix(),
+          expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
           picture: me.picture?.data?.url ?? "",
           username: ""
         };
       }
       async generateAuthUrl() {
-        const { appId } = facebookOAuth();
+        const { appId } = facebookOAuth2();
         if (!appId) {
           throw new AppError(
             "Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET for the Meta app used by Instagram (Business).",
@@ -11370,25 +11986,25 @@ var init_instagramBusinessProvider = __esm({
         return { url, codeVerifier, state };
       }
       async authenticate(params) {
-        const { appId, appSecret } = facebookOAuth();
+        const { appId, appSecret } = facebookOAuth2();
         if (!appId || !appSecret) return "Facebook OAuth is not configured";
         const redirectUri = instagramBusinessRedirectUri();
         const step1 = await fetch(
-          `${GRAPH}/oauth/access_token?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&grant_type=authorization_code&client_secret=${encodeURIComponent(appSecret)}&code=${encodeURIComponent(params.code)}`
+          `${GRAPH3}/oauth/access_token?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&grant_type=authorization_code&client_secret=${encodeURIComponent(appSecret)}&code=${encodeURIComponent(params.code)}`
         );
         const shortLived = await step1.json();
         if (!shortLived.access_token) {
           return shortLived.error?.message ?? "Facebook token exchange failed";
         }
         const step2 = await fetch(
-          `${GRAPH}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(shortLived.access_token)}`
+          `${GRAPH3}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(shortLived.access_token)}`
         );
         const longLived = await step2.json();
         if (!longLived.access_token) {
           return longLived.error?.message ?? "Facebook long-lived token exchange failed";
         }
         const permRes = await fetch(
-          `${GRAPH}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
+          `${GRAPH3}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const permJson = await permRes.json();
         const permissions = (permJson.data ?? []).filter((d) => d.status === "granted").map((p) => p.permission).filter(Boolean);
@@ -11398,7 +12014,7 @@ var init_instagramBusinessProvider = __esm({
           return e instanceof Error ? e.message : "Missing OAuth permissions";
         }
         const meRes = await fetch(
-          `${GRAPH}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
+          `${GRAPH3}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const me = await meRes.json();
         return {
@@ -11406,7 +12022,7 @@ var init_instagramBusinessProvider = __esm({
           name: me.name ?? "",
           accessToken: longLived.access_token,
           refreshToken: longLived.access_token,
-          expiresIn: dayjs4__default.default().add(59, "days").unix() - dayjs4__default.default().unix(),
+          expiresIn: dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
           picture: me.picture?.data?.url ?? "",
           username: ""
         };
@@ -11417,17 +12033,55 @@ var init_instagramBusinessProvider = __esm({
       }
       /** Facebook Pages that have a linked Instagram professional account (for the between-steps picker). */
       async listBetweenStepAccounts(accessToken2) {
-        const res = await fetch(
-          `${GRAPH}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)&access_token=${encodeURIComponent(accessToken2)}&limit=500`
+        const seenPageIds = /* @__PURE__ */ new Set();
+        const allFacebookPages = [];
+        const fetchPaginated = async (startUrl) => {
+          let nextUrl = startUrl;
+          while (nextUrl) {
+            const response = await fetch(nextUrl);
+            const json = await response.json();
+            for (const page of json.data ?? []) {
+              if (!seenPageIds.has(page.id)) {
+                seenPageIds.add(page.id);
+                allFacebookPages.push(page);
+              }
+            }
+            nextUrl = json.paging?.next;
+          }
+        };
+        const enc = encodeURIComponent(accessToken2);
+        await fetchPaginated(
+          `${GRAPH3}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
         );
-        const json = await res.json();
-        const rows = json.data ?? [];
-        const withIg = rows.filter((r) => r.instagram_business_account?.id);
+        try {
+          let bizUrl = `${GRAPH3}/me/businesses?access_token=${enc}`;
+          while (bizUrl) {
+            const bizResponse = await fetch(bizUrl);
+            const bizJson = await bizResponse.json();
+            for (const business of bizJson.data ?? []) {
+              try {
+                await fetchPaginated(
+                  `${GRAPH3}/${business.id}/owned_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+                );
+              } catch {
+              }
+              try {
+                await fetchPaginated(
+                  `${GRAPH3}/${business.id}/client_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+                );
+              } catch {
+              }
+            }
+            bizUrl = bizJson.paging?.next;
+          }
+        } catch {
+        }
+        const withIg = allFacebookPages.filter((r) => r.instagram_business_account?.id);
         const out = [];
         for (const p of withIg) {
           const igId = p.instagram_business_account.id;
           const igRes = await fetch(
-            `${GRAPH}/${igId}?fields=name,profile_picture_url,username&access_token=${encodeURIComponent(accessToken2)}`
+            `${GRAPH3}/${igId}?fields=name,profile_picture_url,username&access_token=${enc}`
           );
           const ig = await igRes.json();
           out.push({
@@ -11441,13 +12095,13 @@ var init_instagramBusinessProvider = __esm({
       }
       async fetchPageInformation(accessToken2, data) {
         const pageRes = await fetch(
-          `${GRAPH}/${data.pageId}?fields=access_token,name,picture.type(large)&access_token=${encodeURIComponent(accessToken2)}`
+          `${GRAPH3}/${data.pageId}?fields=access_token,name,picture.type(large)&access_token=${encodeURIComponent(accessToken2)}`
         );
         const pageJson = await pageRes.json();
         const pageToken = pageJson.access_token;
         if (!pageToken) throw new Error("Could not load Page access token");
         const igRes = await fetch(
-          `${GRAPH}/${data.id}?fields=username,name,profile_picture_url&access_token=${encodeURIComponent(accessToken2)}`
+          `${GRAPH3}/${data.id}?fields=username,name,profile_picture_url&access_token=${encodeURIComponent(accessToken2)}`
         );
         const ig = await igRes.json();
         return {
@@ -11504,7 +12158,7 @@ function normalizeOAuthPermissionList(raw) {
 }
 var IG_GRAPH, IG_INSIGHTS_GRAPH2, InstagramStandaloneProvider;
 var init_instagramStandaloneProvider = __esm({
-  "integrations/providers/instagramStandaloneProvider.ts"() {
+  "integrations/providers/instagram/instagramStandaloneProvider.ts"() {
     init_instagramInsightsAnalytics();
     init_instagramGraphComment();
     init_instagramGraphContentPublish();
@@ -11591,7 +12245,7 @@ var init_instagramStandaloneProvider = __esm({
           name: me.name ?? me.username ?? "",
           accessToken: body.access_token,
           refreshToken: body.access_token,
-          expiresIn: dayjs4__default.default().add(58, "days").unix() - dayjs4__default.default().unix(),
+          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
           picture: me.profile_picture_url ?? "",
           username: me.username ?? ""
         };
@@ -11648,7 +12302,7 @@ var init_instagramStandaloneProvider = __esm({
           name: me.name ?? me.username ?? "",
           accessToken: longLived.access_token,
           refreshToken: longLived.access_token,
-          expiresIn: dayjs4__default.default().add(58, "days").unix() - dayjs4__default.default().unix(),
+          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
           picture: me.profile_picture_url ?? "",
           username: me.username ?? ""
         };
@@ -11689,7 +12343,7 @@ function threadsRedirectUri() {
 function threadsOAuth() {
   return config.integrations.threads;
 }
-var GRAPH2, THREADS_GLOBAL_PLUG_CATALOG, THREADS_INTERNAL_PLUG_CATALOG, ThreadsProvider;
+var GRAPH4, THREADS_GLOBAL_PLUG_CATALOG, THREADS_INTERNAL_PLUG_CATALOG, ThreadsProvider;
 var init_threadsProvider = __esm({
   "integrations/providers/threadsProvider.ts"() {
     init_GlobalConfig();
@@ -11701,7 +12355,7 @@ var init_threadsProvider = __esm({
     init_metaGraphTokenError();
     init_Logger();
     init_htmlToPlain();
-    GRAPH2 = "https://graph.threads.net/v1.0";
+    GRAPH4 = "https://graph.threads.net/v1.0";
     THREADS_GLOBAL_PLUG_CATALOG = [
       {
         methodName: "autoPlugPost",
@@ -11839,7 +12493,7 @@ var init_threadsProvider = __esm({
         const threshold = Number(fields.likesAmount);
         if (!Number.isFinite(threshold) || threshold < 0) return false;
         const res = await fetch(
-          `${GRAPH2}/${encodeURIComponent(threadId)}/insights?metric=likes&access_token=${encodeURIComponent(integration.token)}`
+          `${GRAPH4}/${encodeURIComponent(threadId)}/insights?metric=likes&access_token=${encodeURIComponent(integration.token)}`
         );
         const body = await res.json();
         if (!res.ok || body.error || !body.data?.length) {
@@ -11876,7 +12530,7 @@ var init_threadsProvider = __esm({
           name,
           accessToken: access_token,
           refreshToken: access_token,
-          expiresIn: dayjs4__default.default().add(58, "days").unix() - dayjs4__default.default().unix(),
+          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
           picture: picture || "",
           username: username || ""
         };
@@ -11911,7 +12565,7 @@ var init_threadsProvider = __esm({
           name,
           accessToken: longLived.access_token,
           refreshToken: longLived.access_token,
-          expiresIn: dayjs4__default.default().add(58, "days").unix() - dayjs4__default.default().unix(),
+          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
           picture: picture || "",
           username: username || ""
         };
@@ -11987,7 +12641,7 @@ var init_threadsProvider = __esm({
       async checkLoaded(creationId, accessToken2) {
         for (let i = 0; i < 40; i++) {
           const res = await fetch(
-            `${GRAPH2}/${encodeURIComponent(creationId)}?fields=status,error_message&access_token=${encodeURIComponent(accessToken2)}`
+            `${GRAPH4}/${encodeURIComponent(creationId)}?fields=status,error_message&access_token=${encodeURIComponent(accessToken2)}`
           );
           const json = await this.readGraphJson(res);
           if (!res.ok) {
@@ -12010,7 +12664,7 @@ var init_threadsProvider = __esm({
         throw new Error("Threads media processing timed out");
       }
       async formPostThreads(userId, form) {
-        return await fetch(`${GRAPH2}/${encodeURIComponent(userId)}/threads`, { method: "POST", body: form });
+        return await fetch(`${GRAPH4}/${encodeURIComponent(userId)}/threads`, { method: "POST", body: form });
       }
       async createTextContent(userId, accessToken2, message, replyToId) {
         const form = new FormData();
@@ -12072,7 +12726,7 @@ var init_threadsProvider = __esm({
         const pubForm = new FormData();
         pubForm.append("creation_id", creationId);
         pubForm.append("access_token", accessToken2);
-        const pubRes = await fetch(`${GRAPH2}/${encodeURIComponent(userId)}/threads_publish`, {
+        const pubRes = await fetch(`${GRAPH4}/${encodeURIComponent(userId)}/threads_publish`, {
           method: "POST",
           body: pubForm
         });
@@ -12081,7 +12735,7 @@ var init_threadsProvider = __esm({
           throw new Error(this.formatGraphError("Threads publish failed", pubRes, pubJson));
         }
         const infoRes = await fetch(
-          `${GRAPH2}/${encodeURIComponent(pubJson.id)}?fields=id,permalink&access_token=${encodeURIComponent(accessToken2)}`
+          `${GRAPH4}/${encodeURIComponent(pubJson.id)}?fields=id,permalink&access_token=${encodeURIComponent(accessToken2)}`
         );
         const infoJson = await this.readGraphJson(infoRes);
         if (!infoRes.ok) {
@@ -12097,21 +12751,21 @@ var init_threadsProvider = __esm({
        * Account insights for the analytics dashboard (`threads_manage_insights`).
        */
       async analytics(id, accessToken2, dateWindowDays) {
-        const until = dayjs4__default.default().endOf("day").unix();
-        const since = dayjs4__default.default().subtract(dateWindowDays, "day").unix();
-        const url = `${GRAPH2}/${encodeURIComponent(id)}/threads_insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}&period=day&since=${since}&until=${until}`;
+        const until = dayjs5__default.default().endOf("day").unix();
+        const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
+        const url = `${GRAPH4}/${encodeURIComponent(id)}/threads_insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}&period=day&since=${since}&until=${until}`;
         const res = await fetch(url);
         const body = await res.json();
         if (!res.ok || body.error) {
           return [];
         }
-        const today = dayjs4__default.default().format("YYYY-MM-DD");
+        const today = dayjs5__default.default().format("YYYY-MM-DD");
         const rows = body.data?.map((d) => ({
           label: this.capitalizeMetric(d.name ?? ""),
           percentageChange: 0,
           data: d.total_value ? [{ total: String(d.total_value.value ?? 0), date: today }] : (d.values ?? []).map((v) => ({
             total: String(v.value ?? 0),
-            date: v.end_time ? dayjs4__default.default(v.end_time).format("YYYY-MM-DD") : today
+            date: v.end_time ? dayjs5__default.default(v.end_time).format("YYYY-MM-DD") : today
           }))
         })) ?? [];
         return rows.filter((r) => r.label.length > 0);
@@ -12120,10 +12774,10 @@ var init_threadsProvider = __esm({
        * Per-thread insights for post statistics (`threads_manage_insights`).
        */
       async postAnalytics(_integrationId, accessToken2, threadMediaOrPostId, _fromDate) {
-        const today = dayjs4__default.default().format("YYYY-MM-DD");
+        const today = dayjs5__default.default().format("YYYY-MM-DD");
         try {
           const res = await fetch(
-            `${GRAPH2}/${encodeURIComponent(threadMediaOrPostId)}/insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}`
+            `${GRAPH4}/${encodeURIComponent(threadMediaOrPostId)}/insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}`
           );
           const json = await res.json();
           throwIfMetaGraphInvalidAccessToken(json);
@@ -12190,11 +12844,13 @@ var init_threadsProvider = __esm({
 var socialIntegrationList, IntegrationManager;
 var init_integrationManager = __esm({
   "integrations/integrationManager.ts"() {
+    init_facebookProvider();
     init_instagramBusinessProvider();
     init_instagramStandaloneProvider();
     init_threadsProvider();
     socialIntegrationList = [
       new ThreadsProvider(),
+      new FacebookProvider(),
       new InstagramBusinessProvider(),
       new InstagramStandaloneProvider()
     ];
@@ -13226,7 +13882,11 @@ var init_IntegrationConnectionService = __esm({
         const cache = this.requireCache();
         const getCodeVerifier = integrationProvider.customFields ? "none" : await cache.get(CACHE_KEYS11.oauth.login(body.state));
         if (!getCodeVerifier && !integrationProvider.customFields) {
-          throw new AppError("Invalid state", 400);
+          throw new AppError(
+            "Invalid OAuth state: login verifier missing for this state (expired, already used, or cache unavailable). Remove any partial channel and connect again.",
+            400,
+            { errorCode: "OAUTH_STATE_INVALID", metadata: { reason: "missing_code_verifier" } }
+          );
         }
         if (!integrationProvider.customFields) {
           await this.invalidateOAuthCacheKey(CACHE_KEYS11.oauth.login(body.state));
@@ -13319,7 +13979,7 @@ var init_IntegrationConnectionService = __esm({
             }
           }
         }
-        const shouldKeepOrganizationState = !authUserId && Boolean(integrationProvider.isBetweenSteps) && !refreshState;
+        const shouldKeepOrganizationState = Boolean(integrationProvider.isBetweenSteps) && !refreshState;
         if (!shouldKeepOrganizationState) {
           await this.invalidateOAuthCacheKey(organizationKey);
         }
@@ -13403,15 +14063,23 @@ var init_IntegrationConnectionService = __esm({
       }
       /** No-auth provider-page completion: organization is resolved from short-lived OAuth state cache. */
       async saveProviderPageNoAuth(integrationId, body) {
-        const state = typeof body.state === "string" ? body.state : "";
+        const state = typeof body.state === "string" ? body.state.trim() : "";
         if (!state) {
-          throw new AppError("Invalid state", 400);
+          throw new AppError(
+            "Invalid OAuth state: missing state for page selection. Remove the partial channel and start the connection again from your workspace.",
+            400,
+            { errorCode: "OAUTH_STATE_INVALID", metadata: { reason: "missing_state" } }
+          );
         }
         const cache = this.requireCache();
         const organizationKey = CACHE_KEYS11.oauth.organization(state);
         const organizationId = await cache.get(organizationKey);
         if (!organizationId || typeof organizationId !== "string") {
-          throw new AppError("Organization not found", 400);
+          throw new AppError(
+            "OAuth session expired: workspace context for this state was not found (state expired, already used, or cache unavailable). Remove the partial channel and connect again.",
+            400,
+            { errorCode: "OAUTH_STATE_INVALID", metadata: { reason: "organization_not_in_cache" } }
+          );
         }
         const { state: _state, ...providerPayload } = body;
         const result = await this.saveProviderPageForOrganization(organizationId, integrationId, providerPayload);
@@ -13516,10 +14184,10 @@ var init_IntegrationConnectionService = __esm({
           const msg = e instanceof Error ? e.message : "Could not load selected account";
           throw new AppError(msg, 400);
         }
-        const isInstagramBusiness = row.provider_identifier === "instagram-business";
-        const refreshToken = isInstagramBusiness ? userAccessToken : row.refresh_token || "";
-        const rootInternalId2 = isInstagramBusiness ? priorInternalId : row.root_internal_id;
-        const expiresInSeconds = isInstagramBusiness ? dayjs4__default.default().add(59, "days").unix() - dayjs4__default.default().unix() : void 0;
+        const preservesUserTokenForRefresh = row.provider_identifier === "instagram-business" || row.provider_identifier === "facebook";
+        const refreshToken = preservesUserTokenForRefresh ? userAccessToken : row.refresh_token || "";
+        const rootInternalId2 = preservesUserTokenForRefresh ? priorInternalId : row.root_internal_id;
+        const expiresInSeconds = preservesUserTokenForRefresh ? dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix() : void 0;
         await this.integrations.updateIntegrationById(organizationId, integrationId, {
           internalId: String(information.id),
           name: (information.name ?? "").trim() || information.username || row.name,
@@ -14977,8 +15645,8 @@ var init_PostsService = __esm({
        * On failed refresh, soft-deletes the channel.
        */
       async ensureFreshSocialToken(integrationRow, organizationId, options2) {
-        const exp = integrationRow.token_expiration ? dayjs4__default.default(integrationRow.token_expiration) : null;
-        const expired = !exp || !exp.isValid() || exp.isBefore(dayjs4__default.default());
+        const exp = integrationRow.token_expiration ? dayjs5__default.default(integrationRow.token_expiration) : null;
+        const expired = !exp || !exp.isValid() || exp.isBefore(dayjs5__default.default());
         const provider = options2?.provider ?? this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
         if (options2?.force || expired) {
           const refreshed = await this.refreshIntegrationService.refresh(integrationRow);
@@ -15945,8 +16613,8 @@ var init_AnalyticsService = __esm({
         if (!provider?.analytics) {
           return [];
         }
-        const exp = row.token_expiration ? dayjs4__default.default(row.token_expiration) : null;
-        if (exp && exp.isValid() && exp.isBefore(dayjs4__default.default())) {
+        const exp = row.token_expiration ? dayjs5__default.default(row.token_expiration) : null;
+        if (exp && exp.isValid() && exp.isBefore(dayjs5__default.default())) {
           const refreshed = await this.refreshIntegrationService.refresh(row);
           if (!refreshed || !refreshed.accessToken) {
             return [];
@@ -16688,8 +17356,8 @@ function computePostsBillingMonthStart(params) {
   const { subscription, organizationCreatedAt, now } = params;
   const clock = now ?? /* @__PURE__ */ new Date();
   const anchorIso = subscription?.current_period_start ?? subscription?.created_at ?? organizationCreatedAt;
-  const anchor = dayjs4__default.default(anchorIso);
-  const current = dayjs4__default.default(clock);
+  const anchor = dayjs5__default.default(anchorIso);
+  const current = dayjs5__default.default(clock);
   if (subscription?.period === "MONTHLY" && subscription.current_period_start) {
     return anchor.toDate();
   }

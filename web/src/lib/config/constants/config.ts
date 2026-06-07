@@ -162,7 +162,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'The primary headline displayed in the hero section of your landing page',
 		type: 'string',
 		default: 'Save hours\nmanaging AI content\nat scale',
-		inputType: 'input',
+		inputType: 'textarea',
 		maxInputLength: 80
 	},
 	HERO_SLOGAN: {
