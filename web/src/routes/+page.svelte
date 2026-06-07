@@ -47,6 +47,7 @@
 			? data.publicFaqConfigVm
 			: getPublicFaqConfigDefaults()
 	);
+	let publicFaqItemsVm = $derived(data.publicFaqItemsVm ?? []);
 	let schemaData = $derived(data.schemaData);
 
 	onMount(() => {
@@ -79,6 +80,7 @@
 	<LandingPage
 		{landingPageConfigVm}
 		{publicFaqConfigVm}
+		{publicFaqItemsVm}
 		{isLoggedIn}
 	/>
 </PublicArea>

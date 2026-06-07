@@ -16,6 +16,7 @@
 	let isLoggedIn = $derived(data.isLoggedIn ?? false);
 	let pageVmMonthly = $derived(data.pageVmMonthly);
 	let pageVmYearly = $derived(data.pageVmYearly);
+	let publicFaqItemsVm = $derived(data.publicFaqItemsVm ?? []);
 	let schemaData = $derived(data.schemaData);
 
 	let initialPeriod = $derived.by((): SubscriptionPeriod => data.defaultPeriod ?? 'MONTHLY');
@@ -104,5 +105,6 @@
 	<PublicFaq
 		heroTheme={faqHeroTheme}
 		faqConfigVm={data.publicFaqConfigPm}
+		faqItems={publicFaqItemsVm}
 	/>
 </SectionOuterContainer>

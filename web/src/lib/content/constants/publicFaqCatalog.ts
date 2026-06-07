@@ -3,7 +3,7 @@ export type PublicFaqItem = {
 	description: string;
 };
 
-/** Default Q&A copy for the public pricing page FAQ section. */
+/** Default Q&A copy when `public_faq.ITEMS` is missing from stored config. */
 export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'Why switch from Buffer or Hootsuite?',

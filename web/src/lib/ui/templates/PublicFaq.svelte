@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/publicFaqCatalog';
+	import { PUBLIC_FAQ_ITEMS, type PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
 	import { getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
 	import FaqAccordion from '$lib/ui/templates/FaqAccordion.svelte';
@@ -21,6 +21,7 @@
 		faqTitle?: string;
 		faqDescription?: string;
 		faqConfigVm?: Record<string, string>;
+		faqItems?: PublicFaqItem[];
 		sectionClass?: string;
 	};
 
@@ -30,11 +31,15 @@
 		faqTitle: faqTitleProp,
 		faqDescription: faqDescriptionProp,
 		faqConfigVm = {},
+		faqItems = [],
 		sectionClass = 'mt-24'
 	}: Props = $props();
 
 	const headingId = 'public-faq-heading';
 	const faqDefaults = getPublicFaqConfigDefaults();
+	const resolvedFaqItems = $derived(
+		faqItems.length > 0 ? faqItems : [...PUBLIC_FAQ_ITEMS]
+	);
 
 	const faqSubtitle = $derived(
 		faqSubtitleProp || faqConfigVm.SUBTITLE || faqDefaults.SUBTITLE
@@ -104,7 +109,7 @@
 		</div>
 
 		<div class="flex flex-col gap-4">
-			{#each PUBLIC_FAQ_ITEMS as item, index (index)}
+			{#each resolvedFaqItems as item, index (index)}
 				<FaqAccordion title={item.title} description={item.description} />
 			{/each}
 		</div>

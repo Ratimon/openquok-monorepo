@@ -7,7 +7,7 @@ export enum ModuleUpsertStatus {
 }
 
 export interface ModuleConfigViewModel {
-	[key: string]: string;
+	[key: string]: unknown;
 }
 
 export class ModuleConfigRendererPresenter {
@@ -33,7 +33,7 @@ export class ModuleConfigRendererPresenter {
 	}
 
 	public async updateConfig(
-		newConfig: { [key: string]: string | boolean }
+		newConfig: Record<string, unknown>
 	): Promise<{ success: boolean; message: string; isSaved?: boolean }> {
 		this.status = ModuleUpsertStatus.UPSERTING;
 

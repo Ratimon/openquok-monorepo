@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
+	import type { PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
 
 	import { icons } from '$data/icons';
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
@@ -17,12 +18,14 @@
 	type Props = {
 		landingPageConfigVm?: Record<string, string>;
 		publicFaqConfigVm?: Record<string, string>;
+		publicFaqItemsVm?: PublicFaqItem[];
 		isLoggedIn?: boolean;
 	};
 
 	let {
 		landingPageConfigVm = {},
 		publicFaqConfigVm = {},
+		publicFaqItemsVm = [],
 		isLoggedIn = false
 	}: Props = $props();
 
@@ -350,6 +353,7 @@
 		{faqTitle}
 		{faqDescription}
 		faqConfigVm={publicFaqConfigVm}
+		faqItems={publicFaqItemsVm}
 		sectionClass="py-16 sm:py-20"
 	/>
 </div>

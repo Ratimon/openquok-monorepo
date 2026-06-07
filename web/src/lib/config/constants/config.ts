@@ -1,4 +1,5 @@
 import type { ModuleConfigSchema } from '$lib/config/constants/types';
+import { getDefaultPublicFaqConfigItems } from '$lib/content/utils/parsePublicFaqConfig';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
@@ -427,6 +428,12 @@ export const CONFIG_SCHEMA_PUBLIC_FAQ: ModuleConfigSchema = {
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
+	ITEMS: {
+		description: 'Questions and answers shown on the landing and pricing FAQ sections',
+		type: 'object',
+		default: getDefaultPublicFaqConfigItems(),
+		inputType: 'faq'
+	}
 };
 
 /** Default landing_page module values (SSR fallback and client-side). */
@@ -439,13 +446,12 @@ export function getLandingPageConfigDefaults(): Record<string, string> {
 	);
 }
 
-/** Default public_faq module values (SSR fallback and client-side). */
+/** Default public_faq module string values (SSR fallback and client-side). */
 export function getPublicFaqConfigDefaults(): Record<string, string> {
 	return Object.fromEntries(
-		Object.entries(CONFIG_SCHEMA_PUBLIC_FAQ).map(([key, field]) => [
-			key,
-			String(field.default)
-		])
+		Object.entries(CONFIG_SCHEMA_PUBLIC_FAQ)
+			.filter(([, field]) => field.inputType !== 'faq')
+			.map(([key, field]) => [key, String(field.default)])
 	);
 }
 

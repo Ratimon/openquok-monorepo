@@ -13,7 +13,9 @@
 	type Props = {
 		currentConfigVm: ModuleConfigViewModel;
 		moduleSchema: ModuleConfigSchema;
-		handleUpdateConfigByModuleName: (moduleConfigVm: Record<string, string | boolean>) => Promise<{
+		handleUpdateConfigByModuleName: (
+			moduleConfigVm: Record<string, unknown>
+		) => Promise<{
 			success: boolean;
 			message: string;
 		}>;
@@ -21,7 +23,7 @@
 
 	let { currentConfigVm, moduleSchema, handleUpdateConfigByModuleName }: Props = $props();
 
-	type ModuleConfigInputVm = Record<string, string | boolean>;
+	type ModuleConfigInputVm = Record<string, unknown>;
 
 	const ModuleFormSchema = $derived.by(() => buildModuleConfigFormSchema(moduleSchema));
 
@@ -30,17 +32,25 @@
 			Object.entries(moduleSchema).map(([key, schemaItem]) => {
 				const currentValue = currentConfigVm?.[key];
 				const isSwitch = schemaItem.inputType === 'switch' || schemaItem.type === 'boolean';
+				const isFaq = schemaItem.inputType === 'faq';
 
 				if (currentValue !== undefined) {
 					if (isSwitch) {
 						if (typeof currentValue === 'string') return [key, currentValue === 'true'];
 						return [key, Boolean(currentValue)];
 					}
+					if (isFaq) {
+						return [key, Array.isArray(currentValue) ? currentValue : (schemaItem.default ?? [])];
+					}
 					return [key, String(currentValue)];
 				}
 
 				if (isSwitch) {
 					return [key, schemaItem.default === true || schemaItem.default === 'true'];
+				}
+
+				if (isFaq) {
+					return [key, schemaItem.default ?? []];
 				}
 
 				if (schemaItem.default === undefined || schemaItem.default === null) return [key, ''];
@@ -123,13 +133,19 @@
 										? typeof currentConfigVm[key] === 'string'
 											? currentConfigVm[key] === 'true'
 											: Boolean(currentConfigVm[key])
-										: currentConfigVm[key]
+										: schemaItem.inputType === 'faq'
+											? Array.isArray(currentConfigVm[key])
+												? currentConfigVm[key]
+												: (schemaItem.default ?? [])
+											: currentConfigVm[key]
 									: schemaItem.inputType === 'switch'
 										? (schemaItem.default as unknown) === true ||
 										  (schemaItem.default as unknown) === 'true'
-										: schemaItem.default == null
-											? ''
-											: String(schemaItem.default)
+										: schemaItem.inputType === 'faq'
+											? (schemaItem.default ?? [])
+											: schemaItem.default == null
+												? ''
+												: String(schemaItem.default)
 							}
 							maxInputLength={schemaItem.maxInputLength}
 							options={schemaItem.options || null}

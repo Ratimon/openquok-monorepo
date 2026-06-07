@@ -13,6 +13,7 @@ import {
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { createLandingDemoSEOSchema } from '$lib/content/utils/createLandingDemoSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData, openGraphForPublicPage } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -30,23 +31,27 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 	try {
 		const loaded = await configRepository.getPublicModuleConfig('landing_page');
 		if (Object.keys(loaded).length > 0) {
-			landingPageConfigVm = loaded;
+			landingPageConfigVm = Object.fromEntries(
+				Object.entries(loaded).map(([key, value]) => [key, value == null ? '' : String(value)])
+			);
 		}
 	} catch (error) {
 		console.error('[+page.server] Failed to fetch landing page config:', error);
 	}
 
-	const publicFaqDefaults = getPublicFaqConfigDefaults();
-	let publicFaqConfigVm: Record<string, string> = publicFaqDefaults;
-
+	let publicFaqRaw: Record<string, unknown> | null = null;
 	try {
 		const loaded = await configRepository.getPublicModuleConfig('public_faq');
 		if (Object.keys(loaded).length > 0) {
-			publicFaqConfigVm = loaded;
+			publicFaqRaw = loaded;
 		}
 	} catch (error) {
 		console.error('[+page.server] Failed to fetch public FAQ config:', error);
 	}
+
+	const { configVm: publicFaqConfigVm, itemsVm: publicFaqItemsVm } =
+		parsePublicFaqConfigModule(publicFaqRaw);
+	const publicFaqDefaults = getPublicFaqConfigDefaults();
 
 	const companyName =
 		companyInformationPm?.config?.NAME ?? String(CONFIG_SCHEMA_COMPANY.NAME.default);
@@ -108,7 +113,8 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 				description:
 					landingPageConfigVm.FAQ_DESCRIPTION ??
 					publicFaqConfigVm.DESCRIPTION ??
-					publicFaqDefaults.DESCRIPTION
+					publicFaqDefaults.DESCRIPTION,
+				items: publicFaqItemsVm
 			}),
 			createLandingDemoSEOSchema({
 				youtubeVideoId:
@@ -127,6 +133,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		footerNavigationLinks,
 		landingPageConfigVm,
 		publicFaqConfigVm,
+		publicFaqItemsVm,
 		schemaData
 	};
 };

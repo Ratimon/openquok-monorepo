@@ -4,12 +4,12 @@ import type { SubscriptionPeriod } from 'openquok-common';
 import { publicInformationRepository } from '$lib/area-public';
 import { GetPublicPricingPresenter } from '$lib/billing';
 import {
-	getPublicFaqConfigDefaults,
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -23,15 +23,18 @@ export async function load({ url, fetch, cookies }) {
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	let publicFaqConfigPm: Record<string, string> = getPublicFaqConfigDefaults();
+	let publicFaqRaw: Record<string, unknown> | null = null;
 	try {
 		const loaded = await configRepository.getPublicModuleConfig('public_faq');
 		if (Object.keys(loaded).length > 0) {
-			publicFaqConfigPm = loaded;
+			publicFaqRaw = loaded;
 		}
 	} catch (error) {
 		console.error('[pricing/+page.server] Failed to fetch public FAQ config:', error);
 	}
+
+	const { configVm: publicFaqConfigPm, itemsVm: publicFaqItemsVm } =
+		parsePublicFaqConfigModule(publicFaqRaw);
 
 	const customTitle = 'Pricing';
 	const customDescription =
@@ -89,7 +92,8 @@ export async function load({ url, fetch, cookies }) {
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: publicFaqConfigPm.TITLE,
-				description: publicFaqConfigPm.DESCRIPTION
+				description: publicFaqConfigPm.DESCRIPTION,
+				items: publicFaqItemsVm
 			})
 		].filter((node) => Object.keys(node).length > 0)
 	};
@@ -101,7 +105,8 @@ export async function load({ url, fetch, cookies }) {
 		pageVmYearly,
 		defaultPeriod: monthlyPeriod,
 		schemaData,
-		publicFaqConfigPm
+		publicFaqConfigPm,
+		publicFaqItemsVm
 	};
 }
 

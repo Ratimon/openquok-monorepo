@@ -1,4 +1,6 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
+
+import type { PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
 import type { Link } from '$lib/ui/nav-bars/Link';
 import type { PageLoad } from './$types';
 
@@ -21,6 +23,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			footerNavigationLinks: Record<string, { label: string; href: string }[]>;
 			landingPageConfigVm: Record<string, string>;
 			publicFaqConfigVm: Record<string, string>;
+			publicFaqItemsVm: PublicFaqItem[];
 			schemaData: Record<string, unknown>;
 		};
 
@@ -31,6 +34,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			footerNavigationLinks: serverData.footerNavigationLinks,
 			landingPageConfigVm: serverData.landingPageConfigVm,
 			publicFaqConfigVm: serverData.publicFaqConfigVm,
+			publicFaqItemsVm: serverData.publicFaqItemsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,

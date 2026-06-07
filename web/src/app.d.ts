@@ -34,6 +34,7 @@ declare global {
 			footerNavigationLinks?: Record<string, { label: string; href: string }[]>;
 			landingPageConfigVm?: Record<string, string>;
 			publicFaqConfigVm?: Record<string, string>;
+			publicFaqItemsVm?: import('$lib/content/constants/publicFaqCatalog').PublicFaqItem[];
 			pageMetaTags?: BaseMetaTags;
 			schemaData?: Record<string, unknown>;
 		}

@@ -76,7 +76,9 @@ Public marketing copy that crawlers should index must not rely on client-only pr
   - `getPublicFaqConfigDefaults()` → `publicFaqConfigVm` / `publicFaqConfigPm` (`public_faq` module)
 - Return VMs from the server load; pass them through universal `+page.ts` and into templates (`LandingPage`, `PublicFaq`).
 - **Landing FAQ headers**: prefer `landing_page` `FAQ_*` fields in the UI; use `public_faq` as fallback. **Pricing FAQ headers**: use `public_faq` only.
-- Q&A item copy stays in `web/src/lib/content/constants/publicFaqCatalog.ts` (`PUBLIC_FAQ_ITEMS`); it is static and SSR-safe. Do not import `CONFIG_SCHEMA_*` in public UI for fallbacks when server loads already merge defaults — use `get*ConfigDefaults()` only as a last-resort in shared components.
+- Q&A item copy lives in `public_faq.ITEMS` (admin FAQ editor). `publicFaqCatalog.ts` supplies code defaults when config is empty.
+- Return `publicFaqItemsVm` from `+page.server.ts` via `parsePublicFaqConfigModule()`; pass to `PublicFaq` as `faqItems`.
+- Default `items` is `PUBLIC_FAQ_ITEMS`; only override when a route renders a different FAQ list.
 
 ---
 

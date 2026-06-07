@@ -23,13 +23,24 @@ export interface ModuleConfigConfig {
 	};
 }
 
+function normalizeModuleConfigPayload(data: Record<string, unknown>): Record<string, unknown> {
+	return Object.fromEntries(
+		Object.entries(data).map(([key, value]) => {
+			if (value == null) return [key, ''];
+			if (typeof value === 'object') return [key, value];
+			if (typeof value === 'boolean') return [key, value];
+			return [key, String(value)];
+		})
+	);
+}
+
 export class ModuleConfigRepository {
 	constructor(
 		private readonly httpGateway: HttpGateway,
 		private readonly config: ModuleConfigConfig
 	) {}
 
-	public async getModuleConfig(moduleName: string): Promise<Record<string, string>> {
+	public async getModuleConfig(moduleName: string): Promise<Record<string, unknown>> {
 		try {
 			const { data: moduleConfigDto, ok } = await this.httpGateway.get<ModuleConfigResponseDto>(
 				this.config.endpoints.getModuleConfig,
@@ -38,9 +49,7 @@ export class ModuleConfigRepository {
 			);
 
 			if (ok && moduleConfigDto?.success && moduleConfigDto.data) {
-				return Object.fromEntries(
-					Object.entries(moduleConfigDto.data).map(([key, value]) => [key, value == null ? '' : String(value)])
-				);
+				return normalizeModuleConfigPayload(moduleConfigDto.data);
 			}
 		} catch {
 			// Fallback handled at presenter/UI layer.
@@ -49,7 +58,7 @@ export class ModuleConfigRepository {
 		return {};
 	}
 
-	public async getPublicModuleConfig(moduleName: string): Promise<Record<string, string>> {
+	public async getPublicModuleConfig(moduleName: string): Promise<Record<string, unknown>> {
 		try {
 			const { data: moduleConfigDto, ok } = await this.httpGateway.get<ModuleConfigResponseDto>(
 				this.config.endpoints.getPublicModuleConfig,
@@ -58,9 +67,7 @@ export class ModuleConfigRepository {
 			);
 
 			if (ok && moduleConfigDto?.success && moduleConfigDto.data) {
-				return Object.fromEntries(
-					Object.entries(moduleConfigDto.data).map(([key, value]) => [key, value == null ? '' : String(value)])
-				);
+				return normalizeModuleConfigPayload(moduleConfigDto.data);
 			}
 		} catch {
 			// Fallback handled at presenter/UI layer.
@@ -71,7 +78,7 @@ export class ModuleConfigRepository {
 
 	public async updateConfig(
 		moduleName: string,
-		newConfig: Record<string, string | boolean>
+		newConfig: Record<string, unknown>
 	): Promise<{ success: boolean; message: string; isSaved?: boolean }> {
 		const { data: upsertDto, ok } = await this.httpGateway.put<UpsertModuleResponseDto>(
 			this.config.endpoints.updateConfig,
@@ -106,4 +113,3 @@ const moduleConfigConfig: ModuleConfigConfig = {
 };
 
 export const configRepository = new ModuleConfigRepository(httpGateway, moduleConfigConfig);
-

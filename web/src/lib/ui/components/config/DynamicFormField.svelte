@@ -7,6 +7,8 @@
 	import { Switch } from '$lib/ui/switch';
 	import * as Select from '$lib/ui/select';
 
+	import FaqEditor from '$lib/ui/components/FaqEditor.svelte';
+
 	type ValueLabelPair = {
 		value: string;
 		label: string;
@@ -16,8 +18,8 @@
 		field: AnyFieldApi;
 		fieldName: string;
 		fieldDescription: string;
-		inputType: 'input' | 'select' | 'textarea' | 'switch';
-		defaultValue: string | number | boolean | any[];
+		inputType: 'input' | 'select' | 'textarea' | 'switch' | 'faq';
+		defaultValue: string | number | boolean | unknown[];
 		maxInputLength?: number;
 		options?: ValueLabelPair[] | null;
 	};
@@ -45,15 +47,17 @@
 	}
 </script>
 
-<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-	<div class="lg:col-span-2">
-		<Field.Label {field} for={fieldName}>
-			{fieldName}
-		</Field.Label>
-		<Field.Description>{fieldDescription}</Field.Description>
-	</div>
+<div class="grid grid-cols-1 gap-4 {inputType === 'faq' ? '' : 'lg:grid-cols-3'}">
+	{#if inputType !== 'faq'}
+		<div class="lg:col-span-2">
+			<Field.Label {field} for={fieldName}>
+				{fieldName}
+			</Field.Label>
+			<Field.Description>{fieldDescription}</Field.Description>
+		</div>
+	{/if}
 
-	<div class="lg:col-span-1">
+	<div class={inputType === 'faq' ? '' : 'lg:col-span-1'}>
 		{#if inputType === 'input'}
 			<input
 				class="input input-bordered w-full"
@@ -124,6 +128,13 @@
 					{/each}
 				</Select.Content>
 			</Select.Root>
+		{:else if inputType === 'faq'}
+			<FaqEditor
+				faqs={Array.isArray(field.state.value) ? field.state.value : []}
+				onChange={field.handleChange}
+				label={fieldName}
+				description={fieldDescription}
+			/>
 		{/if}
 
 		<Field.Error

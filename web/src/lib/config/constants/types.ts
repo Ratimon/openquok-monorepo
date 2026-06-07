@@ -3,8 +3,8 @@ export interface ModuleConfigSchema {
 		description: string;
 		type: string;
 		default: any;
-		inputType: 'input' | 'select' | 'textarea' | 'switch';
+		inputType: 'input' | 'select' | 'textarea' | 'switch' | 'faq';
 		options?: { label: string; value: string }[];
 		maxInputLength?: number;
-	}
+	};
 }

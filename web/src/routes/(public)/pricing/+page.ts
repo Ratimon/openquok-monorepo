@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
 import type { PublicPricingPageViewModel } from '$lib/billing';
 import type { SubscriptionPeriod } from 'openquok-common';
 
@@ -22,6 +23,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageVmMonthly: PublicPricingPageViewModel;
 			pageVmYearly: PublicPricingPageViewModel;
 			defaultPeriod: SubscriptionPeriod;
+			publicFaqConfigPm: Record<string, string>;
+			publicFaqItemsVm: PublicFaqItem[];
 			schemaData: unknown;
 		};
 
@@ -35,6 +38,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageVmMonthly: serverData.pageVmMonthly,
 			pageVmYearly: serverData.pageVmYearly,
 			defaultPeriod: serverData.defaultPeriod,
+			publicFaqConfigPm: serverData.publicFaqConfigPm,
+			publicFaqItemsVm: serverData.publicFaqItemsVm,
 			schemaData: serverData.schemaData
 		};
 	}

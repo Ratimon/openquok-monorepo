@@ -8,7 +8,7 @@
 	import { companyInformationFormPresenter } from '$lib/area-admin';
 
 	const handleUpdateConfigByModuleName = async (
-		moduleConfigVm: { [key: string]: string | boolean }
+		moduleConfigVm: Record<string, unknown>
 	): Promise<{ success: boolean; message: string; isSaved?: boolean }> => {
 		return companyInformationFormPresenter.updateConfig(moduleConfigVm);
 	};
