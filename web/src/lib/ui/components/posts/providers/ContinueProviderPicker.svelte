@@ -22,15 +22,19 @@
 </script>
 
 <div class="mx-auto max-w-lg px-4 py-10">
-	<h1 class="text-xl font-semibold text-base-content">{config.title}</h1>
-	<p class="mt-2 text-sm text-base-content/70">{config.description}</p>
+	<h1 class="text-xl font-semibold text-base-content">
+		{config.title}
+	</h1>
+	<p class="mt-2 text-sm text-base-content/70">
+		{config.description}
+	</p>
 
 	<ul class="mt-6 flex flex-col gap-2">
 		{#each pages as page (page.id)}
 			<li>
 				<button
 					type="button"
-					class="flex w-full items-center gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-3 text-start hover:bg-base-200 disabled:opacity-60"
+					class="flex w-full items-center gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-3 text-start transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60"
 					disabled={submittingId !== null}
 					onclick={() => onSelect(page.id)}
 				>

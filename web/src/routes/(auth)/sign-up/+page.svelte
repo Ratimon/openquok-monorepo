@@ -324,7 +324,8 @@
 	
 				{#if signupPresenter.toastMessage}
 					<p class="mt-4 text-primary">
-						{signupPresenter.toastMessage}</p>
+						{signupPresenter.toastMessage}
+					</p>
 				{/if}
 				<p class="mt-3 text-base-content/90">
 					Please check your inbox (and spam folder) to verify your email.
