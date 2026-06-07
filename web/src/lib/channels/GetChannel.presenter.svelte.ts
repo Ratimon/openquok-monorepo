@@ -37,7 +37,7 @@ export interface HomeConnectedChannelMenuGroupViewModel {
 }
 
 /** One row per integration provider (`identifier`): platform icon + its connected channels. */
-export interface HomePlatformChannelRowViewModel {
+export interface HomeChannelRowViewModel {
 	identifier: string;
 	items: CreateSocialPostChannelViewModel[];
 }
@@ -48,7 +48,7 @@ export interface HomeChannelGroupViewModel {
 	name: string;
 	items: CreateSocialPostChannelViewModel[];
 	/** One row per integration `identifier` (icon + chips + Add more), scoped to this group's channels. */
-	platformRows: HomePlatformChannelRowViewModel[];
+	channelRows: HomeChannelRowViewModel[];
 }
 
 /** Connected channels section layout on the account home. */
@@ -56,7 +56,7 @@ export type HomeChannelsLayoutModeViewModel = 'chips' | 'table';
 
 const MINUTES_PER_DAY = 24 * 60;
 
-const HOME_PLATFORM_ROW_ORDER: readonly string[] = [
+const HOME_CHANNEL_ROW_ORDER: readonly string[] = [
 	'threads',
 	'instagram-business',
 	'instagram-standalone',
@@ -139,16 +139,16 @@ export class GetChannelPresenter {
 		return groups;
 	}
 
-	buildPlatformChannelRowsVm(
+	buildChannelRowsVm(
 		channels: readonly CreateSocialPostChannelViewModel[]
-	): HomePlatformChannelRowViewModel[] {
+	): HomeChannelRowViewModel[] {
 		const map = new Map<string, CreateSocialPostChannelViewModel[]>();
 		for (const ch of channels) {
 			const key = ch.identifier?.trim() || 'unknown';
 			if (!map.has(key)) map.set(key, []);
 			map.get(key)!.push(ch);
 		}
-		const rows: HomePlatformChannelRowViewModel[] = [];
+		const rows: HomeChannelRowViewModel[] = [];
 		for (const [identifier, items] of map.entries()) {
 			const sorted = [...items].sort((a, b) =>
 				(a.name || a.identifier).localeCompare(b.name || b.identifier, undefined, { sensitivity: 'base' })
@@ -156,8 +156,8 @@ export class GetChannelPresenter {
 			rows.push({ identifier, items: sorted });
 		}
 		rows.sort((a, b) => {
-			const ia = HOME_PLATFORM_ROW_ORDER.indexOf(a.identifier);
-			const ib = HOME_PLATFORM_ROW_ORDER.indexOf(b.identifier);
+			const ia = HOME_CHANNEL_ROW_ORDER.indexOf(a.identifier);
+			const ib = HOME_CHANNEL_ROW_ORDER.indexOf(b.identifier);
 			const sa = ia === -1 ? 999 : ia;
 			const sb = ib === -1 ? 999 : ib;
 			if (sa !== sb) return sa - sb;
@@ -186,7 +186,7 @@ export class GetChannelPresenter {
 				id: g.id,
 				name: g.name,
 				items: g.items,
-				platformRows: this.buildPlatformChannelRowsVm(g.items)
+				channelRows: this.buildChannelRowsVm(g.items)
 			});
 		}
 		groups.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));

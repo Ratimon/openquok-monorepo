@@ -25,7 +25,7 @@ export type {
 	HomeChannelGroupViewModel,
 	HomeChannelsLayoutModeViewModel,
 	HomeConnectedChannelMenuGroupViewModel,
-	HomePlatformChannelRowViewModel,
+	HomeChannelRowViewModel,
 	PostingTimeSlotViewModel,
 	WorkspaceChannelGroupViewModel
 } from '$lib/channels/GetChannel.presenter.svelte';
@@ -74,8 +74,8 @@ export class ProtectedHomePagePresenter {
 	);
 
 	/** Grouped by integration `identifier` (one row per provider on the account home). */
-	platformChannelRows = $derived.by(() =>
-		this.getChannelPresenter.buildPlatformChannelRowsVm(this.connectedChannelsVm)
+	channelRows = $derived.by(() =>
+		this.getChannelPresenter.buildChannelRowsVm(this.connectedChannelsVm)
 	);
 
 	/** Channels with a workspace channel group, for collapsible sidebar sections. */
@@ -83,9 +83,9 @@ export class ProtectedHomePagePresenter {
 		this.getChannelPresenter.buildChannelGroupSectionsVm(this.connectedChannelsVm)
 	);
 
-	/** Same as {@link platformChannelRows} but only channels not assigned to a channel group. */
-	platformChannelRowsUngroupedVm = $derived.by(() =>
-		this.getChannelPresenter.buildPlatformChannelRowsVm(
+	/** Same as {@link channelRows} but only channels not assigned to a channel group. */
+	channelRowsUngroupedVm = $derived.by(() =>
+		this.getChannelPresenter.buildChannelRowsVm(
 			this.connectedChannelsVm.filter((c) => !c.group)
 		)
 	);

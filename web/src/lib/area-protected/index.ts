@@ -139,7 +139,10 @@ const protectedPayloadWizardPagePresenter = new ProtectedPayloadWizardPagePresen
 	getChannelPresenter
 );
 
-const plugGridTable = new PlugGridTablePresenter(getPlugPresenter, plugRepository);
+const plugGridTable = new PlugGridTablePresenter(
+	getPlugPresenter,
+	plugRepository
+);
 const plugGridFilterBuilder = new PlugGridFilterBuilderPresenter();
 
 const protectedPlugsPagePresenter = new ProtectedPlugsPagePresenter(

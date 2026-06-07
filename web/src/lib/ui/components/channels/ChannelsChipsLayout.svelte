@@ -2,7 +2,7 @@
 	import type {
 		CreateSocialPostChannelViewModel,
 		HomeChannelGroupViewModel,
-		HomePlatformChannelRowViewModel
+		HomeChannelRowViewModel
 	} from '$lib/channels/GetChannel.presenter.svelte';
 
 	import { getContext } from 'svelte';
@@ -14,11 +14,11 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { cn } from '$lib/ui/helpers/common';
 	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
-	import PlatformChannelRows from '$lib/ui/components/channels/PlatformChannelRows.svelte';
+	import ChannelRows from '$lib/ui/components/channels/ChannelRows.svelte';
 
 	type Props = {
 		channelGroupSectionsVm: HomeChannelGroupViewModel[];
-		platformChannelRowsUngroupedVm: HomePlatformChannelRowViewModel[];
+		channelRowsUngroupedVm: HomeChannelRowViewModel[];
 		groupDetailsOpen: Record<string, boolean>;
 		ungroupedDetailsOpen: boolean;
 		workspaceId: string;
@@ -37,7 +37,7 @@
 
 	let {
 		channelGroupSectionsVm,
-		platformChannelRowsUngroupedVm,
+		channelRowsUngroupedVm,
 		groupDetailsOpen = $bindable(),
 		ungroupedDetailsOpen = $bindable(),
 		workspaceId,
@@ -122,8 +122,8 @@
 					</Button>
 				</summary>
 				<div class="border-t border-base-300 px-3 py-3">
-					<PlatformChannelRows
-						rows={group.platformRows}
+					<ChannelRows
+						rows={group.channelRows}
 						{workspaceId}
 						{channelLimitFull}
 						{continueSetupHref}
@@ -140,7 +140,7 @@
 	</div>
 {/if}
 
-{#if platformChannelRowsUngroupedVm.length > 0}
+{#if channelRowsUngroupedVm.length > 0}
 	<div class="mt-4 space-y-2">
 		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h4 class="text-sm font-semibold text-base-content/80">
@@ -206,8 +206,8 @@
 					<span class="font-medium text-base-content">Channels</span>
 				</summary>
 				<div class="border-t border-base-300 px-3 py-3">
-					<PlatformChannelRows
-						rows={platformChannelRowsUngroupedVm}
+					<ChannelRows
+						rows={channelRowsUngroupedVm}
 						{workspaceId}
 						{channelLimitFull}
 						{continueSetupHref}
@@ -222,8 +222,8 @@
 			</details>
 		{:else}
 			<div class="rounded-lg border border-base-300 bg-base-200/40 px-3 py-3">
-				<PlatformChannelRows
-					rows={platformChannelRowsUngroupedVm}
+				<ChannelRows
+					rows={channelRowsUngroupedVm}
 					{workspaceId}
 					{channelLimitFull}
 					{continueSetupHref}

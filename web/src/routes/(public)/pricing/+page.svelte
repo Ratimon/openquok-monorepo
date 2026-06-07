@@ -1,10 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-
 	import type { SubscriptionPeriod } from 'openquok-common';
 
 	import PublicPricingCompareSection from '$lib/ui/components/pricing/PublicPricingCompareSection.svelte';
-	import PublicFaq from '$lib/ui/templates/PublicFaq.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicPricingHero from '$lib/ui/components/pricing/PublicPricingHero.svelte';
 	import PublicPricingPlanCards from '$lib/ui/components/pricing/PublicPricingPlanCards.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';

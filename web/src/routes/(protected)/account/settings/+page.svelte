@@ -23,12 +23,12 @@
 	import { upsertOauthAppsPresenter } from '$lib/developers';
 	import { getBillingPresenter } from '$lib/billing';
 
-	import EditorAccountSettings from '$lib/ui/templates/EditorAccountSettings.svelte';
-	import EditorDeveloperSettings from '$lib/ui/templates/EditorDeveloperSettings.svelte';
-	import EditorMetric from '$lib/ui/templates/EditorMetric.svelte';
-	import EditorApprovedAppsSettings from '$lib/ui/templates/EditorApprovedAppsSettings.svelte';
-	import EditorSignatureSettings from '$lib/ui/templates/EditorSignatureSettings.svelte';
-	import EditorWorkspaceSettings from '$lib/ui/templates/EditorWorkspaceSettings.svelte';
+	import EditorAccountSettings from '$lib/ui/components/settings/EditorAccountSettings.svelte';
+	import EditorDeveloperSettings from '$lib/ui/components/settings/EditorDeveloperSettings.svelte';
+	import EditorMetricSettings from '$lib/ui/components/settings/EditorMetricSettings.svelte';
+	import EditorApprovedAppsSettings from '$lib/ui/components/settings/EditorApprovedAppsSettings.svelte';
+	import EditorSignatureSettings from '$lib/ui/components/settings/EditorSignatureSettings.svelte';
+	import EditorWorkspaceSettings from '$lib/ui/components/settings/EditorWorkspaceSettings.svelte';
 	import SidebarSecondary from '$lib/ui/templates/SidebarSecondary.svelte';
 	
 	const ctx = getContext<SettingsSidebarContext>(SETTINGS_SIDEBAR_KEY);
@@ -265,7 +265,7 @@
 </script>
 <SidebarSecondary>
 	{#if currentSection === 'timezone'}
-		<EditorMetric />
+		<EditorMetricSettings />
 	{:else if currentSection === 'profile'}
 		<EditorAccountSettings
 			profileVm={currentProfileVm}

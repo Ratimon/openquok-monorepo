@@ -9,7 +9,7 @@ export type {
 	HomeChannelGroupViewModel,
 	HomeChannelsLayoutModeViewModel,
 	HomeConnectedChannelMenuGroupViewModel,
-	HomePlatformChannelRowViewModel,
+	HomeChannelRowViewModel,
 	PostingTimeSlotViewModel,
 	WorkspaceChannelGroupViewModel
 } from '$lib/channels/GetChannel.presenter.svelte';

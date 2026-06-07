@@ -3,7 +3,7 @@
 		CreateSocialPostChannelViewModel,
 		HomeChannelGroupViewModel,
 		HomeChannelsLayoutModeViewModel,
-		HomePlatformChannelRowViewModel
+		HomeChannelRowViewModel
 	} from '$lib/channels';
 	import type { HomeChannelsGridFilterBuilderPresenter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
 	import type { HomeChannelsGridTablePresenter } from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
@@ -38,7 +38,7 @@
 		connectedChannelsVm: CreateSocialPostChannelViewModel[];
 		accountSettingsWorkspaceHref: string;
 		channelGroupSectionsVm: HomeChannelGroupViewModel[];
-		platformChannelRowsUngroupedVm: HomePlatformChannelRowViewModel[];
+		channelRowsUngroupedVm: HomeChannelRowViewModel[];
 		channelsGridPresenter: HomeChannelsGridTablePresenter;
 		channelsFilterPresenter: HomeChannelsGridFilterBuilderPresenter;
 		continueSetupHref: (integration: CreateSocialPostChannelViewModel) => string;
@@ -62,7 +62,7 @@
 		connectedChannelsVm,
 		accountSettingsWorkspaceHref,
 		channelGroupSectionsVm,
-		platformChannelRowsUngroupedVm,
+		channelRowsUngroupedVm,
 		channelsGridPresenter,
 		channelsFilterPresenter,
 		continueSetupHref,
@@ -469,7 +469,7 @@
 	{:else if workspaceId}
 		<ChannelsChipsLayout
 			{channelGroupSectionsVm}
-			{platformChannelRowsUngroupedVm}
+			{channelRowsUngroupedVm}
 			bind:groupDetailsOpen
 			bind:ungroupedDetailsOpen
 			{workspaceId}

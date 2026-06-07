@@ -2,7 +2,7 @@
 	import { PUBLIC_FAQ_ITEMS, type PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
 	import { getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
-	import FaqAccordion from '$lib/ui/templates/FaqAccordion.svelte';
+	import FaqAccordion from '$lib/ui/templates/faq/FaqAccordion.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 

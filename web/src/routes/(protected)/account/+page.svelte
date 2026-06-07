@@ -106,8 +106,8 @@
 
 	const listStatus = $derived(protectedHomePagePresenter.listStatus);
 	const channelGroupSectionsVm = $derived(protectedHomePagePresenter.channelGroupSectionsVm);
-	const platformChannelRowsUngroupedVm = $derived(
-		protectedHomePagePresenter.platformChannelRowsUngroupedVm
+	const channelRowsUngroupedVm = $derived(
+		protectedHomePagePresenter.channelRowsUngroupedVm
 	);
 	const connectedChannelsVm = $derived(protectedHomePagePresenter.connectedChannelsVm);
 
@@ -896,7 +896,7 @@
 		allowedChannelCount={allowedChannelCountVm}
 		billingHref={accountBillingHref}
 		{channelGroupSectionsVm}
-		{platformChannelRowsUngroupedVm}
+		{channelRowsUngroupedVm}
 		channelsGridPresenter={channelsGridPresenter}
 		channelsFilterPresenter={channelsFilterPresenter}
 		continueSetupHref={(i) => pagePresenter.continueSetupHref(i)}

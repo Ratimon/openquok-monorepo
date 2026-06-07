@@ -1,5 +1,5 @@
 <script lang="ts">
-	import FaqAccordion from '$lib/ui/templates/FaqAccordion.svelte';
+	import FaqAccordion from '$lib/ui/templates/faq/FaqAccordion.svelte';
 
 	type Props = {
 		allowTrial?: boolean;

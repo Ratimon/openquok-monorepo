@@ -4,7 +4,7 @@
 		featuresGridPlatformsForRow
 	} from '$data/landing-social-platforms';
 
-	import SocialChannelHoverCard from '$lib/ui/templates/SocialChannelHoverCard.svelte';
+	import ChannelHoverCard from '$lib/ui/components/channels/ChannelHoverCard.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -78,7 +78,7 @@
 					class="flex justify-center gap-3 transition-transform duration-500 sm:gap-4 {row.offsetClass}"
 				>
 					{#each platforms as platform (platform.id)}
-						<SocialChannelHoverCard {platform} />
+						<ChannelHoverCard {platform} />
 					{/each}
 				</div>
 			{/each}

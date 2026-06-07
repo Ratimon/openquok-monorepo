@@ -10,7 +10,7 @@
 	import { toast } from '$lib/ui/sonner';
 	import { adminBlogEditorPagePresenter } from '$lib/area-admin';
 	import { createSortedTopicChoices } from '$lib/blogs';
-	import EditorBlog from '$lib/ui/templates/EditorBlog.svelte';
+	import EditorBlog from '$lib/ui/components/blog-post/EditorBlog.svelte';
 
 	// /secret-admin/blog-manager
 	const rootPathSecretAdminBlogManager = getRootPathSecretAdminBlogManager();

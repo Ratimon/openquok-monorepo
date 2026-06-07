@@ -1,10 +1,9 @@
 <script lang="ts">
 	import type {
 		CreateSocialPostChannelViewModel,
-		HomePlatformChannelRowViewModel
+		HomeChannelRowViewModel
 	} from '$lib/channels/GetChannel.presenter.svelte';
 
-	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -12,7 +11,7 @@
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 
 	type Props = {
-		rows: HomePlatformChannelRowViewModel[];
+		rows: HomeChannelRowViewModel[];
 		workspaceId: string;
 		channelLimitFull?: boolean;
 		continueSetupHref: (integration: CreateSocialPostChannelViewModel) => string;

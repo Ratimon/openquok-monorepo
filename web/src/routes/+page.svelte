@@ -9,7 +9,7 @@
 	import { getLandingPageConfigDefaults, getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
 	import PublicArea from '$lib/ui/templates/PublicArea.svelte';
-	import LandingPage from '$lib/ui/templates/LandingPage.svelte';
+	import LandingPage from '$lib/ui/templates/landing-page/LandingPage.svelte';
 
 	type Props = {
 		data: PageData;

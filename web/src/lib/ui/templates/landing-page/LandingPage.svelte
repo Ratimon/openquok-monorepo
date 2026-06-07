@@ -5,14 +5,14 @@
 	import { icons } from '$data/icons';
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
 
-	import AnimatedBeamMultipleAgent from '$lib/ui/templates/AnimatedBeamMultipleAgent.svelte';
-	import HeroDemo from '$lib/ui/templates/HeroDemo.svelte';
-	import HeroMain from '$lib/ui/templates/HeroMain.svelte';
+	import AnimatedBeamMultipleAgent from '$lib/ui/templates/landing-page/AnimatedBeamMultipleAgent.svelte';
+	import HeroDemo from '$lib/ui/templates/landing-page/HeroDemo.svelte';
+	import HeroMain from '$lib/ui/templates/landing-page/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
-	import PublicFaq from '$lib/ui/templates/PublicFaq.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import FeaturesGrid from '$lib/ui/templates/FeaturesGrid.svelte';
-	import PublicPricingTabs from '$lib/ui/templates/PublicPricingTabs.svelte';
+	import PublicPricingTabs from '$lib/ui/components/pricing/PublicPricingTabs.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 
 	type Props = {

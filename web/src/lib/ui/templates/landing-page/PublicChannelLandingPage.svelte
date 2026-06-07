@@ -3,7 +3,7 @@
 
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
-	import PublicFaq from '$lib/ui/templates/PublicFaq.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 
 	import PublicChannelHero from '$lib/ui/components/channels/PublicChannelHero.svelte';
 

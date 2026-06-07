@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import PublicChannelLandingPage from '$lib/ui/templates/PublicChannelLandingPage.svelte';
+	import PublicChannelLandingPage from '$lib/ui/templates/landing-page/PublicChannelLandingPage.svelte';
 
 	type Props = { data: PageData };
 
