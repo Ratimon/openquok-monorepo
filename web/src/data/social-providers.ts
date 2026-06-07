@@ -25,7 +25,7 @@ export const socialProviderDisplayNameByIdentifier: Record<string, string> = {
 	'instagram-business': 'Instagram (Business)',
 	'instagram-standalone': 'Instagram (Standalone)',
 	instagram: 'Instagram',
-	facebook: 'Facebook',
+	facebook: 'Facebook Page',
 	youtube: 'YouTube',
 	tiktok: 'TikTok',
 	x: 'X',

@@ -4,12 +4,14 @@ import type {
     InternalPlugCatalogEntryDto,
     ProviderPlugsCatalogDto,
 } from "../utils/dtos/PlugDTO";
+import { FacebookProvider } from "./providers/facebook/facebookProvider";
 import { InstagramBusinessProvider } from "./providers/instagram/instagramBusinessProvider";
 import { InstagramStandaloneProvider } from "./providers/instagram/instagramStandaloneProvider";
 import { ThreadsProvider } from "./providers/threadsProvider";
 
 const socialIntegrationList: SocialProvider[] = [
     new ThreadsProvider(),
+    new FacebookProvider(),
     new InstagramBusinessProvider(),
     new InstagramStandaloneProvider(),
 ];

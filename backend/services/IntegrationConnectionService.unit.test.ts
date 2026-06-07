@@ -528,7 +528,10 @@ describe("IntegrationConnectionService", () => {
                     code: "c",
                     timezone: "0",
                 })
-            ).rejects.toMatchObject({ message: "Invalid state" });
+            ).rejects.toMatchObject({
+                message: expect.stringContaining("Invalid OAuth state"),
+                metadata: expect.objectContaining({ errorCode: "OAUTH_STATE_INVALID" }),
+            });
         });
 
         it("removes OAuth keys via cacheInvalidator when present", async () => {
@@ -619,6 +622,42 @@ describe("IntegrationConnectionService", () => {
             expect(betweenProvider.pages).toHaveBeenCalledWith("access");
             expect(out.pages).toEqual(pageRows);
             expect(out.inBetweenSteps).toBe(true);
+            expect(cacheInvalidator.invalidateKey).not.toHaveBeenCalledWith("organization:st");
+        });
+
+        it("keeps organization OAuth state for authenticated between-step completion", async () => {
+            const betweenProvider = createMockProvider({
+                identifier: "facebook",
+                name: "Facebook Page",
+                isBetweenSteps: true,
+                pages: jest.fn().mockResolvedValue([{ id: "page-1", name: "Page", pictureUrl: "" }]),
+            });
+            manager.getAllowedSocialsIntegrations.mockReturnValue(["facebook"]);
+            manager.getSocialIntegration.mockReturnValue(betweenProvider);
+
+            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+            cache.get.mockImplementation(async (key: string) => {
+                if (key === "login:st") return "verifier";
+                if (key === "organization:st") return orgId;
+                return null;
+            });
+            integrations.upsertIntegration.mockResolvedValue(
+                sampleRow({
+                    id: "conn-row",
+                    provider_identifier: "facebook",
+                    in_between_steps: true,
+                })
+            );
+
+            await service().connectSocialMedia(authUserId, "facebook", {
+                state: "st",
+                code: "c",
+                timezone: "0",
+            });
+
+            expect(cacheInvalidator.invalidateKey).toHaveBeenCalledWith("login:st");
+            expect(cacheInvalidator.invalidateKey).not.toHaveBeenCalledWith("organization:st");
         });
 
         it("keeps organization OAuth state for no-auth between-step completion", async () => {

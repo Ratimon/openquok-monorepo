@@ -148,6 +148,7 @@ Run `integrations:settings` before platform-specific flags.
 | Channel | `identifier` | Examples |
 |---------|----------------|----------|
 | Threads | `threads` | [threads-examples.md](./resources/threads-examples.md) |
+| Facebook Page | `facebook` | [facebook-examples.md](./resources/facebook-examples.md) |
 | Instagram Login | `instagram-standalone` | [instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) |
 | Instagram Page | `instagram-business` | [instagram-business-examples.md](./resources/instagram-business-examples.md) |
 

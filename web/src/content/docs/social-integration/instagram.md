@@ -1,7 +1,7 @@
 ---
 title: Instagram
 description: How to configure Instagram for Openquok
-order: 2
+order: 3
 lastUpdated: 2026-06-06
 ---
 
@@ -137,14 +137,14 @@ When your professional Instagram account is already tied to a Facebook Page, you
 
 In dashboard, select **Facebook Login for Business**
 
-![Step 1 - Add Facebook Login for Business](/docs/social-integration/meta/instagram-business/set-business-login.webp)
+![Step 1 - Add Facebook Login for Business](/docs/social-integration/meta/set-business-login.webp)
 
 
 ### Set Redirect URI
 
 Add the **Instagram (Business)** redirect URI from the <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/instagram#oauth-redirect-uris-register-in-meta">OAuth redirect URIs (register in Meta)</a> section to your app’s valid OAuth redirect list.
 
-![Step 2 - Redirect URI](/docs/social-integration/meta/instagram-business/add-redirect-urls.webp)
+![Step 2 - Redirect URI](/docs/social-integration/meta/add-redirect-urls.webp)
 
 
 ### Request permissions
@@ -161,7 +161,7 @@ In the Meta developer app, open the permissions area where you can request **adv
 <li><Badge text="instagram_manage_insights" variant="default" /></li>
 </ul>
 
-![Step 4 - Set Permissions](/docs/social-integration/meta/instagram-business/set-permissions.webp)
+![Step 4 - Set Permissions](/docs/social-integration/meta/set-permissions.webp)
 
 <Callout type="note" title="Dashboard differences">
 Meta reorganizes this screen from time to time. If a scope name differs slightly in the UI, align with <DocsExternalLink href="https://developers.facebook.com/docs/instagram-api">Instagram Platform documentation</DocsExternalLink> and your app’s use case; keep the list in sync with <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/instagram/instagramBusinessProvider.ts"><Badge text="backend/integrations/providers/instagram/instagramBusinessProvider.ts" variant="path" /></DocsExternalLink> for the canonical set in this repo.
@@ -172,7 +172,7 @@ Meta reorganizes this screen from time to time. If a scope name differs slightly
 
 In the Meta app **Settings** area, copy **App ID** → <Badge text="FACEBOOK_APP_ID" variant="envBackend" />, and **App Secret** → <Badge text="FACEBOOK_APP_SECRET" variant="envBackend" /> to your env file.
 
-![Step 4 - Copy your credentials](/docs/social-integration/meta/instagram-business/copy-app-credetials.webp)
+![Step 4 - Copy your credentials](/docs/social-integration/meta/copy-app-credetials.webp)
 
 Restart the backend. Otherwise, the backend may not pick up your new environment variables.
 

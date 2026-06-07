@@ -1,10 +1,14 @@
 <script lang="ts">
 	import type { ContinueSocialIntegrationViewModel } from '$lib/integrations';
-	import type { InstagramBusinessConnectPageRow } from '$lib/integrations/Integrations.repository.svelte';
+	import type {
+		FacebookConnectPageRow,
+		InstagramBusinessConnectPageRow
+	} from '$lib/integrations/Integrations.repository.svelte';
 	import dayjs from 'dayjs';
 	import utc from 'dayjs/plugin/utc';
 	import timezone from 'dayjs/plugin/timezone';
 
+	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -15,7 +19,6 @@
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { toast } from '$lib/ui/sonner';
-	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { socialProviderDisplayLabel } from '$data/social-providers';
 	import { icons } from '$data/icons';
 
@@ -44,6 +47,15 @@
 		onboarding: boolean;
 	};
 
+	type FbPagePickerVm = {
+		organizationId: string;
+		integrationId: string;
+		oauthState: string;
+		pages: FacebookConnectPageRow[];
+		successReturnPath: string;
+		onboarding: boolean;
+	};
+
 	let busy = $state(true);
 	/** Signed-out user landed without OAuth callback params — GET authorize requires a session. */
 	let signInRequiredForOAuthStart = $state(false);
@@ -53,7 +65,10 @@
 	let progressValue = $state(45);
 	/** Inline Instagram (Business) account selection — same route as OAuth callback. */
 	let igBusinessPicker = $state<IgBusinessPickerVm | null>(null);
+	/** Inline Facebook Page selection — same route as OAuth callback. */
+	let fbPagePicker = $state<FbPagePickerVm | null>(null);
 	let submittingIgId = $state<string | null>(null);
+	let submittingFbPageId = $state<string | null>(null);
 	/**
 	 * Guard against duplicate effect runs causing multiple OAuth callback submissions.
 	 * Backend treats OAuth state as single-use (it deletes the cached state on first success path).
@@ -223,6 +238,27 @@
 					busy = false;
 					return;
 				}
+				if (p === 'facebook') {
+					const pages = data.facebookPages ?? [];
+					if (pages.length === 0) {
+						toast.error(
+							'No Facebook Pages were found. Grant Page access during OAuth or check Business Manager, then try again.'
+						);
+						await goto(accountUrl, { replaceState: true });
+						return;
+					}
+					fbPagePicker = {
+						organizationId: data.organizationId,
+						integrationId: data.id,
+						oauthState: authState,
+						pages,
+						successReturnPath: returnTo,
+						onboarding: data.onboarding
+					};
+					await goto(oauthContinueAbsolute(p), { replaceState: true });
+					busy = false;
+					return;
+				}
 				const qs = new URLSearchParams({
 					organizationId: data.organizationId,
 					returnTo: accountRoot,
@@ -246,6 +282,52 @@
 		}
 	}
 
+	async function selectFacebookPage(pageId: string) {
+		const vm = fbPagePicker;
+		if (!vm) return;
+		const row = vm.pages.find((p) => p.id === pageId);
+		if (!row) {
+			toast.error('Could not resolve this Page.');
+			return;
+		}
+		submittingFbPageId = pageId;
+		try {
+			const resultVm = await integrationsRepository.saveProviderPage({
+				organizationId: vm.organizationId,
+				integrationId: vm.integrationId,
+				pageId: row.id,
+				id: row.id,
+				...(authenticationRepository.isAuthenticated()
+					? {}
+					: { oauthState: vm.oauthState })
+			});
+			if (!resultVm.ok) {
+				toast.error(resultVm.error);
+				return;
+			}
+			toast.success('Facebook Page connected.');
+			const accountRoot = accountPath;
+			const successQs = new URLSearchParams({ added: 'facebook' });
+			if (vm.onboarding) successQs.set('onboarding', 'true');
+			if (!authenticationRepository.isAuthenticated()) {
+				oauthAnonymousSuccess = { provider: 'facebook', onboarding: vm.onboarding };
+				fbPagePicker = null;
+				return;
+			}
+			await goto(absoluteUrl(`${accountRoot}?${successQs}`), { replaceState: true });
+			fbPagePicker = null;
+		} catch {
+			toast.error('Could not complete setup.');
+		} finally {
+			submittingFbPageId = null;
+		}
+	}
+
+	async function cancelFacebookPagePicker() {
+		const dest = fbPagePicker?.successReturnPath ?? accountPath;
+		await goto(absoluteUrl(dest), { replaceState: true });
+	}
+
 	async function selectInstagramBusinessAccount(igId: string) {
 		const vm = igBusinessPicker;
 		if (!vm) return;
@@ -261,7 +343,9 @@
 				integrationId: vm.integrationId,
 				pageId: row.pageId,
 				id: row.id,
-				state: vm.oauthState
+				...(authenticationRepository.isAuthenticated()
+					? {}
+					: { oauthState: vm.oauthState })
 			});
 			if (!resultVm.ok) {
 				toast.error(resultVm.error);
@@ -352,6 +436,10 @@
 			busy = false;
 			return;
 		}
+		if (fbPagePicker) {
+			busy = false;
+			return;
+		}
 
 		busy = true;
 		signInRequiredForOAuthStart = false;
@@ -422,7 +510,9 @@
 		>
 		{igBusinessPicker
 			? 'Choose Instagram account'
-			: oauthAnonymousSuccess
+			: fbPagePicker
+				? 'Choose Facebook Page'
+				: oauthAnonymousSuccess
 				? 'Channel connected'
 				: signInRequiredForOAuthStart
 					? 'Sign in to connect'
@@ -472,6 +562,47 @@
 			class="mt-6"
 			variant="ghost"
 			onclick={() => cancelInstagramBusinessPicker()}
+		>
+			Cancel
+		</Button>
+	</div>
+{:else if fbPagePicker}
+	<div class="mx-auto max-w-lg px-4 py-10">
+		<h1 class="text-xl font-semibold text-base-content">
+			Choose a Facebook Page</h1>
+		<p class="mt-2 text-sm text-base-content/70">
+			Select the Page you want to publish to. You can change this later by removing and re-adding the channel.
+		</p>
+
+		<ul class="mt-6 flex flex-col gap-2">
+			{#each fbPagePicker.pages as page (page.id)}
+				<li>
+					<button
+						type="button"
+						class="flex w-full items-center gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-3 text-start hover:bg-base-200 disabled:opacity-60"
+						disabled={submittingFbPageId !== null}
+						onclick={() => selectFacebookPage(page.id)}
+					>
+						<div class="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-base-200">
+							<ImageWithFallback
+								src={page.pictureUrl?.trim() || null}
+								alt=""
+								class="h-full w-full object-cover"
+								fallbackIcon={icons.Facebook.name}
+							/>
+						</div>
+						<span class="min-w-0 flex-1 truncate font-medium text-base-content">{page.name}</span>
+						{#if submittingFbPageId === page.id}
+							<AbstractIcon name={icons.LoaderCircle.name} class="h-4 w-4 shrink-0 animate-spin" width="16" height="16" />
+						{/if}
+					</button>
+				</li>
+			{/each}
+		</ul>
+		<Button
+			class="mt-6"
+			variant="ghost"
+			onclick={() => cancelFacebookPagePicker()}
 		>
 			Cancel
 		</Button>
@@ -539,7 +670,8 @@
 				{/if}
 			{:else}
 				<h1 class="text-lg font-semibold text-base-content">
-					Finishing connection…</h1>
+					Finishing connection…
+				</h1>
 				<p class="mt-2 text-sm text-base-content/70">
 					{#if busy}
 						Please wait while we connect your account.

@@ -3,6 +3,7 @@
 	import type { PublicPreviewThreadReplyViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
 	import GeneralPreviewComponent from '$lib/ui/components/posts/GeneralPreviewComponent.svelte';
+	import FacebookPreview from '$lib/ui/components/posts/providers/facebook/FacebookPreview.svelte';
 	import InstagramPreview from '$lib/ui/components/posts/providers/instagram/InstagramPreview.svelte';
 	import ThreadsPreview from '$lib/ui/components/posts/providers/threads/ThreadsPreview.svelte';
 
@@ -62,6 +63,15 @@
 		{threadFinisher}
 		{delayedEngagementReply}
 		{previewMetaLabel}
+	/>
+{:else if identifier === 'facebook'}
+	<FacebookPreview
+		{channel}
+		{previewText}
+		{mediaUrls}
+		maximumCharacters={maxChars}
+		{threadReplies}
+		{threadFinisher}
 	/>
 {:else}
 	<GeneralPreviewComponent

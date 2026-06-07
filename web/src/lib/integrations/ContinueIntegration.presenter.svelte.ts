@@ -1,5 +1,6 @@
 import type {
 	ConnectSocialSuccessProgrammerModel,
+	FacebookConnectPageRow,
 	InstagramBusinessConnectPageRow,
 	IntegrationsRepository,
 	SocialProviderIdentifier
@@ -17,19 +18,28 @@ export interface ContinueSocialIntegrationViewModel {
 	onboarding: boolean;
 	/** Present when Instagram (Business) OAuth returned `pages` on the connect response. */
 	instagramBusinessPages?: InstagramBusinessConnectPageRow[];
+	/** Present when Facebook OAuth returned `pages` on the connect response. */
+	facebookPages?: FacebookConnectPageRow[];
 }
 
 function toContinueSocialIntegrationViewModel(
 	pm: ConnectSocialSuccessProgrammerModel
 ): ContinueSocialIntegrationViewModel {
-	return {
+	const base: ContinueSocialIntegrationViewModel = {
 		id: pm.id,
 		organizationId: pm.organizationId,
 		internalId: pm.internalId,
 		inBetweenSteps: pm.inBetweenSteps,
-		onboarding: pm.onboarding,
-		...(Array.isArray(pm.pages) && pm.pages.length > 0 ? { instagramBusinessPages: pm.pages } : {})
+		onboarding: pm.onboarding
 	};
+	if (!Array.isArray(pm.pages) || pm.pages.length === 0) return base;
+	if (pm.providerIdentifier === 'facebook') {
+		return { ...base, facebookPages: pm.pages as FacebookConnectPageRow[] };
+	}
+	if (pm.providerIdentifier === 'instagram-business') {
+		return { ...base, instagramBusinessPages: pm.pages as InstagramBusinessConnectPageRow[] };
+	}
+	return base;
 }
 
 export enum ContinueIntegrationStatus {

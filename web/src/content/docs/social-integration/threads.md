@@ -1,7 +1,7 @@
 ---
 title: Meta Threads
 description: How to configure Meta Threads for Openquok
-order: 1
+order: 4
 lastUpdated: 2026-04-12
 ---
 

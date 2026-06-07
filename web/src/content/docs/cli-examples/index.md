@@ -14,12 +14,13 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each page chains <a href="/docs/cli-usages/integrations"><Badge text="integrations:list" variant="default" /></a>, <a href="/docs/cli-usages/media-upload"><Badge text="upload" variant="default" /></a>, and <a href="/docs/cli-usages/managing-posts"><Badge text="posts:create" variant="default" /></a> into the kind of scripts AI agents and CI jobs actually run.
 
 <Callout type="note" title="Only platforms the project supports">
-<p>Openquok currently ships first-party providers for <strong>Meta Threads</strong> and <strong>Instagram</strong> (Business and Standalone). The examples here are limited to those — once new providers (TikTok, YouTube, LinkedIn, …) land in <Badge text="backend/integrations/providers/" variant="path" />, additional pages will be added.</p>
+<p>Openquok currently ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, and <strong>Instagram</strong> (Business and Standalone). The examples here are limited to those — once new providers (TikTok, YouTube, LinkedIn, …) land in <Badge text="backend/integrations/providers/" variant="path" />, additional pages will be added.</p>
 </Callout>
 
 <CardGrid>
-<LinkCard title="Meta Threads" description="Text and media posts, timed follow-up replies, what to do when publish metadata is incomplete, and analytics" href="/docs/cli-examples/threads" />
+<LinkCard title="Facebook Page" description="Text, photos, links, and follow-up comments for Facebook Pages" href="/docs/cli-examples/facebook" />
 <LinkCard title="Instagram" description="Feed, reels, stories, and carousels for Business or Standalone accounts" href="/docs/cli-examples/instagram" />
+<LinkCard title="Meta Threads" description="Text and media posts, timed follow-up replies, what to do when publish metadata is incomplete, and analytics" href="/docs/cli-examples/threads" />
 </CardGrid>
 
 ## Conventions used in these pages

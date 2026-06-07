@@ -1,7 +1,7 @@
 ---
 title: Meta Threads
-description: Openquok CLI examples for Meta Threads — single posts, reply chains, the missing release_id reconciliation flow, and per-post analytics.
-order: 1
+description: Openquok CLI examples for Meta Threads — single posts, reply chains, the reconciliation flow, and per-post analytics.
+order: 3
 lastUpdated: 2026-05-12
 ---
 

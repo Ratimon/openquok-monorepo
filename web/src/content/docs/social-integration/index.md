@@ -24,6 +24,8 @@ Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other p
 <CardGrid>
 <LinkCard title="Meta Threads" description="Create a Meta app, OAuth redirect URIs, THREADS_APP_ID and THREADS_APP_SECRET, and tester invites" href="/docs/social-integration/threads" />
 <LinkCard title="Instagram" description="Instagram Business (Facebook Login) and Instagram Standalone — Meta app, redirect URIs, and env vars" href="/docs/social-integration/instagram" />
+<LinkCard title="Facebook Page" description="Facebook Login, Page picker, FACEBOOK_APP_ID and FACEBOOK_APP_SECRET" href="/docs/social-integration/facebook" />
+<LinkCard title="Adding a provider" description="Contributor checklist for new social integrations" href="/docs/social-integration/add-provider" />
 </CardGrid>
 
 ## Related Section(s)

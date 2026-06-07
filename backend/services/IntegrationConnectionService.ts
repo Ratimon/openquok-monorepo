@@ -444,7 +444,11 @@ export class IntegrationConnectionService {
             ? "none"
             : ((await cache.get(CACHE_KEYS.oauth.login(body.state))) as string | null);
         if (!getCodeVerifier && !integrationProvider.customFields) {
-            throw new AppError("Invalid state", 400);
+            throw new AppError(
+                "Invalid OAuth state: login verifier missing for this state (expired, already used, or cache unavailable). Remove any partial channel and connect again.",
+                400,
+                { errorCode: "OAUTH_STATE_INVALID", metadata: { reason: "missing_code_verifier" } }
+            );
         }
 
         if (!integrationProvider.customFields) {
@@ -564,7 +568,7 @@ export class IntegrationConnectionService {
         }
 
         const shouldKeepOrganizationState =
-            !authUserId && Boolean(integrationProvider.isBetweenSteps) && !refreshState;
+            Boolean(integrationProvider.isBetweenSteps) && !refreshState;
         if (!shouldKeepOrganizationState) {
             await this.invalidateOAuthCacheKey(organizationKey);
         }
@@ -691,15 +695,23 @@ export class IntegrationConnectionService {
         integrationId: string,
         body: Record<string, unknown>
     ): Promise<{ success: true }> {
-        const state = typeof body.state === "string" ? body.state : "";
+        const state = typeof body.state === "string" ? body.state.trim() : "";
         if (!state) {
-            throw new AppError("Invalid state", 400);
+            throw new AppError(
+                "Invalid OAuth state: missing state for page selection. Remove the partial channel and start the connection again from your workspace.",
+                400,
+                { errorCode: "OAUTH_STATE_INVALID", metadata: { reason: "missing_state" } }
+            );
         }
         const cache = this.requireCache();
         const organizationKey = CACHE_KEYS.oauth.organization(state);
         const organizationId = (await cache.get(organizationKey)) as string | null;
         if (!organizationId || typeof organizationId !== "string") {
-            throw new AppError("Organization not found", 400);
+            throw new AppError(
+                "OAuth session expired: workspace context for this state was not found (state expired, already used, or cache unavailable). Remove the partial channel and connect again.",
+                400,
+                { errorCode: "OAUTH_STATE_INVALID", metadata: { reason: "organization_not_in_cache" } }
+            );
         }
         const { state: _state, ...providerPayload } = body;
         const result = await this.saveProviderPageForOrganization(organizationId, integrationId, providerPayload);
@@ -820,10 +832,13 @@ export class IntegrationConnectionService {
             throw new AppError(msg, 400);
         }
 
-        const isInstagramBusiness = row.provider_identifier === "instagram-business";
-        const refreshToken = isInstagramBusiness ? userAccessToken : row.refresh_token || "";
-        const rootInternalId = isInstagramBusiness ? priorInternalId : row.root_internal_id;
-        const expiresInSeconds = isInstagramBusiness ? dayjs().add(59, "days").unix() - dayjs().unix() : undefined;
+        const preservesUserTokenForRefresh =
+            row.provider_identifier === "instagram-business" || row.provider_identifier === "facebook";
+        const refreshToken = preservesUserTokenForRefresh ? userAccessToken : row.refresh_token || "";
+        const rootInternalId = preservesUserTokenForRefresh ? priorInternalId : row.root_internal_id;
+        const expiresInSeconds = preservesUserTokenForRefresh
+            ? dayjs().add(59, "days").unix() - dayjs().unix()
+            : undefined;
 
         await this.integrations.updateIntegrationById(organizationId, integrationId, {
             internalId: String(information.id),

@@ -9,7 +9,7 @@ openquok integrations:list | jq -r '.[] | {id, identifier}'
 openquok integrations:settings <integration-uuid>
 ```
 
-Meta channels today: `threads`, `instagram-standalone`, `instagram-business`. Call `integrations:trigger` only for `methodName` values listed under `output.tools`.
+Meta channels today: `threads`, `facebook`, `instagram-standalone`, `instagram-business`. Call `integrations:trigger` only for `methodName` values listed under `output.tools`.
 
 ## Allow-listed provider tools
 

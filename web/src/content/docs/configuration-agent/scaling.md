@@ -28,7 +28,7 @@ You can run **several replicas** behind a load balancer (or on serverless concur
 On Vercel, functions scale concurrently. Use a **managed Postgres** connection string suited to **many short-lived connections** (pooling — for example Neon, Supabase pooler, Vercel Postgres, or your provider’s serverless URL). Avoid a single non-pooled DSN that exhausts connection limits under burst traffic.
 
 <Callout type="warning" title="Keep SERVER_URL stable across replicas">
-Every replica must advertise the **same** canonical <Badge text="SERVER_URL" variant="envBackend" /> that matches your OAuth app’s registered callback host; otherwise redirect URIs and verification links can disagree between invocations.
+Every replica must advertise the same canonical <Badge text="SERVER_URL" variant="envBackend" /> that matches your OAuth app’s registered callback host; otherwise redirect URIs and verification links can disagree between invocations.
 </Callout>
 
 ## Related configuration

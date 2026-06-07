@@ -11,6 +11,14 @@ export type InstagramBusinessConnectPageRow = {
 	pictureUrl: string;
 };
 
+/** Rows returned on `pages` after Facebook OAuth. */
+export type FacebookConnectPageRow = {
+	id: string;
+	name: string;
+	pictureUrl: string;
+	username?: string;
+};
+
 /** Programmer model for a catalog integration entry (returned by repository). */
 export interface IntegrationCatalogItemProgrammerModel {
 	identifier: string;
@@ -89,7 +97,7 @@ export interface ConnectSocialSuccessProgrammerModel {
 	inBetweenSteps: boolean;
 	refreshNeeded: boolean;
 	onboarding: boolean;
-	pages?: InstagramBusinessConnectPageRow[];
+	pages?: InstagramBusinessConnectPageRow[] | FacebookConnectPageRow[];
 }
 
 export interface ConnectSocialResponseDto {
@@ -294,14 +302,16 @@ export class IntegrationsRepository {
 		integrationId: string;
 		pageId: string;
 		id: string;
-		state?: string;
+		/** Required only for the no-auth public route when the user has no session. */
+		oauthState?: string;
 	}): Promise<{ ok: true } | { ok: false; error: string }> {
 		try {
-			const { organizationId, integrationId, pageId, id, state } = params;
-			const payload = state
-				? { state, pageId, id }
+			const { organizationId, integrationId, pageId, id, oauthState } = params;
+			const usePublicOAuthStateRoute = Boolean(oauthState?.trim());
+			const payload = usePublicOAuthStateRoute
+				? { state: oauthState!.trim(), pageId, id }
 				: { organizationId, pageId, id };
-			const endpoint = state
+			const endpoint = usePublicOAuthStateRoute
 				? this.config.endpoints.publicProviderConnect(integrationId)
 				: this.config.endpoints.providerConnect(integrationId);
 			const { ok, data: dto } = await this.httpGateway.post<{

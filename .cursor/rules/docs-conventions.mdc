@@ -1,5 +1,5 @@
 ---
-description: Authoring docs under web/src/content/docs — DocsExternalLink, Badges, Callouts, Steps, fenced code (bash for shell commands), CardGrid/LinkCard
+description: Authoring docs under web/src/content/docs — DocsExternalLink, Badges, Callouts (HTML not Markdown in children), Steps, fenced code (bash for shell commands), CardGrid/LinkCard
 globs: web/src/content/docs/**/*
 alwaysApply: false
 ---
@@ -13,7 +13,7 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
 - **In `web/src/content/docs/**`**, use **`DocsExternalLink`** from `$lib/ui/components/docs/mdx/index.js` for **third-party** URLs (Vercel, Supabase, GitHub, npm docs, etc.). It wraps `ExternalLink` with **`not-prose`** and **`text-primary`** + underline so links stay readable inside docs prose (avoids low-contrast inherited `prose-a` styles).
 - **Pattern**: `<DocsExternalLink href="https://...">Label</DocsExternalLink>`. Optional props match the base component: `trusted`, `follow`, `ariaLabel`, or `class` to extend styles — see `web/src/lib/ui/components/ExternalLink.svelte` and `web/src/lib/ui/components/docs/mdx/DocsExternalLink.svelte`.
 - **`ExternalLink`** remains the low-level primitive (used inside `DocsExternalLink`). Do not use raw `<ExternalLink>` in new docs content unless you have a rare case that must not use docs styling.
-- **Do not** rely on raw Markdown `[text](https://...)` **inside** custom MDX components (e.g. `<Callout>`): those children are often **not** parsed as Markdown; use **`DocsExternalLink`** or plain `<a href="...">` with the same security expectations (`rel` / `target` where appropriate).
+- **Do not** rely on raw Markdown **inside** custom MDX component children (e.g. `<Callout>`): see **Markdown inside custom components** below.
 - For external URLs in **plain prose** (including **“References”** sections), prefer **`DocsExternalLink`** over raw `<a href="...">` so outbound attributes and contrast stay consistent.
 
 ## Links to files in this repository
@@ -43,7 +43,7 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
 
 - Inline Markdown **backticks** around names like `` `NODE_ENV` `` or `` `BACKEND_DOMAIN_URL` `` can be parsed as **emphasis** (`_…_` / `*…*`), which breaks the Svelte compile (`element_invalid_closing_tag`).
 - **Prefer `Badge`** with the **`text`** prop for env-style identifiers (see **Badges** above). If you cannot use `Badge`, use **HTML**: `<code>NODE&#95;ENV</code>`, `<code>BACKEND&#95;DOMAIN&#95;URL</code>`, or `&#42;` for a literal `*` (e.g. <code>REDIS&#95;&#42;</code> for “REDIS_*”).
-- Inside **`<Callout>`**, use **`Badge`** or the same HTML `<code>` pattern when Markdown is not parsed.
+- Inside **`<Callout>`** (and other custom components whose children are not Markdown-parsed), use **`Badge`**, HTML `<code>…</code>`, or **`<strong>`** / **`<em>`** — not Markdown backticks or `**emphasis**` (see **Markdown inside custom components**).
 
 ## Curly-brace placeholders (MDsveX / Svelte parsing)
 
@@ -56,11 +56,38 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
   - Use a fenced **`text`** block for the literal placeholder string (best for URLs / redirect URIs).
   - Or restructure the sentence to avoid curly braces entirely (e.g. use `<Badge text="SERVER_URL" variant="envBackend" />` plus the literal suffix `/device/callback`).
 
+## Markdown inside custom components (`<Callout>`, etc.)
+
+Children passed to custom MDX components (especially **`<Callout>`**) are **not** run through the Markdown parser. Syntax such as `**bold**`, `_italic_`, `` `code` ``, and `[label](https://…)` is emitted **literally** on the page — readers see the asterisks or brackets, not formatted text or links.
+
+- **Use HTML** (or docs components) inside component bodies:
+  - emphasis → `<strong>…</strong>`, `<em>…</em>`
+  - inline literals → `<code>…</code>` or **`Badge`**
+  - external links → **`<DocsExternalLink href="…">…</DocsExternalLink>`** (or `<a href="…">` for rare in-site cases; see `DocsCallout`)
+  - lists / multi-sentence blocks → wrap in **`<p>…</p>`**, **`<ul><li>…</li></ul>`**, etc.
+- **Plain Markdown prose** (including `**bold**` and `` `backticks` ``) remains fine **outside** component tags — e.g. in `##` sections, `<Steps>` step bodies, and normal paragraphs.
+
+**Bad** (literal `**same**` on the rendered page):
+
+```html
+<Callout type="note" title="One Meta app">
+Instagram (Business) and Facebook can use the **same** developer app.
+</Callout>
+```
+
+**Good**:
+
+```html
+<Callout type="note" title="One Meta app">
+Instagram (Business) and Facebook can use the <strong>same</strong> developer app.
+</Callout>
+```
+
 ## Callouts vs GitHub alerts
 
 - Do **not** paste GitHub `> [!WARNING]` / `> [!IMPORTANT]` blocks into MDX; they are not rendered as UI components here.
-- Use **`<Callout type="note|tip|warning|danger" title="Optional">`** with **HTML** for lists/links inside the callout when Markdown is not parsed. Prefer **`<a href="...">`** for in-callout links (see `DocsCallout`).
-- **Avoid Markdown emphasis inside `<Callout>` bodies** (e.g. `**bold**`, `_italic_`): it may not be parsed/rendered as expected. Prefer **HTML** (`<strong>…</strong>`, `<em>…</em>`) or `Badge` components.
+- Use **`<Callout type="note|tip|warning|danger" title="Optional">`** with **HTML** (or **`Badge`** / **`DocsExternalLink`**) for body content — not Markdown emphasis, links, or backticks (see **Markdown inside custom components** above).
+- Prefer **`<a href="...">`** for in-site links inside callouts when **`DocsExternalLink`** styling is not needed (see `DocsCallout`).
 
 ## Next steps and related pages (`LinkCard` / `CardGrid`)
 
