@@ -36,3 +36,11 @@ export {
 	ContinueIntegrationStatus,
 	type ContinueSocialIntegrationViewModel
 } from '$lib/integrations/ContinueIntegration.presenter.svelte';
+export {
+	continueProviderList,
+	getContinueProviderConfig,
+	hasContinueProviderStep,
+	type ContinueConnectPageRow,
+	type ContinueProviderStepConfig,
+	type TwoStepPickerViewModel
+} from '$lib/integrations/continue-provider';

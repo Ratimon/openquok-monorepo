@@ -1,7 +1,6 @@
+import type { ContinueConnectPageRow } from '$lib/integrations/continue-provider';
 import type {
 	ConnectSocialSuccessProgrammerModel,
-	FacebookConnectPageRow,
-	InstagramBusinessConnectPageRow,
 	IntegrationsRepository,
 	SocialProviderIdentifier
 } from '$lib/integrations/Integrations.repository.svelte';
@@ -10,16 +9,14 @@ import type {
  * UI-facing result of completing social OAuth (navigation flags only; no raw API shape).
  */
 export interface ContinueSocialIntegrationViewModel {
-	/** Integration row id (UUID) — needed for Instagram (Business) account selection. */
+	/** Integration row id (UUID) — needed for provider page/account selection. */
 	id: string;
 	organizationId: string;
 	internalId: string;
 	inBetweenSteps: boolean;
 	onboarding: boolean;
-	/** Present when Instagram (Business) OAuth returned `pages` on the connect response. */
-	instagramBusinessPages?: InstagramBusinessConnectPageRow[];
-	/** Present when Facebook OAuth returned `pages` on the connect response. */
-	facebookPages?: FacebookConnectPageRow[];
+	/** Present when OAuth returned `pages` on the connect response. */
+	pages?: ContinueConnectPageRow[];
 }
 
 function toContinueSocialIntegrationViewModel(
@@ -33,13 +30,7 @@ function toContinueSocialIntegrationViewModel(
 		onboarding: pm.onboarding
 	};
 	if (!Array.isArray(pm.pages) || pm.pages.length === 0) return base;
-	if (pm.providerIdentifier === 'facebook') {
-		return { ...base, facebookPages: pm.pages as FacebookConnectPageRow[] };
-	}
-	if (pm.providerIdentifier === 'instagram-business') {
-		return { ...base, instagramBusinessPages: pm.pages as InstagramBusinessConnectPageRow[] };
-	}
-	return base;
+	return { ...base, pages: pm.pages as ContinueConnectPageRow[] };
 }
 
 export enum ContinueIntegrationStatus {

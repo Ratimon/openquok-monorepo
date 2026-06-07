@@ -140,8 +140,8 @@ Add a provider-specific preview Svelte component and branch in <Badge text="Show
 
 Reuse <Badge text="IntegrationContinue.svelte" variant="path" /> on route <Badge text="/integration/oauth/[provider]" variant="path" />. When <Badge text="isBetweenSteps" variant="param" /> is true:
 
-- Map connect response `pages` in <Badge text="ContinueIntegration.presenter.svelte.ts" variant="path" />.
-- Render a picker and call <Badge text="integrationsRepository.saveProviderPage" variant="param" /> with the payload your `fetchPageInformation` expects.
+- Add a config under <Badge text="web/src/lib/integrations/continue-provider/" variant="path" /> and register it in <Badge text="continue-provider/index.ts" variant="path" /> (title, empty-state copy, icon, and <Badge text="toSaveParams" variant="param" /> for <Badge text="saveProviderPage" variant="param" />).
+- Connect response <Badge text="pages" variant="param" /> is passed through <Badge text="ContinueIntegration.presenter.svelte.ts" variant="path" />; the shared <Badge text="ContinueProviderPicker.svelte" variant="path" /> renders the list.
 
 ### 4. Labels and icons
 
