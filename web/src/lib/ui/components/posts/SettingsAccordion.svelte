@@ -8,6 +8,7 @@
 	import ThreadFinisher from '$lib/ui/components/posts/thread/ThreadFinisher.svelte';
 	import SameAccountEngagementPlug from '$lib/ui/components/posts/thread/SameAccountEngagementPlug.svelte';
 	import InstagramCollaborators from '$lib/ui/components/posts/providers/instagram/InstagramCollaborators.svelte';
+	import FacebookSettings from '$lib/ui/components/posts/providers/facebook/FacebookSettings.svelte';
 
 	type ProviderSettings = {
 		threads: {
@@ -26,6 +27,9 @@
 			collaborators: string[];
 			trialReel: boolean;
 			graduationStrategy: 'MANUAL' | 'SS_PERFORMANCE';
+		};
+		facebook: {
+			url?: string;
 		};
 	};
 
@@ -52,6 +56,8 @@
 	let igCollaborators = $state<string[]>([]);
 	let igTrialReel = $state(false);
 	let igGraduationStrategy = $state<'MANUAL' | 'SS_PERFORMANCE'>('MANUAL');
+
+	let fbUrl = $state('');
 
 	// Pull values from the passed value object.
 	$effect(() => {
@@ -86,29 +92,47 @@
 			const gs = (s.instagram as { graduationStrategy?: unknown }).graduationStrategy;
 			igGraduationStrategy = gs === 'SS_PERFORMANCE' ? 'SS_PERFORMANCE' : 'MANUAL';
 		}
+		if (s.facebook && typeof s.facebook === 'object') {
+			fbUrl = typeof s.facebook.url === 'string' ? s.facebook.url : '';
+		} else if (typeof (s as { url?: unknown }).url === 'string') {
+			fbUrl = (s as { url: string }).url;
+		} else {
+			fbUrl = '';
+		}
 	});
 
 	let lastEmitted = $state('');
 	$effect(() => {
-		const next: Partial<ProviderSettings> = {
-			threads: {
-				enabled: threadsEnabled,
-				message: threadsMessage,
-				internalEngagementPlug: {
-					enabled: igPlugEnabled,
-					delaySeconds: igPlugDelaySeconds,
-					message: igPlugMessage,
-					plugName: 'threads-internal-follow-up',
-					integrationId: channel.id
+		let next: Partial<ProviderSettings> = {};
+		if (identifier === 'threads') {
+			next = {
+				threads: {
+					enabled: threadsEnabled,
+					message: threadsMessage,
+					internalEngagementPlug: {
+						enabled: igPlugEnabled,
+						delaySeconds: igPlugDelaySeconds,
+						message: igPlugMessage,
+						plugName: 'threads-internal-follow-up',
+						integrationId: channel.id
+					}
 				}
-			},
-			instagram: {
-				postType: igPostType,
-				collaborators: igCollaborators,
-				trialReel: igTrialReel,
-				graduationStrategy: igGraduationStrategy
-			}
-		};
+			};
+		} else if (identifier.startsWith('instagram')) {
+			next = {
+				instagram: {
+					postType: igPostType,
+					collaborators: igCollaborators,
+					trialReel: igTrialReel,
+					graduationStrategy: igGraduationStrategy
+				}
+			};
+		} else if (identifier === 'facebook') {
+			const trimmed = fbUrl.trim();
+			next = { facebook: trimmed ? { url: trimmed } : {} };
+		} else {
+			return;
+		}
 		const sig = JSON.stringify(next);
 		if (sig === lastEmitted) return;
 		lastEmitted = sig;
@@ -173,6 +197,8 @@
 						bind:trialReel={igTrialReel}
 						bind:graduationStrategy={igGraduationStrategy}
 					/>
+				{:else if identifier === 'facebook'}
+					<FacebookSettings bind:url={fbUrl} />
 				{:else}
 					<p class="text-sm text-base-content/60">
 						No settings available for this provider yet.</p>

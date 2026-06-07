@@ -1,0 +1,63 @@
+---
+description: Checklist for adding a social channel — update backend provider + web composer/OAuth + docs together
+globs:
+  - backend/integrations/**
+  - backend/config/GlobalConfig.ts
+  - backend/services/IntegrationConnectionService.ts
+  - web/src/lib/ui/components/posts/providers/**
+  - web/src/lib/ui/components/posts/SettingsAccordion.svelte
+  - web/src/lib/ui/components/posts/IntegrationContinue.svelte
+  - web/src/lib/integrations/continue-provider/**
+  - web/src/lib/integrations/ContinueIntegration.presenter.svelte.ts
+  - web/src/data/social-providers.ts
+  - web/src/content/docs/social-integration/**
+  - web/src/content/docs/cli-examples/**
+  - agent/skills/openquok-core/resources/**
+alwaysApply: false
+---
+
+# Adding a social provider
+
+Ship **backend + web + docs** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Full guide: `web/src/content/docs/social-integration/add-provider.md`.
+
+## Identifier contract
+
+Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames. Do not fork slugs between layers.
+
+## Backend (required)
+
+1. **`SocialProvider` class** — `backend/integrations/providers/{id}/` implementing `social.integrations.interface.ts`: OAuth (`generateAuthUrl`, `authenticate`), `post`, `maxLength`, scopes. Split publish logic into helpers (e.g. `*GraphPublish.ts`) when non-trivial.
+2. **Register** — add `new YourProvider()` in `backend/integrations/integrationManager.ts` (no new REST routes).
+3. **Config** — secrets only via `config.integrations.*` in `GlobalConfig.ts` + `.env.development.example`. Redirect URI: `oauthFrontendOrigin()` + `oauthFrontendSocialCallbackPath(identifier)`.
+4. **Between-steps OAuth** — when `isBetweenSteps: true`: implement `pages()` + `fetchPageInformation()`; extend `IntegrationConnectionService.saveProviderPageForOrganization` / `preservesUserTokenForRefresh` if user token must stay in `refresh_token` (Meta Page pattern).
+5. **Provider settings at publish** — read from `postDetails.settings.providerSettings`. Accept **flat CLI keys** and **nested web buckets** (e.g. `providerSettings.url` and `providerSettings.facebook.url`). Export a resolver + unit tests beside publish helpers.
+6. **Tests** — unit tests for OAuth edge cases, publish payload shaping, and connection save when behavior differs.
+
+## Web (composer + connect)
+
+Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
+
+1. **Launch config** — `web/src/lib/ui/components/posts/providers/{id}/{id}.provider.ts` (`LaunchProviderConfig`: limits, `postComment`, optional `checkValidity` / `checkValidityAsync`). Register in `providers/index.ts` → `getLaunchProviderConfig`.
+2. **Preview** — `{id}Preview.svelte` + branch in `ShowAllProviders.svelte`.
+3. **OAuth Page picker** (when `isBetweenSteps`) — config in `web/src/lib/integrations/continue-provider/{id}.ts`, register in `continue-provider/index.ts`; reuse `IntegrationContinue.svelte` + `ContinueIntegration.presenter.svelte.ts` + `ContinueProviderPicker.svelte`.
+4. **Compose settings** (optional) — `{id}Settings.svelte`; wire provider branch in `SettingsAccordion.svelte`; emit **only that provider’s bucket** (do not write unrelated `threads` / `instagram` defaults). Add types/helpers in `provider.types.ts` and `{id}.provider.ts`.
+5. **Labels** — `web/src/data/social-providers.ts` when the slug is new.
+
+Keep composer validation aligned with backend publish rules (`checkValidity` ↔ `validateCreatePost` / publish helper constraints).
+
+## Docs and agent resources (user-facing providers)
+
+| Artifact | Path |
+| --- | --- |
+| Setup guide | `web/src/content/docs/social-integration/{id}.md` + `index.md` LinkCard |
+| CLI examples | `web/src/content/docs/cli-examples/{id}.md` |
+| Agent recipes | `agent/skills/openquok-core/resources/{id}-examples.md`, update `patterns.md` |
+
+Follow **docs-conventions** and **source-project-neutrality** (no third-party repo names in code or docs).
+
+## PR self-check
+
+- Provider registered in `integrationManager.ts` and `getLaunchProviderConfig` (if composer support).
+- Redirect URI in platform console matches `/integration/oauth/{identifier}` exactly.
+- `providerSettings` shape documented for CLI (`providerSettingsByIntegrationId`) and resolved in backend publish code.
+- Unit tests added/updated for non-trivial paths.

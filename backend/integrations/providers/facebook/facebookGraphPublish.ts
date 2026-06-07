@@ -60,20 +60,44 @@ async function graphPostJson(
     return json;
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Resolves optional link preview URL from scheduled post settings.
+ * Accepts flat `providerSettings.url` (CLI/API) and nested `providerSettings.facebook.url` (web composer).
+ */
+export function resolveFacebookLinkFromSettings(settings: unknown): string | undefined {
+    if (!isPlainObject(settings)) return undefined;
+
+    const readUrl = (source: Record<string, unknown>): string | undefined => {
+        const url = source.url;
+        if (typeof url === "string" && url.trim()) return url.trim();
+        return undefined;
+    };
+
+    const providerSettings = settings.providerSettings;
+    if (isPlainObject(providerSettings)) {
+        const flat = readUrl(providerSettings);
+        if (flat) return flat;
+
+        const facebook = providerSettings.facebook;
+        if (isPlainObject(facebook)) {
+            const nested = readUrl(facebook);
+            if (nested) return nested;
+        }
+    }
+
+    if (isPlainObject(settings.facebook)) {
+        return readUrl(settings.facebook);
+    }
+
+    return readUrl(settings);
+}
+
 function readLinkFromSettings(settings: unknown): string | undefined {
-    if (!settings || typeof settings !== "object") return undefined;
-    const root = settings as Record<string, unknown>;
-    const ps = root.providerSettings;
-    if (ps && typeof ps === "object" && !Array.isArray(ps)) {
-        const url = (ps as { url?: unknown }).url;
-        if (typeof url === "string" && url.trim()) return url.trim();
-    }
-    const fb = root.facebook;
-    if (fb && typeof fb === "object" && !Array.isArray(fb)) {
-        const url = (fb as { url?: unknown }).url;
-        if (typeof url === "string" && url.trim()) return url.trim();
-    }
-    return undefined;
+    return resolveFacebookLinkFromSettings(settings);
 }
 
 /** Publish a Facebook Page feed post, photo carousel, or video. */

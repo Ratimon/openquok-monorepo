@@ -2,7 +2,7 @@
 title: Adding a social provider
 description: Contributor guide for implementing a new social integration in Openquok
 order: 1
-lastUpdated: 2026-06-06
+lastUpdated: 2026-06-07
 ---
 
 <script>
@@ -18,6 +18,8 @@ Use **Facebook** (<Badge text="facebook" variant="default" />), **Instagram (Bus
 <Callout type="note" title="Identifier contract">
 The provider <Badge text="identifier" variant="param" /> slug (kebab-case) is the contract everywhere: database <Badge text="provider_identifier" variant="param" />, OAuth callback path <Badge text="/integration/oauth/{identifier}" variant="path" />, catalog entries, CLI filters, and web routing.
 </Callout>
+
+**Convention reference:** Cursor agents and contributors should follow the backend + web checklist in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/.cursor/rules/social-provider-integration.mdc"><Badge text=".cursor/rules/social-provider-integration.mdc" variant="path" /></DocsExternalLink> alongside this guide.
 
 ## Architecture
 

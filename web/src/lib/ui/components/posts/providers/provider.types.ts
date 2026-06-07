@@ -13,6 +13,10 @@ export type InstagramLaunchProviderSettings = {
 	graduationStrategy: InstagramGraduationStrategy;
 };
 
+export type FacebookLaunchProviderSettings = {
+	url?: string;
+};
+
 export type LaunchProviderCheckContext = {
 	media: { id: string; path: string }[];
 	/** Per-integration settings (from the Settings panel), shape is provider-specific. */

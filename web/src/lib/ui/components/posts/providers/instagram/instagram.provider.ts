@@ -115,6 +115,7 @@ export const instagramProvider: LaunchProviderConfig = {
 	maximumCharacters: 2200,
 	minimumCharacters: 0,
 	postComment: 'COMMENT',
+	/** Follow-up replies are text-only on Instagram; omit on Facebook (one image allowed there). */
 	comments: 'no-media',
 	checkValidity: (ctx) => {
 		const { media, settings } = instagramCheckContext(ctx);
