@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/publicFaqCatalog';
-	import { CONFIG_SCHEMA_PUBLIC_FAQ } from '$lib/config/constants/config';
+	import { getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
 	import FaqAccordion from '$lib/ui/templates/FaqAccordion.svelte';
 
@@ -34,19 +34,14 @@
 	}: Props = $props();
 
 	const headingId = 'public-faq-heading';
+	const faqDefaults = getPublicFaqConfigDefaults();
 
 	const faqSubtitle = $derived(
-		faqSubtitleProp ||
-			faqConfigVm.SUBTITLE ||
-			String(CONFIG_SCHEMA_PUBLIC_FAQ.SUBTITLE.default)
+		faqSubtitleProp || faqConfigVm.SUBTITLE || faqDefaults.SUBTITLE
 	);
-	const faqTitle = $derived(
-		faqTitleProp || faqConfigVm.TITLE || String(CONFIG_SCHEMA_PUBLIC_FAQ.TITLE.default)
-	);
+	const faqTitle = $derived(faqTitleProp || faqConfigVm.TITLE || faqDefaults.TITLE);
 	const faqDescription = $derived(
-		faqDescriptionProp ||
-			faqConfigVm.DESCRIPTION ||
-			String(CONFIG_SCHEMA_PUBLIC_FAQ.DESCRIPTION.default)
+		faqDescriptionProp || faqConfigVm.DESCRIPTION || faqDefaults.DESCRIPTION
 	);
 
 	const titleParts = $derived(

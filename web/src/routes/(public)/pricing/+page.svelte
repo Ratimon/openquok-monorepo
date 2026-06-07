@@ -101,5 +101,8 @@
 		{ctaHref}
 	/>
 
-	<PublicFaq heroTheme={faqHeroTheme} faqConfigVm={data.publicFaqConfigPm} />
+	<PublicFaq
+		heroTheme={faqHeroTheme}
+		faqConfigVm={data.publicFaqConfigPm}
+	/>
 </SectionOuterContainer>

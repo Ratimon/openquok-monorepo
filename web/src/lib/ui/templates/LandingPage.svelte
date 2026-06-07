@@ -16,6 +16,7 @@
 
 	type Props = {
 		landingPageConfigVm?: Record<string, string>;
+		publicFaqConfigVm?: Record<string, string>;
 		demoYoutubeVideoId: string;
 		demoThumbnailAlt: string;
 		demoHeadingId: string;
@@ -24,6 +25,7 @@
 
 	let {
 		landingPageConfigVm = {},
+		publicFaqConfigVm = {},
 		demoYoutubeVideoId,
 		demoThumbnailAlt,
 		demoHeadingId,
@@ -343,6 +345,7 @@
 		{faqSubtitle}
 		{faqTitle}
 		{faqDescription}
+		faqConfigVm={publicFaqConfigVm}
 		sectionClass="py-16 sm:py-20"
 	/>
 </div>

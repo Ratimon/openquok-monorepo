@@ -33,6 +33,7 @@ declare global {
 			navbarMobileLinks?: Link[];
 			footerNavigationLinks?: Record<string, { label: string; href: string }[]>;
 			landingPageConfigVm?: Record<string, string>;
+			publicFaqConfigVm?: Record<string, string>;
 			pageMetaTags?: BaseMetaTags;
 			schemaData?: Record<string, unknown>;
 		}

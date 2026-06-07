@@ -9,6 +9,7 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
+import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -22,12 +23,14 @@ export async function load({ url, fetch, cookies }) {
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	let publicFaqConfigPm: Record<string, string> = {};
+	let publicFaqConfigPm: Record<string, string> = getPublicFaqConfigDefaults();
 	try {
-		publicFaqConfigPm = await configRepository.getPublicModuleConfig('public_faq');
+		const loaded = await configRepository.getPublicModuleConfig('public_faq');
+		if (Object.keys(loaded).length > 0) {
+			publicFaqConfigPm = loaded;
+		}
 	} catch (error) {
 		console.error('[pricing/+page.server] Failed to fetch public FAQ config:', error);
-		publicFaqConfigPm = getPublicFaqConfigDefaults();
 	}
 
 	const customTitle = 'Pricing';
@@ -62,23 +65,33 @@ export async function load({ url, fetch, cookies }) {
 
 	const schemaData = {
 		'@context': 'https://schema.org',
-		'@type': 'WebPage',
-		name: customTitle,
-		description: customDescription,
-		url: canonical,
-		isPartOf: {
-			'@type': 'WebSite',
-			name: companyName,
-			url: url.origin
-		},
-		offers: pageVmMonthly.plans.map((plan) => ({
-			'@type': 'Offer',
-			name: plan.name,
-			category: 'subscription',
-			priceCurrency: 'USD',
-			price: plan.monthPrice,
-			url: canonical
-		}))
+		'@graph': [
+			{
+				'@type': 'WebPage',
+				'@id': `${canonical}#webpage`,
+				name: customTitle,
+				description: customDescription,
+				url: canonical,
+				isPartOf: {
+					'@type': 'WebSite',
+					name: companyName,
+					url: url.origin
+				},
+				offers: pageVmMonthly.plans.map((plan) => ({
+					'@type': 'Offer',
+					name: plan.name,
+					category: 'subscription',
+					priceCurrency: 'USD',
+					price: plan.monthPrice,
+					url: canonical
+				}))
+			},
+			createPublicFaqSEOSchema({
+				pageUrl: `${canonical}#faq`,
+				name: publicFaqConfigPm.TITLE,
+				description: publicFaqConfigPm.DESCRIPTION
+			})
+		].filter((node) => Object.keys(node).length > 0)
 	};
 
 	return {

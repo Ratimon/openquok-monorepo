@@ -20,6 +20,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			navbarMobileLinks: Link[];
 			footerNavigationLinks: Record<string, { label: string; href: string }[]>;
 			landingPageConfigVm: Record<string, string>;
+			publicFaqConfigVm: Record<string, string>;
 			schemaData: Record<string, unknown>;
 		};
 
@@ -29,6 +30,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			navbarMobileLinks: serverData.navbarMobileLinks,
 			footerNavigationLinks: serverData.footerNavigationLinks,
 			landingPageConfigVm: serverData.landingPageConfigVm,
+			publicFaqConfigVm: serverData.publicFaqConfigVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,

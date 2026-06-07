@@ -6,10 +6,12 @@ import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING,
 	getLandingPageConfigDefaults,
+	getPublicFaqConfigDefaults,
 	PUBLIC_FOOTER_LINKS,
 	PUBLIC_NAVBAR_LINKS
 } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
+import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData, openGraphForPublicPage } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -31,6 +33,18 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		}
 	} catch (error) {
 		console.error('[+page.server] Failed to fetch landing page config:', error);
+	}
+
+	const publicFaqDefaults = getPublicFaqConfigDefaults();
+	let publicFaqConfigVm: Record<string, string> = publicFaqDefaults;
+
+	try {
+		const loaded = await configRepository.getPublicModuleConfig('public_faq');
+		if (Object.keys(loaded).length > 0) {
+			publicFaqConfigVm = loaded;
+		}
+	} catch (error) {
+		console.error('[+page.server] Failed to fetch public FAQ config:', error);
 	}
 
 	const companyName =
@@ -71,15 +85,31 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 
 	const schemaData = {
 		'@context': 'https://schema.org',
-		'@type': 'WebSite',
-		name: companyName,
-		url: url.origin,
-		description: heroDescription,
-		potentialAction: {
-			'@type': 'SearchAction',
-			target: `${url.origin}/blog?q={search_term_string}`,
-			'query-input': 'required name=search_term_string'
-		}
+		'@graph': [
+			{
+				'@type': 'WebSite',
+				'@id': `${url.origin}/#website`,
+				name: companyName,
+				url: url.origin,
+				description: heroDescription,
+				potentialAction: {
+					'@type': 'SearchAction',
+					target: `${url.origin}/blog?q={search_term_string}`,
+					'query-input': 'required name=search_term_string'
+				}
+			},
+			createPublicFaqSEOSchema({
+				pageUrl: `${canonical}#faq`,
+				name:
+					landingPageConfigVm.FAQ_TITLE ??
+					publicFaqConfigVm.TITLE ??
+					publicFaqDefaults.TITLE,
+				description:
+					landingPageConfigVm.FAQ_DESCRIPTION ??
+					publicFaqConfigVm.DESCRIPTION ??
+					publicFaqDefaults.DESCRIPTION
+			})
+		].filter((node) => Object.keys(node).length > 0)
 	};
 
 	return {
@@ -88,6 +118,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		navbarMobileLinks,
 		footerNavigationLinks,
 		landingPageConfigVm,
+		publicFaqConfigVm,
 		schemaData
 	};
 };

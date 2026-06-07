@@ -6,7 +6,7 @@
 	import { browser } from '$app/environment';
 
 	import { publicLayoutPagePresenter } from '$lib/area-public/index';
-	import { getLandingPageConfigDefaults } from '$lib/config/constants/config';
+	import { getLandingPageConfigDefaults, getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
 	import PublicArea from '$lib/ui/templates/PublicArea.svelte';
 	import LandingPage from '$lib/ui/templates/LandingPage.svelte';
@@ -41,6 +41,11 @@
 		data.landingPageConfigVm && Object.keys(data.landingPageConfigVm).length > 0
 			? data.landingPageConfigVm
 			: getLandingPageConfigDefaults()
+	);
+	let publicFaqConfigVm = $derived(
+		data.publicFaqConfigVm && Object.keys(data.publicFaqConfigVm).length > 0
+			? data.publicFaqConfigVm
+			: getPublicFaqConfigDefaults()
 	);
 	let schemaData = $derived(data.schemaData);
 
@@ -77,6 +82,7 @@
 >
 	<LandingPage
 		{landingPageConfigVm}
+		{publicFaqConfigVm}
 		{isLoggedIn}
 		demoYoutubeVideoId={landingDemoYoutubeVideoId}
 		demoThumbnailAlt={landingDemoThumbnailAlt}
