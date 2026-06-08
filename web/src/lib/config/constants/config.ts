@@ -457,7 +457,7 @@ export function getPublicFaqConfigDefaults(): Record<string, string> {
 	);
 }
 
-export type NavOptions = 'tab' | 'scroll' | 'menu';
+export type NavOptions = 'tab' | 'scroll' | 'menu' | 'channels';
 
 export interface DropdownLink {
 	href: string;
@@ -474,7 +474,7 @@ export interface Link {
 
 export const PUBLIC_NAVBAR_LINKS: Link[] = [
 	{ pathname: publicDocsPath, title: 'Dev Docs', navType: 'tab' },
-	{ pathname: publicChannelsPath, title: 'Channels', navType: 'tab' },
+	{ pathname: publicChannelsPath, title: 'Channels', navType: 'channels' },
 	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' },
 	{ pathname: '/pricing', title: 'Pricing', navType: 'tab' }
 ];

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Link } from '$lib/ui/nav-bars/Link';
 	import PageLink from '$lib/ui/nav-bars/PageLink.svelte';
+	import PublicChannelsNavDropdown from '$lib/ui/nav-bars/PublicChannelsNavDropdown.svelte';
 
 	type Props = {
 		class?: string;
@@ -21,7 +22,15 @@
 
 <div class="tabs {className}">
 	{#each pages as link}
-		{#if link.navType === 'menu' && link.dropdownItems && link.dropdownItems.length > 0}
+		{#if link.navType === 'channels'}
+			<PublicChannelsNavDropdown
+				title={link.title}
+				channelsPath={link.pathname}
+				{tabClass}
+				{whenSelected}
+				{whenUnselected}
+			/>
+		{:else if link.navType === 'menu' && link.dropdownItems && link.dropdownItems.length > 0}
 			<div class="dropdown dropdown-hover">
 				<button type="button" class="{tabClass} cursor-pointer bg-transparent border-none">
 					{link.title}

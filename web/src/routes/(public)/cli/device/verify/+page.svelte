@@ -61,7 +61,9 @@
 				</label>
 			</CardContent>
 			<CardFooter class="flex flex-col gap-3">
-				<Button type="submit" class="w-full">Continue</Button>
+				<Button type="submit" class="w-full">
+					Continue
+				</Button>
 				<p class="text-center text-xs text-base-content/60">
 					Only use codes from <code class="text-xs">openquok auth:login</code> on your machine.
 					<a class="link link-primary" href="https://www.openquok.com" rel="noopener">openquok.com</a>
