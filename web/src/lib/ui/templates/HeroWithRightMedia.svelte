@@ -71,7 +71,11 @@
 						? 'items-stretch'
 						: 'items-center'}"
 				>
-					<div class="space-y-6 text-center lg:text-left">
+					<div
+						class="space-y-6 text-center lg:text-left {rightMedia
+							? 'flex h-full flex-col justify-center'
+							: ''}"
+					>
 						{#if landingSubtitle}
 							<p class={heroTheme.subtitleClass}>
 								{landingSubtitle}

@@ -5,15 +5,26 @@
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 
+	type LandingHeroTitleSegment = { text: string; highlight: boolean };
+
+	type LandingHeroTheme = {
+		titleHighlightPillClass: string;
+		titleSegmentClass: (segmentIndex: number, segments: LandingHeroTitleSegment[]) => string;
+		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
+	};
+
 	type Props = {
 		channel: PublicChannelLandingPage;
+		heroTheme: LandingHeroTheme;
 		ctaText: string;
 		ctaHref: string;
 	};
 
-	let { channel, ctaText, ctaHref }: Props = $props();
+	let { channel, heroTheme, ctaText, ctaHref }: Props = $props();
 
 	const headingId = 'public-channel-hero-heading';
+
+	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(channel.heroTitle));
 </script>
 
 <AuroraBackground class="relative isolate overflow-hidden">
@@ -32,9 +43,15 @@
 
 			<h1
 				id={headingId}
-				class="mt-4 text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl lg:text-5xl"
+				class="mt-4 text-3xl font-black tracking-tight text-balance sm:text-4xl lg:text-5xl"
 			>
-				{channel.heroTitle}
+				{#each titleSegments as seg, segmentIndex (seg.text + String(seg.highlight))}
+					{#if seg.highlight}
+						<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+					{:else}
+						<span class={heroTheme.titleSegmentClass(segmentIndex, titleSegments)}>{seg.text}</span>
+					{/if}
+				{/each}
 			</h1>
 
 			<p class="mt-6 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">

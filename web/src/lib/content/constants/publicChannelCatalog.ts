@@ -6,6 +6,7 @@ import type { PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
 
 export type PublicChannelFeatureSection = {
 	subtitle: string;
+	/** Comma-separated lines; each part gets landing-page gradient styling (see FEATURE_*_TITLE in config). */
 	title: string;
 	description: string;
 	/** Optional demo asset under `/landing/` or `/static/`. */
@@ -63,7 +64,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 	featureSections: [
 		{
 			subtitle: 'Bulk scheduling',
-			title: 'Queue Facebook posts and Reels in advance',
+			title: 'Queue Facebook posts, schedule Reels in bulk, weeks ahead',
 			description:
 				'Schedule feed posts, carousels, and MP4 Reels onto the calendar for days or weeks ahead. OpenQuok keeps your Page active without last-minute scrambles — whether you compose by hand or pipe drafts in from an agent.',
 			bentoId: 'facebook-bulk-scheduling',
@@ -71,7 +72,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 		},
 		{
 			subtitle: 'Video & links',
-			title: 'Publish Reels from MP4 and link previews',
+			title: 'Publish Reels from MP4, link previews effortlessly, in one composer',
 			description:
 				'Attach a single MP4 and OpenQuok publishes it to your Page through Meta’s video endpoint — the same path Facebook uses to surface Reels. Add an optional URL on text posts for link-preview cards; photos and video posts use the media you attach.',
 			bentoId: 'facebook-video-links',
@@ -79,7 +80,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 		},
 		{
 			subtitle: 'Insights',
-			title: 'See what resonates on your Page',
+			title: 'See what resonates on your Page, track engagement insights, and scale correctly',
 			description:
 				'Track post-level impressions, reactions, and clicks — plus Page-level video views — from connected Facebook Pages inside OpenQuok analytics, so you can schedule more of what already works.',
 			imageSrc: '/landing/5-analytics.mp4',
@@ -158,7 +159,7 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 	featureSections: [
 		{
 			subtitle: 'Stay consistent',
-			title: 'Plan a week of Threads in minutes',
+			title: 'Plan a week of Threads, schedule posts effortlessly, in minutes',
 			description:
 				'Use the content calendar to line up Threads posts ahead of time. Batch drafts, pick publish times, and keep your profile active without daily manual posting.',
 			imageSrc: '/landing/2-calendar-filters.mp4',
@@ -167,7 +168,7 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 		},
 		{
 			subtitle: 'Automate safely',
-			title: 'Let agents draft — you approve',
+			title: 'Let agents draft, you approve confidently, before it goes live',
 			description:
 				'Pipe Threads drafts from Cursor, Claude, or your own backend via the public API. Workspaces isolate context so automation stays focused per brand or client.',
 			imageSrc: '/landing/3-kanban-filters.mp4',
@@ -176,7 +177,7 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 		},
 		{
 			subtitle: 'Measure',
-			title: 'Track Threads performance in one place',
+			title: 'Track Threads performance, see engagement insights, in one place',
 			description:
 				'See engagement metrics for connected Threads accounts alongside your other channels — no tab hopping between Meta apps and spreadsheets.',
 			imageSrc: '/landing/5-analytics.mp4',
@@ -239,7 +240,7 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 	featureSections: [
 		{
 			subtitle: 'Both login paths',
-			title: 'Business or Standalone — one scheduler',
+			title: 'Business or Standalone login, one Instagram scheduler, minimal setup',
 			description:
 				'Use Instagram Business when your account is linked to a Facebook Page, or Instagram Standalone when you authenticate directly with Instagram Login. OpenQuok supports both connection flows.',
 			imageSrc: '/landing/2-calendar-filters.mp4',
@@ -248,7 +249,7 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 		},
 		{
 			subtitle: 'Compose with control',
-			title: 'Per-post settings where Instagram needs them',
+			title: 'Per-post Instagram settings, compose with control, efficiently',
 			description:
 				'Tune provider settings at publish time — captions, media, and Instagram-specific options — whether you post from the composer or send payloads through the API.',
 			imageSrc: '/landing/4-file-manager.mp4',
@@ -257,7 +258,7 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 		},
 		{
 			subtitle: 'Scale',
-			title: 'Multi-workspace Instagram for agencies',
+			title: 'Multi-workspace Instagram, scale for agencies, without mixing clients',
 			description:
 				'Separate client or brand Instagram accounts into dedicated workspaces. Invite teammates, connect multiple Instagram channels, and keep automation context isolated.',
 			imageSrc: '/landing/5-analytics.mp4',

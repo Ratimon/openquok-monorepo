@@ -66,10 +66,12 @@
 	<div class="relative isolate z-10 w-full overflow-hidden">
 		<div class="relative z-10 w-full px-6 py-16 sm:py-20">
 			<div class="mx-auto max-w-7xl">
-				<div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+				<div class="grid gap-10 lg:grid-cols-2 lg:gap-16 {leftMedia ? 'items-stretch' : 'items-center'}">
 					<div class="relative order-2 flex justify-center lg:order-1 lg:justify-start">
 						<div
-							class="relative w-full {leftMedia ? 'max-w-2xl' : 'max-w-lg'}"
+							class="relative w-full {leftMedia ? 'max-w-2xl' : 'max-w-lg'} {leftMedia
+								? 'h-full'
+								: ''}"
 						>
 							{#if leftMedia}
 								{@render leftMedia()}
@@ -88,7 +90,11 @@
 						</div>
 					</div>
 
-					<div class="order-1 space-y-6 text-center lg:order-2 lg:text-left">
+					<div
+						class="order-1 space-y-6 text-center lg:order-2 lg:text-left {leftMedia
+							? 'flex h-full flex-col justify-center'
+							: ''}"
+					>
 						{#if landingSubtitle}
 							<p class={heroTheme.subtitleClass}>
 								{landingSubtitle}

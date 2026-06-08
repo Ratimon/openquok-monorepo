@@ -20,6 +20,17 @@
 	let scheduledLocal = $state(FACEBOOK_LANDING_MOCK_SCHEDULED_LOCAL);
 	const providerSettings = { facebook: { url: FACEBOOK_LANDING_MOCK_LINK_URL } };
 
+	const previewMetaLabel = $derived.by(() => {
+		const ms = Date.parse(scheduledLocal);
+		if (!Number.isFinite(ms)) return null;
+		return new Date(ms).toLocaleString(undefined, {
+			month: 'short',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit'
+		});
+	});
+
 	function noop() {}
 </script>
 
@@ -84,6 +95,7 @@
 					channel={FACEBOOK_LANDING_MOCK_CHANNEL}
 					previewText={FACEBOOK_LANDING_MOCK_LINK_BODY}
 					maximumCharacters={63_206}
+					{previewMetaLabel}
 				/>
 			</div>
 		</div>
