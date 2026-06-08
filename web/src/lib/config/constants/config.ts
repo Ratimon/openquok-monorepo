@@ -9,7 +9,7 @@ const publicBlogPath = route(getRootPathPublicBlog());
 const publicChannelsPath = route(getRootPathPublicChannels());
 const publicDocsPath = route(getRootPathPublicDocs());
 
-const appName = 'Openquok';
+const appName = 'openquok';
 const appTitle = 'Openquok | Agentic Social Media Scheduler';
 const appDescription =
 	'Draft, review, and schedule social posts from AI agents across platforms and workspaces—stay in control of what goes live.';
@@ -91,7 +91,7 @@ export const CONFIG_SCHEMA_COMPANY: ModuleConfigSchema = {
 	SUPPORT_EMAIL: {
 		description: 'Support contact email (used by legal pages).',
 		type: 'string',
-		default: 'support@openquok.com',
+		default: 'admin@openquok.com',
 		inputType: 'input',
 		maxInputLength: 160
 	},

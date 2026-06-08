@@ -33,7 +33,7 @@ Restart the web dev server or rebuild the web app so the updated PWA metadata is
 
 ```json
 {
-  "appName": "Openquok",
+  "appName": "openquok",
   "appTitle": "Openquok",
   "appDescription": "An agentic Social Scheduler Tool",
   "themeColor": "#34A7D6",

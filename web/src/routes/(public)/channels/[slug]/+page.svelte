@@ -5,6 +5,7 @@
 
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
+	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
 	import PublicChannelHero from '$lib/ui/components/channels/PublicChannelHero.svelte';
@@ -35,6 +36,13 @@
 		heroTheme={landingHeroTheme}
 		ctaText={secondaryCtaText}
 		ctaHref={secondaryCtaHref}
+	/>
+
+	<WhoIsFor
+		heroTheme={landingHeroTheme}
+		landingSubtitle={channelVm.audienceSubtitle}
+		landingTitle={channelVm.audienceTitle}
+		cards={channelVm.audienceCards}
 	/>
 
 	{#each channelVm.featureSections as section, index (index)}

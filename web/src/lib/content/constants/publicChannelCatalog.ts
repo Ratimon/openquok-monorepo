@@ -3,6 +3,7 @@ import { icons } from '$data/icons';
 
 import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBento';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
+import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
 export type PublicChannelFeatureSection = {
 	subtitle: string;
@@ -30,6 +31,9 @@ export type PublicChannelLandingPage = {
 	metaDescription: string;
 	keywords: string[];
 	featureSections: PublicChannelFeatureSection[];
+	audienceSubtitle: string;
+	audienceTitle: string;
+	audienceCards: AudienceCard[];
 	faqSubtitle: string;
 	faqTitle: string;
 	faqDescription: string;
@@ -85,6 +89,34 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 				'Track post-level impressions, reactions, and clicks — plus Page-level video views — from connected Facebook Pages inside OpenQuok analytics, so you can schedule more of what already works.',
 			bentoId: 'facebook-insights',
 			mediaOnRight: true
+		}
+	],
+	audienceSubtitle: 'Built for Facebook Pages',
+	audienceTitle: 'Who schedules Facebook with OpenQuok?',
+	audienceCards: [
+		{
+			iconName: icons.CustomizedDrawnHouse.name,
+			iconClass: 'text-rose-400',
+			title: 'Page owners',
+			description:
+				'Schedule feed posts, photos, and MP4 Reels on your Facebook Page without living in Meta Business Suite. Queue content on the calendar and publish through the official Graph API.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnLaptop.name,
+			iconClass: 'text-lime-400',
+			title: 'Marketing teams',
+			description:
+				'Batch weeks of Page content, keep link previews and Reels on one schedule, and review everything before it goes live — from the dashboard or your existing workflows.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnRobot.name,
+			iconClass: 'text-emerald-400',
+			title: 'Agencies',
+			description:
+				'Manage multiple client Facebook Pages in separate workspaces. Connect each Page once, schedule at scale, and track Page insights without mixing brands.',
+			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
 	faqSubtitle: 'Frequently asked questions',
@@ -184,6 +216,34 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 			mediaOnRight: true
 		}
 	],
+	audienceSubtitle: 'Built for Meta Threads',
+	audienceTitle: 'Who schedules Threads with OpenQuok?',
+	audienceCards: [
+		{
+			iconName: icons.CustomizedDrawnHouse.name,
+			iconClass: 'text-rose-400',
+			title: 'Creators & founders',
+			description:
+				'Stay consistent on Threads without daily manual posting. Line up text and media posts on the calendar and keep your profile active while you focus on building.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnLaptop.name,
+			iconClass: 'text-lime-400',
+			title: 'Social managers',
+			description:
+				'Plan a week of Threads in one sitting. Batch drafts, pick publish times, and track engagement alongside your other channels in one workspace.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnRobot.name,
+			iconClass: 'text-emerald-400',
+			title: 'Developers & agents',
+			description:
+				'Pipe Threads drafts from Cursor, Claude, or your backend via the API and CLI. Automate composition while you keep approval control before anything publishes.',
+			containerClass: 'h-full min-h-[18rem]'
+		}
+	],
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Threads scheduling, answered',
 	faqDescription: 'Setup, scheduling, and automation questions for Meta Threads on OpenQuok.',
@@ -265,6 +325,34 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 			mediaOnRight: true
 		}
 	],
+	audienceSubtitle: 'Built for Instagram Business & Standalone',
+	audienceTitle: 'Who schedules Instagram with OpenQuok?',
+	audienceCards: [
+		{
+			iconName: icons.CustomizedDrawnHouse.name,
+			iconClass: 'text-rose-400',
+			title: 'Brands & creators',
+			description:
+				'Connect via Facebook-linked Business login or Instagram Standalone, then schedule feed posts from one calendar — whichever path matches how your account is set up in Meta.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnLaptop.name,
+			iconClass: 'text-lime-400',
+			title: 'E-commerce teams',
+			description:
+				'Queue product launches, seasonal campaigns, and evergreen feed posts ahead of time. Tune Instagram-specific settings at publish without juggling multiple tools.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnRobot.name,
+			iconClass: 'text-emerald-400',
+			title: 'Agencies',
+			description:
+				'Separate client Instagram accounts into dedicated workspaces. Invite teammates, connect multiple profiles, and keep automation context isolated per brand.',
+			containerClass: 'h-full min-h-[18rem]'
+		}
+	],
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Instagram scheduling, answered',
 	faqDescription:
@@ -313,6 +401,9 @@ const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [
 		metaDescription: 'LinkedIn scheduling on OpenQuok — coming soon.',
 		keywords: ['LinkedIn post scheduler'],
 		featureSections: [],
+		audienceSubtitle: '',
+		audienceTitle: '',
+		audienceCards: [],
 		faqSubtitle: '',
 		faqTitle: '',
 		faqDescription: '',
@@ -331,6 +422,9 @@ const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [
 		metaDescription: 'TikTok scheduling on OpenQuok — coming soon.',
 		keywords: ['TikTok post scheduler'],
 		featureSections: [],
+		audienceSubtitle: '',
+		audienceTitle: '',
+		audienceCards: [],
 		faqSubtitle: '',
 		faqTitle: '',
 		faqDescription: '',
@@ -349,6 +443,9 @@ const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [
 		metaDescription: 'YouTube scheduling on OpenQuok — coming soon.',
 		keywords: ['YouTube post scheduler'],
 		featureSections: [],
+		audienceSubtitle: '',
+		audienceTitle: '',
+		audienceCards: [],
 		faqSubtitle: '',
 		faqTitle: '',
 		faqDescription: '',
@@ -367,6 +464,9 @@ const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [
 		metaDescription: 'X scheduling on OpenQuok — coming soon.',
 		keywords: ['X post scheduler', 'Twitter scheduler'],
 		featureSections: [],
+		audienceSubtitle: '',
+		audienceTitle: '',
+		audienceCards: [],
 		faqSubtitle: '',
 		faqTitle: '',
 		faqDescription: '',
