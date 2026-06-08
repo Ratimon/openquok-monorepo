@@ -18,7 +18,6 @@
 		navbarMobileLinks?: Link[];
 		footerNavigationLinks?: Record<string, { label: string; href: string }[]>;
 		companyNameVm: string;
-		companyUrlVm?: string;
 		companyYearVm: string;
 		marketingInformationVm: Record<string, string>;
 	}
@@ -31,7 +30,6 @@
 		navbarMobileLinks: propNavbarMobileLinks,
 		footerNavigationLinks: propFooterNavigationLinks,
 		companyNameVm,
-		companyUrlVm = '',
 		companyYearVm,
 		marketingInformationVm
 	}: Props = $props();
@@ -55,7 +53,6 @@
 	<Footer
 		{footerNavigationLinks}
 		{companyNameVm}
-		{companyUrlVm}
 		{companyYearVm}
 		{marketingInformationVm}
 	/>

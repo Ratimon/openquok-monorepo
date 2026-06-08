@@ -35,7 +35,6 @@
 				class="prose max-w-none items-start text-justify text-base-content prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-base-content prose-h2:mt-8 prose-h2:mb-3 prose-h2:text-xl prose-p:leading-relaxed prose-p:mb-4 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-li:marker:text-base-content/60"
 			>
 			<p>
-				<strong>{companyName}</strong> is the legal business name of the operator of this website.
 				Welcome to {companyName}. By using our website and services, these Terms of Service
 				(&quot;Terms&quot;) govern your access to and use of our website, services, and
 				related tools (collectively, the &quot;Services&quot;). By accessing or using our

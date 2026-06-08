@@ -1,7 +1,6 @@
 import { openGraphForPublicPage, type MetaTagsProps } from '$lib/utils/createMetaData';
 import { publicInformationRepository } from '$lib/area-public/index';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { getCompanyNameFromPm } from '$lib/config/utils/getCompanyDisplayNames';
 
 export const ssr = true;
 
@@ -13,7 +12,8 @@ export async function load({ url, cookies, fetch }) {
 		await publicInformationRepository.getAllInformationCombined(fetch);
 
 	const companyConfig = companyInformationPm?.config as Record<string, string> | undefined;
-	const companyName = getCompanyNameFromPm(companyInformationPm);
+	const companyName =
+		companyConfig?.NAME ?? (CONFIG_SCHEMA_COMPANY.NAME.default as string);
 	const companyUrl =
 		companyConfig?.URL ?? (CONFIG_SCHEMA_COMPANY.URL.default as string);
 	const supportEmail =

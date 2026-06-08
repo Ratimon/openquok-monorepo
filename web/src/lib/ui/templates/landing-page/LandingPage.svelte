@@ -6,7 +6,6 @@
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
 
 	import AnimatedBeamMultipleAgent from '$lib/ui/templates/landing-page/AnimatedBeamMultipleAgent.svelte';
-	import HeroCompany from '$lib/ui/templates/landing-page/HeroCompany.svelte';
 	import HeroDemo from '$lib/ui/templates/landing-page/HeroDemo.svelte';
 	import HeroMain from '$lib/ui/templates/landing-page/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
@@ -22,17 +21,13 @@
 		publicFaqConfigVm?: Record<string, string>;
 		publicFaqItemsVm?: PublicFaqItem[];
 		isLoggedIn?: boolean;
-		companyNameVm?: string;
-		companyUrlVm?: string;
 	};
 
 	let {
 		landingPageConfigVm = {},
 		publicFaqConfigVm = {},
 		publicFaqItemsVm = [],
-		isLoggedIn = false,
-		companyNameVm = '',
-		companyUrlVm = ''
+		isLoggedIn = false
 	}: Props = $props();
 
 	const heroTitle = $derived(
@@ -172,15 +167,6 @@
 			String(CONFIG_SCHEMA_LANDING_PAGE.FAQ_DESCRIPTION.default)
 	);
 
-	const companySubtitle = $derived(
-		landingPageConfigVm.COMPANY_SUBTITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.COMPANY_SUBTITLE.default)
-	);
-	const companyDescription = $derived(
-		landingPageConfigVm.COMPANY_DESCRIPTION ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.COMPANY_DESCRIPTION.default)
-	);
-
 	const secondaryCtaText = 'Get Started For Free';
 	const secondaryCtaHref = '/pricing';
 	const pricingCtaHref = $derived(isLoggedIn ? '/account/billing' : '/sign-up');
@@ -215,16 +201,6 @@
 
 
 </script>
-
-{#if companyNameVm}
-	<HeroCompany
-		heroTheme={landingHeroTheme}
-		{companyNameVm}
-		{companyUrlVm}
-		landingSubtitle={companySubtitle}
-		landingDescription={companyDescription}
-	/>
-{/if}
 
 <HeroMain
 	{heroTitle}

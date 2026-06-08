@@ -22,9 +22,6 @@
 	let companyNameVm = $derived(
 		data?.companyNameVm ?? page.data?.companyNameVm ?? publicLayoutPagePresenter.companyNameVm ?? 'Openquok'
 	);
-	let companyUrlVm = $derived(
-		data?.companyUrlVm ?? page.data?.companyUrlVm ?? publicLayoutPagePresenter.companyUrlVm ?? ''
-	);
 	let companyYearVm = $derived(
 		data?.companyYearVm ?? page.data?.companyYearVm ?? publicLayoutPagePresenter.companyYearVm ?? new Date().getFullYear().toString()
 	);
@@ -52,7 +49,6 @@
 	{navbarMobileLinks}
 	{footerNavigationLinks}
 	companyNameVm={companyNameVm}
-	companyUrlVm={companyUrlVm}
 	companyYearVm={companyYearVm}
 	marketingInformationVm={marketingInformationVm}
 >

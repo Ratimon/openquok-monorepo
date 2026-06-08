@@ -29,12 +29,6 @@
 			publicLayoutPagePresenter.companyNameVm ??
 			'Openquok'
 	);
-	let companyUrlVm = $derived(
-		(data as App.LayoutData)?.companyUrlVm ??
-			(page.data as App.LayoutData)?.companyUrlVm ??
-			publicLayoutPagePresenter.companyUrlVm ??
-			''
-	);
 	let companyYearVm = $derived(
 		(data as App.LayoutData)?.companyYearVm ??
 			(page.data as App.LayoutData)?.companyYearVm ??
@@ -72,7 +66,6 @@
 	{isLoggedIn}
 	accountNavEnabled={accountNavEnabled}
 	companyNameVm={companyNameVm}
-	companyUrlVm={companyUrlVm}
 	companyYearVm={companyYearVm}
 	marketingInformationVm={marketingInformationVm}
 	{navbarDesktopLinks}

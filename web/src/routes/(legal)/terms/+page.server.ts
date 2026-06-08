@@ -2,7 +2,7 @@ import type { MetaTagsProps } from '$lib/utils/createMetaData';
 
 import { openGraphForPublicPage } from '$lib/utils/createMetaData';
 import { publicInformationRepository } from '$lib/area-public/index';
-import { getCompanyNameFromPm } from '$lib/config/utils/getCompanyDisplayNames';
+import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 
 export const ssr = true;
 
@@ -13,7 +13,9 @@ export async function load({ url, cookies, fetch }) {
 	const { companyInformation: companyInformationPm } =
 		await publicInformationRepository.getAllInformationCombined(fetch);
 
-	const companyName = getCompanyNameFromPm(companyInformationPm);
+	const companyConfig = companyInformationPm?.config as Record<string, string> | undefined;
+	const companyName =
+		companyConfig?.NAME ?? (CONFIG_SCHEMA_COMPANY.NAME.default as string);
 
 	const title = 'Terms & Conditions';
 	const description =

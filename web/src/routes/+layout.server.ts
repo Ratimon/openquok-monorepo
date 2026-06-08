@@ -32,7 +32,7 @@ export async function load({ url, cookies, fetch }) {
 		canonical: new URL(url.pathname, url.origin).href
 	}) satisfies MetaTagsProps;
 
-	const companyProperties = ['FOUNDING_YEAR', 'NAME', 'LEGAL_NAME', 'URL'];
+	const companyProperties = ['FOUNDING_YEAR', 'NAME'];
 	const marketingProperties = [
 		'SOCIAL_LINKS_X',
 		'SOCIAL_LINKS_FACEBOOK',
@@ -41,7 +41,6 @@ export async function load({ url, cookies, fetch }) {
 	];
 
 	let companyNameVm: string | null = null;
-	let companyUrlVm: string | null = null;
 	let companyYearVm: string | null = null;
 	let marketingInformationVm: Record<string, string> | null = null;
 
@@ -58,7 +57,6 @@ export async function load({ url, cookies, fetch }) {
 		);
 		
 		companyNameVm = footerInfo.companyNameVm;
-		companyUrlVm = footerInfo.companyUrlVm;
 		companyYearVm = footerInfo.companyYearVm;
 		marketingInformationVm = footerInfo.marketingInformationVm;
 	} catch (error) {
@@ -71,7 +69,6 @@ export async function load({ url, cookies, fetch }) {
 		marketingInformationPm,
 		isLoggedIn,
 		companyNameVm,
-		companyUrlVm,
 		companyYearVm,
 		marketingInformationVm
 	};

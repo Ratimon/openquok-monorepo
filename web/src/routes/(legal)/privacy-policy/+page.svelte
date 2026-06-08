@@ -39,9 +39,6 @@
 				class="prose max-w-none items-start text-justify text-base-content prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-base-content prose-h2:mt-8 prose-h2:mb-3 prose-h2:text-xl prose-h3:mt-6 prose-h3:mb-2 prose-h3:text-lg prose-h4:mt-5 prose-h4:mb-2 prose-h4:text-base prose-p:leading-relaxed prose-p:mb-4 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-li:marker:text-base-content/60"
 			>
 				<p>
-					<strong>{companyName}</strong> is the legal business name of the operator of this website.
-				</p>
-				<p>
 					This Privacy Policy describes how <strong>{companyName}</strong> (“we”, “us”) collects,
 					uses, stores, and shares personal information when you use our websites and services
 					(including scheduling and social integrations), accessible at

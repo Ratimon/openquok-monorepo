@@ -3,7 +3,8 @@
 
 	import { page } from '$app/state';
 	import { generalFeedbackPresenter } from '$lib/feedbacks';
-	import { url } from '$lib/utils/path';
+
+	import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 
 	import FeedbackDialog from '$lib/ui/components/feedback/FeedbackDialog.svelte';
 
@@ -12,22 +13,20 @@
 	} & PageData;
 
 	let { data }: Props = $props();
-	let { isLoggedIn, companyName, companyUrl, supportEmail } = $derived(data);
+	let { isLoggedIn } = $derived(data);
 
 	let feedbackStatus = $derived(generalFeedbackPresenter.status);
 	let feedbackToastMessage = $derived(generalFeedbackPresenter.toastMessage);
+	/** Page URL where the user is sending feedback from (sent to API). */
 	let feedbackPageUrl = $derived(page.url.href);
-	let supportContactHref = $derived(
-		supportEmail.includes('@') ? `mailto:${supportEmail}` : supportEmail
-	);
 
 	async function handleCreateFeedback(
 		feedbackType: 'propose' | 'report' | 'feedback',
-		feedbackUrl: string,
+		url: string,
 		description: string,
 		email: string
 	) {
-		return generalFeedbackPresenter.createFeedback(feedbackType, feedbackUrl, description, email);
+		return generalFeedbackPresenter.createFeedback(feedbackType, url, description, email);
 	}
 
 	function handleResetFeedback() {
@@ -35,41 +34,28 @@
 	}
 </script>
 
-<section class="px-4 py-8 text-center">
-	<div class="mx-auto max-w-lg">
-		<img
-			class="mx-auto h-24 w-24"
-			src={url('/pwa/favicon.svg')}
-			alt="{companyName} logo"
-			width={96}
-			height={96}
-		/>
-
-		<h1 class="mt-8 text-3xl font-black tracking-tight">About {companyName}</h1>
-
-		<p class="mt-4 text-base text-base-content/80">
-			<strong class="text-base-content">{companyName}</strong> is the legal business name of the
-			company behind this website.
+<section class="py-2 px-4 text-center">
+	<div class="max-w-auto md:max-w-lg mx-auto">
+		<p class="!text-2xl flex justify-center space-x-2 font-black my-8">
+			About {page.data.companyName || CONFIG_SCHEMA_COMPANY.NAME.default}
 		</p>
 
-		<p class="mt-6 text-lg font-medium text-base-content/90">
-			We are an engineering and product focused team building agentic social media scheduling
-			tools.
+		<p class="!text-xl flex justify-center space-x-2 my-8">
+			We are engineering and product focused team
 		</p>
-
-		{#if companyUrl}
-			<p class="mt-6 text-sm text-base-content/70">
-				Website:
-				<a href={companyUrl} class="link link-hover text-base-content/90">{companyUrl}</a>
-			</p>
-		{/if}
 
 		<p class="mt-6 text-secondary">
 			Contact us at
-			<a class="link link-hover" href={supportContactHref} target="_blank" rel="noreferrer">
-				{supportEmail}
-			</a>
+			<a
+				class="underline"
+				href={'mailto:' + (page.data.supportEmail || CONFIG_SCHEMA_COMPANY.SUPPORT_EMAIL.default)}
+				target="_blank"
+				rel="noreferrer"
+				>{page.data.supportEmail || CONFIG_SCHEMA_COMPANY.SUPPORT_EMAIL.default}</a
+			>
 		</p>
+
+		<!-- to do : add testimonials -->
 	</div>
 
 	<FeedbackDialog

@@ -192,7 +192,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description:
 			'Headline for the product demo video section (comma separates accent phrase; "in action" is highlighted)',
 		type: 'string',
-		default: 'See openquok, in action',
+		default: 'See OpenQuok, in action',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -401,22 +401,6 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the landing FAQ section',
 		type: 'string',
 		default: 'Common questions and answers. Contact us if you need more help.',
-		inputType: 'textarea',
-		maxInputLength: 300
-	},
-	COMPANY_SUBTITLE: {
-		description: 'Tag above the company section on the landing page',
-		type: 'string',
-		default: 'Our company',
-		inputType: 'input',
-		maxInputLength: 60
-	},
-	COMPANY_DESCRIPTION: {
-		description:
-			'Support copy for the company section (the legal business name from company settings is shown as the headline)',
-		type: 'string',
-		default:
-			'We build agentic social media scheduling tools so teams can review AI drafts and publish with confidence. This website is operated by our registered legal business name.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
