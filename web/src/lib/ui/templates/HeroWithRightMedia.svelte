@@ -139,7 +139,9 @@
 							: 'justify-center lg:justify-end'}"
 					>
 						<div
-							class="relative w-full max-w-lg {rightMedia ? 'flex h-full items-stretch' : ''}"
+							class="relative w-full {rightMedia ? 'max-w-2xl' : 'max-w-lg'} {rightMedia
+								? 'flex h-full items-stretch'
+								: ''}"
 						>
 							{#if rightMedia}
 								{@render rightMedia()}

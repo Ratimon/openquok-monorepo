@@ -9,6 +9,8 @@
 		mediaUrls?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
+		/** When set (e.g. scheduled publish time), replaces the default "Just now" label. */
+		previewMetaLabel?: string | null;
 	};
 </script>
 
@@ -25,9 +27,11 @@
 		maximumCharacters = 63_206,
 		mediaUrls = [],
 		threadReplies = [],
-		threadFinisher = null
+		threadFinisher = null,
+		previewMetaLabel = null
 	}: FacebookPreviewProps = $props();
 
+	const timeLabel = $derived(previewMetaLabel?.trim() || 'Just now');
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
 </script>
@@ -43,7 +47,7 @@
 		<div class="min-w-0 flex-1">
 			<div class="truncate text-[15px] font-semibold leading-5">{channel.name || 'Page name'}</div>
 			<div class="flex items-center gap-1 text-xs text-[#B0B3B8]">
-				<span>Just now</span>
+				<span>{timeLabel}</span>
 				<span aria-hidden="true">·</span>
 				<AbstractIcon name={icons.Globe.name} class="size-3" width="12" height="12" />
 			</div>

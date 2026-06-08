@@ -1,6 +1,7 @@
 import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
+import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBento';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
 
 export type PublicChannelFeatureSection = {
@@ -10,6 +11,8 @@ export type PublicChannelFeatureSection = {
 	/** Optional demo asset under `/landing/` or `/static/`. */
 	imageSrc?: string;
 	imageAlt?: string;
+	/** Interactive bento showcase (takes precedence over `imageSrc`). */
+	bentoId?: PublicChannelFeatureBentoId;
 	/** When true, media renders on the right; otherwise on the left. */
 	mediaOnRight?: boolean;
 };
@@ -63,17 +66,15 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 			title: 'Queue Facebook posts and Reels in advance',
 			description:
 				'Schedule feed posts, carousels, and MP4 Reels onto the calendar for days or weeks ahead. OpenQuok keeps your Page active without last-minute scrambles — whether you compose by hand or pipe drafts in from an agent.',
-			imageSrc: '/landing/2-calendar-filters.mp4',
-			imageAlt: 'Calendar view for scheduling Facebook Page posts and Reels',
+			bentoId: 'facebook-bulk-scheduling',
 			mediaOnRight: true
 		},
 		{
 			subtitle: 'Video & links',
-			title: 'Publish Reels from MP4 and link previews from one composer',
+			title: 'Publish Reels from MP4 and link previews',
 			description:
 				'Attach a single MP4 and OpenQuok publishes it to your Page through Meta’s video endpoint — the same path Facebook uses to surface Reels. Add an optional URL on text posts for link-preview cards; photos and video posts use the media you attach.',
-			imageSrc: '/landing/3-kanban-filters.mp4',
-			imageAlt: 'Composer for Facebook Page posts, link previews, and Reels',
+			bentoId: 'facebook-video-links',
 			mediaOnRight: false
 		},
 		{

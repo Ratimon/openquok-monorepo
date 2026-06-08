@@ -72,6 +72,7 @@
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}
+		{previewMetaLabel}
 	/>
 {:else}
 	<GeneralPreviewComponent

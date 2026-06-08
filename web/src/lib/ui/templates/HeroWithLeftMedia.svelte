@@ -24,8 +24,9 @@
 		landingTitle: string;
 		landingDescription: string;
 
-		imageSrc: string;
+		imageSrc?: string;
 		imageAlt?: string;
+		leftMedia?: Snippet;
 
 		ctaText?: string;
 		ctaHref?: string;
@@ -43,6 +44,7 @@
 
 		imageSrc,
 		imageAlt = '',
+		leftMedia,
 
 		ctaText = 'Get Started For Free',
 		ctaHref = '/pricing',
@@ -66,17 +68,23 @@
 			<div class="mx-auto max-w-7xl">
 				<div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
 					<div class="relative order-2 flex justify-center lg:order-1 lg:justify-start">
-						<div class="relative w-full max-w-lg">
-							<VideoOrImage
-								src={imageSrc}
-								autoplay={true}
-								fit="none"
-								imageClass={heroTheme.imageClass}
-								videoClass={heroTheme.imageClass}
-								alt={imageAlt}
-								loading="lazy"
-								decoding="async"
-							/>
+						<div
+							class="relative w-full {leftMedia ? 'max-w-2xl' : 'max-w-lg'}"
+						>
+							{#if leftMedia}
+								{@render leftMedia()}
+							{:else if imageSrc}
+								<VideoOrImage
+									src={imageSrc}
+									autoplay={true}
+									fit="none"
+									imageClass={heroTheme.imageClass}
+									videoClass={heroTheme.imageClass}
+									alt={imageAlt}
+									loading="lazy"
+									decoding="async"
+								/>
+							{/if}
 						</div>
 					</div>
 

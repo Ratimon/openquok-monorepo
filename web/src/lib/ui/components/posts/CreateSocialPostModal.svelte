@@ -9,9 +9,9 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AddEditModal from './AddEditModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
-	import Deletemodal from '../../modals/DeleteModal.svelte';
-	import ManageModal from './ManageModal.svelte';
-	import SaveSetNameDialog from './SaveSetNameDialog.svelte';
+	import Deletemodal from '$lib/ui/modals/DeleteModal.svelte';
+	import ManageModal from '$lib/ui/components/posts/ManageModal.svelte';
+	import SaveSetNameDialog from '$lib/ui/components/posts/SaveSetNameDialog.svelte';
 
 	interface CreateSocialPostModalProps {
 		open?: boolean;

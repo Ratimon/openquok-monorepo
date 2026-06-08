@@ -1,5 +1,5 @@
 <script lang="ts">
-	import 'emoji-picker-element';
+	import { browser } from '$app/environment';
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -13,14 +13,24 @@
 	let { textarea = null, disabled = false, class: className = '' }: Props = $props();
 
 	let open = $state(false);
+	let pickerReady = $state(false);
 	let rootEl = $state.raw<HTMLDivElement | null>(null);
+
+	async function ensurePickerLoaded() {
+		if (!browser || pickerReady) return;
+		await import('emoji-picker-element');
+		pickerReady = true;
+	}
 
 	function close() {
 		open = false;
 	}
 
-	function onToggle() {
+	async function onToggle() {
 		if (disabled) return;
+		if (!open) {
+			await ensurePickerLoaded();
+		}
 		open = !open;
 		if (!open) textarea?.focus();
 	}
@@ -87,7 +97,13 @@
 			role="dialog"
 			aria-label="Emoji picker"
 		>
-			<emoji-picker onemoji-click={onEmojiClick}></emoji-picker>
+			{#if pickerReady}
+				<emoji-picker onemoji-click={onEmojiClick}></emoji-picker>
+			{:else}
+				<div class="flex h-[380px] w-[340px] items-center justify-center text-sm text-base-content/50">
+					Loading…
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

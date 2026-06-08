@@ -6,6 +6,7 @@
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
 	import PublicChannelHero from '$lib/ui/components/channels/PublicChannelHero.svelte';
 
 	type Props = { data: PageData };
@@ -82,14 +83,20 @@
 	/>
 
 	{#each channelVm.featureSections as section, index (index)}
+		{#snippet sectionBento()}
+			{#if section.bentoId}
+				<BentoPublicChannelFeature bentoId={section.bentoId} />
+			{/if}
+		{/snippet}
 		{#if section.mediaOnRight !== false}
 			<HeroWithRightMedia
 				heroTheme={landingHeroTheme}
 				landingSubtitle={section.subtitle}
 				landingTitle={section.title}
 				landingDescription={section.description}
-				imageSrc={section.imageSrc}
+				imageSrc={section.bentoId ? undefined : section.imageSrc}
 				imageAlt={section.imageAlt}
+				rightMedia={section.bentoId ? sectionBento : undefined}
 				showCta={false}
 				ctaText={secondaryCtaText}
 				ctaHref={secondaryCtaHref}
@@ -101,8 +108,9 @@
 				landingSubtitle={section.subtitle}
 				landingTitle={section.title}
 				landingDescription={section.description}
-				imageSrc={section.imageSrc ?? ''}
+				imageSrc={section.bentoId ? undefined : section.imageSrc}
 				imageAlt={section.imageAlt}
+				leftMedia={section.bentoId ? sectionBento : undefined}
 				showCta={false}
 				ctaText={secondaryCtaText}
 				ctaHref={secondaryCtaHref}

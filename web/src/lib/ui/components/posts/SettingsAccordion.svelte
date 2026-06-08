@@ -39,9 +39,18 @@
 		value?: Partial<ProviderSettings>;
 		onChange: (next: Partial<ProviderSettings>) => void;
 		disabled?: boolean;
+		/** When true, render the open panel inline (for landing previews) instead of a fixed overlay. */
+		embedded?: boolean;
 	};
 
-	let { open = $bindable(false), channel, value = {}, onChange, disabled = false }: Props = $props();
+	let {
+		open = $bindable(false),
+		channel,
+		value = {},
+		onChange,
+		disabled = false,
+		embedded = false
+	}: Props = $props();
 
 	const identifier = $derived((channel.identifier ?? '').toLowerCase());
 	const title = $derived(`${channel.name} Settings`);
@@ -140,71 +149,91 @@
 	});
 </script>
 
-<!-- Trigger bar (inline). When opened, we render a full overlay panel. -->
-<Accordion.Root class="w-full">
-	<Accordion.Item bind:open class="rounded-lg overflow-hidden border border-base-300">
-		<Accordion.Trigger
-			class="bg-[#5b2dd6] text-white flex w-full items-center justify-between px-4 py-3 text-sm font-semibold"
-		>
-			<span class="inline-flex items-center gap-2">
-				<AbstractIcon name={icons.Cog.name} class="size-4" width="16" height="16" />
-				{title}
-			</span>
-			<AbstractIcon name={open ? icons.ChevronUp.name : icons.ChevronDown.name} class="size-4" width="16" height="16" />
-		</Accordion.Trigger>
-	</Accordion.Item>
-</Accordion.Root>
-
-{#if open}
-	<!-- Backdrop covers the whole modal context (and beyond), like original. -->
-	<div class="fixed inset-0 z-[1000] bg-black/75" onclick={() => (open = false)} aria-hidden="true"></div>
-
-	<!-- Panel: full-height, top-aligned, dark enough to hide underlying UI. -->
-	<div class="fixed inset-0 z-[1001] flex items-start justify-center p-4 sm:p-6">
-		<div class="bg-base-100 w-full max-w-[min(100vw-2rem,980px)] rounded-xl overflow-hidden shadow-2xl">
-			<div class="bg-[#5b2dd6] text-white flex items-center justify-between px-4 py-3 text-sm font-semibold">
+<!-- Trigger bar (inline). When opened, we render a full overlay panel (or embedded panel). -->
+{#if !(embedded && open)}
+	<Accordion.Root class="w-full">
+		<Accordion.Item bind:open class="rounded-lg overflow-hidden border border-base-300">
+			<Accordion.Trigger
+				class="bg-[#5b2dd6] text-white flex w-full items-center justify-between px-4 py-3 text-sm font-semibold"
+			>
 				<span class="inline-flex items-center gap-2">
 					<AbstractIcon name={icons.Cog.name} class="size-4" width="16" height="16" />
 					{title}
 				</span>
-				<button
-					type="button"
-					class="hover:bg-white/10 rounded-md p-2 outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-					onclick={() => (open = false)}
-					aria-label="Close settings"
-				>
-					<AbstractIcon name={icons.X2.name} class="size-5" width="20" height="20" />
-				</button>
+				<AbstractIcon name={open ? icons.ChevronUp.name : icons.ChevronDown.name} class="size-4" width="16" height="16" />
+			</Accordion.Trigger>
+		</Accordion.Item>
+	</Accordion.Root>
+{/if}
+
+{#snippet settingsPanelBody()}
+	{#if identifier === 'threads'}
+		<ThreadFinisher
+			bind:enabled={threadsEnabled}
+			bind:message={threadsMessage}
+			{disabled}
+		/>
+		<SameAccountEngagementPlug
+			bind:enabled={igPlugEnabled}
+			bind:delaySeconds={igPlugDelaySeconds}
+			bind:message={igPlugMessage}
+			{disabled}
+		/>
+	{:else if identifier.startsWith('instagram')}
+		<InstagramCollaborators
+			bind:postType={igPostType}
+			bind:collaborators={igCollaborators}
+			bind:trialReel={igTrialReel}
+			bind:graduationStrategy={igGraduationStrategy}
+		/>
+	{:else if identifier === 'facebook'}
+		<FacebookSettings bind:url={fbUrl} />
+	{:else}
+		<p class="text-sm text-base-content/60">No settings available for this provider yet.</p>
+	{/if}
+{/snippet}
+
+{#if open}
+	{#if embedded}
+		<div class="bg-base-100 w-full overflow-hidden rounded-xl border border-base-300 shadow-lg">
+			<div class="bg-[#5b2dd6] flex items-center justify-between px-4 py-3 text-sm font-semibold text-white">
+				<span class="inline-flex items-center gap-2">
+					<AbstractIcon name={icons.Cog.name} class="size-4" width="16" height="16" />
+					{title}
+				</span>
 			</div>
 
-			<div class="max-h-[calc(100vh-8rem)] overflow-y-auto p-4 sm:p-6">
-				{#if identifier === 'threads'}
-					<ThreadFinisher
-						bind:enabled={threadsEnabled}
-						bind:message={threadsMessage}
-						disabled={disabled}
-					/>
-					<SameAccountEngagementPlug
-						bind:enabled={igPlugEnabled}
-						bind:delaySeconds={igPlugDelaySeconds}
-						bind:message={igPlugMessage}
-						disabled={disabled}
-					/>
-				{:else if identifier.startsWith('instagram')}
-					<InstagramCollaborators
-						bind:postType={igPostType}
-						bind:collaborators={igCollaborators}
-						bind:trialReel={igTrialReel}
-						bind:graduationStrategy={igGraduationStrategy}
-					/>
-				{:else if identifier === 'facebook'}
-					<FacebookSettings bind:url={fbUrl} />
-				{:else}
-					<p class="text-sm text-base-content/60">
-						No settings available for this provider yet.</p>
-				{/if}
+			<div class="p-4 sm:p-6">
+				{@render settingsPanelBody()}
 			</div>
 		</div>
-	</div>
+	{:else}
+		<!-- Backdrop covers the whole modal context (and beyond), like original. -->
+		<div class="fixed inset-0 z-[1000] bg-black/75" onclick={() => (open = false)} aria-hidden="true"></div>
+
+		<!-- Panel: full-height, top-aligned, dark enough to hide underlying UI. -->
+		<div class="fixed inset-0 z-[1001] flex items-start justify-center p-4 sm:p-6">
+			<div class="bg-base-100 w-full max-w-[min(100vw-2rem,980px)] overflow-hidden rounded-xl shadow-2xl">
+				<div class="bg-[#5b2dd6] flex items-center justify-between px-4 py-3 text-sm font-semibold text-white">
+					<span class="inline-flex items-center gap-2">
+						<AbstractIcon name={icons.Cog.name} class="size-4" width="16" height="16" />
+						{title}
+					</span>
+					<button
+						type="button"
+						class="rounded-md p-2 outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/60"
+						onclick={() => (open = false)}
+						aria-label="Close settings"
+					>
+						<AbstractIcon name={icons.X2.name} class="size-5" width="20" height="20" />
+					</button>
+				</div>
+
+				<div class="max-h-[calc(100vh-8rem)] overflow-y-auto p-4 sm:p-6">
+					{@render settingsPanelBody()}
+				</div>
+			</div>
+		</div>
+	{/if}
 {/if}
 
