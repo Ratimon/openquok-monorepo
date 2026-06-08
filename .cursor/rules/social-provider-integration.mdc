@@ -1,5 +1,5 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + public SEO landing page
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + public SEO landing page + feature bento showcases
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
@@ -13,6 +13,8 @@ globs:
   - web/src/content/docs/social-integration/**
   - web/src/content/docs/cli-examples/**
   - web/src/content/constants/publicChannelCatalog.ts
+  - web/src/content/constants/publicChannelFeatureBento.ts
+  - web/src/lib/ui/templates/bento/**
   - web/src/lib/area-public/constants/getRootPathPublicChannels.ts
   - web/src/routes/(public)/channels/**
   - web/src/lib/ui/templates/PublicChannelLandingPage.svelte
@@ -24,7 +26,7 @@ alwaysApply: false
 
 # Adding a social provider
 
-Ship **backend + web + docs + public channel landing page** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing references: **facebook**, **threads**, **instagram** in `publicChannelCatalog.ts`. Full guide: `web/src/content/docs/social-integration/add-provider.md`.
+Ship **backend + web + docs + public channel landing page + feature bento showcases** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelCatalog.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Full guide: `web/src/content/docs/social-integration/add-provider.md`.
 
 ## Identifier contract
 
@@ -78,14 +80,45 @@ Add a constant in `publicChannelCatalog.ts` and append it to `PUBLIC_CHANNEL_LAN
 | `icon` | `icons.{Provider}.name` from `$data/icons` |
 | `heroTitle`, `heroDescription` | Platform-specific H1 and lead copy |
 | `metaTitle`, `metaDescription`, `keywords` | SEO; title becomes `{metaTitle} \| {companyName}` on the page |
-| `featureSections` | **3 sections** typical: subtitle, title, description, optional `imageSrc` under `/landing/`, `imageAlt`, `mediaOnRight` (alternate left/right) |
+| `featureSections` | **3 sections** typical: subtitle, title, description, `bentoId` (preferred), `mediaOnRight` (alternate left/right). See **Feature bento showcases** below — do **not** ship go-live pages with generic `/landing/*.mp4` placeholders when the provider has a bento set. |
 | `faqSubtitle`, `faqTitle`, `faqDescription`, `faqItems` | Channel-specific FAQ; JSON-LD `FAQPage` is generated in `+page.server.ts` |
 | `docsPath` | Setup guide path, e.g. `/docs/social-integration/{id}` — must match the doc you ship |
 | `available` | `true` when the detail page should be live; `false` for hub-only “Coming soon” |
 
 **Coming soon (provider not ready):** add a minimal stub in `COMING_SOON_CHANNELS` with `available: false`, empty hero/FAQ/feature arrays, and a short `metaDescription`. Hub shows a badge; `/channels/{slug}` returns 404.
 
-**Go live:** replace the stub with a full entry (or flip `available: true` and fill content). Reuse landing demo assets (`/landing/*.mp4`) where they fit.
+**Go live:** replace the stub with a full entry (or flip `available: true` and fill content). Ship **provider-specific bento showcases** for all three feature sections (see below). Copy must describe **only features already implemented** — do not oversell.
+
+### Feature bento showcases (required at go-live)
+
+Each live `/channels/{slug}` page renders three feature rows via `HeroWithLeftMedia` / `HeroWithRightMedia`. When `featureSections[].bentoId` is set, the route renders `BentoPublicChannelFeature` instead of a static video (`web/src/routes/(public)/channels/[slug]/+page.svelte`).
+
+**When adding or go-live-ing a provider, implement bento for all three feature sections** — same bar as composer preview and analytics wiring. Reference **facebook** and **threads**.
+
+| Layer | Path / action |
+| --- | --- |
+| Bento ID union | Add `{slug}-…` literals to `web/src/lib/content/constants/publicChannelFeatureBento.ts` |
+| Router component | Branch in `web/src/lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte` |
+| Catalog wiring | Set `bentoId` (not `imageSrc`) on each of the three `featureSections` in `publicChannelCatalog.ts` |
+| Mock data | `web/src/lib/ui/templates/bento/minor-templates/{slug}LandingMock.ts` (+ optional `{slug}LandingKanbanMock.ts`, `{slug}LandingAnalyticsMock.ts`) |
+| Preview panels | Reuse **real** product UI read-only: kanban (`KanbanBoardFilters` + `KanbanColumn`), composer (`PicksSocialsComponent`, `ShowAllProviders`, `SettingsAccordion` with `embedded`, provider settings), analytics (`RenderAnalyticsGrid` + metric seeds matching backend `analytics()`) |
+| Wrappers | `Bento{Provider}{Feature}.svelte` → `BentoCard` + `BentoGridOneCol` (mirror `BentoFacebookBulkScheduling.svelte`, `BentoThreadsMediaReplies.svelte`) |
+
+**Typical three-section themes** (pick what the provider actually ships):
+
+1. **Bulk scheduling** — kanban / calendar batching (`*-bulk-scheduling`).
+2. **Compose differentiator** — provider-specific composer or settings (`*-video-links`, `*-media-replies`, `{id}Settings` in `SettingsAccordion`, etc.).
+3. **Insights** — platform analytics dashboard (`*-insights`) when `SocialProvider.analytics()` is implemented; otherwise choose another shipped capability and still use a bento (do not fall back to generic MP4s at go-live).
+
+**Mock preview conventions:**
+
+- Outer wrapper: `pointer-events-none select-none`; pass `disabled={true}` / `noop` handlers so panels are visual-only.
+- Prefer `SettingsAccordion` with `embedded` and `open={true}` for settings previews (see `BentoFacebookSettingsPreview.svelte`, `BentoThreadsComposerPreview.svelte`).
+- Keep landing mocks **short**: `ThreadRepliesEditor` → `hideProviderHelp={true}`; nested editors → `compactEditor` / `SettingsAccordion` → `compactEditors`; limit mock reply rows to one when showing follow-ups.
+- Mock channel view models live beside previews (`CreateSocialPostChannelViewModel` with `identifier` matching the provider slug).
+- Feature copy (title, description, FAQ) must match what the bento demonstrates.
+
+**Do not** use competitor landing pages as a feature checklist; document only OpenQuok behavior.
 
 ### CTA (detail pages)
 
@@ -118,6 +151,7 @@ Follow **docs-conventions** and **source-project-neutrality** (no third-party re
 - Redirect URI in platform console matches `/integration/oauth/{identifier}` exactly.
 - `providerSettings` shape documented for CLI (`providerSettingsByIntegrationId`) and resolved in backend publish code.
 - Unit tests added/updated for non-trivial paths.
-- **`publicChannelCatalog`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state.
+- **`publicChannelCatalog`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **three `featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live.
+- **Feature bento:** IDs in `publicChannelFeatureBento.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
 - **Landing page:** hero + 3 feature sections + FAQ filled; CTAs are only `Get Started For Free` → `/pricing`.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).

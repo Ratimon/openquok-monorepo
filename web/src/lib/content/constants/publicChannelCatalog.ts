@@ -174,45 +174,43 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 	platformId: 'threads',
 	platformLabel: 'Threads',
 	icon: icons.Threads.name,
-	heroTitle: 'Threads scheduler built for agents and teams',
+	heroTitle: 'Schedule Threads posts, media, and reply chains you approve',
 	heroDescription:
-		'Draft, schedule, and publish Threads posts from one workspace. Connect Meta Threads, queue content on the calendar, and automate with the API while staying in control of what goes live.',
+		'Connect a Meta Threads profile, queue text and media on the calendar, schedule follow-up replies with delays, and publish through the official Meta API — from the dashboard, public API, or CLI.',
 	metaTitle: 'Threads Post Scheduler',
 	metaDescription:
-		'Schedule Threads posts with OpenQuok. Connect Meta Threads, queue text and media posts, and publish from the dashboard, API, or CLI.',
+		'Schedule Threads posts with OpenQuok. Connect Meta Threads, queue text and media, chain follow-up replies, and publish from the dashboard, API, or CLI.',
 	keywords: [
 		'Threads post scheduler',
 		'schedule Threads posts',
 		'Meta Threads scheduling',
 		'Threads content calendar',
-		'Threads API scheduler'
+		'Threads API scheduler',
+		'Threads reply scheduler'
 	],
 	featureSections: [
 		{
-			subtitle: 'Stay consistent',
-			title: 'Plan a week of Threads, schedule posts effortlessly, in minutes',
+			subtitle: 'Bulk scheduling',
+			title: 'Queue Threads posts, batch drafts on the calendar, weeks ahead',
 			description:
-				'Use the content calendar to line up Threads posts ahead of time. Batch drafts, pick publish times, and keep your profile active without daily manual posting.',
-			imageSrc: '/landing/2-calendar-filters.mp4',
-			imageAlt: 'Calendar for scheduling Threads posts',
+				'Schedule text and media posts onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
+			bentoId: 'threads-bulk-scheduling',
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Automate safely',
-			title: 'Let agents draft, you approve confidently, before it goes live',
+			subtitle: 'Media & replies',
+			title: 'Attach image or video, schedule follow-up replies, in one composer',
 			description:
-				'Pipe Threads drafts from Cursor, Claude, or your own backend via the public API. Workspaces isolate context so automation stays focused per brand or client.',
-			imageSrc: '/landing/3-kanban-filters.mp4',
-			imageAlt: 'Draft review for scheduled Threads content',
+				'Create post within Meta’s 500-character limit, attach a single image or video (or a multi-media carousel), and queue follow-up replies with per-reply delays before the thread goes live.',
+			bentoId: 'threads-media-replies',
 			mediaOnRight: false
 		},
 		{
-			subtitle: 'Measure',
-			title: 'Track Threads performance, see engagement insights, in one place',
+			subtitle: 'Insights',
+			title: 'See what resonates on Threads, track views and engagement, and iterate',
 			description:
-				'See engagement metrics for connected Threads accounts alongside your other channels — no tab hopping between Meta apps and spreadsheets.',
-			imageSrc: '/landing/5-analytics.mp4',
-			imageAlt: 'Threads analytics in OpenQuok',
+				'Track views, likes, replies, reposts, and quotes from connected Threads profiles inside OpenQuok analytics — so you can schedule more of what already works.',
+			bentoId: 'threads-insights',
 			mediaOnRight: true
 		}
 	],
@@ -224,7 +222,7 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 			iconClass: 'text-rose-400',
 			title: 'Creators & founders',
 			description:
-				'Stay consistent on Threads without daily manual posting. Line up text and media posts on the calendar and keep your profile active while you focus on building.',
+				'Stay consistent on Threads without daily manual posting. Queue text, images, and reply chains on the calendar while you focus on building.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -232,7 +230,7 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 			iconClass: 'text-lime-400',
 			title: 'Social managers',
 			description:
-				'Plan a week of Threads in one sitting. Batch drafts, pick publish times, and track engagement alongside your other channels in one workspace.',
+				'Batch a week of Threads in one sitting, review drafts before they publish, and track views and engagement alongside your other channels.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -240,13 +238,13 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 			iconClass: 'text-emerald-400',
 			title: 'Developers & agents',
 			description:
-				'Pipe Threads drafts from Cursor, Claude, or your backend via the API and CLI. Automate composition while you keep approval control before anything publishes.',
+				'Pipe Threads drafts from your backend via the public API or CLI — including follow-up replies under providerSettings — while you keep approval control in the dashboard.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Threads scheduling, answered',
-	faqDescription: 'Setup, scheduling, and automation questions for Meta Threads on OpenQuok.',
+	faqDescription: 'Setup, scheduling, media, replies, and automation questions for Meta Threads on OpenQuok.',
 	faqItems: [
 		{
 			title: 'How do I connect Threads to OpenQuok?',
@@ -254,19 +252,24 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 				'Create or open a workspace, choose Connect channel → Threads, and finish Meta OAuth. OpenQuok links the Threads profile to that workspace for scheduling and analytics.'
 		},
 		{
-			title: 'Can I schedule Threads posts with images or video?',
+			title: 'Can I schedule Threads posts with images, video, or carousels?',
 			description:
-				'Yes. Attach supported media when composing a Threads post in OpenQuok. Unsupported formats (such as SVG) are blocked early with a clear error before publish.'
+				'Yes. Attach one image or video, or multiple files for a carousel, when composing a Threads post in OpenQuok. Unsupported formats (such as SVG) are blocked early with a clear error before publish.'
+		},
+		{
+			title: 'Can I schedule a Threads reply chain in advance?',
+			description:
+				'Yes. Add follow-up replies in the composer (or pass threads.replies via the API or CLI). Each reply publishes from the same account after the delay you set once the main post goes live.'
 		},
 		{
 			title: 'Can I schedule Threads from the API or CLI?',
 			description:
-				'Yes. Use integration UUIDs from your workspace in the create-post API or CLI commands. Provider-specific settings can be passed under providerSettings when needed.'
+				'Yes. Use integration UUIDs from your workspace in the create-post API or CLI commands. Follow-up replies and other provider settings go under providerSettingsByIntegrationId when needed.'
 		},
 		{
-			title: 'Does OpenQuok support Threads reply plugs or delayed replies?',
+			title: 'Does OpenQuok respect the Threads 500-character limit?',
 			description:
-				'Threads supports post-compose plugs in OpenQuok where configured — for example delayed replies on the same thread. Check the integration settings in your workspace for available tools.'
+				'Yes. The composer shows the 500-character cap and the Threads provider trims overflow before publish. Check the preview so hooks and links fit before scheduling.'
 		},
 		{
 			title: 'Is Threads scheduling included in the free trial?',

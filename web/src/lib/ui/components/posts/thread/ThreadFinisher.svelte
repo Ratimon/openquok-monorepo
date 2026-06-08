@@ -7,15 +7,21 @@
 		enabled?: boolean;
 		message?: string;
 		disabled?: boolean;
+		compact?: boolean;
 	};
 
-	let { enabled = $bindable(false), message = $bindable("That's a wrap!"), disabled = false }: Props = $props();
+	let {
+		enabled = $bindable(false),
+		message = $bindable("That's a wrap!"),
+		disabled = false,
+		compact = false
+	}: Props = $props();
 
 	const softCharLimit = 500;
 	let charCount = $derived((message ?? '').length);
 </script>
 
-<div class="border-base-300 bg-base-200/20 rounded-lg border p-4">
+<div class="border-base-300 bg-base-200/20 rounded-lg border {compact ? 'p-3' : 'p-4'}">
 	<div class="flex items-center justify-between gap-3">
 		<div class="text-sm font-medium text-base-content/80">
 			Add a thread finisher
@@ -23,13 +29,14 @@
 		<Switch bind:checked={enabled} disabled={disabled} />
 	</div>
 
-	<div class="mt-4 {enabled ? '' : 'opacity-40 pointer-events-none'}">
+	<div class="{compact ? 'mt-2' : 'mt-4'} {enabled ? '' : 'opacity-40 pointer-events-none'}">
 		<EditorPost
 			charCount={charCount}
 			softCharLimit={softCharLimit}
 			bind:body={message}
 			busy={disabled}
 			comments={true}
+			{compact}
 		/>
 		<div class="mt-2 flex items-center justify-end">
 			<Button

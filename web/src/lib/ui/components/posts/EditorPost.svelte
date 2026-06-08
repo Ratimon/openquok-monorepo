@@ -51,6 +51,8 @@
 		maxMediaItems?: number | null;
 		/** When true, render in "comment" mode (no media; smaller UX). */
 		comments?: boolean;
+		/** Shorter textarea for landing previews and tight layouts. */
+		compact?: boolean;
 		scheduleValidationMessage?: string | null;
 		/** Blocks per-network customization UX while defining a reusable workspace set (global authoring only). */
 		setsAuthoringNetworkLock?: boolean;
@@ -85,6 +87,7 @@
 		focusedProviderIdentifier = null,
 		maxMediaItems = null,
 		comments = false,
+		compact = false,
 		scheduleValidationMessage = null,
 		setsAuthoringNetworkLock = false
 	}: EditorPostProps = $props();
@@ -128,6 +131,12 @@
 			);
 		}
 	}
+	const textareaRows = $derived(
+		compact ? (comments ? 2 : 4) : comments ? 5 : 8
+	);
+	const textareaMinHeightClass = $derived(
+		compact ? 'min-h-[4.5rem] sm:min-h-[4.5rem]' : 'min-h-[140px] sm:min-h-[180px]'
+	);
 </script>
 
 <div class="min-h-0 flex-1">
@@ -163,11 +172,11 @@
 			id="composer-body"
 			bind:this={composerTextarea}
 			bind:value={body}
-			rows={comments ? 5 : 8}
+			rows={textareaRows}
 			placeholder={comments ? 'Write a comment…' : 'Write something…'}
 			onpaste={onComposerPaste}
 			disabled={busy || locked || defineSetScopeOverlay}
-			class="border-base-300 bg-base-200 focus:border-primary focus:ring-primary/30 focus:ring-inset min-h-[140px] sm:min-h-[180px] max-h-[320px] w-full resize-none sm:resize-y rounded-lg border px-3 pt-2 text-sm text-base-content placeholder:text-base-content/40 focus:ring-2 focus:outline-none {locked
+			class="border-base-300 bg-base-200 focus:border-primary focus:ring-primary/30 focus:ring-inset {textareaMinHeightClass} max-h-[320px] w-full resize-none sm:resize-y rounded-lg border px-3 pt-2 text-sm text-base-content placeholder:text-base-content/40 focus:ring-2 focus:outline-none {locked
 				? 'pb-2'
 				: comments
 					? 'pb-2'

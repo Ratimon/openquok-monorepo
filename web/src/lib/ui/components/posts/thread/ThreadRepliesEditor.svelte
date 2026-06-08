@@ -24,6 +24,10 @@
 		onOpenPlugSettings?: () => void;
 		/** Called when replies are updated. */
 		onChangeReplies: (next: ThreadReplyViewModel[]) => void;
+		/** Hide provider timing help (e.g. landing bento previews). */
+		hideProviderHelp?: boolean;
+		/** Shorter reply editors for landing previews. */
+		compactEditor?: boolean;
 	};
 
 	let {
@@ -34,7 +38,9 @@
 		replies,
 		onAddReply,
 		onOpenPlugSettings = undefined,
-		onChangeReplies
+		onChangeReplies,
+		hideProviderHelp = false,
+		compactEditor = false
 	}: Props = $props();
 
 	const id = $derived((providerIdentifier ?? '').toLowerCase());
@@ -68,15 +74,15 @@
 			</div>
 		</div>
 
-		{#if id === 'threads'}
+		{#if id === 'threads' && !hideProviderHelp}
 			<p class="mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug text-base-content/75">
 				<span class="font-medium text-base-content/90">
 					Threads timing:
 				</span>
 				Each reply runs after your chosen delay; Meta may take a few seconds before the reply appears on the network.
-				The “≈” line uses your scheduled main post time plus your delays only (no extra fixed wait on our servers).
+				The “≈” line uses your scheduled main post time plus your delays only.
 			</p>
-		{:else if id.startsWith('instagram')}
+		{:else if id.startsWith('instagram') && !hideProviderHelp}
 			<p class="text-base-content/75 mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug">
 				<span class="text-base-content/90 font-medium">
 					Instagram:
@@ -94,10 +100,10 @@
 				Add follow-up comments to publish after the main post.
 			</p>
 		{:else}
-			<div class="mt-3 space-y-4">
+			<div class="{compactEditor ? 'mt-2 space-y-2' : 'mt-3 space-y-4'}">
 				{#each replies as reply, replyIndex (reply.id)}
-					<div class="rounded-lg border border-base-300 bg-base-200/20 p-3">
-						<div class="mb-3 flex items-center justify-between gap-3">
+					<div class="rounded-lg border border-base-300 bg-base-200/20 {compactEditor ? 'p-2' : 'p-3'}">
+					<div class="{compactEditor ? 'mb-2' : 'mb-3'} flex items-center justify-between gap-3">
 							<div class="text-xs font-semibold text-base-content/70">
 								Reply</div>
 							<button
@@ -114,11 +120,12 @@
 							charCount={(reply.message ?? '').length}
 							softCharLimit={500}
 							comments={true}
+							compact={compactEditor}
 							busy={disabled}
 							bind:body={reply.message}
 						/>
 
-						<div class="mt-3">
+						<div class="{compactEditor ? 'mt-2' : 'mt-3'}">
 							<Delay
 								disabled={disabled}
 								value={reply.delaySeconds}

@@ -9,26 +9,29 @@
 		delaySeconds?: number;
 		message?: string;
 		disabled?: boolean;
+		compact?: boolean;
 	};
 
 	let {
 		enabled = $bindable(false),
 		delaySeconds = $bindable(120),
 		message = $bindable(''),
-		disabled = false
+		disabled = false,
+		compact = false
 	}: Props = $props();
 
 	const softCharLimit = 500;
 	let charCount = $derived((message ?? '').length);
 </script>
 
-<div class="border-base-300 bg-base-200/30 mt-6 rounded-lg border p-4">
+<div class="border-base-300 bg-base-200/30 {compact ? 'mt-4' : 'mt-6'} rounded-lg border {compact ? 'p-3' : 'p-4'}">
 	<div class="flex items-center justify-between gap-3">
 		<div>
 			<div class="text-sm font-medium text-base-content/80">
-				Delayed engagement reply</div>
+				Delayed reply
+			</div>
 			<p class="mt-1 text-xs text-base-content/55">
-				Same Threads account — schedules one extra reply after your main post (internal plug).
+				Same account — schedules extra reply (internal plug).
 			</p>
 		</div>
 		<Switch bind:checked={enabled} disabled={disabled} />
@@ -57,6 +60,7 @@
 				bind:body={message}
 				busy={disabled}
 				comments={true}
+				{compact}
 			/>
 		</div>
 		<div class="flex justify-end">

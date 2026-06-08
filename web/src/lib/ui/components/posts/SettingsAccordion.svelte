@@ -41,6 +41,8 @@
 		disabled?: boolean;
 		/** When true, render the open panel inline (for landing previews) instead of a fixed overlay. */
 		embedded?: boolean;
+		/** Shorter nested editors for landing previews. */
+		compactEditors?: boolean;
 	};
 
 	let {
@@ -49,7 +51,8 @@
 		value = {},
 		onChange,
 		disabled = false,
-		embedded = false
+		embedded = false,
+		compactEditors = false
 	}: Props = $props();
 
 	const identifier = $derived((channel.identifier ?? '').toLowerCase());
@@ -172,12 +175,14 @@
 			bind:enabled={threadsEnabled}
 			bind:message={threadsMessage}
 			{disabled}
+			compact={compactEditors}
 		/>
 		<SameAccountEngagementPlug
 			bind:enabled={igPlugEnabled}
 			bind:delaySeconds={igPlugDelaySeconds}
 			bind:message={igPlugMessage}
 			{disabled}
+			compact={compactEditors}
 		/>
 	{:else if identifier.startsWith('instagram')}
 		<InstagramCollaborators

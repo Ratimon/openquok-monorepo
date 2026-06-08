@@ -472,7 +472,6 @@ export interface Link {
 	preload?: 'hover' | 'tap' | 'off' | 'intent';
 }
 
-
 export const PUBLIC_NAVBAR_LINKS: Link[] = [
 	{ pathname: publicDocsPath, title: 'Dev Docs', navType: 'tab' },
 	{ pathname: publicChannelsPath, title: 'Channels', navType: 'tab' },

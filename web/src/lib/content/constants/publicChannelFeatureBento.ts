@@ -2,4 +2,7 @@
 export type PublicChannelFeatureBentoId =
 	| 'facebook-bulk-scheduling'
 	| 'facebook-video-links'
-	| 'facebook-insights';
+	| 'facebook-insights'
+	| 'threads-bulk-scheduling'
+	| 'threads-media-replies'
+	| 'threads-insights';
