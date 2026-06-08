@@ -30,8 +30,8 @@ Published third-party walkthroughs for Facebook and Instagram often assume a dif
 | Instagram | Single <Badge text="/integrations/social/instagram" variant="path" /> redirect | Two identifiers: <Badge text="instagram-business" variant="default" /> and <Badge text="instagram-standalone" variant="default" /> — see <a href="/docs/social-integration/instagram">Instagram</a> |
 | Facebook scopes | Same Page permissions | Matches <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/facebook/facebookProvider.ts"><Badge text="backend/integrations/providers/facebook/facebookProvider.ts" variant="path" /></DocsExternalLink> |
 
-<Callout type="tip" title="Instagram vs Facebook on the same app">
-External Instagram guides focus on <Badge text="instagram_*" variant="default" /> scopes and Instagram Login products. This page adds **Page** scopes (<Badge text="pages_manage_posts" variant="default" />, etc.) and a **Facebook Page** redirect URI. You can register **both** redirect paths on one Meta app if you connect both channel types.
+<Callout type="tip" title="IG vs Facebook">
+External Instagram guides focus on <Badge text="instagram_*" variant="default" /> scopes and Instagram Login products. This page adds Page scopes (<Badge text="pages_manage_posts" variant="default" />, etc.) and a **Facebook Page** redirect URI. You can register **both** redirect paths on one Meta app if you connect both channel types.
 </Callout>
 
 ## Features
@@ -76,7 +76,7 @@ Meta redirects the browser to your **web app** after consent. Register this **ex
 https://YOUR-FRONTEND-DOMAIN/integration/oauth/facebook
 ```
 
-<Callout type="note" title="YOUR-FRONTEND-DOMAIN must match the backend env">
+<Callout type="note">
 <p>Substitute the hostname from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (scheme + host, no trailing slash). <code>www</code> and apex are different—register in Meta the same origin the API sends in <code>redirect_uri</code>. Align with <a href="/docs/configuration-backend">Configuration - Backend</a> and <a href="/docs/configuration-web/vite">Vite (SvelteKit)</a>.</p>
 </Callout>
 
@@ -154,12 +154,12 @@ In the Meta developer app, open the permissions area where you can request **adv
 
 ![Step 3 - Set permissions](/docs/social-integration/meta/set-permissions.webp)
 
-<Callout type="note" title="Dashboard differences">
+<Callout type="note">
 Meta reorganizes this screen from time to time. If a scope name differs slightly in the UI, align with <DocsExternalLink href="https://developers.facebook.com/docs/pages-api">Meta Pages API documentation</DocsExternalLink> and keep the list in sync with <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/facebook/facebookProvider.ts"><Badge text="backend/integrations/providers/facebook/facebookProvider.ts" variant="path" /></DocsExternalLink> for the canonical set in this repo.
 </Callout>
 
-<Callout type="note" title="Private / dev-only installs">
-For a personal or team-only install where every publisher is an app **Admin**, **Developer**, or **Tester**, Development mode is often enough without App Review. Production use for other people’s Pages requires **Live** mode and approved permissions.
+<Callout type="note" title="self-host">
+For a personal or team-only install where every publisher is an app Admin or Tester, Development mode is often enough without App Review. Production use for other people’s Pages requires **Live** mode and approved permissions.
 </Callout>
 
 
@@ -194,7 +194,7 @@ During OAuth, grant access to **all Pages** you manage. Openquok also queries Bu
 
 ## Related
 
-<Callout type="tip" title="Contributing a new provider">
+<Callout type="tip" title="Contributing">
 See <a href="/docs/social-integration/add-provider">Adding a social provider</a> for the full backend + web checklist used when implementing Facebook and future channels.
 </Callout>
 

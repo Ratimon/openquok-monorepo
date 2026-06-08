@@ -168,7 +168,8 @@
 		<section class="space-y-3">
 			<div class="flex flex-wrap items-center justify-between gap-3">
 				<h3 class="text-lg font-semibold text-base-content">
-					Targeted channels</h3>
+					Targeted channels
+				</h3>
 				<div class="flex flex-wrap items-center justify-end gap-2">
 					<ChannelKindFilter
 						channels={connectedChannelsVm}

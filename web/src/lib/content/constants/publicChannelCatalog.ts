@@ -83,8 +83,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 			title: 'See what resonates on your Page, track engagement insights, and scale correctly',
 			description:
 				'Track post-level impressions, reactions, and clicks — plus Page-level video views — from connected Facebook Pages inside OpenQuok analytics, so you can schedule more of what already works.',
-			imageSrc: '/landing/5-analytics.mp4',
-			imageAlt: 'Analytics dashboard for Facebook Page posts and Reels',
+			bentoId: 'facebook-insights',
 			mediaOnRight: true
 		}
 	],

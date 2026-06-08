@@ -163,7 +163,7 @@ In the Meta developer app, open the permissions area where you can request **adv
 
 ![Step 4 - Set Permissions](/docs/social-integration/meta/set-permissions.webp)
 
-<Callout type="note" title="Dashboard differences">
+<Callout type="note">
 Meta reorganizes this screen from time to time. If a scope name differs slightly in the UI, align with <DocsExternalLink href="https://developers.facebook.com/docs/instagram-api">Instagram Platform documentation</DocsExternalLink> and your app’s use case; keep the list in sync with <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/instagram/instagramBusinessProvider.ts"><Badge text="backend/integrations/providers/instagram/instagramBusinessProvider.ts" variant="path" /></DocsExternalLink> for the canonical set in this repo.
 </Callout>
 
