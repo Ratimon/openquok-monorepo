@@ -26,6 +26,9 @@
 	let companyNameVm = $derived(
 		data.companyNameVm ?? page.data.companyNameVm ?? publicLayoutPagePresenter.companyNameVm
 	);
+	let companyUrlVm = $derived(
+		data.companyUrlVm ?? page.data.companyUrlVm ?? publicLayoutPagePresenter.companyUrlVm
+	);
 	let companyYearVm = $derived(
 		data.companyYearVm ?? page.data.companyYearVm ?? publicLayoutPagePresenter.companyYearVm
 	);
@@ -71,6 +74,7 @@
 <PublicArea
 	{isLoggedIn}
 	{companyNameVm}
+	{companyUrlVm}
 	{companyYearVm}
 	{marketingInformationVm}
 	{navbarDesktopLinks}
@@ -82,5 +86,7 @@
 		{publicFaqConfigVm}
 		{publicFaqItemsVm}
 		{isLoggedIn}
+		{companyNameVm}
+		{companyUrlVm}
 	/>
 </PublicArea>

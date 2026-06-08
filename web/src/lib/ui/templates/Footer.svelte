@@ -6,11 +6,18 @@
 	type Props = {
 		footerNavigationLinks: Record<string, { label: string; href: string }[]>;
 		companyNameVm: string;
+		companyUrlVm?: string;
 		companyYearVm: string;
 		marketingInformationVm?: Record<string, string> | null;
 	};
 
-	let { footerNavigationLinks, companyNameVm, companyYearVm, marketingInformationVm }: Props = $props();
+	let {
+		footerNavigationLinks,
+		companyNameVm,
+		companyUrlVm = '',
+		companyYearVm,
+		marketingInformationVm
+	}: Props = $props();
 
 	let copyrightDuration = $derived(
 		companyYearVm === new Date().getFullYear().toString()
@@ -53,11 +60,17 @@
 		</div>
 
 		<div class="mt-8 w-full border-t border-base-300 py-4">
-			<div
-				class="mx-auto flex-wrap whitespace-nowrap text-center text-xs leading-5 text-base-content/80"
-			>
-				&copy; {copyrightDuration}
-				{companyNameVm}. All rights reserved.
+			<div class="mx-auto space-y-1 text-center text-xs leading-5 text-base-content/80">
+				<p>
+					&copy; {copyrightDuration}
+					{companyNameVm}. All rights reserved.
+				</p>
+				<p>
+					Legal business name: <strong class="text-base-content">{companyNameVm}</strong>
+					{#if companyUrlVm}
+						· <a href={companyUrlVm} class="link link-hover text-base-content/90">{companyUrlVm}</a>
+					{/if}
+				</p>
 			</div>
 		</div>
 	</div>

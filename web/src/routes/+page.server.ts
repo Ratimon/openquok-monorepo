@@ -11,6 +11,7 @@ import {
 	PUBLIC_NAVBAR_LINKS
 } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
+import { getCompanyNameFromPm, getCompanyUrlFromPm } from '$lib/config/utils/getCompanyDisplayNames';
 import { normalizeConfigStringValue } from '$lib/config/utils/normalizeConfigStringValue';
 import { createLandingDemoSEOSchema } from '$lib/content/utils/createLandingDemoSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
@@ -60,6 +61,8 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 
 	const companyName =
 		companyInformationPm?.config?.NAME ?? String(CONFIG_SCHEMA_COMPANY.NAME.default);
+	const companyLegalName = getCompanyNameFromPm(companyInformationPm);
+	const companyUrl = getCompanyUrlFromPm(companyInformationPm);
 	const heroTitleRaw =
 		landingPageConfigVm.HERO_TITLE ?? landingDefaults.HERO_TITLE ?? String(CONFIG_SCHEMA_MARKETING.META_TITLE.default);
 	const heroDescription =
@@ -98,11 +101,19 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		'@context': 'https://schema.org',
 		'@graph': [
 			{
+				'@type': 'Organization',
+				'@id': `${url.origin}/#organization`,
+				name: companyLegalName,
+				url: companyUrl,
+				logo: `${url.origin}/pwa/favicon.svg`
+			},
+			{
 				'@type': 'WebSite',
 				'@id': `${url.origin}/#website`,
 				name: companyName,
 				url: url.origin,
 				description: heroDescription,
+				publisher: { '@id': `${url.origin}/#organization` },
 				potentialAction: {
 					'@type': 'SearchAction',
 					target: `${url.origin}/blog?q={search_term_string}`,
