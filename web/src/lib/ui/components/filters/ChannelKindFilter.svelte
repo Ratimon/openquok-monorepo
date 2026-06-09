@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ChannelViewModel, SocialPlatformFilterVm } from '$lib/posts';
+	import type { IconName } from '$data/icons';
 
 	import { socialProviderDisplayLabel, socialProviderIcon } from '$data/social-providers';
 	import { icons } from '$data/icons';
@@ -11,9 +12,17 @@
 	type Props = SocialPlatformFilterVm & {
 		channels: ChannelViewModel[];
 		onChange: (next: SocialPlatformFilterVm) => void;
+		/** Defaults to {@link socialProviderIcon}. */
+		providerIcon?: (identifier: string) => IconName;
 	};
 
-	let { channels, allSocialPlatforms, selectedSocialPlatformIdentifiers, onChange }: Props = $props();
+	let {
+		channels,
+		allSocialPlatforms,
+		selectedSocialPlatformIdentifiers,
+		onChange,
+		providerIcon = socialProviderIcon
+	}: Props = $props();
 
 	let open = $state(false);
 
@@ -131,7 +140,7 @@
 				{#each selectedBadges as b (b.id)}
 					<Badge variant="secondary" class="rounded-full gap-1.5 pr-1">
 						<AbstractIcon
-							name={socialProviderIcon(b.id)}
+							name={providerIcon(b.id)}
 							class="size-3.5 shrink-0"
 							width="14"
 							height="14"
@@ -183,7 +192,7 @@
 						class="mt-0.5"
 					/>
 					<AbstractIcon
-						name={socialProviderIcon(p.id)}
+						name={providerIcon(p.id)}
 						class="size-4 shrink-0 text-base-content mt-0.5"
 						width="16"
 						height="16"

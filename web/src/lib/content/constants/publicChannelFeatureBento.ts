@@ -5,4 +5,7 @@ export type PublicChannelFeatureBentoId =
 	| 'facebook-insights'
 	| 'threads-bulk-scheduling'
 	| 'threads-media-replies'
-	| 'threads-insights';
+	| 'threads-insights'
+	| 'instagram-bulk-scheduling'
+	| 'instagram-compose-settings'
+	| 'instagram-insights';

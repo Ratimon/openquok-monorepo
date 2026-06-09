@@ -92,7 +92,7 @@ export function socialProviderEmoji(identifier: string): string {
 /** Integration catalog / channel `identifier` → AbstractIcon name. Single source for calendar, account, composer, docs overlap. */
 export const socialProviderIconByIdentifier: Record<string, IconName> = {
 	facebook: icons.Facebook.name,
-	instagram: icons.Instagram.name,
+	instagram: icons.InstagramGlyph.name,
 	'instagram-business': icons.Instagram.name,
 	'instagram-standalone': icons.InstagramGlyph.name,
 	youtube: icons.YouTube.name,

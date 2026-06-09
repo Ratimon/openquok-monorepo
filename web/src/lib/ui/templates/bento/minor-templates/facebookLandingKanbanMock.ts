@@ -84,6 +84,6 @@ export const FACEBOOK_LANDING_KANBAN_CARDS: PostKanbanCardViewModel[] = [
 		primaryChannelName: FACEBOOK_LANDING_MOCK_CHANNEL.name,
 		isAgentEdited: true,
 		isReviewed: true,
-		tagNames: ['agent-batch']
+		tagNames: ['kol-1']
 	}
 ];

@@ -28,7 +28,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'one place',
 	'interate',
 	'facebook',
-	'threads'
+	'threads',
+	'instagram'
 ] as const;
 
 const TITLE_PART_HIGHLIGHT_PHRASE = new RegExp(

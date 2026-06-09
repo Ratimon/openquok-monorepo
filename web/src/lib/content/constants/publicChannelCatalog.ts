@@ -296,45 +296,45 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 	platformId: 'instagram',
 	platformLabel: 'Instagram',
 	icon: icons.InstagramGlyph.name,
-	heroTitle: 'Instagram scheduler for Business and Standalone login',
+	heroTitle: 'Schedule Instagram feed posts, Reels, carousels, and Stories you approve',
 	heroDescription:
-		'Connect Instagram via Facebook-linked Business login or Instagram Standalone, schedule feed posts from the calendar or API, and manage both flows from the same OpenQuok workspace.',
-	metaTitle: 'Instagram Post Scheduler',
+		'Connect via Instagram or Facebook Business login, queue content on the OpenQuok calendar or through the public API, and tune per-post Instagram settings before publish.',
+	metaTitle: 'Instagram Post, Reel & Story Scheduler',
 	metaDescription:
-		'Schedule Instagram posts with OpenQuok. Support for Instagram Business (Facebook Login) and Instagram Standalone — calendar, API, and agent workflows.',
+		'Schedule Instagram feed posts, Reels, carousels, and Stories with OpenQuok. Business or Standalone login, calendar scheduling, per-post settings, follow-up comments, and analytics.',
 	keywords: [
 		'Instagram post scheduler',
 		'schedule Instagram posts',
+		'Instagram Reel scheduler',
+		'Instagram Story scheduler',
+		'Instagram carousel scheduler',
 		'Instagram Business scheduling',
 		'Instagram content calendar',
 		'Instagram API scheduler'
 	],
 	featureSections: [
 		{
-			subtitle: 'Both login paths',
-			title: 'Business or Standalone login, one Instagram scheduler, minimal setup',
+			subtitle: 'Bulk scheduling',
+			title: 'Queue Instagram posts, batch Reels and carousels, weeks ahead',
 			description:
-				'Use Instagram Business when your account is linked to a Facebook Page, or Instagram Standalone when you authenticate directly with Instagram Login. OpenQuok supports both connection flows.',
-			imageSrc: '/landing/2-calendar-filters.mp4',
-			imageAlt: 'Scheduling Instagram posts on the OpenQuok calendar',
+				'Schedule photo, carousels, MP4 Reels, and Stories onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
+			bentoId: 'instagram-bulk-scheduling',
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Compose with control',
-			title: 'Per-post Instagram settings, compose with control, efficiently',
+			subtitle: 'Compose & settings',
+			title: 'Automate trial Reels, follow-up comments and collaborators tags, and more, in one place',
 			description:
-				'Tune provider settings at publish time — captions, media, and Instagram-specific options — whether you post from the composer or send payloads through the API.',
-			imageSrc: '/landing/4-file-manager.mp4',
-			imageAlt: 'Media library for Instagram post assets',
+				'Switch between feed/Reel and Story, tag up to three collaborators on single-media posts, enable Trial Reels, and queue text-only follow-up comments — from the composer or via providerSettings in the API.',
+			bentoId: 'instagram-compose-settings',
 			mediaOnRight: false
 		},
 		{
-			subtitle: 'Scale',
-			title: 'Multi-workspace Instagram, scale for agencies, without mixing clients',
+			subtitle: 'Insights',
+			title: 'See what resonates on Instagram, track reach and engagement, and iterate',
 			description:
-				'Separate client or brand Instagram accounts into dedicated workspaces. Invite teammates, connect multiple Instagram channels, and keep automation context isolated.',
-			imageSrc: '/landing/5-analytics.mp4',
-			imageAlt: 'Instagram analytics alongside other channels',
+				'Track reach, views, likes, saves, and comments from connected Instagram accounts inside OpenQuok analytics — so you can schedule more of what already works.',
+			bentoId: 'instagram-insights',
 			mediaOnRight: true
 		}
 	],
@@ -346,7 +346,7 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 			iconClass: 'text-rose-400',
 			title: 'Brands & creators',
 			description:
-				'Connect via Facebook-linked Business login or Instagram Standalone, then schedule feed posts from one calendar — whichever path matches how your account is set up in Meta.',
+				'Queue feed posts, Reels, and Stories from one calendar — whether you connect via Facebook-linked Business login or Instagram Standalone.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -354,27 +354,27 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 			iconClass: 'text-lime-400',
 			title: 'E-commerce teams',
 			description:
-				'Queue product launches, seasonal campaigns, and evergreen feed posts ahead of time. Tune Instagram-specific settings at publish without juggling multiple tools.',
+				'Batch product carousels and launch Reels ahead of time. Set post type, collaborators, and follow-up comments per post without leaving the composer.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.CustomizedDrawnRobot.name,
 			iconClass: 'text-emerald-400',
-			title: 'Agencies',
+			title: 'Agencies & developers',
 			description:
-				'Separate client Instagram accounts into dedicated workspaces. Invite teammates, connect multiple profiles, and keep automation context isolated per brand.',
+				'Separate client Instagram accounts into workspaces, schedule at scale from the dashboard or public API, and track per-account insights without mixing brands.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Instagram scheduling, answered',
 	faqDescription:
-		'Questions about Instagram Business vs Standalone, connecting accounts, and scheduling with OpenQuok.',
+		'Setup, post types, scheduling, and automation questions for Instagram on OpenQuok.',
 	faqItems: [
 		{
 			title: 'What is the difference between Instagram Business and Standalone in OpenQuok?',
 			description:
-				'Instagram Business uses Facebook Login and is suited to accounts linked to a Facebook Page. Instagram Standalone uses Instagram Login directly. Pick the integration that matches how your account is set up in Meta.'
+				'Instagram Business uses Facebook Login and is suited to accounts linked to a Facebook Page. Instagram Standalone uses Instagram Login directly. Both share the same publish pipeline — pick the integration that matches how your account is set up in Meta.'
 		},
 		{
 			title: 'How do I connect Instagram to OpenQuok?',
@@ -382,14 +382,34 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 				'In your workspace, choose Connect channel and select the Instagram integration that matches your account type. Complete OAuth, and if Business login requires a Page selection, pick the correct profile in the connect flow.'
 		},
 		{
-			title: 'Can I schedule Instagram posts from an AI agent?',
+			title: 'Can I schedule Instagram Reels, carousels, and Stories?',
 			description:
-				'Yes. After connecting Instagram, agents can call the public API with your workspace token. Use integration UUIDs in post payloads and providerSettings for per-account options.'
+				'Yes. Attach a single MP4 for a Reel, 2–10 images or videos for a carousel, or one attachment with post type set to Story. Captions can run up to 2,200 characters on feed posts and Reels.'
 		},
 		{
-			title: 'Can I connect more than one Instagram account?',
+			title: 'Does OpenQuok support Trial Reels and collaborators?',
 			description:
-				'Yes, within your plan’s channel limits. Each connected Instagram account counts as a channel. Use workspaces to separate brands or clients.'
+				'Yes. Enable Trial Reel on a single MP4 feed post and choose manual or performance-based graduation. Add up to three collaborator usernames on single-media feed or Reel posts — not on carousels or Stories.'
+		},
+		{
+			title: 'Can I schedule text follow-up comments on Instagram?',
+			description:
+				'Yes. Add follow-up comment rows in the composer (or pass instagram.replies via the API). Each comment publishes as text after the delay you set once the root post goes live.'
+		},
+		{
+			title: 'Can I schedule Instagram posts from an AI agent or script?',
+			description:
+				'Yes. After connecting Instagram, use the public API or CLI with your workspace token. Pass integration UUIDs, media attachments, and flat or nested providerSettings for post type, trial reel, and follow-up comments.'
+		},
+		{
+			title: 'Can I cross-post from Instagram to Threads and other channels?',
+			description:
+				'Yes. Create & compose once in OpenQuok and publish the same idea to Instagram, Threads, X, LinkedIn, TikTok, YouTube, and other connected channels from one workflow. Per-platform captions, aspect ratios, and character limits are applied separately, so each destination gets tailored copy from a single schedule.'
+		},
+		{
+			title: 'Does OpenQuok include an Instagram DM or comment inbox?',
+			description:
+				'Not today. OpenQuok schedules posts and scheduled text follow-up comments — not DM replies, keyword auto-replies, or Story link stickers.'
 		},
 		{
 			title: 'Where can I find setup steps for Meta app credentials?',
