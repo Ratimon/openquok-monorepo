@@ -54,6 +54,7 @@ export type IconName =
     | "Europe"
     | "Eye"
     | "Facebook"
+    | "FacebookGlyph"
     | "FileText"
     | "FileQuestionMark"
     | "FolderCode"
@@ -477,9 +478,14 @@ export const icons: Record<IconName, IconEntry> = {
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`
     },
-    /** CC0 — SVG Repo (#506656) on #1877F2 tile. Facebook is a trademark of Meta. */
     Facebook: {
         name: "Facebook",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`
+    },
+    /** CC0 — SVG Repo (#506656) on #1877F2 tile. Facebook is a trademark of Meta. */
+    FacebookGlyph: {
+        name: "FacebookGlyph",
         box: 32,
         fill: true,
         svg: `<rect width="32" height="32" rx="7" fill="#1877F2"/><path fill="#fff" d="M21.95 5.005l-3.306-.004c-3.206 0-5.277 2.124-5.277 5.415v2.495H10.05v4.515h3.317l-.004 9.575h4.641l.004-9.575h3.806l-.003-4.514h-3.803v-2.117c0-1.018.241-1.533 1.566-1.533l2.366-.001.01-4.256z"/>`

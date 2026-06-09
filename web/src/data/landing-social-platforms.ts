@@ -37,7 +37,7 @@ export const HERO_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 	},
 	{
 		id: 'facebook',
-		icon: icons.Facebook.name,
+		icon: icons.FacebookGlyph.name,
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
 	},
@@ -98,7 +98,7 @@ export const FEATURES_GRID_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 	},
 	{
 		id: 'facebook',
-		icon: icons.Facebook.name,
+		icon: icons.FacebookGlyph.name,
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
 	},

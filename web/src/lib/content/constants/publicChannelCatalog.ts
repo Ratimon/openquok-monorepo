@@ -49,7 +49,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 	slug: 'facebook',
 	platformId: 'facebook',
 	platformLabel: 'Facebook',
-	icon: icons.Facebook.name,
+	icon: icons.FacebookGlyph.name,
 	heroTitle: 'Schedule Facebook Page posts and Reels you approve',
 	heroDescription:
 		'Connect a Facebook Page, queue feed posts, photos, link previews, and MP4 Reels from the OpenQuok calendar or your AI agents, and publish through the official Meta API',

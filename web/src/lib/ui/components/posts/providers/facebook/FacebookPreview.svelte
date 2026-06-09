@@ -40,7 +40,7 @@
 	<div class="flex gap-3 p-4">
 		<IntegrationChannelPicture
 			profilePictureUrl={channel.picture}
-			fallbackIcon={icons.Facebook.name}
+			fallbackIcon={icons.FacebookGlyph.name}
 			alt={channel.name}
 			class="h-10 w-10 shrink-0 rounded-full bg-base-200 object-cover"
 		/>

@@ -10,7 +10,7 @@ export const facebookContinueConfig: ContinueProviderStepConfig = {
 		'No Facebook Pages were found. Grant Page access during OAuth or check Business Manager, then try again.',
 	successToast: 'Facebook Page connected.',
 	addedQueryProvider: 'facebook',
-	fallbackIcon: icons.Facebook.name,
+	fallbackIcon: icons.FacebookGlyph.name,
 	validateRow: () => null,
 	toSaveParams: (row) => ({ pageId: row.id, id: row.id })
 };

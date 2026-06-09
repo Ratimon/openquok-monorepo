@@ -62,7 +62,7 @@
 			</BeamCircle>
 			<BeamCircle class="size-14 sm:size-16">
 				<div bind:this={socialBottomRef} class="flex items-center justify-center">
-					<AbstractIcon name={icons.Facebook.name} width="24" height="24" />
+					<AbstractIcon name={icons.FacebookGlyph.name} width="24" height="24" />
 				</div>
 			</BeamCircle>
 		</div>
