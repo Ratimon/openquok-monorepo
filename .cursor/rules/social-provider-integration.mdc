@@ -20,6 +20,7 @@ globs:
   - web/src/lib/ui/templates/PublicChannelLandingPage.svelte
   - web/src/lib/ui/components/channels/PublicChannelHero.svelte
   - web/src/lib/ui/components/channels/PublicChannelsHubGrid.svelte
+  - agent/skills/openquok-core/SKILL.md
   - agent/skills/openquok-core/resources/**
 alwaysApply: false
 ---
@@ -140,10 +141,22 @@ Wire through `PublicChannelLandingPage.svelte` (`secondaryCtaText` / `secondaryC
 | Artifact | Path |
 | --- | --- |
 | Setup guide | `web/src/content/docs/social-integration/{id}.md` + `index.md` LinkCard |
-| CLI examples | `web/src/content/docs/cli-examples/{id}.md` |
-| Agent recipes | `agent/skills/openquok-core/resources/{id}-examples.md`, update `patterns.md` |
+| CLI examples (human docs) | `web/src/content/docs/cli-examples/{id}.md` |
+| Agent skill index | `agent/skills/openquok-core/SKILL.md` — add row under **Channels** with user-intent summary + link to `{id}-examples.md` |
+| Agent per-channel file | `agent/skills/openquok-core/resources/{id}-examples.md` (slug = `provider.identifier`; e.g. `facebook`, `threads`, `instagram-business`) |
+| Agent settings hub | `agent/skills/openquok-core/resources/provider-settings.md` — update when merge semantics or cross-channel setting patterns change |
+| Agent workflows | `agent/skills/openquok-core/resources/patterns.md`, `command-reference.md` |
 
-Follow **docs-conventions** and **source-project-neutrality** (no third-party repo names in code or docs).
+### Agent skill file (`resources/{id}-examples.md`)
+
+Required sections (see **agent-skill** rule): **Supported features**, **Agent tasks** (user intent → section), **Provider settings**, then **Recipes**. Document only shipped capabilities — align with backend publish helpers and composer settings the API persists (`providerSettingsByIntegrationId`), not marketing-only claims from the landing catalog.
+
+- **Flat CLI keys** where the backend resolver accepts them (e.g. Facebook `url`, Instagram `post_type`).
+- **Nested API buckets** the worker reads at publish time (e.g. `threads.replies`, `instagram.replies`) in `--providerSettingsByIntegrationId` examples.
+- **Do not** paste `publicChannelCatalog` hero/feature marketing prose into agent files; reuse the same facts in terse tables.
+- Optional: `{id}-publish.md` under `resources/` when agents need server-side publish/debug detail (pattern: `threads-publish.md`).
+
+Follow **docs-conventions**, **agent-skill**, and **source-project-neutrality** (no third-party repo names in code or docs).
 
 ## PR self-check
 
@@ -155,3 +168,4 @@ Follow **docs-conventions** and **source-project-neutrality** (no third-party re
 - **Feature bento:** IDs in `publicChannelFeatureBento.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
 - **Landing page:** hero + 3 feature sections + FAQ filled; CTAs are only `Get Started For Free` → `/pricing`.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
+- **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs.

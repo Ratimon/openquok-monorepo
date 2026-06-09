@@ -6,7 +6,7 @@
 
 Use the **dashboard** to review, schedule and approve with a clear path from draft to post. Fits naturally on top of AI tooling like **OpenClaw**. Forkable and self-hostable.
 
-Use the **`@openquok/auto-cli`**, CLI-first for AI agents and scripts, to give them the same scheduling surface to autonomously schedule posts, manage integrations, and upload media purely from the terminal.
+Use the **`@openquok/auto-cli`**, CLI-first for AI agents and scripts, to give them the same scheduling surface to autonomously schedule posts, manage integrations, and upload media from the terminal.
 
 
 ### Links
@@ -46,7 +46,9 @@ corepack enable
 - Stripe
 - Resend
 - Sentry
+- Posthog
 - Vercel
+- Railway
 
 ### Quick start
 

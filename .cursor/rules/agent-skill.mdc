@@ -8,17 +8,41 @@ alwaysApply: false
 
 ## Skill layout
 
-- **`SKILL.md`** — Hard rules, auth, core workflow, patterns, gotchas, quick reference. Keep it focused; link out instead of duplicating long examples.
-- **`resources/*.md`** — Deeper material agents can load on demand:
+- **`SKILL.md`** — Hard rules, auth, core workflow, pitfalls, quick reference. Keep it focused; link out instead of duplicating long examples. The **Channels (Meta)** table indexes per-platform files and summarizes user intents — do not paste feature matrices or long bash into `SKILL.md`.
+- **`resources/*.md`** — Deeper material agents load on demand:
   - `command-reference.md` — CLI commands, flags, env vars (not `agent/README.md`; skill install path has no sibling README).
+  - `provider-settings.md` — shared publish-time mechanics: `--settings` vs `--providerSettingsByIntegrationId`, merge order, flat vs nested API buckets, multi-`-c` behavior.
   - `patterns.md` — extended workflows (campaign JSON, batching, retries).
-  - `threads-examples.md`, `instagram-standalone-examples.md`, `instagram-business-examples.md` — platform-specific `posts:create` / integration examples.
+  - `{identifier}-examples.md` — per-channel agent docs (see **Per-channel example file** below). Today: `threads`, `facebook`, `instagram-standalone`, `instagram-business`.
   - `threads-publish.md` — server publish behavior summarized in markdown (never link to `.ts` / backend paths from the skill).
 - **`SKILL.md` tone** — imperative, short tables and bullets; no tutorial prose; shell-safety rules for untrusted input; defer command lists and long bash to `resources/`.
-- **CLI-only scope** — skill content is for agents using `openquok` and the public API. Do **not** document web UI, composer panels, preview behavior, or nested web-only setting shapes (e.g. `instagram.postType`). Use flat `--settings` / API keys (`post_type`, `is_trial_reel`, …) and `integrations:settings` output instead.
-- **Links:** Only reference markdown under this skill directory (or stable external URLs in the front matter). Do not link to monorepo source files (TypeScript, tests, etc.) from skill content; summarize behavior in a new `resources/*.md` file instead.
+
+## Per-channel example file (`resources/{identifier}-examples.md`)
+
+Each live Meta (or future) channel the CLI can post to should have one example file matching `provider.identifier`. Structure every file the same way so agents can map **user intent → recipe**:
+
+1. **Resolve integration** — `integrations:list` + `integrations:settings` one-liner at the top.
+2. **Supported features** — table: Feature | Supported | Notes — **only shipped behavior** (same bar as `publicChannelCatalog` FAQ/bento, but agent-actionable, not marketing copy).
+3. **Agent tasks** — table: “User wants to…” | “Do this” — link to anchored sections below (e.g. link preview, Reel, reply chain).
+4. **Provider settings** — table of publish keys (`--settings` / `providerSettingsByIntegrationId`), with precedence rules (e.g. Facebook `url` ignored when media attached).
+5. **Recipes** — short `bash` blocks per task; use `<integration-id>` placeholders; link to `provider-settings.md` once at the top.
+
+When adding or changing publish behavior for a channel, update **backend resolver + this file** together. Do not lift `publicChannelCatalog.ts` hero/feature prose into the skill — distill facts into the tables above.
+
+## CLI-only scope
+
+Skill content is for agents using `openquok` and the public API.
+
+- **Do** document flat API keys the backend accepts on create (`post_type`, `url`, `is_trial_reel`, …) and nested **orchestrator buckets** in `providerSettingsByIntegrationId` (`threads.replies`, `threads.internalEngagementPlug`, `instagram.replies`, `facebook.url` when nested).
+- **Do** run `integrations:settings` for `rules`, `maxLength`, and `tools`; note that typed publish schemas may live in channel example files until `settingsSchema()` exists on the provider.
+- **Do not** document web UI, composer panels, preview components, Payload Wizard UX, or web-only camelCase composer fields (e.g. `postType`, `trialReel`). Summarize server behavior in `resources/*.md` instead of linking monorepo source.
+
+## Links
+
+Only reference markdown under this skill directory (or stable external URLs in the front matter). Do not link to monorepo source files (TypeScript, tests, etc.) from skill content; summarize behavior in a new or existing `resources/*.md` file instead.
 
 ## Best practices
 
 - **Be concise** — instruct the model on what to do, not how to be an AI.
 - **Safety first** — if your skill uses exec, ensure prompts don't allow arbitrary command injection from untrusted input.
+- **Intent first** — when the user describes a feature (“schedule Threads follow-ups”, “Facebook link preview”), open the matching `{identifier}-examples.md` **Agent tasks** table before improvising flags.

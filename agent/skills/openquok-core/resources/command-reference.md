@@ -45,7 +45,7 @@ openquok integrations:settings <integration-uuid>
 openquok integrations:trigger <integration-uuid> <method-name> [--data '<json>' | -d '<json>']
 ```
 
-- `integrations:settings` — rules, `maxLength`, settings schema, allow-listed `tools` (`methodName`, `dataSchema`).
+- `integrations:settings` — rules, `maxLength`, settings schema, allow-listed `tools` (`methodName`, `dataSchema`). Publish-time keys per channel: [provider-settings.md](./provider-settings.md).
 - `integrations:trigger` — single allow-listed method; `--data` must be a JSON object when required.
 - New channels are connected in the web app; the CLI uses integration UUIDs from `integrations:list`.
 

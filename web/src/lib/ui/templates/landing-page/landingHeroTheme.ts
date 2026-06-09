@@ -22,9 +22,13 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'questions',
 	'bulk',
 	'agents',
-	'insights',
+	'approve',
 	'scale',
-	'facebook'
+	'track',
+	'one place',
+	'interate',
+	'facebook',
+	'threads'
 ] as const;
 
 const TITLE_PART_HIGHLIGHT_PHRASE = new RegExp(

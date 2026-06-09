@@ -134,8 +134,8 @@ openquok posts:create --json ./post.json
 ```
 
 - Flag-based create **requires** `-s` (ISO-8601) unless `--json` includes `scheduledAt`.
-- `--settings` merges into `providerSettingsByIntegrationId` for each `-i` UUID.
-- Repeated `-c` (+ optional `-m`, `-d` in **milliseconds**) builds threaded segments — see [resources/command-reference.md](./resources/command-reference.md#media-flags--m----media).
+- `--settings` merges into `providerSettingsByIntegrationId` for each `-i` UUID; per-UUID maps use `--providerSettingsByIntegrationId`. See [resources/provider-settings.md](./resources/provider-settings.md).
+- Repeated `-c` (+ optional `-m`, `-d` in **milliseconds**) can build follow-up segments — for Meta Threads/Instagram follow-ups prefer nested `threads` / `instagram` buckets in channel examples.
 
 Command surface: [resources/command-reference.md](./resources/command-reference.md).
 
@@ -143,14 +143,16 @@ Command surface: [resources/command-reference.md](./resources/command-reference.
 
 ## Channels (Meta)
 
-Run `integrations:settings` before platform-specific flags.
+Run `integrations:settings <uuid>` for `rules`, `maxLength`, and `tools`. Match the user’s goal to the **Agent tasks** table in each channel file; publish keys and recipes are there (not in `publicChannelCatalog` marketing copy).
 
-| Channel | `identifier` | Examples |
-|---------|----------------|----------|
-| Threads | `threads` | [threads-examples.md](./resources/threads-examples.md) |
-| Facebook Page | `facebook` | [facebook-examples.md](./resources/facebook-examples.md) |
-| Instagram Login | `instagram-standalone` | [instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) |
-| Instagram Page | `instagram-business` | [instagram-business-examples.md](./resources/instagram-business-examples.md) |
+Provider settings overview: [resources/provider-settings.md](./resources/provider-settings.md).
+
+| Channel | `identifier` | User intents (see file) | Examples |
+|---------|----------------|-------------------------|----------|
+| Threads | `threads` | text/media/carousel, reply chain, finisher, engagement plug, missing post | [threads-examples.md](./resources/threads-examples.md) |
+| Facebook Page | `facebook` | text, link preview, photo, carousel, Reel, comments | [facebook-examples.md](./resources/facebook-examples.md) |
+| Instagram Login | `instagram-standalone` | feed, carousel, Reel, Story, trial reel, comments | [instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) |
+| Instagram Page | `instagram-business` | same as standalone (Page-linked OAuth) | [instagram-business-examples.md](./resources/instagram-business-examples.md) |
 
 Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 

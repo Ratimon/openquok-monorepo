@@ -76,7 +76,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 		},
 		{
 			subtitle: 'Video & links',
-			title: 'Publish Reels from MP4, link previews effortlessly, in one composer',
+			title: 'Publish Reels from MP4, link previews effortlessly, in one place',
 			description:
 				'Attach a single MP4 and OpenQuok publishes it to your Page through Meta’s video endpoint — the same path Facebook uses to surface Reels. Add an optional URL on text posts for link-preview cards; photos and video posts use the media you attach.',
 			bentoId: 'facebook-video-links',
@@ -174,7 +174,7 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 	platformId: 'threads',
 	platformLabel: 'Threads',
 	icon: icons.Threads.name,
-	heroTitle: 'Schedule Threads posts, media, and reply chains you approve',
+	heroTitle: 'Schedule Threads posts, media, and follow-up replies you approve',
 	heroDescription:
 		'Connect a Meta Threads profile, queue text and media on the calendar, schedule follow-up replies with delays, and publish through the official Meta API — from the dashboard, public API, or CLI.',
 	metaTitle: 'Threads Post Scheduler',
@@ -199,9 +199,9 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 		},
 		{
 			subtitle: 'Media & replies',
-			title: 'Attach image or video, schedule follow-up replies, in one composer',
+			title: 'Attach image or video, schedule follow-up replies, in one place',
 			description:
-				'Create post within Meta’s 500-character limit, attach a single image or video (or a multi-media carousel), and queue follow-up replies with per-reply delays before the thread goes live.',
+				'Create post within Threads\'s 500-character limit, attach a single image or video (or a multi-media carousel), and queue follow-up replies with per-reply delays before the thread goes live.',
 			bentoId: 'threads-media-replies',
 			mediaOnRight: false
 		},
@@ -249,17 +249,17 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 		{
 			title: 'How do I connect Threads to OpenQuok?',
 			description:
-				'Create or open a workspace, choose Connect channel → Threads, and finish Meta OAuth. OpenQuok links the Threads profile to that workspace for scheduling and analytics.'
+				'Choose a workspace, connect channel → Threads, and finish Meta OAuth. OpenQuok links the Threads profile to that workspace for scheduling and analytics.'
 		},
 		{
 			title: 'Can I schedule Threads posts with images, video, or carousels?',
 			description:
-				'Yes. Attach one image or video, or multiple files for a carousel, when composing a Threads post in OpenQuok. Unsupported formats (such as SVG) are blocked early with a clear error before publish.'
+				'Yes. Attach one image or video, or multiple files for a carousel, when composing a Threads post in OpenQuok. In per-platform mode, unsupported formats (such as SVG) are blocked early with a clear error before publish.'
 		},
 		{
-			title: 'Can I schedule a Threads reply chain in advance?',
+			title: 'Does OpenQuok respect the Threads 500-character limit?',
 			description:
-				'Yes. Add follow-up replies in the composer (or pass threads.replies via the API or CLI). Each reply publishes from the same account after the delay you set once the main post goes live.'
+				'Yes. The composer shows the 500-character cap and the Threads provider trims overflow before publish. Check the preview so hooks and links fit before scheduling.'
 		},
 		{
 			title: 'Can I schedule Threads from the API or CLI?',
@@ -267,9 +267,19 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 				'Yes. Use integration UUIDs from your workspace in the create-post API or CLI commands. Follow-up replies and other provider settings go under providerSettingsByIntegrationId when needed.'
 		},
 		{
-			title: 'Does OpenQuok respect the Threads 500-character limit?',
+			title: 'Can I cross-post from Threads to Instagram and other channels?',
 			description:
-				'Yes. The composer shows the 500-character cap and the Threads provider trims overflow before publish. Check the preview so hooks and links fit before scheduling.'
+				'Yes. Compose once in OpenQuok and publish the same idea to Threads, Instagram, X, LinkedIn, TikTok, YouTube, and other connected channels from one workflow. Per-platform captions, aspect ratios, and character limits are applied separately, so each destination gets tailored copy from a single schedule.'
+		},
+		{
+			title: 'Can I auto-repost evergreen content on Threads?',
+			description:
+				'OpenQuok includes auto-repost and recurring schedule slots, so you can recycle evergreen Threads posts on intervals from one day up to one month. Combine it with the media library to keep reusing your best-performing images, videos, and captions without rebuilding posts from scratch.'
+		},
+		{
+			title: 'Can I schedule a Threads follow-up replies in advance?',
+			description:
+				'Yes. Add follow-up replies in the composer (or pass threads.replies via the API or CLI). Each reply publishes from the same account after the delay you set once the main post goes live.'
 		},
 		{
 			title: 'Is Threads scheduling included in the free trial?',
@@ -285,7 +295,7 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 	slug: 'instagram',
 	platformId: 'instagram',
 	platformLabel: 'Instagram',
-	icon: icons.Instagram.name,
+	icon: icons.InstagramGlyph.name,
 	heroTitle: 'Instagram scheduler for Business and Standalone login',
 	heroDescription:
 		'Connect Instagram via Facebook-linked Business login or Instagram Standalone, schedule feed posts from the calendar or API, and manage both flows from the same OpenQuok workspace.',

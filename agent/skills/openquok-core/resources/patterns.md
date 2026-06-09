@@ -1,6 +1,6 @@
 # Workflow recipes
 
-Extended `openquok` patterns. Rules and auth: [SKILL.md](../SKILL.md). Commands: [command-reference.md](./command-reference.md).
+Extended `openquok` patterns. Rules and auth: [SKILL.md](../SKILL.md). Commands: [command-reference.md](./command-reference.md). Per-channel features and publish settings: [provider-settings.md](./provider-settings.md) and `*-examples.md`.
 
 ## Resolve integration UUIDs
 

@@ -9,6 +9,20 @@ openquok integrations:settings "$IG_STANDALONE_ID"
 
 Always run `integrations:settings` for required fields and allow-listed `output.tools` before posting. Posting behavior matches **Instagram (Business)** — see [instagram-business-examples.md](./instagram-business-examples.md) for the same feature matrix with `instagram-business`.
 
+Settings mechanics: [provider-settings.md](./provider-settings.md).
+
+## Agent tasks
+
+| User wants to… | Do this |
+| --- | --- |
+| Post a feed image | [Feed post](#feed-post) |
+| Post a carousel | [Carousel](#carousel) |
+| Publish a Reel | [Reel (single MP4)](#reel-single-mp4) |
+| Publish a Story | [Story](#story) |
+| Test a Trial Reel with collaborators | [Trial Reel + collaborators](#trial-reel--collaborators) |
+| Add text comments after publish | [Text follow-up comments](#text-follow-up-comments) or `instagram.replies` in settings |
+| Check limits and tools | `openquok integrations:settings "$IG_STANDALONE_ID"` |
+
 ## Supported features
 
 | Feature | Supported | Notes |
@@ -34,7 +48,7 @@ Flat JSON merged into `providerSettingsByIntegrationId` for each `-i` UUID.
 | `is_trial_reel` | `true` \| `false` | `false` | Trial Reel (feed only, one video) |
 | `graduation_strategy` | `"MANUAL"` \| `"SS_PERFORMANCE"` | `"MANUAL"` | Trial Reel graduation |
 | `collaborators` | `["user1","user2"]` or `[{"label":"user1"}]` | `[]` | Max 3; not with carousel or Stories |
-
+| `instagram.replies` | `[{ "message": "…", "delaySeconds": 60 }]` | `[]` | Scheduled text comments after publish (nested bucket in `--providerSettingsByIntegrationId`) |
 
 ## Feed post
 
