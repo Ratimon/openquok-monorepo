@@ -15,7 +15,7 @@
 		THREADS_LANDING_MOCK_PROVIDER_SETTINGS,
 		THREADS_LANDING_MOCK_SCHEDULED_LOCAL,
 		THREADS_LANDING_MOCK_THREAD_REPLIES
-	} from '$lib/ui/templates/bento/minor-templates/threadsLandingMock';
+	} from '$lib/ui/templates/bento/minor-templates/threads/threadsLandingMock';
 
 	const mockChannels = [THREADS_LANDING_MOCK_CHANNEL];
 	const selectedIds = [THREADS_LANDING_MOCK_CHANNEL.id];

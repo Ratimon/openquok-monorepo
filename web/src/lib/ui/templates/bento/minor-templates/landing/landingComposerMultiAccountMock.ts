@@ -3,18 +3,18 @@ import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.
 import {
 	FACEBOOK_LANDING_MOCK_CHANNEL,
 	FACEBOOK_LANDING_MOCK_LINK_URL
-} from '$lib/ui/templates/bento/minor-templates/facebookLandingMock';
+} from '$lib/ui/templates/bento/minor-templates/facebook/facebookLandingMock';
 import {
 	INSTAGRAM_LANDING_MOCK_CHANNEL,
 	INSTAGRAM_LANDING_MOCK_MEDIA_URLS,
 	INSTAGRAM_LANDING_MOCK_THREAD_REPLIES
-} from '$lib/ui/templates/bento/minor-templates/instagramLandingMock';
+} from '$lib/ui/templates/bento/minor-templates/instagram/instagramLandingMock';
 import {
 	THREADS_LANDING_MOCK_CHANNEL,
 	THREADS_LANDING_MOCK_MEDIA_URLS,
 	THREADS_LANDING_MOCK_PROVIDER_SETTINGS,
 	THREADS_LANDING_MOCK_THREAD_REPLIES
-} from '$lib/ui/templates/bento/minor-templates/threadsLandingMock';
+} from '$lib/ui/templates/bento/minor-templates/threads/threadsLandingMock';
 
 export const LANDING_COMPOSER_MOCK_CHANNELS: CreateSocialPostChannelViewModel[] = [
 	FACEBOOK_LANDING_MOCK_CHANNEL,

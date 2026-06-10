@@ -101,7 +101,7 @@ Each live `/channels/{slug}` page renders three feature rows via `HeroWithLeftMe
 | Bento ID union | Add `{slug}-…` literals to `web/src/lib/content/constants/publicChannelFeatureBento.ts` |
 | Router component | Branch in `web/src/lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte` |
 | Catalog wiring | Set `bentoId` (not `imageSrc`) on each of the three `featureSections` in `publicChannelCatalog.ts` |
-| Mock data | `web/src/lib/ui/templates/bento/minor-templates/{slug}LandingMock.ts` (+ optional `{slug}LandingKanbanMock.ts`, `{slug}LandingAnalyticsMock.ts`) |
+| Mock data | `web/src/lib/ui/templates/bento/minor-templates/{slug}/{slug}LandingMock.ts` (+ optional `{slug}LandingKanbanMock.ts`, `{slug}LandingAnalyticsMock.ts`) |
 | Preview panels | Reuse **real** product UI read-only: kanban (`KanbanBoardFilters` + `KanbanColumn`), composer (`PicksSocialsComponent`, `ShowAllProviders`, `SettingsAccordion` with `embedded`, provider settings), analytics (`RenderAnalyticsGrid` + metric seeds matching backend `analytics()`) |
 | Wrappers | `Bento{Provider}{Feature}.svelte` → `BentoCard` + `BentoGridOneCol` (mirror `BentoFacebookBulkScheduling.svelte`, `BentoThreadsMediaReplies.svelte`) |
 

@@ -1,6 +1,6 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
 
-import { LANDING_SOCIAL_PROFILE_URL } from '$lib/ui/templates/bento/minor-templates/landingStaticAssets';
+import { LANDING_SOCIAL_PROFILE_URL } from '$lib/ui/templates/bento/minor-templates/landing/landingStaticAssets';
 
 export const INSTAGRAM_LANDING_MOCK_BUSINESS_CHANNEL: CreateSocialPostChannelViewModel = {
 	id: 'landing-mock-instagram-business',

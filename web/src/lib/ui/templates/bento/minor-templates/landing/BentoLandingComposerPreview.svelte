@@ -21,7 +21,7 @@
 		LANDING_COMPOSER_MOCK_SCHEDULED_LOCAL,
 		LANDING_COMPOSER_MOCK_SELECTED_IDS,
 		LANDING_COMPOSER_MOCK_THREAD_REPLIES_BY_CHANNEL
-	} from '$lib/ui/templates/bento/minor-templates/landingComposerMultiAccountMock';
+	} from '$lib/ui/templates/bento/minor-templates/landing/landingComposerMultiAccountMock';
 
 	type Mode = 'global' | 'custom';
 

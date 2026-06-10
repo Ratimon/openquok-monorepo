@@ -1,22 +1,23 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
 
-	import { socialProviderIcon } from '$data/social-providers';
-
 	import ChannelKindFilter from '$lib/ui/components/filters/ChannelKindFilter.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import RenderAnalyticsGrid from '$lib/ui/components/platform-analytics/RenderAnalyticsGrid.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
 
-	import { buildThreadsLandingAnalyticsVm } from '$lib/ui/templates/bento/minor-templates/threadsLandingAnalyticsMock';
-	import { THREADS_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/threadsLandingMock';
+	import {
+		buildInstagramLandingAnalyticsVm,
+		landingInstagramAnalyticsProviderIcon
+	} from '$lib/ui/templates/bento/minor-templates/instagram/instagramLandingAnalyticsMock';
+	import { INSTAGRAM_LANDING_ANALYTICS_MOCK_CHANNELS } from '$lib/ui/templates/bento/minor-templates/instagram/instagramLandingMock';
 
-	const mockChannels = [THREADS_LANDING_MOCK_CHANNEL];
+	const mockChannels = INSTAGRAM_LANDING_ANALYTICS_MOCK_CHANNELS;
 	const mockWorkspaceId = 'landing-mock-workspace';
 
 	let platformFilterVm = $state({
 		allSocialPlatforms: true,
-		selectedSocialPlatformIdentifiers: ['threads']
+		selectedSocialPlatformIdentifiers: [] as string[]
 	});
 	let dateWindowDays = $state<number>(7);
 
@@ -26,7 +27,12 @@
 		return mockChannels.filter((channel) => selected.has(channel.identifier));
 	});
 
-	const analyticsVm = $derived(buildThreadsLandingAnalyticsVm(dateWindowDays));
+	const analyticsVm = $derived(
+		buildInstagramLandingAnalyticsVm(
+			dateWindowDays,
+			filteredIntegrationsVm.map((channel) => channel.identifier)
+		)
+	);
 
 	function noop() {}
 	function noopRefresh(_integration: CreateSocialPostChannelViewModel) {}
@@ -43,6 +49,7 @@
 					channels={mockChannels}
 					allSocialPlatforms={platformFilterVm.allSocialPlatforms}
 					selectedSocialPlatformIdentifiers={platformFilterVm.selectedSocialPlatformIdentifiers}
+					providerIcon={landingInstagramAnalyticsProviderIcon}
 					onChange={(next) => (platformFilterVm = next)}
 				/>
 
@@ -73,7 +80,7 @@
 							showProviderBadge={true}
 							{integration}
 							workspaceId={mockWorkspaceId}
-							providerIcon={socialProviderIcon}
+							providerIcon={landingInstagramAnalyticsProviderIcon}
 							continueSetupHref={() => '#'}
 							onMoveToGroup={noop}
 							onEditTimeSlots={noop}

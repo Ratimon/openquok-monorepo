@@ -10,7 +10,7 @@
 	import HeroMain from '$lib/ui/templates/landing-page/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
-	import BentoLandingComposeSettings from '$lib/ui/templates/bento/minor-templates/BentoLandingComposeSettings.svelte';
+	import BentoLandingComposeSettings from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingComposeSettings.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import FeaturesGrid from '$lib/ui/templates/FeaturesGrid.svelte';
 	import PublicPricingTabs from '$lib/ui/components/pricing/PublicPricingTabs.svelte';

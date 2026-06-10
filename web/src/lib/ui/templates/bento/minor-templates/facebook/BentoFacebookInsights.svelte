@@ -3,7 +3,7 @@
 
 	import BentoCard from '$lib/ui/templates/bento/BentoCard.svelte';
 	import BentoGridOneCol from '$lib/ui/templates/bento/BentoGridOneCol.svelte';
-	import BentoFacebookKanbanPreview from '$lib/ui/templates/bento/minor-templates/BentoFacebookKanbanPreview.svelte';
+	import BentoFacebookAnalyticsPreview from '$lib/ui/templates/bento/minor-templates/facebook/BentoFacebookAnalyticsPreview.svelte';
 
 	type Props = {
 		class?: string;
@@ -12,9 +12,9 @@
 	let { class: className = '' }: Props = $props();
 </script>
 
-<BentoGridOneCol class={cn('auto-rows-[minmax(22rem,auto)]', className)}>
+<BentoGridOneCol class={cn('auto-rows-[minmax(36rem,auto)]', className)}>
 	<BentoCard
 		class="col-span-1 overflow-hidden shadow-2xl ring-1 ring-base-content/10"
-		background={BentoFacebookKanbanPreview}
+		background={BentoFacebookAnalyticsPreview}
 	/>
 </BentoGridOneCol>
