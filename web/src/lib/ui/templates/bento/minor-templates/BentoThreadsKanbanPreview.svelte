@@ -14,8 +14,8 @@
 
 	import KanbanBoardFilters from '$lib/ui/components/kanban-board/KanbanBoardFilters.svelte';
 	import KanbanColumn from '$lib/ui/components/kanban-board/KanbanColumn.svelte';
-	import { THREADS_LANDING_KANBAN_CARDS } from './threadsLandingKanbanMock';
-	import { THREADS_LANDING_MOCK_CHANNEL } from './threadsLandingMock';
+	import { THREADS_LANDING_KANBAN_CARDS } from '$lib/ui/templates/bento/minor-templates/threadsLandingKanbanMock';
+	import { THREADS_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/threadsLandingMock';
 
 	const mockChannels = [THREADS_LANDING_MOCK_CHANNEL];
 	const kanbanPosts = THREADS_LANDING_KANBAN_CARDS.map((card) => ({ tagNames: card.tagNames }));

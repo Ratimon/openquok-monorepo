@@ -8,8 +8,8 @@
 	import RenderAnalyticsGrid from '$lib/ui/components/platform-analytics/RenderAnalyticsGrid.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
 
-	import { buildThreadsLandingAnalyticsVm } from './threadsLandingAnalyticsMock';
-	import { THREADS_LANDING_MOCK_CHANNEL } from './threadsLandingMock';
+	import { buildThreadsLandingAnalyticsVm } from '$lib/ui/templates/bento/minor-templates/threadsLandingAnalyticsMock';
+	import { THREADS_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/threadsLandingMock';
 
 	const mockChannels = [THREADS_LANDING_MOCK_CHANNEL];
 	const mockWorkspaceId = 'landing-mock-workspace';

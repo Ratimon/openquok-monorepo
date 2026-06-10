@@ -15,7 +15,7 @@
 		INSTAGRAM_LANDING_MOCK_PROVIDER_SETTINGS,
 		INSTAGRAM_LANDING_MOCK_SCHEDULED_LOCAL,
 		INSTAGRAM_LANDING_MOCK_THREAD_REPLIES
-	} from './instagramLandingMock';
+	} from '$lib/ui/templates/bento/minor-templates/instagramLandingMock';
 
 	const mockChannels = [INSTAGRAM_LANDING_MOCK_CHANNEL];
 	const selectedIds = [INSTAGRAM_LANDING_MOCK_CHANNEL.id];

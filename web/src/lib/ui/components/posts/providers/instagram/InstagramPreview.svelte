@@ -61,9 +61,9 @@
 	</div>
 
 	{#if mediaUrls.length > 0}
-		<div class="relative w-full aspect-[4/5] overflow-hidden bg-base-200">
+		<div class="overflow-hidden bg-base-200">
 			<ImageSlider
-				class="absolute inset-0"
+				class="aspect-[4/5] w-full"
 				urls={mediaUrls}
 				alt=""
 				showSlideCounter={isCarousel}

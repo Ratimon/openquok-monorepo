@@ -280,14 +280,14 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_3_SUBTITLE: {
 		description: 'Tag above the third secondary hero section',
 		type: 'string',
-		default: 'Kanban + smart filters',
+		default: 'Per-network Post Editor',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_3_TITLE: {
 		description: 'Headline for the third secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Review every AI draft, sign off confidently, before it goes live',
+		default: 'One draft, then craft for each platform, with per-network settings quickly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -295,21 +295,21 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the third secondary hero section',
 		type: 'string',
 		default:
-			'Chat, move agent-generated posts from draft to review to scheduled on a kanban board—with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
+			'Write once in global mode, then customize any connected account — Facebook link previews, Threads replies, Instagram post types, and more — without losing your shared copy.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
 	FEATURE_4_SUBTITLE: {
 		description: 'Tag above the fourth secondary hero section',
 		type: 'string',
-		default: 'Content Management',
+		default: 'Kanban + smart filters',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_4_TITLE: {
 		description: 'Headline for the fourth secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Organize media, keep assets separated, find footages efficiently',
+		default: 'Review every AI draft, sign off confidently, before it goes live',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -317,26 +317,48 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the fourth secondary hero section',
 		type: 'string',
 		default:
-			'Create, rename, and manage files in each agent workspace. Keep client assets, B-roll, and uploads separated so posting stays fast when you run many social channels.',
+			'Chat, move agent-generated posts from draft to review to scheduled on a kanban board—with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
 	FEATURE_5_SUBTITLE: {
 		description: 'Tag above the fifth secondary hero section',
 		type: 'string',
-		default: 'Analytics',
+		default: 'Content Management',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_5_TITLE: {
 		description: 'Headline for the fifth secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Track engagement, see winners, and adapt correctly',
+		default: 'Organize media, keep assets separated, find footages efficiently',
 		inputType: 'input',
 		maxInputLength: 100
 	},
 	FEATURE_5_DESCRIPTION: {
 		description: 'Support copy for the fifth secondary hero section',
+		type: 'string',
+		default:
+			'Create, rename, and manage files in each agent workspace. Keep client assets, B-roll, and uploads separated so posting stays fast when you run many social channels.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
+	FEATURE_6_SUBTITLE: {
+		description: 'Tag above the sixth secondary hero section',
+		type: 'string',
+		default: 'Analytics',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	FEATURE_6_TITLE: {
+		description: 'Headline for the sixth secondary hero section (comma separates accent phrase)',
+		type: 'string',
+		default: 'Track engagement, see winners, and adapt correctly',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	FEATURE_6_DESCRIPTION: {
+		description: 'Support copy for the sixth secondary hero section',
 		type: 'string',
 		default:
 			'Track impressions, likes, comments, shares, and engagement in one place. Compare performance by platform and channel, and improve the posts you approved.',

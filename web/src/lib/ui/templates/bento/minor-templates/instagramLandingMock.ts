@@ -1,11 +1,13 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
 
+import { LANDING_SOCIAL_PROFILE_URL } from '$lib/ui/templates/bento/minor-templates/landingStaticAssets';
+
 export const INSTAGRAM_LANDING_MOCK_BUSINESS_CHANNEL: CreateSocialPostChannelViewModel = {
 	id: 'landing-mock-instagram-business',
 	internalId: 'landing-mock-instagram-business-internal',
 	name: 'OpenQuok Brand',
 	identifier: 'instagram',
-	picture: '/landing/social-profile.webp',
+	picture: LANDING_SOCIAL_PROFILE_URL,
 	type: 'social',
 	disabled: false,
 	inBetweenSteps: false,
@@ -21,7 +23,7 @@ export const INSTAGRAM_LANDING_MOCK_STANDALONE_CHANNEL: CreateSocialPostChannelV
 	internalId: 'landing-mock-instagram-standalone-internal',
 	name: 'OpenQuok Studio',
 	identifier: 'instagram-standalone',
-	picture: '/landing/social-profile.webp',
+	picture: LANDING_SOCIAL_PROFILE_URL,
 	type: 'social',
 	disabled: false,
 	inBetweenSteps: false,
@@ -47,8 +49,8 @@ export const INSTAGRAM_LANDING_MOCK_BODY =
 export const INSTAGRAM_LANDING_MOCK_SCHEDULED_LOCAL = '2026-06-12T09:00';
 
 export const INSTAGRAM_LANDING_MOCK_MEDIA_URLS = [
-	'/landing/social-profile.webp',
-	'/landing/social-profile.webp'
+	LANDING_SOCIAL_PROFILE_URL,
+	LANDING_SOCIAL_PROFILE_URL
 ];
 
 export const INSTAGRAM_LANDING_MOCK_THREAD_REPLIES = [

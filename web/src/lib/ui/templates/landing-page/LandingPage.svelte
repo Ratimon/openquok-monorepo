@@ -10,6 +10,7 @@
 	import HeroMain from '$lib/ui/templates/landing-page/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
+	import BentoLandingComposeSettings from '$lib/ui/templates/bento/minor-templates/BentoLandingComposeSettings.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import FeaturesGrid from '$lib/ui/templates/FeaturesGrid.svelte';
 	import PublicPricingTabs from '$lib/ui/components/pricing/PublicPricingTabs.svelte';
@@ -142,6 +143,19 @@
 			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_5_DESCRIPTION.default)
 	);
 
+	const feature6Subtitle = $derived(
+		landingPageConfigVm.FEATURE_6_SUBTITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_6_SUBTITLE.default)
+	);
+	const feature6Title = $derived(
+		landingPageConfigVm.FEATURE_6_TITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_6_TITLE.default)
+	);
+	const feature6Description = $derived(
+		landingPageConfigVm.FEATURE_6_DESCRIPTION ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_6_DESCRIPTION.default)
+	);
+
 	const pricingSubtitle = $derived(
 		landingPageConfigVm.PRICING_SUBTITLE ||
 			String(CONFIG_SCHEMA_LANDING_PAGE.PRICING_SUBTITLE.default)
@@ -257,19 +271,21 @@
 	landingSubtitle={feature3Subtitle}
 	landingTitle={feature3Title}
 	landingDescription={feature3Description}
-	imageSrc="/landing/3-kanban-filters.mp4"
-	imageAlt="Kanban board for reviewing AI-generated drafts"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
-/>
+>
+	{#snippet rightMedia()}
+		<BentoLandingComposeSettings />
+	{/snippet}
+</HeroWithRightMedia>
 
 <HeroWithLeftMedia
 	heroTheme={landingHeroTheme}
 	landingSubtitle={feature4Subtitle}
 	landingTitle={feature4Title}
 	landingDescription={feature4Description}
-	imageSrc="/landing/4-file-manager.mp4"
-	imageAlt="Workspace-scoped file manager for media assets"
+	imageSrc="/landing/3-kanban-filters.mp4"
+	imageAlt="Kanban board for reviewing AI-generated drafts"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
 />
@@ -279,6 +295,17 @@
 	landingSubtitle={feature5Subtitle}
 	landingTitle={feature5Title}
 	landingDescription={feature5Description}
+	imageSrc="/landing/4-file-manager.mp4"
+	imageAlt="Workspace-scoped file manager for media assets"
+	ctaText={secondaryCtaText}
+	ctaHref={secondaryCtaHref}
+/>
+
+<HeroWithLeftMedia
+	heroTheme={landingHeroTheme}
+	landingSubtitle={feature6Subtitle}
+	landingTitle={feature6Title}
+	landingDescription={feature6Description}
 	imageSrc="/landing/5-analytics.mp4"
 	imageAlt="Analytics dashboard across social channels"
 	ctaText={secondaryCtaText}
