@@ -22,6 +22,7 @@ export type IconName =
     | "Bold"
     | "BookOpen"
     | "BookOpenCheck"
+    | "CustomizedDrawnClapperboard"
     | "CustomizedDrawnHouse"
     | "CustomizedDrawnLaptop"
     | "CustomizedDrawnRobot"
@@ -296,6 +297,11 @@ export const icons: Record<IconName, IconEntry> = {
         name: "BookOpenCheck",
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open-check-icon lucide-book-open-check"><path d="M12 21V7"/><path d="m16 12 2 2 4-4"/><path d="M22 6V4a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4 4 4 0 0 0-4-4H3a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h6a3 3 0 0 1 3 3 3 3 0 0 1 3-3h6a1 1 0 0 0 1-1v-1.3"/></svg>`
+    },
+    CustomizedDrawnClapperboard: {
+        name: "CustomizedDrawnClapperboard",
+        box: 24,
+        svg: `<path d="M19.5 5.8Q19.8 5.4 19.1 4.7Q12.8 2.5 6.2 5.8Q5.5 6.2 4.9 7.5Q4.2 9 3.5 10.5Q3.1 11.2 4 11.5Q11.8 10.8 19.8 6.2Q20.3 5.9 19.5 5.8" stroke-width="2.5"/><path d="M6.3 5.4Q7.8 7.1 9.6 8.9" stroke-width="2.5"/><path d="M12.5 3.5Q14.1 5.3 15.8 7.4" stroke-width="2.5"/><path d="M4 11.5Q12 11.2 19.6 11.5Q20.5 11.7 20.3 12.6L19.9 19.2Q19.7 20.3 18.6 20.4L5.5 20.1Q4.5 20 4.3 19L4 12.2Q3.8 11.5 4 11.5" stroke-width="2.5"/>`
     },
     CustomizedDrawnHouse: {
         name: "CustomizedDrawnHouse",

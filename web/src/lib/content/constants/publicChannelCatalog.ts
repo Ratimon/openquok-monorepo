@@ -497,7 +497,7 @@ const YOUTUBE_CHANNEL: PublicChannelLandingPage = {
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
-			iconName: icons.ClapperBoard.name,
+			iconName: icons.CustomizedDrawnClapperboard.name,
 			iconClass: 'text-violet-400',
 			title: 'Faceless channels',
 			description:
