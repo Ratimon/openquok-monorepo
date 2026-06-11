@@ -2,7 +2,7 @@
 	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
-	import { publicUrlForMediaStorageKey } from '$lib/medias';
+	import { isVideoMediaPath, publicUrlForMediaStorageKey } from '$lib/medias';
 	import { getScheduledPostsPresenter, uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
@@ -86,7 +86,9 @@
 			}
 			items = [...items, ...batch.items];
 			if (batch.items.length) {
-				toast.success(batch.items.length === 1 ? 'Image attached.' : 'Images attached.');
+				toast.success(
+					batch.items.length === 1 ? 'Media attached.' : `${batch.items.length} items attached.`
+				);
 			}
 		} finally {
 			uploadBusy = false;
@@ -229,7 +231,35 @@
 					<div
 						class="border-base-300 bg-base-200/40 relative h-11 w-11 shrink-0 overflow-hidden rounded-md border"
 					>
-						<BlobOrHrefImg href={previewUrls[index]} alt="" class="h-full w-full object-cover" loading="lazy" />
+						{#if isVideoMediaPath(m.path)}
+							<!-- svelte-ignore a11y_media_has_caption -->
+							<video
+								src={previewUrls[index]}
+								class="h-full w-full object-cover"
+								muted
+								playsinline
+								preload="metadata"
+							></video>
+							<div
+								class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/15"
+							>
+								<div class="rounded-full bg-black/55 p-1 text-white">
+									<AbstractIcon
+										name={icons.ClapperBoard.name}
+										class="size-3"
+										width="12"
+										height="12"
+									/>
+								</div>
+							</div>
+						{:else}
+							<BlobOrHrefImg
+								href={previewUrls[index]}
+								alt=""
+								class="h-full w-full object-cover"
+								loading="lazy"
+							/>
+						{/if}
 						<div class="absolute top-0.5 left-0 flex flex-col gap-0.5">
 							<button
 								type="button"
@@ -255,7 +285,7 @@
 							class="bg-base-100/95 text-base-content/90 hover:bg-error/90 hover:text-error-content absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full shadow-sm"
 							disabled={disabled}
 							onclick={() => removeAt(index)}
-							aria-label="Remove image"
+							aria-label="Remove media"
 						>
 							<AbstractIcon name={icons.X2.name} class="size-3.5" width="14" height="14" />
 						</button>
@@ -282,17 +312,17 @@
 				</span>
 			{:else if dragOver}
 				<span class="text-primary shrink-0" aria-hidden="true">
-					<AbstractIcon name={icons.Image.name} class="size-8" width="32" height="32" />
+					<AbstractIcon name={icons.Images.name} class="size-8" width="32" height="32" />
 				</span>
 				<span class="text-primary font-semibold">
-					Drop images here to attach
+					Drop images or videos here to attach
 				</span>
 			{:else}
 				<span class="text-primary shrink-0" aria-hidden="true">
-					<AbstractIcon name={icons.Image.name} class="size-8" width="32" height="32" />
+					<AbstractIcon name={icons.Images.name} class="size-8" width="32" height="32" />
 				</span>
 				<span>
-					Drag and drop images here, or use the icons on the editor.
+					Drag and drop images or videos here, or use the icons on the editor.
 				</span>
 			{/if}
 		</div>

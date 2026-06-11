@@ -73,7 +73,7 @@ export class GetMediaPresenter {
 		return this.toMediaListVm(listPm);
 	}
 
-	/** Tree + all image pages for folder browse/search in {@link MediaLibraryModal}. */
+	/** Tree + all image/video pages for folder browse/search in {@link MediaLibraryModal}. */
 	public async loadMediaPickerBrowseVm(organizationId: string): Promise<MediaPickerBrowseViewModel> {
 		const orgId = organizationId.trim();
 		if (!orgId) {
@@ -82,7 +82,7 @@ export class GetMediaPresenter {
 
 		const [treePm, images] = await Promise.all([
 			this.mediaRepository.listMediaTree(orgId),
-			this.loadAllImageLibraryItemsVm(orgId)
+			this.loadAllPickerLibraryItemsVm(orgId)
 		]);
 
 		const fromTree = treePm ? collectFolderPathsFromTree(treePm.files) : [];
@@ -101,10 +101,12 @@ export class GetMediaPresenter {
 		};
 	}
 
-	private async loadAllImageLibraryItemsVm(organizationId: string): Promise<MediaLibraryItemViewModel[]> {
+	private async loadAllPickerLibraryItemsVm(organizationId: string): Promise<MediaLibraryItemViewModel[]> {
 		const pageSize = GetMediaPresenter.PICKER_LIST_PAGE_SIZE;
+		const isPickerKind = (kind: MediaLibraryItemViewModel['kind']) =>
+			kind === 'image' || kind === 'video';
 		const first = await this.loadMediaLibraryListVm(organizationId, 1, pageSize);
-		const rows = first.results.filter((m) => m.kind === 'image');
+		const rows = first.results.filter((m) => isPickerKind(m.kind));
 		if (first.pages <= 1) return rows;
 
 		const rest = await Promise.all(
@@ -113,7 +115,7 @@ export class GetMediaPresenter {
 			)
 		);
 		for (const page of rest) {
-			rows.push(...page.results.filter((m) => m.kind === 'image'));
+			rows.push(...page.results.filter((m) => isPickerKind(m.kind)));
 		}
 		return rows;
 	}

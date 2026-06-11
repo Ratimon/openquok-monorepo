@@ -2,7 +2,7 @@ import type { HttpGateway } from '$lib/core/HttpGateway';
 import { userFacingApiErrorMessage } from '$lib/core/HttpGateway';
 import { mediaRepository, mediaVirtualPathForComposerUpload } from '$lib/medias';
 
-/** One image attached to a social post (R2 / user media paths from `/api/v1/media/*`). */
+/** One image or video attached to a social post (R2 / user media paths from `/api/v1/media/*`). */
 export type PostMediaProgrammerModel = {
 	id: string;
 	path: string;
@@ -10,8 +10,14 @@ export type PostMediaProgrammerModel = {
 	bucket?: 'social_media';
 };
 
+function isComposerMediaFile(file: File): boolean {
+	const mime = file.type.toLowerCase();
+	if (mime.startsWith('image/') || mime.startsWith('video/')) return true;
+	return /\.(png|jpe?g|gif|webp|svg|avif|mp4|mov|webm|m4v|mpeg)$/i.test(file.name);
+}
+
 /**
- * Multipart upload for social-post composer images; maps API paths to {@link PostMediaProgrammerModel}.
+ * Multipart upload for social-post composer media; maps API paths to {@link PostMediaProgrammerModel}.
  */
 export async function uploadSocialPostComposerMediaFiles(
 	files: FileList,
@@ -20,9 +26,9 @@ export async function uploadSocialPostComposerMediaFiles(
 ): Promise<
 	{ ok: true; items: PostMediaProgrammerModel[] } | { ok: false; message: string }
 > {
-	const list = Array.from(files).filter((f) => f.type.startsWith('image/'));
+	const list = Array.from(files).filter(isComposerMediaFile);
 	if (!list.length) {
-		return { ok: false, message: 'Add image files only.' };
+		return { ok: false, message: 'Add image or video files only.' };
 	}
 	const virtualPath = mediaVirtualPathForComposerUpload(options?.publishDateIso);
 	const items: PostMediaProgrammerModel[] = [];

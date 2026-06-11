@@ -97,7 +97,9 @@
 			}
 			items = [...items, ...batch.items];
 			if (batch.items.length) {
-				toast.success(batch.items.length === 1 ? 'Image attached.' : 'Images attached.');
+				toast.success(
+					batch.items.length === 1 ? 'Media attached.' : `${batch.items.length} items attached.`
+				);
 			}
 			return true;
 		} finally {
@@ -153,8 +155,8 @@
 	aria-label="Post media"
 >
 	<Tooltip.Provider delayDuration={200}>
-		<!-- 1: add images from disk -->
-		<ComposerMediaTooltip label="Attach images from your device">
+		<!-- 1: add media from disk -->
+		<ComposerMediaTooltip label="Attach images or videos from your device">
 			{#snippet trigger({ props })}
 				<button
 					{...props}
@@ -164,13 +166,13 @@
 					onclick={composeTooltipTriggerClick(props, () => {
 						deviceAttachOpen = true;
 					})}
-					aria-label="Add images from your device"
+					aria-label="Add images or videos from your device"
 				>
 					{#if uploadBusy}
 						<span class="loading loading-spinner loading-sm text-primary"></span>
 					{:else}
 						<span class="relative inline-flex size-6 items-center justify-center">
-							<AbstractIcon name={icons.Image.name} class="size-6" width="24" height="24" />
+							<AbstractIcon name={icons.Images.name} class="size-6" width="24" height="24" />
 							<span
 								class="bg-primary text-primary-content ring-base-100 absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full ring-2"
 								aria-hidden="true"
@@ -183,7 +185,7 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 		<!-- 2: workspace media library -->
-		<ComposerMediaTooltip label="Attach images from your media library">
+		<ComposerMediaTooltip label="Attach images or videos from your media library">
 			{#snippet trigger({ props })}
 				<button
 					{...props}
@@ -193,7 +195,7 @@
 					onclick={composeTooltipTriggerClick(props, () => {
 						libraryOpen = true;
 					})}
-					aria-label="Attach images from media library"
+					aria-label="Attach images or videos from media library"
 				>
 					<AbstractIcon name={icons.Images.name} class="size-6" width="24" height="24" />
 				</button>
@@ -278,6 +280,10 @@
 		bind:open={deviceAttachOpen}
 		disabled={disabled || uploadBusy || mediaAtCap}
 		{uploadBusy}
+		accept="image/*,video/*"
+		title="Add media"
+		description="Drag and drop images or videos here, or click the area to browse. Files upload as soon as they are added."
+		dropTitle="Drop images or videos here"
 		onFilesSelected={ingestFilesFromAttachDialog}
 	/>
 

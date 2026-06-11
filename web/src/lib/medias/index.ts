@@ -54,6 +54,7 @@ export {
 	type MediaLibraryUploadMode
 } from './utils/mediaLibraryUploadEnv';
 export { formatBytes } from './utils/formatBytes';
+export { isImageMediaPath, isVideoMediaPath } from './utils/mediaKindForPath';
 export { publicUrlForMediaStorageKey } from './utils/publicMediaObjectUrl';
 export type {
 	MediaConfig,

@@ -164,11 +164,11 @@
 	function attachItem(item: MediaLibraryItemViewModel): void {
 		if (pickerDisabled) return;
 		if (attachedPathSet.has(item.path)) {
-			toast.info('This image is already attached.');
+			toast.info('This item is already attached.');
 			return;
 		}
 		if (mediaLocked && attachedPaths.length > 0) {
-			toast.error('Only one image is allowed for this channel.');
+			toast.error('Only one attachment is allowed for this channel.');
 			return;
 		}
 		const row: PostMediaProgrammerModel = {
@@ -177,7 +177,7 @@
 			bucket: 'social_media'
 		};
 		onAttach?.([row]);
-		toast.success('Image attached.');
+		toast.success('Media attached.');
 		if (mediaLocked) {
 			open = false;
 		}
@@ -343,14 +343,14 @@
 						height="40"
 					/>
 					{#if searchActive}
-						<p class="text-sm text-base-content/70">No images match your search.</p>
+						<p class="text-sm text-base-content/70">No media matches your search.</p>
 					{:else if allImagesVm.length === 0}
-						<p class="text-sm text-base-content/70">No images in your library yet.</p>
+						<p class="text-sm text-base-content/70">No images or videos in your library yet.</p>
 						<p class="text-base-content/55 max-w-xs text-xs">
-							Upload images from your device or the account media page, then pick them here.
+							Upload images or videos from your device or the account media page, then pick them here.
 						</p>
 					{:else}
-						<p class="text-sm text-base-content/70">No images in this folder.</p>
+						<p class="text-sm text-base-content/70">No media in this folder.</p>
 						<p class="text-base-content/55 max-w-xs text-xs">
 							Open another folder above or search by file name.
 						</p>
@@ -389,12 +389,37 @@
 										: `Attach ${item.name}`}
 									onclick={() => attachItem(item)}
 								>
-									<img
-										src={thumbSrc(item)}
-										alt=""
-										class="aspect-square w-full object-cover"
-										loading="lazy"
-									/>
+									{#if item.kind === 'video' && !item.thumbnail?.trim()}
+										<!-- svelte-ignore a11y_media_has_caption -->
+										<video
+											src={thumbSrc(item)}
+											class="aspect-square w-full object-cover"
+											muted
+											playsinline
+											preload="metadata"
+										></video>
+									{:else}
+										<img
+											src={thumbSrc(item)}
+											alt=""
+											class="aspect-square w-full object-cover"
+											loading="lazy"
+										/>
+									{/if}
+									{#if item.kind === 'video'}
+										<div
+											class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/10"
+										>
+											<div class="rounded-full bg-black/55 p-2 text-white">
+												<AbstractIcon
+													name={icons.ClapperBoard.name}
+													class="size-4"
+													width="16"
+													height="16"
+												/>
+											</div>
+										</div>
+									{/if}
 									{#if alreadyAttached}
 										<span
 											class="bg-primary/90 text-primary-content absolute inset-x-0 bottom-0 py-0.5 text-center text-[10px] font-medium"
@@ -407,7 +432,7 @@
 						</div>
 					{:else}
 						<p class="py-8 text-center text-sm text-base-content/70">
-							No images on this page. Try another page.
+							No media on this page. Try another page.
 						</p>
 					{/if}
 				</div>
@@ -423,7 +448,7 @@
 						{setCurrentPage}
 						{paginateFrontFF}
 						{paginateBackFF}
-						nameOfItems="images"
+						nameOfItems="items"
 						pageSizeOptions={[12, 24, 48]}
 					/>
 				{/if}

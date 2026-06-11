@@ -12,6 +12,8 @@ var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
 var dayjs5 = require('dayjs');
+var stream = require('stream');
+var googleapis = require('googleapis');
 var Stripe2 = require('stripe');
 var groupBy = require('lodash/groupBy');
 var facebookNodejsBusinessSdk = require('facebook-nodejs-business-sdk');
@@ -938,6 +940,11 @@ var init_GlobalConfig = __esm({
         instagramStandalone: {
           appId: getEnv("INSTAGRAM_APP_ID", ""),
           appSecret: getEnv("INSTAGRAM_APP_SECRET", "")
+        },
+        /** Google — YouTube Data API + YouTube Analytics OAuth. */
+        youtube: {
+          clientId: getEnvTrimmed("YOUTUBE_CLIENT_ID"),
+          clientSecret: getEnvTrimmed("YOUTUBE_CLIENT_SECRET")
         }
       }
     };
@@ -12840,6 +12847,522 @@ var init_threadsProvider = __esm({
   }
 });
 
+// integrations/providers/youtube/resolveYoutubeSettings.ts
+function isPlainObject3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readPrivacyStatus(source) {
+  const raw = source.type ?? source.privacyStatus ?? source.privacy_status;
+  if (raw === "private" || raw === "unlisted" || raw === "public") return raw;
+  return DEFAULT_PRIVACY;
+}
+function readMadeForKids(source) {
+  const raw = source.selfDeclaredMadeForKids ?? source.self_declared_made_for_kids;
+  if (raw === true || raw === "yes") return true;
+  return false;
+}
+function readTitle(source) {
+  const title = source.title;
+  return typeof title === "string" ? title.trim() : "";
+}
+function normalizeTags(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const item of raw) {
+    if (typeof item === "string") {
+      const label = item.trim();
+      if (label) out.push(label);
+      continue;
+    }
+    if (isPlainObject3(item)) {
+      const label = (typeof item.label === "string" ? item.label : typeof item.value === "string" ? item.value : "").trim();
+      if (label) out.push(label);
+    }
+  }
+  return out.slice(0, 500);
+}
+function readThumbnailPath(source) {
+  const thumb = source.thumbnail;
+  if (isPlainObject3(thumb) && typeof thumb.path === "string" && thumb.path.trim()) {
+    return thumb.path.trim();
+  }
+  if (typeof source.thumbnailPath === "string" && source.thumbnailPath.trim()) {
+    return source.thumbnailPath.trim();
+  }
+  return void 0;
+}
+function resolveYoutubeSettings(postDetailsSettings, message = "") {
+  const description = typeof message === "string" ? message : "";
+  if (!isPlainObject3(postDetailsSettings)) {
+    return {
+      title: "",
+      description,
+      privacyStatus: DEFAULT_PRIVACY,
+      selfDeclaredMadeForKids: false,
+      tags: []
+    };
+  }
+  let source = { ...postDetailsSettings };
+  const providerSettings = postDetailsSettings.providerSettings;
+  if (isPlainObject3(providerSettings)) {
+    const { youtube: youtubeBucket, ...flatProviderSettings } = providerSettings;
+    source = { ...source, ...flatProviderSettings };
+    if (isPlainObject3(youtubeBucket)) {
+      source = { ...source, ...youtubeBucket };
+    }
+  } else if (isPlainObject3(postDetailsSettings.youtube)) {
+    source = { ...source, ...postDetailsSettings.youtube };
+  }
+  return {
+    title: readTitle(source),
+    description,
+    privacyStatus: readPrivacyStatus(source),
+    selfDeclaredMadeForKids: readMadeForKids(source),
+    tags: normalizeTags(source.tags),
+    thumbnailPath: readThumbnailPath(source)
+  };
+}
+var DEFAULT_PRIVACY;
+var init_resolveYoutubeSettings = __esm({
+  "integrations/providers/youtube/resolveYoutubeSettings.ts"() {
+    DEFAULT_PRIVACY = "public";
+  }
+});
+
+// integrations/providers/youtube/youtubePublishValidation.ts
+function isPlainObject4(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function mediaExtFromUrlOrKey3(path7) {
+  const raw = String(path7 || "").trim();
+  if (!raw) return "";
+  try {
+    const u = new URL(raw);
+    return (u.pathname.split(".").pop() ?? "").toLowerCase();
+  } catch {
+    return (raw.split("?")[0]?.split("#")[0]?.split(".").pop() ?? "").toLowerCase();
+  }
+}
+function extractYoutubeMediaFromSettings(settings) {
+  if (!isPlainObject4(settings)) return [];
+  const media = settings.media;
+  if (Array.isArray(media)) {
+    return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  const items = media?.items;
+  if (Array.isArray(items)) {
+    return items.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  return [];
+}
+function resolveYoutubePublicMediaUrl(path7) {
+  const raw = path7.trim();
+  if (!raw) {
+    throw new Error("Media path is empty");
+  }
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw;
+  }
+  const url = publicUrlForObjectKey(raw);
+  if (!url) {
+    throw new Error(
+      "Cannot build a public media URL for YouTube (set STORAGE_R2_PUBLIC_BASE_URL for R2, or use full https:// URLs)"
+    );
+  }
+  return url;
+}
+function validateYoutubeVideoMedia(media) {
+  if (media.length !== 1) {
+    throw new Error("YouTube requires one video attachment");
+  }
+  const ext = mediaExtFromUrlOrKey3(media[0].path);
+  if (ext !== "mp4") {
+    throw new Error("YouTube requires an MP4 video attachment");
+  }
+}
+function validateYoutubeTitle(title) {
+  const len = title.trim().length;
+  if (len < 2) {
+    throw new Error("YouTube title must be at least 2 characters");
+  }
+  if (len > 100) {
+    throw new Error("YouTube title must be at most 100 characters");
+  }
+}
+var init_youtubePublishValidation = __esm({
+  "integrations/providers/youtube/youtubePublishValidation.ts"() {
+    init_MediaRepository();
+  }
+});
+function mapYoutubeApiError(err) {
+  if (!err || typeof err !== "object") return "YouTube upload failed";
+  const e = err;
+  const parts = (e.errors ?? []).map((row) => row.message || row.reason).filter((x) => typeof x === "string" && x.length > 0);
+  if (parts.length > 0) return parts.join("; ");
+  if (typeof e.message === "string" && e.message.trim()) return e.message.trim();
+  return "YouTube upload failed";
+}
+async function fetchAsNodeStream(url) {
+  const res = await fetch(url);
+  if (!res.ok || !res.body) {
+    throw new Error(`Failed to download media (${res.status})`);
+  }
+  return stream.Readable.fromWeb(res.body);
+}
+async function publishYoutubeVideo(_channelId, accessToken2, postDetails) {
+  const settings = resolveYoutubeSettings(postDetails.settings, postDetails.message ?? "");
+  validateYoutubeTitle(settings.title);
+  const media = extractYoutubeMediaFromSettings(postDetails.settings);
+  validateYoutubeVideoMedia(media);
+  const videoUrl = resolveYoutubePublicMediaUrl(media[0].path);
+  const oauth2 = new googleapis.google.auth.OAuth2();
+  oauth2.setCredentials({ access_token: accessToken2 });
+  const youtube = googleapis.google.youtube({ version: "v3", auth: oauth2 });
+  const videoBody = await fetchAsNodeStream(videoUrl);
+  let insertResponse;
+  try {
+    insertResponse = await youtube.videos.insert({
+      part: ["snippet", "status"],
+      requestBody: {
+        snippet: {
+          title: settings.title,
+          description: settings.description,
+          tags: settings.tags.length > 0 ? settings.tags : void 0
+        },
+        status: {
+          privacyStatus: settings.privacyStatus,
+          selfDeclaredMadeForKids: settings.selfDeclaredMadeForKids
+        }
+      },
+      media: {
+        body: videoBody
+      }
+    });
+  } catch (err) {
+    throw new Error(mapYoutubeApiError(err));
+  }
+  const videoId = insertResponse.data.id;
+  if (!videoId) {
+    throw new Error("YouTube upload succeeded but no video id was returned");
+  }
+  if (settings.thumbnailPath) {
+    const thumbUrl = resolveYoutubePublicMediaUrl(settings.thumbnailPath);
+    const thumbBody = await fetchAsNodeStream(thumbUrl);
+    try {
+      await youtube.thumbnails.set({
+        videoId,
+        media: { body: thumbBody }
+      });
+    } catch (err) {
+      throw new Error(`YouTube thumbnail upload failed: ${mapYoutubeApiError(err)}`);
+    }
+  }
+  return {
+    id: postDetails.id,
+    postId: videoId,
+    status: "success",
+    releaseURL: `https://www.youtube.com/watch?v=${videoId}`
+  };
+}
+var init_youtubeDataPublish = __esm({
+  "integrations/providers/youtube/youtubeDataPublish.ts"() {
+    init_resolveYoutubeSettings();
+    init_youtubePublishValidation();
+  }
+});
+function youtubeOAuth() {
+  return config.integrations.youtube;
+}
+function youtubeRedirectUri() {
+  return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("youtube")}`;
+}
+function createOAuth2Client() {
+  const { clientId, clientSecret } = youtubeOAuth();
+  return new googleapis.google.auth.OAuth2(clientId, clientSecret, youtubeRedirectUri());
+}
+function resolveChannelIdFromPayload(data) {
+  if (!data || typeof data !== "object") {
+    throw new Error("Missing channel selection");
+  }
+  const o = data;
+  const page = typeof o.page === "string" ? o.page.trim() : "";
+  const pageId = typeof o.pageId === "string" ? o.pageId.trim() : "";
+  const id = typeof o.id === "string" ? o.id.trim() : "";
+  const resolved = page || pageId || id;
+  if (!resolved) throw new Error("Missing channel selection");
+  return resolved;
+}
+var YOUTUBE_ANALYTICS_METRICS, METRIC_LABELS, YoutubeProvider;
+var init_youtubeProvider = __esm({
+  "integrations/providers/youtube/youtubeProvider.ts"() {
+    init_youtubeDataPublish();
+    init_GlobalConfig();
+    init_AppError();
+    init_makeId();
+    init_oauthFrontendOrigin();
+    init_oauthFrontendCallbackPath();
+    YOUTUBE_ANALYTICS_METRICS = [
+      "views",
+      "estimatedMinutesWatched",
+      "averageViewDuration",
+      "averageViewPercentage",
+      "subscribersGained",
+      "likes",
+      "subscribersLost"
+    ].join(",");
+    METRIC_LABELS = {
+      views: "Views",
+      estimatedMinutesWatched: "Watch time (minutes)",
+      averageViewDuration: "Avg view duration",
+      averageViewPercentage: "Avg view percentage",
+      subscribersGained: "Subscribers gained",
+      likes: "Likes",
+      subscribersLost: "Subscribers lost"
+    };
+    YoutubeProvider = class {
+      identifier = "youtube";
+      name = "YouTube";
+      editor = "normal";
+      isBetweenSteps = true;
+      refreshCron = true;
+      toolTip = "Connect a YouTube channel you manage";
+      scopes = [
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/youtube",
+        "https://www.googleapis.com/auth/youtube.force-ssl",
+        "https://www.googleapis.com/auth/youtube.readonly",
+        "https://www.googleapis.com/auth/youtube.upload",
+        "https://www.googleapis.com/auth/youtubepartner",
+        "https://www.googleapis.com/auth/yt-analytics.readonly"
+      ];
+      maxLength(_additionalSettings) {
+        return 5e3;
+      }
+      rules = "YouTube posts require exactly one MP4 video. Set a title (2\u2013100 characters), privacy (public, private, or unlisted), optional tags, and an optional custom thumbnail image.";
+      validateCreatePost(input) {
+        if (input.status === "scheduled" && input.mediaCount !== 1) {
+          return "YouTube requires one video attachment";
+        }
+        return null;
+      }
+      async post(channelId, accessToken2, postDetails, _integration) {
+        if (!postDetails.length) return [];
+        const result = await publishYoutubeVideo(channelId, accessToken2, postDetails[0]);
+        return [result];
+      }
+      checkScopes(required, granted) {
+        const missing = required.filter((s) => !granted.includes(s));
+        if (missing.length > 0) {
+          throw new Error(`Missing permissions: ${missing.join(", ")}`);
+        }
+      }
+      async refreshToken(refreshToken) {
+        const { clientId, clientSecret } = youtubeOAuth();
+        if (!clientId || !clientSecret) {
+          throw new AppError(
+            "YouTube OAuth is not configured. Set YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET.",
+            503
+          );
+        }
+        const oauth2 = createOAuth2Client();
+        oauth2.setCredentials({ refresh_token: refreshToken });
+        const { credentials } = await oauth2.refreshAccessToken();
+        if (!credentials.access_token) {
+          throw new Error("YouTube token refresh failed");
+        }
+        oauth2.setCredentials(credentials);
+        const profile = await this.fetchGoogleProfile(oauth2);
+        return {
+          id: profile.id,
+          name: profile.name,
+          accessToken: credentials.access_token,
+          refreshToken: credentials.refresh_token ?? refreshToken,
+          expiresIn: credentials.expiry_date != null ? Math.max(0, Math.floor((credentials.expiry_date - Date.now()) / 1e3)) : dayjs5__default.default().add(55, "minutes").unix() - dayjs5__default.default().unix(),
+          picture: profile.picture,
+          username: profile.username
+        };
+      }
+      async generateAuthUrl() {
+        const { clientId } = youtubeOAuth();
+        if (!clientId) {
+          throw new AppError(
+            "YouTube OAuth is not configured. Set YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET.",
+            503
+          );
+        }
+        const state = makeId(6);
+        const codeVerifier = makeId(10);
+        const oauth2 = createOAuth2Client();
+        const url = oauth2.generateAuthUrl({
+          access_type: "offline",
+          prompt: "consent",
+          scope: this.scopes,
+          state
+        });
+        return { url, codeVerifier, state };
+      }
+      async authenticate(params) {
+        const { clientId, clientSecret } = youtubeOAuth();
+        if (!clientId || !clientSecret) return "YouTube OAuth is not configured";
+        const oauth2 = createOAuth2Client();
+        let tokens;
+        try {
+          const result = await oauth2.getToken(params.code);
+          tokens = result.tokens;
+        } catch (e) {
+          return e instanceof Error ? e.message : "YouTube token exchange failed";
+        }
+        if (!tokens.access_token) {
+          return "YouTube token exchange failed";
+        }
+        oauth2.setCredentials(tokens);
+        try {
+          const tokenInfo = await oauth2.getTokenInfo(tokens.access_token);
+          const granted = tokenInfo.scopes ?? [];
+          this.checkScopes(this.scopes, granted);
+        } catch (e) {
+          return e instanceof Error ? e.message : "Missing OAuth permissions";
+        }
+        const profile = await this.fetchGoogleProfile(oauth2);
+        return {
+          id: profile.id,
+          name: profile.name,
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token ?? "",
+          expiresIn: tokens.expiry_date != null ? Math.max(0, Math.floor((tokens.expiry_date - Date.now()) / 1e3)) : dayjs5__default.default().add(55, "minutes").unix() - dayjs5__default.default().unix(),
+          picture: profile.picture,
+          username: profile.username
+        };
+      }
+      async fetchGoogleProfile(oauth2) {
+        const oauth2Api = googleapis.google.oauth2({ version: "v2", auth: oauth2 });
+        const res = await oauth2Api.userinfo.get();
+        const data = res.data;
+        return {
+          id: data.id ?? "",
+          name: data.name ?? data.email ?? "",
+          username: data.email ?? "",
+          picture: data.picture ?? ""
+        };
+      }
+      async pages(accessToken2) {
+        const oauth2 = new googleapis.google.auth.OAuth2();
+        oauth2.setCredentials({ access_token: accessToken2 });
+        const youtube = googleapis.google.youtube({ version: "v3", auth: oauth2 });
+        const res = await youtube.channels.list({
+          part: ["snippet"],
+          mine: true,
+          maxResults: 50
+        });
+        return (res.data.items ?? []).map((ch) => ({
+          id: ch.id ?? "",
+          name: ch.snippet?.title ?? ch.id ?? "",
+          pictureUrl: ch.snippet?.thumbnails?.default?.url ?? "",
+          username: ch.snippet?.customUrl ?? void 0
+        }));
+      }
+      async fetchPageInformation(accessToken2, data) {
+        const channelId = resolveChannelIdFromPayload(data);
+        const oauth2 = new googleapis.google.auth.OAuth2();
+        oauth2.setCredentials({ access_token: accessToken2 });
+        const youtube = googleapis.google.youtube({ version: "v3", auth: oauth2 });
+        const res = await youtube.channels.list({
+          part: ["snippet"],
+          id: [channelId]
+        });
+        const ch = res.data.items?.[0];
+        if (!ch?.id) {
+          throw new Error("Channel not found in your accounts");
+        }
+        return {
+          id: ch.id,
+          name: ch.snippet?.title ?? "",
+          access_token: accessToken2,
+          picture: ch.snippet?.thumbnails?.default?.url ?? "",
+          username: ch.snippet?.customUrl ?? ""
+        };
+      }
+      async reConnect(_googleUserId, channelId, accessToken2) {
+        const information = await this.fetchPageInformation(accessToken2, { id: channelId });
+        return {
+          id: information.id,
+          name: information.name,
+          accessToken: information.access_token,
+          picture: information.picture,
+          username: information.username
+        };
+      }
+      async analytics(channelId, accessToken2, dateWindowDays) {
+        const oauth2 = new googleapis.google.auth.OAuth2();
+        oauth2.setCredentials({ access_token: accessToken2 });
+        const analytics = googleapis.google.youtubeAnalytics({ version: "v2", auth: oauth2 });
+        const endDate = dayjs5__default.default().format("YYYY-MM-DD");
+        const startDate = dayjs5__default.default().subtract(dateWindowDays, "day").format("YYYY-MM-DD");
+        try {
+          const res = await analytics.reports.query({
+            ids: `channel==${channelId}`,
+            startDate,
+            endDate,
+            metrics: YOUTUBE_ANALYTICS_METRICS,
+            dimensions: "day"
+          });
+          const headers = res.data.columnHeaders ?? [];
+          const metricNames = headers.filter((h) => h.columnType === "METRIC").map((h) => h.name ?? "").filter(Boolean);
+          const byMetric = /* @__PURE__ */ new Map();
+          for (const name of metricNames) {
+            byMetric.set(name, []);
+          }
+          for (const row of res.data.rows ?? []) {
+            const day = String(row[0] ?? "");
+            metricNames.forEach((metric, idx) => {
+              const value = row[idx + 1];
+              const list = byMetric.get(metric);
+              if (list) {
+                list.push({ total: String(value ?? 0), date: day });
+              }
+            });
+          }
+          return metricNames.map((metric) => ({
+            label: METRIC_LABELS[metric] ?? metric,
+            percentageChange: 0,
+            data: byMetric.get(metric) ?? [],
+            average: metric === "averageViewDuration" || metric === "averageViewPercentage"
+          }));
+        } catch {
+          return [];
+        }
+      }
+      async postAnalytics(_integrationId, accessToken2, videoId, _fromDate) {
+        const today = dayjs5__default.default().format("YYYY-MM-DD");
+        const oauth2 = new googleapis.google.auth.OAuth2();
+        oauth2.setCredentials({ access_token: accessToken2 });
+        const youtube = googleapis.google.youtube({ version: "v3", auth: oauth2 });
+        try {
+          const res = await youtube.videos.list({
+            part: ["statistics"],
+            id: [videoId]
+          });
+          const stats = res.data.items?.[0]?.statistics;
+          if (!stats) return [];
+          const rows = [];
+          const push = (label, total) => {
+            if (total == null) return;
+            rows.push({ label, percentageChange: 0, data: [{ total: String(total), date: today }] });
+          };
+          push("Views", stats.viewCount);
+          push("Likes", stats.likeCount);
+          push("Comments", stats.commentCount);
+          push("Favorites", stats.favoriteCount);
+          return rows;
+        } catch {
+          return [];
+        }
+      }
+    };
+  }
+});
+
 // integrations/integrationManager.ts
 var socialIntegrationList, IntegrationManager;
 var init_integrationManager = __esm({
@@ -12848,11 +13371,13 @@ var init_integrationManager = __esm({
     init_instagramBusinessProvider();
     init_instagramStandaloneProvider();
     init_threadsProvider();
+    init_youtubeProvider();
     socialIntegrationList = [
       new ThreadsProvider(),
       new FacebookProvider(),
       new InstagramBusinessProvider(),
-      new InstagramStandaloneProvider()
+      new InstagramStandaloneProvider(),
+      new YoutubeProvider()
     ];
     IntegrationManager = class {
       getAllIntegrations() {

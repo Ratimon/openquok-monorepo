@@ -24,10 +24,10 @@
 		disabled = false,
 		uploadBusy = false,
 		onFilesSelected,
-		accept = 'image/*',
-		title = 'Add images',
-		description = 'Drag and drop images here, or click the area to browse. Files upload as soon as they are added; you do not need to save the set first.',
-		dropTitle = 'Drop images here',
+		accept = 'image/*,video/*',
+		title = 'Add media',
+		description = 'Drag and drop images or videos here, or click the area to browse. Files upload as soon as they are added; you do not need to save the set first.',
+		dropTitle = 'Drop images or videos here',
 		dropSubtitle = 'or click to choose from your device'
 	}: Props = $props();
 
@@ -73,7 +73,7 @@
 					<span class="text-sm font-medium">Uploading…</span>
 				{:else}
 					<span class="relative inline-flex size-12 items-center justify-center text-primary">
-						<AbstractIcon name={icons.Image.name} class="size-12" width="48" height="48" />
+						<AbstractIcon name={icons.Images.name} class="size-12" width="48" height="48" />
 					</span>
 					<div class="space-y-1">
 						<p class="text-sm font-medium">{dropTitle}</p>
