@@ -19,9 +19,12 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'correctly',
 	'channels',
 	'perfect plan',
-	'plan',
-	'craft',
 	'questions',
+	'thumbnail',
+	'plan',
+	'setup',
+	'craft',
+	'batch',
 	'bulk',
 	'agents',
 	'approve',
@@ -31,7 +34,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'interate',
 	'facebook',
 	'threads',
-	'instagram'
+	'instagram',
+	'youtube'
 ] as const;
 
 const TITLE_PART_HIGHLIGHT_PHRASE = new RegExp(

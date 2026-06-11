@@ -36,6 +36,7 @@ CLI walkthroughs: <a href="/docs/cli-examples/youtube">CLI Examples — YouTube<
 | Tags | Optional string labels in provider settings |
 | Custom thumbnail | Optional image path after upload |
 | Made for kids | <Badge text="selfDeclaredMadeForKids" variant="param" /> — <Badge text="yes" variant="default" /> or <Badge text="no" variant="default" /> |
+| Shorts | Vertical MP4 uploads use the same video upload path; YouTube may classify qualifying uploads as Shorts |
 | Channel analytics | Time-series metrics (views, watch time, subscribers, likes, …) for 7 / 30 / 90 days |
 | Per-video snapshot | Views, likes, comments, favorites on published videos |
 
@@ -47,7 +48,8 @@ CLI walkthroughs: <a href="/docs/cli-examples/youtube">CLI Examples — YouTube<
 | Follow-up comments | No threaded replies after publish |
 | Playlists or categories | Not wired in Openquok today |
 | YouTube-side scheduled publish | Openquok schedules; upload uses immediate publish with privacy status |
-| Shorts-specific API | Standard video upload only |
+| Community posts | Not available through the public YouTube Data API |
+| Shorts-specific publish mode | Standard video upload only — no separate Shorts API or composer toggle |
 
 ## Backend environment
 

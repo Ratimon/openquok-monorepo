@@ -36,6 +36,12 @@
 
 	const headingId = 'landing-audience-heading';
 
+	const cardGridClass = $derived(
+		cards.length === 4
+			? 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'
+			: 'grid grid-cols-1 gap-4 md:grid-cols-3'
+	);
+
 	const titleParts = $derived(
 		landingTitle
 			.split(',')
@@ -83,7 +89,7 @@
 			{/if}
 		</div>
 
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+		<div class={cardGridClass}>
 			{#each cards as card (card.title)}
 				<AuroraWobbleCard
 					containerClass={card.containerClass}
