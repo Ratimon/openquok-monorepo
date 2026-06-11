@@ -14,22 +14,24 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each page chains <a href="/docs/cli-usages/integrations"><Badge text="integrations:list" variant="default" /></a>, <a href="/docs/cli-usages/media-upload"><Badge text="upload" variant="default" /></a>, and <a href="/docs/cli-usages/managing-posts"><Badge text="posts:create" variant="default" /></a> into the kind of scripts AI agents and CI jobs actually run.
 
 <Callout type="note" title="Only platforms the project supports">
-<p>Openquok currently ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, and <strong>Instagram</strong> (Business and Standalone). The examples here are limited to those — once new providers (TikTok, YouTube, LinkedIn, …) land in <Badge text="backend/integrations/providers/" variant="path" />, additional pages will be added.</p>
+<p>Openquok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), and <strong>YouTube</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
 </Callout>
 
 <CardGrid>
 <LinkCard title="Facebook Page" description="Text, photos, links, and follow-up comments for Facebook Pages" href="/docs/cli-examples/facebook" />
 <LinkCard title="Instagram" description="Feed, reels, stories, and carousels for Business or Standalone accounts" href="/docs/cli-examples/instagram" />
 <LinkCard title="Meta Threads" description="Text and media posts, timed follow-up replies, what to do when publish metadata is incomplete, and analytics" href="/docs/cli-examples/threads" />
+<LinkCard title="YouTube" description="MP4 uploads with title, privacy, tags, thumbnail, and analytics" href="/docs/cli-examples/youtube" />
 </CardGrid>
 
 ## Conventions used in these pages
 
-- Where examples show <Badge text="$THREADS_ID" variant="param" /> or <Badge text="$INSTAGRAM_ID" variant="param" />, populate them with an integration UUID from <Badge text="openquok integrations:list" variant="default" />
+- Where examples show <Badge text="$THREADS_ID" variant="param" />, <Badge text="$INSTAGRAM_ID" variant="param" />, or <Badge text="$YT_ID" variant="param" />, populate them with an integration UUID from <Badge text="openquok integrations:list" variant="default" />
 
 ```bash
 THREADS_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="threads") | .id')
 INSTAGRAM_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier | startswith("instagram")) | .id')
+YT_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="youtube") | .id')
 ```
 
 - The `--providerSettingsByIntegrationId` payloads shown match the JSON shapes the backend's provider modules expect today. If a key is missing or renamed, fetch the canonical schema with <a href="/docs/cli-usages/integrations"><Badge text="integrations:settings" variant="default" /></a> before scripting a batch.

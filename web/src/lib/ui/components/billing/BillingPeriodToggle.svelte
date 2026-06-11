@@ -21,6 +21,9 @@
 			onPeriodChange(tabValue);
 		}
 	});
+
+	const triggerClass =
+		'h-auto min-h-0 rounded-full border-0 !border-b-0 bg-transparent px-5 py-2 text-sm font-medium capitalize text-base-content/55 hover:text-base-content [&.tab-active]:bg-base-100 [&.tab-active]:text-base-content [&.tab-active]:shadow-none';
 </script>
 
 <Tabs.Root bind:value={tabValue} defaultValue="MONTHLY" class="inline-flex">
@@ -29,13 +32,13 @@
 	>
 		<Tabs.Trigger
 			value="MONTHLY"
-			class="billing-period-tab rounded-full border-0 px-5 py-2 text-sm font-medium capitalize"
+			class={triggerClass}
 		>
 			Monthly
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="YEARLY"
-			class="billing-period-tab rounded-full border-0 px-5 py-2 text-sm font-medium capitalize"
+			class={triggerClass}
 		>
 			<span class="inline-flex items-center gap-2">
 				Yearly
@@ -48,23 +51,3 @@
 		</Tabs.Trigger>
 	</Tabs.List>
 </Tabs.Root>
-
-<style>
-	:global(.billing-period-tab.tab) {
-		height: auto;
-		min-height: 0;
-		border-bottom: none !important;
-		background-color: transparent;
-		color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
-	}
-
-	:global(.billing-period-tab.tab:hover) {
-		color: var(--color-base-content);
-	}
-
-	:global(.billing-period-tab.tab.tab-active) {
-		background-color: var(--color-base-100);
-		color: var(--color-base-content);
-		box-shadow: none;
-	}
-</style>

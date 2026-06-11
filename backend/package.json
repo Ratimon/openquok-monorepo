@@ -102,6 +102,7 @@
     "facebook-nodejs-business-sdk": "^24.0.1",
     "feed": "^5.2.0",
     "flowcraft": "^2.9.2",
+    "googleapis": "^173.0.0",
     "helmet": "^7.1.0",
     "ioredis": "^5.10.1",
     "lodash": "^4.18.1",

@@ -57,7 +57,7 @@ If your backend uses <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> p
 
 - Go to <Badge text="APIs & Services" variant="default" /> → <Badge text="Credentials" variant="default" />.
 
-- Configure the <Badge text="OAuth consent screen" variant="default" />. Set user type to <Badge text="External" variant="experimental" />.
+- Configure the <Badge text="OAuth consent screen" variant="default" />. Set user type to <Badge text="External" variant="param" />.
 
 - Click <Badge text="Create Credentials" variant="default" />, then choose <Badge text="OAuth client ID" variant="default" />.
 

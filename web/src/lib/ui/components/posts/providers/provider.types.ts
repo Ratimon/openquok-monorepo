@@ -17,6 +17,18 @@ export type FacebookLaunchProviderSettings = {
 	url?: string;
 };
 
+export type YoutubePrivacyStatus = 'public' | 'private' | 'unlisted';
+
+export type YoutubeTagOption = { value: string; label: string };
+
+export type YoutubeLaunchProviderSettings = {
+	title: string;
+	type: YoutubePrivacyStatus;
+	selfDeclaredMadeForKids: 'yes' | 'no';
+	tags: YoutubeTagOption[];
+	thumbnail?: { path: string };
+};
+
 export type LaunchProviderCheckContext = {
 	media: { id: string; path: string }[];
 	/** Per-integration settings (from the Settings panel), shape is provider-specific. */

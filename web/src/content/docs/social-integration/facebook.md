@@ -17,22 +17,6 @@ Facebook Page publishing uses Meta’s **Graph API** with **Facebook Login for B
 Instagram (Business) and Facebook can use the same developer app — you do not need separate apps for both products.
 </Callout>
 
-## How Openquok differs from typical Meta setup guides
-
-Published third-party walkthroughs for Facebook and Instagram often assume a different host, path, and port than this repo. When following any external checklist alongside this page, swap in the **Openquok-specific** values below.
-
-| Topic | Common pattern in other guides | Openquok |
-| --- | --- | --- |
-| OAuth redirect path | <Badge text="/integrations/social/facebook" variant="path" /> | <Badge text="/integration/oauth/facebook" variant="path" /> |
-| Redirect host | Hard-coded product domain or <Badge text="localhost:4200" variant="new" /> / <Badge text="localhost:5000" variant="new" /> | Origin from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (default local Vite <Badge text="http://localhost:5173" variant="new" />; non-HTTPS dev may use the HTTPS relay — see <a href="/docs/social-integration/threads">Meta Threads</a>) |
-| Env file | Generic <Badge text=".env" variant="path" /> at app root | <Badge text="backend/.env.development.local" variant="envBackend" /> via <Badge text="backend/config/GlobalConfig.ts" variant="path" /> |
-| After OAuth | Channel ready immediately | **Page picker** on the same callback route — choose which Facebook Page to connect |
-| Instagram | Single <Badge text="/integrations/social/instagram" variant="path" /> redirect | Two identifiers: <Badge text="instagram-business" variant="default" /> and <Badge text="instagram-standalone" variant="default" /> — see <a href="/docs/social-integration/instagram">Instagram</a> |
-| Facebook scopes | Same Page permissions | Matches <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/facebook/facebookProvider.ts"><Badge text="backend/integrations/providers/facebook/facebookProvider.ts" variant="path" /></DocsExternalLink> |
-
-<Callout type="tip" title="IG vs Facebook">
-External Instagram guides focus on <Badge text="instagram_*" variant="default" /> scopes and Instagram Login products. This page adds Page scopes (<Badge text="pages_manage_posts" variant="default" />, etc.) and a **Facebook Page** redirect URI. You can register **both** redirect paths on one Meta app if you connect both channel types.
-</Callout>
 
 ## Features
 

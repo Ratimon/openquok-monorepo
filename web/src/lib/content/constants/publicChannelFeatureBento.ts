@@ -8,4 +8,7 @@ export type PublicChannelFeatureBentoId =
 	| 'threads-insights'
 	| 'instagram-bulk-scheduling'
 	| 'instagram-compose-settings'
-	| 'instagram-insights';
+	| 'instagram-insights'
+	| 'youtube-bulk-scheduling'
+	| 'youtube-video-settings'
+	| 'youtube-insights';

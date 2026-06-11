@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+	import type { YoutubeTagOption } from '$lib/ui/components/posts/providers/provider.types';
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -9,6 +10,7 @@
 	import SameAccountEngagementPlug from '$lib/ui/components/posts/thread/SameAccountEngagementPlug.svelte';
 	import InstagramCollaborators from '$lib/ui/components/posts/providers/instagram/InstagramCollaborators.svelte';
 	import FacebookSettings from '$lib/ui/components/posts/providers/facebook/FacebookSettings.svelte';
+	import YoutubeSettings from '$lib/ui/components/posts/providers/youtube/YoutubeSettings.svelte';
 
 	type ProviderSettings = {
 		threads: {
@@ -31,6 +33,13 @@
 		facebook: {
 			url?: string;
 		};
+		youtube: {
+			title: string;
+			type: 'public' | 'private' | 'unlisted';
+			selfDeclaredMadeForKids: 'yes' | 'no';
+			tags: YoutubeTagOption[];
+			thumbnail?: { path: string };
+		};
 	};
 
 	type Props = {
@@ -38,6 +47,7 @@
 		channel: CreateSocialPostChannelViewModel;
 		value?: Partial<ProviderSettings>;
 		onChange: (next: Partial<ProviderSettings>) => void;
+		organizationId?: string | null;
 		disabled?: boolean;
 		/** When true, render the open panel inline (for landing previews) instead of a fixed overlay. */
 		embedded?: boolean;
@@ -50,6 +60,7 @@
 		channel,
 		value = {},
 		onChange,
+		organizationId = null,
 		disabled = false,
 		embedded = false,
 		compactEditors = false
@@ -70,6 +81,12 @@
 	let igGraduationStrategy = $state<'MANUAL' | 'SS_PERFORMANCE'>('MANUAL');
 
 	let fbUrl = $state('');
+
+	let ytTitle = $state('');
+	let ytType = $state<'public' | 'private' | 'unlisted'>('public');
+	let ytMadeForKids = $state<'yes' | 'no'>('no');
+	let ytTags = $state<YoutubeTagOption[]>([]);
+	let ytThumbnail = $state<{ path: string } | undefined>(undefined);
 
 	// Pull values from the passed value object.
 	$effect(() => {
@@ -111,6 +128,32 @@
 		} else {
 			fbUrl = '';
 		}
+		if (s.youtube && typeof s.youtube === 'object') {
+			ytTitle = typeof s.youtube.title === 'string' ? s.youtube.title : '';
+			const pt = s.youtube.type;
+			ytType = pt === 'private' || pt === 'unlisted' ? pt : 'public';
+			ytMadeForKids = s.youtube.selfDeclaredMadeForKids === 'yes' ? 'yes' : 'no';
+			ytTags = Array.isArray(s.youtube.tags) ? s.youtube.tags : [];
+			ytThumbnail =
+				s.youtube.thumbnail &&
+				typeof s.youtube.thumbnail === 'object' &&
+				typeof s.youtube.thumbnail.path === 'string'
+					? { path: s.youtube.thumbnail.path }
+					: undefined;
+		} else {
+			ytTitle = typeof (s as { title?: unknown }).title === 'string' ? (s as { title: string }).title : '';
+			const flatType = (s as { type?: unknown }).type;
+			ytType =
+				flatType === 'private' || flatType === 'unlisted' || flatType === 'public' ? flatType : 'public';
+			const flatKids = (s as { selfDeclaredMadeForKids?: unknown }).selfDeclaredMadeForKids;
+			ytMadeForKids = flatKids === 'yes' ? 'yes' : 'no';
+			ytTags = Array.isArray((s as { tags?: unknown }).tags)
+				? ((s as { tags: YoutubeTagOption[] }).tags ?? [])
+				: [];
+			const flatThumb = (s as { thumbnail?: { path?: string } }).thumbnail;
+			ytThumbnail =
+				flatThumb && typeof flatThumb.path === 'string' ? { path: flatThumb.path } : undefined;
+		}
 	});
 
 	let lastEmitted = $state('');
@@ -142,6 +185,16 @@
 		} else if (identifier === 'facebook') {
 			const trimmed = fbUrl.trim();
 			next = { facebook: trimmed ? { url: trimmed } : {} };
+		} else if (identifier === 'youtube') {
+			next = {
+				youtube: {
+					title: ytTitle.trim(),
+					type: ytType,
+					selfDeclaredMadeForKids: ytMadeForKids,
+					tags: ytTags,
+					...(ytThumbnail?.path ? { thumbnail: ytThumbnail } : {})
+				}
+			};
 		} else {
 			return;
 		}
@@ -193,6 +246,16 @@
 		/>
 	{:else if identifier === 'facebook'}
 		<FacebookSettings bind:url={fbUrl} />
+	{:else if identifier === 'youtube'}
+		<YoutubeSettings
+			bind:title={ytTitle}
+			bind:type={ytType}
+			bind:selfDeclaredMadeForKids={ytMadeForKids}
+			bind:tags={ytTags}
+			bind:thumbnail={ytThumbnail}
+			{organizationId}
+			{disabled}
+		/>
 	{:else}
 		<p class="text-sm text-base-content/60">No settings available for this provider yet.</p>
 	{/if}

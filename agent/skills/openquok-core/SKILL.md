@@ -153,6 +153,7 @@ Provider settings overview: [resources/provider-settings.md](./resources/provide
 | Facebook Page | `facebook` | text, link preview, photo, carousel, Reel, comments | [facebook-examples.md](./resources/facebook-examples.md) |
 | Instagram Login | `instagram-standalone` | feed, carousel, Reel, Story, trial reel, comments | [instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) |
 | Instagram Page | `instagram-business` | same as standalone (Page-linked OAuth) | [instagram-business-examples.md](./resources/instagram-business-examples.md) |
+| YouTube | `youtube` | MP4 upload, title/privacy/tags/thumbnail, channel analytics | [youtube-examples.md](./resources/youtube-examples.md) |
 
 Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 

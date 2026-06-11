@@ -30,6 +30,7 @@ Full JSON body: `openquok posts:create --json ./post.json` with `providerSetting
 | Instagram | `post_type`, `is_trial_reel`, `graduation_strategy`, `collaborators` | `instagram.*` (camelCase in web UI) |
 | Threads follow-ups / finisher / plug | — | `threads.replies`, `threads.enabled`, `threads.message`, `threads.internalEngagementPlug` |
 | Instagram follow-up comments | — | `instagram.replies` |
+| YouTube video metadata | `title`, `type`, `selfDeclaredMadeForKids`, `tags`, `thumbnail` / `thumbnailPath` | `youtube.title`, `youtube.type`, `youtube.tags`, `youtube.thumbnail`, … |
 
 Backend publish helpers accept **flat API keys** and **nested web buckets** where noted in each channel doc. For Threads and Instagram **scheduled follow-ups**, use the nested bucket (`threads` / `instagram`) in `--providerSettingsByIntegrationId` — that is what the worker reads at publish time.
 
@@ -55,3 +56,4 @@ Returns `output.rules`, `output.maxLength`, `output.tools` (allow-listed `integr
 | Facebook Page | [facebook-examples.md](./facebook-examples.md) | `url` (link preview) |
 | Instagram Login | [instagram-standalone-examples.md](./instagram-standalone-examples.md) | `post_type`, trial reel, collaborators |
 | Instagram Page | [instagram-business-examples.md](./instagram-business-examples.md) | Same as standalone |
+| YouTube | [youtube-examples.md](./youtube-examples.md) | `title`, `type`, tags, thumbnail, made-for-kids |

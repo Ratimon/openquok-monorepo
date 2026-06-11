@@ -310,6 +310,7 @@
 						channel={focused}
 						value={providerSettings}
 						onChange={onProviderSettingsChange}
+						organizationId={organizationId}
 						disabled={settingsDisabled}
 					/>
 				</div>

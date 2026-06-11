@@ -3,6 +3,7 @@ import type { LaunchProviderConfig } from '$lib/ui/components/posts/providers/pr
 import { facebookProvider } from '$lib/ui/components/posts/providers/facebook/facebook.provider';
 import { instagramProvider } from '$lib/ui/components/posts/providers/instagram/instagram.provider';
 import { threadsProvider } from '$lib/ui/components/posts/providers/threads/threads.provider';
+import { youtubeProvider } from '$lib/ui/components/posts/providers/youtube/youtube.provider';
 
 const DEFAULT_PROVIDER: LaunchProviderConfig = {
 	id: 'default',
@@ -22,6 +23,8 @@ export function getLaunchProviderConfig(identifier: string | null | undefined): 
 	if (id === 'threads') return threadsProvider;
 
 	if (id === 'facebook') return facebookProvider;
+
+	if (id === 'youtube') return youtubeProvider;
 
 	// Instagram variants (instagram, instagram-business, instagram-standalone)
 	if (id.startsWith('instagram')) return instagramProvider;

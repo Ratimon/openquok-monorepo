@@ -391,6 +391,11 @@ export const config: ConfigObject = {
             appId: getEnv("INSTAGRAM_APP_ID", ""),
             appSecret: getEnv("INSTAGRAM_APP_SECRET", ""),
         },
+        /** Google — YouTube Data API + YouTube Analytics OAuth. */
+        youtube: {
+            clientId: getEnvTrimmed("YOUTUBE_CLIENT_ID"),
+            clientSecret: getEnvTrimmed("YOUTUBE_CLIENT_SECRET"),
+        },
     },
 
 
