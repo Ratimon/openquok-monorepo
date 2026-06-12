@@ -48,6 +48,7 @@
 		value?: Partial<ProviderSettings>;
 		onChange: (next: Partial<ProviderSettings>) => void;
 		organizationId?: string | null;
+		uploadUid?: string;
 		disabled?: boolean;
 		/** When true, render the open panel inline (for landing previews) instead of a fixed overlay. */
 		embedded?: boolean;
@@ -61,6 +62,7 @@
 		value = {},
 		onChange,
 		organizationId = null,
+		uploadUid = '',
 		disabled = false,
 		embedded = false,
 		compactEditors = false
@@ -254,6 +256,7 @@
 			bind:tags={ytTags}
 			bind:thumbnail={ytThumbnail}
 			{organizationId}
+			{uploadUid}
 			{disabled}
 		/>
 	{:else}

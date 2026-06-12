@@ -1,5 +1,14 @@
 import { publicUrlForObjectKey } from "../../../repositories/MediaRepository";
 
+/** YouTube custom thumbnail upload limit (2 MiB). */
+export const YOUTUBE_THUMBNAIL_MAX_BYTES = 2 * 1024 * 1024;
+
+/** Returns true when the thumbnail should not be sent to YouTube (oversized). */
+export function shouldSkipYoutubeThumbnail(byteLength: number | null | undefined): boolean {
+    if (byteLength == null || !Number.isFinite(byteLength)) return false;
+    return byteLength > YOUTUBE_THUMBNAIL_MAX_BYTES;
+}
+
 type MediaItem = { path: string; bucket?: string };
 type SettingsWithMedia = { media?: { items?: MediaItem[] } | MediaItem[] };
 

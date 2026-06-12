@@ -12930,6 +12930,10 @@ var init_resolveYoutubeSettings = __esm({
 });
 
 // integrations/providers/youtube/youtubePublishValidation.ts
+function shouldSkipYoutubeThumbnail(byteLength) {
+  if (byteLength == null || !Number.isFinite(byteLength)) return false;
+  return byteLength > YOUTUBE_THUMBNAIL_MAX_BYTES;
+}
 function isPlainObject4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -12989,9 +12993,11 @@ function validateYoutubeTitle(title) {
     throw new Error("YouTube title must be at most 100 characters");
   }
 }
+var YOUTUBE_THUMBNAIL_MAX_BYTES;
 var init_youtubePublishValidation = __esm({
   "integrations/providers/youtube/youtubePublishValidation.ts"() {
     init_MediaRepository();
+    YOUTUBE_THUMBNAIL_MAX_BYTES = 2 * 1024 * 1024;
   }
 });
 function mapYoutubeApiError(err) {
@@ -13008,6 +13014,46 @@ async function fetchAsNodeStream(url) {
     throw new Error(`Failed to download media (${res.status})`);
   }
   return stream.Readable.fromWeb(res.body);
+}
+async function remoteContentLength(url) {
+  try {
+    const head = await fetch(url, { method: "HEAD" });
+    if (!head.ok) return null;
+    const raw = head.headers.get("content-length");
+    if (!raw) return null;
+    const n = Number.parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+async function trySetYoutubeThumbnail(youtube, videoId, thumbnailPath, postId) {
+  const thumbUrl = resolveYoutubePublicMediaUrl(thumbnailPath);
+  const byteLength = await remoteContentLength(thumbUrl);
+  if (shouldSkipYoutubeThumbnail(byteLength)) {
+    logger.warn({
+      msg: "[YouTube] skipping custom thumbnail (exceeds 2 MiB limit)",
+      postId,
+      videoId,
+      byteLength,
+      limit: YOUTUBE_THUMBNAIL_MAX_BYTES
+    });
+    return;
+  }
+  const thumbBody = await fetchAsNodeStream(thumbUrl);
+  try {
+    await youtube.thumbnails.set({
+      videoId,
+      media: { body: thumbBody }
+    });
+  } catch (err) {
+    logger.warn({
+      msg: "[YouTube] custom thumbnail upload failed; video published without it",
+      postId,
+      videoId,
+      error: mapYoutubeApiError(err)
+    });
+  }
 }
 async function publishYoutubeVideo(_channelId, accessToken2, postDetails) {
   const settings = resolveYoutubeSettings(postDetails.settings, postDetails.message ?? "");
@@ -13046,16 +13092,7 @@ async function publishYoutubeVideo(_channelId, accessToken2, postDetails) {
     throw new Error("YouTube upload succeeded but no video id was returned");
   }
   if (settings.thumbnailPath) {
-    const thumbUrl = resolveYoutubePublicMediaUrl(settings.thumbnailPath);
-    const thumbBody = await fetchAsNodeStream(thumbUrl);
-    try {
-      await youtube.thumbnails.set({
-        videoId,
-        media: { body: thumbBody }
-      });
-    } catch (err) {
-      throw new Error(`YouTube thumbnail upload failed: ${mapYoutubeApiError(err)}`);
-    }
+    await trySetYoutubeThumbnail(youtube, videoId, settings.thumbnailPath, postDetails.id);
   }
   return {
     id: postDetails.id,
@@ -13068,6 +13105,7 @@ var init_youtubeDataPublish = __esm({
   "integrations/providers/youtube/youtubeDataPublish.ts"() {
     init_resolveYoutubeSettings();
     init_youtubePublishValidation();
+    init_Logger();
   }
 });
 function youtubeOAuth() {

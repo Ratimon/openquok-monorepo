@@ -9,6 +9,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
+	import GoogleApiPrivacyNotice from '$lib/ui/components/legal/GoogleApiPrivacyNotice.svelte';
 
 	type Props = {
 		config: ContinueProviderStepConfig;
@@ -19,6 +20,8 @@
 	};
 
 	let { config, pages, submittingId, onSelect, onCancel }: Props = $props();
+
+	const showGoogleApiPrivacyNotice = $derived(config.addedQueryProvider === 'youtube');
 </script>
 
 <div class="mx-auto max-w-lg px-4 py-10">
@@ -59,6 +62,11 @@
 			</li>
 		{/each}
 	</ul>
+	{#if showGoogleApiPrivacyNotice}
+		<div class="mt-6 rounded-lg border border-base-300 bg-base-200/40 px-4 py-3">
+			<GoogleApiPrivacyNotice />
+		</div>
+	{/if}
 	<Button class="mt-6" variant="ghost" onclick={onCancel}>
 		Cancel
 	</Button>

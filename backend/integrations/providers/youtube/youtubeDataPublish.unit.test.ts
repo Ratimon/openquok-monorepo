@@ -1,7 +1,9 @@
 import {
     extractYoutubeMediaFromSettings,
+    shouldSkipYoutubeThumbnail,
     validateYoutubeTitle,
     validateYoutubeVideoMedia,
+    YOUTUBE_THUMBNAIL_MAX_BYTES,
 } from "./youtubePublishValidation.js";
 
 describe("extractYoutubeMediaFromSettings", () => {
@@ -43,5 +45,18 @@ describe("validateYoutubeTitle", () => {
         expect(() => validateYoutubeTitle("a")).toThrow("at least 2 characters");
         expect(() => validateYoutubeTitle("ab")).not.toThrow();
         expect(() => validateYoutubeTitle("x".repeat(101))).toThrow("at most 100 characters");
+    });
+});
+
+describe("shouldSkipYoutubeThumbnail", () => {
+    it("skips when larger than YouTube 2 MiB limit", () => {
+        expect(shouldSkipYoutubeThumbnail(YOUTUBE_THUMBNAIL_MAX_BYTES + 1)).toBe(true);
+        expect(shouldSkipYoutubeThumbnail(YOUTUBE_THUMBNAIL_MAX_BYTES)).toBe(false);
+        expect(shouldSkipYoutubeThumbnail(1024)).toBe(false);
+    });
+
+    it("does not skip when size is unknown", () => {
+        expect(shouldSkipYoutubeThumbnail(null)).toBe(false);
+        expect(shouldSkipYoutubeThumbnail(undefined)).toBe(false);
     });
 });

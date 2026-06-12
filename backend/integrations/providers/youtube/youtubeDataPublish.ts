@@ -3,12 +3,15 @@ import { resolveYoutubeSettings } from "./resolveYoutubeSettings";
 import {
     extractYoutubeMediaFromSettings,
     resolveYoutubePublicMediaUrl,
+    shouldSkipYoutubeThumbnail,
     validateYoutubeTitle,
     validateYoutubeVideoMedia,
+    YOUTUBE_THUMBNAIL_MAX_BYTES,
 } from "./youtubePublishValidation";
 
 import { Readable } from "node:stream";
 import { google } from "googleapis";
+import { logger } from "../../../utils/Logger";
 
 function mapYoutubeApiError(err: unknown): string {
     if (!err || typeof err !== "object") return "YouTube upload failed";
@@ -27,6 +30,55 @@ async function fetchAsNodeStream(url: string): Promise<Readable> {
         throw new Error(`Failed to download media (${res.status})`);
     }
     return Readable.fromWeb(res.body as import("node:stream/web").ReadableStream);
+}
+
+async function remoteContentLength(url: string): Promise<number | null> {
+    try {
+        const head = await fetch(url, { method: "HEAD" });
+        if (!head.ok) return null;
+        const raw = head.headers.get("content-length");
+        if (!raw) return null;
+        const n = Number.parseInt(raw, 10);
+        return Number.isFinite(n) && n >= 0 ? n : null;
+    } catch {
+        return null;
+    }
+}
+
+async function trySetYoutubeThumbnail(
+    youtube: ReturnType<typeof google.youtube>,
+    videoId: string,
+    thumbnailPath: string,
+    postId: string
+): Promise<void> {
+    const thumbUrl = resolveYoutubePublicMediaUrl(thumbnailPath);
+    const byteLength = await remoteContentLength(thumbUrl);
+    if (shouldSkipYoutubeThumbnail(byteLength)) {
+        logger.warn({
+            msg: "[YouTube] skipping custom thumbnail (exceeds 2 MiB limit)",
+            postId,
+            videoId,
+            byteLength,
+            limit: YOUTUBE_THUMBNAIL_MAX_BYTES,
+        });
+        return;
+    }
+
+    const thumbBody = await fetchAsNodeStream(thumbUrl);
+    try {
+        await youtube.thumbnails.set({
+            videoId,
+            media: { body: thumbBody },
+        });
+    } catch (err) {
+        // Video is already live; a thumbnail failure must not fail the publish or trigger re-upload on retry.
+        logger.warn({
+            msg: "[YouTube] custom thumbnail upload failed; video published without it",
+            postId,
+            videoId,
+            error: mapYoutubeApiError(err),
+        });
+    }
 }
 
 export async function publishYoutubeVideo(
@@ -75,16 +127,7 @@ export async function publishYoutubeVideo(
     }
 
     if (settings.thumbnailPath) {
-        const thumbUrl = resolveYoutubePublicMediaUrl(settings.thumbnailPath);
-        const thumbBody = await fetchAsNodeStream(thumbUrl);
-        try {
-            await youtube.thumbnails.set({
-                videoId,
-                media: { body: thumbBody },
-            });
-        } catch (err) {
-            throw new Error(`YouTube thumbnail upload failed: ${mapYoutubeApiError(err)}`);
-        }
+        await trySetYoutubeThumbnail(youtube, videoId, settings.thumbnailPath, postDetails.id);
     }
 
     return {

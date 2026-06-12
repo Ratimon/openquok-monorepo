@@ -77,6 +77,11 @@ function isNonRefreshablePublishError(message: string): boolean {
     if (m.includes("error_subcode") && m.includes("2207052")) return true;
     if (m.includes("cannot build a public media url for instagram")) return true;
     if (m.includes("instagram media url is not publicly reachable")) return true;
+    // YouTube validation / thumbnail issues — retry would re-upload the video.
+    if (m.includes("youtube requires")) return true;
+    if (m.includes("youtube title must")) return true;
+    if (m.includes("youtube thumbnail")) return true;
+    if (m.includes("media is too large") && m.includes("2097152")) return true;
     return false;
 }
 

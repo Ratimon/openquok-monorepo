@@ -138,7 +138,7 @@
 			<div class="flex shrink-0 items-center gap-1">
 				{#if multiPosts}
 					<div class="relative h-4 w-8 shrink-0">
-						{#each previewChannels as entry, i (`${entry.integrationId ?? entry.postId ?? i}`)}
+						{#each previewChannels as entry, i (entry.postId || `${entry.integrationId ?? 'ch'}-${i}`)}
 							{@const entryIcon = socialProviderIcon(entry.channelIdentifier)}
 							<div class="absolute top-0" style={`left:${i * 6}px`}>
 								<IntegrationChannelPicture
@@ -198,7 +198,7 @@
 			{#if multiPosts}
 				<div class="flex shrink-0 items-center gap-1">
 					<div class="relative h-4 w-8 shrink-0">
-						{#each previewChannels as entry, i (`${entry.integrationId ?? entry.postId ?? i}`)}
+						{#each previewChannels as entry, i (entry.postId || `${entry.integrationId ?? 'ch'}-${i}`)}
 							{@const entryIcon = socialProviderIcon(entry.channelIdentifier)}
 							<div class="absolute top-0" style={`left:${i * 6}px`}>
 								<IntegrationChannelPicture

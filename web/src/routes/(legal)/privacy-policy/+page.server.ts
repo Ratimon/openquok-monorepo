@@ -21,7 +21,7 @@ export async function load({ url, cookies, fetch }) {
 
 	const title = 'Privacy Policy';
 	const description =
-		'How we collect, use, and protect personal information—including account data, connected social channels, and how to request deletion.';
+		'How we collect, use, and protect personal information—including Google and YouTube user data, connected social channels, and how to request deletion.';
 
 	const canonical = new URL(url.pathname, url.origin).href;
 	const pageMetaTags = Object.freeze({

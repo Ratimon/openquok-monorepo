@@ -24,6 +24,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CircularProgressBar from '$lib/ui/circular-progress-bar/CircularProgressBar.svelte';
 	import ContinueProviderPicker from '$lib/ui/components/posts/providers/ContinueProviderPicker.svelte';
+	import GoogleApiPrivacyNotice from '$lib/ui/components/legal/GoogleApiPrivacyNotice.svelte';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -502,6 +503,11 @@
 						Almost there…
 					{/if}
 				</p>
+				{#if provider === 'youtube'}
+					<div class="mt-6 w-full max-w-md text-start">
+						<GoogleApiPrivacyNotice />
+					</div>
+				{/if}
 				{#if busy}
 					<div class="mt-6 flex justify-center">
 						<CircularProgressBar value={progressValue} size={100} strokeWidth={7} />

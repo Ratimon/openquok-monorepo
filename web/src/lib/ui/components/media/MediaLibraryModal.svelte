@@ -34,6 +34,8 @@
 		/** When true, only one attachment is allowed (e.g. comments-only providers). */
 		mediaLocked?: boolean;
 		attachedPaths?: readonly string[];
+		/** When set, reject library items larger than this byte size (e.g. YouTube thumbnails). */
+		maxAttachBytes?: number;
 		onAttach?: (items: PostMediaProgrammerModel[]) => void;
 	};
 
@@ -43,6 +45,7 @@
 		disabled = false,
 		mediaLocked = false,
 		attachedPaths = [],
+		maxAttachBytes,
 		onAttach
 	}: Props = $props();
 
@@ -169,6 +172,14 @@
 		}
 		if (mediaLocked && attachedPaths.length > 0) {
 			toast.error('Only one attachment is allowed for this channel.');
+			return;
+		}
+		if (
+			typeof maxAttachBytes === 'number' &&
+			maxAttachBytes > 0 &&
+			item.size > maxAttachBytes
+		) {
+			toast.error(`This file is too large (max ${Math.round(maxAttachBytes / (1024 * 1024))} MB).`);
 			return;
 		}
 		const row: PostMediaProgrammerModel = {

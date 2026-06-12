@@ -311,6 +311,7 @@
 						value={providerSettings}
 						onChange={onProviderSettingsChange}
 						organizationId={organizationId}
+						uploadUid={uploadUid}
 						disabled={settingsDisabled}
 					/>
 				</div>

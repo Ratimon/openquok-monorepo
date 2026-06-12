@@ -32,7 +32,7 @@
 				Back
 			</Button>
 			<SectionTitle>Privacy Policy for {companyName}</SectionTitle>
-			<SectionDescription>Last updated April 12, 2026</SectionDescription>
+			<SectionDescription>Last updated June 12, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -159,11 +159,55 @@
 				<ul>
 					<li>
 						<strong>Connected Platform profiles and credentials:</strong> When you connect a
-						social or messaging Platform, we may receive profile information for that account (for
-						example Platform user id, username or handle, display name, profile image URL, and other
-						fields exposed by the Platform’s authorization or APIs). We also store integration
-						credentials needed to maintain the connection (for example OAuth access tokens, refresh
-						tokens, and token expiration metadata).
+						social or messaging Platform, we receive and store, via that Platform’s API, OAuth access
+						and refresh tokens (encrypted at rest), the scopes you granted, the Platform username and
+						identifier, and account-level metadata (for example profile picture, follower or
+						subscriber counts, page IDs, and channel IDs).
+					</li>
+					<li id="google-api-services">
+						<strong>YouTube and Google API Services:</strong> For YouTube specifically, the
+						services use YouTube API Services. When you connect a YouTube channel we receive content
+						and engagement data needed to provide the services: posts and videos you create or
+						schedule, video metadata you supply (for example title, description, tags, privacy
+						setting, and optional thumbnail), and post-level or channel-level analytics the YouTube
+						APIs return (for example views, watch time, likes, comments, and subscriber changes).
+						Your use of those features is also subject to the
+						<a
+							href="https://www.youtube.com/t/terms"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							YouTube Terms of Service
+						</a>
+						and the
+						<a
+							href="https://policies.google.com/privacy"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							Google Privacy Policy
+						</a>. {companyName}'s use and transfer of information received from Google APIs adheres
+						to the
+						<a
+							href="https://developers.google.com/terms/api-services-user-data-policy"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							Google API Services User Data Policy
+						</a>, including the Limited Use requirements. You can revoke {companyName}'s access to
+						your Google data at any time at
+						<a
+							href="https://security.google.com/settings/security/permissions"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							Google security settings
+						</a>
+						, or disconnect the channel from your workspace integrations settings.
 					</li>
 					<li>
 						<strong>Location you choose to share:</strong> If you provide a specific location (for
@@ -325,6 +369,10 @@
 				</p>
 				<p>
 					We use your information for the purposes described in the following sections.</p>
+				<p>
+					We do not use the content of your scheduled posts, your connected-Platform content, or your
+					private messages to send you advertising, and we do not sell that data.
+				</p>
 
 				<h3>
 					3.1 Providing and securing our services</h3>
@@ -568,7 +616,21 @@
 				<p>
 					When you connect a Platform or authorize a third-party service to access your account, you
 					agree that information about you may be processed by that Platform or service under its own
-					terms and privacy policy. We do not control their practices.
+					terms and privacy policy. We do not control their practices. When you schedule or publish
+					content, we transmit it to the Platform you selected; when you request analytics, we receive
+					it from that Platform.
+				</p>
+				<p>
+					We encourage you to review the privacy policy of any Platform you connect, including the
+					<a
+						href="https://policies.google.com/privacy"
+						class="link link-hover"
+						rel="noopener noreferrer"
+						target="_blank"
+					>
+						Google Privacy Policy
+					</a>
+					for YouTube integrations.
 				</p>
 
 				<h3>
@@ -659,6 +721,21 @@
 
 				<h2>
 					8. How long we retain your information</h2>
+				<ul>
+					<li>
+						<strong>OAuth tokens</strong> — kept while a Platform connection is active; revoked tokens
+						are deleted promptly. You can disconnect a Platform at any time from your workspace
+						integrations settings.
+					</li>
+					<li>
+						<strong>Scheduled content not yet published</strong> — kept until published or until you
+						delete it.
+					</li>
+					<li>
+						<strong>Published-post records and analytics</strong> — kept while your account is active,
+						so historical analytics remain available.
+					</li>
+				</ul>
 				<p>
 					For some connected Platform data, the product may retrieve or refresh information when
 					you use the services so it can be shown or used in your session, while credentials and
