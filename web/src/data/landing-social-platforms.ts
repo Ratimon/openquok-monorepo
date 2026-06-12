@@ -60,15 +60,6 @@ export const HERO_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 		iconClass: 'size-5',
 		iconWidth: '20',
 		iconHeight: '20'
-	},
-	{
-		id: 'google',
-		icon: icons.Google.name,
-		label: 'Google Business',
-		containerClass: 'bg-white',
-		iconClass: 'size-5',
-		iconWidth: '20',
-		iconHeight: '20'
 	}
 ];
 

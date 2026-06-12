@@ -17,6 +17,7 @@
 	type Props = {
 		heroTitle?: string;
 		heroSlogan?: string;
+		heroPlatformsLabel?: string;
 		ctaTextPrimary?: string;
 		ctaHrefPrimary?: string;
 		githubOwner?: string;
@@ -26,6 +27,7 @@
 	let {
 		heroTitle = '',
 		heroSlogan = '',
+		heroPlatformsLabel = 'Connect your accounts — publish to your social channels',
 		ctaTextPrimary = 'Try it for free',
 		ctaHrefPrimary = '#',
 		githubOwner = '',
@@ -186,44 +188,6 @@
 					</div>
 				{/if}
 
-				<div class="mb-8 flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
-					<Tooltip.Provider delayDuration={200}>
-						{#each HERO_SOCIAL_PLATFORMS as platform (platform.id)}
-							{@const label = platform.label ?? socialProviderDisplayLabel(platform.id)}
-							<Tooltip.Root>
-								<Tooltip.Trigger>
-									{#snippet child({ props: triggerProps })}
-										<span {...triggerProps} class="inline-flex" aria-label={label}>
-											<span
-												class={cn(
-													'grid size-8 shrink-0 place-items-center',
-													HERO_SOCIAL_ICON_BOX_CLASS,
-													platform.containerClass
-												)}
-											>
-												<AbstractIcon
-													name={platform.icon}
-													width={platform.iconWidth ?? '16'}
-													height={platform.iconHeight ?? '16'}
-													class={platform.iconClass ?? 'size-4'}
-													focusable="false"
-												/>
-											</span>
-										</span>
-									{/snippet}
-								</Tooltip.Trigger>
-								<Tooltip.Content
-									side="bottom"
-									sideOffset={8}
-									class={HERO_SOCIAL_TOOLTIP_CLASS}
-								>
-									{label}
-								</Tooltip.Content>
-							</Tooltip.Root>
-						{/each}
-					</Tooltip.Provider>
-				</div>
-
 				<h1 class="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
 					{#if titleLineModels.length > 0}
 						{#each titleLineModels as lineModel, lineIndex (lineIndex)}
@@ -266,6 +230,56 @@
 						{heroSlogan}
 					{/if}
 				</p>
+
+				<div class="mt-8">
+					<p
+						id="hero-supported-platforms-label"
+						class="mb-3 text-sm font-medium text-base-content/55 sm:text-base"
+					>
+						{heroPlatformsLabel}
+					</p>
+					<div
+						class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"
+						role="group"
+						aria-labelledby="hero-supported-platforms-label"
+					>
+						<Tooltip.Provider delayDuration={200}>
+							{#each HERO_SOCIAL_PLATFORMS as platform (platform.id)}
+								{@const label = platform.label ?? socialProviderDisplayLabel(platform.id)}
+								<Tooltip.Root>
+									<Tooltip.Trigger>
+										{#snippet child({ props: triggerProps })}
+											<span {...triggerProps} class="inline-flex" aria-label={label}>
+												<span
+													class={cn(
+														'grid size-8 shrink-0 place-items-center',
+														HERO_SOCIAL_ICON_BOX_CLASS,
+														platform.containerClass
+													)}
+												>
+													<AbstractIcon
+														name={platform.icon}
+														width={platform.iconWidth ?? '16'}
+														height={platform.iconHeight ?? '16'}
+														class={platform.iconClass ?? 'size-4'}
+														focusable="false"
+													/>
+												</span>
+											</span>
+										{/snippet}
+									</Tooltip.Trigger>
+									<Tooltip.Content
+										side="bottom"
+										sideOffset={8}
+										class={HERO_SOCIAL_TOOLTIP_CLASS}
+									>
+										{label}
+									</Tooltip.Content>
+								</Tooltip.Root>
+							{/each}
+						</Tooltip.Provider>
+					</div>
+				</div>
 
 				<div class="mt-10 flex items-center justify-center pb-2">
 					<ButtonGlitchBrightness

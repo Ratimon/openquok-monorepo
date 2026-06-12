@@ -35,7 +35,7 @@
 		<input
 			id="ig-collaborators"
 			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
-			placeholder="Add a tag"
+			placeholder="Add a tag and click enter"
 			bind:value={collaborators}
 		/>
 		<p class="text-xs text-base-content/50">

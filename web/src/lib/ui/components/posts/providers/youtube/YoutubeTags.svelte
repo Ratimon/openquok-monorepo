@@ -12,7 +12,7 @@
 	let {
 		label,
 		maxTags = 30,
-		placeholder = 'Add a tag',
+		placeholder = 'Add a tag and click enter',
 		value = $bindable([]),
 		onChange
 	}: Props = $props();

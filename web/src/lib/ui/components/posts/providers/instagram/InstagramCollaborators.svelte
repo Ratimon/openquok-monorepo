@@ -47,7 +47,7 @@
 			label="Collaborators (max 3) - accounts can't be private"
 			bind:value={collaborators}
 			maxTags={3}
-			placeholder="Add a tag"
+			placeholder="Add a tag and click enter"
 		/>
 	{/if}
 
