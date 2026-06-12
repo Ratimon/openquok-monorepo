@@ -1,5 +1,5 @@
-export type { UserMeWorkspaceRole, UserMeWorkspaceSession } from './user/meSession';
-export type { DigestQueueEntry, NotificationEmailType } from './notification/emailTypes';
+export type { UserMeWorkspaceRole, UserMeWorkspaceSession } from './user/meSession.js';
+export type { DigestQueueEntry, NotificationEmailType } from './notification/emailTypes.js';
 export {
 	MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND,
 	MAX_MEDIA_IMAGE_UPLOAD_BYTES_FRONTEND,
@@ -13,7 +13,7 @@ export {
 	validateMediaUploadSessionSize,
 	isVideoMediaMime,
 	type MediaUploadValidationSurface,
-} from './media/uploadLimits';
+} from './media/uploadLimits.js';
 export type {
 	AuthorizationAction,
 	PaidSubscriptionTier,
@@ -23,13 +23,13 @@ export type {
 	SubscriptionPeriod,
 	SubscriptionPolicy,
 	SubscriptionTier,
-} from './subscription/types';
+} from './subscription/types.js';
 export {
 	PAID_SUBSCRIPTION_TIERS,
 	SUBSCRIPTION_PERIODS,
 	SUBSCRIPTION_TIERS,
 	SubscriptionSection,
-} from './subscription/types';
+} from './subscription/types.js';
 export {
 	DEFAULT_MEDIA_STORAGE_QUOTA_BYTES,
 	UNLIMITED_POSTS_PER_MONTH,
@@ -40,7 +40,7 @@ export {
 	isUnlimitedTeamMembersPerWorkspace,
 	planLimitsForTier,
 	pricing,
-} from './subscription/pricing';
+} from './subscription/pricing.js';
 export {
 	MEDIA_VIRTUAL_GENERAL,
 	MEDIA_VIRTUAL_POSTS,
@@ -55,4 +55,4 @@ export {
 	isMediaFileManagerFolderId,
 	isProtectedMediaVirtualFolder,
 	mediaVirtualPathFromFileManagerTarget,
-} from './media/virtualPaths';
+} from './media/virtualPaths.js';
