@@ -8,6 +8,7 @@
 **/*.d.ts
 !types/openquok-orchestrator.d.ts
 !types/aws-sdk-s3-request-presigner.d.ts
+!types/facebook-nodejs-business-sdk.d.ts
 !types/swagger-modules.d.ts
 
 **/*.js
