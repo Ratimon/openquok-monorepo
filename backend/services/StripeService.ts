@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import groupBy from "lodash/groupBy";
+import groupBy from "lodash/groupBy.js";
 import {
     isPaidSubscriptionTier,
     PAID_SUBSCRIPTION_TIERS,
