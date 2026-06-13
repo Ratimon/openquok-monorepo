@@ -15,6 +15,15 @@ type AdapterInternals = {
 };
 
 const MIN_LOCK_MS = 30_000;
+const DEFAULT_WORKER_CONCURRENCY = 5;
+
+export type SafeBullMQAdapterOptions = ConstructorParameters<typeof BullMQAdapter>[0] & {
+    /**
+     * BullMQ worker concurrency. Use `1` for loop-heavy blueprints (integration refresh) so
+     * parallel `executeNode` jobs cannot race on the same run's fan-in / loop controller.
+     */
+    workerConcurrency?: number;
+};
 
 /**
  * `BullMQAdapter` from `@flowcraft/bullmq-adapter` uses a `RedisContext` whose `set()` can write
@@ -26,6 +35,13 @@ const MIN_LOCK_MS = 30_000;
  * “Error: could not renew lock for job …” when execution exceeds the lock window.
  */
 export class SafeBullMQAdapter extends BullMQAdapter {
+    private readonly workerConcurrency: number;
+
+    constructor(options: SafeBullMQAdapterOptions) {
+        super(options);
+        this.workerConcurrency = options.workerConcurrency ?? DEFAULT_WORKER_CONCURRENCY;
+    }
+
     override createContext(runId: string) {
         const redis = (this as unknown as AdapterInternals).redisClient;
         return new SafeRedisContext(redis, runId) as unknown as ReturnType<BullMQAdapter["createContext"]>;
@@ -42,12 +58,12 @@ export class SafeBullMQAdapter extends BullMQAdapter {
             },
             {
                 connection: $this.redisClient,
-                concurrency: 5,
+                concurrency: this.workerConcurrency,
                 lockDuration: lockMs,
             }
         );
         $this.logger.info(
-            `[BullMQAdapter] Worker listening for jobs on queue: "${$this.queueName}" (lockDuration=${lockMs}ms).`
+            `[BullMQAdapter] Worker listening for jobs on queue: "${$this.queueName}" (concurrency=${this.workerConcurrency}, lockDuration=${lockMs}ms).`
         );
     }
 }

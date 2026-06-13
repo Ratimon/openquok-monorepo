@@ -12,6 +12,7 @@ import type { OrganizationSubscriptionRow } from "../../repositories/Subscriptio
 import type { IntegrationService } from "../../services/IntegrationService";
 import type { OrganizationRepository } from "../../repositories/OrganizationRepository";
 import type { PostsRepository } from "../../repositories/PostsRepository";
+import type { RbacRepository } from "../../repositories/RbacRepository";
 import { resolveSessionChannelsPerWorkspace } from "../../utils/dtos/UserMeDTO";
 import {
     GUARD_REGISTRY,
@@ -27,12 +28,16 @@ import type {
 export { computePostsBillingMonthStart } from "./postsBilling";
 export type { WorkspaceMembershipRole } from "./types";
 
+/** Catalog tier shown to platform admins when billing enforcement is bypassed. */
+export const PLATFORM_ADMIN_EFFECTIVE_TIER: SubscriptionTier = "TEAM";
+
 export class SubscriptionGuardService {
     constructor(
         private readonly subscriptionService: SubscriptionService,
         private readonly integrationService: IntegrationService,
         private readonly organizationRepository: OrganizationRepository,
-        private readonly postsRepository: PostsRepository
+        private readonly postsRepository: PostsRepository,
+        private readonly rbacRepository: RbacRepository
     ) {}
 
     private billingUrl(): string {
@@ -61,11 +66,49 @@ export class SubscriptionGuardService {
     }
 
     /**
+     * Platform admins (`users.is_super_admin`) bypass plan limits when billing is enabled
+     * so operators can dogfood production (e.g. OAuth verification demos) without a paid seat.
+     */
+    async shouldBypassBillingForAuthUser(authUserId?: string): Promise<boolean> {
+        if (!authUserId?.trim() || !this.subscriptionService.billingEnabled()) {
+            return false;
+        }
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId.trim());
+        if (!userId) return false;
+        return this.rbacRepository.isPlatformAdmin(userId);
+    }
+
+    /**
+     * Maps real subscription tier/limits to the operator-facing TEAM catalog when billing is bypassed.
+     */
+    async resolveBillingPresentation(
+        authUserId: string | undefined,
+        tier: SubscriptionTier,
+        limits: (typeof pricing)[SubscriptionTier]
+    ): Promise<{
+        tier: SubscriptionTier;
+        limits: (typeof pricing)[SubscriptionTier];
+        billingBypass: boolean;
+    }> {
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) {
+            return {
+                tier: PLATFORM_ADMIN_EFFECTIVE_TIER,
+                limits: planLimitsForTier(PLATFORM_ADMIN_EFFECTIVE_TIER),
+                billingBypass: true,
+            };
+        }
+        return { tier, limits, billingBypass: false };
+    }
+
+    /**
      * Single entry point for plan capability checks.
      * When Stripe billing is not configured, all checks pass (local/dev).
      */
     async assert(section: SubscriptionSection, ctx: SubscriptionGuardContext): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
+
+        const authUserId = ctx.scope === "account" ? ctx.authUserId : ctx.authUserId;
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
 
         const entry = GUARD_REGISTRY[section];
         if (!entry) return;
@@ -425,6 +468,7 @@ export class SubscriptionGuardService {
 
     async assertTeamInviteCapacity(organizationId: string, authUserId?: string): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
 
         const { limits } = await this.getTierAndLimits(organizationId, authUserId);
         const cap = limits.team_members_per_workspace;
@@ -456,6 +500,7 @@ export class SubscriptionGuardService {
         authUserId?: string
     ): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
 
         const { limits } = await this.getTierAndLimits(organizationId, authUserId);
         const cap = limits.team_members_per_workspace;

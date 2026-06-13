@@ -15,7 +15,7 @@ var dayjs5 = require('dayjs');
 var stream = require('stream');
 var googleapis = require('googleapis');
 var Stripe2 = require('stripe');
-var groupBy = require('lodash/groupBy');
+var groupBy = require('lodash/groupBy.js');
 var facebookNodejsBusinessSdk = require('facebook-nodejs-business-sdk');
 var http = require('http');
 var https = require('https');
@@ -17776,9 +17776,15 @@ var init_UserSessionService = __esm({
           throw new OrganizationNotFoundError(organizationId);
         }
         const workspaceRole = membership.role;
-        const { tier, limits, subscription } = await this.subscriptionGuard.getTierAndLimits(
+        const baseTierAndLimits = await this.subscriptionGuard.getTierAndLimits(
           organizationId,
           authUserId
+        );
+        const { subscription } = baseTierAndLimits;
+        const { tier, limits } = await this.subscriptionGuard.resolveBillingPresentation(
+          authUserId,
+          baseTierAndLimits.tier,
+          baseTierAndLimits.limits
         );
         const billingEnabled = this.subscriptionService.billingEnabled();
         const billing = await this.subscriptionRepository.getOrganizationBilling(organizationId);
@@ -17933,7 +17939,7 @@ var init_postsBilling = __esm({
 });
 
 // guards/subscription/SubscriptionGuardService.ts
-var SubscriptionGuardService;
+var PLATFORM_ADMIN_EFFECTIVE_TIER, SubscriptionGuardService;
 var init_SubscriptionGuardService = __esm({
   "guards/subscription/SubscriptionGuardService.ts"() {
     init_dist();
@@ -17944,12 +17950,14 @@ var init_SubscriptionGuardService = __esm({
     init_guardRegistry();
     init_postsBilling();
     init_postsBilling();
+    PLATFORM_ADMIN_EFFECTIVE_TIER = "TEAM";
     SubscriptionGuardService = class {
-      constructor(subscriptionService2, integrationService2, organizationRepository2, postsRepository2) {
+      constructor(subscriptionService2, integrationService2, organizationRepository2, postsRepository2, rbacRepository2) {
         this.subscriptionService = subscriptionService2;
         this.integrationService = integrationService2;
         this.organizationRepository = organizationRepository2;
         this.postsRepository = postsRepository2;
+        this.rbacRepository = rbacRepository2;
       }
       billingUrl() {
         const frontend = config.server.frontendDomainUrl ?? "";
@@ -17968,11 +17976,38 @@ var init_SubscriptionGuardService = __esm({
         };
       }
       /**
+       * Platform admins (`users.is_super_admin`) bypass plan limits when billing is enabled
+       * so operators can dogfood production (e.g. OAuth verification demos) without a paid seat.
+       */
+      async shouldBypassBillingForAuthUser(authUserId) {
+        if (!authUserId?.trim() || !this.subscriptionService.billingEnabled()) {
+          return false;
+        }
+        const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId.trim());
+        if (!userId) return false;
+        return this.rbacRepository.isPlatformAdmin(userId);
+      }
+      /**
+       * Maps real subscription tier/limits to the operator-facing TEAM catalog when billing is bypassed.
+       */
+      async resolveBillingPresentation(authUserId, tier, limits) {
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) {
+          return {
+            tier: PLATFORM_ADMIN_EFFECTIVE_TIER,
+            limits: planLimitsForTier(PLATFORM_ADMIN_EFFECTIVE_TIER),
+            billingBypass: true
+          };
+        }
+        return { tier, limits, billingBypass: false };
+      }
+      /**
        * Single entry point for plan capability checks.
        * When Stripe billing is not configured, all checks pass (local/dev).
        */
       async assert(section, ctx) {
         if (!this.subscriptionService.billingEnabled()) return;
+        const authUserId = ctx.scope === "account" ? ctx.authUserId : ctx.authUserId;
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
         const entry = GUARD_REGISTRY[section];
         if (!entry) return;
         switch (entry.kind) {
@@ -18248,6 +18283,7 @@ var init_SubscriptionGuardService = __esm({
       }
       async assertTeamInviteCapacity(organizationId, authUserId) {
         if (!this.subscriptionService.billingEnabled()) return;
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
         const { limits } = await this.getTierAndLimits(organizationId, authUserId);
         const cap = limits.team_members_per_workspace;
         if (cap < 1) {
@@ -18273,6 +18309,7 @@ var init_SubscriptionGuardService = __esm({
       }
       async assertWorkspaceHasSeatForNewMember(organizationId, authUserId) {
         if (!this.subscriptionService.billingEnabled()) return;
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
         const { limits } = await this.getTierAndLimits(organizationId, authUserId);
         const cap = limits.team_members_per_workspace;
         if (cap < 1) {
@@ -19469,7 +19506,8 @@ var init_services = __esm({
       subscriptionService,
       integrationService,
       organizationRepository,
-      postsRepository
+      postsRepository,
+      rbacRepository
     );
     subscriptionService.setSubscriptionGuard(subscriptionGuard);
     blogService = new BlogService(
@@ -21079,6 +21117,7 @@ var BillingController;
 var init_BillingController = __esm({
   "controllers/BillingController.ts"() {
     init_dist();
+    init_SubscriptionGuardService();
     init_UserError();
     init_resolveActiveOrganizationId();
     init_GlobalConfig();
@@ -21125,9 +21164,14 @@ var init_BillingController = __esm({
             throw new UserValidationError("Authentication required");
           }
           const subscription = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
-          const tier = this.subscriptionService.resolveTier(subscription);
-          const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
-          const ownedWorkspaceCap = this.subscriptionService.resolveOwnedWorkspaceCap(subscription);
+          const baseTier = this.subscriptionService.resolveTier(subscription);
+          const baseLimits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
+          const { tier, limits } = await this.subscriptionGuard.resolveBillingPresentation(
+            authUserId,
+            baseTier,
+            baseLimits
+          );
+          const ownedWorkspaceCap = tier === PLATFORM_ADMIN_EFFECTIVE_TIER ? limits.workspaces : this.subscriptionService.resolveOwnedWorkspaceCap(subscription);
           res.status(200).json({
             success: true,
             data: {
@@ -21431,8 +21475,13 @@ ${feedback}`,
             error: error instanceof Error ? error.message : String(error)
           });
         }
-        const tier = this.subscriptionService.resolveTier(subscription);
-        const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
+        const baseTier = this.subscriptionService.resolveTier(subscription);
+        const baseLimits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
+        const { tier, limits, billingBypass } = await this.subscriptionGuard.resolveBillingPresentation(
+          authUserId,
+          baseTier,
+          baseLimits
+        );
         const billingOrganizationId = subscription?.organization_id ?? organizationId;
         let drive;
         try {
@@ -21444,7 +21493,15 @@ ${feedback}`,
             error: error instanceof Error ? error.message : String(error)
           });
           const total = limits.media_storage_bytes_per_workspace || DEFAULT_MEDIA_STORAGE_QUOTA_BYTES;
-          drive = { used: 0, total, tier };
+          drive = { used: 0, total, tier: billingBypass ? tier : baseTier };
+        }
+        if (billingBypass) {
+          const teamStorage = limits.media_storage_bytes_per_workspace || DEFAULT_MEDIA_STORAGE_QUOTA_BYTES;
+          drive = {
+            used: drive.used,
+            total: Math.max(drive.used, teamStorage),
+            tier
+          };
         }
         let billing = null;
         try {
@@ -21493,6 +21550,10 @@ ${feedback}`,
             used: 0,
             limit: cap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE ? null : cap
           };
+        }
+        if (billingBypass) {
+          posts = { used: posts.used, limit: null };
+          teamMembers = { used: teamMembers.used, limit: null };
         }
         return {
           tier,

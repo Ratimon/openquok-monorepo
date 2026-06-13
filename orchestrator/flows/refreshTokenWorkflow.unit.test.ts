@@ -20,6 +20,7 @@ import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
 import { logger } from "backend/utils/Logger.js";
 import { getIntegrationByIdActivity, refreshIntegrationTokenActivity } from "../activities/integrationRefreshActivities.js";
 import { createRefreshTokenFlowBuilder, runRefreshTokenOrchestration } from "./refreshTokenWorkflow.js";
+import { sleepChunked } from "../sleepChunked.js";
 
 jest.mock("../activities/integrationRefreshActivities", () => ({
     getIntegrationByIdActivity: jest.fn(),
@@ -184,6 +185,14 @@ describe("refreshTokenWorkflow / runRefreshTokenOrchestration", () => {
     it("stops when refreshIntegrationTokenActivity throws", async () => {
         getById.mockResolvedValue(baseRow());
         jest.mocked(refreshIntegrationTokenActivity).mockRejectedValueOnce(new Error("provider error"));
+        const ok = await runRefreshTokenOrchestration({ integrationId, organizationId: orgId }, { integrationRepository: { getById }, runRefresh });
+        expect(ok).toBe(true);
+        expect(runRefresh).not.toHaveBeenCalled();
+    });
+
+    it("stops when sleep is interrupted (e.g. worker deploy / job abort)", async () => {
+        getById.mockResolvedValue(baseRow());
+        jest.mocked(sleepChunked).mockRejectedValueOnce(new Error("Aborted"));
         const ok = await runRefreshTokenOrchestration({ integrationId, organizationId: orgId }, { integrationRepository: { getById }, runRefresh });
         expect(ok).toBe(true);
         expect(runRefresh).not.toHaveBeenCalled();

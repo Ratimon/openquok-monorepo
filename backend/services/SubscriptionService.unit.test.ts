@@ -92,7 +92,8 @@ function createService(
         service,
         {} as IntegrationService,
         organizationRepo as unknown as OrganizationRepository,
-        {} as PostsRepository
+        {} as PostsRepository,
+        { isPlatformAdmin: jest.fn().mockResolvedValue(false) } as never
     );
     service.setSubscriptionGuard(guard);
     return service;

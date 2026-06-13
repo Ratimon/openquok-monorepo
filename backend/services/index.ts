@@ -120,7 +120,8 @@ export const subscriptionGuard = new SubscriptionGuardService(
     subscriptionService,
     integrationService,
     organizationRepository,
-    postsRepository
+    postsRepository,
+    rbacRepository
 );
 subscriptionService.setSubscriptionGuard(subscriptionGuard);
 export const blogService = new BlogService(

@@ -1,4 +1,5 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
+import { uploadWorkspaceMediaFile } from '$lib/medias/utils/workspaceMediaUpload';
 import { validateMediaFileUploadSize } from 'openquok-common';
 
 export interface MediaFileTreeEntityProgrammerModel {
@@ -331,35 +332,7 @@ export class MediaRepository {
 			return { success: false, data: { filePath: '' }, message: sizeError };
 		}
 
-		try {
-			const formData = new FormData();
-			formData.append('mediaFile', file);
-			formData.append('organizationId', organizationId);
-			if (virtualPath?.trim()) {
-				formData.append('virtualPath', virtualPath);
-			}
-
-			const { data: dto, ok } = await this.httpGateway.post<MediaUploadResponseDto>(
-				this.config.endpoints.upload,
-				formData,
-				{ withCredentials: true }
-			);
-
-			if (ok && dto?.data) {
-				return {
-					success: true,
-					data: { filePath: dto.data.filePath, ...(dto.data.publicUrl ? { publicUrl: dto.data.publicUrl } : {}) },
-					message: dto.message
-				};
-			}
-			return { success: false, data: { filePath: '' }, message: 'Error uploading media' };
-		} catch (error) {
-			return {
-				success: false,
-				data: { filePath: '' },
-				message: error instanceof Error ? error.message : 'Error uploading media'
-			};
-		}
+		return uploadWorkspaceMediaFile({ file, organizationId, virtualPath });
 	}
 
 	public async deleteMedia(params: { organizationId: string; id?: string; path?: string }): Promise<MediaDeleteProgrammerModel> {

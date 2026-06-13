@@ -25,6 +25,7 @@ export function createIntegrationRefreshBullMqAdapter(workflowDependencies: Refr
         connection: redis,
         coordinationStore,
         queueName,
+        workerConcurrency: 1,
         runtimeOptions: {
             blueprints: { [REFRESH_TOKEN_BLUEPRINT_ID]: blueprint },
             registry: getRefreshTokenNodeRegistry(),

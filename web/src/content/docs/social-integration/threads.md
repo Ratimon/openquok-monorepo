@@ -39,7 +39,7 @@ Meta redirects the **browser** back to your **web app** after consent—not to <
 https://YOUR-FRONTEND-DOMAIN/integration/oauth/threads
 ```
 
-<Callout type="note" title="Replace YOUR-FRONTEND-DOMAIN with your backend origin">
+<Callout type="note">
 <p>Use the scheme and host from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> only (no path, no trailing slash). <code>www</code> and apex differ—for example if the env is <code>https://www.example.com</code>, Meta must list <code>https://www.example.com/account/…</code>, not the apex URL, unless that is what you configured everywhere. See <a href="/docs/configuration-backend">Configuration - Backend</a>.</p>
 </Callout>
 

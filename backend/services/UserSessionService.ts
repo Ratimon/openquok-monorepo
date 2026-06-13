@@ -35,9 +35,15 @@ export class UserSessionService {
 		}
 
 		const workspaceRole = membership.role as WorkspaceMembershipRole;
-		const { tier, limits, subscription } = await this.subscriptionGuard.getTierAndLimits(
+		const baseTierAndLimits = await this.subscriptionGuard.getTierAndLimits(
 			organizationId,
 			authUserId
+		);
+		const { subscription } = baseTierAndLimits;
+		const { tier, limits } = await this.subscriptionGuard.resolveBillingPresentation(
+			authUserId,
+			baseTierAndLimits.tier,
+			baseTierAndLimits.limits
 		);
 		const billingEnabled = this.subscriptionService.billingEnabled();
 		const billing = await this.subscriptionRepository.getOrganizationBilling(organizationId);

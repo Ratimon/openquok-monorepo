@@ -9,6 +9,7 @@ import { SubscriptionError } from "../../errors/SubscriptionError";
 import type { IntegrationService } from "../../services/IntegrationService";
 import type { OrganizationRepository } from "../../repositories/OrganizationRepository";
 import type { PostsRepository } from "../../repositories/PostsRepository";
+import type { RbacRepository } from "../../repositories/RbacRepository";
 import type { SubscriptionService } from "../../services/SubscriptionService";
 import type { OrganizationSubscriptionRow } from "../../repositories/SubscriptionRepository";
 import { computePostsBillingMonthStart } from "./postsBilling";
@@ -46,6 +47,12 @@ function soloSubscription(orgId: string): OrganizationSubscriptionRow {
     };
 }
 
+function mockRbacRepository(isPlatformAdmin = false): RbacRepository {
+    return {
+        isPlatformAdmin: jest.fn().mockResolvedValue(isPlatformAdmin),
+    } as unknown as RbacRepository;
+}
+
 function createGuardHarness(params: {
     ownedCount?: number;
     invitedCount?: number;
@@ -53,6 +60,7 @@ function createGuardHarness(params: {
     workspaceTier?: SubscriptionTier;
     billingEnabled?: boolean;
     postsCount?: number;
+    isPlatformAdmin?: boolean;
 }): SubscriptionGuardService {
     const ownedCount = params.ownedCount ?? 0;
     const invitedCount = params.invitedCount ?? 0;
@@ -118,7 +126,8 @@ function createGuardHarness(params: {
         subscriptionService,
         {} as IntegrationService,
         organizationRepository,
-        postsRepository
+        postsRepository,
+        mockRbacRepository(params.isPlatformAdmin ?? false)
     );
 
     jest.spyOn(guard, "getTierAndLimits").mockImplementation(async (orgId: string) => {
@@ -276,7 +285,8 @@ describe("SubscriptionGuardService WORKSPACES", () => {
             subscriptionService,
             {} as IntegrationService,
             organizationRepository,
-            {} as PostsRepository
+            {} as PostsRepository,
+            mockRbacRepository(false)
         );
 
         await expect(
@@ -357,6 +367,30 @@ describe("SubscriptionGuardService boolean and role gates", () => {
             })
         ).rejects.toMatchObject({
             section: SubscriptionSection.PUBLIC_API,
+        });
+    });
+
+    it("allows CHANNEL_PER_WORKSPACE on FREE when auth user is platform admin", async () => {
+        const guard = createGuardHarness({ workspaceTier: "FREE", isPlatformAdmin: true });
+        await expect(
+            guard.assert(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
+                scope: "workspaceWithReconnect",
+                organizationId,
+                authUserId,
+                reconnectInternalId: "new-channel",
+            })
+        ).resolves.toBeUndefined();
+    });
+
+    it("resolveBillingPresentation maps platform admin to TEAM catalog", async () => {
+        const guard = createGuardHarness({ workspaceTier: "FREE", isPlatformAdmin: true });
+        const freeLimits = planLimitsForTier("FREE");
+        await expect(
+            guard.resolveBillingPresentation(authUserId, "FREE", freeLimits)
+        ).resolves.toEqual({
+            tier: "TEAM",
+            limits: planLimitsForTier("TEAM"),
+            billingBypass: true,
         });
     });
 

@@ -1752,7 +1752,7 @@ export type Database = {
       app_role: "editor" | "support" | "admin"
       post_state: "QUEUE" | "PUBLISHED" | "ERROR" | "DRAFT"
       subscription_period: "MONTHLY" | "YEARLY"
-      subscription_tier: "SOLO" | "CREATOR" | "TEAM" | "ULTIMATE" | "MAX"
+      subscription_tier: "SOLO" | "TEAM" | "ULTIMATE" | "MAX"
       workspace_membership_role: "user" | "admin" | "owner"
     }
     CompositeTypes: {

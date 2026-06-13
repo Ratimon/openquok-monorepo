@@ -9,7 +9,10 @@ import {
 } from "openquok-common";
 import type { AuthenticatedRequest } from "../guards";
 import type { SubscriptionService } from "../services/SubscriptionService";
-import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
+import {
+    PLATFORM_ADMIN_EFFECTIVE_TIER,
+    type SubscriptionGuardService,
+} from "../guards/subscription/SubscriptionGuardService";
 import type { StripeService } from "../services/StripeService";
 import type {
     OrganizationSubscriptionRow,
@@ -66,9 +69,17 @@ export class BillingController {
             }
 
             const subscription = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
-            const tier = this.subscriptionService.resolveTier(subscription);
-            const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
-            const ownedWorkspaceCap = this.subscriptionService.resolveOwnedWorkspaceCap(subscription);
+            const baseTier = this.subscriptionService.resolveTier(subscription);
+            const baseLimits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
+            const { tier, limits } = await this.subscriptionGuard.resolveBillingPresentation(
+                authUserId,
+                baseTier,
+                baseLimits
+            );
+            const ownedWorkspaceCap =
+                tier === PLATFORM_ADMIN_EFFECTIVE_TIER
+                    ? limits.workspaces
+                    : this.subscriptionService.resolveOwnedWorkspaceCap(subscription);
 
             res.status(200).json({
                 success: true,
@@ -429,8 +440,13 @@ export class BillingController {
             });
         }
 
-        const tier = this.subscriptionService.resolveTier(subscription);
-        const limits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
+        const baseTier = this.subscriptionService.resolveTier(subscription);
+        const baseLimits = this.subscriptionService.getPlanLimitsForOrganization(subscription);
+        const { tier, limits, billingBypass } = await this.subscriptionGuard.resolveBillingPresentation(
+            authUserId,
+            baseTier,
+            baseLimits
+        );
         const billingOrganizationId = subscription?.organization_id ?? organizationId;
         let drive: { used: number; total: number; tier: SubscriptionTier };
         try {
@@ -443,7 +459,17 @@ export class BillingController {
             });
             const total =
                 limits.media_storage_bytes_per_workspace || DEFAULT_MEDIA_STORAGE_QUOTA_BYTES;
-            drive = { used: 0, total, tier };
+            drive = { used: 0, total, tier: billingBypass ? tier : baseTier };
+        }
+
+        if (billingBypass) {
+            const teamStorage =
+                limits.media_storage_bytes_per_workspace || DEFAULT_MEDIA_STORAGE_QUOTA_BYTES;
+            drive = {
+                used: drive.used,
+                total: Math.max(drive.used, teamStorage),
+                tier,
+            };
         }
 
         let billing: {
@@ -502,6 +528,11 @@ export class BillingController {
                 used: 0,
                 limit: cap >= UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE ? null : cap,
             };
+        }
+
+        if (billingBypass) {
+            posts = { used: posts.used, limit: null };
+            teamMembers = { used: teamMembers.used, limit: null };
         }
 
         return {

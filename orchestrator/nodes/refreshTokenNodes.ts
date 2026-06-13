@@ -60,7 +60,18 @@ export async function refreshTokenTickNode({
         return { output: { ok: false } };
     }
 
-    await sleepChunked(ms, signal);
+    try {
+        await sleepChunked(ms, signal);
+    } catch (err) {
+        logger.info({
+            msg: "[Orchestrator] refresh-token sleep interrupted; stopping supervisor loop",
+            integrationId,
+            organizationId,
+            error: err instanceof Error ? err.message : String(err),
+        });
+        await context.set("loopShouldContinue", false);
+        return { output: { ok: false } };
+    }
 
     try {
         row = await getIntegrationByIdActivity(integrationRepository, organizationId, integrationId, signal);

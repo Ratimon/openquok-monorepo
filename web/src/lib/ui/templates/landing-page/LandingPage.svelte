@@ -208,7 +208,7 @@
 			iconClass: 'text-rose-400',
 			title: 'Scaling Team',
 			description:
-				'Reuse the viral formats that already work for you. Add workspaces, connect more social channels, and scale — automate, approve, and publish everywhere via API.',
+				'Reuse the viral formats that already work for you. Connect more social channels, and scale — automate, approve, and publish everywhere.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	];
