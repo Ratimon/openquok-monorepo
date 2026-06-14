@@ -9,6 +9,7 @@ export type PublicFaqConfigItem = {
 	answer: string;
 };
 
+
 export function getDefaultPublicFaqConfigItems(): PublicFaqConfigItem[] {
 	return PUBLIC_FAQ_ITEMS.map(({ title, description }) => ({
 		question: title,

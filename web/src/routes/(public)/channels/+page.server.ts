@@ -1,6 +1,6 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import { publicChannelsPagePresenter, publicInformationRepository } from '$lib/area-public';
+import { publicChannelsPagePresenter } from '$lib/area-public';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
@@ -10,12 +10,11 @@ import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPat
 
 export const ssr = true;
 
-export async function load({ url, fetch, cookies }) {
+export async function load({ url, cookies, parent }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	const { companyInformation: companyInformationPm, marketingInformation: marketingInformationPm } =
-		await publicInformationRepository.getAllInformationCombined(fetch);
+	const { companyInformationPm, marketingInformationPm } = await parent();
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 	const channelsVm = publicChannelsPagePresenter.loadChannelsHubStateless();

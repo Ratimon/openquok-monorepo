@@ -1,19 +1,18 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { getRootPathPublicBlog, getRootPathPublicBlogAuthor } from '$lib/area-public/constants/getRootPathPublicBlog';
-import { publicBlogAuthorByIdentifierPagePresenter, publicInformationRepository } from '$lib/area-public/index';
+import { publicBlogAuthorByIdentifierPagePresenter } from '$lib/area-public/index';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
 
-export async function load({ url, params, fetch, cookies }) {
+export async function load({ url, params, fetch, cookies, parent }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
 	const identifier = typeof params.identifier === 'string' ? params.identifier : '';
 
-	const { companyInformation: companyInformationPm, marketingInformation: marketingInformationPm } =
-		await publicInformationRepository.getAllInformationCombined(fetch);
+	const { companyInformationPm, marketingInformationPm } = await parent();
 
 	const { CONFIG_SCHEMA_COMPANY, CONFIG_SCHEMA_MARKETING } = await import('$lib/config/constants/config');
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;

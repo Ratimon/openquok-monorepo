@@ -6,19 +6,17 @@ import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPub
 import { blogRepository } from '$lib/blogs/index';
 import {
 	publicBlogPagePresenter,
-	publicBlogTopicPagePresenter,
-	publicInformationRepository
+	publicBlogTopicPagePresenter
 } from '$lib/area-public/index';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
 
-export async function load({ url, fetch, cookies }) {
+export async function load({ url, fetch, cookies, parent }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	const { companyInformation: companyInformationPm, marketingInformation: marketingInformationPm } =
-		await publicInformationRepository.getAllInformationCombined(fetch);
+	const { companyInformationPm, marketingInformationPm } = await parent();
 
 	const { CONFIG_SCHEMA_COMPANY, CONFIG_SCHEMA_MARKETING } = await import('$lib/config/constants/config');
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;

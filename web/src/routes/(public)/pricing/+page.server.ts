@@ -1,7 +1,6 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { SubscriptionPeriod } from 'openquok-common';
 
-import { publicInformationRepository } from '$lib/area-public';
 import { GetPublicPricingPresenter } from '$lib/billing';
 import {
 	CONFIG_SCHEMA_COMPANY,
@@ -14,12 +13,11 @@ import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
 
-export async function load({ url, fetch, cookies }) {
+export async function load({ url, cookies, parent }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	const { companyInformation: companyInformationPm, marketingInformation: marketingInformationPm } =
-		await publicInformationRepository.getAllInformationCombined(fetch);
+	const { companyInformationPm, marketingInformationPm } = await parent();
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 

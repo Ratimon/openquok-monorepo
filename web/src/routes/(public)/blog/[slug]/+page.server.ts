@@ -4,14 +4,14 @@ import type { BlogPostCommentViewModel } from '$lib/blogs/GetBlog.presenter.svel
 import { error } from '@sveltejs/kit';
 
 import { buildBlogInlineImageSrc, createBlogPostSEOSchema, guessImageMimeFromFilename } from '$lib/blogs/utils';
-import { publicBlogBySlugPagePresenter, publicInformationRepository } from '$lib/area-public/index';
+import { publicBlogBySlugPagePresenter } from '$lib/area-public/index';
 import { getRootPathPublicBlog, getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { CONFIG_SCHEMA_MARKETING } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
 
-export async function load({ url, params, fetch, cookies }) {
+export async function load({ url, params, fetch, cookies, parent }) {
 	const { slug } = params;
 
 	// Guard against Next.js-like edge case: user hitting `/blog/<file>.jpg`.
@@ -21,8 +21,7 @@ export async function load({ url, params, fetch, cookies }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	const { companyInformation: companyInformationPm, marketingInformation: marketingInformationPm } =
-		await publicInformationRepository.getAllInformationCombined(fetch);
+	const { companyInformationPm, marketingInformationPm } = await parent();
 
 	const rootBlog = getRootPathPublicBlog();
 

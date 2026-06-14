@@ -32,44 +32,20 @@ export async function load({ url, cookies, fetch }) {
 		canonical: new URL(url.pathname, url.origin).href
 	}) satisfies MetaTagsProps;
 
-	const companyProperties = ['FOUNDING_YEAR', 'NAME'];
-	const marketingProperties = [
-		'SOCIAL_LINKS_X',
-		'SOCIAL_LINKS_FACEBOOK',
-		'SOCIAL_LINKS_INSTAGRAM',
-		'SOCIAL_LINKS_YOUTUBE'
-	];
-
-	let companyNameVm: string | null = null;
-	let companyYearVm: string | null = null;
-	let marketingInformationVm: Record<string, string> | null = null;
-
-	try {
-		const result = await publicInformationRepository.getInformationByPropertiesCombined(
-			companyProperties,
-			marketingProperties,
-			fetch
-		);
-
-		const footerInfo = publicLayoutPagePresenter.loadInfoForFooterStateless(
-			result.companyInformation,
-			result.marketingInformation
-		);
-		
-		companyNameVm = footerInfo.companyNameVm;
-		companyYearVm = footerInfo.companyYearVm;
-		marketingInformationVm = footerInfo.marketingInformationVm;
-	} catch (error) {
-		console.error('[+layout.server] Failed to fetch footer information:', error);
-	}
+	const companyConfig = companyInformationPm?.config as Record<string, string> | undefined;
+	const marketingConfig = marketingInformationPm?.config as Record<string, string> | undefined;
+	const footerInfo = publicLayoutPagePresenter.loadInfoForFooterStateless(
+		companyConfig ?? null,
+		marketingConfig ?? null
+	);
 
 	return {
 		baseMetaTags,
 		companyInformationPm,
 		marketingInformationPm,
 		isLoggedIn,
-		companyNameVm,
-		companyYearVm,
-		marketingInformationVm
+		companyNameVm: footerInfo.companyNameVm,
+		companyYearVm: footerInfo.companyYearVm,
+		marketingInformationVm: footerInfo.marketingInformationVm
 	};
 }

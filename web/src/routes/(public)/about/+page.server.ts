@@ -1,17 +1,13 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import { publicInformationRepository } from '$lib/area-public/index';
-
 export const ssr = true;
 
-export async function load({ url, fetch, cookies }) {
+export async function load({ url, cookies, parent }) {
     // Lightweight auth check for header navigation
     const accessToken = cookies.get('access_token');
     const isLoggedIn = !!accessToken;
 
-    // Fetch public data on server
-    const { companyInformation: companyInformationPm } = 
-        await publicInformationRepository.getAllInformationCombined(fetch);
+    const { companyInformationPm } = await parent();
     
     // Lazy import to avoid circular dependency
     const { CONFIG_SCHEMA_COMPANY } = await import("$lib/config/constants/config");
