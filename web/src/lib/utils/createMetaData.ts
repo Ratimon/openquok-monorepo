@@ -189,7 +189,7 @@ export async function createMetaData({
 		},
 
 		additionalMetaTags: [
-			{ name: 'theme-color', content: themeColor ?? '#34A7D6' },
+			{ name: 'theme-color', content: themeColor ?? '#047a17' },
 			{ name: 'mobile-web-app-capable', content: 'yes' },
 			{ name: 'application-name', content: companyName },
 			{ name: 'apple-mobile-web-app-capable', content: 'yes' },

@@ -2,8 +2,8 @@
   "display": "fullscreen",
   "scope": "../",
   "start_url": "../",
-  "background_color": "#34A7D6",
-  "theme_color": "#34A7D6",
+  "background_color": "#047a17",
+  "theme_color": "#047a17",
   "icons": [
     {
       "src": "favicon-192.png",

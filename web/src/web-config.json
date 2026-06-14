@@ -2,8 +2,8 @@
   "appName": "Openquok",
   "appTitle": "Openquok",
   "appDescription": "An agentic Social Scheduler Tool",
-  "themeColor": "#34A7D6",
-	"appleStatusBarStyle": "black-translucent",
+  "themeColor": "#047a17",
+  "appleStatusBarStyle": "black-translucent",
   "icon": "static/icon.svg",
   "maskableIcons": [
 		{
