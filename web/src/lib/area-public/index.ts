@@ -8,6 +8,8 @@ import { PublicBlogAuthorByIdentifierPagePresenter } from '$lib/area-public/Publ
 import { PublicBlogBySlugPagePresenter } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
 import { PublicPreviewPostByIdPagePresenter } from '$lib/area-public/PublicPreviewPostByIdPage.presenter.svelte';
 import { PublicLayoutPagePresenter } from '$lib/area-public/PublicLayoutPage.presenter.svelte';
+import { PublicAgentByPagePresenter } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
+import { PublicAgentsPagePresenter } from '$lib/area-public/PublicAgentsPage.presenter.svelte';
 import { PublicChannelByPagePresenter } from '$lib/area-public/PublicChannelByPage.presenter.svelte';
 import { PublicChannelsPagePresenter } from '$lib/area-public/PublicChannelsPage.presenter.svelte';
 import { PublicPricingPagePresenter } from '$lib/area-public/PublicPricingPage.presenter.svelte';
@@ -22,10 +24,14 @@ const publicBlogAuthorByIdentifierPagePresenter = new PublicBlogAuthorByIdentifi
 const publicBlogBySlugPagePresenter = new PublicBlogBySlugPagePresenter(getBlogPresenter, blogRepository);
 const publicPreviewPostByIdPagePresenter = new PublicPreviewPostByIdPagePresenter(getScheduledPostsPresenter, postsRepository);
 const publicPricingPagePresenter = new PublicPricingPagePresenter(getPublicPricingPresenter);
+const publicAgentsPagePresenter = new PublicAgentsPagePresenter();
+const publicAgentByPagePresenter = new PublicAgentByPagePresenter();
 const publicChannelsPagePresenter = new PublicChannelsPagePresenter();
 const publicChannelByPagePresenter = new PublicChannelByPagePresenter();
 
 export {
+	publicAgentByPagePresenter,
+	publicAgentsPagePresenter,
 	publicChannelByPagePresenter,
 	publicChannelsPagePresenter,
 	publicPricingPagePresenter,

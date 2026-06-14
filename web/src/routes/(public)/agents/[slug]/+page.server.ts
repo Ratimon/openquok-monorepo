@@ -1,0 +1,92 @@
+import type { MetaTagsProps } from 'svelte-meta-tags';
+
+import { error } from '@sveltejs/kit';
+
+import { publicAgentByPagePresenter } from '$lib/area-public';
+import {
+	CONFIG_SCHEMA_COMPANY,
+	CONFIG_SCHEMA_MARKETING
+} from '$lib/config/constants/config';
+import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { createMetaData } from '$lib/utils/createMetaData';
+import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
+
+export const ssr = true;
+
+export async function load({ url, params, cookies, parent }) {
+	const { slug } = params;
+
+	if (typeof slug !== 'string' || slug.trim().length === 0) {
+		throw error(404, 'Agent page not found');
+	}
+
+	const agentVm = publicAgentByPagePresenter.loadAgentBySlugStateless(slug);
+	if (!agentVm) {
+		throw error(404, 'Agent page not found');
+	}
+
+	const accessToken = cookies.get('access_token');
+	const isLoggedIn = !!accessToken;
+
+	const { companyInformationPm, marketingInformationPm } = await parent();
+
+	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
+
+	const customTitle = `${agentVm.metaTitle} | ${companyName}`;
+	const customDescription = agentVm.metaDescription;
+
+	const metaTags = (await createMetaData({
+		companyInformation: companyInformationPm,
+		marketingInformation: marketingInformationPm,
+		customTitle,
+		customDescription,
+		customSlug: getRootPathPublicAgent(agentVm.slug),
+		customTags: agentVm.keywords,
+		requestUrl: url
+	})) satisfies MetaTagsProps;
+
+	const canonical = new URL(url.pathname, url.origin).href;
+	const pageMetaTags = Object.freeze({
+		canonical,
+		openGraph: {
+			title: customTitle,
+			description: customDescription
+		},
+		twitter: {
+			title: customTitle,
+			description: customDescription
+		},
+		...metaTags
+	}) satisfies MetaTagsProps;
+
+	const schemaData = {
+		'@context': 'https://schema.org',
+		'@graph': [
+			{
+				'@type': 'WebPage',
+				'@id': `${canonical}#webpage`,
+				name: agentVm.metaTitle,
+				description: customDescription,
+				url: canonical,
+				isPartOf: {
+					'@type': 'WebSite',
+					name: companyName,
+					url: url.origin
+				}
+			},
+			createPublicFaqSEOSchema({
+				pageUrl: `${canonical}#faq`,
+				name: agentVm.faqTitle,
+				description: agentVm.faqDescription,
+				items: agentVm.faqItems
+			})
+		].filter((node) => Object.keys(node).length > 0)
+	};
+
+	return {
+		pageMetaTags,
+		isLoggedIn,
+		agentVm,
+		schemaData
+	};
+}

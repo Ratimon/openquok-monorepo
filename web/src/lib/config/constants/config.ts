@@ -1,11 +1,13 @@
 import type { ModuleConfigSchema } from '$lib/config/constants/types';
 import { getDefaultPublicFaqConfigItems } from '$lib/content/utils/parsePublicFaqConfig';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
+import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
 
 const publicBlogPath = route(getRootPathPublicBlog());
+const publicAgentsPath = route(getRootPathPublicAgents());
 const publicChannelsPath = route(getRootPathPublicChannels());
 const publicDocsPath = route(getRootPathPublicDocs());
 
@@ -499,7 +501,7 @@ export function getPublicFaqConfigDefaults(): Record<string, string> {
 	);
 }
 
-export type NavOptions = 'tab' | 'scroll' | 'menu' | 'channels';
+export type NavOptions = 'tab' | 'scroll' | 'menu' | 'channels' | 'agents';
 
 export interface DropdownLink {
 	href: string;
@@ -516,6 +518,7 @@ export interface Link {
 
 export const PUBLIC_NAVBAR_LINKS: Link[] = [
 	{ pathname: publicDocsPath, title: 'Dev Docs', navType: 'tab' },
+	{ pathname: publicAgentsPath, title: 'Agents', navType: 'agents' },
 	{ pathname: publicChannelsPath, title: 'Channels', navType: 'channels' },
 	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' },
 	{ pathname: '/pricing', title: 'Pricing', navType: 'tab' }
@@ -526,6 +529,7 @@ export const PUBLIC_NAVBAR_MOBILE_LINKS: Link[] = [...PUBLIC_NAVBAR_LINKS];
 export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
 	Resources: [
 		{ label: 'Developer Docs', href: publicDocsPath },
+		{ label: 'Agents', href: publicAgentsPath },
 		{ label: 'Channels', href: publicChannelsPath },
 		{ label: 'Blog', href: publicBlogPath },
 		{ label: 'Blog Topics', href: '/blog/topic' },

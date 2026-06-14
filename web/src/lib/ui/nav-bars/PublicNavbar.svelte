@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Link } from '$lib/ui/nav-bars/Link';
 	import PageLink from '$lib/ui/nav-bars/PageLink.svelte';
+	import PublicAgentsNavDropdown from '$lib/ui/nav-bars/PublicAgentsNavDropdown.svelte';
 	import PublicChannelsNavDropdown from '$lib/ui/nav-bars/PublicChannelsNavDropdown.svelte';
 
 	type Props = {
@@ -22,7 +23,15 @@
 
 <div class="tabs {className}">
 	{#each pages as link}
-		{#if link.navType === 'channels'}
+		{#if link.navType === 'agents'}
+			<PublicAgentsNavDropdown
+				title={link.title}
+				agentsPath={link.pathname}
+				{tabClass}
+				{whenSelected}
+				{whenUnselected}
+			/>
+		{:else if link.navType === 'channels'}
 			<PublicChannelsNavDropdown
 				title={link.title}
 				channelsPath={link.pathname}
