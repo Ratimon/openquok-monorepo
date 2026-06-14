@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelCatalog';
+	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelConfig';
 
 	import { page } from '$app/state';
 	import { icons } from '$data/icons';
-	import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelCatalog';
+	import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
 	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 	import { isParentRoute, route } from '$lib/utils/path';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBento';
+	import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
 
 	import BentoFacebookBulkScheduling from '$lib/ui/templates/bento/minor-templates/facebook/BentoFacebookBulkScheduling.svelte';
 	import BentoFacebookInsights from '$lib/ui/templates/bento/minor-templates/facebook/BentoFacebookInsights.svelte';

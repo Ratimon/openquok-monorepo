@@ -12,8 +12,8 @@ globs:
   - web/src/data/social-providers.ts
   - web/src/content/docs/social-integration/**
   - web/src/content/docs/cli-examples/**
-  - web/src/content/constants/publicChannelCatalog.ts
-  - web/src/content/constants/publicChannelFeatureBento.ts
+  - web/src/content/constants/publicChannelConfig.ts
+  - web/src/content/constants/publicChannelFeatureBentoConfig.ts
   - web/src/lib/ui/templates/bento/**
   - web/src/lib/area-public/constants/getRootPathPublicChannels.ts
   - web/src/routes/(public)/channels/**
@@ -27,11 +27,11 @@ alwaysApply: false
 
 # Adding a social provider
 
-Ship **backend + web + docs + public channel landing page + feature bento showcases** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelCatalog.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Full guide: `web/src/content/docs/social-integration/add-provider.md`.
+Ship **backend + web + docs + public channel landing page + feature bento showcases** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Full guide: `web/src/content/docs/social-integration/add-provider.md`.
 
 ## Identifier contract
 
-Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelCatalog` `slug` / `platformId`**, and `/channels/{slug}`. Do not fork slugs between layers.
+Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelConfig` `slug` / `platformId`**, and `/channels/{slug}`. Do not fork slugs between layers.
 
 ## Backend (required)
 
@@ -60,7 +60,7 @@ Routes and UI are **generic** — adding a channel is a **catalog entry only** (
 
 | Artifact | Path / URL |
 | --- | --- |
-| Content catalog | `web/src/lib/content/constants/publicChannelCatalog.ts` |
+| Content catalog | `web/src/lib/content/constants/publicChannelConfig.ts` |
 | Route helpers | `web/src/lib/area-public/constants/getRootPathPublicChannels.ts` (`channels`, `channels/{slug}`) |
 | Hub route | `/channels` — `web/src/routes/(public)/channels/+page.server.ts` lists `listPublicChannelsForHub()` |
 | Detail route | `/channels/{slug}` — `web/src/routes/(public)/channels/[slug]/+page.server.ts` resolves `getAvailablePublicChannelBySlug(slug)` (404 when missing or `available: false`) |
@@ -72,7 +72,7 @@ Navbar/footer link to `/channels` is already in `web/src/lib/config/constants/co
 
 ### Catalog entry (`PublicChannelLandingPage`)
 
-Add a constant in `publicChannelCatalog.ts` and append it to `PUBLIC_CHANNEL_LANDING_PAGES` (before or instead of a coming-soon stub).
+Add a constant in `publicChannelConfig.ts` and append it to `PUBLIC_CHANNEL_LANDING_PAGES` (before or instead of a coming-soon stub).
 
 | Field | Rule |
 | --- | --- |
@@ -98,9 +98,9 @@ Each live `/channels/{slug}` page renders three feature rows via `HeroWithLeftMe
 
 | Layer | Path / action |
 | --- | --- |
-| Bento ID union | Add `{slug}-…` literals to `web/src/lib/content/constants/publicChannelFeatureBento.ts` |
+| Bento ID union | Add `{slug}-…` literals to `web/src/lib/content/constants/publicChannelFeatureBentoConfig.ts` |
 | Router component | Branch in `web/src/lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte` |
-| Catalog wiring | Set `bentoId` (not `imageSrc`) on each of the three `featureSections` in `publicChannelCatalog.ts` |
+| Catalog wiring | Set `bentoId` (not `imageSrc`) on each of the three `featureSections` in `publicChannelConfig.ts` |
 | Mock data | `web/src/lib/ui/templates/bento/minor-templates/{slug}/{slug}LandingMock.ts` (+ optional `{slug}LandingKanbanMock.ts`, `{slug}LandingAnalyticsMock.ts`) |
 | Preview panels | Reuse **real** product UI read-only: kanban (`KanbanBoardFilters` + `KanbanColumn`), composer (`PicksSocialsComponent`, `ShowAllProviders`, `SettingsAccordion` with `embedded`, provider settings), analytics (`RenderAnalyticsGrid` + metric seeds matching backend `analytics()`) |
 | Wrappers | `Bento{Provider}{Feature}.svelte` → `BentoCard` + `BentoGridOneCol` (mirror `BentoFacebookBulkScheduling.svelte`, `BentoThreadsMediaReplies.svelte`) |
@@ -153,7 +153,7 @@ Required sections (see **agent-skill** rule): **Supported features**, **Agent ta
 
 - **Flat CLI keys** where the backend resolver accepts them (e.g. Facebook `url`, Instagram `post_type`).
 - **Nested API buckets** the worker reads at publish time (e.g. `threads.replies`, `instagram.replies`) in `--providerSettingsByIntegrationId` examples.
-- **Do not** paste `publicChannelCatalog` hero/feature marketing prose into agent files; reuse the same facts in terse tables.
+- **Do not** paste `publicChannelConfig` hero/feature marketing prose into agent files; reuse the same facts in terse tables.
 - Optional: `{id}-publish.md` under `resources/` when agents need server-side publish/debug detail (pattern: `threads-publish.md`).
 
 Follow **docs-conventions**, **agent-skill**, and **source-project-neutrality** (no third-party repo names in code or docs).
@@ -164,8 +164,8 @@ Follow **docs-conventions**, **agent-skill**, and **source-project-neutrality** 
 - Redirect URI in platform console matches `/integration/oauth/{identifier}` exactly.
 - `providerSettings` shape documented for CLI (`providerSettingsByIntegrationId`) and resolved in backend publish code.
 - Unit tests added/updated for non-trivial paths.
-- **`publicChannelCatalog`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **three `featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live.
-- **Feature bento:** IDs in `publicChannelFeatureBento.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
+- **`publicChannelConfig`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **three `featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live.
+- **Feature bento:** IDs in `publicChannelFeatureBentoConfig.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
 - **Landing page:** hero + 3 feature sections + FAQ filled; CTAs are only `Get Started For Free` → `/pricing`.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs.

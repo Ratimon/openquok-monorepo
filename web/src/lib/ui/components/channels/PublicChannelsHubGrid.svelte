@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelCatalog';
+	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelConfig';
 
 	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 	import { route } from '$lib/utils/path';

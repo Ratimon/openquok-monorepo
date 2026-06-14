@@ -1,7 +1,7 @@
 import {
 	PUBLIC_FAQ_ITEMS,
 	type PublicFaqItem
-} from '$lib/content/constants/publicFaqCatalog';
+} from '$lib/content/constants/publicFaqConfig';
 
 export type CreatePublicFaqSEOSchemaParams = {
 	/** Page URL where the FAQ section is rendered (typically `{canonical}#faq`). */

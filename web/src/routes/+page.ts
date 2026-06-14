@@ -1,6 +1,6 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
+import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type { Link } from '$lib/ui/nav-bars/Link';
 import type { PageLoad } from './$types';
 

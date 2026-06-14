@@ -1,7 +1,7 @@
 import {
 	getAvailablePublicChannelBySlug,
 	type PublicChannelLandingPage
-} from '$lib/content/constants/publicChannelCatalog';
+} from '$lib/content/constants/publicChannelConfig';
 
 export type PublicChannelViewModel = PublicChannelLandingPage;
 

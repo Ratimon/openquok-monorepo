@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
-	import type { PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
+	import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 
 	import { icons } from '$data/icons';
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';

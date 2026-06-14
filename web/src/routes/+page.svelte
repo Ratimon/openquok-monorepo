@@ -1,9 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { browser } from '$app/environment';
 
 	import { publicLayoutPagePresenter } from '$lib/area-public/index';
 	import { getLandingPageConfigDefaults, getPublicFaqConfigDefaults } from '$lib/config/constants/config';
@@ -49,17 +47,6 @@
 	);
 	let publicFaqItemsVm = $derived(data.publicFaqItemsVm ?? []);
 	let schemaData = $derived(data.schemaData);
-
-	onMount(() => {
-		if (!browser) return;
-
-		const hasServerFooterData = data.companyNameVm ?? page.data.companyNameVm;
-		const hasPresenterFooterData =
-			Object.keys(publicLayoutPagePresenter.marketingInformationVm).length > 0;
-		if (!hasServerFooterData && !hasPresenterFooterData) {
-			publicLayoutPagePresenter.loadInfoForFooter();
-		}
-	});
 </script>
 
 <svelte:head>

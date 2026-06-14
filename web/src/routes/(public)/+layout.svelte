@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
-	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { publicLayoutPagePresenter } from '$lib/area-public/index';
 	import PublicArea from '$lib/ui/templates/PublicArea.svelte';
@@ -32,15 +30,6 @@
 				? page.data.marketingInformationVm
 				: publicLayoutPagePresenter.marketingInformationVm
 	);
-
-	onMount(async () => {
-		if (!browser) return;
-		const hasServerData = data?.companyNameVm ?? page.data?.companyNameVm;
-		const hasPresenterData = Object.keys(publicLayoutPagePresenter.marketingInformationVm).length > 0;
-		if (!hasServerData && !hasPresenterData) {
-			await publicLayoutPagePresenter.loadInfoForFooter();
-		}
-	});
 </script>
 
 <PublicArea

@@ -143,7 +143,7 @@ Command surface: [resources/command-reference.md](./resources/command-reference.
 
 ## Channels (Meta)
 
-Run `integrations:settings <uuid>` for `rules`, `maxLength`, and `tools`. Match the user’s goal to the **Agent tasks** table in each channel file; publish keys and recipes are there (not in `publicChannelCatalog` marketing copy).
+Run `integrations:settings <uuid>` for `rules`, `maxLength`, and `tools`. Match the user’s goal to the **Agent tasks** table in each channel file; publish keys and recipes are there.
 
 Provider settings overview: [resources/provider-settings.md](./resources/provider-settings.md).
 

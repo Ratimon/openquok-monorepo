@@ -1,24 +1,25 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import { publicInformationRepository, publicLayoutPagePresenter } from '$lib/area-public/index';
+import { publicLayoutPagePresenter } from '$lib/area-public/index';
+import {
+	getCompanyConfigDefaults,
+	getMarketingConfigDefaults
+} from '$lib/config/constants/config';
+import {
+	getStaticCompanyInformationPm,
+	getStaticMarketingInformationPm
+} from '$lib/config/utils/staticPublicSiteConfig';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
 
-export async function load({ url, cookies, fetch }) {
+export async function load({ url, cookies }) {
 	// Security: use cookies only for auth in SSR — never import authenticationRepository in server load
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	let companyInformationPm = null;
-	let marketingInformationPm = null;
-	try {
-		const result = await publicInformationRepository.getAllInformationCombined(fetch);
-		companyInformationPm = result.companyInformation;
-		marketingInformationPm = result.marketingInformation;
-	} catch (error) {
-		console.error('[+layout.server] Failed to fetch company/marketing information:', error);
-	}
+	const companyInformationPm = getStaticCompanyInformationPm();
+	const marketingInformationPm = getStaticMarketingInformationPm();
 
 	const metaTags = await createMetaData({
 		companyInformation: companyInformationPm,
@@ -32,11 +33,9 @@ export async function load({ url, cookies, fetch }) {
 		canonical: new URL(url.pathname, url.origin).href
 	}) satisfies MetaTagsProps;
 
-	const companyConfig = companyInformationPm?.config as Record<string, string> | undefined;
-	const marketingConfig = marketingInformationPm?.config as Record<string, string> | undefined;
 	const footerInfo = publicLayoutPagePresenter.loadInfoForFooterStateless(
-		companyConfig ?? null,
-		marketingConfig ?? null
+		getCompanyConfigDefaults(),
+		getMarketingConfigDefaults()
 	);
 
 	return {

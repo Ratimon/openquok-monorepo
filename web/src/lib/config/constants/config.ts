@@ -460,12 +460,32 @@ export const CONFIG_SCHEMA_PUBLIC_FAQ: ModuleConfigSchema = {
 	}
 };
 
-/** Default landing_page module values (SSR fallback and client-side). */
+/** Default landing_page copy (git-managed via CONFIG_SCHEMA_LANDING_PAGE). */
 export function getLandingPageConfigDefaults(): Record<string, string> {
 	return Object.fromEntries(
 		Object.entries(CONFIG_SCHEMA_LANDING_PAGE).map(([key, field]) => [
 			key,
 			String(field.default)
+		])
+	);
+}
+
+/** Default company_information values (git-managed; no runtime API on public routes). */
+export function getCompanyConfigDefaults(): Record<string, string> {
+	return Object.fromEntries(
+		Object.entries(CONFIG_SCHEMA_COMPANY).map(([key, field]) => [
+			key,
+			field.default != null ? String(field.default) : ''
+		])
+	);
+}
+
+/** Default marketing_information values (git-managed; no runtime API on public routes). */
+export function getMarketingConfigDefaults(): Record<string, string> {
+	return Object.fromEntries(
+		Object.entries(CONFIG_SCHEMA_MARKETING).map(([key, field]) => [
+			key,
+			field.default != null ? String(field.default) : ''
 		])
 	);
 }

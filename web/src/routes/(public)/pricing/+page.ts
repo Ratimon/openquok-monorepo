@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqCatalog';
+import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type { PublicPricingPageViewModel } from '$lib/billing';
 import type { SubscriptionPeriod } from 'openquok-common';
 

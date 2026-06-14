@@ -22,12 +22,12 @@ alwaysApply: false
 Each live Meta (or future) channel the CLI can post to should have one example file matching `provider.identifier`. Structure every file the same way so agents can map **user intent → recipe**:
 
 1. **Resolve integration** — `integrations:list` + `integrations:settings` one-liner at the top.
-2. **Supported features** — table: Feature | Supported | Notes — **only shipped behavior** (same bar as `publicChannelCatalog` FAQ/bento, but agent-actionable, not marketing copy).
+2. **Supported features** — table: Feature | Supported | Notes — **only shipped behavior** (same bar as `publicChannelConfig` FAQ/bento, but agent-actionable, not marketing copy).
 3. **Agent tasks** — table: “User wants to…” | “Do this” — link to anchored sections below (e.g. link preview, Reel, reply chain).
 4. **Provider settings** — table of publish keys (`--settings` / `providerSettingsByIntegrationId`), with precedence rules (e.g. Facebook `url` ignored when media attached).
 5. **Recipes** — short `bash` blocks per task; use `<integration-id>` placeholders; link to `provider-settings.md` once at the top.
 
-When adding or changing publish behavior for a channel, update **backend resolver + this file** together. Do not lift `publicChannelCatalog.ts` hero/feature prose into the skill — distill facts into the tables above.
+When adding or changing publish behavior for a channel, update **backend resolver + this file** together. Do not lift `publicChannelConfig.ts` hero/feature prose into the skill — distill facts into the tables above.
 
 ## CLI-only scope
 

@@ -1,7 +1,7 @@
 import {
 	listPublicChannelsForHub,
 	type PublicChannelLandingPage
-} from '$lib/content/constants/publicChannelCatalog';
+} from '$lib/content/constants/publicChannelConfig';
 
 import type { PublicChannelViewModel } from '$lib/area-public/PublicChannelByPage.presenter.svelte';
 

@@ -26,23 +26,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 	const navbarMobileLinks: Link[] = [...PUBLIC_NAVBAR_LINKS];
 	const footerNavigationLinks = { ...PUBLIC_FOOTER_LINKS };
 
-	const landingDefaults = getLandingPageConfigDefaults();
-	let landingPageConfigVm: Record<string, string> = landingDefaults;
-
-	try {
-		const loaded = await configRepository.getPublicModuleConfig('landing_page');
-		if (Object.keys(loaded).length > 0) {
-			const normalizedLoaded = Object.fromEntries(
-				Object.entries(loaded).map(([key, value]) => [
-					key,
-					value == null ? '' : normalizeConfigStringValue(String(value))
-				])
-			) as Record<string, string>;
-			landingPageConfigVm = { ...landingDefaults, ...normalizedLoaded };
-		}
-	} catch (error) {
-		console.error('[+page.server] Failed to fetch landing page config:', error);
-	}
+	const landingPageConfigVm = getLandingPageConfigDefaults();
 
 	let publicFaqRaw: Record<string, unknown> | null = null;
 	try {
@@ -61,11 +45,9 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 	const companyName =
 		companyInformationPm?.config?.NAME ?? String(CONFIG_SCHEMA_COMPANY.NAME.default);
 	const heroTitleRaw =
-		landingPageConfigVm.HERO_TITLE ?? landingDefaults.HERO_TITLE ?? String(CONFIG_SCHEMA_MARKETING.META_TITLE.default);
+		landingPageConfigVm.HERO_TITLE ?? String(CONFIG_SCHEMA_MARKETING.META_TITLE.default);
 	const heroDescription =
-		landingPageConfigVm.HERO_SLOGAN ??
-		landingDefaults.HERO_SLOGAN ??
-		String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default);
+		landingPageConfigVm.HERO_SLOGAN ?? String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default);
 	const customTitle = normalizeConfigStringValue(heroTitleRaw).replace(/\n+/g, ' ').trim();
 
 	const metaTags = await createMetaData({
@@ -122,10 +104,9 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 				items: publicFaqItemsVm
 			}),
 			createLandingDemoSEOSchema({
-				youtubeVideoId:
-					landingPageConfigVm.DEMO_YOUTUBE_VIDEO_ID ?? landingDefaults.DEMO_YOUTUBE_VIDEO_ID,
-				name: landingPageConfigVm.DEMO_TITLE ?? landingDefaults.DEMO_TITLE,
-				description: landingPageConfigVm.DEMO_DESCRIPTION ?? landingDefaults.DEMO_DESCRIPTION,
+				youtubeVideoId: landingPageConfigVm.DEMO_YOUTUBE_VIDEO_ID,
+				name: landingPageConfigVm.DEMO_TITLE,
+				description: landingPageConfigVm.DEMO_DESCRIPTION,
 				pageUrl: canonical
 			})
 		].filter((node) => Object.keys(node).length > 0)

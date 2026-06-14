@@ -3,7 +3,7 @@ import { browser } from '$app/environment';
 import type {
 	CompanyInformationProgrammerModel,
 	MarketingInformationProgrammerModel
-} from '$lib/area-public/PublicInformation.repository.svelte';
+} from '$lib/area-public/publicInformation.types';
 import type { PageLoad } from './$types';
 
 type ParentLayoutWithPublicInfo = {

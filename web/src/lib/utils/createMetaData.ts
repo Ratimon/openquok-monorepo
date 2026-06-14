@@ -2,7 +2,7 @@ import type { MetaTagsProps, MetaTag } from 'svelte-meta-tags';
 import type {
 	CompanyInformationProgrammerModel,
 	MarketingInformationProgrammerModel
-} from '$lib/area-public/PublicInformation.repository.svelte';
+} from '$lib/area-public/publicInformation.types';
 import { version } from '$app/environment';
 
 // Re-export for consumers that use local MetaTagsProps

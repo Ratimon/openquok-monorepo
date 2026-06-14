@@ -235,5 +235,5 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	}
 ];
 
-export type { PublicFaqItem as PublicPricingFaqItem } from '$lib/content/constants/publicFaqCatalog';
-export { PUBLIC_FAQ_ITEMS as PUBLIC_PRICING_FAQ_ITEMS } from '$lib/content/constants/publicFaqCatalog';
+export type { PublicFaqItem as PublicPricingFaqItem } from '$lib/content/constants/publicFaqConfig';
+export { PUBLIC_FAQ_ITEMS as PUBLIC_PRICING_FAQ_ITEMS } from '$lib/content/constants/publicFaqConfig';

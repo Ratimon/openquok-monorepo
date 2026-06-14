@@ -1,7 +1,7 @@
 import {
 	PUBLIC_FAQ_ITEMS,
 	type PublicFaqItem
-} from '$lib/content/constants/publicFaqCatalog';
+} from '$lib/content/constants/publicFaqConfig';
 import { getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
 export type PublicFaqConfigItem = {

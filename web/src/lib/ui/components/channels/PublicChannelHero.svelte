@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelCatalog';
+	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelConfig';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';

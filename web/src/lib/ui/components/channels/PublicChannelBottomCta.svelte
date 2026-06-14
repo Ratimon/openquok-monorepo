@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelCatalog';
+	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelConfig';
 
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import Background from '$lib/ui/background/Background.svelte';

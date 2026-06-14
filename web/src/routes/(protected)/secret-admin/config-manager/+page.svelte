@@ -1,27 +1,9 @@
 <script lang="ts">
 	import {
 		getRootPathSecretAdminConfigManagerBlogInformation,
-		getRootPathSecretAdminConfigManagerCompanyInformation,
-		getRootPathSecretAdminConfigManagerLandingPage,
-		getRootPathSecretAdminConfigManagerPublicFaq,
-		getRootPathSecretAdminConfigManagerMarketingInformation
+		getRootPathSecretAdminConfigManagerPublicFaq
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { absoluteUrl, route } from '$lib/utils/path';
-
-	// /secret-admin/config-manager/company-information
-	const rootPathCompanyInformation = getRootPathSecretAdminConfigManagerCompanyInformation();
-	const companyInformationPath = route(rootPathCompanyInformation);
-	const companyInformationUrl = absoluteUrl(companyInformationPath);
-
-	// /secret-admin/config-manager/marketing-information
-	const rootPathMarketingInformation = getRootPathSecretAdminConfigManagerMarketingInformation();
-	const marketingInformationPath = route(rootPathMarketingInformation);
-	const marketingInformationUrl = absoluteUrl(marketingInformationPath);
-
-	// /secret-admin/config-manager/landing-page
-	const rootPathLandingPage = getRootPathSecretAdminConfigManagerLandingPage();
-	const landingPagePath = route(rootPathLandingPage);
-	const landingPageUrl = absoluteUrl(landingPagePath);
 
 	// /secret-admin/config-manager/public-faq
 	const rootPathPublicFaq = getRootPathSecretAdminConfigManagerPublicFaq();
@@ -38,19 +20,10 @@
 	<h1 class="text-xl font-semibold text-base-content">
 		Config manager</h1>
 	<p class="text-sm text-base-content/70 mt-1">
-		Update module configuration values for company, marketing, landing page, public FAQ, and blog modules.
+		Update runtime configuration for public FAQ and blog SEO. Landing, company, and marketing copy are managed in <code>web/src/lib/config/constants/config.ts</code>.
 	</p>
 
 	<ul class="mt-4 list-disc list-inside space-y-1 text-sm">
-		<li>
-			<a href={companyInformationUrl} class="link link-primary">Company Information</a>
-		</li>
-		<li>
-			<a href={marketingInformationUrl} class="link link-primary">Marketing Information</a>
-		</li>
-		<li>
-			<a href={landingPageUrl} class="link link-primary">Landing Page</a>
-		</li>
 		<li>
 			<a href={publicFaqUrl} class="link link-primary">Public FAQ</a>
 		</li>
