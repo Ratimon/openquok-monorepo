@@ -374,7 +374,6 @@
 			// Guard: if effect runs multiple times for the same callback, only submit once.
 			const callbackKey = `${p}:${authState}:${authCode}:${refreshParam ?? ''}`;
 			if (lastHandledOAuthCallbackKey === callbackKey) {
-				busy = false;
 				return;
 			}
 			lastHandledOAuthCallbackKey = callbackKey;
@@ -518,17 +517,11 @@
 					Finishing connection…
 				</h1>
 				<p class="mt-2 text-sm text-base-content/70">
-					{#if busy}
-						Please wait while we connect your account.
-					{:else}
-						Done.
-					{/if}
+					Please wait while we connect your account.
 				</p>
-				{#if busy}
-					<div class="mt-6 flex justify-center">
-						<CircularProgressBar value={progressValue} size={100} strokeWidth={7} />
-					</div>
-				{/if}
+				<div class="mt-6 flex justify-center">
+					<CircularProgressBar value={progressValue} size={100} strokeWidth={7} />
+				</div>
 			{/if}
 		</div>
 	</div>
