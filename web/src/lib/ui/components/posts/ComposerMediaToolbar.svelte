@@ -10,7 +10,11 @@
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
+	import { formatBytes } from '$lib/medias';
+	import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { icons } from '$data/icons';
+	import { toast } from '$lib/ui/sonner';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import GlyphBoldText from '$lib/ui/components/posts/GlyphBoldText.svelte';
 	import GlyphDesignEditor from '$lib/ui/components/posts/GlyphDesignEditor.svelte';
@@ -20,13 +24,12 @@
 	import MediaLibraryModal from '$lib/ui/components/media/MediaLibraryModal.svelte';
 	import DeviceMediaAttachModal from '$lib/ui/components/media/DeviceMediaAttachModal.svelte';
 	import MediaGenerationModal from '$lib/ui/components/media/MediaGenerationModal.svelte';
+	import MediaLibraryUploadOverlay from '$lib/ui/components/media/MediaLibraryUploadOverlay.svelte';
 	import ComposerMediaTooltip, {
 		composeTooltipTriggerClick
 	} from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
-	import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
-	import { toast } from '$lib/ui/sonner';
 
 	interface ComposerMediaToolbarProps {
 		stockPhotosVm: readonly StockPhotoViewModel[];
@@ -75,8 +78,12 @@
 	}: ComposerMediaToolbarProps = $props();
 
 	type MediaGenerationProps = ComponentProps<typeof MediaGenerationModal>;
+	type UploadPhase = 'idle' | 'encoding' | 'uploading';
 
 	let uploadBusy = $state(false);
+	let uploadPhase = $state<UploadPhase>('idle');
+	let barPercent = $state(0);
+	let uploadDetailLine = $state('');
 	let designOpen = $state(false);
 	let deviceAttachOpen = $state(false);
 	let libraryOpen = $state(false);
@@ -89,8 +96,21 @@
 		if (mediaAtCap) return false;
 		if (!files?.length || disabled || uploadBusy || !uploadUid) return false;
 		uploadBusy = true;
+		uploadPhase = 'uploading';
+		barPercent = 0;
+		uploadDetailLine = '';
 		try {
-			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid, { publishDateIso });
+			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid, {
+				publishDateIso,
+				onProgress: ({ bytesUploaded, bytesTotal }) => {
+					uploadPhase = 'uploading';
+					barPercent =
+						bytesTotal > 0
+							? Math.min(100, Math.round((bytesUploaded / bytesTotal) * 100))
+							: 0;
+					uploadDetailLine = `${formatBytes(bytesUploaded)} of ${formatBytes(bytesTotal)}`;
+				}
+			});
 			if (!batch.ok) {
 				toast.error(batch.message);
 				return false;
@@ -104,6 +124,9 @@
 			return true;
 		} finally {
 			uploadBusy = false;
+			uploadPhase = 'idle';
+			barPercent = 0;
+			uploadDetailLine = '';
 		}
 	}
 
@@ -148,6 +171,13 @@
 		})
 	);
 </script>
+
+<MediaLibraryUploadOverlay
+	uploadBusy={uploadPhase !== 'idle'}
+	{uploadPhase}
+	{barPercent}
+	{uploadDetailLine}
+/>
 
 <div
 	class="border-base-300/80 bg-base-100/90 flex items-center gap-1 rounded-xl border p-1 shadow-md backdrop-blur-md {className}"

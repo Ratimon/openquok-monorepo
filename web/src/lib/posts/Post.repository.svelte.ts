@@ -1,6 +1,7 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import { userFacingApiErrorMessage } from '$lib/core/HttpGateway';
 import { mediaRepository, mediaVirtualPathForComposerUpload } from '$lib/medias';
+import type { MediaUploadProgress } from '$lib/medias/utils/workspaceMediaUpload';
 
 /** One image or video attached to a social post (R2 / user media paths from `/api/v1/media/*`). */
 export type PostMediaProgrammerModel = {
@@ -22,7 +23,7 @@ function isComposerMediaFile(file: File): boolean {
 export async function uploadSocialPostComposerMediaFiles(
 	files: FileList,
 	uploadUid: string,
-	options?: { publishDateIso?: string | null }
+	options?: { publishDateIso?: string | null; onProgress?: (progress: MediaUploadProgress) => void }
 ): Promise<
 	{ ok: true; items: PostMediaProgrammerModel[] } | { ok: false; message: string }
 > {
@@ -31,10 +32,23 @@ export async function uploadSocialPostComposerMediaFiles(
 		return { ok: false, message: 'Add image or video files only.' };
 	}
 	const virtualPath = mediaVirtualPathForComposerUpload(options?.publishDateIso);
+	const totalBytes = list.reduce((sum, file) => sum + file.size, 0);
+	let completedBytes = 0;
 	const items: PostMediaProgrammerModel[] = [];
 	for (const file of list) {
-		const result = await mediaRepository.uploadMedia(file, uploadUid, virtualPath);
+		const result = await mediaRepository.uploadMedia(file, uploadUid, virtualPath, {
+			onProgress: ({ bytesUploaded, bytesTotal }) => {
+				const batchTotal = totalBytes > 0 ? totalBytes : bytesTotal;
+				const batchUploaded =
+					totalBytes > 0
+						? completedBytes + Math.round((bytesUploaded / Math.max(bytesTotal, 1)) * file.size)
+						: bytesUploaded;
+				options?.onProgress?.({ bytesUploaded: batchUploaded, bytesTotal: batchTotal });
+			}
+		});
 		if (result.success && result.data.filePath) {
+			completedBytes += file.size;
+			options?.onProgress?.({ bytesUploaded: completedBytes, bytesTotal: totalBytes });
 			items.push({ id: crypto.randomUUID(), path: result.data.filePath, bucket: 'social_media' });
 		} else {
 			return { ok: false, message: result.message || 'Upload failed.' };

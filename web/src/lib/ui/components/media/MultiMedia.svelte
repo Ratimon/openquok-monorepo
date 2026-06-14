@@ -2,13 +2,14 @@
 	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
-	import { isVideoMediaPath, publicUrlForMediaStorageKey } from '$lib/medias';
+	import { isVideoMediaPath, publicUrlForMediaStorageKey, formatBytes } from '$lib/medias';
 	import { getScheduledPostsPresenter, uploadSocialPostComposerMediaFiles } from '$lib/posts';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 
 	import BlobOrHrefImg from '$lib/ui/media-files/BlobOrHrefImg.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import MediaLibraryUploadOverlay from '$lib/ui/components/media/MediaLibraryUploadOverlay.svelte';
 
 	type Props = {
 		mediaVm?: MediaLibraryItemViewModel;
@@ -38,7 +39,11 @@
 	}: Props = $props();
 
 	let previewUrl = $state('');
+	type UploadPhase = 'idle' | 'encoding' | 'uploading';
 	let uploadBusy = $state(false);
+	let uploadPhase = $state<UploadPhase>('idle');
+	let barPercent = $state(0);
+	let uploadDetailLine = $state('');
 	let dragOver = $state(false);
 	const mediaAtCap = $derived(maxMediaItems != null && items.length >= maxMediaItems);
 	const noDrag = $derived(mediaAtCap);
@@ -78,8 +83,21 @@
 		if (mediaAtCap) return;
 		if (!files?.length || disabled || uploadBusy || !uploadUid) return;
 		uploadBusy = true;
+		uploadPhase = 'uploading';
+		barPercent = 0;
+		uploadDetailLine = '';
 		try {
-			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid, { publishDateIso });
+			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid, {
+				publishDateIso,
+				onProgress: ({ bytesUploaded, bytesTotal }) => {
+					uploadPhase = 'uploading';
+					barPercent =
+						bytesTotal > 0
+							? Math.min(100, Math.round((bytesUploaded / bytesTotal) * 100))
+							: 0;
+					uploadDetailLine = `${formatBytes(bytesUploaded)} of ${formatBytes(bytesTotal)}`;
+				}
+			});
 			if (!batch.ok) {
 				toast.error(batch.message);
 				return;
@@ -92,6 +110,9 @@
 			}
 		} finally {
 			uploadBusy = false;
+			uploadPhase = 'idle';
+			barPercent = 0;
+			uploadDetailLine = '';
 		}
 	}
 
@@ -126,6 +147,13 @@
 		previewUrl = mediaVm.publicUrl?.trim() ? mediaVm.publicUrl : publicUrlForMediaStorageKey(mediaVm.path);
 	});
 </script>
+
+<MediaLibraryUploadOverlay
+	uploadBusy={uploadPhase !== 'idle'}
+	{uploadPhase}
+	{barPercent}
+	{uploadDetailLine}
+/>
 
 {#if isLibraryMode && mediaVm}
 	<div class="group relative overflow-hidden rounded-lg border border-base-300/70 bg-base-100 shadow-sm">

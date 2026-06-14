@@ -16,38 +16,48 @@
 </script>
 
 {#if uploadBusy}
-	<div class="pointer-events-none fixed inset-x-0 top-0 z-50">
-		<div class="h-1 w-full overflow-hidden bg-base-300">
-			{#if uploadPhase === 'encoding'}
-				<div class="h-full w-full bg-warning/90 animate-pulse"></div>
-			{:else}
-				<div
-					class="h-full bg-primary transition-[width] duration-150 ease-out"
-					style={`width: ${barPercent}%`}
-				></div>
-			{/if}
-		</div>
+	<div
+		class="pointer-events-auto fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+		role="status"
+		aria-live="polite"
+		aria-busy="true"
+	>
 		<div
-			class="pointer-events-auto flex items-start gap-2 border-b border-base-300/80 bg-base-100/95 px-4 py-2 text-sm shadow-sm backdrop-blur-sm"
+			class="border-base-300/80 bg-base-100/95 w-full max-w-md rounded-2xl border px-6 py-7 shadow-2xl backdrop-blur-md"
 		>
-			<AbstractIcon
-				name={icons.LoaderCircle.name}
-				class={`mt-0.5 size-4 shrink-0 ${uploadPhase === 'encoding' ? 'text-warning' : 'text-primary'} animate-spin`}
-				width="16"
-				height="16"
-			/>
-			<div class="min-w-0 flex-1">
-				<div class="font-medium text-base-content">
-					{#if uploadPhase === 'encoding'}
-						Encoding…
-					{:else}
-						Uploading: {barPercent}%
+			<div class="flex flex-col items-center gap-5 text-center">
+				<AbstractIcon
+					name={icons.LoaderCircle.name}
+					class={`size-10 shrink-0 ${uploadPhase === 'encoding' ? 'text-warning' : 'text-primary'} animate-spin`}
+					width="40"
+					height="40"
+				/>
+
+				<div class="min-w-0 space-y-1">
+					<div class="text-lg font-semibold text-base-content">
+						{#if uploadPhase === 'encoding'}
+							Encoding…
+						{:else}
+							Uploading: {barPercent}%
+						{/if}
+					</div>
+					{#if uploadPhase === 'uploading' && uploadDetailLine}
+						<div class="text-base-content/65 text-sm">
+							{uploadDetailLine}
+						</div>
 					{/if}
 				</div>
-				{#if uploadPhase === 'uploading' && uploadDetailLine}
-					<div class="truncate text-xs text-base-content/60">
-						{uploadDetailLine}</div>
-				{/if}
+
+				<div class="bg-base-300/80 h-2.5 w-full overflow-hidden rounded-full">
+					{#if uploadPhase === 'encoding'}
+						<div class="bg-warning/90 h-full w-full animate-pulse"></div>
+					{:else}
+						<div
+							class="bg-primary h-full rounded-full transition-[width] duration-150 ease-out"
+							style={`width: ${barPercent}%`}
+						></div>
+					{/if}
+				</div>
 			</div>
 		</div>
 	</div>

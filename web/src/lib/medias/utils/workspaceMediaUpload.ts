@@ -7,6 +7,19 @@ import { resolveMediaLibraryUploadMode } from '$lib/medias/utils/mediaLibraryUpl
 /** S3-compatible multipart part size (minimum 5 MiB except the last part). */
 const MULTIPART_PART_BYTES = 5 * 1024 * 1024;
 
+export type MediaUploadProgress = {
+	bytesUploaded: number;
+	bytesTotal: number;
+};
+
+type WorkspaceMediaUploadOptions = {
+	file: File;
+	organizationId: string;
+	virtualPath?: string;
+	mode?: MediaLibraryUploadMode;
+	onProgress?: (progress: MediaUploadProgress) => void;
+};
+
 function accessToken(): string | null {
 	return authenticationRepository.getToken();
 }
@@ -27,6 +40,7 @@ async function uploadViaMultipartForm(params: {
 	virtualPath?: string;
 	endpoint: string;
 	fieldName: string;
+	onProgress?: (progress: MediaUploadProgress) => void;
 }): Promise<MediaUploadProgrammerModel> {
 	const formData = new FormData();
 	formData.append(params.fieldName, params.file);
@@ -36,41 +50,70 @@ async function uploadViaMultipartForm(params: {
 	}
 
 	const token = accessToken();
-	const res = await fetch(mediaUploadApiUrl(params.endpoint), {
-		method: 'POST',
-		credentials: 'include',
-		headers: token ? { Authorization: `Bearer ${token}` } : {},
-		body: formData
+	const url = mediaUploadApiUrl(params.endpoint);
+
+	return new Promise((resolve) => {
+		const xhr = new XMLHttpRequest();
+		xhr.open('POST', url);
+		xhr.withCredentials = true;
+		if (token) {
+			xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+		}
+
+		xhr.upload.addEventListener('progress', (event) => {
+			if (!event.lengthComputable) return;
+			params.onProgress?.({ bytesUploaded: event.loaded, bytesTotal: event.total });
+		});
+
+		xhr.addEventListener('load', () => {
+			const json = (() => {
+				try {
+					return JSON.parse(xhr.responseText) as {
+						success?: boolean;
+						data?: { filePath?: string; publicUrl?: string };
+						message?: string;
+					};
+				} catch {
+					return null;
+				}
+			})();
+
+			if (xhr.status < 200 || xhr.status >= 300 || !json?.success || !json.data?.filePath) {
+				resolve({
+					success: false,
+					data: { filePath: '' },
+					message: json?.message || `Upload failed (${xhr.status})`
+				});
+				return;
+			}
+
+			resolve({
+				success: true,
+				data: {
+					filePath: json.data.filePath,
+					...(json.data.publicUrl ? { publicUrl: json.data.publicUrl } : {})
+				},
+				message: json.message ?? 'Media uploaded successfully'
+			});
+		});
+
+		xhr.addEventListener('error', () => {
+			resolve({
+				success: false,
+				data: { filePath: '' },
+				message: 'Upload could not reach the server. Check your connection and try again.'
+			});
+		});
+
+		xhr.send(formData);
 	});
-
-	const json = (await res.json().catch(() => null)) as {
-		success?: boolean;
-		data?: { filePath?: string; publicUrl?: string };
-		message?: string;
-	} | null;
-
-	if (!res.ok || !json?.success || !json.data?.filePath) {
-		return {
-			success: false,
-			data: { filePath: '' },
-			message: json?.message || `Upload failed (${res.status})`
-		};
-	}
-
-	return {
-		success: true,
-		data: {
-			filePath: json.data.filePath,
-			...(json.data.publicUrl ? { publicUrl: json.data.publicUrl } : {})
-		},
-		message: json.message ?? 'Media uploaded successfully'
-	};
 }
 
 async function uploadViaDirectR2Multipart(params: {
 	file: File;
 	organizationId: string;
 	virtualPath?: string;
+	onProgress?: (progress: MediaUploadProgress) => void;
 }): Promise<MediaUploadProgrammerModel> {
 	const token = accessToken();
 	const contentType = params.file.type || 'application/octet-stream';
@@ -130,6 +173,7 @@ async function uploadViaDirectR2Multipart(params: {
 
 		completedParts.push({ PartNumber: partNumber, ETag: etag });
 		partNumber += 1;
+		params.onProgress?.({ bytesUploaded: Math.min(offset + chunk.size, params.file.size), bytesTotal: params.file.size });
 	}
 
 	const completed = await postMediaUploadJson({
@@ -169,12 +213,9 @@ async function uploadViaDirectR2Multipart(params: {
  * Browser upload for workspace media (composer, thumbnails, etc.) using the same strategy
  * as the account media library (`VITE_MEDIA_LIBRARY_UPLOAD`).
  */
-export async function uploadWorkspaceMediaFile(params: {
-	file: File;
-	organizationId: string;
-	virtualPath?: string;
-	mode?: MediaLibraryUploadMode;
-}): Promise<MediaUploadProgrammerModel> {
+export async function uploadWorkspaceMediaFile(
+	params: WorkspaceMediaUploadOptions
+): Promise<MediaUploadProgrammerModel> {
 	const mode = params.mode ?? resolveMediaLibraryUploadMode();
 
 	try {
