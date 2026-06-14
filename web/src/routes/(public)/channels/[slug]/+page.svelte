@@ -9,6 +9,7 @@
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
 	import PublicChannelHero from '$lib/ui/components/channels/PublicChannelHero.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = { data: PageData };
@@ -24,11 +25,7 @@
 	const secondaryCtaHref = pagePresenter.secondaryCtaHref;
 </script>
 
-<svelte:head>
-	{#if schemaData}
-		<script type="application/ld+json">{JSON.stringify(schemaData)}</script>
-	{/if}
-</svelte:head>
+<JsonLdHead schemaData={schemaData} />
 
 {#if channelVm}
 	<PublicChannelHero

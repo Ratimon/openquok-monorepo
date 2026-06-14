@@ -8,6 +8,7 @@
 
 	import PublicArea from '$lib/ui/templates/PublicArea.svelte';
 	import LandingPage from '$lib/ui/templates/landing-page/LandingPage.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = {
 		data: PageData;
@@ -49,11 +50,7 @@
 	let schemaData = $derived(data.schemaData);
 </script>
 
-<svelte:head>
-	{#if schemaData}
-		<script type="application/ld+json">{JSON.stringify(schemaData)}</script>
-	{/if}
-</svelte:head>
+<JsonLdHead schemaData={schemaData} />
 
 <PublicArea
 	{isLoggedIn}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { docsConfig } from '$lib/docs/constants';
+	import { jsonLdScriptHtml } from '$lib/utils/jsonLdScriptHtml';
 
 	let {
 		title,
@@ -29,27 +30,25 @@
 		}));
 	});
 
-	let jsonLd = $derived(
-		JSON.stringify([
-			{
-				'@context': 'https://schema.org',
-				'@type': 'TechArticle',
-				headline: title,
-				description: description ?? '',
-				url,
-				isPartOf: {
-					'@type': 'WebSite',
-					name: siteTitle,
-					url: docsConfig.site.url ?? ''
-				}
-			},
-			{
-				'@context': 'https://schema.org',
-				'@type': 'BreadcrumbList',
-				itemListElement: breadcrumbItems
+	let schemaData = $derived([
+		{
+			'@context': 'https://schema.org',
+			'@type': 'TechArticle',
+			headline: title,
+			description: description ?? '',
+			url,
+			isPartOf: {
+				'@type': 'WebSite',
+				name: siteTitle,
+				url: docsConfig.site.url ?? ''
 			}
-		])
-	);
+		},
+		{
+			'@context': 'https://schema.org',
+			'@type': 'BreadcrumbList',
+			itemListElement: breadcrumbItems
+		}
+	]);
 </script>
 
 <svelte:head>
@@ -77,5 +76,5 @@
 
 	<link rel="canonical" href={url} />
 
-	{@html `<script type="application/ld+json">${jsonLd}<\/script>`}
+	{@html jsonLdScriptHtml(schemaData)}
 </svelte:head>

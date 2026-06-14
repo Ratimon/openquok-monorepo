@@ -26,6 +26,7 @@
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 	import LayoutInnerContainer from '$lib/ui/layouts/LayoutInnerContainer.svelte';
 	import LayoutOuterContainer from '$lib/ui/layouts/LayoutOuterContainer.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	// /sign-in
 	const rootPathSignIn = getRootPathSignin();
@@ -186,12 +187,7 @@
 	}
 </script>
 
-<svelte:head>
-	{#if schemaData}
-		<script type="application/ld+json">
-			{JSON.stringify(schemaData)}</script>
-	{/if}
-</svelte:head>
+<JsonLdHead schemaData={schemaData} />
 
 <LayoutOuterContainer class="bg-base-100 pt-6 pb-6 md:pt-8 md:pb-10">
 	<LayoutInnerContainer class="mx-auto w-full pb-4">

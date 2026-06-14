@@ -82,20 +82,24 @@ Public marketing copy that crawlers should index must not rely on client-only pr
 
 ---
 
-## 3. JSON‑LD must render in `+page.svelte` `<svelte:head>`
+## 3. JSON‑LD must render in SSR HTML
 
 - Compute structured data (JSON‑LD) in `+page.server.ts` (`schemaData`) and return it.
-- Render it in `+page.svelte` so it appears in SSR HTML:
+- Render with **`JsonLdHead`** (`$lib/ui/components/seo/JsonLdHead.svelte`) so crawlers receive real JSON (Svelte does not interpolate inside `<script type="application/ld+json">` tags):
 
 ```svelte
-<svelte:head>
-  {#if schemaData}
-    <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
-  {/if}
-</svelte:head>
+<script lang="ts">
+  import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+  let schemaData = $derived(data.schemaData);
+</script>
+
+<JsonLdHead schemaData={schemaData} />
 ```
 
+Helper: `$lib/utils/jsonLdScriptHtml.ts` (`serializeJsonLd`, `jsonLdScriptHtml`). Docs pages use the same helper in `DocsSeoHead.svelte`.
+
 Avoid:
+- `<script type="application/ld+json">{JSON.stringify(schemaData)}</script>` — renders the literal string in SSR HTML.
 - Generating JSON‑LD only in `onMount` (not SSR-visible).
 - Putting JSON‑LD behind client-only conditions (`if (browser)`).
 

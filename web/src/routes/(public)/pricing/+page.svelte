@@ -7,6 +7,7 @@
 	import PublicPricingHero from '$lib/ui/components/pricing/PublicPricingHero.svelte';
 	import PublicPricingPlanCards from '$lib/ui/components/pricing/PublicPricingPlanCards.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
 
@@ -72,11 +73,7 @@
 	};
 </script>
 
-<svelte:head>
-	{#if schemaData}
-		<script type="application/ld+json">{JSON.stringify(schemaData)}</script>
-	{/if}
-</svelte:head>
+<JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="py-10 md:py-16">
 	<PublicPricingHero

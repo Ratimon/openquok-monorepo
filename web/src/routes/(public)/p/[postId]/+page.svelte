@@ -23,6 +23,7 @@
 	import RenderPreviewDate from '$lib/ui/components/preview/RenderPreviewDate.svelte';
 	import SharePostPreviewLimitUpgradeModal from '$lib/ui/components/posts/SharePostPreviewLimitUpgradeModal.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -173,12 +174,7 @@
 	}
 </script>
 
-<svelte:head>
-	{#if schemaData}
-		<script type="application/ld+json">
-			{JSON.stringify(schemaData)}</script>
-	{/if}
-</svelte:head>
+<JsonLdHead schemaData={schemaData} />
 
 <div class="min-h-screen bg-base-200 text-base-content">
 	{#if previewPostVm}
