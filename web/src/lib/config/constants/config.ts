@@ -253,7 +253,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the first secondary hero section',
 		type: 'string',
 		default:
-			'Give each brand, client, or OpenClaw agent its own workspace with isolated channels and drafts. Run dozens of social channels without one shared context — or your AI mixing up with wrong workflow.',
+			'Give each brand, client, or OpenClaw agent its own workspace with isolated channels and chat. Reach your agents from Telegram or other chat apps, then run dozens of social channels without one shared context — or your AI mixing up workflows.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},

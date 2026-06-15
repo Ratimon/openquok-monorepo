@@ -6,6 +6,8 @@
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
 
 	import AnimatedBeamMultipleAgent from '$lib/ui/templates/landing-page/AnimatedBeamMultipleAgent.svelte';
+	import Iphone15ProMock from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMock.svelte';
+	import Iphone15ProMockContent from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMockContent.svelte';
 	import HeroDemo from '$lib/ui/templates/landing-page/HeroDemo.svelte';
 	import HeroMain from '$lib/ui/templates/landing-page/HeroMain.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
@@ -249,9 +251,24 @@
 	landingDescription={feature1Description}
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
+	mediaContainerClass="max-w-4xl"
 >
 	{#snippet rightMedia()}
-		<AnimatedBeamMultipleAgent />
+		<div
+			class="flex h-full w-full flex-col items-center gap-6 sm:flex-row sm:items-stretch sm:gap-4"
+			aria-hidden="true"
+		>
+			<div class="flex min-h-72 min-w-0 flex-1 items-stretch">
+				<AnimatedBeamMultipleAgent />
+			</div>
+			<div
+				class="mx-auto flex h-[360px] w-full max-w-[200px] shrink-0 items-center justify-center overflow-hidden sm:h-full sm:max-w-[220px] lg:max-w-[240px]"
+			>
+				<Iphone15ProMock class="h-full w-auto max-w-full">
+					<Iphone15ProMockContent content="telegram-connect" />
+				</Iphone15ProMock>
+			</div>
+		</div>
 	{/snippet}
 </HeroWithRightMedia>
 
