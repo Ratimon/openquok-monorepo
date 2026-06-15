@@ -7,7 +7,7 @@ import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/
 import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
-export type FeaturesAnimatedContentId = 'llm-models';
+export type FeaturesAnimatedContentId = 'llm-models' | 'agent-integrations';
 
 export type FeaturesAnimatedModel = {
 	name: string;
@@ -52,6 +52,36 @@ export const DEFAULT_LLM_MODELS: FeaturesAnimatedModel[] = [
 		description:
 			'Run Llama, Mistral, or other open weights on your own hardware with full data control.',
 		iconName: icons.Bot.name,
+		containerClass: 'bg-primary/10',
+		iconClass: 'size-12 text-primary'
+	}
+];
+
+export const DEFAULT_AGENT_INTEGRATIONS: FeaturesAnimatedModel[] = [
+	{
+		name: 'Bloom',
+		provider: 'The brand layer for agents',
+		description:
+			'Register Bloom as an OpenClaw MCP server to onboard your brand and generate on-brand images — then schedule approved posts with OpenQuok.',
+		iconName: icons.Bloom.name,
+		containerClass: 'bg-white',
+		iconClass: 'size-14'
+	},
+	{
+		name: 'RevenueCat',
+		provider: 'Subscriptions MCP for agents',
+		description:
+			'Connect the RevenueCat MCP server in OpenClaw to read MRR, trials, and churn — then draft TikTok posts and schedule them on OpenQuok for your review.',
+		iconName: icons.RevenueCat.name,
+		containerClass: 'bg-white',
+		iconClass: 'size-14'
+	},
+	{
+		name: 'Your own skills',
+		provider: 'OpenClaw ecosystem',
+		description:
+			'Install any skill next to openquok-core — analytics, creative pipelines, or custom workflows — and keep humans in the loop on publish.',
+		iconName: icons.Sparkles.name,
 		containerClass: 'bg-primary/10',
 		iconClass: 'size-12 text-primary'
 	}
@@ -202,10 +232,11 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 		},
 		{
 			id: 5,
-			title: '5. Add & customize other skills & integrations',
-			content: 'Add more skills and integrations, then approve drafts on OpenQuok before publish.',
-			mediaSrc: '/landing/5-analytics.mp4',
-			mediaAlt: 'Skills and integrations overview',
+			title: '5. Integrate & customize other skills',
+			content:
+				'Add Bloom, RevenueCat, or any OpenClaw skill beside openquok-core — find your own viral formats and scale!',
+			animatedContent: 'agent-integrations',
+			mediaAlt: 'Agent skills and integrations with OpenQuok',
 			iconName: icons.Sparkles.name
 		}
 	],

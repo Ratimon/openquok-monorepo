@@ -22,6 +22,7 @@ export type IconName =
     | "Bold"
     | "BookOpen"
     | "BookOpenCheck"
+    | "Bloom"
     | "CustomizedDrawnClapperboard"
     | "CustomizedDrawnHouse"
     | "CustomizedDrawnLaptop"
@@ -122,6 +123,7 @@ export type IconName =
     | "Plus"
     | "RefreshCw"
     | "Repeat2"
+    | "RevenueCat"
     | "Rocket"
     | "Oceania"
     | "Save"
@@ -297,6 +299,13 @@ export const icons: Record<IconName, IconEntry> = {
         name: "BookOpenCheck",
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open-check-icon lucide-book-open-check"><path d="M12 21V7"/><path d="m16 12 2 2 4-4"/><path d="M22 6V4a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4 4 4 0 0 0-4-4H3a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h6a3 3 0 0 1 3 3 3 3 0 0 1 3-3h6a1 1 0 0 0 1-1v-1.3"/></svg>`
+    },
+    /** Bloom product mark. Bloom is a trademark of its respective owner. */
+    Bloom: {
+        name: "Bloom",
+        box: 360,
+        fill: true,
+        svg: `<image href="/icons/bloom.png" width="360" height="360"/>`
     },
     CustomizedDrawnClapperboard: {
         name: "CustomizedDrawnClapperboard",
@@ -906,6 +915,13 @@ export const icons: Record<IconName, IconEntry> = {
         name: "Repeat2",
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat2-icon lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>`
+    },
+    /** RevenueCat product mark. RevenueCat is a trademark of RevenueCat, Inc. */
+    RevenueCat: {
+        name: "RevenueCat",
+        box: 225,
+        fill: true,
+        svg: `<image href="/icons/revenuecat.png" width="225" height="225"/>`
     },
     Rocket: {
         name: "Rocket",

@@ -58,52 +58,82 @@
 	aria-label={ariaLabel}
 >
 	<div class="grid min-h-0 flex-1 grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
-		<div class="relative mx-auto h-44 w-full max-w-[220px] sm:mx-0 sm:h-full sm:max-w-none">
-			<AnimatePresence let:item list={[{ key: active }]}>
-				{#each models as model, index (model.name)}
-					<Motion
-						initial={{
-							opacity: 0,
-							scale: 0.9,
-							z: -100,
-							rotate: stackRotation(index)
-						}}
-						animate={{
-							opacity: isActive(index) ? 1 : 0.7,
-							scale: isActive(index) ? 1 : 0.95,
-							z: isActive(index) ? 0 : -100,
-							rotate: isActive(index) ? 0 : stackRotation(index),
-							zIndex: isActive(index) ? 999 : models.length + 2 - index,
-							y: isActive(index) ? [0, -24, 0] : 0
-						}}
-						exit={{
-							opacity: 0,
-							scale: 0.9,
-							z: 100,
-							rotate: stackRotation(index)
-						}}
-						transition={{
-							duration: 0.4,
-							ease: 'easeInOut'
-						}}
-						let:motion
-					>
-						<div use:motion class="absolute inset-0 origin-bottom">
-							<div
-								class="flex size-full items-center justify-center rounded-2xl border border-base-content/10 shadow-md {model.containerClass ??
-									'bg-base-200'}"
-							>
-								<AbstractIcon
-									name={model.iconName}
-									class={model.iconClass ?? 'size-12 text-base-content'}
-									width="56"
-									height="56"
-								/>
+		<div class="flex h-full flex-col items-center justify-center gap-3 sm:gap-4">
+			{#key active}
+				<Motion
+					initial={{ y: -8, opacity: 0 }}
+					animate={{ y: 0, opacity: 1 }}
+					exit={{ y: 8, opacity: 0 }}
+					transition={{ duration: 0.2, ease: 'easeInOut' }}
+					let:motion
+				>
+					<h3 use:motion class="text-center text-lg font-bold text-base-content sm:text-xl">
+						{activeModel.name}
+					</h3>
+				</Motion>
+			{/key}
+
+			<div class="relative mx-auto h-36 w-full max-w-[200px] sm:mx-0 sm:max-w-[220px]">
+				<AnimatePresence let:item list={[{ key: active }]}>
+					{#each models as model, index (model.name)}
+						<Motion
+							initial={{
+								opacity: 0,
+								scale: 0.9,
+								z: -100,
+								rotate: stackRotation(index)
+							}}
+							animate={{
+								opacity: isActive(index) ? 1 : 0.7,
+								scale: isActive(index) ? 1 : 0.95,
+								z: isActive(index) ? 0 : -100,
+								rotate: isActive(index) ? 0 : stackRotation(index),
+								zIndex: isActive(index) ? 999 : models.length + 2 - index,
+								y: isActive(index) ? [0, -24, 0] : 0
+							}}
+							exit={{
+								opacity: 0,
+								scale: 0.9,
+								z: 100,
+								rotate: stackRotation(index)
+							}}
+							transition={{
+								duration: 0.4,
+								ease: 'easeInOut'
+							}}
+							let:motion
+						>
+							<div use:motion class="absolute inset-0 origin-bottom">
+								<div
+									class="flex size-full items-center justify-center rounded-2xl border border-base-content/10 shadow-md {model.containerClass ??
+										'bg-base-200'}"
+								>
+									<AbstractIcon
+										name={model.iconName}
+										class={model.iconClass ?? 'size-12 text-base-content'}
+										width="56"
+										height="56"
+									/>
+								</div>
 							</div>
-						</div>
-					</Motion>
-				{/each}
-			</AnimatePresence>
+						</Motion>
+					{/each}
+				</AnimatePresence>
+			</div>
+
+			{#key active}
+				<Motion
+					initial={{ y: 8, opacity: 0 }}
+					animate={{ y: 0, opacity: 1 }}
+					exit={{ y: -8, opacity: 0 }}
+					transition={{ duration: 0.2, ease: 'easeInOut' }}
+					let:motion
+				>
+					<p use:motion class="text-center text-sm text-base-content/60">
+						{activeModel.provider}
+					</p>
+				</Motion>
+			{/key}
 		</div>
 
 		<div class="flex min-h-0 flex-col justify-between gap-4">
@@ -114,13 +144,7 @@
 				transition={{ duration: 0.2, ease: 'easeInOut' }}
 				let:motion
 			>
-				<div use:motion class="space-y-2">
-					<h3 class="text-xl font-bold text-base-content sm:text-2xl">
-						{activeModel.name}
-					</h3>
-					<p class="text-sm text-base-content/60">
-						{activeModel.provider}
-					</p>
+				<div use:motion>
 					{#key active}
 						<p class="text-sm leading-relaxed text-base-content/80 sm:text-base">
 							{#each activeModel.description.split(' ') as word, wordIndex (wordIndex)}

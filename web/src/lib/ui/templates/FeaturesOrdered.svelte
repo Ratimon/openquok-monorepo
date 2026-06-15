@@ -4,8 +4,8 @@
     import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
     import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 
-
 	import { onMount } from 'svelte';
+    import { DEFAULT_AGENT_INTEGRATIONS } from '$lib/content/constants/publicAgentConfig';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
@@ -287,6 +287,11 @@
 							/>
 						{:else if activeStep?.animatedContent === 'llm-models'}
 							<FeaturesAnimated ariaLabel={activeStep.mediaAlt ?? activeStep.title} />
+						{:else if activeStep?.animatedContent === 'agent-integrations'}
+							<FeaturesAnimated
+								models={DEFAULT_AGENT_INTEGRATIONS}
+								ariaLabel={activeStep.mediaAlt ?? activeStep.title}
+							/>
 						{:else if activeStep?.mediaSrc}
 							<div
 								class="aspect-auto size-full overflow-hidden rounded-xl border border-base-content/10 p-1 shadow-lg"
