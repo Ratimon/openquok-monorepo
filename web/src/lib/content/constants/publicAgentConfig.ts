@@ -46,12 +46,12 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 	agentId: 'openclaw',
 	agentLabel: 'OpenClaw',
 	icon: icons.OpenClaw.name,
-	heroTitle: 'Manage your social media from OpenClaw',
+	heroTitle: 'Schedule social media from OpenClaw you approve',
 	heroDescription:
-		'Install the openquok-core skill on your OpenClaw host so your agent can list integrations, upload media, and schedule posts across every connected channel — while you stay in control of what publishes.',
+		'Install the openquok-core skill on OpenClaw. Your agent drafts and schedules from any chat app — you review and approve on the calendar or kanban before anything goes live.',
 	metaTitle: 'OpenClaw Social Media Skill for OpenQuok',
 	metaDescription:
-		'Connect OpenClaw to OpenQuok. Install the openquok-core skill, authenticate the CLI, and let your personal AI agent schedule social posts from WhatsApp, Telegram, Slack, and more.',
+		'Install the openquok-core skill on OpenClaw. Schedule social posts from WhatsApp, Telegram, or Slack and approve every draft on the OpenQuok calendar or kanban before publish.',
 	keywords: [
 		'OpenClaw social media',
 		'OpenClaw skill',
@@ -106,15 +106,15 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 			iconClass: 'text-lime-400',
 			title: 'Developers & builders',
 			description:
-				'Install the openquok-core skill in your workspace, wire auth once, and let shell-capable agents call openquok integrations:list and posts:create with structured JSON output.',
+				'Fully open source — add openquok-core plus any other skills you want, and let OpenClaw schedule posts with structured JSON.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.CustomizedDrawnHouse.name,
 			iconClass: 'text-rose-400',
-			title: 'Solo founders',
+			title: 'Startup founders',
 			description:
-				'Keep a single OpenClaw agent posting across Twitter, LinkedIn, Threads, and more — each workspace isolated so client brands never mix up.',
+				'Our model-agnostic approach keeps your stack lean and flexible — pick the agent and model that fit today, swap when you need to, and schedule across every channel from one workspace.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

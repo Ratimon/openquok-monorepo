@@ -18,9 +18,13 @@
 		heroTheme: LandingHeroTheme;
 		ctaText: string;
 		ctaHref: string;
+		docsCtaText?: string;
+		docsCtaHref?: string;
 	};
 
-	let { agent, heroTheme, ctaText, ctaHref }: Props = $props();
+	let { agent, heroTheme, ctaText, ctaHref, docsCtaText, docsCtaHref }: Props = $props();
+
+	const showDocsCta = $derived(Boolean(docsCtaText?.trim() && docsCtaHref?.trim()));
 
 	const headingId = 'public-agent-hero-heading';
 
@@ -59,6 +63,17 @@
 			</p>
 
 			<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+				{#if showDocsCta}
+					<ButtonGlitchBrightness
+						class="my-2 w-full max-w-xs justify-center rounded-full border-white/40 bg-transparent px-10 text-sm text-white shadow-none hover:bg-white/10 sm:w-auto sm:text-base"
+						variant="ghost"
+						size="lg"
+						href={docsCtaHref}
+						preload="off"
+					>
+						{docsCtaText}
+					</ButtonGlitchBrightness>
+				{/if}
 				<ButtonGlitchBrightness
 					class="my-2 w-full max-w-xs justify-center rounded-full px-10 text-sm sm:w-auto sm:text-base"
 					variant="primary"

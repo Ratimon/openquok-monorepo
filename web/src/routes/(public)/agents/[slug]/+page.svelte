@@ -32,6 +32,8 @@
 		heroTheme={landingHeroTheme}
 		ctaText={secondaryCtaText}
 		ctaHref={secondaryCtaHref}
+		docsCtaText="View Docs"
+		docsCtaHref={agentVm.docsPath}
 	/>
 
 	<WhoIsFor
