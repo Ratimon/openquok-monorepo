@@ -2,6 +2,7 @@
 	import type { FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
     import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
     import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
+    import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 
 
 	import { onMount } from 'svelte';
@@ -13,6 +14,7 @@
 	import Iphone15ProMockContent from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMockContent.svelte';
 	import SafariMock from '$lib/ui/templates/device-mocks/safari/SafariMock.svelte';
 	import SafariMockContent from '$lib/ui/templates/device-mocks/safari/SafariMockContent.svelte';
+	import TerminalCommandMockContent from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMockContent.svelte';
 
 	export type { FeaturesOrderedDeviceMock, FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
 
@@ -70,11 +72,14 @@
 	);
 
 	const isIphoneMock = $derived(activeStep?.deviceMock === 'iphone-15-pro');
+	const isTerminalMock = $derived(activeStep?.deviceMock === 'terminal');
 
 	const mediaPanelClass = $derived(
 		isIphoneMock
 			? 'h-[400px] min-h-[320px] w-auto lg:h-[480px]'
-			: 'h-[350px] min-h-[200px] w-auto'
+			: isTerminalMock
+				? 'h-auto w-full'
+				: 'h-[350px] min-h-[200px] w-auto'
 	);
 
 	function scrollToIndex(index: number) {
@@ -276,6 +281,10 @@
 									/>
 								</Iphone15ProMock>
 							</div>
+						{:else if activeStep?.deviceMock === 'terminal'}
+							<TerminalCommandMockContent
+								content={activeStep.deviceMockContent as TerminalMockContentId | undefined}
+							/>
 						{:else if activeStep?.animatedContent === 'llm-models'}
 							<FeaturesAnimated ariaLabel={activeStep.mediaAlt ?? activeStep.title} />
 						{:else if activeStep?.mediaSrc}

@@ -4,6 +4,7 @@ import { icons } from '$data/icons';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
 import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
+import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
 export type FeaturesAnimatedContentId = 'llm-models';
@@ -56,7 +57,7 @@ export const DEFAULT_LLM_MODELS: FeaturesAnimatedModel[] = [
 	}
 ];
 
-export type FeaturesOrderedDeviceMock = 'safari' | 'iphone-15-pro';
+export type FeaturesOrderedDeviceMock = 'safari' | 'iphone-15-pro' | 'terminal';
 
 export type FeaturesOrderedStep = {
 	id: number;
@@ -66,7 +67,7 @@ export type FeaturesOrderedStep = {
 	mediaAlt?: string;
 	animatedContent?: FeaturesAnimatedContentId;
 	deviceMock?: FeaturesOrderedDeviceMock;
-	deviceMockContent?: SafariMockContentId | IphoneMockContentId;
+	deviceMockContent?: SafariMockContentId | IphoneMockContentId | TerminalMockContentId;
 	mockUrl?: string;
 	iconName: IconName;
 };
@@ -136,7 +137,7 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 			subtitle: 'Install the skill',
 			title: 'Add openquok-core in seconds, authenticate once, start scheduling',
 			description:
-				'Install the skill from the agent package with npx skills add, then authenticate the global @openquok/auto-cli with a programmatic token or OAuth device flow. OpenClaw reads SKILL.md and learns every openquok command your agent needs.',
+				'Install the skill from the agent package , then authenticate the global @openquok/auto-cli with a programmatic token or OAuth device flow. OpenClaw reads SKILL.md and learns every openquok command your agent needs.',
 			imageSrc: '/landing/2-calendar-filters.mp4',
 			imageAlt: 'OpenQuok calendar with scheduled posts',
 			mediaOnRight: true
@@ -193,9 +194,10 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 		{
 			id: 4,
 			title: '4. Install OpenQuok skill',
-			content: 'Add openquok-core with npx skills add and authenticate the CLI once.',
-			mediaSrc: '/landing/2-calendar-filters.mp4',
-			mediaAlt: 'OpenQuok skill install',
+			content: 'Add openquok-core skill and authenticate the CLI once.',
+			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
+			deviceMock: 'terminal',
+			deviceMockContent: 'openquok-skill-install',
 			iconName: icons.OpenClaw.name
 		},
 		{
