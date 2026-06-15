@@ -2,6 +2,7 @@ import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { FeaturesOrderedStep } from '$lib/ui/templates/FeaturesOrdered.svelte';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
 export type PublicAgentFeatureSection = {
@@ -35,6 +36,9 @@ export type PublicAgentLandingPage = {
 	faqTitle: string;
 	faqDescription: string;
 	faqItems: PublicFaqItem[];
+	setupStepsSubtitle: string;
+	setupStepsTitle: string;
+	setupSteps: FeaturesOrderedStep[];
 	/** Setup guide under `/docs/`. */
 	docsPath: string;
 	/** When false, hub shows a coming-soon badge and detail route 404s. */
@@ -88,6 +92,50 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 			imageSrc: '/landing/5-analytics.mp4',
 			imageAlt: 'OpenQuok analytics dashboard',
 			mediaOnRight: true
+		}
+	],
+	setupStepsSubtitle: 'How it works',
+	setupStepsTitle: 'Five steps,to OpenClaw + OpenQuok',
+	setupSteps: [
+		{
+			id: 1,
+			title: '1. Install OpenClaw',
+			content: 'Install OpenClaw locally, in a container, or on a host with a persistent workspace.',
+			mediaSrc: '/landing/4-file-manager.mp4',
+			mediaAlt: 'OpenClaw workspace setup',
+			iconName: icons.Terminal.name
+		},
+		{
+			id: 2,
+			title: '2. Select model',
+			content: 'Choose the LLM provider and model OpenClaw should use.',
+			mediaSrc: '/landing/2-calendar-filters.mp4',
+			mediaAlt: 'Model selection in OpenClaw',
+			iconName: icons.Bot.name
+		},
+		{
+			id: 3,
+			title: '3. Configure chat channel',
+			content: 'Connect WhatsApp, Telegram, Slack, or another chat app you already use.',
+			mediaSrc: '/landing/3-kanban-filters.mp4',
+			mediaAlt: 'Chat channel configuration',
+			iconName: icons.MessageCircle.name
+		},
+		{
+			id: 4,
+			title: '4. Install OpenQuok skill',
+			content: 'Add openquok-core with npx skills add and authenticate the CLI once.',
+			mediaSrc: '/landing/2-calendar-filters.mp4',
+			mediaAlt: 'OpenQuok skill install',
+			iconName: icons.OpenClaw.name
+		},
+		{
+			id: 5,
+			title: '5. Add & customize other skills & integrations',
+			content: 'Add more skills and integrations, then approve drafts on OpenQuok before publish.',
+			mediaSrc: '/landing/5-analytics.mp4',
+			mediaAlt: 'Skills and integrations overview',
+			iconName: icons.Sparkles.name
 		}
 	],
 	audienceSubtitle: 'Built for OpenClaw hosts',
@@ -177,6 +225,9 @@ const HERMES_COMING_SOON: PublicAgentLandingPage = {
 	faqTitle: '',
 	faqDescription: '',
 	faqItems: [],
+	setupStepsSubtitle: '',
+	setupStepsTitle: '',
+	setupSteps: [],
 	docsPath: '/docs/getting-started-for-cli',
 	available: false
 };

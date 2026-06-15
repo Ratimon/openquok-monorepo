@@ -3,6 +3,7 @@
 
 	import { publicAgentByPagePresenter } from '$lib/area-public';
 
+	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
@@ -36,7 +37,14 @@
 		docsCtaHref={agentVm.docsPath}
 	/>
 
-	<!-- to do : add -->
+	{#if agentVm.setupSteps.length > 0}
+		<FeaturesOrdered
+			steps={agentVm.setupSteps}
+			heroTheme={landingHeroTheme}
+			sectionSubtitle={agentVm.setupStepsSubtitle}
+			sectionTitle={agentVm.setupStepsTitle}
+		/>
+	{/if}
 
 	<WhoIsFor
 		heroTheme={landingHeroTheme}
