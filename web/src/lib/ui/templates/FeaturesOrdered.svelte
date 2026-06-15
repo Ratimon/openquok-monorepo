@@ -1,11 +1,16 @@
 <script lang="ts">
 	import type { FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
+    import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
+    import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
+
 
 	import { onMount } from 'svelte';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 	import FeaturesAnimated from '$lib/ui/templates/FeaturesAnimated.svelte';
+	import Iphone15ProMock from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMock.svelte';
+	import Iphone15ProMockContent from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMockContent.svelte';
 	import SafariMock from '$lib/ui/templates/device-mocks/safari/SafariMock.svelte';
 	import SafariMockContent from '$lib/ui/templates/device-mocks/safari/SafariMockContent.svelte';
 
@@ -62,6 +67,14 @@
 
 	const showSectionHeader = $derived(
 		Boolean(sectionSubtitle?.trim() || sectionTitle?.trim()) && heroTheme
+	);
+
+	const isIphoneMock = $derived(activeStep?.deviceMock === 'iphone-15-pro');
+
+	const mediaPanelClass = $derived(
+		isIphoneMock
+			? 'h-[400px] min-h-[320px] w-auto lg:h-[480px]'
+			: 'h-[350px] min-h-[200px] w-auto'
 	);
 
 	function scrollToIndex(index: number) {
@@ -237,7 +250,7 @@
 					</div>
 				</div>
 
-				<div class="h-[350px] min-h-[200px] w-auto {ltr ? 'lg:order-1' : ''}">
+				<div class="{mediaPanelClass} {ltr ? 'lg:order-1' : ''}">
 					{#key currentIndex}
 						{#if activeStep?.deviceMock === 'safari'}
 							<div
@@ -246,8 +259,22 @@
 								aria-label={activeStep.mediaAlt ?? activeStep.title}
 							>
 								<SafariMock class="size-full" url={activeStep.mockUrl ?? 'docs.openclaw.ai'}>
-									<SafariMockContent content={activeStep.deviceMockContent} />
+									<SafariMockContent
+										content={activeStep.deviceMockContent as SafariMockContentId | undefined}
+									/>
 								</SafariMock>
+							</div>
+						{:else if activeStep?.deviceMock === 'iphone-15-pro'}
+							<div
+								class="flex size-full items-center justify-center overflow-hidden"
+								role="img"
+								aria-label={activeStep.mediaAlt ?? activeStep.title}
+							>
+								<Iphone15ProMock class="h-full w-auto max-w-full">
+									<Iphone15ProMockContent
+										content={activeStep.deviceMockContent as IphoneMockContentId | undefined}
+									/>
+								</Iphone15ProMock>
 							</div>
 						{:else if activeStep?.animatedContent === 'llm-models'}
 							<FeaturesAnimated ariaLabel={activeStep.mediaAlt ?? activeStep.title} />

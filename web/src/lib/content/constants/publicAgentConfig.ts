@@ -2,6 +2,7 @@ import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
 import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
@@ -55,7 +56,7 @@ export const DEFAULT_LLM_MODELS: FeaturesAnimatedModel[] = [
 	}
 ];
 
-export type FeaturesOrderedDeviceMock = 'safari';
+export type FeaturesOrderedDeviceMock = 'safari' | 'iphone-15-pro';
 
 export type FeaturesOrderedStep = {
 	id: number;
@@ -65,7 +66,7 @@ export type FeaturesOrderedStep = {
 	mediaAlt?: string;
 	animatedContent?: FeaturesAnimatedContentId;
 	deviceMock?: FeaturesOrderedDeviceMock;
-	deviceMockContent?: SafariMockContentId;
+	deviceMockContent?: SafariMockContentId | IphoneMockContentId;
 	mockUrl?: string;
 	iconName: IconName;
 };
@@ -184,8 +185,9 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 			id: 3,
 			title: '3. Configure chat channel',
 			content: 'Connect WhatsApp, Telegram, Slack, or another chat app you already use.',
-			mediaSrc: '/landing/3-kanban-filters.mp4',
-			mediaAlt: 'Chat channel configuration',
+			mediaAlt: 'Telegram chat channel configuration for OpenClaw',
+			deviceMock: 'iphone-15-pro',
+			deviceMockContent: 'telegram-connect',
 			iconName: icons.MessageCircle.name
 		},
 		{
