@@ -8,12 +8,17 @@ npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --sk
 npm install -g @openquok/auto-cli@latest
 openquok --version
 
-# Authenticate once (programmatic token for headless hosts)
-export OPENQUOK_API_KEY=opo_your_programmatic_token
+# Authenticate — pick one option:
+
+# Option 1: OAuth2 device flow (opens browser — pick workspace)
+openquok auth:login
+
+# Option 2: Programmatic token - Generate from Dashboard (headless hosts, CI)
+export OPENQUOK_API_KEY="opo_..."
 openquok auth:status`;
 </script>
 
 <TerminalCommandMock
 	code={installCommands}
-	ariaLabel="Install openquok-core skill and authenticate the OpenQuok CLI"
+	ariaLabel="Install openquok-core skill and authenticate with OAuth2 or a programmatic token"
 />

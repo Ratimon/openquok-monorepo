@@ -18,6 +18,7 @@
 	let { section, index, ctaText, ctaHref }: Props = $props();
 
 	const bgColorClass = $derived(index % 2 === 0 ? 'bg-base-100' : 'bg-base-200');
+	const cliCommandsTitle = $derived(section.cliCommandsTitle ?? 'CLI command options');
 	const sharedHeroProps = $derived({
 		heroTheme: landingHeroTheme,
 		landingSubtitle: section.subtitle,
@@ -40,10 +41,13 @@
 
 {#snippet cliCommandsBlock()}
 	{#if section.cliCommands}
-		<TerminalCommandMock
-			code={section.cliCommands}
-			ariaLabel="OpenQuok CLI commands for agent draft review"
-		/>
+		<div class="space-y-3">
+			<p class="text-sm font-semibold text-base-content/80">{cliCommandsTitle}</p>
+			<TerminalCommandMock
+				code={section.cliCommands}
+				ariaLabel="OpenQuok CLI commands for agent draft review"
+			/>
+		</div>
 	{/if}
 {/snippet}
 

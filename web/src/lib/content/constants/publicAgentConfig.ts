@@ -115,6 +115,8 @@ export type PublicAgentFeatureSection = {
 	bentoId?: PublicChannelFeatureBentoId;
 	/** Multi-line OpenQuok CLI example rendered below the description. */
 	cliCommands?: string;
+	/** Heading above `cliCommands` (defaults to “CLI command options”). */
+	cliCommandsTitle?: string;
 	deviceMock?: FeaturesOrderedDeviceMock;
 	deviceMockContent?: SafariMockContentId | IphoneMockContentId | TerminalMockContentId;
 	/** When true, media renders on the right; otherwise on the left. */
@@ -178,7 +180,11 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 			deviceMock: 'iphone-15-pro',
 			deviceMockContent: 'openquok-login',
 			imageAlt: 'OpenClaw chat guiding OpenQuok OAuth device login and workspace authorization',
-			mediaOnRight: true
+			mediaOnRight: true,
+			cliCommandsTitle: 'CLI authentication options',
+			cliCommands: `# OAuth2 device flow (interactive — opens browser)
+openquok auth:login
+openquok auth:status`
 		},
 		{
 			subtitle: 'Kanban + smart filters',
@@ -187,6 +193,7 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 				'Chat, move agent-generated posts from draft to review to scheduled on a kanban board—with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
 			bentoId: 'facebook-bulk-scheduling',
 			mediaOnRight: false,
+			cliCommandsTitle: 'CLI command options',
 			cliCommands: `# Draft + human checklist
 openquok posts:create -c "…" -s "…" -t draft -i "<uuid>" --note "Check CTA before schedule"
 
