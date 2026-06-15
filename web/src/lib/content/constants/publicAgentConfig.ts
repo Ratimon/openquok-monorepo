@@ -1,6 +1,7 @@
 import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
+import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
 import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
@@ -110,6 +111,10 @@ export type PublicAgentFeatureSection = {
 	/** Optional demo asset under `/landing/` or `/static/`. */
 	imageSrc?: string;
 	imageAlt?: string;
+	/** Interactive bento showcase (takes precedence over `imageSrc`). */
+	bentoId?: PublicChannelFeatureBentoId;
+	/** Multi-line OpenQuok CLI example rendered below the description. */
+	cliCommands?: string;
 	deviceMock?: FeaturesOrderedDeviceMock;
 	deviceMockContent?: SafariMockContentId | IphoneMockContentId | TerminalMockContentId;
 	/** When true, media renders on the right; otherwise on the left. */
@@ -176,13 +181,18 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Post from any chat app',
-			title: 'Message OpenClaw from WhatsApp, Telegram, or Slack — it handles the rest',
+			subtitle: 'Kanban + smart filters',
+			title: 'Review every AI draft, sign off confidently, before it goes live',
 			description:
-				'Ask OpenClaw to draft and schedule a post while you are on the go. The agent discovers your connected channels, uploads media from the host, and queues content on the OpenQuok calendar — no separate scheduler app required.',
-			imageSrc: '/landing/3-kanban-filters.mp4',
-			imageAlt: 'Kanban view of scheduled social posts',
-			mediaOnRight: false
+				'Chat, move agent-generated posts from draft to review to scheduled on a kanban board—with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
+			bentoId: 'facebook-bulk-scheduling',
+			mediaOnRight: false,
+			cliCommands: `# Draft + human checklist
+openquok posts:create -c "…" -s "…" -t draft -i "<uuid>" --note "Check CTA before schedule"
+
+openquok posts:review-todo <post-id> --note "…"
+openquok posts:status <post-id> --status draft
+openquok posts:status <post-id> -s schedule`
 		},
 		{
 			subtitle: 'Proactive automation',
