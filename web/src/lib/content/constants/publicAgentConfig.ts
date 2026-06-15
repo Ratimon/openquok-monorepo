@@ -2,8 +2,73 @@ import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
-import type { FeaturesOrderedStep } from '$lib/ui/templates/FeaturesOrdered.svelte';
+import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
+
+export type FeaturesAnimatedContentId = 'llm-models';
+
+export type FeaturesAnimatedModel = {
+	name: string;
+	provider: string;
+	description: string;
+	iconName: IconName;
+	iconClass?: string;
+	containerClass?: string;
+};
+
+export const DEFAULT_LLM_MODELS: FeaturesAnimatedModel[] = [
+	{
+		name: 'GPT-4o',
+		provider: 'OpenAI',
+		description:
+			'Fast, capable default for agents that need strong reasoning, tool use, and reliable structured output.',
+		iconName: icons.ChatGPT.name,
+		containerClass: 'bg-neutral-900',
+		iconClass: 'size-14 text-white'
+	},
+	{
+		name: 'Claude Sonnet',
+		provider: 'Anthropic',
+		description:
+			'Balanced speed and quality for long conversations, careful drafting, and nuanced instruction following.',
+		iconName: icons.Claude.name,
+		containerClass: 'bg-[#FCF2EE]',
+		iconClass: 'size-14'
+	},
+	{
+		name: 'Gemini Pro',
+		provider: 'Google',
+		description:
+			'Multimodal models with strong performance on mixed text, vision, and high-volume agent workloads.',
+		iconName: icons.Gemini.name,
+		containerClass: 'bg-white',
+		iconClass: 'size-14'
+	},
+	{
+		name: 'Local models',
+		provider: 'Ollama & self-hosted',
+		description:
+			'Run Llama, Mistral, or other open weights on your own hardware with full data control.',
+		iconName: icons.Bot.name,
+		containerClass: 'bg-primary/10',
+		iconClass: 'size-12 text-primary'
+	}
+];
+
+export type FeaturesOrderedDeviceMock = 'safari';
+
+export type FeaturesOrderedStep = {
+	id: number;
+	title: string;
+	content: string;
+	mediaSrc?: string;
+	mediaAlt?: string;
+	animatedContent?: FeaturesAnimatedContentId;
+	deviceMock?: FeaturesOrderedDeviceMock;
+	deviceMockContent?: SafariMockContentId;
+	mockUrl?: string;
+	iconName: IconName;
+};
 
 export type PublicAgentFeatureSection = {
 	subtitle: string;
@@ -100,7 +165,7 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 		{
 			id: 1,
 			title: '1. Install OpenClaw',
-			content: 'locally, in a container, or on a host with a persistent workspace.',
+			content: 'Go to official site and install locally, in a container, or on a host with a persistent workspace.',
 			mediaAlt: 'OpenClaw documentation overview at docs.openclaw.ai',
 			deviceMock: 'safari',
 			deviceMockContent: 'openclaw-docs-overview',
@@ -111,7 +176,7 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 			id: 2,
 			title: '2. Select model',
 			content: 'Choose the LLM provider and model OpenClaw should use.',
-			mediaSrc: '/landing/2-calendar-filters.mp4',
+			animatedContent: 'llm-models',
 			mediaAlt: 'Model selection in OpenClaw',
 			iconName: icons.Bot.name
 		},

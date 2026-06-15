@@ -1,27 +1,15 @@
 <script lang="ts">
-	import type { IconName } from '$data/icons';
-	import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
+	import type { FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
 
 	import { onMount } from 'svelte';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
+	import FeaturesAnimated from '$lib/ui/templates/FeaturesAnimated.svelte';
 	import SafariMock from '$lib/ui/templates/device-mocks/safari/SafariMock.svelte';
 	import SafariMockContent from '$lib/ui/templates/device-mocks/safari/SafariMockContent.svelte';
 
-	export type FeaturesOrderedDeviceMock = 'safari';
-
-	export type FeaturesOrderedStep = {
-		id: number;
-		title: string;
-		content: string;
-		mediaSrc?: string;
-		mediaAlt?: string;
-		deviceMock?: FeaturesOrderedDeviceMock;
-		deviceMockContent?: SafariMockContentId;
-		mockUrl?: string;
-		iconName: IconName;
-	};
+	export type { FeaturesOrderedDeviceMock, FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -261,6 +249,8 @@
 									<SafariMockContent content={activeStep.deviceMockContent} />
 								</SafariMock>
 							</div>
+						{:else if activeStep?.animatedContent === 'llm-models'}
+							<FeaturesAnimated ariaLabel={activeStep.mediaAlt ?? activeStep.title} />
 						{:else if activeStep?.mediaSrc}
 							<div
 								class="aspect-auto size-full overflow-hidden rounded-xl border border-base-content/10 p-1 shadow-lg"
