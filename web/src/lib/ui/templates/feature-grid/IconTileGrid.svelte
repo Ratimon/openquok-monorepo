@@ -5,12 +5,12 @@
 	} from '$data/landing-social-platforms';
 
 	import ChannelHoverCard from '$lib/ui/components/channels/ChannelHoverCard.svelte';
-
-	type LandingHeroTitleSegment = { text: string; highlight: boolean };
+	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 
 	type LandingHeroTheme = {
+		subtitleClass?: string;
 		titleHighlightPillClass: string;
-		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
+		parseLandingHeroTitlePartSegments: (text: string) => { text: string; highlight: boolean }[];
 	};
 
 	type Props = {
@@ -22,12 +22,10 @@
 	let {
 		heroTheme,
 		landingTitle = '',
-		landingDescription = '',
+		landingDescription = ''
 	}: Props = $props();
 
 	const headingId = 'landing-features-grid-heading';
-
-	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(landingTitle));
 </script>
 
 <section
@@ -35,25 +33,12 @@
 	aria-labelledby={headingId}
 >
 	<div class="container mx-auto px-4">
-		<div class="mx-auto max-w-3xl space-y-4 text-center">
-			<h2
-				id={headingId}
-				class="text-2xl font-black tracking-tight text-balance text-base-content sm:text-3xl lg:text-4xl"
-			>
-				{#each titleSegments as seg (seg.text + String(seg.highlight))}
-					{#if seg.highlight}
-						<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
-					{:else}
-						{seg.text}
-					{/if}
-				{/each}
-			</h2>
-			{#if landingDescription}
-				<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-					{landingDescription}
-				</p>
-			{/if}
-		</div>
+		<FeaturesSectionHeader
+			{heroTheme}
+			{headingId}
+			title={landingTitle}
+			description={landingDescription}
+		/>
 
 		<div
 			class="relative mx-auto mt-12 max-w-6xl space-y-4 sm:mt-14 sm:space-y-5"

@@ -1,12 +1,18 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
+	import {
+		OPENCLAW_CORE_MESSAGING_CHANNELS,
+		OPENCLAW_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/openclaw-messaging-channels';
+
 	import { publicAgentByPagePresenter } from '$lib/area-public';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
+	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicAgentHero from '$lib/ui/templates/landing-page/PublicAgentHero.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -60,6 +66,19 @@
 			ctaHref={secondaryCtaHref}
 		/>
 	{/each}
+
+	{#if agentVm.supportedChannelsSection}
+		<SimpleCardGrid
+			heroTheme={landingHeroTheme}
+			headingId="agent-supported-channels-heading"
+			title={agentVm.supportedChannelsSection.title}
+			description={agentVm.supportedChannelsSection.description}
+			subtitle={agentVm.supportedChannelsSection.subtitle}
+			extensionLabel={agentVm.supportedChannelsSection.extensionLabel}
+			items={OPENCLAW_CORE_MESSAGING_CHANNELS}
+			extensionItems={OPENCLAW_EXTENSION_MESSAGING_CHANNELS}
+		/>
+	{/if}
 
 	<div class="container mx-auto px-4">
 		<PublicFaq

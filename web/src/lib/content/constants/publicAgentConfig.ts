@@ -103,6 +103,13 @@ export type FeaturesOrderedStep = {
 	iconName: IconName;
 };
 
+export type PublicAgentSupportedChannelsSection = {
+	subtitle?: string;
+	title: string;
+	description: string;
+	extensionLabel: string;
+};
+
 export type PublicAgentFeatureSection = {
 	subtitle: string;
 	/** Comma-separated lines; each part gets landing-page gradient styling. */
@@ -145,6 +152,7 @@ export type PublicAgentLandingPage = {
 	setupStepsSubtitle: string;
 	setupStepsTitle: string;
 	setupSteps: FeaturesOrderedStep[];
+	supportedChannelsSection?: PublicAgentSupportedChannelsSection;
 	/** Setup guide under `/docs/`. */
 	docsPath: string;
 	/** When false, hub shows a coming-soon badge and detail route 404s. */
@@ -295,6 +303,12 @@ openquok analytics:post <post-id> -d 7`
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
+	supportedChannelsSection: {
+		subtitle: 'Chat adapters',
+		title: 'Supported channels',
+		description: 'OpenClaw supports multiple messaging platforms out of the box:',
+		extensionLabel: 'Extension Channels'
+	},
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'OpenClaw + OpenQuok, answered',
 	faqDescription:

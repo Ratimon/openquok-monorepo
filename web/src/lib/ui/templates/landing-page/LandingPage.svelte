@@ -14,7 +14,7 @@
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import BentoLandingComposeSettings from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingComposeSettings.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import FeaturesGrid from '$lib/ui/templates/FeaturesGrid.svelte';
+	import IconTileGrid from '$lib/ui/templates/feature-grid/IconTileGrid.svelte';
 	import PublicPricingTabs from '$lib/ui/components/pricing/PublicPricingTabs.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
@@ -329,7 +329,8 @@
 	ctaHref={secondaryCtaHref}
 />
 
-<FeaturesGrid
+
+<IconTileGrid
 	heroTheme={landingHeroTheme}
 	landingTitle={featuresGridTitle}
 	landingDescription={featuresGridDescription}
