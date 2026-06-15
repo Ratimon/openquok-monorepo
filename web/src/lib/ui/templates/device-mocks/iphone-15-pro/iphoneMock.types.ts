@@ -1,1 +1,1 @@
-export type IphoneMockContentId = 'telegram-connect' | 'openquok-login';
+export type IphoneMockContentId = 'telegram-connect' | 'openquok-login' | 'telegram-analytics';

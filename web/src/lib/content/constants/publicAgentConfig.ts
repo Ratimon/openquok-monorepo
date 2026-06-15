@@ -202,13 +202,20 @@ openquok posts:status <post-id> --status draft
 openquok posts:status <post-id> -s schedule`
 		},
 		{
-			subtitle: 'Proactive automation',
-			title: 'Set heartbeat cron jobs, batch content campaigns, approve before publish',
+			subtitle: 'Analytics',
+			title: 'Ask what worked, see winners, and adapt from chat',
 			description:
-				'Use OpenClaw heartbeat tasks to check for new drafts, upload assets, and schedule posts on a recurring cadence. Every post lands in OpenQuok for review so a human stays in the loop before anything goes live.',
-			imageSrc: '/landing/5-analytics.mp4',
-			imageAlt: 'OpenQuok analytics dashboard',
-			mediaOnRight: true
+				'Message OpenClaw on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance over 7, 30, or 90 days and schedule more of what already resonates — without opening the dashboard.',
+			deviceMock: 'iphone-15-pro',
+			deviceMockContent: 'telegram-analytics',
+			imageAlt: 'OpenClaw Telegram chat showing OpenQuok platform and post analytics',
+			mediaOnRight: true,
+			cliCommandsTitle: 'CLI analytics options',
+			cliCommands: `# Platform metrics (followers, impressions, engagement)
+openquok analytics:platform <integration-uuid> -d 30
+
+# Per-post insights (likes, comments, shares)
+openquok analytics:post <post-id> -d 7`
 		}
 	],
 	setupStepsSubtitle: 'How it works',

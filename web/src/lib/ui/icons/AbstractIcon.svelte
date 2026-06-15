@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { IconName } from '$data/icons';
+	import type { IconEntry, IconName } from '$data/icons';
 	import { icons } from '$data/icons';
 
 	type Props = {
@@ -9,6 +9,7 @@
 		height: string;
 		focusable?: string;
 		stroke?: string;
+		'aria-hidden'?: boolean | 'true' | 'false';
 	};
 
 	let {
@@ -17,10 +18,11 @@
 		width = '24',
 		height = '24',
 		focusable = 'false',
-		stroke = 'currentColor'
+		stroke = 'currentColor',
+		'aria-hidden': ariaHidden
 	}: Props = $props();
 
-	let meta = $derived(icons[name as IconName]);
+	let meta = $derived(icons[name as IconName] as IconEntry | undefined);
 	let viewBox = $derived(
 		meta ? `0 0 ${meta.box} ${meta.boxHeight ?? meta.box}` : '0 0 24 24'
 	);
@@ -40,6 +42,7 @@
 		{focusable}
 		{width}
 		{height}
+		aria-hidden={ariaHidden}
 		viewBox={viewBox}
 	>
 		{@html meta.svg}
