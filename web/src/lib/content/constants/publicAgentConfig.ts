@@ -298,37 +298,47 @@ openquok analytics:post <post-id> -d 7`
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'OpenClaw + OpenQuok, answered',
 	faqDescription:
-		'Skill install, CLI auth, headless hosts, and how OpenClaw schedules social posts through OpenQuok.',
+		'What OpenClaw is, how to install openquok-core, supported platforms, human approval, and how agents draft and schedule posts from chat.',
 	faqItems: [
+		{
+			title: 'What is OpenClaw?',
+			description:
+				'OpenClaw is the open-source personal AI agent. It runs locally or on your own host, connects to chat apps you already use, and takes real actions on your behalf — including drafting and scheduling social media through OpenQuok.'
+		},
 		{
 			title: 'How do I install the OpenQuok skill in OpenClaw?',
 			description:
-				'From your OpenClaw workspace directory, run npx skills add on the agent package root with --skill openquok-core. OpenClaw discovers SKILL.md and loads commands on demand. See the OpenClaw agent guide in Dev Docs for the exact one-line install command.'
+				'From your OpenClaw workspace directory, run npx skills add on the agent package root with --skill openquok-core (add -y on headless hosts). Install the global CLI with npm install -g @openquok/auto-cli, set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json, and OpenClaw discovers the skill automatically. See the OpenClaw agent guide in Dev Docs for the exact one-line install command.'
 		},
 		{
-			title: 'What CLI commands can OpenClaw run?',
+			title: 'What can OpenClaw do with OpenQuok?',
 			description:
-				'The skill documents openquok integrations:list, integrations:settings, integrations:trigger, posts:create, posts:list, posts:delete, analytics:platform, analytics:post, and upload. Every command returns structured JSON for agents to parse.'
+				'OpenClaw can draft and schedule posts, upload images and video, apply per-platform settings, schedule threads and follow-up comments, and pull platform and post analytics — across every channel connected in your workspace. The openquok-core skill documents integrations:list, posts:create, posts:status, analytics:platform, upload, and more; every command returns structured JSON for the agent to parse.'
 		},
 		{
-			title: 'How does OpenClaw authenticate with OpenQuok?',
+			title: 'Which social media platforms are supported?',
 			description:
-				'Set OPENQUOK_API_KEY from Account → Settings → Developers → Access, or run openquok auth:login --json for OAuth device flow. On headless hosts, prefer the programmatic token; use --json so the user opens verification_uri_complete on another device.'
-		},
-		{
-			title: 'Can OpenClaw schedule posts with images and video?',
-			description:
-				'Yes. The agent can call openquok upload or upload-from-url, then pass media IDs into posts:create. Ask the user for a file on the host or a direct https image URL before scheduling media posts.'
+				'Facebook, Instagram (Business and Standalone), Threads, and YouTube are available today. LinkedIn, TikTok, and X are on the roadmap. Connect channels in the OpenQuok web app; OpenClaw uses integration UUIDs from openquok integrations:list to target the right accounts.'
 		},
 		{
 			title: 'Does OpenClaw publish immediately or wait for approval?',
 			description:
-				'Posts created through the CLI land in your OpenQuok workspace. You review drafts on the calendar or kanban and approve what should go live — OpenClaw handles volume, you handle quality.'
+				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items — nothing goes live on autopilot. You review on the calendar or kanban, move posts through draft and review, and approve what should publish. OpenClaw handles volume; you handle quality.'
+		},
+		{
+			title: 'Does it work with other AI agents?',
+			description:
+				'Yes. OpenQuok is CLI-first — any agent that can run shell commands can use openquok, including Claude Code, ChatGPT, and custom automation. This page focuses on OpenClaw plus the openquok-core skill; pair it with other OpenClaw skills (Bloom, RevenueCat, or your own) for richer workflows.'
 		},
 		{
 			title: 'Can I run OpenClaw on Railway or another host?',
 			description:
-				'Yes. Mount a persistent workspace volume, set OPENCLAW_WORKSPACE_DIR, install the skill and global CLI in the container shell, then authenticate. Start a new chat session after upgrades so the agent reloads instructions.'
+				'Yes. Mount a persistent workspace volume, set OPENCLAW_WORKSPACE_DIR, install openquok-core and the global CLI in the container shell, then authenticate. On headless hosts prefer OPENQUOK_API_KEY or openquok auth:login --json so the user opens verification_uri_complete on another device. Start a new chat session after upgrades so the agent reloads instructions.'
+		},
+		{
+			title: 'Is it free to start?',
+			description:
+				'Yes. Create an OpenQuok account and start a 7-day free trial, connect your channels, install openquok-core on OpenClaw, and begin scheduling from chat.'
 		}
 	],
 	docsPath: '/docs/agent-guides/openclaw',
