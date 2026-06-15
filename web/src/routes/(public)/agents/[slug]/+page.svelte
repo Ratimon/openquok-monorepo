@@ -7,9 +7,9 @@
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import PublicAgentHero from '$lib/ui/components/agents/PublicAgentHero.svelte';
-	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import PublicAgentHero from '$lib/ui/templates/landing-page/PublicAgentHero.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
 
@@ -35,6 +35,8 @@
 		docsCtaText="View Docs"
 		docsCtaHref={agentVm.docsPath}
 	/>
+
+	<!-- to do : add -->
 
 	<WhoIsFor
 		heroTheme={landingHeroTheme}

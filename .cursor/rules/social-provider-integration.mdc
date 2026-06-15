@@ -18,8 +18,8 @@ globs:
   - web/src/lib/area-public/constants/getRootPathPublicChannels.ts
   - web/src/routes/(public)/channels/**
   - web/src/lib/ui/templates/PublicChannelLandingPage.svelte
-  - web/src/lib/ui/components/channels/PublicChannelHero.svelte
-  - web/src/lib/ui/components/channels/PublicChannelsHubGrid.svelte
+  - web/src/lib/ui/templates/landing-page/PublicChannelHero.svelte
+  - web/src/lib/ui/templates/landing-page/PublicChannelsHubGrid.svelte
   - agent/skills/openquok-core/SKILL.md
   - agent/skills/openquok-core/resources/**
 alwaysApply: false
@@ -65,8 +65,8 @@ Routes and UI are **generic** — adding a channel is a **catalog entry only** (
 | Hub route | `/channels` — `web/src/routes/(public)/channels/+page.server.ts` lists `listPublicChannelsForHub()` |
 | Detail route | `/channels/{slug}` — `web/src/routes/(public)/channels/[slug]/+page.server.ts` resolves `getAvailablePublicChannelBySlug(slug)` (404 when missing or `available: false`) |
 | Page template | `web/src/lib/ui/templates/PublicChannelLandingPage.svelte` |
-| Hub grid | `web/src/lib/ui/components/channels/PublicChannelsHubGrid.svelte` |
-| Hero | `web/src/lib/ui/components/channels/PublicChannelHero.svelte` |
+| Hub grid | `web/src/lib/ui/templates/landing-page/PublicChannelsHubGrid.svelte` |
+| Hero | `web/src/lib/ui/templates/landing-page/PublicChannelHero.svelte` |
 
 Navbar/footer link to `/channels` is already in `web/src/lib/config/constants/config.ts`; **do not add per-channel nav entries**.
 

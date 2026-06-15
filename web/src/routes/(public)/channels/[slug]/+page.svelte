@@ -8,9 +8,9 @@
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
-	import PublicChannelHero from '$lib/ui/components/channels/PublicChannelHero.svelte';
-	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import PublicChannelHero from '$lib/ui/templates/landing-page/PublicChannelHero.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
 

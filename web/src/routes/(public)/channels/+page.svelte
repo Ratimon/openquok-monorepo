@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
-	import PublicChannelsHubGrid from '$lib/ui/components/channels/PublicChannelsHubGrid.svelte';
+	import PublicChannelsHubGrid from '$lib/ui/templates/landing-page/PublicChannelsHubGrid.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
