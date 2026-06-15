@@ -100,9 +100,11 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 		{
 			id: 1,
 			title: '1. Install OpenClaw',
-			content: 'Install OpenClaw locally, in a container, or on a host with a persistent workspace.',
-			mediaSrc: '/landing/4-file-manager.mp4',
-			mediaAlt: 'OpenClaw workspace setup',
+			content: 'locally, in a container, or on a host with a persistent workspace.',
+			mediaAlt: 'OpenClaw documentation overview at docs.openclaw.ai',
+			deviceMock: 'safari',
+			deviceMockContent: 'openclaw-docs-overview',
+			mockUrl: 'docs.openclaw.ai',
 			iconName: icons.Terminal.name
 		},
 		{

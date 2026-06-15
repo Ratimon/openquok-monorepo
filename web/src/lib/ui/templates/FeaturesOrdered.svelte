@@ -1,10 +1,15 @@
 <script lang="ts">
 	import type { IconName } from '$data/icons';
+	import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
 
 	import { onMount } from 'svelte';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
+	import SafariMock from '$lib/ui/templates/device-mocks/safari/SafariMock.svelte';
+	import SafariMockContent from '$lib/ui/templates/device-mocks/safari/SafariMockContent.svelte';
+
+	export type FeaturesOrderedDeviceMock = 'safari';
 
 	export type FeaturesOrderedStep = {
 		id: number;
@@ -12,6 +17,9 @@
 		content: string;
 		mediaSrc?: string;
 		mediaAlt?: string;
+		deviceMock?: FeaturesOrderedDeviceMock;
+		deviceMockContent?: SafariMockContentId;
+		mockUrl?: string;
 		iconName: IconName;
 	};
 
@@ -243,7 +251,17 @@
 
 				<div class="h-[350px] min-h-[200px] w-auto {ltr ? 'lg:order-1' : ''}">
 					{#key currentIndex}
-						{#if activeStep?.mediaSrc}
+						{#if activeStep?.deviceMock === 'safari'}
+							<div
+								class="aspect-auto size-full overflow-hidden"
+								role="img"
+								aria-label={activeStep.mediaAlt ?? activeStep.title}
+							>
+								<SafariMock class="size-full" url={activeStep.mockUrl ?? 'docs.openclaw.ai'}>
+									<SafariMockContent content={activeStep.deviceMockContent} />
+								</SafariMock>
+							</div>
+						{:else if activeStep?.mediaSrc}
 							<div
 								class="aspect-auto size-full overflow-hidden rounded-xl border border-base-content/10 p-1 shadow-lg"
 							>
