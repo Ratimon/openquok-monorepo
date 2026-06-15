@@ -228,7 +228,7 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
 			deviceMock: 'terminal',
 			deviceMockContent: 'openquok-skill-install',
-			iconName: icons.OpenClaw.name
+			iconName: icons.OpenQuok.name
 		},
 		{
 			id: 5,
