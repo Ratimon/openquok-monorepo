@@ -4,11 +4,10 @@
 	import { publicAgentByPagePresenter } from '$lib/area-public';
 
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
-	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
-	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicAgentHero from '$lib/ui/templates/landing-page/PublicAgentHero.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -54,33 +53,12 @@
 	/>
 
 	{#each agentVm.featureSections as section, index (index)}
-		{#if section.mediaOnRight !== false}
-			<HeroWithRightMedia
-				heroTheme={landingHeroTheme}
-				landingSubtitle={section.subtitle}
-				landingTitle={section.title}
-				landingDescription={section.description}
-				imageSrc={section.imageSrc}
-				imageAlt={section.imageAlt}
-				showCta={false}
-				ctaText={secondaryCtaText}
-				ctaHref={secondaryCtaHref}
-				bgColorClass={index % 2 === 0 ? 'bg-base-100' : 'bg-base-200'}
-			/>
-		{:else}
-			<HeroWithLeftMedia
-				heroTheme={landingHeroTheme}
-				landingSubtitle={section.subtitle}
-				landingTitle={section.title}
-				landingDescription={section.description}
-				imageSrc={section.imageSrc}
-				imageAlt={section.imageAlt}
-				showCta={false}
-				ctaText={secondaryCtaText}
-				ctaHref={secondaryCtaHref}
-				bgColorClass={index % 2 === 0 ? 'bg-base-100' : 'bg-base-200'}
-			/>
-		{/if}
+		<PublicAgentFeatureSection
+			{section}
+			{index}
+			ctaText={secondaryCtaText}
+			ctaHref={secondaryCtaHref}
+		/>
 	{/each}
 
 	<div class="container mx-auto px-4">

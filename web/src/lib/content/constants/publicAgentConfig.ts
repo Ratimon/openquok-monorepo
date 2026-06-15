@@ -110,6 +110,8 @@ export type PublicAgentFeatureSection = {
 	/** Optional demo asset under `/landing/` or `/static/`. */
 	imageSrc?: string;
 	imageAlt?: string;
+	deviceMock?: FeaturesOrderedDeviceMock;
+	deviceMockContent?: SafariMockContentId | IphoneMockContentId | TerminalMockContentId;
 	/** When true, media renders on the right; otherwise on the left. */
 	mediaOnRight?: boolean;
 };
@@ -164,12 +166,13 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 	],
 	featureSections: [
 		{
-			subtitle: 'Install the skill',
-			title: 'Add openquok-core in seconds, authenticate once, start scheduling',
+			subtitle: 'Connect Once',
+			title: 'login from your phone, pick your workspace, chat anywhere securely',
 			description:
-				'Install the skill from the agent package , then authenticate the global @openquok/auto-cli with a programmatic token or OAuth device flow. OpenClaw reads SKILL.md and learns every openquok command your agent needs.',
-			imageSrc: '/landing/2-calendar-filters.mp4',
-			imageAlt: 'OpenQuok calendar with scheduled posts',
+				'Choose a workspace, connect with OAuth2 — approve in your browser, and credentials stay on the host. Message OpenClaw from Telegram, WhatsApp, or Slack to draft and schedule without opening another app.',
+			deviceMock: 'iphone-15-pro',
+			deviceMockContent: 'openquok-login',
+			imageAlt: 'OpenClaw chat guiding OpenQuok OAuth device login and workspace authorization',
 			mediaOnRight: true
 		},
 		{

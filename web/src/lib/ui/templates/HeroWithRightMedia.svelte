@@ -27,6 +27,10 @@
 		imageSrc?: string;
 		imageAlt?: string;
 		rightMedia?: Snippet;
+		/** Overrides default media column width when `rightMedia` is set (`max-w-2xl`). */
+		mediaContainerClass?: string;
+		/** Overrides default flex alignment on the media column. */
+		mediaColumnClass?: string;
 
 		ctaText?: string;
 		ctaHref?: string;
@@ -45,6 +49,8 @@
 		imageSrc,
 		imageAlt = '',
 		rightMedia,
+		mediaContainerClass,
+		mediaColumnClass,
 
 		ctaText = 'Get Started For Free',
 		ctaHref = '/pricing',
@@ -60,6 +66,14 @@
 			.map((part) => part.trim())
 			.filter((part) => part.length > 0)
 	);
+
+	const resolvedMediaContainerClass = $derived(
+		mediaContainerClass ?? (rightMedia ? 'max-w-2xl' : 'max-w-lg')
+	);
+	const resolvedMediaColumnClass = $derived(
+		mediaColumnClass ?? (rightMedia ? 'justify-center lg:justify-end' : 'justify-center lg:justify-end')
+	);
+	const stretchGrid = $derived(rightMedia && mediaContainerClass === undefined);
 </script>
 
 <Background color={bgColorClass}>
@@ -67,7 +81,7 @@
 		<div class="relative z-10 w-full px-6 py-16 sm:py-20">
 			<div class="mx-auto max-w-7xl">
 				<div
-					class="grid gap-10 lg:grid-cols-2 lg:gap-16 {rightMedia
+					class="grid gap-10 lg:grid-cols-2 lg:gap-16 {stretchGrid
 						? 'items-stretch'
 						: 'items-center'}"
 				>
@@ -139,11 +153,12 @@
 
 					<div
 						class="relative flex w-full {rightMedia
-							? 'h-full justify-center lg:justify-end'
-							: 'justify-center lg:justify-end'}"
+							? 'h-full'
+							: ''} {resolvedMediaColumnClass}"
 					>
 						<div
-							class="relative w-full {rightMedia ? 'max-w-2xl' : 'max-w-lg'} {rightMedia
+							class="relative w-full {resolvedMediaContainerClass} {rightMedia &&
+							mediaContainerClass === undefined
 								? 'flex h-full items-stretch'
 								: ''}"
 						>

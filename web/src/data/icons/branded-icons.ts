@@ -1,6 +1,6 @@
 // Product marks, social platforms, and agent brands.
 
-import type { IconEntry } from './index.ts';
+import type { IconEntry } from '$data/icons';
 
 export type BrandedIconName =
     | "Bloom"

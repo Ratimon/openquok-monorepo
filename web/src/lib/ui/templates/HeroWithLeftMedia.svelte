@@ -27,6 +27,10 @@
 		imageSrc?: string;
 		imageAlt?: string;
 		leftMedia?: Snippet;
+		/** Overrides default media column width when `leftMedia` is set (`max-w-2xl`). */
+		mediaContainerClass?: string;
+		/** Overrides default flex alignment on the media column. */
+		mediaColumnClass?: string;
 
 		ctaText?: string;
 		ctaHref?: string;
@@ -45,6 +49,8 @@
 		imageSrc,
 		imageAlt = '',
 		leftMedia,
+		mediaContainerClass,
+		mediaColumnClass,
 
 		ctaText = 'Get Started For Free',
 		ctaHref = '/pricing',
@@ -60,16 +66,33 @@
 			.map((part) => part.trim())
 			.filter((part) => part.length > 0)
 	);
+
+	const resolvedMediaContainerClass = $derived(
+		mediaContainerClass ?? (leftMedia ? 'max-w-2xl' : 'max-w-lg')
+	);
+	const resolvedMediaColumnClass = $derived(
+		mediaColumnClass ?? (leftMedia ? 'justify-center lg:justify-start' : 'justify-center')
+	);
+	const stretchGrid = $derived(leftMedia && mediaContainerClass === undefined);
 </script>
 
 <Background color={bgColorClass}>
 	<div class="relative isolate z-10 w-full overflow-hidden">
 		<div class="relative z-10 w-full px-6 py-16 sm:py-20">
 			<div class="mx-auto max-w-7xl">
-				<div class="grid gap-10 lg:grid-cols-2 lg:gap-16 {leftMedia ? 'items-stretch' : 'items-center'}">
-					<div class="relative order-2 flex justify-center lg:order-1 lg:justify-start">
+				<div
+					class="grid gap-10 lg:grid-cols-2 lg:gap-16 {stretchGrid
+						? 'items-stretch'
+						: 'items-center'}"
+				>
+					<div
+						class="relative order-2 flex {resolvedMediaColumnClass} lg:order-1 {leftMedia
+							? 'h-full'
+							: ''}"
+					>
 						<div
-							class="relative w-full {leftMedia ? 'max-w-2xl' : 'max-w-lg'} {leftMedia
+							class="relative w-full {resolvedMediaContainerClass} {leftMedia &&
+							mediaContainerClass === undefined
 								? 'h-full'
 								: ''}"
 						>

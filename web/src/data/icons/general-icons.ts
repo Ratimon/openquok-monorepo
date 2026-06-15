@@ -1,6 +1,6 @@
 // UI icons — mostly from https://lucide.dev/
 
-import type { IconEntry } from './index.ts';
+import type { IconEntry } from '$data/icons';
 
 export type GeneralIconName =
     | "Account"
