@@ -354,7 +354,7 @@ openquok analytics:post <post-id> -d 7`
 			},
 			{
 				pain: "Locked to one vendor's models or automation layer",
-				feature: 'Works with any LLM backend: Claude, GPT, Gemini, Llama, and more'
+				feature: 'Works with any LLM: Claude, GPT, Gemini, Llama, and more'
 			},
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
