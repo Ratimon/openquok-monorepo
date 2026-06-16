@@ -7,6 +7,8 @@ export type OpenClawMessagingChannel = {
 	description: string;
 	icon: IconName;
 	iconClass?: string;
+	iconWidth?: string;
+	iconHeight?: string;
 	containerClass?: string;
 };
 
@@ -85,8 +87,10 @@ export const OPENCLAW_EXTENSION_MESSAGING_CHANNELS: OpenClawMessagingChannel[] =
 		title: 'Matrix',
 		description: 'Federated open messaging protocol',
 		icon: icons.Matrix.name,
-		containerClass: 'bg-[#0DBD8B] text-white',
-		iconClass: 'size-6'
+		containerClass: 'bg-black text-white',
+		iconClass: 'h-auto w-10 max-w-full',
+		iconWidth: '40',
+		iconHeight: '17'
 	},
 	{
 		id: 'zalo',
@@ -96,12 +100,4 @@ export const OPENCLAW_EXTENSION_MESSAGING_CHANNELS: OpenClawMessagingChannel[] =
 		containerClass: 'bg-[#0068FF] text-white',
 		iconClass: 'size-6'
 	},
-	{
-		id: 'voice-call',
-		title: 'Voice Call',
-		description: 'Phone-style voice sessions with agents',
-		icon: icons.Phone.name,
-		containerClass: 'bg-primary/15 text-primary',
-		iconClass: 'size-6'
-	}
 ];

@@ -12,6 +12,8 @@
 		description: string;
 		icon: IconName;
 		iconClass?: string;
+		iconWidth?: string;
+		iconHeight?: string;
 		containerClass?: string;
 	};
 
@@ -41,8 +43,8 @@
 		>
 			<AbstractIcon
 				name={item.icon}
-				width="24"
-				height="24"
+				width={item.iconWidth ?? '24'}
+				height={item.iconHeight ?? '24'}
 				class={item.iconClass ?? 'size-6'}
 				focusable="false"
 			/>
