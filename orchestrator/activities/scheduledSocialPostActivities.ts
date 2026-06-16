@@ -8,6 +8,7 @@ import type { NotificationService } from "backend/services/NotificationService.j
 import type { NotificationEmailType } from "openquok-common";
 
 import { extractFollowUpRepliesFromProviderSettingsObject } from "backend/utils/dtos/PostDTO.js";
+import { convertPostMediaPngToJpeg } from "backend/integrations/utils/convertPostMediaToJpeg.js";
 import { ProviderAccessTokenExpiredError } from "backend/errors/ProviderIntegrationErrors.js";
 import { logger } from "backend/utils/Logger.js";
 import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
@@ -82,6 +83,11 @@ function isNonRefreshablePublishError(message: string): boolean {
     if (m.includes("youtube title must")) return true;
     if (m.includes("youtube thumbnail")) return true;
     if (m.includes("media is too large") && m.includes("2097152")) return true;
+    // TikTok validation / media URL issues — retry cannot fix.
+    if (m.includes("tiktok requires")) return true;
+    if (m.includes("tiktok does not support")) return true;
+    if (m.includes("cannot build a public media url for tiktok")) return true;
+    if (m.includes("verify your media domain")) return true;
     return false;
 }
 
@@ -1019,7 +1025,10 @@ async function publishRootForRow(
     if (!socialRes.ok) return null;
     const social = socialRes.social;
 
-    const postDetails: PostDetails[] = [postRowToPostDetails(post)];
+    let postDetails: PostDetails[] = [postRowToPostDetails(post)];
+    if (social.convertToJPEG) {
+        postDetails = [await convertPostMediaPngToJpeg(postDetails[0]!, organizationId)];
+    }
 
     for (let attempt = 0; attempt < PUBLISH_ATTEMPTS; attempt++) {
         const record = integrationRowToRecord(intRow);

@@ -8,6 +8,7 @@ import { FacebookProvider } from "./providers/facebook/facebookProvider";
 import { InstagramBusinessProvider } from "./providers/instagram/instagramBusinessProvider";
 import { InstagramStandaloneProvider } from "./providers/instagram/instagramStandaloneProvider";
 import { ThreadsProvider } from "./providers/threadsProvider";
+import { TiktokProvider } from "./providers/tiktok/tiktokProvider";
 import { YoutubeProvider } from "./providers/youtube/youtubeProvider";
 
 const socialIntegrationList: SocialProvider[] = [
@@ -16,6 +17,7 @@ const socialIntegrationList: SocialProvider[] = [
     new InstagramBusinessProvider(),
     new InstagramStandaloneProvider(),
     new YoutubeProvider(),
+    new TiktokProvider(),
 ];
 
 export class IntegrationManager {

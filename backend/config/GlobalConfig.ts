@@ -396,6 +396,11 @@ export const config: ConfigObject = {
             clientId: getEnvTrimmed("YOUTUBE_CLIENT_ID"),
             clientSecret: getEnvTrimmed("YOUTUBE_CLIENT_SECRET"),
         },
+        /** TikTok — Login Kit + Content Posting API (OAuth v2 + PKCE). */
+        tiktok: {
+            clientId: getEnvTrimmed("TIKTOK_CLIENT_ID"),
+            clientSecret: getEnvTrimmed("TIKTOK_CLIENT_SECRET"),
+        },
     },
 
 

@@ -17,8 +17,24 @@ module.exports = async function globalSetup() {
         return;
     }
 
+    const cleanupTimeoutMs = Number(process.env.OPENQUOK_TEST_DB_CLEANUP_TIMEOUT_MS ?? 60_000);
+
     try {
-        const result = await runTestDatabaseCleanupBeforeAllTests();
+        const result = await Promise.race([
+            runTestDatabaseCleanupBeforeAllTests(),
+            new Promise((_, reject) => {
+                setTimeout(
+                    () =>
+                        reject(
+                            new Error(
+                                `[jest globalSetup] Test database cleanup timed out after ${cleanupTimeoutMs}ms. ` +
+                                    "Ensure Supabase is running (backend/: supabase start) or set OPENQUOK_SKIP_TEST_DB_CLEANUP=true."
+                            )
+                        ),
+                    cleanupTimeoutMs
+                );
+            }),
+        ]);
         if (result && (result.organizationIds.length > 0 || result.testUserIds.length > 0)) {
             // eslint-disable-next-line no-console -- intentional test harness logging
             console.info(
