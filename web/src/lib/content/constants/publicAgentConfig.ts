@@ -7,6 +7,8 @@ import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-
 import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
 import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
+import type { OpenquokCliCommandReferenceItem } from '$lib/content/constants/openquokCliCommandReference';
+import { OPENQUOK_CLI_COMMAND_REFERENCE } from '$lib/content/constants/openquokCliCommandReference';
 import type { ComparisonPoint } from '$lib/ui/templates/WithWithout.svelte';
 
 export type FeaturesAnimatedContentId = 'llm-models' | 'agent-integrations';
@@ -120,6 +122,13 @@ export type PublicAgentComparisonSection = {
 	points: ComparisonPoint[];
 };
 
+export type PublicAgentCommandReferenceSection = {
+	subtitle: string;
+	title: string;
+	description?: string;
+	commands?: readonly OpenquokCliCommandReferenceItem[];
+};
+
 export type PublicAgentFeatureSection = {
 	subtitle: string;
 	/** Comma-separated lines; each part gets landing-page gradient styling. */
@@ -164,6 +173,7 @@ export type PublicAgentLandingPage = {
 	setupSteps: FeaturesOrderedStep[];
 	supportedChannelsSection?: PublicAgentSupportedChannelsSection;
 	comparisonSection?: PublicAgentComparisonSection;
+	commandReferenceSection?: PublicAgentCommandReferenceSection;
 	/** Setup guide under `/docs/`. */
 	docsPath: string;
 	/** When false, hub shows a coming-soon badge and detail route 404s. */
@@ -352,6 +362,13 @@ openquok analytics:post <post-id> -d 7`
 					'Every post lands as draft or scheduled — you approve on the calendar or kanban before anything goes live'
 			}
 		]
+	},
+	commandReferenceSection: {
+		subtitle: 'CLI',
+		title: 'Command reference',
+		description:
+			'Commands from the openquok-core skill — structured JSON on stdout, human-in-the-loop drafts, and workspace media uploads.',
+		commands: OPENQUOK_CLI_COMMAND_REFERENCE
 	},
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'OpenClaw + OpenQuok, answered',

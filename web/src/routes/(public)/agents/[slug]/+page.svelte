@@ -27,6 +27,7 @@
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
+	import CliCommandReference from '$lib/ui/templates/CliCommandReference.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
@@ -96,6 +97,16 @@
 			withoutTitle={agentVm.comparisonSection.withoutTitle}
 			withTitle={agentVm.comparisonSection.withTitle}
 			points={agentVm.comparisonSection.points}
+		/>
+	{/if}
+
+	{#if agentVm.commandReferenceSection}
+		<CliCommandReference
+			heroTheme={landingHeroTheme}
+			landingSubtitle={agentVm.commandReferenceSection.subtitle}
+			landingTitle={agentVm.commandReferenceSection.title}
+			landingDescription={agentVm.commandReferenceSection.description}
+			commands={agentVm.commandReferenceSection.commands ?? []}
 		/>
 	{/if}
 
