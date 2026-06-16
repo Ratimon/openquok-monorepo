@@ -7,7 +7,16 @@
 	} from '$data/openclaw-messaging-channels';
 
 	import { publicAgentByPagePresenter } from '$lib/area-public';
+	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { route } from '$lib/utils/path';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import {
+		ACCENT_SPLIT_CTA_BANNER_TITLE,
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		PUBLIC_BANNER_CTA_TEXT,
+		accentSplitCtaBannerDescription
+	} from '$lib/config/constants/config';
 
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
@@ -15,6 +24,8 @@
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicAgentHero from '$lib/ui/templates/landing-page/PublicAgentHero.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
@@ -28,6 +39,14 @@
 
 	const secondaryCtaText = pagePresenter.secondaryCtaText;
 	const secondaryCtaHref = pagePresenter.secondaryCtaHref;
+
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
+
+	let accentBannerDescription = $derived(
+		accentSplitCtaBannerDescription(agentVm?.agentLabel ?? 'your agent')
+	);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -88,6 +107,21 @@
 			faqDescription={agentVm.faqDescription}
 			faqItems={agentVm.faqItems}
 			sectionClass="py-16 sm:py-20"
+		/>
+
+		<AccentSplitCtaBanner
+			title={ACCENT_SPLIT_CTA_BANNER_TITLE}
+			description={accentBannerDescription}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+		/>
+
+		<CenteredDarkCtaBanner
+			title={CENTERED_DARK_CTA_BANNER_TITLE}
+			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+			sectionClass="pb-16 sm:pb-20"
 		/>
 	</div>
 {/if}

@@ -2,6 +2,8 @@
 	import type { PageData } from './$types';
 
 	import { publicChannelByPagePresenter } from '$lib/area-public';
+	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { route } from '$lib/utils/path';
 
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
@@ -9,7 +11,13 @@
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import {
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		PUBLIC_BANNER_CTA_TEXT
+	} from '$lib/config/constants/config';
 	import PublicChannelHero from '$lib/ui/templates/landing-page/PublicChannelHero.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
@@ -23,6 +31,10 @@
 
 	const secondaryCtaText = pagePresenter.secondaryCtaText;
 	const secondaryCtaHref = pagePresenter.secondaryCtaHref;
+
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -87,6 +99,14 @@
 			faqDescription={channelVm.faqDescription}
 			faqItems={channelVm.faqItems}
 			sectionClass="py-16 sm:py-20"
+		/>
+
+		<CenteredDarkCtaBanner
+			title={CENTERED_DARK_CTA_BANNER_TITLE}
+			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+			sectionClass="pb-16 sm:pb-20"
 		/>
 	</div>
 {/if}

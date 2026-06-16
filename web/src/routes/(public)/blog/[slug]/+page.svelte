@@ -18,19 +18,30 @@
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { url, route } from '$lib/utils/path';
-	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { getRootPathSignin, getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { normalizeBlogInlineImagesInHtml } from '$lib/blogs/utils';
+
+	import {
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		PUBLIC_BANNER_CTA_TEXT
+	} from '$lib/config/constants/config';
 
 	import BlogPost from '$lib/ui/components/blog-post/BlogPost.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 	import LayoutInnerContainer from '$lib/ui/layouts/LayoutInnerContainer.svelte';
 	import LayoutOuterContainer from '$lib/ui/layouts/LayoutOuterContainer.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	// /sign-in
 	const rootPathSignIn = getRootPathSignin();
 	const signInHrefBase = url(`/${rootPathSignIn}`);
+
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
 
 	type Props = {
 		data: {
@@ -208,6 +219,13 @@
 			{trackBlogShare}
 			submittingShare={blogShareSubmitting}
 			{trackBlogView}
+		/>
+		<CenteredDarkCtaBanner
+			title={CENTERED_DARK_CTA_BANNER_TITLE}
+			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+			sectionClass="pt-10 pb-0"
 		/>
 	</LayoutInnerContainer>
 </LayoutOuterContainer>
