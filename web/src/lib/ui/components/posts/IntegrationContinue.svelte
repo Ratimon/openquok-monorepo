@@ -495,6 +495,11 @@
 						<span class="mt-2 block sm:mt-3">{connectingHeadline.main}…</span>
 					{/if}
 				</h1>
+				{#if provider === 'youtube'}
+					<div class="mt-4 w-full max-w-md text-start">
+						<GoogleApiPrivacyNotice />
+					</div>
+				{/if}
 				<p class="mt-2 text-sm text-base-content/70">
 					{#if busy}
 						Redirecting…
@@ -502,11 +507,6 @@
 						Almost there…
 					{/if}
 				</p>
-				{#if provider === 'youtube'}
-					<div class="mt-6 w-full max-w-md text-start">
-						<GoogleApiPrivacyNotice />
-					</div>
-				{/if}
 				{#if busy}
 					<div class="mt-6 flex justify-center">
 						<CircularProgressBar value={progressValue} size={100} strokeWidth={7} />

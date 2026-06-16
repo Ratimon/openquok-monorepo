@@ -63,7 +63,7 @@
 		{/each}
 	</ul>
 	{#if showGoogleApiPrivacyNotice}
-		<div class="mt-6 rounded-lg border border-base-300 bg-base-200/40 px-4 py-3">
+		<div class="mt-6">
 			<GoogleApiPrivacyNotice />
 		</div>
 	{/if}

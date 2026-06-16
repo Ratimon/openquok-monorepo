@@ -32,7 +32,7 @@
 				Back
 			</Button>
 			<SectionTitle>Privacy Policy for {companyName}</SectionTitle>
-			<SectionDescription>Last updated June 12, 2026</SectionDescription>
+			<SectionDescription>Last updated June 15, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -197,8 +197,51 @@
 							target="_blank"
 						>
 							Google API Services User Data Policy
-						</a>, including the Limited Use requirements. You can revoke {companyName}'s access to
-						your Google data at any time at
+						</a>, including the Limited Use requirements.
+						<ul>
+							<li>
+								<strong>OAuth scopes:</strong> When you connect YouTube, we request the narrowest
+								scopes needed to list and manage the channel you select, upload and update videos you
+								schedule, and show YouTube Analytics in the product. These include Google account
+								profile and email (<code>userinfo.profile</code>, <code>userinfo.email</code>) and
+								YouTube scopes such as <code>youtube</code>, <code>youtube.force-ssl</code>,
+								<code>youtube.readonly</code>, <code>youtube.upload</code>,
+								<code>youtubepartner</code>, and <code>yt-analytics.readonly</code> (shown on the
+								Google OAuth consent screen when you authorize the connection).
+							</li>
+							<li>
+								<strong>How we use Google user data:</strong> We use it only to provide and improve
+								user-facing features you see in {companyName}—for example connecting a channel,
+								scheduling and publishing videos, displaying channel and video metadata, and showing
+								analytics dashboards. We do not use Google user data for advertising, retargeting,
+								credit decisions, or selling data to third parties.
+							</li>
+							<li>
+								<strong>How we store Google user data:</strong> OAuth tokens are encrypted at rest and
+								kept while the YouTube connection is active (see Section 8). Video drafts, schedules,
+								and analytics we retrieve are stored so you can manage content across sessions.
+							</li>
+							<li>
+								<strong>How we share Google user data:</strong> We transmit content to YouTube when
+								you publish or update a video. We may process or store Google user data using
+								infrastructure subprocessors (for example hosting and database providers) strictly to
+								operate the services. We do not transfer Google user data to advertising platforms,
+								data brokers, or other third parties except as described here or with your consent.
+							</li>
+							<li>
+								<strong>Human access:</strong> Our personnel do not read the content of your Google
+								or YouTube data except when you ask us to investigate a specific issue you report,
+								when necessary for security (for example investigating abuse or a bug affecting your
+								account), when required by law, or when the data is aggregated and used for internal
+								operations in line with applicable privacy requirements.
+							</li>
+							<li>
+								<strong>AI and machine learning:</strong> We do not use information received from
+								Google APIs to train, fine-tune, or improve generalized machine-learning or AI
+								models.
+							</li>
+						</ul>
+						You can revoke {companyName}'s access to your Google data at any time at
 						<a
 							href="https://security.google.com/settings/security/permissions"
 							class="link link-hover"
@@ -579,7 +622,10 @@
 					a request, communications staff to manage email lists and unsubscribe requests, or security
 					staff to investigate abuse, fraud, denial-of-service attempts, or other threats to the
 					services. They are required to protect confidentiality and handle data in line with this
-					policy.
+					policy. For information received from Google APIs (including YouTube), human access is
+					further limited as described under
+					<a href="#google-api-services" class="link link-hover">YouTube and Google API Services</a>
+					above and under the Google API Services User Data Policy.
 				</p>
 
 				<h3>

@@ -18,6 +18,10 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isLoggedIn: boolean;
 			companyInformationPm: unknown;
 			companyName: string;
+			companyUrl: string;
+			legalName: string;
+			companyAddress: string;
+			supportEmail: string;
 		};
 
 		return {
@@ -28,7 +32,11 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isAdmin,
 			isEditor,
 			companyInformationPm: serverData.companyInformationPm,
-			companyName: serverData.companyName
+			companyName: serverData.companyName,
+			companyUrl: serverData.companyUrl,
+			legalName: serverData.legalName,
+			companyAddress: serverData.companyAddress,
+			supportEmail: serverData.supportEmail
 		};
 	}
 
