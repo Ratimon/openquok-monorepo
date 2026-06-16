@@ -26,6 +26,7 @@
 	import PublicAgentHero from '$lib/ui/templates/landing-page/PublicAgentHero.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
+	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
@@ -85,6 +86,18 @@
 			ctaHref={secondaryCtaHref}
 		/>
 	{/each}
+
+	{#if agentVm.comparisonSection}
+		<WithWithout
+			heroTheme={landingHeroTheme}
+			landingSubtitle={agentVm.comparisonSection.subtitle}
+			landingTitle={agentVm.comparisonSection.title}
+			landingDescription={agentVm.comparisonSection.description}
+			withoutTitle={agentVm.comparisonSection.withoutTitle}
+			withTitle={agentVm.comparisonSection.withTitle}
+			points={agentVm.comparisonSection.points}
+		/>
+	{/if}
 
 	{#if agentVm.supportedChannelsSection}
 		<SimpleCardGrid

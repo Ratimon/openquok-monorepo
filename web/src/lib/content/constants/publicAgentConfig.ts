@@ -7,6 +7,7 @@ import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-
 import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
 import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
+import type { ComparisonPoint } from '$lib/ui/templates/WithWithout.svelte';
 
 export type FeaturesAnimatedContentId = 'llm-models' | 'agent-integrations';
 
@@ -110,6 +111,15 @@ export type PublicAgentSupportedChannelsSection = {
 	extensionLabel: string;
 };
 
+export type PublicAgentComparisonSection = {
+	subtitle: string;
+	title: string;
+	description: string;
+	withoutTitle: string;
+	withTitle: string;
+	points: ComparisonPoint[];
+};
+
 export type PublicAgentFeatureSection = {
 	subtitle: string;
 	/** Comma-separated lines; each part gets landing-page gradient styling. */
@@ -153,6 +163,7 @@ export type PublicAgentLandingPage = {
 	setupStepsTitle: string;
 	setupSteps: FeaturesOrderedStep[];
 	supportedChannelsSection?: PublicAgentSupportedChannelsSection;
+	comparisonSection?: PublicAgentComparisonSection;
 	/** Setup guide under `/docs/`. */
 	docsPath: string;
 	/** When false, hub shows a coming-soon badge and detail route 404s. */
@@ -308,6 +319,39 @@ openquok analytics:post <post-id> -d 7`
 		title: 'Supported channels',
 		description: 'OpenClaw supports multiple messaging platforms out of the box:',
 		extensionLabel: 'Extension Channels'
+	},
+	comparisonSection: {
+		subtitle: 'comparisons',
+		title: 'agent-native scheduling, not another dashboard',
+		description:
+			'Most social scheduler SaaS keeps you in a browser tab. OpenQuok is built for agents',
+		withoutTitle: 'Typical social scheduler SaaS',
+		withTitle: 'OpenQuok + OpenClaw',
+		points: [
+			{
+				pain: 'Copy posts between your AI chat and a separate scheduling tool',
+				feature:
+					'Message OpenClaw from WhatsApp, Telegram, or Slack to draft and schedule in one thread'
+			},
+			{
+				pain: 'Siloed API keys and workflows that do not compose with your agent stack',
+				feature:
+					'Eligibility is checked automatically — OPENQUOK_API_KEY must be set; credentials stay on your host'
+			},
+			{
+				pain: 'Always-on integrations that bloat agent context',
+				feature: 'Skills load on-demand, keeping the agent context clean'
+			},
+			{
+				pain: "Locked to one vendor's models or automation layer",
+				feature: 'Works with any LLM backend: Claude, GPT, Gemini, Llama, and more'
+			},
+			{
+				pain: 'Autopilot publishing with no human checkpoint',
+				feature:
+					'Every post lands as draft or scheduled — you approve on the calendar or kanban before anything goes live'
+			}
+		]
 	},
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'OpenClaw + OpenQuok, answered',
