@@ -565,6 +565,129 @@ const YOUTUBE_CHANNEL: PublicChannelLandingPage = {
 	available: true
 };
 
+const TIKTOK_CHANNEL: PublicChannelLandingPage = {
+	slug: 'tiktok',
+	platformId: 'tiktok',
+	platformLabel: 'TikTok',
+	icon: icons.TikTok.name,
+	heroTitle: 'Schedule TikTok videos and photo carousels you approve',
+	heroDescription:
+		'Connect a TikTok account, queue vertical videos or image carousels on the calendar, set privacy and posting method in the composer, and publish through the official TikTok APIs — from the dashboard, public API, or CLI.',
+	metaTitle: 'TikTok Video & Photo Scheduler',
+	metaDescription:
+		'Schedule TikTok videos and photo carousels with OpenQuok. Connect your account, queue MP4 or image posts with privacy and interaction settings, and publish from one workspace.',
+	keywords: [
+		'TikTok post scheduler',
+		'schedule TikTok videos',
+		'TikTok content calendar',
+		'TikTok API scheduler',
+		'TikTok photo carousel scheduler',
+		'schedule TikTok posts'
+	],
+	featureSections: [
+		{
+			subtitle: 'Bulk scheduling',
+			title: 'Queue TikTok clips and carousels, batch drafts on the calendar, weeks ahead',
+			description:
+				'Schedule vertical videos and photo carousels onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
+			bentoId: 'tiktok-bulk-scheduling',
+			mediaOnRight: true
+		},
+		{
+			subtitle: 'Compose settings',
+			title: 'Set privacy, posting method, and interaction toggles before every publish',
+			description:
+				'Choose public or private privacy, direct post vs inbox upload, and tune duet, stitch, and comment settings per post — from the composer or via providerSettings in the API.',
+			bentoId: 'tiktok-compose-settings',
+			mediaOnRight: false
+		},
+		{
+			subtitle: 'Insights',
+			title: 'See what resonates on TikTok, track followers and video counts, and iterate',
+			description:
+				'Track followers, likes, and video counts from connected TikTok accounts inside OpenQuok analytics — so you can schedule more of what already works.',
+			bentoId: 'tiktok-insights',
+			mediaOnRight: true
+		}
+	],
+	audienceSubtitle: 'Built for TikTok creators',
+	audienceTitle: 'Who schedules TikTok with OpenQuok?',
+	audienceCards: [
+		{
+			iconName: icons.CustomizedDrawnHouse.name,
+			iconClass: 'text-rose-400',
+			title: 'Creators & founders',
+			description:
+				'Stay consistent on TikTok without daily manual posting. Queue vertical clips and photo carousels on the calendar while you focus on creating.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnLaptop.name,
+			iconClass: 'text-lime-400',
+			title: 'Social managers',
+			description:
+				'Batch a week of TikTok content in one sitting, review drafts before they publish, and track follower growth alongside your other channels.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnRobot.name,
+			iconClass: 'text-emerald-400',
+			title: 'Developers & agents',
+			description:
+				'Pipe TikTok drafts from your backend via the public API or CLI — including privacy and posting-method settings — while you keep approval control in the dashboard.',
+			containerClass: 'h-full min-h-[18rem]'
+		}
+	],
+	faqSubtitle: 'Frequently asked questions',
+	faqTitle: 'TikTok scheduling, answered',
+	faqDescription:
+		'Common questions about connecting TikTok, scheduling videos and photo carousels, and using OpenQuok with the Content Posting API.',
+	faqItems: [
+		{
+			title: 'How do I connect TikTok to OpenQuok?',
+			description:
+				'Sign in, open a workspace, and choose Connect channel → TikTok. Complete TikTok OAuth on the HTTPS callback URL, and OpenQuok stores the connection for scheduling and analytics.'
+		},
+		{
+			title: 'What media does TikTok publishing require?',
+			description:
+				'Each scheduled TikTok post needs either exactly one MP4 video or one or more images (JPEG, PNG, or WEBP). OpenQuok does not support mixing video and images in the same post.'
+		},
+		{
+			title: 'What is the difference between DIRECT_POST and UPLOAD?',
+			description:
+				'DIRECT_POST publishes to your TikTok profile when the scheduled time arrives. UPLOAD sends the content to your TikTok inbox so you can finish publishing inside the TikTok app.'
+		},
+		{
+			title: 'Why do my TikTok posts publish as private?',
+			description:
+				'Unaudited TikTok developer apps can restrict publishing to private (SELF_ONLY) until TikTok app review passes. Check your app status in the TikTok developer portal and the privacy settings on each post.'
+		},
+		{
+			title: 'Why does publish fail with a media URL error?',
+			description:
+				'TikTok fetches media from public HTTPS URLs. Verify your storage public base URL and complete TikTok domain verification for the hostname that serves your media files.'
+		},
+		{
+			title: 'Can I schedule TikTok posts from an AI agent or script?',
+			description:
+				'Yes. After connecting TikTok, use the public API or CLI with your workspace token to create scheduled posts with video or image media and flat or nested tiktok provider settings.'
+		},
+		{
+			title: 'Can I cross-post from TikTok to other channels?',
+			description:
+				'Yes. Compose once in OpenQuok and publish the same idea to TikTok, Instagram, Threads, YouTube, and other connected channels from one workflow. Per-platform settings are applied separately for each destination.'
+		},
+		{
+			title: 'Is there a free trial for TikTok scheduling?',
+			description:
+				'Yes. New workspaces can start on OpenQuok’s free trial, connect TikTok, and schedule posts during the trial period before choosing a paid plan.'
+		}
+	],
+	docsPath: '/docs/social-integration/tiktok',
+	available: true
+};
+
 /** Coming-soon entries appear on the hub but do not have detail pages yet. */
 const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [
 	{
@@ -577,27 +700,6 @@ const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [
 		metaTitle: 'LinkedIn Post Scheduler',
 		metaDescription: 'LinkedIn scheduling on OpenQuok — coming soon.',
 		keywords: ['LinkedIn post scheduler'],
-		featureSections: [],
-		audienceSubtitle: '',
-		audienceTitle: '',
-		audienceCards: [],
-		faqSubtitle: '',
-		faqTitle: '',
-		faqDescription: '',
-		faqItems: [],
-		docsPath: '/docs/social-integration',
-		available: false
-	},
-	{
-		slug: 'tiktok',
-		platformId: 'tiktok',
-		platformLabel: 'TikTok',
-		icon: icons.TikTok.name,
-		heroTitle: '',
-		heroDescription: '',
-		metaTitle: 'TikTok Post Scheduler',
-		metaDescription: 'TikTok scheduling on OpenQuok — coming soon.',
-		keywords: ['TikTok post scheduler'],
 		featureSections: [],
 		audienceSubtitle: '',
 		audienceTitle: '',
@@ -637,6 +739,7 @@ export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPage[] =
 	THREADS_CHANNEL,
 	INSTAGRAM_CHANNEL,
 	YOUTUBE_CHANNEL,
+	TIKTOK_CHANNEL,
 	...COMING_SOON_CHANNELS
 ];
 

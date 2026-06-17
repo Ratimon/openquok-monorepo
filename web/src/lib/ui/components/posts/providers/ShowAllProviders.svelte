@@ -6,6 +6,7 @@
 	import FacebookPreview from '$lib/ui/components/posts/providers/facebook/FacebookPreview.svelte';
 	import InstagramPreview from '$lib/ui/components/posts/providers/instagram/InstagramPreview.svelte';
 	import ThreadsPreview from '$lib/ui/components/posts/providers/threads/ThreadsPreview.svelte';
+	import TiktokPreview from '$lib/ui/components/posts/providers/tiktok/TiktokPreview.svelte';
 	import YoutubePreview from '$lib/ui/components/posts/providers/youtube/YoutubePreview.svelte';
 
 	type Props = {
@@ -77,6 +78,16 @@
 	/>
 {:else if identifier === 'youtube'}
 	<YoutubePreview
+		{channel}
+		{previewText}
+		{mediaUrls}
+		maximumCharacters={maxChars}
+		{threadReplies}
+		{threadFinisher}
+		{previewMetaLabel}
+	/>
+{:else if identifier === 'tiktok'}
+	<TiktokPreview
 		{channel}
 		{previewText}
 		{mediaUrls}

@@ -10,6 +10,9 @@
 	import BentoThreadsBulkScheduling from '$lib/ui/templates/bento/minor-templates/threads/BentoThreadsBulkScheduling.svelte';
 	import BentoThreadsInsights from '$lib/ui/templates/bento/minor-templates/threads/BentoThreadsInsights.svelte';
 	import BentoThreadsMediaReplies from '$lib/ui/templates/bento/minor-templates/threads/BentoThreadsMediaReplies.svelte';
+	import BentoTiktokBulkScheduling from '$lib/ui/templates/bento/minor-templates/tiktok/BentoTiktokBulkScheduling.svelte';
+	import BentoTiktokComposeSettings from '$lib/ui/templates/bento/minor-templates/tiktok/BentoTiktokComposeSettings.svelte';
+	import BentoTiktokInsights from '$lib/ui/templates/bento/minor-templates/tiktok/BentoTiktokInsights.svelte';
 	import BentoYoutubeBulkScheduling from '$lib/ui/templates/bento/minor-templates/youtube/BentoYoutubeBulkScheduling.svelte';
 	import BentoYoutubeInsights from '$lib/ui/templates/bento/minor-templates/youtube/BentoYoutubeInsights.svelte';
 	import BentoYoutubeVideoSettings from '$lib/ui/templates/bento/minor-templates/youtube/BentoYoutubeVideoSettings.svelte';
@@ -46,4 +49,10 @@
 	<BentoYoutubeVideoSettings />
 {:else if bentoId === 'youtube-insights'}
 	<BentoYoutubeInsights />
+{:else if bentoId === 'tiktok-bulk-scheduling'}
+	<BentoTiktokBulkScheduling />
+{:else if bentoId === 'tiktok-compose-settings'}
+	<BentoTiktokComposeSettings />
+{:else if bentoId === 'tiktok-insights'}
+	<BentoTiktokInsights />
 {/if}

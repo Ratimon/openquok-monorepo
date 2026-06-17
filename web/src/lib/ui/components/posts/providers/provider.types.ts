@@ -29,6 +29,27 @@ export type YoutubeLaunchProviderSettings = {
 	thumbnail?: { path: string };
 };
 
+export type TiktokPrivacyLevel =
+	| 'PUBLIC_TO_EVERYONE'
+	| 'MUTUAL_FOLLOW_FRIENDS'
+	| 'FOLLOWER_OF_CREATOR'
+	| 'SELF_ONLY';
+
+export type TiktokContentPostingMethod = 'DIRECT_POST' | 'UPLOAD';
+
+export type TiktokLaunchProviderSettings = {
+	privacy_level: TiktokPrivacyLevel;
+	content_posting_method: TiktokContentPostingMethod;
+	title: string;
+	duet: boolean;
+	stitch: boolean;
+	comment: boolean;
+	autoAddMusic: boolean;
+	brand_content_toggle: boolean;
+	brand_organic_toggle: boolean;
+	video_made_with_ai: boolean;
+};
+
 export type LaunchProviderCheckContext = {
 	media: { id: string; path: string }[];
 	/** Per-integration settings (from the Settings panel), shape is provider-specific. */

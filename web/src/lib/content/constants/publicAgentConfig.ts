@@ -393,7 +393,7 @@ openquok analytics:post <post-id> -d 7`
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				'Facebook, Instagram (Business and Standalone), Threads, and YouTube are available today. LinkedIn, TikTok, and X are on the roadmap. Connect channels in the OpenQuok web app; OpenClaw uses integration UUIDs from openquok integrations:list to target the right accounts.'
+				'Facebook, Instagram (Business and Standalone), Threads, YouTube, and TikTok are available today. LinkedIn and X are on the roadmap. Connect channels in the OpenQuok web app; OpenClaw uses integration UUIDs from openquok integrations:list to target the right accounts.'
 		},
 		{
 			title: 'Does OpenClaw publish immediately or wait for approval?',

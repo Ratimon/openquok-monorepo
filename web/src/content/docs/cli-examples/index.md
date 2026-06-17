@@ -14,7 +14,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each page chains <a href="/docs/cli-usages/integrations"><Badge text="integrations:list" variant="default" /></a>, <a href="/docs/cli-usages/media-upload"><Badge text="upload" variant="default" /></a>, and <a href="/docs/cli-usages/managing-posts"><Badge text="posts:create" variant="default" /></a> into the kind of scripts AI agents and CI jobs actually run.
 
 <Callout type="note" title="Only platforms the project supports">
-<p>Openquok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), and <strong>YouTube</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
+<p>Openquok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, and <strong>TikTok</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
 </Callout>
 
 <CardGrid>
@@ -22,6 +22,7 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each pa
 <LinkCard title="Instagram" description="Feed, reels, stories, and carousels for Business or Standalone accounts" href="/docs/cli-examples/instagram" />
 <LinkCard title="Meta Threads" description="Text and media posts, timed follow-up replies, what to do when publish metadata is incomplete, and analytics" href="/docs/cli-examples/threads" />
 <LinkCard title="YouTube" description="MP4 uploads with title, privacy, tags, thumbnail, and analytics" href="/docs/cli-examples/youtube" />
+<LinkCard title="TikTok" description="Vertical videos and photo carousels with privacy and posting-method settings" href="/docs/cli-examples/tiktok" />
 </CardGrid>
 
 ## Conventions used in these pages
