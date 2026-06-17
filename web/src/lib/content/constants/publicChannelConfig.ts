@@ -127,7 +127,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 		{
 			title: 'How do I connect my Facebook Page to OpenQuok?',
 			description:
-				'Sign in, open a workspace, and choose Connect channel → Facebook Page. Complete Meta OAuth, pick the Page you manage, and OpenQuok stores the connection for scheduling and analytics.'
+				'Sign in to Facebook and OpenQuok in your browser, then open a workspace and choose Connect channel → Facebook Page. Complete Meta OAuth, pick the Page you manage, and OpenQuok stores the connection for scheduling and analytics.'
 		},
 		{
 			title: 'Can I connect my personal Facebook profile?',
@@ -249,7 +249,7 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 		{
 			title: 'How do I connect Threads to OpenQuok?',
 			description:
-				'Choose a workspace, connect channel → Threads, and finish Meta OAuth. OpenQuok links the Threads profile to that workspace for scheduling and analytics.'
+				'Sign in to Threads and OpenQuok in your browser, then open a workspace, choose Connect channel → Threads, and finish Meta OAuth. OpenQuok links the Threads profile to that workspace for scheduling and analytics.'
 		},
 		{
 			title: 'Can I schedule Threads posts with images, video, or carousels?',
@@ -323,7 +323,7 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 		},
 		{
 			subtitle: 'Compose & settings',
-			title: 'Automate trial Reels, follow-up comments and collaborators tags, and more, in one place',
+			title: 'Automate trial Reels, follow-up comments and collaborators tags, in one place',
 			description:
 				'Switch between feed/Reel and Story, tag up to three collaborators on single-media posts, enable Trial Reels, and queue text-only follow-up comments — from the composer or via providerSettings in the API.',
 			bentoId: 'instagram-compose-settings',
@@ -379,7 +379,7 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 		{
 			title: 'How do I connect Instagram to OpenQuok?',
 			description:
-				'In your workspace, choose Connect channel and select the Instagram integration that matches your account type. Complete OAuth, and if Business login requires a Page selection, pick the correct profile in the connect flow.'
+				'Sign in to Instagram and OpenQuok in your browser, then in your workspace choose Connect channel and select the Instagram integration that matches your account type. Complete OAuth, and if Business login requires a Page selection, pick the correct profile in the connect flow.'
 		},
 		{
 			title: 'Can I schedule Instagram Reels, carousels, and Stories?',
@@ -513,7 +513,7 @@ const YOUTUBE_CHANNEL: PublicChannelLandingPage = {
 		{
 			title: 'How do I connect my YouTube channel to OpenQuok?',
 			description:
-				'Sign in, open a workspace, and choose Connect channel → YouTube. Complete Google OAuth, pick the channel you manage, and OpenQuok stores the connection for scheduling and analytics.'
+				'Sign in to YouTube and OpenQuok in your browser, then open a workspace and choose Connect channel → YouTube. Complete Google OAuth, pick the channel you manage, and OpenQuok stores the connection for scheduling and analytics.'
 		},
 		{
 			title: 'What video format does OpenQuok require for YouTube?',
@@ -570,9 +570,9 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 	platformId: 'tiktok',
 	platformLabel: 'TikTok',
 	icon: icons.TikTok.name,
-	heroTitle: 'Schedule TikTok videos and photo carousels you approve',
+	heroTitle: 'Schedule TikTok videos and carousels you approve',
 	heroDescription:
-		'Connect a TikTok account, queue vertical videos or image carousels on the calendar, set privacy and posting method in the composer, and publish through the official TikTok APIs — from the dashboard, public API, or CLI.',
+		'Connect a TikTok account, queue vertical videos or image carousels on the calendar, set privacy and posting method, and publish through the official TikTok APIs — from the dashboard, public API, or CLI.',
 	metaTitle: 'TikTok Video & Photo Scheduler',
 	metaDescription:
 		'Schedule TikTok videos and photo carousels with OpenQuok. Connect your account, queue MP4 or image posts with privacy and interaction settings, and publish from one workspace.',
@@ -589,15 +589,15 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 			subtitle: 'Bulk scheduling',
 			title: 'Queue TikTok clips and carousels, batch drafts on the calendar, weeks ahead',
 			description:
-				'Schedule vertical videos and photo carousels onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
+				'Schedule viral videos and photo carousels onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
 			bentoId: 'tiktok-bulk-scheduling',
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Compose settings',
-			title: 'Set privacy, posting method, and interaction toggles before every publish',
+			subtitle: 'Trending audio',
+			title: 'Queue carousels to your TikTok inbox, pick trending audio in the app, publish quickly',
 			description:
-				'Choose public or private privacy, direct post vs inbox upload, and tune duet, stitch, and comment settings per post — from the composer or via providerSettings in the API.',
+				'Trending tracks lift reach, but schedulers cannot attach them — and posts with a manual sound pick often get more views from TikTok. Queue carousels and clips to your inbox, choose trending audio in the app, and publish in about a minute a day without rebuilding every post by hand.',
 			bentoId: 'tiktok-compose-settings',
 			mediaOnRight: false
 		},
@@ -616,15 +616,15 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 		{
 			iconName: icons.CustomizedDrawnHouse.name,
 			iconClass: 'text-rose-400',
-			title: 'Creators & founders',
+			title: 'App & SaaS Founders',
 			description:
-				'Stay consistent on TikTok without daily manual posting. Queue vertical clips and photo carousels on the calendar while you focus on creating.',
+				'Ship your product while TikTok grows. Queue ai-generated carousels as inbox drafts on the calendar — add trending audio and publish in about a minute a day.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.CustomizedDrawnLaptop.name,
 			iconClass: 'text-lime-400',
-			title: 'Social managers',
+			title: 'Ticktoker',
 			description:
 				'Batch a week of TikTok content in one sitting, review drafts before they publish, and track follower growth alongside your other channels.',
 			containerClass: 'h-full min-h-[18rem]'
@@ -646,27 +646,27 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 		{
 			title: 'How do I connect TikTok to OpenQuok?',
 			description:
-				'Sign in, open a workspace, and choose Connect channel → TikTok. Complete TikTok OAuth on the HTTPS callback URL, and OpenQuok stores the connection for scheduling and analytics.'
+				'Sign in to TikTok and OpenQuok in your browser, then open a workspace and choose Connect channel → TikTok. Complete TikTok OAuth, and OpenQuok stores the connection for scheduling and analytics.'
 		},
 		{
-			title: 'What media does TikTok publishing require?',
+			title: 'Can I schedule TikTok posts from my desktop or phone browser?',
 			description:
-				'Each scheduled TikTok post needs either exactly one MP4 video or one or more images (JPEG, PNG, or WEBP). OpenQuok does not support mixing video and images in the same post.'
+				'Yes. OpenQuok is cloud-based and runs in the browser — connect your TikTok account once, then use the same calendar, and kanban board on desktop, laptop, or mobile without installing a separate app.'
 		},
 		{
-			title: 'What is the difference between DIRECT_POST and UPLOAD?',
+			title: 'Can I set TikTok privacy, comments, duet, and stitch before scheduling?',
 			description:
-				'DIRECT_POST publishes to your TikTok profile when the scheduled time arrives. UPLOAD sends the content to your TikTok inbox so you can finish publishing inside the TikTok app.'
+				'Yes. TikTok settings in the composer let you pick privacy (public, friends, followers, or private), toggle comments, duet, and stitch, and flag branded content or AI-generated media before the post goes out. Choose direct publish or send to your TikTok inbox when you want to finish in the app.'
 		},
 		{
-			title: 'Why do my TikTok posts publish as private?',
+			title: 'Does OpenQuok support TikTok carousels, not just videos?',
 			description:
-				'Unaudited TikTok developer apps can restrict publishing to private (SELF_ONLY) until TikTok app review passes. Check your app status in the TikTok developer portal and the privacy settings on each post.'
+				'Yes. Schedule a single MP4 video or one or more images (JPEG, PNG, or WEBP) as a photo carousel. Add an optional carousel title, turn on auto-add music for image posts, and queue the post on the calendar.'
 		},
 		{
-			title: 'Why does publish fail with a media URL error?',
+			title: 'Can I add trending audio when scheduling TikTok?',
 			description:
-				'TikTok fetches media from public HTTPS URLs. Verify your storage public base URL and complete TikTok domain verification for the hostname that serves your media files.'
+				'Not through direct publish. TikTok’s API does not let third-party schedulers attach trending sounds to clips. Use the inbox upload method to queue carousels or videos to your TikTok inbox, then pick trending audio and publish inside the TikTok app in about a minute.'
 		},
 		{
 			title: 'Can I schedule TikTok posts from an AI agent or script?',
@@ -674,9 +674,24 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 				'Yes. After connecting TikTok, use the public API or CLI with your workspace token to create scheduled posts with video or image media and flat or nested tiktok provider settings.'
 		},
 		{
-			title: 'Can I cross-post from TikTok to other channels?',
+			title: 'Can I cross-post from TikTok to other channels eg. Facebook Reels or YouTube Shorts?',
 			description:
-				'Yes. Compose once in OpenQuok and publish the same idea to TikTok, Instagram, Threads, YouTube, and other connected channels from one workflow. Per-platform settings are applied separately for each destination.'
+				'Yes. Publish the same content to TikTok, Instagram, YouTube, and etc. from one workflow. Per-platform settings are applied separately for each destination.'
+		},
+		{
+			title: 'Can I repeat-schedule TikTok posts on a cadence?',
+			description:
+				'Yes. Set a repeat interval from one day up to one month when scheduling. After a TikTok post publishes, OpenQuok queues the next copy on that cadence so you can recycle evergreen clips and carousels without rebuilding each post.'
+		},
+		{
+			title: 'Can my team review TikTok drafts before they publish?',
+			description:
+				'Yes. Save TikTok posts as drafts, review them on the kanban board, and move them to Scheduled when you are ready. Workspaces keep each brand’s TikTok account and content separate when you manage multiple clients.'
+		},
+		{
+			title: 'What TikTok analytics does OpenQuok track?',
+			description:
+				'OpenQuok pulls account-level TikTok metrics — followers, likes, and video count — into analytics alongside your other channels. Per-post view and engagement breakdowns for individual TikTok videos are not available in OpenQuok today.'
 		},
 		{
 			title: 'Is there a free trial for TikTok scheduling?',

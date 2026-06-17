@@ -49,9 +49,6 @@
 			<option value="FOLLOWER_OF_CREATOR">Followers</option>
 			<option value="SELF_ONLY">Only me (private)</option>
 		</select>
-		<p class="text-xs text-base-content/50">
-			Unaudited TikTok apps may force posts to private until app review passes.
-		</p>
 	</div>
 
 	<div class="space-y-1">
@@ -74,12 +71,12 @@
 			type="text"
 			maxlength={TIKTOK_PHOTO_TITLE_MAX}
 			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
-			placeholder="Title for photo posts (falls back to caption)"
+			placeholder="Title or caption (max 2000 characters)"
 			bind:value={title}
 			{disabled}
 		/>
 		<p class="text-xs text-base-content/50">
-			Used for photo carousels; video posts use the caption as description.
+			Used for carousels; video posts use the caption as description.
 		</p>
 	</div>
 
@@ -126,7 +123,7 @@
 				bind:checked={brandOrganicToggle}
 				{disabled}
 			/>
-			Your brand (promoting yourself or your business)
+			Your brand
 		</label>
 	</div>
 
@@ -137,6 +134,6 @@
 			bind:checked={videoMadeWithAi}
 			{disabled}
 		/>
-		Disclose AI-generated content
+		Disclose AI-gen content
 	</label>
 </div>

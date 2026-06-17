@@ -90,6 +90,28 @@ Add a constant in `publicChannelConfig.ts` and append it to `PUBLIC_CHANNEL_LAND
 
 **Go live:** replace the stub with a full entry (or flip `available: true` and fill content). Ship **provider-specific bento showcases** for all three feature sections (see below). Copy must describe **only features already implemented** — do not oversell.
 
+### Landing copy voice (problem-first)
+
+Write `heroTitle`, `heroDescription`, `featureSections`, `audienceCards`, and FAQ answers for **the person scheduling posts** — lead with the pain or outcome, not a settings checklist.
+
+| Prefer | Avoid |
+| --- | --- |
+| What the user struggles with or wants (reach, consistency, time saved, approval control) | Feature inventories (`privacy_level`, `providerSettings`, toggle names, API paths) |
+| Plain outcomes (“queue to your inbox, pick trending audio in the app”) |
+| Second person (“you”, “your posts”, “your workspace”) | Passive product specs (“supports X, Y, Z settings”) |
+
+**`featureSections` pattern:**
+
+- **`subtitle`** — user problem or job-to-be-done (e.g. `Trending audio`, `Bulk scheduling`), not an internal label (`Compose settings`).
+- **`title`** — outcome in **three comma-separated phrases**; `HeroWithLeftMedia` / `HeroWithRightMedia` split on `,` into separate lines. Each phrase must read cleanly on its own line — do not break mid-thought (e.g. `…TikTok, add the sound…` renders as `,add` on the next line).
+- **`description`** — problem → how OpenQuok helps → result; mention shipped workflow steps the bento shows.
+
+**Reference:** TikTok `featureSections[1]` in `publicChannelConfig.ts` — inbox drafts + manual trending audio for algorithm reach; bento still shows composer settings, but copy sells the user problem.
+
+**Audience cards** — who they are + what pain is solved (e.g. founders shipping product while TikTok runs), not role labels with feature lists.
+
+Agent skill files and setup docs stay **feature-accurate and terse** — do not paste landing marketing prose into `resources/{id}-examples.md` (see below).
+
 ### Feature bento showcases (required at go-live)
 
 Each live `/channels/{slug}` page renders three feature rows via `HeroWithLeftMedia` / `HeroWithRightMedia`. When `featureSections[].bentoId` is set, the route renders `BentoPublicChannelFeature` instead of a static video (`web/src/routes/(public)/channels/[slug]/+page.svelte`).
@@ -166,6 +188,6 @@ Follow **docs-conventions**, **agent-skill**, and **source-project-neutrality** 
 - Unit tests added/updated for non-trivial paths.
 - **`publicChannelConfig`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **three `featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live.
 - **Feature bento:** IDs in `publicChannelFeatureBentoConfig.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
-- **Landing page:** hero + 3 feature sections + FAQ filled; CTAs are only `Get Started For Free` → `/pricing`.
+- **Landing page:** hero + 3 feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); feature `title` uses three comma-separated phrases; CTAs are only `Get Started For Free` → `/pricing`.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs.

@@ -18,7 +18,9 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'efficiently',
 	'securely',
 	'quickly',
+	'trending audio',
 	'channels',
+	'reels',
 	'perfect plan',
 	'questions',
 	'thumbnail',
@@ -39,7 +41,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'facebook',
 	'threads',
 	'instagram',
-	'youtube'
+	'youtube',
+	'tiktok'
 ] as const;
 
 const TITLE_PART_HIGHLIGHT_PHRASE = new RegExp(

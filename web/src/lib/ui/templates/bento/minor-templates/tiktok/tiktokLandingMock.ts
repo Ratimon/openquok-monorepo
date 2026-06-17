@@ -19,18 +19,18 @@ export const TIKTOK_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 };
 
 export const TIKTOK_LANDING_MOCK_BODY =
-	'Vertical clip — schedule with privacy, direct post vs inbox upload, and interaction toggles before publish.';
+	'Video (9:16)';
 
 /** `datetime-local` value for the mock schedule footer (Friday 9:00 AM). */
 export const TIKTOK_LANDING_MOCK_SCHEDULED_LOCAL = '2026-06-12T09:00';
 
-/** Demo video for the 9:16 TikTok preview panel. */
-export const TIKTOK_LANDING_MOCK_MEDIA_URLS = ['/landing/2-calendar-filters.mp4'];
+/** Demo video for the 9:16 TikTok preview panel (`vertical-video.mp4` + `.webm`). */
+export const TIKTOK_LANDING_MOCK_MEDIA_URLS = ['/landing/vertical-video.mp4'];
 
 export const TIKTOK_LANDING_MOCK_PROVIDER_SETTINGS = {
 	tiktok: {
 		privacy_level: 'PUBLIC_TO_EVERYONE' as const,
-		content_posting_method: 'DIRECT_POST' as const,
+		content_posting_method: 'UPLOAD' as const,
 		title: '',
 		duet: false,
 		stitch: false,
