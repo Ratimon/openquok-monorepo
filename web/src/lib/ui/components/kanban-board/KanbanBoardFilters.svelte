@@ -125,7 +125,7 @@
 				variant="outline"
 				size="sm"
 				class="shrink-0 gap-1.5"
-				aria-label="View past posts in calendar"
+				aria-label="Open calendar view"
 			>
 				<AbstractIcon
 					name={icons.CalendarClock.name}
@@ -133,7 +133,7 @@
 					width="16"
 					height="16"
 				/>
-				Past posts
+				Calendar
 			</Button>
 		</div>
 		<div

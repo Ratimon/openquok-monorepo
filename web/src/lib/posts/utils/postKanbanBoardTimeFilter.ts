@@ -13,6 +13,12 @@ function isUpcomingPublishDate(publishDateIso: string, nowMs = Date.now()): bool
 	return ms >= nowMs;
 }
 
+function isPastPublishDate(publishDateIso: string, nowMs = Date.now()): boolean {
+	const ms = parsePublishMs(publishDateIso);
+	if (!Number.isFinite(ms)) return false;
+	return ms < nowMs;
+}
+
 export function matchesKanbanTimeFilter(
 	publishDateIso: string,
 	filter: PostKanbanTimeFilter,
@@ -31,6 +37,9 @@ export function matchesKanbanTimeFilter(
 	if (filter === 'next-30-days') {
 		if (!Number.isFinite(ms) || ms < nowMs) return false;
 		return ms < now.add(30, 'day').endOf('day').valueOf();
+	}
+	if (filter === 'past') {
+		return isPastPublishDate(publishDateIso, nowMs);
 	}
 	return true;
 }

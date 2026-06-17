@@ -119,6 +119,8 @@ export interface CalendarPostRowViewModel {
 	channelName?: string | null;
 	channelPictureUrl?: string | null;
 	providerIdentifier?: string | null;
+	/** Serialized `posts.settings` JSON from list/flip API. */
+	settings?: string | null;
 	tagNames?: string[];
 }
 

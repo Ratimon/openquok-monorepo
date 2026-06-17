@@ -105,7 +105,7 @@ Details: [resources/command-reference.md](./resources/command-reference.md#authe
 | 2 | `openquok integrations:list` → `integrations:settings <uuid>` per channel |
 | 3 | `integrations:trigger <uuid> <method> -d '{}'` when `output.tools` requires it |
 | 4 | `upload` / `upload-from-url` for media; ask user for file or direct image URL if missing in chat |
-| 5 | `posts:create` / `posts:status`; agent drafts: `-t draft` + `--note`; update with `posts:review-todo` |
+| 5 | `posts:create` / `posts:status`; agent drafts: `-t draft` + `--note`; TikTok inbox/private drafts: `--note` with finish-in-app checklist; update with `posts:review-todo` |
 | 6 | `analytics:platform` / `analytics:post` with `-d 7` \| `30` \| `90` |
 | 7 | Missing release id: `posts:missing` → `posts:connect --release-id` |
 
@@ -154,7 +154,7 @@ Provider settings overview: [resources/provider-settings.md](./resources/provide
 | Instagram Login | `instagram-standalone` | feed, carousel, Reel, Story, trial reel, comments | [instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) |
 | Instagram Page | `instagram-business` | same as standalone (Page-linked OAuth) | [instagram-business-examples.md](./resources/instagram-business-examples.md) |
 | YouTube | `youtube` | MP4 upload, title/privacy/tags/thumbnail, channel analytics | [youtube-examples.md](./resources/youtube-examples.md) |
-| TikTok | `tiktok` | video/photo publish, privacy, posting method, toggles, analytics | [tiktok-examples.md](./resources/tiktok-examples.md) |
+| TikTok | `tiktok` | direct publish, inbox upload (`UPLOAD`), private `SELF_ONLY` drafts, privacy, toggles, analytics | [tiktok-examples.md](./resources/tiktok-examples.md) |
 
 Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 

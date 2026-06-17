@@ -1,4 +1,5 @@
 import type { PostKanbanColumnId } from '$lib/posts/postKanbanBoard.types';
+import type { TiktokManualFinishViewModel } from '$lib/posts/utils/tiktokKanbanManualFinish';
 import dayjs from 'dayjs';
 
 function parsePublishMs(publishDateIso: string): number {
@@ -6,14 +7,23 @@ function parsePublishMs(publishDateIso: string): number {
 	return Number.isFinite(ms) ? ms : Number.NaN;
 }
 
-export function stateToKanbanColumn(state: string): PostKanbanColumnId | null {
+export function stateToKanbanColumn(
+	state: string,
+	manualFinish?: TiktokManualFinishViewModel | null
+): PostKanbanColumnId | null {
 	if (state === 'DRAFT') return 'draft';
 	if (state === 'QUEUE') return 'scheduled';
-	if (state === 'PUBLISHED') return 'published';
+	if (state === 'PUBLISHED') {
+		return manualFinish ? 'scheduled' : 'published';
+	}
 	return null;
 }
 
-export function kanbanColumnStatusLabel(column: PostKanbanColumnId): string {
+export function kanbanColumnStatusLabel(
+	column: PostKanbanColumnId,
+	manualFinish?: TiktokManualFinishViewModel | null
+): string {
+	if (manualFinish) return manualFinish.statusLabel;
 	if (column === 'draft') return 'Draft';
 	if (column === 'scheduled') return 'Scheduled';
 	return 'Published';

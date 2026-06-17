@@ -123,6 +123,8 @@ export type PostRowProgrammerModel = {
 	channelName?: string | null;
 	channelPictureUrl?: string | null;
 	providerIdentifier?: string | null;
+	/** Serialized `posts.settings` JSON from list/flip API. */
+	settings?: string | null;
 	/** Workspace tag names on this post row (list/flip API). */
 	tagNames?: string[];
 };

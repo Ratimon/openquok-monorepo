@@ -274,6 +274,9 @@
 					{#if cardVm.note?.trim()}
 						<span class="text-base-content/50">Note:</span>
 						{cardVm.note}
+					{:else if cardVm.suggestedReviewNote?.trim()}
+						<span class="text-base-content/50">Next:</span>
+						<span class="text-base-content/70 italic">{cardVm.suggestedReviewNote}</span>
 					{:else if cardVm.column !== 'published'}
 						<span class="text-base-content/40">Double-click to add review note…</span>
 					{/if}

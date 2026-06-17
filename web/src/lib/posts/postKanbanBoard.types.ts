@@ -21,7 +21,7 @@ export type PostKanbanColumnOptionViewModel = (typeof POST_KANBAN_COLUMNS)[numbe
 
 export type PostKanbanSourceFilter = 'all' | 'agent' | 'human';
 
-export type PostKanbanTimeFilter = 'all-upcoming' | 'next-week' | 'next-30-days';
+export type PostKanbanTimeFilter = 'all-upcoming' | 'next-week' | 'next-30-days' | 'past';
 
 export type PostKanbanColumnCountViewModel = {
 	visible: number;
@@ -36,7 +36,8 @@ export type PostKanbanTimeFilterOptionViewModel = {
 export const POST_KANBAN_TIME_FILTER_OPTIONS: PostKanbanTimeFilterOptionViewModel[] = [
 	{ id: 'all-upcoming', label: 'All Upcoming' },
 	{ id: 'next-week', label: 'Next Week' },
-	{ id: 'next-30-days', label: 'Next 30 Days' }
+	{ id: 'next-30-days', label: 'Next 30 Days' },
+	{ id: 'past', label: 'Past posts' }
 ];
 
 export type PostKanbanChannelSlotViewModel = {
@@ -63,6 +64,10 @@ export type PostKanbanCardViewModel = {
 	isAgentEdited: boolean;
 	isReviewed: boolean;
 	tagNames: string[];
+	/** TikTok inbox / private-draft posts that still need finishing in the TikTok app. */
+	needsManualFinishInApp?: boolean;
+	/** Kanban hint when `note` is empty (not persisted until the user saves a note). */
+	suggestedReviewNote?: string | null;
 };
 
 export type PostKanbanColumnsViewModel = Record<PostKanbanColumnId, PostKanbanCardViewModel[]>;

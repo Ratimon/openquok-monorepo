@@ -21,6 +21,7 @@ import {
 	kanbanColumnStatusLabel,
 	stateToKanbanColumn
 } from '$lib/posts/utils/postKanbanBoardFormat';
+import { resolveTiktokManualFinish } from '$lib/posts/utils/tiktokKanbanManualFinish';
 import { matchesTagFilters } from '$lib/posts/utils/postTagFilter';
 import { matchesKanbanTimeFilter } from '$lib/posts/utils/postKanbanBoardTimeFilter';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';
@@ -78,7 +79,10 @@ export function filterKanbanCardsByTime(
 	cardsVm: readonly PostKanbanCardViewModel[],
 	timeFilter: PostKanbanTimeFilter
 ): PostKanbanCardViewModel[] {
-	return cardsVm.filter((card) => matchesKanbanTimeFilter(card.publishDateIso, timeFilter));
+	return cardsVm.filter(
+		(card) =>
+			card.needsManualFinishInApp || matchesKanbanTimeFilter(card.publishDateIso, timeFilter)
+	);
 }
 
 export function groupKanbanCardsIntoColumns(
@@ -111,7 +115,7 @@ export function buildKanbanColumnCounts(
 	};
 }
 
-/** Drafts stay visible regardless of publish-date window; scheduled/published respect the time filter. */
+/** Drafts always show; scheduled and published respect the active time filter. */
 export function buildKanbanColumnsWithTimeFilter(
 	cardsVm: readonly PostKanbanCardViewModel[],
 	timeFilter: PostKanbanTimeFilter
@@ -178,6 +182,37 @@ function resolveChannelSlot(
 	return channelSlotFromDisplay(resolved);
 }
 
+const KANBAN_COLUMN_PRIORITY: Record<PostKanbanColumnId, number> = {
+	draft: 0,
+	scheduled: 1,
+	published: 2
+};
+
+function resolveKanbanCardPlacement(groupRows: PostKanbanRowViewModel[]): {
+	column: PostKanbanColumnId;
+	manualFinish: ReturnType<typeof resolveTiktokManualFinish>;
+} | null {
+	const placements = groupRows
+		.map((row) => {
+			const manualFinish = resolveTiktokManualFinish(row);
+			const column = stateToKanbanColumn(row.state, manualFinish);
+			return column ? { column, manualFinish } : null;
+		})
+		.filter((p): p is NonNullable<typeof p> => p !== null);
+
+	if (!placements.length) return null;
+
+	const manualFinish =
+		placements.find((p) => p.manualFinish)?.manualFinish ?? null;
+	const column = placements.reduce(
+		(best, p) =>
+			KANBAN_COLUMN_PRIORITY[p.column] < KANBAN_COLUMN_PRIORITY[best] ? p.column : best,
+		placements[0]!.column
+	);
+
+	return { column, manualFinish };
+}
+
 export function buildKanbanCardsVm(
 	listVm: PostKanbanRowViewModel[],
 	channelById: Map<string, CreateSocialPostChannelViewModel>,
@@ -193,8 +228,10 @@ export function buildKanbanCardsVm(
 	const cards: PostKanbanCardViewModel[] = [];
 	for (const [postGroup, groupRows] of byGroup) {
 		const rep = groupRows[0]!;
-		const column = stateToKanbanColumn(rep.state);
-		if (!column) continue;
+		const placement = resolveKanbanCardPlacement(groupRows);
+		if (!placement) continue;
+
+		const { column, manualFinish } = placement;
 
 		const content =
 			groupRows.find((r) => r.content?.trim())?.content?.trim() ?? rep.content?.trim() ?? '';
@@ -222,7 +259,7 @@ export function buildKanbanCardsVm(
 			publishLabel: dayjs(rep.publishDate).format('MMM D, YYYY h:mm A'),
 			publishTimeLabel: formatKanbanPublishScheduleLabel(rep.publishDate),
 			relativePublishLabel: formatKanbanRelativePublishLabel(rep.publishDate),
-			statusLabel: kanbanColumnStatusLabel(column),
+			statusLabel: kanbanColumnStatusLabel(column, manualFinish),
 			publishDateIso: rep.publishDate,
 			note: rep.note ?? null,
 			channelSlots,
@@ -230,7 +267,10 @@ export function buildKanbanCardsVm(
 			primaryChannelName: channelSlots[0]?.name ?? '',
 			isAgentEdited: rep.isAgentEdited ?? false,
 			isReviewed: rep.isReviewed ?? false,
-			tagNames
+			tagNames,
+			needsManualFinishInApp: Boolean(manualFinish),
+			suggestedReviewNote:
+				manualFinish && !rep.note?.trim() ? manualFinish.defaultReviewNote : null
 		});
 	}
 	return cards;
