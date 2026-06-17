@@ -16,7 +16,7 @@
 	import * as Dialog from '$lib/ui/dialog';
 	import Button, { type ButtonSize, type ButtonVariant } from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
-	import GoogleApiPrivacyNotice from '$lib/ui/components/legal/GoogleApiPrivacyNotice.svelte';
+	import ChannelConnectLegalFooter from '$lib/ui/components/legal/ChannelConnectLegalFooter.svelte';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -97,9 +97,6 @@
 	}
 
 	const currentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
-	const showGoogleApiPrivacyNotice = $derived(
-		providers.some((p) => p.identifier === 'youtube')
-	);
 
 	async function ensureWorkspaceLoaded() {
 		if (currentWorkspaceId) return;
@@ -320,9 +317,9 @@
 				</div>
 			</div>
 		{/if}
-		{#if showGoogleApiPrivacyNotice}
+		{#if !loading && providers.length > 0}
 			<div class="border-t border-base-300 px-6 py-4">
-				<GoogleApiPrivacyNotice />
+				<ChannelConnectLegalFooter />
 			</div>
 		{/if}
 		</Tooltip.Provider>

@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Terms and Conditions of Use for {companyName}</SectionTitle>
-			<SectionDescription>Last updated June 16, 2026</SectionDescription>
+			<SectionDescription>Last updated June 17, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -182,7 +182,7 @@
 				<h2>8. Third-party platforms and integrations</h2>
 				<p>
 					A core function of the Services is to publish Your Content to third-party social and
-					messaging platforms you connect (for example Facebook, Instagram, Threads, and YouTube,
+					messaging platforms you connect (for example Facebook, Instagram, Threads, TikTok, and YouTube,
 					where available). You authenticate those accounts and authorize us to act on your behalf
 					within the scopes you grant.
 				</p>
@@ -217,6 +217,28 @@
 						<strong>Meta platforms</strong> (Facebook, Instagram, Threads) — Meta’s terms and platform
 						policies apply to content published through those APIs.
 					</li>
+					<li>
+						<strong>TikTok</strong> — by connecting TikTok you agree to the
+						<a
+							href="https://www.tiktok.com/legal/terms-of-service"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							TikTok Terms of Service
+						</a>
+						and acknowledge the
+						<a
+							href="https://www.tiktok.com/legal/privacy-policy"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							TikTok Privacy Policy
+						</a>. {companyName} uses TikTok Login Kit and the Content Posting API. See our
+						<a href="/privacy-policy#tiktok-api-services" class="link link-hover">Privacy Policy</a>
+						for how we handle TikTok user data.
+					</li>
 				</ul>
 				<p>
 					You may revoke our access at any time by disconnecting a channel in your workspace
@@ -249,8 +271,8 @@
 				</p>
 				<p>
 					Nothing in the Services publishes to connected platforms without the workflow and approvals
-					you configure. We do not use information received from Google APIs to train generalized
-					machine-learning or AI models, as described in our Privacy Policy.
+					you configure. We do not use information received from Google APIs or TikTok APIs to train
+					generalized machine-learning or AI models, as described in our Privacy Policy.
 				</p>
 
 				<h2>10. Intellectual property</h2>

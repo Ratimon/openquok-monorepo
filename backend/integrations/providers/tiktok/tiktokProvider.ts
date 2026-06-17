@@ -116,7 +116,6 @@ export class TiktokProvider implements SocialProvider {
     isBetweenSteps = false;
     refreshCron = true;
     convertToJPEG = true;
-    toolTip = "Connect a TikTok account for video and photo posts";
 
     scopes = [
         "user.info.basic",

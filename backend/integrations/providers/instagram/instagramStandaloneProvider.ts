@@ -53,6 +53,7 @@ export class InstagramStandaloneProvider implements SocialProvider {
     editor = "normal" as const;
     isBetweenSteps = false;
     refreshCron = true;
+    toolTip = "Professional Instagram account via Instagram Login (no Facebook Page)";
 
     /** Matches Meta’s Business Login authorize example; omit scopes your app has not enabled in the dashboard. */
     scopes = [

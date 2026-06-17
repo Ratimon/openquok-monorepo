@@ -25,6 +25,7 @@
 	import CircularProgressBar from '$lib/ui/circular-progress-bar/CircularProgressBar.svelte';
 	import ContinueProviderPicker from '$lib/ui/components/posts/providers/ContinueProviderPicker.svelte';
 	import GoogleApiPrivacyNotice from '$lib/ui/components/legal/GoogleApiPrivacyNotice.svelte';
+	import TiktokApiPrivacyNotice from '$lib/ui/components/legal/TiktokApiPrivacyNotice.svelte';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -498,6 +499,10 @@
 				{#if provider === 'youtube'}
 					<div class="mt-4 w-full max-w-md text-start">
 						<GoogleApiPrivacyNotice />
+					</div>
+				{:else if provider === 'tiktok'}
+					<div class="mt-4 w-full max-w-md text-start">
+						<TiktokApiPrivacyNotice />
 					</div>
 				{/if}
 				<p class="mt-2 text-sm text-base-content/70">

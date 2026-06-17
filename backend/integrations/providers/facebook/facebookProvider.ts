@@ -73,7 +73,6 @@ export class FacebookProvider implements SocialProvider {
     editor = "normal" as const;
     isBetweenSteps = true;
     refreshCron = true;
-    toolTip = "Connect a Facebook Page you manage";
 
     scopes = [
         "pages_show_list",

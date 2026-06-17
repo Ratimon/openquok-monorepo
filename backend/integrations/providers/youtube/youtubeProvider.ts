@@ -77,7 +77,6 @@ export class YoutubeProvider implements SocialProvider {
     editor = "normal" as const;
     isBetweenSteps = true;
     refreshCron = true;
-    toolTip = "Connect a YouTube channel you manage";
 
     scopes = [
         "https://www.googleapis.com/auth/userinfo.profile",

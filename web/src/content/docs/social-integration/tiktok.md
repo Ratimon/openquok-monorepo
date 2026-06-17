@@ -126,6 +126,8 @@ Fill required app information (app name, category, description).
 
 Fill required urls (term of service, privacy policy, web urls).
 
+For Openquok-hosted deployments, register your public <strong>Terms</strong> and <strong>Privacy Policy</strong> URLs (for example <code>https://www.openquok.com/terms</code> and <code>https://www.openquok.com/privacy-policy</code>). TikTok app review requires these links to be active and visible on your official website without opening a menu.
+
 ![Configure App Urls](/docs/social-integration/tiktok/configure-urls.webp)
 
 <Callout type="note">

@@ -252,6 +252,82 @@
 						</a>
 						, or disconnect the channel from your workspace integrations settings.
 					</li>
+					<li id="tiktok-api-services">
+						<strong>TikTok for Developers:</strong> When you connect a TikTok account, the services use
+						TikTok Login Kit and the Content Posting API (including direct post and inbox upload flows).
+						We receive profile and account data needed to provide the services: TikTok user identifier
+						(<code>open_id</code>), display name, username, avatar image URL, OAuth access and refresh
+						tokens (encrypted at rest), the scopes you granted, and account statistics the TikTok APIs
+						return (for example follower, following, likes, and video counts). When you schedule or
+						publish, we send video or image content and related metadata (for example caption, privacy
+						level, posting method, and interaction or brand-disclosure settings you choose) to TikTok;
+						TikTok fetches media from public HTTPS URLs you host for that purpose. Your use of those
+						features is also subject to the
+						<a
+							href="https://www.tiktok.com/legal/terms-of-service"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							TikTok Terms of Service
+						</a>
+						and the
+						<a
+							href="https://www.tiktok.com/legal/privacy-policy"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							TikTok Privacy Policy
+						</a>.
+						<ul>
+							<li>
+								<strong>OAuth scopes:</strong> When you connect TikTok, we request the narrowest scopes
+								needed to identify your account, publish content you schedule, and show TikTok account
+								statistics in the product. These include <code>user.info.basic</code>,
+								<code>user.info.profile</code>, <code>user.info.stats</code>,
+								<code>video.publish</code>, <code>video.upload</code>, and
+								<code>video.list</code> (shown on the TikTok authorization screen when you approve the
+								connection).
+							</li>
+							<li>
+								<strong>How we use TikTok user data:</strong> We use it only to provide and improve
+								user-facing features you see in {companyName}—for example connecting a channel,
+								scheduling and publishing videos or photo carousels, displaying profile metadata, and
+								showing analytics summaries. We do not use TikTok user data for advertising,
+								retargeting, credit decisions, or selling data to third parties.
+							</li>
+							<li>
+								<strong>How we store TikTok user data:</strong> OAuth tokens are encrypted at rest and
+								kept while the TikTok connection is active (see Section 8). Schedules, publish
+								records, and analytics we retrieve are stored so you can manage content across
+								sessions.
+							</li>
+							<li>
+								<strong>How we share TikTok user data:</strong> We transmit content and metadata to
+								TikTok when you publish or upload through the services. We may process or store TikTok
+								user data using infrastructure subprocessors (for example hosting and database
+								providers) strictly to operate the services. We do not transfer TikTok user data to
+								advertising platforms, data brokers, or other third parties except as described here
+								or with your consent.
+							</li>
+							<li>
+								<strong>Human access:</strong> Our personnel do not read the content of your TikTok
+								data except when you ask us to investigate a specific issue you report, when necessary
+								for security (for example investigating abuse or a bug affecting your account), when
+								required by law, or when the data is aggregated and used for internal operations in line
+								with applicable privacy requirements.
+							</li>
+							<li>
+								<strong>AI and machine learning:</strong> We do not use information received from
+								TikTok APIs to train, fine-tune, or improve generalized machine-learning or AI models.
+							</li>
+						</ul>
+						You can revoke {companyName}'s access at any time by disconnecting the channel from your
+						workspace integrations settings, or in the TikTok mobile app under
+						<strong>Settings and privacy</strong> → <strong>Security</strong> →
+						<strong>Manage app permissions</strong>.
+					</li>
 					<li>
 						<strong>Location you choose to share:</strong> If you provide a specific location (for
 						example an address, city, or place such as a venue) in content, profile fields, or
@@ -676,7 +752,16 @@
 					>
 						Google Privacy Policy
 					</a>
-					for YouTube integrations.
+					for YouTube integrations and the
+					<a
+						href="https://www.tiktok.com/legal/privacy-policy"
+						class="link link-hover"
+						rel="noopener noreferrer"
+						target="_blank"
+					>
+						TikTok Privacy Policy
+					</a>
+					for TikTok integrations.
 				</p>
 
 				<h3>
