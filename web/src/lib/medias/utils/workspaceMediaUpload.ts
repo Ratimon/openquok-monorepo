@@ -1,4 +1,5 @@
 import type { MediaUploadProgrammerModel } from '$lib/medias/Media.repository.svelte';
+import { inferMediaMimeType } from 'openquok-common';
 import { authenticationRepository } from '$lib/user-auth/index';
 import { mediaUploadApiUrl, postMediaUploadJson } from '$lib/medias/utils/mediaUploadApi';
 import type { MediaLibraryUploadMode } from '$lib/medias/utils/mediaLibraryUploadEnv';
@@ -116,7 +117,7 @@ async function uploadViaDirectR2Multipart(params: {
 	onProgress?: (progress: MediaUploadProgress) => void;
 }): Promise<MediaUploadProgrammerModel> {
 	const token = accessToken();
-	const contentType = params.file.type || 'application/octet-stream';
+	const contentType = inferMediaMimeType(params.file.name, params.file.type);
 
 	const created = await postMediaUploadJson({
 		path: '/api/v1/media/create-multipart-upload',

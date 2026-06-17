@@ -182,7 +182,7 @@ pnpm preview
 </TabItem>
 </Tabs>
 
-### Optional Redis (cache)
+### Redis (cache)
 
 If you use <code>CACHE_PROVIDER=redis</code>, run Redis locally or use a managed instance and set <code>REDIS_HOST</code>, <code>REDIS_PORT</code>, and password fields to match.
 
@@ -191,11 +191,11 @@ If you use <code>CACHE_PROVIDER=redis</code>, run Redis locally or use a managed
 
 **Workflow-style jobs** can run in the API process (Flowcraft), but the repo also ships **long-running workers** under <Badge text="orchestrator/" variant="path" /> for BullMQ-backed queues. See the worker section below if you enable BullMQ transport.
 
-### Optional worker processes (BullMQ / orchestrator)
+### Worker Processes (BullMQ)
 
 If you configure orchestrator flows to use BullMQ, the API enqueues jobs to Redis and **separate worker processes** execute them.
 
-<Callout type="note" title="When you need this">
+<Callout type="note">
 Enable workers when you want long-running background work (for example scheduled social post publishing) to run outside the API process. In production, run workers on an always-on host (see <a href="/docs/configuration-worker">Configuration - Worker</a>).
 </Callout>
 
@@ -217,7 +217,7 @@ pnpm orchestrator:dev:worker:scheduled-social-post-bullmq
 
 Worker env and Redis queue details live in <a href="/docs/configuration-worker/docker">Configuration → Worker → Docker (local Redis)</a>.
 
-### Optional CLI auth server (device flow)
+### CLI auth server (device flow)
 
 The CLI auth server (<Badge text="agent/server" variant="path" />) implements the OAuth2 device flow used by <code>openquok auth:login</code>. Most developers can use the hosted server by default, but you can run it locally for end-to-end testing.
 
@@ -418,11 +418,11 @@ See <a href="/docs/cli-usages/managing-posts">CLI — Managing posts</a> and <a 
 3. Find the card under **Drafted**.
 4. As a human: edit the **review note**, check **reviewed**, then schedule or publish from the dashboard — the card should move columns and no longer show as agent-edited after review.
 
-<Callout type="tip" title="Agent vs human review paths">
+<Callout type="tip">
 <p><Badge text="posts:review-todo" variant="default" /> via the CLI is for the <strong>programmatic</strong> path (keeps <Badge text="isAgentEdited" variant="param" /> true). The dashboard uses session <Badge text="PUT /api/v1/posts/:postId/review-todo" variant="path" /> and clears the agent flag when a human marks review complete — that is what this UI smoke test validates.</p>
 </Callout>
 
-### Optional: backend e2e
+### Backend e2e
 
 The repository includes an automated flow that creates via the real CLI bundle and asserts review + schedule over HTTP:
 

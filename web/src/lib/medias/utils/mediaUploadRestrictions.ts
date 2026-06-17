@@ -1,6 +1,7 @@
 import type Uppy from '@uppy/core';
 import {
 	MAX_MEDIA_VIDEO_UPLOAD_BYTES,
+	inferMediaMimeType,
 	validateMediaFileUploadSize,
 	validateMediaUploadSessionSize
 } from 'openquok-common';
@@ -8,7 +9,7 @@ import {
 type UppyFileLike = { id: string; name?: string; type?: string; size?: number | null };
 
 function fileMime(file: UppyFileLike): string {
-	return String(file.type ?? '');
+	return inferMediaMimeType(String(file.name ?? ''), file.type);
 }
 
 function fileSize(file: UppyFileLike): number {
@@ -70,7 +71,11 @@ export function validateFilesForMediaUpload(
 
 	const accepted: File[] = [];
 	for (const file of files) {
-		const err = validateMediaFileUploadSize(file.size, file.type, 'frontend');
+		const err = validateMediaFileUploadSize(
+			file.size,
+			inferMediaMimeType(file.name, file.type),
+			'frontend'
+		);
 		if (err) {
 			onError?.(err);
 			continue;

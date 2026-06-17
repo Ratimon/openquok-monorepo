@@ -31,6 +31,33 @@ export function isVideoMediaMime(mimetype: string): boolean {
 	return normalizeMime(mimetype).startsWith('video/');
 }
 
+const EXTENSION_TO_MIME: Record<string, string> = {
+	png: 'image/png',
+	jpg: 'image/jpeg',
+	jpeg: 'image/jpeg',
+	gif: 'image/gif',
+	webp: 'image/webp',
+	svg: 'image/svg+xml',
+	avif: 'image/avif',
+	mp4: 'video/mp4',
+	mov: 'video/quicktime',
+	webm: 'video/webm',
+	m4v: 'video/x-m4v',
+	mpeg: 'video/mpeg',
+	mpg: 'video/mpeg',
+	pdf: 'application/pdf'
+};
+
+/** Prefer the browser MIME; fall back to filename extension when missing or generic. */
+export function inferMediaMimeType(filename: string, mimetype?: string | null): string {
+	const normalized = normalizeMime(mimetype ?? '');
+	if (normalized && normalized !== 'application/octet-stream') {
+		return normalized;
+	}
+	const ext = filename.split('.').pop()?.toLowerCase() ?? '';
+	return EXTENSION_TO_MIME[ext] ?? (normalized || 'application/octet-stream');
+}
+
 /** Per-file byte cap for the given MIME type and validation surface. */
 export function maxMediaUploadBytesForMime(
 	mimetype: string,

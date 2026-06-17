@@ -13,6 +13,7 @@ import { AuthError } from "../errors/AuthError";
 import { UserValidationError } from "../errors/UserError";
 import {
     MAX_MEDIA_UPLOAD_BYTES,
+    inferMediaMimeType,
     mediaVirtualPathFromFileManagerTarget,
     normalizeMediaVirtualPath,
     parseMediaFileManagerId,
@@ -53,13 +54,14 @@ export class MediaController {
         file: { buffer: Buffer; originalname: string; mimetype: string };
     }): Promise<{ filePath: string; publicUrl: string | null }> {
         const { organizationId, authUserId, file } = params;
+        const mimetype = inferMediaMimeType(file.originalname, file.mimetype);
 
-        if (!isAllowedMediaMime(file.mimetype || "")) {
+        if (!isAllowedMediaMime(mimetype)) {
             throw new UserValidationError("Unsupported media type");
         }
 
         const size = file.buffer.length;
-        const uploadSizeError = validateMediaFileUploadSize(size, file.mimetype || "", "backend");
+        const uploadSizeError = validateMediaFileUploadSize(size, mimetype, "backend");
         if (uploadSizeError) {
             throw new UserValidationError(uploadSizeError);
         }
@@ -70,7 +72,7 @@ export class MediaController {
             organizationId,
             buffer: file.buffer,
             originalName: file.originalname,
-            contentType: file.mimetype || "application/octet-stream",
+            contentType: mimetype,
         });
 
         return { filePath: out.path, publicUrl: out.publicUrl ?? publicUrlForObjectKey(out.path) };
@@ -437,13 +439,16 @@ export class MediaController {
             if (endpoint === "complete-multipart-upload") {
                 const key = String((req.body as any)?.key ?? "");
                 const uploadId = String((req.body as any)?.uploadId ?? "");
-                const contentType = String((req.body as any)?.contentType ?? "");
-                const fileSize = Number((req.body as any)?.file?.size ?? 0) || 0;
-                const uploadSizeError = validateMediaFileUploadSize(
-                    fileSize,
-                    contentType || "application/octet-stream",
-                    "backend"
+                const originalName =
+                    typeof (req.body as any)?.file?.name === "string"
+                        ? String((req.body as any).file.name)
+                        : "";
+                const contentType = inferMediaMimeType(
+                    originalName,
+                    String((req.body as any)?.contentType ?? "")
                 );
+                const fileSize = Number((req.body as any)?.file?.size ?? 0) || 0;
+                const uploadSizeError = validateMediaFileUploadSize(fileSize, contentType, "backend");
                 if (uploadSizeError) {
                     throw new UserValidationError(uploadSizeError);
                 }
@@ -464,20 +469,14 @@ export class MediaController {
                     publicBaseUrl: null,
                 });
 
-                const originalName =
-                    typeof (req.body as any)?.file?.name === "string" ? String((req.body as any).file.name) : undefined;
                 const saved = await this.mediaService.saveFile({
                     organizationId,
                     name: key.split("/").pop() ?? key,
                     path: key,
                     virtualPath: readVirtualPath(req.body),
-                    originalName: originalName ?? null,
+                    originalName: originalName || null,
                     fileSize: Number((req.body as any)?.file?.size ?? 0) || 0,
-                    type:
-                        typeof (req.body as any)?.contentType === "string" &&
-                        String((req.body as any).contentType).startsWith("video/")
-                            ? "video"
-                            : "image",
+                    type: contentType.startsWith("video/") ? "video" : "image",
                 });
 
                 res.status(200).json({ ...completed, saved });

@@ -1,6 +1,6 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import { uploadWorkspaceMediaFile, type MediaUploadProgress } from '$lib/medias/utils/workspaceMediaUpload';
-import { validateMediaFileUploadSize } from 'openquok-common';
+import { validateMediaFileUploadSize, inferMediaMimeType } from 'openquok-common';
 
 export interface MediaFileTreeEntityProgrammerModel {
 	id: string;
@@ -328,7 +328,11 @@ export class MediaRepository {
 		virtualPath?: string,
 		options?: { onProgress?: (progress: MediaUploadProgress) => void }
 	): Promise<MediaUploadProgrammerModel> {
-		const sizeError = validateMediaFileUploadSize(file.size, file.type, 'frontend');
+		const sizeError = validateMediaFileUploadSize(
+			file.size,
+			inferMediaMimeType(file.name, file.type),
+			'frontend'
+		);
 		if (sizeError) {
 			return { success: false, data: { filePath: '' }, message: sizeError };
 		}

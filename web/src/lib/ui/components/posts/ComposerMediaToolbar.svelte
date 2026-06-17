@@ -11,7 +11,7 @@
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { formatBytes } from '$lib/medias';
-	import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
+	import { attachComposerMediaFromFiles } from '$lib/posts/utils/composerMediaDrop';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 
@@ -94,13 +94,15 @@
 
 	async function uploadFiles(files: FileList | null): Promise<boolean> {
 		if (mediaAtCap) return false;
-		if (!files?.length || disabled || uploadBusy || !uploadUid) return false;
+		if (!files?.length || disabled || uploadBusy) return false;
 		uploadBusy = true;
 		uploadPhase = 'uploading';
 		barPercent = 0;
 		uploadDetailLine = '';
 		try {
-			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid, {
+			const batch = await attachComposerMediaFromFiles({
+				files,
+				uploadUid,
 				publishDateIso,
 				onProgress: ({ bytesUploaded, bytesTotal }) => {
 					uploadPhase = 'uploading';

@@ -12,6 +12,7 @@ export {
 	validateMediaFileUploadSize,
 	validateMediaUploadSessionSize,
 	isVideoMediaMime,
+	inferMediaMimeType,
 	type MediaUploadValidationSurface,
 } from './media/uploadLimits.js';
 export type {

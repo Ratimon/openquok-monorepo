@@ -15,6 +15,7 @@
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 	import ComposerMediaToolbar from '$lib/ui/components/posts/ComposerMediaToolbar.svelte';
 	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
+	import { filesFromDataTransfer } from '$lib/posts/utils/composerMediaDrop';
 	import { toast } from '$lib/ui/sonner';
 
 	interface EditorPostProps {
@@ -94,6 +95,8 @@
 
 	let confirmOpen = $state(false);
 	let composerTextarea = $state.raw<HTMLTextAreaElement | null>(null);
+	let composerMedia = $state<MultiMedia | undefined>(undefined);
+	let composerDragOver = $state(false);
 
 	function requestBannerRightAction() {
 		if (!onBannerRightAction) return;
@@ -131,6 +134,35 @@
 			);
 		}
 	}
+
+	function canAcceptComposerMediaDrop(): boolean {
+		return !locked && !defineSetScopeOverlay && !comments && !busy && !mediaAtCap;
+	}
+
+	function onComposerDragOver(e: DragEvent) {
+		if (!canAcceptComposerMediaDrop()) return;
+		e.preventDefault();
+		e.stopPropagation();
+		composerDragOver = true;
+	}
+
+	function onComposerDragLeave(e: DragEvent) {
+		const related = e.relatedTarget;
+		if (related instanceof Node && e.currentTarget instanceof Node && e.currentTarget.contains(related)) {
+			return;
+		}
+		composerDragOver = false;
+	}
+
+	function onComposerDrop(e: DragEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		composerDragOver = false;
+		if (!canAcceptComposerMediaDrop()) return;
+		const files = filesFromDataTransfer(e.dataTransfer);
+		if (!files.length) return;
+		void composerMedia?.ingestFiles(files);
+	}
 	const textareaRows = $derived(
 		compact ? (comments ? 2 : 4) : comments ? 5 : 8
 	);
@@ -167,76 +199,84 @@
 
 	<label class="sr-only" for="composer-body">
 		Post body</label>
-	<div class="relative">
-		<textarea
-			id="composer-body"
-			bind:this={composerTextarea}
-			bind:value={body}
-			rows={textareaRows}
-			placeholder={comments ? 'Write a comment…' : 'Write something…'}
-			onpaste={onComposerPaste}
-			disabled={busy || locked || defineSetScopeOverlay}
-			class="border-base-300 bg-base-200 focus:border-primary focus:ring-primary/30 focus:ring-inset {textareaMinHeightClass} max-h-[320px] w-full resize-none sm:resize-y rounded-lg border px-3 pt-2 text-sm text-base-content placeholder:text-base-content/40 focus:ring-2 focus:outline-none {locked
-				? 'pb-2'
-				: comments
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="rounded-lg {composerDragOver ? 'ring-primary/60 ring-2 ring-inset' : ''}"
+		ondragover={onComposerDragOver}
+		ondragleave={onComposerDragLeave}
+		ondrop={onComposerDrop}
+	>
+		<div class="relative">
+			<textarea
+				id="composer-body"
+				bind:this={composerTextarea}
+				bind:value={body}
+				rows={textareaRows}
+				placeholder={comments ? 'Write a comment…' : 'Write something…'}
+				onpaste={onComposerPaste}
+				disabled={busy || locked || defineSetScopeOverlay}
+				class="border-base-300 bg-base-200 focus:border-primary focus:ring-primary/30 focus:ring-inset {textareaMinHeightClass} max-h-[320px] w-full resize-none sm:resize-y rounded-lg border px-3 pt-2 text-sm text-base-content placeholder:text-base-content/40 focus:ring-2 focus:outline-none {locked
 					? 'pb-2'
-					: 'pb-12'}"
-		></textarea>
+					: comments
+						? 'pb-2'
+						: 'pb-12'}"
+			></textarea>
 
-		{#if locked}
-			<div class="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-black/45 p-6 text-center">
-				<div class="bg-base-100/90 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-					<AbstractIcon name={icons.Lock.name} class="size-6" width="24" height="24" />
+			{#if locked}
+				<div class="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-black/45 p-6 text-center">
+					<div class="bg-base-100/90 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
+						<AbstractIcon name={icons.Lock.name} class="size-6" width="24" height="24" />
+					</div>
+					<p class="mb-4 max-w-[420px] text-sm font-medium text-white/90">
+						{lockMessage}</p>
+					<Button type="button" variant="primary" disabled={busy} onclick={() => onUnlock?.()}>
+						Edit content
+					</Button>
 				</div>
-				<p class="mb-4 max-w-[420px] text-sm font-medium text-white/90">
-					{lockMessage}</p>
-				<Button type="button" variant="primary" disabled={busy} onclick={() => onUnlock?.()}>
-					Edit content
-				</Button>
-			</div>
-		{:else if defineSetScopeOverlay}
-			<div
-				class="pointer-events-auto absolute inset-0 z-[5] flex flex-col items-center justify-center rounded-lg bg-black/50 p-6 text-center"
-				aria-live="polite"
-			>
-				<div class="bg-base-100/90 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-					<AbstractIcon name={icons.Lock.name} class="size-6" width="24" height="24" />
+			{:else if defineSetScopeOverlay}
+				<div
+					class="pointer-events-auto absolute inset-0 z-[5] flex flex-col items-center justify-center rounded-lg bg-black/50 p-6 text-center"
+					aria-live="polite"
+				>
+					<div class="bg-base-100/90 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
+						<AbstractIcon name={icons.Lock.name} class="size-6" width="24" height="24" />
+					</div>
+					<p class="max-w-[420px] text-sm font-medium text-white/95">
+						You can't edit networks when creating a set
+					</p>
 				</div>
-				<p class="max-w-[420px] text-sm font-medium text-white/95">
-					You can't edit networks when creating a set
-				</p>
-			</div>
-		{:else if !comments}
-			<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-start">
-				<ComposerMediaToolbar
-					class="pointer-events-auto"
-					{stockPhotosVm}
-					{designTemplatesVm}
-					{fetchPolotnoTemplateListPage}
-					{backgroundPanelVm}
-					{exportCanvasToMedia}
-					bind:items={postMediaItems}
-					disabled={busy}
-					{uploadUid}
-					{publishDateIso}
-					{organizationId}
-					{loadSignaturesVmForComposer}
-					textarea={composerTextarea}
-					{composerMode}
-					{focusedProviderIdentifier}
-					{maxMediaItems}
-					onInsertSignature={(sig) => {
-						const base = body ?? '';
-						const suffix = base.trim().length === 0 ? sig : `\n\n${sig}`;
-						body = `${base}${suffix}`;
-					}}
-				/>
-			</div>
-		{/if}
-	</div>
+			{:else if !comments}
+				<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-start">
+					<ComposerMediaToolbar
+						class="pointer-events-auto"
+						{stockPhotosVm}
+						{designTemplatesVm}
+						{fetchPolotnoTemplateListPage}
+						{backgroundPanelVm}
+						{exportCanvasToMedia}
+						bind:items={postMediaItems}
+						disabled={busy}
+						{uploadUid}
+						{publishDateIso}
+						{organizationId}
+						{loadSignaturesVmForComposer}
+						textarea={composerTextarea}
+						{composerMode}
+						{focusedProviderIdentifier}
+						{maxMediaItems}
+						onInsertSignature={(sig) => {
+							const base = body ?? '';
+							const suffix = base.trim().length === 0 ? sig : `\n\n${sig}`;
+							body = `${base}${suffix}`;
+						}}
+					/>
+				</div>
+			{/if}
+		</div>
 	{#if !locked && !defineSetScopeOverlay && !comments}
 		<div class="mt-2 border-t border-base-300/80 pt-2">
 			<MultiMedia
+				bind:this={composerMedia}
 				bind:items={postMediaItems}
 				disabled={busy}
 				{uploadUid}
@@ -250,6 +290,7 @@
 			</div>
 		{/if}
 	{/if}
+	</div>
 	<div class="mt-2 flex flex-wrap items-center justify-end gap-2 border-t border-base-300/80 pt-2">
 		<div
 			class="rounded border px-2 py-0.5 text-xs font-medium {charCount > softCharLimit

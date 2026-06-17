@@ -3,7 +3,11 @@
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
 	import { isVideoMediaPath, publicUrlForMediaStorageKey, formatBytes } from '$lib/medias';
-	import { getScheduledPostsPresenter, uploadSocialPostComposerMediaFiles } from '$lib/posts';
+	import { getScheduledPostsPresenter } from '$lib/posts';
+	import {
+		attachComposerMediaFromFiles,
+		filesFromDataTransfer
+	} from '$lib/posts/utils/composerMediaDrop';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 
@@ -79,15 +83,19 @@
 		items = next;
 	}
 
-	async function uploadFiles(files: FileList | null) {
+	async function uploadFiles(files: FileList | File[] | null) {
 		if (mediaAtCap) return;
-		if (!files?.length || disabled || uploadBusy || !uploadUid) return;
+		const list =
+			files == null ? [] : files instanceof FileList ? Array.from(files) : files;
+		if (!list.length || disabled || uploadBusy) return;
 		uploadBusy = true;
 		uploadPhase = 'uploading';
 		barPercent = 0;
 		uploadDetailLine = '';
 		try {
-			const batch = await uploadSocialPostComposerMediaFiles(files, uploadUid, {
+			const batch = await attachComposerMediaFromFiles({
+				files: list,
+				uploadUid,
 				publishDateIso,
 				onProgress: ({ bytesUploaded, bytesTotal }) => {
 					uploadPhase = 'uploading';
@@ -116,12 +124,23 @@
 		}
 	}
 
+	/** Accept dropped or pasted files from a parent drop zone (e.g. the full composer editor). */
+	export async function ingestFiles(files: FileList | File[] | null | undefined) {
+		if (!files) return;
+		await uploadFiles(files instanceof FileList ? files : files);
+	}
+
+	export function isUploadBusy(): boolean {
+		return uploadBusy;
+	}
+
 	function onDropZoneDrop(e: DragEvent) {
 		e.preventDefault();
+		e.stopPropagation();
 		dragOver = false;
 		if (noDrag) return;
 		if (disabled || uploadBusy) return;
-		void uploadFiles(e.dataTransfer?.files ?? null);
+		void uploadFiles(filesFromDataTransfer(e.dataTransfer));
 	}
 
 	$effect(() => {
