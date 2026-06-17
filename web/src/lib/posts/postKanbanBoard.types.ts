@@ -99,6 +99,20 @@ export const POST_KANBAN_SOURCE_FILTER_OPTIONS: PostKanbanSourceFilterOptionView
 	{ id: 'human', label: 'Human', iconName: icons.UserRoundPen.name }
 ];
 
+export type PostKanbanReviewFilter = 'all' | 'todo' | 'reviewed';
+
+export type PostKanbanReviewFilterOptionViewModel = {
+	id: PostKanbanReviewFilter;
+	label: string;
+	iconName?: IconName;
+};
+
+export const POST_KANBAN_REVIEW_FILTER_OPTIONS: PostKanbanReviewFilterOptionViewModel[] = [
+	{ id: 'all', label: 'All' },
+	{ id: 'todo', label: 'To do', iconName: icons.BookOpenCheck.name },
+	{ id: 'reviewed', label: 'Reviewed', iconName: icons.CircleCheck.name }
+];
+
 /** Single fetch window on load; time/source filters apply client-side only. */
 export const KANBAN_BOARD_LOOKBACK_DAYS = 730;
 export const KANBAN_BOARD_LOOKAHEAD_DAYS = 730;

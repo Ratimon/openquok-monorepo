@@ -1,13 +1,15 @@
 <script lang="ts">
-	import type { PostKanbanSourceFilter, PostKanbanTimeFilter } from '$lib/posts/postKanbanBoard.types';
+	import type { PostKanbanReviewFilter, PostKanbanSourceFilter, PostKanbanTimeFilter } from '$lib/posts/postKanbanBoard.types';
 	import {
 		POST_KANBAN_COLUMNS,
+		POST_KANBAN_REVIEW_FILTER_OPTIONS,
 		POST_KANBAN_SOURCE_FILTER_OPTIONS,
 		POST_KANBAN_TIME_FILTER_OPTIONS
 	} from '$lib/posts/postKanbanBoard.types';
 	import {
 		buildKanbanColumnCounts,
 		buildKanbanColumnsWithTimeFilter,
+		filterKanbanCardsByReview,
 		filterKanbanCardsBySource,
 		groupKanbanCardsIntoColumns
 	} from '$lib/posts/utils/postKanbanBoardCards';
@@ -21,9 +23,15 @@
 	const kanbanPosts = THREADS_LANDING_KANBAN_CARDS.map((card) => ({ tagNames: card.tagNames }));
 
 	let sourceFilter = $state<PostKanbanSourceFilter>('all');
+	let reviewFilter = $state<PostKanbanReviewFilter>('all');
 	let timeFilter = $state<PostKanbanTimeFilter>('all-upcoming');
 
-	const filteredCards = $derived(filterKanbanCardsBySource(THREADS_LANDING_KANBAN_CARDS, sourceFilter));
+	const filteredCards = $derived(
+		filterKanbanCardsByReview(
+			filterKanbanCardsBySource(THREADS_LANDING_KANBAN_CARDS, sourceFilter),
+			reviewFilter
+		)
+	);
 	const columnsVm = $derived(buildKanbanColumnsWithTimeFilter(filteredCards, timeFilter));
 	const columnCountsVm = $derived(
 		buildKanbanColumnCounts(columnsVm, groupKanbanCardsIntoColumns(filteredCards))
@@ -55,6 +63,8 @@
 			{timeFilter}
 			sourceFilterOptions={POST_KANBAN_SOURCE_FILTER_OPTIONS}
 			{sourceFilter}
+			reviewFilterOptions={POST_KANBAN_REVIEW_FILTER_OPTIONS}
+			{reviewFilter}
 			calendarHref="/account/calendar"
 			onGroupFilterChange={noop}
 			onSocialPlatformFilterChange={noop}
@@ -64,6 +74,9 @@
 			}}
 			onSourceFilterChange={(next) => {
 				sourceFilter = next;
+			}}
+			onReviewFilterChange={(next) => {
+				reviewFilter = next;
 			}}
 		/>
 	</div>

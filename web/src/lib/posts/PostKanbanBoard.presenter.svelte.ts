@@ -12,7 +12,9 @@ import {
 	KANBAN_BOARD_LOOKBACK_DAYS,
 	POST_KANBAN_COLUMNS,
 	POST_KANBAN_SOURCE_FILTER_OPTIONS,
+	POST_KANBAN_REVIEW_FILTER_OPTIONS,
 	POST_KANBAN_TIME_FILTER_OPTIONS,
+	type PostKanbanReviewFilter,
 	type PostKanbanCardViewModel,
 	type PostKanbanChannelSlotViewModel,
 	type PostKanbanColumnCountsViewModel,
@@ -31,6 +33,7 @@ import {
 	buildKanbanColumnsWithTimeFilter,
 	channelSlotFromChannel,
 	filterKanbanCardsByIntegration,
+	filterKanbanCardsByReview,
 	filterKanbanCardsBySource,
 	filterKanbanCardsByTags,
 	groupKanbanCardsIntoColumns
@@ -55,6 +58,8 @@ export type {
 	PostKanbanDeletePostGroupResultViewModel,
 	PostKanbanMoveCardResultViewModel,
 	PostKanbanRowViewModel,
+	PostKanbanReviewFilter,
+	PostKanbanReviewFilterOptionViewModel,
 	PostKanbanSourceFilter,
 	PostKanbanSourceFilterOptionViewModel,
 	PostKanbanTimeFilter,
@@ -64,6 +69,7 @@ export type {
 export {
 	POST_KANBAN_COLUMNS,
 	POST_KANBAN_SOURCE_FILTER_OPTIONS,
+	POST_KANBAN_REVIEW_FILTER_OPTIONS,
 	POST_KANBAN_TIME_FILTER_OPTIONS
 } from '$lib/posts/postKanbanBoard.types';
 
@@ -72,9 +78,11 @@ export { formatKanbanRelativePublishLabel } from '$lib/posts/utils/postKanbanBoa
 export class PostKanbanBoardPresenter {
 	readonly columnOptions = POST_KANBAN_COLUMNS;
 	readonly sourceFilterOptions = POST_KANBAN_SOURCE_FILTER_OPTIONS;
+	readonly reviewFilterOptions = POST_KANBAN_REVIEW_FILTER_OPTIONS;
 	readonly timeFilterOptions = POST_KANBAN_TIME_FILTER_OPTIONS;
 
 	sourceFilter = $state<PostKanbanSourceFilter>('all');
+	reviewFilter = $state<PostKanbanReviewFilter>('all');
 	timeFilter = $state<PostKanbanTimeFilter>('all-upcoming');
 	allGroups = $state(true);
 	selectedGroupIds = $state<string[]>([]);
@@ -102,7 +110,8 @@ export class PostKanbanBoardPresenter {
 			this.allTags,
 			this.selectedTagNames
 		);
-		return filterKanbanCardsBySource(tagFiltered, this.sourceFilter);
+		const sourceFiltered = filterKanbanCardsBySource(tagFiltered, this.sourceFilter);
+		return filterKanbanCardsByReview(sourceFiltered, this.reviewFilter);
 	});
 
 	columnsVm = $derived.by((): PostKanbanColumnsViewModel =>
@@ -189,6 +198,10 @@ export class PostKanbanBoardPresenter {
 
 	setSourceFilter(next: PostKanbanSourceFilter) {
 		this.sourceFilter = next;
+	}
+
+	setReviewFilter(next: PostKanbanReviewFilter) {
+		this.reviewFilter = next;
 	}
 
 	setTimeFilter(next: PostKanbanTimeFilter) {

@@ -2,6 +2,8 @@
 	import type {
 		CalendarPostRowViewModel,
 		ChannelViewModel,
+		PostKanbanReviewFilter,
+		PostKanbanReviewFilterOptionViewModel,
 		PostKanbanSourceFilter,
 		PostKanbanSourceFilterOptionViewModel,
 		PostKanbanTimeFilter,
@@ -33,12 +35,15 @@
 		timeFilter: PostKanbanTimeFilter;
 		sourceFilterOptions: readonly PostKanbanSourceFilterOptionViewModel[];
 		sourceFilter: PostKanbanSourceFilter;
+		reviewFilterOptions: readonly PostKanbanReviewFilterOptionViewModel[];
+		reviewFilter: PostKanbanReviewFilter;
 		calendarHref: string;
 		onGroupFilterChange: (next: { allGroups: boolean; selectedGroupIds: string[] }) => void;
 		onSocialPlatformFilterChange: (next: SocialPlatformFilterVm) => void;
 		onTagFilterChange: (next: PostTagFilterVm) => void;
 		onTimeFilterChange: (next: PostKanbanTimeFilter) => void;
 		onSourceFilterChange: (next: PostKanbanSourceFilter) => void;
+		onReviewFilterChange: (next: PostKanbanReviewFilter) => void;
 	};
 
 	let {
@@ -55,12 +60,15 @@
 		timeFilter,
 		sourceFilterOptions,
 		sourceFilter,
+		reviewFilterOptions,
+		reviewFilter,
 		calendarHref,
 		onGroupFilterChange,
 		onSocialPlatformFilterChange,
 		onTagFilterChange,
 		onTimeFilterChange,
-		onSourceFilterChange
+		onSourceFilterChange,
+		onReviewFilterChange
 	}: Props = $props();
 
 	const hasDistinctSocialPlatforms = $derived.by(() => {
@@ -136,11 +144,42 @@
 				Calendar
 			</Button>
 		</div>
-		<div
-			class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
-			role="group"
-			aria-label="Filter by source"
-		>
+		<div class="flex max-w-full flex-wrap items-center justify-end gap-2">
+			<div
+				class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
+				role="group"
+				aria-label="Filter by review status"
+			>
+				{#each reviewFilterOptions as opt (opt.id)}
+					<Button
+						type="button"
+						variant={reviewFilter === opt.id ? 'secondary' : 'ghost'}
+						size="sm"
+						class="rounded-none px-3"
+						aria-pressed={reviewFilter === opt.id}
+						onclick={() => onReviewFilterChange(opt.id)}
+					>
+						<span class="inline-flex items-center gap-1.5">
+							{#if opt.iconName}
+								<span class="badge badge-secondary badge-xs shrink-0 border-0 p-0.5">
+									<AbstractIcon
+										name={opt.iconName}
+										class="size-3"
+										width="12"
+										height="12"
+									/>
+								</span>
+							{/if}
+							{opt.label}
+						</span>
+					</Button>
+				{/each}
+			</div>
+			<div
+				class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
+				role="group"
+				aria-label="Filter by source"
+			>
 			{#each sourceFilterOptions as opt (opt.id)}
 				<Button
 					type="button"
@@ -165,6 +204,7 @@
 					</span>
 				</Button>
 			{/each}
+			</div>
 		</div>
 	</div>
 </div>

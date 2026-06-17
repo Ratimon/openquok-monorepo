@@ -127,8 +127,10 @@
 	const postKanbanColumnCountsVm = $derived(postKanbanBoard.columnCountsVm);
 	const postKanbanColumnOptions = $derived(postKanbanBoard.columnOptions);
 	const postKanbanSourceFilterOptions = $derived(postKanbanBoard.sourceFilterOptions);
+	const postKanbanReviewFilterOptions = $derived(postKanbanBoard.reviewFilterOptions);
 	const postKanbanTimeFilterOptions = $derived(postKanbanBoard.timeFilterOptions);
 	const postKanbanSourceFilter = $derived(postKanbanBoard.sourceFilter);
+	const postKanbanReviewFilter = $derived(postKanbanBoard.reviewFilter);
 	const postKanbanTimeFilter = $derived(postKanbanBoard.timeFilter);
 	const postKanbanAllGroups = $derived(postKanbanBoard.allGroups);
 	const postKanbanSelectedGroupIds = $derived(postKanbanBoard.selectedGroupIds);
@@ -865,8 +867,10 @@
 			columnCountsVm={postKanbanColumnCountsVm}
 			columnOptions={postKanbanColumnOptions}
 			sourceFilterOptions={postKanbanSourceFilterOptions}
+			reviewFilterOptions={postKanbanReviewFilterOptions}
 			timeFilterOptions={postKanbanTimeFilterOptions}
 			sourceFilter={postKanbanSourceFilter}
+			reviewFilter={postKanbanReviewFilter}
 			timeFilter={postKanbanTimeFilter}
 			status={postKanbanStatus}
 			error={postKanbanError}
@@ -879,6 +883,7 @@
 			onSocialPlatformFilterChange={(next) => postKanbanBoard.setSocialPlatformFilter(next)}
 			onTagFilterChange={(next) => postKanbanBoard.setTagFilter(next)}
 			onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
+			onReviewFilterChange={(next) => postKanbanBoard.setReviewFilter(next)}
 			onTimeFilterChange={(next) => postKanbanBoard.setTimeFilter(next)}
 			onMoveCardToColumn={handleKanbanMoveCardToColumn}
 			onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}

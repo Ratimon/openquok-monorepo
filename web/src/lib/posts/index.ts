@@ -94,6 +94,8 @@ export type {
 	PostKanbanColumnsViewModel,
 	PostKanbanMoveCardResultViewModel,
 	PostKanbanRowViewModel,
+	PostKanbanReviewFilter,
+	PostKanbanReviewFilterOptionViewModel,
 	PostKanbanSourceFilter,
 	PostKanbanSourceFilterOptionViewModel,
 	PostKanbanTimeFilter,
@@ -102,6 +104,7 @@ export type {
 export {
 	POST_KANBAN_COLUMNS,
 	POST_KANBAN_SOURCE_FILTER_OPTIONS,
+	POST_KANBAN_REVIEW_FILTER_OPTIONS,
 	POST_KANBAN_TIME_FILTER_OPTIONS
 } from '$lib/posts/postKanbanBoard.types';
 export { socialProviderIcon, socialProviderIconByIdentifier } from '$data/social-providers';

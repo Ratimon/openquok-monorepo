@@ -12,6 +12,7 @@ import type {
 	PostKanbanColumnId,
 	PostKanbanColumnsViewModel,
 	PostKanbanRowViewModel,
+	PostKanbanReviewFilter,
 	PostKanbanSourceFilter,
 	PostKanbanTimeFilter
 } from '$lib/posts/postKanbanBoard.types';
@@ -73,6 +74,15 @@ export function filterKanbanCardsBySource(
 	return cardsVm.filter((card) =>
 		sourceFilter === 'agent' ? card.isAgentEdited : !card.isAgentEdited
 	);
+}
+
+export function filterKanbanCardsByReview(
+	cardsVm: readonly PostKanbanCardViewModel[],
+	reviewFilter: PostKanbanReviewFilter
+): PostKanbanCardViewModel[] {
+	if (reviewFilter === 'all') return [...cardsVm];
+	if (reviewFilter === 'todo') return cardsVm.filter((card) => !card.isReviewed);
+	return cardsVm.filter((card) => card.isReviewed);
 }
 
 export function filterKanbanCardsByTime(

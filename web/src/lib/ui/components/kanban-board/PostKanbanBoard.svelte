@@ -12,6 +12,8 @@
 		PostKanbanColumnOptionViewModel,
 		PostKanbanColumnsViewModel,
 		PostKanbanMoveCardResultViewModel,
+		PostKanbanReviewFilter,
+		PostKanbanReviewFilterOptionViewModel,
 		PostKanbanSourceFilter,
 		PostKanbanSourceFilterOptionViewModel,
 		PostKanbanTimeFilter,
@@ -55,8 +57,10 @@
 		columnCountsVm: PostKanbanColumnCountsViewModel;
 		columnOptions: readonly PostKanbanColumnOptionViewModel[];
 		sourceFilterOptions: readonly PostKanbanSourceFilterOptionViewModel[];
+		reviewFilterOptions: readonly PostKanbanReviewFilterOptionViewModel[];
 		timeFilterOptions: readonly PostKanbanTimeFilterOptionViewModel[];
 		sourceFilter: PostKanbanSourceFilter;
+		reviewFilter: PostKanbanReviewFilter;
 		timeFilter: PostKanbanTimeFilter;
 		status: 'idle' | 'loading' | 'ready' | 'error';
 		error: string | null;
@@ -69,6 +73,7 @@
 		onSocialPlatformFilterChange: (next: SocialPlatformFilterVm) => void;
 		onTagFilterChange: (next: PostTagFilterVm) => void;
 		onSourceFilterChange: (next: PostKanbanSourceFilter) => void;
+		onReviewFilterChange: (next: PostKanbanReviewFilter) => void;
 		onTimeFilterChange: (next: PostKanbanTimeFilter) => void;
 		onMoveCardToColumn: (
 			payload: KanbanCardDragPayload,
@@ -95,8 +100,10 @@
 		columnCountsVm,
 		columnOptions,
 		sourceFilterOptions,
+		reviewFilterOptions,
 		timeFilterOptions,
 		sourceFilter,
+		reviewFilter,
 		timeFilter,
 		status,
 		error,
@@ -108,6 +115,7 @@
 		onSocialPlatformFilterChange,
 		onTagFilterChange,
 		onSourceFilterChange,
+		onReviewFilterChange,
 		onTimeFilterChange,
 		onMoveCardToColumn,
 		onToggleReviewed,
@@ -207,12 +215,15 @@
 			{timeFilter}
 			{sourceFilterOptions}
 			{sourceFilter}
+			{reviewFilterOptions}
+			{reviewFilter}
 			{calendarHref}
 			{onGroupFilterChange}
 			{onSocialPlatformFilterChange}
 			{onTagFilterChange}
 			{onTimeFilterChange}
 			{onSourceFilterChange}
+			{onReviewFilterChange}
 		/>
 
 		{#if showPostsPerMonthSection && postsUsageLabel && postsLimit != null}
