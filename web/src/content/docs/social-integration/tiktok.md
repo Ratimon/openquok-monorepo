@@ -2,7 +2,7 @@
 title: TikTok
 description: How to configure TikTok publishing for Openquok — TikTok Developer app, OAuth redirect URI, scopes, and backend env vars.
 order: 6
-lastUpdated: 2026-06-17
+lastUpdated: 2026-06-18
 ---
 
 <script>
@@ -32,7 +32,9 @@ CLI walkthroughs: <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a
 | Posting method | `DIRECT_POST` (publish immediately) or `UPLOAD` (send to user inbox) |
 | Duet / Stitch / Comments toggles | Optional per post |
 | Brand disclosure toggles | Optional per post (brand/organic) |
-| Platform analytics | Follower + video metrics through the API (when enabled on your app and token scopes allow it) |
+| Platform analytics | Account metrics (followers, following, likes, video count) plus aggregated recent-video engagement (views, likes, comments, shares) via <Badge text="user.info.stats" variant="default" /> and <Badge text="video.list" variant="default" /> |
+| Per-post analytics | Views, likes, comments, and shares on a published video when the post row has a linked TikTok video id |
+| Missing release id recovery | List recent TikTok videos and link inbox uploads (<Badge text="releaseId=missing" variant="param" />) via <Badge text="posts:missing" variant="default" /> → <Badge text="posts:connect" variant="default" /> — see <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a> |
 
 ### Not supported
 

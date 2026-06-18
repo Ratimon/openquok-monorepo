@@ -8,9 +8,18 @@ import type {
     SocialProvider,
     ValidateCreatePostInput,
 } from "../../social.integrations.interface";
+import { tiktokApiGet } from "./tiktokApiClient";
 import { publishTiktokPost } from "./tiktokDataPublish";
 import { generateTiktokPkcePair } from "./tiktokPkce";
 import { mapTiktokApiErrorCode, parseTiktokApiEnvelope } from "./tiktokApiErrors";
+import {
+    appendTiktokRecentVideoEngagement,
+    buildTiktokPostAnalyticsRows,
+    listTiktokVideos,
+    queryTiktokVideoMetrics,
+    resolveTiktokPublicVideoId,
+    tiktokAnalyticsToday,
+} from "./tiktokVideoApi";
 
 import dayjs from "dayjs";
 import { config } from "../../../config/GlobalConfig";
@@ -40,6 +49,23 @@ function tiktokOAuth(): { clientId: string; clientSecret: string } {
 
 function tiktokRedirectUri(): string {
     return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("tiktok")}`;
+}
+
+function parseGrantedTiktokScopes(scope: string | undefined): string[] {
+    if (!scope?.trim()) return [];
+    const decoded = decodeURIComponent(scope.trim());
+    const delimiter = decoded.includes(",") ? "," : " ";
+    return decoded
+        .split(delimiter)
+        .map((part) => part.trim())
+        .filter(Boolean);
+}
+
+function checkTiktokScopes(required: readonly string[], granted: readonly string[]): void {
+    const missing = required.filter((scope) => !granted.includes(scope));
+    if (missing.length > 0) {
+        throw new Error(`Missing permissions: ${missing.join(", ")}`);
+    }
 }
 
 async function exchangeTiktokToken(body: Record<string, string>): Promise<TiktokTokenResponse> {
@@ -222,6 +248,15 @@ export class TiktokProvider implements SocialProvider {
         }
 
         try {
+            const granted = parseGrantedTiktokScopes(token.scope);
+            if (granted.length > 0) {
+                checkTiktokScopes(this.scopes, granted);
+            }
+        } catch (e) {
+            return e instanceof Error ? e.message : "Missing OAuth permissions";
+        }
+
+        try {
             const profile = await fetchTiktokUserProfile(token.access_token);
             return authDetailsFromTokenResponse(token, profile);
         } catch (e) {
@@ -229,37 +264,74 @@ export class TiktokProvider implements SocialProvider {
         }
     }
 
-    async analytics(_openId: string, accessToken: string, dateWindowDays: number): Promise<AnalyticsData[]> {
-        const fields = ["follower_count", "following_count", "likes_count", "video_count"].join(",");
-        const res = await fetch(`${TIKTOK_API}/v2/user/info/?fields=${encodeURIComponent(fields)}`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        const envelope = parseTiktokApiEnvelope(await res.json());
-        if (!envelope.ok) return [];
+    async analytics(_openId: string, accessToken: string, _dateWindowDays: number): Promise<AnalyticsData[]> {
+        const today = tiktokAnalyticsToday();
+        try {
+            const fields = ["follower_count", "following_count", "likes_count", "video_count"].join(",");
+            const envelope = await tiktokApiGet(
+                accessToken,
+                `/v2/user/info/?fields=${encodeURIComponent(fields)}`
+            );
+            if (!envelope.ok) return [];
 
-        const user =
-            envelope.data.user && typeof envelope.data.user === "object"
-                ? (envelope.data.user as Record<string, unknown>)
-                : {};
-        const today = dayjs().format("YYYY-MM-DD");
-        const rows: AnalyticsData[] = [];
-        const push = (label: string, value: unknown) => {
-            if (value == null) return;
-            rows.push({
-                label,
-                percentageChange: 0,
-                data: [{ total: String(value), date: today }],
-            });
-        };
+            const user =
+                envelope.data.user && typeof envelope.data.user === "object"
+                    ? (envelope.data.user as Record<string, unknown>)
+                    : {};
+            const rows: AnalyticsData[] = [];
+            const push = (label: string, value: unknown) => {
+                if (value == null) return;
+                rows.push({
+                    label,
+                    percentageChange: 0,
+                    data: [{ total: String(value), date: today }],
+                });
+            };
 
-        push("Followers", user.follower_count);
-        push("Following", user.following_count);
-        push("Likes", user.likes_count);
-        push("Videos", user.video_count);
+            push("Followers", user.follower_count);
+            push("Following", user.following_count);
+            push("Likes", user.likes_count);
+            push("Videos", user.video_count);
 
-        if (rows.length === 0 && dateWindowDays > 0) {
+            await appendTiktokRecentVideoEngagement(accessToken, rows, today);
             return rows;
+        } catch {
+            return [];
         }
-        return rows;
+    }
+
+    async postAnalytics(
+        _integrationId: string,
+        accessToken: string,
+        releaseId: string,
+        _fromDateDays: number
+    ): Promise<AnalyticsData[]> {
+        const today = tiktokAnalyticsToday();
+        try {
+            const videoId = await resolveTiktokPublicVideoId(accessToken, releaseId);
+            if (!videoId) return [];
+
+            const metrics = await queryTiktokVideoMetrics(accessToken, [videoId]);
+            const first = metrics[0];
+            if (!first) return [];
+
+            return buildTiktokPostAnalyticsRows(first, today);
+        } catch {
+            return [];
+        }
+    }
+
+    async missing(_openId: string, accessToken: string): Promise<{ id: string; url: string }[]> {
+        try {
+            const videos = await listTiktokVideos(accessToken, {
+                fields: "id,cover_image_url,title",
+            });
+            return videos.map((video) => ({
+                id: video.id,
+                url: video.cover_image_url ?? "",
+            }));
+        } catch {
+            return [];
+        }
     }
 }

@@ -176,6 +176,14 @@ function normalizeMime(mimetype) {
 function isVideoMediaMime(mimetype) {
   return normalizeMime(mimetype).startsWith("video/");
 }
+function inferMediaMimeType(filename, mimetype) {
+  const normalized = normalizeMime(mimetype ?? "");
+  if (normalized && normalized !== "application/octet-stream") {
+    return normalized;
+  }
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  return EXTENSION_TO_MIME[ext] ?? (normalized || "application/octet-stream");
+}
 function maxMediaUploadBytesForMime(mimetype, surface) {
   if (isVideoMediaMime(mimetype)) {
     return MAX_MEDIA_VIDEO_UPLOAD_BYTES;
@@ -204,12 +212,28 @@ function validateMediaFileUploadSize(size, mimetype, surface) {
   const kind = isVideoMediaMime(mimetype) ? "Video" : "Image";
   return `${kind} must be ${formatLimitLabel(max)} or smaller (file is ${formatLimitLabel(size)}).`;
 }
-var MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND, MAX_MEDIA_VIDEO_UPLOAD_BYTES, MAX_MEDIA_UPLOAD_BYTES;
+var MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND, MAX_MEDIA_VIDEO_UPLOAD_BYTES, MAX_MEDIA_UPLOAD_BYTES, EXTENSION_TO_MIME;
 var init_uploadLimits = __esm({
   "../common/dist/media/uploadLimits.js"() {
     MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND = 10 * 1024 * 1024;
     MAX_MEDIA_VIDEO_UPLOAD_BYTES = 1024 * 1024 * 1024;
     MAX_MEDIA_UPLOAD_BYTES = MAX_MEDIA_VIDEO_UPLOAD_BYTES;
+    EXTENSION_TO_MIME = {
+      png: "image/png",
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      gif: "image/gif",
+      webp: "image/webp",
+      svg: "image/svg+xml",
+      avif: "image/avif",
+      mp4: "video/mp4",
+      mov: "video/quicktime",
+      webm: "video/webm",
+      m4v: "video/x-m4v",
+      mpeg: "video/mpeg",
+      mpg: "video/mpeg",
+      pdf: "application/pdf"
+    };
   }
 });
 
@@ -945,6 +969,11 @@ var init_GlobalConfig = __esm({
         youtube: {
           clientId: getEnvTrimmed("YOUTUBE_CLIENT_ID"),
           clientSecret: getEnvTrimmed("YOUTUBE_CLIENT_SECRET")
+        },
+        /** TikTok — Login Kit + Content Posting API (OAuth v2 + PKCE). */
+        tiktok: {
+          clientId: getEnvTrimmed("TIKTOK_CLIENT_ID"),
+          clientSecret: getEnvTrimmed("TIKTOK_CLIENT_SECRET")
         }
       }
     };
@@ -7514,9 +7543,240 @@ var init_NotificationRepository = __esm({
     };
   }
 });
+
+// utils/dtos/PostDTO.ts
+function repeatIntervalToDays(key) {
+  if (key == null) return null;
+  const m = {
+    day: 1,
+    two_days: 2,
+    three_days: 3,
+    four_days: 4,
+    five_days: 5,
+    six_days: 6,
+    week: 7,
+    two_weeks: 14,
+    month: 30
+  };
+  return m[key] ?? null;
+}
+function parseProviderThreadsPreviewFromPostSettings(settings) {
+  const empty = {
+    replies: [],
+    finisher: null,
+    delayedEngagementReply: null
+  };
+  if (!settings?.trim()) return empty;
+  try {
+    const o = JSON.parse(settings);
+    const ps = o.providerSettings && typeof o.providerSettings === "object" ? o.providerSettings : null;
+    if (!ps) return empty;
+    const threads = ps.threads && typeof ps.threads === "object" ? ps.threads : null;
+    if (!threads) return empty;
+    const repliesRaw = threads.replies;
+    const arr = Array.isArray(repliesRaw) ? repliesRaw : [];
+    const replies = arr.map((r) => ({
+      content: typeof r?.message === "string" ? r.message.trim() : "",
+      delaySeconds: Number.isFinite(Number(r?.delaySeconds)) ? Math.max(0, Math.floor(Number(r.delaySeconds))) : 0
+    })).filter((r) => r.content.length > 0);
+    const enabled = typeof threads.enabled === "boolean" ? threads.enabled : false;
+    const rawMsg = typeof threads.message === "string" ? threads.message.trim() : "";
+    const finisher = enabled ? { enabled: true, message: rawMsg || "That's a wrap!" } : null;
+    let delayedEngagementReply = null;
+    const igRaw = threads.internalEngagementPlug;
+    if (igRaw && typeof igRaw === "object") {
+      const ig = igRaw;
+      if (ig.enabled === true) {
+        const message = typeof ig.message === "string" ? ig.message : "";
+        const delaySeconds = typeof ig.delaySeconds === "number" && Number.isFinite(ig.delaySeconds) ? Math.max(0, Math.floor(ig.delaySeconds)) : 0;
+        delayedEngagementReply = { message, delaySeconds };
+      }
+    }
+    return { replies, finisher, delayedEngagementReply };
+  } catch {
+    return empty;
+  }
+}
+function replyChainBucketForProvider(providerIdentifier) {
+  const id = (providerIdentifier ?? "").trim().toLowerCase();
+  return id.startsWith("instagram") ? "instagram" : "threads";
+}
+function mapRawRepliesToFollowUpDrafts(repliesRaw) {
+  if (!Array.isArray(repliesRaw)) return [];
+  return repliesRaw.map((r) => {
+    const o = r;
+    return {
+      id: typeof o?.id === "string" ? o.id : "",
+      message: typeof o?.message === "string" ? o.message.trim() : "",
+      delaySeconds: Number.isFinite(Number(o?.delaySeconds)) ? Math.max(0, Math.floor(Number(o.delaySeconds))) : 0
+    };
+  }).filter((r) => r.id && r.message.length > 0).slice(0, 25);
+}
+function extractFollowUpRepliesFromProviderSettingsObject(providerSettings, providerIdentifier) {
+  if (!providerSettings || typeof providerSettings !== "object") return [];
+  const bucket = replyChainBucketForProvider(providerIdentifier);
+  const sub = providerSettings[bucket];
+  if (!sub || typeof sub !== "object" || Array.isArray(sub)) return [];
+  return mapRawRepliesToFollowUpDrafts(sub.replies);
+}
+function extractFollowUpRepliesFromPostSettingsColumn(settings, providerIdentifier) {
+  if (!settings?.trim()) return [];
+  try {
+    const o = JSON.parse(settings);
+    const ps = o.providerSettings && typeof o.providerSettings === "object" ? o.providerSettings : null;
+    return extractFollowUpRepliesFromProviderSettingsObject(ps, providerIdentifier);
+  } catch {
+    return [];
+  }
+}
+function parsePostSettingsJson(settings) {
+  if (!settings) return { isGlobal: true, repeatInterval: null, kanbanManualFinishAcknowledged: false };
+  try {
+    const o = JSON.parse(settings);
+    const isGlobal = typeof o.isGlobal === "boolean" ? o.isGlobal : true;
+    const repeatInterval = (typeof o.repeatInterval === "string" ? o.repeatInterval : null) ?? null;
+    const kanbanManualFinishAcknowledged = o.kanbanManualFinishAcknowledged === true;
+    return { isGlobal, repeatInterval, kanbanManualFinishAcknowledged };
+  } catch {
+    return { isGlobal: true, repeatInterval: null, kanbanManualFinishAcknowledged: false };
+  }
+}
+function mergeKanbanManualFinishAcknowledged(settings, acknowledged) {
+  let parsed = {};
+  if (settings?.trim()) {
+    try {
+      const o = JSON.parse(settings);
+      if (o && typeof o === "object") parsed = { ...o };
+    } catch {
+      parsed = {};
+    }
+  }
+  parsed.kanbanManualFinishAcknowledged = acknowledged;
+  return JSON.stringify(parsed);
+}
+function parsePostImageColumn(image) {
+  if (!image) return [];
+  try {
+    const o = JSON.parse(image);
+    const items = Array.isArray(o.items) ? o.items : [];
+    return items.map((x) => ({
+      id: typeof x?.id === "string" ? x.id : "",
+      path: typeof x?.path === "string" ? x.path : ""
+    })).filter((m) => m.id && m.path);
+  } catch {
+    return [];
+  }
+}
+var PostDTOMapper;
+var init_PostDTO = __esm({
+  "utils/dtos/PostDTO.ts"() {
+    PostDTOMapper = {
+      toDTO(row, integration) {
+        if (row == null) return null;
+        const channelName = integration?.name?.trim() ? integration.name.trim() : null;
+        const channelPictureUrl = integration?.picture?.trim() ? integration.picture.trim() : null;
+        const providerIdentifier = integration?.provider_identifier?.trim() ? integration.provider_identifier.trim() : null;
+        return {
+          id: row.id,
+          state: row.state,
+          publishDate: row.publish_date,
+          organizationId: row.organization_id,
+          integrationId: row.integration_id,
+          content: row.content,
+          delay: row.delay,
+          postGroup: row.post_group,
+          title: row.title,
+          description: row.description,
+          parentPostId: row.parent_post_id,
+          releaseId: row.release_id,
+          releaseUrl: row.release_url,
+          settings: row.settings,
+          image: row.image,
+          intervalInDays: row.interval_in_days,
+          error: row.error,
+          deletedAt: row.deleted_at,
+          createdByUserId: row.created_by_user_id,
+          note: row.note,
+          isAgentEdited: row.is_agent_edited,
+          isReviewed: row.is_reviewed,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          ...integration ? {
+            channelName,
+            channelPictureUrl,
+            providerIdentifier
+          } : {}
+        };
+      },
+      toDTOCollection(rows, integrationById) {
+        if (!Array.isArray(rows)) return [];
+        return rows.map(
+          (r) => PostDTOMapper.toDTO(r, r.integration_id ? integrationById?.get(r.integration_id) ?? null : null)
+        ).filter(Boolean);
+      },
+      toPostTagDTO(row) {
+        if (row == null) return null;
+        return {
+          id: row.id,
+          name: row.name,
+          color: row.color,
+          orgId: row.org_id,
+          deletedAt: row.deleted_at,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        };
+      },
+      toPostTagDTOCollection(rows) {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => PostDTOMapper.toPostTagDTO(r)).filter(Boolean);
+      },
+      toPostCommentDTO(row) {
+        if (row == null) return null;
+        return {
+          id: row.id,
+          postId: row.post_id,
+          organizationId: row.organization_id,
+          userId: row.user_id,
+          content: row.content,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          deletedAt: row.deleted_at
+        };
+      },
+      toPostCommentDTOCollection(rows) {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => PostDTOMapper.toPostCommentDTO(r)).filter(Boolean);
+      },
+      toPostThreadReplyDTO(row) {
+        if (row == null) return null;
+        return {
+          id: row.id,
+          organizationId: row.organization_id,
+          postId: row.post_id,
+          integrationId: row.integration_id,
+          content: row.content,
+          delaySeconds: row.delay_seconds,
+          state: row.state,
+          releaseId: row.release_id,
+          releaseUrl: row.release_url,
+          error: row.error,
+          createdByUserId: row.created_by_user_id,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          deletedAt: row.deleted_at
+        };
+      },
+      toPostThreadReplyDTOCollection(rows) {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => PostDTOMapper.toPostThreadReplyDTO(r)).filter(Boolean);
+      }
+    };
+  }
+});
 var TABLE_POSTS, TABLE_TAGS, TABLE_POSTS_TAGS, TABLE_POST_INTERNAL_COMMENTS, TABLE_THREAD_REPLIES, PostsRepository;
 var init_PostsRepository = __esm({
   "repositories/PostsRepository.ts"() {
+    init_PostDTO();
     init_InfraError();
     TABLE_POSTS = "posts";
     TABLE_TAGS = "post_tags";
@@ -7992,6 +8252,38 @@ var init_PostsRepository = __esm({
           });
         }
         return data ?? [];
+      }
+      /**
+       * Marks manual-finish kanban posts as acknowledged on the board (`settings.kanbanManualFinishAcknowledged`).
+       */
+      async updatePostGroupKanbanManualFinishAcknowledged(postGroup, organizationId, acknowledged) {
+        const rows = await this.listPostsByGroup(postGroup);
+        const targets = rows.filter(
+          (r) => r.organization_id === organizationId && r.deleted_at == null
+        );
+        if (targets.length === 0) return [];
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const updated = [];
+        for (const row of targets) {
+          const settings = mergeKanbanManualFinishAcknowledged(row.settings, acknowledged);
+          const { data, error } = await this.supabase.from(TABLE_POSTS).update({
+            settings,
+            updated_at: now,
+            is_agent_edited: false
+          }).eq("id", row.id).select("*").single();
+          if (error) {
+            throw new DatabaseError(
+              `Failed to update kanban manual-finish acknowledgment: ${error.message}`,
+              {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_POSTS }
+              }
+            );
+          }
+          if (data) updated.push(data);
+        }
+        return updated;
       }
       async listTagsForPostIds(postIds) {
         if (postIds.length === 0) return [];
@@ -11036,7 +11328,6 @@ var init_facebookProvider = __esm({
       editor = "normal";
       isBetweenSteps = true;
       refreshCron = true;
-      toolTip = "Connect a Facebook Page you manage";
       scopes = [
         "pages_show_list",
         "business_management",
@@ -12181,6 +12472,7 @@ var init_instagramStandaloneProvider = __esm({
       editor = "normal";
       isBetweenSteps = false;
       refreshCron = true;
+      toolTip = "Professional Instagram account via Instagram Login (no Facebook Page)";
       /** Matches Meta’s Business Login authorize example; omit scopes your app has not enabled in the dashboard. */
       scopes = [
         "instagram_business_basic",
@@ -12847,93 +13139,195 @@ var init_threadsProvider = __esm({
   }
 });
 
-// integrations/providers/youtube/resolveYoutubeSettings.ts
+// integrations/providers/tiktok/tiktokApiErrors.ts
+function mapTiktokApiErrorCode(code, fallbackMessage) {
+  const key = (code ?? "").trim();
+  if (key && ERROR_MESSAGES[key]) return ERROR_MESSAGES[key];
+  if (fallbackMessage?.trim()) return fallbackMessage.trim();
+  if (key && key !== "ok") return `TikTok API error: ${key}`;
+  return "TikTok request failed";
+}
+function mapTiktokFailReason(failReason) {
+  const key = (failReason ?? "").trim();
+  if (key && FAIL_REASON_MESSAGES[key]) return FAIL_REASON_MESSAGES[key];
+  if (key) return `TikTok publish failed: ${key}`;
+  return "TikTok publish failed";
+}
+function parseTiktokApiEnvelope(body) {
+  const root = body && typeof body === "object" ? body : {};
+  const data = root.data && typeof root.data === "object" ? root.data : {};
+  const error = root.error && typeof root.error === "object" ? root.error : {};
+  const errorCode = typeof error.code === "string" ? error.code : "";
+  const errorMessage = typeof error.message === "string" ? error.message : "";
+  const ok = errorCode === "" || errorCode === "ok";
+  return { ok, data, errorCode, errorMessage };
+}
+var ERROR_MESSAGES, FAIL_REASON_MESSAGES;
+var init_tiktokApiErrors = __esm({
+  "integrations/providers/tiktok/tiktokApiErrors.ts"() {
+    ERROR_MESSAGES = {
+      invalid_param: "TikTok rejected the post parameters. Check privacy level, media URLs, and caption length.",
+      app_version_check_failed: "TikTok inbox upload requires a newer TikTok app version on the creator device (at least 31.8).",
+      spam_risk_too_many_posts: "This TikTok account has reached the daily API post limit. Try again tomorrow or post from the TikTok app.",
+      spam_risk_user_banned_from_posting: "This TikTok account is banned from posting.",
+      spam_risk_too_many_pending_share: "This TikTok account has too many pending inbox uploads. Complete or clear drafts in TikTok before scheduling more.",
+      reached_active_user_cap: "Your TikTok app has reached its daily active publishing user quota.",
+      unaudited_client_can_only_post_to_private_accounts: "Your TikTok developer app is unaudited \u2014 posts are limited to private (SELF_ONLY) until TikTok approves Content Posting API access.",
+      url_ownership_unverified: "TikTok cannot pull media from this URL. Verify your media domain in the TikTok developer portal (URL properties) and ensure STORAGE_R2_PUBLIC_BASE_URL or /uploads origin matches.",
+      privacy_level_option_mismatch: "The selected privacy level is not allowed for this TikTok account. Reconnect and choose a privacy option returned by TikTok.",
+      access_token_invalid: "TikTok access token expired or is invalid. Reconnect the channel and try again.",
+      scope_not_authorized: "TikTok access token is missing required scopes (video.publish or video.upload). Reconnect and approve all requested permissions.",
+      scope_permission_missed: "TikTok access token is missing required permissions. Reconnect and approve all requested scopes.",
+      rate_limit_exceeded: "TikTok API rate limit exceeded. Wait a minute and try again.",
+      internal_error: "TikTok server error. Try again later.",
+      token_not_authorized_for_specified_publish_id: "TikTok could not verify this publish request for the connected account.",
+      invalid_publish_id: "TikTok publish id was not found. The upload may have expired."
+    };
+    FAIL_REASON_MESSAGES = {
+      file_format_check_failed: "TikTok does not support this media format. Use MP4 for video or JPEG/WEBP for photos.",
+      duration_check_failed: "Video duration does not meet TikTok requirements.",
+      frame_rate_check_failed: "Video frame rate is not supported by TikTok.",
+      picture_size_check_failed: "Image dimensions or size are not supported by TikTok.",
+      internal: "TikTok processing failed. Try again later.",
+      video_pull_failed: "TikTok could not download the video URL. Ensure the file is publicly reachable over HTTPS and the domain is verified.",
+      photo_pull_failed: "TikTok could not download the image URL. Ensure files are publicly reachable over HTTPS and the domain is verified.",
+      publish_cancelled: "TikTok publish was cancelled.",
+      auth_removed: "The TikTok creator removed app access during publishing. Reconnect the channel.",
+      spam_risk_too_many_posts: "This TikTok account has posted too many times via the API in the last 24 hours.",
+      spam_risk_user_banned_from_posting: "This TikTok account is banned from posting.",
+      spam_risk_text: "TikTok flagged the caption text as risky or spammy.",
+      spam_risk: "TikTok flagged this publish request as risky."
+    };
+  }
+});
+
+// integrations/providers/tiktok/tiktokApiClient.ts
+async function parseTiktokHttpJson(res) {
+  try {
+    return await res.json();
+  } catch {
+    throw new Error(`TikTok API returned non-JSON response (HTTP ${res.status})`);
+  }
+}
+function envelopeFromResponse(res, parsed) {
+  const envelope = parseTiktokApiEnvelope(parsed);
+  if (!res.ok && envelope.ok) {
+    return { ...envelope, ok: false, errorCode: envelope.errorCode || `http_${res.status}` };
+  }
+  return envelope;
+}
+async function tiktokApiGet(accessToken2, path7) {
+  const res = await fetch(`${TIKTOK_API}${path7}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${accessToken2}` }
+  });
+  const parsed = await parseTiktokHttpJson(res);
+  return envelopeFromResponse(res, parsed);
+}
+async function tiktokApiPost(accessToken2, path7, body) {
+  const res = await fetch(`${TIKTOK_API}${path7}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken2}`,
+      "Content-Type": "application/json; charset=UTF-8"
+    },
+    body: JSON.stringify(body)
+  });
+  const parsed = await parseTiktokHttpJson(res);
+  return envelopeFromResponse(res, parsed);
+}
+var TIKTOK_API;
+var init_tiktokApiClient = __esm({
+  "integrations/providers/tiktok/tiktokApiClient.ts"() {
+    init_tiktokApiErrors();
+    TIKTOK_API = "https://open.tiktokapis.com";
+  }
+});
+
+// integrations/providers/tiktok/resolveTiktokSettings.ts
 function isPlainObject3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-function readPrivacyStatus(source) {
-  const raw = source.type ?? source.privacyStatus ?? source.privacy_status;
-  if (raw === "private" || raw === "unlisted" || raw === "public") return raw;
+function readPrivacyLevel(source) {
+  const raw = source.privacy_level ?? source.privacyLevel;
+  if (raw === "PUBLIC_TO_EVERYONE" || raw === "MUTUAL_FOLLOW_FRIENDS" || raw === "FOLLOWER_OF_CREATOR" || raw === "SELF_ONLY") {
+    return raw;
+  }
   return DEFAULT_PRIVACY;
 }
-function readMadeForKids(source) {
-  const raw = source.selfDeclaredMadeForKids ?? source.self_declared_made_for_kids;
-  if (raw === true || raw === "yes") return true;
+function readPostingMethod(source) {
+  const raw = source.content_posting_method ?? source.contentPostingMethod;
+  if (raw === "UPLOAD" || raw === "MEDIA_UPLOAD") return "UPLOAD";
+  if (raw === "DIRECT_POST") return "DIRECT_POST";
+  return DEFAULT_POSTING_METHOD;
+}
+function readBool(source, ...keys) {
+  for (const key of keys) {
+    const raw = source[key];
+    if (raw === true || raw === "true" || raw === "yes" || raw === 1 || raw === "1") return true;
+    if (raw === false || raw === "false" || raw === "no" || raw === 0 || raw === "0") return false;
+  }
   return false;
+}
+function readAllowToggle(source, allowKey, disableKey, defaultAllow) {
+  if (allowKey in source) return readBool(source, allowKey);
+  if (disableKey in source) return !readBool(source, disableKey);
+  return defaultAllow;
 }
 function readTitle(source) {
   const title = source.title;
-  return typeof title === "string" ? title.trim() : "";
+  return typeof title === "string" ? title.trim().slice(0, 90) : "";
 }
-function normalizeTags(raw) {
-  if (!Array.isArray(raw)) return [];
-  const out = [];
-  for (const item of raw) {
-    if (typeof item === "string") {
-      const label = item.trim();
-      if (label) out.push(label);
-      continue;
-    }
-    if (isPlainObject3(item)) {
-      const label = (typeof item.label === "string" ? item.label : typeof item.value === "string" ? item.value : "").trim();
-      if (label) out.push(label);
-    }
-  }
-  return out.slice(0, 500);
-}
-function readThumbnailPath(source) {
-  const thumb = source.thumbnail;
-  if (isPlainObject3(thumb) && typeof thumb.path === "string" && thumb.path.trim()) {
-    return thumb.path.trim();
-  }
-  if (typeof source.thumbnailPath === "string" && source.thumbnailPath.trim()) {
-    return source.thumbnailPath.trim();
-  }
-  return void 0;
-}
-function resolveYoutubeSettings(postDetailsSettings, message = "") {
-  const description = typeof message === "string" ? message : "";
+function resolveTiktokSettings(postDetailsSettings, message = "") {
+  const caption = typeof message === "string" ? message.trim() : "";
   if (!isPlainObject3(postDetailsSettings)) {
     return {
-      title: "",
-      description,
-      privacyStatus: DEFAULT_PRIVACY,
-      selfDeclaredMadeForKids: false,
-      tags: []
+      privacy_level: DEFAULT_PRIVACY,
+      content_posting_method: DEFAULT_POSTING_METHOD,
+      title: caption.slice(0, 90),
+      duet: true,
+      stitch: true,
+      comment: true,
+      autoAddMusic: false,
+      brand_content_toggle: false,
+      brand_organic_toggle: false,
+      video_made_with_ai: false
     };
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
   if (isPlainObject3(providerSettings)) {
-    const { youtube: youtubeBucket, ...flatProviderSettings } = providerSettings;
+    const { tiktok: tiktokBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject3(youtubeBucket)) {
-      source = { ...source, ...youtubeBucket };
+    if (isPlainObject3(tiktokBucket)) {
+      source = { ...source, ...tiktokBucket };
     }
-  } else if (isPlainObject3(postDetailsSettings.youtube)) {
-    source = { ...source, ...postDetailsSettings.youtube };
+  } else if (isPlainObject3(postDetailsSettings.tiktok)) {
+    source = { ...source, ...postDetailsSettings.tiktok };
   }
+  const explicitTitle = readTitle(source);
   return {
-    title: readTitle(source),
-    description,
-    privacyStatus: readPrivacyStatus(source),
-    selfDeclaredMadeForKids: readMadeForKids(source),
-    tags: normalizeTags(source.tags),
-    thumbnailPath: readThumbnailPath(source)
+    privacy_level: readPrivacyLevel(source),
+    content_posting_method: readPostingMethod(source),
+    title: explicitTitle || caption.slice(0, 90),
+    duet: readAllowToggle(source, "duet", "disable_duet", true),
+    stitch: readAllowToggle(source, "stitch", "disable_stitch", true),
+    comment: readAllowToggle(source, "comment", "disable_comment", true),
+    autoAddMusic: readBool(source, "autoAddMusic", "auto_add_music"),
+    brand_content_toggle: readBool(source, "brand_content_toggle", "brandContentToggle"),
+    brand_organic_toggle: readBool(source, "brand_organic_toggle", "brandOrganicToggle"),
+    video_made_with_ai: readBool(source, "video_made_with_ai", "videoMadeWithAi")
   };
 }
-var DEFAULT_PRIVACY;
-var init_resolveYoutubeSettings = __esm({
-  "integrations/providers/youtube/resolveYoutubeSettings.ts"() {
-    DEFAULT_PRIVACY = "public";
+var DEFAULT_PRIVACY, DEFAULT_POSTING_METHOD;
+var init_resolveTiktokSettings = __esm({
+  "integrations/providers/tiktok/resolveTiktokSettings.ts"() {
+    DEFAULT_PRIVACY = "PUBLIC_TO_EVERYONE";
+    DEFAULT_POSTING_METHOD = "DIRECT_POST";
   }
 });
 
-// integrations/providers/youtube/youtubePublishValidation.ts
-function shouldSkipYoutubeThumbnail(byteLength) {
-  if (byteLength == null || !Number.isFinite(byteLength)) return false;
-  return byteLength > YOUTUBE_THUMBNAIL_MAX_BYTES;
-}
+// integrations/providers/tiktok/tiktokPublishValidation.ts
 function isPlainObject4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -12947,8 +13341,721 @@ function mediaExtFromUrlOrKey3(path7) {
     return (raw.split("?")[0]?.split("#")[0]?.split(".").pop() ?? "").toLowerCase();
   }
 }
-function extractYoutubeMediaFromSettings(settings) {
+function extractTiktokMediaFromSettings(settings) {
   if (!isPlainObject4(settings)) return [];
+  const media = settings.media;
+  if (Array.isArray(media)) {
+    return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  const items = media?.items;
+  if (Array.isArray(items)) {
+    return items.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  return [];
+}
+function resolveTiktokPublicMediaUrl(path7) {
+  const raw = path7.trim();
+  if (!raw) {
+    throw new Error("Media path is empty");
+  }
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw;
+  }
+  const url = publicUrlForObjectKey(raw);
+  if (!url) {
+    throw new Error(
+      "Cannot build a public media URL for TikTok (set STORAGE_R2_PUBLIC_BASE_URL for R2, STORAGE_PROVIDER=local with FRONTEND_DOMAIN_URL, or use full https:// URLs)"
+    );
+  }
+  return url;
+}
+function classifyTiktokMedia(media) {
+  if (media.length === 0) return null;
+  const exts = media.map((m) => mediaExtFromUrlOrKey3(m.path));
+  const hasVideo = exts.some((ext) => VIDEO_EXTENSIONS.has(ext));
+  const hasImage = exts.some((ext) => IMAGE_EXTENSIONS.has(ext));
+  if (hasVideo && hasImage) return null;
+  if (hasVideo) return media.length === 1 ? "video" : null;
+  if (hasImage) return "photo";
+  return null;
+}
+function validateTiktokMedia(media) {
+  if (media.length === 0) {
+    throw new Error("TikTok requires one video or one or more images");
+  }
+  const kind = classifyTiktokMedia(media);
+  if (!kind) {
+    const exts = media.map((m) => mediaExtFromUrlOrKey3(m.path)).join(", ");
+    if (media.length > 1 && media.some((m) => mediaExtFromUrlOrKey3(m.path) === "mp4")) {
+      throw new Error("TikTok does not support mixing video and images in one post");
+    }
+    if (media.length > 1 && media.every((m) => mediaExtFromUrlOrKey3(m.path) === "mp4")) {
+      throw new Error("TikTok requires exactly one MP4 video");
+    }
+    throw new Error(`TikTok media type is not supported (extensions: ${exts || "unknown"})`);
+  }
+  if (kind === "video") {
+    const ext = mediaExtFromUrlOrKey3(media[0].path);
+    if (ext !== "mp4") {
+      throw new Error("TikTok requires an MP4 video attachment");
+    }
+  } else {
+    for (const item of media) {
+      const ext = mediaExtFromUrlOrKey3(item.path);
+      if (!IMAGE_EXTENSIONS.has(ext)) {
+        throw new Error("TikTok photo posts require JPEG, PNG, or WEBP images");
+      }
+    }
+    if (media.length > 35) {
+      throw new Error("TikTok photo posts support at most 35 images");
+    }
+  }
+  return {
+    kind,
+    urls: media.map((m) => resolveTiktokPublicMediaUrl(m.path))
+  };
+}
+var IMAGE_EXTENSIONS, VIDEO_EXTENSIONS;
+var init_tiktokPublishValidation = __esm({
+  "integrations/providers/tiktok/tiktokPublishValidation.ts"() {
+    init_MediaRepository();
+    IMAGE_EXTENSIONS = /* @__PURE__ */ new Set(["jpg", "jpeg", "png", "webp"]);
+    VIDEO_EXTENSIONS = /* @__PURE__ */ new Set(["mp4"]);
+  }
+});
+
+// integrations/providers/tiktok/tiktokDataPublish.ts
+function tiktokStatusPollMs() {
+  return process.env.JEST_WORKER_ID !== void 0 ? 10 : 1e4;
+}
+function tiktokStatusMaxPolls() {
+  return process.env.JEST_WORKER_ID !== void 0 ? 5 : 360;
+}
+function sleepMs3(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+function buildTiktokVideoPostInfoBody(settings, caption) {
+  const title = (caption || settings.title).trim();
+  return {
+    title,
+    privacy_level: settings.privacy_level,
+    disable_duet: !settings.duet,
+    disable_stitch: !settings.stitch,
+    disable_comment: !settings.comment,
+    brand_content_toggle: settings.brand_content_toggle,
+    brand_organic_toggle: settings.brand_organic_toggle,
+    is_aigc: settings.video_made_with_ai
+  };
+}
+function buildTiktokPhotoPostInfoBody(settings, caption, directPost) {
+  const title = settings.title.trim();
+  const description = caption.trim();
+  const body = {
+    title: title || void 0,
+    description: description || void 0,
+    brand_content_toggle: settings.brand_content_toggle,
+    brand_organic_toggle: settings.brand_organic_toggle
+  };
+  if (directPost) {
+    body.privacy_level = settings.privacy_level;
+    body.disable_comment = !settings.comment;
+    body.auto_add_music = settings.autoAddMusic;
+  }
+  return body;
+}
+function buildTiktokVideoSourceInfoBody(videoUrl) {
+  return {
+    source: "PULL_FROM_URL",
+    video_url: videoUrl
+  };
+}
+function buildTiktokPhotoSourceInfoBody(photoUrls) {
+  return {
+    source: "PULL_FROM_URL",
+    photo_images: photoUrls,
+    photo_cover_index: 0
+  };
+}
+async function pollTiktokPublishStatus(accessToken2, publishId) {
+  const maxPolls = tiktokStatusMaxPolls();
+  for (let i = 0; i < maxPolls; i++) {
+    const envelope = await tiktokApiPost(accessToken2, "/v2/post/publish/status/fetch/", {
+      publish_id: publishId
+    });
+    if (!envelope.ok) {
+      throw new Error(mapTiktokApiErrorCode(envelope.errorCode, envelope.errorMessage));
+    }
+    const status = typeof envelope.data.status === "string" ? envelope.data.status : "";
+    const failReason = typeof envelope.data.fail_reason === "string" ? envelope.data.fail_reason : "";
+    const postIds = envelope.data.publicaly_available_post_id;
+    const firstPostId = Array.isArray(postIds) && postIds.length > 0 && postIds[0] != null ? String(postIds[0]) : "";
+    if (status === "FAILED") {
+      throw new Error(mapTiktokFailReason(failReason));
+    }
+    if (status === "PUBLISH_COMPLETE" || status === "SEND_TO_USER_INBOX") {
+      return { status, postId: firstPostId, failReason };
+    }
+    await sleepMs3(tiktokStatusPollMs());
+  }
+  throw new Error("TikTok publish timed out while waiting for processing to complete");
+}
+function buildTiktokReleaseUrl(username, postId) {
+  if (!postId.trim()) return "";
+  const handle = (username ?? "").replace(/^@/, "").trim();
+  if (handle) {
+    return `https://www.tiktok.com/@${encodeURIComponent(handle)}/video/${encodeURIComponent(postId)}`;
+  }
+  return `https://www.tiktok.com`;
+}
+async function publishTiktokPost(_openId, accessToken2, postDetails, username) {
+  const settings = resolveTiktokSettings(postDetails.settings, postDetails.message ?? "");
+  const media = extractTiktokMediaFromSettings(postDetails.settings);
+  const { kind, urls } = validateTiktokMedia(media);
+  const caption = (postDetails.message ?? "").trim();
+  const isUpload = settings.content_posting_method === "UPLOAD";
+  let initPath;
+  let initBody;
+  if (kind === "video") {
+    const videoUrl = urls[0];
+    if (isUpload) {
+      initPath = "/v2/post/publish/inbox/video/init/";
+      initBody = {
+        source_info: buildTiktokVideoSourceInfoBody(videoUrl)
+      };
+    } else {
+      initPath = "/v2/post/publish/video/init/";
+      initBody = {
+        post_info: buildTiktokVideoPostInfoBody(settings, caption),
+        source_info: buildTiktokVideoSourceInfoBody(videoUrl)
+      };
+    }
+  } else {
+    initPath = "/v2/post/publish/content/init/";
+    initBody = {
+      media_type: "PHOTO",
+      post_mode: isUpload ? "MEDIA_UPLOAD" : "DIRECT_POST",
+      post_info: buildTiktokPhotoPostInfoBody(settings, caption, !isUpload),
+      source_info: buildTiktokPhotoSourceInfoBody(urls)
+    };
+  }
+  const init2 = await tiktokApiPost(accessToken2, initPath, initBody);
+  if (!init2.ok) {
+    throw new Error(mapTiktokApiErrorCode(init2.errorCode, init2.errorMessage));
+  }
+  const publishId = typeof init2.data.publish_id === "string" ? init2.data.publish_id : "";
+  if (!publishId) {
+    throw new Error("TikTok publish init succeeded but no publish_id was returned");
+  }
+  const polled = await pollTiktokPublishStatus(accessToken2, publishId);
+  if (polled.status === "SEND_TO_USER_INBOX") {
+    return {
+      id: postDetails.id,
+      postId: "missing",
+      status: "SEND_TO_USER_INBOX",
+      releaseURL: "https://www.tiktok.com/messages?lang=en"
+    };
+  }
+  const releaseURL = buildTiktokReleaseUrl(username, polled.postId);
+  return {
+    id: postDetails.id,
+    postId: polled.postId || publishId,
+    status: "success",
+    releaseURL
+  };
+}
+var init_tiktokDataPublish = __esm({
+  "integrations/providers/tiktok/tiktokDataPublish.ts"() {
+    init_resolveTiktokSettings();
+    init_tiktokPublishValidation();
+    init_tiktokApiClient();
+    init_tiktokApiErrors();
+  }
+});
+function generateTiktokPkcePair() {
+  const codeVerifier = crypto.randomBytes(48).toString("base64url").slice(0, 64);
+  const codeChallenge = crypto.createHash("sha256").update(codeVerifier).digest("hex");
+  return { codeVerifier, codeChallenge };
+}
+var init_tiktokPkce = __esm({
+  "integrations/providers/tiktok/tiktokPkce.ts"() {
+  }
+});
+function readVideoArray(data) {
+  const videos = data.videos;
+  return Array.isArray(videos) ? videos : [];
+}
+function readListedVideo(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw;
+  const id = row.id != null ? String(row.id).trim() : "";
+  if (!id) return null;
+  return {
+    id,
+    cover_image_url: typeof row.cover_image_url === "string" ? row.cover_image_url : void 0,
+    title: typeof row.title === "string" ? row.title : void 0
+  };
+}
+function readVideoMetrics(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw;
+  const id = row.id != null ? String(row.id).trim() : "";
+  if (!id) return null;
+  const num = (key) => {
+    const value = row[key];
+    return typeof value === "number" && Number.isFinite(value) ? value : void 0;
+  };
+  return {
+    id,
+    view_count: num("view_count"),
+    like_count: num("like_count"),
+    comment_count: num("comment_count"),
+    share_count: num("share_count")
+  };
+}
+async function listTiktokVideos(accessToken2, options2) {
+  const envelope = await tiktokApiPost(accessToken2, `/v2/video/list/?fields=${encodeURIComponent(options2.fields)}`, {
+    max_count: options2.maxCount ?? RECENT_VIDEO_LIST_MAX
+  });
+  if (!envelope.ok) return [];
+  const out = [];
+  for (const raw of readVideoArray(envelope.data)) {
+    const video = readListedVideo(raw);
+    if (video) out.push(video);
+  }
+  return out;
+}
+async function queryTiktokVideoMetrics(accessToken2, videoIds) {
+  const ids = [...new Set(videoIds.map((id) => id.trim()).filter(Boolean))];
+  if (!ids.length) return [];
+  const envelope = await tiktokApiPost(
+    accessToken2,
+    "/v2/video/query/?fields=id,like_count,comment_count,share_count,view_count",
+    { filters: { video_ids: ids } }
+  );
+  if (!envelope.ok) return [];
+  const out = [];
+  for (const raw of readVideoArray(envelope.data)) {
+    const metrics = readVideoMetrics(raw);
+    if (metrics) out.push(metrics);
+  }
+  return out;
+}
+async function resolveTiktokPublicVideoId(accessToken2, releaseId) {
+  const trimmed = releaseId.trim();
+  if (!trimmed || trimmed === "missing") return null;
+  if (!trimmed.includes("v_pub")) return trimmed;
+  const envelope = await tiktokApiPost(accessToken2, "/v2/post/publish/status/fetch/", {
+    publish_id: trimmed
+  });
+  if (!envelope.ok) return null;
+  const postIds = envelope.data.publicaly_available_post_id;
+  if (Array.isArray(postIds) && postIds.length > 0 && postIds[0] != null) {
+    return String(postIds[0]);
+  }
+  return null;
+}
+function pushSnapshotMetric(rows, label, total, today) {
+  rows.push({
+    label,
+    percentageChange: 0,
+    data: [{ total: String(total), date: today }]
+  });
+}
+async function appendTiktokRecentVideoEngagement(accessToken2, rows, today) {
+  const listed = await listTiktokVideos(accessToken2, { fields: "id" });
+  if (!listed.length) return;
+  const metrics = await queryTiktokVideoMetrics(
+    accessToken2,
+    listed.map((video) => video.id)
+  );
+  if (!metrics.length) return;
+  let totalViews = 0;
+  let totalLikes = 0;
+  let totalComments = 0;
+  let totalShares = 0;
+  for (const video of metrics) {
+    totalViews += video.view_count ?? 0;
+    totalLikes += video.like_count ?? 0;
+    totalComments += video.comment_count ?? 0;
+    totalShares += video.share_count ?? 0;
+  }
+  pushSnapshotMetric(rows, "Views", totalViews, today);
+  pushSnapshotMetric(rows, "Recent Likes", totalLikes, today);
+  pushSnapshotMetric(rows, "Recent Comments", totalComments, today);
+  pushSnapshotMetric(rows, "Recent Shares", totalShares, today);
+}
+function buildTiktokPostAnalyticsRows(metrics, today) {
+  const rows = [];
+  if (metrics.view_count !== void 0) {
+    pushSnapshotMetric(rows, "Views", metrics.view_count, today);
+  }
+  if (metrics.like_count !== void 0) {
+    pushSnapshotMetric(rows, "Likes", metrics.like_count, today);
+  }
+  if (metrics.comment_count !== void 0) {
+    pushSnapshotMetric(rows, "Comments", metrics.comment_count, today);
+  }
+  if (metrics.share_count !== void 0) {
+    pushSnapshotMetric(rows, "Shares", metrics.share_count, today);
+  }
+  return rows;
+}
+function tiktokAnalyticsToday() {
+  return dayjs5__default.default().format("YYYY-MM-DD");
+}
+var RECENT_VIDEO_LIST_MAX;
+var init_tiktokVideoApi = __esm({
+  "integrations/providers/tiktok/tiktokVideoApi.ts"() {
+    init_tiktokApiClient();
+    RECENT_VIDEO_LIST_MAX = 20;
+  }
+});
+function tiktokOAuth() {
+  return config.integrations.tiktok;
+}
+function tiktokRedirectUri() {
+  return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("tiktok")}`;
+}
+function parseGrantedTiktokScopes(scope) {
+  if (!scope?.trim()) return [];
+  const decoded = decodeURIComponent(scope.trim());
+  const delimiter = decoded.includes(",") ? "," : " ";
+  return decoded.split(delimiter).map((part) => part.trim()).filter(Boolean);
+}
+function checkTiktokScopes(required, granted) {
+  const missing = required.filter((scope) => !granted.includes(scope));
+  if (missing.length > 0) {
+    throw new Error(`Missing permissions: ${missing.join(", ")}`);
+  }
+}
+async function exchangeTiktokToken(body) {
+  const params = new URLSearchParams(body);
+  const res = await fetch(TIKTOK_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Cache-Control": "no-cache"
+    },
+    body: params.toString()
+  });
+  return await res.json();
+}
+async function fetchTiktokUserProfile(accessToken2) {
+  const fields = [
+    "open_id",
+    "display_name",
+    "username",
+    "avatar_url"
+  ].join(",");
+  const res = await fetch(`${TIKTOK_API2}/v2/user/info/?fields=${encodeURIComponent(fields)}`, {
+    headers: { Authorization: `Bearer ${accessToken2}` }
+  });
+  const envelope = parseTiktokApiEnvelope(await res.json());
+  if (!envelope.ok) {
+    throw new Error(mapTiktokApiErrorCode(envelope.errorCode, envelope.errorMessage));
+  }
+  const user = envelope.data.user && typeof envelope.data.user === "object" ? envelope.data.user : {};
+  const openId = typeof user.open_id === "string" ? user.open_id : "";
+  const displayName = typeof user.display_name === "string" ? user.display_name : "";
+  const username = typeof user.username === "string" ? user.username : "";
+  const picture = typeof user.avatar_url === "string" ? user.avatar_url : "";
+  return {
+    id: openId,
+    name: displayName || username || openId,
+    username: username || displayName || openId,
+    picture
+  };
+}
+function authDetailsFromTokenResponse(token, profile, fallbackRefresh) {
+  return {
+    id: profile.id,
+    name: profile.name,
+    accessToken: token.access_token ?? "",
+    refreshToken: token.refresh_token ?? fallbackRefresh ?? "",
+    expiresIn: typeof token.expires_in === "number" && token.expires_in > 0 ? token.expires_in : dayjs5__default.default().add(23, "hours").unix() - dayjs5__default.default().unix(),
+    picture: profile.picture,
+    username: profile.username
+  };
+}
+var TIKTOK_TOKEN_URL, TIKTOK_AUTH_URL, TIKTOK_API2, TiktokProvider;
+var init_tiktokProvider = __esm({
+  "integrations/providers/tiktok/tiktokProvider.ts"() {
+    init_tiktokApiClient();
+    init_tiktokDataPublish();
+    init_tiktokPkce();
+    init_tiktokApiErrors();
+    init_tiktokVideoApi();
+    init_GlobalConfig();
+    init_AppError();
+    init_makeId();
+    init_oauthFrontendOrigin();
+    init_oauthFrontendCallbackPath();
+    TIKTOK_TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/";
+    TIKTOK_AUTH_URL = "https://www.tiktok.com/v2/auth/authorize/";
+    TIKTOK_API2 = "https://open.tiktokapis.com";
+    TiktokProvider = class {
+      identifier = "tiktok";
+      name = "TikTok";
+      editor = "normal";
+      isBetweenSteps = false;
+      refreshCron = true;
+      convertToJPEG = true;
+      scopes = [
+        "user.info.basic",
+        "user.info.profile",
+        "user.info.stats",
+        "video.publish",
+        "video.upload",
+        "video.list"
+      ];
+      maxLength(_additionalSettings) {
+        return 2e3;
+      }
+      rules = "TikTok posts require one MP4 video or one to 35 images (JPEG, PNG, or WEBP). PNG images are converted to JPEG before publish. Set privacy, direct post vs inbox upload, and interaction toggles. Media must be on a verified HTTPS domain (PULL_FROM_URL).";
+      validateCreatePost(input) {
+        if (input.status === "scheduled" && input.mediaCount < 1) {
+          return "TikTok requires a video or image attachment";
+        }
+        return null;
+      }
+      async post(openId, accessToken2, postDetails, integration) {
+        if (!postDetails.length) return [];
+        const username = integration.name?.replace(/^@/, "") || void 0;
+        const result = await publishTiktokPost(openId, accessToken2, postDetails[0], username);
+        return [result];
+      }
+      async refreshToken(refreshToken) {
+        const { clientId, clientSecret } = tiktokOAuth();
+        if (!clientId || !clientSecret) {
+          throw new AppError(
+            "TikTok OAuth is not configured. Set TIKTOK_CLIENT_ID and TIKTOK_CLIENT_SECRET.",
+            503
+          );
+        }
+        const token = await exchangeTiktokToken({
+          client_key: clientId,
+          client_secret: clientSecret,
+          grant_type: "refresh_token",
+          refresh_token: refreshToken
+        });
+        if (!token.access_token) {
+          throw new Error(token.error_description ?? token.error ?? "TikTok token refresh failed");
+        }
+        const profile = await fetchTiktokUserProfile(token.access_token);
+        return authDetailsFromTokenResponse(token, profile, refreshToken);
+      }
+      async generateAuthUrl() {
+        const { clientId } = tiktokOAuth();
+        if (!clientId) {
+          throw new AppError(
+            "TikTok OAuth is not configured. Set TIKTOK_CLIENT_ID and TIKTOK_CLIENT_SECRET.",
+            503
+          );
+        }
+        const state = makeId(6);
+        const { codeVerifier, codeChallenge } = generateTiktokPkcePair();
+        const redirectUri = tiktokRedirectUri();
+        const params = new URLSearchParams({
+          client_key: clientId,
+          scope: this.scopes.join(","),
+          response_type: "code",
+          redirect_uri: redirectUri,
+          state,
+          code_challenge: codeChallenge,
+          code_challenge_method: "S256"
+        });
+        return { url: `${TIKTOK_AUTH_URL}?${params.toString()}`, codeVerifier, state };
+      }
+      async authenticate(params) {
+        const { clientId, clientSecret } = tiktokOAuth();
+        if (!clientId || !clientSecret) return "TikTok OAuth is not configured";
+        const token = await exchangeTiktokToken({
+          client_key: clientId,
+          client_secret: clientSecret,
+          code: params.code,
+          grant_type: "authorization_code",
+          redirect_uri: tiktokRedirectUri(),
+          code_verifier: params.codeVerifier
+        });
+        if (!token.access_token) {
+          return token.error_description ?? token.error ?? "TikTok token exchange failed";
+        }
+        try {
+          const granted = parseGrantedTiktokScopes(token.scope);
+          if (granted.length > 0) {
+            checkTiktokScopes(this.scopes, granted);
+          }
+        } catch (e) {
+          return e instanceof Error ? e.message : "Missing OAuth permissions";
+        }
+        try {
+          const profile = await fetchTiktokUserProfile(token.access_token);
+          return authDetailsFromTokenResponse(token, profile);
+        } catch (e) {
+          return e instanceof Error ? e.message : "TikTok user profile fetch failed";
+        }
+      }
+      async analytics(_openId, accessToken2, _dateWindowDays) {
+        const today = tiktokAnalyticsToday();
+        try {
+          const fields = ["follower_count", "following_count", "likes_count", "video_count"].join(",");
+          const envelope = await tiktokApiGet(
+            accessToken2,
+            `/v2/user/info/?fields=${encodeURIComponent(fields)}`
+          );
+          if (!envelope.ok) return [];
+          const user = envelope.data.user && typeof envelope.data.user === "object" ? envelope.data.user : {};
+          const rows = [];
+          const push = (label, value) => {
+            if (value == null) return;
+            rows.push({
+              label,
+              percentageChange: 0,
+              data: [{ total: String(value), date: today }]
+            });
+          };
+          push("Followers", user.follower_count);
+          push("Following", user.following_count);
+          push("Likes", user.likes_count);
+          push("Videos", user.video_count);
+          await appendTiktokRecentVideoEngagement(accessToken2, rows, today);
+          return rows;
+        } catch {
+          return [];
+        }
+      }
+      async postAnalytics(_integrationId, accessToken2, releaseId, _fromDateDays) {
+        const today = tiktokAnalyticsToday();
+        try {
+          const videoId = await resolveTiktokPublicVideoId(accessToken2, releaseId);
+          if (!videoId) return [];
+          const metrics = await queryTiktokVideoMetrics(accessToken2, [videoId]);
+          const first = metrics[0];
+          if (!first) return [];
+          return buildTiktokPostAnalyticsRows(first, today);
+        } catch {
+          return [];
+        }
+      }
+      async missing(_openId, accessToken2) {
+        try {
+          const videos = await listTiktokVideos(accessToken2, {
+            fields: "id,cover_image_url,title"
+          });
+          return videos.map((video) => ({
+            id: video.id,
+            url: video.cover_image_url ?? ""
+          }));
+        } catch {
+          return [];
+        }
+      }
+    };
+  }
+});
+
+// integrations/providers/youtube/resolveYoutubeSettings.ts
+function isPlainObject5(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readPrivacyStatus(source) {
+  const raw = source.type ?? source.privacyStatus ?? source.privacy_status;
+  if (raw === "private" || raw === "unlisted" || raw === "public") return raw;
+  return DEFAULT_PRIVACY2;
+}
+function readMadeForKids(source) {
+  const raw = source.selfDeclaredMadeForKids ?? source.self_declared_made_for_kids;
+  if (raw === true || raw === "yes") return true;
+  return false;
+}
+function readTitle2(source) {
+  const title = source.title;
+  return typeof title === "string" ? title.trim() : "";
+}
+function normalizeTags(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const item of raw) {
+    if (typeof item === "string") {
+      const label = item.trim();
+      if (label) out.push(label);
+      continue;
+    }
+    if (isPlainObject5(item)) {
+      const label = (typeof item.label === "string" ? item.label : typeof item.value === "string" ? item.value : "").trim();
+      if (label) out.push(label);
+    }
+  }
+  return out.slice(0, 500);
+}
+function readThumbnailPath(source) {
+  const thumb = source.thumbnail;
+  if (isPlainObject5(thumb) && typeof thumb.path === "string" && thumb.path.trim()) {
+    return thumb.path.trim();
+  }
+  if (typeof source.thumbnailPath === "string" && source.thumbnailPath.trim()) {
+    return source.thumbnailPath.trim();
+  }
+  return void 0;
+}
+function resolveYoutubeSettings(postDetailsSettings, message = "") {
+  const description = typeof message === "string" ? message : "";
+  if (!isPlainObject5(postDetailsSettings)) {
+    return {
+      title: "",
+      description,
+      privacyStatus: DEFAULT_PRIVACY2,
+      selfDeclaredMadeForKids: false,
+      tags: []
+    };
+  }
+  let source = { ...postDetailsSettings };
+  const providerSettings = postDetailsSettings.providerSettings;
+  if (isPlainObject5(providerSettings)) {
+    const { youtube: youtubeBucket, ...flatProviderSettings } = providerSettings;
+    source = { ...source, ...flatProviderSettings };
+    if (isPlainObject5(youtubeBucket)) {
+      source = { ...source, ...youtubeBucket };
+    }
+  } else if (isPlainObject5(postDetailsSettings.youtube)) {
+    source = { ...source, ...postDetailsSettings.youtube };
+  }
+  return {
+    title: readTitle2(source),
+    description,
+    privacyStatus: readPrivacyStatus(source),
+    selfDeclaredMadeForKids: readMadeForKids(source),
+    tags: normalizeTags(source.tags),
+    thumbnailPath: readThumbnailPath(source)
+  };
+}
+var DEFAULT_PRIVACY2;
+var init_resolveYoutubeSettings = __esm({
+  "integrations/providers/youtube/resolveYoutubeSettings.ts"() {
+    DEFAULT_PRIVACY2 = "public";
+  }
+});
+
+// integrations/providers/youtube/youtubePublishValidation.ts
+function shouldSkipYoutubeThumbnail(byteLength) {
+  if (byteLength == null || !Number.isFinite(byteLength)) return false;
+  return byteLength > YOUTUBE_THUMBNAIL_MAX_BYTES;
+}
+function isPlainObject6(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function mediaExtFromUrlOrKey4(path7) {
+  const raw = String(path7 || "").trim();
+  if (!raw) return "";
+  try {
+    const u = new URL(raw);
+    return (u.pathname.split(".").pop() ?? "").toLowerCase();
+  } catch {
+    return (raw.split("?")[0]?.split("#")[0]?.split(".").pop() ?? "").toLowerCase();
+  }
+}
+function extractYoutubeMediaFromSettings(settings) {
+  if (!isPlainObject6(settings)) return [];
   const media = settings.media;
   if (Array.isArray(media)) {
     return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
@@ -12979,7 +14086,7 @@ function validateYoutubeVideoMedia(media) {
   if (media.length !== 1) {
     throw new Error("YouTube requires one video attachment");
   }
-  const ext = mediaExtFromUrlOrKey3(media[0].path);
+  const ext = mediaExtFromUrlOrKey4(media[0].path);
   if (ext !== "mp4") {
     throw new Error("YouTube requires an MP4 video attachment");
   }
@@ -13163,7 +14270,6 @@ var init_youtubeProvider = __esm({
       editor = "normal";
       isBetweenSteps = true;
       refreshCron = true;
-      toolTip = "Connect a YouTube channel you manage";
       scopes = [
         "https://www.googleapis.com/auth/userinfo.profile",
         "https://www.googleapis.com/auth/userinfo.email",
@@ -13409,13 +14515,15 @@ var init_integrationManager = __esm({
     init_instagramBusinessProvider();
     init_instagramStandaloneProvider();
     init_threadsProvider();
+    init_tiktokProvider();
     init_youtubeProvider();
     socialIntegrationList = [
       new ThreadsProvider(),
       new FacebookProvider(),
       new InstagramBusinessProvider(),
       new InstagramStandaloneProvider(),
-      new YoutubeProvider()
+      new YoutubeProvider(),
+      new TiktokProvider()
     ];
     IntegrationManager = class {
       getAllIntegrations() {
@@ -15017,223 +16125,7 @@ var init_TransactionalNotificationEmailService = __esm({
     };
   }
 });
-
-// utils/dtos/PostDTO.ts
-function repeatIntervalToDays(key) {
-  if (key == null) return null;
-  const m = {
-    day: 1,
-    two_days: 2,
-    three_days: 3,
-    four_days: 4,
-    five_days: 5,
-    six_days: 6,
-    week: 7,
-    two_weeks: 14,
-    month: 30
-  };
-  return m[key] ?? null;
-}
-function parseProviderThreadsPreviewFromPostSettings(settings) {
-  const empty = {
-    replies: [],
-    finisher: null,
-    delayedEngagementReply: null
-  };
-  if (!settings?.trim()) return empty;
-  try {
-    const o = JSON.parse(settings);
-    const ps = o.providerSettings && typeof o.providerSettings === "object" ? o.providerSettings : null;
-    if (!ps) return empty;
-    const threads = ps.threads && typeof ps.threads === "object" ? ps.threads : null;
-    if (!threads) return empty;
-    const repliesRaw = threads.replies;
-    const arr = Array.isArray(repliesRaw) ? repliesRaw : [];
-    const replies = arr.map((r) => ({
-      content: typeof r?.message === "string" ? r.message.trim() : "",
-      delaySeconds: Number.isFinite(Number(r?.delaySeconds)) ? Math.max(0, Math.floor(Number(r.delaySeconds))) : 0
-    })).filter((r) => r.content.length > 0);
-    const enabled = typeof threads.enabled === "boolean" ? threads.enabled : false;
-    const rawMsg = typeof threads.message === "string" ? threads.message.trim() : "";
-    const finisher = enabled ? { enabled: true, message: rawMsg || "That's a wrap!" } : null;
-    let delayedEngagementReply = null;
-    const igRaw = threads.internalEngagementPlug;
-    if (igRaw && typeof igRaw === "object") {
-      const ig = igRaw;
-      if (ig.enabled === true) {
-        const message = typeof ig.message === "string" ? ig.message : "";
-        const delaySeconds = typeof ig.delaySeconds === "number" && Number.isFinite(ig.delaySeconds) ? Math.max(0, Math.floor(ig.delaySeconds)) : 0;
-        delayedEngagementReply = { message, delaySeconds };
-      }
-    }
-    return { replies, finisher, delayedEngagementReply };
-  } catch {
-    return empty;
-  }
-}
-function replyChainBucketForProvider(providerIdentifier) {
-  const id = (providerIdentifier ?? "").trim().toLowerCase();
-  return id.startsWith("instagram") ? "instagram" : "threads";
-}
-function mapRawRepliesToFollowUpDrafts(repliesRaw) {
-  if (!Array.isArray(repliesRaw)) return [];
-  return repliesRaw.map((r) => {
-    const o = r;
-    return {
-      id: typeof o?.id === "string" ? o.id : "",
-      message: typeof o?.message === "string" ? o.message.trim() : "",
-      delaySeconds: Number.isFinite(Number(o?.delaySeconds)) ? Math.max(0, Math.floor(Number(o.delaySeconds))) : 0
-    };
-  }).filter((r) => r.id && r.message.length > 0).slice(0, 25);
-}
-function extractFollowUpRepliesFromProviderSettingsObject(providerSettings, providerIdentifier) {
-  if (!providerSettings || typeof providerSettings !== "object") return [];
-  const bucket = replyChainBucketForProvider(providerIdentifier);
-  const sub = providerSettings[bucket];
-  if (!sub || typeof sub !== "object" || Array.isArray(sub)) return [];
-  return mapRawRepliesToFollowUpDrafts(sub.replies);
-}
-function extractFollowUpRepliesFromPostSettingsColumn(settings, providerIdentifier) {
-  if (!settings?.trim()) return [];
-  try {
-    const o = JSON.parse(settings);
-    const ps = o.providerSettings && typeof o.providerSettings === "object" ? o.providerSettings : null;
-    return extractFollowUpRepliesFromProviderSettingsObject(ps, providerIdentifier);
-  } catch {
-    return [];
-  }
-}
-function parsePostSettingsJson(settings) {
-  if (!settings) return { isGlobal: true, repeatInterval: null };
-  try {
-    const o = JSON.parse(settings);
-    const isGlobal = typeof o.isGlobal === "boolean" ? o.isGlobal : true;
-    const repeatInterval = (typeof o.repeatInterval === "string" ? o.repeatInterval : null) ?? null;
-    return { isGlobal, repeatInterval };
-  } catch {
-    return { isGlobal: true, repeatInterval: null };
-  }
-}
-function parsePostImageColumn(image) {
-  if (!image) return [];
-  try {
-    const o = JSON.parse(image);
-    const items = Array.isArray(o.items) ? o.items : [];
-    return items.map((x) => ({
-      id: typeof x?.id === "string" ? x.id : "",
-      path: typeof x?.path === "string" ? x.path : ""
-    })).filter((m) => m.id && m.path);
-  } catch {
-    return [];
-  }
-}
-var PostDTOMapper;
-var init_PostDTO = __esm({
-  "utils/dtos/PostDTO.ts"() {
-    PostDTOMapper = {
-      toDTO(row, integration) {
-        if (row == null) return null;
-        const channelName = integration?.name?.trim() ? integration.name.trim() : null;
-        const channelPictureUrl = integration?.picture?.trim() ? integration.picture.trim() : null;
-        const providerIdentifier = integration?.provider_identifier?.trim() ? integration.provider_identifier.trim() : null;
-        return {
-          id: row.id,
-          state: row.state,
-          publishDate: row.publish_date,
-          organizationId: row.organization_id,
-          integrationId: row.integration_id,
-          content: row.content,
-          delay: row.delay,
-          postGroup: row.post_group,
-          title: row.title,
-          description: row.description,
-          parentPostId: row.parent_post_id,
-          releaseId: row.release_id,
-          releaseUrl: row.release_url,
-          settings: row.settings,
-          image: row.image,
-          intervalInDays: row.interval_in_days,
-          error: row.error,
-          deletedAt: row.deleted_at,
-          createdByUserId: row.created_by_user_id,
-          note: row.note,
-          isAgentEdited: row.is_agent_edited,
-          isReviewed: row.is_reviewed,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-          ...integration ? {
-            channelName,
-            channelPictureUrl,
-            providerIdentifier
-          } : {}
-        };
-      },
-      toDTOCollection(rows, integrationById) {
-        if (!Array.isArray(rows)) return [];
-        return rows.map(
-          (r) => PostDTOMapper.toDTO(r, r.integration_id ? integrationById?.get(r.integration_id) ?? null : null)
-        ).filter(Boolean);
-      },
-      toPostTagDTO(row) {
-        if (row == null) return null;
-        return {
-          id: row.id,
-          name: row.name,
-          color: row.color,
-          orgId: row.org_id,
-          deletedAt: row.deleted_at,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at
-        };
-      },
-      toPostTagDTOCollection(rows) {
-        if (!Array.isArray(rows)) return [];
-        return rows.map((r) => PostDTOMapper.toPostTagDTO(r)).filter(Boolean);
-      },
-      toPostCommentDTO(row) {
-        if (row == null) return null;
-        return {
-          id: row.id,
-          postId: row.post_id,
-          organizationId: row.organization_id,
-          userId: row.user_id,
-          content: row.content,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-          deletedAt: row.deleted_at
-        };
-      },
-      toPostCommentDTOCollection(rows) {
-        if (!Array.isArray(rows)) return [];
-        return rows.map((r) => PostDTOMapper.toPostCommentDTO(r)).filter(Boolean);
-      },
-      toPostThreadReplyDTO(row) {
-        if (row == null) return null;
-        return {
-          id: row.id,
-          organizationId: row.organization_id,
-          postId: row.post_id,
-          integrationId: row.integration_id,
-          content: row.content,
-          delaySeconds: row.delay_seconds,
-          state: row.state,
-          releaseId: row.release_id,
-          releaseUrl: row.release_url,
-          error: row.error,
-          createdByUserId: row.created_by_user_id,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-          deletedAt: row.deleted_at
-        };
-      },
-      toPostThreadReplyDTOCollection(rows) {
-        if (!Array.isArray(rows)) return [];
-        return rows.map((r) => PostDTOMapper.toPostThreadReplyDTO(r)).filter(Boolean);
-      }
-    };
-  }
-});
-function sleepMs3(ms) {
+function sleepMs4(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function tagsListCacheKey(organizationId) {
@@ -16230,7 +17122,7 @@ var init_PostsService = __esm({
           }
           integrationRow.token = refreshed.accessToken;
           if (provider?.refreshWait) {
-            await sleepMs3(1e4);
+            await sleepMs4(1e4);
           }
         }
         return integrationRow;
@@ -16311,11 +17203,20 @@ var init_PostsService = __esm({
         if (!post || post.organization_id !== input.organizationId) {
           throw new AppError("Post not found", 404);
         }
-        const rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
-          ...input.note !== void 0 ? { note: input.note } : {},
-          ...input.isReviewed !== void 0 ? { isReviewed: input.isReviewed } : {},
-          isAgentEdited: false
-        });
+        let rows;
+        if (input.kanbanManualFinishAcknowledged === true) {
+          rows = await this.postsRepository.updatePostGroupKanbanManualFinishAcknowledged(
+            post.post_group,
+            input.organizationId,
+            true
+          );
+        } else {
+          rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+            ...input.note !== void 0 ? { note: input.note } : {},
+            ...input.isReviewed !== void 0 ? { isReviewed: input.isReviewed } : {},
+            isAgentEdited: false
+          });
+        }
         await this._invalidatePostMutationCaches({
           organizationId: input.organizationId,
           postGroup: post.post_group,
@@ -16332,11 +17233,20 @@ var init_PostsService = __esm({
         if (!post || post.organization_id !== input.organizationId) {
           throw new AppError("Post not found", 404);
         }
-        const rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
-          ...input.note !== void 0 ? { note: input.note } : {},
-          ...input.isReviewed !== void 0 ? { isReviewed: input.isReviewed } : {},
-          isAgentEdited: input.isAgent === true
-        });
+        let rows;
+        if (input.kanbanManualFinishAcknowledged === true) {
+          rows = await this.postsRepository.updatePostGroupKanbanManualFinishAcknowledged(
+            post.post_group,
+            input.organizationId,
+            true
+          );
+        } else {
+          rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+            ...input.note !== void 0 ? { note: input.note } : {},
+            ...input.isReviewed !== void 0 ? { isReviewed: input.isReviewed } : {},
+            isAgentEdited: input.isAgent === true
+          });
+        }
         await this._invalidatePostMutationCaches({
           organizationId: input.organizationId,
           postGroup: post.post_group,
@@ -20401,11 +21311,12 @@ var init_MediaController = __esm({
       }
       async uploadToStorage(params) {
         const { organizationId, authUserId, file } = params;
-        if (!isAllowedMediaMime(file.mimetype || "")) {
+        const mimetype = inferMediaMimeType(file.originalname, file.mimetype);
+        if (!isAllowedMediaMime(mimetype)) {
           throw new UserValidationError("Unsupported media type");
         }
         const size = file.buffer.length;
-        const uploadSizeError = validateMediaFileUploadSize(size, file.mimetype || "");
+        const uploadSizeError = validateMediaFileUploadSize(size, mimetype);
         if (uploadSizeError) {
           throw new UserValidationError(uploadSizeError);
         }
@@ -20414,7 +21325,7 @@ var init_MediaController = __esm({
           organizationId,
           buffer: file.buffer,
           originalName: file.originalname,
-          contentType: file.mimetype || "application/octet-stream"
+          contentType: mimetype
         });
         return { filePath: out.path, publicUrl: out.publicUrl ?? publicUrlForObjectKey(out.path) };
       }
@@ -20725,13 +21636,13 @@ var init_MediaController = __esm({
           if (endpoint === "complete-multipart-upload") {
             const key = String(req.body?.key ?? "");
             const uploadId = String(req.body?.uploadId ?? "");
-            const contentType = String(req.body?.contentType ?? "");
-            const fileSize = Number(req.body?.file?.size ?? 0) || 0;
-            const uploadSizeError = validateMediaFileUploadSize(
-              fileSize,
-              contentType || "application/octet-stream",
-              "backend"
+            const originalName = typeof req.body?.file?.name === "string" ? String(req.body.file.name) : "";
+            const contentType = inferMediaMimeType(
+              originalName,
+              String(req.body?.contentType ?? "")
             );
+            const fileSize = Number(req.body?.file?.size ?? 0) || 0;
+            const uploadSizeError = validateMediaFileUploadSize(fileSize, contentType, "backend");
             if (uploadSizeError) {
               throw new UserValidationError(uploadSizeError);
             }
@@ -20750,15 +21661,14 @@ var init_MediaController = __esm({
               })),
               publicBaseUrl: null
             });
-            const originalName = typeof req.body?.file?.name === "string" ? String(req.body.file.name) : void 0;
             const saved = await this.mediaService.saveFile({
               organizationId,
               name: key.split("/").pop() ?? key,
               path: key,
               virtualPath: readVirtualPath(req.body),
-              originalName: originalName ?? null,
+              originalName: originalName || null,
               fileSize: Number(req.body?.file?.size ?? 0) || 0,
-              type: typeof req.body?.contentType === "string" && String(req.body.contentType).startsWith("video/") ? "video" : "image"
+              type: contentType.startsWith("video/") ? "video" : "image"
             });
             res.status(200).json({ ...completed, saved });
             return;
@@ -22686,7 +23596,8 @@ var init_PostsController = __esm({
             organizationId: body.organizationId,
             postId,
             note: body.note,
-            isReviewed: body.isReviewed
+            isReviewed: body.isReviewed,
+            kanbanManualFinishAcknowledged: body.kanbanManualFinishAcknowledged
           });
           const posts = await this.postsService.toPostDtosWithChannelMetadata(body.organizationId, rows);
           res.status(200).json({
@@ -22792,7 +23703,8 @@ var init_PublicPostsController = __esm({
             postId,
             note: body.note,
             isReviewed: body.isReviewed,
-            isAgent: body.isAgent
+            isAgent: body.isAgent,
+            kanbanManualFinishAcknowledged: body.kanbanManualFinishAcknowledged
           });
           res.status(200).json({
             success: true,
@@ -26059,7 +26971,8 @@ var validateUpdatePostReleaseId = validateRequest({
 var updatePostReviewTodoBodySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id"),
   note: zod.z.string().max(2e3).nullable().optional(),
-  isReviewed: zod.z.boolean().optional()
+  isReviewed: zod.z.boolean().optional(),
+  kanbanManualFinishAcknowledged: zod.z.boolean().optional()
 });
 var validateUpdatePostReviewTodo = validateRequest({
   params: postIdParamsSchema,
@@ -26131,6 +27044,7 @@ var validatePublicUpdateReleaseIdRequest = validateRequest({
 var publicUpdatePostReviewTodoBodySchema = zod.z.object({
   note: zod.z.string().max(2e3).nullable().optional(),
   isReviewed: zod.z.boolean().optional(),
+  kanbanManualFinishAcknowledged: zod.z.boolean().optional(),
   /** When true (CLI/agent), keeps `isAgentEdited` on the post group. Dashboard calls omit or set false. */
   isAgent: zod.z.boolean().optional()
 });

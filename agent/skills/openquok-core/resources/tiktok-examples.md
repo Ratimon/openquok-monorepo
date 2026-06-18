@@ -18,7 +18,8 @@ Run `integrations:settings` for `output.rules`, `output.maxLength`, and allow-li
 | Posting method | Yes | `DIRECT_POST` or `UPLOAD` (send to inbox) |
 | Comments / Duet / Stitch toggles | Yes | Booleans per post |
 | Brand disclosure toggles | Yes | `brand_content_toggle`, `brand_organic_toggle` |
-| Platform analytics | Yes | `analytics:platform` and `analytics:post` (when enabled) |
+| Platform analytics | Yes | `analytics:platform` (account + recent video engagement) and `analytics:post` |
+| Missing release id recovery | Yes | `posts:missing` → `posts:connect` (inbox uploads and unresolved publish ids) |
 | Direct binary upload to TikTok | No | TikTok pulls from public HTTPS URLs |
 
 ## Agent tasks
@@ -33,6 +34,7 @@ Run `integrations:settings` for `output.rules`, `output.maxLength`, and allow-li
 | Leave a human checklist for manual TikTok steps | [Review notes (`--note`)](#review-notes-note) |
 | Check limits, tools, and rules | `openquok integrations:settings "$TT_ID"` |
 | Review channel performance | [Analytics](#analytics) |
+| Link inbox uploads to TikTok video ids | [Missing release id](#missing-release-id) |
 
 ## Provider settings
 
@@ -192,6 +194,19 @@ Tell the user to open the **Scheduled posts** column (not Published) to read the
 ```bash
 openquok analytics:platform "$TT_ID" -d 30
 POST_ID=$(openquok posts:list | jq -r '.items[] | select(.identifier=="tiktok") | .id' | head -1)
+openquok analytics:post "$POST_ID" -d 7
+```
+
+Platform analytics include account totals (followers, likes, video count) plus aggregated views/likes/comments/shares from your most recent videos. Per-post analytics return views, likes, comments, and shares for published rows with a linked TikTok video id.
+
+## Missing release id
+
+Inbox uploads (`content_posting_method: "UPLOAD"`) store `release_id = "missing"` until you link the live TikTok video id.
+
+```bash
+POST_ID=$(openquok posts:list | jq -r '.items[] | select(.identifier=="tiktok" and .releaseId=="missing") | .id' | head -1)
+openquok posts:missing "$POST_ID" | jq '.data.items[] | {id, url}'
+openquok posts:connect "$POST_ID" -r "<tiktok-video-id>"
 openquok analytics:post "$POST_ID" -d 7
 ```
 

@@ -603,9 +603,9 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 		},
 		{
 			subtitle: 'Insights',
-			title: 'See what resonates on TikTok, track followers and video counts, and iterate',
+			title: 'See what resonates on TikTok, track followers and engagement, and iterate',
 			description:
-				'Track followers, likes, and video counts from connected TikTok accounts inside OpenQuok analytics — so you can schedule more of what already works.',
+				'Track followers, likes, video counts, and recent video engagement from connected TikTok accounts inside OpenQuok analytics — so you can schedule more of what already works.',
 			bentoId: 'tiktok-insights',
 			mediaOnRight: true
 		}
@@ -691,7 +691,7 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 		{
 			title: 'What TikTok analytics does OpenQuok track?',
 			description:
-				'OpenQuok pulls account-level TikTok metrics — followers, likes, and video count — into analytics alongside your other channels. Per-post view and engagement breakdowns for individual TikTok videos are not available in OpenQuok today.'
+				'OpenQuok pulls account-level TikTok metrics — followers, likes, and video count — plus aggregated views, likes, comments, and shares from your recent videos. Per-post analytics return views, likes, comments, and shares once the row is linked to a TikTok video id (`posts:connect` after inbox uploads).'
 		},
 		{
 			title: 'Is there a free trial for TikTok scheduling?',

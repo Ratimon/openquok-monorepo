@@ -16,6 +16,8 @@ const ERROR_MESSAGES: Record<string, string> = {
     access_token_invalid: "TikTok access token expired or is invalid. Reconnect the channel and try again.",
     scope_not_authorized:
         "TikTok access token is missing required scopes (video.publish or video.upload). Reconnect and approve all requested permissions.",
+    scope_permission_missed:
+        "TikTok access token is missing required permissions. Reconnect and approve all requested scopes.",
     rate_limit_exceeded: "TikTok API rate limit exceeded. Wait a minute and try again.",
     internal_error: "TikTok server error. Try again later.",
     token_not_authorized_for_specified_publish_id: "TikTok could not verify this publish request for the connected account.",

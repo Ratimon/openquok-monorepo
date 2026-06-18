@@ -4,13 +4,8 @@ import {
     extractTiktokMediaFromSettings,
     validateTiktokMedia,
 } from "./tiktokPublishValidation";
-import {
-    mapTiktokApiErrorCode,
-    mapTiktokFailReason,
-    parseTiktokApiEnvelope,
-} from "./tiktokApiErrors";
-
-const TIKTOK_API = "https://open.tiktokapis.com";
+import { tiktokApiPost } from "./tiktokApiClient";
+import { mapTiktokApiErrorCode, mapTiktokFailReason } from "./tiktokApiErrors";
 
 /** Production poll cadence; shortened under Jest so accidental unmocked publish calls fail fast. */
 function tiktokStatusPollMs(): number {
@@ -76,33 +71,6 @@ export function buildTiktokPhotoSourceInfoBody(photoUrls: string[]): Record<stri
         photo_images: photoUrls,
         photo_cover_index: 0,
     };
-}
-
-async function tiktokApiPost(accessToken: string, path: string, body: Record<string, unknown>): Promise<{
-    ok: boolean;
-    data: Record<string, unknown>;
-    errorCode: string;
-    errorMessage: string;
-}> {
-    const res = await fetch(`${TIKTOK_API}${path}`, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json; charset=UTF-8",
-        },
-        body: JSON.stringify(body),
-    });
-    let parsed: unknown;
-    try {
-        parsed = await res.json();
-    } catch {
-        throw new Error(`TikTok API returned non-JSON response (HTTP ${res.status})`);
-    }
-    const envelope = parseTiktokApiEnvelope(parsed);
-    if (!res.ok && envelope.ok) {
-        return { ...envelope, ok: false, errorCode: envelope.errorCode || `http_${res.status}` };
-    }
-    return envelope;
 }
 
 async function pollTiktokPublishStatus(
@@ -196,12 +164,22 @@ export async function publishTiktokPost(
     }
 
     const polled = await pollTiktokPublishStatus(accessToken, publishId);
+
+    if (polled.status === "SEND_TO_USER_INBOX") {
+        return {
+            id: postDetails.id,
+            postId: "missing",
+            status: "SEND_TO_USER_INBOX",
+            releaseURL: "https://www.tiktok.com/messages?lang=en",
+        };
+    }
+
     const releaseURL = buildTiktokReleaseUrl(username, polled.postId);
 
     return {
         id: postDetails.id,
         postId: polled.postId || publishId,
-        status: polled.status === "SEND_TO_USER_INBOX" ? "SEND_TO_USER_INBOX" : "success",
+        status: "success",
         releaseURL,
     };
 }

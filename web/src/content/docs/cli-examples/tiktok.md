@@ -99,6 +99,16 @@ POST_ID=$(openquok posts:list | jq -r '.items[] | select(.identifier=="tiktok") 
 openquok analytics:post "$POST_ID" -d 7
 ```
 
+Returns views, likes, comments, and shares when the post row has a linked TikTok video id. Inbox uploads store <Badge text="releaseId=missing" variant="param" /> until you connect the live id — see <a href="/docs/cli-usages/managing-posts#connecting-missing-posts">Connecting missing posts</a>.
+
+## Missing release id (inbox uploads)
+
+```bash
+POST_ID=$(openquok posts:list | jq -r '.items[] | select(.identifier=="tiktok" and .releaseId=="missing") | .id' | head -1)
+openquok posts:missing "$POST_ID" | jq '.data.items[] | {id, url}'
+openquok posts:connect "$POST_ID" -r "<tiktok-video-id>"
+```
+
 <Callout type="warning" title="Media must be publicly fetchable (HTTPS)">
 <p>TikTok publishes by pulling media from a public HTTPS URL. If publish fails with media URL errors, verify your storage public base URL and TikTok domain verification. See <a href="/docs/social-integration/tiktok">TikTok setup</a>.</p>
 </Callout>
