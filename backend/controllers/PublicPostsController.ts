@@ -93,13 +93,19 @@ export class PublicPostsController {
             countPublicApiRequest("posts-review-todo");
             const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
             const postId = (req.params as { postId: string }).postId;
-            const body = req.body as { note?: string | null; isReviewed?: boolean; isAgent?: boolean };
+            const body = req.body as {
+                note?: string | null;
+                isReviewed?: boolean;
+                isAgent?: boolean;
+                kanbanManualFinishAcknowledged?: boolean;
+            };
             const rows = await this.postsService.updatePostReviewTodoProgrammatic({
                 organizationId,
                 postId,
                 note: body.note,
                 isReviewed: body.isReviewed,
                 isAgent: body.isAgent,
+                kanbanManualFinishAcknowledged: body.kanbanManualFinishAcknowledged,
             });
             res.status(200).json({
                 success: true,

@@ -33,7 +33,13 @@
 	let isEditingNote = $state(false);
 	let noteAreaEl = $state<HTMLTextAreaElement | null>(null);
 
-	const isDraggable = $derived(cardVm.column !== 'published' && !isEditingNote);
+	const isDraggable = $derived.by(() => {
+		if (isEditingNote || cardVm.column === 'published') return false;
+		if (cardVm.needsManualFinishInApp && cardVm.column === 'scheduled') {
+			return cardVm.isReviewed;
+		}
+		return true;
+	});
 	const multiChannels = $derived(cardVm.channelSlots.length > 1);
 	const previewSlots = $derived(cardVm.channelSlots.slice(0, 3));
 	/** Human badge: any post not flagged agent-edited (home/calendar creates and human-reviewed agent drafts). */
@@ -78,7 +84,9 @@
 		return {
 			postId: cardVm.postId,
 			postGroup: cardVm.postGroup,
-			sourceColumn: cardVm.column
+			sourceColumn: cardVm.column,
+			needsManualFinishInApp: cardVm.needsManualFinishInApp === true,
+			isReviewed: cardVm.isReviewed
 		};
 	}
 

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { PostStateDb, PostTagLike, PostCommentLike, PostThreadReplyLike, SocialPostLike } from "../utils/dtos/PostDTO";
+import { mergeKanbanManualFinishAcknowledged } from "../utils/dtos/PostDTO";
 
 import { v4 as uuidv4 } from "uuid";
 import { DatabaseError } from "../errors/InfraError";
@@ -696,6 +697,52 @@ export class PostsRepository {
             });
         }
         return (data ?? []) as SocialPostLike[];
+    }
+
+    /**
+     * Marks manual-finish kanban posts as acknowledged on the board (`settings.kanbanManualFinishAcknowledged`).
+     */
+    async updatePostGroupKanbanManualFinishAcknowledged(
+        postGroup: string,
+        organizationId: string,
+        acknowledged: boolean
+    ): Promise<SocialPostLike[]> {
+        const rows = await this.listPostsByGroup(postGroup);
+        const targets = rows.filter(
+            (r) => r.organization_id === organizationId && r.deleted_at == null
+        );
+        if (targets.length === 0) return [];
+
+        const now = new Date().toISOString();
+        const updated: SocialPostLike[] = [];
+
+        for (const row of targets) {
+            const settings = mergeKanbanManualFinishAcknowledged(row.settings, acknowledged);
+            const { data, error } = await this.supabase
+                .from(TABLE_POSTS)
+                .update({
+                    settings,
+                    updated_at: now,
+                    is_agent_edited: false,
+                })
+                .eq("id", row.id)
+                .select("*")
+                .single();
+
+            if (error) {
+                throw new DatabaseError(
+                    `Failed to update kanban manual-finish acknowledgment: ${error.message}`,
+                    {
+                        cause: error,
+                        operation: "update",
+                        resource: { type: "table", name: TABLE_POSTS },
+                    }
+                );
+            }
+            if (data) updated.push(data as SocialPostLike);
+        }
+
+        return updated;
     }
 
     async listTagsForPostIds(postIds: string[]): Promise<PostTagLike[]> {

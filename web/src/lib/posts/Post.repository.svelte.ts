@@ -671,11 +671,15 @@ export class PostsRepository {
 		organizationId: string;
 		note?: string | null;
 		isReviewed?: boolean;
+		kanbanManualFinishAcknowledged?: boolean;
 	}): Promise<{ ok: true; posts: PostRowProgrammerModel[] } | { ok: false; error: string }> {
 		try {
 			const body: Record<string, unknown> = { organizationId: params.organizationId };
 			if (params.note !== undefined) body.note = params.note;
 			if (params.isReviewed !== undefined) body.isReviewed = params.isReviewed;
+			if (params.kanbanManualFinishAcknowledged !== undefined) {
+				body.kanbanManualFinishAcknowledged = params.kanbanManualFinishAcknowledged;
+			}
 			const { ok, data: dto } = await this.httpGateway.put<ListPostsResponseDto>(
 				this.config.endpoints.updatePostReviewTodo(params.postId),
 				body,

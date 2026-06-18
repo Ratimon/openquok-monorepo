@@ -6,6 +6,8 @@ export type KanbanCardDragPayload = {
 	postId: string;
 	postGroup: string;
 	sourceColumn: PostKanbanColumnId;
+	needsManualFinishInApp?: boolean;
+	isReviewed?: boolean;
 };
 
 export function serializeKanbanCardDrag(payload: KanbanCardDragPayload): string {
@@ -24,7 +26,13 @@ function parsePayloadJson(raw: string): KanbanCardDragPayload | null {
 				parsed.sourceColumn === 'scheduled' ||
 				parsed.sourceColumn === 'published')
 		) {
-			return parsed;
+			return {
+				postId: parsed.postId,
+				postGroup: parsed.postGroup,
+				sourceColumn: parsed.sourceColumn,
+				needsManualFinishInApp: parsed.needsManualFinishInApp === true,
+				isReviewed: parsed.isReviewed === true
+			};
 		}
 	} catch {
 		return null;
@@ -44,16 +52,47 @@ export function parseKanbanCardDrag(
 	return parsePayloadJson(raw);
 }
 
-/** Published is terminal; only draft ↔ scheduled moves are allowed. */
+export type KanbanCardMoveContext = Pick<
+	KanbanCardDragPayload,
+	'needsManualFinishInApp' | 'isReviewed'
+>;
+
+/** Draft ↔ scheduled; reviewed manual-finish posts may move scheduled → published. */
 export function canMoveKanbanCard(
 	source: PostKanbanColumnId,
-	target: PostKanbanColumnId
+	target: PostKanbanColumnId,
+	ctx?: KanbanCardMoveContext
 ): boolean {
 	if (source === target) return false;
-	if (source === 'published' || target === 'published') return false;
+	if (source === 'published') return false;
+	if (target === 'published') {
+		return (
+			source === 'scheduled' &&
+			ctx?.needsManualFinishInApp === true &&
+			ctx?.isReviewed === true
+		);
+	}
+	if (ctx?.needsManualFinishInApp && source === 'scheduled') return false;
 	return (
 		(source === 'draft' && target === 'scheduled') || (source === 'scheduled' && target === 'draft')
 	);
+}
+
+export function kanbanMoveBlockedMessage(
+	source: PostKanbanColumnId,
+	target: PostKanbanColumnId,
+	ctx?: KanbanCardMoveContext
+): string {
+	if (source === 'published') {
+		return 'Published posts cannot be moved on the board.';
+	}
+	if (target === 'published') {
+		if (ctx?.needsManualFinishInApp && !ctx?.isReviewed) {
+			return 'Mark this post as reviewed before moving it to Published.';
+		}
+		return 'Only reviewed inbox or private-draft posts can be moved to Published.';
+	}
+	return 'This column change is not allowed.';
 }
 
 export function columnToApiStatus(column: PostKanbanColumnId): 'draft' | 'scheduled' | null {

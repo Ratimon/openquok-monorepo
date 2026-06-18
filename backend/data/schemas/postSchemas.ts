@@ -178,6 +178,7 @@ export const updatePostReviewTodoBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     note: z.string().max(2000).nullable().optional(),
     isReviewed: z.boolean().optional(),
+    kanbanManualFinishAcknowledged: z.boolean().optional(),
 });
 
 export const validateUpdatePostReviewTodo: RequestHandler = validateRequest({

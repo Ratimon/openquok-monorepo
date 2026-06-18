@@ -42,8 +42,10 @@ import { toPostKanbanRowsVm } from '$lib/posts/utils/postKanbanBoardRows';
 import {
 	canMoveKanbanCard,
 	columnToApiStatus,
+	kanbanMoveBlockedMessage,
 	type KanbanCardDragPayload
 } from '$lib/ui/components/kanban-board/kanbanDnd';
+import { withKanbanManualFinishAcknowledged } from '$lib/posts/utils/postKanbanManualFinishAck';
 import dayjs from 'dayjs';
 
 export type {
@@ -269,7 +271,14 @@ export class PostKanbanBoardPresenter {
 		payload: KanbanCardDragPayload,
 		targetColumn: PostKanbanColumnId
 	): number {
-		if (!canMoveKanbanCard(payload.sourceColumn, targetColumn)) return 0;
+		if (
+			!canMoveKanbanCard(payload.sourceColumn, targetColumn, {
+				needsManualFinishInApp: payload.needsManualFinishInApp,
+				isReviewed: payload.isReviewed
+			})
+		) {
+			return 0;
+		}
 		const rowCount = this.listVm.filter((r) => r.postGroup === payload.postGroup).length;
 		if (rowCount < 1) return 0;
 		if (payload.sourceColumn === 'draft' && targetColumn === 'scheduled') return rowCount;
@@ -277,7 +286,7 @@ export class PostKanbanBoardPresenter {
 		return 0;
 	}
 
-	/** Draft ↔ scheduled via session `PUT /posts/:postId/status` (same as CLI `posts:status`). */
+	/** Draft ↔ scheduled via status flip; reviewed manual-finish → published via review-todo ack. */
 	async moveCardToColumn(
 		payload: KanbanCardDragPayload,
 		targetColumn: PostKanbanColumnId
@@ -286,25 +295,51 @@ export class PostKanbanBoardPresenter {
 		if (!org) {
 			return { ok: false, error: 'Create or select a workspace first.' };
 		}
-		if (!canMoveKanbanCard(payload.sourceColumn, targetColumn)) {
+		const moveCtx = {
+			needsManualFinishInApp: payload.needsManualFinishInApp,
+			isReviewed: payload.isReviewed
+		};
+		if (!canMoveKanbanCard(payload.sourceColumn, targetColumn, moveCtx)) {
 			return {
 				ok: false,
-				error:
-					targetColumn === 'published' || payload.sourceColumn === 'published'
-						? 'Published posts cannot be moved on the board.'
-						: 'This column change is not allowed.'
+				error: kanbanMoveBlockedMessage(payload.sourceColumn, targetColumn, moveCtx)
 			};
-		}
-
-		const targetStatus = columnToApiStatus(targetColumn);
-		if (!targetStatus) {
-			return { ok: false, error: 'This column change is not allowed.' };
 		}
 
 		const cardVm = this.cardsVm.find((c) => c.postGroup === payload.postGroup);
 		const postId = cardVm?.postId ?? payload.postId;
 		if (!postId) {
 			return { ok: false, error: 'Could not find post to move.' };
+		}
+
+		if (targetColumn === 'published' && payload.needsManualFinishInApp) {
+			const prevRows = this.listVm.filter((r) => r.postGroup === payload.postGroup);
+			this.movingPostGroup = payload.postGroup;
+			this.listVm = this.listVm.map((r) =>
+				r.postGroup === payload.postGroup
+					? { ...r, settings: withKanbanManualFinishAcknowledged(r.settings) }
+					: r
+			);
+			this.rebuildCardsVm();
+
+			const resultPm = await this.postsRepository.updatePostReviewTodo({
+				organizationId: org,
+				postId,
+				kanbanManualFinishAcknowledged: true
+			});
+			this.movingPostGroup = null;
+
+			if (!resultPm.ok) {
+				this.replacePostGroupRows(payload.postGroup, prevRows);
+				return { ok: false, error: resultPm.error };
+			}
+			this.replacePostGroupRows(payload.postGroup, toPostKanbanRowsVm(resultPm.posts));
+			return { ok: true, targetColumn };
+		}
+
+		const targetStatus = columnToApiStatus(targetColumn);
+		if (!targetStatus) {
+			return { ok: false, error: 'This column change is not allowed.' };
 		}
 
 		const targetState = targetStatus === 'draft' ? 'DRAFT' : 'QUEUE';

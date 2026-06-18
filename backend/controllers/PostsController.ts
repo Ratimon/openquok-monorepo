@@ -391,13 +391,19 @@ export class PostsController {
                 return next(new UserAuthorizationError("Not authenticated"));
             }
             const postId = (req.params as { postId: string }).postId;
-            const body = req.body as { organizationId: string; note?: string | null; isReviewed?: boolean };
+            const body = req.body as {
+                organizationId: string;
+                note?: string | null;
+                isReviewed?: boolean;
+                kanbanManualFinishAcknowledged?: boolean;
+            };
             const rows = await this.postsService.updatePostReviewTodo({
                 authUserId,
                 organizationId: body.organizationId,
                 postId,
                 note: body.note,
                 isReviewed: body.isReviewed,
+                kanbanManualFinishAcknowledged: body.kanbanManualFinishAcknowledged,
             });
             const posts = await this.postsService.toPostDtosWithChannelMetadata(body.organizationId, rows);
             res.status(200).json({

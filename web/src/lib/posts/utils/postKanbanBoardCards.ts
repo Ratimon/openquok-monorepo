@@ -23,6 +23,7 @@ import {
 	stateToKanbanColumn
 } from '$lib/posts/utils/postKanbanBoardFormat';
 import { resolveTiktokManualFinish } from '$lib/posts/utils/tiktokKanbanManualFinish';
+import { isKanbanManualFinishAcknowledged } from '$lib/posts/utils/postKanbanManualFinishAck';
 import { matchesTagFilters } from '$lib/posts/utils/postTagFilter';
 import { matchesKanbanTimeFilter } from '$lib/posts/utils/postKanbanBoardTimeFilter';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';
@@ -205,8 +206,10 @@ function resolveKanbanCardPlacement(groupRows: PostKanbanRowViewModel[]): {
 	const placements = groupRows
 		.map((row) => {
 			const manualFinish = resolveTiktokManualFinish(row);
-			const column = stateToKanbanColumn(row.state, manualFinish);
-			return column ? { column, manualFinish } : null;
+			const acknowledged = isKanbanManualFinishAcknowledged(row.settings);
+			const effectiveManualFinish = manualFinish && !acknowledged ? manualFinish : null;
+			const column = stateToKanbanColumn(row.state, effectiveManualFinish);
+			return column ? { column, manualFinish: effectiveManualFinish } : null;
 		})
 		.filter((p): p is NonNullable<typeof p> => p !== null);
 

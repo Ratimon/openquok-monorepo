@@ -212,16 +212,40 @@ export function extractFollowUpRepliesFromPostSettingsColumn(
 export function parsePostSettingsJson(settings: string | null): {
     isGlobal: boolean;
     repeatInterval: RepeatIntervalKey | null;
+    kanbanManualFinishAcknowledged: boolean;
 } {
-    if (!settings) return { isGlobal: true, repeatInterval: null };
+    if (!settings) return { isGlobal: true, repeatInterval: null, kanbanManualFinishAcknowledged: false };
     try {
-        const o = JSON.parse(settings) as { isGlobal?: unknown; repeatInterval?: unknown };
+        const o = JSON.parse(settings) as {
+            isGlobal?: unknown;
+            repeatInterval?: unknown;
+            kanbanManualFinishAcknowledged?: unknown;
+        };
         const isGlobal = typeof o.isGlobal === "boolean" ? o.isGlobal : true;
         const repeatInterval = (typeof o.repeatInterval === "string" ? (o.repeatInterval as RepeatIntervalKey) : null) ?? null;
-        return { isGlobal, repeatInterval };
+        const kanbanManualFinishAcknowledged = o.kanbanManualFinishAcknowledged === true;
+        return { isGlobal, repeatInterval, kanbanManualFinishAcknowledged };
     } catch {
-        return { isGlobal: true, repeatInterval: null };
+        return { isGlobal: true, repeatInterval: null, kanbanManualFinishAcknowledged: false };
     }
+}
+
+/** Merges `kanbanManualFinishAcknowledged` into a `posts.settings` JSON string. */
+export function mergeKanbanManualFinishAcknowledged(
+    settings: string | null,
+    acknowledged: boolean
+): string {
+    let parsed: Record<string, unknown> = {};
+    if (settings?.trim()) {
+        try {
+            const o = JSON.parse(settings) as unknown;
+            if (o && typeof o === "object") parsed = { ...(o as Record<string, unknown>) };
+        } catch {
+            parsed = {};
+        }
+    }
+    parsed.kanbanManualFinishAcknowledged = acknowledged;
+    return JSON.stringify(parsed);
 }
 
 /** Parses `posts.image` JSON column into media items. */

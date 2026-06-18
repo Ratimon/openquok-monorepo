@@ -1504,17 +1504,27 @@ export class PostsService {
         postId: string;
         note?: string | null;
         isReviewed?: boolean;
+        kanbanManualFinishAcknowledged?: boolean;
     }): Promise<SocialPostLike[]> {
         await this.integrationConnectionService.assertOrganizationMember(input.authUserId, input.organizationId);
         const post = await this.postsRepository.getPostById(input.postId);
         if (!post || post.organization_id !== input.organizationId) {
             throw new AppError("Post not found", 404);
         }
-        const rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
-            ...(input.note !== undefined ? { note: input.note } : {}),
-            ...(input.isReviewed !== undefined ? { isReviewed: input.isReviewed } : {}),
-            isAgentEdited: false,
-        });
+        let rows: SocialPostLike[];
+        if (input.kanbanManualFinishAcknowledged === true) {
+            rows = await this.postsRepository.updatePostGroupKanbanManualFinishAcknowledged(
+                post.post_group,
+                input.organizationId,
+                true
+            );
+        } else {
+            rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+                ...(input.note !== undefined ? { note: input.note } : {}),
+                ...(input.isReviewed !== undefined ? { isReviewed: input.isReviewed } : {}),
+                isAgentEdited: false,
+            });
+        }
         await this._invalidatePostMutationCaches({
             organizationId: input.organizationId,
             postGroup: post.post_group,
@@ -1533,16 +1543,26 @@ export class PostsService {
         note?: string | null;
         isReviewed?: boolean;
         isAgent?: boolean;
+        kanbanManualFinishAcknowledged?: boolean;
     }): Promise<SocialPostLike[]> {
         const post = await this.postsRepository.getPostById(input.postId);
         if (!post || post.organization_id !== input.organizationId) {
             throw new AppError("Post not found", 404);
         }
-        const rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
-            ...(input.note !== undefined ? { note: input.note } : {}),
-            ...(input.isReviewed !== undefined ? { isReviewed: input.isReviewed } : {}),
-            isAgentEdited: input.isAgent === true,
-        });
+        let rows: SocialPostLike[];
+        if (input.kanbanManualFinishAcknowledged === true) {
+            rows = await this.postsRepository.updatePostGroupKanbanManualFinishAcknowledged(
+                post.post_group,
+                input.organizationId,
+                true
+            );
+        } else {
+            rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+                ...(input.note !== undefined ? { note: input.note } : {}),
+                ...(input.isReviewed !== undefined ? { isReviewed: input.isReviewed } : {}),
+                isAgentEdited: input.isAgent === true,
+            });
+        }
         await this._invalidatePostMutationCaches({
             organizationId: input.organizationId,
             postGroup: post.post_group,

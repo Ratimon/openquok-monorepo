@@ -75,6 +75,7 @@ export const validatePublicUpdateReleaseIdRequest: RequestHandler = validateRequ
 export const publicUpdatePostReviewTodoBodySchema = z.object({
     note: z.string().max(2000).nullable().optional(),
     isReviewed: z.boolean().optional(),
+    kanbanManualFinishAcknowledged: z.boolean().optional(),
     /** When true (CLI/agent), keeps `isAgentEdited` on the post group. Dashboard calls omit or set false. */
     isAgent: z.boolean().optional(),
 });

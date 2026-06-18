@@ -44,9 +44,16 @@
 		return parseKanbanCardDrag(dataTransfer, activeDrag);
 	}
 
+	function kanbanMoveContext(payload: KanbanCardDragPayload) {
+		return {
+			needsManualFinishInApp: payload.needsManualFinishInApp,
+			isReviewed: payload.isReviewed
+		};
+	}
+
 	function handleDragOver(e: DragEvent) {
 		const payload = resolvePayload(e.dataTransfer ?? null);
-		if (!payload || !canMoveKanbanCard(payload.sourceColumn, columnId)) {
+		if (!payload || !canMoveKanbanCard(payload.sourceColumn, columnId, kanbanMoveContext(payload))) {
 			dropActive = false;
 			onDragOverColumn(null);
 			return;
@@ -83,7 +90,7 @@
 		dropActive = false;
 		onDragOverColumn(null);
 		const payload = resolvePayload(e.dataTransfer ?? null);
-		if (!payload || !canMoveKanbanCard(payload.sourceColumn, columnId)) return;
+		if (!payload || !canMoveKanbanCard(payload.sourceColumn, columnId, kanbanMoveContext(payload))) return;
 		onDropOnColumn(columnId, payload);
 	}
 </script>
