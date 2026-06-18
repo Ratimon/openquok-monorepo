@@ -1,9 +1,172 @@
+import type Uppy from '@uppy/core';
 import type { MediaUploadProgrammerModel } from '$lib/medias/Media.repository.svelte';
-import { inferMediaMimeType } from 'openquok-common';
+import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
+import {
+	inferMediaMimeType,
+	MAX_MEDIA_VIDEO_UPLOAD_BYTES,
+	validateMediaFileUploadSize,
+	validateMediaUploadSessionSize
+} from 'openquok-common';
 import { authenticationRepository } from '$lib/user-auth/index';
-import { mediaUploadApiUrl, postMediaUploadJson } from '$lib/medias/utils/mediaUploadApi';
-import type { MediaLibraryUploadMode } from '$lib/medias/utils/mediaLibraryUploadEnv';
-import { resolveMediaLibraryUploadMode } from '$lib/medias/utils/mediaLibraryUploadEnv';
+import { normalizeApiBaseUrl } from '$lib/utils/path';
+
+// --- Upload mode (VITE_MEDIA_LIBRARY_UPLOAD) ---
+
+/**
+ * How the account media library sends files: local disk via API, direct multipart to R2, or full file POST via API.
+ *
+ * This is **only** the browser upload strategy. It is unrelated to backend `STORAGE_PROVIDER` (`r2` vs `local`),
+ * which chooses where the API stores bytes after upload.
+ */
+export type MediaLibraryUploadMode = 'local' | 'direct' | 'api';
+
+/**
+ * Reads {@link import.meta.env.VITE_MEDIA_LIBRARY_UPLOAD} (`local` | `direct` | `api` and synonyms).
+ * If unset or empty, defaults to `direct` (presigned multipart to R2).
+ */
+export function resolveMediaLibraryUploadMode(): MediaLibraryUploadMode {
+	const raw = String(import.meta.env?.VITE_MEDIA_LIBRARY_UPLOAD ?? '').trim().toLowerCase();
+	if (!raw) {
+		return 'direct';
+	}
+	return mapPrimaryEnv(raw);
+}
+
+function mapPrimaryEnv(raw: string): MediaLibraryUploadMode {
+	if (raw === 'local') {
+		return 'local';
+	}
+	if (raw === 'direct' || raw === 'multipart' || raw === 'presigned') {
+		return 'direct';
+	}
+	if (raw === 'api' || raw === 'proxy' || raw === 'server' || raw === 'xhr') {
+		return 'api';
+	}
+	if (import.meta.env.DEV) {
+		console.warn(
+			`[openquok] Unknown VITE_MEDIA_LIBRARY_UPLOAD="${raw}". Expected local | direct | api. Using direct.`
+		);
+	}
+	return 'direct';
+}
+
+// --- API helpers ---
+
+export function mediaUploadApiUrl(path: string): string {
+	const raw = String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? '');
+	const base = normalizeApiBaseUrl(raw);
+	const p = path.startsWith('/') ? path : `/${path}`;
+	return base ? `${base}${p}` : p;
+}
+
+export async function postMediaUploadJson(params: {
+	path: string;
+	token: string | null;
+	body: unknown;
+}): Promise<Record<string, unknown>> {
+	const res = await fetch(mediaUploadApiUrl(params.path), {
+		method: 'POST',
+		headers: {
+			Accept: 'application/json',
+			'Content-Type': 'application/json',
+			...(params.token ? { Authorization: `Bearer ${params.token}` } : {})
+		},
+		credentials: 'include',
+		body: JSON.stringify(params.body)
+	});
+	const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+	if (!res.ok) {
+		const msg =
+			(typeof json?.message === 'string' && json.message) ||
+			(typeof json?.msg === 'string' && json.msg) ||
+			`Request failed with status ${res.status}`;
+		throw new Error(msg);
+	}
+	return json ?? {};
+}
+
+// --- Client-side upload restrictions ---
+
+type UppyFileLike = { id: string; name?: string; type?: string; size?: number | null };
+
+function fileMime(file: UppyFileLike): string {
+	return inferMediaMimeType(String(file.name ?? ''), file.type);
+}
+
+function fileSize(file: UppyFileLike): number {
+	return Number(file.size ?? 0);
+}
+
+/** Client-side per-file caps (30 MB images, 1 GB videos) and session batch cap. */
+export function attachMediaUploadRestrictions(uppy: Uppy, onError?: (message: string) => void): void {
+	uppy.setOptions({
+		restrictions: {
+			maxFileSize: MAX_MEDIA_VIDEO_UPLOAD_BYTES,
+			allowedFileTypes: ['image/*', 'video/*']
+		}
+	});
+
+	uppy.addPreProcessor((fileIds) => {
+		return new Promise<void>((resolve, reject) => {
+			const files = uppy.getFiles().filter((f) => fileIds.includes(f.id));
+			let sessionTotal = 0;
+
+			for (const file of files) {
+				const size = fileSize(file);
+				sessionTotal += size;
+				const err = validateMediaFileUploadSize(size, fileMime(file), 'frontend');
+				if (err) {
+					onError?.(err);
+					uppy.removeFile(file.id);
+					reject(new Error(err));
+					return;
+				}
+			}
+
+			const sessionErr = validateMediaUploadSessionSize(sessionTotal);
+			if (sessionErr) {
+				onError?.(sessionErr);
+				for (const file of files) {
+					uppy.removeFile(file.id);
+				}
+				reject(new Error(sessionErr));
+				return;
+			}
+
+			resolve();
+		});
+	});
+}
+
+/** Validate a file list before adding to Uppy (e.g. drag-drop without going through pre-processor alone). */
+export function validateFilesForMediaUpload(
+	files: File[],
+	onError?: (message: string) => void
+): File[] {
+	const total = files.reduce((sum, f) => sum + f.size, 0);
+	const sessionErr = validateMediaUploadSessionSize(total);
+	if (sessionErr) {
+		onError?.(sessionErr);
+		return [];
+	}
+
+	const accepted: File[] = [];
+	for (const file of files) {
+		const err = validateMediaFileUploadSize(
+			file.size,
+			inferMediaMimeType(file.name, file.type),
+			'frontend'
+		);
+		if (err) {
+			onError?.(err);
+			continue;
+		}
+		accepted.push(file);
+	}
+	return accepted;
+}
+
+// --- Workspace upload (composer, thumbnails, etc.) ---
 
 /** S3-compatible multipart part size (minimum 5 MiB except the last part). */
 const MULTIPART_PART_BYTES = 5 * 1024 * 1024;

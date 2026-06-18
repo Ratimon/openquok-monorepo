@@ -4,7 +4,7 @@ import type {
 } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
 import { isProfileChannelDisplayName } from '$data/social-providers';
-import { publicUrlForMediaStorageKey } from '$lib/medias/utils/publicMediaObjectUrl';
+import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 import type {
 	PostCommentProgrammerModel,
 	PostGroupDetailsProgrammerModel,

@@ -1,5 +1,5 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
-import { uploadWorkspaceMediaFile, type MediaUploadProgress } from '$lib/medias/utils/workspaceMediaUpload';
+import { uploadWorkspaceMediaFile, type MediaUploadProgress } from '$lib/medias/utils/mediaUpload';
 import { validateMediaFileUploadSize, inferMediaMimeType } from 'openquok-common';
 
 export interface MediaFileTreeEntityProgrammerModel {

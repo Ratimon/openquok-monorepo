@@ -38,14 +38,13 @@ import {
 	filterKanbanCardsByTags,
 	groupKanbanCardsIntoColumns
 } from '$lib/posts/utils/postKanbanBoardCards';
-import { toPostKanbanRowsVm } from '$lib/posts/utils/postKanbanBoardRows';
+import { toPostKanbanRowsVm, withKanbanManualFinishAcknowledged } from '$lib/posts/utils/postKanbanBoard';
 import {
 	canMoveKanbanCard,
 	columnToApiStatus,
 	kanbanMoveBlockedMessage,
 	type KanbanCardDragPayload
 } from '$lib/ui/components/kanban-board/kanbanDnd';
-import { withKanbanManualFinishAcknowledged } from '$lib/posts/utils/postKanbanManualFinishAck';
 import dayjs from 'dayjs';
 
 export type {
@@ -75,7 +74,7 @@ export {
 	POST_KANBAN_TIME_FILTER_OPTIONS
 } from '$lib/posts/postKanbanBoard.types';
 
-export { formatKanbanRelativePublishLabel } from '$lib/posts/utils/postKanbanBoardFormat';
+export { formatKanbanRelativePublishLabel } from '$lib/posts/utils/postKanbanBoard';
 
 export class PostKanbanBoardPresenter {
 	readonly columnOptions = POST_KANBAN_COLUMNS;

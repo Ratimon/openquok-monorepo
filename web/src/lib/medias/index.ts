@@ -52,10 +52,9 @@ export {
 export {
 	resolveMediaLibraryUploadMode,
 	type MediaLibraryUploadMode
-} from './utils/mediaLibraryUploadEnv';
-export { formatBytes } from './utils/formatBytes';
-export { isImageMediaPath, isVideoMediaPath } from './utils/mediaKindForPath';
-export { publicUrlForMediaStorageKey } from './utils/publicMediaObjectUrl';
+} from './utils/mediaUpload';
+export { formatBytes, isImageMediaPath, isVideoMediaPath } from './utils/mediaDisplay';
+export { publicUrlForMediaStorageKey } from './utils/mediaUrls';
 export type {
 	MediaConfig,
 	MediaDeleteProgrammerModel,

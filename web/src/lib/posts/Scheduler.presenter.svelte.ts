@@ -19,17 +19,19 @@ import {
 	type SocialPlatformFilterVm
 } from '$lib/posts/scheduler.types';
 import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts/scheduler.types';
-import { deriveIntegrationFilter } from '$lib/posts/utils/schedulerIntegrationFilter';
-import { buildCalendarEventsFromPosts } from '$lib/posts/utils/schedulerCalendarEvents';
-import { filterPostsByPostType } from '$lib/posts/utils/schedulerPostTypeFilter';
-import { filterPostsByTags } from '$lib/posts/utils/postTagFilter';
 import {
+	buildCalendarEventsFromPosts,
 	labelForRange,
 	rangeForGranularity,
 	shiftRange,
 	temporalToUtcYyyyMmDd,
 	todayUtcYyyyMmDd
-} from '$lib/posts/utils/schedulerCalendarDates';
+} from '$lib/posts/utils/schedulerCalendar';
+import {
+	deriveIntegrationFilter,
+	filterPostsByPostType,
+	filterPostsByTags
+} from '$lib/posts/utils/schedulerFilters';
 
 export type {
 	CalendarDisplayViewModel,

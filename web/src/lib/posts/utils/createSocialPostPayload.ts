@@ -5,7 +5,7 @@ import type {
 	PostMediaViewModel,
 	RepeatIntervalKey
 } from '$lib/posts/Post.repository.svelte';
-import { isChannelSchedulable, unschedulableReason } from '$lib/posts/utils/createSocialPostChannel';
+import { isChannelSchedulable, unschedulableReason } from '$lib/posts/utils/createSocialPostComposer';
 import { datetimeLocalToIso } from '$lib/utils/postingSchedulePreferences';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 

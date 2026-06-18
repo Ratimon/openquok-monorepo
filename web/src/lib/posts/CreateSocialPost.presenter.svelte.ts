@@ -23,9 +23,16 @@ import type {
 	RepeatIntervalKey
 } from '$lib/posts/Post.repository.svelte';
 import {
+	cloneProviderSettingsByIntegrationId,
+	computeLaunchMaxMediaItems,
+	computeScheduleValidationError,
+	computeScheduleValidationErrorAsync,
 	isChannelSchedulable,
+	isComposerDirty,
+	mergeProviderSettingsPatch,
+	serializeComposerSnapshot,
 	unschedulableReason
-} from '$lib/posts/utils/createSocialPostChannel';
+} from '$lib/posts/utils/createSocialPostComposer';
 import {
 	applyThreadFollowUpRepliesToSettings,
 	channelSupportsFollowUpComments,
@@ -41,13 +48,6 @@ import {
 	validateComposerContent,
 	type BuildPostUpsertPayloadInput
 } from '$lib/posts/utils/createSocialPostPayload';
-import { mergeProviderSettingsPatch, cloneProviderSettingsByIntegrationId } from '$lib/posts/utils/createSocialPostProviderSettings';
-import {
-	computeLaunchMaxMediaItems,
-	computeScheduleValidationError,
-	computeScheduleValidationErrorAsync
-} from '$lib/posts/utils/createSocialPostScheduleValidation';
-import { isComposerDirty, serializeComposerSnapshot } from '$lib/posts/utils/createSocialPostSnapshot';
 import type {
 	GetSignaturesPresenter,
 	SignatureViewModel
@@ -68,7 +68,7 @@ import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 import { toast } from '$lib/ui/sonner';
 
 export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/createSocialPost.types';
-export { isChannelSchedulable, unschedulableReason } from '$lib/posts/utils/createSocialPostChannel';
+export { isChannelSchedulable, unschedulableReason } from '$lib/posts/utils/createSocialPostComposer';
 
 /**
  * Shared composer state for the create-post dialog: scheduling UI, repository calls,

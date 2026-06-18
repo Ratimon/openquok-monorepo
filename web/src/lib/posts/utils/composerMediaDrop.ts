@@ -1,7 +1,7 @@
 import type { PostMediaProgrammerModel } from '$lib/posts/Post.repository.svelte';
 
 import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
-import type { MediaUploadProgress } from '$lib/medias/utils/workspaceMediaUpload';
+import type { MediaUploadProgress } from '$lib/medias/utils/mediaUpload';
 
 /** Collect files from a drag event (`files` first, then `items` for Safari). */
 export function filesFromDataTransfer(transfer: DataTransfer | null | undefined): File[] {

@@ -1,6 +1,6 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { ChannelViewModel } from '$lib/posts/scheduler.types';
-import { deriveIntegrationFilter } from '$lib/posts/utils/schedulerIntegrationFilter';
+import { deriveIntegrationFilter } from '$lib/posts/utils/schedulerFilters';
 import { isProfileChannelDisplayName } from '$data/social-providers';
 import {
 	channelDisplayFromPostRow,
@@ -19,13 +19,13 @@ import type {
 import {
 	formatKanbanPublishScheduleLabel,
 	formatKanbanRelativePublishLabel,
+	isKanbanManualFinishAcknowledged,
 	kanbanColumnStatusLabel,
+	matchesKanbanTimeFilter,
+	resolveTiktokManualFinish,
 	stateToKanbanColumn
-} from '$lib/posts/utils/postKanbanBoardFormat';
-import { resolveTiktokManualFinish } from '$lib/posts/utils/tiktokKanbanManualFinish';
-import { isKanbanManualFinishAcknowledged } from '$lib/posts/utils/postKanbanManualFinishAck';
-import { matchesTagFilters } from '$lib/posts/utils/postTagFilter';
-import { matchesKanbanTimeFilter } from '$lib/posts/utils/postKanbanBoardTimeFilter';
+} from '$lib/posts/utils/postKanbanBoard';
+import { matchesTagFilters } from '$lib/posts/utils/schedulerFilters';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';
 import dayjs from 'dayjs';
 

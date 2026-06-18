@@ -13,7 +13,7 @@ import {
 	normalizeMediaVirtualPath
 } from 'openquok-common';
 
-import { collectFolderPathsFromTree } from '$lib/medias/utils/mediaVirtualFolderBrowse';
+import { collectFolderPathsFromTree } from '$lib/medias/utils/mediaVirtualFolders';
 
 /** View model for a row / tile in the media library UI. */
 export interface MediaLibraryItemViewModel {

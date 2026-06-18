@@ -15,7 +15,7 @@ function encodeStoragePathSegments(storagePath: string): string {
  *
  * In production builds, without `VITE_STORAGE_R2_PUBLIC_BASE_URL`, this does not guess a URL from
  * the page origin (e.g. `https://www…/uploads/…` is wrong when objects are served from R2).
- * Prefer API `publicUrl` on list/upload responses, or set the same public origin as the backend’s
+ * Prefer API `publicUrl` on list/upload responses, or set the same public origin as the backend's
  * `STORAGE_R2_PUBLIC_BASE_URL`.
  */
 export function publicUrlForMediaStorageKey(storageKey: string): string {

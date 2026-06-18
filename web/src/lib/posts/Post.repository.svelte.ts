@@ -1,7 +1,8 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
+import type { MediaUploadProgress } from '$lib/medias/utils/mediaUpload';
+
 import { userFacingApiErrorMessage } from '$lib/core/HttpGateway';
 import { mediaRepository, mediaVirtualPathForComposerUpload } from '$lib/medias';
-import type { MediaUploadProgress } from '$lib/medias/utils/workspaceMediaUpload';
 
 /** One image or video attached to a social post (R2 / user media paths from `/api/v1/media/*`). */
 export type PostMediaProgrammerModel = {

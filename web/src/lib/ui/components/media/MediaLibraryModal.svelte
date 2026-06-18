@@ -15,7 +15,7 @@
 		isWithinVirtualFolder,
 		mediaVirtualBreadcrumbs,
 		topLevelVirtualFolders
-	} from '$lib/medias/utils/mediaVirtualFolderBrowse';
+	} from '$lib/medias/utils/mediaVirtualFolders';
 	import { createRemotePagination } from '$lib/ui/helpers/createRemotePagination.svelte';
 	import { toast } from '$lib/ui/sonner';
 

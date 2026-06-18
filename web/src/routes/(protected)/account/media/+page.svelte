@@ -11,8 +11,8 @@
 	import { getRootPathAccount, mediaLibraryMediaModalPresenter, protectedMediaPagePresenter } from '$lib/area-protected';
 	import { formatBytes, mediaUploadLimitsHint, normalizeMediaVirtualPath } from '$lib/medias';
 	import { route, url } from '$lib/utils/path';
-	import { createAccountMediaUppy } from '$lib/medias/utils/accountMediaUppy';
-	import { validateFilesForMediaUpload } from '$lib/medias/utils/mediaUploadRestrictions';
+	import { createAccountMediaUppy } from '$lib/medias/utils/mediaUppy';
+	import { validateFilesForMediaUpload } from '$lib/medias/utils/mediaUpload';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { toast } from '$lib/ui/sonner';
