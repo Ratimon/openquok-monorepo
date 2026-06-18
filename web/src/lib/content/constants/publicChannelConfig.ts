@@ -29,6 +29,8 @@ export type PublicChannelLandingPage = {
 	heroDescription: string;
 	metaTitle: string;
 	metaDescription: string;
+	/** Hub card blurb on `/channels`; falls back to `metaDescription` when omitted. */
+	hubDescription?: string;
 	keywords: string[];
 	featureSections: PublicChannelFeatureSection[];
 	audienceSubtitle: string;
@@ -56,6 +58,8 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 	metaTitle: 'Facebook Page Post & Reel Scheduler',
 	metaDescription:
 		'Schedule Facebook Page posts and Reels with OpenQuok. Connect your Page, queue text, photos, and MP4 video from the calendar or API, and keep human approval in the loop.',
+	hubDescription:
+		'Page feed posts, MP4 Reels, and link-preview cards — built for Facebook Pages, not personal profiles.',
 	keywords: [
 		'Facebook post scheduler',
 		'Facebook Reel scheduler',
@@ -180,6 +184,8 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 	metaTitle: 'Threads Post Scheduler',
 	metaDescription:
 		'Schedule Threads posts with OpenQuok. Connect Meta Threads, queue text and media, chain follow-up replies, and publish from the dashboard, API, or CLI.',
+	hubDescription:
+		'500-character posts with media and scheduled follow-up reply chains — conversation-first text on Meta Threads.',
 	keywords: [
 		'Threads post scheduler',
 		'schedule Threads posts',
@@ -302,6 +308,8 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 	metaTitle: 'Instagram Post, Reel & Story Scheduler',
 	metaDescription:
 		'Schedule Instagram feed posts, Reels, carousels, and Stories with OpenQuok. Business or Standalone login, calendar scheduling, per-post settings, follow-up comments, and analytics.',
+	hubDescription:
+		'Feed posts, Reels, carousels, and Stories — with trial Reels, collaborator tags, and follow-up comments.',
 	keywords: [
 		'Instagram post scheduler',
 		'schedule Instagram posts',
@@ -432,6 +440,8 @@ const YOUTUBE_CHANNEL: PublicChannelLandingPage = {
 	metaTitle: 'YouTube Video & Short Upload Scheduler',
 	metaDescription:
 		'Schedule YouTube videos and Shorts with OpenQuok. Connect your channel, queue MP4 uploads with title, privacy, tags, and optional thumbnail, cross-post to other channels, and track analytics from one workspace.',
+	hubDescription:
+		'Long-form MP4 uploads and vertical Shorts — title, privacy, tags, and custom thumbnail per video.',
 	keywords: [
 		'YouTube video scheduler',
 		'YouTube Shorts scheduler',
@@ -576,6 +586,8 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 	metaTitle: 'TikTok Video & Photo Scheduler',
 	metaDescription:
 		'Schedule TikTok videos and photo carousels with OpenQuok. Connect your account, queue MP4 or image posts with privacy and interaction settings, and publish from one workspace.',
+	hubDescription:
+		'Vertical video and photo carousels — direct publish or queue to your TikTok inbox to add trending audio.',
 	keywords: [
 		'TikTok post scheduler',
 		'schedule TikTok videos',
@@ -714,6 +726,8 @@ const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [
 		heroDescription: '',
 		metaTitle: 'LinkedIn Post Scheduler',
 		metaDescription: 'LinkedIn scheduling on OpenQuok — coming soon.',
+		hubDescription:
+			'Professional posts and company-page updates — B2B reach and thought leadership.',
 		keywords: ['LinkedIn post scheduler'],
 		featureSections: [],
 		audienceSubtitle: '',
@@ -735,6 +749,7 @@ const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [
 		heroDescription: '',
 		metaTitle: 'X Post Scheduler',
 		metaDescription: 'X scheduling on OpenQuok — coming soon.',
+		hubDescription: 'Short posts and real-time conversations on the fastest-moving social feed.',
 		keywords: ['X post scheduler', 'Twitter scheduler'],
 		featureSections: [],
 		audienceSubtitle: '',

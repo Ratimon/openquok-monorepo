@@ -25,14 +25,14 @@
 			Social media CLI built for AI agents
 		</h1>
 		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-			Agent landing pages for OpenQuok — install a skill, authenticate the CLI, and let your
-			assistant schedule posts across every connected channel while you approve what goes live.
+			See which AI agent hosts connect to OpenQuok — compare OpenClaw and others, install a skill,
+			and let your assistant schedule posts while you approve what goes live.
 		</p>
 	</div>
 
 	<ul
 		class="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3"
-		aria-label="AI agent integration landing pages"
+		aria-label="AI agent integrations you can connect"
 	>
 		{#each agents as agent (agent.slug)}
 			{@const href = agent.available ? route(getRootPathPublicAgent(agent.slug)) : undefined}
@@ -61,7 +61,7 @@
 								{agent.agentLabel}
 							</h2>
 							<p class="text-sm leading-relaxed text-base-content/70">
-								{agent.metaDescription}
+								{agent.hubDescription ?? agent.metaDescription}
 							</p>
 						</div>
 						<span class="mt-auto text-sm font-semibold text-primary">View integration →</span>
@@ -92,7 +92,7 @@
 						<div class="space-y-2 text-left">
 							<h2 class="text-lg font-bold text-base-content/80">{agent.agentLabel}</h2>
 							<p class="text-sm leading-relaxed text-base-content/60">
-								{agent.metaDescription}
+								{agent.hubDescription ?? agent.metaDescription}
 							</p>
 						</div>
 					</div>

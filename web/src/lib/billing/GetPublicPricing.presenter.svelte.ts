@@ -196,9 +196,13 @@ function buildCardFeatures(tier: PaidSubscriptionTier, limits: PlanLimits): stri
 	return merged;
 }
 
-function buildCompareFootnote(limits: PlanLimits): string | undefined {
+function buildCompareFootnote(tier: PaidSubscriptionTier, limits: PlanLimits): string | undefined {
 	const unlimitedPosts = limits.posts_per_month >= UNLIMITED_POSTS_PER_MONTH;
 	const unlimitedTeam = isUnlimitedTeamMembersPerWorkspace(limits.team_members_per_workspace);
+
+	if (tier === 'MAX') {
+		return `${limits.workspaces} Agent workspaces included`;
+	}
 
 	if (unlimitedPosts && unlimitedTeam) {
 		return `${formatPostsPerMonthLimit(limits.posts_per_month)} posts & Unlimited team members`;
@@ -232,7 +236,7 @@ export class GetPublicPricingPresenter {
 				periodLabel,
 				isFeatured: tier === PUBLIC_PRICING_FEATURED_TIER,
 				features: buildCardFeatures(tier, limits),
-				compareFootnote: buildCompareFootnote(limits)
+				compareFootnote: buildCompareFootnote(tier, limits)
 			} satisfies PublicPricingPlanCardViewModel;
 		});
 

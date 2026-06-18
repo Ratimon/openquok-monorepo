@@ -159,6 +159,8 @@ export type PublicAgentLandingPage = {
 	heroDescription: string;
 	metaTitle: string;
 	metaDescription: string;
+	/** Hub card blurb on `/agents`; falls back to `metaDescription` when omitted. */
+	hubDescription?: string;
 	keywords: string[];
 	featureSections: PublicAgentFeatureSection[];
 	audienceSubtitle: string;
@@ -187,10 +189,12 @@ const OPENCLAW_AGENT: PublicAgentLandingPage = {
 	icon: icons.OpenClaw.name,
 	heroTitle: 'Schedule social media from OpenClaw you approve',
 	heroDescription:
-		'Install the openquok-core skill on OpenClaw. Your agent drafts and schedules from any chat app — you review and approve on the calendar or kanban before anything goes live.',
+		'OpenClaw is a personal AI assistant on your own devices — message it from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it drafts and schedules social posts while you review and approve on the calendar or kanban.',
 	metaTitle: 'OpenClaw Social Media Skill for OpenQuok',
 	metaDescription:
-		'Install the openquok-core skill on OpenClaw. Schedule social posts from WhatsApp, Telegram, or Slack and approve every draft on the OpenQuok calendar or kanban before publish.',
+		'OpenClaw is a self-hosted personal AI assistant for Telegram, WhatsApp, Slack, and more. Connect OpenQuok to draft and schedule social posts from chat — approve every publish on the calendar or kanban.',
+	hubDescription:
+		'OpenClaw is a personal AI assistant you run on your own devices. It answers on the channels you already use — with voice on macOS, iOS, and Android, and a live Canvas you control.',
 	keywords: [
 		'OpenClaw social media',
 		'OpenClaw skill',

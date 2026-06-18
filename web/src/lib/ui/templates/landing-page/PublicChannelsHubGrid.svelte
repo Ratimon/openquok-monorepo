@@ -25,14 +25,14 @@
 			Schedule posts to every social channel
 		</h1>
 		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-			Platform landing pages for OpenQuok — connect, schedule, and automate with agents while you
-			stay in control of what publishes.
+			See which social platforms you can connect — Facebook, Threads, Instagram, YouTube, TikTok,
+			and more — then schedule posts from one workspace while you stay in control of what publishes.
 		</p>
 	</div>
 
 	<ul
 		class="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3"
-		aria-label="Social channel landing pages"
+		aria-label="Social channels you can connect"
 	>
 		{#each channels as channel (channel.slug)}
 			{@const href = channel.available ? route(getRootPathPublicChannel(channel.slug)) : undefined}
@@ -61,7 +61,7 @@
 								{channel.platformLabel}
 							</h2>
 							<p class="text-sm leading-relaxed text-base-content/70">
-								{channel.metaDescription}
+								{channel.hubDescription ?? channel.metaDescription}
 							</p>
 						</div>
 						<span class="mt-auto text-sm font-semibold text-primary">View scheduler →</span>
@@ -92,7 +92,7 @@
 						<div class="space-y-2 text-left">
 							<h2 class="text-lg font-bold text-base-content/80">{channel.platformLabel}</h2>
 							<p class="text-sm leading-relaxed text-base-content/60">
-								{channel.metaDescription}
+								{channel.hubDescription ?? channel.metaDescription}
 							</p>
 						</div>
 					</div>

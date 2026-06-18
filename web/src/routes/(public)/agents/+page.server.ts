@@ -21,7 +21,7 @@ export async function load({ url, cookies, parent }) {
 
 	const customTitle = 'AI agent integrations';
 	const customDescription =
-		'Browse OpenQuok agent landing pages — install skills, authenticate the CLI, and let OpenClaw or other assistants schedule social posts while you approve what goes live.';
+		'See which AI agent hosts connect to OpenQuok — OpenClaw and more. Install a skill, authenticate the CLI, and schedule social posts while you approve what goes live.';
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,

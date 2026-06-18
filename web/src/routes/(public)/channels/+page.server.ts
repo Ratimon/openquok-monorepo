@@ -21,7 +21,7 @@ export async function load({ url, cookies, parent }) {
 
 	const customTitle = 'Social channel schedulers';
 	const customDescription =
-		'Browse OpenQuok channel landing pages — schedule Facebook, Threads, Instagram, and more from one agent-ready workspace.';
+		'See which social platforms you can connect — Facebook, Threads, Instagram, YouTube, TikTok, and more. Schedule posts from one workspace while you approve what goes live.';
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
