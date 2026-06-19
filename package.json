@@ -35,7 +35,7 @@
     "build:deps": "pnpm common:build && pnpm backend:build && pnpm orchestrator:build && pnpm sdk:build",
     "build:all": "pnpm build:deps && pnpm web:build",
     "orchestrator:build": "pnpm --filter openquok-orchestrator build",
-    "orchestrator:build:deps": "pnpm common:build && pnpm backend:build && pnpm orchestrator:build",
+    "orchestrator:build:deps": "pnpm common:build && pnpm backend:build && pnpm orchestrator:build && node orchestrator/scripts/verifyWorkerSocialProviders.mjs",
     "sdk:build": "pnpm --filter @openquok/node build",
     "orchestrator:dev:worker:integration-refresh-bullmq": "pnpm --filter openquok-orchestrator dev:worker:integration-refresh-bullmq",
     "orchestrator:dev:worker:notification-email-bullmq": "pnpm --filter openquok-orchestrator dev:worker:notification-email-bullmq",

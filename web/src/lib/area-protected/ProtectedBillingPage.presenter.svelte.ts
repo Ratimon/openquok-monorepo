@@ -5,8 +5,10 @@ import type {
 import type {
 	BillingCurrentViewModel,
 	BillingPlanViewModel,
+	BillingPricingViewModel,
 	GetBillingPresenter
 } from '$lib/billing/GetBilling.presenter.svelte';
+import type { FirstBillingGatePresenter } from '$lib/billing/FirstBillingGate.presenter.svelte';
 import type { PaidSubscriptionTier, SubscriptionPeriod, SubscriptionTier } from 'openquok-common';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
@@ -41,35 +43,47 @@ export class ProtectedBillingPagePresenter {
 	constructor(
 		private readonly getBillingPresenter: GetBillingPresenter,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
-		readonly billingPresenter: BillingPresenter
+		readonly billingPresenter: BillingPresenter,
+		private readonly firstBillingGatePresenter: FirstBillingGatePresenter
 	) {
-		this.billingPresenter.bindReloadPricing(() => this.load());
+		this.billingPresenter.bindReloadPricing(() => this.load({ force: true }));
 	}
 
 	get organizationId(): string {
 		return this.workspaceSettingsPresenter.currentWorkspaceId ?? '';
 	}
 
-	async load(): Promise<void> {
+	async load(options?: { force?: boolean }): Promise<void> {
 		if (this.loadInFlight) {
 			return this.loadInFlight;
 		}
-		this.loadInFlight = this.loadInternal().finally(() => {
+		const force = options?.force ?? false;
+		this.loadInFlight = this.loadInternal(force).finally(() => {
 			this.loadInFlight = null;
 		});
 		return this.loadInFlight;
 	}
 
-	private async loadInternal(): Promise<void> {
+	private async loadInternal(force: boolean): Promise<void> {
 		this.loading = true;
 		try {
 			const orgId = this.organizationId;
-			const pricingVm = await this.getBillingPresenter.loadBillingPricingVmStateless(
-				orgId || undefined
-			);
+			const canReuseGateVm =
+				!force &&
+				Boolean(orgId) &&
+				this.firstBillingGatePresenter.hasPricingVmForOrganization(orgId);
+
+			const pricingVm: BillingPricingViewModel = canReuseGateVm
+				? this.firstBillingGatePresenter.pricingVm!
+				: await this.getBillingPresenter.loadBillingPricingVmStateless(orgId || undefined);
+
 			this.plansVm = pricingVm.plansVm;
 			this.currentVm = pricingVm.currentVm;
 			this.billingEnabled = pricingVm.billingEnabled;
+
+			if (!canReuseGateVm) {
+				this.firstBillingGatePresenter.applyPricingVm(pricingVm, orgId || undefined);
+			}
 		} finally {
 			this.loading = false;
 		}

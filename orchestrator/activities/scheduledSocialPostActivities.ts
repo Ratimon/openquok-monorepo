@@ -615,9 +615,17 @@ async function resolveSocialProviderOrFail(
     deps: PublishDeps
 ): Promise<{ ok: true; social: any } | { ok: false }> {
     const ns = deps.notificationService;
-    const social = deps.integrationManager.getSocialIntegration(input.providerIdentifier);
+    const providerIdentifier = input.providerIdentifier.trim();
+    const social = deps.integrationManager.getSocialIntegration(providerIdentifier);
     if (!social) {
-        await deps.postsRepository.markPostState(input.postId, "ERROR", `No integration handler for ${input.providerIdentifier}`);
+        logger.error({
+            msg: "[Orchestrator] no integration handler registered for provider",
+            providerIdentifier,
+            registeredProviders: deps.integrationManager.getAllowedSocialsIntegrations(),
+            postId: input.postId,
+            organizationId: input.organizationId,
+        });
+        await deps.postsRepository.markPostState(input.postId, "ERROR", `No integration handler for ${providerIdentifier}`);
         await notify(
             ns,
             input.organizationId,

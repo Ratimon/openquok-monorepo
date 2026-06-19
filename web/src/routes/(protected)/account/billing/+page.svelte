@@ -166,16 +166,11 @@
 		if (finishTrialQuery) {
 			showFinishTrial = true;
 		}
-		void pagePresenter.load().then(() => {
-			const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
-			if (loadedPeriod) {
-				period = loadedPeriod;
-			}
-		});
 	});
 
 	$effect(() => {
-		organizationId;
+		const orgId = organizationId;
+		if (!orgId) return;
 		void pagePresenter.load().then(() => {
 			const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
 			if (loadedPeriod) {

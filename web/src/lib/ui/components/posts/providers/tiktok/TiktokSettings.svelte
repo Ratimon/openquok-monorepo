@@ -64,6 +64,18 @@
 		</select>
 	</div>
 
+	{#if contentPostingMethod === 'DIRECT_POST'}
+		<div
+			class="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs leading-relaxed text-base-content/80"
+			role="note"
+		>
+			<strong class="font-medium text-base-content">Unaudited TikTok app?</strong>
+			Direct post needs <strong>Only me (private)</strong> above <em>and</em> your TikTok profile set to
+			<strong>Private</strong> in the TikTok app (Settings → Privacy). Inbox upload does not require a private
+			account. After TikTok approves Content Posting API access, you can post publicly again.
+		</div>
+	{/if}
+
 	<div class="space-y-1">
 		<label class="text-xs font-medium text-base-content/70" for="tt-title">Photo title (optional)</label>
 		<input

@@ -42,7 +42,9 @@ export class IntegrationManager {
     }
 
     getSocialIntegration(identifier: string): SocialProvider | undefined {
-        return socialIntegrationList.find((p) => p.identifier === identifier);
+        const normalized = identifier.trim().toLowerCase();
+        if (!normalized) return undefined;
+        return socialIntegrationList.find((p) => p.identifier === normalized);
     }
 
     async enrichCatalogEntry(provider: SocialProvider) {

@@ -8,7 +8,7 @@ const ERROR_MESSAGES: Record<string, string> = {
         "This TikTok account has too many pending inbox uploads. Complete or clear drafts in TikTok before scheduling more.",
     reached_active_user_cap: "Your TikTok app has reached its daily active publishing user quota.",
     unaudited_client_can_only_post_to_private_accounts:
-        "Your TikTok developer app is unaudited — posts are limited to private (SELF_ONLY) until TikTok approves Content Posting API access.",
+        "Your TikTok developer app is unaudited — direct posts require post privacy “Only me” (SELF_ONLY) and your TikTok account set to Private in the TikTok app (Settings → Privacy). Inbox upload does not require a private account. Submit your app for Content Posting API review to lift this limit.",
     url_ownership_unverified:
         "TikTok cannot pull media from this URL. Verify your media domain in the TikTok developer portal (URL properties) and ensure STORAGE_R2_PUBLIC_BASE_URL or /uploads origin matches.",
     privacy_level_option_mismatch:

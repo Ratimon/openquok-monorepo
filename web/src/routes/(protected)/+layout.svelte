@@ -46,7 +46,6 @@
 
 	$effect(() => {
 		workspaceSettingsPresenter.currentWorkspaceId;
-		page.url.pathname;
 		void firstBillingGatePresenter.evaluate();
 	});
 
@@ -58,7 +57,7 @@
 			try {
 				const result =
 					await protectedBillingPagePresenter.completeHostedCheckoutReturn(checkoutId);
-				await firstBillingGatePresenter.evaluate({ blocking: true });
+				await firstBillingGatePresenter.evaluate({ blocking: true, force: true });
 				void ownedAccountBillingPresenter.load();
 				const subscriptionReady = !firstBillingGatePresenter.restrictFreeUser;
 				if (result !== 'pending_confirmation' && subscriptionReady) {

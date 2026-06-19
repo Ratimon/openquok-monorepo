@@ -103,7 +103,7 @@
 
 	function handleSwitchWorkspace(workspaceId: string): void {
 		workspaceSettingsPresenter.switchWorkspace(workspaceId);
-		void firstBillingGatePresenter.evaluate();
+		void firstBillingGatePresenter.evaluate({ force: true });
 	}
 
 	async function handleSignOut(): Promise<void> {

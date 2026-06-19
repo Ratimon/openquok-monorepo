@@ -2,7 +2,8 @@ import type {
 	BillingCurrentProgrammerModel,
 	BillingPlanProgrammerModel,
 	BillingRepository,
-	BillingSubscriptionProgrammerModel
+	BillingSubscriptionProgrammerModel,
+	ListBillingPlansProgrammerModel
 } from '$lib/billing/Billing.repository.svelte';
 import { formatPostsPerMonthLimit } from '$lib/billing/Billing.repository.svelte';
 import {
@@ -132,8 +133,53 @@ export function tierDisplayName(tier: string): string {
 	return tier;
 }
 
+const PLANS_LIST_CACHE_TTL_MS = 5 * 60 * 1000;
+
 export class GetBillingPresenter {
+	private plansListCached: { data: ListBillingPlansProgrammerModel; fetchedAt: number } | null =
+		null;
+	private plansListInflight: Promise<ListBillingPlansProgrammerModel> | null = null;
+	private currentInflight = new Map<string, Promise<BillingCurrentProgrammerModel | null>>();
+
 	constructor(private readonly billingRepository: BillingRepository) {}
+
+	private async getPlansList(): Promise<ListBillingPlansProgrammerModel> {
+		const now = Date.now();
+		if (
+			this.plansListCached &&
+			now - this.plansListCached.fetchedAt < PLANS_LIST_CACHE_TTL_MS
+		) {
+			return this.plansListCached.data;
+		}
+		if (this.plansListInflight) {
+			return this.plansListInflight;
+		}
+		this.plansListInflight = this.billingRepository
+			.listPlans()
+			.then((data) => {
+				this.plansListCached = { data, fetchedAt: Date.now() };
+				return data;
+			})
+			.finally(() => {
+				this.plansListInflight = null;
+			});
+		return this.plansListInflight;
+	}
+
+	private getCurrentForOrganization(
+		organizationId: string
+	): Promise<BillingCurrentProgrammerModel | null> {
+		const orgId = organizationId.trim();
+		const inflight = this.currentInflight.get(orgId);
+		if (inflight) {
+			return inflight;
+		}
+		const request = this.billingRepository.getCurrent(orgId).finally(() => {
+			this.currentInflight.delete(orgId);
+		});
+		this.currentInflight.set(orgId, request);
+		return request;
+	}
 
 	public toBillingPlanVm(pm: BillingPlanProgrammerModel): BillingPlanViewModel {
 		return {
@@ -178,7 +224,7 @@ export class GetBillingPresenter {
 	public async loadBillingPricingVmStateless(
 		organizationId?: string
 	): Promise<BillingPricingViewModel> {
-		const listPm = await this.billingRepository.listPlans();
+		const listPm = await this.getPlansList();
 		const plansVm = this.toBillingPlanListVm(listPm.plans);
 		const orgId = organizationId?.trim();
 		if (!orgId) {
@@ -186,7 +232,7 @@ export class GetBillingPresenter {
 		}
 		let currentVm: BillingCurrentViewModel | null = null;
 		try {
-			const currentPm = await this.billingRepository.getCurrent(orgId);
+			const currentPm = await this.getCurrentForOrganization(orgId);
 			currentVm = currentPm ? this.toBillingCurrentVm(currentPm) : null;
 		} catch {
 			// Plans still render when workspace billing context is temporarily unavailable.

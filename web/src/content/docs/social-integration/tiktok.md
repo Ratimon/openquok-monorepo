@@ -82,7 +82,7 @@ https://YOUR-FRONTEND-DOMAIN/integration/oauth/tiktok
 https://localhost:5173/integration/oauth/tiktok
 ```
 
-## Public media URLs (required for publish)
+## Public media URLs
 
 TikTok fetches media server-side via **HTTPS** URLs. Before you can publish reliably, ensure Openquok can resolve each attachment to a public URL and that TikTok accepts that domain.
 
@@ -212,13 +212,18 @@ In <strong>Sandbox settings</strong> → <strong>Target users</strong>, click <s
 
 ## Troubleshooting
 
-### url_ownership_unverified
+### Unverified URL
 
-Verify the media hostname in TikTok developer settings (domain verification) and ensure your public URLs are **HTTPS**.
+Verify the media hostname in TikTok developer settings and ensure your public URLs are **HTTPS**.
 
-### Publish succeeds but is always private
+### Only Private Publish for Unverified APp
 
-If TikTok forces <code>SELF_ONLY</code>, review your TikTok app’s audit/review status and any account eligibility constraints.
+For unaudited developer apps, TikTok enforces **two** requirements on **direct post** (not inbox upload):
+
+1. **Post privacy** in Openquok: <code>Only me (private)</code> / <code>SELF_ONLY</code>.
+2. **Account privacy** in the TikTok app: set the connected profile to <strong>Private</strong> (TikTok → Settings and privacy → Privacy → Private account) at publish time.
+
+Inbox upload (<code>UPLOAD</code>) sends media to the creator’s TikTok inbox and is not subject to the private-account rule. To publish directly to a public profile without these limits, submit your app for Content Posting API review in the TikTok developer portal.
 
 ### Publish fails to fetch media
 

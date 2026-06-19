@@ -64,6 +64,12 @@ const notificationService = new NotificationService(
 );
 
 const integrationManager = new IntegrationManager();
+const registeredSocialProviders = integrationManager.getAllowedSocialsIntegrations();
+logger.info({
+    msg: "[Worker] scheduled-social-post social provider registry",
+    socialProviders: registeredSocialProviders,
+    tiktokRegistered: registeredSocialProviders.includes("tiktok"),
+});
 const refreshIntegrationService = new RefreshIntegrationService(
     integrationRepository,
     integrationManager,
