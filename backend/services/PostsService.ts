@@ -1211,6 +1211,22 @@ export class PostsService {
             throw new AppError("Post not found", 404);
         }
 
+        return this.loadPostAnalyticsForRow({
+            organizationId,
+            postId,
+            dateWindowDays,
+            post,
+        });
+    }
+
+    private async loadPostAnalyticsForRow(params: {
+        organizationId: string;
+        postId: string;
+        dateWindowDays: number;
+        post: SocialPostLike;
+    }): Promise<AnalyticsData[] | { missing: true }> {
+        const { organizationId, postId, dateWindowDays, post } = params;
+
         if (!post.release_id) {
             return [];
         }
@@ -1238,7 +1254,7 @@ export class PostsService {
             cacheKeyId,
             String(dateWindowDays)
         );
-        if (cached != null) {
+        if (cached != null && cached.length > 0) {
             return cached as AnalyticsData[];
         }
 
@@ -1248,13 +1264,35 @@ export class PostsService {
                 provider,
             });
             if (!row) {
-                return [];
+                throw new AppError(
+                    "Channel connection expired. Reconnect the channel in Integrations and try again.",
+                    503
+                );
             }
             return postAnalyticsFn(row.internal_id, row.token, post.release_id!, dateWindowDays);
         };
 
+        let data: AnalyticsData[];
         try {
-            const data = await runPostAnalytics(false);
+            try {
+                data = await runPostAnalytics(false);
+            } catch (e) {
+                if (e instanceof ProviderAccessTokenExpiredError) {
+                    data = await runPostAnalytics(true);
+                } else {
+                    throw e;
+                }
+            }
+        } catch (e) {
+            if (e instanceof AppError) {
+                throw e;
+            }
+            const message =
+                e instanceof Error && e.message.trim() ? e.message.trim() : "Failed to load post analytics.";
+            throw new AppError(message, 502);
+        }
+
+        if (data.length > 0) {
             await this.integrationService.setCachedIntegrationPayload(
                 organizationId,
                 cacheKeyId,
@@ -1262,25 +1300,8 @@ export class PostsService {
                 data as unknown[],
                 POST_ANALYTICS_CACHE_TTL_SEC
             );
-            return data;
-        } catch (e) {
-            if (e instanceof ProviderAccessTokenExpiredError) {
-                try {
-                    const data = await runPostAnalytics(true);
-                    await this.integrationService.setCachedIntegrationPayload(
-                        organizationId,
-                        cacheKeyId,
-                        String(dateWindowDays),
-                        data as unknown[],
-                        POST_ANALYTICS_CACHE_TTL_SEC
-                    );
-                    return data;
-                } catch {
-                    return [];
-                }
-            }
-            return [];
         }
+        return data;
     }
 
     /** Candidate thumbnails when analytics cannot map until the user picks the matching published asset. */
@@ -1678,76 +1699,12 @@ export class PostsService {
             throw new AppError("Post not found", 404);
         }
 
-        if (!post.release_id) {
-            return [];
-        }
-        if (post.release_id === "missing") {
-            return { missing: true };
-        }
-        if (!post.integration_id) {
-            return [];
-        }
-
-        const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
-        if (!integrationRow || (integrationRow.type ?? "").toLowerCase() !== "social") {
-            return [];
-        }
-
-        const provider = this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
-        if (!provider?.postAnalytics) {
-            return [];
-        }
-        const postAnalyticsFn = provider.postAnalytics;
-
-        const cacheKeyId = `post:${postId}`;
-        const cached = await this.integrationService.getCachedIntegrationPayload(
+        return this.loadPostAnalyticsForRow({
             organizationId,
-            cacheKeyId,
-            String(dateWindowDays)
-        );
-        if (cached != null) {
-            return cached as AnalyticsData[];
-        }
-
-        const runPostAnalytics = async (forceRefresh: boolean): Promise<AnalyticsData[]> => {
-            const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
-                force: forceRefresh,
-                provider,
-            });
-            if (!row) {
-                return [];
-            }
-            return postAnalyticsFn(row.internal_id, row.token, post.release_id!, dateWindowDays);
-        };
-
-        try {
-            const data = await runPostAnalytics(false);
-            await this.integrationService.setCachedIntegrationPayload(
-                organizationId,
-                cacheKeyId,
-                String(dateWindowDays),
-                data as unknown[],
-                POST_ANALYTICS_CACHE_TTL_SEC
-            );
-            return data;
-        } catch (e) {
-            if (e instanceof ProviderAccessTokenExpiredError) {
-                try {
-                    const data = await runPostAnalytics(true);
-                    await this.integrationService.setCachedIntegrationPayload(
-                        organizationId,
-                        cacheKeyId,
-                        String(dateWindowDays),
-                        data as unknown[],
-                        POST_ANALYTICS_CACHE_TTL_SEC
-                    );
-                    return data;
-                } catch {
-                    return [];
-                }
-            }
-            return [];
-        }
+            postId,
+            dateWindowDays,
+            post,
+        });
     }
 
     async updatePostGroup(input: Omit<CreatePostInput, "organizationId"> & { postGroup: string; organizationId?: string | null }): Promise<{

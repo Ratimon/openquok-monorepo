@@ -8,6 +8,7 @@ function quietVerboseLogsNow(): boolean {
     }
     return (
         process.env.NODE_ENV === "test" ||
+        process.env.OPENQUOK_JEST_HARNESS === "1" ||
         (process.env.JEST_WORKER_ID !== undefined && process.env.JEST_WORKER_ID !== "")
     );
 }

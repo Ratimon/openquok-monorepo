@@ -202,12 +202,12 @@
 							<li>
 								<strong>OAuth scopes:</strong> When you connect YouTube, we request the narrowest
 								scopes needed to list and manage the channel you select, upload and update videos you
-								schedule, and show YouTube Analytics in the product. These include Google account
+								schedule, and show channel and video analytics in the product. These include Google account
 								profile and email (<code>userinfo.profile</code>, <code>userinfo.email</code>) and
 								YouTube scopes such as <code>youtube</code>, <code>youtube.force-ssl</code>,
-								<code>youtube.readonly</code>, <code>youtube.upload</code>,
-								<code>youtubepartner</code>, and <code>yt-analytics.readonly</code> (shown on the
-								Google OAuth consent screen when you authorize the connection).
+								<code>youtube.readonly</code>, <code>youtube.upload</code>, and
+								<code>yt-analytics.readonly</code> (shown on the Google OAuth consent screen when you
+								authorize the connection).
 							</li>
 							<li>
 								<strong>How we use Google user data:</strong> We use it only to provide and improve

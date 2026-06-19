@@ -13,7 +13,7 @@ import { Readable } from "node:stream";
 import { google } from "googleapis";
 import { logger } from "../../../utils/Logger";
 
-function mapYoutubeApiError(err: unknown): string {
+export function mapYoutubeApiError(err: unknown): string {
     if (!err || typeof err !== "object") return "YouTube upload failed";
     const e = err as { message?: string; errors?: Array<{ message?: string; reason?: string }> };
     const parts = (e.errors ?? [])

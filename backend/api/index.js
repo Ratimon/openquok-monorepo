@@ -965,7 +965,7 @@ var init_GlobalConfig = __esm({
           appId: getEnv("INSTAGRAM_APP_ID", ""),
           appSecret: getEnv("INSTAGRAM_APP_SECRET", "")
         },
-        /** Google — YouTube Data API OAuth. */
+        /** Google — YouTube Data API + YouTube Analytics OAuth. */
         youtube: {
           clientId: getEnvTrimmed("YOUTUBE_CLIENT_ID"),
           clientSecret: getEnvTrimmed("YOUTUBE_CLIENT_SECRET")
@@ -14244,6 +14244,7 @@ var init_youtubeProvider = __esm({
     init_GlobalConfig();
     init_AppError();
     init_makeId();
+    init_Logger();
     init_oauthFrontendOrigin();
     init_oauthFrontendCallbackPath();
     YOUTUBE_ANALYTICS_METRICS = [
@@ -14276,7 +14277,8 @@ var init_youtubeProvider = __esm({
         "https://www.googleapis.com/auth/youtube",
         "https://www.googleapis.com/auth/youtube.force-ssl",
         "https://www.googleapis.com/auth/youtube.readonly",
-        "https://www.googleapis.com/auth/youtube.upload"
+        "https://www.googleapis.com/auth/youtube.upload",
+        "https://www.googleapis.com/auth/yt-analytics.readonly"
       ];
       maxLength(_additionalSettings) {
         return 5e3;
@@ -14476,29 +14478,54 @@ var init_youtubeProvider = __esm({
         }
       }
       async postAnalytics(_integrationId, accessToken2, videoId, _fromDate) {
+        const trimmedVideoId = videoId.trim();
+        if (!trimmedVideoId) {
+          throw new Error("Missing YouTube video id for post analytics");
+        }
         const today = dayjs5__default.default().format("YYYY-MM-DD");
-        const oauth2 = new googleapis.google.auth.OAuth2();
+        const oauth2 = createOAuth2Client();
         oauth2.setCredentials({ access_token: accessToken2 });
         const youtube = googleapis.google.youtube({ version: "v3", auth: oauth2 });
         try {
           const res = await youtube.videos.list({
             part: ["statistics"],
-            id: [videoId]
+            id: [trimmedVideoId]
           });
-          const stats = res.data.items?.[0]?.statistics;
-          if (!stats) return [];
+          const item = res.data.items?.[0];
+          if (!item) {
+            logger.warn({
+              msg: "[YouTube] postAnalytics video not found for connected account",
+              videoId: trimmedVideoId
+            });
+            throw new Error(
+              "YouTube video not found. Confirm the post is published on the connected channel, or reconnect YouTube."
+            );
+          }
+          const stats = item.statistics ?? {};
           const rows = [];
           const push = (label, total) => {
-            if (total == null) return;
-            rows.push({ label, percentageChange: 0, data: [{ total: String(total), date: today }] });
+            rows.push({
+              label,
+              percentageChange: 0,
+              data: [{ total: String(total ?? "0"), date: today }]
+            });
           };
           push("Views", stats.viewCount);
           push("Likes", stats.likeCount);
           push("Comments", stats.commentCount);
           push("Favorites", stats.favoriteCount);
           return rows;
-        } catch {
-          return [];
+        } catch (err) {
+          if (err instanceof Error && err.message.includes("YouTube video not found")) {
+            throw err;
+          }
+          const message = mapYoutubeApiError(err);
+          logger.warn({
+            msg: "[YouTube] postAnalytics failed",
+            videoId: trimmedVideoId,
+            error: message
+          });
+          throw new Error(message);
         }
       }
     };
@@ -16957,6 +16984,15 @@ var init_PostsService = __esm({
         if (!post || post.organization_id !== organizationId) {
           throw new AppError("Post not found", 404);
         }
+        return this.loadPostAnalyticsForRow({
+          organizationId,
+          postId,
+          dateWindowDays,
+          post
+        });
+      }
+      async loadPostAnalyticsForRow(params) {
+        const { organizationId, postId, dateWindowDays, post } = params;
         if (!post.release_id) {
           return [];
         }
@@ -16981,7 +17017,7 @@ var init_PostsService = __esm({
           cacheKeyId,
           String(dateWindowDays)
         );
-        if (cached2 != null) {
+        if (cached2 != null && cached2.length > 0) {
           return cached2;
         }
         const runPostAnalytics = async (forceRefresh) => {
@@ -16990,12 +17026,32 @@ var init_PostsService = __esm({
             provider
           });
           if (!row) {
-            return [];
+            throw new AppError(
+              "Channel connection expired. Reconnect the channel in Integrations and try again.",
+              503
+            );
           }
           return postAnalyticsFn(row.internal_id, row.token, post.release_id, dateWindowDays);
         };
+        let data;
         try {
-          const data = await runPostAnalytics(false);
+          try {
+            data = await runPostAnalytics(false);
+          } catch (e) {
+            if (e instanceof ProviderAccessTokenExpiredError) {
+              data = await runPostAnalytics(true);
+            } else {
+              throw e;
+            }
+          }
+        } catch (e) {
+          if (e instanceof AppError) {
+            throw e;
+          }
+          const message = e instanceof Error && e.message.trim() ? e.message.trim() : "Failed to load post analytics.";
+          throw new AppError(message, 502);
+        }
+        if (data.length > 0) {
           await this.integrationService.setCachedIntegrationPayload(
             organizationId,
             cacheKeyId,
@@ -17003,25 +17059,8 @@ var init_PostsService = __esm({
             data,
             POST_ANALYTICS_CACHE_TTL_SEC
           );
-          return data;
-        } catch (e) {
-          if (e instanceof ProviderAccessTokenExpiredError) {
-            try {
-              const data = await runPostAnalytics(true);
-              await this.integrationService.setCachedIntegrationPayload(
-                organizationId,
-                cacheKeyId,
-                String(dateWindowDays),
-                data,
-                POST_ANALYTICS_CACHE_TTL_SEC
-              );
-              return data;
-            } catch {
-              return [];
-            }
-          }
-          return [];
         }
+        return data;
       }
       /** Candidate thumbnails when analytics cannot map until the user picks the matching published asset. */
       async getMissingPublishCandidates(params) {
@@ -17335,71 +17374,12 @@ var init_PostsService = __esm({
         if (!post || post.organization_id !== organizationId) {
           throw new AppError("Post not found", 404);
         }
-        if (!post.release_id) {
-          return [];
-        }
-        if (post.release_id === "missing") {
-          return { missing: true };
-        }
-        if (!post.integration_id) {
-          return [];
-        }
-        const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
-        if (!integrationRow || (integrationRow.type ?? "").toLowerCase() !== "social") {
-          return [];
-        }
-        const provider = this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
-        if (!provider?.postAnalytics) {
-          return [];
-        }
-        const postAnalyticsFn = provider.postAnalytics;
-        const cacheKeyId = `post:${postId}`;
-        const cached2 = await this.integrationService.getCachedIntegrationPayload(
+        return this.loadPostAnalyticsForRow({
           organizationId,
-          cacheKeyId,
-          String(dateWindowDays)
-        );
-        if (cached2 != null) {
-          return cached2;
-        }
-        const runPostAnalytics = async (forceRefresh) => {
-          const row = await this.ensureFreshSocialToken(integrationRow, organizationId, {
-            force: forceRefresh,
-            provider
-          });
-          if (!row) {
-            return [];
-          }
-          return postAnalyticsFn(row.internal_id, row.token, post.release_id, dateWindowDays);
-        };
-        try {
-          const data = await runPostAnalytics(false);
-          await this.integrationService.setCachedIntegrationPayload(
-            organizationId,
-            cacheKeyId,
-            String(dateWindowDays),
-            data,
-            POST_ANALYTICS_CACHE_TTL_SEC
-          );
-          return data;
-        } catch (e) {
-          if (e instanceof ProviderAccessTokenExpiredError) {
-            try {
-              const data = await runPostAnalytics(true);
-              await this.integrationService.setCachedIntegrationPayload(
-                organizationId,
-                cacheKeyId,
-                String(dateWindowDays),
-                data,
-                POST_ANALYTICS_CACHE_TTL_SEC
-              );
-              return data;
-            } catch {
-              return [];
-            }
-          }
-          return [];
-        }
+          postId,
+          dateWindowDays,
+          post
+        });
       }
       async updatePostGroup(input) {
         const existing = await this.postsRepository.listPostsByGroup(input.postGroup);

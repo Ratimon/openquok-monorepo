@@ -177,7 +177,7 @@ Restart the backend so new env vars load.
 
 In the web app, start **Connect YouTube**, sign in with Google, grant permissions, then pick the channel you manage on the callback screen.
 
-- Add the scopes Openquok requests during connect (profile, email, YouTube upload/management, and YouTube Analytics read-only). They match <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/youtube/youtubeProvider.ts"><Badge text="backend/integrations/providers/youtube/youtubeProvider.ts" variant="path" /></DocsExternalLink>:
+- Add the scopes Openquok requests during connect (profile, email, YouTube Data API v3, and YouTube Analytics read-only). They match <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/youtube/youtubeProvider.ts"><Badge text="backend/integrations/providers/youtube/youtubeProvider.ts" variant="path" /></DocsExternalLink>:
 
 <ul class="not-prose list-disc pl-6">
 <li><Badge text="userinfo.profile" variant="default" /></li>
@@ -186,9 +186,10 @@ In the web app, start **Connect YouTube**, sign in with Google, grant permission
 <li><Badge text="youtube.force-ssl" variant="default" /></li>
 <li><Badge text="youtube.readonly" variant="default" /></li>
 <li><Badge text="youtube.upload" variant="default" /></li>
-<li><Badge text="youtubepartner" variant="default" /></li>
 <li><Badge text="yt-analytics.readonly" variant="default" /></li>
 </ul>
+
+<p>On the OAuth consent screen, <Badge text="userinfo.profile" variant="default" /> and <Badge text="userinfo.email" variant="default" /> appear as non-sensitive Google sign-in scopes. Your verification submission should list the five YouTube scopes above — keep the Cloud Console <strong>Data access</strong> page in sync with this list before resubmitting.
 
 While the app is in **Testing** publishing status, only accounts you list as test users can finish OAuth.
 

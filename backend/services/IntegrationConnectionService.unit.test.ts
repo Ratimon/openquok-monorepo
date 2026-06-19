@@ -170,6 +170,8 @@ function createMockProvider(overrides: Partial<SocialProvider> = {}): SocialProv
     return { ...base, ...overrides };
 }
 
+const livePlugCatalog = new IntegrationManager();
+
 function createMockManager(provider: SocialProvider): jest.Mocked<
     Pick<
         IntegrationManager,
@@ -182,7 +184,6 @@ function createMockManager(provider: SocialProvider): jest.Mocked<
         | "getAllRulesDescription"
     >
 > {
-    const livePlugCatalog = new IntegrationManager();
     return {
         getAllowedSocialsIntegrations: jest.fn().mockReturnValue(["threads"]),
         getSocialIntegration: jest.fn((id: string) => (id === "threads" ? provider : undefined)),

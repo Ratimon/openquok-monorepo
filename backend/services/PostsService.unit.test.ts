@@ -11,6 +11,8 @@ import { IntegrationManager } from "../integrations/integrationManager";
 import { faker } from "@faker-js/faker";
 import { PostsService } from "./PostsService";
 
+const sharedIntegrationManager = new IntegrationManager();
+
 const orgId = faker.string.uuid();
 const authUserId = faker.string.uuid();
 const integrationId = faker.string.uuid();
@@ -213,7 +215,7 @@ describe("PostsService", () => {
             integrationConnection as unknown as IntegrationConnectionService,
             integrationService as unknown as IntegrationService,
             organizationRepo as unknown as OrganizationRepository,
-            new IntegrationManager(),
+            sharedIntegrationManager,
             { refresh: jest.fn().mockResolvedValue(false) } as never,
             cache as never,
             cacheInvalidator as never

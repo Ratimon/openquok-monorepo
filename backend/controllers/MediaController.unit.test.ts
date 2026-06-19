@@ -1023,7 +1023,7 @@ describe("MediaController", () => {
             mediaService.saveFile.mockResolvedValue({ id: "media-2", path: "org-1/clip.mp4", publicUrl: null });
 
             const req = programmaticRequest({
-                file: { buffer: Buffer.from([9]), originalname: "clip.mp4", mimetype: "" },
+                file: { buffer: Buffer.from([9]), originalname: "unknown.bin", mimetype: "" },
                 orgId: "org-1",
             });
             const res = createMockResponse();
@@ -1031,8 +1031,7 @@ describe("MediaController", () => {
 
             await controller.uploadProgrammatic(req, res, next);
 
-            // No mp4 entry in the extension map → defaults to `application/octet-stream`, which is rejected
-            // by the mime allow-list, so the request is forwarded as a UserValidationError.
+            // Unknown extension → `application/octet-stream`, which is rejected by the mime allow-list.
             expect(next).toHaveBeenCalledTimes(1);
             expect(uploadProvider.uploadFile).not.toHaveBeenCalled();
         });

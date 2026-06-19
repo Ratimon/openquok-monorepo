@@ -8,13 +8,14 @@ import type {
     SocialProvider,
     ValidateCreatePostInput,
 } from "../../social.integrations.interface";
-import { publishYoutubeVideo } from "./youtubeDataPublish";
+import { mapYoutubeApiError, publishYoutubeVideo } from "./youtubeDataPublish";
 
 import dayjs from "dayjs";
 import { google } from "googleapis";
 import { config } from "../../../config/GlobalConfig";
 import { AppError } from "../../../errors/AppError";
 import { makeId } from "../../../utils/ids/makeId";
+import { logger } from "../../../utils/Logger";
 import { oauthFrontendOrigin } from "../../utils/oauthFrontendOrigin";
 import { oauthFrontendSocialCallbackPath } from "../../utils/oauthFrontendCallbackPath";
 
@@ -85,7 +86,6 @@ export class YoutubeProvider implements SocialProvider {
         "https://www.googleapis.com/auth/youtube.force-ssl",
         "https://www.googleapis.com/auth/youtube.readonly",
         "https://www.googleapis.com/auth/youtube.upload",
-        "https://www.googleapis.com/auth/youtubepartner",
         "https://www.googleapis.com/auth/yt-analytics.readonly",
     ];
 
@@ -348,23 +348,40 @@ export class YoutubeProvider implements SocialProvider {
         videoId: string,
         _fromDate: number
     ): Promise<AnalyticsData[]> {
+        const trimmedVideoId = videoId.trim();
+        if (!trimmedVideoId) {
+            throw new Error("Missing YouTube video id for post analytics");
+        }
+
         const today = dayjs().format("YYYY-MM-DD");
-        const oauth2 = new google.auth.OAuth2();
+        const oauth2 = createOAuth2Client();
         oauth2.setCredentials({ access_token: accessToken });
         const youtube = google.youtube({ version: "v3", auth: oauth2 });
 
         try {
             const res = await youtube.videos.list({
                 part: ["statistics"],
-                id: [videoId],
+                id: [trimmedVideoId],
             });
-            const stats = res.data.items?.[0]?.statistics;
-            if (!stats) return [];
+            const item = res.data.items?.[0];
+            if (!item) {
+                logger.warn({
+                    msg: "[YouTube] postAnalytics video not found for connected account",
+                    videoId: trimmedVideoId,
+                });
+                throw new Error(
+                    "YouTube video not found. Confirm the post is published on the connected channel, or reconnect YouTube."
+                );
+            }
 
+            const stats = item.statistics ?? {};
             const rows: AnalyticsData[] = [];
             const push = (label: string, total: string | null | undefined) => {
-                if (total == null) return;
-                rows.push({ label, percentageChange: 0, data: [{ total: String(total), date: today }] });
+                rows.push({
+                    label,
+                    percentageChange: 0,
+                    data: [{ total: String(total ?? "0"), date: today }],
+                });
             };
 
             push("Views", stats.viewCount);
@@ -372,8 +389,17 @@ export class YoutubeProvider implements SocialProvider {
             push("Comments", stats.commentCount);
             push("Favorites", stats.favoriteCount);
             return rows;
-        } catch {
-            return [];
+        } catch (err) {
+            if (err instanceof Error && err.message.includes("YouTube video not found")) {
+                throw err;
+            }
+            const message = mapYoutubeApiError(err);
+            logger.warn({
+                msg: "[YouTube] postAnalytics failed",
+                videoId: trimmedVideoId,
+                error: message,
+            });
+            throw new Error(message);
         }
     }
 }

@@ -1,4 +1,7 @@
 // Load env before tests (CJS for Jest). Must match backend/config/GlobalConfig.ts precedence.
+// Set before any backend module import (globalSetup loads GlobalConfig via test helpers).
+process.env.OPENQUOK_JEST_HARNESS = "1";
+
 const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");

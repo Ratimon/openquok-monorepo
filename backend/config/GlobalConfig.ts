@@ -407,10 +407,15 @@ export const config: ConfigObject = {
 };
 
 const server = config.server as { nodeEnv?: string };
-logger.info({ msg: "[Config] Loaded", env: server?.nodeEnv });
+const underJestHarness =
+    getEnv("OPENQUOK_JEST_HARNESS", "") === "1" || getEnv("JEST_WORKER_ID", "") !== "";
+
+if (!underJestHarness) {
+    logger.info({ msg: "[Config] Loaded", env: server?.nodeEnv });
+}
 
 const stripeCfg = config.stripe as { webhookSecret?: string; secretKey?: string } | undefined;
-if (server?.nodeEnv === "development" && stripeCfg?.secretKey?.trim()) {
+if (!underJestHarness && server?.nodeEnv === "development" && stripeCfg?.secretKey?.trim()) {
     const wh = stripeCfg.webhookSecret?.trim() ?? "";
     if (wh) {
         logger.info({
