@@ -312,6 +312,9 @@
 		bind:open={deviceAttachOpen}
 		disabled={disabled || uploadBusy || mediaAtCap}
 		{uploadBusy}
+		{uploadPhase}
+		{barPercent}
+		{uploadDetailLine}
 		accept="image/*,video/*"
 		title="Add media"
 		description="Drag and drop images or videos here, or click the area to browse. Files upload as soon as they are added."

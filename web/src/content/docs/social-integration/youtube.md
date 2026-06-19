@@ -1,6 +1,6 @@
 ---
 title: YouTube
-description: How to configure YouTube channel publishing for Openquok — Google Cloud OAuth, APIs, and backend env vars.
+description: How to configure YouTube channel for Openquok — Google Cloud OAuth, APIs, and backend env vars.
 order: 5
 lastUpdated: 2026-06-10
 ---

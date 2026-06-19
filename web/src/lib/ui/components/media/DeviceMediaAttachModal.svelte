@@ -6,10 +6,15 @@
 	import * as Dialog from '$lib/ui/dialog';
 	import { Dropzone } from '$lib/ui/dropzone';
 
+	type UploadPhase = 'idle' | 'encoding' | 'uploading';
+
 	interface Props {
 		open?: boolean;
 		disabled?: boolean;
 		uploadBusy?: boolean;
+		uploadPhase?: UploadPhase;
+		barPercent?: number;
+		uploadDetailLine?: string;
 		onFilesSelected?: (files: FileList) => void | Promise<void>;
 		/** Passed to the file input / dropzone (e.g. `image/*` or `image/*,video/*`). */
 		accept?: string;
@@ -23,6 +28,9 @@
 		open = $bindable(false),
 		disabled = false,
 		uploadBusy = false,
+		uploadPhase = 'idle',
+		barPercent = 0,
+		uploadDetailLine = '',
 		onFilesSelected,
 		accept = 'image/*,video/*',
 		title = 'Add media',
@@ -30,6 +38,8 @@
 		dropTitle = 'Drop images or videos here',
 		dropSubtitle = 'or click to choose from your device'
 	}: Props = $props();
+
+	const showUploadProgress = $derived(uploadBusy && uploadPhase !== 'idle');
 
 	function handleFiles(files: FileList | null) {
 		if (!files?.length) return;
@@ -67,8 +77,37 @@
 				handleFiles(list);
 			}}
 		>
-			<div class="text-base-content/80 pointer-events-none flex flex-col items-center gap-3 px-4 text-center">
-				{#if uploadBusy}
+			<div class="text-base-content/80 pointer-events-none flex w-full flex-col items-center gap-3 px-4 text-center">
+				{#if showUploadProgress}
+					<AbstractIcon
+						name={icons.LoaderCircle.name}
+						class={`size-10 shrink-0 ${uploadPhase === 'encoding' ? 'text-warning' : 'text-primary'} animate-spin`}
+						width="40"
+						height="40"
+					/>
+					<div class="min-w-0 w-full space-y-1">
+						<p class="text-sm font-semibold text-base-content">
+							{#if uploadPhase === 'encoding'}
+								Encoding…
+							{:else}
+								Uploading: {barPercent}%
+							{/if}
+						</p>
+						{#if uploadPhase === 'uploading' && uploadDetailLine}
+							<p class="text-base-content/65 text-xs">{uploadDetailLine}</p>
+						{/if}
+					</div>
+					<div class="bg-base-300/80 h-2.5 w-full overflow-hidden rounded-full">
+						{#if uploadPhase === 'encoding'}
+							<div class="bg-warning/90 h-full w-full animate-pulse"></div>
+						{:else}
+							<div
+								class="bg-primary h-full rounded-full transition-[width] duration-150 ease-out"
+								style={`width: ${barPercent}%`}
+							></div>
+						{/if}
+					</div>
+				{:else if uploadBusy}
 					<span class="loading loading-spinner loading-lg text-primary"></span>
 					<span class="text-sm font-medium">Uploading…</span>
 				{:else}

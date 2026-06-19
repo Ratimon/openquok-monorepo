@@ -965,7 +965,7 @@ var init_GlobalConfig = __esm({
           appId: getEnv("INSTAGRAM_APP_ID", ""),
           appSecret: getEnv("INSTAGRAM_APP_SECRET", "")
         },
-        /** Google — YouTube Data API + YouTube Analytics OAuth. */
+        /** Google — YouTube Data API OAuth. */
         youtube: {
           clientId: getEnvTrimmed("YOUTUBE_CLIENT_ID"),
           clientSecret: getEnvTrimmed("YOUTUBE_CLIENT_SECRET")
@@ -13172,7 +13172,7 @@ var init_tiktokApiErrors = __esm({
       spam_risk_user_banned_from_posting: "This TikTok account is banned from posting.",
       spam_risk_too_many_pending_share: "This TikTok account has too many pending inbox uploads. Complete or clear drafts in TikTok before scheduling more.",
       reached_active_user_cap: "Your TikTok app has reached its daily active publishing user quota.",
-      unaudited_client_can_only_post_to_private_accounts: "Your TikTok developer app is unaudited \u2014 posts are limited to private (SELF_ONLY) until TikTok approves Content Posting API access.",
+      unaudited_client_can_only_post_to_private_accounts: "Your TikTok developer app is unaudited \u2014 direct posts require post privacy \u201COnly me\u201D (SELF_ONLY) and your TikTok account set to Private in the TikTok app (Settings \u2192 Privacy). Inbox upload does not require a private account. Submit your app for Content Posting API review to lift this limit.",
       url_ownership_unverified: "TikTok cannot pull media from this URL. Verify your media domain in the TikTok developer portal (URL properties) and ensure STORAGE_R2_PUBLIC_BASE_URL or /uploads origin matches.",
       privacy_level_option_mismatch: "The selected privacy level is not allowed for this TikTok account. Reconnect and choose a privacy option returned by TikTok.",
       access_token_invalid: "TikTok access token expired or is invalid. Reconnect the channel and try again.",
@@ -14276,9 +14276,7 @@ var init_youtubeProvider = __esm({
         "https://www.googleapis.com/auth/youtube",
         "https://www.googleapis.com/auth/youtube.force-ssl",
         "https://www.googleapis.com/auth/youtube.readonly",
-        "https://www.googleapis.com/auth/youtube.upload",
-        "https://www.googleapis.com/auth/youtubepartner",
-        "https://www.googleapis.com/auth/yt-analytics.readonly"
+        "https://www.googleapis.com/auth/youtube.upload"
       ];
       maxLength(_additionalSettings) {
         return 5e3;
@@ -14545,7 +14543,9 @@ var init_integrationManager = __esm({
         return socialIntegrationList.map((p) => p.identifier);
       }
       getSocialIntegration(identifier) {
-        return socialIntegrationList.find((p) => p.identifier === identifier);
+        const normalized = identifier.trim().toLowerCase();
+        if (!normalized) return void 0;
+        return socialIntegrationList.find((p) => p.identifier === normalized);
       }
       async enrichCatalogEntry(provider) {
         const base = {

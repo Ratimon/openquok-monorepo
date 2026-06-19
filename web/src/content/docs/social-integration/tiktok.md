@@ -1,6 +1,6 @@
 ---
 title: TikTok
-description: How to configure TikTok publishing for Openquok — TikTok Developer app, OAuth redirect URI, scopes, and backend env vars.
+description: How to configure TikTok for Openquok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars.
 order: 6
 lastUpdated: 2026-06-18
 ---
