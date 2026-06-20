@@ -36,9 +36,9 @@
 </script>
 
 <div class="w-full p-4 sm:p-6">
-	<div class="w-full h-full relative flex flex-col">
-		<div class="flex gap-3 relative pb-3">
-			<div class="min-w-10 h-10 min-h-10 w-10 flex flex-col items-center">
+	<div class="relative flex h-full w-full flex-col">
+		<div class="relative flex gap-3 pb-3">
+			<div class="flex h-10 min-h-10 w-10 min-w-10 shrink-0 flex-col items-center">
 				<div class="relative">
 					{#if channel?.picture?.trim()}
 						<span class="relative z-[2] block h-10 w-10 overflow-hidden rounded-full">
@@ -62,9 +62,9 @@
 				</div>
 			</div>
 
-			<div class="flex-1 flex flex-col gap-1">
+			<div class="flex min-w-0 flex-1 flex-col gap-1">
 				<div class="flex items-center gap-2">
-					<div class="h-[22px] text-[15px] font-bold text-base-content">
+					<div class="text-[15px] font-bold leading-5 text-base-content">
 						{channel ? channel.name : title}
 					</div>
 					{#if showVerified}
