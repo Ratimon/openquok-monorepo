@@ -127,6 +127,8 @@ export interface IntegrationsConfig {
 		providerConnect: (integrationId: string) => string;
 		publicProviderConnect: (integrationId: string) => string;
 		postingTimes: (integrationId: string) => string;
+		internalPlugs: (providerIdentifier: string) => string;
+		triggerTool: (integrationId: string) => string;
 	};
 }
 
@@ -492,6 +494,85 @@ export class IntegrationsRepository {
 				};
 			}
 			return { ok: false, error: 'Could not update this channel.' };
+		}
+	}
+
+	public async getInternalPlugDefinitions(
+		organizationId: string,
+		providerIdentifier: string
+	): Promise<
+		Array<{
+			identifier: string;
+			methodName: string;
+			title: string;
+			description: string;
+			pickIntegration?: string[];
+			fields?: Array<{
+				name: string;
+				description: string;
+				type: string;
+				placeholder: string;
+			}>;
+		}>
+	> {
+		try {
+			const path = this.config.endpoints.internalPlugs(providerIdentifier);
+			const { ok, data: dto } = await this.httpGateway.get<{
+				success?: boolean;
+				data?: {
+					internalPlugs?: Array<{
+						identifier: string;
+						methodName: string;
+						title: string;
+						description: string;
+						pickIntegration?: string[];
+						fields?: Array<{
+							name: string;
+							description: string;
+							type: string;
+							placeholder: string;
+						}>;
+					}>;
+				};
+			}>(path, { organizationId }, { withCredentials: true });
+			const plugs = dto?.data?.internalPlugs;
+			if (ok && dto?.success === true && Array.isArray(plugs)) return plugs;
+			return [];
+		} catch {
+			return [];
+		}
+	}
+
+	public async triggerIntegrationTool(params: {
+		organizationId: string;
+		integrationId: string;
+		methodName: string;
+		data?: Record<string, unknown>;
+	}): Promise<{ ok: true; output: unknown } | { ok: false; error: string }> {
+		try {
+			const path = this.config.endpoints.triggerTool(params.integrationId);
+			const { ok, data: dto } = await this.httpGateway.post<{
+				success?: boolean;
+				data?: { output?: unknown };
+				message?: string;
+			}>(
+				path,
+				{ methodName: params.methodName, data: params.data ?? {} },
+				{ withCredentials: true, params: { organizationId: params.organizationId } }
+			);
+			if (ok && dto?.success === true) {
+				return { ok: true, output: dto.data?.output };
+			}
+			return { ok: false, error: dto?.message ?? 'Tool invocation failed.' };
+		} catch (error) {
+			if (error instanceof ApiError) {
+				const msg =
+					typeof error.data === 'object' && error.data !== null
+						? String((error.data as { message?: string }).message ?? error.message)
+						: error.message;
+				return { ok: false, error: msg };
+			}
+			return { ok: false, error: 'Tool invocation failed.' };
 		}
 	}
 }

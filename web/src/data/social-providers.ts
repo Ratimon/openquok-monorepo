@@ -7,6 +7,7 @@ export const SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS = [
 	'instagram',
 	'instagram-standalone',
 	'linkedin',
+	'linkedin-page',
 	'tiktok',
 	'youtube',
 	'threads',
@@ -30,6 +31,7 @@ export const socialProviderDisplayNameByIdentifier: Record<string, string> = {
 	tiktok: 'TikTok',
 	x: 'X',
 	'linkedin': 'LinkedIn',
+	'linkedin-page': 'LinkedIn Page',
 };
 
 export function socialProviderDisplayLabel(identifier: string): string {
@@ -84,8 +86,9 @@ export function socialProviderEmoji(identifier: string): string {
 		youtube: '▶️',
 		tiktok: '🎵',
 		x: '𝕏',
-		'linkedin': '[in]',
-	};
+	'linkedin': '[in]',
+	'linkedin-page': '[in]',
+};
 	return byId[key] ?? '🔗';
 }
 
@@ -99,7 +102,8 @@ export const socialProviderIconByIdentifier: Record<string, IconName> = {
 	tiktok: icons.TikTok.name,
 	x: icons.X.name,
 	threads: icons.Threads.name,
-	linkedin: icons.LinkedIn.name
+	linkedin: icons.LinkedIn.name,
+	'linkedin-page': icons.LinkedIn.name
 };
 
 export function socialProviderIcon(identifier: string | null | undefined): IconName {

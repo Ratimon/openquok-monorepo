@@ -57,3 +57,14 @@ export const validateIntegrationPlugDeleteRequest: RequestHandler = validateRequ
     query: integrationOrganizationQuerySchema,
     params: integrationPlugActivateParamsSchema,
 });
+
+export const integrationTriggerBodySchema = z.object({
+    methodName: z.string().min(1, "methodName is required"),
+    data: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const validateIntegrationTriggerRequest: RequestHandler = validateRequest({
+    query: integrationOrganizationQuerySchema,
+    params: integrationPlugIntegrationParamsSchema,
+    body: integrationTriggerBodySchema,
+});

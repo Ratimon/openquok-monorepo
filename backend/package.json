@@ -111,6 +111,7 @@
     "openquok-common": "workspace:*",
     "openquok-orchestrator": "workspace:*",
     "redis": "^5.11.0",
+    "image-to-pdf": "^3.0.2",
     "sharp": "^0.35.1",
     "stripe": "^22.1.1",
     "swagger-jsdoc": "^6.2.8",

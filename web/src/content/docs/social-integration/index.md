@@ -27,6 +27,8 @@ Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other p
 <LinkCard title="Facebook Page" description="Facebook Login, Page picker, FACEBOOK_APP_ID and FACEBOOK_APP_SECRET" href="/docs/social-integration/facebook" />
 <LinkCard title="YouTube" description="Google Cloud OAuth, channel picker, YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET" href="/docs/social-integration/youtube" />
 <LinkCard title="TikTok" description="TikTok Developer app, OAuth redirect URI, Content Posting API, and media domain verification" href="/docs/social-integration/tiktok" />
+<LinkCard title="LinkedIn" description="Personal profile — OAuth, document carousels, cross-account plugs, and company mentions" href="/docs/social-integration/linkedin" />
+<LinkCard title="LinkedIn Page" description="Company Page — two-step OAuth, Page analytics, document carousels, and channel plugs" href="/docs/social-integration/linkedin-page" />
 <LinkCard title="Adding a provider" description="Contributor checklist for new social integrations" href="/docs/social-integration/add-provider" />
 </CardGrid>
 

@@ -5,6 +5,7 @@
 	import GeneralPreviewComponent from '$lib/ui/components/posts/GeneralPreviewComponent.svelte';
 	import FacebookPreview from '$lib/ui/components/posts/providers/facebook/FacebookPreview.svelte';
 	import InstagramPreview from '$lib/ui/components/posts/providers/instagram/InstagramPreview.svelte';
+	import LinkedInPreview from '$lib/ui/components/posts/providers/linkedin/LinkedInPreview.svelte';
 	import ThreadsPreview from '$lib/ui/components/posts/providers/threads/ThreadsPreview.svelte';
 	import TiktokPreview from '$lib/ui/components/posts/providers/tiktok/TiktokPreview.svelte';
 	import YoutubePreview from '$lib/ui/components/posts/providers/youtube/YoutubePreview.svelte';
@@ -88,6 +89,16 @@
 	/>
 {:else if identifier === 'tiktok'}
 	<TiktokPreview
+		{channel}
+		{previewText}
+		{mediaUrls}
+		maximumCharacters={maxChars}
+		{threadReplies}
+		{threadFinisher}
+		{previewMetaLabel}
+	/>
+{:else if identifier === 'linkedin' || identifier === 'linkedin-page'}
+	<LinkedInPreview
 		{channel}
 		{previewText}
 		{mediaUrls}

@@ -304,6 +304,30 @@ export class IntegrationController {
         }
     };
 
+    /** POST /integrations/:integrationId/trigger?organizationId= */
+    triggerIntegrationTool = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const organizationId = (req.query as { organizationId: string }).organizationId;
+            const integrationId = (req.params as { integrationId: string }).integrationId;
+            const body = req.body as { methodName: string; data?: Record<string, unknown> };
+            await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+            const result = await this.integrationConnectionService.triggerIntegrationTool(
+                organizationId,
+                integrationId,
+                body.methodName,
+                body.data ?? {}
+            );
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** GET /integrations/:integrationId/plugs?organizationId= */
     listIntegrationPlugs = async (req: Request, res: Response, next: NextFunction) => {
         try {

@@ -58,6 +58,29 @@ export class RefreshIntegrationService {
             rootInternalId: integration.root_internal_id,
         });
 
+        if (
+            socialProvider.oneTimeToken &&
+            integration.root_internal_id &&
+            refresh.accessToken
+        ) {
+            await this.integrationRepository
+                .syncTokensByRootInternalId({
+                    organizationId: integration.organization_id,
+                    excludeIntegrationId: integration.id,
+                    rootInternalId: integration.root_internal_id,
+                    token: refresh.accessToken,
+                    refreshToken: refresh.refreshToken ?? integration.refresh_token ?? "",
+                    expiresInSeconds: refresh.expiresIn,
+                })
+                .catch((err) => {
+                    logger.warn({
+                        msg: "Sibling token sync after refresh failed (best-effort)",
+                        integrationId: integration.id,
+                        error: err instanceof Error ? err.message : String(err),
+                    });
+                });
+        }
+
         return refresh;
     }
 

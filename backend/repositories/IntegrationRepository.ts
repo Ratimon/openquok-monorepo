@@ -335,6 +335,46 @@ export class IntegrationRepository {
         return data as IntegrationLike;
     }
 
+    /**
+     * Sync OAuth tokens across sibling channels that share the same `root_internal_id`
+     * (LinkedIn personal + Page channels from one OAuth grant).
+     */
+    async syncTokensByRootInternalId(params: {
+        organizationId: string;
+        excludeIntegrationId: string;
+        rootInternalId: string;
+        token: string;
+        refreshToken: string;
+        expiresInSeconds?: number;
+    }): Promise<void> {
+        const tokenExpiration =
+            params.expiresInSeconds != null && params.expiresInSeconds > 0
+                ? new Date(Date.now() + params.expiresInSeconds * 1000).toISOString()
+                : null;
+
+        const { error } = await this.supabase
+            .from(TABLE)
+            .update({
+                token: params.token,
+                refresh_token: params.refreshToken || null,
+                token_expiration: tokenExpiration,
+                refresh_needed: false,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("organization_id", params.organizationId)
+            .eq("root_internal_id", params.rootInternalId)
+            .neq("id", params.excludeIntegrationId)
+            .is("deleted_at", null);
+
+        if (error) {
+            throw new DatabaseError("Failed to sync sibling integration tokens", {
+                cause: error as unknown as Error,
+                operation: "update",
+                resource: { type: "table", name: TABLE },
+            });
+        }
+    }
+
     /** @returns whether a row was updated */
     async softDeleteChannel(organizationId: string, id: string, internalId: string): Promise<boolean> {
         const suffix = `${Date.now().toString(36)}`;

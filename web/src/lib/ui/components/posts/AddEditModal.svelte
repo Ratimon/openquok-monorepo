@@ -223,6 +223,13 @@
 		return socialChannels.find((c) => c.id === integrationId)?.identifier ?? null;
 	});
 
+	const focusedIntegrationIdForComposer = $derived.by(() => {
+		if (mode === 'custom') {
+			return focusedIntegrationId ?? (selectedIds.length === 1 ? selectedIds[0] : null);
+		}
+		return selectedIds.length === 1 ? selectedIds[0] : null;
+	});
+
 	const plugSettingsIntegrationId = $derived.by(() => {
 		if (mode === 'custom') return focusedIntegrationId ?? null;
 		return selectedIds.length === 1 ? selectedIds[0] : null;
@@ -277,6 +284,7 @@
 				{softCharLimit}
 				composerMode={mode}
 				focusedProviderIdentifier={focusedProviderIdentifier}
+				focusedIntegrationId={focusedIntegrationIdForComposer}
 				{maxMediaItems}
 				{scheduleValidationMessage}
 				setsAuthoringNetworkLock={contentSetAuthoringNetworkLock}
@@ -308,6 +316,7 @@
 					<SettingsAccordion
 						bind:open={settingsOpen}
 						channel={focused}
+						allChannels={socialChannels}
 						value={providerSettings}
 						onChange={onProviderSettingsChange}
 						organizationId={organizationId}

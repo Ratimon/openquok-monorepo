@@ -262,6 +262,68 @@ function collectInternalTodosFromThreadsSettings(
     ];
 }
 
+type LinkedInCrossAccountPlugConfig = {
+    plugName?: string;
+    enabled?: boolean;
+    delayMs?: number;
+    integrationIds?: string[];
+    fields?: Record<string, string>;
+};
+
+function collectInternalTodosFromLinkedInSettings(
+    integrationManager: IntegrationManager,
+    params: {
+        postIntegrationId: string;
+        providerSettings: Record<string, unknown> | null;
+    }
+): PlugTodo[] {
+    const root = params.providerSettings as { linkedin?: unknown } | null;
+    const linkedin =
+        root?.linkedin && typeof root.linkedin === "object" ? (root.linkedin as Record<string, unknown>) : null;
+    if (!linkedin) return [];
+
+    const rawPlugs = linkedin.crossAccountPlugs;
+    if (!Array.isArray(rawPlugs) || rawPlugs.length === 0) return [];
+
+    const out: PlugTodo[] = [];
+    for (const item of rawPlugs) {
+        if (!item || typeof item !== "object") continue;
+        const plug = item as LinkedInCrossAccountPlugConfig;
+        if (plug.enabled !== true) continue;
+
+        const plugName = typeof plug.plugName === "string" ? plug.plugName.trim() : "";
+        if (!plugName) continue;
+
+        const integrationIds = Array.isArray(plug.integrationIds)
+            ? plug.integrationIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0)
+            : [];
+        if (!integrationIds.length) continue;
+
+        const delayMs = Number.isFinite(Number(plug.delayMs)) ? Math.max(0, Number(plug.delayMs)) : 0;
+        const fields =
+            plug.fields && typeof plug.fields === "object"
+                ? (plug.fields as Record<string, string>)
+                : {};
+
+        const defs = integrationManager.getInternalPlugDefinitionsForProvider("linkedin");
+        if (!defs.some((d) => d.identifier === plugName)) continue;
+
+        for (const integrationId of integrationIds) {
+            if (integrationId === params.postIntegrationId) continue;
+            out.push({
+                kind: "internal",
+                delayMs,
+                plugName,
+                integrationId,
+                originalIntegrationId: params.postIntegrationId,
+                information: { ...fields },
+            });
+        }
+    }
+
+    return out;
+}
+
 async function collectGlobalPlugTodos(
     deps: ScheduledSocialPostPlugPipelineDeps,
     organizationId: string,
@@ -416,13 +478,30 @@ async function runPostPublishPlugPipeline(
         threadsInternalReplyParentId: string;
     }
 ): Promise<void> {
-    if (params.providerIdentifier !== "threads") return;
+    const provider = params.providerIdentifier;
+    const supportsPlugs =
+        provider === "threads" || provider === "linkedin" || provider === "linkedin-page";
+    if (!supportsPlugs) return;
 
-    const internal = collectInternalTodosFromThreadsSettings(deps.integrationManager, {
-        postIntegrationId: params.postIntegrationId,
-        providerSettings: params.providerSettings,
-    });
-    const global = await collectGlobalPlugTodos(deps, params.organizationId, params.postIntegrationId, params.providerIdentifier);
+    let internal: PlugTodo[] = [];
+    if (provider === "threads") {
+        internal = collectInternalTodosFromThreadsSettings(deps.integrationManager, {
+            postIntegrationId: params.postIntegrationId,
+            providerSettings: params.providerSettings,
+        });
+    } else {
+        internal = collectInternalTodosFromLinkedInSettings(deps.integrationManager, {
+            postIntegrationId: params.postIntegrationId,
+            providerSettings: params.providerSettings,
+        });
+    }
+
+    const global = await collectGlobalPlugTodos(
+        deps,
+        params.organizationId,
+        params.postIntegrationId,
+        params.providerIdentifier
+    );
 
     const sorted = [...internal, ...global].sort((a, b) => a.delayMs - b.delayMs);
     let elapsedMs = 0;
@@ -1230,7 +1309,7 @@ async function runFollowUpsCommentsPhase(deps: PublishDeps, ctx: PublishedRootCo
     ctx.threadsReplyTipAfterComments = threadsLeafId;
 }
 
-/** Threads-only internal + global plugs (may sleep a long time). Runs after all channels’ comment follow-ups. */
+/** Threads / LinkedIn internal + global plugs (may sleep a long time). Runs after all channels’ comment follow-ups. */
 async function runFollowUpsPlugPhase(deps: PublishDeps, ctx: PublishedRootContext): Promise<void> {
     const { integration: intRow, releaseId } = ctx;
     if (!releaseId || !deps.plugPipeline) return;

@@ -48,6 +48,7 @@
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
+		focusedIntegrationId?: string | null;
 		/** When set, blocks adding more main-post attachments once reached (`null` = no cap). */
 		maxMediaItems?: number | null;
 		/** When true, render in "comment" mode (no media; smaller UX). */
@@ -86,6 +87,7 @@
 		loadSignaturesVmForComposer = undefined,
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
+		focusedIntegrationId = null,
 		maxMediaItems = null,
 		comments = false,
 		compact = false,
@@ -263,6 +265,7 @@
 						textarea={composerTextarea}
 						{composerMode}
 						{focusedProviderIdentifier}
+						{focusedIntegrationId}
 						{maxMediaItems}
 						onInsertSignature={(sig) => {
 							const base = body ?? '';

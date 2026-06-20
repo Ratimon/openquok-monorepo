@@ -102,6 +102,12 @@ export class IntegrationService {
         return result;
     }
 
+    async syncTokensByRootInternalId(
+        params: Parameters<IntegrationRepository["syncTokensByRootInternalId"]>[0]
+    ): Promise<void> {
+        await this.integrationRepository.syncTokensByRootInternalId(params);
+    }
+
     async setPostingTimes(organizationId: string, integrationId: string, json: string) {
         await this.integrationRepository.setPostingTimes(organizationId, integrationId, json);
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);

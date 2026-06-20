@@ -545,6 +545,28 @@ export class IntegrationConnectionService {
             rootInternalId: rootInternalId(String(id)),
         });
 
+        if (integrationProvider.oneTimeToken) {
+            const root = row.root_internal_id ?? rootInternalId(String(id));
+            if (root) {
+                await this.integrations
+                    .syncTokensByRootInternalId({
+                        organizationId,
+                        excludeIntegrationId: row.id,
+                        rootInternalId: root,
+                        token: accessToken,
+                        refreshToken: refreshToken ?? "",
+                        expiresInSeconds: expiresIn,
+                    })
+                    .catch((err) => {
+                        logger.debug({
+                            msg: "Sibling token sync after connect failed (best-effort)",
+                            integrationId: row.id,
+                            error: err instanceof Error ? err.message : String(err),
+                        });
+                    });
+            }
+        }
+
         void this.refreshIntegrationService
             .startRefreshWorkflow(organizationId, row.id, integrationProvider)
             .catch((err) => {

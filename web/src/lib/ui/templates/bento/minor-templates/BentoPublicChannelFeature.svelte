@@ -10,6 +10,9 @@
 	import BentoThreadsBulkScheduling from '$lib/ui/templates/bento/minor-templates/threads/BentoThreadsBulkScheduling.svelte';
 	import BentoThreadsInsights from '$lib/ui/templates/bento/minor-templates/threads/BentoThreadsInsights.svelte';
 	import BentoThreadsMediaReplies from '$lib/ui/templates/bento/minor-templates/threads/BentoThreadsMediaReplies.svelte';
+	import BentoLinkedinBulkScheduling from '$lib/ui/templates/bento/minor-templates/linkedin/BentoLinkedinBulkScheduling.svelte';
+	import BentoLinkedinComposeSettings from '$lib/ui/templates/bento/minor-templates/linkedin/BentoLinkedinComposeSettings.svelte';
+	import BentoLinkedinInsights from '$lib/ui/templates/bento/minor-templates/linkedin/BentoLinkedinInsights.svelte';
 	import BentoTiktokBulkScheduling from '$lib/ui/templates/bento/minor-templates/tiktok/BentoTiktokBulkScheduling.svelte';
 	import BentoTiktokComposeSettings from '$lib/ui/templates/bento/minor-templates/tiktok/BentoTiktokComposeSettings.svelte';
 	import BentoTiktokInsights from '$lib/ui/templates/bento/minor-templates/tiktok/BentoTiktokInsights.svelte';
@@ -55,4 +58,10 @@
 	<BentoTiktokComposeSettings />
 {:else if bentoId === 'tiktok-insights'}
 	<BentoTiktokInsights />
+{:else if bentoId === 'linkedin-bulk-scheduling'}
+	<BentoLinkedinBulkScheduling />
+{:else if bentoId === 'linkedin-compose-settings'}
+	<BentoLinkedinComposeSettings />
+{:else if bentoId === 'linkedin-insights'}
+	<BentoLinkedinInsights />
 {/if}

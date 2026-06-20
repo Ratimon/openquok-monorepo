@@ -14,4 +14,7 @@ export type PublicChannelFeatureBentoId =
 	| 'youtube-insights'
 	| 'tiktok-bulk-scheduling'
 	| 'tiktok-compose-settings'
-	| 'tiktok-insights';
+	| 'tiktok-insights'
+	| 'linkedin-bulk-scheduling'
+	| 'linkedin-compose-settings'
+	| 'linkedin-insights';

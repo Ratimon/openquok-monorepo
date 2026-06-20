@@ -35,7 +35,7 @@ Both **Instagram (Business)** and **Instagram (Standalone)** use the same Conten
 | Collaborators | Up to 3 public usernames on feed/Reel posts with **single** media |
 | Text follow-up comments | Schedule comment replies after the root post (text-only on Instagram) |
 
-Media routing is automatic: one video → Reel, multiple attachments on a feed post → carousel, `post_type: story` → Story surface.
+Media routing is automatic: one video → Reel, multiple attachments on a feed post → carousel, <Badge text="post_type: story" variant="param" /> → Story surface.
 
 ### Not supported
 
@@ -85,7 +85,7 @@ https://YOUR-FRONTEND-DOMAIN/integration/oauth/instagram-business
 https://YOUR-FRONTEND-DOMAIN/integration/oauth/instagram-standalone
 ```
 
-<Callout type="note" title="YOUR-FRONTEND-DOMAIN must match the backend env">
+<Callout type="note">
 <p>Substitute the hostname from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (scheme + host, no trailing slash). <code>www</code> and apex are different—register in Meta the same origin the API sends in <code>redirect_uri</code>. Align with <a href="/docs/configuration-backend">Configuration - Backend</a> and <a href="/docs/configuration-web/vite">Vite (SvelteKit)</a>.</p>
 </Callout>
 

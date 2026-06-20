@@ -715,31 +715,117 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 	available: true
 };
 
+const LINKEDIN_CHANNEL: PublicChannelLandingPage = {
+	slug: 'linkedin',
+	platformId: 'linkedin',
+	platformLabel: 'LinkedIn',
+	icon: icons.LinkedIn.name,
+	heroTitle: 'Stay visible on LinkedIn without living in the feed',
+	heroDescription:
+		'Connect your professional profile or company Page, queue posts with images or video, add follow-up comments, and track Page insights — from the OpenQuok calendar or your automation stack.',
+	metaTitle: 'LinkedIn Post Scheduler',
+	metaDescription:
+		'Schedule LinkedIn profile and Page posts with OpenQuok. Queue text, images, video, and document carousels, publish through the official API, and review before anything goes live.',
+	hubDescription:
+		'Professional posts and company Page updates — B2B reach and thought leadership on your schedule.',
+	keywords: [
+		'LinkedIn post scheduler',
+		'LinkedIn Page scheduler',
+		'schedule LinkedIn posts',
+		'LinkedIn content calendar',
+		'B2B social scheduling'
+	],
+	featureSections: [
+		{
+			subtitle: 'Bulk scheduling',
+			title: 'Queue LinkedIn posts, batch Page updates, weeks ahead on the calendar',
+			description:
+				'Line up thought-leadership posts for your profile or company Page days or weeks ahead. Review drafts on the kanban board, then schedule when the copy and creative are ready.',
+			bentoId: 'linkedin-bulk-scheduling',
+			mediaOnRight: true
+		},
+		{
+			subtitle: 'Document carousels',
+			title: 'Turn slide images into PDF carousels, publish to your Page, reach more readers',
+			description:
+				'On LinkedIn Page, combine two or more images into a document carousel — OpenQuok builds the PDF and publishes it when the post goes live. Set a document title in composer settings before you schedule.',
+			bentoId: 'linkedin-compose-settings',
+			mediaOnRight: false
+		},
+		{
+			subtitle: 'Page insights',
+			title: 'See what resonates on your Page, track engagement trends, iterate faster',
+			description:
+				'Track Page views, followers, impressions, and engagement from connected LinkedIn Page channels inside OpenQuok analytics — so you can schedule more of what already works.',
+			bentoId: 'linkedin-insights',
+			mediaOnRight: true
+		}
+	],
+	audienceSubtitle: 'Built for B2B creators',
+	audienceTitle: 'Who schedules LinkedIn with OpenQuok?',
+	audienceCards: [
+		{
+			iconName: icons.CustomizedDrawnHouse.name,
+			iconClass: 'text-rose-400',
+			title: 'Founders & operators',
+			description:
+				'Keep your personal feed and company Page active while you ship product. Queue posts once a week instead of scrambling for daily updates.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnLaptop.name,
+			iconClass: 'text-lime-400',
+			title: 'Marketing teams',
+			description:
+				'Batch Page announcements, slide carousels, and executive posts on one calendar — with review before publish.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnRobot.name,
+			iconClass: 'text-emerald-400',
+			title: 'Agencies & automations',
+			description:
+				'Pipe LinkedIn drafts from agents or scripts via the API, while clients approve in the dashboard.',
+			containerClass: 'h-full min-h-[18rem]'
+		}
+	],
+	faqSubtitle: 'Frequently asked questions',
+	faqTitle: 'LinkedIn scheduling, answered',
+	faqDescription:
+		'How to connect LinkedIn personal and Page channels, what you can publish, and how OpenQuok handles OAuth and analytics.',
+	faqItems: [
+		{
+			title: 'What is the difference between LinkedIn and LinkedIn Page in OpenQuok?',
+			description:
+				'LinkedIn connects your personal professional profile in one OAuth step. LinkedIn Page adds a second step to pick which company Page you administer. Both use the same composer; document carousels are available on Page channels.'
+		},
+		{
+			title: 'What can I publish to LinkedIn?',
+			description:
+				'Text posts up to 3,000 characters, single or multi-image posts, one MP4 video per post, and text follow-up comments on the same channel. LinkedIn Page also supports image carousels converted to PDF documents.'
+		},
+		{
+			title: 'How do I connect LinkedIn?',
+			description:
+				'Create a LinkedIn developer app, add the required products (Share on LinkedIn, Sign in with LinkedIn, Advertising API for token refresh), set OAuth redirect URIs for linkedin and linkedin-page, then add LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET to the backend environment.'
+		},
+		{
+			title: 'Does OpenQuok show LinkedIn Page analytics?',
+			description:
+				'Yes. Connected LinkedIn Page channels surface Page views, follower gains, impressions, clicks, and engagement in workspace analytics. Personal profile channels do not expose the same account-level insights API.'
+		},
+		{
+			title: 'Can I schedule LinkedIn from the API or CLI?',
+			description:
+				'Yes. Use posts:create with integration IDs for linkedin or linkedin-page and pass provider settings such as postAsImagesCarousel for Page document carousels.'
+		}
+	],
+	docsPath: '/docs/social-integration/linkedin',
+	available: true
+};
+
 /** Coming-soon entries appear on the hub but do not have detail pages yet. */
 const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [
-	{
-		slug: 'linkedin',
-		platformId: 'linkedin',
-		platformLabel: 'LinkedIn',
-		icon: icons.LinkedIn.name,
-		heroTitle: '',
-		heroDescription: '',
-		metaTitle: 'LinkedIn Post Scheduler',
-		metaDescription: 'LinkedIn scheduling on OpenQuok — coming soon.',
-		hubDescription:
-			'Professional posts and company-page updates — B2B reach and thought leadership.',
-		keywords: ['LinkedIn post scheduler'],
-		featureSections: [],
-		audienceSubtitle: '',
-		audienceTitle: '',
-		audienceCards: [],
-		faqSubtitle: '',
-		faqTitle: '',
-		faqDescription: '',
-		faqItems: [],
-		docsPath: '/docs/social-integration',
-		available: false
-	},
 	{
 		slug: 'x',
 		platformId: 'x',
@@ -770,6 +856,7 @@ export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPage[] =
 	INSTAGRAM_CHANNEL,
 	YOUTUBE_CHANNEL,
 	TIKTOK_CHANNEL,
+	LINKEDIN_CHANNEL,
 	...COMING_SOON_CHANNELS
 ];
 

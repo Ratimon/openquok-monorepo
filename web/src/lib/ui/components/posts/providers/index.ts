@@ -2,6 +2,7 @@ import type { LaunchProviderConfig } from '$lib/ui/components/posts/providers/pr
 
 import { facebookProvider } from '$lib/ui/components/posts/providers/facebook/facebook.provider';
 import { instagramProvider } from '$lib/ui/components/posts/providers/instagram/instagram.provider';
+import { linkedinProvider } from '$lib/ui/components/posts/providers/linkedin/linkedin.provider';
 import { threadsProvider } from '$lib/ui/components/posts/providers/threads/threads.provider';
 import { tiktokProvider } from '$lib/ui/components/posts/providers/tiktok/tiktok.provider';
 import { youtubeProvider } from '$lib/ui/components/posts/providers/youtube/youtube.provider';
@@ -31,6 +32,9 @@ export function getLaunchProviderConfig(identifier: string | null | undefined): 
 
 	// Instagram variants (instagram, instagram-business, instagram-standalone)
 	if (id.startsWith('instagram')) return instagramProvider;
+
+	// LinkedIn personal profile + company Page share composer rules
+	if (id === 'linkedin' || id === 'linkedin-page') return linkedinProvider;
 
 	return DEFAULT_PROVIDER;
 }

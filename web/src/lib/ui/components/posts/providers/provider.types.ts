@@ -50,6 +50,11 @@ export type TiktokLaunchProviderSettings = {
 	video_made_with_ai: boolean;
 };
 
+export type LinkedInLaunchProviderSettings = {
+	postAsImagesCarousel?: boolean;
+	carouselName?: string;
+};
+
 export type LaunchProviderCheckContext = {
 	media: { id: string; path: string }[];
 	/** Per-integration settings (from the Settings panel), shape is provider-specific. */

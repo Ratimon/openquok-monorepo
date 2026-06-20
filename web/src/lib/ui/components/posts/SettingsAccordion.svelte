@@ -14,6 +14,11 @@
 	import SameAccountEngagementPlug from '$lib/ui/components/posts/thread/SameAccountEngagementPlug.svelte';
 	import InstagramCollaborators from '$lib/ui/components/posts/providers/instagram/InstagramCollaborators.svelte';
 	import FacebookSettings from '$lib/ui/components/posts/providers/facebook/FacebookSettings.svelte';
+	import LinkedInSettings from '$lib/ui/components/posts/providers/linkedin/LinkedInSettings.svelte';
+	import LinkedInCrossAccountPlugs, {
+		type LinkedInCrossAccountPlugState
+	} from '$lib/ui/components/posts/providers/linkedin/LinkedInCrossAccountPlugs.svelte';
+	import { integrationsRepository } from '$lib/integrations';
 	import YoutubeSettings from '$lib/ui/components/posts/providers/youtube/YoutubeSettings.svelte';
 	import TiktokSettings from '$lib/ui/components/posts/providers/tiktok/TiktokSettings.svelte';
 
@@ -57,11 +62,17 @@
 			brand_organic_toggle: boolean;
 			video_made_with_ai: boolean;
 		};
+		linkedin: {
+			postAsImagesCarousel: boolean;
+			carouselName?: string;
+			crossAccountPlugs?: LinkedInCrossAccountPlugState[];
+		};
 	};
 
 	type Props = {
 		open?: boolean;
 		channel: CreateSocialPostChannelViewModel;
+		allChannels?: CreateSocialPostChannelViewModel[];
 		value?: Partial<ProviderSettings>;
 		onChange: (next: Partial<ProviderSettings>) => void;
 		organizationId?: string | null;
@@ -76,6 +87,7 @@
 	let {
 		open = $bindable(false),
 		channel,
+		allChannels = [],
 		value = {},
 		onChange,
 		organizationId = null,
@@ -117,6 +129,36 @@
 	let ttBrandContent = $state(false);
 	let ttBrandOrganic = $state(false);
 	let ttVideoMadeWithAi = $state(false);
+
+	let liCarousel = $state(false);
+	let liCarouselName = $state('');
+	let liCrossAccountPlugs = $state<LinkedInCrossAccountPlugState[]>([]);
+	let linkedInPlugDefs = $state<
+		Array<{
+			identifier: string;
+			title: string;
+			description: string;
+			pickIntegration?: string[];
+			fields?: Array<{
+				name: string;
+				description: string;
+				type: string;
+				placeholder: string;
+			}>;
+		}>
+	>([]);
+
+	$effect(() => {
+		const id = identifier;
+		const orgId = organizationId;
+		if ((id !== 'linkedin' && id !== 'linkedin-page') || !orgId) {
+			linkedInPlugDefs = [];
+			return;
+		}
+		void integrationsRepository.getInternalPlugDefinitions(orgId, 'linkedin').then((defs) => {
+			linkedInPlugDefs = defs.filter((d) => (d.pickIntegration?.length ?? 0) > 0);
+		});
+	});
 
 	// Pull values from the passed value object.
 	$effect(() => {
@@ -218,6 +260,26 @@
 			ttBrandOrganic = flat.brand_organic_toggle === true || flat.brandOrganicToggle === true;
 			ttVideoMadeWithAi = flat.video_made_with_ai === true || flat.videoMadeWithAi === true;
 		}
+		if (s.linkedin && typeof s.linkedin === 'object') {
+			liCarousel = s.linkedin.postAsImagesCarousel === true;
+			liCarouselName = typeof s.linkedin.carouselName === 'string' ? s.linkedin.carouselName : '';
+			liCrossAccountPlugs = Array.isArray(s.linkedin.crossAccountPlugs)
+				? (s.linkedin.crossAccountPlugs as LinkedInCrossAccountPlugState[])
+				: [];
+		} else {
+			const flat = s as Record<string, unknown>;
+			liCarousel =
+				flat.post_as_images_carousel === true ||
+				flat.postAsImagesCarousel === true ||
+				flat.post_as_images_carousel === 'true';
+			liCarouselName =
+				typeof flat.carousel_name === 'string'
+					? flat.carousel_name
+					: typeof flat.carouselName === 'string'
+						? flat.carouselName
+						: '';
+			liCrossAccountPlugs = [];
+		}
 	});
 
 	let lastEmitted = $state('');
@@ -272,6 +334,16 @@
 					brand_content_toggle: ttBrandContent,
 					brand_organic_toggle: ttBrandOrganic,
 					video_made_with_ai: ttVideoMadeWithAi
+				}
+			};
+		} else if (identifier === 'linkedin' || identifier === 'linkedin-page') {
+			const name = liCarouselName.trim();
+			const activePlugs = liCrossAccountPlugs.filter((p) => p.enabled && p.integrationIds.length > 0);
+			next = {
+				linkedin: {
+					postAsImagesCarousel: liCarousel,
+					...(name ? { carouselName: name } : {}),
+					...(activePlugs.length ? { crossAccountPlugs: activePlugs } : {})
 				}
 			};
 		} else {
@@ -349,6 +421,20 @@
 			bind:brandOrganicToggle={ttBrandOrganic}
 			bind:videoMadeWithAi={ttVideoMadeWithAi}
 			{disabled}
+		/>
+	{:else if identifier === 'linkedin' || identifier === 'linkedin-page'}
+		<LinkedInSettings
+			bind:postAsImagesCarousel={liCarousel}
+			bind:carouselName={liCarouselName}
+			showCarousel={true}
+		/>
+		<LinkedInCrossAccountPlugs
+			currentChannel={channel}
+			allChannels={allChannels}
+			plugs={linkedInPlugDefs}
+			bind:value={liCrossAccountPlugs}
+			{disabled}
+			compact={compactEditors}
 		/>
 	{:else}
 		<p class="text-sm text-base-content/60">No settings available for this provider yet.</p>

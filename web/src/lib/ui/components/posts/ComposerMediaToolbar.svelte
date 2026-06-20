@@ -29,6 +29,7 @@
 		composeTooltipTriggerClick
 	} from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
+	import LinkedInCompanyModal from '$lib/ui/components/posts/providers/linkedin/LinkedInCompanyModal.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	interface ComposerMediaToolbarProps {
@@ -53,6 +54,7 @@
 		class?: string;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
+		focusedIntegrationId?: string | null;
 		/** When set, blocks adding more main-post attachments once reached (`null` = no cap). */
 		maxMediaItems?: number | null;
 	}
@@ -74,6 +76,7 @@
 		class: className = '',
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
+		focusedIntegrationId = null,
 		maxMediaItems = null
 	}: ComposerMediaToolbarProps = $props();
 
@@ -89,6 +92,12 @@
 	let libraryOpen = $state(false);
 	const mediaAtCap = $derived(maxMediaItems != null && items.length >= maxMediaItems);
 	let signatureOpen = $state(false);
+	let linkedInCompanyOpen = $state(false);
+	const showLinkedInCompany = $derived(
+		(focusedProviderIdentifier === 'linkedin' || focusedProviderIdentifier === 'linkedin-page') &&
+			Boolean(focusedIntegrationId?.trim()) &&
+			Boolean(organizationId?.trim())
+	);
 	const iconBtn =
 		'border-base-300/90 bg-base-200/45 text-base-content/85 hover:bg-base-300/55 hover:text-base-content focus-visible:ring-primary/40 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border shadow-sm backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35';
 
@@ -153,6 +162,12 @@
 	const attachedMediaPaths = $derived(items.map((m) => m.path));
 
 	function insertSignatureFromModal(text: string) {
+		const trimmed = (text ?? '').trim();
+		if (!trimmed) return;
+		onInsertSignature?.(trimmed);
+	}
+
+	function insertLinkedInCompanyMention(text: string) {
 		const trimmed = (text ?? '').trim();
 		if (!trimmed) return;
 		onInsertSignature?.(trimmed);
@@ -306,6 +321,24 @@
 				</span>
 			{/snippet}
 		</ComposerMediaTooltip>
+		{#if showLinkedInCompany}
+			<ComposerMediaTooltip label="Add a LinkedIn company mention">
+				{#snippet trigger({ props })}
+					<button
+						{...props}
+						type="button"
+						class={iconBtn}
+						disabled={disabled || uploadBusy}
+						onclick={composeTooltipTriggerClick(props, () => {
+							linkedInCompanyOpen = true;
+						})}
+						aria-label="Add LinkedIn company mention"
+					>
+						<AbstractIcon name={icons.LinkedIn.name} class="size-5" width="20" height="20" />
+					</button>
+				{/snippet}
+			</ComposerMediaTooltip>
+		{/if}
 	</Tooltip.Provider>
 
 	<DeviceMediaAttachModal
@@ -359,3 +392,13 @@
 	{loadSignaturesVmForComposer}
 	onInsertSignature={insertSignatureFromModal}
 />
+
+{#if showLinkedInCompany && focusedIntegrationId && organizationId}
+	<LinkedInCompanyModal
+		bind:open={linkedInCompanyOpen}
+		organizationId={organizationId}
+		integrationId={focusedIntegrationId}
+		onClose={() => (linkedInCompanyOpen = false)}
+		onInsert={insertLinkedInCompanyMention}
+	/>
+{/if}

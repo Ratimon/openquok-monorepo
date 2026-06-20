@@ -17,6 +17,7 @@ import {
     validateIntegrationPlugDeleteRequest,
     validateIntegrationPlugsListRequest,
     validateIntegrationPlugsUpsertRequest,
+    validateIntegrationTriggerRequest,
 } from "../../data/schemas/integrationPlugSchemas";
 import { validateIntegrationTimeRequest } from "../../data/schemas/integrationTimeSchemas";
 import { SubscriptionSection } from "openquok-common";
@@ -33,6 +34,11 @@ integrationSessionRouter.get(
     "/internal-plugs/:providerIdentifier",
     validateIntegrationInternalPlugsRequest,
     integrationController.getInternalPlugDefinitions
+);
+integrationSessionRouter.post(
+    "/:integrationId/trigger",
+    validateIntegrationTriggerRequest,
+    integrationController.triggerIntegrationTool
 );
 integrationSessionRouter.put(
     "/plugs/:plugId/activate",

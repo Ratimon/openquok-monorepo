@@ -401,6 +401,11 @@ export const config: ConfigObject = {
             clientId: getEnvTrimmed("TIKTOK_CLIENT_ID"),
             clientSecret: getEnvTrimmed("TIKTOK_CLIENT_SECRET"),
         },
+        /** LinkedIn — personal profile and company Page OAuth (same developer app). */
+        linkedin: {
+            clientId: getEnvTrimmed("LINKEDIN_CLIENT_ID"),
+            clientSecret: getEnvTrimmed("LINKEDIN_CLIENT_SECRET"),
+        },
     },
 
 

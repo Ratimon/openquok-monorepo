@@ -48,4 +48,7 @@ export type InternalPlugCatalogEntryDto = {
     methodName: string;
     title: string;
     description: string;
+    /** Provider identifiers eligible to act on the post (cross-account engagement). */
+    pickIntegration?: string[];
+    fields?: PlugFieldCatalogDto[];
 };

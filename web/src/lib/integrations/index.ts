@@ -23,7 +23,11 @@ const integrationsConfig: IntegrationsConfig = {
 		publicProviderConnect: (integrationId: string) =>
 			`${integrationsBase}/public/provider/${encodeURIComponent(integrationId)}/connect`,
 		postingTimes: (integrationId: string) =>
-			`${integrationsBase}/${encodeURIComponent(integrationId)}/time`
+			`${integrationsBase}/${encodeURIComponent(integrationId)}/time`,
+		internalPlugs: (providerIdentifier: string) =>
+			`${integrationsBase}/internal-plugs/${encodeURIComponent(providerIdentifier)}`,
+		triggerTool: (integrationId: string) =>
+			`${integrationsBase}/${encodeURIComponent(integrationId)}/trigger`
 	}
 };
 
