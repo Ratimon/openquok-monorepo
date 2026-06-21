@@ -12,6 +12,7 @@ import { LinkedInPageProvider } from "./providers/linkedin/linkedinPageProvider"
 import { LinkedInProvider } from "./providers/linkedin/linkedinProvider";
 import { TiktokProvider } from "./providers/tiktok/tiktokProvider";
 import { YoutubeProvider } from "./providers/youtube/youtubeProvider";
+import { XProvider } from "./providers/x/xProvider";
 
 const socialIntegrationList: SocialProvider[] = [
     new ThreadsProvider(),
@@ -22,6 +23,7 @@ const socialIntegrationList: SocialProvider[] = [
     new LinkedInPageProvider(),
     new YoutubeProvider(),
     new TiktokProvider(),
+    new XProvider(),
 ];
 
 export class IntegrationManager {

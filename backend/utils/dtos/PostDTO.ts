@@ -153,8 +153,11 @@ export function parseProviderThreadsPreviewFromPostSettings(settings: string | n
 }
 
 /** Where scheduled follow-up replies live in `providerSettings` (per integration). */
-export function replyChainBucketForProvider(providerIdentifier: string | null | undefined): "threads" | "instagram" {
+export function replyChainBucketForProvider(
+    providerIdentifier: string | null | undefined
+): "threads" | "instagram" | "x" {
     const id = (providerIdentifier ?? "").trim().toLowerCase();
+    if (id === "x") return "x";
     return id.startsWith("instagram") ? "instagram" : "threads";
 }
 

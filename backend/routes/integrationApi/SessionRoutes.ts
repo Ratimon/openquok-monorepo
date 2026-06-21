@@ -10,6 +10,7 @@ import {
     validateIntegrationCustomersQuery,
     validateIntegrationCreateCustomerBody,
     validateIntegrationGroup,
+    validateIntegrationMentionsRequest,
 } from "../../data/schemas/integrationSchemas";
 import {
     validateIntegrationInternalPlugsRequest,
@@ -102,6 +103,11 @@ integrationSessionRouter.post(
         resolveOrganizationId: (req) => (req.body as any)?.organizationId,
     }),
     integrationController.connectSocialMedia
+);
+integrationSessionRouter.post(
+    "/mentions",
+    validateIntegrationMentionsRequest,
+    integrationController.searchIntegrationMentions
 );
 integrationSessionRouter.post("/disable", validateIntegrationOrgAndIdBody, integrationController.disable);
 integrationSessionRouter.post("/enable", validateIntegrationOrgAndIdBody, integrationController.enable);

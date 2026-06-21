@@ -414,4 +414,25 @@ export class IntegrationController {
             next(error);
         }
     };
+
+    /** POST /integrations/mentions — @-mention autocomplete for a connected channel. */
+    searchIntegrationMentions = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const body = req.body as { organizationId: string; integrationId: string; query: string };
+            const data = await this.integrationConnectionService.searchIntegrationMentions(
+                authUserId,
+                body.organizationId,
+                body.integrationId,
+                body.query
+            );
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
 }

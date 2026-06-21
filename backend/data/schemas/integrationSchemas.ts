@@ -89,3 +89,13 @@ export const validateIntegrationGroup: RequestHandler = validateRequest({
     params: integrationGroupParamsSchema,
     body: integrationGroupBodySchema,
 });
+
+export const integrationMentionsBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    integrationId: z.string().uuid("Invalid integration id"),
+    query: z.string().trim().min(1, "query is required").max(200),
+});
+
+export const validateIntegrationMentionsRequest: RequestHandler = validateRequest({
+    body: integrationMentionsBodySchema,
+});

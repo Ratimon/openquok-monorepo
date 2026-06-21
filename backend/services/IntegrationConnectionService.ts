@@ -8,6 +8,7 @@ import type {
     AuthTokenDetails,
     ClientInformation,
     FetchPageInformationResult,
+    IntegrationRecord,
 } from "../integrations/social.integrations.interface";
 import type { IntegrationTimeDto } from "../data/schemas/integrationTimeSchemas";
 import type { IntegrationService } from "./IntegrationService";
@@ -83,6 +84,26 @@ function parseAdditionalSettings(raw: string | null | undefined): Array<Record<s
 function isVerifiedFromAdditionalSettings(settings: Array<Record<string, unknown>>): boolean {
     const verified = settings.find((s) => s?.title === "Verified")?.value;
     return verified === true;
+}
+
+function integrationLikeToRecord(row: IntegrationLike): IntegrationRecord {
+    return {
+        id: row.id,
+        organization_id: row.organization_id,
+        internal_id: row.internal_id,
+        name: row.name,
+        picture: row.picture,
+        provider_identifier: row.provider_identifier,
+        type: row.type,
+        token: row.token,
+        refresh_token: row.refresh_token,
+        token_expiration: row.token_expiration,
+        root_internal_id: row.root_internal_id,
+        in_between_steps: row.in_between_steps,
+        refresh_needed: row.refresh_needed,
+        deleted_at: row.deleted_at,
+        additional_settings: row.additional_settings,
+    } as IntegrationRecord;
 }
 
 /**
@@ -422,6 +443,34 @@ export class IntegrationConnectionService {
             const result = await invoke({ ...row, token: refreshed.accessToken });
             return { output: result };
         }
+    }
+
+    /** POST /integrations/mentions — provider @-mention autocomplete for composer. */
+    async searchIntegrationMentions(
+        authUserId: string,
+        organizationId: string,
+        integrationId: string,
+        query: string
+    ): Promise<{
+        mentions:
+            | { id: string; label: string; image: string; doNotCache?: boolean }[]
+            | { none: true };
+    }> {
+        await this.assertOrganizationMember(authUserId, organizationId);
+
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) {
+            throw new AppError("Integration not found", 404);
+        }
+
+        const provider = this.manager.getSocialIntegration(row.provider_identifier);
+        if (!provider?.mention) {
+            throw new AppError("Mentions are not supported for this channel", 400);
+        }
+
+        const record = integrationLikeToRecord(row);
+        const mentions = await provider.mention(row.token, { query }, row.internal_id, record);
+        return { mentions };
     }
 
     private async connectSocialMediaInternal(

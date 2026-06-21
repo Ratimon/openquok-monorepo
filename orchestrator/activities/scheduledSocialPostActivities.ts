@@ -145,7 +145,8 @@ function integrationRowToRecord(row: IntegrationLike): IntegrationRecord {
         in_between_steps: row.in_between_steps,
         refresh_needed: row.refresh_needed,
         deleted_at: row.deleted_at,
-    };
+        additional_settings: row.additional_settings,
+    } as IntegrationRecord;
 }
 
 function postRowToPostDetails(row: SocialPostLike): PostDetails {
@@ -480,7 +481,10 @@ async function runPostPublishPlugPipeline(
 ): Promise<void> {
     const provider = params.providerIdentifier;
     const supportsPlugs =
-        provider === "threads" || provider === "linkedin" || provider === "linkedin-page";
+        provider === "threads" ||
+        provider === "x" ||
+        provider === "linkedin" ||
+        provider === "linkedin-page";
     if (!supportsPlugs) return;
 
     let internal: PlugTodo[] = [];
@@ -567,6 +571,27 @@ function threadsThreadFinisherMessageFromSettings(settings: Record<string, unkno
     if (threads.enabled !== true) return null;
     const msg = typeof threads.message === "string" ? threads.message.trim() : "";
     return msg.length > 0 ? msg : null;
+}
+
+function xThreadFinisherMessageFromSettings(settings: Record<string, unknown> | null): string | null {
+    const s = settings as { x?: unknown } | null;
+    const x = (s && typeof s.x === "object" ? (s.x as any) : null) as
+        | { enabled?: unknown; message?: unknown }
+        | null;
+    if (!x) return null;
+    if (x.enabled !== true) return null;
+    const msg = typeof x.message === "string" ? x.message.trim() : "";
+    return msg.length > 0 ? msg : null;
+}
+
+function threadFinisherMessageFromSettings(
+    providerIdentifier: string,
+    settings: Record<string, unknown> | null
+): string | null {
+    const pid = providerIdentifier.trim().toLowerCase();
+    if (pid === "x") return xThreadFinisherMessageFromSettings(settings);
+    if (pid === "threads") return threadsThreadFinisherMessageFromSettings(settings);
+    return null;
 }
 
 function capitalizeProvider(id: string): string {
@@ -744,12 +769,13 @@ async function maybePublishThreadsThreadFinisher(params: {
     deps: PublishDeps;
 }): Promise<string> {
     const { post, integration, record, social, publishedPostId, replyParentId, deps } = params;
-    if (integration.provider_identifier !== "threads") return replyParentId;
+    const pid = integration.provider_identifier.trim().toLowerCase();
+    if (pid !== "threads" && pid !== "x") return replyParentId;
     if (typeof social.comment !== "function") return replyParentId;
     if (!publishedPostId) return replyParentId;
 
     const providerSettings = parseProviderSettingsFromPostRow(post);
-    const finisher = threadsThreadFinisherMessageFromSettings(providerSettings);
+    const finisher = threadFinisherMessageFromSettings(integration.provider_identifier, providerSettings);
     if (!finisher) return replyParentId;
 
     const organizationId = post.organization_id;
@@ -767,24 +793,27 @@ async function maybePublishThreadsThreadFinisher(params: {
         );
         const nextId = firstPostResponse(res).releaseId?.trim();
         logger.info({
-            msg: "[Orchestrator] threads thread-finisher comment published",
+            msg: "[Orchestrator] thread-finisher comment published",
             postId,
             organizationId,
+            provider: integration.provider_identifier,
         });
         return nextId || replyParentId;
     } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
+        const networkLabel = pid === "x" ? "X" : "Threads";
         logger.warn({
-            msg: "[Orchestrator] threads thread-finisher comment failed (best-effort)",
+            msg: "[Orchestrator] thread-finisher comment failed (best-effort)",
             postId,
             organizationId,
+            provider: integration.provider_identifier,
             error: msg,
         });
         await notify(
             ns,
             organizationId,
-            "We published your post, but the follow-up comment failed",
-            `Your Threads post was published, but the follow-up comment (“thread finisher”) could not be posted. ${msg}`,
+            `We published your post, but the ${networkLabel} thread finisher failed`,
+            `Your ${networkLabel} post was published, but the closing thread message could not be posted. ${msg}`,
             true,
             false,
             "info"
@@ -803,7 +832,7 @@ async function maybePublishThreadsReplies(params: {
 }): Promise<string> {
     const { post, integration, record, social, publishedPostId, deps } = params;
     const pid = integration.provider_identifier.trim().toLowerCase();
-    const supportsFollowUps = pid === "threads" || pid.startsWith("instagram");
+    const supportsFollowUps = pid === "threads" || pid === "x" || pid.startsWith("instagram");
     if (!supportsFollowUps) return publishedPostId;
     if (typeof social.comment !== "function") return publishedPostId;
     if (!publishedPostId) return publishedPostId;
@@ -875,7 +904,7 @@ async function maybePublishThreadsReplies(params: {
     const organizationId = post.organization_id;
     const postId = post.id;
     const ns = deps.notificationService;
-    const networkLabel = pid.startsWith("instagram") ? "Instagram" : "Threads";
+    const networkLabel = pid.startsWith("instagram") ? "Instagram" : pid === "x" ? "X" : "Threads";
 
     let lastCommentId: string | undefined = publishedPostId;
     for (const r of replies) {

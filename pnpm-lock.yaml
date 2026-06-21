@@ -193,6 +193,9 @@ importers:
       swagger-ui-express:
         specifier: ^5.0.1
         version: 5.0.1(express@5.2.1)
+      twitter-api-v2:
+        specifier: ^1.28.0
+        version: 1.29.0
       twitter-text:
         specifier: ^3.1.0
         version: 3.1.0
@@ -7942,6 +7945,9 @@ packages:
 
   twemoji-parser@11.0.2:
     resolution: {integrity: sha512-5kO2XCcpAql6zjdLwRwJjYvAZyDy3+Uj7v1ipBzLthQmDL7Ce19bEqHr3ImSNeoSW2OA8u02XmARbXHaNO8GhA==}
+
+  twitter-api-v2@1.29.0:
+    resolution: {integrity: sha512-v473q5bwme4N+DWSg6qY+JCvfg1nSJRWwui3HUALafxfqCvVkKiYmS/5x/pVeJwTmyeBxexMbzHwnzrH4h6oYQ==}
 
   twitter-text@3.1.0:
     resolution: {integrity: sha512-nulfUi3FN6z0LUjYipJid+eiwXvOLb8Ass7Jy/6zsXmZK3URte043m8fL3FyDzrK+WLpyqhHuR/TcARTN/iuGQ==}
@@ -16929,6 +16935,8 @@ snapshots:
   tweetnacl@0.14.5: {}
 
   twemoji-parser@11.0.2: {}
+
+  twitter-api-v2@1.29.0: {}
 
   twitter-text@3.1.0:
     dependencies:

@@ -406,6 +406,12 @@ export const config: ConfigObject = {
             clientId: getEnvTrimmed("LINKEDIN_CLIENT_ID"),
             clientSecret: getEnvTrimmed("LINKEDIN_CLIENT_SECRET"),
         },
+        /** X (Twitter) — OAuth 1.0a Native App with Read + Write. */
+        x: {
+            apiKey: getEnvTrimmed("X_API_KEY"),
+            apiSecret: getEnvTrimmed("X_API_SECRET"),
+            disableAnalytics: getEnvBoolean("DISABLE_X_ANALYTICS", false),
+        },
     },
 
 
