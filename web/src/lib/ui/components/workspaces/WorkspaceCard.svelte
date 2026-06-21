@@ -296,7 +296,7 @@
 						</div>
 					{/if}
 				</div>
-				{#if isCompact && !card.isCurrent && onSwitchWorkspace}
+				{#if !card.isCurrent && onSwitchWorkspace}
 					<Button
 						type="button"
 						variant="secondary"
