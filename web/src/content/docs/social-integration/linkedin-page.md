@@ -1,12 +1,12 @@
 ---
 title: LinkedIn Page
-description: Connect a LinkedIn company Page to OpenQuok
+description: How to configure a LinkedIn company page for Openquok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars
 order: 8
 lastUpdated: 2026-06-20
 ---
 
 <script>
-import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -113,9 +113,9 @@ In **Products**, add all required products. They include:
 In **Auth**, after verification is completed, you can verify that the following organization scopes are automatically added:
 
 <ul class="not-prose list-disc pl-6">
-<li><Badge text="rw_organization_admin" variant="default" /></li>
-<li><Badge text="w_organization_social" variant="default" /></li>
-<li><Badge text="r_organization_social" variant="default" /></li>
+<li><Badge text="rw_organization_admin" variant="param" /></li>
+<li><Badge text="w_organization_social" variant="param" /></li>
+<li><Badge text="r_organization_social" variant="param" /></li>
 </ul>
 
 
@@ -134,6 +134,8 @@ Copy <strong>Client ID</strong> and <strong>Client Secret</strong> into <Badge t
 
 ## Related
 
-- <a href="/docs/social-integration/linkedin">LinkedIn</a> — personal profile connection
-- CLI examples: <a href="/docs/cli-examples/linkedin">LinkedIn CLI examples</a>
-- Public channel overview: <a href="/channels/linkedin">/channels/linkedin</a>
+<CardGrid>
+<LinkCard title="LinkedIn" description="Personal profile connection" href="/docs/social-integration/linkedin" />
+<LinkCard title="CLI examples" description="Copy-paste LinkedIn recipes for openquok posts:create" href="/docs/cli-examples/linkedin" />
+<LinkCard title="Public channel overview" description="LinkedIn landing page at /channels/linkedin" href="/channels/linkedin" />
+</CardGrid>

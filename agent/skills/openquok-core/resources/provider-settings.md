@@ -30,6 +30,7 @@ Full JSON body: `openquok posts:create --json ./examples/<file>.json` with `prov
 | Instagram | `post_type`, `is_trial_reel`, `graduation_strategy`, `collaborators` | `instagram.*` (camelCase in web UI) |
 | Threads follow-ups / finisher / plug | — | `threads.replies`, `threads.enabled`, `threads.message`, `threads.internalEngagementPlug` |
 | Instagram follow-up comments | — | `instagram.replies` |
+| X follow-ups / finisher / compose | `who_can_reply_post`, `made_with_ai`, `paid_partnership`, `community` | `x.replies`, `x.enabled`, `x.message`, `x.whoCanReplyPost`, `x.communityUrl`, … |
 | YouTube video metadata | `title`, `type`, `selfDeclaredMadeForKids`, `tags`, `thumbnail` / `thumbnailPath` | `youtube.title`, `youtube.type`, `youtube.tags`, `youtube.thumbnail`, … |
 | LinkedIn / LinkedIn Page | `post_as_images_carousel`, `carousel_name` | `linkedin.postAsImagesCarousel`, `linkedin.carouselName` |
 | TikTok privacy / inbox | `privacy_level`, `content_posting_method`, `title`, `comment`, `duet`, `stitch`, … | `tiktok.privacy_level`, `tiktok.content_posting_method`, … |
@@ -64,3 +65,4 @@ Returns `output.rules`, `output.maxLength`, `output.tools` (allow-listed `integr
 | LinkedIn | [linkedin-examples.md](./linkedin-examples.md) | `post_as_images_carousel`, `carousel_name` (≥2 images, no video) |
 | LinkedIn Page | [linkedin-page-examples.md](./linkedin-page-examples.md) | Same carousel keys + Page analytics |
 | TikTok | [tiktok-examples.md](./tiktok-examples.md) | `privacy_level`, `content_posting_method`, toggles, `title` |
+| X | [x-examples.md](./x-examples.md) | `x.replies`, finisher, reply audience, community, labels |

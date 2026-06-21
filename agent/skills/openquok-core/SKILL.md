@@ -157,6 +157,7 @@ Provider settings overview: [resources/provider-settings.md](./resources/provide
 | TikTok | `tiktok` | direct publish, inbox upload (`UPLOAD`), private `SELF_ONLY` drafts, privacy, toggles, analytics | [tiktok-examples.md](./resources/tiktok-examples.md) |
 | LinkedIn | `linkedin` | personal profile posts, images, video, text comments | [linkedin-examples.md](./resources/linkedin-examples.md) |
 | LinkedIn Page | `linkedin-page` | Page picker, document carousel, Page + post analytics | [linkedin-page-examples.md](./resources/linkedin-page-examples.md) |
+| X | `x` | text/media, thread replies, finisher, reply settings, analytics | [x-examples.md](./resources/x-examples.md) |
 
 Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 

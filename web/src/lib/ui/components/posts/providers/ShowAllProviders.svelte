@@ -8,6 +8,7 @@
 	import LinkedInPreview from '$lib/ui/components/posts/providers/linkedin/LinkedInPreview.svelte';
 	import ThreadsPreview from '$lib/ui/components/posts/providers/threads/ThreadsPreview.svelte';
 	import TiktokPreview from '$lib/ui/components/posts/providers/tiktok/TiktokPreview.svelte';
+	import XPreview from '$lib/ui/components/posts/providers/x/XPreview.svelte';
 	import YoutubePreview from '$lib/ui/components/posts/providers/youtube/YoutubePreview.svelte';
 
 	type Props = {
@@ -17,6 +18,8 @@
 		mediaUrls?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
+		/** Weighted character count for X preview overflow. */
+		weightedCharCount?: number;
 		/** Threads only: internal delayed engagement plug preview. */
 		delayedEngagementReply?: { message: string; delaySeconds: number } | null;
 		/** Shown under the Threads header (e.g. scheduled date). */
@@ -31,7 +34,8 @@
 		threadReplies = [],
 		threadFinisher = null,
 		delayedEngagementReply = null,
-		previewMetaLabel = null
+		previewMetaLabel = null,
+		weightedCharCount
 	}: Props = $props();
 
 	const identifier = $derived((channel?.identifier ?? '').toLowerCase());
@@ -103,6 +107,17 @@
 		{previewText}
 		{mediaUrls}
 		maximumCharacters={maxChars}
+		{threadReplies}
+		{threadFinisher}
+		{previewMetaLabel}
+	/>
+{:else if identifier === 'x'}
+	<XPreview
+		{channel}
+		{previewText}
+		{mediaUrls}
+		maximumCharacters={maxChars}
+		{weightedCharCount}
 		{threadReplies}
 		{threadFinisher}
 		{previewMetaLabel}

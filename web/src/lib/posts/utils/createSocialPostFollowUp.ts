@@ -4,12 +4,16 @@ import type { SetSharedFollowUpReplyViewModel, SetSnapshotViewModel } from '$lib
 
 export function channelSupportsFollowUpComments(identifier: string | null | undefined): boolean {
 	const id = (identifier ?? '').toLowerCase();
-	return id === 'threads' || id.startsWith('instagram');
+	return id === 'threads' || id === 'x' || id.startsWith('instagram');
 }
 
-export function followUpBucketForChannel(identifier: string | null | undefined): 'threads' | 'instagram' {
+export function followUpBucketForChannel(
+	identifier: string | null | undefined
+): 'threads' | 'instagram' | 'x' {
 	const id = (identifier ?? '').trim().toLowerCase();
-	return id.startsWith('instagram') ? 'instagram' : 'threads';
+	if (id.startsWith('instagram')) return 'instagram';
+	if (id === 'x') return 'x';
+	return 'threads';
 }
 
 export function listThreadFollowUpSupportedIntegrationIds(args: {
@@ -44,7 +48,7 @@ export function getPrimaryThreadFollowUpIntegrationId(args: {
 			args.selectedIds.find((sid) => {
 				const ch = args.baseSocialChannelsVm.find((c) => c.id === sid);
 				const id = (ch?.identifier ?? '').trim().toLowerCase();
-				return id === 'threads' || id.startsWith('instagram');
+				return id === 'threads' || id === 'x' || id.startsWith('instagram');
 			}) ?? null
 		);
 	}
@@ -93,7 +97,7 @@ export function applyThreadFollowUpRepliesToSettings(args: {
 		const bucketObj: Record<string, unknown> =
 			prevRaw && typeof prevRaw === 'object' && !Array.isArray(prevRaw)
 				? { ...(prevRaw as Record<string, unknown>) }
-				: bucket === 'threads'
+				: bucket === 'threads' || bucket === 'x'
 					? { enabled: false, message: "That's a wrap!" }
 					: {};
 		merged[intId] = {
@@ -116,7 +120,11 @@ export function legacySharedRepliesFromProviderSnapshot(args: {
 		const ch = args.baseSocialChannelsVm.find((c) => c.id === intId);
 		if (!channelSupportsFollowUpComments(ch?.identifier)) continue;
 		const ident = (ch?.identifier ?? '').toLowerCase();
-		const bucket: 'threads' | 'instagram' = ident.startsWith('instagram') ? 'instagram' : 'threads';
+		const bucket: 'threads' | 'instagram' | 'x' = ident.startsWith('instagram')
+			? 'instagram'
+			: ident === 'x'
+				? 'x'
+				: 'threads';
 		const ps = args.snapshot.providerSettingsByIntegrationId?.[intId];
 		if (!ps) continue;
 		const sub = ps[bucket] as Record<string, unknown> | undefined;
@@ -153,7 +161,11 @@ export function syncSharedFollowUpsToProviderSettingsForSetAuthoring(args: {
 		const ch = args.baseSocialChannelsVm.find((c) => c.id === intId);
 		if (!channelSupportsFollowUpComments(ch?.identifier)) continue;
 		const ident = (ch?.identifier ?? '').toLowerCase();
-		const bucket: 'threads' | 'instagram' = ident.startsWith('instagram') ? 'instagram' : 'threads';
+		const bucket: 'threads' | 'instagram' | 'x' = ident.startsWith('instagram')
+			? 'instagram'
+			: ident === 'x'
+				? 'x'
+				: 'threads';
 		const cur =
 			out[intId] && typeof out[intId] === 'object' && !Array.isArray(out[intId])
 				? { ...(out[intId] as Record<string, unknown>) }
@@ -161,7 +173,7 @@ export function syncSharedFollowUpsToProviderSettingsForSetAuthoring(args: {
 		const prevB =
 			cur[bucket] && typeof cur[bucket] === 'object' && !Array.isArray(cur[bucket])
 				? { ...(cur[bucket] as Record<string, unknown>) }
-				: bucket === 'threads'
+				: bucket === 'threads' || bucket === 'x'
 					? { enabled: false, message: "That's a wrap!" }
 					: {};
 		out[intId] = { ...cur, [bucket]: { ...prevB, replies: serial } };

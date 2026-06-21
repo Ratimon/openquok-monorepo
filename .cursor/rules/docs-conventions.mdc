@@ -91,7 +91,7 @@ Instagram (Business) and Facebook can use the <strong>same</strong> developer ap
 
 ## Next steps and related pages (`LinkCard` / `CardGrid`)
 
-- For **“Next steps”** (or similar) sections with **multiple in-site destinations**, prefer **`CardGrid`** + **`LinkCard`** from `$lib/ui/components/docs/mdx/index.js` over a Markdown bullet list of `[label](/docs/...)` links. This matches pages such as **quick-start**, **development-environment**, and **installation/vercel**.
+- For **“Next steps”**, **`## Related`**, **`## Related configuration`**, and similar sections with **multiple in-site destinations**, use **`CardGrid`** + **`LinkCard`** from `$lib/ui/components/docs/mdx/index.js` — **not** Markdown bullet lists, `[label](/docs/…)` links, or raw `<a href="…">` rows. This matches pages such as **quick-start**, **development-environment**, **installation/vercel**, and **social-integration/x**.
 - **Pattern** (add the components to the page `<script>` import):
 
 ```html
@@ -99,22 +99,22 @@ Instagram (Business) and Facebook can use the <strong>same</strong> developer ap
 import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-## Next steps
+## Related
 
 <CardGrid>
-<LinkCard title="Backend configuration" description="…" href="/docs/configuration-backend" />
-<LinkCard title="Web configuration" description="…" href="/docs/configuration-web" />
+<LinkCard title="CLI examples" description="Copy-paste X recipes for openquok posts:create" href="/docs/cli-examples/x" />
+<LinkCard title="Adding a provider" description="Contributor checklist for new social integrations" href="/docs/social-integration/add-provider" />
 </CardGrid>
 ```
 
-- **`href`** values use the site’s docs path prefix only: **`/docs/<slug>`** (e.g. `/docs/configuration-backend`, `/docs/getting-started-for-dev/quick-start`). Slugs follow `web/src/content/docs/**` paths (`installation/...` → `/docs/installation/...` with the same casing as on disk).
+- **`href`** values are **in-site paths only** (same origin as the docs app): docs pages under **`/docs/<slug>`** (e.g. `/docs/configuration-backend`, `/docs/getting-started-for-dev/quick-start`; slugs follow `web/src/content/docs/**` paths with the same casing as on disk), public marketing routes such as **`/channels/<slug>`**, and same-page anchors (e.g. `/docs/configuration-agent#environment-variables`). Do **not** use **`DocsExternalLink`** or raw external URLs in **`LinkCard`**.
 - Reuse **titles and descriptions** that already appear on other pages (e.g. quick-start’s configuration cards) so the UX stays consistent.
 
 ### Main section index pages: “Related Section(s)”
 
 - For **top-level section index pages** (the `index.md` at a section root such as `getting-started-for-dev/`, `installation/`, `configuration-backend/`, `configuration-web/`), add a bottom section named **`## Related Section(s)`**.
 - Use **`CardGrid`** + **`LinkCard`** to point readers to the **next** or **related** top-level areas (for example linking `Getting Started` → `/docs/installation`, config hubs → `/docs/installation` and `/docs/developer-guidelines`).
-- **Do not** add this block to **subpages** inside a section unless they truly need cross-section navigation; prefer small “Related configuration” blocks only when helpful.
+- **Subpages** (e.g. provider setup guides, CLI example pages) may end with **`## Related`** (or **`## Related configuration`**) using the same **`CardGrid`** pattern when cross-linking sibling docs, CLI examples, or public channel landing pages.
 
 ## Inline components and “missing words” (MDsveX)
 

@@ -43,6 +43,8 @@
 		previewText: string;
 		charCount: number;
 		softCharLimit: number;
+		/** When set, pass weighted count to X preview. */
+		weightedCharCount?: number;
 		selectedGroupId: string | null;
 		onToggleChannel: (id: string) => void;
 		onToggleGlobal: () => void;
@@ -95,6 +97,7 @@
 		previewText,
 		charCount,
 		softCharLimit,
+		weightedCharCount,
 		selectedGroupId,
 		onToggleChannel,
 		onToggleGlobal,
@@ -331,6 +334,7 @@
 			<ThreadRepliesEditor
 				providerIdentifier={threadProviderIdentifier}
 				{postComment}
+				replySoftCharLimit={softCharLimit}
 				scheduledPostDatetimeLocal={scheduledPostDatetimeLocal}
 				disabled={busy}
 				replies={threadReplies}
@@ -354,6 +358,7 @@
 					{previewText}
 					{mediaUrls}
 					maximumCharacters={softCharLimit}
+					{weightedCharCount}
 					threadReplies={previewThreadRepliesVm}
 					threadFinisher={previewThreadFinisher}
 					delayedEngagementReply={previewDelayedEngagementReply

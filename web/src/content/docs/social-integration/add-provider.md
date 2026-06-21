@@ -16,7 +16,7 @@ Openquok social channels are **first-party provider classes** registered in the 
 Use **Facebook** (<Badge text="facebook" variant="default" />), **Instagram (Business)** (<Badge text="instagram-business" variant="default" />), and **Threads** (<Badge text="threads" variant="default" />) as reference implementations.
 
 <Callout type="note" title="Identifier contract">
-The provider <Badge text="identifier" variant="param" /> slug (kebab-case) is the contract everywhere: database <Badge text="provider_identifier" variant="param" />, OAuth callback path <Badge text="/integration/oauth/{identifier}" variant="path" />, catalog entries, CLI filters, and web routing.
+The provider <Badge text="identifier" variant="param" /> slug (kebab-case) is the contract everywhere: database <Badge text="provider_identifier" variant="param" />, OAuth callback path <Badge text="/integration/oauth/[identifier]" variant="path" />, catalog entries, CLI filters, and web routing.
 </Callout>
 
 **Convention reference:** Cursor agents and contributors should follow the backend + web checklist in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/.cursor/rules/social-provider-integration.mdc"><Badge text=".cursor/rules/social-provider-integration.mdc" variant="path" /></DocsExternalLink> alongside this guide.
@@ -130,7 +130,7 @@ The **connect catalog** is backend-driven (<Badge text="GET /integrations" varia
 
 ### 1. Launch provider config
 
-Add <Badge text="web/src/lib/ui/components/posts/providers/{id}/{id}.provider.ts" variant="path" /> exporting a <Badge text="LaunchProviderConfig" variant="default" /> (`maximumCharacters`, `postComment`, optional `checkValidity`).
+Add <Badge text="web/src/lib/ui/components/posts/providers/[id]/[id].provider.ts" variant="path" /> exporting a <Badge text="LaunchProviderConfig" variant="default" /> (`maximumCharacters`, `postComment`, optional `checkValidity`).
 
 Register it in <Badge text="getLaunchProviderConfig" variant="param" /> inside <Badge text="providers/index.ts" variant="path" />.
 
@@ -151,7 +151,7 @@ Add display names to <Badge text="web/src/data/social-providers.ts" variant="pat
 
 ### 5. Settings panel (optional)
 
-If the provider needs compose-time options (Instagram post type, etc.), add Svelte settings under <Badge text="providers/{id}/" variant="path" /> and wire <Badge text="SettingsAccordion.svelte" variant="path" />.
+If the provider needs compose-time options (Instagram post type, etc.), add Svelte settings under <Badge text="providers/[id]/" variant="path" /> and wire <Badge text="SettingsAccordion.svelte" variant="path" />.
 
 </Steps>
 
@@ -161,10 +161,10 @@ When shipping a user-facing provider, add:
 
 | Artifact | Location |
 | --- | --- |
-| Setup guide | <Badge text="web/src/content/docs/social-integration/{id}.md" variant="path" /> |
+| Setup guide | <Badge text="web/src/content/docs/social-integration/[id].md" variant="path" /> |
 | Index LinkCard | <Badge text="social-integration/index.md" variant="path" /> |
-| CLI examples | <Badge text="web/src/content/docs/cli-examples/{id}.md" variant="path" /> |
-| Agent recipes | <Badge text="agent/skills/openquok-core/resources/{id}-examples.md" variant="path" /> |
+| CLI examples | <Badge text="web/src/content/docs/cli-examples/[id].md" variant="path" /> |
+| Agent recipes | <Badge text="agent/skills/openquok-core/resources/[id]-examples.md" variant="path" /> |
 | Identifier list | <Badge text="agent/skills/openquok-core/resources/patterns.md" variant="path" /> |
 
 Follow <a href="/docs/how-to-write-docs">How to write docs</a> for MDX components, env badges, and redirect URI placeholders.
@@ -181,7 +181,7 @@ Follow <a href="/docs/how-to-write-docs">How to write docs</a> for MDX component
 
 Before opening a PR, confirm:
 
-- Redirect URI in Meta matches <Badge text="/integration/oauth/{identifier}" variant="path" /> exactly.
+- Redirect URI in Meta matches <Badge text="/integration/oauth/[identifier]" variant="path" /> exactly.
 - Provider is registered in <Badge text="integrationManager.ts" variant="path" />.
 - No secrets or third-party project names in comments or docs (repo neutrality rule).
 - Composer validation matches backend `validateCreatePost` / publish rules.

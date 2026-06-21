@@ -18,20 +18,23 @@ export function validateComposerContent(args: {
 	postMediaItems: PostMediaViewModel[];
 	minimumCharacters: number;
 	softCharLimit: number;
+	/** When set, compare this count to softCharLimit instead of plain-text length (X weighted). */
+	charCount?: number;
 }): ComposerContentValidationResult {
 	const plain = stripHtmlToPlainText(args.editorBody);
 	const hasText = plain.length > 0;
 	const hasMedia = args.postMediaItems.length > 0;
+	const effectiveCount = args.charCount ?? plain.length;
 	if (!hasText && !hasMedia) {
 		return { ok: false, error: 'Write something or attach at least one image.' };
 	}
 	if (hasText && plain.length < args.minimumCharacters) {
 		return { ok: false, error: `Please add at least ${args.minimumCharacters} characters.` };
 	}
-	if (plain.length > args.softCharLimit) {
+	if (effectiveCount > args.softCharLimit) {
 		return {
 			ok: false,
-			error: `Too long for this mode (${plain.length}/${args.softCharLimit}).`
+			error: `Too long for this mode (${effectiveCount}/${args.softCharLimit}).`
 		};
 	}
 	return { ok: true, plain, hasText, hasMedia };

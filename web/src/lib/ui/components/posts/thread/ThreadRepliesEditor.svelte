@@ -12,6 +12,8 @@
 		providerIdentifier: string | null;
 		/** Button mode from provider config. */
 		postComment: PostCommentMode;
+		/** Per-reply character limit from provider config (defaults to 500). */
+		replySoftCharLimit?: number;
 		/** Main post schedule (`datetime-local`), same as ManageModal picker. */
 		scheduledPostDatetimeLocal?: string | null;
 		/** When true, disable editing. */
@@ -33,6 +35,7 @@
 	let {
 		providerIdentifier,
 		postComment,
+		replySoftCharLimit = 500,
 		scheduledPostDatetimeLocal = null,
 		disabled = false,
 		replies,
@@ -82,6 +85,11 @@
 				Each reply runs after your chosen delay; Meta may take a few seconds before the reply appears on the network.
 				The “≈” line uses your scheduled main post time plus your delays only.
 			</p>
+		{:else if id === 'x' && !hideProviderHelp}
+			<p class="mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug text-base-content/75">
+				<span class="font-medium text-base-content/90">X timing:</span>
+				Each reply publishes as a quote-less reply after your chosen delay once the root post goes live.
+			</p>
 		{:else if id.startsWith('instagram') && !hideProviderHelp}
 			<p class="text-base-content/75 mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug">
 				<span class="text-base-content/90 font-medium">
@@ -91,9 +99,9 @@
 			</p>
 		{/if}
 
-		{#if id !== 'threads' && !id.startsWith('instagram')}
+		{#if id !== 'threads' && id !== 'x' && !id.startsWith('instagram')}
 			<p class="text-base-content/60 mt-2 text-sm">
-				Follow-up comments are supported on Threads and Instagram only.
+				Follow-up comments are supported on Threads, X, and Instagram only.
 			</p>
 		{:else if replies.length === 0}
 			<p class="text-base-content/60 mt-2 text-sm">
@@ -118,7 +126,7 @@
 
 						<EditorPost
 							charCount={(reply.message ?? '').length}
-							softCharLimit={500}
+							softCharLimit={replySoftCharLimit}
 							comments={true}
 							compact={compactEditor}
 							busy={disabled}

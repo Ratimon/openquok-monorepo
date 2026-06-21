@@ -73,10 +73,21 @@
 	/** Authorization code returned by the provider (success path). */
 	const code = $derived(page.url.searchParams.get('code') ?? '');
 	const oauthState = $derived(page.url.searchParams.get('state') ?? '');
+	/** X OAuth 1.0a callback params (mapped to code/state for the generic connect flow). */
+	const xOAuthToken = $derived(page.url.searchParams.get('oauth_token') ?? '');
+	const xOAuthVerifier = $derived(page.url.searchParams.get('oauth_verifier') ?? '');
+	const effectiveOAuthCode = $derived.by(() => {
+		if (provider === 'x') return code || xOAuthVerifier;
+		return code;
+	});
+	const effectiveOAuthState = $derived.by(() => {
+		if (provider === 'x') return oauthState || xOAuthToken;
+		return oauthState;
+	});
 	/** RFC 6749 error from provider (e.g. access_denied when user cancels consent). */
 	const oauthError = $derived(page.url.searchParams.get('error') ?? '');
 	const oauthErrorDescription = $derived(page.url.searchParams.get('error_description') ?? '');
-	const isOAuthSuccessCallback = $derived(Boolean(code && oauthState));
+	const isOAuthSuccessCallback = $derived(Boolean(effectiveOAuthCode && effectiveOAuthState));
 	const isOAuthErrorCallback = $derived(Boolean(oauthError));
 	const refresh = $derived(page.url.searchParams.get('refresh') ?? undefined);
 	const organizationIdParam = $derived(page.url.searchParams.get('organizationId') ?? '');
@@ -359,8 +370,8 @@
 		busy = true;
 		signInRequiredForOAuthStart = false;
 		const p = provider;
-		const authCode = code;
-		const authState = oauthState;
+		const authCode = effectiveOAuthCode;
+		const authState = effectiveOAuthState;
 		const refreshParam = refresh;
 		const orgParam = organizationIdParam;
 		const externalReturn = returnTo;

@@ -1,12 +1,12 @@
 ---
 title: LinkedIn
-description: Connect a LinkedIn personal profile to OpenQuok
+description: How to configure LinkedIn personal profile for Openquok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars
 order: 7
 lastUpdated: 2026-06-20
 ---
 
 <script>
-import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -98,9 +98,9 @@ In **Products**, add all required products. They include:
 In **Auth**, after verification is completed, you can verify that the following organization scopes are automatically added (required for <Badge text="linkedin-page" variant="default" /> — see <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/linkedin-page">LinkedIn Page</a> for verification steps):
 
 <ul class="not-prose list-disc pl-6">
-<li><Badge text="rw_organization_admin" variant="default" /></li>
-<li><Badge text="w_organization_social" variant="default" /></li>
-<li><Badge text="r_organization_social" variant="default" /></li>
+<li><Badge text="rw_organization_admin" variant="param" /></li>
+<li><Badge text="w_organization_social" variant="param" /></li>
+<li><Badge text="r_organization_social" variant="param" /></li>
 </ul>
 
 ### Set redirect URI
@@ -115,9 +115,10 @@ Copy <strong>Client ID</strong> and <strong>Client Secret</strong> into <Badge t
 
 </Steps>
 
-
 ## Related
 
-- <a href="/docs/social-integration/linkedin-page">LinkedIn Page</a> — company Pages, analytics, and channel plugs
-- CLI examples: <a href="/docs/cli-examples/linkedin">LinkedIn CLI examples</a>
-- Public channel overview: <a href="/channels/linkedin">/channels/linkedin</a>
+<CardGrid>
+<LinkCard title="LinkedIn Page" description="Company Pages, analytics, and channel plugs" href="/docs/social-integration/linkedin-page" />
+<LinkCard title="CLI examples" description="Copy-paste LinkedIn recipes for CLI" href="/docs/cli-examples/linkedin" />
+<LinkCard title="usecases using linkedin" description="LinkedIn landing page at /channels/linkedin" href="/channels/linkedin" />
+</CardGrid>

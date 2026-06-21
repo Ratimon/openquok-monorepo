@@ -60,6 +60,10 @@ import type { UpsertSetPresenter } from '$lib/sets/UpsertSet.presenter.svelte';
 
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 import {
+	xMaxCharactersForChannel,
+	xWeightedLength
+} from '$lib/posts/utils/xWeightedLength';
+import {
 	datetimeLocalToIso,
 	isoToDatetimeLocalValue,
 	utcIsoToDatetimeLocalValue
@@ -157,6 +161,11 @@ export class CreateSocialPostPresenter {
 		return this.baseSocialChannelsVm.find((c) => c.id === this.focusedIntegrationId)?.identifier ?? null;
 	});
 
+	focusedChannelVm = $derived.by(() => {
+		if (!this.focusedIntegrationId) return null;
+		return this.baseSocialChannelsVm.find((c) => c.id === this.focusedIntegrationId) ?? null;
+	});
+
 	providerConfig = $derived(getLaunchProviderConfig(this.focusedProviderIdentifier));
 
 	launchMaxMediaItems = $derived.by((): number | null =>
@@ -167,12 +176,22 @@ export class CreateSocialPostPresenter {
 		})
 	);
 
-	softCharLimit = $derived(this.providerConfig.maximumCharacters);
+	softCharLimit = $derived.by(() => {
+		const id = (this.focusedProviderIdentifier ?? '').toLowerCase();
+		if (id === 'x') return xMaxCharactersForChannel(this.focusedChannelVm);
+		return this.providerConfig.maximumCharacters;
+	});
 	minimumCharacters = $derived(this.providerConfig.minimumCharacters);
 	postComment = $derived(this.providerConfig.postComment);
 
 	previewText = $derived(stripHtmlToPlainText(this.editorBody));
-	charCount = $derived(this.previewText.length);
+	charCount = $derived.by(() => {
+		if ((this.focusedProviderIdentifier ?? '').toLowerCase() === 'x') {
+			return xWeightedLength(this.previewText);
+		}
+		return this.previewText.length;
+	});
+	usesWeightedCharCount = $derived((this.focusedProviderIdentifier ?? '').toLowerCase() === 'x');
 	previewMediaUrls = $derived(
 		this.scheduledPostsPresenter.toPostMediaPreviewUrlsVm(this.postMediaItemsVm)
 	);
@@ -649,7 +668,8 @@ export class CreateSocialPostPresenter {
 			editorBody: this.editorBody,
 			postMediaItems: this.postMediaItemsVm,
 			minimumCharacters: this.minimumCharacters,
-			softCharLimit: this.softCharLimit
+			softCharLimit: this.softCharLimit,
+			charCount: this.charCount
 		});
 		if (!content.ok) {
 			toast.error(content.error);
@@ -714,7 +734,8 @@ export class CreateSocialPostPresenter {
 			editorBody: this.editorBody,
 			postMediaItems: this.postMediaItemsVm,
 			minimumCharacters: this.minimumCharacters,
-			softCharLimit: this.softCharLimit
+			softCharLimit: this.softCharLimit,
+			charCount: this.charCount
 		});
 		if (!content.ok) {
 			toast.error(content.error);

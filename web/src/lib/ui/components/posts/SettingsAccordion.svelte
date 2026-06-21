@@ -21,6 +21,8 @@
 	import { integrationsRepository } from '$lib/integrations';
 	import YoutubeSettings from '$lib/ui/components/posts/providers/youtube/YoutubeSettings.svelte';
 	import TiktokSettings from '$lib/ui/components/posts/providers/tiktok/TiktokSettings.svelte';
+	import XSettings from '$lib/ui/components/posts/providers/x/XSettings.svelte';
+	import type { XReplySetting } from '$lib/ui/components/posts/providers/provider.types';
 
 	type ProviderSettings = {
 		threads: {
@@ -66,6 +68,14 @@
 			postAsImagesCarousel: boolean;
 			carouselName?: string;
 			crossAccountPlugs?: LinkedInCrossAccountPlugState[];
+		};
+		x: {
+			whoCanReplyPost?: XReplySetting;
+			communityUrl?: string;
+			madeWithAi?: boolean;
+			paidPartnership?: boolean;
+			enabled?: boolean;
+			message?: string;
 		};
 	};
 
@@ -133,6 +143,14 @@
 	let liCarousel = $state(false);
 	let liCarouselName = $state('');
 	let liCrossAccountPlugs = $state<LinkedInCrossAccountPlugState[]>([]);
+
+	let xWhoCanReply = $state<XReplySetting | ''>('');
+	let xCommunityUrl = $state('');
+	let xMadeWithAi = $state(false);
+	let xPaidPartnership = $state(false);
+	let xFinisherEnabled = $state(false);
+	let xFinisherMessage = $state("That's a wrap!");
+
 	let linkedInPlugDefs = $state<
 		Array<{
 			identifier: string;
@@ -280,6 +298,47 @@
 						: '';
 			liCrossAccountPlugs = [];
 		}
+		if (s.x && typeof s.x === 'object') {
+			const who = (s.x as { whoCanReplyPost?: unknown }).whoCanReplyPost;
+			xWhoCanReply =
+				who === 'following' ||
+				who === 'mentionedUsers' ||
+				who === 'subscribers' ||
+				who === 'verified'
+					? who
+					: '';
+			xCommunityUrl =
+				typeof (s.x as { communityUrl?: unknown }).communityUrl === 'string'
+					? (s.x as { communityUrl: string }).communityUrl
+					: '';
+			xMadeWithAi = (s.x as { madeWithAi?: unknown }).madeWithAi === true;
+			xPaidPartnership = (s.x as { paidPartnership?: unknown }).paidPartnership === true;
+			xFinisherEnabled = (s.x as { enabled?: unknown }).enabled === true;
+			xFinisherMessage =
+				typeof (s.x as { message?: unknown }).message === 'string'
+					? (s.x as { message: string }).message
+					: "That's a wrap!";
+		} else {
+			const flat = s as Record<string, unknown>;
+			const flatWho = flat.who_can_reply_post ?? flat.whoCanReplyPost;
+			xWhoCanReply =
+				flatWho === 'following' ||
+				flatWho === 'mentionedUsers' ||
+				flatWho === 'subscribers' ||
+				flatWho === 'verified'
+					? flatWho
+					: '';
+			xCommunityUrl =
+				typeof flat.community === 'string'
+					? flat.community
+					: typeof flat.community_url === 'string'
+						? flat.community_url
+						: '';
+			xMadeWithAi = flat.made_with_ai === true || flat.madeWithAi === true;
+			xPaidPartnership = flat.paid_partnership === true || flat.paidPartnership === true;
+			xFinisherEnabled = false;
+			xFinisherMessage = "That's a wrap!";
+		}
 	});
 
 	let lastEmitted = $state('');
@@ -344,6 +403,17 @@
 					postAsImagesCarousel: liCarousel,
 					...(name ? { carouselName: name } : {}),
 					...(activePlugs.length ? { crossAccountPlugs: activePlugs } : {})
+				}
+			};
+		} else if (identifier === 'x') {
+			next = {
+				x: {
+					...(xWhoCanReply ? { whoCanReplyPost: xWhoCanReply } : {}),
+					...(xCommunityUrl.trim() ? { communityUrl: xCommunityUrl.trim() } : {}),
+					...(xMadeWithAi ? { madeWithAi: true } : {}),
+					...(xPaidPartnership ? { paidPartnership: true } : {}),
+					enabled: xFinisherEnabled,
+					message: xFinisherMessage
 				}
 			};
 		} else {
@@ -435,6 +505,20 @@
 			bind:value={liCrossAccountPlugs}
 			{disabled}
 			compact={compactEditors}
+		/>
+	{:else if identifier === 'x'}
+		<XSettings
+			bind:whoCanReplyPost={xWhoCanReply}
+			bind:communityUrl={xCommunityUrl}
+			bind:madeWithAi={xMadeWithAi}
+			bind:paidPartnership={xPaidPartnership}
+		/>
+		<ThreadFinisher
+			bind:enabled={xFinisherEnabled}
+			bind:message={xFinisherMessage}
+			{disabled}
+			compact={compactEditors}
+			softCharLimit={280}
 		/>
 	{:else}
 		<p class="text-sm text-base-content/60">No settings available for this provider yet.</p>

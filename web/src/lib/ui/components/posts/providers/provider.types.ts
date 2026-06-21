@@ -55,6 +55,17 @@ export type LinkedInLaunchProviderSettings = {
 	carouselName?: string;
 };
 
+export type XReplySetting = 'following' | 'mentionedUsers' | 'subscribers' | 'verified';
+
+export type XLaunchProviderSettings = {
+	whoCanReplyPost?: XReplySetting;
+	communityUrl?: string;
+	madeWithAi?: boolean;
+	paidPartnership?: boolean;
+	enabled?: boolean;
+	message?: string;
+};
+
 export type LaunchProviderCheckContext = {
 	media: { id: string; path: string }[];
 	/** Per-integration settings (from the Settings panel), shape is provider-specific. */

@@ -856,31 +856,122 @@ const LINKEDIN_CHANNEL: PublicChannelLandingPage = {
 	available: true
 };
 
+const X_CHANNEL: PublicChannelLandingPage = {
+	slug: 'x',
+	platformId: 'x',
+	platformLabel: 'X',
+	icon: icons.X.name,
+	heroTitle: 'Schedule X posts, threads, and media you approve before they go live',
+	heroDescription:
+		'Connect an X profile with OAuth, queue tweets and thread replies on the calendar, tune who can reply and community settings per post, and publish from the dashboard, public API, or CLI.',
+	metaTitle: 'X Post Scheduler',
+	metaDescription:
+		'Schedule X posts with OpenQuok. Connect X with OAuth, queue text and media, chain thread replies, and publish from the dashboard, API, or CLI.',
+	hubDescription:
+		'Weighted 280-character tweets (4000 for Verified), up to four images or one video, and scheduled thread replies.',
+	keywords: [
+		'X post scheduler',
+		'Twitter scheduler',
+		'schedule X posts',
+		'X content calendar',
+		'X thread scheduler',
+		'X API scheduler'
+	],
+	featureSections: [
+		{
+			subtitle: 'Bulk scheduling',
+			title: 'Queue X posts, batch drafts on the calendar, weeks ahead',
+			description:
+				'Schedule tweets and media onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
+			bentoId: 'x-bulk-scheduling',
+			mediaOnRight: true
+		},
+		{
+			subtitle: 'Compose settings',
+			title: 'Tune reply audience, community, thread replies, in one composer',
+			description:
+				'Set who can reply, optional community URLs, AI and partnership labels, and queue text-only thread replies with per-reply delays — all from the composer or via providerSettings in the API.',
+			bentoId: 'x-compose-settings',
+			mediaOnRight: false
+		},
+		{
+			subtitle: 'Insights',
+			title: 'See what resonates on X, track impressions and engagement, and iterate',
+			description:
+				'Track likes, replies, reposts, quotes, and impressions from connected X profiles inside OpenQuok analytics — so you can schedule more of what already works.',
+			bentoId: 'x-insights',
+			mediaOnRight: true
+		}
+	],
+	audienceSubtitle: 'Built for X',
+	audienceTitle: 'Who schedules X with OpenQuok?',
+	audienceCards: [
+		{
+			iconName: icons.CustomizedDrawnHouse.name,
+			iconClass: 'text-rose-400',
+			title: 'Creators & founders',
+			description:
+				'Stay visible on X without living in the app. Queue tweets, images, and thread chains on the calendar while you ship product.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnLaptop.name,
+			iconClass: 'text-lime-400',
+			title: 'Social managers',
+			description:
+				'Batch a week of posts in one sitting, control reply settings per tweet, and track engagement alongside your other channels.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnRobot.name,
+			iconClass: 'text-emerald-400',
+			title: 'Developers & agents',
+			description:
+				'Pipe X drafts from your backend via the public API or CLI — including thread replies under providerSettings — while you keep approval control in the dashboard.',
+			containerClass: 'h-full min-h-[18rem]'
+		}
+	],
+	faqSubtitle: 'Frequently asked questions',
+	faqTitle: 'X scheduling, answered',
+	faqDescription: 'Setup, scheduling, media, threads, and automation questions for X on OpenQuok.',
+	faqItems: [
+		{
+			title: 'How do I connect X to OpenQuok?',
+			description:
+				'Create an X developer app (Native App type with Read and Write), set the OAuth redirect to /integration/oauth/x, add X_API_KEY and X_API_SECRET to the backend env, then connect from your workspace.'
+		},
+		{
+			title: 'Can I schedule X posts with images or video?',
+			description:
+				'Yes. Attach up to four images or one video when composing an X post in OpenQuok. The composer validates media rules before publish.'
+		},
+		{
+			title: 'Does OpenQuok respect X character limits?',
+			description:
+				'Yes. The composer uses weighted character counting (280 for standard accounts, 4000 when Verified is enabled on the channel). Check the preview before scheduling.'
+		},
+		{
+			title: 'Can I schedule thread replies in advance?',
+			description:
+				'Yes. Add follow-up replies in the composer (or pass x.replies via the API or CLI). Each reply publishes as a quote-less reply after the delay you set once the root tweet goes live.'
+		},
+		{
+			title: 'Can I schedule X from the API or CLI?',
+			description:
+				'Yes. Use integration UUIDs from your workspace in the create-post API or CLI commands. Thread replies and compose settings go under providerSettingsByIntegrationId when needed.'
+		},
+		{
+			title: 'Is X scheduling included in the free trial?',
+			description:
+				'Yes. Connect X during the trial, schedule posts, and explore API access before upgrading to a paid plan that matches your channel and workspace limits.'
+		}
+	],
+	docsPath: '/docs/social-integration/x',
+	available: true
+};
+
 /** Coming-soon entries appear on the hub but do not have detail pages yet. */
-const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [
-	{
-		slug: 'x',
-		platformId: 'x',
-		platformLabel: 'X',
-		icon: icons.X.name,
-		heroTitle: '',
-		heroDescription: '',
-		metaTitle: 'X Post Scheduler',
-		metaDescription: 'X scheduling on OpenQuok — coming soon.',
-		hubDescription: 'Short posts and real-time conversations on the fastest-moving social feed.',
-		keywords: ['X post scheduler', 'Twitter scheduler'],
-		featureSections: [],
-		audienceSubtitle: '',
-		audienceTitle: '',
-		audienceCards: [],
-		faqSubtitle: '',
-		faqTitle: '',
-		faqDescription: '',
-		faqItems: [],
-		docsPath: '/docs/social-integration',
-		available: false
-	}
-];
+const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [];
 
 export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPage[] = [
 	FACEBOOK_CHANNEL,
@@ -889,6 +980,7 @@ export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPage[] =
 	YOUTUBE_CHANNEL,
 	TIKTOK_CHANNEL,
 	LINKEDIN_CHANNEL,
+	X_CHANNEL,
 	...COMING_SOON_CHANNELS
 ];
 

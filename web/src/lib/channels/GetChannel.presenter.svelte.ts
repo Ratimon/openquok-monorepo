@@ -26,6 +26,8 @@ export interface CreateSocialPostChannelViewModel {
 	unschedulableReason: string | null;
 	/** Workspace channel group this channel belongs to, if any. */
 	group: WorkspaceChannelGroupViewModel | null;
+	/** Parsed `additional_settings` JSON from the API (e.g. X Verified toggle). */
+	additionalSettings?: string;
 	/** Parsed `posting_times` from the API (deduplicated, sorted by `time`). */
 	postingTimes: PostingTimeSlotViewModel[];
 }
@@ -115,6 +117,7 @@ export class GetChannelPresenter {
 			schedulable,
 			unschedulableReason,
 			group: pm.group ?? null,
+			additionalSettings: pm.additionalSettings ?? '[]',
 			postingTimes: this.parsePostingTimeSlots(pm.time)
 		};
 	}

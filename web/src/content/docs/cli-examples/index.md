@@ -23,6 +23,7 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each pa
 <LinkCard title="Meta Threads" description="Text and media posts, timed follow-up replies, what to do when publish metadata is incomplete, and analytics" href="/docs/cli-examples/threads" />
 <LinkCard title="YouTube" description="MP4 uploads with title, privacy, tags, thumbnail, and analytics" href="/docs/cli-examples/youtube" />
 <LinkCard title="TikTok" description="Videos and photo carousels with privacy and settings" href="/docs/cli-examples/tiktok" />
+<LinkCard title="X" description="Tweets, media, thread replies, finisher, and analytics" href="/docs/cli-examples/x" />
 </CardGrid>
 
 ## Conventions used in these pages

@@ -5,6 +5,7 @@ import { instagramProvider } from '$lib/ui/components/posts/providers/instagram/
 import { linkedinProvider } from '$lib/ui/components/posts/providers/linkedin/linkedin.provider';
 import { threadsProvider } from '$lib/ui/components/posts/providers/threads/threads.provider';
 import { tiktokProvider } from '$lib/ui/components/posts/providers/tiktok/tiktok.provider';
+import { xProvider } from '$lib/ui/components/posts/providers/x/x.provider';
 import { youtubeProvider } from '$lib/ui/components/posts/providers/youtube/youtube.provider';
 
 const DEFAULT_PROVIDER: LaunchProviderConfig = {
@@ -29,6 +30,8 @@ export function getLaunchProviderConfig(identifier: string | null | undefined): 
 	if (id === 'youtube') return youtubeProvider;
 
 	if (id === 'tiktok') return tiktokProvider;
+
+	if (id === 'x') return xProvider;
 
 	// Instagram variants (instagram, instagram-business, instagram-standalone)
 	if (id.startsWith('instagram')) return instagramProvider;

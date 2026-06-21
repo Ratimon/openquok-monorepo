@@ -165,6 +165,7 @@
 					previewText={presenter.previewText}
 					charCount={presenter.charCount}
 					softCharLimit={presenter.softCharLimit}
+					weightedCharCount={presenter.usesWeightedCharCount ? presenter.charCount : undefined}
 					maxMediaItems={presenter.launchMaxMediaItems}
 					scheduleValidationMessage={presenter.scheduleValidationError}
 					contentSetAuthoringNetworkLock={presenter.contentSetAuthoringActive}

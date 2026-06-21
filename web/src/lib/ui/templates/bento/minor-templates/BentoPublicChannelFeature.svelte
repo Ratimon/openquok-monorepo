@@ -19,6 +19,9 @@
 	import BentoYoutubeBulkScheduling from '$lib/ui/templates/bento/minor-templates/youtube/BentoYoutubeBulkScheduling.svelte';
 	import BentoYoutubeInsights from '$lib/ui/templates/bento/minor-templates/youtube/BentoYoutubeInsights.svelte';
 	import BentoYoutubeVideoSettings from '$lib/ui/templates/bento/minor-templates/youtube/BentoYoutubeVideoSettings.svelte';
+	import BentoXBulkScheduling from '$lib/ui/templates/bento/minor-templates/x/BentoXBulkScheduling.svelte';
+	import BentoXComposeSettings from '$lib/ui/templates/bento/minor-templates/x/BentoXComposeSettings.svelte';
+	import BentoXInsights from '$lib/ui/templates/bento/minor-templates/x/BentoXInsights.svelte';
 
 	type Props = {
 		bentoId: PublicChannelFeatureBentoId;
@@ -64,4 +67,10 @@
 	<BentoLinkedinComposeSettings />
 {:else if bentoId === 'linkedin-insights'}
 	<BentoLinkedinInsights />
+{:else if bentoId === 'x-bulk-scheduling'}
+	<BentoXBulkScheduling />
+{:else if bentoId === 'x-compose-settings'}
+	<BentoXComposeSettings />
+{:else if bentoId === 'x-insights'}
+	<BentoXInsights />
 {/if}

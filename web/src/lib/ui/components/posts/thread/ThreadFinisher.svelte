@@ -8,16 +8,17 @@
 		message?: string;
 		disabled?: boolean;
 		compact?: boolean;
+		softCharLimit?: number;
 	};
 
 	let {
 		enabled = $bindable(false),
 		message = $bindable("That's a wrap!"),
 		disabled = false,
-		compact = false
+		compact = false,
+		softCharLimit = 500
 	}: Props = $props();
 
-	const softCharLimit = 500;
 	let charCount = $derived((message ?? '').length);
 </script>
 
