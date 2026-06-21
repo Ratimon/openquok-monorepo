@@ -1,0 +1,20 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Scheduled from the CLI.",
+  "integrationIds": ["<integration-id>"],
+  "media": [{ "id": "<media-id>", "path": "https://cdn.example.com/walkthrough.mp4" }],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "youtube": {
+        "title": "Weekly update",
+        "type": "unlisted",
+        "selfDeclaredMadeForKids": "no",
+        "tags": [
+          { "value": "update", "label": "update" },
+          { "value": "product", "label": "product" }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Read more on our site",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "url": "https://example.com/article"
+    }
+  }
+}

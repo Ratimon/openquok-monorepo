@@ -130,7 +130,7 @@ openquok posts:create -s "…" -i "<uuid-a>,<uuid-b>" \
 openquok posts:create -c "…" -s "…" --settings '{"post_type":"post"}' -i "<uuid>"
 
 # Full API body
-openquok posts:create --json ./post.json
+openquok posts:create --json ./examples/threads-text-only.json
 ```
 
 - Flag-based create **requires** `-s` (ISO-8601) unless `--json` includes `scheduledAt`.

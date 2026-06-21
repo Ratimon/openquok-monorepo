@@ -1,0 +1,17 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Thread 1/2: A short story",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "threads": {
+        "enabled": true,
+        "message": "Thanks for reading — like and follow for more!",
+        "replies": [
+          { "id": "reply-1", "message": "Thread 2/2: The punchline", "delaySeconds": 30 }
+        ]
+      }
+    }
+  }
+}

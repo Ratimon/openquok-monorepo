@@ -20,7 +20,7 @@ openquok posts:create -c "…" -s "…" -i "<integration-id>" \
   --providerSettingsByIntegrationId '{"<integration-id>":{"url":"https://example.com"}}'
 ```
 
-Full JSON body: `openquok posts:create --json ./post.json` with `providerSettingsByIntegrationId` at the top level.
+Full JSON body: `openquok posts:create --json ./examples/<file>.json` with `providerSettingsByIntegrationId` at the top level. Index: [examples/EXAMPLES.md](./examples/EXAMPLES.md).
 
 ## Nested vs flat keys
 
@@ -31,8 +31,12 @@ Full JSON body: `openquok posts:create --json ./post.json` with `providerSetting
 | Threads follow-ups / finisher / plug | — | `threads.replies`, `threads.enabled`, `threads.message`, `threads.internalEngagementPlug` |
 | Instagram follow-up comments | — | `instagram.replies` |
 | YouTube video metadata | `title`, `type`, `selfDeclaredMadeForKids`, `tags`, `thumbnail` / `thumbnailPath` | `youtube.title`, `youtube.type`, `youtube.tags`, `youtube.thumbnail`, … |
+| LinkedIn / LinkedIn Page | `post_as_images_carousel`, `carousel_name` | `linkedin.postAsImagesCarousel`, `linkedin.carouselName` |
+| TikTok privacy / inbox | `privacy_level`, `content_posting_method`, `title`, `comment`, `duet`, `stitch`, … | `tiktok.privacy_level`, `tiktok.content_posting_method`, … |
 
 Backend publish helpers accept **flat API keys** and **nested web buckets** where noted in each channel doc. For Threads and Instagram **scheduled follow-ups**, use the nested bucket (`threads` / `instagram`) in `--providerSettingsByIntegrationId` — that is what the worker reads at publish time.
+
+Copy-paste JSON payloads: [examples/EXAMPLES.md](./examples/EXAMPLES.md).
 
 ## Multi `-c` segments
 
@@ -57,3 +61,6 @@ Returns `output.rules`, `output.maxLength`, `output.tools` (allow-listed `integr
 | Instagram Login | [instagram-standalone-examples.md](./instagram-standalone-examples.md) | `post_type`, trial reel, collaborators |
 | Instagram Page | [instagram-business-examples.md](./instagram-business-examples.md) | Same as standalone |
 | YouTube | [youtube-examples.md](./youtube-examples.md) | `title`, `type`, tags, thumbnail, made-for-kids |
+| LinkedIn | [linkedin-examples.md](./linkedin-examples.md) | `post_as_images_carousel`, `carousel_name` (≥2 images, no video) |
+| LinkedIn Page | [linkedin-page-examples.md](./linkedin-page-examples.md) | Same carousel keys + Page analytics |
+| TikTok | [tiktok-examples.md](./tiktok-examples.md) | `privacy_level`, `content_posting_method`, toggles, `title` |

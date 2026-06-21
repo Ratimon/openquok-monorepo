@@ -1,0 +1,14 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Full product walkthrough — links in description.",
+  "integrationIds": ["<integration-id>"],
+  "media": [{ "id": "<media-id>", "path": "https://cdn.example.com/walkthrough.mp4" }],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "title": "OpenQuok walkthrough",
+      "type": "public",
+      "selfDeclaredMadeForKids": "no"
+    }
+  }
+}

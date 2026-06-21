@@ -1,0 +1,7 @@
+{
+  "scheduledAt": "2026-06-20T14:00:00.000Z",
+  "status": "scheduled",
+  "body": "Product walkthrough video.",
+  "integrationIds": ["<integration-id>"],
+  "media": [{ "id": "<media-id>", "path": "https://cdn.example.com/walkthrough.mp4" }]
+}

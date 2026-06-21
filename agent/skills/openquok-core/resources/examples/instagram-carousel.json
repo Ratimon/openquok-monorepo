@@ -1,0 +1,15 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Slide deck 1/N → N/N",
+  "integrationIds": ["<integration-id>"],
+  "media": [
+    { "id": "<media-id-1>", "path": "https://cdn.example.com/slide-1.jpg" },
+    { "id": "<media-id-2>", "path": "https://cdn.example.com/slide-2.jpg" }
+  ],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "post_type": "post"
+    }
+  }
+}

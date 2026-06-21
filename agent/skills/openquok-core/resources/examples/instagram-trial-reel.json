@@ -1,0 +1,15 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Testing with non-followers first",
+  "integrationIds": ["<integration-id>"],
+  "media": [{ "id": "<media-id>", "path": "https://cdn.example.com/trial.mp4" }],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "post_type": "post",
+      "is_trial_reel": true,
+      "graduation_strategy": "SS_PERFORMANCE",
+      "collaborators": ["partner_account"]
+    }
+  }
+}

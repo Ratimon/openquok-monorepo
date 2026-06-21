@@ -1,0 +1,16 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Thread 1/3: Why we built this",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "threads": {
+        "replies": [
+          { "id": "reply-1", "message": "Thread 2/3: The architecture", "delaySeconds": 60 },
+          { "id": "reply-2", "message": "Thread 3/3: What is next", "delaySeconds": 120 }
+        ]
+      }
+    }
+  }
+}

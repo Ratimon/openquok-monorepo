@@ -7,6 +7,8 @@ openquok integrations:settings "$TH_ID"
 
 Run `integrations:settings` for `output.maxLength` (500) and allow-listed `output.tools`. Server-side media and Graph behavior: [threads-publish.md](./threads-publish.md). Settings mechanics: [provider-settings.md](./provider-settings.md).
 
+JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#threads).
+
 ## Supported features
 
 | Feature | Supported | Notes |
@@ -24,14 +26,14 @@ Run `integrations:settings` for `output.maxLength` (500) and allow-listed `outpu
 
 ## Agent tasks
 
-| User wants to… | Do this |
+| User wants to… | JSON example |
 | --- | --- |
-| Post text only | [Text-only](#text-only) |
-| Post with image or video | [With image](#with-image-rule-2) |
-| Post a carousel | [Media carousel](#media-carousel) |
-| Schedule a reply chain / thread | [Follow-up replies](#scheduled-follow-up-replies) |
-| End with a “thanks for reading” reply | [Thread finisher](#thread-finisher) |
-| Schedule a delayed engagement comment | [Delayed engagement plug](#delayed-engagement-plug) |
+| Post text only | [threads-text-only.json](./examples/threads-text-only.json) |
+| Post with image or video | [threads-with-image.json](./examples/threads-with-image.json) |
+| Post a carousel | [threads-media-carousel.json](./examples/threads-media-carousel.json) |
+| Schedule a reply chain / thread | [threads-follow-up-replies.json](./examples/threads-follow-up-replies.json) |
+| End with a “thanks for reading” reply | [threads-thread-finisher.json](./examples/threads-thread-finisher.json) |
+| Schedule a delayed engagement comment | [threads-engagement-plug.json](./examples/threads-engagement-plug.json) |
 | Fix analytics on a “missing” post | [Reconnect missing post](#reconnect-missing-post) |
 | Debug vague Meta/media errors | [threads-publish.md](./threads-publish.md) |
 | Check channel limits / tools | `openquok integrations:settings "$TH_ID"` |
@@ -42,115 +44,20 @@ Use nested keys under `threads` in `--providerSettingsByIntegrationId` (matches 
 
 | Key | Shape | When |
 | --- | --- | --- |
-| `threads.replies` | `[{ "message": "…", "delaySeconds": 60 }]` | Follow-up replies after root post publishes |
+| `threads.replies` | `[{ "id": "…", "message": "…", "delaySeconds": 60 }]` | Follow-up replies after root post publishes |
 | `threads.enabled` | `true` \| `false` | Enable thread finisher (default off) |
 | `threads.message` | string | Finisher text when `enabled` is true |
 | `threads.internalEngagementPlug` | `{ "enabled": true, "message": "…", "delaySeconds": 300 }` | Same-account engagement reply after replies + finisher |
 
-## Text-only
+## Run an example
+
+Upload media first (Rule 2), replace placeholders in the JSON file, then:
 
 ```bash
-openquok posts:create \
-  -c "Launch post" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$TH_ID"
+openquok posts:create --json ./examples/threads-text-only.json
 ```
-
-## With image (Rule 2)
 
 At publish time the backend turns each stored object key into a **public `https://` URL** and Meta’s servers **fetch** that URL. Prefer **JPEG or PNG**; **SVG is rejected** (see [threads-publish.md](./threads-publish.md)).
-
-```bash
-test -f ./hero.jpg && test -s ./hero.jpg
-IMAGE=$(openquok upload ./hero.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-openquok posts:create \
-  -c "Shipped today 🚀" \
-  -m "$IMAGE" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$TH_ID"
-```
-
-## Media carousel
-
-```bash
-MEDIA=$(jq -s 'add' \
-  <(openquok upload ./a.jpg | jq '[{id: .data.id, path: (.data.path // .data.filePath)}]') \
-  <(openquok upload ./b.jpg | jq '[{id: .data.id, path: (.data.path // .data.filePath)}]'))
-openquok posts:create \
-  -c "Carousel drop" \
-  -m "$MEDIA" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$TH_ID"
-```
-
-## Scheduled follow-up replies
-
-```bash
-openquok posts:create \
-  -c "Thread 1/3: Why we built this" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$TH_ID" \
-  --providerSettingsByIntegrationId "$(jq -nc --arg id "$TH_ID" '
-    {
-      ($id): {
-        threads: {
-          replies: [
-            { message: "Thread 2/3: The architecture", delaySeconds: 60 },
-            { message: "Thread 3/3: What is next",      delaySeconds: 120 }
-          ]
-        }
-      }
-    }
-  ')"
-```
-
-## Thread finisher
-
-Closing reply after scheduled follow-ups (e.g. “Thanks for reading!”).
-
-```bash
-openquok posts:create \
-  -c "Thread 1/2: A short story" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$TH_ID" \
-  --providerSettingsByIntegrationId "$(jq -nc --arg id "$TH_ID" '
-    {
-      ($id): {
-        threads: {
-          enabled: true,
-          message: "Thanks for reading — like and follow for more!",
-          replies: [
-            { message: "Thread 2/2: The punchline", delaySeconds: 30 }
-          ]
-        }
-      }
-    }
-  ')"
-```
-
-## Delayed engagement plug
-
-Same-account reply scheduled after the reply chain and finisher.
-
-```bash
-openquok posts:create \
-  -c "Big announcement! 🧵" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$TH_ID" \
-  --providerSettingsByIntegrationId "$(jq -nc --arg id "$TH_ID" '
-    {
-      ($id): {
-        threads: {
-          internalEngagementPlug: {
-            enabled: true,
-            message: "Have questions? Reply here and I will get back to you.",
-            delaySeconds: 300
-          }
-        }
-      }
-    }
-  ')"
-```
 
 ## Reconnect missing post
 

@@ -9,18 +9,18 @@ openquok integrations:settings "$IG_STANDALONE_ID"
 
 Always run `integrations:settings` for required fields and allow-listed `output.tools` before posting. Posting behavior matches **Instagram (Business)** — see [instagram-business-examples.md](./instagram-business-examples.md) for the same feature matrix with `instagram-business`.
 
-Settings mechanics: [provider-settings.md](./provider-settings.md).
+Settings mechanics: [provider-settings.md](./provider-settings.md). JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#instagram).
 
 ## Agent tasks
 
-| User wants to… | Do this |
+| User wants to… | JSON example |
 | --- | --- |
-| Post a feed image | [Feed post](#feed-post) |
-| Post a carousel | [Carousel](#carousel) |
-| Publish a Reel | [Reel (single MP4)](#reel-single-mp4) |
-| Publish a Story | [Story](#story) |
-| Test a Trial Reel with collaborators | [Trial Reel + collaborators](#trial-reel--collaborators) |
-| Add text comments after publish | [Text follow-up comments](#text-follow-up-comments) or `instagram.replies` in settings |
+| Post a feed image | [instagram-feed-post.json](./examples/instagram-feed-post.json) |
+| Post a carousel | [instagram-carousel.json](./examples/instagram-carousel.json) |
+| Publish a Reel | [instagram-reel.json](./examples/instagram-reel.json) |
+| Publish a Story | [instagram-story.json](./examples/instagram-story.json) |
+| Test a Trial Reel with collaborators | [instagram-trial-reel.json](./examples/instagram-trial-reel.json) |
+| Add text comments after publish | [instagram-follow-up-comments.json](./examples/instagram-follow-up-comments.json) |
 | Check limits and tools | `openquok integrations:settings "$IG_STANDALONE_ID"` |
 
 ## Supported features
@@ -30,11 +30,11 @@ Settings mechanics: [provider-settings.md](./provider-settings.md).
 | Feed image post | Yes | At least one attachment required for `scheduled` |
 | Carousel (2–10 items) | Yes | Auto when `-m` has multiple attachments and `post_type` is not `story` |
 | Reel (single video) | Yes | One `.mp4` attachment → Reels surface |
-| Story | Yes | `--settings '{"post_type":"story"}'`; one attachment; no collaborators |
+| Story | Yes | `post_type: "story"`; one attachment; no collaborators |
 | Trial Reel | Yes | `is_trial_reel` + single MP4; not combinable with Stories |
 | Collaborators (max 3) | Yes | Feed/Reel **single** media only — not carousel, not Stories |
 | Graduation strategy | Yes | `MANUAL` or `SS_PERFORMANCE` when `is_trial_reel` is true |
-| Text follow-up comments | Yes | Multi-segment `-c` (text-only on Instagram) or `replies[]` in provider settings |
+| Text follow-up comments | Yes | `instagram.replies` in provider settings |
 | Story link stickers | No | — |
 | Automatic comment auto-reply | No | — |
 
@@ -48,78 +48,12 @@ Flat JSON merged into `providerSettingsByIntegrationId` for each `-i` UUID.
 | `is_trial_reel` | `true` \| `false` | `false` | Trial Reel (feed only, one video) |
 | `graduation_strategy` | `"MANUAL"` \| `"SS_PERFORMANCE"` | `"MANUAL"` | Trial Reel graduation |
 | `collaborators` | `["user1","user2"]` or `[{"label":"user1"}]` | `[]` | Max 3; not with carousel or Stories |
-| `instagram.replies` | `[{ "message": "…", "delaySeconds": 60 }]` | `[]` | Scheduled text comments after publish (nested bucket in `--providerSettingsByIntegrationId`) |
+| `instagram.replies` | `[{ "id": "…", "message": "…", "delaySeconds": 60 }]` | `[]` | Scheduled text comments (nested bucket in JSON) |
 
-## Feed post
+## Run an example
 
-```bash
-IMAGE=$(openquok upload ./image.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-openquok posts:create \
-  -c "Caption #hashtag" \
-  -s "2026-01-01T12:00:00Z" \
-  --settings '{"post_type":"post"}' \
-  -m "$IMAGE" \
-  -i "<instagram-standalone-uuid>"
-```
-
-## Carousel
+Use the same JSON files with an `instagram-standalone` integration UUID:
 
 ```bash
-MEDIA=$(for f in ./slides/*.jpg; do
-  openquok upload "$f" | jq -c '{id: .data.id, path: (.data.path // .data.filePath)}'
-done | jq -s .)
-
-openquok posts:create \
-  -c "Slide deck 1/N → N/N" \
-  -s "2026-01-01T12:00:00Z" \
-  --settings '{"post_type":"post"}' \
-  -m "$MEDIA" \
-  -i "<instagram-standalone-uuid>"
-```
-
-## Reel (single MP4)
-
-```bash
-REEL=$(openquok upload ./reel.mp4 | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-openquok posts:create \
-  -c "New reel" \
-  -s "2026-01-01T12:00:00Z" \
-  -m "$REEL" \
-  -i "<instagram-standalone-uuid>"
-```
-
-## Story
-
-```bash
-STORY=$(openquok upload ./story.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-openquok posts:create \
-  -c "" \
-  -s "2026-01-01T12:00:00Z" \
-  --settings '{"post_type":"story"}' \
-  -m "$STORY" \
-  -i "<instagram-standalone-uuid>"
-```
-
-## Trial Reel + collaborators
-
-```bash
-VIDEO=$(openquok upload ./trial.mp4 | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-openquok posts:create \
-  -c "Testing with non-followers first" \
-  -s "2026-01-01T12:00:00Z" \
-  --settings '{"is_trial_reel":true,"graduation_strategy":"MANUAL","collaborators":["partner_account"]}' \
-  -m "$VIDEO" \
-  -i "<instagram-standalone-uuid>"
-```
-
-## Text follow-up comments
-
-```bash
-openquok posts:create \
-  -c "Root caption" -m "$IMAGE" \
-  -c "Follow-up comment 1" \
-  -c "Follow-up comment 2" \
-  -s "2026-01-01T12:00:00Z" \
-  -d 60000 \
-  -i "<instagram-standalone-uuid>"
+openquok posts:create --json ./examples/instagram-feed-post.json
 ```

@@ -5,7 +5,7 @@ TT_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="tiktok") 
 openquok integrations:settings "$TT_ID"
 ```
 
-Run `integrations:settings` for `output.rules`, `output.maxLength`, and allow-listed `output.tools`. Settings mechanics: [provider-settings.md](./provider-settings.md).
+Run `integrations:settings` for `output.rules`, `output.maxLength`, and allow-listed `output.tools`. Settings mechanics: [provider-settings.md](./provider-settings.md). JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#tiktok).
 
 ## Supported features
 
@@ -24,12 +24,12 @@ Run `integrations:settings` for `output.rules`, `output.maxLength`, and allow-li
 
 ## Agent tasks
 
-| User wants to… | Do this |
+| User wants to… | JSON example |
 | --- | --- |
-| Schedule a TikTok video | [Video with privacy + DIRECT_POST](#video-with-privacy--direct-post) |
-| Schedule a photo carousel | [Photo carousel with title](#photo-carousel-with-title) |
-| Send content to inbox instead of direct publish | [UPLOAD inbox flow](#upload-inbox-flow) |
-| Queue a private slideshow draft (finish in TikTok app) | [Private draft for manual music](#private-draft-for-manual-music) |
+| Schedule a TikTok video | [tiktok-video-direct-post.json](./examples/tiktok-video-direct-post.json) |
+| Schedule a photo carousel | [tiktok-photo-carousel.json](./examples/tiktok-photo-carousel.json) |
+| Send content to inbox instead of direct publish | [tiktok-upload-inbox.json](./examples/tiktok-upload-inbox.json) |
+| Queue a private slideshow draft (finish in TikTok app) | [tiktok-private-draft.json](./examples/tiktok-private-draft.json) |
 | Find inbox/private drafts on the kanban board | [Kanban after upload](#kanban-after-upload) |
 | Leave a human checklist for manual TikTok steps | [Review notes (`--note`)](#review-notes-note) |
 | Check limits, tools, and rules | `openquok integrations:settings "$TT_ID"` |
@@ -74,90 +74,13 @@ Do **not** treat `UPLOAD` (inbox) and `SELF_ONLY` (private direct post) as the s
 
 Unaudited TikTok developer apps may restrict **direct** posts to `SELF_ONLY` until Content Posting API review — that is a platform limit, not inbox upload behavior.
 
-## Video with privacy + DIRECT_POST
+## Run an example
 
 ```bash
-test -f ./clip.mp4 && test -s ./clip.mp4
-VIDEO=$(openquok upload ./clip.mp4 | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-
-openquok posts:create \
-  -c "Vertical clip — scheduled from the CLI." \
-  -m "$VIDEO" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$TT_ID" \
-  --providerSettingsByIntegrationId "$(jq -nc --arg id "$TT_ID" '
-    {
-      ($id): {
-        privacy_level: "PUBLIC_TO_EVERYONE",
-        content_posting_method: "DIRECT_POST",
-        comment: true,
-        duet: false,
-        stitch: false
-      }
-    }
-  ')"
+openquok posts:create --json ./examples/tiktok-video-direct-post.json
 ```
 
-## Photo carousel with title
-
-```bash
-MEDIA=$(jq -s 'add' \
-  <(openquok upload ./a.jpg | jq '[{id: .data.id, path: (.data.path // .data.filePath)}]') \
-  <(openquok upload ./b.jpg | jq '[{id: .data.id, path: (.data.path // .data.filePath)}]'))
-
-openquok posts:create \
-  -c "Carousel caption — links in bio." \
-  -m "$MEDIA" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$TT_ID" \
-  --providerSettingsByIntegrationId "$(jq -nc --arg id "$TT_ID" '
-    {
-      ($id): {
-        title: "A short photo title",
-        privacy_level: "PUBLIC_TO_EVERYONE",
-        content_posting_method: "DIRECT_POST"
-      }
-    }
-  ')"
-```
-
-## UPLOAD inbox flow
-
-Use when the creator will finish on a mobile device (add trending audio, pick cover, then publish from the TikTok app). Set **`content_posting_method: "UPLOAD"` only** — do not set `SELF_ONLY` for this path.
-
-```bash
-openquok posts:create \
-  -c "Send to inbox instead of direct publish." \
-  -m "$VIDEO" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$TT_ID" \
-  --note "Finish in TikTok app: open inbox, add trending audio, pick cover, then publish." \
-  --providerSettingsByIntegrationId "$(jq -nc --arg id "$TT_ID" '
-    { ($id): { content_posting_method: "UPLOAD" } }
-  ')"
-```
-
-## Private draft for manual music
-
-Use `privacy_level: "SELF_ONLY"` with `DIRECT_POST` when you want a private TikTok draft (e.g. slideshow) so the creator can add trending music before switching to public.
-
-```bash
-openquok posts:create \
-  -c "Carousel — add trending audio in TikTok before publishing." \
-  -m "$MEDIA" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$TT_ID" \
-  --note "Finish in TikTok app: add trending audio, set privacy to public, then publish." \
-  --providerSettingsByIntegrationId "$(jq -nc --arg id "$TT_ID" '
-    {
-      ($id): {
-        title: "Beach day",
-        privacy_level: "SELF_ONLY",
-        content_posting_method: "DIRECT_POST"
-      }
-    }
-  ')"
-```
+Inbox and private-draft JSON files include a `note` field for the kanban checklist. You can also pass `--note` on flag-based creates.
 
 ## Review notes (`--note`)
 
@@ -209,4 +132,3 @@ openquok posts:missing "$POST_ID" | jq '.data.items[] | {id, url}'
 openquok posts:connect "$POST_ID" -r "<tiktok-video-id>"
 openquok analytics:post "$POST_ID" -d 7
 ```
-

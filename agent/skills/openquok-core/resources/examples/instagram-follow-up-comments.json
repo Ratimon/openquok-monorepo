@@ -1,0 +1,17 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Root caption",
+  "integrationIds": ["<integration-id>"],
+  "media": [{ "id": "<media-id>", "path": "https://cdn.example.com/image.jpg" }],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "instagram": {
+        "replies": [
+          { "id": "reply-1", "message": "Follow-up comment 1", "delaySeconds": 60 },
+          { "id": "reply-2", "message": "Follow-up comment 2", "delaySeconds": 120 }
+        ]
+      }
+    }
+  }
+}

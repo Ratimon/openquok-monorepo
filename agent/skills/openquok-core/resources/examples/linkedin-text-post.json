@@ -1,0 +1,6 @@
+{
+  "scheduledAt": "2026-06-20T14:00:00.000Z",
+  "status": "scheduled",
+  "body": "Post body",
+  "integrationIds": ["<integration-id>"]
+}

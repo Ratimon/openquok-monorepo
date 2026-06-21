@@ -7,7 +7,7 @@ openquok integrations:settings "$YT_ID"
 
 Run `integrations:settings` for `output.rules`, `output.maxLength`, and allow-listed `output.tools`. Publish keys below are stable for the YouTube provider.
 
-Settings mechanics: [provider-settings.md](./provider-settings.md).
+Settings mechanics: [provider-settings.md](./provider-settings.md). JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#youtube).
 
 ## Supported features
 
@@ -29,12 +29,12 @@ Settings mechanics: [provider-settings.md](./provider-settings.md).
 
 ## Agent tasks
 
-| User wants to… | Do this |
+| User wants to… | JSON example |
 | --- | --- |
-| Schedule a video upload | [Video with title and privacy](#video-with-title-and-privacy) |
-| Set tags or unlisted/private | [With tags](#with-tags-and-nested-youtube-bucket) |
-| Add a custom thumbnail | [With custom thumbnail](#with-custom-thumbnail) |
-| Use flat settings on one channel | [Flat `--settings`](#flat-settings-on-a-single-channel) |
+| Schedule a video upload | [youtube-video-title-privacy.json](./examples/youtube-video-title-privacy.json) |
+| Set tags or unlisted/private | [youtube-with-tags.json](./examples/youtube-with-tags.json) |
+| Add a custom thumbnail | [youtube-with-thumbnail.json](./examples/youtube-with-thumbnail.json) |
+| Use flat settings on one channel | [youtube-flat-settings.json](./examples/youtube-flat-settings.json) |
 | See what the channel supports | `openquok integrations:settings "$YT_ID"` |
 | Track channel performance | [Discover integration](#discover-integration) → `analytics:platform` |
 | Inspect a published video | [Post insights](#post-insights) |
@@ -58,52 +58,10 @@ Flat JSON on `--settings` or inside `--providerSettingsByIntegrationId` for the 
 
 **Rules:** Attach exactly one MP4 via `-m`. Description comes from the root `-c` segment. Title validation runs at publish time.
 
-## Video with title and privacy
+## Run an example
 
 ```bash
-test -f ./walkthrough.mp4 && test -s ./walkthrough.mp4
-VIDEO=$(openquok upload ./walkthrough.mp4 | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
-openquok posts:create \
-  -c "Full product walkthrough — links in description." \
-  -m "$VIDEO" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$YT_ID" \
-  --providerSettingsByIntegrationId "$(jq -nc --arg id "$YT_ID" '{($id):{title:"OpenQuok walkthrough",type:"public",selfDeclaredMadeForKids:"no"}}')"
-```
-
-## With tags and nested youtube bucket
-
-```bash
-openquok posts:create \
-  -c "Scheduled from the CLI." \
-  -m "$VIDEO" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$YT_ID" \
-  --providerSettingsByIntegrationId "$(jq -nc --arg id "$YT_ID" '{($id):{youtube:{title:"Weekly update",type:"unlisted",selfDeclaredMadeForKids:"no",tags:[{value:"update",label:"update"},{value:"product",label:"product"}]}}}')"
-```
-
-## With custom thumbnail
-
-```bash
-test -f ./thumb.jpg && test -s ./thumb.jpg
-THUMB_PATH=$(openquok upload ./thumb.jpg | jq -r '.data.path // .data.filePath')
-openquok posts:create \
-  -c "See chapters in the description." \
-  -m "$VIDEO" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$YT_ID" \
-  --providerSettingsByIntegrationId "$(jq -nc --arg id "$YT_ID" --arg thumb "$THUMB_PATH" '{($id):{title:"Launch recap",type:"public",selfDeclaredMadeForKids:"no",thumbnail:{path:$thumb}}}')"
-```
-
-## Flat settings on a single channel
-
-```bash
-openquok posts:create \
-  -c "Private draft upload for review." \
-  -m "$VIDEO" \
-  -s "2026-01-01T12:00:00Z" \
-  -i "$YT_ID" \
-  --settings '{"title":"Internal review cut","type":"private","selfDeclaredMadeForKids":"no"}'
+openquok posts:create --json ./examples/youtube-video-title-privacy.json
 ```
 
 ## Discover integration

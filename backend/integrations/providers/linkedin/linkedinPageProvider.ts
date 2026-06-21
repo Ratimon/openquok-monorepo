@@ -42,6 +42,8 @@ export class LinkedInPageProvider extends LinkedInProvider implements SocialProv
     override identifier = "linkedin-page";
     override name = "LinkedIn Page";
     override isBetweenSteps = true;
+    override toolTip =
+        "Company Page you administer — Page picker, document carousels, and analytics";
 
     globalPlugCatalog() {
         return LINKEDIN_PAGE_GLOBAL_PLUG_CATALOG;

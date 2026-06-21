@@ -17,11 +17,11 @@ export const LINKEDIN_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 };
 
 export const LINKEDIN_LANDING_MOCK_BODY =
-	'Your thought-leadership post is ready — queue it for your LinkedIn Page and keep your professional feed consistent without daily manual publishing.';
+	'Case-study carousel queued for your LinkedIn Page — buyers who research your company see polished B2B content, not an empty feed.';
 
 export const LINKEDIN_LANDING_MOCK_SCHEDULED_LOCAL = '2026-06-12T09:00';
 
-export const LINKEDIN_LANDING_MOCK_CAROUSEL_NAME = 'Product update slides';
+export const LINKEDIN_LANDING_MOCK_CAROUSEL_NAME = 'Q2 pipeline playbook';
 
 export const LINKEDIN_LANDING_MOCK_CAROUSEL_BODY =
-	'Turn your slide images into a LinkedIn document carousel — OpenQuok builds the PDF and publishes it to your Page when you schedule.';
+	'Turn slide decks into a LinkedIn document carousel — OpenQuok builds the PDF and publishes to your Page when buyers are most likely to vet you.';

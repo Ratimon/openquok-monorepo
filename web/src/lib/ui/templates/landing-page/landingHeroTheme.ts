@@ -26,13 +26,14 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'thumbnail',
 	'plan',
 	'setup',
-	'craft',
+	'agents',
+	'B2B',
 	'batch',
 	'bulk',
-	'agents',
+	'craft',
+	'cli',
 	'openclaw',
 	'social media',
-	'cli',
 	'approve',
 	'scale',
 	'track',
@@ -42,7 +43,9 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'threads',
 	'instagram',
 	'youtube',
-	'tiktok'
+	'tiktok',
+	'carousels',
+	'linkedin'
 ] as const;
 
 const TITLE_PART_HIGHLIGHT_PHRASE = new RegExp(

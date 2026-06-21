@@ -44,7 +44,7 @@
 	<div class="border-b border-base-300 px-4 py-3">
 		<h3 class="text-base font-semibold">On-going Tasks</h3>
 		<p class="mt-1 text-xs text-base-content/70">
-			Review agent and human drafts, then drag LinkedIn posts between Drafted and Scheduled.
+			Review B2B drafts for profile and Page, then move posts from Drafted to Scheduled.
 		</p>
 	</div>
 

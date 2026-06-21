@@ -1,0 +1,18 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Carousel — add trending audio in TikTok before publishing.",
+  "integrationIds": ["<integration-id>"],
+  "media": [
+    { "id": "<media-id-1>", "path": "https://cdn.example.com/a.jpg" },
+    { "id": "<media-id-2>", "path": "https://cdn.example.com/b.jpg" }
+  ],
+  "note": "Finish in TikTok app: add trending audio, set privacy to public, then publish.",
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "title": "Beach day",
+      "privacy_level": "SELF_ONLY",
+      "content_posting_method": "DIRECT_POST"
+    }
+  }
+}

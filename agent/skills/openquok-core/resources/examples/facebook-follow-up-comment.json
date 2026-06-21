@@ -1,0 +1,15 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Main post",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "threads": {
+        "replies": [
+          { "id": "reply-1", "message": "First comment on the post", "delaySeconds": 60 }
+        ]
+      }
+    }
+  }
+}

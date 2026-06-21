@@ -32,22 +32,10 @@ openquok posts:create -c "…" -m "$MEDIA" -s "2026-01-01T12:00:00Z" -i "<uuid>"
 
 ## Multi-channel campaign (JSON file)
 
+Use [examples/multi-platform-campaign.json](./examples/multi-platform-campaign.json) — per-channel bodies and `providerSettingsByIntegrationId`.
+
 ```bash
-cat > campaign.json << 'EOF'
-{
-  "scheduledAt": "2026-01-01T12:00:00.000Z",
-  "status": "scheduled",
-  "body": "Default caption",
-  "integrationIds": ["<uuid-a>", "<uuid-b>"],
-  "bodiesByIntegrationId": {
-    "<uuid-a>": "Short",
-    "<uuid-b>": "Long"
-  },
-  "media": [{ "id": "<from upload>", "path": "<from upload>" }],
-  "providerSettingsByIntegrationId": { "<uuid-a>": {}, "<uuid-b>": {} }
-}
-EOF
-openquok posts:create --json ./campaign.json
+openquok posts:create --json ./examples/multi-platform-campaign.json
 ```
 
 ## Enforce max length

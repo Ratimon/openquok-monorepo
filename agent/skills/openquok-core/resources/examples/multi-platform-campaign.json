@@ -1,0 +1,30 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Default caption",
+  "integrationIds": ["<threads-integration-id>", "<facebook-integration-id>", "<linkedin-page-integration-id>"],
+  "bodiesByIntegrationId": {
+    "<threads-integration-id>": "Launch post for Threads",
+    "<facebook-integration-id>": "Read more on our Page",
+    "<linkedin-page-integration-id>": "Professional announcement for our Page"
+  },
+  "media": [{ "id": "<media-id>", "path": "https://cdn.example.com/hero.jpg" }],
+  "providerSettingsByIntegrationId": {
+    "<threads-integration-id>": {
+      "threads": {
+        "replies": [
+          { "id": "reply-1", "message": "Thread 2/2: Details", "delaySeconds": 60 }
+        ]
+      }
+    },
+    "<facebook-integration-id>": {
+      "url": "https://example.com/article"
+    },
+    "<linkedin-page-integration-id>": {
+      "linkedin": {
+        "postAsImagesCarousel": true,
+        "carouselName": "Launch deck"
+      }
+    }
+  }
+}

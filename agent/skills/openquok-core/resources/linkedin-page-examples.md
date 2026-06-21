@@ -2,6 +2,8 @@
 
 Company Page channel. Two-step OAuth (login, then Page picker).
 
+JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#linkedin). Settings mechanics: [provider-settings.md](./provider-settings.md).
+
 ## Supported features
 
 | Feature | Supported |
@@ -16,11 +18,11 @@ Company Page channel. Two-step OAuth (login, then Page picker).
 
 ## Agent tasks
 
-| User intent | Section |
+| User intent | JSON example |
 | --- | --- |
 | Connect a company Page | OAuth `linkedin-page` + Page picker |
-| Schedule slide deck / carousel | Provider settings + Recipes |
-| Pull Page insights | `analytics:platform` |
+| Schedule slide deck / carousel | [linkedin-page-document-carousel.json](./examples/linkedin-page-document-carousel.json) |
+| Pull Page insights | `analytics:platform` (see below) |
 
 ## Provider settings
 
@@ -29,17 +31,20 @@ Company Page channel. Two-step OAuth (login, then Page picker).
 | `post_as_images_carousel` | `linkedin.postAsImagesCarousel` | Convert images to PDF document |
 | `carousel_name` | `linkedin.carouselName` | PDF title (default `slides`) |
 
-## Recipes
+## Run an example
 
 ```bash
 openquok integrations:list --provider linkedin-page
+openquok posts:create --json ./examples/linkedin-page-document-carousel.json
+openquok analytics:platform -i "<integration-id>" -d 30
+```
 
+Flat CLI equivalent:
+
+```bash
 openquok posts:create \
   -i "<integration-id>" \
-  -c "Swipe through our latest slides." \
-  -t schedule \
+  -c "Our Q2 product slides — swipe through the deck." \
   -s "2026-06-22T10:00:00.000Z" \
-  -j '{"providerSettingsByIntegrationId":{"<integration-id>":{"linkedin":{"postAsImagesCarousel":true,"carouselName":"June deck"}}}}'
-
-openquok analytics:platform -i "<integration-id>" -d 30
+  -j '{"providerSettingsByIntegrationId":{"<integration-id>":{"linkedin":{"postAsImagesCarousel":true,"carouselName":"Q2 update"}}}}'
 ```

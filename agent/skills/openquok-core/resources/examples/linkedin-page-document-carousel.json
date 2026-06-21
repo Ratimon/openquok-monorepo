@@ -1,0 +1,18 @@
+{
+  "scheduledAt": "2026-06-22T10:00:00.000Z",
+  "status": "scheduled",
+  "body": "Our Q2 product slides — swipe through the deck.",
+  "integrationIds": ["<integration-id>"],
+  "media": [
+    { "id": "<media-id-1>", "path": "https://cdn.example.com/slide-1.jpg" },
+    { "id": "<media-id-2>", "path": "https://cdn.example.com/slide-2.jpg" }
+  ],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "linkedin": {
+        "postAsImagesCarousel": true,
+        "carouselName": "Q2 update"
+      }
+    }
+  }
+}

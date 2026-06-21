@@ -36,6 +36,8 @@ export class LinkedInProvider implements SocialProvider {
     refreshCron = true;
     oneTimeToken = true;
 
+    toolTip = "Personal LinkedIn profile — one OAuth step (no company Page)";
+
     scopes = [...LINKEDIN_SCOPES];
 
     rules =
