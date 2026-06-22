@@ -125,6 +125,8 @@ curl -X POST https://api.openquok.com/api/v1/oauth/token \
 | <Badge text="client_id" variant="default" /> | **Yes** | Your app’s Client ID |
 | <Badge text="client_secret" variant="default" /> | **Yes** | Your app’s Client Secret |
 
+The redirect URL is validated when the user approves on the consent screen (stored on your OAuth app). Do **not** send <Badge text="redirect_uri" variant="param" /> in this request.
+
 Response:
 
 ```json
@@ -177,6 +179,10 @@ Deleting your OAuth app will:
 
 ## Full example (Node.js)
 
+Redirect URL is registered on the OAuth app in the dashboard — it is **not** sent again in the token exchange body (`POST /api/v1/oauth/token` accepts only `grant_type`, `code`, `client_id`, and `client_secret`).
+
+A copy-pasteable version with `@openquok/node-sdk` for the public API call lives in [`sdk/examples/oauth2-express.mjs`](https://github.com/Ratimon/openquok-monorepo/blob/main/sdk/examples/oauth2-express.mjs).
+
 ```javascript
 const express = require('express');
 const crypto = require('crypto');
@@ -188,15 +194,17 @@ const CLIENT_SECRET = 'oqs_your_client_secret';
 const OPENQUOK_URL = 'https://www.openquok.com';
 const API_URL = 'https://api.openquok.com';
 
-// Where Openquok will send the user back after approve/deny
+// Must match the Redirect URL registered on your OAuth app
 const REDIRECT_URL = 'https://yourapp.com/callback';
 
-// Step 2: Redirect user to Openquok
+// Demo-only: persist state server-side (session store, Redis, DB, …)
+const pendingOAuthState = new Map();
+
+// Step 2: Redirect user to Openquok consent UI
 app.get('/connect', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
-
-  // Store `state` server-side (session/db/cache) so you can verify it in /callback
-  req.session.oauthState = state;
+  const sessionKey = req.ip ?? 'default';
+  pendingOAuthState.set(sessionKey, state);
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
@@ -210,13 +218,20 @@ app.get('/connect', (req, res) => {
 // Step 3 & 4: Handle callback and exchange code
 app.get('/callback', async (req, res) => {
   const { code, state, error } = req.query;
+  const sessionKey = req.ip ?? 'default';
+  const expectedState = pendingOAuthState.get(sessionKey);
 
   if (error === 'access_denied') {
     return res.send('User denied access');
   }
 
-  if (state !== req.session.oauthState) {
+  if (!state || state !== expectedState) {
     return res.status(403).send('Invalid state');
+  }
+  pendingOAuthState.delete(sessionKey);
+
+  if (typeof code !== 'string') {
+    return res.status(400).send('Missing authorization code');
   }
 
   const response = await fetch(`${API_URL}/api/v1/oauth/token`, {
@@ -227,7 +242,6 @@ app.get('/callback', async (req, res) => {
       code,
       client_id: CLIENT_ID,
       client_secret: CLIENT_SECRET,
-      redirect_uri: REDIRECT_URL,
     }),
   });
 
@@ -238,9 +252,9 @@ app.get('/callback', async (req, res) => {
 
   const { organizationId, access_token } = await response.json();
 
-  // Example: fetch user's integrations
+  // Example: fetch user's integrations (Bearer opo_ token)
   const integrations = await fetch(`${API_URL}/api/v1/public/integrations`, {
-    headers: { Authorization: access_token },
+    headers: { Authorization: `Bearer ${access_token}` },
   }).then((r) => r.json());
 
   res.json({ connected: true, organizationId, integrations });

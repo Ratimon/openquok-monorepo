@@ -53,7 +53,7 @@ The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Bad
 
 ## Rate limits
 
-<Callout type="warning" title="30 requests per hour">
+<Callout type="warning">
 <p>A <strong>30 requests per hour</strong> limit applies to all endpoints. This does not mean you can only post 30 times per hour — each API call counts as one request, so <strong>schedule multiple posts in a single request</strong> (for example a multi-channel post group) to maximize throughput.</p>
 </Callout>
 
@@ -90,7 +90,7 @@ npm install @openquok/node-sdk
 
 ### Quick guide
 
-<Callout type="note" title="Authentication">
+<Callout type="note">
 <p>Pass your programmatic <Badge text="opo_" variant="default" /> token (from <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />, or from OAuth for third-party apps) as the first argument to the <code>Openquok</code> constructor — it is sent as the <Badge text="Authorization" variant="default" /> header on every request.</p>
 </Callout>
 

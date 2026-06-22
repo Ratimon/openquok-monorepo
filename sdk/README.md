@@ -4,20 +4,21 @@
 - [Quickstart](#quickstart)
 
 >[!NOTE]
-> This package is a lightweight Node.js client for Openquok’s **programmatic API** (`/api/v1/public/*`). You authenticate using an **API key** (or OAuth app token) in the `Authorization` header. You can find the full  backend codebase at [`Openquok 's bakend`](https://github.com/Ratimon/openquok-monorepo/tree/main/backend)
+> This package is a lightweight Node.js client for Openquok’s **programmatic API** (`/api/v1/public/*`). You authenticate using an **API key** (`opo_…`) sent as `Authorization: Bearer …` on every request. Backend reference: [`backend`](https://github.com/Ratimon/openquok-monorepo/tree/main/backend).
 
 ---
 
 ## What Is It For
 
-`@openquok/node-sdk` helps you automate Openquok 's social scheduling  from Node.js:
+`@openquok/node-sdk` helps you automate Openquok's social scheduling from Node.js:
 
-- Create/schedule posts via the programmatic API
-- List posts and flip draft ↔ scheduled (`flipPostStatus`) without full group CRUD over the public API
-- Upload media (multipart) for use in posts
-- Manage programmatic integrations (list, connect URL, delete)
+- Create/schedule posts via the programmatic API (including agent/kanban review fields)
+- List posts and flip draft ↔ scheduled (`flipPostStatus`)
+- Upload media (multipart or from URL) for use in posts
+- Manage integrations (list, settings, trigger provider tools, OAuth URL, delete)
+- Analytics, notifications, and missing-release linking
 
-It’s intentionally small: just a typed wrapper around the HTTP endpoints.
+It’s intentionally small: a typed wrapper around the same HTTP endpoints the `openquok` CLI uses.
 
 ---
 
@@ -34,41 +35,57 @@ npm install @openquok/node-sdk
 ```ts
 import Openquok from "@openquok/node-sdk";
 
-const openquok = new Openquok("YOUR_API_KEY", {
+const openquok = new Openquok("opo_your_programmatic_token", {
   // optional (defaults shown)
   baseUrl: "https://api.openquok.com",
   apiPrefix: "/api/v1",
 });
 
-// Upload a file (multipart field name: `file`)
+await openquok.isConnected();
+const { workspace } = await openquok.getWorkspace();
+
 const uploaded = await openquok.upload(fileBuffer, "png");
 
-// Create a scheduled post
-await openquok.post({
+await openquok.postAsAgent({
   scheduledAt: new Date().toISOString(),
-  status: "scheduled",
+  status: "draft",
   body: "Hello from Openquok SDK",
-  media: uploaded?.data?.filePath ? [{ id: "1", path: uploaded.data.filePath }] : undefined,
+  note: "Review CTA before scheduling",
+  media: uploaded?.data?.filePath
+    ? [{ id: "1", path: uploaded.data.filePath }]
+    : undefined,
+  integrationIds: ["<integration-id>"],
 });
 ```
 
-The available methods include:
+### Methods
 
-- `upload(file: Buffer, extension: string)` — `POST {apiPrefix}/public/upload`
-- `uploadFromUrl(url: string)` — `POST {apiPrefix}/public/upload-from-url`
-- `post(body: PublicCreatePostDto)` — `POST {apiPrefix}/public/posts`
-- `postList(filters: PublicListPostsQueryDto)` — `GET {apiPrefix}/public/posts/list`
-- `getPost(postId: string)` — `GET {apiPrefix}/public/posts/:postId` (row id + parent `postGroup`)
-- `flipPostStatus(postId: string, body: PublicFlipPostStatusDto)` — `PUT {apiPrefix}/public/posts/:postId/status`
-- `deletePost(postId: string)` — `DELETE {apiPrefix}/public/posts/:postId` (`data.postId`, `data.postGroup`)
-- `getMissingContent(postId: string)` — `GET {apiPrefix}/public/posts/:postId/missing`
-- `updateReleaseId(postId: string, releaseId: string)` — `PUT {apiPrefix}/public/posts/:postId/release-id`
-- `getIntegrationAnalytics(integrationId, date)` / `getPostAnalytics(postId, date)` — analytics
-- `listNotifications(page?)` — notifications
-- `integrations()` — `GET {apiPrefix}/public/integrations`
-- `deleteIntegrationChannel(id: string)` — `DELETE {apiPrefix}/public/integrations/:id`
+| Method | HTTP |
+|--------|------|
+| `isConnected()` | `GET /public/is-connected` |
+| `getWorkspace()` | `GET /public/workspace` |
+| `upload(file, extension)` | `POST /public/upload` |
+| `uploadFromUrl(url)` | `POST /public/upload-from-url` |
+| `post(body)` | `POST /public/posts` |
+| `postAsAgent(body)` | `POST /public/posts` with `isAgent: true` |
+| `postList(filters)` | `GET /public/posts/list` |
+| `getPost(postId)` | `GET /public/posts/:postId` |
+| `flipPostStatus(postId, status \| body)` | `PUT /public/posts/:postId/status` |
+| `updatePostReviewTodo(postId, body)` | `PUT /public/posts/:postId/review-todo` |
+| `deletePost(postId)` | `DELETE /public/posts/:postId` |
+| `getMissingContent(postId)` | `GET /public/posts/:postId/missing` |
+| `updateReleaseId(postId, releaseId)` | `PUT /public/posts/:postId/release-id` |
+| `integrations()` | `GET /public/integrations` |
+| `getIntegrationSettings(id)` | `GET /public/integration-settings/:id` |
+| `triggerIntegration(id, { methodName, data? })` | `POST /public/integration-trigger/:id` |
+| `getIntegrationOAuthUrl(identifier, { refresh? })` | `GET /public/social/:identifier` |
+| `deleteIntegrationChannel(id)` | `DELETE /public/integrations/:id` |
+| `getIntegrationAnalytics(id, 7\|30\|90)` | `GET /public/analytics/:id` |
+| `getPostAnalytics(postId, 7\|30\|90)` | `GET /public/analytics/post/:postId` |
+| `listNotifications(page?)` | `GET /public/notifications` |
 
-Alternatively you can use the API with curl — check out our [docs](https://www.openquok.com/docs/getting-started-for-public-api).
+Exported helpers: `withAgentCreatePayload`, `OpenquokHttpError`, and DTO types from the package entry.
 
+Alternatively you can use the API with curl — see our [docs](https://www.openquok.com/docs/getting-started-for-public-api).
 
-
+For a third-party OAuth2 app (Authorization Code → `opo_` token), see [`examples/oauth2-express.mjs`](./examples/oauth2-express.mjs).

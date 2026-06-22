@@ -1,0 +1,37 @@
+---
+description: Keep @openquok/node-sdk (sdk/) aligned with the public API, CLI, docs, and runnable examples.
+globs: ["sdk/**/*.ts", "sdk/**/*.md", "sdk/examples/**/*", "web/src/content/docs/getting-started-for-public-api/**/*.md", "web/src/content/docs/developer-guidelines/oauth2-authentication.md"]
+alwaysApply: false
+---
+
+# Node SDK (`@openquok/node-sdk`)
+
+Package root: `sdk/`. Published artifact is **`dist/` only** (gitignored; built via `pnpm run build` / `prepublishOnly`).
+
+## Public API changes
+
+When `backend/routes/publicApi/**` changes, follow **`public-api-surface-sync.mdc`**:
+
+1. Update `sdk/src/index.ts` and `sdk/src/dtos.ts` (method names, URLs, DTO fields).
+2. Run `pnpm --filter ./sdk run build`.
+3. Update `sdk/README.md` method table when the surface changes.
+
+The SDK should stay in parity with `agent/src/api.ts` for shared routes, plus SDK-only methods when useful (`getPost`, `listNotifications`, etc.).
+
+## Types and build
+
+- `tsconfig.json` must include `"types": ["node"]`.
+- When a public method uses `Buffer`, add `import type { Buffer } from "node:buffer"` in `src/index.ts` so `dist/index.d.ts` emits a valid import (consumers must use Node ≥18).
+- Do not commit `sdk/dist/` — match `agent/.gitignore` (`dist/`).
+
+## Runnable examples (`sdk/examples/`)
+
+- **`oauth2-express.mjs`** mirrors the Node.js section in `web/src/content/docs/developer-guidelines/oauth2-authentication.md`.
+- OAuth token exchange: `POST /api/v1/oauth/token` body is **`grant_type`, `code`, `client_id`, `client_secret` only** — redirect URL is configured on the app, not resent at exchange.
+- Public API calls use **`Authorization: Bearer opo_…`** (or construct `new Openquok(accessToken)`).
+- When editing the OAuth doc example or SDK OAuth example, update **both** in the same change.
+
+## Publishing
+
+- Bump `sdk/package.json` `version` before npm publish (see `sdk/PUBLISHING.md`).
+- Tag `sdk-vX.Y.Z` for the GitHub release workflow.

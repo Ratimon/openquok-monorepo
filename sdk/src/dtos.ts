@@ -84,7 +84,22 @@ export type PublicUpdatePostReleaseIdDataDto = {
 export type PublicUpdatePostReviewTodoDto = {
     note?: string | null;
     isReviewed?: boolean;
+    kanbanManualFinishAcknowledged?: boolean;
     /** When true (CLI/agent), keeps `isAgentEdited` on the post group. */
     isAgent?: boolean;
+};
+
+/** `GET /public/workspace` — workspace bound to the API key. */
+export type PublicWorkspaceDto = {
+    workspace: {
+        id: string;
+        name: string;
+    };
+};
+
+/** `POST /public/integration-trigger/{id}` */
+export type PublicIntegrationTriggerDto = {
+    methodName: string;
+    data?: Record<string, unknown>;
 };
 
