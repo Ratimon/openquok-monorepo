@@ -1,6 +1,6 @@
 {
   "name": "@openquok/node-sdk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "The Openquok programmatic API SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
