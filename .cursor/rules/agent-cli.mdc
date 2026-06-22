@@ -59,3 +59,10 @@ The programmatic CLI lives in `agent/`, published as `@openquok/auto-cli`. It ta
 3. Add `.example()` lines for the common cases.
 4. Update `agent/README.md` (and smoke-test lists in `development-environment.md` if they enumerate commands).
 5. Update on-site CLI docs under `web/src/content/docs/cli-*/` when user-facing flags or workflows change.
+
+## Publishing
+
+- Bump `agent/package.json` `version` before npm publish (see `agent/PUBLISHING.md`).
+- Tag `cli-vX.Y.Z` for `.github/workflows/release.yml`.
+- CI uses npm **trusted publishing** (OIDC): configure on npm for `@openquok/auto-cli` with workflow `release.yml`; do **not** set `NODE_AUTH_TOKEN` on the publish step (`EOTP` = token path + 2FA).
+- `repository.url` in `package.json` must be `git+https://github.com/Ratimon/openquok-monorepo.git` with `"directory": "agent"`.

@@ -37,7 +37,7 @@ CI uses **npm trusted publishing** (OIDC) — see below. **Do not** pass `NPM_AU
 5. **Environment:** leave blank
 6. Save
 
-Repeat for `@openquok/auto-cli` when publishing the CLI from the same workflow.
+Repeat for `@openquok/auto-cli` when publishing the CLI from the same workflow (separate trusted publisher entry on npm — same `release.yml` filename).
 
 The workflow sets `permissions: id-token: write` and runs `npm publish` **without** `NODE_AUTH_TOKEN`. npm CLI ≥ 11.5.1 + Node ≥ 22 exchanges GitHub OIDC for a short-lived publish grant (no 2FA prompt).
 

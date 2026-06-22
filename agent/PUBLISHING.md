@@ -24,78 +24,110 @@ Verify the CLI is available:
 ```bash
 openquok --help
 ```
-## Publish via Github
+
+## Publish via GitHub
+
+Match `agent/package.json` `version` to the tag (`cli-v0.0.8` → `"0.0.8"`). Commit to `main`, then tag **that** commit:
 
 ```bash
-git add .
-git commit -m "cli-v0.0.7"
-git push -u origin main
-git tag cli-v0.0.7
-git push origin cli-v0.0.7
+git add agent/
+git commit -m "chore(cli): release 0.0.8"
+git push origin main
+git tag cli-v0.0.8
+git push origin cli-v0.0.8
+```
+
+CI uses **npm trusted publishing** (OIDC) — see below. **Do not** pass `NPM_AUTH_TOKEN` to the publish step; a Publish token there causes `EOTP`.
+
+### One-time: trusted publisher on npm (required for CI)
+
+1. [npmjs.com/package/@openquok/auto-cli](https://www.npmjs.com/package/@openquok/auto-cli) → **Settings** → **Trusted publishing** → **GitHub Actions**
+2. **Organization / user:** `Ratimon`
+3. **Repository:** `openquok-monorepo`
+4. **Workflow filename:** `release.yml` (exact; file is `.github/workflows/release.yml`)
+5. **Environment:** leave blank
+6. Save
+
+Configure separately from `@openquok/node-sdk` — each package has its own trusted publisher entry (same workflow file is fine).
+
+The workflow sets `permissions: id-token: write` and runs `npm publish` **without** `NODE_AUTH_TOKEN`. npm CLI ≥ 11.5.1 + Node ≥ 22 exchanges GitHub OIDC for a short-lived publish grant (no 2FA prompt).
+
+`package.json` `repository.url` must point at the monorepo (`git+https://github.com/Ratimon/openquok-monorepo.git` with `"directory": "agent"`).
+
+### CI errors
+
+| Error | Cause | Fix |
+|-------|--------|-----|
+| `EOTP` | `NPM_AUTH_TOKEN` is a **Publish** token on the publish step | Remove token from workflow publish; use trusted publishing |
+| `E404` on PUT | Token publish without scope | Use trusted publishing, or Automation token locally |
+| `ENEEDAUTH` / Unable to authenticate | Trusted publisher not configured or workflow name mismatch | Check `release.yml` on npm matches exactly |
+
+Re-run: `git push origin cli-v0.0.8 --force` (if not on npm yet).
+
+### Tag already exists
+
+```bash
+git tag -d cli-v0.0.8
+git tag cli-v0.0.8
+git push origin cli-v0.0.8 --force
+```
+
+Or bump version and use `cli-v0.0.9`.
+
+### Manual publish (local)
+
+```bash
+npm login
+pnpm --filter ./agent run publish:manual
+# or with 2FA: cd agent && npm publish --access public --otp=123456
 ```
 
 ## Publishing checklist
 
-### Before first publish
+### Before publish
 
-- [ ] Verify the package name is available on npm
+- [ ] Verify the package on npm
   ```bash
   npm view @openquok/auto-cli
-  # If you see "404 Not Found", the name is available.
   ```
 
-- [ ] Confirm the `bin` name is correct (this is what users run)
+- [ ] Confirm the `bin` name (what users run)
   ```json
   "bin": {
     "openquok": "./dist/index.js"
   }
   ```
 
-- [ ] Update version in `agent/package.json` if needed
+- [ ] Update `version` in `agent/package.json`
 
-- [ ] Build the package
+- [ ] Build and sanity-check tarball
   ```bash
   pnpm --filter ./agent run build
+  cd agent && pnpm pack --dry-run
   ```
 
-- [ ] (Optional) sanity-check the published contents
-  ```bash
-  cd agent
-  pnpm pack --dry-run
-  ```
-
-### Publish to npm
+### Publish to npm (manual)
 
 ```bash
-# Login to npm (first time only)
 npm login
-
-# From monorepo root
-pnpm --filter ./agent run build
-pnpm --filter ./agent publish --access public
+pnpm --filter ./agent run publish:manual
 ```
 
-## After publishing
-
-Verify it’s published:
+### After publishing
 
 ```bash
 npm view @openquok/auto-cli
-```
-
-Test installation:
-
-```bash
 npm install -g @openquok/auto-cli
 openquok --help
 ```
 
-## Publish via GitHub tags
+## GitHub workflow
 
-The workflow at `.github/workflows/release.yml` publishes:
+`.github/workflows/release.yml` publishes on tag push:
 
-- tags `sdk-vX.Y.Z` → `./sdk`
-- tags `cli-vX.Y.Z` → `./agent` (`pnpm run publish:cli:build` then `pnpm --filter ./agent publish`)
+| Tag | Package | Job |
+|-----|---------|-----|
+| `sdk-vX.Y.Z` | `@openquok/node-sdk` | `sdk_publish` |
+| `cli-vX.Y.Z` | `@openquok/auto-cli` | `cli_publish` |
 
-Push a new tag after merging these fixes (for example `cli-v0.0.4`) if a previous `cli-v0.0.3` run failed before publish.
-
+The CLI job runs `pnpm run publish:cli:build` (monorepo build script), then `npm publish` from `agent/` via OIDC.
