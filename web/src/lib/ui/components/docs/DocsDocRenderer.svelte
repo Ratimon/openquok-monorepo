@@ -16,6 +16,7 @@
 	import { icons } from '$data/icons';
 
 	import DocsMobileToc from '$lib/ui/components/docs/DocsMobileToc.svelte';
+	import DocsPageCtaBanner from '$lib/ui/components/docs/DocsPageCtaBanner.svelte';
 	import DocsBackToTop from '$lib/ui/components/docs/nav/DocsBackToTop.svelte';
 	import DocsCopyButton from '$lib/ui/components/docs/DocsCopyButton.svelte';
 	import DocsCopyUrl from '$lib/ui/components/docs/nav/DocsCopyUrl.svelte';
@@ -216,6 +217,8 @@
 				<span>{readingTime}</span>
 			</div>
 		{/if}
+
+		<DocsPageCtaBanner />
 	</header>
 
 	<DocsMobileToc />

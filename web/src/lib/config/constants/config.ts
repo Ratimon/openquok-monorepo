@@ -466,15 +466,20 @@ export const CONFIG_SCHEMA_PUBLIC_FAQ: ModuleConfigSchema = {
 export const PUBLIC_BANNER_CTA_TEXT = 'Start for $0';
 
 export const CENTERED_DARK_CTA_BANNER_TITLE = 'Your workspace, your approval gate';
-
 export const CENTERED_DARK_CTA_BANNER_DESCRIPTION =
 	'OpenQuok is where agent drafts land for review — schedule across channels, track what performs, and publish only what you sign off on.';
 
-export const ACCENT_SPLIT_CTA_BANNER_TITLE = 'Connect your agent, keep the final say';
+export const ACCENT_SPLIT_CTA_BANNER_TITLE = 'Connect your agent today';
 
 export function accentSplitCtaBannerDescription(agentLabel: string): string {
 	return `Install openquok-core on ${agentLabel}, draft from chat, and move every post through your OpenQuok calendar or kanban before it publishes.`;
 }
+
+/** Compact CTA banner on documentation article pages. */
+export const DOCS_PAGE_CTA_BANNER_TITLE = 'Connect your agent today';
+
+export const DOCS_PAGE_CTA_BANNER_DESCRIPTION =
+	'Draft from chat, review in your calendar, and publish only what you approve.';
 
 /** Default landing_page copy (git-managed via CONFIG_SCHEMA_LANDING_PAGE). */
 export function getLandingPageConfigDefaults(): Record<string, string> {
