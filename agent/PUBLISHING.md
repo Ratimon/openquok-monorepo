@@ -24,8 +24,6 @@ Verify the CLI is available:
 ```bash
 openquok --help
 ```
-
-
 ## Publish via Github
 
 ```bash

@@ -116,5 +116,25 @@
 				</div>
 			{/each}
 		</div>
+		<div class="mt-2 border-t border-base-content/10 pt-2">
+			<a
+				href={agentsPath}
+				class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-base-content transition-colors hover:bg-base-100/80 hover:text-primary"
+			>
+				<span
+					class="grid size-7 shrink-0 place-items-center rounded-md border border-white/10 bg-base-100/80"
+					aria-hidden="true"
+				>
+					<AbstractIcon
+						name={icons.Bot.name}
+						width="16"
+						height="16"
+						class="size-4"
+						focusable="false"
+					/>
+				</span>
+				<span class="truncate">See All</span>
+			</a>
+		</div>
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
