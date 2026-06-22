@@ -20,10 +20,10 @@ Match `sdk/package.json` `version` to the tag (`sdk-v0.0.8` → `"0.0.8"`). Comm
 
 ```bash
 git add sdk/
-git commit -m "chore(sdk): release 0.0.8"
+git commit -m "chore(sdk): release 0.0.9"
 git push origin main
-git tag sdk-v0.0.8
-git push origin sdk-v0.0.8
+git tag sdk-v0.0.9
+git push origin sdk-v0.0.9
 ```
 
 CI uses **npm trusted publishing** (OIDC) — see below. **Do not** pass `NPM_AUTH_TOKEN` to the publish step; a Publish token there causes `EOTP`.
