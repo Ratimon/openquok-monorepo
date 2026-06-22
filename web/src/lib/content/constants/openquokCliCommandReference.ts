@@ -3,6 +3,10 @@ export type OpenquokCliCommandReferenceItem = {
 	description: string;
 };
 
+/** One-line npx skills add for openquok-core (agent package root, headless -y). */
+export const OPENQUOK_CORE_SKILL_INSTALL_COMMAND =
+	'npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core -y';
+
 /** Essential openquok commands for public agent landing pages (full list in agent skill docs). */
 export const OPENQUOK_CLI_COMMAND_REFERENCE: readonly OpenquokCliCommandReferenceItem[] = [
 	{

@@ -1,9 +1,11 @@
 <script lang="ts">
 	import type { PublicAgentLandingPage } from '$lib/content/constants/publicAgentConfig';
+	import { OPENQUOK_CORE_SKILL_INSTALL_COMMAND } from '$lib/content/constants/openquokCliCommandReference';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -27,6 +29,7 @@
 	const showDocsCta = $derived(Boolean(docsCtaText?.trim() && docsCtaHref?.trim()));
 
 	const headingId = 'public-agent-hero-heading';
+	const installHeadingId = 'public-agent-hero-install-heading';
 
 	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(agent.heroTitle));
 </script>
@@ -84,6 +87,20 @@
 					{ctaText}
 				</ButtonGlitchBrightness>
 			</div>
+
+			<section class="mt-8 w-full max-w-2xl space-y-3" aria-labelledby={installHeadingId}>
+				<h2
+					id={installHeadingId}
+					class="text-center text-sm font-semibold tracking-tight text-base-content/75 sm:text-base"
+				>
+					Install our core skill:
+				</h2>
+				<TerminalCommandMock
+					code={OPENQUOK_CORE_SKILL_INSTALL_COMMAND}
+					ariaLabel="Copy openquok-core skill install command to clipboard"
+					class="[&>div]:text-sm sm:[&>div]:text-base"
+				/>
+			</section>
 		</div>
 	</div>
 </AuroraBackground>
