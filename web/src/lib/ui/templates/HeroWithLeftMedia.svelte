@@ -135,7 +135,7 @@
 										titleParts.length >= 3 ? 'block' : index > 0 ? 'block sm:inline' : ''}
 									{#if heroTheme.landingHeroTitlePartHasHighlight(segments)}
 										<span class={layoutClass}>
-											{#each segments as seg (seg.text + String(seg.highlight))}
+											{#each segments as seg, segmentIndex (segmentIndex)}
 												{#if seg.highlight}
 													<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
 												{:else}

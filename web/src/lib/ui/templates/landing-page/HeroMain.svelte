@@ -219,7 +219,7 @@
 
 				<p class="mt-6 text-pretty text-base font-medium leading-relaxed text-base-content/70 sm:text-lg">
 					{#if sloganSegments.length > 0}
-						{#each sloganSegments as seg (seg.text + String(seg.highlight))}
+						{#each sloganSegments as seg, segmentIndex (segmentIndex)}
 							{#if seg.highlight}
 								<span class={HIGHLIGHT_PILL_CLASS}>{seg.text}</span>
 							{:else}

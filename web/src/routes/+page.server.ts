@@ -55,6 +55,15 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		marketingInformation: marketingInformationPm,
 		customTitle: `${customTitle} | ${companyName}`,
 		customDescription: heroDescription,
+		customTags: [
+			'social media scheduler',
+			'social media scheduling tool',
+			'schedule social media posts',
+			'social media scheduler free',
+			'post scheduler',
+			'social media posting tool',
+			'social media planning tool'
+		],
 		requestUrl: url
 	});
 

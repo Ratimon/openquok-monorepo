@@ -30,7 +30,7 @@
 		id={headingId}
 		class="text-2xl font-black tracking-tight text-balance text-base-content sm:text-3xl lg:text-4xl"
 	>
-		{#each titleSegments as seg (seg.text + String(seg.highlight))}
+		{#each titleSegments as seg, segmentIndex (segmentIndex)}
 			{#if seg.highlight}
 				<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
 			{:else}

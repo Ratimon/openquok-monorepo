@@ -14,7 +14,12 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'Can I try OpenQuok for free?',
 		description:
-			'Yes. OpenQuok offers a 7-day free trial. You can create an account and start today!'
+			'Yes. OpenQuok offers a 7-day free trial so you can schedule social media posts across your connected channels before you choose a plan. Create an account and start today — no credit card required to explore the scheduler.'
+	},
+	{
+		title: 'How do I schedule social media posts with OpenQuok?',
+		description:
+			'Connect your channels, compose or import a draft, pick a date and time on the calendar (or kanban), and publish. You can schedule social media posts by hand, from reusable templates, or pipe drafts in from AI agents — then review everything before it goes live.'
 	},
 	{
 		title: 'Can I self-host OpenQuok?',

@@ -14,9 +14,9 @@ const publicDocsPath = route(getRootPathPublicDocs());
 const appName = 'openquok';
 const appTitle = 'Openquok | Agentic Social Media Scheduler';
 const appDescription =
-	'Draft, review, and schedule social posts from AI agents across platforms and workspaces—stay in control of what goes live.';
+	'OpenQuok is a social media scheduler to plan, draft, and schedule social media posts across every channel. Calendar, kanban review, and AI agents — start with a 7-day free trial.';
 const appKeywords =
-	'social media scheduler, AI content, content scheduling, social media management, multi-platform posting, content approval, agentic AI, Openquok';
+	'social media scheduler, social media scheduling tool, schedule social media posts, social media scheduler free, post scheduler, social media posting tool, social media planning tool, free social media scheduling tools, content calendar, multi-platform posting, OpenQuok';
 
 function getApiBaseUrl(): string {
 	const fromMeta =
@@ -202,7 +202,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the product demo video section',
 		type: 'string',
 		default:
-			'Watch how teams review AI drafts, schedule posts, and run multi-agent workspaces at scale.',
+			'Watch how teams schedule social media posts, review AI drafts on a kanban board, and publish across channels from one workspace.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
@@ -260,14 +260,14 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_2_SUBTITLE: {
 		description: 'Tag above the second secondary hero section',
 		type: 'string',
-		default: 'Calendar + smart filters',
+		default: 'Post scheduler + smart filters',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_2_TITLE: {
 		description: 'Headline for the second secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Schedule ahead, find any post effortlessly',
+		default: 'Schedule social media posts ahead, find any draft effortlessly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -275,7 +275,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the second secondary hero section',
 		type: 'string',
 		default:
-			'Day, week, and month calendar views plus filters by platform, channel group, or tags. Schedule ahead and surface the right drafts without scrolling an endless AI queue.',
+			'Day, week, and month calendar views plus filters by platform, channel group, or tags. Use OpenQuok as your social media planning tool — queue posts ahead and surface the right drafts without scrolling an endless AI queue.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
@@ -402,7 +402,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the landing pricing tabs section',
 		type: 'string',
 		default:
-			'Transparent pricing that scales with your needs. No hidden fees — cancel anytime. Start with a 7-day free trial.',
+			'Transparent pricing for our social media scheduling tool. No hidden fees — cancel anytime. Start with a 7-day free trial.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},

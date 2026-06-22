@@ -36,7 +36,7 @@ export async function load({ url, cookies, parent }) {
 
 	const customTitle = 'Pricing';
 	const customDescription =
-		'Compare OpenQuok plans for individuals, teams, and agencies. Flexible monthly or yearly billing.';
+		'Compare OpenQuok plans for individuals, teams, and agencies. Start with a 7-day free trial — schedule social media posts across every connected channel.';
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -44,6 +44,13 @@ export async function load({ url, cookies, parent }) {
 		customTitle: `${customTitle} | ${companyName}`,
 		customDescription,
 		customSlug: 'pricing',
+		customTags: [
+			'social media scheduler',
+			'social media scheduling tool',
+			'social media scheduler free',
+			'free social media scheduling tools',
+			'schedule social media posts'
+		],
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 

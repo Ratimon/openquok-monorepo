@@ -19,9 +19,9 @@ export async function load({ url, cookies, parent }) {
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 	const channelsVm = publicChannelsPagePresenter.loadChannelsHubStateless();
 
-	const customTitle = 'Social channel schedulers';
+	const customTitle = 'Social media scheduler channels';
 	const customDescription =
-		'See which social platforms you can connect — Facebook, Threads, Instagram, YouTube, TikTok, and more. Schedule posts from one workspace while you approve what goes live.';
+		'Connect Facebook, Threads, Instagram, YouTube, TikTok, and more to OpenQuok — the social media scheduler that lets you schedule social media posts from one workspace while you approve what goes live.';
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -31,7 +31,9 @@ export async function load({ url, cookies, parent }) {
 		customSlug: getRootPathPublicChannels(),
 		customTags: [
 			'social media scheduler',
-			'social channels',
+			'social media scheduling tool',
+			'schedule social media posts',
+			'social media posting tool',
 			'Facebook scheduler',
 			'Threads scheduler',
 			'Instagram scheduler'

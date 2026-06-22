@@ -46,6 +46,12 @@ export type PublicChannelLandingPage = {
 	available: boolean;
 };
 
+/** Shared SEO terms appended to every live channel landing page. */
+const SHARED_CHANNEL_SEO_KEYWORDS = [
+	'social media scheduler',
+	'schedule social media posts'
+] as const;
+
 
 const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 	slug: 'facebook',
@@ -61,6 +67,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 	hubDescription:
 		'Page feed posts, MP4 Reels, and link-preview cards — built for Facebook Pages, not personal profiles.',
 	keywords: [
+		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'Facebook post scheduler',
 		'Facebook Reel scheduler',
 		'Facebook Page scheduling',
@@ -187,6 +194,7 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 	hubDescription:
 		'500-character posts with media and scheduled follow-up reply chains — conversation-first text on Meta Threads.',
 	keywords: [
+		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'Threads post scheduler',
 		'schedule Threads posts',
 		'Meta Threads scheduling',
@@ -311,6 +319,7 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 	hubDescription:
 		'Feed posts, Reels, carousels, and Stories — with trial Reels, collaborator tags, and follow-up comments.',
 	keywords: [
+		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'Instagram post scheduler',
 		'schedule Instagram posts',
 		'Instagram Reel scheduler',
@@ -443,6 +452,7 @@ const YOUTUBE_CHANNEL: PublicChannelLandingPage = {
 	hubDescription:
 		'Long-form MP4 uploads and vertical Shorts — title, privacy, tags, and custom thumbnail per video.',
 	keywords: [
+		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'YouTube video scheduler',
 		'YouTube Shorts scheduler',
 		'schedule YouTube uploads',
@@ -589,6 +599,7 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 	hubDescription:
 		'Vertical video and photo carousels — direct publish or queue to your TikTok inbox to add trending audio.',
 	keywords: [
+		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'TikTok post scheduler',
 		'schedule TikTok videos',
 		'TikTok content calendar',
@@ -729,6 +740,7 @@ const LINKEDIN_CHANNEL: PublicChannelLandingPage = {
 	hubDescription:
 		'B2B thought leadership on profile and company Page — scheduled, reviewed, and ready when buyers research you.',
 	keywords: [
+		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'LinkedIn post scheduler',
 		'LinkedIn Page scheduler',
 		'schedule LinkedIn posts',
@@ -870,6 +882,7 @@ const X_CHANNEL: PublicChannelLandingPage = {
 	hubDescription:
 		'Weighted 280-character tweets (4000 for Verified), up to four images or one video, and scheduled thread replies.',
 	keywords: [
+		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'X post scheduler',
 		'Twitter scheduler',
 		'schedule X posts',
