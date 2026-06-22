@@ -16,13 +16,44 @@ pnpm install -g @openquok/node-sdk
 
 ## Publish via Github
 
+Match `sdk/package.json` `version` to the tag (`sdk-v0.0.7` → `"0.0.7"`). Commit to `main`, then tag **that** commit:
+
 ```bash
-git add .
-git commit -m "sdk-v0.0.7"
-git push -u origin main
+git add sdk/
+git commit -m "chore(sdk): release 0.0.7"
+git push origin main
 git tag sdk-v0.0.7
 git push origin sdk-v0.0.7
 ```
+
+Requires GitHub secret **`NPM_AUTH_TOKEN`** — see **CI npm token** below.
+
+### CI npm token (`NPM_AUTH_TOKEN`)
+
+GitHub Actions cannot type a 2FA code. Use an npm **Automation** token (not **Publish** / not classic with 2FA-on-publish):
+
+1. [npmjs.com](https://www.npmjs.com/) → avatar → **Access Tokens** → **Generate New Token** → **Granular Access Token**
+2. **Token type: Automation** (bypasses 2FA for CI)
+3. **Packages and scopes** → `@openquok` org (or both `@openquok/node-sdk` and `@openquok/auto-cli`) → **Read and write**
+4. Copy token → GitHub repo **Settings → Secrets → Actions** → **`NPM_AUTH_TOKEN`**
+
+| Error in CI | Cause | Fix |
+|-------------|--------|-----|
+| `E404` on PUT | Token missing or no publish scope | Automation token with write on `@openquok` |
+| `EOTP` | **Publish** token or 2FA-required token | Recreate as **Automation** token |
+| `npm whoami` fails | Secret empty / wrong name | Secret must be exactly `NPM_AUTH_TOKEN` |
+
+Re-run after fixing the secret: `git push origin sdk-v0.0.7 --force` (if that version is not on npm yet).
+
+### Tag already exists
+
+```bash
+git tag -d sdk-v0.0.7
+git tag sdk-v0.0.7
+git push origin sdk-v0.0.7 --force
+```
+
+Or bump `package.json` and use a new tag (`sdk-v0.0.8`).
 
 ## Publishing Checklist
 
