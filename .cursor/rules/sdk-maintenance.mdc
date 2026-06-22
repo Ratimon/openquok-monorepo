@@ -34,4 +34,6 @@ The SDK should stay in parity with `agent/src/api.ts` for shared routes, plus SD
 ## Publishing
 
 - Bump `sdk/package.json` `version` before npm publish (see `sdk/PUBLISHING.md`).
-- Tag `sdk-vX.Y.Z` for the GitHub release workflow.
+- Tag `sdk-vX.Y.Z` for `.github/workflows/release.yml`.
+- CI uses npm **trusted publishing** (OIDC): configure on npm for `@openquok/node-sdk` with workflow `release.yml`; do **not** set `NODE_AUTH_TOKEN` on the publish step (`EOTP` = token path + 2FA).
+- `repository.url` in `package.json` must be `git+https://github.com/Ratimon/openquok-monorepo.git` with `"directory": "sdk"`.

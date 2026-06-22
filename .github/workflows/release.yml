@@ -45,7 +45,7 @@ jobs:
         working-directory: sdk
         run: npm publish --access public
         env:
-          NPM_CONFIG_PROVENANCE: "true"
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
   cli_publish:
     name: publish cli to npm
