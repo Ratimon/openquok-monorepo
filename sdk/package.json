@@ -30,7 +30,11 @@
     "url": "https://github.com/Ratimon"
   },
   "license": "AGPL-3.0-or-later",
-  "repository": "github:Ratimon/openquok-monorepo/sdk",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ratimon/openquok-monorepo.git",
+    "directory": "sdk"
+  },
   "dependencies": {},
   "devDependencies": {
     "@types/node": "^25.6.0",

@@ -16,44 +16,60 @@ pnpm install -g @openquok/node-sdk
 
 ## Publish via Github
 
-Match `sdk/package.json` `version` to the tag (`sdk-v0.0.7` → `"0.0.7"`). Commit to `main`, then tag **that** commit:
+Match `sdk/package.json` `version` to the tag (`sdk-v0.0.8` → `"0.0.8"`). Commit to `main`, then tag **that** commit:
 
 ```bash
 git add sdk/
-git commit -m "chore(sdk): release 0.0.7"
+git commit -m "chore(sdk): release 0.0.8"
 git push origin main
 git tag sdk-v0.0.8
 git push origin sdk-v0.0.8
 ```
 
-Requires GitHub secret **`NPM_AUTH_TOKEN`** — see **CI npm token** below.
+CI uses **npm trusted publishing** (OIDC) — see below. **Do not** pass `NPM_AUTH_TOKEN` to the publish step; a Publish token there causes `EOTP`.
 
-### CI npm token (`NPM_AUTH_TOKEN`)
+### One-time: trusted publisher on npm (required for CI)
 
-GitHub Actions cannot type a 2FA code. Use an npm **Automation** token (not **Publish** / not classic with 2FA-on-publish):
+1. [npmjs.com](https://www.npmjs.com/package/@openquok/node-sdk) → **Settings** → **Trusted publishing** → **GitHub Actions**
+2. **Organization / user:** `Ratimon`
+3. **Repository:** `openquok-monorepo`
+4. **Workflow filename:** `release.yml` (exact; file is `.github/workflows/release.yml`)
+5. **Environment:** leave blank
+6. Save
 
-1. [npmjs.com](https://www.npmjs.com/) → avatar → **Access Tokens** → **Generate New Token** → **Granular Access Token**
-2. **Token type: Automation** (bypasses 2FA for CI)
-3. **Packages and scopes** → `@openquok` org (or both `@openquok/node-sdk` and `@openquok/auto-cli`) → **Read and write**
-4. Copy token → GitHub repo **Settings → Secrets → Actions** → **`NPM_AUTH_TOKEN`**
+Repeat for `@openquok/auto-cli` when publishing the CLI from the same workflow.
 
-| Error in CI | Cause | Fix |
-|-------------|--------|-----|
-| `E404` on PUT | Token missing or no publish scope | Automation token with write on `@openquok` |
-| `EOTP` | **Publish** token or 2FA-required token | Recreate as **Automation** token |
-| `npm whoami` fails | Secret empty / wrong name | Secret must be exactly `NPM_AUTH_TOKEN` |
+The workflow sets `permissions: id-token: write` and runs `npm publish` **without** `NODE_AUTH_TOKEN`. npm CLI ≥ 11.5.1 + Node ≥ 22 exchanges GitHub OIDC for a short-lived publish grant (no 2FA prompt).
 
-Re-run after fixing the secret: `git push origin sdk-v0.0.7 --force` (if that version is not on npm yet).
+`package.json` `repository.url` must point at the monorepo (`git+https://github.com/Ratimon/openquok-monorepo.git` with `"directory": "sdk"`).
+
+### CI errors
+
+| Error | Cause | Fix |
+|-------|--------|-----|
+| `EOTP` | `NPM_AUTH_TOKEN` is a **Publish** token on the publish step | Remove token from workflow publish; use trusted publishing |
+| `E404` on PUT | Token publish without scope | Use trusted publishing, or Automation token locally |
+| `ENEEDAUTH` / Unable to authenticate | Trusted publisher not configured or workflow name mismatch | Check `release.yml` on npm matches exactly |
+
+Re-run: `git push origin sdk-v0.0.8 --force` (if not on npm yet).
 
 ### Tag already exists
 
 ```bash
-git tag -d sdk-v0.0.7
-git tag sdk-v0.0.7
-git push origin sdk-v0.0.7 --force
+git tag -d sdk-v0.0.8
+git tag sdk-v0.0.8
+git push origin sdk-v0.0.8 --force
 ```
 
-Or bump `package.json` and use a new tag (`sdk-v0.0.8`).
+Or bump version and use `sdk-v0.0.9`.
+
+### Manual publish (local)
+
+```bash
+npm login
+pnpm --filter ./sdk run publish:manual
+# or with 2FA: npm publish --access public --otp=123456
+```
 
 ## Publishing Checklist
 

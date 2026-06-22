@@ -63,7 +63,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "github:Ratimon/openquok-monorepo/agent"
+    "url": "git+https://github.com/Ratimon/openquok-monorepo.git",
+    "directory": "agent"
   },
   "packageManager": "pnpm@10.30.3",
   "dependencies": {

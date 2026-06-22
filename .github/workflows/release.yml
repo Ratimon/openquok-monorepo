@@ -25,70 +25,52 @@ jobs:
     needs: [release]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/sdk-v')
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
-          scope: "@openquok"
-          always-auth: true
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
       - run: pnpm install
 
-      - name: Verify npm publish credentials
-        run: |
-          if [ -z "${NODE_AUTH_TOKEN}" ]; then
-            echo "::error::GitHub secret NPM_AUTH_TOKEN is missing or empty."
-            exit 1
-          fi
-          echo "npm user: $(npm whoami)"
-          npm view @openquok/node-sdk version
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+      - name: Use npm with trusted publishing (OIDC)
+        run: npm install -g npm@latest
 
       - name: Publish sdk to npm
         working-directory: sdk
         run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
 
   cli_publish:
     name: publish cli to npm
     needs: [release]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/cli-v')
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
-          scope: "@openquok"
-          always-auth: true
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
       - run: pnpm install
       - run: pnpm run publish:cli:build
 
-      - name: Verify npm publish credentials
-        run: |
-          if [ -z "${NODE_AUTH_TOKEN}" ]; then
-            echo "::error::GitHub secret NPM_AUTH_TOKEN is missing or empty."
-            exit 1
-          fi
-          echo "npm user: $(npm whoami)"
-          npm view @openquok/auto-cli version
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+      - name: Use npm with trusted publishing (OIDC)
+        run: npm install -g npm@latest
 
       - name: Publish cli to npm
         working-directory: agent
         run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
