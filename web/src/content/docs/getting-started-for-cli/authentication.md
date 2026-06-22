@@ -20,18 +20,19 @@ If both are present, stored OAuth2 credentials take priority over <Badge text="O
 
 ## OAuth2 (device flow)
 
+Open the sign-in link on your phone or computer, sign in to Openquok if needed, choose a workspace, and tap **Authorize**. Credentials are stored for later commands (default <Badge text="~/.openquok/credentials.json" variant="path" />).
+
+<p class="not-prose flex justify-center">
+  <img src="/docs/getting-started-for-cli/oauth-mobile-login.webp" alt="OAuth mobile login" />
+</p>
+
+Alternatively, it equals to run following in terminal:
+
 Run:
 
 ```bash
 openquok auth:login
 ```
-
-By default the CLI uses an **interactive** device flow:
-
-1. **Terminal** — Shows the verification URL, your **user code**, and prompts you to press **Enter** to open the browser. The opened link includes a <Badge text="code" variant="param" /> query parameter so the verification page can pre-fill the code (no need to paste it manually).
-2. **Browser** — On Openquok’s hosted stack this is <Badge text="https://www.openquok.com/cli/device/verify" variant="new" /> (not <Badge text="cli-auth.openquok.com" variant="default" />). Submit the code, then continue to the Openquok web app’s **Authorize application** screen. If you are not signed in, use **Sign in**; after authentication you are returned to the authorize URL, so you can pick a **workspace** and choose **Authorize** or **Deny**.
-3. **Terminal** — When success, it writes **only the final result as JSON**.
-4. **Credentials** — Stored for later commands (default <Badge text="~/.openquok/credentials.json" variant="path" />).
 
 ### Remote / SSH / CI use (no local browser launch)
 

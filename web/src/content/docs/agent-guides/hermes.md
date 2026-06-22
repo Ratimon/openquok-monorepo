@@ -13,8 +13,12 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 ## Prerequisites
 
 - Shell access on the host where Hermes runs terminal commands (local machine, Docker, SSH, Daytona, or Modal).
-- For OAuth device login: a user who can open a link on phone or desktop when authenticating (use <Badge text="auth:login --json" variant="default" />).
 - A working Hermes chat before adding skills — run <Badge text="hermes" variant="default" /> and confirm the agent responds.
+- For OAuth device login: you can authorize the sign-in link on your phone when the agent asks you to log in.
+
+<p class="not-prose flex justify-center">
+  <img src="/docs/getting-started-for-cli/oauth-mobile-login.webp" alt="OAuth mobile login" />
+</p>
 
 ## Installation
 
@@ -62,10 +66,10 @@ npm install -g @openquok/auto-cli@latest
 openquok --version
 ```
 
-Production auth uses the API at <Badge text="https://cli-auth.openquok.com" variant="new" /> and opens the browser on <Badge text="https://www.openquok.com/cli/device/verify" variant="new" /> — older CLIs rejected that split and failed with a <em>verification_uri … expected cli-auth.openquok.com</em> error.
+Production auth uses the API at <Badge text="https://cli-auth.openquok.com" variant="new" /> and opens the browser on <Badge text="https://www.openquok.com/cli/device/verify" variant="new" />.
 
 <Callout type="warning" title="CLI version update">
-<p>Installing a skill or restarting Hermes does <strong>not</strong> change <code>openquok --version</code>. If you still see <strong>0.0.4</strong> (or anything below <strong>0.0.6</strong>), run <code>npm install -g @openquok/auto-cli@latest</code> in the <strong>same</strong> environment where the agent executes shell commands.</p>
+<p>Installing a skill or restarting Hermes does <strong>not</strong> change <Badge text="openquok --version" variant="default"/>. You need to update vy yourself by running <Badge text="npm install -g @openquok/auto-cli@latest" variant="default"/> </p>
 </Callout>
 
 ### Install the openquok-core skill
@@ -80,28 +84,16 @@ curl -fsSL "https://raw.githubusercontent.com/Ratimon/openquok-monorepo/main/age
 
 You should see <Badge text="~/.hermes/skills/openquok-core/SKILL.md" variant="path" /> on disk. Start a <strong>new</strong> Hermes session (or run <Badge text="/skills" variant="default" /> in chat) so the agent reloads skill descriptions.
 
-<Callout type="note" title="Skills Hub">
-<p>Hermes also supports <code>hermes skills install</code> from the Skills Hub when a skill is published there. Until openquok-core appears in the hub, use the <code>curl</code> copy above or symlink from a local clone of the agent package.</p>
-</Callout>
-
 ### Authenticate
 
-**Recommended for headless hosts (VPS, Docker, Telegram bots):** rotate a programmatic token from the <a href="https://www.openquok.com">Openquok dashboard</a> (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />):
+**Recommended:** ask the agent in chat to log in to Openquok. It sends you a sign-in link; open it on your phone, sign in if needed, and tap <strong>Authorize</strong>.
+
+**Alternative for fully headless hosts (VPS, Docker, Telegram bots):** rotate a programmatic token from the <a href="https://www.openquok.com">Openquok dashboard</a> (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />):
 
 ```bash
 export OPENQUOK_API_KEY=opo_your_programmatic_token
 openquok auth:status
 ```
-
-**OAuth device flow** (user completes a browser step on another device):
-
-```bash
-openquok auth:login --json
-```
-
-Use only <Badge text="verification_uri_complete" variant="param" /> from the JSON output — never invent a code or URL. The user opens the prefilled link, signs in if needed, and approves the app; the CLI polls until credentials are stored in <Badge text="~/.openquok/credentials.json" variant="path" />.
-
-Do <strong>not</strong> use bare <Badge text="auth:login" variant="default" /> without <Badge text="--json" variant="param" /> on headless agents; it targets an interactive terminal with optional browser open on the agent machine.
 
 ### Confirm the agent can run commands
 
@@ -115,10 +107,10 @@ openquok integrations:list
 
 ## Hermes + messaging notes
 
-- Start a **new chat session** after installing the skill or upgrading the CLI so Hermes reloads skill instructions and checks <Badge text="openquok --version" variant="default" /> once at session start (per the skill).
-- If the agent reports an old CLI version after you upgraded, run <code>command -v openquok</code> and <code>which -a openquok</code> — another binary may be earlier on <Badge text="PATH" variant="param" />.
+- Start a **new chat session** after installing the skill or upgrading the CLI so Hermes reloads skils and checks <Badge text="openquok --version" variant="default" /> once at session start.
+- If the agent reports an old CLI version after you upgraded, run <Badge text="command -v openquok" variant="default" /> and <Badge text="which -a openquok" variant="default" /> — another binary may be earlier on <Badge text="PATH" variant="param" />.
 - Hermes separates secrets (<Badge text="~/.hermes/.env" variant="path" />) from config (<Badge text="~/.hermes/config.yaml" variant="path" />). Set <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> in the environment Hermes inherits for terminal tools, or export it in your shell profile before starting <Badge text="hermes gateway" variant="default" />.
-- For posting with images in chat, the user must provide a file on the host or a direct <code>https://</code> image URL for <Badge text="upload-from-url" variant="default" />; ask before calling <Badge text="posts:create" variant="default" /> with media.
+- For posting with images in chat, the user must provide a file  or a direct <code>https://</code> image URL for <Badge text="upload-from-url" variant="default" />; ask before calling <Badge text="posts:create" variant="default" /> with media.
 
 ## Run on a VPS or serverless host
 
@@ -132,9 +124,6 @@ On headless hosts prefer <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> 
 <p>Confirm <Badge text="~/.hermes/skills/openquok-core/SKILL.md" variant="path" /> exists and start a new session. Run <Badge text="/skills" variant="default" /> in the CLI to list loaded skills.</p>
 </Callout>
 
-<Callout type="danger" title="Verification Url Mismatch">
-<p>If <Badge text="auth:login --json" variant="default" /> fails because <Badge text="verification_uri" variant="param" /> is on <Badge text="www.openquok.com" variant="new" /> but the CLI expected <Badge text="cli-auth.openquok.com" variant="new" />, upgrade the global package (<code>npm install -g @openquok/auto-cli@latest</code>). That check was fixed in <strong>0.0.6+</strong>.</p>
-</Callout>
 
 <Callout type="note" title="Invalid or expired code">
 <p>The user must open the exact <Badge text="verification_uri_complete" variant="param" /> link from <Badge text="auth:login --json" variant="default" /> while the CLI is still polling. Codes expire in about 15 minutes. Pre-login at openquok.com alone does not validate the device code.</p>

@@ -78,13 +78,11 @@ Create an app in <DocsExternalLink href="https://developers.facebook.com/apps">M
 
 ![Step 1 - Create a Meta app](/docs/social-integration/meta/create-meta-app.webp)
 
-
 ### Select use case
 
 Select **Other**.
 
 ![Step 2 - Select Other Type](/docs/social-integration/meta/select-other-usecases.webp)
-
 
 ### Select app type
 
