@@ -19,7 +19,7 @@
 	const [labelKey, labelFallback] = $derived.by((): [string, string] => {
 		// Mirror the original flow: choose a translation key + fallback by postComment mode.
 		// Note: upstream's `add_post` fallback is "Add post in a thread".
-		if (postComment === 'POST') return ['add_post', 'Add post in a thread'];
+		if (postComment === 'POST') return ['add_post', 'Add more thread'];
 		if (postComment === 'COMMENT') return ['add_comment', 'Add comment'];
 		return ['add_comment_or_post', 'Add comment or post'];
 	});
