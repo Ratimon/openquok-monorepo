@@ -22,8 +22,8 @@ Match `sdk/package.json` `version` to the tag (`sdk-v0.0.7` → `"0.0.7"`). Comm
 git add sdk/
 git commit -m "chore(sdk): release 0.0.7"
 git push origin main
-git tag sdk-v0.0.7
-git push origin sdk-v0.0.7
+git tag sdk-v0.0.8
+git push origin sdk-v0.0.8
 ```
 
 Requires GitHub secret **`NPM_AUTH_TOKEN`** — see **CI npm token** below.
