@@ -35,6 +35,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'craft',
 	'cli',
 	'openclaw',
+	'hermes',
 	'social media',
 	'approve',
 	'scale',

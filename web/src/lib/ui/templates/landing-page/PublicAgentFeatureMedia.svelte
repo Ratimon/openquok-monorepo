@@ -9,15 +9,17 @@
 	import SafariMock from '$lib/ui/templates/device-mocks/safari/SafariMock.svelte';
 	import SafariMockContent from '$lib/ui/templates/device-mocks/safari/SafariMockContent.svelte';
 	import TerminalCommandMockContent from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMockContent.svelte';
+	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
 	type Props = {
 		section: Pick<
 			PublicAgentFeatureSection,
 			'deviceMock' | 'deviceMockContent' | 'imageAlt' | 'subtitle'
 		>;
+		telegramAgentBranding?: TelegramMockAgentBranding;
 	};
 
-	let { section }: Props = $props();
+	let { section, telegramAgentBranding }: Props = $props();
 </script>
 
 {#if section.deviceMock === 'safari'}
@@ -33,7 +35,10 @@
 		aria-label={section.imageAlt ?? section.subtitle}
 	>
 		<Iphone15ProMock class="h-full w-auto max-w-full">
-			<Iphone15ProMockContent content={section.deviceMockContent as IphoneMockContentId | undefined} />
+			<Iphone15ProMockContent
+				content={section.deviceMockContent as IphoneMockContentId | undefined}
+				{telegramAgentBranding}
+			/>
 		</Iphone15ProMock>
 	</div>
 {:else if section.deviceMock === 'terminal'}

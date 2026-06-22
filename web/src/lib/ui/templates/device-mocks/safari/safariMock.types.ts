@@ -1,1 +1,1 @@
-export type SafariMockContentId = 'openclaw-docs-overview';
+export type SafariMockContentId = 'openclaw-docs-overview' | 'hermes-docs-overview';

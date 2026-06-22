@@ -7,15 +7,17 @@
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import PublicAgentFeatureMedia from '$lib/ui/templates/landing-page/PublicAgentFeatureMedia.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
 	type Props = {
 		section: PublicAgentFeatureSection;
 		index: number;
 		ctaText: string;
 		ctaHref: string;
+		telegramAgentBranding?: TelegramMockAgentBranding;
 	};
 
-	let { section, index, ctaText, ctaHref }: Props = $props();
+	let { section, index, ctaText, ctaHref, telegramAgentBranding }: Props = $props();
 
 	const bgColorClass = $derived(index % 2 === 0 ? 'bg-base-100' : 'bg-base-200');
 	const cliCommandsTitle = $derived(section.cliCommandsTitle ?? 'CLI command options');
@@ -60,7 +62,7 @@
 			mediaColumnClass="justify-center"
 		>
 			{#snippet rightMedia()}
-				<PublicAgentFeatureMedia {section} />
+				<PublicAgentFeatureMedia {section} {telegramAgentBranding} />
 			{/snippet}
 			{#snippet children()}
 				{@render cliCommandsBlock()}
@@ -87,7 +89,7 @@
 		mediaColumnClass="justify-center"
 	>
 		{#snippet leftMedia()}
-			<PublicAgentFeatureMedia {section} />
+			<PublicAgentFeatureMedia {section} {telegramAgentBranding} />
 		{/snippet}
 		{#snippet children()}
 			{@render cliCommandsBlock()}

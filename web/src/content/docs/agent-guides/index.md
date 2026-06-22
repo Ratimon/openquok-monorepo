@@ -1,6 +1,6 @@
 ---
 title: Overview Agents
-description: Platform-specific setup for running the Openquok CLI and openquok-core skill with AI agent hosts (OpenClaw, Telegram, and similar).
+description: Platform-specific setup for running the Openquok CLI and openquok-core skill with AI agent hosts (OpenClaw, Hermes Agent, Telegram, and similar).
 order: 0
 lastUpdated: 2026-05-16
 ---
@@ -14,11 +14,12 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 Guides for wiring <Badge text="@openquok/auto-cli" variant="experimental" /> into **agent runtimes** — not generic shell usage on your laptop. Each page covers where to install the skill, where the <Badge text="openquok" variant="default" /> binary must live, and auth patterns that work when the agent has no browser.
 
 <Callout type="note" title="CLI docs vs agent guides">
-<p>Install the CLI, OAuth device flow, and command reference live under <a href="/docs/getting-started-for-cli">Getting started for CLI</a>. Use this section when the agent runs inside <strong>Docker</strong>, <strong>OpenClaw</strong>, or another host where <code>npx skills add</code> and <code>openquok</code> share the same environment.</p>
+<p>Install the CLI, OAuth device flow, and command reference live under <a href="/docs/getting-started-for-cli">Getting started for CLI</a>. Use this section when the agent runs inside <strong>Docker</strong>, <strong>OpenClaw</strong>, <strong>Hermes Agent</strong>, or another host where shell tools and skills share the same environment.</p>
 </Callout>
 
 <CardGrid>
 <LinkCard title="OpenClaw" description="Install openquok-core under /data/workspace, upgrade the global CLI, and authenticate from Telegram or chat" href="/docs/agent-guides/openclaw" />
+<LinkCard title="Hermes Agent" description="Install openquok-core under ~/.hermes/skills/, upgrade the global CLI, and authenticate from Telegram or gateway chat" href="/docs/agent-guides/hermes" />
 </CardGrid>
 
 ## Related Section(s)

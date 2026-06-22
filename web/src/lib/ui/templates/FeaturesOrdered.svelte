@@ -15,6 +15,7 @@
 	import SafariMock from '$lib/ui/templates/device-mocks/safari/SafariMock.svelte';
 	import SafariMockContent from '$lib/ui/templates/device-mocks/safari/SafariMockContent.svelte';
 	import TerminalCommandMockContent from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMockContent.svelte';
+	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
 	export type { FeaturesOrderedDeviceMock, FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
 
@@ -37,6 +38,7 @@
 		heroTheme?: LandingHeroTheme;
 		sectionSubtitle?: string;
 		sectionTitle?: string;
+		telegramAgentBranding?: TelegramMockAgentBranding;
 	};
 
 	let {
@@ -47,7 +49,8 @@
 		sectionClass = 'bg-base-200 py-16 sm:py-20',
 		heroTheme,
 		sectionSubtitle = '',
-		sectionTitle = ''
+		sectionTitle = '',
+		telegramAgentBranding
 	}: Props = $props();
 
 	let currentIndex = $state(-1);
@@ -278,6 +281,7 @@
 								<Iphone15ProMock class="h-full w-auto max-w-full">
 									<Iphone15ProMockContent
 										content={activeStep.deviceMockContent as IphoneMockContentId | undefined}
+										{telegramAgentBranding}
 									/>
 								</Iphone15ProMock>
 							</div>
@@ -286,10 +290,13 @@
 								content={activeStep.deviceMockContent as TerminalMockContentId | undefined}
 							/>
 						{:else if activeStep?.animatedContent === 'llm-models'}
-							<FeaturesAnimated ariaLabel={activeStep.mediaAlt ?? activeStep.title} />
+							<FeaturesAnimated
+								models={activeStep.animatedModels}
+								ariaLabel={activeStep.mediaAlt ?? activeStep.title}
+							/>
 						{:else if activeStep?.animatedContent === 'agent-integrations'}
 							<FeaturesAnimated
-								models={DEFAULT_AGENT_INTEGRATIONS}
+								models={activeStep.animatedModels ?? DEFAULT_AGENT_INTEGRATIONS}
 								ariaLabel={activeStep.mediaAlt ?? activeStep.title}
 							/>
 						{:else if activeStep?.mediaSrc}

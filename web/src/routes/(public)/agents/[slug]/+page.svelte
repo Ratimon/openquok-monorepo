@@ -2,6 +2,10 @@
 	import type { PageData } from './$types';
 
 	import {
+		HERMES_CORE_MESSAGING_CHANNELS,
+		HERMES_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/hermes-messaging-channels';
+	import {
 		OPENCLAW_CORE_MESSAGING_CHANNELS,
 		OPENCLAW_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/openclaw-messaging-channels';
@@ -49,6 +53,26 @@
 	let accentBannerDescription = $derived(
 		accentSplitCtaBannerDescription(agentVm?.agentLabel ?? 'your agent')
 	);
+
+	const coreMessagingChannels = $derived(
+		agentVm?.slug === 'hermes'
+			? HERMES_CORE_MESSAGING_CHANNELS
+			: OPENCLAW_CORE_MESSAGING_CHANNELS
+	);
+	const extensionMessagingChannels = $derived(
+		agentVm?.slug === 'hermes'
+			? HERMES_EXTENSION_MESSAGING_CHANNELS
+			: OPENCLAW_EXTENSION_MESSAGING_CHANNELS
+	);
+
+	const telegramAgentBranding = $derived(
+		agentVm
+			? {
+					agentIcon: agentVm.icon,
+					agentLabel: agentVm.telegramBotLabel ?? agentVm.agentLabel
+				}
+			: undefined
+	);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -69,6 +93,7 @@
 			heroTheme={landingHeroTheme}
 			sectionSubtitle={agentVm.setupStepsSubtitle}
 			sectionTitle={agentVm.setupStepsTitle}
+			{telegramAgentBranding}
 		/>
 	{/if}
 
@@ -85,6 +110,7 @@
 			{index}
 			ctaText={secondaryCtaText}
 			ctaHref={secondaryCtaHref}
+			{telegramAgentBranding}
 		/>
 	{/each}
 
@@ -118,8 +144,8 @@
 			description={agentVm.supportedChannelsSection.description}
 			subtitle={agentVm.supportedChannelsSection.subtitle}
 			extensionLabel={agentVm.supportedChannelsSection.extensionLabel}
-			items={OPENCLAW_CORE_MESSAGING_CHANNELS}
-			extensionItems={OPENCLAW_EXTENSION_MESSAGING_CHANNELS}
+			items={coreMessagingChannels}
+			extensionItems={extensionMessagingChannels}
 		/>
 	{/if}
 

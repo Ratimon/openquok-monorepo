@@ -1,7 +1,18 @@
 <script lang="ts">
-	import { icons } from '$data/icons';
+	import type { IconName } from '$data/icons';
 
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import TelegramMockAgentHeader from '$lib/ui/templates/device-mocks/iphone-15-pro/content/TelegramMockAgentHeader.svelte';
+	import { DEFAULT_TELEGRAM_MOCK_AGENT_BRANDING } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
+
+	type Props = {
+		agentIcon?: IconName;
+		agentLabel?: string;
+	};
+
+	let {
+		agentIcon = DEFAULT_TELEGRAM_MOCK_AGENT_BRANDING.agentIcon,
+		agentLabel = DEFAULT_TELEGRAM_MOCK_AGENT_BRANDING.agentLabel
+	}: Props = $props();
 </script>
 
 <div
@@ -19,24 +30,7 @@
 			</span>
 		</div>
 
-		<div class="flex items-center gap-3 px-3.5 pb-3 pt-1.5">
-			<span class="shrink-0 text-lg leading-none opacity-90" aria-hidden="true">‹</span>
-			<div
-				class="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-[#2EA6DE]"
-			>
-				<AbstractIcon
-					name={icons.OpenClaw.name}
-					class="size-5"
-					width="20"
-					height="20"
-					aria-hidden="true"
-				/>
-			</div>
-			<div class="min-w-0">
-				<h2 class="truncate text-base font-semibold leading-tight">OpenClaw</h2>
-				<p class="mt-0.5 text-xs opacity-80">bot</p>
-			</div>
-		</div>
+		<TelegramMockAgentHeader {agentIcon} {agentLabel} />
 	</div>
 
 	<div
@@ -50,7 +44,7 @@
 		<div
 			class="max-w-[75%] self-start rounded-xl rounded-tl-sm bg-white px-3.5 py-2.5 leading-snug shadow-sm"
 		>
-			To connect Telegram, open @BotFather and create a new bot for OpenClaw.
+			To connect Telegram, open @BotFather and create a new bot for {agentLabel}.
 			<span class="float-right mt-1 ml-2.5 text-[10px] text-[#888]">9:41 AM</span>
 		</div>
 
@@ -64,7 +58,7 @@
 		<div
 			class="max-w-[75%] self-start rounded-xl rounded-tl-sm bg-white px-3.5 py-2.5 leading-snug shadow-sm"
 		>
-			Paste it in your OpenClaw channel settings and I'll handle the rest.
+			Paste it in your {agentLabel} channel settings and I'll handle the rest.
 			<span class="float-right mt-1 ml-2.5 text-[10px] text-[#888]">9:42 AM</span>
 		</div>
 	</div>

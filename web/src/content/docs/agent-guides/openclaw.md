@@ -106,10 +106,6 @@ Then open a shell in the Railway service, <code>cd /data/workspace</code>, and c
 
 ## Troubleshooting
 
-<Callout type="danger" title="Missing required argument: source">
-<p>You pasted <code>npx skills add</code> on one line and the GitHub URL on the next (or used <Badge text=".../agent/skills" variant="path" /> as the source). Run the <strong>one-line</strong> command from the install step above. The working source is <Badge text="https://github.com/Ratimon/openquok-monorepo/tree/main/agent" variant="new" /> with <Badge text="--skill openquok-core" variant="param" /> on the same line.</p>
-</Callout>
-
 <Callout type="danger" title="Verification Url Mismatch">
 <p>If <Badge text="auth:login --json" variant="default" /> fails because <Badge text="verification_uri" variant="param" /> is on <Badge text="www.openquok.com" variant="new" /> but the CLI expected <Badge text="cli-auth.openquok.com" variant="new" />, upgrade the global package (<code>npm install -g @openquok/auto-cli@latest</code>). That check was fixed in <strong>0.0.6+</strong>.</p>
 </Callout>
