@@ -1,12 +1,12 @@
 <script lang="ts">
 	import {
-		OPENQUOK_CORE_SKILL_INSTALL_NPX
+		OPENQUOK_CORE_SKILL_INSTALL_HERMES_CLI
 	} from '$lib/content/constants/openquokCliCommandReference';
 
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 
-	const installCommands = `# Install openquok-core skill (project scope)
-${OPENQUOK_CORE_SKILL_INSTALL_NPX}
+	const installCommands = `# Install openquok-core skill (~/.hermes/skills/)
+${OPENQUOK_CORE_SKILL_INSTALL_HERMES_CLI}
 
 # Install global CLI
 npm install -g @openquok/auto-cli@latest
@@ -24,5 +24,5 @@ openquok auth:status`;
 
 <TerminalCommandMock
 	code={installCommands}
-	ariaLabel="Install openquok-core skill and authenticate with OAuth2 or a programmatic token"
+	ariaLabel="Install openquok-core skill on Hermes and authenticate with OAuth2 or a programmatic token"
 />

@@ -1,11 +1,10 @@
 <script lang="ts">
 	import type { PublicAgentLandingPage } from '$lib/content/constants/publicAgentConfig';
-	import { OPENQUOK_CORE_SKILL_INSTALL_COMMAND } from '$lib/content/constants/openquokCliCommandReference';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
-	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
+	import SkillInstallCommandTabs from '$lib/ui/templates/landing-page/SkillInstallCommandTabs.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -95,11 +94,7 @@
 				>
 					Install our core skill:
 				</h2>
-				<TerminalCommandMock
-					code={OPENQUOK_CORE_SKILL_INSTALL_COMMAND}
-					ariaLabel="Copy openquok-core skill install command to clipboard"
-					class="[&>div]:text-sm sm:[&>div]:text-base"
-				/>
+				<SkillInstallCommandTabs options={agent.skillInstallOptions} />
 			</section>
 		</div>
 	</div>

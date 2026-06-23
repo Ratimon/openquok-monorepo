@@ -17,6 +17,8 @@
     "test:e2e": "node ./run-vitest.mjs run tests/e2e",
     "test:watch": "node ./run-vitest.mjs --watch",
     "publish:manual": "pnpm run build && pnpm publish --access public",
+    "publish:clawhub:dry-run": "clawhub skill publish ./skills/openquok-core --slug openquok-core --name \"OpenQuok Core\" --dry-run",
+    "publish:clawhub:manual": "clawhub skill publish ./skills/openquok-core --slug openquok-core --name \"OpenQuok Core\"",
     "prepublishOnly": "pnpm run build"
   },
   "publishConfig": {

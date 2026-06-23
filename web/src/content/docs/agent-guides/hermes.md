@@ -6,7 +6,7 @@ lastUpdated: 2026-06-22
 ---
 
 <script>
-import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, Tabs } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 
@@ -69,12 +69,28 @@ openquok --version
 Production auth uses the API at <Badge text="https://cli-auth.openquok.com" variant="new" /> and opens the browser on <Badge text="https://www.openquok.com/cli/device/verify" variant="new" />.
 
 <Callout type="warning" title="CLI version update">
-<p>Installing a skill or restarting Hermes does <strong>not</strong> change <Badge text="openquok --version" variant="default"/>. You need to update vy yourself by running <Badge text="npm install -g @openquok/auto-cli@latest" variant="default"/> </p>
+<p>Installing a skill or restarting Hermes does <strong>not</strong> change <Badge text="openquok --version" variant="default"/>. You need to update it yourself by running <Badge text="npm install -g @openquok/auto-cli@latest" variant="default"/> </p>
 </Callout>
 
 ### Install the openquok-core skill
 
-Hermes loads skills from <Badge text="~/.hermes/skills/" variant="path" />. Create the skill directory and copy the authoritative skill file from the monorepo:
+The skill file lives at <Badge text="agent/skills/openquok-core/SKILL.md" variant="path" /> in the monorepo. Hermes loads skills from <Badge text="~/.hermes/skills/" variant="path" />. Choose one install path:
+
+<Tabs items={["hermes CLI", "curl"]}>
+<TabItem label="hermes CLI">
+
+<p>Install a single-file skill from the monorepo URL. The skill name comes from the YAML frontmatter (<Badge text="openquok-core" variant="default" />).</p>
+
+```bash
+hermes skills install https://raw.githubusercontent.com/Ratimon/openquok-monorepo/main/agent/skills/openquok-core/SKILL.md
+```
+
+<p>Run this in the <strong>Hermes terminal</strong> (local shell, SSH, or container exec) — the same environment Hermes uses for shell tools. On Telegram, Discord, and other gateways, <Badge text="/skills install" variant="default" /> is not available; search and install are CLI-only.</p>
+
+</TabItem>
+<TabItem label="curl">
+
+<p>Manual copy when <Badge text="hermes skills install" variant="default" /> is unavailable (minimal shell, no Hermes CLI on PATH).</p>
 
 ```bash
 mkdir -p ~/.hermes/skills/openquok-core
@@ -82,7 +98,10 @@ curl -fsSL "https://raw.githubusercontent.com/Ratimon/openquok-monorepo/main/age
   -o ~/.hermes/skills/openquok-core/SKILL.md
 ```
 
-You should see <Badge text="~/.hermes/skills/openquok-core/SKILL.md" variant="path" /> on disk. Start a <strong>new</strong> Hermes session (or run <Badge text="/skills" variant="default" /> in chat) so the agent reloads skill descriptions.
+</TabItem>
+</Tabs>
+
+Start a <strong>new</strong> Hermes session after install so skill descriptions reload. You should see <Badge text="~/.hermes/skills/openquok-core/SKILL.md" variant="path" /> on disk. In the Hermes CLI, <Badge text="hermes skills list" variant="default" /> or <Badge text="/reload-skills" variant="default" /> confirms the skill is loaded.
 
 ### Authenticate
 

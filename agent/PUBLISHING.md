@@ -166,3 +166,15 @@ openquok --help
 | `cli-vX.Y.Z` | `@openquok/auto-cli` | `cli_publish` |
 
 The CLI job runs `pnpm run publish:cli:build` (monorepo build script), then `npm publish` from `agent/` via OIDC.
+
+## ClawHub (openquok-core skill)
+
+The agent skill bundle is published separately from npm. See [CLAWHUB.md](./CLAWHUB.md) for details.
+
+```bash
+# From monorepo root — preview, then publish
+pnpm publish:clawhub:dry-run
+pnpm publish:clawhub:manual
+```
+
+Consumer install after publish: `clawhub install openquok-core`.

@@ -7,8 +7,15 @@ import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-
 import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
 import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
-import type { OpenquokCliCommandReferenceItem } from '$lib/content/constants/openquokCliCommandReference';
-import { OPENQUOK_CLI_COMMAND_REFERENCE } from '$lib/content/constants/openquokCliCommandReference';
+import type {
+	OpenquokCliCommandReferenceItem,
+	SkillInstallOption
+} from '$lib/content/constants/openquokCliCommandReference';
+import {
+	HERMES_SKILL_INSTALL_OPTIONS,
+	OPENCLAW_SKILL_INSTALL_OPTIONS,
+	OPENQUOK_CLI_COMMAND_REFERENCE
+} from '$lib/content/constants/openquokCliCommandReference';
 import type { ComparisonPoint } from '$lib/ui/templates/WithWithout.svelte';
 
 export type FeaturesAnimatedContentId = 'llm-models' | 'agent-integrations';
@@ -182,6 +189,8 @@ export type PublicAgentLandingPage = {
 	commandReferenceSection?: PublicAgentCommandReferenceSection;
 	/** Setup guide under `/docs/`. */
 	docsPath: string;
+	/** Copy-paste commands for installing openquok-core on this agent host. */
+	skillInstallOptions: readonly SkillInstallOption[];
 	/** When false, hub shows a coming-soon badge and detail route 404s. */
 	available: boolean;
 };
@@ -391,7 +400,7 @@ openquok analytics:post <post-id> -d 7`
 		{
 			title: 'How do I install the OpenQuok skill in OpenClaw?',
 			description:
-				'From your OpenClaw workspace directory, run npx skills add on the agent package root with --skill openquok-core (add -y on headless hosts). Install the global CLI with npm install -g @openquok/auto-cli, set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json, and OpenClaw discovers the skill automatically. See the OpenClaw agent guide in Dev Docs for the exact one-line install command.'
+				'From your OpenClaw workspace directory, run npx skills add on the agent package root with --skill openquok-core (add -y on headless hosts), or after ClawHub publish run clawhub install openquok-core. Install the global CLI with npm install -g @openquok/auto-cli, set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json, and OpenClaw discovers the skill automatically. See the OpenClaw agent guide in Dev Docs for the exact commands.'
 		},
 		{
 			title: 'What can OpenClaw do with OpenQuok?',
@@ -425,6 +434,7 @@ openquok analytics:post <post-id> -d 7`
 		}
 	],
 	docsPath: '/docs/agent-guides/openclaw',
+	skillInstallOptions: OPENCLAW_SKILL_INSTALL_OPTIONS,
 	available: true
 };
 
@@ -537,7 +547,7 @@ openquok analytics:post <post-id> -d 7`
 			content: 'Add openquok-core under ~/.hermes/skills/ and authenticate the global CLI once.',
 			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
 			deviceMock: 'terminal',
-			deviceMockContent: 'openquok-skill-install',
+			deviceMockContent: 'openquok-skill-install-hermes',
 			iconName: icons.OpenQuok.name
 		},
 		{
@@ -639,7 +649,7 @@ openquok analytics:post <post-id> -d 7`
 		{
 			title: 'How do I install the OpenQuok skill in Hermes Agent?',
 			description:
-				'Install the global CLI with npm install -g @openquok/auto-cli, copy openquok-core into ~/.hermes/skills/openquok-core/ (SKILL.md from the monorepo agent package), set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json, then start a new Hermes session so the skill loads. See the Hermes agent guide in Dev Docs for the exact commands.'
+				'Install the global CLI with npm install -g @openquok/auto-cli, then run hermes skills install with the openquok-core SKILL.md URL from the monorepo (or copy the file into ~/.hermes/skills/openquok-core/). Set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json, then start a new Hermes session so the skill loads. See the Hermes agent guide in Dev Docs for exact commands.'
 		},
 		{
 			title: 'What can Hermes Agent do with OpenQuok?',
@@ -673,6 +683,7 @@ openquok analytics:post <post-id> -d 7`
 		}
 	],
 	docsPath: '/docs/agent-guides/hermes',
+	skillInstallOptions: HERMES_SKILL_INSTALL_OPTIONS,
 	available: true
 };
 

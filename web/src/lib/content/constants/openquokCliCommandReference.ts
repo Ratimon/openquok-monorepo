@@ -3,9 +3,47 @@ export type OpenquokCliCommandReferenceItem = {
 	description: string;
 };
 
-/** One-line npx skills add for openquok-core (agent package root, headless -y). */
-export const OPENQUOK_CORE_SKILL_INSTALL_COMMAND =
-	'npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core -y';
+export type SkillInstallOption = {
+	id: string;
+	label: string;
+	command: string;
+};
+
+const OPENQUOK_CORE_SKILL_GITHUB_TREE_URL =
+	'https://github.com/Ratimon/openquok-monorepo/tree/main/agent';
+
+const OPENQUOK_CORE_SKILL_RAW_URL =
+	'https://raw.githubusercontent.com/Ratimon/openquok-monorepo/main/agent/skills/openquok-core/SKILL.md';
+
+/** ClawHub slug after `clawhub skill publish` (matches SKILL.md frontmatter `name`). */
+export const OPENQUOK_CORE_SKILL_CLAWHUB_SLUG = 'openquok-core';
+
+/** OpenClaw: npx skills add on the agent package root (headless -y). */
+export const OPENQUOK_CORE_SKILL_INSTALL_NPX = `npx skills add ${OPENQUOK_CORE_SKILL_GITHUB_TREE_URL} --skill openquok-core -y`;
+
+/** OpenClaw: install from ClawHub registry (run from workspace directory). */
+export const OPENQUOK_CORE_SKILL_INSTALL_CLAWHUB = `clawhub install ${OPENQUOK_CORE_SKILL_CLAWHUB_SLUG}`;
+
+/** Hermes: install single-file SKILL.md via hermes skills install (name from frontmatter). */
+export const OPENQUOK_CORE_SKILL_INSTALL_HERMES_CLI = `hermes skills install ${OPENQUOK_CORE_SKILL_RAW_URL}`;
+
+/** Hermes: manual copy when hermes CLI is unavailable. */
+export const OPENQUOK_CORE_SKILL_INSTALL_HERMES_CURL = `mkdir -p ~/.hermes/skills/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/.hermes/skills/openquok-core/SKILL.md`;
+
+/** @deprecated Use agent-specific `skillInstallOptions` instead. */
+export const OPENQUOK_CORE_SKILL_INSTALL_COMMAND = OPENQUOK_CORE_SKILL_INSTALL_NPX;
+
+export const OPENCLAW_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'npx', label: 'npx', command: OPENQUOK_CORE_SKILL_INSTALL_NPX },
+	{ id: 'clawhub', label: 'ClawHub', command: OPENQUOK_CORE_SKILL_INSTALL_CLAWHUB }
+];
+
+export const HERMES_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'hermes-cli', label: 'hermes CLI', command: OPENQUOK_CORE_SKILL_INSTALL_HERMES_CLI },
+	{ id: 'curl', label: 'curl', command: OPENQUOK_CORE_SKILL_INSTALL_HERMES_CURL }
+];
 
 /** Essential openquok commands for public agent landing pages (full list in agent skill docs). */
 export const OPENQUOK_CLI_COMMAND_REFERENCE: readonly OpenquokCliCommandReferenceItem[] = [

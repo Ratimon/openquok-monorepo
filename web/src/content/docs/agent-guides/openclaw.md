@@ -6,7 +6,7 @@ lastUpdated: 2026-05-16
 ---
 
 <script>
-import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, Tabs } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 
@@ -36,15 +36,35 @@ If your deployment uses a different mount path, use the directory where OpenClaw
 
 ### Install the openquok-core skill
 
-The skill file lives at <Badge text="agent/skills/openquok-core/SKILL.md" variant="path" /> in the monorepo. The <code>npx skills add</code> source must be the <strong>agent</strong> package root (<Badge text=".../tree/main/agent" variant="path" />), not <Badge text=".../agent/skills" variant="path" />.
+The skill file lives at <Badge text="agent/skills/openquok-core/SKILL.md" variant="path" /> in the monorepo. Choose one install path from your OpenClaw workspace (e.g. <Badge text="cd /data/workspace" variant="default" /> on Docker/Railway):
+
+<Tabs items={["npx", "ClawHub"]}>
+<TabItem label="npx">
+
+<p>Install directly from GitHub. The <Badge text="npx skills add" variant="default" /> source must be the <strong>agent</strong> package root (<Badge text=".../tree/main/agent" variant="path" />), not <Badge text=".../agent/skills" variant="path" />.</p>
 
 <Callout type="warning">
-<p>Paste the command below as a <strong>single line</strong> (do not press Enter after <code>npx skills add</code>).</p>
+<p>Paste the command below:</p>
+
 <pre class="my-3 max-w-full rounded-lg bg-base-200/80 p-3 text-sm break-all whitespace-pre-wrap"><code>npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core -y</code></pre>
 <p><code>-y</code> skips install prompts on headless hosts (Railway shell, OpenClaw container). Without <code>-y</code>, choose <strong>Project</strong> scope and <strong>Symlink</strong> when asked.</p>
 </Callout>
 
-You should see <Badge text="./.agents/skills/openquok-core" variant="path" /> in the install summary.
+</TabItem>
+<TabItem label="ClawHub">
+
+<p>Install from the public registry after the skill is published on <DocsExternalLink href="https://clawhub.ai">ClawHub</DocsExternalLink>. Requires the <DocsExternalLink href="https://docs.openclaw.ai/clawhub/cli">clawhub CLI</DocsExternalLink> (<Badge text="npm i -g clawhub" variant="default" />).</p>
+
+```bash
+clawhub install openquok-core
+```
+
+<p>Equivalent: <Badge text="openclaw skills install openquok-core" variant="default" />. Update later with <Badge text="clawhub update openquok-core" variant="default" />.</p>
+
+</TabItem>
+</Tabs>
+
+You should see <Badge text="./.agents/skills/openquok-core" variant="path" /> (npx) or <Badge text="./skills/openquok-core" variant="path" /> (ClawHub).
 
 ### Install or upgrade the global CLI
 
@@ -58,7 +78,7 @@ openquok --version
 Production auth uses the API at <Badge text="https://cli-auth.openquok.com" variant="new" /> and opens the browser on <Badge text="https://www.openquok.com/cli/device/verify" variant="new" />.
 
 <Callout type="warning" title="CLI version update">
-<p>Installing a skill or restarting Hermes does <strong>not</strong> change <Badge text="openquok --version" variant="default"/>. You need to update vy yourself by running <Badge text="npm install -g @openquok/auto-cli@latest" variant="default"/> </p>
+<p>Installing a skill or restarting OpenClaw does <strong>not</strong> change <Badge text="openquok --version" variant="default"/>. You need to update it yourself by running <Badge text="npm install -g @openquok/auto-cli@latest" variant="default"/> </p>
 </Callout>
 
 ### Authenticate
@@ -107,6 +127,21 @@ Then open a shell in the Railway service, <code>cd /data/workspace</code>, and c
 <Callout type="note" title="Invalid or expired code">
 <p>The user must open the exact <Badge text="verification_uri_complete" variant="param" /> link from <Badge text="auth:login --json" variant="default" /> while the CLI is still polling. Codes expire in about 15 minutes. Pre-login at openquok.com alone does not validate the device code.</p>
 </Callout>
+
+## Publishing to ClawHub (maintainers)
+
+To list <Badge text="openquok-core" variant="default" /> on ClawHub so users can run <Badge text="clawhub install openquok-core" variant="default" />:
+
+```bash
+npm i -g clawhub
+clawhub login
+clawhub skill publish ./agent/skills/openquok-core \
+  --slug openquok-core \
+  --name "OpenQuok Core" \
+  --dry-run
+```
+
+Remove <Badge text="--dry-run" variant="param" /> for the live upload. Full checklist, CI workflow, and verification steps are in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/CLAWHUB.md">agent/CLAWHUB.md</DocsExternalLink> in the monorepo.
 
 ## Skill source on GitHub
 
