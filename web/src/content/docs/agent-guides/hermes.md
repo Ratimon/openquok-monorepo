@@ -85,7 +85,7 @@ The skill file lives at <Badge text="agent/skills/openquok-core/SKILL.md" varian
 hermes skills install https://raw.githubusercontent.com/Ratimon/openquok-monorepo/main/agent/skills/openquok-core/SKILL.md
 ```
 
-<p>Run this in the <strong>Hermes terminal</strong> (local shell, SSH, or container exec) — the same environment Hermes uses for shell tools. On Telegram, Discord, and other gateways, <Badge text="/skills install" variant="default" /> is not available; search and install are CLI-only.</p>
+<p>Run this in the <strong>Hermes terminal</strong> — the same environment Hermes uses for shell tools.
 
 </TabItem>
 <TabItem label="curl">

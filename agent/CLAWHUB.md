@@ -2,7 +2,7 @@
 
 [ClawHub](https://clawhub.ai) is the public skill registry for OpenClaw. After publish, users can install with `clawhub install openquok-core` or `openclaw skills install openquok-core` from their OpenClaw workspace.
 
-The skill bundle lives at `agent/skills/openquok-core/` (`SKILL.md` plus `resources/`). It already includes the `metadata.openclaw` frontmatter ClawHub expects (`requires.bins: ["openquok"]`, `always: true`, etc.).
+The skill bundle lives at `agent/skills/openquok-core/` (`SKILL.md` plus `resources/`). Frontmatter declares both hosts: OpenClaw `metadata.openclaw.requires.bins` and Hermes `prerequisites.commands` + `metadata.hermes`.
 
 ## Prerequisites
 

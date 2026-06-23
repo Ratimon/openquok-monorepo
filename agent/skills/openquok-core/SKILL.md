@@ -3,7 +3,12 @@ name: openquok-core
 description: >-
   Schedule and manage social posts with the openquok CLI — authenticate, upload media, create drafts and scheduled posts, and read channel analytics for integrations in your OpenQuok workspace.
 homepage: https://www.npmjs.com/package/@openquok/auto-cli
-metadata: {"openclaw":{"emoji":"📮","always":true,"requires":{"bins":["openquok"],"env":[]}}}
+version: 1.0.0
+license: MIT
+compatibility: Requires the global openquok CLI on PATH (see homepage). Installing this skill does not add the binary.
+prerequisites:
+  commands: [openquok]
+metadata: {"openclaw":{"emoji":"📮","always":true,"requires":{"bins":["openquok"]},"homepage":"https://www.npmjs.com/package/@openquok/auto-cli"},"hermes":{"tags":["social-media","openquok","scheduling"],"category":"social-media","requires_toolsets":["terminal"]}}
 ---
 
 <!-- SPDX-FileCopyrightText: 2026 Rati Montreewat -->

@@ -49,6 +49,11 @@ Hermes (`hermes skills install <url>`) and ClawHub run automated scans on `SKILL
 
 - **`description`** — short product summary for search/registry UI only (what the skill does). Do **not** put session bootstrap logic, version stamps, or “overrides host …” instructions in `description`.
 - **`homepage`** — use for CLI upgrade/install pointers (`@openquok/auto-cli` npm page) instead of embedding package-manager commands in the body.
+- **`metadata` (single-line JSON)** — OpenClaw’s parser accepts **only** single-line `metadata` (not nested YAML under that key). Put both hosts in one JSON object:
+  - **OpenClaw / ClawHub:** `openclaw.requires.bins: ["openquok"]`, `always`, `emoji`, optional `openclaw.homepage` (top-level `homepage` is also valid).
+  - **Hermes:** `hermes.tags`, `hermes.category`, `hermes.requires_toolsets: ["terminal"]` as keys inside the same JSON object (Hermes docs show nested YAML in examples; JSON with a `hermes` key is what parsers receive after YAML load).
+- **`prerequisites.commands`** — Hermes/agentskills.io: `[openquok]` (advisory command check; skill install does not add the binary). Do **not** require `OPENQUOK_API_KEY` in frontmatter — device OAuth is valid without a pre-set env var.
+- **`compatibility`** — agentskills.io optional one-liner: global CLI is separate from the skill bundle.
 
 ### Avoid persistence findings
 
