@@ -37,6 +37,41 @@ git tag cli-v0.0.8
 git push origin cli-v0.0.8
 ```
 
+### GitHub release notes
+
+CI fills the GitHub release body automatically from `scripts/release-notes.mjs` (scoped to `agent/` vs the previous `cli-v*` tag).
+
+**Preview before tagging** (from monorepo root):
+
+```bash
+pnpm release:notes cli-v0.0.8
+# optional: compare against an older tag
+pnpm release:notes cli-v0.0.8 --from cli-v0.0.7
+```
+
+**Manual template** (edit and paste on GitHub if you want to override CI):
+
+~~~markdown
+## @openquok/auto-cli v0.0.8
+
+**Compare:** [cli-v0.0.7...cli-v0.0.8](https://github.com/Ratimon/openquok-monorepo/compare/cli-v0.0.7...cli-v0.0.8)
+
+```bash
+npm install -g @openquok/auto-cli@0.0.8
+```
+
+### Added
+- …
+
+### Changed
+- …
+
+### Removed
+- …
+~~~
+
+Replace version numbers and bullets. For skill-only releases, list new JSON recipes and provider docs under **Added**; CLI command changes under **Changed** / **Removed**.
+
 CI uses **npm trusted publishing** (OIDC) — see below. **Do not** pass `NPM_AUTH_TOKEN` to the publish step; a Publish token there causes `EOTP`.
 
 ### One-time: trusted publisher on npm (required for CI)

@@ -79,7 +79,8 @@
     "publish:sdk:build": "pnpm --filter ./sdk build",
     "publish:sdk:manual": "pnpm --filter ./sdk run publish:manual",
     "publish:cli:build": "pnpm --filter ./agent build",
-    "publish:cli:manual": "pnpm --filter ./agent run publish:manual"
+    "publish:cli:manual": "pnpm --filter ./agent run publish:manual",
+    "release:notes": "node scripts/release-notes.mjs"
   },
   "keywords": [],
   "author": "Rati Montreewat",

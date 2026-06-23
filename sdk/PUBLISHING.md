@@ -26,6 +26,41 @@ git tag sdk-v0.0.9
 git push origin sdk-v0.0.9
 ```
 
+### GitHub release notes
+
+CI fills the GitHub release body automatically from `scripts/release-notes.mjs` (scoped to `sdk/` vs the previous `sdk-v*` tag). New/removed `async` methods in `sdk/src/index.ts` are listed under **Added** / **Removed**.
+
+**Preview before tagging** (from monorepo root):
+
+```bash
+pnpm release:notes sdk-v0.0.9
+# optional: compare against last npm release instead of the previous tag
+pnpm release:notes sdk-v0.0.9 --from sdk-v0.0.2
+```
+
+**Manual template** (edit and paste on GitHub if you want to override CI):
+
+~~~markdown
+## @openquok/node-sdk v0.0.9
+
+**Compare:** [sdk-v0.0.2...sdk-v0.0.9](https://github.com/Ratimon/openquok-monorepo/compare/sdk-v0.0.2...sdk-v0.0.9)
+
+```bash
+npm install @openquok/node-sdk@0.0.9
+```
+
+### Added
+- **API methods:** `isConnected()`, `getWorkspace()`, …
+
+### Changed
+- Bearer auth header; shared HTTP error handling
+
+### Removed
+- **Removed methods:** `getPostGroup()`, …
+~~~
+
+Replace version numbers and bullets to match the diff since the last published tag.
+
 CI uses **npm trusted publishing** (OIDC) — see below. **Do not** pass `NPM_AUTH_TOKEN` to the publish step; a Publish token there causes `EOTP`.
 
 ### One-time: trusted publisher on npm (required for CI)

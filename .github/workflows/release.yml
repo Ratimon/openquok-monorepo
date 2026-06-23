@@ -14,9 +14,23 @@ jobs:
     steps:
       - name: "Check out the repo"
         uses: "actions/checkout@v3"
+        with:
+          fetch-depth: 0
+
+      - name: "Generate release notes"
+        id: notes
+        run: |
+          node scripts/release-notes.mjs "${{ github.ref_name }}" --out release-notes.md
+          {
+            echo "body<<EOF"
+            cat release-notes.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: "Release"
         uses: "ncipollo/release-action@v1"
+        with:
+          body: ${{ steps.notes.outputs.body }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
