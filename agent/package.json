@@ -1,6 +1,6 @@
 {
   "name": "@openquok/auto-cli",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Programmatic CLI for the Openquok scheduling API — designed for automation and AI agents. It is to automate social media posting, manage scheduled content, and upload media via the Openquok API across the social platforms you’ve connected to Openquok",
   "main": "dist/index.js",
   "type": "module",

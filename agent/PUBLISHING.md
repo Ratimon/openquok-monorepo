@@ -31,10 +31,10 @@ Match `agent/package.json` `version` to the tag (`cli-v0.0.8` → `"0.0.8"`). Co
 
 ```bash
 git add agent/
-git commit -m "chore(cli): release 0.0.8"
+git commit -m "chore(cli): release 0.0.9"
 git push origin main
-git tag cli-v0.0.8
-git push origin cli-v0.0.8
+git tag cli-v0.0.9
+git push origin cli-v0.0.9
 ```
 
 ### GitHub release notes
