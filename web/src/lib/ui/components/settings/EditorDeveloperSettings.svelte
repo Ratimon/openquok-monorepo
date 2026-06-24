@@ -227,6 +227,7 @@
 					CLI authentication tutorial
 				</a>.
 			</p>
+			
 			{#snippet actions()}
 				<Button href={cliAuthDocsHref} variant="outline" size="sm" class="gap-1.5" target="_blank">
 					<AbstractIcon name={icons.BookOpen.name} class="size-4" width="16" height="16" />
