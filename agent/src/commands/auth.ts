@@ -9,12 +9,16 @@ import {
   // Default Configuration Values
   getConfig,
   OPENQUOK_DEFAULT_AUTH_SERVER,
-  writeCredentialsFile
+  writeCredentialsFile,
 } from "../config";
 import { requestJson } from "../http";
 import { printJson } from "../output";
 
 import { requireArg, runCommand } from "./utils";
+
+/** Defaults aligned with agent/server device flow. */
+const DEFAULT_DEVICE_EXPIRES_IN_S = 30 * 60;
+const DEFAULT_DEVICE_POLL_INTERVAL_S = 5;
 
 async function sleep(ms: number): Promise<void> {
   await new Promise((r) => setTimeout(r, ms));
@@ -88,10 +92,28 @@ type DeviceCodeResponse = {
   interval: number;
 };
 
+type DevicePollOptions = {
+  expiresIn: number;
+  interval: number;
+};
+
+function resolveAuthServerBase(authServerArg: unknown): string {
+  const cfg = getConfig();
+  const authServer =
+    typeof authServerArg === "string" && authServerArg.trim() ? authServerArg.trim() : cfg.authServerUrl;
+  return authServer.replace(/\/+$/, "");
+}
+
+async function requestDeviceCode(base: string): Promise<DeviceCodeResponse> {
+  const code = await requestJson<DeviceCodeResponse>({ url: `${base}/device/code`, method: "POST" });
+  assertVerificationUriSafe(base, code.verification_uri);
+  return code;
+}
+
 async function pollDeviceToken(
   base: string,
   deviceCode: string,
-  code: DeviceCodeResponse,
+  poll: DevicePollOptions,
   deadlineMs: number
 ): Promise<{ access_token: string; api_url?: string; organization_id?: string }> {
   while (Date.now() < deadlineMs) {
@@ -120,10 +142,26 @@ async function pollDeviceToken(
       }
     }
 
-    await sleep(Math.max(1000, Number(code.interval) * 1000));
+    await sleep(Math.max(1000, Number(poll.interval) * 1000));
   }
 
   throw new Error("OAuth2 login timed out");
+}
+
+async function pollAndStoreDeviceCredentials(
+  base: string,
+  deviceCode: string,
+  poll: DevicePollOptions
+): Promise<{ organization_id?: string; api_url?: string }> {
+  const deadlineMs = Date.now() + poll.expiresIn * 1000;
+  const token = await pollDeviceToken(base, deviceCode, poll, deadlineMs);
+
+  await writeCredentialsFile({
+    apiKey: token.access_token,
+    ...(token.api_url ? { apiUrl: token.api_url } : {}),
+  });
+
+  return { organization_id: token.organization_id, api_url: token.api_url };
 }
 
 export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandContext) => {
@@ -147,10 +185,20 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             describe:
               "Emit machine-readable JSON for device flow (initial payload + result). Use in scripts; default is interactive (instructions on stderr).",
           })
+          .option("no-poll", {
+            type: "boolean",
+            default: false,
+            describe:
+              "With --json: emit the device payload and exit (no polling). Complete login with auth:login:poll — required for messaging agents that stop the shell after the first JSON line.",
+          })
           .example("$0 auth:login", "Interactive OAuth2 device flow (opens a browser)")
           .example(
             "$0 auth:login --json",
             "Device flow with machine-readable JSON on stdout (for CI/automation)"
+          )
+          .example(
+            "$0 auth:login --json --no-poll",
+            "Start device flow for agents (Telegram/Hermes): print link, then run auth:login:poll after the user authorizes"
           )
           .example(
             '$0 auth:login --apiKey "opo_..."',
@@ -170,17 +218,12 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           }
 
           // Option 1: OAuth2 device flow
-          const cfg = getConfig();
-          const authServer =
-            typeof args.authServer === "string" && args.authServer.trim() ? args.authServer.trim() : cfg.authServerUrl;
-          const base = authServer.replace(/\/+$/, "");
-
-          const code = await requestJson<DeviceCodeResponse>({ url: `${base}/device/code`, method: "POST" });
-
-          assertVerificationUriSafe(base, code.verification_uri);
+          const base = resolveAuthServerBase(args.authServer);
+          const code = await requestDeviceCode(base);
           const verificationUriComplete = buildVerificationUriComplete(code.verification_uri, code.user_code);
 
           const jsonMode = Boolean(args.json);
+          const noPoll = Boolean(args.noPoll);
           const interactive = !jsonMode && stdinStream.isTTY;
 
           if (jsonMode) {
@@ -192,7 +235,17 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
               verification_uri_complete: verificationUriComplete,
               expires_in: code.expires_in,
               interval: code.interval,
+              ...(noPoll
+                ? {
+                    poll_pending: true,
+                    poll_command: `openquok auth:login:poll --device-code ${code.device_code}`,
+                  }
+                : {}),
             });
+
+            if (noPoll) {
+              return;
+            }
           } else {
             stderrStream.write(
               `Visit ${code.verification_uri} and enter code ${code.user_code}\n` +
@@ -216,27 +269,63 @@ export const registerAuthCommands: RegisterCommands = (y: Argv, ctx: CommandCont
 
             stderrStream.write("\nWaiting for authentication…\n");
 
-            const deadlineMs = Date.now() + code.expires_in * 1000;
-            const token = await pollDeviceToken(base, code.device_code, code, deadlineMs);
-
-            await writeCredentialsFile({
-              apiKey: token.access_token,
-              ...(token.api_url ? { apiUrl: token.api_url } : {}),
+            const stored = await pollAndStoreDeviceCredentials(base, code.device_code, {
+              expiresIn: code.expires_in,
+              interval: code.interval,
             });
-            printJson({ success: true, stored: true, organization_id: token.organization_id, api_url: token.api_url });
+            printJson({ success: true, stored: true, organization_id: stored.organization_id, api_url: stored.api_url });
             return;
           }
 
-          const deadlineMs = Date.now() + code.expires_in * 1000;
-          const token = await pollDeviceToken(base, code.device_code, code, deadlineMs);
+          const stored = await pollAndStoreDeviceCredentials(base, code.device_code, {
+            expiresIn: code.expires_in,
+            interval: code.interval,
+          });
+          printJson({ success: true, stored: true, organization_id: stored.organization_id, api_url: stored.api_url });
+        });
+      }
+    )
+    .command(
+      "auth:login:poll",
+      "Poll device OAuth and store credentials after auth:login --json --no-poll",
+      (yy: Argv) =>
+        yy
+          .option("device-code", {
+            type: "string",
+            demandOption: true,
+            describe: "device_code from auth:login --json --no-poll stdout",
+          })
+          .option("authServer", {
+            type: "string",
+            describe: `Auth server base URL (defaults to OPENQUOK_AUTH_SERVER or ${OPENQUOK_DEFAULT_AUTH_SERVER})`,
+          })
+          .option("expires-in", {
+            type: "number",
+            describe: `Seconds until the device code expires (default ${DEFAULT_DEVICE_EXPIRES_IN_S}, match auth:login output when possible)`,
+          })
+          .option("interval", {
+            type: "number",
+            describe: `Poll interval in seconds (default ${DEFAULT_DEVICE_POLL_INTERVAL_S}, match auth:login output when possible)`,
+          })
+          .example(
+            "$0 auth:login:poll --device-code abc123…",
+            "After the user opens verification_uri_complete, poll until credentials are stored"
+          ),
+      async (args: any) => {
+        await runCommand("auth:login:poll", async () => {
+          const base = resolveAuthServerBase(args.authServer);
+          const deviceCode = requireArg("device-code", args.deviceCode);
+          const expiresIn =
+            typeof args.expiresIn === "number" && args.expiresIn > 0
+              ? args.expiresIn
+              : DEFAULT_DEVICE_EXPIRES_IN_S;
+          const interval =
+            typeof args.interval === "number" && args.interval > 0
+              ? args.interval
+              : DEFAULT_DEVICE_POLL_INTERVAL_S;
 
-          if (token?.access_token) {
-            await writeCredentialsFile({
-              apiKey: token.access_token,
-              ...(token.api_url ? { apiUrl: token.api_url } : {}),
-            });
-            printJson({ success: true, stored: true, organization_id: token.organization_id, api_url: token.api_url });
-          }
+          const stored = await pollAndStoreDeviceCredentials(base, deviceCode, { expiresIn, interval });
+          printJson({ success: true, stored: true, organization_id: stored.organization_id, api_url: stored.api_url });
         });
       }
     )

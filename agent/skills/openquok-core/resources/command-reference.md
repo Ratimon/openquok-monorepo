@@ -23,18 +23,25 @@ Prints resolved `api_url`, `auth_server_url`, deployment mode (`openquok_cloud` 
 ## Authentication
 
 ```bash
-openquok auth:login --json          # agents: device flow on stdout (try first)
+# Messaging agents (Telegram/Hermes) — two steps; do not use auth:login --json alone
+openquok auth:login --json --no-poll
+openquok auth:login:poll --device-code "<device_code from stdout>"
+
+# CI / long-running shell — single process may use auth:login --json (polls until done)
+openquok auth:login --json
+
 openquok auth:login --apiKey "opo_…"   # fallback when device flow cannot complete
 openquok auth:status
 openquok auth:workspace             # { workspace: { id, name } } for current credentials
 openquok auth:logout
 ```
 
-- **Preference:** device OAuth (`auth:login --json`) before a programmatic token when the user can open a browser link.
-- **Agents:** `--json` only on headless hosts; forward `verification_uri_complete` from stdout — never fabricate codes or URLs.
+- **Preference:** device OAuth before a programmatic token when the user can open a browser link.
+- **Messaging hosts:** `--json --no-poll` then `auth:login:poll` after the user authorizes — otherwise credentials are never stored.
+- **Agents:** forward `verification_uri_complete` from stdout only — never fabricate codes or URLs.
 - **Humans with TTY:** `openquok auth:login` without `--json` is fine locally.
 - **Session start:** see Rule 0 in [SKILL.md](../SKILL.md) — run version + `auth:status` (+ `auth:workspace` when connected) via shell before the first assistant message; greet as the Openquok bot, not the host persona.
-- **Invalid or expired code:** Re-run `auth:login --json` while the CLI polls; use a fresh prefilled link (~15 min). Signing in at openquok.com alone does not complete device flow.
+- **Invalid or expired code:** Re-run `auth:login --json --no-poll` and `auth:login:poll` with a fresh `device_code` (~30 min).
 
 
 ## Integrations

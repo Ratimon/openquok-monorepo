@@ -19,7 +19,6 @@
 		getRootPathTemplates,
 		protectedCalendarPagePresenter,
 		protectedHomePagePresenter,
-		protectedPlugsPagePresenter,
 		protectedSettingsPagePresenter,
 		WorkspaceSettingsStatus
 	} from '$lib/area-protected';
@@ -299,6 +298,10 @@
 			});
 			createSocialPostOpen = true;
 		});
+	}
+
+	function startCreatePostFromGettingStarted(): void {
+		void openCreatePost(null);
 	}
 
 	async function openCreatePostForGroup(groupId: string) {
@@ -603,14 +606,6 @@
 		postKanbanStatus === 'ready' &&
 			(postKanbanColumnCountsVm.scheduled.total + postKanbanColumnCountsVm.published.total) > 0
 	);
-	const hasPlugForGettingStarted = $derived(
-		protectedPlugsPagePresenter.plugGridTable.plugRulesRowsVm.length > 0
-	);
-
-	$effect(() => {
-		if (!showGettingStartedSection || !workspaceId) return;
-		void protectedPlugsPagePresenter.syncWorkspaceAndCatalog();
-	});
 
 	const gettingStartedChecklist = $derived([
 		{ id: 'account', label: 'Create an account', done: true },
@@ -626,15 +621,7 @@
 			label: 'Schedule first post',
 			done: hasScheduledPostForGettingStarted,
 			actionLabel: 'Create post',
-			onAction: () => void openCreatePost(null),
-			disabled: !hasChannelForGettingStarted
-		},
-		{
-			id: 'plug',
-			label: 'Create plug',
-			done: hasPlugForGettingStarted,
-			actionLabel: 'Create plug',
-			onAction: () => void goto(plugsPath),
+			onAction: startCreatePostFromGettingStarted,
 			disabled: !hasChannelForGettingStarted
 		}
 	]);

@@ -41,7 +41,7 @@ If `auth:status` shows `"connected": true`, also run `openquok auth:workspace`.
 
 1. Installed CLI version from `openquok --version`.
 2. If the user may be on an old build: note that skill install does not upgrade the CLI and offer to walk through upgrade using the [CLI package page](https://www.npmjs.com/package/@openquok/auto-cli) — only after they agree.
-3. Auth: if connected, say you are authenticated and name **`workspace.name`**; if not, say not authenticated and offer `auth:login --json` (user opens `verification_uri_complete` from stdout only) or a programmatic token (`opo_`).
+3. Auth: if connected, say you are authenticated and name **`workspace.name`**; if not, say not authenticated and offer the **two-step device flow** (below) or a programmatic token (`opo_`). **Never** run `auth:login --json` without `--no-poll` on messaging hosts — the shell exits before credentials are stored.
 
 **Fill-in template (one paragraph — replace `…` from shell output):**
 
@@ -80,11 +80,21 @@ Verify upload stdout with `jq` (require `id` and `path`/`filePath`). Remote asse
 
 | Order | Path | Use |
 |-------|------|-----|
-| 1 | **Device OAuth** | `openquok auth:login --json` on agents/CI/SSH — user opens `verification_uri_complete` on phone or desktop |
-| 2 | **Programmatic token** | If device flow fails or user prefers tokens: `export OPENQUOK_API_KEY=opo_…` or `openquok auth:login --apiKey "opo_…"` |
+| 1 | **Device OAuth (two steps)** | Messaging agents (Telegram/Hermes): `auth:login --json --no-poll` → user opens `verification_uri_complete` → `auth:login:poll --device-code <device_code>` → `auth:status` |
+| 2 | **Programmatic token** | Headless or when device flow fails: `export OPENQUOK_API_KEY=opo_…` or `openquok auth:login --apiKey "opo_…"` |
+
+**Device OAuth on messaging hosts (required two-step):**
+
+```bash
+openquok auth:login --json --no-poll
+# send verification_uri_complete to the user; wait until they confirm they authorized
+openquok auth:login:poll --device-code "<device_code from stdout>"
+openquok auth:status
+```
 
 - Tokens: [Openquok dashboard](https://www.openquok.com/) → **Settings → Developers → Access** → **Generate / Rotate token** (shown once).
-- Never invent verification URLs or user codes — only values from `auth:login --json` stdout.
+- Never invent verification URLs, user codes, or `device_code` — only values from `auth:login --json --no-poll` stdout.
+- Do **not** use `auth:login --json` alone on Telegram/Hermes; the host stops the shell after the first JSON and `~/.openquok/credentials.json` is never written.
 - Disk credentials in `~/.openquok/credentials.json` take precedence over `OPENQUOK_API_KEY` until `auth:logout`.
 - Workspace context: `openquok auth:workspace` → `{ workspace: { id, name } }`.
 - Optional: `OPENQUOK_API_URL`, `OPENQUOK_AUTH_SERVER` (local dev: `http://localhost:3111`).
@@ -177,8 +187,9 @@ Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 
 | Symptom | Fix |
 |---------|-----|
-| API 401 / auth errors | Device OAuth first (`auth:login --json`); then programmatic token (`opo_`); never fake device URLs |
-| Invalid or expired device code | Re-run `auth:login --json`; use fresh `verification_uri_complete` (~15 min) |
+| API 401 / auth errors | Two-step device OAuth (`auth:login --json --no-poll` then `auth:login:poll`); or programmatic token (`opo_`); never fake device URLs |
+| Device login OK in browser but CLI has no credentials | Messaging host ended `auth:login --json` before polling — use `--no-poll` + `auth:login:poll`, or `auth:login --apiKey` |
+| Invalid or expired device code | Re-run `auth:login --json --no-poll`; use fresh `verification_uri_complete` (~30 min) |
 | Wrong channel | Re-fetch UUID from `integrations:list` |
 | Media rejected at publish | Rule 2: upload first; for Threads see [threads-publish.md](./resources/threads-publish.md) |
 | “Image” in chat, no file | Stop; get file path or `https://` URL for `upload-from-url` |

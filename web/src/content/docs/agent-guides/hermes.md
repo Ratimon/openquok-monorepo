@@ -45,7 +45,7 @@ Then choose a provider — fastest path with Nous Portal:
 hermes setup --portal
 ```
 
-Or run <Badge text="hermes model" variant="default" /> to pick Anthropic, OpenRouter, OpenAI, Gemini, or a custom endpoint. See the <DocsExternalLink href="https://hermes-agent.nousresearch.com/docs/getting-started/quickstart">Hermes quickstart</DocsExternalLink> for provider tables and troubleshooting.
+<p>Or run <Badge text="hermes model" variant="default" /> to pick Anthropic, OpenRouter, OpenAI, Gemini, or a custom endpoint. See the <DocsExternalLink href="https://hermes-agent.nousresearch.com/docs/getting-started/quickstart">Hermes quickstart</DocsExternalLink> for provider tables and troubleshooting.</p>
 
 ### Connect a messaging gateway (optional)
 
@@ -85,7 +85,7 @@ The skill file lives at <Badge text="agent/skills/openquok-core/SKILL.md" varian
 hermes skills install https://raw.githubusercontent.com/Ratimon/openquok-monorepo/main/agent/skills/openquok-core/SKILL.md
 ```
 
-<p>Run this in the <strong>Hermes terminal</strong> — the same environment Hermes uses for shell tools.
+<p>Run this in the <strong>Hermes terminal</strong> — the same environment Hermes uses for shell tools.</p>
 
 </TabItem>
 <TabItem label="curl">
@@ -105,7 +105,14 @@ Start a <strong>new</strong> Hermes session after install so skill descriptions 
 
 ### Authenticate
 
-**Recommended:** ask the agent in chat to log in to Openquok. It sends you a sign-in link; open it on your phone, sign in if needed, and tap <strong>Authorize</strong>.
+**Recommended (Telegram / messaging):** device OAuth in **two CLI steps** — Hermes stops the shell after the first JSON from <Badge text="auth:login --json" variant="default" />, so credentials are never stored unless you use <Badge text="--no-poll" variant="param" /> and a follow-up poll:
+
+```bash
+openquok auth:login --json --no-poll
+# open verification_uri_complete on your phone → Authorize → tell the agent you're done
+openquok auth:login:poll --device-code "<device_code from stdout>"
+openquok auth:status
+```
 
 **Alternative for fully headless hosts (VPS, Docker, Telegram bots):** rotate a programmatic token from the <a href="https://www.openquok.com">Openquok dashboard</a> (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />):
 
@@ -129,6 +136,7 @@ openquok integrations:list
 - Start a **new chat session** after installing the skill or upgrading the CLI so Hermes reloads skills and checks <Badge text="openquok --version" variant="default" /> once at session start.
 - If the agent reports an old CLI version after you upgraded, run <Badge text="command -v openquok" variant="default" /> and <Badge text="which -a openquok" variant="default" /> — another binary may be earlier on <Badge text="PATH" variant="param" />.
 - Hermes separates secrets (<Badge text="~/.hermes/.env" variant="path" />) from config (<Badge text="~/.hermes/config.yaml" variant="path" />). export <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> in your shell profile before starting <Badge text="hermes gateway" variant="default" />.
+- On Telegram, use <Badge text="auth:login --json --no-poll" variant="default" /> then <Badge text="auth:login:poll" variant="default" /> after you authorize on your phone — not <Badge text="auth:login --json" variant="default" /> alone.
 - For posting with images in chat, the user must provide a file  or an image URL for <Badge text="upload-from-url" variant="default" />.
 
 ## Real World Use case: Chat model vs image generation
