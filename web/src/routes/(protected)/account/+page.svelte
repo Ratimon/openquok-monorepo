@@ -15,11 +15,16 @@
 	import {
 		getRootPathAccount,
 		getRootPathCalendar,
+		getRootPathPlugs,
+		getRootPathTemplates,
 		protectedCalendarPagePresenter,
 		protectedHomePagePresenter,
+		protectedPlugsPagePresenter,
 		protectedSettingsPagePresenter,
 		WorkspaceSettingsStatus
 	} from '$lib/area-protected';
+	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
+	import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import {
@@ -50,6 +55,7 @@
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
+	import AccountGettingStartedSection from '$lib/ui/components/home/AccountGettingStartedSection.svelte';
 	import MyChannelsSection from '$lib/ui/components/channels/MyChannelsSection.svelte';
 	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
 	import { postsLimitKey } from '$lib/ui/components/posts/postsLimitContext';
@@ -61,6 +67,24 @@
 	// /account/calendar
 	const rootPathCalendar = getRootPathCalendar();
 	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
+
+	const rootPathPlugs = getRootPathPlugs();
+	const plugsPath = route(`${rootPathAccount}/${rootPathPlugs}`);
+
+	const rootPathTemplates = getRootPathTemplates();
+	const templatesPath = route(`${rootPathAccount}/${rootPathTemplates}`);
+
+	const rootPathPublicDocs = getRootPathPublicDocs();
+	const publicDocsPath = route(rootPathPublicDocs);
+	const cliDocsHref = $derived(url(`${publicDocsPath}/getting-started-for-cli`));
+	const cliAuthDocsHref = $derived(url(`${publicDocsPath}/getting-started-for-cli/authentication`));
+	const openclawGuideHref = $derived(url(`${publicDocsPath}/agent-guides/openclaw`));
+	const hermesGuideHref = $derived(url(`${publicDocsPath}/agent-guides/hermes`));
+
+	const rootPathPublicAgents = getRootPathPublicAgents();
+	const publicAgentsPath = route(rootPathPublicAgents);
+	const openclawAgentHref = $derived(url(`${publicAgentsPath}/openclaw`));
+	const hermesAgentHref = $derived(url(`${publicAgentsPath}/hermes`));
 
 	const pagePresenter = protectedHomePagePresenter;
 	const postKanbanBoard = pagePresenter.postKanbanBoardPresenter;
@@ -463,7 +487,10 @@
 	let inviteTeamNoticeDismissed = $state(false);
 	let soloUpgradeNoticeDismissed = $state(false);
 
+	let gettingStartedDismissed = $state(false);
+
 	const HOME_NOTICE_STORAGE_PREFIX = 'home:notice';
+	const GETTING_STARTED_NOTICE_KIND = 'getting-started';
 
 	function homeNoticeStorageKey(kind: string, orgId: string): string {
 		return `${HOME_NOTICE_STORAGE_PREFIX}:${kind}:${orgId}`;
@@ -524,11 +551,17 @@
 		if (workspaceId) persistHomeNoticeDismissed('solo-upgrade', workspaceId);
 	}
 
+	function dismissGettingStartedSection(): void {
+		gettingStartedDismissed = true;
+		if (workspaceId) persistHomeNoticeDismissed(GETTING_STARTED_NOTICE_KIND, workspaceId);
+	}
+
 	$effect(() => {
 		const orgId = workspaceId;
 		noChannelsNoticeDismissed = readHomeNoticeDismissed('no-channels', orgId);
 		inviteTeamNoticeDismissed = readHomeNoticeDismissed('invite-team', orgId);
 		soloUpgradeNoticeDismissed = readHomeNoticeDismissed('solo-upgrade', orgId);
+		gettingStartedDismissed = readHomeNoticeDismissed(GETTING_STARTED_NOTICE_KIND, orgId);
 	});
 
 	/** At most one home notice; no connected channels wins over upgrade and invite. */
@@ -560,6 +593,121 @@
 		}
 		return null;
 	});
+
+	const showGettingStartedSection = $derived(
+		Boolean(workspaceId) && listStatus === 'ready' && !gettingStartedDismissed
+	);
+
+	const hasChannelForGettingStarted = $derived(connectedChannelCountVm > 0);
+	const hasScheduledPostForGettingStarted = $derived(
+		postKanbanStatus === 'ready' &&
+			(postKanbanColumnCountsVm.scheduled.total + postKanbanColumnCountsVm.published.total) > 0
+	);
+	const hasPlugForGettingStarted = $derived(
+		protectedPlugsPagePresenter.plugGridTable.plugRulesRowsVm.length > 0
+	);
+
+	$effect(() => {
+		if (!showGettingStartedSection || !workspaceId) return;
+		void protectedPlugsPagePresenter.syncWorkspaceAndCatalog();
+	});
+
+	const gettingStartedChecklist = $derived([
+		{ id: 'account', label: 'Create an account', done: true },
+		{
+			id: 'channel',
+			label: 'Add channel',
+			done: hasChannelForGettingStarted,
+			actionLabel: 'Add channel',
+			onAction: openOnboardingFlow
+		},
+		{
+			id: 'post',
+			label: 'Schedule first post',
+			done: hasScheduledPostForGettingStarted,
+			actionLabel: 'Create post',
+			onAction: () => void openCreatePost(null),
+			disabled: !hasChannelForGettingStarted
+		},
+		{
+			id: 'plug',
+			label: 'Create plug',
+			done: hasPlugForGettingStarted,
+			actionLabel: 'Create plug',
+			onAction: () => void goto(plugsPath),
+			disabled: !hasChannelForGettingStarted
+		}
+	]);
+
+	const gettingStartedAutomationLinks = $derived([
+		{
+			label: 'Open onboarding wizard',
+			description: 'Connect channels, agents, and the CLI step by step.',
+			iconName: icons.Settings.name,
+			onClick: openOnboardingFlow
+		},
+		{
+			label: 'CLI documentation',
+			description: 'Install and use the OpenQuok CLI.',
+			iconName: icons.BookOpen.name,
+			href: cliDocsHref,
+			external: true
+		},
+		{
+			label: 'Authentication guide',
+			description: 'OAuth device login and programmatic tokens.',
+			iconName: icons.Lock.name,
+			href: cliAuthDocsHref,
+			external: true
+		},
+		{
+			label: 'OpenClaw agent guide',
+			description: 'Install openquok-core on OpenClaw.',
+			iconName: icons.BookOpen.name,
+			href: openclawGuideHref,
+			external: true
+		},
+		{
+			label: 'Hermes agent guide',
+			description: 'Install openquok-core on Hermes Agent.',
+			iconName: icons.BookOpen.name,
+			href: hermesGuideHref,
+			external: true
+		}
+	]);
+
+	const gettingStartedExploreLinks = $derived([
+		{
+			label: 'Calendar',
+			description: 'Plan and review scheduled posts.',
+			iconName: icons.CalendarClock.name,
+			href: calendarPath
+		},
+		{
+			label: 'Auto Plugs',
+			description: 'Automate follow-ups on supported channels.',
+			iconName: icons.Sparkles.name,
+			href: plugsPath
+		},
+		{
+			label: 'Templates',
+			description: 'Reusable layouts for faster composing.',
+			iconName: icons.LayoutTemplate.name,
+			href: templatesPath
+		},
+		{
+			label: 'OpenClaw + OpenQuok',
+			description: 'Schedule from chat on your own devices.',
+			iconName: icons.Bot.name,
+			href: openclawAgentHref
+		},
+		{
+			label: 'Hermes + OpenQuok',
+			description: 'Agent automation with messaging gateways.',
+			iconName: icons.Bot.name,
+			href: hermesAgentHref
+		}
+	]);
 
 	// --- Onboarding visibility (welcome flag + first-empty-workspace auto-open) ---
 	$effect(() => {
@@ -798,6 +946,15 @@
 				</HomeAccountNoticeBanner>
 			{/if}
 		</div>
+	{/if}
+
+	{#if showGettingStartedSection}
+		<AccountGettingStartedSection
+			onDismiss={dismissGettingStartedSection}
+			checklistItems={gettingStartedChecklist}
+			automationLinks={gettingStartedAutomationLinks}
+			exploreLinks={gettingStartedExploreLinks}
+		/>
 	{/if}
 
 	<div class="flex items-center gap-3">
