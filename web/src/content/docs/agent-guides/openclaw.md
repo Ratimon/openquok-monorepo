@@ -2,7 +2,7 @@
 title: OpenClaw
 description: Install the openquok-core skill and Openquok CLI on an OpenClaw host (eg. Telegram).
 order: 0
-lastUpdated: 2026-05-16
+lastUpdated: 2026-06-24
 ---
 
 <script>
@@ -122,26 +122,119 @@ Then open a shell in the Railway service, <code>cd /data/workspace</code>, and c
 - If the agent reports an old CLI version after you upgraded, run <Badge text="command -v openquok" variant="default" /> and <Badge text="which -a openquok" variant="default" /> — another binary may be earlier on <Badge text="PATH" variant="param" />.
 - For posting with images in chat, the user must provide a file  or a direct <code>https://</code> image URL for <Badge text="upload-from-url" variant="default" />; ask before calling <Badge text="posts:create" variant="default" /> with media.
 
+## Real World Use case: Chat model vs image generation
+
+OpenClaw uses <strong>two separate systems</strong>:
+
+| Role | Configured via | Example |
+| --- | --- | --- |
+| Main chat (Telegram, Control UI, scheduling) | <Badge text="agents.defaults.model.primary" variant="param" /> in gateway config (<Badge text="openclaw.json" variant="path" />) or <Badge text="/model" variant="default" /> in chat | <Badge text="anthropic/claude-sonnet-4-6" variant="default" /> |
+| Image generation (on demand) | <Badge text="agents.defaults.imageGenerationModel" variant="param" /> plus provider API keys | <Badge text="openai/gpt-image-2" variant="default" /> via the <Badge text="image_generate" variant="default" /> tool |
+
+Do <strong>not</strong> set an image-only model (for example <Badge text="google/gemini-3-pro-image-preview" variant="default" /> or <Badge text="openrouter/google/gemini-3-pro-image-preview" variant="default" />) as your main Telegram or session model. Those models are built for image output, not general chat — the gateway may fail before it can run tools or answer questions.
+
+<Callout type="warning" title="Capable chat + quality images">
+<p>Pick a capable chat model for <Badge text="agents.defaults.model.primary" variant="param" /> (for example <Badge text="anthropic/claude-sonnet-4-6" variant="default" />). Configure image generation separately under <Badge text="imageGenerationModel" variant="param" /> — the agent calls <Badge text="image_generate" variant="default" /> when the user asks for a picture, without changing the main model. Image jobs run in the background; OpenClaw wakes the agent when the provider finishes.</p>
+</Callout>
+
+### Set the main chat model
+
+Fastest path on a fresh host:
+
+```bash
+openclaw onboard
+```
+
+Or reconfigure models only:
+
+```bash
+openclaw configure --section model
+```
+
+Pick a <strong>chat</strong> model such as <Badge text="anthropic/claude-sonnet-4-6" variant="default" />. You can also set the default from the shell:
+
+```bash
+openclaw models set anthropic/claude-sonnet-4-6
+openclaw models status
+```
+
+OpenClaw writes the result to gateway config (typically <Badge text="openclaw.json" variant="path" /> under your OpenClaw data directory):
+
+```json5
+{
+  agents: {
+    defaults: {
+      model: { primary: "anthropic/claude-sonnet-4-6" },
+    },
+  },
+}
+```
+
+In an existing Telegram or Control UI session, switch with <Badge text="/model anthropic/claude-sonnet-4-6" variant="default" /> or <Badge text="/model" variant="default" /> for the numbered picker. Use <Badge text="/model default" variant="default" /> to return to the configured primary.
+
+See <DocsExternalLink href="https://docs.openclaw.ai/concepts/models">Models</DocsExternalLink> for fallbacks, allowlists, and provider auth.
+
+### Configure image generation
+
+Image generation is <strong>not</strong> part of the OpenQuok skill. Set it up once on the OpenClaw gateway host:
+
+1. Add an API key for at least one image provider — for example <Badge text="OPENAI_API_KEY" variant="envBackend" />, <Badge text="GEMINI_API_KEY" variant="envBackend" />, <Badge text="FAL_KEY" variant="envBackend" />, or <Badge text="OPENROUTER_API_KEY" variant="envBackend" /> (OpenAI Codex OAuth also works for <Badge text="openai/gpt-image-2" variant="default" />).
+2. Optionally set a default image model so <Badge text="image_generate" variant="default" /> does not rely on auto-detection alone.
+
+```bash
+openclaw config set agents.defaults.imageGenerationModel '{"primary":"openai/gpt-image-2","timeoutMs":180000}' --strict-json --merge
+```
+
+Example gateway config with fallbacks:
+
+```json5
+{
+  agents: {
+    defaults: {
+      imageGenerationModel: {
+        primary: "openai/gpt-image-2",
+        timeoutMs: 180_000,
+        fallbacks: [
+          "openrouter/google/gemini-3.1-flash-image-preview",
+          "google/gemini-3.1-flash-image-preview",
+          "fal/fal-ai/flux/dev",
+        ],
+      },
+    },
+  },
+}
+```
+
+Common routes (see the <DocsExternalLink href="https://docs.openclaw.ai/tools/image-generation">OpenClaw image generation</DocsExternalLink> guide for the full provider table):
+
+| Goal | Model ref | Auth |
+| --- | --- | --- |
+| OpenAI image generation | <Badge text="openai/gpt-image-2" variant="default" /> | <Badge text="OPENAI_API_KEY" variant="envBackend" /> or OpenAI Codex OAuth |
+| Google Gemini images | <Badge text="google/gemini-3.1-flash-image-preview" variant="default" /> | <Badge text="GEMINI_API_KEY" variant="envBackend" /> |
+| fal (Flux, Krea, Nano Banana) | <Badge text="fal/fal-ai/flux/dev" variant="default" /> | <Badge text="FAL_KEY" variant="envBackend" /> |
+| OpenRouter image models | <Badge text="openrouter/google/gemini-3.1-flash-image-preview" variant="default" /> | <Badge text="OPENROUTER_API_KEY" variant="envBackend" /> |
+
+The <Badge text="image_generate" variant="default" /> tool appears only when at least one image provider is available. Inspect registered providers at runtime with <Badge text="/tool image_generate action=list" variant="default" />.
+
+Then ask in Telegram or the Control UI:
+
+```text
+Generate a square image of a product hero shot on a clean white background
+```
+
+OpenClaw routes that to <Badge text="image_generate" variant="default" /> using <Badge text="imageGenerationModel.primary" variant="param" /> (or the next fallback) — your main chat model stays on Sonnet.
+
+Full model list, editing, aspect ratios, and provider deep dives: <DocsExternalLink href="https://docs.openclaw.ai/tools/image-generation">OpenClaw image generation</DocsExternalLink>.
+
 ## Troubleshooting
 
 <Callout type="note" title="Invalid or expired code">
 <p>The user must open the exact <Badge text="verification_uri_complete" variant="param" /> link from <Badge text="auth:login --json" variant="default" /> while the CLI is still polling. Codes expire in about 15 minutes. Pre-login at openquok.com alone does not validate the device code.</p>
 </Callout>
 
-## Publishing to ClawHub (maintainers)
-
-To list <Badge text="openquok-core" variant="default" /> on ClawHub so users can run <Badge text="clawhub install openquok-core" variant="default" />:
-
-```bash
-npm i -g clawhub
-clawhub login
-clawhub skill publish ./agent/skills/openquok-core \
-  --slug openquok-core \
-  --name "OpenQuok Core" \
-  --dry-run
-```
-
-Remove <Badge text="--dry-run" variant="param" /> for the live upload. Full checklist, CI workflow, and verification steps are in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/CLAWHUB.md">agent/CLAWHUB.md</DocsExternalLink> in the monorepo.
+<Callout type="warning">
+<p>If Telegram chat fails while the Control UI works, the gateway may be on an image-only model (for example <Badge text="google/gemini-3-pro-image-preview" variant="default" />). Run <Badge text="openclaw models set anthropic/claude-sonnet-4-6" variant="default" /> or <Badge text="/model" variant="default" /> in chat and pick a chat model. Use <Badge text="imageGenerationModel" variant="param" /> for pictures — see <a href="#real-world-use-case-chat-model-vs-image-generation">Chat model vs image generation</a> above.</p>
+</Callout>
 
 ## Skill source on GitHub
 
@@ -152,5 +245,6 @@ Remove <Badge text="--dry-run" variant="param" /> for the live upload. Full chec
 <CardGrid>
 <LinkCard title="Introduction to Openquok CLI" description="General install and quick start" href="/docs/getting-started-for-cli" />
 <LinkCard title="CLI authentication" description="OAuth device flow, programmatic token (opo_), and self-hosted auth server" href="/docs/getting-started-for-cli/authentication" />
+<LinkCard title="Hermes agent guide" description="Install openquok-core for Hermes" href="/docs/agent-guides/hermes" />
 <LinkCard title="CLI Examples" description="Threads and Instagram recipes" href="/docs/cli-examples" />
 </CardGrid>
